@@ -1,0 +1,43 @@
+/*
+ * ecmcEcSDO.h
+ *
+ *  Created on: Dec 15, 2015
+ *      Author: anderssandstrom
+ */
+
+#ifndef ECMCECSDO_H_
+#define ECMCECSDO_H_
+#include "ecrt.h"
+#include <string.h>
+
+#include "ecmcError.h"
+#include "ecmcErrorsList.h"
+#include "stdio.h"
+
+
+class ecmcEcSDO : public ecmcError
+{
+public:
+  ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t value, int byteSize);
+  ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize);
+  ~ecmcEcSDO();
+  int write(uint32_t value);
+  int write();
+  int read();
+  int writeAndVerify();
+  uint32_t getReadValue();
+  uint32_t getWriteValue();
+  int setWriteValue(uint32_t value);
+private:
+  void initVars();
+  ec_master_t *master_;
+  uint16_t slavePosition_;
+  uint16_t sdoIndex_;
+  uint8_t sdoSubIndex_;
+  uint32_t writeValue_;
+  uint32_t readValue_;
+  uint8_t writeBuffer_[4];
+  uint8_t readBuffer_[4];
+  int byteSize_;
+};
+#endif /* ECMCECSDO_H_ */

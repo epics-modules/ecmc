@@ -1,0 +1,6 @@
+file "ecmc-extra.template"
+{
+pattern
+{P,      M,    R,   PORT, ADDR, PREC, HOMEPROC}
+{IOC2:,  xp, xp-,   MCU1,    1, 3,    3}
+}

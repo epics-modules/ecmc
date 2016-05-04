@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display typeId="org.csstudio.opibuilder.Display" version="1.0.0">
+  <show_close_button>true</show_close_button>
+  <rules />
+  <wuid>-1a3581c9:13cca841866:-8000</wuid>
+  <show_grid>true</show_grid>
+  <auto_zoom_to_fit_all>false</auto_zoom_to_fit_all>
+  <scripts />
+  <height>600</height>
+  <macros>
+    <include_parent_macros>true</include_parent_macros>
+    <P>IOC2:</P>
+  </macros>
+  <boy_version>4.0.103.201506251634</boy_version>
+  <show_edit_range>true</show_edit_range>
+  <widget_type>Display</widget_type>
+  <auto_scale_widgets>
+    <auto_scale_widgets>false</auto_scale_widgets>
+    <min_width>-1</min_width>
+    <min_height>-1</min_height>
+  </auto_scale_widgets>
+  <background_color>
+    <color red="240" green="240" blue="240" />
+  </background_color>
+  <width>800</width>
+  <x>-1</x>
+  <name></name>
+  <grid_space>6</grid_space>
+  <show_ruler>true</show_ruler>
+  <y>-1</y>
+  <snap_to_geometry>true</snap_to_geometry>
+  <foreground_color>
+    <color red="192" green="192" blue="192" />
+  </foreground_color>
+  <actions hook="false" hook_all="false" />
+  <widget typeId="org.csstudio.opibuilder.widgets.ActionButton" version="2.0.0">
+    <toggle_button>false</toggle_button>
+    <border_style>0</border_style>
+    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <alarm_pulsing>false</alarm_pulsing>
+    <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+    <push_action_index>0</push_action_index>
+    <rules />
+    <enabled>true</enabled>
+    <wuid>-5fa237c5:1486496e2b9:-7f3c</wuid>
+    <pv_value />
+    <text>IOC2:m1</text>
+    <scripts />
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <height>31</height>
+    <border_width>1</border_width>
+    <scale_options>
+      <width_scalable>true</width_scalable>
+      <height_scalable>true</height_scalable>
+      <keep_wh_ratio>false</keep_wh_ratio>
+    </scale_options>
+    <image></image>
+    <visible>true</visible>
+    <pv_name></pv_name>
+    <border_color>
+      <color red="0" green="128" blue="255" />
+    </border_color>
+    <widget_type>Action Button</widget_type>
+    <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+    <background_color>
+      <color red="240" green="240" blue="240" />
+    </background_color>
+    <width>103</width>
+    <x>30</x>
+    <name>Action Button</name>
+    <y>36</y>
+    <style>0</style>
+    <foreground_color>
+      <color red="0" green="0" blue="0" />
+    </foreground_color>
+    <actions hook="false" hook_all="false">
+      <action type="OPEN_DISPLAY">
+        <path>eemcuAxis.opi</path>
+        <macros>
+          <include_parent_macros>true</include_parent_macros>
+          <M>m1</M>
+          <R>m1-</R>
+        </macros>
+        <replace>0</replace>
+        <description></description>
+      </action>
+    </actions>
+    <font>
+      <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+    </font>
+  </widget>
+  <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
+    <border_style>6</border_style>
+    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <alarm_pulsing>true</alarm_pulsing>
+    <precision>0</precision>
+    <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+    <horizontal_alignment>0</horizontal_alignment>
+    <rules>
+      <rule name="BorderRule" prop_id="border_style" out_exp="false">
+        <exp bool_exp="pv0==1">
+          <value>9</value>
+        </exp>
+        <pv trig="true">$(pv_name)</pv>
+      </rule>
+    </rules>
+    <enabled>true</enabled>
+    <wuid>-3470264b:154512763d7:-7fb5</wuid>
+    <transparent>false</transparent>
+    <pv_value />
+    <auto_size>false</auto_size>
+    <text>#####</text>
+    <rotation_angle>0.0</rotation_angle>
+    <scripts />
+    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <show_units>false</show_units>
+    <height>39</height>
+    <border_width>2</border_width>
+    <scale_options>
+      <width_scalable>true</width_scalable>
+      <height_scalable>true</height_scalable>
+      <keep_wh_ratio>false</keep_wh_ratio>
+    </scale_options>
+    <visible>true</visible>
+    <pv_name>IOC2:MCUErrMsg</pv_name>
+    <vertical_alignment>1</vertical_alignment>
+    <border_color>
+      <color name="IO Border" red="215" green="215" blue="215" />
+    </border_color>
+    <precision_from_pv>true</precision_from_pv>
+    <widget_type>Text Input</widget_type>
+    <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+    <wrap_words>false</wrap_words>
+    <format_type>4</format_type>
+    <background_color>
+      <color name="IO OutputPV Bg" red="121" green="123" blue="126" />
+    </background_color>
+    <width>669</width>
+    <x>30</x>
+    <name>Text Input Template_29</name>
+    <y>90</y>
+    <foreground_color>
+      <color name="IO OutputPV Fg" red="255" green="255" blue="255" />
+    </foreground_color>
+    <actions hook="false" hook_all="false">
+      <action type="EXECUTE_CMD">
+        <command>camonitor -S</command>
+        <command_directory>$(user.home)</command_directory>
+        <wait_time>10</wait_time>
+        <description></description>
+      </action>
+    </actions>
+    <font>
+      <opifont.name fontName="arial" height="10" style="1">IO Output 1</opifont.name>
+    </font>
+  </widget>
+  <widget typeId="org.csstudio.opibuilder.widgets.webbrowser" version="1.0.0">
+    <border_style>1</border_style>
+    <show_toolbar>true</show_toolbar>
+    <tooltip></tooltip>
+    <rules />
+    <enabled>true</enabled>
+    <wuid>-3470264b:154512763d7:-7f49</wuid>
+    <scripts />
+    <height>300</height>
+    <border_width>1</border_width>
+    <scale_options>
+      <width_scalable>true</width_scalable>
+      <height_scalable>true</height_scalable>
+      <keep_wh_ratio>false</keep_wh_ratio>
+    </scale_options>
+    <visible>true</visible>
+    <border_color>
+      <color red="192" green="192" blue="192" />
+    </border_color>
+    <widget_type>Web Browser</widget_type>
+    <url></url>
+    <background_color>
+      <color red="240" green="240" blue="240" />
+    </background_color>
+    <width>450</width>
+    <x>363</x>
+    <name>Web Browser</name>
+    <y>238</y>
+    <foreground_color>
+      <color red="192" green="192" blue="192" />
+    </foreground_color>
+    <actions hook="false" hook_all="false" />
+  </widget>
+</display>

@@ -1,0 +1,48 @@
+record(longin, "$(P)$(R)Err")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR))Err")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)ErrId")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR))ErrId")
+    field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)ErrMsg") {
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR))ErrMsg")
+    field(FTVL, "CHAR")
+    field(NELM, "256")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout,"$(P)$(R)ProcHom") {
+    field(DESC, "Homing Procedure")
+    field(VAL, "$(HOMEPROC)")
+    field(DTYP, "asynInt32")
+    field(PINI, "YES")
+    field(OUT,"@asyn($(PORT),$(ADDR))ProcHom")
+}
+
+record(longout,"$(P)$(R)ErrRst") {
+    field(DESC, "Error Reset")
+    field(VAL,  0)
+    field(DTYP, "asynInt32")
+    field(PINI, "YES")
+    field(OUT,"@asyn($(PORT),$(ADDR))ErrRst")
+}
+
+# jogging velocity
+record(ao,"$(P)$(M)-JVEL_") {
+    field(DESC, "$(M) homevelto")
+    field(DOL,  "$(P)$(M).JVEL CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))JVEL_")
+    field(PREC, "$(PREC)")
+}
+

@@ -1,0 +1,6 @@
+file "ecmcController.template"
+{
+pattern
+{P,      PORT, ADDR, TIMEOUT}
+{IOC2:,  MCU1,    0, 1}
+}

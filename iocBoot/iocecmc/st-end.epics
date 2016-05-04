@@ -1,0 +1,5 @@
+cd ${TOP}/iocBoot/${IOC}
+iocInit
+
+## Start any sequence programs
+#seq sncxxx,"user=torstenbogershausenHost"

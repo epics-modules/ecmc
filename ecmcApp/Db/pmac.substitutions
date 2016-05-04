@@ -1,0 +1,5 @@
+file pmac.template {
+pattern {P,     PORT,    ADDR, TIMEOUT }
+{        IOC2:, MC_CPU1,    0,    1.0 }
+}
+

@@ -1,0 +1,552 @@
+/*
+ * cMcuError.cpp
+ *
+ *  Created on: Mar 16, 2016
+ *      Author: anderssandstrom
+ */
+
+#include "ecmcError.h"
+
+ecmcError::ecmcError()
+{
+  initVars();
+}
+
+ecmcError::~ecmcError()
+{
+  ;
+}
+
+void ecmcError::initVars()
+{
+  errorId_=0;
+  error_=0;
+}
+
+int ecmcError::setErrorID(int errorID)
+{
+  if(errorID)
+    error_=true;
+  else
+    error_=false;
+  errorId_=errorID;
+  return errorId_;
+}
+
+void ecmcError::setError(bool error)
+{
+  error_=error ;
+}
+
+void ecmcError::errorReset()
+{
+  error_=false;
+  errorId_=0;
+}
+
+bool ecmcError::getError()
+{
+  return error_;
+}
+
+int ecmcError::getErrorID()
+{
+  return errorId_;
+}
+
+const char *ecmcError::convertErrorIdToString(int errorId)
+{
+  switch(errorId){
+    case 0: //GENERAL
+      return "NO_ERROR";
+      break;
+    case 0x14300://AXIS
+      return "ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL";
+      break;
+    case 0x14301:
+      return "ERROR_AXIS_DRV_OBJECT_NULL";
+      break;
+    case 0x14302:
+      return "ERROR_AXIS_ENC_OBJECT_NULL";
+      break;
+    case 0x14303:
+      return "ERROR_AXIS_MON_OBJECT_NULL";
+      break;
+    case 0x14304:
+      return "ERROR_AXIS_TRAJ_OBJECT_NULL";
+      break;
+    case 0x14305:
+      return "ERROR_AXIS_CNTRL_OBJECT_NULL";
+      break;
+    case 0x14306:
+      return "ERROR_AXIS_SEQ_ERROR_WRONG_SENSOR_EDGE";
+      break;
+    case 0x14307:
+      return "ERROR_AXIS_UNDEFINED_TYPE";
+      break;
+    case 0x14308:
+      return "ERROR_AXIS_FORWARD_TRANSFORM_NULL";
+      break;
+    case 0x14309:
+      return "ERROR_AXIS_INVERSE_TRANSFORM_NULL";
+      break;
+    case 0x1430A:
+      return "ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED";
+      break;
+    case 0x1430B:
+      return "ERROR_AXIS_FUNCTION_NOT_SUPPRTED";
+      break;
+    case 0x1430C:
+      return "ERROR_AXIS_MASTER_AXIS_OBJECT_NULL";
+      break;
+    case 0x1430D:
+      return "ERROR_AXIS_MASTER_AXIS_ENCODER_NULL";
+      break;
+    case 0x1430E:
+      return "ERROR_AXIS_MASTER_AXIS_TRAJECTORY_NULL";
+      break;
+    case 0x1430F:
+      return "ERROR_AXIS_MASTER_AXIS_TRANSFORM_NULL";
+      break;
+    case 0x14310:
+      return "ERROR_AXIS_SOURCE_TYPE_NOT_DEFINED";
+      break;
+    case 0x14311:
+      return "ERROR_AXIS_CMD_NOT_ALLOWED_WHEN_ENABLED";
+      break;
+    case 0x14312:
+      return "ERROR_AXIS_CONFIGURED_COUNT_ZERO";
+      break;
+    case 0x14313:
+      return "ERROR_AXIS_CASCADED_AXIS_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x14600: //DRIVE
+      return "ERROR_DRV_DRIVE_INTERLOCKED";
+      break;
+    case 0x14601:
+      return "ERROR_DRV_ASSIGN_ENTRY_FAILED";
+      break;
+    case 0x14602:
+      return "ERROR_DRV_SCALE_DENOM_ZERO";
+      break;
+    case 0x14603:
+      return "ERROR_DRV_ENABLE_ENTRY_NULL";
+      break;
+    case 0x14604:
+      return "ERROR_DRV_VEL_SET_ENTRY_NULL";
+      break;
+    case 0x14400:  //ENCODER
+      return "ERROR_ENC_ASSIGN_ENTRY_FAILED";
+      break;
+    case 0x14401:
+      return "ERROR_ENC_TYPE_NOT_SUPPORTED";
+      break;
+    case 0x14402:
+      return "ERROR_ENC_SCALE_DENOM_ZERO";
+      break;
+    case 0x14403:
+      return "ERROR_ENC_INVALID_RATE";
+      break;
+    case 0x14404:
+      return "ERROR_ENC_ENTRY_NULL";
+      break;
+    case 0x14405:
+      return "ERROR_ENC_ENTRY_READ_FAIL";
+      break;
+    case 0x14406:
+      return "ERROR_ENC_TRANSFORM_NULL";
+      break;
+    case 0x14407:
+      return "ERROR_ENC_EXT_MASTER_SOURCE_NULL";
+      break;
+    case 0x14408:
+      return "ERROR_ENC_EXT_MASTER_SOURCE_COUNT_ZERO";
+      break;
+    case 0x14409:
+      return "ERROR_ENC_INVALID_SAMPLE_TIME";
+      break;
+    case 0x1440A:
+      return "ERROR_ENC_TRANSFORM_VALIDATION_ERROR";
+      break;
+    case 0x1440B:
+      return "ERROR_ENC_SLAVE_INTERFACE_NULL";
+      break;
+    case 0x14C00://MONITOR
+      return "ERROR_MON_ASSIGN_ENTRY_FAILED";
+      break;
+    case 0x14C01:
+      return "ERROR_MON_ENTRY_READ_FAIL";
+      break;
+    case 0x14C02:
+      return "ERROR_MON_ENTRY_HARD_BWD_NULL";
+      break;
+    case 0x14C03:
+      return "ERROR_MON_ENTRY_HARD_FWD_NULL";
+      break;
+    case 0x14C04:
+      return "ERROR_MON_ENTRY_HOME_NULL";
+      break;
+    case 0x14D00:  //SEQUENCER
+      return "ERROR_SEQ_TRAJ_NULL";
+      break;
+    case 0x14D01:
+      return "ERROR_SEQ_MON_NULL";
+      break;
+    case 0x14D02:
+      return "ERROR_MON_ENTRY_HOME_NULL";
+      break;
+    case 0x14D03:
+      return "ERROR_SEQ_CNTRL_NULL";
+      break;
+    case 0x14D04:
+      return "ERROR_SEQ_SEQ_FAILED";
+      break;
+    case 0x14D05:
+      return "ERROR_SEQ_COMMAND_NOT_SUPPORTED";
+      break;
+    case 0x14D06:
+      return "ERROR_SEQ_SOFT_LIMIT_FWD";
+      break;
+    case 0x14D07:
+      return "ERROR_SEQ_SOFT_LIMIT_BWD";
+      break;
+    case 0x14D08:
+      return "ERROR_SEQ_TIMEOUT";
+      break;
+    case 0x14E00:  //TRAJECTORY
+      return "ERROR_TRAJ_EXT_ENC_NULL";
+      break;
+    case 0x14E01:
+      return "ERROR_TRAJ_EXT_TRAJ_NULL";
+      break;
+    case 0x14E02:
+      return "ERROR_TRAJ_NOT_ENABLED";
+      break;
+    case 0x14E03:
+      return "ERROR_TRAJ_GEAR_RATIO_DENOM_ZERO";
+      break;
+    case 0x14E04:
+      return "ERROR_TRAJ_SOFT_LIMIT_FWD_INTERLOCK";
+      break;
+    case 0x14E05:
+      return "ERROR_TRAJ_SOFT_LIMIT_BWD_INTERLOCK";
+      break;
+    case 0x14E06:
+      return "ERROR_TRAJ_HARD_LIMIT_FWD_INTERLOCK";
+      break;
+    case 0x14E07:
+      return "ERROR_TRAJ_HARD_LIMIT_BWD_INTERLOCK";
+      break;
+    case 0x14E08:
+      return "ERROR_TRAJ_POS_LAG_INTERLOCK";
+      break;
+    case 0x14E09:
+      return "ERROR_TRAJ_BOTH_LIMIT_INTERLOCK";
+      break;
+    case 0x14E0A:
+      return "ERROR_TRAJ_EXTERNAL_INTERLOCK";
+      break;
+    case 0x14E0B:
+      return "ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE";
+      break;
+    case 0x14E0C:
+      return "ERROR_TRAJ_EXT_TRANSFORM_NULL";
+      break;
+    case 0x14E0D:
+      return "ERROR_TRAJ_TRANSFORM_NOT_COMPILED";
+      break;
+    case 0x14E0E:
+      return "ERROR_TRAJ_TRANSFORM_INTERLOCK_ERROR";
+      break;
+    case 0x14E0F:
+      return "ERROR_TRAJ_TRANSFORM_NULL";
+      break;
+    case 0x14E10:
+      return "ERROR_TRAJ_EXT_MASTER_SOURCE_NULL";
+      break;
+    case 0x14E11:
+      return "ERROR_TRAJ_EXT_MASTER_SOURCE_COUNT_ZERO";
+      break;
+    case 0x14E12:
+      return "ERROR_TRAJ_INVALID_SAMPLE_TIME";
+      break;
+    case 0x14E13:
+      return "ERROR_TRAJ_TRANSFORM_VALIDATION_ERROR";
+      break;
+    case 0x14E14:
+      return "ERROR_TRAJ_SLAVE_INTERFACE_NULL";
+      break;
+    case 0x14E15:
+      return "ERROR_TRAJ_MAX_SPEED_INTERLOCK";
+      break;
+    case 0x14F00:  //VIRTUAL AXIS
+      return "ERROR_VIRT_AXIS_TRAJ_NULL";
+      break;
+    case 0x14F01:
+      return "ERROR_VIRT_AXIS_CREATE_TRANSFORM_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x14F02:
+      return "ERROR_VIRT_AXIS_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x14F03:
+      return "ERROR_VIRT_AXIS_LINKED_AXIS_TRAJ_NULL";
+      break;
+    case 0x14F04:
+      return "ERROR_VIRT_AXIS_INDEX_NULL";
+      break;
+    case 0x15000:  //CONTROLLER
+      return "ERROR_CNTRL_INVALID_SAMPLE_TIME";
+      break;
+    case 0x30000:  //TRANSFORM
+      return "ERROR_TRANSFORM_EXPR_NOT_COMPILED";
+      break;
+    case 0x30001:
+      return "ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x30002:
+      return "ERROR_TRANSFORM_COMPILE_ERROR";
+      break;
+    case 0x30003:
+      return "ERROR_TRANSFORM_INPUT_DATA_SOURCE_NULL";
+      break;
+    case 0x30004:
+      return "ERROR_TRANSFORM_ERROR_ADD_VARIABLE";
+      break;
+    case 0x30005:
+      return "ERROR_TRANSFORM_INPUT_DATA_SOURCE_COUNT_ZERO";
+      break;
+    case 0x30006:
+      return "ERROR_TRANSFORM_NOT_ENABLED";
+      break;
+    case 0x30100:  //MASTERDATA INTERFACE
+      return "ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x21000:  //ECENTRY
+      return "ERROR_EC_ENTRY_DATA_POINTER_NULL";
+      break;
+    case 0x21001:
+      return "ERROR_EC_ENTRY_INVALID_OFFSET";
+      break;
+    case 0x21002:
+      return "ERROR_EC_ENTRY_INVALID_DOMAIN_ADR";
+      break;
+    case 0x21003:
+      return "ERROR_EC_ENTRY_INVALID_BIT_LENGTH";
+      break;
+    case 0x22000:  //ECPDO
+      return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
+      break;
+    case 0x23000:  //ECSDO
+      return "ERROR_EC_SDO_SIZE_TO_LARGE";
+      break;
+    case 0x23001:
+      return "ERROR_EC_SDO_WRITE_FAILED";
+      break;
+    case 0x23002:
+      return "ERROR_EC_SDO_READ_FAILED";
+      break;
+    case 0x23003:
+      return "ERROR_EC_SDO_VERIFY_FAILED";
+      break;
+    case 0x24000://ECSLAVE
+      return "ERROR_EC_SLAVE_CONFIG_FAILED";
+      break;
+    case 0x24001:
+      return "ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE";
+      break;
+    case 0x24002:
+      return "ERROR_EC_SLAVE_SM_ARRAY_FULL";
+      break;
+    case 0x24003:
+      return "ERROR_EC_SLAVE_SM_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x24004:
+      return "ERROR_EC_SLAVE_ENTRY_INFO_STRUCT_NULL";
+      break;
+    case 0x24005:
+      return "ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x24006:
+      return "ERROR_EC_SLAVE_SLAVE_INFO_STRUCT_NULL";
+      break;
+    case 0x24007:
+      return "ERROR_EC_SLAVE_CONFIG_PDOS_FAILED";
+      break;
+    case 0x24008:
+      return "ERROR_EC_SLAVE_ENTRY_NULL";
+      break;
+    case 0x24009:
+      return "ERROR_EC_SLAVE_STATE_CHANGED";
+      break;
+    case 0x2400A:
+      return "ERROR_EC_SLAVE_ONLINE_OFFLINE_CHANGED";
+      break;
+    case 0x2400B:
+      return "ERROR_EC_SLAVE_OPERATIONAL_CHANGED";
+      break;
+    case 0x2400C:
+      return "ERROR_EC_SLAVE_CONFIG_NULL";
+      break;
+    case 0x25000://ECSYNCMANAGER
+      return "ERROR_EC_SM_PDO_ARRAY_FULL";
+      break;
+    case 0x25001:
+      return "ERROR_EC_SM_PDO_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x25002:
+      return "ERROR_EC_SM_ENTRY_INFO_STRUCT_NULL";
+      break;
+    case 0x26000: //EC
+      return "ERROR_EC_MAIN_REQUEST_FAILED";
+      break;
+    case 0x26001:
+      return "ERROR_EC_MAIN_CREATE_DOMAIN_FAILED";
+      break;
+    case 0x26002:
+      return "ERROR_EC_MAIN_INVALID_SLAVE_INDEX";
+      break;
+    case 0x26003:
+      return "ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED";
+      break;
+    case 0x26004:
+      return "ERROR_EC_MAIN_SLAVE_NULL";
+      break;
+    case 0x26005:
+      return "ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED";
+      break;
+    case 0x26006:
+      return "ERROR_EC_MAIN_ENTRY_NULL";
+      break;
+    case 0x26007:
+      return "ERROR_EC_MAIN_GET_ENTRY_INFO_FAILED";
+      break;
+    case 0x26008:
+      return "ERROR_EC_MAIN_DOM_REG_PDO_ENTRY_LIST_FAILED";
+      break;
+    case 0x26009:
+      return "ERROR_EC_MAIN_SDO_ARRAY_FULL";
+      break;
+    case 0x2600A:
+      return "ERROR_EC_MAIN_SDO_ENTRY_NULL";
+      break;
+    case 0x2600B:
+      return "ERROR_EC_MAIN_SDO_READ_FAILED";
+      break;
+    case 0x2600C:
+      return "ERROR_EC_MAIN_DOMAIN_DATA_FAILED";
+      break;
+    case 0x2600D:
+      return "ERROR_EC_MAIN_SLAVE_ARRAY_FULL";
+      break;
+    case 0x20000://HW_MOTOR
+      return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
+      break;
+    case 0x20001:
+      return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
+      break;
+    case 0x20002:
+      return "ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20004:
+      return "ERROR_MAIN_AXIS_OBJECT_NULL";
+      break;
+    case 0x20005:
+      return "ERROR_MAIN_ENCODER_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20006:
+      return "ERROR_MAIN_ENCODER_OBJECT_NULL";
+      break;
+    case 0x20007:
+      return "ERROR_MAIN_CONTROLLER_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20008:
+      return "ERROR_MAIN_CONTROLLER_OBJECT_NULL";
+      break;
+    case 0x20009:
+      return "ERROR_MAIN_TRAJECTORY_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x2000A:
+      return "ERROR_MAIN_TRAJECTORY_OBJECT_NULL";
+      break;
+    case 0x2000B:
+      return "ERROR_MAIN_DRIVE_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x2000C:
+      return "ERROR_MAIN_DRIVE_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x2000D:
+      return "ERROR_MAIN_MONITOR_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x2000E:
+      return "ERROR_MAIN_MONITOR_OBJECT_NULL";
+      break;
+    case 0x2000F:
+      return "ERROR_MAIN_AXIS_TRAJ_OBJECT_NULL";
+      break;
+    case 0x20010:
+      return "ERROR_MAIN_EC_NOT_INITIALIZED";
+      break;
+    case 0x20011:
+      return "ERROR_MAIN_EC_SLAVE_NULL";
+      break;
+    case 0x20012:
+      return "ERROR_MAIN_EC_SM_NULL";
+      break;
+    case 0x20013:
+      return "ERROR_MAIN_EC_PDO_NULL";
+      break;
+    case 0x20014:
+      return "ERROR_MAIN_EC_ENTRY_NULL";
+      break;
+    case 0x20015:
+      return "ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20016:
+      return "ERROR_MAIN_DRIVE_ENTRY_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20017:
+      return "ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20018:
+      return "ERROR_MAIN_DIAG_AXIS_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20019:
+      return "ERROR_MAIN_DIAG_AXIS_FREQ_OUT_OF_RANGE";
+      break;
+    case 0x2001A:
+      return "ERROR_MAIN_APP_MODE_ALREADY_RUNTIME";
+      break;
+    case 0x2001B:
+      return "ERROR_MAIN_EC_ACTIVATE_FAILED";
+      break;
+    case 0x2001C:
+      return "ERROR_MAIN_ENC_SET_SCALE_FAIL_DRV_ENABLED";
+      break;
+    case 0x2001D:
+      return "ERROR_MAIN_AXIS_ERROR_EXECUTE_INTERLOCKED";
+      break;
+    case 0x2001E:
+      return "ERROR_MAIN_VIRT_AXIS_FUNCTION_NOT_SUPPORTED";
+      break;
+    case 0x2001F:
+      return "ERROR_MAIN_AXIS_TYPE_UNKNOWN";
+      break;
+    case 0x20020:
+      return "ERROR_MAIN_SEQUENCE_OBJECT_NULL";
+      break;
+    case 0x20021:
+      return "ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL";
+      break;
+    case 0x20022:
+      return "ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL";
+      break;
+    case 0x20023:
+      return "ERROR_MAIN_EXTERNAL_DATA_SOURCE_INVALID";
+      break;
+    case 0x20024:
+      return "ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING";
+      break;
+  }
+  return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
+}
+
