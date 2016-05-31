@@ -58,7 +58,7 @@ static void add_to_buf(const char *add_txt, size_t add_len)
 /*****************************************************************************/
 char *get_buf(void)
 {
-  return buf ? buf : "";
+  return buf && used_len ? buf : "";
 }
 
 /*****************************************************************************/
@@ -267,7 +267,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen)
   if (!inbuf || !inlen) return -1;
 
   if (PRINT_STDOUT_BIT1() && stdlog) {
-    fprintf(stdlog,"IN=\"");
+    fprintf(stdlog,"%s/%s:%d IN=\"", __FILE__, __FUNCTION__, __LINE__);
     cmd_dump_to_std(inbuf, inlen);
     fprintf(stdlog,"\"\n");
   }
@@ -303,7 +303,7 @@ int CMDreadIt(char *outbuf, size_t outlen)
   ret = snprintf(outbuf, outlen, "%s", get_buf());
   if (ret < 0) return ret;
   if (PRINT_STDOUT_BIT1() && stdlog) {
-    fprintf(stdlog,"OUT=\"");
+    fprintf(stdlog,"%s/%s:%d OUT=\"", __FILE__, __FUNCTION__, __LINE__);
     cmd_dump_to_std(outbuf, strlen(outbuf));
     fprintf(stdlog,"\"\n");
   }
