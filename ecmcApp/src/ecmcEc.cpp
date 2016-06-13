@@ -523,6 +523,10 @@ int ecmcEc::findSlaveIndex(int busPosition,int *slaveIndex)
 
 int ecmcEc::statusOK()
 {
+  if(!diag_){
+    return 1;
+  }
+
   //Auto reset error at startup
   if(inStartupPhase_ && slavesOK_ && domainOK_ && masterOK_){
     inStartupPhase_=false;
