@@ -952,6 +952,8 @@ asynStatus ecmcAxis::poll(bool *moving)
   setIntegerParam(pC_->motorStatusHomed_, st_axis_status.bHomed);
   setIntegerParam(pC_->motorStatusCommsError_, 0);
   setIntegerParam(pC_->motorStatusAtHome_, st_axis_status.bHomeSensor);
+  setIntegerParam(pC_->motorStatusLowLimit_, !st_axis_status.bLimitBwd);
+  setIntegerParam(pC_->motorStatusHighLimit_, !st_axis_status.bLimitFwd);
   setIntegerParam(pC_->motorStatusPowerOn_, st_axis_status.bEnabled);
 
   nowMoving = st_axis_status.bBusy && st_axis_status.bExecute && st_axis_status.bEnabled;
