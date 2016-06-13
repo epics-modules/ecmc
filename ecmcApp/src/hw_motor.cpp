@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <sched.h>
+#include <pthread.h>
 
 #include <stdlib.h>
 #include <math.h>
@@ -19,12 +20,13 @@
 #include <algorithm>
 
 #include "ecrt.h"
-#include "./rtutilsSrc/rtutils.h"
 #include "messages.h"
 #include <time.h>
 
 //General
 #include "ecmcDefinitions.h"
+#include "ecmcErrorsList.h"
+
 
 //Hardware
 #include "ecmcEcPdo.h"
@@ -45,9 +47,14 @@
 #include "ecmcEncoder.h"
 #include "ecmcMonitor.hpp"
 #include "ecmcCommandTransform.h"
+#include "ecmcEvent.h"
+#include "ecmcDataRecorder.h"
+#include "ecmcDataStorage.h"
+#include "ecmcCommandList.h"
+
 
 /****************************************************************************/
-#define CHECK_AXIS_RETURN_IF_ERROR(axisIndex) {if(axisIndex>=MAX_AXES || axisIndex<=0){printf("ERROR: Axis index out of range.\n");return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;}if(axes[axisIndex]==NULL){printf("ERROR: Axis object NULL\n");return ERROR_MAIN_AXIS_OBJECT_NULL;}}
+#define CHECK_AXIS_RETURN_IF_ERROR(axisIndex) {if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){printf("ERROR: Axis index out of range.\n");return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;}if(axes[axisIndex]==NULL){printf("ERROR: Axis object NULL\n");return ERROR_MAIN_AXIS_OBJECT_NULL;}}
 #define CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getEnc()==NULL){printf("ERROR: Encoder object NULL.\n");return ERROR_MAIN_ENCODER_OBJECT_NULL;}}
 #define CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getCntrl()==NULL){printf("ERROR: Controller object NULL.\n");return ERROR_MAIN_CONTROLLER_OBJECT_NULL;}}
 #define CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getDrv()==NULL){printf("ERROR: Drive object NULL.\n");return ERROR_MAIN_DRIVE_OBJECT_NULL;}}
@@ -56,20 +63,30 @@
 #define CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getMon()==NULL){printf("ERROR: Monitor object NULL.\n");return ERROR_MAIN_MONITOR_OBJECT_NULL;}}
 #define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getTraj()->getExtInputTransform()==NULL){printf("ERROR: Trajectory transform object NULL.\n");return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;}}
 #define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getEnc()->getExtInputTransform()==NULL){printf("ERROR: Encoder transform object NULL.\n");return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;}}
+#define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex) {  if(indexCommandList>=ECMC_MAX_COMMANDS_LISTS || indexCommandList<0){return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;}if(commandLists[indexCommandList]==NULL){return ERROR_COMMAND_LIST_NULL;}}
+#define CHECK_EVENT_RETURN_IF_ERROR(indexEvent) {if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;}if(events[indexEvent]==NULL){return ERROR_MAIN_EVENT_NULL;}}
+#define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage) { if(indexStorage>=ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage<0){return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;}if(dataStorages[indexStorage]==NULL){return ERROR_MAIN_DATA_STORAGE_NULL;}}
+#define CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder) {if(indexRecorder>=ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder<0){return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;}if(dataRecorders[indexRecorder]==NULL){return ERROR_MAIN_DATA_RECORDER_NULL;}}
+
+
 
 /****************************************************************************/
-static ecmcAxisBase     *axes[MAX_AXES];
+static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static ecmcEc           ec;
 static int              axisDiagIndex;
 static int              axisDiagFreq;
 static bool             enableAxisDiag;
+static int              controllerError=0;
 static app_mode_type    appMode,appModeOld;
-static rtMessageQueueId rtq=NULL;
-static bool             masterStateOK=0;
 static bool             functionDiag=0;
 static int              enableTimeDiag=0;
 static unsigned int     counter = 0;
 static int              printCounter=0;
+static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
+static ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
+static ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
+static ecmcCommandList   *commandLists[ECMC_MAX_COMMANDS_LISTS];
+
 
 /****************************************************************************/
 
@@ -80,7 +97,7 @@ const struct timespec cycletime = {0, MCU_PERIOD_NS};
 void printStatus()
 {
   //Print axis diagnostics to screen
-  if(enableAxisDiag && axisDiagIndex<MAX_AXES && axisDiagIndex>=0){
+  if(enableAxisDiag && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
     if(axes[axisDiagIndex]!=NULL){
       if(printCounter==0){
         printf("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVel act\t\tVel FF\t\tVel FFs\t\tDrv Vel\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
@@ -92,9 +109,84 @@ void printStatus()
   }
 }
 
-void cyclic_task(void * usr){
+//****** Threading
+typedef void (*rtTHREADFUNC)(void *parm);
+
+struct rtThreadOSD
+{
+  pthread_t thread;
+  pthread_attr_t attr;
+  void * usr;
+  rtTHREADFUNC start;
+};
+
+typedef struct rtThreadOSD *rtThreadId;
+
+static void * start_routine(void *arg)
+{
+  rtThreadId thread = (rtThreadId)arg;
+  thread->start(thread->usr);
+  return NULL;
+}
+
+rtThreadId rtThreadCreate (
+    const char * name, unsigned int priority, unsigned int stackSize,
+    rtTHREADFUNC funptr, void * parm)
+{
+  struct sched_param sched = {0};
+  rtThreadId thread =(rtThreadId)calloc(1, sizeof(struct rtThreadOSD));
+  assert(thread != NULL);
+  sched.sched_priority = priority;
+  assert(pthread_attr_init(&thread->attr) == 0);
+  if(priority){
+    assert(pthread_attr_setinheritsched(&thread->attr,
+                PTHREAD_EXPLICIT_SCHED) == 0);
+    assert(pthread_attr_setschedpolicy(&thread->attr,
+                SCHED_FIFO) == 0);
+    assert(pthread_attr_setschedparam(&thread->attr,
+                &sched) == 0);
+  }
+  thread->start = funptr;
+  thread->usr = parm;
+  int result = pthread_create(&thread->thread, &thread->attr, start_routine, thread);
+  if( result == 0){
+    return thread;
+  }
+  else{
+    switch(result){
+      case EAGAIN: printf("rtThreadCreate: EAGAIN (%d)\n", result);
+        break;
+      case EINVAL: printf("rtThreadCreate: EINVAL (%d)\n", result);
+        break;
+      case EPERM: printf("rtThreadCreate: EPERM (%d)\n", result);
+        break;
+      default:
+        printf("rtThreadCreate: other error %d\n", result );
+        break;
+    }
+    return NULL;
+  }
+}
+
+//******
+
+struct timespec timespec_add(struct timespec time1, struct timespec time2)
+{
+  struct timespec result;
+
+  if ((time1.tv_nsec + time2.tv_nsec) >= MCU_NSEC_PER_SEC) {
+    result.tv_sec = time1.tv_sec + time2.tv_sec + 1;
+    result.tv_nsec = time1.tv_nsec + time2.tv_nsec - MCU_NSEC_PER_SEC;
+  } else {
+    result.tv_sec = time1.tv_sec + time2.tv_sec;
+    result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
+  }
+  return result;
+}
+
+void cyclic_task(void * usr)
+{
   int i=0;
-  //EC_MESSAGE * msg = (EC_MESSAGE *)calloc(1, MAX_MESSAGE);
   struct timespec wakeupTime , time;
   struct timespec startTime, endTime, lastStartTime = {};
   uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0,
@@ -107,82 +199,84 @@ void cyclic_task(void * usr){
 
   while(appMode==ECMC_MODE_RUNTIME)
   {
-    if(rtq!=NULL) //todo remove traces from diamond since not used..
-    {
-      //rtMessageQueueReceive(rtq, msg,MAX_MESSAGE); //diff from diamond
-      //if(msg->tag == MSG_TICK)
-      //{
-        wakeupTime = timespec_add(wakeupTime, cycletime);
-        clock_nanosleep(MCU_CLOCK_TO_USE, TIMER_ABSTIME, &wakeupTime, NULL);
-        //*******************
-        clock_gettime(MCU_CLOCK_TO_USE, &startTime);
-        latency_ns = DIFF_NS(wakeupTime, startTime);
-        period_ns = DIFF_NS(lastStartTime, startTime);
-        exec_ns = DIFF_NS(lastStartTime, endTime);
-        lastStartTime = startTime;
+    wakeupTime = timespec_add(wakeupTime, cycletime);
+    clock_nanosleep(MCU_CLOCK_TO_USE, TIMER_ABSTIME, &wakeupTime, NULL);
+    //*******************
+    clock_gettime(MCU_CLOCK_TO_USE, &startTime);
+    latency_ns = DIFF_NS(wakeupTime, startTime);
+    period_ns = DIFF_NS(lastStartTime, startTime);
+    exec_ns = DIFF_NS(lastStartTime, endTime);
+    lastStartTime = startTime;
 
-        if (latency_ns > latency_max_ns) {
-            latency_max_ns = latency_ns;
-        }
-        if (latency_ns < latency_min_ns) {
-            latency_min_ns = latency_ns;
-        }
-        if (period_ns > period_max_ns) {
-            period_max_ns = period_ns;
-        }
-        if (period_ns < period_min_ns) {
-            period_min_ns = period_ns;
-        }
-        if (exec_ns > exec_max_ns) {
-            exec_max_ns = exec_ns;
-        }
-        if (exec_ns < exec_min_ns) {
-            exec_min_ns = exec_ns;
-        }
-//*******************
-        ec.receive();
-        ec.checkDomainState();
-
-        for( i=0;i<MAX_AXES;i++){
-          if(axes[i]!=NULL){
-            axes[i]->execute(masterStateOK);
-          }
-        }
-
-        if (counter) {
-          counter--;
-        }
-        else{ //Lower freq
-          counter = MCU_FREQUENCY/axisDiagFreq;
-          masterStateOK=ec.checkState();
-          ec.checkSlavesConfState();
-
-          printStatus();
-          if(enableTimeDiag){
-            printf("period     %10u ... %10u\n",
-                    period_min_ns, period_max_ns);
-            printf("exec       %10u ... %10u\n",
-                    exec_min_ns, exec_max_ns);
-            printf("latency    %10u ... %10u\n",
-                    latency_min_ns, latency_max_ns);
-            period_max_ns = 0;
-            period_min_ns = 0xffffffff;
-            exec_max_ns = 0;
-            exec_min_ns = 0xffffffff;
-            latency_max_ns = 0;
-            latency_min_ns = 0xffffffff;
-          }
-        }
-        // write application time to master
-        clock_gettime(MCU_CLOCK_TO_USE, &time);
-        ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(time));
-
-        ec.send();
-        clock_gettime(MCU_CLOCK_TO_USE, &endTime);
-      //}
+    if (latency_ns > latency_max_ns) {
+      latency_max_ns = latency_ns;
     }
+    if (latency_ns < latency_min_ns) {
+      latency_min_ns = latency_ns;
+    }
+    if (period_ns > period_max_ns) {
+      period_max_ns = period_ns;
+    }
+    if (period_ns < period_min_ns) {
+      period_min_ns = period_ns;
+    }
+    if (exec_ns > exec_max_ns) {
+      exec_max_ns = exec_ns;
+    }
+    if (exec_ns < exec_min_ns) {
+      exec_min_ns = exec_ns;
+    }
+    ec.receive();
+    ec.checkDomainState();
+
+    //Motion
+    for( i=0;i<ECMC_MAX_AXES;i++){
+      if(axes[i]!=NULL){
+        axes[i]->execute(ec.statusOK());
+      }
+    }
+
+    //Data events
+    for( i=0;i<ECMC_MAX_EVENT_OBJECTS;i++){
+      if(events[i]!=NULL){
+	events[i]->execute(ec.statusOK());
+      }
+    }
+
+    if (counter) {
+      counter--;
+    }
+    else{ //Lower freq
+      counter = MCU_FREQUENCY/axisDiagFreq;
+      ec.checkState();
+      ec.checkSlavesConfState();
+      printStatus();
+      ec.printStatus();
+
+      if(enableTimeDiag){
+        printf("period     %10u ... %10u\n",
+        		period_min_ns, period_max_ns);
+        printf("exec       %10u ... %10u\n",
+                exec_min_ns, exec_max_ns);
+        printf("latency    %10u ... %10u\n",
+                latency_min_ns, latency_max_ns);
+        period_max_ns = 0;
+        period_min_ns = 0xffffffff;
+        exec_max_ns = 0;
+        exec_min_ns = 0xffffffff;
+        latency_max_ns = 0;
+        latency_min_ns = 0xffffffff;
+      }
+    }
+    // write application time to master
+    clock_gettime(MCU_CLOCK_TO_USE, &time);
+    ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(time));
+    ecrt_master_sync_reference_clock(ec.getMaster());
+    ecrt_master_sync_slave_clocks(ec.getMaster());
+
+    ec.send();
+    clock_gettime(MCU_CLOCK_TO_USE, &endTime);
   }
-  //TODO add nice close down here if needed
 }
 
 /****************************************************************************/
@@ -200,8 +294,24 @@ int  hw_motor_global_init(void){
   axisDiagFreq=10;
   enableAxisDiag=true;
 
-  for(int i=1; i<MAX_AXES;i++){
+  for(int i=0; i<ECMC_MAX_AXES;i++){
     axes[i]=NULL;
+  }
+
+  for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
+    events[i]=NULL;
+  }
+
+  for(int i=0; i<ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
+    dataRecorders[i]=NULL;
+  }
+
+  for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
+      dataStorages[i]=NULL;
+  }
+
+  for(int i=0; i<ECMC_MAX_COMMANDS_LISTS;i++){
+      commandLists[i]=NULL;
   }
 
   return 0;
@@ -209,17 +319,9 @@ int  hw_motor_global_init(void){
 
 /****************************************************************************/
 
-void startRTthread(){
-#if PRIORITY  //TODO: Remove never executed
-  pid_t pid = getpid();
-  if (setpriority(PRIO_PROCESS, pid, 10 /*-19*/))   //Range -20..20 (-20 highest prio)
-    fprintf(stderr, "WARNING: Failed to set priority: %s\n",
-            strerror(errno));
-#endif
-
+void startRTthread()
+{
   int prio = ECMC_PRIO_HIGH;
-  rtq = rtMessageQueueCreate(10, 10000);
-
   if(rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) == NULL){
     printf("WARNING: Can't create high priority thread, fallback to low priority\n");
     prio = ECMC_PRIO_LOW;
@@ -228,10 +330,14 @@ void startRTthread(){
   else{
     printf("INFO:\t\tCreated high priority thread for cyclic task\n");
   }
-  new_timer(1000000000/MCU_FREQUENCY, rtq, prio, MSG_TICK);
 }
 
-int setAppMode(int mode){
+int setAppMode(int mode)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d mode=%d\n",__FILE__, __FUNCTION__, __LINE__,mode);
+  }
+
   int errorCode=0;
   switch((app_mode_type)mode){
     case ECMC_MODE_CONFIG:
@@ -242,6 +348,12 @@ int setAppMode(int mode){
     case ECMC_MODE_RUNTIME:
       appModeOld=appMode;
       appMode=(app_mode_type)mode;
+
+      for(int i=0;i<ECMC_MAX_AXES;i++){
+        if(axes[i]!=NULL){
+          axes[i]->setInStartupPhase(true);
+        }
+      }
 
       if(appModeOld!=ECMC_MODE_CONFIG){
         return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;
@@ -269,8 +381,8 @@ int setAppMode(int mode){
 int prepareForRuntime(){
 
   //Update input sources for all trajectories and encoders (transforms)
-  for(int i=0;i<MAX_AXES;i++){
-    for(int j=0;j<MAX_AXES;j++){
+  for(int i=0;i<ECMC_MAX_AXES;i++){
+    for(int j=0;j<ECMC_MAX_AXES;j++){
       if(axes[i] !=NULL && axes[j] !=NULL){
         //Trajectory
         if(axes[i]->getTraj()!=NULL){
@@ -284,20 +396,15 @@ int prepareForRuntime(){
         //Encoder
         if(axes[i]->getEnc()!=NULL){
           if(axes[j]->getTraj()!=NULL){
-            axes[j]->getTraj()->addInputDataInterface(axes[i]->getEnc()->getOutputDataInterface(),i+MAX_AXES);
+            axes[j]->getTraj()->addInputDataInterface(axes[i]->getEnc()->getOutputDataInterface(),i+ECMC_MAX_AXES);
           }
           if(axes[j]->getEnc()!=NULL){
-            axes[j]->getEnc()->addInputDataInterface(axes[i]->getEnc()->getOutputDataInterface(),i+MAX_AXES);
+            axes[j]->getEnc()->addInputDataInterface(axes[i]->getEnc()->getOutputDataInterface(),i+ECMC_MAX_AXES);
           }
         }
         axes[i]->setAxisArrayPointer(axes[j],j);
       }
     }
-  }
-
-  for(int i=0;i<MAX_AXES;i++){
-
-
   }
   return 0;
 }
@@ -306,7 +413,7 @@ int validateConfig(){
   prepareForRuntime();
   int errorCode=0;
   int axisCount=0;
-  for(int i=0;i<MAX_AXES;i++){
+  for(int i=0;i<ECMC_MAX_AXES;i++){
     if(axes[i]!=NULL){
       axisCount++;
       errorCode=axes[i]->validate();
@@ -319,11 +426,37 @@ int validateConfig(){
   if(axisCount==0){
     return ERROR_AXIS_CONFIGURED_COUNT_ZERO;
   }
+
+  for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
+    if(events[i]!=NULL){
+      errorCode=events[i]->validate();
+      if(errorCode){
+        printf("ERROR: Validation failed on event %d with error code %d.",i,errorCode);
+        return errorCode;
+      }
+    }
+  }
+
+  for(int i=0; i<ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
+    dataRecorders[i]=NULL;
+    if(dataRecorders[i]!=NULL){
+      errorCode=dataRecorders[i]->validate();
+      if(errorCode){
+        printf("ERROR: Validation failed on data recorder %d with error code %d.",i,errorCode);
+        return errorCode;
+      }
+    }
+  }
+
   return 0;
 }
 
 int ecApplyConfig(int masterIndex)
 {  //Master index not used right now..
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex);
+  }
+
   int errorCode=0;
   if((errorCode=ec.writeAndVerifySDOs())){
     printf("ERROR:\tSDO write and verify failed\n");
@@ -338,11 +471,38 @@ int ecApplyConfig(int masterIndex)
 
 int ecSetDiagnostics(int value)
 {  //Set diagnostics mode
+
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
+  }
+
   return ec.setDiagnostics(value);
 }
 
+int ecSetDomainFailedCyclesLimit(int value)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
+  }
+
+  return ec.setDomainFailedCyclesLimitInterlock(value);
+}
+
+int ecEnablePrintouts(int value)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
+  }
+
+  return ec.setEnablePrintOuts(value);
+}
+
 int setEnableFunctionCallDiag(int value)
-{  //Set diagnostics mode
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
+  }
+
   functionDiag=value;
   return 0;
 }
@@ -1005,7 +1165,7 @@ const char* getAxisTrajTransExpr(int axisIndex, int *error)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
   }
 
-  if(axisIndex>=MAX_AXES || axisIndex<=0){
+  if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){
     printf("ERROR: Axis index out of range.\n");
     *error=ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
     return "";
@@ -1036,7 +1196,7 @@ const char* getAxisEncTransExpr(int axisIndex, int *error)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
   }
 
-  if(axisIndex>=MAX_AXES || axisIndex<=0){
+  if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){
     printf("ERROR: Axis index out of range.\n");
     *error=ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
     return "";
@@ -1067,7 +1227,7 @@ const char* getAxisTransformCommandExpr(int axisIndex, int *error)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
   }
 
-  if(axisIndex>=MAX_AXES || axisIndex<=0){
+  if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){
     printf("ERROR: Axis index out of range.\n");
     *error=ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
     return "";
@@ -1710,6 +1870,29 @@ int setAxisDrvVelSetRaw(int axisIndex, int value)
   return axes[axisIndex]->getDrv()->setVelSetRaw(value);
 }
 
+
+int setAxisDrvBrakeEnable(int axisIndex, int enable)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex)
+
+  return axes[axisIndex]->getDrv()->setEnableBrake(enable);
+}
+
+int setAxisDrvReduceTorqueEnable(int axisIndex, int enable)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex)
+
+  return axes[axisIndex]->getDrv()->setEnableReduceTorque(enable);
+}
+
 //Drv GET
 int getAxisDrvScale(int axisIndex,double *value)
 {
@@ -1886,7 +2069,7 @@ int createAxis(int index, int type)
   if(functionDiag)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d type:%d\n",__FILE__, __FUNCTION__, __LINE__,index,type);
 
-  if(index<0 && index>=MAX_AXES){
+  if(index<0 && index>=ECMC_MAX_AXES){
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
   }
 
@@ -1935,6 +2118,13 @@ int ecSetMaster(int masterIndex)
   return ec.init(masterIndex);
 }
 
+int ecResetError()
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+  ec.errorReset();
+  return 0;
+}
 
 int ecAddSlave(uint16_t alias, uint16_t position, uint32_t vendorId,uint32_t productCode)
 {
@@ -1967,6 +2157,18 @@ int ecSlaveConfigDC(
   return slave->configDC(assignActivate,sync0Cycle,sync0Shift,sync1Cycle,sync1Shift);
 }
 
+int ecSelectReferenceDC(int masterIndex,int slaveBusPosition)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d master=%d position=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex, slaveBusPosition);
+
+  ecmcEcSlave *slave=ec.findSlave(slaveBusPosition);
+  if(slave==NULL){
+    return ERROR_EC_MAIN_SLAVE_NULL;
+  }
+
+  return slave->selectAsReferenceDC();
+}
 
 /*int ecAddEntry(int slaveIndex,int nSyncManager,int nPdo,uint16_t nEntryIndex,uint8_t  nEntrySubIndex, uint8_t nBits)
 {
@@ -2067,10 +2269,10 @@ uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,
 }
 
 
-int linkEcEntryToAxisEnc(int slaveIndex, char *entryIDString,int axisIndex,int encoderEntryIndex)
+int linkEcEntryToAxisEnc(int slaveIndex, char *entryIDString,int axisIndex,int encoderEntryIndex, int bitIndex)
 {
   if(functionDiag)
-    fprintf(stdlog,"%s/%s:%d slave_index=%d entry=%s encoder=%d encoder_entry=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,encoderEntryIndex);
+    fprintf(stdlog,"%s/%s:%d slave_index=%d entry=%s encoder=%d encoder_entry=%d bit_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,encoderEntryIndex, bitIndex);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
@@ -2097,16 +2299,16 @@ int linkEcEntryToAxisEnc(int slaveIndex, char *entryIDString,int axisIndex,int e
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)
 
-  if(encoderEntryIndex>=MaxMcuEncoderEntries && encoderEntryIndex<0)
+  if(encoderEntryIndex>=MaxEcEntryLinks && encoderEntryIndex<0)
     return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
 
-  return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,encoderEntryIndex);
+  return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,encoderEntryIndex,bitIndex);
 }
 
-int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int driveEntryIndex)
+int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int driveEntryIndex, int bitIndex)
 {
   if(functionDiag)
-    fprintf(stdlog,"%s/%s:%d slave_index=%d entry=%s drive=%d drive_entry=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,driveEntryIndex);
+    fprintf(stdlog,"%s/%s:%d slave_index=%d entry=%s drive=%d drive_entry=%d bit_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,driveEntryIndex,bitIndex);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
@@ -2133,16 +2335,16 @@ int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int dr
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex)
 
-  if(driveEntryIndex>=MaxMcuDriveEntries && driveEntryIndex<0)
+  if(driveEntryIndex>=MaxEcEntryLinks && driveEntryIndex<0)
     return ERROR_MAIN_DRIVE_ENTRY_INDEX_OUT_OF_RANGE;
 
-  return axes[axisIndex]->getDrv()->setEntryAtIndex(entry,driveEntryIndex);
+  return axes[axisIndex]->getDrv()->setEntryAtIndex(entry,driveEntryIndex,bitIndex);
 }
 
-int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int monitorEntryIndex)
+int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int monitorEntryIndex, int bitIndex)
 {
   if(functionDiag)
-    fprintf(stdlog,"%s/%s:%d slave_index=%d entry=%s monitor=%d monitor_entry=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,monitorEntryIndex);
+    fprintf(stdlog,"%s/%s:%d slave_index=%d entry=%s monitor=%d monitor_entry=%d bit_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,monitorEntryIndex,bitIndex);
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
@@ -2172,10 +2374,10 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  if(monitorEntryIndex>=MaxMcuDriveEntries && monitorEntryIndex<0)
+  if(monitorEntryIndex>=MaxEcEntryLinks && monitorEntryIndex<0)
     return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
 
-  return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex);
+  return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);
 }
 
 int writeEcEntry(int slaveIndex, int entryIndex,uint64_t value)
@@ -2304,8 +2506,6 @@ int readEcSlaveIndex(int slavePosition,int *value)
   return ec.findSlaveIndex(slavePosition,value);
 }
 
-
-
 int setDiagAxisIndex(int axisIndex)
 {
   if(functionDiag)
@@ -2346,4 +2546,579 @@ int setEnableTimeDiag(int value)
 
   enableTimeDiag=value;  //Disabled if 0
   return 0;
+}
+
+int createEvent(int indexEvent)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d \n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+
+  if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){
+    return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;
+  }
+
+  delete events[indexEvent];
+  events[indexEvent]=new ecmcEvent(1/MCU_FREQUENCY,indexEvent);
+  return 0;
+}
+
+int createDataStorage(int index, int elements, int bufferType)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d index=%d elements=%d \n",__FILE__, __FUNCTION__, __LINE__,index,elements);
+
+  if(index>=ECMC_MAX_DATA_STORAGE_OBJECTS || index<0){
+    return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;
+  }
+
+  if(elements<=0){
+    return ERROR_MAIN_DATA_STORAGE_INVALID_SIZE;
+  }
+
+  delete dataStorages[index];
+  dataStorages[index]=new ecmcDataStorage(index,elements,(storageType)bufferType);
+  return 0;
+}
+
+int linkStorageToRecorder(int indexStorage,int indexRecorder)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexStorage=%d indexRecorder=%d \n",__FILE__, __FUNCTION__, __LINE__,indexStorage,indexRecorder);
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+
+  return dataRecorders[indexRecorder]->setDataStorage(dataStorages[indexStorage]);
+}
+
+int linkEcEntryToEvent(int indexEvent,int eventEntryIndex,int slaveIndex,char *entryIDString,int bitIndex)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d eventEntryIndex=%d slave_index=%d entry=%s bitIndex=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, eventEntryIndex,slaveIndex,entryIDString,bitIndex);
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave=NULL;
+  if(slaveIndex>=0){
+    slave=ec.findSlave(slaveIndex);
+  }
+  else{ //simulation slave
+    slave=ec.getSlave(slaveIndex);
+  }
+
+  if(slave==NULL)
+    return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID=entryIDString;
+
+  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+  return events[indexEvent]->setEntryAtIndex(entry,eventEntryIndex,bitIndex);
+}
+
+int setEventType(int indexEvent,int recordingType)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d recordingType=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, recordingType);
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->setEventType((eventType)recordingType);
+}
+
+int setEventSampleTime(int indexEvent,int sampleTime)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d sampleTime=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, sampleTime);
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->setDataSampleTime(sampleTime);
+}
+
+int setEventExecute(int indexEvent,int execute)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, execute);
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->setExecute(execute);
+}
+
+int clearStorage(int indexStorage)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  return dataStorages[indexStorage]->clearBuffer();
+}
+
+int setStorageEnablePrintouts(int indexStorage,int enable)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexStorage=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage,enable);
+  }
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  return dataStorages[indexStorage]->setEnablePrintOuts(enable);
+}
+
+int printStorageBuffer(int indexStorage)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+  }
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  return dataStorages[indexStorage]->printBuffer();
+}
+
+
+int setEventTriggerEdge(int indexEvent,int triggerEdge)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d triggerEdge=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, triggerEdge);
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->setTriggerEdge((triggerEdgeType)triggerEdge);
+
+}
+
+int setEventEnableArmSequence(int indexEvent,int enable)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, enable);
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->setEnableArmSequence(enable);
+}
+
+int setEventEnablePrintouts(int indexEvent,int enable)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent,enable);
+  }
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->setEnablePrintOuts(enable);
+}
+
+int triggerEvent(int indexEvent)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+  }
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->triggerEvent(ec.statusOK());
+}
+
+int armEvent(int indexEvent)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+  }
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->arm();
+}
+
+int createRecorder(int indexRecorder)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexRecorder=%d \n",__FILE__, __FUNCTION__, __LINE__,indexRecorder);
+
+  if(indexRecorder>=ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder<0){
+    return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;
+  }
+
+  delete dataRecorders[indexRecorder];
+  dataRecorders[indexRecorder]=new ecmcDataRecorder(indexRecorder);
+  return 0;
+
+}
+
+int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveIndex,char *entryIDString,int bitIndex)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexRecorder=%d recorderEntryIndex=%d slave_index=%d entry=%s bitIndex=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, recorderEntryIndex,slaveIndex,entryIDString,bitIndex);
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave=NULL;
+  if(slaveIndex>=0){
+    slave=ec.findSlave(slaveIndex);
+  }
+  else{ //simulation slave
+    slave=ec.getSlave(slaveIndex);
+  }
+
+  if(slave==NULL)
+    return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID=entryIDString;
+
+  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+  return dataRecorders[indexRecorder]->setEntryAtIndex(entry,recorderEntryIndex,bitIndex);
+}
+
+int setRecorderEnablePrintouts(int indexRecorder,int enable)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexRecorder=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder,enable);
+  }
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+
+  return dataRecorders[indexRecorder]->setEnablePrintOuts(enable);
+}
+
+int setRecorderExecute(int indexRecorder,int execute)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexRecorder=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, execute);
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+
+  return dataRecorders[indexRecorder]->setExecute(execute);
+}
+
+
+int linkRecorderToEvent(int indexRecorder,int indexEvent, int consumerIndex)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexRecorder=%d indexEvent=%d consumerIndex=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, indexEvent,consumerIndex);
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+  return events[indexEvent]->linkEventConsumer(dataRecorders[indexRecorder],consumerIndex);
+}
+
+
+int triggerRecorder(int indexRecorder)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexRecorder=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder);
+  }
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+
+  return dataRecorders[indexRecorder]->executeEvent(ec.statusOK());
+}
+
+
+int getControllerError()
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+
+  //EtherCAT errors
+  if(ec.getError()){
+    return ec.getErrorID();
+  }
+
+  //Event errors
+  for(int i=0; i< ECMC_MAX_EVENT_OBJECTS;i++){
+    if(events[i]!=NULL){
+      if(events[i]->getError()){
+        return events[i]->getErrorID();
+      }
+    }
+  }
+
+  //DataRecorders
+  for(int i=0; i< ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
+    if(dataRecorders[i]!=NULL){
+      if(dataRecorders[i]->getError()){
+        return dataRecorders[i]->getErrorID();
+      }
+    }
+  }
+
+  //CommandLists
+  for(int i=0; i< ECMC_MAX_COMMANDS_LISTS;i++){
+    if(commandLists[i]!=NULL){
+      if(commandLists[i]->getError()){
+        return commandLists[i]->getErrorID();
+      }
+    }
+  }
+
+  //Axes
+  for(int i=0; i< ECMC_MAX_AXES;i++){
+    if(axes[i]!=NULL){
+      if(axes[i]->getError()){
+        return axes[i]->getErrorID();
+      }
+    }
+  }
+
+  return controllerError;
+}
+
+int controllerErrorReset()
+{
+  if(functionDiag)
+      fprintf(stdlog,"%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+
+    //EtherCAT errors
+    ec.errorReset();
+
+    //Event errors
+    for(int i=0; i< ECMC_MAX_EVENT_OBJECTS;i++){
+      if(events[i]!=NULL){
+        events[i]->errorReset();
+      }
+    }
+
+    //DataRecorders
+    for(int i=0; i< ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
+      if(dataRecorders[i]!=NULL){
+        dataRecorders[i]->errorReset();
+      }
+    }
+
+    //CommandLists
+    for(int i=0; i< ECMC_MAX_COMMANDS_LISTS;i++){
+      if(commandLists[i]!=NULL){
+	  commandLists[i]->errorReset();
+      }
+    }
+
+    //Axes
+    for(int i=0; i< ECMC_MAX_AXES;i++){
+      if(axes[i]!=NULL){
+        axes[i]->errorReset();
+      }
+    }
+
+    return 0;
+}
+
+int createCommandList(int indexCommandList)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexCommandList=%d \n",__FILE__, __FUNCTION__, __LINE__,indexCommandList);
+
+  if(indexCommandList>=ECMC_MAX_COMMANDS_LISTS || indexCommandList<0){
+    return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;
+  }
+
+  delete commandLists[indexCommandList];
+  commandLists[indexCommandList]=new ecmcCommandList(indexCommandList);
+  return 0;
+}
+
+
+int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerIndex)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexCommandList=%d indexEvent=%d consumerIndex=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList, indexEvent,consumerIndex);
+
+  CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->linkEventConsumer(commandLists[indexCommandList],consumerIndex);
+}
+
+int setCommandListExecute(int indexCommandList,int execute)
+{
+  if(functionDiag)
+    fprintf(stdlog,"%s/%s:%d indexCommandList=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList, execute);
+
+  CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
+
+  return commandLists[indexCommandList]->setExecute(execute);
+}
+
+int setCommandListEnablePrintouts(int indexCommandList,int enable)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexCommandList=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList,enable);
+  }
+
+  CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
+
+  return commandLists[indexCommandList]->setEnablePrintOuts(enable);
+}
+
+int addCommandListCommand(int indexCommandList,char *expr)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexCommandList=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__, indexCommandList, expr);
+  }
+
+  CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
+
+  std::string tempExpr=expr;
+
+  return commandLists[indexCommandList]->addCommand(tempExpr);
+}
+
+int triggerCommandList(int indexCommandList)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d indexCommandList=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList);
+  }
+
+  CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
+
+  return commandLists[indexCommandList]->executeEvent(1); //No need for state of ethercat master
+}
+
+
+//Summary functions
+int moveAbsolutePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d axisIndex=%d, positionSet=%lf, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",__FILE__, __FUNCTION__, __LINE__,axisIndex,positionSet,velocitySet,accelerationSet,decelerationSet);
+  }
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
+
+  int errorCode=axes[axisIndex]->getErrorID();
+  if(errorCode){
+    return errorCode;
+  }
+  errorCode=axes[axisIndex]->setExecute(0);
+  if(errorCode){
+    return errorCode;
+  }
+  errorCode=axes[axisIndex]->setCommand(ECMC_CMD_MOVEABS);
+  if(errorCode){
+    return errorCode;
+  }
+  errorCode=axes[axisIndex]->setCmdData(0);
+  if(errorCode){
+    return errorCode;
+  }
+  axes[axisIndex]->getSeq()->setTargetPos(positionSet);
+  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
+  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
+  axes[axisIndex]->getTraj()->setDec(decelerationSet);
+  errorCode=axes[axisIndex]->setExecute(1);
+  if(errorCode){
+    return errorCode;
+  }
+  return 0;
+}
+int moveRelativePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet)
+{
+  if(functionDiag){
+    fprintf(stdlog,"%s/%s:%d axisIndex=%d, positionSet=%lf, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",__FILE__, __FUNCTION__, __LINE__,axisIndex,positionSet,velocitySet,accelerationSet,decelerationSet);
+  }
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
+
+  int errorCode=axes[axisIndex]->getErrorID();
+  if(errorCode){
+    return errorCode;
+  }
+  errorCode=axes[axisIndex]->setExecute(0);
+  if(errorCode){
+    return errorCode;
+  }
+  errorCode=axes[axisIndex]->setCommand(ECMC_CMD_MOVEREL);
+  if(errorCode){
+    return errorCode;
+  }
+  errorCode=axes[axisIndex]->setCmdData(0);
+  if(errorCode){
+    return errorCode;
+  }
+  axes[axisIndex]->getSeq()->setTargetPos(positionSet);
+  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
+  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
+  axes[axisIndex]->getTraj()->setDec(decelerationSet);
+  errorCode=axes[axisIndex]->setExecute(1);
+  if(errorCode){
+    return errorCode;
+  }
+  return 0;
+}
+
+int moveVelocity(int axisIndex,double velocitySet, double accelerationSet, double decelerationSet)
+{
+  if(functionDiag){
+     fprintf(stdlog,"%s/%s:%d axisIndex=%d, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",__FILE__, __FUNCTION__, __LINE__,axisIndex,velocitySet,accelerationSet,decelerationSet);
+   }
+
+   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
+   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
+
+   int errorCode=axes[axisIndex]->getErrorID();
+   if(errorCode){
+     return errorCode;
+   }
+   errorCode=axes[axisIndex]->setExecute(0);
+   if(errorCode){
+     return errorCode;
+   }
+   errorCode=axes[axisIndex]->setCommand(ECMC_CMD_MOVEVEL);
+   if(errorCode){
+     return errorCode;
+   }
+   errorCode=axes[axisIndex]->setCmdData(0);
+   if(errorCode){
+     return errorCode;
+   }
+   axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
+   axes[axisIndex]->getTraj()->setAcc(accelerationSet);
+   axes[axisIndex]->getTraj()->setAcc(decelerationSet);
+   errorCode=axes[axisIndex]->setExecute(1);
+   if(errorCode){
+     return errorCode;
+   }
+   return 0;
+}
+
+int stopMotion(int axisIndex,int killAmplifier)
+{
+  if(functionDiag){
+     fprintf(stdlog,"%s/%s:%d axisIndex=%d, killAmplifier=%d\n",__FILE__, __FUNCTION__, __LINE__,axisIndex,killAmplifier);
+   }
+
+   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+   if(killAmplifier){
+     int errorCode=axes[axisIndex]->setEnable(0);
+     if(errorCode){
+       return errorCode;
+     }
+   }
+
+   int errorCode=axes[axisIndex]->setExecute(0);
+   if(errorCode){
+     return errorCode;
+   }
+
+   return 0;
 }

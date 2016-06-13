@@ -9,11 +9,14 @@
 #define ECMCECSDO_H_
 #include "ecrt.h"
 #include <string.h>
-
-#include "ecmcError.h"
-#include "ecmcErrorsList.h"
 #include "stdio.h"
+#include "ecmcError.h"
 
+//ECSDO
+#define ERROR_EC_SDO_SIZE_TO_LARGE 0x23000
+#define ERROR_EC_SDO_WRITE_FAILED 0x23001
+#define ERROR_EC_SDO_READ_FAILED 0x23002
+#define ERROR_EC_SDO_VERIFY_FAILED 0x23003
 
 class ecmcEcSDO : public ecmcError
 {

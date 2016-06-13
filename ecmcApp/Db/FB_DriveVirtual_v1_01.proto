@@ -1,0 +1,181 @@
+# .proto file for TwinCAT FB: FB_DriveVirtual_v1_01
+
+LockTimeout = 5000;
+WriteTimeout = 100;
+ReplyTimeout = 1000;
+ReadTimeout = 100;
+
+getEnable{
+	out "\$1\$2\$3.\$4bEnable?";
+	in "%{0|1}";
+}
+
+setEnable{
+	out "\$1\$2\$3.\$4bEnable=%{0|1}";
+	in "OK";
+	@init { getEnable; }
+}
+
+getReset{
+	out "\$1\$2\$3.\$4bReset?";
+	in "%{0|1}";
+}
+
+setReset{
+	out "\$1\$2\$3.\$4bReset=%{0|1}";
+	in "OK";
+	@init { getReset; }
+}
+
+getExecute{
+	out "\$1\$2\$3.\$4bExecute?";
+	in "%{0|1}";
+}
+
+setExecute{
+	out "\$1\$2\$3.\$4bExecute=%{0|1}";
+	in "OK";
+	@init { getExecute; }
+}
+
+getCommand{
+	out "\$1\$2\$3.\$4nCommand?";
+	in "%f";
+}
+
+setCommand{
+	out "\$1\$2\$3.\$4nCommand=%f";
+	in "OK";
+	@init { getCommand; }
+}
+
+getCmdData{
+	out "\$1\$2\$3.\$4nCmdData?";
+	in "%f";
+}
+
+setCmdData{
+	out "\$1\$2\$3.\$4nCmdData=%f";
+	in "OK";
+	@init { getCmdData; }
+}
+
+getVelocity{
+	out "\$1\$2\$3.\$4fVelocity?";
+	in "%f";
+}
+
+setVelocity{
+	out "\$1\$2\$3.\$4fVelocity=%f";
+	in "OK";
+	@init { getVelocity; }
+}
+
+getPosition{
+	out "\$1\$2\$3.\$4fPosition?";
+	in "%f";
+}
+
+setPosition{
+	out "\$1\$2\$3.\$4fPosition=%f";
+	in "OK";
+	@init { getPosition; }
+}
+
+getAcceleration{
+	out "\$1\$2\$3.\$4fAcceleration?";
+	in "%f";
+}
+
+setAcceleration{
+	out "\$1\$2\$3.\$4fAcceleration=%f";
+	in "OK";
+	@init { getAcceleration; }
+}
+
+getDeceleration{
+	out "\$1\$2\$3.\$4fDeceleration?";
+	in "%f";
+}
+
+setDeceleration{
+	out "\$1\$2\$3.\$4fDeceleration=%f";
+	in "OK";
+	@init { getDeceleration; }
+}
+
+getJogFwd{
+	out "\$1\$2\$3.\$4bJogFwd?";
+	in "%{0|1}";
+}
+
+setJogFwd{
+	out "\$1\$2\$3.\$4bJogFwd=%{0|1}";
+	in "OK";
+	@init { getJogFwd; }
+}
+
+getJogBwd{
+	out "\$1\$2\$3.\$4bJogBwd?";
+	in "%{0|1}";
+}
+
+setJogBwd{
+	out "\$1\$2\$3.\$4bJogBwd=%{0|1}";
+	in "OK";
+	@init { getJogBwd; }
+}
+
+getLimitFwd{
+	out "\$1\$2\$3.\$4bLimitFwd?";
+	in "%{0|1}";
+}
+
+setLimitFwd{
+	out "\$1\$2\$3.\$4bLimitFwd=%{0|1}";
+	in "OK";
+	@init { getLimitFwd; }
+}
+
+getLimitBwd{
+	out "\$1\$2\$3.\$4bLimitBwd?";
+	in "%{0|1}";
+}
+
+setLimitBwd{
+	out "\$1\$2\$3.\$4bLimitBwd=%{0|1}";
+	in "OK";
+	@init { getLimitBwd; }
+}
+
+getOverride{
+	out "\$1\$2\$3.\$4fOverride?";
+	in "%f";
+}
+
+setOverride{
+	out "\$1\$2\$3.\$4fOverride=%f";
+	in "OK";
+	@init { getOverride; }
+}
+
+getHomeSensor{
+	out "\$1\$2\$3.\$4bHomeSensor?";
+	in "%{0|1}";
+}
+
+setHomeSensor{
+	out "\$1\$2\$3.\$4bHomeSensor=%{0|1}";
+	in "OK";
+	@init { getHomeSensor; }
+}
+
+getErrorMessage{
+	out "\$1\$2\$3.\$4sErrorMessage?";
+	in "%[^;]";
+}
+
+getAxisId{
+	out "\$1\$2\$3.\$4nMotionAxisID?";
+	in "%d";
+}

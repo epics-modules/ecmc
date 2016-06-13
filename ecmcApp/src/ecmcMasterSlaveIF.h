@@ -9,9 +9,11 @@
 #define ECMCMASTERSLAVEIF_H_
 
 #include "ecmcDefinitions.h"
-#include "ecmcErrorsList.h"
 #include "ecmcMasterSlaveData.h"
 #include "ecmcTransform.h"
+
+//MASTERDATA INTERFACE
+#define ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE 0x30100
 
 class ecmcMasterSlaveIF
 {

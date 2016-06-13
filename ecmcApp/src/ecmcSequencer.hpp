@@ -9,11 +9,20 @@
 #define ECMCSEQUENCER_HPP_
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
-#include "ecmcErrorsList.h"
 #include "ecmcMonitor.hpp"
 #include "ecmcPIDController.hpp"
 #include "ecmcTrajectory.hpp"
 
+//SEQUENCER ERRORS
+#define ERROR_SEQ_TRAJ_NULL 0x14D00
+#define ERROR_SEQ_ENC_NULL 0x14D01
+#define ERROR_SEQ_MON_NULL 0x14D02
+#define ERROR_SEQ_CNTRL_NULL 0x14D03
+#define ERROR_SEQ_SEQ_FAILED 0x14D04
+#define ERROR_SEQ_COMMAND_NOT_SUPPORTED 0x14D05
+#define ERROR_SEQ_SOFT_LIMIT_FWD 0x14D06
+#define ERROR_SEQ_SOFT_LIMIT_BWD 0x14D07
+#define ERROR_SEQ_TIMEOUT 0x14D08
 
 class ecmcSequencer : public ecmcError
 {

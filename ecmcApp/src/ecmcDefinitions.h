@@ -9,22 +9,27 @@
 #ifndef ECMCDEFINITIONS_H_
 #define ECMCDEFINITIONS_H_
 
+#define UNPACK( ... ) __VA_ARGS__
+#define PRINT_DIAG(message) {if(enableDiagnosticPrintouts_){printf("%s/%s:%d: ",__FILE__, __FUNCTION__, __LINE__);printf(UNPACK message);}}
+
 #define MCU_FREQUENCY 1000.0
-#define MCU_NSEC_PER_SEC (1000000000L)
+//#define MCU_NSEC_PER_SEC (1000000000L)
+#define MCU_NSEC_PER_SEC 1000000000
+//enum { NSEC_PER_SEC = 1000000000 };
 #define MCU_PERIOD_NS (int)(MCU_NSEC_PER_SEC / MCU_FREQUENCY)
 #define MCU_CLOCK_TO_USE CLOCK_REALTIME
 
-#define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * NSEC_PER_SEC + \
+#define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC + \
   (B).tv_nsec - (A).tv_nsec)
 
-#define TIMESPEC2NS(T) ((uint64_t) (T).tv_sec * NSEC_PER_SEC + (T).tv_nsec)
+#define TIMESPEC2NS(T) ((uint64_t) (T).tv_sec * MCU_NSEC_PER_SEC + (T).tv_nsec)
 
 //#define MSG_TICK 0
 #define MAX_MESSAGE 10000
 
 
-#define MAX_AXES 8
-#define MAX_TRANSFORM_INPUTS MAX_AXES*2
+#define ECMC_MAX_AXES 8
+#define MAX_TRANSFORM_INPUTS ECMC_MAX_AXES*2
 #define TRANSFORM_EXPR_LINE_END_CHAR '#'
 #define TRANSFORM_EXPR_OUTPUT_VAR_NAME "out"
 #define TRANSFORM_EXPR_INTERLOCK_VAR_NAME "ilock"
@@ -34,11 +39,20 @@
 #define TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX "ex"
 #define TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX "en"
 
-
 //****EtherCAT****
 #define EC_MAX_PDOS 200        //Pdos per slave terminal
 #define EC_MAX_ENTRIES 200     //Entries Per slave
 #define EC_MAX_SLAVES 200
+
+//Data recording
+#define ECMC_MAX_DATA_RECORDERS_OBJECTS 10
+#define ECMC_MAX_EVENT_OBJECTS 10
+#define ECMC_MAX_DATA_STORAGE_OBJECTS 10
+#define ECMC_DEFAULT_DATA_STORAGE_SIZE 1000
+#define ECMC_MAX_EVENT_CONSUMERS 10
+#define ECMC_MAX_COMMANDS_LISTS 10
+#define ECMC_MAX_COMMANDS_IN_COMMANDS_LISTS 100
+
 
 //****Motion****
 enum app_mode_type{
@@ -128,6 +142,18 @@ enum commandType{
   ECMC_CMD_TYPE_EXECUTE=0,
   ECMC_CMD_TYPE_ENABLE=1,
 };
+
+enum eventType{
+  ECMC_SAMPLED = 0,
+  ECMC_EDGE_TRIGGERED = 1,
+};
+
+enum triggerEdgeType{
+  ECMC_POSITIVE_EDGE = 0,
+  ECMC_NEGATIVE_EDGE = 1,
+  ECMC_ON_CHANGE=2,
+};
+
 
 
 #endif /* ECMCDEFINITIONS_H_ */

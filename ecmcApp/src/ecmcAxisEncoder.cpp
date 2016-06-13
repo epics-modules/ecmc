@@ -32,16 +32,24 @@ void ecmcAxisEncoder::initVars()
 
 void ecmcAxisEncoder::execute(bool masterOK)
 {
-  if(masterOK && operationMode_==ECMC_MODE_OP_AUTO){
+  if(masterOK){
 
-    if(getErrorID()==ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL){ //TODO this is not nice. Will never see this error since it auto resets
-      errorReset();
+    if(inStartupPhase_){
+      //Auto reset hardware error
+      if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+        errorReset();
+      }
+      setInStartupPhase(false);
     }
+
     //Read from hardware
     enc_->readEntries();
   }
   else{
-    setErrorID(ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL);
+	if(getEnable()){
+	  setEnable(false);
+	}
+    setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
   }
 }
 

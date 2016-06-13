@@ -1,0 +1,96 @@
+
+LockTimeout = 5000;
+WriteTimeout = 100;
+ReplyTimeout = 1000;
+ReadTimeout = 100;
+
+
+getEncSourceType{
+	out "GetAxisEncSourceType(\$1)";
+	in "%{0|1}";
+}
+
+setEncSourceType{
+	out "Cfg.SetAxisEncSourceType(\$1,%{0|1})";
+	in "OK";
+	@init { getEncSourceType; }
+}
+
+getTrajSourceType{
+	out "GetAxisTrajSourceType(\$1)";
+	in "%{0|1}";
+}
+
+setTrajSourceType{
+	out "Cfg.SetAxisTrajSourceType(\$1,%{0|1})";
+	in "OK";
+	@init { getTrajSourceType; }
+}
+
+getTrajTransExpr{
+	out "GetAxisTrajTransExpr(\$1)";
+	in "%[^;]";
+}
+
+setTrajTransExpr{
+	out "Cfg.SetAxisTrajTransExpr(\$1)=%s";
+	in "OK";
+	@init { getTrajTransExpr; }
+}
+
+getEncTransExpr{
+	out "GetAxisEncTransExpr(\$1)";
+	in "%[^;]";
+}
+
+setEncTransExpr{
+	out "Cfg.SetAxisEncTransExpr(\$1)=%s";
+	in "OK";
+	@init { getEncTransExpr; }
+}
+
+getEnableCommandsTransform{
+	out "GetAxisEnableCommandsTransform(\$1)";
+	in "%{0|1}";
+}
+
+setEnableCommandsTransform{
+	out "Cfg.SetAxisEnableCommandsTransform(\$1,%{0|1})";
+	in "OK";
+	@init { getEnableCommandsTransform; }
+}
+
+getCommandTransExpr{
+	out "GetAxisTransformCommandExpr(\$1)";
+	in "%[^;]";
+}
+
+setCommandTransExpr{
+	out "Cfg.SetAxisTransformCommandExpr(\$1)=%s";
+	in "OK";
+	@init { getCommandTransExpr; }
+}
+
+getEnableCommandFromOtherAxis{             
+	out "GetAxisEnableCommandsFromOtherAxis(\$1)";
+	in "%{0|1}";
+}
+
+setEnableCommandFromOtherAxis{
+	out "Cfg.SetAxisEnableCommandsFromOtherAxis(\$1,%{0|1})";
+	in "OK";
+	@init { getEnableCommandFromOtherAxis; }
+}
+
+getAxisType{
+	out "GetAxisType(\$1)";
+	in "%f";
+}
+
+setAxisStartPos{
+	out "Cfg.SetAxisTrajStartPos(\$1,%f)";
+	in "OK";
+}
+
+
+

@@ -10,46 +10,53 @@
 
 #include "ecmcAxisBase.h"
 
+//VIRTUAL AXIS
+#define ERROR_VIRT_AXIS_TRAJ_NULL 0x14F00
+#define ERROR_VIRT_AXIS_CREATE_TRANSFORM_INDEX_OUT_OF_RANGE 0x14F01
+#define ERROR_VIRT_AXIS_INDEX_OUT_OF_RANGE 0x14F02
+#define ERROR_VIRT_AXIS_LINKED_AXIS_TRAJ_NULL 0x14F03
+#define ERROR_VIRT_AXIS_INDEX_NULL 0x14F04
+
 class ecmcAxisVirt: public ecmcAxisBase
 {
 public:
   ecmcAxisVirt(int axisID, double sampleTime);
-  ~ecmcAxisVirt() override;
-  void execute(bool masterOK) override;
-  int setOpMode(operationMode mode) override;
-  operationMode getOpMode() override;
+  ~ecmcAxisVirt();
+  void execute(bool masterOK);
+  int setOpMode(operationMode mode);
+  operationMode getOpMode();
 
-  int getActPos(double *pos) override;
-  int getActVel(double *vel) override;
-  int getAxisHomed(bool *homed) override;
+  int getActPos(double *pos);
+  int getActVel(double *vel);
+  int getAxisHomed(bool *homed);
 
-  int getEncScaleNum(double *scale) override;
-  int setEncScaleNum(double scale) override;
-  int getEncScaleDenom(double *scale) override;
-  int setEncScaleDenom(double scale) override;
-  int getEncPosRaw(int64_t *rawPos) override;
-  int getCntrlError(double* error) override;
+  int getEncScaleNum(double *scale);
+  int setEncScaleNum(double scale);
+  int getEncScaleDenom(double *scale);
+  int setEncScaleDenom(double scale);
+  int getEncPosRaw(int64_t *rawPos);
+  int getCntrlError(double* error);
 
-  int setExecute(bool execute) override;
-  bool getExecute() override;
-  int setEnable(bool enable) override;
-  bool getEnable() override;
-  void errorReset() override;
-  int getErrorID() override;
-  bool getError() override;
-  int setCommand(motionCommandTypes command) override;
-  int setCmdData(int cmdData) override;
-  motionCommandTypes getCommand() override;
-  int getCmdData() override;
-  void printStatus() override;
+  int setExecute(bool execute);
+  bool getExecute();
+  int setEnable(bool enable);
+  bool getEnable();
+  void errorReset();
+  int getErrorID();
+  bool getError();
+  int setCommand(motionCommandTypes command);
+  int setCmdData(int cmdData);
+  motionCommandTypes getCommand();
+  int getCmdData();
+  void printStatus();
 
-  ecmcDrive *getDrv() override;
-  ecmcTrajectory *getTraj() override;
-  ecmcMonitor *getMon() override;
-  ecmcEncoder *getEnc() override;
-  ecmcPIDController *getCntrl() override;
-  ecmcSequencer *getSeq() override;
-  int validate() override;
+  ecmcDrive *getDrv();
+  ecmcTrajectory *getTraj();
+  ecmcMonitor *getMon();
+  ecmcEncoder *getEnc();
+  ecmcPIDController *getCntrl();
+  ecmcSequencer *getSeq();
+  int validate();
 
 private:
   void initVars();

@@ -12,7 +12,6 @@
 #include <cstring>
 
 #include "ecmcError.h"
-#include "ecmcErrorsList.h"
 
 #define CUTOFF 100
 #define FILTER_BUFFER_SIZE 15

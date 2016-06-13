@@ -43,15 +43,20 @@ void ecmcAxisReal::initVars()
 
 void ecmcAxisReal::execute(bool masterOK)
 {
-  if(masterOK && operationMode_==ECMC_MODE_OP_AUTO){
+  if(operationMode_==ECMC_MODE_OP_AUTO){
 
-    if(getErrorID()==ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL){ //TODO this is not nice. Will never see this error since it auto resets
-      errorReset();
+    if(inStartupPhase_ && masterOK){
+      //Auto reset hardware error if starting up
+      if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+        errorReset();
+      }
+      setInStartupPhase(false);
     }
 
     //Read from hardware
     mon_->readEntries();
     enc_->readEntries();
+    drv_->readEntries();
     double encActPos=enc_->getActPos();
     traj_->setHardLimitFwd(mon_->getHardLimitFwd());
     traj_->setHardLimitBwd(mon_->getHardLimitBwd());
@@ -70,13 +75,24 @@ void ecmcAxisReal::execute(bool masterOK)
     traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     cntrl_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
+    drv_->setAtTarget(mon_->getAtTarget());  //Reduce torque
 
-    if(getEnable()){
+    if(getEnable() && masterOK){
       drv_->setVelSet(cntrl_->control(trajCurrSet,encActPos,traj_->getVel())); //Actual control
     }
     else{
       drv_->setVelSet(0);
       cntrl_->reset();
+    }
+
+    if(!masterOK){
+      if(getEnable()){
+        setEnable(false);
+      }
+      cntrl_->reset();
+      drv_->setVelSet(0);
+      drv_->setInterlock(true);
+      setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
     }
 
     //Write to hardware
@@ -89,10 +105,6 @@ void ecmcAxisReal::execute(bool masterOK)
       drv_->setEnable(false);
     }
     drv_->writeEntries();
-  }
-  else
-  {
-    setErrorID(ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL);
   }
 }
 
@@ -120,13 +132,12 @@ int ecmcAxisReal::setEnable(bool enable)
     return setErrorID(error);
   }
   mon_->setEnable(enable);
-
   return setEnable_Transform();
 }
 
 bool ecmcAxisReal::getEnable()
 {
-  return drv_->getEnable() && traj_->getEnable() && cntrl_->getEnable() && mon_->getEnable() ;
+  return drv_->getEnable() && drv_->getEnabled() && traj_->getEnable() && cntrl_->getEnable() && mon_->getEnable();
 }
 
 int ecmcAxisReal::getErrorID()

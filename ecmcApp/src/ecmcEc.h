@@ -17,8 +17,28 @@
 #include "ecmcEcSDO.h"
 #include "ecmcEcSlave.h"
 #include "ecmcError.h"
-#include "ecmcErrorsList.h"
 
+//EC ERRORS
+#define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
+#define ERROR_EC_MAIN_CREATE_DOMAIN_FAILED 0x26001
+#define ERROR_EC_MAIN_INVALID_SLAVE_INDEX 0x26002
+#define ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED 0x26003
+#define ERROR_EC_MAIN_SLAVE_NULL 0x26004
+#define ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED 0x26005
+#define ERROR_EC_MAIN_ENTRY_NULL 0x26006
+#define ERROR_EC_MAIN_GET_ENTRY_INFO_FAILED 0x26007
+#define ERROR_EC_MAIN_DOM_REG_PDO_ENTRY_LIST_FAILED 0x26008
+#define ERROR_EC_MAIN_SDO_ARRAY_FULL 0x26009
+#define ERROR_EC_MAIN_SDO_ENTRY_NULL 0x2600A
+#define ERROR_EC_MAIN_SDO_READ_FAILED 0x2600B
+#define ERROR_EC_MAIN_DOMAIN_DATA_FAILED 0x2600C
+#define ERROR_EC_MAIN_SLAVE_ARRAY_FULL 0x2600D
+#define ERROR_EC_AL_STATE_INIT 0x2600E
+#define ERROR_EC_AL_STATE_PREOP 0x2600F
+#define ERROR_EC_AL_STATE_SAFEOP 0x26010
+#define ERROR_EC_LINK_DOWN 0x26011
+#define ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH 0x26012
+#define ERROR_EC_STATUS_NOT_OK 0x26013
 
 class ecmcEc : public ecmcError
 {
@@ -49,7 +69,6 @@ public:
   int writeAndVerifySDOs();
   uint32_t readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize);
   int writeSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize);
-
   int addEntry(
       uint16_t       position, /**< Slave position. */
       uint32_t       vendorId, /**< Expected vendor ID. */
@@ -66,6 +85,10 @@ public:
   int findSlaveIndex(int busPosition,int *slaveIndex);
   int updateTime();
   int printTimingInformation();
+  int statusOK();
+  int setDomainFailedCyclesLimitInterlock(int cycles);
+  int setEnablePrintOuts(bool enable);
+  void printStatus();
 private:
   void initVars();
   int updateInputProcessImage();
@@ -73,8 +96,8 @@ private:
 
   ec_master_t *master_; /**< EtherCAT master */
   ec_domain_t *domain_;
-  ec_domain_state_t dsOld_;
-  ec_master_state_t msOld_;
+  ec_domain_state_t domainStateOld_;
+  ec_master_state_t masterStateOld_;
   uint8_t *domainPd_ ;
   int slaveCounter_;
   int sdoCounter_;
@@ -86,5 +109,13 @@ private:
   bool initDone_;
   bool diag_;
   ecmcEcSlave *simSlave_;
+  int slavesOK_;
+  int masterOK_;
+  int domainOK_;
+  int domainNotOKCounter_;
+  int domainNotOKCounterMax_;
+  int domainNotOKCyclesLimit_;
+  int enableDiagnosticPrintouts_;
+  bool inStartupPhase_;
 };
 #endif /* ECMCEC_H_ */

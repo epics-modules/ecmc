@@ -14,40 +14,40 @@ class ecmcAxisEncoder: public ecmcAxisBase
 {
 public:
   ecmcAxisEncoder(int axisID, double sampleTime);
-  ~ecmcAxisEncoder() override;
-  void execute(bool masterOK) override;
-  int setOpMode(operationMode mode) override;
-  operationMode getOpMode() override;
-  int getActPos(double *pos) override;
-  int getActVel(double *vel) override;
-  int getAxisHomed(bool *homed) override;
-  int getEncScaleNum(double *scale) override;
-  int setEncScaleNum(double scale) override;
-  int getEncScaleDenom(double *scale) override;
-  int setEncScaleDenom(double scale) override;
-  int getEncPosRaw(int64_t *rawPos) override;
-  int getCntrlError(double* error) override;
-  int setExecute(bool execute) override;
-  bool getExecute() override;
-  int setEnable(bool enable) override;
-  bool getEnable() override;
-  void errorReset() override;
-  int getErrorID() override;
-  bool getError() override;
-  int setCommand(motionCommandTypes command) override;
-  int setCmdData(int cmdData) override;
-  motionCommandTypes getCommand() override;
-  int getCmdData() override;
+  ~ecmcAxisEncoder();
+  void execute(bool masterOK);
+  int setOpMode(operationMode mode);
+  operationMode getOpMode();
+  int getActPos(double *pos);
+  int getActVel(double *vel);
+  int getAxisHomed(bool *homed);
+  int getEncScaleNum(double *scale);
+  int setEncScaleNum(double scale);
+  int getEncScaleDenom(double *scale);
+  int setEncScaleDenom(double scale);
+  int getEncPosRaw(int64_t *rawPos);
+  int getCntrlError(double* error);
+  int setExecute(bool execute);
+  bool getExecute();
+  int setEnable(bool enable);
+  bool getEnable();
+  void errorReset();
+  int getErrorID();
+  bool getError();
+  int setCommand(motionCommandTypes command);
+  int setCmdData(int cmdData);
+  motionCommandTypes getCommand();
+  int getCmdData();
 
-  ecmcDrive *getDrv() override;
-  ecmcTrajectory *getTraj() override;
-  ecmcMonitor *getMon() override;
-  ecmcEncoder *getEnc() override;
-  ecmcPIDController *getCntrl() override;
-  ecmcSequencer *getSeq() override;
-  void printStatus() override;
+  ecmcDrive *getDrv();
+  ecmcTrajectory *getTraj();
+  ecmcMonitor *getMon();
+  ecmcEncoder *getEnc();
+  ecmcPIDController *getCntrl();
+  ecmcSequencer *getSeq();
+  void printStatus();
 
-  int validate() override;
+  int validate();
 
  private:
   void initVars();

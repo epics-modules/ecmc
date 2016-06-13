@@ -63,7 +63,7 @@ void ecmcPIDController::reset()
   controllerError_=0;
   controllerErrorOld_=0;
   output_=0;
-  enable_=false;
+  //enable_=false;
 }
 
 double ecmcPIDController::getCntrlError()

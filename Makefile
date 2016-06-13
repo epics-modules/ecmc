@@ -23,6 +23,7 @@ SOURCES = \
   ecmcApp/src/ecmcEcSDO.cpp \
   ecmcApp/src/ecmcEcSlave.cpp \
   ecmcApp/src/ecmcEcSyncManager.cpp \
+  ecmcApp/src/ecmcEcEntryLink.cpp \
   ecmcApp/src/ecmcEncoder.cpp \
   ecmcApp/src/ecmcError.cpp \
   ecmcApp/src/ecmcFilter.cpp \
@@ -34,11 +35,12 @@ SOURCES = \
   ecmcApp/src/ecmcSequencer.cpp \
   ecmcApp/src/ecmcTrajectory.cpp \
   ecmcApp/src/ecmcTransform.cpp \
+  ecmcApp/src/ecmcEvent.cpp \
+  ecmcApp/src/ecmcEventConsumer.cpp \
+  ecmcApp/src/ecmcDataRecorder.cpp \
+  ecmcApp/src/ecmcDataStorage.cpp \
+  ecmcApp/src/ecmcCommandList.cpp \
   ecmcApp/src/hw_motor.cpp \
-  ecmcApp/src/rtutilsSrc/rtutils.c
-
-
-
 
 TEMPLATES = \
   ecmcApp/Db/ecmcController.template \

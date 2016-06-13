@@ -14,8 +14,9 @@
 #include "ecmcDefinitions.h"
 #include "ecmcEcEntry.h"
 #include "ecmcError.h"
-#include "ecmcErrorsList.h"
 
+//ECPDO
+#define ERROR_EC_PDO_ENTRY_ARRAY_FULL 0x22000
 
 class ecmcEcPdo : public ecmcError
 {

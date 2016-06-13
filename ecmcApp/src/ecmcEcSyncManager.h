@@ -15,7 +15,11 @@
 #include "ecmcEcEntry.h"
 #include "ecmcEcPdo.h"
 #include "ecmcError.h"
-#include "ecmcErrorsList.h"
+
+//ECSYNCMANAGER ERRORS
+#define ERROR_EC_SM_PDO_ARRAY_FULL 0x25000
+#define ERROR_EC_SM_PDO_INDEX_OUT_OF_RANGE 0x25001
+#define ERROR_EC_SM_ENTRY_INFO_STRUCT_NULL 0x25002
 
 class ecmcEcSyncManager : public ecmcError
 {

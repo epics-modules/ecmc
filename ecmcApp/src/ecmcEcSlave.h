@@ -16,9 +16,29 @@
 #include "ecmcEcEntry.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcError.h"
-#include "ecmcErrorsList.h"
 
 #define SIMULATION_ENTRIES 2
+
+//ECSLAVE ERRORS
+#define ERROR_EC_SLAVE_CONFIG_FAILED 0x24000
+#define ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE 0x24001
+#define ERROR_EC_SLAVE_SM_ARRAY_FULL 0x24002
+#define ERROR_EC_SLAVE_SM_INDEX_OUT_OF_RANGE 0x24003
+#define ERROR_EC_SLAVE_ENTRY_INFO_STRUCT_NULL 0x24004
+#define ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE 0x24005
+#define ERROR_EC_SLAVE_SLAVE_INFO_STRUCT_NULL 0x24006
+#define ERROR_EC_SLAVE_CONFIG_PDOS_FAILED 0x24007
+#define ERROR_EC_SLAVE_ENTRY_NULL 0x24008
+#define ERROR_EC_SLAVE_STATE_CHANGED 0x24009
+#define ERROR_EC_SLAVE_ONLINE_OFFLINE_CHANGED 0x2400A
+#define ERROR_EC_SLAVE_OPERATIONAL_CHANGED 0x2400B
+#define ERROR_EC_SLAVE_CONFIG_NULL 0x2400C
+#define ERROR_EC_SLAVE_STATE_INIT 0x2400D
+#define ERROR_EC_SLAVE_STATE_PREOP 0x2400E
+#define ERROR_EC_SLAVE_STATE_SAFEOP 0x2400F
+#define ERROR_EC_SLAVE_STATE_UNDEFINED 0x24010
+#define ERROR_EC_SLAVE_NOT_OPERATIONAL 0x24011
+#define ERROR_EC_SLAVE_NOT_ONLINE 0x24012
 
 typedef struct
 {
@@ -66,7 +86,7 @@ public:
       int32_t sync1Shift /**< SYNC1 shift time [ns]. */);
   ecmcEcEntry *findEntry(std::string id);
   int findEntryIndex(std::string id);
-
+  int selectAsReferenceDC();
 private:
   void initVars();
   ecmcEcSyncManager *findSyncMan(uint8_t syncMangerIndex);
@@ -90,7 +110,7 @@ private:
   void writeSyncsStruct();
   void writeEntriesStruct();
   int pdosInSMCount_;
-  ec_slave_config_state_t sOld_;
+  ec_slave_config_state_t slaveStateOld_;
   bool simSlave_;  //used to simulate endswitches Consider make derived simulation class insteaed
   uint8_t simBuffer_[8*SIMULATION_ENTRIES]; //used to simulate endswitches
   ecmcEcEntry *simEntries_[SIMULATION_ENTRIES]; //used to simulate endswitches

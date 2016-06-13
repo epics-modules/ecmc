@@ -23,14 +23,20 @@ void ecmcEc::initVars()
   simSlave_=NULL;
   master_=NULL;
   domain_=NULL;
-  dsOld_.redundancy_active=0;
-  dsOld_.wc_state=EC_WC_ZERO;
-  dsOld_.working_counter=0;
-  msOld_.slaves_responding=0;
-  msOld_.link_up=0;
-  msOld_.al_states=0;
+  domainStateOld_.redundancy_active=0;
+  domainStateOld_.wc_state=EC_WC_ZERO;
+  domainStateOld_.working_counter=0;
+  masterStateOld_.slaves_responding=0;
+  masterStateOld_.link_up=0;
+  masterStateOld_.al_states=0;
   domainPd_=0;
-
+  slavesOK_=0;
+  masterOK_=0;
+  domainOK_=0;
+  domainNotOKCounter_=0;
+  domainNotOKCyclesLimit_=0;
+  domainNotOKCounterMax_=0;
+  enableDiagnosticPrintouts_=1;
   for(int i=1; i < EC_MAX_SLAVES; i++){
     slaveArray_[i]=NULL;
   }
@@ -47,6 +53,7 @@ void ecmcEc::initVars()
     slaveEntriesReg_[i].subindex=0;
     slaveEntriesReg_[i].vendor_id=0;
   }
+  inStartupPhase_=true;
 }
 
 int ecmcEc::init(int nMasterIndex)
@@ -67,7 +74,8 @@ int ecmcEc::init(int nMasterIndex)
 
 ecmcEc::~ecmcEc()
 {
-  printf("INFO:\t\tDeleting Ec\n");
+  PRINT_DIAG(("INFO:\t\tDeleting Ec\n"))
+
   for(int i=0; i < slaveCounter_; i++){
     delete slaveArray_[i];
     slaveArray_[i]=NULL;
@@ -137,7 +145,8 @@ ecmcEcSlave *ecmcEc::getSlave(int slaveIndex)
 
 int ecmcEc::activate()
 {
-  printf("INFO:\t\tActivating master...\n");
+  PRINT_DIAG(("INFO:\t\tActivating master...\n"));
+
   if (ecrt_master_activate(master_)){
     return setErrorID(ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED);
   }
@@ -147,10 +156,10 @@ int ecmcEc::activate()
   }
 
   mcu_ec_slave_info_light slaveinfo;
-  printf("INFO:\t\tWriting process data offsets to entries!\n");
+  PRINT_DIAG(("INFO:\t\tWriting process data offsets to entries!\n"));
   for(int slaveIndex=0; slaveIndex<slaveCounter_;slaveIndex++){
     if(slaveArray_[slaveIndex]==NULL){
-      printf("WARNING:\tActivate: Slave==NULL...\n");
+      PRINT_DIAG(("WARNING:\tActivate: Slave==NULL...\n"));
       return setErrorID(ERROR_EC_MAIN_SLAVE_NULL);
     }
     if(slaveArray_[slaveIndex]->getSlaveInfo(&slaveinfo)){  //Get slave info
@@ -160,7 +169,7 @@ int ecmcEc::activate()
     for(int entryIndex=0;entryIndex<nEntryCount;entryIndex++){
       ecmcEcEntry *tempEntry=slaveArray_[slaveIndex]->getEntry(entryIndex);
       if(tempEntry==NULL){
-        printf("WARNING:\tActivate: Entry==NULL...\n");
+        PRINT_DIAG(("WARNING:\tActivate: Entry==NULL...\n"));
         return setErrorID(ERROR_EC_MAIN_ENTRY_NULL);
       }
       tempEntry->setDomainAdr(domainPd_);
@@ -171,13 +180,13 @@ int ecmcEc::activate()
 
 int ecmcEc::compileRegInfo()
 {
-  printf("INFO:\t\tEntering ecmcEc::compileRegInfo.\n");
+  PRINT_DIAG(("INFO:\t\tEntering ecmcEc::compileRegInfo.\n"));
   mcu_ec_slave_info_light slaveinfo;
   ec_pdo_entry_info_t entryinfo;
   int entryCounter=0;
   for(int slaveIndex=0; slaveIndex<slaveCounter_;slaveIndex++){
     if(slaveArray_[slaveIndex]==NULL){
-      printf("WARNING:\tRegInfo: Slave==NULL...\n");
+      PRINT_DIAG(("WARNING:\tRegInfo: Slave==NULL...\n"));
       return setErrorID(ERROR_EC_MAIN_SLAVE_NULL);
     }
     if(slaveArray_[slaveIndex]->getSlaveInfo(&slaveinfo)){  //Get slave info
@@ -201,65 +210,94 @@ int ecmcEc::compileRegInfo()
     }
   }
   // slave_entries_reg filled
-  printf("INFO:\t\tSlave reg entries structure filled:\n");
+  PRINT_DIAG(("INFO:\t\tSlave reg entries structure filled:\n"));
   for(int i=0;i<entryCounter;i++){
-    printf("\t\t{%d\t%d\t%x\t%x\t%x\t%x}\n",slaveEntriesReg_[i].alias,slaveEntriesReg_[i].position,slaveEntriesReg_[i].vendor_id,slaveEntriesReg_[i].product_code,slaveEntriesReg_[i].index,slaveEntriesReg_[i].subindex/*,slave_entries_reg[i].offset*//*,slave_entries_reg[i].bit_position*/);
+	PRINT_DIAG(("\t\t{%d\t%d\t%x\t%x\t%x\t%x}\n",slaveEntriesReg_[i].alias,slaveEntriesReg_[i].position,slaveEntriesReg_[i].vendor_id,slaveEntriesReg_[i].product_code,slaveEntriesReg_[i].index,slaveEntriesReg_[i].subindex));
   }
   //Register to get offsets!
   if (ecrt_domain_reg_pdo_entry_list(domain_, slaveEntriesReg_)) {  //Now offsets are stored in slave_enties reg
-    fprintf(stderr, "ERROR:\tRegistration of entry list failed!\n");
+	PRINT_DIAG(("ERROR:\tRegistration of entry list failed!\n"));
     return setErrorID(ERROR_EC_MAIN_DOM_REG_PDO_ENTRY_LIST_FAILED);
   }
-  printf("INFO:\t\tWriting address offsets to entry objects\n");
+  PRINT_DIAG(("INFO:\t\tWriting address offsets to entry objects\n"));
+
   entryCounter=0;
   //Write offstes to entries
   for(int slaveIndex=0; slaveIndex<slaveCounter_;slaveIndex++){
     if(slaveArray_[slaveIndex]==NULL){
-      printf("WARNING:\tWriting offsets to RegInfo: Slave==NULL...\n");
+      PRINT_DIAG(("WARNING:\tWriting offsets to RegInfo: Slave==NULL...\n"));
       return setErrorID(ERROR_EC_MAIN_SLAVE_NULL);
     }
     if(slaveArray_[slaveIndex]->getSlaveInfo(&slaveinfo)){  //Get slave info
-      printf("WARNING:\tgetSlaveInfo failed...\n");
+      PRINT_DIAG(("WARNING:\tgetSlaveInfo failed...\n"));
       return setErrorID(ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
     }
     int entryCountInSlave=slaveArray_[slaveIndex]->getEntryCount();
     for(int entryIndex=0;entryIndex<entryCountInSlave;entryIndex++){
       ecmcEcEntry *tempEntry=slaveArray_[slaveIndex]->getEntry(entryIndex);
       if(tempEntry==NULL){
-        printf("WARNING:\tRegInfo: Entry==NULL...\n");
+        PRINT_DIAG(("WARNING:\tRegInfo: Entry==NULL...\n"));
         return setErrorID(ERROR_EC_MAIN_ENTRY_NULL);
       }
       tempEntry->setAdrOffsets(pdoByteOffsetArray_[entryCounter],pdoBitOffsetArray_[entryCounter]);
       entryCounter++;
     }
   }
-  printf("INFO:\t\tLeaving ecmcEc::compileRegInfo. Entries registered: %d\n",entryCounter);
+  PRINT_DIAG(("INFO:\t\tLeaving ecmcEc::compileRegInfo. Entries registered: %d\n",entryCounter));
   return 0;
 }
 
 void ecmcEc::checkDomainState(void)
 {
-  if(diag_){
-    ec_domain_state_t ds;
-    ecrt_domain_state(domain_, &ds);
-    if (ds.working_counter != dsOld_.working_counter)
-      printf("INFO:\t\tDomain1: WC %u.\n", ds.working_counter);
-    if (ds.wc_state != dsOld_.wc_state)
-      printf("INFO:\t\tDomain1: State %u.\n", ds.wc_state);
-    dsOld_=ds;
+  if(!diag_){
+    domainOK_=true;
   }
+
+  ec_domain_state_t domainState;
+  ecrt_domain_state(domain_, &domainState);
+/*  if (domainState.working_counter != domainStateOld_.working_counter){
+	PRINT_DIAG(("INFO:\t\tDomain: WC %u.\n", domainState.working_counter));
+  }
+  if (domainState.wc_state != domainStateOld_.wc_state){
+    PRINT_DIAG(("INFO:\t\tDomain: State %u.\n", domainState.wc_state));
+  }
+  domainStateOld_=domainState;*/
+
+  //filter domainOK_ for some cycles
+  if( domainState.wc_state!=EC_WC_COMPLETE){
+    if(domainNotOKCounter_<=domainNotOKCyclesLimit_){
+      domainNotOKCounter_++;
+    }
+    if(domainNotOKCounter_> domainNotOKCounterMax_){
+   	  domainNotOKCounterMax_=domainNotOKCounter_;
+    }
+  }
+  else{
+    domainNotOKCounter_=0;
+  }
+  domainOK_=domainNotOKCounter_<=domainNotOKCyclesLimit_;
 }
 
 bool ecmcEc::checkSlavesConfState()
 {
-  if(diag_){
-    bool retVal=true;
-    for(int i=0;i<slaveCounter_;i++){
-      retVal=retVal && checkSlaveConfState(i)==0;
-    }
-    return retVal;
+  if(!diag_){
+    slavesOK_=true;
+    return slavesOK_;
   }
-  return true;
+
+  int retVal=0;
+  for(int i=0;i<slaveCounter_;i++){
+    retVal=checkSlaveConfState(i);
+    if(retVal){
+      PRINT_DIAG(("INFO:\t\tSlave with bus position %d reports error %d\n", slaveArray_[i]->getSlaveBusPosition(),retVal));
+      slavesOK_=false;
+      setErrorID(retVal);
+      return slavesOK_;
+    }
+  }
+
+  slavesOK_=true;
+  return slavesOK_;
 }
 
 int ecmcEc::checkSlaveConfState(int slaveIndex)
@@ -282,22 +320,60 @@ int ecmcEc::checkSlaveConfState(int slaveIndex)
 bool ecmcEc::checkState(void)
 {
   if(!diag_){
+    masterOK_=true;
     return true;
   }
-  ec_master_state_t ms;
-  ecrt_master_state(master_, &ms);
 
-  if (ms.slaves_responding != msOld_.slaves_responding){
-    printf("INFO:\t\t%u slave(s).\n", ms.slaves_responding);
-  }
-  if (ms.al_states != msOld_.al_states)
-    printf("INFO:\t\tAL states: 0x%02X.\n", ms.al_states);
+  ec_master_state_t masterState;
+  ecrt_master_state(master_, &masterState);
 
-  if (ms.link_up != msOld_.link_up){
-    printf("INFO:\t\tLink is %s.\n", ms.link_up ? "up" : "down");
+  if (masterState.slaves_responding != masterStateOld_.slaves_responding){
+    PRINT_DIAG(("INFO:\t\t%u slave(s).\n", masterState.slaves_responding));
   }
-  msOld_ = ms;
-  return ms.link_up;
+  if (masterState.link_up != masterStateOld_.link_up){
+	PRINT_DIAG(("INFO:\t\tLink is %s.\n", masterState.link_up ? "up" : "down"));
+  }
+  if (masterState.al_states != masterStateOld_.al_states){
+	PRINT_DIAG(("INFO:\t\tApplication Layer states: 0x%x.\n", masterState.al_states));
+  }
+
+  masterStateOld_ = masterState;
+
+  if((int)masterState.slaves_responding<slaveCounter_){
+      setErrorID(ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH);
+      masterOK_=false;
+      return false;
+  }
+
+  if(masterState.al_states!=EC_AL_STATE_OP){
+    switch(masterState.al_states){
+      case EC_AL_STATE_INIT:
+        setErrorID(ERROR_EC_AL_STATE_INIT);
+        masterOK_=false;
+        return false;
+        break;
+      case EC_AL_STATE_PREOP:
+        setErrorID(ERROR_EC_AL_STATE_PREOP);
+        masterOK_=false;
+        return false;
+        break;
+      case EC_AL_STATE_SAFEOP:
+        setErrorID(ERROR_EC_AL_STATE_SAFEOP);
+        masterOK_=false;
+        return false;
+        break;
+    }
+  }
+
+  if(!masterState.link_up){
+    setErrorID(ERROR_EC_LINK_DOWN);
+    masterOK_=false;
+    return false;
+  }
+
+  masterOK_=true;
+
+  return masterOK_;
 }
 
 void ecmcEc::receive()
@@ -334,12 +410,12 @@ int ecmcEc::writeAndVerifySDOs()
 {
   for(int i=0;i<sdoCounter_;i++){
     if(sdoArray_[i]==NULL){
-      printf("ERROR:\t\t SDO entry==NULL.\n");
+      PRINT_DIAG(("ERROR:\t\t SDO entry==NULL.\n"));
       return setErrorID(ERROR_EC_MAIN_SDO_ENTRY_NULL);
     }
     int iRet;
     if((iRet=sdoArray_[i]->writeAndVerify())){
-      printf("ERROR:\tSDO write and verify failed. Index=%d.\n",i);
+      PRINT_DIAG(("ERROR:\tSDO write and verify failed. Index=%d.\n",i));
       return setErrorID(iRet);
     }
   }
@@ -358,7 +434,7 @@ uint32_t ecmcEc::readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSub
 {
   ecmcEcSDO * sdo=new ecmcEcSDO(master_,slavePosition,sdoIndex,sdoSubIndex, byteSize);
   if(sdo->read()){
-    printf("ERROR:\t\t SDO read failed\n");
+	PRINT_DIAG(("ERROR:\t\t SDO read failed\n"));
     setErrorID(ERROR_EC_MAIN_SDO_READ_FAILED);
     delete sdo;
     return 0;
@@ -443,4 +519,34 @@ int ecmcEc::findSlaveIndex(int busPosition,int *slaveIndex)
     }
   }
   return setErrorID(ERROR_EC_MAIN_SLAVE_NULL);
+}
+
+int ecmcEc::statusOK()
+{
+  //Auto reset error at startup
+  if(inStartupPhase_ && slavesOK_ && domainOK_ && masterOK_){
+    inStartupPhase_=false;
+    errorReset();
+  }
+  return slavesOK_ && domainOK_ && masterOK_;
+}
+
+int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles)
+{
+  domainNotOKCyclesLimit_=cycles;
+  return 0;
+}
+
+
+int ecmcEc::setEnablePrintOuts(bool enable)
+{
+  enableDiagnosticPrintouts_=enable;
+  return 0;
+}
+
+
+void ecmcEc::printStatus()
+{
+  PRINT_DIAG(("MasterOK: %d, SlavesOK: %d, DomainOK: %d, DomainNotOKCounter: %d, DomainNotOKLimit: %d, Error Code:0x%x \n",masterOK_,slavesOK_,domainOK_,domainNotOKCounterMax_,domainNotOKCyclesLimit_,getErrorID()));
+  domainNotOKCounterMax_=0;
 }

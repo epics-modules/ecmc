@@ -7,7 +7,7 @@
 
 #include "ecmcEncoder.h"
 
-ecmcEncoder::ecmcEncoder(double sampleTime) : ecmcError(), ecmcMasterSlaveIF(sampleTime)
+ecmcEncoder::ecmcEncoder(double sampleTime) : ecmcEcEntryLink(), ecmcMasterSlaveIF(sampleTime)
 {
   initVars();
   sampleTime_=sampleTime;
@@ -41,9 +41,6 @@ void ecmcEncoder::initVars()
   homed_=false;
   scaleNum_=0;
   scaleDenom_=1;
-  for(int i=0;i<MaxMcuEncoderEntries;i++){
-    entryArray_[i]=NULL;
-  }
   setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
 }
 
@@ -131,7 +128,9 @@ int ecmcEncoder::setType(encoderType encType)
       break;
     default:
       return setErrorID(ERROR_ENC_TYPE_NOT_SUPPORTED);
+      break;
   }
+  validate();
   return 0;
 }
 
@@ -179,37 +178,21 @@ double ecmcEncoder::getScaleDenom()
   return scaleDenom_;
 }
 
-int ecmcEncoder::setEntryAtIndex(ecmcEcEntry *entry,int index)
-{
-  if(entry !=NULL && index< MaxMcuEncoderEntries && index>=0){
-    entryArray_[index]=entry;
-    if(index==0){//ActPos
-      bits_=entry->getBits();
-      range_=pow(2,bits_);
-      limit_=range_*2/3;  //Limit for change in value
-    }
-    return 0;
-  }
-  else{
-    printf("Assigning entry to ecmcEncoder entry list failed. Index=%d \n",index);
-    return setErrorID(ERROR_ENC_ASSIGN_ENTRY_FAILED);
-  }
-}
-
 double ecmcEncoder::readEntries()
 {
   actPosOld_=actPos_;
 
-  if(getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    //Act position
-    uint64_t tempRaw=0;
-    if(entryArray_[0]==NULL){
+  if(getError()){
       rawPos_=0;
       actPos_=scale_*rawPos_+offset_;
       return actPos_;
-    }
+  }
 
-    if(entryArray_[0]->readValue(&tempRaw)){
+  if(getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+    //Act position
+    uint64_t tempRaw=0;
+
+    if(readEcEntryValue(0,&tempRaw)){
       setErrorID(ERROR_ENC_ENTRY_READ_FAIL);
       return actPos_;
     }
@@ -232,6 +215,7 @@ double ecmcEncoder::readEntries()
 
 int ecmcEncoder::validate()
 {
+
   if(sampleTime_<=0){
     return setErrorID(ERROR_ENC_INVALID_SAMPLE_TIME);
   }
@@ -245,7 +229,8 @@ int ecmcEncoder::validate()
   }
 
   if(getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    if(entryArray_[0]==NULL){   //Act position
+    int errorCode=validateEntry(0);
+    if(errorCode){   //Act position
       return setErrorID(ERROR_ENC_ENTRY_NULL);
     }
   }
@@ -256,11 +241,11 @@ int ecmcEncoder::validate()
       return setErrorID(ERROR_ENC_EXT_MASTER_SOURCE_COUNT_ZERO);
     }
 
-
     ecmcTransform * transform=getExtInputTransform();
     if(transform==NULL){
       return setErrorID(ERROR_ENC_TRANSFORM_NULL);
     }
+
     if(transform->validate()){
       return setErrorID(ERROR_ENC_TRANSFORM_VALIDATION_ERROR);
     }
@@ -269,5 +254,6 @@ int ecmcEncoder::validate()
   if(getOutputDataInterface()==NULL){
     return setErrorID(ERROR_ENC_SLAVE_INTERFACE_NULL);
   }
+
   return 0;
 }

@@ -12,8 +12,17 @@ ecmcCommandTransform::  ecmcCommandTransform(int commandCount, int elementsPerCo
   initVars();
   commandCount_=commandCount;
   elementsPerCommand_=elementsPerCommand;
-  inputArray_.resize(elementsPerCommand*commandCount);
-  outputArray_.resize(elementsPerCommand*commandCount);
+
+  try{
+    inputArray_.resize(elementsPerCommand*commandCount);
+    outputArray_.resize(elementsPerCommand*commandCount);
+  }
+  catch(std::exception &e)
+  {
+    setErrorID(ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
+    printf("Command Transform. Exception in allocation of vector: %s. Error number: %x\n",e.what(),ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
+  }
+
   for(int i=0;i<elementsPerCommand*commandCount;i++){
     inputArray_[i]=0;
     outputArray_[i]=0;

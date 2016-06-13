@@ -4,7 +4,9 @@
 #define ERROR_BASE_PID 0x14500
 
 #include "ecmcError.h"
-#include "ecmcErrorsList.h"
+
+//CONTROLLER ERRORS
+#define ERROR_CNTRL_INVALID_SAMPLE_TIME 0x15000
 
 class ecmcPIDController : public ecmcError
 {

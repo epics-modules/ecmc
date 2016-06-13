@@ -120,6 +120,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14313:
       return "ERROR_AXIS_CASCADED_AXIS_INDEX_OUT_OF_RANGE";
       break;
+    case 0x14314:
+      return "ERROR_AXIS_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x14315:
+      return "ERROR_AXIS_HARDWARE_STATUS_NOT_OK";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
@@ -134,6 +140,18 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14604:
       return "ERROR_DRV_VEL_SET_ENTRY_NULL";
+      break;
+    case 0x14605:
+      return "ERROR_DRV_ENABLED_ENTRY_NULL";
+      break;
+    case 0x14606:
+      return "ERROR_DRV_ENABLED_READ_ENTRY_FAIL";
+      break;
+    case 0x14607:
+      return "ERROR_DRV_BRAKE_ENTRY_NULL";
+      break;
+    case 0x14608:
+      return "ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL";
       break;
     case 0x14400:  //ENCODER
       return "ERROR_ENC_ASSIGN_ENTRY_FAILED";
@@ -318,6 +336,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x30006:
       return "ERROR_TRANSFORM_NOT_ENABLED";
       break;
+    case 0x30007:
+      return "ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED";
+      break;
     case 0x30100:  //MASTERDATA INTERFACE
       return "ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE";
       break;
@@ -332,6 +353,21 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x21003:
       return "ERROR_EC_ENTRY_INVALID_BIT_LENGTH";
+      break;
+    case 0x21004:
+      return "ERROR_EC_ENTRY_LINK_FAILED";
+      break;
+    case 0x21005:
+      return "ERROR_EC_ENTRY_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x21006:
+      return "ERROR_EC_ENTRY_INVALID_BIT_INDEX";
+      break;
+    case 0x21007:
+      return "ERROR_EC_ENTRY_READ_FAIL";
+      break;
+    case 0x21008:
+      return "ERROR_EC_ENTRY_WRITE_FAIL";
       break;
     case 0x22000:  //ECPDO
       return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
@@ -387,6 +423,24 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x2400C:
       return "ERROR_EC_SLAVE_CONFIG_NULL";
       break;
+    case 0x2400D:
+      return "ERROR_EC_SLAVE_STATE_INIT";
+      break;
+    case 0x2400E:
+      return "ERROR_EC_SLAVE_STATE_PREOP";
+      break;
+    case 0x2400F:
+      return "ERROR_EC_SLAVE_STATE_SAFEOP";
+      break;
+    case 0x24010:
+      return "ERROR_EC_SLAVE_STATE_UNDEFINED";
+      break;
+    case 0x24011:
+      return "ERROR_EC_SLAVE_NOT_OPERATIONAL";
+      break;
+    case 0x24012:
+      return "ERROR_EC_SLAVE_NOT_ONLINE";
+      break;
     case 0x25000://ECSYNCMANAGER
       return "ERROR_EC_SM_PDO_ARRAY_FULL";
       break;
@@ -437,6 +491,24 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x2600D:
       return "ERROR_EC_MAIN_SLAVE_ARRAY_FULL";
+      break;
+    case 0x2600E:
+      return "ERROR_EC_AL_STATE_INIT";
+      break;
+    case 0x2600F:
+      return "ERROR_EC_AL_STATE_PREOP";
+      break;
+    case 0x26010:
+      return "ERROR_EC_AL_STATE_SAFEOP";
+      break;
+    case 0x26011:
+      return "ERROR_EC_LINK_DOWN";
+      break;
+    case 0x26012:
+      return "ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH";
+      break;
+    case 0x26013:
+      return "ERROR_EC_STATUS_NOT_OK";
       break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
@@ -546,7 +618,93 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20024:
       return "ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING";
       break;
+    case 0x20025:
+      return "ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20026:
+      return "ERROR_MAIN_DATA_RECORDER_NULL";
+      break;
+    case 0x20027:
+      return "ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20028:
+      return "ERROR_MAIN_DATA_STORAGE_INVALID_SIZE";
+      break;
+    case 0x20029:
+      return "ERROR_MAIN_DATA_STORAGE_NULL";
+      break;
+    case 0x2002A:
+      return "ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x2002B:
+      return "ERROR_MAIN_EVENT_NULL";
+      break;
+    case 0x20100: //Data Recorder
+      return "ERROR_DATA_RECORDER_BUFFER_NULL";
+      break;
+    case 0x20101:
+      return "ERROR_DATA_RECORDER_DATA_ECENTRY_NULL";
+      break;
+    case 0x20102:
+      return "ERROR_DATA_RECORDER_ECENTRY_READ_FAIL";
+      break;
+    case 0x20103:
+      return "ERROR_DATA_RECORDER_EVENT_NULL";
+      break;
+    case 0x20104:
+      return "ERROR_DATA_RECORDER_HARDWARE_STATUS_NOT_OK";
+      break;
+    case 0x20200: //Data storage
+      return "ERROR_DATA_STORAGE_FULL";
+      break;
+    case 0x20201:
+      return "ERROR_DATA_STORAGE_NULL";
+      break;
+    case 0x20300: //Event
+      return "ERROR_EVENT_DATA_ECENTRY_NULL";
+      break;
+    case 0x20301:
+      return "ERROR_EVENT_TRIGGER_ECENTRY_NULL";
+      break;
+    case 0x20302:
+      return "ERROR_EVENT_INVALID_SAMPLE_TIME";
+      break;
+    case 0x20303:
+      return "ERROR_EVENT_ECENTRY_READ_FAIL";
+      break;
+    case 0x20304:
+      return "ERROR_EVENT_ARM_ECENTRY_NULL";
+      break;
+    case 0x20305:
+      return "ERROR_EVENT_CONSUMER_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20306:
+      return "ERROR_EVENT_HARDWARE_STATUS_NOT_OK";
+      break;
+    case 0x20307:
+      return "ERROR_EVENT_ARM_NOT_ENABLED";
+      break;
+    case 0x20400://Command List
+      return "ERROR_COMMAND_LIST_NULL";
+      break;
+    case 0x20401:
+      return "ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20402:
+      return "ERROR_COMMAND_LIST_COMMAND_WRITE_FAILED";
+      break;
+    case 0x20403:
+      return "ERROR_COMMAND_LIST_COMMAND_READ_FAILED";
+      break;
+    case 0x20404:
+      return "ERROR_COMMAND_LIST_COMMAND_READ_BACK_NOT_OK";
+      break;
+    case 0x20405:
+      return "ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED";
+      break;
+    case 0x20406:
+      return "ERROR_COMMAND_LIST_VECTOR_FULL";
+      break;
   }
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
 }
-

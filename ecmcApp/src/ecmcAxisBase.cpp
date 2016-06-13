@@ -10,7 +10,7 @@
 ecmcAxisBase::ecmcAxisBase()
 {
   initVars();
-  commandTransform_=new ecmcCommandTransform(2,MAX_AXES);  //currently two commands
+  commandTransform_=new ecmcCommandTransform(2,ECMC_MAX_AXES);  //currently two commands
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,ECMC_CMD_TYPE_EXECUTE);
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,ECMC_CMD_TYPE_ENABLE);
 }
@@ -53,6 +53,10 @@ void ecmcAxisBase::initVars()
   reset_=false;
   cascadedCommandsEnable_=false;
   enableCommandTransform_=false;
+  inStartupPhase_=false;
+  for(int i=0; i<ECMC_MAX_AXES;i++){
+    axes_[i]=NULL;
+  }
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -68,8 +72,8 @@ bool ecmcAxisBase::getCascadedCommandsEnabled()
 
 int ecmcAxisBase::setAxisArrayPointer(ecmcAxisBase *axis,int index)
 {
-  if(index>=MAX_AXES || index<0){
-    return setErrorID(ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE);
+  if(index>=ECMC_MAX_AXES || index<0){
+    return setErrorID(ERROR_AXIS_INDEX_OUT_OF_RANGE);
   }
   axes_[index]=axis;
   return 0;
@@ -77,7 +81,7 @@ int ecmcAxisBase::setAxisArrayPointer(ecmcAxisBase *axis,int index)
 
 bool ecmcAxisBase::checkAxesForEnabledTransfromCommands(commandType type)
 {
-  for(int i=0;i<MAX_AXES;i++){
+  for(int i=0;i<ECMC_MAX_AXES;i++){
     if(axes_[i]!=NULL){
      if(axes_[i]->getCascadedCommandsEnabled()){
        return true;
@@ -103,7 +107,7 @@ int ecmcAxisBase::fillCommandsTransformData()
 {
   int error=0;
   //Execute
-  for(int i=0;i<MAX_AXES;i++){
+  for(int i=0;i<ECMC_MAX_AXES;i++){
     if(axes_[i]!=NULL){
       error=commandTransform_->setData(axes_[i]->getExecute(),ECMC_CMD_TYPE_EXECUTE,i);
       if(error){
@@ -120,7 +124,7 @@ int ecmcAxisBase::fillCommandsTransformData()
   }
 
   //Enable
-  for(int i=0;i<MAX_AXES;i++){
+  for(int i=0;i<ECMC_MAX_AXES;i++){
     if(axes_[i]!=NULL){
       error=commandTransform_->setData(axes_[i]->getEnable(),ECMC_CMD_TYPE_ENABLE,i);
       if(error){
@@ -156,7 +160,10 @@ int ecmcAxisBase::setEnable_Transform()
     commandTransform_->refresh();
 
     //write changes to axes
-    for(int i=0;i<MAX_AXES;i++){
+    for(int i=0;i<ECMC_MAX_AXES;i++){
+      if(commandTransform_==NULL){
+	return setErrorID(ERROR_AXIS_INVERSE_TRANSFORM_NULL);
+      }
       if(axes_[i]!=NULL){
         if(axes_[i]->getCascadedCommandsEnabled() && commandTransform_->getDataChanged(ECMC_CMD_TYPE_ENABLE,i) && i!=axisID_){ //Do not set on axis_no again
           int error= axes_[i]->setEnable(commandTransform_->getData(ECMC_CMD_TYPE_ENABLE,i));
@@ -188,7 +195,7 @@ int ecmcAxisBase::setExecute_Transform()
     commandTransform_->refresh();
 
     //write changes to axes
-    for(int i=0;i<MAX_AXES;i++){
+    for(int i=0;i<ECMC_MAX_AXES;i++){
       if(axes_[i]!=NULL){
         if(axes_[i]->getCascadedCommandsEnabled() && commandTransform_->getDataChanged(ECMC_CMD_TYPE_EXECUTE,i) && i!=axisID_){ //Do not set on axis_no again
           int error= axes_[i]->setExecute(commandTransform_->getData(ECMC_CMD_TYPE_EXECUTE,i));
@@ -205,4 +212,9 @@ int ecmcAxisBase::setExecute_Transform()
 ecmcCommandTransform *ecmcAxisBase::getCommandTransform()
 {
   return commandTransform_;
+}
+
+void ecmcAxisBase::setInStartupPhase(bool startup)
+{
+  inStartupPhase_=startup;
 }

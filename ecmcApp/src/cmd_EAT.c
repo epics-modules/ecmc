@@ -20,12 +20,65 @@ typedef struct
   double acceleration;
 } cmd_Motor_cmd_type;
 
-//TODO: update marcos.. should not need different for different types
-#define SEND_OK_OR_ERROR_AND_RETURN(function) {int iRet=function;if(iRet){sprintf(errorBuffer, "Error: %d", iRet);cmd_buf_printf(errorBuffer);return;}cmd_buf_printf("OK");return;}
-#define SEND_RESULT_OR_ERROR_AND_RETURN_INT(function) {int iRet=function;if(iRet){sprintf(errorBuffer, "Error: %d", iRet);cmd_buf_printf(errorBuffer);return;}cmd_buf_printf("%d", iValue);return;}
-#define SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(function) {int iRet=function;if(iRet){sprintf(errorBuffer, "Error: %d", iRet);cmd_buf_printf(errorBuffer);return;}cmd_buf_printf("%lf", fValue);return;}
-#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(function) {int iRet=function;if(iRet){sprintf(errorBuffer, "Error: %d", iRet);cmd_buf_printf(errorBuffer);return;}cmd_buf_printf("%"PRIu64"", i64Value);return;}
-#define IF_ERROR_SEND_ERROR_AND_RETURN(function) {int iRet=function;if(iRet){sprintf(errorBuffer, "Error: %d", iRet);cmd_buf_printf(errorBuffer);return;}}
+
+//TODO: Cleanup macros.. should not need different for different types
+#define SEND_OK_OR_ERROR_AND_RETURN(function)   \
+  do {                                          \
+    int iRet=function;                          \
+    if(iRet){                                   \
+      cmd_buf_printf(buffer,"Error: %d", iRet); \
+      return 0;                                 \
+    }                                           \
+    cmd_buf_printf(buffer,"OK");                \
+    return 0;                                   \
+  }                                             \
+  while(0)
+
+#define SEND_RESULT_OR_ERROR_AND_RETURN_INT(function) \
+  do {                                                \
+    int iRet=function;                                \
+    if(iRet){                                         \
+      cmd_buf_printf(buffer,"Error: %d", iRet);       \
+      return 0;                                       \
+    }                                                 \
+    cmd_buf_printf(buffer,"%d", iValue);              \
+    return 0;                                         \
+  }                                                   \
+  while(0)
+
+#define SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(function) \
+  do {                                                   \
+    int iRet=function;                                   \
+    if(iRet){                                            \
+	cmd_buf_printf(buffer,"Error: %d", iRet);        \
+      return 0;                                          \
+    }                                                    \
+    cmd_buf_printf(buffer,"%lf", fValue);                \
+    return 0;                                            \
+  }                                                      \
+  while(0)
+
+#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(function) \
+  do {                                                   \
+    int iRet=function;                                   \
+    if(iRet){                                            \
+	cmd_buf_printf(buffer,"Error: %d", iRet);            \
+      return 0;                                            \
+    }                                                    \
+    cmd_buf_printf(buffer,"%"PRIu64"", i64Value);          \
+    return 0;                                              \
+  }                                                      \
+  while(0)
+
+#define IF_ERROR_SEND_ERROR_AND_RETURN(function) \
+  do {                                           \
+    int iRet=function;                           \
+    if(iRet){                                    \
+      cmd_buf_printf(buffer,"Error: %d", iRet);    \
+      return 0;                                    \
+    }                                            \
+  }                                              \
+  while(0)
 
 void init_axis(int axis_no)
 {
@@ -37,12 +90,12 @@ static const char * const Main_dot_str = "Main.";
 static const char * const Cfg_dot_str =  "Cfg.";
 
 
-static int motorHandleADS_ADR_getInt(unsigned adsport,
+static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adsport,
                                      unsigned group_no,
                                      unsigned offset_in_group,
                                      int *iValue)
 {
-  //This command needs to be removed
+  //TODO This command needs to be removed
   if (group_no == 0x3040010 && offset_in_group == 0x80000049) {
     int64_t iTemp=0;
     int iRet=getAxisEncPosRaw(1,&iTemp); //Why hardcoded 1??
@@ -65,14 +118,15 @@ static int motorHandleADS_ADR_getInt(unsigned adsport,
     }
   }
 
+  RETURN_ERROR_OR_DIE(buffer,__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
+                __FILE__, __FUNCTION__, __LINE__,
+                group_no,
+                offset_in_group);
 
-  RETURN_ERROR_OR_DIE(__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
-                      __FILE__, __FUNCTION__, __LINE__,
-                      group_no,
-                      offset_in_group);
+  return __LINE__;
 }
 
-static int motorHandleADS_ADR_putInt(unsigned adsport,
+static int motorHandleADS_ADR_putInt(ecmcOutputBufferType *buffer,unsigned adsport,
                                      unsigned group_no,
                                      unsigned offset_in_group,
                                      int iValue)
@@ -104,14 +158,16 @@ static int motorHandleADS_ADR_putInt(unsigned adsport,
   //  return 0; /* Monitor What is this*/
   //}
 
-  RETURN_ERROR_OR_DIE(__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
+  RETURN_ERROR_OR_DIE(buffer,__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
                __FILE__, __FUNCTION__, __LINE__,
                group_no,
                offset_in_group);
+
+  return __LINE__;
 }
 
 
-static int motorHandleADS_ADR_getFloat(unsigned adsport,
+static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned adsport,
                                        unsigned group_no,
                                        unsigned offset_in_group,
                                        double *fValue)
@@ -156,6 +212,11 @@ static int motorHandleADS_ADR_getFloat(unsigned adsport,
     }
   }
 
+  RETURN_ERROR_OR_DIE(buffer,__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
+               __FILE__, __FUNCTION__, __LINE__,
+               group_no,
+               offset_in_group);
+
   return __LINE__;
 }
 
@@ -163,7 +224,7 @@ static int motorHandleADS_ADR_getFloat(unsigned adsport,
   ADSPORT=501/.ADR.16#5001,16#D,8,5=-13.5; #low Softlimit
   ADSPORT=501/.ADR.16#5001,16#E,8,5=140.0; #high Softlimit
 */
-static int motorHandleADS_ADR_putFloat(unsigned adsport,
+static int motorHandleADS_ADR_putFloat(ecmcOutputBufferType *buffer,unsigned adsport,
                                        unsigned group_no,
                                        unsigned offset_in_group,
                                        double fValue)
@@ -191,13 +252,11 @@ static int motorHandleADS_ADR_putFloat(unsigned adsport,
 
       //ADSPORT=501/.ADR.16#5001,16#D,8,5=-13.5; #low Softlimit
       if (offset_in_group == 0xD) {
-        setAxisSoftLimitPosBwd(motor_axis_no, fValue);
-        return 0;
+        return setAxisSoftLimitPosBwd(motor_axis_no, fValue);;
       }
       //ADSPORT=501/.ADR.16#5001,16#E,8,5=140.0; #high Softlimit
       if (offset_in_group == 0xE) {
-        setAxisSoftLimitPosFwd(motor_axis_no, fValue);
-        return 0;
+        return setAxisSoftLimitPosFwd(motor_axis_no, fValue);;
       }
 
       //ADSPORT=501/.ADR.16#5001,16#23,8,5=-13.5; #Encoder scale num for axis
@@ -210,13 +269,19 @@ static int motorHandleADS_ADR_putFloat(unsigned adsport,
       }
     }
   }
+
+  RETURN_ERROR_OR_DIE(buffer,__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
+               __FILE__, __FUNCTION__, __LINE__,
+               group_no,
+               offset_in_group);
+
   return __LINE__;
 }
 
 /*
   ADSPORT=501/.ADR.16#5001,16#B,2,2=1;
 */
-static int motorHandleADS_ADR(const char *arg)
+static int motorHandleADS_ADR(const char *arg,ecmcOutputBufferType *buffer)
 {
   const char *myarg_1 = NULL;
   unsigned adsport = 0;
@@ -253,7 +318,7 @@ static int motorHandleADS_ADR(const char *arg)
         if (len_in_PLC != 8) return __LINE__;
         nvals = sscanf(myarg_1, "%lf", &fValue);
         if (nvals != 1) return __LINE__;
-        return motorHandleADS_ADR_putFloat(adsport,
+        return motorHandleADS_ADR_putFloat(buffer,adsport,
                                         group_no,
                                         offset_in_group,
                                         fValue);
@@ -264,7 +329,7 @@ static int motorHandleADS_ADR(const char *arg)
         if (len_in_PLC != 2) return __LINE__;
         nvals = sscanf(myarg_1, "%d", &iValue);
         if (nvals != 1) return __LINE__;
-        return motorHandleADS_ADR_putInt(adsport,
+        return motorHandleADS_ADR_putInt(buffer,adsport,
                                       group_no,
                                       offset_in_group,
                                       iValue);
@@ -282,12 +347,22 @@ static int motorHandleADS_ADR(const char *arg)
       case 5: {
         double fValue;
         if (len_in_PLC != 8) return __LINE__;
-        res = motorHandleADS_ADR_getFloat(adsport,
-                                           group_no,
-                                           offset_in_group,
-                                           &fValue);
+        res = motorHandleADS_ADR_getFloat(buffer,
+					  adsport,
+                                          group_no,
+                                          offset_in_group,
+                                          &fValue);
         if (res) return res;
-        cmd_buf_printf("%g", fValue);
+
+        int errorCode=cmd_buf_printf(buffer,"%g", fValue);
+        if(errorCode){
+          return __LINE__;
+        }
+        //int charsWritten=snprintf(buffer->buffer,buffer->bufferSize-1,"%g", fValue);
+        //if(charsWritten<0 || charsWritten>=outBufferLength-1){
+        //  return __LINE__;
+        //}
+        //*bytesUsed=charsWritten;
         return -1;
       }
         break;
@@ -295,12 +370,21 @@ static int motorHandleADS_ADR(const char *arg)
         int res;
         int iValue = -1;
         if (len_in_PLC != 2) return __LINE__;
-        res = motorHandleADS_ADR_getInt(adsport,
+        res = motorHandleADS_ADR_getInt(buffer,
+					adsport,
                                         group_no,
                                         offset_in_group,
                                         &iValue);
         if (res) return res;
-        cmd_buf_printf("%d", iValue);
+        int errorCode=cmd_buf_printf(buffer,"%d", iValue);
+        if(errorCode){
+          RETURN_ERROR_OR_DIE(buffer,errorCode, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
+                         __FILE__, __FUNCTION__, __LINE__,
+                         group_no,
+                         offset_in_group);
+          return __LINE__;
+        }
+
         return -1;
       }
         break;
@@ -354,22 +438,22 @@ static int handleCfgCommand(const char *myarg_1){
     return 0;
   }
 
-  /*Cfg.LinkEcEntryToAxisEncoder(int nSlave, int nEntry,int nAxis,nEncEntryIndex)*/
-  nvals = sscanf(myarg_1, "LinkEcEntryToAxisEncoder(%d,%[^,],%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4);
-  if (nvals == 4) {
-    return linkEcEntryToAxisEnc(iValue,cIdBuffer,iValue3,iValue4);
+  /*Cfg.LinkEcEntryToAxisEncoder(int nSlave, int nEntry,int nAxis,nEncEntryIndex,int bitIndex)*/
+  nvals = sscanf(myarg_1, "LinkEcEntryToAxisEncoder(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
+  if (nvals == 5) {
+    return linkEcEntryToAxisEnc(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 
-  /*Cfg.LinkEcEntryToAxisDrive(int nSlave, int nEntry,int nAxis, int nDrvEntryIndex)*/
-  nvals = sscanf(myarg_1, "LinkEcEntryToAxisDrive(%d,%[^,],%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4);
-  if (nvals == 4) {
-    return linkEcEntryToAxisDrv(iValue,cIdBuffer,iValue3,iValue4);
+  /*Cfg.LinkEcEntryToAxisDrive(int nSlave, int nEntry,int nAxis, int nDrvEntryIndex,int bitIndex)*/
+  nvals = sscanf(myarg_1, "LinkEcEntryToAxisDrive(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
+  if (nvals == 5) {
+    return linkEcEntryToAxisDrv(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 
-  /*Cfg.LinkEcEntryToAxisMonitor(int nSlave, int nEntry,int nAxis,int nMonEntryIndex)*/
-  nvals = sscanf(myarg_1, "LinkEcEntryToAxisMonitor(%d,%[^,],%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4);
-  if (nvals == 4) {
-    return linkEcEntryToAxisMon(iValue,cIdBuffer,iValue3,iValue4);
+  /*Cfg.LinkEcEntryToAxisMonitor(int nSlave, int nEntry,int nAxis,int nMonEntryIndex,int bitIndex)*/
+  nvals = sscanf(myarg_1, "LinkEcEntryToAxisMonitor(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
+  if (nvals == 5) {
+    return linkEcEntryToAxisMon(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 
   /*Cfg.WriteEcEntryIDString(int nSlavePosition,char *cEntryID,uint64_t nValue)*/
@@ -430,6 +514,20 @@ static int handleCfgCommand(const char *myarg_1){
     return ecSlaveConfigDC(iValue,iValue2,iValue3,iValue4,iValue5,iValue6);
   }
 
+  /*Cfg.EcSelectReferenceDC(
+      int master_index,
+      int slave_bus_position)
+      */
+  nvals = sscanf(myarg_1, "EcSelectReferenceDC(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return ecSelectReferenceDC(iValue,iValue2);
+  }
+
+  /*Cfg.EcResetError()*/
+  if (0 == strcmp(myarg_1, "EcResetError()")){
+    return ecResetError();
+  }
+
   /*Cfg.EcAddSyncManager(int nSlave,ec_direction_t nDirection,uint8_t nSyncMangerIndex)*/
   nvals = sscanf(myarg_1, "EcAddSyncManager(%d,%d,%d)", &iValue,&iValue2,&iValue3);
   if (nvals == 3) {
@@ -448,13 +546,6 @@ static int handleCfgCommand(const char *myarg_1){
     return ecWriteSdo(iValue,iValue2,iValue3,iValue4,iValue5);
   }
 
-  /*Cfg.EcReadSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,int byteSize)*/
-  nvals = sscanf(myarg_1, "EcReadSdo(%d,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4);
-  if (nvals == 4) {
-    cmd_buf_printf("%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
-    return -1; //Read command TODO move to read section
-  }
-
   /*Cfg.EcApplyConfig(int nMasterIndex)*/
   nvals = sscanf(myarg_1, "EcApplyConfig(%d)",&iValue);
   if (nvals == 1) {
@@ -465,6 +556,18 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "EcSetDiagnostics(%d)",&iValue);
   if (nvals == 1) {
     return ecSetDiagnostics(iValue);
+  }
+
+  /*Cfg.EcEnablePrintouts(int enable)*/
+  nvals = sscanf(myarg_1, "EcEnablePrintouts(%d)",&iValue);
+  if (nvals == 1) {
+    return ecEnablePrintouts(iValue);
+  }
+
+  /*Cfg.EcSetDomainFailedCyclesLimit(int nCycles)*/
+  nvals = sscanf(myarg_1, "EcSetDomainFailedCyclesLimit(%d)",&iValue);
+  if (nvals == 1) {
+    return ecSetDomainFailedCyclesLimit(iValue);
   }
 
   /*int Cfg.SetAxisJogVel(int traj_no, double value);*/
@@ -530,99 +633,86 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKp(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisCntrlKp(iValue,dValue);
-    return 0;
+    return setAxisCntrlKp(iValue,dValue);
   }
 
   /*int Cfg.SetAxisCntrlKi(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKi(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisCntrlKi(iValue,dValue);
-    return 0;
+    return setAxisCntrlKi(iValue,dValue);
   }
 
   /*int Cfg.SetAxisCntrlKd(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKd(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisCntrlKd(iValue,dValue);
-    return 0;
+    return setAxisCntrlKd(iValue,dValue);
   }
 
   /*int Cfg.SetAxisCntrlKff(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKff(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisCntrlKff(iValue,dValue);
-    return 0;
+    return setAxisCntrlKff(iValue,dValue);
   }
 
   /*int Cfg.SetAxisCntrlOutHL(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlOutHL(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisCntrlOutHL(iValue,dValue);
-    return 0;
+    return setAxisCntrlOutHL(iValue,dValue);
   }
 
   /*int Cfg.SetAxisCntrlOutLL(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlOutLL(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisCntrlOutLL(iValue,dValue);
-    return 0;
+    return setAxisCntrlOutLL(iValue,dValue);
   }
 
   /*int Cfg.SetAxisCntrlIPartHL(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlIPartHL(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisCntrlIpartHL(iValue,dValue);
-    return 0;
+    return setAxisCntrlIpartHL(iValue,dValue);
   }
 
   /*int Cfg.SetAxisCntrlIPartLL(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlIPartLL(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisCntrlIpartLL(iValue,dValue);
-    return 0;
+    return setAxisCntrlIpartLL(iValue,dValue);
   }
 
   /*int Cfg.SetAxisMonAtTargetTol(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisMonAtTargetTol(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisMonAtTargetTol(iValue,dValue);
-    return 0;
+    return setAxisMonAtTargetTol(iValue,dValue);
   }
 
   /*int Cfg.SetAxisMonAtTargetTime(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisMonAtTargetTime(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
-    setAxisMonAtTargetTime(iValue,iValue2);
-    return 0;
+    return setAxisMonAtTargetTime(iValue,iValue2);
   }
 
   /*int Cfg.SetAxisMonEnableAtTargetMon(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisMonEnableAtTargetMon(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
-    setAxisMonEnableAtTargetMon(iValue,iValue2);
-    return 0;
+    return setAxisMonEnableAtTargetMon(iValue,iValue2);
   }
 
   /*int Cfg.SetAxisMonPosLagTol(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisMonPosLagTol(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    setAxisMonPosLagTol(iValue,dValue);
-    return 0;
+    return setAxisMonPosLagTol(iValue,dValue);
   }
 
   /*int Cfg.SetAxisMonPosLagTime(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisMonPosLagTime(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
-    setAxisMonPosLagTime(iValue,iValue2);
-    return 0;
+    return setAxisMonPosLagTime(iValue,iValue2);
   }
 
   /*int Cfg.SetAxisMonEnableLagMon(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisMonEnableLagMon(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
-    setAxisMonEnableLagMon(iValue,iValue2);
-    return 0;
+
+    return setAxisMonEnableLagMon(iValue,iValue2);
   }
 
   /*int Cfg.SetAxisMonMaxVel(int axis_no, double value);*/
@@ -677,6 +767,18 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "SetAxisDrvEnable(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return setAxisDrvEnable(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisDrvBrakeEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1, "SetAxisDrvBrakeEnable(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisDrvBrakeEnable(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisDrvReduceTorqueEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1, "SetAxisDrvReduceTorqueEnable(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisDrvReduceTorqueEnable(iValue,iValue2);
   }
 
   /*int Cfg.SetDiagAxisIndex(int axis_no);*/
@@ -806,45 +908,210 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisEnableCommandsTransform(iValue,iValue2);
   }
 
-
   /*int Cfg.SetAxisSeqTimeout(int axis_no, int value);  IN seconds!!*/
   nvals = sscanf(myarg_1, "SetAxisSeqTimeout(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return setAxisSeqTimeout(iValue,iValue2);
   }
 
+  /*int Cfg.CreateEvent(int indexEvent);*/
+  nvals = sscanf(myarg_1, "CreateEvent(%d)", &iValue);
+  if (nvals == 1) {
+    return createEvent(iValue);
+  }
+
+  /*int Cfg.CreateStorage(int index, int elements, int bufferType);*/
+  nvals = sscanf(myarg_1, "CreateStorage(%d,%d,%d)", &iValue,&iValue2,&iValue3);
+  if (nvals == 3) {
+    return createDataStorage(iValue,iValue2,iValue3);
+  }
+
+  /*int Cfg.SetStorageEnablePrintouts(int indexStorage,int enable);*/
+  nvals = sscanf(myarg_1, "SetStorageEnablePrintouts(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setStorageEnablePrintouts(iValue,iValue2);
+  }
+
+  /*int Cfg.PrintStorageBuffer(int indexStorage);*/
+  nvals = sscanf(myarg_1, "PrintStorageBuffer(%d)", &iValue);
+  if (nvals == 1) {
+    return printStorageBuffer(iValue);
+  }
+
+  /*Cfg.LinkEcEntryToEvent(int indexEvent,int eventEntryIndex,int Slave, char *ecEntryIdString, int bitIndex)*/
+   nvals = sscanf(myarg_1, "LinkEcEntryToEvent(%d,%d,%d,%[^,],%d)", &iValue,&iValue2,&iValue3,cIdBuffer,&iValue4);
+   if (nvals == 5) {
+     return linkEcEntryToEvent(iValue,iValue2,iValue3,cIdBuffer,iValue4);
+   }
+
+   /*int Cfg.SetEventType(int indexEvent,int recordingType);*/
+   nvals = sscanf(myarg_1, "SetEventType(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setEventType(iValue,iValue2);
+   }
+
+   /*int Cfg.SetEventSampleTime(int indexEvent,int sampleTime);*/
+   nvals = sscanf(myarg_1, "SetEventSampleTime(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setEventSampleTime(iValue,iValue2);
+   }
+
+   /*int Cfg.SetEventExecute(int indexEvent,int execute);*/
+   nvals = sscanf(myarg_1, "SetEventExecute(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setEventExecute(iValue,iValue2);
+   }
+
+   /*int Cfg.ClearStorage(int indexStorage);*/
+   nvals = sscanf(myarg_1, "ClearStorage(%d)", &iValue);
+   if (nvals == 1) {
+     return clearStorage(iValue);
+   }
+
+   /*int Cfg.SetEventTriggerEdge(int indexEvent,int triggerEdge);*/
+   nvals = sscanf(myarg_1, "SetEventTriggerEdge(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setEventTriggerEdge(iValue,iValue2);
+   }
+
+   /*int Cfg.SetEventEnableArmSequence(int indexEvent,int enable);*/
+   nvals = sscanf(myarg_1, "SetEventEnableArmSequence(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setEventEnableArmSequence(iValue,iValue2);
+   }
+
+   /*int Cfg.SetEventEnablePrintouts(int indexEvent,int enable);*/
+   nvals = sscanf(myarg_1, "SetEventEnablePrintouts(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setEventEnablePrintouts(iValue,iValue2);
+   }
+
+   /*int Cfg.TriggerEvent(int indexEvent);*/
+   nvals = sscanf(myarg_1, "TriggerEvent(%d)", &iValue);
+   if (nvals == 1) {
+     return triggerEvent(iValue);
+   }
+
+   /*int Cfg.ArmEvent(int indexEvent);*/
+   nvals = sscanf(myarg_1, "ArmEvent(%d)", &iValue);
+   if (nvals == 1) {
+     return armEvent(iValue);
+   }
+
+   /*int Cfg.CreateRecorder(int indexRecorder);*/
+   nvals = sscanf(myarg_1, "CreateRecorder(%d)", &iValue);
+   if (nvals == 1) {
+     return createRecorder(iValue);
+   }
+
+   /*int Cfg.LinkStorageToRecorder(int indexStorage, int indexRecorder);*/
+   nvals = sscanf(myarg_1, "LinkStorageToRecorder(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return linkStorageToRecorder(iValue,iValue2);
+   }
+
+   /*Cfg.LinkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int Slave, char *ecEntryIdString, int bitIndex)*/
+   nvals = sscanf(myarg_1, "LinkEcEntryToRecorder(%d,%d,%d,%[^,],%d)", &iValue,&iValue2,&iValue3,cIdBuffer,&iValue4);
+   if (nvals == 5) {
+     return linkEcEntryToRecorder(iValue,iValue2,iValue3,cIdBuffer,iValue4);
+   }
+
+   /*int Cfg.SetRecorderExecute(int indexRecorder,int execute);*/
+   nvals = sscanf(myarg_1, "SetRecorderExecute(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setRecorderExecute(iValue,iValue2);
+   }
+
+   /*int Cfg.SetRecorderEnablePrintouts(int indexRecorder,int enable);*/
+   nvals = sscanf(myarg_1, "SetRecorderEnablePrintouts(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setRecorderEnablePrintouts(iValue,iValue2);
+   }
+
+   /*int Cfg.LinkRecorderToEvent(int indexRecorder,int indexEvent,int consumerIndex);*/
+   nvals = sscanf(myarg_1, "LinkRecorderToEvent(%d,%d,%d)", &iValue,&iValue2, &iValue3);
+   if (nvals == 3) {
+     return linkRecorderToEvent(iValue,iValue2,iValue3);
+   }
+
+   /*int Cfg.TriggerRecorder(int indexRecorder);*/
+   nvals = sscanf(myarg_1, "TriggerRecorder(%d)", &iValue);
+   if (nvals == 1) {
+     return triggerRecorder(iValue);
+   }
+
+   /*int Cfg.CreateCommandList(int indexCommandList);*/
+   nvals = sscanf(myarg_1, "CreateCommandList(%d)", &iValue);
+   if (nvals == 1) {
+     return createCommandList(iValue);
+   }
+
+   /*int Cfg.LinkCommandListToEvent(int indexCommandList,int indexEvent,int consumerIndex);*/
+   nvals = sscanf(myarg_1, "LinkCommandListToEvent(%d,%d,%d)", &iValue,&iValue2, &iValue3);
+   if (nvals == 3) {
+     return linkCommandListToEvent(iValue,iValue2,iValue3);
+   }
+
+   /*int Cfg.SetCommandListExecute(int indexCommandList,int execute);*/
+   nvals = sscanf(myarg_1, "SetCommandListExecute(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setCommandListExecute(iValue,iValue2);
+   }
+
+   /*int Cfg.SetCommandListEnablePrintouts(int indexCommandList,int enable);*/
+   nvals = sscanf(myarg_1, "SetCommandListEnablePrintouts(%d,%d)", &iValue,&iValue2);
+   if (nvals == 2) {
+     return setCommandListEnablePrintouts(iValue,iValue2);
+   }
+
+   /*int Cfg.AddCommandToCommandList(int indexCommandList,char *cExpr); */
+   nvals = sscanf(myarg_1, "AddCommandToCommandList(%d)=%[^\n]",&iValue,cExprBuffer);
+   if (nvals == 2){
+     return  addCommandListCommand(iValue,cExprBuffer);
+   }
+
+   /*int Cfg.TriggerCommandList(int indexCommandList);*/
+   nvals = sscanf(myarg_1, "TriggerCommandList(%d)", &iValue);
+   if (nvals == 1) {
+     return triggerCommandList(iValue);
+   }
   return 1;
 }
 
-static void motorHandleOneArg(const char *myarg_1)
+int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 {
   const char *myarg = myarg_1;
-  char errorBuffer[1024];
   int iValue = 0;
-  uint64_t i64Value=0;
   int iValue2=0;
   int iValue3=0;
+  int iValue4=0;
+  uint64_t i64Value=0;
   double fValue = 0;
   int motor_axis_no = 0;
   int nvals = 0;
+  double dValue1,dValue2,dValue3,dValue4;
+
+  if(buffer->buffer==NULL){
+    return __LINE__;
+  }
 
   //Check if configuration command
   if (0 == strncmp(myarg_1, Cfg_dot_str,strlen(Cfg_dot_str))) {
     myarg_1 += strlen(Cfg_dot_str);
-    SEND_OK_OR_ERROR_AND_RETURN(handleCfgCommand(myarg_1))
+    SEND_OK_OR_ERROR_AND_RETURN(handleCfgCommand(myarg_1));
   }
 
   /* ADSPORT= */
   if (!strncmp(myarg_1, ADSPORT_equals_str, strlen(ADSPORT_equals_str))) {
     int err_code;
     myarg_1 += strlen(ADSPORT_equals_str);
-    err_code = motorHandleADS_ADR(myarg_1);
-    if (err_code == -1) return;
+    err_code = motorHandleADS_ADR(myarg_1,buffer);
+    if (err_code == -1) return 0;
     if (err_code == 0) {
-      cmd_buf_printf("OK");
-      return;
+      cmd_buf_printf(buffer,"OK");
+      return 0;
     }
-    RETURN_OR_DIE("%s/%s:%d myarg_1=%s err_code=%d",
+    RETURN_ERROR_OR_DIE(buffer,err_code,"%s/%s:%d myarg_1=%s err_code=%d",
                   __FILE__, __FUNCTION__, __LINE__,
                   myarg_1,
                   err_code);
@@ -853,26 +1120,26 @@ static void motorHandleOneArg(const char *myarg_1)
   /*ReadEcEntry(int nSlave, int nEntry)*/
   nvals = sscanf(myarg_1, "ReadEcEntry(%d,%d)",&iValue,&iValue2);
   if (nvals == 2) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(readEcEntry(iValue,iValue2,&i64Value))
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(readEcEntry(iValue,iValue2,&i64Value));
   }
 
   char cIdBuffer[4096];
-  /*ReadEcEntryIDString(int nSlavePosition,char *cEntryID,uint64_t nValue)*/
+  /*ReadEcEntryIDString(int nSlavePosition,char *cEntryID*/
   nvals = sscanf(myarg_1, "ReadEcEntryIDString(%d,%[^)])", &iValue,cIdBuffer);
   if (nvals == 2) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(readEcEntryIDString(iValue,cIdBuffer,&i64Value))
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(readEcEntryIDString(iValue,cIdBuffer,&i64Value));
   }
 
-  /*ReadEcEntryIndexIDString(int nSlavePosition,char *cEntryID,int *nValue)*/
+  /*ReadEcEntryIndexIDString(int nSlavePosition,char *cEntryID)*/
   nvals = sscanf(myarg_1, "ReadEcEntryIndexIDString(%d,%[^)])",&iValue2,cIdBuffer);
   if (nvals == 2) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(readEcEntryIndexIDString(iValue2,cIdBuffer,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(readEcEntryIndexIDString(iValue2,cIdBuffer,&iValue));
   }
 
   /*ReadEcSlaveIndex(int nSlavePosition,int *nValue)*/
   nvals = sscanf(myarg_1, "ReadEcSlaveIndex(%d)",&iValue2);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(readEcSlaveIndex(iValue2,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(readEcSlaveIndex(iValue2,&iValue));
   }
 
   /*WriteEcEntry(int nSlave, int nEntry,int iValue)*/
@@ -884,49 +1151,57 @@ static void motorHandleOneArg(const char *myarg_1)
   /*ReadAxisGearRatio(int nAxis)*/
   nvals = sscanf(myarg_1, "ReadAxisGearRatio(%d)",&motor_axis_no);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisGearRatio(motor_axis_no,&fValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisGearRatio(motor_axis_no,&fValue));
+  }
+
+  /*EcReadSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcReadSdo(%d,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4);
+  if (nvals == 4) {
+    cmd_buf_printf(buffer,"%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
+    //PRINT_TO_OUT_BUFFER("%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
+    return 0; //Read command TODO move to read section
   }
 
   /*GetAxisOpMode(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisOpMode(%d)",&motor_axis_no);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisOpMode(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisOpMode(motor_axis_no,&iValue));
   }
 
   /*GetAxisType(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisType(%d)",&motor_axis_no);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisType(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisType(motor_axis_no,&iValue));
   }
 
   /*int GetAxisEnableAlarmAtHardLimits(int axis_no);*/
   nvals = sscanf(myarg_1, "SetAxisEnableAlarmAtHardLimits(%d)", &motor_axis_no);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableAlarmAtHardLimits(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableAlarmAtHardLimits(motor_axis_no,&iValue));
   }
 
   /*int GetAxisEncSourceType(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisEncSourceType(%d)", &motor_axis_no);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncSource(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncSource(motor_axis_no,&iValue));
   }
 
   /*int GetAxisTrajSourceType(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisTrajSourceType(%d)", &motor_axis_no);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisTrajSource(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisTrajSource(motor_axis_no,&iValue));
   }
 
   /*int GetAxisEnableCommandsFromOtherAxis(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisEnableCommandsFromOtherAxis(%d)", &motor_axis_no);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableCommandsFromOtherAxis(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableCommandsFromOtherAxis(motor_axis_no,&iValue));
   }
 
   /*int GetAxisEnableCommandsTransform(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisEnableCommandsTransform(%d)", &motor_axis_no);
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableCommandsTransform(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableCommandsTransform(motor_axis_no,&iValue));
   }
 
   /*int GetAxisTrajTransExpr(int axis_no, char* cExpr);   */
@@ -937,9 +1212,8 @@ static void motorHandleOneArg(const char *myarg_1)
 
     retBuf=strdup(getAxisTrajTransExpr(iValue, &error));
     if(error){
-      sprintf(errorBuffer, "Error: %d", error);
       free(retBuf);
-      return;
+      return error;
     }
 
     //Change all # to ; (since ; is used as command delimiter in tcpip communication)
@@ -950,9 +1224,10 @@ static void motorHandleOneArg(const char *myarg_1)
         retBuf[i]=TRANSFORM_EXPR_LINE_END_CHAR;
       }
     }
-    cmd_buf_printf("%s",retBuf);
+    cmd_buf_printf(buffer,"%s",retBuf);
+
     free(retBuf);
-    return;
+    return 0;
   }
 
   /*int GetAxisEncTransExpr(int axis_no, char* cExpr);   */
@@ -963,9 +1238,8 @@ static void motorHandleOneArg(const char *myarg_1)
 
     retBuf=strdup(getAxisEncTransExpr(iValue, &error));
     if(error){
-      sprintf(errorBuffer, "Error: %d", error);
       free(retBuf);
-      return;
+      return error;
     }
 
     //Change all # to ; (since ; is used as command delimiter in tcpip communication)
@@ -976,9 +1250,9 @@ static void motorHandleOneArg(const char *myarg_1)
         retBuf[i]=TRANSFORM_EXPR_LINE_END_CHAR;
       }
     }
-    cmd_buf_printf("%s",retBuf);
+    cmd_buf_printf(buffer,"%s",retBuf);
     free(retBuf);
-    return;
+    return 0;
   }
 
   /*int GetAxisEncTransExpr(int axis_no, char* cExpr);   */
@@ -989,9 +1263,8 @@ static void motorHandleOneArg(const char *myarg_1)
 
     retBuf=strdup(getAxisTransformCommandExpr(iValue, &error));
     if(error){
-      sprintf(errorBuffer, "Error: %d", error);
       free(retBuf);
-      return;
+      return error;
     }
 
     //Change all # to ; (since ; is used as command delimiter in tcpip communication)
@@ -1002,10 +1275,58 @@ static void motorHandleOneArg(const char *myarg_1)
         retBuf[i]=TRANSFORM_EXPR_LINE_END_CHAR;
       }
     }
-    cmd_buf_printf("%s",retBuf);
+    cmd_buf_printf(buffer,"%s",retBuf);
     free(retBuf);
-    return;
+    return 0;
   }
+
+  /* GetControllerError()*/
+  if (!strcmp(myarg_1, "GetControllerError()")) {
+    cmd_buf_printf(buffer,"%d", getControllerError());
+    return 0;
+  }
+
+  /* ControllerErrorReset()*/
+  if (!strcmp(myarg_1, "ControllerErrorReset()")) {
+    SEND_OK_OR_ERROR_AND_RETURN(controllerErrorReset());
+  }
+
+  /* GetControllerErrorMessage() */
+  if (!strcmp(myarg_1, "GetControllerErrorMessage()")) {
+    cmd_buf_printf(buffer,"%s", getErrorString(getControllerError()));
+    return 0;
+  }
+
+  /*int MoveAbsolutePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
+  nvals = sscanf(myarg_1, "MoveAbsolutePosition(%d,%lf,%lf,%lf,%lf)", &iValue,&dValue1,&dValue2,&dValue3,&dValue4);
+  if (nvals == 5) {
+    SEND_OK_OR_ERROR_AND_RETURN(moveAbsolutePosition(iValue,dValue1,dValue2,dValue3,dValue4));
+  }
+
+  /*int MoveRelativePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
+  nvals = sscanf(myarg_1, "MoveRelativePosition(%d,%lf,%lf,%lf,%lf)", &iValue,&dValue1,&dValue2,&dValue3,&dValue4);
+  if (nvals == 5) {
+    SEND_OK_OR_ERROR_AND_RETURN(moveRelativePosition(iValue,dValue1,dValue2,dValue3,dValue4));
+  }
+
+  /*int MoveVelocity(int axisIndex,double velocitySet, double accelerationSet, double decelerationSet);*/
+  nvals = sscanf(myarg_1, "MoveVelocity(%d,%lf,%lf,%lf)", &iValue,&dValue1,&dValue2,&dValue3);
+  if (nvals == 4) {
+    SEND_OK_OR_ERROR_AND_RETURN(moveVelocity(iValue,dValue1,dValue2,dValue3));
+  }
+
+  /*int StopMotion(int axisIndex, int killAmplifier);*/
+  nvals = sscanf(myarg_1, "StopMotion(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    SEND_OK_OR_ERROR_AND_RETURN(stopMotion(iValue,iValue2));
+  }
+
+  /*int StopMotion(int axisIndex);*/
+  nvals = sscanf(myarg_1, "StopMotion(%d)", &iValue);
+  if (nvals == 1) {
+    SEND_OK_OR_ERROR_AND_RETURN(stopMotion(iValue,0));
+  }
+
 
   /* Main.*/
   if (!strncmp(myarg_1, Main_dot_str, strlen(Main_dot_str))) {
@@ -1016,208 +1337,236 @@ static void motorHandleOneArg(const char *myarg_1)
   /* e.g. M1.nCommand=3 */
   nvals = sscanf(myarg_1, "M%d.", &motor_axis_no);
   if (nvals != 1) {
-    RETURN_OR_DIE("%s/%s:%d line=\"%s\" nvals=%d",
+
+    RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=\"%s\" nvals=%d",
                   __FILE__, __FUNCTION__, __LINE__,
                   myarg, nvals);
   }
-  AXIS_CHECK_RETURN(motor_axis_no);
+  AXIS_CHECK_RETURN_USED_BUFFER(motor_axis_no);
   myarg_1 = strchr(myarg_1, '.');
   if (!myarg_1) {
-    RETURN_OR_DIE("%s/%s:%d line=%s missing '.'",
+    RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=%s missing '.'",
                   __FILE__, __FUNCTION__, __LINE__,
                   myarg);
   }
   myarg_1++; /* Jump over '.' */
 
   if (0 == strcmp(myarg_1, "bBusy?")){
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisBusy(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisBusy(motor_axis_no,&iValue));
   }
   /* bError?  */
   if (!strcmp(myarg_1, "bError?")) {
     iValue=getAxisError(motor_axis_no);
-    cmd_buf_printf("%d", iValue);
-    return;
+    cmd_buf_printf(buffer,"%d", iValue);
+    return 0;
   }
 
   /* bEnable? */
   if (!strcmp(myarg_1, "bEnable?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnable(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnable(motor_axis_no,&iValue));
   }
 
   /* bEnabled? */
   if (!strcmp(myarg_1, "bEnabled?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnabled(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnabled(motor_axis_no,&iValue));
   }
   /* bExecute? */
   if (!strcmp(myarg_1, "bExecute?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisExecute(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisExecute(motor_axis_no,&iValue));
   }
 
   /* bReset? */
     if (!strcmp(myarg_1, "bReset?")) {
-      SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisReset(motor_axis_no,&iValue))
+      SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisReset(motor_axis_no,&iValue));
     }
 
   /* bHomeSensor? */
   if (0 == strcmp(myarg_1, "bHomeSensor?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAtHome(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAtHome(motor_axis_no,&iValue));
   }
 
   /* bLimitBwd? */
   if (0 == strcmp(myarg_1, "bLimitBwd?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAtHardBwd(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAtHardBwd(motor_axis_no,&iValue));
   }
   /* bLimitFwd? */
   if (0 == strcmp(myarg_1, "bLimitFwd?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAtHardFwd(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAtHardFwd(motor_axis_no,&iValue));
   }
   /* bHomed? */
   if (0 == strcmp(myarg_1, "bHomed?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomed(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomed(motor_axis_no,&iValue));
   }
   /* fActPosition? */
   if (0 == strcmp(myarg_1, "fActPosition?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncPosAct(motor_axis_no,&fValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncPosAct(motor_axis_no,&fValue));
   }
   /* fActVelocity? */
   if (0 == strcmp(myarg_1, "fActVelocity?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncVelAct(motor_axis_no,&fValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncVelAct(motor_axis_no,&fValue));
   }
 
   /* fVelocity? */
   if (0 == strcmp(myarg_1, "fVelocity?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisTargetVel(motor_axis_no,&fValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisTargetVel(motor_axis_no,&fValue));
   }
 
   /* fPosition? */
   if (0 == strcmp(myarg_1, "fPosition?")) {
     /* The "set" value */
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisTargetPos(motor_axis_no,&fValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisTargetPos(motor_axis_no,&fValue));
   }
 
   /* nCommand? */
   if (0 == strcmp(myarg_1, "nCommand?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisCommand(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisCommand(motor_axis_no,&iValue));
   }
 
   /* nCmdData? */
   if (0 == strcmp(myarg_1, "nCmdData?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisCmdData(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisCmdData(motor_axis_no,&iValue));
   }
 
   /*nMotionAxisID? */
   if (0 == strcmp(myarg_1, "nMotionAxisID?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisID(motor_axis_no,&iValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisID(motor_axis_no,&iValue));
   }
 
   /*fAcceleration? */
   if (0 == strcmp(myarg_1, "fAcceleration?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisAcceleration(motor_axis_no,&fValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisAcceleration(motor_axis_no,&fValue));
   }
 
   /*fDeceleration? */
   if (0 == strcmp(myarg_1, "fDeceleration?")) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisDeceleration(motor_axis_no,&fValue))
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisDeceleration(motor_axis_no,&fValue));
   }
 
   /* stAxisStatus? */
   if (0 == strcmp(myarg_1, "stAxisStatus?")) {
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEnabled(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEnabled(motor_axis_no,&iValue));
     int bEnable = iValue;
 
     int bReset = 0;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisExecute(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisExecute(motor_axis_no,&iValue));
     int bExecute =iValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisCommand(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisCommand(motor_axis_no,&iValue));
     unsigned nCommand = iValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisCmdData(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisCmdData(motor_axis_no,&iValue));
     unsigned nCmdData = iValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisTargetVel(motor_axis_no,&fValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisTargetVel(motor_axis_no,&fValue));
     double fVelocity = fValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisTargetPos(motor_axis_no,&fValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisTargetPos(motor_axis_no,&fValue));
     double fPosition = fValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAcceleration(motor_axis_no,&fValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAcceleration(motor_axis_no,&fValue));
     double fAcceleration = fValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisDeceleration(motor_axis_no,&fValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisDeceleration(motor_axis_no,&fValue));
     double fDecceleration = fValue;
 
     int bJogFwd = 0;
     int bJogBwd = 0;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAtHardFwd(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAtHardFwd(motor_axis_no,&iValue));
     int bLimitFwd = iValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAtHardBwd(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAtHardBwd(motor_axis_no,&iValue));
     int bLimitBwd = iValue;;
 
 
     double fOverride = 100;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAtHome(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAtHome(motor_axis_no,&iValue));
     int bHomeSensor = iValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEnabled(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEnabled(motor_axis_no,&iValue));
     int bEnabled = iValue;
 
     int bError = getAxisError(motor_axis_no);
     unsigned nErrorId = getAxisErrorID(motor_axis_no);
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEncVelAct(motor_axis_no,&fValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEncVelAct(motor_axis_no,&fValue));
     double fActVelocity = fValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEncPosAct(motor_axis_no,&fValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEncPosAct(motor_axis_no,&fValue));
     double fActPostion = fValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisCntrlError(motor_axis_no,&fValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisCntrlError(motor_axis_no,&fValue));
     double fActDiff = fValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEncHomed(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEncHomed(motor_axis_no,&iValue));
     int bHomed = iValue;
 
-    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisBusy(motor_axis_no,&iValue))
+    IF_ERROR_SEND_ERROR_AND_RETURN(getAxisBusy(motor_axis_no,&iValue));
     int bBusy = iValue;
 
-    cmd_buf_printf("Main.M%d.stAxisStatus="
-                   "%d,%d,%d,%u,%u,%g,%g,%g,%g,%d,"
-                   "%d,%d,%d,%g,%d,%d,%d,%u,%g,%g,%g,%d,%d",
-                   motor_axis_no,
-                   bEnable,        /*  1 */
-                   bReset,         /*  2 */
-                   bExecute,       /*  3 */
-                   nCommand,       /*  4 */
-                   nCmdData,       /*  5 */
-                   fVelocity,      /*  6 */
-                   fPosition,      /*  7 */
-                   fAcceleration,  /*  8 */
-                   fDecceleration, /*  9 */
-                   bJogFwd,        /* 10 */
-                   bJogBwd,        /* 11 */
-                   bLimitFwd,      /* 12 */
-                   bLimitBwd,      /* 13 */
-                   fOverride,      /* 14 */
-                   bHomeSensor,    /* 15 */
-                   bEnabled,       /* 16 */
-                   bError,         /* 17 */
-                   nErrorId,       /* 18 */
-                   fActVelocity,   /* 19 */
-                   fActPostion,    /* 20 */
-                   fActDiff,       /* 21 */
-                   bHomed,         /* 22 */
-                   bBusy           /* 23 */
-                   );
-    return;
+//    cmd_buf_printf("Main.M%d.stAxisStatus="
+//                   "%d,%d,%d,%u,%u,%g,%g,%g,%g,%d,"
+//                   "%d,%d,%d,%g,%d,%d,%d,%u,%g,%g,%g,%d,%d",
+//                   motor_axis_no,
+//                   bEnable,        /*  1 */
+//                   bReset,         /*  2 */
+//                   bExecute,       /*  3 */
+//                   nCommand,       /*  4 */
+//                   nCmdData,       /*  5 */
+//                   fVelocity,      /*  6 */
+//                   fPosition,      /*  7 */
+//                   fAcceleration,  /*  8 */
+//                   fDecceleration, /*  9 */
+//                   bJogFwd,        /* 10 */
+//                   bJogBwd,        /* 11 */
+//                   bLimitFwd,      /* 12 */
+//                   bLimitBwd,      /* 13 */
+//                   fOverride,      /* 14 */
+//                   bHomeSensor,    /* 15 */
+//                   bEnabled,       /* 16 */
+//                   bError,         /* 17 */
+//                   nErrorId,       /* 18 */
+//                   fActVelocity,   /* 19 */
+//                   fActPostion,    /* 20 */
+//                   fActDiff,       /* 21 */
+//                   bHomed,         /* 22 */
+//                   bBusy           /* 23 */
+//                   );
+    cmd_buf_printf(buffer,"Main.M%d.stAxisStatus="
+        "%d,%d,%d,%u,%u,%g,%g,%g,%g,%d,"
+        "%d,%d,%d,%g,%d,%d,%d,%u,%g,%g,%g,%d,%d",
+        motor_axis_no,
+        bEnable,        /*  1 */
+        bReset,         /*  2 */
+        bExecute,       /*  3 */
+        nCommand,       /*  4 */
+        nCmdData,       /*  5 */
+        fVelocity,      /*  6 */
+        fPosition,      /*  7 */
+        fAcceleration,  /*  8 */
+        fDecceleration, /*  9 */
+        bJogFwd,        /* 10 */
+        bJogBwd,        /* 11 */
+        bLimitFwd,      /* 12 */
+        bLimitBwd,      /* 13 */
+        fOverride,      /* 14 */
+        bHomeSensor,    /* 15 */
+        bEnabled,       /* 16 */
+        bError,         /* 17 */
+        nErrorId,       /* 18 */
+        fActVelocity,   /* 19 */
+        fActPostion,    /* 20 */
+        fActDiff,       /* 21 */
+        bHomed,         /* 22 */
+        bBusy );
+    return 0;
   }
   /* sErrorMessage?  */
   if (!strcmp(myarg_1, "sErrorMessage?")) {
-    cmd_buf_printf("%s", getErrorString(getAxisErrorID(motor_axis_no)));
-    return;
+      cmd_buf_printf(buffer,"%s", getErrorString(getAxisErrorID(motor_axis_no)));
+    return 0;
   }
 
     /* nCommand=3 */
@@ -1281,12 +1630,12 @@ static void motorHandleOneArg(const char *myarg_1)
     }
 
   /* if we come here, we do not understand the command */
-  RETURN_OR_DIE("%s/%s:%d line=%s",
+  RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=%s",
                 __FILE__, __FUNCTION__, __LINE__,
                 myarg);
 }
 
-void cmd_EAT(int argc, const char *argv[], const char *sepv[])
+int cmd_EAT(int argc, const char *argv[], const char *sepv[],ecmcOutputBufferType *buffer)
 {
   const char *myargline = (argc > 0) ? argv[0] : "";
   int i;
@@ -1305,10 +1654,14 @@ void cmd_EAT(int argc, const char *argv[], const char *sepv[])
              argc,  myargline,
              myarg[1], myarg[2], myarg[3], myarg[4], myarg[5]);
   }
-
   for (i = 1; i <= argc; i++) {
-    motorHandleOneArg(argv[i]);
-    cmd_buf_printf("%s", sepv[i]);
+    int errorCode=motorHandleOneArg(argv[i],buffer);
+    if(errorCode){
+      RETURN_ERROR_OR_DIE(buffer,errorCode, "%s/%s:%d motorHandleOneArg returned errorcode: %d\n",
+	                __FILE__, __FUNCTION__, __LINE__,
+	                errorCode);
+    }
+    cmd_buf_printf(buffer,"%s", sepv[i]);
     if (PRINT_STDOUT_BIT6()) {
       LOGINFO6("%s/%s:%d i=%d "
                "argv[%d]=%s, sepv[%d]=\"",
@@ -1318,5 +1671,6 @@ void cmd_EAT(int argc, const char *argv[], const char *sepv[])
       LOGINFO6("\"\n");
     }
   } /* while argc > 0 */
+  return 0;
 }
 /******************************************************************************/

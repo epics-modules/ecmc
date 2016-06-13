@@ -1,5 +1,11 @@
+
 #ifndef MOTOR_H
 #define MOTOR_H
+
+/**\file
+ * \defgroup ecmc
+ * Main interface for ecmc motion control
+ */
 
 #include <inttypes.h>
 #include <string.h>
@@ -10,12 +16,23 @@
 extern "C" {
 #endif
 
-#define AXIS_CHECK_RETURN(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=MAX_AXES)) return;}
-#define AXIS_CHECK_RETURN_ZERO(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=MAX_AXES)) return 0;}
+#define AXIS_CHECK_RETURN(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return;}
+#define AXIS_CHECK_RETURN_ZERO(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
+#define AXIS_CHECK_RETURN_USED_BUFFER(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
+
 
 void hw_motor_init(int);
 int hw_motor_global_init(void);
 
+//General
+int getControllerError();
+int controllerErrorReset();
+
+//Motion wrapper functions
+int moveAbsolutePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);
+int moveRelativePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);
+int moveVelocity(int axisIndex,double velocitySet, double accelerationSet, double decelerationSet);
+int stopMotion(int axisIndex,int killAmplifier);
 
 /**************** Set and Get interface***********************/
 int getAxisError(int axisIndex);
@@ -127,6 +144,8 @@ int setAxisDrvScaleDenom(int axisIndex, double value);
 int setAxisDrvEnable(int axisIndex, int value);
 int setAxisDrvVelSet(int axisIndex, double value);
 int setAxisDrvVelSetRaw(int axisIndex, int value);
+int setAxisDrvBrakeEnable(int axisIndex, int enable);
+int setAxisDrvReduceTorqueEnable(int axisIndex, int enable);
 int setAxisMonAtTargetTol(int axisIndex, double value);
 int setAxisMonAtTargetTime(int axisIndex, int value);
 int setAxisMonEnableAtTargetMon(int axisIndex, int value);
@@ -148,11 +167,46 @@ int createAxis(int index, int type);
 int validateConfig();
 
 //Links bewteen MCU and hardware
-int linkEcEntryToAxisEnc(int slaveIndex,char *entryIDString,int axisIndex,int encoderEntryIndex);
-int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int driveEntryIndex);
-int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int monitorEntryIndex);
+int linkEcEntryToAxisEnc(int slaveIndex,char *entryIDString,int axisIndex,int encoderEntryIndex,int bitIndex);
+int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int driveEntryIndex,int bitIndex);
+int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int monitorEntryIndex,int bitIndex);
 
-//hardware
+//Event
+int createEvent(int index);
+int linkEcEntryToEvent(int indexEvent,int eventEntryIndex,int slaveIndex,char *entryIDString,int bitIndex);
+int setEventType(int indexEvent,int recordingType);
+int setEventSampleTime(int indexEvent,int sampleTime);
+int setEventTriggerEdge(int indexEvent,int triggerEdge);
+int setEventExecute(int indexEvent,int execute);
+int setEventEnableArmSequence(int indexEvent,int enable);
+int setEventEnablePrintouts(int indexEvent,int enable);
+int triggerEvent(int indexEvent);
+int armEvent(int indexEvent);
+
+//Storage
+int createDataStorage(int index, int elements, int bufferType);
+int clearStorage(int indexStorage);
+int setStorageEnablePrintouts(int indexStorage,int enable);
+int printStorageBuffer(int indexStorage);
+
+//Recorder
+int createRecorder(int indexRecorder);
+int linkStorageToRecorder(int indexStorage,int indexRecorder);
+int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveIndex,char *entryIDString,int bitIndex);
+int setRecorderExecute(int indexRecorder,int execute);
+int setRecorderEnablePrintouts(int indexRecorder,int enable);
+int linkRecorderToEvent(int indexRecorder,int indexEvent, int consumerIndex);
+int triggerRecorder(int indexRecorder);
+
+//CommandList
+int createCommandList(int indexCommandList);
+int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerIndex);
+int setCommandListExecute(int indexCommandList,int execute);
+int setCommandListEnablePrintouts(int indexCommandList,int enable);
+int addCommandListCommand(int indexCommandList,char *expr);
+int triggerCommandList(int indexCommandList);
+
+//Hardware
 int ecSetMaster(int masterIndex);
 int ecAddSlave(uint16_t alias, uint16_t position, uint32_t vendorId,uint32_t productCode);
 int ecAddSyncManager(int slaveIndex,int direction,uint8_t syncMangerIndex);
@@ -176,6 +230,8 @@ int ecSlaveConfigDC(
     int32_t sync0Shift, /**< SYNC0 shift time [ns]. */
     uint32_t sync1Cycle, /**< SYNC1 cycle time [ns]. */
     int32_t sync1Shift /**< SYNC1 shift time [ns]. */);
+
+int ecSelectReferenceDC(int master_index,int slave_bus_position);
 int ecAddSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize); //size in bytes
 int ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,int byteSize);
 uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize);
@@ -187,6 +243,9 @@ int readEcEntryIDString(int slavePosition,char *entryIDString,uint64_t *value);
 int readEcEntryIndexIDString(int slavePosition,char *entryIDString,int *value);
 int readEcSlaveIndex(int slavePosition,int *value);
 int ecSetDiagnostics(int value);
+int ecSetDomainFailedCyclesLimit(int value);
+int ecResetError();
+int ecEnablePrintouts(int value);
 
 //Diagnostics
 int setDiagAxisIndex(int axisIndex);

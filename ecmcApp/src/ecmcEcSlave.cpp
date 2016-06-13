@@ -258,24 +258,45 @@ int ecmcEcSlave::checkConfigState(void)
   if(simSlave_){
     return setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
   }
-  ec_slave_config_state_t s;
-  ecrt_slave_config_state(slaveConfig_, &s);
+  ec_slave_config_state_t slaveState;
+  ecrt_slave_config_state(slaveConfig_, &slaveState);
+  if (slaveState.al_state != slaveStateOld_.al_state){
+    printf("INFO:\t\tSlave position: %d. State 0x%02X.\n",slavePosition_ ,slaveState.al_state);
+  }
+  if (slaveState.online != slaveStateOld_.online){
+    printf("INFO:\t\tSlave position: %d. %s.\n",slavePosition_ ,slaveState.online ? "Online" : "Offline");
+  }
+  if (slaveState.operational != slaveStateOld_.operational){
+    printf("INFO:\t\tSlave position: %d. %sOperational.\n",slavePosition_,slaveState.operational ? "" : "Not ");
+  }
+  slaveStateOld_ = slaveState;
 
-  if (s.al_state != sOld_.al_state){
-    printf("INFO:\t\tSlave position: %d. State 0x%02X.\n",slavePosition_ ,s.al_state);
-    setErrorID(ERROR_EC_SLAVE_STATE_CHANGED);
+  if(!slaveState.online){
+    return setErrorID(ERROR_EC_SLAVE_NOT_ONLINE);
   }
-  if (s.online != sOld_.online){
-    printf("INFO:\t\tSlave position: %d. %s.\n",slavePosition_ ,s.online ? "online" : "offline");
-    setErrorID(ERROR_EC_SLAVE_ONLINE_OFFLINE_CHANGED);
-  }
-  if (s.operational != sOld_.operational){
-    printf("INFO:\t\t\tSlave position: %d. AnaIn: %soperational.\n",slavePosition_,s.operational ? "" : "Not ");
-    setErrorID(ERROR_EC_SLAVE_OPERATIONAL_CHANGED);
+  if(!slaveState.operational){
+    return setErrorID(ERROR_EC_SLAVE_NOT_OPERATIONAL);
   }
 
-  sOld_ = s;
-  return getErrorID();
+  switch(slaveState.al_state){
+    case 1:
+      return setErrorID(ERROR_EC_SLAVE_STATE_INIT);
+      break;
+    case 2:
+      return setErrorID(ERROR_EC_SLAVE_STATE_PREOP);
+      break;
+    case 4:
+      return setErrorID(ERROR_EC_SLAVE_STATE_SAFEOP);
+      break;
+    case 8:
+      return 0;
+      break;
+    default:
+      return setErrorID(ERROR_EC_SLAVE_STATE_UNDEFINED);
+      break;
+  }
+
+  return 0;
 }
 
 ecmcEcEntry *ecmcEcSlave::getEntry(int entryIndex)
@@ -335,7 +356,6 @@ int ecmcEcSlave::getSlaveBusPosition()
   return slavePosition_;
 }
 
-
 int ecmcEcSlave::addEntry(
     ec_direction_t direction,
     uint8_t        syncMangerIndex,
@@ -346,17 +366,16 @@ int ecmcEcSlave::addEntry(
     std::string    id
     )
 {
-
-ecmcEcSyncManager *sync_manager=findSyncMan(syncMangerIndex);
- if(sync_manager==NULL){
-   int error=addSyncManager(direction,syncMangerIndex);
-   if(error){
-     printf("Error addSync..");
-     return error;
-   }
-   sync_manager=syncManagerArray_[syncManCounter_-1]; //last added sync manager
- }
- sync_manager->addEntry(pdoIndex,entryIndex,entrySubIndex,bits,id);
+  ecmcEcSyncManager *syncManager=findSyncMan(syncMangerIndex);
+  if(syncManager==NULL){
+    int error=addSyncManager(direction,syncMangerIndex);
+    if(error){
+      printf("Error addSync..");
+      return error;
+    }
+    syncManager=syncManagerArray_[syncManCounter_-1]; //last added sync manager
+  }
+  syncManager->addEntry(pdoIndex,entryIndex,entrySubIndex,bits,id);
 
  return 0;
 }
@@ -431,4 +450,11 @@ int ecmcEcSlave::findEntryIndex(std::string id)
   }
   return -ERROR_EC_SLAVE_ENTRY_NULL;
 }
+
+int ecmcEcSlave::selectAsReferenceDC()
+{
+  return ecrt_master_select_reference_clock(master_,slaveConfig_);
+}
+
+
 

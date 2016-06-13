@@ -92,9 +92,28 @@ int ecmcEcEntry::writeValue(uint64_t value)
   return 0;
 }
 
+int ecmcEcEntry::writeBit(int bitNumber, uint64_t value)
+{
+  if(value){
+    BIT_SET(value_,bitNumber);
+  }
+  else{
+    BIT_CLEAR(value_,bitNumber);
+  }
+
+  return 0;
+}
+
 int ecmcEcEntry::readValue(uint64_t *value)
 {
   *value=value_;
+  return 0;
+}
+
+int ecmcEcEntry::readBit(int bitNumber, uint64_t* value)
+{
+  *value=BIT_CHECK(value_,bitNumber);
+  //*value=value_ & (int)pow(2,bitNumber);
   return 0;
 }
 

@@ -63,7 +63,7 @@ int ecmcTransform::compile()
     symbolTable.add_constants();
 
     //Trajectory
-    for(int i=0;i<MAX_AXES;i++){
+    for(int i=0;i<ECMC_MAX_AXES;i++){
       char buffer [100];
       snprintf ( buffer, 100,"%s%d",TRANSFORM_EXPR_INPUT_TRAJ_VAR_NAME_PREFIX,i);
       if(!symbolTable.add_variable(buffer,inputArray_[i])){  //..TODO not nice with *2 in index. could go outside if defs are changed
@@ -72,10 +72,10 @@ int ecmcTransform::compile()
     }
 
     //Encoder
-    for(int i=0;i<MAX_AXES;i++){
+    for(int i=0;i<ECMC_MAX_AXES;i++){
       char buffer [100];
       snprintf ( buffer, 100,"%s%d",TRANSFORM_EXPR_INPUT_ENC_VAR_NAME_PREFIX,i);
-      if(!symbolTable.add_variable(buffer,inputArray_[i+MAX_AXES])){  //..TODO not nice with *2 in index. could go outside if defs are changed
+      if(!symbolTable.add_variable(buffer,inputArray_[i+ECMC_MAX_AXES])){  //..TODO not nice with *2 in index. could go outside if defs are changed
         return ERROR_TRANSFORM_ERROR_ADD_VARIABLE;
       }
     }

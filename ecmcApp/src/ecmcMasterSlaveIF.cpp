@@ -49,7 +49,7 @@ int ecmcMasterSlaveIF::addInputDataInterface(ecmcMasterSlaveData *masterData, in
 
 ecmcMasterSlaveData *ecmcMasterSlaveIF::getExtInputDataInterface(int index)
 {
-  if(index>=MAX_AXES || index<0){
+  if(index>=ECMC_MAX_AXES || index<0){
     return NULL;
   }
   return inputDataInterface_[index];

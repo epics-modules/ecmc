@@ -47,9 +47,9 @@ void ecmcMonitor::initVars()
   maxVelCounterDrive_=0;
   maxVelCounterTraj_=0;
   maxVelDriveILDelay_=0;
-  for(int i=0;i<MaxMcuMonitorEntries;i++){
-    entryArray_[i]=NULL;
-  }
+  //for(int i=0;i<MaxMcuMonitorEntries;i++){
+  //  entryArray_[i]=NULL;
+  //}
   maxVelTrajILDelay_=200; //200 cycles
   maxVelDriveILDelay_=maxVelTrajILDelay_*2; //400 cycles default
 }
@@ -266,7 +266,7 @@ bool ecmcMonitor::getHomeSwitch()
   return homeSwitch_;
 }
 
-int ecmcMonitor::setEntryAtIndex(ecmcEcEntry *entry,int index)
+/*int ecmcMonitor::setEntryAtIndex(ecmcEcEntry *entry,int index)
 {
   if (entry!=NULL && index<MaxMcuMonitorEntries && index>=0) {
     entryArray_[index]=entry;
@@ -275,31 +275,31 @@ int ecmcMonitor::setEntryAtIndex(ecmcEcEntry *entry,int index)
     printf("Assigning entry to cMcuMonitor entry list failed. Index=%d \n",index);
     return setErrorID(ERROR_MON_ASSIGN_ENTRY_FAILED);
   }
-}
+}*/
 
 void ecmcMonitor::readEntries(){
-  uint64_t tempValue=0;
+  uint64_t tempRaw=0;
 
   //Hard limit BWD
-  if (entryArray_[0]->readValue(&tempValue)) {
+  if (readEcEntryValue(0,&tempRaw)) {
     setErrorID(ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
-  hardBwd_=tempValue;
+  hardBwd_=tempRaw>0;
 
   //Hard limit FWD
-  if(entryArray_[1]->readValue(&tempValue)){
+  if(readEcEntryValue(1,&tempRaw)){
     setErrorID(ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
-  HardFwd_=tempValue;
+  HardFwd_=tempRaw>0;
 
   //Home
-  if(entryArray_[2]->readValue(&tempValue)){
+  if(readEcEntryValue(2,&tempRaw)){
     setErrorID(ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
-  homeSwitch_=tempValue;
+  homeSwitch_=tempRaw>0;
 }
 
 void ecmcMonitor::setEnable(bool enable)
@@ -314,15 +314,18 @@ bool ecmcMonitor::getEnable()
 
 int ecmcMonitor::validate()
 {
-  if(entryArray_[0]==NULL){ //Hard limit BWD
+  int error=validateEntryBit(0);
+  if(error){ //Hard limit BWD
     return  setErrorID(ERROR_MON_ENTRY_HARD_BWD_NULL);
   }
 
-  if(entryArray_[1]==NULL){ //Hard limit FWD
+  error=validateEntryBit(1);
+  if(error){ //Hard limit FWD
     return  setErrorID(ERROR_MON_ENTRY_HARD_FWD_NULL);
   }
 
-  if(entryArray_[2]==NULL){ //Home
+  error=validateEntryBit(2);
+  if(error){ //Home
     return  setErrorID(ERROR_MON_ENTRY_HOME_NULL);
   }
 

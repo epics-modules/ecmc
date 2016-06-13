@@ -3,12 +3,16 @@
 #include <cmath>
 #include "ecmcEcEntry.h"
 #include "ecmcError.h"
-#include "ecmcErrorsList.h"
 #include "ecmcTrajectory.hpp"
 
-#define MaxMcuMonitorEntries 10
+//MONITOR ERRORS
+#define ERROR_MON_ASSIGN_ENTRY_FAILED 0x14C00
+#define ERROR_MON_ENTRY_READ_FAIL 0x14C01
+#define ERROR_MON_ENTRY_HARD_BWD_NULL 0x14C02
+#define ERROR_MON_ENTRY_HARD_FWD_NULL 0x14C03
+#define ERROR_MON_ENTRY_HOME_NULL 0x14C04
 
-class ecmcMonitor : public ecmcError
+class ecmcMonitor : public ecmcEcEntryLink
 {
 public:
   ecmcMonitor();
@@ -46,7 +50,7 @@ public:
   void setCurrentPosSet(double pos);
   double getCurrentPosSet();
   void execute();
-  int setEntryAtIndex(ecmcEcEntry *entry,int index);
+//  int setEntryAtIndex(ecmcEcEntry *entry,int index);
   void readEntries();
   void setEnable(bool enable);
   bool getEnable();
@@ -77,7 +81,7 @@ private:
   double currSetPos_;
   double lagError_;
   bool   bothLimitsLowInterlock_;
-  ecmcEcEntry *entryArray_[MaxMcuMonitorEntries];  //CH 0 hardbwd, CH 1 hardfwd CH 2 Home
+  //ecmcEcEntry *entryArray_[MaxMcuMonitorEntries];  //CH 0 hardbwd, CH 1 hardfwd CH 2 Home
   double targetVel_;
   double actVel_;
   double maxVel_;
