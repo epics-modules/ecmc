@@ -1,4 +1,4 @@
 file "ecmc.template" {
 pattern {P,N,  M, R,      DTYP,         PORT,     ADDR,  DESC,          EGU, DIR,  VELO, HVEL, JVEL,  JAR,  VBAS,  ACCL,  BDST, DLY,  BVEL,  BACC,  MRES,      ERES,       PREC,  DLLM,  DHLM,  INIT}
-{"IOC2:",  1,  m1,  m1-,  "asynMotor",   MCU1,     1,     "motor 1",    mm,  Pos,  24.9, 5.05, 10,    10.2, 0,     1,     0,    0.3,  1,     .2,    0.0046875  0.01754386  3,      -25,   135,    ""}
+{"IOC2:",  1,  m1,  m1-,  "asynMotor",   MCU1,     1,     "motor 1",    mm,  Pos,  24.9, 5.05, 10,    10.2, 0,     1,     0,    0.3,  1,     .2,    0.0046875  0.01754386  3,     -140,   13,    ""}
 }
