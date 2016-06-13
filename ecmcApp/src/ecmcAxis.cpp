@@ -952,12 +952,6 @@ asynStatus ecmcAxis::poll(bool *moving)
   setIntegerParam(pC_->motorStatusHomed_, st_axis_status.bHomed);
   setIntegerParam(pC_->motorStatusCommsError_, 0);
   setIntegerParam(pC_->motorStatusAtHome_, st_axis_status.bHomeSensor);
-  if (drvlocal.nCommand != NCOMMANDHOME) {
-    /* Hide the limit switches while homing */
-    /* https://github.com/epics-modules/motor/pull/19 */
-    setIntegerParam(pC_->motorStatusLowLimit_, !st_axis_status.bLimitBwd);
-    setIntegerParam(pC_->motorStatusHighLimit_, !st_axis_status.bLimitFwd);
-  }
   setIntegerParam(pC_->motorStatusPowerOn_, st_axis_status.bEnabled);
 
   nowMoving = st_axis_status.bBusy && st_axis_status.bExecute && st_axis_status.bEnabled;
@@ -971,7 +965,7 @@ asynStatus ecmcAxis::poll(bool *moving)
     if (!nowMoving) drvlocal.nCommand = 0;
   }
 
-  if (drvlocal.nCommand != NCOMMANDHOME) {
+  {
     double newPositionInSteps = st_axis_status.fActPosition / drvlocal.mres;
     /* If not moving, trigger a record processing at low rate */
     if (!nowMoving) setDoubleParam(pC_->motorPosition_, newPositionInSteps + 1);
