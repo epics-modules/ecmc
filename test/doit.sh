@@ -81,6 +81,8 @@ run_nosetests ()
   nosetests "$@" || exit 1
 }
 
+../checkws.sh || exit 1
+
 TESTEDMOTORAXIS=IOC2:m1
 TESTEDMCUASYN=IOC2:MCU1:asyn
 export TESTEDMOTORAXIS TESTEDMCUASYN

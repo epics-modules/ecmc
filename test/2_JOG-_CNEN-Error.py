@@ -65,12 +65,12 @@ class Test(unittest.TestCase):
     pv_nErrorId = epics.PV(os.getenv("TESTEDMOTORAXIS") + "-ErrId")
     pv_nErrRst = epics.PV(os.getenv("TESTEDMOTORAXIS") + "-ErrRst")
     pv_MSTA = epics.PV(os.getenv("TESTEDMOTORAXIS") + ".MSTA")
-    
-    
+
+
     saved_DHLM = motm1.get('DHLM')
     saved_DLLM = motm1.get('DLLM')
     saved_CNEN = motm1.get('CNEN')
-    
+
     def setUp(self):
         print 'set up'
 
@@ -79,7 +79,7 @@ class Test(unittest.TestCase):
         print 'clean up'
         self.motm1.put('CNEN', self.saved_CNEN)
 
-    
+
     # 10% dialPosition
     def test_TC_201(self):
         tc_no = "TC-201-10-percent-dialPosition"
@@ -91,7 +91,7 @@ class Test(unittest.TestCase):
         drbv = self.motm1.get_position(readback=True,dial=True)
         print '%s dval=%f drbv=%f' % (tc_no, dval, drbv)
         assert calcAlmostEqual(self.motm1, tc_no, dval, drbv, 2)
-        
+
     # Jog, wait for start, power off, check error, reset error
     def test_TC_202(self):
         tc_no = "TC-202-JOG-_CNEN"
@@ -104,7 +104,7 @@ class Test(unittest.TestCase):
 
         ret = waitForStop(self.motm1, tc_no, 2.0)
         self.assertEqual(True, ret, 'waitForStop return True')
-       
+
         msta = int(self.motm1.get('MSTA'))
         print '%s Error msta=%x' % (tc_no, msta)
         self.assertEqual(0, msta & self.MSTA_BIT_PROBLEM, 'Error MSTA.Problem)')
@@ -117,7 +117,7 @@ class Test(unittest.TestCase):
 
         self.assertNotEqual(0, bError,   'bError')
         self.assertNotEqual(0, nErrorId, 'nErrorId')
-        
+
         self.pv_nErrRst.put(1)
 
         msta = int(self.pv_MSTA.get(use_monitor=False))
@@ -135,9 +135,9 @@ class Test(unittest.TestCase):
             counter = counter - 1
             if counter == 0:
                 break
-        
+
         self.assertEqual(0, msta & self.MSTA_BIT_MOVING,  'Clean MSTA.Moving)')
         self.assertEqual(0, bError,   'bError')
         self.assertEqual(0, nErrorId, 'nErrorId')
-        
-        
+
+
