@@ -1,6 +1,6 @@
 require asyn
 require motor,6.10.5-ESS
-require ecmc,1.0.2
+require ecmc,1.0.3
 
 
 ## Configure devices
