@@ -1764,7 +1764,7 @@ int getAxisCntrlOutput(int axisIndex,double *value)
   return 0;
 }
 
-int getAxisCntrlVelSet(int axisIndex,double *value)
+/*int getAxisCntrlVelSet(int axisIndex,double *value)
 {
   if(functionDiag)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
@@ -1774,7 +1774,7 @@ int getAxisCntrlVelSet(int axisIndex,double *value)
 
   *value=axes[axisIndex]->getCntrl()->getOutTot();
   return 0;
-}
+}*/
 
 int setAxisEncOffset(int axisIndex, double value)
 {
@@ -2019,10 +2019,10 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex, int value)
   if(functionDiag)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-    CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-    return axes[axisIndex]->getMon()->setMaxVelDriveTime(value);
+  return axes[axisIndex]->getMon()->setMaxVelDriveTime(value);
 }
 
 int setAxisMonMaxVelTrajILDelay(int axisIndex, int value)
@@ -2030,10 +2030,10 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex, int value)
   if(functionDiag)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-    CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-    return axes[axisIndex]->getMon()->setMaxVelTrajTime(value);
+  return axes[axisIndex]->getMon()->setMaxVelTrajTime(value);
 }
 
 //Mon GET
@@ -2042,24 +2042,24 @@ int getAxisMonAtTarget(int axisIndex,int *value)
   if(functionDiag)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-    CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-    *value=axes[axisIndex]->getMon()->getAtTarget();
+  *value=axes[axisIndex]->getMon()->getAtTarget();
   return 0;
 }
 
-int getAxisMonAtHome(int axisIndex,int *value)
+/*int getAxisMonAtHome(int axisIndex,int *value)
 {
   if(functionDiag)
     fprintf(stdlog,"%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-    CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-    *value=axes[axisIndex]->getMon()->getHomeSwitch();
+  *value=axes[axisIndex]->getMon()->getHomeSwitch();
   return 0;
-}
+}*/
 
 /****************************************************************************/
 //Configuration procedures
@@ -2622,14 +2622,14 @@ int linkEcEntryToEvent(int indexEvent,int eventEntryIndex,int slaveIndex,char *e
   return events[indexEvent]->setEntryAtIndex(entry,eventEntryIndex,bitIndex);
 }
 
-int setEventType(int indexEvent,int recordingType)
+int setEventType(int indexEvent,int type)
 {
   if(functionDiag)
-    fprintf(stdlog,"%s/%s:%d indexEvent=%d recordingType=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, recordingType);
+    fprintf(stdlog,"%s/%s:%d indexEvent=%d recordingType=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, type);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  return events[indexEvent]->setEventType((eventType)recordingType);
+  return events[indexEvent]->setEventType((eventType)type);
 }
 
 int setEventSampleTime(int indexEvent,int sampleTime)

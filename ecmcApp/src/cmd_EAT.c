@@ -1,3 +1,9 @@
+
+/**\file
+ * \ingroup ecmc
+ * Command parser for ECMC motion control
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -62,11 +68,11 @@ typedef struct
   do {                                                   \
     int iRet=function;                                   \
     if(iRet){                                            \
-	cmd_buf_printf(buffer,"Error: %d", iRet);            \
-      return 0;                                            \
+	cmd_buf_printf(buffer,"Error: %d", iRet);        \
+      return 0;                                          \
     }                                                    \
-    cmd_buf_printf(buffer,"%"PRIu64"", i64Value);          \
-    return 0;                                              \
+    cmd_buf_printf(buffer,"%"PRIu64"", i64Value);        \
+    return 0;                                            \
   }                                                      \
   while(0)
 
@@ -74,8 +80,8 @@ typedef struct
   do {                                           \
     int iRet=function;                           \
     if(iRet){                                    \
-      cmd_buf_printf(buffer,"Error: %d", iRet);    \
-      return 0;                                    \
+      cmd_buf_printf(buffer,"Error: %d", iRet);  \
+      return 0;                                  \
     }                                            \
   }                                              \
   while(0)
@@ -95,7 +101,7 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
                                      unsigned offset_in_group,
                                      int *iValue)
 {
-  //TODO This command needs to be removed
+  /// @todo This command needs to be removed. Not supported.
   if (group_no == 0x3040010 && offset_in_group == 0x80000049) {
     int64_t iTemp=0;
     int iRet=getAxisEncPosRaw(1,&iTemp); //Why hardcoded 1??
@@ -358,12 +364,7 @@ static int motorHandleADS_ADR(const char *arg,ecmcOutputBufferType *buffer)
         if(errorCode){
           return __LINE__;
         }
-        //int charsWritten=snprintf(buffer->buffer,buffer->bufferSize-1,"%g", fValue);
-        //if(charsWritten<0 || charsWritten>=outBufferLength-1){
-        //  return __LINE__;
-        //}
-        //*bytesUsed=charsWritten;
-        return -1;
+      return -1;
       }
         break;
       case 2: {
@@ -394,6 +395,8 @@ static int motorHandleADS_ADR(const char *arg,ecmcOutputBufferType *buffer)
   }
   return __LINE__;
 }
+/** \breif Handles all the configuration commands"
+*/
 static int handleCfgCommand(const char *myarg_1){
   int iValue = 0;
   int iValue2 = 0;
@@ -410,65 +413,61 @@ static int handleCfgCommand(const char *myarg_1){
   double dValue2=0;
   char cIdBuffer[4096];
 
-  /*Cfg.SetAppMode(x)*/
+  /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
   if (nvals == 1) {
     return setAppMode(iValue);
   }
 
-  /*Cfg.ValidateConfig()*/
+  /// "Cfg.ValidateConfig()"
   nvals=strcmp(myarg_1,"ValidateConfig()");
   if (nvals == 0) {
     return validateConfig();
   }
 
-  /*Cfg.CreateAxis(nAxis, nType)*/
+  /// "Cfg.CreateAxis(axisIndex, type)"
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return createAxis(iValue,iValue2);
   }
 
-  /*Cfg.CreateDefaultAxis(nAxis)*/
-  int nRet=0;
+  /// "Cfg.CreateDefaultAxis(axisIndex)"
   nvals = sscanf(myarg_1, "CreateDefaultAxis(%d)", &iValue);
   if (nvals == 1) {
-    nRet=createAxis(iValue,1);  //Default REAL axis
-    if(nRet)
-      return nRet;
-    return 0;
+    return createAxis(iValue,1);
   }
 
-  /*Cfg.LinkEcEntryToAxisEncoder(int nSlave, int nEntry,int nAxis,nEncEntryIndex,int bitIndex)*/
+  /// "Cfg.LinkEcEntryToAxisEncoder(slaveBusPosition,entryIdString,axisIndex,encoderEntryIndex,entrybitIndex)"
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisEncoder(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return linkEcEntryToAxisEnc(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 
-  /*Cfg.LinkEcEntryToAxisDrive(int nSlave, int nEntry,int nAxis, int nDrvEntryIndex,int bitIndex)*/
+  /// "Cfg.LinkEcEntryToAxisDrive(slaveBusPosition,entryIdString,axisIndex,driveEntryIndex,entrybitIndex)"
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisDrive(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return linkEcEntryToAxisDrv(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 
-  /*Cfg.LinkEcEntryToAxisMonitor(int nSlave, int nEntry,int nAxis,int nMonEntryIndex,int bitIndex)*/
+  /// "Cfg.LinkEcEntryToAxisMonitor(slaveBusPosition,entryIdString,axisIndex,monitorEntryIndex,entrybitIndex)"
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisMonitor(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return linkEcEntryToAxisMon(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 
-  /*Cfg.WriteEcEntryIDString(int nSlavePosition,char *cEntryID,uint64_t nValue)*/
+  /// "Cfg.WriteEcEntryIDString(slaveBusPosition,entryIdString,value)"
   nvals = sscanf(myarg_1, "WriteEcEntryIDString(%d,%[^,],%d)", &iValue,cIdBuffer,&iValue3);
   if (nvals == 3) {
     return writeEcEntryIDString(iValue,cIdBuffer,iValue3);
   }
 
-  /*Cfg.EcSetMaster(int master_index)*/
+  /// "Cfg.EcSetMaster(masterIndex)"
   nvals = sscanf(myarg_1, "EcSetMaster(%d)", &iValue);
   if (nvals == 1) {
     return ecSetMaster(iValue);
   }
 
-  /*Cfg.EcAddSlave(uint16_t alias, uint16_t position, uint32_t vendor_id,uint32_t product_code)*/
+  /// "Cfg.EcAddSlave(alias,slaveBusPosition,vendorId,productCode)"
   nvals = sscanf(myarg_1, "EcAddSlave(%d,%d,%x,%x)", &iValue,&iValue2,&iValue3,&iValue4);
   if (nvals == 4) {
     return ecAddSlave(iValue,iValue2,iValue3, iValue4);
@@ -1175,7 +1174,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   }
 
   /*int GetAxisEnableAlarmAtHardLimits(int axis_no);*/
-  nvals = sscanf(myarg_1, "SetAxisEnableAlarmAtHardLimits(%d)", &motor_axis_no);
+  nvals = sscanf(myarg_1, "GetAxisEnableAlarmAtHardLimits(%d)", &motor_axis_no);
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableAlarmAtHardLimits(motor_axis_no,&iValue));
   }
@@ -1255,7 +1254,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     return 0;
   }
 
-  /*int GetAxisEncTransExpr(int axis_no, char* cExpr);   */
+  /*int GetAxisEncTransExpr(int axis_no);   */
   nvals = sscanf(myarg_1, "GetAxisTransformCommandExpr(%d)",&iValue);
   if (nvals == 1){
     char *retBuf;
