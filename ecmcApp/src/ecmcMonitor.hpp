@@ -11,6 +11,7 @@
 #define ERROR_MON_ENTRY_HARD_BWD_NULL 0x14C02
 #define ERROR_MON_ENTRY_HARD_FWD_NULL 0x14C03
 #define ERROR_MON_ENTRY_HOME_NULL 0x14C04
+#define ERROR_MON_ENTRY_HARDWARE_INTERLOCK_NULL 0x14C05
 
 class ecmcMonitor : public ecmcEcEntryLink
 {
@@ -50,7 +51,6 @@ public:
   void setCurrentPosSet(double pos);
   double getCurrentPosSet();
   void execute();
-//  int setEntryAtIndex(ecmcEcEntry *entry,int index);
   void readEntries();
   void setEnable(bool enable);
   bool getEnable();
@@ -58,6 +58,7 @@ public:
   bool getDriveInterlock();
   int validate();
   int reset();
+  int setEnableHardwareInterlock(bool enable);
 
 private:
   bool   enable_;
@@ -92,5 +93,7 @@ private:
   int    maxVelCounterTraj_;
   int    maxVelDriveILDelay_;
   int    maxVelTrajILDelay_;
+  bool   enableHardwareInterlock_;
+  bool   hardwareInterlock_;
 };
 #endif

@@ -47,11 +47,10 @@ void ecmcMonitor::initVars()
   maxVelCounterDrive_=0;
   maxVelCounterTraj_=0;
   maxVelDriveILDelay_=0;
-  //for(int i=0;i<MaxMcuMonitorEntries;i++){
-  //  entryArray_[i]=NULL;
-  //}
   maxVelTrajILDelay_=200; //200 cycles
   maxVelDriveILDelay_=maxVelTrajILDelay_*2; //400 cycles default
+  enableHardwareInterlock_=false;
+  hardwareInterlock_=false;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -136,7 +135,6 @@ void ecmcMonitor::execute()
   }
 
   velErrorDrive_=velErrorTraj_ && maxVelCounterDrive_>=maxVelDriveILDelay_;
-
 }
 
 void ecmcMonitor::setTargetPos(double pos)
@@ -177,6 +175,10 @@ bool ecmcMonitor::getHardLimitBwd()
 
 interlockTypes ecmcMonitor::getTrajInterlock()
 {
+  if(enableHardwareInterlock_&& !hardwareInterlock_){
+    return ECMC_INTERLOCK_EXTERNAL;
+  }
+
   if(lagErrorTraj_){
     return ECMC_INTERLOCK_POSITION_LAG;
   }
@@ -194,7 +196,7 @@ interlockTypes ecmcMonitor::getTrajInterlock()
 
 bool ecmcMonitor::getDriveInterlock()
 {
-  return lagErrorDrive_ || bothLimitsLowInterlock_ || velErrorDrive_;
+  return lagErrorDrive_ || bothLimitsLowInterlock_ || velErrorDrive_ || (!hardwareInterlock_ && enableHardwareInterlock_);
 }
 
 void ecmcMonitor::setAtTargetTol(double tol)
@@ -300,6 +302,14 @@ void ecmcMonitor::readEntries(){
     return;
   }
   homeSwitch_=tempRaw>0;
+
+  if(enableHardwareInterlock_){
+    if(readEcEntryValue(3,&tempRaw)){
+      setErrorID(ERROR_MON_ENTRY_READ_FAIL);
+      return;
+    }
+    hardwareInterlock_=tempRaw>0;
+  }
 }
 
 void ecmcMonitor::setEnable(bool enable)
@@ -327,6 +337,13 @@ int ecmcMonitor::validate()
   error=validateEntryBit(2);
   if(error){ //Home
     return  setErrorID(ERROR_MON_ENTRY_HOME_NULL);
+  }
+
+  if(enableHardwareInterlock_){
+    error=validateEntryBit(3);
+    if(error){ //External interlock
+      return  setErrorID(ERROR_MON_ENTRY_HOME_NULL);
+    }
   }
 
   return 0;
@@ -387,3 +404,14 @@ int ecmcMonitor::reset()
   return 0;
 }
 
+int ecmcMonitor::setEnableHardwareInterlock(bool enable)
+{
+   if(enable){
+     int error=validateEntryBit(3);
+     if(error){
+       return setErrorID(ERROR_MON_ENTRY_HARDWARE_INTERLOCK_NULL);
+     }
+   }
+   enableHardwareInterlock_=enable;
+   return 0;
+}

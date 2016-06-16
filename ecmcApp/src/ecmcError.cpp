@@ -204,6 +204,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14C04:
       return "ERROR_MON_ENTRY_HOME_NULL";
       break;
+    case 0x14C05:
+      return "ERROR_MON_ENTRY_HARDWARE_INTERLOCK_NULL";
+      break;
     case 0x14D00:  //SEQUENCER
       return "ERROR_SEQ_TRAJ_NULL";
       break;

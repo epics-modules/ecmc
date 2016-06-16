@@ -1910,6 +1910,22 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex, int value);
  */
 int setAxisSeqTimeout(int axisIndex, int value);
 
+/** \breif Enable motion axis interlock from EtherCAT entry.\n
+ *
+ *
+ * The motion can be interlocked based on an EtherCAT entry. See command
+ * linkEcEntryToAxisMon() for more information.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Enable external interlock.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable external interlock for axis 7.\n
+ * "Cfg.SetAxisMonEnableExtHWInterlock(7,1)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisMonEnableExternalInterlock(int axisIndex, int value);
+
 /** \breif Enable commands from other axis.\n
  *
  * An axis can receive commands from an other axis command expression.
@@ -2089,6 +2105,7 @@ int linkEcEntryToAxisDrv(int slaveBusPosition,char *entryIdString,int axisIndex,
  *    monitorEntryIndex = 0: Limit switch backward direction.\n
  *    monitorEntryIndex = 1: Limit switch forward direction.\n
  *    monitorEntryIndex = 2: Reference switch (homing).\n
+ *    monitorEntryIndex = 3: External interlock input (optional).\n
  *  \param[in] entryBitIndex Bit index of EtherCAT entry to use.\n
  *    entryBitIndex = -1: All bits of the entry will be used.\n
  *    entryBitIndex = 0..64: Only the selected bit will be used.\n

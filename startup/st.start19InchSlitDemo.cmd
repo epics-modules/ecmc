@@ -234,6 +234,13 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
+
+#Test external interlock for axis 4 (overridden with always one entry )
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,4,3,0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableExtHWInterlock(4,1)"
+
+ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
+
 ecmcConfigController "MCU1", "Cfg.CreateAxis(5,2)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(5,0)"
 ecmcConfigController "MCU1", "Main.M5.fAcceleration=20"
