@@ -38,6 +38,7 @@ int ecmcDrive::setVelSet(double vel)
   if(interlock_){
     velSet_=0;
     velSetRawOutput_=0;
+    enableOutput_=0;
     return 0;
   }
   velSet_=vel;

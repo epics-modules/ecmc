@@ -235,10 +235,9 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
 
-#Test external interlock for axis 4 (overridden with always one entry )
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,4,3,0)"
+#Test external interlock for axis 4
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(0,INPUT_7,4,3,0)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableExtHWInterlock(4,1)"
-
 
 ecmcConfigController "MCU1", "Cfg.CreateAxis(5,2)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(5,0)"
@@ -332,11 +331,14 @@ ecmcConfigController "MCU1", "Cfg.SetRecorderExecute(0,1)"
 
 #**************Command List  (add home sequence digital I/O)
 ecmcConfigController "MCU1", "Cfg.CreateCommandList(0)"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.bExecute=0"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.nCommand=10"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.nCmdData=3"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.fVelocity=5"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.bExecute=1"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.bExecute=0"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.nCommand=10"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.nCmdData=3"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.fVelocity=5"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.bExecute=1"
+#**************Command List  (Move to position 0 with velocity=5 and acc,dec=20)
+ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=MoveAbsolutePosition(4,0,5,20,20)"
+
 ecmcConfigController "MCU1", "Cfg.LinkCommandListToEvent(0,0,1)"
 ecmcConfigController "MCU1", "Cfg.SetCommandListEnablePrintouts(0,1)"
 ecmcConfigController "MCU1", "Cfg.SetCommandListExecute(0,1)"
@@ -404,6 +406,8 @@ epicsEnvSet "R" "$(R=Test)"
 
 #EtherCAT
         dbLoadRecords("ethercat.db", "S=8,E=STM_STATUS,PORT=MC_CPU1")
+#General 
+        dbLoadTemplate("ecmcGeneral.substitutions")
 
 
 #var streamDebug 1

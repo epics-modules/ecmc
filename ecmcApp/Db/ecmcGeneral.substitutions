@@ -1,0 +1,6 @@
+file "ecmcGeneral.template"
+{
+pattern
+{P,      PORT}
+{IOC2:,  MC_CPU1}
+}
