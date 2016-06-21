@@ -382,7 +382,11 @@ dbLoadTemplate("SlitX-xr-extra.substitutions")
   #General 
   dbLoadTemplate("ecmcGeneral.substitutions")
 
-  #EL7037
+  #EtherCAT
+  dbLoadRecords("ethercat.db", "S=8,E=STM_STATUS,PORT=MC_CPU1")
+  dbLoadTemplate("el1018.substitutions")
+  dbLoadTemplate("el2808.substitutions")
+  dbLoadTemplate("el5101.substitutions")
   dbLoadTemplate("el7037.substitutions")
 
 #var streamDebug 1

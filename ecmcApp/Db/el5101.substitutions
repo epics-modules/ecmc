@@ -1,0 +1,15 @@
+file "elGenericAnalog.template"
+{
+pattern
+{P,     PORT,   TYPE,   SLAVE_POS, NAME}
+{IOC2:, MC_CPU1, EL5101, 2,        CONTROL}
+{IOC2:, MC_CPU1, EL5101, 2,        VALUE} 
+{IOC2:, MC_CPU1, EL5101, 2,        ENC_STATUS} 
+{IOC2:, MC_CPU1, EL5101, 2,        POSITION} 
+{IOC2:, MC_CPU1, EL5101, 2,        LATCH_POSITION} 
+{IOC2:, MC_CPU1, EL5101, 3,        CONTROL}
+{IOC2:, MC_CPU1, EL5101, 3,        VALUE} 
+{IOC2:, MC_CPU1, EL5101, 3,        ENC_STATUS} 
+{IOC2:, MC_CPU1, EL5101, 3,        POSITION} 
+{IOC2:, MC_CPU1, EL5101, 3,        LATCH_POSITION} 
+}
