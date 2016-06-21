@@ -399,15 +399,17 @@ epicsEnvSet "R" "$(R=Test)"
 	dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=4,VN=")
         dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=4")
 
-	#Fifth motion axis: Real axis bottom 
+	#Fifth motion axis: Virtual axis for feed setpoint to axis 1 and 2 
 	dbLoadRecords("DUT_AxisStatus_v0_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=5,VN=stAxisStatus")
 	dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=5,VN=")
         dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=5")
 
-#EtherCAT
+        #EtherCAT
         dbLoadRecords("ethercat.db", "S=8,E=STM_STATUS,PORT=MC_CPU1")
-#General 
+        #General 
         dbLoadTemplate("ecmcGeneral.substitutions")
+        #EL7037
+        dbLoadTemplate("el7037.substitutions")
 
 
 #var streamDebug 1

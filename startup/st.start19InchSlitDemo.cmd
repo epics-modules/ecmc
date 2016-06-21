@@ -379,7 +379,11 @@ dbLoadTemplate("SlitX-xr.substitutions")
 dbLoadTemplate("SlitX-xr-extra.substitutions")
 
 #Stream device
-dbLoadTemplate("ecmcGeneral.substitutions")
+  #General 
+  dbLoadTemplate("ecmcGeneral.substitutions")
+
+  #EL7037
+  dbLoadTemplate("el7037.substitutions")
 
 #var streamDebug 1
 

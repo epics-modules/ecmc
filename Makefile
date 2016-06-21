@@ -46,6 +46,7 @@ TEMPLATES = \
   ecmcApp/Db/ecmcController.template \
   ecmcApp/Db/ecmc.template \
   ecmcApp/Db/ecmc-extra.template \
-  ecmcApp/Db/ecmcGeneral.template
+  ecmcApp/Db/ecmcGeneral.template \
+  ecmcApp/Db/el7037.template \
 
 

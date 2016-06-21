@@ -13,7 +13,7 @@ getPdoEntry{
 }
 
 setPdoEntry{
-	out "WriteEcEntryIDString(\$1,\$2,%d)";
+	out "Cfg.WriteEcEntryIDString(\$1,\$2,%d)";
 	in "OK";
 	@init { getPdoEntry; }
 }
