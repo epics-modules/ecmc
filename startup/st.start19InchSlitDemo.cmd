@@ -76,6 +76,9 @@ ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(8,0x2,0x1b7d3052,2,3,0x1a03
 ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(8,0x300,1000000,20,1000000,20)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8010,0x1,1000,2)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x5,1,1)"
+#test hardware enable on input 1 of EL7037
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x32,1,1)"
+
 
 ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,8)"
 ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
@@ -234,6 +237,13 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
+
+#Test external interlock for axis 4
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(0,INPUT_7,4,3,0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableExtHWInterlock(4,1)"
+
+ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
+
 ecmcConfigController "MCU1", "Cfg.CreateAxis(5,2)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(5,0)"
 ecmcConfigController "MCU1", "Main.M5.fAcceleration=20"
@@ -326,11 +336,14 @@ ecmcConfigController "MCU1", "Cfg.SetRecorderExecute(0,1)"
 
 #**************Command List  (add home sequence digital I/O)
 ecmcConfigController "MCU1", "Cfg.CreateCommandList(0)"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.bExecute=0"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.nCommand=10"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.nCmdData=3"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.fVelocity=5"
-ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.bExecute=1"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.bExecute=0"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.nCommand=10"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.nCmdData=3"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.fVelocity=5"
+#ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=Main.M4.bExecute=1"
+#**************Command List  (Move to position 0 with velocity=5 and acc,dec=20)
+ecmcConfigController "MCU1", "Cfg.AddCommandToCommandList(0)=MoveAbsolutePosition(4,0,5,20,20)"
+
 ecmcConfigController "MCU1", "Cfg.LinkCommandListToEvent(0,0,1)"
 ecmcConfigController "MCU1", "Cfg.SetCommandListEnablePrintouts(0,1)"
 ecmcConfigController "MCU1", "Cfg.SetCommandListExecute(0,1)"
@@ -369,7 +382,15 @@ dbLoadTemplate("SlitX-xr.substitutions")
 dbLoadTemplate("SlitX-xr-extra.substitutions")
 
 #Stream device
-dbLoadTemplate("andersTest.substitutions")
+  #General 
+  dbLoadTemplate("ecmcGeneral.substitutions")
+
+  #EtherCAT
+  dbLoadRecords("ethercat.db", "S=8,E=STM_STATUS,PORT=MC_CPU1")
+  dbLoadTemplate("el1018.substitutions")
+  dbLoadTemplate("el2808.substitutions")
+  dbLoadTemplate("el5101.substitutions")
+  dbLoadTemplate("el7037.substitutions")
 
 #var streamDebug 1
 

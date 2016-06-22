@@ -45,5 +45,11 @@ SOURCES = \
 TEMPLATES = \
   ecmcApp/Db/ecmcController.template \
   ecmcApp/Db/ecmc.template \
-  ecmcApp/Db/ecmc-extra.template
+  ecmcApp/Db/ecmc-extra.template \
+  ecmcApp/Db/ecmcGeneral.template \
+  ecmcApp/Db/elGenericAnalog.template \
+  ecmcApp/Db/elGenericDigital.template \
+
+
+
 

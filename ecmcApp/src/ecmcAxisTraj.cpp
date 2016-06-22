@@ -77,6 +77,10 @@ void ecmcAxisTraj::execute(bool masterOK)
 
 int ecmcAxisTraj::setExecute(bool execute)
 {
+  if(execute && !getEnable()){
+    return setErrorID(ERROR_AXIS_NOT_ENABLED);
+  }
+
   int error=seq_.setExecute(execute);
   if(error){
     return setErrorID(error);
@@ -91,6 +95,10 @@ bool ecmcAxisTraj::getExecute()
 
 int ecmcAxisTraj::setEnable(bool enable)
 {
+  if(!enable){ //Remove execute if enable is going down
+    setExecute(false);
+  }
+
   traj_->setEnable(enable);
   mon_->setEnable(enable);
   return setEnable_Transform();

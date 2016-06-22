@@ -126,6 +126,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14315:
       return "ERROR_AXIS_HARDWARE_STATUS_NOT_OK";
       break;
+    case 0x14316:
+      return "ERROR_AXIS_NOT_ENABLED";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
@@ -203,6 +206,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14C04:
       return "ERROR_MON_ENTRY_HOME_NULL";
+      break;
+    case 0x14C05:
+      return "ERROR_MON_ENTRY_HARDWARE_INTERLOCK_NULL";
       break;
     case 0x14D00:  //SEQUENCER
       return "ERROR_SEQ_TRAJ_NULL";
@@ -638,6 +644,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x2002B:
       return "ERROR_MAIN_EVENT_NULL";
+      break;
+    case 0x2002C:
+      return "ERROR_MAIN_AXIS_NOT_ENABLED";
       break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";

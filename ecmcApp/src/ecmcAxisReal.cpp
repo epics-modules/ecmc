@@ -110,6 +110,10 @@ void ecmcAxisReal::execute(bool masterOK)
 
 int ecmcAxisReal::setExecute(bool execute)
 {
+  if(execute && !getEnable()){
+    return setErrorID(ERROR_AXIS_NOT_ENABLED);
+  }
+
   int error=seq_.setExecute(execute);
   if(error){
     return setErrorID(error);
@@ -125,6 +129,10 @@ bool ecmcAxisReal::getExecute()
 
 int ecmcAxisReal::setEnable(bool enable)
 {
+  if(!enable){ //Remove execute if enable is going down
+    setExecute(false);
+  }
+
   traj_->setEnable(enable);
   cntrl_->setEnable(enable);
   int error=drv_->setEnable(enable);

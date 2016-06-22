@@ -49,7 +49,8 @@
     <actions hook="false" hook_all="false" />
     <tab_1_enabled>true</tab_1_enabled>
     <border_style>0</border_style>
-    <tab_4_title>Axis 4: Left Blade</tab_4_title>
+    <tab_4_title>Axis 3: Right Blade</tab_4_title>
+    <tab_5_enabled>true</tab_5_enabled>
     <enabled>true</enabled>
     <wuid>77f634a:1544c2ead6a:-7f29</wuid>
     <tab_1_background_color>
@@ -62,7 +63,7 @@
     <tab_1_font>
       <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
     </tab_1_font>
-    <tab_3_title>Axis 3: Right Blade</tab_3_title>
+    <tab_3_title>Axis 2: Slith Width</tab_3_title>
     <tab_4_background_color>
       <color red="255" green="255" blue="255" />
     </tab_4_background_color>
@@ -71,14 +72,20 @@
     <background_color>
       <color red="240" green="240" blue="240" />
     </background_color>
-    <width>655</width>
+    <width>721</width>
     <x>24</x>
     <horizontal_tabs>true</horizontal_tabs>
     <y>12</y>
+    <tab_5_foreground_color>
+      <color red="0" green="0" blue="0" />
+    </tab_5_foreground_color>
     <rules />
     <tab_3_font>
       <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
     </tab_3_font>
+    <tab_5_background_color>
+      <color red="255" green="255" blue="255" />
+    </tab_5_background_color>
     <tab_4_font>
       <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
     </tab_4_font>
@@ -99,23 +106,28 @@
     <tab_3_background_color>
       <color red="255" green="255" blue="255" />
     </tab_3_background_color>
+    <tab_5_title>Axis 4: Left Blade</tab_5_title>
+    <tab_5_icon_path></tab_5_icon_path>
     <tab_3_enabled>true</tab_3_enabled>
+    <tab_5_font>
+      <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+    </tab_5_font>
     <name>Tabbed Container</name>
     <minimum_tab_height>10</minimum_tab_height>
-    <tab_2_title>Axis 2: Slith Width</tab_2_title>
+    <tab_2_title>Axis 1: Center Position</tab_2_title>
     <tab_0_font>
       <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
     </tab_0_font>
     <tab_2_background_color>
       <color red="255" green="255" blue="255" />
     </tab_2_background_color>
-    <tab_0_title>Axis: General</tab_0_title>
+    <tab_0_title>General</tab_0_title>
     <tab_1_foreground_color>
       <color red="0" green="0" blue="0" />
     </tab_1_foreground_color>
-    <tab_1_title>Axis 1: Center Position</tab_1_title>
+    <tab_1_title>Axis: General</tab_1_title>
     <scripts />
-    <tab_count>5</tab_count>
+    <tab_count>6</tab_count>
     <scale_options>
       <width_scalable>true</width_scalable>
       <height_scalable>true</height_scalable>
@@ -134,7 +146,7 @@
       <tooltip></tooltip>
       <rules />
       <enabled>true</enabled>
-      <wuid>36f904b6:1544c37dbdf:-61a6</wuid>
+      <wuid>-1a912884:1556dcabf47:-7721</wuid>
       <transparent>true</transparent>
       <lock_children>false</lock_children>
       <scripts />
@@ -156,7 +168,89 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>653</width>
+      <width>719</width>
+      <x>1</x>
+      <name>General</name>
+      <y>1</y>
+      <foreground_color>
+        <color red="192" green="192" blue="192" />
+      </foreground_color>
+      <actions hook="false" hook_all="false" />
+      <fc>false</fc>
+      <show_scrollbar>true</show_scrollbar>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+      <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
+        <opi_file>general.opi</opi_file>
+        <border_style>3</border_style>
+        <tooltip></tooltip>
+        <rules />
+        <enabled>true</enabled>
+        <wuid>-1a912884:1556dcabf47:-771d</wuid>
+        <scripts />
+        <height>487</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <macros>
+          <include_parent_macros>true</include_parent_macros>
+          <P>IOC2:</P>
+        </macros>
+        <resize_behaviour>0</resize_behaviour>
+        <visible>true</visible>
+        <group_name></group_name>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <widget_type>Linking Container</widget_type>
+        <background_color>
+          <color red="240" green="240" blue="240" />
+        </background_color>
+        <width>463</width>
+        <x>12</x>
+        <name>Linking Container</name>
+        <y>48</y>
+        <foreground_color>
+          <color red="192" green="192" blue="192" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.groupingContainer" version="1.0.0">
+      <border_style>0</border_style>
+      <tooltip></tooltip>
+      <rules />
+      <enabled>true</enabled>
+      <wuid>36f904b6:1544c37dbdf:-61a6</wuid>
+      <transparent>true</transparent>
+      <lock_children>false</lock_children>
+      <scripts />
+      <height>817</height>
+      <border_width>1</border_width>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>false</keep_wh_ratio>
+      </scale_options>
+      <macros>
+        <include_parent_macros>true</include_parent_macros>
+      </macros>
+      <visible>false</visible>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Grouping Container</widget_type>
+      <background_color>
+        <color red="240" green="240" blue="240" />
+      </background_color>
+      <width>719</width>
       <x>1</x>
       <name>Axis: General</name>
       <y>1</y>
@@ -238,7 +332,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>653</width>
+      <width>719</width>
       <x>1</x>
       <name>Axis 1: Center Position</name>
       <y>1</y>
@@ -320,7 +414,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>653</width>
+      <width>719</width>
       <x>1</x>
       <name>Axis 2: Slith Width</name>
       <y>1</y>
@@ -402,7 +496,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>653</width>
+      <width>719</width>
       <x>1</x>
       <name>Axis 3: Right Blade</name>
       <y>1</y>
@@ -484,7 +578,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>653</width>
+      <width>719</width>
       <x>1</x>
       <name>Axis 4: Left Blade</name>
       <y>1</y>
@@ -569,11 +663,12 @@ $(trace_0_y_pv_value)</tooltip>
       <color red="240" green="240" blue="240" />
     </background_color>
     <trace_3_update_mode>4</trace_3_update_mode>
-    <x>684</x>
-    <y>18</y>
+    <x>744</x>
+    <y>8</y>
     <trace_3_x_axis_index>0</trace_3_x_axis_index>
     <trace_0_x_axis_index>0</trace_0_x_axis_index>
     <axis_count>2</axis_count>
+    <trace_3_y_pv_value />
     <trace_1_point_size>4</trace_1_point_size>
     <trace_1_anti_alias>true</trace_1_anti_alias>
     <pv_value />
@@ -610,6 +705,7 @@ $(trace_0_y_pv_value)</tooltip>
     <trace_0_point_style>0</trace_0_point_style>
     <trace_1_point_style>0</trace_1_point_style>
     <trace_0_line_width>1</trace_0_line_width>
+    <trace_3_x_pv_value />
     <axis_0_time_format>0</axis_0_time_format>
     <trace_count>4</trace_count>
     <axis_1_show_grid>true</axis_1_show_grid>
@@ -633,6 +729,7 @@ $(trace_0_y_pv_value)</tooltip>
     <trace_1_y_pv>Motor2:GetActPosition</trace_1_y_pv>
     <trace_2_concatenate_data>true</trace_2_concatenate_data>
     <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+    <trace_2_y_pv_value />
     <trace_2_anti_alias>true</trace_2_anti_alias>
     <axis_0_maximum>100.0</axis_0_maximum>
     <trace_1_y_axis_index>1</trace_1_y_axis_index>
@@ -668,6 +765,7 @@ $(trace_0_y_pv_value)</tooltip>
     <trace_2_y_axis_index>1</trace_2_y_axis_index>
     <trace_1_update_delay>200</trace_1_update_delay>
     <axis_1_axis_title>Primary Y Axis (1)</axis_1_axis_title>
+    <trace_2_x_pv_value />
     <axis_1_auto_scale>true</axis_1_auto_scale>
     <trace_1_line_width>1</trace_1_line_width>
     <trace_3_trace_type>0</trace_3_trace_type>

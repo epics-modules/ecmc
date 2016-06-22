@@ -344,6 +344,10 @@ stopMode ecmcTrajectory::checkInterlocks(motionDirection dir,double newSetpoint)
   if(externalInterlock_!=ECMC_INTERLOCK_NONE){
     interlockStatus_=externalInterlock_;
     switch(externalInterlock_){
+      case ECMC_INTERLOCK_EXTERNAL:
+         setErrorID(ERROR_TRAJ_EXTERNAL_INTERLOCK);
+         return ECMC_STOP_MODE_EMERGENCY;
+         break;
       case ECMC_INTERLOCK_POSITION_LAG:
         setErrorID(ERROR_TRAJ_POS_LAG_INTERLOCK);
         return ECMC_STOP_MODE_EMERGENCY;
