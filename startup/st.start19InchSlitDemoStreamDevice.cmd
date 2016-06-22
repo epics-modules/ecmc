@@ -76,6 +76,8 @@ ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(8,0x2,0x1b7d3052,2,3,0x1a03
 ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(8,0x300,1000000,20,1000000,20)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8010,0x1,1000,2)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x5,1,1)"
+#test hardware enable on input 1 of EL7037
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x32,1,1)"
 
 ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,8)"
 ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"

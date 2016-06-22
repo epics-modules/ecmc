@@ -55,6 +55,9 @@ void ecmcAxisEncoder::execute(bool masterOK)
 
 int ecmcAxisEncoder::setExecute(bool execute)
 {
+  if(execute && !getEnable()){
+    return setErrorID(ERROR_AXIS_NOT_ENABLED);
+  }
   execute_=execute;
 
   //Cascade commands via command transformation

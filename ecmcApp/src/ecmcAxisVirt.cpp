@@ -78,6 +78,10 @@ void ecmcAxisVirt::execute(bool masterOK)
 
 int ecmcAxisVirt::setExecute(bool execute)
 {
+  if(execute && !getEnable()){
+    return setErrorID(ERROR_AXIS_NOT_ENABLED);
+  }
+
   int error =seq_.setExecute(execute);
   if(error){
     return setErrorID(error);
