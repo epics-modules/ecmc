@@ -41,7 +41,7 @@
     <transparent>false</transparent>
     <lock_children>false</lock_children>
     <scripts />
-    <height>121</height>
+    <height>481</height>
     <border_width>1</border_width>
     <scale_options>
       <width_scalable>true</width_scalable>
@@ -50,6 +50,7 @@
     </scale_options>
     <macros>
       <include_parent_macros>true</include_parent_macros>
+      <P>IOC2:</P>
     </macros>
     <visible>true</visible>
     <border_color>
@@ -61,7 +62,7 @@
     </background_color>
     <width>511</width>
     <x>-12</x>
-    <name>General Error</name>
+    <name>General</name>
     <y>0</y>
     <foreground_color>
       <color red="192" green="192" blue="192" />
@@ -72,47 +73,6 @@
     <font>
       <opifont.name fontName="Cantarell" height="11" style="1">Default Bold</opifont.name>
     </font>
-    <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
-      <border_style>0</border_style>
-      <tooltip></tooltip>
-      <horizontal_alignment>0</horizontal_alignment>
-      <rules />
-      <enabled>true</enabled>
-      <wuid>36f904b6:1544c37dbdf:-771b</wuid>
-      <transparent>true</transparent>
-      <auto_size>false</auto_size>
-      <text></text>
-      <scripts />
-      <height>26</height>
-      <border_width>1</border_width>
-      <scale_options>
-        <width_scalable>true</width_scalable>
-        <height_scalable>true</height_scalable>
-        <keep_wh_ratio>false</keep_wh_ratio>
-      </scale_options>
-      <visible>true</visible>
-      <vertical_alignment>1</vertical_alignment>
-      <border_color>
-        <color red="0" green="128" blue="255" />
-      </border_color>
-      <widget_type>Label</widget_type>
-      <wrap_words>true</wrap_words>
-      <background_color>
-        <color red="255" green="255" blue="255" />
-      </background_color>
-      <width>80</width>
-      <x>255</x>
-      <name>Enable_6</name>
-      <y>168</y>
-      <foreground_color>
-        <color red="0" green="0" blue="0" />
-      </foreground_color>
-      <actions hook="false" hook_all="false" />
-      <show_scrollbar>false</show_scrollbar>
-      <font>
-        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-      </font>
-    </widget>
     <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
       <border_style>0</border_style>
       <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
@@ -248,7 +208,7 @@ $(pv_value)</tooltip>
         <color red="255" green="255" blue="255" />
       </background_color>
       <width>80</width>
-      <x>56</x>
+      <x>61</x>
       <name>Enable_1</name>
       <y>54</y>
       <foreground_color>
@@ -307,7 +267,7 @@ $(pv_value)</tooltip>
       </background_color>
       <boolean_label_position>0</boolean_label_position>
       <width>180</width>
-      <x>6</x>
+      <x>11</x>
       <data_type>0</data_type>
       <y>30</y>
       <foreground_color>
@@ -348,7 +308,7 @@ $(pv_value)</tooltip>
         <color red="255" green="255" blue="255" />
       </background_color>
       <width>80</width>
-      <x>56</x>
+      <x>61</x>
       <name>Enable</name>
       <y>42</y>
       <foreground_color>
@@ -414,6 +374,670 @@ $(pv_value)</tooltip>
         <color red="0" green="0" blue="0" />
       </foreground_color>
       <minimum>-1.7976931348623157E308</minimum>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.ImageBoolButton" version="1.0.0">
+      <toggle_button>false</toggle_button>
+      <alarm_pulsing>false</alarm_pulsing>
+      <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+      <push_action_index>0</push_action_index>
+      <rules />
+      <bit>-1</bit>
+      <show_confirm_dialog>0</show_confirm_dialog>
+      <password></password>
+      <pv_value />
+      <released_action_index>0</released_action_index>
+      <auto_size>false</auto_size>
+      <height>49</height>
+      <border_width>1</border_width>
+      <align_to_nearest_second>false</align_to_nearest_second>
+      <visible>true</visible>
+      <pv_name></pv_name>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Image Boolean Button</widget_type>
+      <confirm_message>Are your sure you want to do this?</confirm_message>
+      <name>Image Boolean Button_1</name>
+      <off_image>OffButton.png</off_image>
+      <actions hook="false" hook_all="false">
+        <action type="OPEN_DISPLAY">
+          <path>el7037.opi</path>
+          <macros>
+            <include_parent_macros>true</include_parent_macros>
+            <P>IOC2:</P>
+            <SLAVE_POS>7</SLAVE_POS>
+          </macros>
+          <replace>0</replace>
+          <description></description>
+        </action>
+      </actions>
+      <show_boolean_label>false</show_boolean_label>
+      <border_style>0</border_style>
+      <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-3240</wuid>
+      <scripts />
+      <on_image>OffButton.png</on_image>
+      <border_alarm_sensitive>true</border_alarm_sensitive>
+      <on_label>ON</on_label>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>true</keep_wh_ratio>
+      </scale_options>
+      <no_animation>false</no_animation>
+      <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+      <background_color>
+        <color red="240" green="240" blue="240" />
+      </background_color>
+      <boolean_label_position>0</boolean_label_position>
+      <width>180</width>
+      <x>11</x>
+      <data_type>0</data_type>
+      <y>340</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <stretch_to_fit>true</stretch_to_fit>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+      <off_label>OFF</off_label>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+      <border_style>0</border_style>
+      <tooltip></tooltip>
+      <horizontal_alignment>1</horizontal_alignment>
+      <rules />
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-323f</wuid>
+      <transparent>true</transparent>
+      <auto_size>false</auto_size>
+      <text>Slave 7 EL7037</text>
+      <scripts />
+      <height>20</height>
+      <border_width>1</border_width>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>false</keep_wh_ratio>
+      </scale_options>
+      <visible>true</visible>
+      <vertical_alignment>1</vertical_alignment>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Label</widget_type>
+      <wrap_words>false</wrap_words>
+      <background_color>
+        <color red="255" green="255" blue="255" />
+      </background_color>
+      <width>133</width>
+      <x>35</x>
+      <name>Label</name>
+      <y>355</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <actions hook="false" hook_all="false" />
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.ImageBoolButton" version="1.0.0">
+      <toggle_button>false</toggle_button>
+      <alarm_pulsing>false</alarm_pulsing>
+      <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+      <push_action_index>0</push_action_index>
+      <rules />
+      <bit>-1</bit>
+      <show_confirm_dialog>0</show_confirm_dialog>
+      <password></password>
+      <pv_value />
+      <released_action_index>0</released_action_index>
+      <auto_size>false</auto_size>
+      <height>49</height>
+      <border_width>1</border_width>
+      <align_to_nearest_second>false</align_to_nearest_second>
+      <visible>true</visible>
+      <pv_name></pv_name>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Image Boolean Button</widget_type>
+      <confirm_message>Are your sure you want to do this?</confirm_message>
+      <name>Image Boolean Button_2</name>
+      <off_image>OffButton.png</off_image>
+      <actions hook="false" hook_all="false">
+        <action type="OPEN_DISPLAY">
+          <path>el7037.opi</path>
+          <macros>
+            <include_parent_macros>true</include_parent_macros>
+            <P>IOC2:</P>
+            <SLAVE_POS>8</SLAVE_POS>
+          </macros>
+          <replace>0</replace>
+          <description></description>
+        </action>
+      </actions>
+      <show_boolean_label>false</show_boolean_label>
+      <border_style>0</border_style>
+      <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-323e</wuid>
+      <scripts />
+      <on_image>OffButton.png</on_image>
+      <border_alarm_sensitive>true</border_alarm_sensitive>
+      <on_label>ON</on_label>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>true</keep_wh_ratio>
+      </scale_options>
+      <no_animation>false</no_animation>
+      <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+      <background_color>
+        <color red="240" green="240" blue="240" />
+      </background_color>
+      <boolean_label_position>0</boolean_label_position>
+      <width>180</width>
+      <x>11</x>
+      <data_type>0</data_type>
+      <y>385</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <stretch_to_fit>true</stretch_to_fit>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+      <off_label>OFF</off_label>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+      <border_style>0</border_style>
+      <tooltip></tooltip>
+      <horizontal_alignment>1</horizontal_alignment>
+      <rules />
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-323d</wuid>
+      <transparent>true</transparent>
+      <auto_size>false</auto_size>
+      <text>Slave 8 EL7037</text>
+      <scripts />
+      <height>20</height>
+      <border_width>1</border_width>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>false</keep_wh_ratio>
+      </scale_options>
+      <visible>true</visible>
+      <vertical_alignment>1</vertical_alignment>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Label</widget_type>
+      <wrap_words>false</wrap_words>
+      <background_color>
+        <color red="255" green="255" blue="255" />
+      </background_color>
+      <width>133</width>
+      <x>35</x>
+      <name>Label_1</name>
+      <y>400</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <actions hook="false" hook_all="false" />
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.ImageBoolButton" version="1.0.0">
+      <toggle_button>false</toggle_button>
+      <alarm_pulsing>false</alarm_pulsing>
+      <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+      <push_action_index>0</push_action_index>
+      <rules />
+      <bit>-1</bit>
+      <show_confirm_dialog>0</show_confirm_dialog>
+      <password></password>
+      <pv_value />
+      <released_action_index>0</released_action_index>
+      <auto_size>false</auto_size>
+      <height>49</height>
+      <border_width>1</border_width>
+      <align_to_nearest_second>false</align_to_nearest_second>
+      <visible>true</visible>
+      <pv_name></pv_name>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Image Boolean Button</widget_type>
+      <confirm_message>Are your sure you want to do this?</confirm_message>
+      <name>Image Boolean Button_3</name>
+      <off_image>OffButton.png</off_image>
+      <actions hook="false" hook_all="false">
+        <action type="OPEN_DISPLAY">
+          <path>el5101.opi</path>
+          <macros>
+            <include_parent_macros>true</include_parent_macros>
+            <P>IOC2:</P>
+            <SLAVE_POS>2</SLAVE_POS>
+            <TYPE>EL5101</TYPE>
+          </macros>
+          <replace>0</replace>
+          <description></description>
+        </action>
+      </actions>
+      <show_boolean_label>false</show_boolean_label>
+      <border_style>0</border_style>
+      <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-323c</wuid>
+      <scripts />
+      <on_image>OffButton.png</on_image>
+      <border_alarm_sensitive>true</border_alarm_sensitive>
+      <on_label>ON</on_label>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>true</keep_wh_ratio>
+      </scale_options>
+      <no_animation>false</no_animation>
+      <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+      <background_color>
+        <color red="240" green="240" blue="240" />
+      </background_color>
+      <boolean_label_position>0</boolean_label_position>
+      <width>180</width>
+      <x>11</x>
+      <data_type>0</data_type>
+      <y>241</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <stretch_to_fit>true</stretch_to_fit>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+      <off_label>OFF</off_label>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+      <border_style>0</border_style>
+      <tooltip></tooltip>
+      <horizontal_alignment>1</horizontal_alignment>
+      <rules />
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-323b</wuid>
+      <transparent>true</transparent>
+      <auto_size>false</auto_size>
+      <text>Slave 2 EL5101</text>
+      <scripts />
+      <height>20</height>
+      <border_width>1</border_width>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>false</keep_wh_ratio>
+      </scale_options>
+      <visible>true</visible>
+      <vertical_alignment>1</vertical_alignment>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Label</widget_type>
+      <wrap_words>false</wrap_words>
+      <background_color>
+        <color red="255" green="255" blue="255" />
+      </background_color>
+      <width>133</width>
+      <x>35</x>
+      <name>Label_2</name>
+      <y>256</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <actions hook="false" hook_all="false" />
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.ImageBoolButton" version="1.0.0">
+      <toggle_button>false</toggle_button>
+      <alarm_pulsing>false</alarm_pulsing>
+      <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+      <push_action_index>0</push_action_index>
+      <rules />
+      <bit>-1</bit>
+      <show_confirm_dialog>0</show_confirm_dialog>
+      <password></password>
+      <pv_value />
+      <released_action_index>0</released_action_index>
+      <auto_size>false</auto_size>
+      <height>49</height>
+      <border_width>1</border_width>
+      <align_to_nearest_second>false</align_to_nearest_second>
+      <visible>true</visible>
+      <pv_name></pv_name>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Image Boolean Button</widget_type>
+      <confirm_message>Are your sure you want to do this?</confirm_message>
+      <name>Image Boolean Button_4</name>
+      <off_image>OffButton.png</off_image>
+      <actions hook="false" hook_all="false">
+        <action type="OPEN_DISPLAY">
+          <path>el5101.opi</path>
+          <macros>
+            <include_parent_macros>true</include_parent_macros>
+            <P>IOC2:</P>
+            <SLAVE_POS>3</SLAVE_POS>
+            <TYPE>EL5101</TYPE>
+          </macros>
+          <replace>0</replace>
+          <description></description>
+        </action>
+      </actions>
+      <show_boolean_label>false</show_boolean_label>
+      <border_style>0</border_style>
+      <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-323a</wuid>
+      <scripts />
+      <on_image>OffButton.png</on_image>
+      <border_alarm_sensitive>true</border_alarm_sensitive>
+      <on_label>ON</on_label>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>true</keep_wh_ratio>
+      </scale_options>
+      <no_animation>false</no_animation>
+      <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+      <background_color>
+        <color red="240" green="240" blue="240" />
+      </background_color>
+      <boolean_label_position>0</boolean_label_position>
+      <width>180</width>
+      <x>11</x>
+      <data_type>0</data_type>
+      <y>289</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <stretch_to_fit>true</stretch_to_fit>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+      <off_label>OFF</off_label>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+      <border_style>0</border_style>
+      <tooltip></tooltip>
+      <horizontal_alignment>1</horizontal_alignment>
+      <rules />
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-3239</wuid>
+      <transparent>true</transparent>
+      <auto_size>false</auto_size>
+      <text>Slave 3 EL5101</text>
+      <scripts />
+      <height>20</height>
+      <border_width>1</border_width>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>false</keep_wh_ratio>
+      </scale_options>
+      <visible>true</visible>
+      <vertical_alignment>1</vertical_alignment>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Label</widget_type>
+      <wrap_words>false</wrap_words>
+      <background_color>
+        <color red="255" green="255" blue="255" />
+      </background_color>
+      <width>133</width>
+      <x>35</x>
+      <name>Label_3</name>
+      <y>304</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <actions hook="false" hook_all="false" />
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.ImageBoolButton" version="1.0.0">
+      <toggle_button>false</toggle_button>
+      <alarm_pulsing>false</alarm_pulsing>
+      <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+      <push_action_index>0</push_action_index>
+      <rules />
+      <bit>-1</bit>
+      <show_confirm_dialog>0</show_confirm_dialog>
+      <password></password>
+      <pv_value />
+      <released_action_index>0</released_action_index>
+      <auto_size>false</auto_size>
+      <height>49</height>
+      <border_width>1</border_width>
+      <align_to_nearest_second>false</align_to_nearest_second>
+      <visible>true</visible>
+      <pv_name></pv_name>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Image Boolean Button</widget_type>
+      <confirm_message>Are your sure you want to do this?</confirm_message>
+      <name>Image Boolean Button_5</name>
+      <off_image>OffButton.png</off_image>
+      <actions hook="false" hook_all="false">
+        <action type="OPEN_DISPLAY">
+          <path>el1018.opi</path>
+          <macros>
+            <include_parent_macros>true</include_parent_macros>
+            <P>IOC2:</P>
+            <SLAVE_POS>0</SLAVE_POS>
+            <TYPE>EL1018</TYPE>
+          </macros>
+          <replace>0</replace>
+          <description></description>
+        </action>
+      </actions>
+      <show_boolean_label>false</show_boolean_label>
+      <border_style>0</border_style>
+      <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-3238</wuid>
+      <scripts />
+      <on_image>OffButton.png</on_image>
+      <border_alarm_sensitive>true</border_alarm_sensitive>
+      <on_label>ON</on_label>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>true</keep_wh_ratio>
+      </scale_options>
+      <no_animation>false</no_animation>
+      <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+      <background_color>
+        <color red="240" green="240" blue="240" />
+      </background_color>
+      <boolean_label_position>0</boolean_label_position>
+      <width>180</width>
+      <x>11</x>
+      <data_type>0</data_type>
+      <y>145</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <stretch_to_fit>true</stretch_to_fit>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+      <off_label>OFF</off_label>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+      <border_style>0</border_style>
+      <tooltip></tooltip>
+      <horizontal_alignment>1</horizontal_alignment>
+      <rules />
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-3237</wuid>
+      <transparent>true</transparent>
+      <auto_size>false</auto_size>
+      <text>Slave 0 EL1018</text>
+      <scripts />
+      <height>20</height>
+      <border_width>1</border_width>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>false</keep_wh_ratio>
+      </scale_options>
+      <visible>true</visible>
+      <vertical_alignment>1</vertical_alignment>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Label</widget_type>
+      <wrap_words>false</wrap_words>
+      <background_color>
+        <color red="255" green="255" blue="255" />
+      </background_color>
+      <width>133</width>
+      <x>35</x>
+      <name>Label_4</name>
+      <y>160</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <actions hook="false" hook_all="false" />
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.ImageBoolButton" version="1.0.0">
+      <toggle_button>false</toggle_button>
+      <alarm_pulsing>false</alarm_pulsing>
+      <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+      <push_action_index>0</push_action_index>
+      <rules />
+      <bit>-1</bit>
+      <show_confirm_dialog>0</show_confirm_dialog>
+      <password></password>
+      <pv_value />
+      <released_action_index>0</released_action_index>
+      <auto_size>false</auto_size>
+      <height>49</height>
+      <border_width>1</border_width>
+      <align_to_nearest_second>false</align_to_nearest_second>
+      <visible>true</visible>
+      <pv_name></pv_name>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Image Boolean Button</widget_type>
+      <confirm_message>Are your sure you want to do this?</confirm_message>
+      <name>Image Boolean Button_6</name>
+      <off_image>OffButton.png</off_image>
+      <actions hook="false" hook_all="false">
+        <action type="OPEN_DISPLAY">
+          <path>el2808.opi</path>
+          <macros>
+            <include_parent_macros>true</include_parent_macros>
+            <P>IOC2:</P>
+            <SLAVE_POS>1</SLAVE_POS>
+            <TYPE>EL2808</TYPE>
+          </macros>
+          <replace>0</replace>
+          <description></description>
+        </action>
+      </actions>
+      <show_boolean_label>false</show_boolean_label>
+      <border_style>0</border_style>
+      <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-3236</wuid>
+      <scripts />
+      <on_image>OffButton.png</on_image>
+      <border_alarm_sensitive>true</border_alarm_sensitive>
+      <on_label>ON</on_label>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>true</keep_wh_ratio>
+      </scale_options>
+      <no_animation>false</no_animation>
+      <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+      <background_color>
+        <color red="240" green="240" blue="240" />
+      </background_color>
+      <boolean_label_position>0</boolean_label_position>
+      <width>180</width>
+      <x>11</x>
+      <data_type>0</data_type>
+      <y>193</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <stretch_to_fit>true</stretch_to_fit>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+      <off_label>OFF</off_label>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+      <border_style>0</border_style>
+      <tooltip></tooltip>
+      <horizontal_alignment>1</horizontal_alignment>
+      <rules />
+      <enabled>true</enabled>
+      <wuid>-1a912884:1556dcabf47:-3235</wuid>
+      <transparent>true</transparent>
+      <auto_size>false</auto_size>
+      <text>Slave 1 EL2808</text>
+      <scripts />
+      <height>20</height>
+      <border_width>1</border_width>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>false</keep_wh_ratio>
+      </scale_options>
+      <visible>true</visible>
+      <vertical_alignment>1</vertical_alignment>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Label</widget_type>
+      <wrap_words>false</wrap_words>
+      <background_color>
+        <color red="255" green="255" blue="255" />
+      </background_color>
+      <width>133</width>
+      <x>35</x>
+      <name>Label_5</name>
+      <y>208</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <actions hook="false" hook_all="false" />
       <font>
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
