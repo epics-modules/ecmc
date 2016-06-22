@@ -49,6 +49,12 @@ TEMPLATES = \
   ecmcApp/Db/ecmcGeneral.template \
   ecmcApp/Db/elGenericAnalog.template \
   ecmcApp/Db/elGenericDigital.template \
+  ecmcApp/Db/DUT_AxisStatus_v0_01.db \
+  ecmcApp/Db/FB_DriveVirtual_v1_01.db \
+  ecmcApp/Db/expression.db \
+  ecmcApp/Db/ethercat.db \
+
+
 
 
 
