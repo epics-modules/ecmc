@@ -96,6 +96,10 @@ bool ecmcAxisVirt::getExecute()
 
 int ecmcAxisVirt::setEnable(bool enable)
 {
+  if(!enable){ //Remove execute if enable is going down
+    setExecute(false);
+  }
+
   traj_->setEnable(enable);
   mon_->setEnable(enable);
   return setEnable_Transform();

@@ -71,6 +71,10 @@ bool ecmcAxisEncoder::getExecute()
 
 int ecmcAxisEncoder::setEnable(bool enable)
 {
+  if(!enable){ //Remove execute if enable is going down
+    setExecute(false);
+  }
+
   enable_=enable;
 
   //Cascade commands via command transformation

@@ -129,6 +129,10 @@ bool ecmcAxisReal::getExecute()
 
 int ecmcAxisReal::setEnable(bool enable)
 {
+  if(!enable){ //Remove execute if enable is going down
+    setExecute(false);
+  }
+
   traj_->setEnable(enable);
   cntrl_->setEnable(enable);
   int error=drv_->setEnable(enable);
