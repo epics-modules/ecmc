@@ -845,7 +845,14 @@ static int handleCfgCommand(const char *myarg_1){
       debug_print_flags &= ~(1<<FUNCTION_CALL_DIAGNOSTICS_BIT); //Fourth bit reset (for use LOGINFO4)
     }
     return 0;
-    //return setEnableFunctionCallDiag(iValue);
+  }
+
+  /*int Cfg.SetTraceMask(int mask);*/
+  unsigned int uiValue=0;
+  nvals = sscanf(myarg_1, "SetTraceMask(%d)",&uiValue);
+  if (nvals == 1) {
+    debug_print_flags= uiValue;
+    return 0;
   }
 
   /*int Cfg.SetEnableTimeDiag(int nEnable);*/
