@@ -2,7 +2,7 @@ require asyn,4.27
 require streamdevice
 require motor,6.10.5-ESS
 #require ecmc,anderssandstrom
-require ecmc,1.1.0
+require ecmc,1.1.1
 
 ## Configure devices
 drvAsynECMCPortConfigure("MC_CPU1", 0, 0, 0)

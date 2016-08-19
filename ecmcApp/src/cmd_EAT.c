@@ -26,6 +26,7 @@ typedef struct
   double acceleration;
 } cmd_Motor_cmd_type;
 
+static int ecmcInit=0;
 
 //TODO: Cleanup macros.. should not need different for different types
 #define SEND_OK_OR_ERROR_AND_RETURN(function)   \
@@ -1098,6 +1099,11 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 
   if(buffer->buffer==NULL){
     return __LINE__;
+  }
+
+  if(!ecmcInit){
+    hw_motor_global_init();
+    ecmcInit=1;
   }
 
   //Check if configuration command

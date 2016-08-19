@@ -285,7 +285,7 @@ int  hw_motor_global_init(void){
 
   appMode=ECMC_MODE_CONFIG;
   appModeOld=appMode;
-  printf("\n\nESS Open Source EtherCAT MCU\n\n");
+  printf("\n\n ESS Open Source EtherCAT MCU Initializes.\n\n");
   if(appMode==ECMC_MODE_CONFIG){
     printf("Mode: Configuration\n\n\n");
   }
@@ -307,11 +307,11 @@ int  hw_motor_global_init(void){
   }
 
   for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
-      dataStorages[i]=NULL;
+    dataStorages[i]=NULL;
   }
 
   for(int i=0; i<ECMC_MAX_COMMANDS_LISTS;i++){
-      commandLists[i]=NULL;
+    commandLists[i]=NULL;
   }
 
   return 0;
