@@ -34,6 +34,7 @@ extern "C" {
 #define DIE_ON_ERROR_BIT0() (die_on_error_flags & 1)
 #define DIE_ON_ERROR_BIT1() (die_on_error_flags & (1<<1))
 
+#define FUNCTION_CALL_DIAGNOSTICS_BIT 4
 
 
 #define LOGINFO(fmt, ...)                        \

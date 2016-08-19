@@ -838,7 +838,14 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetEnableFuncCallDiag(int nEnable);*/
   nvals = sscanf(myarg_1, "SetEnableFuncCallDiag(%d)",&iValue);
   if (nvals == 1) {
-    return setEnableFunctionCallDiag(iValue);
+    if(iValue){
+      debug_print_flags|= 1<<FUNCTION_CALL_DIAGNOSTICS_BIT; //Fourth bit set (for use LOGINFO4)
+    }
+    else{
+      debug_print_flags &= ~(1<<FUNCTION_CALL_DIAGNOSTICS_BIT); //Fourth bit reset (for use LOGINFO4)
+    }
+    return 0;
+    //return setEnableFunctionCallDiag(iValue);
   }
 
   /*int Cfg.SetEnableTimeDiag(int nEnable);*/
