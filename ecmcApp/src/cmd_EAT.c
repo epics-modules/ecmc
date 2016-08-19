@@ -849,7 +849,7 @@ static int handleCfgCommand(const char *myarg_1){
 
   /*int Cfg.SetTraceMask(int mask);*/
   unsigned int uiValue=0;
-  nvals = sscanf(myarg_1, "SetTraceMask(%d)",&uiValue);
+  nvals = sscanf(myarg_1, "SetTraceMask(%u)",&uiValue);
   if (nvals == 1) {
     debug_print_flags= uiValue;
     return 0;
