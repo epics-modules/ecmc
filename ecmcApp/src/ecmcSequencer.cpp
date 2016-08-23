@@ -155,10 +155,13 @@ void ecmcSequencer::execute()
             stopSeq();
           }
           break;
+        default:
+          setErrorID(ERROR_SEQ_CMD_DATA_UNDEFINED);
+          break;
       }
       break;
     default:
-      ;
+      setErrorID(ERROR_SEQ_CMD_UNDEFINED);
       break;
   }
 }

@@ -210,6 +210,18 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14C05:
       return "ERROR_MON_ENTRY_HARDWARE_INTERLOCK_NULL";
       break;
+    case 0x14C06:
+      return "ERROR_MON_MAX_CONTROLLER_OUTPUT_EXCEEDED";
+      break;
+    case 0x14C07:
+      return "ERROR_MON_MAX_VELOCITY_EXCEEDED";
+      break;
+    case 0x14C08:
+      return "ERROR_MON_MAX_POSITION_LAG_EXCEEDED";
+      break;
+    case 0x14C09:
+      return "ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK";
+      break;
     case 0x14D00:  //SEQUENCER
       return "ERROR_SEQ_TRAJ_NULL";
       break;
@@ -236,6 +248,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14D08:
       return "ERROR_SEQ_TIMEOUT";
+      break;
+    case 0x14D09:
+      return "ERROR_SEQ_CMD_OUT_OF_RANGE";
+      break;
+    case 0x14D0A:
+      return "ERROR_SEQ_CMD_DATA_OUT_OF_RANGE";
       break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";

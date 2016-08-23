@@ -12,6 +12,10 @@
 #define ERROR_MON_ENTRY_HARD_FWD_NULL 0x14C03
 #define ERROR_MON_ENTRY_HOME_NULL 0x14C04
 #define ERROR_MON_ENTRY_HARDWARE_INTERLOCK_NULL 0x14C05
+#define ERROR_MON_MAX_CONTROLLER_OUTPUT_EXCEEDED 0x14C06
+#define ERROR_MON_MAX_VELOCITY_EXCEEDED 0x14C07
+#define ERROR_MON_MAX_POSITION_LAG_EXCEEDED 0x14C08
+#define ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK 0x14C09
 
 class ecmcMonitor : public ecmcEcEntryLink
 {
@@ -59,15 +63,19 @@ public:
   int validate();
   int reset();
   int setEnableHardwareInterlock(bool enable);
+  int setControllerOutput(double output);
+  int setControllerOutputHL(double outputHL);
+  int setEnableContHLMon(bool enable);
+  bool getEnableContHLMon();
 
 private:
   bool   enable_;
   double atTargetTol_;           //Tolerance for reached target. Example 0.1 deg
   int    atTargetTime_;          //Number of cycles the position error needs to be below dInTargetTol before the bAtTarget bit goes high
-  int    enableAtTargetMon_;     //Enable At target minitoring
+  int    enableAtTargetMon_;     //Enable At target monitoring
   double posLagTol_;             //Tolerance used during trajectory to monitor position lag. Example 0.1 deg
   int    posLagTime_;            //Number of cycles the position error needs to be above dPosLagTol before the following error bit goes high
-  int    enableLagMon_;          //Enable lag minitoring
+  int    enableLagMon_;          //Enable lag monitoring
   double actPos_;
   bool   motionInterlock_;
   bool   atTarget_;              //High if error is below dAtTargetTol for a nAtTargetTime cycles
@@ -82,7 +90,6 @@ private:
   double currSetPos_;
   double lagError_;
   bool   bothLimitsLowInterlock_;
-  //ecmcEcEntry *entryArray_[MaxMcuMonitorEntries];  //CH 0 hardbwd, CH 1 hardfwd CH 2 Home
   double targetVel_;
   double actVel_;
   double maxVel_;
@@ -95,5 +102,10 @@ private:
   int    maxVelTrajILDelay_;
   bool   enableHardwareInterlock_;
   bool   hardwareInterlock_;
+  double contOutput_;
+  double contOutputHL_;
+  bool contHLErrorTraj_;
+  bool contHLErrorDrive_;
+  bool enableContHLMon_;     //Enable Mechanical stop monitoring
 };
 #endif

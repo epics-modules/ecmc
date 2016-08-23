@@ -36,7 +36,7 @@ ecmcAxisReal::~ecmcAxisReal()
 
 void ecmcAxisReal::initVars()
 {
-  _bInitDone=false;
+  initDone_=false;
   operationMode_=ECMC_MODE_OP_AUTO;
   sampleTime_=1;
 }
@@ -71,6 +71,7 @@ void ecmcAxisReal::execute(bool masterOK)
     mon_->setCurrentPosSet(trajCurrSet);
     mon_->setActVel(enc_->getActVel());
     mon_->setTargetVel(traj_->getVel());
+    mon_->setControllerOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
     traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
@@ -135,11 +136,11 @@ int ecmcAxisReal::setEnable(bool enable)
 
   traj_->setEnable(enable);
   cntrl_->setEnable(enable);
+  mon_->setEnable(enable);
   int error=drv_->setEnable(enable);
   if(error){
     return setErrorID(error);
   }
-  mon_->setEnable(enable);
   return setEnable_Transform();
 }
 
@@ -150,14 +151,17 @@ bool ecmcAxisReal::getEnable()
 
 int ecmcAxisReal::getErrorID()
 {
+  if(ecmcError::getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+    return ecmcError::getErrorID();
+  }
+  if(mon_->getError()){
+    return setErrorID(mon_->getErrorID());
+  }
   if(enc_->getError()){
     return setErrorID(enc_->getErrorID());
   }
   if(drv_->getError()){
     return setErrorID(drv_->getErrorID());
-  }
-  if(mon_->getError()){
-    return setErrorID(mon_->getErrorID());
   }
   if(traj_->getError()){
     return setErrorID(traj_->getErrorID());

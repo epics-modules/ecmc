@@ -142,13 +142,14 @@ void ecmcDrive::readEntries()
 
 int ecmcDrive::setEnable(bool enable)
 {
-  if(interlock_){
+  if(interlock_ && enable){
+    enableOutput_=false;
     return setErrorID(ERROR_DRV_DRIVE_INTERLOCKED);
   }
 
   if(enableBrake_){
     if(!enable ){
-      brakeOutput_=0;  //brake locked when 0 . TODO: Apply brake soke cycles before enable is low
+      brakeOutput_=0;  //brake locked when 0 . TODO: Apply brake some cycles before enable is low
     }
     else{
       brakeOutput_=1;  //brake open when 1

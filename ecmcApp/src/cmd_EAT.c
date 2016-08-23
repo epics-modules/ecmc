@@ -745,6 +745,18 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisMonEnableExternalInterlock(iValue,iValue2);
   }
 
+  /*int Cfg.SetAxisMonEnableCntrlOutHLMon(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonEnableCntrlOutHLMon(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisMonEnableCntrlOutHLMon(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisMonCntrlOutHL(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonCntrlOutHL(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisMonCntrlOutHL(iValue,dValue);
+  }
+
   /*int Cfg.SetAxisDrvScaleNum(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisDrvScaleNum(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {

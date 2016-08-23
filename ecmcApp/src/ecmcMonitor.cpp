@@ -51,6 +51,11 @@ void ecmcMonitor::initVars()
   maxVelDriveILDelay_=maxVelTrajILDelay_*2; //400 cycles default
   enableHardwareInterlock_=false;
   hardwareInterlock_=false;
+  contOutput_=0;
+  contOutputHL_=0;
+  contHLErrorTraj_=false;
+  contHLErrorDrive_=false;
+  enableContHLMon_=false;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -70,6 +75,11 @@ void ecmcMonitor::execute()
   lagErrorDrive_=false;
 
   bothLimitsLowInterlock_=!hardBwd_ && !HardFwd_;
+
+  if(enableHardwareInterlock_ && !hardwareInterlock_ && enable_)
+  {
+    setErrorID(ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK);
+  }
 
   if(!enable_){
     return;
@@ -112,6 +122,9 @@ void ecmcMonitor::execute()
       lagMonCounter_=0;
     }
   }
+  if(lagErrorDrive_ || lagErrorTraj_){
+    setErrorID(ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
+  }
 
   //Max Vel error
   if((std::abs(actVel_)>maxVel_ || std::abs(targetVel_)>maxVel_) && enableMaxVelMon_){
@@ -135,6 +148,17 @@ void ecmcMonitor::execute()
   }
 
   velErrorDrive_=velErrorTraj_ && maxVelCounterDrive_>=maxVelDriveILDelay_;
+
+  if(velErrorDrive_ || velErrorTraj_){
+    setErrorID(ERROR_MON_MAX_VELOCITY_EXCEEDED);
+  }
+
+  //Controller output HL Error
+  if(enableContHLMon_ && std::abs(contOutput_)>contOutputHL_){
+    contHLErrorDrive_=true;
+    contHLErrorTraj_=true;
+    setErrorID(ERROR_MON_MAX_CONTROLLER_OUTPUT_EXCEEDED);
+  }
 }
 
 void ecmcMonitor::setTargetPos(double pos)
@@ -179,6 +203,10 @@ interlockTypes ecmcMonitor::getTrajInterlock()
     return ECMC_INTERLOCK_EXTERNAL;
   }
 
+  if(contHLErrorTraj_){
+    return ECMC_INTERLOCK_CONT_HIGH_LIMIT;
+  }
+
   if(lagErrorTraj_){
     return ECMC_INTERLOCK_POSITION_LAG;
   }
@@ -196,7 +224,7 @@ interlockTypes ecmcMonitor::getTrajInterlock()
 
 bool ecmcMonitor::getDriveInterlock()
 {
-  return lagErrorDrive_ || bothLimitsLowInterlock_ || velErrorDrive_ || (!hardwareInterlock_ && enableHardwareInterlock_);
+  return contHLErrorTraj_|| lagErrorDrive_ || bothLimitsLowInterlock_ || velErrorDrive_ || (!hardwareInterlock_ && enableHardwareInterlock_);
 }
 
 void ecmcMonitor::setAtTargetTol(double tol)
@@ -267,17 +295,6 @@ bool ecmcMonitor::getHomeSwitch()
 {
   return homeSwitch_;
 }
-
-/*int ecmcMonitor::setEntryAtIndex(ecmcEcEntry *entry,int index)
-{
-  if (entry!=NULL && index<MaxMcuMonitorEntries && index>=0) {
-    entryArray_[index]=entry;
-    return 0;
-  } else {
-    printf("Assigning entry to cMcuMonitor entry list failed. Index=%d \n",index);
-    return setErrorID(ERROR_MON_ASSIGN_ENTRY_FAILED);
-  }
-}*/
 
 void ecmcMonitor::readEntries(){
   uint64_t tempRaw=0;
@@ -397,6 +414,8 @@ int ecmcMonitor::reset()
   lagErrorDrive_=false;
   velErrorTraj_=false;
   velErrorDrive_=false;
+  contHLErrorTraj_=false;
+  contHLErrorDrive_=false;
   atTargetCounter_=0;
   lagMonCounter_=0;
   maxVelCounterDrive_=0;
@@ -414,4 +433,27 @@ int ecmcMonitor::setEnableHardwareInterlock(bool enable)
    }
    enableHardwareInterlock_=enable;
    return 0;
+}
+
+int ecmcMonitor::setControllerOutput(double output)
+{
+  contOutput_=output;
+  return 0;
+}
+
+int ecmcMonitor::setControllerOutputHL(double outputHL)
+{
+  contOutputHL_=outputHL;
+  return 0;
+}
+
+int ecmcMonitor::setEnableContHLMon(bool enable)
+{
+  enableContHLMon_=enable;
+  return 0;
+}
+
+bool ecmcMonitor::getEnableContHLMon()
+{
+  return enableContHLMon_;
 }

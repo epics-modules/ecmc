@@ -141,6 +141,7 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableLagMon(2,0)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(2,1000)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(2,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(2,200)"
+
 ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(3)"
 ecmcConfigController "MCU1", "Main.M3.fAcceleration=20"
 ecmcConfigController "MCU1", "Main.M3.fDeceleration=20"
@@ -183,6 +184,10 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(3,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(3,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(3,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(3,200)"
+
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(3,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(3,1000)"
+
 ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(4)"
 ecmcConfigController "MCU1", "Main.M4.fAcceleration=20"
 ecmcConfigController "MCU1", "Main.M4.fDeceleration=20"
@@ -236,6 +241,10 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
+
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(4,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(4,2000)"
+
 
 #Test external interlock for axis 4
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(0,INPUT_7,4,3,0)"

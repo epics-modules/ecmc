@@ -1883,6 +1883,26 @@ int setAxisMonEnableExternalInterlock(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setEnableHardwareInterlock(value);
 }
 
+int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setEnableContHLMon(value);
+}
+
+int setAxisMonCntrlOutHL(int axisIndex, double value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setControllerOutputHL(value);
+}
+
 //Mon GET
 int getAxisMonAtTarget(int axisIndex,int *value)
 {

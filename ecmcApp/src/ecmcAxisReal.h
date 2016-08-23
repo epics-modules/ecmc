@@ -54,7 +54,7 @@ public:
   int validate();
 private:
   void initVars();
-  bool _bInitDone;
+  bool initDone_;
   operationMode operationMode_;
   ecmcTrajectory *traj_;
   ecmcMonitor *mon_;
