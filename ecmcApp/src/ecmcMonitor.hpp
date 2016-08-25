@@ -12,10 +12,11 @@
 #define ERROR_MON_ENTRY_HARD_FWD_NULL 0x14C03
 #define ERROR_MON_ENTRY_HOME_NULL 0x14C04
 #define ERROR_MON_ENTRY_HARDWARE_INTERLOCK_NULL 0x14C05
-#define ERROR_MON_MAX_CONTROLLER_OUTPUT_EXCEEDED 0x14C06
+#define ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT 0x14C06
 #define ERROR_MON_MAX_VELOCITY_EXCEEDED 0x14C07
 #define ERROR_MON_MAX_POSITION_LAG_EXCEEDED 0x14C08
 #define ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK 0x14C09
+#define ERROR_MON_CNTRL_OUTPUT_INCREASE_AT_LIMIT 0x14C0A
 
 class ecmcMonitor : public ecmcEcEntryLink
 {
@@ -63,10 +64,13 @@ public:
   int validate();
   int reset();
   int setEnableHardwareInterlock(bool enable);
-  int setControllerOutput(double output);
-  int setControllerOutputHL(double outputHL);
-  int setEnableContHLMon(bool enable);
-  bool getEnableContHLMon();
+  int setCntrlOutput(double output);
+  int setCntrlOutputHL(double outputHL);
+  int setEnableCntrlHLMon(bool enable);
+  bool getEnableCntrlHLMon();
+  int setEnableCntrlOutIncreaseAtLimitMon(bool enable);
+  bool getEnableCntrlOutIncreaseAtLimitMon();
+  int setCntrlKff(double kff); //Used ensure that motion is reasonable in relation to controller output
 
 private:
   bool   enable_;
@@ -84,7 +88,7 @@ private:
   bool   lagErrorDrive_;         //Lag monitoring error
   int    lagMonCounter_;         //
   bool   hardBwd_;               //At hard low limit
-  bool   HardFwd_;               //At hard high limit
+  bool   hardFwd_;               //At hard high limit
   bool   homeSwitch_;            //Home switch
   double targetPos_;
   double currSetPos_;
@@ -102,10 +106,21 @@ private:
   int    maxVelTrajILDelay_;
   bool   enableHardwareInterlock_;
   bool   hardwareInterlock_;
-  double contOutput_;
-  double contOutputHL_;
-  bool contHLErrorTraj_;
-  bool contHLErrorDrive_;
-  bool enableContHLMon_;     //Enable Mechanical stop monitoring
+  double cntrlOutput_;
+  double cntrlOutputHL_;
+  double cntrlOutputOld_;
+  bool cntrlOutputHLErrorTraj_;
+  bool cntrlOutputHLErrorDrive_;
+  bool enableCntrlHLMon_;
+  bool enableCntrlOutIncreaseAtLimitMon_;     //Enable Mechanical stop monitoring
+  bool cntrlOutIncreaseAtLimitErrorTraj_;
+  bool cntrlOutIncreaseAtLimitErrorDrive_;
+  int cntrlOutIncreaseAtLimitCounter_;
+  double positionError_;
+  double positionErrorOld_;
+  int reasonableMoveCounter_;
+  int cycleCounter_;
+  double cntrlKff_;
+
 };
 #endif

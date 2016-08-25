@@ -245,6 +245,8 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(4,2000)"
 
+#NOT stable yet
+#ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutIncreaseAtLimitMon(4,1)"
 
 #Test external interlock for axis 4
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(0,INPUT_7,4,3,0)"
@@ -303,7 +305,7 @@ ecmcConfigController "MCU1", "Cfg.SetAxisTransformCommandExpr(2)=ex3:=ex1+ex2#ex
 ecmcConfigController "MCU1", "Cfg.SetAxisEnableCommandsTransform(5,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTransformCommandExpr(5)=ex1:=ex5#ex2:=ex5#en1:=en5#en2:=en5#"
 ecmcConfigController "MCU1", "Cfg.SetDiagAxisIndex(4)"
-ecmcConfigController "MCU1", "Cfg.SetDiagAxisFreq(1)"
+ecmcConfigController "MCU1", "Cfg.SetDiagAxisFreq(10)"
 ecmcConfigController "MCU1", "Cfg.SetDiagAxisEnable(1)"
 
 #**************Event handler

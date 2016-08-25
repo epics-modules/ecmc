@@ -751,6 +751,12 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisMonEnableCntrlOutHLMon(iValue,iValue2);
   }
 
+  /*int Cfg.SetAxisMonEnableCntrlOutIncreaseAtLimitMon(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonEnableCntrlOutIncreaseAtLimitMon(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisMonEnableCntrlOutIncreaseAtLimitMon(iValue,iValue2);
+  }
+
   /*int Cfg.SetAxisMonCntrlOutHL(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisMonCntrlOutHL(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {

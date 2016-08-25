@@ -10,21 +10,22 @@
 #include <iomanip>
 #include <iostream>
 #include <cstring>
-
+#include <stdio.h>
 #include "ecmcError.h"
+#include "cmd.h"
 
 #define CUTOFF 100
-#define FILTER_BUFFER_SIZE 15
+#define FILTER_BUFFER_SIZE 25
 
 class ecmcFilter : public ecmcError
 {
 public:
   ecmcFilter(double t);
   ~ecmcFilter();
-  double Update(double input);
+  //double Update(double input);
   double lowPassAveraging(double input);
-  double lowPassExponential(double input, double average, double factor);
-  double lowPassFrequency(double input);
+  //double lowPassExponential(double input, double average, double factor);
+  //double lowPassFrequency(double input);
   void setSampleTime(double sampleTime);
 private:
   void initVars();

@@ -222,6 +222,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14C09:
       return "ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK";
       break;
+    case 0x14C0A:
+      return "ERROR_MON_CNTRL_OUTPUT_INCREASE_AT_LIMIT";
+      break;
     case 0x14D00:  //SEQUENCER
       return "ERROR_SEQ_TRAJ_NULL";
       break;

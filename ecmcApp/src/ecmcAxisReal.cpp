@@ -71,7 +71,7 @@ void ecmcAxisReal::execute(bool masterOK)
     mon_->setCurrentPosSet(trajCurrSet);
     mon_->setActVel(enc_->getActVel());
     mon_->setTargetVel(traj_->getVel());
-    mon_->setControllerOutput(cntrl_->getOutTot()); //From last scan
+    mon_->setCntrlOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
     traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
@@ -208,7 +208,6 @@ int ecmcAxisReal::getActPos(double *pos)
 
 int ecmcAxisReal::getActVel(double *vel)
 {
-
   *vel=enc_->getActVel();
   return 0;
 }

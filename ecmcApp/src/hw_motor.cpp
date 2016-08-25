@@ -1519,8 +1519,10 @@ int setAxisCntrlKff(int axisIndex, double value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getCntrl()->setKff(value);
+  axes[axisIndex]->getMon()->setCntrlKff(value);
   return 0;
 }
 
@@ -1890,8 +1892,19 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getMon()->setEnableContHLMon(value);
+  return axes[axisIndex]->getMon()->setEnableCntrlHLMon(value);
 }
+
+int setAxisMonEnableCntrlOutIncreaseAtLimitMon(int axisIndex, int value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setEnableCntrlOutIncreaseAtLimitMon(value);
+}
+
 
 int setAxisMonCntrlOutHL(int axisIndex, double value)
 {
@@ -1900,7 +1913,7 @@ int setAxisMonCntrlOutHL(int axisIndex, double value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getMon()->setControllerOutputHL(value);
+  return axes[axisIndex]->getMon()->setCntrlOutputHL(value);
 }
 
 //Mon GET

@@ -32,7 +32,7 @@ void ecmcMonitor::initVars()
   lagErrorDrive_=false;
   lagMonCounter_=0;
   hardBwd_=false;
-  HardFwd_=false;
+  hardFwd_=false;
   homeSwitch_=false;
   targetPos_=0;
   lagError_=0;
@@ -51,11 +51,21 @@ void ecmcMonitor::initVars()
   maxVelDriveILDelay_=maxVelTrajILDelay_*2; //400 cycles default
   enableHardwareInterlock_=false;
   hardwareInterlock_=false;
-  contOutput_=0;
-  contOutputHL_=0;
-  contHLErrorTraj_=false;
-  contHLErrorDrive_=false;
-  enableContHLMon_=false;
+  cntrlOutput_=0;
+  cntrlOutputHL_=0;
+  cntrlOutputHLErrorTraj_=false;
+  cntrlOutputHLErrorDrive_=false;
+  enableCntrlHLMon_=false;
+  enableCntrlOutIncreaseAtLimitMon_=false;
+  cntrlOutputOld_=0;
+  cntrlOutIncreaseAtLimitErrorTraj_=false;
+  cntrlOutIncreaseAtLimitErrorDrive_=false;
+  cntrlOutIncreaseAtLimitCounter_=0;
+  positionError_=0;
+  positionErrorOld_=0;
+  reasonableMoveCounter_=0;
+  cycleCounter_=0;
+  cntrlKff_=0;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -74,7 +84,7 @@ void ecmcMonitor::execute()
   lagErrorTraj_=false;
   lagErrorDrive_=false;
 
-  bothLimitsLowInterlock_=!hardBwd_ && !HardFwd_;
+  bothLimitsLowInterlock_=!hardBwd_ && !hardFwd_;
 
   if(enableHardwareInterlock_ && !hardwareInterlock_ && enable_)
   {
@@ -85,7 +95,7 @@ void ecmcMonitor::execute()
     return;
   }
 
-  //At target cMcuMonitoring
+  //At target cMcuMonitoring*******************
   if(enableAtTargetMon_){
     if(std::abs(targetPos_-actPos_)<atTargetTol_){
       if (atTargetCounter_<=atTargetTime_){
@@ -103,7 +113,7 @@ void ecmcMonitor::execute()
     atTarget_=true;
   }
 
-  //Lag error
+  //Lag error***********************
   if(enableLagMon_ && !lagError_){
     lagError_=std::abs(actPos_-currSetPos_);
 
@@ -126,7 +136,7 @@ void ecmcMonitor::execute()
     setErrorID(ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
   }
 
-  //Max Vel error
+  //Max Vel error*****************************
   if((std::abs(actVel_)>maxVel_ || std::abs(targetVel_)>maxVel_) && enableMaxVelMon_){
     if(maxVelCounterTraj_ <= maxVelTrajILDelay_){
       maxVelCounterTraj_++;
@@ -153,11 +163,41 @@ void ecmcMonitor::execute()
     setErrorID(ERROR_MON_MAX_VELOCITY_EXCEEDED);
   }
 
-  //Controller output HL Error
-  if(enableContHLMon_ && std::abs(contOutput_)>contOutputHL_){
-    contHLErrorDrive_=true;
-    contHLErrorTraj_=true;
-    setErrorID(ERROR_MON_MAX_CONTROLLER_OUTPUT_EXCEEDED);
+  //Controller output HL Error****************************
+  if(enableCntrlHLMon_ && std::abs(cntrlOutput_)>cntrlOutputHL_){
+    cntrlOutputHLErrorDrive_=true;
+    cntrlOutputHLErrorTraj_=true;
+    setErrorID(ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT);
+  }
+
+  //Controller output increase at limit switches monitoring************** Only enabled when value for cntrl kff (scale between controller output and velocity) is set
+  //TODO This functionality is nor working properly. NEEDS tuning
+  positionErrorOld_=positionError_;
+  positionError_=std::abs(targetPos_-actPos_);
+
+  if(enableCntrlOutIncreaseAtLimitMon_ &&  std::abs(cntrlKff_)>0 &&(!hardFwd_ || !hardBwd_)){
+
+    cycleCounter_++;
+    if(positionError_>0 && positionErrorOld_>0 && ((!hardFwd_ && (cntrlOutput_>cntrlOutputOld_) && cntrlOutputOld_>0) || (!hardBwd_ && (cntrlOutput_<cntrlOutputOld_ && cntrlOutputOld_<0)))){
+      cntrlOutIncreaseAtLimitCounter_++;
+    }
+
+    //speed should be cntrlOutput_/cntrlKff_
+    double currentSetVelocity=cntrlOutput_/cntrlKff_;
+    if(((currentSetVelocity>=0 && actVel_>=0.5*currentSetVelocity) || (currentSetVelocity<=0 && actVel_<=0.5*currentSetVelocity))){
+      reasonableMoveCounter_++;
+    }
+
+    if(cycleCounter_>2000){
+      if(cntrlOutIncreaseAtLimitCounter_>1200 && reasonableMoveCounter_<1200){
+        cntrlOutIncreaseAtLimitErrorTraj_=true;
+	cntrlOutIncreaseAtLimitErrorDrive_=true;
+	setErrorID(ERROR_MON_CNTRL_OUTPUT_INCREASE_AT_LIMIT);
+      }
+      cycleCounter_=0;
+      cntrlOutIncreaseAtLimitCounter_=0;
+      reasonableMoveCounter_=0;
+    }
   }
 }
 
@@ -189,7 +229,7 @@ bool ecmcMonitor::getAtTarget()
 
 bool ecmcMonitor::getHardLimitFwd()
 {
-  return HardFwd_;
+  return hardFwd_;
 }
 
 bool ecmcMonitor::getHardLimitBwd()
@@ -203,7 +243,7 @@ interlockTypes ecmcMonitor::getTrajInterlock()
     return ECMC_INTERLOCK_EXTERNAL;
   }
 
-  if(contHLErrorTraj_){
+  if(cntrlOutputHLErrorTraj_){
     return ECMC_INTERLOCK_CONT_HIGH_LIMIT;
   }
 
@@ -219,12 +259,16 @@ interlockTypes ecmcMonitor::getTrajInterlock()
     return ECMC_INTERLOCK_MAX_SPEED;
   }
 
+  if(cntrlOutIncreaseAtLimitErrorTraj_){
+    return ECMC_INTERLOCK_CONT_OUT_INCREASE_AT_LIMIT_SWITCH;
+  }
+
   return ECMC_INTERLOCK_NONE;
 }
 
 bool ecmcMonitor::getDriveInterlock()
 {
-  return contHLErrorTraj_|| lagErrorDrive_ || bothLimitsLowInterlock_ || velErrorDrive_ || (!hardwareInterlock_ && enableHardwareInterlock_);
+  return cntrlOutIncreaseAtLimitErrorDrive_|| cntrlOutputHLErrorDrive_|| lagErrorDrive_ || bothLimitsLowInterlock_ || velErrorDrive_ || (!hardwareInterlock_ && enableHardwareInterlock_);
 }
 
 void ecmcMonitor::setAtTargetTol(double tol)
@@ -311,7 +355,7 @@ void ecmcMonitor::readEntries(){
     setErrorID(ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
-  HardFwd_=tempRaw>0;
+  hardFwd_=tempRaw>0;
 
   //Home
   if(readEcEntryValue(2,&tempRaw)){
@@ -414,12 +458,17 @@ int ecmcMonitor::reset()
   lagErrorDrive_=false;
   velErrorTraj_=false;
   velErrorDrive_=false;
-  contHLErrorTraj_=false;
-  contHLErrorDrive_=false;
+  cntrlOutputHLErrorTraj_=false;
+  cntrlOutputHLErrorDrive_=false;
+  cntrlOutIncreaseAtLimitErrorTraj_=false;
+  cntrlOutIncreaseAtLimitErrorDrive_=false;
   atTargetCounter_=0;
   lagMonCounter_=0;
   maxVelCounterDrive_=0;
   maxVelCounterTraj_=0;
+  cntrlOutIncreaseAtLimitCounter_=0;
+  reasonableMoveCounter_=0;
+  cycleCounter_=0;
   return 0;
 }
 
@@ -435,25 +484,43 @@ int ecmcMonitor::setEnableHardwareInterlock(bool enable)
    return 0;
 }
 
-int ecmcMonitor::setControllerOutput(double output)
+int ecmcMonitor::setCntrlOutput(double output)
 {
-  contOutput_=output;
+  cntrlOutputOld_=cntrlOutput_;
+  cntrlOutput_=output;
   return 0;
 }
 
-int ecmcMonitor::setControllerOutputHL(double outputHL)
+int ecmcMonitor::setCntrlOutputHL(double outputHL)
 {
-  contOutputHL_=outputHL;
+  cntrlOutputHL_=outputHL;
   return 0;
 }
 
-int ecmcMonitor::setEnableContHLMon(bool enable)
+int ecmcMonitor::setEnableCntrlHLMon(bool enable)
 {
-  enableContHLMon_=enable;
+  enableCntrlHLMon_=enable;
   return 0;
 }
 
-bool ecmcMonitor::getEnableContHLMon()
+bool ecmcMonitor::getEnableCntrlHLMon()
 {
-  return enableContHLMon_;
+  return enableCntrlHLMon_;
+}
+
+int ecmcMonitor::setEnableCntrlOutIncreaseAtLimitMon(bool enable)
+{
+  enableCntrlOutIncreaseAtLimitMon_=enable;
+  return 0;
+}
+
+bool ecmcMonitor::getEnableCntrlOutIncreaseAtLimitMon()
+{
+  return enableCntrlOutIncreaseAtLimitMon_;
+}
+
+int ecmcMonitor::setCntrlKff(double kff)
+{
+  cntrlKff_=kff;
+  return 0;
 }
