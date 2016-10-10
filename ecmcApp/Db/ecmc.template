@@ -67,3 +67,7 @@ grecord(ai,"$(P)$(R)Pos-RB") {
     field(INP,"@asyn($(PORT),$(ADDR))MOTOR_POSITION")
 }
 
+
+record (asyn, "$(P)$(PORT):asyn")
+{
+}

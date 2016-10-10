@@ -53,7 +53,6 @@ ecmcController::ecmcController(const char *portName, const char *MotorPortName, 
 
   createParam(ecmcProcHomString,       asynParamInt32,       &ecmcProcHom_);
   createParam(ecmcErrRstString,        asynParamInt32,       &ecmcErrRst_);
-  createParam(ecmcJVELString,          asynParamFloat64,     &ecmcJVEL_);
 
 #ifdef CREATE_MOTOR_REC_RESOLUTION
   /* Latest asynMotorController does this, but not the version in 6.81 (or 6.9x) */

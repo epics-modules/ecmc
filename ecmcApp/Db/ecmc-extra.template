@@ -36,13 +36,3 @@ record(longout,"$(P)$(R)ErrRst") {
     field(OUT,"@asyn($(PORT),$(ADDR))ErrRst")
 }
 
-# jogging velocity
-record(ao,"$(P)$(M)-JVEL_") {
-    field(DESC, "$(M) homevelto")
-    field(DOL,  "$(P)$(M).JVEL CP MS")
-    field(OMSL, "closed_loop")
-    field(DTYP, "asynFloat64")
-    field(OUT,  "@asyn($(PORT),$(ADDR))JVEL_")
-    field(PREC, "$(PREC)")
-}
-

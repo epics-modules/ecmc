@@ -22,7 +22,6 @@ FILENAME...  ecmcController.h
 #define ecmcProcHomString              "ProcHom"
 #define ecmcErrRstString               "ErrRst"
 #define ecmcMCUErrMsgString            "ECMC_MCUErrMsg"
-#define ecmcJVELString                 "JVEL_"
 #define ecmcErrMsgString               "ErrMsg"
 
 typedef enum  {
@@ -95,10 +94,10 @@ private:
   ecmcController *pC_;          /**< Pointer to the asynMotorController to which this axis belongs.
                                    *   Abbreviated because it is used very frequently */
   struct {
+    st_axis_status_type old_st_axis_status;
     double mres;
     double motorHighLimit;
     double motorLowLimit;
-    double oldPosition;
     const char *externalEncoderStr;
     const char *cfgfileStr;
     int axisFlags;
@@ -219,11 +218,7 @@ public:
 
   int ecmcErrMsg_;
   int ecmcErrRst_;
-  int PMAC_C_Firmware_;
-  int ecmcJVEL_;
   int ecmcMCUErrMsg_;
-  //int ecmcMCUErr_;
-  //int ecmcMCUErrRst_;
 
   int ecmcErrId_; /* Last parameter */
 

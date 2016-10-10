@@ -1,5 +1,9 @@
 include ${EPICS_ENV_PATH}/module.Makefile
 
+PROJECT=ecmc
+USR_DEPENDENCIES = asyn,4.27
+USR_DEPENDENCIES += motor,6.10.5-ESS
+
 # Temporally removed to speed up 
 EXCLUDE_ARCHS += eldk
 

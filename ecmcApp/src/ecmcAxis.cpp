@@ -631,17 +631,13 @@ asynStatus ecmcAxis::home(double minVelocity, double maxVelocity, double acceler
   asynStatus status = asynSuccess;
   int motorHomeProc = -1;
   int nCommand = NCOMMANDHOME;
-  double homeVeloTowardsHomeSensor = 0;
 
-  if (status == asynSuccess) status = pC_->getDoubleParam(axisNo_,
-                                                          pC_->ecmcJVEL_,
-                                                          &homeVeloTowardsHomeSensor);
   if (status == asynSuccess) status = pC_->getIntegerParam(axisNo_,
                                                            pC_->ecmcProcHom_,
                                                            &motorHomeProc);
   asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-            "home() motorHomeProc=%d homeVeloTowardsHomeSensor=%g status=%s (%d)\n",
-            motorHomeProc, homeVeloTowardsHomeSensor,
+            "home(%d) motorHomeProc=%d status=%s (%d)\n",
+            axisNo_, motorHomeProc,
             pasynManager->strStatus(status), (int)status);
 
   /* The controller will do the home search, and change its internal
@@ -653,12 +649,6 @@ asynStatus ecmcAxis::home(double minVelocity, double maxVelocity, double acceler
   if (status == asynSuccess) status = setValueOnAxis("nCommand", nCommand );
   if (status == asynSuccess) drvlocal.nCommand = nCommand;
   if (status == asynSuccess) status = setValueOnAxis("nCmdData", motorHomeProc);
-  /* Use JVEL as velocity towards the home sensor, in EGU */
-  if (status == asynSuccess) status = setADRValueOnAxis(501, 0x4000, 0x6,
-                                                        homeVeloTowardsHomeSensor);
-  /* Use HVEL as velocity off the home sensor, in steps/sec */
-  if (status == asynSuccess) status = setADRValueOnAxis(501, 0x4000, 0x7,
-                                                        maxVelocity * drvlocal.mres);
   if (status == asynSuccess) status = setValueOnAxis("bExecute", 1);
   drvlocal.waitNumPollsBeforeReady += 2;
   return status;
@@ -768,6 +758,8 @@ asynStatus ecmcAxis::stopAxisInternal(const char *function_name, double accelera
 {
   asynStatus status;
   drvlocal.nCommand = 0;
+  asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+            "stopAxisInternal(%d) (%s)\n",  axisNo_, function_name);
   status = setValueOnAxisVerify("bExecute", "bExecute", 0, 1);
   if (status) drvlocal.mustStop = 1;
   return status;
@@ -808,9 +800,6 @@ void ecmcAxis::callParamCallbacksWrapper()
   if (drvlocal.eeAxisError != drvlocal.old_eeAxisError ||
       drvlocal.old_EPICS_nErrorId != EPICS_nErrorId) {
 
-    drvlocal.old_eeAxisError = drvlocal.eeAxisError;
-    drvlocal.old_EPICS_nErrorId = EPICS_nErrorId;
-
     if (!EPICS_nErrorId) setStringParam(pC_->ecmcErrMsg_, "");
 
     switch (drvlocal.eeAxisError) {
@@ -823,20 +812,20 @@ void ecmcAxis::callParamCallbacksWrapper()
     default:
       ;
     }
-
+    /* Axis has a problem: Report to motor record */
+    setIntegerParam(pC_->motorStatusProblem_,
+                    drvlocal.eeAxisError != eeAxisErrorNoError);
+    /* MCU has a problem: set the red light in CSS */
+    setIntegerParam(pC_->ecmcErr_,
+                    drvlocal.eeAxisError == eeAxisErrorMCUError);
+    setIntegerParam(pC_->ecmcErrId_, EPICS_nErrorId);
+    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+              "poll(%d) callParamCallbacksWrapper drvlocal.eeAxisError=%d\n",
+              axisNo_, drvlocal.eeAxisError);
+    drvlocal.old_eeAxisError = drvlocal.eeAxisError;
+    drvlocal.old_EPICS_nErrorId = EPICS_nErrorId;
   }
-  /* Setting the problem bit means, that MR will send us a stop command.
-     stop will set bExecute to 0, and the error disappears.
-     We don't want that, the user should set stop
-     setIntegerParam(pC_->motorStatusProblem_, hasProblem);
-  */
-  /* Axis has a problem: Report to motor record */
-  setIntegerParam(pC_->motorStatusFollowingError_,
-                  drvlocal.eeAxisError != eeAxisErrorNoError);
-  /* MCU has a problem: set the red light in CSS */
-  setIntegerParam(pC_->ecmcErr_,
-                  drvlocal.eeAxisError == eeAxisErrorMCUError);
-  setIntegerParam(pC_->ecmcErrId_, EPICS_nErrorId);
+
   callParamCallbacks();
 }
 
@@ -951,18 +940,15 @@ asynStatus ecmcAxis::poll(bool *moving)
   }
   setIntegerParam(pC_->motorStatusHomed_, st_axis_status.bHomed);
   setIntegerParam(pC_->motorStatusCommsError_, 0);
-  setIntegerParam(pC_->motorStatusAtHome_, st_axis_status.bHomeSensor);
+  setIntegerParam(pC_->motorStatusAtHome_, !st_axis_status.bHomeSensor);
   setIntegerParam(pC_->motorStatusLowLimit_, !st_axis_status.bLimitBwd);
   setIntegerParam(pC_->motorStatusHighLimit_, !st_axis_status.bLimitFwd);
   setIntegerParam(pC_->motorStatusPowerOn_, st_axis_status.bEnabled);
 
   nowMoving = st_axis_status.bBusy && st_axis_status.bExecute && st_axis_status.bEnabled;
   if (drvlocal.waitNumPollsBeforeReady) {
-    drvlocal.waitNumPollsBeforeReady--;
     *moving = true;
   } else {
-    setIntegerParam(pC_->motorStatusMoving_, nowMoving);
-    setIntegerParam(pC_->motorStatusDone_, !nowMoving);
     *moving = nowMoving ? true : false;
     if (!nowMoving) drvlocal.nCommand = 0;
   }
@@ -973,12 +959,12 @@ asynStatus ecmcAxis::poll(bool *moving)
     if (!nowMoving) setDoubleParam(pC_->motorPosition_, newPositionInSteps + 1);
     setDoubleParam(pC_->motorPosition_, newPositionInSteps);
     /* Use previous fActPosition and current fActPosition to calculate direction.*/
-    if (st_axis_status.fActPosition > drvlocal.oldPosition) {
+    if (st_axis_status.fActPosition > drvlocal.old_st_axis_status.fActPosition) {
       setIntegerParam(pC_->motorStatusDirection_, 1);
-    } else if (st_axis_status.fActPosition < drvlocal.oldPosition) {
+    } else if (st_axis_status.fActPosition < drvlocal.old_st_axis_status.fActPosition) {
       setIntegerParam(pC_->motorStatusDirection_, 0);
     }
-    drvlocal.oldPosition = st_axis_status.fActPosition;
+    drvlocal.old_st_axis_status.fActPosition = st_axis_status.fActPosition;
   }
 
   if (drvlocal.externalEncoderStr) {
@@ -987,34 +973,66 @@ asynStatus ecmcAxis::poll(bool *moving)
     if (!comStatus) setDoubleParam(pC_->motorEncoderPosition_, fEncPosition);
   }
 
-  if (drvlocal.oldNowMoving != nowMoving) {
+  if (drvlocal.old_st_axis_status.bHomed != st_axis_status.bHomed) {
     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-              "poll(%d) nowMoving=%d bBusy=%d bExecute=%d fActPosition=%g\n",
-              axisNo_, nowMoving,
-              st_axis_status.bBusy, st_axis_status.bExecute, st_axis_status.fActPosition);
-    drvlocal.oldNowMoving = nowMoving;
+              "poll(%d) homed=%d\n", axisNo_, st_axis_status.bHomed);
+    drvlocal.old_st_axis_status.bHomed =  st_axis_status.bHomed;
   }
-  drvlocal.MCU_nErrorId = st_axis_status.nErrorId;
-  if (drvlocal.old_bError != st_axis_status.bError ||
-      drvlocal.old_MCU_nErrorId != drvlocal.MCU_nErrorId ||
-      drvlocal.dirty.sErrorMessage) {
-    char sErrorMessage[256];
-    memset(&sErrorMessage[0], 0, sizeof(sErrorMessage));
+  if (drvlocal.old_st_axis_status.bLimitBwd != st_axis_status.bLimitBwd) {
     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-              "poll(%d) bError=%d st_axis_status.nErrorId=0x%x\n",
-              axisNo_, st_axis_status.bError,
-              st_axis_status.nErrorId);
-    drvlocal.old_bError = st_axis_status.bError;
-    drvlocal.old_MCU_nErrorId = st_axis_status.nErrorId;
-    drvlocal.dirty.sErrorMessage = 0;
-    if (st_axis_status.nErrorId) {
-      asynStatus status;
-      status = getStringFromAxis("sErrorMessage", (char *)&sErrorMessage[0], sizeof(sErrorMessage));
-      if (status == asynSuccess) setStringParam(pC_->ecmcErrMsg_, sErrorMessage);
-    }
+              "poll(%d) LLS=%d\n", axisNo_, !st_axis_status.bLimitBwd);
+    drvlocal.old_st_axis_status.bLimitBwd =  st_axis_status.bLimitBwd;
+  }
+  if (drvlocal.old_st_axis_status.bLimitFwd != st_axis_status.bLimitFwd) {
+    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+              "poll(%d) HLS=%d\n", axisNo_,!st_axis_status.bLimitFwd);
+    drvlocal.old_st_axis_status.bLimitFwd = st_axis_status.bLimitFwd;
   }
 
-  callParamCallbacksWrapper();
+  if (drvlocal.oldNowMoving != nowMoving) {
+    drvlocal.waitNumPollsBeforeReady = 0;
+  }
+  if (drvlocal.waitNumPollsBeforeReady) {
+    /* Don't update moving, done, motorStatusProblem_ */
+    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+              "poll(%d) nowMoving=%d bBusy=%d bExecute=%d waitNumPollsBeforeReady=%d\n",
+              axisNo_, nowMoving,
+              st_axis_status.bBusy, st_axis_status.bExecute,
+              drvlocal.waitNumPollsBeforeReady);
+    drvlocal.waitNumPollsBeforeReady--;
+    callParamCallbacks();
+  } else {
+    if (drvlocal.oldNowMoving != nowMoving) {
+      asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+                "poll(%d) nowMoving=%d bBusy=%d bExecute=%d fActPosition=%g\n",
+                axisNo_, nowMoving,
+                st_axis_status.bBusy, st_axis_status.bExecute, st_axis_status.fActPosition);
+      drvlocal.oldNowMoving = nowMoving;
+    }
+    setIntegerParam(pC_->motorStatusMoving_, nowMoving);
+    setIntegerParam(pC_->motorStatusDone_, !nowMoving);
+
+    drvlocal.MCU_nErrorId = st_axis_status.nErrorId;
+    if (drvlocal.old_bError != st_axis_status.bError ||
+        drvlocal.old_MCU_nErrorId != drvlocal.MCU_nErrorId ||
+        drvlocal.dirty.sErrorMessage) {
+      char sErrorMessage[256];
+      memset(&sErrorMessage[0], 0, sizeof(sErrorMessage));
+      asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+                "poll(%d) bError=%d st_axis_status.nErrorId=0x%x\n",
+                axisNo_, st_axis_status.bError,
+                st_axis_status.nErrorId);
+      drvlocal.old_bError = st_axis_status.bError;
+      drvlocal.old_MCU_nErrorId = st_axis_status.nErrorId;
+      drvlocal.dirty.sErrorMessage = 0;
+      if (st_axis_status.nErrorId) {
+        asynStatus status;
+        status = getStringFromAxis("sErrorMessage", (char *)&sErrorMessage[0], sizeof(sErrorMessage));
+        if (status == asynSuccess) setStringParam(pC_->ecmcErrMsg_, sErrorMessage);
+      }
+    }
+    callParamCallbacksWrapper();
+  }
   return asynSuccess;
 
   skip:
@@ -1188,11 +1206,6 @@ asynStatus ecmcAxis::setDoubleParam(int function, double value)
   } else if (function == pC_->motorRecOffset_) {
     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
               "setDoubleParam(%d motorRecOffset_)=%g\n", axisNo_, value);
-#endif
-#ifdef ecmcJVELString
-  } else if (function == pC_->ecmcJVEL_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-              "setDoubleParam(%d ecmcJVEL_)=%g\n", axisNo_, value);
 #endif
   }
 
