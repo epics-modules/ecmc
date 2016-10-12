@@ -467,6 +467,9 @@ int ecmcEcSlave::setWatchDogConfig(
                                    */
     )
 {
+  if(slaveConfig_==0){
+    return setErrorID(ERROR_EC_SLAVE_CONFIG_NULL);
+  }
   ecrt_slave_config_watchdog(slaveConfig_,watchdogDivider,watchdogIntervals);
   return 0;
 }

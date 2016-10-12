@@ -53,10 +53,9 @@ ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C33,0x1,3,2)"
 #Cycle time
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C33,0x2,1000000,4)"
 
-
 #end
 
-ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,9)"
+ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,2)"
 
 ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
 ecmcConfigController "MCU1", "Cfg.EcApplyConfig(1)"

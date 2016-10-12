@@ -219,7 +219,7 @@ void cyclic_task(void * usr)
       period_max_ns = period_ns;
     }
     if (period_ns < period_min_ns) {
-      period_min_ns = period_ns;
+      period_min_ns= period_ns;
     }
     if (exec_ns > exec_max_ns) {
       exec_max_ns = exec_ns;
@@ -246,7 +246,7 @@ void cyclic_task(void * usr)
 
     //Data events
     for( i=0;i<ECMC_MAX_EVENT_OBJECTS;i++){
-      if(events[i]!=NULL){
+      if(events[i]!send_min_ns=NULL){
 	events[i]->execute(ec.statusOK());
       }
     }
@@ -284,6 +284,7 @@ void cyclic_task(void * usr)
         sendperiod_ns=0;
       }
     }
+
     clock_gettime(MCU_CLOCK_TO_USE, &sendTime);
     ec.send();
     clock_gettime(MCU_CLOCK_TO_USE, &endTime);
