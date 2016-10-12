@@ -117,3 +117,10 @@ int ecmcDataStorage::setEnablePrintOuts(bool enable)
   enableDiagnosticPrintouts_=enable;
   return 0;
 }
+
+int ecmcDataStorage::getData(double *data, int *size)
+{
+  data=buffer_;
+  *size=bufferElementCount_;
+  return 0;
+}

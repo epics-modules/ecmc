@@ -36,6 +36,7 @@ public:
   int printBuffer();
   int setEnablePrintOuts(bool enable);
   int getSize();
+  int getData(double *data, int *size);
 
 private:
   void initVars();

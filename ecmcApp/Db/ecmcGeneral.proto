@@ -19,3 +19,8 @@ getGeneralErrorMessage{
 	in "%s";
 }
 
+getStorageBuffer_0{
+	Separator=",";
+	out "ReadStorageBuffer(0)";
+	in "ReadStorageBuffer(0)=%f";
+}

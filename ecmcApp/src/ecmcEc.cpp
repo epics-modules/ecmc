@@ -385,8 +385,14 @@ void ecmcEc::receive()
 
 void ecmcEc::send()
 {
+  struct timespec time;
   updateOutProcessImage();
   ecrt_domain_queue(domain_);
+
+  clock_gettime(MCU_CLOCK_TO_USE, &time);
+  ecrt_master_application_time(master_, TIMESPEC2NS(time));
+  ecrt_master_sync_reference_clock(master_);
+  ecrt_master_sync_slave_clocks(master_);
   ecrt_master_send(master_);
 }
 

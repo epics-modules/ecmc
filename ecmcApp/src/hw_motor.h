@@ -23,7 +23,9 @@ extern "C" {
 #define AXIS_CHECK_RETURN_ZERO(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
 #define AXIS_CHECK_RETURN_USED_BUFFER(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
 
-//void hw_motor_init(int);
+//Error Codes
+#define CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL 0x200000
+
 
 /** \breif Initialization routine for ecmc.\n
  */
@@ -2404,7 +2406,7 @@ int clearStorage(int indexStorage);
 
 /** \breif Enable diagnostic printouts from data storage object.\n
  *
- * \param[in] indexEvent Index of data storage object to address.\n
+ * \param[in] indexStroage Index of data storage object to address.\n
  * \param[in] enable Enable diagnostic printouts.\n
  *
  * \return 0 if success or otherwise an error code.\n
@@ -2416,7 +2418,7 @@ int setStorageEnablePrintouts(int indexStorage,int enable);
 
 /** \breif Print contents of buffer.\n
  *
- * \param[in] indexEvent Index of data storage object to address.\n
+ * \param[in] indexStroage Index of data storage object to address.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -2424,6 +2426,19 @@ int setStorageEnablePrintouts(int indexStorage,int enable);
  *  "Cfg.PrintStorageBuffer(3)" //Command string to cmd_EAT.c\n
  */
 int printStorageBuffer(int indexStorage);
+
+/** \breif Reads contents of stroage buffer.\n
+ *
+ * \param[in] indexStorage Index of data storage object to address.\n
+ * \param[out] data Pointer to data.\n
+ * \param[out] size Number of data elements.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Read contents of data storage object 3 .\n
+ *  "ReadStorageBuffer(3)" //Command string to cmd_EAT.c\n
+ */
+int readStorageBuffer(int indexStorage, double *data, int* size);
 
 /** \breif Create recorder object.
  *

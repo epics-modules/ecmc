@@ -18,11 +18,16 @@
 //enum { NSEC_PER_SEC = 1000000000 };
 #define MCU_PERIOD_NS (int)(MCU_NSEC_PER_SEC / MCU_FREQUENCY)
 #define MCU_CLOCK_TO_USE CLOCK_REALTIME
+//#define MCU_CLOCK_TO_USE CLOCK_MONOTONIC
 
 #define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC + \
   (B).tv_nsec - (A).tv_nsec)
 
-#define TIMESPEC2NS(T) ((uint64_t) (T).tv_sec * MCU_NSEC_PER_SEC + (T).tv_nsec)
+//#define TIMESPEC2NS(T) ((uint64_t) (T).tv_sec * MCU_NSEC_PER_SEC + (T).tv_nsec)
+//Test new conversion
+#define TIMESPEC2NS(T) ((uint64_t) (((T).tv_sec - 946684800ULL) * 1000000000ULL) + (T).tv_nsec)
+//#define TIMESPEC2NSEPOCH2000(T) ((uint64_t) (((T).tv_sec - 946684800ULL) * 1000000000ULL) + (T).tv_nsec)
+
 
 //#define MSG_TICK 0
 #define MAX_MESSAGE 10000

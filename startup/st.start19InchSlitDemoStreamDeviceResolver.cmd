@@ -1,7 +1,8 @@
-require asyn,4.27
+require asyn
 require streamdevice
-require motor,6.10.5-ESS
-require ecmc,1.1.4
+require motor,6.10.3-ESS
+require ecmc,anderssandstrom
+#require ecmc,1.1.1
 
 
 ## Configure devices
@@ -79,11 +80,21 @@ ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x5,1,1)"
 #test hardware enable on input 1 of EL7037
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x32,1,1)"
 
+#Test Resolver input
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,1,2,0x1600,0x7010,0x01,16,CONTROL)"
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,1,2,0x1601,0x7010,0x06,32,VELOCITY_SETPOINT)"
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,2,3,0x1a00,0x6000,0x11,32,POSITION)"
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,2,3,0x1a01,0x6010,0x01,16,STATUS)"
+ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(9,0x700,1000000,20000,1000000,1000)"
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8010,0x1,1000,2)"
+
+#end
+
 ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,8)"
 ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
 ecmcConfigController "MCU1", "Cfg.EcApplyConfig(1)"
 ecmcConfigController "MCU1", "Cfg.EcSetDiagnostics(1)"
-ecmcConfigController "MCU1", "Cfg.EcEnablePrintouts(0)"
+ecmcConfigController "MCU1", "Cfg.EcEnablePrintouts(1)"
 
 #Write to outputs in order to power switches
 ecmcConfigController "MCU1", "WriteEcEntry(1,0,1)"

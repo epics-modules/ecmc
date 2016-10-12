@@ -185,12 +185,13 @@ struct timespec timespec_add(struct timespec time1, struct timespec time2)
 void cyclic_task(void * usr)
 {
   int i=0;
-  struct timespec wakeupTime , time;
+  struct timespec wakeupTime , sendTime, lastSendTime= {};
   struct timespec startTime, endTime, lastStartTime = {};
-  uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0,
+  uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0,sendperiod_ns = 0,
            latency_min_ns = 0, latency_max_ns = 0,
            period_min_ns = 0, period_max_ns = 0,
-           exec_min_ns = 0, exec_max_ns = 0;
+           exec_min_ns = 0, exec_max_ns = 0,
+           send_min_ns = 0, send_max_ns = 0;
 
   // get current time
   clock_gettime(MCU_CLOCK_TO_USE, &wakeupTime);
@@ -204,7 +205,9 @@ void cyclic_task(void * usr)
     latency_ns = DIFF_NS(wakeupTime, startTime);
     period_ns = DIFF_NS(lastStartTime, startTime);
     exec_ns = DIFF_NS(lastStartTime, endTime);
+    sendperiod_ns = DIFF_NS(lastSendTime, sendTime);
     lastStartTime = startTime;
+    lastSendTime=sendTime;
 
     if (latency_ns > latency_max_ns) {
       latency_max_ns = latency_ns;
@@ -222,8 +225,15 @@ void cyclic_task(void * usr)
       exec_max_ns = exec_ns;
     }
     if (exec_ns < exec_min_ns) {
-      exec_min_ns = exec_ns;
+      exec_min_ns = sendperiod_ns;
     }
+    if (sendperiod_ns > send_max_ns) {
+	send_max_ns = sendperiod_ns;
+    }
+    if (sendperiod_ns < send_min_ns) {
+	send_min_ns = sendperiod_ns;
+    }
+
     ec.receive();
     ec.checkDomainState();
 
@@ -252,26 +262,29 @@ void cyclic_task(void * usr)
       ec.printStatus();
 
       if(enableTimeDiag){
+        struct timespec testtime;
+        clock_gettime(MCU_CLOCK_TO_USE, &testtime);
+        LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
         LOGINFO("period     %10u ... %10u\n",
         		period_min_ns, period_max_ns);
         LOGINFO("exec       %10u ... %10u\n",
                 exec_min_ns, exec_max_ns);
         LOGINFO("latency    %10u ... %10u\n",
                 latency_min_ns, latency_max_ns);
+        LOGINFO("send       %10u ... %10u\n",
+		send_min_ns, send_max_ns);
         period_max_ns = 0;
         period_min_ns = 0xffffffff;
         exec_max_ns = 0;
         exec_min_ns = 0xffffffff;
         latency_max_ns = 0;
         latency_min_ns = 0xffffffff;
+        send_max_ns=0;
+        send_min_ns=0xffffffff;
+        sendperiod_ns=0;
       }
     }
-    // write application time to master
-    clock_gettime(MCU_CLOCK_TO_USE, &time);
-    ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(time));
-    ecrt_master_sync_reference_clock(ec.getMaster());
-    ecrt_master_sync_slave_clocks(ec.getMaster());
-
+    clock_gettime(MCU_CLOCK_TO_USE, &sendTime);
     ec.send();
     clock_gettime(MCU_CLOCK_TO_USE, &endTime);
   }
@@ -331,7 +344,7 @@ void startRTthread()
 int setAppMode(int mode)
 {
   LOGINFO4("%s/%s:%d mode=%d\n",__FILE__, __FUNCTION__, __LINE__,mode);
-
+  struct timespec time;
   int errorCode=0;
   switch((app_mode_type)mode){
     case ECMC_MODE_CONFIG:
@@ -356,6 +369,9 @@ int setAppMode(int mode)
       if (errorCode){
         return errorCode;
       }
+      clock_gettime(MCU_CLOCK_TO_USE, &time);
+      ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(time));
+
       LOGINFO5("INFO:\t\tApplication in runtime mode.\n");
       if(ec.activate()){
         LOGERR("INFO:\t\tActivation of master failed.\n");
@@ -2498,6 +2514,14 @@ int printStorageBuffer(int indexStorage)
   return dataStorages[indexStorage]->printBuffer();
 }
 
+int readStorageBuffer(int indexStorage, double *data, int* size)
+{
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  return dataStorages[indexStorage]->getData(data,size);
+}
 
 int setEventTriggerEdge(int indexEvent,int triggerEdge)
 {

@@ -17,3 +17,9 @@ record(ai,"$(P)GetGeneralErrorId"){
 	field(SCAN,"1 second")
 }
 
+#record(waveform,"$(P)GetStorageBuffer_0"){
+#	field(DTYP,"stream")
+#	field(INP,"@ecmcGeneral.proto getStorageBuffer_0() $(PORT)")
+#	field(SCAN,"1 second")
+#}
+

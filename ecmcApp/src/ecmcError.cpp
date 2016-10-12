@@ -735,6 +735,11 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20406:
       return "ERROR_COMMAND_LIST_VECTOR_FULL";
       break;
+    case 0x200000:
+      return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
+      break;
+
+
   }
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
 }

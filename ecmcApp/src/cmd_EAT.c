@@ -1370,6 +1370,33 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(stopMotion(iValue,0));
   }
 
+  /*int ReadStorageBuffer(int axisIndex);*/
+  nvals = sscanf(myarg_1, "ReadStorageBuffer(%d)", &iValue);
+  if (nvals == 1) {
+    double *data=NULL;
+    int size=0;
+    int error=readStorageBuffer(iValue,data,&size);
+    if (error){
+      cmd_buf_printf(buffer,"Error: %d", error);
+      return 0;
+    }
+    //Write ascii array delimited with ','
+    cmd_buf_printf(buffer,"ReadStorageBuffer(%d)=",iValue);
+    int i=0;
+    for(i=0;i<size;i++){
+      if(data==NULL){
+	return CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL;
+      }
+
+      if(i<size-1){
+	cmd_buf_printf(buffer,"%lf,",data[i]); //Data and comma
+      }
+      else{
+	cmd_buf_printf(buffer,"%lf",data[i]); //No comma for last entry
+      }
+    }
+    return 0;
+  }
 
   /* Main.*/
   if (!strncmp(myarg_1, Main_dot_str, strlen(Main_dot_str))) {
