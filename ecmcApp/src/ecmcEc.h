@@ -89,10 +89,12 @@ public:
   int setDomainFailedCyclesLimitInterlock(int cycles);
   int setEnablePrintOuts(bool enable);
   void printStatus();
+  int reset();
 private:
   void initVars();
   int updateInputProcessImage();
   int updateOutProcessImage();
+
 
   ec_master_t *master_; /**< EtherCAT master */
   ec_domain_t *domain_;

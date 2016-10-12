@@ -468,6 +468,12 @@ static int handleCfgCommand(const char *myarg_1){
     return ecSetMaster(iValue);
   }
 
+  /// "Cfg.EcResetMaster(masterIndex)"
+  nvals = sscanf(myarg_1, "EcSetMaster(%d)", &iValue);
+  if (nvals == 1) {
+    return ecResetMaster(iValue);
+  }
+
   /// "Cfg.EcAddSlave(alias,slaveBusPosition,vendorId,productCode)"
   nvals = sscanf(myarg_1, "EcAddSlave(%d,%d,%x,%x)", &iValue,&iValue2,&iValue3,&iValue4);
   if (nvals == 4) {

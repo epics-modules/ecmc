@@ -2000,6 +2000,13 @@ int ecSetMaster(int masterIndex)
   return ec.init(masterIndex);
 }
 
+int ecResetMaster(int masterIndex)
+{
+  LOGINFO4("%s/%s:%d master index=%d \n",__FILE__, __FUNCTION__, __LINE__, masterIndex);
+  ///todo  master index not used. Only there for future use.
+  return ec.reset();
+}
+
 int ecResetError()
 {
   LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);

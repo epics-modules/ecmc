@@ -547,16 +547,20 @@ int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles)
   return 0;
 }
 
-
 int ecmcEc::setEnablePrintOuts(bool enable)
 {
   enableDiagnosticPrintouts_=enable;
   return 0;
 }
 
-
 void ecmcEc::printStatus()
 {
   PRINT_DIAG(("MasterOK: %d, SlavesOK: %d, DomainOK: %d, DomainNotOKCounter: %d, DomainNotOKLimit: %d, Error Code:0x%x \n",masterOK_,slavesOK_,domainOK_,domainNotOKCounterMax_,domainNotOKCyclesLimit_,getErrorID()));
   domainNotOKCounterMax_=0;
+}
+
+int ecmcEc::reset()
+{
+  ecrt_master_reset(master_);
+  return 0;
 }

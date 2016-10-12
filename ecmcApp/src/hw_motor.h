@@ -2653,6 +2653,25 @@ int triggerCommandList(int indexCommandList);
  */
 int ecSetMaster(int masterIndex);
 
+/** \breif  Retry configuring slaves for an selected EtherCAT master.\n
+ *
+ * Via this method, the application can tell the master to bring all slaves to
+ * OP state. In general, this is not necessary, because it is automatically
+ * done by the master. But with special slaves, that can be reconfigured by
+ * the vendor during runtime, it can be useful.
+ *
+ * \note  masterIndex is not used. Currently only one master is supported and
+ * this master will be reset. The masterIndex is for future use.
+ *
+ *  \param[in] masterIndex EtherCAT master index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Reset master. Master index is NOT currently supported.\n
+ *  "Cfg.EcResetMaster(10)" //Command string to cmd_EAT.c\n
+ */
+int ecResetMaster(int masterIndex);
+
 /** \breif Adds an EtherCAT slave to the hardware configuration.\n
  *
  * Each added slave will be assigned an additional index which will be zero for
