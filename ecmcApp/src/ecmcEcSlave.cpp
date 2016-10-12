@@ -456,5 +456,18 @@ int ecmcEcSlave::selectAsReferenceDC()
   return ecrt_master_select_reference_clock(master_,slaveConfig_);
 }
 
-
+int ecmcEcSlave::setWatchDogConfig(
+        uint16_t watchdogDivider, /**< Number of 40 ns intervals. Used as a
+                                     base unit for all slave watchdogs. If set
+                                     to zero, the value is not written, so the
+                                     default is used. */
+        uint16_t watchdogIntervals /**< Number of base intervals for process
+                                    data watchdog. If set to zero, the value
+                                    is not written, so the default is used.
+                                   */
+    )
+{
+  ecrt_slave_config_watchdog(slaveConfig_,watchdogDivider,watchdogIntervals);
+  return 0;
+}
 

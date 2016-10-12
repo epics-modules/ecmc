@@ -42,6 +42,7 @@ ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,2,3,0x1a00
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,2,3,0x1a01,0x6010,0x01,16,STATUS)"
 ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(9,0x700,1000000,500000,1000000,500000)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x11,1000,4)"
+ecmcConfigController "MCU1", "Cfg.EcSlaveConfigWatchDog(9,1000,10000)"
 
 #Sync mode 
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C32,0x1,3,2)"

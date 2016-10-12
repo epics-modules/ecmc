@@ -87,6 +87,17 @@ public:
   ecmcEcEntry *findEntry(std::string id);
   int findEntryIndex(std::string id);
   int selectAsReferenceDC();
+  int setWatchDogConfig(
+      uint16_t watchdogDivider, /**< Number of 40 ns intervals. Used as a
+                                       base unit for all slave watchdogs. If set
+                                       to zero, the value is not written, so the
+                                       default is used. */
+      uint16_t watchdogIntervals /**< Number of base intervals for process
+                                      data watchdog. If set to zero, the value
+                                      is not written, so the default is used.
+                                     */
+      );
+
 private:
   void initVars();
   ecmcEcSyncManager *findSyncMan(uint8_t syncMangerIndex);

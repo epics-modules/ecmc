@@ -2122,6 +2122,17 @@ uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,
   return ec.readSDO(slavePosition,sdoIndex,sdoSubIndex,byteSize);
 }
 
+int ecSlaveConfigWatchDog(int slaveBusPosition,int watchdogDivider,int watchdogIntervals)
+{
+  LOGINFO4("%s/%s:%d position=%d, watchdogDivider=%d watchdogIntervals=%d\n",__FILE__, __FUNCTION__, __LINE__,slaveBusPosition,watchdogDivider,watchdogIntervals);
+
+  ecmcEcSlave *slave=ec.findSlave(slaveBusPosition);
+  if(slave==NULL){
+    return ERROR_EC_MAIN_SLAVE_NULL;
+  }
+
+  return slave->setWatchDogConfig(watchdogDivider,watchdogIntervals);
+}
 
 int linkEcEntryToAxisEnc(int slaveIndex, char *entryIDString,int axisIndex,int encoderEntryIndex, int bitIndex)
 {

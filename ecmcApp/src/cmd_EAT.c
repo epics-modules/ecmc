@@ -474,6 +474,12 @@ static int handleCfgCommand(const char *myarg_1){
     return ecAddSlave(iValue,iValue2,iValue3, iValue4);
   }
 
+  /// "Cfg.EcSlaveConfigWatchDog(slaveBusposition,watchdogDivider,watchdogIntervals)"
+  nvals = sscanf(myarg_1, "EcSlaveConfigWatchDog(%d,%d,%d)", &iValue,&iValue2,&iValue3);
+  if (nvals == 3) {
+    return ecSlaveConfigWatchDog(iValue,iValue2,iValue3);
+  }
+
   /*Cfg.EcAddPdo(int nSlave,int nSyncManager,uint16_t nPdoIndex) wrong*/
   nvals = sscanf(myarg_1, "EcAddPdo(%d,%d,%x)", &iValue,&iValue2,&iValue3);
   if (nvals == 3) {

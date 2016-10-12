@@ -2881,6 +2881,27 @@ int ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,uin
  */
 uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize);
 
+/** \breif Configure Slave watch dog.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.
+ *                              Note: the slave needs to be equipped
+ *                              with a DC.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in] watchdogDivider  Number of 40 ns intervals. Used as a
+ *                              base unit for all slave watchdogs. If set
+ *                              to zero, the value is not written, so the
+ *                              default is used.\n
+ *  \param[in] watchdogIntervals Number of base intervals for process
+ *                              data watchdog. If set to zero, the value
+ *                              is not written, so the default is used.\n
+ *
+ * \note Example: Set watchdog times to 100,100 for slave at busposition 1.\n
+ * "Cfg.EcSlaveConfigWatchDog(1,100,100)" //Command string to cmd_EAT.c\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int ecSlaveConfigWatchDog(int slaveBusPosition,int watchdogDivider,int watchdogIntervals);
+
 /** \breif Apply hardware configuration to master.\n
  *
  * This command needs to be executed before entering runtime.\n
