@@ -23,3 +23,10 @@ record(ai,"$(P)GetGeneralErrorId"){
 #	field(SCAN,"1 second")
 #}
 
+#record(ai,"GetResolverPosition"){
+#	field(DTYP,"stream")
+#	field(INP,"@ecmcGeneral.proto getResolverPosition() $(PORT)")
+#	field(SCAN,"1 second")
+#}
+
+

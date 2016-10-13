@@ -383,14 +383,16 @@ void ecmcEc::receive()
   updateInputProcessImage();
 }
 
-void ecmcEc::send()
+void ecmcEc::send(timespec timeOffset)
 {
-  struct timespec time;
+  struct timespec timeRel,timeAbs;
   updateOutProcessImage();
   ecrt_domain_queue(domain_);
 
-  clock_gettime(MCU_CLOCK_TO_USE, &time);
-  ecrt_master_application_time(master_, TIMESPEC2NS(time));
+  clock_gettime(CLOCK_MONOTONIC, &timeRel);
+  timeAbs=timespecAdd(timeRel,timeOffset);
+
+  ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
   ecrt_master_send(master_);
@@ -563,4 +565,18 @@ int ecmcEc::reset()
 {
   ecrt_master_reset(master_);
   return 0;
+}
+
+timespec ecmcEc::timespecAdd(timespec time1, timespec time2)
+{
+  timespec result;
+
+  if ((time1.tv_nsec + time2.tv_nsec) >= MCU_NSEC_PER_SEC) {
+    result.tv_sec = time1.tv_sec + time2.tv_sec + 1;
+    result.tv_nsec = time1.tv_nsec + time2.tv_nsec - MCU_NSEC_PER_SEC;
+  } else {
+    result.tv_sec = time1.tv_sec + time2.tv_sec;
+    result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
+  }
+  return result;
 }

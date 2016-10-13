@@ -83,7 +83,10 @@ static int              printCounter=0;
 static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
 static ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
 static ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
-static ecmcCommandList   *commandLists[ECMC_MAX_COMMANDS_LISTS];
+static ecmcCommandList  *commandLists[ECMC_MAX_COMMANDS_LISTS];
+static struct timespec  masterActivationTimeMonotonic={};
+static struct timespec  masterActivationTimeOffset={};
+static struct timespec  masterActivationTimeRealtime={};
 
 
 /****************************************************************************/
@@ -182,6 +185,19 @@ struct timespec timespec_add(struct timespec time1, struct timespec time2)
   return result;
 }
 
+struct timespec timespec_sub(struct timespec time1, struct timespec time2)
+{
+  struct timespec result;
+
+  result.tv_sec = time1.tv_sec -time2.tv_sec;
+  result.tv_nsec = time1.tv_nsec -time2.tv_nsec;
+  if ((time1.tv_nsec - time2.tv_nsec) < 0) {
+    result.tv_sec = result.tv_sec -1;
+    result.tv_nsec = result.tv_nsec + MCU_NSEC_PER_SEC;
+  }
+  return result;
+}
+
 void cyclic_task(void * usr)
 {
   int i=0;
@@ -194,14 +210,13 @@ void cyclic_task(void * usr)
            send_min_ns = 0, send_max_ns = 0;
 
   // get current time
-  clock_gettime(MCU_CLOCK_TO_USE, &wakeupTime);
-
+  wakeupTime=timespec_add(masterActivationTimeMonotonic, {0, 49*MCU_PERIOD_NS}); // start 50 (49+1) cycle times after master activate
   while(appMode==ECMC_MODE_RUNTIME)
   {
     wakeupTime = timespec_add(wakeupTime, cycletime);
-    clock_nanosleep(MCU_CLOCK_TO_USE, TIMER_ABSTIME, &wakeupTime, NULL);
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
     //*******************
-    clock_gettime(MCU_CLOCK_TO_USE, &startTime);
+    clock_gettime(CLOCK_MONOTONIC, &startTime);
     latency_ns = DIFF_NS(wakeupTime, startTime);
     period_ns = DIFF_NS(lastStartTime, startTime);
     exec_ns = DIFF_NS(lastStartTime, endTime);
@@ -225,7 +240,7 @@ void cyclic_task(void * usr)
       exec_max_ns = exec_ns;
     }
     if (exec_ns < exec_min_ns) {
-      exec_min_ns = sendperiod_ns;
+      exec_min_ns = exec_ns;
     }
     if (sendperiod_ns > send_max_ns) {
 	send_max_ns = sendperiod_ns;
@@ -246,7 +261,7 @@ void cyclic_task(void * usr)
 
     //Data events
     for( i=0;i<ECMC_MAX_EVENT_OBJECTS;i++){
-      if(events[i]!send_min_ns=NULL){
+      if(events[i]!=NULL){
 	events[i]->execute(ec.statusOK());
       }
     }
@@ -263,7 +278,7 @@ void cyclic_task(void * usr)
 
       if(enableTimeDiag){
         struct timespec testtime;
-        clock_gettime(MCU_CLOCK_TO_USE, &testtime);
+        clock_gettime(CLOCK_MONOTONIC, &testtime);
         LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
         LOGINFO("period     %10u ... %10u\n",
         		period_min_ns, period_max_ns);
@@ -284,10 +299,9 @@ void cyclic_task(void * usr)
         sendperiod_ns=0;
       }
     }
-
-    clock_gettime(MCU_CLOCK_TO_USE, &sendTime);
-    ec.send();
-    clock_gettime(MCU_CLOCK_TO_USE, &endTime);
+    clock_gettime(CLOCK_MONOTONIC, &sendTime);
+    ec.send(masterActivationTimeOffset);
+    clock_gettime(CLOCK_MONOTONIC, &endTime);
   }
 }
 
@@ -345,7 +359,6 @@ void startRTthread()
 int setAppMode(int mode)
 {
   LOGINFO4("%s/%s:%d mode=%d\n",__FILE__, __FUNCTION__, __LINE__,mode);
-  struct timespec time;
   int errorCode=0;
   switch((app_mode_type)mode){
     case ECMC_MODE_CONFIG:
@@ -370,14 +383,19 @@ int setAppMode(int mode)
       if (errorCode){
         return errorCode;
       }
-      clock_gettime(MCU_CLOCK_TO_USE, &time);
-      ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(time));
 
-      LOGINFO5("INFO:\t\tApplication in runtime mode.\n");
+      clock_gettime(CLOCK_MONOTONIC, &masterActivationTimeMonotonic);
+      clock_gettime(CLOCK_REALTIME, &masterActivationTimeRealtime); // absolute clock (epoch)
+
+      masterActivationTimeOffset=timespec_sub(masterActivationTimeRealtime,masterActivationTimeMonotonic);
+      ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(masterActivationTimeRealtime));
+
+
       if(ec.activate()){
         LOGERR("INFO:\t\tActivation of master failed.\n");
         return ERROR_MAIN_EC_ACTIVATE_FAILED;
       }
+      LOGINFO5("INFO:\t\tApplication in runtime mode.\n");
       startRTthread();
       break;
     default:

@@ -11,6 +11,7 @@
 #include "stdio.h"
 #include <cmath>
 #include <string>
+#include <time.h>
 
 #include "ecmcDefinitions.h"
 #include "ecmcEcEntry.h"
@@ -57,7 +58,7 @@ public:
   ec_master_t *getMaster();
   bool getInitDone();
   void receive();
-  void send();
+  void send(timespec timeOffset);
   int compileRegInfo();
   void checkDomainState();
   int checkSlaveConfState(int slave);
@@ -94,7 +95,7 @@ private:
   void initVars();
   int updateInputProcessImage();
   int updateOutProcessImage();
-
+  timespec timespecAdd(timespec time1, timespec time2);
 
   ec_master_t *master_; /**< EtherCAT master */
   ec_domain_t *domain_;

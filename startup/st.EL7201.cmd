@@ -34,13 +34,33 @@ ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(2,0x2,0x13ed3052,2,3,0x1a03
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(2,0x2,0x13ed3052,2,3,0x1a03,0x6010,0x20,16,LATCH_POSITION)"
 ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(2,0x320,1000000,500000,1000000,500000)"
 
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,1,2,0x1602,0x7010,0x1,16,STM_CONTROL)"
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,1,2,0x1604,0x7010,0x21,16,VELOCITY_SETPOINT)"
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,2,3,0x1a00,0x6000,0x0,16,ENC_STATUS)"
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,2,3,0x1a00,0x6000,0x11,16,POSITION)"
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,2,3,0x1a00,0x6000,0x12,16,LATCH_POSITION)"
+ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,2,3,0x1a03,0x6010,0x1,16,STM_STATUS)"
+ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(7,0x300,1000000,20,1000000,20)"
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x8010,0x1,1000,2)"
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x8012,0x5,1,1)"
+#Sync mode 
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C32,0x1,2,2)"
+#Cycle time
+#ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C32,0x2,1000000,4)"
+#Sync mode 
+#ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C33,0x1,2,2)"
+#Cycle time
+#ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C33,0x2,1000000,4)"
+
+
 
 #Test Resolver input
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,1,2,0x1600,0x7010,0x01,16,CONTROL)"
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,1,2,0x1601,0x7010,0x06,32,VELOCITY_SETPOINT)"
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,2,3,0x1a00,0x6000,0x11,32,POSITION)"
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(9,0x2,0x1c213052,2,3,0x1a01,0x6010,0x01,16,STATUS)"
-ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(9,0x700,1000000,500000,1000000,500000)"
+#NOTE important the sync 1 period needs to be 0!
+ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(9,0x700,1000000,500000,0,0)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x11,1000,4)"
 ecmcConfigController "MCU1", "Cfg.EcSlaveConfigWatchDog(9,1000,10000)"
 
@@ -55,7 +75,7 @@ ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C33,0x2,1000000,4)"
 
 #end
 
-ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,2)"
+ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,7)"
 
 ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
 ecmcConfigController "MCU1", "Cfg.EcApplyConfig(1)"
@@ -63,11 +83,10 @@ ecmcConfigController "MCU1", "Cfg.EcSetDiagnostics(1)"
 ecmcConfigController "MCU1", "Cfg.EcEnablePrintouts(0)"
 ecmcConfigController "MCU1", "Cfg.SetDiagAxisEnable(0)"
 
-ecmcConfigController "MCU1", "Cfg.SetEnableTimeDiag(1)"
+ecmcConfigController "MCU1", "Cfg.SetEnableTimeDiag(0)"
 
-#Write to outputs in order to power switches
-#ecmcConfigController "MCU1", "WriteEcEntry(1,0,1)"
-
+#Test ouput
+ecmcConfigController "MCU1", "Cfg.WriteEcEntryIDString(9,CONTROL,6)"
 
 ecmcConfigController "MCU1", "Cfg.CreateAxis(1,3)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(1,0)"
@@ -101,8 +120,6 @@ ecmcConfigController "MCU1", "Cfg.SetAppMode(1)"
 
 
 #############################################################
-
-
 
   #General 
   dbLoadTemplate("ecmcGeneral.substitutions")
