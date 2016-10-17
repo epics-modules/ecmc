@@ -1,0 +1,9 @@
+file "elGenericAnalog.template"
+{
+pattern
+{P,     PORT,   TYPE,   SLAVE_POS, NAME}
+{IOC2:, MC_CPU1 EL7201, 9,         STATUS}
+{IOC2:, MC_CPU1 EL7201, 9,         CONTROL}
+{IOC2:, MC_CPU1 EL7201, 9,         VELOCITY_SETPOINT}
+{IOC2:, MC_CPU1 EL7201, 9,         POSITION}
+}
