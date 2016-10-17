@@ -23,7 +23,16 @@ asynSetTraceInfoMask("MC_CPU1", -1, 15)
 ecmcCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
 
 ############################################################
-
+#
+# Notes: The drive needs special startup sequence. 
+# Control word needs to be set to:
+# 1. 0hex
+# 2. 80hex (Fault reset)
+# 3. 6hex  (Shutdown)
+# 4. 7hex  (Switch on)
+# 5. Fhex  (Enable operation)
+#
+#
 ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
 ecmcConfigController "MCU1", "Cfg.EcSetMaster(0)"
 
@@ -73,57 +82,84 @@ ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C33,0x1,3,2)"
 #Cycle time
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C33,0x2,1000000,4)"
 
-#end
-
 ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,7)"
 
-ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
 ecmcConfigController "MCU1", "Cfg.EcApplyConfig(1)"
-ecmcConfigController "MCU1", "Cfg.EcSetDiagnostics(1)"
-ecmcConfigController "MCU1", "Cfg.EcEnablePrintouts(0)"
-ecmcConfigController "MCU1", "Cfg.SetDiagAxisEnable(0)"
 
-ecmcConfigController "MCU1", "Cfg.SetEnableTimeDiag(0)"
-
-#Test ouput
-ecmcConfigController "MCU1", "Cfg.WriteEcEntryIDString(9,CONTROL,6)"
-
-ecmcConfigController "MCU1", "Cfg.CreateAxis(1,3)"
-ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(1,0)"
+ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(1)"
 ecmcConfigController "MCU1", "Main.M1.fAcceleration=20"
-ecmcConfigController "MCU1", "Main.M1.fDeceleration=40"
-ecmcConfigController "MCU1", "Cfg.SetAxisEmergDeceleration(1,1000)"
-ecmcConfigController "MCU1", "Main.M1.fVelocity=20"
+ecmcConfigController "MCU1", "Main.M1.fDeceleration=20"
+ecmcConfigController "MCU1", "Cfg.SetAxisEmergDeceleration(1,200)"
+ecmcConfigController "MCU1", "Main.M1.fVelocity=5"
 ecmcConfigController "MCU1", "Main.M1.nCommand=3"
 ecmcConfigController "MCU1", "Cfg.SetAxisJogVel(1,100.0)"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#D,8,5=-10000"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#E,8,5=10000"
+ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#D,8,5=-5000"
+ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#E,8,5=5000"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#B,2,2=0"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#C,2,2=0"
+ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#4001,16#6,8,5=10"
+ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#4001,16#7,8,5=5"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKp(1,15.0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKi(1,0.02)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKd(1,0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKff(1,1026.3)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlOutHL(1,2000000000.0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlOutLL(1,-2000000000.0)"
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisEncoder(9,POSITION,1,0,-1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisEncScaleDenom(1,1048576)"
+ecmcConfigController "MCU1", "Cfg.SetAxisEncScaleNum(1,360)"
+ecmcConfigController "MCU1", "Cfg.SetAxisEncType(1,0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisEncBits(1,16)"
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,CONTROL,1,0,1)"
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,VELOCITY_SETPOINT,1,1,-1)"
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,STATUS,1,2,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleDenom(1,32768.0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleNum(1,16000.0)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,0,0)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,1,0)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,2,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonAtTargetTol(1,0.05)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonAtTargetTol(1,0.1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonAtTargetTime(1,100)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableAtTargetMon(1,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonPosLagTol(1,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableAtTargetMon(1,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonPosLagTol(1,0.5)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonPosLagTime(1,10)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableLagMon(1,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(1,1000)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(1,5000)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(1,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(1,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(1,200)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(1,0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(1,2100000000)"
 
 #Diagnostics
 ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
+ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
+ecmcConfigController "MCU1", "Cfg.EcSetDiagnostics(1)"
+ecmcConfigController "MCU1", "Cfg.EcEnablePrintouts(0)"
+ecmcConfigController "MCU1", "Cfg.SetDiagAxisEnable(1)"
+ecmcConfigController "MCU1", "Cfg.SetEnableTimeDiag(0)"
+
+#Enable dirve (except voltage)
+#ecmcConfigController "MCU1", "Cfg.WriteEcEntryIDString(9,CONTROL,7)"
+
 #Go to runtime
 ecmcConfigController "MCU1", "Cfg.SetAppMode(1)"
 
 
 #############################################################
+#Stream device
+epicsEnvSet "P" "$(P=I:)" 
+epicsEnvSet "R" "$(R=Test)" 
 
   #General 
   dbLoadTemplate("ecmcGeneral.substitutions")
 
+  #First motion axis: Virtual slit position	
+  dbLoadRecords("DUT_AxisStatus_v0_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=1,VN=stAxisStatus")
+  dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=1,VN=")
+  dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=1")
+
+  dbLoadTemplate("el7201.substitutions")
 
 #var streamDebug 1
 
