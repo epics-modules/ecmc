@@ -31,6 +31,10 @@ public:
   uint32_t getReadValue();
   uint32_t getWriteValue();
   int setWriteValue(uint32_t value);
+  uint16_t getSlaveBusPosition();
+  uint16_t getSdoIndex();
+  uint8_t getSdoSubIndex();
+
 private:
   void initVars();
   ec_master_t *master_;

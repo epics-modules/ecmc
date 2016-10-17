@@ -117,3 +117,18 @@ int ecmcEcSDO::writeAndVerify()
   }
   return 0;
 }
+
+uint16_t ecmcEcSDO::getSlaveBusPosition()
+{
+  return slavePosition_;
+}
+
+uint16_t ecmcEcSDO::getSdoIndex()
+{
+  return sdoIndex_;
+}
+
+uint8_t ecmcEcSDO::getSdoSubIndex()
+{
+  return sdoSubIndex_;
+}

@@ -423,7 +423,7 @@ int ecmcEc::writeAndVerifySDOs()
     }
     int iRet;
     if((iRet=sdoArray_[i]->writeAndVerify())){
-      PRINT_DIAG(("ERROR:\tSDO write and verify failed. Index=%d.\n",i));
+      PRINT_DIAG(("ERROR:\tSDO write and verify failed. Index=%d (slave bus position= %d, sdoIndex=0x%x, sdoSubIndex=0x%x)\n",i, sdoArray_[i]->getSlaveBusPosition(),sdoArray_[i]->getSdoIndex(),sdoArray_[i]->getSdoSubIndex()));
       return setErrorID(iRet);
     }
   }
