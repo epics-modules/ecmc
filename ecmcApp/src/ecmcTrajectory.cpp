@@ -411,6 +411,14 @@ int ecmcTrajectory::getIndex()
 
 double ecmcTrajectory::getVel()
 {
+  double absVelTarget=std::abs(velocityTarget_);
+  if(velocity_>=absVelTarget && setDirection_==ECMC_DIR_FORWARD){
+    return absVelTarget;
+  }
+  if(velocity_<=-absVelTarget && setDirection_==ECMC_DIR_BACKWARD){
+    return -absVelTarget;
+  }
+
   return velocity_;  //Velocity of trajectory (use for velocity feedforward)
 }
 
