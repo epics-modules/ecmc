@@ -52,7 +52,7 @@ ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,2,3,0x1a03
 ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(7,0x300,1000000,20,1000000,20)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x8010,0x1,1000,2)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x8012,0x5,1,1)"
-#Sync mode 
+#Sync mode 8010:19
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C32,0x1,2,2)"
 #Cycle time
 #ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C32,0x2,1000000,4)"
@@ -60,6 +60,9 @@ ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C32,0x1,2,2)"
 #ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C33,0x1,2,2)"
 #Cycle time
 #ecmcConfigController "MCU1", "Cfg.EcAddSdo(7,0x1C33,0x2,1000000,4)"
+
+
+
 
 
 
@@ -73,6 +76,7 @@ ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(9,0x700,1000000,500000,0,0)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x11,1000,4)"
 ecmcConfigController "MCU1", "Cfg.EcSlaveConfigWatchDog(9,1000,10000)"
 
+#*************** Distributed clocks config EL7201
 #Sync mode 
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C32,0x1,3,2)"
 #Cycle time
@@ -82,16 +86,34 @@ ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C33,0x1,3,2)"
 #Cycle time
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x1C33,0x2,1000000,4)"
 
+#Does not work. DC-patch needed...
 ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,7)"
+
+#***************Parmetrization of EL7201
+#Nominal voltage = 48V
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8010,0x19,48000,4)"
+
+#Motor max current = 6A
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x11,6000,4)"
+
+#Motor rated current = 4A
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x12,4000,4)"
+
+#Motor pole pairs = 3
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x13,3,1)"
+
+
+
+
 
 ecmcConfigController "MCU1", "Cfg.EcApplyConfig(1)"
 
 ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(1)"
-ecmcConfigController "MCU1", "Main.M1.fAcceleration=20"
-ecmcConfigController "MCU1", "Main.M1.fDeceleration=20"
+ecmcConfigController "MCU1", "Main.M1.fAcceleration=360"
+ecmcConfigController "MCU1", "Main.M1.fDeceleration=360"
 ecmcConfigController "MCU1", "Cfg.SetAxisEmergDeceleration(1,200)"
-ecmcConfigController "MCU1", "Main.M1.fVelocity=5"
-ecmcConfigController "MCU1", "Main.M1.nCommand=3"
+ecmcConfigController "MCU1", "Main.M1.fVelocity=360"
+ecmcConfigController "MCU1", "Main.M1.nCommand=1"
 ecmcConfigController "MCU1", "Cfg.SetAxisJogVel(1,100.0)"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#D,8,5=-5000"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#E,8,5=5000"
@@ -99,12 +121,12 @@ ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#B,2,2=0"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#C,2,2=0"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#4001,16#6,8,5=10"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#4001,16#7,8,5=5"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKp(1,15.0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKi(1,0.02)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKp(1,0.01)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKi(1,0.001)"
 ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKd(1,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKff(1,1026.3)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlOutHL(1,2000000000.0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlOutLL(1,-2000000000.0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKff(1,0.0815)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlOutHL(1,8000.0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisCntrlOutLL(1,-8000.0)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisEncoder(9,POSITION,1,0,-1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisEncScaleDenom(1,1048576)"
 ecmcConfigController "MCU1", "Cfg.SetAxisEncScaleNum(1,360)"
@@ -113,8 +135,9 @@ ecmcConfigController "MCU1", "Cfg.SetAxisEncBits(1,16)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,CONTROL,1,0,1)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,VELOCITY_SETPOINT,1,1,-1)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,STATUS,1,2,1)"
-ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleDenom(1,32768.0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleNum(1,16000.0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleDenom(1,2000000000.0)"
+#Amplifier Max 600Hz = 216000deg/s
+ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleNum(1,216000)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,0,0)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,1,0)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,2,0)"
