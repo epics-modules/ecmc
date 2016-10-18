@@ -1,6 +1,6 @@
 require asyn,4.27
 require motor,6.10.5-ESS
-require ecmc,torstenbogershausen
+require ecmc,1.1.3
 
 
 ## Configure devices
