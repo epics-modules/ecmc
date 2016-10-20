@@ -239,7 +239,7 @@ ecmcPIDController *ecmcAxisTraj::getCntrl()
   return NULL;
 }
 
-ecmcDrive *ecmcAxisTraj::getDrv()
+ecmcDriveBase *ecmcAxisTraj::getDrv()
 {
   return NULL;
 }

@@ -44,7 +44,7 @@ public:
   motionCommandTypes getCommand();
   int getCmdData();
 
-  ecmcDrive *getDrv();
+  ecmcDriveBase *getDrv();
   ecmcTrajectory *getTraj();
   ecmcMonitor *getMon();
   ecmcEncoder *getEnc();
@@ -59,7 +59,7 @@ private:
   ecmcTrajectory *traj_;
   ecmcMonitor *mon_;
   ecmcEncoder *enc_;
-  ecmcDrive *drv_;
+  ecmcDriveBase *drv_;
   ecmcPIDController *cntrl_;
   ecmcSequencer seq_;
   double sampleTime_;

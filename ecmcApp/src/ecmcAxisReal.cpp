@@ -16,7 +16,7 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime)
   enc_=new ecmcEncoder(sampleTime_);
   traj_=new ecmcTrajectory(sampleTime_);
   mon_ =new ecmcMonitor();
-  drv_=new ecmcDrive();
+  drv_=new ecmcDriveStepper();
   cntrl_=new ecmcPIDController(sampleTime_);
 
   seq_.setCntrl(cntrl_);
@@ -298,7 +298,7 @@ ecmcPIDController *ecmcAxisReal::getCntrl()
   return cntrl_;
 }
 
-ecmcDrive *ecmcAxisReal::getDrv()
+ecmcDriveBase *ecmcAxisReal::getDrv()
 {
   return drv_;
 }

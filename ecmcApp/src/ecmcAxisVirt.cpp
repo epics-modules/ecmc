@@ -241,7 +241,7 @@ ecmcPIDController *ecmcAxisVirt::getCntrl()
   return NULL;
 }
 
-ecmcDrive *ecmcAxisVirt::getDrv()
+ecmcDriveBase *ecmcAxisVirt::getDrv()
 {
   return NULL;
 }

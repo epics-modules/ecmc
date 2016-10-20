@@ -12,7 +12,8 @@
 #include <string.h>
 #include "ecmcCommandTransform.h"
 #include "ecmcDefinitions.h"
-#include "ecmcDrive.hpp"
+#include "ecmcDriveBase.hpp"
+#include "ecmcDriveStepper.hpp"
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
 #include "ecmcMonitor.hpp"
@@ -72,7 +73,7 @@ public:
   virtual motionCommandTypes getCommand()=0;
   virtual int getCmdData()=0;
 
-  virtual ecmcDrive *getDrv()=0;
+  virtual ecmcDriveBase *getDrv()=0;
   virtual ecmcTrajectory *getTraj()=0;
   virtual ecmcMonitor *getMon()=0;
   virtual ecmcEncoder *getEnc()=0;

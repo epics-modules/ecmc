@@ -39,7 +39,7 @@ public:
   motionCommandTypes getCommand();
   int getCmdData();
 
-  ecmcDrive *getDrv();
+  ecmcDriveBase *getDrv();
   ecmcTrajectory *getTraj();
   ecmcMonitor *getMon();
   ecmcEncoder *getEnc();

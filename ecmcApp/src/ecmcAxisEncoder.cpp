@@ -208,7 +208,7 @@ ecmcPIDController *ecmcAxisEncoder::getCntrl()
   return NULL;
 }
 
-ecmcDrive *ecmcAxisEncoder::getDrv()
+ecmcDriveBase *ecmcAxisEncoder::getDrv()
 {
   return NULL;
 }

@@ -1,17 +1,17 @@
-#include "ecmcDrive.hpp"
+#include "ecmcDriveBase.hpp"
 
-ecmcDrive::ecmcDrive()
+ecmcDriveBase::ecmcDriveBase()
 {
   initVars();
 }
 
-ecmcDrive::ecmcDrive(double scale)
+ecmcDriveBase::ecmcDriveBase(double scale)
 {
   initVars();
   scale_=scale;
 }
 
-void ecmcDrive::initVars()
+void ecmcDriveBase::initVars()
 {
   errorReset();
   interlock_=true;
@@ -28,12 +28,12 @@ void ecmcDrive::initVars()
   brakeOutput_=0;
 }
 
-ecmcDrive::~ecmcDrive()
+ecmcDriveBase::~ecmcDriveBase()
 {
   ;
 }
 
-int ecmcDrive::setVelSet(double vel)
+int ecmcDriveBase::setVelSet(double vel)
 {
   if(interlock_){
     velSet_=0;
@@ -46,7 +46,7 @@ int ecmcDrive::setVelSet(double vel)
   return 0;
 }
 
-void ecmcDrive::setScaleNum(double scaleNum)
+void ecmcDriveBase::setScaleNum(double scaleNum)
 {
   scaleNum_=scaleNum;
   if(std::abs(scaleDenom_)>0){
@@ -54,7 +54,7 @@ void ecmcDrive::setScaleNum(double scaleNum)
   }
 }
 
-int ecmcDrive::setScaleDenom(double scaleDenom)
+int ecmcDriveBase::setScaleDenom(double scaleDenom)
 {
   scaleDenom_=scaleDenom;
   if(scaleDenom_==0){
@@ -64,32 +64,22 @@ int ecmcDrive::setScaleDenom(double scaleDenom)
   return 0;
 }
 
-double ecmcDrive::getScale()
+double ecmcDriveBase::getScale()
 {
   return scale_;
 }
 
-double ecmcDrive::getVelSet()
+double ecmcDriveBase::getVelSet()
 {
   return velSet_;
 }
 
-int ecmcDrive::getVelSetRaw()
+int ecmcDriveBase::getVelSetRaw()
 {
   return velSetRawOutput_;
 }
 
-bool ecmcDrive::getEnable()
-{
-  return enableOutput_;
-}
-
-bool ecmcDrive::getEnabled()
-{
-  return enabledInput_;
-}
-
-void ecmcDrive::writeEntries()
+void ecmcDriveBase::writeEntries()
 {
   if (getError()){
     return;
@@ -122,7 +112,7 @@ void ecmcDrive::writeEntries()
 
 }
 
-void ecmcDrive::readEntries()
+void ecmcDriveBase::readEntries()
 {
 
   if(getError()){
@@ -140,7 +130,7 @@ void ecmcDrive::readEntries()
   enabledInput_= tempRaw>0;
 }
 
-int ecmcDrive::setEnable(bool enable)
+int ecmcDriveBase::setEnable(bool enable)
 {
   if(interlock_ && enable){
     enableOutput_=false;
@@ -160,23 +150,23 @@ int ecmcDrive::setEnable(bool enable)
   return 0;
 }
 
-void ecmcDrive::setInterlock(bool interlock)
+void ecmcDriveBase::setInterlock(bool interlock)
 {
   interlock_=interlock;
 }
 
-bool ecmcDrive::getInterlock()
+bool ecmcDriveBase::getInterlock()
 {
   return interlock_;
 }
 
-int ecmcDrive::setVelSetRaw(int vel)
+int ecmcDriveBase::setVelSetRaw(int vel)
 {
   velSetRawOutput_=vel;
   return 0;
 }
 
-int ecmcDrive::validate()
+int ecmcDriveBase::validate()
 {
   int errorCode=validateEntry(0); //Enable entry output
   if(errorCode){
@@ -213,7 +203,7 @@ int ecmcDrive::validate()
   return 0;
 }
 
-int ecmcDrive::setEnableBrake(bool enable)
+int ecmcDriveBase::setEnableBrake(bool enable)
 {
   if(enable){
     int errorCode=validateEntry(3); //brake output
@@ -226,7 +216,7 @@ int ecmcDrive::setEnableBrake(bool enable)
   return 0;
 }
 
-int ecmcDrive::setEnableReduceTorque(bool enable)
+int ecmcDriveBase::setEnableReduceTorque(bool enable)
 {
   if(enable){
     int errorCode=validateEntry(4); //brake output
@@ -240,29 +230,29 @@ int ecmcDrive::setEnableReduceTorque(bool enable)
   return 0;
 }
 
-int ecmcDrive::getEnableBrake()
+int ecmcDriveBase::getEnableBrake()
 {
   return enableBrake_;
 }
 
-int ecmcDrive::getEnableReduceTorque()
+int ecmcDriveBase::getEnableReduceTorque()
 {
   return enableReduceTorque_;
 }
 
-int ecmcDrive::setBrake(bool value)
+int ecmcDriveBase::setBrake(bool value)
 {
   brakeOutput_=value;
   return 0;
 }
 
-int ecmcDrive::setReduceTorque(bool value)
+int ecmcDriveBase::setReduceTorque(bool value)
 {
   reduceTorqueOutput_=value;
   return 0;
 }
 
-int ecmcDrive::setAtTarget(bool atTarget)
+int ecmcDriveBase::setAtTarget(bool atTarget)
 {
   reduceTorqueOutput_=atTarget && enableReduceTorque_;
   return 0;

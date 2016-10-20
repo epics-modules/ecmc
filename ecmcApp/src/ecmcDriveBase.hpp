@@ -1,5 +1,6 @@
-#ifndef CMCUDRIVE_H_
-#define CMCUDRIVE_H_
+#ifndef ECMCDRIVEBASE_H_
+#define ECMCDRIVEBASE_H_
+
 #include <stdio.h>
 #include <cmath>
 
@@ -20,12 +21,12 @@
 #define ERROR_DRV_BRAKE_ENTRY_NULL  0x14607
 #define ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL  0x14608
 
-class ecmcDrive : public ecmcEcEntryLink
+class ecmcDriveBase : public ecmcEcEntryLink
 {
 public:
-  ecmcDrive();
-  ecmcDrive(double scale);
-  ~ecmcDrive();
+  ecmcDriveBase();
+  ecmcDriveBase(double scale);
+  virtual ~ecmcDriveBase();
   void initVars() ;
   void setScaleNum(double scaleNum);
   int setScaleDenom(double scaleDenom);
@@ -34,10 +35,11 @@ public:
   double getVelSet();
   int setVelSetRaw(int rawVel);
   int getVelSetRaw();
-  bool getEnable();
-  bool getEnabled();
-  int setEnable(bool enable);
+  virtual bool getEnable()=0;
+  virtual bool getEnabled()=0;
+  virtual int setEnable(bool enable)=0;
   void setInterlock(bool interlock);
+  int validate();
   bool getInterlock();
   void readEntries();
   void writeEntries();
@@ -48,8 +50,7 @@ public:
   int getEnableBrake();
   int getEnableReduceTorque();
   int setAtTarget(bool atTarget);
-  int validate();
-private:
+protected:
   double scale_;
   double scaleNum_;
   double scaleDenom_;
@@ -62,8 +63,6 @@ private:
   bool enableReduceTorque_;
   int brakeOutput_;
   int reduceTorqueOutput_;
-
-
   operationMode opeationMode_;
 };
 #endif

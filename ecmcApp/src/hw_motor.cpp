@@ -41,7 +41,7 @@
 #include "ecmcAxisVirt.h"      //Axis without drive and controller
 #include "ecmcAxisTraj.h"      //Axis without drive, controller and encoder
 #include "ecmcAxisEncoder.h"   //Axis without drive, controller and trajectory
-#include "ecmcDrive.hpp"
+#include "ecmcDriveBase.hpp"
 #include "ecmcTrajectory.hpp"
 #include "ecmcPIDController.hpp"
 #include "ecmcEncoder.h"
