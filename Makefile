@@ -20,7 +20,8 @@ SOURCES = \
   ecmcApp/src/ecmcAxisTraj.cpp \
   ecmcApp/src/ecmcAxisVirt.cpp \
   ecmcApp/src/ecmcCommandTransform.cpp \
-  ecmcApp/src/ecmcDrive.cpp \
+  ecmcApp/src/ecmcDriveBase.cpp \
+  ecmcApp/src/ecmcDriveStepper.cpp \
   ecmcApp/src/ecmcEc.cpp \
   ecmcApp/src/ecmcEcEntry.cpp \
   ecmcApp/src/ecmcEcPdo.cpp \
