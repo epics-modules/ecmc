@@ -29,6 +29,7 @@ public:
   int writeEcEntryValue(int entryIndex,uint64_t value);
 protected:
   int validateEntryBit(int index);
+  int getEntryBitCount(int index, int *bitCount);
 private:
   entryInfo entryInfoArray_[MaxEcEntryLinks];
 };

@@ -1,5 +1,5 @@
-#ifndef ECMCDRIVEDS402_H_
-#define ECMCDRIVEDS402_H_
+#ifndef ECMCDRIVESTEPPER_H_
+#define ECMCDRIVESTEPPER_H_
 #include <stdio.h>
 #include <cmath>
 
@@ -10,16 +10,20 @@
 #include "ecmcError.h"
 #include "ecmcDriveBase.hpp"
 
-class ecmcDriveStepper : public ecmcDriveBase
+#define ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR 0x14650
+#define ERROR_DRV_DS402_STATUS_WORD_BIT_COUNT_ERROR 0x14651
+
+class ecmcDriveDS402: public ecmcDriveBase
 {
 public:
-  ecmcDriveStepper();
-  ecmcDriveStepper(double scale);
-  ~ecmcDriveStepper();
+  ecmcDriveDS402();
+  ecmcDriveDS402(double scale);
+  ~ecmcDriveDS402();
   bool getEnable();
   bool getEnabled();
   int setEnable(bool enable);
   int validate();
 private:
+
 };
 #endif

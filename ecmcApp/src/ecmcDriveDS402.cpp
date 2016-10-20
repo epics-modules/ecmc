@@ -1,31 +1,31 @@
-#include "ecmcDriveStepper.hpp"
+#include "ecmcDriveDS402.hpp"
 
-ecmcDriveStepper::ecmcDriveStepper()
+ecmcDriveDS402::ecmcDriveDS402()
 {
   initVars();
 }
 
-ecmcDriveStepper::ecmcDriveStepper(double scale)
+ecmcDriveDS402::ecmcDriveDS402(double scale)
 {
   initVars();
   scale_=scale;
 }
-ecmcDriveStepper::~ecmcDriveStepper()
+ecmcDriveDS402::~ecmcDriveDS402()
 {
   ;
 }
 
-bool ecmcDriveStepper::getEnable()
+bool ecmcDriveDS402::getEnable()
 {
   return enableOutput_;
 }
 
-bool ecmcDriveStepper::getEnabled()
+bool ecmcDriveDS402::getEnabled()
 {
   return enabledInput_;
 }
 
-int ecmcDriveStepper::setEnable(bool enable)
+int ecmcDriveDS402::setEnable(bool enable)
 {
   if(interlock_ && enable){
     enableOutput_=false;
@@ -45,11 +45,17 @@ int ecmcDriveStepper::setEnable(bool enable)
   return 0;
 }
 
-int ecmcDriveStepper::validate()
+int ecmcDriveDS402::validate()
 {
-  int errorCode=validateEntry(0); //Enable entry output
+  int errorCode=validateEntry(0); //Control word
   if(errorCode){
     return setErrorID(errorCode);
+  }
+
+  int bitCount=0;  //DS402 must have atleast 8 bit control word
+  getEntryBitCount(0,&bitCount);
+  if(bitCount<8){
+    return setErrorID(ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR);
   }
 
   errorCode=validateEntry(1); //Velocity Setpoint entry output
@@ -57,9 +63,15 @@ int ecmcDriveStepper::validate()
     return setErrorID(errorCode);
   }
 
-  errorCode=validateEntry(2); //Enabled entry input
+  errorCode=validateEntry(2); //Status word
   if(errorCode){
     return setErrorID(errorCode);
+  }
+
+  bitCount=0;  //DS402 must have atleast 8 bit control word
+  getEntryBitCount(0,&bitCount);
+  if(bitCount<8){
+    return setErrorID(ERROR_DRV_DS402_STATUS_WORD_BIT_COUNT_ERROR);
   }
 
   if(enableBrake_){

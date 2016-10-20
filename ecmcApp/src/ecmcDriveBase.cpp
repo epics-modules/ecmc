@@ -166,43 +166,6 @@ int ecmcDriveBase::setVelSetRaw(int vel)
   return 0;
 }
 
-int ecmcDriveBase::validate()
-{
-  int errorCode=validateEntry(0); //Enable entry output
-  if(errorCode){
-    return setErrorID(errorCode);
-  }
-
-  errorCode=validateEntry(1); //Velocity Setpoint entry output
-  if(errorCode){
-    return setErrorID(errorCode);
-  }
-
-  errorCode=validateEntry(2); //Enabled entry input
-  if(errorCode){
-    return setErrorID(errorCode);
-  }
-
-  if(enableBrake_){
-    errorCode=validateEntry(3); //brake output
-    if(errorCode){
-      return setErrorID(errorCode);
-    }
-  }
-
-  if(enableReduceTorque_){
-    errorCode=validateEntry(4); //reduce torque output
-    if(errorCode){
-      return setErrorID(errorCode);
-    }
-  }
-
-  if(scaleDenom_==0){
-    return setErrorID(ERROR_DRV_SCALE_DENOM_ZERO);
-  }
-  return 0;
-}
-
 int ecmcDriveBase::setEnableBrake(bool enable)
 {
   if(enable){

@@ -39,7 +39,7 @@ public:
   virtual bool getEnabled()=0;
   virtual int setEnable(bool enable)=0;
   void setInterlock(bool interlock);
-  int validate();
+  virtual int validate()=0;
   bool getInterlock();
   void readEntries();
   void writeEntries();

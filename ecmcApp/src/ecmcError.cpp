@@ -156,6 +156,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14608:
       return "ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL";
       break;
+    case 0x14650:
+      return "ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR";
+      break;
+    case 0x14651:
+      return "ERROR_DRV_DS402_STATUS_WORD_BIT_COUNT_ERROR";
+      break;
     case 0x14400:  //ENCODER
       return "ERROR_ENC_ASSIGN_ENTRY_FAILED";
       break;

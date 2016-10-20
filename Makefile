@@ -22,6 +22,7 @@ SOURCES = \
   ecmcApp/src/ecmcCommandTransform.cpp \
   ecmcApp/src/ecmcDriveBase.cpp \
   ecmcApp/src/ecmcDriveStepper.cpp \
+  ecmcApp/src/ecmcDriveDS402.cpp \
   ecmcApp/src/ecmcEc.cpp \
   ecmcApp/src/ecmcEcEntry.cpp \
   ecmcApp/src/ecmcEcPdo.cpp \
