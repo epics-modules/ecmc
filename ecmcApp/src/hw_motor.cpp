@@ -452,9 +452,9 @@ int validateConfig(){
       }
     }
   }
-  if(axisCount==0){
-    return ERROR_AXIS_CONFIGURED_COUNT_ZERO;
-  }
+  //if(axisCount==0){
+  //  return ERROR_AXIS_CONFIGURED_COUNT_ZERO;
+  //}
 
   for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
     if(events[i]!=NULL){

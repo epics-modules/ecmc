@@ -108,52 +108,6 @@ ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x13,3,1)"
 
 ecmcConfigController "MCU1", "Cfg.EcApplyConfig(1)"
 
-ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(1)"
-ecmcConfigController "MCU1", "Main.M1.fAcceleration=360"
-ecmcConfigController "MCU1", "Main.M1.fDeceleration=360"
-ecmcConfigController "MCU1", "Cfg.SetAxisEmergDeceleration(1,200)"
-ecmcConfigController "MCU1", "Main.M1.fVelocity=360"
-ecmcConfigController "MCU1", "Main.M1.nCommand=1"
-ecmcConfigController "MCU1", "Cfg.SetAxisJogVel(1,100.0)"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#D,8,5=-5000"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#E,8,5=5000"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#B,2,2=0"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#C,2,2=0"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#4001,16#6,8,5=10"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#4001,16#7,8,5=5"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKp(1,0.8)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKi(1,0.001)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKd(1,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlKff(1,1)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlOutHL(1,8000.0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisCntrlOutLL(1,-8000.0)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisEncoder(9,POSITION,1,0,-1)"
-ecmcConfigController "MCU1", "Cfg.SetAxisEncScaleDenom(1,1048576)"
-ecmcConfigController "MCU1", "Cfg.SetAxisEncScaleNum(1,360)"
-ecmcConfigController "MCU1", "Cfg.SetAxisEncType(1,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisEncBits(1,16)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,CONTROL,1,0,1)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,VELOCITY_SETPOINT,1,1,-1)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,STATUS,1,2,1)"
-# 32 bits (+-31 bits)
-ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleDenom(1,2147483648.0)"
-#Amplifier Max 8000Hz = 2880000 deg/s (8kHz Reverse engineered) 
-ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleNum(1,2880000.0)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,0,0)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,1,0)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,1,2,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonAtTargetTol(1,0.1)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonAtTargetTime(1,100)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableAtTargetMon(1,1)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonPosLagTol(1,0.5)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonPosLagTime(1,10)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableLagMon(1,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(1,5000)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(1,1)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(1,100)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(1,200)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(1,0)"
-ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(1,2100000000)"
 
 #Diagnostics
 ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
@@ -177,12 +131,6 @@ epicsEnvSet "R" "$(R=Test)"
 
   #General 
   dbLoadTemplate("ecmcGeneral.substitutions")
-
-  #First motion axis: Virtual slit position	
-  dbLoadRecords("DUT_AxisStatus_v0_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=1,VN=stAxisStatus")
-  dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=1,VN=")
-  dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=1")
-
   dbLoadTemplate("el7201.substitutions")
 
 #var streamDebug 1
