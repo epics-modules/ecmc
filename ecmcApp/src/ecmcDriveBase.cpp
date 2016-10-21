@@ -20,12 +20,14 @@ void ecmcDriveBase::initVars()
   scaleDenom_=0;
   velSetRawOutput_=0;
   velSet_=0;
-  enableOutput_=0;
-  enabledInput_=0;
+  enableCmd_=0;
+  enabledStatus_=0;
   enableBrake_=0;
   enableReduceTorque_=0;
   reduceTorqueOutput_=0;
   brakeOutput_=0;
+  controlWord_=0;
+  statusWord_=0;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -38,7 +40,7 @@ int ecmcDriveBase::setVelSet(double vel)
   if(interlock_){
     velSet_=0;
     velSetRawOutput_=0;
-    enableOutput_=0;
+    enableCmd_=0;
     return 0;
   }
   velSet_=vel;
@@ -79,61 +81,10 @@ int ecmcDriveBase::getVelSetRaw()
   return velSetRawOutput_;
 }
 
-void ecmcDriveBase::writeEntries()
-{
-  if (getError()){
-    return;
-  }
-
-  int errorCode=0;
-  errorCode=writeEcEntryValue(0,(uint64_t)enableOutput_);
-  if(errorCode){
-    setErrorID(errorCode);
-  }
-
-  errorCode=writeEcEntryValue(1,(uint64_t)velSetRawOutput_);
-  if(errorCode){
-    setErrorID(errorCode);
-  }
-
-  if(enableBrake_){
-    errorCode=writeEcEntryValue(3,(uint64_t)brakeOutput_);
-    if(errorCode){
-      setErrorID(errorCode);
-    }
-  }
-
-  if(enableReduceTorque_){
-    errorCode=writeEcEntryValue(4,(uint64_t)reduceTorqueOutput_);
-    if(errorCode){
-      setErrorID(errorCode);
-    }
-  }
-
-}
-
-void ecmcDriveBase::readEntries()
-{
-
-  if(getError()){
-    return;
-  }
-
-  uint64_t tempRaw=0;
-
-  if(readEcEntryValue(2,&tempRaw)){
-    setErrorID(ERROR_DRV_ENABLED_READ_ENTRY_FAIL);
-    enableOutput_=false;
-    enabledInput_=false;
-    return;
-  }
-  enabledInput_= tempRaw>0;
-}
-
-int ecmcDriveBase::setEnable(bool enable)
+/*int ecmcDriveBase::setEnable(bool enable)
 {
   if(interlock_ && enable){
-    enableOutput_=false;
+    enableCmd_=false;
     return setErrorID(ERROR_DRV_DRIVE_INTERLOCKED);
   }
 
@@ -146,9 +97,9 @@ int ecmcDriveBase::setEnable(bool enable)
     }
   }
 
-  enableOutput_=enable;
+  enableCmd_=enable;
   return 0;
-}
+}*/
 
 void ecmcDriveBase::setInterlock(bool interlock)
 {
@@ -219,4 +170,96 @@ int ecmcDriveBase::setAtTarget(bool atTarget)
 {
   reduceTorqueOutput_=atTarget && enableReduceTorque_;
   return 0;
+}
+
+void ecmcDriveBase::writeEntries()
+{
+  if (getError()){
+    return;
+  }
+
+  int errorCode=0;
+  errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD,(uint64_t)controlWord_); //will only write the number of bits configured in st.cmd file defined by link commands
+  if(errorCode){
+    setErrorID(errorCode);
+  }
+
+  errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,(uint64_t)velSetRawOutput_);
+  if(errorCode){
+    setErrorID(errorCode);
+  }
+
+  if(enableBrake_){
+    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT,(uint64_t)brakeOutput_);
+    if(errorCode){
+      setErrorID(errorCode);
+    }
+  }
+
+  if(enableReduceTorque_){
+    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,(uint64_t)reduceTorqueOutput_);
+    if(errorCode){
+      setErrorID(errorCode);
+    }
+  }
+}
+
+void ecmcDriveBase::readEntries()
+{
+  if(getError()){
+    return;
+  }
+  if(readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,&statusWord_)){
+    setErrorID(ERROR_DRV_ENABLED_READ_ENTRY_FAIL);
+    enableCmd_=false;
+    enabledStatus_=false;
+    return;
+  }
+}
+
+int ecmcDriveBase::validate()
+{
+  int errorCode=validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD); //Enable entry output OR controlword
+  if(errorCode){
+    return setErrorID(errorCode);
+  }
+
+  errorCode=validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT); //Velocity Setpoint entry output
+  if(errorCode){
+    return setErrorID(errorCode);
+  }
+
+  errorCode=validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD); //Enabled entry input OR statusword
+  if(errorCode){
+    return setErrorID(errorCode);
+  }
+
+  if(enableBrake_){
+    errorCode=validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT); //brake output
+    if(errorCode){
+      return setErrorID(errorCode);
+    }
+  }
+
+  if(enableReduceTorque_){
+    errorCode=validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT); //reduce torque output
+    if(errorCode){
+      return setErrorID(errorCode);
+    }
+  }
+
+  if(scaleDenom_==0){
+    return setErrorID(ERROR_DRV_SCALE_DENOM_ZERO);
+  }
+  return 0;
+}
+
+bool ecmcDriveBase::getEnable()
+{
+  return enableCmd_;
+}
+
+bool ecmcDriveBase::getEnabled()
+{
+  return enabledStatus_;
 }

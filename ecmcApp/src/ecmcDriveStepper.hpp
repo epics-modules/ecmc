@@ -20,6 +20,9 @@ public:
   bool getEnabled();
   int setEnable(bool enable);
   int validate();
+  void writeEntries();
+  void readEntries();
 private:
+  void initVars();
 };
 #endif

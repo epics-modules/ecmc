@@ -15,20 +15,26 @@ ecmcDriveStepper::~ecmcDriveStepper()
   ;
 }
 
+void ecmcDriveStepper::initVars()
+{
+  ecmcDriveBase::initVars();
+}
+
+
 bool ecmcDriveStepper::getEnable()
 {
-  return enableOutput_;
+  return enableCmd_;
 }
 
 bool ecmcDriveStepper::getEnabled()
 {
-  return enabledInput_;
+  return enabledStatus_;
 }
 
 int ecmcDriveStepper::setEnable(bool enable)
 {
   if(interlock_ && enable){
-    enableOutput_=false;
+    enableCmd_=false;
     return setErrorID(ERROR_DRV_DRIVE_INTERLOCKED);
   }
 
@@ -41,43 +47,30 @@ int ecmcDriveStepper::setEnable(bool enable)
     }
   }
 
-  enableOutput_=enable;
+  enableCmd_=enable;
   return 0;
 }
 
 int ecmcDriveStepper::validate()
 {
-  int errorCode=validateEntry(0); //Enable entry output
+
+  int errorCode=ecmcDriveBase::validate();
   if(errorCode){
     return setErrorID(errorCode);
   }
 
-  errorCode=validateEntry(1); //Velocity Setpoint entry output
-  if(errorCode){
-    return setErrorID(errorCode);
-  }
-
-  errorCode=validateEntry(2); //Enabled entry input
-  if(errorCode){
-    return setErrorID(errorCode);
-  }
-
-  if(enableBrake_){
-    errorCode=validateEntry(3); //brake output
-    if(errorCode){
-      return setErrorID(errorCode);
-    }
-  }
-
-  if(enableReduceTorque_){
-    errorCode=validateEntry(4); //reduce torque output
-    if(errorCode){
-      return setErrorID(errorCode);
-    }
-  }
-
-  if(scaleDenom_==0){
-    return setErrorID(ERROR_DRV_SCALE_DENOM_ZERO);
-  }
   return 0;
+}
+
+void ecmcDriveStepper::writeEntries()
+{
+  controlWord_=(uint64_t)enableCmd_;
+  ecmcDriveBase::writeEntries();
+
+}
+
+void ecmcDriveStepper::readEntries()
+{
+  ecmcDriveBase::readEntries();
+  enabledStatus_= statusWord_>0;
 }
