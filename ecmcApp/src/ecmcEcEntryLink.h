@@ -30,6 +30,7 @@ public:
 protected:
   int validateEntryBit(int index);
   int getEntryBitCount(int index, int *bitCount);
+  int getEntryStartBit(int index, int *startBit);
 private:
   entryInfo entryInfoArray_[MaxEcEntryLinks];
 };

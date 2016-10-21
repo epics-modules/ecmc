@@ -1694,6 +1694,22 @@ int setAxisDrvBrakeEnable(int axisIndex, int enable);
  */
 int setAxisDrvReduceTorqueEnable(int axisIndex, int enable);
 
+/** \breif Set drive type.\n
+ *
+ * \note  ALL SETTINGS MADE TO THE DRIVE WILL BE OVERWRITTEN.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] type Drive type.\n
+ *                 0 = Stepper drive.\n
+ *                 1 = DS402 drive.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set axis 3 drive type to stepper.\n
+ * "Cfg.SetAxisDrvType(3,0)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisDrvType(int axisIndex, int type);
+
 /** \breif Set "at target" monitoring tolerance.\n
  *
  *  The motion will be considered to have reached the target position

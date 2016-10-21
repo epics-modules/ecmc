@@ -24,28 +24,9 @@ void ecmcDriveDS402::initVars()
   enableStateMachine_=ECMC_DS402_RESET_STATE;
 }
 
-int ecmcDriveDS402::setEnable(bool enable)
-{
-  if(interlock_ && enable){
-    enableCmd_=false;
-    return setErrorID(ERROR_DRV_DRIVE_INTERLOCKED);
-  }
-
-  if(enableBrake_){
-    if(!enabledStatus_ ){
-      brakeOutput_=0;  //brake locked when 0 . TODO: Apply brake some cycles before enable is low
-    }
-    else{
-      brakeOutput_=1;  //brake open when 1
-    }
-  }
-
-  enableCmd_=enable;
-  return 0;
-}
-
 int ecmcDriveDS402::validate()
 {
+
   int errorCode=ecmcDriveBase::validate();
   if(errorCode){
     return setErrorID(errorCode);
@@ -57,11 +38,24 @@ int ecmcDriveDS402::validate()
     return setErrorID(ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR);
   }
 
+  int startBit=0;  //DS402 must use all bits in word
+  getEntryStartBit(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD,&startBit);
+  if(startBit!=-1){
+    return setErrorID(ERROR_DRV_DS402_CONTROL_WORD_START_BIT_ERROR);
+  }
+
   bitCount=0;  //DS402 must have 16 bit status word
   getEntryBitCount(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,&bitCount);
   if(bitCount!=16){
     return setErrorID(ERROR_DRV_DS402_STATUS_WORD_BIT_COUNT_ERROR);
   }
+
+  startBit=0;  //DS402 must use all bits in word
+  getEntryStartBit(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,&startBit);
+  if(startBit!=-1){
+    return setErrorID(ERROR_DRV_DS402_STATUS_WORD_START_BIT_ERROR);
+  }
+
   return 0;
 }
 
@@ -76,40 +70,71 @@ void ecmcDriveDS402::readEntries()
   ecmcDriveBase::readEntries();
 
   checkDS402State();
+
+  if(getError() || !enableCmd_){
+    controlWord_=0;
+    enableCmdOld_=enableCmd_;
+    return;
+  }
+
+  if(cycleCounter>ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME)
+  {
+    enableSequenceRunning_=false;
+    controlWord_=0;
+    setErrorID(ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT);
+    return;
+  }
+
+/*  if(driveState_!=driveStateOld_ || enableStateMachine_!= enableStateMachineOld_){
+    printf("Current state= %d, enable SM= %d\n", driveState_,enableStateMachine_ );
+  }*/
+
+  driveStateOld_=driveState_;
+  enableStateMachineOld_=enableStateMachine_;
+
+
   if(enableCmd_ && ! enableCmdOld_){ //Trigger new power on sequence
     enableSequenceRunning_=true;
     enableStateMachine_=ECMC_DS402_RESET_STATE;
+    controlWord_=128;
+    cycleCounter=0;
   }
 
   if(enableSequenceRunning_)
   {
     switch(enableStateMachine_)
     {
+      cycleCounter++;
       case ECMC_DS402_RESET_STATE:
  	controlWord_=128;
-        if(statusWord_==ECMC_DS402_SWITCH_ON_DISABLED_STATUS){
+        if(driveState_==ECMC_DS402_SWITCH_ON_DISABLED_STATUS){
+          cycleCounter=0;
           enableStateMachine_=ECMC_DS402_SWITCH_ON_DISABLED_STATE;
         }
  	break;
       case ECMC_DS402_SWITCH_ON_DISABLED_STATE:
         controlWord_=6;
-        if(statusWord_==ECMC_DS402_READY_TO_SWITCH_ON_STATUS){
+        if(driveState_==ECMC_DS402_READY_TO_SWITCH_ON_STATUS){
+          cycleCounter=0;
           enableStateMachine_=ECMC_DS402_READY_TO_SWITCH_ON_STATE;
         }
  	break;
       case ECMC_DS402_READY_TO_SWITCH_ON_STATE:
  	controlWord_=7;
-        if(statusWord_==ECMC_DS402_SWITCHED_ON_STATE){
+        if(driveState_==ECMC_DS402_SWITCHED_ON_STATUS){
+          cycleCounter=0;
           enableStateMachine_=ECMC_DS402_SWITCHED_ON_STATE;
         }
  	break;
       case ECMC_DS402_SWITCHED_ON_STATE:
  	controlWord_=15;
-        if(statusWord_==ECMC_DS402_OPERATION_ENABLED_STATE){
+        if(driveState_==ECMC_DS402_OPERATION_ENABLED_STATUS){
+          cycleCounter=0;
           enableStateMachine_=ECMC_DS402_OPERATION_ENABLED_STATE;
         }
  	break;
       case ECMC_DS402_OPERATION_ENABLED_STATE:
+        cycleCounter=0;
         enableSequenceRunning_=false; //startup sequence ready
 	break;
      }
@@ -178,6 +203,5 @@ int ecmcDriveDS402::checkDS402State()
     driveState_=ECMC_DS402_FAULT_STATUS;
     return 0;
   }
-
   return 0;
 }

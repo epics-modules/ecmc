@@ -218,3 +218,8 @@ void ecmcAxisBase::setInStartupPhase(bool startup)
 {
   inStartupPhase_=startup;
 }
+
+int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType)
+{
+  return ERROR_AXIS_FUNCTION_NOT_SUPPRTED;
+}

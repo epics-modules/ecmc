@@ -101,11 +101,21 @@ int ecmcEcEntryLink::writeEcEntryValue(int entryIndex,uint64_t value)
 
 int ecmcEcEntryLink::getEntryBitCount(int index, int *bitCount)
 {
-  bitCount=0;
   if(entryInfoArray_[index].entry ==NULL){
     return ERROR_EC_ENTRY_DATA_POINTER_NULL;
   }
 
   *bitCount=entryInfoArray_[index].entry->getBits();
   return 0;
+}
+
+int ecmcEcEntryLink::getEntryStartBit(int index, int *startBit)
+{
+  if(entryInfoArray_[index].entry ==NULL){
+    return ERROR_EC_ENTRY_DATA_POINTER_NULL;
+  }
+
+  *startBit=entryInfoArray_[index].bitNumber;
+  return 0;
+
 }

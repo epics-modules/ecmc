@@ -1779,6 +1779,17 @@ int setAxisDrvReduceTorqueEnable(int axisIndex, int enable)
   return axes[axisIndex]->getDrv()->setEnableReduceTorque(enable);
 }
 
+int setAxisDrvType(int axisIndex, int type)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d type=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, type);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->setDriveType((ecmcDriveTypes)type);
+}
+
+
 //Drv GET
 int getAxisDrvScale(int axisIndex,double *value)
 {

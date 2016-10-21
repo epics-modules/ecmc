@@ -102,17 +102,16 @@ ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x12,4000,4)"
 #Motor pole pairs = 3
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(9,0x8011,0x13,3,1)"
 
-
-
-
-
 ecmcConfigController "MCU1", "Cfg.EcApplyConfig(1)"
 
 ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(1)"
-ecmcConfigController "MCU1", "Main.M1.fAcceleration=360"
-ecmcConfigController "MCU1", "Main.M1.fDeceleration=360"
+#Set DS402 drive type
+ecmcConfigController "MCU1", "Cfg.SetAxisDrvType(1,1)"
+
+ecmcConfigController "MCU1", "Main.M1.fAcceleration=1000"
+ecmcConfigController "MCU1", "Main.M1.fDeceleration=1000"
 ecmcConfigController "MCU1", "Cfg.SetAxisEmergDeceleration(1,200)"
-ecmcConfigController "MCU1", "Main.M1.fVelocity=360"
+ecmcConfigController "MCU1", "Main.M1.fVelocity=3600"
 ecmcConfigController "MCU1", "Main.M1.nCommand=1"
 ecmcConfigController "MCU1", "Cfg.SetAxisJogVel(1,100.0)"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5001,16#D,8,5=-5000"
@@ -132,9 +131,9 @@ ecmcConfigController "MCU1", "Cfg.SetAxisEncScaleDenom(1,1048576)"
 ecmcConfigController "MCU1", "Cfg.SetAxisEncScaleNum(1,360)"
 ecmcConfigController "MCU1", "Cfg.SetAxisEncType(1,0)"
 ecmcConfigController "MCU1", "Cfg.SetAxisEncBits(1,16)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,CONTROL,1,0,1)"
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,CONTROL,1,0,-1)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,VELOCITY_SETPOINT,1,1,-1)"
-ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,STATUS,1,2,1)"
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(9,STATUS,1,2,-1)"
 # 32 bits (+-31 bits)
 ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleDenom(1,2147483648.0)"
 #Amplifier Max 8000Hz = 2880000 deg/s (8kHz Reverse engineered) 

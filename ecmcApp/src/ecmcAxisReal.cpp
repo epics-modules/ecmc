@@ -16,6 +16,7 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime)
   enc_=new ecmcEncoder(sampleTime_);
   traj_=new ecmcTrajectory(sampleTime_);
   mon_ =new ecmcMonitor();
+  currentDriveType_=ECMC_STEPPER;
   drv_=new ecmcDriveStepper();
   cntrl_=new ecmcPIDController(sampleTime_);
 
@@ -39,6 +40,7 @@ void ecmcAxisReal::initVars()
   initDone_=false;
   operationMode_=ECMC_MODE_OP_AUTO;
   sampleTime_=1;
+  currentDriveType_=ECMC_STEPPER;
 }
 
 void ecmcAxisReal::execute(bool masterOK)
@@ -411,6 +413,30 @@ int ecmcAxisReal::validate()
   errorRet=seq_.validate();
   if(errorRet){
     return setErrorID(errorRet);
+  }
+
+  return 0;
+}
+
+int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
+{
+  if(currentDriveType_==driveType){
+    return 0;
+  }
+  switch(driveType){
+    case ECMC_STEPPER:
+      delete drv_;
+      drv_ =new ecmcDriveStepper();
+      currentDriveType_=ECMC_STEPPER;
+      break;
+    case ECMC_DS402:
+      delete drv_;
+      drv_ =new ecmcDriveDS402();
+      currentDriveType_=ECMC_DS402;
+      break;
+    default:
+      return ERROR_AXIS_FUNCTION_NOT_SUPPRTED;
+      break;
   }
 
   return 0;

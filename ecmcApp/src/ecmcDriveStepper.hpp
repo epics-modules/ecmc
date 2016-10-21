@@ -1,5 +1,5 @@
-#ifndef ECMCDRIVEDS402_H_
-#define ECMCDRIVEDS402_H_
+#ifndef ECMCDRIVESTEPPER_H_
+#define ECMCDRIVESTEPPER_H_
 #include <stdio.h>
 #include <cmath>
 
@@ -16,9 +16,6 @@ public:
   ecmcDriveStepper();
   ecmcDriveStepper(double scale);
   ~ecmcDriveStepper();
-  bool getEnable();
-  bool getEnabled();
-  int setEnable(bool enable);
   int validate();
   void writeEntries();
   void readEntries();

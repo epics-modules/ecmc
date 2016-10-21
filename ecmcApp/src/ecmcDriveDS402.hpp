@@ -10,26 +10,22 @@
 #include "ecmcError.h"
 #include "ecmcDriveBase.hpp"
 
+// Error codes
 #define ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR 0x14650
 #define ERROR_DRV_DS402_STATUS_WORD_BIT_COUNT_ERROR 0x14651
+#define ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT  0x14652
+#define ERROR_DRV_DS402_CONTROL_WORD_START_BIT_ERROR 0x14653
+#define ERROR_DRV_DS402_STATUS_WORD_START_BIT_ERROR 0x14654
 
-/*enum stateMachine_DS402{
-  ECMC_DS402_NOT_READY_TO_SWITCH_ON=0,
-  ECMC_DS402_SWITCH_ON_DISABLED=1,
-  ECMC_DS402_READY_TO_SWITCH_ON=2,
-  ECMC_DS402_SWITCHED_ON=3,
-  ECMC_DS402_OPERATION_ENABLED=4,
-  ECMC_DS402_QUICK_STOP_ACTIVE=5,
-  ECMC_DS402_FAULT_REACTION_ACTIVE=6,
-  ECMC_DS402_FAULT=7,
-};*/
+
+#define ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME 1000
 
 #define ECMC_DS402_STATUS_MASK_1 0x004F // Important bits xxxx.xxxx.x1xx.1111
 #define ECMC_DS402_STATUS_MASK_2 0x006F // Important bits xxxx.xxxx.x11x.1111
 
 #define ECMC_DS402_INVALID_STATE_STATUS -1  // Mask 1
 #define ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS 0x0000  // Mask 1
-#define ECMC_DS402_SWITCH_ON_DISABLED_STATUS 0x0060 // Mask 1
+#define ECMC_DS402_SWITCH_ON_DISABLED_STATUS 0x0040 // Mask 1
 #define ECMC_DS402_READY_TO_SWITCH_ON_STATUS 0x0021 // Mask 2
 #define ECMC_DS402_SWITCHED_ON_STATUS 0x0023 // Mask 2
 #define ECMC_DS402_OPERATION_ENABLED_STATUS 0x0027 // Mask 2
@@ -51,7 +47,6 @@ public:
   ecmcDriveDS402();
   ecmcDriveDS402(double scale);
   ~ecmcDriveDS402();
-  int setEnable(bool enable);
   int validate();
   void readEntries();
   void writeEntries();
@@ -63,5 +58,8 @@ private:
   bool enableCmdOld_;
   bool enableSequenceRunning_;
   stateMachine_DS402 enableStateMachine_;
+  int driveStateOld_;
+  stateMachine_DS402 enableStateMachineOld_;
+  int cycleCounter;
 };
 #endif

@@ -162,6 +162,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14651:
       return "ERROR_DRV_DS402_STATUS_WORD_BIT_COUNT_ERROR";
       break;
+    case 0x14652:
+      return "ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT";
+      break;
+    case 0x14653:
+      return "ERROR_DRV_DS402_CONTROL_WORD_START_BIT_ERROR";
+      break;
+    case 0x14654:
+      return "ERROR_DRV_DS402_STATUS_WORD_START_BIT_ERROR";
+      break;
     case 0x14400:  //ENCODER
       return "ERROR_ENC_ASSIGN_ENTRY_FAILED";
       break;

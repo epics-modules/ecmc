@@ -27,6 +27,11 @@
 #define ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT 3
 #define ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT 4
 
+enum ecmcDriveTypes{
+  ECMC_STEPPER=0,
+  ECMC_DS402=1,
+};
+
 class ecmcDriveBase : public ecmcEcEntryLink
 {
 public:
@@ -35,9 +40,9 @@ public:
   virtual ~ecmcDriveBase();
   virtual void initVars();
   virtual int validate();
-  virtual int setEnable(bool enable)=0;
   virtual void readEntries();
   virtual void writeEntries();
+  int setEnable(bool enable);
   bool getEnable();
   bool getEnabled();
   void setScaleNum(double scaleNum);

@@ -14,6 +14,7 @@
 #include "ecmcDefinitions.h"
 #include "ecmcDriveBase.hpp"
 #include "ecmcDriveStepper.hpp"
+#include "ecmcDriveDS402.hpp"
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
 #include "ecmcMonitor.hpp"
@@ -72,7 +73,7 @@ public:
   virtual int setCmdData(int cmdData)=0;
   virtual motionCommandTypes getCommand()=0;
   virtual int getCmdData()=0;
-
+  virtual int setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase *getDrv()=0;
   virtual ecmcTrajectory *getTraj()=0;
   virtual ecmcMonitor *getMon()=0;

@@ -44,6 +44,8 @@ public:
   motionCommandTypes getCommand();
   int getCmdData();
 
+  int setDriveType(ecmcDriveTypes driveType);
+
   ecmcDriveBase *getDrv();
   ecmcTrajectory *getTraj();
   ecmcMonitor *getMon();
@@ -63,6 +65,7 @@ private:
   ecmcPIDController *cntrl_;
   ecmcSequencer seq_;
   double sampleTime_;
+  ecmcDriveTypes currentDriveType_;
 };
 
 #endif /* ECMCAXISREAL_H_ */
