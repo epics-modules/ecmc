@@ -254,6 +254,7 @@ void ecmcEc::checkDomainState(void)
   }
 
   ec_domain_state_t domainState;
+  memset(&domainState,0,sizeof(domainState));
   ecrt_domain_state(domain_, &domainState);
 /*  if (domainState.working_counter != domainStateOld_.working_counter){
 	PRINT_DIAG(("INFO:\t\tDomain: WC %u.\n", domainState.working_counter));

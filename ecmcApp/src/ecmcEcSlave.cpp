@@ -62,6 +62,7 @@ void ecmcEcSlave::initVars()
   for(int i=0;i<EC_MAX_ENTRIES;i++){
     entryList_[i]=NULL;
   }
+  memset(&slaveStateOld_,0,sizeof(slaveStateOld_));
 }
 
 ecmcEcSlave::~ecmcEcSlave()
@@ -259,6 +260,7 @@ int ecmcEcSlave::checkConfigState(void)
     return setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
   }
   ec_slave_config_state_t slaveState;
+  memset(&slaveState,0,sizeof(slaveState));
   ecrt_slave_config_state(slaveConfig_, &slaveState);
   if (slaveState.al_state != slaveStateOld_.al_state){
     printf("INFO:\t\tSlave position: %d. State 0x%02X.\n",slavePosition_ ,slaveState.al_state);
