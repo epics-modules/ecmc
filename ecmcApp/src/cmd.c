@@ -260,7 +260,7 @@ int cmd_handle_input_line(const char *input_line, ecmcOutputBufferType *buffer)
   }
   {
     int i;
-    for (i=0; i < argc; i++)
+    for (i=0; i <= argc; i++)
     {
       free((void *)my_argv[i]);
       free((void *)my_sepv[i]);
