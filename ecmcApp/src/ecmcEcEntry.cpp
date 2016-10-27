@@ -30,7 +30,7 @@ ecmcEcEntry::ecmcEcEntry(uint8_t bits,uint8_t *domainAdr, std::string id)
 void ecmcEcEntry::initVars()
 {
   errorReset();
-  domainAdr_=0;
+  domainAdr_=NULL;
   adrOffset_=0;
   bitLength_=0;
   bitOffset_=0;

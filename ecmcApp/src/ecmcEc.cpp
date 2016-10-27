@@ -53,6 +53,8 @@ void ecmcEc::initVars()
     slaveEntriesReg_[i].subindex=0;
     slaveEntriesReg_[i].vendor_id=0;
   }
+  memset(&domainState_,0,sizeof(domainState_));
+  memset(&masterState_,0,sizeof(masterState_));
   inStartupPhase_=true;
 }
 
@@ -253,9 +255,7 @@ void ecmcEc::checkDomainState(void)
     domainOK_=true;
   }
 
-  ec_domain_state_t domainState;
-  memset(&domainState,0,sizeof(domainState));
-  ecrt_domain_state(domain_, &domainState);
+  ecrt_domain_state(domain_, &domainState_);
 /*  if (domainState.working_counter != domainStateOld_.working_counter){
 	PRINT_DIAG(("INFO:\t\tDomain: WC %u.\n", domainState.working_counter));
   }
@@ -265,7 +265,7 @@ void ecmcEc::checkDomainState(void)
   domainStateOld_=domainState;*/
 
   //filter domainOK_ for some cycles
-  if( domainState.wc_state!=EC_WC_COMPLETE){
+  if( domainState_.wc_state!=EC_WC_COMPLETE){
     if(domainNotOKCounter_<=domainNotOKCyclesLimit_){
       domainNotOKCounter_++;
     }
@@ -325,29 +325,28 @@ bool ecmcEc::checkState(void)
     return true;
   }
 
-  ec_master_state_t masterState;
-  ecrt_master_state(master_, &masterState);
+  ecrt_master_state(master_, &masterState_);
 
-  if (masterState.slaves_responding != masterStateOld_.slaves_responding){
-    PRINT_DIAG(("INFO:\t\t%u slave(s).\n", masterState.slaves_responding));
+  if (masterState_.slaves_responding != masterStateOld_.slaves_responding){
+    PRINT_DIAG(("INFO:\t\t%u slave(s).\n", masterState_.slaves_responding));
   }
-  if (masterState.link_up != masterStateOld_.link_up){
-	PRINT_DIAG(("INFO:\t\tLink is %s.\n", masterState.link_up ? "up" : "down"));
+  if (masterState_.link_up != masterStateOld_.link_up){
+	PRINT_DIAG(("INFO:\t\tLink is %s.\n", masterState_.link_up ? "up" : "down"));
   }
-  if (masterState.al_states != masterStateOld_.al_states){
-	PRINT_DIAG(("INFO:\t\tApplication Layer states: 0x%x.\n", masterState.al_states));
+  if (masterState_.al_states != masterStateOld_.al_states){
+	PRINT_DIAG(("INFO:\t\tApplication Layer states: 0x%x.\n", masterState_.al_states));
   }
 
-  masterStateOld_ = masterState;
+  masterStateOld_ = masterState_;
 
-  if((int)masterState.slaves_responding<slaveCounter_){
+  if((int)masterState_.slaves_responding<slaveCounter_){
       setErrorID(ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH);
       masterOK_=false;
       return false;
   }
 
-  if(masterState.al_states!=EC_AL_STATE_OP){
-    switch(masterState.al_states){
+  if(masterState_.al_states!=EC_AL_STATE_OP){
+    switch(masterState_.al_states){
       case EC_AL_STATE_INIT:
         setErrorID(ERROR_EC_AL_STATE_INIT);
         masterOK_=false;
@@ -366,7 +365,7 @@ bool ecmcEc::checkState(void)
     }
   }
 
-  if(!masterState.link_up){
+  if(!masterState_.link_up){
     setErrorID(ERROR_EC_LINK_DOWN);
     masterOK_=false;
     return false;

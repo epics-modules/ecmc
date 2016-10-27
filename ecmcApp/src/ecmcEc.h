@@ -100,7 +100,9 @@ private:
   ec_master_t *master_; /**< EtherCAT master */
   ec_domain_t *domain_;
   ec_domain_state_t domainStateOld_;
+  ec_domain_state_t domainState_;
   ec_master_state_t masterStateOld_;
+  ec_master_state_t masterState_;
   uint8_t *domainPd_ ;
   int slaveCounter_;
   int sdoCounter_;

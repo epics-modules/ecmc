@@ -38,12 +38,12 @@ void ecmcEcSlave::initVars()
 {
   errorReset();
   simSlave_=false;
-  master_=0;
+  master_=NULL;
   alias_=0; /**< Slave alias. */
   slavePosition_=0; /**< Slave position. */
   vendorId_=0; /**< Expected vendor ID. */
   productCode_=0; /**< Expected product code. */
-  slaveConfig_=0;
+  slaveConfig_=NULL;
   syncManCounter_=0;
   entriesArrayIndex_=0;
   pdosArrayIndex_=0;
@@ -62,6 +62,10 @@ void ecmcEcSlave::initVars()
   for(int i=0;i<EC_MAX_ENTRIES;i++){
     entryList_[i]=NULL;
   }
+
+  memset(&slaveSyncs_,0,sizeof(slaveSyncs_));
+  memset(&slavePdoEntries_,0,sizeof(slavePdoEntries_));
+  memset(&slavePdos_,0,sizeof(slavePdos_));
   memset(&slaveStateOld_,0,sizeof(slaveStateOld_));
 }
 
