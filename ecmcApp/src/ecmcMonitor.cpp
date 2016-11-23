@@ -114,7 +114,7 @@ void ecmcMonitor::execute()
   }
 
   //Lag error***********************
-  if(enableLagMon_ && !lagError_){
+  if(enableLagMon_ && !(lagErrorDrive_)){
     lagError_=std::abs(actPos_-currSetPos_);
 
     if(lagError_>posLagTol_){
@@ -124,8 +124,8 @@ void ecmcMonitor::execute()
       if(lagMonCounter_>posLagTime_){
         lagErrorTraj_=true;
       }
-      if(lagMonCounter_>posLagTime_*2){  //interlock the drive in twice the time..
-        lagErrorDrive_=true;
+      if(lagMonCounter_>=posLagTime_*2){  //interlock the drive in twice the time..
+	lagErrorDrive_=true;
       }
     }
     else{
