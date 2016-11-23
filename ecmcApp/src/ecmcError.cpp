@@ -129,6 +129,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14316:
       return "ERROR_AXIS_NOT_ENABLED";
       break;
+    case 0x14317:
+      return "ERROR_AXIS_AMPLIFIER_ENABLED_LOST";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;

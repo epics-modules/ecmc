@@ -41,6 +41,9 @@ void ecmcAxisReal::initVars()
   operationMode_=ECMC_MODE_OP_AUTO;
   sampleTime_=1;
   currentDriveType_=ECMC_STEPPER;
+  enabledOld_=false;
+  enableCmdOld_=false;
+  executeCmdOld_=false;
 }
 
 void ecmcAxisReal::execute(bool masterOK)
@@ -84,6 +87,14 @@ void ecmcAxisReal::execute(bool masterOK)
       drv_->setVelSet(cntrl_->control(trajCurrSet,encActPos,traj_->getVel())); //Actual control
     }
     else{
+      if(getExecute()){
+	setExecute(false);
+	traj_->setStartPos(encActPos);
+      }
+      if(enabledOld_ && !drv_->getEnabled() && enableCmdOld_){
+	  setEnable(false);
+	  setErrorID(ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
+      }
       drv_->setVelSet(0);
       cntrl_->reset();
     }
@@ -109,6 +120,11 @@ void ecmcAxisReal::execute(bool masterOK)
     }
     drv_->writeEntries();
   }
+  enabledOld_=drv_->getEnabled();
+  enableCmdOld_=getEnable();
+  executeCmdOld_=getExecute();
+
+
 }
 
 int ecmcAxisReal::setExecute(bool execute)
@@ -153,9 +169,11 @@ bool ecmcAxisReal::getEnable()
 
 int ecmcAxisReal::getErrorID()
 {
-  if(ecmcError::getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+  //if(ecmcError::getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+  if(ecmcError::getError()){
     return ecmcError::getErrorID();
   }
+
   if(mon_->getError()){
     return setErrorID(mon_->getErrorID());
   }

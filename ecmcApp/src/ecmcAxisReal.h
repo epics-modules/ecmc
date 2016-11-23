@@ -66,6 +66,9 @@ private:
   ecmcSequencer seq_;
   double sampleTime_;
   ecmcDriveTypes currentDriveType_;
+  bool enabledOld_;
+  bool enableCmdOld_;
+  bool executeCmdOld_;
 };
 
 #endif /* ECMCAXISREAL_H_ */
