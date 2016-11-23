@@ -114,6 +114,7 @@ void ecmcAxisReal::execute(bool masterOK)
   }
   else if(operationMode_==ECMC_MODE_OP_MAN){  //MANUAL MODE: Raw Output..
     mon_->readEntries();
+    enc_->readEntries();
     if(!mon_->getHardLimitBwd() || !mon_->getHardLimitFwd()){ //PRIMITIVE CHECK FOR LIMIT SWITCHES
       drv_->setVelSet(0);
       drv_->setEnable(false);
