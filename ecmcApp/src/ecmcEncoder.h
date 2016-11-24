@@ -63,6 +63,8 @@ public:
   double readEntries();
   void setOffset(double offset);
   int validate();
+  void errorReset();
+  int getErrorID();
 
  protected:
   void initVars();

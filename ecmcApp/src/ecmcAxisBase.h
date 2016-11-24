@@ -95,6 +95,10 @@ public:
   int setCommandsTransformExpression(std::string expression);
   ecmcCommandTransform *getCommandTransform();
   void setInStartupPhase(bool startup);
+  int setTrajTransformExpression(std::string expressionString);
+  int setEncTransformExpression(std::string expressionString);
+  int setTrajDataSourceType(dataSource refSource);
+  int setEncDataSourceType(dataSource refSource);
 protected:
   void initVars();
   int fillCommandsTransformData();

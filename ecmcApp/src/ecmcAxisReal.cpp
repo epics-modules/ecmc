@@ -124,8 +124,6 @@ void ecmcAxisReal::execute(bool masterOK)
   enabledOld_=drv_->getEnabled();
   enableCmdOld_=getEnable();
   executeCmdOld_=getExecute();
-
-
 }
 
 int ecmcAxisReal::setExecute(bool execute)
@@ -151,6 +149,11 @@ int ecmcAxisReal::setEnable(bool enable)
 {
   if(!enable){ //Remove execute if enable is going down
     setExecute(false);
+  }
+
+  if(enable && validate()){
+    setExecute(false);
+    return getErrorID();
   }
 
   traj_->setEnable(enable);

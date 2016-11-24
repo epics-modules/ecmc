@@ -472,6 +472,12 @@ int ecmcMonitor::reset()
   return 0;
 }
 
+void ecmcMonitor::errorReset()
+{
+  //reset();
+  ecmcError::errorReset();
+}
+
 int ecmcMonitor::setEnableHardwareInterlock(bool enable)
 {
    if(enable){

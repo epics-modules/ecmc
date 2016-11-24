@@ -99,6 +99,11 @@ int ecmcAxisTraj::setEnable(bool enable)
     setExecute(false);
   }
 
+  if(enable && validate()){
+    setExecute(false);
+    return getErrorID();
+  }
+
   traj_->setEnable(enable);
   mon_->setEnable(enable);
   return setEnable_Transform();

@@ -57,9 +57,14 @@ ecmcMasterSlaveData *ecmcMasterSlaveIF::getExtInputDataInterface(int index)
 
 int ecmcMasterSlaveIF::setDataSourceType(dataSource refSource)
 {
+  if(refSource!=ECMC_DATA_SOURCE_INTERNAL){
+    int error=transform_->getErrorID();
+    if(error){
+      return error;
+    }
+  }
   dataSource_=refSource;
-  transform_->setDataSource(dataSource_);
-  return 0;
+  return transform_->setDataSource(dataSource_);
 }
 
 dataSource ecmcMasterSlaveIF::getDataSourceType()

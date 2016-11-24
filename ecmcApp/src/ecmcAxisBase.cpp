@@ -35,9 +35,24 @@ void ecmcAxisBase::setReset(bool reset)
   reset_=reset;
   if(reset_){
     errorReset();
-  }
-  if(getMon()!=NULL){
-    getMon()->reset();
+    if(getMon()!=NULL){
+      getMon()->errorReset();
+    }
+    if(getEnc()!=NULL){
+      getEnc()->errorReset();
+    }
+    if(getTraj()!=NULL){
+      getTraj()->errorReset();
+    }
+    if(getSeq()!=NULL){
+      getSeq()->errorReset();
+    }
+    if(getDrv()!=NULL){
+      getDrv()->errorReset();
+    }
+    if(getCntrl()!=NULL){
+      getCntrl()->errorReset();
+    }
   }
 }
 
@@ -221,5 +236,57 @@ void ecmcAxisBase::setInStartupPhase(bool startup)
 
 int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType)
 {
-  return ERROR_AXIS_FUNCTION_NOT_SUPPRTED;
+  return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+}
+
+int ecmcAxisBase::setTrajTransformExpression(std::string expressionString)
+{
+  if(!getTraj()){
+    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  int error=getTraj()->getExtInputTransform()->setExpression(expressionString);
+  if(error){
+    return setErrorID(error);
+  }
+  return 0;
+}
+
+int ecmcAxisBase::setEncTransformExpression(std::string expressionString)
+{
+  if(!getEnc()){
+    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  int error=getEnc()->getExtInputTransform()->setExpression(expressionString);
+  if(error){
+    return setErrorID(error);
+  }
+  return 0;
+}
+
+int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
+{
+  if(!getTraj()){
+    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  int error=getTraj()->setDataSourceType(refSource);
+  if(error){
+    return setErrorID(error);
+  }
+  return 0;
+}
+
+int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
+{
+  if(!getEnc()){
+    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  int error=getEnc()->setDataSourceType(refSource);
+  if(error){
+    return setErrorID(error);
+  }
+  return 0;
 }

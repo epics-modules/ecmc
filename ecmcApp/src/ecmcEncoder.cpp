@@ -257,3 +257,28 @@ int ecmcEncoder::validate()
 
   return 0;
 }
+
+void ecmcEncoder::errorReset()
+{
+  ecmcTransform * transform=getExtInputTransform();
+  if(transform!=NULL){
+    transform->errorReset();
+  }
+  ecmcError::errorReset();
+}
+
+int ecmcEncoder::getErrorID()
+{
+  if(ecmcError::getError()){
+    return ecmcError::getErrorID();
+  }
+
+  ecmcTransform * transform=getExtInputTransform();
+  if(transform==NULL){
+    int error=transform->getErrorID();
+    if(error){
+      return setErrorID(error);
+    }
+  }
+  return 0;
+}

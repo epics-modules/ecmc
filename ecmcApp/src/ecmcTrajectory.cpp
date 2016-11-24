@@ -778,3 +778,28 @@ int ecmcTrajectory::getCurrentExternalSetpoint(double* value)
 
   return getExtInputPos(value);
 }
+
+void ecmcTrajectory::errorReset()
+{
+  ecmcTransform * transform=getExtInputTransform();
+  if(transform!=NULL){
+    transform->errorReset();
+  }
+  ecmcError::errorReset();
+}
+
+int ecmcTrajectory::getErrorID()
+{
+  if(ecmcError::getError()){
+    return ecmcError::getErrorID();
+  }
+
+  ecmcTransform * transform=getExtInputTransform();
+  if(transform==NULL){
+    int error=transform->getErrorID();
+    if(error){
+      return setErrorID(error);
+    }
+  }
+  return 0;
+}
