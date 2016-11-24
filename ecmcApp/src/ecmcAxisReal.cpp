@@ -83,7 +83,7 @@ void ecmcAxisReal::execute(bool masterOK)
     cntrl_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setAtTarget(mon_->getAtTarget());  //Reduce torque
 
-    if(getEnable() && masterOK){
+    if(getEnable() && masterOK && !getError()){
       drv_->setVelSet(cntrl_->control(trajCurrSet,encActPos,traj_->getVel())); //Actual control
     }
     else{

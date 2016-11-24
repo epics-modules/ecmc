@@ -474,7 +474,7 @@ int ecmcMonitor::reset()
 
 void ecmcMonitor::errorReset()
 {
-  //reset();
+  reset();
   ecmcError::errorReset();
 }
 
