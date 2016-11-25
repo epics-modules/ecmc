@@ -365,6 +365,11 @@ int setAppMode(int mode)
       LOGINFO5("INFO:\t\tApplication in configuration mode.\n");
       appModeOld = appMode;
       appMode=(app_mode_type)mode;
+      for(int i=0;i<ECMC_MAX_AXES;i++){
+        if(axes[i]!=NULL){
+          axes[i]->setRealTimeStarted(false);
+        }
+      }
       break;
     case ECMC_MODE_RUNTIME:
       appModeOld=appMode;
@@ -397,6 +402,11 @@ int setAppMode(int mode)
       }
       LOGINFO5("INFO:\t\tApplication in runtime mode.\n");
       startRTthread();
+      for(int i=0;i<ECMC_MAX_AXES;i++){
+        if(axes[i]!=NULL){
+          axes[i]->setRealTimeStarted(true);
+        }
+      }
       break;
     default:
       LOGERR("WARNING: Mode %d not implemented. (Config=%d, Runtime=%d).\n",mode, ECMC_MODE_CONFIG,ECMC_MODE_RUNTIME);

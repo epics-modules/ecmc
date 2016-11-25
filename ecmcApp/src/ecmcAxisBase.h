@@ -99,6 +99,7 @@ public:
   int setEncTransformExpression(std::string expressionString);
   int setTrajDataSourceType(dataSource refSource);
   int setEncDataSourceType(dataSource refSource);
+  int setRealTimeStarted(bool realtime);
 protected:
   void initVars();
   int fillCommandsTransformData();
@@ -113,6 +114,7 @@ protected:
   ecmcCommandTransform *commandTransform_;
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   bool inStartupPhase_;
+  bool realtime_;
 };
 
 #endif /* ECMCAXISBASE_H_ */
