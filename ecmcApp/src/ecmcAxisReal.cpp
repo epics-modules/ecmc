@@ -41,6 +41,9 @@ void ecmcAxisReal::initVars()
   operationMode_=ECMC_MODE_OP_AUTO;
   sampleTime_=1;
   currentDriveType_=ECMC_STEPPER;
+  enabledOld_=false;
+  enableCmdOld_=false;
+  executeCmdOld_=false;
 }
 
 void ecmcAxisReal::execute(bool masterOK)
@@ -80,10 +83,18 @@ void ecmcAxisReal::execute(bool masterOK)
     cntrl_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setAtTarget(mon_->getAtTarget());  //Reduce torque
 
-    if(getEnable() && masterOK){
+    if(getEnable() && masterOK && !getError()){
       drv_->setVelSet(cntrl_->control(trajCurrSet,encActPos,traj_->getVel())); //Actual control
     }
     else{
+      if(getExecute()){
+	setExecute(false);
+	traj_->setStartPos(encActPos);
+      }
+      if(enabledOld_ && !drv_->getEnabled() && enableCmdOld_){
+	  setEnable(false);
+	  setErrorID(ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
+      }
       drv_->setVelSet(0);
       cntrl_->reset();
     }
@@ -103,12 +114,16 @@ void ecmcAxisReal::execute(bool masterOK)
   }
   else if(operationMode_==ECMC_MODE_OP_MAN){  //MANUAL MODE: Raw Output..
     mon_->readEntries();
+    enc_->readEntries();
     if(!mon_->getHardLimitBwd() || !mon_->getHardLimitFwd()){ //PRIMITIVE CHECK FOR LIMIT SWITCHES
       drv_->setVelSet(0);
       drv_->setEnable(false);
     }
     drv_->writeEntries();
   }
+  enabledOld_=drv_->getEnabled();
+  enableCmdOld_=getEnable();
+  executeCmdOld_=getExecute();
 }
 
 int ecmcAxisReal::setExecute(bool execute)
@@ -136,6 +151,11 @@ int ecmcAxisReal::setEnable(bool enable)
     setExecute(false);
   }
 
+  if(enable && validate()){
+    setExecute(false);
+    return getErrorID();
+  }
+
   traj_->setEnable(enable);
   cntrl_->setEnable(enable);
   mon_->setEnable(enable);
@@ -153,9 +173,11 @@ bool ecmcAxisReal::getEnable()
 
 int ecmcAxisReal::getErrorID()
 {
-  if(ecmcError::getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+  //if(ecmcError::getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+  if(ecmcError::getError()){
     return ecmcError::getErrorID();
   }
+
   if(mon_->getError()){
     return setErrorID(mon_->getErrorID());
   }

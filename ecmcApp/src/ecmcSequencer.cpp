@@ -202,8 +202,9 @@ int  ecmcSequencer::setExecute(bool execute)
         traj_->setMotionMode(ECMC_MOVE_MODE_POS);
         traj_->setCoordSystMode(ECMC_COORD_REL); //Only used for external source currently
         traj_->setTargetVel(targetVelocity_);
-        targetPosition_=checkSoftLimits(traj_->getCurrentPosSet()+targetPosition_);
-        traj_->setTargetPos(targetPosition_);
+        //targetPosition_=checkSoftLimits(traj_->getCurrentPosSet()+targetPosition_);
+        //traj_->setTargetPos(targetPosition_);
+        traj_->setTargetPos(checkSoftLimits(traj_->getCurrentPosSet()+targetPosition_));
       }
       traj_->setExecute(execute_);
       break;

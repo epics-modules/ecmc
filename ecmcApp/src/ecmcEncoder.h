@@ -38,6 +38,8 @@
 #define ERROR_ENC_TRANSFORM_VALIDATION_ERROR 0x1440A
 #define ERROR_ENC_SLAVE_INTERFACE_NULL 0x1440B
 
+#define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
+
 class ecmcEncoder : public ecmcEcEntryLink , public ecmcMasterSlaveIF
 {
 public:
@@ -63,6 +65,8 @@ public:
   double readEntries();
   void setOffset(double offset);
   int validate();
+  void errorReset();
+  int getErrorID();
 
  protected:
   void initVars();

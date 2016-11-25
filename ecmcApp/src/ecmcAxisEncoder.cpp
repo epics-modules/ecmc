@@ -75,6 +75,12 @@ int ecmcAxisEncoder::setEnable(bool enable)
     setExecute(false);
   }
 
+  if(enable && validate()){
+    enable_=false;
+    setExecute(false);
+    return getErrorID();
+  }
+
   enable_=enable;
 
   //Cascade commands via command transformation

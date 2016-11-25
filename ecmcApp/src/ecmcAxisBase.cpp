@@ -35,9 +35,24 @@ void ecmcAxisBase::setReset(bool reset)
   reset_=reset;
   if(reset_){
     errorReset();
-  }
-  if(getMon()!=NULL){
-    getMon()->reset();
+    if(getMon()!=NULL){
+      getMon()->errorReset();
+    }
+    if(getEnc()!=NULL){
+      getEnc()->errorReset();
+    }
+    if(getTraj()!=NULL){
+      getTraj()->errorReset();
+    }
+    if(getSeq()!=NULL){
+      getSeq()->errorReset();
+    }
+    if(getDrv()!=NULL){
+      getDrv()->errorReset();
+    }
+    if(getCntrl()!=NULL){
+      getCntrl()->errorReset();
+    }
   }
 }
 
@@ -57,6 +72,7 @@ void ecmcAxisBase::initVars()
   for(int i=0; i<ECMC_MAX_AXES;i++){
     axes_[i]=NULL;
   }
+  realtime_=false;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -93,6 +109,12 @@ bool ecmcAxisBase::checkAxesForEnabledTransfromCommands(commandType type)
 
 int ecmcAxisBase::setEnableCommandsTransform(bool  enable)
 {
+  if(realtime_){
+    int error=commandTransform_->validate();
+    if(error){
+      return setErrorID(error);
+    }
+  }
   enableCommandTransform_=enable;
   return 0;
 }
@@ -101,7 +123,6 @@ bool ecmcAxisBase::getEnableCommandsTransform()
 {
   return enableCommandTransform_;
 }
-
 
 int ecmcAxisBase::fillCommandsTransformData()
 {
@@ -221,5 +242,104 @@ void ecmcAxisBase::setInStartupPhase(bool startup)
 
 int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType)
 {
-  return ERROR_AXIS_FUNCTION_NOT_SUPPRTED;
+  return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+}
+
+int ecmcAxisBase::setTrajTransformExpression(std::string expressionString)
+{
+  if(!getTraj()){
+    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  int error=getTraj()->getExtInputTransform()->setExpression(expressionString);
+  if(error){
+    return setErrorID(error);
+  }
+  return 0;
+}
+
+int ecmcAxisBase::setEncTransformExpression(std::string expressionString)
+{
+  if(!getEnc()){
+    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  int error=getEnc()->getExtInputTransform()->setExpression(expressionString);
+  if(error){
+    return setErrorID(error);
+  }
+  return 0;
+}
+
+int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
+{
+  if(!getTraj()){
+    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  //If realtime: Ensure that transform object is compiled and ready to go
+  if(refSource!=ECMC_DATA_SOURCE_INTERNAL && realtime_){
+    ecmcTransform * transform=getTraj()->getExtInputTransform();
+    if(!transform){
+      return setErrorID(ERROR_TRAJ_TRANSFORM_NULL);
+    }
+    int error =transform->validate();
+    if(error){
+      return setErrorID(error);
+    }
+  }
+
+  int error=getTraj()->setDataSourceType(refSource);
+  if(error){
+    return setErrorID(error);
+  }
+  error=getTraj()->validate();
+  if(error){
+    return setErrorID(error);
+  }
+  return 0;
+}
+
+int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
+{
+  if(!getEnc()){
+    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  //If realtime: Ensure that ethercat enty for actual position is linked
+  if(refSource==ECMC_DATA_SOURCE_INTERNAL && realtime_){
+    int error=getEnc()->validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
+    if(error){
+      return setErrorID(error);
+    }
+  }
+
+  //If realtime: Ensure that transform object is compiled and ready to go
+  if(refSource!=ECMC_DATA_SOURCE_INTERNAL && realtime_){
+    ecmcTransform * transform=getEnc()->getExtInputTransform();
+    if(!transform){
+      return setErrorID(ERROR_TRAJ_TRANSFORM_NULL);
+    }
+    int error =transform->validate();
+    if(error){
+      return setErrorID(error);
+    }
+  }
+
+  int error=getEnc()->setDataSourceType(refSource);
+  if(error){
+    return setErrorID(error);
+  }
+  if(realtime_) {
+    error=getEnc()->validate();
+    if(error){
+      return setErrorID(error);
+    }
+  }
+  return 0;
+}
+
+int ecmcAxisBase::setRealTimeStarted(bool realtime)
+{
+  realtime_=realtime;
 }

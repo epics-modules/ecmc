@@ -796,7 +796,7 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisDrvVelSetRaw(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisDrvVelSetRaw(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
-    return setAxisDrvVelSet(iValue,iValue2);
+    return setAxisDrvVelSetRaw(iValue,iValue2);
   }
 
   /*int Cfg.SetAxisDrvEnable(int axis_no, int value);*/

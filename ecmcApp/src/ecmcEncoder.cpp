@@ -189,10 +189,16 @@ double ecmcEncoder::readEntries()
   }
 
   if(getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+    int error=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
+    if(error){
+      setErrorID(ERROR_ENC_ENTRY_NULL);
+      return 0;
+    }
+
     //Act position
     uint64_t tempRaw=0;
 
-    if(readEcEntryValue(0,&tempRaw)){
+    if(readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION,&tempRaw)){
       setErrorID(ERROR_ENC_ENTRY_READ_FAIL);
       return actPos_;
     }
@@ -229,7 +235,7 @@ int ecmcEncoder::validate()
   }
 
   if(getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    int errorCode=validateEntry(0);
+    int errorCode=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
     if(errorCode){   //Act position
       return setErrorID(ERROR_ENC_ENTRY_NULL);
     }
@@ -255,5 +261,30 @@ int ecmcEncoder::validate()
     return setErrorID(ERROR_ENC_SLAVE_INTERFACE_NULL);
   }
 
+  return 0;
+}
+
+void ecmcEncoder::errorReset()
+{
+  ecmcTransform * transform=getExtInputTransform();
+  if(transform!=NULL){
+    transform->errorReset();
+  }
+  ecmcError::errorReset();
+}
+
+int ecmcEncoder::getErrorID()
+{
+  if(ecmcError::getError()){
+    return ecmcError::getErrorID();
+  }
+
+  ecmcTransform * transform=getExtInputTransform();
+  if(transform==NULL){
+    int error=transform->getErrorID();
+    if(error){
+      return setErrorID(error);
+    }
+  }
   return 0;
 }

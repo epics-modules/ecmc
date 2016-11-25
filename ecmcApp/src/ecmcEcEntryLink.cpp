@@ -35,12 +35,12 @@ int ecmcEcEntryLink::setEntryAtIndex(ecmcEcEntry *entry,int index,int bitIndex)
 
 int ecmcEcEntryLink::validateEntry(int index)
 {
-  if(entryInfoArray_[index].bitNumber>=0){
-    return validateEntryBit(index);
-  }
-
   if(index>=MaxEcEntryLinks || index<0){
     return ERROR_EC_ENTRY_INDEX_OUT_OF_RANGE;
+  }
+
+  if(entryInfoArray_[index].bitNumber>=0){
+    return validateEntryBit(index);
   }
 
   if(entryInfoArray_[index].entry ==NULL){

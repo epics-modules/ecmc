@@ -365,6 +365,11 @@ int setAppMode(int mode)
       LOGINFO5("INFO:\t\tApplication in configuration mode.\n");
       appModeOld = appMode;
       appMode=(app_mode_type)mode;
+      for(int i=0;i<ECMC_MAX_AXES;i++){
+        if(axes[i]!=NULL){
+          axes[i]->setRealTimeStarted(false);
+        }
+      }
       break;
     case ECMC_MODE_RUNTIME:
       appModeOld=appMode;
@@ -397,6 +402,11 @@ int setAppMode(int mode)
       }
       LOGINFO5("INFO:\t\tApplication in runtime mode.\n");
       startRTthread();
+      for(int i=0;i<ECMC_MAX_AXES;i++){
+        if(axes[i]!=NULL){
+          axes[i]->setRealTimeStarted(true);
+        }
+      }
       break;
     default:
       LOGERR("WARNING: Mode %d not implemented. (Config=%d, Runtime=%d).\n",mode, ECMC_MODE_CONFIG,ECMC_MODE_RUNTIME);
@@ -1087,7 +1097,7 @@ int setAxisTrajTransExpr(int axisIndex, char *expr)
     return ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING;
   }
 
-  return axes[axisIndex]->getTraj()->getExtInputTransform()->setExpression(tempExpr);
+  return axes[axisIndex]->setTrajTransformExpression(tempExpr);
 }
 
 int setAxisTransformCommandExpr(int axisIndex,char *expr)
@@ -1109,17 +1119,17 @@ int setAxisEncTransExpr(int axisIndex, char *expr)
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)
 
-  std::string sTemp=expr;
+  std::string tempExpr=expr;
 
   //Ensure that "OUT" or "IL" variables are defined
-  bool out=sTemp.find(TRANSFORM_EXPR_OUTPUT_VAR_NAME)!=std::string::npos;
-  bool il=sTemp.find(TRANSFORM_EXPR_INTERLOCK_VAR_NAME)!=std::string::npos;
+  bool out=tempExpr.find(TRANSFORM_EXPR_OUTPUT_VAR_NAME)!=std::string::npos;
+  bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_VAR_NAME)!=std::string::npos;
 
   if(!(out && il)){
     return ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING;
   }
 
-  return axes[axisIndex]->getEnc()->getExtInputTransform()->setExpression(sTemp);
+  return axes[axisIndex]->setEncTransformExpression(tempExpr);
 }
 
 const char* getAxisTrajTransExpr(int axisIndex, int *error)
@@ -1212,12 +1222,7 @@ int setAxisTrajSource(int axisIndex, int value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  int errorCode=axes[axisIndex]->getTraj()->setDataSourceType((dataSource)value);
-  if(errorCode){
-    return errorCode;
-  }
-
-  return 0;
+  return axes[axisIndex]->setTrajDataSourceType((dataSource)value);
 }
 
 int setAxisEncSource(int axisIndex, int value)
@@ -1227,12 +1232,7 @@ int setAxisEncSource(int axisIndex, int value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)
 
-  int iRet=axes[axisIndex]->getEnc()->setDataSourceType((dataSource)value);
-  if(iRet){
-    return iRet;
-  }
-
-  return 0;
+  return axes[axisIndex]->setEncDataSourceType((dataSource)value);
 }
 
 int setAxisTrajStartPos(int axisIndex,double value)

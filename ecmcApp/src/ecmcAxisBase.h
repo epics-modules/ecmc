@@ -46,6 +46,7 @@
 #define ERROR_AXIS_INDEX_OUT_OF_RANGE 0x14314
 #define ERROR_AXIS_HARDWARE_STATUS_NOT_OK 0x14315
 #define ERROR_AXIS_NOT_ENABLED 0x14316
+#define ERROR_AXIS_AMPLIFIER_ENABLED_LOST 0x14317
 
 
 class ecmcAxisBase : public ecmcError
@@ -94,6 +95,11 @@ public:
   int setCommandsTransformExpression(std::string expression);
   ecmcCommandTransform *getCommandTransform();
   void setInStartupPhase(bool startup);
+  int setTrajTransformExpression(std::string expressionString);
+  int setEncTransformExpression(std::string expressionString);
+  int setTrajDataSourceType(dataSource refSource);
+  int setEncDataSourceType(dataSource refSource);
+  int setRealTimeStarted(bool realtime);
 protected:
   void initVars();
   int fillCommandsTransformData();
@@ -108,6 +114,7 @@ protected:
   ecmcCommandTransform *commandTransform_;
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   bool inStartupPhase_;
+  bool realtime_;
 };
 
 #endif /* ECMCAXISBASE_H_ */

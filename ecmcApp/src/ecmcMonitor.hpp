@@ -63,6 +63,7 @@ public:
   bool getDriveInterlock();
   int validate();
   int reset();
+  void errorReset();
   int setEnableHardwareInterlock(bool enable);
   int setCntrlOutput(double output);
   int setCntrlOutputHL(double outputHL);

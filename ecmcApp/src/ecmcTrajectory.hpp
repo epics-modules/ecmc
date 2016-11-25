@@ -183,6 +183,9 @@ public:
   int validate();
   /// Return current setpoint from external source (only used when synchronizing).
   int getCurrentExternalSetpoint(double* value);
+  /// Reset errors in this and linked objects
+  void errorReset();
+  int getErrorID();
 
 private:
   void initVars();
