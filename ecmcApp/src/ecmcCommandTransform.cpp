@@ -95,6 +95,9 @@ int ecmcCommandTransform::refresh()
 
 int ecmcCommandTransform::validate()
 {
+  if(!compiled_){
+    return setErrorID(ERROR_TRANSFORM_COMPILE_ERROR);
+  }
   return 0;
 }
 
