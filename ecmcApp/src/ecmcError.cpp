@@ -708,6 +708,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20201:
       return "ERROR_DATA_STORAGE_NULL";
       break;
+    case 0x20202:
+      return "ERROR_DATA_STORAGE_SIZE_TO_SMALL";
+      break;
     case 0x20300: //Event
       return "ERROR_EVENT_DATA_ECENTRY_NULL";
       break;
