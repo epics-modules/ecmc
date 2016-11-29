@@ -84,7 +84,7 @@ int ecmcDataStorage::printBuffer()
   }
   printf("Printout of data storage buffer %d.\n",index_);
   for(int i=start;i<end ;i++){
-    printf("%lf ",buffer_[i]);
+    printf("%lf, ",buffer_[i]);
   }
   printf("\n");
   return 0;
@@ -129,13 +129,24 @@ int ecmcDataStorage::appendData(double *data, int size)
     sizeToCopy=bufferElementCount_-currentBufferIndex_;
   }
 
-  memcpy(buffer_+currentBufferIndex_, data ,sizeToCopy*sizeof(double));
-  currentBufferIndex_=currentBufferIndex_+sizeToCopy;
+  if(sizeToCopy>0){
+
+    for(int i=0;i<sizeToCopy;i++){
+      PRINT_DIAG(("Appending data: %lf at position: %d\n",*(data+i), currentBufferIndex_+i));
+    }
+
+    memcpy(buffer_+currentBufferIndex_,data ,sizeToCopy*sizeof(double));
+    currentBufferIndex_=currentBufferIndex_+sizeToCopy;
+  }
 
   if(sizeToCopy<size){
     if(bufferType_!=ECMC_STORAGE_RING_BUFFER){
       PRINT_DIAG(("Index: %d.Error: %x\n",index_,ERROR_DATA_STORAGE_FULL));
       return setErrorID(ERROR_DATA_STORAGE_FULL);
+    }
+
+    for(int i=0;i<size-sizeToCopy;i++){
+      PRINT_DIAG(("Appending data: %lf at position: %d\n",*(data+sizeToCopy+i), i));
     }
 
     //If ring buffer then copy the rest of the data to the beginning of the buffer
@@ -146,8 +157,16 @@ int ecmcDataStorage::appendData(double *data, int size)
   return 0;
 }
 
-
 int ecmcDataStorage::appendData(double data)
 {
   return appendData(&data,1);
+}
+
+int ecmcDataStorage::setCurrentPosition(int position)
+{
+  if(position>bufferElementCount_ || position<0){
+    return setErrorID(ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
+  }
+  currentBufferIndex_=position;
+  return 0;
 }

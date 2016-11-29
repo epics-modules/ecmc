@@ -87,9 +87,37 @@ static int ecmcInit=0;
   }                                              \
   while(0)
 
+#define ECMC_COMMAND_FORMAT_ERROR 0x210000;
+
 void init_axis(int axis_no)
 {
   ;
+}
+
+static int appendAsciiDataToStorageBuffer(int storageIndex, const char * asciiData)
+{
+  char *currentStringPos=strchr(asciiData,'=');
+  if(currentStringPos){
+    double data=0;
+    while(currentStringPos){
+      currentStringPos++;
+      int nvals=sscanf(currentStringPos,"%lf",&data);
+      if(nvals){
+        int error=appendStorageBuffer(storageIndex,&data,1);
+        if(error){
+          return error;
+        }
+        currentStringPos=strchr(currentStringPos+1,',');
+      }
+      else{
+        return ECMC_COMMAND_FORMAT_ERROR;
+      }
+    }
+  }
+  else{
+    return ECMC_COMMAND_FORMAT_ERROR;
+  }
+  return 0;
 }
 
 static const char * const ADSPORT_equals_str = "ADSPORT=";
@@ -908,7 +936,7 @@ static int handleCfgCommand(const char *myarg_1){
   //nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d)=%[^\n]",&iValue,cExprBuffer);
   if (nvals == 2){
-    //Change all # to ; (since ; is used as command delimiter in tcpip communication)
+    //Change all # to ; (since ; is used as command delimiter)
     size_t str_len=strlen(cExprBuffer);
 
     int i=0;
@@ -992,6 +1020,12 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "PrintStorageBuffer(%d)", &iValue);
   if (nvals == 1) {
     return printStorageBuffer(iValue);
+  }
+
+  /*int Cfg.SetDataStorageCurrentDataIndex(0,10)"*/
+  nvals = sscanf(myarg_1, "SetDataStorageCurrentDataIndex(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setDataStorageCurrentDataIndex(iValue,iValue2);
   }
 
   /*Cfg.LinkEcEntryToEvent(int indexEvent,int eventEntryIndex,int Slave, char *ecEntryIdString, int bitIndex)*/
@@ -1364,7 +1398,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(moveAbsolutePosition(iValue,dValue1,dValue2,dValue3,dValue4));
   }
 
-  /*int MoveRelativePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
+  /*int MoveRelativePosECMC_COMMAND_FORMAT_ERRORition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
   nvals = sscanf(myarg_1, "MoveRelativePosition(%d,%lf,%lf,%lf,%lf)", &iValue,&dValue1,&dValue2,&dValue3,&dValue4);
   if (nvals == 5) {
     SEND_OK_OR_ERROR_AND_RETURN(moveRelativePosition(iValue,dValue1,dValue2,dValue3,dValue4));
@@ -1414,6 +1448,19 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
       }
     }
     return 0;
+  }
+
+  /*int WriteStorageBuffer(int axisIndex)=0,0,0,0*/
+  nvals = sscanf(myarg_1, "WriteStorageBuffer(%d)=", &iValue);
+  if (nvals == 1) {
+    setDataStorageCurrentDataIndex(iValue,0); //Start to fill from first index in buffer
+    SEND_OK_OR_ERROR_AND_RETURN(appendAsciiDataToStorageBuffer(iValue,myarg_1));
+  }
+
+  /*int AppendStorageBuffer(int axisIndex)=0,0,0,0*/
+  nvals = sscanf(myarg_1, "AppendStorageBuffer(%d)=", &iValue);
+  if (nvals == 1) {
+    SEND_OK_OR_ERROR_AND_RETURN(appendAsciiDataToStorageBuffer(iValue,myarg_1));
   }
 
   /* Main.*/

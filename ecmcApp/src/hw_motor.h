@@ -2443,7 +2443,7 @@ int setStorageEnablePrintouts(int indexStorage,int enable);
  */
 int printStorageBuffer(int indexStorage);
 
-/** \breif Reads contents of stroage buffer.\n
+/** \breif Reads contents of storage buffer.\n
  *
  * \param[in] indexStorage Index of data storage object to address.\n
  * \param[out] data Pointer to data.\n
@@ -2455,6 +2455,61 @@ int printStorageBuffer(int indexStorage);
  *  "ReadStorageBuffer(3)" //Command string to cmd_EAT.c\n
  */
 int readStorageBuffer(int indexStorage, double *data, int* size);
+
+/** \breif Writes data to storage buffer.\n
+ *
+ * \param[in] indexStorage Index of data storage object to address.\n
+ * \param[in] data Pointer to data.\n
+ * \param[in] size Number of data elements to write.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Write contents of data storage object 3 .\n
+ *  "WriteStorageBuffer(3)=0,0,0,0,0,0...." //Command string to cmd_EAT.c\n
+ */
+int writeStorageBuffer(int indexStorage, double *data, int size);
+
+/** \breif Appends data to the end of storage buffer.\n
+ *
+ * \param[in] indexStorage Index of data storage object to address.\n
+ * \param[in] data Pointer to data.\n
+ * \param[in] size Number of data elements to write.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Append data to data storage object 3 .\n
+ *  "AppendStorageBuffer(3)=0,0,0,0,0,0....." //Command string to cmd_EAT.c\n
+ */
+int appendStorageBuffer(int indexStorage, double *data, int size);
+
+/** \breif Writes data to storage buffer.\n
+ *Pointer
+ * \param[in] indexStorage Index of data storage object to address.\n
+ * \param[in] data Pointer to data.\n
+ * \param[in] size Number of data elements to write.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Write contents of data storage object 3 .\n
+ *  "WriteStorageBuffer(3)=0,0,0,0,0,0...." //Command string to cmd_EAT.c\n
+ */
+int writeStorageBuffer(int indexStorage, double *data, int size);
+
+/** \breif Set current data index of storage buffer.\n
+ *
+ * This function can be used to set teh current index of a data
+ * storage buffer. A subsequent append of data will start at this
+ * position index in the buffer array.
+ *
+ * \param[in] indexStorage Index of data storage object to address.\n
+ * \param[in] position Position index of data.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set current index of data storage 0 to 10.\n
+ *  "Cfg.SetDataStorageCurrentDataIndex(0,10)" //Command string to cmd_EAT.c\n
+ */
+int setDataStorageCurrentDataIndex(int indexStorage,int position);
 
 /** \breif Create recorder object.
  *

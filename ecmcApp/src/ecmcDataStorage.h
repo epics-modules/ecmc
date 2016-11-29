@@ -17,6 +17,7 @@
 #define ERROR_DATA_STORAGE_FULL 0x20200
 #define ERROR_DATA_STORAGE_NULL 0x20201
 #define ERROR_DATA_STORAGE_SIZE_TO_SMALL 0x20202
+#define ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE 0x20203
 
 enum storageType{
   ECMC_STORAGE_LIFO_BUFFER=0,
@@ -40,6 +41,7 @@ public:
   int getData(double *data, int *size);
   int setData(double *data, int size);
   int appendData(double *data, int size);
+  int setCurrentPosition(int position);
 
 private:
   void initVars();
