@@ -23,7 +23,7 @@ This README would normally document whatever steps are necessary to get your app
 * Code review
 * Other guidelines
 * Please report issues here:
-  https://ess-ics.atlassian.net/projects/ECMC/issues/?filter=allopenissues
+  https://ess-ics.atlassian.net/projects/ECMC/issues/
 
 ### Who do I talk to? ###
 
