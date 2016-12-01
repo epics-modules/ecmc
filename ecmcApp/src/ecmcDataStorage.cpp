@@ -65,28 +65,6 @@ int ecmcDataStorage::setBufferSize(int elements)
   return 0;
 }
 
-int ecmcDataStorage::appendData(double data)
-{
-  if(buffer_==NULL)
-  {
-    PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    return setErrorID(ERROR_DATA_STORAGE_NULL);
-  }
-
-  if(currentBufferIndex_>(bufferElementCount_-1) && bufferType_==ECMC_STORAGE_RING_BUFFER){
-    currentBufferIndex_=0;
-  }
-
-  if(currentBufferIndex_>(bufferElementCount_-1) && bufferType_==ECMC_STORAGE_LIFO_BUFFER){
-    PRINT_DIAG(("Index: %d.Error: %x\n",index_,ERROR_DATA_STORAGE_FULL));
-    return setErrorID(ERROR_DATA_STORAGE_FULL);
-  }
-
-  buffer_[currentBufferIndex_]=data;
-  currentBufferIndex_++;
-  return 0;
-}
-
 int ecmcDataStorage::isStorgeFull()
 {
   return currentBufferIndex_==bufferElementCount_;
@@ -106,7 +84,7 @@ int ecmcDataStorage::printBuffer()
   }
   printf("Printout of data storage buffer %d.\n",index_);
   for(int i=start;i<end ;i++){
-    printf("%lf ",buffer_[i]);
+    printf("%lf, ",buffer_[i]);
   }
   printf("\n");
   return 0;
@@ -118,9 +96,77 @@ int ecmcDataStorage::setEnablePrintOuts(bool enable)
   return 0;
 }
 
-int ecmcDataStorage::getData(double *data, int *size)
+int ecmcDataStorage::getData(double **data, int *size)
 {
-  data=buffer_;
+  *data=buffer_;
   *size=bufferElementCount_;
+  return 0;
+}
+
+int ecmcDataStorage::setData(double *data, int size)
+{
+  currentBufferIndex_=0; //Start from beginning
+  return appendData(data,size);
+}
+
+int ecmcDataStorage::appendData(double *data, int size)
+{
+  if(buffer_==NULL){
+    PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
+    return setErrorID(ERROR_DATA_STORAGE_NULL);
+  }
+
+  if(size>bufferElementCount_){
+    PRINT_DIAG(("Index: %d.Error: %x\n",index_,ERROR_DATA_STORAGE_SIZE_TO_SMALL));
+    return setErrorID(ERROR_DATA_STORAGE_SIZE_TO_SMALL);
+  }
+
+  int sizeToCopy=size;
+  if(sizeToCopy>bufferElementCount_){
+    sizeToCopy=bufferElementCount_;
+  }
+  if(sizeToCopy>bufferElementCount_-currentBufferIndex_){
+    sizeToCopy=bufferElementCount_-currentBufferIndex_;
+  }
+
+  if(sizeToCopy>0){
+
+    for(int i=0;i<sizeToCopy;i++){
+      PRINT_DIAG(("Appending data: %lf at position: %d\n",*(data+i), currentBufferIndex_+i));
+    }
+
+    memcpy(buffer_+currentBufferIndex_,data ,sizeToCopy*sizeof(double));
+    currentBufferIndex_=currentBufferIndex_+sizeToCopy;
+  }
+
+  if(sizeToCopy<size){
+    if(bufferType_!=ECMC_STORAGE_RING_BUFFER){
+      PRINT_DIAG(("Index: %d.Error: %x\n",index_,ERROR_DATA_STORAGE_FULL));
+      return setErrorID(ERROR_DATA_STORAGE_FULL);
+    }
+
+    for(int i=0;i<size-sizeToCopy;i++){
+      PRINT_DIAG(("Appending data: %lf at position: %d\n",*(data+sizeToCopy+i), i));
+    }
+
+    //If ring buffer then copy the rest of the data to the beginning of the buffer
+    memcpy(buffer_, data+sizeToCopy ,(size-sizeToCopy)*sizeof(double));
+    currentBufferIndex_=(size-sizeToCopy);
+  }
+
+  return 0;
+}
+
+int ecmcDataStorage::appendData(double data)
+{
+  return appendData(&data,1);
+}
+
+int ecmcDataStorage::setCurrentPosition(int position)
+{
+  if(position>bufferElementCount_ || position<0){
+    return setErrorID(ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
+  }
+  currentBufferIndex_=position;
   return 0;
 }

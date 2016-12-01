@@ -44,6 +44,7 @@ int ecmcCommandList::executeEvent(int masterOK) //Master state not critical for 
     return getErrorID();
   }
 
+  clearBuffer(&resultBuffer_);
 //  int errorCode=0;
   for(unsigned int i=0; i < commandList_.size(); i++){
 

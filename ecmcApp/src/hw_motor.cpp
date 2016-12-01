@@ -2562,13 +2562,40 @@ int printStorageBuffer(int indexStorage)
   return dataStorages[indexStorage]->printBuffer();
 }
 
-int readStorageBuffer(int indexStorage, double *data, int* size)
+int readStorageBuffer(int indexStorage, double **data, int* size)
 {
   LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
   return dataStorages[indexStorage]->getData(data,size);
+}
+
+int writeStorageBuffer(int indexStorage, double *data, int size)
+{
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  return dataStorages[indexStorage]->setData(data,size);
+}
+
+int appendStorageBuffer(int indexStorage, double *data, int size)
+{
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  return dataStorages[indexStorage]->appendData(data,size);
+}
+
+int setDataStorageCurrentDataIndex(int indexStorage,int position)
+{
+  LOGINFO4("%s/%s:%d indexStorage=%d position=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage, position);
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  return dataStorages[indexStorage]->setCurrentPosition(position);
 }
 
 int setEventTriggerEdge(int indexEvent,int triggerEdge)
@@ -2578,7 +2605,6 @@ int setEventTriggerEdge(int indexEvent,int triggerEdge)
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->setTriggerEdge((triggerEdgeType)triggerEdge);
-
 }
 
 int setEventEnableArmSequence(int indexEvent,int enable)
@@ -2724,6 +2750,15 @@ int getControllerError()
     }
   }
 
+  //Data Storages
+  for(int i=0; i< ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
+    if(dataStorages[i]!=NULL){
+      if(dataStorages[i]->getError()){
+        return dataStorages[i]->getErrorID();
+      }
+    }
+  }
+
   //CommandLists
   for(int i=0; i< ECMC_MAX_COMMANDS_LISTS;i++){
     if(commandLists[i]!=NULL){
@@ -2763,6 +2798,13 @@ int controllerErrorReset()
   for(int i=0; i< ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
     if(dataRecorders[i]!=NULL){
       dataRecorders[i]->errorReset();
+    }
+  }
+
+  //Data Storages
+  for(int i=0; i< ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
+    if(dataStorages[i]!=NULL){
+      dataStorages[i]->errorReset();
     }
   }
 

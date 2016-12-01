@@ -708,6 +708,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20201:
       return "ERROR_DATA_STORAGE_NULL";
       break;
+    case 0x20202:
+      return "ERROR_DATA_STORAGE_SIZE_TO_SMALL";
+      break;
+    case 0x20203:
+      return "ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE";
+      break;
     case 0x20300: //Event
       return "ERROR_EVENT_DATA_ECENTRY_NULL";
       break;
@@ -753,11 +759,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20406:
       return "ERROR_COMMAND_LIST_VECTOR_FULL";
       break;
+    case 0x20407:
+      return "ERROR_COMMAND_LIST_RESULT_BUFFER_OVERFLOW";
+      break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
       break;
-
-
+    case 0x210000:
+      return "ECMC_COMMAND_FORMAT_ERROR";
+      break;
   }
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
 }
