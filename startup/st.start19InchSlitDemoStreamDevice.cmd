@@ -1,7 +1,7 @@
 require asyn,4.27
 require streamdevice
 require motor,6.10.5-ESS
-require ecmc,1.1.4
+require ecmc
 
 
 ## Configure devices
