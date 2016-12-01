@@ -38,7 +38,7 @@ public:
   int printBuffer();
   int setEnablePrintOuts(bool enable);
   int getSize();
-  int getData(double *data, int *size);
+  int getData(double **data, int *size);
   int setData(double *data, int size);
   int appendData(double *data, int size);
   int setCurrentPosition(int position);

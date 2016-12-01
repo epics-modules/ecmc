@@ -2439,7 +2439,7 @@ int setStorageEnablePrintouts(int indexStorage,int enable);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Print contents of data storage object 3 .\n
- *  "Cfg.PrintStorageBuffer(3)" //Command string to cmd_EAT.c\n
+ *  "Cfg.PrintDataStorage(3)" //Command string to cmd_EAT.c\n
  */
 int printStorageBuffer(int indexStorage);
 
@@ -2452,9 +2452,9 @@ int printStorageBuffer(int indexStorage);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Read contents of data storage object 3 .\n
- *  "ReadStorageBuffer(3)" //Command string to cmd_EAT.c\n
+ *  "ReadDataStorage(3)" //Command string to cmd_EAT.c\n
  */
-int readStorageBuffer(int indexStorage, double *data, int* size);
+int readStorageBuffer(int indexStorage, double **data, int* size);
 
 /** \breif Writes data to storage buffer.\n
  *
@@ -2465,7 +2465,7 @@ int readStorageBuffer(int indexStorage, double *data, int* size);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Write contents of data storage object 3 .\n
- *  "WriteStorageBuffer(3)=0,0,0,0,0,0...." //Command string to cmd_EAT.c\n
+ *  "WriteDataStorage(3)=0,0,0,0,0,0...." //Command string to cmd_EAT.c\n
  */
 int writeStorageBuffer(int indexStorage, double *data, int size);
 
@@ -2478,22 +2478,9 @@ int writeStorageBuffer(int indexStorage, double *data, int size);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Append data to data storage object 3 .\n
- *  "AppendStorageBuffer(3)=0,0,0,0,0,0....." //Command string to cmd_EAT.c\n
+ *  "AppendDataStorage(3)=0,0,0,0,0,0....." //Command string to cmd_EAT.c\n
  */
 int appendStorageBuffer(int indexStorage, double *data, int size);
-
-/** \breif Writes data to storage buffer.\n
- *Pointer
- * \param[in] indexStorage Index of data storage object to address.\n
- * \param[in] data Pointer to data.\n
- * \param[in] size Number of data elements to write.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Write contents of data storage object 3 .\n
- *  "WriteStorageBuffer(3)=0,0,0,0,0,0...." //Command string to cmd_EAT.c\n
- */
-int writeStorageBuffer(int indexStorage, double *data, int size);
 
 /** \breif Set current data index of storage buffer.\n
  *

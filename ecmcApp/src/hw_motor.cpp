@@ -2562,7 +2562,7 @@ int printStorageBuffer(int indexStorage)
   return dataStorages[indexStorage]->printBuffer();
 }
 
-int readStorageBuffer(int indexStorage, double *data, int* size)
+int readStorageBuffer(int indexStorage, double **data, int* size)
 {
   LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
 

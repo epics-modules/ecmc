@@ -96,9 +96,9 @@ int ecmcDataStorage::setEnablePrintOuts(bool enable)
   return 0;
 }
 
-int ecmcDataStorage::getData(double *data, int *size)
+int ecmcDataStorage::getData(double **data, int *size)
 {
-  data=buffer_;
+  *data=buffer_;
   *size=bufferElementCount_;
   return 0;
 }
