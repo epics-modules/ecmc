@@ -229,7 +229,7 @@ void ecmcEcSlave::writeEntriesStruct()
   printf("INFO:\t\tWriting: slave_pdo_entries: \n");
   printf("\t\tIndex\tSubIndex\tBitLength \n");
   for(int i=0;i<entriesArrayIndex_;i++){
-    printf("\t\t{%x\t%x\t%x}\n",slavePdoEntries_[i].index,slavePdoEntries_[i].subindex,slavePdoEntries_[i].bit_length);
+    printf("\t\t{%x\t%x\t%d}\n",slavePdoEntries_[i].index,slavePdoEntries_[i].subindex,slavePdoEntries_[i].bit_length);
   }
 }
 void ecmcEcSlave::writePdoStruct()

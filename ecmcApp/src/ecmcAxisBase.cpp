@@ -342,4 +342,19 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
 int ecmcAxisBase::setRealTimeStarted(bool realtime)
 {
   realtime_=realtime;
+  return 0;
+}
+
+bool ecmcAxisBase::getError()
+{
+  int error= getErrorID();
+  if(error){
+    setErrorID(error);
+  }
+  return ecmcError::getError();
+}
+
+int ecmcAxisBase::getErrorID()
+{
+  return ecmcError::getErrorID();
 }

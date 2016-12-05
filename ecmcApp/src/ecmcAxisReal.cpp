@@ -199,15 +199,6 @@ int ecmcAxisReal::getErrorID()
   return ecmcError::getErrorID();
 }
 
-bool ecmcAxisReal::getError()
-{
-  bool bErr=enc_->getError() || drv_->getError() || mon_->getError() || traj_->getError() || cntrl_->getError() || seq_.getError();
-  if(bErr){
-    setError(bErr);
-  }
-  return ecmcError::getError();
-}
-
 int ecmcAxisReal::setOpMode(operationMode mode)
 {
   if(mode==ECMC_MODE_OP_MAN){

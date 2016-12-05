@@ -38,7 +38,6 @@ public:
   bool getEnable();
   void errorReset();
   int getErrorID();
-  bool getError();
   int setCommand(motionCommandTypes command);
   int setCmdData(int cmdData);
   motionCommandTypes getCommand();
