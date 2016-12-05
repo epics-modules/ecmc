@@ -132,15 +132,6 @@ int ecmcAxisVirt::getErrorID()
   return ecmcError::getErrorID();
 }
 
-bool ecmcAxisVirt::getError()
-{
-  bool bErr=mon_->getError() || traj_->getError() || seq_.getError() || enc_->getError();
-  if( bErr){
-    setError(bErr);
-  }
-  return ecmcError::getError();
-}
-
 int ecmcAxisVirt::setOpMode(operationMode mode)
 {
   //NO DRIVE

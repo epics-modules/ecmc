@@ -100,6 +100,8 @@ public:
   int setTrajDataSourceType(dataSource refSource);
   int setEncDataSourceType(dataSource refSource);
   int setRealTimeStarted(bool realtime);
+  bool getError();
+  int getErrorID();
 protected:
   void initVars();
   int fillCommandsTransformData();

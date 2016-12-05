@@ -128,15 +128,6 @@ int ecmcAxisTraj::getErrorID()
   return ecmcError::getErrorID();
 }
 
-bool ecmcAxisTraj::getError()
-{
-  bool bErr=mon_->getError() || traj_->getError() || seq_.getError();
-  if( bErr){
-    setError(bErr);
-  }
-  return ecmcError::getError();
-}
-
 int ecmcAxisTraj::setOpMode(operationMode nMode)
 {
   //NO DRIVE

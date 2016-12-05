@@ -100,15 +100,6 @@ int ecmcAxisEncoder::getErrorID()
   return ecmcError::getErrorID();
 }
 
-bool ecmcAxisEncoder::getError()
-{
-  bool bErr=enc_->getError();
-  if(bErr){
-    setError(bErr);
-  }
-  return ecmcError::getError();
-}
-
 int ecmcAxisEncoder::setOpMode(operationMode mode)
 {
   operationMode_=mode; //TODO not used

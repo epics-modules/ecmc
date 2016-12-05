@@ -95,7 +95,7 @@ void ecmcMonitor::execute()
     return;
   }
 
-  //At target cMcuMonitoring*******************
+  //At target *******************
   if(enableAtTargetMon_){
     if(std::abs(targetPos_-actPos_)<atTargetTol_){
       if (atTargetCounter_<=atTargetTime_){
