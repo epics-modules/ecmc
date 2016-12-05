@@ -534,10 +534,11 @@ bool ecmcSequencer::getEnableSoftLimitFwd()
 double ecmcSequencer::checkSoftLimits(double posSetpoint)
 {
   double dSet=posSetpoint;
-  if(posSetpoint>softLimitFwd_ && enableSoftLimitFwd_){
+  double currPos=enc_->getActPos();
+  if(posSetpoint>softLimitFwd_ && enableSoftLimitFwd_ && posSetpoint>currPos){
     dSet=softLimitFwd_;
   }
-  if(posSetpoint<softLimitBwd_ && enableSoftLimitBwd_){
+  if(posSetpoint<softLimitBwd_ && enableSoftLimitBwd_ && posSetpoint<currPos){
     dSet=softLimitBwd_;
   }
   return dSet;
