@@ -107,12 +107,14 @@ bool ecmcAxisBase::checkAxesForEnabledTransfromCommands(commandType type)
   return false;
 }
 
-int ecmcAxisBase::setEnableCommandsTransform(bool  enable)
+int ecmcAxisBase::setEnableCommandsTransform(bool enable)
 {
   if(realtime_){
-    int error=commandTransform_->validate();
-    if(error){
-      return setErrorID(error);
+    if(enable){
+      int error=commandTransform_->validate();
+      if(error){
+        return setErrorID(error);
+      }
     }
   }
   enableCommandTransform_=enable;
