@@ -81,7 +81,10 @@ int ecmcAxisEncoder::setEnable(bool enable)
     return getErrorID();
   }
 
-  enable_=enable;
+  int error=setEnableLocal(enable);
+  if(error){
+    return setErrorID(error);
+  }
 
   //Cascade commands via command transformation
   return setEnable_Transform();
@@ -90,14 +93,6 @@ int ecmcAxisEncoder::setEnable(bool enable)
 bool ecmcAxisEncoder::getEnable()
 {
   return enable_;
-}
-
-int ecmcAxisEncoder::getErrorID()
-{
-  if(enc_->getError()){
-    return setErrorID(enc_->getErrorID());
-  }
-  return ecmcError::getErrorID();
 }
 
 int ecmcAxisEncoder::setOpMode(operationMode mode)
@@ -174,12 +169,6 @@ int ecmcAxisEncoder::setCommand(motionCommandTypes command)
 int ecmcAxisEncoder::setCmdData(int cmdData)
 {
   return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
-}
-
-void ecmcAxisEncoder::errorReset()
-{
-  enc_->errorReset();
-  ecmcError::errorReset();
 }
 
 motionCommandTypes ecmcAxisEncoder::getCommand()

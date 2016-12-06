@@ -102,6 +102,9 @@ public:
   int setRealTimeStarted(bool realtime);
   bool getError();
   int getErrorID();
+  void errorReset();
+  int setEnableLocal(bool enable);
+
 protected:
   void initVars();
   int fillCommandsTransformData();
@@ -117,6 +120,7 @@ protected:
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   bool inStartupPhase_;
   bool realtime_;
+  bool enable_;
 };
 
 #endif /* ECMCAXISBASE_H_ */

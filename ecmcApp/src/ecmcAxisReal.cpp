@@ -62,6 +62,7 @@ void ecmcAxisReal::execute(bool masterOK)
     mon_->readEntries();
     enc_->readEntries();
     drv_->readEntries();
+
     double encActPos=enc_->getActPos();
     traj_->setHardLimitFwd(mon_->getHardLimitFwd());
     traj_->setHardLimitBwd(mon_->getHardLimitBwd());
@@ -84,9 +85,11 @@ void ecmcAxisReal::execute(bool masterOK)
     drv_->setAtTarget(mon_->getAtTarget());  //Reduce torque
 
     if(getEnable() && masterOK && !getError()){
+      mon_->setEnable(true);
       drv_->setVelSet(cntrl_->control(trajCurrSet,encActPos,traj_->getVel())); //Actual control
     }
     else{
+      mon_->setEnable(false);
       if(getExecute()){
 	setExecute(false);
 	traj_->setStartPos(encActPos);
@@ -156,22 +159,20 @@ int ecmcAxisReal::setEnable(bool enable)
     return getErrorID();
   }
 
-  traj_->setEnable(enable);
-  cntrl_->setEnable(enable);
-  mon_->setEnable(enable);
-  int error=drv_->setEnable(enable);
+  int error=setEnableLocal(enable);
   if(error){
     return setErrorID(error);
   }
+  //Cascade commands via command transformation
   return setEnable_Transform();
 }
 
 bool ecmcAxisReal::getEnable()
 {
-  return drv_->getEnable() && drv_->getEnabled() && traj_->getEnable() && cntrl_->getEnable() && mon_->getEnable();
+  return drv_->getEnable() && drv_->getEnabled() && traj_->getEnable() && cntrl_->getEnable() /*&& mon_->getEnable()*/;
 }
 
-int ecmcAxisReal::getErrorID()
+/*int ecmcAxisReal::getErrorID()
 {
   //if(ecmcError::getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
   if(ecmcError::getError()){
@@ -197,7 +198,7 @@ int ecmcAxisReal::getErrorID()
     return setErrorID(seq_.getErrorID());
   }
   return ecmcError::getErrorID();
-}
+}*/
 
 int ecmcAxisReal::setOpMode(operationMode mode)
 {
@@ -279,17 +280,6 @@ int ecmcAxisReal::setCmdData(int cmdData)
 {
   seq_.setCmdData(cmdData);
   return 0;
-}
-
-void ecmcAxisReal::errorReset()
-{
-  traj_->errorReset();
-  enc_->errorReset();
-  mon_->errorReset();
-  drv_->errorReset();
-  cntrl_->errorReset();
-  seq_.errorReset();
-  ecmcError::errorReset();
 }
 
 motionCommandTypes ecmcAxisReal::getCommand()
@@ -430,6 +420,14 @@ int ecmcAxisReal::validate()
 
   return 0;
 }
+/*void ecmcAxisTraj::errorReset()
+{
+  traj_->errorReset();
+  mon_->errorReset();
+  seq_.errorReset();
+  ecmcError::errorReset();
+}*/
+
 
 int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
 {

@@ -80,6 +80,7 @@ void ecmcMonitor::setActPos(double pos)
 
 void ecmcMonitor::execute()
 {
+
   atTarget_=false;
   lagErrorTraj_=false;
   lagErrorDrive_=false;

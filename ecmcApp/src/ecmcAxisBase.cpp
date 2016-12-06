@@ -349,7 +349,7 @@ int ecmcAxisBase::setRealTimeStarted(bool realtime)
 
 bool ecmcAxisBase::getError()
 {
-  int error= getErrorID();
+  int error= ecmcAxisBase::getErrorID();
   if(error){
     setErrorID(error);
   }
@@ -358,5 +358,146 @@ bool ecmcAxisBase::getError()
 
 int ecmcAxisBase::getErrorID()
 {
+  //General
+  if(ecmcError::getError()){
+    return ecmcError::getErrorID();
+  }
+
+  //Monitor
+  ecmcMonitor *mon =getMon();
+  if(mon){
+    if(mon->getError()){
+      return setErrorID(mon->getErrorID());
+    }
+  }
+
+  //Encoder
+  ecmcEncoder *enc =getEnc();
+  if(enc){
+    if(enc->getError()){
+      return setErrorID(enc->getErrorID());
+    }
+  }
+
+  //Drive
+  ecmcDriveBase *drv =getDrv();
+  if(drv){
+    if(drv->getError()){
+      return setErrorID(drv->getErrorID());
+    }
+  }
+
+  //Trajectory
+  ecmcTrajectory *traj =getTraj();
+  if(traj){
+    if(traj->getError()){
+      return setErrorID(traj->getErrorID());
+    }
+  }
+
+  //Controller
+  ecmcPIDController *cntrl =getCntrl();
+  if(cntrl){
+    if(cntrl->getError()){
+      return setErrorID(cntrl->getErrorID());
+    }
+  }
+
+  //Sequencer
+  ecmcSequencer *seq =getSeq();
+  if(seq){
+    if(seq->getErrorID()){
+      return setErrorID(seq->getErrorID());
+    }
+  }
+
   return ecmcError::getErrorID();
 }
+
+int ecmcAxisBase::setEnableLocal(bool enable)
+{
+  int error=0;
+  ecmcDriveBase *drv =getDrv();
+  if(drv){
+    error=drv->setEnable(enable);
+    if(error){
+      return setErrorID(error);
+    }
+  }
+
+  ecmcTrajectory *traj =getTraj();
+  if(traj){
+    traj->setEnable(enable);
+  }
+
+  ecmcMonitor *mon =getMon();
+  if(mon){
+    mon->setEnable(enable);
+  }
+
+ /* ecmcEncoder *enc =getEnc();
+  if(enc){
+    error=enc->setEnable(enable);
+    if(error){
+      return setErrorID(error);
+    }
+  }*/
+
+  ecmcPIDController *cntrl =getCntrl();
+  if(cntrl){
+    cntrl->setEnable(enable);
+  }
+
+/*  ecmcSequencer *seq =getSeq();
+  if(seq){
+    error=seq->setEnable(enable);
+    if(error){
+      return setErrorID(error);
+    }
+  }*/
+  enable_=enable;
+  return 0;
+}
+
+
+void ecmcAxisBase::errorReset()
+{
+  //Monitor
+  ecmcMonitor *mon =getMon();
+  if(mon){
+    mon->errorReset();
+  }
+
+  //Encoder
+  ecmcEncoder *enc =getEnc();
+  if(enc){
+    enc->errorReset();
+  }
+
+  //Drive
+  ecmcDriveBase *drv =getDrv();
+  if(drv){
+    drv->errorReset();
+  }
+
+  //Trajectory
+  ecmcTrajectory *traj =getTraj();
+  if(traj){
+    traj->errorReset();
+  }
+
+  //Controller
+  ecmcPIDController *cntrl =getCntrl();
+  if(cntrl){
+    cntrl->errorReset();
+  }
+
+  //Sequencer
+  ecmcSequencer *seq =getSeq();
+  if(seq){
+    seq->errorReset();
+  }
+
+  ecmcError::errorReset();
+}
+

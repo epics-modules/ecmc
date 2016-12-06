@@ -41,8 +41,8 @@ public:
   bool getExecute();
   int setEnable(bool enable);
   bool getEnable();
-  void errorReset();
-  int getErrorID();
+//  void errorReset();
+//  int getErrorID();
   int setCommand(motionCommandTypes command);
   int setCmdData(int cmdData);
   motionCommandTypes getCommand();

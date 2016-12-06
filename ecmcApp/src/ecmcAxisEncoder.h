@@ -31,8 +31,8 @@ public:
   bool getExecute();
   int setEnable(bool enable);
   bool getEnable();
-  void errorReset();
-  int getErrorID();
+  //void errorReset();
+  //int getErrorID();
   int setCommand(motionCommandTypes command);
   int setCmdData(int cmdData);
   motionCommandTypes getCommand();
@@ -55,7 +55,6 @@ public:
   ecmcEncoder *enc_;
   double sampleTime_;
   bool execute_;
-  bool enable_;
   ecmcMasterSlaveData slaveDataInterface_;
 };
 #endif /* ECMCAXISENCODER_H_ */

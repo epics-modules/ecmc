@@ -60,6 +60,7 @@ void ecmcAxisTraj::execute(bool masterOK)
     seq_.setHomeSensor(mon_->getHomeSwitch());
     seq_.execute();
 
+    mon_->setEnable(getEnable());  //Only enable monitoring when all objects are enabled
     mon_->setActPos(dTrajCurrSet);
     mon_->setCurrentPosSet(dTrajCurrSet);
     mon_->setActVel(traj_->getVel());
@@ -69,9 +70,9 @@ void ecmcAxisTraj::execute(bool masterOK)
   }
   else{
     if(getEnable()){
-	  setEnable(false);
-	}
-	setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+      setEnable(false);
+    }
+    setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
   }
 }
 
@@ -104,28 +105,17 @@ int ecmcAxisTraj::setEnable(bool enable)
     return getErrorID();
   }
 
-  traj_->setEnable(enable);
-  mon_->setEnable(enable);
+  int error=setEnableLocal(enable);
+  if(error){
+    return setErrorID(error);
+  }
+  //Cascade commands via command transformation
   return setEnable_Transform();
 }
 
 bool ecmcAxisTraj::getEnable()
 {
-  return  traj_->getEnable() && mon_->getEnable();
-}
-
-int ecmcAxisTraj::getErrorID()
-{
-  if(mon_->getError()){
-    return setErrorID(mon_->getErrorID());
-  }
-  if(traj_->getError()){
-    return setErrorID(traj_->getErrorID());
-  }
-  if(seq_.getError()){
-    return setErrorID(seq_.getErrorID());
-  }
-  return ecmcError::getErrorID();
+  return  traj_->getEnable() /*&& mon_->getEnable()*/;
 }
 
 int ecmcAxisTraj::setOpMode(operationMode nMode)
@@ -205,14 +195,6 @@ int ecmcAxisTraj::setCmdData(int cmdData)
 {
   seq_.setCmdData(cmdData);
   return 0;
-}
-
-void ecmcAxisTraj::errorReset()
-{
-  traj_->errorReset();
-  mon_->errorReset();
-  seq_.errorReset();
-  ecmcError::errorReset();
 }
 
 motionCommandTypes ecmcAxisTraj::getCommand()
