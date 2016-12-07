@@ -34,8 +34,18 @@ extern "C" {
 #define DIE_ON_ERROR_BIT0() (die_on_error_flags & 1)
 #define DIE_ON_ERROR_BIT1() (die_on_error_flags & (1<<1))
 
+#define WRITE_DIAG_BIT(bitnumber,value)            \
+do {                                               \
+  if(value){                                       \
+    debug_print_flags|= 1<<bitnumber;              \
+  }                                                \
+  else{                                            \
+    debug_print_flags &= ~(1<<bitnumber);          \
+  }                                                \
+} while (0)
+
 #define FUNCTION_CALL_DIAGNOSTICS_BIT 4
-#define FUNCTION_HW_MOTOR_DIAGNOSTICS_BIT 5
+#define FUNCTION_ETHERCAT_DIAGNOSTICS_BIT 5
 
 #define LOGINFO(fmt, ...)                        \
 {                                                \

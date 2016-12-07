@@ -3262,7 +3262,7 @@ int setEnableTimeDiag(int value);
  * \note Example: Enable function call diagnostics.\n
  *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to cmd_EAT.c\n
  */
-//int setEnableFunctionCallDiag(int value);
+int setEnableFunctionCallDiag(int value);
 
 #ifdef __cplusplus
 }

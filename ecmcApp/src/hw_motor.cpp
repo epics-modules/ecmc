@@ -125,6 +125,7 @@ typedef struct rtThreadOSD *rtThreadId;
 
 static void * start_routine(void *arg)
 {
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   rtThreadId thread = (rtThreadId)arg;
   thread->start(thread->usr);
   return NULL;
@@ -134,6 +135,7 @@ rtThreadId rtThreadCreate (
     const char * name, unsigned int priority, unsigned int stackSize,
     rtTHREADFUNC funptr, void * parm)
 {
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   struct sched_param sched = {0};
   rtThreadId thread =(rtThreadId)calloc(1, sizeof(struct rtThreadOSD));
   assert(thread != NULL);
@@ -200,6 +202,7 @@ struct timespec timespec_sub(struct timespec time1, struct timespec time2)
 
 void cyclic_task(void * usr)
 {
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   int i=0;
   struct timespec wakeupTime , sendTime, lastSendTime= {};
   struct timespec startTime, endTime, lastStartTime = {};
@@ -308,7 +311,7 @@ void cyclic_task(void * usr)
 /****************************************************************************/
 
 int  hw_motor_global_init(void){
-
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   appMode=ECMC_MODE_CONFIG;
   appModeOld=appMode;
   LOGINFO("\nESS Open Source EtherCAT Motion Control Unit Initializes......\n");
@@ -345,6 +348,7 @@ int  hw_motor_global_init(void){
 
 void startRTthread()
 {
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   int prio = ECMC_PRIO_HIGH;
   if(rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) == NULL){
     LOGERR("ERROR: Can't create high priority thread, fallback to low priority\n");
@@ -352,7 +356,7 @@ void startRTthread()
     assert(rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) != NULL);
   }
   else{
-    LOGINFO5("INFO:\t\tCreated high priority thread for cyclic task\n");
+    LOGINFO4("INFO:\t\tCreated high priority thread for cyclic task\n");
   }
 }
 
@@ -362,7 +366,7 @@ int setAppMode(int mode)
   int errorCode=0;
   switch((app_mode_type)mode){
     case ECMC_MODE_CONFIG:
-      LOGINFO5("INFO:\t\tApplication in configuration mode.\n");
+      LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
       appModeOld = appMode;
       appMode=(app_mode_type)mode;
       for(int i=0;i<ECMC_MAX_AXES;i++){
@@ -400,7 +404,7 @@ int setAppMode(int mode)
         LOGERR("INFO:\t\tActivation of master failed.\n");
         return ERROR_MAIN_EC_ACTIVATE_FAILED;
       }
-      LOGINFO5("INFO:\t\tApplication in runtime mode.\n");
+      LOGINFO4("INFO:\t\tApplication in runtime mode.\n");
       startRTthread();
       for(int i=0;i<ECMC_MAX_AXES;i++){
         if(axes[i]!=NULL){
@@ -418,7 +422,7 @@ int setAppMode(int mode)
 }
 
 int prepareForRuntime(){
-
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   //Update input sources for all trajectories and encoders (transforms)
   for(int i=0;i<ECMC_MAX_AXES;i++){
     for(int j=0;j<ECMC_MAX_AXES;j++){
@@ -449,6 +453,7 @@ int prepareForRuntime(){
 }
 
 int validateConfig(){
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   prepareForRuntime();
   int errorCode=0;
   int axisCount=0;
@@ -521,20 +526,22 @@ int ecSetDomainFailedCyclesLimit(int value)
   return ec.setDomainFailedCyclesLimitInterlock(value);
 }
 
+
 int ecEnablePrintouts(int value)
 {
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
 
-  return ec.setEnablePrintOuts(value);
+  WRITE_DIAG_BIT(FUNCTION_ETHERCAT_DIAGNOSTICS_BIT,value);
+  return 0;
 }
 
-/*int setEnableFunctionCallDiag(int value)
+int setEnableFunctionCallDiag(int value)
 {
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
 
-  functionDiag=value;
+  WRITE_DIAG_BIT(FUNCTION_CALL_DIAGNOSTICS_BIT,value);
   return 0;
-}*/
+}
 
 /****************************************************************************/
 

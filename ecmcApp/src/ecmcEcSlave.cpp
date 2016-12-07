@@ -89,7 +89,7 @@ ecmcEcSlave::~ecmcEcSlave()
 int ecmcEcSlave::configSlave()
 {
   if (!(slaveConfig_ = ecrt_master_slave_config(master_, alias_,slavePosition_, vendorId_,productCode_))) {
-    printf("ERROR:\tFailed to get slave configuration.\n");
+    LOGERR("%s/%s:%d: ERROR: Failed to get slave configuration (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CONFIG_FAILED);
     return setErrorID(ERROR_EC_SLAVE_CONFIG_FAILED);
   }
   else
@@ -104,10 +104,12 @@ int ecmcEcSlave::getEntryCount()
 int ecmcEcSlave::addSyncManager(ec_direction_t direction,uint8_t syncMangerIndex)
 {
   if(simSlave_){
+    LOGERR("%s/%s:%d: ERROR: Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
   }
 
   if(syncManCounter_>=EC_MAX_SYNC_MANAGERS){
+    LOGERR("%s/%s:%d: ERROR: Sync manager array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_SM_ARRAY_FULL);
     return setErrorID(ERROR_EC_SLAVE_SM_ARRAY_FULL);
   }
 
@@ -119,11 +121,13 @@ int ecmcEcSlave::addSyncManager(ec_direction_t direction,uint8_t syncMangerIndex
 ecmcEcSyncManager *ecmcEcSlave::getSyncManager(int syncManagerIndex)
 {
   if(simSlave_){
+    LOGERR("%s/%s:%d: ERROR: Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return NULL;
   }
 
   if(syncManagerIndex>=EC_MAX_SYNC_MANAGERS){
+    LOGERR("%s/%s:%d: ERROR: Sync manager array index out of range (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_SM_INDEX_OUT_OF_RANGE);
     setErrorID(ERROR_EC_SLAVE_SM_INDEX_OUT_OF_RANGE);
     return NULL;
   }
@@ -133,14 +137,17 @@ ecmcEcSyncManager *ecmcEcSlave::getSyncManager(int syncManagerIndex)
 int ecmcEcSlave::getEntryInfo(int entryIndex, ec_pdo_entry_info_t *info)
 {
   if(simSlave_){
+    LOGERR("%s/%s:%d: ERROR: Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
   }
 
   if(info==NULL){
+    LOGERR("%s/%s:%d: ERROR: Entry Info structure NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_ENTRY_INFO_STRUCT_NULL);
     return setErrorID(ERROR_EC_SLAVE_ENTRY_INFO_STRUCT_NULL);
   }
 
   if(entryIndex>=EC_MAX_ENTRIES || entryIndex>=entriesArrayIndex_){
+    LOGERR("%s/%s:%d: ERROR: Entry index out of range (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
     return setErrorID(ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
   }
 
@@ -154,6 +161,7 @@ int ecmcEcSlave::getEntryInfo(int entryIndex, ec_pdo_entry_info_t *info)
 int ecmcEcSlave::getSlaveInfo( mcu_ec_slave_info_light *info)
 {
   if(info==NULL){
+    LOGERR("%s/%s:%d: ERROR: Slave Info structure NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_SLAVE_INFO_STRUCT_NULL);
     return setErrorID(ERROR_EC_SLAVE_SLAVE_INFO_STRUCT_NULL);
   }
   info->alias=alias_;
@@ -163,14 +171,13 @@ int ecmcEcSlave::getSlaveInfo( mcu_ec_slave_info_light *info)
   return 0;
 }
 
-
 int ecmcEcSlave::configPdos( ec_domain_t *domain)
 {
   if(simSlave_){
+    LOGERR("%s/%s:%d: ERROR: Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
   }
-
-  printf("INFO:\t\tConfiguring slave %d.\n", slavePosition_);
+  LOGINFO5("%s/%s:%d: INFO: Configuring slave %d.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_);
   ecmcEcSyncManager *sm=NULL;
   ecmcEcPdo *pdo=NULL;
   ecmcEcEntry *entry=NULL;
@@ -202,7 +209,7 @@ int ecmcEcSlave::configPdos( ec_domain_t *domain)
   slaveSyncs_[syncManArrayIndex_].index=0xff; //Terminate structure for ecrt_slave_config_pdos()
 
   if(entriesArrayIndex_==0){
-    printf("WARNING:\tNo Pdo:s to configure for this slave..\n");
+    LOGINFO5("%s/%s:%d: WARNING: No Pdo:s to configured for slave %d.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_);
     return 0;
   }
 
@@ -211,11 +218,10 @@ int ecmcEcSlave::configPdos( ec_domain_t *domain)
   writeSyncsStruct();
 
   if (ecrt_slave_config_pdos(slaveConfig_, EC_END, slaveSyncs_)){
-    printf("Error:\tPDO configuration failed!\n");
+    LOGERR("%s/%s:%d: ERROR: PDO configuration failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CONFIG_PDOS_FAILED);
     return setErrorID(ERROR_EC_SLAVE_CONFIG_PDOS_FAILED);
   }
-
-  printf("INFO:\t\tConfiguration done successfully for slave %d.\n", slavePosition_);
+  LOGINFO5("%s/%s:%d: INFO: Configuration done successfully for slave %d.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_);
 
   return 0;
 }
@@ -223,81 +229,92 @@ int ecmcEcSlave::configPdos( ec_domain_t *domain)
 void ecmcEcSlave::writeEntriesStruct()
 {
   if(simSlave_){
+    LOGERR("%s/%s:%d: ERROR: PDO configuration failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CONFIG_PDOS_FAILED);
     setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return;
   }
-  printf("INFO:\t\tWriting: slave_pdo_entries: \n");
-  printf("\t\tIndex\tSubIndex\tBitLength \n");
+  LOGINFO5("%s/%s:%d: INFO: Writing slave_pdo_entries.\n",__FILE__, __FUNCTION__, __LINE__);
+  LOGINFO5("\t\tIndex\tSubIndex\tBitLength \n");
   for(int i=0;i<entriesArrayIndex_;i++){
-    printf("\t\t{%x\t%x\t%d}\n",slavePdoEntries_[i].index,slavePdoEntries_[i].subindex,slavePdoEntries_[i].bit_length);
+    LOGINFO5("\t\t{%x\t%x\t%d}\n",slavePdoEntries_[i].index,slavePdoEntries_[i].subindex,slavePdoEntries_[i].bit_length);
   }
 }
 void ecmcEcSlave::writePdoStruct()
 {
   if(simSlave_){
+    LOGERR("%s/%s:%d: ERROR: Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return;
   }
-  printf("INFO:\t\tWriting: slave_pdos: \n");
-  printf("\t\tIndex\tEntryCount\n");
+  LOGINFO5("%s/%s:%d: INFO: Writing slave_pdos.\n",__FILE__, __FUNCTION__, __LINE__);
+  LOGINFO5("\t\tIndex\tEntryCount\n");
   for(int i=0;i<pdosArrayIndex_;i++){
-    printf("\t\t{%x\t%x}\n",slavePdos_[i].index,slavePdos_[i].n_entries/*,slave_pdos[i].entries*/);
+    LOGINFO5("\t\t{%x\t%x}\n",slavePdos_[i].index,slavePdos_[i].n_entries/*,slave_pdos[i].entries*/);
   }
 }
 
 void ecmcEcSlave::writeSyncsStruct()
 {
   if(simSlave_){
+    LOGERR("%s/%s:%d: ERROR: Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return;
   }
-  printf("INFO:\t\tWriting: slave_syncs: \n");
-  printf("\t\tIndex\tDirection\tPdoCount\tWatchDog\n");
+  LOGINFO5("%s/%s:%d: INFO: Writing slave_syncs.\n",__FILE__, __FUNCTION__, __LINE__);
+  LOGINFO5("\t\tIndex\tDirection\tPdoCount\tWatchDog\n");
   for(int i=0;i<syncManArrayIndex_;i++){
-    printf("\t\t{%x\t%x\t%x\t%x}\n",slaveSyncs_[i].index,slaveSyncs_[i].dir,slaveSyncs_[i].n_pdos/*,slave_syncs[i].pdos*/,slaveSyncs_[i].watchdog_mode);
+    LOGINFO5("\t\t{%x\t%x\t%x\t%x}\n",slaveSyncs_[i].index,slaveSyncs_[i].dir,slaveSyncs_[i].n_pdos/*,slave_syncs[i].pdos*/,slaveSyncs_[i].watchdog_mode);
   }
 }
 
 int ecmcEcSlave::checkConfigState(void)
 {
   if(simSlave_){
+    LOGERR("%s/%s:%d: ERROR: Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return setErrorID(ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
   }
   ec_slave_config_state_t slaveState;
   memset(&slaveState,0,sizeof(slaveState));
   ecrt_slave_config_state(slaveConfig_, &slaveState);
   if (slaveState.al_state != slaveStateOld_.al_state){
-    printf("INFO:\t\tSlave position: %d. State 0x%02X.\n",slavePosition_ ,slaveState.al_state);
+    LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_ ,slaveState.al_state);
   }
   if (slaveState.online != slaveStateOld_.online){
-    printf("INFO:\t\tSlave position: %d. %s.\n",slavePosition_ ,slaveState.online ? "Online" : "Offline");
+    LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_ ,slaveState.online ? "Online" : "Offline");
   }
   if (slaveState.operational != slaveStateOld_.operational){
-    printf("INFO:\t\tSlave position: %d. %sOperational.\n",slavePosition_,slaveState.operational ? "" : "Not ");
+    LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s operational.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,slaveState.operational ? "" : "Not ");
   }
   slaveStateOld_ = slaveState;
 
   if(!slaveState.online){
+    LOGERR("%s/%s:%d: ERROR: Slave not online (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_NOT_ONLINE);
     return setErrorID(ERROR_EC_SLAVE_NOT_ONLINE);
   }
   if(!slaveState.operational){
+    LOGERR("%s/%s:%d: ERROR: Slave not operational (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_NOT_OPERATIONAL);
     return setErrorID(ERROR_EC_SLAVE_NOT_OPERATIONAL);
   }
 
   switch(slaveState.al_state){
     case 1:
+      LOGERR("%s/%s:%d: ERROR: Slave state INIT (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_INIT);
       return setErrorID(ERROR_EC_SLAVE_STATE_INIT);
       break;
     case 2:
+      LOGERR("%s/%s:%d: ERROR: Slave state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_PREOP);
       return setErrorID(ERROR_EC_SLAVE_STATE_PREOP);
       break;
     case 4:
+      LOGERR("%s/%s:%d: ERROR: Slave state SAFEOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_SAFEOP);
       return setErrorID(ERROR_EC_SLAVE_STATE_SAFEOP);
       break;
     case 8:
+      //OK
       return 0;
       break;
     default:
+      LOGERR("%s/%s:%d: ERROR: Slave state UNDEFINED (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_UNDEFINED);
       return setErrorID(ERROR_EC_SLAVE_STATE_UNDEFINED);
       break;
   }
@@ -309,13 +326,13 @@ ecmcEcEntry *ecmcEcSlave::getEntry(int entryIndex)
 {
   if(!simSlave_){
     if(entryIndex>=EC_MAX_ENTRIES){
-      printf("Error:\tEntry index out of range\n");
+      LOGERR("%s/%s:%d: ERROR: Entry index out of range (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
       setErrorID(ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
       return NULL;
     }
 
     if(entryList_[entryIndex]==NULL ){
-      printf("Error:\tEntry ==NULL\n");
+      LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_ENTRY_NULL);
       setErrorID(ERROR_EC_SLAVE_ENTRY_NULL);
       return NULL;
     }
@@ -323,13 +340,13 @@ ecmcEcEntry *ecmcEcSlave::getEntry(int entryIndex)
   }
   else{
     if(entryIndex>=SIMULATION_ENTRIES){
-      printf("Error:\tEntry index out of range\n");
+      LOGERR("%s/%s:%d: ERROR: Entry index out of range (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
       setErrorID(ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
       return NULL;
     }
 
     if(simEntries_[entryIndex]==NULL){
-      printf("Error:\tEntry ==NULL\n");
+      LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_ENTRY_NULL);
       setErrorID(ERROR_EC_SLAVE_ENTRY_NULL);
       return NULL;
     }
@@ -376,7 +393,7 @@ int ecmcEcSlave::addEntry(
   if(syncManager==NULL){
     int error=addSyncManager(direction,syncMangerIndex);
     if(error){
-      printf("Error addSync..");
+      LOGERR("%s/%s:%d: ERROR: Add sync manager failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,error);
       return error;
     }
     syncManager=syncManagerArray_[syncManCounter_-1]; //last added sync manager
@@ -406,6 +423,7 @@ int ecmcEcSlave::configDC(
       int32_t sync1Shift /**< SYNC1 shift time [ns]. */)
 {
   if(slaveConfig_==0){
+    LOGERR("%s/%s:%d: ERROR: Slave Config NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_CONFIG_NULL);
     return setErrorID(ERROR_EC_SLAVE_CONFIG_NULL);
   }
 
@@ -454,6 +472,7 @@ int ecmcEcSlave::findEntryIndex(std::string id)
       }
     }
   }
+  LOGERR("%s/%s:%d: ERROR: Entry not found (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_ENTRY_NULL);
   return -ERROR_EC_SLAVE_ENTRY_NULL;
 }
 
@@ -474,6 +493,7 @@ int ecmcEcSlave::setWatchDogConfig(
     )
 {
   if(slaveConfig_==0){
+    LOGERR("Error:\tSlave Config NULL.\n");
     return setErrorID(ERROR_EC_SLAVE_CONFIG_NULL);
   }
   ecrt_slave_config_watchdog(slaveConfig_,watchdogDivider,watchdogIntervals);

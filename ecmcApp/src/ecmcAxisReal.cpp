@@ -172,34 +172,6 @@ bool ecmcAxisReal::getEnable()
   return drv_->getEnable() && drv_->getEnabled() && traj_->getEnable() && cntrl_->getEnable() /*&& mon_->getEnable()*/;
 }
 
-/*int ecmcAxisReal::getErrorID()
-{
-  //if(ecmcError::getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
-  if(ecmcError::getError()){
-    return ecmcError::getErrorID();
-  }
-
-  if(mon_->getError()){
-    return setErrorID(mon_->getErrorID());
-  }
-  if(enc_->getError()){
-    return setErrorID(enc_->getErrorID());
-  }
-  if(drv_->getError()){
-    return setErrorID(drv_->getErrorID());
-  }
-  if(traj_->getError()){
-    return setErrorID(traj_->getErrorID());
-  }
-  if(cntrl_->getError()){
-    return setErrorID(cntrl_->getErrorID());
-  }
-  if(seq_.getErrorID()){
-    return setErrorID(seq_.getErrorID());
-  }
-  return ecmcError::getErrorID();
-}*/
-
 int ecmcAxisReal::setOpMode(operationMode mode)
 {
   if(mode==ECMC_MODE_OP_MAN){
@@ -420,14 +392,6 @@ int ecmcAxisReal::validate()
 
   return 0;
 }
-/*void ecmcAxisTraj::errorReset()
-{
-  traj_->errorReset();
-  mon_->errorReset();
-  seq_.errorReset();
-  ecmcError::errorReset();
-}*/
-
 
 int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
 {
