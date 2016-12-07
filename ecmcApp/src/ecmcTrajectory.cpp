@@ -803,3 +803,9 @@ int ecmcTrajectory::getErrorID()
   }
   return 0;
 }
+
+int ecmcTrajectory::setCurrentSetpoint(double position)
+{
+  currentPositionSetpoint_=position;
+  return 0;
+}

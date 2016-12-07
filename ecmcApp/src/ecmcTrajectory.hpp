@@ -186,6 +186,7 @@ public:
   /// Reset errors in this and linked objects
   void errorReset();
   int getErrorID();
+  int setCurrentSetpoint(double position);
 
 private:
   void initVars();

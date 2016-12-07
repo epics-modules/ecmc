@@ -79,15 +79,23 @@ void ecmcAxisReal::execute(bool masterOK)
     mon_->setTargetVel(traj_->getVel());
     mon_->setCntrlOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
+
     traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     cntrl_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setAtTarget(mon_->getAtTarget());  //Reduce torque
 
+    if(mon_->getDriveInterlock() && !traj_->getBusy()){
+      cntrl_->reset();
+      //traj_->setStartPos(encActPos);
+      //traj_->setCurrentSetpoint(encActPos);
+      //mon_->setCurrentPosSet(encActPos);
+    }
     if(getEnable() && masterOK && !getError()){
       mon_->setEnable(true);
       drv_->setVelSet(cntrl_->control(trajCurrSet,encActPos,traj_->getVel())); //Actual control
     }
+
     else{
       mon_->setEnable(false);
       if(getExecute()){
