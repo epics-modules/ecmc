@@ -14,6 +14,7 @@
 
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
+#include "cmd.h" //Logging macros
 
 #define BIT_SET(a,b) ((a) |= (1<<(b)))
 #define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))

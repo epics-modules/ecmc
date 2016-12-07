@@ -14,6 +14,7 @@
 #include "ecmcDefinitions.h"
 #include "ecmcEcEntry.h"
 #include "ecmcError.h"
+#include "cmd.h" //Logging macros
 
 //ECPDO
 #define ERROR_EC_PDO_ENTRY_ARRAY_FULL 0x22000

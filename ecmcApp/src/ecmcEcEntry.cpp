@@ -67,6 +67,7 @@ uint8_t ecmcEcEntry::getEntrySubIndex()
 int ecmcEcEntry::getEntryInfo(ec_pdo_entry_info_t *info)
 {
   if(info==NULL){
+    LOGERR("%s/%s:%d: ERROR: output parameter pointer NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_DATA_POINTER_NULL);
     return setErrorID(ERROR_EC_ENTRY_DATA_POINTER_NULL);
   }
   info->bit_length=bitLength_;
@@ -124,12 +125,12 @@ int ecmcEcEntry::updateInputProcessImage()
   }
 
   if(byteOffset_<0 ){
-    printf("ERROR: Invalid data offset or domain address ");
+    LOGERR("%s/%s:%d: ERROR: Invalid data offset (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_OFFSET);
     return setErrorID(ERROR_EC_ENTRY_INVALID_OFFSET);
   }
 
   if(domainAdr_<0 || domainAdr_==NULL){
-    printf("ERROR: Invalid data offset or domain address ");
+    LOGERR("%s/%s:%d: ERROR: Invalid domain address (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
     return setErrorID(ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
@@ -150,7 +151,9 @@ int ecmcEcEntry::updateInputProcessImage()
       value_=(uint64_t)EC_READ_U64(domainAdr_+byteOffset_);
       break;
     default:
+      LOGERR("%s/%s:%d: ERROR: Invalid bit length (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
       return setErrorID(ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
+      break;
   }
 
   return 0;
@@ -163,12 +166,12 @@ int ecmcEcEntry::updateOutProcessImage()
   }
 
   if(byteOffset_<0 ){
-    printf("ERROR: Invalid data offset or domain address ");
+    LOGERR("%s/%s:%d: ERROR: Invalid data offset (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_OFFSET);
     return setErrorID(ERROR_EC_ENTRY_INVALID_OFFSET);
   }
 
   if(domainAdr_<0 || domainAdr_==NULL){
-    printf("ERROR: Invalid data offset or domain address ");
+    LOGERR("%s/%s:%d: ERROR: Invalid domain address (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
     return setErrorID(ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
@@ -189,7 +192,7 @@ int ecmcEcEntry::updateOutProcessImage()
       EC_WRITE_U64(domainAdr_+byteOffset_,value_);
       break;
     default:
-      printf("ERROR: No support to write  bit length: %d ", bitLength_);
+      LOGERR("%s/%s:%d: ERROR: Invalid bit length (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
       return setErrorID(ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
       break;
   }
