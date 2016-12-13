@@ -43,7 +43,7 @@ ecmcAxisTraj(int nAxisID, double sampleTime);
   void printStatus();
 
   ecmcDriveBase *getDrv();
-  ecmcTrajectory *getTraj();
+  ecmcTrajectoryTrapetz *getTraj();
   ecmcMonitor *getMon();
   ecmcEncoder *getEnc();
   ecmcPIDController *getCntrl();
@@ -53,7 +53,7 @@ ecmcAxisTraj(int nAxisID, double sampleTime);
 private:
   void initVars();
   bool initDone_;
-  ecmcTrajectory *traj_;
+  ecmcTrajectoryTrapetz *traj_;
   ecmcMonitor *mon_;
   ecmcSequencer seq_;
   double sampleTime_;

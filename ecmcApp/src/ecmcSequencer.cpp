@@ -19,7 +19,7 @@ ecmcSequencer::~ecmcSequencer()
 void ecmcSequencer::initVars()
 {
   errorReset();
-  homeSensor_=false;
+  //homeSensor_=false;
   homeSensorOld_=false;
   execute_=false;
   executeOld_=false;
@@ -42,19 +42,20 @@ void ecmcSequencer::initVars()
   targetVelocity_=0;
   jogFwd_=false;
   jogBwd_=false;
-  softLimitBwd_=0;
-  softLimitFwd_=0;
-  enableSoftLimitBwd_=false;
-  enableSoftLimitFwd_=false;
+//  softLimitBwd_=0;
+//  softLimitFwd_=0;  int setExternalExecute(bool execute);
+  enableSoftLimitBwdBackup_=false;
+  enableSoftLimitFwdBackup_=false;
   hwLimitSwitchBwd_=false;
   hwLimitSwitchFwd_=false;
   hwLimitSwitchBwdOld_=false;
   hwLimitSwitchFwdOld_=false;
   homePosLatch1_=0;
   homePosLatch2_=0;
-  enableAlarmAtHardlimit_=false;
+//  enableAlarmAtHardlimit_=false;
   seqTimeout_=0; //disabled
   seqTimeCounter_=0;
+  externalExecute_=false;
 }
 
 void ecmcSequencer::execute()
@@ -63,11 +64,18 @@ void ecmcSequencer::execute()
     setErrorID(ERROR_SEQ_TRAJ_NULL);
     return;
   }
+  if(mon_==NULL){
+    setErrorID(ERROR_SEQ_MON_NULL);
+    return;
+  }
 
   hwLimitSwitchBwdOld_=hwLimitSwitchBwd_;
   hwLimitSwitchFwdOld_=hwLimitSwitchFwd_;
-  hwLimitSwitchBwd_=traj_->getHardLimitBwd();
-  hwLimitSwitchFwd_=traj_->getHardLimitFwd();
+  hwLimitSwitchBwd_=mon_->getHardLimitBwd();
+  hwLimitSwitchFwd_=mon_->getHardLimitFwd();
+
+  homeSensorOld_=homeSensor_;
+  homeSensor_=mon_->getHomeSwitch();
 
   if(!seqInProgress_){
     return;
@@ -183,11 +191,11 @@ int  ecmcSequencer::setExecute(bool execute)
       break;
     case ECMC_CMD_MOVEVEL:
       if(execute_ && !executeOld_){
-        setSoftLimitsToTraj();
-        traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-        traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+        //setSoftLimitsToTraj();
+        //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+        //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
         traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-        traj_->setCoordSystMode(ECMC_COORD_ABS);  //Correct
+        //traj_->setCoordSystMode(ECMC_COORD_ABS);  //Correct
         traj_->setTargetVel(targetVelocity_);
         targetPosition_=checkSoftLimits(targetPosition_); //not needed
         traj_->setTargetPos(targetPosition_);
@@ -196,40 +204,38 @@ int  ecmcSequencer::setExecute(bool execute)
       break;
     case ECMC_CMD_MOVEREL:
       if(execute_ && !executeOld_){
-        setSoftLimitsToTraj();
-        traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-        traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+        //setSoftLimitsToTraj();
+        //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+        //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
         traj_->setMotionMode(ECMC_MOVE_MODE_POS);
-        traj_->setCoordSystMode(ECMC_COORD_REL); //Only used for external source currently
+        //traj_->setCoordSystMode(ECMC_COORD_REL); //Only used for external source currently
         traj_->setTargetVel(targetVelocity_);
-        //targetPosition_=checkSoftLimits(traj_->getCurrentPosSet()+targetPosition_);
-        //traj_->setTargetPos(targetPosition_);
         traj_->setTargetPos(checkSoftLimits(traj_->getCurrentPosSet()+targetPosition_));
       }
       traj_->setExecute(execute_);
       break;
     case ECMC_CMD_MOVEABS:
       if(execute_ && !executeOld_){
-        setSoftLimitsToTraj();
-        traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-        traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+        //setSoftLimitsToTraj();
+        //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+        //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
         traj_->setMotionMode(ECMC_MOVE_MODE_POS);
-        traj_->setCoordSystMode(ECMC_COORD_ABS);
+        //traj_->setCoordSystMode(ECMC_COORD_ABS);
         traj_->setTargetVel(targetVelocity_);
         switch(cmdData_){
           case 0: //Normal positioning
             targetPosition_=checkSoftLimits(targetPosition_);
             traj_->setTargetPos(targetPosition_);
             break;
-          case 1: //Go to external transform current value (transform value as TragetPosition)
+/*          case 1: //Go to external transform current value (transform value as TragetPosition)
             double targPos=0;
             int errorCode=traj_->getCurrentExternalSetpoint(&targPos);
             if(errorCode){
-              return errorCode;
+              return errorCode;execute_
             }
             targetPosition_=checkSoftLimits(targPos);
             traj_->setTargetPos(targetPosition_);
-            break;
+            break;*/
         }
       }
       traj_->setExecute(execute_);
@@ -289,11 +295,11 @@ bool ecmcSequencer::getExecute()
   return execute_;
 }
 
-void ecmcSequencer::setHomeSensor(bool switchState)
+/*void ecmcSequencer::setHomeSensor(bool switchState)
 {
   homeSensorOld_=homeSensor_;
   homeSensor_=switchState;
-}
+}*/
 
 void ecmcSequencer::setCommand(motionCommandTypes command)
 {
@@ -315,7 +321,7 @@ int ecmcSequencer::getCmdData()
   return cmdData_;
 }
 
-void ecmcSequencer::setTraj(ecmcTrajectory *traj)
+void ecmcSequencer::setTraj(ecmcTrajectoryTrapetz *traj)
 {
   traj_=traj;
 }
@@ -491,17 +497,20 @@ bool ecmcSequencer::getJogBwd()
   return jogBwd_;
 }
 
-void ecmcSequencer::setSoftLimitBwd(double limit)
+/*void ecmcSequencer::setSoftLimitBwd(double limit)
 {
   softLimitBwd_=limit;
+  if(mon_){
+    mon_->setSoftLimitBwd(limit);
+  }
 }
 
 void ecmcSequencer::setSoftLimitFwd(double limit)
 {
   softLimitFwd_=limit;
-}
+}*/
 
-double ecmcSequencer::getSoftLimitBwd()
+/*double ecmcSequencer::getSoftLimitBwd()
 {
   return softLimitBwd_;
 }
@@ -513,50 +522,62 @@ double ecmcSequencer::getSoftLimitFwd()
 
 void ecmcSequencer::setEnableSoftLimitBwd(bool enable)
 {
-  enableSoftLimitBwd_=enable;
+  enableSoftLimitBwdBackup_=enable;
+  if(mon_){
+    mon_->setEnableSoftLimitBwd(enable);
+  }
 }
 
 void ecmcSequencer::setEnableSoftLimitFwd(bool enable)
 {
-  enableSoftLimitFwd_=enable;
+  enableSoftLimitFwdBackup_=enable;
+  if(mon_){
+    mon_->setEnableSoftLimitFwd(enable);
+  }
 }
 
 bool ecmcSequencer::getEnableSoftLimitBwd()
 {
-  return enableSoftLimitBwd_;
+  return enableSoftLimitBwdBackup_;
 }
 
 bool ecmcSequencer::getEnableSoftLimitFwd()
 {
-  return enableSoftLimitFwd_;
-}
+  return enableSoftLimitFwdBackup_;
+}*/
 
 double ecmcSequencer::checkSoftLimits(double posSetpoint)
 {
+  if(!mon_){
+    setErrorID(ERROR_SEQ_MON_NULL);
+    return posSetpoint;
+  }
+
   double dSet=posSetpoint;
   double currPos=enc_->getActPos();
-  if(posSetpoint>softLimitFwd_ && enableSoftLimitFwd_ && posSetpoint>currPos){
-    dSet=softLimitFwd_;
+
+  if(posSetpoint>mon_->getSoftLimitFwd() && mon_->getEnableSoftLimitFwd() && posSetpoint>currPos){
+    dSet=mon_->getSoftLimitFwd();
   }
-  if(posSetpoint<softLimitBwd_ && enableSoftLimitBwd_ && posSetpoint<currPos){
-    dSet=softLimitBwd_;
+  if(posSetpoint<mon_->getSoftLimitBwd() && mon_->getEnableSoftLimitBwd()&& posSetpoint<currPos){
+    dSet=mon_->getSoftLimitBwd();;
   }
   return dSet;
 }
 
-int ecmcSequencer::setSoftLimitsToTraj()
+/*int ecmcSequencer::setSoftLimitsToTraj()
 {
   if(traj_==NULL){
     return setErrorID(ERROR_SEQ_TRAJ_NULL);
   }
-  traj_->setEnableSoftLimitBwd(enableSoftLimitBwd_);
-  traj_->setEnableSoftLimitFwd(enableSoftLimitFwd_);
+  traj_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
+  traj_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
   traj_->setSoftLimitBwd(softLimitBwd_);
   traj_->setSoftLimitFwd(softLimitFwd_);
   return 0;
-}
+}*/
 
-ecmcTrajectory * ecmcSequencer::getTraj()
+ecmcTrajectoryTrapetz * ecmcSequencer::getTraj()
 {
   return traj_;
 }
@@ -662,10 +683,12 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      traj_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      traj_->setEnableSoftLimitFwd(false);
-      traj_->setEnableHardLimitBWDAlarm(false);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
+      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
+      mon_->setEnableSoftLimitFwd(false);
+      //mon_->setEnableHardLimitBWDAlarm(false);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchBwd_){
@@ -705,8 +728,8 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
       break;
 
     case 3: //Latch encoder value on falling or rising edge of bwd limit switch
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward or backward limit switch
       if(retValue){
         return retValue;
@@ -765,10 +788,12 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      traj_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      traj_->setEnableSoftLimitFwd(false);
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(false);
+      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
+      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
+      mon_->setEnableSoftLimitFwd(false);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(false);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchFwd_){
@@ -808,8 +833,8 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
         return retValue;
@@ -869,10 +894,12 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      traj_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      traj_->setEnableSoftLimitFwd(false);
-      traj_->setEnableHardLimitBWDAlarm(false);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
+      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
+      mon_->setEnableSoftLimitFwd(false);
+      //mon_->setEnableHardLimitBWDAlarm(false);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchBwd_){
@@ -893,8 +920,9 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
         //Switch direction
         currSeqDirection_=ECMC_DIR_FORWARD;
         seqState_=2;
-      }          traj_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      traj_->setEnableSoftLimitFwd(false);
+      }
+      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
+      mon_->setEnableSoftLimitFwd(false);
       break;
 
     case 2: //Wait for standstill and then trigger move
@@ -913,8 +941,8 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward or backward limit switch
       if(retValue){
         return retValue;
@@ -974,10 +1002,12 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      traj_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      traj_->setEnableSoftLimitFwd(false);
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(false);
+      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
+      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
+      mon_->setEnableSoftLimitFwd(false);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(false);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchFwd_){
@@ -1017,8 +1047,8 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
         return retValue;
@@ -1081,10 +1111,12 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      traj_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      traj_->setEnableSoftLimitFwd(false);
-      traj_->setEnableHardLimitBWDAlarm(false);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
+      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
+      mon_->setEnableSoftLimitFwd(false);
+      //mon_->setEnableHardLimitBWDAlarm(false);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchBwd_){
@@ -1124,8 +1156,8 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward or backward limit switch
       if(retValue){
         return retValue;
@@ -1229,10 +1261,12 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      traj_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      traj_->setEnableSoftLimitFwd(false);
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(false);
+      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
+      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
+      mon_->setEnableSoftLimitFwd(false);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(false);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchFwd_){
@@ -1272,8 +1306,8 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-      traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+      //mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
         return retValue;
@@ -1358,36 +1392,22 @@ int ecmcSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
     stopSeq();
     return setErrorID(ERROR_SEQ_TRAJ_NULL);
   }
+  if(mon_==NULL){
+    stopSeq();
+    return setErrorID(ERROR_SEQ_MON_NULL);
+  }
 
-  if(!hwLimitSwitchFwd_ && checkFWD){
+  if(!mon_->getHardLimitFwd() && checkFWD){
     stopSeq();
     traj_->setExecute(0);
     return setErrorID(ERROR_SEQ_SEQ_FAILED);
   }
 
-  if(!hwLimitSwitchBwd_ && checkBWD){
+  if(!mon_->getHardLimitBwd() && checkBWD){
     stopSeq();
     traj_->setExecute(0);
     return setErrorID(ERROR_SEQ_SEQ_FAILED);
   }
-  return 0;
-}
-
-int ecmcSequencer::setGearRatio(double ratioNum, double ratioDenom)
-{
-  if (traj_==NULL) {
-    return setErrorID(ERROR_SEQ_TRAJ_NULL);
-  }
-  return traj_->setGearRatio(ratioNum,ratioDenom);
-}
-
-int ecmcSequencer::getGearRatio(double *ratio)
-{
-  if (traj_==NULL) {
-    *ratio=0;
-    return setErrorID(ERROR_SEQ_TRAJ_NULL);
-  }
-  *ratio=traj_->getGearRatio();
   return 0;
 }
 
@@ -1399,9 +1419,13 @@ int ecmcSequencer::getSeqState()
 int ecmcSequencer::stopSeq(){
   if(traj_!=NULL){
     traj_->setExecute(false);
-    traj_->setEnableSoftLimitBwd(enableSoftLimitBwd_);
-    traj_->setEnableSoftLimitFwd(enableSoftLimitFwd_);
   }
+
+  if(mon_!=NULL){
+    mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
+    mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
+  }
+
   seqInProgress_=false;
   busy_=false;
   seqState_=0;
@@ -1411,44 +1435,37 @@ int ecmcSequencer::stopSeq(){
 
 int ecmcSequencer::validate()
 {
-  /* TODO will not work for all axis types
-     if(_pTraj==NULL){
-     return setErrorID(ERROR_SEQ_TRAJ_NULL);
-     }
-
-     if(_pEnc==NULL){
-     return setErrorID(ERROR_SEQ_ENC_NULL);
-     }
-
-     if(_pMon==NULL){
-     return setErrorID(ERROR_SEQ_MON_NULL);
-     }
-
-     if(_pCntrl==NULL){
-     return setErrorID(ERROR_SEQ_CNTRL_NULL);
-     }*/
-
   return 0;
 }
 
-int ecmcSequencer::setEnableAlarmAtHardLimit(bool enable)
+/*int ecmcSequencer::setEnableAlarmAtHardLimit(bool enable)
 {
   enableAlarmAtHardlimit_=enable;
   if(traj_!=NULL){
-    traj_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
-    traj_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
+    mon_->setEnableHardLimitBWDAlarm(enableAlarmAtHardlimit_);
+    mon_->setEnableHardLimitFWDAlarm(enableAlarmAtHardlimit_);
   }
+  return 0;
+}*/
+
+/*bool ecmcSequencer::getEnableAlarmAtHardLimit()
+{
+  return enableAlarmAtHardlimit_;
+}*/
+
+
+int ecmcSequencer::setSequenceTimeout(int timeout)
+{
+  seqTimeout_=timeout;
   return 0;
 }
 
-bool ecmcSequencer::getEnableAlarmAtHardLimit()
+int ecmcSequencer::setExternalExecute(bool execute)
 {
-  return enableAlarmAtHardlimit_;
-}
-
-
-int  ecmcSequencer::setSequenceTimeout(int timeout)
-{
-  seqTimeout_=timeout;
+  externalExecute_=execute;
+/*  if(traj_!=NULL){
+    traj->sdlkfnnsdlfnhsdlknf
+  }
+  }*/
   return 0;
 }

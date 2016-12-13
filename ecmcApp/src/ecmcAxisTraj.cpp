@@ -10,14 +10,14 @@
 #include "ecmcAxisTraj.h"
 
 
-ecmcAxisTraj::ecmcAxisTraj(int axisID, double sampleTime)
+ecmcAxisTraj::ecmcAxisTraj(int axisID, double sampleTime) :  ecmcAxisBase(sampleTime)
 {
   initVars();
   axisID_=axisID;
   axisType_=ECMC_AXIS_TYPE_VIRTUAL;
   sampleTime_=sampleTime;
 
-  traj_=new ecmcTrajectory(sampleTime_);
+  traj_=new ecmcTrajectoryTrapetz(sampleTime_);
   mon_=new ecmcMonitor();
   seq_.setCntrl(NULL);
   seq_.setTraj(traj_);
@@ -52,19 +52,19 @@ void ecmcAxisTraj::execute(bool masterOK)
 
     //Read from hardware
     mon_->readEntries();
-    traj_->setHardLimitFwd(mon_->getHardLimitFwd());
-    traj_->setHardLimitBwd(mon_->getHardLimitBwd());
+    //traj_->setHardLimitFwd(mon_->getHardLimitFwd());
+    //traj_->setHardLimitBwd(mon_->getHardLimitBwd());
     double dTrajCurrSet=traj_->getNextPosSet();
     traj_->setStartPos(dTrajCurrSet);
 
-    seq_.setHomeSensor(mon_->getHomeSwitch());
+    //seq_.setHomeSensor(mon_->getHomeSwitch());
     seq_.execute();
 
     mon_->setEnable(getEnable());  //Only enable monitoring when all objects are enabled
     mon_->setActPos(dTrajCurrSet);
     mon_->setCurrentPosSet(dTrajCurrSet);
     mon_->setActVel(traj_->getVel());
-    mon_->setTargetVel(traj_->getVel());
+    mon_->setVelSet(traj_->getVel());
     mon_->execute();
     traj_->setInterlock(mon_->getTrajInterlock());
   }
@@ -222,7 +222,7 @@ ecmcDriveBase *ecmcAxisTraj::getDrv()
   return NULL;
 }
 
-ecmcTrajectory *ecmcAxisTraj::getTraj()
+ecmcTrajectoryTrapetz  *ecmcAxisTraj::getTraj()
 {
   return traj_;
 }
@@ -267,29 +267,34 @@ void ecmcAxisTraj::printStatus()
 
 int ecmcAxisTraj::validate()
 {
-  int retError=0;
+  int error=0;
 
   if(traj_==NULL){
     return setErrorID(ERROR_AXIS_TRAJ_OBJECT_NULL);
   }
 
-  retError=traj_->validate();
-  if(retError){
-    return setErrorID(retError);
+  error=traj_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
   if(mon_==NULL){
     return setErrorID(ERROR_AXIS_MON_OBJECT_NULL);
   }
 
-  retError=mon_->validate();
-  if(retError){
-    return setErrorID(retError);
+  error=mon_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
-  retError=seq_.validate();
-  if(retError){
-    return setErrorID(retError);
+  error=seq_.validate();
+  if(error){
+    return setErrorID(error);
+  }
+
+  error=ecmcAxisBase::validateBase();
+  if(error){
+    return setErrorID(error);
   }
   return 0;
 }

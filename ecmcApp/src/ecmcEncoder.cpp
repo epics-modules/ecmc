@@ -7,7 +7,7 @@
 
 #include "ecmcEncoder.h"
 
-ecmcEncoder::ecmcEncoder(double sampleTime) : ecmcEcEntryLink(), ecmcMasterSlaveIF(sampleTime)
+ecmcEncoder::ecmcEncoder(double sampleTime) : ecmcEcEntryLink()
 {
   initVars();
   sampleTime_=sampleTime;
@@ -41,7 +41,6 @@ void ecmcEncoder::initVars()
   homed_=false;
   scaleNum_=0;
   scaleDenom_=1;
-  setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
 }
 
 int64_t ecmcEncoder::getRawPos()
@@ -88,7 +87,6 @@ void ecmcEncoder::setSampleTime(double sampleTime)
 {
   sampleTime_=sampleTime;
   velocityFilter_->setSampleTime(sampleTime_);
-  ecmcMasterSlaveIF::setSampleTime(sampleTime_);
 }
 
 void ecmcEncoder::setOffset(double offset)
@@ -188,33 +186,22 @@ double ecmcEncoder::readEntries()
       return actPos_;
   }
 
-  if(getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    int error=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
-    if(error){
-      setErrorID(ERROR_ENC_ENTRY_NULL);
-      return 0;
-    }
 
-    //Act position
-    uint64_t tempRaw=0;
-
-    if(readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION,&tempRaw)){
-      setErrorID(ERROR_ENC_ENTRY_READ_FAIL);
-      return actPos_;
-    }
-    rawPos_=handleOverUnderFlow(tempRaw,bits_) ;
-    actPos_=scale_*rawPos_+offset_;
-  }
-  else{ //EXTERNAL;
-    transformRefresh();  //Only executed for external source..
-    getExtInputPos(&actPos_);
-    rawPos_=round(actPos_);
+  int error=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
+  if(error){
+    setErrorID(ERROR_ENC_ENTRY_NULL);
+    return 0;
   }
 
-  actVel_=velocityFilter_->lowPassAveraging((actPos_-actPosOld_)/sampleTime_);
+  //Act position
+  uint64_t tempRaw=0;
 
-  getOutputDataInterface()->setPosition(actPos_);
-  getOutputDataInterface()->setVelocity(actVel_);
+  if(readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION,&tempRaw)){
+    setErrorID(ERROR_ENC_ENTRY_READ_FAIL);
+    return actPos_;
+  }
+  rawPos_=handleOverUnderFlow(tempRaw,bits_) ;
+  actPos_=scale_*rawPos_+offset_;
 
   return actPos_;
 }
@@ -234,57 +221,11 @@ int ecmcEncoder::validate()
     return setErrorID(ERROR_ENC_TYPE_NOT_SUPPORTED);
   }
 
-  if(getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    int errorCode=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
-    if(errorCode){   //Act position
-      return setErrorID(ERROR_ENC_ENTRY_NULL);
-    }
+  int errorCode=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
+  if(errorCode){   //Act position
+    return setErrorID(ERROR_ENC_ENTRY_NULL);
   }
 
-  if(getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){  //EXTERNAL
-    int nSources=getNumExtInputSources();
-    if(nSources==0){
-      return setErrorID(ERROR_ENC_EXT_MASTER_SOURCE_COUNT_ZERO);
-    }
 
-    ecmcTransform * transform=getExtInputTransform();
-    if(transform==NULL){
-      return setErrorID(ERROR_ENC_TRANSFORM_NULL);
-    }
-
-    if(transform->validate()){
-      return setErrorID(ERROR_ENC_TRANSFORM_VALIDATION_ERROR);
-    }
-  }
-
-  if(getOutputDataInterface()==NULL){
-    return setErrorID(ERROR_ENC_SLAVE_INTERFACE_NULL);
-  }
-
-  return 0;
-}
-
-void ecmcEncoder::errorReset()
-{
-  ecmcTransform * transform=getExtInputTransform();
-  if(transform!=NULL){
-    transform->errorReset();
-  }
-  ecmcError::errorReset();
-}
-
-int ecmcEncoder::getErrorID()
-{
-  if(ecmcError::getError()){
-    return ecmcError::getErrorID();
-  }
-
-  ecmcTransform * transform=getExtInputTransform();
-  if(transform==NULL){
-    int error=transform->getErrorID();
-    if(error){
-      return setErrorID(error);
-    }
-  }
   return 0;
 }

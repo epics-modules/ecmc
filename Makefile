@@ -40,6 +40,7 @@ SOURCES = \
   ecmcApp/src/ecmcPIDController.cpp \
   ecmcApp/src/ecmcSequencer.cpp \
   ecmcApp/src/ecmcTrajectory.cpp \
+  ecmcApp/src/ecmcTrajectoryTrapetz.cpp \
   ecmcApp/src/ecmcTransform.cpp \
   ecmcApp/src/ecmcEvent.cpp \
   ecmcApp/src/ecmcEventConsumer.cpp \

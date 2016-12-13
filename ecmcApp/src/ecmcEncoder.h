@@ -40,7 +40,7 @@
 
 #define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
 
-class ecmcEncoder : public ecmcEcEntryLink , public ecmcMasterSlaveIF
+class ecmcEncoder : public ecmcEcEntryLink
 {
 public:
   ecmcEncoder(double sampleTime);
@@ -61,12 +61,9 @@ public:
   bool getHomed();
   encoderType getType();
   int setType(encoderType encType);
-  //int setEntryAtIndex(ecmcEcEntry *entry,int index);
   double readEntries();
   void setOffset(double offset);
   int validate();
-  void errorReset();
-  int getErrorID();
 
  protected:
   void initVars();
@@ -87,7 +84,6 @@ public:
   int64_t range_;
   uint64_t limit_;
   int bits_;
-  //ecmcEcEntry *entryArray_[MaxMcuEncoderEntries];  //CH 0 ActPos
   int64_t handleOverUnderFlow(uint64_t newValue,int bits);
   ecmcFilter *velocityFilter_;
 };

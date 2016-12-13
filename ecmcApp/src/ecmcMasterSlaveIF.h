@@ -14,6 +14,7 @@
 
 //MASTERDATA INTERFACE
 #define ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE 0x30100
+#define ERROR_MASTER_DATA_IF_GEAR_RATIO_DENOM_ZERO 0x30101
 
 class ecmcMasterSlaveIF
 {
@@ -32,6 +33,10 @@ public:
   int getExtInputVel(double *val);
   bool getExtInputInterlock();
   int transformRefresh();
+  int validate();
+  int setGearRatio(double ratioNum, double ratioDenom);
+  int getGearRatio(double *ratio);
+
 private:
   void initVars();
   ecmcMasterSlaveData *inputDataInterface_[MAX_TRANSFORM_INPUTS];
@@ -40,7 +45,7 @@ private:
   ecmcTransform *transform_;
   int numInputSources_;
   double sampleTime_;
-
+  double gearRatio_;
 };
 
 #endif /* ECMCMASTERSLAVEIF_H_ */

@@ -28,6 +28,7 @@ void ecmcMasterSlaveIF::initVars()
   dataSource_=ECMC_DATA_SOURCE_INTERNAL;
   numInputSources_=0;
   sampleTime_=0;
+  gearRatio_=1;
 }
 
 ecmcMasterSlaveData *ecmcMasterSlaveIF::getOutputDataInterface()
@@ -96,7 +97,7 @@ int ecmcMasterSlaveIF::getExtInputPos(double *val)
   if(errorCode){
     return errorCode;
   }
-  *val=temp;
+  *val=temp* gearRatio_;
   return 0;
 }
 
@@ -107,7 +108,7 @@ int ecmcMasterSlaveIF::getExtInputVel(double *val)
   if(errorCode){
     return errorCode;
   }
-  *val=temp;
+  *val=temp*gearRatio_;
   return 0;
 }
 
@@ -119,4 +120,27 @@ bool ecmcMasterSlaveIF::getExtInputInterlock()
 int ecmcMasterSlaveIF::transformRefresh()
 {
   return transform_->refresh();
+}
+
+int ecmcMasterSlaveIF::validate()
+{
+  if(dataSource_!=ECMC_DATA_SOURCE_INTERNAL){
+    return transform_->validate();
+  }
+  return 0;
+}
+
+int ecmcMasterSlaveIF::setGearRatio(double ratioNum, double ratioDenom)
+{
+  if( ratioDenom ==0){
+    return ERROR_MASTER_DATA_IF_GEAR_RATIO_DENOM_ZERO;
+  }
+
+  gearRatio_=ratioNum/ratioDenom;
+  return 0;
+}
+
+int ecmcMasterSlaveIF::getGearRatio(double *ratio)
+{
+
 }

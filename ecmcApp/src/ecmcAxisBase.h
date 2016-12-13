@@ -21,6 +21,8 @@
 #include "ecmcPIDController.hpp"
 #include "ecmcSequencer.hpp"
 #include "ecmcTrajectory.hpp"
+#include "ecmcTrajectoryTrapetz.hpp"
+#include "ecmcMasterSlaveIF.h"
 
 //AXIS ERRORS
 #define ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL 0x14300
@@ -47,12 +49,15 @@
 #define ERROR_AXIS_HARDWARE_STATUS_NOT_OK 0x14315
 #define ERROR_AXIS_NOT_ENABLED 0x14316
 #define ERROR_AXIS_AMPLIFIER_ENABLED_LOST 0x14317
+#define ERROR_AXIS_SEQ_OBJECT_NULL 0x14318
+#define ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED 0x14319
+
 
 
 class ecmcAxisBase : public ecmcError
 {
 public:
-  ecmcAxisBase();
+  ecmcAxisBase(double sampleTime);
   virtual ~ecmcAxisBase();
   virtual void execute(bool masterOK)=0;
   virtual int setOpMode(operationMode nMode)=0;
@@ -76,7 +81,7 @@ public:
   virtual int getCmdData()=0;
   virtual int setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase *getDrv()=0;
-  virtual ecmcTrajectory *getTraj()=0;
+  virtual ecmcTrajectoryTrapetz *getTraj()=0;
   virtual ecmcMonitor *getMon()=0;
   virtual ecmcEncoder *getEnc()=0;
   virtual ecmcPIDController *getCntrl()=0;
@@ -104,6 +109,11 @@ public:
   int getErrorID();
   void errorReset();
   int setEnableLocal(bool enable);
+  int setExternalExecute(bool execute);
+  int validateBase();
+
+  ecmcMasterSlaveIF * getExternalTrajIF();
+  ecmcMasterSlaveIF * getExternalEncIF();
 
 protected:
   void initVars();
@@ -111,6 +121,9 @@ protected:
   bool checkAxesForEnabledTransfromCommands(commandType type);
   int setEnable_Transform();
   int setExecute_Transform();
+  int refreshExternalInputSources();
+  int refreshExternalOutputSources();
+
   int axisID_;
   bool reset_;
   axisType axisType_;
@@ -121,6 +134,27 @@ protected:
   bool inStartupPhase_;
   bool realtime_;
   bool enable_;
+  bool externalExecute_;
+
+
+  ecmcMasterSlaveIF *externalInputTrajectoryIF_;
+  ecmcMasterSlaveIF *externalInputEncoderIF_;
+  //dataSource trajectoryInputSource_;
+  //dataSource encoderInputSource_;
+
+  double externalTrajectoryPosition_;
+  double externalTrajectoryVelocity_;
+  interlockTypes externalTrajectoryInterlock_;
+
+  double externalEncoderPosition_;
+  double externalEncoderVelocity_;
+  interlockTypes externalEncoderInterlock_;
+
+  double currentPositionActual_;
+  double currentPositionSetpoint_;
+
+  double currentVelocityActual_;
+  double currentVelocitySetpoint_;
 };
 
 #endif /* ECMCAXISBASE_H_ */

@@ -61,8 +61,8 @@
 #define CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getTraj()==NULL){LOGERR("ERROR: Trajectory object NULL.\n");return ERROR_MAIN_TRAJECTORY_OBJECT_NULL;}}
 #define CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getSeq()==NULL){LOGERR("ERROR: Sequence object NULL.\n");return ERROR_MAIN_SEQUENCE_OBJECT_NULL;}}
 #define CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getMon()==NULL){LOGERR("ERROR: Monitor object NULL.\n");return ERROR_MAIN_MONITOR_OBJECT_NULL;}}
-#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getTraj()->getExtInputTransform()==NULL){LOGERR("ERROR: Trajectory transform object NULL.\n");return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;}}
-#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getEnc()->getExtInputTransform()==NULL){LOGERR("ERROR: Encoder transform object NULL.\n");return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;}}
+#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()==NULL){LOGERR("ERROR: Trajectory transform object NULL.\n");return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;}}
+#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getExternalEncIF()->getExtInputTransform()==NULL){LOGERR("ERROR: Encoder transform object NULL.\n");return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;}}
 #define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex) {  if(indexCommandList>=ECMC_MAX_COMMANDS_LISTS || indexCommandList<0){LOGERR("ERROR: Command list index out of range.\n");return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;}if(commandLists[indexCommandList]==NULL){LOGERR("ERROR: Command list object NULL.\n");return ERROR_COMMAND_LIST_NULL;}}
 #define CHECK_EVENT_RETURN_IF_ERROR(indexEvent) {if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){LOGERR("ERROR: Event index out of range.\n");return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;}if(events[indexEvent]==NULL){LOGERR("ERROR: Event object NULL.\n");return ERROR_MAIN_EVENT_NULL;}}
 #define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage) { if(indexStorage>=ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage<0){LOGERR("ERROR: Data storage index out of range.\n");return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;}if(dataStorages[indexStorage]==NULL){LOGERR("ERROR: Data storage object NULL.\n");return ERROR_MAIN_DATA_STORAGE_NULL;}}
@@ -428,21 +428,21 @@ int prepareForRuntime(){
     for(int j=0;j<ECMC_MAX_AXES;j++){
       if(axes[i] !=NULL && axes[j] !=NULL){
         //Trajectory
-        if(axes[i]->getTraj()!=NULL){
-          if(axes[j]->getTraj()!=NULL){
-            axes[j]->getTraj()->addInputDataInterface(axes[i]->getTraj()->getOutputDataInterface(),i);
+        if(axes[i]->getExternalTrajIF()!=NULL){
+          if(axes[j]->getExternalTrajIF()!=NULL){
+            axes[j]->getExternalTrajIF()->addInputDataInterface(axes[i]->getExternalTrajIF()->getOutputDataInterface(),i);
           }
-          if(axes[j]->getEnc()!=NULL){
-            axes[j]->getEnc()->addInputDataInterface(axes[i]->getTraj()->getOutputDataInterface(),i);
+          if(axes[j]->getExternalEncIF()!=NULL){
+            axes[j]->getExternalEncIF()->addInputDataInterface(axes[i]->getExternalTrajIF()->getOutputDataInterface(),i);
           }
         }
         //Encoder
-        if(axes[i]->getEnc()!=NULL){
-          if(axes[j]->getTraj()!=NULL){
-            axes[j]->getTraj()->addInputDataInterface(axes[i]->getEnc()->getOutputDataInterface(),i+ECMC_MAX_AXES);
+        if(axes[i]->getExternalEncIF()!=NULL){
+          if(axes[j]->getExternalTrajIF()!=NULL){
+            axes[j]->getExternalTrajIF()->addInputDataInterface(axes[i]->getExternalEncIF()->getOutputDataInterface(),i+ECMC_MAX_AXES);
           }
-          if(axes[j]->getEnc()!=NULL){
-            axes[j]->getEnc()->addInputDataInterface(axes[i]->getEnc()->getOutputDataInterface(),i+ECMC_MAX_AXES);
+          if(axes[j]->getExternalEncIF()!=NULL){
+            axes[j]->getExternalEncIF()->addInputDataInterface(axes[i]->getExternalEncIF()->getOutputDataInterface(),i+ECMC_MAX_AXES);
           }
         }
         axes[i]->setAxisArrayPointer(axes[j],j);
@@ -682,9 +682,18 @@ int setAxisEnableAlarmAtHardLimits(int axisIndex,int enable)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->setEnableAlarmAtHardLimit(enable);
+  int error=axes[axisIndex]->getMon()->setEnableHardLimitBWDAlarm(enable);
+  if (error){
+    return error;
+  }
+
+  error=axes[axisIndex]->getMon()->setEnableHardLimitFWDAlarm(enable);
+  if (error){
+    return error;
+  }
+  return 0;
 }
 
 int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value)
@@ -692,9 +701,9 @@ int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value= axes[axisIndex]->getSeq()->getEnableAlarmAtHardLimit();
+  *value= axes[axisIndex]->getMon()->getEnableAlarmAtHardLimit();
   return 0;
 }
 
@@ -715,7 +724,7 @@ int getAxisTrajSource(int axisIndex, int *value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  *value=(int)axes[axisIndex]->getTraj()->getDataSourceType();
+  *value=(int)axes[axisIndex]->getExternalTrajIF()->getDataSourceType();
   return 0;
 }
 
@@ -726,7 +735,7 @@ int getAxisEncSource(int axisIndex, int *value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  *value=(int)axes[axisIndex]->getEnc()->getDataSourceType();
+  *value=(int)axes[axisIndex]->getExternalEncIF()->getDataSourceType();
   return 0;
 }
 
@@ -785,9 +794,9 @@ int setAxisEnableSoftLimitBwd(int axisIndex, int value)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setEnableSoftLimitBwd(value);
+  axes[axisIndex]->getMon()->setEnableSoftLimitBwd(value);
   return 0;
 }
 
@@ -796,9 +805,9 @@ int setAxisEnableSoftLimitFwd(int axisIndex, int value)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setEnableSoftLimitFwd(value);
+  axes[axisIndex]->getMon()->setEnableSoftLimitFwd(value);
   return 0;
 }
 
@@ -807,9 +816,9 @@ int setAxisSoftLimitPosBwd(int axisIndex, double value)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setSoftLimitBwd(value);
+  axes[axisIndex]->getMon()->setSoftLimitBwd(value);
   return 0;
 }
 
@@ -818,9 +827,9 @@ int setAxisSoftLimitPosFwd(int axisIndex, double value)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setSoftLimitFwd(value);
+  axes[axisIndex]->getMon()->setSoftLimitFwd(value);
   return 0;
 }
 
@@ -829,9 +838,9 @@ int getAxisSoftLimitPosBwd(int axisIndex, double *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getSoftLimitBwd();
+  *value=axes[axisIndex]->getMon()->getSoftLimitBwd();
   return 0;
 }
 
@@ -840,9 +849,9 @@ int getAxisSoftLimitPosFwd(int axisIndex, double *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getSoftLimitFwd();
+  *value=axes[axisIndex]->getMon()->getSoftLimitFwd();
   return 0;
 }
 
@@ -851,9 +860,9 @@ int getAxisEnableSoftLimitBwd(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getEnableSoftLimitBwd();
+  *value=axes[axisIndex]->getMon()->getEnableSoftLimitBwd();
   return 0;
 }
 
@@ -862,9 +871,9 @@ int getAxisEnableSoftLimitFwd(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getEnableSoftLimitFwd();
+  *value=axes[axisIndex]->getMon()->getEnableSoftLimitFwd();
   return 0;
 }
 
@@ -1030,9 +1039,8 @@ int setAxisGearRatio(int axisIndex,double ratioNum,double ratioDenom)
   LOGINFO4("%s/%s:%d axisIndex=%d num=%lf denom=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, ratioNum,ratioDenom);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->setGearRatio(ratioNum,ratioDenom);
+  return axes[axisIndex]->getExternalTrajIF()->setGearRatio(ratioNum,ratioDenom);
 }
 
 int setAxisEncScaleNum(int axisIndex, double value)
@@ -1158,12 +1166,12 @@ const char* getAxisTrajTransExpr(int axisIndex, int *error)
     *error=ERROR_MAIN_TRAJECTORY_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getTraj()->getExtInputTransform()==NULL){
+  if(axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()==NULL){
     LOGERR("ERROR: Trajectory transform object NULL.\n");
     *error=ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;
     return "";
   }
-  std::string *sExpr=axes[axisIndex]->getTraj()->getExtInputTransform()->getExpression();
+  std::string *sExpr=axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()->getExpression();
   *error=0;
   return sExpr->c_str();
 }
@@ -1187,12 +1195,12 @@ const char* getAxisEncTransExpr(int axisIndex, int *error)
     *error=ERROR_MAIN_ENCODER_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getEnc()->getExtInputTransform()==NULL){
+  if(axes[axisIndex]->getExternalEncIF()->getExtInputTransform()==NULL){
     LOGERR("ERROR: Encoder transform object NULL.\n");
     *error=ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;
     return "";
   }
-  std::string *sExpr=axes[axisIndex]->getEnc()->getExtInputTransform()->getExpression();
+  std::string *sExpr=axes[axisIndex]->getExternalEncIF()->getExtInputTransform()->getExpression();
   *error=0;
   return sExpr->c_str();
 }
@@ -1362,9 +1370,8 @@ int getAxisGearRatio(int axisIndex,double *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->getGearRatio(value);
+  return axes[axisIndex]-> getExternalTrajIF()->getGearRatio(value);
 }
 
 int getAxisAtHardFwd(int axisIndex,int *value)
@@ -1372,9 +1379,9 @@ int getAxisAtHardFwd(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getHardLimitFwd();
+  *value=axes[axisIndex]->getMon()->getHardLimitFwd();
   return 0;
 }
 
@@ -1383,9 +1390,9 @@ int getAxisAtHardBwd(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getHardLimitBwd();
+  *value=axes[axisIndex]->getMon()->getHardLimitBwd();
   return 0;
 }
 

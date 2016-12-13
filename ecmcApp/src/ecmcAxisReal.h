@@ -36,8 +36,6 @@ public:
   bool getExecute();
   int setEnable(bool enable);
   bool getEnable();
-//  void errorReset();
-//  int getErrorID();
   int setCommand(motionCommandTypes command);
   int setCmdData(int cmdData);
   motionCommandTypes getCommand();
@@ -46,7 +44,7 @@ public:
   int setDriveType(ecmcDriveTypes driveType);
 
   ecmcDriveBase *getDrv();
-  ecmcTrajectory *getTraj();
+  ecmcTrajectoryTrapetz *getTraj();
   ecmcMonitor *getMon();
   ecmcEncoder *getEnc();
   ecmcPIDController *getCntrl();
@@ -57,7 +55,7 @@ private:
   void initVars();
   bool initDone_;
   operationMode operationMode_;
-  ecmcTrajectory *traj_;
+  ecmcTrajectoryTrapetz *traj_;
   ecmcMonitor *mon_;
   ecmcEncoder *enc_;
   ecmcDriveBase *drv_;

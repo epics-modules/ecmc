@@ -7,17 +7,21 @@
 
 #include "ecmcAxisBase.h"
 
-ecmcAxisBase::ecmcAxisBase()
+ecmcAxisBase::ecmcAxisBase(double sampleTime)
 {
   initVars();
   commandTransform_=new ecmcCommandTransform(2,ECMC_MAX_AXES);  //currently two commands
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,ECMC_CMD_TYPE_EXECUTE);
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,ECMC_CMD_TYPE_ENABLE);
+  externalInputTrajectoryIF_=new ecmcMasterSlaveIF(sampleTime);
+  externalInputEncoderIF_=new ecmcMasterSlaveIF(sampleTime);
 }
 
 ecmcAxisBase::~ecmcAxisBase()
 {
   delete commandTransform_;
+  delete externalInputEncoderIF_;
+  delete externalInputTrajectoryIF_;
 }
 
 axisType ecmcAxisBase::getAxisType()
@@ -73,6 +77,20 @@ void ecmcAxisBase::initVars()
     axes_[i]=NULL;
   }
   realtime_=false;
+  externalExecute_=false;
+
+  externalTrajectoryPosition_=0;
+  externalTrajectoryVelocity_=0;
+  externalTrajectoryInterlock_=ECMC_INTERLOCK_EXTERNAL;
+
+  externalEncoderPosition_=0;
+  externalEncoderVelocity_=0;
+  externalEncoderInterlock_=ECMC_INTERLOCK_EXTERNAL;
+
+  currentPositionActual_=0;
+  currentPositionSetpoint_=0;
+  currentVelocityActual_=0;
+  currentVelocitySetpoint_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -221,7 +239,8 @@ int ecmcAxisBase::setExecute_Transform()
     for(int i=0;i<ECMC_MAX_AXES;i++){
       if(axes_[i]!=NULL){
         if(axes_[i]->getCascadedCommandsEnabled() && commandTransform_->getDataChanged(ECMC_CMD_TYPE_EXECUTE,i) && i!=axisID_){ //Do not set on axis_no again
-          int error= axes_[i]->setExecute(commandTransform_->getData(ECMC_CMD_TYPE_EXECUTE,i));
+          //int error= axes_[i]->setExecute(commandTransform_->getData(ECMC_CMD_TYPE_EXECUTE,i));
+          int error= axes_[i]->setExternalExecute(commandTransform_->getData(ECMC_CMD_TYPE_EXECUTE,i));
           if(error){
             return setErrorID(error);
           }
@@ -249,11 +268,12 @@ int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType)
 
 int ecmcAxisBase::setTrajTransformExpression(std::string expressionString)
 {
-  if(!getTraj()){
+   ecmcTransform *transform=externalInputTrajectoryIF_->getExtInputTransform();
+  if(!transform){
     return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
   }
 
-  int error=getTraj()->getExtInputTransform()->setExpression(expressionString);
+  int error=transform->setExpression(expressionString);
   if(error){
     return setErrorID(error);
   }
@@ -262,11 +282,12 @@ int ecmcAxisBase::setTrajTransformExpression(std::string expressionString)
 
 int ecmcAxisBase::setEncTransformExpression(std::string expressionString)
 {
-  if(!getEnc()){
+  ecmcTransform *transform=externalInputEncoderIF_->getExtInputTransform();
+  if(!transform){
     return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
   }
 
-  int error=getEnc()->getExtInputTransform()->setExpression(expressionString);
+  int error=transform->setExpression(expressionString);
   if(error){
     return setErrorID(error);
   }
@@ -275,13 +296,17 @@ int ecmcAxisBase::setEncTransformExpression(std::string expressionString)
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
 {
-  if(!getTraj()){
-    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  //if(!getTraj()){
+  //  return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  //}
+
+  if(getEnable()){
+    return setErrorID(ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
   }
 
   //If realtime: Ensure that transform object is compiled and ready to go
   if(refSource!=ECMC_DATA_SOURCE_INTERNAL && realtime_){
-    ecmcTransform * transform=getTraj()->getExtInputTransform();
+    ecmcTransform * transform=externalInputTrajectoryIF_->getExtInputTransform();
     if(!transform){
       return setErrorID(ERROR_TRAJ_TRANSFORM_NULL);
     }
@@ -290,22 +315,18 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
       return setErrorID(error);
     }
   }
-
-  int error=getTraj()->setDataSourceType(refSource);
-  if(error){
-    return setErrorID(error);
-  }
-  error=getTraj()->validate();
-  if(error){
-    return setErrorID(error);
-  }
+  externalInputTrajectoryIF_->setDataSourceType(refSource);
   return 0;
 }
 
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
 {
-  if(!getEnc()){
-    return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  //if(!getEnc()){
+  //  return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  //}
+
+  if(getEnable()){
+    return setErrorID(ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
   }
 
   //If realtime: Ensure that ethercat enty for actual position is linked
@@ -318,7 +339,7 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
 
   //If realtime: Ensure that transform object is compiled and ready to go
   if(refSource!=ECMC_DATA_SOURCE_INTERNAL && realtime_){
-    ecmcTransform * transform=getEnc()->getExtInputTransform();
+    ecmcTransform * transform=externalInputEncoderIF_->getExtInputTransform();
     if(!transform){
       return setErrorID(ERROR_TRAJ_TRANSFORM_NULL);
     }
@@ -327,17 +348,7 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
       return setErrorID(error);
     }
   }
-
-  int error=getEnc()->setDataSourceType(refSource);
-  if(error){
-    return setErrorID(error);
-  }
-  if(realtime_) {
-    error=getEnc()->validate();
-    if(error){
-      return setErrorID(error);
-    }
-  }
+  externalInputEncoderIF_->setDataSourceType(refSource);
   return 0;
 }
 
@@ -388,7 +399,7 @@ int ecmcAxisBase::getErrorID()
   }
 
   //Trajectory
-  ecmcTrajectory *traj =getTraj();
+  ecmcTrajectoryTrapetz *traj =getTraj();
   if(traj){
     if(traj->getError()){
       return setErrorID(traj->getErrorID());
@@ -425,7 +436,7 @@ int ecmcAxisBase::setEnableLocal(bool enable)
     }
   }
 
-  ecmcTrajectory *traj =getTraj();
+  ecmcTrajectoryTrapetz *traj =getTraj();
   if(traj){
     traj->setEnable(enable);
   }
@@ -481,7 +492,7 @@ void ecmcAxisBase::errorReset()
   }
 
   //Trajectory
-  ecmcTrajectory *traj =getTraj();
+  ecmcTrajectoryTrapetz *traj =getTraj();
   if(traj){
     traj->errorReset();
   }
@@ -500,4 +511,107 @@ void ecmcAxisBase::errorReset()
 
   ecmcError::errorReset();
 }
+
+int ecmcAxisBase::setExternalExecute(bool execute)
+{
+/*  ecmcSequencer *seq=getSeq();
+  if(!seq){
+    return setErrorID(ERROR_AXIS_SEQ_OBJECT_NULL);
+  }
+  externalExecute_=execute;
+  seq->setExternalExecute(execute);*/
+  return 0;
+}
+
+int ecmcAxisBase::refreshExternalInputSources()
+{
+  int error=0;
+  //External Setpoint (Trajectory)
+  if(externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
+    error=externalInputTrajectoryIF_->transformRefresh();
+    if(error){
+      setErrorID(error);
+    }
+    error=externalInputTrajectoryIF_->getExtInputPos(&externalTrajectoryPosition_);
+    if(error){
+      setErrorID(error);
+    }
+    error=externalInputTrajectoryIF_->getExtInputVel(&externalTrajectoryVelocity_);
+    if(error){
+      setErrorID(error);
+    }
+    if(!externalInputTrajectoryIF_->getExtInputInterlock()){ //1=OK, 0=STOP
+      externalTrajectoryInterlock_=ECMC_INTERLOCK_TRANSFORM;
+    }
+  }
+  else{
+      externalTrajectoryPosition_=0;
+      externalTrajectoryVelocity_=0;
+      externalTrajectoryInterlock_=ECMC_INTERLOCK_NONE;
+  }
+
+  //External Actual value (Encoder)
+  if(externalInputEncoderIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
+    error=externalInputEncoderIF_->transformRefresh();
+    if(error){
+      setErrorID(error);
+    }
+
+    error=externalInputEncoderIF_->getExtInputPos(&externalEncoderPosition_);
+    if(error){
+      setErrorID(error);
+    }
+
+    error=externalInputEncoderIF_->getExtInputVel(&externalEncoderVelocity_);
+    if(error){
+      setErrorID(error);
+    }
+
+    if(!externalInputEncoderIF_->getExtInputInterlock()){ //1=OK, 0=STOP
+      externalEncoderInterlock_= ECMC_INTERLOCK_TRANSFORM;
+    }
+  }
+  else{
+    externalEncoderPosition_=0;
+    externalEncoderVelocity_=0;
+    externalEncoderInterlock_=ECMC_INTERLOCK_NONE;
+  }
+
+  return 0;
+}
+
+int ecmcAxisBase::refreshExternalOutputSources()
+{
+  externalInputTrajectoryIF_->getOutputDataInterface()->setPosition(currentPositionSetpoint_);
+  externalInputTrajectoryIF_->getOutputDataInterface()->setVelocity(currentVelocitySetpoint_);
+  externalInputEncoderIF_->getOutputDataInterface()->setPosition(currentPositionActual_);
+  externalInputEncoderIF_->getOutputDataInterface()->setVelocity(currentVelocityActual_);
+  return 0;
+}
+
+ecmcMasterSlaveIF *ecmcAxisBase::getExternalTrajIF()
+{
+  return externalInputTrajectoryIF_;
+}
+
+ecmcMasterSlaveIF *ecmcAxisBase::getExternalEncIF()
+{
+  return externalInputEncoderIF_;
+}
+
+int ecmcAxisBase::validateBase()
+{
+  int error=externalInputEncoderIF_->validate();
+  if(error){
+    return setErrorID(error);
+  }
+
+  error=externalInputTrajectoryIF_->validate();
+  if(error){
+    return setErrorID(error);
+  }
+
+  return 0;
+}
+
 

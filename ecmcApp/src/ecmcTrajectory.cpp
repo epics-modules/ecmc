@@ -73,6 +73,7 @@ void ecmcTrajectory::initVars()
   interlockStatus_=ECMC_INTERLOCK_NONE;
   enableHardLimitFWDAlarms_=false;
   enableHardLimitBWDAlarms_=false;
+  externalExecute_=false;
 }
 
 void ecmcTrajectory::initTraj()
@@ -807,5 +808,11 @@ int ecmcTrajectory::getErrorID()
 int ecmcTrajectory::setCurrentSetpoint(double position)
 {
   currentPositionSetpoint_=position;
+  return 0;
+}
+
+int ecmcTrajectory::setExternalExecute(bool execute)
+{
+  externalExecute_=execute;
   return 0;
 }

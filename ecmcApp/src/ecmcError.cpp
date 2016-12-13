@@ -132,6 +132,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14317:
       return "ERROR_AXIS_AMPLIFIER_ENABLED_LOST";
       break;
+    case 0x14318:
+      return "ERROR_AXIS_SEQ_OBJECT_NULL";
+      break;
+    case 0x14319:
+      return "ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
@@ -242,6 +248,30 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14C0A:
       return "ERROR_MON_CNTRL_OUTPUT_INCREASE_AT_LIMIT";
+      break;
+    case 0x14C0B:
+      return "ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK";
+      break;
+    case 0x14C0C:
+      return "ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK";
+      break;
+    case 0x14C0D:
+      return "ERROR_MON_HARD_LIMIT_FWD_INTERLOCK";
+      break;
+    case 0x14C0E:
+      return "ERROR_MON_HARD_LIMIT_BWD_INTERLOCK";
+      break;
+    case 0x14C0F:
+      return "ERROR_MON_POS_LAG_INTERLOCK";
+      break;
+    case 0x14C10:
+      return "ERROR_MON_BOTH_LIMIT_INTERLOCK";
+      break;
+    case 0x14C11:
+      return "ERROR_MON_DISTANCE_TO_STOP_ZERO";
+      break;
+    case 0x14C12:
+      return "ERROR_MON_ENTRY_EXT_INTERLOCK_NULL";
       break;
     case 0x14D00:  //SEQUENCER
       return "ERROR_SEQ_TRAJ_NULL";
@@ -386,6 +416,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x30100:  //MASTERDATA INTERFACE
       return "ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x30101:
+      return "ERROR_MASTER_DATA_IF_GEAR_RATIO_DENOM_ZERO";
       break;
     case 0x21000:  //ECENTRY
       return "ERROR_EC_ENTRY_DATA_POINTER_NULL";

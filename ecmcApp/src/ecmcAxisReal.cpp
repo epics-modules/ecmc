@@ -7,14 +7,15 @@
 
 #include "ecmcAxisReal.h"
 
-ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime)
+ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(sampleTime)
 {
   initVars();
   axisID_=axisID;
   axisType_=ECMC_AXIS_TYPE_REAL;
   sampleTime_=sampleTime;
   enc_=new ecmcEncoder(sampleTime_);
-  traj_=new ecmcTrajectory(sampleTime_);
+
+  traj_=new ecmcTrajectoryTrapetz(sampleTime_);
   mon_ =new ecmcMonitor();
   currentDriveType_=ECMC_STEPPER;
   drv_=new ecmcDriveStepper();
@@ -33,6 +34,8 @@ ecmcAxisReal::~ecmcAxisReal()
   delete traj_;
   delete mon_;
   delete drv_;
+  delete externalInputTrajectoryIF_;
+  delete externalInputTrajectoryIF_;
 }
 
 void ecmcAxisReal::initVars()
@@ -60,47 +63,71 @@ void ecmcAxisReal::execute(bool masterOK)
 
     //Read from hardware
     mon_->readEntries();
-    enc_->readEntries();
+    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      enc_->readEntries();
+    }
     drv_->readEntries();
 
-    double encActPos=enc_->getActPos();
-    traj_->setHardLimitFwd(mon_->getHardLimitFwd());
-    traj_->setHardLimitBwd(mon_->getHardLimitBwd());
-    traj_->setStartPos(encActPos);
+    refreshExternalInputSources();
 
-    double trajCurrSet=traj_->getNextPosSet();
+    //Trajectory (External or internal)
+    if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      currentPositionSetpoint_=traj_->getNextPosSet();
+      currentVelocitySetpoint_=traj_->getVel();
+    }
+    else{ //External source (Transform)
+      currentPositionSetpoint_=externalTrajectoryPosition_;
+      currentVelocitySetpoint_=externalTrajectoryVelocity_;
+    }
 
-    seq_.setHomeSensor(mon_->getHomeSwitch());
+    //Encoder (External or internal)
+    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      currentPositionActual_=enc_->getActPos();
+      currentVelocityActual_=enc_->getActVel();
+
+    }
+    else{ //External source (Transform)
+      currentPositionActual_=externalEncoderPosition_;
+      currentVelocityActual_=externalEncoderVelocity_;
+    }
+
+    mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
+
+    /*if( (!mon_->getHardLimitFwd() && currentVelocitySetpoint_>0) || (!mon_->getHardLimitBwd() && currentVelocitySetpoint_<0)){
+      externalInputTrajectoryIF_->setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+    }*/
+
+    traj_->setStartPos(currentPositionActual_);
+    mon_->setCurrentPosSet(currentPositionSetpoint_);
+    mon_->setVelSet(currentVelocitySetpoint_);
+    mon_->setActPos(currentPositionActual_);
+    mon_->setActVel(currentVelocityActual_);
+
+    //seq_.setHomeSensor(mon_->getHomeSwitch());
     seq_.execute();
 
-    mon_->setActPos(encActPos);
-    mon_->setCurrentPosSet(trajCurrSet);
-    mon_->setActVel(enc_->getActVel());
-    mon_->setTargetVel(traj_->getVel());
     mon_->setCntrlOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
 
-    traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
+    traj_->setInterlock(mon_->getTrajInterlock());
     drv_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     cntrl_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setAtTarget(mon_->getAtTarget());  //Reduce torque
 
     if(mon_->getDriveInterlock() && !traj_->getBusy()){
       cntrl_->reset();
-      //traj_->setStartPos(encActPos);
-      //traj_->setCurrentSetpoint(encActPos);
-      //mon_->setCurrentPosSet(encActPos);
     }
+
     if(getEnable() && masterOK && !getError()){
       mon_->setEnable(true);
-      drv_->setVelSet(cntrl_->control(trajCurrSet,encActPos,traj_->getVel())); //Actual control
+      drv_->setVelSet(cntrl_->control(currentPositionSetpoint_,currentPositionActual_,currentVelocitySetpoint_)); //Actual control
     }
 
     else{
       mon_->setEnable(false);
       if(getExecute()){
 	setExecute(false);
-	traj_->setStartPos(encActPos);
+	traj_->setStartPos(0);
       }
       if(enabledOld_ && !drv_->getEnabled() && enableCmdOld_){
 	  setEnable(false);
@@ -121,6 +148,7 @@ void ecmcAxisReal::execute(bool masterOK)
     }
 
     //Write to hardware
+    refreshExternalOutputSources();
     drv_->writeEntries();
   }
   else if(operationMode_==ECMC_MODE_OP_MAN){  //MANUAL MODE: Raw Output..
@@ -171,6 +199,7 @@ int ecmcAxisReal::setEnable(bool enable)
   if(error){
     return setErrorID(error);
   }
+
   //Cascade commands via command transformation
   return setEnable_Transform();
 }
@@ -198,13 +227,15 @@ operationMode ecmcAxisReal::getOpMode()
 
 int ecmcAxisReal::getActPos(double *pos)
 {
-  *pos=enc_->getActPos();
+  *pos=currentPositionActual_;
+  //*pos=enc_->getActPos();
   return 0;
 }
 
 int ecmcAxisReal::getActVel(double *vel)
 {
-  *vel=enc_->getActVel();
+  *vel=currentVelocityActual_;
+  //*vel=enc_->getActVel();
   return 0;
 }
 
@@ -288,7 +319,7 @@ ecmcDriveBase *ecmcAxisReal::getDrv()
   return drv_;
 }
 
-ecmcTrajectory *ecmcAxisReal::getTraj()
+ecmcTrajectoryTrapetz  *ecmcAxisReal::getTraj()
 {
   return traj_;
 }
@@ -308,13 +339,13 @@ void ecmcAxisReal::printStatus()
   if(drv_->getScale()!=0){
     printf("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
         axisID_,
-        traj_->getCurrentPosSet(),
-        enc_->getActPos(),
+        /*traj_->getCurrentPosSet()*/ currentPositionSetpoint_,
+        /*enc_->getActPos()*/ currentPositionActual_,
         cntrl_->getCntrlError(),
         cntrl_->getOutTot(),
-        traj_->getTargetPos()-enc_->getActPos(),
-        enc_->getActVel(),
-        traj_->getVel(),
+        /*traj_->getTargetPos()-enc_->getActPos()*/currentPositionSetpoint_ -currentPositionActual_,
+        /*enc_->getActVel()*/ currentVelocityActual_,
+        /*traj_->getVel()*/ currentVelocitySetpoint_,
         cntrl_->getOutFFPart()/drv_->getScale(),
         drv_->getVelSetRaw(),
         getErrorID());
@@ -322,13 +353,13 @@ void ecmcAxisReal::printStatus()
   else{
     printf("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
         axisID_,
-        traj_->getCurrentPosSet(),
-        enc_->getActPos(),
+        /*traj_->getCurrentPosSet()*/ currentPositionSetpoint_,
+        /*enc_->getActPos()*/ currentPositionActual_,
         cntrl_->getCntrlError(),
         cntrl_->getOutTot(),
-        traj_->getTargetPos()-enc_->getActPos(),
-        enc_->getActVel(),
-        traj_->getVel(),
+        /*traj_->getTargetPos()-enc_->getActPos()*/currentPositionSetpoint_ -currentPositionActual_,
+        /*enc_->getActVel()*/currentVelocityActual_,
+        /*traj_->getVel()*/ currentVelocitySetpoint_,
         0.0,
         drv_->getVelSetRaw(),
         getErrorID());
@@ -347,55 +378,60 @@ void ecmcAxisReal::printStatus()
 
 int ecmcAxisReal::validate()
 {
-  int errorRet=0;
+  int error=0;
   if(enc_==NULL){
     return setErrorID(ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  errorRet=enc_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=enc_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
   if(traj_==NULL){
     return setErrorID(ERROR_AXIS_TRAJ_OBJECT_NULL);
   }
 
-  errorRet=traj_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=traj_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
   if(drv_==NULL){
     return setErrorID(ERROR_AXIS_DRV_OBJECT_NULL);
   }
 
-  errorRet=drv_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=drv_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
   if(mon_==NULL){
     return setErrorID(ERROR_AXIS_MON_OBJECT_NULL);
   }
 
-  errorRet=mon_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=mon_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
   if(cntrl_==NULL){
     return setErrorID(ERROR_AXIS_CNTRL_OBJECT_NULL);
   }
 
-  errorRet=cntrl_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=cntrl_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
-  errorRet=seq_.validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=seq_.validate();
+  if(error){
+    return setErrorID(error);
+  }
+
+  error=ecmcAxisBase::validateBase();
+  if(error){
+    return setErrorID(error);
   }
 
   return 0;

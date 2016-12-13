@@ -7,7 +7,7 @@
 
 #include "ecmcAxisEncoder.h"
 
-ecmcAxisEncoder::ecmcAxisEncoder(int axisID, double sampleTime)
+ecmcAxisEncoder::ecmcAxisEncoder(int axisID, double sampleTime) :  ecmcAxisBase(sampleTime)
 {
   initVars();
   axisID_=axisID;
@@ -199,7 +199,7 @@ ecmcDriveBase *ecmcAxisEncoder::getDrv()
   return NULL;
 }
 
-ecmcTrajectory *ecmcAxisEncoder::getTraj()
+ecmcTrajectoryTrapetz  *ecmcAxisEncoder::getTraj()
 {
   return NULL;
 }
@@ -244,14 +244,19 @@ void ecmcAxisEncoder::printStatus()
 
 int ecmcAxisEncoder::validate()
 {
-  int errorRet=0;
+  int error=0;
   if(enc_==NULL){
     return setErrorID(ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  errorRet=enc_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=enc_->validate();
+  if(error){
+    return setErrorID(error);
+  }
+
+  error=ecmcAxisBase::validateBase();
+  if(error){
+    return setErrorID(error);
   }
 
   return 0;

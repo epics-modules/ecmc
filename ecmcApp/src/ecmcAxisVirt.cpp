@@ -7,14 +7,14 @@
 
 #include "ecmcAxisVirt.h"
 
-ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime)
+ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(sampleTime)
 {
   initVars();
   axisID_=axisID;
   axisType_=ECMC_AXIS_TYPE_VIRTUAL;
   sampleTime_=sampleTime;
 
-  traj_=new ecmcTrajectory(sampleTime_);
+  traj_=new ecmcTrajectoryTrapetz(sampleTime_);
   mon_=new ecmcMonitor();
   enc_=new ecmcEncoder(sampleTime_);
   seq_.setCntrl(NULL);
@@ -41,7 +41,6 @@ void ecmcAxisVirt::initVars()
 void ecmcAxisVirt::execute(bool masterOK)
 {
   if(masterOK){
-
     if(inStartupPhase_){
       //Auto reset hardware error
       if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
@@ -49,37 +48,61 @@ void ecmcAxisVirt::execute(bool masterOK)
       }
       setInStartupPhase(false);
     }
-
     //Read from hardware
     mon_->readEntries();
-    enc_->readEntries();
-    double encActPos=enc_->getActPos();
+    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      enc_->readEntries();
+    }
 
-    traj_->setHardLimitFwd(mon_->getHardLimitFwd());
-    traj_->setHardLimitBwd(mon_->getHardLimitBwd());
-    double dTrajCurrSet=traj_->getNextPosSet();
-    traj_->setStartPos(dTrajCurrSet);
+    refreshExternalInputSources();
 
-    seq_.setHomeSensor(mon_->getHomeSwitch());
+    //traj_->setHardLimitFwd(mon_->getHardLimitFwd());
+    //traj_->setHardLimitBwd(mon_->getHardLimitBwd());
+
+    //Trajectory (External or internal)
+    if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      currentPositionSetpoint_=traj_->getNextPosSet();
+      currentVelocitySetpoint_=traj_->getVel();
+    }
+    else{
+      currentPositionSetpoint_=externalTrajectoryPosition_;
+      currentVelocitySetpoint_=externalTrajectoryVelocity_;
+    }
+
+    //Encoder (External or internal)
+    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      currentPositionActual_=enc_->getActPos();
+      currentVelocityActual_=enc_->getActVel();
+    }
+    else{ //External source (Transform)
+      currentPositionActual_=externalEncoderPosition_;
+      currentVelocityActual_=externalEncoderVelocity_;
+    }
+    traj_->setStartPos(currentPositionActual_);  //Start from actual value
+    mon_->setCurrentPosSet(currentPositionSetpoint_);
+    mon_->setVelSet(currentVelocitySetpoint_);
+    mon_->setActPos(currentPositionActual_);
+    mon_->setActVel(currentVelocityActual_);
+
+    //seq_.setHomeSensor(mon_->getHomeSwitch());
     seq_.execute();
 
-    mon_->setEnable(getEnable());  //Only enable monitoring when all objects are enabled
-    mon_->setActPos(enc_->getActPos());
-    mon_->setCurrentPosSet(dTrajCurrSet);
-    mon_->setActVel(enc_->getActVel());
-    mon_->setTargetVel(traj_->getVel());
     mon_->execute();
-    traj_->setInterlock(mon_->getTrajInterlock());
 
-    if(!getEnable() || getError()){
-      traj_->setStartPos(encActPos);
+    traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
+
+
+    if(getEnable() && masterOK && !getError()){
+      mon_->setEnable(true);
     }
-  }
-  else{
-    if(getEnable()){
-      setEnable(false);
+    else{
+      mon_->setEnable(false);
+      if(getExecute()){
+        setExecute(false);
+ 	traj_->setStartPos(0);
+      }
     }
-    setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+    refreshExternalOutputSources();
   }
 }
 
@@ -139,13 +162,15 @@ operationMode ecmcAxisVirt::getOpMode()
 
 int ecmcAxisVirt::getActPos(double *pos)
 {
-  *pos=enc_->getActPos();
+  *pos=currentPositionActual_;
+  //*pos=enc_->getActPos();
   return 0;
 }
 
 int ecmcAxisVirt::getActVel(double *vel)
 {
-  *vel=enc_->getActVel();
+  *vel=currentVelocityActual_;
+  //*vel=enc_->getActVel();
   return 0;
 }
 
@@ -226,7 +251,7 @@ ecmcDriveBase *ecmcAxisVirt::getDrv()
   return NULL;
 }
 
-ecmcTrajectory *ecmcAxisVirt::getTraj()
+ecmcTrajectoryTrapetz *ecmcAxisVirt::getTraj()
 {
   return traj_;
 }
@@ -277,37 +302,44 @@ void ecmcAxisVirt::printStatus()
 
 int ecmcAxisVirt::validate()
 {
-  int retError=0;
+  int error=0;
   if(enc_==NULL){
     return setErrorID(ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  retError=enc_->validate();
-  if(retError){
-    return setErrorID(retError);
+  if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+    error=enc_->validate();
+    if(error){
+      return setErrorID(error);
+    }
   }
 
   if(traj_==NULL){
     return setErrorID(ERROR_AXIS_TRAJ_OBJECT_NULL);
   }
 
-  retError=traj_->validate();
-  if(retError){
-    return setErrorID(retError);
+  error=traj_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
   if(mon_==NULL){
     return setErrorID(ERROR_AXIS_MON_OBJECT_NULL);
   }
 
-  retError=mon_->validate();
-  if(retError){
-    return setErrorID(retError);
+  error=mon_->validate();
+  if(error){
+    return setErrorID(error);
   }
 
-  retError=seq_.validate();
-  if(retError){
-    return setErrorID(retError);
+  error=seq_.validate();
+  if(error){
+    return setErrorID(error);
+  }
+
+  error=ecmcAxisBase::validateBase();
+  if(error){
+    return setErrorID(error);
   }
 
   return 0;

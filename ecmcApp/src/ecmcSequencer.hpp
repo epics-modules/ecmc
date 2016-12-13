@@ -11,7 +11,7 @@
 #include "ecmcError.h"
 #include "ecmcMonitor.hpp"
 #include "ecmcPIDController.hpp"
-#include "ecmcTrajectory.hpp"
+#include "ecmcTrajectoryTrapetz.hpp"
 
 //SEQUENCER ERRORS
 #define ERROR_SEQ_TRAJ_NULL 0x14D00
@@ -31,7 +31,7 @@ class ecmcSequencer : public ecmcError
 public:
   ecmcSequencer();
   ~ecmcSequencer();
-  void setHomeSensor(bool switchState);
+  //void setHomeSensor(bool switchState);
   int setExecute(bool execute);
   bool getExecute();
   void execute();
@@ -39,8 +39,8 @@ public:
   motionCommandTypes getCommand();
   void setCmdData(int cmdData);
   int getCmdData();
-  void setTraj(ecmcTrajectory *traj);
-  ecmcTrajectory * getTraj();
+  void setTraj(ecmcTrajectoryTrapetz *traj);
+  ecmcTrajectoryTrapetz *getTraj();
   void setEnc(ecmcEncoder *enc);
   void setMon(ecmcMonitor *mon);
   void setCntrl(ecmcPIDController *con);
@@ -63,23 +63,22 @@ public:
   bool getJogFwd();
   void setJogBwd(bool jog);
   bool getJogBwd();
-  void setSoftLimitBwd(double limit);
-  void setSoftLimitFwd(double limit);
-  double getSoftLimitBwd();
-  double getSoftLimitFwd();
-  bool getAtSoftLimitBwd();
-  bool getAtSoftLimitFwd();
-  void setEnableSoftLimitBwd(bool enable);
-  void setEnableSoftLimitFwd(bool enable);
-  bool getEnableSoftLimitBwd();
-  bool getEnableSoftLimitFwd();
-  int setGearRatio(double ratioNum, double ratioDenom);
-  int getGearRatio(double *ratio);
+//  void setSoftLimitBwd(double limit);
+//  void setSoftLimitFwd(double limit);
+//  double getSoftLimitBwd();
+//  double getSoftLimitFwd();
+//  bool getAtSoftLimitBwd();
+//  bool getAtSoftLimitFwd();
+//  void setEnableSoftLimitBwd(bool enable);
+//  void setEnableSoftLimitFwd(bool enable);
+//  bool getEnableSoftLimitBwd();
+//  bool getEnableSoftLimitFwd();
   int getSeqState();
   int validate();
-  int setEnableAlarmAtHardLimit(bool enable);
-  bool getEnableAlarmAtHardLimit();
+  //int setEnableAlarmAtHardLimit(bool enable);
+  //bool getEnableAlarmAtHardLimit();
   int setSequenceTimeout(int timeout);
+  int setExternalExecute(bool execute);
 private:
   void initVars();
   double checkSoftLimits(double posSetpoint);
@@ -91,7 +90,7 @@ private:
   int seqHoming5(); //nCmdData==5
   int seqHoming6(); //nCmdData==6
   int checkHWLimitsAndStop(bool checkBWD,bool checkFWD);
-  int setSoftLimitsToTraj();
+  //int setSoftLimitsToTraj();
   int stopSeq();
   bool hwLimitSwitchFwd_;
   bool hwLimitSwitchFwdOld_;
@@ -105,8 +104,8 @@ private:
   bool executeOld_;
   motionCommandTypes command_;
   int cmdData_;
-  ecmcTrajectory *traj_;
-  ecmcEncoder*enc_;
+  ecmcTrajectoryTrapetz *traj_;
+  ecmcEncoder *enc_;
   ecmcMonitor *mon_;
   ecmcPIDController *cntrl_;
   bool busy_;
@@ -119,16 +118,17 @@ private:
   double targetVelocity_;
   bool jogFwd_;
   bool jogBwd_;
-  double softLimitBwd_;
-  double softLimitFwd_;
-  bool   enableSoftLimitBwd_;
-  bool   enableSoftLimitFwd_;
+//  double softLimitBwd_;
+//  double softLimitFwd_;
+  bool enableSoftLimitBwdBackup_;
+  bool enableSoftLimitFwdBackup_;
   int seqState_;
   double homePosLatch1_;
   double homePosLatch2_;
-  bool enableAlarmAtHardlimit_;
+  //bool enableAlarmAtHardlimit_;
   int seqTimeout_;
   int seqTimeCounter_;
+  bool externalExecute_;
 };
 
 #endif /* ECMCSEQUENCER_HPP_ */

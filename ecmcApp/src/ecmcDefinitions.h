@@ -162,6 +162,4 @@ enum triggerEdgeType{
   ECMC_ON_CHANGE=2,
 };
 
-
-
 #endif /* ECMCDEFINITIONS_H_ */

@@ -31,15 +31,13 @@ public:
   bool getExecute();
   int setEnable(bool enable);
   bool getEnable();
-  //void errorReset();
-  //int getErrorID();
   int setCommand(motionCommandTypes command);
   int setCmdData(int cmdData);
   motionCommandTypes getCommand();
   int getCmdData();
 
   ecmcDriveBase *getDrv();
-  ecmcTrajectory *getTraj();
+  ecmcTrajectoryTrapetz *getTraj();
   ecmcMonitor *getMon();
   ecmcEncoder *getEnc();
   ecmcPIDController *getCntrl();
