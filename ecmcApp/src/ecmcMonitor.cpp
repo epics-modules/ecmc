@@ -534,14 +534,15 @@ int ecmcMonitor::checkLimits()
       fwdLimitInterlock_=false;
   }
 
+  //printf("enableSoftLimitBwd_=%d,enableSoftLimitFwd_=%d.\n",enableSoftLimitBwd_,enableSoftLimitFwd_);
   //Soft bwd limit
-  bwdSoftLimitInterlock_=enableSoftLimitBwd_ && actVel_<0 && std::abs(actPos_-softLimitBwd_)<=distToStop_;
+  bwdSoftLimitInterlock_=enableSoftLimitBwd_ && (setVel_<0) && (actPos_-softLimitBwd_<=distToStop_);
   if(bwdSoftLimitInterlock_){
     return setErrorID(ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
   }
 
   //Soft fwd limit
-  fwdSoftLimitInterlock_=enableSoftLimitFwd_ && actVel_>0 && std::abs(actPos_-softLimitBwd_)<=distToStop_;
+  fwdSoftLimitInterlock_=enableSoftLimitFwd_ && (setVel_>0) && (softLimitFwd_-actPos_<=distToStop_);
   if(fwdSoftLimitInterlock_){
     return setErrorID(ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
   }
