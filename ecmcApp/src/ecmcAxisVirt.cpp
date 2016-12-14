@@ -135,58 +135,6 @@ void ecmcAxisVirt::execute(bool masterOK)
     //Write to hardware
     refreshExternalOutputSources();
   }
-    //Read from hardware
-  /*  mon_->readEntries();
-    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-      enc_->readEntries();
-    }
-
-    refreshExternalInputSources();
-
-    //Trajectory (External or internal)
-    if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-      currentPositionSetpoint_=traj_->getNextPosSet();
-      currentVelocitySetpoint_=traj_->getVel();
-    }
-    else{
-      currentPositionSetpoint_=externalTrajectoryPosition_;
-      currentVelocitySetpoint_=externalTrajectoryVelocity_;
-    }
-
-    //Encoder (External or internal)
-    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-      currentPositionActual_=enc_->getActPos();
-      currentVelocityActual_=enc_->getActVel();
-    }
-    else{ //External source (Transform)
-      currentPositionActual_=externalEncoderPosition_;
-      currentVelocityActual_=externalEncoderVelocity_;
-    }
-    traj_->setStartPos(currentPositionActual_);  //Start from actual value
-    mon_->setCurrentPosSet(currentPositionSetpoint_);
-    mon_->setVelSet(currentVelocitySetpoint_);
-    mon_->setActPos(currentPositionActual_);
-    mon_->setActVel(currentVelocityActual_);
-
-
-    seq_.execute();
-    mon_->execute();
-
-    traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
-
-
-    if(getEnable() && masterOK && !getError()){
-      mon_->setEnable(true);
-    }
-    else{
-      mon_->setEnable(false);
-      if(getExecute()){
-        setExecute(false);
- 	traj_->setStartPos(0);
-      }
-    }
-    refreshExternalOutputSources();
-  }*/
 }
 
 int ecmcAxisVirt::setExecute(bool execute)
@@ -246,14 +194,12 @@ operationMode ecmcAxisVirt::getOpMode()
 int ecmcAxisVirt::getActPos(double *pos)
 {
   *pos=currentPositionActual_;
-  //*pos=enc_->getActPos();
   return 0;
 }
 
 int ecmcAxisVirt::getActVel(double *vel)
 {
   *vel=currentVelocityActual_;
-  //*vel=enc_->getActVel();
   return 0;
 }
 

@@ -243,14 +243,12 @@ operationMode ecmcAxisReal::getOpMode()
 int ecmcAxisReal::getActPos(double *pos)
 {
   *pos=currentPositionActual_;
-  //*pos=enc_->getActPos();
   return 0;
 }
 
 int ecmcAxisReal::getActVel(double *vel)
 {
   *vel=currentVelocityActual_;
-  //*vel=enc_->getActVel();
   return 0;
 }
 
