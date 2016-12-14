@@ -20,7 +20,6 @@
 #include "ecmcMonitor.hpp"
 #include "ecmcPIDController.hpp"
 #include "ecmcSequencer.hpp"
-#include "ecmcTrajectory.hpp"
 #include "ecmcTrajectoryTrapetz.hpp"
 #include "ecmcMasterSlaveIF.h"
 

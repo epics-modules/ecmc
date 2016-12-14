@@ -39,10 +39,8 @@
 #include "ecmcAxisBase.h"      //Abstract class for all axis types
 #include "ecmcAxisReal.h"      //Normal axis (controller, drive, encoder, trajectory, monitor, sequencer)
 #include "ecmcAxisVirt.h"      //Axis without drive and controller
-#include "ecmcAxisTraj.h"      //Axis without drive, controller and encoder
-#include "ecmcAxisEncoder.h"   //Axis without drive, controller and trajectory
 #include "ecmcDriveBase.hpp"
-#include "ecmcTrajectory.hpp"
+#include "ecmcTrajectoryTrapetz.hpp"
 #include "ecmcPIDController.hpp"
 #include "ecmcEncoder.h"
 #include "ecmcMonitor.hpp"
@@ -76,7 +74,6 @@ static int              axisDiagFreq;
 static bool             enableAxisDiag;
 static int              controllerError=0;
 static app_mode_type    appMode,appModeOld;
-//static bool             functionDiag=0;
 static int              enableTimeDiag=0;
 static unsigned int     counter = 0;
 static int              printCounter=0;
@@ -467,9 +464,6 @@ int validateConfig(){
       }
     }
   }
-  //if(axisCount==0){
-  //  return ERROR_AXIS_CONFIGURED_COUNT_ZERO;
-  //}
 
   for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
     if(events[i]!=NULL){
@@ -544,20 +538,6 @@ int setEnableFunctionCallDiag(int value)
 }
 
 /****************************************************************************/
-
-#if 0
-static void init_axis(int axisIndex){
-// needed?
-}
-
-/*****************************************************************************/
-
-void hw_motor_init(int axisIndex){
-// needed?
-}
-#endif
-
-/*****************************************************************************/
 
 int setAxisExecute(int axisIndex, int value)
 {
@@ -2014,21 +1994,6 @@ int createAxis(int index, int type)
       }
       axes[index]=new ecmcAxisVirt(index,1/MCU_FREQUENCY);
       break;
-
-    case ECMC_AXIS_TYPE_TRAJECTORY:
-      if(axes[index]!=NULL){
-        delete axes[index];
-      }
-      axes[index]=new ecmcAxisTraj(index,1/MCU_FREQUENCY);
-      break;
-
-    case ECMC_AXIS_TYPE_ENCODER:
-      if(axes[index]!=NULL){
-        delete axes[index];
-      }
-      axes[index]=new ecmcAxisEncoder(index,1/MCU_FREQUENCY);
-      break;
-
     default:
       return ERROR_MAIN_AXIS_TYPE_UNKNOWN;
   }

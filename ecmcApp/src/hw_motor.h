@@ -2089,8 +2089,6 @@ int setAppMode(int mode);
  * \param[in] type Type of axis.\n
  *   type = 1 : Normal axis (drive, encoder, monitor,pid-controller,trajectory).\n
  *   type = 2 : Virtual axis (encoder, monitor, trajectory).\n
- *   type = 3 : Trajectory axis (monitor, trajectory generator).\n
- *   type = 4 : Encoder axis (encoder, monitor).\n
  *
  * \return 0 if success or otherwise an error code.\n
  *

@@ -49,8 +49,6 @@ void ecmcAxisVirt::execute(bool masterOK)
       setInStartupPhase(false);
     }
 
-
-
     //Read from hardware
     mon_->readEntries();
     if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
