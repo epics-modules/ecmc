@@ -85,7 +85,6 @@ static struct timespec  masterActivationTimeMonotonic={};
 static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
 
-
 /****************************************************************************/
 
 const struct timespec cycletime = {0, MCU_PERIOD_NS};

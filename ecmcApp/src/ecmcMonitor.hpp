@@ -3,7 +3,7 @@
 #include <cmath>
 #include "ecmcEcEntry.h"
 #include "ecmcError.h"
-#include "ecmcTrajectory.hpp"
+#include "ecmcTrajectoryTrapetz.hpp"
 
 //MONITOR ERRORS
 #define ERROR_MON_ASSIGN_ENTRY_FAILED 0x14C00

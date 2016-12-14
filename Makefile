@@ -15,9 +15,7 @@ SOURCES = \
   ecmcApp/src/ecmcController.cpp \
   ecmcApp/src/ecmcMain.cpp \
   ecmcApp/src/ecmcAxisBase.cpp \
-  ecmcApp/src/ecmcAxisEncoder.cpp \
   ecmcApp/src/ecmcAxisReal.cpp \
-  ecmcApp/src/ecmcAxisTraj.cpp \
   ecmcApp/src/ecmcAxisVirt.cpp \
   ecmcApp/src/ecmcCommandTransform.cpp \
   ecmcApp/src/ecmcDriveBase.cpp \
@@ -39,7 +37,6 @@ SOURCES = \
   ecmcApp/src/ecmcMonitor.cpp \
   ecmcApp/src/ecmcPIDController.cpp \
   ecmcApp/src/ecmcSequencer.cpp \
-  ecmcApp/src/ecmcTrajectory.cpp \
   ecmcApp/src/ecmcTrajectoryTrapetz.cpp \
   ecmcApp/src/ecmcTransform.cpp \
   ecmcApp/src/ecmcEvent.cpp \
