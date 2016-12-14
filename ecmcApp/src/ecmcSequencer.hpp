@@ -31,7 +31,6 @@ class ecmcSequencer : public ecmcError
 public:
   ecmcSequencer();
   ~ecmcSequencer();
-  //void setHomeSensor(bool switchState);
   int setExecute(bool execute);
   bool getExecute();
   void execute();
@@ -63,20 +62,8 @@ public:
   bool getJogFwd();
   void setJogBwd(bool jog);
   bool getJogBwd();
-//  void setSoftLimitBwd(double limit);
-//  void setSoftLimitFwd(double limit);
-//  double getSoftLimitBwd();
-//  double getSoftLimitFwd();
-//  bool getAtSoftLimitBwd();
-//  bool getAtSoftLimitFwd();
-//  void setEnableSoftLimitBwd(bool enable);
-//  void setEnableSoftLimitFwd(bool enable);
-//  bool getEnableSoftLimitBwd();
-//  bool getEnableSoftLimitFwd();
   int getSeqState();
   int validate();
-  //int setEnableAlarmAtHardLimit(bool enable);
-  //bool getEnableAlarmAtHardLimit();
   int setSequenceTimeout(int timeout);
   int setExternalExecute(bool execute);
 private:
@@ -90,7 +77,6 @@ private:
   int seqHoming5(); //nCmdData==5
   int seqHoming6(); //nCmdData==6
   int checkHWLimitsAndStop(bool checkBWD,bool checkFWD);
-  //int setSoftLimitsToTraj();
   int stopSeq();
   bool hwLimitSwitchFwd_;
   bool hwLimitSwitchFwdOld_;
@@ -118,14 +104,11 @@ private:
   double targetVelocity_;
   bool jogFwd_;
   bool jogBwd_;
-//  double softLimitBwd_;
-//  double softLimitFwd_;
   bool enableSoftLimitBwdBackup_;
   bool enableSoftLimitFwdBackup_;
   int seqState_;
   double homePosLatch1_;
   double homePosLatch2_;
-  //bool enableAlarmAtHardlimit_;
   int seqTimeout_;
   int seqTimeCounter_;
   bool externalExecute_;
