@@ -47,6 +47,7 @@ void ecmcAxisReal::initVars()
   enabledOld_=false;
   enableCmdOld_=false;
   executeCmdOld_=false;
+  trajInterlockOld=true;
 }
 
 void ecmcAxisReal::execute(bool masterOK)
@@ -71,7 +72,7 @@ void ecmcAxisReal::execute(bool masterOK)
     refreshExternalInputSources();
 
     //Trajectory (External or internal)
-    if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+    if((externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL)/* || (externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL && mon_->getTrajInterlock())*/){
       currentPositionSetpoint_=traj_->getNextPosSet();
       currentVelocitySetpoint_=traj_->getVel();
     }
@@ -93,21 +94,36 @@ void ecmcAxisReal::execute(bool masterOK)
 
     mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
 
-    /*if( (!mon_->getHardLimitFwd() && currentVelocitySetpoint_>0) || (!mon_->getHardLimitBwd() && currentVelocitySetpoint_<0)){
-      externalInputTrajectoryIF_->setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
-    }*/
-
-    traj_->setStartPos(currentPositionActual_);
+    if(getEnable()){
+      traj_->setStartPos(currentPositionSetpoint_);
+    }
+    else{
+      traj_->setStartPos(currentPositionActual_);
+    }
     mon_->setCurrentPosSet(currentPositionSetpoint_);
     mon_->setVelSet(currentVelocitySetpoint_);
     mon_->setActPos(currentPositionActual_);
     mon_->setActVel(currentVelocityActual_);
 
-    //seq_.setHomeSensor(mon_->getHomeSwitch());
+
     seq_.execute();
 
     mon_->setCntrlOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
+
+    //Switch to internal trajectory if interlock
+    if(mon_->getTrajInterlock() && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
+      externalInputTrajectoryIF_->setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+      traj_->setInterlock(mon_->getTrajInterlock());
+      traj_->setStartPos(currentPositionActual_);
+      //if(!trajInterlockOld && mon_->getTrajInterlock()){ //Trigger stop motion
+	  traj_->initStopRamp(currentPositionActual_,currentVelocityActual_,0);
+      //}
+      currentPositionSetpoint_=traj_->getNextPosSet();
+      currentVelocitySetpoint_=traj_->getVel();
+      mon_->setCurrentPosSet(currentPositionSetpoint_);
+      mon_->setVelSet(currentVelocitySetpoint_);
+    }
 
     traj_->setInterlock(mon_->getTrajInterlock());
     drv_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
@@ -163,6 +179,7 @@ void ecmcAxisReal::execute(bool masterOK)
   enabledOld_=drv_->getEnabled();
   enableCmdOld_=getEnable();
   executeCmdOld_=getExecute();
+  trajInterlockOld=mon_->getTrajInterlock();
 }
 
 int ecmcAxisReal::setExecute(bool execute)

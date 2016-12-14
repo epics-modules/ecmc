@@ -66,6 +66,7 @@ private:
   bool enabledOld_;
   bool enableCmdOld_;
   bool executeCmdOld_;
+  bool trajInterlockOld;
 };
 
 #endif /* ECMCAXISREAL_H_ */

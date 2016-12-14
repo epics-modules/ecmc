@@ -694,6 +694,7 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
       if(hwLimitSwitchBwd_){
         currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
         traj_->setTargetVel(-homeVelTwordsCam_); //high speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);
         seqState_=1;
       }
@@ -719,6 +720,7 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
       }
       if(!traj_->getBusy()){
         traj_->setTargetVel(homeVelOffCam_); //low speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);//Trigg new movement
         seqState_=3;
       }
@@ -799,6 +801,7 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
       if(hwLimitSwitchFwd_){
         currSeqDirection_=ECMC_DIR_FORWARD;  //StartDirection
         traj_->setTargetVel(homeVelTwordsCam_); //high speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);
         seqState_=1;
       }
@@ -824,6 +827,7 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
       }
       if(!traj_->getBusy()){
         traj_->setTargetVel(-homeVelOffCam_); //low speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);//Trigg new movement
         seqState_=3;
       }
@@ -905,6 +909,7 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       if(hwLimitSwitchBwd_){
         currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
         traj_->setTargetVel(-homeVelTwordsCam_); //high speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);
         seqState_=1;
       }
@@ -932,6 +937,7 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       }
       if(!traj_->getBusy()){
         traj_->setTargetVel(homeVelOffCam_); //low speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);//Trigg new movement
         seqState_=3;
       }
@@ -1013,6 +1019,7 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
       if(hwLimitSwitchFwd_){
         currSeqDirection_=ECMC_DIR_FORWARD;  //StartDirection
         traj_->setTargetVel(homeVelTwordsCam_); //high speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);
         seqState_=1;
       }
@@ -1038,6 +1045,7 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
       }
       if(!traj_->getBusy()){
         traj_->setTargetVel(-homeVelOffCam_); //low speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);//Trigg new movement
         seqState_=3;
       }
@@ -1122,6 +1130,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       if(hwLimitSwitchBwd_){
         currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
         traj_->setTargetVel(-homeVelTwordsCam_); //high speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);
         seqState_=1;
       }
@@ -1147,6 +1156,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       }
       if(!traj_->getBusy()){
         traj_->setTargetVel(homeVelOffCam_); //low speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);//Trigg new movement
         seqState_=3;
       }
@@ -1188,6 +1198,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
 
       if(!traj_->getBusy()){ //Trigg new movement
         traj_->setTargetVel(-homeVelOffCam_); //low speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);
         seqState_=6;
       }
@@ -1228,7 +1239,8 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
           cntrl_->setEnable(true);
           homePosLatch1_=0;
           homePosLatch2_=0;
-          stopSeq();    }
+          stopSeq();
+        }
       }
       break;
   }
@@ -1272,6 +1284,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       if(hwLimitSwitchFwd_){
         currSeqDirection_=ECMC_DIR_FORWARD ;  //StartDirection
         traj_->setTargetVel(homeVelTwordsCam_); //high speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);
         seqState_=1;
       }
@@ -1297,6 +1310,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       }
       if(!traj_->getBusy()){
         traj_->setTargetVel(-homeVelOffCam_); //low speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);//Trigg new movement
         seqState_=3;
       }
@@ -1338,6 +1352,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
 
       if(!traj_->getBusy()){ //Trigg new movement
         traj_->setTargetVel(homeVelOffCam_); //low speed
+        traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setExecute(1);
         seqState_=6;
       }
@@ -1378,7 +1393,8 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
           cntrl_->setEnable(true);
           homePosLatch1_=0;
           homePosLatch2_=0;
-          stopSeq();    }
+          stopSeq();
+        }
       }
       break;
   }

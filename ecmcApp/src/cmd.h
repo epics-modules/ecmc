@@ -46,7 +46,8 @@ do {                                               \
 
 #define FUNCTION_CALL_DIAGNOSTICS_BIT 4
 #define FUNCTION_ETHERCAT_DIAGNOSTICS_BIT 5
-#define FUNCTION_AXIS_DIAGNOSTICS_BIT 6
+#define FUNCTION_CMD_EAT_DIAGNOSTICS_BIT 6
+#define FUNCTION_AXIS_DIAGNOSTICS_BIT 7
 
 #define LOGINFO(fmt, ...)                        \
 {                                                \

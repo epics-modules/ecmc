@@ -109,12 +109,13 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     return currentPositionSetpoint_;
   }
   index_++;
-  nextSetpoint=internalTraj(&nextVelocity);
 
-  actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
+  if(motionMode_!=ECMC_MOVE_MODE_STOP){
+    nextSetpoint=internalTraj(&nextVelocity);
+    actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
+  }
 
-  nStopMode=checkInterlocks(actDirection_,nextSetpoint);//Check if next position is allowed
-
+  nStopMode=checkInterlocks();
   if(nStopMode!=ECMC_STOP_MODE_RUN){//STOP=>calculate new setpoint and velocity for stop ramp.
     nextSetpoint=moveStop(nStopMode,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
     if(stopped){
@@ -268,17 +269,9 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,double currSetpoint, do
   return posSetTemp;
 }
 
-stopMode ecmcTrajectoryTrapetz::checkInterlocks(motionDirection dir,double newSetpoint)
+stopMode ecmcTrajectoryTrapetz::checkInterlocks()
 {
   interlockStatus_=ECMC_INTERLOCK_NONE;
-
-  /*if(dir==ECMC_DIR_FORWARD && externalInterlock_==ECMC_INTERLOCK_HARD_FWD ){
-    return ECMC_STOP_MODE_NORMAL;
-  }
-
-  if(dir==ECMC_DIR_BACKWARD && externalInterlock_==ECMC_INTERLOCK_HARD_BWD){
-    return ECMC_STOP_MODE_NORMAL;
-  }*/
 
   if(externalInterlock_!=ECMC_INTERLOCK_NONE){
     interlockStatus_=externalInterlock_;
@@ -485,7 +478,7 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute)
     initTraj();
     currentPositionSetpoint_=startPosition_;
     trajInProgress_=true; //Trigger new trajectory
-    LOGINFO6("%s/%s:%d: INFO: New trajectory triggered.\n",__FILE__, __FUNCTION__, __LINE__);
+    LOGINFO7("%s/%s:%d: INFO: New trajectory triggered.\n",__FILE__, __FUNCTION__, __LINE__);
   }
 }
 
@@ -544,4 +537,16 @@ motionDirection ecmcTrajectoryTrapetz::checkDirection(double oldPos,double newPo
   }
 
   return ECMC_DIR_STANDSTILL;
+}
+
+
+int ecmcTrajectoryTrapetz::initStopRamp(double currentPos, double currentVel, double currentAcc)
+{
+  enable_=1;
+  motionMode_=ECMC_MOVE_MODE_STOP;
+  trajInProgress_=true;
+  currentPositionSetpoint_=currentPos;
+  velocity_=currentVel;
+  //velocityTarget_=0;
+  return 0;
 }

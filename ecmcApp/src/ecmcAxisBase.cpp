@@ -577,6 +577,10 @@ int ecmcAxisBase::refreshExternalInputSources()
     externalEncoderInterlock_=ECMC_INTERLOCK_NONE;
   }
 
+  if(getMon()){
+    getMon()->setExtTrajInterlock(externalTrajectoryInterlock_);
+    getMon()->setExtEncInterlock(externalEncoderInterlock_);
+  }
   return 0;
 }
 

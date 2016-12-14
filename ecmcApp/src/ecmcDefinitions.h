@@ -105,6 +105,7 @@ enum motionDirection {
 enum motionMode{
   ECMC_MOVE_MODE_POS=0,
   ECMC_MOVE_MODE_VEL=1,
+  ECMC_MOVE_MODE_STOP=2,
 };
 
 enum dataSource{

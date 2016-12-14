@@ -142,5 +142,6 @@ int ecmcMasterSlaveIF::setGearRatio(double ratioNum, double ratioDenom)
 
 int ecmcMasterSlaveIF::getGearRatio(double *ratio)
 {
-
+  *ratio=gearRatio_;
+  return 0;
 }

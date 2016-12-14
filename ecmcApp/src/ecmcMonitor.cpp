@@ -77,6 +77,9 @@ void ecmcMonitor::initVars()
   distToStop_=0;
   bwdSoftLimitInterlock_=false;
   fwdSoftLimitInterlock_=false;
+  currSetPosOld_=0;
+  extEncInterlock_=ECMC_INTERLOCK_NONE;
+  extTrajInterlock_=ECMC_INTERLOCK_NONE;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -133,6 +136,7 @@ double ecmcMonitor::getTargetPos()
 
 void ecmcMonitor::setCurrentPosSet(double pos)
 {
+  currSetPosOld_=currSetPos_;
   currSetPos_=pos;
 }
 
@@ -169,6 +173,14 @@ interlockTypes ecmcMonitor::getTrajInterlock()
 
   if(fwdLimitInterlock_){
     return ECMC_INTERLOCK_HARD_FWD;
+  }
+
+  if(extTrajInterlock_==ECMC_INTERLOCK_TRANSFORM){
+    return ECMC_INTERLOCK_TRANSFORM;
+  }
+
+  if(extEncInterlock_==ECMC_INTERLOCK_TRANSFORM){
+    return ECMC_INTERLOCK_TRANSFORM;
   }
 
   if(fwdSoftLimitInterlock_){
@@ -512,7 +524,7 @@ int ecmcMonitor::checkLimits()
   }
 
   //Bwd limit switch
-  if(!hardBwd_ && setVel_<0){
+  if(!hardBwd_ && (setVel_<0 || currSetPos_<currSetPosOld_) ){
     bwdLimitInterlock_=true;
     if(enableAlarmAtHardlimitBwd_){
       return setErrorID(ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
@@ -522,9 +534,8 @@ int ecmcMonitor::checkLimits()
       bwdLimitInterlock_=false;
   }
 
-
   //Fwd limit switch
-  if(!hardFwd_ && setVel_>0){
+  if(!hardFwd_ && (setVel_>0 || currSetPos_>currSetPosOld_)){
     fwdLimitInterlock_=true;
     if(enableAlarmAtHardlimitFwd_){
       return setErrorID(ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
@@ -568,7 +579,6 @@ int ecmcMonitor::checkAtTarget()
     }
   }
   else{
-
     atTarget_=true;
   }
   return 0;
@@ -714,4 +724,16 @@ bool ecmcMonitor::getAtSoftLimitBwd()
 bool ecmcMonitor::getAtSoftLimitFwd()
 {
   return enableSoftLimitFwd_ && actPos_>=softLimitFwd_;
+}
+
+int ecmcMonitor::setExtTrajInterlock(interlockTypes interlock)
+{
+  extTrajInterlock_=interlock;
+  return 0;
+}
+
+int ecmcMonitor::setExtEncInterlock(interlockTypes interlock)
+{
+  extEncInterlock_=interlock;
+  return 0;
 }

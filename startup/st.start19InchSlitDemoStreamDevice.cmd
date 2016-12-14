@@ -1,8 +1,7 @@
 require asyn,4.27
 require streamdevice
-require motor,6.10.5-ESS
-require ecmc
-
+require ecmc,anderssandstrom
+#require motor,6.10.5-ESS
 
 ## Configure devices
 drvAsynECMCPortConfigure("MC_CPU1", 0, 0, 0)
@@ -23,8 +22,12 @@ ecmcCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
 
 ############################################################
 
-ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
+ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(1)"
 ecmcConfigController "MCU1", "Cfg.EcSetMaster(0)"
+
+ecmcConfigController "MCU1", "Cfg.EcSetDiagnostics(1)"
+ecmcConfigController "MCU1", "Cfg.EcEnablePrintouts(0)"
+
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(0,0x2,0x03fa3052,2,0,0x1a00,0x6000,0x1,1,INPUT_0)"
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(0,0x2,0x03fa3052,2,0,0x1a01,0x6010,0x1,1,INPUT_1)"
 ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(0,0x2,0x03fa3052,2,0,0x1a02,0x6020,0x1,1,INPUT_2)"
@@ -143,14 +146,14 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(2,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(2,200)"
 
 ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(3)"
-ecmcConfigController "MCU1", "Main.M3.fAcceleration=20"
-ecmcConfigController "MCU1", "Main.M3.fDeceleration=20"
+ecmcConfigController "MCU1", "Main.M3.fAcceleration=50"
+ecmcConfigController "MCU1", "Main.M3.fDeceleration=50"
 ecmcConfigController "MCU1", "Cfg.SetAxisEmergDeceleration(3,200)"
 ecmcConfigController "MCU1", "Main.M3.fVelocity=5"
 ecmcConfigController "MCU1", "Main.M3.nCommand=3"
 ecmcConfigController "MCU1", "Cfg.SetAxisJogVel(3,100.0)"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5003,16#D,8,5=-5000"
-ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5003,16#E,8,5=5000"
+ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5003,16#D,8,5=0"
+ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5003,16#E,8,5=50"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5003,16#B,2,2=0"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#5003,16#C,2,2=0"
 ecmcConfigController "MCU1", "ADSPORT=501/.ADR.16#4003,16#6,8,5=10"
@@ -189,8 +192,8 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(3,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(3,8000)"
 
 ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(4)"
-ecmcConfigController "MCU1", "Main.M4.fAcceleration=20"
-ecmcConfigController "MCU1", "Main.M4.fDeceleration=20"
+ecmcConfigController "MCU1", "Main.M4.fAcceleration=50"
+ecmcConfigController "MCU1", "Main.M4.fDeceleration=50"
 ecmcConfigController "MCU1", "Cfg.SetAxisEmergDeceleration(4,200)"
 ecmcConfigController "MCU1", "Main.M4.fVelocity=5"
 ecmcConfigController "MCU1", "Main.M4.nCommand=3"
@@ -358,6 +361,9 @@ ecmcConfigController "MCU1", "Cfg.SetCommandListExecute(0,1)"
 
 #Diagnostics
 ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
+
+ecmcConfigController "MCU1", "Cfg.SetTraceMask(128)"
+
 #Go to runtime
 ecmcConfigController "MCU1", "Cfg.SetAppMode(1)"
 

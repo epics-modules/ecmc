@@ -123,6 +123,7 @@ public:
   double getSampleTime();
   int validate();
   double distToStop(double vel);
+  int initStopRamp(double currentPos, double currentVel,double currentAcc);
 private:
   void initVars();
   void initTraj();
@@ -131,7 +132,7 @@ private:
   double moveVel(double currSetpoint, double currVelo,double targetVelo);
   double movePos(double currSetpoint,double targetSetpoint,double stopDistance, double currVelo,double targetVelo);
   double moveStop(stopMode stopMode,double currSetpoint, double currVelo,double targetVelo, bool *stopped,double *velocity);
-  stopMode checkInterlocks(motionDirection dir,double newSetpoint);
+  stopMode checkInterlocks();
   double updateSetpoint(double nextSetpoint,double nextVelocity);
   motionDirection checkDirection(double oldPos, double newPos);
   double acceleration_;
