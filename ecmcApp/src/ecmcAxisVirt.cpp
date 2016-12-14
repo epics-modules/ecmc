@@ -48,6 +48,9 @@ void ecmcAxisVirt::execute(bool masterOK)
       }
       setInStartupPhase(false);
     }
+
+
+
     //Read from hardware
     mon_->readEntries();
     if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
@@ -56,8 +59,89 @@ void ecmcAxisVirt::execute(bool masterOK)
 
     refreshExternalInputSources();
 
-    //traj_->setHardLimitFwd(mon_->getHardLimitFwd());
-    //traj_->setHardLimitBwd(mon_->getHardLimitBwd());
+    //Trajectory (External or internal)
+    if((externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL)/* || (externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL && mon_->getTrajInterlock())*/){
+      currentPositionSetpoint_=traj_->getNextPosSet();
+      currentVelocitySetpoint_=traj_->getVel();
+    }
+    else{ //External source (Transform)
+      currentPositionSetpoint_=externalTrajectoryPosition_;
+      currentVelocitySetpoint_=externalTrajectoryVelocity_;
+    }
+
+    //Encoder (External or internal)
+    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      currentPositionActual_=enc_->getActPos();
+      currentVelocityActual_=enc_->getActVel();
+
+    }
+    else{ //External source (Transform)
+      currentPositionActual_=externalEncoderPosition_;
+      currentVelocityActual_=externalEncoderVelocity_;
+    }
+
+    mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
+
+    if(getEnable()){
+      traj_->setStartPos(currentPositionSetpoint_);
+    }
+    else{
+      traj_->setStartPos(currentPositionActual_);
+    }
+    mon_->setCurrentPosSet(currentPositionSetpoint_);
+    mon_->setVelSet(currentVelocitySetpoint_);
+    mon_->setActPos(currentPositionActual_);
+    mon_->setActVel(currentVelocityActual_);
+
+
+    seq_.execute();
+
+    mon_->setCntrlOutput(0); //From last scan
+    mon_->execute();
+
+    //Switch to internal trajectory if interlock
+    if(mon_->getTrajInterlock() && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
+      externalInputTrajectoryIF_->setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+      traj_->setInterlock(mon_->getTrajInterlock());
+      traj_->setStartPos(currentPositionActual_);
+      traj_->initStopRamp(currentPositionActual_,currentVelocityActual_,0);
+      currentPositionSetpoint_=traj_->getNextPosSet();
+      currentVelocitySetpoint_=traj_->getVel();
+      mon_->setCurrentPosSet(currentPositionSetpoint_);
+      mon_->setVelSet(currentVelocitySetpoint_);
+    }
+
+    traj_->setInterlock(mon_->getTrajInterlock());
+
+    if(getEnable() && masterOK && !getError()){
+      mon_->setEnable(true);
+    }
+
+    else{
+      mon_->setEnable(false);
+      if(getExecute()){
+	setExecute(false);
+	traj_->setStartPos(0);
+      }
+    }
+
+    if(!masterOK){
+      if(getEnable()){
+        setEnable(false);
+      }
+      setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+    }
+
+    //Write to hardware
+    refreshExternalOutputSources();
+  }
+    //Read from hardware
+  /*  mon_->readEntries();
+    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      enc_->readEntries();
+    }
+
+    refreshExternalInputSources();
 
     //Trajectory (External or internal)
     if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
@@ -84,9 +168,8 @@ void ecmcAxisVirt::execute(bool masterOK)
     mon_->setActPos(currentPositionActual_);
     mon_->setActVel(currentVelocityActual_);
 
-    //seq_.setHomeSensor(mon_->getHomeSwitch());
-    seq_.execute();
 
+    seq_.execute();
     mon_->execute();
 
     traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
@@ -103,7 +186,7 @@ void ecmcAxisVirt::execute(bool masterOK)
       }
     }
     refreshExternalOutputSources();
-  }
+  }*/
 }
 
 int ecmcAxisVirt::setExecute(bool execute)

@@ -116,9 +116,7 @@ void ecmcAxisReal::execute(bool masterOK)
       externalInputTrajectoryIF_->setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
       traj_->setInterlock(mon_->getTrajInterlock());
       traj_->setStartPos(currentPositionActual_);
-      //if(!trajInterlockOld && mon_->getTrajInterlock()){ //Trigger stop motion
-	  traj_->initStopRamp(currentPositionActual_,currentVelocityActual_,0);
-      //}
+      traj_->initStopRamp(currentPositionActual_,currentVelocityActual_,0);
       currentPositionSetpoint_=traj_->getNextPosSet();
       currentVelocitySetpoint_=traj_->getVel();
       mon_->setCurrentPosSet(currentPositionSetpoint_);

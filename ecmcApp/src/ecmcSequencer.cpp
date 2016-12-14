@@ -19,7 +19,6 @@ ecmcSequencer::~ecmcSequencer()
 void ecmcSequencer::initVars()
 {
   errorReset();
-  //homeSensor_=false;
   homeSensorOld_=false;
   execute_=false;
   executeOld_=false;
