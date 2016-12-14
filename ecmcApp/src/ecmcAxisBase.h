@@ -51,8 +51,6 @@
 #define ERROR_AXIS_SEQ_OBJECT_NULL 0x14318
 #define ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED 0x14319
 
-
-
 class ecmcAxisBase : public ecmcError
 {
 public:
@@ -110,9 +108,8 @@ public:
   int setEnableLocal(bool enable);
   int setExternalExecute(bool execute);
   int validateBase();
-
-  ecmcMasterSlaveIF * getExternalTrajIF();
-  ecmcMasterSlaveIF * getExternalEncIF();
+  ecmcMasterSlaveIF *getExternalTrajIF();
+  ecmcMasterSlaveIF *getExternalEncIF();
 
 protected:
   void initVars();
@@ -122,7 +119,6 @@ protected:
   int setExecute_Transform();
   int refreshExternalInputSources();
   int refreshExternalOutputSources();
-
   int axisID_;
   bool reset_;
   axisType axisType_;
@@ -134,24 +130,16 @@ protected:
   bool realtime_;
   bool enable_;
   bool externalExecute_;
-
-
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcMasterSlaveIF *externalInputEncoderIF_;
-  //dataSource trajectoryInputSource_;
-  //dataSource encoderInputSource_;
-
   double externalTrajectoryPosition_;
   double externalTrajectoryVelocity_;
   interlockTypes externalTrajectoryInterlock_;
-
+  interlockTypes externalEncoderInterlock_;
   double externalEncoderPosition_;
   double externalEncoderVelocity_;
-  interlockTypes externalEncoderInterlock_;
-
   double currentPositionActual_;
   double currentPositionSetpoint_;
-
   double currentVelocityActual_;
   double currentVelocitySetpoint_;
 };
