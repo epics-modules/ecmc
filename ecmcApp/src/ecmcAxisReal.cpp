@@ -109,9 +109,9 @@ void ecmcAxisReal::execute(bool masterOK)
     mon_->setCntrlOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
 
-    //Switch to internal trajectory if interlock
+    //Switch to internal trajectory if interlock temporary
     if(mon_->getTrajInterlock() && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
-      externalInputTrajectoryIF_->setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+      //externalInputTrajectoryIF_->setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
       traj_->setInterlock(mon_->getTrajInterlock());
       traj_->setStartPos(currentPositionActual_);
       traj_->initStopRamp(currentPositionActual_,currentVelocityActual_,0);
