@@ -7,10 +7,11 @@
 
 #include "ecmcMasterSlaveIF.h"
 
-ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId)
+ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType)
 {
   initVars();
   defaultAxisId_=defaultAxisId;
+  interfaceType_=ifType;
   transform_=new ecmcCommandTransform(3,ECMC_MAX_AXES);  //currently two commands
   transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX,ECMC_TRANSFORM_VAR_TYPE_TRAJ);
   transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX,ECMC_TRANSFORM_VAR_TYPE_ENC);
@@ -32,6 +33,8 @@ void ecmcMasterSlaveIF::initVars()
   numInputSources_=0;
   gearRatio_=1;
   defaultAxisId_=0;
+  interfaceType_=ECMC_ENCODER_INTERFACE;
+  interlockDefiendinExpr_=false;
 }
 
 ecmcMasterSlaveData *ecmcMasterSlaveIF::getOutputDataInterface()
@@ -103,7 +106,7 @@ bool ecmcMasterSlaveIF::getExtInputInterlock(int axisId,int commandIndex)
 
 bool ecmcMasterSlaveIF::getExtInputInterlock(int commandIndex)
 {
-  return (bool)transform_->getData(commandIndex,defaultAxisId_);;
+  return (bool)transform_->getData(commandIndex,defaultAxisId_);
 }
 
 int ecmcMasterSlaveIF::transformRefresh()
@@ -161,9 +164,46 @@ int ecmcMasterSlaveIF::transformRefresh()
 
 int ecmcMasterSlaveIF::validate()
 {
-  if(dataSource_!=ECMC_DATA_SOURCE_INTERNAL){
+  return validate(dataSource_);
+}
+
+
+int ecmcMasterSlaveIF::validate(dataSource nextDataSource)
+{
+  char axisIdStr[12];
+  sprintf(axisIdStr, "%d", defaultAxisId_);
+  std::string strToFind="";
+  bool found=false;
+  if(nextDataSource!=ECMC_DATA_SOURCE_INTERNAL){
+    //Ensure that setpoint is defined in expression
+    switch(interfaceType_){
+      case  ECMC_ENCODER_INTERFACE:
+        strToFind=TRANSFORM_EXPR_VARIABLE_ENC_PREFIX;
+	strToFind.append(axisIdStr);
+	strToFind.append(":=");
+	found=transform_->getExpression()->find(strToFind)!=std::string::npos;
+	if(!found){
+	  return ERROR_MASTER_DATA_IF_EXPRESSION_VAR_ENC_MISSING;
+	}
+        break;
+      case ECMC_TRAJECTORY_INTERFACE:
+        strToFind=TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX;
+	strToFind.append(axisIdStr);
+	strToFind.append(":=");
+	found=transform_->getExpression()->find(strToFind)!=std::string::npos;
+	if(!found){
+	  return ERROR_MASTER_DATA_IF_EXPRESSION_VAR_TRAJ_MISSING;
+	}
+        break;
+    }
     return transform_->validate();
   }
+
+  //See if interlock is defined then transform needs to be executed
+  strToFind=TRANSFORM_EXPR_INTERLOCK_PREFIX;
+  strToFind.append(axisIdStr);
+  interlockDefiendinExpr_=transform_->getExpression()->find(strToFind)!=std::string::npos;
+
   return 0;
 }
 
@@ -181,4 +221,9 @@ int ecmcMasterSlaveIF::getGearRatio(double *ratio)
 {
   *ratio=gearRatio_;
   return 0;
+}
+
+bool ecmcMasterSlaveIF::getInterlockDefined()
+{
+  return interlockDefiendinExpr_;
 }

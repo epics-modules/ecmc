@@ -429,6 +429,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x30101:
       return "ERROR_MASTER_DATA_IF_GEAR_RATIO_DENOM_ZERO";
       break;
+    case 0x30102:
+      return "ERROR_MASTER_DATA_IF_EXPRESSION_VAR_TRAJ_MISSING";
+      break;
+    case 0x30103:
+      return "ERROR_MASTER_DATA_IF_EXPRESSION_VAR_ENC_MISSING";
+      break;
     case 0x21000:  //ECENTRY
       return "ERROR_EC_ENTRY_DATA_POINTER_NULL";
       break;

@@ -10,17 +10,26 @@
 
 #include "ecmcDefinitions.h"
 #include "ecmcMasterSlaveData.h"
-//#include "ecmcTransform.h"
 #include "ecmcCommandTransform.h"
+#include <string>
+#include <stdio.h>
 
 //MASTERDATA INTERFACE
 #define ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE 0x30100
 #define ERROR_MASTER_DATA_IF_GEAR_RATIO_DENOM_ZERO 0x30101
+#define ERROR_MASTER_DATA_IF_EXPRESSION_VAR_TRAJ_MISSING 0x30102
+#define ERROR_MASTER_DATA_IF_EXPRESSION_VAR_ENC_MISSING 0x30103
+
+enum interfaceType{
+  ECMC_ENCODER_INTERFACE= 0,
+  ECMC_TRAJECTORY_INTERFACE = 1,
+};
+
 
 class ecmcMasterSlaveIF
 {
 public:
-  ecmcMasterSlaveIF(int defaultAxisId);
+  ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType);
   ~ecmcMasterSlaveIF();
   ecmcMasterSlaveData *getOutputDataInterface();
   int addInputDataInterface(ecmcMasterSlaveData *masterData,int index);
@@ -35,8 +44,10 @@ public:
   bool getExtInputInterlock(int commandIndex); //Default axis number
   int transformRefresh();
   int validate();
+  int validate(dataSource nextDataSource);
   int setGearRatio(double ratioNum, double ratioDenom);
   int getGearRatio(double *ratio);
+  bool getInterlockDefined();
 
 private:
   void initVars();
@@ -48,6 +59,8 @@ private:
   double oldPos_;
   ecmcCommandTransform *transform_;
   int defaultAxisId_;
+  interfaceType interfaceType_;
+  bool interlockDefiendinExpr_;
 };
 
 #endif /* ECMCMASTERSLAVEIF_H_ */
