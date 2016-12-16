@@ -20,9 +20,6 @@
 #include "ecmcEcPdo.h"
 #include "ecmcError.h"
 #include "ecmcFilter.h"
-#include "ecmcMasterSlaveData.h"
-#include "ecmcMasterSlaveIF.h"
-#include "ecmcTransform.h"
 
 //ENCODER
 #define ERROR_ENC_ASSIGN_ENTRY_FAILED 0x14400

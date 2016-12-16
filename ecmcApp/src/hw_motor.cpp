@@ -1083,11 +1083,12 @@ int setAxisTrajTransExpr(int axisIndex, char *expr)
 
   std::string tempExpr=expr;
 
-  //Ensure that "OUT" or "IL" variables are defined
-  bool out=tempExpr.find(TRANSFORM_EXPR_OUTPUT_VAR_NAME)!=std::string::npos;
-  bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_VAR_NAME)!=std::string::npos;
+  //Ensure that variables are defined
+  bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_PREFIX)!=std::string::npos;
+  bool traj=tempExpr.find(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX)!=std::string::npos;
+  //bool enc=tempExpr.find(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX)!=std::string::npos;
 
-  if(!(out && il)){
+  if(!(il && traj)){
     return ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING;
   }
 
@@ -1115,11 +1116,12 @@ int setAxisEncTransExpr(int axisIndex, char *expr)
 
   std::string tempExpr=expr;
 
-  //Ensure that "OUT" or "IL" variables are defined
-  bool out=tempExpr.find(TRANSFORM_EXPR_OUTPUT_VAR_NAME)!=std::string::npos;
-  bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_VAR_NAME)!=std::string::npos;
+  //Ensure that variables are defined
+  bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_PREFIX)!=std::string::npos;
+  //bool traj=tempExpr.find(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX)!=std::string::npos;
+  bool enc=tempExpr.find(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX)!=std::string::npos;
 
-  if(!(out && il)){
+  if(!(il && enc)){
     return ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING;
   }
 

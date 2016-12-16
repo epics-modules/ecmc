@@ -7,17 +7,20 @@
 
 #include "ecmcMasterSlaveIF.h"
 
-ecmcMasterSlaveIF::ecmcMasterSlaveIF(double sampleTime)
+ecmcMasterSlaveIF::ecmcMasterSlaveIF()
 {
   initVars();
-  transform_=new ecmcTransform();
-  setSampleTime(sampleTime);
+  //transform_=new ecmcTransform();
+  transform_=new ecmcCommandTransform(3,ECMC_MAX_AXES);  //currently two commands
+  transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX,ECMC_TRANSFORM_VAR_TYPE_TRAJ);
+  transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX,ECMC_TRANSFORM_VAR_TYPE_ENC);
+  transform_->addCmdPrefix(TRANSFORM_EXPR_INTERLOCK_PREFIX,ECMC_TRANSFORM_VAR_TYPE_IL);
 }
 
 ecmcMasterSlaveIF::~ecmcMasterSlaveIF()
 {
+  //delete transform_;
   delete transform_;
-  transform_=NULL;
 }
 
 void ecmcMasterSlaveIF::initVars()
@@ -27,7 +30,6 @@ void ecmcMasterSlaveIF::initVars()
   }
   dataSource_=ECMC_DATA_SOURCE_INTERNAL;
   numInputSources_=0;
-  sampleTime_=0;
   gearRatio_=1;
 }
 
@@ -41,9 +43,7 @@ int ecmcMasterSlaveIF::addInputDataInterface(ecmcMasterSlaveData *masterData, in
   if(index>=MAX_TRANSFORM_INPUTS || index<0){
     return ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE;
   }
-  //_inputDataInterface[_nNumInputSources]=masterData;
   inputDataInterface_[index]=masterData;
-  transform_->addInputDataObject(inputDataInterface_[index],index);
   numInputSources_++;
   return 0;
 }
@@ -65,7 +65,7 @@ int ecmcMasterSlaveIF::setDataSourceType(dataSource refSource)
     }
   }
   dataSource_=refSource;
-  return transform_->setDataSource(dataSource_);
+  return 0;
 }
 
 dataSource ecmcMasterSlaveIF::getDataSourceType()
@@ -78,47 +78,72 @@ int ecmcMasterSlaveIF::getNumExtInputSources()
   return numInputSources_;
 }
 
-int ecmcMasterSlaveIF::setSampleTime(double sampleTime)
-{
-  sampleTime_=sampleTime;
-  transform_->setSampleTime(sampleTime_);
-  return 0;
-}
-
-ecmcTransform *ecmcMasterSlaveIF::getExtInputTransform()
+ecmcCommandTransform *ecmcMasterSlaveIF::getExtInputTransform()
 {
   return transform_;
 }
 
-int ecmcMasterSlaveIF::getExtInputPos(double *val)
+int ecmcMasterSlaveIF::getExtInputPos(int axisId,int commandIndex,double *val)
 {
-  double temp=0;
-  int errorCode=transform_->getOutput(&temp);
-  if(errorCode){
-    return errorCode;
-  }
-  *val=temp* gearRatio_;
+  *val=transform_->getData(commandIndex,axisId)*gearRatio_;
   return 0;
 }
 
-int ecmcMasterSlaveIF::getExtInputVel(double *val)
+bool ecmcMasterSlaveIF::getExtInputInterlock(int axisId,int commandIndex)
 {
-  double temp=0;
-  int errorCode=transform_->getDiffOutput(&temp);
-  if(errorCode){
-    return errorCode;
-  }
-  *val=temp*gearRatio_;
-  return 0;
-}
-
-bool ecmcMasterSlaveIF::getExtInputInterlock()
-{
-  return transform_->getInterlock();
+  return (bool)transform_->getData(commandIndex,axisId);;
 }
 
 int ecmcMasterSlaveIF::transformRefresh()
 {
+  int error=0;
+  //Trajectory
+  for(int i=0;i<ECMC_MAX_AXES;i++){
+    if(inputDataInterface_[i]!=NULL){
+      error=transform_->setData(inputDataInterface_[i]->getPosition(),ECMC_TRANSFORM_VAR_TYPE_TRAJ,i);
+      if(error){
+        return error;
+      }
+    }
+    else{
+      error=transform_->setData(0,ECMC_TRANSFORM_VAR_TYPE_TRAJ,i);
+      if(error){
+        return error;
+      }
+    }
+  }
+
+  //Encoder
+  for(int i=0;i<ECMC_MAX_AXES;i++){
+    if(inputDataInterface_[i+ECMC_MAX_AXES]!=NULL){
+      error=transform_->setData(inputDataInterface_[i+ECMC_MAX_AXES]->getPosition(),ECMC_TRANSFORM_VAR_TYPE_ENC,i);
+      if(error){
+        return error;
+      }
+    }
+    else{
+      error=transform_->setData(0,ECMC_TRANSFORM_VAR_TYPE_ENC,i);
+      if(error){
+        return error;
+      }
+    }
+  }
+
+  //Interlocks
+  for(int i=0;i<ECMC_MAX_AXES;i++){
+    if(inputDataInterface_[i+2*ECMC_MAX_AXES]!=NULL){
+      error=transform_->setData(inputDataInterface_[i+2*ECMC_MAX_AXES]->getInterlock(),ECMC_TRANSFORM_VAR_TYPE_IL,i);
+      if(error){
+        return error;
+      }
+    }
+    else{
+      error=transform_->setData(0,ECMC_TRANSFORM_VAR_TYPE_IL,i);
+      if(error){
+        return error;
+      }
+    }
+  }
   return transform_->refresh();
 }
 

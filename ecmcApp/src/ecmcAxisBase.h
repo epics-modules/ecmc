@@ -133,15 +133,18 @@ protected:
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcMasterSlaveIF *externalInputEncoderIF_;
   double externalTrajectoryPosition_;
+  double externalTrajectoryPositionOld_;
   double externalTrajectoryVelocity_;
   interlockTypes externalTrajectoryInterlock_;
   interlockTypes externalEncoderInterlock_;
   double externalEncoderPosition_;
+  double externalEncoderPositionOld_;
   double externalEncoderVelocity_;
   double currentPositionActual_;
   double currentPositionSetpoint_;
   double currentVelocityActual_;
   double currentVelocitySetpoint_;
+  double sampleTime_;
 };
 
 #endif /* ECMCAXISBASE_H_ */

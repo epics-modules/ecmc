@@ -10,7 +10,8 @@
 
 #include "ecmcDefinitions.h"
 #include "ecmcMasterSlaveData.h"
-#include "ecmcTransform.h"
+//#include "ecmcTransform.h"
+#include "ecmcCommandTransform.h"
 
 //MASTERDATA INTERFACE
 #define ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE 0x30100
@@ -19,7 +20,7 @@
 class ecmcMasterSlaveIF
 {
 public:
-  ecmcMasterSlaveIF(double dSampleTime);
+  ecmcMasterSlaveIF();
   ~ecmcMasterSlaveIF();
   ecmcMasterSlaveData *getOutputDataInterface();
   int addInputDataInterface(ecmcMasterSlaveData *masterData,int index);
@@ -27,11 +28,10 @@ public:
   int setDataSourceType(dataSource refSource);
   dataSource getDataSourceType();
   int getNumExtInputSources();
-  int setSampleTime(double sampleTime);
-  ecmcTransform *getExtInputTransform();
-  int getExtInputPos(double *val);
-  int getExtInputVel(double *val);
-  bool getExtInputInterlock();
+  ecmcCommandTransform *getExtInputTransform();
+  int getExtInputPos(int axisId,int commandIndex,double *val);
+  //int getExtInputVel(int axisId,int commandIndex,double *val);
+  bool getExtInputInterlock(int axisId,int commandIndex);
   int transformRefresh();
   int validate();
   int setGearRatio(double ratioNum, double ratioDenom);
@@ -42,10 +42,10 @@ private:
   ecmcMasterSlaveData *inputDataInterface_[MAX_TRANSFORM_INPUTS];
   ecmcMasterSlaveData outputDataInterface_;
   dataSource dataSource_;
-  ecmcTransform *transform_;
   int numInputSources_;
-  double sampleTime_;
   double gearRatio_;
+  double oldPos_;
+  ecmcCommandTransform *transform_;
 };
 
 #endif /* ECMCMASTERSLAVEIF_H_ */

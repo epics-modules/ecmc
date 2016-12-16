@@ -25,6 +25,9 @@ void ecmcError::initVars()
 
 int ecmcError::setErrorID(int errorID)
 {
+  if(errorID!=errorId_){
+    LOGERR("%s/%s:%d: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,convertErrorIdToString(errorID),errorID);
+  }
   if(errorID)
     error_=true;
   else

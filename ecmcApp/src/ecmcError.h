@@ -8,6 +8,8 @@
 #ifndef ECMCERROR_H_
 #define ECMCERROR_H_
 #include <string.h>
+#include "stdio.h"
+#include "cmd.h"
 
 class ecmcError
 {

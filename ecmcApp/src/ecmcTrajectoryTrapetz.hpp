@@ -6,8 +6,6 @@
 #include "ecmcDefinitions.h"
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
-#include "ecmcMasterSlaveData.h"
-#include "ecmcTransform.h"
 
 /// Error codes for class ecmcTrajectoryTrapetz
 #define ERROR_TRAJ_EXT_ENC_NULL 0x14E00

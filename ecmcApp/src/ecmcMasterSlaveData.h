@@ -17,12 +17,16 @@ public:
   ~ecmcMasterSlaveData();
   void setPosition(double pos);
   void setVelocity(double vel);
+  void setInterlock(bool ilock);
   double getPosition();
   double getVelocity();
+  bool getInterlock();
+
 private:
   void initVars();
   double pos_;
   double vel_;
+  bool ilock_;
 };
 
 #endif /* ECMCMASTERSLAVEDATA_H_ */
