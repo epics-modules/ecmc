@@ -211,15 +211,15 @@ int  ecmcSequencer::setExecute(bool execute)
             targetPosition_=checkSoftLimits(targetPosition_);
             traj_->setTargetPos(targetPosition_);
             break;
-/*          case 1: //Go to external transform current value (transform value as TragetPosition)
+          case 1: //Go to external transform current value (transform value as TragetPosition)
             double targPos=0;
-            int errorCode=traj_->getCurrentExternalSetpoint(&targPos);
+            int errorCode=getExtTrajSetpoint(&targPos);
             if(errorCode){
-              return errorCode;execute_
+              return errorCode;
             }
             targetPosition_=checkSoftLimits(targPos);
             traj_->setTargetPos(targetPosition_);
-            break;*/
+            break;
         }
       }
       traj_->setExecute(execute_);
@@ -1357,5 +1357,36 @@ int ecmcSequencer::setExternalExecute(bool execute)
 {
   externalExecute_=execute;
 /// TODO FUNCTIONALLITY NOT IMPLEMETED YET
+  return 0;
+}
+
+int ecmcSequencer::setExtTrajIF(ecmcMasterSlaveIF * extIf)
+{
+  externalInputTrajectoryIF_=extIf;
+  return 0;
+}
+
+int ecmcSequencer::getExtTrajSetpoint(double *pos)
+{
+  if(!externalInputTrajectoryIF_){
+    return setErrorID(ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL);
+  }
+
+  int error=externalInputTrajectoryIF_->validate();
+  if(error){
+    return setErrorID(error);
+  }
+
+  error=externalInputTrajectoryIF_->transformRefresh();
+  if(error){
+    return setErrorID(error);
+  }
+  double tempPos=0;
+  error=externalInputTrajectoryIF_->getExtInputPos(ECMC_TRANSFORM_VAR_TYPE_TRAJ,&tempPos);  //For this axis
+  if(error){
+    return setErrorID(error);
+  }
+
+  *pos=tempPos;
   return 0;
 }

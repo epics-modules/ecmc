@@ -50,11 +50,12 @@
 #define ERROR_AXIS_AMPLIFIER_ENABLED_LOST 0x14317
 #define ERROR_AXIS_SEQ_OBJECT_NULL 0x14318
 #define ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED 0x14319
+#define ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED 0x1431A
 
 class ecmcAxisBase : public ecmcError
 {
 public:
-  ecmcAxisBase(double sampleTime);
+  ecmcAxisBase(int axisID, double sampleTime);
   virtual ~ecmcAxisBase();
   virtual void execute(bool masterOK)=0;
   virtual int setOpMode(operationMode nMode)=0;

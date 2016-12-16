@@ -7,7 +7,7 @@
 
 #include "ecmcAxisReal.h"
 
-ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(sampleTime)
+ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
   initVars();
   axisID_=axisID;
@@ -25,6 +25,10 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(sample
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
   seq_.setEnc(enc_);
+  int error=getSeq()->setExtTrajIF(externalInputTrajectoryIF_);
+  if(error){
+    setErrorID(ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
+  }
 }
 
 ecmcAxisReal::~ecmcAxisReal()

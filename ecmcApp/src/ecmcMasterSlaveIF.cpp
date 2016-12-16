@@ -7,10 +7,10 @@
 
 #include "ecmcMasterSlaveIF.h"
 
-ecmcMasterSlaveIF::ecmcMasterSlaveIF()
+ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId)
 {
   initVars();
-  //transform_=new ecmcTransform();
+  defaultAxisId_=defaultAxisId;
   transform_=new ecmcCommandTransform(3,ECMC_MAX_AXES);  //currently two commands
   transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX,ECMC_TRANSFORM_VAR_TYPE_TRAJ);
   transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX,ECMC_TRANSFORM_VAR_TYPE_ENC);
@@ -31,6 +31,7 @@ void ecmcMasterSlaveIF::initVars()
   dataSource_=ECMC_DATA_SOURCE_INTERNAL;
   numInputSources_=0;
   gearRatio_=1;
+  defaultAxisId_=0;
 }
 
 ecmcMasterSlaveData *ecmcMasterSlaveIF::getOutputDataInterface()
@@ -89,9 +90,20 @@ int ecmcMasterSlaveIF::getExtInputPos(int axisId,int commandIndex,double *val)
   return 0;
 }
 
+int ecmcMasterSlaveIF::getExtInputPos(int commandIndex,double *val)
+{
+  *val=transform_->getData(commandIndex,defaultAxisId_)*gearRatio_;
+  return 0;
+}
+
 bool ecmcMasterSlaveIF::getExtInputInterlock(int axisId,int commandIndex)
 {
   return (bool)transform_->getData(commandIndex,axisId);;
+}
+
+bool ecmcMasterSlaveIF::getExtInputInterlock(int commandIndex)
+{
+  return (bool)transform_->getData(commandIndex,defaultAxisId_);;
 }
 
 int ecmcMasterSlaveIF::transformRefresh()

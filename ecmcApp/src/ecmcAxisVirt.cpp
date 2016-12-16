@@ -7,7 +7,7 @@
 
 #include "ecmcAxisVirt.h"
 
-ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(sampleTime)
+ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
   initVars();
   axisID_=axisID;
@@ -21,6 +21,10 @@ ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(sample
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
   seq_.setEnc(enc_);
+  int error=getSeq()->setExtTrajIF(externalInputTrajectoryIF_);
+  if(error){
+    setErrorID(ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
+  }
 }
 
 ecmcAxisVirt::~ecmcAxisVirt()

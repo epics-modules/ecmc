@@ -7,14 +7,14 @@
 
 #include "ecmcAxisBase.h"
 
-ecmcAxisBase::ecmcAxisBase(double sampleTime)
+ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime)
 {
   initVars();
   commandTransform_=new ecmcCommandTransform(2,ECMC_MAX_AXES);  //currently two commands
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,ECMC_CMD_TYPE_EXECUTE);
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,ECMC_CMD_TYPE_ENABLE);
-  externalInputTrajectoryIF_=new ecmcMasterSlaveIF();
-  externalInputEncoderIF_=new ecmcMasterSlaveIF();
+  externalInputTrajectoryIF_=new ecmcMasterSlaveIF(axisID);
+  externalInputEncoderIF_=new ecmcMasterSlaveIF(axisID);
   sampleTime_=sampleTime;
 }
 

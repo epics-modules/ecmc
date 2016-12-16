@@ -20,7 +20,7 @@
 class ecmcMasterSlaveIF
 {
 public:
-  ecmcMasterSlaveIF();
+  ecmcMasterSlaveIF(int defaultAxisId);
   ~ecmcMasterSlaveIF();
   ecmcMasterSlaveData *getOutputDataInterface();
   int addInputDataInterface(ecmcMasterSlaveData *masterData,int index);
@@ -30,8 +30,9 @@ public:
   int getNumExtInputSources();
   ecmcCommandTransform *getExtInputTransform();
   int getExtInputPos(int axisId,int commandIndex,double *val);
-  //int getExtInputVel(int axisId,int commandIndex,double *val);
+  int getExtInputPos(int commandIndex,double *val); //Default axis number
   bool getExtInputInterlock(int axisId,int commandIndex);
+  bool getExtInputInterlock(int commandIndex); //Default axis number
   int transformRefresh();
   int validate();
   int setGearRatio(double ratioNum, double ratioDenom);
@@ -46,6 +47,7 @@ private:
   double gearRatio_;
   double oldPos_;
   ecmcCommandTransform *transform_;
+  int defaultAxisId_;
 };
 
 #endif /* ECMCMASTERSLAVEIF_H_ */

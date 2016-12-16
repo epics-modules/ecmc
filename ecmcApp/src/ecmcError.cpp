@@ -141,6 +141,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14319:
       return "ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED";
       break;
+    case 0x1431A:
+      return "ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
@@ -308,6 +311,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14D0A:
       return "ERROR_SEQ_CMD_DATA_OUT_OF_RANGE";
+      break;
+    case 0x14D0B:
+      return "ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL";
       break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";

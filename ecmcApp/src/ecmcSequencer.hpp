@@ -12,6 +12,7 @@
 #include "ecmcMonitor.hpp"
 #include "ecmcPIDController.hpp"
 #include "ecmcTrajectoryTrapetz.hpp"
+#include "ecmcMasterSlaveIF.h"
 
 //SEQUENCER ERRORS
 #define ERROR_SEQ_TRAJ_NULL 0x14D00
@@ -25,6 +26,7 @@
 #define ERROR_SEQ_TIMEOUT 0x14D08
 #define ERROR_SEQ_CMD_UNDEFINED 0x14D09
 #define ERROR_SEQ_CMD_DATA_UNDEFINED 0x14D0A
+#define ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL 0x14D0B
 
 class ecmcSequencer : public ecmcError
 {
@@ -66,6 +68,7 @@ public:
   int validate();
   int setSequenceTimeout(int timeout);
   int setExternalExecute(bool execute);
+  int setExtTrajIF(ecmcMasterSlaveIF *extIf);
 private:
   void initVars();
   double checkSoftLimits(double posSetpoint);
@@ -78,6 +81,7 @@ private:
   int seqHoming6(); //nCmdData==6
   int checkHWLimitsAndStop(bool checkBWD,bool checkFWD);
   int stopSeq();
+  int getExtTrajSetpoint(double *pos);
   bool hwLimitSwitchFwd_;
   bool hwLimitSwitchFwdOld_;
   bool hwLimitSwitchBwd_;
@@ -112,6 +116,7 @@ private:
   int seqTimeout_;
   int seqTimeCounter_;
   bool externalExecute_;
+  ecmcMasterSlaveIF *externalInputTrajectoryIF_;
 };
 
 #endif /* ECMCSEQUENCER_HPP_ */
