@@ -89,7 +89,7 @@ void ecmcSequencer::execute()
       break;
     case ECMC_CMD_HOMING:
       switch (cmdData_){
-        case 0:
+        /*case 0:
           seqReturnVal=seq1SimpleHoming();
           if(seqReturnVal>0){//Error
             setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
@@ -98,7 +98,7 @@ void ecmcSequencer::execute()
           else if(seqReturnVal==0){//Homing ready
             stopSeq();
           }
-          break;
+          break;*/
         case 1:
           seqReturnVal=seqHoming1();
           if(seqReturnVal>0){//Error
@@ -499,7 +499,7 @@ ecmcTrajectoryTrapetz * ecmcSequencer::getTraj()
   return traj_;
 }
 
-int ecmcSequencer::seq1SimpleHoming() //nCmdData==0
+/*int ecmcSequencer::seq1SimpleHoming() //nCmdData==0
 {
   // Return > 0 error
   // Return < 0 progress
@@ -576,7 +576,7 @@ int ecmcSequencer::seq1SimpleHoming() //nCmdData==0
       break;
   }
   return retValue;
-}
+}*/
 
 int ecmcSequencer::seqHoming1() //nCmdData==1
 {
