@@ -11,7 +11,7 @@ ecmcEncoder::ecmcEncoder(double sampleTime) : ecmcEcEntryLink()
 {
   initVars();
   sampleTime_=sampleTime;
-  velocityFilter_=new ecmcFilter(2);
+  velocityFilter_=new ecmcFilter(sampleTime);
   velocityFilter_->setSampleTime(sampleTime_);
   setSampleTime(sampleTime_);
 }
@@ -79,6 +79,8 @@ double ecmcEncoder::getActPos()
 
 void ecmcEncoder::setActPos(double pos)
 {
+  //Must clear velocity filter
+  velocityFilter_->reset();
   actPosOld_=actPos_;
   offset_=offset_+pos-actPos_;
 }
@@ -203,7 +205,8 @@ double ecmcEncoder::readEntries()
   rawPos_=handleOverUnderFlow(tempRaw,bits_) ;
   actPosOld_=actPos_;
   actPos_=scale_*rawPos_+offset_;
-  actVel_=velocityFilter_->lowPassAveraging((actPos_-actPosOld_)/sampleTime_);
+  //actVel_=velocityFilter_->lowPassAveraging((actPos_-actPosOld_)/sampleTime_);
+  actVel_=velocityFilter_->positionBasedVelAveraging(actPos_);
 
   return actPos_;
 }

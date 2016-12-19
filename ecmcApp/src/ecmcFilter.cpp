@@ -7,11 +7,12 @@
 
 #include "ecmcFilter.h"
 
-ecmcFilter::ecmcFilter(double t)
+ecmcFilter::ecmcFilter(double sampleTime)
 {
   initVars();
-  double constant=10;  //TODO move
-  my_ = t / (t + constant);
+  sampleTime_=sampleTime;
+//  double constant=10;  //TODO move
+//  my_ = t / (t + constant);
 }
 
 ecmcFilter::~ecmcFilter() {
@@ -20,14 +21,18 @@ ecmcFilter::~ecmcFilter() {
 
 void ecmcFilter::initVars(){
   errorReset();
-  my_ = 0;
-  last_ = 0;
-  lastOuput_=0;
-  sampleTime_=1;
-  for(int i=0;i<FILTER_BUFFER_SIZE;i++){
-    buffer_[i]=0;
+//  my_ = 0;
+//  last_ = 0;
+//  lastOuput_=0;
+//  sampleTime_=1;
+  for(int i=0;i<FILTER_BUFFER_SIZE_POS;i++){
+    bufferPos_[i]=0;
   }
-  index_=0;
+  for(int i=0;i<FILTER_BUFFER_SIZE_VEL;i++){
+    bufferVel_[i]=0;
+  }
+  indexPos_=0;
+  indexVel_=0;
 }
 
 /*double ecmcFilter::Update(double input)
@@ -39,15 +44,38 @@ void ecmcFilter::initVars(){
 double ecmcFilter::lowPassAveraging(double input)
 {
   double sum = 0;
-  buffer_[index_] = input;
-  index_++;
-  if(index_>=FILTER_BUFFER_SIZE){
-    index_=0;
+  bufferVel_[indexVel_] = input;
+  indexVel_++;
+  if(indexVel_>=FILTER_BUFFER_SIZE_VEL){
+      indexVel_=0;
   }
-  for(int i = 0; i<(FILTER_BUFFER_SIZE); i++){
-    sum =sum +buffer_[i];
+  for(int i = 0; i<(FILTER_BUFFER_SIZE_VEL); i++){
+    sum =sum +bufferVel_[i];
   }
-  return sum/((double)FILTER_BUFFER_SIZE);
+  return sum/((double)FILTER_BUFFER_SIZE_VEL);
+}
+
+double ecmcFilter::positionBasedVelAveraging(double actPosition)  //returns velocity
+{
+  double sum = 0;
+  if(indexPos_>=FILTER_BUFFER_SIZE_POS){
+      indexPos_=0;
+  }
+  bufferPos_[indexPos_] = actPosition;
+  int nextIndex=indexPos_+1;
+
+  if(nextIndex>=FILTER_BUFFER_SIZE_POS){
+    nextIndex=0;
+  }
+
+  double vel=lowPassAveraging((bufferPos_[indexPos_]-bufferPos_[nextIndex])/(sampleTime_*(double)FILTER_BUFFER_SIZE_POS));
+  indexPos_=nextIndex;
+  return vel;
+}
+
+int ecmcFilter::reset()
+{
+  initVars();
 }
 
 /*double ecmcFilter::lowPassExponential(double input, double average, double factor)
