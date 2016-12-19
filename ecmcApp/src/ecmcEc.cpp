@@ -351,19 +351,19 @@ bool ecmcEc::checkState(void)
   if(masterState_.al_states!=EC_AL_STATE_OP){
     switch(masterState_.al_states){
       case EC_AL_STATE_INIT:
-        LOGERR("%s/%s:%d: ERROR: Application layer state INIT (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_INIT);
+        //LOGERR("%s/%s:%d: ERROR: Application layer state INIT (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_INIT);
         setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AL_STATE_INIT);
         masterOK_=false;
         return false;
         break;
       case EC_AL_STATE_PREOP:
-        LOGERR("%s/%s:%d: ERROR: Application layer state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_PREOP);
+        //LOGERR("%s/%s:%d: ERROR: Application layer state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_PREOP);
         setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AL_STATE_PREOP);
         masterOK_=false;
         return false;
         break;
       case EC_AL_STATE_SAFEOP:
-        LOGERR("%s/%s:%d: ERROR: Application layer state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_SAFEOP);
+        //LOGERR("%s/%s:%d: ERROR: Application layer state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_SAFEOP);
         setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AL_STATE_SAFEOP);
         masterOK_=false;
         return false;
@@ -372,7 +372,7 @@ bool ecmcEc::checkState(void)
   }
 
   if(!masterState_.link_up){
-    LOGERR("%s/%s:%d: ERROR: Master link down (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_LINK_DOWN);
+    //LOGERR("%s/%s:%d: ERROR: Master link down (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_LINK_DOWN);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_LINK_DOWN);
     masterOK_=false;
     return false;

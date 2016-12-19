@@ -288,25 +288,25 @@ int ecmcEcSlave::checkConfigState(void)
   slaveStateOld_ = slaveState;
 
   if(!slaveState.online){
-    LOGERR("%s/%s:%d: ERROR: Slave not online (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_NOT_ONLINE);
+    //LOGERR("%s/%s:%d: ERROR: Slave not online (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_NOT_ONLINE);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_NOT_ONLINE);
   }
   if(!slaveState.operational){
-    LOGERR("%s/%s:%d: ERROR: Slave not operational (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_NOT_OPERATIONAL);
+    //LOGERR("%s/%s:%d: ERROR: Slave not operational (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_NOT_OPERATIONAL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_NOT_OPERATIONAL);
   }
 
   switch(slaveState.al_state){
     case 1:
-      LOGERR("%s/%s:%d: ERROR: Slave state INIT (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_INIT);
+      //LOGERR("%s/%s:%d: ERROR: Slave state INIT (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_INIT);
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_STATE_INIT);
       break;
     case 2:
-      LOGERR("%s/%s:%d: ERROR: Slave state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_PREOP);
+      //LOGERR("%s/%s:%d: ERROR: Slave state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_PREOP);
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_STATE_PREOP);
       break;
     case 4:
-      LOGERR("%s/%s:%d: ERROR: Slave state SAFEOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_SAFEOP);
+      //LOGERR("%s/%s:%d: ERROR: Slave state SAFEOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_SAFEOP);
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_STATE_SAFEOP);
       break;
     case 8:
@@ -314,7 +314,7 @@ int ecmcEcSlave::checkConfigState(void)
       return 0;
       break;
     default:
-      LOGERR("%s/%s:%d: ERROR: Slave state UNDEFINED (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_UNDEFINED);
+      //LOGERR("%s/%s:%d: ERROR: Slave state UNDEFINED (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_STATE_UNDEFINED);
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_STATE_UNDEFINED);
       break;
   }
