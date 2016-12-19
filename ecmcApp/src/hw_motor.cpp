@@ -2530,7 +2530,8 @@ int setStorageEnablePrintouts(int indexStorage,int enable)
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
-  return dataStorages[indexStorage]->setEnablePrintOuts(enable);
+  WRITE_DIAG_BIT(FUNCTION_DATA_STORAGE_DIAGNOSTICS_BIT,enable);
+  return 0;
 }
 
 int printStorageBuffer(int indexStorage)
@@ -2843,7 +2844,9 @@ int setCommandListEnablePrintouts(int indexCommandList,int enable)
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
 
-  return commandLists[indexCommandList]->setEnablePrintOuts(enable);
+  WRITE_DIAG_BIT(FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT,enable);
+
+  return 0;
 }
 
 int addCommandListCommand(int indexCommandList,char *expr)

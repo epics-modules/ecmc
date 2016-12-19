@@ -56,7 +56,8 @@ do {                                               \
 #define FUNCTION_ETHERCAT_DIAGNOSTICS_BIT 5
 #define FUNCTION_CMD_EAT_DIAGNOSTICS_BIT 6
 #define FUNCTION_AXIS_DIAGNOSTICS_BIT 7
-#define FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT 7
+#define FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT 8
+#define FUNCTION_DATA_STORAGE_DIAGNOSTICS_BIT 9
 
 #define LOGINFO(fmt, ...)                        \
 {                                                \

@@ -28,7 +28,7 @@ int ecmcEcEntryLink::setEntryAtIndex(ecmcEcEntry *entry,int index,int bitIndex)
     return 0;
   }
   else{
-    printf("Assigning entry to object entry list failed. Index=%d \n",index);
+    LOGINFO5("%s/%s:%d: ERROR: Assigning entry to object entry list at index %d failed.(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index,ERROR_EC_ENTRY_LINK_FAILED);
     return setErrorID(ERROR_EC_ENTRY_LINK_FAILED);
   }
 }
@@ -61,7 +61,7 @@ int ecmcEcEntryLink::validateEntryBit(int index)
   }
 
   if(entryInfoArray_[index].bitNumber<0 || entryInfoArray_[index].bitNumber>entryInfoArray_[index].entry->getBits()){
-    return setErrorID(ERROR_EC_ENTRY_INVALID_BIT_INDEX);
+    return ERROR_EC_ENTRY_INVALID_BIT_INDEX;
   }
 
   return 0;

@@ -36,7 +36,6 @@ public:
   int appendData(double data);
   int isStorgeFull();
   int printBuffer();
-  int setEnablePrintOuts(bool enable);
   int getSize();
   int getData(double **data, int *size);
   int setData(double *data, int size);
@@ -49,7 +48,6 @@ private:
   double* buffer_;
   int bufferElementCount_;
   storageType bufferType_;
-  int enableDiagnosticPrintouts_;
   int index_;
 };
 
