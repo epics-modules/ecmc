@@ -22,7 +22,6 @@ ecmcDataRecorder::~ecmcDataRecorder ()
 void ecmcDataRecorder::initVars()
 {
   dataBuffer_=NULL;
-  enableDiagnosticPrintouts_=false;
   index_=0;
   data_=0;
   inStartupPhase_=1;
@@ -56,15 +55,9 @@ int ecmcDataRecorder::setExecute(int execute)
   return 0;
 }
 
-int ecmcDataRecorder::setEnablePrintOuts(bool enable)
-{
-  enableDiagnosticPrintouts_=enable;
-  return 0;
-}
-
 void ecmcDataRecorder::printStatus()
 {
-  printf("Index: %d, data: %lf, Error: %x\n",index_,(double)data_,getErrorID());
+  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Data: %lf, Error: 0x%x.\n",index_,(double)data_,getErrorID());
 }
 
 void ecmcDataRecorder::setInStartupPhase(bool startup)
@@ -101,8 +94,7 @@ int ecmcDataRecorder::executeEvent(int masterOK)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
-  if(enableDiagnosticPrintouts_){
-    printStatus();
-  }
+  printStatus();
+
   return 0;
 }

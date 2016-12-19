@@ -113,9 +113,8 @@ void ecmcAxisReal::execute(bool masterOK)
     mon_->setCntrlOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
 
-    //Switch to internal trajectory if interlock temporary
+    //Switch to internal trajectory temporary if interlock
     if(mon_->getTrajInterlock() && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
-      //externalInputTrajectoryIF_->setDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
       traj_->setInterlock(mon_->getTrajInterlock());
       traj_->setStartPos(currentPositionActual_);
       traj_->initStopRamp(currentPositionActual_,currentVelocityActual_,0);
@@ -352,7 +351,7 @@ ecmcSequencer *ecmcAxisReal::getSeq()
 void ecmcAxisReal::printStatus()
 {
   if(drv_->getScale()!=0){
-    printf("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
+    LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
         axisID_,
         currentPositionSetpoint_,
         currentPositionActual_,
@@ -366,7 +365,7 @@ void ecmcAxisReal::printStatus()
         getErrorID());
   }
   else{
-    printf("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
+      LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
         axisID_,
         currentPositionSetpoint_,
         currentPositionActual_,
@@ -379,7 +378,7 @@ void ecmcAxisReal::printStatus()
         drv_->getVelSetRaw(),
         getErrorID());
   }
-  printf("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
+  LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
       getEnable(),
       traj_->getExecute(),
       seq_.getBusy(),

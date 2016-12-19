@@ -237,13 +237,7 @@ void ecmcEvent::setInStartupPhase(bool startup)
 
 void ecmcEvent::printStatus()
 {
-  printf("New event triggered! Index: %d, Armed: %d, enableArmSequence_: %d, Error: %x\n",index_,armed_,enableArmSequence_,getErrorID());
-}
-
-int ecmcEvent::setEnablePrintOuts(bool enable)
-{
-  enableDiagnosticPrintouts_=enable;
-  return 0;
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Armed: %d, enableArmSequence_: %d, Error: 0x%x.\n",index_,armed_,enableArmSequence_,getErrorID());
 }
 
 int ecmcEvent::callConsumers(int masterOK)

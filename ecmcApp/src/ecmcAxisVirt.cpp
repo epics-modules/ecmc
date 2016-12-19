@@ -299,12 +299,12 @@ void ecmcAxisVirt::printStatus()
 {
 
   double cntrlError=0;
-  int retError =getCntrlError(&cntrlError);
-  if(retError){
+  int error =getCntrlError(&cntrlError);
+  if(error){
     cntrlError=0.0;
   }
 
-  printf("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
+  LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
       axisID_,
       traj_->getCurrentPosSet(),
       enc_->getActPos(),
@@ -317,7 +317,7 @@ void ecmcAxisVirt::printStatus()
       0,
       getErrorID());
 
-  printf("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
+  LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
       getEnable(),
       traj_->getExecute(),
       seq_.getBusy(),

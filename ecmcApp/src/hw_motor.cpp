@@ -71,10 +71,8 @@ static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static ecmcEc           ec;
 static int              axisDiagIndex;
 static int              axisDiagFreq;
-static bool             enableAxisDiag;
 static int              controllerError=0;
 static app_mode_type    appMode,appModeOld;
-static int              enableTimeDiag=0;
 static unsigned int     counter = 0;
 static int              printCounter=0;
 static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
@@ -94,7 +92,7 @@ const struct timespec cycletime = {0, MCU_PERIOD_NS};
 void printStatus()
 {
   //Print axis diagnostics to screen
-  if(enableAxisDiag && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
+  if(PRINT_STDOUT_BIT12() && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
     if(axes[axisDiagIndex]!=NULL){
       if(printCounter==0){
 	LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVel act\t\tVel FF\t\tVel FFs\t\tDrv Vel\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
@@ -214,7 +212,7 @@ void cyclic_task(void * usr)
   {
     wakeupTime = timespec_add(wakeupTime, cycletime);
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
-    //*******************
+
     clock_gettime(CLOCK_MONOTONIC, &startTime);
     latency_ns = DIFF_NS(wakeupTime, startTime);
     period_ns = DIFF_NS(lastStartTime, startTime);
@@ -275,7 +273,7 @@ void cyclic_task(void * usr)
       printStatus();
       ec.printStatus();
 
-      if(enableTimeDiag){
+      if(PRINT_STDOUT_BIT13()){
         struct timespec testtime;
         clock_gettime(CLOCK_MONOTONIC, &testtime);
         LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
@@ -315,7 +313,7 @@ int  hw_motor_global_init(void){
 
   axisDiagIndex=0;
   axisDiagFreq=10;
-  enableAxisDiag=true;
+  setDiagAxisEnable(1);
 
   for(int i=0; i<ECMC_MAX_AXES;i++){
     axes[i]=NULL;
@@ -525,6 +523,7 @@ int ecEnablePrintouts(int value)
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
 
   WRITE_DIAG_BIT(FUNCTION_ETHERCAT_DIAGNOSTICS_BIT,value);
+
   return 0;
 }
 
@@ -533,6 +532,7 @@ int setEnableFunctionCallDiag(int value)
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
 
   WRITE_DIAG_BIT(FUNCTION_CALL_DIAGNOSTICS_BIT,value);
+
   return 0;
 }
 
@@ -2406,7 +2406,8 @@ int setDiagAxisEnable(int value)
 {
   LOGINFO4("%s/%s:%d enable=%d \n",__FILE__, __FUNCTION__, __LINE__,value);
 
-  enableAxisDiag=value;  //Disabled if 0
+  WRITE_DIAG_BIT(FUNCTION_HW_MOTOR_AXIS_DIAGNOSTICS_BIT,value);
+
   return 0;
 }
 
@@ -2414,7 +2415,8 @@ int setEnableTimeDiag(int value)
 {
   LOGINFO4("%s/%s:%d enable=%d \n",__FILE__, __FUNCTION__, __LINE__,value);
 
-  enableTimeDiag=value;  //Disabled if 0
+  WRITE_DIAG_BIT(FUNCTION_TIMING_DIAGNOSTICS_BIT,value);
+
   return 0;
 }
 
@@ -2603,7 +2605,8 @@ int setEventEnablePrintouts(int indexEvent,int enable)
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  return events[indexEvent]->setEnablePrintOuts(enable);
+  WRITE_DIAG_BIT(FUNCTION_EVENTS_DIAGNOSTICS_BIT,enable);
+  return 0;
 }
 
 int triggerEvent(int indexEvent)
@@ -2674,7 +2677,8 @@ int setRecorderEnablePrintouts(int indexRecorder,int enable)
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  return dataRecorders[indexRecorder]->setEnablePrintOuts(enable);
+  WRITE_DIAG_BIT(FUNCTION_DATA_RECORDER_DIAGNOSTICS_BIT,enable);
+  return 0;
 }
 
 int setRecorderExecute(int indexRecorder,int execute)
@@ -2845,7 +2849,6 @@ int setCommandListEnablePrintouts(int indexCommandList,int enable)
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
 
   WRITE_DIAG_BIT(FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT,enable);
-
   return 0;
 }
 

@@ -32,14 +32,12 @@ public:
   int setExecute(int execute);
   int setDataStorage(ecmcDataStorage* buffer);
   int validate();
-  int setEnablePrintOuts(bool enable);
   int executeEvent(int masterOK);//Override ecmcEventConsumer
 private:
   void initVars();
   void printStatus();
   void setInStartupPhase(bool startup);
   ecmcDataStorage* dataBuffer_;
-  int enableDiagnosticPrintouts_;
   int index_;
   int execute_;
   uint64_t data_;

@@ -137,7 +137,6 @@ int ecmcAxisBase::setEnableCommandsTransform(bool enable)
       int error=commandTransform_->validate();
       if(error){
 	return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
-        //return setErrorID(error);
       }
     }
   }
@@ -320,7 +319,7 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
 
   //If realtime: Ensure that transform object is compiled and ready to go
   if(refSource!=ECMC_DATA_SOURCE_INTERNAL && realtime_){
-      ecmcCommandTransform * transform=externalInputTrajectoryIF_->getExtInputTransform();
+    ecmcCommandTransform * transform=externalInputTrajectoryIF_->getExtInputTransform();
     if(!transform){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_TRANSFORM_NULL);
     }
@@ -355,7 +354,7 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
 
   //If realtime: Ensure that transform object is compiled and ready to go
   if(refSource!=ECMC_DATA_SOURCE_INTERNAL && realtime_){
-      ecmcCommandTransform * transform=externalInputEncoderIF_->getExtInputTransform();
+    ecmcCommandTransform * transform=externalInputEncoderIF_->getExtInputTransform();
     if(!transform){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_TRANSFORM_NULL);
     }

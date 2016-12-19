@@ -362,8 +362,6 @@ ecmcConfigController "MCU1", "Cfg.SetCommandListExecute(0,1)"
 #Diagnostics
 ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
 
-ecmcConfigController "MCU1", "Cfg.SetTraceMask(128)"
-
 #Go to runtime
 ecmcConfigController "MCU1", "Cfg.SetAppMode(1)"
 

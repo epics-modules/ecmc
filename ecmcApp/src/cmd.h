@@ -59,6 +59,9 @@ do {                                               \
 #define FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT 8
 #define FUNCTION_DATA_STORAGE_DIAGNOSTICS_BIT 9
 #define FUNCTION_EVENTS_DIAGNOSTICS_BIT 10
+#define FUNCTION_DATA_RECORDER_DIAGNOSTICS_BIT 11
+#define FUNCTION_HW_MOTOR_AXIS_DIAGNOSTICS_BIT 12
+#define FUNCTION_TIMING_DIAGNOSTICS_BIT 13
 
 #define LOGINFO(fmt, ...)                        \
 {                                                \

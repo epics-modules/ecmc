@@ -10,13 +10,13 @@
 #define ECMCDEFINITIONS_H_
 
 #define UNPACK( ... ) __VA_ARGS__
-//#define PRINT_DIAG(message) {if(enableDiagnosticPrintouts_){printf("%s/%s:%d: ",__FILE__, __FUNCTION__, __LINE__);printf(UNPACK message);}}
 
 #define MCU_FREQUENCY 1000.0
 #define MCU_NSEC_PER_SEC 1000000000
 #define MCU_PERIOD_NS (int)(MCU_NSEC_PER_SEC / MCU_FREQUENCY)
 #define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC + \
   (B).tv_nsec - (A).tv_nsec)
+#define ECMC_MAX_AXES 8
 
 //Test new conversion
 #define TIMESPEC2NS(T) ((uint64_t) (((T).tv_sec - 946684800ULL) * 1000000000ULL) + (T).tv_nsec)
@@ -25,7 +25,7 @@
 //#define MSG_TICK 0
 #define MAX_MESSAGE 10000
 
-#define ECMC_MAX_AXES 8
+//Transforms
 #define MAX_TRANSFORM_INPUTS ECMC_MAX_AXES*2
 #define TRANSFORM_EXPR_LINE_END_CHAR '#'
 #define TRANSFORM_EXPR_OUTPUT_VAR_NAME "out"
@@ -35,7 +35,7 @@
 #define TRANSFORM_EXPR_VARIABLE_ENC_PREFIX "actPos"
 #define TRANSFORM_EXPR_INTERLOCK_PREFIX "ilock"
 
-//****EtherCAT****
+//EtherCAT
 #define EC_MAX_PDOS 200        //Pdos per slave terminal
 #define EC_MAX_ENTRIES 200     //Entries Per slave
 #define EC_MAX_SLAVES 200
@@ -49,7 +49,7 @@
 #define ECMC_MAX_COMMANDS_LISTS 10
 #define ECMC_MAX_COMMANDS_IN_COMMANDS_LISTS 100
 
-//****Motion****
+//Motion
 enum app_mode_type{
   ECMC_MODE_CONFIG=0,
   ECMC_MODE_RUNTIME=1
