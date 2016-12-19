@@ -13,7 +13,7 @@ ecmcDataStorage::ecmcDataStorage (int index)
   buffer_=new double[ECMC_DEFAULT_DATA_STORAGE_SIZE];
   if(buffer_==NULL){
     PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    setErrorID(ERROR_DATA_STORAGE_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
   }
   index_=index;
 }
@@ -25,7 +25,7 @@ ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
   buffer_=new double[size];
   if(buffer_==NULL){
     PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    setErrorID(ERROR_DATA_STORAGE_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
   }
   bufferType_=bufferType;
   index_=index;
@@ -50,7 +50,7 @@ int ecmcDataStorage::clearBuffer()
 {
   if(buffer_==NULL){
     PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    return setErrorID(ERROR_DATA_STORAGE_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
   }
   memset(buffer_,0,bufferElementCount_*sizeof(double));
   currentBufferIndex_=0;
@@ -113,12 +113,12 @@ int ecmcDataStorage::appendData(double *data, int size)
 {
   if(buffer_==NULL){
     PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    return setErrorID(ERROR_DATA_STORAGE_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
   }
 
   if(size>bufferElementCount_){
     PRINT_DIAG(("Index: %d.Error: %x\n",index_,ERROR_DATA_STORAGE_SIZE_TO_SMALL));
-    return setErrorID(ERROR_DATA_STORAGE_SIZE_TO_SMALL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_SIZE_TO_SMALL);
   }
 
   int sizeToCopy=size;
@@ -142,7 +142,7 @@ int ecmcDataStorage::appendData(double *data, int size)
   if(sizeToCopy<size){
     if(bufferType_!=ECMC_STORAGE_RING_BUFFER){
       PRINT_DIAG(("Index: %d.Error: %x\n",index_,ERROR_DATA_STORAGE_FULL));
-      return setErrorID(ERROR_DATA_STORAGE_FULL);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_FULL);
     }
 
     for(int i=0;i<size-sizeToCopy;i++){
@@ -165,7 +165,7 @@ int ecmcDataStorage::appendData(double data)
 int ecmcDataStorage::setCurrentPosition(int position)
 {
   if(position>bufferElementCount_ || position<0){
-    return setErrorID(ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
   }
   currentBufferIndex_=position;
   return 0;

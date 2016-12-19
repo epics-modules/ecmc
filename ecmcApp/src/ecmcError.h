@@ -16,7 +16,8 @@ class ecmcError
 public:
   ecmcError();
   virtual ~ecmcError();
-  virtual  int setErrorID(int errorID);
+  virtual int setErrorID(int errorID);
+  virtual int setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID);
   virtual void setError(bool error);
   virtual void errorReset();
   virtual bool getError();

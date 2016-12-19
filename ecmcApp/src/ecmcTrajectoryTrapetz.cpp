@@ -98,7 +98,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
   if (!trajInProgress_ || currentPosInterlock_ || !enable_){
 
     if(execute_ && !enable_){
-      setErrorID(ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
+      setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
     }
     posSetMinus2_=currentPositionSetpoint_;
     posSetMinus1_=currentPositionSetpoint_;
@@ -289,23 +289,23 @@ stopMode ecmcTrajectoryTrapetz::checkInterlocks()
 	return ECMC_STOP_MODE_NORMAL;
         break;
       case ECMC_INTERLOCK_EXTERNAL:
-        setErrorID(ERROR_TRAJ_EXTERNAL_INTERLOCK);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_EXTERNAL_INTERLOCK);
         return ECMC_STOP_MODE_EMERGENCY;
         break;
       case ECMC_INTERLOCK_POSITION_LAG:
-        setErrorID(ERROR_TRAJ_POS_LAG_INTERLOCK);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_POS_LAG_INTERLOCK);
         return ECMC_STOP_MODE_NORMAL;
         break;
       case ECMC_INTERLOCK_BOTH_LIMITS:
-        setErrorID(ERROR_TRAJ_BOTH_LIMIT_INTERLOCK);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_BOTH_LIMIT_INTERLOCK);
         return ECMC_STOP_MODE_EMERGENCY;
         break;
       case ECMC_INTERLOCK_TRANSFORM:
-        setErrorID(ERROR_TRAJ_TRANSFORM_INTERLOCK_ERROR);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_TRANSFORM_INTERLOCK_ERROR);
         return ECMC_STOP_MODE_EMERGENCY;
         break;
       case ECMC_INTERLOCK_MAX_SPEED:
-        setErrorID(ERROR_TRAJ_MAX_SPEED_INTERLOCK);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_MAX_SPEED_INTERLOCK);
         return ECMC_STOP_MODE_NORMAL;
       default:
         break;
@@ -444,7 +444,7 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute)
   execute_=execute;
   if(!enable_ && execute_){
     LOGERR("%s/%s:%d: ERROR: Trajectory not enabled (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_NOT_ENABLED);
-    setErrorID(ERROR_TRAJ_NOT_ENABLED);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_NOT_ENABLED);
     execute_=false;
     velocity_=0;
     return;
@@ -522,7 +522,7 @@ double ecmcTrajectoryTrapetz::getSampleTime()
 int ecmcTrajectoryTrapetz::validate()
 {
   if(sampleTime_<=0){
-    return setErrorID(ERROR_TRAJ_INVALID_SAMPLE_TIME);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_INVALID_SAMPLE_TIME);
   }
   return 0;
 }

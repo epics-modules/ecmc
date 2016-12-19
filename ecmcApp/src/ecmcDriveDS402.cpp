@@ -29,31 +29,31 @@ int ecmcDriveDS402::validate()
 
   int errorCode=ecmcDriveBase::validate();
   if(errorCode){
-    return setErrorID(errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
   int bitCount=0;  //DS402 must have 16 bit control word
   getEntryBitCount(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD,&bitCount);
   if(bitCount!=16){
-    return setErrorID(ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR);
   }
 
   int startBit=0;  //DS402 must use all bits in word
   getEntryStartBit(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD,&startBit);
   if(startBit!=-1){
-    return setErrorID(ERROR_DRV_DS402_CONTROL_WORD_START_BIT_ERROR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DS402_CONTROL_WORD_START_BIT_ERROR);
   }
 
   bitCount=0;  //DS402 must have 16 bit status word
   getEntryBitCount(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,&bitCount);
   if(bitCount!=16){
-    return setErrorID(ERROR_DRV_DS402_STATUS_WORD_BIT_COUNT_ERROR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DS402_STATUS_WORD_BIT_COUNT_ERROR);
   }
 
   startBit=0;  //DS402 must use all bits in word
   getEntryStartBit(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,&startBit);
   if(startBit!=-1){
-    return setErrorID(ERROR_DRV_DS402_STATUS_WORD_START_BIT_ERROR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DS402_STATUS_WORD_START_BIT_ERROR);
   }
 
   return 0;
@@ -81,13 +81,9 @@ void ecmcDriveDS402::readEntries()
   {
     enableSequenceRunning_=false;
     controlWord_=0;
-    setErrorID(ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT);
     return;
   }
-
-/*  if(driveState_!=driveStateOld_ || enableStateMachine_!= enableStateMachineOld_){
-    printf("Current state= %d, enable SM= %d\n", driveState_,enableStateMachine_ );
-  }*/
 
   driveStateOld_=driveState_;
   enableStateMachineOld_=enableStateMachine_;

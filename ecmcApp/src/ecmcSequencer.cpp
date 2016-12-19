@@ -57,11 +57,11 @@ void ecmcSequencer::initVars()
 void ecmcSequencer::execute()
 {  //Cyclic execution
   if(traj_==NULL){
-    setErrorID(ERROR_SEQ_TRAJ_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return;
   }
   if(mon_==NULL){
-    setErrorID(ERROR_SEQ_MON_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
     return;
   }
 
@@ -78,7 +78,7 @@ void ecmcSequencer::execute()
   }
   seqTimeCounter_++;
   if(seqTimeCounter_>seqTimeout_ && seqTimeout_>0){
-    setErrorID(ERROR_SEQ_TIMEOUT);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TIMEOUT);
     stopSeq();
     return;
   }
@@ -92,7 +92,7 @@ void ecmcSequencer::execute()
         case 0:
           seqReturnVal=seq1SimpleHoming();
           if(seqReturnVal>0){//Error
-            setErrorID(seqReturnVal);
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
             stopSeq();
           }
           else if(seqReturnVal==0){//Homing ready
@@ -102,7 +102,7 @@ void ecmcSequencer::execute()
         case 1:
           seqReturnVal=seqHoming1();
           if(seqReturnVal>0){//Error
-            setErrorID(seqReturnVal);
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
             stopSeq();
           }
           else if(seqReturnVal==0){//Homing ready
@@ -112,7 +112,7 @@ void ecmcSequencer::execute()
         case 2:
           seqReturnVal=seqHoming2();
           if(seqReturnVal>0){//Error
-            setErrorID(seqReturnVal);
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
             stopSeq();
           }
           else if(seqReturnVal==0){//Homing ready
@@ -122,7 +122,7 @@ void ecmcSequencer::execute()
         case 3:
           seqReturnVal=seqHoming3();
           if(seqReturnVal>0){//Error
-            setErrorID(seqReturnVal);
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
             stopSeq();
           }
           else if(seqReturnVal==0){//Homing ready
@@ -132,7 +132,7 @@ void ecmcSequencer::execute()
         case 4:
           seqReturnVal=seqHoming4();
           if(seqReturnVal>0){//Error
-            setErrorID(seqReturnVal);
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
             stopSeq();
           }
           else if(seqReturnVal==0){//Homing ready
@@ -142,7 +142,7 @@ void ecmcSequencer::execute()
         case 5:
           seqReturnVal=seqHoming5();
           if(seqReturnVal>0){//Error
-            setErrorID(seqReturnVal);
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
             stopSeq();
           }
           else if(seqReturnVal==0){//Homing ready
@@ -152,7 +152,7 @@ void ecmcSequencer::execute()
         case 6:
           seqReturnVal=seqHoming6();
           if(seqReturnVal>0){//Error
-            setErrorID(seqReturnVal);
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
             stopSeq();
           }
           else if(seqReturnVal==0){//Homing ready
@@ -160,12 +160,12 @@ void ecmcSequencer::execute()
           }
           break;
         default:
-          setErrorID(ERROR_SEQ_CMD_DATA_UNDEFINED);
+          setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_CMD_DATA_UNDEFINED);
           break;
       }
       break;
     default:
-      setErrorID(ERROR_SEQ_CMD_UNDEFINED);
+      setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_CMD_UNDEFINED);
       break;
   }
 }
@@ -173,7 +173,7 @@ void ecmcSequencer::execute()
 int  ecmcSequencer::setExecute(bool execute)
 {
   if(traj_==NULL){
-    return setErrorID(ERROR_SEQ_TRAJ_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
   }
 
   executeOld_=execute_;
@@ -225,7 +225,7 @@ int  ecmcSequencer::setExecute(bool execute)
       traj_->setExecute(execute_);
       break;
     case ECMC_CMD_MOVEMODULO:
-      return setErrorID(ERROR_SEQ_COMMAND_NOT_SUPPORTED);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_COMMAND_NOT_SUPPORTED);
       break;
     case ECMC_CMD_HOMING:
       if(execute_ && !executeOld_){
@@ -236,22 +236,22 @@ int  ecmcSequencer::setExecute(bool execute)
         }
         else{
           if(traj_==NULL){
-            return setErrorID(ERROR_SEQ_TRAJ_NULL);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
           }
           else{
             traj_->setExecute(false);
           }
 
           if(enc_==NULL){
-            return setErrorID(ERROR_SEQ_ENC_NULL);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_ENC_NULL);
           }
 
           if(mon_==NULL){
-            return setErrorID(ERROR_SEQ_MON_NULL);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
           }
 
           if(cntrl_==NULL){
-            return setErrorID(ERROR_SEQ_CNTRL_NULL);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_CNTRL_NULL);
           }
         }
       }
@@ -261,13 +261,13 @@ int  ecmcSequencer::setExecute(bool execute)
       }
       break;
     case ECMC_CMD_SUPERIMP:
-      return setErrorID(ERROR_SEQ_COMMAND_NOT_SUPPORTED);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_COMMAND_NOT_SUPPORTED);
       break;
     case ECMC_CMD_GEAR:
-      return setErrorID(ERROR_SEQ_COMMAND_NOT_SUPPORTED);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_COMMAND_NOT_SUPPORTED);
       break;
     default:
-      return setErrorID(ERROR_SEQ_COMMAND_NOT_SUPPORTED);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_COMMAND_NOT_SUPPORTED);
       break;
   }
 
@@ -322,7 +322,7 @@ void ecmcSequencer::setCntrl(ecmcPIDController *cntrl)
 bool ecmcSequencer::getBusy()
 {
   if(traj_==NULL){
-    setErrorID(ERROR_SEQ_TRAJ_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return false;
   }
   if(command_==ECMC_CMD_HOMING){
@@ -391,18 +391,18 @@ void ecmcSequencer::setTargetPos(double pos)
   double tempPos=checkSoftLimits(pos);
 
   if(pos>tempPos){
-    setErrorID(ERROR_SEQ_SOFT_LIMIT_FWD);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SOFT_LIMIT_FWD);
     return;
   }
   if(pos<tempPos){
-    setErrorID(ERROR_SEQ_SOFT_LIMIT_BWD);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SOFT_LIMIT_BWD);
     return;
   }
 
   targetPosition_=pos;
 
   if(mon_==NULL){
-    setErrorID(ERROR_SEQ_MON_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
     return;
   }
   mon_->setTargetPos(pos);
@@ -427,7 +427,7 @@ void ecmcSequencer::setJogFwd(bool jog)
 {
   jogFwd_=jog;
   if(traj_==NULL){
-    setErrorID(ERROR_SEQ_TRAJ_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return;
   }
   if(command_==ECMC_CMD_JOG && jogFwd_){
@@ -443,7 +443,7 @@ void ecmcSequencer::setJogFwd(bool jog)
 bool ecmcSequencer::getJogFwd()
 {
   if(traj_==NULL){
-    setErrorID(ERROR_SEQ_TRAJ_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return false;
   }
   return jogFwd_;
@@ -453,7 +453,7 @@ void ecmcSequencer::setJogBwd(bool jog)
 {
   jogBwd_=jog;
   if(traj_==NULL){
-    setErrorID(ERROR_SEQ_TRAJ_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return;
   }
   if(command_==ECMC_CMD_JOG && jogBwd_){
@@ -469,7 +469,7 @@ void ecmcSequencer::setJogBwd(bool jog)
 bool ecmcSequencer::getJogBwd()
 {
   if(traj_==NULL){
-    setErrorID(ERROR_SEQ_TRAJ_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return false;
   }
   return jogBwd_;
@@ -478,7 +478,7 @@ bool ecmcSequencer::getJogBwd()
 double ecmcSequencer::checkSoftLimits(double posSetpoint)
 {
   if(!mon_){
-    setErrorID(ERROR_SEQ_MON_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
     return posSetpoint;
   }
 
@@ -1299,23 +1299,23 @@ int ecmcSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
 {
   if(traj_==NULL){
     stopSeq();
-    return setErrorID(ERROR_SEQ_TRAJ_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
   }
   if(mon_==NULL){
     stopSeq();
-    return setErrorID(ERROR_SEQ_MON_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
   }
 
   if(!mon_->getHardLimitFwd() && checkFWD){
     stopSeq();
     traj_->setExecute(0);
-    return setErrorID(ERROR_SEQ_SEQ_FAILED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
   }
 
   if(!mon_->getHardLimitBwd() && checkBWD){
     stopSeq();
     traj_->setExecute(0);
-    return setErrorID(ERROR_SEQ_SEQ_FAILED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
   }
   return 0;
 }
@@ -1369,22 +1369,22 @@ int ecmcSequencer::setExtTrajIF(ecmcMasterSlaveIF * extIf)
 int ecmcSequencer::getExtTrajSetpoint(double *pos)
 {
   if(!externalInputTrajectoryIF_){
-    return setErrorID(ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL);
   }
 
   int error=externalInputTrajectoryIF_->validate();
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   error=externalInputTrajectoryIF_->transformRefresh();
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
   double tempPos=0;
   error=externalInputTrajectoryIF_->getExtInputPos(ECMC_TRANSFORM_VAR_TYPE_TRAJ,&tempPos);  //For this axis
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   *pos=tempPos;

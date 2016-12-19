@@ -201,7 +201,7 @@ bool ecmcPIDController::getEnable()
 int ecmcPIDController::validate()
 {
   if(sampleTime_<=0){
-    return setErrorID(ERROR_CNTRL_INVALID_SAMPLE_TIME);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_CNTRL_INVALID_SAMPLE_TIME);
   }
   return 0;
 }

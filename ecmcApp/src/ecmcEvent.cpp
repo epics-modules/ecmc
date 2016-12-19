@@ -48,7 +48,7 @@ int ecmcEvent::setEventType(eventType type)
   eventType_=type;
   int errorCode=validate();
   if(errorCode){
-    return setErrorID(errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
   return 0;
 }
@@ -64,7 +64,7 @@ int ecmcEvent::setExecute(int execute)
   if(!execute_  && execute){
     int errorCode=validate();
     if(errorCode){
-      return setErrorID(errorCode);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
     }
   }
   execute_=execute;
@@ -74,7 +74,7 @@ int ecmcEvent::setExecute(int execute)
 int ecmcEvent::setDataSampleTime(int sampleTime)
 {
   if(sampleTime<=0){
-    return setErrorID(ERROR_EVENT_INVALID_SAMPLE_TIME);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_INVALID_SAMPLE_TIME);
   }
   dataSampleTime_=sampleTime;
   return 0;
@@ -83,7 +83,7 @@ int ecmcEvent::setDataSampleTime(int sampleTime)
 int ecmcEvent::execute(int masterOK)
 {
   if(!masterOK){
-    return setErrorID(ERROR_EVENT_HARDWARE_STATUS_NOT_OK);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_HARDWARE_STATUS_NOT_OK);
   }
 
   if(inStartupPhase_){
@@ -108,7 +108,7 @@ int ecmcEvent::execute(int masterOK)
     reArm_=false;
     int errorCode=armSequence();
     if(errorCode>0){
-      return setErrorID(errorCode);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
     }
   }
 
@@ -121,7 +121,7 @@ int ecmcEvent::execute(int masterOK)
       eventTriggered_=true;
       int errorCode=callConsumers(masterOK);
       if(errorCode){
-	return setErrorID(errorCode);
+	return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
       printStatus();
     }
@@ -130,7 +130,7 @@ int ecmcEvent::execute(int masterOK)
   if(eventType_!=ECMC_SAMPLED){  //trigger entry needed
     uint64_t tempRaw=0;
     if(readEcEntryValue(0,&tempRaw)){//Trigger
-      return setErrorID(ERROR_EVENT_ECENTRY_READ_FAIL);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ECENTRY_READ_FAIL);
     }
     triggerOld_=trigger_;
     trigger_=tempRaw;
@@ -141,7 +141,7 @@ int ecmcEvent::execute(int masterOK)
           eventTriggered_=true;
           int errorCode=callConsumers(masterOK);
 	  if(errorCode){
-	    return setErrorID(errorCode);
+	    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
           }
 	  printStatus();
 	}
@@ -151,7 +151,7 @@ int ecmcEvent::execute(int masterOK)
           eventTriggered_=true;
           int errorCode=callConsumers(masterOK);
           if(errorCode){
-            return setErrorID(errorCode);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
           }
           printStatus();
 	}
@@ -161,7 +161,7 @@ int ecmcEvent::execute(int masterOK)
           eventTriggered_=true;
           int errorCode=callConsumers(masterOK);
           if(errorCode){
-            return setErrorID(errorCode);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
           }
           printStatus();
 	}
@@ -175,12 +175,12 @@ int ecmcEvent::execute(int masterOK)
 int ecmcEvent::validate()
 {
   if(validateEntry(0)){ //Trigger entry
-    return setErrorID(ERROR_EVENT_TRIGGER_ECENTRY_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_TRIGGER_ECENTRY_NULL);
   }
 
   if(enableArmSequence_){
     if(validateEntry(1)){ //Arm entry
-      return setErrorID(ERROR_EVENT_ARM_ECENTRY_NULL);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ARM_ECENTRY_NULL);
     }
   }
   return setErrorID(0);
@@ -200,7 +200,7 @@ int ecmcEvent::armSequence()
       PRINT_DIAG(("Arm SEQ state 0.\n"));
       errorCode=writeEcEntryValue(1,armed_); //Write 0
       if(errorCode){
-	  return setErrorID(errorCode);
+	  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
       armStateCounter_++;
       if(armStateCounter_>1){
@@ -214,7 +214,7 @@ int ecmcEvent::armSequence()
       armed_=1;
       errorCode=writeEcEntryValue(1,armed_); //Write 1
       if(errorCode){
-	  return setErrorID(errorCode);
+	  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
 
       armState_=0;
@@ -256,7 +256,7 @@ int ecmcEvent::callConsumers(int masterOK)
       PRINT_DIAG(("Calling Event Consumer %d. \n",i));
       errorCode=consumers_[i]->executeEvent(masterOK);
       if(errorCode){
-        return setErrorID(errorCode);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
     }
   }
@@ -266,7 +266,7 @@ int ecmcEvent::callConsumers(int masterOK)
 int ecmcEvent::linkEventConsumer(ecmcEventConsumer *consumer,int index)
 {
   if(index<0 || index>=ECMC_MAX_EVENT_CONSUMERS){
-    return setErrorID(ERROR_EVENT_CONSUMER_INDEX_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_CONSUMER_INDEX_OUT_OF_RANGE);
   }
 
   consumers_[index]=consumer;
@@ -281,7 +281,7 @@ int ecmcEvent::triggerEvent(int masterOK)
 int ecmcEvent::arm()
 {
   if(!enableArmSequence_){
-    return setErrorID(ERROR_EVENT_ARM_NOT_ENABLED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ARM_NOT_ENABLED);
   }
   armSequence();
   return 0;

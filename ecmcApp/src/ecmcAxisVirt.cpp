@@ -23,7 +23,7 @@ ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   seq_.setEnc(enc_);
   int error=getSeq()->setExtTrajIF(externalInputTrajectoryIF_);
   if(error){
-    setErrorID(ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
   }
 }
 
@@ -129,7 +129,7 @@ void ecmcAxisVirt::execute(bool masterOK)
       if(getEnable()){
         setEnable(false);
       }
-      setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+      setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
     }
 
     //Write to hardware
@@ -140,12 +140,12 @@ void ecmcAxisVirt::execute(bool masterOK)
 int ecmcAxisVirt::setExecute(bool execute)
 {
   if(execute && !getEnable()){
-    return setErrorID(ERROR_AXIS_NOT_ENABLED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED);
   }
 
   int error =seq_.setExecute(execute);
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
   return setExecute_Transform();
 }
@@ -168,7 +168,7 @@ int ecmcAxisVirt::setEnable(bool enable)
 
   int error=setEnableLocal(enable);
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
   //Cascade commands via command transformation
   return setEnable_Transform();
@@ -182,7 +182,7 @@ bool ecmcAxisVirt::getEnable()
 int ecmcAxisVirt::setOpMode(operationMode mode)
 {
   //NO DRIVE
-  return setErrorID(ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
 }
 
 operationMode ecmcAxisVirt::getOpMode()
@@ -333,42 +333,42 @@ int ecmcAxisVirt::validate()
 {
   int error=0;
   if(enc_==NULL){
-    return setErrorID(ERROR_AXIS_ENC_OBJECT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
   if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     error=enc_->validate();
     if(error){
-      return setErrorID(error);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
   }
 
   if(traj_==NULL){
-    return setErrorID(ERROR_AXIS_TRAJ_OBJECT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_OBJECT_NULL);
   }
 
   error=traj_->validate();
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   if(mon_==NULL){
-    return setErrorID(ERROR_AXIS_MON_OBJECT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MON_OBJECT_NULL);
   }
 
   error=mon_->validate();
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   error=seq_.validate();
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   error=ecmcAxisBase::validateBase();
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   return 0;

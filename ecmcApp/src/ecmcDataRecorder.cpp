@@ -39,11 +39,11 @@ int ecmcDataRecorder::setDataStorage(ecmcDataStorage* buffer)
 int ecmcDataRecorder::validate()
 {
   if(dataBuffer_==NULL){
-    return setErrorID(ERROR_DATA_RECORDER_BUFFER_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_BUFFER_NULL);
   }
 
   if(validateEntry(0)){ //Data
-    return setErrorID(ERROR_DATA_RECORDER_DATA_ECENTRY_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_DATA_ECENTRY_NULL);
   }
 
   return setErrorID(0);
@@ -76,7 +76,7 @@ void ecmcDataRecorder::setInStartupPhase(bool startup)
 int ecmcDataRecorder::executeEvent(int masterOK)
 {
   if(!masterOK){
-    return setErrorID(ERROR_DATA_RECORDER_HARDWARE_STATUS_NOT_OK);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_HARDWARE_STATUS_NOT_OK);
   }
 
   if(inStartupPhase_){
@@ -93,13 +93,13 @@ int ecmcDataRecorder::executeEvent(int masterOK)
 
   uint64_t tempRaw=0;
   if(readEcEntryValue(0,&tempRaw)){//Data
-    return setErrorID(ERROR_EVENT_ECENTRY_READ_FAIL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ECENTRY_READ_FAIL);
   }
 
   data_=tempRaw;
   int errorCode=dataBuffer_->appendData((double)data_);
   if(errorCode){
-    return setErrorID(errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
   if(enableDiagnosticPrintouts_){

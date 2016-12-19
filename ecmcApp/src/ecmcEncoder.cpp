@@ -61,7 +61,7 @@ int ecmcEncoder::setScaleDenom(double scaleDenom)
 {
   scaleDenom_=scaleDenom;
   if(scaleDenom_==0){
-    return setErrorID(ERROR_ENC_SCALE_DENOM_ZERO);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_SCALE_DENOM_ZERO);
   }
   scale_=scaleNum_/scaleDenom_;
   return 0;
@@ -125,7 +125,7 @@ int ecmcEncoder::setType(encoderType encType)
       encType_=encType;
       break;
     default:
-      return setErrorID(ERROR_ENC_TYPE_NOT_SUPPORTED);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_TYPE_NOT_SUPPORTED);
       break;
   }
   validate();
@@ -189,7 +189,7 @@ double ecmcEncoder::readEntries()
 
   int error=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
   if(error){
-    setErrorID(ERROR_ENC_ENTRY_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_NULL);
     return 0;
   }
 
@@ -197,7 +197,7 @@ double ecmcEncoder::readEntries()
   uint64_t tempRaw=0;
 
   if(readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION,&tempRaw)){
-    setErrorID(ERROR_ENC_ENTRY_READ_FAIL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_READ_FAIL);
     return actPos_;
   }
   rawPos_=handleOverUnderFlow(tempRaw,bits_) ;
@@ -210,20 +210,20 @@ int ecmcEncoder::validate()
 {
 
   if(sampleTime_<=0){
-    return setErrorID(ERROR_ENC_INVALID_SAMPLE_TIME);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_INVALID_SAMPLE_TIME);
   }
 
   if(scaleDenom_==0){
-    return setErrorID(ERROR_ENC_SCALE_DENOM_ZERO);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_SCALE_DENOM_ZERO);
   }
 
   if(encType_!=ECMC_ENCODER_TYPE_ABSOLUTE && encType_!= ECMC_ENCODER_TYPE_INCREMENTAL){
-    return setErrorID(ERROR_ENC_TYPE_NOT_SUPPORTED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_TYPE_NOT_SUPPORTED);
   }
 
   int errorCode=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
   if(errorCode){   //Act position
-    return setErrorID(ERROR_ENC_ENTRY_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_NULL);
   }
 
 

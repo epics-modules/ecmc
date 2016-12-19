@@ -23,11 +23,17 @@ void ecmcError::initVars()
   error_=0;
 }
 
-int ecmcError::setErrorID(int errorID)
+int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID)
 {
   if(errorID!=errorId_){
-    LOGERR("%s/%s:%d: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,convertErrorIdToString(errorID),errorID);
+    LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
   }
+
+  return setErrorID(errorID);
+}
+
+int ecmcError::setErrorID(int errorID)
+{
   if(errorID)
     error_=true;
   else

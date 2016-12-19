@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "cmd.h"
 
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
