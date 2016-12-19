@@ -15,7 +15,7 @@
 #include "cmd.h"
 
 #define CUTOFF 100
-#define FILTER_BUFFER_SIZE 25
+#define FILTER_BUFFER_SIZE 50
 
 class ecmcFilter : public ecmcError
 {
@@ -34,6 +34,7 @@ private:
   double last_;
   double lastOuput_;
   double sampleTime_;
+  int index_;
 };
 
 #endif /* ECMCFILTER_H_ */

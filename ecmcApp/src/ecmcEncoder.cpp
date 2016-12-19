@@ -201,7 +201,9 @@ double ecmcEncoder::readEntries()
     return actPos_;
   }
   rawPos_=handleOverUnderFlow(tempRaw,bits_) ;
+  actPosOld_=actPos_;
   actPos_=scale_*rawPos_+offset_;
+  actVel_=velocityFilter_->lowPassAveraging((actPos_-actPosOld_)/sampleTime_);
 
   return actPos_;
 }

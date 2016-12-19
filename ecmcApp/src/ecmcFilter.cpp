@@ -27,6 +27,7 @@ void ecmcFilter::initVars(){
   for(int i=0;i<FILTER_BUFFER_SIZE;i++){
     buffer_[i]=0;
   }
+  index_=0;
 }
 
 /*double ecmcFilter::Update(double input)
@@ -37,13 +38,16 @@ void ecmcFilter::initVars(){
 
 double ecmcFilter::lowPassAveraging(double input)
 {
-  double sum = input;
-  memmove(&buffer_[1],&buffer_[0],(FILTER_BUFFER_SIZE-1)*sizeof(double));
-  buffer_[0] = input;
-  for(int i = 1; i<(FILTER_BUFFER_SIZE); i++){
+  double sum = 0;
+  buffer_[index_] = input;
+  index_++;
+  if(index_>=FILTER_BUFFER_SIZE){
+    index_=0;
+  }
+  for(int i = 0; i<(FILTER_BUFFER_SIZE); i++){
     sum =sum +buffer_[i];
   }
-  return sum/FILTER_BUFFER_SIZE;
+  return sum/((double)FILTER_BUFFER_SIZE);
 }
 
 /*double ecmcFilter::lowPassExponential(double input, double average, double factor)
