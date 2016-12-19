@@ -144,10 +144,12 @@ int ecmcMasterSlaveIF::transformRefresh()
     }
   }
 
-  //Interlocks
+
+  //Interlocks (for both encoder and Traj so AND operation)
   for(int i=0;i<ECMC_MAX_AXES;i++){
-    if(inputDataInterface_[i+2*ECMC_MAX_AXES]!=NULL){
-      error=transform_->setData(inputDataInterface_[i+2*ECMC_MAX_AXES]->getInterlock(),ECMC_TRANSFORM_VAR_TYPE_IL,i);
+    if(inputDataInterface_[i]!=NULL && inputDataInterface_[i+ECMC_MAX_AXES]!=NULL){
+      //Trajectory and Encoder
+      error=transform_->setData(inputDataInterface_[i]->getInterlock() && inputDataInterface_[i+ECMC_MAX_AXES]->getInterlock(),ECMC_TRANSFORM_VAR_TYPE_IL,i);
       if(error){
         return error;
       }

@@ -616,8 +616,9 @@ int ecmcAxisBase::refreshExternalOutputSources()
   externalInputEncoderIF_->getOutputDataInterface()->setPosition(currentPositionActual_);
   externalInputEncoderIF_->getOutputDataInterface()->setVelocity(currentVelocityActual_);
   if(getMon()){
-    externalInputEncoderIF_->getOutputDataInterface()->setInterlock(!getMon()->getTrajInterlock());
-    externalInputTrajectoryIF_->getOutputDataInterface()->setInterlock(!getMon()->getTrajInterlock());
+    bool il=getMon()->getTrajInterlock()==0;
+    externalInputEncoderIF_->getOutputDataInterface()->setInterlock(il);
+    externalInputTrajectoryIF_->getOutputDataInterface()->setInterlock(il);
   }
   return 0;
 }
