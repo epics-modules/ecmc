@@ -545,7 +545,6 @@ int ecmcMonitor::checkLimits()
       fwdLimitInterlock_=false;
   }
 
-  //printf("enableSoftLimitBwd_=%d,enableSoftLimitFwd_=%d.\n",enableSoftLimitBwd_,enableSoftLimitFwd_);
   //Soft bwd limit
   bwdSoftLimitInterlock_=enableSoftLimitBwd_ && (setVel_<0) && (actPos_-softLimitBwd_<=distToStop_);
   if(bwdSoftLimitInterlock_){
