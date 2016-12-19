@@ -23,7 +23,7 @@ ecmcEcSDO::ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoInde
 
 ecmcEcSDO::ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t value, int byteSize)
 {
-  printf("INFO:\t\tCreating SDO.\n");
+  LOGINFO5("%s/%s:%d: INFO: Creating SDO object (slave position %d, SDO index 0x%x, SDO sub index 0x%x, size %d, value %d).\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,sdoSubIndex,byteSize,value);
   initVars();
   master_=master;
   slavePosition_=slavePosition;
