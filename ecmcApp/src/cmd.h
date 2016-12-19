@@ -58,6 +58,7 @@ do {                                               \
 #define FUNCTION_AXIS_DIAGNOSTICS_BIT 7
 #define FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT 8
 #define FUNCTION_DATA_STORAGE_DIAGNOSTICS_BIT 9
+#define FUNCTION_EVENTS_DIAGNOSTICS_BIT 10
 
 #define LOGINFO(fmt, ...)                        \
 {                                                \

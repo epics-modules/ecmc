@@ -24,9 +24,7 @@ void ecmcEvent::initVars()
   execute_=false;
   eventType_=ECMC_SAMPLED;
   sampleTime_=1;
-  //dataOld_=0;
   triggerOld_=0;
-  //data_=0;
   trigger_=0;
   dataSampleTime_=1;
   triggerEdge_=ECMC_POSITIVE_EDGE;
@@ -197,7 +195,7 @@ int ecmcEvent::armSequence()
       return -armState_;
       break;
     case 1:
-      PRINT_DIAG(("Arm SEQ state 0.\n"));
+      LOGINFO10("%s/%s:%d: INFO: Event %d. Arming sequence in state %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,armState_);
       errorCode=writeEcEntryValue(1,armed_); //Write 0
       if(errorCode){
 	  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -210,7 +208,7 @@ int ecmcEvent::armSequence()
       return -armState_;
       break;
     case 2:
-      PRINT_DIAG(("Arm SEQ state 1.\n"));
+      LOGINFO10("%s/%s:%d: INFO: Event %d. Arming sequence in state %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,armState_);
       armed_=1;
       errorCode=writeEcEntryValue(1,armed_); //Write 1
       if(errorCode){
@@ -253,7 +251,7 @@ int ecmcEvent::callConsumers(int masterOK)
   int errorCode=0;
   for(int i=0;i<ECMC_MAX_EVENT_CONSUMERS;i++){
     if(consumers_[i]!=NULL){
-      PRINT_DIAG(("Calling Event Consumer %d. \n",i));
+      LOGINFO10("%s/%s:%d: INFO: Event %d. Calling consumer %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,i);
       errorCode=consumers_[i]->executeEvent(masterOK);
       if(errorCode){
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
