@@ -64,14 +64,13 @@ int ecmcDataRecorder::setEnablePrintOuts(bool enable)
 
 void ecmcDataRecorder::printStatus()
 {
-  PRINT_DIAG(("Index: %d, data: %lf, Error: %x\n",index_,(double)data_,getErrorID()));
+  printf("Index: %d, data: %lf, Error: %x\n",index_,(double)data_,getErrorID());
 }
 
 void ecmcDataRecorder::setInStartupPhase(bool startup)
 {
   inStartupPhase_=startup;
 }
-
 
 int ecmcDataRecorder::executeEvent(int masterOK)
 {
@@ -106,5 +105,4 @@ int ecmcDataRecorder::executeEvent(int masterOK)
     printStatus();
   }
   return 0;
-
 }

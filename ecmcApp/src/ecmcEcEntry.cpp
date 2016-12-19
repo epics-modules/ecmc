@@ -68,7 +68,7 @@ int ecmcEcEntry::getEntryInfo(ec_pdo_entry_info_t *info)
 {
   if(info==NULL){
     LOGERR("%s/%s:%d: ERROR: output parameter pointer NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_DATA_POINTER_NULL);
-    return setErrorID(ERROR_EC_ENTRY_DATA_POINTER_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_DATA_POINTER_NULL);
   }
   info->bit_length=bitLength_;
   info->index=entryIndex_;
@@ -126,12 +126,12 @@ int ecmcEcEntry::updateInputProcessImage()
 
   if(byteOffset_<0 ){
     LOGERR("%s/%s:%d: ERROR: Invalid data offset (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_OFFSET);
-    return setErrorID(ERROR_EC_ENTRY_INVALID_OFFSET);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_OFFSET);
   }
 
   if(domainAdr_<0 || domainAdr_==NULL){
     LOGERR("%s/%s:%d: ERROR: Invalid domain address (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
-    return setErrorID(ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
   switch( bitLength_){
@@ -152,7 +152,7 @@ int ecmcEcEntry::updateInputProcessImage()
       break;
     default:
       LOGERR("%s/%s:%d: ERROR: Invalid bit length (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
-      return setErrorID(ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
       break;
   }
 
@@ -167,12 +167,12 @@ int ecmcEcEntry::updateOutProcessImage()
 
   if(byteOffset_<0 ){
     LOGERR("%s/%s:%d: ERROR: Invalid data offset (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_OFFSET);
-    return setErrorID(ERROR_EC_ENTRY_INVALID_OFFSET);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_OFFSET);
   }
 
   if(domainAdr_<0 || domainAdr_==NULL){
     LOGERR("%s/%s:%d: ERROR: Invalid domain address (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
-    return setErrorID(ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
   switch( bitLength_){
@@ -193,7 +193,7 @@ int ecmcEcEntry::updateOutProcessImage()
       break;
     default:
       LOGERR("%s/%s:%d: ERROR: Invalid bit length (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
-      return setErrorID(ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
       break;
   }
   return 0;

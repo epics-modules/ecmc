@@ -16,7 +16,7 @@ ecmcEcSDO::ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoInde
   sdoSubIndex_=sdoSubIndex;
   byteSize_=byteSize;
   if(byteSize_>4){
-    setErrorID(ERROR_EC_SDO_SIZE_TO_LARGE);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_SIZE_TO_LARGE);
     byteSize_=4;
   }
 }
@@ -31,7 +31,7 @@ ecmcEcSDO::ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoInde
   sdoSubIndex_=sdoSubIndex;
   byteSize_=byteSize;
   if(byteSize_>4){
-    setErrorID(ERROR_EC_SDO_SIZE_TO_LARGE);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_SIZE_TO_LARGE);
     byteSize_=4;
   }
   writeValue_=value;
@@ -60,7 +60,7 @@ int ecmcEcSDO::write(uint32_t value)
 {
   uint32_t abortCode=0;
   if(byteSize_>4){
-    setErrorID(ERROR_EC_SDO_SIZE_TO_LARGE);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_SIZE_TO_LARGE);
     byteSize_=4;
   }
   writeValue_=value;
@@ -107,13 +107,13 @@ uint32_t ecmcEcSDO::getReadValue()
 int ecmcEcSDO::writeAndVerify()
 {
   if(write()){
-    return setErrorID(ERROR_EC_SDO_WRITE_FAILED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_WRITE_FAILED);
   }
   if(read()){
-    return setErrorID(ERROR_EC_SDO_READ_FAILED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_READ_FAILED);
   }
   if(writeValue_!=readValue_){
-    return setErrorID(ERROR_EC_SDO_VERIFY_FAILED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_VERIFY_FAILED);
   }
   return 0;
 }

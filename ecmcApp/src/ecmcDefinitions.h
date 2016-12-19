@@ -10,7 +10,7 @@
 #define ECMCDEFINITIONS_H_
 
 #define UNPACK( ... ) __VA_ARGS__
-#define PRINT_DIAG(message) {if(enableDiagnosticPrintouts_){printf("%s/%s:%d: ",__FILE__, __FUNCTION__, __LINE__);printf(UNPACK message);}}
+//#define PRINT_DIAG(message) {if(enableDiagnosticPrintouts_){printf("%s/%s:%d: ",__FILE__, __FUNCTION__, __LINE__);printf(UNPACK message);}}
 
 #define MCU_FREQUENCY 1000.0
 #define MCU_NSEC_PER_SEC 1000000000

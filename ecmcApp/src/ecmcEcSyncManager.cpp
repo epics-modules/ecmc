@@ -39,7 +39,7 @@ int ecmcEcSyncManager::addPdo(uint16_t pdoIndex)
 {
   if(pdoCounter_>=EC_MAX_PDOS-1){
     LOGERR("%s/%s:%d: ERROR: PDO array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SM_PDO_ARRAY_FULL);
-    return setErrorID(ERROR_EC_SM_PDO_ARRAY_FULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SM_PDO_ARRAY_FULL);
   }
   pdoArray_[pdoCounter_]=new ecmcEcPdo( pdoIndex, direction_);
   pdoCounter_++;
@@ -50,7 +50,7 @@ ecmcEcPdo *ecmcEcSyncManager::getPdo(int index)
 {
   if(index>=EC_MAX_PDOS){
     LOGERR("%s/%s:%d: ERROR: PDO index out of range (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SM_PDO_INDEX_OUT_OF_RANGE);
-    setErrorID(ERROR_EC_SM_PDO_INDEX_OUT_OF_RANGE);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SM_PDO_INDEX_OUT_OF_RANGE);
     return NULL;
   }
   return pdoArray_[index];
@@ -66,7 +66,7 @@ int ecmcEcSyncManager::getInfo(ec_sync_info_t* info)
 {
   if(info==NULL){
     LOGERR("%s/%s:%d: ERROR: Output parameter pointer NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SM_ENTRY_INFO_STRUCT_NULL);
-    return setErrorID(ERROR_EC_SM_ENTRY_INFO_STRUCT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SM_ENTRY_INFO_STRUCT_NULL);
   }
 
   info->dir=direction_;

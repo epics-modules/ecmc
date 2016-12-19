@@ -237,7 +237,7 @@ void ecmcEvent::setInStartupPhase(bool startup)
 
 void ecmcEvent::printStatus()
 {
-  PRINT_DIAG(("New event triggered! Index: %d, Armed: %d, enableArmSequence_: %d, Error: %x\n",index_,armed_,enableArmSequence_,getErrorID()));
+  printf("New event triggered! Index: %d, Armed: %d, enableArmSequence_: %d, Error: %x\n",index_,armed_,enableArmSequence_,getErrorID());
 }
 
 int ecmcEvent::setEnablePrintOuts(bool enable)

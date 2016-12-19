@@ -38,7 +38,7 @@ int ecmcEcPdo::addEntry(uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits
 {
   if(entryCounter_>=(EC_MAX_ENTRIES)){
     LOGERR("%s/%s:%d: ERROR: Entries array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_PDO_ENTRY_ARRAY_FULL);
-    return setErrorID(ERROR_EC_PDO_ENTRY_ARRAY_FULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_PDO_ENTRY_ARRAY_FULL);
   }
 
   entryArray_[entryCounter_]=new ecmcEcEntry(entryIndex,entrySubIndex,bits, direction_,id);
