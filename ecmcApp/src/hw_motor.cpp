@@ -1050,10 +1050,6 @@ int setAxisEncScaleDenom(int axisIndex, double value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
-  if(axisIndex>=1000){ //Virtual axis
-    return ERROR_MAIN_VIRT_AXIS_FUNCTION_NOT_SUPPORTED;
-  }
-
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
   double temp=0;
@@ -1280,9 +1276,6 @@ int getAxisTargetPos(int axisIndex,double *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  //CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-
-  //*value=axes[axisIndex]->getSeq()->getTargetPos();
   return axes[axisIndex]->getPosSet(value);;
 }
 
@@ -1313,9 +1306,7 @@ int getAxisPosSet(int axisIndex,double *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  //CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  //*value=axes[axisIndex]->getTraj()->getCurrentPosSet();
   return axes[axisIndex]->getPosSet(value);
 }
 
@@ -1335,6 +1326,7 @@ int getAxisExecute(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
   *value=axes[axisIndex]->getExecute();
   return 0;
 }
@@ -1712,7 +1704,6 @@ int setAxisEncType(int axisIndex, int value)
 
 /****************************************************************************/
 //Drv SET
-
 int setAxisDrvScaleNum(int axisIndex, double value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);

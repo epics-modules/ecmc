@@ -85,10 +85,6 @@ void ecmcAxisVirt::execute(bool masterOK)
 
     mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
 
-    /*if(!getEnable() || getError()){
-      currentPositionSetpoint_=currentPositionActual_;
-    }*/
-
     traj_->setStartPos(currentPositionSetpoint_);
     mon_->setCurrentPosSet(currentPositionSetpoint_);
     mon_->setVelSet(currentVelocitySetpoint_);
