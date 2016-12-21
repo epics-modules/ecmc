@@ -11,6 +11,8 @@
 #include "ecmcDefinitions.h"
 #include "ecmcMasterSlaveData.h"
 #include "ecmcCommandTransform.h"
+#include "ecmcError.h"
+
 #include <string>
 #include <stdio.h>
 
@@ -26,10 +28,10 @@ enum interfaceType{
 };
 
 
-class ecmcMasterSlaveIF
+class ecmcMasterSlaveIF : public ecmcError
 {
 public:
-  ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType);
+  ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType, double sampleTime);
   ~ecmcMasterSlaveIF();
   ecmcMasterSlaveData *getOutputDataInterface();
   int addInputDataInterface(ecmcMasterSlaveData *masterData,int index);
@@ -38,29 +40,37 @@ public:
   dataSource getDataSourceType();
   int getNumExtInputSources();
   ecmcCommandTransform *getExtInputTransform();
-  int getExtInputPos(int axisId,int commandIndex,double *val);
-  int getExtInputPos(int commandIndex,double *val); //Default axis number
-  bool getExtInputInterlock(int axisId,int commandIndex);
-  bool getExtInputInterlock(int commandIndex); //Default axis number
-  int transformRefresh();
   int validate();
   int validate(dataSource nextDataSource);
   int setGearRatio(double ratioNum, double ratioDenom);
   int getGearRatio(double *ratio);
   bool getInterlockDefined();
-
+  int refreshInputs();
+  double getInputPos();
+  double getInputVel();
+  interlockTypes getInputIlock();
+  int getExtInputPos(int axisId,int commandIndex,double *val);
+  int getExtInputPos(int commandIndex,double *val); //Default axis number
+  bool getExtInputInterlock(int axisId,int commandIndex);
+  bool getExtInputInterlock(int commandIndex); //Default axis number
 private:
+  int transformRefresh();
   void initVars();
   ecmcMasterSlaveData *inputDataInterface_[MAX_TRANSFORM_INPUTS];
   ecmcMasterSlaveData outputDataInterface_;
   dataSource dataSource_;
   int numInputSources_;
+  double sampleTime_;
   double gearRatio_;
   double oldPos_;
   ecmcCommandTransform *transform_;
   int defaultAxisId_;
   interfaceType interfaceType_;
   bool interlockDefiendinExpr_;
+  double externalPosition_;
+  double externalPositionOld_;
+  double externalVelocity_;
+  interlockTypes externalInterlock_;
 };
 
 #endif /* ECMCMASTERSLAVEIF_H_ */

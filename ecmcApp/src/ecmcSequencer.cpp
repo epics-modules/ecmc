@@ -1377,7 +1377,7 @@ int ecmcSequencer::getExtTrajSetpoint(double *pos)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
-  error=externalInputTrajectoryIF_->transformRefresh();
+  error=externalInputTrajectoryIF_->refreshInputs();
   if(error){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }

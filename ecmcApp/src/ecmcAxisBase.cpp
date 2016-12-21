@@ -10,12 +10,15 @@
 ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime)
 {
   initVars();
+  sampleTime_=sampleTime;
+  axisID_=axisID;
+
   commandTransform_=new ecmcCommandTransform(2,ECMC_MAX_AXES);  //currently two commands
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,ECMC_CMD_TYPE_EXECUTE);
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,ECMC_CMD_TYPE_ENABLE);
-  externalInputTrajectoryIF_=new ecmcMasterSlaveIF(axisID,ECMC_TRAJECTORY_INTERFACE);
-  externalInputEncoderIF_=new ecmcMasterSlaveIF(axisID,ECMC_ENCODER_INTERFACE);
-  sampleTime_=sampleTime;
+
+  externalInputTrajectoryIF_=new ecmcMasterSlaveIF(axisID_,ECMC_TRAJECTORY_INTERFACE,sampleTime_);
+  externalInputEncoderIF_=new ecmcMasterSlaveIF(axisID_,ECMC_ENCODER_INTERFACE,sampleTime_);
 }
 
 ecmcAxisBase::~ecmcAxisBase()
@@ -83,12 +86,10 @@ void ecmcAxisBase::initVars()
   externalTrajectoryPosition_=0;
   externalTrajectoryVelocity_=0;
   externalTrajectoryInterlock_=ECMC_INTERLOCK_EXTERNAL;
-  externalTrajectoryPositionOld_=0;
 
   externalEncoderPosition_=0;
   externalEncoderVelocity_=0;
   externalEncoderInterlock_=ECMC_INTERLOCK_EXTERNAL;
-  externalEncoderPositionOld_=0;
 
   currentPositionActual_=0;
   currentPositionSetpoint_=0;
@@ -545,7 +546,28 @@ int ecmcAxisBase::setExternalExecute(bool execute)
 
 int ecmcAxisBase::refreshExternalInputSources()
 {
-  int error=0;
+  //Trajectory
+
+  int error=externalInputTrajectoryIF_->refreshInputs();
+  if(error){
+     return setErrorID(error);
+  }
+  externalTrajectoryPosition_=externalInputTrajectoryIF_->getInputPos();
+  externalTrajectoryVelocity_=externalInputTrajectoryIF_->getInputVel();
+  externalTrajectoryInterlock_=externalInputTrajectoryIF_->getInputIlock();
+
+  //Encoder
+  error=externalInputEncoderIF_->refreshInputs();
+  if(error){
+     return setErrorID(error);
+  }
+  externalEncoderPosition_=externalInputEncoderIF_->getInputPos();
+  externalEncoderVelocity_=externalInputEncoderIF_->getInputVel();
+  externalEncoderInterlock_=externalInputEncoderIF_->getInputIlock();
+
+  return 0;
+ /* int error=0;
+
   //External Setpoint (Trajectory)
   if(externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL || externalInputTrajectoryIF_-> getInterlockDefined()){
     error=externalInputTrajectoryIF_->transformRefresh();
@@ -568,11 +590,7 @@ int ecmcAxisBase::refreshExternalInputSources()
     }
   }
   else{
-      externalTrajectoryPosition_=0;
-      externalTrajectoryPositionOld_=0;
-      externalTrajectoryVelocity_=0;
-      externalTrajectoryInterlock_=ECMC_INTERLOCK_NONE;
-  }
+       }
 
   //External Actual value (Encoder)
   if(externalInputEncoderIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL || externalInputEncoderIF_->getInterlockDefined()){
@@ -589,9 +607,13 @@ int ecmcAxisBase::refreshExternalInputSources()
     externalEncoderVelocity_=(externalEncoderPosition_-externalEncoderPositionOld_)/sampleTime_;
     externalEncoderPositionOld_=externalEncoderPosition_;
 
-    if(!externalInputEncoderIF_->getExtInputInterlock(axisID_,ECMC_TRANSFORM_VAR_TYPE_IL)){ //1=OK, 0=STOP
+    if(!externalInputEncoderIF_->getExtInputInterlock(ax externalTrajectoryPosition_=0;
+      externalTrajectoryPositionOld_=0;
+      externalTrajectoryVelocity_=0;
+      externalTrajectoryInterlock_=ECMC_INTERLOCK_NONE;
+    isID_,ECMC_TRANSFORM_VAR_TYPE_IL)){ //1=OK, 0=STOP
       externalEncoderInterlock_= ECMC_INTERLOCK_TRANSFORM;
-    }
+    }Trajectory
     else{
       externalEncoderInterlock_= ECMC_INTERLOCK_NONE;
     }
@@ -606,7 +628,7 @@ int ecmcAxisBase::refreshExternalInputSources()
     getMon()->setExtTrajInterlock(externalTrajectoryInterlock_);
     getMon()->setExtEncInterlock(externalEncoderInterlock_);
   }
-  return 0;
+  return 0;*/
 }
 
 int ecmcAxisBase::refreshExternalOutputSources()
@@ -615,6 +637,7 @@ int ecmcAxisBase::refreshExternalOutputSources()
   externalInputTrajectoryIF_->getOutputDataInterface()->setVelocity(currentVelocitySetpoint_);
   externalInputEncoderIF_->getOutputDataInterface()->setPosition(currentPositionActual_);
   externalInputEncoderIF_->getOutputDataInterface()->setVelocity(currentVelocityActual_);
+
   if(getMon()){
     bool il=getMon()->getTrajInterlock()==0;
     externalInputEncoderIF_->getOutputDataInterface()->setInterlock(il);

@@ -7,9 +7,10 @@
 
 #include "ecmcMasterSlaveIF.h"
 
-ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType)
+ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType, double sampleTime)
 {
   initVars();
+  sampleTime_=sampleTime;
   defaultAxisId_=defaultAxisId;
   interfaceType_=ifType;
   transform_=new ecmcCommandTransform(3,ECMC_MAX_AXES);  //currently two commands
@@ -20,7 +21,6 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType)
 
 ecmcMasterSlaveIF::~ecmcMasterSlaveIF()
 {
-  //delete transform_;
   delete transform_;
 }
 
@@ -35,6 +35,11 @@ void ecmcMasterSlaveIF::initVars()
   defaultAxisId_=0;
   interfaceType_=ECMC_ENCODER_INTERFACE;
   interlockDefiendinExpr_=false;
+  externalPosition_=0;
+  externalPositionOld_=0;
+  externalVelocity_=0;
+  externalInterlock_=ECMC_INTERLOCK_TRANSFORM;
+  sampleTime_=0;
 }
 
 ecmcMasterSlaveData *ecmcMasterSlaveIF::getOutputDataInterface()
@@ -229,3 +234,64 @@ bool ecmcMasterSlaveIF::getInterlockDefined()
 {
   return interlockDefiendinExpr_;
 }
+
+int ecmcMasterSlaveIF::refreshInputs()
+{
+  int error=0;
+  if(dataSource_!=ECMC_DATA_SOURCE_INTERNAL || interlockDefiendinExpr_){
+
+    error=transformRefresh();
+    if(error){
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
+    }
+
+    //Setpoint or actual position depends on type of interface
+    int commandIndex=0;
+    switch(interfaceType_){
+      case  ECMC_ENCODER_INTERFACE:
+	commandIndex=ECMC_TRANSFORM_VAR_TYPE_ENC;
+        break;
+      case ECMC_TRAJECTORY_INTERFACE:
+	commandIndex=ECMC_TRANSFORM_VAR_TYPE_TRAJ;
+        break;
+    }
+
+    error=getExtInputPos(defaultAxisId_,commandIndex,&externalPosition_);
+    if(error){
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
+    }
+
+    externalVelocity_=(externalPosition_-externalPositionOld_)/sampleTime_;
+    externalPositionOld_=externalPosition_;
+
+    if(!getExtInputInterlock(defaultAxisId_,ECMC_TRANSFORM_VAR_TYPE_IL)){ //1=OK, 0=STOP
+      externalInterlock_=ECMC_INTERLOCK_TRANSFORM;
+    }
+    else{
+      externalInterlock_= ECMC_INTERLOCK_NONE;
+    }
+  }
+  else{
+      externalPosition_=0;
+      externalPositionOld_=0;
+      externalVelocity_=0;
+      externalInterlock_=ECMC_INTERLOCK_NONE;
+  }
+  return 0;
+}
+
+double ecmcMasterSlaveIF::getInputPos()
+{
+  return externalPosition_;
+}
+
+double ecmcMasterSlaveIF::getInputVel()
+{
+  return externalVelocity_;
+}
+
+interlockTypes ecmcMasterSlaveIF::getInputIlock()
+{
+ return externalInterlock_;
+}
+

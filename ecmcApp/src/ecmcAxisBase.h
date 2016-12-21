@@ -134,12 +134,10 @@ protected:
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcMasterSlaveIF *externalInputEncoderIF_;
   double externalTrajectoryPosition_;
-  double externalTrajectoryPositionOld_;
   double externalTrajectoryVelocity_;
   interlockTypes externalTrajectoryInterlock_;
   interlockTypes externalEncoderInterlock_;
   double externalEncoderPosition_;
-  double externalEncoderPositionOld_;
   double externalEncoderVelocity_;
   double currentPositionActual_;
   double currentPositionSetpoint_;
