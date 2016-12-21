@@ -57,7 +57,6 @@ double ecmcFilter::lowPassAveraging(double input)
 
 double ecmcFilter::positionBasedVelAveraging(double actPosition)  //returns velocity
 {
-  double sum = 0;
   if(indexPos_>=FILTER_BUFFER_SIZE_POS){
       indexPos_=0;
   }
