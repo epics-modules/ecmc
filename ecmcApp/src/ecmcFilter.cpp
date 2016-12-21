@@ -76,6 +76,7 @@ double ecmcFilter::positionBasedVelAveraging(double actPosition)  //returns velo
 int ecmcFilter::reset()
 {
   initVars();
+  return 0;
 }
 
 /*double ecmcFilter::lowPassExponential(double input, double average, double factor)
