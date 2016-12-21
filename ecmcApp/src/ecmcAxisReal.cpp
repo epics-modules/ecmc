@@ -98,7 +98,7 @@ void ecmcAxisReal::execute(bool masterOK)
 
     mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
 
-    if(!getEnable()){
+    if(!getEnable() || getError()){
       currentPositionSetpoint_=currentPositionActual_;
     }
 
