@@ -98,9 +98,9 @@ void ecmcAxisReal::execute(bool masterOK)
 
     mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
 
-    if(!getEnable() || getError()){
+    /*if(!getEnable() || getError()){
       currentPositionSetpoint_=currentPositionActual_;
-    }
+    }*/
 
     traj_->setStartPos(currentPositionSetpoint_);
     mon_->setCurrentPosSet(currentPositionSetpoint_);
@@ -142,8 +142,10 @@ void ecmcAxisReal::execute(bool masterOK)
       mon_->setEnable(false);
       if(getExecute()){
 	setExecute(false);
-	traj_->setStartPos(0);
       }
+      currentPositionSetpoint_=currentPositionActual_;
+      traj_->setStartPos(currentPositionSetpoint_);
+
       if(enabledOld_ && !drv_->getEnabled() && enableCmdOld_){
 	  setEnable(false);
 	  setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
@@ -239,18 +241,6 @@ int ecmcAxisReal::setOpMode(operationMode mode)
 operationMode ecmcAxisReal::getOpMode()
 {
   return operationMode_;
-}
-
-int ecmcAxisReal::getActPos(double *pos)
-{
-  *pos=currentPositionActual_;
-  return 0;
-}
-
-int ecmcAxisReal::getActVel(double *vel)
-{
-  *vel=currentVelocityActual_;
-  return 0;
 }
 
 int ecmcAxisReal::getAxisHomed(bool *homed)

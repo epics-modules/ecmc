@@ -26,8 +26,6 @@ public:
   int setOpMode(operationMode mode);
   operationMode getOpMode();
 
-  int getActPos(double *pos);
-  int getActVel(double *vel);
   int getAxisHomed(bool *homed);
 
   int getEncScaleNum(double *scale);

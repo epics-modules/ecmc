@@ -60,8 +60,6 @@ public:
   virtual void execute(bool masterOK)=0;
   virtual int setOpMode(operationMode nMode)=0;
   virtual operationMode getOpMode()=0;
-  virtual int getActPos(double *pos)=0;
-  virtual int getActVel(double *vel)=0;
   virtual int getAxisHomed(bool *homed)=0;
   virtual int getEncScaleNum(double *scale)=0;
   virtual int setEncScaleNum(double scale)=0;
@@ -86,6 +84,9 @@ public:
   virtual ecmcSequencer * getSeq()=0;
   virtual void printStatus()=0;
   virtual int validate()=0;
+  int getPosAct(double *pos);
+  int getPosSet(double *pos);
+  int getVelAct(double *vel);
   axisType getAxisType();
   int getAxisID();
   void setReset(bool reset);

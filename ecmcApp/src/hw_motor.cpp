@@ -1280,9 +1280,10 @@ int getAxisTargetPos(int axisIndex,double *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-  *value=axes[axisIndex]->getSeq()->getTargetPos();
-  return 0;
+  //CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  //*value=axes[axisIndex]->getSeq()->getTargetPos();
+  return axes[axisIndex]->getPosSet(value);;
 }
 
 int getAxisTargetVel(int axisIndex,double *value)
@@ -1312,10 +1313,10 @@ int getAxisPosSet(int axisIndex,double *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  //CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getCurrentPosSet();
-  return 0;
+  //*value=axes[axisIndex]->getTraj()->getCurrentPosSet();
+  return axes[axisIndex]->getPosSet(value);
 }
 
 int getAxisVelFF(int axisIndex,double *value)
@@ -1409,7 +1410,7 @@ int getAxisEncPosAct(int axisIndex,double *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-    if(int iRet=axes[axisIndex]->getActPos(value)){
+    if(int iRet=axes[axisIndex]->getPosAct(value)){
       value=0;
       return iRet;
     }
@@ -1422,7 +1423,7 @@ int getAxisEncVelAct(int axisIndex,double *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  if(int iRet=axes[axisIndex]->getActVel(value)){
+  if(int iRet=axes[axisIndex]->getVelAct(value)){
     *value=0;
     return iRet;
   }

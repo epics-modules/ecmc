@@ -85,9 +85,9 @@ void ecmcAxisVirt::execute(bool masterOK)
 
     mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
 
-    if(!getEnable() || getError()){
+    /*if(!getEnable() || getError()){
       currentPositionSetpoint_=currentPositionActual_;
-    }
+    }*/
 
     traj_->setStartPos(currentPositionSetpoint_);
     mon_->setCurrentPosSet(currentPositionSetpoint_);
@@ -122,8 +122,9 @@ void ecmcAxisVirt::execute(bool masterOK)
       mon_->setEnable(false);
       if(getExecute()){
 	setExecute(false);
-	traj_->setStartPos(0);
       }
+      currentPositionSetpoint_=currentPositionActual_;
+      traj_->setStartPos(currentPositionSetpoint_);
     }
 
     if(!masterOK){
@@ -190,18 +191,6 @@ operationMode ecmcAxisVirt::getOpMode()
 {
   //NO DRIVE
   return ECMC_MODE_OP_AUTO;
-}
-
-int ecmcAxisVirt::getActPos(double *pos)
-{
-  *pos=currentPositionActual_;
-  return 0;
-}
-
-int ecmcAxisVirt::getActVel(double *vel)
-{
-  *vel=currentVelocityActual_;
-  return 0;
 }
 
 int ecmcAxisVirt::getAxisHomed(bool *homed)

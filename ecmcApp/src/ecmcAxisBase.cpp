@@ -460,6 +460,8 @@ int ecmcAxisBase::setEnableLocal(bool enable)
 
   ecmcTrajectoryTrapetz *traj =getTraj();
   if(traj){
+    currentPositionSetpoint_=currentPositionActual_;
+    traj->setStartPos(currentPositionSetpoint_);
     traj->setEnable(enable);
   }
 
@@ -572,6 +574,7 @@ int ecmcAxisBase::refreshExternalOutputSources()
 {
   externalInputTrajectoryIF_->getOutputDataInterface()->setPosition(currentPositionSetpoint_);
   externalInputTrajectoryIF_->getOutputDataInterface()->setVelocity(currentVelocitySetpoint_);
+
   externalInputEncoderIF_->getOutputDataInterface()->setPosition(currentPositionActual_);
   externalInputEncoderIF_->getOutputDataInterface()->setVelocity(currentVelocityActual_);
 
@@ -608,4 +611,27 @@ int ecmcAxisBase::validateBase()
   return 0;
 }
 
+int ecmcAxisBase::getPosAct(double *pos)
+{
+  *pos=currentPositionActual_;
+  return 0;
+}
 
+int ecmcAxisBase::getVelAct(double *vel)
+{
+  *vel=currentVelocityActual_;
+  return 0;
+}
+
+int ecmcAxisBase::getPosSet(double *pos)
+{
+  if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL && getSeq()){
+    *pos=getSeq()->getTargetPos();
+  }
+  else{
+    *pos=currentPositionSetpoint_;
+  }
+
+  return 0;
+
+}
