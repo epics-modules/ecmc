@@ -10,37 +10,18 @@
 ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
   initVars();
-  axisID_=axisID;
   axisType_=ECMC_AXIS_TYPE_VIRTUAL;
-  sampleTime_=sampleTime;
-
-  traj_=new ecmcTrajectoryTrapetz(sampleTime_);
-  mon_=new ecmcMonitor();
-  enc_=new ecmcEncoder(sampleTime_);
   seq_.setCntrl(NULL);
-  seq_.setTraj(traj_);
-  seq_.setMon(mon_);
-  seq_.setEnc(enc_);
-  int error=getSeq()->setExtTrajIF(externalInputTrajectoryIF_);
-  if(error){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
-  }
 }
 
 ecmcAxisVirt::~ecmcAxisVirt()
 {
-  delete traj_;
-  delete mon_;
-  delete traj_;
 }
 
 void ecmcAxisVirt::initVars()
 {
   initDone_=false;
   sampleTime_=1;
-  enc_=NULL;
-  traj_=NULL;
-  mon_=NULL;
 }
 
 void ecmcAxisVirt::execute(bool masterOK)
@@ -189,71 +170,10 @@ operationMode ecmcAxisVirt::getOpMode()
   return ECMC_MODE_OP_AUTO;
 }
 
-int ecmcAxisVirt::getAxisHomed(bool *homed)
-{
-  *homed=enc_->getHomed();
-  return 0;
-}
-
-int ecmcAxisVirt::getEncScaleNum(double *scale)
-{
-  *scale=enc_->getScaleNum();
-  return 0;
-}
-
-int ecmcAxisVirt::setEncScaleNum(double scale)
-{
-  return enc_->setScaleNum(scale);
-}
-
-int ecmcAxisVirt::getEncScaleDenom(double *scale)
-{
-  *scale=enc_->getScaleDenom();
-  return 0;
-}
-
-int ecmcAxisVirt::setEncScaleDenom(double scale)
-{
-  return enc_->setScaleDenom(scale);
-}
-
 int ecmcAxisVirt::getCntrlError(double* error)
 {
   *error=traj_->getCurrentPosSet()-enc_->getActPos();
   return 0;
-}
-
-int ecmcAxisVirt::getEncPosRaw(int64_t *rawPos)
-{
-  *rawPos=enc_->getRawPos();
-  return 0;
-}
-
-int ecmcAxisVirt::setCommand(motionCommandTypes command)
-{
-  seq_.setCommand(command);
-  return 0;
-}
-
-int ecmcAxisVirt::setCmdData(int cmdData)
-{
-  seq_.setCmdData(cmdData);
-  return 0;
-}
-
-motionCommandTypes ecmcAxisVirt::getCommand()
-{
-  return seq_.getCommand();
-}
-
-int ecmcAxisVirt::getCmdData()
-{
-  return seq_.getCmdData();
-}
-
-ecmcEncoder *ecmcAxisVirt::getEnc()
-{
-  return enc_;
 }
 
 ecmcPIDController *ecmcAxisVirt::getCntrl()
@@ -264,21 +184,6 @@ ecmcPIDController *ecmcAxisVirt::getCntrl()
 ecmcDriveBase *ecmcAxisVirt::getDrv()
 {
   return NULL;
-}
-
-ecmcTrajectoryTrapetz *ecmcAxisVirt::getTraj()
-{
-  return traj_;
-}
-
-ecmcMonitor *ecmcAxisVirt::getMon()
-{
-  return mon_;
-}
-
-ecmcSequencer *ecmcAxisVirt::getSeq()
-{
-  return &seq_;
 }
 
 void ecmcAxisVirt::printStatus()

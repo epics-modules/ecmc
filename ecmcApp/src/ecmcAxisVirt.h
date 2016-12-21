@@ -25,42 +25,19 @@ public:
   void execute(bool masterOK);
   int setOpMode(operationMode mode);
   operationMode getOpMode();
-
-  int getAxisHomed(bool *homed);
-
-  int getEncScaleNum(double *scale);
-  int setEncScaleNum(double scale);
-  int getEncScaleDenom(double *scale);
-  int setEncScaleDenom(double scale);
-  int getEncPosRaw(int64_t *rawPos);
   int getCntrlError(double* error);
-
   int setExecute(bool execute);
   bool getExecute();
   int setEnable(bool enable);
   bool getEnable();
-  int setCommand(motionCommandTypes command);
-  int setCmdData(int cmdData);
-  motionCommandTypes getCommand();
-  int getCmdData();
   void printStatus();
-
   ecmcDriveBase *getDrv();
-  ecmcTrajectoryTrapetz *getTraj();
-  ecmcMonitor *getMon();
-  ecmcEncoder *getEnc();
   ecmcPIDController *getCntrl();
-  ecmcSequencer *getSeq();
   int validate();
 
 private:
   void initVars();
   bool initDone_;
-  ecmcTrajectoryTrapetz *traj_;
-  ecmcMonitor *mon_;
-  ecmcSequencer seq_;
-  ecmcEncoder *enc_;
-  double sampleTime_;
 };
 
 #endif /* ECMCAXISVIRT_H_ */

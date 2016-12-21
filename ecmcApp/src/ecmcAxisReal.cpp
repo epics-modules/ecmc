@@ -10,36 +10,25 @@
 ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
   initVars();
-  axisID_=axisID;
   axisType_=ECMC_AXIS_TYPE_REAL;
-  sampleTime_=sampleTime;
-  enc_=new ecmcEncoder(sampleTime_);
 
-  traj_=new ecmcTrajectoryTrapetz(sampleTime_);
-  mon_ =new ecmcMonitor();
   currentDriveType_=ECMC_STEPPER;
   drv_=new ecmcDriveStepper();
+  if(!drv_){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
+  }
   cntrl_=new ecmcPIDController(sampleTime_);
+  if(!cntrl_){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_CNTRL_OBJECT_NULL);
+  }
 
   seq_.setCntrl(cntrl_);
-  seq_.setTraj(traj_);
-  seq_.setMon(mon_);
-  seq_.setEnc(enc_);
-  int error=getSeq()->setExtTrajIF(externalInputTrajectoryIF_);
-  if(error){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
-  }
 }
 
 ecmcAxisReal::~ecmcAxisReal()
 {
   delete cntrl_;
-  delete enc_;
-  delete traj_;
-  delete mon_;
   delete drv_;
-  delete externalInputTrajectoryIF_;
-  delete externalInputTrajectoryIF_;
 }
 
 void ecmcAxisReal::initVars()
@@ -239,74 +228,10 @@ operationMode ecmcAxisReal::getOpMode()
   return operationMode_;
 }
 
-int ecmcAxisReal::getAxisHomed(bool *homed)
-{
-  *homed=enc_->getHomed();
-  return 0;
-}
-
-int ecmcAxisReal::getEncScaleNum(double *scale)
-{
-  *scale=enc_->getScaleNum();
-  return 0;
-}
-
-int ecmcAxisReal::setEncScaleNum(double scale)
-{
-  enc_->setScaleNum(scale);
-  return 0;
-}
-
-int ecmcAxisReal::getEncScaleDenom(double *scale)
-{
-  *scale=enc_->getScaleDenom();
-  return 0;
-}
-
-int ecmcAxisReal::setEncScaleDenom(double scale)
-{
-  enc_->setScaleDenom(scale);
-  return 0;
-}
-
 int ecmcAxisReal::getCntrlError(double* error)
 {
   *error=cntrl_->getCntrlError();
   return 0;
-}
-
-int ecmcAxisReal::getEncPosRaw(int64_t *rawPos)
-{
-  *rawPos=enc_->getRawPos();
-  return 0;
-}
-
-int ecmcAxisReal::setCommand(motionCommandTypes command)
-{
-  seq_.setCommand(command);
-  return 0;
-}
-
-int ecmcAxisReal::setCmdData(int cmdData)
-{
-  seq_.setCmdData(cmdData);
-  return 0;
-}
-
-motionCommandTypes ecmcAxisReal::getCommand()
-{
-  return seq_.getCommand();
-}
-
-int ecmcAxisReal::getCmdData()
-{
-  return seq_.getCmdData();
-}
-
-
-ecmcEncoder *ecmcAxisReal::getEnc()
-{
-  return enc_;
 }
 
 ecmcPIDController *ecmcAxisReal::getCntrl()
@@ -317,21 +242,6 @@ ecmcPIDController *ecmcAxisReal::getCntrl()
 ecmcDriveBase *ecmcAxisReal::getDrv()
 {
   return drv_;
-}
-
-ecmcTrajectoryTrapetz  *ecmcAxisReal::getTraj()
-{
-  return traj_;
-}
-
-ecmcMonitor *ecmcAxisReal::getMon()
-{
-  return mon_;
-}
-
-ecmcSequencer *ecmcAxisReal::getSeq()
-{
-  return &seq_;
 }
 
 void ecmcAxisReal::printStatus()

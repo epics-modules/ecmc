@@ -60,30 +60,32 @@ public:
   virtual void execute(bool masterOK)=0;
   virtual int setOpMode(operationMode nMode)=0;
   virtual operationMode getOpMode()=0;
-  virtual int getAxisHomed(bool *homed)=0;
-  virtual int getEncScaleNum(double *scale)=0;
-  virtual int setEncScaleNum(double scale)=0;
-  virtual int getEncScaleDenom(double *scale)=0;
-  virtual int setEncScaleDenom(double scale)=0;
   virtual int getCntrlError(double* error)=0;
-  virtual int getEncPosRaw(int64_t *rawPos)=0;
   virtual int setExecute(bool execute)=0;
   virtual bool getExecute()=0;
   virtual int setEnable(bool enable)=0;
   virtual bool getEnable()=0;
-  virtual int setCommand(motionCommandTypes command)=0;
-  virtual int setCmdData(int cmdData)=0;
-  virtual motionCommandTypes getCommand()=0;
-  virtual int getCmdData()=0;
   virtual int setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase *getDrv()=0;
-  virtual ecmcTrajectoryTrapetz *getTraj()=0;
-  virtual ecmcMonitor *getMon()=0;
-  virtual ecmcEncoder *getEnc()=0;
   virtual ecmcPIDController *getCntrl()=0;
-  virtual ecmcSequencer * getSeq()=0;
   virtual void printStatus()=0;
   virtual int validate()=0;
+
+  int getAxisHomed(bool *homed);
+  int getEncScaleNum(double *scale);
+  int setEncScaleNum(double scale);
+  int getEncScaleDenom(double *scale);
+  int setEncScaleDenom(double scale);
+  int getEncPosRaw(int64_t *rawPos);
+  int setCommand(motionCommandTypes command);
+  int setCmdData(int cmdData);
+  motionCommandTypes getCommand();
+  int getCmdData();
+
+  ecmcTrajectoryTrapetz *getTraj();
+  ecmcMonitor *getMon();
+  ecmcEncoder *getEnc();
+  ecmcSequencer * getSeq();
   int getPosAct(double *pos);
   int getPosSet(double *pos);
   int getVelAct(double *vel);
@@ -145,6 +147,10 @@ protected:
   double currentVelocityActual_;
   double currentVelocitySetpoint_;
   double sampleTime_;
+  ecmcTrajectoryTrapetz *traj_;
+  ecmcMonitor *mon_;
+  ecmcEncoder *enc_;
+  ecmcSequencer seq_;
 };
 
 #endif /* ECMCAXISBASE_H_ */

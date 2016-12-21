@@ -19,10 +19,36 @@ ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime)
 
   externalInputTrajectoryIF_=new ecmcMasterSlaveIF(axisID_,ECMC_TRAJECTORY_INTERFACE,sampleTime_);
   externalInputEncoderIF_=new ecmcMasterSlaveIF(axisID_,ECMC_ENCODER_INTERFACE,sampleTime_);
+
+  enc_=new ecmcEncoder(sampleTime_);
+  if(!enc_){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ENC_OBJECT_NULL);
+    return;
+  }
+  traj_=new ecmcTrajectoryTrapetz(sampleTime_);
+  if(!traj_){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_OBJECT_NULL);
+    return;
+  }
+  mon_ =new ecmcMonitor();
+  if(!mon_){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MON_OBJECT_NULL);
+    return;
+  }
+  seq_.setTraj(traj_);
+  seq_.setMon(mon_);
+  seq_.setEnc(enc_);
+  int error=getSeq()->setExtTrajIF(externalInputTrajectoryIF_);
+  if(error){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
+  }
 }
 
 ecmcAxisBase::~ecmcAxisBase()
 {
+  delete enc_;
+  delete traj_;
+  delete mon_;
   delete commandTransform_;
   delete externalInputEncoderIF_;
   delete externalInputTrajectoryIF_;
@@ -634,4 +660,82 @@ int ecmcAxisBase::getPosSet(double *pos)
 
   return 0;
 
+}
+
+ecmcEncoder *ecmcAxisBase::getEnc()
+{
+  return enc_;
+}
+
+ecmcTrajectoryTrapetz  *ecmcAxisBase::getTraj()
+{
+  return traj_;
+}
+
+ecmcMonitor *ecmcAxisBase::getMon()
+{
+  return mon_;
+}
+
+ecmcSequencer *ecmcAxisBase::getSeq()
+{
+  return &seq_;
+}
+
+int ecmcAxisBase::getAxisHomed(bool *homed)
+{
+  *homed=enc_->getHomed();
+  return 0;
+}
+
+int ecmcAxisBase::getEncScaleNum(double *scale)
+{
+  *scale=enc_->getScaleNum();
+  return 0;
+}
+
+int ecmcAxisBase::setEncScaleNum(double scale)
+{
+  enc_->setScaleNum(scale);
+  return 0;
+}
+
+int ecmcAxisBase::getEncScaleDenom(double *scale)
+{
+  *scale=enc_->getScaleDenom();
+  return 0;
+}
+
+int ecmcAxisBase::setEncScaleDenom(double scale)
+{
+  enc_->setScaleDenom(scale);
+  return 0;
+}
+
+int ecmcAxisBase::getEncPosRaw(int64_t *rawPos)
+{
+  *rawPos=enc_->getRawPos();
+  return 0;
+}
+
+int ecmcAxisBase::setCommand(motionCommandTypes command)
+{
+  seq_.setCommand(command);
+  return 0;
+}
+
+int ecmcAxisBase::setCmdData(int cmdData)
+{
+  seq_.setCmdData(cmdData);
+  return 0;
+}
+
+motionCommandTypes ecmcAxisBase::getCommand()
+{
+  return seq_.getCommand();
+}
+
+int ecmcAxisBase::getCmdData()
+{
+  return seq_.getCmdData();
 }
