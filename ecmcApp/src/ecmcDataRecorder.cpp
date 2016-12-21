@@ -57,7 +57,7 @@ int ecmcDataRecorder::setExecute(int execute)
 
 void ecmcDataRecorder::printStatus()
 {
-  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Data: %lf, Error: 0x%x.\n",index_,(double)data_,getErrorID());
+  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Data: %lf, Error: 0x%x.\n",__FILE__,__FUNCTION__,__LINE__,index_,(double)data_,getErrorID());
 }
 
 void ecmcDataRecorder::setInStartupPhase(bool startup)
