@@ -237,7 +237,7 @@ void ecmcEvent::setInStartupPhase(bool startup)
 
 void ecmcEvent::printStatus()
 {
-  LOGINFO10("%s/%s:%d: INFO: Event %d. Armed: %d, enableArmSequence_: %d, Error: 0x%x.\n",index_,armed_,enableArmSequence_,getErrorID());
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Armed: %d, enableArmSequence_: %d, Error: 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,index_,armed_,enableArmSequence_,getErrorID());
 }
 
 int ecmcEvent::callConsumers(int masterOK)
