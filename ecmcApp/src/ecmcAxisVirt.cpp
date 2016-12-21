@@ -31,6 +31,7 @@ ecmcAxisVirt::~ecmcAxisVirt()
 {
   delete traj_;
   delete mon_;
+  delete traj_;
 }
 
 void ecmcAxisVirt::initVars()
