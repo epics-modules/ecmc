@@ -199,15 +199,19 @@ void cyclic_task(void * usr)
   LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   int i=0;
   struct timespec wakeupTime , sendTime, lastSendTime= {};
-  struct timespec startTime, endTime, lastStartTime = {};
+  struct timespec startTime, endTime, lastStartTime= {};
+  struct timespec offsetStartTime= {};
   uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0,sendperiod_ns = 0,
            latency_min_ns = 0, latency_max_ns = 0,
            period_min_ns = 0, period_max_ns = 0,
            exec_min_ns = 0, exec_max_ns = 0,
            send_min_ns = 0, send_max_ns = 0;
 
+  offsetStartTime.tv_nsec=49*MCU_PERIOD_NS;
+  offsetStartTime.tv_sec=0;
+
   // get current time
-  wakeupTime=timespec_add(masterActivationTimeMonotonic, {0, 49*MCU_PERIOD_NS}); // start 50 (49+1) cycle times after master activate
+  wakeupTime=timespec_add(masterActivationTimeMonotonic,offsetStartTime); // start 50 (49+1) cycle times after master activate
   while(appMode==ECMC_MODE_RUNTIME)
   {
     wakeupTime = timespec_add(wakeupTime, cycletime);
