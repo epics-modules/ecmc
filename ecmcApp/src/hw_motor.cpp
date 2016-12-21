@@ -1083,15 +1083,6 @@ int setAxisTrajTransExpr(int axisIndex, char *expr)
 
   std::string tempExpr=expr;
 
-  //Ensure that variables are defined
-  //bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_PREFIX)!=std::string::npos;
-  //bool traj=tempExpr.find(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX)!=std::string::npos;
-  //bool enc=tempExpr.find(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX)!=std::string::npos;
-
-  //if(!(il && traj)){
-  //  return ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING;
-  //}
-
   return axes[axisIndex]->setTrajTransformExpression(tempExpr);
 }
 
@@ -1106,6 +1097,20 @@ int setAxisTransformCommandExpr(int axisIndex,char *expr)
   return axes[axisIndex]->setCommandsTransformExpression(tempExpr);
 }
 
+int setAxisTrajExtVelFilterEnable(int axisIndex, int enable)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)
+
+  ecmcMasterSlaveIF *tempIf=axes[axisIndex]->getExternalTrajIF();
+  if(!tempIf){
+    return ERROR_MAIN_MASTER_SLAVE_IF_NULL;
+  }
+  return tempIf->setEnableVelFilter(enable);
+}
+
 int setAxisEncTransExpr(int axisIndex, char *expr)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, expr);
@@ -1116,16 +1121,21 @@ int setAxisEncTransExpr(int axisIndex, char *expr)
 
   std::string tempExpr=expr;
 
-  //Ensure that variables are defined
-  //bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_PREFIX)!=std::string::npos;
-  //bool traj=tempExpr.find(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX)!=std::string::npos;
-  //bool enc=tempExpr.find(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX)!=std::string::npos;
-
-  //if(!(il && enc)){
-  //  return ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING;
-  //}
-
   return axes[axisIndex]->setEncTransformExpression(tempExpr);
+}
+
+int setAxisEncExtVelFilterEnable(int axisIndex, int enable)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)
+
+  ecmcMasterSlaveIF *tempIf=axes[axisIndex]->getExternalEncIF();
+  if(!tempIf){
+    return ERROR_MAIN_MASTER_SLAVE_IF_NULL;
+  }
+  return tempIf->setEnableVelFilter(enable);
 }
 
 const char* getAxisTrajTransExpr(int axisIndex, int *error)

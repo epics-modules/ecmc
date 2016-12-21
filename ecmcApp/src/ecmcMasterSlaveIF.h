@@ -12,6 +12,7 @@
 #include "ecmcMasterSlaveData.h"
 #include "ecmcCommandTransform.h"
 #include "ecmcError.h"
+#include "ecmcFilter.h"
 
 #include <string>
 #include <stdio.h>
@@ -53,6 +54,7 @@ public:
   int getExtInputPos(int commandIndex,double *val); //Default axis number
   bool getExtInputInterlock(int axisId,int commandIndex);
   bool getExtInputInterlock(int commandIndex); //Default axis number
+  int setEnableVelFilter(bool enable);
 private:
   int transformRefresh();
   void initVars();
@@ -71,6 +73,8 @@ private:
   double externalPositionOld_;
   double externalVelocity_;
   interlockTypes externalInterlock_;
+  ecmcFilter *velocityFilter_;
+  bool velocityFilterEnable_;
 };
 
 #endif /* ECMCMASTERSLAVEIF_H_ */

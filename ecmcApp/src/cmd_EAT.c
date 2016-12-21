@@ -925,6 +925,18 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisTrajStartPos(iValue,dValue);;
   }
 
+  /*int Cfg.SetAxisTrajExtVelFilterEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1, "SetAxisTrajExtVelFilterEnable(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisTrajExtVelFilterEnable(iValue,iValue2);;
+  }
+
+  /*int Cfg.SetAxisEncExtVelFilterEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1, "SetAxisEncExtVelFilterEnable(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisEncExtVelFilterEnable(iValue,iValue2);;
+  }
+
   char cExprBuffer[4096];
   /*int Cfg.SetAxisTrajTransExpr(int axis_no, char* cExpr);   */
   //nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d,\"%[^\"])",&iValue,cExprBuffer);

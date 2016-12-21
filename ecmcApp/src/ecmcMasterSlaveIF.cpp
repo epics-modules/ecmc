@@ -17,11 +17,16 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType, dou
   transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX,ECMC_TRANSFORM_VAR_TYPE_TRAJ);
   transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX,ECMC_TRANSFORM_VAR_TYPE_ENC);
   transform_->addCmdPrefix(TRANSFORM_EXPR_INTERLOCK_PREFIX,ECMC_TRANSFORM_VAR_TYPE_IL);
+
+  velocityFilter_=new ecmcFilter(sampleTime);
+  velocityFilter_->setSampleTime(sampleTime_);
+
 }
 
 ecmcMasterSlaveIF::~ecmcMasterSlaveIF()
 {
   delete transform_;
+  delete velocityFilter_;
 }
 
 void ecmcMasterSlaveIF::initVars()
@@ -40,6 +45,7 @@ void ecmcMasterSlaveIF::initVars()
   externalVelocity_=0;
   externalInterlock_=ECMC_INTERLOCK_TRANSFORM;
   sampleTime_=0;
+  velocityFilterEnable_=false;
 }
 
 ecmcMasterSlaveData *ecmcMasterSlaveIF::getOutputDataInterface()
@@ -261,8 +267,13 @@ int ecmcMasterSlaveIF::refreshInputs()
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
 
-    externalVelocity_=(externalPosition_-externalPositionOld_)/sampleTime_;
-    externalPositionOld_=externalPosition_;
+    if(velocityFilterEnable_){
+      externalVelocity_=velocityFilter_->positionBasedVelAveraging(externalPosition_);
+    }
+    else{
+      externalVelocity_=(externalPosition_-externalPositionOld_)/sampleTime_;
+      externalPositionOld_=externalPosition_;
+    }
 
     if(!getExtInputInterlock(defaultAxisId_,ECMC_TRANSFORM_VAR_TYPE_IL)){ //1=OK, 0=STOP
       externalInterlock_=ECMC_INTERLOCK_TRANSFORM;
@@ -272,10 +283,9 @@ int ecmcMasterSlaveIF::refreshInputs()
     }
   }
   else{
-      externalPosition_=0;
-      externalPositionOld_=0;
-      externalVelocity_=0;
-      externalInterlock_=ECMC_INTERLOCK_NONE;
+    externalPosition_=0;
+    externalVelocity_=0;
+    externalInterlock_=ECMC_INTERLOCK_NONE;
   }
   return 0;
 }
@@ -295,3 +305,13 @@ interlockTypes ecmcMasterSlaveIF::getInputIlock()
  return externalInterlock_;
 }
 
+int ecmcMasterSlaveIF::setEnableVelFilter(bool enable)
+{
+  if(enable && !velocityFilterEnable_){
+    velocityFilter_->reset();
+  }
+
+  velocityFilterEnable_=enable;
+
+  return 0;
+}

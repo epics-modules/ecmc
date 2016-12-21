@@ -566,69 +566,6 @@ int ecmcAxisBase::refreshExternalInputSources()
   externalEncoderInterlock_=externalInputEncoderIF_->getInputIlock();
 
   return 0;
- /* int error=0;
-
-  //External Setpoint (Trajectory)
-  if(externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL || externalInputTrajectoryIF_-> getInterlockDefined()){
-    error=externalInputTrajectoryIF_->transformRefresh();
-    if(error){
-      setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
-    }
-    error=externalInputTrajectoryIF_->getExtInputPos(axisID_,ECMC_TRANSFORM_VAR_TYPE_TRAJ,&externalTrajectoryPosition_);
-    if(error){
-      setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
-    }
-
-    externalTrajectoryVelocity_=(externalTrajectoryPosition_-externalTrajectoryPositionOld_)/sampleTime_;
-    externalTrajectoryPositionOld_=externalTrajectoryPosition_;
-
-    if(!externalInputTrajectoryIF_->getExtInputInterlock(axisID_,ECMC_TRANSFORM_VAR_TYPE_IL)){ //1=OK, 0=STOP
-      externalTrajectoryInterlock_=ECMC_INTERLOCK_TRANSFORM;
-    }
-    else{
-	externalTrajectoryInterlock_= ECMC_INTERLOCK_NONE;
-    }
-  }
-  else{
-       }
-
-  //External Actual value (Encoder)
-  if(externalInputEncoderIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL || externalInputEncoderIF_->getInterlockDefined()){
-    error=externalInputEncoderIF_->transformRefresh();
-    if(error){
-      setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
-    }
-
-    error=externalInputEncoderIF_->getExtInputPos(axisID_,ECMC_TRANSFORM_VAR_TYPE_ENC, &externalEncoderPosition_);
-    if(error){
-      setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
-    }
-
-    externalEncoderVelocity_=(externalEncoderPosition_-externalEncoderPositionOld_)/sampleTime_;
-    externalEncoderPositionOld_=externalEncoderPosition_;
-
-    if(!externalInputEncoderIF_->getExtInputInterlock(ax externalTrajectoryPosition_=0;
-      externalTrajectoryPositionOld_=0;
-      externalTrajectoryVelocity_=0;
-      externalTrajectoryInterlock_=ECMC_INTERLOCK_NONE;
-    isID_,ECMC_TRANSFORM_VAR_TYPE_IL)){ //1=OK, 0=STOP
-      externalEncoderInterlock_= ECMC_INTERLOCK_TRANSFORM;
-    }Trajectory
-    else{
-      externalEncoderInterlock_= ECMC_INTERLOCK_NONE;
-    }
-  }
-  else{
-    externalEncoderPosition_=0;
-    externalEncoderVelocity_=0;
-    externalEncoderInterlock_=ECMC_INTERLOCK_NONE;
-  }
-
-  if(getMon()){
-    getMon()->setExtTrajInterlock(externalTrajectoryInterlock_);
-    getMon()->setExtEncInterlock(externalEncoderInterlock_);
-  }
-  return 0;*/
 }
 
 int ecmcAxisBase::refreshExternalOutputSources()

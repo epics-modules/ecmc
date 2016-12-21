@@ -1377,6 +1377,18 @@ int axisErrorReset(int axisIndex, int value);
  */
 int setAxisTrajTransExpr(int axisIndex, char *expr);
 
+/** \breif Enables/disables velocity filter of external setpoint.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable enable filter.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable velocity filter for external setpoint position for axis 5.
+ * "Cfg.SetAxisTrajExtVelFilterEnable(5,1) //Command string to cmd_EAT.c.\n
+ */
+int setAxisTrajExtVelFilterEnable(int axisIndex, int enable);
+
 /** \breif Set axis encoder transformation expression.\n
  *
  * The axis transformation expression is used for synchronization of axes. The
@@ -1398,6 +1410,18 @@ int setAxisTrajTransExpr(int axisIndex, char *expr);
  * "Cfg.SetAxisEncTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to cmd_EAT.c.\n
  */
 int setAxisEncTransExpr(int axisIndex, char *expr);
+
+/** \breif Enables/disables velocity filter of external actual value.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable enable filter.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable velocity filter for external actual position for axis 5.
+ * "Cfg.SetAxisEncExtVelFilterEnable(5,1) //Command string to cmd_EAT.c.\n
+ */
+int setAxisEncExtVelFilterEnable(int axisIndex, int enable);
 
 /** \breif Set axis trajectory data source.\n
  *

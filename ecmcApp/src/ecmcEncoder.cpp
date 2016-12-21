@@ -11,9 +11,7 @@ ecmcEncoder::ecmcEncoder(double sampleTime) : ecmcEcEntryLink()
 {
   initVars();
   sampleTime_=sampleTime;
-  velocityFilter_=new ecmcFilter(sampleTime);
-  velocityFilter_->setSampleTime(sampleTime_);
-  setSampleTime(sampleTime_);
+  velocityFilter_=new ecmcFilter(sampleTime_);
 }
 
 ecmcEncoder::~ecmcEncoder()

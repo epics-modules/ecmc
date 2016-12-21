@@ -741,6 +741,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x2002C:
       return "ERROR_MAIN_AXIS_NOT_ENABLED";
       break;
+    case 0x2002D:
+      return "ERROR_MAIN_MASTER_SLAVE_IF_NULL ";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
