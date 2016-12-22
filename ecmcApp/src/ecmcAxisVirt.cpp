@@ -71,6 +71,7 @@ void ecmcAxisVirt::execute(bool masterOK)
     mon_->setVelSet(currentVelocitySetpoint_);
     mon_->setActPos(currentPositionActual_);
     mon_->setActVel(currentVelocityActual_);
+    mon_->setAxisErrorStateInterlock(getError());
 
     seq_.execute();
 

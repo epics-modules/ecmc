@@ -92,6 +92,7 @@ void ecmcAxisReal::execute(bool masterOK)
     mon_->setVelSet(currentVelocitySetpoint_);
     mon_->setActPos(currentPositionActual_);
     mon_->setActVel(currentVelocityActual_);
+    mon_->setAxisErrorStateInterlock(getError());
 
     seq_.execute();
 
@@ -118,7 +119,7 @@ void ecmcAxisReal::execute(bool masterOK)
       cntrl_->reset();
     }
 
-    if(getEnable() && masterOK && !getError()){
+    if(getEnable() && masterOK /*&& !getError()*/){
       mon_->setEnable(true);
       drv_->setVelSet(cntrl_->control(currentPositionSetpoint_,currentPositionActual_,currentVelocitySetpoint_)); //Actual control
     }

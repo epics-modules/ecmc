@@ -96,6 +96,7 @@ public:
   bool getAtSoftLimitFwd();
   int setExtTrajInterlock(interlockTypes interlock);  //From other axes (transfrom)
   int setExtEncInterlock(interlockTypes interlock);  //From other axes (transfrom)
+  int setAxisErrorStateInterlock(bool ilock);
 private:
   int checkLimits();
   int checkAtTarget();
@@ -170,6 +171,7 @@ private:
   double enableAlarmAtHardlimitFwd_;
   double distToStop_;
   double currSetPosOld_;
+  bool axisErrorStateInterlock;
 
 };
 #endif

@@ -80,6 +80,7 @@ void ecmcMonitor::initVars()
   currSetPosOld_=0;
   extEncInterlock_=ECMC_INTERLOCK_NONE;
   extTrajInterlock_=ECMC_INTERLOCK_NONE;
+  axisErrorStateInterlock=false;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -211,6 +212,10 @@ interlockTypes ecmcMonitor::getTrajInterlock()
     return ECMC_INTERLOCK_CONT_OUT_INCREASE_AT_LIMIT_SWITCH;
   }
 
+  if(axisErrorStateInterlock){
+    return ECMC_INTERLOCK_AXIS_ERROR_STATE;
+  }
+
   return ECMC_INTERLOCK_NONE;
 }
 
@@ -277,11 +282,6 @@ bool ecmcMonitor::getEnableLagMon()
 {
   return enableLagMon_;
 }
-
-/*void ecmcMonitor::setHomeSwitch(bool switchState)
-{
-  homeSwitch_=switchState;
-}*/
 
 bool ecmcMonitor::getHomeSwitch()
 {
@@ -417,6 +417,7 @@ int ecmcMonitor::reset()
   cntrlOutIncreaseAtLimitCounter_=0;
   reasonableMoveCounter_=0;
   cycleCounter_=0;
+  axisErrorStateInterlock=false;
   return 0;
 }
 
@@ -734,5 +735,11 @@ int ecmcMonitor::setExtTrajInterlock(interlockTypes interlock)
 int ecmcMonitor::setExtEncInterlock(interlockTypes interlock)
 {
   extEncInterlock_=interlock;
+  return 0;
+}
+
+int ecmcMonitor::setAxisErrorStateInterlock(bool ilock)
+{
+  axisErrorStateInterlock=ilock;
   return 0;
 }
