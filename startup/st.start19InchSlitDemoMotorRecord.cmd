@@ -121,6 +121,7 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableLagMon(1,0)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(1,1000)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(1,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(1,200)"
+
 ecmcConfigController "MCU1", "Cfg.CreateAxis(2,2)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(2,0)"
 ecmcConfigController "MCU1", "Main.M2.fAcceleration=20"
