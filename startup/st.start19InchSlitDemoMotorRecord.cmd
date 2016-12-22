@@ -380,12 +380,7 @@ ecmcCreateAxis("MCU1", "1", "6", "")
 ecmcCreateAxis("MCU1", "2", "6", "")
 ecmcCreateAxis("MCU1", "3", "6", "")
 ecmcCreateAxis("MCU1", "4", "6", "")
-
-#ecmcCreateAxis("MCU1", "1", "6", "cfgFile=SlitX-xp.cfg")
-#ecmcCreateAxis("MCU1", "2", "6", "cfgFile=SlitX-xg.cfg")
-#ecmcCreateAxis("MCU1", "3", "6", "cfgFile=SlitX-xl.cfg")
-#ecmcCreateAxis("MCU1", "4", "6", "cfgFile=SlitX-xr.cfg")
-
+ecmcCreateAxis("MCU1", "5", "6", "")
 
 dbLoadTemplate("SlitX-xp.substitutions")
 dbLoadTemplate("SlitX-xp-extra.substitutions")
@@ -395,6 +390,9 @@ dbLoadTemplate("SlitX-xl.substitutions")
 dbLoadTemplate("SlitX-xl-extra.substitutions")
 dbLoadTemplate("SlitX-xr.substitutions")
 dbLoadTemplate("SlitX-xr-extra.substitutions")
+dbLoadTemplate("SlitX-master.substitutions")
+dbLoadTemplate("SlitX-master-extra.substitutions")
+
 
 #Stream device
 epicsEnvSet "P" "$(P=I:)" 
