@@ -40,4 +40,15 @@ double ecmcMasterSlaveData::getVelocity()
 void ecmcMasterSlaveData::initVars(){
   pos_=0;
   vel_=0;
+  ilock_=false;
+}
+
+void ecmcMasterSlaveData::setInterlock(bool ilock)
+{
+  ilock_=ilock;
+}
+
+bool ecmcMasterSlaveData::getInterlock()
+{
+  return ilock_;
 }

@@ -22,7 +22,6 @@ void ecmcCommandList::initVars()
 {
   commandCounter_=0;
   clearCommandList();
-  enableDiagnosticPrintouts_=false;;
   execute_=false;;
 
   try{
@@ -30,15 +29,15 @@ void ecmcCommandList::initVars()
   }
   catch(std::exception &e)
   {
-    setErrorID(ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED);
-    PRINT_DIAG(("Command list: %d. Exception in allocation of vector: %s. Error number: %x\n",index_,e.what(),ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED));
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED);
+    LOGINFO8("%s/%s:%d: Error: Command list %d. Exception in allocation of vector: %s. Error number: 0x%x\n",__FILE__, __FUNCTION__, __LINE__,index_,e.what(),ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED);
   }
 }
 
 int ecmcCommandList::executeEvent(int masterOK) //Master state not critical for this function
 {
   //TODO consider running this in low prio thread in order to not disturbe realtime
-  //TODO add wait time between commands (must be separate thread in this case)
+  //TODO add possablity for a "wait time" between commands (must be separate thread in this case)
 
   if(getError() || !execute_){
     return getErrorID();
@@ -47,21 +46,19 @@ int ecmcCommandList::executeEvent(int masterOK) //Master state not critical for 
   clearBuffer(&resultBuffer_);
 //  int errorCode=0;
   for(unsigned int i=0; i < commandList_.size(); i++){
-
-    PRINT_DIAG(("Command list: %d. Executing command: %s.\n",index_,commandList_[i].c_str()));
+    LOGINFO8("%s/%s:%d: INFO: Command list %d. Executing command %s.\n",__FILE__, __FUNCTION__, __LINE__,index_,commandList_[i].c_str());
     int errorCode=motorHandleOneArg(commandList_[i].c_str(),&resultBuffer_);
     if(errorCode){
-      PRINT_DIAG(("Command %s resulted in buffer overflow: %s\n",commandList_[i].c_str(),resultBuffer_.buffer));
-      return setErrorID(ERROR_COMMAND_LIST_COMMAND_RETURN_VALUE_NOT_OK); //TODO change error code
+      LOGINFO8("%s/%s:%d: ERROR: Command %s resulted in buffer overflow error: %s.\n",__FILE__, __FUNCTION__, __LINE__,commandList_[i].c_str(),resultBuffer_.buffer);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_COMMAND_LIST_COMMAND_RETURN_VALUE_NOT_OK); //TODO change error code
     }
+
+    LOGINFO8("%s/%s:%d: INFO: Command %s returned: %s.\n",__FILE__, __FUNCTION__, __LINE__,commandList_[i].c_str(),resultBuffer_.buffer);
 
     //Check return value
     if (strcmp(resultBuffer_.buffer,"OK")) {
-      PRINT_DIAG(("Command %s returned: %s\n",commandList_[i].c_str(),resultBuffer_.buffer));
-      return setErrorID(ERROR_COMMAND_LIST_COMMAND_RETURN_VALUE_NOT_OK);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_COMMAND_LIST_COMMAND_RETURN_VALUE_NOT_OK);
     }
-
-    PRINT_DIAG(("Command list: %d. Command returned: %s.\n",index_,resultBuffer_.buffer));
     clearBuffer(&resultBuffer_);
   }
   return 0;
@@ -71,15 +68,15 @@ int ecmcCommandList::clearCommandList()
 {
   commandList_.clear();
   commandCounter_=0;
-  PRINT_DIAG(("Command list cleared.\n"))
+  LOGINFO8("%s/%s:%d: INFO: Command list %d cleared.\n",__FILE__, __FUNCTION__, __LINE__,index_);
   return 0;
 }
 
 int ecmcCommandList::addCommand(std::string command)
 {
   if(commandCounter_>=ECMC_MAX_COMMANDS_IN_COMMANDS_LISTS){
-    PRINT_DIAG(("Command list: %d. Command list full. Error number: %x\n",index_,ERROR_COMMAND_LIST_VECTOR_FULL));
-    return setErrorID(ERROR_COMMAND_LIST_VECTOR_FULL);
+    LOGINFO8("%s/%s:%d: ERROR: Command list %d. Command list full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_COMMAND_LIST_VECTOR_FULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_COMMAND_LIST_VECTOR_FULL);
   }
 
   try{
@@ -87,12 +84,12 @@ int ecmcCommandList::addCommand(std::string command)
   }
   catch(std::exception &e)
   {
-    PRINT_DIAG(("Command list: %d. Add command failed. Exception: %s. Error number: %x\n",index_,e.what(),ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED));
-    return setErrorID(ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED);
+    LOGINFO8("%s/%s:%d: ERROR: Command list %d. Add command failed. Exception: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,e.what(),ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_COMMAND_LIST_VECTOR_ALLOCATION_FAILED);
   }
 
   commandCounter_++;
-  PRINT_DIAG(("Command list: %d. Command added: %s. Command count: %d\n",index_,command.c_str(),commandCounter_));
+  LOGINFO8("%s/%s:%d: INFO: Command list %d. Command %s added to command list (%d commands in list).\n",__FILE__, __FUNCTION__, __LINE__,index_,command.c_str(),commandCounter_);
   return 0;
 }
 
@@ -110,19 +107,13 @@ int ecmcCommandList::setExecute(int execute)
 {
   execute_=execute;
   validate();
-  PRINT_DIAG(("Command list: %d. Set command execute: %d. Command count: %d\n",index_,execute,commandCounter_));
-  return 0;
-}
-
-int ecmcCommandList::setEnablePrintOuts(bool enable)
-{
-  enableDiagnosticPrintouts_=enable;
+  LOGINFO8("%s/%s:%d: INFO: Command list %d. Execute set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,execute_);
   return 0;
 }
 
 void ecmcCommandList::printStatus()
 {
   for(unsigned int i=0; i < commandList_.size(); i++){
-    PRINT_DIAG(("Command index: %d, command: %s, Error: %x\n",i,commandList_[i].c_str(),getErrorID()));
+    LOGINFO8("%s/%s:%d: Command index: %d, command: %s, Error: 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,i,commandList_[i].c_str(),getErrorID());
   }
 }

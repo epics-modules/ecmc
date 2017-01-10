@@ -160,7 +160,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>false</visible>
+      <visible>true</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -264,7 +264,7 @@
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
-        <opi_file>oneAxis.opi</opi_file>
+        <opi_file>oneAxisMR.opi</opi_file>
         <border_style>3</border_style>
         <tooltip></tooltip>
         <rules />
@@ -281,6 +281,9 @@
         <macros>
           <include_parent_macros>true</include_parent_macros>
           <AxisId>5</AxisId>
+          <M>master</M>
+          <R>master-</R>
+          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -346,7 +349,7 @@
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
-        <opi_file>oneAxis.opi</opi_file>
+        <opi_file>oneAxisMR.opi</opi_file>
         <border_style>3</border_style>
         <tooltip></tooltip>
         <rules />
@@ -363,6 +366,9 @@
         <macros>
           <include_parent_macros>true</include_parent_macros>
           <AxisId>1</AxisId>
+          <M>xp</M>
+          <R>xp-</R>
+          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -406,7 +412,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>true</visible>
+      <visible>false</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -428,7 +434,7 @@
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
-        <opi_file>oneAxis.opi</opi_file>
+        <opi_file>oneAxisMR.opi</opi_file>
         <border_style>3</border_style>
         <tooltip></tooltip>
         <rules />
@@ -445,6 +451,9 @@
         <macros>
           <include_parent_macros>true</include_parent_macros>
           <AxisId>2</AxisId>
+          <M>xg</M>
+          <R>xg-</R>
+          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -498,7 +507,7 @@
       </background_color>
       <width>719</width>
       <x>1</x>
-      <name>Axis 3: Right Blade</name>
+      <name>Axis 3: Left Blade</name>
       <y>1</y>
       <foreground_color>
         <color red="192" green="192" blue="192" />
@@ -510,7 +519,7 @@
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
-        <opi_file>oneAxis.opi</opi_file>
+        <opi_file>oneAxisMR.opi</opi_file>
         <border_style>3</border_style>
         <tooltip></tooltip>
         <rules />
@@ -527,6 +536,9 @@
         <macros>
           <include_parent_macros>true</include_parent_macros>
           <AxisId>3</AxisId>
+          <M>xl</M>
+          <R>xl-</R>
+          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -580,7 +592,7 @@
       </background_color>
       <width>719</width>
       <x>1</x>
-      <name>Axis 4: Left Blade</name>
+      <name>Axis 4: Right Blade</name>
       <y>1</y>
       <foreground_color>
         <color red="192" green="192" blue="192" />
@@ -592,7 +604,7 @@
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
-        <opi_file>oneAxis.opi</opi_file>
+        <opi_file>oneAxisMR.opi</opi_file>
         <border_style>3</border_style>
         <tooltip></tooltip>
         <rules />
@@ -609,6 +621,9 @@
         <macros>
           <include_parent_macros>true</include_parent_macros>
           <AxisId>4</AxisId>
+          <M>xr</M>
+          <R>xr-</R>
+          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -678,7 +693,7 @@ $(trace_0_y_pv_value)</tooltip>
     <axis_0_scale_font>
       <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
     </axis_0_scale_font>
-    <trigger_pv>Motor3:GetActPosition</trigger_pv>
+    <trigger_pv>IOC2:xl.RBV</trigger_pv>
     <widget_type>XY Graph</widget_type>
     <trace_2_line_width>1</trace_2_line_width>
     <trace_3_concatenate_data>true</trace_3_concatenate_data>
@@ -726,7 +741,7 @@ $(trace_0_y_pv_value)</tooltip>
       <height_scalable>true</height_scalable>
       <keep_wh_ratio>false</keep_wh_ratio>
     </scale_options>
-    <trace_1_y_pv>Motor2:GetActPosition</trace_1_y_pv>
+    <trace_1_y_pv>IOC2:xg.RBV</trace_1_y_pv>
     <trace_2_concatenate_data>true</trace_2_concatenate_data>
     <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
     <trace_2_y_pv_value />
@@ -737,7 +752,7 @@ $(trace_0_y_pv_value)</tooltip>
     <height>859</height>
     <trace_2_visible>true</trace_2_visible>
     <trigger_pv_value />
-    <trace_3_y_pv>Motor4:GetActPosition</trace_3_y_pv>
+    <trace_3_y_pv>IOC2:xr.RBV</trace_3_y_pv>
     <axis_1_grid_color>
       <color red="200" green="200" blue="200" />
     </axis_1_grid_color>
@@ -757,7 +772,7 @@ $(trace_0_y_pv_value)</tooltip>
     <trace_3_trace_color>
       <color red="0" green="0" blue="0" />
     </trace_3_trace_color>
-    <pv_name>Motor3:GetActPosition</pv_name>
+    <pv_name>IOC2:xp.RBV</pv_name>
     <name>XY Graph_1</name>
     <trace_1_trace_type>0</trace_1_trace_type>
     <axis_0_auto_scale>true</axis_0_auto_scale>
@@ -769,13 +784,13 @@ $(trace_0_y_pv_value)</tooltip>
     <axis_1_auto_scale>true</axis_1_auto_scale>
     <trace_1_line_width>1</trace_1_line_width>
     <trace_3_trace_type>0</trace_3_trace_type>
-    <trace_2_y_pv>Motor3:GetActPosition</trace_2_y_pv>
+    <trace_2_y_pv>IOC2:xl.RBV</trace_2_y_pv>
     <trace_1_plot_mode>0</trace_1_plot_mode>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <trace_3_point_style>0</trace_3_point_style>
-    <trace_0_y_pv>Motor1:GetActPosition</trace_0_y_pv>
+    <trace_0_y_pv>IOC2:xp.RBV</trace_0_y_pv>
     <trace_2_point_style>0</trace_2_point_style>
     <trace_0_plot_mode>0</trace_0_plot_mode>
     <enabled>true</enabled>

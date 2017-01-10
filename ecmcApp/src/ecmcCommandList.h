@@ -36,7 +36,6 @@ public:
   ~ecmcCommandList ();
   int setExecute(int execute);
   int validate();
-  int setEnablePrintOuts(bool enable);
   int executeEvent(int masterOK);//Override ecmcEventConsumer
   int addCommand(std::string command);
   int clearCommandList();
@@ -46,7 +45,6 @@ private:
   void printStatus();
   std::vector<std::string> commandList_;
   int commandCounter_;
-  int enableDiagnosticPrintouts_;
   int execute_;
   int index_;
   ecmcOutputBufferType resultBuffer_;

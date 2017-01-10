@@ -11,11 +11,11 @@ ecmcDataStorage::ecmcDataStorage (int index)
 {
   initVars();
   buffer_=new double[ECMC_DEFAULT_DATA_STORAGE_SIZE];
-  if(buffer_==NULL){
-    PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    setErrorID(ERROR_DATA_STORAGE_NULL);
-  }
   index_=index;
+  if(buffer_==NULL){
+    LOGINFO9("%s/%s:%d: ERROR: Data storage %d. Buffer allocation failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_DATA_STORAGE_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
+  }
 }
 
 ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
@@ -23,12 +23,12 @@ ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
   initVars();
   bufferElementCount_=size;
   buffer_=new double[size];
+  index_=index;
   if(buffer_==NULL){
-    PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    setErrorID(ERROR_DATA_STORAGE_NULL);
+    LOGINFO9("%s/%s:%d: ERROR: Data storage %d. Buffer allocation failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_DATA_STORAGE_NULL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
   }
   bufferType_=bufferType;
-  index_=index;
 }
 
 ecmcDataStorage::~ecmcDataStorage ()
@@ -42,15 +42,14 @@ void ecmcDataStorage::initVars()
   bufferElementCount_=ECMC_DEFAULT_DATA_STORAGE_SIZE;
   buffer_=NULL;
   currentBufferIndex_=0;
-  enableDiagnosticPrintouts_=false;
   index_=0;
 }
 
 int ecmcDataStorage::clearBuffer()
 {
   if(buffer_==NULL){
-    PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    return setErrorID(ERROR_DATA_STORAGE_NULL);
+    LOGINFO9("%s/%s:%d: ERROR: Data storage %d. Clear buffer failed. Buffer NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_DATA_STORAGE_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
   }
   memset(buffer_,0,bufferElementCount_*sizeof(double));
   currentBufferIndex_=0;
@@ -90,12 +89,6 @@ int ecmcDataStorage::printBuffer()
   return 0;
 }
 
-int ecmcDataStorage::setEnablePrintOuts(bool enable)
-{
-  enableDiagnosticPrintouts_=enable;
-  return 0;
-}
-
 int ecmcDataStorage::getData(double **data, int *size)
 {
   *data=buffer_;
@@ -112,13 +105,13 @@ int ecmcDataStorage::setData(double *data, int size)
 int ecmcDataStorage::appendData(double *data, int size)
 {
   if(buffer_==NULL){
-    PRINT_DIAG(("Index: %d. Error: %x\n",index_,ERROR_DATA_STORAGE_NULL));
-    return setErrorID(ERROR_DATA_STORAGE_NULL);
+    LOGINFO9("%s/%s:%d: ERROR: Data storage %d. Append data failed. Buffer NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_DATA_STORAGE_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
   }
 
   if(size>bufferElementCount_){
-    PRINT_DIAG(("Index: %d.Error: %x\n",index_,ERROR_DATA_STORAGE_SIZE_TO_SMALL));
-    return setErrorID(ERROR_DATA_STORAGE_SIZE_TO_SMALL);
+    LOGINFO9("%s/%s:%d: ERROR: Data storage %d. Buffer size to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_DATA_STORAGE_SIZE_TO_SMALL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_SIZE_TO_SMALL);
   }
 
   int sizeToCopy=size;
@@ -132,7 +125,7 @@ int ecmcDataStorage::appendData(double *data, int size)
   if(sizeToCopy>0){
 
     for(int i=0;i<sizeToCopy;i++){
-      PRINT_DIAG(("Appending data: %lf at position: %d\n",*(data+i), currentBufferIndex_+i));
+      LOGINFO9("%s/%s:%d: INFO: Data storage %d. Appending %lf at index %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,*(data+i), currentBufferIndex_+i);
     }
 
     memcpy(buffer_+currentBufferIndex_,data ,sizeToCopy*sizeof(double));
@@ -141,12 +134,12 @@ int ecmcDataStorage::appendData(double *data, int size)
 
   if(sizeToCopy<size){
     if(bufferType_!=ECMC_STORAGE_RING_BUFFER){
-      PRINT_DIAG(("Index: %d.Error: %x\n",index_,ERROR_DATA_STORAGE_FULL));
-      return setErrorID(ERROR_DATA_STORAGE_FULL);
+      LOGINFO9("%s/%s:%d: Error: Data storage %d. Data storage full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_DATA_STORAGE_FULL);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_FULL);
     }
 
     for(int i=0;i<size-sizeToCopy;i++){
-      PRINT_DIAG(("Appending data: %lf at position: %d\n",*(data+sizeToCopy+i), i));
+      LOGINFO9("%s/%s:%d: INFO: Data storage %d. Appending %lf at index %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,*(data+sizeToCopy+i), i);
     }
 
     //If ring buffer then copy the rest of the data to the beginning of the buffer
@@ -165,7 +158,7 @@ int ecmcDataStorage::appendData(double data)
 int ecmcDataStorage::setCurrentPosition(int position)
 {
   if(position>bufferElementCount_ || position<0){
-    return setErrorID(ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
   }
   currentBufferIndex_=position;
   return 0;

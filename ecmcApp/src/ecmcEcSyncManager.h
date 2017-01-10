@@ -15,6 +15,8 @@
 #include "ecmcEcEntry.h"
 #include "ecmcEcPdo.h"
 #include "ecmcError.h"
+#include "cmd.h" //Logging macros
+
 
 //ECSYNCMANAGER ERRORS
 #define ERROR_EC_SM_PDO_ARRAY_FULL 0x25000

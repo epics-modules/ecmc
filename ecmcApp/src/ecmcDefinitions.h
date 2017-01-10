@@ -10,42 +10,32 @@
 #define ECMCDEFINITIONS_H_
 
 #define UNPACK( ... ) __VA_ARGS__
-#define PRINT_DIAG(message) {if(enableDiagnosticPrintouts_){printf("%s/%s:%d: ",__FILE__, __FUNCTION__, __LINE__);printf(UNPACK message);}}
 
 #define MCU_FREQUENCY 1000.0
-//#define MCU_NSEC_PER_SEC (1000000000L)
 #define MCU_NSEC_PER_SEC 1000000000
-//enum { NSEC_PER_SEC = 1000000000 };
 #define MCU_PERIOD_NS (int)(MCU_NSEC_PER_SEC / MCU_FREQUENCY)
-//#define MCU_CLOCK_TO_USE CLOCK_REALTIME
-//#define MCU_CLOCK_TO_USE CLOCK_MONOTONIC
-//#define MCU_CLOCK_TO_USE CLOCK_MONOTONIC
-
 #define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC + \
   (B).tv_nsec - (A).tv_nsec)
+#define ECMC_MAX_AXES 8
 
-//#define TIMESPEC2NS(T) ((uint64_t) (T).tv_sec * MCU_NSEC_PER_SEC + (T).tv_nsec)
 //Test new conversion
 #define TIMESPEC2NS(T) ((uint64_t) (((T).tv_sec - 946684800ULL) * 1000000000ULL) + (T).tv_nsec)
 //#define TIMESPEC2NSEPOCH2000(T) ((uint64_t) (((T).tv_sec - 946684800ULL) * 1000000000ULL) + (T).tv_nsec)
 
-
 //#define MSG_TICK 0
 #define MAX_MESSAGE 10000
 
-
-#define ECMC_MAX_AXES 8
+//Transforms
 #define MAX_TRANSFORM_INPUTS ECMC_MAX_AXES*2
 #define TRANSFORM_EXPR_LINE_END_CHAR '#'
 #define TRANSFORM_EXPR_OUTPUT_VAR_NAME "out"
-#define TRANSFORM_EXPR_INTERLOCK_VAR_NAME "ilock"
-#define TRANSFORM_EXPR_INPUT_TRAJ_VAR_NAME_PREFIX "traj"
-#define TRANSFORM_EXPR_INPUT_ENC_VAR_NAME_PREFIX "enc"
-
 #define TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX "ex"
 #define TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX "en"
+#define TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX "setPos"
+#define TRANSFORM_EXPR_VARIABLE_ENC_PREFIX "actPos"
+#define TRANSFORM_EXPR_INTERLOCK_PREFIX "ilock"
 
-//****EtherCAT****
+//EtherCAT
 #define EC_MAX_PDOS 200        //Pdos per slave terminal
 #define EC_MAX_ENTRIES 200     //Entries Per slave
 #define EC_MAX_SLAVES 200
@@ -59,8 +49,7 @@
 #define ECMC_MAX_COMMANDS_LISTS 10
 #define ECMC_MAX_COMMANDS_IN_COMMANDS_LISTS 100
 
-
-//****Motion****
+//Motion
 enum app_mode_type{
   ECMC_MODE_CONFIG=0,
   ECMC_MODE_RUNTIME=1
@@ -105,6 +94,7 @@ enum motionDirection {
 enum motionMode{
   ECMC_MOVE_MODE_POS=0,
   ECMC_MOVE_MODE_VEL=1,
+  ECMC_MOVE_MODE_STOP=2,
 };
 
 enum dataSource{
@@ -139,6 +129,7 @@ enum interlockTypes {
   ECMC_INTERLOCK_MAX_SPEED=10,
   ECMC_INTERLOCK_CONT_HIGH_LIMIT=11,
   ECMC_INTERLOCK_CONT_OUT_INCREASE_AT_LIMIT_SWITCH=12,
+  ECMC_INTERLOCK_AXIS_ERROR_STATE=13,
 };
 
 enum encoderType{
@@ -151,6 +142,12 @@ enum commandType{
   ECMC_CMD_TYPE_ENABLE=1,
 };
 
+enum transformVariableType{
+  ECMC_TRANSFORM_VAR_TYPE_TRAJ=0,
+  ECMC_TRANSFORM_VAR_TYPE_ENC=1,
+  ECMC_TRANSFORM_VAR_TYPE_IL=2,
+};
+
 enum eventType{
   ECMC_SAMPLED = 0,
   ECMC_EDGE_TRIGGERED = 1,
@@ -161,7 +158,5 @@ enum triggerEdgeType{
   ECMC_NEGATIVE_EDGE = 1,
   ECMC_ON_CHANGE=2,
 };
-
-
 
 #endif /* ECMCDEFINITIONS_H_ */

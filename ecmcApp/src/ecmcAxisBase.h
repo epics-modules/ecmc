@@ -20,7 +20,8 @@
 #include "ecmcMonitor.hpp"
 #include "ecmcPIDController.hpp"
 #include "ecmcSequencer.hpp"
-#include "ecmcTrajectory.hpp"
+#include "ecmcTrajectoryTrapetz.hpp"
+#include "ecmcMasterSlaveIF.h"
 
 //AXIS ERRORS
 #define ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL 0x14300
@@ -47,42 +48,47 @@
 #define ERROR_AXIS_HARDWARE_STATUS_NOT_OK 0x14315
 #define ERROR_AXIS_NOT_ENABLED 0x14316
 #define ERROR_AXIS_AMPLIFIER_ENABLED_LOST 0x14317
-
+#define ERROR_AXIS_SEQ_OBJECT_NULL 0x14318
+#define ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED 0x14319
+#define ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED 0x1431A
 
 class ecmcAxisBase : public ecmcError
 {
 public:
-  ecmcAxisBase();
+  ecmcAxisBase(int axisID, double sampleTime);
   virtual ~ecmcAxisBase();
   virtual void execute(bool masterOK)=0;
   virtual int setOpMode(operationMode nMode)=0;
   virtual operationMode getOpMode()=0;
-  virtual int getActPos(double *pos)=0;
-  virtual int getActVel(double *vel)=0;
-  virtual int getAxisHomed(bool *homed)=0;
-  virtual int getEncScaleNum(double *scale)=0;
-  virtual int setEncScaleNum(double scale)=0;
-  virtual int getEncScaleDenom(double *scale)=0;
-  virtual int setEncScaleDenom(double scale)=0;
   virtual int getCntrlError(double* error)=0;
-  virtual int getEncPosRaw(int64_t *rawPos)=0;
   virtual int setExecute(bool execute)=0;
   virtual bool getExecute()=0;
   virtual int setEnable(bool enable)=0;
   virtual bool getEnable()=0;
-  virtual int setCommand(motionCommandTypes command)=0;
-  virtual int setCmdData(int cmdData)=0;
-  virtual motionCommandTypes getCommand()=0;
-  virtual int getCmdData()=0;
   virtual int setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase *getDrv()=0;
-  virtual ecmcTrajectory *getTraj()=0;
-  virtual ecmcMonitor *getMon()=0;
-  virtual ecmcEncoder *getEnc()=0;
   virtual ecmcPIDController *getCntrl()=0;
-  virtual ecmcSequencer * getSeq()=0;
   virtual void printStatus()=0;
   virtual int validate()=0;
+
+  int getAxisHomed(bool *homed);
+  int getEncScaleNum(double *scale);
+  int setEncScaleNum(double scale);
+  int getEncScaleDenom(double *scale);
+  int setEncScaleDenom(double scale);
+  int getEncPosRaw(int64_t *rawPos);
+  int setCommand(motionCommandTypes command);
+  int setCmdData(int cmdData);
+  motionCommandTypes getCommand();
+  int getCmdData();
+
+  ecmcTrajectoryTrapetz *getTraj();
+  ecmcMonitor *getMon();
+  ecmcEncoder *getEnc();
+  ecmcSequencer * getSeq();
+  int getPosAct(double *pos);
+  int getPosSet(double *pos);
+  int getVelAct(double *vel);
   axisType getAxisType();
   int getAxisID();
   void setReset(bool reset);
@@ -102,12 +108,21 @@ public:
   int setRealTimeStarted(bool realtime);
   bool getError();
   int getErrorID();
+  void errorReset();
+  int setEnableLocal(bool enable);
+  int setExternalExecute(bool execute);
+  int validateBase();
+  ecmcMasterSlaveIF *getExternalTrajIF();
+  ecmcMasterSlaveIF *getExternalEncIF();
+
 protected:
   void initVars();
   int fillCommandsTransformData();
   bool checkAxesForEnabledTransfromCommands(commandType type);
   int setEnable_Transform();
   int setExecute_Transform();
+  int refreshExternalInputSources();
+  int refreshExternalOutputSources();
   int axisID_;
   bool reset_;
   axisType axisType_;
@@ -117,6 +132,25 @@ protected:
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   bool inStartupPhase_;
   bool realtime_;
+  bool enable_;
+  bool externalExecute_;
+  ecmcMasterSlaveIF *externalInputTrajectoryIF_;
+  ecmcMasterSlaveIF *externalInputEncoderIF_;
+  double externalTrajectoryPosition_;
+  double externalTrajectoryVelocity_;
+  interlockTypes externalTrajectoryInterlock_;
+  interlockTypes externalEncoderInterlock_;
+  double externalEncoderPosition_;
+  double externalEncoderVelocity_;
+  double currentPositionActual_;
+  double currentPositionSetpoint_;
+  double currentVelocityActual_;
+  double currentVelocitySetpoint_;
+  double sampleTime_;
+  ecmcTrajectoryTrapetz *traj_;
+  ecmcMonitor *mon_;
+  ecmcEncoder *enc_;
+  ecmcSequencer seq_;
 };
 
 #endif /* ECMCAXISBASE_H_ */

@@ -1,15 +1,13 @@
-#ifndef TRAJGEN_H
-#define TRAJGEN_H
+#ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_
+#define SRC_ECMCTRAJECTORYTRAPETZ_H_
 #include <cmath>
 #include <string.h>
 
 #include "ecmcDefinitions.h"
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
-#include "ecmcMasterSlaveData.h"
-#include "ecmcTransform.h"
 
-/// Error codes for class ecmcTrajectory
+/// Error codes for class ecmcTrajectoryTrapetz
 #define ERROR_TRAJ_EXT_ENC_NULL 0x14E00
 #define ERROR_TRAJ_EXT_TRAJ_NULL 0x14E01
 #define ERROR_TRAJ_NOT_ENABLED 0x14E02
@@ -34,7 +32,7 @@
 #define ERROR_TRAJ_MAX_SPEED_INTERLOCK 0x14E15
 
 /**
- * \class ecmcTrajectory
+ * \class ecmcTrajectoryTrapetz
  *
  * \ingroup ecmc
  *
@@ -50,7 +48,6 @@
  * 2. Relative positioning
  * 3. Absolute positioning
  * 4. Interlocks (hard limits, soft limits, external interlocks)
- * 5. Synchronization to external source of data (through ecmcMasterSlaveIF)
  *
  * \date $Date: 2005/04/14 14:16:20 $
  *
@@ -59,12 +56,12 @@
  * Created on: 2015-11-01
  *
  */
-class ecmcTrajectory : public ecmcError, public ecmcMasterSlaveIF
+class ecmcTrajectoryTrapetz : public ecmcError
 {
 public:
-  ecmcTrajectory(double sampleTime);
-  ecmcTrajectory(double velocityTarget, double acceleration, double deceleration, double jerk,double sampleTime);
-  ~ecmcTrajectory();
+  ecmcTrajectoryTrapetz(double sampleTime);
+  ecmcTrajectoryTrapetz(double velocityTarget, double acceleration, double deceleration, double jerk,double sampleTime);
+  ~ecmcTrajectoryTrapetz();
   /** \breif Calculates and returns next position setpoint.
    * This function should only be executed once for each sample period.
    */
@@ -113,91 +110,27 @@ public:
    * Normally encoder position at amplifier enable
    */
   void setStartPos(double pos);
-  /// Sets backward direction soft limit position
-  void setSoftLimitBwd(double limit);
-  /// Sets gear ratio. Only used when synchronizing to external source.
-  int setGearRatio(double ratioNum, double ratioDenom);
-  /// Returns gear ratio. Only used when synchronizing to external source.
-  double getGearRatio();
-  /// Sets forward direction soft limit position.
-  void setSoftLimitFwd(double limit);
-  /// Returns backward direction soft limit position.
-  double getSoftLimitBwd();
-  /// Returns forward direction soft limit position.
-  double getSoftLimitFwd();
-  /// Check if trajectory generated setpoint is at backward  soft limit.
-  bool getAtSoftLimitBwd();
-  /// Check if trajectory generated setpoint is at forward  soft limit.
-  bool getAtSoftLimitFwd();
-  /// Enable/disable backward soft limit.
-  void setEnableSoftLimitBwd(bool enable);
-  /// Enable/disable forward soft limit.
-  void setEnableSoftLimitFwd(bool enable);
-  /// Return if backward soft limit is enabled.
-  bool getEnableSoftLimitBwd();
-  /// Return if forward soft limit is enabled.
-  bool getEnableSoftLimitFwd();
-  /** \breif Sets forward hard limit switch state.
-   * The state of the switch should be normally closed (switch=high when motion is OK).
-   * A emergency deceleration phase will be started if a switch state of open (=0) is encountered.
-   */
-  void setHardLimitFwd(bool switchState);
-  /** \breif Sets backward hard limit switch state.
-   * The state of the switch should be normally closed (switch=high when motion is OK).
-   * A emergency deceleration phase will be started if a switch state of open (=0) is encountered.
-   */
-  void setHardLimitBwd(bool switchState);
-  ///Returns the forward hard limit switch state.
-  bool getHardLimitFwd();
-  ///Returns the backward hard limit switch state.
-  bool getHardLimitBwd();
-  /** \breif Triggers a new motion trajectory.
-   * A new trajectory is triggered on a rising edge of the execute input (setExecute(0),setExecute(1))
-   * The current trajectory will be stopped (interlocked) if execute is set to zero when busy.
-   * Note: The trajectory needs to be enabled (setEnable(1)) before execution of an trajectory can be performed.
-   */
   void setExecute(bool execute);
-  /// Returns current value of execute.
   bool getExecute();
-  /// Returns if trajectory is interlocked.
   bool getInterlocked();
-  /// Sets interlock of trajectory.
   void setInterlock(interlockTypes interlock);
-  /// Enables/disables trajectory.
   void setEnable(bool enable);
-  /// Returns enable state.
   bool getEnable();
-  /// Sets motion mode (positioning or constant velocity)
   void setMotionMode(motionMode mode);
-  /// Sets coordinate system mode (absolute or relative)
-  void setCoordSystMode(coordSystMode mode);
-  /// Returns interlock state
   interlockTypes getInterlockStatus();
-  /// Enable/disable alarm at forward hard limit
-  int setEnableHardLimitFWDAlarm(bool enable);
-  /// Enable/disable alarm at forward hard limit
-  int setEnableHardLimitBWDAlarm(bool enable);
-  /// Return sample time setting of trajectory generator.
   double getSampleTime();
-  /// Function used to validate all settings before going into runtime mode.
   int validate();
-  /// Return current setpoint from external source (only used when synchronizing).
-  int getCurrentExternalSetpoint(double* value);
-  /// Reset errors in this and linked objects
-  void errorReset();
-  int getErrorID();
-
+  double distToStop(double vel);
+  int initStopRamp(double currentPos, double currentVel,double currentAcc);
 private:
   void initVars();
-  double distToStop(double vel);
   void initTraj();
-  double checkSoftLimits(double posSetpoint,motionDirection direction);
   void stop();
   double internalTraj(double *velocity);
   double moveVel(double currSetpoint, double currVelo,double targetVelo);
   double movePos(double currSetpoint,double targetSetpoint,double stopDistance, double currVelo,double targetVelo);
   double moveStop(stopMode stopMode,double currSetpoint, double currVelo,double targetVelo, bool *stopped,double *velocity);
-  stopMode checkInterlocks(motionDirection dir,double newSetpoint);
+  stopMode checkInterlocks();
   double updateSetpoint(double nextSetpoint,double nextVelocity);
   motionDirection checkDirection(double oldPos, double newPos);
   double acceleration_;
@@ -216,31 +149,20 @@ private:
   double currentPositionSetpoint_;
   double velocity_;
   bool   trajInProgress_;
-  double softLimitBwd_;
-  double softLimitFwd_;
-  bool   enableSoftLimitBwd_;
-  bool   enableSoftLimitFwd_;
   int    index_;
   bool   execute_;
   bool   executeOld_;
   bool   currentPosInterlock_;
   double startPosition_;
-  bool   hwLimitSwitchFwd_;
-  bool   hwLimitSwitchBwd_;
-  double relPosOffset_;
   bool   enable_;
   bool   enableOld_;
   bool   internalStopCmd_;
   double distToStop_;
   double prevStepSize_;
-  double gearRatio_;
   interlockTypes externalInterlock_; //Interlock from Monitor class
   motionDirection actDirection_;
   motionDirection setDirection_;
-  coordSystMode coordSysteMode_;
   motionMode motionMode_;
   interlockTypes interlockStatus_;
-  bool enableHardLimitFWDAlarms_;
-  bool enableHardLimitBWDAlarms_;
 };
 #endif

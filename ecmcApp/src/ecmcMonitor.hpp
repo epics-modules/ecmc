@@ -3,7 +3,7 @@
 #include <cmath>
 #include "ecmcEcEntry.h"
 #include "ecmcError.h"
-#include "ecmcTrajectory.hpp"
+#include "ecmcTrajectoryTrapetz.hpp"
 
 //MONITOR ERRORS
 #define ERROR_MON_ASSIGN_ENTRY_FAILED 0x14C00
@@ -17,6 +17,14 @@
 #define ERROR_MON_MAX_POSITION_LAG_EXCEEDED 0x14C08
 #define ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK 0x14C09
 #define ERROR_MON_CNTRL_OUTPUT_INCREASE_AT_LIMIT 0x14C0A
+#define ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK 0x14C0B
+#define ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK 0x14C0C
+#define ERROR_MON_HARD_LIMIT_FWD_INTERLOCK 0x14C0D
+#define ERROR_MON_HARD_LIMIT_BWD_INTERLOCK 0x14C0E
+#define ERROR_MON_POS_LAG_INTERLOCK 0x14C0F
+#define ERROR_MON_BOTH_LIMIT_INTERLOCK 0x14C10
+#define ERROR_MON_DISTANCE_TO_STOP_ZERO 0x14C11
+#define ERROR_MON_ENTRY_EXT_INTERLOCK_NULL 0x14C12
 
 class ecmcMonitor : public ecmcEcEntryLink
 {
@@ -42,11 +50,11 @@ public:
   void setEnableLagMon(bool enable);
   bool getEnableLagMon();
   bool getHomeSwitch();
-  void setHomeSwitch(bool switchState);
+  //void setHomeSwitch(bool switchState);
   void setActPos(double pos);
   void setTargetPos(double pos);
   double getTargetPos();
-  int setTargetVel(double vel);
+  int setVelSet(double vel);
   int setActVel(double vel);
   int setMaxVel(double vel);
   int setEnableMaxVelMon(bool enable);
@@ -72,8 +80,31 @@ public:
   int setEnableCntrlOutIncreaseAtLimitMon(bool enable);
   bool getEnableCntrlOutIncreaseAtLimitMon();
   int setCntrlKff(double kff); //Used ensure that motion is reasonable in relation to controller output
-
+  int setEnableSoftLimitBwd(bool enable);
+  int setEnableSoftLimitFwd(bool enable);
+  int setEnableHardLimitBWDAlarm(bool enable);
+  int setEnableHardLimitFWDAlarm(bool enable);
+  int setSoftLimitBwd(double limit);
+  int setSoftLimitFwd(double limit);
+  int setDistToStop(double distance);
+  int getEnableAlarmAtHardLimit();
+  double getSoftLimitBwd();
+  double getSoftLimitFwd();
+  bool getEnableSoftLimitBwd();
+  bool getEnableSoftLimitFwd();
+  bool getAtSoftLimitBwd();
+  bool getAtSoftLimitFwd();
+  int setExtTrajInterlock(interlockTypes interlock);  //From other axes (transfrom)
+  int setExtEncInterlock(interlockTypes interlock);  //From other axes (transfrom)
+  int setAxisErrorStateInterlock(bool ilock);
 private:
+  int checkLimits();
+  int checkAtTarget();
+  int checkPositionLag();
+  int checkMaxVelocity();
+  int checkCntrlMaxOutput();
+  int checkCntrloutputIncreaseAtLimit();
+
   bool   enable_;
   double atTargetTol_;           //Tolerance for reached target. Example 0.1 deg
   int    atTargetTime_;          //Number of cycles the position error needs to be below dInTargetTol before the bAtTarget bit goes high
@@ -95,7 +126,16 @@ private:
   double currSetPos_;
   double lagError_;
   bool   bothLimitsLowInterlock_;
-  double targetVel_;
+  bool   bwdLimitInterlock_;
+  bool   fwdLimitInterlock_;
+
+  bool   bwdSoftLimitInterlock_;
+  bool   fwdSoftLimitInterlock_;
+
+  interlockTypes   extTrajInterlock_;
+  interlockTypes   extEncInterlock_;
+
+  double setVel_;
   double actVel_;
   double maxVel_;
   bool   enableMaxVelMon_;
@@ -113,7 +153,7 @@ private:
   bool cntrlOutputHLErrorTraj_;
   bool cntrlOutputHLErrorDrive_;
   bool enableCntrlHLMon_;
-  bool enableCntrlOutIncreaseAtLimitMon_;     //Enable Mechanical stop monitoring
+  bool enableCntrlOutIncreaseAtLimitMon_;
   bool cntrlOutIncreaseAtLimitErrorTraj_;
   bool cntrlOutIncreaseAtLimitErrorDrive_;
   int cntrlOutIncreaseAtLimitCounter_;
@@ -122,6 +162,16 @@ private:
   int reasonableMoveCounter_;
   int cycleCounter_;
   double cntrlKff_;
+
+  double softLimitBwd_;
+  double softLimitFwd_;
+  bool   enableSoftLimitBwd_;
+  bool   enableSoftLimitFwd_;
+  double enableAlarmAtHardlimitBwd_;
+  double enableAlarmAtHardlimitFwd_;
+  double distToStop_;
+  double currSetPosOld_;
+  bool axisErrorStateInterlock;
 
 };
 #endif

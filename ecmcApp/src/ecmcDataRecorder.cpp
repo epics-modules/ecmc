@@ -22,7 +22,6 @@ ecmcDataRecorder::~ecmcDataRecorder ()
 void ecmcDataRecorder::initVars()
 {
   dataBuffer_=NULL;
-  enableDiagnosticPrintouts_=false;
   index_=0;
   data_=0;
   inStartupPhase_=1;
@@ -39,11 +38,11 @@ int ecmcDataRecorder::setDataStorage(ecmcDataStorage* buffer)
 int ecmcDataRecorder::validate()
 {
   if(dataBuffer_==NULL){
-    return setErrorID(ERROR_DATA_RECORDER_BUFFER_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_BUFFER_NULL);
   }
 
   if(validateEntry(0)){ //Data
-    return setErrorID(ERROR_DATA_RECORDER_DATA_ECENTRY_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_DATA_ECENTRY_NULL);
   }
 
   return setErrorID(0);
@@ -56,15 +55,9 @@ int ecmcDataRecorder::setExecute(int execute)
   return 0;
 }
 
-int ecmcDataRecorder::setEnablePrintOuts(bool enable)
-{
-  enableDiagnosticPrintouts_=enable;
-  return 0;
-}
-
 void ecmcDataRecorder::printStatus()
 {
-  PRINT_DIAG(("Index: %d, data: %lf, Error: %x\n",index_,(double)data_,getErrorID()));
+  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Data: %lf, Error: 0x%x.\n",__FILE__,__FUNCTION__,__LINE__,index_,(double)data_,getErrorID());
 }
 
 void ecmcDataRecorder::setInStartupPhase(bool startup)
@@ -72,11 +65,10 @@ void ecmcDataRecorder::setInStartupPhase(bool startup)
   inStartupPhase_=startup;
 }
 
-
 int ecmcDataRecorder::executeEvent(int masterOK)
 {
   if(!masterOK){
-    return setErrorID(ERROR_DATA_RECORDER_HARDWARE_STATUS_NOT_OK);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_HARDWARE_STATUS_NOT_OK);
   }
 
   if(inStartupPhase_){
@@ -93,18 +85,16 @@ int ecmcDataRecorder::executeEvent(int masterOK)
 
   uint64_t tempRaw=0;
   if(readEcEntryValue(0,&tempRaw)){//Data
-    return setErrorID(ERROR_EVENT_ECENTRY_READ_FAIL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ECENTRY_READ_FAIL);
   }
 
   data_=tempRaw;
   int errorCode=dataBuffer_->appendData((double)data_);
   if(errorCode){
-    return setErrorID(errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
-  if(enableDiagnosticPrintouts_){
-    printStatus();
-  }
+  printStatus();
+
   return 0;
-
 }

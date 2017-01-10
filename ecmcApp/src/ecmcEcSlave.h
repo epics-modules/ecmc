@@ -16,6 +16,7 @@
 #include "ecmcEcEntry.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcError.h"
+#include "cmd.h" //Logging macros
 
 #define SIMULATION_ENTRIES 2
 

@@ -39,10 +39,8 @@
 #include "ecmcAxisBase.h"      //Abstract class for all axis types
 #include "ecmcAxisReal.h"      //Normal axis (controller, drive, encoder, trajectory, monitor, sequencer)
 #include "ecmcAxisVirt.h"      //Axis without drive and controller
-#include "ecmcAxisTraj.h"      //Axis without drive, controller and encoder
-#include "ecmcAxisEncoder.h"   //Axis without drive, controller and trajectory
 #include "ecmcDriveBase.hpp"
-#include "ecmcTrajectory.hpp"
+#include "ecmcTrajectoryTrapetz.hpp"
 #include "ecmcPIDController.hpp"
 #include "ecmcEncoder.h"
 #include "ecmcMonitor.hpp"
@@ -61,8 +59,8 @@
 #define CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getTraj()==NULL){LOGERR("ERROR: Trajectory object NULL.\n");return ERROR_MAIN_TRAJECTORY_OBJECT_NULL;}}
 #define CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getSeq()==NULL){LOGERR("ERROR: Sequence object NULL.\n");return ERROR_MAIN_SEQUENCE_OBJECT_NULL;}}
 #define CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getMon()==NULL){LOGERR("ERROR: Monitor object NULL.\n");return ERROR_MAIN_MONITOR_OBJECT_NULL;}}
-#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getTraj()->getExtInputTransform()==NULL){LOGERR("ERROR: Trajectory transform object NULL.\n");return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;}}
-#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getEnc()->getExtInputTransform()==NULL){LOGERR("ERROR: Encoder transform object NULL.\n");return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;}}
+#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()==NULL){LOGERR("ERROR: Trajectory transform object NULL.\n");return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;}}
+#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getExternalEncIF()->getExtInputTransform()==NULL){LOGERR("ERROR: Encoder transform object NULL.\n");return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;}}
 #define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex) {  if(indexCommandList>=ECMC_MAX_COMMANDS_LISTS || indexCommandList<0){LOGERR("ERROR: Command list index out of range.\n");return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;}if(commandLists[indexCommandList]==NULL){LOGERR("ERROR: Command list object NULL.\n");return ERROR_COMMAND_LIST_NULL;}}
 #define CHECK_EVENT_RETURN_IF_ERROR(indexEvent) {if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){LOGERR("ERROR: Event index out of range.\n");return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;}if(events[indexEvent]==NULL){LOGERR("ERROR: Event object NULL.\n");return ERROR_MAIN_EVENT_NULL;}}
 #define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage) { if(indexStorage>=ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage<0){LOGERR("ERROR: Data storage index out of range.\n");return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;}if(dataStorages[indexStorage]==NULL){LOGERR("ERROR: Data storage object NULL.\n");return ERROR_MAIN_DATA_STORAGE_NULL;}}
@@ -73,11 +71,8 @@ static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static ecmcEc           ec;
 static int              axisDiagIndex;
 static int              axisDiagFreq;
-static bool             enableAxisDiag;
 static int              controllerError=0;
 static app_mode_type    appMode,appModeOld;
-//static bool             functionDiag=0;
-static int              enableTimeDiag=0;
 static unsigned int     counter = 0;
 static int              printCounter=0;
 static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
@@ -88,7 +83,6 @@ static struct timespec  masterActivationTimeMonotonic={};
 static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
 
-
 /****************************************************************************/
 
 const struct timespec cycletime = {0, MCU_PERIOD_NS};
@@ -98,7 +92,7 @@ const struct timespec cycletime = {0, MCU_PERIOD_NS};
 void printStatus()
 {
   //Print axis diagnostics to screen
-  if(enableAxisDiag && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
+  if(PRINT_STDOUT_BIT12() && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
     if(axes[axisDiagIndex]!=NULL){
       if(printCounter==0){
 	LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVel act\t\tVel FF\t\tVel FFs\t\tDrv Vel\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
@@ -125,6 +119,7 @@ typedef struct rtThreadOSD *rtThreadId;
 
 static void * start_routine(void *arg)
 {
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   rtThreadId thread = (rtThreadId)arg;
   thread->start(thread->usr);
   return NULL;
@@ -134,6 +129,7 @@ rtThreadId rtThreadCreate (
     const char * name, unsigned int priority, unsigned int stackSize,
     rtTHREADFUNC funptr, void * parm)
 {
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   struct sched_param sched = {0};
   rtThreadId thread =(rtThreadId)calloc(1, sizeof(struct rtThreadOSD));
   assert(thread != NULL);
@@ -200,22 +196,27 @@ struct timespec timespec_sub(struct timespec time1, struct timespec time2)
 
 void cyclic_task(void * usr)
 {
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   int i=0;
   struct timespec wakeupTime , sendTime, lastSendTime= {};
-  struct timespec startTime, endTime, lastStartTime = {};
+  struct timespec startTime, endTime, lastStartTime= {};
+  struct timespec offsetStartTime= {};
   uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0,sendperiod_ns = 0,
            latency_min_ns = 0, latency_max_ns = 0,
            period_min_ns = 0, period_max_ns = 0,
            exec_min_ns = 0, exec_max_ns = 0,
            send_min_ns = 0, send_max_ns = 0;
 
+  offsetStartTime.tv_nsec=49*MCU_PERIOD_NS;
+  offsetStartTime.tv_sec=0;
+
   // get current time
-  wakeupTime=timespec_add(masterActivationTimeMonotonic, {0, 49*MCU_PERIOD_NS}); // start 50 (49+1) cycle times after master activate
+  wakeupTime=timespec_add(masterActivationTimeMonotonic,offsetStartTime); // start 50 (49+1) cycle times after master activate
   while(appMode==ECMC_MODE_RUNTIME)
   {
     wakeupTime = timespec_add(wakeupTime, cycletime);
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
-    //*******************
+
     clock_gettime(CLOCK_MONOTONIC, &startTime);
     latency_ns = DIFF_NS(wakeupTime, startTime);
     period_ns = DIFF_NS(lastStartTime, startTime);
@@ -276,7 +277,7 @@ void cyclic_task(void * usr)
       printStatus();
       ec.printStatus();
 
-      if(enableTimeDiag){
+      if(PRINT_STDOUT_BIT13()){
         struct timespec testtime;
         clock_gettime(CLOCK_MONOTONIC, &testtime);
         LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
@@ -308,7 +309,7 @@ void cyclic_task(void * usr)
 /****************************************************************************/
 
 int  hw_motor_global_init(void){
-
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   appMode=ECMC_MODE_CONFIG;
   appModeOld=appMode;
   LOGINFO("\nESS Open Source EtherCAT Motion Control Unit Initializes......\n");
@@ -316,7 +317,7 @@ int  hw_motor_global_init(void){
 
   axisDiagIndex=0;
   axisDiagFreq=10;
-  enableAxisDiag=true;
+  setDiagAxisEnable(1);
 
   for(int i=0; i<ECMC_MAX_AXES;i++){
     axes[i]=NULL;
@@ -345,6 +346,7 @@ int  hw_motor_global_init(void){
 
 void startRTthread()
 {
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   int prio = ECMC_PRIO_HIGH;
   if(rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) == NULL){
     LOGERR("ERROR: Can't create high priority thread, fallback to low priority\n");
@@ -352,7 +354,7 @@ void startRTthread()
     assert(rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) != NULL);
   }
   else{
-    LOGINFO5("INFO:\t\tCreated high priority thread for cyclic task\n");
+    LOGINFO4("INFO:\t\tCreated high priority thread for cyclic task\n");
   }
 }
 
@@ -362,7 +364,7 @@ int setAppMode(int mode)
   int errorCode=0;
   switch((app_mode_type)mode){
     case ECMC_MODE_CONFIG:
-      LOGINFO5("INFO:\t\tApplication in configuration mode.\n");
+      LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
       appModeOld = appMode;
       appMode=(app_mode_type)mode;
       for(int i=0;i<ECMC_MAX_AXES;i++){
@@ -400,7 +402,7 @@ int setAppMode(int mode)
         LOGERR("INFO:\t\tActivation of master failed.\n");
         return ERROR_MAIN_EC_ACTIVATE_FAILED;
       }
-      LOGINFO5("INFO:\t\tApplication in runtime mode.\n");
+      LOGINFO4("INFO:\t\tApplication in runtime mode.\n");
       startRTthread();
       for(int i=0;i<ECMC_MAX_AXES;i++){
         if(axes[i]!=NULL){
@@ -418,27 +420,27 @@ int setAppMode(int mode)
 }
 
 int prepareForRuntime(){
-
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   //Update input sources for all trajectories and encoders (transforms)
   for(int i=0;i<ECMC_MAX_AXES;i++){
     for(int j=0;j<ECMC_MAX_AXES;j++){
       if(axes[i] !=NULL && axes[j] !=NULL){
         //Trajectory
-        if(axes[i]->getTraj()!=NULL){
-          if(axes[j]->getTraj()!=NULL){
-            axes[j]->getTraj()->addInputDataInterface(axes[i]->getTraj()->getOutputDataInterface(),i);
+        if(axes[i]->getExternalTrajIF()!=NULL){
+          if(axes[j]->getExternalTrajIF()!=NULL){
+            axes[j]->getExternalTrajIF()->addInputDataInterface(axes[i]->getExternalTrajIF()->getOutputDataInterface(),i);
           }
-          if(axes[j]->getEnc()!=NULL){
-            axes[j]->getEnc()->addInputDataInterface(axes[i]->getTraj()->getOutputDataInterface(),i);
+          if(axes[j]->getExternalEncIF()!=NULL){
+            axes[j]->getExternalEncIF()->addInputDataInterface(axes[i]->getExternalTrajIF()->getOutputDataInterface(),i);
           }
         }
         //Encoder
-        if(axes[i]->getEnc()!=NULL){
-          if(axes[j]->getTraj()!=NULL){
-            axes[j]->getTraj()->addInputDataInterface(axes[i]->getEnc()->getOutputDataInterface(),i+ECMC_MAX_AXES);
+        if(axes[i]->getExternalEncIF()!=NULL){
+          if(axes[j]->getExternalTrajIF()!=NULL){
+            axes[j]->getExternalTrajIF()->addInputDataInterface(axes[i]->getExternalEncIF()->getOutputDataInterface(),i+ECMC_MAX_AXES);
           }
-          if(axes[j]->getEnc()!=NULL){
-            axes[j]->getEnc()->addInputDataInterface(axes[i]->getEnc()->getOutputDataInterface(),i+ECMC_MAX_AXES);
+          if(axes[j]->getExternalEncIF()!=NULL){
+            axes[j]->getExternalEncIF()->addInputDataInterface(axes[i]->getExternalEncIF()->getOutputDataInterface(),i+ECMC_MAX_AXES);
           }
         }
         axes[i]->setAxisArrayPointer(axes[j],j);
@@ -449,6 +451,7 @@ int prepareForRuntime(){
 }
 
 int validateConfig(){
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   prepareForRuntime();
   int errorCode=0;
   int axisCount=0;
@@ -462,9 +465,6 @@ int validateConfig(){
       }
     }
   }
-  //if(axisCount==0){
-  //  return ERROR_AXIS_CONFIGURED_COUNT_ZERO;
-  //}
 
   for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
     if(events[i]!=NULL){
@@ -521,36 +521,26 @@ int ecSetDomainFailedCyclesLimit(int value)
   return ec.setDomainFailedCyclesLimitInterlock(value);
 }
 
+
 int ecEnablePrintouts(int value)
 {
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
 
-  return ec.setEnablePrintOuts(value);
+  WRITE_DIAG_BIT(FUNCTION_ETHERCAT_DIAGNOSTICS_BIT,value);
+
+  return 0;
 }
 
-/*int setEnableFunctionCallDiag(int value)
+int setEnableFunctionCallDiag(int value)
 {
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
 
-  functionDiag=value;
+  WRITE_DIAG_BIT(FUNCTION_CALL_DIAGNOSTICS_BIT,value);
+
   return 0;
-}*/
+}
 
 /****************************************************************************/
-
-#if 0
-static void init_axis(int axisIndex){
-// needed?
-}
-
-/*****************************************************************************/
-
-void hw_motor_init(int axisIndex){
-// needed?
-}
-#endif
-
-/*****************************************************************************/
 
 int setAxisExecute(int axisIndex, int value)
 {
@@ -675,9 +665,18 @@ int setAxisEnableAlarmAtHardLimits(int axisIndex,int enable)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->setEnableAlarmAtHardLimit(enable);
+  int error=axes[axisIndex]->getMon()->setEnableHardLimitBWDAlarm(enable);
+  if (error){
+    return error;
+  }
+
+  error=axes[axisIndex]->getMon()->setEnableHardLimitFWDAlarm(enable);
+  if (error){
+    return error;
+  }
+  return 0;
 }
 
 int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value)
@@ -685,9 +684,9 @@ int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value= axes[axisIndex]->getSeq()->getEnableAlarmAtHardLimit();
+  *value= axes[axisIndex]->getMon()->getEnableAlarmAtHardLimit();
   return 0;
 }
 
@@ -708,7 +707,7 @@ int getAxisTrajSource(int axisIndex, int *value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  *value=(int)axes[axisIndex]->getTraj()->getDataSourceType();
+  *value=(int)axes[axisIndex]->getExternalTrajIF()->getDataSourceType();
   return 0;
 }
 
@@ -719,7 +718,7 @@ int getAxisEncSource(int axisIndex, int *value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  *value=(int)axes[axisIndex]->getEnc()->getDataSourceType();
+  *value=(int)axes[axisIndex]->getExternalEncIF()->getDataSourceType();
   return 0;
 }
 
@@ -778,9 +777,9 @@ int setAxisEnableSoftLimitBwd(int axisIndex, int value)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setEnableSoftLimitBwd(value);
+  axes[axisIndex]->getMon()->setEnableSoftLimitBwd(value);
   return 0;
 }
 
@@ -789,9 +788,9 @@ int setAxisEnableSoftLimitFwd(int axisIndex, int value)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setEnableSoftLimitFwd(value);
+  axes[axisIndex]->getMon()->setEnableSoftLimitFwd(value);
   return 0;
 }
 
@@ -800,9 +799,9 @@ int setAxisSoftLimitPosBwd(int axisIndex, double value)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setSoftLimitBwd(value);
+  axes[axisIndex]->getMon()->setSoftLimitBwd(value);
   return 0;
 }
 
@@ -811,9 +810,9 @@ int setAxisSoftLimitPosFwd(int axisIndex, double value)
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setSoftLimitFwd(value);
+  axes[axisIndex]->getMon()->setSoftLimitFwd(value);
   return 0;
 }
 
@@ -822,9 +821,9 @@ int getAxisSoftLimitPosBwd(int axisIndex, double *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getSoftLimitBwd();
+  *value=axes[axisIndex]->getMon()->getSoftLimitBwd();
   return 0;
 }
 
@@ -833,9 +832,9 @@ int getAxisSoftLimitPosFwd(int axisIndex, double *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getSoftLimitFwd();
+  *value=axes[axisIndex]->getMon()->getSoftLimitFwd();
   return 0;
 }
 
@@ -844,9 +843,9 @@ int getAxisEnableSoftLimitBwd(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getEnableSoftLimitBwd();
+  *value=axes[axisIndex]->getMon()->getEnableSoftLimitBwd();
   return 0;
 }
 
@@ -855,9 +854,9 @@ int getAxisEnableSoftLimitFwd(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getEnableSoftLimitFwd();
+  *value=axes[axisIndex]->getMon()->getEnableSoftLimitFwd();
   return 0;
 }
 
@@ -1023,9 +1022,8 @@ int setAxisGearRatio(int axisIndex,double ratioNum,double ratioDenom)
   LOGINFO4("%s/%s:%d axisIndex=%d num=%lf denom=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, ratioNum,ratioDenom);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->setGearRatio(ratioNum,ratioDenom);
+  return axes[axisIndex]->getExternalTrajIF()->setGearRatio(ratioNum,ratioDenom);
 }
 
 int setAxisEncScaleNum(int axisIndex, double value)
@@ -1056,10 +1054,6 @@ int setAxisEncScaleDenom(int axisIndex, double value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
-  if(axisIndex>=1000){ //Virtual axis
-    return ERROR_MAIN_VIRT_AXIS_FUNCTION_NOT_SUPPORTED;
-  }
-
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
   double temp=0;
@@ -1089,14 +1083,6 @@ int setAxisTrajTransExpr(int axisIndex, char *expr)
 
   std::string tempExpr=expr;
 
-  //Ensure that "OUT" or "IL" variables are defined
-  bool out=tempExpr.find(TRANSFORM_EXPR_OUTPUT_VAR_NAME)!=std::string::npos;
-  bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_VAR_NAME)!=std::string::npos;
-
-  if(!(out && il)){
-    return ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING;
-  }
-
   return axes[axisIndex]->setTrajTransformExpression(tempExpr);
 }
 
@@ -1111,6 +1097,20 @@ int setAxisTransformCommandExpr(int axisIndex,char *expr)
   return axes[axisIndex]->setCommandsTransformExpression(tempExpr);
 }
 
+int setAxisTrajExtVelFilterEnable(int axisIndex, int enable)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)
+
+  ecmcMasterSlaveIF *tempIf=axes[axisIndex]->getExternalTrajIF();
+  if(!tempIf){
+    return ERROR_MAIN_MASTER_SLAVE_IF_NULL;
+  }
+  return tempIf->setEnableVelFilter(enable);
+}
+
 int setAxisEncTransExpr(int axisIndex, char *expr)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, expr);
@@ -1121,15 +1121,21 @@ int setAxisEncTransExpr(int axisIndex, char *expr)
 
   std::string tempExpr=expr;
 
-  //Ensure that "OUT" or "IL" variables are defined
-  bool out=tempExpr.find(TRANSFORM_EXPR_OUTPUT_VAR_NAME)!=std::string::npos;
-  bool il=tempExpr.find(TRANSFORM_EXPR_INTERLOCK_VAR_NAME)!=std::string::npos;
-
-  if(!(out && il)){
-    return ERROR_MAIN_TRANSFORM_OUTPUT_VAR_MISSING;
-  }
-
   return axes[axisIndex]->setEncTransformExpression(tempExpr);
+}
+
+int setAxisEncExtVelFilterEnable(int axisIndex, int enable)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)
+
+  ecmcMasterSlaveIF *tempIf=axes[axisIndex]->getExternalEncIF();
+  if(!tempIf){
+    return ERROR_MAIN_MASTER_SLAVE_IF_NULL;
+  }
+  return tempIf->setEnableVelFilter(enable);
 }
 
 const char* getAxisTrajTransExpr(int axisIndex, int *error)
@@ -1151,12 +1157,12 @@ const char* getAxisTrajTransExpr(int axisIndex, int *error)
     *error=ERROR_MAIN_TRAJECTORY_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getTraj()->getExtInputTransform()==NULL){
+  if(axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()==NULL){
     LOGERR("ERROR: Trajectory transform object NULL.\n");
     *error=ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;
     return "";
   }
-  std::string *sExpr=axes[axisIndex]->getTraj()->getExtInputTransform()->getExpression();
+  std::string *sExpr=axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()->getExpression();
   *error=0;
   return sExpr->c_str();
 }
@@ -1180,12 +1186,12 @@ const char* getAxisEncTransExpr(int axisIndex, int *error)
     *error=ERROR_MAIN_ENCODER_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getEnc()->getExtInputTransform()==NULL){
+  if(axes[axisIndex]->getExternalEncIF()->getExtInputTransform()==NULL){
     LOGERR("ERROR: Encoder transform object NULL.\n");
     *error=ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;
     return "";
   }
-  std::string *sExpr=axes[axisIndex]->getEnc()->getExtInputTransform()->getExpression();
+  std::string *sExpr=axes[axisIndex]->getExternalEncIF()->getExtInputTransform()->getExpression();
   *error=0;
   return sExpr->c_str();
 }
@@ -1274,9 +1280,7 @@ int getAxisTargetPos(int axisIndex,double *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-  *value=axes[axisIndex]->getSeq()->getTargetPos();
-  return 0;
+  return axes[axisIndex]->getPosSet(value);;
 }
 
 int getAxisTargetVel(int axisIndex,double *value)
@@ -1306,10 +1310,8 @@ int getAxisPosSet(int axisIndex,double *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getCurrentPosSet();
-  return 0;
+  return axes[axisIndex]->getPosSet(value);
 }
 
 int getAxisVelFF(int axisIndex,double *value)
@@ -1328,6 +1330,7 @@ int getAxisExecute(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
   *value=axes[axisIndex]->getExecute();
   return 0;
 }
@@ -1355,9 +1358,8 @@ int getAxisGearRatio(int axisIndex,double *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->getGearRatio(value);
+  return axes[axisIndex]-> getExternalTrajIF()->getGearRatio(value);
 }
 
 int getAxisAtHardFwd(int axisIndex,int *value)
@@ -1365,9 +1367,9 @@ int getAxisAtHardFwd(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getHardLimitFwd();
+  *value=axes[axisIndex]->getMon()->getHardLimitFwd();
   return 0;
 }
 
@@ -1376,9 +1378,9 @@ int getAxisAtHardBwd(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getHardLimitBwd();
+  *value=axes[axisIndex]->getMon()->getHardLimitBwd();
   return 0;
 }
 
@@ -1404,7 +1406,7 @@ int getAxisEncPosAct(int axisIndex,double *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-    if(int iRet=axes[axisIndex]->getActPos(value)){
+    if(int iRet=axes[axisIndex]->getPosAct(value)){
       value=0;
       return iRet;
     }
@@ -1417,7 +1419,7 @@ int getAxisEncVelAct(int axisIndex,double *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  if(int iRet=axes[axisIndex]->getActVel(value)){
+  if(int iRet=axes[axisIndex]->getVelAct(value)){
     *value=0;
     return iRet;
   }
@@ -1706,7 +1708,6 @@ int setAxisEncType(int axisIndex, int value)
 
 /****************************************************************************/
 //Drv SET
-
 int setAxisDrvScaleNum(int axisIndex, double value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
@@ -2000,21 +2001,6 @@ int createAxis(int index, int type)
       }
       axes[index]=new ecmcAxisVirt(index,1/MCU_FREQUENCY);
       break;
-
-    case ECMC_AXIS_TYPE_TRAJECTORY:
-      if(axes[index]!=NULL){
-        delete axes[index];
-      }
-      axes[index]=new ecmcAxisTraj(index,1/MCU_FREQUENCY);
-      break;
-
-    case ECMC_AXIS_TYPE_ENCODER:
-      if(axes[index]!=NULL){
-        delete axes[index];
-      }
-      axes[index]=new ecmcAxisEncoder(index,1/MCU_FREQUENCY);
-      break;
-
     default:
       return ERROR_MAIN_AXIS_TYPE_UNKNOWN;
   }
@@ -2426,7 +2412,8 @@ int setDiagAxisEnable(int value)
 {
   LOGINFO4("%s/%s:%d enable=%d \n",__FILE__, __FUNCTION__, __LINE__,value);
 
-  enableAxisDiag=value;  //Disabled if 0
+  WRITE_DIAG_BIT(FUNCTION_HW_MOTOR_AXIS_DIAGNOSTICS_BIT,value);
+
   return 0;
 }
 
@@ -2434,7 +2421,8 @@ int setEnableTimeDiag(int value)
 {
   LOGINFO4("%s/%s:%d enable=%d \n",__FILE__, __FUNCTION__, __LINE__,value);
 
-  enableTimeDiag=value;  //Disabled if 0
+  WRITE_DIAG_BIT(FUNCTION_TIMING_DIAGNOSTICS_BIT,value);
+
   return 0;
 }
 
@@ -2550,7 +2538,8 @@ int setStorageEnablePrintouts(int indexStorage,int enable)
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
-  return dataStorages[indexStorage]->setEnablePrintOuts(enable);
+  WRITE_DIAG_BIT(FUNCTION_DATA_STORAGE_DIAGNOSTICS_BIT,enable);
+  return 0;
 }
 
 int printStorageBuffer(int indexStorage)
@@ -2622,7 +2611,8 @@ int setEventEnablePrintouts(int indexEvent,int enable)
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  return events[indexEvent]->setEnablePrintOuts(enable);
+  WRITE_DIAG_BIT(FUNCTION_EVENTS_DIAGNOSTICS_BIT,enable);
+  return 0;
 }
 
 int triggerEvent(int indexEvent)
@@ -2693,7 +2683,8 @@ int setRecorderEnablePrintouts(int indexRecorder,int enable)
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  return dataRecorders[indexRecorder]->setEnablePrintOuts(enable);
+  WRITE_DIAG_BIT(FUNCTION_DATA_RECORDER_DIAGNOSTICS_BIT,enable);
+  return 0;
 }
 
 int setRecorderExecute(int indexRecorder,int execute)
@@ -2863,7 +2854,8 @@ int setCommandListEnablePrintouts(int indexCommandList,int enable)
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
 
-  return commandLists[indexCommandList]->setEnablePrintOuts(enable);
+  WRITE_DIAG_BIT(FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT,enable);
+  return 0;
 }
 
 int addCommandListCommand(int indexCommandList,char *expr)

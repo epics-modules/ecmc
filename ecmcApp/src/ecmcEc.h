@@ -18,6 +18,7 @@
 #include "ecmcEcSDO.h"
 #include "ecmcEcSlave.h"
 #include "ecmcError.h"
+#include "cmd.h" //Logging macros
 
 //EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
@@ -88,7 +89,6 @@ public:
   int printTimingInformation();
   int statusOK();
   int setDomainFailedCyclesLimitInterlock(int cycles);
-  int setEnablePrintOuts(bool enable);
   void printStatus();
   int reset();
 private:
@@ -120,7 +120,6 @@ private:
   int domainNotOKCounter_;
   int domainNotOKCounterMax_;
   int domainNotOKCyclesLimit_;
-  int enableDiagnosticPrintouts_;
   bool inStartupPhase_;
 };
 #endif /* ECMCEC_H_ */

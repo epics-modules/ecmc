@@ -30,12 +30,38 @@ extern "C" {
 #define PRINT_STDOUT_BIT5() (debug_print_flags & (1<<5))
 #define PRINT_STDOUT_BIT6() (debug_print_flags & (1<<6))
 #define PRINT_STDOUT_BIT7() (debug_print_flags & (1<<7))
+#define PRINT_STDOUT_BIT8() (debug_print_flags & (1<<8))
+#define PRINT_STDOUT_BIT9() (debug_print_flags & (1<<9))
+#define PRINT_STDOUT_BIT10() (debug_print_flags & (1<<10))
+#define PRINT_STDOUT_BIT11() (debug_print_flags & (1<<11))
+#define PRINT_STDOUT_BIT12() (debug_print_flags & (1<<12))
+#define PRINT_STDOUT_BIT13() (debug_print_flags & (1<<13))
+#define PRINT_STDOUT_BIT14() (debug_print_flags & (1<<14))
+#define PRINT_STDOUT_BIT15() (debug_print_flags & (1<<15))
 
 #define DIE_ON_ERROR_BIT0() (die_on_error_flags & 1)
 #define DIE_ON_ERROR_BIT1() (die_on_error_flags & (1<<1))
 
+#define WRITE_DIAG_BIT(bitnumber,value)            \
+do {                                               \
+  if(value){                                       \
+    debug_print_flags|= 1<<bitnumber;              \
+  }                                                \
+  else{                                            \
+    debug_print_flags &= ~(1<<bitnumber);          \
+  }                                                \
+} while (0)
+
 #define FUNCTION_CALL_DIAGNOSTICS_BIT 4
-#define FUNCTION_HW_MOTOR_DIAGNOSTICS_BIT 5
+#define FUNCTION_ETHERCAT_DIAGNOSTICS_BIT 5
+#define FUNCTION_CMD_EAT_DIAGNOSTICS_BIT 6
+#define FUNCTION_AXIS_DIAGNOSTICS_BIT 7
+#define FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT 8
+#define FUNCTION_DATA_STORAGE_DIAGNOSTICS_BIT 9
+#define FUNCTION_EVENTS_DIAGNOSTICS_BIT 10
+#define FUNCTION_DATA_RECORDER_DIAGNOSTICS_BIT 11
+#define FUNCTION_HW_MOTOR_AXIS_DIAGNOSTICS_BIT 12
+#define FUNCTION_TIMING_DIAGNOSTICS_BIT 13
 
 #define LOGINFO(fmt, ...)                        \
 {                                                \
@@ -60,6 +86,46 @@ do {                                             \
 #define LOGINFO7(fmt, ...)                       \
 do {                                             \
   if (PRINT_STDOUT_BIT7()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+} while (0)
+
+#define LOGINFO8(fmt, ...)                       \
+do {                                             \
+  if (PRINT_STDOUT_BIT8()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+} while (0)
+
+#define LOGINFO9(fmt, ...)                       \
+do {                                             \
+  if (PRINT_STDOUT_BIT9()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+} while (0)
+
+#define LOGINFO10(fmt, ...)                       \
+do {                                             \
+  if (PRINT_STDOUT_BIT10()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+} while (0)
+
+#define LOGINFO11(fmt, ...)                       \
+do {                                             \
+  if (PRINT_STDOUT_BIT11()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+} while (0)
+
+#define LOGINFO12(fmt, ...)                       \
+do {                                             \
+  if (PRINT_STDOUT_BIT12()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+} while (0)
+
+#define LOGINFO13(fmt, ...)                       \
+do {                                             \
+  if (PRINT_STDOUT_BIT13()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+} while (0)
+
+#define LOGINFO14(fmt, ...)                       \
+do {                                             \
+  if (PRINT_STDOUT_BIT14()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+} while (0)
+
+#define LOGINFO15(fmt, ...)                       \
+do {                                             \
+  if (PRINT_STDOUT_BIT15()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 

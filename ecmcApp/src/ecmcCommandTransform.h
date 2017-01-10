@@ -13,10 +13,20 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "cmd.h"
 
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
-#include "ecmcTransform.h"
+
+#define ERROR_TRANSFORM_EXPR_NOT_COMPILED 0x30000
+#define ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE 0x30001
+#define ERROR_TRANSFORM_COMPILE_ERROR 0x30002
+#define ERROR_TRANSFORM_INPUT_DATA_SOURCE_NULL 0x30003
+#define ERROR_TRANSFORM_ERROR_ADD_VARIABLE 0x30004
+#define ERROR_TRANSFORM_INPUT_DATA_SOURCE_COUNT_ZERO 0x30005
+#define ERROR_TRANSFORM_NOT_ENABLED 0x30006
+#define ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED 0x30007
+
 
 typedef exprtk::symbol_table<double> symbol_table_double;
 typedef exprtk::expression<double>   expression_double;

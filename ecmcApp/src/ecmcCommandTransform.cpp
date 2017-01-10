@@ -1,5 +1,5 @@
 /*
- * cMcuCommandTransform.cpp
+ *  ecmcCommandTransform.cpp
  *
  *  Created on: April 11, 2016
  *      Author: anderssandstrom
@@ -7,7 +7,7 @@
 
 #include "ecmcCommandTransform.h"
 
-ecmcCommandTransform::  ecmcCommandTransform(int commandCount, int elementsPerCommand)
+ecmcCommandTransform::ecmcCommandTransform(int commandCount, int elementsPerCommand)
 {
   initVars();
   commandCount_=commandCount;
@@ -19,8 +19,8 @@ ecmcCommandTransform::  ecmcCommandTransform(int commandCount, int elementsPerCo
   }
   catch(std::exception &e)
   {
-    setErrorID(ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
-    printf("Command Transform. Exception in allocation of vector: %s. Error number: %x\n",e.what(),ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
+    LOGINFO7("%s/%s:%d: INFO: Exception in allocation of vector: %s. Error number: %x\n",__FILE__, __FUNCTION__, __LINE__,e.what(),ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
   }
 
   for(int i=0;i<elementsPerCommand*commandCount;i++){
@@ -46,7 +46,7 @@ int ecmcCommandTransform::addCmdPrefix(std::string commandPrefix, int commandInd
     char varNameBuffer [100];
     snprintf ( varNameBuffer, 100,"%s%d",commandPrefix.c_str(),i);
     if(!symbolTable_.add_variable(varNameBuffer,outputArray_[i+commandIndex*elementsPerCommand_])){
-      return setErrorID(ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
     }
   }
   return 0;
@@ -59,7 +59,7 @@ int ecmcCommandTransform::setExpression(std::string expressionString)
 
   int errorCode=compile();
   if(errorCode){
-    return setErrorID(errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
   return 0;
@@ -75,8 +75,8 @@ int ecmcCommandTransform::compile()
   expression_.register_symbol_table(symbolTable_);
   if(!parser_.compile(expressionString_,expression_)){
     compiled_=false;
-    printf("*******TRANSFORM COMPILE ERROR: %s\n",parser_.error().c_str());
-    return setErrorID(ERROR_TRANSFORM_COMPILE_ERROR);
+    LOGINFO7("%s/%s:%d: Error: Transform compile error: %s.\n",__FILE__, __FUNCTION__, __LINE__,parser_.error().c_str());
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_COMPILE_ERROR);
   }
   compiled_=true;
   return 0;
@@ -96,7 +96,7 @@ int ecmcCommandTransform::refresh()
 int ecmcCommandTransform::validate()
 {
   if(!compiled_){
-    return setErrorID(ERROR_TRANSFORM_COMPILE_ERROR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_COMPILE_ERROR);
   }
   return 0;
 }
@@ -105,7 +105,7 @@ int ecmcCommandTransform::setData(double data,int commandIndex,int index)
 {
   int totalIndex=commandIndex*elementsPerCommand_+index;
   if(commandIndex>=commandCount_ || commandIndex<0 || index>=elementsPerCommand_ || index<0 || totalIndex>=(int)outputArray_.size()){
-    return setErrorID(ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE);
   }
 
   inputArray_[totalIndex]=data;
@@ -117,7 +117,7 @@ double ecmcCommandTransform::getData(int commandIndex,int index)
 {
   int totalIndex=commandIndex*elementsPerCommand_+index;
   if(commandIndex>=commandCount_ || commandIndex<0 || index>=elementsPerCommand_ || index<0 || totalIndex>=(int)outputArray_.size()){
-    setErrorID(ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE);
     return 0;
   }
 
@@ -128,7 +128,7 @@ bool ecmcCommandTransform::getDataChanged(int commandIndex,int index)
 {
   int totalIndex=commandIndex*elementsPerCommand_+index;
   if(commandIndex>=commandCount_ || commandIndex<0 || index>=elementsPerCommand_ || index<0 || totalIndex>=(int)outputArray_.size()){
-    return setErrorID(ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE);
   }
 
   return outputArray_[totalIndex]!=inputArray_[totalIndex];

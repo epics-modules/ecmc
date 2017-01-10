@@ -41,7 +41,6 @@ public:
   int validate();
   void setInStartupPhase(bool startup);
   void printStatus();
-  int setEnablePrintOuts(bool enable);
   int callConsumers(int masterOK);
   int triggerEvent(int masterOK);
   int arm();
@@ -60,7 +59,6 @@ private:
   uint64_t triggerOld_;
   triggerEdgeType triggerEdge_;
   int inStartupPhase_;
-  int enableDiagnosticPrintouts_;
   int armed_;
   int index_;
   bool eventTriggered_;

@@ -902,13 +902,7 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetEnableFuncCallDiag(int nEnable);*/
   nvals = sscanf(myarg_1, "SetEnableFuncCallDiag(%d)",&iValue);
   if (nvals == 1) {
-    if(iValue){
-      debug_print_flags|= 1<<FUNCTION_CALL_DIAGNOSTICS_BIT; //Fourth bit set (for use LOGINFO4)
-    }
-    else{
-      debug_print_flags &= ~(1<<FUNCTION_CALL_DIAGNOSTICS_BIT); //Fourth bit reset (for use LOGINFO4)
-    }
-    return 0;
+    return setEnableFunctionCallDiag(iValue);
   }
 
   /*int Cfg.SetTraceMask(int mask);*/
@@ -929,6 +923,18 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "SetAxisTrajStartPos(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
     return setAxisTrajStartPos(iValue,dValue);;
+  }
+
+  /*int Cfg.SetAxisTrajExtVelFilterEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1, "SetAxisTrajExtVelFilterEnable(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisTrajExtVelFilterEnable(iValue,iValue2);;
+  }
+
+  /*int Cfg.SetAxisEncExtVelFilterEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1, "SetAxisEncExtVelFilterEnable(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisEncExtVelFilterEnable(iValue,iValue2);;
   }
 
   char cExprBuffer[4096];

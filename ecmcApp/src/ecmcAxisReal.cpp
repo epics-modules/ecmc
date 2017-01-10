@@ -7,31 +7,27 @@
 
 #include "ecmcAxisReal.h"
 
-ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime)
+ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
   initVars();
-  axisID_=axisID;
   axisType_=ECMC_AXIS_TYPE_REAL;
-  sampleTime_=sampleTime;
-  enc_=new ecmcEncoder(sampleTime_);
-  traj_=new ecmcTrajectory(sampleTime_);
-  mon_ =new ecmcMonitor();
+
   currentDriveType_=ECMC_STEPPER;
   drv_=new ecmcDriveStepper();
+  if(!drv_){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
+  }
   cntrl_=new ecmcPIDController(sampleTime_);
+  if(!cntrl_){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_CNTRL_OBJECT_NULL);
+  }
 
   seq_.setCntrl(cntrl_);
-  seq_.setTraj(traj_);
-  seq_.setMon(mon_);
-  seq_.setEnc(enc_);
 }
 
 ecmcAxisReal::~ecmcAxisReal()
 {
   delete cntrl_;
-  delete enc_;
-  delete traj_;
-  delete mon_;
   delete drv_;
 }
 
@@ -44,6 +40,7 @@ void ecmcAxisReal::initVars()
   enabledOld_=false;
   enableCmdOld_=false;
   executeCmdOld_=false;
+  trajInterlockOld=true;
 }
 
 void ecmcAxisReal::execute(bool masterOK)
@@ -60,40 +57,84 @@ void ecmcAxisReal::execute(bool masterOK)
 
     //Read from hardware
     mon_->readEntries();
-    enc_->readEntries();
+    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      enc_->readEntries();
+    }
     drv_->readEntries();
-    double encActPos=enc_->getActPos();
-    traj_->setHardLimitFwd(mon_->getHardLimitFwd());
-    traj_->setHardLimitBwd(mon_->getHardLimitBwd());
-    traj_->setStartPos(encActPos);
 
-    double trajCurrSet=traj_->getNextPosSet();
+    refreshExternalInputSources();
 
-    seq_.setHomeSensor(mon_->getHomeSwitch());
+    //Trajectory (External or internal)
+    if((externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL)/* || (externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL && mon_->getTrajInterlock())*/){
+      currentPositionSetpoint_=traj_->getNextPosSet();
+      currentVelocitySetpoint_=traj_->getVel();
+    }
+    else{ //External source (Transform)
+      currentPositionSetpoint_=externalTrajectoryPosition_;
+      currentVelocitySetpoint_=externalTrajectoryVelocity_;
+    }
+
+    //Encoder (External or internal)
+    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
+      currentPositionActual_=enc_->getActPos();
+      currentVelocityActual_=enc_->getActVel();
+
+    }
+    else{ //External source (Transform)
+      currentPositionActual_=externalEncoderPosition_;
+      currentVelocityActual_=externalEncoderVelocity_;
+    }
+
+    mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
+
+    traj_->setStartPos(currentPositionSetpoint_);
+    mon_->setCurrentPosSet(currentPositionSetpoint_);
+    mon_->setVelSet(currentVelocitySetpoint_);
+    mon_->setActPos(currentPositionActual_);
+    mon_->setActVel(currentVelocityActual_);
+    mon_->setAxisErrorStateInterlock(getError());
+
     seq_.execute();
 
-    mon_->setActPos(encActPos);
-    mon_->setCurrentPosSet(trajCurrSet);
-    mon_->setActVel(enc_->getActVel());
-    mon_->setTargetVel(traj_->getVel());
     mon_->setCntrlOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
-    traj_->setInterlock(mon_->getTrajInterlock()); //TODO consider change logic so high interlock is OK and low not
+
+    //Switch to internal trajectory temporary if interlock
+    if(mon_->getTrajInterlock() && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
+      traj_->setInterlock(mon_->getTrajInterlock());
+      traj_->setStartPos(currentPositionActual_);
+      traj_->initStopRamp(currentPositionActual_,currentVelocityActual_,0);
+      currentPositionSetpoint_=traj_->getNextPosSet();
+      currentVelocitySetpoint_=traj_->getVel();
+      mon_->setCurrentPosSet(currentPositionSetpoint_);
+      mon_->setVelSet(currentVelocitySetpoint_);
+    }
+
+    traj_->setInterlock(mon_->getTrajInterlock());
     drv_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     cntrl_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
     drv_->setAtTarget(mon_->getAtTarget());  //Reduce torque
 
-    if(getEnable() && masterOK && !getError()){
-      drv_->setVelSet(cntrl_->control(trajCurrSet,encActPos,traj_->getVel())); //Actual control
+    if(mon_->getDriveInterlock() && !traj_->getBusy()){
+      cntrl_->reset();
     }
+
+    if(getEnable() && masterOK /*&& !getError()*/){
+      mon_->setEnable(true);
+      drv_->setVelSet(cntrl_->control(currentPositionSetpoint_,currentPositionActual_,currentVelocitySetpoint_)); //Actual control
+    }
+
     else{
+      mon_->setEnable(false);
       if(getExecute()){
 	setExecute(false);
-	traj_->setStartPos(encActPos);
       }
+      currentPositionSetpoint_=currentPositionActual_;
+      traj_->setStartPos(currentPositionSetpoint_);
+
       if(enabledOld_ && !drv_->getEnabled() && enableCmdOld_){
 	  setEnable(false);
-	  setErrorID(ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
+	  setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
       }
       drv_->setVelSet(0);
       cntrl_->reset();
@@ -106,10 +147,11 @@ void ecmcAxisReal::execute(bool masterOK)
       cntrl_->reset();
       drv_->setVelSet(0);
       drv_->setInterlock(true);
-      setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+      setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
     }
 
     //Write to hardware
+    refreshExternalOutputSources();
     drv_->writeEntries();
   }
   else if(operationMode_==ECMC_MODE_OP_MAN){  //MANUAL MODE: Raw Output..
@@ -124,17 +166,18 @@ void ecmcAxisReal::execute(bool masterOK)
   enabledOld_=drv_->getEnabled();
   enableCmdOld_=getEnable();
   executeCmdOld_=getExecute();
+  trajInterlockOld=mon_->getTrajInterlock();
 }
 
 int ecmcAxisReal::setExecute(bool execute)
 {
   if(execute && !getEnable()){
-    return setErrorID(ERROR_AXIS_NOT_ENABLED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED);
   }
 
   int error=seq_.setExecute(execute);
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   return setExecute_Transform();
@@ -156,47 +199,18 @@ int ecmcAxisReal::setEnable(bool enable)
     return getErrorID();
   }
 
-  traj_->setEnable(enable);
-  cntrl_->setEnable(enable);
-  mon_->setEnable(enable);
-  int error=drv_->setEnable(enable);
+  int error=setEnableLocal(enable);
   if(error){
-    return setErrorID(error);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
+
+  //Cascade commands via command transformation
   return setEnable_Transform();
 }
 
 bool ecmcAxisReal::getEnable()
 {
-  return drv_->getEnable() && drv_->getEnabled() && traj_->getEnable() && cntrl_->getEnable() && mon_->getEnable();
-}
-
-int ecmcAxisReal::getErrorID()
-{
-  //if(ecmcError::getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
-  if(ecmcError::getError()){
-    return ecmcError::getErrorID();
-  }
-
-  if(mon_->getError()){
-    return setErrorID(mon_->getErrorID());
-  }
-  if(enc_->getError()){
-    return setErrorID(enc_->getErrorID());
-  }
-  if(drv_->getError()){
-    return setErrorID(drv_->getErrorID());
-  }
-  if(traj_->getError()){
-    return setErrorID(traj_->getErrorID());
-  }
-  if(cntrl_->getError()){
-    return setErrorID(cntrl_->getErrorID());
-  }
-  if(seq_.getErrorID()){
-    return setErrorID(seq_.getErrorID());
-  }
-  return ecmcError::getErrorID();
+  return drv_->getEnable() && drv_->getEnabled() && traj_->getEnable() && cntrl_->getEnable() /*&& mon_->getEnable()*/;
 }
 
 int ecmcAxisReal::setOpMode(operationMode mode)
@@ -215,97 +229,10 @@ operationMode ecmcAxisReal::getOpMode()
   return operationMode_;
 }
 
-int ecmcAxisReal::getActPos(double *pos)
-{
-  *pos=enc_->getActPos();
-  return 0;
-}
-
-int ecmcAxisReal::getActVel(double *vel)
-{
-  *vel=enc_->getActVel();
-  return 0;
-}
-
-int ecmcAxisReal::getAxisHomed(bool *homed)
-{
-  *homed=enc_->getHomed();
-  return 0;
-}
-
-int ecmcAxisReal::getEncScaleNum(double *scale)
-{
-  *scale=enc_->getScaleNum();
-  return 0;
-}
-
-int ecmcAxisReal::setEncScaleNum(double scale)
-{
-  enc_->setScaleNum(scale);
-  return 0;
-}
-
-int ecmcAxisReal::getEncScaleDenom(double *scale)
-{
-  *scale=enc_->getScaleDenom();
-  return 0;
-}
-
-int ecmcAxisReal::setEncScaleDenom(double scale)
-{
-  enc_->setScaleDenom(scale);
-  return 0;
-}
-
 int ecmcAxisReal::getCntrlError(double* error)
 {
   *error=cntrl_->getCntrlError();
   return 0;
-}
-
-int ecmcAxisReal::getEncPosRaw(int64_t *rawPos)
-{
-  *rawPos=enc_->getRawPos();
-  return 0;
-}
-
-int ecmcAxisReal::setCommand(motionCommandTypes command)
-{
-  seq_.setCommand(command);
-  return 0;
-}
-
-int ecmcAxisReal::setCmdData(int cmdData)
-{
-  seq_.setCmdData(cmdData);
-  return 0;
-}
-
-void ecmcAxisReal::errorReset()
-{
-  traj_->errorReset();
-  enc_->errorReset();
-  mon_->errorReset();
-  drv_->errorReset();
-  cntrl_->errorReset();
-  seq_.errorReset();
-  ecmcError::errorReset();
-}
-
-motionCommandTypes ecmcAxisReal::getCommand()
-{
-  return seq_.getCommand();
-}
-
-int ecmcAxisReal::getCmdData()
-{
-  return seq_.getCmdData();
-}
-
-
-ecmcEncoder *ecmcAxisReal::getEnc()
-{
-  return enc_;
 }
 
 ecmcPIDController *ecmcAxisReal::getCntrl()
@@ -318,52 +245,37 @@ ecmcDriveBase *ecmcAxisReal::getDrv()
   return drv_;
 }
 
-ecmcTrajectory *ecmcAxisReal::getTraj()
-{
-  return traj_;
-}
-
-ecmcMonitor *ecmcAxisReal::getMon()
-{
-  return mon_;
-}
-
-ecmcSequencer *ecmcAxisReal::getSeq()
-{
-  return &seq_;
-}
-
 void ecmcAxisReal::printStatus()
 {
   if(drv_->getScale()!=0){
-    printf("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
+    LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
         axisID_,
-        traj_->getCurrentPosSet(),
-        enc_->getActPos(),
+        currentPositionSetpoint_,
+        currentPositionActual_,
         cntrl_->getCntrlError(),
         cntrl_->getOutTot(),
-        traj_->getTargetPos()-enc_->getActPos(),
-        enc_->getActVel(),
-        traj_->getVel(),
+        currentPositionSetpoint_ -currentPositionActual_,
+        currentVelocityActual_,
+        currentVelocitySetpoint_,
         cntrl_->getOutFFPart()/drv_->getScale(),
         drv_->getVelSetRaw(),
         getErrorID());
   }
   else{
-    printf("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
+      LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
         axisID_,
-        traj_->getCurrentPosSet(),
-        enc_->getActPos(),
+        currentPositionSetpoint_,
+        currentPositionActual_,
         cntrl_->getCntrlError(),
         cntrl_->getOutTot(),
-        traj_->getTargetPos()-enc_->getActPos(),
-        enc_->getActVel(),
-        traj_->getVel(),
+        currentPositionSetpoint_ -currentPositionActual_,
+        currentVelocityActual_,
+        currentVelocitySetpoint_,
         0.0,
         drv_->getVelSetRaw(),
         getErrorID());
   }
-  printf("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
+  LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
       getEnable(),
       traj_->getExecute(),
       seq_.getBusy(),
@@ -377,55 +289,60 @@ void ecmcAxisReal::printStatus()
 
 int ecmcAxisReal::validate()
 {
-  int errorRet=0;
+  int error=0;
   if(enc_==NULL){
-    return setErrorID(ERROR_AXIS_ENC_OBJECT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  errorRet=enc_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=enc_->validate();
+  if(error){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   if(traj_==NULL){
-    return setErrorID(ERROR_AXIS_TRAJ_OBJECT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_OBJECT_NULL);
   }
 
-  errorRet=traj_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=traj_->validate();
+  if(error){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   if(drv_==NULL){
-    return setErrorID(ERROR_AXIS_DRV_OBJECT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
   }
 
-  errorRet=drv_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=drv_->validate();
+  if(error){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   if(mon_==NULL){
-    return setErrorID(ERROR_AXIS_MON_OBJECT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MON_OBJECT_NULL);
   }
 
-  errorRet=mon_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=mon_->validate();
+  if(error){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   if(cntrl_==NULL){
-    return setErrorID(ERROR_AXIS_CNTRL_OBJECT_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_CNTRL_OBJECT_NULL);
   }
 
-  errorRet=cntrl_->validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=cntrl_->validate();
+  if(error){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
-  errorRet=seq_.validate();
-  if(errorRet){
-    return setErrorID(errorRet);
+  error=seq_.validate();
+  if(error){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
+  }
+
+  error=ecmcAxisBase::validateBase();
+  if(error){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   return 0;

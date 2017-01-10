@@ -25,7 +25,7 @@ int ecmcDriveStepper::validate()
 
   int errorCode=ecmcDriveBase::validate();
   if(errorCode){
-    return setErrorID(errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
   return 0;
