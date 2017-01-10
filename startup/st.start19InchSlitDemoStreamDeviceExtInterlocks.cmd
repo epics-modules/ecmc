@@ -1,8 +1,7 @@
 require asyn,4.27
 require streamdevice
-require motor,6.10.5-ESS
 require ecmc
-
+#require motor,6.10.5-ESS
 
 ## Configure devices
 drvAsynECMCPortConfigure("MC_CPU1", 0, 0, 0)
@@ -80,9 +79,8 @@ ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(8,0x2,0x1b7d3052,2,3,0x1a03
 ecmcConfigController "MCU1", "Cfg.EcSlaveConfigDC(8,0x300,1000000,20,1000000,20)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8010,0x1,1000,2)"
 ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x5,1,1)"
-#NO hardware enable on input 1 of EL7037
-ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x32,0,1)"
-
+#test hardware enable on input 1 of EL7037
+ecmcConfigController "MCU1", "Cfg.EcAddSdo(8,0x8012,0x32,1,1)"
 
 ecmcConfigController "MCU1", "Cfg.EcSelectReferenceDC(0,8)"
 ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
@@ -122,7 +120,6 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableLagMon(1,0)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(1,1000)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(1,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(1,200)"
-
 ecmcConfigController "MCU1", "Cfg.CreateAxis(2,2)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(2,0)"
 ecmcConfigController "MCU1", "Main.M2.fAcceleration=20"
@@ -254,6 +251,10 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(4,8000)"
 #NOT stable yet
 #ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutIncreaseAtLimitMon(4,1)"
 
+#Test external interlock for axis 4
+ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(0,INPUT_7,4,3,0)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableExtHWInterlock(4,1)"
+
 ecmcConfigController "MCU1", "Cfg.CreateAxis(5,2)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(5,0)"
 ecmcConfigController "MCU1", "Main.M5.fAcceleration=20"
@@ -310,7 +311,7 @@ ecmcConfigController "MCU1", "Cfg.SetAxisEnableCommandsTransform(5,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTransformCommandExpr(5)=ex1:=ex5#ex2:=ex5#en1:=en5#en2:=en5#"
 ecmcConfigController "MCU1", "Cfg.SetDiagAxisIndex(4)"
 ecmcConfigController "MCU1", "Cfg.SetDiagAxisFreq(10)"
-ecmcConfigController "MCU1", "Cfg.SetDiagAxisEnable(0)"
+ecmcConfigController "MCU1", "Cfg.SetDiagAxisEnable(1)"
 
 #**************Event handler
 ecmcConfigController "MCU1", "Cfg.CreateEvent(0)"
@@ -366,6 +367,7 @@ ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
 #Go to runtime
 ecmcConfigController "MCU1", "Cfg.SetAppMode(1)"
 
+
 #############################################################
 
 #Parameter 3 ecmcCreateAxis
@@ -373,41 +375,53 @@ ecmcConfigController "MCU1", "Cfg.SetAppMode(1)"
 #define AMPLIFIER_ON_FLAG_WHEN_HOMING  (1<<1)
 #define AMPLIFIER_ON_FLAG_USING_CNEN   (1<<2)
 
-ecmcCreateAxis("MCU1", "1", "6", "")
-ecmcCreateAxis("MCU1", "2", "6", "")
-ecmcCreateAxis("MCU1", "3", "6", "")
-ecmcCreateAxis("MCU1", "4", "6", "")
-ecmcCreateAxis("MCU1", "5", "6", "")
+#ecmcCreateAxis("MCU1", "1", "6", "")
+#ecmcCreateAxis("MCU1", "2", "6", "")
+#ecmcCreateAxis("MCU1", "3", "6", "")
+#ecmcCreateAxis("MCU1", "4", "6", "")
 
-dbLoadTemplate("SlitX-xp.substitutions")
-dbLoadTemplate("SlitX-xp-extra.substitutions")
-dbLoadTemplate("SlitX-xg.substitutions")
-dbLoadTemplate("SlitX-xg-extra.substitutions")
-dbLoadTemplate("SlitX-xl.substitutions")
-dbLoadTemplate("SlitX-xl-extra.substitutions")
-dbLoadTemplate("SlitX-xr.substitutions")
-dbLoadTemplate("SlitX-xr-extra.substitutions")
-dbLoadTemplate("SlitX-master.substitutions")
-dbLoadTemplate("SlitX-master-extra.substitutions")
+#ecmcCreateAxis("MCU1", "1", "6", "cfgFile=SlitX-xp.cfg")
+#ecmcCreateAxis("MCU1", "2", "6", "cfgFile=SlitX-xg.cfg")
+#ecmcCreateAxis("MCU1", "3", "6", "cfgFile=SlitX-xl.cfg")
+#ecmcCreateAxis("MCU1", "4", "6", "cfgFile=SlitX-xr.cfg")
 
+
+#dbLoadTemplate("SlitX-xp.substitutions")
+#dbLoadTemplate("SlitX-xp-extra.substitutions")
+#dbLoadTemplate("SlitX-xg.substitutions")
+#dbLoadTemplate("SlitX-xg-extra.substitutions")
+#dbLoadTemplate("SlitX-xl.substitutions")
+#dbLoadTemplate("SlitX-xl-extra.substitutions")
+#dbLoadTemplate("SlitX-xr.substitutions")
+#dbLoadTemplate("SlitX-xr-extra.substitutions")
 
 #Stream device
 epicsEnvSet "P" "$(P=I:)" 
 epicsEnvSet "R" "$(R=Test)" 
 
   #First motion axis: Virtual slit position	
+  dbLoadRecords("DUT_AxisStatus_v0_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=1,VN=stAxisStatus")
+  dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=1,VN=")
   dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=1")
 
   #Second motion axis: Virtual slit gap 
+  dbLoadRecords("DUT_AxisStatus_v0_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=2,VN=stAxisStatus")
+  dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=2,VN=")
   dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=2")
 
   #Third motion axis: Real axis bottom 
+  dbLoadRecords("DUT_AxisStatus_v0_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=3,VN=stAxisStatus")
+  dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=3,VN=")
   dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=3")
 
   #Forth motion axis: Real axis bottom 
+  dbLoadRecords("DUT_AxisStatus_v0_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=4,VN=stAxisStatus")
+  dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=4,VN=")
   dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=4")
 
   #Fifth motion axis: Virtual axis for feed setpoint to axis 1 and 2 
+  dbLoadRecords("DUT_AxisStatus_v0_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=5,VN=stAxisStatus")
+  dbLoadRecords("FB_DriveVirtual_v1_01.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,P=,VP=Main.M,VI=5,VN=")
   dbLoadRecords("expression.db", "P=$(P),R=$(R),PORT=MC_CPU1,A=0,Index=5")
 
   #General 

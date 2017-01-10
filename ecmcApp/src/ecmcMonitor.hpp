@@ -50,7 +50,6 @@ public:
   void setEnableLagMon(bool enable);
   bool getEnableLagMon();
   bool getHomeSwitch();
-  //void setHomeSwitch(bool switchState);
   void setActPos(double pos);
   void setTargetPos(double pos);
   double getTargetPos();

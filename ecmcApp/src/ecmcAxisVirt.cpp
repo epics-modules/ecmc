@@ -215,7 +215,7 @@ void ecmcAxisVirt::printStatus()
       seq_.getBusy(),
       seq_.getSeqState(),
       mon_->getAtTarget(),
-      traj_->getInterlockStatus(),
+      mon_->getTrajInterlock(),
       mon_->getHardLimitFwd(),
       mon_->getHardLimitBwd(),
       mon_->getHomeSwitch());
