@@ -52,6 +52,29 @@
 #define ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED 0x14319
 #define ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED 0x1431A
 
+typedef struct {
+    int axisID;
+    double positionSetpoint;
+    double positionActual;
+    double positionError;
+    double cntrlError;
+    double cntrlOutput;
+    double velocityActual;
+    double velocitySetpoint;
+    int velocitySetpointRaw;
+    double velocityFFRaw;
+    int   error;
+    bool enable;
+    bool execute;
+    bool busy;
+    int seqState;
+    bool atTarget;
+    interlockTypes trajInterlock;
+    bool limitFwd;
+    bool limitBwd;
+    bool homeSwitch;
+} ecmcAxisStatusPrintOutType;
+
 class ecmcAxisBase : public ecmcError
 {
 public:
@@ -123,6 +146,7 @@ protected:
   int setExecute_Transform();
   int refreshExternalInputSources();
   int refreshExternalOutputSources();
+  void printAxisStatus(ecmcAxisStatusPrintOutType data);
   int axisID_;
   bool reset_;
   axisType axisType_;
@@ -151,6 +175,10 @@ protected:
   ecmcMonitor *mon_;
   ecmcEncoder *enc_;
   ecmcSequencer seq_;
+
+  ecmcAxisStatusPrintOutType printOutData_;
+  ecmcAxisStatusPrintOutType printOutDataOld_;
+  int printHeaderCounter_;
 };
 
 #endif /* ECMCAXISBASE_H_ */
