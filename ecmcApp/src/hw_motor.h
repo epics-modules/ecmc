@@ -2034,6 +2034,19 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex, int value);
  */
 int setAxisMonVelDiffDriveILDelay(int axisIndex, int value);
 
+/** \breif Set maximum allowed difference between setpoint speed and
+ * actual speed±n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value velocity difference.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set maximum difference 0.5 for axis 2.\n
+ * "Cfg.SetAxisMonVelDiffTol(2,0.5)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisMonVelDiffTol(int axisIndex, double value);
+
 /** \breif Enable motion axis interlock from EtherCAT entry.\n
  *
  *

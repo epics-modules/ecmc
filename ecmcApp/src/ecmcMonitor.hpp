@@ -83,6 +83,7 @@ public:
   bool getEnableVelocityDiffMon();
   int setVelDiffTimeTraj(int time);
   int setVelDiffTimeDrive(int time);
+  int setVelDiffMaxDifference(double velo);
   int setCntrlKff(double kff); //Used ensure that motion is reasonable in relation to controller output
   int setEnableSoftLimitBwd(bool enable);
   int setEnableSoftLimitFwd(bool enable);
@@ -168,6 +169,7 @@ private:
   int velocityDiffCounterNeg_;
   int velDiffTimeTraj_;
   int velDiffTimeDrive_;
+  double velDiffMaxDiff_;
 
   double cntrlKff_;
   double softLimitBwd_;

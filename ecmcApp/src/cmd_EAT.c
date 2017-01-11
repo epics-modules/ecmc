@@ -802,10 +802,17 @@ static int handleCfgCommand(const char *myarg_1){
   if (nvals == 2) {
     return setAxisMonVelDiffTrajILDelay(iValue,iValue2);
   }
+
   /*int Cfg.SetAxisMonVelDiffDriveILDelay(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisMonVelDiffDriveILDelay(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return setAxisMonVelDiffDriveILDelay(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisMonVelDiffTol(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonVelDiffTol(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisMonVelDiffTol(iValue,dValue);
   }
 
   /*int Cfg.SetAxisMonCntrlOutHL(int axis_no, int value);*/

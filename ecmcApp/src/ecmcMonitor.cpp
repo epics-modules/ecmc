@@ -84,6 +84,7 @@ void ecmcMonitor::initVars()
   velDiffTimeTraj_=100;
   velDiffTimeDrive_=100;
   targetVel_=0;
+  velDiffMaxDiff_=0;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -643,19 +644,29 @@ int ecmcMonitor::checkPositionLag()
 
 int ecmcMonitor::checkVelocityDiff()
 {
-  double currentSetVelocityToDrive=cntrlOutput_/cntrlKff_;
+  //double currentSetVelocityToDrive=cntrlOutput_/*cntrlKff_*/;
 
-  if(enableVelocityDiffMon_ && std::abs(targetVel_)>0 && std::abs(currentSetVelocityToDrive)>std::abs(targetVel_)*0.1 && (currentSetVelocityToDrive>0 && actVel_<currentSetVelocityToDrive*0.01)){
+  if(!enableVelocityDiffMon_ ){
+      velocityDiffCounterPos_=0;
+      velocityDiffCounterNeg_=0;
+      velocityDiffErrorDrive_=false;
+      velocityDiffErrorTraj_=false;
+      return 0;
+  }
+//  if(enableVelocityDiffMon_ && std::abs(targetVel_)>0 && std::abs(currentSetVelocityToDrive)>std::abs(targetVel_)*0.1 && (currentSetVelocityToDrive>0 && actVel_<currentSetVelocityToDrive*0.01)){
+  if(/*currentSetVelocityToDrive>0 && */std::abs(cntrlOutput_-actVel_)>velDiffMaxDiff_){
     velocityDiffCounterPos_++;
     velocityDiffCounterNeg_=0;
   }
   else{
-    if(velocityDiffCounterPos_>0){
-      velocityDiffCounterPos_--;
-    }
+    //if(velocityDiffCounterPos_>0){
+    //  velocityDiffCounterPos_--;
+    //}
+    velocityDiffCounterPos_=0;
   }
 
-  if(enableVelocityDiffMon_ && std::abs(targetVel_)>0 && std::abs(currentSetVelocityToDrive)>std::abs(targetVel_)*0.1 && (currentSetVelocityToDrive<0 && actVel_>currentSetVelocityToDrive*0.01)){
+  //if(enableVelocityDiffMon_ && std::abs(targetVel_)>0 && std::abs(currentSetVelocityToDrive)>std::abs(targetVel_)*0.1 && (currentSetVelocityToDrive<0 && actVel_>currentSetVelocityToDrive*0.01)){
+  /*if(currentSetVelocityToDrive<0 && (currentSetVelocityToDrive-actVel_)>velDiffMaxDiff_){
     velocityDiffCounterNeg_++;
     velocityDiffCounterPos_=0;
   }
@@ -663,18 +674,18 @@ int ecmcMonitor::checkVelocityDiff()
     if(velocityDiffCounterNeg_>0){
       velocityDiffCounterNeg_--;
     }
-  }
+  }*/
 
-  if(velocityDiffCounterPos_>velDiffTimeTraj_ || velocityDiffCounterNeg_>velDiffTimeTraj_){
+  if(velocityDiffCounterPos_>velDiffTimeTraj_ /*|| velocityDiffCounterNeg_>velDiffTimeTraj_*/){
     velocityDiffErrorTraj_=true;
   }
 
-  if(velocityDiffCounterPos_>velDiffTimeDrive_ || velocityDiffCounterNeg_>velDiffTimeDrive_){
+  if(velocityDiffCounterPos_>velDiffTimeDrive_ /*|| velocityDiffCounterNeg_>velDiffTimeDrive_*/){
     velocityDiffErrorDrive_=true;
   }
 
   if(velocityDiffErrorDrive_ || velocityDiffErrorTraj_){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_CNTRL_OUTPUT_INCREASE_AT_LIMIT);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED);
   }
   return 0;
 }
@@ -783,3 +794,8 @@ int ecmcMonitor::setTargetVel(double vel)
   return 0;
 }
 
+int ecmcMonitor::setVelDiffMaxDifference(double velo)
+{
+  velDiffMaxDiff_=std::abs(velo);
+  return 0;
+}

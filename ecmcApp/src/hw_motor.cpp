@@ -1949,6 +1949,16 @@ int setAxisMonEnableVelocityDiff(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setEnableVelocityDiffMon(value);
 }
 
+int setAxisMonVelDiffTol(int axisIndex, double value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setVelDiffMaxDifference(value);
+}
+
 int setAxisMonVelDiffTrajILDelay(int axisIndex, int value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
