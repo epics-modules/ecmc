@@ -426,6 +426,7 @@ int ecmcMonitor::reset()
   reasonableMoveCounter_=0;
   cycleCounter_=0;
   axisErrorStateInterlock=false;
+  unexpectedLimitSwitchBehaviourInterlock_=false;
   return 0;
 }
 
@@ -526,14 +527,11 @@ int ecmcMonitor::setSoftLimitFwd(double limit)
 
 int ecmcMonitor::checkLimits()
 {
-
   //Unexpected limit switch behavior (falling edge while running towards other limit switch)
   unexpectedLimitSwitchBehaviourInterlock_=(hardBwdOld_ && !hardBwd_ && setVel_>0) || (hardFwdOld_ && !hardFwd_ && setVel_<0);
   if(unexpectedLimitSwitchBehaviourInterlock_){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK);
   }
-
-
   hardBwdOld_=hardBwd_;
   hardFwdOld_=hardFwd_;
 
