@@ -2,7 +2,8 @@ include ${EPICS_ENV_PATH}/module.Makefile
 
 PROJECT=ecmc
 USR_DEPENDENCIES = asyn,4.27
-USR_DEPENDENCIES += motor,6.10.5-ESS
+#USR_DEPENDENCIES += motor,6.10.5-ESS
+USR_DEPENDENCIES += axis,dev
 
 # Temporally removed to speed up 
 EXCLUDE_ARCHS += eldk
@@ -11,9 +12,6 @@ SOURCES = \
   ecmcApp/src/cmd.c \
   ecmcApp/src/cmd_EAT.c \
   ecmcApp/src/drvAsynECMCPort.cpp \
-  ecmcApp/src/ecmcAxis.cpp \
-  ecmcApp/src/ecmcController.cpp \
-  ecmcApp/src/ecmcMain.cpp \
   ecmcApp/src/ecmcAxisBase.cpp \
   ecmcApp/src/ecmcAxisReal.cpp \
   ecmcApp/src/ecmcAxisVirt.cpp \
@@ -46,9 +44,6 @@ SOURCES = \
   ecmcApp/src/hw_motor.cpp \
 
 TEMPLATES = \
-  ecmcApp/Db/ecmcController.template \
-  ecmcApp/Db/ecmc.template \
-  ecmcApp/Db/ecmc-extra.template \
   ecmcApp/Db/ecmcGeneral.template \
   ecmcApp/Db/elGenericAnalog.template \
   ecmcApp/Db/elGenericDigital.template \
@@ -56,6 +51,7 @@ TEMPLATES = \
   ecmcApp/Db/FB_DriveVirtual_v1_01.db \
   ecmcApp/Db/expression.db \
   ecmcApp/Db/ethercat.db \
+
 
 
 
