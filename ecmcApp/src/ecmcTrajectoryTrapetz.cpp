@@ -310,6 +310,9 @@ stopMode ecmcTrajectoryTrapetz::checkInterlocks()
       case ECMC_INTERLOCK_AXIS_ERROR_STATE:
         //setErrorID(__FILE__,__FUNCTION__,__LINE__,); //Don't over write error message
         return ECMC_STOP_MODE_EMERGENCY;
+      case ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR:
+        //setErrorID(__FILE__,__FUNCTION__,__LINE__,); //Don't over write error message
+        return ECMC_STOP_MODE_EMERGENCY;
       default:
         break;
     }

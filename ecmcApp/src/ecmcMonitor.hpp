@@ -25,6 +25,7 @@
 #define ERROR_MON_BOTH_LIMIT_INTERLOCK 0x14C10
 #define ERROR_MON_DISTANCE_TO_STOP_ZERO 0x14C11
 #define ERROR_MON_ENTRY_EXT_INTERLOCK_NULL 0x14C12
+#define ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK 0x14C13
 
 class ecmcMonitor : public ecmcEcEntryLink
 {
@@ -120,6 +121,8 @@ private:
   int    lagMonCounter_;         //
   bool   hardBwd_;               //At hard low limit
   bool   hardFwd_;               //At hard high limit
+  bool   hardBwdOld_;
+  bool   hardFwdOld_;
   bool   homeSwitch_;            //Home switch
   double targetPos_;
   double currSetPos_;
@@ -171,6 +174,6 @@ private:
   double distToStop_;
   double currSetPosOld_;
   bool axisErrorStateInterlock;
-
+  bool unexpectedLimitSwitchBehaviourInterlock_;
 };
 #endif

@@ -68,6 +68,7 @@ void ecmcMonitor::initVars()
   cntrlKff_=0;
   bwdLimitInterlock_=true;
   fwdLimitInterlock_=true;
+  unexpectedLimitSwitchBehaviourInterlock_=true;
   softLimitBwd_=true;
   softLimitFwd_=true;
   enableSoftLimitBwd_=0;
@@ -81,6 +82,8 @@ void ecmcMonitor::initVars()
   extEncInterlock_=ECMC_INTERLOCK_NONE;
   extTrajInterlock_=ECMC_INTERLOCK_NONE;
   axisErrorStateInterlock=false;
+  hardBwdOld_=false;
+  hardFwdOld_=false;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -164,6 +167,7 @@ bool ecmcMonitor::getHardLimitBwd()
 
 interlockTypes ecmcMonitor::getTrajInterlock()
 {
+
   if(enableHardwareInterlock_&& !hardwareInterlock_){
     return ECMC_INTERLOCK_EXTERNAL;
   }
@@ -174,6 +178,10 @@ interlockTypes ecmcMonitor::getTrajInterlock()
 
   if(fwdLimitInterlock_){
     return ECMC_INTERLOCK_HARD_FWD;
+  }
+
+  if(unexpectedLimitSwitchBehaviourInterlock_){
+    return ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR;
   }
 
   if(extTrajInterlock_==ECMC_INTERLOCK_TRANSFORM){
@@ -518,6 +526,17 @@ int ecmcMonitor::setSoftLimitFwd(double limit)
 
 int ecmcMonitor::checkLimits()
 {
+
+  //Unexpected limit switch behavior (falling edge while running towards other limit switch)
+  unexpectedLimitSwitchBehaviourInterlock_=(hardBwdOld_ && !hardBwd_ && setVel_>0) || (hardFwdOld_ && !hardFwd_ && setVel_<0);
+  if(unexpectedLimitSwitchBehaviourInterlock_){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK);
+  }
+
+
+  hardBwdOld_=hardBwd_;
+  hardFwdOld_=hardFwd_;
+
   //Both limit switches
   bothLimitsLowInterlock_=!hardBwd_ && !hardFwd_;
   if(bothLimitsLowInterlock_){
