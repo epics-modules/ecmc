@@ -288,6 +288,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14C13:
       return "ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK";
       break;
+    case 0x14C14:
+      return "ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED";
+      break;
     case 0x14D00:  //SEQUENCER
       return "ERROR_SEQ_TRAJ_NULL";
       break;

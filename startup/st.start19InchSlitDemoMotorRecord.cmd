@@ -190,9 +190,11 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(3,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(3,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(3,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(3,200)"
-
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(3,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(3,8000)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableVelocityDiff(3,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffTrajILDelay(3,100)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffDriveILDelay(3,500)"
 
 ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(4)"
 ecmcConfigController "MCU1", "Main.M4.fAcceleration=50"
@@ -247,12 +249,11 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
-
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(4,8000)"
-
-#NOT stable yet
-#ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutIncreaseAtLimitMon(4,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableVelocityDiff(4,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffTrajILDelay(4,100)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffDriveILDelay(4,500)"
 
 ecmcConfigController "MCU1", "Cfg.CreateAxis(5,2)"
 ecmcConfigController "MCU1", "Cfg.SetAxisTrajStartPos(5,0)"

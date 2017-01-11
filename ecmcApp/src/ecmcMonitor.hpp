@@ -26,6 +26,7 @@
 #define ERROR_MON_DISTANCE_TO_STOP_ZERO 0x14C11
 #define ERROR_MON_ENTRY_EXT_INTERLOCK_NULL 0x14C12
 #define ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK 0x14C13
+#define ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED 0x14C14
 
 class ecmcMonitor : public ecmcEcEntryLink
 {
@@ -55,6 +56,7 @@ public:
   void setTargetPos(double pos);
   double getTargetPos();
   int setVelSet(double vel);
+  int setTargetVel(double vel);
   int setActVel(double vel);
   int setMaxVel(double vel);
   int setEnableMaxVelMon(bool enable);
@@ -77,8 +79,10 @@ public:
   int setCntrlOutputHL(double outputHL);
   int setEnableCntrlHLMon(bool enable);
   bool getEnableCntrlHLMon();
-  int setEnableCntrlOutIncreaseAtLimitMon(bool enable);
-  bool getEnableCntrlOutIncreaseAtLimitMon();
+  int setEnableVelocityDiffMon(bool enable);
+  bool getEnableVelocityDiffMon();
+  int setVelDiffTimeTraj(int time);
+  int setVelDiffTimeDrive(int time);
   int setCntrlKff(double kff); //Used ensure that motion is reasonable in relation to controller output
   int setEnableSoftLimitBwd(bool enable);
   int setEnableSoftLimitFwd(bool enable);
@@ -102,8 +106,8 @@ private:
   int checkAtTarget();
   int checkPositionLag();
   int checkMaxVelocity();
+  int checkVelocityDiff();
   int checkCntrlMaxOutput();
-  int checkCntrloutputIncreaseAtLimit();
 
   bool   enable_;
   double atTargetTol_;           //Tolerance for reached target. Example 0.1 deg
@@ -138,6 +142,7 @@ private:
   interlockTypes   extEncInterlock_;
 
   double setVel_;
+  double targetVel_;
   double actVel_;
   double maxVel_;
   bool   enableMaxVelMon_;
@@ -155,16 +160,16 @@ private:
   bool cntrlOutputHLErrorTraj_;
   bool cntrlOutputHLErrorDrive_;
   bool enableCntrlHLMon_;
-  bool enableCntrlOutIncreaseAtLimitMon_;
-  bool cntrlOutIncreaseAtLimitErrorTraj_;
-  bool cntrlOutIncreaseAtLimitErrorDrive_;
-  int cntrlOutIncreaseAtLimitCounter_;
-  double positionError_;
-  double positionErrorOld_;
-  int reasonableMoveCounter_;
-  int cycleCounter_;
-  double cntrlKff_;
 
+  bool enableVelocityDiffMon_;
+  bool velocityDiffErrorTraj_;
+  bool velocityDiffErrorDrive_;
+  int velocityDiffCounterPos_;
+  int velocityDiffCounterNeg_;
+  int velDiffTimeTraj_;
+  int velDiffTimeDrive_;
+
+  double cntrlKff_;
   double softLimitBwd_;
   double softLimitFwd_;
   bool   enableSoftLimitBwd_;

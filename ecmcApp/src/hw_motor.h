@@ -1996,23 +1996,43 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value);
  */
 int setAxisMonCntrlOutHL(int axisIndex, double value);
 
-/** \breif Enable monitoring of controller output at limit switch.\n
- *
- * \note THIS FUNCTION IS NOT STABLE YET. CAN DISABLE AMPLIFIER EVEN IN
- * NORMAL MOTION. DO NOT USE.\n
- *  The controller output  is not allowed to increase at a positive limit
- *  switch or decrease at a negative limit switch.\n
+/** \breif Enable monitoring of velocity difference.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Enable monitoring.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Enable controller output at limit switch monitoring for
- * axis 2.\n
- * "Cfg.SetAxisMonEnableCntrlOutIncreaseAtLimitMon(2,1)" //Command string to cmd_EAT.c.\n
+ * \note Example: Enable monitoring for axis 2.\n
+ * "Cfg.SetAxisMonEnableVelocityDiff(2,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonEnableCntrlOutIncreaseAtLimitMon(int axisIndex, int value);
+int setAxisMonEnableVelocityDiff(int axisIndex, int value);
+
+/** \breif Set trajectory interlock filter time in cycles for velocity
+ * difference monitoring.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Time in cycles.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set filter time to 100 cycles for axis 2.\n
+ * "Cfg.SetAxisMonVelDiffTrajILDelay(2,100)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisMonVelDiffTrajILDelay(int axisIndex, int value);
+
+/** \breif Set drive interlock filter time in cycles for velocity
+ * difference monitoring.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Time in cycles.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set filter time to 500 cycles for axis 2.\n
+ * "Cfg.SetAxisMonVelDiffDriveILDelay(2,500)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisMonVelDiffDriveILDelay(int axisIndex, int value);
 
 /** \breif Enable motion axis interlock from EtherCAT entry.\n
  *
