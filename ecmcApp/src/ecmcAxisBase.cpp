@@ -123,6 +123,9 @@ void ecmcAxisBase::initVars()
   currentVelocitySetpoint_=0;
 
   sampleTime_=1/1000;
+  memset(&printOutData_,0,sizeof(printOutData_));
+  memset(&printOutDataOld_,0,sizeof(printOutDataOld_));
+  printHeaderCounter_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -738,4 +741,39 @@ motionCommandTypes ecmcAxisBase::getCommand()
 int ecmcAxisBase::getCmdData()
 {
   return seq_.getCmdData();
+}
+
+void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
+{
+  // Only print header once per 25 status lines
+  if(printHeaderCounter_==0){
+    LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVel act\t\tVel FF\t\tVel FFs\t\tDrv Vel\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
+    printHeaderCounter_=25;
+  }
+  printHeaderCounter_--;
+
+  LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
+
+       data.axisID,
+       data.positionSetpoint,
+       data.positionActual,
+       data.cntrlError,
+       data.cntrlOutput,
+       data.positionError,
+       data.velocityActual,
+       data.velocitySetpoint,
+       data.velocityFFRaw,
+       data.velocitySetpointRaw,
+       data.error);
+
+   LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
+       data.enable,
+       data.execute,
+       data.busy,
+       data.seqState,
+       data.atTarget,
+       data.trajInterlock,
+       data.limitFwd,
+       data.limitBwd,
+       data.homeSwitch);
 }

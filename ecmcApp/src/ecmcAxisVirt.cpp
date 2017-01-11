@@ -189,36 +189,33 @@ ecmcDriveBase *ecmcAxisVirt::getDrv()
 
 void ecmcAxisVirt::printStatus()
 {
+  printOutData_.atTarget=mon_->getAtTarget();
+  printOutData_.axisID=axisID_;
+  printOutData_.busy=seq_.getBusy();
+  printOutData_.cntrlError=0;
+  printOutData_.cntrlOutput=0;
+  printOutData_.enable=getEnable();
+  printOutData_.error=getErrorID();
+  printOutData_.execute=traj_->getExecute();
+  printOutData_.homeSwitch=mon_->getHomeSwitch();
+  printOutData_.limitBwd=mon_->getHardLimitBwd();
+  printOutData_.limitFwd=mon_->getHardLimitFwd();
+  printOutData_.positionActual=currentPositionActual_;
+  printOutData_.positionError=currentPositionSetpoint_ -currentPositionActual_;
+  printOutData_.positionSetpoint=currentPositionSetpoint_;
+  printOutData_.seqState=seq_.getSeqState();
+  printOutData_.trajInterlock=mon_->getTrajInterlock();
+  printOutData_.velocityActual=currentVelocityActual_;
+  printOutData_.velocitySetpoint=currentVelocitySetpoint_;
+  printOutData_.velocitySetpointRaw=0;
+  printOutData_.velocityFFRaw=0;
 
-  double cntrlError=0;
-  int error =getCntrlError(&cntrlError);
-  if(error){
-    cntrlError=0.0;
+  if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))!=0){
+    printAxisStatus(printOutData_);
   }
 
-  LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
-      axisID_,
-      traj_->getCurrentPosSet(),
-      enc_->getActPos(),
-      cntrlError,
-      0.0,
-      traj_->getTargetPos()-enc_->getActPos(),
-      enc_->getActVel(),
-      traj_->getVel(),
-      0.0,
-      0,
-      getErrorID());
-
-  LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
-      getEnable(),
-      traj_->getExecute(),
-      seq_.getBusy(),
-      seq_.getSeqState(),
-      mon_->getAtTarget(),
-      mon_->getTrajInterlock(),
-      mon_->getHardLimitFwd(),
-      mon_->getHardLimitBwd(),
-      mon_->getHomeSwitch());
+  printOutDataOld_=printOutData_;
+  return;
 }
 
 int ecmcAxisVirt::validate()
