@@ -74,7 +74,6 @@ static int              axisDiagFreq;
 static int              controllerError=0;
 static app_mode_type    appMode,appModeOld;
 static unsigned int     counter = 0;
-static int              printCounter=0;
 static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
 static ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
 static ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
@@ -94,12 +93,7 @@ void printStatus()
   //Print axis diagnostics to screen
   if(PRINT_STDOUT_BIT12() && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
     if(axes[axisDiagIndex]!=NULL){
-      if(printCounter==0){
-	LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVel act\t\tVel FF\t\tVel FFs\t\tDrv Vel\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
-        printCounter=25;
-      }
       axes[axisDiagIndex]->printStatus();
-      printCounter--;
     }
   }
 }
@@ -932,8 +926,11 @@ int setAxisTargetVel(int axisIndex, double value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getSeq()->setTargetVel(value);
+  axes[axisIndex]->getMon()->setTargetVel(value);
+
   return 0;
 }
 
@@ -1942,16 +1939,45 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setEnableCntrlHLMon(value);
 }
 
-int setAxisMonEnableCntrlOutIncreaseAtLimitMon(int axisIndex, int value)
+int setAxisMonEnableVelocityDiff(int axisIndex, int value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getMon()->setEnableCntrlOutIncreaseAtLimitMon(value);
+  return axes[axisIndex]->getMon()->setEnableVelocityDiffMon(value);
 }
 
+int setAxisMonVelDiffTol(int axisIndex, double value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setVelDiffMaxDifference(value);
+}
+
+int setAxisMonVelDiffTrajILDelay(int axisIndex, int value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setVelDiffTimeTraj(value);
+}
+
+int setAxisMonVelDiffDriveILDelay(int axisIndex, int value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setVelDiffTimeDrive(value);
+}
 
 int setAxisMonCntrlOutHL(int axisIndex, double value)
 {

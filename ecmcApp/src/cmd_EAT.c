@@ -791,10 +791,28 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisMonEnableCntrlOutHLMon(iValue,iValue2);
   }
 
-  /*int Cfg.SetAxisMonEnableCntrlOutIncreaseAtLimitMon(int axis_no, int value);*/
-  nvals = sscanf(myarg_1, "SetAxisMonEnableCntrlOutIncreaseAtLimitMon(%d,%d)", &iValue,&iValue2);
+  /*int Cfg.SetAxisMonEnableVelocityDiff(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonEnableVelocityDiff(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
-    return setAxisMonEnableCntrlOutIncreaseAtLimitMon(iValue,iValue2);
+    return setAxisMonEnableVelocityDiff(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisMonVelDiffTrajILDelay(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonVelDiffTrajILDelay(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisMonVelDiffTrajILDelay(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisMonVelDiffDriveILDelay(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonVelDiffDriveILDelay(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisMonVelDiffDriveILDelay(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisMonVelDiffTol(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonVelDiffTol(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisMonVelDiffTol(iValue,dValue);
   }
 
   /*int Cfg.SetAxisMonCntrlOutHL(int axis_no, int value);*/

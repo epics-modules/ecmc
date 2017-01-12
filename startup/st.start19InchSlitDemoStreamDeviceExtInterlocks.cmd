@@ -187,9 +187,12 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(3,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(3,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(3,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(3,200)"
-
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(3,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(3,8000)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableVelocityDiff(3,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffTrajILDelay(3,100)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffDriveILDelay(3,500)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffTol(3,5)"
 
 ecmcConfigController "MCU1", "Cfg.CreateDefaultAxis(4)"
 ecmcConfigController "MCU1", "Main.M4.fAcceleration=50"
@@ -228,7 +231,6 @@ ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(1,OUTPUT_3,4,3,-1)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisDrive(8,STM_CONTROL,4,4,2)"
 ecmcConfigController "MCU1", "Cfg.SetAxisDrvBrakeEnable(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisDrvReduceTorqueEnable(4,1)"
-
 ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleDenom(4,32768.0)"
 ecmcConfigController "MCU1", "Cfg.SetAxisDrvScaleNum(4,600.0)"
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(0,INPUT_0,4,0,0)"
@@ -244,12 +246,12 @@ ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVel(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableMaxVel(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelDriveILDelay(4,100)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonMaxVelTrajILDelay(4,200)"
-
 ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutHLMon(4,1)"
 ecmcConfigController "MCU1", "Cfg.SetAxisMonCntrlOutHL(4,8000)"
-
-#NOT stable yet
-#ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableCntrlOutIncreaseAtLimitMon(4,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonEnableVelocityDiff(4,1)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffTrajILDelay(4,1000)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffDriveILDelay(4,2000)"
+ecmcConfigController "MCU1", "Cfg.SetAxisMonVelDiffTol(4,5)"
 
 #Test external interlock for axis 4
 ecmcConfigController "MCU1", "Cfg.LinkEcEntryToAxisMonitor(0,INPUT_7,4,3,0)"
