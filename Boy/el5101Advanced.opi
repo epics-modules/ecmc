@@ -41,7 +41,7 @@
     <transparent>false</transparent>
     <lock_children>false</lock_children>
     <scripts />
-    <height>535</height>
+    <height>595</height>
     <border_width>1</border_width>
     <scale_options>
       <width_scalable>true</width_scalable>
@@ -59,7 +59,7 @@
     <background_color>
       <color name="Background" red="255" green="255" blue="255" />
     </background_color>
-    <width>793</width>
+    <width>493</width>
     <x>0</x>
     <name>$(TYPE)</name>
     <y>0</y>
@@ -81,7 +81,7 @@
       <transparent>true</transparent>
       <lock_children>false</lock_children>
       <scripts />
-      <height>469</height>
+      <height>523</height>
       <border_width>1</border_width>
       <scale_options>
         <width_scalable>true</width_scalable>
@@ -99,9 +99,9 @@
       <background_color>
         <color red="255" green="255" blue="255" />
       </background_color>
-      <width>434</width>
+      <width>457</width>
       <x>0</x>
-      <name>Stepper</name>
+      <name>Encoder</name>
       <y>30</y>
       <foreground_color>
         <color red="255" green="255" blue="255" />
@@ -127,10 +127,10 @@ $(pv_value)</tooltip>
         </on_color>
         <horizontal>false</horizontal>
         <pv_value />
-        <numBits>16</numBits>
+        <numBits>8</numBits>
         <scripts />
         <border_alarm_sensitive>true</border_alarm_sensitive>
-        <height>337</height>
+        <height>181</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -138,16 +138,16 @@ $(pv_value)</tooltip>
           <keep_wh_ratio>false</keep_wh_ratio>
         </scale_options>
         <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_STM_CONTROL</pv_name>
+        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_CONTROL</pv_name>
         <border_color>
           <color red="0" green="128" blue="255" />
         </border_color>
         <bitReverse>true</bitReverse>
         <label>
-          <s>0: Enable</s>
-          <s>1: Reset</s>
-          <s>2: Reduce torque</s>
-          <s>3:</s>
+          <s>0: Enable Latch C</s>
+          <s>1: Enable latch extern pos</s>
+          <s>2: Set Counter</s>
+          <s>3: Enable latch extern neg</s>
           <s>4:</s>
           <s>5:</s>
           <s>6:</s>
@@ -156,7 +156,7 @@ $(pv_value)</tooltip>
           <s>9:</s>
           <s>A:</s>
           <s>B:</s>
-          <s>C: Output 1</s>
+          <s>C:</s>
           <s>D:</s>
           <s>E:</s>
           <s>F:</s>
@@ -171,10 +171,10 @@ $(pv_value)</tooltip>
         </background_color>
         <square_led>false</square_led>
         <startBit>0</startBit>
-        <width>138</width>
-        <x>5</x>
+        <width>172</width>
+        <x>0</x>
         <name>Byte Monitor</name>
-        <y>6</y>
+        <y>12</y>
         <foreground_color>
           <color red="46" green="52" blue="54" />
         </foreground_color>
@@ -192,7 +192,7 @@ $(pv_value)</tooltip>
         <rules />
         <effect_3d>true</effect_3d>
         <enabled>true</enabled>
-        <wuid>-1835f03:154ce74e5bf:-386f</wuid>
+        <wuid>-1a912884:1556dcabf47:-6c2b</wuid>
         <on_color>
           <color red="0" green="255" blue="0" />
         </on_color>
@@ -209,27 +209,27 @@ $(pv_value)</tooltip>
           <keep_wh_ratio>false</keep_wh_ratio>
         </scale_options>
         <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_STM_STATUS</pv_name>
+        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_ENC_STATUS</pv_name>
         <border_color>
           <color red="0" green="128" blue="255" />
         </border_color>
         <bitReverse>true</bitReverse>
         <label>
-          <s>0: Ready to enable</s>
-          <s>1: Ready</s>
-          <s>2: Warning</s>
-          <s>3: Error</s>
-          <s>4: Moving positive</s>
-          <s>5: Moving Negative</s>
-          <s>6: Torque reduced</s>
-          <s>7: Motor stall</s>
-          <s>8:</s>
-          <s>9:</s>
-          <s>A:</s>
-          <s>B: Digital input 1</s>
-          <s>C: Digital input 2</s>
+          <s>0: Latch C valid</s>
+          <s>1: Latch extern valid</s>
+          <s>2: Set counter done</s>
+          <s>3: Counter underflow</s>
+          <s>4: Counter overflow</s>
+          <s>5: Status of input status</s>
+          <s>6: Open circuit</s>
+          <s>7: Extrapolation stall</s>
+          <s>8: Status input A</s>
+          <s>9: Status input B</s>
+          <s>A: Status input C</s>
+          <s>B: Status input gate</s>
+          <s>C: Status input latch</s>
           <s>D: Sync error</s>
-          <s>E: TxPDO toggle</s>
+          <s>E:</s>
           <s>F:</s>
         </label>
         <widget_type>Byte Monitor</widget_type>
@@ -242,10 +242,10 @@ $(pv_value)</tooltip>
         </background_color>
         <square_led>false</square_led>
         <startBit>0</startBit>
-        <width>157</width>
-        <x>192</x>
+        <width>187</width>
+        <x>198</x>
         <name>Byte Monitor</name>
-        <y>6</y>
+        <y>12</y>
         <foreground_color>
           <color red="46" green="52" blue="54" />
         </foreground_color>
@@ -283,9 +283,9 @@ $(pv_value)</tooltip>
           <color red="255" green="255" blue="255" />
         </background_color>
         <width>116</width>
-        <x>5</x>
+        <x>0</x>
         <name>Label</name>
-        <y>339</y>
+        <y>342</y>
         <foreground_color>
           <color red="0" green="0" blue="0" />
         </foreground_color>
@@ -310,65 +310,7 @@ $(pv_value)</tooltip>
         <multiline_input>false</multiline_input>
         <border_width>1</border_width>
         <visible>true</visible>
-        <pv_name>$(P)SetEC$(SLAVE_POS)$(TYPE)_STM_CONTROL</pv_name>
-        <border_color>
-          <color red="0" green="128" blue="255" />
-        </border_color>
-        <precision_from_pv>false</precision_from_pv>
-        <widget_type>Text Input</widget_type>
-        <confirm_message></confirm_message>
-        <name>Text_3</name>
-        <style>1</style>
-        <actions hook="false" hook_all="false" />
-        <border_style>0</border_style>
-        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
-        <show_native_border>true</show_native_border>
-        <enabled>true</enabled>
-        <wuid>-1a912884:1556dcabf47:-6cb6</wuid>
-        <next_focus>0</next_focus>
-        <scripts />
-        <border_alarm_sensitive>true</border_alarm_sensitive>
-        <scale_options>
-          <width_scalable>true</width_scalable>
-          <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
-        </scale_options>
-        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-        <format_type>0</format_type>
-        <limits_from_pv>false</limits_from_pv>
-        <background_color>
-          <color name="WritePV_Background" red="128" green="255" blue="255" />
-        </background_color>
-        <password_input>false</password_input>
-        <width>127</width>
-        <x>132</x>
-        <y>336</y>
-        <maximum>1.7976931348623157E308</maximum>
-        <foreground_color>
-          <color red="0" green="0" blue="0" />
-        </foreground_color>
-        <minimum>-1.7976931348623157E308</minimum>
-        <font>
-          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-        </font>
-      </widget>
-      <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
-        <alarm_pulsing>false</alarm_pulsing>
-        <precision>0</precision>
-        <tooltip>$(pv_name)
-$(pv_value)</tooltip>
-        <horizontal_alignment>2</horizontal_alignment>
-        <rules />
-        <pv_value />
-        <auto_size>false</auto_size>
-        <read_only>false</read_only>
-        <text>#</text>
-        <show_units>false</show_units>
-        <height>26</height>
-        <multiline_input>false</multiline_input>
-        <border_width>1</border_width>
-        <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_STM_CONTROL</pv_name>
+        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_CONTROL</pv_name>
         <border_color>
           <color red="0" green="128" blue="255" />
         </border_color>
@@ -398,9 +340,67 @@ $(pv_value)</tooltip>
           <color red="238" green="238" blue="236" />
         </background_color>
         <password_input>false</password_input>
-        <width>127</width>
+        <width>145</width>
         <x>264</x>
-        <y>336</y>
+        <y>339</y>
+        <maximum>1.7976931348623157E308</maximum>
+        <foreground_color>
+          <color red="0" green="0" blue="0" />
+        </foreground_color>
+        <minimum>-1.7976931348623157E308</minimum>
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
+        <alarm_pulsing>false</alarm_pulsing>
+        <precision>0</precision>
+        <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+        <horizontal_alignment>2</horizontal_alignment>
+        <rules />
+        <pv_value />
+        <auto_size>false</auto_size>
+        <read_only>false</read_only>
+        <text>#</text>
+        <show_units>false</show_units>
+        <height>26</height>
+        <multiline_input>false</multiline_input>
+        <border_width>1</border_width>
+        <visible>true</visible>
+        <pv_name>$(P)SetEC$(SLAVE_POS)$(TYPE)_CONTROL</pv_name>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <precision_from_pv>false</precision_from_pv>
+        <widget_type>Text Input</widget_type>
+        <confirm_message></confirm_message>
+        <name>Text_3</name>
+        <style>1</style>
+        <actions hook="false" hook_all="false" />
+        <border_style>0</border_style>
+        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+        <show_native_border>true</show_native_border>
+        <enabled>true</enabled>
+        <wuid>-1a912884:1556dcabf47:-6cb6</wuid>
+        <next_focus>0</next_focus>
+        <scripts />
+        <border_alarm_sensitive>true</border_alarm_sensitive>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+        <format_type>0</format_type>
+        <limits_from_pv>false</limits_from_pv>
+        <background_color>
+          <color name="WritePV_Background" red="128" green="255" blue="255" />
+        </background_color>
+        <password_input>false</password_input>
+        <width>145</width>
+        <x>114</x>
+        <y>339</y>
         <maximum>1.7976931348623157E308</maximum>
         <foreground_color>
           <color red="0" green="0" blue="0" />
@@ -439,9 +439,9 @@ $(pv_value)</tooltip>
           <color red="255" green="255" blue="255" />
         </background_color>
         <width>121</width>
-        <x>5</x>
+        <x>0</x>
         <name>Label</name>
-        <y>364</y>
+        <y>370</y>
         <foreground_color>
           <color red="0" green="0" blue="0" />
         </foreground_color>
@@ -466,7 +466,7 @@ $(pv_value)</tooltip>
         <multiline_input>false</multiline_input>
         <border_width>1</border_width>
         <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_STM_STATUS</pv_name>
+        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_ENC_STATUS</pv_name>
         <border_color>
           <color red="0" green="128" blue="255" />
         </border_color>
@@ -496,9 +496,9 @@ $(pv_value)</tooltip>
           <color red="238" green="238" blue="236" />
         </background_color>
         <password_input>false</password_input>
-        <width>127</width>
+        <width>145</width>
         <x>264</x>
-        <y>361</y>
+        <y>367</y>
         <maximum>1.7976931348623157E308</maximum>
         <foreground_color>
           <color red="0" green="0" blue="0" />
@@ -517,7 +517,7 @@ $(pv_value)</tooltip>
         <wuid>-1a912884:1556dcabf47:-6c52</wuid>
         <transparent>true</transparent>
         <auto_size>false</auto_size>
-        <text>Velocity Setpoint:</text>
+        <text>Counter Value:</text>
         <scripts />
         <height>20</height>
         <border_width>1</border_width>
@@ -537,9 +537,9 @@ $(pv_value)</tooltip>
           <color red="255" green="255" blue="255" />
         </background_color>
         <width>139</width>
-        <x>5</x>
+        <x>0</x>
         <name>Label</name>
-        <y>389</y>
+        <y>398</y>
         <foreground_color>
           <color red="0" green="0" blue="0" />
         </foreground_color>
@@ -564,7 +564,7 @@ $(pv_value)</tooltip>
         <multiline_input>false</multiline_input>
         <border_width>1</border_width>
         <visible>true</visible>
-        <pv_name>$(P)SetEC$(SLAVE_POS)$(TYPE)_VELOCITY_SETPOINT</pv_name>
+        <pv_name>$(P)SetEC$(SLAVE_POS)$(TYPE)_VALUE</pv_name>
         <border_color>
           <color red="0" green="128" blue="255" />
         </border_color>
@@ -594,9 +594,9 @@ $(pv_value)</tooltip>
           <color name="WritePV_Background" red="128" green="255" blue="255" />
         </background_color>
         <password_input>false</password_input>
-        <width>127</width>
-        <x>132</x>
-        <y>386</y>
+        <width>145</width>
+        <x>114</x>
+        <y>395</y>
         <maximum>1.7976931348623157E308</maximum>
         <foreground_color>
           <color red="0" green="0" blue="0" />
@@ -622,7 +622,7 @@ $(pv_value)</tooltip>
         <multiline_input>false</multiline_input>
         <border_width>1</border_width>
         <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_VELOCITY_SETPOINT</pv_name>
+        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_VALUE</pv_name>
         <border_color>
           <color red="0" green="128" blue="255" />
         </border_color>
@@ -652,9 +652,205 @@ $(pv_value)</tooltip>
           <color red="238" green="238" blue="236" />
         </background_color>
         <password_input>false</password_input>
-        <width>127</width>
+        <width>145</width>
         <x>264</x>
-        <y>386</y>
+        <y>395</y>
+        <maximum>1.7976931348623157E308</maximum>
+        <foreground_color>
+          <color red="0" green="0" blue="0" />
+        </foreground_color>
+        <minimum>-1.7976931348623157E308</minimum>
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+        <border_style>0</border_style>
+        <tooltip></tooltip>
+        <horizontal_alignment>0</horizontal_alignment>
+        <rules />
+        <enabled>true</enabled>
+        <wuid>-34dc38f2:15991cc0887:-70ca</wuid>
+        <transparent>true</transparent>
+        <auto_size>false</auto_size>
+        <text>Position:</text>
+        <scripts />
+        <height>20</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <visible>true</visible>
+        <vertical_alignment>1</vertical_alignment>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <widget_type>Label</widget_type>
+        <wrap_words>false</wrap_words>
+        <background_color>
+          <color red="255" green="255" blue="255" />
+        </background_color>
+        <width>139</width>
+        <x>0</x>
+        <name>Label</name>
+        <y>426</y>
+        <foreground_color>
+          <color red="0" green="0" blue="0" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
+        <alarm_pulsing>false</alarm_pulsing>
+        <precision>0</precision>
+        <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+        <horizontal_alignment>2</horizontal_alignment>
+        <rules />
+        <pv_value />
+        <auto_size>false</auto_size>
+        <read_only>false</read_only>
+        <text>#</text>
+        <show_units>false</show_units>
+        <height>26</height>
+        <multiline_input>false</multiline_input>
+        <border_width>1</border_width>
+        <visible>true</visible>
+        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_POSITION</pv_name>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <precision_from_pv>false</precision_from_pv>
+        <widget_type>Text Input</widget_type>
+        <confirm_message></confirm_message>
+        <name>Text_3</name>
+        <style>1</style>
+        <actions hook="false" hook_all="false" />
+        <border_style>0</border_style>
+        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+        <show_native_border>true</show_native_border>
+        <enabled>false</enabled>
+        <wuid>-34dc38f2:15991cc0887:-70cb</wuid>
+        <next_focus>0</next_focus>
+        <scripts />
+        <border_alarm_sensitive>true</border_alarm_sensitive>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+        <format_type>0</format_type>
+        <limits_from_pv>false</limits_from_pv>
+        <background_color>
+          <color red="238" green="238" blue="236" />
+        </background_color>
+        <password_input>false</password_input>
+        <width>145</width>
+        <x>264</x>
+        <y>423</y>
+        <maximum>1.7976931348623157E308</maximum>
+        <foreground_color>
+          <color red="0" green="0" blue="0" />
+        </foreground_color>
+        <minimum>-1.7976931348623157E308</minimum>
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+        <border_style>0</border_style>
+        <tooltip></tooltip>
+        <horizontal_alignment>0</horizontal_alignment>
+        <rules />
+        <enabled>true</enabled>
+        <wuid>-34dc38f2:15991cc0887:-7070</wuid>
+        <transparent>true</transparent>
+        <auto_size>false</auto_size>
+        <text>Latch Position:</text>
+        <scripts />
+        <height>20</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <visible>true</visible>
+        <vertical_alignment>1</vertical_alignment>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <widget_type>Label</widget_type>
+        <wrap_words>false</wrap_words>
+        <background_color>
+          <color red="255" green="255" blue="255" />
+        </background_color>
+        <width>187</width>
+        <x>0</x>
+        <name>Label</name>
+        <y>454</y>
+        <foreground_color>
+          <color red="0" green="0" blue="0" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
+        <alarm_pulsing>false</alarm_pulsing>
+        <precision>0</precision>
+        <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+        <horizontal_alignment>2</horizontal_alignment>
+        <rules />
+        <pv_value />
+        <auto_size>false</auto_size>
+        <read_only>false</read_only>
+        <text>#</text>
+        <show_units>false</show_units>
+        <height>26</height>
+        <multiline_input>false</multiline_input>
+        <border_width>1</border_width>
+        <visible>true</visible>
+        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_LATCH_POSITION</pv_name>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <precision_from_pv>false</precision_from_pv>
+        <widget_type>Text Input</widget_type>
+        <confirm_message></confirm_message>
+        <name>Text_3</name>
+        <style>1</style>
+        <actions hook="false" hook_all="false" />
+        <border_style>0</border_style>
+        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+        <show_native_border>true</show_native_border>
+        <enabled>false</enabled>
+        <wuid>-34dc38f2:15991cc0887:-7044</wuid>
+        <next_focus>0</next_focus>
+        <scripts />
+        <border_alarm_sensitive>true</border_alarm_sensitive>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+        <format_type>0</format_type>
+        <limits_from_pv>false</limits_from_pv>
+        <background_color>
+          <color red="238" green="238" blue="236" />
+        </background_color>
+        <password_input>false</password_input>
+        <width>145</width>
+        <x>264</x>
+        <y>451</y>
         <maximum>1.7976931348623157E308</maximum>
         <foreground_color>
           <color red="0" green="0" blue="0" />
@@ -756,412 +952,6 @@ $(pv_value)</tooltip>
       <font>
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
-    </widget>
-    <widget typeId="org.csstudio.opibuilder.widgets.groupingContainer" version="1.0.0">
-      <border_style>13</border_style>
-      <tooltip></tooltip>
-      <rules />
-      <enabled>true</enabled>
-      <wuid>1789637e:159872a6201:-4208</wuid>
-      <transparent>true</transparent>
-      <lock_children>false</lock_children>
-      <scripts />
-      <height>474</height>
-      <border_width>1</border_width>
-      <scale_options>
-        <width_scalable>true</width_scalable>
-        <height_scalable>true</height_scalable>
-        <keep_wh_ratio>false</keep_wh_ratio>
-      </scale_options>
-      <macros>
-        <include_parent_macros>true</include_parent_macros>
-      </macros>
-      <visible>true</visible>
-      <border_color>
-        <color red="0" green="0" blue="0" />
-      </border_color>
-      <widget_type>Grouping Container</widget_type>
-      <background_color>
-        <color red="255" green="255" blue="255" />
-      </background_color>
-      <width>318</width>
-      <x>433</x>
-      <name>Encoder</name>
-      <y>25</y>
-      <foreground_color>
-        <color red="255" green="255" blue="255" />
-      </foreground_color>
-      <actions hook="false" hook_all="false" />
-      <fc>false</fc>
-      <show_scrollbar>true</show_scrollbar>
-      <font>
-        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-      </font>
-      <widget typeId="org.csstudio.opibuilder.widgets.bytemonitor" version="1.0.0">
-        <border_style>0</border_style>
-        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
-        <alarm_pulsing>false</alarm_pulsing>
-        <tooltip>$(pv_name)
-$(pv_value)</tooltip>
-        <rules />
-        <effect_3d>true</effect_3d>
-        <enabled>true</enabled>
-        <wuid>-1a912884:1556dcabf47:-6c2b</wuid>
-        <on_color>
-          <color red="0" green="255" blue="0" />
-        </on_color>
-        <horizontal>false</horizontal>
-        <pv_value />
-        <numBits>16</numBits>
-        <scripts />
-        <border_alarm_sensitive>true</border_alarm_sensitive>
-        <height>337</height>
-        <border_width>1</border_width>
-        <scale_options>
-          <width_scalable>true</width_scalable>
-          <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
-        </scale_options>
-        <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_ENC_STATUS</pv_name>
-        <border_color>
-          <color red="0" green="128" blue="255" />
-        </border_color>
-        <bitReverse>true</bitReverse>
-        <label>
-          <s>0: Latch C valid</s>
-          <s>1: Latch extern valid</s>
-          <s>2: Set counter done</s>
-          <s>3: Counter underflow</s>
-          <s>4: Counter overflow</s>
-          <s>5:</s>
-          <s>6:</s>
-          <s>7: Extrapolation stall</s>
-          <s>8: Status input A</s>
-          <s>9: Status input B</s>
-          <s>A: Status input C</s>
-          <s>B:</s>
-          <s>C: Status input latch</s>
-          <s>D: Sync error</s>
-          <s>E:</s>
-          <s>F:</s>
-        </label>
-        <widget_type>Byte Monitor</widget_type>
-        <off_color>
-          <color red="0" green="100" blue="0" />
-        </off_color>
-        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-        <background_color>
-          <color red="240" green="240" blue="240" />
-        </background_color>
-        <square_led>false</square_led>
-        <startBit>0</startBit>
-        <width>187</width>
-        <x>12</x>
-        <name>Byte Monitor</name>
-        <y>7</y>
-        <foreground_color>
-          <color red="46" green="52" blue="54" />
-        </foreground_color>
-        <actions hook="false" hook_all="false" />
-        <font>
-          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-        </font>
-      </widget>
-      <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
-        <border_style>0</border_style>
-        <tooltip></tooltip>
-        <horizontal_alignment>0</horizontal_alignment>
-        <rules />
-        <enabled>true</enabled>
-        <wuid>-1a912884:1556dcabf47:-6ba2</wuid>
-        <transparent>true</transparent>
-        <auto_size>false</auto_size>
-        <text>Latch Position:</text>
-        <scripts />
-        <height>20</height>
-        <border_width>1</border_width>
-        <scale_options>
-          <width_scalable>true</width_scalable>
-          <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
-        </scale_options>
-        <visible>true</visible>
-        <vertical_alignment>1</vertical_alignment>
-        <border_color>
-          <color red="0" green="128" blue="255" />
-        </border_color>
-        <widget_type>Label</widget_type>
-        <wrap_words>false</wrap_words>
-        <background_color>
-          <color red="255" green="255" blue="255" />
-        </background_color>
-        <width>125</width>
-        <x>12</x>
-        <name>Label</name>
-        <y>397</y>
-        <foreground_color>
-          <color red="0" green="0" blue="0" />
-        </foreground_color>
-        <actions hook="false" hook_all="false" />
-        <font>
-          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-        </font>
-      </widget>
-      <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
-        <alarm_pulsing>false</alarm_pulsing>
-        <precision>0</precision>
-        <tooltip>$(pv_name)
-$(pv_value)</tooltip>
-        <horizontal_alignment>2</horizontal_alignment>
-        <rules />
-        <pv_value />
-        <auto_size>false</auto_size>
-        <read_only>false</read_only>
-        <text>#</text>
-        <show_units>false</show_units>
-        <height>26</height>
-        <multiline_input>false</multiline_input>
-        <border_width>1</border_width>
-        <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_LATCH_POSITION</pv_name>
-        <border_color>
-          <color red="0" green="128" blue="255" />
-        </border_color>
-        <precision_from_pv>false</precision_from_pv>
-        <widget_type>Text Input</widget_type>
-        <confirm_message></confirm_message>
-        <name>Text_3</name>
-        <style>1</style>
-        <actions hook="false" hook_all="false" />
-        <border_style>0</border_style>
-        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
-        <show_native_border>true</show_native_border>
-        <enabled>false</enabled>
-        <wuid>-1a912884:1556dcabf47:-6ba3</wuid>
-        <next_focus>0</next_focus>
-        <scripts />
-        <border_alarm_sensitive>true</border_alarm_sensitive>
-        <scale_options>
-          <width_scalable>true</width_scalable>
-          <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
-        </scale_options>
-        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-        <format_type>0</format_type>
-        <limits_from_pv>false</limits_from_pv>
-        <background_color>
-          <color red="238" green="238" blue="236" />
-        </background_color>
-        <password_input>false</password_input>
-        <width>127</width>
-        <x>149</x>
-        <y>394</y>
-        <maximum>1.7976931348623157E308</maximum>
-        <foreground_color>
-          <color red="0" green="0" blue="0" />
-        </foreground_color>
-        <minimum>-1.7976931348623157E308</minimum>
-        <font>
-          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-        </font>
-      </widget>
-      <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
-        <border_style>0</border_style>
-        <tooltip></tooltip>
-        <horizontal_alignment>0</horizontal_alignment>
-        <rules />
-        <enabled>true</enabled>
-        <wuid>-1a912884:1556dcabf47:-6bed</wuid>
-        <transparent>true</transparent>
-        <auto_size>false</auto_size>
-        <text>Position:</text>
-        <scripts />
-        <height>20</height>
-        <border_width>1</border_width>
-        <scale_options>
-          <width_scalable>true</width_scalable>
-          <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
-        </scale_options>
-        <visible>true</visible>
-        <vertical_alignment>1</vertical_alignment>
-        <border_color>
-          <color red="0" green="128" blue="255" />
-        </border_color>
-        <widget_type>Label</widget_type>
-        <wrap_words>false</wrap_words>
-        <background_color>
-          <color red="255" green="255" blue="255" />
-        </background_color>
-        <width>139</width>
-        <x>12</x>
-        <name>Label</name>
-        <y>372</y>
-        <foreground_color>
-          <color red="0" green="0" blue="0" />
-        </foreground_color>
-        <actions hook="false" hook_all="false" />
-        <font>
-          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-        </font>
-      </widget>
-      <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
-        <alarm_pulsing>false</alarm_pulsing>
-        <precision>0</precision>
-        <tooltip>$(pv_name)
-$(pv_value)</tooltip>
-        <horizontal_alignment>2</horizontal_alignment>
-        <rules />
-        <pv_value />
-        <auto_size>false</auto_size>
-        <read_only>false</read_only>
-        <text>#</text>
-        <show_units>false</show_units>
-        <height>26</height>
-        <multiline_input>false</multiline_input>
-        <border_width>1</border_width>
-        <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_POSITION</pv_name>
-        <border_color>
-          <color red="0" green="128" blue="255" />
-        </border_color>
-        <precision_from_pv>false</precision_from_pv>
-        <widget_type>Text Input</widget_type>
-        <confirm_message></confirm_message>
-        <name>Text_3</name>
-        <style>1</style>
-        <actions hook="false" hook_all="false" />
-        <border_style>0</border_style>
-        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
-        <show_native_border>true</show_native_border>
-        <enabled>false</enabled>
-        <wuid>-1a912884:1556dcabf47:-6bee</wuid>
-        <next_focus>0</next_focus>
-        <scripts />
-        <border_alarm_sensitive>true</border_alarm_sensitive>
-        <scale_options>
-          <width_scalable>true</width_scalable>
-          <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
-        </scale_options>
-        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-        <format_type>0</format_type>
-        <limits_from_pv>false</limits_from_pv>
-        <background_color>
-          <color red="238" green="238" blue="236" />
-        </background_color>
-        <password_input>false</password_input>
-        <width>127</width>
-        <x>149</x>
-        <y>369</y>
-        <maximum>1.7976931348623157E308</maximum>
-        <foreground_color>
-          <color red="0" green="0" blue="0" />
-        </foreground_color>
-        <minimum>-1.7976931348623157E308</minimum>
-        <font>
-          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-        </font>
-      </widget>
-      <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
-        <border_style>0</border_style>
-        <tooltip></tooltip>
-        <horizontal_alignment>0</horizontal_alignment>
-        <rules />
-        <enabled>true</enabled>
-        <wuid>1789637e:159872a6201:-4203</wuid>
-        <transparent>true</transparent>
-        <auto_size>false</auto_size>
-        <text>Status word:</text>
-        <scripts />
-        <height>20</height>
-        <border_width>1</border_width>
-        <scale_options>
-          <width_scalable>true</width_scalable>
-          <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
-        </scale_options>
-        <visible>true</visible>
-        <vertical_alignment>1</vertical_alignment>
-        <border_color>
-          <color red="0" green="128" blue="255" />
-        </border_color>
-        <widget_type>Label</widget_type>
-        <wrap_words>false</wrap_words>
-        <background_color>
-          <color red="255" green="255" blue="255" />
-        </background_color>
-        <width>121</width>
-        <x>12</x>
-        <name>Label</name>
-        <y>346</y>
-        <foreground_color>
-          <color red="0" green="0" blue="0" />
-        </foreground_color>
-        <actions hook="false" hook_all="false" />
-        <font>
-          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-        </font>
-      </widget>
-      <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
-        <alarm_pulsing>false</alarm_pulsing>
-        <precision>0</precision>
-        <tooltip>$(pv_name)
-$(pv_value)</tooltip>
-        <horizontal_alignment>2</horizontal_alignment>
-        <rules />
-        <pv_value />
-        <auto_size>false</auto_size>
-        <read_only>false</read_only>
-        <text>#</text>
-        <show_units>false</show_units>
-        <height>26</height>
-        <multiline_input>false</multiline_input>
-        <border_width>1</border_width>
-        <visible>true</visible>
-        <pv_name>$(P)GetEC$(SLAVE_POS)$(TYPE)_ENC_STATUS</pv_name>
-        <border_color>
-          <color red="0" green="128" blue="255" />
-        </border_color>
-        <precision_from_pv>false</precision_from_pv>
-        <widget_type>Text Input</widget_type>
-        <confirm_message></confirm_message>
-        <name>Text_3</name>
-        <style>1</style>
-        <actions hook="false" hook_all="false" />
-        <border_style>0</border_style>
-        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
-        <show_native_border>true</show_native_border>
-        <enabled>false</enabled>
-        <wuid>-1a912884:1556dcabf47:-6c29</wuid>
-        <next_focus>0</next_focus>
-        <scripts />
-        <border_alarm_sensitive>true</border_alarm_sensitive>
-        <scale_options>
-          <width_scalable>true</width_scalable>
-          <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
-        </scale_options>
-        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-        <format_type>0</format_type>
-        <limits_from_pv>false</limits_from_pv>
-        <background_color>
-          <color red="238" green="238" blue="236" />
-        </background_color>
-        <password_input>false</password_input>
-        <width>127</width>
-        <x>149</x>
-        <y>343</y>
-        <maximum>1.7976931348623157E308</maximum>
-        <foreground_color>
-          <color red="0" green="0" blue="0" />
-        </foreground_color>
-        <minimum>-1.7976931348623157E308</minimum>
-        <font>
-          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
-        </font>
-      </widget>
     </widget>
   </widget>
 </display>
