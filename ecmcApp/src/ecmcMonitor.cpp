@@ -60,8 +60,7 @@ void ecmcMonitor::initVars()
   enableVelocityDiffMon_=false;
   velocityDiffErrorTraj_=false;
   velocityDiffErrorDrive_=false;
-  velocityDiffCounterPos_=0;
-  velocityDiffCounterNeg_=0;
+  velocityDiffCounter_=0;
   cntrlKff_=0;
   bwdLimitInterlock_=true;
   fwdLimitInterlock_=true;
@@ -437,8 +436,7 @@ int ecmcMonitor::reset()
   unexpectedLimitSwitchBehaviourInterlock_=false;
   velocityDiffErrorTraj_=false;
   velocityDiffErrorDrive_=false;
-  velocityDiffCounterPos_=0;
-  velocityDiffCounterNeg_=0;
+  velocityDiffCounter_=0;
   return 0;
 }
 
@@ -644,43 +642,27 @@ int ecmcMonitor::checkPositionLag()
 
 int ecmcMonitor::checkVelocityDiff()
 {
-  //double currentSetVelocityToDrive=cntrlOutput_/*cntrlKff_*/;
+  double currentSetVelocityToDrive=cntrlOutput_/cntrlKff_;
 
   if(!enableVelocityDiffMon_ ){
-      velocityDiffCounterPos_=0;
-      velocityDiffCounterNeg_=0;
+      velocityDiffCounter_=0;
       velocityDiffErrorDrive_=false;
       velocityDiffErrorTraj_=false;
       return 0;
   }
-//  if(enableVelocityDiffMon_ && std::abs(targetVel_)>0 && std::abs(currentSetVelocityToDrive)>std::abs(targetVel_)*0.1 && (currentSetVelocityToDrive>0 && actVel_<currentSetVelocityToDrive*0.01)){
-  if(/*currentSetVelocityToDrive>0 && */std::abs(cntrlOutput_-actVel_)>velDiffMaxDiff_){
-    velocityDiffCounterPos_++;
-    velocityDiffCounterNeg_=0;
+
+  if(std::abs(currentSetVelocityToDrive-actVel_)>velDiffMaxDiff_){
+    velocityDiffCounter_++;
   }
   else{
-    //if(velocityDiffCounterPos_>0){
-    //  velocityDiffCounterPos_--;
-    //}
-    velocityDiffCounterPos_=0;
+    velocityDiffCounter_=0;
   }
 
-  //if(enableVelocityDiffMon_ && std::abs(targetVel_)>0 && std::abs(currentSetVelocityToDrive)>std::abs(targetVel_)*0.1 && (currentSetVelocityToDrive<0 && actVel_>currentSetVelocityToDrive*0.01)){
-  /*if(currentSetVelocityToDrive<0 && (currentSetVelocityToDrive-actVel_)>velDiffMaxDiff_){
-    velocityDiffCounterNeg_++;
-    velocityDiffCounterPos_=0;
-  }
-  else{
-    if(velocityDiffCounterNeg_>0){
-      velocityDiffCounterNeg_--;
-    }
-  }*/
-
-  if(velocityDiffCounterPos_>velDiffTimeTraj_ /*|| velocityDiffCounterNeg_>velDiffTimeTraj_*/){
+  if(velocityDiffCounter_>velDiffTimeTraj_){
     velocityDiffErrorTraj_=true;
   }
 
-  if(velocityDiffCounterPos_>velDiffTimeDrive_ /*|| velocityDiffCounterNeg_>velDiffTimeDrive_*/){
+  if(velocityDiffCounter_>velDiffTimeDrive_){
     velocityDiffErrorDrive_=true;
   }
 

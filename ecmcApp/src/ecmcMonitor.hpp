@@ -135,13 +135,10 @@ private:
   bool   bothLimitsLowInterlock_;
   bool   bwdLimitInterlock_;
   bool   fwdLimitInterlock_;
-
   bool   bwdSoftLimitInterlock_;
   bool   fwdSoftLimitInterlock_;
-
   interlockTypes   extTrajInterlock_;
   interlockTypes   extEncInterlock_;
-
   double setVel_;
   double targetVel_;
   double actVel_;
@@ -161,16 +158,13 @@ private:
   bool cntrlOutputHLErrorTraj_;
   bool cntrlOutputHLErrorDrive_;
   bool enableCntrlHLMon_;
-
   bool enableVelocityDiffMon_;
   bool velocityDiffErrorTraj_;
   bool velocityDiffErrorDrive_;
-  int velocityDiffCounterPos_;
-  int velocityDiffCounterNeg_;
+  int velocityDiffCounter_;
   int velDiffTimeTraj_;
   int velDiffTimeDrive_;
   double velDiffMaxDiff_;
-
   double cntrlKff_;
   double softLimitBwd_;
   double softLimitFwd_;
