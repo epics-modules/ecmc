@@ -405,7 +405,7 @@ $(pv_value)</tooltip>
       <off_image>OffButton.png</off_image>
       <actions hook="false" hook_all="false">
         <action type="OPEN_DISPLAY">
-          <path>el7037.opi</path>
+          <path>el7037Advanced.opi</path>
           <macros>
             <include_parent_macros>true</include_parent_macros>
             <P>IOC2:</P>
@@ -516,7 +516,7 @@ $(pv_value)</tooltip>
       <off_image>OffButton.png</off_image>
       <actions hook="false" hook_all="false">
         <action type="OPEN_DISPLAY">
-          <path>el7037.opi</path>
+          <path>el7037Advanced.opi</path>
           <macros>
             <include_parent_macros>true</include_parent_macros>
             <P>IOC2:</P>

@@ -160,7 +160,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>false</visible>
+      <visible>true</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -406,7 +406,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>true</visible>
+      <visible>false</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -498,7 +498,7 @@
       </background_color>
       <width>719</width>
       <x>1</x>
-      <name>Axis 3: Right Blade</name>
+      <name>Axis 3: Left Blade</name>
       <y>1</y>
       <foreground_color>
         <color red="192" green="192" blue="192" />
@@ -580,7 +580,7 @@
       </background_color>
       <width>719</width>
       <x>1</x>
-      <name>Axis 4: Left Blade</name>
+      <name>Axis 4: Right Blade</name>
       <y>1</y>
       <foreground_color>
         <color red="192" green="192" blue="192" />
