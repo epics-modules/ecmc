@@ -183,13 +183,13 @@
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>general.opi</opi_file>
-        <border_style>3</border_style>
+        <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
         <enabled>true</enabled>
-        <wuid>-1a912884:1556dcabf47:-771d</wuid>
+        <wuid>-143844c8:1599226797f:-76ec</wuid>
         <scripts />
-        <height>487</height>
+        <height>109</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -208,12 +208,53 @@
         </border_color>
         <widget_type>Linking Container</widget_type>
         <background_color>
-          <color red="240" green="240" blue="240" />
+          <color red="255" green="255" blue="255" />
         </background_color>
         <width>463</width>
         <x>12</x>
         <name>Linking Container</name>
-        <y>48</y>
+        <y>36</y>
+        <foreground_color>
+          <color red="192" green="192" blue="192" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
+        <opi_file>hardware_MCU1021.opi</opi_file>
+        <border_style>15</border_style>
+        <tooltip></tooltip>
+        <rules />
+        <enabled>true</enabled>
+        <wuid>-143844c8:1599226797f:-76db</wuid>
+        <scripts />
+        <height>379</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <macros>
+          <include_parent_macros>true</include_parent_macros>
+          <P>IOC2:</P>
+        </macros>
+        <resize_behaviour>0</resize_behaviour>
+        <visible>true</visible>
+        <group_name></group_name>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <widget_type>Linking Container</widget_type>
+        <background_color>
+          <color red="255" green="255" blue="255" />
+        </background_color>
+        <width>295</width>
+        <x>12</x>
+        <name>Linking Container_1</name>
+        <y>144</y>
         <foreground_color>
           <color red="192" green="192" blue="192" />
         </foreground_color>

@@ -247,44 +247,39 @@ ecmcDriveBase *ecmcAxisReal::getDrv()
 
 void ecmcAxisReal::printStatus()
 {
+  printOutData_.atTarget=mon_->getAtTarget();
+  printOutData_.axisID=axisID_;
+  printOutData_.busy=seq_.getBusy();
+  printOutData_.cntrlError=cntrl_->getCntrlError();
+  printOutData_.cntrlOutput=cntrl_->getOutTot();
+  printOutData_.enable=getEnable();
+  printOutData_.error=getErrorID();
+  printOutData_.execute=traj_->getExecute();
+  printOutData_.homeSwitch=mon_->getHomeSwitch();
+  printOutData_.limitBwd=mon_->getHardLimitBwd();
+  printOutData_.limitFwd=mon_->getHardLimitFwd();
+  printOutData_.positionActual=currentPositionActual_;
+  printOutData_.positionError=currentPositionSetpoint_ -currentPositionActual_;
+  printOutData_.positionSetpoint=currentPositionSetpoint_;
+  printOutData_.seqState=seq_.getSeqState();
+  printOutData_.trajInterlock=mon_->getTrajInterlock();
+  printOutData_.velocityActual=currentVelocityActual_;
+  printOutData_.velocitySetpoint=currentVelocitySetpoint_;
+  printOutData_.velocitySetpointRaw=drv_->getVelSetRaw();
+
   if(drv_->getScale()!=0){
-    LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
-        axisID_,
-        currentPositionSetpoint_,
-        currentPositionActual_,
-        cntrl_->getCntrlError(),
-        cntrl_->getOutTot(),
-        currentPositionSetpoint_ -currentPositionActual_,
-        currentVelocityActual_,
-        currentVelocitySetpoint_,
-        cntrl_->getOutFFPart()/drv_->getScale(),
-        drv_->getVelSetRaw(),
-        getErrorID());
+    printOutData_.velocityFFRaw=cntrl_->getOutFFPart()/drv_->getScale();
   }
   else{
-      LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
-        axisID_,
-        currentPositionSetpoint_,
-        currentPositionActual_,
-        cntrl_->getCntrlError(),
-        cntrl_->getOutTot(),
-        currentPositionSetpoint_ -currentPositionActual_,
-        currentVelocityActual_,
-        currentVelocitySetpoint_,
-        0.0,
-        drv_->getVelSetRaw(),
-        getErrorID());
+    printOutData_.velocityFFRaw=0;
   }
-  LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
-      getEnable(),
-      traj_->getExecute(),
-      seq_.getBusy(),
-      seq_.getSeqState(),
-      mon_->getAtTarget(),
-      traj_->getInterlockStatus(),
-      mon_->getHardLimitFwd(),
-      mon_->getHardLimitBwd(),
-      mon_->getHomeSwitch());
+
+  if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))!=0){
+    printAxisStatus(printOutData_);
+  }
+
+  printOutDataOld_=printOutData_;
+  return;
 }
 
 int ecmcAxisReal::validate()
