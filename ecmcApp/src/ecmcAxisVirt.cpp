@@ -92,10 +92,9 @@ void ecmcAxisVirt::execute(bool masterOK)
 
     traj_->setInterlock(mon_->getTrajInterlock());
 
-    if(getEnable() && masterOK && !getError()){
+    if(getEnabled() && masterOK && !getError()){
       mon_->setEnable(true);
     }
-
     else{
       mon_->setEnable(false);
       if(getExecute()){
@@ -106,7 +105,7 @@ void ecmcAxisVirt::execute(bool masterOK)
     }
 
     if(!masterOK){
-      if(getEnable()){
+      if(getEnabled() || getEnable()){
         setEnable(false);
       }
       setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
@@ -139,6 +138,11 @@ int ecmcAxisVirt::setEnable(bool enable)
 bool ecmcAxisVirt::getEnable()
 {
   return  traj_->getEnable() /*&& mon_->getEnable()*/;
+}
+
+bool ecmcAxisVirt::getEnabled()
+{
+  return  getEnable() /*&& mon_->getEnable()*/;
 }
 
 int ecmcAxisVirt::setOpMode(operationMode mode)
@@ -176,7 +180,7 @@ void ecmcAxisVirt::printStatus()
   printOutData_.busy=seq_.getBusy();
   printOutData_.cntrlError=0;
   printOutData_.cntrlOutput=0;
-  printOutData_.enable=getEnable();
+  printOutData_.enable=getEnabled();
   printOutData_.error=getErrorID();
   printOutData_.execute=traj_->getExecute();
   printOutData_.homeSwitch=mon_->getHomeSwitch();

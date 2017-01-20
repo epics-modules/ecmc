@@ -86,6 +86,7 @@ public:
   virtual int getCntrlError(double* error)=0;
   virtual int setEnable(bool enable)=0;
   virtual bool getEnable()=0;
+  virtual bool getEnabled()=0;
   virtual int setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase *getDrv()=0;
   virtual ecmcPIDController *getCntrl()=0;

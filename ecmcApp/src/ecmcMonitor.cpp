@@ -84,6 +84,7 @@ void ecmcMonitor::initVars()
   velDiffTimeDrive_=100;
   targetVel_=0;
   velDiffMaxDiff_=0;
+  noExecuteInterlock_=false;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -222,6 +223,10 @@ interlockTypes ecmcMonitor::getTrajInterlock()
 
   if(axisErrorStateInterlock){
     return ECMC_INTERLOCK_AXIS_ERROR_STATE;
+  }
+
+  if(noExecuteInterlock_){
+    return ECMC_INTERLOCK_NO_EXECUTE;
   }
 
   return ECMC_INTERLOCK_NONE;
@@ -767,6 +772,13 @@ int ecmcMonitor::setExtEncInterlock(interlockTypes interlock)
 int ecmcMonitor::setAxisErrorStateInterlock(bool ilock)
 {
   axisErrorStateInterlock=ilock;
+  return 0;
+}
+
+
+int ecmcMonitor::setNoExecuteInterlock(bool ilock)
+{
+  noExecuteInterlock_=ilock;
   return 0;
 }
 

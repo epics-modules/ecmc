@@ -23,6 +23,7 @@ public:
   int getCntrlError(double* error);
   int setEnable(bool enable);
   bool getEnable();
+  bool getEnabled();
   int setDriveType(ecmcDriveTypes driveType);
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();

@@ -119,7 +119,7 @@ void ecmcAxisReal::execute(bool masterOK)
       cntrl_->reset();
     }
 
-    if(getEnable() && masterOK /*&& !getError()*/){
+    if(getEnabled() && masterOK /*&& !getError()*/){
       mon_->setEnable(true);
       drv_->setVelSet(cntrl_->control(currentPositionSetpoint_,currentPositionActual_,currentVelocitySetpoint_)); //Actual control
     }
@@ -141,7 +141,7 @@ void ecmcAxisReal::execute(bool masterOK)
     }
 
     if(!masterOK){
-      if(getEnable()){
+      if(getEnabled() || getEnable()){
         setEnable(false);
       }
       cntrl_->reset();
@@ -191,6 +191,11 @@ int ecmcAxisReal::setEnable(bool enable)
 
 bool ecmcAxisReal::getEnable()
 {
+  return drv_->getEnable() && traj_->getEnable() && cntrl_->getEnable() /*&& mon_->getEnable()*/;
+}
+
+bool ecmcAxisReal::getEnabled()
+{
   return drv_->getEnable() && drv_->getEnabled() && traj_->getEnable() && cntrl_->getEnable() /*&& mon_->getEnable()*/;
 }
 
@@ -233,7 +238,7 @@ void ecmcAxisReal::printStatus()
   printOutData_.busy=seq_.getBusy();
   printOutData_.cntrlError=cntrl_->getCntrlError();
   printOutData_.cntrlOutput=cntrl_->getOutTot();
-  printOutData_.enable=getEnable();
+  printOutData_.enable=getEnabled();
   printOutData_.error=getErrorID();
   printOutData_.execute=traj_->getExecute();
   printOutData_.homeSwitch=mon_->getHomeSwitch();

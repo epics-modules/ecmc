@@ -102,6 +102,7 @@ public:
   int setExtTrajInterlock(interlockTypes interlock);  //From other axes (transfrom)
   int setExtEncInterlock(interlockTypes interlock);  //From other axes (transfrom)
   int setAxisErrorStateInterlock(bool ilock);
+  int setNoExecuteInterlock(bool ilock);
 private:
   int checkLimits();
   int checkAtTarget();
@@ -111,7 +112,7 @@ private:
   int checkCntrlMaxOutput();
 
   bool   enable_;
-  double atTargetTol_;           //Tolerance for reached target. Example 0.1 deg
+  double atTargetTol_;           //Tolnoerance for reached target. Example 0.1 deg
   int    atTargetTime_;          //Number of cycles the position error needs to be below dInTargetTol before the bAtTarget bit goes high
   int    enableAtTargetMon_;     //Enable At target monitoring
   double posLagTol_;             //Tolerance used during trajectory to monitor position lag. Example 0.1 deg
@@ -176,5 +177,6 @@ private:
   double currSetPosOld_;
   bool axisErrorStateInterlock;
   bool unexpectedLimitSwitchBehaviourInterlock_;
+  bool noExecuteInterlock_;
 };
 #endif

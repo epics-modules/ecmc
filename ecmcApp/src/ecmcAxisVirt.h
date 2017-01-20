@@ -28,6 +28,7 @@ public:
   int getCntrlError(double* error);
   int setEnable(bool enable);
   bool getEnable();
+  bool getEnabled();
   void printStatus();
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();
