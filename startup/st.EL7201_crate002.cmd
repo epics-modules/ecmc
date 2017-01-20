@@ -18,7 +18,7 @@ asynSetTraceIOMask("MC_CPU1", -1, 6)
 asynSetTraceInfoMask("MC_CPU1", -1, 15)
 
 #-----------------------
-ecmcCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
+EthercatMCCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
 
 ############################################################
 #

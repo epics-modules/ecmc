@@ -18,7 +18,7 @@ asynSetTraceIOMask("MC_CPU1", -1, 6)
 asynSetTraceInfoMask("MC_CPU1", -1, 15)
 
 #-----------------------
-ecmcCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
+EthercatMCCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
 
 ############################################################
 
@@ -355,20 +355,20 @@ EthercatMCConfigController "MCU1", "Cfg.SetAppMode(1)"
 
 #############################################################
 
-#Parameter 3 ecmcCreateAxis
+#Parameter 3 EthercatMCCreateAxis
 #define AMPLIFIER_ON_FLAG_CREATE_AXIS  (1)
 #define AMPLIFIER_ON_FLAG_WHEN_HOMING  (1<<1)
 #define AMPLIFIER_ON_FLAG_USING_CNEN   (1<<2)
 
-ecmcCreateAxis("MCU1", "1", "6", "")
-ecmcCreateAxis("MCU1", "2", "6", "")
-ecmcCreateAxis("MCU1", "3", "6", "")
-ecmcCreateAxis("MCU1", "4", "6", "")
+EthercatMCCreateAxis("MCU1", "1", "6", "")
+EthercatMCCreateAxis("MCU1", "2", "6", "")
+EthercatMCCreateAxis("MCU1", "3", "6", "")
+EthercatMCCreateAxis("MCU1", "4", "6", "")
 
-#ecmcCreateAxis("MCU1", "1", "6", "cfgFile=SlitX-xp.cfg")
-#ecmcCreateAxis("MCU1", "2", "6", "cfgFile=SlitX-xg.cfg")
-#ecmcCreateAxis("MCU1", "3", "6", "cfgFile=SlitX-xl.cfg")
-#ecmcCreateAxis("MCU1", "4", "6", "cfgFile=SlitX-xr.cfg")
+#EthercatMCCreateAxis("MCU1", "1", "6", "cfgFile=SlitX-xp.cfg")
+#EthercatMCCreateAxis("MCU1", "2", "6", "cfgFile=SlitX-xg.cfg")
+#EthercatMCCreateAxis("MCU1", "3", "6", "cfgFile=SlitX-xl.cfg")
+#EthercatMCCreateAxis("MCU1", "4", "6", "cfgFile=SlitX-xr.cfg")
 
 
 dbLoadTemplate("SlitX-xp.substitutions")
