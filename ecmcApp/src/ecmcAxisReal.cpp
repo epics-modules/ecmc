@@ -169,25 +169,6 @@ void ecmcAxisReal::execute(bool masterOK)
   trajInterlockOld=mon_->getTrajInterlock();
 }
 
-int ecmcAxisReal::setExecute(bool execute)
-{
-  if(execute && !getEnable()){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED);
-  }
-
-  int error=seq_.setExecute(execute);
-  if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
-  }
-
-  return setExecute_Transform();
-}
-
-bool ecmcAxisReal::getExecute()
-{
-  return seq_.getExecute();
-}
-
 int ecmcAxisReal::setEnable(bool enable)
 {
   if(!enable){ //Remove execute if enable is going down

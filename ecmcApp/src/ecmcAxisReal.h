@@ -21,8 +21,6 @@ public:
   int setOpMode(operationMode mode);
   operationMode getOpMode();
   int getCntrlError(double* error);
-  int setExecute(bool execute);
-  bool getExecute();
   int setEnable(bool enable);
   bool getEnable();
   int setDriveType(ecmcDriveTypes driveType);

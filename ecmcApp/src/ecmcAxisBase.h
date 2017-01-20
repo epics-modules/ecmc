@@ -84,8 +84,6 @@ public:
   virtual int setOpMode(operationMode nMode)=0;
   virtual operationMode getOpMode()=0;
   virtual int getCntrlError(double* error)=0;
-  virtual int setExecute(bool execute)=0;
-  virtual bool getExecute()=0;
   virtual int setEnable(bool enable)=0;
   virtual bool getEnable()=0;
   virtual int setDriveType(ecmcDriveTypes driveType);
@@ -94,6 +92,8 @@ public:
   virtual void printStatus()=0;
   virtual int validate()=0;
 
+  int setExecute(bool execute);
+  bool getExecute();
   int getAxisHomed(bool *homed);
   int getEncScaleNum(double *scale);
   int setEncScaleNum(double scale);
