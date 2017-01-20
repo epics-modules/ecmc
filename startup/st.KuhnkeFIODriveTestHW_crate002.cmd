@@ -1,6 +1,6 @@
 require asyn
 require streamdevice
-require motor,6.10.3-ESS
+require axis,10.0.1
 require ecmc
 
 ## Configure devices
@@ -18,7 +18,7 @@ asynSetTraceIOMask("MC_CPU1", -1, 6)
 asynSetTraceInfoMask("MC_CPU1", -1, 15)
 
 #-----------------------
-ecmcCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
+EthercatMCCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
 
 ############################################################
 #
@@ -31,47 +31,47 @@ ecmcCreateController("MCU1", "MC_CPU1", "32", "200", "1000", "")
 # 5. Fhex  (Enable operation)
 #
 #
-ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
-ecmcConfigController "MCU1", "Cfg.EcSetMaster(0)"
+EthercatMCConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
+EthercatMCConfigController "MCU1", "Cfg.EcSetMaster(0)"
 
 #Kuhnke drive at slave position 11
-ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1600,0x6040,0x0,16,STM_CONTROL)"
-ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1600,0x607A,0x0,32,TARGET_POSITION)"
-ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1600,0x3202,0x0,32,SUB_MODE_SELECT)"
-ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1600,0x6060,0x0,8,OP_MODE_CMD)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1600,0x6040,0x0,16,STM_CONTROL)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1600,0x607A,0x0,32,TARGET_POSITION)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1600,0x3202,0x0,32,SUB_MODE_SELECT)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1600,0x6060,0x0,8,OP_MODE_CMD)"
 
-ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1603,0x6043,0x0,16,VELOCITY_SETPOINT)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,1,2,0x1603,0x6043,0x0,16,VELOCITY_SETPOINT)"
 
-ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,2,3,0x1a00,0x6041,0x0,16,STM_STATUS)"
-ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,2,3,0x1a00,0x6064,0x0,32,POSITION)"
-ecmcConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,2,3,0x1a00,0x6061,0x0,8,OP_MODE_ACT)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,2,3,0x1a00,0x6041,0x0,16,STM_STATUS)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,2,3,0x1a00,0x6064,0x0,32,POSITION)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddEntryComplete(11,0x0048554b,0x0002ba67,2,3,0x1a00,0x6061,0x0,8,OP_MODE_ACT)"
 
 #Config open loop 
-ecmcConfigController "MCU1", "Cfg.EcAddSdo(11,0x320A,0x3,-1,4)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddSdo(11,0x320A,0x3,-1,4)"
 
-ecmcConfigController "MCU1", "Cfg.EcAddSdo(11,0x320A,0x4,-1,4)"
+EthercatMCConfigController "MCU1", "Cfg.EcAddSdo(11,0x320A,0x4,-1,4)"
 
-ecmcConfigController "MCU1", "Cfg.EcApplyConfig(1)"
+EthercatMCConfigController "MCU1", "Cfg.EcApplyConfig(1)"
 
 #Velocity mode
-ecmcConfigController "MCU1", "Cfg.WriteEcEntryIDString(11,OP_MODE_CMD,2)"
-ecmcConfigController "MCU1", "Cfg.WriteEcEntryIDString(11,STM_CONTROL,128)"
-ecmcConfigController "MCU1", "Cfg.WriteEcEntryIDString(11,SUB_MODE_SELECT,0)"
+EthercatMCConfigController "MCU1", "Cfg.WriteEcEntryIDString(11,OP_MODE_CMD,2)"
+EthercatMCConfigController "MCU1", "Cfg.WriteEcEntryIDString(11,STM_CONTROL,128)"
+EthercatMCConfigController "MCU1", "Cfg.WriteEcEntryIDString(11,SUB_MODE_SELECT,0)"
 
 #Diagnostics
-ecmcConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
-ecmcConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
-ecmcConfigController "MCU1", "Cfg.EcSetDiagnostics(1)"
-ecmcConfigController "MCU1", "Cfg.EcEnablePrintouts(0)"
-ecmcConfigController "MCU1", "Cfg.SetDiagAxisEnable(1)"
-ecmcConfigController "MCU1", "Cfg.SetDiagAxisFreq(1)"
-ecmcConfigController "MCU1", "Cfg.SetEnableTimeDiag(0)"
+EthercatMCConfigController "MCU1", "Cfg.SetEnableFuncCallDiag(0)"
+EthercatMCConfigController "MCU1", "Cfg.EcSetDomainFailedCyclesLimit(10)"
+EthercatMCConfigController "MCU1", "Cfg.EcSetDiagnostics(1)"
+EthercatMCConfigController "MCU1", "Cfg.EcEnablePrintouts(0)"
+EthercatMCConfigController "MCU1", "Cfg.SetDiagAxisEnable(1)"
+EthercatMCConfigController "MCU1", "Cfg.SetDiagAxisFreq(1)"
+EthercatMCConfigController "MCU1", "Cfg.SetEnableTimeDiag(0)"
 
 #Enable dirve (except voltage)
-#ecmcConfigController "MCU1", "Cfg.WriteEcEntryIDString(9,CONTROL,7)"
+#EthercatMCConfigController "MCU1", "Cfg.WriteEcEntryIDString(9,CONTROL,7)"
 
 #Go to runtime
-ecmcConfigController "MCU1", "Cfg.SetAppMode(1)"
+EthercatMCConfigController "MCU1", "Cfg.SetAppMode(1)"
 
 
 #############################################################
