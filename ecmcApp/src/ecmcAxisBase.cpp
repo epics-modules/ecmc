@@ -224,12 +224,6 @@ int ecmcAxisBase::setCommandsTransformExpression(std::string expression)
 
 int ecmcAxisBase::setEnable_Transform()
 {
-  /*LOGINFO("%s/%s:%d: Axis object id %d, BEFORE\n",__FILE__, __FUNCTION__, __LINE__,axisID_);
-  for(int i=0;i<ECMC_MAX_AXES;i++){
-    if(axes_[i]!=NULL){
-      LOGINFO("%s/%s:%d: Axis object id %d, Enabled %d (axis=%d).\n",__FILE__, __FUNCTION__, __LINE__,axisID_, axes_[i]->getEnable(),i);
-    }
-  }*/
 
   if(checkAxesForEnabledTransfromCommands(ECMC_CMD_TYPE_ENABLE) && enableCommandTransform_){  //Atleast one axis have enabled getting execute from transform
     if(!commandTransform_->getCompiled()){
@@ -258,12 +252,6 @@ int ecmcAxisBase::setEnable_Transform()
     }
   }
 
-  /*LOGINFO("%s/%s:%d: Axis object id %d, AFTER\n",__FILE__, __FUNCTION__, __LINE__,axisID_);
-  for(int i=0;i<ECMC_MAX_AXES;i++){
-    if(axes_[i]!=NULL){
-      LOGINFO("%s/%s:%d: Axis object id %d, Enabled %d (axis=%d).\n",__FILE__, __FUNCTION__, __LINE__,axisID_, axes_[i]->getEnable(),i);
-    }
-  }*/
   return 0;
 }
 
@@ -813,8 +801,8 @@ int ecmcAxisBase::setExecute(bool execute)
   }
   else{ //External trajectory source
 
-    if(!execute){ //Switch to local trajectroy and stop
-/*      mon_->setNoExecuteInterlock(true); //stop
+/*    if(!execute){ //Switch to local trajectroy and stop
+      mon_->setNoExecuteInterlock(true); //stop
       int error=setTrajDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
       if(error){
 	return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
@@ -825,8 +813,8 @@ int ecmcAxisBase::setExecute(bool execute)
       currentPositionSetpoint_=traj_->getNextPosSet();
       currentVelocitySetpoint_=traj_->getVel();
       mon_->setCurrentPosSet(currentPositionSetpoint_);
-      mon_->setVelSet(currentVelocitySetpoint_);*/
-    }
+      mon_->setVelSet(currentVelocitySetpoint_);
+    }*/
   }
 
   return setExecute_Transform();
