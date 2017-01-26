@@ -1,7 +1,8 @@
-require asyn,4.27
+
 require streamdevice
-require ecmc
-#require axis,10.0.1
+require axis,10.0.1
+require ecmc,anderssandstrom
+
 
 ## Configure devices
 drvAsynECMCPortConfigure("MC_CPU1", 0, 0, 0)
