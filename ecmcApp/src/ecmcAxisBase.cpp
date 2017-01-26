@@ -817,7 +817,7 @@ int ecmcAxisBase::setExecute(bool execute)
 bool ecmcAxisBase::getExecute()
 {
   if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    return data_.command_.execute;//seq_.getExecute();
+    return data_.command_.execute;
   }
   else{
     return true;
