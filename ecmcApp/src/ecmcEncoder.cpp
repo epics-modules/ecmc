@@ -7,11 +7,11 @@
 
 #include "ecmcEncoder.h"
 
-ecmcEncoder::ecmcEncoder(double sampleTime) : ecmcEcEntryLink()
+ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,double sampleTime) : ecmcEcEntryLink()
 {
   initVars();
-  sampleTime_=sampleTime;
-  velocityFilter_=new ecmcFilter(sampleTime_);
+  data_=axisData;
+  velocityFilter_=new ecmcFilter(sampleTime);
 }
 
 ecmcEncoder::~ecmcEncoder()
@@ -81,12 +81,6 @@ void ecmcEncoder::setActPos(double pos)
   velocityFilter_->reset();
   actPosOld_=actPos_;
   offset_=offset_+pos-actPos_;
-}
-
-void ecmcEncoder::setSampleTime(double sampleTime)
-{
-  sampleTime_=sampleTime;
-  velocityFilter_->setSampleTime(sampleTime_);
 }
 
 void ecmcEncoder::setOffset(double offset)
@@ -186,7 +180,6 @@ double ecmcEncoder::readEntries()
       return actPos_;
   }
 
-
   int error=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
   if(error){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_NULL);
@@ -203,7 +196,6 @@ double ecmcEncoder::readEntries()
   rawPos_=handleOverUnderFlow(tempRaw,bits_) ;
   actPosOld_=actPos_;
   actPos_=scale_*rawPos_+offset_;
-  //actVel_=velocityFilter_->lowPassAveraging((actPos_-actPosOld_)/sampleTime_);
   actVel_=velocityFilter_->positionBasedVelAveraging(actPos_);
 
   return actPos_;

@@ -1,0 +1,104 @@
+
+#ifndef SRC_ECMCAXISDATA_H_
+#define SRC_ECMCAXISDATA_H_
+
+#include "ecmcDefinitions.h"
+#include "string.h"
+
+typedef struct {
+    double positionTarget;
+    double velocityTarget;
+    double softLimitBwd;
+    double softLimitFwd;
+    motionCommandTypes command;
+    int cmdData;
+    bool enable;
+    bool execute;
+    bool reset;
+    bool enableSoftLimitBwd;
+    bool enableSoftLimitFwd;
+    dataSource trajSource;
+    dataSource encSource;
+    operationMode operationModeCmd;
+} ecmcAxisDataCommand;
+
+typedef struct {
+  double externalTrajectoryPosition;
+  double externalTrajectoryVelocity;
+  double externalTrajectoryInterlock;
+  double externalEncoderPosition;
+  double externalEncoderVelocity;
+  double externalEncoderInterlock;
+  double currentPositionActual;
+  double currentPositionSetpoint;
+  double currentPositionSetpointOld;
+  double currentVelocityActual;
+  double currentVelocitySetpoint;
+  int    currentVelocitySetpointRaw;
+  double currentvelocityFFRaw;
+  double positionError;
+  double cntrlError;
+  double cntrlOutput;
+  double cntrlOutputOld;
+  bool enabled;
+  bool enabledOld;
+  bool enableOld;
+  bool executeOld;
+  bool busy;
+  int seqState;
+  bool atTarget;
+  //interlockTypes trajInterlock;
+  //interlockTypes driveInterlock;
+  bool limitFwd;
+  bool limitBwd;
+  bool homeSwitch;
+  bool inStartupPhase;
+  bool inRealtime;
+  double distToStop;
+} ecmcAxisDataStatus;
+
+typedef struct {
+  bool hardwareInterlock;  //Interlock on external I/O
+  bool bwdLimitInterlock;
+  bool fwdLimitInterlock;
+  bool unexpectedLimitSwitchBehaviourInterlock;
+  bool trajTransformInterlock;
+  bool encTransformInterlock;
+  bool fwdSoftLimitInterlock;
+  bool bwdSoftLimitInterlock;
+  bool cntrlOutputHLTrajInterlock;
+  bool cntrlOutputHLDriveInterlock;
+  bool lagTrajInterlock;
+  bool lagDriveInterlock;
+  bool bothLimitsLowInterlock;
+  bool maxVelocityTrajInterlock;
+  bool maxVelocityDriveInterlock;
+  bool velocityDiffTrajInterlock;
+  bool velocityDiffDriveInterlock;
+  bool axisErrorStateInterlock;
+  bool noExecuteInterlock;
+  bool driveSummaryInterlock;
+  bool trajSummaryInterlock;
+  bool trajSummaryInterlockOld;
+  bool etherCatMasterInterlock;
+  interlockTypes interlockStatus;
+  stopMode currStopMode;
+} ecmcAxisDataInterlocks;
+
+class ecmcAxisData
+{
+public:
+  ecmcAxisData ();
+  ~ecmcAxisData ();
+  stopMode refreshInterlocks();
+  ecmcAxisDataCommand command_;
+  ecmcAxisDataStatus status_;
+  ecmcAxisDataInterlocks interlocks_;
+  int axisId_;
+  axisType axisType_;
+  double sampleTime_;
+private:
+  int setSummaryInterlocks();
+};
+
+#endif /* SRC_ECMCAXISDATA_H_ */

@@ -4,6 +4,7 @@
 #include "ecmcEcEntry.h"
 #include "ecmcError.h"
 #include "ecmcTrajectoryTrapetz.hpp"
+#include "ecmcAxisData.h"
 
 //MONITOR ERRORS
 #define ERROR_MON_ASSIGN_ENTRY_FAILED 0x14C00
@@ -31,13 +32,12 @@
 class ecmcMonitor : public ecmcEcEntryLink
 {
 public:
-  ecmcMonitor();
-  ecmcMonitor(bool enableAtTargetMon, bool enableLagMon);
+  ecmcMonitor(ecmcAxisData *axisData);
+  ecmcMonitor(ecmcAxisData *axisData,bool enableAtTargetMon, bool enableLagMon);
   void initVars();
   ~ecmcMonitor();
   bool getHardLimitFwd();
   bool getHardLimitBwd();
-  bool getMotionInterlock();
   void setAtTargetTol(double tol);
   double getAtTargetTol();
   void setAtTargetTime(int time);
@@ -52,30 +52,20 @@ public:
   void setEnableLagMon(bool enable);
   bool getEnableLagMon();
   bool getHomeSwitch();
-  void setActPos(double pos);
-  void setTargetPos(double pos);
-  double getTargetPos();
-  int setVelSet(double vel);
-  int setTargetVel(double vel);
-  int setActVel(double vel);
   int setMaxVel(double vel);
   int setEnableMaxVelMon(bool enable);
   bool getEnableMaxVelMon();
   int setMaxVelDriveTime(int time);
   int setMaxVelTrajTime(int time);
-  void setCurrentPosSet(double pos);
   double getCurrentPosSet();
   void execute();
   void readEntries();
   void setEnable(bool enable);
   bool getEnable();
-  interlockTypes getTrajInterlock();
-  bool getDriveInterlock();
   int validate();
   int reset();
   void errorReset();
   int setEnableHardwareInterlock(bool enable);
-  int setCntrlOutput(double output);
   int setCntrlOutputHL(double outputHL);
   int setEnableCntrlHLMon(bool enable);
   bool getEnableCntrlHLMon();
@@ -84,14 +74,12 @@ public:
   int setVelDiffTimeTraj(int time);
   int setVelDiffTimeDrive(int time);
   int setVelDiffMaxDifference(double velo);
-  int setCntrlKff(double kff); //Used ensure that motion is reasonable in relation to controller output
   int setEnableSoftLimitBwd(bool enable);
   int setEnableSoftLimitFwd(bool enable);
   int setEnableHardLimitBWDAlarm(bool enable);
   int setEnableHardLimitFWDAlarm(bool enable);
   int setSoftLimitBwd(double limit);
   int setSoftLimitFwd(double limit);
-  int setDistToStop(double distance);
   int getEnableAlarmAtHardLimit();
   double getSoftLimitBwd();
   double getSoftLimitFwd();
@@ -99,10 +87,7 @@ public:
   bool getEnableSoftLimitFwd();
   bool getAtSoftLimitBwd();
   bool getAtSoftLimitFwd();
-  int setExtTrajInterlock(interlockTypes interlock);  //From other axes (transfrom)
-  int setExtEncInterlock(interlockTypes interlock);  //From other axes (transfrom)
-  int setAxisErrorStateInterlock(bool ilock);
-  int setNoExecuteInterlock(bool ilock);
+  //stopMode checkInterlocks();
 private:
   int checkLimits();
   int checkAtTarget();
@@ -110,6 +95,7 @@ private:
   int checkMaxVelocity();
   int checkVelocityDiff();
   int checkCntrlMaxOutput();
+  //int setSummaryInterlocks();
 
   bool   enable_;
   double atTargetTol_;           //Tolnoerance for reached target. Example 0.1 deg
@@ -118,65 +104,29 @@ private:
   double posLagTol_;             //Tolerance used during trajectory to monitor position lag. Example 0.1 deg
   int    posLagTime_;            //Number of cycles the position error needs to be above dPosLagTol before the following error bit goes high
   int    enableLagMon_;          //Enable lag monitoring
-  double actPos_;
-  bool   motionInterlock_;
-  bool   atTarget_;              //High if error is below dAtTargetTol for a nAtTargetTime cycles
   int    atTargetCounter_;       //
-  bool   lagErrorTraj_;          //Lag monitoring error
-  bool   lagErrorDrive_;         //Lag monitoring error
   int    lagMonCounter_;         //
-  bool   hardBwd_;               //At hard low limit
-  bool   hardFwd_;               //At hard high limit
   bool   hardBwdOld_;
   bool   hardFwdOld_;
-  bool   homeSwitch_;            //Home switch
-  double targetPos_;
-  double currSetPos_;
   double lagError_;
-  bool   bothLimitsLowInterlock_;
-  bool   bwdLimitInterlock_;
-  bool   fwdLimitInterlock_;
-  bool   bwdSoftLimitInterlock_;
-  bool   fwdSoftLimitInterlock_;
-  interlockTypes   extTrajInterlock_;
-  interlockTypes   extEncInterlock_;
-  double setVel_;
-  double targetVel_;
-  double actVel_;
   double maxVel_;
   bool   enableMaxVelMon_;
-  bool   velErrorTraj_;
-  bool   velErrorDrive_;
   int    maxVelCounterDrive_;;
   int    maxVelCounterTraj_;
   int    maxVelDriveILDelay_;
   int    maxVelTrajILDelay_;
   bool   enableHardwareInterlock_;
-  bool   hardwareInterlock_;
-  double cntrlOutput_;
   double cntrlOutputHL_;
-  double cntrlOutputOld_;
-  bool cntrlOutputHLErrorTraj_;
-  bool cntrlOutputHLErrorDrive_;
+  //double cntrlOutputOld_;
   bool enableCntrlHLMon_;
   bool enableVelocityDiffMon_;
-  bool velocityDiffErrorTraj_;
-  bool velocityDiffErrorDrive_;
   int velocityDiffCounter_;
   int velDiffTimeTraj_;
   int velDiffTimeDrive_;
   double velDiffMaxDiff_;
-  double cntrlKff_;
-  double softLimitBwd_;
-  double softLimitFwd_;
-  bool   enableSoftLimitBwd_;
-  bool   enableSoftLimitFwd_;
   double enableAlarmAtHardlimitBwd_;
   double enableAlarmAtHardlimitFwd_;
-  double distToStop_;
-  double currSetPosOld_;
-  bool axisErrorStateInterlock;
-  bool unexpectedLimitSwitchBehaviourInterlock_;
-  bool noExecuteInterlock_;
+  //double currSetPosOld_;
+  ecmcAxisData* data_;
 };
 #endif

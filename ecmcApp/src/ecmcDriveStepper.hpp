@@ -13,8 +13,8 @@
 class ecmcDriveStepper : public ecmcDriveBase
 {
 public:
-  ecmcDriveStepper();
-  ecmcDriveStepper(double scale);
+  ecmcDriveStepper(ecmcAxisData *axisData);
+  ecmcDriveStepper(ecmcAxisData *axisData,double scale);
   ~ecmcDriveStepper();
   int validate();
   void writeEntries();

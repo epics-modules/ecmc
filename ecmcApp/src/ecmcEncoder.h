@@ -20,6 +20,7 @@
 #include "ecmcEcPdo.h"
 #include "ecmcError.h"
 #include "ecmcFilter.h"
+#include "ecmcAxisData.h"
 
 //ENCODER
 #define ERROR_ENC_ASSIGN_ENTRY_FAILED 0x14400
@@ -40,7 +41,7 @@
 class ecmcEncoder : public ecmcEcEntryLink
 {
 public:
-  ecmcEncoder(double sampleTime);
+  ecmcEncoder(ecmcAxisData *axisData,double sampleTime);
   ~ecmcEncoder();
   int setBits(int bits);
   int64_t getRawPos();
@@ -51,7 +52,6 @@ public:
   double  getScale();
   double getActPos();
   void setActPos(double pos);
-  void setSampleTime(double sampleTime);
   double getSampleTime();
   double getActVel();
   void setHomed(bool homed);
@@ -61,7 +61,6 @@ public:
   double readEntries();
   void setOffset(double offset);
   int validate();
-
  protected:
   void initVars();
   int32_t turns_;
@@ -83,6 +82,7 @@ public:
   int bits_;
   int64_t handleOverUnderFlow(uint64_t newValue,int bits);
   ecmcFilter *velocityFilter_;
+  ecmcAxisData* data_;
 };
 
 #endif /* ECMCENCODER_H_ */

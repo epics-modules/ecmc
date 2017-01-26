@@ -44,8 +44,8 @@ enum stateMachine_DS402{
 class ecmcDriveDS402: public ecmcDriveBase
 {
 public:
-  ecmcDriveDS402();
-  ecmcDriveDS402(double scale);
+  ecmcDriveDS402(ecmcAxisData *axisData);
+  ecmcDriveDS402(ecmcAxisData *axisData,double scale);
   ~ecmcDriveDS402();
   int validate();
   void readEntries();

@@ -2,30 +2,27 @@
 
 #include <stdio.h>
 
-ecmcPIDController::ecmcPIDController(double sampleTime)
+ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double sampleTime)
 {
   initVars();
-  sampleTime_=sampleTime;
+  data_=axisData;
 }
 
-ecmcPIDController::ecmcPIDController(double kp, double ki, double kd, double kff, double sampleTime, double outMax, double outMin)
+ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double kp, double ki, double kd, double kff, double sampleTime, double outMax, double outMin)
 {
   initVars();
+  data_=axisData;
   kp_=kp;
   ki_=ki;
   kd_=kd;
   kff_=kff;
   outputMax_=outMax;
   outputMin_=outMin;
-  sampleTime_=sampleTime;
 }
 
 void ecmcPIDController::initVars()
 {
   errorReset();
-  controllerError_=0;
-  setpoint_=0;
-  actual_=0;
   outputP_=0;
   outputI_=0;
   outputD_=0;
@@ -34,17 +31,13 @@ void ecmcPIDController::initVars()
   outputMax_=0;        //For combined PID output
   outputMin_=0;
   ff_=0;
-  output_=0;
   controllerErrorOld_=0;
-  sampleTime_=0;
-  enable_=false;
   kp_=0;
   ki_=0;
   kd_=0;
   kff_=0;
   outputMax_=0;
   outputMin_=0;
-  interlock_=true;
 }
 
 ecmcPIDController::~ecmcPIDController()
@@ -54,21 +47,11 @@ ecmcPIDController::~ecmcPIDController()
 
 void ecmcPIDController::reset()
 {
-  setpoint_=0;
-  actual_=0;
   outputP_=0;
   outputI_=0;
   outputD_=0;
   ff_=0;
-  controllerError_=0;
   controllerErrorOld_=0;
-  output_=0;
-  //enable_=false;
-}
-
-double ecmcPIDController::getCntrlError()
-{
-  return controllerError_;
 }
 
 void ecmcPIDController::setIRange(double iMax, double iMin)
@@ -99,7 +82,7 @@ double ecmcPIDController::getOutFFPart()
 
 double ecmcPIDController::getOutTot()
 {
-  return output_;
+  return data_->status_.cntrlOutput;
 }
 
 void ecmcPIDController::setKp(double kp)
@@ -145,16 +128,15 @@ double ecmcPIDController::control(double set, double act, double ff)
 {
   //Simple PID loop with FF.. Consider to make base class to derive other controller types
 
-  if(!enable_ || interlock_){
+  if(!data_->command_.enable || data_->interlocks_.driveSummaryInterlock){
     reset();
-    return output_;
+    return 0;
   }
-  setpoint_=set;
-  actual_=act;
+
   ff_=ff*kff_;
-  controllerError_=setpoint_-actual_;
-  outputP_=controllerError_*kp_;
-  outputI_=outputI_+controllerError_*ki_;
+  data_->status_.cntrlError=data_->status_.currentPositionSetpoint-data_->status_.currentPositionActual;
+  outputP_=data_->status_.cntrlError*kp_;
+  outputI_=outputI_+data_->status_.cntrlError*ki_;
   if(outputIMax_!=outputIMin_ && outputIMax_>outputIMin_){  //Enabled only when limits differ and max>min
     if(outputI_>outputIMax_){
       outputI_=outputIMax_;
@@ -163,51 +145,25 @@ double ecmcPIDController::control(double set, double act, double ff)
       outputI_=outputIMin_;
     }
   }
-  outputD_=(controllerError_-controllerErrorOld_)*kd_;
-  output_=outputP_+outputI_+outputD_+ff_;
+  outputD_=(data_->status_.cntrlError-controllerErrorOld_)*kd_;
+  data_->status_.cntrlOutput=outputP_+outputI_+outputD_+ff_;
 
   if(outputMax_!=outputMin_ && outputMax_>outputMin_){ //Enabled only when limits differ and max>min
-    if(output_>outputMax_){
-      output_=outputMax_;
+    if(data_->status_.cntrlOutput>outputMax_){
+      data_->status_.cntrlOutput=outputMax_;
     }
-    if(output_<outputMin_){
-      output_=outputMin_;
+    if(data_->status_.cntrlOutput<outputMin_){
+      data_->status_.cntrlOutput=outputMin_;
     }
   }
-  controllerErrorOld_=controllerError_;
-  return output_;
-}
-
-void ecmcPIDController::setSampleTime(double sampleTime)
-{
-  sampleTime_=sampleTime;
-}
-
-double ecmcPIDController::getSampleTime()
-{
-  return sampleTime_;
-}
-
-void ecmcPIDController::setEnable(bool enable)
-{
-  enable_=enable;
-}
-
-bool ecmcPIDController::getEnable()
-{
-  return enable_;
+  controllerErrorOld_=data_->status_.cntrlError;
+  return data_->status_.cntrlOutput;
 }
 
 int ecmcPIDController::validate()
 {
-  if(sampleTime_<=0){
+  if(data_->sampleTime_<=0){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_CNTRL_INVALID_SAMPLE_TIME);
   }
-  return 0;
-}
-
-int ecmcPIDController::setInterlock(bool interlock)
-{
-  interlock_=interlock;
   return 0;
 }

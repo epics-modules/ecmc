@@ -1,33 +1,30 @@
 #include "ecmcDriveBase.hpp"
 
-ecmcDriveBase::ecmcDriveBase()
+ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData)
 {
   initVars();
+  data_=axisData;
 }
 
-ecmcDriveBase::ecmcDriveBase(double scale)
+ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData,double scale)
 {
   initVars();
   scale_=scale;
+  data_=axisData;
 }
 
 void ecmcDriveBase::initVars()
 {
   errorReset();
-  interlock_=true;
   scale_=0;
   scaleNum_=0;
   scaleDenom_=0;
-  velSetRawOutput_=0;
   velSet_=0;
-  enableCmd_=0;
-  enabledStatus_=0;
   enableBrake_=0;
   enableReduceTorque_=0;
-  reduceTorqueOutput_=0;
-  brakeOutput_=0;
   controlWord_=0;
   statusWord_=0;
+  manualModeEnable_=false;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -37,14 +34,13 @@ ecmcDriveBase::~ecmcDriveBase()
 
 int ecmcDriveBase::setVelSet(double vel)
 {
-  if(interlock_){
+  if(!driveInterlocksOK()){
     velSet_=0;
-    velSetRawOutput_=0;
-    enableCmd_=0;
+    data_->status_.currentVelocitySetpointRaw=0;
     return 0;
   }
   velSet_=vel;
-  velSetRawOutput_=velSet_/scale_;
+  data_->status_.currentVelocitySetpointRaw=velSet_/scale_;
   return 0;
 }
 
@@ -78,42 +74,24 @@ double ecmcDriveBase::getVelSet()
 
 int ecmcDriveBase::getVelSetRaw()
 {
-  return velSetRawOutput_;
+  return data_->status_.currentVelocitySetpointRaw;
 }
 
-/*int ecmcDriveBase::setEnable(bool enable)
+int ecmcDriveBase::setEnable(bool enable)
 {
-  if(interlock_ && enable){
-    enableCmd_=false;
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DRIVE_INTERLOCKED);
+  //Only allowed in manual mode
+  if(data_->command_.operationModeCmd!=ECMC_MODE_OP_MAN){
+    manualModeEnable_=false;
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE);
   }
 
-  if(enableBrake_){
-    if(!enable ){
-      brakeOutput_=0;  //brake locked when 0 . TODO: Apply brake some cycles before enable is low
-    }
-    else{
-      brakeOutput_=1;  //brake open when 1
-    }
-  }
-
-  enableCmd_=enable;
+  manualModeEnable_=true;
   return 0;
-}*/
-
-void ecmcDriveBase::setInterlock(bool interlock)
-{
-  interlock_=interlock;
-}
-
-bool ecmcDriveBase::getInterlock()
-{
-  return interlock_;
 }
 
 int ecmcDriveBase::setVelSetRaw(int vel)
 {
-  velSetRawOutput_=vel;
+  data_->status_.currentVelocitySetpointRaw=vel;
   return 0;
 }
 
@@ -154,28 +132,15 @@ int ecmcDriveBase::getEnableReduceTorque()
   return enableReduceTorque_;
 }
 
-int ecmcDriveBase::setBrake(bool value)
-{
-  brakeOutput_=value;
-  return 0;
-}
-
-int ecmcDriveBase::setReduceTorque(bool value)
-{
-  reduceTorqueOutput_=value;
-  return 0;
-}
-
-int ecmcDriveBase::setAtTarget(bool atTarget)
-{
-  reduceTorqueOutput_=atTarget && enableReduceTorque_;
-  return 0;
-}
-
 void ecmcDriveBase::writeEntries()
 {
-  if (getError()){
-    return;
+  if(!driveInterlocksOK() && data_->command_.enable){
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DRIVE_INTERLOCKED);
+  }
+
+  if(getError()){
+    controlWord_=0;
+    data_->status_.currentVelocitySetpointRaw=0;
   }
 
   int errorCode=0;
@@ -184,20 +149,20 @@ void ecmcDriveBase::writeEntries()
     setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
-  errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,(uint64_t)velSetRawOutput_);
+  errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,(uint64_t)data_->status_.currentVelocitySetpointRaw);
   if(errorCode){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
   if(enableBrake_){
-    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT,(uint64_t)brakeOutput_);
+    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT,(uint64_t) data_->command_.enable);
     if(errorCode){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
     }
   }
 
   if(enableReduceTorque_){
-    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,(uint64_t)reduceTorqueOutput_);
+    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,(uint64_t)data_->status_.atTarget);
     if(errorCode){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
     }
@@ -206,13 +171,9 @@ void ecmcDriveBase::writeEntries()
 
 void ecmcDriveBase::readEntries()
 {
-  if(getError()){
-    return;
-  }
   if(readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,&statusWord_)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_ENABLED_READ_ENTRY_FAIL);
-    enableCmd_=false;
-    enabledStatus_=false;
+    statusWord_=0;
     return;
   }
 }
@@ -256,30 +217,23 @@ int ecmcDriveBase::validate()
 
 bool ecmcDriveBase::getEnable()
 {
-  return enableCmd_;
+  switch(data_->command_.operationModeCmd){
+    case ECMC_MODE_OP_AUTO:
+      return data_->command_.enable;
+      break;
+    case ECMC_MODE_OP_MAN:
+      return manualModeEnable_;
+      break;
+  }
+  return data_->command_.enable;
 }
 
 bool ecmcDriveBase::getEnabled()
 {
-  return enabledStatus_;
+  return data_->status_.enabled;
 }
 
-int ecmcDriveBase::setEnable(bool enable)
+bool ecmcDriveBase::driveInterlocksOK()
 {
-  if(interlock_ && enable){
-    enableCmd_=false;
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DRIVE_INTERLOCKED);
-  }
-
-  if(enableBrake_){
-    if(!enable ){
-      brakeOutput_=0;  //brake locked when 0 . TODO: Apply brake some cycles before enable is low
-    }
-    else{
-      brakeOutput_=1;  //brake open when 1
-    }
-  }
-
-  enableCmd_=enable;
-  return 0;
+ return !(data_->interlocks_.driveSummaryInterlock || data_->interlocks_.etherCatMasterInterlock);
 }

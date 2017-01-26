@@ -27,7 +27,6 @@
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 
-
 //Hardware
 #include "ecmcEcPdo.h"
 #include "ecmcEcSlave.h"
@@ -859,9 +858,8 @@ int getAxisBusy(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getBusy();
+  *value=axes[axisIndex]->getBusy();
   return 0;
 }
 
@@ -926,10 +924,10 @@ int setAxisTargetVel(int axisIndex, double value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  //CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getSeq()->setTargetVel(value);
-  axes[axisIndex]->getMon()->setTargetVel(value);
+  //axes[axisIndex]->getMon()->setTargetVel(value);
 
   return 0;
 }
@@ -1553,10 +1551,10 @@ int setAxisCntrlKff(int axisIndex, double value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
-  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  //CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getCntrl()->setKff(value);
-  axes[axisIndex]->getMon()->setCntrlKff(value);
+  //axes[axisIndex]->getMon()->setCntrlKff(value);
   return 0;
 }
 
@@ -1605,7 +1603,7 @@ int setAxisCntrlIpartLL(int axisIndex, double value)
 }
 
 //Cntrl GET
-int getAxisCntrlEnable(int axisIndex,int *value)
+/*int getAxisCntrlEnable(int axisIndex,int *value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
@@ -1614,7 +1612,7 @@ int getAxisCntrlEnable(int axisIndex,int *value)
 
   *value=axes[axisIndex]->getCntrl()->getEnable();
   return 0;
-}
+}*/
 
 int getAxisCntrlOutPpart(int axisIndex,double *value)
 {

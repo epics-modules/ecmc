@@ -2,21 +2,23 @@
 
 #include <stdio.h>
 
-ecmcMonitor::ecmcMonitor()
+ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData)
 {
   initVars();
+  data_=axisData;
+  errorReset();
 }
 
-ecmcMonitor::ecmcMonitor(bool enableAtTargetMon, bool enableLagMon)
+ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,bool enableAtTargetMon, bool enableLagMon)
 {
   initVars();
+  data_=axisData;
   enableAtTargetMon_=enableAtTargetMon;
   enableLagMon_=enableLagMon;
 }
 
 void ecmcMonitor::initVars()
 {
-  errorReset();
   enable_=false;
   atTargetTol_=0;
   atTargetTime_=0;
@@ -24,77 +26,33 @@ void ecmcMonitor::initVars()
   posLagTol_=0;
   posLagTime_=0;
   enableLagMon_=true;
-  actPos_=0;
-  motionInterlock_=false;   //Not implemented
-  atTarget_=false;
   atTargetCounter_=0;
-  lagErrorTraj_=false;
-  lagErrorDrive_=false;
   lagMonCounter_=0;
-  hardBwd_=false;
-  hardFwd_=false;
-  homeSwitch_=false;
-  targetPos_=0;
   lagError_=0;
-  bothLimitsLowInterlock_=false;
-  currSetPos_=0;
-  setVel_=0;
-  actVel_=0;
   maxVel_=0;
   enableMaxVelMon_=true;
-  velErrorTraj_=false;
-  velErrorDrive_=false;
   maxVelCounterDrive_=0;
   maxVelCounterTraj_=0;
   maxVelDriveILDelay_=0;
   maxVelTrajILDelay_=200; //200 cycles
   maxVelDriveILDelay_=maxVelTrajILDelay_*2; //400 cycles default
   enableHardwareInterlock_=false;
-  hardwareInterlock_=false;
-  cntrlOutput_=0;
   cntrlOutputHL_=0;
-  cntrlOutputHLErrorTraj_=false;
-  cntrlOutputHLErrorDrive_=false;
   enableCntrlHLMon_=false;
-  cntrlOutputOld_=0;
   enableVelocityDiffMon_=false;
-  velocityDiffErrorTraj_=false;
-  velocityDiffErrorDrive_=false;
   velocityDiffCounter_=0;
-  cntrlKff_=0;
-  bwdLimitInterlock_=true;
-  fwdLimitInterlock_=true;
-  unexpectedLimitSwitchBehaviourInterlock_=true;
-  softLimitBwd_=true;
-  softLimitFwd_=true;
-  enableSoftLimitBwd_=0;
-  enableSoftLimitFwd_=0;
   enableAlarmAtHardlimitBwd_=false;
   enableAlarmAtHardlimitFwd_=false;
-  distToStop_=0;
-  bwdSoftLimitInterlock_=false;
-  fwdSoftLimitInterlock_=false;
-  currSetPosOld_=0;
-  extEncInterlock_=ECMC_INTERLOCK_NONE;
-  extTrajInterlock_=ECMC_INTERLOCK_NONE;
-  axisErrorStateInterlock=false;
   hardBwdOld_=false;
   hardFwdOld_=false;
   velDiffTimeTraj_=100;
   velDiffTimeDrive_=100;
-  targetVel_=0;
   velDiffMaxDiff_=0;
-  noExecuteInterlock_=false;
 }
 
 ecmcMonitor::~ecmcMonitor()
 {
   ;
-}
-
-void ecmcMonitor::setActPos(double pos)
-{
-  actPos_=pos;
 }
 
 void ecmcMonitor::execute()
@@ -107,13 +65,10 @@ void ecmcMonitor::execute()
   checkAtTarget();
 
   //External interlock (on ethercat I/O)
-  if(enableHardwareInterlock_ && !hardwareInterlock_ && enable_)
+
+  if(enableHardwareInterlock_ && !data_->interlocks_.hardwareInterlock && enable_)
   {
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK);
-  }
-
-  if(!enable_){
-    return;
   }
 
   //Lag error
@@ -127,114 +82,23 @@ void ecmcMonitor::execute()
 
   //Controller output increase at limit switches monitoring
   checkVelocityDiff();
-}
 
-void ecmcMonitor::setTargetPos(double pos)
-{
-  targetPos_=pos;
+  data_->refreshInterlocks();
 }
-
-double ecmcMonitor::getTargetPos()
-{
-  return targetPos_;
-}
-
-void ecmcMonitor::setCurrentPosSet(double pos)
-{
-  currSetPosOld_=currSetPos_;
-  currSetPos_=pos;
-}
-
-double ecmcMonitor::getCurrentPosSet()
-{
-  return currSetPos_;
-}
-
 
 bool ecmcMonitor::getAtTarget()
 {
-  return atTarget_;
+  return data_->status_.atTarget;
 }
 
 bool ecmcMonitor::getHardLimitFwd()
 {
-  return hardFwd_;
+  return data_->status_.limitFwd;
 }
 
 bool ecmcMonitor::getHardLimitBwd()
 {
-  return hardBwd_;
-}
-
-interlockTypes ecmcMonitor::getTrajInterlock()
-{
-
-  if(enableHardwareInterlock_&& !hardwareInterlock_){
-    return ECMC_INTERLOCK_EXTERNAL;
-  }
-
-  if(bwdLimitInterlock_){
-    return ECMC_INTERLOCK_HARD_BWD;
-  }
-
-  if(fwdLimitInterlock_){
-    return ECMC_INTERLOCK_HARD_FWD;
-  }
-
-  if(unexpectedLimitSwitchBehaviourInterlock_){
-    return ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR;
-  }
-
-  if(extTrajInterlock_==ECMC_INTERLOCK_TRANSFORM){
-    return ECMC_INTERLOCK_TRANSFORM;
-  }
-
-  if(extEncInterlock_==ECMC_INTERLOCK_TRANSFORM){
-    return ECMC_INTERLOCK_TRANSFORM;
-  }
-
-  if(fwdSoftLimitInterlock_){
-    return ECMC_INTERLOCK_SOFT_FWD;
-  }
-
-  if(bwdSoftLimitInterlock_){
-    return ECMC_INTERLOCK_SOFT_BWD;
-  }
-
-  if(cntrlOutputHLErrorTraj_){
-    return ECMC_INTERLOCK_CONT_HIGH_LIMIT;
-  }
-
-  if(lagErrorTraj_){
-    return ECMC_INTERLOCK_POSITION_LAG;
-  }
-
-  if(bothLimitsLowInterlock_){
-    return ECMC_INTERLOCK_BOTH_LIMITS;
-  }
-
-  if(velErrorTraj_){
-    return ECMC_INTERLOCK_MAX_SPEED;
-  }
-
-  if(velocityDiffErrorTraj_){
-    return ECMC_INTERLOCK_VELOCITY_DIFF;
-  }
-
-  if(axisErrorStateInterlock){
-    return ECMC_INTERLOCK_AXIS_ERROR_STATE;
-  }
-
-  if(noExecuteInterlock_){
-    return ECMC_INTERLOCK_NO_EXECUTE;
-  }
-
-  return ECMC_INTERLOCK_NONE;
-}
-
-bool ecmcMonitor::getDriveInterlock()
-{
-  return velocityDiffErrorDrive_ || cntrlOutputHLErrorDrive_|| lagErrorDrive_ || bothLimitsLowInterlock_ || velErrorDrive_ || (!hardwareInterlock_ && enableHardwareInterlock_);
+  return data_->status_.limitBwd;
 }
 
 void ecmcMonitor::setAtTargetTol(double tol)
@@ -310,7 +174,7 @@ bool ecmcMonitor::getEnableLagMon()
 
 bool ecmcMonitor::getHomeSwitch()
 {
-  return homeSwitch_;
+  return data_->status_.homeSwitch;
 }
 
 void ecmcMonitor::readEntries(){
@@ -321,28 +185,28 @@ void ecmcMonitor::readEntries(){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
-  hardBwd_=tempRaw>0;
+  data_->status_.limitBwd=tempRaw>0;
 
   //Hard limit FWD
   if(readEcEntryValue(1,&tempRaw)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
-  hardFwd_=tempRaw>0;
+  data_->status_.limitFwd=tempRaw>0;
 
   //Home
   if(readEcEntryValue(2,&tempRaw)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
-  homeSwitch_=tempRaw>0;
+  data_->status_.homeSwitch=tempRaw>0;
 
   if(enableHardwareInterlock_){
     if(readEcEntryValue(3,&tempRaw)){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
       return;
     }
-    hardwareInterlock_=tempRaw>0;
+    data_->interlocks_.hardwareInterlock=tempRaw>0;
   }
 }
 
@@ -383,18 +247,6 @@ int ecmcMonitor::validate()
   return 0;
 }
 
-int ecmcMonitor::setVelSet(double vel)
-{
-  setVel_=vel;
-  return 0;
-}
-
-int ecmcMonitor::setActVel(double vel)
-{
-  actVel_=vel;
-  return 0;
-}
-
 int ecmcMonitor::setMaxVel(double vel)
 {
   maxVel_=vel;
@@ -426,21 +278,21 @@ int ecmcMonitor::setMaxVelTrajTime(int time)
 
 int ecmcMonitor::reset()
 {
-  atTarget_=false;
-  lagErrorTraj_=false;
-  lagErrorDrive_=false;
-  velErrorTraj_=false;
-  velErrorDrive_=false;
-  cntrlOutputHLErrorTraj_=false;
-  cntrlOutputHLErrorDrive_=false;
+  data_->status_.atTarget=false;
+  data_->interlocks_.lagTrajInterlock=false;
+  data_->interlocks_.lagDriveInterlock=false;
+  data_->interlocks_.maxVelocityTrajInterlock=false;
+  data_->interlocks_.maxVelocityDriveInterlock=false;
+  data_->interlocks_.cntrlOutputHLTrajInterlock=false;
+  data_->interlocks_.cntrlOutputHLDriveInterlock=false;
   atTargetCounter_=0;
   lagMonCounter_=0;
   maxVelCounterDrive_=0;
   maxVelCounterTraj_=0;
-  axisErrorStateInterlock=false;
-  unexpectedLimitSwitchBehaviourInterlock_=false;
-  velocityDiffErrorTraj_=false;
-  velocityDiffErrorDrive_=false;
+  data_->interlocks_.axisErrorStateInterlock=false;
+  data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock=false;
+  data_->interlocks_.velocityDiffTrajInterlock=false;
+  data_->interlocks_.velocityDiffDriveInterlock=false;
   velocityDiffCounter_=0;
   return 0;
 }
@@ -461,13 +313,6 @@ int ecmcMonitor::setEnableHardwareInterlock(bool enable)
    }
    enableHardwareInterlock_=enable;
    return 0;
-}
-
-int ecmcMonitor::setCntrlOutput(double output)
-{
-  cntrlOutputOld_=cntrlOutput_;
-  cntrlOutput_=output;
-  return 0;
 }
 
 int ecmcMonitor::setCntrlOutputHL(double outputHL)
@@ -498,12 +343,6 @@ bool ecmcMonitor::getEnableVelocityDiffMon()
   return enableVelocityDiffMon_;
 }
 
-int ecmcMonitor::setCntrlKff(double kff)
-{
-  cntrlKff_=kff;
-  return 0;
-}
-
 int ecmcMonitor::setEnableHardLimitBWDAlarm(bool enable)
 {
   enableAlarmAtHardlimitBwd_=enable;
@@ -518,75 +357,78 @@ int ecmcMonitor::setEnableHardLimitFWDAlarm(bool enable)
 
 int ecmcMonitor::setEnableSoftLimitBwd(bool enable)
 {
-  enableSoftLimitBwd_=enable;
+  data_->command_.enableSoftLimitBwd=enable;
   return 0;
 }
 
 int ecmcMonitor::setEnableSoftLimitFwd(bool enable)
 {
-  enableSoftLimitFwd_=enable;
+  data_->command_.enableSoftLimitFwd=enable;
   return 0;
 }
 
 int ecmcMonitor::setSoftLimitBwd(double limit)
 {
-  softLimitBwd_=limit;
+  data_->command_.softLimitBwd=limit;
   return 0;
 }
 
 int ecmcMonitor::setSoftLimitFwd(double limit)
 {
-  softLimitFwd_=limit;
+  data_->command_.softLimitFwd=limit;
   return 0;
 }
 
 int ecmcMonitor::checkLimits()
 {
   //Unexpected limit switch behavior (falling edge while running towards other limit switch)
-  unexpectedLimitSwitchBehaviourInterlock_=(hardBwdOld_ && !hardBwd_ && setVel_>0) || (hardFwdOld_ && !hardFwd_ && setVel_<0);
-  if(unexpectedLimitSwitchBehaviourInterlock_){
+  data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock=(hardBwdOld_ && !data_->status_.limitBwd && data_->status_.currentVelocitySetpoint>0)
+      || (hardFwdOld_ && !data_->status_.limitFwd && data_->status_.currentVelocitySetpoint<0);
+  if(data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK);
   }
-  hardBwdOld_=hardBwd_;
-  hardFwdOld_=hardFwd_;
+  hardBwdOld_=data_->status_.limitBwd;
+  hardFwdOld_=data_->status_.limitFwd;
 
   //Both limit switches
-  bothLimitsLowInterlock_=!hardBwd_ && !hardFwd_;
-  if(bothLimitsLowInterlock_){
+  data_->interlocks_.bothLimitsLowInterlock=!data_->status_.limitBwd && !data_->status_.limitFwd;
+  if(data_->interlocks_.bothLimitsLowInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_BOTH_LIMIT_INTERLOCK);
   }
 
   //Bwd limit switch
-  if(!hardBwd_ && (setVel_<0 || currSetPos_<currSetPosOld_) ){
-    bwdLimitInterlock_=true;
+  if(!data_->status_.limitBwd && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld) ){
+    data_->interlocks_.bwdLimitInterlock=true;
     if(enableAlarmAtHardlimitBwd_){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
     }
   }
   else {
-      bwdLimitInterlock_=false;
+      data_->interlocks_.bwdLimitInterlock=false;
   }
 
   //Fwd limit switch
-  if(!hardFwd_ && (setVel_>0 || currSetPos_>currSetPosOld_)){
-    fwdLimitInterlock_=true;
+  if(!data_->status_.limitFwd && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld)){
+    data_->interlocks_.fwdLimitInterlock=true;
     if(enableAlarmAtHardlimitFwd_){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
     }
   }
   else{
-      fwdLimitInterlock_=false;
+      data_->interlocks_.fwdLimitInterlock=false;
   }
 
   //Soft bwd limit
-  bwdSoftLimitInterlock_=enableSoftLimitBwd_ && (setVel_<0) && (actPos_-softLimitBwd_<=distToStop_);
-  if(bwdSoftLimitInterlock_){
+  data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd && (data_->status_.currentVelocitySetpoint<0)
+      && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop);
+  if(data_->interlocks_.bwdSoftLimitInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
   }
 
   //Soft fwd limit
-  fwdSoftLimitInterlock_=enableSoftLimitFwd_ && (setVel_>0) && (softLimitFwd_-actPos_<=distToStop_);
-  if(fwdSoftLimitInterlock_){
+  data_->interlocks_.fwdSoftLimitInterlock=data_->command_.enableSoftLimitFwd && (data_->status_.currentVelocitySetpoint>0)
+      && (data_->command_.softLimitFwd-data_->status_.currentPositionActual<=data_->status_.distToStop);
+  if(data_->interlocks_.fwdSoftLimitInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
   }
 
@@ -595,15 +437,14 @@ int ecmcMonitor::checkLimits()
 
 int ecmcMonitor::checkAtTarget()
 {
-  atTarget_=false;
-  //At target
+  bool atTarget=false;
   if(enableAtTargetMon_){
-    if(std::abs(targetPos_-actPos_)<atTargetTol_){
+    if(std::abs(data_->command_.positionTarget-data_->status_.currentPositionActual)<atTargetTol_){
       if (atTargetCounter_<=atTargetTime_){
         atTargetCounter_++;
       }
       if(atTargetCounter_>atTargetTime_){
-        atTarget_=true;
+	  atTarget=true;
       }
     }
     else{
@@ -611,35 +452,39 @@ int ecmcMonitor::checkAtTarget()
     }
   }
   else{
-    atTarget_=true;
+      atTarget=true;
   }
+  data_->status_.atTarget=atTarget;
   return 0;
 }
 
 int ecmcMonitor::checkPositionLag()
 {
-  lagErrorTraj_=false;
-  lagErrorDrive_=false;
+  bool lagErrorTraj=false;
+  bool lagErrorDrive=false;
 
-  if(enableLagMon_ && !(lagErrorDrive_)){
-     lagError_=std::abs(actPos_-currSetPos_);
+  if(enableLagMon_ && !(lagErrorDrive)){
+    lagError_=std::abs(data_->status_.currentPositionActual-data_->status_.currentPositionSetpoint);
 
-     if(lagError_>posLagTol_){
-       if(lagMonCounter_<=posLagTime_*2){
-         lagMonCounter_++;
-       }
-       if(lagMonCounter_>posLagTime_){
-         lagErrorTraj_=true;
-       }
-       if(lagMonCounter_>=posLagTime_*2){  //interlock the drive in twice the time..
- 	lagErrorDrive_=true;
-       }
-     }
-     else{
-       lagMonCounter_=0;
-     }
-   }
-   if(lagErrorDrive_ || lagErrorTraj_){
+    if(lagError_>posLagTol_){
+      if(lagMonCounter_<=posLagTime_*2){
+        lagMonCounter_++;
+      }
+      if(lagMonCounter_>posLagTime_){
+        lagErrorTraj=true;
+      }
+      if(lagMonCounter_>=posLagTime_*2){  //interlock the drive in twice the time..
+        lagErrorDrive=true;
+      }
+    }
+    else{
+      lagMonCounter_=0;
+    }
+  }
+  data_->interlocks_.lagDriveInterlock=lagErrorDrive;
+  data_->interlocks_.lagTrajInterlock=lagErrorTraj;
+
+   if(lagErrorDrive || lagErrorTraj){
      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
    }
   return 0;
@@ -647,16 +492,18 @@ int ecmcMonitor::checkPositionLag()
 
 int ecmcMonitor::checkVelocityDiff()
 {
-  double currentSetVelocityToDrive=cntrlOutput_/cntrlKff_;
+  double currentSetVelocityToDrive= data_->status_.cntrlOutput; //cntrlOutput_/cntrlKff_;
+  bool velocityDiffErrorDrive=false;
+  bool velocityDiffErrorTraj=false;
 
   if(!enableVelocityDiffMon_ ){
       velocityDiffCounter_=0;
-      velocityDiffErrorDrive_=false;
-      velocityDiffErrorTraj_=false;
+      velocityDiffErrorDrive=false;
+      velocityDiffErrorTraj=false;
       return 0;
   }
 
-  if(std::abs(currentSetVelocityToDrive-actVel_)>velDiffMaxDiff_){
+  if(std::abs(currentSetVelocityToDrive-data_->status_.currentVelocityActual)>velDiffMaxDiff_){
     velocityDiffCounter_++;
   }
   else{
@@ -664,22 +511,26 @@ int ecmcMonitor::checkVelocityDiff()
   }
 
   if(velocityDiffCounter_>velDiffTimeTraj_){
-    velocityDiffErrorTraj_=true;
+    velocityDiffErrorTraj=true;
   }
 
   if(velocityDiffCounter_>velDiffTimeDrive_){
-    velocityDiffErrorDrive_=true;
+    velocityDiffErrorDrive=true;
   }
 
-  if(velocityDiffErrorDrive_ || velocityDiffErrorTraj_){
+  data_->interlocks_.velocityDiffDriveInterlock=velocityDiffErrorDrive;
+  data_->interlocks_.velocityDiffTrajInterlock=velocityDiffErrorTraj;
+
+  if(velocityDiffErrorDrive || velocityDiffErrorTraj){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED);
   }
+
   return 0;
 }
 
 int ecmcMonitor::checkMaxVelocity()
 {
-  if((std::abs(actVel_)>maxVel_ || std::abs(setVel_)>maxVel_) && enableMaxVelMon_){
+  if((std::abs(data_->status_.currentVelocityActual)>maxVel_ || std::abs(data_->status_.currentVelocitySetpoint)>maxVel_) && enableMaxVelMon_){
       if(maxVelCounterTraj_ <= maxVelTrajILDelay_){
         maxVelCounterTraj_++;
       }
@@ -688,20 +539,20 @@ int ecmcMonitor::checkMaxVelocity()
      maxVelCounterTraj_=0;
    }
 
-   if(!velErrorTraj_){
-     velErrorTraj_=maxVelCounterTraj_>=maxVelTrajILDelay_;
+   if(!data_->interlocks_.maxVelocityTrajInterlock){
+       data_->interlocks_.maxVelocityTrajInterlock=maxVelCounterTraj_>=maxVelTrajILDelay_;
    }
 
-   if(velErrorTraj_ &&  maxVelCounterDrive_<= maxVelDriveILDelay_){
+   if(data_->interlocks_.maxVelocityTrajInterlock &&  maxVelCounterDrive_<= maxVelDriveILDelay_){
      maxVelCounterDrive_++;
    }
    else{
      maxVelCounterDrive_=0;
    }
 
-   velErrorDrive_=velErrorTraj_ && maxVelCounterDrive_>=maxVelDriveILDelay_;
+   data_->interlocks_.maxVelocityDriveInterlock=data_->interlocks_.maxVelocityTrajInterlock && maxVelCounterDrive_>=maxVelDriveILDelay_;
 
-   if(velErrorDrive_ || velErrorTraj_){
+   if(data_->interlocks_.maxVelocityDriveInterlock || data_->interlocks_.maxVelocityTrajInterlock){
      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_MAX_VELOCITY_EXCEEDED);
    }
    return 0;
@@ -709,17 +560,11 @@ int ecmcMonitor::checkMaxVelocity()
 
 int ecmcMonitor::checkCntrlMaxOutput()
 {
-  if(enableCntrlHLMon_ && std::abs(cntrlOutput_)>cntrlOutputHL_){
-    cntrlOutputHLErrorDrive_=true;
-    cntrlOutputHLErrorTraj_=true;
+  if(enableCntrlHLMon_ && std::abs(data_->status_.cntrlOutput)>cntrlOutputHL_){
+    data_->interlocks_.cntrlOutputHLDriveInterlock=true;
+    data_->interlocks_.cntrlOutputHLTrajInterlock=true;
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT);
   }
-  return 0;
-}
-
-int ecmcMonitor::setDistToStop(double distance)
-{
-  distToStop_=distance;
   return 0;
 }
 
@@ -730,62 +575,32 @@ int ecmcMonitor::getEnableAlarmAtHardLimit()
 
 double ecmcMonitor::getSoftLimitBwd()
 {
-  return softLimitBwd_;
+  return data_->command_.softLimitBwd;
 }
+
 double ecmcMonitor::getSoftLimitFwd()
 {
-  return softLimitFwd_;
+  return data_->command_.softLimitFwd;
 }
 
 bool ecmcMonitor::getEnableSoftLimitBwd()
 {
-  return enableSoftLimitBwd_;
+  return data_->command_.enableSoftLimitBwd;
 }
 
 bool ecmcMonitor::getEnableSoftLimitFwd()
 {
-  return enableSoftLimitFwd_;
+  return data_->command_.enableSoftLimitFwd;
 }
 
 bool ecmcMonitor::getAtSoftLimitBwd()
 {
-  return enableSoftLimitBwd_ && actPos_<=softLimitBwd_;
+  return data_->command_.enableSoftLimitBwd && data_->status_.currentPositionActual<=data_->command_.softLimitBwd;
 }
 
 bool ecmcMonitor::getAtSoftLimitFwd()
 {
-  return enableSoftLimitFwd_ && actPos_>=softLimitFwd_;
-}
-
-int ecmcMonitor::setExtTrajInterlock(interlockTypes interlock)
-{
-  extTrajInterlock_=interlock;
-  return 0;
-}
-
-int ecmcMonitor::setExtEncInterlock(interlockTypes interlock)
-{
-  extEncInterlock_=interlock;
-  return 0;
-}
-
-int ecmcMonitor::setAxisErrorStateInterlock(bool ilock)
-{
-  axisErrorStateInterlock=ilock;
-  return 0;
-}
-
-
-int ecmcMonitor::setNoExecuteInterlock(bool ilock)
-{
-  noExecuteInterlock_=ilock;
-  return 0;
-}
-
-int ecmcMonitor::setTargetVel(double vel)
-{
-  targetVel_=vel;
-  return 0;
+  return data_->command_.enableSoftLimitFwd && data_->status_.currentPositionActual>=data_->command_.softLimitFwd;
 }
 
 int ecmcMonitor::setVelDiffMaxDifference(double velo)

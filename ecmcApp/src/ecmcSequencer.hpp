@@ -13,6 +13,7 @@
 #include "ecmcPIDController.hpp"
 #include "ecmcTrajectoryTrapetz.hpp"
 #include "ecmcMasterSlaveIF.h"
+#include "ecmcAxisData.h"
 
 //SEQUENCER ERRORS
 #define ERROR_SEQ_TRAJ_NULL 0x14D00
@@ -69,6 +70,7 @@ public:
   int setSequenceTimeout(int timeout);
   int setExternalExecute(bool execute);
   int setExtTrajIF(ecmcMasterSlaveIF *extIf);
+  int setAxisDataRef(ecmcAxisData* data);
 private:
   void initVars();
   double checkSoftLimits(double posSetpoint);
@@ -90,10 +92,10 @@ private:
   bool homeSensorOld_;
   bool seqInProgress_;
   motionDirection currSeqDirection_;
-  bool execute_;
+  //bool execute_;
   bool executeOld_;
-  motionCommandTypes command_;
-  int cmdData_;
+  //motionCommandTypes command_;
+  //int cmdData_;
   ecmcTrajectoryTrapetz *traj_;
   ecmcEncoder *enc_;
   ecmcMonitor *mon_;
@@ -104,8 +106,8 @@ private:
   double homeVelOffCam_; //ADR command
   motionDirection homeDirection_;
   double  homePosition_;
-  double targetPosition_;
-  double targetVelocity_;
+  //double targetPosition_;
+  //double targetVelocity_;
   bool jogFwd_;
   bool jogBwd_;
   bool enableSoftLimitBwdBackup_;
@@ -115,8 +117,9 @@ private:
   double homePosLatch2_;
   int seqTimeout_;
   int seqTimeCounter_;
-  bool externalExecute_;
+  //bool externalExecute_;
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
+  ecmcAxisData* data_;
 };
 
 #endif /* ECMCSEQUENCER_HPP_ */

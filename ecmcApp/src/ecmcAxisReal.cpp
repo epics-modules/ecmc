@@ -10,14 +10,16 @@
 ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
   initVars();
-  axisType_=ECMC_AXIS_TYPE_REAL;
 
+  data_.axisType_=ECMC_AXIS_TYPE_REAL;
+  data_.sampleTime_=sampleTime;
   currentDriveType_=ECMC_STEPPER;
-  drv_=new ecmcDriveStepper();
+  drv_=new ecmcDriveStepper(&data_);
   if(!drv_){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
   }
-  cntrl_=new ecmcPIDController(sampleTime_);
+
+  cntrl_=new ecmcPIDController(&data_,data_.sampleTime_);
   if(!cntrl_){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_CNTRL_OBJECT_NULL);
   }
@@ -34,105 +36,76 @@ ecmcAxisReal::~ecmcAxisReal()
 void ecmcAxisReal::initVars()
 {
   initDone_=false;
-  operationMode_=ECMC_MODE_OP_AUTO;
-  sampleTime_=1;
+  data_.command_.operationModeCmd=ECMC_MODE_OP_AUTO;
   currentDriveType_=ECMC_STEPPER;
-  enabledOld_=false;
-  enableCmdOld_=false;
-  executeCmdOld_=false;
-  trajInterlockOld=true;
+  temporaryLocalTrajSource_=false;
 }
 
 void ecmcAxisReal::execute(bool masterOK)
 {
-  if(operationMode_==ECMC_MODE_OP_AUTO){
+  ecmcAxisBase::preExecute(masterOK);
 
-    if(inStartupPhase_ && masterOK){
-      //Auto reset hardware error if starting up
-      if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
-        errorReset();
-      }
-      setInStartupPhase(false);
-    }
+  if(data_.command_.operationModeCmd==ECMC_MODE_OP_AUTO){
 
-    //Read from hardware
-    mon_->readEntries();
-    if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-      enc_->readEntries();
-    }
     drv_->readEntries();
-
-    refreshExternalInputSources();
 
     //Trajectory (External or internal)
     if((externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL)/* || (externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL && mon_->getTrajInterlock())*/){
-      currentPositionSetpoint_=traj_->getNextPosSet();
-      currentVelocitySetpoint_=traj_->getVel();
+      data_.status_.currentPositionSetpoint=traj_->getNextPosSet();
+      data_.status_.currentVelocitySetpoint=traj_->getVel();
     }
     else{ //External source (Transform)
-      currentPositionSetpoint_=externalTrajectoryPosition_;
-      currentVelocitySetpoint_=externalTrajectoryVelocity_;
+      data_.status_.currentPositionSetpoint=data_.status_.externalTrajectoryPosition;
+      data_.status_.currentVelocitySetpoint=data_.status_.externalTrajectoryVelocity;
+      data_.interlocks_.noExecuteInterlock=false; //Only valid in local mode
+      data_.refreshInterlocks();
     }
 
     //Encoder (External or internal)
     if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-      currentPositionActual_=enc_->getActPos();
-      currentVelocityActual_=enc_->getActVel();
-
+      data_.status_.currentPositionActual=enc_->getActPos();
+      data_.status_.currentVelocityActual=enc_->getActVel();
     }
     else{ //External source (Transform)
-      currentPositionActual_=externalEncoderPosition_;
-      currentVelocityActual_=externalEncoderVelocity_;
+      data_.status_.currentPositionActual=data_.status_.externalEncoderPosition;
+      data_.status_.currentVelocityActual=data_.status_.externalEncoderVelocity;
     }
 
-    mon_->setDistToStop(traj_->distToStop(currentVelocityActual_));
-
-    traj_->setStartPos(currentPositionSetpoint_);
-    mon_->setCurrentPosSet(currentPositionSetpoint_);
-    mon_->setVelSet(currentVelocitySetpoint_);
-    mon_->setActPos(currentPositionActual_);
-    mon_->setActVel(currentVelocityActual_);
-    mon_->setAxisErrorStateInterlock(getError());
-
+    traj_->setStartPos(data_.status_.currentPositionSetpoint);
     seq_.execute();
-
-    mon_->setCntrlOutput(cntrl_->getOutTot()); //From last scan
     mon_->execute();
 
     //Switch to internal trajectory temporary if interlock
-    if(mon_->getTrajInterlock() && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
-      traj_->setInterlock(mon_->getTrajInterlock());
-      traj_->setStartPos(currentPositionActual_);
-      traj_->initStopRamp(currentPositionActual_,currentVelocityActual_,0);
-      currentPositionSetpoint_=traj_->getNextPosSet();
-      currentVelocitySetpoint_=traj_->getVel();
-      mon_->setCurrentPosSet(currentPositionSetpoint_);
-      mon_->setVelSet(currentVelocitySetpoint_);
+    if(data_.interlocks_.trajSummaryInterlock && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
+      if(!temporaryLocalTrajSource_){//Initiate rampdown
+	temporaryLocalTrajSource_=true;
+        traj_->setStartPos(data_.status_.currentPositionActual);
+        traj_->initStopRamp(data_.status_.currentPositionActual,data_.status_.currentVelocityActual,0);
+      }
+      data_.status_.currentPositionSetpoint=traj_->getNextPosSet();
+      data_.status_.currentVelocitySetpoint=traj_->getVel();
+    }
+    else{
+      temporaryLocalTrajSource_=false;
     }
 
-    traj_->setInterlock(mon_->getTrajInterlock());
-    drv_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
-    cntrl_->setInterlock(mon_->getDriveInterlock()); //TODO consider change logic so high interlock is OK and low not
-    drv_->setAtTarget(mon_->getAtTarget());  //Reduce torque
-
-    if(mon_->getDriveInterlock() && !traj_->getBusy()){
+    if(data_.interlocks_.driveSummaryInterlock && !traj_->getBusy()){
       cntrl_->reset();
     }
 
-    if(getEnabled() && masterOK /*&& !getError()*/){
+    if(getEnabled() && masterOK){
       mon_->setEnable(true);
-      drv_->setVelSet(cntrl_->control(currentPositionSetpoint_,currentPositionActual_,currentVelocitySetpoint_)); //Actual control
+      drv_->setVelSet(cntrl_->control(data_.status_.currentPositionSetpoint,data_.status_.currentPositionActual,data_.status_.currentVelocitySetpoint)); //Actual control
     }
-
     else{
       mon_->setEnable(false);
       if(getExecute()){
 	setExecute(false);
       }
-      currentPositionSetpoint_=currentPositionActual_;
-      traj_->setStartPos(currentPositionSetpoint_);
+      data_.status_.currentPositionSetpoint=data_.status_.currentPositionActual;
+      traj_->setStartPos(data_.status_.currentPositionSetpoint);
 
-      if(enabledOld_ && !drv_->getEnabled() && enableCmdOld_){
+      if(data_.status_.enabledOld && !data_.status_.enabled && data_.status_.enableOld){
 	  setEnable(false);
 	  setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
       }
@@ -146,7 +119,6 @@ void ecmcAxisReal::execute(bool masterOK)
       }
       cntrl_->reset();
       drv_->setVelSet(0);
-      drv_->setInterlock(true);
       setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
     }
 
@@ -154,19 +126,23 @@ void ecmcAxisReal::execute(bool masterOK)
     refreshExternalOutputSources();
     drv_->writeEntries();
   }
-  else if(operationMode_==ECMC_MODE_OP_MAN){  //MANUAL MODE: Raw Output..
+  else if(data_.command_.operationModeCmd==ECMC_MODE_OP_MAN){  //MANUAL MODE: Raw Output..
     mon_->readEntries();
     enc_->readEntries();
-    if(!mon_->getHardLimitBwd() || !mon_->getHardLimitFwd()){ //PRIMITIVE CHECK FOR LIMIT SWITCHES
+    if(!data_.status_.limitBwd || !data_.status_.limitFwd){ //PRIMITIVE CHECK FOR LIMIT SWITCHES
       drv_->setVelSet(0);
-      drv_->setEnable(false);
     }
     drv_->writeEntries();
   }
-  enabledOld_=drv_->getEnabled();
-  enableCmdOld_=getEnable();
-  executeCmdOld_=getExecute();
-  trajInterlockOld=mon_->getTrajInterlock();
+
+  if(std::abs(drv_->getScale())>0){
+    data_.status_.currentvelocityFFRaw=cntrl_->getOutFFPart()/drv_->getScale();
+  }
+  else{
+    data_.status_.currentvelocityFFRaw=0;
+  }
+
+  ecmcAxisBase::postExecute(masterOK);
 }
 
 int ecmcAxisReal::setEnable(bool enable)
@@ -191,33 +167,32 @@ int ecmcAxisReal::setEnable(bool enable)
 
 bool ecmcAxisReal::getEnable()
 {
-  return drv_->getEnable() && traj_->getEnable() && cntrl_->getEnable() /*&& mon_->getEnable()*/;
+  return data_.command_.enable;
 }
 
 bool ecmcAxisReal::getEnabled()
 {
-  return drv_->getEnable() && drv_->getEnabled() && traj_->getEnable() && cntrl_->getEnable() /*&& mon_->getEnable()*/;
+  return data_.status_.enabled && data_.command_.enable;
 }
 
 int ecmcAxisReal::setOpMode(operationMode mode)
 {
   if(mode==ECMC_MODE_OP_MAN){
-    drv_->setEnable(false);
+    data_.command_.enable=false;
     drv_->setVelSet(0);
-    drv_->setInterlock(false);
   }
-  operationMode_=mode;
+  data_.command_.operationModeCmd=mode;
   return 0;
 }
 
 operationMode ecmcAxisReal::getOpMode()
 {
-  return operationMode_;
+  return data_.command_.operationModeCmd;
 }
 
 int ecmcAxisReal::getCntrlError(double* error)
 {
-  *error=cntrl_->getCntrlError();
+  *error=data_.status_.cntrlError;
   return 0;
 }
 
@@ -233,32 +208,26 @@ ecmcDriveBase *ecmcAxisReal::getDrv()
 
 void ecmcAxisReal::printStatus()
 {
-  printOutData_.atTarget=mon_->getAtTarget();
-  printOutData_.axisID=axisID_;
-  printOutData_.busy=seq_.getBusy();
-  printOutData_.cntrlError=cntrl_->getCntrlError();
-  printOutData_.cntrlOutput=cntrl_->getOutTot();
+  printOutData_.atTarget=data_.status_.atTarget;
+  printOutData_.axisID=data_.axisId_;
+  printOutData_.busy=data_.status_.busy;
+  printOutData_.cntrlError=data_.status_.cntrlError;
+  printOutData_.cntrlOutput=data_.status_.cntrlOutput;
   printOutData_.enable=getEnabled();
   printOutData_.error=getErrorID();
-  printOutData_.execute=traj_->getExecute();
-  printOutData_.homeSwitch=mon_->getHomeSwitch();
-  printOutData_.limitBwd=mon_->getHardLimitBwd();
-  printOutData_.limitFwd=mon_->getHardLimitFwd();
-  printOutData_.positionActual=currentPositionActual_;
-  printOutData_.positionError=currentPositionSetpoint_ -currentPositionActual_;
-  printOutData_.positionSetpoint=currentPositionSetpoint_;
+  printOutData_.execute=getExecute();
+  printOutData_.homeSwitch=data_.status_.homeSwitch;
+  printOutData_.limitBwd=data_.status_.limitBwd;
+  printOutData_.limitFwd=data_.status_.limitFwd;
+  printOutData_.positionActual=data_.status_.currentPositionActual;
+  printOutData_.positionError=data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
+  printOutData_.positionSetpoint=data_.status_.currentPositionSetpoint;
   printOutData_.seqState=seq_.getSeqState();
-  printOutData_.trajInterlock=mon_->getTrajInterlock();
-  printOutData_.velocityActual=currentVelocityActual_;
-  printOutData_.velocitySetpoint=currentVelocitySetpoint_;
-  printOutData_.velocitySetpointRaw=drv_->getVelSetRaw();
-
-  if(drv_->getScale()!=0){
-    printOutData_.velocityFFRaw=cntrl_->getOutFFPart()/drv_->getScale();
-  }
-  else{
-    printOutData_.velocityFFRaw=0;
-  }
+  printOutData_.trajInterlock=data_.interlocks_.interlockStatus;
+  printOutData_.velocityActual=data_.status_.currentVelocityActual;
+  printOutData_.velocitySetpoint=data_.status_.currentVelocitySetpoint;
+  printOutData_.velocitySetpointRaw=data_.status_.currentVelocitySetpointRaw;
+  printOutData_.velocityFFRaw=data_.status_.currentvelocityFFRaw;
 
   if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))!=0){
     printAxisStatus(printOutData_);
@@ -337,12 +306,12 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
   switch(driveType){
     case ECMC_STEPPER:
       delete drv_;
-      drv_ =new ecmcDriveStepper();
+      drv_ =new ecmcDriveStepper(&data_);
       currentDriveType_=ECMC_STEPPER;
       break;
     case ECMC_DS402:
       delete drv_;
-      drv_ =new ecmcDriveDS402();
+      drv_ =new ecmcDriveDS402(&data_);
       currentDriveType_=ECMC_DS402;
       break;
     default:

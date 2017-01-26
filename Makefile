@@ -37,6 +37,7 @@ SOURCES = \
   ecmcApp/src/ecmcDataRecorder.cpp \
   ecmcApp/src/ecmcDataStorage.cpp \
   ecmcApp/src/ecmcCommandList.cpp \
+  ecmcApp/src/ecmcAxisData.cpp \
   ecmcApp/src/hw_motor.cpp \
 
 TEMPLATES = \
