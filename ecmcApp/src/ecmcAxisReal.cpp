@@ -50,7 +50,7 @@ void ecmcAxisReal::execute(bool masterOK)
     drv_->readEntries();
 
     //Trajectory (External or internal)
-    if((externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL)/* || (externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL && mon_->getTrajInterlock())*/){
+    if((externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL)){
       data_.status_.currentPositionSetpoint=traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint=traj_->getVel();
     }
