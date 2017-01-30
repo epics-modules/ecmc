@@ -47,8 +47,6 @@ typedef struct {
   bool busy;
   int seqState;
   bool atTarget;
-  //interlockTypes trajInterlock;
-  //interlockTypes driveInterlock;
   bool limitFwd;
   bool limitBwd;
   bool homeSwitch;
@@ -91,6 +89,7 @@ public:
   ecmcAxisData ();
   ~ecmcAxisData ();
   stopMode refreshInterlocks();
+  void clearInterlocks();
   ecmcAxisDataCommand command_;
   ecmcAxisDataStatus status_;
   ecmcAxisDataInterlocks interlocks_;

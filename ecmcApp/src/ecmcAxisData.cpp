@@ -161,3 +161,9 @@ int ecmcAxisData::setSummaryInterlocks()
 
   return 0;
 }
+
+void ecmcAxisData::clearInterlocks()
+{
+  memset(&interlocks_,0,sizeof(interlocks_));
+  refreshInterlocks();
+}

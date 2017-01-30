@@ -226,7 +226,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,double targetSetpoint,
     else{
       posSetTemp=currSetpoint-positionStep;//Change direction if target position changed during the movement..
     }
-    if(currSetpoint>targetSetpoint){
+    if(posSetTemp>targetSetpoint){
       posSetTemp=targetSetpoint;
       stop();
     }
@@ -239,24 +239,28 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,double targetSetpoint,
       posSetTemp=currSetpoint+positionStep;//Change direction if target position changed during the movement..
     }
 
-    if(currSetpoint<targetSetpoint){
+    if(posSetTemp<targetSetpoint){
       posSetTemp=targetSetpoint;
       stop();
     }
   }
   return posSetTemp;
-}
+}  //if(std::abs(currVelo)<0.001*std::abs(targetVelo)  || positionStep<2.1*stepDECEmerg_){  //TODO will not work always!! Need better way to calculate stand still new parameter
+
 
 double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,double currSetpoint, double currVelo,double targetVelo, bool *stopped,double *velocity)
 {
   double positionStep;
   double posSetTemp=0;
   *stopped=false;
-  motionDirection nDir;
-  if(currVelo>=0)
+  motionDirection nDir=ECMC_DIR_STANDSTILL;
+  if(currVelo>0){
     nDir=ECMC_DIR_FORWARD;
+  }
   else
-    nDir=ECMC_DIR_BACKWARD;
+    if(currVelo<0){
+      nDir=ECMC_DIR_BACKWARD;
+    }
 
   if(stopMode==ECMC_STOP_MODE_EMERGENCY){
     positionStep=std::abs(prevStepSize_)-stepDECEmerg_;  //Brake fast if HWlimit
@@ -274,9 +278,9 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,double currSetpoint, do
 
   *velocity=(posSetTemp-currSetpoint)/sampleTime_;
 
+  //actDirection_=checkDirection(currSetpoint,posSetTemp);
 
-  if(actDirection_==ECMC_DIR_STANDSTILL || (actDirection_==ECMC_DIR_FORWARD && currVelo<=0) || (actDirection_==ECMC_DIR_BACKWARD && currVelo>=0)){
-  //if(std::abs(currVelo)<0.001*std::abs(targetVelo)  || positionStep<2.1*stepDECEmerg_){  //TODO will not work always!! Need better way to calculate stand still new parameter
+  if(nDir==ECMC_DIR_STANDSTILL || (nDir==ECMC_DIR_FORWARD && positionStep<=0) || (nDir==ECMC_DIR_BACKWARD && positionStep>=0)){
     *stopped=true;
     *velocity=0;
     return currSetpoint;

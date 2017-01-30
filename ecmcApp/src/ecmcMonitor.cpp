@@ -279,21 +279,12 @@ int ecmcMonitor::setMaxVelTrajTime(int time)
 int ecmcMonitor::reset()
 {
   data_->status_.atTarget=false;
-  data_->interlocks_.lagTrajInterlock=false;
-  data_->interlocks_.lagDriveInterlock=false;
-  data_->interlocks_.maxVelocityTrajInterlock=false;
-  data_->interlocks_.maxVelocityDriveInterlock=false;
-  data_->interlocks_.cntrlOutputHLTrajInterlock=false;
-  data_->interlocks_.cntrlOutputHLDriveInterlock=false;
   atTargetCounter_=0;
   lagMonCounter_=0;
   maxVelCounterDrive_=0;
   maxVelCounterTraj_=0;
-  data_->interlocks_.axisErrorStateInterlock=false;
-  data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock=false;
-  data_->interlocks_.velocityDiffTrajInterlock=false;
-  data_->interlocks_.velocityDiffDriveInterlock=false;
   velocityDiffCounter_=0;
+  data_->clearInterlocks();
   return 0;
 }
 
@@ -404,7 +395,7 @@ int ecmcMonitor::checkLimits()
     }
   }
   else {
-      data_->interlocks_.bwdLimitInterlock=false;
+    data_->interlocks_.bwdLimitInterlock=false;
   }
 
   //Fwd limit switch
@@ -415,13 +406,14 @@ int ecmcMonitor::checkLimits()
     }
   }
   else{
-      data_->interlocks_.fwdLimitInterlock=false;
+    data_->interlocks_.fwdLimitInterlock=false;
   }
 
   //Soft bwd limit
   data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd && (data_->status_.currentVelocitySetpoint<0)
       && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop);
   if(data_->interlocks_.bwdSoftLimitInterlock){
+    LOGINFO("Velocity setpoint from traj: %lf\n",data_->status_.currentVelocitySetpoint);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
   }
 

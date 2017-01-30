@@ -768,12 +768,12 @@ void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
 {
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVel act\t\tVel FF\t\tVel FFraw\t\tVel Drv raw\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
+    LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVelAct\t\tVelFF\t\tVelFFraw\tVelDrvRaw\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
 
-  LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%x",
+  LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t\t%x",
        data.axisID,
        data.positionSetpoint,
        data.positionActual,
