@@ -1,14 +1,16 @@
 #include "ecmcDriveDS402.hpp"
 
-ecmcDriveDS402::ecmcDriveDS402()
+ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData) : ecmcDriveBase(axisData)
 {
   initVars();
+  data_=axisData;
 }
 
-ecmcDriveDS402::ecmcDriveDS402(double scale)
+ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData,double scale) : ecmcDriveBase(axisData)
 {
   initVars();
   scale_=scale;
+  data_=axisData;
 }
 ecmcDriveDS402::~ecmcDriveDS402()
 {
@@ -71,10 +73,21 @@ void ecmcDriveDS402::readEntries()
 
   checkDS402State();
 
-  if(getError() || !enableCmd_){
-    controlWord_=0;
-    enableCmdOld_=enableCmd_;
-    return;
+  switch(data_->command_.operationModeCmd){
+    case ECMC_MODE_OP_AUTO:
+      if(getError() || !data_->command_.enable){
+	controlWord_=0;
+        enableCmdOld_=data_->command_.enable;
+	return;
+      }
+      break;
+    case ECMC_MODE_OP_MAN:
+      if(getError() || !manualModeEnable_){
+	controlWord_=0;
+        enableCmdOld_=manualModeEnable_;
+	return;
+      }
+      break;
   }
 
   if(cycleCounter>ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME)
@@ -88,8 +101,9 @@ void ecmcDriveDS402::readEntries()
   driveStateOld_=driveState_;
   enableStateMachineOld_=enableStateMachine_;
 
+  bool inManualMode=data_->command_.operationModeCmd==ECMC_MODE_OP_MAN;
 
-  if(enableCmd_ && ! enableCmdOld_){ //Trigger new power on sequence
+  if((data_->command_.enable || (manualModeEnable_ && inManualMode)) && !enableCmdOld_){ //Trigger new power on sequence
     enableSequenceRunning_=true;
     enableStateMachine_=ECMC_DS402_RESET_STATE;
     controlWord_=128;
@@ -136,67 +150,75 @@ void ecmcDriveDS402::readEntries()
      }
    }
 
-   enableCmdOld_=enableCmd_;
+   enableCmdOld_=data_->command_.enable;
   return;
 }
 
 int ecmcDriveDS402::checkDS402State()
 {
   driveState_=ECMC_DS402_INVALID_STATE_STATUS;
-  enabledStatus_=false;
+
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_1)==ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS)
   {
     driveState_=ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS;
+    data_->status_.enabled=false;
     return 0;
   }
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_1)==ECMC_DS402_SWITCH_ON_DISABLED_STATUS)
   {
     driveState_=ECMC_DS402_SWITCH_ON_DISABLED_STATUS;
+    data_->status_.enabled=false;
     return 0;
   }
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_2)==ECMC_DS402_READY_TO_SWITCH_ON_STATUS)
   {
     driveState_=ECMC_DS402_READY_TO_SWITCH_ON_STATUS;
+    data_->status_.enabled=false;
     return 0;
   }
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_2)==ECMC_DS402_SWITCHED_ON_STATUS)
   {
     driveState_=ECMC_DS402_SWITCHED_ON_STATUS;
+    data_->status_.enabled=false;
     return 0;
   }
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_2)==ECMC_DS402_OPERATION_ENABLED_STATUS)
   {
     driveState_=ECMC_DS402_OPERATION_ENABLED_STATUS;
-    enabledStatus_=true;
+    data_->status_.enabled=true;
     return 0;
   }
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_2)==ECMC_DS402_QUICK_STOP_ACTIVE_STATUS)
   {
     driveState_=ECMC_DS402_QUICK_STOP_ACTIVE_STATUS;
+    data_->status_.enabled=false;
     return 0;
   }
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_2)==ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS)
   {
     driveState_=ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS;
+    data_->status_.enabled=false;
     return 0;
   }
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_1)==ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS)
   {
     driveState_=ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS;
+    data_->status_.enabled=false;
     return 0;
   }
 
   if((statusWord_ & ECMC_DS402_STATUS_MASK_1)==ECMC_DS402_FAULT_STATUS)
   {
     driveState_=ECMC_DS402_FAULT_STATUS;
+    data_->status_.enabled=false;
     return 0;
   }
   return 0;

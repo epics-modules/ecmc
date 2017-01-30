@@ -20,38 +20,29 @@ void ecmcSequencer::initVars()
 {
   errorReset();
   homeSensorOld_=false;
-  execute_=false;
   executeOld_=false;
   seqInProgress_=false;
   currSeqDirection_=ECMC_DIR_FORWARD;
   seqState_=0;
-  command_=ECMC_CMD_JOG;
-  cmdData_=0;
   traj_=NULL;
   enc_=NULL;
   mon_=NULL;
   cntrl_=NULL;
-  busy_=false;
   jogVel_=0;
   homeVelTwordsCam_=0; //ADR command
   homeVelOffCam_=0; //ADR command
   homeDirection_=ECMC_DIR_FORWARD;
   homePosition_=0;
-  targetPosition_=0;
-  targetVelocity_=0;
   jogFwd_=false;
   jogBwd_=false;
   enableSoftLimitBwdBackup_=false;
   enableSoftLimitFwdBackup_=false;
-  hwLimitSwitchBwd_=false;
-  hwLimitSwitchFwd_=false;
   hwLimitSwitchBwdOld_=false;
   hwLimitSwitchFwdOld_=false;
   homePosLatch1_=0;
   homePosLatch2_=0;
   seqTimeout_=0; //disabled
   seqTimeCounter_=0;
-  externalExecute_=false;
 }
 
 void ecmcSequencer::execute()
@@ -67,11 +58,11 @@ void ecmcSequencer::execute()
 
   hwLimitSwitchBwdOld_=hwLimitSwitchBwd_;
   hwLimitSwitchFwdOld_=hwLimitSwitchFwd_;
-  hwLimitSwitchBwd_=mon_->getHardLimitBwd();
-  hwLimitSwitchFwd_=mon_->getHardLimitFwd();
+  hwLimitSwitchBwd_=data_->status_.limitBwd;
+  hwLimitSwitchFwd_=data_->status_.limitFwd;
 
   homeSensorOld_=homeSensor_;
-  homeSensor_=mon_->getHomeSwitch();
+  homeSensor_=data_->status_.homeSwitch;
 
   if(!seqInProgress_){
     return;
@@ -83,22 +74,12 @@ void ecmcSequencer::execute()
     return;
   }
   int seqReturnVal=0;
-  switch(command_){
+  switch(data_->command_.command){
     case ECMC_CMD_JOG:
       ;
       break;
     case ECMC_CMD_HOMING:
-      switch (cmdData_){
-        /*case 0:
-          seqReturnVal=seq1SimpleHoming();
-          if(seqReturnVal>0){//Error
-            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
-            stopSeq();
-          }
-          else if(seqReturnVal==0){//Homing ready
-            stopSeq();
-          }
-          break;*/
+      switch (data_->command_.cmdData){
         case 1:
           seqReturnVal=seqHoming1();
           if(seqReturnVal>0){//Error
@@ -176,40 +157,40 @@ int  ecmcSequencer::setExecute(bool execute)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
   }
 
-  executeOld_=execute_;
-  execute_=execute;
+  executeOld_=data_->command_.execute;
+  data_->command_.execute=execute;
   seqInProgress_=false;
   seqState_=0;
 
-  switch (command_){
+  switch (data_->command_.command){
     case ECMC_CMD_JOG:
       //Triggered via jog inputs
       break;
     case ECMC_CMD_MOVEVEL:
-      if(execute_ && !executeOld_){
+      if(data_->command_.execute  && !executeOld_){
         traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-        traj_->setTargetVel(targetVelocity_);
-        targetPosition_=checkSoftLimits(targetPosition_); //not needed
-        traj_->setTargetPos(targetPosition_);
+        traj_->setTargetVel(data_->command_.velocityTarget);
+        data_->command_.positionTarget=checkSoftLimits(data_->command_.positionTarget); //not needed
+        traj_->setTargetPos(data_->command_.positionTarget);
       }
-      traj_->setExecute(execute_);
+      traj_->setExecute(data_->command_.execute);
       break;
     case ECMC_CMD_MOVEREL:
-      if(execute_ && !executeOld_){
+      if(data_->command_.execute && !executeOld_){
         traj_->setMotionMode(ECMC_MOVE_MODE_POS);
-        traj_->setTargetVel(targetVelocity_);
-        traj_->setTargetPos(checkSoftLimits(traj_->getCurrentPosSet()+targetPosition_));
+        traj_->setTargetVel(data_->command_.velocityTarget);
+        traj_->setTargetPos(checkSoftLimits(traj_->getCurrentPosSet()+data_->command_.positionTarget));
       }
-      traj_->setExecute(execute_);
+      traj_->setExecute(data_->command_.execute);
       break;
     case ECMC_CMD_MOVEABS:
-      if(execute_ && !executeOld_){
+      if(data_->command_.execute && !executeOld_){
         traj_->setMotionMode(ECMC_MOVE_MODE_POS);
-        traj_->setTargetVel(targetVelocity_);
-        switch(cmdData_){
+        traj_->setTargetVel(data_->command_.velocityTarget);
+        switch(data_->command_.cmdData){
           case 0: //Normal positioning
-            targetPosition_=checkSoftLimits(targetPosition_);
-            traj_->setTargetPos(targetPosition_);
+            data_->command_.positionTarget=checkSoftLimits(data_->command_.positionTarget);
+            traj_->setTargetPos(data_->command_.positionTarget);
             break;
           case 1: //Go to external transform current value (transform value as TragetPosition)
             double targPos=0;
@@ -217,18 +198,18 @@ int  ecmcSequencer::setExecute(bool execute)
             if(errorCode){
               return errorCode;
             }
-            targetPosition_=checkSoftLimits(targPos);
-            traj_->setTargetPos(targetPosition_);
+            data_->command_.positionTarget=checkSoftLimits(targPos);
+            traj_->setTargetPos(data_->command_.positionTarget);
             break;
         }
       }
-      traj_->setExecute(execute_);
+      traj_->setExecute(data_->command_.execute);
       break;
     case ECMC_CMD_MOVEMODULO:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_COMMAND_NOT_SUPPORTED);
       break;
     case ECMC_CMD_HOMING:
-      if(execute_ && !executeOld_){
+      if(data_->command_.execute && !executeOld_){
         stopSeq();
         if(traj_!=NULL && enc_!=NULL && mon_!=NULL && cntrl_!=NULL){
           seqInProgress_=true;
@@ -255,9 +236,9 @@ int  ecmcSequencer::setExecute(bool execute)
           }
         }
       }
-      else if(!execute_){
+      else if(!data_->command_.execute){
         stopSeq();
-        traj_->setExecute(execute_);
+        traj_->setExecute(data_->command_.execute);
       }
       break;
     case ECMC_CMD_SUPERIMP:
@@ -276,27 +257,27 @@ int  ecmcSequencer::setExecute(bool execute)
 
 bool ecmcSequencer::getExecute()
 {
-  return execute_;
+  return data_->command_.execute;
 }
 
 void ecmcSequencer::setCommand(motionCommandTypes command)
 {
-  command_=command;
+  data_->command_.command=command;
 }
 
 motionCommandTypes ecmcSequencer::getCommand()
 {
-  return command_;
+  return data_->command_.command;
 }
 
 void ecmcSequencer::setCmdData(int cmdData)
 {
-  cmdData_=cmdData;
+  data_->command_.cmdData=cmdData;
 }
 
 int ecmcSequencer::getCmdData()
 {
-  return cmdData_;
+  return data_->command_.cmdData;
 }
 
 void ecmcSequencer::setTraj(ecmcTrajectoryTrapetz *traj)
@@ -325,7 +306,8 @@ bool ecmcSequencer::getBusy()
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return false;
   }
-  if(command_==ECMC_CMD_HOMING){
+
+  if(data_->command_.command==ECMC_CMD_HOMING){
     return busy_;
   }
   else{
@@ -399,28 +381,22 @@ void ecmcSequencer::setTargetPos(double pos)
     return;
   }
 
-  targetPosition_=pos;
-
-  if(mon_==NULL){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
-    return;
-  }
-  mon_->setTargetPos(pos);
+  data_->command_.positionTarget=pos;
 }
 
 double ecmcSequencer::getTargetPos()
 {
-  return targetPosition_;
+  return data_->command_.positionTarget;
 }
 
 void ecmcSequencer::setTargetVel(double velTarget)
 {
-  targetVelocity_=velTarget;
+  data_->command_.velocityTarget=velTarget;
 }
 
 double ecmcSequencer::getTargetVel()
 {
-  return targetVelocity_;
+  return data_->command_.velocityTarget;
 }
 
 void ecmcSequencer::setJogFwd(bool jog)
@@ -430,13 +406,13 @@ void ecmcSequencer::setJogFwd(bool jog)
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return;
   }
-  if(command_==ECMC_CMD_JOG && jogFwd_){
+  if(data_->command_.command==ECMC_CMD_JOG && jogFwd_){
     traj_->setTargetVel(jogVel_);
     traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
     traj_->setExecute(jogFwd_);
   }
   else{
-    traj_->setTargetVel(targetVelocity_);
+    traj_->setTargetVel(data_->command_.velocityTarget);
   }
 }
 
@@ -456,13 +432,13 @@ void ecmcSequencer::setJogBwd(bool jog)
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return;
   }
-  if(command_==ECMC_CMD_JOG && jogBwd_){
+  if(data_->command_.command==ECMC_CMD_JOG && jogBwd_){
     traj_->setTargetVel(-jogVel_);
     traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
     traj_->setExecute(jogBwd_);
   }
   else{
-    traj_->setTargetVel(targetVelocity_);
+    traj_->setTargetVel(data_->command_.velocityTarget);
   }
 }
 
@@ -485,11 +461,11 @@ double ecmcSequencer::checkSoftLimits(double posSetpoint)
   double dSet=posSetpoint;
   double currPos=enc_->getActPos();
 
-  if(posSetpoint>mon_->getSoftLimitFwd() && mon_->getEnableSoftLimitFwd() && posSetpoint>currPos){
-    dSet=mon_->getSoftLimitFwd();
+  if(posSetpoint>data_->command_.softLimitFwd && data_->command_.enableSoftLimitFwd && posSetpoint>currPos){
+    dSet=data_->command_.softLimitFwd;
   }
-  if(posSetpoint<mon_->getSoftLimitBwd() && mon_->getEnableSoftLimitBwd()&& posSetpoint<currPos){
-    dSet=mon_->getSoftLimitBwd();;
+  if(posSetpoint<data_->command_.softLimitBwd && data_->command_.enableSoftLimitBwd && posSetpoint<currPos){
+    dSet=data_->command_.softLimitBwd;;
   }
   return dSet;
 }
@@ -498,85 +474,6 @@ ecmcTrajectoryTrapetz * ecmcSequencer::getTraj()
 {
   return traj_;
 }
-
-/*int ecmcSequencer::seq1SimpleHoming() //nCmdData==0
-{
-  // Return > 0 error
-  // Return < 0 progress
-  // Return = 0 ready
-
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam (hw switches are monitored)
-  // State 1 Wait for positive edge of home sensor then stop motion
-  // State 2 Wait for stop then trigger motion in opposite direction, speed =_dHomeVelOffCam
-  // StatnRetValuee 3 Wait for falling edge of home sensor. Sets offsets of encoder and stops motion.. Sequence are successfully done..
-
-  int retValue=checkHWLimitsAndStop(true,true); // should never go to a limit switch
-  if(retValue){
-    seqInProgress_=false;
-    traj_->setExecute(false);
-    seqState_=0;
-    return retValue;
-  }
-
-  //Sequence code
-  switch(seqState_){
-    case 0:  //Set parameters and start initial motion
-      enc_->setHomed(false);
-      traj_->setExecute(false);
-      currSeqDirection_=homeDirection_;  //StartDirection
-      if(currSeqDirection_==ECMC_DIR_FORWARD){
-        traj_->setTargetVel(homeVelTwordsCam_);
-      }
-      else{
-        traj_->setTargetVel(-homeVelTwordsCam_);
-      }
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(true);
-      seqState_=1;
-      retValue= -seqState_;
-      break;
-    case 1: //Wait for home switch positive edge the go back slow in the other direction
-      if(homeSensor_ && !homeSensorOld_){
-        traj_->setExecute(false);
-        //Switch direction
-        if(currSeqDirection_==ECMC_DIR_FORWARD){
-          traj_->setTargetVel(-homeVelOffCam_);
-          currSeqDirection_=ECMC_DIR_BACKWARD;
-        }
-        else if(currSeqDirection_==ECMC_DIR_BACKWARD){
-          traj_->setTargetVel(homeVelOffCam_);
-          currSeqDirection_=ECMC_DIR_FORWARD;
-        }
-        seqState_=2;
-      }
-      retValue= -seqState_;
-      break;
-    case 2: //Wait for standstill and the trigger move
-      if(!traj_->getBusy()){ //Trigg new movement
-        traj_->setExecute(true);enc_->setHomed(false);
-        seqState_=3;
-      }
-      else{
-        traj_->setExecute(false);
-      }
-      retValue= -seqState_;
-      break;
-    case 3: //Wait for falling edge of home sensor then set offset in encoder and stop motion
-      if(!homeSensor_ && homeSensorOld_){
-        seqInProgress_=false;
-        seqState_=0;
-        traj_->setExecute(false);
-        enc_->setOffset(homePosition_-enc_->getActPos());
-        enc_->setHomed(true);
-        retValue= 0; //Ready
-      }
-      else{
-        retValue=-seqState_;
-      }
-      break;
-  }
-  return retValue;
-}*/
 
 int ecmcSequencer::seqHoming1() //nCmdData==1
 {
@@ -600,10 +497,10 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      mon_->setEnableSoftLimitFwd(false);
+      enableSoftLimitBwdBackup_=data_->command_.enableSoftLimitBwd; //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=data_->command_.enableSoftLimitFwd; //Read setting to be able to restore later
+      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
+      data_->command_.enableSoftLimitFwd=false;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchBwd_){
@@ -661,17 +558,14 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
       }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
-        mon_->setTargetPos(traj_->getCurrentPosSet());
+        data_->command_.positionTarget=traj_->getCurrentPosSet();
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
-          mon_->setActPos(currPos);
-          mon_->setTargetPos(currPos);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
-          cntrl_->setEnable(true);
           homePosLatch1_=0;
           homePosLatch2_=0;
           stopSeq();
@@ -703,10 +597,10 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      mon_->setEnableSoftLimitFwd(false);
+      enableSoftLimitBwdBackup_=data_->command_.enableSoftLimitBwd; //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=data_->command_.enableSoftLimitFwd; //Read setting to be able to restore later
+      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
+      data_->command_.enableSoftLimitFwd=false;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchFwd_){
@@ -764,17 +658,14 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
       }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
-        mon_->setTargetPos(traj_->getCurrentPosSet());
+        data_->command_.positionTarget=traj_->getCurrentPosSet();
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
-          mon_->setActPos(currPos);
-          mon_->setTargetPos(currPos);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
-          cntrl_->setEnable(true);
           homePosLatch1_=0;
           homePosLatch2_=0;
           stopSeq();
@@ -807,10 +698,10 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      mon_->setEnableSoftLimitFwd(false);
+      enableSoftLimitBwdBackup_=data_->command_.enableSoftLimitBwd; //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=data_->command_.enableSoftLimitFwd; //Read setting to be able to restore later
+      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
+      data_->command_.enableSoftLimitFwd=false;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchBwd_){
@@ -833,8 +724,8 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
         currSeqDirection_=ECMC_DIR_FORWARD;
         seqState_=2;
       }
-      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      mon_->setEnableSoftLimitFwd(false);
+      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
+      data_->command_.enableSoftLimitFwd=false;
       break;
 
     case 2: //Wait for standstill and then trigger move
@@ -870,17 +761,14 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
-        mon_->setTargetPos(traj_->getCurrentPosSet());
+        data_->command_.positionTarget=traj_->getCurrentPosSet();
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
-          mon_->setActPos(currPos);
-          mon_->setTargetPos(currPos);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
-          cntrl_->setEnable(true);
           homePosLatch1_=0;
           homePosLatch2_=0;
           stopSeq();
@@ -913,10 +801,10 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      mon_->setEnableSoftLimitFwd(false);
+      enableSoftLimitBwdBackup_=data_->command_.enableSoftLimitBwd; //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=data_->command_.enableSoftLimitFwd; //Read setting to be able to restore later
+      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
+      data_->command_.enableSoftLimitFwd=false;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchFwd_){
@@ -974,17 +862,14 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
       }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
-        mon_->setTargetPos(traj_->getCurrentPosSet());
+        data_->command_.positionTarget=traj_->getCurrentPosSet();
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
-          mon_->setActPos(currPos);
-          mon_->setTargetPos(currPos);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
-          cntrl_->setEnable(true);
           homePosLatch1_=0;
           homePosLatch2_=0;
           stopSeq();
@@ -1020,10 +905,10 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      mon_->setEnableSoftLimitFwd(false);
+      enableSoftLimitBwdBackup_=data_->command_.enableSoftLimitBwd; //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=data_->command_.enableSoftLimitFwd; //Read setting to be able to restore later
+      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
+      data_->command_.enableSoftLimitFwd=false;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchBwd_){
@@ -1123,17 +1008,14 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
-        mon_->setTargetPos(traj_->getCurrentPosSet());
+        data_->command_.positionTarget=traj_->getCurrentPosSet();
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-((homePosLatch2_+homePosLatch1_)/2)+homePosition_;
           traj_->setCurrentPosSet(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
-          mon_->setActPos(currPos);
-          mon_->setTargetPos(currPos);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
-          cntrl_->setEnable(true);
           homePosLatch1_=0;
           homePosLatch2_=0;
           stopSeq();
@@ -1170,10 +1052,10 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
       enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->setEnableSoftLimitBwd(false); //Disable softlimits for homing
-      mon_->setEnableSoftLimitFwd(false);
+      enableSoftLimitBwdBackup_=data_->command_.enableSoftLimitBwd; //Read setting to be able to restore later
+      enableSoftLimitFwdBackup_=data_->command_.enableSoftLimitFwd; //Read setting to be able to restore later
+      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
+      data_->command_.enableSoftLimitFwd=false;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(0);
       if(hwLimitSwitchFwd_){
@@ -1273,17 +1155,14 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
-        mon_->setTargetPos(traj_->getCurrentPosSet());
+        data_->command_.positionTarget=traj_->getCurrentPosSet();
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-((homePosLatch2_+homePosLatch1_)/2)+homePosition_;
           traj_->setCurrentPosSet(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
-          mon_->setActPos(currPos);
-          mon_->setTargetPos(currPos);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
-          cntrl_->setEnable(true);
           homePosLatch1_=0;
           homePosLatch2_=0;
           stopSeq();
@@ -1306,13 +1185,13 @@ int ecmcSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
   }
 
-  if(!mon_->getHardLimitFwd() && checkFWD){
+  if(!data_->status_.limitFwd && checkFWD){
     stopSeq();
     traj_->setExecute(0);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
   }
 
-  if(!mon_->getHardLimitBwd() && checkBWD){
+  if(!data_->status_.limitBwd && checkBWD){
     stopSeq();
     traj_->setExecute(0);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
@@ -1331,8 +1210,9 @@ int ecmcSequencer::stopSeq(){
   }
 
   if(mon_!=NULL){
-    mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-    mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
+
+      data_->command_.enableSoftLimitBwd=enableSoftLimitBwdBackup_;
+      data_->command_.enableSoftLimitFwd=enableSoftLimitFwdBackup_;
   }
 
   seqInProgress_=false;
@@ -1350,13 +1230,6 @@ int ecmcSequencer::validate()
 int ecmcSequencer::setSequenceTimeout(int timeout)
 {
   seqTimeout_=timeout;
-  return 0;
-}
-
-int ecmcSequencer::setExternalExecute(bool execute)
-{
-  externalExecute_=execute;
-/// TODO FUNCTIONALLITY NOT IMPLEMETED YET
   return 0;
 }
 
@@ -1388,5 +1261,11 @@ int ecmcSequencer::getExtTrajSetpoint(double *pos)
   }
 
   *pos=tempPos;
+  return 0;
+}
+
+int ecmcSequencer::setAxisDataRef(ecmcAxisData* data)
+{
+  data_= data;
   return 0;
 }

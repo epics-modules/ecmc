@@ -2,16 +2,18 @@
 
 #include <stdio.h>
 
-ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(double sampleTime) : ecmcError()
+ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double sampleTime) : ecmcError()
 {
   initVars();
+  data_=axisData;
   sampleTime_=sampleTime;
   initTraj();
 }
 
-ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(double velocityTarget, double acceleration, double deceleration, double jerk,double sampleTime) : ecmcError()
+ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double velocityTarget, double acceleration, double deceleration, double jerk,double sampleTime) : ecmcError()
 {
   initVars();
+  data_=axisData;
   velocityTarget_=velocityTarget;
   acceleration_=acceleration;
   deceleration_=deceleration;
@@ -57,8 +59,8 @@ void ecmcTrajectoryTrapetz::initVars()
   prevStepSize_=0;
   setDirection_=ECMC_DIR_FORWARD;
   actDirection_=ECMC_DIR_FORWARD;
-  externalInterlock_=ECMC_INTERLOCK_BOTH_LIMITS;
-  interlockStatus_=ECMC_INTERLOCK_NONE;
+  stopping_=false;
+  latchedStopMode_=ECMC_STOP_MODE_RUN;
 }
 
 void ecmcTrajectoryTrapetz::initTraj()
@@ -93,9 +95,8 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
   double nextVelocity=velocity_;
 
   bool stopped=false;
-  stopMode nStopMode=ECMC_STOP_MODE_EMERGENCY;
 
-  if (!trajInProgress_ || currentPosInterlock_ || !enable_){
+  if (!trajInProgress_ || !enable_){
 
     if(execute_ && !enable_){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
@@ -106,19 +107,32 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     velocity_=0;
     setDirection_=ECMC_DIR_STANDSTILL;
     actDirection_=ECMC_DIR_STANDSTILL;
+    stopping_=false;
     return currentPositionSetpoint_;
   }
   index_++;
 
-  if(motionMode_!=ECMC_MOVE_MODE_STOP){
+  //TODO.  Redo with function call again... NOT NICE
+  if(data_->interlocks_.currStopMode==ECMC_STOP_MODE_RUN && !execute_){
+    data_->interlocks_.noExecuteInterlock=true;
+    data_->refreshInterlocks();
+    stopping_=true;
+  }
+
+  if(motionMode_!=ECMC_MOVE_MODE_STOP && !data_->interlocks_.trajSummaryInterlock && !stopping_){
     nextSetpoint=internalTraj(&nextVelocity);
     actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
   }
 
-  nStopMode=checkInterlocks();
-  if(nStopMode!=ECMC_STOP_MODE_RUN){//STOP=>calculate new setpoint and velocity for stop ramp.
-    nextSetpoint=moveStop(nStopMode,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
+  if(data_->interlocks_.trajSummaryInterlock || stopping_){//STOP=>calculate new setpoint and velocity for stop ramp.
+    if(!stopping_){
+      stopping_=true;
+      latchedStopMode_=data_->interlocks_.currStopMode;
+    }
+    nextSetpoint=moveStop(latchedStopMode_,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
     if(stopped){
+      stopping_=false;
+      latchedStopMode_=ECMC_STOP_MODE_RUN;
       trajInProgress_=false;
       velocity_=0;
       nextVelocity=0;
@@ -212,7 +226,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,double targetSetpoint,
     else{
       posSetTemp=currSetpoint-positionStep;//Change direction if target position changed during the movement..
     }
-    if(currSetpoint>targetSetpoint){
+    if(posSetTemp>targetSetpoint){
       posSetTemp=targetSetpoint;
       stop();
     }
@@ -225,24 +239,28 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,double targetSetpoint,
       posSetTemp=currSetpoint+positionStep;//Change direction if target position changed during the movement..
     }
 
-    if(currSetpoint<targetSetpoint){
+    if(posSetTemp<targetSetpoint){
       posSetTemp=targetSetpoint;
       stop();
     }
   }
   return posSetTemp;
-}
+}  //if(std::abs(currVelo)<0.001*std::abs(targetVelo)  || positionStep<2.1*stepDECEmerg_){  //TODO will not work always!! Need better way to calculate stand still new parameter
+
 
 double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,double currSetpoint, double currVelo,double targetVelo, bool *stopped,double *velocity)
 {
   double positionStep;
   double posSetTemp=0;
   *stopped=false;
-  motionDirection nDir;
-  if(currVelo>=0)
+  motionDirection nDir=ECMC_DIR_STANDSTILL;
+  if(currVelo>0){
     nDir=ECMC_DIR_FORWARD;
+  }
   else
-    nDir=ECMC_DIR_BACKWARD;
+    if(currVelo<0){
+      nDir=ECMC_DIR_BACKWARD;
+    }
 
   if(stopMode==ECMC_STOP_MODE_EMERGENCY){
     positionStep=std::abs(prevStepSize_)-stepDECEmerg_;  //Brake fast if HWlimit
@@ -260,73 +278,15 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,double currSetpoint, do
 
   *velocity=(posSetTemp-currSetpoint)/sampleTime_;
 
-  if(std::abs(currVelo)<0.001*std::abs(targetVelo)  || positionStep<2.1*stepDECEmerg_){  //TODO will not work always!! Need better way to calculate stand still new parameter
+  //actDirection_=checkDirection(currSetpoint,posSetTemp);
+
+  if(nDir==ECMC_DIR_STANDSTILL || (nDir==ECMC_DIR_FORWARD && positionStep<=0) || (nDir==ECMC_DIR_BACKWARD && positionStep>=0)){
     *stopped=true;
     *velocity=0;
     return currSetpoint;
   }
 
   return posSetTemp;
-}
-
-stopMode ecmcTrajectoryTrapetz::checkInterlocks()
-{
-  interlockStatus_=ECMC_INTERLOCK_NONE;
-
-  if(externalInterlock_!=ECMC_INTERLOCK_NONE){
-    interlockStatus_=externalInterlock_;
-    switch(externalInterlock_){
-      case ECMC_INTERLOCK_HARD_FWD:
-	return ECMC_STOP_MODE_NORMAL;
-        break;
-      case ECMC_INTERLOCK_HARD_BWD:
-	return ECMC_STOP_MODE_NORMAL;
-        break;
-      case ECMC_INTERLOCK_SOFT_FWD:
-	return ECMC_STOP_MODE_NORMAL;
-        break;
-      case ECMC_INTERLOCK_SOFT_BWD:
-	return ECMC_STOP_MODE_NORMAL;
-        break;
-      case ECMC_INTERLOCK_EXTERNAL:
-        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_EXTERNAL_INTERLOCK);
-        return ECMC_STOP_MODE_EMERGENCY;
-        break;
-      case ECMC_INTERLOCK_POSITION_LAG:
-        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_POS_LAG_INTERLOCK);
-        return ECMC_STOP_MODE_NORMAL;
-        break;
-      case ECMC_INTERLOCK_BOTH_LIMITS:
-        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_BOTH_LIMIT_INTERLOCK);
-        return ECMC_STOP_MODE_EMERGENCY;
-        break;
-      case ECMC_INTERLOCK_TRANSFORM:
-        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_TRANSFORM_INTERLOCK_ERROR);
-        return ECMC_STOP_MODE_EMERGENCY;
-        break;
-      case ECMC_INTERLOCK_MAX_SPEED:
-        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_MAX_SPEED_INTERLOCK);
-        return ECMC_STOP_MODE_NORMAL;
-      case ECMC_INTERLOCK_AXIS_ERROR_STATE:
-        //setErrorID(__FILE__,__FUNCTION__,__LINE__,); //Don't over write error message
-        return ECMC_STOP_MODE_EMERGENCY;
-      case ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR:
-        //setErrorID(__FILE__,__FUNCTION__,__LINE__,); //Don't over write error message
-        return ECMC_STOP_MODE_EMERGENCY;
-      case ECMC_INTERLOCK_VELOCITY_DIFF:
-        //setErrorID(__FILE__,__FUNCTION__,__LINE__,); //Don't over write error message
-        return ECMC_STOP_MODE_EMERGENCY;
-      default:
-        break;
-    }
-  }
-
-  if(!execute_){
-    interlockStatus_=ECMC_INTERLOCK_NO_EXECUTE;
-    return ECMC_STOP_MODE_NORMAL;
-  }
-
-  return ECMC_STOP_MODE_RUN;
 }
 
 double ecmcTrajectoryTrapetz::distToStop(double vel)
@@ -487,6 +447,10 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute)
     initTraj();
     currentPositionSetpoint_=startPosition_;
     trajInProgress_=true; //Trigger new trajectory
+
+    data_->interlocks_.noExecuteInterlock=false;
+    data_->refreshInterlocks();
+
     LOGINFO7("%s/%s:%d: INFO: New trajectory triggered.\n",__FILE__, __FUNCTION__, __LINE__);
   }
 }
@@ -495,16 +459,6 @@ void ecmcTrajectoryTrapetz::setStartPos(double pos)
 {
   startPosition_=pos;
   currentPosInterlock_=false;
-}
-
-bool ecmcTrajectoryTrapetz::getInterlocked()
-{
-  return currentPosInterlock_ || externalInterlock_!=ECMC_INTERLOCK_NONE;  //TODO not complete...*/;
-}
-
-void ecmcTrajectoryTrapetz::setInterlock(interlockTypes interlock)
-{
-  externalInterlock_=interlock;
 }
 
 void  ecmcTrajectoryTrapetz::setMotionMode(motionMode mode)
@@ -548,7 +502,6 @@ motionDirection ecmcTrajectoryTrapetz::checkDirection(double oldPos,double newPo
   return ECMC_DIR_STANDSTILL;
 }
 
-
 int ecmcTrajectoryTrapetz::initStopRamp(double currentPos, double currentVel, double currentAcc)
 {
   enable_=1;
@@ -556,6 +509,5 @@ int ecmcTrajectoryTrapetz::initStopRamp(double currentPos, double currentVel, do
   trajInProgress_=true;
   currentPositionSetpoint_=currentPos;
   velocity_=currentVel;
-  //velocityTarget_=0;
   return 0;
 }

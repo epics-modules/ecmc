@@ -670,7 +670,7 @@ int getAxisEncPosRaw(int axisIndex,int64_t *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisCntrlEnable(int axisIndex,int *value);
+//int getAxisCntrlEnable(int axisIndex,int *value);
 //int getAxisCntrlTargetPos(int axisIndex,double *value);
 //int getAxisCntrlEnabled(int axisIndex,int *value);
 

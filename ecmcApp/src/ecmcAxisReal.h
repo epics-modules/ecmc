@@ -21,10 +21,9 @@ public:
   int setOpMode(operationMode mode);
   operationMode getOpMode();
   int getCntrlError(double* error);
-  int setExecute(bool execute);
-  bool getExecute();
   int setEnable(bool enable);
   bool getEnable();
+  bool getEnabled();
   int setDriveType(ecmcDriveTypes driveType);
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();
@@ -34,14 +33,10 @@ public:
 private:
   void initVars();
   bool initDone_;
-  operationMode operationMode_;
+  bool temporaryLocalTrajSource_;
   ecmcDriveBase *drv_;
   ecmcPIDController *cntrl_;
   ecmcDriveTypes currentDriveType_;
-  bool enabledOld_;
-  bool enableCmdOld_;
-  bool executeCmdOld_;
-  bool trajInterlockOld;
 };
 
 #endif /* ECMCAXISREAL_H_ */

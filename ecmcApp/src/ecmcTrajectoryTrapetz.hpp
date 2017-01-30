@@ -6,6 +6,7 @@
 #include "ecmcDefinitions.h"
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
+#include "ecmcAxisData.h"
 
 /// Error codes for class ecmcTrajectoryTrapetz
 #define ERROR_TRAJ_EXT_ENC_NULL 0x14E00
@@ -59,8 +60,8 @@
 class ecmcTrajectoryTrapetz : public ecmcError
 {
 public:
-  ecmcTrajectoryTrapetz(double sampleTime);
-  ecmcTrajectoryTrapetz(double velocityTarget, double acceleration, double deceleration, double jerk,double sampleTime);
+  ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double sampleTime);
+  ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double velocityTarget, double acceleration, double deceleration, double jerk,double sampleTime);
   ~ecmcTrajectoryTrapetz();
   /** \breif Calculates and returns next position setpoint.
    * This function should only be executed once for each sample period.
@@ -112,8 +113,6 @@ public:
   void setStartPos(double pos);
   void setExecute(bool execute);
   bool getExecute();
-  bool getInterlocked();
-  void setInterlock(interlockTypes interlock);
   void setEnable(bool enable);
   bool getEnable();
   void setMotionMode(motionMode mode);
@@ -159,10 +158,13 @@ private:
   bool   internalStopCmd_;
   double distToStop_;
   double prevStepSize_;
-  interlockTypes externalInterlock_; //Interlock from Monitor class
+  //interlockTypes externalInterlock_; //Interlock from Monitor class
   motionDirection actDirection_;
   motionDirection setDirection_;
   motionMode motionMode_;
   interlockTypes interlockStatus_;
+  ecmcAxisData* data_;
+  bool stopping_;
+  stopMode latchedStopMode_;
 };
 #endif

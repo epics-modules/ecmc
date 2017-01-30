@@ -9,6 +9,7 @@
 #include "ecmcEcEntryLink.h"
 #include "ecmcEcPdo.h"
 #include "ecmcError.h"
+#include "ecmcAxisData.h"
 
 //DRIVE
 #define ERROR_DRV_DRIVE_INTERLOCKED 0x14600
@@ -20,6 +21,7 @@
 #define ERROR_DRV_ENABLED_READ_ENTRY_FAIL 0x14606
 #define ERROR_DRV_BRAKE_ENTRY_NULL  0x14607
 #define ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL  0x14608
+#define ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE 0x14609
 
 #define ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD 0
 #define ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT 1
@@ -35,8 +37,8 @@ enum ecmcDriveTypes{
 class ecmcDriveBase : public ecmcEcEntryLink
 {
 public:
-  ecmcDriveBase();
-  ecmcDriveBase(double scale);
+  ecmcDriveBase(ecmcAxisData * axisData);
+  ecmcDriveBase(ecmcAxisData * axisData, double scale);
   virtual ~ecmcDriveBase();
   virtual void initVars();
   virtual int validate();
@@ -52,30 +54,24 @@ public:
   double getVelSet();
   int setVelSetRaw(int rawVel);
   int getVelSetRaw();
-  void setInterlock(bool interlock);
-  bool getInterlock();
   int setEnableBrake(bool enable);
   int setEnableReduceTorque(bool enable);
-  int setBrake(bool value);
-  int setReduceTorque(bool value);
   int getEnableBrake();
   int getEnableReduceTorque();
-  int setAtTarget(bool atTarget);
+  int setAxisDataRef(ecmcAxisData* data);
+  bool manualModeEnable_;
 protected:
+  bool driveInterlocksOK();
   double scale_;
   double scaleNum_;
   double scaleDenom_;
-  int velSetRawOutput_;
+  //int velSetRawOutput_;
   double velSet_;
-  bool enableCmd_;
-  bool enabledStatus_;
-  bool interlock_;
   bool enableBrake_;
   bool enableReduceTorque_;
-  int brakeOutput_;
-  int reduceTorqueOutput_;
   operationMode opeationMode_;
   uint64_t controlWord_;
   uint64_t statusWord_;
+  ecmcAxisData* data_;
 };
 #endif

@@ -328,6 +328,11 @@ bool ecmcEc::checkState(void)
     return true;
   }
 
+  bool slavesUp=checkSlavesConfState();
+  if(!slavesUp){
+    return slavesUp;
+  }
+
   ecrt_master_state(master_, &masterState_);
 
   if (masterState_.slaves_responding != masterStateOld_.slaves_responding){

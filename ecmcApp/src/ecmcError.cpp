@@ -177,6 +177,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14608:
       return "ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL";
       break;
+    case 0x14609:
+      return "ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE";
+      break;
     case 0x14650:
       return "ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR";
       break;

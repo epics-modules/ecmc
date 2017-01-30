@@ -22,6 +22,7 @@
 #include "ecmcSequencer.hpp"
 #include "ecmcTrajectoryTrapetz.hpp"
 #include "ecmcMasterSlaveIF.h"
+#include "ecmcAxisData.h"
 
 //AXIS ERRORS
 #define ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL 0x14300
@@ -75,25 +76,28 @@ typedef struct {
     bool homeSwitch;
 } ecmcAxisStatusPrintOutType;
 
+
 class ecmcAxisBase : public ecmcError
 {
 public:
   ecmcAxisBase(int axisID, double sampleTime);
   virtual ~ecmcAxisBase();
-  virtual void execute(bool masterOK)=0;
   virtual int setOpMode(operationMode nMode)=0;
   virtual operationMode getOpMode()=0;
   virtual int getCntrlError(double* error)=0;
-  virtual int setExecute(bool execute)=0;
-  virtual bool getExecute()=0;
   virtual int setEnable(bool enable)=0;
   virtual bool getEnable()=0;
+  virtual bool getEnabled()=0;
   virtual int setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase *getDrv()=0;
   virtual ecmcPIDController *getCntrl()=0;
   virtual void printStatus()=0;
   virtual int validate()=0;
-
+  virtual void execute(bool masterOK)=0;
+  void preExecute(bool masterOK);
+  void postExecute(bool masterOK);
+  int setExecute(bool execute);
+  bool getExecute();
   int getAxisHomed(bool *homed);
   int getEncScaleNum(double *scale);
   int setEncScaleNum(double scale);
@@ -133,10 +137,11 @@ public:
   int getErrorID();
   void errorReset();
   int setEnableLocal(bool enable);
-  int setExternalExecute(bool execute);
+  //int setExternalExecute(bool execute);
   int validateBase();
   ecmcMasterSlaveIF *getExternalTrajIF();
   ecmcMasterSlaveIF *getExternalEncIF();
+  bool getBusy();
 
 protected:
   void initVars();
@@ -147,38 +152,26 @@ protected:
   int refreshExternalInputSources();
   int refreshExternalOutputSources();
   void printAxisStatus(ecmcAxisStatusPrintOutType data);
-  int axisID_;
-  bool reset_;
-  axisType axisType_;
   bool cascadedCommandsEnable_;  // Allow other axis to enable and execute this axis
   bool enableCommandTransform_;  // Allow other axis to enable and execute this axis
   ecmcCommandTransform *commandTransform_;
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
-  bool inStartupPhase_;
-  bool realtime_;
-  bool enable_;
-  bool externalExecute_;
+  //bool externalExecute_;
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcMasterSlaveIF *externalInputEncoderIF_;
-  double externalTrajectoryPosition_;
-  double externalTrajectoryVelocity_;
-  interlockTypes externalTrajectoryInterlock_;
-  interlockTypes externalEncoderInterlock_;
-  double externalEncoderPosition_;
-  double externalEncoderVelocity_;
-  double currentPositionActual_;
-  double currentPositionSetpoint_;
-  double currentVelocityActual_;
-  double currentVelocitySetpoint_;
-  double sampleTime_;
   ecmcTrajectoryTrapetz *traj_;
   ecmcMonitor *mon_;
   ecmcEncoder *enc_;
   ecmcSequencer seq_;
-
   ecmcAxisStatusPrintOutType printOutData_;
   ecmcAxisStatusPrintOutType printOutDataOld_;
   int printHeaderCounter_;
+  ecmcAxisData data_;
+  //bool enabledOld_;
+  //bool enableCmdOld_;
+  bool executeCmdOld_;
+  bool trajInterlockOld;
+
 };
 
 #endif /* ECMCAXISBASE_H_ */
