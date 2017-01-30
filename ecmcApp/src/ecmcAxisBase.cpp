@@ -828,3 +828,13 @@ bool ecmcAxisBase::getBusy()
 {
   return data_.status_.busy && data_.status_.enabled;
 }
+
+int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusPrintOutType *data)
+{
+  if(data==NULL){
+    return ERROR_AXIS_DATA_POINTER_NULL;
+  }
+
+  memcpy(data,&printOutData_,sizeof(*data));
+  return 0;
+}

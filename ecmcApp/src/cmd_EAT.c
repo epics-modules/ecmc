@@ -1416,6 +1416,19 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     return 0;
   }
 
+  /* GetAxisDebugInfoData(in axisIndex) */
+  nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
+  if (nvals == 1) {
+    char tempBuffer[1024];  //TODO consider more efficient implementations
+    int error=getAxisDebugInfoData(iValue,&tempBuffer,1024);
+    if(error){
+      cmd_buf_printf(buffer,"Error: %d", error);
+      return 0;
+    }
+    cmd_buf_printf(buffer,"%s",tempBuffer);
+    return 0;
+  }
+
   /*int MoveAbsolutePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
   nvals = sscanf(myarg_1, "MoveAbsolutePosition(%d,%lf,%lf,%lf,%lf)", &iValue,&dValue1,&dValue2,&dValue3,&dValue4);
   if (nvals == 5) {

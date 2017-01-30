@@ -629,6 +629,46 @@ const char *getErrorString(int error_number)
   return ecmcError::convertErrorIdToString(error_number);
 }
 
+int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
+  ecmcAxisStatusPrintOutType data;
+  int error=axes[axisIndex]->getDebugInfoData(&data);
+  if(error){
+    return error;
+  }
+
+  int ret=snprintf(buffer,bufferByteSize,"%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+       data.positionSetpoint,
+       data.positionActual,
+       data.cntrlError,
+       data.cntrlOutput,
+       data.positionError,
+       data.velocityActual,
+       data.velocitySetpoint,
+       data.velocityFFRaw,
+       data.velocitySetpointRaw,
+       data.error,
+       data.enable,
+       data.execute,
+       data.busy,
+       data.seqState,
+       data.atTarget,
+       data.trajInterlock,
+       data.limitFwd,
+       data.limitBwd,
+       data.homeSwitch
+       );
+
+  if(ret>=bufferByteSize || ret <=0){
+    return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  return 0;
+}
 
 int setAxisEnable(int axisIndex, int value)
 {
