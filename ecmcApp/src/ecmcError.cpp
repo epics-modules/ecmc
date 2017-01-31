@@ -21,7 +21,7 @@ void ecmcError::initVars()
 {
   errorId_=0;
   error_=0;
-  currSeverity_=ECMC_SEVERITY_WARNING;
+  currSeverity_=ECMC_SEVERITY_NONE;
 }
 
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID)
@@ -77,7 +77,7 @@ void ecmcError::errorReset()
 {
   error_=false;
   errorId_=0;
-  currSeverity_=ECMC_SEVERITY_WARNING;
+  currSeverity_=ECMC_SEVERITY_NONE;
 }
 
 bool ecmcError::getError()
