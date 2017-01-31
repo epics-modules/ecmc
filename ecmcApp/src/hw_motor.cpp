@@ -351,64 +351,96 @@ void startRTthread()
   }
 }
 
+int waitForEtherCATtoStart(int timeoutSeconds)
+{
+  struct timespec timeToPause;
+  timeToPause.tv_sec = 1;
+  timeToPause.tv_nsec = 0;
+  for(int i=0;i<timeoutSeconds;i++){
+    LOGINFO("Starting up EtherCAT bus: %d second(s).\n",i);
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
+    if(!ec.getError() && ec.statusOK()){
+      return 0;
+    }
+  }
+  LOGERR("Timeout error: EtherCAT bus did not start correctly in 30s\n");
+  return ec.getErrorID();
+}
+
+int setAppModeCfg(int mode)
+{
+  LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
+  appModeOld = appMode;
+  appMode=(app_mode_type)mode;
+  for(int i=0;i<ECMC_MAX_AXES;i++){
+    if(axes[i]!=NULL){
+      axes[i]->setRealTimeStarted(false);
+    }
+  }
+  return 0;
+}
+
+int setAppModeRun(int mode)
+{
+  appModeOld=appMode;
+  appMode=(app_mode_type)mode;
+
+  for(int i=0;i<ECMC_MAX_AXES;i++){
+    if(axes[i]!=NULL){
+      axes[i]->setInStartupPhase(true);
+    }
+  }
+
+  if(appModeOld!=ECMC_MODE_CONFIG){
+    return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;
+  }
+
+  int errorCode=validateConfig();
+  if (errorCode){
+    return errorCode;
+  }
+
+  clock_gettime(CLOCK_MONOTONIC, &masterActivationTimeMonotonic);
+  clock_gettime(CLOCK_REALTIME, &masterActivationTimeRealtime); // absolute clock (epoch)
+
+  masterActivationTimeOffset=timespec_sub(masterActivationTimeRealtime,masterActivationTimeMonotonic);
+  ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(masterActivationTimeRealtime));
+
+
+  if(ec.activate()){
+    LOGERR("INFO:\t\tActivation of master failed.\n");
+    return ERROR_MAIN_EC_ACTIVATE_FAILED;
+  }
+  LOGINFO4("INFO:\t\tApplication in runtime mode.\n");
+  startRTthread();
+  for(int i=0;i<ECMC_MAX_AXES;i++){
+    if(axes[i]!=NULL){
+      axes[i]->setRealTimeStarted(true);
+    }
+  }
+
+  errorCode=waitForEtherCATtoStart(30);
+  if(errorCode){
+    return errorCode;
+  }
+  return 0;
+}
+
 int setAppMode(int mode)
 {
   LOGINFO4("%s/%s:%d mode=%d\n",__FILE__, __FUNCTION__, __LINE__,mode);
-  int errorCode=0;
   switch((app_mode_type)mode){
     case ECMC_MODE_CONFIG:
-      LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
-      appModeOld = appMode;
-      appMode=(app_mode_type)mode;
-      for(int i=0;i<ECMC_MAX_AXES;i++){
-        if(axes[i]!=NULL){
-          axes[i]->setRealTimeStarted(false);
-        }
-      }
+      return setAppModeCfg(mode);
       break;
     case ECMC_MODE_RUNTIME:
-      appModeOld=appMode;
-      appMode=(app_mode_type)mode;
-
-      for(int i=0;i<ECMC_MAX_AXES;i++){
-        if(axes[i]!=NULL){
-          axes[i]->setInStartupPhase(true);
-        }
-      }
-
-      if(appModeOld!=ECMC_MODE_CONFIG){
-        return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;
-      }
-      errorCode=validateConfig();
-      if (errorCode){
-        return errorCode;
-      }
-
-      clock_gettime(CLOCK_MONOTONIC, &masterActivationTimeMonotonic);
-      clock_gettime(CLOCK_REALTIME, &masterActivationTimeRealtime); // absolute clock (epoch)
-
-      masterActivationTimeOffset=timespec_sub(masterActivationTimeRealtime,masterActivationTimeMonotonic);
-      ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(masterActivationTimeRealtime));
-
-
-      if(ec.activate()){
-        LOGERR("INFO:\t\tActivation of master failed.\n");
-        return ERROR_MAIN_EC_ACTIVATE_FAILED;
-      }
-      LOGINFO4("INFO:\t\tApplication in runtime mode.\n");
-      startRTthread();
-      for(int i=0;i<ECMC_MAX_AXES;i++){
-        if(axes[i]!=NULL){
-          axes[i]->setRealTimeStarted(true);
-        }
-      }
+       return setAppModeRun(mode);
       break;
     default:
       LOGERR("WARNING: Mode %d not implemented. (Config=%d, Runtime=%d).\n",mode, ECMC_MODE_CONFIG,ECMC_MODE_RUNTIME);
       return ERROR_MAIN_APP_MODE_NOT_SUPPORTED;
       break;
   }
-  appModeOld=appMode;
   return 0;
 }
 
