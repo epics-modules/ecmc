@@ -118,22 +118,22 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     stopping_=true;
   }
 
-  if(motionMode_!=ECMC_MOVE_MODE_STOP && !data_->interlocks_.trajSummaryInterlock && !stopping_){
+   if(!data_->interlocks_.trajSummaryInterlock && !stopping_){
     nextSetpoint=internalTraj(&nextVelocity);
     actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
   }
-
-  if(data_->interlocks_.trajSummaryInterlock || stopping_){
+  else{
     if(!stopping_){
       stopping_=true;
       latchedStopMode_=data_->interlocks_.currStopMode;
     }
+
     nextSetpoint=moveStop(latchedStopMode_,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
+
     if(stopped){
       stopping_=false;
       latchedStopMode_=ECMC_STOP_MODE_RUN;
       trajInProgress_=false;
-      velocity_=0;
       nextVelocity=0;
     }
   }
@@ -320,7 +320,7 @@ double ecmcTrajectoryTrapetz::getVel()
 
 void ecmcTrajectoryTrapetz::setTargetVel(double velTarget)
 {
-  velocityTarget_=velTarget; //Steady state velocity setpoint
+  velocityTarget_=velTarget;
   initTraj();
 }
 
@@ -461,12 +461,6 @@ void  ecmcTrajectoryTrapetz::setMotionMode(motionMode mode)
   motionMode_=mode;
 }
 
-/*void ecmcTrajectoryTrapetz::stop()
-{
-  velocity_=0;
-  trajInProgress_=false;
-}*/
-
 interlockTypes ecmcTrajectoryTrapetz::getInterlockStatus()
 {
   return interlockStatus_;
@@ -500,7 +494,6 @@ motionDirection ecmcTrajectoryTrapetz::checkDirection(double oldPos,double newPo
 int ecmcTrajectoryTrapetz::initStopRamp(double currentPos, double currentVel, double currentAcc)
 {
   enable_=1;
-  motionMode_=ECMC_MOVE_MODE_STOP;
   trajInProgress_=true;
   currentPositionSetpoint_=currentPos;
   velocity_=currentVel;

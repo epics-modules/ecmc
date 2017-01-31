@@ -94,7 +94,6 @@ enum motionDirection {
 enum motionMode{
   ECMC_MOVE_MODE_POS=0,
   ECMC_MOVE_MODE_VEL=1,
-  ECMC_MOVE_MODE_STOP=2,
 };
 
 enum dataSource{
@@ -102,7 +101,6 @@ enum dataSource{
   ECMC_DATA_SOURCE_EXTERNALENCODER=1,
   ECMC_DATA_SOURCE_EXTERNALTRAJECTORY=2,
 };
-
 
 enum coordSystMode{
   ECMC_COORD_ABS=0,

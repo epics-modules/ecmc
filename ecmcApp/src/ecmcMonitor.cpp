@@ -376,7 +376,7 @@ int ecmcMonitor::checkLimits()
   data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock=(hardBwdOld_ && !data_->status_.limitBwd && data_->status_.currentVelocitySetpoint>0)
       || (hardFwdOld_ && !data_->status_.limitFwd && data_->status_.currentVelocitySetpoint<0);
   if(data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK,ECMC_SEVERITY_NORMAL);
   }
   hardBwdOld_=data_->status_.limitBwd;
   hardFwdOld_=data_->status_.limitFwd;
@@ -384,14 +384,14 @@ int ecmcMonitor::checkLimits()
   //Both limit switches
   data_->interlocks_.bothLimitsLowInterlock=!data_->status_.limitBwd && !data_->status_.limitFwd;
   if(data_->interlocks_.bothLimitsLowInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_BOTH_LIMIT_INTERLOCK);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_BOTH_LIMIT_INTERLOCK,ECMC_SEVERITY_EMERGENCY);
   }
 
   //Bwd limit switch
   if(!data_->status_.limitBwd && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld) ){
     data_->interlocks_.bwdLimitInterlock=true;
     if(enableAlarmAtHardlimitBwd_){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_HARD_LIMIT_BWD_INTERLOCK,ECMC_SEVERITY_NORMAL);
     }
   }
   else {
@@ -402,7 +402,7 @@ int ecmcMonitor::checkLimits()
   if(!data_->status_.limitFwd && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld)){
     data_->interlocks_.fwdLimitInterlock=true;
     if(enableAlarmAtHardlimitFwd_){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_HARD_LIMIT_FWD_INTERLOCK,ECMC_SEVERITY_NORMAL);
     }
   }
   else{
@@ -413,14 +413,14 @@ int ecmcMonitor::checkLimits()
   data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd && (data_->status_.currentVelocitySetpoint<0)
       && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop) && data_->status_.busy;
   if(data_->interlocks_.bwdSoftLimitInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK,ECMC_SEVERITY_NORMAL);
   }
 
   //Soft fwd limit
   data_->interlocks_.fwdSoftLimitInterlock=data_->command_.enableSoftLimitFwd && (data_->status_.currentVelocitySetpoint>0)
       && (data_->command_.softLimitFwd-data_->status_.currentPositionActual<=data_->status_.distToStop) && data_->status_.busy;
   if(data_->interlocks_.fwdSoftLimitInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK,ECMC_SEVERITY_NORMAL);
   }
 
   return 0;
@@ -476,13 +476,14 @@ int ecmcMonitor::checkPositionLag()
   data_->interlocks_.lagTrajInterlock=lagErrorTraj;
 
    if(lagErrorDrive || lagErrorTraj){
-     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
+     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_MAX_POSITION_LAG_EXCEEDED,ECMC_SEVERITY_NORMAL);
    }
   return 0;
 }
 
 int ecmcMonitor::checkVelocityDiff()
 {
+
   double currentSetVelocityToDrive= data_->status_.cntrlOutput; //cntrlOutput_/cntrlKff_;
   bool velocityDiffErrorDrive=false;
   bool velocityDiffErrorTraj=false;
@@ -513,7 +514,7 @@ int ecmcMonitor::checkVelocityDiff()
   data_->interlocks_.velocityDiffTrajInterlock=velocityDiffErrorTraj;
 
   if(velocityDiffErrorDrive || velocityDiffErrorTraj){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED,ECMC_SEVERITY_NORMAL);
   }
 
   return 0;
@@ -544,7 +545,7 @@ int ecmcMonitor::checkMaxVelocity()
    data_->interlocks_.maxVelocityDriveInterlock=data_->interlocks_.maxVelocityTrajInterlock && maxVelCounterDrive_>=maxVelDriveILDelay_;
 
    if(data_->interlocks_.maxVelocityDriveInterlock || data_->interlocks_.maxVelocityTrajInterlock){
-     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_MAX_VELOCITY_EXCEEDED);
+     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_MAX_VELOCITY_EXCEEDED,ECMC_SEVERITY_NORMAL);
    }
    return 0;
 }
@@ -554,7 +555,7 @@ int ecmcMonitor::checkCntrlMaxOutput()
   if(enableCntrlHLMon_ && std::abs(data_->status_.cntrlOutput)>cntrlOutputHL_){
     data_->interlocks_.cntrlOutputHLDriveInterlock=true;
     data_->interlocks_.cntrlOutputHLTrajInterlock=true;
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT,ECMC_SEVERITY_NORMAL);
   }
   return 0;
 }
