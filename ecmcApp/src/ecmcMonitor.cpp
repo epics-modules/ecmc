@@ -411,15 +411,14 @@ int ecmcMonitor::checkLimits()
 
   //Soft bwd limit
   data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd && (data_->status_.currentVelocitySetpoint<0)
-      && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop);
+      && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop) && data_->status_.busy;
   if(data_->interlocks_.bwdSoftLimitInterlock){
-    LOGINFO("Velocity setpoint from traj: %lf\n",data_->status_.currentVelocitySetpoint);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
   }
 
   //Soft fwd limit
   data_->interlocks_.fwdSoftLimitInterlock=data_->command_.enableSoftLimitFwd && (data_->status_.currentVelocitySetpoint>0)
-      && (data_->command_.softLimitFwd-data_->status_.currentPositionActual<=data_->status_.distToStop);
+      && (data_->command_.softLimitFwd-data_->status_.currentPositionActual<=data_->status_.distToStop) && data_->status_.busy;
   if(data_->interlocks_.fwdSoftLimitInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
   }
