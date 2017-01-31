@@ -1420,7 +1420,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
   if (nvals == 1) {
     char tempBuffer[1024];  //TODO consider more efficient implementations
-    int error=getAxisDebugInfoData(iValue,&tempBuffer,1024);
+    int error=getAxisDebugInfoData(iValue,&tempBuffer[0], sizeof(tempBuffer));
     if(error){
       cmd_buf_printf(buffer,"Error: %d", error);
       return 0;
