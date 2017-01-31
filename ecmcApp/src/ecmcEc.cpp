@@ -11,6 +11,7 @@ ecmcEc::ecmcEc()
 {
   initVars();
   simSlave_=new ecmcEcSlave(NULL,0,0,0,0);
+  setErrorID(ERROR_EC_STATUS_NOT_OK);
 }
 
 void ecmcEc::initVars()

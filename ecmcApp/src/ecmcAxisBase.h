@@ -52,6 +52,8 @@
 #define ERROR_AXIS_SEQ_OBJECT_NULL 0x14318
 #define ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED 0x14319
 #define ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED 0x1431A
+#define ERROR_AXIS_DATA_POINTER_NULL 0x1431B
+
 
 typedef struct {
     int axisID;
@@ -75,7 +77,6 @@ typedef struct {
     bool limitBwd;
     bool homeSwitch;
 } ecmcAxisStatusPrintOutType;
-
 
 class ecmcAxisBase : public ecmcError
 {
@@ -142,7 +143,7 @@ public:
   ecmcMasterSlaveIF *getExternalTrajIF();
   ecmcMasterSlaveIF *getExternalEncIF();
   bool getBusy();
-
+  int getDebugInfoData(ecmcAxisStatusPrintOutType *data);
 protected:
   void initVars();
   int fillCommandsTransformData();
