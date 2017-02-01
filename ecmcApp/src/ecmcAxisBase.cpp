@@ -806,6 +806,10 @@ int ecmcAxisBase::setExecute(bool execute)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED);
     }
 
+    if(execute && !data_.status_.executeOld && data_.status_.busy){
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_BUSY);
+    }
+
     int error=seq_.setExecute(execute);
     if(error){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);

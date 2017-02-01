@@ -180,6 +180,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x1431B:
       return "ERROR_AXIS_DATA_POINTER_NULL";
       break;
+    case 0x1431C:
+      return "ERROR_AXIS_BUSY";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
