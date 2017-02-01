@@ -756,12 +756,12 @@ int ecmcAxisBase::setCmdData(int cmdData)
 
 motionCommandTypes ecmcAxisBase::getCommand()
 {
-  return data_.command_.command;//seq_.getCommand();
+  return seq_.getCommand();
 }
 
 int ecmcAxisBase::getCmdData()
 {
-  return data_.command_.cmdData;//seq_.getCmdData();
+  return seq_.getCmdData();
 }
 
 void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
