@@ -124,10 +124,10 @@ public:
 private:
   void initVars();
   void initTraj();
-  void stop();
+  //void stop();
   double internalTraj(double *velocity);
-  double moveVel(double currSetpoint, double currVelo,double targetVelo);
-  double movePos(double currSetpoint,double targetSetpoint,double stopDistance, double currVelo,double targetVelo);
+  double moveVel(double currSetpoint, double currVelo,double targetVelo,bool *trajBusy);
+  double movePos(double currSetpoint,double targetSetpoint,double stopDistance, double currVelo,double targetVelo, bool *trajBusy);
   double moveStop(stopMode stopMode,double currSetpoint, double currVelo,double targetVelo, bool *stopped,double *velocity);
   stopMode checkInterlocks();
   double updateSetpoint(double nextSetpoint,double nextVelocity);

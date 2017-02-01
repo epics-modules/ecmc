@@ -360,10 +360,12 @@ int waitForEtherCATtoStart(int timeoutSeconds)
     LOGINFO("Starting up EtherCAT bus: %d second(s).\n",i);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
     if(!ec.getError() && ec.statusOK()){
+      clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
+      LOGINFO("EtherCAT bus started!\n");
       return 0;
     }
   }
-  LOGERR("Timeout error: EtherCAT bus did not start correctly in 30s\n");
+  LOGERR("Timeout error: EtherCAT bus did not start correctly in %ds.\n",timeoutSeconds);
   return ec.getErrorID();
 }
 

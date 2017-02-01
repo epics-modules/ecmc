@@ -21,6 +21,7 @@ void ecmcError::initVars()
 {
   errorId_=0;
   error_=0;
+  currSeverity_=ECMC_SEVERITY_NONE;
 }
 
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID)
@@ -30,6 +31,16 @@ int ecmcError::setErrorID(const char* fileName,const char* functionName,int line
   }
 
   return setErrorID(errorID);
+}
+
+int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID,ecmcAlarmSeverity severity)
+{
+
+  if(errorID!=errorId_ && severity>currSeverity_){
+    LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
+  }
+
+  return setErrorID(errorID,severity);
 }
 
 int ecmcError::setErrorID(int errorID)
@@ -42,6 +53,21 @@ int ecmcError::setErrorID(int errorID)
   return errorId_;
 }
 
+int ecmcError::setErrorID(int errorID,ecmcAlarmSeverity severity)
+{
+  if(severity<=currSeverity_){
+    return errorId_;
+  }
+  currSeverity_=severity;
+  if(errorID)
+    error_=true;
+  else
+    error_=false;
+  errorId_=errorID;
+  return errorId_;
+}
+
+
 void ecmcError::setError(bool error)
 {
   error_=error ;
@@ -51,6 +77,7 @@ void ecmcError::errorReset()
 {
   error_=false;
   errorId_=0;
+  currSeverity_=ECMC_SEVERITY_NONE;
 }
 
 bool ecmcError::getError()
