@@ -373,11 +373,12 @@ int ecmcMonitor::setSoftLimitFwd(double limit)
 int ecmcMonitor::checkLimits()
 {
   //Unexpected limit switch behavior (falling edge while running towards other limit switch)
-  data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock=(hardBwdOld_ && !data_->status_.limitBwd && data_->status_.currentVelocitySetpoint>0)
+  /*data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock=(hardBwdOld_ && !data_->status_.limitBwd && data_->status_.currentVelocitySetpoint>0)
       || (hardFwdOld_ && !data_->status_.limitFwd && data_->status_.currentVelocitySetpoint<0);
   if(data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK,ECMC_SEVERITY_NORMAL);
-  }
+  }*/
+
   hardBwdOld_=data_->status_.limitBwd;
   hardFwdOld_=data_->status_.limitFwd;
 
