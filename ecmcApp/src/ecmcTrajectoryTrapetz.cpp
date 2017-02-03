@@ -112,13 +112,14 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
   }
   index_++;
 
-  if(!execute_){
+  if(!execute_ && !stopping_){
     data_->interlocks_.noExecuteInterlock=true;
     data_->refreshInterlocks();
     stopping_=true;
+    LOGINFO("NO EXECUTE.. Stopping\n");
   }
 
-   if(!data_->interlocks_.trajSummaryInterlock && !stopping_){
+  if(!data_->interlocks_.trajSummaryInterlock && !stopping_){
     nextSetpoint=internalTraj(&nextVelocity);
     actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
   }
@@ -131,8 +132,11 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     nextSetpoint=moveStop(latchedStopMode_,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
 
     if(stopped){
+      LOGINFO("STOPPED\n");
       stopping_=false;
       latchedStopMode_=ECMC_STOP_MODE_RUN;
+      setDirection_=ECMC_DIR_STANDSTILL;
+      actDirection_=ECMC_DIR_STANDSTILL;
       trajInProgress_=false;
       nextVelocity=0;
     }
@@ -275,7 +279,7 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,double currSetpoint, do
 
   *velocity=(posSetTemp-currSetpoint)/sampleTime_;
 
-  if(nDir==ECMC_DIR_STANDSTILL || (nDir==ECMC_DIR_FORWARD && positionStep<=0) || (nDir==ECMC_DIR_BACKWARD && positionStep>=0)){
+  if(nDir==ECMC_DIR_STANDSTILL || positionStep<=0/*(nDir==ECMC_DIR_FORWARD && positionStep<=0) || (nDir==ECMC_DIR_BACKWARD && positionStep>=0)*/){
     *stopped=true;
     *velocity=0;
     return currSetpoint;
