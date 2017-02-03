@@ -64,6 +64,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
 {
   data_.interlocks_.etherCatMasterInterlock=!masterOK;
   data_.refreshInterlocks();
+
   data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
   if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
     data_.status_.busy=seq_.getBusy();
@@ -830,7 +831,7 @@ bool ecmcAxisBase::getExecute()
 
 bool ecmcAxisBase::getBusy()
 {
-  return data_.status_.busy && data_.status_.enabled;
+  return data_.status_.busy /*&& data_.status_.enabled*/;
 }
 
 int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusPrintOutType *data)

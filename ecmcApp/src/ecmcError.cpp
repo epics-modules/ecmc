@@ -90,6 +90,11 @@ int ecmcError::getErrorID()
   return errorId_;
 }
 
+ecmcAlarmSeverity ecmcError::getSeverity()
+{
+  return currSeverity_;
+}
+
 const char *ecmcError::convertErrorIdToString(int errorId)
 {
   switch(errorId){
