@@ -64,6 +64,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
 {
   data_.interlocks_.etherCatMasterInterlock=!masterOK;
   data_.refreshInterlocks();
+
   data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
   if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
     data_.status_.busy=seq_.getBusy();
@@ -756,12 +757,12 @@ int ecmcAxisBase::setCmdData(int cmdData)
 
 motionCommandTypes ecmcAxisBase::getCommand()
 {
-  return data_.command_.command;//seq_.getCommand();
+  return seq_.getCommand();
 }
 
 int ecmcAxisBase::getCmdData()
 {
-  return data_.command_.cmdData;//seq_.getCmdData();
+  return seq_.getCmdData();
 }
 
 void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
@@ -806,6 +807,10 @@ int ecmcAxisBase::setExecute(bool execute)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED);
     }
 
+    if(execute && !data_.status_.executeOld && data_.status_.busy){
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_BUSY);
+    }
+
     int error=seq_.setExecute(execute);
     if(error){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
@@ -817,7 +822,7 @@ int ecmcAxisBase::setExecute(bool execute)
 bool ecmcAxisBase::getExecute()
 {
   if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    return data_.command_.execute;
+    return seq_.getExecute();
   }
   else{
     return true;
@@ -826,7 +831,7 @@ bool ecmcAxisBase::getExecute()
 
 bool ecmcAxisBase::getBusy()
 {
-  return data_.status_.busy && data_.status_.enabled;
+  return data_.status_.busy /*&& data_.status_.enabled*/;
 }
 
 int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusPrintOutType *data)

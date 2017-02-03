@@ -32,6 +32,7 @@ public:
   virtual void errorReset();
   virtual bool getError();
   virtual int getErrorID();
+  virtual ecmcAlarmSeverity getSeverity();
   static const char *convertErrorIdToString(int errorId);
 private:
   void initVars();

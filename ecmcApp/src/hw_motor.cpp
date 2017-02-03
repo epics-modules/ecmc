@@ -763,7 +763,7 @@ int getAxisEnabled(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getEnable();
+  *value=axes[axisIndex]->getEnabled();
   return 0;
 }
 

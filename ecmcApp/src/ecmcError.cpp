@@ -90,6 +90,11 @@ int ecmcError::getErrorID()
   return errorId_;
 }
 
+ecmcAlarmSeverity ecmcError::getSeverity()
+{
+  return currSeverity_;
+}
+
 const char *ecmcError::convertErrorIdToString(int errorId)
 {
   switch(errorId){
@@ -179,6 +184,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x1431B:
       return "ERROR_AXIS_DATA_POINTER_NULL";
+      break;
+    case 0x1431C:
+      return "ERROR_AXIS_BUSY";
       break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
