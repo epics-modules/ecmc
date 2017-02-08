@@ -410,19 +410,51 @@ int ecmcMonitor::checkLimits()
     data_->interlocks_.fwdLimitInterlock=false;
   }
 
-  //Soft bwd limit
-  data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd && (data_->status_.currentVelocitySetpoint<0)
-      && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop) && data_->status_.busy;
-  if(data_->interlocks_.bwdSoftLimitInterlock){
+
+  //Bwd soft limit switch
+  bool virtSoftlimitBwd=(data_->status_.currentPositionSetpoint-data_->command_.softLimitBwd<=data_->status_.distToStop)
+      && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld);
+  if(virtSoftlimitBwd && data_->status_.busy && data_->command_.enableSoftLimitBwd){
+    data_->interlocks_.bwdLimitInterlock=true;
+    //if(enableAlarmAtHardlimitBwd_){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
+    //}
+  }
+  else {
+    data_->interlocks_.bwdSoftLimitInterlock=false;
   }
 
-  //Soft fwd limit
-  data_->interlocks_.fwdSoftLimitInterlock=data_->command_.enableSoftLimitFwd && (data_->status_.currentVelocitySetpoint>0)
-      && (data_->command_.softLimitFwd-data_->status_.currentPositionActual<=data_->status_.distToStop) && data_->status_.busy;
+/*  //Soft bwd limit
+  data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd
+      && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint < data_->status_.currentPositionSetpointOld)
+      && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop)
+      && (data_->status_.busy);
+
+  if(data_->interlocks_.bwdSoftLimitInterlock){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
+  }*/
+
+  bool virtSoftlimitFwd=(data_->command_.softLimitFwd-data_->status_.currentPositionSetpoint<=data_->status_.distToStop)
+      && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld);
+  //Fwd soft limit switch
+  if(virtSoftlimitFwd && data_->status_.busy && data_->command_.enableSoftLimitFwd){
+      data_->interlocks_.fwdSoftLimitInterlock=true;
+    //if(enableAlarmAtHardlimitFwd_){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
+    //}
+  }
+  else{
+    data_->interlocks_.fwdSoftLimitInterlock=false;
+  }
+
+ /* //Soft fwd limit
+  data_->interlocks_.fwdSoftLimitInterlock=data_->command_.enableSoftLimitFwd
+      && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint > data_->status_.currentPositionSetpointOld)
+      && (data_->command_.softLimitFwd-data_->status_.currentPositionActual<=data_->status_.distToStop)
+      && (data_->status_.busy);
   if(data_->interlocks_.fwdSoftLimitInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
-  }
+  }*/
 
   return 0;
 }
