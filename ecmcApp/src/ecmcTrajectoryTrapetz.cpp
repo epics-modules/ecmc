@@ -66,9 +66,10 @@ void ecmcTrajectoryTrapetz::initVars()
 void ecmcTrajectoryTrapetz::initTraj()
 {
   stepNOM_=std::abs(velocityTarget_)*sampleTime_;
-  stepACC_=0.5*acceleration_*sampleTime_*sampleTime_*2; //WHY*2?????
-  stepDEC_=0.5*deceleration_*sampleTime_*sampleTime_*2;
-  stepDECEmerg_=0.5*decelerationEmergency_*sampleTime_*sampleTime_*2;
+  stepACC_=/*0.5**/acceleration_*sampleTime_*sampleTime_/**2*/; //TODO check equiation
+  stepDEC_=/*0.5**/deceleration_*sampleTime_*sampleTime_/**2*/;
+  LOGINFO("stepNOM_ %lf,stepACC_ %lf, stepDEC_ %lf\n",stepNOM_,stepACC_,stepDEC_);
+  stepDECEmerg_=/*0.5**/decelerationEmergency_*sampleTime_*sampleTime_/**2*/;
 }
 
 double ecmcTrajectoryTrapetz::getCurrentPosSet()
@@ -288,7 +289,7 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,double currSetpoint, do
 
 double ecmcTrajectoryTrapetz::distToStop(double vel)
 {
-  return std::abs(0.5*vel*vel/deceleration_)+2*std::abs(vel*sampleTime_)-2*stepDEC_;;
+  return std::abs(0.5*vel*vel/deceleration_)/*+*/-std::abs(vel*sampleTime_)/*-4*stepDEC_*/;  //TODO check this equation
 }
 
 void ecmcTrajectoryTrapetz::setTargetPos(double pos)
