@@ -728,7 +728,7 @@ $(trace_0_y_pv_value)</tooltip>
     <trace_1_point_size>4</trace_1_point_size>
     <trace_1_anti_alias>true</trace_1_anti_alias>
     <pv_value />
-    <trace_0_buffer_size>200</trace_0_buffer_size>
+    <trace_0_buffer_size>100</trace_0_buffer_size>
     <trace_2_buffer_size>200</trace_2_buffer_size>
     <axis_1_maximum>100.0</axis_1_maximum>
     <axis_0_scale_font>
@@ -843,7 +843,7 @@ $(trace_0_y_pv_value)</tooltip>
     <trace_3_plot_mode>0</trace_3_plot_mode>
     <border_alarm_sensitive>true</border_alarm_sensitive>
     <show_plot_area_border>false</show_plot_area_border>
-    <width>666</width>
+    <width>895</width>
     <trace_1_x_pv_value />
     <axis_1_minimum>0.0</axis_1_minimum>
     <title_font>
