@@ -59,7 +59,6 @@ void ecmcTrajectoryTrapetz::initVars()
   prevStepSize_=0;
   setDirection_=ECMC_DIR_FORWARD;
   actDirection_=ECMC_DIR_FORWARD;
-  stopping_=false;
   latchedStopMode_=ECMC_STOP_MODE_RUN;
 }
 
@@ -68,7 +67,6 @@ void ecmcTrajectoryTrapetz::initTraj()
   stepNOM_=std::abs(velocityTarget_)*sampleTime_;
   stepACC_=/*0.5**/acceleration_*sampleTime_*sampleTime_/**2*/; //TODO check equiation
   stepDEC_=/*0.5**/deceleration_*sampleTime_*sampleTime_/**2*/;
-  LOGINFO("stepNOM_ %lf,stepACC_ %lf, stepDEC_ %lf\n",stepNOM_,stepACC_,stepDEC_);
   stepDECEmerg_=/*0.5**/decelerationEmergency_*sampleTime_*sampleTime_/**2*/;
 }
 
@@ -108,35 +106,24 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     velocity_=0;
     setDirection_=ECMC_DIR_STANDSTILL;
     actDirection_=ECMC_DIR_STANDSTILL;
-    //stopping_=false;
     return currentPositionSetpoint_;
   }
   index_++;
 
-  if(!execute_ /*&& !stopping_*/ && data_->command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
+  if(!execute_ && data_->command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
     data_->interlocks_.noExecuteInterlock=true;
     data_->refreshInterlocks();
-//    latchedStopMode_=data_->interlocks_.currStopMode;
-//    stopping_=true;
   }
 
-  if(!data_->interlocks_.trajSummaryInterlock /*&& !stopping_*/){
+  if(!data_->interlocks_.trajSummaryInterlock){
     nextSetpoint=internalTraj(&nextVelocity);
     actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
   }
   else{
-    /*if(!stopping_){
-      LOGINFO("STOPPING\n");
-      stopping_=true;
-      //latchedStopMode_=data_->interlocks_.currStopMode;
-    }*/
 
     nextSetpoint=moveStop(data_->interlocks_.currStopMode,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
 
     if(stopped){
-      //LOGINFO("STOPPED\n");
-      //stopping_=false;
-      //latchedStopMode_=ECMC_STOP_MODE_RUN;
       setDirection_=ECMC_DIR_STANDSTILL;
       actDirection_=ECMC_DIR_STANDSTILL;
       trajInProgress_=false;

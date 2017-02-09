@@ -164,7 +164,6 @@ private:
   motionMode motionMode_;
   interlockTypes interlockStatus_;
   ecmcAxisData* data_;
-  bool stopping_;
   stopMode latchedStopMode_;
 };
 #endif
