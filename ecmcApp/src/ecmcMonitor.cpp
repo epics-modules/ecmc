@@ -410,21 +410,18 @@ int ecmcMonitor::checkLimits()
     data_->interlocks_.fwdLimitInterlock=false;
   }
 
-
   //Bwd soft limit switch
-  bool virtSoftlimitBwd=(data_->status_.currentPositionSetpoint-data_->command_.softLimitBwd<=data_->status_.distToStop)
+  bool virtSoftlimitBwd=(data_->status_.currentPositionSetpoint<=data_->command_.softLimitBwd)
       && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld);
   if(virtSoftlimitBwd && data_->status_.busy && data_->command_.enableSoftLimitBwd){
-    data_->interlocks_.bwdLimitInterlock=true;
-    //if(enableAlarmAtHardlimitBwd_){
+    data_->interlocks_.bwdSoftLimitInterlock=true;
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
-    //}
   }
   else {
     data_->interlocks_.bwdSoftLimitInterlock=false;
   }
 
-/*  //Soft bwd limit
+/*  //Soft fwd limit
   data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd
       && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint < data_->status_.currentPositionSetpointOld)
       && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop)
@@ -434,14 +431,12 @@ int ecmcMonitor::checkLimits()
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
   }*/
 
-  bool virtSoftlimitFwd=(data_->command_.softLimitFwd-data_->status_.currentPositionSetpoint<=data_->status_.distToStop)
+  bool virtSoftlimitFwd=(data_->status_.currentPositionSetpoint>=data_->command_.softLimitFwd)
       && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld);
   //Fwd soft limit switch
   if(virtSoftlimitFwd && data_->status_.busy && data_->command_.enableSoftLimitFwd){
-      data_->interlocks_.fwdSoftLimitInterlock=true;
-    //if(enableAlarmAtHardlimitFwd_){
+    data_->interlocks_.fwdSoftLimitInterlock=true;
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
-    //}
   }
   else{
     data_->interlocks_.fwdSoftLimitInterlock=false;

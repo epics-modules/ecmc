@@ -1,5 +1,5 @@
-#include "ecmcTrajectoryTrapetz.hpp"
 
+#include "ecmcTrajectoryTrapetz.hpp"
 #include <stdio.h>
 
 ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double sampleTime) : ecmcError()
@@ -108,32 +108,35 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     velocity_=0;
     setDirection_=ECMC_DIR_STANDSTILL;
     actDirection_=ECMC_DIR_STANDSTILL;
-    stopping_=false;
+    //stopping_=false;
     return currentPositionSetpoint_;
   }
   index_++;
 
-  if(!execute_ && !stopping_){
+  if(!execute_ /*&& !stopping_*/ && data_->command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
     data_->interlocks_.noExecuteInterlock=true;
     data_->refreshInterlocks();
-    stopping_=true;
+//    latchedStopMode_=data_->interlocks_.currStopMode;
+//    stopping_=true;
   }
 
-  if(!data_->interlocks_.trajSummaryInterlock && !stopping_){
+  if(!data_->interlocks_.trajSummaryInterlock /*&& !stopping_*/){
     nextSetpoint=internalTraj(&nextVelocity);
     actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
   }
   else{
-    if(!stopping_){
+    /*if(!stopping_){
+      LOGINFO("STOPPING\n");
       stopping_=true;
-      latchedStopMode_=data_->interlocks_.currStopMode;
-    }
+      //latchedStopMode_=data_->interlocks_.currStopMode;
+    }*/
 
-    nextSetpoint=moveStop(latchedStopMode_,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
+    nextSetpoint=moveStop(data_->interlocks_.currStopMode,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
 
     if(stopped){
-      stopping_=false;
-      latchedStopMode_=ECMC_STOP_MODE_RUN;
+      //LOGINFO("STOPPED\n");
+      //stopping_=false;
+      //latchedStopMode_=ECMC_STOP_MODE_RUN;
       setDirection_=ECMC_DIR_STANDSTILL;
       actDirection_=ECMC_DIR_STANDSTILL;
       trajInProgress_=false;
@@ -500,5 +503,6 @@ int ecmcTrajectoryTrapetz::initStopRamp(double currentPos, double currentVel, do
   trajInProgress_=true;
   currentPositionSetpoint_=currentPos;
   velocity_=currentVel;
+  prevStepSize_=velocity_*sampleTime_;
   return 0;
 }
