@@ -120,7 +120,6 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
   }
   else{
-
     nextSetpoint=moveStop(data_->interlocks_.currStopMode,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
 
     if(stopped){

@@ -762,7 +762,7 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
-        if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
+        if((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) || !mon_->getEnableAtTargetMon())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
