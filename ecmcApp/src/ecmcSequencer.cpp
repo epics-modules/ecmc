@@ -552,10 +552,10 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      /*retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
-      }*/
+      }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
@@ -652,10 +652,10 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      /*retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
-      }*/
+      }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
@@ -1178,22 +1178,26 @@ int ecmcSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
 {
   if(traj_==NULL){
     stopSeq();
+    LOGERR("%s/%s:%d: ERROR: Trajectory object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_TRAJ_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
   }
   if(mon_==NULL){
     stopSeq();
+    LOGERR("%s/%s:%d: ERROR: Monitor object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_MON_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
   }
 
   if(!data_->status_.limitFwd && checkFWD){
     stopSeq();
     traj_->setExecute(0);
+    LOGERR("%s/%s:%d: ERROR: Unexpected activation of forward limit switch in homing state %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,seqState_,ERROR_SEQ_SEQ_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
   }
 
   if(!data_->status_.limitBwd && checkBWD){
     stopSeq();
     traj_->setExecute(0);
+    LOGERR("%s/%s:%d: ERROR: Unexpected activation of backward limit switch in homing state %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,seqState_,ERROR_SEQ_SEQ_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
   }
   return 0;
