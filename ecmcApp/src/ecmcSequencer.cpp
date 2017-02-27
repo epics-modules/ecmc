@@ -552,10 +552,10 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      /*retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
-      }
+      }*/
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
@@ -652,10 +652,10 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      /*retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
-      }
+      }*/
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
