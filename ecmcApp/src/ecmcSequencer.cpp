@@ -310,9 +310,12 @@ bool ecmcSequencer::getBusy()
   if(data_->command_.command==ECMC_CMD_HOMING){
     return busy_;
   }
-  else{
-    return traj_->getBusy();
+
+  if(mon_->getEnableAtTargetMon()){
+    return traj_->getBusy() || !data_->status_.atTarget;
   }
+
+  return traj_->getBusy();
 }
 
 void ecmcSequencer::setJogVel(double vel)
