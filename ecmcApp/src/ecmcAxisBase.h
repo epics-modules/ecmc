@@ -145,6 +145,7 @@ public:
   ecmcMasterSlaveIF *getExternalEncIF();
   bool getBusy();
   int getDebugInfoData(ecmcAxisStatusPrintOutType *data);
+  int getCycleCounter();
 protected:
   void initVars();
   int fillCommandsTransformData();
@@ -173,6 +174,7 @@ protected:
   //bool enableCmdOld_;
   bool executeCmdOld_;
   bool trajInterlockOld;
+  int cycleCounter_;
 
 };
 

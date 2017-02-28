@@ -651,7 +651,7 @@ int getAxisErrorID(int axisIndex)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getErrorID();
 }
@@ -663,11 +663,19 @@ const char *getErrorString(int error_number)
   return ecmcError::convertErrorIdToString(error_number);
 }
 
+int getAxisCycleCounter(int axisIndex,int *counter)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  *counter=axes[axisIndex]->getCycleCounter();
+  return 0;
+}
+
 int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
   ecmcAxisStatusPrintOutType data;
   int error=axes[axisIndex]->getDebugInfoData(&data);

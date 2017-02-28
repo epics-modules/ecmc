@@ -1287,6 +1287,12 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisOpMode(motor_axis_no,&iValue));
   }
 
+  /*GetAxisCycleCounter(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisCycleCounter(%d)",&motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisCycleCounter(motor_axis_no,&iValue));
+  }
+
   /*GetAxisType(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisType(%d)",&motor_axis_no);
   if (nvals == 1) {

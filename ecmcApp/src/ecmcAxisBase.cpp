@@ -95,6 +95,7 @@ void ecmcAxisBase::postExecute(bool masterOK)
   data_.status_.executeOld=getExecute();
   data_.status_.currentPositionSetpointOld=data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld=data_.status_.cntrlOutput;
+  cycleCounter_++;
 }
 
 axisType ecmcAxisBase::getAxisType()
@@ -171,6 +172,7 @@ void ecmcAxisBase::initVars()
   data_.status_.enabledOld=false;
   data_.status_.enableOld=false;
   data_.status_.executeOld=false;
+  cycleCounter_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -842,4 +844,10 @@ int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusPrintOutType *data)
 
   memcpy(data,&printOutData_,sizeof(*data));
   return 0;
+}
+
+int ecmcAxisBase::getCycleCounter()
+{
+  /// Use for watchdog purpose (will overflow)
+  return cycleCounter_;
 }

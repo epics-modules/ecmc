@@ -157,6 +157,20 @@ int getAxisErrorID(int axisIndex);
  */
 const char *getErrorString(int errorNumber);
 
+/** \breif Get axis execution cycle counter.\n
+ * Can be used for checking that logic for an axis object is
+ * executing.\n
+ *
+ * \param[in] axisIndex Axis index.\n
+ * \param[out] counter Execution cycle counter.\n
+ *
+ * \return  error code.\n
+ * \note The counter can overflow.
+ * \note Example: Get cycle counter of axis 3.\n
+ * "GetAxisCycleCounter(3)" //Command string to cmd_EAT.c.\n
+  */
+int getAxisCycleCounter(int axisIndex,int *counter);
+
 /** \breif Get axis debug information string.\n
  *
  * \param[in] axisIndex Axis index.\n
