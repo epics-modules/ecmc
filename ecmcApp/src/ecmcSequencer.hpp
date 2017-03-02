@@ -58,6 +58,7 @@ public:
   void setHomePosition(double pos);
   double getHomePosition();
   void setTargetPos(double pos);
+  void setTargetPos(double pos, bool force);
   double getTargetPos();
   void setTargetVel(double velTarget);
   double getTargetVel();

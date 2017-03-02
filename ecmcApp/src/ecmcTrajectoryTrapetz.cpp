@@ -51,7 +51,6 @@ void ecmcTrajectoryTrapetz::initVars()
   index_=0;
   execute_=0;
   executeOld_=0;
-  currentPosInterlock_=true;
   startPosition_=0;
   enable_=false;
   enableOld_=false;
@@ -217,6 +216,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,double targetSetpoint,
     }
     if(posSetTemp>=targetSetpoint){
       posSetTemp=targetSetpoint;
+      targetPosition_=posSetTemp;  //To allow for at target monitoring to go high (and then also bBusy)
       *trajBusy=false;
     }
   }
@@ -230,6 +230,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,double targetSetpoint,
 
     if(posSetTemp<=targetSetpoint){
       posSetTemp=targetSetpoint;
+      targetPosition_=posSetTemp;  //To allow for at target monitoring to go high (and then also bBusy)
       *trajBusy=false;
     }
   }
@@ -270,6 +271,7 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,double currSetpoint, do
   if(nDir==ECMC_DIR_STANDSTILL || positionStep<=0){
     *stopped=true;
     *velocity=0;
+    targetPosition_=currSetpoint;  //To allow for at target monitoring to go high (and then also bBusy)
     return currSetpoint;
   }
 
@@ -445,7 +447,6 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute)
 void ecmcTrajectoryTrapetz::setStartPos(double pos)
 {
   startPosition_=pos;
-  currentPosInterlock_=false;
 }
 
 void  ecmcTrajectoryTrapetz::setMotionMode(motionMode mode)

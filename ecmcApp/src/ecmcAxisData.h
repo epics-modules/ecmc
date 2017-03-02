@@ -31,6 +31,7 @@ typedef struct {
   double externalEncoderInterlock;
   double currentPositionActual;
   double currentPositionSetpoint;
+  double currentTargetPosition;
   double currentPositionSetpointOld;
   double currentVelocityActual;
   double currentVelocitySetpoint;

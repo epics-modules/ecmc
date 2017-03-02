@@ -55,6 +55,11 @@
 #define ERROR_AXIS_DATA_POINTER_NULL 0x1431B
 #define ERROR_AXIS_BUSY 0x1431C
 
+enum axisState{
+  ECMC_AXIS_STATE_STARTUP=0,
+  ECMC_AXIS_STATE_DISABLED=1,
+  ECMC_AXIS_STATE_ENABLED=2,
+};
 
 typedef struct {
     int axisID;
@@ -175,6 +180,7 @@ protected:
   bool executeCmdOld_;
   bool trajInterlockOld;
   int cycleCounter_;
+  axisState axisState_;
 
 };
 

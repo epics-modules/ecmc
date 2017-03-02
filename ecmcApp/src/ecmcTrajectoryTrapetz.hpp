@@ -151,7 +151,6 @@ private:
   int    index_;
   bool   execute_;
   bool   executeOld_;
-  bool   currentPosInterlock_;
   double startPosition_;
   bool   enable_;
   bool   enableOld_;

@@ -62,29 +62,58 @@ ecmcAxisBase::~ecmcAxisBase()
 
 void ecmcAxisBase::preExecute(bool masterOK)
 {
+
   data_.interlocks_.etherCatMasterInterlock=!masterOK;
   data_.refreshInterlocks();
 
-  data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
-  if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
-    data_.status_.busy=seq_.getBusy();
-  }
-  else{
-    data_.status_.busy=true;
-  }
-
-  if(data_.status_.inStartupPhase && masterOK){
-    //Auto reset hardware error if starting up
-    if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
-      errorReset();
-    }
-    setInStartupPhase(false);
-  }
-  mon_->readEntries();
   if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     enc_->readEntries();
   }
+  //Axis state machine
+  switch(axisState_){
+    case ECMC_AXIS_STATE_STARTUP:
+      data_.status_.busy=false;
+      data_.status_.distToStop=0;
+      if(data_.status_.inStartupPhase && masterOK){
+        //Auto reset hardware error if starting up
+        if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+          errorReset();
+        }
+        setInStartupPhase(false);
+        axisState_=ECMC_AXIS_STATE_DISABLED;
+      }
+      break;
+    case ECMC_AXIS_STATE_DISABLED:
+      traj_->setTargetPos(data_.status_.currentPositionActual);
+      data_.status_.busy=false;
+      data_.status_.distToStop=0;
+      if(data_.status_.enabled){
+	axisState_=ECMC_AXIS_STATE_ENABLED;
+      }
+      break;
+    case ECMC_AXIS_STATE_ENABLED:
+      data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
+      if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
 
+        if(mon_->getEnableAtTargetMon()){
+          data_.status_.busy=seq_.getBusy() || !data_.status_.atTarget;
+        }
+        else{
+          data_.status_.busy=seq_.getBusy();
+        }
+        data_.status_.currentTargetPosition=traj_->getTargetPos();
+      }
+      else{
+        data_.status_.busy=true;
+        data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
+      }
+      if(!data_.status_.enabled){
+	axisState_=ECMC_AXIS_STATE_DISABLED;
+      }
+
+      break;
+  }
+  mon_->readEntries();
   refreshExternalInputSources();
 }
 
@@ -173,6 +202,7 @@ void ecmcAxisBase::initVars()
   data_.status_.enableOld=false;
   data_.status_.executeOld=false;
   cycleCounter_=0;
+  axisState_=ECMC_AXIS_STATE_STARTUP;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -818,6 +848,7 @@ int ecmcAxisBase::setExecute(bool execute)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
   }
+
   return setExecute_Transform();
 }
 

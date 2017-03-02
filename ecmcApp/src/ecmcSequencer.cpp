@@ -311,10 +311,6 @@ bool ecmcSequencer::getBusy()
     return busy_;
   }
 
-  if(mon_->getEnableAtTargetMon()){
-    return traj_->getBusy() || !data_->status_.atTarget;
-  }
-
   return traj_->getBusy();
 }
 
@@ -385,6 +381,16 @@ void ecmcSequencer::setTargetPos(double pos)
   }
 
   data_->command_.positionTarget=pos;
+}
+
+void ecmcSequencer::setTargetPos(double pos, bool force)
+{
+ if(force){
+   data_->command_.positionTarget=pos;
+ }
+ else{
+   setTargetPos(pos);
+ }
 }
 
 double ecmcSequencer::getTargetPos()
@@ -464,10 +470,10 @@ double ecmcSequencer::checkSoftLimits(double posSetpoint)
   double dSet=posSetpoint;
   double currPos=enc_->getActPos();
 
-  if(posSetpoint>data_->command_.softLimitFwd && data_->command_.enableSoftLimitFwd && posSetpoint>currPos){
+  if(posSetpoint > data_->command_.softLimitFwd && data_->command_.enableSoftLimitFwd && posSetpoint > currPos){
     dSet=data_->command_.softLimitFwd;
   }
-  if(posSetpoint<data_->command_.softLimitBwd && data_->command_.enableSoftLimitBwd && posSetpoint<currPos){
+  if(posSetpoint < data_->command_.softLimitBwd && data_->command_.enableSoftLimitBwd && posSetpoint < currPos){
     dSet=data_->command_.softLimitBwd;;
   }
   return dSet;

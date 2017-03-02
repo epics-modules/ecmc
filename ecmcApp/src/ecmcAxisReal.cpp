@@ -72,6 +72,7 @@ void ecmcAxisReal::execute(bool masterOK)
     }
 
     traj_->setStartPos(data_.status_.currentPositionSetpoint);
+
     seq_.execute();
     mon_->execute();
 
