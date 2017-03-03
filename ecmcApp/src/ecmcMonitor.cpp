@@ -48,6 +48,11 @@ void ecmcMonitor::initVars()
   velDiffTimeTraj_=100;
   velDiffTimeDrive_=100;
   velDiffMaxDiff_=0;
+
+  switchFilterCounter_=0;
+  memset(&limitFwdFilterBuffer_,0,sizeof(limitFwdFilterBuffer_));
+  memset(&limitBwdFilterBuffer_,0,sizeof(limitBwdFilterBuffer_));
+  memset(&homeFilterBuffer_,0,sizeof(homeFilterBuffer_));
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -200,6 +205,9 @@ void ecmcMonitor::readEntries(){
     return;
   }
   data_->status_.homeSwitch=tempRaw>0;
+
+  //Refresh filtered switches
+  filterSwitches();
 
   if(enableHardwareInterlock_){
     if(readEcEntryValue(3,&tempRaw)){
@@ -629,3 +637,30 @@ int ecmcMonitor::setVelDiffMaxDifference(double velo)
   velDiffMaxDiff_=std::abs(velo);
   return 0;
 }
+
+int ecmcMonitor::filterSwitches()
+{
+  //Simple filtering of switches (average of last cycles)
+  if(switchFilterCounter_>=ECMC_MON_SWITCHES_FILTER_CYCLES){
+    switchFilterCounter_=0;
+  }
+  limitFwdFilterBuffer_[switchFilterCounter_]=data_->status_.limitFwd;
+  limitBwdFilterBuffer_[switchFilterCounter_]=data_->status_.limitBwd;
+  homeFilterBuffer_[switchFilterCounter_]=data_->status_.homeSwitch;
+
+  int limFwdSum=0;
+  int limBwdSum=0;
+  int limHomeSum=0;
+  for(int i=0;i< ECMC_MON_SWITCHES_FILTER_CYCLES;i++){
+    limFwdSum=limFwdSum+limitFwdFilterBuffer_[i];
+    limBwdSum=limBwdSum+limitBwdFilterBuffer_[i];
+    limHomeSum=limHomeSum+homeFilterBuffer_[i];
+  }
+  data_->status_.limitFwdFiltered=limFwdSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
+  data_->status_.limitBwdFiltered=limBwdSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
+  data_->status_.homeSwitch=limHomeSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
+
+  switchFilterCounter_++;
+  return 0;
+}
+

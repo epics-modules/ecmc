@@ -50,7 +50,10 @@ typedef struct {
   bool atTarget;
   bool limitFwd;
   bool limitBwd;
+  bool limitFwdFiltered;
+  bool limitBwdFiltered;
   bool homeSwitch;
+  bool homeSwitchFiltered;
   bool inStartupPhase;
   bool inRealtime;
   double distToStop;
