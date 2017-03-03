@@ -802,12 +802,12 @@ void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
 {
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVelAct\t\tVelFF\t\tVelFFraw\tVelDrvRaw\tError\tCo CD St IL En Ex Bu Ta L+ L- Ho\n");
+    LOGINFO("\n Ax     PosSet     PosAct     PosErr    CntrOut   DistLeft     VelAct      VelFF   VelFFRaw VelRaw  Error Co CD St IL En Ex Bu Ta L- L+ Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
 
-  LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t\t%x",
+  LOGINFO("%3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x ",
        data.axisID,
        data.positionSetpoint,
        data.positionActual,
@@ -820,7 +820,7 @@ void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
        data.velocitySetpointRaw,
        data.error);
 
-   LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d  %d  %d\n",
+   LOGINFO("%2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n",
        data.command,
        data.cmdData,
        data.seqState,
@@ -829,8 +829,8 @@ void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
        data.execute,
        data.busy,
        data.atTarget,
-       data.limitFwd,
        data.limitBwd,
+       data.limitFwd,
        data.homeSwitch
        );
 
