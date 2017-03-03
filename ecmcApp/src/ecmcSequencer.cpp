@@ -572,6 +572,7 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -672,6 +673,7 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -775,6 +777,7 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -876,6 +879,7 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -1022,6 +1026,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
         {
           double currPos=enc_->getActPos()-((homePosLatch2_+homePosLatch1_)/2)+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -1169,6 +1174,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
         {
           double currPos=enc_->getActPos()-((homePosLatch2_+homePosLatch1_)/2)+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -1223,7 +1229,6 @@ int ecmcSequencer::stopSeq(){
   }
 
   if(mon_!=NULL){
-
       data_->command_.enableSoftLimitBwd=enableSoftLimitBwdBackup_;
       data_->command_.enableSoftLimitFwd=enableSoftLimitFwdBackup_;
   }
