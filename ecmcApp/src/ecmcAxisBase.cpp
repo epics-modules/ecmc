@@ -575,6 +575,7 @@ int ecmcAxisBase::setEnableLocal(bool enable)
   if(traj){
     data_.status_.currentPositionSetpoint=data_.status_.currentPositionActual;
     traj->setStartPos(data_.status_.currentPositionSetpoint);
+    traj->setTargetPos(data_.status_.currentPositionSetpoint);
     traj->setEnable(enable);
   }
 
@@ -801,7 +802,7 @@ void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
 {
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVelAct\t\tVelFF\t\tVelFFraw\tVelDrvRaw\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
+    LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVelAct\t\tVelFF\t\tVelFFraw\tVelDrvRaw\tError\tCo CD St IL En Ex Bu Ta L+ L- Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
@@ -819,16 +820,22 @@ void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
        data.velocitySetpointRaw,
        data.error);
 
-   LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
+   LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d  %d  %d\n",
+       data.command,
+       data.cmdData,
+       data.seqState,
+       data.trajInterlock,
        data.enable,
        data.execute,
        data.busy,
-       data.seqState,
        data.atTarget,
-       data.trajInterlock,
        data.limitFwd,
        data.limitBwd,
-       data.homeSwitch);
+       data.homeSwitch
+       );
+
+
+
 }
 
 int ecmcAxisBase::setExecute(bool execute)

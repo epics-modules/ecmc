@@ -82,6 +82,8 @@ typedef struct {
     bool limitFwd;
     bool limitBwd;
     bool homeSwitch;
+    motionCommandTypes command;
+    int cmdData;
 } ecmcAxisStatusPrintOutType;
 
 class ecmcAxisBase : public ecmcError
