@@ -229,6 +229,8 @@ void ecmcAxisReal::printStatus()
   printOutData_.velocitySetpoint=data_.status_.currentVelocitySetpoint;
   printOutData_.velocitySetpointRaw=data_.status_.currentVelocitySetpointRaw;
   printOutData_.velocityFFRaw=data_.status_.currentvelocityFFRaw;
+  printOutData_.cmdData=data_.command_.cmdData;
+  printOutData_.command=data_.command_.command;
 
   if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))!=0){
     printAxisStatus(printOutData_);

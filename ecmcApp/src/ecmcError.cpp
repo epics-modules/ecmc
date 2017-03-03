@@ -368,6 +368,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14D0B:
       return "ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL";
       break;
+    case 0x14D0C:
+      return "ERROR_SEQ_NO_HOME_SWITCH_FLANK";
+      break;
+    case 0x14D0D:
+      return "ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK";
+      break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";
       break;

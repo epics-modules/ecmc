@@ -561,7 +561,7 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
       }
@@ -662,7 +662,7 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
       }
@@ -756,9 +756,10 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      retValue=checkHWLimitsAndStop(0,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
-        return retValue;
+        LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       if(homeSensor_!=homeSensorOld_){
         homePosLatch1_=enc_->getActPos();
@@ -860,7 +861,8 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
     case 3: //Latch encoder value on falling or rising edge of home sensor
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
-        return retValue;
+        LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       if(homeSensor_!=homeSensorOld_){
         homePosLatch1_=enc_->getActPos();
@@ -963,9 +965,10 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      retValue=checkHWLimitsAndStop(0,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
-        return retValue;
+	LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       if(homeSensor_!=homeSensorOld_){
         homePosLatch1_=enc_->getActPos();
@@ -974,9 +977,10 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 4: //Wait for falling or rising edge of home sensor then stop
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(1,1); // should never go to backward or forward limit switch
       if(retValue){
-        return retValue;
+	LOGERR("%s/%s:%d: ERROR: Failed to find second flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
       }
 
       if(homeSensor_!=homeSensorOld_){
@@ -1113,7 +1117,8 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
     case 3: //Latch encoder value on falling or rising edge of home sensor
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
-        return retValue;
+        LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       if(homeSensor_!=homeSensorOld_){
         homePosLatch1_=enc_->getActPos();
@@ -1122,9 +1127,10 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 4: //Wait for falling or rising edge of home sensor then stop
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit switch
       if(retValue){
-        return retValue;
+        LOGERR("%s/%s:%d: ERROR: Failed to find second flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
       }
 
       if(homeSensor_!=homeSensorOld_){
@@ -1202,18 +1208,16 @@ int ecmcSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
   }
 
-  if(!data_->status_.limitFwd && checkFWD){
+  if(!data_->status_.limitFwdFiltered && checkFWD){
+    LOGERR("%s/%s:%d: ERROR: Unexpected activation of forward limit switch in homing state %d of sequence %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,seqState_,data_->command_.cmdData,ERROR_SEQ_SEQ_FAILED);
     stopSeq();
-    traj_->setExecute(0);
-    LOGERR("%s/%s:%d: ERROR: Unexpected activation of forward limit switch in homing state %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,seqState_,ERROR_SEQ_SEQ_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
+    return ERROR_SEQ_SEQ_FAILED;
   }
 
-  if(!data_->status_.limitBwd && checkBWD){
+  if(!data_->status_.limitBwdFiltered && checkBWD){
+    LOGERR("%s/%s:%d: ERROR: Unexpected activation of backward limit switch in homing state %d of sequence %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,seqState_,data_->command_.cmdData,ERROR_SEQ_SEQ_FAILED);
     stopSeq();
-    traj_->setExecute(0);
-    LOGERR("%s/%s:%d: ERROR: Unexpected activation of backward limit switch in homing state %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,seqState_,ERROR_SEQ_SEQ_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
+    return ERROR_SEQ_SEQ_FAILED;
   }
   return 0;
 }
