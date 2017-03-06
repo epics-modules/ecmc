@@ -88,7 +88,6 @@ typedef struct {
     int cmdData;
     dataSource trajSource;
     dataSource encSource;
-    int cycleCounter;
 } ecmcAxisStatusPrintOutType;
 
 class ecmcAxisBase : public ecmcError

@@ -97,8 +97,16 @@ void ecmcAxisReal::execute(bool masterOK)
     }
 
     if(getEnabled() && masterOK){
+      double cntrOutput=0;
+      if(mon_->getEnableAtTargetMon() && !data_.status_.busy){ //Controller deadband
+	cntrl_->reset();
+	cntrOutput=0;
+      }
+      else{
+	cntrOutput=cntrl_->control(data_.status_.currentPositionSetpoint,data_.status_.currentPositionActual,data_.status_.currentVelocitySetpoint);
+      }
       mon_->setEnable(true);
-      drv_->setVelSet(cntrl_->control(data_.status_.currentPositionSetpoint,data_.status_.currentPositionActual,data_.status_.currentVelocitySetpoint)); //Actual control
+      drv_->setVelSet(cntrOutput); //Actual control
     }
     else{
       mon_->setEnable(false);
