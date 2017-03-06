@@ -86,7 +86,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
           errorReset();
         }
         setInStartupPhase(false);
-        LOGINFO("Axis %d: State change (ECMC_AXIS_STATE_STARTUP->ECMC_AXIS_STATE_DISABLED).\n", data_.axisId_);
+        LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_STARTUP->ECMC_AXIS_STATE_DISABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
         axisState_=ECMC_AXIS_STATE_DISABLED;
       }
       break;
@@ -94,7 +94,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
       data_.status_.busy=false;
       data_.status_.distToStop=0;
       if(data_.status_.enabled){
-	LOGINFO("Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_ENABLED).\n",data_.axisId_);
+	LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_ENABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
 	axisState_=ECMC_AXIS_STATE_ENABLED;
       }
       if(!masterOK){
@@ -120,7 +120,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
         data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
       }
       if(!data_.status_.enabled){
-	LOGINFO("Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_DISABLED).\n",data_.axisId_);
+	LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_DISABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
 	axisState_=ECMC_AXIS_STATE_DISABLED;
       }
       if(!masterOK){
