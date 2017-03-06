@@ -68,7 +68,6 @@ void ecmcAxisBase::preExecute(bool masterOK)
 
   printOutData_.trajSource=externalInputTrajectoryIF_->getDataSourceType();
   printOutData_.encSource=externalInputEncoderIF_->getDataSourceType();
-  printOutData_.cycleCounter=cycleCounter_;
 
   if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     enc_->readEntries();

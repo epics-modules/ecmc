@@ -695,7 +695,7 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
        data.velocityActual,
        data.velocityFFRaw,
        data.velocitySetpointRaw,
-       data.cycleCounter,
+       axes[axisIndex]->getCycleCounter(),   //NOT consistent. Done like this to avoid unnecessary "on change" printouts
        data.error,
        data.command,
        data.cmdData,
