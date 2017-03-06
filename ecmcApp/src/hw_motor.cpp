@@ -92,7 +92,7 @@ void printStatus()
   //Print axis diagnostics to screen
   if(PRINT_STDOUT_BIT12() && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
     if(axes[axisDiagIndex]!=NULL){
-      axes[axisDiagIndex]->printStatus();
+      axes[axisDiagIndex]->printAxisStatus();
     }
   }
 }
@@ -682,24 +682,32 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
   if(error){
     return error;
   }
-
-  int ret=snprintf(buffer,bufferByteSize,"%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+  //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+       data.axisID,
        data.positionSetpoint,
        data.positionActual,
        data.cntrlError,
-       data.cntrlOutput,
+       data.positionTarget,
        data.positionError,
-       data.velocityActual,
+       data.cntrlOutput,
        data.velocitySetpoint,
+       data.velocityActual,
        data.velocityFFRaw,
        data.velocitySetpointRaw,
+       data.cycleCounter,
        data.error,
+       data.command,
+       data.cmdData,
+       data.seqState,
+       data.trajInterlock,
+       data.trajSource,
+       data.encSource,
        data.enable,
+       data.enabled,
        data.execute,
        data.busy,
-       data.seqState,
        data.atTarget,
-       data.trajInterlock,
        data.limitFwd,
        data.limitBwd,
        data.homeSwitch

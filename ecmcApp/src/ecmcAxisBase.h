@@ -66,6 +66,7 @@ typedef struct {
     double positionSetpoint;
     double positionActual;
     double positionError;
+    double positionTarget;
     double cntrlError;
     double cntrlOutput;
     double velocityActual;
@@ -74,6 +75,7 @@ typedef struct {
     double velocityFFRaw;
     int   error;
     bool enable;
+    bool enabled;
     bool execute;
     bool busy;
     int seqState;
@@ -84,6 +86,9 @@ typedef struct {
     bool homeSwitch;
     motionCommandTypes command;
     int cmdData;
+    dataSource trajSource;
+    dataSource encSource;
+    int cycleCounter;
 } ecmcAxisStatusPrintOutType;
 
 class ecmcAxisBase : public ecmcError
@@ -95,14 +100,13 @@ public:
   virtual operationMode getOpMode()=0;
   virtual int getCntrlError(double* error)=0;
   virtual int setEnable(bool enable)=0;
-  virtual bool getEnable()=0;
-  virtual bool getEnabled()=0;
   virtual int setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase *getDrv()=0;
   virtual ecmcPIDController *getCntrl()=0;
-  virtual void printStatus()=0;
   virtual int validate()=0;
   virtual void execute(bool masterOK)=0;
+  bool getEnable();
+  bool getEnabled();
   void preExecute(bool masterOK);
   void postExecute(bool masterOK);
   int setExecute(bool execute);
@@ -146,13 +150,13 @@ public:
   int getErrorID();
   void errorReset();
   int setEnableLocal(bool enable);
-  //int setExternalExecute(bool execute);
   int validateBase();
   ecmcMasterSlaveIF *getExternalTrajIF();
   ecmcMasterSlaveIF *getExternalEncIF();
   bool getBusy();
   int getDebugInfoData(ecmcAxisStatusPrintOutType *data);
   int getCycleCounter();
+  void printAxisStatus();
 protected:
   void initVars();
   int fillCommandsTransformData();
@@ -161,12 +165,11 @@ protected:
   int setExecute_Transform();
   int refreshExternalInputSources();
   int refreshExternalOutputSources();
-  void printAxisStatus(ecmcAxisStatusPrintOutType data);
+  virtual void refreshDebugInfoStruct()=0;
   bool cascadedCommandsEnable_;  // Allow other axis to enable and execute this axis
   bool enableCommandTransform_;  // Allow other axis to enable and execute this axis
   ecmcCommandTransform *commandTransform_;
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
-  //bool externalExecute_;
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcMasterSlaveIF *externalInputEncoderIF_;
   ecmcTrajectoryTrapetz *traj_;
@@ -177,8 +180,6 @@ protected:
   ecmcAxisStatusPrintOutType printOutDataOld_;
   int printHeaderCounter_;
   ecmcAxisData data_;
-  //bool enabledOld_;
-  //bool enableCmdOld_;
   bool executeCmdOld_;
   bool trajInterlockOld;
   int cycleCounter_;

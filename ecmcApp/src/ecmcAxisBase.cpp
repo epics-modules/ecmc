@@ -66,12 +66,18 @@ void ecmcAxisBase::preExecute(bool masterOK)
   data_.interlocks_.etherCatMasterInterlock=!masterOK;
   data_.refreshInterlocks();
 
+  printOutData_.trajSource=externalInputTrajectoryIF_->getDataSourceType();
+  printOutData_.encSource=externalInputEncoderIF_->getDataSourceType();
+  printOutData_.cycleCounter=cycleCounter_;
+
   if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     enc_->readEntries();
   }
+
   //Axis state machine
   switch(axisState_){
     case ECMC_AXIS_STATE_STARTUP:
+      setEnable(false);
       data_.status_.busy=false;
       data_.status_.distToStop=0;
       if(data_.status_.inStartupPhase && masterOK){
@@ -80,16 +86,22 @@ void ecmcAxisBase::preExecute(bool masterOK)
           errorReset();
         }
         setInStartupPhase(false);
+        LOGINFO("Axis %d: State change (ECMC_AXIS_STATE_STARTUP->ECMC_AXIS_STATE_DISABLED).\n", data_.axisId_);
         axisState_=ECMC_AXIS_STATE_DISABLED;
       }
       break;
     case ECMC_AXIS_STATE_DISABLED:
-      traj_->setTargetPos(data_.status_.currentPositionActual);
       data_.status_.busy=false;
       data_.status_.distToStop=0;
       if(data_.status_.enabled){
+	LOGINFO("Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_ENABLED).\n",data_.axisId_);
 	axisState_=ECMC_AXIS_STATE_ENABLED;
       }
+      if(!masterOK){
+	LOGERR("Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
+	axisState_=ECMC_AXIS_STATE_STARTUP;
+      }
+
       break;
     case ECMC_AXIS_STATE_ENABLED:
       data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
@@ -103,12 +115,17 @@ void ecmcAxisBase::preExecute(bool masterOK)
         }
         data_.status_.currentTargetPosition=traj_->getTargetPos();
       }
-      else{
+      else{ //Synchronized to other axis
         data_.status_.busy=true;
         data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
       }
       if(!data_.status_.enabled){
+	LOGINFO("Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_DISABLED).\n",data_.axisId_);
 	axisState_=ECMC_AXIS_STATE_DISABLED;
+      }
+      if(!masterOK){
+	LOGERR("Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
+	axisState_=ECMC_AXIS_STATE_STARTUP;
       }
 
       break;
@@ -125,6 +142,7 @@ void ecmcAxisBase::postExecute(bool masterOK)
   data_.status_.currentPositionSetpointOld=data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld=data_.status_.cntrlOutput;
   cycleCounter_++;
+  refreshDebugInfoStruct();
 }
 
 axisType ecmcAxisBase::getAxisType()
@@ -301,7 +319,6 @@ int ecmcAxisBase::setCommandsTransformExpression(std::string expression)
 
 int ecmcAxisBase::setEnable_Transform()
 {
-
   if(checkAxesForEnabledTransfromCommands(ECMC_CMD_TYPE_ENABLE) && enableCommandTransform_){  //Atleast one axis have enabled getting execute from transform
     if(!commandTransform_->getCompiled()){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED);
@@ -570,12 +587,14 @@ int ecmcAxisBase::getErrorID()
 
 int ecmcAxisBase::setEnableLocal(bool enable)
 {
-
   ecmcTrajectoryTrapetz *traj =getTraj();
   if(traj){
-    data_.status_.currentPositionSetpoint=data_.status_.currentPositionActual;
-    traj->setStartPos(data_.status_.currentPositionSetpoint);
-    traj->setTargetPos(data_.status_.currentPositionSetpoint);
+    if(enable && !data_.command_.enable){
+      traj_->setStartPos(data_.status_.currentPositionActual);
+      traj_->setCurrentPosSet(data_.status_.currentPositionActual);
+      traj_->setTargetPos(data_.status_.currentPositionActual);
+      data_.status_.currentTargetPosition=data_.status_.currentPositionActual;
+    }
     traj->setEnable(enable);
   }
 
@@ -798,44 +817,51 @@ int ecmcAxisBase::getCmdData()
   return seq_.getCmdData();
 }
 
-void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
+void ecmcAxisBase::printAxisStatus()
 {
+
+  if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))==0){
+    return;
+  }
+
+  printOutDataOld_=printOutData_;
+
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\n Ax     PosSet     PosAct     PosErr    CntrOut   DistLeft     VelAct      VelFF   VelFFRaw VelRaw  Error Co CD St IL En Ex Bu Ta L- L+ Ho\n");
+    LOGINFO("\n Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta L- L+ Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
 
-  LOGINFO("%3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x ",
-       data.axisID,
-       data.positionSetpoint,
-       data.positionActual,
-       data.cntrlError,
-       data.cntrlOutput,
-       data.positionError,
-       data.velocityActual,
-       data.velocitySetpoint,
-       data.velocityFFRaw,
-       data.velocitySetpointRaw,
-       data.error);
+  LOGINFO("%3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x ",
+       printOutData_.axisID,
+       printOutData_.positionSetpoint,
+       printOutData_.positionActual,
+       printOutData_.cntrlError,
+       printOutData_.positionTarget,
+       printOutData_.positionError,
+       printOutData_.cntrlOutput,
+       printOutData_.velocitySetpoint,
+       printOutData_.velocityActual,
+       printOutData_.velocityFFRaw,
+       printOutData_.velocitySetpointRaw,
+       printOutData_.error);
 
-   LOGINFO("%2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n",
-       data.command,
-       data.cmdData,
-       data.seqState,
-       data.trajInterlock,
-       data.enable,
-       data.execute,
-       data.busy,
-       data.atTarget,
-       data.limitBwd,
-       data.limitFwd,
-       data.homeSwitch
-       );
-
-
-
+   LOGINFO("%2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d\n",
+       printOutData_.command,
+       printOutData_.cmdData,
+       printOutData_.seqState,
+       printOutData_.trajInterlock,
+       printOutData_.trajSource,
+       printOutData_.encSource,
+       printOutData_.enable,
+       printOutData_.enabled,
+       printOutData_.execute,
+       printOutData_.busy,
+       printOutData_.atTarget,
+       printOutData_.limitBwd,
+       printOutData_.limitFwd,
+       printOutData_.homeSwitch);
 }
 
 int ecmcAxisBase::setExecute(bool execute)
@@ -871,7 +897,7 @@ bool ecmcAxisBase::getExecute()
 
 bool ecmcAxisBase::getBusy()
 {
-  return data_.status_.busy /*&& data_.status_.enabled*/;
+  return data_.status_.busy ;
 }
 
 int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusPrintOutType *data)
@@ -888,4 +914,14 @@ int ecmcAxisBase::getCycleCounter()
 {
   /// Use for watchdog purpose (will overflow)
   return cycleCounter_;
+}
+
+bool ecmcAxisBase::getEnable()
+{
+  return data_.command_.enable;
+}
+
+bool ecmcAxisBase::getEnabled()
+{
+  return data_.status_.enabled && data_.command_.enable;
 }

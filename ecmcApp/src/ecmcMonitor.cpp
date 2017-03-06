@@ -108,6 +108,7 @@ bool ecmcMonitor::getHardLimitBwd()
 
 void ecmcMonitor::setAtTargetTol(double tol)
 {
+  LOGINFO("SETTING AT TARGET TOLERANCE TO %lf.\n");
   atTargetTol_=tol;
 }
 
@@ -429,16 +430,6 @@ int ecmcMonitor::checkLimits()
     data_->interlocks_.bwdSoftLimitInterlock=false;
   }
 
-/*  //Soft fwd limit
-  data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd
-      && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint < data_->status_.currentPositionSetpointOld)
-      && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop)
-      && (data_->status_.busy);
-
-  if(data_->interlocks_.bwdSoftLimitInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
-  }*/
-
   bool virtSoftlimitFwd=(data_->status_.currentPositionSetpoint > data_->command_.softLimitFwd)
       && (/*data_->status_.currentVelocitySetpoint>0||*/ data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld);
   //Fwd soft limit switch
@@ -449,16 +440,6 @@ int ecmcMonitor::checkLimits()
   else{
     data_->interlocks_.fwdSoftLimitInterlock=false;
   }
-
- /* //Soft fwd limit
-  data_->interlocks_.fwdSoftLimitInterlock=data_->command_.enableSoftLimitFwd
-      && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint > data_->status_.currentPositionSetpointOld)
-      && (data_->command_.softLimitFwd-data_->status_.currentPositionActual<=data_->status_.distToStop)
-      && (data_->status_.busy);
-  if(data_->interlocks_.fwdSoftLimitInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
-  }*/
-
   return 0;
 }
 
@@ -466,7 +447,6 @@ int ecmcMonitor::checkAtTarget()
 {
   bool atTarget=false;
   if(enableAtTargetMon_ && data_->status_.enabled){
-    //if(std::abs(data_->command_.positionTarget-data_->status_.currentPositionActual)<atTargetTol_){
     if(std::abs(data_->status_.currentTargetPosition-data_->status_.currentPositionActual)<atTargetTol_){
       if (atTargetCounter_<=atTargetTime_){
         atTargetCounter_++;

@@ -53,6 +53,7 @@ void ecmcAxisReal::execute(bool masterOK)
     if((externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL)){
       data_.status_.currentPositionSetpoint=traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint=traj_->getVel();
+
     }
     else{ //External source (Transform)
       data_.status_.currentPositionSetpoint=data_.status_.externalTrajectoryPosition;
@@ -83,6 +84,7 @@ void ecmcAxisReal::execute(bool masterOK)
         traj_->setStartPos(data_.status_.currentPositionActual);
         traj_->initStopRamp(data_.status_.currentPositionActual,data_.status_.currentVelocityActual,0);
       }
+      printOutData_.trajSource=ECMC_DATA_SOURCE_INTERNAL;
       data_.status_.currentPositionSetpoint=traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint=traj_->getVel();
     }
@@ -103,8 +105,11 @@ void ecmcAxisReal::execute(bool masterOK)
       if(getExecute()){
 	setExecute(false);
       }
-      data_.status_.currentPositionSetpoint=data_.status_.currentPositionActual;
-      traj_->setStartPos(data_.status_.currentPositionSetpoint);
+
+      if(!getEnable()){  //Only update if enable cmd is low to avoid change of setpoint during between enable and enabled
+        data_.status_.currentPositionSetpoint=data_.status_.currentPositionActual;
+        traj_->setStartPos(data_.status_.currentPositionSetpoint);
+      }
 
       if(data_.status_.enabledOld && !data_.status_.enabled && data_.status_.enableOld){
 	  setEnable(false);
@@ -166,16 +171,6 @@ int ecmcAxisReal::setEnable(bool enable)
   return setEnable_Transform();
 }
 
-bool ecmcAxisReal::getEnable()
-{
-  return data_.command_.enable;
-}
-
-bool ecmcAxisReal::getEnabled()
-{
-  return data_.status_.enabled && data_.command_.enable;
-}
-
 int ecmcAxisReal::setOpMode(operationMode mode)
 {
   if(mode==ECMC_MODE_OP_MAN){
@@ -207,22 +202,24 @@ ecmcDriveBase *ecmcAxisReal::getDrv()
   return drv_;
 }
 
-void ecmcAxisReal::printStatus()
+void ecmcAxisReal::refreshDebugInfoStruct()
 {
   printOutData_.atTarget=data_.status_.atTarget;
   printOutData_.axisID=data_.axisId_;
   printOutData_.busy=data_.status_.busy;
   printOutData_.cntrlError=data_.status_.cntrlError;
   printOutData_.cntrlOutput=data_.status_.cntrlOutput;
-  printOutData_.enable=getEnabled();
+  printOutData_.enable=data_.command_.enable;
+  printOutData_.enabled=getEnabled();
   printOutData_.error=getErrorID();
   printOutData_.execute=getExecute();
   printOutData_.homeSwitch=data_.status_.homeSwitch;
   printOutData_.limitBwd=data_.status_.limitBwd;
   printOutData_.limitFwd=data_.status_.limitFwd;
   printOutData_.positionActual=data_.status_.currentPositionActual;
-  printOutData_.positionError=data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
+  printOutData_.positionError=data_.status_.currentTargetPosition-data_.status_.currentPositionActual;
   printOutData_.positionSetpoint=data_.status_.currentPositionSetpoint;
+  printOutData_.positionTarget=data_.status_.currentTargetPosition;
   printOutData_.seqState=seq_.getSeqState();
   printOutData_.trajInterlock=data_.interlocks_.interlockStatus;
   printOutData_.velocityActual=data_.status_.currentVelocityActual;
@@ -231,13 +228,6 @@ void ecmcAxisReal::printStatus()
   printOutData_.velocityFFRaw=data_.status_.currentvelocityFFRaw;
   printOutData_.cmdData=data_.command_.cmdData;
   printOutData_.command=data_.command_.command;
-
-  if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))!=0){
-    printAxisStatus(printOutData_);
-  }
-
-  printOutDataOld_=printOutData_;
-  return;
 }
 
 int ecmcAxisReal::validate()

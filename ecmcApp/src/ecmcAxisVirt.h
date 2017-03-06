@@ -27,16 +27,15 @@ public:
   operationMode getOpMode();
   int getCntrlError(double* error);
   int setEnable(bool enable);
-  bool getEnable();
-  bool getEnabled();
-  void printStatus();
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();
   int validate();
-
+protected:
+  void refreshDebugInfoStruct();
 private:
   void initVars();
   bool initDone_;
+  bool temporaryLocalTrajSource_;
 };
 
 #endif /* ECMCAXISVIRT_H_ */
