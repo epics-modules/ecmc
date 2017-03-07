@@ -1734,7 +1734,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     cmd_buf_printf(buffer,"Main.M%d.stAxisStatus="
         "%d,%d,%d,%u,%u,%g,%g,%g,%g,%d,"
         "%d,%d,%d,%g,%d,%d,%d,%u,%g,%g,%g,%d,%d",
-        motor_axis_no,
+        motor_axis_no,  /*  0 */
         bEnable,        /*  1 */
         bReset,         /*  2 */
         bExecute,       /*  3 */
@@ -1757,7 +1757,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
         fActPostion,    /* 20 */
         fActDiff,       /* 21 */
         bHomed,         /* 22 */
-        bBusy );
+        bBusy );        /* 23 */
     return 0;
   }
   /* sErrorMessage?  */
