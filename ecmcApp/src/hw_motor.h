@@ -686,7 +686,8 @@ int getAxisEncScaleDenom(int axisIndex,double *value);
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: No command string implemented in the cmd_EAT.c parser.\n
+ * \note Example: Get raw encoder value for axis 3.\n
+ * "GetAxisEncPosRaw(3)" //Command string to cmd_EAT.c.\n
  */
 int getAxisEncPosRaw(int axisIndex,int64_t *value);
 

@@ -1400,7 +1400,8 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
         retBuf[i]=TRANSFORM_EXPR_LINE_END_CHAR;
       }
     }
-    cmd_buf_printf(buffer,"%s",retBuf);
+
+    cmd_buf_printf(buffer,"%",retBuf);
     free(retBuf);
     return 0;
   }
@@ -1408,6 +1409,19 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   /* GetControllerError()*/
   if (!strcmp(myarg_1, "GetControllerError()")) {
     cmd_buf_printf(buffer,"%d", getControllerError());
+    return 0;
+  }
+
+  /*GetAxisEncPosRaw(int axisIndex)*/
+  nvals = sscanf(myarg_1, "GetAxisEncPosRaw(%d)", &iValue);
+  if (nvals == 1) {
+    int64_t iTemp;
+    int error=getAxisEncPosRaw(iValue,&iTemp);
+    if(error){
+      cmd_buf_printf(buffer,"Error: %d", error);
+      return 0;
+    }
+    cmd_buf_printf(buffer,"%" PRId64 ,iTemp);
     return 0;
   }
 
@@ -1508,6 +1522,8 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   if (nvals == 1) {
     SEND_OK_OR_ERROR_AND_RETURN(appendAsciiDataToStorageBuffer(iValue,myarg_1));
   }
+
+
 
   /* Main.*/
   if (!strncmp(myarg_1, Main_dot_str, strlen(Main_dot_str))) {
