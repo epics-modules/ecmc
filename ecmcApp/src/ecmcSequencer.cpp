@@ -441,6 +441,7 @@ void ecmcSequencer::setJogBwd(bool jog)
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return;
   }
+
   if(data_->command_.command==ECMC_CMD_JOG && jogBwd_){
     traj_->setTargetVel(-jogVel_);
     traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
@@ -767,7 +768,7 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
       }
@@ -870,7 +871,7 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
         return retValue;
       }
@@ -977,7 +978,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 4: //Wait for falling or rising edge of home sensor then stop
-      retValue=checkHWLimitsAndStop(1,1); // should never go to backward or forward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
 	LOGERR("%s/%s:%d: ERROR: Failed to find second flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
         return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
@@ -990,7 +991,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 5: //Wait for standstill and the trigger move
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
       }
@@ -1007,7 +1008,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 6: //Latch value on falling or rising edge of home sensor. Stop motion
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
         return retValue;
       }
@@ -1019,7 +1020,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 7:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward switch
       if(retValue){
         return retValue;
       }
@@ -1127,7 +1128,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 4: //Wait for falling or rising edge of home sensor then stop
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
         LOGERR("%s/%s:%d: ERROR: Failed to find second flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
 	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
@@ -1140,7 +1141,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 5: //Wait for standstill and the trigger move
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
         return retValue;
       }
@@ -1157,7 +1158,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 6: //Latch value on falling or rising edge of home sensor. Stop motion
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
       }
@@ -1169,7 +1170,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 7:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
       }
@@ -1233,8 +1234,8 @@ int ecmcSequencer::stopSeq(){
   }
 
   if(mon_!=NULL){
-      data_->command_.enableSoftLimitBwd=enableSoftLimitBwdBackup_;
-      data_->command_.enableSoftLimitFwd=enableSoftLimitFwdBackup_;
+    data_->command_.enableSoftLimitBwd=enableSoftLimitBwdBackup_;
+    data_->command_.enableSoftLimitFwd=enableSoftLimitFwdBackup_;
   }
 
   seqInProgress_=false;
