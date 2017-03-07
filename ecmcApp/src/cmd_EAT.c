@@ -131,12 +131,12 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
                                      int *iValue)
 {
   /// @todo This command needs to be removed. Not supported.
-  if (group_no == 0x3040010 && offset_in_group == 0x80000049) {
+  /*if (group_no == 0x3040010 && offset_in_group == 0x80000049) {
     int64_t iTemp=0;
     int iRet=getAxisEncPosRaw(1,&iTemp); //Why hardcoded 1??
     *iValue=(int)iTemp;
     return iRet;
-  }
+  }*/
 
   if (group_no >= 0x5000 && group_no < 0x6000) {
     int motor_axis_no = (int)group_no - 0x5000;
