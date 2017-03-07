@@ -677,7 +677,7 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  ecmcAxisStatusPrintOutType data;
+  ecmcAxisStatusType data;
   int error=axes[axisIndex]->getDebugInfoData(&data);
   if(error){
     return error;

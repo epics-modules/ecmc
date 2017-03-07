@@ -89,14 +89,14 @@ typedef struct {
     int cmdData;
     dataSource trajSource;
     dataSource encSource;
-} ecmcAxisStatusPrintOutOnChangeType;
+} ecmcAxisStatusOnChangeType;
 
 
 typedef struct {
     int axisID;
     int cycleCounter;
-    ecmcAxisStatusPrintOutOnChangeType onChangeData;
-} ecmcAxisStatusPrintOutType;
+    ecmcAxisStatusOnChangeType onChangeData;
+} ecmcAxisStatusType;
 
 class ecmcAxisBase : public ecmcError
 {
@@ -161,7 +161,7 @@ public:
   ecmcMasterSlaveIF *getExternalTrajIF();
   ecmcMasterSlaveIF *getExternalEncIF();
   bool getBusy();
-  int getDebugInfoData(ecmcAxisStatusPrintOutType *data);
+  int getDebugInfoData(ecmcAxisStatusType *data);
   int getCycleCounter();
   void printAxisStatus();
 protected:
@@ -183,8 +183,8 @@ protected:
   ecmcMonitor *mon_;
   ecmcEncoder *enc_;
   ecmcSequencer seq_;
-  ecmcAxisStatusPrintOutType printOutData_;
-  ecmcAxisStatusPrintOutType printOutDataOld_;
+  ecmcAxisStatusType statusData_;
+  ecmcAxisStatusType statusDataOld_;
   int printHeaderCounter_;
   ecmcAxisData data_;
   bool executeCmdOld_;

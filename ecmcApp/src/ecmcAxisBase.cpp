@@ -86,8 +86,8 @@ void ecmcAxisBase::preExecute(bool masterOK)
   data_.interlocks_.etherCatMasterInterlock=!masterOK;
   data_.refreshInterlocks();
 
-  printOutData_.onChangeData.trajSource=externalInputTrajectoryIF_->getDataSourceType();
-  printOutData_.onChangeData.encSource=externalInputEncoderIF_->getDataSourceType();
+  statusData_.onChangeData.trajSource=externalInputTrajectoryIF_->getDataSourceType();
+  statusData_.onChangeData.encSource=externalInputEncoderIF_->getDataSourceType();
 
   if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     enc_->readEntries();
@@ -232,8 +232,8 @@ void ecmcAxisBase::initVars()
   data_.status_.currentVelocitySetpoint=0;
 
   data_.sampleTime_=1/1000;
-  memset(&printOutData_,0,sizeof(printOutData_));
-  memset(&printOutDataOld_,0,sizeof(printOutDataOld_));
+  memset(&statusData_,0,sizeof(statusData_));
+  memset(&statusDataOld_,0,sizeof(statusDataOld_));
   printHeaderCounter_=0;
   data_.status_.enabledOld=false;
   data_.status_.enableOld=false;
@@ -839,11 +839,11 @@ int ecmcAxisBase::getCmdData()
 void ecmcAxisBase::printAxisStatus()
 {
 
-  if(memcmp(&printOutDataOld_.onChangeData,&printOutData_.onChangeData,sizeof(printOutData_.onChangeData))==0){
+  if(memcmp(&statusDataOld_.onChangeData,&statusData_.onChangeData,sizeof(statusData_.onChangeData))==0){
     return;  //Printout on change
   }
 
-  printOutDataOld_=printOutData_;
+  statusDataOld_=statusData_;
 
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
@@ -853,34 +853,34 @@ void ecmcAxisBase::printAxisStatus()
   printHeaderCounter_--;
 
   LOGINFO("%3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x ",
-       printOutData_.axisID,
-       printOutData_.onChangeData.positionSetpoint,
-       printOutData_.onChangeData.positionActual,
-       printOutData_.onChangeData.cntrlError,
-       printOutData_.onChangeData.positionTarget,
-       printOutData_.onChangeData.positionError,
-       printOutData_.onChangeData.cntrlOutput,
-       printOutData_.onChangeData.velocitySetpoint,
-       printOutData_.onChangeData.velocityActual,
-       printOutData_.onChangeData.velocityFFRaw,
-       printOutData_.onChangeData.velocitySetpointRaw,
-       printOutData_.onChangeData.error);
+       statusData_.axisID,
+       statusData_.onChangeData.positionSetpoint,
+       statusData_.onChangeData.positionActual,
+       statusData_.onChangeData.cntrlError,
+       statusData_.onChangeData.positionTarget,
+       statusData_.onChangeData.positionError,
+       statusData_.onChangeData.cntrlOutput,
+       statusData_.onChangeData.velocitySetpoint,
+       statusData_.onChangeData.velocityActual,
+       statusData_.onChangeData.velocityFFRaw,
+       statusData_.onChangeData.velocitySetpointRaw,
+       statusData_.onChangeData.error);
 
    LOGINFO("%2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d\n",
-       printOutData_.onChangeData.command,
-       printOutData_.onChangeData.cmdData,
-       printOutData_.onChangeData.seqState,
-       printOutData_.onChangeData.trajInterlock,
-       printOutData_.onChangeData.trajSource,
-       printOutData_.onChangeData.encSource,
-       printOutData_.onChangeData.enable,
-       printOutData_.onChangeData.enabled,
-       printOutData_.onChangeData.execute,
-       printOutData_.onChangeData.busy,
-       printOutData_.onChangeData.atTarget,
-       printOutData_.onChangeData.limitBwd,
-       printOutData_.onChangeData.limitFwd,
-       printOutData_.onChangeData.homeSwitch);
+       statusData_.onChangeData.command,
+       statusData_.onChangeData.cmdData,
+       statusData_.onChangeData.seqState,
+       statusData_.onChangeData.trajInterlock,
+       statusData_.onChangeData.trajSource,
+       statusData_.onChangeData.encSource,
+       statusData_.onChangeData.enable,
+       statusData_.onChangeData.enabled,
+       statusData_.onChangeData.execute,
+       statusData_.onChangeData.busy,
+       statusData_.onChangeData.atTarget,
+       statusData_.onChangeData.limitBwd,
+       statusData_.onChangeData.limitFwd,
+       statusData_.onChangeData.homeSwitch);
 }
 
 int ecmcAxisBase::setExecute(bool execute)
@@ -919,13 +919,13 @@ bool ecmcAxisBase::getBusy()
   return data_.status_.busy ;
 }
 
-int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusPrintOutType *data)
+int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusType *data)
 {
   if(data==NULL){
     return ERROR_AXIS_DATA_POINTER_NULL;
   }
 
-  memcpy(data,&printOutData_,sizeof(*data));
+  memcpy(data,&statusData_,sizeof(*data));
   return 0;
 }
 
