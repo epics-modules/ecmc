@@ -176,6 +176,7 @@ void ecmcAxisVirt::refreshDebugInfoStruct()
   statusData_.onChangeData.velocitySetpoint=data_.status_.currentVelocitySetpoint;
   statusData_.onChangeData.velocitySetpointRaw=0;
   statusData_.onChangeData.velocityFFRaw=0;
+  statusData_.onChangeData.positionRaw=enc_->getRawPos();
 }
 
 int ecmcAxisVirt::validate()

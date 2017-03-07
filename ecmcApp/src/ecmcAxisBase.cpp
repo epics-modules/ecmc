@@ -916,7 +916,7 @@ bool ecmcAxisBase::getExecute()
 
 bool ecmcAxisBase::getBusy()
 {
-  return data_.status_.busy ;
+  return data_.status_.busy;
 }
 
 int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusType *data)
@@ -927,6 +927,11 @@ int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusType *data)
 
   memcpy(data,&statusData_,sizeof(*data));
   return 0;
+}
+
+ecmcAxisStatusType *ecmcAxisBase::getDebugInfoDataPointer()
+{
+  return &statusData_;
 }
 
 int ecmcAxisBase::getCycleCounter()

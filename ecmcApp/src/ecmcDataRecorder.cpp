@@ -26,6 +26,9 @@ void ecmcDataRecorder::initVars()
   data_=0;
   inStartupPhase_=1;
   execute_=false;
+  axisData_=NULL;
+  axisDataTypeToRecord_=ECMC_RECORDER_AXIS_DATA_NONE;
+  dataSource_=ECMC_RECORDER_SOURCE_NONE;
 }
 
 int ecmcDataRecorder::setDataStorage(ecmcDataStorage* buffer)
@@ -83,18 +86,168 @@ int ecmcDataRecorder::executeEvent(int masterOK)
     return getErrorID();
   }
 
-  uint64_t tempRaw=0;
-  if(readEcEntryValue(0,&tempRaw)){//Data
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ECENTRY_READ_FAIL);
+  int errorCode=getData(&data_);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
-  data_=tempRaw;
-  int errorCode=dataBuffer_->appendData((double)data_);
+  errorCode=dataBuffer_->appendData(data_);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
   printStatus();
 
+  return 0;
+}
+
+int ecmcDataRecorder::setAxisDataSource(ecmcAxisStatusType *axisData,ecmcAxisDataRecordType dataToStore)
+{
+  axisData_=axisData;
+  axisDataTypeToRecord_=dataToStore;
+
+  return 0;
+}
+
+int ecmcDataRecorder::setDataSourceType(ecmcDataSourceType type)
+{
+  dataSource_=type;
+  return 0;
+}
+
+int ecmcDataRecorder::getData(double *data)
+{
+  int error=0;
+  switch(dataSource_){
+    case  ECMC_RECORDER_SOURCE_NONE:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_NO_DATA_SOURCE_CHOOSEN);
+      break;
+    case ECMC_RECORDER_SOURCE_ETHERCAT:
+      error=getEtherCATData(data);
+      if(error){
+	return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
+      }
+      break;
+    case ECMC_RECORDER_SOURCE_AXIS:
+      error=getAxisData(data);
+      if(error){
+	return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
+      }
+      break;
+    default:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_NO_DATA_SOURCE_CHOOSEN);
+      break;
+  }
+  return 0;
+}
+
+int ecmcDataRecorder::getEtherCATData(double *data)
+{
+  uint64_t tempRaw=0;
+  if(readEcEntryValue(0,&tempRaw)){//Data
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ECENTRY_READ_FAIL);
+  }
+  *data=(double)tempRaw;
+  return 0;
+}
+
+int ecmcDataRecorder::getAxisData(double *data)
+{
+  if(!axisData_){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_AXIS_DATA_NULL);
+  }
+
+  switch(axisDataTypeToRecord_){
+    case ECMC_RECORDER_AXIS_DATA_NONE:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_AXIS_DATA_TYPE_NOT_CHOOSEN);
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_SET:
+      *data=axisData_->onChangeData.positionSetpoint;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_ACT:
+      *data=axisData_->onChangeData.positionActual;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_ERROR:
+      *data=axisData_->onChangeData.positionError;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_TARGET:
+      *data=axisData_->onChangeData.positionTarget;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_CNTRL_ERROR:
+      *data=axisData_->onChangeData.cntrlError;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_CNTRL_OUT:
+      *data=axisData_->onChangeData.cntrlOutput;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_VEL_SET:
+      *data=axisData_->onChangeData.velocitySetpoint;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_VEL_ACT:
+      *data=axisData_->onChangeData.velocityActual;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_VEL_SET_RAW:
+      *data=(double)axisData_->onChangeData.velocitySetpointRaw;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_VEL_SET_FF_RAW:
+      *data=axisData_->onChangeData.velocityFFRaw;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_ERROR:
+      *data=(double)axisData_->onChangeData.error;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_ENABLE:
+      *data=(double)axisData_->onChangeData.enable;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_ENABLED:
+      *data=(double)axisData_->onChangeData.enabled;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_EXECUTE:
+      *data=(double)axisData_->onChangeData.execute;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_BUSY:
+      *data=(double)axisData_->onChangeData.busy;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_SEQ_STATE:
+      *data=(double)axisData_->onChangeData.seqState;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_AT_TARGET:
+      *data=(double)axisData_->onChangeData.atTarget;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_INTERLOCK_TYPE:
+      *data=(double)axisData_->onChangeData.trajInterlock;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_LIMIT_FWD:
+      *data=(double)axisData_->onChangeData.limitFwd;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_LIMIT_BWD:
+      *data=(double)axisData_->onChangeData.limitBwd;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_HOME_SWITCH:
+      *data=(double)axisData_->onChangeData.homeSwitch;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_COMMAND:
+      *data=(double)axisData_->onChangeData.command;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_CMD_DATA:
+      *data=(double)axisData_->onChangeData.cmdData;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_TRAJ_SOURCE:
+      *data=(double)axisData_->onChangeData.trajSource;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_ENC_SOURCE:
+      *data=(double)axisData_->onChangeData.encSource;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_AXIS_ID:
+      *data=(double)axisData_->axisID;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_CYCLE_COUNTER:
+      *data=(double)axisData_->cycleCounter;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_RAW:
+      *data=(double)axisData_->onChangeData.positionRaw;
+      break;
+    default:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_AXIS_DATA_TYPE_NOT_CHOOSEN);
+      break;
+  }
   return 0;
 }

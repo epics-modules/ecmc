@@ -2616,7 +2616,7 @@ int createRecorder(int indexRecorder);
  */
 int linkStorageToRecorder(int indexStorage,int indexRecorder);
 
-/** \breif Links an EtherCAT entry to an recorder object. \n
+/** \breif Links an EtherCAT entry to a recorder object. \n
  *
  *  \param[in] indexRecorder Index of recorder object to link to.\n
  *  \param[in] recorderEntryIndex Index of recorder objects entry list.\n
@@ -2643,6 +2643,53 @@ int linkStorageToRecorder(int indexStorage,int indexRecorder);
  *  link functions as "linkEcEntryToAxisMon".\n
  */
 int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveBusPosition,char *entryIDString,int bitIndex);
+
+/** \breif Links an axis data source to a recorder object. \n
+ *
+ *  \param[in] indexRecorder Index of recorder object to link to.\n
+ *  \param[in] axisIndex Index of axis to get data from.\n
+ *  \param[in] dataToStore data to record from axis object.\n
+ *    dataToStore = 0 : No data choosen.\n
+ *    dataToStore = 1 : Position Setpoint (from trajectory generator).\n
+ *    dataToStore = 2 : Position Actual (scaled).\n
+ *    dataToStore = 3 : Position Error.\n
+ *    dataToStore = 4 : Position Target.\n
+ *    dataToStore = 5 : Controller Error.\n
+ *    dataToStore = 6 : Controller Output.\n
+ *    dataToStore = 7 : Velocity Setpoint.\n
+ *    dataToStore = 8 : Velocity Actual.\n
+ *    dataToStore = 9 : Velocity Setpoint Raw.\n
+ *    dataToStore = 10: Velocity Setpoint Feed Forward Raw.\n
+ *    dataToStore = 11: Error Code.\n
+ *    dataToStore = 12: Enable (command).\n
+ *    dataToStore = 13: Enabled (status).\n
+ *    dataToStore = 14: Execute (command).\n
+ *    dataToStore = 15: Busy (status).\n
+ *    dataToStore = 16: Sequence state.\n
+ *    dataToStore = 17: At Target (status).\n
+ *    dataToStore = 18: Interlock type.\n
+ *    dataToStore = 19: Limit Switch forward.\n
+ *    dataToStore = 20: Limit Switch backward.\n
+ *    dataToStore = 21: Home switch.\n
+ *    dataToStore = 22: Command.\n
+ *    dataToStore = 23: Command Data (cmdData).\n
+ *    dataToStore = 24: Trajectory setpoint source.\n
+ *          0  = Internal Source.\n
+ *          >0 = External Source.\n
+ *    dataToStore = 25: Encoder setpoint source.\n
+ *          0  = Internal Source.\n
+ *          >0 = External Source.\n
+ *    dataToStore = 26: Axis Id.\n
+ *    dataToStore = 27: Cycle counter.\n
+ *    dataToStore = 28: Position Raw.\n
+
+ * \return 0 if success or otherwise an error code.\n
+ *
+ *  \note Example 1: Link Actual position of axis 4 to recorder 1:.\n
+ *  in slave 1 as data for recorder object 7.\n
+ *  "Cfg.linkAxisDataToRecorder(1,4,2)" //Command string to cmd_EAT.c\n
+ */
+int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore);
 
 /** \breif Set recorder execute.\n
  *

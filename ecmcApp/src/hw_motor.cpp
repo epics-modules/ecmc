@@ -2780,7 +2780,6 @@ int createRecorder(int indexRecorder)
   }
 
   return 0;
-
 }
 
 int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveIndex,char *entryIDString,int bitIndex)
@@ -2810,7 +2809,28 @@ int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveInde
   if(entry==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
 
-  return dataRecorders[indexRecorder]->setEntryAtIndex(entry,recorderEntryIndex,bitIndex);
+  int error=dataRecorders[indexRecorder]->setEntryAtIndex(entry,recorderEntryIndex,bitIndex);
+  if(error){
+    return error;
+  }
+
+  //set source to EtherCAT
+  return dataRecorders[indexRecorder]->setDataSourceType(ECMC_RECORDER_SOURCE_ETHERCAT);
+}
+
+int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore)
+{
+  LOGINFO4("%s/%s:%d indexRecorder=%d axisIndex=%d dataToStore=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, axisIndex,dataToStore);
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  int error= dataRecorders[indexRecorder]->setAxisDataSource(axes[axisIndex]->getDebugInfoDataPointer(),(ecmcAxisDataRecordType)dataToStore);
+  if(error){
+    return error;
+  }
+  //set source to Axis data
+  return dataRecorders[indexRecorder]->setDataSourceType(ECMC_RECORDER_SOURCE_AXIS);
 }
 
 int setRecorderEnablePrintouts(int indexRecorder,int enable)

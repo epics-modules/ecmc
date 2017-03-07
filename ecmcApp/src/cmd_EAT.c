@@ -1130,6 +1130,12 @@ static int handleCfgCommand(const char *myarg_1){
      return linkEcEntryToRecorder(iValue,iValue2,iValue3,cIdBuffer,iValue4);
    }
 
+   /*Cfg.LinkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToTypeStore)*/
+   nvals = sscanf(myarg_1, "LinkAxisDataToRecorder(%d,%d,%d)", &iValue,&iValue2,&iValue3);
+   if (nvals == 3) {
+     return linkAxisDataToRecorder(iValue,iValue2,iValue3);
+   }
+
    /*int Cfg.SetRecorderExecute(int indexRecorder,int execute);*/
    nvals = sscanf(myarg_1, "SetRecorderExecute(%d,%d)", &iValue,&iValue2);
    if (nvals == 2) {

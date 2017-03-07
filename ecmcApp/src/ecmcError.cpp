@@ -824,6 +824,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20104:
       return "ERROR_DATA_RECORDER_HARDWARE_STATUS_NOT_OK";
       break;
+    case 0x20105:
+      return "ERROR_DATA_RECORDER_NO_DATA_SOURCE_CHOOSEN";
+      break;
+    case 0x20106:
+      return "ERROR_DATA_RECORDER_AXIS_DATA_NULL";
+      break;
+    case 0x20107:
+      return "ERROR_DATA_RECORDER_AXIS_DATA_TYPE_NOT_CHOOSEN";
+      break;
     case 0x20200: //Data storage
       return "ERROR_DATA_STORAGE_FULL";
       break;

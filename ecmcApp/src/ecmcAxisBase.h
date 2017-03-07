@@ -68,6 +68,7 @@ typedef struct {
     double positionActual;
     double positionError;
     double positionTarget;
+    int64_t positionRaw;
     double cntrlError;
     double cntrlOutput;
     double velocityActual;
@@ -161,7 +162,8 @@ public:
   ecmcMasterSlaveIF *getExternalTrajIF();
   ecmcMasterSlaveIF *getExternalEncIF();
   bool getBusy();
-  int getDebugInfoData(ecmcAxisStatusType *data);
+  int getDebugInfoData(ecmcAxisStatusType *data);  //memcpy
+  ecmcAxisStatusType *getDebugInfoDataPointer();
   int getCycleCounter();
   void printAxisStatus();
 protected:
