@@ -16,12 +16,16 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   currentDriveType_=ECMC_STEPPER;
   drv_=new ecmcDriveStepper(&data_);
   if(!drv_){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n");
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
+    exit(EXIT_FAILURE);
   }
 
   cntrl_=new ecmcPIDController(&data_,data_.sampleTime_);
   if(!cntrl_){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR PID-CONTROLLER OBJECT.\n");
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_CNTRL_OBJECT_NULL);
+    exit(EXIT_FAILURE);
   }
 
   seq_.setCntrl(cntrl_);

@@ -2107,6 +2107,10 @@ int createAxis(int index, int type)
         delete axes[index];
       }
       axes[index]=new ecmcAxisReal(index,1/MCU_FREQUENCY);
+      if(!axes[index]){
+         LOGERR("FAILED TO ALLOCATE MEMORY FOR NORMAL AXIS OBJECT.\n");
+         exit(EXIT_FAILURE);
+       }
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:
@@ -2114,6 +2118,10 @@ int createAxis(int index, int type)
         delete axes[index];
       }
       axes[index]=new ecmcAxisVirt(index,1/MCU_FREQUENCY);
+      if(!axes[index]){
+         LOGERR("FAILED TO ALLOCATE MEMORY FOR VITRUAL AXIS OBJECT.\n");
+         exit(EXIT_FAILURE);
+       }
       break;
     default:
       return ERROR_MAIN_AXIS_TYPE_UNKNOWN;
@@ -2550,6 +2558,10 @@ int createEvent(int indexEvent)
 
   delete events[indexEvent];
   events[indexEvent]=new ecmcEvent(1/MCU_FREQUENCY,indexEvent);
+  if(!events[indexEvent]){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR EVENT OBJECT.\n");
+    exit(EXIT_FAILURE);
+  }
   return 0;
 }
 
@@ -2567,6 +2579,11 @@ int createDataStorage(int index, int elements, int bufferType)
 
   delete dataStorages[index];
   dataStorages[index]=new ecmcDataStorage(index,elements,(storageType)bufferType);
+  if(!dataStorages[index]){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR DATA STROAGE OBJECT.\n");
+    exit(EXIT_FAILURE);
+  }
+
   return 0;
 }
 
@@ -2757,6 +2774,11 @@ int createRecorder(int indexRecorder)
 
   delete dataRecorders[indexRecorder];
   dataRecorders[indexRecorder]=new ecmcDataRecorder(indexRecorder);
+  if(!dataRecorders[indexRecorder]){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR DATA RECORDER OBJECT.\n");
+    exit(EXIT_FAILURE);
+  }
+
   return 0;
 
 }
@@ -2940,6 +2962,11 @@ int createCommandList(int indexCommandList)
 
   delete commandLists[indexCommandList];
   commandLists[indexCommandList]=new ecmcCommandList(indexCommandList);
+  if(!commandLists[indexCommandList]){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR COMAMND-LIST OBJECT.\n");
+    exit(EXIT_FAILURE);
+  }
+
   return 0;
 }
 

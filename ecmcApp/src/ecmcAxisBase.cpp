@@ -16,28 +16,48 @@ ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime)
   data_.command_.operationModeCmd=ECMC_MODE_OP_AUTO;
 
   commandTransform_=new ecmcCommandTransform(2,ECMC_MAX_AXES);  //currently two commands
+  if(!commandTransform_){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR COMMAND-TRANSFORM OBJECT.\n");
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MASTER_AXIS_TRANSFORM_NULL);
+    exit(EXIT_FAILURE);
+  }
+
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,ECMC_CMD_TYPE_EXECUTE);
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,ECMC_CMD_TYPE_ENABLE);
 
   externalInputTrajectoryIF_=new ecmcMasterSlaveIF(data_.axisId_,ECMC_TRAJECTORY_INTERFACE,data_.sampleTime_);
+  if(!externalInputTrajectoryIF_){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR TRAJECTORY-EXTERNAL-INPUT_INTERFACE OBJECT.\n");
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL);
+    exit(EXIT_FAILURE);
+  }
+
   externalInputEncoderIF_=new ecmcMasterSlaveIF(data_.axisId_,ECMC_ENCODER_INTERFACE,data_.sampleTime_);
+  if(!externalInputEncoderIF_){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR ENCODER-EXTERNAL-INPUT_INTERFACE OBJECT.\n");
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL);
+    exit(EXIT_FAILURE);
+  }
 
   enc_=new ecmcEncoder(&data_,data_.sampleTime_);
   if(!enc_){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR ENCODER OBJECT.\n");
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ENC_OBJECT_NULL);
-    return;
+    exit(EXIT_FAILURE);
   }
 
   traj_=new ecmcTrajectoryTrapetz(&data_,data_.sampleTime_);
   if(!traj_){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR TRAJECTORY OBJECT.\n");
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_OBJECT_NULL);
-    return;
+    exit(EXIT_FAILURE);
   }
 
   mon_ =new ecmcMonitor(&data_);
   if(!mon_){
+    LOGERR("FAILED TO ALLOCATE MEMORY FOR MONITOR OBJECT.\n");
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MON_OBJECT_NULL);
-    return;
+    exit(EXIT_FAILURE);
   }
 
   seq_.setAxisDataRef(&data_);

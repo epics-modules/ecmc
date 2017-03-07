@@ -188,6 +188,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x1431C:
       return "ERROR_AXIS_BUSY";
       break;
+    case 0x1431D:
+      return "ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL";
+      break;
+    case 0x1431E:
+      return "ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
@@ -268,6 +274,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x1440B:
       return "ERROR_ENC_SLAVE_INTERFACE_NULL";
+      break;
+    case 0x1440C:
+      return "ERROR_ENC_VELOCITY_FILTER_NULL";
       break;
     case 0x14C00://MONITOR
       return "ERROR_MON_ASSIGN_ENTRY_FAILED";
