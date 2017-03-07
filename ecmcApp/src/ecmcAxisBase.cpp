@@ -86,8 +86,8 @@ void ecmcAxisBase::preExecute(bool masterOK)
   data_.interlocks_.etherCatMasterInterlock=!masterOK;
   data_.refreshInterlocks();
 
-  printOutData_.trajSource=externalInputTrajectoryIF_->getDataSourceType();
-  printOutData_.encSource=externalInputEncoderIF_->getDataSourceType();
+  printOutData_.onChangeData.trajSource=externalInputTrajectoryIF_->getDataSourceType();
+  printOutData_.onChangeData.encSource=externalInputEncoderIF_->getDataSourceType();
 
   if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     enc_->readEntries();
@@ -839,8 +839,8 @@ int ecmcAxisBase::getCmdData()
 void ecmcAxisBase::printAxisStatus()
 {
 
-  if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))==0){
-    return;
+  if(memcmp(&printOutDataOld_.onChangeData,&printOutData_.onChangeData,sizeof(printOutData_.onChangeData))==0){
+    return;  //Printout on change
   }
 
   printOutDataOld_=printOutData_;
@@ -854,33 +854,33 @@ void ecmcAxisBase::printAxisStatus()
 
   LOGINFO("%3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x ",
        printOutData_.axisID,
-       printOutData_.positionSetpoint,
-       printOutData_.positionActual,
-       printOutData_.cntrlError,
-       printOutData_.positionTarget,
-       printOutData_.positionError,
-       printOutData_.cntrlOutput,
-       printOutData_.velocitySetpoint,
-       printOutData_.velocityActual,
-       printOutData_.velocityFFRaw,
-       printOutData_.velocitySetpointRaw,
-       printOutData_.error);
+       printOutData_.onChangeData.positionSetpoint,
+       printOutData_.onChangeData.positionActual,
+       printOutData_.onChangeData.cntrlError,
+       printOutData_.onChangeData.positionTarget,
+       printOutData_.onChangeData.positionError,
+       printOutData_.onChangeData.cntrlOutput,
+       printOutData_.onChangeData.velocitySetpoint,
+       printOutData_.onChangeData.velocityActual,
+       printOutData_.onChangeData.velocityFFRaw,
+       printOutData_.onChangeData.velocitySetpointRaw,
+       printOutData_.onChangeData.error);
 
    LOGINFO("%2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d\n",
-       printOutData_.command,
-       printOutData_.cmdData,
-       printOutData_.seqState,
-       printOutData_.trajInterlock,
-       printOutData_.trajSource,
-       printOutData_.encSource,
-       printOutData_.enable,
-       printOutData_.enabled,
-       printOutData_.execute,
-       printOutData_.busy,
-       printOutData_.atTarget,
-       printOutData_.limitBwd,
-       printOutData_.limitFwd,
-       printOutData_.homeSwitch);
+       printOutData_.onChangeData.command,
+       printOutData_.onChangeData.cmdData,
+       printOutData_.onChangeData.seqState,
+       printOutData_.onChangeData.trajInterlock,
+       printOutData_.onChangeData.trajSource,
+       printOutData_.onChangeData.encSource,
+       printOutData_.onChangeData.enable,
+       printOutData_.onChangeData.enabled,
+       printOutData_.onChangeData.execute,
+       printOutData_.onChangeData.busy,
+       printOutData_.onChangeData.atTarget,
+       printOutData_.onChangeData.limitBwd,
+       printOutData_.onChangeData.limitFwd,
+       printOutData_.onChangeData.homeSwitch);
 }
 
 int ecmcAxisBase::setExecute(bool execute)

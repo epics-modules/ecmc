@@ -64,7 +64,6 @@ enum axisState{
 };
 
 typedef struct {
-    int axisID;
     double positionSetpoint;
     double positionActual;
     double positionError;
@@ -90,6 +89,13 @@ typedef struct {
     int cmdData;
     dataSource trajSource;
     dataSource encSource;
+} ecmcAxisStatusPrintOutOnChangeType;
+
+
+typedef struct {
+    int axisID;
+    int cycleCounter;
+    ecmcAxisStatusPrintOutOnChangeType onChangeData;
 } ecmcAxisStatusPrintOutType;
 
 class ecmcAxisBase : public ecmcError
