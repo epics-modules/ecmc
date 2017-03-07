@@ -34,18 +34,32 @@ void ecmcDataRecorder::initVars()
 int ecmcDataRecorder::setDataStorage(ecmcDataStorage* buffer)
 {
   dataBuffer_=buffer;
-  validate();
   return 0;
 }
 
 int ecmcDataRecorder::validate()
 {
-  if(dataBuffer_==NULL){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_BUFFER_NULL);
+   switch(dataSource_){
+    case  ECMC_RECORDER_SOURCE_NONE:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_NO_DATA_SOURCE_CHOOSEN);
+      break;
+    case ECMC_RECORDER_SOURCE_ETHERCAT:
+      if(validateEntry(0)){ //Data
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_DATA_ECENTRY_NULL);
+      }
+      break;
+    case ECMC_RECORDER_SOURCE_AXIS:
+      if(axisDataTypeToRecord_==ECMC_RECORDER_AXIS_DATA_NONE){
+	return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_AXIS_DATA_TYPE_NOT_CHOOSEN);
+      }
+      break;
+    default:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_NO_DATA_SOURCE_CHOOSEN);
+      break;
   }
 
-  if(validateEntry(0)){ //Data
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_DATA_ECENTRY_NULL);
+  if(dataBuffer_==NULL){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_BUFFER_NULL);
   }
 
   return setErrorID(0);
