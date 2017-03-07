@@ -13,14 +13,21 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType, dou
   sampleTime_=sampleTime;
   defaultAxisId_=defaultAxisId;
   interfaceType_=ifType;
-  transform_=new ecmcCommandTransform(3,ECMC_MAX_AXES);  //currently two commands
+  transform_=new ecmcCommandTransform(3,ECMC_MAX_AXES);  //currently three commands
+  if(!transform_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRANSFORM OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX,ECMC_TRANSFORM_VAR_TYPE_TRAJ);
   transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX,ECMC_TRANSFORM_VAR_TYPE_ENC);
   transform_->addCmdPrefix(TRANSFORM_EXPR_INTERLOCK_PREFIX,ECMC_TRANSFORM_VAR_TYPE_IL);
 
   velocityFilter_=new ecmcFilter(sampleTime);
+  if(!velocityFilter_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VELOCITY-FILTER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   velocityFilter_->setSampleTime(sampleTime_);
-
 }
 
 ecmcMasterSlaveIF::~ecmcMasterSlaveIF()

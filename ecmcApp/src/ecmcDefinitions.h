@@ -16,7 +16,7 @@
 #define MCU_PERIOD_NS (int)(MCU_NSEC_PER_SEC / MCU_FREQUENCY)
 #define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC + \
   (B).tv_nsec - (A).tv_nsec)
-#define ECMC_MAX_AXES 8
+#define ECMC_MAX_AXES 64
 
 //Test new conversion
 #define TIMESPEC2NS(T) ((uint64_t) (((T).tv_sec - 946684800ULL) * 1000000000ULL) + (T).tv_nsec)

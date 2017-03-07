@@ -16,14 +16,14 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   currentDriveType_=ECMC_STEPPER;
   drv_=new ecmcDriveStepper(&data_);
   if(!drv_){
-    LOGERR("FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n");
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
     exit(EXIT_FAILURE);
   }
 
   cntrl_=new ecmcPIDController(&data_,data_.sampleTime_);
   if(!cntrl_){
-    LOGERR("FAILED TO ALLOCATE MEMORY FOR PID-CONTROLLER OBJECT.\n");
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR PID-CONTROLLER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_CNTRL_OBJECT_NULL);
     exit(EXIT_FAILURE);
   }
@@ -313,11 +313,21 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
     case ECMC_STEPPER:
       delete drv_;
       drv_ =new ecmcDriveStepper(&data_);
+      if(!drv_){
+        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
+        exit(EXIT_FAILURE);
+      }
       currentDriveType_=ECMC_STEPPER;
       break;
     case ECMC_DS402:
       delete drv_;
       drv_ =new ecmcDriveDS402(&data_);
+      if(!drv_){
+        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
+        exit(EXIT_FAILURE);
+      }
       currentDriveType_=ECMC_DS402;
       break;
     default:

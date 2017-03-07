@@ -2108,9 +2108,9 @@ int createAxis(int index, int type)
       }
       axes[index]=new ecmcAxisReal(index,1/MCU_FREQUENCY);
       if(!axes[index]){
-         LOGERR("FAILED TO ALLOCATE MEMORY FOR NORMAL AXIS OBJECT.\n");
-         exit(EXIT_FAILURE);
-       }
+	LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR NORMAL AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        exit(EXIT_FAILURE);
+      }
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:
@@ -2119,8 +2119,8 @@ int createAxis(int index, int type)
       }
       axes[index]=new ecmcAxisVirt(index,1/MCU_FREQUENCY);
       if(!axes[index]){
-         LOGERR("FAILED TO ALLOCATE MEMORY FOR VITRUAL AXIS OBJECT.\n");
-         exit(EXIT_FAILURE);
+	LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VITRUAL AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        exit(EXIT_FAILURE);
        }
       break;
     default:
@@ -2559,7 +2559,7 @@ int createEvent(int indexEvent)
   delete events[indexEvent];
   events[indexEvent]=new ecmcEvent(1/MCU_FREQUENCY,indexEvent);
   if(!events[indexEvent]){
-    LOGERR("FAILED TO ALLOCATE MEMORY FOR EVENT OBJECT.\n");
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EVENT OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     exit(EXIT_FAILURE);
   }
   return 0;
@@ -2580,7 +2580,7 @@ int createDataStorage(int index, int elements, int bufferType)
   delete dataStorages[index];
   dataStorages[index]=new ecmcDataStorage(index,elements,(storageType)bufferType);
   if(!dataStorages[index]){
-    LOGERR("FAILED TO ALLOCATE MEMORY FOR DATA STROAGE OBJECT.\n");
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     exit(EXIT_FAILURE);
   }
 
@@ -2775,7 +2775,7 @@ int createRecorder(int indexRecorder)
   delete dataRecorders[indexRecorder];
   dataRecorders[indexRecorder]=new ecmcDataRecorder(indexRecorder);
   if(!dataRecorders[indexRecorder]){
-    LOGERR("FAILED TO ALLOCATE MEMORY FOR DATA RECORDER OBJECT.\n");
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA RECORDER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     exit(EXIT_FAILURE);
   }
 
@@ -2963,7 +2963,7 @@ int createCommandList(int indexCommandList)
   delete commandLists[indexCommandList];
   commandLists[indexCommandList]=new ecmcCommandList(indexCommandList);
   if(!commandLists[indexCommandList]){
-    LOGERR("FAILED TO ALLOCATE MEMORY FOR COMAMND-LIST OBJECT.\n");
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR COMAMND-LIST OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     exit(EXIT_FAILURE);
   }
 

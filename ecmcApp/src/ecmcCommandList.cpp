@@ -44,13 +44,12 @@ int ecmcCommandList::executeEvent(int masterOK) //Master state not critical for 
   }
 
   clearBuffer(&resultBuffer_);
-//  int errorCode=0;
   for(unsigned int i=0; i < commandList_.size(); i++){
     LOGINFO8("%s/%s:%d: INFO: Command list %d. Executing command %s.\n",__FILE__, __FUNCTION__, __LINE__,index_,commandList_[i].c_str());
     int errorCode=motorHandleOneArg(commandList_[i].c_str(),&resultBuffer_);
     if(errorCode){
       LOGINFO8("%s/%s:%d: ERROR: Command %s resulted in buffer overflow error: %s.\n",__FILE__, __FUNCTION__, __LINE__,commandList_[i].c_str(),resultBuffer_.buffer);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_COMMAND_LIST_COMMAND_RETURN_VALUE_NOT_OK); //TODO change error code
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_COMMAND_LIST_COMMAND_RETURN_VALUE_NOT_OK);
     }
 
     LOGINFO8("%s/%s:%d: INFO: Command %s returned: %s.\n",__FILE__, __FUNCTION__, __LINE__,commandList_[i].c_str(),resultBuffer_.buffer);
