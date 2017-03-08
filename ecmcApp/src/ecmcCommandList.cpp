@@ -22,7 +22,7 @@ void ecmcCommandList::initVars()
 {
   commandCounter_=0;
   clearCommandList();
-  execute_=false;;
+  enable_=false;;
 
   try{
     commandList_.reserve(ECMC_MAX_COMMANDS_IN_COMMANDS_LISTS);
@@ -39,7 +39,7 @@ int ecmcCommandList::executeEvent(int masterOK) //Master state not critical for 
   //TODO consider running this in low prio thread in order to not disturbe realtime
   //TODO add possablity for a "wait time" between commands (must be separate thread in this case)
 
-  if(getError() || !execute_){
+  if(getError() || !enable_){
     return getErrorID();
   }
 
@@ -94,6 +94,7 @@ int ecmcCommandList::addCommand(std::string command)
 
 int ecmcCommandList::getCommandCount()
 {
+  LOGINFO8("%s/%s:%d: INFO: Command list %d. Current command count.\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
   return commandCounter_;
 }
 
@@ -102,11 +103,11 @@ int ecmcCommandList::validate()
   return 0;
 }
 
-int ecmcCommandList::setExecute(int execute)
+int ecmcCommandList::setEnable(int enable)
 {
-  execute_=execute;
+  enable_=enable;
   validate();
-  LOGINFO8("%s/%s:%d: INFO: Command list %d. Execute set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,execute_);
+  LOGINFO8("%s/%s:%d: INFO: Command list %d. Enable set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_);
   return 0;
 }
 

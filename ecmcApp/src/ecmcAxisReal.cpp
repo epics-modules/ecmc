@@ -242,6 +242,7 @@ void ecmcAxisReal::refreshDebugInfoStruct()
   statusData_.onChangeData.cmdData=data_.command_.cmdData;
   statusData_.onChangeData.command=data_.command_.command;
   statusData_.onChangeData.positionRaw=enc_->getRawPos();
+  statusData_.onChangeData.homed=enc_->getHomed();
 }
 
 int ecmcAxisReal::validate()

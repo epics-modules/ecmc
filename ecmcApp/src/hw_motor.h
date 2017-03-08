@@ -8,7 +8,7 @@
  * \author Anders Sandström
  * \contact anders.sandstrom@esss.se
  */
-
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <string.h>
 
@@ -2397,20 +2397,20 @@ int setEventSampleTime(int indexEvent,int sampleTime);
  */
 int setEventTriggerEdge(int indexEvent,int triggerEdge);
 
-/** \breif Set event execute.\n
+/** \breif Enable event.\n
  *
- * Event evaluation and triggering is only active when the execute bit is
+ * Event evaluation and triggering is only active when the enable bit is
  * high.\n
  *
  * \param[in] indexEvent Index of event to address.\n
- * \param[in] execute Execute.\n
+ * \param[in] enable Enable.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Start evaluation of events for event object 4 .\n
- *  "Cfg.SetEventExecute(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEventEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setEventExecute(int indexEvent,int execute);
+int setEventEnable(int indexEvent,int enable);
 
 /** \breif Enable arm sequence.\n
  *
@@ -2682,6 +2682,7 @@ int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveBusP
  *    dataToStore = 26: Axis Id.\n
  *    dataToStore = 27: Cycle counter.\n
  *    dataToStore = 28: Position Raw.\n
+ *    dataToStore = 29: Encoder homed.\n
 
  * \return 0 if success or otherwise an error code.\n
  *
@@ -2691,19 +2692,19 @@ int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveBusP
  */
 int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore);
 
-/** \breif Set recorder execute.\n
+/** \breif Enable recorder.\n
  *
- * Recording of data is only active when the execute bit is high.\n
+ * Recording of data is only active when the enable bit is high.\n
  *
  * \param[in] indexRecorder Index of recorder to address.\n
- * \param[in] execute Execute.\n
+ * \param[in] enable Enable.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Start data recording of recorder object 4.\n
- *  "Cfg.SetRecorderExecute(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetRecorderEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setRecorderExecute(int indexRecorder,int execute);
+int setRecorderEnable(int indexRecorder,int enable);
 
 /** \breif Enable diagnostic printouts from recorder object.\n
  *
@@ -2780,19 +2781,19 @@ int createCommandList(int indexCommandList);
  */
 int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerIndex);
 
-/** \breif Set command list execute.\n
+/** \breif Enable command list.\n
  *
- * Command list will only be executed when the execute bit is high.\n
+ * Command list will only be executed when the enable bit is high.\n
  *
  * \param[in] indexCommandList Index of command list to address.\n
- * \param[in] execute Execute.\n
+ * \param[in] enable Enable.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: "Enable" command list execution for object 4.\n
- *  "Cfg.SetCommandListExecute(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetCommandListEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setCommandListExecute(int indexCommandList,int execute);
+int setCommandListEnable(int indexCommandList,int enable);
 
 /** \breif Enable diagnostic printouts from command list object.\n
  *

@@ -1070,10 +1070,10 @@ static int handleCfgCommand(const char *myarg_1){
      return setEventSampleTime(iValue,iValue2);
    }
 
-   /*int Cfg.SetEventExecute(int indexEvent,int execute);*/
-   nvals = sscanf(myarg_1, "SetEventExecute(%d,%d)", &iValue,&iValue2);
+   /*int Cfg.SetEventEnable(int indexEvent,int execute);*/
+   nvals = sscanf(myarg_1, "SetEventEnable(%d,%d)", &iValue,&iValue2);
    if (nvals == 2) {
-     return setEventExecute(iValue,iValue2);
+     return setEventEnable(iValue,iValue2);
    }
 
    /*int Cfg.ClearStorage(int indexStorage);*/
@@ -1136,10 +1136,10 @@ static int handleCfgCommand(const char *myarg_1){
      return linkAxisDataToRecorder(iValue,iValue2,iValue3);
    }
 
-   /*int Cfg.SetRecorderExecute(int indexRecorder,int execute);*/
-   nvals = sscanf(myarg_1, "SetRecorderExecute(%d,%d)", &iValue,&iValue2);
+   /*int Cfg.SetRecorderEnable(int indexRecorder,int execute);*/
+   nvals = sscanf(myarg_1, "SetRecorderEnable(%d,%d)", &iValue,&iValue2);
    if (nvals == 2) {
-     return setRecorderExecute(iValue,iValue2);
+     return setRecorderEnable(iValue,iValue2);
    }
 
    /*int Cfg.SetRecorderEnablePrintouts(int indexRecorder,int enable);*/
@@ -1172,10 +1172,10 @@ static int handleCfgCommand(const char *myarg_1){
      return linkCommandListToEvent(iValue,iValue2,iValue3);
    }
 
-   /*int Cfg.SetCommandListExecute(int indexCommandList,int execute);*/
-   nvals = sscanf(myarg_1, "SetCommandListExecute(%d,%d)", &iValue,&iValue2);
+   /*int Cfg.SetCommandListEnable(int indexCommandList,int enable);*/
+   nvals = sscanf(myarg_1, "SetCommandListEnable(%d,%d)", &iValue,&iValue2);
    if (nvals == 2) {
-     return setCommandListExecute(iValue,iValue2);
+     return setCommandListEnable(iValue,iValue2);
    }
 
    /*int Cfg.SetCommandListEnablePrintouts(int indexCommandList,int enable);*/
@@ -1562,6 +1562,13 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     iValue=getAxisError(motor_axis_no);
     cmd_buf_printf(buffer,"%d", iValue);
     return 0;
+  }
+
+  /* nErrorId? */
+  if (!strcmp(myarg_1, "nErrorId?")) {
+      iValue=getAxisErrorID(motor_axis_no);
+      cmd_buf_printf(buffer,"%d", iValue);
+      return 0;
   }
 
   /* bEnable? */

@@ -68,28 +68,29 @@ typedef struct {
     double positionActual;
     double positionError;
     double positionTarget;
-    int64_t positionRaw;
     double cntrlError;
     double cntrlOutput;
     double velocityActual;
     double velocitySetpoint;
-    int velocitySetpointRaw;
     double velocityFFRaw;
+    int64_t positionRaw;
     int   error;
+    int velocitySetpointRaw;
+    int seqState;
+    int cmdData;
+    motionCommandTypes command;
+    interlockTypes trajInterlock;
+    dataSource trajSource;
+    dataSource encSource;
     bool enable;
     bool enabled;
     bool execute;
     bool busy;
-    int seqState;
     bool atTarget;
-    interlockTypes trajInterlock;
+    bool homed;
     bool limitFwd;
     bool limitBwd;
     bool homeSwitch;
-    motionCommandTypes command;
-    int cmdData;
-    dataSource trajSource;
-    dataSource encSource;
 } ecmcAxisStatusOnChangeType;
 
 

@@ -25,7 +25,7 @@ void ecmcDataRecorder::initVars()
   index_=0;
   data_=0;
   inStartupPhase_=1;
-  execute_=false;
+  enable_=false;
   axisData_=NULL;
   axisDataTypeToRecord_=ECMC_RECORDER_AXIS_DATA_NONE;
   dataSource_=ECMC_RECORDER_SOURCE_NONE;
@@ -65,9 +65,10 @@ int ecmcDataRecorder::validate()
   return setErrorID(0);
 }
 
-int ecmcDataRecorder::setExecute(int execute)
+int ecmcDataRecorder::setEnable(int enable)
 {
-  execute_=execute;
+  enable_=enable;
+  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Enable set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_);
   validate();
   return 0;
 }
@@ -96,7 +97,7 @@ int ecmcDataRecorder::executeEvent(int masterOK)
     setInStartupPhase(false);
   }
 
-  if(getError() || !execute_){
+  if(getError() || !enable_){
     return getErrorID();
   }
 
@@ -119,13 +120,14 @@ int ecmcDataRecorder::setAxisDataSource(ecmcAxisStatusType *axisData,ecmcAxisDat
 {
   axisData_=axisData;
   axisDataTypeToRecord_=dataToStore;
-
+  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Axis data type set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,axisDataTypeToRecord_);
   return 0;
 }
 
 int ecmcDataRecorder::setDataSourceType(ecmcDataSourceType type)
 {
   dataSource_=type;
+  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Data source set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,dataSource_);
   return 0;
 }
 
@@ -175,20 +177,26 @@ int ecmcDataRecorder::getAxisData(double *data)
     case ECMC_RECORDER_AXIS_DATA_NONE:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_AXIS_DATA_TYPE_NOT_CHOOSEN);
       break;
+    case ECMC_RECORDER_AXIS_DATA_AXIS_ID:
+      *data=(double)axisData_->axisID;
+      break;
     case ECMC_RECORDER_AXIS_DATA_POS_SET:
       *data=axisData_->onChangeData.positionSetpoint;
       break;
     case ECMC_RECORDER_AXIS_DATA_POS_ACT:
       *data=axisData_->onChangeData.positionActual;
       break;
-    case ECMC_RECORDER_AXIS_DATA_POS_ERROR:
-      *data=axisData_->onChangeData.positionError;
+    case ECMC_RECORDER_AXIS_DATA_CNTRL_ERROR:
+      *data=axisData_->onChangeData.cntrlError;
       break;
     case ECMC_RECORDER_AXIS_DATA_POS_TARGET:
       *data=axisData_->onChangeData.positionTarget;
       break;
-    case ECMC_RECORDER_AXIS_DATA_CNTRL_ERROR:
-      *data=axisData_->onChangeData.cntrlError;
+    case ECMC_RECORDER_AXIS_DATA_POS_ERROR:
+      *data=axisData_->onChangeData.positionError;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_RAW:
+      *data=(double)axisData_->onChangeData.positionRaw;
       break;
     case ECMC_RECORDER_AXIS_DATA_CNTRL_OUT:
       *data=axisData_->onChangeData.cntrlOutput;
@@ -199,14 +207,35 @@ int ecmcDataRecorder::getAxisData(double *data)
     case ECMC_RECORDER_AXIS_DATA_VEL_ACT:
       *data=axisData_->onChangeData.velocityActual;
       break;
-    case ECMC_RECORDER_AXIS_DATA_VEL_SET_RAW:
-      *data=(double)axisData_->onChangeData.velocitySetpointRaw;
-      break;
     case ECMC_RECORDER_AXIS_DATA_VEL_SET_FF_RAW:
       *data=axisData_->onChangeData.velocityFFRaw;
       break;
+    case ECMC_RECORDER_AXIS_DATA_VEL_SET_RAW:
+      *data=(double)axisData_->onChangeData.velocitySetpointRaw;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_CYCLE_COUNTER:
+      *data=(double)axisData_->cycleCounter;
+      break;
     case ECMC_RECORDER_AXIS_DATA_ERROR:
       *data=(double)axisData_->onChangeData.error;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_COMMAND:
+      *data=(double)axisData_->onChangeData.command;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_CMD_DATA:
+      *data=(double)axisData_->onChangeData.cmdData;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_SEQ_STATE:
+      *data=(double)axisData_->onChangeData.seqState;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_INTERLOCK_TYPE:
+      *data=(double)axisData_->onChangeData.trajInterlock;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_TRAJ_SOURCE:
+      *data=(double)axisData_->onChangeData.trajSource;
+      break;
+    case ECMC_RECORDER_AXIS_DATA_ENC_SOURCE:
+      *data=(double)axisData_->onChangeData.encSource;
       break;
     case ECMC_RECORDER_AXIS_DATA_ENABLE:
       *data=(double)axisData_->onChangeData.enable;
@@ -220,44 +249,20 @@ int ecmcDataRecorder::getAxisData(double *data)
     case ECMC_RECORDER_AXIS_DATA_BUSY:
       *data=(double)axisData_->onChangeData.busy;
       break;
-    case ECMC_RECORDER_AXIS_DATA_SEQ_STATE:
-      *data=(double)axisData_->onChangeData.seqState;
-      break;
     case ECMC_RECORDER_AXIS_DATA_AT_TARGET:
       *data=(double)axisData_->onChangeData.atTarget;
       break;
-    case ECMC_RECORDER_AXIS_DATA_INTERLOCK_TYPE:
-      *data=(double)axisData_->onChangeData.trajInterlock;
-      break;
-    case ECMC_RECORDER_AXIS_DATA_LIMIT_FWD:
-      *data=(double)axisData_->onChangeData.limitFwd;
+    case ECMC_RECORDER_AXIS_DATA_HOMED:
+      *data=(double)axisData_->onChangeData.homed;
       break;
     case ECMC_RECORDER_AXIS_DATA_LIMIT_BWD:
       *data=(double)axisData_->onChangeData.limitBwd;
       break;
+    case ECMC_RECORDER_AXIS_DATA_LIMIT_FWD:
+      *data=(double)axisData_->onChangeData.limitFwd;
+      break;
     case ECMC_RECORDER_AXIS_DATA_HOME_SWITCH:
       *data=(double)axisData_->onChangeData.homeSwitch;
-      break;
-    case ECMC_RECORDER_AXIS_DATA_COMMAND:
-      *data=(double)axisData_->onChangeData.command;
-      break;
-    case ECMC_RECORDER_AXIS_DATA_CMD_DATA:
-      *data=(double)axisData_->onChangeData.cmdData;
-      break;
-    case ECMC_RECORDER_AXIS_DATA_TRAJ_SOURCE:
-      *data=(double)axisData_->onChangeData.trajSource;
-      break;
-    case ECMC_RECORDER_AXIS_DATA_ENC_SOURCE:
-      *data=(double)axisData_->onChangeData.encSource;
-      break;
-    case ECMC_RECORDER_AXIS_DATA_AXIS_ID:
-      *data=(double)axisData_->axisID;
-      break;
-    case ECMC_RECORDER_AXIS_DATA_CYCLE_COUNTER:
-      *data=(double)axisData_->cycleCounter;
-      break;
-    case ECMC_RECORDER_AXIS_DATA_POS_RAW:
-      *data=(double)axisData_->onChangeData.positionRaw;
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_RECORDER_AXIS_DATA_TYPE_NOT_CHOOSEN);

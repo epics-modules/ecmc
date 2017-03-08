@@ -21,7 +21,7 @@ ecmcEvent::~ecmcEvent()
 
 void ecmcEvent::initVars()
 {
-  execute_=false;
+  enable_=false;
   eventType_=ECMC_SAMPLED;
   sampleTime_=1;
   triggerOld_=0;
@@ -44,28 +44,32 @@ void ecmcEvent::initVars()
 int ecmcEvent::setEventType(eventType type)
 {
   eventType_=type;
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Event type set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,eventType_);
   int errorCode=validate();
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
+
   return 0;
 }
 
 int ecmcEvent::setTriggerEdge(triggerEdgeType triggerEdge)
 {
   triggerEdge_=triggerEdge;
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Trigger edge set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,triggerEdge_);
   return 0;
 }
 
-int ecmcEvent::setExecute(int execute)
+int ecmcEvent::setEnable(int enable)
 {
-  if(!execute_  && execute){
+  if(!enable_  && enable){
     int errorCode=validate();
     if(errorCode){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
     }
   }
-  execute_=execute;
+  enable_=enable;
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Enable set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_);
   return 0;
 }
 
@@ -75,6 +79,7 @@ int ecmcEvent::setDataSampleTime(int sampleTime)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_INVALID_SAMPLE_TIME);
   }
   dataSampleTime_=sampleTime;
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Sampling time set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,dataSampleTime_);
   return 0;
 }
 
@@ -98,7 +103,7 @@ int ecmcEvent::execute(int masterOK)
     return getErrorID();
   }
 
-  if(!execute_){
+  if(!enable_){
     return 0;
   }
 
@@ -226,6 +231,8 @@ int ecmcEvent::armSequence()
 int ecmcEvent::setEnableArmSequence(int enable)
 {
   enableArmSequence_=enable;
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Enable arm sequence set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enableArmSequence_);
+
   validate();
   return 0;
 }
@@ -267,6 +274,7 @@ int ecmcEvent::linkEventConsumer(ecmcEventConsumer *consumer,int index)
 
 int ecmcEvent::triggerEvent(int masterOK)
 {
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Trigger event.\n",__FILE__, __FUNCTION__, __LINE__,index_);
   return callConsumers(masterOK);
 }
 
@@ -275,6 +283,7 @@ int ecmcEvent::arm()
   if(!enableArmSequence_){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ARM_NOT_ENABLED);
   }
+  LOGINFO10("%s/%s:%d: INFO: Event %d. Arm sequence started.\n",__FILE__, __FUNCTION__, __LINE__,index_);
   armSequence();
   return 0;
 }

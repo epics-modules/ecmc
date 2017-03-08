@@ -847,7 +847,7 @@ void ecmcAxisBase::printAxisStatus()
 
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\n Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta L- L+ Ho\n");
+    LOGINFO("\n Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
@@ -866,7 +866,7 @@ void ecmcAxisBase::printAxisStatus()
        statusData_.onChangeData.velocitySetpointRaw,
        statusData_.onChangeData.error);
 
-   LOGINFO("%2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d\n",
+   LOGINFO("%2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
        statusData_.onChangeData.command,
        statusData_.onChangeData.cmdData,
        statusData_.onChangeData.seqState,
@@ -878,6 +878,7 @@ void ecmcAxisBase::printAxisStatus()
        statusData_.onChangeData.execute,
        statusData_.onChangeData.busy,
        statusData_.onChangeData.atTarget,
+       statusData_.onChangeData.homed,
        statusData_.onChangeData.limitBwd,
        statusData_.onChangeData.limitFwd,
        statusData_.onChangeData.homeSwitch);

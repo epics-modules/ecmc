@@ -34,7 +34,7 @@ class ecmcCommandList : public ecmcEventConsumer, public ecmcError
 public:
   ecmcCommandList (int index);
   ~ecmcCommandList ();
-  int setExecute(int execute);
+  int setEnable(int enable);
   int validate();
   int executeEvent(int masterOK);//Override ecmcEventConsumer
   int addCommand(std::string command);
@@ -45,7 +45,7 @@ private:
   void printStatus();
   std::vector<std::string> commandList_;
   int commandCounter_;
-  int execute_;
+  int enable_;
   int index_;
   ecmcOutputBufferType resultBuffer_;
 };

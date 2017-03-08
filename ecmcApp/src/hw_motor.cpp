@@ -682,14 +682,16 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
   if(error){
     return error;
   }
+
   //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
-  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
        data.axisID,
        data.onChangeData.positionSetpoint,
        data.onChangeData.positionActual,
        data.onChangeData.cntrlError,
        data.onChangeData.positionTarget,
        data.onChangeData.positionError,
+       data.onChangeData.positionRaw,
        data.onChangeData.cntrlOutput,
        data.onChangeData.velocitySetpoint,
        data.onChangeData.velocityActual,
@@ -708,8 +710,9 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
        data.onChangeData.execute,
        data.onChangeData.busy,
        data.onChangeData.atTarget,
-       data.onChangeData.limitFwd,
+       data.onChangeData.homed,
        data.onChangeData.limitBwd,
+       data.onChangeData.limitFwd,
        data.onChangeData.homeSwitch
        );
 
@@ -2645,13 +2648,13 @@ int setEventSampleTime(int indexEvent,int sampleTime)
   return events[indexEvent]->setDataSampleTime(sampleTime);
 }
 
-int setEventExecute(int indexEvent,int execute)
+int setEventEnable(int indexEvent,int enable)
 {
-  LOGINFO4("%s/%s:%d indexEvent=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, execute);
+  LOGINFO4("%s/%s:%d indexEvent=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, enable);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  return events[indexEvent]->setExecute(execute);
+  return events[indexEvent]->setEnable(enable);
 }
 
 int clearStorage(int indexStorage)
@@ -2843,13 +2846,13 @@ int setRecorderEnablePrintouts(int indexRecorder,int enable)
   return 0;
 }
 
-int setRecorderExecute(int indexRecorder,int execute)
+int setRecorderEnable(int indexRecorder,int enable)
 {
-  LOGINFO4("%s/%s:%d indexRecorder=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, execute);
+  LOGINFO4("%s/%s:%d indexRecorder=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, enable);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  return dataRecorders[indexRecorder]->setExecute(execute);
+  return dataRecorders[indexRecorder]->setEnable(enable);
 }
 
 int linkRecorderToEvent(int indexRecorder,int indexEvent, int consumerIndex)
@@ -3000,13 +3003,13 @@ int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerInde
   return events[indexEvent]->linkEventConsumer(commandLists[indexCommandList],consumerIndex);
 }
 
-int setCommandListExecute(int indexCommandList,int execute)
+int setCommandListEnable(int indexCommandList,int enable)
 {
-  LOGINFO4("%s/%s:%d indexCommandList=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList, execute);
+  LOGINFO4("%s/%s:%d indexCommandList=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList, enable);
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
 
-  return commandLists[indexCommandList]->setExecute(execute);
+  return commandLists[indexCommandList]->setEnable(enable);
 }
 
 int setCommandListEnablePrintouts(int indexCommandList,int enable)
