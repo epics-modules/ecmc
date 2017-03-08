@@ -128,7 +128,7 @@ $(pv_value)</tooltip>
           <exp bool_exp="pv0==1">
             <value>External Source</value>
           </exp>
-          <pv trig="true">epics://Motor$(AxisId):GetEncSourceType.VAL</pv>
+          <pv trig="true">epics://$(P)$(R)GetEncSourceType.VAL</pv>
         </rule>
       </rules>
       <enabled>true</enabled>
@@ -164,14 +164,14 @@ $(pv_value)</tooltip>
       </foreground_color>
       <actions hook="false" hook_all="false">
         <action type="WRITE_PV">
-          <pv_name>epics://Motor$(AxisId):SetEncSourceType.VAL</pv_name>
+          <pv_name>epics://$(P)$(R)SetEncSourceType.VAL</pv_name>
           <value>0</value>
           <timeout>10</timeout>
           <confirm_message></confirm_message>
           <description>Internal</description>
         </action>
         <action type="WRITE_PV">
-          <pv_name>epics://Motor$(AxisId):SetEncSourceType.VAL</pv_name>
+          <pv_name>epics://$(P)$(R)SetEncSourceType.VAL</pv_name>
           <value>1</value>
           <timeout>10</timeout>
           <confirm_message></confirm_message>
@@ -198,7 +198,7 @@ $(pv_value)</tooltip>
       <multiline_input>false</multiline_input>
       <border_width>1</border_width>
       <visible>true</visible>
-      <pv_name>Motor$(AxisId):SetEncExpr</pv_name>
+      <pv_name>$(P)$(R)SetEncExpr</pv_name>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -256,7 +256,7 @@ $(pv_value)</tooltip>
       <multiline_input>false</multiline_input>
       <border_width>1</border_width>
       <visible>true</visible>
-      <pv_name>Motor$(AxisId):GetEncExpr</pv_name>
+      <pv_name>$(P)$(R)GetEncExpr</pv_name>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -4123,7 +4123,7 @@ $(pv_value)</tooltip>
       <multiline_input>false</multiline_input>
       <border_width>1</border_width>
       <visible>true</visible>
-      <pv_name>Motor$(AxisId):SetTrajExpr</pv_name>
+      <pv_name>$(P)$(R)SetTrajExpr</pv_name>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -4180,7 +4180,7 @@ $(pv_value)</tooltip>
           <exp bool_exp="pv0==1">
             <value>External Source</value>
           </exp>
-          <pv trig="true">epics://Motor$(AxisId):GetTrajSourceType.VAL</pv>
+          <pv trig="true">epics://$(P)$(R)GetTrajSourceType.VAL</pv>
         </rule>
       </rules>
       <enabled>true</enabled>
@@ -4216,14 +4216,14 @@ $(pv_value)</tooltip>
       </foreground_color>
       <actions hook="false" hook_all="false">
         <action type="WRITE_PV">
-          <pv_name>epics://Motor$(AxisId):SetTrajSourceType.VAL</pv_name>
+          <pv_name>epics://$(P)$(R)SetTrajSourceType.VAL</pv_name>
           <value>0</value>
           <timeout>10</timeout>
           <confirm_message></confirm_message>
           <description>Internal</description>
         </action>
         <action type="WRITE_PV">
-          <pv_name>epics://Motor$(AxisId):SetTrajSourceType.VAL</pv_name>
+          <pv_name>epics://$(P)$(R)SetTrajSourceType.VAL</pv_name>
           <value>1</value>
           <timeout>10</timeout>
           <confirm_message></confirm_message>
@@ -4250,7 +4250,7 @@ $(pv_value)</tooltip>
       <multiline_input>false</multiline_input>
       <border_width>1</border_width>
       <visible>true</visible>
-      <pv_name>Motor$(AxisId):GetTrajExpr</pv_name>
+      <pv_name>$(P)$(R)GetTrajExpr</pv_name>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -4389,7 +4389,7 @@ $(pv_value)</tooltip>
           <exp bool_exp="pv0==1">
             <value>Ext. Cmd: Enabled</value>
           </exp>
-          <pv trig="true">epics://Motor$(AxisId):GetEnableCommandFromOtherAxis.VAL</pv>
+          <pv trig="true">epics://$(P)$(R)GetEnableCommandFromOtherAxis.VAL</pv>
         </rule>
       </rules>
       <enabled>true</enabled>
@@ -4425,14 +4425,14 @@ $(pv_value)</tooltip>
       </foreground_color>
       <actions hook="false" hook_all="false">
         <action type="WRITE_PV">
-          <pv_name>epics://Motor$(AxisId):SetEnableCommandFromOtherAxis.VAL</pv_name>
+          <pv_name>epics://$(P)$(R)SetEnableCommandFromOtherAxis.VAL</pv_name>
           <value>0</value>
           <timeout>10</timeout>
           <confirm_message></confirm_message>
           <description>Disable</description>
         </action>
         <action type="WRITE_PV">
-          <pv_name>epics://Motor$(AxisId):SetEnableCommandFromOtherAxis.VAL</pv_name>
+          <pv_name>epics://$(P)$(R)SetEnableCommandFromOtherAxis.VAL</pv_name>
           <value>1</value>
           <timeout>10</timeout>
           <confirm_message></confirm_message>
@@ -4459,7 +4459,7 @@ $(pv_value)</tooltip>
       <multiline_input>false</multiline_input>
       <border_width>1</border_width>
       <visible>true</visible>
-      <pv_name>Motor$(AxisId):SetCmdExpr</pv_name>
+      <pv_name>$(P)$(R)SetCmdExpr</pv_name>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -4516,7 +4516,7 @@ $(pv_value)</tooltip>
           <exp bool_exp="pv0==1">
             <value>Expression Enabled</value>
           </exp>
-          <pv trig="true">epics://Motor$(AxisId):GetEnableCommandsTransform.VAL</pv>
+          <pv trig="true">epics://$(P)$(R)GetEnableCommandsTransform.VAL</pv>
         </rule>
       </rules>
       <enabled>true</enabled>
@@ -4552,14 +4552,14 @@ $(pv_value)</tooltip>
       </foreground_color>
       <actions hook="false" hook_all="false">
         <action type="WRITE_PV">
-          <pv_name>epics://Motor$(AxisId):SetEnableCommandsTransform.VAL</pv_name>
+          <pv_name>epics://$(P)$(R)SetEnableCommandsTransform.VAL</pv_name>
           <value>0</value>
           <timeout>10</timeout>
           <confirm_message></confirm_message>
           <description>Disable</description>
         </action>
         <action type="WRITE_PV">
-          <pv_name>epics://Motor$(AxisId):SetEnableCommandsTransform.VAL</pv_name>
+          <pv_name>epics://$(P)$(R)SetEnableCommandsTransform.VAL</pv_name>
           <value>1</value>
           <timeout>10</timeout>
           <confirm_message></confirm_message>
@@ -4586,7 +4586,7 @@ $(pv_value)</tooltip>
       <multiline_input>false</multiline_input>
       <border_width>1</border_width>
       <visible>true</visible>
-      <pv_name>Motor$(AxisId):GetCmdExpr</pv_name>
+      <pv_name>$(P)$(R)GetCmdExpr</pv_name>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>

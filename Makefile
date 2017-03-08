@@ -51,6 +51,7 @@ TEMPLATES = \
   ecmcApp/Db/DUT_AxisStatus_v0_01.db \
   ecmcApp/Db/FB_DriveVirtual_v1_01.db \
   ecmcApp/Db/expression.db \
+  ecmcApp/Db/expressionAR.db \
   ecmcApp/Db/ethercat.db \
 
 
