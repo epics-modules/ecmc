@@ -29,6 +29,8 @@
 #define ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK 0x14C13
 #define ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED 0x14C14
 
+#define ECMC_MON_SWITCHES_FILTER_CYCLES 5
+
 class ecmcMonitor : public ecmcEcEntryLink
 {
 public:
@@ -87,7 +89,6 @@ public:
   bool getEnableSoftLimitFwd();
   bool getAtSoftLimitBwd();
   bool getAtSoftLimitFwd();
-  //stopMode checkInterlocks();
 private:
   int checkLimits();
   int checkAtTarget();
@@ -95,7 +96,7 @@ private:
   int checkMaxVelocity();
   int checkVelocityDiff();
   int checkCntrlMaxOutput();
-  //int setSummaryInterlocks();
+  int filterSwitches();
 
   bool   enable_;
   double atTargetTol_;           //Tolnoerance for reached target. Example 0.1 deg
@@ -117,7 +118,6 @@ private:
   int    maxVelTrajILDelay_;
   bool   enableHardwareInterlock_;
   double cntrlOutputHL_;
-  //double cntrlOutputOld_;
   bool enableCntrlHLMon_;
   bool enableVelocityDiffMon_;
   int velocityDiffCounter_;
@@ -126,7 +126,12 @@ private:
   double velDiffMaxDiff_;
   double enableAlarmAtHardlimitBwd_;
   double enableAlarmAtHardlimitFwd_;
-  //double currSetPosOld_;
   ecmcAxisData* data_;
+
+  int switchFilterCounter_;
+  bool limitFwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
+  bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
+  bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
+
 };
 #endif

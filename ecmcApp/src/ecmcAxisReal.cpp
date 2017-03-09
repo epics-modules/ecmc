@@ -16,12 +16,16 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   currentDriveType_=ECMC_STEPPER;
   drv_=new ecmcDriveStepper(&data_);
   if(!drv_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
+    exit(EXIT_FAILURE);
   }
 
   cntrl_=new ecmcPIDController(&data_,data_.sampleTime_);
   if(!cntrl_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR PID-CONTROLLER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_CNTRL_OBJECT_NULL);
+    exit(EXIT_FAILURE);
   }
 
   seq_.setCntrl(cntrl_);
@@ -53,6 +57,7 @@ void ecmcAxisReal::execute(bool masterOK)
     if((externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL)){
       data_.status_.currentPositionSetpoint=traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint=traj_->getVel();
+
     }
     else{ //External source (Transform)
       data_.status_.currentPositionSetpoint=data_.status_.externalTrajectoryPosition;
@@ -72,6 +77,7 @@ void ecmcAxisReal::execute(bool masterOK)
     }
 
     traj_->setStartPos(data_.status_.currentPositionSetpoint);
+
     seq_.execute();
     mon_->execute();
 
@@ -82,6 +88,7 @@ void ecmcAxisReal::execute(bool masterOK)
         traj_->setStartPos(data_.status_.currentPositionActual);
         traj_->initStopRamp(data_.status_.currentPositionActual,data_.status_.currentVelocityActual,0);
       }
+      statusData_.onChangeData.trajSource=ECMC_DATA_SOURCE_INTERNAL; //Temporary
       data_.status_.currentPositionSetpoint=traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint=traj_->getVel();
     }
@@ -94,16 +101,27 @@ void ecmcAxisReal::execute(bool masterOK)
     }
 
     if(getEnabled() && masterOK){
+      double cntrOutput=0;
+      if(mon_->getEnableAtTargetMon() && !data_.status_.busy){ //Controller deadband
+	cntrl_->reset();
+	cntrOutput=0;
+      }
+      else{
+	cntrOutput=cntrl_->control(data_.status_.currentPositionSetpoint,data_.status_.currentPositionActual,data_.status_.currentVelocitySetpoint);
+      }
       mon_->setEnable(true);
-      drv_->setVelSet(cntrl_->control(data_.status_.currentPositionSetpoint,data_.status_.currentPositionActual,data_.status_.currentVelocitySetpoint)); //Actual control
+      drv_->setVelSet(cntrOutput); //Actual control
     }
     else{
       mon_->setEnable(false);
       if(getExecute()){
 	setExecute(false);
       }
-      data_.status_.currentPositionSetpoint=data_.status_.currentPositionActual;
-      traj_->setStartPos(data_.status_.currentPositionSetpoint);
+
+      if(!getEnable()){  //Only update if enable cmd is low to avoid change of setpoint during between enable and enabled
+        data_.status_.currentPositionSetpoint=data_.status_.currentPositionActual;
+        traj_->setStartPos(data_.status_.currentPositionSetpoint);
+      }
 
       if(data_.status_.enabledOld && !data_.status_.enabled && data_.status_.enableOld){
 	  setEnable(false);
@@ -165,16 +183,6 @@ int ecmcAxisReal::setEnable(bool enable)
   return setEnable_Transform();
 }
 
-bool ecmcAxisReal::getEnable()
-{
-  return data_.command_.enable;
-}
-
-bool ecmcAxisReal::getEnabled()
-{
-  return data_.status_.enabled && data_.command_.enable;
-}
-
 int ecmcAxisReal::setOpMode(operationMode mode)
 {
   if(mode==ECMC_MODE_OP_MAN){
@@ -206,35 +214,35 @@ ecmcDriveBase *ecmcAxisReal::getDrv()
   return drv_;
 }
 
-void ecmcAxisReal::printStatus()
+void ecmcAxisReal::refreshDebugInfoStruct()
 {
-  printOutData_.atTarget=data_.status_.atTarget;
-  printOutData_.axisID=data_.axisId_;
-  printOutData_.busy=data_.status_.busy;
-  printOutData_.cntrlError=data_.status_.cntrlError;
-  printOutData_.cntrlOutput=data_.status_.cntrlOutput;
-  printOutData_.enable=getEnabled();
-  printOutData_.error=getErrorID();
-  printOutData_.execute=getExecute();
-  printOutData_.homeSwitch=data_.status_.homeSwitch;
-  printOutData_.limitBwd=data_.status_.limitBwd;
-  printOutData_.limitFwd=data_.status_.limitFwd;
-  printOutData_.positionActual=data_.status_.currentPositionActual;
-  printOutData_.positionError=data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
-  printOutData_.positionSetpoint=data_.status_.currentPositionSetpoint;
-  printOutData_.seqState=seq_.getSeqState();
-  printOutData_.trajInterlock=data_.interlocks_.interlockStatus;
-  printOutData_.velocityActual=data_.status_.currentVelocityActual;
-  printOutData_.velocitySetpoint=data_.status_.currentVelocitySetpoint;
-  printOutData_.velocitySetpointRaw=data_.status_.currentVelocitySetpointRaw;
-  printOutData_.velocityFFRaw=data_.status_.currentvelocityFFRaw;
-
-  if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))!=0){
-    printAxisStatus(printOutData_);
-  }
-
-  printOutDataOld_=printOutData_;
-  return;
+  statusData_.onChangeData.atTarget=data_.status_.atTarget;
+  statusData_.axisID=data_.axisId_;
+  statusData_.cycleCounter=cycleCounter_;
+  statusData_.onChangeData.busy=data_.status_.busy;
+  statusData_.onChangeData.cntrlError=data_.status_.cntrlError;
+  statusData_.onChangeData.cntrlOutput=data_.status_.cntrlOutput;
+  statusData_.onChangeData.enable=data_.command_.enable;
+  statusData_.onChangeData.enabled=getEnabled();
+  statusData_.onChangeData.error=getErrorID();
+  statusData_.onChangeData.execute=getExecute();
+  statusData_.onChangeData.homeSwitch=data_.status_.homeSwitch;
+  statusData_.onChangeData.limitBwd=data_.status_.limitBwd;
+  statusData_.onChangeData.limitFwd=data_.status_.limitFwd;
+  statusData_.onChangeData.positionActual=data_.status_.currentPositionActual;
+  statusData_.onChangeData.positionError=data_.status_.currentTargetPosition-data_.status_.currentPositionActual;
+  statusData_.onChangeData.positionSetpoint=data_.status_.currentPositionSetpoint;
+  statusData_.onChangeData.positionTarget=data_.status_.currentTargetPosition;
+  statusData_.onChangeData.seqState=seq_.getSeqState();
+  statusData_.onChangeData.trajInterlock=data_.interlocks_.interlockStatus;
+  statusData_.onChangeData.velocityActual=data_.status_.currentVelocityActual;
+  statusData_.onChangeData.velocitySetpoint=data_.status_.currentVelocitySetpoint;
+  statusData_.onChangeData.velocitySetpointRaw=data_.status_.currentVelocitySetpointRaw;
+  statusData_.onChangeData.velocityFFRaw=data_.status_.currentvelocityFFRaw;
+  statusData_.onChangeData.cmdData=data_.command_.cmdData;
+  statusData_.onChangeData.command=data_.command_.command;
+  statusData_.onChangeData.positionRaw=enc_->getRawPos();
+  statusData_.onChangeData.homed=enc_->getHomed();
 }
 
 int ecmcAxisReal::validate()
@@ -307,11 +315,21 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
     case ECMC_STEPPER:
       delete drv_;
       drv_ =new ecmcDriveStepper(&data_);
+      if(!drv_){
+        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
+        exit(EXIT_FAILURE);
+      }
       currentDriveType_=ECMC_STEPPER;
       break;
     case ECMC_DS402:
       delete drv_;
       drv_ =new ecmcDriveDS402(&data_);
+      if(!drv_){
+        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
+        exit(EXIT_FAILURE);
+      }
       currentDriveType_=ECMC_DS402;
       break;
     default:

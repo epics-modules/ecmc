@@ -1,8 +1,6 @@
-require asyn
+require asyn,4.27.0
 require streamdevice
-require axis,10.0.1
 require ecmc
-#require ecmc
 
 
 ## Configure devices

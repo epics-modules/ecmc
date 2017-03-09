@@ -188,6 +188,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x1431C:
       return "ERROR_AXIS_BUSY";
       break;
+    case 0x1431D:
+      return "ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL";
+      break;
+    case 0x1431E:
+      return "ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
@@ -268,6 +274,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x1440B:
       return "ERROR_ENC_SLAVE_INTERFACE_NULL";
+      break;
+    case 0x1440C:
+      return "ERROR_ENC_VELOCITY_FILTER_NULL";
       break;
     case 0x14C00://MONITOR
       return "ERROR_MON_ASSIGN_ENTRY_FAILED";
@@ -367,6 +376,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14D0B:
       return "ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL";
+      break;
+    case 0x14D0C:
+      return "ERROR_SEQ_NO_HOME_SWITCH_FLANK";
+      break;
+    case 0x14D0D:
+      return "ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK";
       break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";
@@ -808,6 +823,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20104:
       return "ERROR_DATA_RECORDER_HARDWARE_STATUS_NOT_OK";
+      break;
+    case 0x20105:
+      return "ERROR_DATA_RECORDER_NO_DATA_SOURCE_CHOOSEN";
+      break;
+    case 0x20106:
+      return "ERROR_DATA_RECORDER_AXIS_DATA_NULL";
+      break;
+    case 0x20107:
+      return "ERROR_DATA_RECORDER_AXIS_DATA_TYPE_NOT_CHOOSEN";
       break;
     case 0x20200: //Data storage
       return "ERROR_DATA_STORAGE_FULL";

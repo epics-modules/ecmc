@@ -1,0 +1,112 @@
+
+record(bo,"$(Name)-SetEncSourceType"){
+	field(DTYP,"stream")
+	field(OUT,"@expression.proto setEncSourceType($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+
+record(bi,"$(Name)-GetEncSourceType"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto getEncSourceType($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+        field(SCAN, "1 second")
+}
+
+
+record(bo,"$(Name)-SetTrajSourceType"){
+	field(DTYP,"stream")
+	field(OUT,"@expression.proto setTrajSourceType($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+
+record(bi,"$(Name)-GetTrajSourceType"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto getTrajSourceType($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+        field(SCAN, "1 second")
+}
+
+record(bo,"$(Name)-SetEnableCommandsTransform"){
+	field(DTYP,"stream")
+	field(OUT,"@expression.proto setEnableCommandsTransform($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+
+record(bi,"$(Name)-GetEnableCommandsTransform"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto getEnableCommandsTransform($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+        field(SCAN, "1 second")
+}
+
+record(bo,"$(Name)-SetEnableCommandFromOtherAxis"){
+	field(DTYP,"stream")
+	field(OUT,"@expression.proto setEnableCommandFromOtherAxis($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+
+record(bi,"$(Name)-GetEnableCommandFromOtherAxis"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto getEnableCommandFromOtherAxis($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+        field(SCAN, "1 second")
+}
+
+record(waveform,"$(Name)-GetTrajExpr"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto getTrajTransExpr($(Index)) $(PORT)")
+        field(SCAN, "1 second")
+	field(NELM,1000)
+        field (FTVL, "CHAR")
+}
+
+record(waveform,"$(Name)-SetTrajExpr"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto setTrajTransExpr($(Index)) $(PORT)")
+	field(NELM,1000)
+        field (FTVL, "CHAR")
+}
+
+record(waveform,"$(Name)-GetEncExpr"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto getEncTransExpr($(Index)) $(PORT)")
+        field(SCAN, "1 second")
+	field(NELM,1000)
+        field (FTVL, "CHAR")
+}
+
+record(waveform,"$(Name)-SetEncExpr"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto setEncTransExpr($(Index)) $(PORT)")
+	field(NELM,1000)
+        field (FTVL, "CHAR")
+}
+
+record(waveform,"$(Name)-GetCmdExpr"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto getCommandTransExpr($(Index)) $(PORT)")
+        field(SCAN, "1 second")
+	field(NELM,1000)
+        field (FTVL, "CHAR")
+}
+
+record(waveform,"$(Name)-SetCmdExpr"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto setCommandTransExpr($(Index)) $(PORT)")
+	field(NELM,1000)
+        field (FTVL, "CHAR")
+}
+
+record(ai,"$(Name)-GetAxisType"){
+	field(DTYP,"stream")
+	field(INP,"@expression.proto getAxisType($(Index)) $(PORT)")
+	field(SCAN,"1 second")
+}

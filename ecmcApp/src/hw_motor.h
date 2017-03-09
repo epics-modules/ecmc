@@ -8,7 +8,7 @@
  * \author Anders Sandström
  * \contact anders.sandstrom@esss.se
  */
-
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <string.h>
 
@@ -156,6 +156,20 @@ int getAxisErrorID(int axisIndex);
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
 const char *getErrorString(int errorNumber);
+
+/** \breif Get axis execution cycle counter.\n
+ * Can be used for checking that logic for an axis object is
+ * executing.\n
+ *
+ * \param[in] axisIndex Axis index.\n
+ * \param[out] counter Execution cycle counter.\n
+ *
+ * \return  error code.\n
+ * \note The counter can overflow.
+ * \note Example: Get cycle counter of axis 3.\n
+ * "GetAxisCycleCounter(3)" //Command string to cmd_EAT.c.\n
+  */
+int getAxisCycleCounter(int axisIndex,int *counter);
 
 /** \breif Get axis debug information string.\n
  *
@@ -672,7 +686,8 @@ int getAxisEncScaleDenom(int axisIndex,double *value);
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: No command string implemented in the cmd_EAT.c parser.\n
+ * \note Example: Get raw encoder value for axis 3.\n
+ * "GetAxisEncPosRaw(3)" //Command string to cmd_EAT.c.\n
  */
 int getAxisEncPosRaw(int axisIndex,int64_t *value);
 
@@ -2382,20 +2397,20 @@ int setEventSampleTime(int indexEvent,int sampleTime);
  */
 int setEventTriggerEdge(int indexEvent,int triggerEdge);
 
-/** \breif Set event execute.\n
+/** \breif Enable event.\n
  *
- * Event evaluation and triggering is only active when the execute bit is
+ * Event evaluation and triggering is only active when the enable bit is
  * high.\n
  *
  * \param[in] indexEvent Index of event to address.\n
- * \param[in] execute Execute.\n
+ * \param[in] enable Enable.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Start evaluation of events for event object 4 .\n
- *  "Cfg.SetEventExecute(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEventEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setEventExecute(int indexEvent,int execute);
+int setEventEnable(int indexEvent,int enable);
 
 /** \breif Enable arm sequence.\n
  *
@@ -2601,7 +2616,7 @@ int createRecorder(int indexRecorder);
  */
 int linkStorageToRecorder(int indexStorage,int indexRecorder);
 
-/** \breif Links an EtherCAT entry to an recorder object. \n
+/** \breif Links an EtherCAT entry to a recorder object. \n
  *
  *  \param[in] indexRecorder Index of recorder object to link to.\n
  *  \param[in] recorderEntryIndex Index of recorder objects entry list.\n
@@ -2629,19 +2644,67 @@ int linkStorageToRecorder(int indexStorage,int indexRecorder);
  */
 int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveBusPosition,char *entryIDString,int bitIndex);
 
-/** \breif Set recorder execute.\n
+/** \breif Links an axis data source to a recorder object. \n
  *
- * Recording of data is only active when the execute bit is high.\n
+ *  \param[in] indexRecorder Index of recorder object to link to.\n
+ *  \param[in] axisIndex Index of axis to get data from.\n
+ *  \param[in] dataToStore data to record from axis object.\n
+ *    dataToStore = 0 : No data choosen.\n
+ *    dataToStore = 1 : Position Setpoint (from trajectory generator).\n
+ *    dataToStore = 2 : Position Actual (scaled).\n
+ *    dataToStore = 3 : Position Error.\n
+ *    dataToStore = 4 : Position Target.\n
+ *    dataToStore = 5 : Controller Error.\n
+ *    dataToStore = 6 : Controller Output.\n
+ *    dataToStore = 7 : Velocity Setpoint.\n
+ *    dataToStore = 8 : Velocity Actual.\n
+ *    dataToStore = 9 : Velocity Setpoint Raw.\n
+ *    dataToStore = 10: Velocity Setpoint Feed Forward Raw.\n
+ *    dataToStore = 11: Error Code.\n
+ *    dataToStore = 12: Enable (command).\n
+ *    dataToStore = 13: Enabled (status).\n
+ *    dataToStore = 14: Execute (command).\n
+ *    dataToStore = 15: Busy (status).\n
+ *    dataToStore = 16: Sequence state.\n
+ *    dataToStore = 17: At Target (status).\n
+ *    dataToStore = 18: Interlock type.\n
+ *    dataToStore = 19: Limit Switch forward.\n
+ *    dataToStore = 20: Limit Switch backward.\n
+ *    dataToStore = 21: Home switch.\n
+ *    dataToStore = 22: Command.\n
+ *    dataToStore = 23: Command Data (cmdData).\n
+ *    dataToStore = 24: Trajectory setpoint source.\n
+ *          0  = Internal Source.\n
+ *          >0 = External Source.\n
+ *    dataToStore = 25: Encoder setpoint source.\n
+ *          0  = Internal Source.\n
+ *          >0 = External Source.\n
+ *    dataToStore = 26: Axis Id.\n
+ *    dataToStore = 27: Cycle counter.\n
+ *    dataToStore = 28: Position Raw.\n
+ *    dataToStore = 29: Encoder homed.\n
+
+ * \return 0 if success or otherwise an error code.\n
+ *
+ *  \note Example 1: Link Actual position of axis 4 to recorder 1:.\n
+ *  in slave 1 as data for recorder object 7.\n
+ *  "Cfg.linkAxisDataToRecorder(1,4,2)" //Command string to cmd_EAT.c\n
+ */
+int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore);
+
+/** \breif Enable recorder.\n
+ *
+ * Recording of data is only active when the enable bit is high.\n
  *
  * \param[in] indexRecorder Index of recorder to address.\n
- * \param[in] execute Execute.\n
+ * \param[in] enable Enable.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Start data recording of recorder object 4.\n
- *  "Cfg.SetRecorderExecute(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetRecorderEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setRecorderExecute(int indexRecorder,int execute);
+int setRecorderEnable(int indexRecorder,int enable);
 
 /** \breif Enable diagnostic printouts from recorder object.\n
  *
@@ -2718,19 +2781,19 @@ int createCommandList(int indexCommandList);
  */
 int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerIndex);
 
-/** \breif Set command list execute.\n
+/** \breif Enable command list.\n
  *
- * Command list will only be executed when the execute bit is high.\n
+ * Command list will only be executed when the enable bit is high.\n
  *
  * \param[in] indexCommandList Index of command list to address.\n
- * \param[in] execute Execute.\n
+ * \param[in] enable Enable.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: "Enable" command list execution for object 4.\n
- *  "Cfg.SetCommandListExecute(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetCommandListEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setCommandListExecute(int indexCommandList,int execute);
+int setCommandListEnable(int indexCommandList,int enable);
 
 /** \breif Enable diagnostic printouts from command list object.\n
  *

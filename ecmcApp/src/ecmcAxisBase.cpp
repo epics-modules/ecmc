@@ -16,28 +16,48 @@ ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime)
   data_.command_.operationModeCmd=ECMC_MODE_OP_AUTO;
 
   commandTransform_=new ecmcCommandTransform(2,ECMC_MAX_AXES);  //currently two commands
+  if(!commandTransform_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR COMMAND-TRANSFORM OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MASTER_AXIS_TRANSFORM_NULL);
+    exit(EXIT_FAILURE);
+  }
+
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,ECMC_CMD_TYPE_EXECUTE);
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,ECMC_CMD_TYPE_ENABLE);
 
   externalInputTrajectoryIF_=new ecmcMasterSlaveIF(data_.axisId_,ECMC_TRAJECTORY_INTERFACE,data_.sampleTime_);
+  if(!externalInputTrajectoryIF_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRAJECTORY-EXTERNAL-INPUT-INTERFACE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL);
+    exit(EXIT_FAILURE);
+  }
+
   externalInputEncoderIF_=new ecmcMasterSlaveIF(data_.axisId_,ECMC_ENCODER_INTERFACE,data_.sampleTime_);
+  if(!externalInputEncoderIF_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR ENCODER-EXTERNAL-INPUT_INTERFACE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL);
+    exit(EXIT_FAILURE);
+  }
 
   enc_=new ecmcEncoder(&data_,data_.sampleTime_);
   if(!enc_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR ENCODER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ENC_OBJECT_NULL);
-    return;
+    exit(EXIT_FAILURE);
   }
 
   traj_=new ecmcTrajectoryTrapetz(&data_,data_.sampleTime_);
   if(!traj_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRAJECTORY OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_OBJECT_NULL);
-    return;
+    exit(EXIT_FAILURE);
   }
 
   mon_ =new ecmcMonitor(&data_);
   if(!mon_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR MONITOR OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MON_OBJECT_NULL);
-    return;
+    exit(EXIT_FAILURE);
   }
 
   seq_.setAxisDataRef(&data_);
@@ -62,29 +82,74 @@ ecmcAxisBase::~ecmcAxisBase()
 
 void ecmcAxisBase::preExecute(bool masterOK)
 {
+
   data_.interlocks_.etherCatMasterInterlock=!masterOK;
   data_.refreshInterlocks();
 
-  data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
-  if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
-    data_.status_.busy=seq_.getBusy();
-  }
-  else{
-    data_.status_.busy=true;
-  }
+  statusData_.onChangeData.trajSource=externalInputTrajectoryIF_->getDataSourceType();
+  statusData_.onChangeData.encSource=externalInputEncoderIF_->getDataSourceType();
 
-  if(data_.status_.inStartupPhase && masterOK){
-    //Auto reset hardware error if starting up
-    if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
-      errorReset();
-    }
-    setInStartupPhase(false);
-  }
-  mon_->readEntries();
   if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     enc_->readEntries();
   }
 
+  //Axis state machine
+  switch(axisState_){
+    case ECMC_AXIS_STATE_STARTUP:
+      setEnable(false);
+      data_.status_.busy=false;
+      data_.status_.distToStop=0;
+      if(data_.status_.inStartupPhase && masterOK){
+        //Auto reset hardware error if starting up
+        if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+          errorReset();
+        }
+        setInStartupPhase(false);
+        LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_STARTUP->ECMC_AXIS_STATE_DISABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+        axisState_=ECMC_AXIS_STATE_DISABLED;
+      }
+      break;
+    case ECMC_AXIS_STATE_DISABLED:
+      data_.status_.busy=false;
+      data_.status_.distToStop=0;
+      if(data_.status_.enabled){
+	LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_ENABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+	axisState_=ECMC_AXIS_STATE_ENABLED;
+      }
+      if(!masterOK){
+	LOGERR("Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
+	axisState_=ECMC_AXIS_STATE_STARTUP;
+      }
+
+      break;
+    case ECMC_AXIS_STATE_ENABLED:
+      data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
+      if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
+
+        if(mon_->getEnableAtTargetMon()){
+          data_.status_.busy=seq_.getBusy() || !data_.status_.atTarget;
+        }
+        else{
+          data_.status_.busy=seq_.getBusy();
+        }
+        data_.status_.currentTargetPosition=traj_->getTargetPos();
+      }
+      else{ //Synchronized to other axis
+        data_.status_.busy=true;
+        data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
+      }
+      if(!data_.status_.enabled){
+	LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_DISABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+	axisState_=ECMC_AXIS_STATE_DISABLED;
+      }
+      if(!masterOK){
+	LOGERR("Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
+	axisState_=ECMC_AXIS_STATE_STARTUP;
+      }
+
+      break;
+  }
+  mon_->readEntries();
   refreshExternalInputSources();
 }
 
@@ -95,6 +160,8 @@ void ecmcAxisBase::postExecute(bool masterOK)
   data_.status_.executeOld=getExecute();
   data_.status_.currentPositionSetpointOld=data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld=data_.status_.cntrlOutput;
+  cycleCounter_++;
+  refreshDebugInfoStruct();
 }
 
 axisType ecmcAxisBase::getAxisType()
@@ -165,12 +232,14 @@ void ecmcAxisBase::initVars()
   data_.status_.currentVelocitySetpoint=0;
 
   data_.sampleTime_=1/1000;
-  memset(&printOutData_,0,sizeof(printOutData_));
-  memset(&printOutDataOld_,0,sizeof(printOutDataOld_));
+  memset(&statusData_,0,sizeof(statusData_));
+  memset(&statusDataOld_,0,sizeof(statusDataOld_));
   printHeaderCounter_=0;
   data_.status_.enabledOld=false;
   data_.status_.enableOld=false;
   data_.status_.executeOld=false;
+  cycleCounter_=0;
+  axisState_=ECMC_AXIS_STATE_STARTUP;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -269,7 +338,6 @@ int ecmcAxisBase::setCommandsTransformExpression(std::string expression)
 
 int ecmcAxisBase::setEnable_Transform()
 {
-
   if(checkAxesForEnabledTransfromCommands(ECMC_CMD_TYPE_ENABLE) && enableCommandTransform_){  //Atleast one axis have enabled getting execute from transform
     if(!commandTransform_->getCompiled()){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED);
@@ -538,11 +606,14 @@ int ecmcAxisBase::getErrorID()
 
 int ecmcAxisBase::setEnableLocal(bool enable)
 {
-
   ecmcTrajectoryTrapetz *traj =getTraj();
   if(traj){
-    data_.status_.currentPositionSetpoint=data_.status_.currentPositionActual;
-    traj->setStartPos(data_.status_.currentPositionSetpoint);
+    if(enable && !data_.command_.enable){
+      traj_->setStartPos(data_.status_.currentPositionActual);
+      traj_->setCurrentPosSet(data_.status_.currentPositionActual);
+      traj_->setTargetPos(data_.status_.currentPositionActual);
+      data_.status_.currentTargetPosition=data_.status_.currentPositionActual;
+    }
     traj->setEnable(enable);
   }
 
@@ -765,38 +836,52 @@ int ecmcAxisBase::getCmdData()
   return seq_.getCmdData();
 }
 
-void ecmcAxisBase::printAxisStatus(ecmcAxisStatusPrintOutType data)
+void ecmcAxisBase::printAxisStatus()
 {
+
+  if(memcmp(&statusDataOld_.onChangeData,&statusData_.onChangeData,sizeof(statusData_.onChangeData))==0){
+    return;  //Printout on change
+  }
+
+  statusDataOld_=statusData_;
+
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\nAxis\tPos set\t\tPos act\t\tPos err\t\tCntrl out\tDist left\tVelAct\t\tVelFF\t\tVelFFraw\tVelDrvRaw\tError\tEn Ex Bu St Ta IL L+ L- Ho\n");
+    LOGINFO("\n Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
 
-  LOGINFO("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%i\t\t%x",
-       data.axisID,
-       data.positionSetpoint,
-       data.positionActual,
-       data.cntrlError,
-       data.cntrlOutput,
-       data.positionError,
-       data.velocityActual,
-       data.velocitySetpoint,
-       data.velocityFFRaw,
-       data.velocitySetpointRaw,
-       data.error);
+  LOGINFO("%3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x ",
+       statusData_.axisID,
+       statusData_.onChangeData.positionSetpoint,
+       statusData_.onChangeData.positionActual,
+       statusData_.onChangeData.cntrlError,
+       statusData_.onChangeData.positionTarget,
+       statusData_.onChangeData.positionError,
+       statusData_.onChangeData.cntrlOutput,
+       statusData_.onChangeData.velocitySetpoint,
+       statusData_.onChangeData.velocityActual,
+       statusData_.onChangeData.velocityFFRaw,
+       statusData_.onChangeData.velocitySetpointRaw,
+       statusData_.onChangeData.error);
 
-   LOGINFO("\t%d  %d  %d  %d  %d  %d  %d  %d  %d\n",
-       data.enable,
-       data.execute,
-       data.busy,
-       data.seqState,
-       data.atTarget,
-       data.trajInterlock,
-       data.limitFwd,
-       data.limitBwd,
-       data.homeSwitch);
+   LOGINFO("%2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
+       statusData_.onChangeData.command,
+       statusData_.onChangeData.cmdData,
+       statusData_.onChangeData.seqState,
+       statusData_.onChangeData.trajInterlock,
+       statusData_.onChangeData.trajSource,
+       statusData_.onChangeData.encSource,
+       statusData_.onChangeData.enable,
+       statusData_.onChangeData.enabled,
+       statusData_.onChangeData.execute,
+       statusData_.onChangeData.busy,
+       statusData_.onChangeData.atTarget,
+       statusData_.onChangeData.homed,
+       statusData_.onChangeData.limitBwd,
+       statusData_.onChangeData.limitFwd,
+       statusData_.onChangeData.homeSwitch);
 }
 
 int ecmcAxisBase::setExecute(bool execute)
@@ -816,6 +901,7 @@ int ecmcAxisBase::setExecute(bool execute)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
   }
+
   return setExecute_Transform();
 }
 
@@ -831,15 +917,36 @@ bool ecmcAxisBase::getExecute()
 
 bool ecmcAxisBase::getBusy()
 {
-  return data_.status_.busy /*&& data_.status_.enabled*/;
+  return data_.status_.busy;
 }
 
-int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusPrintOutType *data)
+int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusType *data)
 {
   if(data==NULL){
     return ERROR_AXIS_DATA_POINTER_NULL;
   }
 
-  memcpy(data,&printOutData_,sizeof(*data));
+  memcpy(data,&statusData_,sizeof(*data));
   return 0;
+}
+
+ecmcAxisStatusType *ecmcAxisBase::getDebugInfoDataPointer()
+{
+  return &statusData_;
+}
+
+int ecmcAxisBase::getCycleCounter()
+{
+  /// Use for watchdog purpose (will overflow)
+  return cycleCounter_;
+}
+
+bool ecmcAxisBase::getEnable()
+{
+  return data_.command_.enable;
+}
+
+bool ecmcAxisBase::getEnabled()
+{
+  return data_.status_.enabled && data_.command_.enable;
 }

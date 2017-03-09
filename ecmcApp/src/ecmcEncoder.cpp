@@ -12,6 +12,11 @@ ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,double sampleTime) : ecmcEcEntry
   initVars();
   data_=axisData;
   velocityFilter_=new ecmcFilter(sampleTime);
+  if(!velocityFilter_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VELOCITY-FILTER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_VELOCITY_FILTER_NULL);
+    exit(EXIT_FAILURE);
+  }
 }
 
 ecmcEncoder::~ecmcEncoder()

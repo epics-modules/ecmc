@@ -131,12 +131,12 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
                                      int *iValue)
 {
   /// @todo This command needs to be removed. Not supported.
-  if (group_no == 0x3040010 && offset_in_group == 0x80000049) {
+  /*if (group_no == 0x3040010 && offset_in_group == 0x80000049) {
     int64_t iTemp=0;
     int iRet=getAxisEncPosRaw(1,&iTemp); //Why hardcoded 1??
     *iValue=(int)iTemp;
     return iRet;
-  }
+  }*/
 
   if (group_no >= 0x5000 && group_no < 0x6000) {
     int motor_axis_no = (int)group_no - 0x5000;
@@ -1070,10 +1070,10 @@ static int handleCfgCommand(const char *myarg_1){
      return setEventSampleTime(iValue,iValue2);
    }
 
-   /*int Cfg.SetEventExecute(int indexEvent,int execute);*/
-   nvals = sscanf(myarg_1, "SetEventExecute(%d,%d)", &iValue,&iValue2);
+   /*int Cfg.SetEventEnable(int indexEvent,int execute);*/
+   nvals = sscanf(myarg_1, "SetEventEnable(%d,%d)", &iValue,&iValue2);
    if (nvals == 2) {
-     return setEventExecute(iValue,iValue2);
+     return setEventEnable(iValue,iValue2);
    }
 
    /*int Cfg.ClearStorage(int indexStorage);*/
@@ -1130,10 +1130,16 @@ static int handleCfgCommand(const char *myarg_1){
      return linkEcEntryToRecorder(iValue,iValue2,iValue3,cIdBuffer,iValue4);
    }
 
-   /*int Cfg.SetRecorderExecute(int indexRecorder,int execute);*/
-   nvals = sscanf(myarg_1, "SetRecorderExecute(%d,%d)", &iValue,&iValue2);
+   /*Cfg.LinkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToTypeStore)*/
+   nvals = sscanf(myarg_1, "LinkAxisDataToRecorder(%d,%d,%d)", &iValue,&iValue2,&iValue3);
+   if (nvals == 3) {
+     return linkAxisDataToRecorder(iValue,iValue2,iValue3);
+   }
+
+   /*int Cfg.SetRecorderEnable(int indexRecorder,int execute);*/
+   nvals = sscanf(myarg_1, "SetRecorderEnable(%d,%d)", &iValue,&iValue2);
    if (nvals == 2) {
-     return setRecorderExecute(iValue,iValue2);
+     return setRecorderEnable(iValue,iValue2);
    }
 
    /*int Cfg.SetRecorderEnablePrintouts(int indexRecorder,int enable);*/
@@ -1166,10 +1172,10 @@ static int handleCfgCommand(const char *myarg_1){
      return linkCommandListToEvent(iValue,iValue2,iValue3);
    }
 
-   /*int Cfg.SetCommandListExecute(int indexCommandList,int execute);*/
-   nvals = sscanf(myarg_1, "SetCommandListExecute(%d,%d)", &iValue,&iValue2);
+   /*int Cfg.SetCommandListEnable(int indexCommandList,int enable);*/
+   nvals = sscanf(myarg_1, "SetCommandListEnable(%d,%d)", &iValue,&iValue2);
    if (nvals == 2) {
-     return setCommandListExecute(iValue,iValue2);
+     return setCommandListEnable(iValue,iValue2);
    }
 
    /*int Cfg.SetCommandListEnablePrintouts(int indexCommandList,int enable);*/
@@ -1287,6 +1293,12 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisOpMode(motor_axis_no,&iValue));
   }
 
+  /*GetAxisCycleCounter(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisCycleCounter(%d)",&motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisCycleCounter(motor_axis_no,&iValue));
+  }
+
   /*GetAxisType(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisType(%d)",&motor_axis_no);
   if (nvals == 1) {
@@ -1394,7 +1406,8 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
         retBuf[i]=TRANSFORM_EXPR_LINE_END_CHAR;
       }
     }
-    cmd_buf_printf(buffer,"%s",retBuf);
+
+    cmd_buf_printf(buffer,"%",retBuf);
     free(retBuf);
     return 0;
   }
@@ -1402,6 +1415,19 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   /* GetControllerError()*/
   if (!strcmp(myarg_1, "GetControllerError()")) {
     cmd_buf_printf(buffer,"%d", getControllerError());
+    return 0;
+  }
+
+  /*GetAxisEncPosRaw(int axisIndex)*/
+  nvals = sscanf(myarg_1, "GetAxisEncPosRaw(%d)", &iValue);
+  if (nvals == 1) {
+    int64_t iTemp;
+    int error=getAxisEncPosRaw(iValue,&iTemp);
+    if(error){
+      cmd_buf_printf(buffer,"Error: %d", error);
+      return 0;
+    }
+    cmd_buf_printf(buffer,"%" PRId64 ,iTemp);
     return 0;
   }
 
@@ -1469,11 +1495,13 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
       cmd_buf_printf(buffer,"Error: %d", error);
       return 0;
     }
-
+    //LOGINFO("%s/%s:%d. Data storage buffer copied to cmd_EAT (buffer size in ecmc= %d)\n",__FILE__,__FUNCTION__,__LINE__,size);
+    //LOGINFO("%s/%s:%d. ecmcOutputBufferType buffer size %d.\n",__FILE__,__FUNCTION__,__LINE__,buffer->bufferSize);
     if(!bufferdata){
       cmd_buf_printf(buffer,"Error: %d", CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL);
       return 0;
     }
+
 
     //Write ascii array delimited with ','
     cmd_buf_printf(buffer,"ReadDataStorage(%d)=",iValue);
@@ -1487,9 +1515,11 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 	cmd_buf_printf(buffer,"%lf",bufferdata[i]); //No comma for last entry
       }
     }
+    //LOGINFO("%s/%s:%d. Wrote %d values to command buffer.\n",__FILE__,__FUNCTION__,__LINE__,i);
     return 0;
   }
 
+  //LOGINFO("%s/%s:%d. ecmcOutputBufferType buffer size left %d and used bytes %d.\n",__FILE__,__FUNCTION__,__LINE__,buffer->bufferSize-buffer->bytesUsed,buffer->bytesUsed);
   /*int WriteStorageBuffer(int axisIndex)=0,0,0,0*/
   nvals = sscanf(myarg_1, "WriteDataStorage(%d)=", &iValue);
   if (nvals == 1) {
@@ -1502,6 +1532,8 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   if (nvals == 1) {
     SEND_OK_OR_ERROR_AND_RETURN(appendAsciiDataToStorageBuffer(iValue,myarg_1));
   }
+
+
 
   /* Main.*/
   if (!strncmp(myarg_1, Main_dot_str, strlen(Main_dot_str))) {
@@ -1534,6 +1566,13 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     iValue=getAxisError(motor_axis_no);
     cmd_buf_printf(buffer,"%d", iValue);
     return 0;
+  }
+
+  /* nErrorId? */
+  if (!strcmp(myarg_1, "nErrorId?")) {
+      iValue=getAxisErrorID(motor_axis_no);
+      cmd_buf_printf(buffer,"%d", iValue);
+      return 0;
   }
 
   /* bEnable? */
@@ -1712,7 +1751,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     cmd_buf_printf(buffer,"Main.M%d.stAxisStatus="
         "%d,%d,%d,%u,%u,%g,%g,%g,%g,%d,"
         "%d,%d,%d,%g,%d,%d,%d,%u,%g,%g,%g,%d,%d",
-        motor_axis_no,
+        motor_axis_no,  /*  0 */
         bEnable,        /*  1 */
         bReset,         /*  2 */
         bExecute,       /*  3 */
@@ -1735,7 +1774,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
         fActPostion,    /* 20 */
         fActDiff,       /* 21 */
         bHomed,         /* 22 */
-        bBusy );
+        bBusy );        /* 23 */
     return 0;
   }
   /* sErrorMessage?  */

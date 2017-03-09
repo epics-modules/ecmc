@@ -10,24 +10,16 @@
 ecmcDataStorage::ecmcDataStorage (int index)
 {
   initVars();
-  buffer_=new double[ECMC_DEFAULT_DATA_STORAGE_SIZE];
+  setBufferSize(ECMC_DEFAULT_DATA_STORAGE_SIZE);
   index_=index;
-  if(buffer_==NULL){
-    LOGINFO9("%s/%s:%d: ERROR: Data storage %d. Buffer allocation failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_DATA_STORAGE_NULL);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
-  }
 }
 
 ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
 {
   initVars();
+  setBufferSize(size);
   bufferElementCount_=size;
-  buffer_=new double[size];
   index_=index;
-  if(buffer_==NULL){
-    LOGINFO9("%s/%s:%d: ERROR: Data storage %d. Buffer allocation failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,index_,ERROR_DATA_STORAGE_NULL);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
-  }
   bufferType_=bufferType;
 }
 
@@ -60,11 +52,16 @@ int ecmcDataStorage::setBufferSize(int elements)
 {
   delete buffer_;
   bufferElementCount_=elements;
-  buffer_=new double[bufferElementCount_];
+  buffer_=new double[elements];
+  if(buffer_==NULL){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_NULL);
+    exit(EXIT_FAILURE);
+  }
   return 0;
 }
 
-int ecmcDataStorage::isStorgeFull()
+int ecmcDataStorage::isStorageFull()
 {
   return currentBufferIndex_==bufferElementCount_;
 }

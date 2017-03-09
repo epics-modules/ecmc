@@ -31,6 +31,7 @@ typedef struct {
   double externalEncoderInterlock;
   double currentPositionActual;
   double currentPositionSetpoint;
+  double currentTargetPosition;
   double currentPositionSetpointOld;
   double currentVelocityActual;
   double currentVelocitySetpoint;
@@ -49,7 +50,10 @@ typedef struct {
   bool atTarget;
   bool limitFwd;
   bool limitBwd;
+  bool limitFwdFiltered;
+  bool limitBwdFiltered;
   bool homeSwitch;
+  bool homeSwitchFiltered;
   bool inStartupPhase;
   bool inRealtime;
   double distToStop;

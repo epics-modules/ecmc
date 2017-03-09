@@ -22,6 +22,7 @@ ecmcAxisVirt::~ecmcAxisVirt()
 void ecmcAxisVirt::initVars()
 {
   initDone_=false;
+  temporaryLocalTrajSource_=false;
 }
 
 void ecmcAxisVirt::execute(bool masterOK)
@@ -59,10 +60,17 @@ void ecmcAxisVirt::execute(bool masterOK)
 
     //Switch to internal trajectory if interlock temporary
     if(data_.interlocks_.trajSummaryInterlock && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
-      traj_->setStartPos(data_.status_.currentPositionActual);
-      traj_->initStopRamp(data_.status_.currentPositionActual,data_.status_.currentVelocityActual,0);
+      if(!temporaryLocalTrajSource_){//Initiate rampdown
+	temporaryLocalTrajSource_=true;
+	traj_->setStartPos(data_.status_.currentPositionActual);
+	traj_->initStopRamp(data_.status_.currentPositionActual,data_.status_.currentVelocityActual,0);
+      }
+      statusData_.onChangeData.trajSource=ECMC_DATA_SOURCE_INTERNAL;  //Temporary
       data_.status_.currentPositionSetpoint=traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint=traj_->getVel();
+    }
+    else{
+      temporaryLocalTrajSource_=false;
     }
 
     if(getEnabled() && masterOK && !getError()){
@@ -89,7 +97,10 @@ void ecmcAxisVirt::execute(bool masterOK)
     refreshExternalOutputSources();
   }
 
+  //No drive object so update needed variables
   data_.status_.currentvelocityFFRaw=0;
+  data_.status_.enabled=data_.command_.enable;
+
   ecmcAxisBase::postExecute(masterOK);
 }
 
@@ -110,16 +121,6 @@ int ecmcAxisVirt::setEnable(bool enable)
   }
   //Cascade commands via command transformation
   return setEnable_Transform();
-}
-
-bool ecmcAxisVirt::getEnable()
-{
-  return traj_->getEnable();
-}
-
-bool ecmcAxisVirt::getEnabled()
-{
-  return getEnable();
 }
 
 int ecmcAxisVirt::setOpMode(operationMode mode)
@@ -150,35 +151,33 @@ ecmcDriveBase *ecmcAxisVirt::getDrv()
   return NULL;
 }
 
-void ecmcAxisVirt::printStatus()
+void ecmcAxisVirt::refreshDebugInfoStruct()
 {
-  printOutData_.atTarget=mon_->getAtTarget();
-  printOutData_.axisID=data_.axisId_;
-  printOutData_.busy=data_.status_.busy;
-  printOutData_.cntrlError=0;
-  printOutData_.cntrlOutput=0;
-  printOutData_.enable=getEnabled();
-  printOutData_.error=getErrorID();
-  printOutData_.execute=getExecute();
-  printOutData_.homeSwitch=data_.status_.homeSwitch;
-  printOutData_.limitBwd=data_.status_.limitBwd;
-  printOutData_.limitFwd=data_.status_.limitFwd;
-  printOutData_.positionActual=data_.status_.currentPositionActual;
-  printOutData_.positionError=data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
-  printOutData_.positionSetpoint=data_.status_.currentPositionSetpoint;
-  printOutData_.seqState=seq_.getSeqState();
-  printOutData_.trajInterlock=data_.interlocks_.interlockStatus;
-  printOutData_.velocityActual=data_.status_.currentVelocityActual;
-  printOutData_.velocitySetpoint=data_.status_.currentVelocitySetpoint;
-  printOutData_.velocitySetpointRaw=0;
-  printOutData_.velocityFFRaw=0;
-
-  if(memcmp(&printOutDataOld_,&printOutData_,sizeof(printOutData_))!=0){
-    printAxisStatus(printOutData_);
-  }
-
-  printOutDataOld_=printOutData_;
-  return;
+  statusData_.onChangeData.atTarget=mon_->getAtTarget();
+  statusData_.axisID=data_.axisId_;
+  statusData_.cycleCounter=cycleCounter_;
+  statusData_.onChangeData.busy=data_.status_.busy;
+  statusData_.onChangeData.cntrlError=0;
+  statusData_.onChangeData.cntrlOutput=0;
+  statusData_.onChangeData.enable=data_.command_.enable;
+  statusData_.onChangeData.enabled=getEnabled();
+  statusData_.onChangeData.error=getErrorID();
+  statusData_.onChangeData.execute=getExecute();
+  statusData_.onChangeData.homeSwitch=data_.status_.homeSwitch;
+  statusData_.onChangeData.limitBwd=data_.status_.limitBwd;
+  statusData_.onChangeData.limitFwd=data_.status_.limitFwd;
+  statusData_.onChangeData.positionActual=data_.status_.currentPositionActual;
+  statusData_.onChangeData.positionError=data_.status_.currentTargetPosition-data_.status_.currentPositionActual;
+  statusData_.onChangeData.positionSetpoint=data_.status_.currentPositionSetpoint;
+  statusData_.onChangeData.positionTarget=data_.status_.currentTargetPosition;
+  statusData_.onChangeData.seqState=seq_.getSeqState();
+  statusData_.onChangeData.trajInterlock=data_.interlocks_.interlockStatus;
+  statusData_.onChangeData.velocityActual=data_.status_.currentVelocityActual;
+  statusData_.onChangeData.velocitySetpoint=data_.status_.currentVelocitySetpoint;
+  statusData_.onChangeData.velocitySetpointRaw=0;
+  statusData_.onChangeData.velocityFFRaw=0;
+  statusData_.onChangeData.positionRaw=enc_->getRawPos();
+  statusData_.onChangeData.homed=enc_->getHomed();
 }
 
 int ecmcAxisVirt::validate()

@@ -28,6 +28,8 @@
 #define ERROR_SEQ_CMD_UNDEFINED 0x14D09
 #define ERROR_SEQ_CMD_DATA_UNDEFINED 0x14D0A
 #define ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL 0x14D0B
+#define ERROR_SEQ_NO_HOME_SWITCH_FLANK 0x14D0C
+#define ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK 0x14D0D
 
 class ecmcSequencer : public ecmcError
 {
@@ -58,6 +60,7 @@ public:
   void setHomePosition(double pos);
   double getHomePosition();
   void setTargetPos(double pos);
+  void setTargetPos(double pos, bool force);
   double getTargetPos();
   void setTargetVel(double velTarget);
   double getTargetVel();

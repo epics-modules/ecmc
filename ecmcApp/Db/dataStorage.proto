@@ -1,0 +1,20 @@
+
+LockTimeout = 5000;
+WriteTimeout = 100;
+ReplyTimeout = 1000;
+ReadTimeout = 100;
+#Terminator = LF;
+
+clearDataStorage{
+	out "Cfg.ClearStorage(\$1)";
+	in "OK";	
+}
+
+getDataStorageData{
+	out "ReadDataStorage(\$1)";
+	separator=",";
+	in "ReadDataStorage(\$1)=%f";
+}
+
+
+

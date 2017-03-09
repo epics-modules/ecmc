@@ -48,6 +48,11 @@ void ecmcMonitor::initVars()
   velDiffTimeTraj_=100;
   velDiffTimeDrive_=100;
   velDiffMaxDiff_=0;
+
+  switchFilterCounter_=0;
+  memset(&limitFwdFilterBuffer_,0,sizeof(limitFwdFilterBuffer_));
+  memset(&limitBwdFilterBuffer_,0,sizeof(limitBwdFilterBuffer_));
+  memset(&homeFilterBuffer_,0,sizeof(homeFilterBuffer_));
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -103,6 +108,7 @@ bool ecmcMonitor::getHardLimitBwd()
 
 void ecmcMonitor::setAtTargetTol(double tol)
 {
+  LOGINFO("SETTING AT TARGET TOLERANCE TO %lf.\n", atTargetTol_);
   atTargetTol_=tol;
 }
 
@@ -200,6 +206,9 @@ void ecmcMonitor::readEntries(){
     return;
   }
   data_->status_.homeSwitch=tempRaw>0;
+
+  //Refresh filtered switches
+  filterSwitches();
 
   if(enableHardwareInterlock_){
     if(readEcEntryValue(3,&tempRaw)){
@@ -372,13 +381,6 @@ int ecmcMonitor::setSoftLimitFwd(double limit)
 
 int ecmcMonitor::checkLimits()
 {
-  //Unexpected limit switch behavior (falling edge while running towards other limit switch)
-  /*data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock=(hardBwdOld_ && !data_->status_.limitBwd && data_->status_.currentVelocitySetpoint>0)
-      || (hardFwdOld_ && !data_->status_.limitFwd && data_->status_.currentVelocitySetpoint<0);
-  if(data_->interlocks_.unexpectedLimitSwitchBehaviourInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK,ECMC_SEVERITY_NORMAL);
-  }*/
-
   hardBwdOld_=data_->status_.limitBwd;
   hardFwdOld_=data_->status_.limitFwd;
 
@@ -411,8 +413,8 @@ int ecmcMonitor::checkLimits()
   }
 
   //Bwd soft limit switch
-  bool virtSoftlimitBwd=(data_->status_.currentPositionSetpoint<=data_->command_.softLimitBwd)
-      && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld);
+  bool virtSoftlimitBwd=(data_->status_.currentPositionSetpoint < data_->command_.softLimitBwd)
+      && (/*data_->status_.currentVelocitySetpoint<0 ||*/ data_->status_.currentPositionSetpoint < data_->status_.currentPositionSetpointOld);
   if(virtSoftlimitBwd && data_->status_.busy && data_->command_.enableSoftLimitBwd){
     data_->interlocks_.bwdSoftLimitInterlock=true;
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
@@ -421,18 +423,8 @@ int ecmcMonitor::checkLimits()
     data_->interlocks_.bwdSoftLimitInterlock=false;
   }
 
-/*  //Soft fwd limit
-  data_->interlocks_.bwdSoftLimitInterlock=data_->command_.enableSoftLimitBwd
-      && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint < data_->status_.currentPositionSetpointOld)
-      && (data_->status_.currentPositionActual-data_->command_.softLimitBwd<=data_->status_.distToStop)
-      && (data_->status_.busy);
-
-  if(data_->interlocks_.bwdSoftLimitInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
-  }*/
-
-  bool virtSoftlimitFwd=(data_->status_.currentPositionSetpoint>=data_->command_.softLimitFwd)
-      && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld);
+  bool virtSoftlimitFwd=(data_->status_.currentPositionSetpoint > data_->command_.softLimitFwd)
+      && (/*data_->status_.currentVelocitySetpoint>0||*/ data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld);
   //Fwd soft limit switch
   if(virtSoftlimitFwd && data_->status_.busy && data_->command_.enableSoftLimitFwd){
     data_->interlocks_.fwdSoftLimitInterlock=true;
@@ -441,24 +433,14 @@ int ecmcMonitor::checkLimits()
   else{
     data_->interlocks_.fwdSoftLimitInterlock=false;
   }
-
- /* //Soft fwd limit
-  data_->interlocks_.fwdSoftLimitInterlock=data_->command_.enableSoftLimitFwd
-      && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint > data_->status_.currentPositionSetpointOld)
-      && (data_->command_.softLimitFwd-data_->status_.currentPositionActual<=data_->status_.distToStop)
-      && (data_->status_.busy);
-  if(data_->interlocks_.fwdSoftLimitInterlock){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
-  }*/
-
   return 0;
 }
 
 int ecmcMonitor::checkAtTarget()
 {
   bool atTarget=false;
-  if(enableAtTargetMon_){
-    if(std::abs(data_->command_.positionTarget-data_->status_.currentPositionActual)<atTargetTol_){
+  if(enableAtTargetMon_ && data_->status_.enabled){
+    if(std::abs(data_->status_.currentTargetPosition-data_->status_.currentPositionActual)<atTargetTol_){
       if (atTargetCounter_<=atTargetTime_){
         atTargetCounter_++;
       }
@@ -628,3 +610,30 @@ int ecmcMonitor::setVelDiffMaxDifference(double velo)
   velDiffMaxDiff_=std::abs(velo);
   return 0;
 }
+
+int ecmcMonitor::filterSwitches()
+{
+  //Simple filtering of switches (average of last cycles)
+  if(switchFilterCounter_>=ECMC_MON_SWITCHES_FILTER_CYCLES){
+    switchFilterCounter_=0;
+  }
+  limitFwdFilterBuffer_[switchFilterCounter_]=data_->status_.limitFwd;
+  limitBwdFilterBuffer_[switchFilterCounter_]=data_->status_.limitBwd;
+  homeFilterBuffer_[switchFilterCounter_]=data_->status_.homeSwitch;
+
+  int limFwdSum=0;
+  int limBwdSum=0;
+  int limHomeSum=0;
+  for(int i=0;i< ECMC_MON_SWITCHES_FILTER_CYCLES;i++){
+    limFwdSum=limFwdSum+limitFwdFilterBuffer_[i];
+    limBwdSum=limBwdSum+limitBwdFilterBuffer_[i];
+    limHomeSum=limHomeSum+homeFilterBuffer_[i];
+  }
+  data_->status_.limitFwdFiltered=limFwdSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
+  data_->status_.limitBwdFiltered=limBwdSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
+  data_->status_.homeSwitch=limHomeSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
+
+  switchFilterCounter_++;
+  return 0;
+}
+

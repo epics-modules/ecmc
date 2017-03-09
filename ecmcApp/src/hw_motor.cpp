@@ -92,7 +92,7 @@ void printStatus()
   //Print axis diagnostics to screen
   if(PRINT_STDOUT_BIT12() && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
     if(axes[axisDiagIndex]!=NULL){
-      axes[axisDiagIndex]->printStatus();
+      axes[axisDiagIndex]->printAxisStatus();
     }
   }
 }
@@ -651,7 +651,7 @@ int getAxisErrorID(int axisIndex)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getErrorID();
 }
@@ -663,38 +663,57 @@ const char *getErrorString(int error_number)
   return ecmcError::convertErrorIdToString(error_number);
 }
 
+int getAxisCycleCounter(int axisIndex,int *counter)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  *counter=axes[axisIndex]->getCycleCounter();
+  return 0;
+}
+
 int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  ecmcAxisStatusPrintOutType data;
+  ecmcAxisStatusType data;
   int error=axes[axisIndex]->getDebugInfoData(&data);
   if(error){
     return error;
   }
 
-  int ret=snprintf(buffer,bufferByteSize,"%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-       data.positionSetpoint,
-       data.positionActual,
-       data.cntrlError,
-       data.cntrlOutput,
-       data.positionError,
-       data.velocityActual,
-       data.velocitySetpoint,
-       data.velocityFFRaw,
-       data.velocitySetpointRaw,
-       data.error,
-       data.enable,
-       data.execute,
-       data.busy,
-       data.seqState,
-       data.atTarget,
-       data.trajInterlock,
-       data.limitFwd,
-       data.limitBwd,
-       data.homeSwitch
+  //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+       data.axisID,
+       data.onChangeData.positionSetpoint,
+       data.onChangeData.positionActual,
+       data.onChangeData.cntrlError,
+       data.onChangeData.positionTarget,
+       data.onChangeData.positionError,
+       data.onChangeData.positionRaw,
+       data.onChangeData.cntrlOutput,
+       data.onChangeData.velocitySetpoint,
+       data.onChangeData.velocityActual,
+       data.onChangeData.velocityFFRaw,
+       data.onChangeData.velocitySetpointRaw,
+       data.cycleCounter,
+       data.onChangeData.error,
+       data.onChangeData.command,
+       data.onChangeData.cmdData,
+       data.onChangeData.seqState,
+       data.onChangeData.trajInterlock,
+       data.onChangeData.trajSource,
+       data.onChangeData.encSource,
+       data.onChangeData.enable,
+       data.onChangeData.enabled,
+       data.onChangeData.execute,
+       data.onChangeData.busy,
+       data.onChangeData.atTarget,
+       data.onChangeData.homed,
+       data.onChangeData.limitBwd,
+       data.onChangeData.limitFwd,
+       data.onChangeData.homeSwitch
        );
 
   if(ret>=bufferByteSize || ret <=0){
@@ -2091,6 +2110,10 @@ int createAxis(int index, int type)
         delete axes[index];
       }
       axes[index]=new ecmcAxisReal(index,1/MCU_FREQUENCY);
+      if(!axes[index]){
+	LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR NORMAL AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        exit(EXIT_FAILURE);
+      }
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:
@@ -2098,6 +2121,10 @@ int createAxis(int index, int type)
         delete axes[index];
       }
       axes[index]=new ecmcAxisVirt(index,1/MCU_FREQUENCY);
+      if(!axes[index]){
+	LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VITRUAL AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        exit(EXIT_FAILURE);
+       }
       break;
     default:
       return ERROR_MAIN_AXIS_TYPE_UNKNOWN;
@@ -2534,6 +2561,10 @@ int createEvent(int indexEvent)
 
   delete events[indexEvent];
   events[indexEvent]=new ecmcEvent(1/MCU_FREQUENCY,indexEvent);
+  if(!events[indexEvent]){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EVENT OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   return 0;
 }
 
@@ -2551,6 +2582,11 @@ int createDataStorage(int index, int elements, int bufferType)
 
   delete dataStorages[index];
   dataStorages[index]=new ecmcDataStorage(index,elements,(storageType)bufferType);
+  if(!dataStorages[index]){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+
   return 0;
 }
 
@@ -2612,13 +2648,13 @@ int setEventSampleTime(int indexEvent,int sampleTime)
   return events[indexEvent]->setDataSampleTime(sampleTime);
 }
 
-int setEventExecute(int indexEvent,int execute)
+int setEventEnable(int indexEvent,int enable)
 {
-  LOGINFO4("%s/%s:%d indexEvent=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, execute);
+  LOGINFO4("%s/%s:%d indexEvent=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, enable);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  return events[indexEvent]->setExecute(execute);
+  return events[indexEvent]->setEnable(enable);
 }
 
 int clearStorage(int indexStorage)
@@ -2741,8 +2777,12 @@ int createRecorder(int indexRecorder)
 
   delete dataRecorders[indexRecorder];
   dataRecorders[indexRecorder]=new ecmcDataRecorder(indexRecorder);
-  return 0;
+  if(!dataRecorders[indexRecorder]){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA RECORDER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
 
+  return 0;
 }
 
 int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveIndex,char *entryIDString,int bitIndex)
@@ -2772,7 +2812,28 @@ int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveInde
   if(entry==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
 
-  return dataRecorders[indexRecorder]->setEntryAtIndex(entry,recorderEntryIndex,bitIndex);
+  int error=dataRecorders[indexRecorder]->setEntryAtIndex(entry,recorderEntryIndex,bitIndex);
+  if(error){
+    return error;
+  }
+
+  //set source to EtherCAT
+  return dataRecorders[indexRecorder]->setDataSourceType(ECMC_RECORDER_SOURCE_ETHERCAT);
+}
+
+int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore)
+{
+  LOGINFO4("%s/%s:%d indexRecorder=%d axisIndex=%d dataToStore=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, axisIndex,dataToStore);
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  int error= dataRecorders[indexRecorder]->setAxisDataSource(axes[axisIndex]->getDebugInfoDataPointer(),(ecmcAxisDataRecordType)dataToStore);
+  if(error){
+    return error;
+  }
+  //set source to Axis data
+  return dataRecorders[indexRecorder]->setDataSourceType(ECMC_RECORDER_SOURCE_AXIS);
 }
 
 int setRecorderEnablePrintouts(int indexRecorder,int enable)
@@ -2785,13 +2846,13 @@ int setRecorderEnablePrintouts(int indexRecorder,int enable)
   return 0;
 }
 
-int setRecorderExecute(int indexRecorder,int execute)
+int setRecorderEnable(int indexRecorder,int enable)
 {
-  LOGINFO4("%s/%s:%d indexRecorder=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, execute);
+  LOGINFO4("%s/%s:%d indexRecorder=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, enable);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  return dataRecorders[indexRecorder]->setExecute(execute);
+  return dataRecorders[indexRecorder]->setEnable(enable);
 }
 
 int linkRecorderToEvent(int indexRecorder,int indexEvent, int consumerIndex)
@@ -2924,6 +2985,11 @@ int createCommandList(int indexCommandList)
 
   delete commandLists[indexCommandList];
   commandLists[indexCommandList]=new ecmcCommandList(indexCommandList);
+  if(!commandLists[indexCommandList]){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR COMAMND-LIST OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+
   return 0;
 }
 
@@ -2937,13 +3003,13 @@ int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerInde
   return events[indexEvent]->linkEventConsumer(commandLists[indexCommandList],consumerIndex);
 }
 
-int setCommandListExecute(int indexCommandList,int execute)
+int setCommandListEnable(int indexCommandList,int enable)
 {
-  LOGINFO4("%s/%s:%d indexCommandList=%d execute=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList, execute);
+  LOGINFO4("%s/%s:%d indexCommandList=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList, enable);
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
 
-  return commandLists[indexCommandList]->setExecute(execute);
+  return commandLists[indexCommandList]->setEnable(enable);
 }
 
 int setCommandListEnablePrintouts(int indexCommandList,int enable)

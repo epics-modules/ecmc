@@ -1,6 +1,6 @@
-require asyn,4.27
+require asyn,4.27.0
 require streamdevice
-require axis,10.0.1
+require axis,10.0.7
 require ecmc
 
 

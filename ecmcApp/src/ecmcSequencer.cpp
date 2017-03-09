@@ -310,9 +310,8 @@ bool ecmcSequencer::getBusy()
   if(data_->command_.command==ECMC_CMD_HOMING){
     return busy_;
   }
-  else{
-    return traj_->getBusy();
-  }
+
+  return traj_->getBusy();
 }
 
 void ecmcSequencer::setJogVel(double vel)
@@ -384,6 +383,16 @@ void ecmcSequencer::setTargetPos(double pos)
   data_->command_.positionTarget=pos;
 }
 
+void ecmcSequencer::setTargetPos(double pos, bool force)
+{
+ if(force){
+   data_->command_.positionTarget=pos;
+ }
+ else{
+   setTargetPos(pos);
+ }
+}
+
 double ecmcSequencer::getTargetPos()
 {
   return data_->command_.positionTarget;
@@ -432,6 +441,7 @@ void ecmcSequencer::setJogBwd(bool jog)
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
     return;
   }
+
   if(data_->command_.command==ECMC_CMD_JOG && jogBwd_){
     traj_->setTargetVel(-jogVel_);
     traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
@@ -461,10 +471,10 @@ double ecmcSequencer::checkSoftLimits(double posSetpoint)
   double dSet=posSetpoint;
   double currPos=enc_->getActPos();
 
-  if(posSetpoint>data_->command_.softLimitFwd && data_->command_.enableSoftLimitFwd && posSetpoint>currPos){
+  if(posSetpoint > data_->command_.softLimitFwd && data_->command_.enableSoftLimitFwd && posSetpoint > currPos){
     dSet=data_->command_.softLimitFwd;
   }
-  if(posSetpoint<data_->command_.softLimitBwd && data_->command_.enableSoftLimitBwd && posSetpoint<currPos){
+  if(posSetpoint < data_->command_.softLimitBwd && data_->command_.enableSoftLimitBwd && posSetpoint < currPos){
     dSet=data_->command_.softLimitBwd;;
   }
   return dSet;
@@ -552,7 +562,7 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
       }
@@ -563,6 +573,7 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -652,7 +663,7 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
       }
@@ -663,6 +674,7 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -745,9 +757,10 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      retValue=checkHWLimitsAndStop(0,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
-        return retValue;
+        LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       if(homeSensor_!=homeSensorOld_){
         homePosLatch1_=enc_->getActPos();
@@ -755,17 +768,18 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
       }
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
-        if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
+        if((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) || !mon_->getEnableAtTargetMon())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -848,7 +862,8 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
     case 3: //Latch encoder value on falling or rising edge of home sensor
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
-        return retValue;
+        LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       if(homeSensor_!=homeSensorOld_){
         homePosLatch1_=enc_->getActPos();
@@ -856,7 +871,7 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
       }
       break;
     case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
         return retValue;
       }
@@ -867,6 +882,7 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -950,9 +966,10 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 3: //Latch encoder value on falling or rising edge of home sensor
-      retValue=checkHWLimitsAndStop(0,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
-        return retValue;
+	LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       if(homeSensor_!=homeSensorOld_){
         homePosLatch1_=enc_->getActPos();
@@ -961,9 +978,10 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 4: //Wait for falling or rising edge of home sensor then stop
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
-        return retValue;
+	LOGERR("%s/%s:%d: ERROR: Failed to find second flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
       }
 
       if(homeSensor_!=homeSensorOld_){
@@ -973,7 +991,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 5: //Wait for standstill and the trigger move
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
       }
@@ -990,7 +1008,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 6: //Latch value on falling or rising edge of home sensor. Stop motion
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
         return retValue;
       }
@@ -1002,7 +1020,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
       break;
 
     case 7:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward switch
       if(retValue){
         return retValue;
       }
@@ -1013,6 +1031,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
         {
           double currPos=enc_->getActPos()-((homePosLatch2_+homePosLatch1_)/2)+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -1099,7 +1118,8 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
     case 3: //Latch encoder value on falling or rising edge of home sensor
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
-        return retValue;
+        LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       if(homeSensor_!=homeSensorOld_){
         homePosLatch1_=enc_->getActPos();
@@ -1108,9 +1128,10 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 4: //Wait for falling or rising edge of home sensor then stop
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
-        return retValue;
+        LOGERR("%s/%s:%d: ERROR: Failed to find second flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
       }
 
       if(homeSensor_!=homeSensorOld_){
@@ -1120,7 +1141,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 5: //Wait for standstill and the trigger move
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
         return retValue;
       }
@@ -1137,7 +1158,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 6: //Latch value on falling or rising edge of home sensor. Stop motion
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward or backward limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
       }
@@ -1149,7 +1170,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
       break;
 
     case 7:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      retValue=checkHWLimitsAndStop(1,1); // should never go to forward limit or backward switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit or backward switch
       if(retValue){
         return retValue;
       }
@@ -1160,6 +1181,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
         {
           double currPos=enc_->getActPos()-((homePosLatch2_+homePosLatch1_)/2)+homePosition_;
           traj_->setCurrentPosSet(currPos);
+          traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
           cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
@@ -1178,23 +1200,25 @@ int ecmcSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
 {
   if(traj_==NULL){
     stopSeq();
+    LOGERR("%s/%s:%d: ERROR: Trajectory object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_TRAJ_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
   }
   if(mon_==NULL){
     stopSeq();
+    LOGERR("%s/%s:%d: ERROR: Monitor object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_MON_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
   }
 
-  if(!data_->status_.limitFwd && checkFWD){
+  if(!data_->status_.limitFwdFiltered && checkFWD){
+    LOGERR("%s/%s:%d: ERROR: Unexpected activation of forward limit switch in homing state %d of sequence %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,seqState_,data_->command_.cmdData,ERROR_SEQ_SEQ_FAILED);
     stopSeq();
-    traj_->setExecute(0);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
+    return ERROR_SEQ_SEQ_FAILED;
   }
 
-  if(!data_->status_.limitBwd && checkBWD){
+  if(!data_->status_.limitBwdFiltered && checkBWD){
+    LOGERR("%s/%s:%d: ERROR: Unexpected activation of backward limit switch in homing state %d of sequence %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,seqState_,data_->command_.cmdData,ERROR_SEQ_SEQ_FAILED);
     stopSeq();
-    traj_->setExecute(0);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_SEQ_FAILED);
+    return ERROR_SEQ_SEQ_FAILED;
   }
   return 0;
 }
@@ -1210,9 +1234,8 @@ int ecmcSequencer::stopSeq(){
   }
 
   if(mon_!=NULL){
-
-      data_->command_.enableSoftLimitBwd=enableSoftLimitBwdBackup_;
-      data_->command_.enableSoftLimitFwd=enableSoftLimitFwdBackup_;
+    data_->command_.enableSoftLimitBwd=enableSoftLimitBwdBackup_;
+    data_->command_.enableSoftLimitFwd=enableSoftLimitFwdBackup_;
   }
 
   seqInProgress_=false;

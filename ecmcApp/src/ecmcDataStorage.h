@@ -9,7 +9,7 @@
 #define ECMCDATASTORAGE_H_
 
 #include "stdio.h"
-
+#include <stdlib.h>
 #include "ecmcError.h"
 #include "ecmcDefinitions.h"
 
@@ -34,7 +34,7 @@ public:
   int setBufferSize(int elements);
   int clearBuffer();
   int appendData(double data);
-  int isStorgeFull();
+  int isStorageFull();
   int printBuffer();
   int getSize();
   int getData(double **data, int *size);
