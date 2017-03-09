@@ -108,7 +108,7 @@ bool ecmcMonitor::getHardLimitBwd()
 
 void ecmcMonitor::setAtTargetTol(double tol)
 {
-  LOGINFO("SETTING AT TARGET TOLERANCE TO %lf.\n");
+  LOGINFO("SETTING AT TARGET TOLERANCE TO %lf.\n", atTargetTol_);
   atTargetTol_=tol;
 }
 
