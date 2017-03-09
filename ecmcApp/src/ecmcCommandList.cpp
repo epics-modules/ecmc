@@ -94,7 +94,7 @@ int ecmcCommandList::addCommand(std::string command)
 
 int ecmcCommandList::getCommandCount()
 {
-  LOGINFO8("%s/%s:%d: INFO: Command list %d. Current command count.\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
+  LOGINFO8("%s/%s:%d: INFO: Command list %d. Current command count %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
   return commandCounter_;
 }
 
