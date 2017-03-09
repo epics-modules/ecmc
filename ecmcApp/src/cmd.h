@@ -186,6 +186,7 @@ do {                                             \
   extern int getBufferSize(ecmcOutputBufferType *buffer);
   extern int clearBuffer(ecmcOutputBufferType *buffer);
   extern int cmd_buf_printf(ecmcOutputBufferType *buffer,const char *format, ...);
+  extern int removeBytesFromBuffer(ecmcOutputBufferType *buffer,size_t len);
 #ifdef __cplusplus
 }
 #endif

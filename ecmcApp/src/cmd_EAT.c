@@ -1495,11 +1495,13 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
       cmd_buf_printf(buffer,"Error: %d", error);
       return 0;
     }
-
+    //LOGINFO("%s/%s:%d. Data storage buffer copied to cmd_EAT (buffer size in ecmc= %d)\n",__FILE__,__FUNCTION__,__LINE__,size);
+    //LOGINFO("%s/%s:%d. ecmcOutputBufferType buffer size %d.\n",__FILE__,__FUNCTION__,__LINE__,buffer->bufferSize);
     if(!bufferdata){
       cmd_buf_printf(buffer,"Error: %d", CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL);
       return 0;
     }
+
 
     //Write ascii array delimited with ','
     cmd_buf_printf(buffer,"ReadDataStorage(%d)=",iValue);
@@ -1513,9 +1515,11 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 	cmd_buf_printf(buffer,"%lf",bufferdata[i]); //No comma for last entry
       }
     }
+    //LOGINFO("%s/%s:%d. Wrote %d values to command buffer.\n",__FILE__,__FUNCTION__,__LINE__,i);
     return 0;
   }
 
+  //LOGINFO("%s/%s:%d. ecmcOutputBufferType buffer size left %d and used bytes %d.\n",__FILE__,__FUNCTION__,__LINE__,buffer->bufferSize-buffer->bytesUsed,buffer->bytesUsed);
   /*int WriteStorageBuffer(int axisIndex)=0,0,0,0*/
   nvals = sscanf(myarg_1, "WriteDataStorage(%d)=", &iValue);
   if (nvals == 1) {

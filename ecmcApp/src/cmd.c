@@ -64,6 +64,25 @@ static int addToBuffer(ecmcOutputBufferType *buffer,const char *addText, size_t 
 
 /*****************************************************************************/
 
+static int removeFromBuffer(ecmcOutputBufferType *buffer,size_t len)
+{
+  if(buffer==NULL){
+    return __LINE__;
+  }
+
+  int bytesToMove= buffer->bytesUsed-len;
+  if(bytesToMove<0){
+    return __LINE__;
+  }
+
+  memmove(&buffer->buffer[0],&buffer->buffer[len],bytesToMove);
+  buffer->bytesUsed=bytesToMove;
+  buffer->buffer[buffer->bytesUsed] = '\0';
+  return 0;
+}
+
+/*****************************************************************************/
+
 int clearBuffer(ecmcOutputBufferType *buffer)
 {
   if(buffer==NULL){
@@ -294,6 +313,8 @@ int CMDwriteIt(const char *inbuf, size_t inlen)
   memcpy(new_buf, inbuf, inlen);
   new_buf[inlen] = 0;
 
+  //printf("************NEW COMMAND IN WRITE: %s",new_buf);
+
   if (inlen > 1 && new_buf[inlen-1] == '\n') {
     had_lf = 1;
     new_buf[inlen-1] = '\0';
@@ -304,6 +325,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen)
       inlen--;
     }
   }
+  //Add clear buffer here?
   int errorCode=cmd_handle_input_line(new_buf,getEpicsBuffer());
   if(errorCode){
     RETURN_ERROR_OR_DIE(getEpicsBuffer(),__LINE__, "%s/%s:%d cmd_EAT returned error: %x.",
@@ -324,20 +346,30 @@ int CMDwriteIt(const char *inbuf, size_t inlen)
 /* from MCU into EPICS */
 int CMDreadIt(char *outbuf, size_t outlen)
 {
+  //printf("************BEFORE READ: BYTES LEFT IN BUFFER:  %d.\n",getEpicsBuffer()->bytesUsed);
   int ret;
   if (!outbuf || !outlen) return -1;
   ret = snprintf(outbuf, outlen, "%s", getEpicsBuffer()->buffer);
-  if (ret < 0) return ret;
+
+  if (ret < 0){
+    clearBuffer(getEpicsBuffer());
+    return ret;
+  }
+
   if (PRINT_STDOUT_BIT1() && stdlog) {
     fprintf(stdlog,"%s/%s:%d OUT=\"", __FILE__, __FUNCTION__, __LINE__);
     cmd_dump_to_std(outbuf, strlen(outbuf));
     fprintf(stdlog,"\"\n");
   }
 
-  clearBuffer(getEpicsBuffer());
+  //printf("************BYTES SENT:%s#\n",outbuf);
+  if(ret>=outlen){
+    ret=outlen-1; //snprintf max utilize buffer size minus one.
+  }
+  removeFromBuffer(getEpicsBuffer(),ret);
+  //printf("************AFTER READ: BYTES LEFT IN BUFFER:  %d.\n",getEpicsBuffer()->bytesUsed);
   return 0;
 }
-
 
 /*
  *
