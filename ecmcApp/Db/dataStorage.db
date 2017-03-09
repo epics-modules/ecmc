@@ -1,0 +1,15 @@
+
+record(bo,"Storage_$(Index)_Clear"){
+	field(DTYP,"stream")
+	field(OUT,"@dataStorage.proto clearDataStorage($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+
+record(waveform,"Storage_$(Index)_Data"){
+	field(DTYP,"stream")
+	field(INP,"@dataStorage.proto getDataStorageData($(Index)) $(PORT)")
+        field(SCAN,"5 second")
+	field(NELM,1000)
+        field(FTVL,"DOUBLE")
+}

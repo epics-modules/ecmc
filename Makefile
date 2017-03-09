@@ -52,6 +52,7 @@ TEMPLATES = \
   ecmcApp/Db/FB_DriveVirtual_v1_01.db \
   ecmcApp/Db/expression.db \
   ecmcApp/Db/expressionAR.db \
+  ecmcApp/Db/dataStorage.db \
   ecmcApp/Db/ethercat.db \
 
 
