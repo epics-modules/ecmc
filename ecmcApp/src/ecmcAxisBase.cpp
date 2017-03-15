@@ -156,7 +156,6 @@ void ecmcAxisBase::preExecute(bool masterOK)
 void ecmcAxisBase::postExecute(bool masterOK)
 {
   data_.status_.enabledOld=data_.status_.enabled;
-  data_.status_.enableOld=getEnable();
   data_.status_.executeOld=getExecute();
   data_.status_.currentPositionSetpointOld=data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld=data_.status_.cntrlOutput;
@@ -616,7 +615,7 @@ int ecmcAxisBase::setEnableLocal(bool enable)
     }
     traj->setEnable(enable);
   }
-
+  data_.status_.enableOld=data_.command_.enable;
   data_.command_.enable=enable;
   return 0;
 }
