@@ -4,6 +4,7 @@ record(bo,"$(P)ControllerErrorReset"){
 	field(OUT,"@ecmcGeneral.proto setGeneralErrorReset() $(PORT)")
 	field(ZNAM,"FALSE")
 	field(ONAM,"TRUE")
+	field(DOL,"0")
 }
 
 record(stringin,"$(P)ControllerErrorMessage"){

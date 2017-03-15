@@ -4,8 +4,14 @@ WriteTimeout = 100;
 ReplyTimeout = 1000;
 ReadTimeout = 100;
 
+getGeneralErrorReset{
+	out "ControllerErrorReset()";      	
+	in "%{OK|ERROR}";
+}
+
 setGeneralErrorReset{
 	out "ControllerErrorReset()";
+      	@init {getGeneralErrorReset;}
 	in "OK";
 }
 
