@@ -1,0 +1,22 @@
+
+record(bo,"$(P)Recorder$(Index)-Enable"){
+	field(DTYP,"stream")
+	field(OUT,"@dataRecorder.proto setEnable($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+
+record(bo,"$(P)Recorder$(Index)-TriggerCmd"){
+	field(DTYP,"stream")
+	field(OUT,"@dataRecorder.proto setTrigger($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+
+record(bo,"$(P)Recorder$(Index)-EnablePrintouts"){
+	field(DTYP,"stream")
+	field(OUT,"@dataRecorder.proto setEnablePrintouts($(Index)) $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+

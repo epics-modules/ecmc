@@ -16,5 +16,8 @@ getDataStorageData{
 	in "ReadDataStorage(\$1)=%f";
 }
 
-
+getDataIndex{
+	out "GetStorageDataIndex(\$1)";
+	in "%f";
+}
 

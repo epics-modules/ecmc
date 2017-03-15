@@ -1,0 +1,20 @@
+
+record(bo,"$(P)ControllerErrorReset"){
+	field(DTYP,"stream")
+	field(OUT,"@ecmcGeneral.proto setGeneralErrorReset() $(PORT)")
+	field(ZNAM,"FALSE")
+	field(ONAM,"TRUE")
+}
+
+record(stringin,"$(P)ControllerErrorMessage"){
+	field(DTYP,"stream")
+	field(INP,"@ecmcGeneral.proto getGeneralErrorMessage() $(PORT)")
+        field(SCAN, "1 second")
+}
+
+record(ai,"$(P)ControllerErrorId"){
+	field(DTYP,"stream")
+	field(INP,"@ecmcGeneral.proto getGeneralErrorId() $(PORT)")
+	field(SCAN,"1 second")
+}
+

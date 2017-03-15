@@ -1,0 +1,29 @@
+
+LockTimeout = 5000;
+WriteTimeout = 100;
+ReplyTimeout = 1000;
+ReadTimeout = 100;
+#Terminator = LF;
+
+
+getEnabled{
+	out "GetRecorderEnabled(\$1)";
+	in "%{0|1}";	
+}
+
+setEnable{
+	out "Cfg.SetRecorderEnable(\$1,%{0|1})";
+	in "OK";	
+      	@init { getEnabled; }
+}
+
+setTrigger{
+	out "Cfg.TriggerRecorder(\$1)";
+	in "OK";	
+}
+
+setEnablePrintouts{
+	out "Cfg.SetRecorderEnablePrintouts(\$1,%d)";
+	in "OK";	
+}
+

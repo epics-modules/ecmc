@@ -1,0 +1,32 @@
+
+LockTimeout = 5000;
+WriteTimeout = 100;
+ReplyTimeout = 1000;
+ReadTimeout = 100;
+#Terminator = LF;
+
+getEnabled{
+	out "GetEventEnabled(\$1)";
+	in "%{0|1}";	
+}
+
+setEnable{
+	out "Cfg.SetEventEnable(\$1,%{0|1})";
+	in "OK";	
+      	@init { getEnabled; }
+}
+
+setArm{
+	out "Cfg.ArmEvent(\$1)";
+	in "OK";	
+}
+
+setTrigger{
+	out "Cfg.TriggerEvent(\$1)";
+	in "OK";	
+}
+
+setEnablePrintouts{
+	out "Cfg.SetEventEnablePrintouts(\$1,%d)";
+	in "OK";	
+}
