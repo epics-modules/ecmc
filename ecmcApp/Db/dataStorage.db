@@ -10,7 +10,6 @@ record(bo,"$(P)Storage$(Index)-Clear"){
 record(waveform,"$(P)Storage$(Index)-Data"){
 	field(DTYP,"stream")
 	field(INP,"@dataStorage.proto getDataStorageData($(Index)) $(PORT)")
-        field(SCAN,"5 second")
 	field(NELM,1000)
         field(FTVL,"DOUBLE")
 }
@@ -18,5 +17,6 @@ record(waveform,"$(P)Storage$(Index)-Data"){
 record(ai,"$(P)Storage$(Index)-DataIndex"){
 	field(DTYP,"stream")
 	field(INP,"@dataStorage.proto getDataIndex($(Index)) $(PORT)")
-	field(SCAN,"1 second")
+	field(SCAN,"2 second")
+	field(FLNK,"$(P)Storage$(Index)-Data")
 }

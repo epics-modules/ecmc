@@ -137,7 +137,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>false</visible>
+      <visible>true</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -207,7 +207,7 @@
         <enabled>true</enabled>
         <wuid>-143844c8:1599226797f:-76db</wuid>
         <scripts />
-        <height>379</height>
+        <height>445</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -216,7 +216,7 @@
         </scale_options>
         <macros>
           <include_parent_macros>true</include_parent_macros>
-          <P>IOC2:</P>
+          <P>IOC_WS:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -467,7 +467,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>true</visible>
+      <visible>false</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -687,7 +687,7 @@ $(trace_0_y_pv_value)</tooltip>
         <trace_1_point_size>4</trace_1_point_size>
         <trace_1_anti_alias>true</trace_1_anti_alias>
         <pv_value />
-        <trace_0_buffer_size>100</trace_0_buffer_size>
+        <trace_0_buffer_size>1000</trace_0_buffer_size>
         <axis_1_maximum>100.0</axis_1_maximum>
         <axis_0_scale_font>
           <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
@@ -727,7 +727,7 @@ $(trace_0_y_pv_value)</tooltip>
         </scale_options>
         <trace_1_y_pv>$(P)Storage2-Data</trace_1_y_pv>
         <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-        <axis_0_maximum>100.0</axis_0_maximum>
+        <axis_0_maximum>1000.0</axis_0_maximum>
         <trace_1_y_axis_index>1</trace_1_y_axis_index>
         <height>643</height>
         <trigger_pv_value />
@@ -783,7 +783,7 @@ $(trace_0_y_pv_value)</tooltip>
           <opifont.name fontName="Cantarell" height="11" style="1">Default Bold</opifont.name>
         </axis_1_title_font>
         <visible>true</visible>
-        <trace_1_buffer_size>200</trace_1_buffer_size>
+        <trace_1_buffer_size>1000</trace_1_buffer_size>
         <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
         <scripts />
         <trace_0_point_size>4</trace_0_point_size>

@@ -57,6 +57,11 @@ TEMPLATES = \
   ecmcApp/Db/dataRecorder.db \
   ecmcApp/Db/event.db \
   ecmcApp/Db/ethercat.db \
+  ecmcApp/Db/elGenericDigitalInput.db \
+  ecmcApp/Db/elGenericDigitalOutput.db \
+  ecmcApp/Db/elGenericAnalogInput.db \
+  ecmcApp/Db/elGenericAnalogOutput.db \
+
 
 
 
