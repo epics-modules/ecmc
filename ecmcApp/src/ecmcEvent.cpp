@@ -73,6 +73,12 @@ int ecmcEvent::setEnable(int enable)
   return 0;
 }
 
+int ecmcEvent::getEnabled(int *enabled)
+{
+  *enabled=enable_;
+  return 0;
+}
+
 int ecmcEvent::setDataSampleTime(int sampleTime)
 {
   if(sampleTime<=0){

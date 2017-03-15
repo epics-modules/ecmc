@@ -1485,6 +1485,24 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(stopMotion(iValue,0));
   }
 
+  /*int GetStorageDataIndex(int axis_no)*/
+  nvals = sscanf(myarg_1, "GetStorageDataIndex(%d)", &motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getStorageDataIndex(motor_axis_no,&iValue));
+  }
+
+  /*int GetRecorderEnabled(int axis_no)*/
+  nvals = sscanf(myarg_1, "GetRecorderEnabled(%d)", &motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getRecorderEnabled(motor_axis_no,&iValue));
+  }
+
+  /*int GetEventEnabled(int axis_no)*/
+  nvals = sscanf(myarg_1, "GetEventEnabled(%d)", &motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getEventEnabled(motor_axis_no,&iValue));
+  }
+
   /*int ReadDataStorage(int storageIndex);*/
   nvals = sscanf(myarg_1, "ReadDataStorage(%d)", &iValue);
   if (nvals == 1) {

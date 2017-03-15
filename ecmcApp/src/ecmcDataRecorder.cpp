@@ -73,6 +73,13 @@ int ecmcDataRecorder::setEnable(int enable)
   return 0;
 }
 
+int ecmcDataRecorder::getEnabled(int *enabled)
+{
+  *enabled=enable_;
+  return 0;
+}
+
+
 void ecmcDataRecorder::printStatus()
 {
   LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Data: %lf, Error: 0x%x.\n",__FILE__,__FUNCTION__,__LINE__,index_,(double)data_,getErrorID());

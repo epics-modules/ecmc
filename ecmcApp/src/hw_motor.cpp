@@ -504,7 +504,6 @@ int validateConfig(){
   }
 
   for(int i=0; i<ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
-    dataRecorders[i]=NULL;
     if(dataRecorders[i]!=NULL){
       errorCode=dataRecorders[i]->validate();
       if(errorCode){
@@ -2657,6 +2656,15 @@ int setEventEnable(int indexEvent,int enable)
   return events[indexEvent]->setEnable(enable);
 }
 
+int getEventEnabled(int indexEvent,int *enabled)
+{
+  LOGINFO4("%s/%s:%d indexEvent=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->getEnabled(enabled);
+}
+
 int clearStorage(int indexStorage)
 {
   LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
@@ -2665,6 +2673,17 @@ int clearStorage(int indexStorage)
 
   return dataStorages[indexStorage]->clearBuffer();
 }
+
+int getStorageDataIndex(int indexStorage,int *index)
+{
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  *index=dataStorages[indexStorage]->getCurrentIndex();
+  return 0;
+}
+
 
 int setStorageEnablePrintouts(int indexStorage,int enable)
 {
@@ -2853,6 +2872,15 @@ int setRecorderEnable(int indexRecorder,int enable)
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
   return dataRecorders[indexRecorder]->setEnable(enable);
+}
+
+int getRecorderEnabled(int indexRecorder,int *enabled)
+{
+  LOGINFO4("%s/%s:%d indexRecorder=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder);
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+
+  return dataRecorders[indexRecorder]->getEnabled(enabled);
 }
 
 int linkRecorderToEvent(int indexRecorder,int indexEvent, int consumerIndex)

@@ -71,6 +71,11 @@ int ecmcDataStorage::getSize()
   return bufferElementCount_;
 }
 
+int ecmcDataStorage::getCurrentIndex()
+{
+  return currentBufferIndex_;
+}
+
 int ecmcDataStorage::printBuffer()
 {
   int start=0;

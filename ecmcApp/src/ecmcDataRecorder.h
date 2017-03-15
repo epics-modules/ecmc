@@ -73,6 +73,7 @@ public:
   ecmcDataRecorder (int index);
   ~ecmcDataRecorder ();
   int setEnable(int enable);
+  int getEnabled(int *enabled);
   int setDataStorage(ecmcDataStorage* buffer);
   int validate();
   int executeEvent(int masterOK);//Override ecmcEventConsumer

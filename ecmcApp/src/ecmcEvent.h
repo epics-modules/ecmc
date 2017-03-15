@@ -34,7 +34,8 @@ public:
   int setEventType(eventType recordType);
   int setTriggerEdge(triggerEdgeType triggerEdge);
   int setDataSampleTime(int sampleTime);
-  int setEnable(int execute);
+  int setEnable(int enable);
+  int getEnabled(int *enabled);
   int execute(int masterOK);
   int setEnableArmSequence(int enable);
   int linkEventConsumer(ecmcEventConsumer *consumer,int index);

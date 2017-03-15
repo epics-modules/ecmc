@@ -46,6 +46,7 @@ SOURCES = \
 
 TEMPLATES = \
   ecmcApp/Db/ecmcGeneral.template \
+  ecmcApp/Db/ecmcGeneral.db \
   ecmcApp/Db/elGenericAnalog.template \
   ecmcApp/Db/elGenericDigital.template \
   ecmcApp/Db/DUT_AxisStatus_v0_01.db \
@@ -53,6 +54,8 @@ TEMPLATES = \
   ecmcApp/Db/expression.db \
   ecmcApp/Db/expressionAR.db \
   ecmcApp/Db/dataStorage.db \
+  ecmcApp/Db/dataRecorder.db \
+  ecmcApp/Db/event.db \
   ecmcApp/Db/ethercat.db \
 
 
