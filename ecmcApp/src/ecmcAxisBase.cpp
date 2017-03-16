@@ -125,17 +125,19 @@ void ecmcAxisBase::preExecute(bool masterOK)
     case ECMC_AXIS_STATE_ENABLED:
       data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
       if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
-
         if(mon_->getEnableAtTargetMon()){
-          data_.status_.busy=seq_.getBusy() || !data_.status_.atTarget;
+          data_.status_.moving=seq_.getBusy() || !data_.status_.atTarget;
         }
         else{
-          data_.status_.busy=seq_.getBusy();
+          data_.status_.moving=seq_.getBusy();
         }
+
+        data_.status_.busy=seq_.getBusy();
         data_.status_.currentTargetPosition=traj_->getTargetPos();
       }
       else{ //Synchronized to other axis
         data_.status_.busy=true;
+        data_.status_.moving=std::abs(data_.status_.currentVelocityActual)>0;
         data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
       }
       if(!data_.status_.enabled){
