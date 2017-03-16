@@ -21,7 +21,7 @@
   <background_color>
     <color red="240" green="240" blue="240" />
   </background_color>
-  <width>800</width>
+  <width>500</width>
   <x>-1</x>
   <name></name>
   <grid_space>6</grid_space>
@@ -41,7 +41,7 @@
     <transparent>false</transparent>
     <lock_children>false</lock_children>
     <scripts />
-    <height>595</height>
+    <height>600</height>
     <border_width>1</border_width>
     <scale_options>
       <width_scalable>true</width_scalable>
@@ -59,7 +59,7 @@
     <background_color>
       <color name="Background" red="255" green="255" blue="255" />
     </background_color>
-    <width>493</width>
+    <width>500</width>
     <x>0</x>
     <name>$(TYPE)</name>
     <y>0</y>

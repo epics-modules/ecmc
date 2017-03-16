@@ -6,7 +6,7 @@
   <show_grid>true</show_grid>
   <auto_zoom_to_fit_all>false</auto_zoom_to_fit_all>
   <scripts />
-  <height>600</height>
+  <height>530</height>
   <macros>
     <include_parent_macros>true</include_parent_macros>
     <TYPE>EL7037</TYPE>
@@ -22,7 +22,7 @@
   <background_color>
     <color red="240" green="240" blue="240" />
   </background_color>
-  <width>800</width>
+  <width>480</width>
   <x>-1</x>
   <name></name>
   <grid_space>6</grid_space>
@@ -42,7 +42,7 @@
     <transparent>false</transparent>
     <lock_children>false</lock_children>
     <scripts />
-    <height>529</height>
+    <height>530</height>
     <border_width>1</border_width>
     <scale_options>
       <width_scalable>true</width_scalable>
@@ -60,8 +60,8 @@
     <background_color>
       <color name="Background" red="255" green="255" blue="255" />
     </background_color>
-    <width>483</width>
-    <x>-12</x>
+    <width>480</width>
+    <x>0</x>
     <name>$(TYPE)</name>
     <y>0</y>
     <foreground_color>

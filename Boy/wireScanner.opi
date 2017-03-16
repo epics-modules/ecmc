@@ -6,7 +6,7 @@
   <show_grid>true</show_grid>
   <auto_zoom_to_fit_all>false</auto_zoom_to_fit_all>
   <scripts />
-  <height>600</height>
+  <height>900</height>
   <macros>
     <include_parent_macros>true</include_parent_macros>
     <P>IOC_WS:</P>
@@ -22,7 +22,7 @@
   <background_color>
     <color red="240" green="240" blue="240" />
   </background_color>
-  <width>800</width>
+  <width>810</width>
   <x>-1</x>
   <name></name>
   <grid_space>6</grid_space>
@@ -66,10 +66,10 @@
     <background_color>
       <color red="240" green="240" blue="240" />
     </background_color>
-    <width>817</width>
-    <x>24</x>
+    <width>810</width>
+    <x>0</x>
     <horizontal_tabs>true</horizontal_tabs>
-    <y>12</y>
+    <y>30</y>
     <rules />
     <tab_3_font>
       <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
@@ -137,7 +137,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>true</visible>
+      <visible>false</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -145,7 +145,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>815</width>
+      <width>808</width>
       <x>1</x>
       <name>General</name>
       <y>1</y>
@@ -166,7 +166,7 @@
         <enabled>true</enabled>
         <wuid>-143844c8:1599226797f:-76ec</wuid>
         <scripts />
-        <height>109</height>
+        <height>120</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -187,10 +187,10 @@
         <background_color>
           <color red="255" green="255" blue="255" />
         </background_color>
-        <width>463</width>
-        <x>12</x>
+        <width>500</width>
+        <x>30</x>
         <name>Linking Container</name>
-        <y>36</y>
+        <y>96</y>
         <foreground_color>
           <color red="192" green="192" blue="192" />
         </foreground_color>
@@ -207,7 +207,7 @@
         <enabled>true</enabled>
         <wuid>-143844c8:1599226797f:-76db</wuid>
         <scripts />
-        <height>445</height>
+        <height>400</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -228,10 +228,10 @@
         <background_color>
           <color red="255" green="255" blue="255" />
         </background_color>
-        <width>295</width>
-        <x>12</x>
+        <width>250</width>
+        <x>30</x>
         <name>Linking Container_1</name>
-        <y>144</y>
+        <y>228</y>
         <foreground_color>
           <color red="192" green="192" blue="192" />
         </foreground_color>
@@ -242,13 +242,13 @@
       </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>event.opi</opi_file>
-        <border_style>3</border_style>
+        <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
         <enabled>true</enabled>
         <wuid>-2fde124d:15ac79a93b8:-6a15</wuid>
         <scripts />
-        <height>283</height>
+        <height>250</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -269,10 +269,10 @@
         <background_color>
           <color red="240" green="240" blue="240" />
         </background_color>
-        <width>235</width>
-        <x>420</x>
+        <width>220</width>
+        <x>310</x>
         <name>Linking Container_2</name>
-        <y>150</y>
+        <y>228</y>
         <foreground_color>
           <color red="192" green="192" blue="192" />
         </foreground_color>
@@ -309,7 +309,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>815</width>
+      <width>808</width>
       <x>1</x>
       <name>Axis 1</name>
       <y>1</y>
@@ -324,18 +324,18 @@
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>oneAxisMR.opi</opi_file>
-        <border_style>3</border_style>
+        <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
         <enabled>true</enabled>
         <wuid>36f904b6:1544c37dbdf:-744f</wuid>
         <scripts />
-        <height>792</height>
+        <height>745</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
           <height_scalable>true</height_scalable>
-          <keep_wh_ratio>false</keep_wh_ratio>
+          <keep_wh_ratio>true</keep_wh_ratio>
         </scale_options>
         <macros>
           <include_parent_macros>true</include_parent_macros>
@@ -367,13 +367,13 @@
       </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>dataStorage.opi</opi_file>
-        <border_style>3</border_style>
+        <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
         <enabled>true</enabled>
         <wuid>-2fde124d:15ac79a93b8:-6f15</wuid>
         <scripts />
-        <height>481</height>
+        <height>500</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -394,7 +394,7 @@
         <background_color>
           <color red="240" green="240" blue="240" />
         </background_color>
-        <width>200</width>
+        <width>210</width>
         <x>582</x>
         <name>Linking Container_1</name>
         <y>234</y>
@@ -408,7 +408,7 @@
       </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>dataRecorder.opi</opi_file>
-        <border_style>3</border_style>
+        <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
         <enabled>true</enabled>
@@ -435,7 +435,7 @@
         <background_color>
           <color red="240" green="240" blue="240" />
         </background_color>
-        <width>200</width>
+        <width>210</width>
         <x>582</x>
         <name>Linking Container_2</name>
         <y>12</y>
@@ -475,7 +475,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>815</width>
+      <width>808</width>
       <x>1</x>
       <name>Axis 2</name>
       <y>1</y>
@@ -490,13 +490,13 @@
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>oneAxisMR.opi</opi_file>
-        <border_style>3</border_style>
+        <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
         <enabled>true</enabled>
         <wuid>77f634a:1544c2ead6a:-7ee6</wuid>
         <scripts />
-        <height>792</height>
+        <height>745</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -534,13 +534,13 @@
       </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>dataStorage.opi</opi_file>
-        <border_style>3</border_style>
+        <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
         <enabled>true</enabled>
         <wuid>-2fde124d:15ac79a93b8:-6cea</wuid>
         <scripts />
-        <height>481</height>
+        <height>500</height>
         <border_width>1</border_width>
         <scale_options>
           <width_scalable>true</width_scalable>
@@ -561,7 +561,7 @@
         <background_color>
           <color red="240" green="240" blue="240" />
         </background_color>
-        <width>200</width>
+        <width>210</width>
         <x>582</x>
         <name>Linking Container_1</name>
         <y>234</y>
@@ -575,7 +575,7 @@
       </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>dataRecorder.opi</opi_file>
-        <border_style>3</border_style>
+        <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
         <enabled>true</enabled>
@@ -602,7 +602,7 @@
         <background_color>
           <color red="240" green="240" blue="240" />
         </background_color>
-        <width>200</width>
+        <width>210</width>
         <x>582</x>
         <name>Linking Container_2</name>
         <y>12</y>
@@ -634,7 +634,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>false</visible>
+      <visible>true</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -642,7 +642,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>815</width>
+      <width>808</width>
       <x>1</x>
       <name>Chart</name>
       <y>1</y>
@@ -680,7 +680,7 @@ $(trace_0_y_pv_value)</tooltip>
         <background_color>
           <color red="240" green="240" blue="240" />
         </background_color>
-        <x>36</x>
+        <x>12</x>
         <y>18</y>
         <trace_0_x_axis_index>0</trace_0_x_axis_index>
         <axis_count>2</axis_count>
@@ -729,7 +729,7 @@ $(trace_0_y_pv_value)</tooltip>
         <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
         <axis_0_maximum>1000.0</axis_0_maximum>
         <trace_1_y_axis_index>1</trace_1_y_axis_index>
-        <height>643</height>
+        <height>781</height>
         <trigger_pv_value />
         <axis_1_grid_color>
           <color red="200" green="200" blue="200" />
@@ -768,7 +768,7 @@ $(trace_0_y_pv_value)</tooltip>
         <axis_1_time_format>0</axis_1_time_format>
         <border_alarm_sensitive>false</border_alarm_sensitive>
         <show_plot_area_border>false</show_plot_area_border>
-        <width>769</width>
+        <width>793</width>
         <trace_1_x_pv_value />
         <axis_1_minimum>0.0</axis_1_minimum>
         <title_font>
@@ -797,5 +797,45 @@ $(trace_0_y_pv_value)</tooltip>
         </foreground_color>
       </widget>
     </widget>
+  </widget>
+  <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+    <border_style>0</border_style>
+    <tooltip></tooltip>
+    <horizontal_alignment>1</horizontal_alignment>
+    <rules />
+    <enabled>true</enabled>
+    <wuid>-2fde124d:15ac79a93b8:-2bd6</wuid>
+    <transparent>true</transparent>
+    <auto_size>true</auto_size>
+    <text>WIRE SCANNER DEMO OPI</text>
+    <scripts />
+    <height>47</height>
+    <border_width>1</border_width>
+    <scale_options>
+      <width_scalable>true</width_scalable>
+      <height_scalable>true</height_scalable>
+      <keep_wh_ratio>false</keep_wh_ratio>
+    </scale_options>
+    <visible>true</visible>
+    <vertical_alignment>1</vertical_alignment>
+    <border_color>
+      <color red="0" green="128" blue="255" />
+    </border_color>
+    <widget_type>Label</widget_type>
+    <wrap_words>false</wrap_words>
+    <background_color>
+      <color red="255" green="255" blue="255" />
+    </background_color>
+    <width>367</width>
+    <x>234</x>
+    <name>Label</name>
+    <y>12</y>
+    <foreground_color>
+      <color red="0" green="128" blue="255" />
+    </foreground_color>
+    <actions hook="false" hook_all="false" />
+    <font>
+      <opifont.name fontName="Cantarell" height="19" style="1">Header 1</opifont.name>
+    </font>
   </widget>
 </display>

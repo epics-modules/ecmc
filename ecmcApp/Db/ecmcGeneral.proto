@@ -6,13 +6,13 @@ ReadTimeout = 100;
 
 getGeneralErrorReset{
 	out "ControllerErrorReset()";      	
-	in "%{OK|ERROR}";
+	in "%{OK}";
 }
 
 setGeneralErrorReset{
 	out "ControllerErrorReset()";
-      	@init {getGeneralErrorReset;}
-	in "OK";
+       	@init { getGeneralErrorReset; }
+	in "%{OK}";
 }
 
 getGeneralErrorId{

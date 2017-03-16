@@ -6,7 +6,7 @@
   <show_grid>true</show_grid>
   <auto_zoom_to_fit_all>false</auto_zoom_to_fit_all>
   <scripts />
-  <height>600</height>
+  <height>150</height>
   <macros>
     <include_parent_macros>true</include_parent_macros>
   </macros>
@@ -21,7 +21,7 @@
   <background_color>
     <color red="240" green="240" blue="240" />
   </background_color>
-  <width>800</width>
+  <width>200</width>
   <x>-1</x>
   <name></name>
   <grid_space>6</grid_space>
@@ -41,7 +41,7 @@
     <transparent>false</transparent>
     <lock_children>false</lock_children>
     <scripts />
-    <height>157</height>
+    <height>150</height>
     <border_width>1</border_width>
     <scale_options>
       <width_scalable>true</width_scalable>
@@ -59,8 +59,8 @@
     <background_color>
       <color name="Background" red="255" green="255" blue="255" />
     </background_color>
-    <width>283</width>
-    <x>-12</x>
+    <width>200</width>
+    <x>0</x>
     <name>$(TYPE)</name>
     <y>0</y>
     <foreground_color>
@@ -153,7 +153,7 @@ $(pv_value)</tooltip>
         <color red="255" green="255" blue="255" />
       </background_color>
       <width>100</width>
-      <x>126</x>
+      <x>108</x>
       <name>Text Update</name>
       <y>12</y>
       <foreground_color>
