@@ -82,10 +82,12 @@ double ecmcEncoder::getActPos()
 
 void ecmcEncoder::setActPos(double pos)
 {
-  //Must clear velocity filter
-  velocityFilter_->reset();
-  actPosOld_=actPos_;
+  //calculate new offset
   offset_=offset_+pos-actPos_;
+  actPosOld_=pos;
+  actPos_=pos;
+  //Must clear velocity filter
+  velocityFilter_->initFilter(pos);
 }
 
 void ecmcEncoder::setOffset(double offset)
