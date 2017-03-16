@@ -78,6 +78,20 @@ int ecmcFilter::reset()
   return 0;
 }
 
+int ecmcFilter::initFilter(double pos)
+{
+  for(int i=0;i<FILTER_BUFFER_SIZE_POS;i++){
+    bufferPos_[i]=pos;
+  }
+  for(int i=0;i<FILTER_BUFFER_SIZE_VEL;i++){
+    bufferVel_[i]=0;
+  }
+  indexPos_=0;
+  indexVel_=0;
+  return 0;
+}
+
+
 /*double ecmcFilter::lowPassExponential(double input, double average, double factor)
 {
    return input*factor + (1-factor)*average;  // ensure factor belongs to  [0,1]
