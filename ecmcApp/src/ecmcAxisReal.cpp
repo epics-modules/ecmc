@@ -123,7 +123,7 @@ void ecmcAxisReal::execute(bool masterOK)
         traj_->setStartPos(data_.status_.currentPositionSetpoint);
       }
 
-      if(data_.status_.enabledOld && !data_.status_.enabled && data_.status_.enableOld){
+      if(data_.status_.enabledOld && !data_.status_.enabled && data_.status_.enableOld && data_.command_.enable){
 	  setEnable(false);
 	  setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
       }
