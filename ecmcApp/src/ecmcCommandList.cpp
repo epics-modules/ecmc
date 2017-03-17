@@ -89,7 +89,7 @@ int ecmcCommandList::addCommand(std::string command)
 
   commandCounter_++;
 
-  LOGINFO15("%s/%s:%d: commandList[%d].command[%d]=%s.\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_,command.c_str());
+  LOGINFO15("%s/%s:%d: commandList[%d].command[%d]=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_,command.c_str());
 
   LOGINFO8("%s/%s:%d: INFO: Command list %d. Command %s added to command list (%d commands in list).\n",__FILE__, __FUNCTION__, __LINE__,index_,command.c_str(),commandCounter_);
   return 0;
@@ -109,7 +109,7 @@ int ecmcCommandList::validate()
 int ecmcCommandList::setEnable(int enable)
 {
   if(enable_!=enable){
-    LOGINFO15("%s/%s:%d: commandList[%d].enable=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
+    LOGINFO15("%s/%s:%d: commandList[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
   }
   enable_=enable;
   validate();

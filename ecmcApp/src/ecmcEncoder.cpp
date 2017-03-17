@@ -55,7 +55,7 @@ int ecmcEncoder::setScaleNum(double scaleNum)
 {
   if(scaleNum_!=scaleNum)
   {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleNum=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleNum);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleNum=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleNum);
   }
 
   scaleNum_=scaleNum;
@@ -69,7 +69,7 @@ int ecmcEncoder::setScaleDenom(double scaleDenom)
 {
   if(scaleDenom_!=scaleDenom)
   {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleNum=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleNum=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom);
   }
 
   scaleDenom_=scaleDenom;
@@ -94,7 +94,7 @@ void ecmcEncoder::setActPos(double pos)
 {
   if(actPos_!=pos)
   {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.actPos=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.actPos=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
   }
 
   //calculate new offset
@@ -109,7 +109,7 @@ void ecmcEncoder::setOffset(double offset)
 {
   if(offset_!=offset)
   {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.offset=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,offset);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.offset=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,offset);
   }
 
   offset_=offset;
@@ -129,7 +129,7 @@ void ecmcEncoder::setHomed(bool homed)
 {
   if(homed_!=homed)
   {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.homed=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,homed);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.homed=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,homed);
   }
   homed_=homed;
 }
@@ -145,7 +145,7 @@ int ecmcEncoder::setType(encoderType encType)
     case ECMC_ENCODER_TYPE_ABSOLUTE:
       if(encType_!=encType)
       {
-        LOGINFO15("%s/%s:%d: axis[%d].encoder.type=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_ABSOLUTE");
+        LOGINFO15("%s/%s:%d: axis[%d].encoder.type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_ABSOLUTE");
       }
       encType_=encType;
       homed_=true;
@@ -153,7 +153,7 @@ int ecmcEncoder::setType(encoderType encType)
     case ECMC_ENCODER_TYPE_INCREMENTAL:
       if(encType_!=encType)
       {
-        LOGINFO15("%s/%s:%d: axis[%d].encoder.type=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_INCREMENTAL");
+        LOGINFO15("%s/%s:%d: axis[%d].encoder.type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_INCREMENTAL");
       }
       encType_=encType;
       break;
@@ -195,7 +195,7 @@ int ecmcEncoder::setBits(int bits)
 {
   if(bits_!=bits)
   {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,bits);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,bits);
   }
 
   bits_=bits;

@@ -10,6 +10,7 @@
 #include <string.h>
 #include "stdio.h"
 #include "cmd.h"
+#include <time.h>
 
 enum ecmcAlarmSeverity{
   ECMC_SEVERITY_NONE=0,
@@ -34,6 +35,7 @@ public:
   virtual int getErrorID();
   virtual ecmcAlarmSeverity getSeverity();
   static const char *convertErrorIdToString(int errorId);
+  static void printFormatedTime(FILE *log);
 private:
   void initVars();
   bool error_;

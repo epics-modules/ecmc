@@ -48,6 +48,7 @@ typedef struct {
   bool busy;
   bool busyOld;
   bool moving;
+  bool movingOld;
   int seqState;
   bool atTarget;
   bool limitFwd;

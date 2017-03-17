@@ -164,7 +164,7 @@ int ecmcDataStorage::setCurrentPosition(int position)
   }
 
   if(currentBufferIndex_!=position){
-    LOGINFO15("%s/%s:%d: dataStorage[%d].dataIndex=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,position);
+    LOGINFO15("%s/%s:%d: dataStorage[%d].dataIndex=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,position);
   }
 
   currentBufferIndex_=position;

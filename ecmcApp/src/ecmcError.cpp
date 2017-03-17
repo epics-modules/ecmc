@@ -902,3 +902,13 @@ const char *ecmcError::convertErrorIdToString(int errorId)
   }
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
 }
+
+
+void ecmcError::printFormatedTime(FILE *log)
+{
+  char timebuffer[32];
+  timespec logtime;
+  clock_gettime(CLOCK_REALTIME,&logtime);
+  strftime(timebuffer, 32, "%Y/%m/%d %H:%M:%S", localtime(&logtime.tv_sec));
+  (void)fprintf(log,"%s.%03d",timebuffer,(int)(logtime.tv_nsec/1e6));
+}

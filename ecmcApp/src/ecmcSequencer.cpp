@@ -67,7 +67,7 @@ void ecmcSequencer::execute()
   homeSensor_=data_->status_.homeSwitch;
 
   if(seqInProgressOld_!=seqInProgress_){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.inProgress=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,seqInProgress_);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.inProgress=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,seqInProgress_);
   }
   seqInProgressOld_=seqInProgress_;
 
@@ -76,7 +76,7 @@ void ecmcSequencer::execute()
   }
 
   if(seqState_!=seqStateOld_){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.state=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,seqState_);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.state=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,seqState_);
   }
   seqStateOld_=seqState_;
 
@@ -171,7 +171,7 @@ int  ecmcSequencer::setExecute(bool execute)
   }
 
   if(data_->command_.execute!=execute){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.execute=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,execute);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.execute=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,execute);
   }
 
   executeOld_=data_->command_.execute;
@@ -280,7 +280,7 @@ bool ecmcSequencer::getExecute()
 void ecmcSequencer::setCommand(motionCommandTypes command)
 {
   if(data_->command_.command!=command){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.command=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,command);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.command=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,command);
   }
 
   data_->command_.command=command;
@@ -294,7 +294,7 @@ motionCommandTypes ecmcSequencer::getCommand()
 void ecmcSequencer::setCmdData(int cmdData)
 {
   if(data_->command_.cmdData!=cmdData){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.cmdData=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,cmdData);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.cmdData=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,cmdData);
   }
 
   data_->command_.cmdData=cmdData;
@@ -342,7 +342,7 @@ bool ecmcSequencer::getBusy()
 void ecmcSequencer::setJogVel(double vel)
 {
   if(jogVel_!=vel){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogVel=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogVel=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
   }
 
   jogVel_=vel;
@@ -356,7 +356,7 @@ double ecmcSequencer::getJogVel()
 int ecmcSequencer::setHomeVelTwordsCam(double vel)
 {
   if(homeVelTwordsCam_!=vel){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeVelTwordsCam=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeVelTwordsCam=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
   }
 
   homeVelTwordsCam_=vel;
@@ -366,7 +366,7 @@ int ecmcSequencer::setHomeVelTwordsCam(double vel)
 int ecmcSequencer::setHomeVelOffCam(double vel)
 {
   if(homeVelOffCam_!=vel){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeVelOffCam=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeVelOffCam=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
   }
 
   homeVelOffCam_=vel;
@@ -388,16 +388,16 @@ int ecmcSequencer::setHomeDir(motionDirection dir)
   if(homeDirection_!=dir){
     switch(dir){
       case ECMC_DIR_FORWARD:
-	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_FORWARD");
+	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_FORWARD");
 	break;
       case ECMC_DIR_BACKWARD:
-	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_BACKWARD");
+	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_BACKWARD");
 	break;
       case ECMC_DIR_STANDSTILL:
-	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_STANDSTILL");
+	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_STANDSTILL");
 	break;
       default:
-	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,dir);
+	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,dir);
 	break;
     }
   }
@@ -413,7 +413,7 @@ motionDirection ecmcSequencer::getHomeDir()
 void ecmcSequencer::setHomePosition(double pos)
 {
   if(homePosition_!=pos){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homePosition=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homePosition=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
   }
 
   homePosition_=pos;
@@ -438,7 +438,7 @@ void ecmcSequencer::setTargetPos(double pos)
   }
 
   if(data_->command_.positionTarget!=pos){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.positionTarget=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.positionTarget=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
   }
 
   data_->command_.positionTarget=pos;
@@ -448,7 +448,7 @@ void ecmcSequencer::setTargetPos(double pos, bool force)
 {
  if(force){
    if(data_->command_.positionTarget!=pos){
-     LOGINFO15("%s/%s:%d: axis[%d].sequencer.positionTarget=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
+     LOGINFO15("%s/%s:%d: axis[%d].sequencer.positionTarget=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
    }
    data_->command_.positionTarget=pos;
  }
@@ -465,7 +465,7 @@ double ecmcSequencer::getTargetPos()
 void ecmcSequencer::setTargetVel(double velTarget)
 {
   if(data_->command_.velocityTarget!=velTarget){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.velocityTarget=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velTarget);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.velocityTarget=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velTarget);
   }
 
   data_->command_.velocityTarget=velTarget;
@@ -479,7 +479,7 @@ double ecmcSequencer::getTargetVel()
 void ecmcSequencer::setJogFwd(bool jog)
 {
   if(jogFwd_!=jog){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogFwd=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jog);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jog);
   }
 
   jogFwd_=jog;
@@ -509,7 +509,7 @@ bool ecmcSequencer::getJogFwd()
 void ecmcSequencer::setJogBwd(bool jog)
 {
   if(jogBwd_!=jog){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogBwd=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jog);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jog);
   }
 
   jogBwd_=jog;
@@ -1329,7 +1329,7 @@ int ecmcSequencer::validate()
 int ecmcSequencer::setSequenceTimeout(int timeout)
 {
   if(seqTimeout_!=timeout){
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.timeout=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,timeout);
+    LOGINFO15("%s/%s:%d: axis[%d].sequencer.timeout=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,timeout);
   }
 
   seqTimeout_=timeout;

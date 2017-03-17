@@ -190,7 +190,7 @@ int ecmcAxisReal::setOpMode(operationMode mode)
     drv_->setVelSet(0);
   }
 
-  LOGINFO15("%s/%s:%d: axis[%d].operationMode=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,mode);
+  LOGINFO15("%s/%s:%d: axis[%d].operationMode=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,mode);
 
   data_.command_.operationModeCmd=mode;
   return 0;
@@ -325,7 +325,7 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
         exit(EXIT_FAILURE);
       }
       currentDriveType_=ECMC_STEPPER;
-      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_STEPPER");
+      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_STEPPER");
       break;
     case ECMC_DS402:
       delete drv_;
@@ -336,7 +336,7 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
         exit(EXIT_FAILURE);
       }
       currentDriveType_=ECMC_DS402;
-      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_DS402");
+      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_DS402");
       break;
     default:
       LOGERR("%s/%s:%d: DRIVE TYPE NOT SUPPORTED (%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
