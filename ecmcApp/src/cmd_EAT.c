@@ -924,10 +924,19 @@ static int handleCfgCommand(const char *myarg_1){
   }
 
   /*int Cfg.SetTraceMask(int mask);*/
-  unsigned int uiValue=0;
-  nvals = sscanf(myarg_1, "SetTraceMask(%u)",&uiValue);
+  //int iValue=0;
+  nvals = sscanf(myarg_1, "SetTraceMask(%d)",&iValue);
   if (nvals == 1) {
-    debug_print_flags= uiValue;
+    debug_print_flags= iValue;
+    return 0;
+  }
+
+  /*int Cfg.SetTraceMaskBit(int bitToSet, int value);*/
+  //unsigned int uiValue1=0;
+  //unsigned int uiValue2=0;
+  nvals = sscanf(myarg_1, "SetTraceMaskBit(%d,%d)",&iValue,&iValue2);
+  if (nvals == 2) {
+    WRITE_DIAG_BIT(iValue,iValue2);
     return 0;
   }
 

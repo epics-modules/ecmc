@@ -62,6 +62,7 @@ do {                                               \
 #define FUNCTION_DATA_RECORDER_DIAGNOSTICS_BIT 11
 #define FUNCTION_HW_MOTOR_AXIS_DIAGNOSTICS_BIT 12
 #define FUNCTION_TIMING_DIAGNOSTICS_BIT 13
+#define FUNCTION_AXES_ON_CHANGE_DATA_BIT 15
 
 #define LOGINFO(fmt, ...)                        \
 {                                                \

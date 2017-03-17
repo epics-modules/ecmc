@@ -162,6 +162,11 @@ int ecmcDataStorage::setCurrentPosition(int position)
   if(position>bufferElementCount_ || position<0){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
   }
+
+  if(currentBufferIndex_!=position){
+    LOGINFO15("%s/%s:%d: dataStorage[%d].dataIndex=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,position);
+  }
+
   currentBufferIndex_=position;
   return 0;
 }

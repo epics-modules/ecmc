@@ -67,6 +67,10 @@ int ecmcDataRecorder::validate()
 
 int ecmcDataRecorder::setEnable(int enable)
 {
+  if(enable_!=enable){
+    LOGINFO15("%s/%s:%d: dataRecorder[%d].enable=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
+  }
+
   enable_=enable;
   LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Enable set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_);
   validate();

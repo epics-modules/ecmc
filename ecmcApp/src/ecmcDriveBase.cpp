@@ -46,6 +46,9 @@ int ecmcDriveBase::setVelSet(double vel)
 
 void ecmcDriveBase::setScaleNum(double scaleNum)
 {
+  if(scaleNum_!=scaleNum){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.scaleNum=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleNum);
+  }
   scaleNum_=scaleNum;
   if(std::abs(scaleDenom_)>0){
     scale_=scaleNum_/scaleDenom_;
@@ -54,6 +57,9 @@ void ecmcDriveBase::setScaleNum(double scaleNum)
 
 int ecmcDriveBase::setScaleDenom(double scaleDenom)
 {
+  if(scaleDenom_!=scaleDenom){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.scaleDenom=%lf.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom);
+  }
   scaleDenom_=scaleDenom;
   if(scaleDenom_==0){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_SCALE_DENOM_ZERO);
@@ -85,7 +91,11 @@ int ecmcDriveBase::setEnable(bool enable)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE);
   }
 
-  manualModeEnable_=true;
+  if(manualModeEnable_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.manualModeEnable=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
+
+  manualModeEnable_=enable;
   return 0;
 }
 
@@ -104,6 +114,11 @@ int ecmcDriveBase::setEnableBrake(bool enable)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_BRAKE_ENTRY_NULL);
     }
   }
+
+  if(enableBrake_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.brakeEnable=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
+
   enableBrake_=enable;
   return 0;
 }
@@ -117,6 +132,11 @@ int ecmcDriveBase::setEnableReduceTorque(bool enable)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL);
     }
   }
+
+  if(enableReduceTorque_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.reduceTorqueEnable=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
+
   enableReduceTorque_=enable;
 
   return 0;

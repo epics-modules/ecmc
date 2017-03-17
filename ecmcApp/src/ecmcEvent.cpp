@@ -43,6 +43,11 @@ void ecmcEvent::initVars()
 
 int ecmcEvent::setEventType(eventType type)
 {
+  if(eventType_!=type)
+  {
+    LOGINFO15("%s/%s:%d: event[%d].type=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,type);
+  }
+
   eventType_=type;
   LOGINFO10("%s/%s:%d: INFO: Event %d. Event type set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,eventType_);
   int errorCode=validate();
@@ -55,6 +60,11 @@ int ecmcEvent::setEventType(eventType type)
 
 int ecmcEvent::setTriggerEdge(triggerEdgeType triggerEdge)
 {
+  if(triggerEdge_!=triggerEdge)
+  {
+    LOGINFO15("%s/%s:%d: event[%d].triggerEdge=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,triggerEdge);
+  }
+
   triggerEdge_=triggerEdge;
   LOGINFO10("%s/%s:%d: INFO: Event %d. Trigger edge set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,triggerEdge_);
   return 0;
@@ -68,6 +78,12 @@ int ecmcEvent::setEnable(int enable)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
     }
   }
+
+  if(enable_!=enable)
+  {
+    LOGINFO15("%s/%s:%d: event[%d].enable=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
+  }
+
   enable_=enable;
   LOGINFO10("%s/%s:%d: INFO: Event %d. Enable set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_);
   return 0;
@@ -84,6 +100,12 @@ int ecmcEvent::setDataSampleTime(int sampleTime)
   if(sampleTime<=0){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_INVALID_SAMPLE_TIME);
   }
+
+  if(dataSampleTime_!=sampleTime)
+  {
+    LOGINFO15("%s/%s:%d: event[%d].sampleTime=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,sampleTime);
+  }
+
   dataSampleTime_=sampleTime;
   LOGINFO10("%s/%s:%d: INFO: Event %d. Sampling time set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,dataSampleTime_);
   return 0;
@@ -236,6 +258,11 @@ int ecmcEvent::armSequence()
 
 int ecmcEvent::setEnableArmSequence(int enable)
 {
+  if(enableArmSequence_!=enable)
+  {
+    LOGINFO15("%s/%s:%d: event[%d].enableArmSequence=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
+  }
+
   enableArmSequence_=enable;
   LOGINFO10("%s/%s:%d: INFO: Event %d. Enable arm sequence set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enableArmSequence_);
 
@@ -245,6 +272,10 @@ int ecmcEvent::setEnableArmSequence(int enable)
 
 void ecmcEvent::setInStartupPhase(bool startup)
 {
+  if(inStartupPhase_!=startup)
+  {
+    LOGINFO15("%s/%s:%d: event[%d].inStartupPhase=%d.\n",__FILE__, __FUNCTION__, __LINE__,index_,startup);
+  }
   inStartupPhase_=startup;
 }
 

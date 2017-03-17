@@ -97,6 +97,7 @@ private:
   int checkVelocityDiff();
   int checkCntrlMaxOutput();
   int filterSwitches();
+  void printInterlockStatus(interlockTypes ilock);
 
   bool   enable_;
   double atTargetTol_;           //Tolnoerance for reached target. Example 0.1 deg
@@ -132,6 +133,7 @@ private:
   bool limitFwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
+  interlockTypes interlockStatusOld_;
 
 };
 #endif

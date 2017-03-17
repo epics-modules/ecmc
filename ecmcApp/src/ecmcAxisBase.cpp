@@ -105,15 +105,16 @@ void ecmcAxisBase::preExecute(bool masterOK)
           errorReset();
         }
         setInStartupPhase(false);
-        LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_STARTUP->ECMC_AXIS_STATE_DISABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+        LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
         axisState_=ECMC_AXIS_STATE_DISABLED;
       }
       break;
     case ECMC_AXIS_STATE_DISABLED:
       data_.status_.busy=false;
+
       data_.status_.distToStop=0;
       if(data_.status_.enabled){
-	LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_ENABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+	LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_ENABLED.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
 	axisState_=ECMC_AXIS_STATE_ENABLED;
       }
       if(!masterOK){
@@ -141,7 +142,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
         data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
       }
       if(!data_.status_.enabled){
-	LOGINFO7("%s/%s:%d: Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_DISABLED).\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+	LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
 	axisState_=ECMC_AXIS_STATE_DISABLED;
       }
       if(!masterOK){
@@ -157,7 +158,18 @@ void ecmcAxisBase::preExecute(bool masterOK)
 
 void ecmcAxisBase::postExecute(bool masterOK)
 {
+  if(data_.status_.busyOld!=data_.status_.busy)
+  {
+    LOGINFO15("%s/%s:%d: axis[%d].busy=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.busy);
+  }
+  data_.status_.busyOld=data_.status_.busy;
+
+  if(data_.status_.enabledOld!=data_.status_.enabled)
+  {
+    LOGINFO15("%s/%s:%d: axis[%d].enabled=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.enabled);
+  }
   data_.status_.enabledOld=data_.status_.enabled;
+
   data_.status_.executeOld=getExecute();
   data_.status_.currentPositionSetpointOld=data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld=data_.status_.cntrlOutput;
@@ -177,6 +189,10 @@ int ecmcAxisBase::getAxisID()
 
 void ecmcAxisBase::setReset(bool reset)
 {
+  if(data_.command_.reset!=reset){
+    LOGINFO15("%s/%s:%d: axis[%d].reset=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,reset);
+  }
+
   data_.command_.reset=reset;
   if(reset){
     errorReset();
@@ -245,6 +261,9 @@ void ecmcAxisBase::initVars()
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
 {
+  if(cascadedCommandsEnable_!=enable) {
+    LOGINFO15("%s/%s:%d: axis[%d].enableCascadedCommands=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,enable);
+  }
   cascadedCommandsEnable_=enable;
   return 0;
 }
@@ -285,7 +304,11 @@ int ecmcAxisBase::setEnableCommandsTransform(bool enable)
       }
     }
   }
+  if(enableCommandTransform_!=enable) {
+    LOGINFO15("%s/%s:%d: axis[%d].enableCommandsTransform=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,enable);
+  }
   enableCommandTransform_=enable;
+
   return 0;
 }
 
@@ -334,6 +357,7 @@ int ecmcAxisBase::fillCommandsTransformData()
 
 int ecmcAxisBase::setCommandsTransformExpression(std::string expression)
 {
+  LOGINFO15("%s/%s:%d: axis[%d].commandTransformExpression=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,expression.c_str());
   return commandTransform_->setExpression(expression);
 }
 
@@ -409,6 +433,9 @@ ecmcCommandTransform *ecmcAxisBase::getCommandTransform()
 
 void ecmcAxisBase::setInStartupPhase(bool startup)
 {
+  if(data_.status_.inStartupPhase!=startup){
+    LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,startup);
+  }
   data_.status_.inStartupPhase=startup;
 }
 
@@ -419,10 +446,13 @@ int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType)
 
 int ecmcAxisBase::setTrajTransformExpression(std::string expressionString)
 {
-   ecmcCommandTransform *transform=externalInputTrajectoryIF_->getExtInputTransform();
+
+  ecmcCommandTransform *transform=externalInputTrajectoryIF_->getExtInputTransform();
   if(!transform){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
   }
+
+  LOGINFO15("%s/%s:%d: axis[%d].trajTransformExpression=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,expressionString.c_str());
 
   int error=transform->setExpression(expressionString);
   if(error){
@@ -443,6 +473,8 @@ int ecmcAxisBase::setEncTransformExpression(std::string expressionString)
   if(!transform){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
   }
+
+  LOGINFO15("%s/%s:%d: axis[%d].encTransformExpression=%s.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,expressionString.c_str());
 
   int error=transform->setExpression(expressionString);
   if(error){
@@ -489,6 +521,9 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
     data_.refreshInterlocks();
   }
 
+  if(data_.command_.trajSource!=refSource){
+    LOGINFO15("%s/%s:%d: axis[%d].trajDataSourceType=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,refSource);
+  }
   data_.command_.trajSource=refSource;
   return 0;
 }
@@ -528,6 +563,11 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
   if(error){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
+
+  if(data_.command_.encSource!=refSource){
+    LOGINFO15("%s/%s:%d: axis[%d].encDataSourceType=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,refSource);
+  }
+
   data_.command_.encSource=refSource;
   return 0;
 }
@@ -607,16 +647,18 @@ int ecmcAxisBase::getErrorID()
 
 int ecmcAxisBase::setEnableLocal(bool enable)
 {
-  ecmcTrajectoryTrapetz *traj =getTraj();
-  if(traj){
-    if(enable && !data_.command_.enable){
-      traj_->setStartPos(data_.status_.currentPositionActual);
-      traj_->setCurrentPosSet(data_.status_.currentPositionActual);
-      traj_->setTargetPos(data_.status_.currentPositionActual);
-      data_.status_.currentTargetPosition=data_.status_.currentPositionActual;
-    }
-    traj->setEnable(enable);
+  if(enable && !data_.command_.enable){
+    traj_->setStartPos(data_.status_.currentPositionActual);
+    traj_->setCurrentPosSet(data_.status_.currentPositionActual);
+    traj_->setTargetPos(data_.status_.currentPositionActual);
+    data_.status_.currentTargetPosition=data_.status_.currentPositionActual;
   }
+  traj_->setEnable(enable);
+
+  if(data_.command_.enable!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].enable=%d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,enable);
+  }
+
   data_.status_.enableOld=data_.command_.enable;
   data_.command_.enable=enable;
   return 0;
@@ -818,6 +860,7 @@ int ecmcAxisBase::getEncPosRaw(int64_t *rawPos)
 int ecmcAxisBase::setCommand(motionCommandTypes command)
 {
   seq_.setCommand(command);
+
   return 0;
 }
 
