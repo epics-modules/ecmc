@@ -12,6 +12,8 @@ ecmcEvent::ecmcEvent(double sampleTime, int index): ecmcEcEntryLink()
   initVars();
   sampleTime_=sampleTime;
   index_=index;
+  LOGINFO15("%s/%s:%d: event[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  LOGINFO15("%s/%s:%d: event[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,sampleTime);
 }
 
 ecmcEvent::~ecmcEvent()

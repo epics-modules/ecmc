@@ -21,6 +21,19 @@ ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
   bufferElementCount_=size;
   index_=index;
   bufferType_=bufferType;
+  LOGINFO15("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  LOGINFO15("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,size);
+  switch(bufferType){
+    case ECMC_STORAGE_LIFO_BUFFER:
+      LOGINFO15("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_LIFO_BUFFER");
+      break;
+    case ECMC_STORAGE_RING_BUFFER:
+      LOGINFO15("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_RING_BUFFER");
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: dataStorage[%d].bufferType=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,bufferType);
+      break;
+  }
 }
 
 ecmcDataStorage::~ecmcDataStorage ()

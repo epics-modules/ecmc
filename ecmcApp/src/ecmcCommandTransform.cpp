@@ -28,6 +28,9 @@ ecmcCommandTransform::ecmcCommandTransform(int commandCount, int elementsPerComm
     outputArray_[i]=0;
   }
   symbolTable_.add_constants();
+  LOGINFO15("%s/%s:%d: commandTransform=new;\n",__FILE__, __FUNCTION__, __LINE__);
+  LOGINFO15("%s/%s:%d: commandTransform.commandCount=%d;\n",__FILE__, __FUNCTION__, __LINE__,commandCount);
+  LOGINFO15("%s/%s:%d: commandTransform.elemenstPerCommand=%d;\n",__FILE__, __FUNCTION__, __LINE__,elementsPerCommand);
 }
 
 void ecmcCommandTransform::initVars()

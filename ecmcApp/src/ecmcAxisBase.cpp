@@ -578,6 +578,9 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
 
 int ecmcAxisBase::setRealTimeStarted(bool realtime)
 {
+  if(data_.status_.inRealtime!=realtime){
+    LOGINFO15("%s/%s:%d: axis[%d].inRealtime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,realtime);
+  }
   data_.status_.inRealtime=realtime;
   return 0;
 }

@@ -12,6 +12,7 @@ ecmcDataRecorder::ecmcDataRecorder (int index):ecmcEcEntryLink()
   initVars();
   setInStartupPhase(1);
   index_=index;
+  LOGINFO15("%s/%s:%d: dataRecorder[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
 }
 
 ecmcDataRecorder::~ecmcDataRecorder ()

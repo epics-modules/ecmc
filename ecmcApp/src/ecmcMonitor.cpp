@@ -7,6 +7,7 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData)
   initVars();
   data_=axisData;
   errorReset();
+  LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
 }
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,bool enableAtTargetMon, bool enableLagMon)
@@ -15,6 +16,9 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,bool enableAtTargetMon, bool ena
   data_=axisData;
   enableAtTargetMon_=enableAtTargetMon;
   enableLagMon_=enableLagMon;
+  LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enablePosLagMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableLagMon);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAtTargetMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAtTargetMon);
 }
 
 void ecmcMonitor::initVars()

@@ -13,6 +13,10 @@ ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   data_.axisType_=ECMC_AXIS_TYPE_VIRTUAL;
   seq_.setCntrl(NULL);
   data_.sampleTime_=sampleTime;
+
+  LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
+  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,axisID,"ECMC_AXIS_TYPE_VIRTUAL");
+  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,axisID,sampleTime);
 }
 
 ecmcAxisVirt::~ecmcAxisVirt()

@@ -4,6 +4,8 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData) : ecmcDriveBase(axisData)
 {
   initVars();
   data_=axisData;
+  LOGINFO15("%s/%s:%d: axis[%d].drive=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.type=ECMC_DS402;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
 }
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData,double scale) : ecmcDriveBase(axisData)
@@ -11,6 +13,9 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData,double scale) : ecmcDriveB
   initVars();
   scale_=scale;
   data_=axisData;
+  LOGINFO15("%s/%s:%d: axis[%d].drive=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.type=ECMC_DS402;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.scale=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scale);
 }
 ecmcDriveDS402::~ecmcDriveDS402()
 {

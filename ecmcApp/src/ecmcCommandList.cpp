@@ -11,6 +11,8 @@ ecmcCommandList::ecmcCommandList (int index)
 {
   initVars();
   index_=index;
+  LOGINFO15("%s/%s:%d: commandList[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+
 }
 
 ecmcCommandList::~ecmcCommandList ()

@@ -17,6 +17,8 @@ ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,double sampleTime) : ecmcEcEntry
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_VELOCITY_FILTER_NULL);
     exit(EXIT_FAILURE);
   }
+  LOGINFO15("%s/%s:%d: axis[%d].encoder=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime);
 }
 
 ecmcEncoder::~ecmcEncoder()
