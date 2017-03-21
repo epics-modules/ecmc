@@ -2,6 +2,7 @@
 # coding: utf-8
 from ecmcDataStructure import axisData
 from datetime import datetime
+import sys
 
 def is_number(s):
   try:
@@ -11,14 +12,31 @@ def is_number(s):
 
   return True
 
-numberOfAxes=4
-filename='xx.txt'
+################START############
+toTime=0
+if len(sys.argv)==1 or len(sys.argv)>4:
+  print "python ecmcDiagnostics.py <filename> <axisIndex> <toTime>"
+  sys.exit() 
+if len(sys.argv)==2:
+  axisNumber=1
+  filename=sys.argv[1]
+if len(sys.argv)==3:
+  axisNumber=int(sys.argv[2])
+  filename=sys.argv[1]
+if len(sys.argv)==4:
+  axisNumber=int(sys.argv[2])
+  filename=sys.argv[1]
+  toTime=datetime.strptime(sys.argv[3],"%Y/%m/%d %H:%M:%S.%f")
+
+
+
 print "Welcome to ECMC Diagnostocs Tool. Should never be needed :-).."
 
 dataFile=open(filename,'r')
 axis=[]
-
-print "Adding axis objects (" +str(numberOfAxes) + ")."
+#not so nice
+numberOfAxes=3
+print "Adding axis objects (" +str(range(1, numberOfAxes)) + ")."
 for ax in range(0, numberOfAxes): 
   axis.append(axisData(ax))
 
