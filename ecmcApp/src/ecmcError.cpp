@@ -910,5 +910,5 @@ void ecmcError::printFormatedTime(FILE *log)
   timespec logtime;
   clock_gettime(CLOCK_REALTIME,&logtime);
   strftime(timebuffer, 32, "%Y/%m/%d %H:%M:%S", localtime(&logtime.tv_sec));
-  (void)fprintf(log,"%s.%03d",timebuffer,(int)(logtime.tv_nsec/1e6));
+  (void)fprintf(log,"%s.%03d ",timebuffer,(int)(logtime.tv_nsec/1e6));
 }

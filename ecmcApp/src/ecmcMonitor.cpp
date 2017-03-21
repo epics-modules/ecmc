@@ -352,7 +352,7 @@ int ecmcMonitor::setMaxVelTrajTime(int time)
 
 int ecmcMonitor::reset()
 {
-  LOGINFO15("%s/%s:%d: axis[%d].monitor.reset;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.reset=1;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
 
   data_->status_.atTarget=false;
   atTargetCounter_=0;

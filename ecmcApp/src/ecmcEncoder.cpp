@@ -71,7 +71,7 @@ int ecmcEncoder::setScaleDenom(double scaleDenom)
 {
   if(scaleDenom_!=scaleDenom)
   {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleNum=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleDenom=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom);
   }
 
   scaleDenom_=scaleDenom;
