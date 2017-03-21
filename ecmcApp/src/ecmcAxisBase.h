@@ -97,6 +97,8 @@ typedef struct {
 typedef struct {
     int axisID;
     int cycleCounter;
+    double acceleration;
+    double deceleration;
     ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
