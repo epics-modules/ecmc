@@ -13,7 +13,14 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
 
   data_.axisType_=ECMC_AXIS_TYPE_REAL;
   data_.sampleTime_=sampleTime;
+  data_.axisId_=axisID;
   currentDriveType_=ECMC_STEPPER;
+
+  LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
+  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,axisID,"ECMC_AXIS_TYPE_REAL");
+  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,axisID,sampleTime);
+  LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_STEPPER");
+
   drv_=new ecmcDriveStepper(&data_);
   if(!drv_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
@@ -30,9 +37,6 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
 
   seq_.setCntrl(cntrl_);
 
-  LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
-  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,axisID,"ECMC_AXIS_TYPE_REAL");
-  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,axisID,sampleTime);
 }
 
 ecmcAxisReal::~ecmcAxisReal()
@@ -250,6 +254,8 @@ void ecmcAxisReal::refreshDebugInfoStruct()
   statusData_.onChangeData.command=data_.command_.command;
   statusData_.onChangeData.positionRaw=enc_->getRawPos();
   statusData_.onChangeData.homed=enc_->getHomed();
+  statusData_.acceleration=traj_->getAcc();
+  statusData_.deceleration=traj_->getDec();
 }
 
 int ecmcAxisReal::validate()

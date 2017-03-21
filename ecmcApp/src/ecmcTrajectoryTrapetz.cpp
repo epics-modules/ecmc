@@ -27,7 +27,7 @@ ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double veloc
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetVelocity=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velocityTarget);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.acceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,acceleration);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.deceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,deceleration_);
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory.deceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,deceleration);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.emergencyDeceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,decelerationEmergency_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.jerk=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jerk);
 }

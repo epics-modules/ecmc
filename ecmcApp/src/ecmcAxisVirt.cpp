@@ -13,6 +13,7 @@ ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   data_.axisType_=ECMC_AXIS_TYPE_VIRTUAL;
   seq_.setCntrl(NULL);
   data_.sampleTime_=sampleTime;
+  data_.axisId_=axisID;
 
   LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
   LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,axisID,"ECMC_AXIS_TYPE_VIRTUAL");
@@ -182,6 +183,8 @@ void ecmcAxisVirt::refreshDebugInfoStruct()
   statusData_.onChangeData.velocityFFRaw=0;
   statusData_.onChangeData.positionRaw=enc_->getRawPos();
   statusData_.onChangeData.homed=enc_->getHomed();
+  statusData_.acceleration=traj_->getAcc();
+  statusData_.deceleration=traj_->getDec();
 }
 
 int ecmcAxisVirt::validate()

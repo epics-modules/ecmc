@@ -12,6 +12,10 @@ ecmcDataStorage::ecmcDataStorage (int index)
   initVars();
   setBufferSize(ECMC_DEFAULT_DATA_STORAGE_SIZE);
   index_=index;
+  bufferType_=ECMC_STORAGE_LIFO_BUFFER;
+  LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  LOGINFO9("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,ECMC_DEFAULT_DATA_STORAGE_SIZE);
+  LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_LIFO_BUFFER");
 }
 
 ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
@@ -21,17 +25,17 @@ ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
   bufferElementCount_=size;
   index_=index;
   bufferType_=bufferType;
-  LOGINFO15("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
-  LOGINFO15("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,size);
+  LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  LOGINFO9("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,size);
   switch(bufferType){
     case ECMC_STORAGE_LIFO_BUFFER:
-      LOGINFO15("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_LIFO_BUFFER");
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_LIFO_BUFFER");
       break;
     case ECMC_STORAGE_RING_BUFFER:
-      LOGINFO15("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_RING_BUFFER");
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_RING_BUFFER");
       break;
     default:
-      LOGINFO15("%s/%s:%d: dataStorage[%d].bufferType=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,bufferType);
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,bufferType);
       break;
   }
 }
@@ -177,7 +181,7 @@ int ecmcDataStorage::setCurrentPosition(int position)
   }
 
   if(currentBufferIndex_!=position){
-    LOGINFO15("%s/%s:%d: dataStorage[%d].dataIndex=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,position);
+      LOGINFO9("%s/%s:%d: dataStorage[%d].dataIndex=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,position);
   }
 
   currentBufferIndex_=position;

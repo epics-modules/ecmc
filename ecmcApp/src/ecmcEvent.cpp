@@ -12,8 +12,8 @@ ecmcEvent::ecmcEvent(double sampleTime, int index): ecmcEcEntryLink()
   initVars();
   sampleTime_=sampleTime;
   index_=index;
-  LOGINFO15("%s/%s:%d: event[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
-  LOGINFO15("%s/%s:%d: event[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,sampleTime);
+  LOGINFO10("%s/%s:%d: event[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  LOGINFO10("%s/%s:%d: event[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,sampleTime);
 }
 
 ecmcEvent::~ecmcEvent()
@@ -47,7 +47,7 @@ int ecmcEvent::setEventType(eventType type)
 {
   if(eventType_!=type)
   {
-    LOGINFO15("%s/%s:%d: event[%d].type=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,type);
+    LOGINFO10("%s/%s:%d: event[%d].type=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,type);
   }
 
   eventType_=type;
@@ -64,7 +64,7 @@ int ecmcEvent::setTriggerEdge(triggerEdgeType triggerEdge)
 {
   if(triggerEdge_!=triggerEdge)
   {
-    LOGINFO15("%s/%s:%d: event[%d].triggerEdge=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,triggerEdge);
+    LOGINFO10("%s/%s:%d: event[%d].triggerEdge=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,triggerEdge);
   }
 
   triggerEdge_=triggerEdge;
@@ -83,7 +83,7 @@ int ecmcEvent::setEnable(int enable)
 
   if(enable_!=enable)
   {
-    LOGINFO15("%s/%s:%d: event[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
+    LOGINFO10("%s/%s:%d: event[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
   }
 
   enable_=enable;
@@ -105,7 +105,7 @@ int ecmcEvent::setDataSampleTime(int sampleTime)
 
   if(dataSampleTime_!=sampleTime)
   {
-    LOGINFO15("%s/%s:%d: event[%d].sampleTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,sampleTime);
+    LOGINFO10("%s/%s:%d: event[%d].sampleTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,sampleTime);
   }
 
   dataSampleTime_=sampleTime;
@@ -262,7 +262,7 @@ int ecmcEvent::setEnableArmSequence(int enable)
 {
   if(enableArmSequence_!=enable)
   {
-    LOGINFO15("%s/%s:%d: event[%d].enableArmSequence=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
+    LOGINFO10("%s/%s:%d: event[%d].enableArmSequence=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
   }
 
   enableArmSequence_=enable;
@@ -276,7 +276,7 @@ void ecmcEvent::setInStartupPhase(bool startup)
 {
   if(inStartupPhase_!=startup)
   {
-    LOGINFO15("%s/%s:%d: event[%d].inStartupPhase=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,startup);
+    LOGINFO10("%s/%s:%d: event[%d].inStartupPhase=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,startup);
   }
   inStartupPhase_=startup;
 }

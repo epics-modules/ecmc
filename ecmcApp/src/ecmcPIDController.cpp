@@ -12,6 +12,14 @@ ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double sampleTime)
 
 ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double kp, double ki, double kd, double kff, double sampleTime, double outMax, double outMin)
 {
+  LOGINFO15("%s/%s:%d: axis[%d].controller=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kp=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kp);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.ki=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ki);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kd);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kff=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kff);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMax);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMin);
+
   initVars();
   data_=axisData;
   kp_=kp;
@@ -20,13 +28,6 @@ ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double kp, double ki
   kff_=kff;
   outputMax_=outMax;
   outputMin_=outMin;
-  LOGINFO15("%s/%s:%d: axis[%d].controller=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kp=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kp);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.ki=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ki);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kd);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kff=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kff);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMax);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMin);
 }
 
 void ecmcPIDController::initVars()
