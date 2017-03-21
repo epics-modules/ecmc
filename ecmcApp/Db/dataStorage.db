@@ -10,7 +10,7 @@ record(bo,"$(P)Storage$(Index)-Clear"){
 record(waveform,"$(P)Storage$(Index)-Data"){
 	field(DTYP,"stream")
 	field(INP,"@dataStorage.proto getDataStorageData($(Index)) $(PORT)")
-	field(NELM,1000)
+	field(NELM,$(Size))
         field(FTVL,"DOUBLE")
 }
 
