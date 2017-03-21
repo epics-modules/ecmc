@@ -722,6 +722,64 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
   return 0;
 }
 
+/*int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  ecmcAxisStatusType data;
+  int error=axes[axisIndex]->getDebugInfoData(&data);
+  if(error){
+    return error;
+  }
+
+  //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+  int ret=snprintf(buffer,bufferByteSize,"Main.M%d.stAxisStatus=%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+       axisIndex,
+       data.onChangeData.positionActual,
+       data.onChangeData.positionTarget,
+       data.onChangeData.positionRaw,
+       data.onChangeData.velocityActual,
+       data.onChangeData.velocitySetpoint,
+
+
+       data.onChangeData.positionSetpoint,
+       data.onChangeData.cntrlError,
+       data.onChangeData.positionTarget,
+       data.onChangeData.positionError,
+       data.onChangeData.positionRaw,
+       data.onChangeData.cntrlOutput,
+       data.onChangeData.velocitySetpoint,
+
+       data.onChangeData.velocityFFRaw,
+       data.onChangeData.velocitySetpointRaw,
+       data.cycleCounter,
+       data.onChangeData.error,
+       data.onChangeData.command,
+       data.onChangeData.cmdData,
+       data.onChangeData.seqState,
+       data.onChangeData.trajInterlock,
+       data.onChangeData.trajSource,
+       data.onChangeData.encSource,
+       data.onChangeData.enable,
+       data.onChangeData.enabled,
+       data.onChangeData.execute,
+       data.onChangeData.busy,
+       data.onChangeData.atTarget,
+       data.onChangeData.homed,
+       data.onChangeData.limitBwd,
+       data.onChangeData.limitFwd,
+       data.onChangeData.homeSwitch
+       );
+
+  if(ret>=bufferByteSize || ret <=0){
+    return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  return 0;
+}*/
+
 int setAxisEnable(int axisIndex, int value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
