@@ -32,14 +32,14 @@ class dataPoint:
   def __repr__(self):
     valueStr=str(self.value_) + ";"
     if self.valid_:
-      validStr="Valid;".ljust(12)
+      validStr="Valid;".ljust(0)
     else:
-      validStr="Not Valid;".ljust(12)   
-    return (self.variableName_ + '=' + valueStr).ljust(30) + validStr + (self.timestampString_ + ';').ljust(25) + '\n'
+      validStr="Not Valid;".ljust(0)   
+    return (self.variableName_ + '=' + valueStr).ljust(50) + validStr.ljust(12) + (self.timestampString_ + ';').rjust(30) + '\n'
   
 class monitorData:
   def __init__(self):
-    self.baseString="monitor.".rjust(15)
+    self.baseString="monitor.".rjust(20)
     self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.atTargetMonEnable=dataPoint('atTargetMonEnable')
@@ -93,7 +93,7 @@ class monitorData:
 
 class trajectoryData:
   def __init__(self):
-    self.baseString="trajectory.".rjust(15)
+    self.baseString="trajectory.".rjust(20)
     self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.execute=dataPoint('execute')
@@ -126,7 +126,7 @@ class trajectoryData:
 
 class encoderData:
   def __init__(self):
-    self.baseString="encoder.".rjust(15)
+    self.baseString="encoder.".rjust(20)
     self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.scaleNum=dataPoint('scaleNum')
@@ -152,7 +152,7 @@ class encoderData:
 
 class controllerData:
   def __init__(self):
-    self.baseString="controller.".rjust(15)
+    self.baseString="controller.".rjust(20)
     self.sampleTime=dataPoint('sampleTime')
     self.kp=dataPoint('kp')
     self.ki=dataPoint('ki')
@@ -175,7 +175,7 @@ class controllerData:
 
 class sequencerData:
   def __init__(self):
-    self.baseString="sequencer.".rjust(15)
+    self.baseString="sequencer.".rjust(20)
     self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.execute=dataPoint('execute')
@@ -211,7 +211,7 @@ class sequencerData:
 
 class ecmcMasterSlaveIFData:
   def __init__(self):
-    self.baseString="ecmcMasterSlaveIF.".rjust(15)
+    self.baseString="ecmcMasterSlaveIF.".rjust(20)
     self.sampleTime=dataPoint('sampleTime')
     self.interfaceType=dataPoint('interfaceType')
     self.mySelf=dataPoint('self') 
@@ -227,7 +227,7 @@ class ecmcMasterSlaveIFData:
 
 class driveData:
   def __init__(self):
-    self.baseString="drive.".rjust(15)
+    self.baseString="drive.".rjust(20)
     self.sampleTime=dataPoint('sampleTime')
     self.type=dataPoint('type')
     self.scaleNum=dataPoint('scaleNum')
