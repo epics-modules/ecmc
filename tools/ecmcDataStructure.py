@@ -231,7 +231,8 @@ class driveData:
     self.sampleTime=dataPoint('sampleTime')
     self.type=dataPoint('type')
     self.scaleNum=dataPoint('scaleNum')
-    self.scaleDenom=dataPoint('scaleDenom')    
+    self.scaleDenom=dataPoint('scaleDenom')
+    self.enabled=dataPoint('enabled')        
     self.mySelf=dataPoint('self') 
 
   def setValue(self,*args):
@@ -243,6 +244,7 @@ class driveData:
     stringToReturn=stringToReturn + self.baseString + self.type.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleNum.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleDenom.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.enabled.__repr__()
     return stringToReturn
 
 class axisData:
