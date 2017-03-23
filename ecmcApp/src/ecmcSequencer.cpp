@@ -45,6 +45,7 @@ void ecmcSequencer::initVars()
   seqTimeCounter_=0;
   seqStateOld_=0;
   seqInProgressOld_=0;
+  busy_=false;
 }
 
 void ecmcSequencer::execute()
