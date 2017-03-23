@@ -40,6 +40,7 @@ class dataPoint:
 class monitorData:
   def __init__(self):
     self.baseString="monitor.".rjust(20)
+    self.error = dataPoint('error')
     self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.atTargetMonEnable=dataPoint('atTargetMonEnable')
@@ -68,6 +69,7 @@ class monitorData:
 
   def __repr__(self):
     stringToReturn=""
+    stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
     stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.atTargetMonEnable.__repr__()
@@ -94,6 +96,8 @@ class monitorData:
 class trajectoryData:
   def __init__(self):
     self.baseString="trajectory.".rjust(20)
+    self.error = dataPoint('error')
+    self.busy = dataPoint('busy')
     self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.execute=dataPoint('execute')
@@ -104,14 +108,19 @@ class trajectoryData:
     self.acceleration=dataPoint('acceleration')
     self.deceleration=dataPoint('deceleration')
     self.emergencyDeceleration=dataPoint('emergencyDeceleration')
+    self.stepACC=dataPoint('stepACC')
+    self.stepDEC=dataPoint('stepDEC')
+    self.stepNOM=dataPoint('stepNOM')
+    self.stepDECEmerg=dataPoint('stepDECEmerg')
     self.mySelf=dataPoint('self') 
-
 
   def setValue(self,*args):
     self.mySelf.setValue(*args)     
 
   def __repr__(self):
     stringToReturn=""
+    stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
+    stringToReturn=stringToReturn + self.baseString + self.busy.__repr__() 
     stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.execute.__repr__()
@@ -122,11 +131,16 @@ class trajectoryData:
     stringToReturn=stringToReturn + self.baseString + self.acceleration.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.deceleration.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.emergencyDeceleration.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.stepACC.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.stepDEC.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.stepNOM.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.stepDECEmerg.__repr__()
     return stringToReturn
 
 class encoderData:
   def __init__(self):
     self.baseString="encoder.".rjust(20)
+    self.error = dataPoint('error')
     self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.scaleNum=dataPoint('scaleNum')
@@ -141,6 +155,7 @@ class encoderData:
 
   def __repr__(self):
     stringToReturn=""
+    stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
     stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleNum.__repr__()
@@ -153,11 +168,14 @@ class encoderData:
 class controllerData:
   def __init__(self):
     self.baseString="controller.".rjust(20)
+    self.error = dataPoint('error')
     self.sampleTime=dataPoint('sampleTime')
     self.kp=dataPoint('kp')
     self.ki=dataPoint('ki')
     self.kd=dataPoint('kd')
     self.kff=dataPoint('kff')
+    self.outputMin=dataPoint('outputMin')
+    self.outputMax=dataPoint('outputMax')
     self.mySelf=dataPoint('self') 
 
   def setValue(self,*args):
@@ -165,17 +183,21 @@ class controllerData:
 
   def __repr__(self):
     stringToReturn=""
+    stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
     stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.kp.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.ki.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.kd.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.kff.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.outputMin.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.outputMax.__repr__()
     return stringToReturn
 
 
 class sequencerData:
   def __init__(self):
     self.baseString="sequencer.".rjust(20)
+    self.error = dataPoint('error')
     self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.execute=dataPoint('execute')
@@ -195,6 +217,7 @@ class sequencerData:
 
   def __repr__(self):
     stringToReturn=""
+    stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
     stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.execute.__repr__()
@@ -209,9 +232,10 @@ class sequencerData:
     stringToReturn=stringToReturn + self.baseString + self.homePosition.__repr__()
     return stringToReturn
 
-class ecmcMasterSlaveIFData:
+class masterSlaveIFData:
   def __init__(self):
-    self.baseString="ecmcMasterSlaveIF.".rjust(20)
+    self.baseString="masterSlaveIF.".rjust(20)
+    self.error = dataPoint('error')
     self.sampleTime=dataPoint('sampleTime')
     self.interfaceType=dataPoint('interfaceType')
     self.mySelf=dataPoint('self') 
@@ -221,6 +245,7 @@ class ecmcMasterSlaveIFData:
 
   def __repr__(self):
     stringToReturn=""
+    stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
     stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.interfaceType.__repr__()
     return stringToReturn
@@ -228,6 +253,7 @@ class ecmcMasterSlaveIFData:
 class driveData:
   def __init__(self):
     self.baseString="drive.".rjust(20)
+    self.error = dataPoint('error')
     self.sampleTime=dataPoint('sampleTime')
     self.type=dataPoint('type')
     self.scaleNum=dataPoint('scaleNum')
@@ -240,6 +266,7 @@ class driveData:
 
   def __repr__(self):
     stringToReturn=""
+    stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
     stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.type.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleNum.__repr__()
@@ -250,6 +277,7 @@ class driveData:
 class axisData:
   def __init__(self,index):
     self.index_ = index
+    self.error = dataPoint('error')
     self.sampleTime = dataPoint('sampleTime')
     self.type = dataPoint('type')
     self.state = dataPoint('state')
@@ -267,7 +295,7 @@ class axisData:
     self.sequencer=sequencerData()
     self.controller=controllerData()
     self.drive=driveData()
-    self.ecmcMasterSlaveIF=ecmcMasterSlaveIFData()
+    self.masterSlaveIF=masterSlaveIFData()
     self.baseString="axis" + '['+str(self.index_) + ']:' + '\n'
     self.mySelf=dataPoint('self') 
 
@@ -276,6 +304,7 @@ class axisData:
 
   def __repr__(self):
     stringToReturn=self.baseString
+    stringToReturn=stringToReturn + self.error.__repr__() 
     stringToReturn=stringToReturn + self.sampleTime.__repr__() 
     stringToReturn=stringToReturn + self.type.__repr__() 
     stringToReturn=stringToReturn + self.state.__repr__() 
@@ -293,7 +322,7 @@ class axisData:
     stringToReturn=stringToReturn + self.controller.__repr__()
     stringToReturn=stringToReturn + self.drive.__repr__()
     stringToReturn=stringToReturn + self.sequencer.__repr__()  
-    stringToReturn=stringToReturn + self.ecmcMasterSlaveIF.__repr__() 
+    stringToReturn=stringToReturn + self.masterSlaveIF.__repr__() 
     return stringToReturn
 
   
