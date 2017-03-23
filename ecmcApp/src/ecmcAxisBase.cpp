@@ -154,17 +154,17 @@ void ecmcAxisBase::preExecute(bool masterOK)
 void ecmcAxisBase::postExecute(bool masterOK)
 {
   if(data_.status_.busyOld!=data_.status_.busy){
-    LOGINFO15("%s/%s:%d: axis[%d].busy=%c;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.busy);
+    LOGINFO15("%s/%s:%d: axis[%d].busy=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.busy>0);
   }
   data_.status_.busyOld=data_.status_.busy;
 
   if(data_.status_.enabledOld!=data_.status_.enabled){
-    LOGINFO15("%s/%s:%d: axis[%d].enabled=%c;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.enabled);
+    LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.enabled>0);
   }
   data_.status_.enabledOld=data_.status_.enabled;
 
   if(data_.status_.movingOld!=data_.status_.moving){
-    LOGINFO15("%s/%s:%d: axis[%d].moving=%c;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving);
+    LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving>0);
   }
   data_.status_.movingOld=data_.status_.moving;
 
