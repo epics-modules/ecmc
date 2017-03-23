@@ -9,10 +9,10 @@
 
 ecmcCommandList::ecmcCommandList (int index)
 {
+  PRINT_ERROR_PATH("commandList[%d].error",index);
   initVars();
   index_=index;
   LOGINFO8("%s/%s:%d: commandList[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
-
 }
 
 ecmcCommandList::~ecmcCommandList ()
@@ -22,6 +22,7 @@ ecmcCommandList::~ecmcCommandList ()
 
 void ecmcCommandList::initVars()
 {
+  errorReset();
   commandCounter_=0;
   clearCommandList();
   enable_=false;;

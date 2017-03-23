@@ -2,15 +2,27 @@
 
 ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData)
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].drive.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+
 }
 
 ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData,double scale)
 {
-  initVars();
-  scale_=scale;
+  PRINT_ERROR_PATH("axis[%d].drive.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+  scale_=scale;
+
 }
 
 void ecmcDriveBase::initVars()

@@ -12,20 +12,21 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType, dou
   initVars();
   sampleTime_=sampleTime;
   defaultAxisId_=defaultAxisId;
+  PRINT_ERROR_PATH("axis[%d].masterSlaveIF.error",defaultAxisId_);
   interfaceType_=ifType;
-  LOGINFO15("%s/%s:%d: axis[%d].ecmcMasterSlaveIF=new;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId);
+  LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF=new;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId_);
   switch(ifType){
     case ECMC_ENCODER_INTERFACE:
-      LOGINFO15("%s/%s:%d: axis[%d].ecmcMasterSlaveIF.interfaceType=%s;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId,"ECMC_ENCODER_INTERFACE");
+      LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.interfaceType=%s;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId,"ECMC_ENCODER_INTERFACE");
       break;
     case ECMC_TRAJECTORY_INTERFACE:
-      LOGINFO15("%s/%s:%d: axis[%d].ecmcMasterSlaveIF.interfaceType=%s;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId,"ECMC_TRAJECTORY_INTERFACE");
+      LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.interfaceType=%s;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId,"ECMC_TRAJECTORY_INTERFACE");
       break;
     default:
-      LOGINFO15("%s/%s:%d: axis[%d].ecmcMasterSlaveIF.interfaceType=%d;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId,ifType);
+      LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.interfaceType=%d;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId,ifType);
       break;
   }
-  LOGINFO15("%s/%s:%d: axis[%d].ecmcMasterSlaveIF.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId,sampleTime);
+  LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId,sampleTime);
 
   transform_=new ecmcCommandTransform(3,ECMC_MAX_AXES);  //currently three commands
   if(!transform_){

@@ -9,9 +9,10 @@
 
 ecmcDataStorage::ecmcDataStorage (int index)
 {
+  index_=index;
+  PRINT_ERROR_PATH("dataStorage[%d].error",index_);
   initVars();
   setBufferSize(ECMC_DEFAULT_DATA_STORAGE_SIZE);
-  index_=index;
   bufferType_=ECMC_STORAGE_LIFO_BUFFER;
   LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
   LOGINFO9("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,ECMC_DEFAULT_DATA_STORAGE_SIZE);
@@ -20,10 +21,11 @@ ecmcDataStorage::ecmcDataStorage (int index)
 
 ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
 {
+  index_=index;
+  PRINT_ERROR_PATH("dataStorage[%d].error",index_);
   initVars();
   setBufferSize(size);
   bufferElementCount_=size;
-  index_=index;
   bufferType_=bufferType;
   LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
   LOGINFO9("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,size);
@@ -47,11 +49,11 @@ ecmcDataStorage::~ecmcDataStorage ()
 
 void ecmcDataStorage::initVars()
 {
+  errorReset();
   bufferType_=ECMC_STORAGE_LIFO_BUFFER;
   bufferElementCount_=ECMC_DEFAULT_DATA_STORAGE_SIZE;
   buffer_=NULL;
   currentBufferIndex_=0;
-  index_=0;
 }
 
 int ecmcDataStorage::clearBuffer()

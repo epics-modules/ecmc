@@ -195,7 +195,6 @@ protected:
   bool trajInterlockOld;
   int cycleCounter_;
   axisState axisState_;
-  char errorPath_[128];
 };
 
 #endif /* ECMCAXISBASE_H_ */

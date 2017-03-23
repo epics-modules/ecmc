@@ -9,9 +9,11 @@
 
 ecmcEvent::ecmcEvent(double sampleTime, int index): ecmcEcEntryLink()
 {
+  PRINT_ERROR_PATH("event[%d].error",index);
   initVars();
   sampleTime_=sampleTime;
   index_=index;
+
   LOGINFO10("%s/%s:%d: event[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
   LOGINFO10("%s/%s:%d: event[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,sampleTime);
 }
@@ -23,6 +25,7 @@ ecmcEvent::~ecmcEvent()
 
 void ecmcEvent::initVars()
 {
+  errorReset();
   enable_=false;
   eventType_=ECMC_SAMPLED;
   sampleTime_=1;
@@ -40,7 +43,7 @@ void ecmcEvent::initVars()
   for(int i=0;i<ECMC_MAX_EVENT_CONSUMERS;i++){
     consumers_[i]=NULL;
   }
-  reArm_=getError();
+  reArm_=0;
 }
 
 int ecmcEvent::setEventType(eventType type)

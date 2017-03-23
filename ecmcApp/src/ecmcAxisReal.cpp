@@ -9,17 +9,17 @@
 
 ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
+  PRINT_ERROR_PATH("axis[%d].error",axisID);
   initVars();
-
+  data_.axisId_=axisID;
   data_.axisType_=ECMC_AXIS_TYPE_REAL;
   data_.sampleTime_=sampleTime;
-  data_.axisId_=axisID;
   currentDriveType_=ECMC_STEPPER;
 
   LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
   LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,axisID,"ECMC_AXIS_TYPE_REAL");
   LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,axisID,sampleTime);
-  LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_STEPPER");
+  LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,axisID,"ECMC_STEPPER");
 
   drv_=new ecmcDriveStepper(&data_);
   if(!drv_){
@@ -36,7 +36,6 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   }
 
   seq_.setCntrl(cntrl_);
-
 }
 
 ecmcAxisReal::~ecmcAxisReal()

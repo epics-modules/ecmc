@@ -134,6 +134,5 @@ private:
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   interlockTypes interlockStatusOld_;
-
 };
 #endif

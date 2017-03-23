@@ -19,6 +19,12 @@ enum ecmcAlarmSeverity{
   ECMC_SEVERITY_EMERGENCY=3
 };
 
+#define PRINT_ERROR_PATH(fmt, ...)                           \
+{                                                            \
+  snprintf(errorPath_,sizeof(errorPath_),fmt,##__VA_ARGS__); \
+  errorPathValid_=true;                                      \
+  setErrorID(__FILE__,__FUNCTION__,__LINE__,0);              \
+}
 
 class ecmcError
 {
@@ -29,7 +35,6 @@ public:
   virtual int setErrorID(int errorID,ecmcAlarmSeverity severity);
   virtual int setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID);
   virtual int setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID,ecmcAlarmSeverity severity);
-  virtual int setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID, char* path);
   virtual void setError(bool error);
   virtual void errorReset();
   virtual bool getError();
@@ -37,6 +42,9 @@ public:
   virtual ecmcAlarmSeverity getSeverity();
   static const char *convertErrorIdToString(int errorId);
   static void printFormatedTime(FILE *log);
+protected:
+  char errorPath_[128];
+  bool errorPathValid_;
 private:
   void initVars();
   bool error_;

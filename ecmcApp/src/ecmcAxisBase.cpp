@@ -9,65 +9,57 @@
 
 ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime)
 {
+  PRINT_ERROR_PATH("axis[%d].error",axisID);
   initVars();
-  snprintf(errorPath_,sizeof(errorPath_),"axis[%d].error",axisID);
-
-  data_.sampleTime_=sampleTime;
   data_.axisId_=axisID;
+  data_.sampleTime_=sampleTime;
   data_.command_.operationModeCmd=ECMC_MODE_OP_AUTO;
-
   commandTransform_=new ecmcCommandTransform(2,ECMC_MAX_AXES);  //currently two commands
   if(!commandTransform_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR COMMAND-TRANSFORM OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MASTER_AXIS_TRANSFORM_NULL,errorPath_);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MASTER_AXIS_TRANSFORM_NULL);
     exit(EXIT_FAILURE);
   }
-
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,ECMC_CMD_TYPE_EXECUTE);
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,ECMC_CMD_TYPE_ENABLE);
 
   externalInputTrajectoryIF_=new ecmcMasterSlaveIF(data_.axisId_,ECMC_TRAJECTORY_INTERFACE,data_.sampleTime_);
   if(!externalInputTrajectoryIF_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRAJECTORY-EXTERNAL-INPUT-INTERFACE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL,errorPath_);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL);
     exit(EXIT_FAILURE);
   }
-
   externalInputEncoderIF_=new ecmcMasterSlaveIF(data_.axisId_,ECMC_ENCODER_INTERFACE,data_.sampleTime_);
   if(!externalInputEncoderIF_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR ENCODER-EXTERNAL-INPUT_INTERFACE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL,errorPath_);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL);
     exit(EXIT_FAILURE);
   }
-
   enc_=new ecmcEncoder(&data_,data_.sampleTime_);
   if(!enc_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR ENCODER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ENC_OBJECT_NULL,errorPath_);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ENC_OBJECT_NULL);
     exit(EXIT_FAILURE);
   }
-
   traj_=new ecmcTrajectoryTrapetz(&data_,data_.sampleTime_);
   if(!traj_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRAJECTORY OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_OBJECT_NULL);
     exit(EXIT_FAILURE);
   }
-
   mon_ =new ecmcMonitor(&data_);
   if(!mon_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR MONITOR OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MON_OBJECT_NULL,errorPath_);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MON_OBJECT_NULL);
     exit(EXIT_FAILURE);
   }
-
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
   seq_.setEnc(enc_);
   int error=seq_.setExtTrajIF(externalInputTrajectoryIF_);
   if(error){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED,errorPath_);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
   }
 }
 
@@ -224,6 +216,7 @@ bool ecmcAxisBase::getReset()
 
 void ecmcAxisBase::initVars()
 {
+  //errorReset();  //THIS IS NONO..
   data_.axisType_=ECMC_AXIS_TYPE_BASE;
   data_.command_.reset=false;
   cascadedCommandsEnable_=false;
@@ -257,7 +250,6 @@ void ecmcAxisBase::initVars()
   data_.status_.executeOld=false;
   cycleCounter_=0;
   axisState_=ECMC_AXIS_STATE_STARTUP;
-  memset(&errorPath_,0,sizeof(errorPath_));
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -277,7 +269,7 @@ bool ecmcAxisBase::getCascadedCommandsEnabled()
 int ecmcAxisBase::setAxisArrayPointer(ecmcAxisBase *axis,int index)
 {
   if(index>=ECMC_MAX_AXES || index<0){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_INDEX_OUT_OF_RANGE,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_INDEX_OUT_OF_RANGE);
   }
   axes_[index]=axis;
   return 0;
@@ -301,7 +293,7 @@ int ecmcAxisBase::setEnableCommandsTransform(bool enable)
     if(enable){
       int error=commandTransform_->validate();
       if(error){
-	return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+	return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
       }
     }
   }
@@ -326,13 +318,13 @@ int ecmcAxisBase::fillCommandsTransformData()
     if(axes_[i]!=NULL){
       error=commandTransform_->setData(axes_[i]->getExecute(),ECMC_CMD_TYPE_EXECUTE,i);
       if(error){
-        return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
       }
     }
     else{
       error=commandTransform_->setData(0,ECMC_CMD_TYPE_EXECUTE,i);
       if(error){
-        return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
       }
 
     }
@@ -343,13 +335,13 @@ int ecmcAxisBase::fillCommandsTransformData()
     if(axes_[i]!=NULL){
       error=commandTransform_->setData(axes_[i]->getEnable(),ECMC_CMD_TYPE_ENABLE,i);
       if(error){
-        return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
       }
     }
     else{
       error=commandTransform_->setData(0,ECMC_CMD_TYPE_ENABLE,i);
       if(error){
-        return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
       }
     }
   }
@@ -366,11 +358,11 @@ int ecmcAxisBase::setEnable_Transform()
 {
   if(checkAxesForEnabledTransfromCommands(ECMC_CMD_TYPE_ENABLE) && enableCommandTransform_){  //Atleast one axis have enabled getting execute from transform
     if(!commandTransform_->getCompiled()){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED);
     }
     int error=fillCommandsTransformData();
     if(error){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
     //Execute transform
     commandTransform_->refresh();
@@ -378,13 +370,13 @@ int ecmcAxisBase::setEnable_Transform()
     //write changes to axes
     for(int i=0;i<ECMC_MAX_AXES;i++){
       if(commandTransform_==NULL){
-	return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_INVERSE_TRANSFORM_NULL,errorPath_);
+	return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_INVERSE_TRANSFORM_NULL);
       }
       if(axes_[i]!=NULL){
         if(axes_[i]->getCascadedCommandsEnabled() && commandTransform_->getDataChanged(ECMC_CMD_TYPE_ENABLE,i) && i!=data_.axisId_){ //Do not set on axis_no again
           int error= axes_[i]->setEnable(commandTransform_->getData(ECMC_CMD_TYPE_ENABLE,i));
           if(error){
-            return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
           }
         }
       }
@@ -400,7 +392,7 @@ int ecmcAxisBase::setExecute_Transform()
 
     if(!commandTransform_->getCompiled()){
       LOGINFO7("%s/%s:%d: Error: Command transform not compiled for axis %d.\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED);
     }
 
     int error=fillCommandsTransformData();
@@ -418,7 +410,7 @@ int ecmcAxisBase::setExecute_Transform()
           int error= axes_[i]->setExecute(commandTransform_->getData(ECMC_CMD_TYPE_EXECUTE,i));
           //int error= axes_[i]->setExternalExecute(commandTransform_->getData(ECMC_CMD_TYPE_EXECUTE,i));
           if(error){
-            return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
           }
         }
       }
@@ -442,7 +434,7 @@ void ecmcAxisBase::setInStartupPhase(bool startup)
 
 int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType)
 {
-  return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED,errorPath_);
+  return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
 }
 
 int ecmcAxisBase::setTrajTransformExpression(std::string expressionString)
@@ -450,19 +442,19 @@ int ecmcAxisBase::setTrajTransformExpression(std::string expressionString)
 
   ecmcCommandTransform *transform=externalInputTrajectoryIF_->getExtInputTransform();
   if(!transform){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
   }
 
   LOGINFO15("%s/%s:%d: axis[%d].trajTransformExpression=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,expressionString.c_str());
 
   int error=transform->setExpression(expressionString);
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   error=externalInputTrajectoryIF_->validate();
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   return 0;
@@ -472,19 +464,19 @@ int ecmcAxisBase::setEncTransformExpression(std::string expressionString)
 {
   ecmcCommandTransform *transform=externalInputEncoderIF_->getExtInputTransform();
   if(!transform){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
   }
 
   LOGINFO15("%s/%s:%d: axis[%d].encTransformExpression=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,expressionString.c_str());
 
   int error=transform->setExpression(expressionString);
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   error=externalInputEncoderIF_->validate();
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   return 0;
@@ -493,28 +485,28 @@ int ecmcAxisBase::setEncTransformExpression(std::string expressionString)
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
 {
   if(getEnable() && refSource!=ECMC_DATA_SOURCE_INTERNAL){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
   }
 
   //If realtime: Ensure that transform object is compiled and ready to go
   if(refSource!=ECMC_DATA_SOURCE_INTERNAL && data_.status_.inRealtime){
     ecmcCommandTransform * transform=externalInputTrajectoryIF_->getExtInputTransform();
     if(!transform){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_TRANSFORM_NULL,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_TRANSFORM_NULL);
     }
     int error =transform->validate();
     if(error){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
   }
 
   int error=externalInputTrajectoryIF_->validate(refSource); //Check if object is ok to go to refSource
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
   error=externalInputTrajectoryIF_->setDataSourceType(refSource);
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   if(refSource!=ECMC_DATA_SOURCE_INTERNAL){
@@ -532,14 +524,14 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
 {
   if(getEnable()){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
   }
 
   //If realtime: Ensure that ethercat enty for actual position is linked
   if(refSource==ECMC_DATA_SOURCE_INTERNAL && data_.status_.inRealtime){
     int error=getEnc()->validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
     if(error){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
   }
 
@@ -547,22 +539,22 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource)
   if(refSource!=ECMC_DATA_SOURCE_INTERNAL && data_.status_.inRealtime){
     ecmcCommandTransform * transform=externalInputEncoderIF_->getExtInputTransform();
     if(!transform){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_TRANSFORM_NULL,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_TRANSFORM_NULL);
     }
     int error =transform->validate();
     if(error){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
   }
 
   int error =externalInputEncoderIF_->validate(refSource); //Check if object is ok to go to refSource
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   error=externalInputEncoderIF_->setDataSourceType(refSource);
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   if(data_.command_.encSource!=refSource){
@@ -586,7 +578,7 @@ bool ecmcAxisBase::getError()
 {
   int error= ecmcAxisBase::getErrorID();
   if(error){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
   return ecmcError::getError();
 }
@@ -602,7 +594,7 @@ int ecmcAxisBase::getErrorID()
   ecmcMonitor *mon =getMon();
   if(mon){
     if(mon->getError()){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,mon->getErrorID(),errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,mon->getErrorID());
     }
   }
 
@@ -610,7 +602,7 @@ int ecmcAxisBase::getErrorID()
   ecmcEncoder *enc =getEnc();
   if(enc){
     if(enc->getError()){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,enc->getErrorID(),errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,enc->getErrorID());
     }
   }
 
@@ -618,7 +610,7 @@ int ecmcAxisBase::getErrorID()
   ecmcDriveBase *drv =getDrv();
   if(drv){
     if(drv->getError()){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,drv->getErrorID(),errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,drv->getErrorID());
     }
   }
 
@@ -626,7 +618,7 @@ int ecmcAxisBase::getErrorID()
   ecmcTrajectoryTrapetz *traj =getTraj();
   if(traj){
     if(traj->getError()){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,traj->getErrorID(),errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,traj->getErrorID());
     }
   }
 
@@ -634,7 +626,7 @@ int ecmcAxisBase::getErrorID()
   ecmcPIDController *cntrl =getCntrl();
   if(cntrl){
     if(cntrl->getError()){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,cntrl->getErrorID(),errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,cntrl->getErrorID());
     }
   }
 
@@ -642,7 +634,7 @@ int ecmcAxisBase::getErrorID()
   ecmcSequencer *seq =getSeq();
   if(seq){
     if(seq->getErrorID()){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,seq->getErrorID(),errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,seq->getErrorID());
     }
   }
 
@@ -721,7 +713,7 @@ int ecmcAxisBase::refreshExternalInputSources()
 
   int error=externalInputTrajectoryIF_->refreshInputs();
   if(error){
-     return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+     return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
   data_.status_.externalTrajectoryPosition=externalInputTrajectoryIF_->getInputPos();
   data_.status_.externalTrajectoryVelocity=externalInputTrajectoryIF_->getInputVel();
@@ -731,7 +723,7 @@ int ecmcAxisBase::refreshExternalInputSources()
   //Encoder
   error=externalInputEncoderIF_->refreshInputs();
   if(error){
-     return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+     return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
   data_.status_.externalEncoderPosition=externalInputEncoderIF_->getInputPos();
   data_.status_.externalEncoderVelocity=externalInputEncoderIF_->getInputVel();
@@ -769,12 +761,12 @@ int ecmcAxisBase::validateBase()
 {
   int error=externalInputEncoderIF_->validate();
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   error=externalInputTrajectoryIF_->validate();
   if(error){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
   }
 
   return 0;
@@ -937,16 +929,16 @@ int ecmcAxisBase::setExecute(bool execute)
   //Internal trajectory source
   if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     if(execute && !getEnable()){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED);
     }
 
     if(execute && !data_.status_.executeOld && data_.status_.busy){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_BUSY,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_BUSY);
     }
 
     int error=seq_.setExecute(execute);
     if(error){
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error,errorPath_);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,error);
     }
   }
 

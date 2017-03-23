@@ -12,6 +12,7 @@ ecmcCommandTransform::ecmcCommandTransform(int commandCount, int elementsPerComm
   LOGINFO7("%s/%s:%d: commandTransform=new;\n",__FILE__, __FUNCTION__, __LINE__);
   LOGINFO7("%s/%s:%d: commandTransform.commandCount=%d;\n",__FILE__, __FUNCTION__, __LINE__,commandCount);
   LOGINFO7("%s/%s:%d: commandTransform.elemenstPerCommand=%d;\n",__FILE__, __FUNCTION__, __LINE__,elementsPerCommand);
+  PRINT_ERROR_PATH("commandTransfrom.error");
   initVars();
   commandCount_=commandCount;
   elementsPerCommand_=elementsPerCommand;

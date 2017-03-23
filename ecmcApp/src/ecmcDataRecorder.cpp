@@ -9,9 +9,10 @@
 
 ecmcDataRecorder::ecmcDataRecorder (int index):ecmcEcEntryLink()
 {
+  index_=index;
+  PRINT_ERROR_PATH("dataRecorder[%d].error",index_);
   initVars();
   setInStartupPhase(1);
-  index_=index;
   LOGINFO11("%s/%s:%d: dataRecorder[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
 }
 
@@ -22,8 +23,8 @@ ecmcDataRecorder::~ecmcDataRecorder ()
 
 void ecmcDataRecorder::initVars()
 {
+  errorReset();
   dataBuffer_=NULL;
-  index_=0;
   data_=0;
   inStartupPhase_=1;
   enable_=false;

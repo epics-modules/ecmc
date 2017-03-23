@@ -19,26 +19,23 @@ ecmcError::~ecmcError()
 
 void ecmcError::initVars()
 {
-  errorId_=0;
+  errorId_=1;
   error_=0;
+  errorPathValid_=false;
   currSeverity_=ECMC_SEVERITY_NONE;
-}
-
-int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID, char* path)
-{
-  if(errorID!=errorId_){
-    printFormatedTime(stdlog);
-    LOGERR("%s/%s:%d: %s=%s.\n",fileName, functionName, lineNumber,path,convertErrorIdToString(errorID));
-  }
-
-  return setErrorID(errorID);
+  memset(&errorPath_,0,sizeof(errorPath_));
 }
 
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID)
 {
   if(errorID!=errorId_){
     printFormatedTime(stdlog);
-    LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
+    if(errorPathValid_){
+      LOGERR("%s/%s:%d: %s=%s;\n",fileName, functionName, lineNumber,errorPath_,convertErrorIdToString(errorID));
+    }
+    else{
+      LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
+    }
   }
 
   return setErrorID(errorID);
@@ -87,7 +84,7 @@ void ecmcError::setError(bool error)
 void ecmcError::errorReset()
 {
   error_=false;
-  errorId_=0;
+  setErrorID(__FILE__,__FUNCTION__,__LINE__,0);
   currSeverity_=ECMC_SEVERITY_NONE;
 }
 

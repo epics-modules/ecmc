@@ -9,8 +9,14 @@
 
 ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,double sampleTime) : ecmcEcEntryLink()
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].encoder.error",axisData->axisId_);
   data_=axisData;
+  sampleTime_=sampleTime;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   velocityFilter_=new ecmcFilter(sampleTime);
   if(!velocityFilter_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VELOCITY-FILTER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);

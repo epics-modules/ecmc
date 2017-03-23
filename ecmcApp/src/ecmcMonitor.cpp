@@ -4,16 +4,26 @@
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData)
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].monitor.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   errorReset();
   LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
 }
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,bool enableAtTargetMon, bool enableLagMon)
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].monitor.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   enableAtTargetMon_=enableAtTargetMon;
   enableLagMon_=enableLagMon;
   LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
@@ -273,6 +283,9 @@ void ecmcMonitor::readEntries(){
 
 void ecmcMonitor::setEnable(bool enable)
 {
+  if(enable_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enable_=enable;
 }
 
@@ -354,6 +367,9 @@ int ecmcMonitor::reset()
 {
   LOGINFO15("%s/%s:%d: axis[%d].monitor.reset=1;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
 
+  if(data_->status_.atTarget){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.atTarget=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,0);
+  }
   data_->status_.atTarget=false;
   atTargetCounter_=0;
   lagMonCounter_=0;
@@ -483,12 +499,14 @@ int ecmcMonitor::checkLimits()
   hardFwdOld_=data_->status_.limitFwd;
 
   //Both limit switches
+
   data_->interlocks_.bothLimitsLowInterlock=!data_->status_.limitBwd && !data_->status_.limitFwd;
   if(data_->interlocks_.bothLimitsLowInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_BOTH_LIMIT_INTERLOCK);
   }
 
   //Bwd limit switch
+
   if(!data_->status_.limitBwd && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld) ){
     data_->interlocks_.bwdLimitInterlock=true;
     if(enableAlarmAtHardlimitBwd_){

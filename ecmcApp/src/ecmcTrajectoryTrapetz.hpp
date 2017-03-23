@@ -132,6 +132,7 @@ private:
   stopMode checkInterlocks();
   double updateSetpoint(double nextSetpoint,double nextVelocity);
   motionDirection checkDirection(double oldPos, double newPos);
+  void printOnChangeDiagAtStart();
   double acceleration_;
   double deceleration_;
   double decelerationEmergency_;

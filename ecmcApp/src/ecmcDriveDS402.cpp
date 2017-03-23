@@ -2,17 +2,30 @@
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData) : ecmcDriveBase(axisData)
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].drive.error",axisData->axisId_);
   data_=axisData;
+
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+
   LOGINFO15("%s/%s:%d: axis[%d].drive=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
   LOGINFO15("%s/%s:%d: axis[%d].drive.type=ECMC_DS402;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
 }
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData,double scale) : ecmcDriveBase(axisData)
 {
-  initVars();
-  scale_=scale;
+  PRINT_ERROR_PATH("axis[%d].drive.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  scale_=scale;
   LOGINFO15("%s/%s:%d: axis[%d].drive=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
   LOGINFO15("%s/%s:%d: axis[%d].drive.type=ECMC_DS402;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
   LOGINFO15("%s/%s:%d: axis[%d].drive.scale=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scale);
@@ -24,8 +37,9 @@ ecmcDriveDS402::~ecmcDriveDS402()
 
 void ecmcDriveDS402::initVars()
 {
-  ecmcDriveBase::initVars();
+  //ecmcDriveBase::initVars();
   driveState_=ECMC_DS402_INVALID_STATE_STATUS;
+  LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_INVALID_STATE_STATUS");
   enableCmdOld_=false;
   enableSequenceRunning_=false;
   enableStateMachine_=ECMC_DS402_RESET_STATE;

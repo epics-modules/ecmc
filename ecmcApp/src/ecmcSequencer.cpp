@@ -18,7 +18,7 @@ ecmcSequencer::~ecmcSequencer()
 
 void ecmcSequencer::initVars()
 {
-  errorReset();
+  //errorReset();
   homeSensorOld_=false;
   executeOld_=false;
   seqInProgress_=false;
@@ -1371,5 +1371,6 @@ int ecmcSequencer::getExtTrajSetpoint(double *pos)
 int ecmcSequencer::setAxisDataRef(ecmcAxisData* data)
 {
   data_= data;
+  PRINT_ERROR_PATH("axis[%d].sequencer.error",data->axisId_);
   return 0;
 }
