@@ -161,13 +161,20 @@ void ecmcDriveDS402::readEntries()
 
 int ecmcDriveDS402::checkDS402State()
 {
+  int driveStateOld=driveState_;
   driveState_=ECMC_DS402_INVALID_STATE_STATUS;
 
-
+  bool enabledOld=data_->status_.enabled;
   if((statusWord_ & ECMC_DS402_STATUS_MASK_1)==ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS)
   {
     driveState_=ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS;
     data_->status_.enabled=false;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS");
+    }
     return 0;
   }
 
@@ -175,6 +182,12 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_SWITCH_ON_DISABLED_STATUS;
     data_->status_.enabled=false;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_SWITCH_ON_DISABLED_STATUS");
+    }
     return 0;
   }
 
@@ -182,6 +195,12 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_READY_TO_SWITCH_ON_STATUS;
     data_->status_.enabled=false;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_READY_TO_SWITCH_ON_STATUS");
+    }
     return 0;
   }
 
@@ -189,6 +208,12 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_SWITCHED_ON_STATUS;
     data_->status_.enabled=false;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_SWITCHED_ON_STATUS");
+    }
     return 0;
   }
 
@@ -196,6 +221,12 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_OPERATION_ENABLED_STATUS;
     data_->status_.enabled=true;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_OPERATION_ENABLED_STATUS");
+    }
     return 0;
   }
 
@@ -203,6 +234,12 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_QUICK_STOP_ACTIVE_STATUS;
     data_->status_.enabled=false;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_QUICK_STOP_ACTIVE_STATUS");
+    }
     return 0;
   }
 
@@ -210,6 +247,12 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS;
     data_->status_.enabled=false;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS");
+    }
     return 0;
   }
 
@@ -217,6 +260,12 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS;
     data_->status_.enabled=false;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS");
+    }
     return 0;
   }
 
@@ -224,6 +273,12 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_FAULT_STATUS;
     data_->status_.enabled=false;
+    if(enabledOld!=data_->status_.enabled){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+    }
+    if(driveStateOld!=driveState_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_FAULT_STATUS");
+    }
     return 0;
   }
   return 0;

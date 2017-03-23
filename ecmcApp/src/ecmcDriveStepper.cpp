@@ -53,5 +53,9 @@ void ecmcDriveStepper::writeEntries()
 void ecmcDriveStepper::readEntries()
 {
   ecmcDriveBase::readEntries();
+  bool enabledOld=data_->status_.enabled;
   data_->status_.enabled= statusWord_>0;
+  if(enabledOld!=data_->status_.enabled){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
+  }
 }
