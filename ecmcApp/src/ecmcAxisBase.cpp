@@ -88,6 +88,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
 
   statusData_.onChangeData.trajSource=externalInputTrajectoryIF_->getDataSourceType();
   statusData_.onChangeData.encSource=externalInputEncoderIF_->getDataSourceType();
+  data_.status_.moving=std::abs(data_.status_.currentVelocityActual)>0;
 
   if(externalInputEncoderIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
     enc_->readEntries();
@@ -97,9 +98,8 @@ void ecmcAxisBase::preExecute(bool masterOK)
   switch(axisState_){
     case ECMC_AXIS_STATE_STARTUP:
       setEnable(false);
-      data_.status_.busy=false;
+      data_.status_.busy=true;
       data_.status_.distToStop=0;
-      data_.status_.moving=false;
       if(data_.status_.inStartupPhase && masterOK){
         //Auto reset hardware error if starting up
         if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
@@ -111,7 +111,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
       }
       break;
     case ECMC_AXIS_STATE_DISABLED:
-      data_.status_.busy=false;
+      data_.status_.busy=true;
 
       data_.status_.distToStop=0;
       if(data_.status_.enabled){
@@ -122,17 +122,11 @@ void ecmcAxisBase::preExecute(bool masterOK)
 	LOGERR("Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
 	axisState_=ECMC_AXIS_STATE_STARTUP;
       }
-      data_.status_.moving=false;
+
       break;
     case ECMC_AXIS_STATE_ENABLED:
       data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
       if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
-        if(mon_->getEnableAtTargetMon()){
-          data_.status_.moving=seq_.getBusy() || !data_.status_.atTarget;
-        }
-        else{
-          data_.status_.moving=seq_.getBusy();
-        }
 
         data_.status_.busy=seq_.getBusy();
         data_.status_.currentTargetPosition=traj_->getTargetPos();
@@ -160,17 +154,17 @@ void ecmcAxisBase::preExecute(bool masterOK)
 void ecmcAxisBase::postExecute(bool masterOK)
 {
   if(data_.status_.busyOld!=data_.status_.busy){
-    LOGINFO15("%s/%s:%d: axis[%d].busy=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.busy);
+    LOGINFO15("%s/%s:%d: axis[%d].busy=%c;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.busy);
   }
   data_.status_.busyOld=data_.status_.busy;
 
   if(data_.status_.enabledOld!=data_.status_.enabled){
-    LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.enabled);
+    LOGINFO15("%s/%s:%d: axis[%d].enabled=%c;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.enabled);
   }
   data_.status_.enabledOld=data_.status_.enabled;
 
   if(data_.status_.movingOld!=data_.status_.moving){
-    LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving);
+    LOGINFO15("%s/%s:%d: axis[%d].moving=%c;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving);
   }
   data_.status_.movingOld=data_.status_.moving;
 

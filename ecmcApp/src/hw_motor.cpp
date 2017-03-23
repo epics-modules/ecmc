@@ -621,7 +621,7 @@ int getAxisCommand(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-
+  *value=0;
   *value= (int)axes[axisIndex]->getSeq()->getCommand();
   return 0;
 }
@@ -798,8 +798,8 @@ int getAxisEnable(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value= axes[axisIndex]->getEnable();
+  *value=0;
+  *value= axes[axisIndex]->getEnable()>0;
   return 0;
 }
 
@@ -828,8 +828,8 @@ int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value= axes[axisIndex]->getMon()->getEnableAlarmAtHardLimit();
+  *value=0;
+  *value= axes[axisIndex]->getMon()->getEnableAlarmAtHardLimit()>0;
   return 0;
 }
 
@@ -838,8 +838,8 @@ int getAxisEnabled(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getEnabled();
+  *value=0;
+  *value=axes[axisIndex]->getEnabled()>0;
   return 0;
 }
 
@@ -870,8 +870,8 @@ int getAxisEnableCommandsFromOtherAxis(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=(int)axes[axisIndex]->getCascadedCommandsEnabled();
+  *value=0;
+  *value=(int)axes[axisIndex]->getCascadedCommandsEnabled()>0;
   return 0;
 }
 
@@ -880,8 +880,8 @@ int getAxisEnableCommandsTransform(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=(int)axes[axisIndex]->getEnableCommandsTransform();
+  *value=0;
+  *value=(int)axes[axisIndex]->getEnableCommandsTransform()>0;
   return 0;
 }
 
@@ -987,8 +987,8 @@ int getAxisEnableSoftLimitBwd(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getMon()->getEnableSoftLimitBwd();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getEnableSoftLimitBwd()>0;
   return 0;
 }
 
@@ -998,8 +998,8 @@ int getAxisEnableSoftLimitFwd(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getMon()->getEnableSoftLimitFwd();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getEnableSoftLimitFwd()>0;
   return 0;
 }
 
@@ -1008,8 +1008,8 @@ int getAxisBusy(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getBusy();
+  *value=0;
+  *value=axes[axisIndex]->getBusy()>0;
   return 0;
 }
 
@@ -1074,10 +1074,8 @@ int setAxisTargetVel(int axisIndex, double value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-  //CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getSeq()->setTargetVel(value);
-  //axes[axisIndex]->getMon()->setTargetVel(value);
 
   return 0;
 }
@@ -1445,8 +1443,8 @@ int getAxisDone(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-
-  *value=!axes[axisIndex]->getSeq()->getBusy();
+  *value=0;
+  *value=!axes[axisIndex]->getSeq()->getBusy()>0;
   return 0;
 }
 
@@ -1475,8 +1473,8 @@ int getAxisExecute(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getExecute();
+  *value=0;
+  *value=axes[axisIndex]->getExecute()>0;
   return 0;
 }
 
@@ -1485,7 +1483,8 @@ int getAxisReset(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=axes[axisIndex]->getReset();
+  *value=0;
+  *value=axes[axisIndex]->getReset()>0;
   return 0;
 }
 
@@ -1513,8 +1512,8 @@ int getAxisAtHardFwd(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getMon()->getHardLimitFwd();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getHardLimitFwd()>0;
   return 0;
 }
 
@@ -1524,8 +1523,8 @@ int getAxisAtHardBwd(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getMon()->getHardLimitBwd();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getHardLimitBwd()>0;
   return 0;
 }
 
@@ -1540,8 +1539,8 @@ int getAxisEncHomed(int axisIndex,int *value)
   if(errorCode){
     return errorCode;
   }
-
-  *value=tempHomed;
+  *value=0;
+  *value=tempHomed>0;
   return 0;
 }
 
@@ -1581,8 +1580,8 @@ int getAxisAtHome(int axisIndex,int *value)
   if(axes[axisIndex]->getMon()==NULL){
     return ERROR_MAIN_MONITOR_OBJECT_NULL;
   }
-
-  *value=axes[axisIndex]->getMon()->getHomeSwitch();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getHomeSwitch()>0;
   return 0;
 }
 
@@ -1954,8 +1953,8 @@ int getAxisDrvEnable(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  *value=axes[axisIndex]->getDrv()->getEnable();;
+  *value=0;
+  *value=axes[axisIndex]->getDrv()->getEnable()>0;
   return 0;
 }
 
@@ -2144,8 +2143,8 @@ int getAxisMonAtTarget(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
-
-  *value=axes[axisIndex]->getMon()->getAtTarget();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getAtTarget()>0;
   return 0;
 }
 

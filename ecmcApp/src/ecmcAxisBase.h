@@ -93,7 +93,6 @@ typedef struct {
     bool homeSwitch;
 } ecmcAxisStatusOnChangeType;
 
-
 typedef struct {
     int axisID;
     int cycleCounter;
