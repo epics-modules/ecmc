@@ -24,9 +24,20 @@ void ecmcError::initVars()
   currSeverity_=ECMC_SEVERITY_NONE;
 }
 
+int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID, char* path)
+{
+  if(errorID!=errorId_){
+    printFormatedTime(stdlog);
+    LOGERR("%s/%s:%d: %s=%s.\n",fileName, functionName, lineNumber,path,convertErrorIdToString(errorID));
+  }
+
+  return setErrorID(errorID);
+}
+
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID)
 {
   if(errorID!=errorId_){
+    printFormatedTime(stdlog);
     LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
   }
 
@@ -35,8 +46,8 @@ int ecmcError::setErrorID(const char* fileName,const char* functionName,int line
 
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID,ecmcAlarmSeverity severity)
 {
-
   if(errorID!=errorId_ && severity>currSeverity_){
+    printFormatedTime(stdlog);
     LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
   }
 

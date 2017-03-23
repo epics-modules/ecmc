@@ -29,6 +29,7 @@ public:
   virtual int setErrorID(int errorID,ecmcAlarmSeverity severity);
   virtual int setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID);
   virtual int setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID,ecmcAlarmSeverity severity);
+  virtual int setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID, char* path);
   virtual void setError(bool error);
   virtual void errorReset();
   virtual bool getError();
