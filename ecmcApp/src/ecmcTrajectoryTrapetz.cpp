@@ -56,7 +56,7 @@ void ecmcTrajectoryTrapetz::initVars()
   stepNOM_=0;
   stepDECEmerg_=0;
   velocity_=0;
-  trajInProgress_=false;
+  busy_=false;
   index_=0;
   execute_=0;
   executeOld_=0;
@@ -106,7 +106,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
 
   bool stopped=false;
 
-  if (!trajInProgress_ || !enable_){
+  if (!busy_ || !enable_){
 
     if(execute_ && !enable_){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
@@ -136,7 +136,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     if(stopped){
       setDirection_=ECMC_DIR_STANDSTILL;
       actDirection_=ECMC_DIR_STANDSTILL;
-      trajInProgress_=false;
+      busy_=false;
       nextVelocity=0;
     }
   }
@@ -162,14 +162,14 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity)
   double posSetTemp=currentPositionSetpoint_;
   switch(motionMode_){
     case ECMC_MOVE_MODE_POS:
-      posSetTemp=movePos(currentPositionSetpoint_,targetPosition_,distToStop_,velocity_,velocityTarget_,&trajInProgress_);
+      posSetTemp=movePos(currentPositionSetpoint_,targetPosition_,distToStop_,velocity_,velocityTarget_,&busy_);
       break;
     case ECMC_MOVE_MODE_VEL:
-      posSetTemp=moveVel(currentPositionSetpoint_, velocity_,velocityTarget_,&trajInProgress_);
+      posSetTemp=moveVel(currentPositionSetpoint_, velocity_,velocityTarget_,&busy_);
       break;
   }
   *actVelocity=0;
-  if(trajInProgress_){
+  if(busy_){
     *actVelocity=(posSetTemp-currentPositionSetpoint_)/sampleTime_;
   }
   return posSetTemp;
@@ -307,7 +307,7 @@ void ecmcTrajectoryTrapetz::setTargetPos(double pos)
 
 bool ecmcTrajectoryTrapetz::getBusy()
 {
-  return trajInProgress_;
+  return busy_;
 }
 
 int ecmcTrajectoryTrapetz::getIndex()
@@ -474,14 +474,14 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute)
         }
         break;
     }
-    if(!trajInProgress_){
+    if(!busy_){
       posSetMinus1_=currentPositionSetpoint_;
       posSetMinus2_=currentPositionSetpoint_;
       velocity_=0;
     }
     initTraj();
     currentPositionSetpoint_=startPosition_;
-    trajInProgress_=true; //Trigger new trajectory
+    busy_=true; //Trigger new trajectory
 
     data_->interlocks_.noExecuteInterlock=false;
     data_->refreshInterlocks();
@@ -547,7 +547,7 @@ motionDirection ecmcTrajectoryTrapetz::checkDirection(double oldPos,double newPo
 int ecmcTrajectoryTrapetz::initStopRamp(double currentPos, double currentVel, double currentAcc)
 {
   enable_=1;
-  trajInProgress_=true;
+  busy_=true;
   currentPositionSetpoint_=currentPos;
   velocity_=currentVel;
   prevStepSize_=velocity_*sampleTime_;

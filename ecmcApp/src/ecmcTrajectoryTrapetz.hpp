@@ -147,7 +147,7 @@ private:
   double stepDECEmerg_;
   double currentPositionSetpoint_;
   double velocity_;
-  bool   trajInProgress_;
+  bool   busy_;
   int    index_;
   bool   execute_;
   bool   executeOld_;
