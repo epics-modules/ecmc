@@ -34,6 +34,7 @@ ecmcDriveStepper::~ecmcDriveStepper()
 
 void ecmcDriveStepper::printCurrentState()
 {
+  ecmcDriveBase::printCurrentState();
   LOGINFO15("%s/%s:%d: axis[%d].drive.type=ECMC_STEPPER;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
   LOGINFO15("%s/%s:%d: axis[%d].drive.scale=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scale_);
   LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);

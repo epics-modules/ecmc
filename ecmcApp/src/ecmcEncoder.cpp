@@ -46,6 +46,7 @@ void ecmcEncoder::printCurrentState()
       LOGINFO10("%s/%s:%d: axis[%d].encoder.type=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,encType_);
       break;
   }
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.enable>0);
   LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleNum=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleNum_);
   LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleDenom=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom_);
   LOGINFO15("%s/%s:%d: axis[%d].encoder.offset=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,offset_);

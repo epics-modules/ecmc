@@ -54,6 +54,7 @@ void ecmcTrajectoryTrapetz::printCurrentState()
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.execute=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,execute_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.motionMode=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_MOVE_MODE_POS");
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,currentPositionSetpoint_);
 }
 
 void ecmcTrajectoryTrapetz::initVars()

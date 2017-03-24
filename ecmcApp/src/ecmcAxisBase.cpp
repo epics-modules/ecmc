@@ -100,6 +100,9 @@ void ecmcAxisBase::printCurrentState()
   LOGINFO15("%s/%s:%d: axis[%d].enableCommandsTransform=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,enableCommandTransform_>0);
   LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.inStartupPhase>0);
   LOGINFO15("%s/%s:%d: axis[%d].inRealtime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.inRealtime>0);
+  LOGINFO15("%s/%s:%d: axis[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.command_.enable>0);
+  LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.enabled>0);
+  LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving>0);
 }
 
 void ecmcAxisBase::preExecute(bool masterOK)
