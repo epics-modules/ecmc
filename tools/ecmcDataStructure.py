@@ -7,6 +7,7 @@ class dataPoint:
     self.completeString_=""
     self.variableName_=variableName
     self.timestampString_="No timestamp"
+    self.lineNumber=0
   def setValue(self,*args):
     if len(args)==1:
       self.value_=args[0]
@@ -24,7 +25,8 @@ class dataPoint:
       self.timestampString_=args[1].strip()
       self.timeStamp_ = datetime.strptime(self.timestampString_,"%Y/%m/%d %H:%M:%S.%f")
       self.valid_=1
-      self.completeString_=args[2]
+      self.lineNumber=args[2]
+      #self.completeString_=args[2]
 
   @property
   def valid(self):
@@ -35,7 +37,7 @@ class dataPoint:
       validStr="Valid;".ljust(0)
     else:
       validStr="Not Valid;".ljust(0)   
-    return (self.variableName_ + '=' + valueStr).ljust(50) + validStr.ljust(12) + (self.timestampString_ + ';').rjust(30) + '\n'
+    return (self.variableName_ + '=' + valueStr).ljust(50) + validStr.ljust(12) + (self.timestampString_ + ';').rjust(30) + str(self.lineNumber).rjust(10) + '\n'
   
 class monitorData:
   def __init__(self):
@@ -47,20 +49,30 @@ class monitorData:
     self.atTargetTolerance=dataPoint('atTargetTolerance')
     self.atTargetTime=dataPoint('atTargetTime')
     self.atTarget=dataPoint('atTarget')
-    self.enablePosLagMon=dataPoint('enablePosLagMon')
+    self.posLagMonEnable=dataPoint('posLagMonEnable')
     self.posLagTol=dataPoint('posLagTol')
     self.posLagTime=dataPoint('posLagTime')
     self.maxVelMonEnable=dataPoint('maxVelMonEnable')
     self.maxVel=dataPoint('maxVel')
     self.maxVelDriveTime=dataPoint('maxVelDriveTime')
+    self.maxVelTrajTime=dataPoint('maxVelTrajTime')
+    self.velDiffMonEnable=dataPoint('velDiffMonEnable')
+    self.velDiffMax=dataPoint('velDiffMax')
+    self.velDiffTimeTraj=dataPoint('velDiffTimeTraj')
+    self.velDiffTimeDrive=dataPoint('velDiffTimeDrive')
+    self.cntrlHLMonEnable=dataPoint('cntrlHLMonEnable')
+    self.cntrlOutputHL=dataPoint('cntrlOutputHL')
     self.limitBwd=dataPoint('limitBwd')
     self.limitFwd=dataPoint('limitFwd')
+    self.enableAlarmAtHardlimitBwd=dataPoint('enableAlarmAtHardlimitBwd')
+    self.enableAlarmAtHardlimitFwd=dataPoint('enableAlarmAtHardlimitFwd')
     self.enableSoftLimitBwd=dataPoint('enableSoftLimitBwd')
     self.enableSoftLimitFwd=dataPoint('enableSoftLimitFwd')
     self.softLimitBwd=dataPoint('softLimitBwd')
     self.softLimitFwd=dataPoint('softLimitFwd')
     self.homeSwitch=dataPoint('homeSwitch')
     self.interlockStatus=dataPoint('interlockStatus')
+    self.enableHardwareInterlock=dataPoint('enableHardwareInterlock')
     self.reset=dataPoint('reset')
     self.mySelf=dataPoint('self') 
 
@@ -76,20 +88,30 @@ class monitorData:
     stringToReturn=stringToReturn + self.baseString + self.atTargetTolerance.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.atTargetTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.atTarget.__repr__()
-    stringToReturn=stringToReturn + self.baseString + self.enablePosLagMon.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.posLagMonEnable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.posLagTol.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.posLagTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.maxVelMonEnable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.maxVel.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.maxVelTrajTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.maxVelDriveTime.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.velDiffMonEnable.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.velDiffMax.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.velDiffTimeTraj.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.velDiffTimeDrive.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.cntrlHLMonEnable.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.cntrlOutputHL.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.limitBwd.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.limitFwd.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.enableAlarmAtHardlimitBwd.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.enableAlarmAtHardlimitFwd.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enableSoftLimitBwd.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enableSoftLimitFwd.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.softLimitBwd.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.softLimitFwd.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.homeSwitch.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.interlockStatus.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.enableHardwareInterlock.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.reset.__repr__()
     return stringToReturn
 
@@ -107,6 +129,7 @@ class trajectoryData:
     self.currentPositionSetpoint=dataPoint('currentPositionSetpoint')
     self.acceleration=dataPoint('acceleration')
     self.deceleration=dataPoint('deceleration')
+    self.jerk=dataPoint('jerk')
     self.emergencyDeceleration=dataPoint('emergencyDeceleration')
     self.stepACC=dataPoint('stepACC')
     self.stepDEC=dataPoint('stepDEC')
@@ -130,6 +153,7 @@ class trajectoryData:
     stringToReturn=stringToReturn + self.baseString + self.currentPositionSetpoint.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.acceleration.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.deceleration.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.jerk.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.emergencyDeceleration.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.stepACC.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.stepDEC.__repr__()

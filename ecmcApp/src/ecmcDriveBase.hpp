@@ -44,6 +44,7 @@ public:
   virtual int validate();
   virtual void readEntries();
   virtual void writeEntries();
+  virtual void printCurrentState();
   int setEnable(bool enable);
   bool getEnable();
   bool getEnabled();

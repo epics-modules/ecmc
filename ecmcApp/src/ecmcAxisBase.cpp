@@ -73,6 +73,35 @@ ecmcAxisBase::~ecmcAxisBase()
   delete externalInputTrajectoryIF_;
 }
 
+void ecmcAxisBase::printAxisState()
+{
+ switch(axisState_){
+    case ECMC_AXIS_STATE_STARTUP:
+      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_STARTUP;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+      break;
+    case ECMC_AXIS_STATE_DISABLED:
+      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+      break;
+    case ECMC_AXIS_STATE_ENABLED:
+      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_ENABLED;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].state=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,axisState_);
+      break;
+  }
+}
+
+void ecmcAxisBase::printCurrentState()
+{
+  //called by derived classes
+  printAxisState();
+  LOGINFO15("%s/%s:%d: axis[%d].reset=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.command_.reset>0);
+  LOGINFO15("%s/%s:%d: axis[%d].enableCascadedCommands=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,cascadedCommandsEnable_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].enableCommandsTransform=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,enableCommandTransform_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.inStartupPhase>0);
+  LOGINFO15("%s/%s:%d: axis[%d].inRealtime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.inRealtime>0);
+}
+
 void ecmcAxisBase::preExecute(bool masterOK)
 {
   //TEST

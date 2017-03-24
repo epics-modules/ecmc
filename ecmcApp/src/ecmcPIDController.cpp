@@ -13,6 +13,7 @@ ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double sampleTime)
     exit(EXIT_FAILURE);
   }
   LOGINFO15("%s/%s:%d: axis[%d].controller=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  printCurrentState();
 }
 
 ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double kp, double ki, double kd, double kff, double sampleTime, double outMax, double outMin)
@@ -25,18 +26,27 @@ ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double kp, double ki
     exit(EXIT_FAILURE);
   }
   LOGINFO15("%s/%s:%d: axis[%d].controller=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kp=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kp);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.ki=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ki);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kd);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kff=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kff);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMax);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMin);
   kp_=kp;
   ki_=ki;
   kd_=kd;
   kff_=kff;
   outputMax_=outMax;
   outputMin_=outMin;
+  sampleTime_=sampleTime;
+  printCurrentState();
+}
+
+void ecmcPIDController::printCurrentState()
+{
+  LOGINFO15("%s/%s:%d: axis[%d].controller.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kp=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kp_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.ki=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ki_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kd_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kff=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kff_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputMin_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputMax_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputIMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputMin_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputIMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputIMax_);
 }
 
 void ecmcPIDController::initVars()
@@ -55,13 +65,7 @@ void ecmcPIDController::initVars()
   ki_=0;
   kd_=0;
   kff_=0;
-  LOGINFO15("%s/%s:%d: axis[%d].controller=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kp=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kp_);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.ki=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ki_);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kd_);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.kff=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kff_);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputMax_);
-  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputMin_);
+  sampleTime_=0;
 }
 
 ecmcPIDController::~ecmcPIDController()

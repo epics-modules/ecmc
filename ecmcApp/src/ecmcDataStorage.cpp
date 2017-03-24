@@ -15,8 +15,7 @@ ecmcDataStorage::ecmcDataStorage (int index)
   setBufferSize(ECMC_DEFAULT_DATA_STORAGE_SIZE);
   bufferType_=ECMC_STORAGE_LIFO_BUFFER;
   LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
-  LOGINFO9("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,ECMC_DEFAULT_DATA_STORAGE_SIZE);
-  LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_LIFO_BUFFER");
+  printCurrentState();
 }
 
 ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
@@ -28,23 +27,33 @@ ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
   bufferElementCount_=size;
   bufferType_=bufferType;
   LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
-  LOGINFO9("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,size);
-  switch(bufferType){
-    case ECMC_STORAGE_LIFO_BUFFER:
-      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_LIFO_BUFFER");
-      break;
-    case ECMC_STORAGE_RING_BUFFER:
-      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index,"ECMC_STORAGE_RING_BUFFER");
-      break;
-    default:
-      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%d;\n",__FILE__, __FUNCTION__, __LINE__,index,bufferType);
-      break;
-  }
+  printCurrentState();
 }
 
 ecmcDataStorage::~ecmcDataStorage ()
 {
   delete buffer_;
+}
+
+void ecmcDataStorage::printCurrentState()
+{
+  LOGINFO9("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,bufferElementCount_);
+  switch(bufferType_){
+    case ECMC_STORAGE_LIFO_BUFFER:
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_STORAGE_LIFO_BUFFER");
+      break;
+    case ECMC_STORAGE_RING_BUFFER:
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_STORAGE_RING_BUFFER");
+      break;
+    default:
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,bufferType_);
+      break;
+  }
+}
+
+int ecmcDataStorage::getIndex()
+{
+  return index_;
 }
 
 void ecmcDataStorage::initVars()

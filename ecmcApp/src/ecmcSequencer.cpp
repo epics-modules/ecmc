@@ -16,6 +16,47 @@ ecmcSequencer::~ecmcSequencer()
   ;
 }
 
+void ecmcSequencer::printCurrentState()
+{
+  //Must be calles when data_ is set
+  if(!data_){
+    return;
+  }
+
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.inProgress=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,seqInProgress_);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.state=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,seqState_);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.execute=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.execute);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.command=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.command);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.cmdData=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.cmdData);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogVel=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jogVel_);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeVelTwordsCam=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,homeVelTwordsCam_);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeVelOffCam=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,homeVelOffCam_);
+  printHomeDirection();
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.homePosition=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,homePosition_);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.positionTarget=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.positionTarget);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.velocityTarget=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.velocityTarget);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jogBwd_);
+  LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jogFwd_);
+}
+
+void ecmcSequencer::printHomeDirection()
+{
+  switch(homeDirection_){
+    case ECMC_DIR_FORWARD:
+      LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_FORWARD");
+      break;
+    case ECMC_DIR_BACKWARD:
+      LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_BACKWARD");
+      break;
+    case ECMC_DIR_STANDSTILL:
+      LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_STANDSTILL");
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,homeDirection_ );
+      break;
+  }
+}
+
 void ecmcSequencer::initVars()
 {
   //errorReset();
@@ -46,6 +87,7 @@ void ecmcSequencer::initVars()
   seqStateOld_=0;
   seqInProgressOld_=0;
   busy_=false;
+  data_=NULL;
 }
 
 void ecmcSequencer::execute()
@@ -387,20 +429,7 @@ double ecmcSequencer::getHomeVelOffCam()
 int ecmcSequencer::setHomeDir(motionDirection dir)
 {
   if(homeDirection_!=dir){
-    switch(dir){
-      case ECMC_DIR_FORWARD:
-	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_FORWARD");
-	break;
-      case ECMC_DIR_BACKWARD:
-	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_BACKWARD");
-	break;
-      case ECMC_DIR_STANDSTILL:
-	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DIR_STANDSTILL");
-	break;
-      default:
-	LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,dir);
-	break;
-    }
+    printHomeDirection();
   }
   homeDirection_=dir;
   return 0;
@@ -1372,5 +1401,6 @@ int ecmcSequencer::setAxisDataRef(ecmcAxisData* data)
 {
   data_= data;
   PRINT_ERROR_PATH("axis[%d].sequencer.error",data->axisId_);
+  printCurrentState();
   return 0;
 }

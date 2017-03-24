@@ -79,6 +79,7 @@ public:
   int executeEvent(int masterOK);//Override ecmcEventConsumer
   int setAxisDataSource(ecmcAxisStatusType *axisData,ecmcAxisDataRecordType dataTypeToRecord);
   int setDataSourceType(ecmcDataSourceType type);
+  void printCurrentState();
 private:
   void initVars();
   void printStatus();
@@ -86,6 +87,8 @@ private:
   int getData(double *data);
   int getAxisData(double *data);
   int getEtherCATData(double *data);
+  void printDataSource();
+  void printAxisDataSource();
   ecmcDataStorage* dataBuffer_;
   int index_;
   int enable_;

@@ -40,6 +40,7 @@ public:
   int addCommand(std::string command);
   int clearCommandList();
   int getCommandCount();
+  void printCurrentState();
 private:
   void initVars();
   void printStatus();

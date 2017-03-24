@@ -26,9 +26,12 @@ public:
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();
   int validate();
+  void printCurrentState();
 protected:
   void refreshDebugInfoStruct();
 private:
+  void printOpModeState();
+  void printDriveType();
   void initVars();
   bool initDone_;
   bool temporaryLocalTrajSource_;

@@ -13,14 +13,45 @@ ecmcEvent::ecmcEvent(double sampleTime, int index): ecmcEcEntryLink()
   initVars();
   sampleTime_=sampleTime;
   index_=index;
-
   LOGINFO10("%s/%s:%d: event[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
-  LOGINFO10("%s/%s:%d: event[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,sampleTime);
+  printCurrentState();
 }
 
 ecmcEvent::~ecmcEvent()
 {
 
+}
+
+void ecmcEvent::printCurrentState()
+{
+  LOGINFO10("%s/%s:%d: event[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,index_,sampleTime_);
+  switch(eventType_){
+    case ECMC_SAMPLED:
+      LOGINFO10("%s/%s:%d: event[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_SAMPLED");
+      break;
+    case ECMC_EDGE_TRIGGERED:
+      LOGINFO10("%s/%s:%d: event[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_EDGE_TRIGGERED");
+      break;
+    default:
+      LOGINFO10("%s/%s:%d: event[%d].type=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,eventType_);
+      break;
+  }
+  switch(triggerEdge_){
+    case ECMC_POSITIVE_EDGE:
+      LOGINFO10("%s/%s:%d: event[%d].edge=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_POSITIVE_EDGE");
+      break;
+    case ECMC_NEGATIVE_EDGE :
+      LOGINFO10("%s/%s:%d: event[%d].edge=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_NEGATIVE_EDGE");
+      break;
+    case ECMC_ON_CHANGE:
+      LOGINFO10("%s/%s:%d: event[%d].edge=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_ON_CHANGE");
+      break;
+    default:
+      LOGINFO10("%s/%s:%d: event[%d].edge=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,triggerEdge_);
+      break;
+  }
+  LOGINFO10("%s/%s:%d: event[%d].dataSamplerate=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,dataSampleTime_);
+  LOGINFO10("%s/%s:%d: event[%d].armSequenceEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enableArmSequence_>0);
 }
 
 void ecmcEvent::initVars()

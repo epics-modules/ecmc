@@ -89,6 +89,7 @@ public:
   bool getEnableSoftLimitFwd();
   bool getAtSoftLimitBwd();
   bool getAtSoftLimitFwd();
+  void printCurrentState();
 private:
   int checkLimits();
   int checkAtTarget();
@@ -98,7 +99,6 @@ private:
   int checkCntrlMaxOutput();
   int filterSwitches();
   void printInterlockStatus(interlockTypes ilock);
-
   bool   enable_;
   double atTargetTol_;           //Tolnoerance for reached target. Example 0.1 deg
   int    atTargetTime_;          //Number of cycles the position error needs to be below dInTargetTol before the bAtTarget bit goes high

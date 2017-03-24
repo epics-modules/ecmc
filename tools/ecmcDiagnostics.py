@@ -15,6 +15,7 @@ def is_number(s):
 
 ###############################START###############################
 toTime=0
+missingVariableList=[];
 
 # Check args
 if len(sys.argv)==1 or len(sys.argv)>4:
@@ -44,7 +45,9 @@ print "Adding axis objects (" +str(range(1, numberOfAxes)) + ")."
 #  axis.append(axisData(ax))
 
 print "Parsing log-file:"
+lineNumber=0;
 for line in dataFile.readlines():
+  lineNumber=lineNumber+1
   #remove all axisrecord printouts
   n=line.count('[')
   if n>1:
@@ -123,18 +126,30 @@ for line in dataFile.readlines():
   if is_number(valueString):
     #exeString=dataString[:equalPos]+'.setValue(' + valueString + ',dateTimeString,line[:semiColonPos+1])'
     #exeString=dataString[:equalPos]+'.setValue(' + valueString + ',dateTimeString)'
-    exeString=variableName + '.setValue(' + valueString + ',dateTimeString)'
+    exeString=variableName + '.setValue(' + valueString + ',dateTimeString,'+ str(lineNumber)+')'
   else:
     #exeString=dataString[:equalPos]+'.setValue(stringVariable,dateTimeString,line[:semiColonPos+1])'
     #exeString=dataString[:equalPos]+'.setValue(valueString,dateTimeString)'
-    exeString=variableName + '.setValue(valueString,dateTimeString)'
+    exeString=variableName + '.setValue(valueString,dateTimeString,'+ str(lineNumber)+')'
   print "Execute string: " + exeString
   #Execute expression
-  exec(exeString.strip())
+  try:
+    exec(exeString.strip())
+  except SyntaxError:
+    print "Failed to execute: " + exeString
+  except AttributeError:
+    print "Failed to execute: " + exeString
+    missingVariableList.append(variableName)
 
 print''
 print "Printing summary of data for axis[" +str(axisIndex) + "]:"  
 #for ax in axis[axisIndex]:
 print axis
+
+if len(missingVariableList)>0:
+  print "Printing missing variables in python structures:"  
+  #for ax in axis[axisIndex]:
+  print missingVariableList
+
 
 dataFile.close()

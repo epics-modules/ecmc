@@ -115,6 +115,7 @@ public:
   virtual ecmcPIDController *getCntrl()=0;
   virtual int validate()=0;
   virtual void execute(bool masterOK)=0;
+  virtual void printCurrentState();
   bool getEnable();
   bool getEnabled();
   void preExecute(bool masterOK);
@@ -169,6 +170,7 @@ public:
   int getCycleCounter();
   void printAxisStatus();
 protected:
+  void printAxisState();
   void initVars();
   int fillCommandsTransformData();
   bool checkAxesForEnabledTransfromCommands(commandType type);

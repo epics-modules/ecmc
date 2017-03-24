@@ -13,13 +13,141 @@ ecmcDataRecorder::ecmcDataRecorder (int index):ecmcEcEntryLink()
   PRINT_ERROR_PATH("dataRecorder[%d].error",index_);
   initVars();
   setInStartupPhase(1);
-  LOGINFO11("%s/%s:%d: dataRecorder[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  printCurrentState();
 }
 
 ecmcDataRecorder::~ecmcDataRecorder ()
 {
 
 }
+
+void ecmcDataRecorder::printCurrentState()
+{
+  LOGINFO11("%s/%s:%d: dataRecorder[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index_);
+  LOGINFO11("%s/%s:%d: dataRecorder[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_);
+  LOGINFO11("%s/%s:%d: dataRecorder[%d].buffer=null;\n",__FILE__, __FUNCTION__, __LINE__,index_);
+  printDataSource();
+  printAxisDataSource();
+
+}
+
+void ecmcDataRecorder::printDataSource()
+{
+  switch(dataSource_){
+    case  ECMC_RECORDER_SOURCE_NONE:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].source=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_SOURCE_NONE");
+      break;
+    case ECMC_RECORDER_SOURCE_ETHERCAT:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].source=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_SOURCE_ETHERCAT");
+      break;
+    case ECMC_RECORDER_SOURCE_AXIS:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].source=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_SOURCE_AXIS");
+      break;
+    default:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].source=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,dataSource_);
+      break;
+  }
+}
+
+void ecmcDataRecorder::printAxisDataSource()
+{
+  switch(axisDataTypeToRecord_){
+    case ECMC_RECORDER_AXIS_DATA_NONE:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_NONE");
+      break;
+    case ECMC_RECORDER_AXIS_DATA_AXIS_ID:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_AXIS_ID");
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_SET:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_POS_SET");
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_ACT:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_POS_ACT");
+      break;
+    case ECMC_RECORDER_AXIS_DATA_CNTRL_ERROR:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_CNTRL_ERROR");
+      break;
+    case ECMC_RECORDER_AXIS_DATA_POS_TARGET:
+      LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_POS_TARGET");
+      break;
+     case ECMC_RECORDER_AXIS_DATA_POS_ERROR:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_POS_ERROR");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_POS_RAW:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_POS_RAW");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_CNTRL_OUT:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_CNTRL_OUT");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_VEL_SET:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_VEL_SET");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_VEL_ACT:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_VEL_ACT");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_VEL_SET_FF_RAW:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_VEL_SET_FF_RAW");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_VEL_SET_RAW:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_VEL_SET_RAW");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_CYCLE_COUNTER:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_CYCLE_COUNTER");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_ERROR:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_ERROR");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_COMMAND:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_COMMAND");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_CMD_DATA:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_CMD_DATA");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_SEQ_STATE:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_SEQ_STATE");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_INTERLOCK_TYPE:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_INTERLOCK_TYPE");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_TRAJ_SOURCE:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_TRAJ_SOURCE");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_ENC_SOURCE:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_ENC_SOURCE");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_ENABLE:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_ENABLE");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_ENABLED:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_ENABLED");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_EXECUTE:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_EXECUTE");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_BUSY:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_BUSY");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_AT_TARGET:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_AT_TARGET");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_HOMED:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_HOMED");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_LIMIT_BWD:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_LIMIT_BWD");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_LIMIT_FWD:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_LIMIT_FWD");
+       break;
+     case ECMC_RECORDER_AXIS_DATA_HOME_SWITCH:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_RECORDER_AXIS_DATA_HOME_SWITCH");
+       break;
+     default:
+       LOGINFO11("%s/%s:%d: dataRecorder[%d].axisDataType=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,axisDataTypeToRecord_);
+       break;
+   }
+}
+
 
 void ecmcDataRecorder::initVars()
 {
@@ -36,6 +164,9 @@ void ecmcDataRecorder::initVars()
 int ecmcDataRecorder::setDataStorage(ecmcDataStorage* buffer)
 {
   dataBuffer_=buffer;
+  if(!dataBuffer_){
+    LOGINFO11("%s/%s:%d: dataRecorder[%d].buffer=dataStorage[%d];\n",__FILE__, __FUNCTION__, __LINE__,index_,dataBuffer_->getIndex());
+  }
   return 0;
 }
 
@@ -70,7 +201,7 @@ int ecmcDataRecorder::validate()
 int ecmcDataRecorder::setEnable(int enable)
 {
   if(enable_!=enable){
-      LOGINFO11("%s/%s:%d: dataRecorder[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
+    LOGINFO11("%s/%s:%d: dataRecorder[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable);
   }
 
   enable_=enable;
@@ -133,14 +264,15 @@ int ecmcDataRecorder::setAxisDataSource(ecmcAxisStatusType *axisData,ecmcAxisDat
 {
   axisData_=axisData;
   axisDataTypeToRecord_=dataToStore;
-  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Axis data type set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,axisDataTypeToRecord_);
+  printAxisDataSource();
   return 0;
 }
 
 int ecmcDataRecorder::setDataSourceType(ecmcDataSourceType type)
 {
   dataSource_=type;
-  LOGINFO11("%s/%s:%d: INFO: Data Recorder %d. Data source set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,dataSource_);
+  printDataSource();
+
   return 0;
 }
 

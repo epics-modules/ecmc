@@ -7,12 +7,13 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData)
   PRINT_ERROR_PATH("axis[%d].monitor.error",axisData->axisId_);
   data_=axisData;
   initVars();
+  LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
   if(!data_){
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
     exit(EXIT_FAILURE);
   }
   errorReset();
-  LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  printCurrentState();
 }
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,bool enableAtTargetMon, bool enableLagMon)
@@ -20,15 +21,14 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,bool enableAtTargetMon, bool ena
   PRINT_ERROR_PATH("axis[%d].monitor.error",axisData->axisId_);
   data_=axisData;
   initVars();
+  LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
   if(!data_){
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
     exit(EXIT_FAILURE);
   }
   enableAtTargetMon_=enableAtTargetMon;
   enableLagMon_=enableLagMon;
-  LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
-  LOGINFO15("%s/%s:%d: axis[%d].monitor.enablePosLagMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableLagMon);
-  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAtTargetMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAtTargetMon);
+  printCurrentState();
 }
 
 void ecmcMonitor::initVars()
@@ -68,6 +68,38 @@ void ecmcMonitor::initVars()
   memset(&limitBwdFilterBuffer_,0,sizeof(limitBwdFilterBuffer_));
   memset(&homeFilterBuffer_,0,sizeof(homeFilterBuffer_));
   interlockStatusOld_=ECMC_INTERLOCK_NONE;
+}
+
+void ecmcMonitor::printCurrentState()
+{
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAtTargetMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetTolerance=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,atTargetTol_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,atTargetTime_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableLagMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagTol=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,posLagTol_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,posLagTime_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.cntrlHLMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableCntrlHLMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableVelocityDiffMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velDiffMaxDiff_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffTimeTraj=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velDiffTimeTraj_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffTimeDrive=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velDiffTimeDrive_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableMaxVelMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVel=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,maxVel_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelTrajTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,maxVelTrajILDelay_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelDriveTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,maxVelDriveILDelay_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.cntrlOutputHL=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,cntrlOutputHL_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableHardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableHardwareInterlock_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.limitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.limitBwd>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.limitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.limitFwd>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.homeSwitch=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.homeSwitch>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAlarmAtHardlimitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAlarmAtHardlimitBwd_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAlarmAtHardlimitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAlarmAtHardlimitFwd_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableSoftLimitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.enableSoftLimitBwd>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableSoftLimitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.enableSoftLimitFwd>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitBwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.softLimitBwd);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitFwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.softLimitFwd);
+  printInterlockStatus(data_->interlocks_.interlockStatus);
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -212,7 +244,7 @@ int ecmcMonitor::getPosLagTime()
 void ecmcMonitor::setEnableLagMon(bool enable)
 {
   if(enableLagMon_!=enable){
-    LOGINFO15("%s/%s:%d: axis[%d].monitor.enablePosLagMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
   }
   enableLagMon_=enable;
 }
@@ -334,7 +366,7 @@ int ecmcMonitor::setMaxVel(double vel)
 int ecmcMonitor::setEnableMaxVelMon(bool enable)
 {
   if(enableMaxVelMon_!=enable){
-    LOGINFO15("%s/%s:%d: axis[%d].monitor.enableMaxVelMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
   }
   enableMaxVelMon_=enable;
   return 0;
@@ -413,7 +445,7 @@ int ecmcMonitor::setCntrlOutputHL(double outputHL)
 int ecmcMonitor::setEnableCntrlHLMon(bool enable)
 {
   if(enableCntrlHLMon_!=enable){
-    LOGINFO15("%s/%s:%d: axis[%d].monitor.enableCntrlHLMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.cntrlHLMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
   }
   enableCntrlHLMon_=enable;
   return 0;
@@ -427,7 +459,7 @@ bool ecmcMonitor::getEnableCntrlHLMon()
 int ecmcMonitor::setEnableVelocityDiffMon(bool enable)
 {
   if(enableVelocityDiffMon_!=enable){
-    LOGINFO15("%s/%s:%d: axis[%d].monitor.enableVelocityDiffMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
   }
   enableVelocityDiffMon_=enable;
   return 0;

@@ -62,6 +62,7 @@ public:
   double readEntries();
   void setOffset(double offset);
   int validate();
+  void printCurrentState();
  protected:
   void initVars();
   int32_t turns_;

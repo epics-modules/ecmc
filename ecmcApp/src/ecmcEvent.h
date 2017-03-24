@@ -45,6 +45,7 @@ public:
   int callConsumers(int masterOK);
   int triggerEvent(int masterOK);
   int arm();
+  void printCurrentState();
 private:
   void initVars();
   int armSequence();

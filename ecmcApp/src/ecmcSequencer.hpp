@@ -74,6 +74,8 @@ public:
   int setExternalExecute(bool execute);
   int setExtTrajIF(ecmcMasterSlaveIF *extIf);
   int setAxisDataRef(ecmcAxisData* data);
+  void printCurrentState();
+  void printHomeDirection();
 private:
   void initVars();
   double checkSoftLimits(double posSetpoint);

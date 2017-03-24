@@ -17,9 +17,6 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   currentDriveType_=ECMC_STEPPER;
 
   LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
-  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,axisID,"ECMC_AXIS_TYPE_REAL");
-  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,axisID,sampleTime);
-  LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,axisID,"ECMC_STEPPER");
 
   drv_=new ecmcDriveStepper(&data_);
   if(!drv_){
@@ -36,6 +33,7 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   }
 
   seq_.setCntrl(cntrl_);
+  printCurrentState();
 }
 
 ecmcAxisReal::~ecmcAxisReal()
@@ -43,6 +41,46 @@ ecmcAxisReal::~ecmcAxisReal()
   delete cntrl_;
   delete drv_;
 }
+
+void ecmcAxisReal::printCurrentState()
+{
+  ecmcAxisBase::printCurrentState();
+  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_AXIS_TYPE_REAL");
+  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.sampleTime_);
+  printDriveType();
+  printOpModeState();
+}
+
+void ecmcAxisReal::printOpModeState()
+{
+  switch(data_.command_.operationModeCmd){
+    case ECMC_MODE_OP_AUTO:
+      LOGINFO15("%s/%s:%d: axis[%d].operationMode=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_MODE_OP_AUTO");
+      break;
+    case ECMC_MODE_OP_MAN:
+      LOGINFO15("%s/%s:%d: axis[%d].operationMode=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_MODE_OP_MAN");
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].operationMode=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.command_.operationModeCmd);
+      break;
+  }
+}
+
+void ecmcAxisReal::printDriveType()
+{
+  switch(currentDriveType_){
+    case ECMC_STEPPER:
+      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_STEPPER");
+      break;
+    case ECMC_DS402:
+      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_DS402");
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].driveType=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,currentDriveType_);
+      break;
+  }
+}
+
 
 void ecmcAxisReal::initVars()
 {
@@ -197,9 +235,8 @@ int ecmcAxisReal::setOpMode(operationMode mode)
     drv_->setVelSet(0);
   }
 
-  LOGINFO15("%s/%s:%d: axis[%d].operationMode=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,mode);
-
   data_.command_.operationModeCmd=mode;
+  printOpModeState();
   return 0;
 }
 
@@ -334,7 +371,6 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
         exit(EXIT_FAILURE);
       }
       currentDriveType_=ECMC_STEPPER;
-      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_STEPPER");
       break;
     case ECMC_DS402:
       delete drv_;
@@ -345,13 +381,12 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
         exit(EXIT_FAILURE);
       }
       currentDriveType_=ECMC_DS402;
-      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_DS402");
       break;
     default:
       LOGERR("%s/%s:%d: DRIVE TYPE NOT SUPPORTED (%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
       return ERROR_AXIS_FUNCTION_NOT_SUPPRTED;
       break;
   }
-
+  printDriveType();
   return 0;
 }

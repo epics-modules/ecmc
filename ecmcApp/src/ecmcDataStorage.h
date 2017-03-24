@@ -38,11 +38,12 @@ public:
   int printBuffer();
   int getSize();
   int getCurrentIndex();
+  int getIndex();
   int getData(double **data, int *size);
   int setData(double *data, int size);
   int appendData(double *data, int size);
   int setCurrentPosition(int position);
-
+  void printCurrentState();
 private:
   void initVars();
   int currentBufferIndex_;

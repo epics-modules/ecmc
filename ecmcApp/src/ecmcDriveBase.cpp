@@ -24,6 +24,10 @@ ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData,double scale)
   scale_=scale;
 
 }
+void ecmcDriveBase::printCurrentState()
+{
+
+}
 
 void ecmcDriveBase::initVars()
 {

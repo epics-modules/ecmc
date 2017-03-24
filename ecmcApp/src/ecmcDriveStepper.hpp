@@ -19,6 +19,7 @@ public:
   int validate();
   void writeEntries();
   void readEntries();
+  void printCurrentState();
 private:
   void initVars();
 };

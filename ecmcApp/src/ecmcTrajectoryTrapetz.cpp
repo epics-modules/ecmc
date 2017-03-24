@@ -11,10 +11,10 @@ ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double sampl
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
     exit(EXIT_FAILURE);
   }
-  printOnChangeDiagAtStart();
   sampleTime_=sampleTime;
   initTraj();
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime);
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  printCurrentState();
 }
 
 ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double velocityTarget, double acceleration, double deceleration, double jerk,double sampleTime) : ecmcError()
@@ -22,7 +22,6 @@ ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double veloc
   PRINT_ERROR_PATH("axis[%d].trajectory.error",axisData->axisId_);
   data_=axisData;
   initVars();
-  printOnChangeDiagAtStart();
   velocityTarget_=velocityTarget;
   acceleration_=acceleration;
   deceleration_=deceleration;
@@ -30,12 +29,8 @@ ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double veloc
   jerk_=jerk;
   sampleTime_=sampleTime;
   initTraj();
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetVelocity=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velocityTarget);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.acceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,acceleration);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.deceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,deceleration);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.emergencyDeceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,decelerationEmergency_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.jerk=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jerk);
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  printCurrentState();
 }
 
 ecmcTrajectoryTrapetz::~ecmcTrajectoryTrapetz()
@@ -43,11 +38,15 @@ ecmcTrajectoryTrapetz::~ecmcTrajectoryTrapetz()
 
 }
 
-void ecmcTrajectoryTrapetz::printOnChangeDiagAtStart()
+void ecmcTrajectoryTrapetz::printCurrentState()
 {
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetVelocity=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velocityTarget_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetPosition=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,targetPosition_);
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory.acceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,acceleration_);
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory.deceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,deceleration_);
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory.emergencyDeceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,decelerationEmergency_);
+  LOGINFO15("%s/%s:%d: axis[%d].trajectory.jerk=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jerk_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepACC=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,stepACC_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepDEC=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,stepDEC_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepNOM=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,stepNOM_);

@@ -121,6 +121,7 @@ public:
   int validate();
   double distToStop(double vel);
   int initStopRamp(double currentPos, double currentVel,double currentAcc);
+  void printCurrentState();
 private:
   void initVars();
   void initTraj();
@@ -132,7 +133,6 @@ private:
   stopMode checkInterlocks();
   double updateSetpoint(double nextSetpoint,double nextVelocity);
   motionDirection checkDirection(double oldPos, double newPos);
-  void printOnChangeDiagAtStart();
   double acceleration_;
   double deceleration_;
   double decelerationEmergency_;
