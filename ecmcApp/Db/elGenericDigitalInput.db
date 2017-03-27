@@ -1,5 +1,0 @@
-record(bi,"$(P)GetEC$(SLAVE_POS)$(TYPE)_$(NAME)"){
-	field(DTYP,"stream")
-	field(INP,"@ethercat.proto getPdoEntry($(SLAVE_POS),$(NAME)) $(PORT)")
-	field(SCAN,"1 second")
-}

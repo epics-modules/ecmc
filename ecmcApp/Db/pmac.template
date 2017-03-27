@@ -1,8 +1,0 @@
-record(waveform, "$(P)FIRMWARE_RBV")
-{
-    field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PMAC_C_FIRMWARE")
-    field(FTVL, "CHAR")
-    field(NELM, "256")
-    field(SCAN, "I/O Intr")
-}
