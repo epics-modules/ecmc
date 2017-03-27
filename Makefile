@@ -45,8 +45,7 @@ SOURCES = \
   ecmcApp/src/hw_motor.cpp \
 
 TEMPLATES = \
-  ecmcApp/Db/ecmcGeneral.template \
-  ecmcApp/Db/ecmcGeneral.db \
+  ecmcApp/Db/ecmcControllerGeneral.db \
   ecmcApp/Db/elGenericAnalog.template \
   ecmcApp/Db/elGenericDigital.template \
   ecmcApp/Db/DUT_AxisStatus_v0_01.db \
