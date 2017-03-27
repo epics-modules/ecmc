@@ -9,6 +9,7 @@
   <height>600</height>
   <macros>
     <include_parent_macros>true</include_parent_macros>
+    <P>IOC2:</P>
   </macros>
   <boy_version>4.0.103.201506251634</boy_version>
   <show_edit_range>true</show_edit_range>
@@ -160,7 +161,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>true</visible>
+      <visible>false</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -182,7 +183,7 @@
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
-        <opi_file>general.opi</opi_file>
+        <opi_file>generalV2.opi</opi_file>
         <border_style>15</border_style>
         <tooltip></tooltip>
         <rules />
@@ -324,7 +325,6 @@
           <AxisId>5</AxisId>
           <M>master</M>
           <R>master-</R>
-          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -409,7 +409,6 @@
           <AxisId>1</AxisId>
           <M>xp</M>
           <R>xp-</R>
-          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -453,7 +452,7 @@
       <macros>
         <include_parent_macros>true</include_parent_macros>
       </macros>
-      <visible>false</visible>
+      <visible>true</visible>
       <border_color>
         <color red="0" green="128" blue="255" />
       </border_color>
@@ -494,7 +493,6 @@
           <AxisId>2</AxisId>
           <M>xg</M>
           <R>xg-</R>
-          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -579,7 +577,6 @@
           <AxisId>3</AxisId>
           <M>xl</M>
           <R>xl-</R>
-          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
@@ -664,7 +661,6 @@
           <AxisId>4</AxisId>
           <M>xr</M>
           <R>xr-</R>
-          <P>IOC2:</P>
         </macros>
         <resize_behaviour>0</resize_behaviour>
         <visible>true</visible>
