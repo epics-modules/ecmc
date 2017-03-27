@@ -292,6 +292,12 @@ void ecmcAxisReal::refreshDebugInfoStruct()
   statusData_.onChangeData.homed=enc_->getHomed();
   statusData_.acceleration=traj_->getAcc();
   statusData_.deceleration=traj_->getDec();
+  statusData_.reset=data_.command_.reset;
+  statusData_.moving=data_.status_.moving;
+  statusData_.stall=data_.interlocks_.lagTrajInterlock
+      || data_.interlocks_.lagDriveInterlock
+      || data_.interlocks_.velocityDiffTrajInterlock
+      || data_.interlocks_.velocityDiffDriveInterlock;
 }
 
 int ecmcAxisReal::validate()
