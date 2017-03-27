@@ -24,7 +24,6 @@ void ecmcSequencer::printCurrentState()
   }
 
   LOGINFO15("%s/%s:%d: axis[%d].sequencer.inProgress=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,seqInProgress_);
-  LOGINFO15("%s/%s:%d: axis[%d].sequencer.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->sampleTime_);
   LOGINFO15("%s/%s:%d: axis[%d].sequencer.state=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,seqState_);
   LOGINFO15("%s/%s:%d: axis[%d].sequencer.enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.enable>0);
   LOGINFO15("%s/%s:%d: axis[%d].sequencer.execute=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.execute);

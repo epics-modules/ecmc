@@ -99,7 +99,6 @@ void ecmcMonitor::printCurrentState()
   LOGINFO15("%s/%s:%d: axis[%d].monitor.enableSoftLimitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.enableSoftLimitFwd>0);
   LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitBwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.softLimitBwd);
   LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitFwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.softLimitFwd);
-  LOGINFO15("%s/%s:%d: axis[%d].monitor.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->sampleTime_);
   printInterlockStatus(data_->interlocks_.interlockStatus);
 }
 

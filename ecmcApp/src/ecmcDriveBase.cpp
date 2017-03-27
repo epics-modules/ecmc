@@ -26,7 +26,7 @@ ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData,double scale)
 }
 void ecmcDriveBase::printCurrentState()
 {
-  LOGINFO15("%s/%s:%d: axis[%d].drive.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->sampleTime_);
+
 }
 
 void ecmcDriveBase::initVars()

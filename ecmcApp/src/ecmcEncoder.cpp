@@ -34,7 +34,6 @@ ecmcEncoder::~ecmcEncoder()
 
 void ecmcEncoder::printCurrentState()
 {
-  LOGINFO15("%s/%s:%d: axis[%d].encoder.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime_);
   switch(encType_){
     case ECMC_ENCODER_TYPE_INCREMENTAL:
       LOGINFO10("%s/%s:%d: axis[%d].encoder.type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_INCREMENTAL");

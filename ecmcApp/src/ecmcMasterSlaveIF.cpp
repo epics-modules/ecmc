@@ -53,7 +53,6 @@ void ecmcMasterSlaveIF::printCurrentState()
       LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.interfaceType=%d;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId_,interfaceType_);
       break;
   }
-  LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId_,sampleTime_);
 }
 
 void ecmcMasterSlaveIF::initVars()

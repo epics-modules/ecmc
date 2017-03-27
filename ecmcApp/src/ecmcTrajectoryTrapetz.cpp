@@ -40,7 +40,7 @@ ecmcTrajectoryTrapetz::~ecmcTrajectoryTrapetz()
 
 void ecmcTrajectoryTrapetz::printCurrentState()
 {
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime_);
+
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetVelocity=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velocityTarget_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetPosition=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,targetPosition_);
   LOGINFO15("%s/%s:%d: axis[%d].trajectory.acceleration=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,acceleration_);

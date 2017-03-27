@@ -38,7 +38,6 @@ ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double kp, double ki
 
 void ecmcPIDController::printCurrentState()
 {
-  LOGINFO15("%s/%s:%d: axis[%d].controller.sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,sampleTime_);
   LOGINFO15("%s/%s:%d: axis[%d].controller.kp=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kp_);
   LOGINFO15("%s/%s:%d: axis[%d].controller.ki=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ki_);
   LOGINFO15("%s/%s:%d: axis[%d].controller.kd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kd_);

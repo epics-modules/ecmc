@@ -10,7 +10,6 @@
 ecmcFilter::ecmcFilter(double sampleTime)
 {
   LOGINFO15("%s/%s:%d: filter[x]=new;\n",__FILE__, __FUNCTION__, __LINE__);
-  LOGINFO15("%s/%s:%d: filter[x].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,sampleTime);
   initVars();
   sampleTime_=sampleTime;
 //  double constant=10;  //TODO move
