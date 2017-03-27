@@ -282,6 +282,8 @@ void ecmcAxisBase::initVars()
   data_.status_.executeOld=false;
   cycleCounter_=0;
   axisState_=ECMC_AXIS_STATE_STARTUP;
+  oldPositionAct_=0;
+  oldPositionSet_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -906,6 +908,22 @@ motionCommandTypes ecmcAxisBase::getCommand()
 int ecmcAxisBase::getCmdData()
 {
   return seq_.getCmdData();
+}
+
+int ecmcAxisBase::slowExecute()
+{
+  //TODO Printout in lower freq here instead of in encoder and traj class.. Consider differnt solution
+  if(oldPositionAct_!=data_.status_.currentPositionActual){
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.actPos=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.currentPositionActual);
+  }
+  oldPositionAct_=data_.status_.currentPositionActual;
+
+  if(oldPositionSet_!=data_.status_.currentPositionSetpoint){
+      LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.currentPositionSetpoint);
+  }
+  oldPositionSet_=data_.status_.currentPositionSetpoint;
+
+  return 0;
 }
 
 void ecmcAxisBase::printAxisStatus()

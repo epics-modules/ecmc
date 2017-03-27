@@ -135,7 +135,7 @@ public:
   int setCmdData(int cmdData);
   motionCommandTypes getCommand();
   int getCmdData();
-
+  int slowExecute();
   ecmcTrajectoryTrapetz *getTraj();
   ecmcMonitor *getMon();
   ecmcEncoder *getEnc();
@@ -200,6 +200,9 @@ protected:
   bool trajInterlockOld;
   int cycleCounter_;
   axisState axisState_;
+  double oldPositionAct_;
+  double oldPositionSet_;
+
 };
 
 #endif /* ECMCAXISBASE_H_ */

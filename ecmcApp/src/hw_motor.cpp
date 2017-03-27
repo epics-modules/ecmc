@@ -267,7 +267,14 @@ void cyclic_task(void * usr)
       counter = MCU_FREQUENCY/axisDiagFreq;
       ec.checkState();
       ec.checkSlavesConfState();
+
       printStatus();
+      for(int i=0;i<ECMC_MAX_AXES;i++){
+        if(axes[i]!=NULL){
+          axes[i]->slowExecute();
+        }
+      }
+
       ec.printStatus();
 
       if(PRINT_STDOUT_BIT13()){
