@@ -43,7 +43,6 @@ class monitorData:
   def __init__(self):
     self.baseString="monitor.".rjust(20)
     self.error = dataPoint('error')
-    self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.atTargetMonEnable=dataPoint('atTargetMonEnable')
     self.atTargetTolerance=dataPoint('atTargetTolerance')
@@ -82,7 +81,6 @@ class monitorData:
   def __repr__(self):
     stringToReturn=""
     stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
-    stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.atTargetMonEnable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.atTargetTolerance.__repr__()
@@ -119,10 +117,6 @@ class trajectoryData:
   def __init__(self):
     self.baseString="trajectory.".rjust(20)
     self.error = dataPoint('error')
-    self.busy = dataPoint('busy')
-    self.sampleTime=dataPoint('sampleTime')
-    self.enable=dataPoint('enable')
-    self.execute=dataPoint('execute')
     self.motionMode=dataPoint('motionMode')
     self.targetPosition=dataPoint('targetPosition')
     self.targetVelocity=dataPoint('targetVelocity')
@@ -143,10 +137,6 @@ class trajectoryData:
   def __repr__(self):
     stringToReturn=""
     stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
-    stringToReturn=stringToReturn + self.baseString + self.busy.__repr__() 
-    stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
-    stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
-    stringToReturn=stringToReturn + self.baseString + self.execute.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.motionMode.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.targetPosition.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.targetVelocity.__repr__()
@@ -165,7 +155,6 @@ class encoderData:
   def __init__(self):
     self.baseString="encoder.".rjust(20)
     self.error = dataPoint('error')
-    self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.scaleNum=dataPoint('scaleNum')
     self.scaleDenom=dataPoint('scaleDenom')
@@ -181,7 +170,6 @@ class encoderData:
     stringToReturn=""
     stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
     stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
-    stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleNum.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleDenom.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.bits.__repr__()
@@ -193,7 +181,6 @@ class controllerData:
   def __init__(self):
     self.baseString="controller.".rjust(20)
     self.error = dataPoint('error')
-    self.sampleTime=dataPoint('sampleTime')
     self.kp=dataPoint('kp')
     self.ki=dataPoint('ki')
     self.kd=dataPoint('kd')
@@ -208,7 +195,6 @@ class controllerData:
   def __repr__(self):
     stringToReturn=""
     stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
-    stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.kp.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.ki.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.kd.__repr__()
@@ -222,7 +208,6 @@ class sequencerData:
   def __init__(self):
     self.baseString="sequencer.".rjust(20)
     self.error = dataPoint('error')
-    self.sampleTime=dataPoint('sampleTime')
     self.enable=dataPoint('enable')
     self.execute=dataPoint('execute')
     self.command=dataPoint('command')
@@ -242,7 +227,6 @@ class sequencerData:
   def __repr__(self):
     stringToReturn=""
     stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
-    stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.execute.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.command.__repr__()
@@ -260,7 +244,6 @@ class masterSlaveIFData:
   def __init__(self):
     self.baseString="masterSlaveIF.".rjust(20)
     self.error = dataPoint('error')
-    self.sampleTime=dataPoint('sampleTime')
     self.interfaceType=dataPoint('interfaceType')
     self.mySelf=dataPoint('self') 
 
@@ -270,7 +253,6 @@ class masterSlaveIFData:
   def __repr__(self):
     stringToReturn=""
     stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
-    stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.interfaceType.__repr__()
     return stringToReturn
 
@@ -278,7 +260,6 @@ class driveData:
   def __init__(self):
     self.baseString="drive.".rjust(20)
     self.error = dataPoint('error')
-    self.sampleTime=dataPoint('sampleTime')
     self.type=dataPoint('type')
     self.scaleNum=dataPoint('scaleNum')
     self.scaleDenom=dataPoint('scaleDenom')
@@ -291,7 +272,6 @@ class driveData:
   def __repr__(self):
     stringToReturn=""
     stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
-    stringToReturn=stringToReturn + self.baseString + self.sampleTime.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.type.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleNum.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleDenom.__repr__()
