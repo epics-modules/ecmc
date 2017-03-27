@@ -126,8 +126,10 @@ do {                                              \
 
 #define LOGINFO15(fmt, ...)                       \
 do {                                              \
-  printFormatedTime(stdlog);                      \
-  if (PRINT_STDOUT_BIT15()) (void)fprintf(stdlog, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT15()){                      \
+    printFormatedTime(stdlog);                    \
+    (void)fprintf(stdlog, fmt, ##__VA_ARGS__);    \
+  }                                               \
 } while (0)
 
 #define LOGERR(fmt, ...)                          \
