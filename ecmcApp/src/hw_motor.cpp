@@ -736,7 +736,7 @@ int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize)
 
   // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
   int ret=snprintf(buffer,bufferByteSize,
-       "Main.M%d.stAxisStatusV2=%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+       "Main.M%d.stAxisStatusV2=%g,%g,%" PRId64 ",%g,%g,%g,%g,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
        axisIndex,
        data.onChangeData.positionTarget,
        data.onChangeData.positionActual,
