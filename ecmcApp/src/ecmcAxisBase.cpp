@@ -919,7 +919,7 @@ int ecmcAxisBase::slowExecute()
   oldPositionAct_=data_.status_.currentPositionActual;
 
   if(oldPositionSet_!=data_.status_.currentPositionSetpoint){
-      LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.currentPositionSetpoint);
+    LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.currentPositionSetpoint);
   }
   oldPositionSet_=data_.status_.currentPositionSetpoint;
 

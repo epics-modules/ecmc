@@ -264,40 +264,43 @@ void cyclic_task(void * usr)
       counter--;
     }
     else{ //Lower freq
-      counter = MCU_FREQUENCY/axisDiagFreq;
-      ec.checkState();
-      ec.checkSlavesConfState();
+      if(axisDiagFreq>0){
+        counter = MCU_FREQUENCY/axisDiagFreq;
+        ec.checkState();
+        ec.checkSlavesConfState();
 
-      printStatus();
-      for(int i=0;i<ECMC_MAX_AXES;i++){
-        if(axes[i]!=NULL){
-          axes[i]->slowExecute();
+        printStatus();
+        for(int i=0;i<ECMC_MAX_AXES;i++){
+          if(axes[i]!=NULL){
+            axes[i]->slowExecute();
+          }
         }
-      }
 
-      ec.printStatus();
+        ec.printStatus();
 
-      if(PRINT_STDOUT_BIT13()){
-        struct timespec testtime;
-        clock_gettime(CLOCK_MONOTONIC, &testtime);
-        LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
-        LOGINFO("period     %10u ... %10u\n",
+        if(PRINT_STDOUT_BIT13()){
+          struct timespec testtime;
+          clock_gettime(CLOCK_MONOTONIC, &testtime);
+
+          LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
+          LOGINFO("period     %10u ... %10u\n",
         		period_min_ns, period_max_ns);
-        LOGINFO("exec       %10u ... %10u\n",
+          LOGINFO("exec       %10u ... %10u\n",
                 exec_min_ns, exec_max_ns);
-        LOGINFO("latency    %10u ... %10u\n",
+          LOGINFO("latency    %10u ... %10u\n",
                 latency_min_ns, latency_max_ns);
-        LOGINFO("send       %10u ... %10u\n",
+          LOGINFO("send       %10u ... %10u\n",
 		send_min_ns, send_max_ns);
-        period_max_ns = 0;
-        period_min_ns = 0xffffffff;
-        exec_max_ns = 0;
-        exec_min_ns = 0xffffffff;
-        latency_max_ns = 0;
-        latency_min_ns = 0xffffffff;
-        send_max_ns=0;
-        send_min_ns=0xffffffff;
-        sendperiod_ns=0;
+          period_max_ns = 0;
+          period_min_ns = 0xffffffff;
+          exec_max_ns = 0;
+          exec_min_ns = 0xffffffff;
+          latency_max_ns = 0;
+          latency_min_ns = 0xffffffff;
+          send_max_ns=0;
+          send_min_ns=0xffffffff;
+          sendperiod_ns=0;
+        }
       }
     }
     clock_gettime(CLOCK_MONOTONIC, &sendTime);

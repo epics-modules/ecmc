@@ -147,7 +147,7 @@ void ecmcAxisReal::execute(bool masterOK)
 
     if(getEnabled() && masterOK){
       double cntrOutput=0;
-      if(mon_->getEnableAtTargetMon() && !data_.status_.busy){ //Controller deadband
+      if(mon_->getEnableAtTargetMon() && !data_.status_.busy && mon_->getAtTarget()){ //Controller deadband
 	cntrl_->reset();
 	cntrOutput=0;
       }

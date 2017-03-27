@@ -9,7 +9,7 @@ ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData)
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
     exit(EXIT_FAILURE);
   }
-
+  printCurrentState();
 }
 
 ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData,double scale)
@@ -22,11 +22,12 @@ ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData,double scale)
     exit(EXIT_FAILURE);
   }
   scale_=scale;
-
+  printCurrentState();
 }
 void ecmcDriveBase::printCurrentState()
 {
-
+  LOGINFO15("%s/%s:%d: axis[%d].drive.scaleNum=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleNum_);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.scaleDenom=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom_);
 }
 
 void ecmcDriveBase::initVars()
