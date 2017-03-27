@@ -44,24 +44,6 @@ SOURCES = \
   ecmcApp/src/ecmcAxisData.cpp \
   ecmcApp/src/hw_motor.cpp \
 
-TEMPLATES = \
-  ecmcApp/Db/ecmcControllerGeneral.db \
-  ecmcApp/Db/elGenericAnalog.template \
-  ecmcApp/Db/elGenericDigital.template \
-  ecmcApp/Db/DUT_AxisStatus_v0_01.db \
-  ecmcApp/Db/FB_DriveVirtual_v1_01.db \
-  ecmcApp/Db/expression.db \
-  ecmcApp/Db/expressionAR.db \
-  ecmcApp/Db/dataStorage.db \
-  ecmcApp/Db/dataRecorder.db \
-  ecmcApp/Db/event.db \
-  ecmcApp/Db/ethercat.db \
-  ecmcApp/Db/elGenericDigitalInput.db \
-  ecmcApp/Db/elGenericDigitalOutput.db \
-  ecmcApp/Db/elGenericAnalogInput.db \
-  ecmcApp/Db/elGenericAnalogOutput.db \
-
-
 
 
 
