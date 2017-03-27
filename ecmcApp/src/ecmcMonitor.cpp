@@ -68,6 +68,7 @@ void ecmcMonitor::initVars()
   memset(&limitBwdFilterBuffer_,0,sizeof(limitBwdFilterBuffer_));
   memset(&homeFilterBuffer_,0,sizeof(homeFilterBuffer_));
   interlockStatusOld_=ECMC_INTERLOCK_NONE;
+  hardwareInterlockPolarity_=ECMC_POLARITY_NC;
 }
 
 void ecmcMonitor::printCurrentState()
@@ -100,6 +101,7 @@ void ecmcMonitor::printCurrentState()
   LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitBwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.softLimitBwd);
   LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitFwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.softLimitFwd);
   printInterlockStatus(data_->interlocks_.interlockStatus);
+  printHwInterlockPolarity();
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -274,7 +276,9 @@ void ecmcMonitor::readEntries(){
 
   data_->status_.limitBwd=tempRaw>0;
 
+
   //Hard limit FWD
+  tempRaw=0;
   if(readEcEntryValue(1,&tempRaw)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
@@ -287,6 +291,7 @@ void ecmcMonitor::readEntries(){
   data_->status_.limitFwd=tempRaw>0;
 
   //Home
+  tempRaw=0;
   if(readEcEntryValue(2,&tempRaw)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
@@ -302,14 +307,26 @@ void ecmcMonitor::readEntries(){
   filterSwitches();
 
   if(enableHardwareInterlock_){
+    tempRaw=0;
     if(readEcEntryValue(3,&tempRaw)){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
       return;
     }
-    if(data_->interlocks_.hardwareInterlock!=(tempRaw>0)){
-      LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw>0);
-    }
-    data_->interlocks_.hardwareInterlock=tempRaw>0;
+
+    switch(hardwareInterlockPolarity_){
+       case ECMC_POLARITY_NC:
+	 if(data_->interlocks_.hardwareInterlock!=(tempRaw>0)){
+	   LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw>0);
+	 }
+	 data_->interlocks_.hardwareInterlock=tempRaw>0;
+         break;
+       case ECMC_POLARITY_NO:
+         if(data_->interlocks_.hardwareInterlock!=(tempRaw==0)){
+	   LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw==0);
+	 }
+	 data_->interlocks_.hardwareInterlock=tempRaw==0;
+         break;
+     }
   }
 }
 
@@ -852,4 +869,28 @@ void ecmcMonitor::printInterlockStatus(interlockTypes ilock)
 	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ilock);
       break;
   }
+}
+
+void ecmcMonitor::printHwInterlockPolarity()
+{
+  switch(hardwareInterlockPolarity_){
+    case ECMC_POLARITY_NC:
+      LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlockPolarity=ECMC_POLARITY_NC;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      break;
+    case ECMC_POLARITY_NO:
+      LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlockPolarity=ECMC_POLARITY_NO;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlockPolarity=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,hardwareInterlockPolarity_);
+      break;
+  }
+}
+
+int ecmcMonitor::setHardwareInterlockPolarity(externalHWInterlockPolarity pol)
+{
+  if(hardwareInterlockPolarity_!=pol){
+    hardwareInterlockPolarity_=pol;
+    printHwInterlockPolarity();
+  }
+  return 0;
 }
