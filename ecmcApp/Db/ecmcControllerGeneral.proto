@@ -1,0 +1,27 @@
+
+LockTimeout = 5000;
+WriteTimeout = 100;
+ReplyTimeout = 1000;
+ReadTimeout = 100;
+
+getGeneralErrorReset{
+	out "ControllerErrorReset()";      	
+	in "%{OK}";
+}
+
+setGeneralErrorReset{
+	out "ControllerErrorReset()";
+       	@init { getGeneralErrorReset; }
+	in "%{OK}";
+
+}
+
+getGeneralErrorId{
+	out "GetControllerError()";
+	in "%f";
+}
+
+getGeneralErrorMessage{
+	out "GetControllerErrorMessage()";
+	in "%s";
+}
