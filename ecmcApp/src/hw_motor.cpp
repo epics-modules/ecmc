@@ -1996,6 +1996,18 @@ int setAxisMonEnableAtTargetMon(int axisIndex, int value)
   return 0;
 }
 
+int setAxisMonExtHWInterlockPolarity(int axisIndex, int value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getMon()->setHardwareInterlockPolarity((externalHWInterlockPolarity)value);
+  return 0;
+}
+
+
 int setAxisMonPosLagTol(int axisIndex, double value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);

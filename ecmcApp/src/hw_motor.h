@@ -2094,7 +2094,7 @@ int setAxisMonVelDiffTol(int axisIndex, double value);
 
 /** \breif Enable motion axis interlock from EtherCAT entry.\n
  *
- *
+ *Enable
  * The motion can be interlocked based on an EtherCAT entry. See command
  * linkEcEntryToAxisMon() for more information.\n
  *
@@ -2111,6 +2111,28 @@ int setAxisMonVelDiffTol(int axisIndex, double value);
  * "Cfg.SetAxisMonEnableExtHWInterlock(7,1)" //Command string to cmd_EAT.c.\n
  */
 int setAxisMonEnableExternalInterlock(int axisIndex, int value);
+
+/** \breif Set polarity of motion axis interlock from EtherCAT entry.\n
+ *
+ *
+ * The motion can be interlocked based on an EtherCAT entry. See command
+ * linkEcEntryToAxisMon() for more information.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Polarity external interlock.\n
+ *                0 = NC (High is OK) Default.\n
+ *                1 = NO (Low is OK).\n
+ *
+ * \note WARNING: If an error is detected, the enable (power) will be removed
+ *  from the axis. Please always ensure that the power less state is the
+ *  safe state.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set external interlock to NC for axis 7.\n
+ * "Cfg.SetAxisMonExtHWInterlockPolarity(7,0)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisMonExtHWInterlockPolarity(int axisIndex, int value);
 
 /** \breif Enable commands from other axis.\n
  *
