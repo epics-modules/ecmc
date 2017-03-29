@@ -120,7 +120,7 @@ void ecmcMonitor::execute()
 
   //External interlock (on ethercat I/O)
 
-  if(enableHardwareInterlock_ && !data_->interlocks_.hardwareInterlock && enable_)
+  if(enableHardwareInterlock_ && data_->interlocks_.hardwareInterlock && enable_)
   {
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK);
   }
@@ -315,16 +315,16 @@ void ecmcMonitor::readEntries(){
 
     switch(hardwareInterlockPolarity_){
        case ECMC_POLARITY_NC:
-	 if(data_->interlocks_.hardwareInterlock!=(tempRaw>0)){
-	   LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw>0);
-	 }
-	 data_->interlocks_.hardwareInterlock=tempRaw>0;
-         break;
-       case ECMC_POLARITY_NO:
-         if(data_->interlocks_.hardwareInterlock!=(tempRaw==0)){
+	 if(data_->interlocks_.hardwareInterlock!=(tempRaw==0)){
 	   LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw==0);
 	 }
 	 data_->interlocks_.hardwareInterlock=tempRaw==0;
+         break;
+       case ECMC_POLARITY_NO:
+         if(data_->interlocks_.hardwareInterlock!=(tempRaw>0)){
+	   LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw>0);
+	 }
+	 data_->interlocks_.hardwareInterlock=tempRaw>0;
          break;
      }
   }
