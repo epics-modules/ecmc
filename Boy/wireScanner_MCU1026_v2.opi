@@ -66,7 +66,7 @@
     <background_color>
       <color red="240" green="240" blue="240" />
     </background_color>
-    <width>810</width>
+    <width>955</width>
     <x>0</x>
     <horizontal_tabs>true</horizontal_tabs>
     <y>30</y>
@@ -145,7 +145,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>808</width>
+      <width>953</width>
       <x>1</x>
       <name>General</name>
       <y>1</y>
@@ -281,6 +281,155 @@
           <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
         </font>
       </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.groupingContainer" version="1.0.0">
+        <border_style>13</border_style>
+        <tooltip></tooltip>
+        <rules />
+        <enabled>true</enabled>
+        <wuid>66a7e8dc:15b1ed28dd0:-7c40</wuid>
+        <transparent>false</transparent>
+        <lock_children>false</lock_children>
+        <scripts />
+        <height>133</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <macros>
+          <include_parent_macros>true</include_parent_macros>
+        </macros>
+        <visible>true</visible>
+        <border_color>
+          <color name="Black" red="0" green="0" blue="0" />
+        </border_color>
+        <widget_type>Grouping Container</widget_type>
+        <background_color>
+          <color name="Background" red="255" green="255" blue="255" />
+        </background_color>
+        <width>220</width>
+        <x>310</x>
+        <name>Interlocks</name>
+        <y>486</y>
+        <foreground_color>
+          <color red="192" green="192" blue="192" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <fc>false</fc>
+        <show_scrollbar>false</show_scrollbar>
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="1">Default Bold</opifont.name>
+        </font>
+        <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+          <border_style>0</border_style>
+          <tooltip></tooltip>
+          <horizontal_alignment>0</horizontal_alignment>
+          <rules>
+            <rule name="Rule" prop_id="foreground_color" out_exp="false">
+              <exp bool_exp="pv0==0">
+                <value>
+                  <color red="115" green="210" blue="22" />
+                </value>
+              </exp>
+              <exp bool_exp="pv0==1">
+                <value>
+                  <color name="Major" red="255" green="0" blue="0" />
+                </value>
+              </exp>
+              <pv trig="true">$(P)GetEC0EL1018_INPIN_6</pv>
+            </rule>
+          </rules>
+          <enabled>true</enabled>
+          <wuid>66a7e8dc:15b1ed28dd0:-7cbe</wuid>
+          <transparent>true</transparent>
+          <auto_size>false</auto_size>
+          <text>AXIS 1 INTERLOCK</text>
+          <scripts />
+          <height>48</height>
+          <border_width>1</border_width>
+          <scale_options>
+            <width_scalable>true</width_scalable>
+            <height_scalable>true</height_scalable>
+            <keep_wh_ratio>false</keep_wh_ratio>
+          </scale_options>
+          <visible>true</visible>
+          <vertical_alignment>1</vertical_alignment>
+          <border_color>
+            <color red="0" green="128" blue="255" />
+          </border_color>
+          <widget_type>Label</widget_type>
+          <wrap_words>false</wrap_words>
+          <background_color>
+            <color red="255" green="255" blue="255" />
+          </background_color>
+          <width>275</width>
+          <x>6</x>
+          <name>Label_1</name>
+          <y>0</y>
+          <foreground_color>
+            <color red="0" green="0" blue="0" />
+          </foreground_color>
+          <actions hook="false" hook_all="false" />
+          <font>
+            <fontdata fontName="Cantarell" height="14" style="0" />
+          </font>
+        </widget>
+        <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+          <border_style>0</border_style>
+          <tooltip></tooltip>
+          <horizontal_alignment>0</horizontal_alignment>
+          <rules>
+            <rule name="Rule" prop_id="foreground_color" out_exp="false">
+              <exp bool_exp="pv0==0">
+                <value>
+                  <color red="115" green="210" blue="22" />
+                </value>
+              </exp>
+              <exp bool_exp="pv0==1">
+                <value>
+                  <color name="Major" red="255" green="0" blue="0" />
+                </value>
+              </exp>
+              <pv trig="true">$(P)GetEC0EL1018_INPIN_2</pv>
+            </rule>
+          </rules>
+          <enabled>true</enabled>
+          <wuid>66a7e8dc:15b1ed28dd0:-7cc6</wuid>
+          <transparent>true</transparent>
+          <auto_size>false</auto_size>
+          <text>AXIS 2 INTERLOCK</text>
+          <scripts />
+          <height>48</height>
+          <border_width>1</border_width>
+          <scale_options>
+            <width_scalable>true</width_scalable>
+            <height_scalable>true</height_scalable>
+            <keep_wh_ratio>false</keep_wh_ratio>
+          </scale_options>
+          <visible>true</visible>
+          <vertical_alignment>1</vertical_alignment>
+          <border_color>
+            <color red="0" green="128" blue="255" />
+          </border_color>
+          <widget_type>Label</widget_type>
+          <wrap_words>false</wrap_words>
+          <background_color>
+            <color red="255" green="255" blue="255" />
+          </background_color>
+          <width>275</width>
+          <x>6</x>
+          <name>Label_1</name>
+          <y>42</y>
+          <foreground_color>
+            <color red="0" green="0" blue="0" />
+          </foreground_color>
+          <actions hook="false" hook_all="false" />
+          <font>
+            <fontdata fontName="Cantarell" height="14" style="0" />
+          </font>
+        </widget>
+      </widget>
     </widget>
     <widget typeId="org.csstudio.opibuilder.widgets.groupingContainer" version="1.0.0">
       <border_style>0</border_style>
@@ -309,7 +458,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>808</width>
+      <width>953</width>
       <x>1</x>
       <name>Axis 1</name>
       <y>1</y>
@@ -322,6 +471,78 @@
       <font>
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
+      <widget typeId="org.csstudio.opibuilder.widgets.Rectangle" version="1.0.0">
+        <border_style>0</border_style>
+        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+        <line_width>0</line_width>
+        <horizontal_fill>true</horizontal_fill>
+        <alarm_pulsing>false</alarm_pulsing>
+        <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+        <rules>
+          <rule name="Rule" prop_id="background_color" out_exp="false">
+            <exp bool_exp="pv0==0">
+              <value>
+                <color red="115" green="210" blue="22" />
+              </value>
+            </exp>
+            <exp bool_exp="pv0==1">
+              <value>
+                <color name="Major" red="255" green="0" blue="0" />
+              </value>
+            </exp>
+            <pv trig="true">$(P)GetEC0EL1018_INPIN_6</pv>
+          </rule>
+        </rules>
+        <enabled>true</enabled>
+        <wuid>-2fde124d:15ac79a93b8:16dc</wuid>
+        <transparent>false</transparent>
+        <pv_value />
+        <alpha>255</alpha>
+        <bg_gradient_color>
+          <color red="255" green="255" blue="255" />
+        </bg_gradient_color>
+        <scripts />
+        <border_alarm_sensitive>false</border_alarm_sensitive>
+        <height>763</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <visible>true</visible>
+        <pv_name></pv_name>
+        <gradient>false</gradient>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <anti_alias>true</anti_alias>
+        <line_style>0</line_style>
+        <widget_type>Rectangle</widget_type>
+        <fg_gradient_color>
+          <color red="255" green="255" blue="255" />
+        </fg_gradient_color>
+        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+        <background_color>
+          <color red="30" green="144" blue="255" />
+        </background_color>
+        <width>583</width>
+        <x>6</x>
+        <name>Rectangle</name>
+        <y>6</y>
+        <fill_level>0.0</fill_level>
+        <foreground_color>
+          <color red="255" green="0" blue="0" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+        <line_color>
+          <color red="128" green="0" blue="255" />
+        </line_color>
+      </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>oneAxisMR.opi</opi_file>
         <border_style>15</border_style>
@@ -395,9 +616,9 @@
           <color red="240" green="240" blue="240" />
         </background_color>
         <width>210</width>
-        <x>582</x>
+        <x>630</x>
         <name>Linking Container_1</name>
-        <y>234</y>
+        <y>270</y>
         <foreground_color>
           <color red="192" green="192" blue="192" />
         </foreground_color>
@@ -436,15 +657,69 @@
           <color red="240" green="240" blue="240" />
         </background_color>
         <width>210</width>
-        <x>582</x>
+        <x>630</x>
         <name>Linking Container_2</name>
-        <y>12</y>
+        <y>71</y>
         <foreground_color>
           <color red="192" green="192" blue="192" />
         </foreground_color>
         <actions hook="false" hook_all="false" />
         <font>
           <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+        <border_style>0</border_style>
+        <tooltip></tooltip>
+        <horizontal_alignment>1</horizontal_alignment>
+        <rules>
+          <rule name="Rule" prop_id="foreground_color" out_exp="false">
+            <exp bool_exp="pv0==0">
+              <value>
+                <color red="115" green="210" blue="22" />
+              </value>
+            </exp>
+            <exp bool_exp="pv0==1">
+              <value>
+                <color name="Major" red="255" green="0" blue="0" />
+              </value>
+            </exp>
+            <pv trig="true">$(P)GetEC0EL1018_INPIN_6</pv>
+          </rule>
+        </rules>
+        <enabled>true</enabled>
+        <wuid>-2fde124d:15ac79a93b8:173a</wuid>
+        <transparent>true</transparent>
+        <auto_size>false</auto_size>
+        <text>ANTI COLLISION INTERLOCK</text>
+        <scripts />
+        <height>48</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <visible>true</visible>
+        <vertical_alignment>1</vertical_alignment>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <widget_type>Label</widget_type>
+        <wrap_words>false</wrap_words>
+        <background_color>
+          <color red="255" green="255" blue="255" />
+        </background_color>
+        <width>275</width>
+        <x>630</x>
+        <name>Label_1</name>
+        <y>18</y>
+        <foreground_color>
+          <color red="0" green="0" blue="0" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <font>
+          <fontdata fontName="Cantarell" height="14" style="0" />
         </font>
       </widget>
     </widget>
@@ -475,7 +750,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>808</width>
+      <width>953</width>
       <x>1</x>
       <name>Axis 2</name>
       <y>1</y>
@@ -488,6 +763,78 @@
       <font>
         <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
       </font>
+      <widget typeId="org.csstudio.opibuilder.widgets.Rectangle" version="1.0.0">
+        <border_style>0</border_style>
+        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+        <line_width>0</line_width>
+        <horizontal_fill>true</horizontal_fill>
+        <alarm_pulsing>false</alarm_pulsing>
+        <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+        <rules>
+          <rule name="Rule" prop_id="background_color" out_exp="false">
+            <exp bool_exp="pv0==0">
+              <value>
+                <color red="115" green="210" blue="22" />
+              </value>
+            </exp>
+            <exp bool_exp="pv0==1">
+              <value>
+                <color name="Major" red="255" green="0" blue="0" />
+              </value>
+            </exp>
+            <pv trig="true">$(P)GetEC0EL1018_INPIN_2</pv>
+          </rule>
+        </rules>
+        <enabled>true</enabled>
+        <wuid>-2fde124d:15ac79a93b8:1755</wuid>
+        <transparent>false</transparent>
+        <pv_value />
+        <alpha>255</alpha>
+        <bg_gradient_color>
+          <color red="255" green="255" blue="255" />
+        </bg_gradient_color>
+        <scripts />
+        <border_alarm_sensitive>false</border_alarm_sensitive>
+        <height>763</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <visible>true</visible>
+        <pv_name></pv_name>
+        <gradient>false</gradient>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <anti_alias>true</anti_alias>
+        <line_style>0</line_style>
+        <widget_type>Rectangle</widget_type>
+        <fg_gradient_color>
+          <color red="255" green="255" blue="255" />
+        </fg_gradient_color>
+        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+        <background_color>
+          <color red="30" green="144" blue="255" />
+        </background_color>
+        <width>583</width>
+        <x>6</x>
+        <name>Rectangle</name>
+        <y>6</y>
+        <fill_level>0.0</fill_level>
+        <foreground_color>
+          <color red="255" green="0" blue="0" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <font>
+          <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+        <line_color>
+          <color red="128" green="0" blue="255" />
+        </line_color>
+      </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
         <opi_file>oneAxisMR.opi</opi_file>
         <border_style>15</border_style>
@@ -562,9 +909,9 @@
           <color red="240" green="240" blue="240" />
         </background_color>
         <width>210</width>
-        <x>582</x>
+        <x>630</x>
         <name>Linking Container_1</name>
-        <y>234</y>
+        <y>270</y>
         <foreground_color>
           <color red="192" green="192" blue="192" />
         </foreground_color>
@@ -603,15 +950,69 @@
           <color red="240" green="240" blue="240" />
         </background_color>
         <width>210</width>
-        <x>582</x>
+        <x>630</x>
         <name>Linking Container_2</name>
-        <y>12</y>
+        <y>71</y>
         <foreground_color>
           <color red="192" green="192" blue="192" />
         </foreground_color>
         <actions hook="false" hook_all="false" />
         <font>
           <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+        </font>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+        <border_style>0</border_style>
+        <tooltip></tooltip>
+        <horizontal_alignment>1</horizontal_alignment>
+        <rules>
+          <rule name="Rule" prop_id="foreground_color" out_exp="false">
+            <exp bool_exp="pv0==0">
+              <value>
+                <color red="115" green="210" blue="22" />
+              </value>
+            </exp>
+            <exp bool_exp="pv0==1">
+              <value>
+                <color name="Major" red="255" green="0" blue="0" />
+              </value>
+            </exp>
+            <pv trig="true">$(P)GetEC0EL1018_INPIN_2</pv>
+          </rule>
+        </rules>
+        <enabled>true</enabled>
+        <wuid>-2fde124d:15ac79a93b8:1769</wuid>
+        <transparent>true</transparent>
+        <auto_size>false</auto_size>
+        <text>ANTI COLLISION INTERLOCK</text>
+        <scripts />
+        <height>48</height>
+        <border_width>1</border_width>
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <visible>true</visible>
+        <vertical_alignment>1</vertical_alignment>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <widget_type>Label</widget_type>
+        <wrap_words>false</wrap_words>
+        <background_color>
+          <color red="255" green="255" blue="255" />
+        </background_color>
+        <width>275</width>
+        <x>630</x>
+        <name>Label_1</name>
+        <y>18</y>
+        <foreground_color>
+          <color red="0" green="0" blue="0" />
+        </foreground_color>
+        <actions hook="false" hook_all="false" />
+        <font>
+          <fontdata fontName="Cantarell" height="14" style="0" />
         </font>
       </widget>
     </widget>
@@ -642,7 +1043,7 @@
       <background_color>
         <color red="240" green="240" blue="240" />
       </background_color>
-      <width>808</width>
+      <width>953</width>
       <x>1</x>
       <name>Chart</name>
       <y>1</y>
@@ -768,7 +1169,7 @@ $(trace_0_y_pv_value)</tooltip>
         <axis_1_time_format>0</axis_1_time_format>
         <border_alarm_sensitive>false</border_alarm_sensitive>
         <show_plot_area_border>false</show_plot_area_border>
-        <width>793</width>
+        <width>907</width>
         <trace_1_x_pv_value />
         <axis_1_minimum>0.0</axis_1_minimum>
         <title_font>
