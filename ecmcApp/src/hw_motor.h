@@ -186,6 +186,21 @@ int getAxisCycleCounter(int axisIndex,int *counter);
  */
 int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize);
 
+/** \breif Get axis status structure V2.\n
+ *
+ * \param[in] axisIndex Axis index.\n
+ * \param[in,out] buffer Pointer to char output data buffer.\n
+ * \param[in] bufferByteSize Size of data buffer.\n
+ *
+ * \return error code.\n
+ *
+ * \note Example: Get information of axis 3.\n
+ * "Main.M3.stAxisStatusV2?" //Command string to cmd_EAT.c.\n
+ *
+ *  \todo  "TwinCAT syntax. Needs to be changed.\n
+ */
+int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize);
+
 /** \breif Get axis execute bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2079,7 +2094,7 @@ int setAxisMonVelDiffTol(int axisIndex, double value);
 
 /** \breif Enable motion axis interlock from EtherCAT entry.\n
  *
- *
+ *Enable
  * The motion can be interlocked based on an EtherCAT entry. See command
  * linkEcEntryToAxisMon() for more information.\n
  *
@@ -2096,6 +2111,28 @@ int setAxisMonVelDiffTol(int axisIndex, double value);
  * "Cfg.SetAxisMonEnableExtHWInterlock(7,1)" //Command string to cmd_EAT.c.\n
  */
 int setAxisMonEnableExternalInterlock(int axisIndex, int value);
+
+/** \breif Set polarity of motion axis interlock from EtherCAT entry.\n
+ *
+ *
+ * The motion can be interlocked based on an EtherCAT entry. See command
+ * linkEcEntryToAxisMon() for more information.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Polarity external interlock.\n
+ *                0 = NC (High is OK) Default.\n
+ *                1 = NO (Low is OK).\n
+ *
+ * \note WARNING: If an error is detected, the enable (power) will be removed
+ *  from the axis. Please always ensure that the power less state is the
+ *  safe state.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set external interlock to NC for axis 7.\n
+ * "Cfg.SetAxisMonExtHWInterlockPolarity(7,0)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisMonExtHWInterlockPolarity(int axisIndex, int value);
 
 /** \breif Enable commands from other axis.\n
  *
@@ -2412,6 +2449,21 @@ int setEventTriggerEdge(int indexEvent,int triggerEdge);
  */
 int setEventEnable(int indexEvent,int enable);
 
+/** \breif Get event enabled.\n
+ *
+ * Event evaluation and triggering is only active when the enable bit is
+ * high.\n
+ *
+ * \param[in] indexEvent Index of event to address.\n
+ * \param[out] enabled Enabled.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get Enabled for event 2 .\n
+ *  "GetEventEnabled(2)" //Command string to cmd_EAT.c\n
+ */
+int getEventEnabled(int indexEvent,int *enabled);
+
 /** \breif Enable arm sequence.\n
  *
  * Some hardware require that the input card is re-armed after each value have
@@ -2500,10 +2552,23 @@ int createDataStorage(int index, int elements, int bufferType);
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Clear datat storage object with index 4.\n
+ * \note Example: Clear data storage object with index 4.\n
  *  "Cfg.ClearStorage(4)" //Command string to cmd_EAT.c\n
  */
 int clearStorage(int indexStorage);
+
+/** \breif Get current index of data in storage buffer.\n
+ *
+ * \param[in] index Index of data storage object to clear.\n
+ * \param[out] index Current data element index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get current data element index for data storage object
+ * with index 4.\n
+ *  "GetStorageDataIndex(4)" //Command string to cmd_EAT.c\n
+ */
+int getStorageDataIndex(int indexStorage,int *index);
 
 /** \breif Enable diagnostic printouts from data storage object.\n
  *
@@ -2705,6 +2770,20 @@ int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore);
  *  "Cfg.SetRecorderEnable(4,1)" //Command string to cmd_EAT.c\n
  */
 int setRecorderEnable(int indexRecorder,int enable);
+
+/** \breif Get recorder enabled.\n
+ *
+ * Recording of data is only active when the enable bit is high.\n
+ *
+ * \param[in] indexRecorder Index of recorder to address.\n
+ * \param[out] enabled Enabled.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get recorder object 4 enabled.\n
+ *  "GetRecorderEnabled(4)" //Command string to cmd_EAT.c\n
+ */
+int getRecorderEnabled(int indexRecorder,int *enabled);
 
 /** \breif Enable diagnostic printouts from recorder object.\n
  *

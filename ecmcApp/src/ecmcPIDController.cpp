@@ -1,23 +1,51 @@
 #include "ecmcPIDController.hpp"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double sampleTime)
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].controller.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+  LOGINFO15("%s/%s:%d: axis[%d].controller=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  printCurrentState();
 }
 
 ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,double kp, double ki, double kd, double kff, double sampleTime, double outMax, double outMin)
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].controller.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+  LOGINFO15("%s/%s:%d: axis[%d].controller=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
   kp_=kp;
   ki_=ki;
   kd_=kd;
   kff_=kff;
   outputMax_=outMax;
   outputMin_=outMin;
+  sampleTime_=sampleTime;
+  printCurrentState();
+}
+
+void ecmcPIDController::printCurrentState()
+{
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kp=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kp_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.ki=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ki_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kd_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.kff=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kff_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputMin_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputMax_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputIMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputMin_);
+  LOGINFO15("%s/%s:%d: axis[%d].controller.outputIMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputIMax_);
 }
 
 void ecmcPIDController::initVars()
@@ -36,8 +64,7 @@ void ecmcPIDController::initVars()
   ki_=0;
   kd_=0;
   kff_=0;
-  outputMax_=0;
-  outputMin_=0;
+  sampleTime_=0;
 }
 
 ecmcPIDController::~ecmcPIDController()
@@ -87,40 +114,73 @@ double ecmcPIDController::getOutTot()
 
 void ecmcPIDController::setKp(double kp)
 {
+  if(kp_!=kp){
+    LOGINFO15("%s/%s:%d: axis[%d].controller.kp=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kp);
+  }
+
   kp_=kp;
 }
 
-void ecmcPIDController::setKi(double ki){
+void ecmcPIDController::setKi(double ki)
+{
+  if(ki_!=ki){
+    LOGINFO15("%s/%s:%d: axis[%d].controller.ki=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ki);
+  }
+
   ki_=ki;
 }
 
 void ecmcPIDController::setKd(double kd)
 {
+  if(kd_!=kd){
+    LOGINFO15("%s/%s:%d: axis[%d].controller.kd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kd);
+  }
+
   kd_=kd;
 }
 
 void ecmcPIDController::setKff(double kff)
 {
+  if(kff_!=kff){
+    LOGINFO15("%s/%s:%d: axis[%d].controller.kff=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,kff);
+  }
+
   kff_=kff;
 }
 
 void ecmcPIDController::setOutMax(double outMax)
 {
+  if(outputMax_!=outMax){
+    LOGINFO15("%s/%s:%d: axis[%d].controller.outputMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMax);
+  }
+
   outputMax_=outMax;
 }
 
 void ecmcPIDController::setOutMin(double outMin)
 {
+  if(outputMin_!=outMin){
+    LOGINFO15("%s/%s:%d: axis[%d].controller.outputMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMin);
+  }
+
   outputMin_=outMin;
 }
 
 void ecmcPIDController::setIOutMax(double outMax)
 {
+  if(outputIMax_!=outMax){
+    LOGINFO15("%s/%s:%d: axis[%d].controller.outputIMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMax);
+  }
+
   outputIMax_=outMax;
 }
 
 void ecmcPIDController::setIOutMin(double outMin)
 {
+  if(outputIMin_!=outMin){
+    LOGINFO15("%s/%s:%d: axis[%d].controller.outputIMin=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outMin);
+  }
+
   outputIMin_=outMin;
 }
 

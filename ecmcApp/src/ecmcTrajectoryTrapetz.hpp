@@ -121,6 +121,7 @@ public:
   int validate();
   double distToStop(double vel);
   int initStopRamp(double currentPos, double currentVel,double currentAcc);
+  void printCurrentState();
 private:
   void initVars();
   void initTraj();
@@ -147,7 +148,7 @@ private:
   double stepDECEmerg_;
   double currentPositionSetpoint_;
   double velocity_;
-  bool   trajInProgress_;
+  bool   busy_;
   int    index_;
   bool   execute_;
   bool   executeOld_;

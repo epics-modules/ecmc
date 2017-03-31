@@ -4,17 +4,31 @@
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData)
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].monitor.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   errorReset();
+  printCurrentState();
 }
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,bool enableAtTargetMon, bool enableLagMon)
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].monitor.error",axisData->axisId_);
   data_=axisData;
+  initVars();
+  LOGINFO15("%s/%s:%d: axis[%d].monitor=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   enableAtTargetMon_=enableAtTargetMon;
   enableLagMon_=enableLagMon;
+  printCurrentState();
 }
 
 void ecmcMonitor::initVars()
@@ -53,6 +67,41 @@ void ecmcMonitor::initVars()
   memset(&limitFwdFilterBuffer_,0,sizeof(limitFwdFilterBuffer_));
   memset(&limitBwdFilterBuffer_,0,sizeof(limitBwdFilterBuffer_));
   memset(&homeFilterBuffer_,0,sizeof(homeFilterBuffer_));
+  interlockStatusOld_=ECMC_INTERLOCK_NONE;
+  hardwareInterlockPolarity_=ECMC_POLARITY_NC;
+}
+
+void ecmcMonitor::printCurrentState()
+{
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAtTargetMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetTolerance=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,atTargetTol_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,atTargetTime_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableLagMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagTol=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,posLagTol_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,posLagTime_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.cntrlHLMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableCntrlHLMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableVelocityDiffMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velDiffMaxDiff_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffTimeTraj=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velDiffTimeTraj_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffTimeDrive=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velDiffTimeDrive_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableMaxVelMon_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVel=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,maxVel_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelTrajTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,maxVelTrajILDelay_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelDriveTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,maxVelDriveILDelay_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.cntrlOutputHL=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,cntrlOutputHL_);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableHardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableHardwareInterlock_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.limitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.limitBwd>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.limitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.limitFwd>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.homeSwitch=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.homeSwitch>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAlarmAtHardlimitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAlarmAtHardlimitBwd_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAlarmAtHardlimitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAlarmAtHardlimitFwd_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableSoftLimitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.enableSoftLimitBwd>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.enableSoftLimitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.enableSoftLimitFwd>0);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitBwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.softLimitBwd);
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitFwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.softLimitFwd);
+  printInterlockStatus(data_->interlocks_.interlockStatus);
+  printHwInterlockPolarity();
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -71,7 +120,7 @@ void ecmcMonitor::execute()
 
   //External interlock (on ethercat I/O)
 
-  if(enableHardwareInterlock_ && !data_->interlocks_.hardwareInterlock && enable_)
+  if(enableHardwareInterlock_ && data_->interlocks_.hardwareInterlock && enable_)
   {
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK);
   }
@@ -89,6 +138,11 @@ void ecmcMonitor::execute()
   checkVelocityDiff();
 
   data_->refreshInterlocks();
+
+  if(interlockStatusOld_!=data_->interlocks_.interlockStatus){
+    printInterlockStatus(data_->interlocks_.interlockStatus);
+  }
+  interlockStatusOld_=data_->interlocks_.interlockStatus;
 }
 
 bool ecmcMonitor::getAtTarget()
@@ -108,7 +162,9 @@ bool ecmcMonitor::getHardLimitBwd()
 
 void ecmcMonitor::setAtTargetTol(double tol)
 {
-  LOGINFO("SETTING AT TARGET TOLERANCE TO %lf.\n", atTargetTol_);
+  if(atTargetTol_!=tol){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetTolerance=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tol);
+  }
   atTargetTol_=tol;
 }
 
@@ -119,6 +175,9 @@ double ecmcMonitor::getAtTargetTol()
 
 void ecmcMonitor::setAtTargetTime(int time)
 {
+  if(atTargetTime_!=time){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,time);
+  }
   atTargetTime_=time;
 }
 
@@ -129,6 +188,9 @@ int ecmcMonitor::getAtTargetTime()
 
 void ecmcMonitor::setEnableAtTargetMon(bool enable)
 {
+  if(enableAtTargetMon_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAtTargetMon=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enableAtTargetMon_=enable;
 }
 
@@ -139,6 +201,9 @@ bool ecmcMonitor::getEnableAtTargetMon()
 
 void ecmcMonitor::setPosLagTol(double tol)
 {
+  if(posLagTol_!=tol){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagTol=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tol);
+  }
   posLagTol_=tol;
 }
 
@@ -149,17 +214,27 @@ double ecmcMonitor::getPosLagTol()
 
 int ecmcMonitor::setVelDiffTimeTraj(int time)
 {
+  if(velDiffTimeTraj_!=time){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffTimeTraj=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,time);
+  }
   velDiffTimeTraj_=time;
   return 0;
 }
 
 int ecmcMonitor::setVelDiffTimeDrive(int time)
 {
+  if(velDiffTimeDrive_!=time){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffTimeDrive=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,time);
+  }
   velDiffTimeDrive_=time;
   return 0;
 }
 
-void ecmcMonitor::setPosLagTime(int time){
+void ecmcMonitor::setPosLagTime(int time)
+{
+  if(posLagTime_!=time){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,time);
+  }
   posLagTime_=time;
 }
 
@@ -170,6 +245,9 @@ int ecmcMonitor::getPosLagTime()
 
 void ecmcMonitor::setEnableLagMon(bool enable)
 {
+  if(enableLagMon_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enableLagMon_=enable;
 }
 
@@ -191,36 +269,72 @@ void ecmcMonitor::readEntries(){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
+
+  if(data_->status_.limitBwd!=(tempRaw>0)){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.limitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw>0);
+  }
+
   data_->status_.limitBwd=tempRaw>0;
 
+
   //Hard limit FWD
+  tempRaw=0;
   if(readEcEntryValue(1,&tempRaw)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
+
+  if(data_->status_.limitFwd!=(tempRaw>0)){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.limitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw>0);
+  }
+
   data_->status_.limitFwd=tempRaw>0;
 
   //Home
+  tempRaw=0;
   if(readEcEntryValue(2,&tempRaw)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
+
+  if(data_->status_.homeSwitch!=(tempRaw>0)){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.homeSwitch=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw>0);
+  }
+
   data_->status_.homeSwitch=tempRaw>0;
 
   //Refresh filtered switches
   filterSwitches();
 
   if(enableHardwareInterlock_){
+    tempRaw=0;
     if(readEcEntryValue(3,&tempRaw)){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
       return;
     }
-    data_->interlocks_.hardwareInterlock=tempRaw>0;
+
+    switch(hardwareInterlockPolarity_){
+       case ECMC_POLARITY_NC:
+	 if(data_->interlocks_.hardwareInterlock!=(tempRaw==0)){
+	   LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw==0);
+	 }
+	 data_->interlocks_.hardwareInterlock=tempRaw==0;
+         break;
+       case ECMC_POLARITY_NO:
+         if(data_->interlocks_.hardwareInterlock!=(tempRaw>0)){
+	   LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,tempRaw>0);
+	 }
+	 data_->interlocks_.hardwareInterlock=tempRaw>0;
+         break;
+     }
   }
 }
 
 void ecmcMonitor::setEnable(bool enable)
 {
+  if(enable_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enable_=enable;
 }
 
@@ -258,12 +372,19 @@ int ecmcMonitor::validate()
 
 int ecmcMonitor::setMaxVel(double vel)
 {
+  if(maxVel_!=vel){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVel=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
+  }
+
   maxVel_=vel;
   return 0;
 }
 
 int ecmcMonitor::setEnableMaxVelMon(bool enable)
 {
+  if(enableMaxVelMon_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enableMaxVelMon_=enable;
   return 0;
 }
@@ -275,18 +396,29 @@ bool ecmcMonitor::getEnableMaxVelMon()
 
 int ecmcMonitor::setMaxVelDriveTime(int time)
 {
+  if(maxVelDriveILDelay_!=time){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelDriveTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,time);
+  }
   maxVelDriveILDelay_=time;
   return 0;
 }
 
 int ecmcMonitor::setMaxVelTrajTime(int time)
 {
+  if(maxVelTrajILDelay_!=time){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelTrajTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,time);
+  }
   maxVelTrajILDelay_=time;
   return 0;
 }
 
 int ecmcMonitor::reset()
 {
+  LOGINFO15("%s/%s:%d: axis[%d].monitor.reset=1;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+
+  if(data_->status_.atTarget){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.atTarget=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,0);
+  }
   data_->status_.atTarget=false;
   atTargetCounter_=0;
   lagMonCounter_=0;
@@ -311,18 +443,27 @@ int ecmcMonitor::setEnableHardwareInterlock(bool enable)
        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_HARDWARE_INTERLOCK_NULL);
      }
    }
+   if(enableHardwareInterlock_!=enable){
+     LOGINFO15("%s/%s:%d: axis[%d].monitor.enableHardwareInterlock=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+   }
    enableHardwareInterlock_=enable;
    return 0;
 }
 
 int ecmcMonitor::setCntrlOutputHL(double outputHL)
 {
+  if(cntrlOutputHL_!=outputHL){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.cntrlOutputHL=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,outputHL);
+  }
   cntrlOutputHL_=outputHL;
   return 0;
 }
 
 int ecmcMonitor::setEnableCntrlHLMon(bool enable)
 {
+  if(enableCntrlHLMon_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.cntrlHLMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enableCntrlHLMon_=enable;
   return 0;
 }
@@ -334,6 +475,9 @@ bool ecmcMonitor::getEnableCntrlHLMon()
 
 int ecmcMonitor::setEnableVelocityDiffMon(bool enable)
 {
+  if(enableVelocityDiffMon_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffMonEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enableVelocityDiffMon_=enable;
   return 0;
 }
@@ -345,36 +489,55 @@ bool ecmcMonitor::getEnableVelocityDiffMon()
 
 int ecmcMonitor::setEnableHardLimitBWDAlarm(bool enable)
 {
+  if(enableAlarmAtHardlimitBwd_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAlarmAtHardlimitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enableAlarmAtHardlimitBwd_=enable;
   return 0;
 }
 
 int ecmcMonitor::setEnableHardLimitFWDAlarm(bool enable)
 {
+  if(enableAlarmAtHardlimitFwd_!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.enableAlarmAtHardlimitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   enableAlarmAtHardlimitFwd_=enable;
   return 0;
 }
 
 int ecmcMonitor::setEnableSoftLimitBwd(bool enable)
 {
+  if(data_->command_.enableSoftLimitBwd!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.enableSoftLimitBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   data_->command_.enableSoftLimitBwd=enable;
   return 0;
 }
 
 int ecmcMonitor::setEnableSoftLimitFwd(bool enable)
 {
+  if(data_->command_.enableSoftLimitFwd!=enable){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.enableSoftLimitFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
+  }
   data_->command_.enableSoftLimitFwd=enable;
   return 0;
 }
 
 int ecmcMonitor::setSoftLimitBwd(double limit)
 {
+  if(data_->command_.softLimitBwd!=limit){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitBwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,limit);
+  }
+
   data_->command_.softLimitBwd=limit;
   return 0;
 }
 
 int ecmcMonitor::setSoftLimitFwd(double limit)
 {
+  if(data_->command_.softLimitFwd!=limit){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.softLimitFwd=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,limit);
+  }
   data_->command_.softLimitFwd=limit;
   return 0;
 }
@@ -385,12 +548,14 @@ int ecmcMonitor::checkLimits()
   hardFwdOld_=data_->status_.limitFwd;
 
   //Both limit switches
+
   data_->interlocks_.bothLimitsLowInterlock=!data_->status_.limitBwd && !data_->status_.limitFwd;
   if(data_->interlocks_.bothLimitsLowInterlock){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_BOTH_LIMIT_INTERLOCK);
   }
 
   //Bwd limit switch
+
   if(!data_->status_.limitBwd && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld) ){
     data_->interlocks_.bwdLimitInterlock=true;
     if(enableAlarmAtHardlimitBwd_){
@@ -455,6 +620,11 @@ int ecmcMonitor::checkAtTarget()
   else{
       atTarget=true;
   }
+
+  if(data_->status_.atTarget!=atTarget){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.atTarget=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,atTarget);
+  }
+
   data_->status_.atTarget=atTarget;
   return 0;
 }
@@ -607,6 +777,9 @@ bool ecmcMonitor::getAtSoftLimitFwd()
 
 int ecmcMonitor::setVelDiffMaxDifference(double velo)
 {
+  if(velDiffMaxDiff_!=std::abs(velo)){
+    LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffMax=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,std::abs(velo));
+  }
   velDiffMaxDiff_=std::abs(velo);
   return 0;
 }
@@ -631,9 +804,93 @@ int ecmcMonitor::filterSwitches()
   }
   data_->status_.limitFwdFiltered=limFwdSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
   data_->status_.limitBwdFiltered=limBwdSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
-  data_->status_.homeSwitch=limHomeSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
+  data_->status_.homeSwitchFiltered=limHomeSum > ECMC_MON_SWITCHES_FILTER_CYCLES/2;
 
   switchFilterCounter_++;
   return 0;
 }
 
+void ecmcMonitor::printInterlockStatus(interlockTypes ilock)
+{
+  switch(ilock){
+    case ECMC_INTERLOCK_NONE:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_NONE");
+      break;
+    case ECMC_INTERLOCK_SOFT_BWD:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_SOFT_BWD");
+      break;
+    case ECMC_INTERLOCK_SOFT_FWD:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_SOFT_FWD");
+      break;
+    case ECMC_INTERLOCK_HARD_BWD:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_HARD_BWD");
+      break;
+    case ECMC_INTERLOCK_HARD_FWD:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_HARD_FWD");
+      break;
+    case ECMC_INTERLOCK_NO_EXECUTE:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_NO_EXECUTE");
+      break;
+    case ECMC_INTERLOCK_POSITION_LAG:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_POSITION_LAG");
+      break;
+    case ECMC_INTERLOCK_BOTH_LIMITS:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_BOTH_LIMITS");
+      break;
+    case ECMC_INTERLOCK_EXTERNAL:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_EXTERNAL");
+      break;
+    case ECMC_INTERLOCK_TRANSFORM:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_TRANSFORM");
+      break;
+    case ECMC_INTERLOCK_MAX_SPEED:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_MAX_SPEED");
+      break;
+    case ECMC_INTERLOCK_CONT_HIGH_LIMIT:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_CONT_HIGH_LIMIT");
+      break;
+    case ECMC_INTERLOCK_CONT_OUT_INCREASE_AT_LIMIT_SWITCH:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_CONT_OUT_INCREASE_AT_LIMIT_SWITCH");
+      break;
+    case ECMC_INTERLOCK_AXIS_ERROR_STATE:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_AXIS_ERROR_STATE");
+      break;
+    case ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR");
+      break;
+    case ECMC_INTERLOCK_VELOCITY_DIFF:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_VELOCITY_DIFF");
+      break;
+    case ECMC_INTERLOCK_ETHERCAT_MASTER_NOT_OK:
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_INTERLOCK_ETHERCAT_MASTER_NOT_OK");
+      break;
+    default:
+        //Should never get here..
+	LOGINFO15("%s/%s:%d: axis[%d].monitor.interlockStatus=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,ilock);
+      break;
+  }
+}
+
+void ecmcMonitor::printHwInterlockPolarity()
+{
+  switch(hardwareInterlockPolarity_){
+    case ECMC_POLARITY_NC:
+      LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlockPolarity=ECMC_POLARITY_NC;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      break;
+    case ECMC_POLARITY_NO:
+      LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlockPolarity=ECMC_POLARITY_NO;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].monitor.hardwareInterlockPolarity=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,hardwareInterlockPolarity_);
+      break;
+  }
+}
+
+int ecmcMonitor::setHardwareInterlockPolarity(externalHWInterlockPolarity pol)
+{
+  if(hardwareInterlockPolarity_!=pol){
+    hardwareInterlockPolarity_=pol;
+    printHwInterlockPolarity();
+  }
+  return 0;
+}

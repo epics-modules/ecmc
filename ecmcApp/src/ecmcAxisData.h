@@ -46,6 +46,9 @@ typedef struct {
   bool enableOld;
   bool executeOld;
   bool busy;
+  bool busyOld;
+  bool moving;
+  bool movingOld;
   int seqState;
   bool atTarget;
   bool limitFwd;

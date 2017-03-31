@@ -264,33 +264,43 @@ void cyclic_task(void * usr)
       counter--;
     }
     else{ //Lower freq
-      counter = MCU_FREQUENCY/axisDiagFreq;
-      ec.checkState();
-      ec.checkSlavesConfState();
-      printStatus();
-      ec.printStatus();
+      if(axisDiagFreq>0){
+        counter = MCU_FREQUENCY/axisDiagFreq;
+        ec.checkState();
+        ec.checkSlavesConfState();
 
-      if(PRINT_STDOUT_BIT13()){
-        struct timespec testtime;
-        clock_gettime(CLOCK_MONOTONIC, &testtime);
-        LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
-        LOGINFO("period     %10u ... %10u\n",
+        printStatus();
+        for(int i=0;i<ECMC_MAX_AXES;i++){
+          if(axes[i]!=NULL){
+            axes[i]->slowExecute();
+          }
+        }
+
+        ec.printStatus();
+
+        if(PRINT_STDOUT_BIT13()){
+          struct timespec testtime;
+          clock_gettime(CLOCK_MONOTONIC, &testtime);
+
+          LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
+          LOGINFO("period     %10u ... %10u\n",
         		period_min_ns, period_max_ns);
-        LOGINFO("exec       %10u ... %10u\n",
+          LOGINFO("exec       %10u ... %10u\n",
                 exec_min_ns, exec_max_ns);
-        LOGINFO("latency    %10u ... %10u\n",
+          LOGINFO("latency    %10u ... %10u\n",
                 latency_min_ns, latency_max_ns);
-        LOGINFO("send       %10u ... %10u\n",
+          LOGINFO("send       %10u ... %10u\n",
 		send_min_ns, send_max_ns);
-        period_max_ns = 0;
-        period_min_ns = 0xffffffff;
-        exec_max_ns = 0;
-        exec_min_ns = 0xffffffff;
-        latency_max_ns = 0;
-        latency_min_ns = 0xffffffff;
-        send_max_ns=0;
-        send_min_ns=0xffffffff;
-        sendperiod_ns=0;
+          period_max_ns = 0;
+          period_min_ns = 0xffffffff;
+          exec_max_ns = 0;
+          exec_min_ns = 0xffffffff;
+          latency_max_ns = 0;
+          latency_min_ns = 0xffffffff;
+          send_max_ns=0;
+          send_min_ns=0xffffffff;
+          sendperiod_ns=0;
+        }
       }
     }
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
@@ -504,7 +514,6 @@ int validateConfig(){
   }
 
   for(int i=0; i<ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
-    dataRecorders[i]=NULL;
     if(dataRecorders[i]!=NULL){
       errorCode=dataRecorders[i]->validate();
       if(errorCode){
@@ -622,7 +631,7 @@ int getAxisCommand(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-
+  *value=0;
   *value= (int)axes[axisIndex]->getSeq()->getCommand();
   return 0;
 }
@@ -723,6 +732,57 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
   return 0;
 }
 
+int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  ecmcAxisStatusType data;
+  int error=axes[axisIndex]->getDebugInfoData(&data);
+  if(error){
+    return error;
+  }
+
+  // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+  int ret=snprintf(buffer,bufferByteSize,
+       "Main.M%d.stAxisStatusV2=%g,%g,%" PRId64 ",%g,%g,%g,%g,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+       axisIndex,
+       data.onChangeData.positionTarget,
+       data.onChangeData.positionActual,
+       data.onChangeData.positionRaw,  //UINT64_t
+       data.onChangeData.velocitySetpoint,
+       data.onChangeData.velocityActual,
+       data.acceleration,
+       data.deceleration,
+       data.cycleCounter,
+       0,  //EtherCAT time low32 not available yet
+       0,  //EtherCAT time high32 not available yet
+       data.onChangeData.enable,
+       data.onChangeData.enabled,
+       data.onChangeData.execute,
+       data.onChangeData.command,
+       data.onChangeData.cmdData,
+       data.onChangeData.limitBwd,
+       data.onChangeData.limitFwd,
+       data.onChangeData.homeSwitch,
+       data.onChangeData.error>0,
+       data.onChangeData.error,
+       data.reset,
+       data.onChangeData.homed,
+       data.onChangeData.busy,
+       data.onChangeData.atTarget,
+       data.moving,
+       data.stall
+      );
+
+  if(ret>=bufferByteSize || ret <=0){
+    return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  return 0;
+}
+
 int setAxisEnable(int axisIndex, int value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
@@ -741,8 +801,8 @@ int getAxisEnable(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value= axes[axisIndex]->getEnable();
+  *value=0;
+  *value= axes[axisIndex]->getEnable()>0;
   return 0;
 }
 
@@ -771,8 +831,8 @@ int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value= axes[axisIndex]->getMon()->getEnableAlarmAtHardLimit();
+  *value=0;
+  *value= axes[axisIndex]->getMon()->getEnableAlarmAtHardLimit()>0;
   return 0;
 }
 
@@ -781,8 +841,8 @@ int getAxisEnabled(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getEnabled();
+  *value=0;
+  *value=axes[axisIndex]->getEnabled()>0;
   return 0;
 }
 
@@ -813,8 +873,8 @@ int getAxisEnableCommandsFromOtherAxis(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=(int)axes[axisIndex]->getCascadedCommandsEnabled();
+  *value=0;
+  *value=(int)axes[axisIndex]->getCascadedCommandsEnabled()>0;
   return 0;
 }
 
@@ -823,8 +883,8 @@ int getAxisEnableCommandsTransform(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=(int)axes[axisIndex]->getEnableCommandsTransform();
+  *value=0;
+  *value=(int)axes[axisIndex]->getEnableCommandsTransform()>0;
   return 0;
 }
 
@@ -930,8 +990,8 @@ int getAxisEnableSoftLimitBwd(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getMon()->getEnableSoftLimitBwd();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getEnableSoftLimitBwd()>0;
   return 0;
 }
 
@@ -941,8 +1001,8 @@ int getAxisEnableSoftLimitFwd(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getMon()->getEnableSoftLimitFwd();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getEnableSoftLimitFwd()>0;
   return 0;
 }
 
@@ -951,8 +1011,8 @@ int getAxisBusy(int axisIndex,int *value)
   LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getBusy();
+  *value=0;
+  *value=axes[axisIndex]->getBusy()>0;
   return 0;
 }
 
@@ -1017,10 +1077,8 @@ int setAxisTargetVel(int axisIndex, double value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-  //CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getSeq()->setTargetVel(value);
-  //axes[axisIndex]->getMon()->setTargetVel(value);
 
   return 0;
 }
@@ -1388,8 +1446,8 @@ int getAxisDone(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-
-  *value=!axes[axisIndex]->getSeq()->getBusy();
+  *value=0;
+  *value=!axes[axisIndex]->getSeq()->getBusy()>0;
   return 0;
 }
 
@@ -1418,8 +1476,8 @@ int getAxisExecute(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getExecute();
+  *value=0;
+  *value=axes[axisIndex]->getExecute()>0;
   return 0;
 }
 
@@ -1428,7 +1486,8 @@ int getAxisReset(int axisIndex, int *value)
   LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=axes[axisIndex]->getReset();
+  *value=0;
+  *value=axes[axisIndex]->getReset()>0;
   return 0;
 }
 
@@ -1456,8 +1515,8 @@ int getAxisAtHardFwd(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getMon()->getHardLimitFwd();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getHardLimitFwd()>0;
   return 0;
 }
 
@@ -1467,8 +1526,8 @@ int getAxisAtHardBwd(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-
-  *value=axes[axisIndex]->getMon()->getHardLimitBwd();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getHardLimitBwd()>0;
   return 0;
 }
 
@@ -1483,8 +1542,8 @@ int getAxisEncHomed(int axisIndex,int *value)
   if(errorCode){
     return errorCode;
   }
-
-  *value=tempHomed;
+  *value=0;
+  *value=tempHomed>0;
   return 0;
 }
 
@@ -1524,8 +1583,8 @@ int getAxisAtHome(int axisIndex,int *value)
   if(axes[axisIndex]->getMon()==NULL){
     return ERROR_MAIN_MONITOR_OBJECT_NULL;
   }
-
-  *value=axes[axisIndex]->getMon()->getHomeSwitch();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getHomeSwitch()>0;
   return 0;
 }
 
@@ -1897,8 +1956,8 @@ int getAxisDrvEnable(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  *value=axes[axisIndex]->getDrv()->getEnable();;
+  *value=0;
+  *value=axes[axisIndex]->getDrv()->getEnable()>0;
   return 0;
 }
 
@@ -1936,6 +1995,18 @@ int setAxisMonEnableAtTargetMon(int axisIndex, int value)
   axes[axisIndex]->getMon()->setEnableAtTargetMon(value);
   return 0;
 }
+
+int setAxisMonExtHWInterlockPolarity(int axisIndex, int value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getMon()->setHardwareInterlockPolarity((externalHWInterlockPolarity)value);
+  return 0;
+}
+
 
 int setAxisMonPosLagTol(int axisIndex, double value)
 {
@@ -2087,8 +2158,8 @@ int getAxisMonAtTarget(int axisIndex,int *value)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
-
-  *value=axes[axisIndex]->getMon()->getAtTarget();
+  *value=0;
+  *value=axes[axisIndex]->getMon()->getAtTarget()>0;
   return 0;
 }
 
@@ -2657,6 +2728,15 @@ int setEventEnable(int indexEvent,int enable)
   return events[indexEvent]->setEnable(enable);
 }
 
+int getEventEnabled(int indexEvent,int *enabled)
+{
+  LOGINFO4("%s/%s:%d indexEvent=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+
+  CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
+
+  return events[indexEvent]->getEnabled(enabled);
+}
+
 int clearStorage(int indexStorage)
 {
   LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
@@ -2665,6 +2745,17 @@ int clearStorage(int indexStorage)
 
   return dataStorages[indexStorage]->clearBuffer();
 }
+
+int getStorageDataIndex(int indexStorage,int *index)
+{
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+
+  CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
+
+  *index=dataStorages[indexStorage]->getCurrentIndex();
+  return 0;
+}
+
 
 int setStorageEnablePrintouts(int indexStorage,int enable)
 {
@@ -2853,6 +2944,15 @@ int setRecorderEnable(int indexRecorder,int enable)
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
   return dataRecorders[indexRecorder]->setEnable(enable);
+}
+
+int getRecorderEnabled(int indexRecorder,int *enabled)
+{
+  LOGINFO4("%s/%s:%d indexRecorder=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder);
+
+  CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
+
+  return dataRecorders[indexRecorder]->getEnabled(enabled);
 }
 
 int linkRecorderToEvent(int indexRecorder,int indexEvent, int consumerIndex)

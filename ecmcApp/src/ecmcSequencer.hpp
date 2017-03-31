@@ -74,6 +74,8 @@ public:
   int setExternalExecute(bool execute);
   int setExtTrajIF(ecmcMasterSlaveIF *extIf);
   int setAxisDataRef(ecmcAxisData* data);
+  void printCurrentState();
+  void printHomeDirection();
 private:
   void initVars();
   double checkSoftLimits(double posSetpoint);
@@ -94,6 +96,7 @@ private:
   bool homeSensor_;
   bool homeSensorOld_;
   bool seqInProgress_;
+  bool seqInProgressOld_;
   motionDirection currSeqDirection_;
   //bool execute_;
   bool executeOld_;
@@ -116,6 +119,7 @@ private:
   bool enableSoftLimitBwdBackup_;
   bool enableSoftLimitFwdBackup_;
   int seqState_;
+  int seqStateOld_;
   double homePosLatch1_;
   double homePosLatch2_;
   int seqTimeout_;

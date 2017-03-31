@@ -9,10 +9,13 @@
 
 ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType, double sampleTime)
 {
+  PRINT_ERROR_PATH("axis[%d].masterSlaveIF.error",defaultAxisId);
   initVars();
   sampleTime_=sampleTime;
   defaultAxisId_=defaultAxisId;
   interfaceType_=ifType;
+  LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF=new;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId_);
+
   transform_=new ecmcCommandTransform(3,ECMC_MAX_AXES);  //currently three commands
   if(!transform_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRANSFORM OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
@@ -28,12 +31,28 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int defaultAxisId,interfaceType ifType, dou
     exit(EXIT_FAILURE);
   }
   velocityFilter_->setSampleTime(sampleTime_);
+  printCurrentState();
 }
 
 ecmcMasterSlaveIF::~ecmcMasterSlaveIF()
 {
   delete transform_;
   delete velocityFilter_;
+}
+
+void ecmcMasterSlaveIF::printCurrentState()
+{
+  switch(interfaceType_){
+    case ECMC_ENCODER_INTERFACE:
+      LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.interfaceType=%s;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId_,"ECMC_ENCODER_INTERFACE");
+      break;
+    case ECMC_TRAJECTORY_INTERFACE:
+      LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.interfaceType=%s;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId_,"ECMC_TRAJECTORY_INTERFACE");
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].masterSlaveIF.interfaceType=%d;\n",__FILE__, __FUNCTION__, __LINE__,defaultAxisId_,interfaceType_);
+      break;
+  }
 }
 
 void ecmcMasterSlaveIF::initVars()

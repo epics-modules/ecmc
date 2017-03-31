@@ -31,6 +31,11 @@
 
 #define ECMC_MON_SWITCHES_FILTER_CYCLES 5
 
+enum externalHWInterlockPolarity{
+  ECMC_POLARITY_NC=0,
+  ECMC_POLARITY_NO=1
+};
+
 class ecmcMonitor : public ecmcEcEntryLink
 {
 public:
@@ -68,6 +73,7 @@ public:
   int reset();
   void errorReset();
   int setEnableHardwareInterlock(bool enable);
+  int setHardwareInterlockPolarity(externalHWInterlockPolarity pol);
   int setCntrlOutputHL(double outputHL);
   int setEnableCntrlHLMon(bool enable);
   bool getEnableCntrlHLMon();
@@ -89,6 +95,7 @@ public:
   bool getEnableSoftLimitFwd();
   bool getAtSoftLimitBwd();
   bool getAtSoftLimitFwd();
+  void printCurrentState();
 private:
   int checkLimits();
   int checkAtTarget();
@@ -97,7 +104,8 @@ private:
   int checkVelocityDiff();
   int checkCntrlMaxOutput();
   int filterSwitches();
-
+  void printInterlockStatus(interlockTypes ilock);
+  void printHwInterlockPolarity();
   bool   enable_;
   double atTargetTol_;           //Tolnoerance for reached target. Example 0.1 deg
   int    atTargetTime_;          //Number of cycles the position error needs to be below dInTargetTol before the bAtTarget bit goes high
@@ -132,6 +140,7 @@ private:
   bool limitFwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
-
+  interlockTypes interlockStatusOld_;
+  externalHWInterlockPolarity hardwareInterlockPolarity_;
 };
 #endif

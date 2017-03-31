@@ -10,6 +10,7 @@
 #include <string.h>
 #include "stdio.h"
 #include "cmd.h"
+#include <time.h>
 
 enum ecmcAlarmSeverity{
   ECMC_SEVERITY_NONE=0,
@@ -18,6 +19,12 @@ enum ecmcAlarmSeverity{
   ECMC_SEVERITY_EMERGENCY=3
 };
 
+#define PRINT_ERROR_PATH(fmt, ...)                           \
+{                                                            \
+  snprintf(errorPath_,sizeof(errorPath_),fmt,##__VA_ARGS__); \
+  errorPathValid_=true;                                      \
+  setErrorID(__FILE__,__FUNCTION__,__LINE__,0);              \
+}
 
 class ecmcError
 {
@@ -34,6 +41,10 @@ public:
   virtual int getErrorID();
   virtual ecmcAlarmSeverity getSeverity();
   static const char *convertErrorIdToString(int errorId);
+  static void printFormatedTime(FILE *log);
+protected:
+  char errorPath_[128];
+  bool errorPathValid_;
 private:
   void initVars();
   bool error_;

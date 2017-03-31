@@ -9,8 +9,11 @@
 
 ecmcCommandList::ecmcCommandList (int index)
 {
+  PRINT_ERROR_PATH("commandList[%d].error",index);
   initVars();
   index_=index;
+  LOGINFO8("%s/%s:%d: commandList[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  printCurrentState();
 }
 
 ecmcCommandList::~ecmcCommandList ()
@@ -18,8 +21,16 @@ ecmcCommandList::~ecmcCommandList ()
   clearCommandList();
 }
 
+void ecmcCommandList::printCurrentState()
+{
+  LOGINFO8("%s/%s:%d: commandList[%d].commands=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
+  LOGINFO8("%s/%s:%d: commandList[%d].commands=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
+  LOGINFO8("%s/%s:%d: commandList[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_>0);
+}
+
 void ecmcCommandList::initVars()
 {
+  errorReset();
   commandCounter_=0;
   clearCommandList();
   enable_=false;;
@@ -68,6 +79,7 @@ int ecmcCommandList::clearCommandList()
   commandList_.clear();
   commandCounter_=0;
   LOGINFO8("%s/%s:%d: INFO: Command list %d cleared.\n",__FILE__, __FUNCTION__, __LINE__,index_);
+  LOGINFO8("%s/%s:%d: commandList[%d].commands=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
   return 0;
 }
 
@@ -88,13 +100,16 @@ int ecmcCommandList::addCommand(std::string command)
   }
 
   commandCounter_++;
-  LOGINFO8("%s/%s:%d: INFO: Command list %d. Command %s added to command list (%d commands in list).\n",__FILE__, __FUNCTION__, __LINE__,index_,command.c_str(),commandCounter_);
+
+  LOGINFO8("%s/%s:%d: commandList[%d].command[%d]=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_,command.c_str());
+  LOGINFO8("%s/%s:%d: commandList[%d].commands=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
+  //LOGINFO8("%s/%s:%d: INFO: Command list %d. Command %s added to command list (%d commands in list).\n",__FILE__, __FUNCTION__, __LINE__,index_,command.c_str(),commandCounter_);
   return 0;
 }
 
 int ecmcCommandList::getCommandCount()
 {
-  LOGINFO8("%s/%s:%d: INFO: Command list %d. Current command count %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
+  //LOGINFO8("%s/%s:%d: INFO: Command list %d. Current command count %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,commandCounter_);
   return commandCounter_;
 }
 
@@ -105,9 +120,12 @@ int ecmcCommandList::validate()
 
 int ecmcCommandList::setEnable(int enable)
 {
+  if(enable_!=enable){
+    LOGINFO8("%s/%s:%d: commandList[%d].enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,enable>0);
+  }
   enable_=enable;
   validate();
-  LOGINFO8("%s/%s:%d: INFO: Command list %d. Enable set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_);
+  //LOGINFO8("%s/%s:%d: INFO: Command list %d. Enable set to %d.\n",__FILE__, __FUNCTION__, __LINE__,index_,enable_);
   return 0;
 }
 

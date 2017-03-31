@@ -50,7 +50,7 @@ public:
   int validate();
   void readEntries();
   void writeEntries();
-
+  void printCurrentState();
 private:
   void initVars();
   int checkDS402State();

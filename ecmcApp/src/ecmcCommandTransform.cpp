@@ -9,6 +9,8 @@
 
 ecmcCommandTransform::ecmcCommandTransform(int commandCount, int elementsPerCommand)
 {
+  PRINT_ERROR_PATH("commandTransfrom.error");
+  LOGINFO7("%s/%s:%d: commandTransform=new;\n",__FILE__, __FUNCTION__, __LINE__);
   initVars();
   commandCount_=commandCount;
   elementsPerCommand_=elementsPerCommand;
@@ -28,6 +30,15 @@ ecmcCommandTransform::ecmcCommandTransform(int commandCount, int elementsPerComm
     outputArray_[i]=0;
   }
   symbolTable_.add_constants();
+  printCurrentState();
+}
+
+void ecmcCommandTransform::printCurrentState()
+{
+  LOGINFO7("%s/%s:%d: commandTransform.commandCount=%d;\n",__FILE__, __FUNCTION__, __LINE__,commandCount_);
+  LOGINFO7("%s/%s:%d: commandTransform.elemenstPerCommand=%d;\n",__FILE__, __FUNCTION__, __LINE__,elementsPerCommand_);
+  LOGINFO7("%s/%s:%d: commandTransform.compiled=%d;\n",__FILE__, __FUNCTION__, __LINE__,compiled_>0);
+  LOGINFO7("%s/%s:%d: commandTransform.expression=%s;\n",__FILE__, __FUNCTION__, __LINE__,expressionString_.c_str());
 }
 
 void ecmcCommandTransform::initVars()
@@ -61,7 +72,7 @@ int ecmcCommandTransform::setExpression(std::string expressionString)
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
-
+  LOGINFO7("%s/%s:%d: commandTransform.expression=%s;\n",__FILE__, __FUNCTION__, __LINE__,expressionString_.c_str());
   return 0;
 }
 
@@ -79,6 +90,7 @@ int ecmcCommandTransform::compile()
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_COMPILE_ERROR);
   }
   compiled_=true;
+  LOGINFO7("%s/%s:%d: commandTransform.compiled=%d;\n",__FILE__, __FUNCTION__, __LINE__,compiled_>0);
   return 0;
 }
 

@@ -33,6 +33,7 @@ public:
   void   setIOutMax(double outMax);
   void   setIOutMin(double outMin);
   int    validate();
+  void printCurrentState();
 private:
   double kp_, ki_,kd_, kff_;
   double outputP_;
@@ -44,6 +45,7 @@ private:
   double outputMin_;
   double ff_;
   double controllerErrorOld_;
+  double sampleTime_;
   ecmcAxisData* data_;
 };
 #endif

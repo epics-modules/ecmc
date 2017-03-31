@@ -6,7 +6,7 @@
   <show_grid>true</show_grid>
   <auto_zoom_to_fit_all>false</auto_zoom_to_fit_all>
   <scripts />
-  <height>600</height>
+  <height>400</height>
   <macros>
     <include_parent_macros>true</include_parent_macros>
   </macros>
@@ -21,7 +21,7 @@
   <background_color>
     <color red="240" green="240" blue="240" />
   </background_color>
-  <width>800</width>
+  <width>250</width>
   <x>-1</x>
   <name></name>
   <grid_space>6</grid_space>
@@ -41,7 +41,7 @@
     <transparent>false</transparent>
     <lock_children>false</lock_children>
     <scripts />
-    <height>337</height>
+    <height>400</height>
     <border_width>1</border_width>
     <scale_options>
       <width_scalable>true</width_scalable>
@@ -50,7 +50,6 @@
     </scale_options>
     <macros>
       <include_parent_macros>true</include_parent_macros>
-      <P>IOC2:</P>
     </macros>
     <visible>true</visible>
     <border_color>
@@ -60,8 +59,8 @@
     <background_color>
       <color name="Background" red="255" green="255" blue="255" />
     </background_color>
-    <width>253</width>
-    <x>-12</x>
+    <width>250</width>
+    <x>0</x>
     <name>Hardware MCU1021</name>
     <y>0</y>
     <foreground_color>
@@ -103,7 +102,6 @@ $(pv_value)</tooltip>
           <path>el7037Advanced.opi</path>
           <macros>
             <include_parent_macros>true</include_parent_macros>
-            <P>IOC2:</P>
             <SLAVE_POS>7</SLAVE_POS>
             <TYPE>EL7037</TYPE>
           </macros>
@@ -134,7 +132,7 @@ $(pv_value)</tooltip>
       <width>180</width>
       <x>12</x>
       <data_type>0</data_type>
-      <y>207</y>
+      <y>249</y>
       <foreground_color>
         <color red="0" green="0" blue="0" />
       </foreground_color>
@@ -175,7 +173,7 @@ $(pv_value)</tooltip>
       <width>133</width>
       <x>36</x>
       <name>Label</name>
-      <y>222</y>
+      <y>264</y>
       <foreground_color>
         <color red="0" green="0" blue="0" />
       </foreground_color>
@@ -214,7 +212,6 @@ $(pv_value)</tooltip>
           <path>el7037Advanced.opi</path>
           <macros>
             <include_parent_macros>true</include_parent_macros>
-            <P>IOC2:</P>
             <SLAVE_POS>8</SLAVE_POS>
             <TYPE>EL7037</TYPE>
           </macros>
@@ -245,7 +242,7 @@ $(pv_value)</tooltip>
       <width>180</width>
       <x>12</x>
       <data_type>0</data_type>
-      <y>252</y>
+      <y>294</y>
       <foreground_color>
         <color red="0" green="0" blue="0" />
       </foreground_color>
@@ -286,7 +283,7 @@ $(pv_value)</tooltip>
       <width>133</width>
       <x>36</x>
       <name>Label_1</name>
-      <y>267</y>
+      <y>309</y>
       <foreground_color>
         <color red="0" green="0" blue="0" />
       </foreground_color>
@@ -325,7 +322,6 @@ $(pv_value)</tooltip>
           <path>el5101Advanced.opi</path>
           <macros>
             <include_parent_macros>true</include_parent_macros>
-            <P>IOC2:</P>
             <SLAVE_POS>2</SLAVE_POS>
             <TYPE>EL5101</TYPE>
           </macros>
@@ -436,7 +432,6 @@ $(pv_value)</tooltip>
           <path>el5101Advanced.opi</path>
           <macros>
             <include_parent_macros>true</include_parent_macros>
-            <P>IOC2:</P>
             <SLAVE_POS>3</SLAVE_POS>
             <TYPE>EL5101</TYPE>
           </macros>
@@ -547,7 +542,6 @@ $(pv_value)</tooltip>
           <path>el1018.opi</path>
           <macros>
             <include_parent_macros>true</include_parent_macros>
-            <P>IOC2:</P>
             <SLAVE_POS>0</SLAVE_POS>
             <TYPE>EL1018</TYPE>
           </macros>
@@ -658,7 +652,6 @@ $(pv_value)</tooltip>
           <path>el2808.opi</path>
           <macros>
             <include_parent_macros>true</include_parent_macros>
-            <P>IOC2:</P>
             <SLAVE_POS>1</SLAVE_POS>
             <TYPE>EL2808</TYPE>
           </macros>
@@ -731,6 +724,116 @@ $(pv_value)</tooltip>
       <x>36</x>
       <name>Label_5</name>
       <y>75</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <actions hook="false" hook_all="false" />
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.ImageBoolButton" version="1.0.0">
+      <toggle_button>false</toggle_button>
+      <alarm_pulsing>false</alarm_pulsing>
+      <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+      <push_action_index>0</push_action_index>
+      <rules />
+      <bit>-1</bit>
+      <show_confirm_dialog>0</show_confirm_dialog>
+      <password></password>
+      <pv_value />
+      <released_action_index>0</released_action_index>
+      <auto_size>false</auto_size>
+      <height>49</height>
+      <border_width>1</border_width>
+      <align_to_nearest_second>false</align_to_nearest_second>
+      <visible>true</visible>
+      <pv_name></pv_name>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Image Boolean Button</widget_type>
+      <confirm_message>Are your sure you want to do this?</confirm_message>
+      <name>Image Boolean Button_1</name>
+      <off_image>OffButton.png</off_image>
+      <actions hook="false" hook_all="false">
+        <action type="OPEN_DISPLAY">
+          <path>el1252.opi</path>
+          <macros>
+            <include_parent_macros>true</include_parent_macros>
+            <SLAVE_POS>5</SLAVE_POS>
+            <TYPE>EL1252</TYPE>
+          </macros>
+          <replace>0</replace>
+          <description></description>
+        </action>
+      </actions>
+      <show_boolean_label>false</show_boolean_label>
+      <border_style>0</border_style>
+      <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+      <enabled>true</enabled>
+      <wuid>-2fde124d:15ac79a93b8:-4678</wuid>
+      <scripts />
+      <on_image>OffButton.png</on_image>
+      <border_alarm_sensitive>true</border_alarm_sensitive>
+      <on_label>ON</on_label>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>true</keep_wh_ratio>
+      </scale_options>
+      <no_animation>false</no_animation>
+      <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+      <background_color>
+        <color red="240" green="240" blue="240" />
+      </background_color>
+      <boolean_label_position>0</boolean_label_position>
+      <width>180</width>
+      <x>12</x>
+      <data_type>0</data_type>
+      <y>204</y>
+      <foreground_color>
+        <color red="0" green="0" blue="0" />
+      </foreground_color>
+      <stretch_to_fit>true</stretch_to_fit>
+      <font>
+        <opifont.name fontName="Cantarell" height="11" style="0">Default</opifont.name>
+      </font>
+      <off_label>OFF</off_label>
+    </widget>
+    <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
+      <border_style>0</border_style>
+      <tooltip></tooltip>
+      <horizontal_alignment>1</horizontal_alignment>
+      <rules />
+      <enabled>true</enabled>
+      <wuid>-2fde124d:15ac79a93b8:-4677</wuid>
+      <transparent>true</transparent>
+      <auto_size>false</auto_size>
+      <text>Slave 5 EL1252</text>
+      <scripts />
+      <height>20</height>
+      <border_width>1</border_width>
+      <scale_options>
+        <width_scalable>true</width_scalable>
+        <height_scalable>true</height_scalable>
+        <keep_wh_ratio>false</keep_wh_ratio>
+      </scale_options>
+      <visible>true</visible>
+      <vertical_alignment>1</vertical_alignment>
+      <border_color>
+        <color red="0" green="128" blue="255" />
+      </border_color>
+      <widget_type>Label</widget_type>
+      <wrap_words>false</wrap_words>
+      <background_color>
+        <color red="255" green="255" blue="255" />
+      </background_color>
+      <width>133</width>
+      <x>36</x>
+      <name>Label</name>
+      <y>219</y>
       <foreground_color>
         <color red="0" green="0" blue="0" />
       </foreground_color>

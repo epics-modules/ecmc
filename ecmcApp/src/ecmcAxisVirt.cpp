@@ -9,14 +9,27 @@
 
 ecmcAxisVirt::ecmcAxisVirt(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
+  PRINT_ERROR_PATH("axis[%d].error",axisID);
   initVars();
+  data_.axisId_=axisID;
   data_.axisType_=ECMC_AXIS_TYPE_VIRTUAL;
   seq_.setCntrl(NULL);
   data_.sampleTime_=sampleTime;
+
+  LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
+  printCurrentState();
 }
 
 ecmcAxisVirt::~ecmcAxisVirt()
 {
+}
+
+void ecmcAxisVirt::printCurrentState()
+{
+  ecmcAxisBase::printCurrentState();
+  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_AXIS_TYPE_VIRTUAL");
+  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.sampleTime_);
+  LOGINFO15("%s/%s:%d: axis[%d].temporaryLocalTrajSource_=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,temporaryLocalTrajSource_>0);
 }
 
 void ecmcAxisVirt::initVars()
@@ -178,6 +191,14 @@ void ecmcAxisVirt::refreshDebugInfoStruct()
   statusData_.onChangeData.velocityFFRaw=0;
   statusData_.onChangeData.positionRaw=enc_->getRawPos();
   statusData_.onChangeData.homed=enc_->getHomed();
+  statusData_.acceleration=traj_->getAcc();
+  statusData_.deceleration=traj_->getDec();
+  statusData_.reset=data_.command_.reset;
+  statusData_.moving=data_.status_.moving;
+  statusData_.stall=data_.interlocks_.lagTrajInterlock
+      || data_.interlocks_.lagDriveInterlock
+      || data_.interlocks_.velocityDiffTrajInterlock
+      || data_.interlocks_.velocityDiffDriveInterlock;
 }
 
 int ecmcAxisVirt::validate()

@@ -9,18 +9,25 @@
 
 ecmcDataStorage::ecmcDataStorage (int index)
 {
+  index_=index;
+  PRINT_ERROR_PATH("dataStorage[%d].error",index_);
   initVars();
   setBufferSize(ECMC_DEFAULT_DATA_STORAGE_SIZE);
-  index_=index;
+  bufferType_=ECMC_STORAGE_LIFO_BUFFER;
+  LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  printCurrentState();
 }
 
 ecmcDataStorage::ecmcDataStorage (int index, int size,storageType bufferType)
 {
+  index_=index;
+  PRINT_ERROR_PATH("dataStorage[%d].error",index_);
   initVars();
   setBufferSize(size);
   bufferElementCount_=size;
-  index_=index;
   bufferType_=bufferType;
+  LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,index);
+  printCurrentState();
 }
 
 ecmcDataStorage::~ecmcDataStorage ()
@@ -28,13 +35,34 @@ ecmcDataStorage::~ecmcDataStorage ()
   delete buffer_;
 }
 
+void ecmcDataStorage::printCurrentState()
+{
+  LOGINFO9("%s/%s:%d: dataStorage[%d].bufferSize=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,bufferElementCount_);
+  switch(bufferType_){
+    case ECMC_STORAGE_LIFO_BUFFER:
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_STORAGE_LIFO_BUFFER");
+      break;
+    case ECMC_STORAGE_RING_BUFFER:
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%s;\n",__FILE__, __FUNCTION__, __LINE__,index_,"ECMC_STORAGE_RING_BUFFER");
+      break;
+    default:
+      LOGINFO9("%s/%s:%d: dataStorage[%d].bufferType=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,bufferType_);
+      break;
+  }
+}
+
+int ecmcDataStorage::getIndex()
+{
+  return index_;
+}
+
 void ecmcDataStorage::initVars()
 {
+  errorReset();
   bufferType_=ECMC_STORAGE_LIFO_BUFFER;
   bufferElementCount_=ECMC_DEFAULT_DATA_STORAGE_SIZE;
   buffer_=NULL;
   currentBufferIndex_=0;
-  index_=0;
 }
 
 int ecmcDataStorage::clearBuffer()
@@ -69,6 +97,11 @@ int ecmcDataStorage::isStorageFull()
 int ecmcDataStorage::getSize()
 {
   return bufferElementCount_;
+}
+
+int ecmcDataStorage::getCurrentIndex()
+{
+  return currentBufferIndex_;
 }
 
 int ecmcDataStorage::printBuffer()
@@ -157,6 +190,11 @@ int ecmcDataStorage::setCurrentPosition(int position)
   if(position>bufferElementCount_ || position<0){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
   }
+
+  if(currentBufferIndex_!=position){
+      LOGINFO9("%s/%s:%d: dataStorage[%d].dataIndex=%d;\n",__FILE__, __FUNCTION__, __LINE__,index_,position);
+  }
+
   currentBufferIndex_=position;
   return 0;
 }

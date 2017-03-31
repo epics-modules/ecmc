@@ -9,11 +9,15 @@
 
 ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
 {
+  PRINT_ERROR_PATH("axis[%d].error",axisID);
   initVars();
-
+  data_.axisId_=axisID;
   data_.axisType_=ECMC_AXIS_TYPE_REAL;
   data_.sampleTime_=sampleTime;
   currentDriveType_=ECMC_STEPPER;
+
+  LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
+
   drv_=new ecmcDriveStepper(&data_);
   if(!drv_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
@@ -29,6 +33,7 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   }
 
   seq_.setCntrl(cntrl_);
+  printCurrentState();
 }
 
 ecmcAxisReal::~ecmcAxisReal()
@@ -36,6 +41,46 @@ ecmcAxisReal::~ecmcAxisReal()
   delete cntrl_;
   delete drv_;
 }
+
+void ecmcAxisReal::printCurrentState()
+{
+  ecmcAxisBase::printCurrentState();
+  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_AXIS_TYPE_REAL");
+  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.sampleTime_);
+  printDriveType();
+  printOpModeState();
+}
+
+void ecmcAxisReal::printOpModeState()
+{
+  switch(data_.command_.operationModeCmd){
+    case ECMC_MODE_OP_AUTO:
+      LOGINFO15("%s/%s:%d: axis[%d].operationMode=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_MODE_OP_AUTO");
+      break;
+    case ECMC_MODE_OP_MAN:
+      LOGINFO15("%s/%s:%d: axis[%d].operationMode=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_MODE_OP_MAN");
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].operationMode=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.command_.operationModeCmd);
+      break;
+  }
+}
+
+void ecmcAxisReal::printDriveType()
+{
+  switch(currentDriveType_){
+    case ECMC_STEPPER:
+      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_STEPPER");
+      break;
+    case ECMC_DS402:
+      LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,"ECMC_DS402");
+      break;
+    default:
+      LOGINFO15("%s/%s:%d: axis[%d].driveType=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,currentDriveType_);
+      break;
+  }
+}
+
 
 void ecmcAxisReal::initVars()
 {
@@ -102,7 +147,7 @@ void ecmcAxisReal::execute(bool masterOK)
 
     if(getEnabled() && masterOK){
       double cntrOutput=0;
-      if(mon_->getEnableAtTargetMon() && !data_.status_.busy){ //Controller deadband
+      if(mon_->getEnableAtTargetMon() && !data_.status_.busy && mon_->getAtTarget()){ //Controller deadband
 	cntrl_->reset();
 	cntrOutput=0;
       }
@@ -123,7 +168,7 @@ void ecmcAxisReal::execute(bool masterOK)
         traj_->setStartPos(data_.status_.currentPositionSetpoint);
       }
 
-      if(data_.status_.enabledOld && !data_.status_.enabled && data_.status_.enableOld){
+      if(data_.status_.enabledOld && !data_.status_.enabled && data_.status_.enableOld && data_.command_.enable){
 	  setEnable(false);
 	  setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
       }
@@ -189,7 +234,9 @@ int ecmcAxisReal::setOpMode(operationMode mode)
     data_.command_.enable=false;
     drv_->setVelSet(0);
   }
+
   data_.command_.operationModeCmd=mode;
+  printOpModeState();
   return 0;
 }
 
@@ -243,6 +290,14 @@ void ecmcAxisReal::refreshDebugInfoStruct()
   statusData_.onChangeData.command=data_.command_.command;
   statusData_.onChangeData.positionRaw=enc_->getRawPos();
   statusData_.onChangeData.homed=enc_->getHomed();
+  statusData_.acceleration=traj_->getAcc();
+  statusData_.deceleration=traj_->getDec();
+  statusData_.reset=data_.command_.reset;
+  statusData_.moving=data_.status_.moving;
+  statusData_.stall=data_.interlocks_.lagTrajInterlock
+      || data_.interlocks_.lagDriveInterlock
+      || data_.interlocks_.velocityDiffTrajInterlock
+      || data_.interlocks_.velocityDiffDriveInterlock;
 }
 
 int ecmcAxisReal::validate()
@@ -311,12 +366,13 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
   if(currentDriveType_==driveType){
     return 0;
   }
+
   switch(driveType){
     case ECMC_STEPPER:
       delete drv_;
       drv_ =new ecmcDriveStepper(&data_);
       if(!drv_){
-        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT (%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
         setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
         exit(EXIT_FAILURE);
       }
@@ -326,16 +382,17 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
       delete drv_;
       drv_ =new ecmcDriveDS402(&data_);
       if(!drv_){
-        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT (%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
         setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
         exit(EXIT_FAILURE);
       }
       currentDriveType_=ECMC_DS402;
       break;
     default:
+      LOGERR("%s/%s:%d: DRIVE TYPE NOT SUPPORTED (%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
       return ERROR_AXIS_FUNCTION_NOT_SUPPRTED;
       break;
   }
-
+  printDriveType();
   return 0;
 }

@@ -1,6 +1,0 @@
-file "ecmc.template" {
-pattern 
-{ P,       N,  M,       R,        DTYP,          PORT,     ADDR,  DESC,          EGU, DIR,  VELO, HVEL, JVEL,  JAR,  VBAS,  ACCL,  BDST, DLY,  BVEL,  BACC,  MRES,      ERES,       PREC,  DLLM,  DHLM,  INIT}
-{"IOC2:",  5,  master,  master-,  "asynMotor",   MCU1,     5,    "Master",       mm,  Pos,  200,  5.05, 200,   10.2, 0,     100,    0,   0.3,  1,     .2,    0.0046875  0.01754386  3,     0,     0,    ""}
-}
-

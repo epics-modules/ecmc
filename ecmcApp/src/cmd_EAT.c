@@ -785,6 +785,12 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisMonEnableExternalInterlock(iValue,iValue2);
   }
 
+  /*int Cfg.SetAxisMonExtHWInterlockPolarity(int axisIndex, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonExtHWInterlockPolarity(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisMonExtHWInterlockPolarity(iValue,iValue2);
+  }
+
   /*int Cfg.SetAxisMonEnableCntrlOutHLMon(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisMonEnableCntrlOutHLMon(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
@@ -924,10 +930,17 @@ static int handleCfgCommand(const char *myarg_1){
   }
 
   /*int Cfg.SetTraceMask(int mask);*/
-  unsigned int uiValue=0;
-  nvals = sscanf(myarg_1, "SetTraceMask(%u)",&uiValue);
+  //int iValue=0;
+  nvals = sscanf(myarg_1, "SetTraceMask(%d)",&iValue);
   if (nvals == 1) {
-    debug_print_flags= uiValue;
+    debug_print_flags= iValue;
+    return 0;
+  }
+
+  /*int Cfg.SetTraceMaskBit(int bitToSet, int value);*/
+  nvals = sscanf(myarg_1, "SetTraceMaskBit(%d,%d)",&iValue,&iValue2);
+  if (nvals == 2) {
+    WRITE_DIAG_BIT(iValue,iValue2);
     return 0;
   }
 
@@ -1485,6 +1498,24 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(stopMotion(iValue,0));
   }
 
+  /*int GetStorageDataIndex(int axis_no)*/
+  nvals = sscanf(myarg_1, "GetStorageDataIndex(%d)", &motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getStorageDataIndex(motor_axis_no,&iValue));
+  }
+
+  /*int GetRecorderEnabled(int axis_no)*/
+  nvals = sscanf(myarg_1, "GetRecorderEnabled(%d)", &motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getRecorderEnabled(motor_axis_no,&iValue));
+  }
+
+  /*int GetEventEnabled(int axis_no)*/
+  nvals = sscanf(myarg_1, "GetEventEnabled(%d)", &motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getEventEnabled(motor_axis_no,&iValue));
+  }
+
   /*int ReadDataStorage(int storageIndex);*/
   nvals = sscanf(myarg_1, "ReadDataStorage(%d)", &iValue);
   if (nvals == 1) {
@@ -1656,7 +1687,19 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisDeceleration(motor_axis_no,&fValue));
   }
 
-  /* stAxisStatus? */
+  /* stAxisStatus? */  /* GetAxisDebugInfoData(in axisIndex) */
+  nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
+  if (nvals == 1) {
+    char tempBuffer[1024];  //TODO consider more efficient implementations
+    int error=getAxisDebugInfoData(iValue,&tempBuffer[0], sizeof(tempBuffer));
+    if(error){
+      cmd_buf_printf(buffer,"Error: %d", error);
+      return 0;
+    }
+    cmd_buf_printf(buffer,"%s",tempBuffer);
+    return 0;
+  }
+
   if (0 == strcmp(myarg_1, "stAxisStatus?")) {
     IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEnabled(motor_axis_no,&iValue));
     int bEnable = iValue;
@@ -1777,6 +1820,19 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
         bBusy );        /* 23 */
     return 0;
   }
+
+  /* Main.Mx.stAxisStatusV2? */
+  if (0 == strcmp(myarg_1, "stAxisStatusV2?")) {
+    char tempBuffer[1024];  //TODO consider more efficient implementations
+    int error=getAxisStatusStructV2(motor_axis_no,&tempBuffer[0], sizeof(tempBuffer));
+    if(error){
+      cmd_buf_printf(buffer,"Error: %d", error);
+      return 0;
+    }
+    cmd_buf_printf(buffer,"%s",tempBuffer);
+    return 0;
+  }
+
   /* sErrorMessage?  */
   if (!strcmp(myarg_1, "sErrorMessage?")) {
       cmd_buf_printf(buffer,"%s", getErrorString(getAxisErrorID(motor_axis_no)));

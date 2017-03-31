@@ -55,6 +55,7 @@ public:
   bool getExtInputInterlock(int axisId,int commandIndex);
   bool getExtInputInterlock(int commandIndex); //Default axis number
   int setEnableVelFilter(bool enable);
+  void printCurrentState();
 private:
   int transformRefresh();
   void initVars();

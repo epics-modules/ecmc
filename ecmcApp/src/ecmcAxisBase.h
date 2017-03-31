@@ -93,10 +93,14 @@ typedef struct {
     bool homeSwitch;
 } ecmcAxisStatusOnChangeType;
 
-
 typedef struct {
     int axisID;
     int cycleCounter;
+    double acceleration;
+    double deceleration;
+    bool reset;
+    bool moving;
+    bool stall;
     ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
@@ -114,6 +118,7 @@ public:
   virtual ecmcPIDController *getCntrl()=0;
   virtual int validate()=0;
   virtual void execute(bool masterOK)=0;
+  virtual void printCurrentState();
   bool getEnable();
   bool getEnabled();
   void preExecute(bool masterOK);
@@ -130,7 +135,7 @@ public:
   int setCmdData(int cmdData);
   motionCommandTypes getCommand();
   int getCmdData();
-
+  int slowExecute();
   ecmcTrajectoryTrapetz *getTraj();
   ecmcMonitor *getMon();
   ecmcEncoder *getEnc();
@@ -168,6 +173,7 @@ public:
   int getCycleCounter();
   void printAxisStatus();
 protected:
+  void printAxisState();
   void initVars();
   int fillCommandsTransformData();
   bool checkAxesForEnabledTransfromCommands(commandType type);
@@ -194,6 +200,8 @@ protected:
   bool trajInterlockOld;
   int cycleCounter_;
   axisState axisState_;
+  double oldPositionAct_;
+  double oldPositionSet_;
 
 };
 

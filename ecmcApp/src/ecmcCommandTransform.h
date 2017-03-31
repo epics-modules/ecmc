@@ -47,6 +47,7 @@ public:
   int validate();
   int refresh();
   std::string *getExpression();
+  void printCurrentState();
 private:
   void initVars();
   int compile();

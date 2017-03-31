@@ -9,6 +9,7 @@
 
 ecmcFilter::ecmcFilter(double sampleTime)
 {
+  LOGINFO15("%s/%s:%d: filter[x]=new;\n",__FILE__, __FUNCTION__, __LINE__);
   initVars();
   sampleTime_=sampleTime;
 //  double constant=10;  //TODO move
@@ -77,6 +78,20 @@ int ecmcFilter::reset()
   initVars();
   return 0;
 }
+
+int ecmcFilter::initFilter(double pos)
+{
+  for(int i=0;i<FILTER_BUFFER_SIZE_POS;i++){
+    bufferPos_[i]=pos;
+  }
+  for(int i=0;i<FILTER_BUFFER_SIZE_VEL;i++){
+    bufferVel_[i]=0;
+  }
+  indexPos_=0;
+  indexVel_=0;
+  return 0;
+}
+
 
 /*double ecmcFilter::lowPassExponential(double input, double average, double factor)
 {

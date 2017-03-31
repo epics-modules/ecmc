@@ -9,19 +9,49 @@
 
 ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,double sampleTime) : ecmcEcEntryLink()
 {
-  initVars();
+  PRINT_ERROR_PATH("axis[%d].encoder.error",axisData->axisId_);
   data_=axisData;
+  sampleTime_=sampleTime;
+  initVars();
+  if(!data_){
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n",__FILE__,__FUNCTION__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
   velocityFilter_=new ecmcFilter(sampleTime);
   if(!velocityFilter_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VELOCITY-FILTER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_VELOCITY_FILTER_NULL);
     exit(EXIT_FAILURE);
   }
+  LOGINFO15("%s/%s:%d: axis[%d].encoder=new;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+  printCurrentState();
 }
 
 ecmcEncoder::~ecmcEncoder()
 {
   delete velocityFilter_;
+}
+
+void ecmcEncoder::printCurrentState()
+{
+  switch(encType_){
+    case ECMC_ENCODER_TYPE_INCREMENTAL:
+      LOGINFO10("%s/%s:%d: axis[%d].encoder.type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_INCREMENTAL");
+      break;
+    case ECMC_ENCODER_TYPE_ABSOLUTE:
+      LOGINFO10("%s/%s:%d: axis[%d].encoder.type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_ABSOLUTE");
+      break;
+    default:
+      LOGINFO10("%s/%s:%d: axis[%d].encoder.type=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,encType_);
+      break;
+  }
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.enable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.enable>0);
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleNum=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleNum_);
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleDenom=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom_);
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.offset=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,offset_);
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.actPos=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,actPos_);
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.homed=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,homed_);
+  LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,bits_);
 }
 
 void ecmcEncoder::initVars()
@@ -53,6 +83,11 @@ int64_t ecmcEncoder::getRawPos()
 
 int ecmcEncoder::setScaleNum(double scaleNum)
 {
+  if(scaleNum_!=scaleNum)
+  {
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleNum=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleNum);
+  }
+
   scaleNum_=scaleNum;
   if(std::abs(scaleDenom_)>0){
     scale_=scaleNum_/scaleDenom_;
@@ -62,6 +97,11 @@ int ecmcEncoder::setScaleNum(double scaleNum)
 
 int ecmcEncoder::setScaleDenom(double scaleDenom)
 {
+  if(scaleDenom_!=scaleDenom)
+  {
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.scaleDenom=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom);
+  }
+
   scaleDenom_=scaleDenom;
   if(scaleDenom_==0){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_SCALE_DENOM_ZERO);
@@ -82,14 +122,26 @@ double ecmcEncoder::getActPos()
 
 void ecmcEncoder::setActPos(double pos)
 {
-  //Must clear velocity filter
-  velocityFilter_->reset();
-  actPosOld_=actPos_;
+  if(actPos_!=pos)
+  {
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.actPos=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
+  }
+
+  //calculate new offset
   offset_=offset_+pos-actPos_;
+  actPosOld_=pos;
+  actPos_=pos;
+  //Must clear velocity filter
+  velocityFilter_->initFilter(pos);
 }
 
 void ecmcEncoder::setOffset(double offset)
 {
+  if(offset_!=offset)
+  {
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.offset=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,offset);
+  }
+
   offset_=offset;
 }
 
@@ -105,6 +157,10 @@ double ecmcEncoder::getActVel()
 
 void ecmcEncoder::setHomed(bool homed)
 {
+  if(homed_!=homed)
+  {
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.homed=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,homed);
+  }
   homed_=homed;
 }
 
@@ -117,10 +173,18 @@ int ecmcEncoder::setType(encoderType encType)
 {
   switch(encType){
     case ECMC_ENCODER_TYPE_ABSOLUTE:
+      if(encType_!=encType)
+      {
+        LOGINFO15("%s/%s:%d: axis[%d].encoder.type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_ABSOLUTE");
+      }
       encType_=encType;
       homed_=true;
       break;
     case ECMC_ENCODER_TYPE_INCREMENTAL:
+      if(encType_!=encType)
+      {
+        LOGINFO15("%s/%s:%d: axis[%d].encoder.type=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_ENCODER_TYPE_INCREMENTAL");
+      }
       encType_=encType;
       break;
     default:
@@ -159,6 +223,11 @@ int64_t ecmcEncoder::handleOverUnderFlow(uint64_t newValue, int bits)
 
 int ecmcEncoder::setBits(int bits)
 {
+  if(bits_!=bits)
+  {
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,bits);
+  }
+
   bits_=bits;
   range_=pow(2,bits_);
   limit_=range_*2/3;  //Limit for change in value
@@ -225,7 +294,6 @@ int ecmcEncoder::validate()
   if(errorCode){   //Act position
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_NULL);
   }
-
 
   return 0;
 }

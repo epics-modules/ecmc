@@ -19,15 +19,23 @@ ecmcError::~ecmcError()
 
 void ecmcError::initVars()
 {
-  errorId_=0;
+  errorId_=1;
   error_=0;
+  errorPathValid_=false;
   currSeverity_=ECMC_SEVERITY_NONE;
+  memset(&errorPath_,0,sizeof(errorPath_));
 }
 
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID)
 {
   if(errorID!=errorId_){
-    LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
+    printFormatedTime(stdlog);
+    if(errorPathValid_){
+      LOGERR("%s/%s:%d: %s=%s;\n",fileName, functionName, lineNumber,errorPath_,convertErrorIdToString(errorID));
+    }
+    else{
+      LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
+    }
   }
 
   return setErrorID(errorID);
@@ -35,8 +43,8 @@ int ecmcError::setErrorID(const char* fileName,const char* functionName,int line
 
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID,ecmcAlarmSeverity severity)
 {
-
   if(errorID!=errorId_ && severity>currSeverity_){
+    printFormatedTime(stdlog);
     LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
   }
 
@@ -76,7 +84,7 @@ void ecmcError::setError(bool error)
 void ecmcError::errorReset()
 {
   error_=false;
-  errorId_=0;
+  setErrorID(__FILE__,__FUNCTION__,__LINE__,0);
   currSeverity_=ECMC_SEVERITY_NONE;
 }
 
@@ -901,4 +909,14 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
   }
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
+}
+
+
+void ecmcError::printFormatedTime(FILE *log)
+{
+  char timebuffer[32];
+  timespec logtime;
+  clock_gettime(CLOCK_REALTIME,&logtime);
+  strftime(timebuffer, 32, "%Y/%m/%d %H:%M:%S", localtime(&logtime.tv_sec));
+  (void)fprintf(log,"%s.%03d ",timebuffer,(int)(logtime.tv_nsec/1e6));
 }

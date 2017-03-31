@@ -30,6 +30,7 @@ public:
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();
   int validate();
+  void printCurrentState();
 protected:
   void refreshDebugInfoStruct();
 private:

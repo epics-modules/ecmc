@@ -2,7 +2,7 @@ EXCLUDE_VERSIONS=3.14.12.5
 
 include ${EPICS_ENV_PATH}/module.Makefile
 
-USR_DEPENDENCIES = asyn,4.27.0
+USR_DEPENDENCIES = asyn,4.31.0
 
 PROJECT=ecmc
 # Temporally removed to speed up 
@@ -43,17 +43,6 @@ SOURCES = \
   ecmcApp/src/ecmcCommandList.cpp \
   ecmcApp/src/ecmcAxisData.cpp \
   ecmcApp/src/hw_motor.cpp \
-
-TEMPLATES = \
-  ecmcApp/Db/ecmcGeneral.template \
-  ecmcApp/Db/elGenericAnalog.template \
-  ecmcApp/Db/elGenericDigital.template \
-  ecmcApp/Db/DUT_AxisStatus_v0_01.db \
-  ecmcApp/Db/FB_DriveVirtual_v1_01.db \
-  ecmcApp/Db/expression.db \
-  ecmcApp/Db/expressionAR.db \
-  ecmcApp/Db/dataStorage.db \
-  ecmcApp/Db/ethercat.db \
 
 
 

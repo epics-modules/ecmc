@@ -30,8 +30,8 @@ public:
   //double lowPassFrequency(double input);
   void setSampleTime(double sampleTime);
   int reset();
-
-private:
+  int initFilter(double pos); //Init filter to certain position
+  private:
   void initVars();
   double lowPassAveraging(double input);
   double bufferVel_[FILTER_BUFFER_SIZE_VEL];
