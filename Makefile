@@ -2,7 +2,7 @@ EXCLUDE_VERSIONS=3.14.12.5
 
 include ${EPICS_ENV_PATH}/module.Makefile
 
-USR_DEPENDENCIES = asyn,4.27.0
+USR_DEPENDENCIES = asyn,4.31.0
 
 PROJECT=ecmc
 # Temporally removed to speed up 
