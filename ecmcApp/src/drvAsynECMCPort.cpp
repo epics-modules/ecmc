@@ -15,6 +15,7 @@
    will not work
 */
 #include "cmd.h"
+#include "gitversion.h"
 
 #include <cantProceed.h>
 #include <errlog.h>
@@ -296,8 +297,9 @@ drvAsynECMCPortConfigure(const char *portName,
   ecmcController_p->octet.drvPvt = ecmcController_p;
   status = pasynOctetBase->initialize(ecmcController_p->portName,
                                       &ecmcController_p->octet, 0, 0, 1);
-  printf("XXXXXXX %s/%s:%d %s\n",
+  printf("%s/%s:%d XXXX version=%s %s\n",
          __FILE__, __FUNCTION__, __LINE__,
+         git_version_str,
          portName ? portName : "");
   if(status != asynSuccess) {
     printf("EEEEEEEEE drvAsynECMCPortConfigure: pasynOctetBase->initialize failed.\n");

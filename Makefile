@@ -1,53 +1,24 @@
-EXCLUDE_VERSIONS=3.14.12.5
 
-include ${EPICS_ENV_PATH}/module.Makefile
+# Extra stuff to show which version we run
+build: generategitversion
 
-USR_DEPENDENCIES = asyn,4.31.0
-
-PROJECT=ecmc
-# Temporally removed to speed up 
-EXCLUDE_ARCHS += eldk
-
-SOURCES = \
-  ecmcApp/src/cmd.c \
-  ecmcApp/src/cmd_EAT.c \
-  ecmcApp/src/drvAsynECMCPort.cpp \
-  ecmcApp/src/ecmcAxisBase.cpp \
-  ecmcApp/src/ecmcAxisReal.cpp \
-  ecmcApp/src/ecmcAxisVirt.cpp \
-  ecmcApp/src/ecmcCommandTransform.cpp \
-  ecmcApp/src/ecmcDriveBase.cpp \
-  ecmcApp/src/ecmcDriveStepper.cpp \
-  ecmcApp/src/ecmcDriveDS402.cpp \
-  ecmcApp/src/ecmcEc.cpp \
-  ecmcApp/src/ecmcEcEntry.cpp \
-  ecmcApp/src/ecmcEcPdo.cpp \
-  ecmcApp/src/ecmcEcSDO.cpp \
-  ecmcApp/src/ecmcEcSlave.cpp \
-  ecmcApp/src/ecmcEcSyncManager.cpp \
-  ecmcApp/src/ecmcEcEntryLink.cpp \
-  ecmcApp/src/ecmcEncoder.cpp \
-  ecmcApp/src/ecmcError.cpp \
-  ecmcApp/src/ecmcFilter.cpp \
-  ecmcApp/src/ecmcMain.cpp \
-  ecmcApp/src/ecmcMasterSlaveData.cpp \
-  ecmcApp/src/ecmcMasterSlaveIF.cpp \
-  ecmcApp/src/ecmcMonitor.cpp \
-  ecmcApp/src/ecmcPIDController.cpp \
-  ecmcApp/src/ecmcSequencer.cpp \
-  ecmcApp/src/ecmcTrajectoryTrapetz.cpp \
-  ecmcApp/src/ecmcEvent.cpp \
-  ecmcApp/src/ecmcEventConsumer.cpp \
-  ecmcApp/src/ecmcDataRecorder.cpp \
-  ecmcApp/src/ecmcDataStorage.cpp \
-  ecmcApp/src/ecmcCommandList.cpp \
-  ecmcApp/src/ecmcAxisData.cpp \
-  ecmcApp/src/hw_motor.cpp \
+generategitversion:
+	tools/gitversion.sh ecmcApp/src/gitversion.c
 
 
+#Use either the Makefile for EPICS, or the one for
+# ESS EPICS ENVIRONMENT
 
-
-
-
-
-
+ifdef EPICS_ENV_PATH
+ifeq ($(EPICS_MODULES_PATH),/opt/epics/modules)
+ifeq ($(EPICS_BASES_PATH),/opt/epics/bases)
+include Makefile.EEE
+else
+include Makefile.epics
+endif
+else
+include Makefile.epics
+endif
+else
+include Makefile.epics
+endif

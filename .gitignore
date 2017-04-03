@@ -3,3 +3,4 @@
 .DS_Store
 ._.DS_Store
 builddir/
+ecmcApp/src/gitversion.c
