@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
 import sys
+from ecmcDiagParser import ecmcDiagParser
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 data = [
@@ -24,6 +25,7 @@ class Main(QtGui.QMainWindow):
         
         self.filename = ""
         self.initUI()
+        self.diagParser=ecmcDiagParser(10)
 
     def initToolbar(self):
 
@@ -54,22 +56,16 @@ class Main(QtGui.QMainWindow):
 
         # Initialize a statusbar for the window
         self.statusbar = self.statusBar()
-
-
         # x and y coordinates on the sQWidgetcreen, width, height
         self.setGeometry(100,100,1400,800)
 
-        #textEditY1=self.toolbar.y()+self.toolbar.height()+10
-        #textEditHeight=self.height()-textEditY1-10
-        #self.text.setGeometry(10,textEditY1,900,textEditHeight)
         self.setWindowTitle("ECMC Diagnostics")
 
         self.treeView = QtGui.QTreeView()
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
-        #self.treeView.customContextMenuRequested.connect(self.openMenu)
         
         self.model = QtGui.QStandardItemModel()
-        #self.addItems(self.model, data)
+        self.addItems(self.model, data)
         self.treeView.setModel(self.model)
         
         self.model.setHorizontalHeaderLabels([self.tr("Object")])
@@ -81,30 +77,13 @@ class Main(QtGui.QMainWindow):
         layout.addWidget(self.treeView)
         wid.setLayout(layout)
 
-        ##################################################################
-        ### Models
-	##################################################################
-	#self.model = QtGui.QStandardItemModel(0, 1, self)
-	#self.model.setHeaderData(0, QtCore.Qt.Horizontal, QtCore.QVariant("Topic"))
-	#self.proxyModel = QtGui.QSortFilterProxyModel(self)
-	#self.proxyModel.setSourceModel( self.model )
-
-	#################################################################
-	### Tree
-	##################################################################
-	#self.tree = QtGui.QTreeView()
-	#self.tree.setRootIsDecorated(False)
-	#self.tree.setAlternatingRowColors(True)
-	#self.tree.setSortingEnabled(True)
-
-        #treeEditX1=self.text.x()+self.text.width()+10
-        #treeEditWidth=self.width()-treeEditX1-10        
-        #self.tree.setGeometry(treeEditX1,textEditY1,treeEditWidth,textEditHeight)
-        #print  "treeEditX1: " + str(treeEditX1)+ ", treeEditWidth: " + str(textEditHeight)
-	#self.tree.setModel(self.proxyModel)
-	#layout.addWidget(self.tree)
-	#self.connect(self.tree, QtCore.SIGNAL("doubleClicked(const QModelIndex&)"), self.on_tree_double_clicked)
-
+    def addItems(self, parent, elements):
+    
+         for text, children in elements:
+             item = QtGui.QStandardItem(text)
+             parent.appendRow(item)
+             if children:
+                 self.addItems(item, children)
 
     def open(self):
 
@@ -114,6 +93,9 @@ class Main(QtGui.QMainWindow):
         if self.filename:
             with open(self.filename,"rt") as file:
                 self.text.setText(file.read())
+
+        self.diagParser.setFilename(self.filename)
+        self.diagParser.parse()
 
 
 def main():
