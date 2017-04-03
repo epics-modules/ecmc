@@ -19,7 +19,7 @@ ecmcError::~ecmcError()
 
 void ecmcError::initVars()
 {
-  errorId_=1;
+  errorId_=0;
   error_=0;
   errorPathValid_=false;
   currSeverity_=ECMC_SEVERITY_NONE;
