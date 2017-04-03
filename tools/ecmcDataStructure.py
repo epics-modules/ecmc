@@ -72,6 +72,7 @@ class monitorData:
     self.homeSwitch=dataPoint('homeSwitch')
     self.interlockStatus=dataPoint('interlockStatus')
     self.enableHardwareInterlock=dataPoint('enableHardwareInterlock')
+    self.hardwareInterlockPolarity=dataPoint('hardwareInterlockPolarity')
     self.reset=dataPoint('reset')
     self.mySelf=dataPoint('self') 
 
@@ -110,6 +111,7 @@ class monitorData:
     stringToReturn=stringToReturn + self.baseString + self.homeSwitch.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.interlockStatus.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enableHardwareInterlock.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.hardwareInterlockPolarity.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.reset.__repr__()
     return stringToReturn
 
@@ -117,6 +119,9 @@ class trajectoryData:
   def __init__(self):
     self.baseString="trajectory.".rjust(20)
     self.error = dataPoint('error')
+    self.busy = dataPoint('busy')
+    self.enable = dataPoint('enable')
+    self.execute = dataPoint('execute')
     self.motionMode=dataPoint('motionMode')
     self.targetPosition=dataPoint('targetPosition')
     self.targetVelocity=dataPoint('targetVelocity')
@@ -137,6 +142,9 @@ class trajectoryData:
   def __repr__(self):
     stringToReturn=""
     stringToReturn=stringToReturn + self.baseString + self.error.__repr__() 
+    stringToReturn=stringToReturn + self.baseString + self.busy.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.execute.__repr__()    
     stringToReturn=stringToReturn + self.baseString + self.motionMode.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.targetPosition.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.targetVelocity.__repr__()
@@ -158,6 +166,7 @@ class encoderData:
     self.enable=dataPoint('enable')
     self.scaleNum=dataPoint('scaleNum')
     self.scaleDenom=dataPoint('scaleDenom')
+    self.offset=dataPoint('offset')
     self.bits=dataPoint('bits')
     self.actPos=dataPoint('actPos')
     self.homed=dataPoint('homed')
@@ -172,6 +181,7 @@ class encoderData:
     stringToReturn=stringToReturn + self.baseString + self.enable.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleNum.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleDenom.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.offset.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.bits.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.actPos.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.homed.__repr__()
@@ -187,6 +197,8 @@ class controllerData:
     self.kff=dataPoint('kff')
     self.outputMin=dataPoint('outputMin')
     self.outputMax=dataPoint('outputMax')
+    self.outputIMin=dataPoint('outputIMin')
+    self.outputIMax=dataPoint('outputIMax')
     self.mySelf=dataPoint('self') 
 
   def setValue(self,*args):
@@ -201,6 +213,8 @@ class controllerData:
     stringToReturn=stringToReturn + self.baseString + self.kff.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.outputMin.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.outputMax.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.outputIMin.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.outputIMax.__repr__()
     return stringToReturn
 
 
@@ -214,6 +228,7 @@ class sequencerData:
     self.cmdData=dataPoint('cmdData')
     self.positionTarget=dataPoint('positionTarget')
     self.velocityTarget=dataPoint('velocityTarget')
+    self.jogVel=dataPoint('jogVel')
     self.inProgress=dataPoint('inProgress')
     self.state=dataPoint('state')
     self.homeVelOffCam=dataPoint('homeVelOffCam')
@@ -233,6 +248,7 @@ class sequencerData:
     stringToReturn=stringToReturn + self.baseString + self.cmdData.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.positionTarget.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.velocityTarget.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.jogVel.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.inProgress.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.state.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.homeVelOffCam.__repr__()
@@ -263,6 +279,7 @@ class driveData:
     self.type=dataPoint('type')
     self.scaleNum=dataPoint('scaleNum')
     self.scaleDenom=dataPoint('scaleDenom')
+    self.scale=dataPoint('scale')
     self.enabled=dataPoint('enabled')        
     self.mySelf=dataPoint('self') 
 
@@ -275,6 +292,7 @@ class driveData:
     stringToReturn=stringToReturn + self.baseString + self.type.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleNum.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.scaleDenom.__repr__()
+    stringToReturn=stringToReturn + self.baseString + self.scale.__repr__()
     stringToReturn=stringToReturn + self.baseString + self.enabled.__repr__()
     return stringToReturn
 
@@ -285,6 +303,7 @@ class axisData:
     self.sampleTime = dataPoint('sampleTime')
     self.type = dataPoint('type')
     self.state = dataPoint('state')
+    self.operationMode = dataPoint('operationMode')
     self.enable = dataPoint('enable')
     self.enabled = dataPoint('enabled')
     self.busy = dataPoint('busy')
@@ -292,6 +311,8 @@ class axisData:
     self.driveType = dataPoint('driveType')
     self.inStartupPhase = dataPoint('inStartupPhase')
     self.inRealtime = dataPoint('inRealtime')
+    self.enableCascadedCommands = dataPoint('enableCascadedCommands')
+    self.enableCommandsTransform = dataPoint('enableCommandsTransform')
     self.reset = dataPoint('reset')
     self.monitor=monitorData()
     self.trajectory=trajectoryData()
@@ -311,14 +332,17 @@ class axisData:
     stringToReturn=stringToReturn + self.error.__repr__() 
     stringToReturn=stringToReturn + self.sampleTime.__repr__() 
     stringToReturn=stringToReturn + self.type.__repr__() 
-    stringToReturn=stringToReturn + self.state.__repr__() 
+    stringToReturn=stringToReturn + self.state.__repr__()
+    stringToReturn=stringToReturn + self.operationMode.__repr__()  
     stringToReturn=stringToReturn + self.enable.__repr__() 
     stringToReturn=stringToReturn + self.enabled.__repr__() 
     stringToReturn=stringToReturn + self.busy.__repr__() 
     stringToReturn=stringToReturn + self.moving.__repr__() 
     stringToReturn=stringToReturn + self.driveType.__repr__()
     stringToReturn=stringToReturn + self.inStartupPhase.__repr__()  
-    stringToReturn=stringToReturn + self.inRealtime.__repr__()  
+    stringToReturn=stringToReturn + self.inRealtime.__repr__()
+    stringToReturn=stringToReturn + self.enableCascadedCommands.__repr__()
+    stringToReturn=stringToReturn + self.enableCommandsTransform.__repr__()    
     stringToReturn=stringToReturn + self.reset.__repr__()  
     stringToReturn=stringToReturn + self.monitor.__repr__() 
     stringToReturn=stringToReturn + self.trajectory.__repr__() 
