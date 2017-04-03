@@ -120,6 +120,8 @@ static int appendAsciiDataToStorageBuffer(int storageIndex, const char * asciiDa
   return 0;
 }
 
+static const char * const ADSPORT_sFeaturesQ_str = 
+                          "ADSPORT=852/.THIS.sFeatures?";
 static const char * const ADSPORT_equals_str = "ADSPORT=";
 static const char * const Main_dot_str = "Main.";
 static const char * const Cfg_dot_str =  "Cfg.";
@@ -1233,6 +1235,11 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     ecmcInit=1;
   }
 
+  /* ADSPORT=852/.THIS.sFeatures? */
+  if (0 == strcmp(myarg_1, ADSPORT_sFeaturesQ_str)) {
+    cmd_buf_printf(buffer, "%s", "ecmc");
+    return 0;
+  }
   //Check if configuration command
   if (0 == strncmp(myarg_1, Cfg_dot_str,strlen(Cfg_dot_str))) {
     myarg_1 += strlen(Cfg_dot_str);
