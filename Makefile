@@ -1,3 +1,11 @@
+
+# Extra stuff to show which version we run
+build: generategitversion
+
+generategitversion:
+	tools/gitversion.sh ecmcApp/src/gitversion.c
+
+
 #Use either the Makefile for EPICS, or the one for
 # ESS EPICS ENVIRONMENT
 
