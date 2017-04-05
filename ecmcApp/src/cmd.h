@@ -13,11 +13,12 @@ extern "C" {
 
   extern unsigned int debug_print_flags;
   extern unsigned int die_on_error_flags;
-#if 0
-  extern FILE *stdlog;
-#else
-#define stdlog (stderr)
-#endif
+
+/* Where to print: currently to stdout.
+ * May be changed in the future similat to asyn
+ */
+
+#define stdlog (stdout)
 
 #define ECMC_CMD_BUFFER_SIZE 65536
 
