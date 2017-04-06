@@ -1362,6 +1362,7 @@ const char* getAxisTransformCommandExpr(int axisIndex, int *error)
     return "";
   }
   std::string *sExpr=axes[axisIndex]->getCommandTransform()->getExpression();
+
   *error=0;
   return sExpr->c_str();
 

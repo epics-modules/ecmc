@@ -1418,6 +1418,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
       return error;
     }
 
+
     //Change all # to ; (since ; is used as command delimiter in tcpip communication)
     size_t strLen=strlen(retBuf);
     size_t i=0;
@@ -1427,7 +1428,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
       }
     }
 
-    cmd_buf_printf(buffer,"%",retBuf);
+    cmd_buf_printf(buffer,"%s",retBuf);
     free(retBuf);
     return 0;
   }
