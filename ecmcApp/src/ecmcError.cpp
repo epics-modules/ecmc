@@ -232,6 +232,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14609:
       return "ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE";
       break;
+    case 0x1460A:
+      return "ERROR_DRV_BRAKE_OPEN_DELAY_TIME_INVALID";
+      break;
+    case 0x1460B:
+      return "ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID";
+      break;
     case 0x14650:
       return "ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR";
       break;

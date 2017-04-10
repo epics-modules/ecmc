@@ -28,6 +28,12 @@ void ecmcDriveBase::printCurrentState()
 {
   LOGINFO15("%s/%s:%d: axis[%d].drive.scaleNum=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleNum_);
   LOGINFO15("%s/%s:%d: axis[%d].drive.scaleDenom=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,scaleDenom_);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.brakeEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableBrake_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOpenDelayTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeOpenDelayTime_);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.brakeCloseAheadTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeCloseAheadTime_);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.enableAmpCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAmpCmd_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOutputCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeOutputCmd_>0);
+  LOGINFO15("%s/%s:%d: axis[%d].drive.reduceTorqueOutputCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,reduceTorqueOutputCmd_>0);
 }
 
 void ecmcDriveBase::initVars()
@@ -41,7 +47,19 @@ void ecmcDriveBase::initVars()
   enableReduceTorque_=0;
   controlWord_=0;
   statusWord_=0;
-  manualModeEnable_=false;
+  manualModeEnableAmpCmd_=false;
+  manualModeEnableAmpCmdOld_=false;
+  brakeOpenDelayTime_=0;
+  brakeCloseAheadTime_=0;
+  brakeOutputCmd_=0;
+  brakeOutputCmdOld_=0;
+  brakeState_=ECMC_BRAKE_CLOSED;
+  brakeCounter_=0;
+  enableAmpCmd_=false;
+  enableAmpCmdOld_=false;
+  reduceTorqueOutputCmd_=false;
+  reduceTorqueOutputCmdOld_=false;
+  enableCmdOld_=false;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -104,15 +122,16 @@ int ecmcDriveBase::setEnable(bool enable)
 {
   //Only allowed in manual mode
   if(data_->command_.operationModeCmd!=ECMC_MODE_OP_MAN){
-    manualModeEnable_=false;
+    manualModeEnableAmpCmd_=false;
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE);
   }
 
-  if(manualModeEnable_!=enable){
+  if(manualModeEnableAmpCmd_!=enable){
     LOGINFO15("%s/%s:%d: axis[%d].drive.manualModeEnable=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enable);
   }
+  manualModeEnableAmpCmdOld_=manualModeEnableAmpCmd_;
+  manualModeEnableAmpCmd_=enable;
 
-  manualModeEnable_=enable;
   return 0;
 }
 
@@ -176,6 +195,7 @@ void ecmcDriveBase::writeEntries()
   }
 
   if(getError()){
+    enableAmpCmd_=false;
     controlWord_=0;
     data_->status_.currentVelocitySetpointRaw=0;
   }
@@ -192,22 +212,51 @@ void ecmcDriveBase::writeEntries()
   }
 
   if(enableBrake_){
-    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT,(uint64_t) data_->command_.enable);
+    //errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT,(uint64_t) data_->command_.enable);
+    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT,(uint64_t) brakeOutputCmd_);
     if(errorCode){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
     }
   }
 
   if(enableReduceTorque_){
-    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,(uint64_t)data_->status_.atTarget);
+    reduceTorqueOutputCmd_=data_->status_.atTarget;
+    if(reduceTorqueOutputCmd_!=reduceTorqueOutputCmdOld_){
+      LOGINFO15("%s/%s:%d: axis[%d].drive.reduceTorqueOutputCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,reduceTorqueOutputCmd_>0);
+    }
+    reduceTorqueOutputCmd_=reduceTorqueOutputCmdOld_;
+    errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,(uint64_t)reduceTorqueOutputCmd_);
     if(errorCode){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
     }
   }
+
+  if(enableAmpCmdOld_!=enableAmpCmd_){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.enableAmpCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAmpCmd_>0);
+  }
+
+  enableAmpCmdOld_=enableAmpCmd_;
+  enableCmdOld_=data_->command_.enable;
 }
 
 void ecmcDriveBase::readEntries()
 {
+  //Update enable command
+  if(enableBrake_){
+    updateBrakeState();
+  }
+  else{
+    //No brake
+    switch(data_->command_.operationModeCmd){
+      case ECMC_MODE_OP_AUTO:
+	enableAmpCmd_=data_->command_.enable;
+        break;
+      case ECMC_MODE_OP_MAN:
+        enableAmpCmd_=manualModeEnableAmpCmd_;
+        break;
+    }
+  }
+
   if(readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,&statusWord_)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_ENABLED_READ_ENTRY_FAIL);
     statusWord_=0;
@@ -254,15 +303,16 @@ int ecmcDriveBase::validate()
 
 bool ecmcDriveBase::getEnable()
 {
-  switch(data_->command_.operationModeCmd){
+/*  switch(data_->command_.operationModeCmd){
     case ECMC_MODE_OP_AUTO:
       return data_->command_.enable;
       break;
     case ECMC_MODE_OP_MAN:
-      return manualModeEnable_;
+      return manualModeEnableAmpCmd_;
       break;
   }
-  return data_->command_.enable;
+  return data_->command_.enable;*/
+  return enableAmpCmd_;
 }
 
 bool ecmcDriveBase::getEnabled()
@@ -273,4 +323,111 @@ bool ecmcDriveBase::getEnabled()
 bool ecmcDriveBase::driveInterlocksOK()
 {
  return !(data_->interlocks_.driveSummaryInterlock || data_->interlocks_.etherCatMasterInterlock);
+}
+
+int ecmcDriveBase::setBrakeOpenDelayTime(int delayTime)
+{
+  if(delayTime<0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_BRAKE_OPEN_DELAY_TIME_INVALID);
+  }
+  if(delayTime!=brakeOpenDelayTime_){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOpenDelayTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeOpenDelayTime_);
+  }
+
+  brakeOpenDelayTime_=delayTime;
+  return 0;
+}
+
+int ecmcDriveBase::setBrakeCloseAheadTime(int aheadTime)
+{
+  if(aheadTime<0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID);
+  }
+  if(aheadTime!=brakeCloseAheadTime_){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.brakeCloseAheadTime=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeCloseAheadTime_);
+  }
+
+  brakeCloseAheadTime_=aheadTime;
+  return 0;
+}
+
+int ecmcDriveBase::updateBrakeState()
+{
+  //General state transitions
+
+
+
+  switch(data_->command_.operationModeCmd){
+    case ECMC_MODE_OP_AUTO:
+
+      if(data_->command_.enable && !enableCmdOld_){
+        brakeState_=ECMC_BRAKE_OPENING;
+        brakeCounter_=0;
+        LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_OPENING;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      }
+      if(!data_->command_.enable && enableCmdOld_){
+        brakeState_=ECMC_BRAKE_CLOSING;
+        brakeCounter_=0;
+        LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_CLOSING;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      }
+      break;
+
+    case ECMC_MODE_OP_MAN:
+
+      if(manualModeEnableAmpCmd_ && !manualModeEnableAmpCmdOld_){
+        brakeState_=ECMC_BRAKE_OPENING;
+        brakeCounter_=0;
+        LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_OPENING;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      }
+      if(!manualModeEnableAmpCmd_ && manualModeEnableAmpCmdOld_){
+        brakeState_=ECMC_BRAKE_CLOSING;
+        brakeCounter_=0;
+        LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_CLOSING;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      }
+      break;
+
+  }
+
+  switch(brakeState_){
+    case ECMC_BRAKE_CLOSED:
+      brakeOutputCmd_=0;
+      brakeCounter_=0;
+      enableAmpCmd_=0;
+      break;
+    case ECMC_BRAKE_OPENING:
+      //Purpose: Postpone opening of brake
+      enableAmpCmd_=1;
+      if(brakeCounter_>=brakeOpenDelayTime_){
+	brakeState_=ECMC_BRAKE_OPEN;
+	brakeOutputCmd_=1;
+	LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOutputCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeOutputCmd_>0);
+	LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_OPEN;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      }
+      brakeCounter_++;
+      break;
+    case ECMC_BRAKE_OPEN:
+      brakeOutputCmd_=1;
+      brakeCounter_=0;
+      enableAmpCmd_=1;
+      break;
+    case ECMC_BRAKE_CLOSING:
+      //Purpose: Postpone disable of amplifier
+      brakeOutputCmd_=0;
+      enableAmpCmd_=1;
+      if(brakeCounter_>=brakeCloseAheadTime_){
+	brakeState_=ECMC_BRAKE_CLOSED;
+	enableAmpCmd_=0;
+	brakeOutputCmd_=0;
+	LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOutputCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeOutputCmd_>0);
+	LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_CLOSED;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_);
+      }
+      brakeCounter_++;
+      break;
+  }
+
+  /*if(brakeOutputCmdOld_!=brakeOutputCmd_){
+    LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOutputCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeOutputCmd_>0);
+  }*/
+  //brakeOutputCmdOld_=brakeOutputCmd_;
+  return 0;
 }

@@ -1729,7 +1729,12 @@ int setAxisDrvVelSetRaw(int axisIndex, int value);
 /** \breif Set enable of brake.\n
  *
  *  The brake output will follow the amplifier enable state of the drive. The
- *  brake is high when enable is high and low when enable is low.\n
+ *  brake is high when amplifier enable is high and low when amplifier enable
+ *  is low.\n
+ *
+ *  Note: Delays are can be configured with:\n
+ *        -setAxisDrvBrakeOpenDelayTime() \n
+ *        -setAxisDrvBrakeCloseAheadTime() \n
  *
  *  Note: A valid EtherCAT entry must be linked to the drive objects brake
  *  entry in order to work like intended.\n
@@ -1743,6 +1748,41 @@ int setAxisDrvVelSetRaw(int axisIndex, int value);
  * "Cfg.SetAxisDrvBrakeEnable(3,1)" //Command string to cmd_EAT.c.\n
  */
 int setAxisDrvBrakeEnable(int axisIndex, int enable);
+
+/** \breif Set brake open delay time .\n
+ *
+ *  The release of the brake will be delayed for an additional
+ *  delay time when enabling the amplifier.
+ *
+ *  Note: A valid EtherCAT entry must be linked to the drive objects brake
+ *  entry in order to work like intended.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] delayTime Delay time in cycles.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set brake open delay time for axis 3 to 100 cycles.\n
+ * "Cfg.SetAxisDrvBrakeOpenDelayTime(3,100)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisDrvBrakeOpenDelayTime(int axisIndex, int delayTime);
+
+/** \breif Set brake close ahead time .\n
+ *
+ *  Activation of the brake will be made prior to disabling the amplifier.\n
+ *
+ *  Note: A valid EtherCAT entry must be linked to the drive objects brake
+ *  entry in order to work like intended.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] aheadTime Ahead time in cycles.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set brake close ahead time for axis 3 to 100 cycles.\n
+ * "Cfg.SetAxisDrvBrakeCloseAheadTime(3,100)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisDrvBrakeCloseAheadTime(int axisIndex, int aheadTime);
 
 /** \breif Set enable of reduce torque functionality.\n
  *

@@ -865,6 +865,18 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisDrvBrakeEnable(iValue,iValue2);
   }
 
+  /*int Cfg.SetAxisDrvBrakeOpenDelayTime(int axis_no, int delayTime);*/
+  nvals = sscanf(myarg_1, "SetAxisDrvBrakeOpenDelayTime(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisDrvBrakeOpenDelayTime(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisDrvBrakeCloseAheadTime(int axis_no, int aheadTime);*/
+  nvals = sscanf(myarg_1, "SetAxisDrvBrakeCloseAheadTime(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisDrvBrakeCloseAheadTime(iValue,iValue2);
+  }
+
   /*int Cfg.SetAxisDrvReduceTorqueEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1, "SetAxisDrvReduceTorqueEnable(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
