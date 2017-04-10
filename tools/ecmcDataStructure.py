@@ -1,4 +1,6 @@
 from datetime import datetime
+import math
+
 class dataPoint:
   def __init__(self,variableName):
     self.value_=0
@@ -28,9 +30,13 @@ class dataPoint:
       self.lineNumber=args[2]
       #self.completeString_=args[2]
 
-  @property
+  def getVariableName(self):
+    return self.variableName_
+
+  #@property
   def valid(self):
     return self.valid_
+
   def __repr__(self):
     valueStr=str(self.value_) + ";"
     if self.valid_:
@@ -299,6 +305,12 @@ class driveData:
 class axisData:
   def __init__(self,index):
     self.index_ = index
+    self.data=[]
+
+    self.data.append(dataPoint('index'))
+    self.data.append(dataPoint('error'))
+    self.data.append(dataPoint('sampleTime'))
+
     self.error = dataPoint('error')
     self.sampleTime = dataPoint('sampleTime')
     self.type = dataPoint('type')
@@ -323,6 +335,18 @@ class axisData:
     self.masterSlaveIF=masterSlaveIFData()
     self.baseString="axis" + '['+str(self.index_) + ']:' + '\n'
     self.mySelf=dataPoint('self') 
+
+  def addVariable(self,name):
+    if not (hasattr(self, name)):
+      exec("self."+name+"=dataPoint(name)")  
+     
+
+  def getDataList(self):
+    return self.data
+
+  def valid(self):
+    return self.mySelf.valid()
+
 
   def setValue(self,*args):
     self.mySelf.setValue(*args)     

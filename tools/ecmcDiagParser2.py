@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
-from ecmcDataStructure2 import axisData
+from ecmcDataStructure2 import dataTreeItem
 from datetime import datetime
 import sys
 import re
@@ -20,7 +20,8 @@ class ecmcDiagParser:
     self.axisIndex=0
     self.filename=""
     self.maxNumAxis=maxNumAxis+1
-    self.axis=[]
+
+    self.root=dataTreeItem()
 
     for i in range(self.maxNumAxis):
       self.axis.append(axisData(i))
@@ -81,8 +82,26 @@ class ecmcDiagParser:
         currTimeStamp = datetime.strptime(dateTimeString,"%Y/%m/%d %H:%M:%S.%f") 
         if currTimeStamp>toTime:
           #exit loop
-          break;  
-      variableName=dataString[:equalPos].strip();
+          break;        
+      variableNameComplete=dataString[:equalPos].strip();
+      variableName=variableNameComplete
+      n=variableNameComplete.count('.')
+      if n<1:
+        continue
+
+      item=self.root
+      while i in range(1,n-1):      
+        dotPos=variableNameComplete.find('.')  
+        #child exists
+        name=variableNameComplete[:dotPos]
+        variableNameComplete[dotPos:]
+        child=dataTreeItem(name)
+        child=item.addChild(child)
+        item=child 
+
+      # add variable
+      
+
       print "Variable Name: " + variableName
       n=variableName.find('axis[')
       if n!=0:
