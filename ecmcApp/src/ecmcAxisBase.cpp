@@ -332,7 +332,7 @@ int ecmcAxisBase::setEnableCommandsTransform(bool enable)
     }
   }
   if(enableCommandTransform_!=enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].enableCommandsTransform=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,enable);
+    LOGINFO15("%s/%s:%d: axis[%d].enableCommandsTransform=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,enable>0);
   }
   enableCommandTransform_=enable;
 
