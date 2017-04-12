@@ -241,10 +241,11 @@ int ecmcEvent::execute(int masterOK)
 
 int ecmcEvent::validate()
 {
-  if(validateEntry(0)){ //Trigger entry
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_TRIGGER_ECENTRY_NULL);
+  if(eventType_==ECMC_EDGE_TRIGGERED){
+    if(validateEntry(0)){ //Trigger entry
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_TRIGGER_ECENTRY_NULL);
+    }
   }
-
   if(enableArmSequence_){
     if(validateEntry(1)){ //Arm entry
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EVENT_ARM_ECENTRY_NULL);
