@@ -369,7 +369,7 @@ int waitForEtherCATtoStart(int timeoutSeconds)
   for(int i=0;i<timeoutSeconds;i++){
     LOGINFO("Starting up EtherCAT bus: %d second(s).\n",i);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
-    if(!ec.getError() && ec.statusOK()){
+    if(/*!ec.getError() && */ec.statusOK()){
       clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
       LOGINFO("EtherCAT bus started!\n");
       return 0;
