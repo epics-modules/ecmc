@@ -158,7 +158,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
       }
       else{ //Synchronized to other axis
         data_.status_.busy=true;
-        data_.status_.moving=std::abs(data_.status_.currentVelocityActual)>0;
+        //data_.status_.moving=std::abs(data_.status_.currentVelocityActual)>0;
         data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
       }
       if(!data_.status_.enabled){
@@ -188,11 +188,6 @@ void ecmcAxisBase::postExecute(bool masterOK)
     LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.enabled>0);
   }
   data_.status_.enabledOld=data_.status_.enabled;
-
-  if(data_.status_.movingOld!=data_.status_.moving){
-    LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving>0);
-  }
-  data_.status_.movingOld=data_.status_.moving;
 
   data_.status_.executeOld=getExecute();
   data_.status_.currentPositionSetpointOld=data_.status_.currentPositionSetpoint;
@@ -922,6 +917,11 @@ int ecmcAxisBase::slowExecute()
     LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.currentPositionSetpoint);
   }
   oldPositionSet_=data_.status_.currentPositionSetpoint;
+
+  if(data_.status_.movingOld!=data_.status_.moving){
+    LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving>0);
+  }
+  data_.status_.movingOld=data_.status_.moving;
 
   return 0;
 }
