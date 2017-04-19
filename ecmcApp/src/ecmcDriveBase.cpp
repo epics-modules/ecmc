@@ -191,6 +191,7 @@ int ecmcDriveBase::getEnableReduceTorque()
 void ecmcDriveBase::writeEntries()
 {
   if(!driveInterlocksOK() && data_->command_.enable){
+    data_->command_.enable=false;
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DRIVE_INTERLOCKED);
   }
 
