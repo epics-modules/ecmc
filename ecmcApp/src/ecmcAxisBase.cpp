@@ -123,7 +123,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
   switch(axisState_){
     case ECMC_AXIS_STATE_STARTUP:
       setEnable(false);
-      data_.status_.busy=true;
+      data_.status_.busy=false;
       data_.status_.distToStop=0;
       if(data_.status_.inStartupPhase && masterOK){
         //Auto reset hardware error if starting up
@@ -136,7 +136,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
       }
       break;
     case ECMC_AXIS_STATE_DISABLED:
-      data_.status_.busy=true;
+      data_.status_.busy=false;
 
       data_.status_.distToStop=0;
       if(data_.status_.enabled){
