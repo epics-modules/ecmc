@@ -93,8 +93,10 @@ class Main(QtGui.QMainWindow):
           f = QtCore.QFile(self.filename)
           f.open(QtCore.QIODevice.ReadOnly)
           data=f.readAll()
-          self.model = TreeModel(data)
-          self.treeView.setModel(self.model)
+	  self.model.setupModelData(data.split('\n'))
+
+          #self.model = TreeModel(data)
+          #self.treeView.setModel(self.model)
           self.text.getTextEdit().setText(QtCore.QString(data))
           f.close()       
 

@@ -36,6 +36,10 @@ class TreeItem(object):
 
         return 0
 
+    def setData(self, data):
+        self.itemData = data
+
+
 class TreeModel(QtCore.QAbstractItemModel):
     def __init__(self, data, parent=None):
         super(TreeModel, self).__init__(parent)
@@ -103,7 +107,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent.column() > 0:
             return 0
 
-        if not parent.isValid():
+        if not parent.isValid():        
             parentItem = self.rootItem
         else:
             parentItem = parent.internalPointer()
@@ -111,10 +115,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         return parentItem.childCount()
 
 
-    def setupModelData(self, lines, parent):
-        parents = [parent]
+    def setupModelData(self, lines, parent=None):
+        self.beginResetModel()
+        localBaseParent=self.rootItem
+        if parent:
+          localBaseParent = parent
         indentations = [0]
-
+        self.beginInsertRows
         number = 0
         parser=ecmcParser() 
         while number < len(lines):            
@@ -148,7 +155,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 
             numberLevels=len(lineSections)              
             actLevel=0
-            localParent=parent
+            localParent=localBaseParent
             for section in lineSections:                    
               #print "Adding: " + section 
               columnData=[]
@@ -173,8 +180,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                   break 
 
               if alreadyInTree:
-		#print section + " already in tree!"
+                #update data
+                if actLevel==numberLevels-1:
+                  localChild.setData(columnData)
+
                 actLevel+=1;
+		
                 localParent=localChild
                 continue 
               #print "Adding: " + section 
@@ -184,3 +195,7 @@ class TreeModel(QtCore.QAbstractItemModel):
               actLevel+=1;
 
             number += 1
+        print "Reset model!!!!"
+        self.endResetModel()
+
+
