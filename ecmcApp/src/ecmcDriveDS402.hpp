@@ -55,7 +55,7 @@ private:
   void initVars();
   int checkDS402State();
   int driveState_;
-  bool enableCmdOld_;
+//  bool enableCmdOld_;
   bool enableSequenceRunning_;
   stateMachine_DS402 enableStateMachine_;
   int driveStateOld_;

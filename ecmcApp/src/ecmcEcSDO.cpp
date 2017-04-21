@@ -107,12 +107,15 @@ uint32_t ecmcEcSDO::getReadValue()
 int ecmcEcSDO::writeAndVerify()
 {
   if(write()){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,ERROR_EC_SDO_WRITE_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_WRITE_FAILED);
   }
   if(read()){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Read failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,ERROR_EC_SDO_READ_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_READ_FAILED);
   }
   if(writeValue_!=readValue_){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Verification failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,ERROR_EC_SDO_VERIFY_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_VERIFY_FAILED);
   }
   return 0;

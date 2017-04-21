@@ -123,7 +123,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
   switch(axisState_){
     case ECMC_AXIS_STATE_STARTUP:
       setEnable(false);
-      data_.status_.busy=true;
+      data_.status_.busy=false;
       data_.status_.distToStop=0;
       if(data_.status_.inStartupPhase && masterOK){
         //Auto reset hardware error if starting up
@@ -136,7 +136,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
       }
       break;
     case ECMC_AXIS_STATE_DISABLED:
-      data_.status_.busy=true;
+      data_.status_.busy=false;
 
       data_.status_.distToStop=0;
       if(data_.status_.enabled){
@@ -158,7 +158,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
       }
       else{ //Synchronized to other axis
         data_.status_.busy=true;
-        data_.status_.moving=std::abs(data_.status_.currentVelocityActual)>0;
+        //data_.status_.moving=std::abs(data_.status_.currentVelocityActual)>0;
         data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
       }
       if(!data_.status_.enabled){
@@ -188,11 +188,6 @@ void ecmcAxisBase::postExecute(bool masterOK)
     LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.enabled>0);
   }
   data_.status_.enabledOld=data_.status_.enabled;
-
-  if(data_.status_.movingOld!=data_.status_.moving){
-    LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving>0);
-  }
-  data_.status_.movingOld=data_.status_.moving;
 
   data_.status_.executeOld=getExecute();
   data_.status_.currentPositionSetpointOld=data_.status_.currentPositionSetpoint;
@@ -923,6 +918,11 @@ int ecmcAxisBase::slowExecute()
   }
   oldPositionSet_=data_.status_.currentPositionSetpoint;
 
+  if(data_.status_.movingOld!=data_.status_.moving){
+    LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.moving>0);
+  }
+  data_.status_.movingOld=data_.status_.moving;
+
   return 0;
 }
 
@@ -937,12 +937,12 @@ void ecmcAxisBase::printAxisStatus()
 
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\n Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
+    LOGINFO("\necmc:: Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
 
-  LOGINFO("%3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x ",
+  LOGINFO("ecmc:: %3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x %2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
        statusData_.axisID,
        statusData_.onChangeData.positionSetpoint,
        statusData_.onChangeData.positionActual,
@@ -954,9 +954,7 @@ void ecmcAxisBase::printAxisStatus()
        statusData_.onChangeData.velocityActual,
        statusData_.onChangeData.velocityFFRaw,
        statusData_.onChangeData.velocitySetpointRaw,
-       statusData_.onChangeData.error);
-
-   LOGINFO("%2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
+       statusData_.onChangeData.error,
        statusData_.onChangeData.command,
        statusData_.onChangeData.cmdData,
        statusData_.onChangeData.seqState,

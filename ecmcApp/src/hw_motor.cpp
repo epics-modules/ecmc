@@ -369,7 +369,7 @@ int waitForEtherCATtoStart(int timeoutSeconds)
   for(int i=0;i<timeoutSeconds;i++){
     LOGINFO("Starting up EtherCAT bus: %d second(s).\n",i);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
-    if(!ec.getError() && ec.statusOK()){
+    if(/*!ec.getError() && */ec.statusOK()){
       clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
       LOGINFO("EtherCAT bus started!\n");
       return 0;
@@ -1916,6 +1916,26 @@ int setAxisDrvBrakeEnable(int axisIndex, int enable)
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getDrv()->setEnableBrake(enable);
+}
+
+int setAxisDrvBrakeOpenDelayTime(int axisIndex, int delayTime)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d delayTime=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, delayTime);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getDrv()->setBrakeOpenDelayTime(delayTime);
+}
+
+int setAxisDrvBrakeCloseAheadTime(int axisIndex, int aheadTime)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d aheadTime=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, aheadTime);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getDrv()->setBrakeCloseAheadTime(aheadTime);
 }
 
 int setAxisDrvReduceTorqueEnable(int axisIndex, int enable)

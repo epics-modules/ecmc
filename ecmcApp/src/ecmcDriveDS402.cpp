@@ -61,7 +61,6 @@ void ecmcDriveDS402::printCurrentState()
       LOGINFO15("%s/%s:%d: axis[%d].drive.state=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableStateMachine_);
       break;
    }
-   enableCmdOld_=data_->command_.enable;
    return;
 }
 
@@ -71,7 +70,7 @@ void ecmcDriveDS402::initVars()
   //ecmcDriveBase::initVars();
   driveState_=ECMC_DS402_INVALID_STATE_STATUS;
   LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_INVALID_STATE_STATUS");
-  enableCmdOld_=false;
+  //enableCmdOld_=false;
   enableSequenceRunning_=false;
   enableStateMachine_=ECMC_DS402_RESET_STATE;
 }
@@ -123,22 +122,26 @@ void ecmcDriveDS402::readEntries()
 
   checkDS402State();
 
-  switch(data_->command_.operationModeCmd){
+  /*switch(data_->command_.operationModeCmd){
     case ECMC_MODE_OP_AUTO:
-      if(getError() || !data_->command_.enable){
+      if(getError() || !enableAmpCmd_){
 	controlWord_=0;
-        enableCmdOld_=data_->command_.enable;
 	return;
       }
       break;
     case ECMC_MODE_OP_MAN:
       if(getError() || !manualModeEnable_){
 	controlWord_=0;
-        enableCmdOld_=manualModeEnable_;
 	return;
       }
       break;
+  }*/
+
+  if(getError() || !enableAmpCmd_){
+    controlWord_=0;
+    return;
   }
+
 
   if(cycleCounter>ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME)
   {
@@ -151,9 +154,10 @@ void ecmcDriveDS402::readEntries()
   driveStateOld_=driveState_;
   enableStateMachineOld_=enableStateMachine_;
 
-  bool inManualMode=data_->command_.operationModeCmd==ECMC_MODE_OP_MAN;
+  //bool inManualMode=data_->command_.operationModeCmd==ECMC_MODE_OP_MAN;
 
-  if((data_->command_.enable || (manualModeEnable_ && inManualMode)) && !enableCmdOld_){ //Trigger new power on sequence
+  //if((data_->command_.enable || (manualModeEnable_ && inManualMode)) && !enableCmdOld_){ //Trigger new power on sequence
+  if((enableAmpCmd_ /*|| (manualModeEnable_ && inManualMode)*/) && !enableAmpCmdOld_){ //Trigger new power on sequence
     enableSequenceRunning_=true;
     enableStateMachine_=ECMC_DS402_RESET_STATE;
     controlWord_=128;
@@ -200,7 +204,7 @@ void ecmcDriveDS402::readEntries()
      }
    }
 
-   enableCmdOld_=data_->command_.enable;
+   //enableCmdOld_=data_->command_.enable;
   return;
 }
 
