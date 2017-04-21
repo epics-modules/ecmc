@@ -29,7 +29,6 @@ void ecmcError::initVars()
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID)
 {
   if(errorID!=errorId_){
-    printFormatedTime(stdlog);
     if(errorPathValid_){
       LOGERR("%s/%s:%d: %s=%s;\n",fileName, functionName, lineNumber,errorPath_,convertErrorIdToString(errorID));
     }
@@ -44,7 +43,6 @@ int ecmcError::setErrorID(const char* fileName,const char* functionName,int line
 int ecmcError::setErrorID(const char* fileName,const char* functionName,int lineNumber,int errorID,ecmcAlarmSeverity severity)
 {
   if(errorID!=errorId_ && severity>currSeverity_){
-    printFormatedTime(stdlog);
     LOGERR("%s/%s:%d: %s (0x%x).\n",fileName, functionName, lineNumber,convertErrorIdToString(errorID),errorID);
   }
 
@@ -918,11 +916,3 @@ const char *ecmcError::convertErrorIdToString(int errorId)
 }
 
 
-void ecmcError::printFormatedTime(FILE *log)
-{
-  char timebuffer[32];
-  timespec logtime;
-  clock_gettime(CLOCK_REALTIME,&logtime);
-  strftime(timebuffer, 32, "%Y/%m/%d %H:%M:%S", localtime(&logtime.tv_sec));
-  (void)fprintf(log,"%s.%03d ",timebuffer,(int)(logtime.tv_nsec/1e6));
-}

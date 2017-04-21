@@ -937,12 +937,12 @@ void ecmcAxisBase::printAxisStatus()
 
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\n Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
+    LOGINFO("\necmc:: Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
 
-  LOGINFO("%3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x ",
+  LOGINFO("ecmc:: %3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x %2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
        statusData_.axisID,
        statusData_.onChangeData.positionSetpoint,
        statusData_.onChangeData.positionActual,
@@ -954,9 +954,7 @@ void ecmcAxisBase::printAxisStatus()
        statusData_.onChangeData.velocityActual,
        statusData_.onChangeData.velocityFFRaw,
        statusData_.onChangeData.velocitySetpointRaw,
-       statusData_.onChangeData.error);
-
-   LOGINFO("%2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
+       statusData_.onChangeData.error,
        statusData_.onChangeData.command,
        statusData_.onChangeData.cmdData,
        statusData_.onChangeData.seqState,

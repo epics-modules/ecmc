@@ -41,7 +41,6 @@ public:
   virtual int getErrorID();
   virtual ecmcAlarmSeverity getSeverity();
   static const char *convertErrorIdToString(int errorId);
-  static void printFormatedTime(FILE *log);
 protected:
   char errorPath_[128];
   bool errorPathValid_;
