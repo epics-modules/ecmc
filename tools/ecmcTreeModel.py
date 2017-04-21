@@ -7,7 +7,7 @@ class TreeItem(object):
     def __init__(self, data, parent=None):
         self.parentItem = parent
         self.itemData = data
-        self.childItems = []
+        self.childItems = []     
 
     def appendChild(self, item):
         self.childItems.append(item)
@@ -39,6 +39,10 @@ class TreeItem(object):
     def setData(self, data):
         self.itemData = data
 
+    def invalidate(self):
+       if len(self.itemData)==4:
+         self.itemData[3]="Invalid"
+
 
 class TreeModel(QtCore.QAbstractItemModel):
     def __init__(self, data, parent=None):
@@ -46,6 +50,13 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         self.rootItem = TreeItem(("Title", "Value", "Timestamp", "Valid"))
         self.setupModelData(data.split('\n'), self.rootItem)
+
+    def invalidateAll(self):
+        #need to make recursive...
+        child_count = self.rootItem.childCount()
+        for i in range(child_count):
+           item = self.rootItem.child(i)
+           item.invalidate() 
 
     def columnCount(self, parent):
         if parent.isValid():
@@ -169,6 +180,7 @@ class TreeModel(QtCore.QAbstractItemModel):
               if numberLevels-1==(actLevel):
                  columnData.append(value)
                  columnData.append(timestamp)
+                 columnData.append("Valid")
               else:
                  columnData.append("")                    
 

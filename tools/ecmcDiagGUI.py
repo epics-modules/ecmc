@@ -89,6 +89,7 @@ class Main(QtGui.QMainWindow):
         self.refreshTreeview(self.text.getTextEdit().textCursor().blockNumber())         
 
     def refreshTreeview(self,numLines=None):
+	self.model.invalidateAll()
 	self.model.setupModelData(self.data.split('\n'),None,numLines)
 
     def open(self):
