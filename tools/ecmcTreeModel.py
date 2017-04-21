@@ -44,14 +44,14 @@ class TreeModel(QtCore.QAbstractItemModel):
     def __init__(self, data, parent=None):
         super(TreeModel, self).__init__(parent)
 
-        self.rootItem = TreeItem(("Title", "Value", "Timestamp"))
+        self.rootItem = TreeItem(("Title", "Value", "Timestamp", "Valid"))
         self.setupModelData(data.split('\n'), self.rootItem)
 
     def columnCount(self, parent):
         if parent.isValid():
-            return 3 #parent.internalPointer().columnCount()
+            return 4 #parent.internalPointer().columnCount()
         else:
-            return 3 #self.rootItem.columnCount()
+            return 4 #self.rootItem.columnCount()
 
     def data(self, index, role):
         if not index.isValid():

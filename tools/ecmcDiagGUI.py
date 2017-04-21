@@ -60,23 +60,12 @@ class Main(QtGui.QMainWindow):
         self.statusbar = self.statusBar()
         # x and y coordinates on the sQWidgetcreen, width, height
         self.setGeometry(100,100,1400,800)
-
         self.setWindowTitle("ECMC Diagnostics")
-
         self.treeView = QtGui.QTreeView()
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
 
- 	#f = QtCore.QFile('./default_3.txt')
-        #f.open(QtCore.QIODevice.ReadOnly)
-        self.model = TreeModel(QtCore.QByteArray(""))
-        #f.close()
-        
-        #self.model = QtGui.QStandardItemModel()
-        #self.addItems(self.model, data)
+        self.model = TreeModel(QtCore.QByteArray(""))        
         self.treeView.setModel(self.model)
-        #self.treeView.setColumnCount(3)          
-        #self.model.setHorizontalHeaderLabels([self.tr("Object")])
-
 	wid = QtGui.QWidget(self)
         self.setCentralWidget(wid)
         layout = QtGui.QHBoxLayout()
@@ -85,8 +74,8 @@ class Main(QtGui.QMainWindow):
         wid.setLayout(layout)
 
     def textSelectionUpdated(self):
+        #Function not used
         cursor = self.text.getTextEdit().textCursor();
-        #print "Text selection updated: " + str(cursor.blockNumber() + 1)
 
     def add_item(self,parent,text):
         
@@ -94,10 +83,10 @@ class Main(QtGui.QMainWindow):
           item = QtGui.QStandardItem(text)
           parent.appendRow(item)
           return item
-        return NULL
+        return None
 
     def refreshTreeviewCallback(self):         
-        self.refreshTreeview(self.text.getTextEdit().textCursor().blockNumber()+1)         
+        self.refreshTreeview(self.text.getTextEdit().textCursor().blockNumber())         
 
     def refreshTreeview(self,numLines=None):
 	self.model.setupModelData(self.data.split('\n'),None,numLines)
@@ -112,10 +101,6 @@ class Main(QtGui.QMainWindow):
           f.open(QtCore.QIODevice.ReadOnly)
           self.data=f.readAll()
           self.refreshTreeview()
-	  #self.model.setupModelData(self.data.split('\n'))
-
-          #self.model = TreeModel(data)
-          #self.treeView.setModel(self.model)
           self.text.getTextEdit().setText(QtCore.QString(self.data))
           f.close()       
 
