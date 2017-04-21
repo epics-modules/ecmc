@@ -39,7 +39,7 @@ class ecmcParser:
       return 0 , "" 
 
     localLine=localLine[:pos]
-    print "Path: " + localLine
+    #print "Path: " + localLine
     if len(localLine)>0:                
       lineSections=localLine.split('.')
       return 1, lineSections
@@ -68,22 +68,22 @@ class ecmcParser:
     localLine=localLine[:spacePos]
     #Sanity check of time string %y/%m/%d %H:%M:%S.%f
     if len(localLine)!= len("2017/03/21 16:07:50.588"):
-      print "Not valid time (length) " + localLine
+      #print "Not valid time (length) " + localLine
       return 0 , "" 
 
     n=localLine.count('/')
     if n!=2:
-      print "Not valid time (/)" + str(n) + " " + localLine
+      #print "Not valid time (/)" + str(n) + " " + localLine
       return 0 , "" 
     n=localLine.count(':')
     if n!=2:
-      print "Not valid time (:)" + str(n) + " " + localLine
+      #print "Not valid time (:)" + str(n) + " " + localLine
       return 0 , "" 
     n=localLine.count('.')
     if n!=1:
-      print "Not valid time (.)" + str(n) + " " + localLine
+      #print "Not valid time (.)" + str(n) + " " + localLine
       return 0 , "" 
-    print "DateTimeString: " + localLine
+    #print "DateTimeString: " + localLine
     return 1 , localLine 
 
     

@@ -115,42 +115,47 @@ class TreeModel(QtCore.QAbstractItemModel):
         return parentItem.childCount()
 
 
-    def setupModelData(self, lines, parent=None):
+    def setupModelData(self, lines, parent=None,numLines=None):
         self.beginResetModel()
         localBaseParent=self.rootItem
         if parent:
           localBaseParent = parent
+        localNumLines=len(lines)
+        if numLines:
+          localNumLines = numLines
+
         indentations = [0]
         self.beginInsertRows
         number = 0
         parser=ecmcParser() 
-        while number < len(lines):            
+        #while number < len(lines):
+        while number < localNumLines:                        
             lineData = lines[number].trimmed()
-            print "" 
-            print "Parsing line: "+ lineData 
+            #print "" 
+            #print "Parsing line: "+ lineData 
 
             isValid =parser.lineValid(lineData)
             if not isValid:
               number += 1
-              print "InValid (lineValid)"
+              #print "InValid (lineValid)"
               continue              
             
             isValid,lineSections=parser.getPathSectionList(lineData)
             if not isValid:
               number += 1
-              print "InValid (getPathSectionList)"
+              #print "InValid (getPathSectionList)"
               continue              
             
             isValid,value=parser.getValue(lineData)
             if not isValid:
               number += 1
-              print "InValid (getValue)"
+              #print "InValid (getValue)"
               continue        
 
             isValid,timestamp=parser.getTimestampString(lineData)
             if not isValid:
               number += 1
-              print "InValid (getTimestampString)"
+              #print "InValid (getTimestampString)"
               continue        
                 
             numberLevels=len(lineSections)              
@@ -167,8 +172,8 @@ class TreeModel(QtCore.QAbstractItemModel):
               else:
                  columnData.append("")                    
 
-              for col in columnData:
-                print "ColumnData: " + str(col)
+              #for col in columnData:
+              #  print "ColumnData: " + str(col)
                     
               #print "Checking if " + section + " already exists!"
               alreadyInTree=0
@@ -180,7 +185,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                   break 
 
               if alreadyInTree:
-                #update data
+                #update data if last level
                 if actLevel==numberLevels-1:
                   localChild.setData(columnData)
 
@@ -195,7 +200,7 @@ class TreeModel(QtCore.QAbstractItemModel):
               actLevel+=1;
 
             number += 1
-        print "Reset model!!!!"
+        #print "Reset model!!!!"
         self.endResetModel()
 
 

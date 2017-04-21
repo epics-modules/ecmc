@@ -11,20 +11,29 @@ class Main(QtGui.QMainWindow):
 
     def __init__(self, parent = None):
         QtGui.QMainWindow.__init__(self,parent)
-        
+        self.data=[]        
         self.filename = ""
         self.initUI()
+
         #self.diagParser=ecmcDiagParser(10)
 
     def initToolbar(self):
 
         self.toolbar = self.addToolBar("Options")
-        self.openAction = QtGui.QAction(QtGui.QIcon("icons/open.png"),"Open file",self)
+        #self.openAction = QtGui.QAction(QtGui.QIcon("icons/open.png"),"Open file",self)
+        self.openAction = QtGui.QAction(QtGui.QIcon.fromTheme("open"),"Open file",self)
         self.openAction.setStatusTip("Open existing document")
         self.openAction.setShortcut("Ctrl+O")
         self.openAction.triggered.connect(self.open)
-
         self.toolbar.addAction(self.openAction)
+
+        self.refreshAction = QtGui.QAction(QtGui.QIcon.fromTheme("refresh"),"Refersh",self)
+        self.refreshAction.setStatusTip("Refresh tree view")
+        self.refreshAction.setShortcut("Ctrl+R")
+        self.refreshAction.triggered.connect(self.refreshTreeviewCallback)
+        self.toolbar.addAction(self.refreshAction)
+
+
         # Makes the next toolbar appear underneath this one
         self.addToolBarBreak()
 
@@ -33,7 +42,7 @@ class Main(QtGui.QMainWindow):
         menubar = self.menuBar()
         file = menubar.addMenu("File")
         file.addAction(self.openAction)
-
+        file.addAction(self.refreshAction)
 
     def initUI(self):
 
@@ -41,8 +50,9 @@ class Main(QtGui.QMainWindow):
         self.text = LineTextWidget(self)
 
         #self.setCentralWidget(self.text)
-
+        self.text.getTextEdit().selectionChanged.connect(self.textSelectionUpdated)
         self.text.getTextEdit().setReadOnly(1)
+
         self.initToolbar()
         self.initMenubar()
 
@@ -73,7 +83,10 @@ class Main(QtGui.QMainWindow):
         layout.addWidget(self.text)
         layout.addWidget(self.treeView)
         wid.setLayout(layout)
-   
+
+    def textSelectionUpdated(self):
+        cursor = self.text.getTextEdit().textCursor();
+        #print "Text selection updated: " + str(cursor.blockNumber() + 1)
 
     def add_item(self,parent,text):
         
@@ -82,7 +95,12 @@ class Main(QtGui.QMainWindow):
           parent.appendRow(item)
           return item
         return NULL
-         
+
+    def refreshTreeviewCallback(self):         
+        self.refreshTreeview(self.text.getTextEdit().textCursor().blockNumber()+1)         
+
+    def refreshTreeview(self,numLines=None):
+	self.model.setupModelData(self.data.split('\n'),None,numLines)
 
     def open(self):
 
@@ -92,12 +110,13 @@ class Main(QtGui.QMainWindow):
         if self.filename:
           f = QtCore.QFile(self.filename)
           f.open(QtCore.QIODevice.ReadOnly)
-          data=f.readAll()
-	  self.model.setupModelData(data.split('\n'))
+          self.data=f.readAll()
+          self.refreshTreeview()
+	  #self.model.setupModelData(self.data.split('\n'))
 
           #self.model = TreeModel(data)
           #self.treeView.setModel(self.model)
-          self.text.getTextEdit().setText(QtCore.QString(data))
+          self.text.getTextEdit().setText(QtCore.QString(self.data))
           f.close()       
 
 def main():
