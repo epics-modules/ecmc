@@ -53,10 +53,13 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def invalidateAll(self):
         #need to make recursive...
-        child_count = self.rootItem.childCount()
+        self.invalidateLevel(self.rootItem)
+
+    def invalidateLevel(self,parent):
+        child_count = parent.childCount()
         for i in range(child_count):
-           item = self.rootItem.child(i)
-           item.invalidate() 
+           self.invalidateLevel(parent.child(i))
+           parent.child(i).invalidate()            
 
     def columnCount(self, parent):
         if parent.isValid():
