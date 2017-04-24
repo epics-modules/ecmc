@@ -6,6 +6,8 @@ from LineTextWidget import LineTextWidget
 from ecmcTreeModel import *
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
+from ecmcParser import *
+import matplotlib.pyplot as plt
 
 class Main(QtGui.QMainWindow):
 
@@ -103,7 +105,17 @@ class Main(QtGui.QMainWindow):
           self.data=f.readAll()
           self.refreshTreeview()
           self.text.getTextEdit().setText(QtCore.QString(self.data))
-          f.close()       
+          f.close()   
+          # test plot file
+          parser=ecmcParser()
+          variable="axis[3].trajectory.currentPositionSetpoint"
+          testTime,testData=parser.getAllPoints(self.data.split('\n'),variable,range(0,len(self.data.split('\n'))-1))    
+          plt.plot_date(testTime,testData,'o-')
+          plt.ylabel(variable)
+          plt.xlabel('time')
+          plt.grid()
+          plt.show()
+
 
 def main():
 
