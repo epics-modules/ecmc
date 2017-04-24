@@ -555,8 +555,7 @@ int ecmcMonitor::checkLimits()
   }
 
   //Bwd limit switch
-
-  if(!data_->status_.limitBwd && (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld) ){
+  if(!data_->status_.limitBwd /*&& (data_->status_.currentVelocitySetpoint<0 || data_->status_.currentPositionSetpoint<data_->status_.currentPositionSetpointOld) */){
     data_->interlocks_.bwdLimitInterlock=true;
     if(enableAlarmAtHardlimitBwd_){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
@@ -567,7 +566,7 @@ int ecmcMonitor::checkLimits()
   }
 
   //Fwd limit switch
-  if(!data_->status_.limitFwd && (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld)){
+  if(!data_->status_.limitFwd /*&& (data_->status_.currentVelocitySetpoint>0 || data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld)*/){
     data_->interlocks_.fwdLimitInterlock=true;
     if(enableAlarmAtHardlimitFwd_){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);

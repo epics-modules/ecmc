@@ -116,7 +116,7 @@ void ecmcAxisReal::execute(bool masterOK)
       data_.status_.currentPositionActual=enc_->getActPos();
       data_.status_.currentVelocityActual=enc_->getActVel();
     }
-    else{ //External source (Transform)
+    else{ //External source (Transform)currentVelocitySetpoint
       data_.status_.currentPositionActual=data_.status_.externalEncoderPosition;
       data_.status_.currentVelocityActual=data_.status_.externalEncoderVelocity;
     }
@@ -127,7 +127,8 @@ void ecmcAxisReal::execute(bool masterOK)
     mon_->execute();
 
     //Switch to internal trajectory temporary if interlock
-    if(data_.interlocks_.trajSummaryInterlock && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
+    bool trajLock=((data_.interlocks_.trajSummaryInterlockFWD && data_.status_.currentPositionSetpoint>data_.status_.currentPositionSetpointOld) || (data_.interlocks_.trajSummaryInterlockBWD && data_.status_.currentPositionSetpoint<data_.status_.currentPositionSetpointOld));
+    if( trajLock && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
       if(!temporaryLocalTrajSource_){//Initiate rampdown
 	temporaryLocalTrajSource_=true;
         traj_->setStartPos(data_.status_.currentPositionActual);
