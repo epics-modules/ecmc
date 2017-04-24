@@ -159,11 +159,16 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
     data_->refreshInterlocks();
   }
 
-  if(!data_->interlocks_.trajSummaryInterlock){
-    nextSetpoint=internalTraj(&nextVelocity);
-    actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
-  }
-  else{
+  //if(!data_->interlocks_.trajSummaryInterlock){
+  //if(data_->command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
+  nextSetpoint=internalTraj(&nextVelocity);
+  motionDirection nextDir=checkDirection(currentPositionSetpoint_,nextSetpoint);
+  //}
+  //actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
+  //}
+  //else{
+  bool externalSourceStopTraj=data_->command_.trajSource!=ECMC_DATA_SOURCE_INTERNAL; //Stop ramp when running external
+  if(externalSourceStopTraj || (nextDir==ECMC_DIR_BACKWARD && data_->interlocks_.trajSummaryInterlockBWD) || (nextDir==ECMC_DIR_FORWARD && data_->interlocks_.trajSummaryInterlockFWD)){
     nextSetpoint=moveStop(data_->interlocks_.currStopMode,currentPositionSetpoint_, velocity_,velocityTarget_,&stopped,&nextVelocity);
 
     if(stopped){
@@ -176,7 +181,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet()
       nextVelocity=0;
     }
   }
-
+  actDirection_=checkDirection(currentPositionSetpoint_,nextSetpoint);
   currentPositionSetpoint_=updateSetpoint(nextSetpoint,nextVelocity);
 
   return currentPositionSetpoint_;

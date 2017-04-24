@@ -770,8 +770,8 @@ int ecmcAxisBase::refreshExternalOutputSources()
   externalInputEncoderIF_->getOutputDataInterface()->setVelocity(data_.status_.currentVelocityActual);
 
   if(getMon()){
-    externalInputEncoderIF_->getOutputDataInterface()->setInterlock(data_.interlocks_.trajSummaryInterlock);
-    externalInputTrajectoryIF_->getOutputDataInterface()->setInterlock(data_.interlocks_.trajSummaryInterlock);
+    externalInputEncoderIF_->getOutputDataInterface()->setInterlock(data_.interlocks_.trajSummaryInterlockFWD || data_.interlocks_.trajSummaryInterlockBWD);
+    externalInputTrajectoryIF_->getOutputDataInterface()->setInterlock(data_.interlocks_.trajSummaryInterlockFWD || data_.interlocks_.trajSummaryInterlockBWD);
   }
   return 0;
 }

@@ -72,7 +72,8 @@ void ecmcAxisVirt::execute(bool masterOK)
     mon_->execute();
 
     //Switch to internal trajectory if interlock temporary
-    if(data_.interlocks_.trajSummaryInterlock && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
+    bool trajLock=((data_.interlocks_.trajSummaryInterlockFWD && data_.status_.currentVelocitySetpoint>0) || (data_.interlocks_.trajSummaryInterlockBWD && data_.status_.currentVelocitySetpoint<0));
+    if( trajLock && externalInputTrajectoryIF_->getDataSourceType()!=ECMC_DATA_SOURCE_INTERNAL){
       if(!temporaryLocalTrajSource_){//Initiate rampdown
 	temporaryLocalTrajSource_=true;
 	traj_->setStartPos(data_.status_.currentPositionActual);

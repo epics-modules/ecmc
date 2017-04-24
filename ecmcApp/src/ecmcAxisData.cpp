@@ -141,9 +141,9 @@ int ecmcAxisData::setSummaryInterlocks()
       || interlocks_.hardwareInterlock
       || interlocks_.etherCatMasterInterlock;
 
-  interlocks_.trajSummaryInterlockOld=interlocks_.trajSummaryInterlock;
+  //interlocks_.trajSummaryInterlockOld=interlocks_.trajSummaryInterlock;
 
-  interlocks_.trajSummaryInterlock=interlocks_.driveSummaryInterlock
+  /*interlocks_.trajSummaryInterlock=interlocks_.driveSummaryInterlock
       || interlocks_.axisErrorStateInterlock
       || interlocks_.bwdLimitInterlock
       || interlocks_.bwdSoftLimitInterlock
@@ -156,8 +156,34 @@ int ecmcAxisData::setSummaryInterlocks()
       || interlocks_.noExecuteInterlock
       || interlocks_.trajTransformInterlock
       || interlocks_.unexpectedLimitSwitchBehaviourInterlock
+      || interlocks_.velocityDiffTrajInterlock;*/
+
+
+  interlocks_.trajSummaryInterlockBWD=interlocks_.driveSummaryInterlock
+      || interlocks_.axisErrorStateInterlock
+      || interlocks_.bwdLimitInterlock
+      || interlocks_.bwdSoftLimitInterlock
+      || interlocks_.cntrlOutputHLTrajInterlock
+      || interlocks_.encTransformInterlock
+      || interlocks_.lagTrajInterlock
+      || interlocks_.maxVelocityTrajInterlock
+      || interlocks_.noExecuteInterlock
+      || interlocks_.trajTransformInterlock
+      || interlocks_.unexpectedLimitSwitchBehaviourInterlock
       || interlocks_.velocityDiffTrajInterlock;
 
+  interlocks_.trajSummaryInterlockFWD=interlocks_.driveSummaryInterlock
+      || interlocks_.axisErrorStateInterlock
+      || interlocks_.cntrlOutputHLTrajInterlock
+      || interlocks_.encTransformInterlock
+      || interlocks_.fwdLimitInterlock
+      || interlocks_.fwdSoftLimitInterlock
+      || interlocks_.lagTrajInterlock
+      || interlocks_.maxVelocityTrajInterlock
+      || interlocks_.noExecuteInterlock
+      || interlocks_.trajTransformInterlock
+      || interlocks_.unexpectedLimitSwitchBehaviourInterlock
+      || interlocks_.velocityDiffTrajInterlock;
 
   return 0;
 }
