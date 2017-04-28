@@ -633,10 +633,10 @@ int ecmcMonitor::checkPositionLag()
   bool lagErrorTraj=false;
   bool lagErrorDrive=false;
 
-  if(enableLagMon_ && !(lagErrorDrive)){
+  if(enableLagMon_ && !lagErrorDrive){
     lagError_=std::abs(data_->status_.currentPositionActual-data_->status_.currentPositionSetpoint);
 
-    if(lagError_>posLagTol_){
+    if((lagError_>posLagTol_) && data_->status_.enabled && data_->status_.enabledOld){
       if(lagMonCounter_<=posLagTime_*2){
         lagMonCounter_++;
       }
@@ -651,6 +651,7 @@ int ecmcMonitor::checkPositionLag()
       lagMonCounter_=0;
     }
   }
+
   data_->interlocks_.lagDriveInterlock=lagErrorDrive;
   data_->interlocks_.lagTrajInterlock=lagErrorTraj;
 
