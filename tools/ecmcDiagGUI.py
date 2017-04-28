@@ -24,7 +24,7 @@ class Main(QtGui.QMainWindow):
         self.data=[]        
         self.filename = ""
         self.initUI()
-
+        self.plotPathList=[]
         #self.diagParser=ecmcDiagParser(10)
 
     def initToolbar(self):
@@ -108,7 +108,7 @@ class Main(QtGui.QMainWindow):
           for i in range(1,len(pathList)):
             path=path+'.'+pathList[i]		
            
-          print "Selected path: " + path
+          #print "Selected path: " + path
           #Data in second column
           data=indexes[1].data().toByteArray();
           
@@ -117,13 +117,26 @@ class Main(QtGui.QMainWindow):
             return 
 
           menu = QtGui.QMenu()
-          #action=menu.addAction(self.tr("Plot: "+ path))
-          #self.connect(action,QtCore.SIGNAL("triggerd()"),self,QtCore.SLOT("plotItem('%s')" % path))
+          action1 = menu.addAction('Plot %s' % path)
+          action1.triggered.connect(lambda item1=path: self.plotItem(path))
 
-          action = menu.addAction('Plot %s' % path)
-          action.triggered.connect(lambda item=path: self.plotItem(path))
+          action2 = menu.addAction('Add to plot list')
+          action2.triggered.connect(lambda item2=path: self.addToPlotList(path))
+
+          action3 = menu.addAction('Clear plot list')
+          action3.triggered.connect(lambda item3=path: self.clearPlotList(path))
 
           menu.exec_(self.treeView.viewport().mapToGlobal(position))
+
+    @pyqtSlot(str)
+    def addToPlotList(self, path):
+        print "Add to list: " + path
+        self.plotPathList.append(path)
+
+    @pyqtSlot(str)
+    def clearPlotList(self, path):
+        print "Clear plot list"
+        self.plotPathList[:]=[]
 
     @pyqtSlot(str)
     def plotItem(self, path):
