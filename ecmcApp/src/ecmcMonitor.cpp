@@ -668,11 +668,8 @@ int ecmcMonitor::checkVelocityDiff()
   bool velocityDiffErrorDrive=false;
   bool velocityDiffErrorTraj=false;
 
-  if(!enableVelocityDiffMon_ ){
+  if(!enableVelocityDiffMon_ || !data_->status_.enabled || !data_->status_.enabledOld){
       velocityDiffCounter_=0;
-      velocityDiffErrorDrive=false;
-      velocityDiffErrorTraj=false;
-      return 0;
   }
 
   if(std::abs(currentSetVelocityToDrive-data_->status_.currentVelocityActual)>velDiffMaxDiff_){
@@ -702,6 +699,15 @@ int ecmcMonitor::checkVelocityDiff()
 
 int ecmcMonitor::checkMaxVelocity()
 {
+
+  if(!data_->status_.enabled || !data_->status_.enabledOld){
+    data_->interlocks_.maxVelocityTrajInterlock=false;
+    data_->interlocks_.maxVelocityDriveInterlock=false;
+    maxVelCounterTraj_=0;
+    maxVelCounterDrive_=0;
+    return 0;
+  }
+
   if((std::abs(data_->status_.currentVelocityActual)>maxVel_ || std::abs(data_->status_.currentVelocitySetpoint)>maxVel_) && enableMaxVelMon_){
       if(maxVelCounterTraj_ <= maxVelTrajILDelay_){
         maxVelCounterTraj_++;
@@ -712,7 +718,7 @@ int ecmcMonitor::checkMaxVelocity()
    }
 
    if(!data_->interlocks_.maxVelocityTrajInterlock){
-       data_->interlocks_.maxVelocityTrajInterlock=maxVelCounterTraj_>=maxVelTrajILDelay_;
+     data_->interlocks_.maxVelocityTrajInterlock=maxVelCounterTraj_>=maxVelTrajILDelay_;
    }
 
    if(data_->interlocks_.maxVelocityTrajInterlock &&  maxVelCounterDrive_<= maxVelDriveILDelay_){
@@ -732,6 +738,12 @@ int ecmcMonitor::checkMaxVelocity()
 
 int ecmcMonitor::checkCntrlMaxOutput()
 {
+  if(!data_->status_.enabled || !data_->status_.enabledOld){
+    data_->interlocks_.cntrlOutputHLDriveInterlock=false;
+    data_->interlocks_.cntrlOutputHLTrajInterlock=false;
+    return 0;
+  }
+
   if(enableCntrlHLMon_ && std::abs(data_->status_.cntrlOutput)>cntrlOutputHL_){
     data_->interlocks_.cntrlOutputHLDriveInterlock=true;
     data_->interlocks_.cntrlOutputHLTrajInterlock=true;
