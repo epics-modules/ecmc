@@ -5,7 +5,17 @@ import sys
 from LineTextWidget import LineTextWidget
 from ecmcTreeModel import *
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import *
+from ecmcParser import *
+import matplotlib.pyplot as plt
+
+def is_number(s):
+  try:
+    complex(s) # for int, long, float and complex
+  except ValueError:
+    return False
+
+  return True
 
 class Main(QtGui.QMainWindow):
 
@@ -14,7 +24,7 @@ class Main(QtGui.QMainWindow):
         self.data=[]        
         self.filename = ""
         self.initUI()
-
+        self.plotPathList=[]
         #self.diagParser=ecmcDiagParser(10)
 
     def initToolbar(self):
@@ -63,6 +73,7 @@ class Main(QtGui.QMainWindow):
         self.setWindowTitle("ECMC Diagnostics")
         self.treeView = QtGui.QTreeView()
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeView.customContextMenuRequested.connect(self.openTreeViewMenu)
 
         self.model = TreeModel(QtCore.QByteArray(""))        
         self.treeView.setModel(self.model)
@@ -72,6 +83,72 @@ class Main(QtGui.QMainWindow):
         layout.addWidget(self.text)
         layout.addWidget(self.treeView)
         wid.setLayout(layout)
+
+    def openTreeViewMenu(self, position):
+        indexes = self.treeView.selectedIndexes()
+        if len(indexes) > 0:         
+          level = 0
+          index = indexes[0]
+          #print "Selected indexes: "           
+          #for ind in indexes:
+          #  print str(ind.data().toByteArray()) 
+
+          pathList=[]
+          while index.parent().isValid():
+            pathList.append(str(index.data().toByteArray()))
+            index = index.parent()
+            level += 1
+
+          pathList.append(str(index.data().toByteArray()))
+          pathList.reverse()
+          if len(pathList)==0:
+            return
+     
+          path=pathList[0]  
+          for i in range(1,len(pathList)):
+            path=path+'.'+pathList[i]		
+           
+          #print "Selected path: " + path
+          #Data in second column
+          data=indexes[1].data().toByteArray();
+          
+          if not is_number(str(data)):
+            print "No number"  
+            return 
+
+          menu = QtGui.QMenu()
+          action1 = menu.addAction('Plot %s' % path)
+          action1.triggered.connect(lambda item1=path: self.plotItem(path))
+
+          action2 = menu.addAction('Add to plot list')
+          action2.triggered.connect(lambda item2=path: self.addToPlotList(path))
+
+          action3 = menu.addAction('Clear plot list')
+          action3.triggered.connect(lambda item3=path: self.clearPlotList(path))
+
+          menu.exec_(self.treeView.viewport().mapToGlobal(position))
+
+    @pyqtSlot(str)
+    def addToPlotList(self, path):
+        print "Add to list: " + path
+        self.plotPathList.append(path)
+
+    @pyqtSlot(str)
+    def clearPlotList(self, path):
+        print "Clear plot list"
+        self.plotPathList[:]=[]
+
+    @pyqtSlot(str)
+    def plotItem(self, path):
+        parser=ecmcParser()        
+        testTime,testData=parser.getAllPoints(self.data.split('\n'),path,range(0,len(self.data.split('\n'))-1))    
+        plt.figure
+        plt.plot_date(testTime,testData,'o-')
+        plt.ylabel(path)
+        plt.xlabel('time')
+        plt.grid()
+        plt.show()
+
 
     def textSelectionUpdated(self):
         #Function not used
@@ -103,7 +180,17 @@ class Main(QtGui.QMainWindow):
           self.data=f.readAll()
           self.refreshTreeview()
           self.text.getTextEdit().setText(QtCore.QString(self.data))
-          f.close()       
+          f.close()   
+          # test plot file
+          #parser=ecmcParser()
+          #variable="axis[3].trajectory.currentPositionSetpoint"
+          #testTime,testData=parser.getAllPoints(self.data.split('\n'),variable,range(0,len(self.data.split('\n'))-1))    
+          #plt.plot_date(testTime,testData,'o-')
+          #plt.ylabel(variable)
+          #plt.xlabel('time')
+          #plt.grid()
+          #plt.show()
+
 
 def main():
 
