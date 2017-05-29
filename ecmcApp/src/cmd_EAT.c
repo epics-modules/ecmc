@@ -14,6 +14,7 @@
 #include "cmd_EAT.h"
 #include <inttypes.h>
 #include <string.h>
+#include <math.h>
 
 typedef struct
 {
@@ -140,18 +141,41 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
     return iRet;
   }*/
 
-  if (group_no >= 0x5000 && group_no < 0x6000) {
+  if (group_no >= 0x4000 && group_no < 0x5000) {
+    int motor_axis_no = (int)group_no - 0x4000;
+    switch(offset_in_group)
+      case 0x15:
+      return getAxisMonEnableAtTargetMon(motor_axis_no, iValue);
+   } else if (group_no >= 0x5000 && group_no < 0x6000) {
+    double tmpValue;
     int motor_axis_no = (int)group_no - 0x5000;
-
-    //ADSPORT=501/.ADR.16#5001,16#B,2,2?; #low Softlimit enabled
-    if (offset_in_group == 0xB) {
-      getAxisEnableSoftLimitBwd(motor_axis_no, iValue);
-      return 0;
+    int ret;
+    switch (offset_in_group) {
+      case 0x8:
+        /* Encoder direction */
+        ret = getAxisEncScaleNum(motor_axis_no, &tmpValue);
+        *iValue = tmpValue < 0 ? 1 : 0;
+        return ret;
+      case 0xB:
+        //ADSPORT=501/.ADR.16#5001,16#B,2,2?; #low Softlimit enabled
+        getAxisEnableSoftLimitBwd(motor_axis_no, iValue);
+        return 0;
+      case 0xC:
+        //ADSPORT=501/.ADR.16#5001,16#C,2,2?; #high Softlimit enabled
+        getAxisEnableSoftLimitFwd(motor_axis_no, iValue);
+        return 0;
     }
-    //ADSPORT=501/.ADR.16#5001,16#C,2,2?; #high Softlimit enabled
-    if (offset_in_group == 0xC) {
-      getAxisEnableSoftLimitFwd(motor_axis_no, iValue);
-      return 0;
+  } else if (group_no >= 0x7000 && group_no < 0x8000) {
+    double fValue;
+    int ret;
+    int motor_axis_no = (int)group_no - 0x7000;
+
+    switch(offset_in_group) {
+      case 0x6:
+        /* Motor direction */
+        ret = getAxisDrvScaleNum(motor_axis_no, &fValue);
+        *iValue = fValue < 0 ? 1 : 0;
+        return ret;
     }
   }
 
@@ -214,19 +238,28 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
     //group 4000
     if (group_no >= 0x4000 && group_no < 0x5000) {
       int motor_axis_no = (int)group_no - 0x4000;
-
-      //ADSPORT=501/.ADR.16#4001,16#6,8,5?; #Homing velocity towards cam
-      if (offset_in_group == 0x6) {
-        return getAxisHomeVelTwordsCam(motor_axis_no, fValue);
-      }
-      //ADSPORT=501/.ADR.16#4001,16#7,8,5?; #Homing velocity off cam
-      if (offset_in_group == 0x7) {
-        return getAxisHomeVelOffCam(motor_axis_no,fValue);
+      int iValue;
+      int ret;
+      switch (offset_in_group) {
+        case 0x6:
+          //ADSPORT=501/.ADR.16#4001,16#6,8,5?; #Homing velocity towards cam
+          return getAxisHomeVelTwordsCam(motor_axis_no, fValue);
+        case 0x7:
+          //ADSPORT=501/.ADR.16#4001,16#7,8,5?; #Homing velocity off cam
+          return getAxisHomeVelOffCam(motor_axis_no,fValue);
+        case 0x16:
+          return getAxisMonAtTargetTol(motor_axis_no, fValue);
+        case 0x17:
+          ret = getAxisMonAtTargetTime(motor_axis_no, &iValue);
+          *fValue = iValue * 0.001; /* TODO: retrieve the cycle time */
+          return ret;
       }
     }
 
     //group 5000
     if (group_no >= 0x5000 && group_no < 0x6000) {
+      double tmpValue;
+      int ret;
       int motor_axis_no = (int)group_no - 0x5000;
 
       //ADSPORT=501/.ADR.16#5001,16#D,8,5?; #low Softlimit
@@ -240,11 +273,26 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
 
       //ADSPORT=501/.ADR.16#5001,16#23,8,5?; #Encoder scale num for axis
       if (offset_in_group == 0x23) {
-        return getAxisEncScaleNum(motor_axis_no, fValue);
+        ret = getAxisEncScaleNum(motor_axis_no, &tmpValue);
+        *fValue = fabs(tmpValue);
+        return ret;
       }
       //ADSPORT=501/.ADR.16#5001,16#24,8,5?; #Encoder scale denom for axis
       if (offset_in_group == 0x24) {
-        return getAxisEncScaleDenom(motor_axis_no, fValue);
+        ret = getAxisEncScaleDenom(motor_axis_no, &tmpValue);
+        *fValue = fabs(tmpValue);
+        return ret;
+      }
+      //group 7000
+    } else if (group_no >= 0x7000 && group_no < 0x8000) {
+      double tmpValue;
+      int ret;
+      int motor_axis_no = (int)group_no - 0x7000;
+      switch(offset_in_group) {
+        case 0x101:
+          ret = getAxisDrvScaleNum(motor_axis_no, &tmpValue);
+          *fValue = fabs(tmpValue);
+          return ret;
       }
     }
   }

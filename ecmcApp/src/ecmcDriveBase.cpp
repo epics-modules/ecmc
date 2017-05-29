@@ -79,6 +79,11 @@ int ecmcDriveBase::setVelSet(double vel)
   return 0;
 }
 
+double ecmcDriveBase::getScaleNum(void)
+{
+  return scaleNum_;
+}
+
 void ecmcDriveBase::setScaleNum(double scaleNum)
 {
   if(scaleNum_!=scaleNum){

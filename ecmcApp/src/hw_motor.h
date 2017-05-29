@@ -1653,6 +1653,15 @@ int setAxisCntrlIpartLL(int axisIndex, double value);
  */
 int setAxisCntrlIpartHL(int axisIndex, double value);
 
+/** \breif Get drive output scale numerator.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pointer to return value Scale numerator.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxisDrvScaleNum(int axisIndex, double *value);
+
 /** \breif Set drive output scale numerator.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -1819,6 +1828,14 @@ int setAxisDrvReduceTorqueEnable(int axisIndex, int enable);
  */
 int setAxisDrvType(int axisIndex, int type);
 
+/** \breif Get "at target" monitoring tolerance.\n
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pointer to return value At target tolerance.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxisMonAtTargetTol(int axisIndex, double *value);
+
 /** \breif Set "at target" monitoring tolerance.\n
  *
  *  The motion will be considered to have reached the target position
@@ -1840,6 +1857,14 @@ int setAxisDrvType(int axisIndex, int type);
  */
 int setAxisMonAtTargetTol(int axisIndex, double value);
 
+/** \breif Get "at target" monitoring time (cycles).\n
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pointer to return value At target time (cycles) .\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxisMonAtTargetTime(int axisIndex, int *value);
+
 /** \breif Set "at target" monitoring time (cycles).\n
  *
  *  The motion will be considered to have reached the target position
@@ -1860,6 +1885,15 @@ int setAxisMonAtTargetTol(int axisIndex, double value);
  */
 int setAxisMonAtTargetTime(int axisIndex, int value);
 
+/** \breif Get enable "at target" monitoring.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pointer to return value Enable monitoring .\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxisMonEnableAtTargetMon(int axisIndex, int *value);
+
 /** \breif Enable "at target" monitoring.\n
  *
  *  The motion will be considered to have reached the target position
@@ -1877,6 +1911,15 @@ int setAxisMonAtTargetTime(int axisIndex, int value);
  * "Cfg.SetAxisMonEnableAtTargetMon(7,1)" //Command string to cmd_EAT.c.\n
  */
 int setAxisMonEnableAtTargetMon(int axisIndex, int value);
+
+/** \breif Get position lag maximum monitoring tolerance.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pointer to return value Position lag maximum tolerance.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxisMonPosLagTol(int axisIndex, double *value);
 
 /** \breif Set position lag maximum monitoring tolerance.\n
  *
@@ -1900,6 +1943,15 @@ int setAxisMonEnableAtTargetMon(int axisIndex, int value);
  * "Cfg.SetAxisMonPosLagTol(7,0.2)" //Command string to cmd_EAT.c.\n
  */
 int setAxisMonPosLagTol(int axisIndex, double value);
+
+/** \breif Get position lag monitoring time (cycles).\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pointer to return value Position lag time (cycles).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxisMonPosLagTime(int axisIndex, int *value);
 
 /** \breif Set position lag monitoring time (cycles).\n
  *
