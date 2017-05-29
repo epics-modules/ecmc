@@ -14,7 +14,8 @@ extern "C" {
 #endif
 
 /* global to be used by all printing */
-extern  asynUser *pCmdAsynUser;
+//extern  asynUser *pCmdAsynUser;
+extern  asynUser *pPrintOutAsynUser;
 
   /*
    * logging stuff
@@ -74,88 +75,88 @@ do {                                              \
 
 #define LOGINFO(fmt, ...)                         \
 {                                                 \
-  (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);      \
+  (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);      \
 }
 
 #define LOGINFO4(fmt, ...)                        \
 do {                                              \
-  if (PRINT_STDOUT_BIT4()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT4()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO5(fmt, ...)                        \
 do {                                              \
-  if (PRINT_STDOUT_BIT5()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT5()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO6(fmt, ...)                        \
 do {                                              \
-  if (PRINT_STDOUT_BIT6()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT6()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO7(fmt, ...)                        \
 do {                                              \
-  if (PRINT_STDOUT_BIT7()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT7()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO8(fmt, ...)                        \
 do {                                              \
-  if (PRINT_STDOUT_BIT8()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT8()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO9(fmt, ...)                        \
 do {                                              \
-  if (PRINT_STDOUT_BIT9()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT9()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO10(fmt, ...)                       \
 do {                                              \
-  if (PRINT_STDOUT_BIT10()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT10()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO11(fmt, ...)                       \
 do {                                              \
-  if (PRINT_STDOUT_BIT11()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT11()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO12(fmt, ...)                       \
 do {                                              \
-  if (PRINT_STDOUT_BIT12()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT12()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO13(fmt, ...)                       \
 do {                                              \
-  if (PRINT_STDOUT_BIT13()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT13()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO14(fmt, ...)                       \
 do {                                              \
-  if (PRINT_STDOUT_BIT14()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+  if (PRINT_STDOUT_BIT14()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
 } while (0)
 
 #define LOGINFO15(fmt, ...)                       \
 do {                                              \
   if (PRINT_STDOUT_BIT15()){                      \
-    (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);    \
+    (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);    \
   }                                               \
 } while (0)
 
 #define LOGERR(fmt, ...)                          \
 {                                                 \
-  (void)asynPrint(pCmdAsynUser, ASYN_TRACE_ERROR, fmt, ##__VA_ARGS__);      \
+  (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR, fmt, ##__VA_ARGS__);      \
 }
 
 
 #define LOGERR_ERRNO(fmt, ...)                    \
 {                                                 \
-  (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);      \
+  (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);      \
 }
 
 #define RETURN_OR_DIE(buffer,fmt, ...)            \
   do {                                            \
     cmd_buf_printf(buffer,"Error: ");             \
     cmd_buf_printf(buffer,fmt, ##__VA_ARGS__);    \
-    if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
-    if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO,  "%s", "\n"); \
+    if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+    if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,  "%s", "\n"); \
     if (DIE_ON_ERROR_BIT1())  exit(2);            \
     return;                                       \
   }                                               \
@@ -165,8 +166,8 @@ do {                                              \
   do {                                            \
     cmd_buf_printf(buffer,"Error: ");             \
     cmd_buf_printf(buffer,fmt, ##__VA_ARGS__);    \
-    if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
-    if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pCmdAsynUser, ASYN_TRACE_INFO,  "%s", "\n"); \
+    if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
+    if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,  "%s", "\n"); \
     if (DIE_ON_ERROR_BIT1())  exit(2);            \
     return errcode;                               \
   }                                               \

@@ -1227,6 +1227,8 @@ static int handleCfgCommand(const char *myarg_1){
 
 int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 {
+
+
   const char *myarg = myarg_1;
   int iValue = 0;
   int iValue2=0;
@@ -1927,6 +1929,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 
 int cmd_EAT(int argc, const char *argv[], const char *sepv[],ecmcOutputBufferType *buffer)
 {
+
   const char *myargline = (argc > 0) ? argv[0] : "";
   int i;
   if (PRINT_STDOUT_BIT6())

@@ -18,6 +18,9 @@
 #include <errno.h>
 #include <math.h>
 
+#include "cmd.h"
+#include "gitversion.h"
+
 #include <epicsTypes.h>
 #include <epicsTime.h>
 #include <epicsThread.h>
@@ -37,15 +40,15 @@ void simTask(void *drvPvt);
   * Calls constructor for the asynPortDriver base class.
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] maxPoints The maximum  number of points in the volt and time arrays */
-ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,int paramTableSize,int autoConnect)
+ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,int paramTableSize,int autoConnect,int priority)
    : asynPortDriver(portName, 
                     1, /* maxAddr */ 
 		    paramTableSize,
                     asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask, /* Interface mask */
                     asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynEnumMask | asynOctetMask,  /* Interrupt mask */
-                    0, /* asynFlags.  This driver does not block and it is not multi-device, so flag is 0 */
+		    ASYN_CANBLOCK, /* asynFlags.  This driver does not block and it is not multi-device, so flag is 0 */
 		    autoConnect, /* Autoconnect */
-                    0, /* Default priority */
+		    priority, /* Default priority */
                     0) /* Default stack size*/    
 {
     asynStatus status;
@@ -53,7 +56,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
     eventId_ = epicsEventCreate(epicsEventEmpty);
     
     /* Create the thread that computes the waveforms in the background */
-    status = (asynStatus)(epicsThreadCreate("ecmcAsynPortDriverTask",
+/*    status = (asynStatus)(epicsThreadCreate("ecmcAsynPortDriverTask",
                           epicsThreadPriorityMedium,
                           epicsThreadGetStackSize(epicsThreadStackMedium),
                           (EPICSTHREADFUNC)::simTask,
@@ -61,7 +64,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
     if (status) {
         printf("%s:%s: epicsThreadCreate failure\n", driverName, functionName);
         return;
-    }
+    }*/
 }
 
 void simTask(void *drvPvt)
@@ -94,6 +97,87 @@ void ecmcAsynPortDriver::simTask(void)
         setIntegerParam(0,tempppp+1);
         callParamCallbacks();
     }
+}
+
+/*static asynStatus readIt(void *drvPvt,
+                         asynUser *pasynUser,
+                         char *data,
+                         size_t maxchars,
+                         size_t *nbytesTransfered,
+                         int *gotEom)*/
+
+asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason)
+{
+  size_t thisRead = 0;
+  int reason = 0;
+  asynStatus status = asynSuccess;
+
+  /*
+   * Feed what writeIt() gave us into the MCU
+   */
+
+  *value = '\0';
+  lock();
+  if (CMDreadIt(value, maxChars)) status = asynError;
+  if (status == asynSuccess) {
+    thisRead = strlen(value);
+    *nActual = thisRead;
+    /* May be not enough space ? */
+    //printf("readOctet: thisread: %d\n",thisRead);
+    if (thisRead > maxChars-1) {
+      reason |= ASYN_EOM_CNT;
+//      reason |= ASYN_EOM_;
+    }
+    else{
+      reason |= ASYN_EOM_EOS;
+    }
+
+    if (thisRead == 0 && pasynUser->timeout == 0){
+      status = asynTimeout;
+    }
+  }
+  else{printf("FAIL");}
+
+  if (eomReason) *eomReason = reason;
+
+  *nActual = thisRead;
+  asynPrint(pasynUser, ASYN_TRACE_FLOW,
+            "%s thisRead=%lu data=\"%s\"\n",
+            portName,
+            (unsigned long)thisRead, value);
+  unlock();
+  return status;
+}
+
+asynStatus ecmcAsynPortDriver::writeOctet(asynUser *pasynUser, const char *value, size_t maxChars,size_t *nActual)
+{
+  size_t thisWrite = 0;
+  asynStatus status = asynError;
+
+  asynPrint(pasynUser, ASYN_TRACE_FLOW,
+            "%s write.\n", /*ecmcController_p->*/portName);
+  asynPrintIO(pasynUser, ASYN_TRACEIO_DRIVER, value, maxChars,
+              "%s write %lu\n",
+              portName,
+              (unsigned long)maxChars);
+  *nActual = 0;
+
+  if (maxChars == 0){
+    return asynSuccess;
+  }
+  //lock();
+  if (!(CMDwriteIt(value, maxChars))) {
+    thisWrite = maxChars;
+    *nActual = thisWrite;
+    status = asynSuccess;
+  }
+  //unlock();
+  asynPrint(pasynUser, ASYN_TRACE_FLOW,
+            "%s wrote %lu return %s.\n",
+            portName,
+            (unsigned long)*nActual,
+            pasynManager->strStatus(status));
+  return status;
 }
 
 /** Called when asyn clients call pasynInt32->write().
@@ -297,18 +381,21 @@ extern "C" {
 static ecmcAsynPortDriver *mytestAsynPort;
 static int maxParameters;
 static int parameterCounter;
+/* global asynUser for Printing */
+asynUser *pPrintOutAsynUser;
 
 //ecmcAsynPortDriver(const char *portName, int maxPoints,int paramTableSize,int autoConnect)
 /** EPICS iocsh callable function to call constructor for the ecmcAsynPortDriver class.
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] maxPoints The maximum  number of points in the volt and time arrays */
-int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int autoConnect)
+int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int priority, int disableAutoConnect)
 {
   parameterCounter=0;
   maxParameters=paramTableSize;
-  mytestAsynPort=new ecmcAsynPortDriver(portName,paramTableSize,autoConnect);
+  mytestAsynPort=new ecmcAsynPortDriver(portName,paramTableSize,disableAutoConnect==0,priority);
   if(mytestAsynPort){
-    printf("INFO: New AsynPortDriver success (%s,%i,%i%i).",portName,1000,paramTableSize,autoConnect);
+    printf("INFO: New AsynPortDriver success (%s,%i,%i,%i).",portName,paramTableSize,disableAutoConnect==0,priority);
+    pPrintOutAsynUser = pasynManager->createAsynUser(0, 0);
     return(asynSuccess);
   }
   else{
@@ -320,16 +407,20 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int auto
 /* EPICS iocsh shell command: ecmcAsynPortDriverConfigure*/
 
 static const iocshArg initArg0 = { "port name",iocshArgString};
-static const iocshArg initArg1 = { "Parameter table size",iocshArgInt};
-static const iocshArg initArg2 = { "auto conncet",iocshArgInt};
+static const iocshArg initArg1 = { "parameter table size",iocshArgInt};
+static const iocshArg initArg2 = { "priority",iocshArgInt};
+static const iocshArg initArg3 = { "disable auto connect",iocshArgInt};
+
 static const iocshArg * const initArgs[] = {&initArg0,
                                             &initArg1,
-                                            &initArg2};
-static const iocshFuncDef initFuncDef = {"ecmcAsynPortDriverConfigure",3,initArgs};
+                                            &initArg2,
+                                            &initArg3};
+static const iocshFuncDef initFuncDef = {"ecmcAsynPortDriverConfigure",4,initArgs};
 static void initCallFunc(const iocshArgBuf *args)
 {
-    ecmcAsynPortDriverConfigure(args[0].sval, args[1].ival,args[2].ival);
+    ecmcAsynPortDriverConfigure(args[0].sval, args[1].ival,args[2].ival,args[3].ival);
 }
+
 
 //****************************** Add parameter
 int ecmcAsynPortDriverAddParameter(const char *parName, int asynType)

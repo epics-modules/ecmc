@@ -22,8 +22,9 @@
   * but they should really all be private. */
 class ecmcAsynPortDriver : public asynPortDriver {
 public:
-    ecmcAsynPortDriver(const char *portName,int paramTableSize,int autoConnect);
-
+    ecmcAsynPortDriver(const char *portName,int paramTableSize,int autoConnect,int priority);
+    virtual asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t maxChars, size_t *nActual);
+    virtual asynStatus readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason);
     /* These are the methods that we override from asynPortDriver */
     //virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
     //virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
@@ -38,6 +39,5 @@ public:
 protected:
  
 private:
-    /* Our data */
     epicsEventId eventId_;
 };
