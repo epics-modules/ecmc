@@ -1,14 +1,4 @@
 /*
- * 
- * Asyn driver that inherits from the asynPortDriver class to demonstrate its use.
- * It simulates a digital scope looking at a 1kHz 1000-point noisy sine wave.  Controls are
- * provided for time/division, volts/division, volt offset, trigger delay, noise amplitude, update time,
- * and run/stop.
- * Readbacks are provides for the waveform data, min, max and mean values.
- *
- * Author: Mark Rivers
- *
- * Created Feb. 5, 2009
  */
 
 #include <stdlib.h>
@@ -241,6 +231,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
       return(asynError);
   }
 
+  //
   int errorCode=linkEcEntryToAsynParameter(mytestAsynPort,slaveNumber,alias,asynType);
 
   if(errorCode==0){
