@@ -15,6 +15,7 @@
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
 #include "cmd.h" //Logging macros
+#include "ecmcAsynPortDriver.h"
 
 #define BIT_SET(a,b) ((a) |= (1<<(b)))
 #define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))
@@ -31,6 +32,7 @@
 #define ERROR_EC_ENTRY_INVALID_BIT_INDEX 0x21006
 #define ERROR_EC_ENTRY_READ_FAIL 0x21007
 #define ERROR_EC_ENTRY_WRITE_FAIL 0x21008
+#define ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED 0x21009
 
 class ecmcEcEntry : public ecmcError
 {
@@ -52,6 +54,11 @@ public:
   int updateInputProcessImage();
   int updateOutProcessImage();
   std::string getIdentificationName();
+  int setAsynParameterIndex(int index);
+  int getAsynParameterIndex();
+  int setAsynParameterType(asynParamType parType);
+  int getAsynParameterType();
+  int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
 
 private:
   uint8_t *domainAdr_;
@@ -65,5 +72,8 @@ private:
   ec_direction_t direction_;
   bool sim_;
   std::string idString_;
+  int asynParameterIndex_;
+  asynParamType asynParameterType_;
+  ecmcAsynPortDriver *asynPortDriver_;
 };
 #endif /* ECMCECENTRY_H_ */

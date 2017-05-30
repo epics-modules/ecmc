@@ -27,12 +27,14 @@
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 
+
 //Hardware
+#include "ecmcEc.h"
 #include "ecmcEcPdo.h"
 #include "ecmcEcSlave.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcEcEntry.h"
-#include "ecmcEc.h"
+
 
 //Motion
 #include "ecmcAxisBase.h"      //Abstract class for all axis types
@@ -67,12 +69,12 @@
 
 /****************************************************************************/
 static ecmcAxisBase     *axes[ECMC_MAX_AXES];
-static ecmcEc           ec;
 static int              axisDiagIndex;
 static int              axisDiagFreq;
 static int              controllerError=0;
 static app_mode_type    appMode,appModeOld;
 static unsigned int     counter = 0;
+static ecmcEc           ec;
 static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
 static ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
 static ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
@@ -2491,6 +2493,16 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
     return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
 
   return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);
+}
+
+int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType)
+{
+  LOGINFO4("%s/%s:%d slave_index=%d alias=%s type=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveNumber,entryIDString,asynParType);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.linkEcEntryToAsynParameter(asynPortObject,slaveNumber,entryIDString,asynParType);
 }
 
 int writeEcEntry(int slaveIndex, int entryIndex,uint64_t value)

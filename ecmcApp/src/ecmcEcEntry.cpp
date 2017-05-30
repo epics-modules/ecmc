@@ -16,6 +16,8 @@ ecmcEcEntry::ecmcEcEntry(uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bit
   direction_=direction;
   sim_=false;
   idString_=id;
+  asynParameterIndex_=-1;
+  asynParameterType_=asynParamFloat64;
 }
 
 ecmcEcEntry::ecmcEcEntry(uint8_t bits,uint8_t *domainAdr, std::string id)
@@ -42,6 +44,7 @@ void ecmcEcEntry::initVars()
   direction_=EC_DIR_INVALID;
   sim_=false;
   idString_="";
+  asynPortDriver_=NULL;
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -158,6 +161,20 @@ int ecmcEcEntry::updateInputProcessImage()
       break;
   }
 
+  //I/O intr to EPICS
+  if(asynPortDriver_ && asynParameterIndex_>=0){
+    switch(asynParameterType_){
+      case asynParamInt32:
+        asynPortDriver_-> setIntegerParam(asynParameterIndex_,static_cast<int32_t>(value_));
+        break;
+      case asynParamFloat64:
+        asynPortDriver_-> setDoubleParam(asynParameterIndex_,static_cast<double>(value_));
+        break;
+      default:
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
+        break;
+    }
+  }
   return 0;
 }
 
@@ -206,4 +223,32 @@ int ecmcEcEntry::updateOutProcessImage()
 std::string ecmcEcEntry::getIdentificationName()
 {
   return idString_;
+}
+
+int ecmcEcEntry::setAsynParameterIndex(int index)
+{
+  asynParameterIndex_=index;
+  return 0;
+}
+
+int ecmcEcEntry::getAsynParameterIndex()
+{
+  return asynParameterIndex_;
+}
+
+int ecmcEcEntry::setAsynParameterType(asynParamType parType)
+{
+  asynParameterType_=parType;
+  return 0;
+}
+
+int ecmcEcEntry::getAsynParameterType()
+{
+  return asynParameterType_;
+}
+
+int ecmcEcEntry::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
+{
+  asynPortDriver_=asynPortDriver;
+  return 0;
 }

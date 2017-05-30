@@ -57,6 +57,7 @@ void ecmcEc::initVars()
   memset(&domainState_,0,sizeof(domainState_));
   memset(&masterState_,0,sizeof(masterState_));
   inStartupPhase_=true;
+  asynPortDriver_=NULL;
 }
 
 int ecmcEc::init(int nMasterIndex)
@@ -483,6 +484,11 @@ int ecmcEc::updateOutProcessImage()
       slaveArray_[i]->updateOutProcessImage();
     }
   }
+
+  //I/O intr to EPCIS
+  if(asynPortDriver_){
+    asynPortDriver_-> callParamCallbacks();
+  }
   return 0;
 }
 
@@ -588,4 +594,55 @@ timespec ecmcEc::timespecAdd(timespec time1, timespec time2)
     result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
   }
   return result;
+}
+
+int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType){
+
+  ecmcEcSlave *slave=NULL;
+  if(slaveNumber>=0){
+    slave=findSlave(slaveNumber);
+  }
+  else{ //simulation slave
+    slave=getSlave(slaveNumber);
+  }
+
+  if(slave==NULL){
+    return ERROR_EC_MAIN_SLAVE_NULL;
+  }
+
+  std::string sEntryID=entryIDString;
+
+  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+
+  if(entry==NULL){
+    return ERROR_EC_MAIN_ENTRY_NULL;
+  }
+
+  char buffer[1024];
+  uint bytesWritten=snprintf ( buffer, sizeof(buffer), "EC%d_%s",slaveNumber,entryIDString);
+  if(bytesWritten>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: ERROR: Alias to long (0x%x). Buffer size is %d.\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ALIAS_TO_LONG,(int)sizeof(buffer));
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ALIAS_TO_LONG);
+  }
+
+  int index=-1;
+
+  asynPortDriver_=(ecmcAsynPortDriver*)asynPortObject;
+  if(asynPortDriver_==NULL){
+    LOGERR("%s/%s:%d: ERROR: Asyn port driver object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ASYN_PORT_OBJ_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_PORT_OBJ_NULL);
+  }
+
+  asynStatus status = asynPortDriver_->createParam(buffer,(asynParamType)asynParType,&index);
+
+  if(index<0 || status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Asyn port driver: Create parameter failed with asyncode %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,status,ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL);
+  }
+
+  entry->setAsynParameterIndex(index);
+  entry->setAsynParameterType((asynParamType)asynParType);
+  entry->setAsynPortDriver(asynPortDriver_);
+
+  return 0;
 }

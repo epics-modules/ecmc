@@ -40,6 +40,7 @@ public:
       uint8_t        entrySubIndex,
       uint8_t        bits,
       std::string    id);
+  ecmcEcEntry *findEntry(std::string id);
 private:
   void initVars();
   ecmcEcPdo *findPdo(uint16_t pdoIndex);

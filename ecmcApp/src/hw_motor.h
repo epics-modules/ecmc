@@ -3379,6 +3379,10 @@ int readEcEntryIndexIDString(int slavePosition,char *entryIDString,int *value);
   */
 int readEcSlaveIndex(int slavePosition,int *value);
 
+/* \breif Links ethercat entry to asyn parameter
+ */
+int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType);
+
 /** \breif Enable EtherCAT bus diagnostics.\n
   *
   * Diagnostics are made at three different levels:\n

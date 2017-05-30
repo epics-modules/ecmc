@@ -11,8 +11,11 @@
  *
  * Created Feb. 5, 2009
  */
+#ifndef ASYNPORTDRIVER_H_
+#define ASYNPORTDRIVER_H_
 
 #include "asynPortDriver.h"
+#include <epicsEvent.h>
 
 /** Class that demonstrates the use of the asynPortDriver base class to greatly simplify the task
   * of writing an asyn port driver.
@@ -41,3 +44,4 @@ protected:
 private:
     epicsEventId eventId_;
 };
+#endif /* ASYNPORTDRIVER_H_ */

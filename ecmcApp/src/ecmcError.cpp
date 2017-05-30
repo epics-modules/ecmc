@@ -542,6 +542,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x21008:
       return "ERROR_EC_ENTRY_WRITE_FAIL";
       break;
+    case 0x21009:
+      return "ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED";
+      break;
     case 0x22000:  //ECPDO
       return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
       break;
@@ -682,6 +685,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x26013:
       return "ERROR_EC_STATUS_NOT_OK";
+      break;
+    case 0x26014:
+      return "ERROR_EC_ALIAS_TO_LONG";
+      break;
+    case 0x26015:
+      return "ERROR_EC_ASYN_PORT_OBJ_NULL";
+      break;
+    case 0x26016:
+      return "ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL";
       break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";

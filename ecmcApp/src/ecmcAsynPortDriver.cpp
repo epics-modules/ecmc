@@ -1,5 +1,4 @@
 /*
- * ecmcAsynPortDriver.cpp
  * 
  * Asyn driver that inherits from the asynPortDriver class to demonstrate its use.
  * It simulates a digital scope looking at a 1kHz 1000-point noisy sine wave.  Controls are
@@ -27,13 +26,16 @@
 #include <epicsString.h>
 #include <epicsTimer.h>
 #include <epicsMutex.h>
-#include <epicsEvent.h>
 #include <iocsh.h>
 
 #include "ecmcAsynPortDriver.h"
 #include <epicsExport.h>
 
-static const char *driverName="ecmcAsynPortDriver";
+
+#include "hw_motor.h"
+#include "ecmcEc.h"
+
+//static const char *driverName="ecmcAsynPortDriver";
 void simTask(void *drvPvt);
 
 /** Constructor for the ecmcAsynPortDriver class.
@@ -51,60 +53,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
 		    priority, /* Default priority */
                     0) /* Default stack size*/    
 {
-    asynStatus status;
-    const char *functionName = "ecmcAsynPortDriver";
-    eventId_ = epicsEventCreate(epicsEventEmpty);
-    
-    /* Create the thread that computes the waveforms in the background */
-/*    status = (asynStatus)(epicsThreadCreate("ecmcAsynPortDriverTask",
-                          epicsThreadPriorityMedium,
-                          epicsThreadGetStackSize(epicsThreadStackMedium),
-                          (EPICSTHREADFUNC)::simTask,
-                          this) == NULL);
-    if (status) {
-        printf("%s:%s: epicsThreadCreate failure\n", driverName, functionName);
-        return;
-    }*/
+  eventId_ = epicsEventCreate(epicsEventEmpty);
 }
-
-void simTask(void *drvPvt)
-{
-    ecmcAsynPortDriver *pPvt = (ecmcAsynPortDriver *)drvPvt;
-    
-    pPvt->simTask();
-}
-
-/** Simulation task that runs as a separate thread.  When the P_Run parameter is set to 1
-  * to rub the simulation it computes a 1 kHz sine wave with 1V amplitude and user-controllable
-  * noise, and displays it on
-  * a simulated scope.  It computes waveforms for the X (time) and Y (volt) axes, and computes
-  * statistics about the waveform. */
-void ecmcAsynPortDriver::simTask(void)
-{
-    /* This thread computes the waveform and does callbacks with it */
-
-    lock();
-    /* Loop forever */    
-    while (1) {
-        // Release the lock while we wait for a command to start or wait for updateTime
-        unlock();
-        if (1) epicsEventWaitWithTimeout(eventId_, 0.5);
-        else     (void) epicsEventWait(eventId_);
-        // Take the lock again
-        lock(); 
-        int tempppp=0;
-        getIntegerParam(0, &tempppp);
-        setIntegerParam(0,tempppp+1);
-        callParamCallbacks();
-    }
-}
-
-/*static asynStatus readIt(void *drvPvt,
-                         asynUser *pasynUser,
-                         char *data,
-                         size_t maxchars,
-                         size_t *nbytesTransfered,
-                         int *gotEom)*/
 
 asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason)
 {
@@ -126,7 +76,6 @@ asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_
     //printf("readOctet: thisread: %d\n",thisRead);
     if (thisRead > maxChars-1) {
       reason |= ASYN_EOM_CNT;
-//      reason |= ASYN_EOM_;
     }
     else{
       reason |= ASYN_EOM_EOS;
@@ -180,200 +129,6 @@ asynStatus ecmcAsynPortDriver::writeOctet(asynUser *pasynUser, const char *value
   return status;
 }
 
-/** Called when asyn clients call pasynInt32->write().
-  * This function sends a signal to the simTask thread if the value of P_Run has changed.
-  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
-  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
-  * \param[in] value Value to write. */
-/*asynStatus ecmcAsynPortDriver::writeInt32(asynUser *pasynUser, epicsInt32 value)
-{
-    int function = pasynUser->reason;
-    asynStatus status = asynSuccess;
-    const char *paramName;
-    const char* functionName = "writeInt32";
-
-     Set the parameter in the parameter library.
-    status = (asynStatus) setIntegerParam(function, value);
-    
-     Fetch the parameter string name for possible use in debugging
-    getParamName(function, &paramName);
-
-    if (function == P_Run) {
-         If run was set then wake up the simulation task
-        if (value) epicsEventSignal(eventId_);
-    } 
-    else if (function == P_VertGainSelect) {
-        setVertGain();
-    }
-    else if (function == P_VoltsPerDivSelect) {
-        setVoltsPerDiv();
-    }
-    else if (function == P_TimePerDivSelect) {
-        setTimePerDiv();
-    }
-    else {
-         All other parameters just get set in parameter list, no need to
-         * act on them here
-    }
-    
-     Do callbacks so higher layers see any changes
-    status = (asynStatus) callParamCallbacks();
-    
-    if (status) 
-        epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize, 
-                  "%s:%s: status=%d, function=%d, name=%s, value=%d", 
-                  driverName, functionName, status, function, paramName, value);
-    else        
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
-              "%s:%s: function=%d, name=%s, value=%d\n", 
-              driverName, functionName, function, paramName, value);
-    return status;
-}*/
-
-/** Called when asyn clients call pasynFloat64->write().
-  * This function sends a signal to the simTask thread if the value of P_UpdateTime has changed.
-  * For all  parameters it  sets the value in the parameter library and calls any registered callbacks.
-  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
-  * \param[in] value Value to write. */
-/*asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
-{
-    int function = pasynUser->reason;
-    asynStatus status = asynSuccess;
-    int run;
-    const char *paramName;
-    const char* functionName = "writeFloat64";
-
-     Set the parameter in the parameter library.
-    status = (asynStatus) setDoubleParam(function, value);
-
-     Fetch the parameter string name for possible use in debugging
-    getParamName(function, &paramName);
-
-    if (function == P_UpdateTime) {
-         Make sure the update time is valid. If not change it and put back in parameter library
-        if (value < MIN_UPDATE_TIME) {
-            asynPrint(pasynUser, ASYN_TRACE_WARNING,
-                "%s:%s: warning, update time too small, changed from %f to %f\n", 
-                driverName, functionName, value, MIN_UPDATE_TIME);
-            value = MIN_UPDATE_TIME;
-            setDoubleParam(P_UpdateTime, value);
-        }
-         If the update time has changed and we are running then wake up the simulation task
-        getIntegerParam(P_Run, &run);
-        if (run) epicsEventSignal(eventId_);
-    } else {
-         All other parameters just get set in parameter list, no need to
-         * act on them here
-    }
-    
-     Do callbacks so higher layers see any changes
-    status = (asynStatus) callParamCallbacks();
-    
-    if (status) 
-        epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize, 
-                  "%s:%s: status=%d, function=%d, name=%s, value=%f", 
-                  driverName, functionName, status, function, paramName, value);
-    else        
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
-              "%s:%s: function=%d, name=%s, value=%f\n", 
-              driverName, functionName, function, paramName, value);
-    return status;
-}*/
-
-/** Called when asyn clients call pasynFloat64Array->read().
-  * Returns the value of the P_Waveform or P_TimeBase arrays.  
-  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
-  * \param[in] value Pointer to the array to read.
-  * \param[in] nElements Number of elements to read.
-  * \param[out] nIn Number of elements actually read. */
-/*asynStatus ecmcAsynPortDriver::readFloat64Array(asynUser *pasynUser, epicsFloat64 *value,
-                                         size_t nElements, size_t *nIn)
-{
-    int function = pasynUser->reason;
-    size_t ncopy;
-    int itemp;
-    asynStatus status = asynSuccess;
-    epicsTimeStamp timeStamp;
-    const char *functionName = "readFloat64Array";
-
-    getTimeStamp(&timeStamp);
-    pasynUser->timestamp = timeStamp;
-    getIntegerParam(P_MaxPoints, &itemp); ncopy = itemp;
-    if (nElements < ncopy) ncopy = nElements;
-    if (function == P_Waveform) {
-        memcpy(value, pData_, ncopy*sizeof(epicsFloat64));
-        *nIn = ncopy;
-    }
-    else if (function == P_TimeBase) {
-        memcpy(value, pTimeBase_, ncopy*sizeof(epicsFloat64));
-        *nIn = ncopy;
-    }
-    if (status) 
-        epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize, 
-                  "%s:%s: status=%d, function=%d", 
-                  driverName, functionName, status, function);
-    else        
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
-              "%s:%s: function=%d\n", 
-              driverName, functionName, function);
-    return status;
-}*/
-    
-/*asynStatus ecmcAsynPortDriver::readEnum(asynUser *pasynUser, char *strings[], int values[], int severities[], size_t nElements, size_t *nIn)
-{
-    int function = pasynUser->reason;
-    size_t i;
-
-    if (function == P_VoltsPerDivSelect) {
-        for (i=0; ((i<NUM_VERT_SELECTIONS) && (i<nElements)); i++) {
-            if (strings[i]) free(strings[i]);
-            strings[i] = epicsStrDup(voltsPerDivStrings_[i]);
-            values[i] = voltsPerDivValues_[i];
-            severities[i] = 0;
-        }
-    }
-    else {
-        *nIn = 0;
-        return asynError;
-    }
-    *nIn = i;
-    return asynSuccess;   
-}*/
-
-/*void ecmcAsynPortDriver::setVertGain()
-{
-    int igain, i;
-    double gain;
-    
-    getIntegerParam(P_VertGainSelect, &igain);
-    gain = igain;
-    setDoubleParam(P_VertGain, gain);
-    for (i=0; i<NUM_VERT_SELECTIONS; i++) {
-        epicsSnprintf(voltsPerDivStrings_[i], MAX_ENUM_STRING_SIZE, "%.2f", allVoltsPerDivSelections[i] / gain);
-        // The values are in mV
-        voltsPerDivValues_[i] = (int)(allVoltsPerDivSelections[i] / gain * 1000. + 0.5);
-    }
-    doCallbacksEnum(voltsPerDivStrings_, voltsPerDivValues_, voltsPerDivSeverities_, NUM_VERT_SELECTIONS, P_VoltsPerDivSelect, 0);
-}*/
-
-/*void ecmcAsynPortDriver::setVoltsPerDiv()
-{
-    int mVPerDiv;
-    
-    // Integer volts are in mV
-    getIntegerParam(P_VoltsPerDivSelect, &mVPerDiv);
-    setDoubleParam(P_VoltsPerDiv, mVPerDiv / 1000.);
-}*/
-
-/*void ecmcAsynPortDriver::setTimePerDiv()
-{
-    int microSecPerDiv;
-    
-    // Integer times are in microseconds
-    getIntegerParam(P_TimePerDivSelect, &microSecPerDiv);
-    setDoubleParam(P_TimePerDiv, microSecPerDiv / 1000000.);
-}*/
-
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
 extern "C" {
@@ -387,25 +142,29 @@ asynUser *pPrintOutAsynUser;
 //ecmcAsynPortDriver(const char *portName, int maxPoints,int paramTableSize,int autoConnect)
 /** EPICS iocsh callable function to call constructor for the ecmcAsynPortDriver class.
   * \param[in] portName The name of the asyn port driver to be created.
-  * \param[in] maxPoints The maximum  number of points in the volt and time arrays */
+  * \param[in] paramTableSize The max number of parameters.
+  * \param[in] priority Priority.
+  * \param[in] disableAutoConnect Disable auto connect */
 int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int priority, int disableAutoConnect)
 {
   parameterCounter=0;
   maxParameters=paramTableSize;
   mytestAsynPort=new ecmcAsynPortDriver(portName,paramTableSize,disableAutoConnect==0,priority);
   if(mytestAsynPort){
-    printf("INFO: New AsynPortDriver success (%s,%i,%i,%i).",portName,paramTableSize,disableAutoConnect==0,priority);
     pPrintOutAsynUser = pasynManager->createAsynUser(0, 0);
+    printf("ecmcAsynPortDriverAddParameter: INFO: New AsynPortDriver success (%s,%i,%i,%i).",portName,paramTableSize,disableAutoConnect==0,priority);
     return(asynSuccess);
   }
   else{
-    printf("ERROR: New AsynPortDriver failed.");
+    printf("ecmcAsynPortDriverAddParameter: ERROR: New AsynPortDriver failed.");
     return(asynError);
   }
 }
 
 /* EPICS iocsh shell command: ecmcAsynPortDriverConfigure*/
 
+/* global for ethercat interrupt support*/
+extern  ecmcEc           ec;
 static const iocshArg initArg0 = { "port name",iocshArgString};
 static const iocshArg initArg1 = { "parameter table size",iocshArgInt};
 static const iocshArg initArg2 = { "priority",iocshArgInt};
@@ -423,82 +182,93 @@ static void initCallFunc(const iocshArgBuf *args)
 
 
 //****************************** Add parameter
-int ecmcAsynPortDriverAddParameter(const char *parName, int asynType)
+int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const char *alias, int asynType)
 {
-  asynStatus status;
+  asynStatus status=asynError;
+
+
+  if (0 != strcmp(mytestAsynPort->portName,portName)){
+    printf("ecmcAsynPortDriverAddParameter: ERROR: Port name missmatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,mytestAsynPort->portName);
+    return(asynError);
+  }
 
   if(!mytestAsynPort){
-    printf("ERROR: asynPortDriver object NULL (mytestAsynPort==NULL)..\n");
+    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object NULL (mytestAsynPort==NULL)..\n");
     return(asynError);
   }
 
   if(parameterCounter>=maxParameters){
-    printf("ERROR: asynPortDriverObject full (max allowed number of parameters = %i).\n",maxParameters);
+    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriverObject full (max allowed number of parameters = %i).\n",maxParameters);
     return(asynError);
   }
 
   switch(asynType){
     case asynParamNotDefined:
-      printf("ERROR:: Parameter type for %s not defined (asynParamNotDefined).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type for %s not defined (asynParamNotDefined).\n",alias);
       return(asynError);
     case asynParamInt32:
-      printf("INFO: Adding parameter: %s (asynParamInt32).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32).\n",alias);
       break;
     case asynParamUInt32Digital:
-      printf("INFO: Adding parameter: %s (asynParamUInt32Digital).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamUInt32Digital).\n",alias);
       break;
     case asynParamFloat64:
-      printf("INFO: Adding parameter: %s (asynParamFloat64).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64).\n",alias);
       break;
     case asynParamOctet:
-      printf("INFO: Adding parameter: %s (asynParamOctet).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamOctet).\n",alias);
       break;
     case asynParamInt8Array:
-      printf("INFO: Adding parameter: %s (asynParamInt8Array).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt8Array).\n",alias);
       break;
     case asynParamInt16Array:
-      printf("INFO: Adding parameter: %s (asynParamInt16Array).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt16Array).\n",alias);
       break;
     case asynParamInt32Array:
-      printf("INFO: Adding parameter: %s (asynParamInt32Array).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32Array).\n",alias);
       break;
     case asynParamFloat32Array:
-      printf("INFO: Adding parameter: %s (asynParamFloat32Array).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat32Array).\n",alias);
       break;
     case asynParamFloat64Array:
-      printf("INFO: Adding parameter: %s (asynParamFloat64Array).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64Array).\n",alias);
       break;
     case asynParamGenericPointer:
-      printf("INFO: Adding parameter: %s (asynParamGenericPointer).\n",parName);
+      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamGenericPointer).\n",alias);
       break;
     default:
-      printf("ERROR: Parameter type %i not defined. Add parameter %s failed.\n",asynType,parName);
+      printf("ecmcAsynPortDriverAddParameter: ERROR: Parameter type %i not defined. Add parameter %s failed.\n",asynType,alias);
       return(asynError);
   }
 
-  int index=0;
-  status = mytestAsynPort->createParam(parName,(asynParamType)asynType,&index);
+  int errorCode=linkEcEntryToAsynParameter(mytestAsynPort,slaveNumber,alias,asynType);
 
-  if(status==asynSuccess){
+  if(errorCode==0){
     parameterCounter++;
-    printf("INFO: Parameter %s added successfully at index %i.\n",parName,index);
+    status = asynSuccess;
+    printf("ecmcAsynPortDriverAddParameter: INFO: Parameter (alias=%s,busPosition=%d) added successfully.\n",alias,slaveNumber);
   }
   else{
-    printf("ERROR: Add parameter %s failed.\n",parName);
+    status = asynError;
+    printf("ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",alias,errorCode);
   }
   return(status);
 }
 
 /* EPICS iocsh shell command:  ecmcAsynPortDriverAddParameter*/
 
-static const iocshArg initArg0_2 = { "parName",iocshArgString};
-static const iocshArg initArg1_2 = { "asynType",iocshArgInt};
+static const iocshArg initArg0_2 = { "port name",iocshArgString};
+static const iocshArg initArg1_2 = { "slave number",iocshArgInt};
+static const iocshArg initArg2_2 = { "alias",iocshArgString};
+static const iocshArg initArg3_2 = { "asynType",iocshArgInt};
 static const iocshArg * const initArgs_2[] = {&initArg0_2,
-                                              &initArg1_2};
-static const iocshFuncDef initFuncDef_2 = {"ecmcAsynPortDriverAddParameter",2,initArgs_2};
+                                              &initArg1_2,
+					      &initArg2_2,
+					      &initArg3_2};
+static const iocshFuncDef initFuncDef_2 = {"ecmcAsynPortDriverAddParameter",4,initArgs_2};
 static void initCallFunc_2(const iocshArgBuf *args)
 {
-  ecmcAsynPortDriverAddParameter(args[0].sval, args[1].ival);
+  ecmcAsynPortDriverAddParameter(args[0].sval, args[1].ival,args[2].sval, args[3].ival);
 }
 
 void ecmcAsynPortDriverRegister(void)

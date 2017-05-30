@@ -19,6 +19,7 @@
 #include "ecmcEcSlave.h"
 #include "ecmcError.h"
 #include "cmd.h" //Logging macros
+#include "ecmcAsynPortDriver.h"
 
 //EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
@@ -41,6 +42,13 @@
 #define ERROR_EC_LINK_DOWN 0x26011
 #define ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH 0x26012
 #define ERROR_EC_STATUS_NOT_OK 0x26013
+#define ERROR_EC_ALIAS_TO_LONG 0x26014
+#define ERROR_EC_ASYN_PORT_OBJ_NULL 0x26015
+#define ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL 0x26016
+
+
+
+
 
 class ecmcEc : public ecmcError
 {
@@ -91,6 +99,7 @@ public:
   int setDomainFailedCyclesLimitInterlock(int cycles);
   void printStatus();
   int reset();
+  int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType);
 private:
   void initVars();
   int updateInputProcessImage();
@@ -121,5 +130,7 @@ private:
   int domainNotOKCounterMax_;
   int domainNotOKCyclesLimit_;
   bool inStartupPhase_;
+
+  ecmcAsynPortDriver *asynPortDriver_;
 };
 #endif /* ECMCEC_H_ */
