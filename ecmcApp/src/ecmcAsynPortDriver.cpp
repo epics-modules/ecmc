@@ -23,7 +23,6 @@
 
 
 #include "hw_motor.h"
-#include "ecmcEc.h"
 
 //static const char *driverName="ecmcAsynPortDriver";
 void simTask(void *drvPvt);
@@ -153,8 +152,6 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
 
 /* EPICS iocsh shell command: ecmcAsynPortDriverConfigure*/
 
-/* global for ethercat interrupt support*/
-extern  ecmcEc           ec;
 static const iocshArg initArg0 = { "port name",iocshArgString};
 static const iocshArg initArg1 = { "parameter table size",iocshArgInt};
 static const iocshArg initArg2 = { "priority",iocshArgInt};
