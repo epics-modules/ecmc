@@ -171,9 +171,6 @@ static void initCallFunc(const iocshArgBuf *args)
 //****************************** Add parameter
 int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const char *alias, int asynType)
 {
-  asynStatus status=asynError;
-
-
   if (0 != strcmp(mytestAsynPort->portName,portName)){
     printf("ecmcAsynPortDriverAddParameter: ERROR: Port name missmatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,mytestAsynPort->portName);
     return(asynError);
@@ -228,19 +225,17 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
       return(asynError);
   }
 
-  //
   int errorCode=linkEcEntryToAsynParameter(mytestAsynPort,slaveNumber,alias,asynType);
 
-  if(errorCode==0){
-    parameterCounter++;
-    status = asynSuccess;
-    printf("ecmcAsynPortDriverAddParameter: INFO: Parameter (alias=%s,busPosition=%d) added successfully.\n",alias,slaveNumber);
-  }
-  else{
-    status = asynError;
+  if(errorCode){
     printf("ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",alias,errorCode);
+    return asynError;
   }
-  return(status);
+
+  parameterCounter++;
+  printf("ecmcAsynPortDriverAddParameter: INFO: Parameter (alias=%s,busPosition=%d) added successfully.\n",alias,slaveNumber);
+
+  return asynSuccess;
 }
 
 /* EPICS iocsh shell command:  ecmcAsynPortDriverAddParameter*/
