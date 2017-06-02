@@ -16,8 +16,6 @@ ecmcEcEntry::ecmcEcEntry(uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bit
   direction_=direction;
   sim_=false;
   idString_=id;
-  asynParameterIndex_=-1;
-  asynParameterType_=asynParamFloat64;
 }
 
 ecmcEcEntry::ecmcEcEntry(uint8_t bits,uint8_t *domainAdr, std::string id)
@@ -44,7 +42,12 @@ void ecmcEcEntry::initVars()
   direction_=EC_DIR_INVALID;
   sim_=false;
   idString_="";
+  asynParameterIndex_=-1;
+  asynParameterType_=asynParamFloat64;
   asynPortDriver_=NULL;
+  asynUpdateCycles_=0;
+  asynUpdateCycleCounter_=0;
+
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -243,8 +246,13 @@ int ecmcEcEntry::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
 
 int ecmcEcEntry::updateAsyn()
 {
-//I/O intr to EPICS
-  if(asynPortDriver_ && asynParameterIndex_>=0){
+  //I/O intr to EPICS
+  if(!asynPortDriver_ || asynParameterIndex_<0){
+   return 0;
+  }
+
+  if(asynUpdateCycleCounter_>=asynUpdateCycles_){ //Only update at desired samplerate
+    asynUpdateCycleCounter_=0;
     switch(asynParameterType_){
       case asynParamInt32:
         asynPortDriver_-> setIntegerParam(asynParameterIndex_,static_cast<int32_t>(value_));
@@ -257,5 +265,13 @@ int ecmcEcEntry::updateAsyn()
         break;
     }
   }
+  asynUpdateCycleCounter_++;
+  return 0;
+}
+
+int ecmcEcEntry::setAsynParameterSkipCycles(int skipCycles)
+{
+  printf("setAsynParameterSkipCycles(%d).\n",skipCycles);
+  asynUpdateCycles_=skipCycles;
   return 0;
 }

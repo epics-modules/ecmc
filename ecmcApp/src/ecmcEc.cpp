@@ -474,6 +474,7 @@ int ecmcEc::updateInputProcessImage()
       slaveArray_[i]->updateInputProcessImage();
     }
   }
+
   return 0;
 }
 
@@ -485,10 +486,11 @@ int ecmcEc::updateOutProcessImage()
     }
   }
 
-  //I/O intr to EPCIS
-  if(asynPortDriver_){
+  //I/O intr to EPCIS.
+  if(asynPortDriver_ ){
     asynPortDriver_-> callParamCallbacks();
   }
+
   return 0;
 }
 
@@ -596,7 +598,7 @@ timespec ecmcEc::timespecAdd(timespec time1, timespec time2)
   return result;
 }
 
-int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType){
+int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType, int skipCycles){
 
   ecmcEcSlave *slave=NULL;
   if(slaveNumber>=0){
@@ -616,6 +618,11 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, co
 
   if(entry==NULL){
     return ERROR_EC_MAIN_ENTRY_NULL;
+  }
+
+  if(skipCycles<0){
+    LOGERR("%s/%s:%d: ERROR: Skip cycles value invalid (must >=0),(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ASYN_SKIP_CYCLES_INVALID);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_SKIP_CYCLES_INVALID);
   }
 
   char buffer[1024];
@@ -643,6 +650,7 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, co
   entry->setAsynParameterIndex(index);
   entry->setAsynParameterType((asynParamType)asynParType);
   entry->setAsynPortDriver(asynPortDriver_);
+  entry->setAsynParameterSkipCycles(skipCycles);
 
   return 0;
 }

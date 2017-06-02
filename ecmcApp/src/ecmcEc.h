@@ -45,6 +45,7 @@
 #define ERROR_EC_ALIAS_TO_LONG 0x26014
 #define ERROR_EC_ASYN_PORT_OBJ_NULL 0x26015
 #define ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL 0x26016
+#define ERROR_EC_ASYN_SKIP_CYCLES_INVALID 0x26017
 
 
 
@@ -99,7 +100,7 @@ public:
   int setDomainFailedCyclesLimitInterlock(int cycles);
   void printStatus();
   int reset();
-  int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType);
+  int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType,int skipCycles);
 private:
   void initVars();
   int updateInputProcessImage();
@@ -130,7 +131,6 @@ private:
   int domainNotOKCounterMax_;
   int domainNotOKCyclesLimit_;
   bool inStartupPhase_;
-
   ecmcAsynPortDriver *asynPortDriver_;
 };
 #endif /* ECMCEC_H_ */

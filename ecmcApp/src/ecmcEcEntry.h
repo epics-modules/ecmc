@@ -55,6 +55,7 @@ public:
   int updateOutProcessImage();
   std::string getIdentificationName();
   int setAsynParameterIndex(int index);
+  int setAsynParameterSkipCycles(int skipCycles);
   int getAsynParameterIndex();
   int setAsynParameterType(asynParamType parType);
   int getAsynParameterType();
@@ -76,5 +77,8 @@ private:
   int asynParameterIndex_;
   asynParamType asynParameterType_;
   ecmcAsynPortDriver *asynPortDriver_;
+  int asynUpdateCycles_;
+  int asynUpdateCycleCounter_;
+
 };
 #endif /* ECMCECENTRY_H_ */

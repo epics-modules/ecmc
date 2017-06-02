@@ -277,7 +277,7 @@ static void initCallFunc(const iocshArgBuf *args)
 
 
 //****************************** Add parameter
-int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const char *alias, int asynType)
+int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const char *alias, const char *asynTypeString, int skipCycles)
 {
   if (0 != strcmp(mytestAsynPort->portName,portName)){
     printf("ecmcAsynPortDriverAddParameter: ERROR: Port name missmatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,mytestAsynPort->portName);
@@ -294,62 +294,26 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
     return(asynError);
   }
 
-  switch(asynType){
-    case asynParamNotDefined:
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type for %s not defined (asynParamNotDefined).\n",alias);
-      return(asynError);
-    case asynParamInt32:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32).\n",alias);
-      break;
-    case asynParamUInt32Digital:
-      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamUInt32Digital).\n",alias);
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-      return(asynError);
-      break;
-    case asynParamFloat64:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64).\n",alias);
-      break;
-    case asynParamOctet:
-      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamOctet).\n",alias);
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-      return(asynError);
-      break;
-    case asynParamInt8Array:
-      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt8Array).\n",alias);
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-      return(asynError);
-      break;
-    case asynParamInt16Array:
-      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt16Array).\n",alias);
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-      return(asynError);
-      break;
-    case asynParamInt32Array:
-      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32Array).\n",alias);
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-      return(asynError);
-      break;
-    case asynParamFloat32Array:
-      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat32Array).\n",alias);
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-      return(asynError);
-      break;
-    case asynParamFloat64Array:
-      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64Array).\n",alias);
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-      return(asynError);
-      break;
-    case asynParamGenericPointer:
-      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamGenericPointer).\n",alias);
-      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-      return(asynError);
-      break;
-    default:
-      printf("ecmcAsynPortDriverAddParameter: ERROR: Parameter type %i not defined. Add parameter %s failed.\n",asynType,alias);
-      return(asynError);
+  int asynType=-10;
+
+  int nvals=strcmp(asynTypeString,"asynInt32");
+  if (nvals == 0) {
+    asynType=asynParamInt32;
+    printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32).\n",alias);
   }
 
-  int errorCode=linkEcEntryToAsynParameter(mytestAsynPort,slaveNumber,alias,asynType);
+  nvals=strcmp(asynTypeString,"asynFloat64");
+  if (nvals == 0) {
+    asynType=asynParamFloat64;
+    printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64).\n",alias);
+  }
+
+  if(asynType<=0){
+    printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+    return(asynError);
+  }
+
+  int errorCode=linkEcEntryToAsynParameter(mytestAsynPort,slaveNumber,alias,asynType,skipCycles);
 
   if(errorCode){
     printf("ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",alias,errorCode);
@@ -363,19 +327,22 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
 }
 
 /* EPICS iocsh shell command:  ecmcAsynPortDriverAddParameter*/
-
 static const iocshArg initArg0_2 = { "port name",iocshArgString};
 static const iocshArg initArg1_2 = { "slave number",iocshArgInt};
 static const iocshArg initArg2_2 = { "alias",iocshArgString};
-static const iocshArg initArg3_2 = { "asynType",iocshArgInt};
+static const iocshArg initArg3_2 = { "asynType",iocshArgString};
+static const iocshArg initArg4_2 = { "skipCycles",iocshArgInt};
+
 static const iocshArg * const initArgs_2[] = {&initArg0_2,
                                               &initArg1_2,
 					      &initArg2_2,
-					      &initArg3_2};
-static const iocshFuncDef initFuncDef_2 = {"ecmcAsynPortDriverAddParameter",4,initArgs_2};
+					      &initArg3_2,
+                                              &initArg4_2};
+
+static const iocshFuncDef initFuncDef_2 = {"ecmcAsynPortDriverAddParameter",5,initArgs_2};
 static void initCallFunc_2(const iocshArgBuf *args)
 {
-  ecmcAsynPortDriverAddParameter(args[0].sval, args[1].ival,args[2].sval, args[3].ival);
+  ecmcAsynPortDriverAddParameter(args[0].sval, args[1].ival,args[2].sval, args[3].sval,args[4].ival);
 }
 
 void ecmcAsynPortDriverRegister(void)

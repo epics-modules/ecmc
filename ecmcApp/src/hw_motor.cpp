@@ -2495,14 +2495,14 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
   return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);
 }
 
-int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType)
+int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType,int skipCycles)
 {
-  LOGINFO4("%s/%s:%d slave_position=%d alias=%s type=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveNumber,entryIDString,asynParType);
+  LOGINFO4("%s/%s:%d slave_position=%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveNumber,entryIDString,asynParType,skipCycles);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.linkEcEntryToAsynParameter(asynPortObject,slaveNumber,entryIDString,asynParType);
+  return ec.linkEcEntryToAsynParameter(asynPortObject,slaveNumber,entryIDString,asynParType,skipCycles);
 }
 
 int writeEcEntry(int slaveIndex, int entryIndex,uint64_t value)

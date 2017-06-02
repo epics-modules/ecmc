@@ -695,6 +695,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x26016:
       return "ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL";
       break;
+    case 0x26017:
+      return "ERROR_EC_ASYN_SKIP_CYCLES_INVALID";
+      break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
       break;
