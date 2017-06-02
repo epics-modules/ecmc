@@ -24,8 +24,7 @@
 
 #include "hw_motor.h"
 
-//static const char *driverName="ecmcAsynPortDriver";
-void simTask(void *drvPvt);
+static const char *driverName="ecmcAsynPortDriver";
 
 /** Constructor for the ecmcAsynPortDriver class.
   * Calls constructor for the asynPortDriver base class.
@@ -56,7 +55,7 @@ asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_
    */
 
   *value = '\0';
-  lock();
+  //lock();
   if (CMDreadIt(value, maxChars)) status = asynError;
   if (status == asynSuccess) {
     thisRead = strlen(value);
@@ -83,7 +82,7 @@ asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_
             "%s thisRead=%lu data=\"%s\"\n",
             portName,
             (unsigned long)thisRead, value);
-  unlock();
+  //unlock();
   return status;
 }
 
@@ -116,6 +115,120 @@ asynStatus ecmcAsynPortDriver::writeOctet(asynUser *pasynUser, const char *value
             (unsigned long)*nActual,
             pasynManager->strStatus(status));
   return status;
+}
+
+asynStatus ecmcAsynPortDriver::writeInt32(asynUser *pasynUser, epicsInt32 value)
+{
+  int function = pasynUser->reason;
+  const char *paramName;
+  const char* functionName = "writeInt32";
+  /* Fetch the parameter string name for possible use in debugging */
+  getParamName(function, &paramName);
+
+  char buffer[1024];
+  char *aliasBuffer=&buffer[0];
+  int slavePosition=-10;
+  int nvals = sscanf(paramName, "EC%d_%s", &slavePosition,aliasBuffer);
+  if(nvals!=2){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, parameter name not valid: %s.\n",
+        driverName, functionName, paramName);
+    return asynError;
+  }
+  if(slavePosition<-1){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, slave bus position not valid (needs to be equal or larger than -1): %d.\n",
+        driverName, functionName, slavePosition);
+    return asynError;
+  }
+  if(strlen(aliasBuffer)<=0){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, ethercat slave alias not valid: %s.\n",
+        driverName, functionName,aliasBuffer);
+    return asynError;
+  }
+
+  int errorId=writeEcEntryIDString(slavePosition,aliasBuffer,(uint64_t)value);
+  if(errorId){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, write of parameter %s failed with error code 0x%x.\n",
+        driverName, functionName,aliasBuffer,errorId);
+    return asynError;
+  }
+
+  /* Set the parameter in the parameter library. */
+  asynStatus status = (asynStatus) setIntegerParam(function, value);
+  if(status !=asynSuccess){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, setIngerParam() failed.\n",
+        driverName, functionName);
+    return asynError;
+  }
+
+  /* Do callbacks so higher layers see any changes */
+  status = (asynStatus) callParamCallbacks();
+
+return status ;
+}
+
+//asynStatus ecmcAsynPortDriver::readInt32(asynUser *pasynUser, epicsInt32 *value)
+//{
+//  int function = pasynUser->reason;
+//  const char *paramName;
+//  const char* functionName = "writeInt32";
+//  /* Fetch the parameter string name for possible use in debugging */
+//  getParamName(function, &paramName);
+//
+//  char buffer[1024];
+//  char *aliasBuffer=&buffer[0];
+//  int slavePosition=-10;
+//  int nvals = sscanf(paramName, "EC%d_%s", &slavePosition,aliasBuffer);
+//  if(nvals!=2){
+//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+//        "%s:%s: error, parameter name not valid: %s.\n",
+//        driverName, functionName, paramName);
+//    return asynError;
+//  }
+//  if(slavePosition<-1){
+//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+//        "%s:%s: error, slave bus position not valid (needs to be equal or larger than -1): %d.\n",
+//        driverName, functionName, slavePosition);
+//    return asynError;
+//  }
+//  if(strlen(aliasBuffer)<=0){
+//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+//        "%s:%s: error, ethercat slave alias not valid: %s.\n",
+//        driverName, functionName,aliasBuffer);
+//    return asynError;
+//  }
+//  uint64_t tempValue=0;
+//  int errorId=readEcEntryIDString(slavePosition,aliasBuffer,&tempValue);
+//  if(errorId){
+//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+//        "%s:%s: error, read of parameter %s failed with error code 0x%x.\n",
+//        driverName, functionName,aliasBuffer,errorId);
+//    return asynError;
+//  }
+//
+//  /* Set the parameter in the parameter library. */
+//  asynStatus status = (asynStatus) setIntegerParam(function, (epicsInt32)tempValue);
+//  if(status !=asynSuccess){
+//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+//        "%s:%s: error, setIngerParam() failed.\n",
+//        driverName, functionName);
+//    return asynError;
+//  }
+//
+//  /* Do callbacks so higher layers see any changes */
+//  status = (asynStatus) callParamCallbacks();
+//
+//return status ;
+//}
+
+
+asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
+{
+  return asynSuccess;
 }
 
 /* Configuration routine.  Called directly, or from the iocsh function below */
@@ -194,31 +307,47 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
       printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32).\n",alias);
       break;
     case asynParamUInt32Digital:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamUInt32Digital).\n",alias);
+      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamUInt32Digital).\n",alias);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
       break;
     case asynParamFloat64:
       printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64).\n",alias);
       break;
     case asynParamOctet:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamOctet).\n",alias);
+      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamOctet).\n",alias);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
       break;
     case asynParamInt8Array:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt8Array).\n",alias);
+      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt8Array).\n",alias);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
       break;
     case asynParamInt16Array:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt16Array).\n",alias);
+      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt16Array).\n",alias);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
       break;
     case asynParamInt32Array:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32Array).\n",alias);
+      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32Array).\n",alias);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
       break;
     case asynParamFloat32Array:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat32Array).\n",alias);
+      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat32Array).\n",alias);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
       break;
     case asynParamFloat64Array:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64Array).\n",alias);
+      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64Array).\n",alias);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
       break;
     case asynParamGenericPointer:
-      printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamGenericPointer).\n",alias);
+      //printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamGenericPointer).\n",alias);
+      printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
       break;
     default:
       printf("ecmcAsynPortDriverAddParameter: ERROR: Parameter type %i not defined. Add parameter %s failed.\n",asynType,alias);

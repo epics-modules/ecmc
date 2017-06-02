@@ -93,7 +93,7 @@ void ecmcEcEntry::setAdrOffsets(int byteOffset,int bitOffset)
 int ecmcEcEntry::writeValue(uint64_t value)
 {
   value_=value;
-  return 0;
+  return updateAsyn();
 }
 
 int ecmcEcEntry::writeBit(int bitNumber, uint64_t value)
@@ -160,21 +160,21 @@ int ecmcEcEntry::updateInputProcessImage()
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
       break;
   }
-
+  updateAsyn();
   //I/O intr to EPICS
-  if(asynPortDriver_ && asynParameterIndex_>=0){
-    switch(asynParameterType_){
-      case asynParamInt32:
-        asynPortDriver_-> setIntegerParam(asynParameterIndex_,static_cast<int32_t>(value_));
-        break;
-      case asynParamFloat64:
-        asynPortDriver_-> setDoubleParam(asynParameterIndex_,static_cast<double>(value_));
-        break;
-      default:
-        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
-        break;
-    }
-  }
+//  if(asynPortDriver_ && asynParameterIndex_>=0){
+//    switch(asynParameterType_){
+//      case asynParamInt32:
+//        asynPortDriver_-> setIntegerParam(asynParameterIndex_,static_cast<int32_t>(value_));
+//        break;
+//      case asynParamFloat64:
+//        asynPortDriver_-> setDoubleParam(asynParameterIndex_,static_cast<double>(value_));
+//        break;
+//      default:
+//        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
+//        break;
+//    }
+//  }
   return 0;
 }
 
@@ -250,5 +250,25 @@ int ecmcEcEntry::getAsynParameterType()
 int ecmcEcEntry::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
 {
   asynPortDriver_=asynPortDriver;
+  return 0;
+}
+
+
+int ecmcEcEntry::updateAsyn()
+{
+//I/O intr to EPICS
+  if(asynPortDriver_ && asynParameterIndex_>=0){
+    switch(asynParameterType_){
+      case asynParamInt32:
+        asynPortDriver_-> setIntegerParam(asynParameterIndex_,static_cast<int32_t>(value_));
+        break;
+      case asynParamFloat64:
+        asynPortDriver_-> setDoubleParam(asynParameterIndex_,static_cast<double>(value_));
+        break;
+      default:
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
+        break;
+    }
+  }
   return 0;
 }
