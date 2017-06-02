@@ -168,67 +168,62 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser *pasynUser, epicsInt32 value)
   /* Do callbacks so higher layers see any changes */
   status = (asynStatus) callParamCallbacks();
 
-return status ;
+  return status;
 }
-
-//asynStatus ecmcAsynPortDriver::readInt32(asynUser *pasynUser, epicsInt32 *value)
-//{
-//  int function = pasynUser->reason;
-//  const char *paramName;
-//  const char* functionName = "writeInt32";
-//  /* Fetch the parameter string name for possible use in debugging */
-//  getParamName(function, &paramName);
-//
-//  char buffer[1024];
-//  char *aliasBuffer=&buffer[0];
-//  int slavePosition=-10;
-//  int nvals = sscanf(paramName, "EC%d_%s", &slavePosition,aliasBuffer);
-//  if(nvals!=2){
-//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-//        "%s:%s: error, parameter name not valid: %s.\n",
-//        driverName, functionName, paramName);
-//    return asynError;
-//  }
-//  if(slavePosition<-1){
-//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-//        "%s:%s: error, slave bus position not valid (needs to be equal or larger than -1): %d.\n",
-//        driverName, functionName, slavePosition);
-//    return asynError;
-//  }
-//  if(strlen(aliasBuffer)<=0){
-//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-//        "%s:%s: error, ethercat slave alias not valid: %s.\n",
-//        driverName, functionName,aliasBuffer);
-//    return asynError;
-//  }
-//  uint64_t tempValue=0;
-//  int errorId=readEcEntryIDString(slavePosition,aliasBuffer,&tempValue);
-//  if(errorId){
-//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-//        "%s:%s: error, read of parameter %s failed with error code 0x%x.\n",
-//        driverName, functionName,aliasBuffer,errorId);
-//    return asynError;
-//  }
-//
-//  /* Set the parameter in the parameter library. */
-//  asynStatus status = (asynStatus) setIntegerParam(function, (epicsInt32)tempValue);
-//  if(status !=asynSuccess){
-//    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-//        "%s:%s: error, setIngerParam() failed.\n",
-//        driverName, functionName);
-//    return asynError;
-//  }
-//
-//  /* Do callbacks so higher layers see any changes */
-//  status = (asynStatus) callParamCallbacks();
-//
-//return status ;
-//}
-
 
 asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
-  return asynSuccess;
+  int function = pasynUser->reason;
+  const char *paramName;
+  const char* functionName = "writeFloat64";
+  /* Fetch the parameter string name for possible use in debugging */
+  getParamName(function, &paramName);
+
+  char buffer[1024];
+  char *aliasBuffer=&buffer[0];
+  int slavePosition=-10;
+  int nvals = sscanf(paramName, "EC%d_%s", &slavePosition,aliasBuffer);
+  if(nvals!=2){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, parameter name not valid: %s.\n",
+        driverName, functionName, paramName);
+    return asynError;
+  }
+  if(slavePosition<-1){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, slave bus position not valid (needs to be equal or larger than -1): %d.\n",
+        driverName, functionName, slavePosition);
+    return asynError;
+  }
+  if(strlen(aliasBuffer)<=0){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, ethercat slave alias not valid: %s.\n",
+        driverName, functionName,aliasBuffer);
+    return asynError;
+  }
+
+
+  int errorId=writeEcEntryIDString(slavePosition,aliasBuffer,static_cast<uint64_t>(value));
+  if(errorId){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, write of parameter %s failed with error code 0x%x.\n",
+        driverName, functionName,aliasBuffer,errorId);
+    return asynError;
+  }
+
+  /* Set the parameter in the parameter library. */
+  asynStatus status = (asynStatus) setDoubleParam(function, value);
+  if(status !=asynSuccess){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        "%s:%s: error, setIngerParam() failed.\n",
+        driverName, functionName);
+    return asynError;
+  }
+
+  /* Do callbacks so higher layers see any changes */
+  status = (asynStatus) callParamCallbacks();
+
+  return status;
 }
 
 /* Configuration routine.  Called directly, or from the iocsh function below */
