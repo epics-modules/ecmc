@@ -617,7 +617,11 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, co
   std::string sEntryID=entryIDString;
 
   ecmcEcEntry *entry=slave->findEntry(sEntryID);
-
+  int addEntryArray(uint16_t startEntryBusPosition,
+ 		    std::string startEntryIDString,
+ 		    int byteSize,
+ 		    int type,
+ 		    std::string entryIDString);
   if(entry==NULL){
     return ERROR_EC_MAIN_ENTRY_NULL;
   }
@@ -655,4 +659,22 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, co
   entry->setAsynParameterSkipCycles(skipCycles);
 
   return 0;
+}
+
+
+int ecmcEc::addEntryArray(uint16_t startEntryBusPosition,
+		    std::string startEntryIDString,
+		    int byteSize,
+		    int type,
+		    ec_direction_t direction,
+		    std::string entryIDString)
+{
+
+  ecmcEcSlave* slave=findSlave(startEntryBusPosition);
+  if(!slave){
+    LOGERR("%s/%s:%d: ERROR: Slave with busposition %d noy found (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,startEntryBusPosition,ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
+  }
+
+  return slave->addEntryArray(startEntryIDString,byteSize,type,direction,entryIDString);
 }

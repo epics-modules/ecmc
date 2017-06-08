@@ -14,6 +14,7 @@
 
 #include "ecmcDefinitions.h"
 #include "ecmcEcEntry.h"
+#include "ecmcEcEntryArray.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcError.h"
 #include "cmd.h" //Logging macros
@@ -40,6 +41,9 @@
 #define ERROR_EC_SLAVE_STATE_UNDEFINED 0x24010
 #define ERROR_EC_SLAVE_NOT_OPERATIONAL 0x24011
 #define ERROR_EC_SLAVE_NOT_ONLINE 0x24012
+#define ERROR_EC_SLAVE_ENTRY_ARRAY_INDEX_OUT_OF_RANGE 0x24013
+#define ERROR_EC_SLAVE_ENTRY_ARRAY_START_ENTRY_NULL 0x24014
+#define ERROR_EC_SLAVE_ENTRY_ARRAY_NULL 0x24015
 
 typedef struct
 {
@@ -79,6 +83,11 @@ public:
       uint8_t        entrySubIndex,
       uint8_t        bits,
       std::string    id);
+  int addEntryArray(std::string startEntryIDString,
+		    size_t byteSize,
+		    int type,
+		    ec_direction_t direction,
+		    std::string entryIDString);
   int configDC(
       uint16_t assignActivate, /**< AssignActivate word. */
       uint32_t sync0Cycle, /**< SYNC0 cycle time [ns]. */
@@ -114,7 +123,7 @@ private:
   ec_pdo_info_t slavePdos_[EC_MAX_PDOS];
   ec_sync_info_t slaveSyncs_[EC_MAX_SYNC_MANAGERS];
   ecmcEcEntry *entryList_[EC_MAX_ENTRIES];
-  int entriesArrayIndex_;
+  int entryCounter_;
   int pdosArrayIndex_;
   int syncManArrayIndex_;
   int syncManCounter_;
@@ -126,5 +135,7 @@ private:
   bool simSlave_;  //used to simulate endswitches Consider make derived simulation class insteaed
   uint8_t simBuffer_[8*SIMULATION_ENTRIES]; //used to simulate endswitches
   ecmcEcEntry *simEntries_[SIMULATION_ENTRIES]; //used to simulate endswitches
+  ecmcEcEntryArray *entryArrayList_[EC_MAX_ARRAY_ENTRIES];
+  int entryArrayCounter_;
 };
 #endif /* ECMCECSLAVE_H_ */

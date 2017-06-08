@@ -31,7 +31,6 @@ void ecmcEcEntry::initVars()
 {
   errorReset();
   domainAdr_=NULL;
-  adrOffset_=0;
   bitLength_=0;
   bitOffset_=0;
   byteOffset_=0;
@@ -215,34 +214,6 @@ std::string ecmcEcEntry::getIdentificationName()
   return idString_;
 }
 
-int ecmcEcEntry::setAsynParameterIndex(int index)
-{
-  asynParameterIndex_=index;
-  return 0;
-}
-
-int ecmcEcEntry::getAsynParameterIndex()
-{
-  return asynParameterIndex_;
-}
-
-int ecmcEcEntry::setAsynParameterType(asynParamType parType)
-{
-  asynParameterType_=parType;
-  return 0;
-}
-
-int ecmcEcEntry::getAsynParameterType()
-{
-  return asynParameterType_;
-}
-
-int ecmcEcEntry::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
-{
-  asynPortDriver_=asynPortDriver;
-  return 0;
-}
-
 
 int ecmcEcEntry::updateAsyn(bool force)
 {
@@ -259,6 +230,7 @@ int ecmcEcEntry::updateAsyn(bool force)
         break;
       case asynParamFloat64:
         asynPortDriver_-> setDoubleParam(asynParameterIndex_,static_cast<double>(value_));
+
         break;
       default:
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
@@ -271,8 +243,13 @@ int ecmcEcEntry::updateAsyn(bool force)
   return 0;
 }
 
-int ecmcEcEntry::setAsynParameterSkipCycles(int skipCycles)
+int ecmcEcEntry::getByteOffset()
 {
-  asynUpdateCycles_=skipCycles;
-  return 0;
+  return byteOffset_;
 }
+
+uint8_t *ecmcEcEntry::getDomainAdr()
+{
+  return domainAdr_;
+}
+

@@ -92,6 +92,12 @@ public:
       uint8_t        bits,
       std::string    id
   );
+  int addEntryArray(uint16_t startEntryBusPosition,
+		    std::string startEntryIDString,
+		    int byteSize,
+		    int type,
+		    ec_direction_t direction,
+		    std::string entryIDString);
   ecmcEcSlave *findSlave(int busPosition);
   int findSlaveIndex(int busPosition,int *slaveIndex);
   int updateTime();

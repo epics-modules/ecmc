@@ -15,7 +15,7 @@
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
 #include "cmd.h" //Logging macros
-#include "ecmcAsynPortDriver.h"
+#include "ecmcAsynLink.h"
 
 #define BIT_SET(a,b) ((a) |= (1<<(b)))
 #define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))
@@ -34,7 +34,7 @@
 #define ERROR_EC_ENTRY_WRITE_FAIL 0x21008
 #define ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED 0x21009
 
-class ecmcEcEntry : public ecmcError
+class ecmcEcEntry : public ecmcError , public ecmcAsynLink
 {
 public:
   ecmcEcEntry(uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits, ec_direction_t nDirection, std::string id);
@@ -46,7 +46,9 @@ public:
   int getBits();
   int getEntryInfo(ec_pdo_entry_info_t *info);
   void setAdrOffsets(int byteOffset,int bitOffset);
+  int getByteOffset();
   void setDomainAdr(uint8_t *domainAdr); //After activate
+  uint8_t *getDomainAdr();
   int writeValue(uint64_t value);
   int writeBit(int bitNumber, uint64_t value);
   int readValue(uint64_t *value);
@@ -54,19 +56,11 @@ public:
   int updateInputProcessImage();
   int updateOutProcessImage();
   std::string getIdentificationName();
-  int setAsynParameterIndex(int index);
-  int setAsynParameterSkipCycles(int skipCycles);
-  int getAsynParameterIndex();
-  int setAsynParameterType(asynParamType parType);
-  int getAsynParameterType();
-  int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
-
 private:
   int updateAsyn(bool force);
   uint8_t *domainAdr_;
   uint16_t entryIndex_;
   uint8_t  entrySubIndex_;
-  int adrOffset_;
   int bitLength_;
   int bitOffset_;
   int byteOffset_;
@@ -74,11 +68,5 @@ private:
   ec_direction_t direction_;
   bool sim_;
   std::string idString_;
-  int asynParameterIndex_;
-  asynParamType asynParameterType_;
-  ecmcAsynPortDriver *asynPortDriver_;
-  int asynUpdateCycles_;
-  int asynUpdateCycleCounter_;
-
 };
 #endif /* ECMCECENTRY_H_ */

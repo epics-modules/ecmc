@@ -617,6 +617,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x24012:
       return "ERROR_EC_SLAVE_NOT_ONLINE";
       break;
+    case 0x24013:
+      return "ERROR_EC_SLAVE_ENTRY_ARRAY_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x24014:
+      return "ERROR_EC_SLAVE_ENTRY_ARRAY_START_ENTRY_NULL";
+      break;
+    case 0x24015:
+      return "ERROR_EC_SLAVE_ENTRY_ARRAY_NULL";
+      break;
     case 0x25000://ECSYNCMANAGER
       return "ERROR_EC_SM_PDO_ARRAY_FULL";
       break;

@@ -2322,6 +2322,26 @@ int ecAddEntryComplete(
   return ec.addEntry(position,vendorId,productCode,(ec_direction_t)direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
 }
 
+int ecAddEntryArray(
+    uint16_t startEntryBusPosition,
+    char *startEntryIDString,
+    size_t byteSize,
+    int type,
+    int direction,
+    char *entryIDString
+    )
+{
+  std::string entryId=entryIDString;
+  std::string startEntryId=startEntryIDString;
+
+  LOGINFO4("%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%lu, type=%d, direction=%d entryId=%s\n",__FILE__, __FUNCTION__, __LINE__,startEntryBusPosition,startEntryIDString,byteSize,type,direction,entryIDString);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.addEntryArray(startEntryBusPosition,startEntryId,byteSize,type,(ec_direction_t)direction,entryId);
+}
+
 int ecAddPdo(int slaveIndex,int syncManager,uint16_t pdoIndex)
 {
   LOGINFO4("%s/%s:%d slave=%d sm=%d pdo_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,syncManager,pdoIndex);
