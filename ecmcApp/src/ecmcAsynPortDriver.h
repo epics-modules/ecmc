@@ -39,7 +39,7 @@ public:
 
     /* These are the methods that are new to this class */
     void simTask(void);
-
+    asynUser *getTraceAsynUser();
 protected:
  
 private:

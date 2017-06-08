@@ -226,6 +226,12 @@ asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser, epicsFloat64 va
   return status;
 }
 
+asynUser *ecmcAsynPortDriver::getTraceAsynUser()
+{
+  return pasynUserSelf;
+}
+
+
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
 extern "C" {
@@ -248,12 +254,25 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
   maxParameters=paramTableSize;
   mytestAsynPort=new ecmcAsynPortDriver(portName,paramTableSize,disableAutoConnect==0,priority);
   if(mytestAsynPort){
-    pPrintOutAsynUser = pasynManager->createAsynUser(0, 0);
-    printf("ecmcAsynPortDriverAddParameter: INFO: New AsynPortDriver success (%s,%i,%i,%i).",portName,paramTableSize,disableAutoConnect==0,priority);
+    asynUser *traceUser= mytestAsynPort->getTraceAsynUser();
+    if(!traceUser){
+      printf("ecmcAsynPortDriverConfigure: ERROR: Failed to retrieve asynUser for trace. \n");
+      return (asynError);
+    }
+
+    pPrintOutAsynUser = pasynManager->duplicateAsynUser(traceUser, 0, 0);
+
+    if(!pPrintOutAsynUser){
+      printf("ecmcAsynPortDriverConfigure: ERROR: Failed to duplicate asynUser for trace. \n");
+      return (asynError);
+    }
+
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverConfigure: INFO: New AsynPortDriver success (%s,%i,%i,%i).",portName,paramTableSize,disableAutoConnect==0,priority);
+
     return(asynSuccess);
   }
   else{
-    printf("ecmcAsynPortDriverAddParameter: ERROR: New AsynPortDriver failed.");
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverConfigure: ERROR: New AsynPortDriver failed.");
     return(asynError);
   }
 }
@@ -279,18 +298,24 @@ static void initCallFunc(const iocshArgBuf *args)
 //****************************** Add parameter
 int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const char *alias, const char *asynTypeString, int skipCycles)
 {
-  if (0 != strcmp(mytestAsynPort->portName,portName)){
-    printf("ecmcAsynPortDriverAddParameter: ERROR: Port name missmatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,mytestAsynPort->portName);
+
+  if(!mytestAsynPort){
+    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object NULL (mytestAsynPort==NULL).\n");
     return(asynError);
   }
 
-  if(!mytestAsynPort){
-    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object NULL (mytestAsynPort==NULL)..\n");
+  if(!pPrintOutAsynUser){
+    printf("ecmcAsynPortDriverAddParameter: ERROR: asynUser trace object NULL (pPrintOutAsynUser==NULL).\n");
+    return(asynError);
+  }
+
+  if (0 != strcmp(mytestAsynPort->portName,portName)){
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Port name missmatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,mytestAsynPort->portName);
     return(asynError);
   }
 
   if(parameterCounter>=maxParameters){
-    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriverObject full (max allowed number of parameters = %i).\n",maxParameters);
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: asynPortDriverObject full (max allowed number of parameters = %i).\n",maxParameters);
     return(asynError);
   }
 
@@ -299,29 +324,29 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
   int nvals=strcmp(asynTypeString,"asynInt32");
   if (nvals == 0) {
     asynType=asynParamInt32;
-    printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32).\n",alias);
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32).\n",alias);
   }
 
   nvals=strcmp(asynTypeString,"asynFloat64");
   if (nvals == 0) {
     asynType=asynParamFloat64;
-    printf("ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64).\n",alias);
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64).\n",alias);
   }
 
   if(asynType<=0){
-    printf("ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
     return(asynError);
   }
 
   int errorCode=linkEcEntryToAsynParameter(mytestAsynPort,slaveNumber,alias,asynType,skipCycles);
 
   if(errorCode){
-    printf("ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",alias,errorCode);
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",alias,errorCode);
     return asynError;
   }
 
   parameterCounter++;
-  printf("ecmcAsynPortDriverAddParameter: INFO: Parameter (alias=%s,busPosition=%d) added successfully.\n",alias,slaveNumber);
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter (alias=%s,busPosition=%d) added successfully.\n",alias,slaveNumber);
 
   return asynSuccess;
 }
