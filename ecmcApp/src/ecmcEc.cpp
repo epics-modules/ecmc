@@ -183,6 +183,7 @@ int ecmcEc::activate()
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_ENTRY_NULL);
       }
       tempEntry->setDomainAdr(domainPd_);
+      LOGINFO5("%s/%s:%d: INFO: Entry %s (index = %d): domainAdr: %p.\n",__FILE__, __FUNCTION__, __LINE__,tempEntry->getIdentificationName().c_str(),entryIndex,domainPd_);
     }
   }
   return 0;
@@ -252,6 +253,7 @@ int ecmcEc::compileRegInfo()
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_ENTRY_NULL);
       }
       tempEntry->setAdrOffsets(pdoByteOffsetArray_[entryCounter],pdoBitOffsetArray_[entryCounter]);
+      LOGINFO5("%s/%s:%d: INFO: Entry %s (index=%d): Byteoffset: %d, bit offset %d.\n",__FILE__, __FUNCTION__, __LINE__,tempEntry->getIdentificationName().c_str(),entryIndex,pdoByteOffsetArray_[entryCounter],pdoBitOffsetArray_[entryCounter]);
       entryCounter++;
     }
   }
