@@ -62,7 +62,7 @@ public:
   int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
 
 private:
-  int updateAsyn();
+  int updateAsyn(bool force);
   uint8_t *domainAdr_;
   uint16_t entryIndex_;
   uint8_t  entrySubIndex_;

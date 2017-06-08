@@ -96,7 +96,7 @@ void ecmcEcEntry::setAdrOffsets(int byteOffset,int bitOffset)
 int ecmcEcEntry::writeValue(uint64_t value)
 {
   value_=value;
-  return updateAsyn();
+  return updateAsyn(1);
 }
 
 int ecmcEcEntry::writeBit(int bitNumber, uint64_t value)
@@ -164,7 +164,7 @@ int ecmcEcEntry::updateInputProcessImage()
       break;
   }
 
-  updateAsyn();
+  updateAsyn(0);
   return 0;
 }
 
@@ -244,14 +244,14 @@ int ecmcEcEntry::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
 }
 
 
-int ecmcEcEntry::updateAsyn()
+int ecmcEcEntry::updateAsyn(bool force)
 {
   //I/O intr to EPICS
   if(!asynPortDriver_ || asynParameterIndex_<0){
    return 0;
   }
 
-  if(asynUpdateCycleCounter_>=asynUpdateCycles_){ //Only update at desired samplerate
+  if(asynUpdateCycleCounter_>=asynUpdateCycles_ || force){ //Only update at desired samplerate
     asynUpdateCycleCounter_=0;
     switch(asynParameterType_){
       case asynParamInt32:
@@ -265,13 +265,14 @@ int ecmcEcEntry::updateAsyn()
         break;
     }
   }
-  asynUpdateCycleCounter_++;
+  else{
+    asynUpdateCycleCounter_++;
+  }
   return 0;
 }
 
 int ecmcEcEntry::setAsynParameterSkipCycles(int skipCycles)
 {
-  printf("setAsynParameterSkipCycles(%d).\n",skipCycles);
   asynUpdateCycles_=skipCycles;
   return 0;
 }
