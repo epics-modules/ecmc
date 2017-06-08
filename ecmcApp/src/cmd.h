@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /* global to be used by all printing */
-//extern  asynUser *pCmdAsynUser;
+//extern  asynUser *pPrintOutAsynUser;
 extern  asynUser *pPrintOutAsynUser;
 
   /*
