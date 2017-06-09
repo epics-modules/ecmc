@@ -55,6 +55,8 @@ public:
   int readBit(int bitNumber, uint64_t* value);
   int updateInputProcessImage();
   int updateOutProcessImage();
+  int setUpdateInRealtime(int update);
+  int getUpdateInRealtime();
   std::string getIdentificationName();
 private:
   int updateAsyn(bool force);
@@ -68,5 +70,6 @@ private:
   ec_direction_t direction_;
   bool sim_;
   std::string idString_;
+  int updateInRealTime_;
 };
 #endif /* ECMCECENTRY_H_ */

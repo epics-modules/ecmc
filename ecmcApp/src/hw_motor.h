@@ -3424,6 +3424,19 @@ int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString
  */
 int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead);
 
+/* \breif Set update in realtime bit for an entry
+ *
+ * If set to zero the entry will not be updated during realtime operation.\n
+ * Useful when accessing data with memory maps instead covering many entries
+ * like oversampling arrays (its the unnecessary to update each entry in
+ * array).\n
+ */
+int ecSetEntryUpdateInRealtime(
+    uint16_t slavePosition,
+    char *entryIDString,
+    int updateInRealtime
+    );
+
 /** \breif Enable EtherCAT bus diagnostics.\n
   *
   * Diagnostics are made at three different levels:\n

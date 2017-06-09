@@ -2322,6 +2322,37 @@ int ecAddEntryComplete(
   return ec.addEntry(position,vendorId,productCode,(ec_direction_t)direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
 }
 
+int ecSetEntryUpdateInRealtime(
+    uint16_t slavePosition,
+    char *entryIDString,
+    int updateInRealtime
+    )
+{
+  LOGINFO4("%s/%s:%d slave=%d id=%s updateInRealtime=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,entryIDString,updateInRealtime);
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave=NULL;
+  if(slavePosition>=0){
+    slave=ec.findSlave(slavePosition);
+  }
+  else{ //simulation slave
+    slave=ec.getSlave(slavePosition);
+  }
+
+  if(slave==NULL)
+    return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID=entryIDString;
+
+  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+  return entry->setUpdateInRealtime(updateInRealtime);
+}
+
 int ecAddMemMap(
     uint16_t startEntryBusPosition,
     char *startEntryIDString,

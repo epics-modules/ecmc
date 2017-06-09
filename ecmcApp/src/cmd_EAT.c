@@ -578,6 +578,18 @@ static int handleCfgCommand(const char *myarg_1){
     return ecSelectReferenceDC(iValue,iValue2);
   }
 
+
+  /*Cfg.EcSetEntryUpdateInRealtime(
+      uint16_t slavePosition,
+      char *entryIDString,
+      int updateInRealtime
+      );
+      */
+  nvals = sscanf(myarg_1, "EcSetEntryUpdateInRealtime(%d,%[^,],%d)", &iValue,cIdBuffer,&iValue2);
+  if (nvals == 3) {
+    return ecSetEntryUpdateInRealtime(iValue,cIdBuffer,iValue2);
+  }
+
   /*Cfg.EcResetError()*/
   if (0 == strcmp(myarg_1, "EcResetError()")){
     return ecResetError();

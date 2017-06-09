@@ -46,7 +46,7 @@ void ecmcEcEntry::initVars()
   asynPortDriver_=NULL;
   asynUpdateCycles_=0;
   asynUpdateCycleCounter_=0;
-
+  updateInRealTime_=1;
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -125,6 +125,10 @@ int ecmcEcEntry::readBit(int bitNumber, uint64_t* value)
 
 int ecmcEcEntry::updateInputProcessImage()
 {
+  if(!updateInRealTime_){
+    return 0;
+  }
+
   if(direction_!=EC_DIR_INPUT && !sim_){
     return 0;
   }
@@ -169,6 +173,10 @@ int ecmcEcEntry::updateInputProcessImage()
 
 int ecmcEcEntry::updateOutProcessImage()
 {
+  if(!updateInRealTime_){
+    return 0;
+  }
+
   if(direction_!=EC_DIR_OUTPUT && !sim_){
     return 0;
   }
@@ -253,3 +261,13 @@ uint8_t *ecmcEcEntry::getDomainAdr()
   return domainAdr_;
 }
 
+int ecmcEcEntry::setUpdateInRealtime(int update)
+{
+  updateInRealTime_=update;
+  return 0;
+}
+
+int ecmcEcEntry::getUpdateInRealtime()
+{
+  return updateInRealTime_;
+}
