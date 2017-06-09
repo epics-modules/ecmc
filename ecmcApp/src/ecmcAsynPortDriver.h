@@ -32,8 +32,8 @@ public:
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
     //virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
-    //virtual asynStatus readFloat64Array(asynUser *pasynUser, epicsFloat64 *value,
-                                        //size_t nElements, size_t *nIn);
+    //virtual asynStatus readFloat64Array(asynUser *pasynUser, epicsFloat64 *value,size_t nElements, size_t *nIn);
+    virtual asynStatus readInt16Array(asynUser *pasynUser, epicsInt16 *value,size_t nElements, size_t *nIn);
     //virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], int values[], int severities[],
                                 //size_t nElements, size_t *nIn);
 

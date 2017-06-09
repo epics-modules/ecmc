@@ -2322,24 +2322,23 @@ int ecAddEntryComplete(
   return ec.addEntry(position,vendorId,productCode,(ec_direction_t)direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
 }
 
-int ecAddEntryArray(
+int ecAddMemMap(
     uint16_t startEntryBusPosition,
     char *startEntryIDString,
     size_t byteSize,
-    int type,
     int direction,
-    char *entryIDString
+    char *memMapIDString
     )
 {
-  std::string entryId=entryIDString;
+  std::string memMapId=memMapIDString;
   std::string startEntryId=startEntryIDString;
 
-  LOGINFO4("%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%lu, type=%d, direction=%d entryId=%s\n",__FILE__, __FUNCTION__, __LINE__,startEntryBusPosition,startEntryIDString,byteSize,type,direction,entryIDString);
+  LOGINFO4("%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%lu, direction=%d entryId=%s\n",__FILE__, __FUNCTION__, __LINE__,startEntryBusPosition,startEntryIDString,byteSize,direction,memMapIDString);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.addEntryArray(startEntryBusPosition,startEntryId,byteSize,type,(ec_direction_t)direction,entryId);
+  return ec.addMemMap(startEntryBusPosition,startEntryId,byteSize,0,(ec_direction_t)direction,memMapId);
 }
 
 int ecAddPdo(int slaveIndex,int syncManager,uint16_t pdoIndex)
@@ -2515,14 +2514,40 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
   return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);
 }
 
-int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType,int skipCycles)
+int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles)
 {
-  LOGINFO4("%s/%s:%d slave_position=%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveNumber,entryIDString,asynParType,skipCycles);
+  LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,entryIDString,asynParType,skipCycles);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.linkEcEntryToAsynParameter(asynPortObject,slaveNumber,entryIDString,asynParType,skipCycles);
+  return ec.linkEcEntryToAsynParameter(asynPortObject,entryIDString,asynParType,skipCycles);
+}
+
+int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,asynParType,skipCycles);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.linkEcMemMapToAsynParameter(asynPortObject,memMapIDString,asynParType,skipCycles);
+
+}
+
+int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead)
+{
+  LOGINFO4("%s/%s:%d alias=%s bytesToRead=%lu\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,bytesToRead);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcMemMap *memMap=ec.findMemMap(memMapIDString);
+  if(!memMap){
+    return ERROR_MAIN_MEM_MAP_NULL;
+  }
+
+  return memMap->read(data,bytesToRead,bytesRead);
 }
 
 int writeEcEntry(int slaveIndex, int entryIndex,uint64_t value)

@@ -617,15 +617,6 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x24012:
       return "ERROR_EC_SLAVE_NOT_ONLINE";
       break;
-    case 0x24013:
-      return "ERROR_EC_SLAVE_ENTRY_ARRAY_INDEX_OUT_OF_RANGE";
-      break;
-    case 0x24014:
-      return "ERROR_EC_SLAVE_ENTRY_ARRAY_START_ENTRY_NULL";
-      break;
-    case 0x24015:
-      return "ERROR_EC_SLAVE_ENTRY_ARRAY_NULL";
-      break;
     case 0x25000://ECSYNCMANAGER
       return "ERROR_EC_SM_PDO_ARRAY_FULL";
       break;
@@ -706,6 +697,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x26017:
       return "ERROR_EC_ASYN_SKIP_CYCLES_INVALID";
+      break;
+    case 0x26018:
+      return "ERROR_EC_MEM_MAP_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x26019:
+      return "ERROR_EC_MEM_MAP_START_ENTRY_NULL";
+      break;
+    case 0x2601A:
+      return "ERROR_EC_MEM_MAP_NULL";
       break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
@@ -844,6 +844,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x2002E:
       return "ERROR_MAIN_PRINT_TO_BUFFER_FAIL";
+      break;
+    case 0x2002F:
+      return "ERROR_MAIN_MEM_MAP_NULL";
       break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";

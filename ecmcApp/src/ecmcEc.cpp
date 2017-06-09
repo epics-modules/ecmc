@@ -58,6 +58,12 @@ void ecmcEc::initVars()
   memset(&masterState_,0,sizeof(masterState_));
   inStartupPhase_=true;
   asynPortDriver_=NULL;
+
+  ecMemMapArrayCounter_=0;
+  for(int i=0;i<EC_MAX_MEM_MAPS;i++){
+    ecMemMapArray_[i]=NULL;
+  }
+  domainSize_=0;
 }
 
 int ecmcEc::init(int nMasterIndex)
@@ -94,6 +100,11 @@ ecmcEc::~ecmcEc()
   if(simSlave_!=NULL){
     delete simSlave_;
     simSlave_=NULL;
+  }
+
+  for(int i=0;i<EC_MAX_MEM_MAPS;i++){
+    delete ecMemMapArray_[i];
+    ecMemMapArray_[i]=NULL;
   }
 }
 
@@ -186,6 +197,7 @@ int ecmcEc::activate()
       LOGINFO5("%s/%s:%d: INFO: Entry %s (index = %d): domainAdr: %p.\n",__FILE__, __FUNCTION__, __LINE__,tempEntry->getIdentificationName().c_str(),entryIndex,domainPd_);
     }
   }
+
   return 0;
 }
 
@@ -257,6 +269,15 @@ int ecmcEc::compileRegInfo()
       entryCounter++;
     }
   }
+
+  //Set domain size to MemMap objects to avoid write outside memarea
+  domainSize_=ecrt_domain_size(domain_);
+  for(int i=0;i<ecMemMapArrayCounter_;i++){
+    if(ecMemMapArray_[i]){
+      ecMemMapArray_[i]->setDomainSize(domainSize_);
+    }
+  }
+
   LOGINFO5("%s/%s:%d: INFO: Leaving ecmcEc::compileRegInfo. Entries registered: %d.\n",__FILE__, __FUNCTION__, __LINE__,entryCounter);
   return 0;
 }
@@ -477,6 +498,12 @@ int ecmcEc::updateInputProcessImage()
     }
   }
 
+  for(int i=0;i<ecMemMapArrayCounter_;i++){
+    if(ecMemMapArray_[i]!=NULL){
+      ecMemMapArray_[i]->updateInputProcessImage();
+    }
+  }
+
   return 0;
 }
 
@@ -485,6 +512,12 @@ int ecmcEc::updateOutProcessImage()
   for(int i=0;i<slaveCounter_;i++){
     if(slaveArray_[i]!=NULL){
       slaveArray_[i]->updateOutProcessImage();
+    }
+  }
+
+  for(int i=0;i<ecMemMapArrayCounter_;i++){
+    if(ecMemMapArray_[i]!=NULL){
+	ecMemMapArray_[i]->updateOutProcessImage();
     }
   }
 
@@ -600,7 +633,15 @@ timespec ecmcEc::timespecAdd(timespec time1, timespec time2)
   return result;
 }
 
-int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType, int skipCycles){
+int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType, int skipCycles)
+{
+  char alias[1024];
+  int slaveNumber=0;
+  int nvals = sscanf(entryIDString,"EC%d_%s", &slaveNumber,alias);
+  if (nvals != 2) {
+    LOGERR("%s/%s:%d: ERROR: Slave number not found in alias %s ,(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryIDString,ERROR_EC_MAIN_ENTRY_NULL);
+    return ERROR_EC_MAIN_SLAVE_NULL;
+  }
 
   ecmcEcSlave *slave=NULL;
   if(slaveNumber>=0){
@@ -611,31 +652,22 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, co
   }
 
   if(slave==NULL){
+    LOGERR("%s/%s:%d: ERROR: Slave not found ,(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_ENTRY_NULL);
     return ERROR_EC_MAIN_SLAVE_NULL;
   }
 
-  std::string sEntryID=entryIDString;
+  std::string sID=alias;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
-  int addEntryArray(uint16_t startEntryBusPosition,
- 		    std::string startEntryIDString,
- 		    int byteSize,
- 		    int type,
- 		    std::string entryIDString);
+
+  ecmcEcEntry *entry=slave->findEntry(sID);
   if(entry==NULL){
+    LOGERR("%s/%s:%d: ERROR: Entry not found ,(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_ENTRY_NULL);
     return ERROR_EC_MAIN_ENTRY_NULL;
   }
 
   if(skipCycles<0){
     LOGERR("%s/%s:%d: ERROR: Skip cycles value invalid (must >=0),(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ASYN_SKIP_CYCLES_INVALID);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_SKIP_CYCLES_INVALID);
-  }
-
-  char buffer[1024];
-  uint bytesWritten=snprintf ( buffer, sizeof(buffer), "EC%d_%s",slaveNumber,entryIDString);
-  if(bytesWritten>=sizeof(buffer)-1){
-    LOGERR("%s/%s:%d: ERROR: Alias to long (0x%x). Buffer size is %d.\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ALIAS_TO_LONG,(int)sizeof(buffer));
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ALIAS_TO_LONG);
   }
 
   int index=-1;
@@ -646,7 +678,7 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, co
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_PORT_OBJ_NULL);
   }
 
-  asynStatus status = asynPortDriver_->createParam(buffer,(asynParamType)asynParType,&index);
+  asynStatus status = asynPortDriver_->createParam(entryIDString,(asynParamType)asynParType,&index);
 
   if(index<0 || status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Asyn port driver: Create parameter failed with asyncode %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,status,ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL);
@@ -661,20 +693,90 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, co
   return 0;
 }
 
+int ecmcEc::linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles)
+{
 
-int ecmcEc::addEntryArray(uint16_t startEntryBusPosition,
+   std::string sID=memMapIDString;
+
+   ecmcEcMemMap *memMap=findMemMap(sID);
+   if(memMap==NULL){
+     LOGERR("%s/%s:%d: ERROR: Entry not found ,(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MEM_MAP_NULL);
+     return ERROR_EC_MEM_MAP_NULL;
+   }
+
+   if(skipCycles<0){
+     LOGERR("%s/%s:%d: ERROR: Skip cycles value invalid (must >=0),(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ASYN_SKIP_CYCLES_INVALID);
+     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_SKIP_CYCLES_INVALID);
+   }
+
+   int index=-1;
+
+   asynPortDriver_=(ecmcAsynPortDriver*)asynPortObject;
+
+   if(asynPortDriver_==NULL){
+     LOGERR("%s/%s:%d: ERROR: Asyn port driver object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ASYN_PORT_OBJ_NULL);
+     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_PORT_OBJ_NULL);
+   }
+
+   asynStatus status = asynPortDriver_->createParam(memMapIDString,(asynParamType)asynParType,&index);
+
+   if(index<0 || status!=asynSuccess){
+     LOGERR("%s/%s:%d: ERROR: Asyn port driver: Create parameter failed with asyncode %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,status,ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL);
+     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL);
+   }
+
+   memMap->setAsynParameterIndex(index);
+   memMap->setAsynParameterType((asynParamType)asynParType);
+   memMap->setAsynPortDriver(asynPortDriver_);
+   memMap->setAsynParameterSkipCycles(skipCycles);
+
+   return 0;
+}
+
+int ecmcEc::addMemMap(uint16_t startEntryBusPosition,
 		    std::string startEntryIDString,
 		    int byteSize,
 		    int type,
 		    ec_direction_t direction,
-		    std::string entryIDString)
+		    std::string memMapIDString)
 {
-
   ecmcEcSlave* slave=findSlave(startEntryBusPosition);
   if(!slave){
     LOGERR("%s/%s:%d: ERROR: Slave with busposition %d noy found (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,startEntryBusPosition,ERROR_EC_MAIN_SLAVE_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
   }
 
-  return slave->addEntryArray(startEntryIDString,byteSize,type,direction,entryIDString);
+  if(ecMemMapArrayCounter_>=EC_MAX_MEM_MAPS){
+    LOGERR("%s/%s:%d: ERROR: Adding ecMemMap failed. Array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MEM_MAP_INDEX_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MEM_MAP_INDEX_OUT_OF_RANGE);
+  }
+
+  ecmcEcEntry *entry=slave->findEntry(startEntryIDString);
+  if(!entry){
+    LOGERR("%s/%s:%d: ERROR: Adding ecMemMap failed. Start entry not found (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MEM_MAP_START_ENTRY_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MEM_MAP_START_ENTRY_NULL);
+  }
+
+  ecMemMapArray_[ecMemMapArrayCounter_]=new ecmcEcMemMap(entry,byteSize,type,direction,memMapIDString);
+
+  if(!ecMemMapArray_[ecMemMapArrayCounter_]){
+    LOGERR("%s/%s:%d: ERROR: Adding ecMemMap failed. New ecmcEcMemMap fail (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MEM_MAP_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MEM_MAP_NULL );
+  }
+
+  ecMemMapArrayCounter_++;
+  return 0;
+}
+
+ecmcEcMemMap *ecmcEc::findMemMap(std::string id)
+{
+  ecmcEcMemMap *temp=NULL;
+  for(int i=0;i<ecMemMapArrayCounter_;i++){
+    if(ecMemMapArray_[i]){
+      if(ecMemMapArray_[i]->getIdentificationName().compare(id)==0){
+	temp=ecMemMapArray_[i];
+      }
+    }
+  }
+  return temp;
 }

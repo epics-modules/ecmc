@@ -38,7 +38,7 @@
 //EtherCAT
 #define EC_MAX_PDOS 512
 #define EC_MAX_ENTRIES 8192
-#define EC_MAX_ARRAY_ENTRIES 8
+#define EC_MAX_MEM_MAPS 8
 #define EC_MAX_SLAVES 512
 
 //Data recording

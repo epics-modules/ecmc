@@ -20,6 +20,7 @@
 #include "ecmcError.h"
 #include "cmd.h" //Logging macros
 #include "ecmcAsynPortDriver.h"
+#include "ecmcEcMemMap.h"
 
 //EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
@@ -46,10 +47,9 @@
 #define ERROR_EC_ASYN_PORT_OBJ_NULL 0x26015
 #define ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL 0x26016
 #define ERROR_EC_ASYN_SKIP_CYCLES_INVALID 0x26017
-
-
-
-
+#define ERROR_EC_MEM_MAP_INDEX_OUT_OF_RANGE 0x26018
+#define ERROR_EC_MEM_MAP_START_ENTRY_NULL 0x26019
+#define ERROR_EC_MEM_MAP_NULL 0x2601A
 
 class ecmcEc : public ecmcError
 {
@@ -92,12 +92,13 @@ public:
       uint8_t        bits,
       std::string    id
   );
-  int addEntryArray(uint16_t startEntryBusPosition,
+  int addMemMap(uint16_t startEntryBusPosition,
 		    std::string startEntryIDString,
 		    int byteSize,
 		    int type,
 		    ec_direction_t direction,
-		    std::string entryIDString);
+		    std::string memMapIDString);
+  ecmcEcMemMap *findMemMap(std::string id);
   ecmcEcSlave *findSlave(int busPosition);
   int findSlaveIndex(int busPosition,int *slaveIndex);
   int updateTime();
@@ -106,7 +107,8 @@ public:
   int setDomainFailedCyclesLimitInterlock(int cycles);
   void printStatus();
   int reset();
-  int linkEcEntryToAsynParameter(void* asynPortObject, int slaveNumber, const char *entryIDString, int asynParType,int skipCycles);
+  int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
+  int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
 private:
   void initVars();
   int updateInputProcessImage();
@@ -138,5 +140,9 @@ private:
   int domainNotOKCyclesLimit_;
   bool inStartupPhase_;
   ecmcAsynPortDriver *asynPortDriver_;
+  ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
+  int ecMemMapArrayCounter_;
+  size_t domainSize_;
+
 };
 #endif /* ECMCEC_H_ */

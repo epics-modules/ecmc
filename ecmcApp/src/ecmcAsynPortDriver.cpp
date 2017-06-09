@@ -34,8 +34,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
    : asynPortDriver(portName, 
                     1, /* maxAddr */ 
 		    paramTableSize,
-                    asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask, /* Interface mask */
-                    asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynEnumMask | asynOctetMask,  /* Interrupt mask */
+                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask | asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask, /* Interface mask */
+		    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask | asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask,  /* Interrupt mask */
 		    ASYN_CANBLOCK, /* asynFlags.  This driver does not block and it is not multi-device, so flag is 0 */
 		    autoConnect, /* Autoconnect */
 		    priority, /* Default priority */
@@ -43,6 +43,13 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
 {
   eventId_ = epicsEventCreate(epicsEventEmpty);
 }
+
+/*
+ * -
+-                    asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynEnumMask | asynOctetMask,
++                   asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask || asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask,
++                   asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask || asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask,
+*/
 
 asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason)
 {
@@ -231,6 +238,22 @@ asynUser *ecmcAsynPortDriver::getTraceAsynUser()
   return pasynUserSelf;
 }
 
+asynStatus ecmcAsynPortDriver::readInt16Array(asynUser *pasynUser, epicsInt16 *value,size_t nElements, size_t *nIn)
+{
+  int function = pasynUser->reason;
+  const char *paramName;
+  const char* functionName = "readInt16Array";
+  /* Fetch the parameter string name for possible use in debugging */
+  getParamName(function, &paramName);
+
+  int errorId=readEcMemMap(paramName,(uint8_t*)value,nElements,nIn);
+
+  if(errorId){
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,"%s:%s: error, read of parameter %s failed with error code 0x%x.\n",driverName, functionName,paramName,errorId);
+    return (asynError);
+  }
+  return (asynSuccess);
+}
 
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
@@ -294,9 +317,8 @@ static void initCallFunc(const iocshArgBuf *args)
     ecmcAsynPortDriverConfigure(args[0].sval, args[1].ival,args[2].ival,args[3].ival);
 }
 
-
 //****************************** Add parameter
-int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const char *alias, const char *asynTypeString, int skipCycles)
+int ecmcAsynPortDriverAddParameter(const char *portName, const char *alias, const char *asynTypeString, int skipCycles)
 {
 
   if(!mytestAsynPort){
@@ -320,6 +342,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
   }
 
   int asynType=-10;
+  int memMapAccess=0;
 
   int nvals=strcmp(asynTypeString,"asynInt32");
   if (nvals == 0) {
@@ -333,12 +356,72 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64).\n",alias);
   }
 
+  nvals=strcmp(asynTypeString,"asynInt8ArrayIn");
+  if (nvals == 0) {
+    asynType=asynParamInt8Array;
+    memMapAccess=1;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynInt8ArrayIn).\n",alias);
+  }
+
+  nvals=strcmp(asynTypeString,"asynInt16ArrayIn");
+  if (nvals == 0) {
+    asynType=asynParamInt16Array;
+    memMapAccess=1;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynInt16ArrayIn).\n",alias);
+  }
+
+  nvals=strcmp(asynTypeString,"asynInt32ArrayIn");
+  if (nvals == 0) {
+    asynType=asynParamInt32Array;
+    memMapAccess=1;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynInt32ArrayIn).\n",alias);
+  }
+
+  nvals=strcmp(asynTypeString,"asynFloat32ArrayIn");
+  if (nvals == 0) {
+    asynType=asynParamFloat32Array;
+    memMapAccess=1;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynFloat32ArrayIn).\n",alias);
+  }
+
+  nvals=strcmp(asynTypeString,"asynFloat64ArrayIn");
+  if (nvals == 0) {
+    asynType=asynParamFloat64Array;
+    memMapAccess=1;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynFloat64ArrayIn).\n",alias);
+  }
+
   if(asynType<=0){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR:: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
     return(asynError);
   }
 
-  int errorCode=linkEcEntryToAsynParameter(mytestAsynPort,slaveNumber,alias,asynType,skipCycles);
+  /*
+  "asynInt8ArrayIn"
+  "asynInt8ArrayOut"
+  "asynInt16ArrayIn"
+  "asynInt16ArrayOut"
+  "asynInt32ArrayIn"
+  "asynInt32ArrayOut"
+  "asynFloat32ArrayIn"
+  "asynFloat32ArrayOut"
+  "asynFloat64ArrayIn"
+  "asynFloat64ArrayOut"
+  asynParamInt8Array
+  asynParamInt16Array
+  asynParamInt32Array
+  asynParamFloat32Array
+  asynParamFloat64Array
+  */
+  int errorCode=0;
+  if(!memMapAccess){
+    //Ec Entry access
+    errorCode=linkEcEntryToAsynParameter(mytestAsynPort,alias,asynType,skipCycles);
+  }
+  else{
+    //Ec Mem Map access (arrays)
+    errorCode=linkEcMemMapToAsynParameter(mytestAsynPort,alias,asynType,skipCycles);
+  }
 
   if(errorCode){
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",alias,errorCode);
@@ -346,28 +429,27 @@ int ecmcAsynPortDriverAddParameter(const char *portName, int slaveNumber,const c
   }
 
   parameterCounter++;
-  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter (alias=%s,busPosition=%d) added successfully.\n",alias,slaveNumber);
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",alias);
 
   return asynSuccess;
 }
 
 /* EPICS iocsh shell command:  ecmcAsynPortDriverAddParameter*/
 static const iocshArg initArg0_2 = { "port name",iocshArgString};
-static const iocshArg initArg1_2 = { "slave number",iocshArgInt};
-static const iocshArg initArg2_2 = { "alias",iocshArgString};
-static const iocshArg initArg3_2 = { "asynType",iocshArgString};
-static const iocshArg initArg4_2 = { "skipCycles",iocshArgInt};
+static const iocshArg initArg1_2 = { "alias",iocshArgString};
+static const iocshArg initArg2_2 = { "asynType",iocshArgString};
+static const iocshArg initArg3_2 = { "skipCycles",iocshArgInt};
 
 static const iocshArg * const initArgs_2[] = {&initArg0_2,
                                               &initArg1_2,
 					      &initArg2_2,
-					      &initArg3_2,
-                                              &initArg4_2};
+					      &initArg3_2
+                                              };
 
-static const iocshFuncDef initFuncDef_2 = {"ecmcAsynPortDriverAddParameter",5,initArgs_2};
+static const iocshFuncDef initFuncDef_2 = {"ecmcAsynPortDriverAddParameter",4,initArgs_2};
 static void initCallFunc_2(const iocshArgBuf *args)
 {
-  ecmcAsynPortDriverAddParameter(args[0].sval, args[1].ival,args[2].sval, args[3].sval,args[4].ival);
+  ecmcAsynPortDriverAddParameter(args[0].sval, args[1].sval,args[2].sval, args[3].ival);
 }
 
 void ecmcAsynPortDriverRegister(void)

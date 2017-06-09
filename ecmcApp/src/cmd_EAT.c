@@ -443,6 +443,7 @@ static int handleCfgCommand(const char *myarg_1){
   double dValue=0;
   double dValue2=0;
   char cIdBuffer[4096];
+  char cIdBuffer2[4096];
 
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
@@ -543,6 +544,18 @@ static int handleCfgCommand(const char *myarg_1){
   if (nvals == 10) {
     return ecAddEntryComplete(iValue,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,cIdBuffer);
   }
+
+  /*Cfg.EcAddMemMap(
+      uint16_t startEntryBusPosition,
+      char *startEntryIDString,
+      size_t byteSize,
+      int direction,
+      char *memMapIDString
+      )*/
+    nvals = sscanf(myarg_1, "EcAddMemMap(%d,%[^,],%d,%d,%[^)])", &iValue,cIdBuffer,&iValue2,&iValue3,cIdBuffer2);
+    if (nvals == 5) {
+      return ecAddMemMap(iValue,cIdBuffer,(size_t)iValue2,iValue3,cIdBuffer2);
+    }
 
   /*Cfg.EcSlaveConfigDC(
       int slave_bus_position,

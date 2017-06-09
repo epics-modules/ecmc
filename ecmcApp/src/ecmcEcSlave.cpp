@@ -48,7 +48,6 @@ void ecmcEcSlave::initVars()
   entryCounter_=0;
   pdosArrayIndex_=0;
   syncManArrayIndex_=0;
-  entryArrayCounter_=0;
   for(int i=0;i<EC_MAX_SYNC_MANAGERS;i++){
     syncManagerArray_[i]=NULL;
   }
@@ -62,10 +61,6 @@ void ecmcEcSlave::initVars()
 
   for(int i=0;i<EC_MAX_ENTRIES;i++){
     entryList_[i]=NULL;
-  }
-
-  for(int i=0;i<EC_MAX_ARRAY_ENTRIES;i++){
-    entryArrayList_[i]=NULL;
   }
 
   memset(&slaveSyncs_,0,sizeof(slaveSyncs_));
@@ -88,13 +83,6 @@ ecmcEcSlave::~ecmcEcSlave()
       delete simEntries_[i];
     }
     simEntries_[i]=NULL;
-  }
-
-  for(int i=0;i<EC_MAX_ARRAY_ENTRIES;i++){
-    if(entryArrayList_[i]!=NULL){
-      delete entryArrayList_[i];
-    }
-    entryArrayList_[i]=NULL;
   }
 }
 
@@ -386,12 +374,6 @@ int ecmcEcSlave::updateInputProcessImage()
     }
   }
 
-  for(int i=0;i<entryArrayCounter_;i++){
-    if(entryArrayList_[i]!=NULL){
-      entryArrayList_[i]->updateInputProcessImage();
-    }
-  }
-
   return 0;
 }
 
@@ -400,12 +382,6 @@ int ecmcEcSlave::updateOutProcessImage()
   for(int i=0;i<entryCounter_;i++){
     if(entryList_[i]!=NULL){
       entryList_[i]->updateOutProcessImage();
-    }
-  }
-
-  for(int i=0;i<entryArrayCounter_;i++){
-    if(entryArrayList_[i]!=NULL){
-      entryArrayList_[i]->updateOutProcessImage();
     }
   }
 
@@ -547,7 +523,7 @@ int ecmcEcSlave::setWatchDogConfig(
   return 0;
 }
 
-int ecmcEcSlave::addEntryArray(std::string startEntryIDString,
+/*int ecmcEcSlave::addMemMap(std::string startEntryIDString,
 		    size_t byteSize,
 		    int type,
 		    ec_direction_t direction,
@@ -564,12 +540,13 @@ int ecmcEcSlave::addEntryArray(std::string startEntryIDString,
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_ARRAY_START_ENTRY_NULL);
   }
 
-  entryArrayList_[entryArrayCounter_]=new ecmcEcEntryArray(entry,byteSize,type,direction,entryIDString);
+  entryMemMap_[entryArrayCounter_]=new ecmcEcMemMap(entry,byteSize,type,direction,entryIDString);
 
-  if(!entryArrayList_[entryArrayCounter_]){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Adding ecEntryArray failed. New ecmcEcEntryArray fail (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_ARRAY_NULL );
+  if(!entryMemMap_[entryArrayCounter_]){
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Adding ecEntryArray failed. New ecmcEcMemMap fail (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_ARRAY_NULL );
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_ARRAY_NULL );
   }
   entryArrayCounter_++;
   return 0;
 }
+*/
