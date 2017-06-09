@@ -44,13 +44,6 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
   eventId_ = epicsEventCreate(epicsEventEmpty);
 }
 
-/*
- * -
--                    asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynEnumMask | asynOctetMask,
-+                   asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask || asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask,
-+                   asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask || asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask,
-*/
-
 asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason)
 {
   size_t thisRead = 0;
