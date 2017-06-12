@@ -4,6 +4,11 @@ include ${EPICS_ENV_PATH}/module.Makefile
 
 USR_DEPENDENCIES = asyn,4.31.0
 
+# Don't include debug symbols in the binary needed for a debugger
+# We don't have a debuuger, so shrink the size from 29MB to 9MB under
+# /opt/epics/modules
+OPT_CXXFLAGS_YES = -O3
+
 PROJECT=ecmc
 # Temporally removed to speed up 
 EXCLUDE_ARCHS += eldk
