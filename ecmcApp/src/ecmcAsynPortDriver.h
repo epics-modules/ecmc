@@ -17,28 +17,22 @@
 #include "asynPortDriver.h"
 #include <epicsEvent.h>
 
-/** Class that demonstrates the use of the asynPortDriver base class to greatly simplify the task
-  * of writing an asyn port driver.
-  * This class does a simple simulation of a digital oscilloscope.  It computes a waveform, computes
-  * statistics on the waveform, and does callbacks with the statistics and the waveform data itself. 
-  * I have made the methods of this class public in order to generate doxygen documentation for them,
-  * but they should really all be private. */
+
+enum ecmcAsynDataAccessType{
+  ECMC_ASYN_NONE=0,
+  ECMC_ASYN_EC=1,
+  ECMC_ASYN_ECMM=2,
+  ECMC_ASYN_AX=3
+};
+
 class ecmcAsynPortDriver : public asynPortDriver {
 public:
     ecmcAsynPortDriver(const char *portName,int paramTableSize,int autoConnect,int priority);
     virtual asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t maxChars, size_t *nActual);
     virtual asynStatus readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason);
-    /* These are the methods that we override from asynPortDriver */
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
-    //virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
-    //virtual asynStatus readFloat64Array(asynUser *pasynUser, epicsFloat64 *value,size_t nElements, size_t *nIn);
-    virtual asynStatus readInt16Array(asynUser *pasynUser, epicsInt16 *value,size_t nElements, size_t *nIn);
-    //virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], int values[], int severities[],
-                                //size_t nElements, size_t *nIn);
-
-    /* These are the methods that are new to this class */
-    void simTask(void);
+    virtual asynStatus readInt16Array(asynUser *pasynUser, epicsInt16 *value,size_t nElements, size_t *nIn);                                //size_t nElements, size_t *nIn);
     asynUser *getTraceAsynUser();
 protected:
  

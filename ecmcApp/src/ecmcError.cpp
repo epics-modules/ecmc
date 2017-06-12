@@ -707,6 +707,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x2601A:
       return "ERROR_EC_MEM_MAP_NULL";
       break;
+    case 0x2601B:
+      return "ERROR_EC_ASYN_ALIAS_NOT_VALID";
+      break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
       break;
