@@ -32,11 +32,17 @@ public:
     virtual asynStatus readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason);
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
-    virtual asynStatus readInt16Array(asynUser *pasynUser, epicsInt16 *value,size_t nElements, size_t *nIn);                                //size_t nElements, size_t *nIn);
+    virtual asynStatus readInt8Array(asynUser *pasynUser, epicsInt8 *value,size_t nElements, size_t *nIn);
+    virtual asynStatus readInt16Array(asynUser *pasynUser, epicsInt16 *value,size_t nElements, size_t *nIn);
+    virtual asynStatus readInt32Array(asynUser *pasynUser, epicsInt32 *value,size_t nElements, size_t *nIn);
+    virtual asynStatus readFloat32Array(asynUser *pasynUser, epicsFloat32 *value,size_t nElements, size_t *nIn);
+    virtual asynStatus readFloat64Array(asynUser *pasynUser, epicsFloat64 *value,size_t nElements, size_t *nIn);
     asynUser *getTraceAsynUser();
 protected:
  
 private:
+
+    int readArrayGeneric(asynUser *pasynUser, epicsUInt8 *value,size_t nElements, size_t *nIn,size_t typeSize,const char* functionName);
     epicsEventId eventId_;
 };
 #endif /* ASYNPORTDRIVER_H_ */

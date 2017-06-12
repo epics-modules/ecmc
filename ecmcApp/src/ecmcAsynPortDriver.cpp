@@ -231,26 +231,112 @@ asynUser *ecmcAsynPortDriver::getTraceAsynUser()
   return pasynUserSelf;
 }
 
+asynStatus ecmcAsynPortDriver::readInt8Array(asynUser *pasynUser, epicsInt8 *value,size_t nElements, size_t *nIn)
+{
+  const char* functionName = "readInt8Array";
+
+  int errorId=readArrayGeneric(pasynUser,(uint8_t *)value,nElements,nIn,2,functionName);
+
+  if(errorId){
+    return asynError;
+  }
+
+  return asynSuccess;
+}
+
 asynStatus ecmcAsynPortDriver::readInt16Array(asynUser *pasynUser, epicsInt16 *value,size_t nElements, size_t *nIn)
 {
-  int function = pasynUser->reason;
-  const char *paramName;
   const char* functionName = "readInt16Array";
+
+  int errorId=readArrayGeneric(pasynUser,(uint8_t *)value,nElements,nIn,2,functionName);
+
+  if(errorId){
+    return asynError;
+  }
+
+  return asynSuccess;
+}
+
+//int function = pasynUser->reason;
+//  const char *paramName;
+//  const char* functionName = "readInt16Array";
+//  int errorId=0;
+//  /* Fetch the parameter string name for possible use in debugging */
+//  getParamName(function, &paramName);
+//
+//  char buffer[1024];
+//  int nvals = sscanf(paramName, "ec.mm.%s",buffer);
+//  if (nvals == 1) {
+//    errorId=readEcMemMap(buffer,(uint8_t*)value,nElements,nIn);
+//  }
+//
+//  if(errorId){
+//    asynPrint(pasynUser, ASYN_TRACE_ERROR,"%s:%s: error, read of parameter %s failed with error code 0x%x.\n",driverName, functionName,paramName,errorId);
+//    return (asynError);
+//  }
+//  return (asynSuccess);
+
+
+asynStatus ecmcAsynPortDriver::readInt32Array(asynUser *pasynUser, epicsInt32 *value,size_t nElements, size_t *nIn)
+{
+  const char* functionName = "readInt32Array";
+
+  int errorId=readArrayGeneric(pasynUser,(uint8_t *)value,nElements,nIn,2,functionName);
+
+  if(errorId){
+    return asynError;
+  }
+
+  return asynSuccess;
+}
+
+asynStatus ecmcAsynPortDriver::readFloat32Array(asynUser *pasynUser, epicsFloat32 *value,size_t nElements, size_t *nIn)
+{
+  const char* functionName = "readFloat32rray";
+
+  int errorId=readArrayGeneric(pasynUser,(uint8_t *)value,nElements,nIn,2,functionName);
+
+  if(errorId){
+    return asynError;
+  }
+
+  return asynSuccess;
+}
+
+asynStatus ecmcAsynPortDriver::readFloat64Array(asynUser *pasynUser, epicsFloat64 *value,size_t nElements, size_t *nIn)
+{
+  const char* functionName = "readFloat64Array";
+  int errorId=readArrayGeneric(pasynUser,(uint8_t *)value,nElements,nIn,2,functionName);
+
+  if(errorId){
+    return asynError;
+  }
+
+  return asynSuccess;
+}
+
+int ecmcAsynPortDriver::readArrayGeneric(asynUser *pasynUser, epicsUInt8 *value,size_t nElements, size_t *nIn,size_t typeSize,const char* functionName)
+{
+  const char *paramName;
   int errorId=0;
-  /* Fetch the parameter string name for possible use in debugging */
+  int function = pasynUser->reason;
+
   getParamName(function, &paramName);
 
-  char buffer[1024];
+  size_t bytesRead=0;
+  char buffer[1024]	      ;
   int nvals = sscanf(paramName, "ec.mm.%s",buffer);
   if (nvals == 1) {
-    errorId=readEcMemMap(buffer,(uint8_t*)value,nElements,nIn);
+    errorId=readEcMemMap(buffer,(uint8_t*)value,nElements*typeSize,&bytesRead);
   }
 
   if(errorId){
     asynPrint(pasynUser, ASYN_TRACE_ERROR,"%s:%s: error, read of parameter %s failed with error code 0x%x.\n",driverName, functionName,paramName,errorId);
+    *nIn=0;
     return (asynError);
   }
-  return (asynSuccess);
+  *nIn=bytesRead/typeSize;
+  return errorId;
 }
 
 /* Configuration routine.  Called directly, or from the iocsh function below */
@@ -481,3 +567,6 @@ void ecmcAsynPortDriverRegister(void)
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
 
 }
+
+
+
