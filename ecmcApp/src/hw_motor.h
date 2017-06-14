@@ -3081,6 +3081,39 @@ int ecAddEntryComplete(
     uint8_t bits,
     char *entryIDString);
 
+/** \breif Adds a memory map object to access data directly from EtherCAT
+ *   domain.\n
+ *
+ *  The start of the memory map is addressed by a previously configured
+ *  EtherCAT entry and a size.
+ *
+ *  \param[in] startEntryBusPosition Position of the EtherCAT slave on the bus
+ *                                   where the start entry is configured.\n
+ *    startEntryBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] startEntryIDString I Identification string of the start EtherCAT
+ *   *                           entry.\n
+ *  \param[in] byteSize Size of memory map objects (size to access).\n
+ *  \param[in] direction Data transfer direction..\n
+ *    direction  = 1:  Output (from master).\n
+ *    direction  = 2:  Input (to master).\n
+ *  \param[in] entryIDString Identification string used for addressing the
+ *                           memory map object.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
+ * entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
+ * argument is excluded in\n
+ * "Cfg.EcAddMemMap(10,AI1,200,2,WAVEFORM)" //Command string to cmd_EAT.c\n
+ */
+int ecAddMemMap(
+    uint16_t startEntryBusPosition,
+    char *startEntryIDString,
+    size_t byteSize,
+    int direction,
+    char *memMapIDString
+    );
+
 /** \breif Configure slave DC clock.\n
  *
  *
@@ -3378,6 +3411,31 @@ int readEcEntryIndexIDString(int slavePosition,char *entryIDString,int *value);
   *  "Cfg.ReadEcSlaveIndex(5)" //Command string to cmd_EAT.c\n
   */
 int readEcSlaveIndex(int slavePosition,int *value);
+
+/* \breif Links ethercat entry to asyn parameter
+ */
+int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
+
+/* \breif Links ethercat memory map to asyn parameter
+ */
+int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
+
+/* \breif reads mem map object
+ */
+int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead);
+
+/* \breif Set update in realtime bit for an entry
+ *
+ * If set to zero the entry will not be updated during realtime operation.\n
+ * Useful when accessing data with memory maps instead covering many entries
+ * like oversampling arrays (its the unnecessary to update each entry in
+ * array).\n
+ */
+int ecSetEntryUpdateInRealtime(
+    uint16_t slavePosition,
+    char *entryIDString,
+    int updateInRealtime
+    );
 
 /** \breif Enable EtherCAT bus diagnostics.\n
   *

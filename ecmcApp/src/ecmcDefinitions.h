@@ -36,9 +36,10 @@
 #define TRANSFORM_EXPR_INTERLOCK_PREFIX "ilock"
 
 //EtherCAT
-#define EC_MAX_PDOS 200        //Pdos per slave terminal
-#define EC_MAX_ENTRIES 200     //Entries Per slave
-#define EC_MAX_SLAVES 200
+#define EC_MAX_PDOS 512
+#define EC_MAX_ENTRIES 8192
+#define EC_MAX_MEM_MAPS 8
+#define EC_MAX_SLAVES 512
 
 //Data recording
 #define ECMC_MAX_DATA_RECORDERS_OBJECTS 10

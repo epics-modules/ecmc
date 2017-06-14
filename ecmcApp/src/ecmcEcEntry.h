@@ -15,6 +15,7 @@
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
 #include "cmd.h" //Logging macros
+#include "ecmcAsynLink.h"
 
 #define BIT_SET(a,b) ((a) |= (1<<(b)))
 #define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))
@@ -31,8 +32,9 @@
 #define ERROR_EC_ENTRY_INVALID_BIT_INDEX 0x21006
 #define ERROR_EC_ENTRY_READ_FAIL 0x21007
 #define ERROR_EC_ENTRY_WRITE_FAIL 0x21008
+#define ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED 0x21009
 
-class ecmcEcEntry : public ecmcError
+class ecmcEcEntry : public ecmcError , public ecmcAsynLink
 {
 public:
   ecmcEcEntry(uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits, ec_direction_t nDirection, std::string id);
@@ -44,20 +46,23 @@ public:
   int getBits();
   int getEntryInfo(ec_pdo_entry_info_t *info);
   void setAdrOffsets(int byteOffset,int bitOffset);
+  int getByteOffset();
   void setDomainAdr(uint8_t *domainAdr); //After activate
+  uint8_t *getDomainAdr();
   int writeValue(uint64_t value);
   int writeBit(int bitNumber, uint64_t value);
   int readValue(uint64_t *value);
   int readBit(int bitNumber, uint64_t* value);
   int updateInputProcessImage();
   int updateOutProcessImage();
+  int setUpdateInRealtime(int update);
+  int getUpdateInRealtime();
   std::string getIdentificationName();
-
 private:
+  int updateAsyn(bool force);
   uint8_t *domainAdr_;
   uint16_t entryIndex_;
   uint8_t  entrySubIndex_;
-  int adrOffset_;
   int bitLength_;
   int bitOffset_;
   int byteOffset_;
@@ -65,5 +70,6 @@ private:
   ec_direction_t direction_;
   bool sim_;
   std::string idString_;
+  int updateInRealTime_;
 };
 #endif /* ECMCECENTRY_H_ */

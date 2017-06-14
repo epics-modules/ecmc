@@ -323,6 +323,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen)
       inlen--;
     }
   }
+
   //Add clear buffer here?
   int errorCode=cmd_handle_input_line(new_buf,getEpicsBuffer());
   if(errorCode){
@@ -333,6 +334,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen)
   free(new_buf);
 
   errorCode=cmd_buf_printf(getEpicsBuffer(),"%s%s",had_cr ? "\r" : "", had_lf ? "\n" : "");
+
   if(errorCode){
     RETURN_ERROR_OR_DIE(getEpicsBuffer(),__LINE__, "%s/%s:%d cmd_buf_printf returned error: %x.",
            __FILE__, __FUNCTION__, __LINE__,errorCode);
@@ -344,12 +346,13 @@ int CMDwriteIt(const char *inbuf, size_t inlen)
 /* from MCU into EPICS */
 int CMDreadIt(char *outbuf, size_t outlen)
 {
-  //printf("************BEFORE READ: BYTES LEFT IN BUFFER:  %d.\n",getEpicsBuffer()->bytesUsed);
+  //printf("************BEFORE READ: #%s# BYTES LEFT IN BUFFER:%d, outbuffer size=%d.\n",getEpicsBuffer()->buffer,getEpicsBuffer()->bytesUsed, outlen);
   int ret;
   if (!outbuf || !outlen) return -1;
-  ret = snprintf(outbuf, outlen, "%s", getEpicsBuffer()->buffer);
+  ret = snprintf(outbuf, outlen+1, "%s", getEpicsBuffer()->buffer);
 
   if (ret < 0){
+    //printf("RET <0");
     clearBuffer(getEpicsBuffer());
     return ret;
   }
@@ -361,11 +364,18 @@ int CMDreadIt(char *outbuf, size_t outlen)
   }
 
   //printf("************BYTES SENT:%s#\n",outbuf);
-  if(ret>=outlen){
-    ret=outlen-1; //snprintf max utilize buffer size minus one.
+  if(ret>=outlen+1){
+    ret=outlen; //snprintf max utilize buffer size minus one.
   }
   removeFromBuffer(getEpicsBuffer(),ret);
-  //printf("************AFTER READ: BYTES LEFT IN BUFFER:  %d.\n",getEpicsBuffer()->bytesUsed);
+  //printf("************AFTER READ: #%s#BYTES LEFT IN BUFFER:  %d.\n",getEpicsBuffer()->buffer,getEpicsBuffer()->bytesUsed);
+
+  if (PRINT_STDOUT_BIT1() && stdout) {
+    fprintf(stdout,"%s/%s:%d OUT2=\"", __FILE__, __FUNCTION__, __LINE__);
+    cmd_dump_to_std(outbuf, strlen(outbuf));
+    fprintf(stdout,"\"\n");
+  }
+
   return 0;
 }
 

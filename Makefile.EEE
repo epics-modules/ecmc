@@ -49,6 +49,9 @@ SOURCES = \
   ecmcApp/src/ecmcAxisData.cpp \
   ecmcApp/src/gitversion.h \
   ecmcApp/src/hw_motor.cpp \
+  ecmcApp/src/ecmcAsynPortDriver.cpp \
+  ecmcApp/src/ecmcAsynLink.cpp \
+  ecmcApp/src/ecmcEcMemMap.cpp \
 
 
 

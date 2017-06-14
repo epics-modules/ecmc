@@ -47,7 +47,7 @@ typedef struct {
 } ecmcController_t;
 
 /* global asynUser for Printing */
-asynUser *pCmdAsynUser;
+extern asynUser *pPrintOutAsynUser;
 /*
  * Close a connection
  */
@@ -320,7 +320,7 @@ drvAsynECMCPortConfigure(const char *portName,
     cleanup(ecmcController_p);
     return -1;
   }
-  pCmdAsynUser = pasynManager->duplicateAsynUser(ecmcController_p->pasynUser, 0, 0);
+  pPrintOutAsynUser = pasynManager->duplicateAsynUser(ecmcController_p->pasynUser, 0, 0);
 
   /*
    * Register for cleanup

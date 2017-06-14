@@ -542,6 +542,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x21008:
       return "ERROR_EC_ENTRY_WRITE_FAIL";
       break;
+    case 0x21009:
+      return "ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED";
+      break;
     case 0x22000:  //ECPDO
       return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
       break;
@@ -683,6 +686,30 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x26013:
       return "ERROR_EC_STATUS_NOT_OK";
       break;
+    case 0x26014:
+      return "ERROR_EC_ALIAS_TO_LONG";
+      break;
+    case 0x26015:
+      return "ERROR_EC_ASYN_PORT_OBJ_NULL";
+      break;
+    case 0x26016:
+      return "ERROR_EC_ASYN_PORT_CREATE_PARAM_FAIL";
+      break;
+    case 0x26017:
+      return "ERROR_EC_ASYN_SKIP_CYCLES_INVALID";
+      break;
+    case 0x26018:
+      return "ERROR_EC_MEM_MAP_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x26019:
+      return "ERROR_EC_MEM_MAP_START_ENTRY_NULL";
+      break;
+    case 0x2601A:
+      return "ERROR_EC_MEM_MAP_NULL";
+      break;
+    case 0x2601B:
+      return "ERROR_EC_ASYN_ALIAS_NOT_VALID";
+      break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
       break;
@@ -820,6 +847,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x2002E:
       return "ERROR_MAIN_PRINT_TO_BUFFER_FAIL";
+      break;
+    case 0x2002F:
+      return "ERROR_MAIN_MEM_MAP_NULL";
       break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";

@@ -45,7 +45,7 @@ void ecmcEcSlave::initVars()
   productCode_=0; /**< Expected product code. */
   slaveConfig_=NULL;
   syncManCounter_=0;
-  entriesArrayIndex_=0;
+  entryCounter_=0;
   pdosArrayIndex_=0;
   syncManArrayIndex_=0;
   for(int i=0;i<EC_MAX_SYNC_MANAGERS;i++){
@@ -98,7 +98,7 @@ int ecmcEcSlave::configSlave()
 
 int ecmcEcSlave::getEntryCount()
 {
-  return entriesArrayIndex_;
+  return entryCounter_;
 }
 
 int ecmcEcSlave::addSyncManager(ec_direction_t direction,uint8_t syncMangerIndex)
@@ -146,7 +146,7 @@ int ecmcEcSlave::getEntryInfo(int entryIndex, ec_pdo_entry_info_t *info)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_INFO_STRUCT_NULL);
   }
 
-  if(entryIndex>=EC_MAX_ENTRIES || entryIndex>=entriesArrayIndex_){
+  if(entryIndex>=EC_MAX_ENTRIES || entryIndex>=entryCounter_){
     LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry index out of range (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
   }
@@ -181,7 +181,7 @@ int ecmcEcSlave::configPdos( ec_domain_t *domain)
   ecmcEcSyncManager *sm=NULL;
   ecmcEcPdo *pdo=NULL;
   ecmcEcEntry *entry=NULL;
-  entriesArrayIndex_=0;
+  entryCounter_=0;
   pdosArrayIndex_=0;
   syncManArrayIndex_=0;
   for(int smIndex=0;smIndex<syncManCounter_;smIndex++){
@@ -196,19 +196,19 @@ int ecmcEcSlave::configPdos( ec_domain_t *domain)
       int entryCount=pdo->getEntryCount();
       slavePdos_[pdosArrayIndex_].index=pdo->getPdoIndex(); //nPdoInde 0x1600;
       slavePdos_[pdosArrayIndex_].n_entries=entryCount;
-      slavePdos_[pdosArrayIndex_].entries=&slavePdoEntries_[entriesArrayIndex_];
+      slavePdos_[pdosArrayIndex_].entries=&slavePdoEntries_[entryCounter_];
       pdosArrayIndex_++;
       for(int entryIndex=0;entryIndex<entryCount;entryIndex++){
         entry=pdo->getEntry(entryIndex);
-        entryList_[entriesArrayIndex_]=entry;
-        entry->getEntryInfo(&slavePdoEntries_[entriesArrayIndex_]);
-        entriesArrayIndex_++;
+        entryList_[entryCounter_]=entry;
+        entry->getEntryInfo(&slavePdoEntries_[entryCounter_]);
+        entryCounter_++;
       }
     }
   }
   slaveSyncs_[syncManArrayIndex_].index=0xff; //Terminate structure for ecrt_slave_config_pdos()
 
-  if(entriesArrayIndex_==0){
+  if(entryCounter_==0){
     LOGINFO5("%s/%s:%d: WARNING: No Pdo:s to configured for slave %d.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_);
     return 0;
   }
@@ -235,7 +235,7 @@ void ecmcEcSlave::writeEntriesStruct()
   }
   LOGINFO5("%s/%s:%d: INFO: Writing slave_pdo_entries.\n",__FILE__, __FUNCTION__, __LINE__);
   LOGINFO5("\t\tIndex\tSubIndex\tBitLength \n");
-  for(int i=0;i<entriesArrayIndex_;i++){
+  for(int i=0;i<entryCounter_;i++){
     LOGINFO5("\t\t{%x\t%x\t%d}\n",slavePdoEntries_[i].index,slavePdoEntries_[i].subindex,slavePdoEntries_[i].bit_length);
   }
 }
@@ -368,21 +368,23 @@ ecmcEcEntry *ecmcEcSlave::getEntry(int entryIndex)
 
 int ecmcEcSlave::updateInputProcessImage()
 {
-  for(int i=0;i<entriesArrayIndex_;i++){
+  for(int i=0;i<entryCounter_;i++){
     if(entryList_[i]!=NULL){
       entryList_[i]->updateInputProcessImage();
     }
   }
+
   return 0;
 }
 
 int ecmcEcSlave::updateOutProcessImage()
 {
-  for(int i=0;i<entriesArrayIndex_;i++){
+  for(int i=0;i<entryCounter_;i++){
     if(entryList_[i]!=NULL){
       entryList_[i]->updateOutProcessImage();
     }
   }
+
   return 0;
 }
 
@@ -446,13 +448,22 @@ int ecmcEcSlave::configDC(
 ecmcEcEntry *ecmcEcSlave::findEntry(std::string id)
 {
   //Real entries
-  for(int i=0; i<EC_MAX_ENTRIES;i++){
+  /*for(int i=0; i<EC_MAX_ENTRIES;i++){
     if(entryList_[i]!=NULL){
       if(entryList_[i]->getIdentificationName().compare(id)==0){
         return entryList_[i];
       }
     }
+  }*/
+
+  ecmcEcEntry *temp=NULL;
+  for(int i=0;i<syncManCounter_;i++){
+    temp=syncManagerArray_[i]->findEntry(id);
+    if(temp){
+      return temp;
+    }
   }
+
 
   //Simulation entries
   for(int i=0; i<SIMULATION_ENTRIES;i++){
@@ -512,3 +523,30 @@ int ecmcEcSlave::setWatchDogConfig(
   return 0;
 }
 
+/*int ecmcEcSlave::addMemMap(std::string startEntryIDString,
+		    size_t byteSize,
+		    int type,
+		    ec_direction_t direction,
+		    std::string entryIDString)
+{
+  if(entryArrayCounter_>=EC_MAX_ARRAY_ENTRIES){
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Adding ecEntryArray failed. Array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_ARRAY_INDEX_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_ARRAY_INDEX_OUT_OF_RANGE);
+  }
+
+  ecmcEcEntry *entry=findEntry(startEntryIDString);
+  if(!entry){
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Adding ecEntryArray failed. Start entry not found (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_ARRAY_START_ENTRY_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_ARRAY_START_ENTRY_NULL);
+  }
+
+  entryMemMap_[entryArrayCounter_]=new ecmcEcMemMap(entry,byteSize,type,direction,entryIDString);
+
+  if(!entryMemMap_[entryArrayCounter_]){
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Adding ecEntryArray failed. New ecmcEcMemMap fail (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_ARRAY_NULL );
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_ARRAY_NULL );
+  }
+  entryArrayCounter_++;
+  return 0;
+}
+*/

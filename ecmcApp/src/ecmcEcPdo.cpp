@@ -63,3 +63,16 @@ uint16_t  ecmcEcPdo::getPdoIndex()
 {
   return pdoIndex_;
 }
+
+ecmcEcEntry *ecmcEcPdo::findEntry(std::string id)
+{
+  ecmcEcEntry *temp=NULL;
+  for(int i=0;i<entryCounter_;i++){
+    if(entryArray_[i]){
+      if(entryArray_[i]->getIdentificationName().compare(id)==0){
+	  temp=entryArray_[i];
+      }
+    }
+  }
+  return temp;
+}

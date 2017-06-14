@@ -111,6 +111,7 @@ ecmcEcPdo *pdo=findPdo(pdoIndex);
 
 ecmcEcPdo *ecmcEcSyncManager::findPdo(uint16_t pdoIndex)
 {
+
  for(int i=0;i< pdoCounter_;i++){
    if(pdoArray_[i]!=NULL){
      if(pdoArray_[i]->getPdoIndex()==pdoIndex){
@@ -119,4 +120,22 @@ ecmcEcPdo *ecmcEcSyncManager::findPdo(uint16_t pdoIndex)
    }
  }
  return NULL;
+}
+
+ecmcEcEntry *ecmcEcSyncManager::findEntry(std::string id)
+{
+  ecmcEcEntry *temp=NULL;
+  if(pdoCounter_==0){
+    return temp;
+  }
+
+  for(int i=0;i<pdoCounter_;i++){
+    if(pdoArray_[i]){
+      temp=pdoArray_[i]->findEntry(id);
+      if(temp){
+        return temp;
+      }
+    }
+  }
+  return NULL;
 }

@@ -26,6 +26,7 @@ public:
   ~ecmcEcPdo();
   int addEntry( uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits,std::string id);
   ecmcEcEntry *getEntry(int index);
+  ecmcEcEntry *findEntry(std::string id);
   int getEntryCount();
   uint16_t  getPdoIndex();
 private:

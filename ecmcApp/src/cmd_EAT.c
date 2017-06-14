@@ -438,11 +438,13 @@ static int handleCfgCommand(const char *myarg_1){
   int iValue7 = 0;
   int iValue8 = 0;
   int iValue9 = 0;
+  int iValue10 = 0;
 
   int nvals = 0;
   double dValue=0;
   double dValue2=0;
   char cIdBuffer[4096];
+  char cIdBuffer2[4096];
 
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
@@ -529,6 +531,28 @@ static int handleCfgCommand(const char *myarg_1){
   }*/
 
   /*Cfg.EcAddEntryComplete(
+      uint16_t position,
+      uint32_t vendor_id,
+      uint32_t product_code,
+      int nDirection,
+      uint8_t nSyncMangerIndex,
+      uint16_t nPdoIndex,
+      uint16_t nEntryIndex,
+      uint8_t  nEntrySubIndex,
+      uint8_t nBits,
+      char *cID,
+      int updateInRealtime
+      )*/
+  nvals = sscanf(myarg_1, "EcAddEntryComplete(%d,%x,%x,%d,%d,%x,%x,%x,%d,%[^,],%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5,&iValue6,&iValue7,&iValue8,&iValue9,cIdBuffer,&iValue10);
+  if (nvals == 11) {
+    int ret=ecAddEntryComplete(iValue,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,cIdBuffer);
+    if(ret){
+      return ret;
+    }
+    return ecSetEntryUpdateInRealtime(iValue,cIdBuffer,iValue10);
+  }
+
+  /*Cfg.EcAddEntryComplete(
     uint16_t position,
     uint32_t vendor_id,
     uint32_t product_code,
@@ -543,6 +567,18 @@ static int handleCfgCommand(const char *myarg_1){
   if (nvals == 10) {
     return ecAddEntryComplete(iValue,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,cIdBuffer);
   }
+
+  /*Cfg.EcAddMemMap(
+      uint16_t startEntryBusPosition,
+      char *startEntryIDString,
+      size_t byteSize,
+      int direction,
+      char *memMapIDString
+      )*/
+    nvals = sscanf(myarg_1, "EcAddMemMap(%d,%[^,],%d,%d,%[^)])", &iValue,cIdBuffer,&iValue2,&iValue3,cIdBuffer2);
+    if (nvals == 5) {
+      return ecAddMemMap(iValue,cIdBuffer,(size_t)iValue2,iValue3,cIdBuffer2);
+    }
 
   /*Cfg.EcSlaveConfigDC(
       int slave_bus_position,
@@ -563,6 +599,18 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "EcSelectReferenceDC(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return ecSelectReferenceDC(iValue,iValue2);
+  }
+
+
+  /*Cfg.EcSetEntryUpdateInRealtime(
+      uint16_t slavePosition,
+      char *entryIDString,
+      int updateInRealtime
+      );
+      */
+  nvals = sscanf(myarg_1, "EcSetEntryUpdateInRealtime(%d,%[^,],%d)", &iValue,cIdBuffer,&iValue2);
+  if (nvals == 3) {
+    return ecSetEntryUpdateInRealtime(iValue,cIdBuffer,iValue2);
   }
 
   /*Cfg.EcResetError()*/
@@ -1227,6 +1275,8 @@ static int handleCfgCommand(const char *myarg_1){
 
 int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 {
+
+
   const char *myarg = myarg_1;
   int iValue = 0;
   int iValue2=0;
@@ -1927,6 +1977,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 
 int cmd_EAT(int argc, const char *argv[], const char *sepv[],ecmcOutputBufferType *buffer)
 {
+
   const char *myargline = (argc > 0) ? argv[0] : "";
   int i;
   if (PRINT_STDOUT_BIT6())

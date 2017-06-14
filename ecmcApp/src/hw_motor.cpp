@@ -27,12 +27,14 @@
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 
+
 //Hardware
+#include "ecmcEc.h"
 #include "ecmcEcPdo.h"
 #include "ecmcEcSlave.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcEcEntry.h"
-#include "ecmcEc.h"
+
 
 //Motion
 #include "ecmcAxisBase.h"      //Abstract class for all axis types
@@ -67,12 +69,12 @@
 
 /****************************************************************************/
 static ecmcAxisBase     *axes[ECMC_MAX_AXES];
-static ecmcEc           ec;
 static int              axisDiagIndex;
 static int              axisDiagFreq;
 static int              controllerError=0;
 static app_mode_type    appMode,appModeOld;
 static unsigned int     counter = 0;
+static ecmcEc           ec;
 static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
 static ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
 static ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
@@ -2320,6 +2322,56 @@ int ecAddEntryComplete(
   return ec.addEntry(position,vendorId,productCode,(ec_direction_t)direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
 }
 
+int ecSetEntryUpdateInRealtime(
+    uint16_t slavePosition,
+    char *entryIDString,
+    int updateInRealtime
+    )
+{
+  LOGINFO4("%s/%s:%d slave=%d id=%s updateInRealtime=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,entryIDString,updateInRealtime);
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave=NULL;
+  if(slavePosition>=0){
+    slave=ec.findSlave(slavePosition);
+  }
+  else{ //simulation slave
+    slave=ec.getSlave(slavePosition);
+  }
+
+  if(slave==NULL)
+    return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID=entryIDString;
+
+  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+  return entry->setUpdateInRealtime(updateInRealtime);
+}
+
+int ecAddMemMap(
+    uint16_t startEntryBusPosition,
+    char *startEntryIDString,
+    size_t byteSize,
+    int direction,
+    char *memMapIDString
+    )
+{
+  std::string memMapId=memMapIDString;
+  std::string startEntryId=startEntryIDString;
+
+  LOGINFO4("%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%lu, direction=%d entryId=%s\n",__FILE__, __FUNCTION__, __LINE__,startEntryBusPosition,startEntryIDString,byteSize,direction,memMapIDString);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.addMemMap(startEntryBusPosition,startEntryId,byteSize,0,(ec_direction_t)direction,memMapId);
+}
+
 int ecAddPdo(int slaveIndex,int syncManager,uint16_t pdoIndex)
 {
   LOGINFO4("%s/%s:%d slave=%d sm=%d pdo_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,syncManager,pdoIndex);
@@ -2491,6 +2543,42 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
     return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
 
   return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);
+}
+
+int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,entryIDString,asynParType,skipCycles);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.linkEcEntryToAsynParameter(asynPortObject,entryIDString,asynParType,skipCycles);
+}
+
+int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,asynParType,skipCycles);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.linkEcMemMapToAsynParameter(asynPortObject,memMapIDString,asynParType,skipCycles);
+
+}
+
+int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead)
+{
+  LOGINFO4("%s/%s:%d alias=%s bytesToRead=%lu\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,bytesToRead);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcMemMap *memMap=ec.findMemMap(memMapIDString);
+  if(!memMap){
+    return ERROR_MAIN_MEM_MAP_NULL;
+  }
+
+  return memMap->read(data,bytesToRead,bytesRead);
 }
 
 int writeEcEntry(int slaveIndex, int entryIndex,uint64_t value)

@@ -31,7 +31,6 @@ void ecmcEcEntry::initVars()
 {
   errorReset();
   domainAdr_=NULL;
-  adrOffset_=0;
   bitLength_=0;
   bitOffset_=0;
   byteOffset_=0;
@@ -42,6 +41,12 @@ void ecmcEcEntry::initVars()
   direction_=EC_DIR_INVALID;
   sim_=false;
   idString_="";
+  asynParameterIndex_=-1;
+  asynParameterType_=asynParamFloat64;
+  asynPortDriver_=NULL;
+  asynUpdateCycles_=0;
+  asynUpdateCycleCounter_=0;
+  updateInRealTime_=1;
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -90,7 +95,7 @@ void ecmcEcEntry::setAdrOffsets(int byteOffset,int bitOffset)
 int ecmcEcEntry::writeValue(uint64_t value)
 {
   value_=value;
-  return 0;
+  return updateAsyn(1);
 }
 
 int ecmcEcEntry::writeBit(int bitNumber, uint64_t value)
@@ -120,6 +125,10 @@ int ecmcEcEntry::readBit(int bitNumber, uint64_t* value)
 
 int ecmcEcEntry::updateInputProcessImage()
 {
+  if(!updateInRealTime_){
+    return 0;
+  }
+
   if(direction_!=EC_DIR_INPUT && !sim_){
     return 0;
   }
@@ -158,11 +167,16 @@ int ecmcEcEntry::updateInputProcessImage()
       break;
   }
 
+  updateAsyn(0);
   return 0;
 }
 
 int ecmcEcEntry::updateOutProcessImage()
 {
+  if(!updateInRealTime_){
+    return 0;
+  }
+
   if(direction_!=EC_DIR_OUTPUT && !sim_){
     return 0;
   }
@@ -206,4 +220,54 @@ int ecmcEcEntry::updateOutProcessImage()
 std::string ecmcEcEntry::getIdentificationName()
 {
   return idString_;
+}
+
+
+int ecmcEcEntry::updateAsyn(bool force)
+{
+  //I/O intr to EPICS
+  if(!asynPortDriver_ || asynParameterIndex_<0){
+   return 0;
+  }
+
+  if(asynUpdateCycleCounter_>=asynUpdateCycles_ || force){ //Only update at desired samplerate
+    asynUpdateCycleCounter_=0;
+    switch(asynParameterType_){
+      case asynParamInt32:
+        asynPortDriver_-> setIntegerParam(asynParameterIndex_,static_cast<int32_t>(value_));
+        break;
+      case asynParamFloat64:
+        asynPortDriver_-> setDoubleParam(asynParameterIndex_,static_cast<double>(value_));
+
+        break;
+      default:
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
+        break;
+    }
+  }
+  else{
+    asynUpdateCycleCounter_++;
+  }
+  return 0;
+}
+
+int ecmcEcEntry::getByteOffset()
+{
+  return byteOffset_;
+}
+
+uint8_t *ecmcEcEntry::getDomainAdr()
+{
+  return domainAdr_;
+}
+
+int ecmcEcEntry::setUpdateInRealtime(int update)
+{
+  updateInRealTime_=update;
+  return 0;
+}
+
+int ecmcEcEntry::getUpdateInRealtime()
+{
+  return updateInRealTime_;
 }
