@@ -1867,6 +1867,16 @@ int setAxisEncType(int axisIndex, int value)
 }
 
 /****************************************************************************/
+//Drv GET
+int getAxisDrvScaleNum(int axisIndex, double *value)
+{
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getDrv()->getScaleNum();
+  return 0;
+}
+
 //Drv SET
 int setAxisDrvScaleNum(int axisIndex, double value)
 {
@@ -1995,6 +2005,16 @@ int getAxisDrvEnable(int axisIndex,int *value)
 }
 
 /****************************************************************************/
+//Mon GET
+int getAxisMonAtTargetTol(int axisIndex, double *value)
+{
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getAtTargetTol();
+  return 0;
+}
+
 //Mon SET
 int setAxisMonAtTargetTol(int axisIndex, double value)
 {
@@ -2007,6 +2027,15 @@ int setAxisMonAtTargetTol(int axisIndex, double value)
   return 0;
 }
 
+int getAxisMonAtTargetTime(int axisIndex, int *value)
+{
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getAtTargetTime();
+  return 0;
+}
+
 int setAxisMonAtTargetTime(int axisIndex, int value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
@@ -2015,6 +2044,15 @@ int setAxisMonAtTargetTime(int axisIndex, int value)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getMon()->setAtTargetTime(value);
+  return 0;
+}
+
+int getAxisMonEnableAtTargetMon(int axisIndex, int *value)
+{
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getEnableAtTargetMon();
   return 0;
 }
 
@@ -2041,6 +2079,15 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex, int value)
 }
 
 
+int getAxisMonPosLagTol(int axisIndex, double *value)
+{
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getPosLagTol();
+  return 0;
+}
+
 int setAxisMonPosLagTol(int axisIndex, double value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
@@ -2049,6 +2096,15 @@ int setAxisMonPosLagTol(int axisIndex, double value)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getMon()->setPosLagTol(value);
+  return 0;
+}
+
+int getAxisMonPosLagTime(int axisIndex, int *value)
+{
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getPosLagTime();
   return 0;
 }
 
