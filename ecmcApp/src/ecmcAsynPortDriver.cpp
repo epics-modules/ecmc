@@ -202,8 +202,8 @@ asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser, epicsFloat64 va
     return asynError;
   }
 
-
-  int errorId=writeEcEntryIDString(slavePosition,aliasBuffer,static_cast<uint64_t>(value));
+  uint64_t *temp=(uint64_t*)&value;
+  int errorId=writeEcEntryIDString(slavePosition,aliasBuffer,*temp);//static_cast<uint64_t>(value));
   if(errorId){
     asynPrint(pasynUser, ASYN_TRACE_ERROR,
         "%s:%s: error, write of parameter %s failed with error code 0x%x.\n",

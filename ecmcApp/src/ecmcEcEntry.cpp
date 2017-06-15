@@ -119,7 +119,7 @@ int ecmcEcEntry::readValue(uint64_t *value)
 int ecmcEcEntry::readBit(int bitNumber, uint64_t* value)
 {
   *value=BIT_CHECK(value_,bitNumber);
-  //*value=value_ & (int)pow(2,bitNumber);
+
   return 0;
 }
 
@@ -231,14 +231,16 @@ int ecmcEcEntry::updateAsyn(bool force)
   }
 
   if(asynUpdateCycleCounter_>=asynUpdateCycles_ || force){ //Only update at desired samplerate
+    /// Probably not byte order safe!
     asynUpdateCycleCounter_=0;
+    int32_t *tempInt32=(int32_t *)&value_;
+    double *tempDouble64=(double *)&value_;
     switch(asynParameterType_){
       case asynParamInt32:
-        asynPortDriver_-> setIntegerParam(asynParameterIndex_,static_cast<int32_t>(value_));
+        asynPortDriver_-> setIntegerParam(asynParameterIndex_,*tempInt32);
         break;
       case asynParamFloat64:
-        asynPortDriver_-> setDoubleParam(asynParameterIndex_,static_cast<double>(value_));
-
+        asynPortDriver_-> setDoubleParam(asynParameterIndex_,*tempDouble64);
         break;
       default:
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
