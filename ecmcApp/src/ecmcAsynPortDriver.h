@@ -45,4 +45,5 @@ private:
     int readArrayGeneric(asynUser *pasynUser, epicsUInt8 *value,size_t nElements, size_t *nIn,size_t typeSize,const char* functionName);
     epicsEventId eventId_;
 };
+
 #endif /* ASYNPORTDRIVER_H_ */

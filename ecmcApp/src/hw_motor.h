@@ -3486,24 +3486,105 @@ int readEcEntryIndexIDString(int slavePosition,char *entryIDString,int *value);
   */
 int readEcSlaveIndex(int slavePosition,int *value);
 
-/* \breif Links ethercat entry to asyn parameter
+/** \breif Link EtherCAT entry to ASYN parameter.
+ *
+ * Fast access of EtherCAT data from EPICS records is possible by linking an
+ * EtherCAT entry to an ASYN parameter. Update frequency of the asyn parameter
+ * can be changed with the "skipCycles" parameter. Maximum update frequency is
+ * the same frequency as the EtherCAT realtime bus.\n
+ * This function is called by the iocsh command
+ * "ecmcAsynPortDriverAddParameter()". For more information see documentation
+ * of ecmcAsynPortDriverAddParameter().\n
+ *
+ *  \param[in] asynPortObject Asyn port object.\n
+ *  \param[in] entryIdString String for addressing ethercat entry:\n
+ *             ec.s<slave number>.<ethercat entry id>
+ *  \param[in] asynParType Data type to be transfered.\n*
+ *             asynParType=1: asynInt32
+ *             asynParType=3: asynFloat64
+ *  \param[in] skipCycles Number of realtime loops in between updates of asyn-
+ *  parameter.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: entryIdString for an EtherCAT entry called "INPUT_1"
+ * on slave 10: "ec.s10.INPUT_1".\n
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
 int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
 
-/* \breif Links ethercat memory map to asyn parameter
+/** \breif Link EtherCAT memory map to ASYN parameter.
+ *
+ * Fast access of EtherCAT data from EPICS records is possible by linking an
+ * EtherCAT memory map to an ASYN parameter. Update frequency of the asyn parameter
+ * can be changed with the "skipCycles" parameter. Maximum update frequency is
+ * the same frequency as the EtherCAT realtime bus.\n
+ * This function is called by the iocsh command
+ * "ecmcAsynPortDriverAddParameter()". For more information see documentation
+ * of ecmcAsynPortDriverAddParameter(), ecAddMemMap(), readEcMemMap() and
+ * ecSetEntryUpdateInRealtime().\n
+ *
+ *  \param[in] asynPortObject Asyn port object.\n
+ *  \param[in] memMapIDString String for addressing ethercat entry:\n
+ *             ec.mm.<memory map id>
+ *  \param[in] asynParType Data type to be transfered.\n*
+ *             asynParType=5: asynParamInt8Array
+ *             asynParType=6: asynParamInt16Array
+ *             asynParType=7: asynParamInt32Array
+ *             asynParType=8: asynParamFloat32Array
+ *             asynParType=9: asynParamFloat64Array
+ *  \param[in] skipCycles Number of realtime loops in between updates of asyn-
+ *  parameter.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: memMapIDString for an memory map called "AI_1_ARRAY":
+ * "ec.mm.AI_1_ARRAY".\n
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
 int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
 
-/* \breif reads mem map object
- */
-int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead);
+/** \breif Read EtherCAT memory map object.
+ *
+ * Fast access of EtherCAT data from EPICS records is possible by linking an
+ * EtherCAT memory map to an ASYN parameter. The memory map objects is most
+ * usefull for acquire arrays of data (waveforms).This function is called by
+ * the iocsh command"ecmcAsynPortDriverAddParameter()". For more information
+ * see documentation of ecmcAsynPortDriverAddParameter(), ecAddMemMap(),
+ * readEcMemMap() and ecSetEntryUpdateInRealtime().\n
+ *
+ *  \param[in] memMapIDString String for addressing ethercat entry:\n
+ *             ec.mm.<memory map id>
+ *  \param[out] *data Output data buffer.\n*
+ *  \param[in]  bytesToRead Output data buffer size.\n*
+ *  \param[out] bytesRead Bytes read.\n*
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: memMapIDString for an memory map called "AI_1_ARRAY":
+ * "ec.mm.AI_1_ARRAY".\n
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead);
 
-/* \breif Set update in realtime bit for an entry
+/** \breif Set update in realtime bit for an entry
  *
  * If set to zero the entry will not be updated during realtime operation.\n
  * Useful when accessing data with memory maps instead covering many entries
  * like oversampling arrays (its the unnecessary to update each entry in
  * array).\n
+ *
+ *  \param[in] slavePosition Position of the EtherCAT slave on the bus.\n
+ *    slavePosition = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] entryIdString String for addressing purpose (see command
+ *                      "Cfg.EcAddEntryComplete() for more information").\n
+ *  \param[in] updateInRealtime 1 for update of entry data in realtime and
+ *                      0 not to update data in realtime.\n
+ * \note Example: Disable update of value in realtime for entry with name "AI_1" on
+ * bus position 5.\n
+ *  "Cfg.EcSetEntryUpdateInRealtime(AI_1,5,0)" //Command string to cmd_EAT.c\n
  */
 int ecSetEntryUpdateInRealtime(
     uint16_t slavePosition,

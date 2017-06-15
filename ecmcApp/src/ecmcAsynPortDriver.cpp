@@ -349,7 +349,7 @@ static int parameterCounter;
 /* global asynUser for Printing */
 asynUser *pPrintOutAsynUser;
 
-//ecmcAsynPortDriver(const char *portName, int maxPoints,int paramTableSize,int autoConnect)
+
 /** EPICS iocsh callable function to call constructor for the ecmcAsynPortDriver class.
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] paramTableSize The max number of parameters.
@@ -401,10 +401,48 @@ static void initCallFunc(const iocshArgBuf *args)
     ecmcAsynPortDriverConfigure(args[0].sval, args[1].ival,args[2].ival,args[3].ival);
 }
 
-//****************************** Add parameter
+/** \breif EPICS iocsh command for adding an asyn-parameter
+ * linked to an EtherCAT entry or memory map object.\n
+ *
+ * Fast access of EtherCAT data from EPICS records is possible by linking an
+ * EtherCAT memory map to an ASYN parameter. Update frequency of the asyn parameter
+ * can be changed with the "skipCycles" parameter. Maximum update frequency is
+ * the same frequency as the EtherCAT realtime bus.\n
+ * This function is called by the iocsh command
+ * "ecmcAsynPortDriverAddParameter()". For more information see documentation
+ * of ecmcAsynPortDriverAddParameter(), ecAddMemMap(), readEcMemMap() and
+ * ecSetEntryUpdateInRealtime().\n
+ *
+ *  \param[in] portName Name of asyn port (created with iocsh command:
+ *  "ecmcAsynPortDriverConfigure()").\n
+ *  \param[in] idString String for addressing ethercat entry or memory map:\n
+ *             idString = ec.s<slave number>.<ethercat entry id>  (ethercat
+ *             entry)\n
+ *             idString = ec.mm.<memory map id>  (memory map)\n
+ *  \param[in] asynParType Data type to be transfered.\n
+ *             asynParType="asynInt32": 32 bit int (ethercat entry)\n
+ *             asynParType="asynFloat64": 64 bit float (ethercat entry)\n
+ *             asynParType="asynInt8ArrayIn": array of 8 bit int input (memory map)\n
+ *             asynParType="asynInt16ArrayIn": array of 16 bit int input (memory map)\n
+ *             asynParType="asynInt32ArrayIn": array of 32 bit int input (memory map)\n
+ *             asynParType="asynFloat32ArrayIn": array of 32 bit float input (memory map)\n
+ *             asynParType="asynFloat64ArrayIn": array of 64 bit float input (memory map)\n
+ *  \param[in] skipCycles Number of realtime loops in between updates of asyn-
+ *  parameter.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Link  asyn parameter to a memory map called "CH1_ARRAY",
+ * skip cycles=0 (update at realtime loop freq):
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ec.mm.CH1_ARRAY,"asynInt16ArrayIn",0)
+ *
+ * \note Example: Link  asyn parameter to EtherCAT entry called "AI_1" on
+ * slave 5, skip cycles =9 (skip 9 cycles then update=> every 10 value will
+ * trigger asyn update):
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ec.s5.AI_1,"asynInt32",9)
+ */
 int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, const char *asynTypeString, int skipCycles)
 {
-
   ecmcAsynDataAccessType dataAccessType=ECMC_ASYN_NONE;
   if(!mytestAsynPort){
     printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object NULL (mytestAsynPort==NULL).\n");
