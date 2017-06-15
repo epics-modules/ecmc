@@ -137,6 +137,16 @@ void ecmcSequencer::execute()
       break;
     case ECMC_CMD_HOMING:
       switch (data_->command_.cmdData){
+	case 0:
+	  seqReturnVal=seqHoming0();
+          if(seqReturnVal>0){//Error
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
+            stopSeq();
+          }
+          else if(seqReturnVal==0){//Homing ready
+            stopSeq();
+          }
+          break;
         case 1:
           seqReturnVal=seqHoming1();
           if(seqReturnVal>0){//Error
@@ -590,6 +600,20 @@ double ecmcSequencer::checkSoftLimits(double posSetpoint)
 ecmcTrajectoryTrapetz * ecmcSequencer::getTraj()
 {
   return traj_;
+}
+
+int ecmcSequencer::seqHoming0() //nCmdData==0
+{
+  // Return = 0 ready
+  // State 0 set encoder position to same as fHomePosition
+  traj_->setCurrentPosSet(homePosition_);
+  traj_->setTargetPos(homePosition_);
+  enc_->setActPos(homePosition_);
+  enc_->setHomed(true);
+  cntrl_->reset();
+  stopSeq();
+
+  return 0;
 }
 
 int ecmcSequencer::seqHoming1() //nCmdData==1
