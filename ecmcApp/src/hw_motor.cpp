@@ -2585,12 +2585,9 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
 
   ecmcEcEntry *entry=slave->findEntry(sEntryID);
 
-  if(entry==NULL)
+  if(entry==NULL){
     return ERROR_MAIN_EC_ENTRY_NULL;
-
-
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  }
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2599,6 +2596,39 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
     return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
 
   return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);
+}
+
+int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString)
+{
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave=NULL;
+  if(slaveIndex>=0){
+    slave=ec.findSlave(slaveIndex);
+  }
+  else
+  {
+    slave=ec.getSlave(slaveIndex);
+  }
+
+  if(slave==NULL)
+    return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID=entryIDString;
+
+  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+  return ec.setEcStatusOutputEntry(entry);
 }
 
 int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles)

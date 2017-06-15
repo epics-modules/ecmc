@@ -54,7 +54,7 @@ void ecmcEc::initVars()
     slaveEntriesReg_[i].subindex=0;
     slaveEntriesReg_[i].vendor_id=0;
   }
-  memset(&domainState_,0,sizeof(domainState_));
+  memset(&domainState_,0,sizeof(domainState_));  char alias[1024];
   memset(&masterState_,0,sizeof(masterState_));
   inStartupPhase_=true;
   asynPortDriver_=NULL;
@@ -64,6 +64,7 @@ void ecmcEc::initVars()
     ecMemMapArray_[i]=NULL;
   }
   domainSize_=0;
+  statusOutputEntry_=NULL;
 }
 
 int ecmcEc::init(int nMasterIndex)
@@ -423,6 +424,12 @@ void ecmcEc::receive()
 void ecmcEc::send(timespec timeOffset)
 {
   struct timespec timeRel,timeAbs;
+
+  // Write status hardware status to output
+  if(statusOutputEntry_){
+    statusOutputEntry_->writeValue(getErrorID()==0);
+  }
+
   updateOutProcessImage();
   ecrt_domain_queue(domain_);
 
@@ -786,4 +793,10 @@ ecmcEcMemMap *ecmcEc::findMemMap(std::string id)
     }
   }
   return temp;
+}
+
+int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry)
+{
+  statusOutputEntry_=entry;
+  return 0;
 }

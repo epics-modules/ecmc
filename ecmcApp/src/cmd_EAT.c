@@ -536,6 +536,12 @@ static int handleCfgCommand(const char *myarg_1){
     return linkEcEntryToAxisMon(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 
+  /// "Cfg.LinkEcEntryToEcStatusOutput(slaveBusPosition,entryIdString)"
+  nvals = sscanf(myarg_1, "LinkEcEntryToEcStatusOutput(%d,%[^)])", &iValue,cIdBuffer);
+  if (nvals == 2) {
+    return linkEcEntryToEcStatusOutput(iValue,cIdBuffer);
+  }
+
   /// "Cfg.WriteEcEntryIDString(slaveBusPosition,entryIdString,value)"
   nvals = sscanf(myarg_1, "WriteEcEntryIDString(%d,%[^,],%d)", &iValue,cIdBuffer,&iValue3);
   if (nvals == 3) {

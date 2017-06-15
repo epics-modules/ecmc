@@ -110,6 +110,7 @@ public:
   int reset();
   int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
   int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
+  int setEcStatusOutputEntry(ecmcEcEntry *entry);
 private:
   void initVars();
   int updateInputProcessImage();
@@ -144,6 +145,7 @@ private:
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
   int ecMemMapArrayCounter_;
   size_t domainSize_;
+  ecmcEcEntry *statusOutputEntry_;
 
 };
 #endif /* ECMCEC_H_ */

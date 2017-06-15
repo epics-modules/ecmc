@@ -2422,6 +2422,28 @@ int linkEcEntryToAxisDrv(int slaveBusPosition,char *entryIdString,int axisIndex,
  */
 int linkEcEntryToAxisMon(int slaveBusPosition,char *entryIdString,int axisIndex,int monitorEntryIndex,int entryBitIndex);
 
+/** \breif Links an EtherCAT entry to the ethecat master object for hardware
+ *   status output\n
+ *
+ *  The output will be high when the EtherCAT master is without error code and
+ *  otherwise zero.
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] entryIdString String for addressing purpose (see command
+ *                      "Cfg.EcAddEntryComplete() for more information").\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ *  \note Example 1: Link an EtherCAT entry configured as "OUTPUT_0" in slave 1 as
+ *  status output for ethercat master.\n
+ *   "Cfg.LinkEcEntryToEcStatusOutput(1,"OUTPUT_0")" //Command string to cmd_EAT.c\n
+ */
+int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString);
+
 /** \breif Create an event object.
  *
  * An event can be trigger actions based on hardware related events (changes
