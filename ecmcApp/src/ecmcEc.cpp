@@ -54,7 +54,7 @@ void ecmcEc::initVars()
     slaveEntriesReg_[i].subindex=0;
     slaveEntriesReg_[i].vendor_id=0;
   }
-  memset(&domainState_,0,sizeof(domainState_));  char alias[1024];
+  memset(&domainState_,0,sizeof(domainState_));
   memset(&masterState_,0,sizeof(masterState_));
   inStartupPhase_=true;
   asynPortDriver_=NULL;
@@ -798,5 +798,11 @@ ecmcEcMemMap *ecmcEc::findMemMap(std::string id)
 int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry)
 {
   statusOutputEntry_=entry;
+  return 0;
+}
+
+int ecmcEc::setAsynPort(ecmcAsynPortDriver* asynPortDriver)
+{
+  asynPortDriver_=asynPortDriver;
   return 0;
 }

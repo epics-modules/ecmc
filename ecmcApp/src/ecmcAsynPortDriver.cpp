@@ -374,6 +374,12 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
       return (asynError);
     }
 
+    int errorCode=setAsynPort(mytestAsynPort);
+    if(errorCode){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverConfigure: ERROR: New AsynPortDriver (setAsynPort()) failed (0x%x).\n",errorCode);
+      return asynError;
+    }
+
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverConfigure: INFO: New AsynPortDriver success (%s,%i,%i,%i).",portName,paramTableSize,disableAutoConnect==0,priority);
 
     return(asynSuccess);
@@ -559,7 +565,13 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
     case ECMC_ASYN_EC:
       errorCode=linkEcEntryToAsynParameter(mytestAsynPort,idString,asynType,skipCycles);
       break;
-    case ECMC_ASYN_ECMM:
+    case ECMC_ASYN_ECMM:  errorCode=setAsynPort(mytestAsynPort);
+
+    if(errorCode){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (setAsynPort()) failed (0x%x).\n",idString,errorCode);
+      return asynError;
+    }
+
       errorCode=linkEcMemMapToAsynParameter(mytestAsynPort,idString,asynType,skipCycles);
       break;
     case ECMC_ASYN_AX:

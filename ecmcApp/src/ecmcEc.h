@@ -111,6 +111,7 @@ public:
   int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
   int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
   int setEcStatusOutputEntry(ecmcEcEntry *entry);
+  int setAsynPort(ecmcAsynPortDriver* asynPortDriver);
 private:
   void initVars();
   int updateInputProcessImage();

@@ -50,6 +50,7 @@
 #include "ecmcDataRecorder.h"
 #include "ecmcDataStorage.h"
 #include "ecmcCommandList.h"
+#include "ecmcAsynPortDriver.h"
 
 
 /****************************************************************************/
@@ -82,6 +83,7 @@ static ecmcCommandList  *commandLists[ECMC_MAX_COMMANDS_LISTS];
 static struct timespec  masterActivationTimeMonotonic={};
 static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
+static ecmcAsynPortDriver *asynPort=0;
 
 /****************************************************************************/
 
@@ -2639,6 +2641,15 @@ int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, 
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   return ec.linkEcEntryToAsynParameter(asynPortObject,entryIDString,asynParType,skipCycles);
+}
+
+int setAsynPort(void* asynPortObject)
+{
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+
+  asynPort=(ecmcAsynPortDriver*)asynPortObject;
+
+  return ec.setAsynPort(asynPort);
 }
 
 int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles)

@@ -222,7 +222,6 @@ std::string ecmcEcEntry::getIdentificationName()
   return idString_;
 }
 
-
 int ecmcEcEntry::updateAsyn(bool force)
 {
   //I/O intr to EPICS

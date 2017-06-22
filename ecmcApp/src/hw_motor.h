@@ -3513,6 +3513,16 @@ int readEcSlaveIndex(int slavePosition,int *value);
  */
 int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
 
+/** \breif Set asyn port driver object
+ *
+ *  \param[in] asynPortObject Asyn port object.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int setAsynPort(void* asynPortObject);
+
 /** \breif Link EtherCAT memory map to ASYN parameter.
  *
  * Fast access of EtherCAT data from EPICS records is possible by linking an
