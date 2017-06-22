@@ -66,7 +66,11 @@ int ecmcEcSDO::write(uint32_t value)
   writeValue_=value;
   memset(&writeBuffer_[0],0,4);
   memcpy(&writeBuffer_[0],&writeValue_,4);//TODO ENDIANS
-  return ecrt_master_sdo_download(master_,slavePosition_, sdoIndex_, sdoSubIndex_, &writeBuffer_[0], byteSize_, &abortCode); //TODO check abortCode
+  int errorCode=ecrt_master_sdo_download(master_,slavePosition_, sdoIndex_, sdoSubIndex_, &writeBuffer_[0], byteSize_, &abortCode); //TODO check abortCode
+  if(errorCode){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,errorCode,abortCode,ERROR_EC_SDO_WRITE_FAILED);
+  }
+  return errorCode;
 }
 
 int ecmcEcSDO::write()
@@ -74,8 +78,11 @@ int ecmcEcSDO::write()
   uint32_t abortCode=0;
   memset(&writeBuffer_[0],0,4);
   memcpy(&writeBuffer_[0],&writeValue_,4);//TODO ENDIANS
-  int iRet=ecrt_master_sdo_download(master_,slavePosition_, sdoIndex_, sdoSubIndex_, &writeBuffer_[0], byteSize_, &abortCode);
-  return iRet;
+  int errorCode=ecrt_master_sdo_download(master_,slavePosition_, sdoIndex_, sdoSubIndex_, &writeBuffer_[0], byteSize_, &abortCode);
+  if(errorCode){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,errorCode,abortCode,ERROR_EC_SDO_WRITE_FAILED);
+  }
+  return errorCode;
 }
 
 int ecmcEcSDO::read()
@@ -83,9 +90,12 @@ int ecmcEcSDO::read()
   size_t bytes=0;
   uint32_t abortCode=0;
   memset(&readBuffer_[0],0,4);
-  int iRet= ecrt_master_sdo_upload(master_, slavePosition_, sdoIndex_,sdoSubIndex_, &readBuffer_[0],4,&bytes, &abortCode );
+  int errorCode= ecrt_master_sdo_upload(master_, slavePosition_, sdoIndex_,sdoSubIndex_, &readBuffer_[0],4,&bytes, &abortCode);
   memcpy(&readValue_,&readBuffer_[0],4); //TODO ENDIANS
-  return iRet;
+  if(errorCode){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Read failed with sdo error code %d, abort code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,errorCode,abortCode,ERROR_EC_SDO_WRITE_FAILED);
+  }
+  return errorCode;
 }
 
 int ecmcEcSDO::setWriteValue(uint32_t value)
