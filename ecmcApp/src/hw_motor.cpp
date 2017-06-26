@@ -285,12 +285,7 @@ void cyclic_task(void * usr)
         if(PRINT_STDOUT_BIT13()){
           struct timespec testtime;
           clock_gettime(CLOCK_MONOTONIC, &testtime);
-
-          //
           LOGINFO("%s/%s:%d: thread.clock=%ld.%09ld;\n",__FILE__, __FUNCTION__, __LINE__,testtime.tv_sec,testtime.tv_nsec);
-          //LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
-          //LOGINFO("period     %10u ... %10u\n",
-          //        		period_min_ns, period_max_ns);
           LOGINFO("%s/%s:%d: thread.period.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_min_ns);
           LOGINFO("%s/%s:%d: thread.period.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_max_ns);
           LOGINFO("%s/%s:%d: thread.execute.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_min_ns);
@@ -299,12 +294,6 @@ void cyclic_task(void * usr)
           LOGINFO("%s/%s:%d: thread.latency.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_max_ns);
           LOGINFO("%s/%s:%d: thread.send.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_min_ns);
           LOGINFO("%s/%s:%d: thread.send.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_max_ns);
-          //LOGINFO("exec       %10u ... %10u\n",
-          //      exec_min_ns, exec_max_ns);
-          //LOGINFO("latency    %10u ... %10u\n",
-          //      latency_min_ns, latency_max_ns);
-          //LOGINFO("send       %10u ... %10u\n",
-          //		send_min_ns, send_max_ns);
           period_max_ns = 0;
           period_min_ns = 0xffffffff;
           exec_max_ns = 0;
