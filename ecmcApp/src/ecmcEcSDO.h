@@ -21,30 +21,11 @@
 class ecmcEcSDO : public ecmcError
 {
 public:
-  ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t value, int byteSize);
-  ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize);
+  ecmcEcSDO();
   ~ecmcEcSDO();
-  int write(uint32_t value);
-  int write();
-  int read();
-  int writeAndVerify();
-  uint32_t getReadValue();
-  uint32_t getWriteValue();
-  int setWriteValue(uint32_t value);
-  uint16_t getSlaveBusPosition();
-  uint16_t getSdoIndex();
-  uint8_t getSdoSubIndex();
-
-private:
-  void initVars();
-  ec_master_t *master_;
-  uint16_t slavePosition_;
-  uint16_t sdoIndex_;
-  uint8_t sdoSubIndex_;
-  uint32_t writeValue_;
-  uint32_t readValue_;
-  uint8_t writeBuffer_[4];
-  uint8_t readBuffer_[4];
-  int byteSize_;
+  static int write(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t value, size_t byteSize);
+  static int read(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t *readValue,size_t *readBytes);
+  static int writeAndVerify(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t value, size_t byteSize);
+  static int addSdoConfig(ec_slave_config_t *slave,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,size_t byteSize);
 };
 #endif /* ECMCECSDO_H_ */

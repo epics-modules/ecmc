@@ -17,6 +17,7 @@
 #include "ecmcEcMemMap.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcError.h"
+#include "ecmcEcSDO.h"
 #include "cmd.h" //Logging macros
 
 #define SIMULATION_ENTRIES 2
@@ -104,7 +105,7 @@ public:
                                       is not written, so the default is used.
                                      */
       );
-
+  int addSDOWrite(uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t writeValue, int byteSize);
 private:
   void initVars();
   ecmcEcSyncManager *findSyncMan(uint8_t syncMangerIndex);

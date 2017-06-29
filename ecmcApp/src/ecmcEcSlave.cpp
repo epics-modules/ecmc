@@ -515,7 +515,7 @@ int ecmcEcSlave::setWatchDogConfig(
                                    */
     )
 {
-  if(slaveConfig_==0){
+  if(!slaveConfig_){
     LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CONFIG_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CONFIG_NULL);
   }
@@ -523,30 +523,12 @@ int ecmcEcSlave::setWatchDogConfig(
   return 0;
 }
 
-/*int ecmcEcSlave::addMemMap(std::string startEntryIDString,
-		    size_t byteSize,
-		    int type,
-		    ec_direction_t direction,
-		    std::string entryIDString)
+int ecmcEcSlave::addSDOWrite(uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t writeValue, int byteSize)
 {
-  if(entryArrayCounter_>=EC_MAX_ARRAY_ENTRIES){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Adding ecEntryArray failed. Array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_ARRAY_INDEX_OUT_OF_RANGE);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_ARRAY_INDEX_OUT_OF_RANGE);
+  if(!slaveConfig_){
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CONFIG_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CONFIG_NULL);
   }
 
-  ecmcEcEntry *entry=findEntry(startEntryIDString);
-  if(!entry){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Adding ecEntryArray failed. Start entry not found (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_ARRAY_START_ENTRY_NULL);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_ARRAY_START_ENTRY_NULL);
-  }
-
-  entryMemMap_[entryArrayCounter_]=new ecmcEcMemMap(entry,byteSize,type,direction,entryIDString);
-
-  if(!entryMemMap_[entryArrayCounter_]){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Adding ecEntryArray failed. New ecmcEcMemMap fail (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_ARRAY_NULL );
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_ARRAY_NULL );
-  }
-  entryArrayCounter_++;
-  return 0;
+  return ecmcEcSDO::addSdoConfig(slaveConfig_,slavePosition_,sdoIndex,sdoSubIndex,writeValue,byteSize);;
 }
-*/

@@ -535,10 +535,10 @@ int ecApplyConfig(int masterIndex)
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex);
 
   int errorCode=0;
-  if((errorCode=ec.writeAndVerifySDOs())){
+  /*if((errorCode=ec.writeAndVerifySDOs())){
     LOGERR("ERROR:\tSDO write and verify failed\n");
     return errorCode;
-  }
+  }*/
   if((errorCode=ec.compileRegInfo())){
     LOGERR("ERROR:\tCompileRegInfo failed\n");
     return errorCode;

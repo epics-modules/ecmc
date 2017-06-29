@@ -126,12 +126,12 @@ private:
   ec_master_state_t masterState_;
   uint8_t *domainPd_ ;
   int slaveCounter_;
-  int sdoCounter_;
+  //int sdoCounter_;
   ecmcEcSlave *slaveArray_[EC_MAX_SLAVES];
   ec_pdo_entry_reg_t slaveEntriesReg_[EC_MAX_ENTRIES];
   unsigned int pdoByteOffsetArray_[EC_MAX_ENTRIES];
   unsigned int pdoBitOffsetArray_[EC_MAX_ENTRIES];
-  ecmcEcSDO *sdoArray_[EC_MAX_ENTRIES];
+  //ecmcEcSDO *sdoArray_[EC_MAX_ENTRIES];
   bool initDone_;
   bool diag_;
   ecmcEcSlave *simSlave_;

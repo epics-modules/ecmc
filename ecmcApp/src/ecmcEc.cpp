@@ -20,7 +20,7 @@ void ecmcEc::initVars()
   slaveCounter_=0;
   initDone_=false;
   diag_=true;
-  sdoCounter_=0;
+  //sdoCounter_=0;
   simSlave_=NULL;
   master_=NULL;
   domain_=NULL;
@@ -42,7 +42,7 @@ void ecmcEc::initVars()
     slaveArray_[i]=NULL;
   }
   for(int i=0; i < EC_MAX_ENTRIES; i++){
-    sdoArray_[i]=NULL;
+    //sdoArray_[i]=NULL;
     pdoByteOffsetArray_[i]=0;
     pdoBitOffsetArray_[i]=0;
     slaveEntriesReg_[i].alias=0;
@@ -93,10 +93,10 @@ ecmcEc::~ecmcEc()
     slaveArray_[i]=NULL;
   }
 
-  for(int i=0; i < sdoCounter_; i++){
+  /*for(int i=0; i < sdoCounter_; i++){
     delete sdoArray_[i];
     sdoArray_[i]=NULL;
-  }
+  }*/
 
   if(simSlave_!=NULL){
     delete simSlave_;
@@ -450,16 +450,23 @@ int ecmcEc::setDiagnostics(bool bDiag)
 
 int ecmcEc::addSDOWrite(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t writeValue, int byteSize)
 {
-  if(sdoCounter_>=EC_MAX_ENTRIES-1){
+  /*if(sdoCounter_>=EC_MAX_ENTRIES-1){
     LOGERR("%s/%s:%d: ERROR: SDO object array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SDO_ARRAY_FULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SDO_ARRAY_FULL);
   }
   sdoArray_[sdoCounter_]=new ecmcEcSDO(master_,slavePosition,sdoIndex,sdoSubIndex,writeValue, byteSize);
-  sdoCounter_++;
-  return 0;
+  sdoCounter_++;*/
+
+  ecmcEcSlave *slave= findSlave(slavePosition);
+  if(!slave){
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
+  }
+
+  return slave->addSDOWrite(sdoIndex,sdoSubIndex,writeValue,byteSize);
 }
 
-int ecmcEc::writeAndVerifySDOs()
+/*int ecmcEc::writeAndVerifySDOs()
 {
   for(int i=0;i<sdoCounter_;i++){
     if(sdoArray_[i]==NULL){
@@ -473,28 +480,23 @@ int ecmcEc::writeAndVerifySDOs()
     }
   }
   return 0;
-}
+}*/
 
 int ecmcEc::writeSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize)
 {
-  ecmcEcSDO * sdo=new ecmcEcSDO(master_,slavePosition,sdoIndex,sdoSubIndex, byteSize);
-  int nRet=sdo->write(value);
-  delete sdo;
-  return nRet;
+  return ecmcEcSDO::write(master_,slavePosition,sdoIndex,sdoSubIndex,value,(size_t)byteSize);;
 }
 
 uint32_t ecmcEc::readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize)
 {
-  ecmcEcSDO * sdo=new ecmcEcSDO(master_,slavePosition,sdoIndex,sdoSubIndex, byteSize);
-  if(sdo->read()){
-    LOGERR("%s/%s:%d: ERROR: SDO read failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SDO_READ_FAILED);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SDO_READ_FAILED);
-    delete sdo;
+  uint32_t value=0;
+  size_t bytesRead=0;
+  int errorCode=ecmcEcSDO::read(master_,slavePosition,sdoIndex,sdoSubIndex,&value,&bytesRead);
+  if(errorCode){
     return 0;
   }
-  uint32_t nRet=sdo->getReadValue();
-  delete sdo;
-  return nRet;
+
+  return value;
 }
 
 int ecmcEc::updateInputProcessImage()

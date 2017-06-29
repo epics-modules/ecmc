@@ -7,141 +7,98 @@
 
 #include "ecmcEcSDO.h"
 
-ecmcEcSDO::ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize)
+ecmcEcSDO::ecmcEcSDO()
 {
-  initVars();
-  master_=master;
-  slavePosition_=slavePosition;
-  sdoIndex_=sdoIndex;
-  sdoSubIndex_=sdoSubIndex;
-  byteSize_=byteSize;
-  if(byteSize_>4){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_SIZE_TO_LARGE);
-    byteSize_=4;
-  }
-}
-
-ecmcEcSDO::ecmcEcSDO(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t value, int byteSize)
-{
-  LOGINFO5("%s/%s:%d: INFO: Creating SDO object (slave position %d, SDO index 0x%x, SDO sub index 0x%x, size %d, value %d).\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,sdoSubIndex,byteSize,value);
-  initVars();
-  master_=master;
-  slavePosition_=slavePosition;
-  sdoIndex_=sdoIndex;
-  sdoSubIndex_=sdoSubIndex;
-  byteSize_=byteSize;
-  if(byteSize_>4){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_SIZE_TO_LARGE);
-    byteSize_=4;
-  }
-  writeValue_=value;
 }
 
 ecmcEcSDO::~ecmcEcSDO()
 {
-  ;
 }
 
-void ecmcEcSDO::initVars()
-{
-  errorReset();
-  master_=NULL;
-  slavePosition_=0;
-  sdoIndex_=0;
-  sdoSubIndex_=0;
-  writeValue_=0;
-  readValue_=0;
-  byteSize_=0;
-  memset(&writeBuffer_[0],0,4);
-  memset(&readBuffer_[0],0,4);
-}
-
-int ecmcEcSDO::write(uint32_t value)
+int ecmcEcSDO::write(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t value, size_t byteSize)
 {
   uint32_t abortCode=0;
-  if(byteSize_>4){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_SIZE_TO_LARGE);
-    byteSize_=4;
+  if(byteSize>4){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, byte size to large (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,ERROR_EC_SDO_SIZE_TO_LARGE);
+    return ERROR_EC_SDO_SIZE_TO_LARGE;
   }
-  writeValue_=value;
-  memset(&writeBuffer_[0],0,4);
-  memcpy(&writeBuffer_[0],&writeValue_,4);//TODO ENDIANS
-  int errorCode=ecrt_master_sdo_download(master_,slavePosition_, sdoIndex_, sdoSubIndex_, &writeBuffer_[0], byteSize_, &abortCode); //TODO check abortCode
-  if(errorCode){
-    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,errorCode,abortCode,ERROR_EC_SDO_WRITE_FAILED);
+  uint8_t buffer[4];
+  memset(&buffer[0],0,4);
+  memcpy(&buffer[0],&value,4);//TODO ENDIANS
+  int errorCode=ecrt_master_sdo_download(master,slavePosition, sdoIndex, sdoSubIndex, &buffer[0], byteSize, &abortCode);
+  if(errorCode || abortCode){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,errorCode,abortCode,ERROR_EC_SDO_WRITE_FAILED);
   }
   return errorCode;
 }
 
-int ecmcEcSDO::write()
+int ecmcEcSDO::addSdoConfig(ec_slave_config_t *slave,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,size_t byteSize)
 {
-  uint32_t abortCode=0;
-  memset(&writeBuffer_[0],0,4);
-  memcpy(&writeBuffer_[0],&writeValue_,4);//TODO ENDIANS
-  int errorCode=ecrt_master_sdo_download(master_,slavePosition_, sdoIndex_, sdoSubIndex_, &writeBuffer_[0], byteSize_, &abortCode);
+  ///Use ecrt_slave_config_sdo instead of ecrt_master_sdo_download since ecrt_slave_config_sdo automatically downloads settings to slave after power loss or other issues.
+  if(byteSize>4){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, byte size to large (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,ERROR_EC_SDO_SIZE_TO_LARGE);
+    return ERROR_EC_SDO_SIZE_TO_LARGE;
+  }
+
+  int errorCode=0;
+  switch(byteSize){
+    case 1:
+      uint8_t *val8;
+      val8=(uint8_t*)&value;
+      errorCode=ecrt_slave_config_sdo8(slave,sdoIndex,sdoSubIndex,*val8);
+      break;
+    case 2:
+      uint16_t *val16;
+      val16=(uint16_t*)&value;
+      errorCode=ecrt_slave_config_sdo16(slave,sdoIndex,sdoSubIndex,*val16);
+      break;
+    case 4:
+      errorCode=ecrt_slave_config_sdo32(slave,sdoIndex,sdoSubIndex,value);
+      break;
+  }
+
   if(errorCode){
-    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,errorCode,abortCode,ERROR_EC_SDO_WRITE_FAILED);
-  }
-  return errorCode;
-}
-
-int ecmcEcSDO::read()
-{
-  size_t bytes=0;
-  uint32_t abortCode=0;
-  memset(&readBuffer_[0],0,4);
-  int errorCode= ecrt_master_sdo_upload(master_, slavePosition_, sdoIndex_,sdoSubIndex_, &readBuffer_[0],4,&bytes, &abortCode);
-  memcpy(&readValue_,&readBuffer_[0],4); //TODO ENDIANS
-  if(errorCode){
-    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Read failed with sdo error code %d, abort code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,errorCode,abortCode,ERROR_EC_SDO_WRITE_FAILED);
-  }
-  return errorCode;
-}
-
-int ecmcEcSDO::setWriteValue(uint32_t value)
-{
-  writeValue_=value;
-  return 0;
-}
-
-uint32_t ecmcEcSDO::getWriteValue()
-{
-  return writeValue_;
-}
-
-uint32_t ecmcEcSDO::getReadValue()
-{
-  return readValue_;
-}
-
-int ecmcEcSDO::writeAndVerify()
-{
-  if(write()){
-    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,ERROR_EC_SDO_WRITE_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_WRITE_FAILED);
-  }
-  if(read()){
-    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Read failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,ERROR_EC_SDO_READ_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_READ_FAILED);
-  }
-  if(writeValue_!=readValue_){
-    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Verification failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex_,sdoSubIndex_,slavePosition_,ERROR_EC_SDO_VERIFY_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SDO_VERIFY_FAILED);
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed with sdo error code %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,errorCode,ERROR_EC_SDO_WRITE_FAILED);
+    return ERROR_EC_SDO_WRITE_FAILED;
   }
   return 0;
 }
 
-uint16_t ecmcEcSDO::getSlaveBusPosition()
+
+int ecmcEcSDO::read(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t *readValue,size_t *readBytes)
 {
-  return slavePosition_;
+  uint32_t abortCode=0;
+  uint8_t buffer[4];
+  memset(buffer,0,sizeof(buffer));
+  int errorCode= ecrt_master_sdo_upload(master, slavePosition, sdoIndex,sdoSubIndex,buffer,4,readBytes, &abortCode);
+  if(errorCode || abortCode){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Read failed with sdo error code %d, abort code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,errorCode,abortCode,ERROR_EC_SDO_WRITE_FAILED);
+  }
+
+  memcpy(readValue,buffer,4);
+  return ERROR_EC_SDO_WRITE_FAILED;
 }
 
-uint16_t ecmcEcSDO::getSdoIndex()
+int ecmcEcSDO::writeAndVerify(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, uint32_t value, size_t byteSize)
 {
-  return sdoIndex_;
-}
+  if(byteSize>4){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, byte size to large (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,ERROR_EC_SDO_SIZE_TO_LARGE);
+    return ERROR_EC_SDO_SIZE_TO_LARGE;
+  }
 
-uint8_t ecmcEcSDO::getSdoSubIndex()
-{
-  return sdoSubIndex_;
+  if(write(master,slavePosition,sdoIndex,sdoSubIndex, value, byteSize)){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,ERROR_EC_SDO_WRITE_FAILED);
+    return ERROR_EC_SDO_WRITE_FAILED;
+  }
+  uint32_t readValue=0;
+  size_t readBytes=0;
+  if(read(master,slavePosition,sdoIndex,sdoSubIndex,&readValue,&readBytes)){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Read failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,ERROR_EC_SDO_READ_FAILED);
+    return ERROR_EC_SDO_READ_FAILED;
+  }
+  if(value!=readValue){
+    LOGERR("%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Verification failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,sdoIndex,sdoSubIndex,slavePosition,ERROR_EC_SDO_VERIFY_FAILED);
+    return ERROR_EC_SDO_VERIFY_FAILED;
+  }
+  return 0;
 }
