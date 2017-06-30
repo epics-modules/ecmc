@@ -64,7 +64,6 @@ int ecmcEcSDO::addSdoConfig(ec_slave_config_t *slave,uint16_t slavePosition,uint
   return 0;
 }
 
-
 int ecmcEcSDO::read(ec_master_t *master,uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t *readValue,size_t *readBytes)
 {
   uint32_t abortCode=0;

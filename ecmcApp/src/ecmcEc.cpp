@@ -20,7 +20,6 @@ void ecmcEc::initVars()
   slaveCounter_=0;
   initDone_=false;
   diag_=true;
-  //sdoCounter_=0;
   simSlave_=NULL;
   master_=NULL;
   domain_=NULL;
@@ -37,12 +36,10 @@ void ecmcEc::initVars()
   domainNotOKCounter_=0;
   domainNotOKCyclesLimit_=0;
   domainNotOKCounterMax_=0;
-  //enableDiagnosticPrintouts_=1;
   for(int i=1; i < EC_MAX_SLAVES; i++){
     slaveArray_[i]=NULL;
   }
   for(int i=0; i < EC_MAX_ENTRIES; i++){
-    //sdoArray_[i]=NULL;
     pdoByteOffsetArray_[i]=0;
     pdoBitOffsetArray_[i]=0;
     slaveEntriesReg_[i].alias=0;
@@ -92,11 +89,6 @@ ecmcEc::~ecmcEc()
     delete slaveArray_[i];
     slaveArray_[i]=NULL;
   }
-
-  /*for(int i=0; i < sdoCounter_; i++){
-    delete sdoArray_[i];
-    sdoArray_[i]=NULL;
-  }*/
 
   if(simSlave_!=NULL){
     delete simSlave_;
@@ -382,19 +374,16 @@ bool ecmcEc::checkState(void)
   if(masterState_.al_states!=EC_AL_STATE_OP){
     switch(masterState_.al_states){
       case EC_AL_STATE_INIT:
-        //LOGERR("%s/%s:%d: ERROR: Application layer state INIT (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_INIT);
         setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AL_STATE_INIT);
         masterOK_=false;
         return false;
         break;
       case EC_AL_STATE_PREOP:
-        //LOGERR("%s/%s:%d: ERROR: Application layer state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_PREOP);
         setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AL_STATE_PREOP);
         masterOK_=false;
         return false;
         break;
       case EC_AL_STATE_SAFEOP:
-        //LOGERR("%s/%s:%d: ERROR: Application layer state PREOP (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AL_STATE_SAFEOP);
         setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AL_STATE_SAFEOP);
         masterOK_=false;
         return false;
@@ -403,7 +392,6 @@ bool ecmcEc::checkState(void)
   }
 
   if(!masterState_.link_up){
-    //LOGERR("%s/%s:%d: ERROR: Master link down (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_LINK_DOWN);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_LINK_DOWN);
     masterOK_=false;
     return false;
@@ -450,13 +438,6 @@ int ecmcEc::setDiagnostics(bool bDiag)
 
 int ecmcEc::addSDOWrite(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t writeValue, int byteSize)
 {
-  /*if(sdoCounter_>=EC_MAX_ENTRIES-1){
-    LOGERR("%s/%s:%d: ERROR: SDO object array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SDO_ARRAY_FULL);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SDO_ARRAY_FULL);
-  }
-  sdoArray_[sdoCounter_]=new ecmcEcSDO(master_,slavePosition,sdoIndex,sdoSubIndex,writeValue, byteSize);
-  sdoCounter_++;*/
-
   ecmcEcSlave *slave= findSlave(slavePosition);
   if(!slave){
     LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SLAVE_NULL);
@@ -465,22 +446,6 @@ int ecmcEc::addSDOWrite(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubI
 
   return slave->addSDOWrite(sdoIndex,sdoSubIndex,writeValue,byteSize);
 }
-
-/*int ecmcEc::writeAndVerifySDOs()
-{
-  for(int i=0;i<sdoCounter_;i++){
-    if(sdoArray_[i]==NULL){
-      LOGERR("%s/%s:%d: ERROR: SDO object NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SDO_ENTRY_NULL);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SDO_ENTRY_NULL);
-    }
-    int iRet;
-    if((iRet=sdoArray_[i]->writeAndVerify())){
-      LOGERR("%s/%s:%d: ERROR: SDO write and verify failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,iRet);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,iRet);
-    }
-  }
-  return 0;
-}*/
 
 int ecmcEc::writeSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize)
 {
