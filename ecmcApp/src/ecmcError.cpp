@@ -545,8 +545,20 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x21009:
       return "ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED";
       break;
+    case 0x2100A:
+      return "ERROR_EC_ENTRY_ASSIGN_ADD_FAIL";
+      break;
+    case 0x2100B:
+      return "ERROR_EC_ENTRY_REGISTER_FAIL";
+      break;
     case 0x22000:  //ECPDO
       return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
+      break;
+    case 0x22001:
+      return "ERROR_EC_PDO_ADD_FAIL";
+      break;
+    case 0x22002:
+      return "ERROR_EC_PDO_CLEAR_ENTRIES_FAIL";
       break;
     case 0x23000:  //ECSDO
       return "ERROR_EC_SDO_SIZE_TO_LARGE";
@@ -625,6 +637,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x25002:
       return "ERROR_EC_SM_ENTRY_INFO_STRUCT_NULL";
+      break;
+    case 0x25003:
+      return "ERROR_EC_SM_CONFIG_FAIL";
+      break;
+    case 0x25004:
+      return "ERROR_EC_SM_CLEAR_PDO_FAIL";
       break;
     case 0x26000: //EC
       return "ERROR_EC_MAIN_REQUEST_FAILED";

@@ -10,7 +10,7 @@
 ecmcEc::ecmcEc()
 {
   initVars();
-  simSlave_=new ecmcEcSlave(NULL,0,0,0,0);
+  simSlave_=new ecmcEcSlave(NULL,NULL,0,0,0,0);
   setErrorID(ERROR_EC_STATUS_NOT_OK);
 }
 
@@ -125,13 +125,13 @@ int ecmcEc::addSlave(
 {
   LOGINFO5("%s/%s:%d: INFO: Adding EtherCAT slave (alias=%d, position=%d, vendorId=%x, productCode=%x).\n",__FILE__, __FUNCTION__, __LINE__,alias,position,vendorId,productCode);
   if(slaveCounter_<EC_MAX_SLAVES-1){
-    slaveArray_[slaveCounter_]=new ecmcEcSlave(master_,alias,position,vendorId,productCode);
+    slaveArray_[slaveCounter_]=new ecmcEcSlave(master_,domain_,alias,position,vendorId,productCode);
     slaveCounter_++;
     return slaveCounter_-1;
   }
   else{
     LOGERR("%s/%s:%d: ERROR: Slave Array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SLAVE_ARRAY_FULL);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_ARRAY_FULL);
+    return -setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_ARRAY_FULL);
   }
 }
 
@@ -161,23 +161,20 @@ int ecmcEc::activate()
   LOGINFO5("%s/%s:%d: INFO: Activating master...\n",__FILE__, __FUNCTION__, __LINE__);
 
   if (ecrt_master_activate(master_)){
+    LOGERR("%s/%s:%d: ERROR: ecrt_master_activate() failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED);
   }
 
   if (!(domainPd_ = ecrt_domain_data(domain_))) {
+    LOGERR("%s/%s:%d: ERROR: ecrt_domain_data() failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_DOMAIN_DATA_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_DOMAIN_DATA_FAILED);
   }
 
-  mcu_ec_slave_info_light slaveinfo;
   LOGINFO5("%s/%s:%d: INFO: Writing process data offsets to entries.\n",__FILE__, __FUNCTION__, __LINE__);
   for(int slaveIndex=0; slaveIndex<slaveCounter_;slaveIndex++){
     if(slaveArray_[slaveIndex]==NULL){
       LOGERR("%s/%s:%d: ERROR: Slave NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SLAVE_NULL);
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
-    }
-    if(slaveArray_[slaveIndex]->getSlaveInfo(&slaveinfo)){  //Get slave info
-      LOGERR("%s/%s:%d: ERROR: Get slave information failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
     }
     int nEntryCount=slaveArray_[slaveIndex]->getEntryCount();
     for(int entryIndex=0;entryIndex<nEntryCount;entryIndex++){
@@ -196,59 +193,12 @@ int ecmcEc::activate()
 
 int ecmcEc::compileRegInfo()
 {
-  LOGINFO5("%s/%s:%d: INFO: Compiling registration info.\n",__FILE__, __FUNCTION__, __LINE__);
-  mcu_ec_slave_info_light slaveinfo;
-  ec_pdo_entry_info_t entryinfo;
   int entryCounter=0;
-  for(int slaveIndex=0; slaveIndex<slaveCounter_;slaveIndex++){
-    if(slaveArray_[slaveIndex]==NULL){
-      LOGERR("%s/%s:%d: ERROR: Slave NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SLAVE_NULL);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
-    }
-    if(slaveArray_[slaveIndex]->getSlaveInfo(&slaveinfo)){  //Get slave info
-      LOGERR("%s/%s:%d: ERROR: Get slave information failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
-    }
-    slaveArray_[slaveIndex]->configPdos(domain_);
-    int entryCountInSlave=slaveArray_[slaveIndex]->getEntryCount();
-    for(int entryIndex=0;entryIndex<entryCountInSlave;entryIndex++){
-      if(slaveArray_[slaveIndex]->getEntryInfo(entryIndex, &entryinfo)){ //Get entry info
-	LOGERR("%s/%s:%d: ERROR: Get entry information failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_GET_ENTRY_INFO_FAILED);
-        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_GET_ENTRY_INFO_FAILED);
-      }
-      slaveEntriesReg_[entryCounter].alias=slaveinfo.alias;
-      slaveEntriesReg_[entryCounter].position=  slaveinfo.position;
-      slaveEntriesReg_[entryCounter].vendor_id=slaveinfo.vendor_id;;
-      slaveEntriesReg_[entryCounter].product_code=slaveinfo.product_code;;
-      slaveEntriesReg_[entryCounter].index=entryinfo.index; //0x7000
-      slaveEntriesReg_[entryCounter].subindex=entryinfo.subindex;//0x0
-      slaveEntriesReg_[entryCounter].offset=&pdoByteOffsetArray_[entryCounter]; //Output byte address offset
-      slaveEntriesReg_[entryCounter].bit_position=&pdoBitOffsetArray_[entryCounter]; //Output address bit offset
-      entryCounter++;
-    }
-  }
-  // slave_entries_reg filled
-  LOGINFO5("%s/%s:%d: INFO: Slave register entries structure filled.\n",__FILE__, __FUNCTION__, __LINE__);
-  for(int i=0;i<entryCounter;i++){
-    LOGINFO5("\t\t{%d\t%d\t%x\t%x\t%x\t%x}\n",slaveEntriesReg_[i].alias,slaveEntriesReg_[i].position,slaveEntriesReg_[i].vendor_id,slaveEntriesReg_[i].product_code,slaveEntriesReg_[i].index,slaveEntriesReg_[i].subindex);
-  }
-  //Register to get offsets!
-  if (ecrt_domain_reg_pdo_entry_list(domain_, slaveEntriesReg_)) {  //Now offsets are stored in slave_enties reg
-    LOGERR("%s/%s:%d: ERROR: Entry list registartion failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_DOM_REG_PDO_ENTRY_LIST_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_DOM_REG_PDO_ENTRY_LIST_FAILED);
-  }
-  LOGINFO5("%s/%s:%d: INFO: Writing address offsets to entry objects.\n",__FILE__, __FUNCTION__, __LINE__);
-
-  entryCounter=0;
   //Write offstes to entries
   for(int slaveIndex=0; slaveIndex<slaveCounter_;slaveIndex++){
     if(slaveArray_[slaveIndex]==NULL){
       LOGERR("%s/%s:%d: ERROR: Slave NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_SLAVE_NULL);
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
-    }
-    if(slaveArray_[slaveIndex]->getSlaveInfo(&slaveinfo)){  //Get slave info
-      LOGERR("%s/%s:%d: ERROR: Get slave information failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
     }
     int entryCountInSlave=slaveArray_[slaveIndex]->getEntryCount();
     for(int entryIndex=0;entryIndex<entryCountInSlave;entryIndex++){
@@ -257,8 +207,11 @@ int ecmcEc::compileRegInfo()
         LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_ENTRY_NULL);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_ENTRY_NULL);
       }
-      tempEntry->setAdrOffsets(pdoByteOffsetArray_[entryCounter],pdoBitOffsetArray_[entryCounter]);
-      LOGINFO5("%s/%s:%d: INFO: Entry %s (index=%d): Byteoffset: %d, bit offset %d.\n",__FILE__, __FUNCTION__, __LINE__,tempEntry->getIdentificationName().c_str(),entryIndex,pdoByteOffsetArray_[entryCounter],pdoBitOffsetArray_[entryCounter]);
+      int ret=tempEntry->registerInDomain();
+      if(ret){
+         LOGERR("%s/%s:%d: ERROR: register entry in domain failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ret);
+	 return setErrorID(__FILE__,__FUNCTION__,__LINE__,ret);
+      }
       entryCounter++;
     }
   }
@@ -271,7 +224,7 @@ int ecmcEc::compileRegInfo()
     }
   }
 
-  LOGINFO5("%s/%s:%d: INFO: Leaving ecmcEc::compileRegInfo. Entries registered: %d.\n",__FILE__, __FUNCTION__, __LINE__,entryCounter);
+  //LOGINFO5("%s/%s:%d: INFO: Leaving ecmcEc::compileRegInfo. Entries registered: %d.\n",__FILE__, __FUNCTION__, __LINE__,entryCounter);
   return 0;
 }
 
@@ -289,7 +242,7 @@ void ecmcEc::checkDomainState(void)
       domainNotOKCounter_++;
     }
     if(domainNotOKCounter_> domainNotOKCounterMax_){
-   	  domainNotOKCounterMax_=domainNotOKCounter_;
+      domainNotOKCounterMax_=domainNotOKCounter_;
     }
   }
   else{
@@ -519,11 +472,13 @@ int ecmcEc::addEntry(
   ecmcEcSlave *slave=findSlave(position);
   if(slave==NULL){
     int slaveIndex=addSlave(0,position,vendorId,productCode);
+    if(slaveIndex<0){ //Error
+      return -slaveIndex;
+    }
     slave=slaveArray_[slaveIndex]; //last added slave
   }
-  slave->addEntry(direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
 
-  return 0;
+  return slave->addEntry(direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
 }
 
 ecmcEcSlave *ecmcEc::findSlave(int busPosition)

@@ -9,6 +9,7 @@
 
 ecmcEcSlave::ecmcEcSlave(
   ec_master_t *master, /**< EtherCAT master */
+  ec_domain_t *domain,/** <Domain> */
   uint16_t alias, /**< Slave alias. */
   uint16_t position, /**< Slave position. */
   uint32_t vendorId, /**< Expected vendor ID. */
@@ -31,7 +32,13 @@ ecmcEcSlave::ecmcEcSlave(
     simSlave_=true;
     return;
   }
-  configSlave();
+
+  domain_=domain;
+  if (!(slaveConfig_ = ecrt_master_slave_config(master_, alias_,slavePosition_, vendorId_,productCode_))) {
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Failed to get slave configuration (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CONFIG_FAILED);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CONFIG_FAILED);
+  }
+  LOGINFO5("%s/%s:%d: INFO: Slave %d created: alias %d, vendorId 0x%x, productCode 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,alias_,vendorId_,productCode_);
 }
 
 void ecmcEcSlave::initVars()
@@ -63,9 +70,7 @@ void ecmcEcSlave::initVars()
     entryList_[i]=NULL;
   }
 
-  memset(&slaveSyncs_,0,sizeof(slaveSyncs_));
-  memset(&slavePdoEntries_,0,sizeof(slavePdoEntries_));
-  memset(&slavePdos_,0,sizeof(slavePdos_));
+  domain_=NULL;
   memset(&slaveStateOld_,0,sizeof(slaveStateOld_));
 }
 
@@ -86,16 +91,6 @@ ecmcEcSlave::~ecmcEcSlave()
   }
 }
 
-int ecmcEcSlave::configSlave()
-{
-  if (!(slaveConfig_ = ecrt_master_slave_config(master_, alias_,slavePosition_, vendorId_,productCode_))) {
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Failed to get slave configuration (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CONFIG_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CONFIG_FAILED);
-  }
-  else
-    return 0;
-}
-
 int ecmcEcSlave::getEntryCount()
 {
   return entryCounter_;
@@ -113,7 +108,7 @@ int ecmcEcSlave::addSyncManager(ec_direction_t direction,uint8_t syncMangerIndex
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_SM_ARRAY_FULL);
   }
 
-  syncManagerArray_[syncManCounter_]=new ecmcEcSyncManager(direction, syncMangerIndex);
+  syncManagerArray_[syncManCounter_]=new ecmcEcSyncManager(domain_,slaveConfig_,direction, syncMangerIndex);
   syncManCounter_++;
   return 0;
 }
@@ -134,30 +129,6 @@ ecmcEcSyncManager *ecmcEcSlave::getSyncManager(int syncManagerIndex)
   return syncManagerArray_[syncManagerIndex];
 }
 
-int ecmcEcSlave::getEntryInfo(int entryIndex, ec_pdo_entry_info_t *info)
-{
-  if(simSlave_){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-  }
-
-  if(info==NULL){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry Info structure NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_INFO_STRUCT_NULL);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_INFO_STRUCT_NULL);
-  }
-
-  if(entryIndex>=EC_MAX_ENTRIES || entryIndex>=entryCounter_){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry index out of range (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE);
-  }
-
-  info->bit_length=slavePdoEntries_[entryIndex].bit_length;
-  info->index=slavePdoEntries_[entryIndex].index;
-  info->subindex=slavePdoEntries_[entryIndex].subindex;
-
-  return 0;
-}
-
 int ecmcEcSlave::getSlaveInfo( mcu_ec_slave_info_light *info)
 {
   if(info==NULL){
@@ -169,102 +140,6 @@ int ecmcEcSlave::getSlaveInfo( mcu_ec_slave_info_light *info)
   info->product_code=productCode_;
   info->vendor_id=vendorId_;
   return 0;
-}
-
-int ecmcEcSlave::configPdos( ec_domain_t *domain)
-{
-  if(simSlave_){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-  }
-  LOGINFO5("%s/%s:%d: INFO: Configuring slave %d.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_);
-  ecmcEcSyncManager *sm=NULL;
-  ecmcEcPdo *pdo=NULL;
-  ecmcEcEntry *entry=NULL;
-  entryCounter_=0;
-  pdosArrayIndex_=0;
-  syncManArrayIndex_=0;
-  for(int smIndex=0;smIndex<syncManCounter_;smIndex++){
-    sm=syncManagerArray_[smIndex];
-    int pdoCount=sm->getPdoCount();
-    sm->getInfo(&slaveSyncs_[syncManArrayIndex_]);
-    slaveSyncs_[syncManArrayIndex_].pdos=&slavePdos_[pdosArrayIndex_];
-    slaveSyncs_[syncManArrayIndex_].n_pdos=pdoCount;
-    syncManArrayIndex_++;
-    for(int pdoIndex=0;pdoIndex<pdoCount;pdoIndex++){
-      pdo=sm->getPdo(pdoIndex);
-      int entryCount=pdo->getEntryCount();
-      slavePdos_[pdosArrayIndex_].index=pdo->getPdoIndex(); //nPdoInde 0x1600;
-      slavePdos_[pdosArrayIndex_].n_entries=entryCount;
-      slavePdos_[pdosArrayIndex_].entries=&slavePdoEntries_[entryCounter_];
-      pdosArrayIndex_++;
-      for(int entryIndex=0;entryIndex<entryCount;entryIndex++){
-        entry=pdo->getEntry(entryIndex);
-        entryList_[entryCounter_]=entry;
-        entry->getEntryInfo(&slavePdoEntries_[entryCounter_]);
-        entryCounter_++;
-      }
-    }
-  }
-  slaveSyncs_[syncManArrayIndex_].index=0xff; //Terminate structure for ecrt_slave_config_pdos()
-
-  if(entryCounter_==0){
-    LOGINFO5("%s/%s:%d: WARNING: No Pdo:s to configured for slave %d.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_);
-    return 0;
-  }
-
-  writeEntriesStruct();
-  writePdoStruct();
-  writeSyncsStruct();
-
-  if (ecrt_slave_config_pdos(slaveConfig_, EC_END, slaveSyncs_)){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): PDO configuration failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CONFIG_PDOS_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CONFIG_PDOS_FAILED);
-  }
-  LOGINFO5("%s/%s:%d: INFO: Configuration done successfully for slave %d.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_);
-
-  return 0;
-}
-
-void ecmcEcSlave::writeEntriesStruct()
-{
-  if(simSlave_){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): PDO configuration failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CONFIG_PDOS_FAILED);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-    return;
-  }
-  LOGINFO5("%s/%s:%d: INFO: Writing slave_pdo_entries.\n",__FILE__, __FUNCTION__, __LINE__);
-  LOGINFO5("\t\tIndex\tSubIndex\tBitLength \n");
-  for(int i=0;i<entryCounter_;i++){
-    LOGINFO5("\t\t{%x\t%x\t%d}\n",slavePdoEntries_[i].index,slavePdoEntries_[i].subindex,slavePdoEntries_[i].bit_length);
-  }
-}
-void ecmcEcSlave::writePdoStruct()
-{
-  if(simSlave_){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-    return;
-  }
-  LOGINFO5("%s/%s:%d: INFO: Writing slave_pdos.\n",__FILE__, __FUNCTION__, __LINE__);
-  LOGINFO5("\t\tIndex\tEntryCount\n");
-  for(int i=0;i<pdosArrayIndex_;i++){
-    LOGINFO5("\t\t{%x\t%x}\n",slavePdos_[i].index,slavePdos_[i].n_entries/*,slave_pdos[i].entries*/);
-  }
-}
-
-void ecmcEcSlave::writeSyncsStruct()
-{
-  if(simSlave_){
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
-    return;
-  }
-  LOGINFO5("%s/%s:%d: INFO: Writing slave_syncs.\n",__FILE__, __FUNCTION__, __LINE__);
-  LOGINFO5("\t\tIndex\tDirection\tPdoCount\tWatchDog\n");
-  for(int i=0;i<syncManArrayIndex_;i++){
-    LOGINFO5("\t\t{%x\t%x\t%x\t%x}\n",slaveSyncs_[i].index,slaveSyncs_[i].dir,slaveSyncs_[i].n_pdos/*,slave_syncs[i].pdos*/,slaveSyncs_[i].watchdog_mode);
-  }
 }
 
 int ecmcEcSlave::checkConfigState(void)
@@ -403,17 +278,25 @@ int ecmcEcSlave::addEntry(
     std::string    id
     )
 {
+  int err=0;
   ecmcEcSyncManager *syncManager=findSyncMan(syncMangerIndex);
   if(syncManager==NULL){
-    int error=addSyncManager(direction,syncMangerIndex);
-    if(error){
-      LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add sync manager failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,error);
-      return error;
+    err=addSyncManager(direction,syncMangerIndex);
+    if(err){
+      LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add sync manager failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,err);
+      return err;
     }
     syncManager=syncManagerArray_[syncManCounter_-1]; //last added sync manager
   }
-  syncManager->addEntry(pdoIndex,entryIndex,entrySubIndex,bits,id);
 
+  ecmcEcEntry *entry=syncManager->addEntry(pdoIndex,entryIndex,entrySubIndex,bits,id,&err);
+  if(!entry){
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add entry failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,err);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,err);
+  }
+
+  entryList_[entryCounter_]=entry;
+  entryCounter_++;
  return 0;
 }
 
@@ -447,15 +330,6 @@ int ecmcEcSlave::configDC(
 
 ecmcEcEntry *ecmcEcSlave::findEntry(std::string id)
 {
-  //Real entries
-  /*for(int i=0; i<EC_MAX_ENTRIES;i++){
-    if(entryList_[i]!=NULL){
-      if(entryList_[i]->getIdentificationName().compare(id)==0){
-        return entryList_[i];
-      }
-    }
-  }*/
-
   ecmcEcEntry *temp=NULL;
   for(int i=0;i<syncManCounter_;i++){
     temp=syncManagerArray_[i]->findEntry(id);
@@ -463,7 +337,6 @@ ecmcEcEntry *ecmcEcSlave::findEntry(std::string id)
       return temp;
     }
   }
-
 
   //Simulation entries
   for(int i=0; i<SIMULATION_ENTRIES;i++){

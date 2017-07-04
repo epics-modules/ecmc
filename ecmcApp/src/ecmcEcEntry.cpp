@@ -7,7 +7,7 @@
 
 #include "ecmcEcEntry.h"
 
-ecmcEcEntry::ecmcEcEntry(uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits, ec_direction_t direction, std::string id)
+ecmcEcEntry::ecmcEcEntry(ec_domain_t *domain,ec_slave_config_t *slave,uint16_t pdoIndex,uint16_t entryIndex,uint8_t entrySubIndex,uint8_t bits,ec_direction_t direction,std::string id)
 {
   initVars();
   entryIndex_=entryIndex;
@@ -16,6 +16,16 @@ ecmcEcEntry::ecmcEcEntry(uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bit
   direction_=direction;
   sim_=false;
   idString_=id;
+  domain_=domain;
+  pdoIndex_=pdoIndex;
+  slave_=slave;
+  int errorCode=ecrt_slave_config_pdo_mapping_add(slave,pdoIndex_,entryIndex_,entrySubIndex_,bitLength_);
+  if(errorCode){
+    LOGERR("%s/%s:%d: ERROR: ecrt_slave_config_pdo_assign_add() failed with error code %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
+  }
+
+  LOGINFO5("%s/%s:%d: INFO: Entry %s added: pdoIndex 0x%x, entryIndex 0x%x, entrySubIndex 0x%x, direction %d, bits %d.\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),pdoIndex_,entryIndex_,entrySubIndex_,direction_,bitLength_);
 }
 
 ecmcEcEntry::ecmcEcEntry(uint8_t bits,uint8_t *domainAdr, std::string id)
@@ -47,6 +57,9 @@ void ecmcEcEntry::initVars()
   asynUpdateCycles_=0;
   asynUpdateCycleCounter_=0;
   updateInRealTime_=1;
+  domain_=NULL;
+  pdoIndex_=0;
+  slave_=NULL;
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -84,12 +97,6 @@ int ecmcEcEntry::getEntryInfo(ec_pdo_entry_info_t *info)
 int ecmcEcEntry::getBits()
 {
   return bitLength_;
-}
-
-void ecmcEcEntry::setAdrOffsets(int byteOffset,int bitOffset)
-{
-  byteOffset_=byteOffset;
-  bitOffset_=bitOffset;
 }
 
 int ecmcEcEntry::writeValue(uint64_t value)
@@ -271,4 +278,17 @@ int ecmcEcEntry::setUpdateInRealtime(int update)
 int ecmcEcEntry::getUpdateInRealtime()
 {
   return updateInRealTime_;
+}
+
+
+int ecmcEcEntry::registerInDomain()
+{
+  byteOffset_=ecrt_slave_config_reg_pdo_entry(slave_, entryIndex_,entrySubIndex_,domain_,&bitOffset_);
+  if(byteOffset_<0){
+    int errorCode=-byteOffset_;
+    LOGERR("%s/%s:%d: ERROR: ecrt_slave_config_reg_pdo_entry() failed with error code %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_ENTRY_REGISTER_FAIL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_REGISTER_FAIL);
+  }
+  LOGINFO5("%s/%s:%d: INFO: Entry %s registered in domain: bits %d, byteOffset %d, bitOffset %d.\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),bitLength_,byteOffset_,bitOffset_);
+  return 0;
 }

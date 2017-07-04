@@ -18,13 +18,15 @@
 
 //ECPDO
 #define ERROR_EC_PDO_ENTRY_ARRAY_FULL 0x22000
+#define ERROR_EC_PDO_ADD_FAIL 0x22001
+#define ERROR_EC_PDO_CLEAR_ENTRIES_FAIL 0x22002
 
 class ecmcEcPdo : public ecmcError
 {
 public:
-  ecmcEcPdo(uint16_t pdoIndex,ec_direction_t direction);
+  ecmcEcPdo(ec_domain_t *domain,ec_slave_config_t *slave,uint8_t syncMangerIndex,uint16_t pdoIndex,ec_direction_t direction);
   ~ecmcEcPdo();
-  int addEntry( uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits,std::string id);
+  ecmcEcEntry *addEntry( uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits,std::string id,int *errorCode);
   ecmcEcEntry *getEntry(int index);
   ecmcEcEntry *findEntry(std::string id);
   int getEntryCount();
@@ -35,5 +37,7 @@ private:
   ecmcEcEntry *entryArray_[EC_MAX_ENTRIES];
   int entryCounter_;
   ec_direction_t direction_;
+  ec_domain_t *domain_;
+  ec_slave_config_t *slave_;
   };
 #endif

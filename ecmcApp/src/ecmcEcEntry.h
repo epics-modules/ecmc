@@ -33,11 +33,14 @@
 #define ERROR_EC_ENTRY_READ_FAIL 0x21007
 #define ERROR_EC_ENTRY_WRITE_FAIL 0x21008
 #define ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED 0x21009
+#define ERROR_EC_ENTRY_ASSIGN_ADD_FAIL 0x2100A
+#define ERROR_EC_ENTRY_REGISTER_FAIL 0x2100B
+
 
 class ecmcEcEntry : public ecmcError , public ecmcAsynLink
 {
 public:
-  ecmcEcEntry(uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits, ec_direction_t nDirection, std::string id);
+  ecmcEcEntry(ec_domain_t *domain,ec_slave_config_t *slave,uint16_t pdoIndex,uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits, ec_direction_t nDirection, std::string id);
   ecmcEcEntry(uint8_t bitLength,uint8_t *domainAdr, std::string id);  //only used for simulation purpose
   ~ecmcEcEntry();
   void initVars();
@@ -45,7 +48,6 @@ public:
   uint8_t getEntrySubIndex();
   int getBits();
   int getEntryInfo(ec_pdo_entry_info_t *info);
-  void setAdrOffsets(int byteOffset,int bitOffset);
   int getByteOffset();
   void setDomainAdr(uint8_t *domainAdr); //After activate
   uint8_t *getDomainAdr();
@@ -58,18 +60,23 @@ public:
   int setUpdateInRealtime(int update);
   int getUpdateInRealtime();
   std::string getIdentificationName();
+  int registerInDomain();
 private:
   int updateAsyn(bool force);
   uint8_t *domainAdr_;
   uint16_t entryIndex_;
   uint8_t  entrySubIndex_;
   int bitLength_;
-  int bitOffset_;
+  uint bitOffset_;
   int byteOffset_;
   uint64_t value_;
   ec_direction_t direction_;
   bool sim_;
   std::string idString_;
   int updateInRealTime_;
+  ec_domain_t *domain_;
+  uint16_t pdoIndex_;
+  ec_slave_config_t *slave_;
+
 };
 #endif /* ECMCECENTRY_H_ */

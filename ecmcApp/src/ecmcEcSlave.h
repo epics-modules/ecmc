@@ -56,6 +56,7 @@ class ecmcEcSlave : public ecmcError
 public:
   ecmcEcSlave(
     ec_master_t *master, /**< EtherCAT master */
+    ec_domain_t *domain,
     uint16_t alias, /**< Slave alias. */
     uint16_t position, /**< Slave position. */
     uint32_t vendorId, /**< Expected vendor ID. */
@@ -65,9 +66,7 @@ public:
   ecmcEcSyncManager *getSyncManager(int syncManagerIndex);
   int getSlaveInfo(mcu_ec_slave_info_light *info);
   int getEntryCount();
-  int getEntryInfo(int entryIndex, ec_pdo_entry_info_t *info);
   ecmcEcEntry *getEntry(int entryIndex);
-  int configPdos( ec_domain_t *domain); //Step 4  //For all entries in slave!!
   int checkConfigState(void);
   void setDomainBaseAdr(uint8_t * domainAdr);
   int updateInputProcessImage();
@@ -109,7 +108,6 @@ public:
 private:
   void initVars();
   ecmcEcSyncManager *findSyncMan(uint8_t syncMangerIndex);
-  int configSlave() ;
   ec_master_t *master_; /**< EtherCAT master */
   uint16_t alias_; /**< Slave alias. */
   uint16_t slavePosition_; /**< Slave position. */
@@ -117,21 +115,16 @@ private:
   uint32_t productCode_; /**< Expected product code. */
   ec_slave_config_t *slaveConfig_;
   ecmcEcSyncManager *syncManagerArray_[EC_MAX_SYNC_MANAGERS];
-  ec_pdo_entry_info_t slavePdoEntries_[EC_MAX_ENTRIES];
-  ec_pdo_info_t slavePdos_[EC_MAX_PDOS];
-  ec_sync_info_t slaveSyncs_[EC_MAX_SYNC_MANAGERS];
   ecmcEcEntry *entryList_[EC_MAX_ENTRIES];
   int entryCounter_;
   int pdosArrayIndex_;
   int syncManArrayIndex_;
   int syncManCounter_;
-  void writePdoStruct();
-  void writeSyncsStruct();
-  void writeEntriesStruct();
   int pdosInSMCount_;
   ec_slave_config_state_t slaveStateOld_;
   bool simSlave_;  //used to simulate endswitches Consider make derived simulation class insteaed
   uint8_t simBuffer_[8*SIMULATION_ENTRIES]; //used to simulate endswitches
   ecmcEcEntry *simEntries_[SIMULATION_ENTRIES]; //used to simulate endswitches
+  ec_domain_t *domain_;
 };
 #endif /* ECMCECSLAVE_H_ */
