@@ -257,26 +257,6 @@ asynStatus ecmcAsynPortDriver::readInt16Array(asynUser *pasynUser, epicsInt16 *v
   return asynSuccess;
 }
 
-//int function = pasynUser->reason;
-//  const char *paramName;
-//  const char* functionName = "readInt16Array";
-//  int errorId=0;
-//  /* Fetch the parameter string name for possible use in debugging */
-//  getParamName(function, &paramName);
-//
-//  char buffer[1024];
-//  int nvals = sscanf(paramName, "ec.mm.%s",buffer);
-//  if (nvals == 1) {
-//    errorId=readEcMemMap(buffer,(uint8_t*)value,nElements,nIn);
-//  }
-//
-//  if(errorId){
-//    asynPrint(pasynUser, ASYN_TRACE_ERROR,"%s:%s: error, read of parameter %s failed with error code 0x%x.\n",driverName, functionName,paramName,errorId);
-//    return (asynError);
-//  }
-//  return (asynSuccess);
-
-
 asynStatus ecmcAsynPortDriver::readInt32Array(asynUser *pasynUser, epicsInt32 *value,size_t nElements, size_t *nIn)
 {
   const char* functionName = "readInt32Array";
@@ -530,7 +510,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
   res=strcmp(asynTypeString,"asynInt16ArrayIn");
   if (res == 0) {
     asynType=asynParamInt16Array;
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDrivealiasrAddParameter: INFO: Adding parameter: %s (asynInt16ArrayIn).\n",idString);
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynInt16ArrayIn).\n",idString);
   }
 
   res=strcmp(asynTypeString,"asynInt32ArrayIn");
