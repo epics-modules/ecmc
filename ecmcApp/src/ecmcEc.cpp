@@ -62,6 +62,7 @@ void ecmcEc::initVars()
   }
   domainSize_=0;
   statusOutputEntry_=NULL;
+  masterIndex_=-1;
 }
 
 int ecmcEc::init(int nMasterIndex)
@@ -79,6 +80,7 @@ int ecmcEc::init(int nMasterIndex)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
   }
   initDone_=true;
+  masterIndex_=nMasterIndex;
   return 0;
 }
 
@@ -566,9 +568,10 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, const char *entryID
 {
   char alias[1024];
   int slaveNumber=0;
-  int nvals = sscanf(entryIDString,"ec.s%d.%s", &slaveNumber,alias);
-  if (nvals != 2) {
-    LOGERR("%s/%s:%d: ERROR: Slave number or alias not found %s ,(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryIDString,ERROR_EC_MAIN_SLAVE_NULL);
+  int masterNumber=0;
+  int nvals = sscanf(entryIDString,"ec%d.s%d.%s",&masterNumber ,&slaveNumber,alias);
+  if (nvals != 3) {
+    LOGERR("%s/%s:%d: ERROR: Master index, slave number or alias not found %s ,(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryIDString,ERROR_EC_MAIN_SLAVE_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
   }
 
@@ -585,8 +588,8 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, const char *entryID
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
   }
 
-  std::string sID=alias;
-
+  //std::string sID=alias;
+  std::string sID=entryIDString;
 
   ecmcEcEntry *entry=slave->findEntry(sID);
   if(entry==NULL){
@@ -626,8 +629,9 @@ int ecmcEc::linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMap
 {
 
   char alias[1024];
-  int nvals = sscanf(memMapIDString,"ec.mm.%s", alias);
-  if (nvals != 1) {
+  int masterIndex=0;
+  int nvals = sscanf(memMapIDString,"ec%d.mm.%s",&masterIndex, alias);
+  if (nvals != 2) {
     LOGERR("%s/%s:%d: ERROR: Alias not found in idString %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,ERROR_EC_ASYN_ALIAS_NOT_VALID);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_ALIAS_NOT_VALID);
   }
@@ -726,5 +730,279 @@ int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry)
 int ecmcEc::setAsynPort(ecmcAsynPortDriver* asynPortDriver)
 {
   asynPortDriver_=asynPortDriver;
+  return 0;
+}
+
+
+int ecmcEc::printAllConfig()
+{
+  ec_master_info_t masterInfo;
+  ec_slave_info_t slaveInfo;
+  ec_sync_info_t syncInfo;
+  ec_pdo_info_t pdoInfo;
+  ec_pdo_entry_info_t  pdoEntryInfo;
+  int slaveLoopIndex=0;
+  int syncManLoopIndex=0;
+  int pdoLoopIndex=0;
+  int entryLoopIndex=0;
+  int slaveCount=0;
+  int syncManCount=0;
+  int pdoCount=0;
+  int entryCount=0;
+
+  if(!master_){
+    LOGINFO("%s/%s:%d: INFO: No EtherCAT master selected.\n",__FILE__, __FUNCTION__, __LINE__);
+    return 0;
+  }
+
+  int errorCode=ecrt_master(master_,&masterInfo);
+  if(errorCode){
+    LOGERR("%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+  }
+
+  LOGINFO("ec%d.slaveCount=%d\n",masterIndex_,masterInfo.slave_count);
+
+  // Slave loop
+  slaveCount=masterInfo.slave_count;
+  for(slaveLoopIndex=0;slaveLoopIndex<slaveCount; slaveLoopIndex++){
+    errorCode=ecrt_master_get_slave( master_, slaveLoopIndex, &slaveInfo);
+    if(errorCode){
+      LOGERR("%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+    }
+    LOGINFO("ec%d.s%d.position=%d\n",masterIndex_,slaveLoopIndex,slaveInfo.position);
+    LOGINFO("ec%d.s%d.syncManCount=%d\n",masterIndex_,slaveLoopIndex,slaveInfo.sync_count);
+    LOGINFO("ec%d.s%d.alias=%d\n",masterIndex_,slaveLoopIndex,slaveInfo.alias);
+    LOGINFO("ec%d.s%d.vendorId=0x%x\n",masterIndex_,slaveLoopIndex,slaveInfo.vendor_id);
+    LOGINFO("ec%d.s%d.revisionNum=0x%x\n",masterIndex_,slaveLoopIndex,slaveInfo.revision_number);
+    LOGINFO("ec%d.s%d.productCode=0x%x\n",masterIndex_,slaveLoopIndex,slaveInfo.product_code);
+    LOGINFO("ec%d.s%d.serial_number=0x%x\n",masterIndex_,slaveLoopIndex,slaveInfo.serial_number);
+
+    // Sync manager loop
+    syncManCount=slaveInfo.sync_count;
+    for(syncManLoopIndex=0; syncManLoopIndex < syncManCount; syncManLoopIndex++){
+      errorCode=ecrt_master_get_sync_manager(master_, slaveLoopIndex,syncManLoopIndex,&syncInfo);
+      if(errorCode){
+        LOGERR("%s/%s:%d: Error: Function ecrt_master_get_sync_manager() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+        return 0;
+      }
+      LOGINFO("ec%d.s%d.sm%d.pdoCount=%d\n",masterIndex_,slaveLoopIndex,syncManLoopIndex,syncInfo.n_pdos);
+      LOGINFO("ec%d.s%d.sm%d.direction=%s\n",masterIndex_,slaveLoopIndex,syncManLoopIndex,syncInfo.dir == 1 ? "Output" : "Input");
+      LOGINFO("ec%d.s%d.sm%d.watchDogMode=%s\n",masterIndex_,slaveLoopIndex,syncManLoopIndex,syncInfo.watchdog_mode == 0 ? "Default" : (syncInfo.watchdog_mode == 1 ? "Enabled" : "Disabled"));
+
+      // Pdo loop
+      pdoCount=syncInfo.n_pdos;
+      for( pdoLoopIndex = 0; pdoLoopIndex < pdoCount; pdoLoopIndex++ ){
+        errorCode=ecrt_master_get_pdo( master_, slaveLoopIndex, syncManLoopIndex, pdoLoopIndex, &pdoInfo);
+        if(errorCode){
+          LOGERR("%s/%s:%d: Error: Function ecrt_master_get_pdo() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+          return 0;
+        }
+        LOGINFO("ec%d.s%d.sm%d.pdo%d.index=0x%x\n",masterIndex_,slaveLoopIndex,syncManLoopIndex,pdoLoopIndex,pdoInfo.index);
+        LOGINFO("ec%d.s%d.sm%d.pdo%d.entryCount=%d\n",masterIndex_,slaveLoopIndex,syncManLoopIndex,pdoLoopIndex,pdoInfo.n_entries);
+
+        // Entry loop
+        entryCount=pdoInfo.n_entries;
+        for( entryLoopIndex = 0; entryLoopIndex < entryCount; entryLoopIndex++ ){
+          errorCode=ecrt_master_get_pdo_entry( master_, slaveLoopIndex, syncManLoopIndex, pdoLoopIndex,entryLoopIndex,&pdoEntryInfo);
+
+          if(errorCode){
+            LOGERR("%s/%s:%d: Error: Function ecrt_master_get_pdo_entry() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+            return 0;
+          }
+          LOGINFO("ec%d.s%d.sm%d.pdo%d.e%d.index=0x%x\n",masterIndex_,slaveLoopIndex,syncManLoopIndex,pdoLoopIndex,entryLoopIndex,pdoEntryInfo.index);
+          LOGINFO("ec%d.s%d.sm%d.pdo%d.e%d.subIndex=0x%x\n",masterIndex_,slaveLoopIndex,syncManLoopIndex,pdoLoopIndex,entryLoopIndex,pdoEntryInfo.subindex);
+          LOGINFO("ec%d.s%d.sm%d.pdo%d.e%d.bitLength=0x%x\n",masterIndex_,slaveLoopIndex,syncManLoopIndex,pdoLoopIndex,entryLoopIndex,pdoEntryInfo.bit_length);
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
+int ecmcEc::printSlaveConfig(int slaveIndex)
+{
+  ec_master_info_t masterInfo;
+  ec_slave_info_t slaveInfo;
+  ec_sync_info_t syncInfo;
+  ec_pdo_info_t pdoInfo;
+  ec_pdo_entry_info_t  pdoEntryInfo;
+  int syncManLoopIndex=0;
+  int pdoLoopIndex=0;
+  int entryLoopIndex=0;
+  int slaveCount=0;
+  int syncManCount=0;
+  int pdoCount=0;
+  int entryCount=0;
+  if(!master_){
+    LOGINFO("%s/%s:%d: INFO: No EtherCAT master selected.\n",__FILE__, __FUNCTION__, __LINE__);
+    return 0;
+  }
+
+  int errorCode=ecrt_master(master_,&masterInfo);
+  if(errorCode){
+    LOGERR("%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+  }
+
+  LOGINFO("ec%d.slaveCount=%d\n",masterIndex_,masterInfo.slave_count);
+
+  // Slave loop
+  slaveCount=masterInfo.slave_count;
+
+  if(slaveIndex>=slaveCount){
+    LOGINFO("%s/%s:%d: INFO: Slave index out of range.\n",__FILE__, __FUNCTION__, __LINE__);
+    return 0;
+  }
+
+  errorCode=ecrt_master_get_slave( master_, slaveIndex, &slaveInfo);
+  if(errorCode){
+    LOGERR("%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+  }
+
+  printf("#############################################\n");
+  printf("# Auto generated configuration file\n");
+  printf("# Slave information:\n");
+  printf("#   position = %d \n",slaveInfo.position);
+  printf("#   alias = %d \n",slaveInfo.alias);
+  printf("#   vendor ID = %d \n",slaveInfo.vendor_id);
+  printf("#   product code = %d \n",slaveInfo.product_code);
+  printf("#   revison number = %d \n",slaveInfo.revision_number);
+  printf("#   serial number = %d \n",slaveInfo.serial_number);
+  printf("#############################################\n");
+
+  // Sync manager loop
+  syncManCount=slaveInfo.sync_count;
+  for(syncManLoopIndex=0; syncManLoopIndex < syncManCount; syncManLoopIndex++){
+    errorCode=ecrt_master_get_sync_manager(master_, slaveIndex,syncManLoopIndex,&syncInfo);
+    if(errorCode){
+      LOGERR("%s/%s:%d: Error: Function ecrt_master_get_sync_manager() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+      return 0;
+    }
+
+    printf("# Configuration for sync manager %d\n",syncManLoopIndex);
+
+    // Pdo loop
+    pdoCount=syncInfo.n_pdos;
+    for( pdoLoopIndex = 0; pdoLoopIndex < pdoCount; pdoLoopIndex++ ){
+      errorCode=ecrt_master_get_pdo( master_, slaveIndex, syncManLoopIndex, pdoLoopIndex, &pdoInfo);
+      if(errorCode){
+        LOGERR("%s/%s:%d: Error: Function ecrt_master_get_pdo() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+        return 0;
+      }
+      printf("# Configuration for pdoIndex 0x%x\n",pdoInfo.index);
+
+      // Entry loop
+      entryCount=pdoInfo.n_entries;
+      for( entryLoopIndex = 0; entryLoopIndex < entryCount; entryLoopIndex++ ){
+        errorCode=ecrt_master_get_pdo_entry( master_, slaveIndex, syncManLoopIndex, pdoLoopIndex,entryLoopIndex,&pdoEntryInfo);
+        if(errorCode){
+          LOGERR("%s/%s:%d: Error: Function ecrt_master_get_pdo_entry() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+          return 0;
+        }
+
+        printf("EthercatMCConfigController ${ECMC_MOTOR_PORT},");
+        printf("\"Cfg.EcAddEntryComplete(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%d,sm%d.p%d.e%d)\"\n",slaveIndex,slaveInfo.vendor_id,
+                      slaveInfo.product_code,syncInfo.dir,syncManLoopIndex,pdoInfo.index,pdoEntryInfo.index,pdoEntryInfo.subindex,pdoEntryInfo.bit_length,
+	              syncManLoopIndex,pdoLoopIndex,entryLoopIndex);
+      }
+    }
+    printf("#############################################\n");
+  }
+  return 0;
+}
+
+int ecmcEc::autoConfigSlave(int slaveIndex)
+{
+  ec_master_info_t masterInfo;
+  ec_slave_info_t slaveInfo;
+  ec_sync_info_t syncInfo;
+  ec_pdo_info_t pdoInfo;
+  ec_pdo_entry_info_t  pdoEntryInfo;
+  int syncManLoopIndex=0;
+  int pdoLoopIndex=0;
+  int entryLoopIndex=0;
+  int slaveCount=0;
+  int syncManCount=0;
+  int pdoCount=0;
+  int entryCount=0;
+  char entryAliasBuffer[128];
+  char *entryAlias;
+  entryAlias=&entryAliasBuffer[0];
+
+  if(!master_){
+    LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL);
+  }
+
+  int errorCode=ecrt_master(master_,&masterInfo);
+  if(errorCode){
+    LOGERR("%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_AUTO_CONFIG_MASTER_INFO_FAIL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_MASTER_INFO_FAIL);
+  }
+
+  // Slave loop
+  slaveCount=masterInfo.slave_count;
+
+  if(slaveIndex>=slaveCount){
+    LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE);
+  }
+
+  errorCode=ecrt_master_get_slave( master_, slaveIndex, &slaveInfo);
+  if(errorCode){
+    LOGERR("%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_AUTO_CONFIG_SLAVE_INFO_FAIL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_SLAVE_INFO_FAIL);
+  }
+
+  // Sync manager loop
+  syncManCount=slaveInfo.sync_count;
+  for(syncManLoopIndex=0; syncManLoopIndex < syncManCount; syncManLoopIndex++){
+    errorCode=ecrt_master_get_sync_manager(master_, slaveIndex,syncManLoopIndex,&syncInfo);
+    if(errorCode){
+      LOGERR("%s/%s:%d: Error: Function ecrt_master_get_sync_manager() failed with error code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_AUTO_CONFIG_SM_INFO_FAIL);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_SM_INFO_FAIL);
+    }
+
+
+    // Pdo loop
+    pdoCount=syncInfo.n_pdos;
+    for( pdoLoopIndex = 0; pdoLoopIndex < pdoCount; pdoLoopIndex++ ){
+      errorCode=ecrt_master_get_pdo( master_, slaveIndex, syncManLoopIndex, pdoLoopIndex, &pdoInfo);
+      if(errorCode){
+        LOGERR("%s/%s:%d: Error: Function ecrt_master_get_pdo() failed with error code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_AUTO_CONFIG_PDO_INFO_FAIL);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_PDO_INFO_FAIL);
+      }
+
+      // Entry loop
+      entryCount=pdoInfo.n_entries;
+      for( entryLoopIndex = 0; entryLoopIndex < entryCount; entryLoopIndex++ ){
+        errorCode=ecrt_master_get_pdo_entry( master_, slaveIndex, syncManLoopIndex, pdoLoopIndex,entryLoopIndex,&pdoEntryInfo);
+        if(errorCode){
+          LOGERR("%s/%s:%d: Error: Function ecrt_master_get_pdo_entry() failed with error code 0x%x (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_AUTO_CONFIG_ENTRY_INFO_FAIL);
+          return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_ENTRY_INFO_FAIL);
+        }
+
+        unsigned int charCount=snprintf(entryAliasBuffer,sizeof(entryAliasBuffer),"ec%d.s%d.sm%d.p%d.e%d",masterIndex_,slaveIndex,syncManLoopIndex,pdoLoopIndex,entryLoopIndex);
+        if(charCount>=sizeof(entryAliasBuffer)-1){
+          LOGERR("%s/%s:%d: Error: Autoconfig. Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW);
+          return ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW;
+        }
+
+        //Add the entry!
+        errorCode=addEntry(slaveInfo.position,slaveInfo.vendor_id,slaveInfo.product_code,syncInfo.dir,syncManLoopIndex,pdoInfo.index,pdoEntryInfo.index,pdoEntryInfo.subindex,pdoEntryInfo.bit_length,entryAlias);
+        if(errorCode){
+          LOGERR("%s/%s:%d: Error: Autoconfig. Add entry with alias %s failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryAlias,errorCode);
+          return errorCode;
+        }
+
+        //Link to asyn parameter (default int32)
+        errorCode=linkEcEntryToAsynParameter(asynPortDriver_,entryAlias,asynParamInt32,0);
+        if(errorCode){
+          LOGERR("%s/%s:%d: Error: Autoconfig. Add entry with alias %s failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryAlias,errorCode);
+          return errorCode;
+        }
+      }
+    }
+  }
   return 0;
 }

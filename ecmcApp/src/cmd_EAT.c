@@ -714,6 +714,11 @@ static int handleCfgCommand(const char *myarg_1){
     return ecSetDomainFailedCyclesLimit(iValue);
   }
 
+  nvals = sscanf(myarg_1, "EcSlaveAutoConfig(%d)=", &iValue);
+  if (nvals == 1) {
+    return ecAutoConfigSlave(iValue);
+  }
+
   /*int Cfg.SetAxisJogVel(int traj_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisJogVel(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
@@ -1688,7 +1693,14 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(appendAsciiDataToStorageBuffer(iValue,myarg_1));
   }
 
+  if (!strcmp(myarg_1, "EcPrintAllHardware()")) {
+    SEND_OK_OR_ERROR_AND_RETURN(ecPrintAllHardware());
+  }
 
+  nvals = sscanf(myarg_1, "EcPrintSlaveConfig(%d)=", &iValue);
+  if (nvals == 1) {
+    SEND_OK_OR_ERROR_AND_RETURN(ecPrintSlaveConfig(iValue));
+  }
 
   /* Main.*/
   if (!strncmp(myarg_1, Main_dot_str, strlen(Main_dot_str))) {

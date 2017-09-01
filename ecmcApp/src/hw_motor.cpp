@@ -379,6 +379,7 @@ int waitForEtherCATtoStart(int timeoutSeconds)
     }
   }
   LOGERR("Timeout error: EtherCAT bus did not start correctly in %ds.\n",timeoutSeconds);
+  setAppMode(0);
   return ec.getErrorID();
 }
 
@@ -560,7 +561,6 @@ int ecSetDomainFailedCyclesLimit(int value)
   return ec.setDomainFailedCyclesLimitInterlock(value);
 }
 
-
 int ecEnablePrintouts(int value)
 {
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
@@ -568,6 +568,24 @@ int ecEnablePrintouts(int value)
   WRITE_DIAG_BIT(FUNCTION_ETHERCAT_DIAGNOSTICS_BIT,value);
 
   return 0;
+}
+
+int ecPrintAllHardware()
+{
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+  return ec.printAllConfig();
+}
+
+int ecPrintSlaveConfig(int slaveIndex)
+{
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+  return ec.printSlaveConfig(slaveIndex);
+}
+
+int ecAutoConfigSlave(int slaveIndex)
+{
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+  return ec.autoConfigSlave(slaveIndex);
 }
 
 int setEnableFunctionCallDiag(int value)

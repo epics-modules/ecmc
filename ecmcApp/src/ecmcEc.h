@@ -51,6 +51,15 @@
 #define ERROR_EC_MEM_MAP_START_ENTRY_NULL 0x26019
 #define ERROR_EC_MEM_MAP_NULL 0x2601A
 #define ERROR_EC_ASYN_ALIAS_NOT_VALID 0x2601B
+#define ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW 0x2601C
+#define ERROR_EC_AUTO_CONFIG_MASTER_INFO_FAIL 0x2601D
+#define ERROR_EC_AUTO_CONFIG_SLAVE_INFO_FAIL 0x2601E
+#define ERROR_EC_AUTO_CONFIG_SM_INFO_FAIL 0x2601F
+#define ERROR_EC_AUTO_CONFIG_PDO_INFO_FAIL 0x2601F
+#define ERROR_EC_AUTO_CONFIG_ENTRY_INFO_FAIL 0x26020
+#define ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL 0x26021
+#define ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE 0x26022
+
 
 class ecmcEc : public ecmcError
 {
@@ -112,13 +121,17 @@ public:
   int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
   int setEcStatusOutputEntry(ecmcEcEntry *entry);
   int setAsynPort(ecmcAsynPortDriver* asynPortDriver);
+  int printAllConfig();
+  int printSlaveConfig(int slaveIndex);
+  int autoConfigSlave(int slaveIndex);
+
+
 private:
   void initVars();
   int updateInputProcessImage();
   int updateOutProcessImage();
   timespec timespecAdd(timespec time1, timespec time2);
-
-  ec_master_t *master_; /**< EtherCAT master */
+  ec_master_t *master_;
   ec_domain_t *domain_;
   ec_domain_state_t domainStateOld_;
   ec_domain_state_t domainState_;
@@ -126,12 +139,10 @@ private:
   ec_master_state_t masterState_;
   uint8_t *domainPd_ ;
   int slaveCounter_;
-  //int sdoCounter_;
   ecmcEcSlave *slaveArray_[EC_MAX_SLAVES];
   ec_pdo_entry_reg_t slaveEntriesReg_[EC_MAX_ENTRIES];
   unsigned int pdoByteOffsetArray_[EC_MAX_ENTRIES];
   unsigned int pdoBitOffsetArray_[EC_MAX_ENTRIES];
-  //ecmcEcSDO *sdoArray_[EC_MAX_ENTRIES];
   bool initDone_;
   bool diag_;
   ecmcEcSlave *simSlave_;
@@ -147,6 +158,7 @@ private:
   int ecMemMapArrayCounter_;
   size_t domainSize_;
   ecmcEcEntry *statusOutputEntry_;
+  int masterIndex_;
 
 };
 #endif /* ECMCEC_H_ */

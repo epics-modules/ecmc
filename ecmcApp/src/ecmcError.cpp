@@ -726,7 +726,28 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       return "ERROR_EC_MEM_MAP_NULL";
       break;
     case 0x2601B:
-      return "ERROR_EC_ASYN_ALIAS_NOT_VALID";
+      return "ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW";
+      break;
+    case 0x2601C:
+      return "ERROR_EC_AUTO_CONFIG_MASTER_INFO_FAIL";
+      break;
+    case 0x2601D:
+      return "ERROR_EC_AUTO_CONFIG_SLAVE_INFO_FAIL";
+      break;
+    case 0x2601E:
+      return "ERROR_EC_AUTO_CONFIG_SM_INFO_FAIL";
+      break;
+    case 0x2601F:
+      return "ERROR_EC_AUTO_CONFIG_PDO_INFO_FAIL";
+      break;
+    case 0x26020:
+      return "ERROR_EC_AUTO_CONFIG_ENTRY_INFO_FAIL";
+      break;
+    case 0x26021:
+      return "ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL";
+      break;
+    case 0x26022:
+      return "ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE";
       break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";

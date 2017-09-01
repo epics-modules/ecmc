@@ -3171,7 +3171,7 @@ int ecAddEntryComplete(
  *    direction  = 1:  Output (from master).\n
  *    direction  = 2:  Input (to master).\n
  *  \param[in] entryIDString Identification string used for addressing the
- *                           memory map object.\n
+ object.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -3677,6 +3677,34 @@ int ecResetError();
  *  "Cfg.EcEnablePrintouts(1)" //Command string to cmd_EAT.c\n
  */
 int ecEnablePrintouts(int value);
+
+/** \breif Prints all hardware connected to selected master.\n
+ *
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example:
+ *  "EcPrintAllHardware()" //Command string to cmd_EAT.c\n
+ */
+int ecPrintAllHardware();
+
+/** \breif Prints hardware configuration for a selected slave.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example:Print hardware configuration for slave 1
+ *  "EcPrintSlaveConfig(1)" //Command string to cmd_EAT.c\n
+ */
+int ecPrintSlaveConfig(int slaveIndex);
+
+/** \breif Autoconfigurs all available pdo entries on a slave.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example:Auto configure harsdware for slave 3
+ *  "Cfg.EcSlaveAutoConfig(3)" //Command string to cmd_EAT.c\n
+ */
+int ecAutoConfigSlave(int slaveIndex);
 
 /** \breif Set axis index for detailed motion diagnostics.\n
  *

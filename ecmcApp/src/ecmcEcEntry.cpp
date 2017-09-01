@@ -21,11 +21,11 @@ ecmcEcEntry::ecmcEcEntry(ec_domain_t *domain,ec_slave_config_t *slave,uint16_t p
   slave_=slave;
   int errorCode=ecrt_slave_config_pdo_mapping_add(slave,pdoIndex_,entryIndex_,entrySubIndex_,bitLength_);
   if(errorCode){
-    LOGERR("%s/%s:%d: ERROR: ecrt_slave_config_pdo_assign_add() failed with error code %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
+    LOGERR("%s/%s:%d: ERROR: ecrt_slave_config_pdo_mapping_add() failed with error code %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
   }
 
-  LOGINFO5("%s/%s:%d: INFO: Entry %s added: pdoIndex 0x%x, entryIndex 0x%x, entrySubIndex 0x%x, direction %d, bits %d.\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),pdoIndex_,entryIndex_,entrySubIndex_,direction_,bitLength_);
+  LOGINFO5("INFO: Entry %s added: pdoIndex 0x%x, entryIndex 0x%x, entrySubIndex 0x%x, direction %d, bits %d.\n",idString_.c_str(),pdoIndex_,entryIndex_,entrySubIndex_,direction_,bitLength_);
 }
 
 ecmcEcEntry::ecmcEcEntry(uint8_t bits,uint8_t *domainAdr, std::string id)

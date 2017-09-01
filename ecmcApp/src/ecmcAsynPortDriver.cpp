@@ -545,13 +545,12 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
     case ECMC_ASYN_EC:
       errorCode=linkEcEntryToAsynParameter(mytestAsynPort,idString,asynType,skipCycles);
       break;
-    case ECMC_ASYN_ECMM:  errorCode=setAsynPort(mytestAsynPort);
-
-    if(errorCode){
-      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (setAsynPort()) failed (0x%x).\n",idString,errorCode);
-      return asynError;
-    }
-
+    case ECMC_ASYN_ECMM:
+      //errorCode=setAsynPort(mytestAsynPort);
+      //if(errorCode){
+      //  asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (setAsynPort()) failed (0x%x).\n",idString,errorCode);
+      //  return asynError;
+      //}
       errorCode=linkEcMemMapToAsynParameter(mytestAsynPort,idString,asynType,skipCycles);
       break;
     case ECMC_ASYN_AX:
