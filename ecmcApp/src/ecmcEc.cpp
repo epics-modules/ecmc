@@ -588,8 +588,8 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, const char *entryID
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_SLAVE_NULL);
   }
 
-  //std::string sID=alias;
-  std::string sID=entryIDString;
+  std::string sID=alias;
+  //std::string sID=entryIDString;
 
   ecmcEcEntry *entry=slave->findEntry(sID);
   if(entry==NULL){
@@ -636,12 +636,12 @@ int ecmcEc::linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMap
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_ALIAS_NOT_VALID);
   }
 
-  //std::string sID=alias;
-  std::string sID=memMapIDString;
+  std::string sID=alias;
+  //std::string sID=memMapIDString;
 
   ecmcEcMemMap *memMap=findMemMap(sID);
   if(memMap==NULL){
-    LOGERR("%s/%s:%d: ERROR: Entry not found ,(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MEM_MAP_NULL);
+    LOGERR("%s/%s:%d: ERROR: Mem map not found ,(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MEM_MAP_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MEM_MAP_NULL);
   }
 
@@ -698,7 +698,16 @@ int ecmcEc::addMemMap(uint16_t startEntryBusPosition,
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MEM_MAP_START_ENTRY_NULL);
   }
 
-  ecMemMapArray_[ecMemMapArrayCounter_]=new ecmcEcMemMap(entry,byteSize,type,direction,memMapIDString);
+  char alias[1024];
+  std::string aliasString;
+  int masterIndex=0;
+  int nvals = sscanf(memMapIDString.c_str(),"ec%d.mm.%s",&masterIndex, alias);
+  if (nvals != 2) {
+    LOGERR("%s/%s:%d: ERROR: Alias not found in idString %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString.c_str(),ERROR_EC_ASYN_ALIAS_NOT_VALID);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_ALIAS_NOT_VALID);
+  }
+  aliasString=alias;
+  ecMemMapArray_[ecMemMapArrayCounter_]=new ecmcEcMemMap(entry,byteSize,type,direction,aliasString);
 
   if(!ecMemMapArray_[ecMemMapArrayCounter_]){
     LOGERR("%s/%s:%d: ERROR: Adding ecMemMap failed. New ecmcEcMemMap fail (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MEM_MAP_NULL);
@@ -982,7 +991,7 @@ int ecmcEc::autoConfigSlave(int slaveIndex,int addAsAsynParams)
           return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_ENTRY_INFO_FAIL);
         }
 
-        unsigned int charCount=snprintf(entryAliasBuffer,sizeof(entryAliasBuffer),"ec%d.s%d.sm%d.p%d.e%d",masterIndex_,slaveIndex,syncManLoopIndex,pdoLoopIndex,entryLoopIndex);
+        unsigned int charCount=snprintf(entryAliasBuffer,sizeof(entryAliasBuffer),"sm%d.p%d.e%d",syncManLoopIndex,pdoLoopIndex,entryLoopIndex);
         if(charCount>=sizeof(entryAliasBuffer)-1){
           LOGERR("%s/%s:%d: Error: Autoconfig. Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW);
           return ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW;
@@ -997,6 +1006,12 @@ int ecmcEc::autoConfigSlave(int slaveIndex,int addAsAsynParams)
 
         if(!addAsAsynParams){
           return 0;
+        }
+
+        charCount=snprintf(entryAliasBuffer,sizeof(entryAliasBuffer),"ec%d.s%d.sm%d.p%d.e%d",masterIndex_,slaveIndex,syncManLoopIndex,pdoLoopIndex,entryLoopIndex);
+        if(charCount>=sizeof(entryAliasBuffer)-1){
+          LOGERR("%s/%s:%d: Error: Autoconfig. Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW);
+          return ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW;
         }
         //Link to asyn parameter (default int32)
         errorCode=linkEcEntryToAsynParameter(asynPortDriver_,entryAlias,asynParamInt32,0);

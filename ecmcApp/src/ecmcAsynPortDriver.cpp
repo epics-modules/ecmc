@@ -128,8 +128,9 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser *pasynUser, epicsInt32 value)
   char buffer[1024];
   char *aliasBuffer=&buffer[0];
   int slavePosition=-10;
-  int nvals = sscanf(paramName, "ec.s%d.%s", &slavePosition,aliasBuffer);
-  if(nvals!=2){
+  int masterIndex=0;
+  int nvals = sscanf(paramName, "ec%d.s%d.%s",&masterIndex, &slavePosition,aliasBuffer);
+  if(nvals!=3){
     asynPrint(pasynUser, ASYN_TRACE_ERROR,
         "%s:%s: error, parameter name not valid: %s.\n",
         driverName, functionName, paramName);
@@ -182,8 +183,9 @@ asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser, epicsFloat64 va
   char buffer[1024];
   char *aliasBuffer=&buffer[0];
   int slavePosition=-10;
-  int nvals = sscanf(paramName, "ec.s%d.%s", &slavePosition,aliasBuffer);
-  if(nvals!=2){
+  int masterIndex=0;
+  int nvals = sscanf(paramName, "ec%d.s%d.%s",&masterIndex, &slavePosition,aliasBuffer);
+  if(nvals!=3){
     asynPrint(pasynUser, ASYN_TRACE_ERROR,
         "%s:%s: error, parameter name not valid: %s.\n",
         driverName, functionName, paramName);
@@ -305,8 +307,9 @@ int ecmcAsynPortDriver::readArrayGeneric(asynUser *pasynUser, epicsUInt8 *value,
 
   size_t bytesRead=0;
   char buffer[1024]	      ;
-  int nvals = sscanf(paramName, "ec.mm.%s",buffer);
-  if (nvals == 1) {
+  int masterIndex=0;
+  int nvals = sscanf(paramName, "ec%d.mm.%s",&masterIndex,buffer);
+  if (nvals == 2) {
     errorId=readEcMemMap(buffer,(uint8_t*)value,nElements*typeSize,&bytesRead);
   }
 
