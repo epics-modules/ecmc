@@ -441,7 +441,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
   }
 
   if (0 != strcmp(mytestAsynPort->portName,portName)){
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Port name missmatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,mytestAsynPort->portName);
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Port name mismatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,mytestAsynPort->portName);
     return(asynError);
   }
 
@@ -452,20 +452,21 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
 
   //Check if EtherCAT memorymap (ECMC)
   char buffer[1024];
-  int nvals = sscanf(idString, "ec.mm.%s",buffer);
-  if (nvals == 1) {
+  int masterIndex=0;
+  int nvals = sscanf(idString, "ec%d.mm.%s",&masterIndex,buffer);
+  if (nvals == 2) {
     dataAccessType=ECMC_ASYN_ECMM;
   }
 
   //Check if EtherCAT EtherCAT entry
   int slave=-10;
-  nvals = sscanf(idString, "ec.s%d.%s", &slave,buffer);
-  if (nvals == 2){
+  nvals = sscanf(idString, "ec%d.s%d.%s",&masterIndex,&slave,buffer);
+  if (nvals == 3){
     dataAccessType=ECMC_ASYN_EC;
   }
 
   if(dataAccessType==ECMC_ASYN_NONE){
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: No defined data access transfer type in idString (valid ec.s<slavenumber>. or ec.mm.).\n");
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: No defined data access transfer type in idString (valid ec<master>.s<slavenumber>.<alias> or ec<master>.mm.<alias>).\n");
     return(asynError);
   }
 
@@ -546,11 +547,6 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
       errorCode=linkEcEntryToAsynParameter(mytestAsynPort,idString,asynType,skipCycles);
       break;
     case ECMC_ASYN_ECMM:
-      //errorCode=setAsynPort(mytestAsynPort);
-      //if(errorCode){
-      //  asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (setAsynPort()) failed (0x%x).\n",idString,errorCode);
-      //  return asynError;
-      //}
       errorCode=linkEcMemMapToAsynParameter(mytestAsynPort,idString,asynType,skipCycles);
       break;
     case ECMC_ASYN_AX:

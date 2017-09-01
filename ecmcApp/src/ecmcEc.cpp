@@ -636,7 +636,8 @@ int ecmcEc::linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMap
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ASYN_ALIAS_NOT_VALID);
   }
 
-  std::string sID=alias;
+  //std::string sID=alias;
+  std::string sID=memMapIDString;
 
   ecmcEcMemMap *memMap=findMemMap(sID);
   if(memMap==NULL){
