@@ -582,10 +582,10 @@ int ecPrintSlaveConfig(int slaveIndex)
   return ec.printSlaveConfig(slaveIndex);
 }
 
-int ecAutoConfigSlave(int slaveIndex)
+int ecAutoConfigSlave(int slaveIndex,int addAsynParams)
 {
   LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
-  return ec.autoConfigSlave(slaveIndex);
+  return ec.autoConfigSlave(slaveIndex,addAsynParams);
 }
 
 int setEnableFunctionCallDiag(int value)

@@ -911,7 +911,7 @@ int ecmcEc::printSlaveConfig(int slaveIndex)
   return 0;
 }
 
-int ecmcEc::autoConfigSlave(int slaveIndex)
+int ecmcEc::autoConfigSlave(int slaveIndex,int addAsAsynParams)
 {
   ec_master_info_t masterInfo;
   ec_slave_info_t slaveInfo;
@@ -963,7 +963,6 @@ int ecmcEc::autoConfigSlave(int slaveIndex)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_AUTO_CONFIG_SM_INFO_FAIL);
     }
 
-
     // Pdo loop
     pdoCount=syncInfo.n_pdos;
     for( pdoLoopIndex = 0; pdoLoopIndex < pdoCount; pdoLoopIndex++ ){
@@ -991,14 +990,17 @@ int ecmcEc::autoConfigSlave(int slaveIndex)
         //Add the entry!
         errorCode=addEntry(slaveInfo.position,slaveInfo.vendor_id,slaveInfo.product_code,syncInfo.dir,syncManLoopIndex,pdoInfo.index,pdoEntryInfo.index,pdoEntryInfo.subindex,pdoEntryInfo.bit_length,entryAlias);
         if(errorCode){
-          LOGERR("%s/%s:%d: Error: Autoconfig. Add entry with alias %s failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryAlias,errorCode);
+          LOGERR("%s/%s:%d: Error: Autoconfig. Add entry, alias %s, failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryAlias,errorCode);
           return errorCode;
         }
 
+        if(!addAsAsynParams){
+          return 0;
+        }
         //Link to asyn parameter (default int32)
         errorCode=linkEcEntryToAsynParameter(asynPortDriver_,entryAlias,asynParamInt32,0);
         if(errorCode){
-          LOGERR("%s/%s:%d: Error: Autoconfig. Add entry with alias %s failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryAlias,errorCode);
+          LOGERR("%s/%s:%d: Error: Autoconfig. Link entry , alias %s, to Asyn parameter failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryAlias,errorCode);
           return errorCode;
         }
       }

@@ -123,7 +123,7 @@ public:
   int setAsynPort(ecmcAsynPortDriver* asynPortDriver);
   int printAllConfig();
   int printSlaveConfig(int slaveIndex);
-  int autoConfigSlave(int slaveIndex);
+  int autoConfigSlave(int slaveIndex,int addAsAsynParams);
 
 
 private:

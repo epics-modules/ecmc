@@ -3701,10 +3701,18 @@ int ecPrintSlaveConfig(int slaveIndex);
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example:Auto configure harsdware for slave 3
+ * \param[in] slaveIndex Index of EtherCAT slave.\n
+ * \param[in] addAsynParams Make pdo-entries availabe as asyn parameters.\n
+ *
+ * \note Example:Auto configure hardware for slave 3 and make entries
+ * available over ASYN. (addAsynParams default to 1)\n
  *  "Cfg.EcSlaveAutoConfig(3)" //Command string to cmd_EAT.c\n
+ *
+ * \note Example:Auto configure hardware for slave 3 without asyn.\n
+ *  "Cfg.EcSlaveAutoConfig(3,0)" //Command string to cmd_EAT.c\n
+ *
  */
-int ecAutoConfigSlave(int slaveIndex);
+int ecAutoConfigSlave(int slaveIndex, int addAsynParams);
 
 /** \breif Set axis index for detailed motion diagnostics.\n
  *
