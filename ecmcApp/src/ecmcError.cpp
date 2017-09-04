@@ -749,6 +749,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x26022:
       return "ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE";
       break;
+    case 0x26023:
+      return "ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID";
+      break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
       break;

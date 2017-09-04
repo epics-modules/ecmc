@@ -937,7 +937,10 @@ int ecmcEc::autoConfigSlave(int slaveIndex,int addAsAsynParams)
   int entryCount=0;
   char entryAliasBuffer[128];
   char *entryAlias;
+  char entryAliasPathBuffer[128];
+  char *entryAliasPath;
   entryAlias=&entryAliasBuffer[0];
+  entryAliasPath=&entryAliasPathBuffer[0];
 
   if(!master_){
     LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL);
@@ -1008,15 +1011,47 @@ int ecmcEc::autoConfigSlave(int slaveIndex,int addAsAsynParams)
           return 0;
         }
 
-        charCount=snprintf(entryAliasBuffer,sizeof(entryAliasBuffer),"ec%d.s%d.sm%d.p%d.e%d",masterIndex_,slaveIndex,syncManLoopIndex,pdoLoopIndex,entryLoopIndex);
-        if(charCount>=sizeof(entryAliasBuffer)-1){
+        charCount=snprintf(entryAliasPathBuffer,sizeof(entryAliasPathBuffer),"ec%d.s%d.sm%d.p%d.e%d",masterIndex_,slaveIndex,syncManLoopIndex,pdoLoopIndex,entryLoopIndex);
+        if(charCount>=sizeof(entryAliasPathBuffer)-1){
           LOGERR("%s/%s:%d: Error: Autoconfig. Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW);
           return ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW;
         }
         //Link to asyn parameter (default int32)
-        errorCode=linkEcEntryToAsynParameter(asynPortDriver_,entryAlias,asynParamInt32,0);
+        errorCode=linkEcEntryToAsynParameter(asynPortDriver_,entryAliasPath,asynParamInt32,0);
         if(errorCode){
           LOGERR("%s/%s:%d: Error: Autoconfig. Link entry , alias %s, to Asyn parameter failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryAlias,errorCode);
+          return errorCode;
+        }
+
+        //redo since '.' is not allowed in epics record name..
+        charCount=snprintf(entryAliasBuffer,sizeof(entryAliasBuffer),"sm%d-p%d-e%d",syncManLoopIndex,pdoLoopIndex,entryLoopIndex);
+        if(charCount>=sizeof(entryAliasBuffer)-1){
+          LOGERR("%s/%s:%d: Error: Autoconfig. Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW);
+          return ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW;
+        }
+
+        //Generate epics records
+        char dbLoadBuffer[512];
+        // Output
+        switch(syncInfo.dir){
+          case 1:
+            charCount=snprintf(dbLoadBuffer,sizeof(dbLoadBuffer),"dbLoadRecords(\"ecmcAsynGenericAnalogOutput.db\",\"P=$(ECMC_PREFIX),PORT=$(ECMC_ASYN_PORT),ADDR=0,TIMEOUT=1,SLAVE_POS=%d,HWTYPE=%s,NAME=%s,REC_SUFFIX=data,TYPE=asynInt32\")",slaveIndex,entryAliasBuffer,entryAliasPathBuffer);
+            break;
+          case 2:
+            charCount=snprintf(dbLoadBuffer,sizeof(dbLoadBuffer),"dbLoadRecords(\"ecmcAsynGenericAnalogInput.db\",\"P=$(ECMC_PREFIX),PORT=$(ECMC_ASYN_PORT),ADDR=0,TIMEOUT=1,SLAVE_POS=%d,HWTYPE=%s,NAME=%s,REC_SUFFIX=data,TYPE=asynInt32\")",slaveIndex,entryAliasBuffer,entryAliasPathBuffer);
+            break;
+          default:
+            LOGERR("%s/%s:%d: Error: Autoconfig. Direction not input or output (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID);
+            return ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID;
+        }
+        if(charCount>=sizeof(dbLoadBuffer)-1){
+          LOGERR("%s/%s:%d: Error: Autoconfig. Failed to generate dbLoadRecord string. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW);
+          return ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW;
+       }
+        printf("%s\n",dbLoadBuffer);
+        errorCode=iocshCmd(dbLoadBuffer);
+        if(errorCode){
+          LOGERR("%s/%s:%d: Error: Autoconfig. Failed to generate records. iocshCmd() returned error (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
           return errorCode;
         }
       }

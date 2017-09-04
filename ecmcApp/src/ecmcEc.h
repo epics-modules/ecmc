@@ -21,6 +21,7 @@
 #include "cmd.h" //Logging macros
 #include "ecmcAsynPortDriver.h"
 #include "ecmcEcMemMap.h"
+#include <iocsh.h>
 
 //EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
@@ -59,6 +60,7 @@
 #define ERROR_EC_AUTO_CONFIG_ENTRY_INFO_FAIL 0x26020
 #define ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL 0x26021
 #define ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE 0x26022
+#define ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID 0x26023
 
 
 class ecmcEc : public ecmcError
