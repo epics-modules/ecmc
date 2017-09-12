@@ -90,8 +90,10 @@ public:
   int setDiagnostics(bool diag);
   int addSDOWrite(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize);
   int writeAndVerifySDOs();
-  uint32_t readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize);
+  int readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize,uint32_t *value);
+  //uint32_t readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize);
   int writeSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize);
+  int writeSDOComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value, int byteSize);
   int addEntry(
       uint16_t       position, /**< Slave position. */
       uint32_t       vendorId, /**< Expected vendor ID. */

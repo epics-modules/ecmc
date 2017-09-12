@@ -2480,13 +2480,23 @@ int ecWriteSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint
   return ec.writeSDO(slavePosition,sdoIndex,sdoSubIndex,value,byteSize);
 }
 
-uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize)
+int ecWriteSdoComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value,int byteSize)
+{
+  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d value=%d bytesize=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,value,byteSize);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.writeSDOComplete(slavePosition,sdoIndex,value,byteSize);
+}
+
+uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize, uint32_t *value)
 {
   LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d bytesize=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,sdoSubIndex,byteSize);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
-  return ec.readSDO(slavePosition,sdoIndex,sdoSubIndex,byteSize);
+  return ec.readSDO(slavePosition,sdoIndex,sdoSubIndex,byteSize,value);
 }
 
 int ecSlaveConfigWatchDog(int slaveBusPosition,int watchdogDivider,int watchdogIntervals)

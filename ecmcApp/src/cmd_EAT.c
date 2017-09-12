@@ -684,10 +684,34 @@ static int handleCfgCommand(const char *myarg_1){
     return ecAddSdo(iValue,iValue2,iValue3,iValue4,iValue5);
   }
 
+  /*Cfg.EcAddSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcAddSdo(%d,%x,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5);
+  if (nvals == 5) {
+    return ecAddSdo(iValue,iValue2,iValue3,iValue4,iValue5);
+  }
+
   /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1, "EcWriteSdo(%d,%x,%x,%d,%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return ecWriteSdo(iValue,iValue2,iValue3,iValue4,iValue5);
+  }
+
+  /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcWriteSdo(%d,%x,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5);
+  if (nvals == 5) {
+    return ecWriteSdo(iValue,iValue2,iValue3,iValue4,iValue5);
+  }
+
+  /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcWriteSdo(%d,%x,%d,%d)", &iValue,&iValue2,&iValue3,&iValue4);
+  if (nvals == 4) {
+    return ecWriteSdoComplete(iValue,iValue2,iValue3,iValue4);
+  }
+
+  /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcWriteSdo(%d,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4);
+  if (nvals == 4) {
+    return ecWriteSdoComplete(iValue,iValue2,iValue3,iValue4);
   }
 
   /*Cfg.EcApplyConfig(int nMasterIndex)*/
@@ -1348,6 +1372,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   int iValue2=0;
   int iValue3=0;
   int iValue4=0;
+  int iValue5=0;
   uint64_t i64Value=0;
   double fValue = 0;
   int motor_axis_no = 0;
@@ -1428,11 +1453,11 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   }
 
   /*EcReadSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,int byteSize)*/
-  nvals = sscanf(myarg_1, "EcReadSdo(%d,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4);
+  nvals = sscanf(myarg_1, "EcReadSdo(%d,%x,%x,%d)", &iValue2,&iValue3,&iValue4,&iValue5);
   if (nvals == 4) {
-    cmd_buf_printf(buffer,"%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
-    //PRINT_TO_OUT_BUFFER("%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
-    return 0; //Read command TODO move to read section
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(ecReadSdo(iValue2,iValue3,iValue4,iValue5,&iValue));
+    //cmd_buf_printf(buffer,"%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
+    //return 0; //Read command TODO move to read section
   }
 
   /*GetAxisOpMode(int nAxis)*/

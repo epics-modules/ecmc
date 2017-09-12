@@ -3289,7 +3289,15 @@ int ecAddSdo(uint16_t slaveBusPosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uin
  * on slave position 2.\n
  * "Cfg.EcWriteSdo(2,0x8010,0x1,1000,2)" //Command string to cmd_EAT.c\n
  */
-int ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,int byteSize);
+int ecWriteSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,int byteSize);
+
+/** \breif Write to a Service Data Object.
+ *
+ * Note: same  as "ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,
+ * uint32_t value,int byteSize)" but without subindex. Complete SDO access will be used.
+ *
+ */
+int ecWriteSdoComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value,int byteSize);
 
 /** \breif Read a Service Data Object.
  *
@@ -3315,7 +3323,7 @@ int ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,uin
  * on slave position 2.\n
  * "Cfg.EcReadSdo(2,0x8010,0x1,2)" //Command string to cmd_EAT.c\n
  */
-uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize);
+uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize,uint32_t *value);
 
 /** \breif Configure Slave watch dog.\n
  *

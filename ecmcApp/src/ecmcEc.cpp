@@ -407,16 +407,20 @@ int ecmcEc::writeSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubInde
   return ecmcEcSDO::write(master_,slavePosition,sdoIndex,sdoSubIndex,value,(size_t)byteSize);;
 }
 
-uint32_t ecmcEc::readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize)
+int ecmcEc::writeSDOComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value, int byteSize)
 {
-  uint32_t value=0;
-  size_t bytesRead=0;
-  int errorCode=ecmcEcSDO::read(master_,slavePosition,sdoIndex,sdoSubIndex,&value,&bytesRead);
-  if(errorCode){
-    return 0;
-  }
+  return ecmcEcSDO::writeComplete(master_,slavePosition,sdoIndex,value,(size_t)byteSize);;
+}
 
-  return value;
+int ecmcEc::readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize,uint32_t *value)
+{
+  //uint32_t value=0;
+  size_t bytesRead=0;
+  int errorCode=ecmcEcSDO::read(master_,slavePosition,sdoIndex,sdoSubIndex,value,&bytesRead);
+  if(errorCode){
+    return errorCode;
+  }
+  return 0;
 }
 
 int ecmcEc::updateInputProcessImage()
