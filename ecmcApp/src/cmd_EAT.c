@@ -121,8 +121,7 @@ static int appendAsciiDataToStorageBuffer(int storageIndex, const char * asciiDa
   return 0;
 }
 
-static const char * const ADSPORT_sFeaturesQ_str = 
-                          "ADSPORT=852/.THIS.sFeatures?";
+static const char * const sFeaturesQ_str = ".THIS.sFeatures?";
 static const char * const ADSPORT_equals_str = "ADSPORT=";
 static const char * const Main_dot_str = "Main.";
 static const char * const Cfg_dot_str =  "Cfg.";
@@ -1345,11 +1344,6 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     ecmcInit=1;
   }
 
-  /* ADSPORT=852/.THIS.sFeatures? */
-  if (0 == strcmp(myarg_1, ADSPORT_sFeaturesQ_str)) {
-    cmd_buf_printf(buffer, "%s", "ecmc");
-    return 0;
-  }
   //Check if configuration command
   if (0 == strncmp(myarg_1, Cfg_dot_str,strlen(Cfg_dot_str))) {
     myarg_1 += strlen(Cfg_dot_str);
@@ -1359,17 +1353,40 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   /* ADSPORT= */
   if (!strncmp(myarg_1, ADSPORT_equals_str, strlen(ADSPORT_equals_str))) {
     int err_code;
+    int nvals;
+    unsigned int adsport;
+    const char *myarg_tmp;
+    char dot_tmp = 0;
+
     myarg_1 += strlen(ADSPORT_equals_str);
-    err_code = motorHandleADS_ADR(myarg_1,buffer);
-    if (err_code == -1) return 0;
-    if (err_code == 0) {
-      cmd_buf_printf(buffer,"OK");
+    nvals = sscanf(myarg_1, "%u/.ADR%c", &adsport, &dot_tmp);
+    if (nvals == 2 && dot_tmp == '.') {
+      /* .ADR commands are handled here */
+      err_code = motorHandleADS_ADR(myarg_1,buffer);
+
+      if (err_code == -1) return 0;
+      if (err_code == 0) {
+        cmd_buf_printf(buffer,"OK");
+        return 0;
+      }
       return 0;
     }
-    RETURN_ERROR_OR_DIE(buffer,err_code,"%s/%s:%d myarg_1=%s err_code=%d",
-                  __FILE__, __FUNCTION__, __LINE__,
-                  myarg_1,
-                  err_code);
+    nvals = sscanf(myarg_1, "%u/", &adsport);
+    if (nvals != 1) {
+      return 0;
+    }
+    myarg_tmp = strchr(myarg_1, '/');
+    if (!myarg_tmp) {
+      return 0;
+    }
+    /* Jump over digits and '/' */
+    myarg_1 = myarg_tmp + 1;
+  }
+
+  /* .THIS.sFeatures? */
+  if (0 == strcmp(myarg_1, sFeaturesQ_str)) {
+    cmd_buf_printf(buffer, "%s", "ecmc");
+    return 0;
   }
 
   /*ReadEcEntry(int nSlave, int nEntry)*/
