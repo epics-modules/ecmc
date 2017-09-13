@@ -2140,6 +2140,16 @@ int setAxisMonMaxVel(int axisIndex, double value)
   return axes[axisIndex]->getMon()->setMaxVel(value);;
 }
 
+int getAxisMonMaxVel(int axisIndex, double *value)
+{
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getMaxVel();
+  return 0;
+}
+
 int setAxisMonEnableMaxVel(int axisIndex, int value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
@@ -2148,6 +2158,15 @@ int setAxisMonEnableMaxVel(int axisIndex, int value)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setEnableMaxVelMon(value);
+}
+
+int getAxisMonEnableMaxVel(int axisIndex, int *value)
+{
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getEnableMaxVelMon();
+  return 0;
 }
 
 int setAxisMonMaxVelDriveILDelay(int axisIndex, int value)

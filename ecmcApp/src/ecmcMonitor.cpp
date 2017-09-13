@@ -380,6 +380,11 @@ int ecmcMonitor::setMaxVel(double vel)
   return 0;
 }
 
+double ecmcMonitor::getMaxVel(void)
+{
+  return maxVel_;
+}
+
 int ecmcMonitor::setEnableMaxVelMon(bool enable)
 {
   if(enableMaxVelMon_!=enable){

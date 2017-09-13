@@ -25,8 +25,12 @@ typedef struct
   double position;
   double velocity;
   double acceleration;
+  double manualVelocitySlow;
+  double defaultAcceleration;
+  double manualVelocityFast;
 } cmd_Motor_cmd_type;
 
+static cmd_Motor_cmd_type cmd_Motor_cmd[ECMC_MAX_AXES];
 static int ecmcInit=0;
 
 //TODO: Cleanup macros.. should not need different for different types
@@ -121,8 +125,7 @@ static int appendAsciiDataToStorageBuffer(int storageIndex, const char * asciiDa
   return 0;
 }
 
-static const char * const ADSPORT_sFeaturesQ_str = 
-                          "ADSPORT=852/.THIS.sFeatures?";
+static const char * const sFeaturesQ_str = ".THIS.sFeatures?";
 static const char * const ADSPORT_equals_str = "ADSPORT=";
 static const char * const Main_dot_str = "Main.";
 static const char * const Cfg_dot_str =  "Cfg.";
@@ -247,12 +250,29 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
         case 0x7:
           //ADSPORT=501/.ADR.16#4001,16#7,8,5?; #Homing velocity off cam
           return getAxisHomeVelOffCam(motor_axis_no,fValue);
+        case 0x8:
+          *fValue = cmd_Motor_cmd[motor_axis_no].manualVelocitySlow;
+          return 0;
+        case 0x9:
+          *fValue = cmd_Motor_cmd[motor_axis_no].manualVelocityFast;
+          return 0;
         case 0x16:
           return getAxisMonAtTargetTol(motor_axis_no, fValue);
         case 0x17:
           ret = getAxisMonAtTargetTime(motor_axis_no, &iValue);
           *fValue = iValue * 0.001; /* TODO: retrieve the cycle time */
           return ret;
+        case 0x27:
+          ret = getAxisMonEnableMaxVel(motor_axis_no, &iValue);
+          if (!ret && iValue) { /* No error and enabled */
+            return getAxisMonMaxVel(motor_axis_no, fValue);
+          } else {
+            *fValue = 0.0;
+            return 0;
+          }
+        case 0x101:
+          *fValue = cmd_Motor_cmd[motor_axis_no].defaultAcceleration;
+          return 0;
       }
     }
 
@@ -320,14 +340,27 @@ static int motorHandleADS_ADR_putFloat(ecmcOutputBufferType *buffer,unsigned ads
     //group 4000
     if (group_no >= 0x4000 && group_no < 0x5000) {
       int motor_axis_no = (int)group_no - 0x4000;
+      int ret;
 
       //ADSPORT=501/.ADR.16#4001,16#6,8,5=200; #Homing velocity towards cam
-      if (offset_in_group == 0x6) {
-        return setAxisHomeVelTwordsCam(motor_axis_no, fValue);
-      }
-      //ADSPORT=501/.ADR.16#4001,16#7,8,5=100; #Homing velocity off cam
-      if (offset_in_group == 0x7) {
-        return setAxisHomeVelOffCam(motor_axis_no,fValue);
+      switch(offset_in_group) {
+        case 0x6:
+          return setAxisHomeVelTwordsCam(motor_axis_no, fValue);
+          //ADSPORT=501/.ADR.16#4001,16#7,8,5=100; #Homing velocity off cam
+        case 0x7:
+          return setAxisHomeVelOffCam(motor_axis_no,fValue);
+        case 0x8:
+          cmd_Motor_cmd[motor_axis_no].manualVelocitySlow = fValue;
+          return 0;
+        case 0x9:
+          cmd_Motor_cmd[motor_axis_no].manualVelocityFast = fValue;
+          return 0;
+        case 0x27:
+          ret = setAxisMonEnableMaxVel(motor_axis_no, fValue != 0.0);
+          if (ret) { /* error */
+            return ret;
+          }
+          return setAxisMonMaxVel(motor_axis_no, fValue);
       }
     }
 
@@ -1345,11 +1378,6 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     ecmcInit=1;
   }
 
-  /* ADSPORT=852/.THIS.sFeatures? */
-  if (0 == strcmp(myarg_1, ADSPORT_sFeaturesQ_str)) {
-    cmd_buf_printf(buffer, "%s", "ecmc");
-    return 0;
-  }
   //Check if configuration command
   if (0 == strncmp(myarg_1, Cfg_dot_str,strlen(Cfg_dot_str))) {
     myarg_1 += strlen(Cfg_dot_str);
@@ -1359,17 +1387,40 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   /* ADSPORT= */
   if (!strncmp(myarg_1, ADSPORT_equals_str, strlen(ADSPORT_equals_str))) {
     int err_code;
+    int nvals;
+    unsigned int adsport;
+    const char *myarg_tmp;
+    char dot_tmp = 0;
+
     myarg_1 += strlen(ADSPORT_equals_str);
-    err_code = motorHandleADS_ADR(myarg_1,buffer);
-    if (err_code == -1) return 0;
-    if (err_code == 0) {
-      cmd_buf_printf(buffer,"OK");
+    nvals = sscanf(myarg_1, "%u/.ADR%c", &adsport, &dot_tmp);
+    if (nvals == 2 && dot_tmp == '.') {
+      /* .ADR commands are handled here */
+      err_code = motorHandleADS_ADR(myarg_1,buffer);
+
+      if (err_code == -1) return 0;
+      if (err_code == 0) {
+        cmd_buf_printf(buffer,"OK");
+        return 0;
+      }
       return 0;
     }
-    RETURN_ERROR_OR_DIE(buffer,err_code,"%s/%s:%d myarg_1=%s err_code=%d",
-                  __FILE__, __FUNCTION__, __LINE__,
-                  myarg_1,
-                  err_code);
+    nvals = sscanf(myarg_1, "%u/", &adsport);
+    if (nvals != 1) {
+      return 0;
+    }
+    myarg_tmp = strchr(myarg_1, '/');
+    if (!myarg_tmp) {
+      return 0;
+    }
+    /* Jump over digits and '/' */
+    myarg_1 = myarg_tmp + 1;
+  }
+
+  /* .THIS.sFeatures? */
+  if (0 == strcmp(myarg_1, sFeaturesQ_str)) {
+    cmd_buf_printf(buffer, "%s", "ecmc;stv2");
+    return 0;
   }
 
   /*ReadEcEntry(int nSlave, int nEntry)*/
