@@ -2012,6 +2012,19 @@ int setAxisMonEnableLagMon(int axisIndex, int value);
  * \note Example: Set maximum velocoity for axis 3 to 20.\n
  * "Cfg.SetAxisMonMaxVel(3,20)" //Command string to cmd_EAT.c.\n
  */
+int getAxisMonMaxVel(int axisIndex, double *value);
+
+/** \breif Get maximum allowed velocity.\n
+ *
+ * The motion will be interlocked if the actual velocity or the velocity
+ * setpoint exceeds this value.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] value Maximum velocity.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
 int setAxisMonMaxVel(int axisIndex, double value);
 
 /** \breif Enable maximum velocity monitoring (over speed).\n
@@ -2028,6 +2041,16 @@ int setAxisMonMaxVel(int axisIndex, double value);
  * "Cfg.SetAxisMonEnableMaxVel(3,1)" //Command string to cmd_EAT.c.\n
  */
 int setAxisMonEnableMaxVel(int axisIndex, int value);
+
+/** \breif Get enable maximum velocity monitoring (over speed).\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] value Enable monitoring.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int getAxisMonEnableMaxVel(int axisIndex, int *value);
 
 /** \breif Set velocity monitoring interlock delay for drive.\n
  *
