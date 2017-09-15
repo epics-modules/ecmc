@@ -102,6 +102,12 @@ int ecmcEcEntry::getBits()
 int ecmcEcEntry::writeValue(uint64_t value)
 {
   value_=value;
+  return updateAsyn(0);
+}
+
+int ecmcEcEntry::writeValueForce(uint64_t value)
+{
+  value_=value;
   return updateAsyn(1);
 }
 

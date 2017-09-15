@@ -52,6 +52,7 @@ public:
   void setDomainAdr(uint8_t *domainAdr); //After activate
   uint8_t *getDomainAdr();
   int writeValue(uint64_t value);
+  int writeValueForce(uint64_t value);
   int writeBit(int bitNumber, uint64_t value);
   int readValue(uint64_t *value);
   int readBit(int bitNumber, uint64_t* value);

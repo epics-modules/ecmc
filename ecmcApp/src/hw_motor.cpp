@@ -2705,7 +2705,7 @@ int writeEcEntry(int slaveIndex, int entryIndex,uint64_t value)
     return ERROR_MAIN_EC_SLAVE_NULL;
   if(ec.getSlave(slaveIndex)->getEntry(entryIndex)==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
-  return ec.getSlave(slaveIndex)->getEntry(entryIndex)->writeValue(value);
+  return ec.getSlave(slaveIndex)->getEntry(entryIndex)->writeValueForce(value);
 }
 
 int writeEcEntryIDString(int slavePosition,char * entryIDString,uint64_t value)
@@ -2733,7 +2733,7 @@ int writeEcEntryIDString(int slavePosition,char * entryIDString,uint64_t value)
   if(entry==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
 
-  return entry->writeValue(value);;
+  return entry->writeValueForce(value);
 }
 
 int readEcEntry(int slaveIndex, int entryIndex,uint64_t *value)
