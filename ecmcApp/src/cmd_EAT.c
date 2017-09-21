@@ -61,7 +61,7 @@ static int ecmcInit=0;
       cmd_buf_printf(buffer,"Error: %d", iRet);       \
       return 0;                                       \
     }                                                 \
-    cmd_buf_printf(buffer,"%d", u32Value);              \
+    cmd_buf_printf(buffer,"%u", u32Value);              \
     return 0;                                         \
   }                                                   \
   while(0)
