@@ -1022,19 +1022,36 @@ int setAxisCommand(int axisIndex, int value);
  *
  * The command data word is an argument linked to the axis command. See
  * fbDriveVirtual manual for more information.\n
+ * A new command will be triggered with a positive edge on the bExecute
+ * flag.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value  Axis command data word.\n
  *
  * The command data word have different meaning depending on the command
  * word.\n
- * Command word = 10 (homing):\n
- *   Command Data 1..6: Different homing sequences.\n
  *
- * Command word = 4 (absolute positioning): \n
+ * Command word = 1 (Move velocity): \n
+ *   Command data 0: Move Velocity\n
+ *
+ * Command word = 2 (Relative positioning): \n
+ *   Command data 0: Move relative\n
+ *
+ * Command word = 3 (absolute positioning): \n
+ *   Command data 0: Default absolute positioning\n
  *   Command Data 1: Go to start position of trajectory generator external
  *   transformation expressions. This is useful to avoid jumps  during
  *   start phase when absolute synchronizing.\n
+ *
+ * Command word = 10 (Referencing to fHomePosition):\n
+ *   Command Data 0: Simplest homing sequence. The actual position of the
+ *                   encoder will be set to fHomePosition.
+ *   Command Data 1: Ref. on low limit switch.\n
+ *   Command Data 2: Ref. on high limit switch.\n
+ *   Command Data 3: Ref. on home sensor via low limit switch.\n
+ *   Command Data 4: Ref. on home sensor via high limit switch.\n
+ *   Command Data 5: Ref. on center of home sensor via low limit switch.\n
+ *   Command Data 6: Ref. on center of home sensor via high limit switch.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
