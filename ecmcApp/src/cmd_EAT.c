@@ -54,6 +54,19 @@ static int ecmcInit=0;
   }                                                   \
   while(0)
 
+#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT(function) \
+  do {                                                \
+    int iRet=function;                                \
+    if(iRet){                                         \
+      cmd_buf_printf(buffer,"Error: %d", iRet);       \
+      return 0;                                       \
+    }                                                 \
+    cmd_buf_printf(buffer,"%d", u32Value);              \
+    return 0;                                         \
+  }                                                   \
+  while(0)
+
+
 #define SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(function) \
   do {                                                   \
     int iRet=function;                                   \
@@ -1373,6 +1386,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   int iValue3=0;
   int iValue4=0;
   int iValue5=0;
+  uint32_t u32Value=0;
   uint64_t i64Value=0;
   double fValue = 0;
   int motor_axis_no = 0;
@@ -1455,9 +1469,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   /*EcReadSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,int byteSize)*/
   nvals = sscanf(myarg_1, "EcReadSdo(%d,%x,%x,%d)", &iValue2,&iValue3,&iValue4,&iValue5);
   if (nvals == 4) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(ecReadSdo(iValue2,iValue3,iValue4,iValue5,&iValue));
-    //cmd_buf_printf(buffer,"%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
-    //return 0; //Read command TODO move to read section
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecReadSdo(iValue2,iValue3,iValue4,iValue5,&u32Value));
   }
 
   /*GetAxisOpMode(int nAxis)*/
