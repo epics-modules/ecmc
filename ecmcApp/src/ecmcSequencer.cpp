@@ -209,6 +209,7 @@ void ecmcSequencer::execute()
           break;
         default:
           setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_CMD_DATA_UNDEFINED);
+          LOGINFO15("%s/%s:%d: axis[%d].sequencer.cmdData=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.cmdData);
           break;
       }
       break;

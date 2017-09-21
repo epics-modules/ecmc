@@ -976,7 +976,7 @@ int ecmcAxisBase::setExecute(bool execute)
 {
   //Internal trajectory source
   if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    if(execute && !getEnable()){
+    if(execute && !getEnable() && !(data_.command_.cmdData==0 && data_.command_.command==10)){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED);
     }
 
