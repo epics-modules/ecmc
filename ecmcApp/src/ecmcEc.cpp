@@ -34,6 +34,7 @@ void ecmcEc::initVars()
   masterOK_=0;
   domainOK_=0;
   domainNotOKCounter_=0;
+  domainNotOKCounterTotal_=0;
   domainNotOKCyclesLimit_=0;
   domainNotOKCounterMax_=0;
   for(int i=1; i < EC_MAX_SLAVES; i++){
@@ -63,6 +64,17 @@ void ecmcEc::initVars()
   domainSize_=0;
   statusOutputEntry_=NULL;
   masterIndex_=-1;
+
+  updateDefAsynParams_=0;
+  asynParIdSlaveCounter_=0;
+  asynParIdMemMapCounter_=0;
+  asynParIdSlavesStatus_=0;
+  asynParIdDomianStatus_=0;
+  asynParIdDomianFailCounter_=0;
+  asynParIdMasterStatus_=0;
+  entryCounter_=0;
+  asynParIdDomianFailCounterTotal_=0;
+
 }
 
 int ecmcEc::init(int nMasterIndex)
@@ -129,6 +141,10 @@ int ecmcEc::addSlave(
   if(slaveCounter_<EC_MAX_SLAVES-1){
     slaveArray_[slaveCounter_]=new ecmcEcSlave(master_,domain_,alias,position,vendorId,productCode);
     slaveCounter_++;
+    if(updateDefAsynParams_){
+      asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,slaveCounter_);
+      asynPortDriver_-> callParamCallbacks();
+    }
     return slaveCounter_-1;
   }
   else{
@@ -246,6 +262,7 @@ void ecmcEc::checkDomainState(void)
     if(domainNotOKCounter_> domainNotOKCounterMax_){
       domainNotOKCounterMax_=domainNotOKCounter_;
     }
+    domainNotOKCounterTotal_++;
   }
   else{
     domainNotOKCounter_=0;
@@ -455,8 +472,8 @@ int ecmcEc::updateOutProcessImage()
   }
 
   //I/O intr to EPCIS.
-  if(asynPortDriver_ ){
-    asynPortDriver_-> callParamCallbacks();
+  if(asynPortDriver_){
+    asynPortDriver_-> callParamCallbacks();  //also for memmap and ecEntry
   }
 
   return 0;
@@ -484,7 +501,17 @@ int ecmcEc::addEntry(
     slave=slaveArray_[slaveIndex]; //last added slave
   }
 
-  return slave->addEntry(direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
+  int errorCode=slave->addEntry(direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
+  if(errorCode){
+    return errorCode;
+  }
+  entryCounter_++;
+  if(updateDefAsynParams_){
+    asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,entryCounter_);
+    asynPortDriver_-> callParamCallbacks();
+  }
+
+  return 0;
 }
 
 ecmcEcSlave *ecmcEc::findSlave(int busPosition)
@@ -542,9 +569,23 @@ int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles)
   return 0;
 }
 
-void ecmcEc::printStatus()
+void ecmcEc::slowExecute()
 {
   LOGINFO5("%s/%s:%d: INFO: MasterOK: %d, SlavesOK: %d, DomainOK: %d, DomainNotOKCounter: %d, DomainNotOKLimit: %d, Error Code:0x%x .\n",__FILE__, __FUNCTION__, __LINE__,masterOK_,slavesOK_,domainOK_,domainNotOKCounterMax_,domainNotOKCyclesLimit_,getErrorID());
+
+  checkState();
+  checkSlavesConfState();
+
+  if(updateDefAsynParams_){
+    asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,masterOK_);
+    asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
+    asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,domainOK_);
+    asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
+    asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
+
+    //callParamCallbacks is made in updateOutputProcessImage
+  }
+
   domainNotOKCounterMax_=0;
 }
 
@@ -719,6 +760,12 @@ int ecmcEc::addMemMap(uint16_t startEntryBusPosition,
   }
 
   ecMemMapArrayCounter_++;
+
+  if(updateDefAsynParams_){
+    asynPortDriver_-> setIntegerParam(asynParIdMemMapCounter_,ecMemMapArrayCounter_);
+    asynPortDriver_-> callParamCallbacks();  //also for memmap and ecEntry
+  }
+
   return 0;
 }
 
@@ -741,9 +788,73 @@ int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry)
   return 0;
 }
 
-int ecmcEc::setAsynPort(ecmcAsynPortDriver* asynPortDriver)
+int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams)
 {
   asynPortDriver_=asynPortDriver;
+  updateDefAsynParams_=regAsynParams;
+
+  if(!regAsynParams){
+    return 0;
+  }
+
+  asynStatus status = asynPortDriver_->createParam("ec.masterstatus",asynParamInt32,&asynParIdMasterStatus_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.masterstatus failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,0);
+
+  status = asynPortDriver_->createParam("ec.slavecounter",asynParamInt32,&asynParIdSlaveCounter_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.slavecounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,0);
+
+  status = asynPortDriver_->createParam("ec.slavesstatus",asynParamInt32,&asynParIdSlavesStatus_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.slavesstatus failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,0);
+
+  status = asynPortDriver_->createParam("ec.memmapcounter",asynParamInt32,&asynParIdMemMapCounter_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.memmapcounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdMemMapCounter_,0);
+
+  status = asynPortDriver_->createParam("ec.domainstatus",asynParamInt32,&asynParIdDomianStatus_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.domainstatus failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,0);
+
+  status = asynPortDriver_->createParam("ec.domainfailcounter",asynParamInt32,&asynParIdDomianFailCounter_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.domainfailcounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,0);
+
+  status = asynPortDriver_->createParam("ec.domainfailcountertotal",asynParamInt32,&asynParIdDomianFailCounterTotal_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.domainfailcountertotal failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,0);
+
+  status = asynPortDriver_->createParam("ec.entrycounter",asynParamInt32,&asynParIdEntryCounter_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.entrycounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,0);
+
+  asynPortDriver_-> callParamCallbacks();
+
   return 0;
 }
 

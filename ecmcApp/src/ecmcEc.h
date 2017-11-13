@@ -119,12 +119,12 @@ public:
   int printTimingInformation();
   int statusOK();
   int setDomainFailedCyclesLimitInterlock(int cycles);
-  void printStatus();
+  void slowExecute();
   int reset();
   int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
   int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
   int setEcStatusOutputEntry(ecmcEcEntry *entry);
-  int setAsynPort(ecmcAsynPortDriver* asynPortDriver);
+  int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams);
   int printAllConfig();
   int printSlaveConfig(int slaveIndex);
   int autoConfigSlave(int slaveIndex,int addAsAsynParams);
@@ -143,6 +143,7 @@ private:
   ec_master_state_t masterState_;
   uint8_t *domainPd_ ;
   int slaveCounter_;
+  int entryCounter_;
   ecmcEcSlave *slaveArray_[EC_MAX_SLAVES];
   ec_pdo_entry_reg_t slaveEntriesReg_[EC_MAX_ENTRIES];
   unsigned int pdoByteOffsetArray_[EC_MAX_ENTRIES];
@@ -154,6 +155,7 @@ private:
   int masterOK_;
   int domainOK_;
   int domainNotOKCounter_;
+  int domainNotOKCounterTotal_;
   int domainNotOKCounterMax_;
   int domainNotOKCyclesLimit_;
   bool inStartupPhase_;
@@ -163,6 +165,16 @@ private:
   size_t domainSize_;
   ecmcEcEntry *statusOutputEntry_;
   int masterIndex_;
+
+  int updateDefAsynParams_;
+  int asynParIdSlaveCounter_;
+  int asynParIdMemMapCounter_;
+  int asynParIdSlavesStatus_;
+  int asynParIdDomianStatus_;
+  int asynParIdDomianFailCounter_;
+  int asynParIdDomianFailCounterTotal_;
+  int asynParIdMasterStatus_;
+  int asynParIdEntryCounter_;
 
 };
 #endif /* ECMCEC_H_ */

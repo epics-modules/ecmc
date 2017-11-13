@@ -85,6 +85,19 @@ static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
 static ecmcAsynPortDriver *asynPort=0;
 
+//Default asyn params
+static int asynParIdLatencyMin=0;
+static int asynParIdLatencyMax=0;
+static int asynParIdExecuteMin=0;
+static int asynParIdExecuteMax=0;
+static int asynParIdPeriodMin=0;
+static int asynParIdPeriodMax=0;
+static int asynParIdSendMin=0;
+static int asynParIdSendMax=0;
+static int asynParIdEcmcAppMode=0;
+
+
+
 /****************************************************************************/
 
 const struct timespec cycletime = {0, MCU_PERIOD_NS};
@@ -280,11 +293,24 @@ void cyclic_task(void * usr)
           }
         }
 
-        ec.printStatus();
+        ec.slowExecute();
+        struct timespec testtime;
+        clock_gettime(CLOCK_MONOTONIC, &testtime);
+
+        if(asynPort /*&& enableAsynThreadDiag*/){
+          asynPort-> setIntegerParam(asynParIdLatencyMin,(latency_min_ns));
+          asynPort-> setIntegerParam(asynParIdLatencyMax,(latency_max_ns));
+          asynPort-> setIntegerParam(asynParIdExecuteMin,(exec_min_ns));
+          asynPort-> setIntegerParam(asynParIdExecuteMax,(exec_max_ns));
+          asynPort-> setIntegerParam(asynParIdPeriodMin,(period_min_ns));
+          asynPort-> setIntegerParam(asynParIdPeriodMax,(period_max_ns));
+          asynPort-> setIntegerParam(asynParIdSendMin,(send_min_ns));
+          asynPort-> setIntegerParam(asynParIdSendMax,(send_max_ns));
+          asynPort-> callParamCallbacks();
+        }
 
         if(PRINT_STDOUT_BIT13()){
-          struct timespec testtime;
-          clock_gettime(CLOCK_MONOTONIC, &testtime);
+
           LOGINFO("%s/%s:%d: thread.clock=%ld.%09ld;\n",__FILE__, __FUNCTION__, __LINE__,testtime.tv_sec,testtime.tv_nsec);
           LOGINFO("%s/%s:%d: thread.period.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_min_ns);
           LOGINFO("%s/%s:%d: thread.period.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_max_ns);
@@ -294,16 +320,16 @@ void cyclic_task(void * usr)
           LOGINFO("%s/%s:%d: thread.latency.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_max_ns);
           LOGINFO("%s/%s:%d: thread.send.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_min_ns);
           LOGINFO("%s/%s:%d: thread.send.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_max_ns);
-          period_max_ns = 0;
-          period_min_ns = 0xffffffff;
-          exec_max_ns = 0;
-          exec_min_ns = 0xffffffff;
-          latency_max_ns = 0;
-          latency_min_ns = 0xffffffff;
-          send_max_ns=0;
-          send_min_ns=0xffffffff;
-          sendperiod_ns=0;
         }
+        period_max_ns = 0;
+        period_min_ns = 0xffffffff;
+        exec_max_ns = 0;
+        exec_min_ns = 0xffffffff;
+        latency_max_ns = 0;
+        latency_min_ns = 0xffffffff;
+        send_max_ns=0;
+        send_min_ns=0xffffffff;
+        sendperiod_ns=0;
       }
     }
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
@@ -400,6 +426,10 @@ int setAppModeRun(int mode)
 {
   appModeOld=appMode;
   appMode=(app_mode_type)mode;
+
+  asynPort-> setIntegerParam(asynParIdEcmcAppMode,mode);
+  asynPort-> callParamCallbacks();
+
 
   for(int i=0;i<ECMC_MAX_AXES;i++){
     if(axes[i]!=NULL){
@@ -2660,13 +2690,89 @@ int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, 
   return ec.linkEcEntryToAsynParameter(asynPortObject,entryIDString,asynParType,skipCycles);
 }
 
-int setAsynPort(void* asynPortObject)
+int initEcmcAsyn(void* asynPortObject, int regAsynParams)
 {
   LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
 
   asynPort=(ecmcAsynPortDriver*)asynPortObject;
 
-  return ec.setAsynPort(asynPort);
+
+  int errorCode=ec.initAsyn(asynPort,regAsynParams);
+  if(errorCode){
+    return errorCode;
+  }
+
+  if(!regAsynParams ){
+    return 0;
+  }
+
+  //Timing info (only updated in real time)!
+  asynStatus status = asynPort->createParam("thread.latency.min",asynParamInt32,&asynParIdLatencyMin);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.latency.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdLatencyMin,0);
+
+  status = asynPort->createParam("thread.latency.max",asynParamInt32,&asynParIdLatencyMax);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.latency.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdLatencyMax,0);
+
+  status = asynPort->createParam("thread.period.min",asynParamInt32,&asynParIdPeriodMin);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.period.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdPeriodMin,0);
+
+  status = asynPort->createParam("thread.period.max",asynParamInt32,&asynParIdPeriodMax);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.period.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdPeriodMax,0);
+
+  status = asynPort->createParam("thread.execute.min",asynParamInt32,&asynParIdExecuteMin);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.execute.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdExecuteMin,0);
+
+  status = asynPort->createParam("thread.execute.max",asynParamInt32,&asynParIdExecuteMax);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.execute.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdExecuteMax,0);
+
+  status = asynPort->createParam("thread.send.min",asynParamInt32,&asynParIdSendMin);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.send.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdSendMin,0);
+
+  status = asynPort->createParam("thread.send.max",asynParamInt32,&asynParIdSendMax);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.send.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdSendMax,0);
+
+  status = asynPort->createParam("appmode",asynParamInt32,&asynParIdEcmcAppMode);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdEcmcAppMode,0);
+
+  asynPort-> callParamCallbacks();
+
+  return 0;
 }
 
 int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles)

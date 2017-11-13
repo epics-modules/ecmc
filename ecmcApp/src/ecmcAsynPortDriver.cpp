@@ -357,7 +357,7 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
       return (asynError);
     }
 
-    int errorCode=setAsynPort(mytestAsynPort);
+    int errorCode=initEcmcAsyn(mytestAsynPort,1); //Always add default records
     if(errorCode){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverConfigure: ERROR: New AsynPortDriver (setAsynPort()) failed (0x%x).\n",errorCode);
       return asynError;
@@ -467,6 +467,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
   if (nvals == 3){
     dataAccessType=ECMC_ASYN_EC;
   }
+
 
   if(dataAccessType==ECMC_ASYN_NONE){
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: No defined data access transfer type in idString (valid ec<master>.s<slavenumber>.<alias> or ec<master>.mm.<alias>).\n");

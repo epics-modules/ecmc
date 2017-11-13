@@ -3541,12 +3541,13 @@ int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, 
 /** \breif Set asyn port driver object
  *
  *  \param[in] asynPortObject Asyn port object.\n
+ *  \param[in] regAsynParams Register default asyn parameters.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int setAsynPort(void* asynPortObject);
+int initEcmcAsyn(void* asynPortObject,int regAsynParams);
 
 /** \breif Link EtherCAT memory map to ASYN parameter.
  *
@@ -3799,6 +3800,14 @@ int setEnableTimeDiag(int value);
  *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to cmd_EAT.c\n
  */
 int setEnableFunctionCallDiag(int value);
+/** \breif Set indixes of default asyn parameters during startup.\n
+ *
+ * \param[in] indices Array containing asyn param indices.\n
+ * \param[in] size Size of indices array.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
 
 #ifdef __cplusplus
 }
