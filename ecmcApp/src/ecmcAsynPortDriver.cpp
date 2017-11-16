@@ -326,7 +326,7 @@ int ecmcAsynPortDriver::readArrayGeneric(asynUser *pasynUser, epicsUInt8 *value,
 
 extern "C" {
 
-static ecmcAsynPortDriver *mytestAsynPort;
+static ecmcAsynPortDriver *ecmcAsynPortObj;
 static int maxParameters;
 static int parameterCounter;
 /* global asynUser for Printing */
@@ -342,9 +342,9 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
 {
   parameterCounter=0;
   maxParameters=paramTableSize;
-  mytestAsynPort=new ecmcAsynPortDriver(portName,paramTableSize,disableAutoConnect==0,priority);
-  if(mytestAsynPort){
-    asynUser *traceUser= mytestAsynPort->getTraceAsynUser();
+  ecmcAsynPortObj=new ecmcAsynPortDriver(portName,paramTableSize,disableAutoConnect==0,priority);
+  if(ecmcAsynPortObj){
+    asynUser *traceUser= ecmcAsynPortObj->getTraceAsynUser();
     if(!traceUser){
       printf("ecmcAsynPortDriverConfigure: ERROR: Failed to retrieve asynUser for trace. \n");
       return (asynError);
@@ -357,7 +357,7 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
       return (asynError);
     }
 
-    int errorCode=initEcmcAsyn(mytestAsynPort,1); //Always add default records
+    int errorCode=initEcmcAsyn((void*)ecmcAsynPortObj);
     if(errorCode){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverConfigure: ERROR: New AsynPortDriver (setAsynPort()) failed (0x%x).\n",errorCode);
       return asynError;
@@ -371,6 +371,68 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverConfigure: ERROR: New AsynPortDriver failed.");
     return(asynError);
   }
+}
+
+//Parse asyn datatype
+
+static int parseAsynDataType( const char *asynTypeString)
+{
+
+  /*
+  "asynInt8ArrayIn"
+  "asynInt8ArrayOut"
+  "asynInt16ArrayIn"
+  "asynInt16ArrayOut"
+  "asynInt32ArrayIn"
+  "asynInt32ArrayOut"
+  "asynFloat32ArrayIn"
+  "asynFloat32ArrayOut"
+  "asynFloat64ArrayIn"
+  "asynFloat64ArrayOut"
+  asynParamInt8Array
+  asynParamInt16Array
+  asynParamInt32Array
+  asynParamFloat32ArrayinitEcmcAsyn(void* asynPortObject)
+  asynParamFloat64Array
+  */
+
+  int asynType=-10;
+  int res=strcmp(asynTypeString,"asynInt32");
+  if (res == 0) {
+    asynType=asynParamInt32;
+  }
+
+  res=strcmp(asynTypeString,"asynFloat64");
+  if (res == 0) {
+    asynType=asynParamFloat64;
+  }
+
+  res=strcmp(asynTypeString,"asynInt8ArrayIn");
+  if (res == 0) {
+    asynType=asynParamInt8Array;
+  }
+
+  res=strcmp(asynTypeString,"asynInt16ArrayIn");
+  if (res == 0) {
+    asynType=asynParamInt16Array;
+  }
+
+  res=strcmp(asynTypeString,"asynInt32ArrayIn");
+  if (res == 0) {
+    asynType=asynParamInt32Array;
+  }
+
+  res=strcmp(asynTypeString,"asynFloat32ArrayIn");
+  if (res == 0) {
+    asynType=asynParamFloat32Array;
+  }
+
+  res=strcmp(asynTypeString,"asynFloat64ArrayIn");
+  if (res == 0) {
+    asynType=asynParamFloat64Array;
+  }
+
+  return asynType;
 }
 
 /* EPICS iocsh shell command: ecmcAsynPortDriverConfigure*/
@@ -405,7 +467,7 @@ static void initCallFunc(const iocshArgBuf *args)
  *  \param[in] portName Name of asyn port (created with iocsh command:
  *  "ecmcAsynPortDriverConfigure()").\n
  *  \param[in] idString String for addressing ethercat entry or memory map:\n
- *             idString = ec.s<slave number>.<ethercat entry id>  (ethercat
+ *             idStringnt asynType=-10; = ec.s<slave number>.<ethercat entry id>  (ethercat
  *             entry)\n
  *             idString = ec.mm.<memory map id>  (memory map)\n
  *  \param[in] asynParType Data type to be transfered.\n
@@ -432,9 +494,8 @@ static void initCallFunc(const iocshArgBuf *args)
  */
 int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, const char *asynTypeString, int skipCycles)
 {
-  ecmcAsynDataAccessType dataAccessType=ECMC_ASYN_NONE;
-  if(!mytestAsynPort){
-    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object NULL (mytestAsynPort==NULL).\n");
+  if(!ecmcAsynPortObj){
+    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object N const char *asynTypeStringULL (ecmcAsynPortObj==NULL).\n");
     return(asynError);
   }
 
@@ -443,8 +504,8 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
     return(asynError);
   }
 
-  if (0 != strcmp(mytestAsynPort->portName,portName)){
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Port name mismatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,mytestAsynPort->portName);
+  if (0 != strcmp(ecmcAsynPortObj->portName,portName)){
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Port name mismatch. Desired port: %s not accessible. Accessible port: %s.\n",portName,ecmcAsynPortObj->portName);
     return(asynError);
   }
 
@@ -453,121 +514,94 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
     return(asynError);
   }
 
-  //Check if EtherCAT memorymap (ECMC)
+  int errorCode=0;
+
+  //Check if EtherCAT memorymap../../ecmcApp/src/ecmcAsynPortDriver.cpp:409:133: (ECMC)
   char buffer[1024];
   int masterIndex=0;
   int nvals = sscanf(idString, "ec%d.mm.%s",&masterIndex,buffer);
   if (nvals == 2) {
-    dataAccessType=ECMC_ASYN_ECMM;
+    int asynType=parseAsynDataType(asynTypeString);
+
+    if(asynType<=0){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
+    }
+
+    errorCode=linkEcMemMapToAsynParameter(idString,asynType,skipCycles);
+
+    if(errorCode){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
+      return asynError;
+    }
+
+    parameterCounter++;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",idString);
+    return asynSuccess;
   }
 
   //Check if EtherCAT EtherCAT entry
   int slave=-10;
   nvals = sscanf(idString, "ec%d.s%d.%s",&masterIndex,&slave,buffer);
   if (nvals == 3){
-    dataAccessType=ECMC_ASYN_EC;
-  }
-
-
-  if(dataAccessType==ECMC_ASYN_NONE){
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: No defined data access transfer type in idString (valid ec<master>.s<slavenumber>.<alias> or ec<master>.mm.<alias>).\n");
-    return(asynError);
-  }
-
-  //Check types
-  /*
-  "asynInt8ArrayIn"
-  "asynInt8ArrayOut"
-  "asynInt16ArrayIn"
-  "asynInt16ArrayOut"
-  "asynInt32ArrayIn"
-  "asynInt32ArrayOut"
-  "asynFloat32ArrayIn"
-  "asynFloat32ArrayOut"
-  "asynFloat64ArrayIn"
-  "asynFloat64ArrayOut"
-  asynParamInt8Array
-  asynParamInt16Array
-  asynParamInt32Array
-  asynParamFloat32Array
-  asynParamFloat64Array
-  */
-
-  int asynType=-10;
-  int res=strcmp(asynTypeString,"asynInt32");
-  if (res == 0) {
-    asynType=asynParamInt32;
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamInt32).\n",idString);
-  }
-
-  res=strcmp(asynTypeString,"asynFloat64");
-  if (res == 0) {
-    asynType=asynParamFloat64;
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynParamFloat64).\n",idString);
-  }
-
-  res=strcmp(asynTypeString,"asynInt8ArrayIn");
-  if (res == 0) {
-    asynType=asynParamInt8Array;
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynInt8ArrayIn).\n",idString);
-  }
-
-  res=strcmp(asynTypeString,"asynInt16ArrayIn");
-  if (res == 0) {
-    asynType=asynParamInt16Array;
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynInt16ArrayIn).\n",idString);
-  }
-
-  res=strcmp(asynTypeString,"asynInt32ArrayIn");
-  if (res == 0) {
-    asynType=asynParamInt32Array;
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynInt32ArrayIn).\n",idString);
-  }
-
-  res=strcmp(asynTypeString,"asynFloat32ArrayIn");
-  if (res == 0) {
-    asynType=asynParamFloat32Array;
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynFloat32ArrayIn).\n",idString);
-  }
-
-  res=strcmp(asynTypeString,"asynFloat64ArrayIn");
-  if (res == 0) {
-    asynType=asynParamFloat64Array;
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Adding parameter: %s (asynFloat64ArrayIn).\n",idString);
-  }
-
-  if(asynType<=0){
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
-    return(asynError);
-  }
-
-  int errorCode=10;
-  switch(dataAccessType){
-    case ECMC_ASYN_NONE:
-      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: No defined data access transfer type in alias (valid EC<slavenumber> or ECMM).\n");
+    int asynType=parseAsynDataType(asynTypeString);
+    if(asynType<=0){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
+      return(asynError);
+    }
+    errorCode=linkEcEntryToAsynParameter(idString,asynType,skipCycles);
+    if(errorCode){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
       return asynError;
-      break;
-    case ECMC_ASYN_EC:
-      errorCode=linkEcEntryToAsynParameter(mytestAsynPort,idString,asynType,skipCycles);
-      break;
-    case ECMC_ASYN_ECMM:
-      errorCode=linkEcMemMapToAsynParameter(mytestAsynPort,idString,asynType,skipCycles);
-      break;
-    case ECMC_ASYN_AX:
-      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: No defined data access transfer type in alias (valid EC<slavenumber> or ECMM).\n");
+    }
+    parameterCounter++;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",idString);
+    return asynSuccess;
+  }
+
+  //Check if default parameters for thread
+  nvals=strcmp(idString,"thread.default");
+  if (nvals == 0) {
+    errorCode=addDefaultAsynThread(1,skipCycles);
+    if(errorCode){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
       return asynError;
-      break;
+    }
+    parameterCounter++;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",idString);
+    return asynSuccess;
   }
 
-  if(errorCode){
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
-    return asynError;
+  //Check if default parameters for axis
+  int axisIndex=0;
+  nvals = sscanf(idString, "ax%d.default",&axisIndex);
+  if (nvals == 1){
+    errorCode=addDefaultAsynAxis(1,axisIndex,skipCycles);
+    if(errorCode){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
+      return asynError;
+    }
+    parameterCounter++;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",idString);
+    return asynSuccess;
   }
 
-  parameterCounter++;
-  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",idString);
+  //Check if default parameters for ec
+   nvals = sscanf(idString, "ec%d.default",&masterIndex);
+   if (nvals == 1){
+     errorCode=addDefaultAsynEc(1,skipCycles);
+     if(errorCode){
+       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
+       return asynError;
+     }
+     parameterCounter++;
+     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",idString);
+     return asynSuccess;
+   }
 
-  return asynSuccess;
+  //No parameter assigned...
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: No defined data access transfer type in idString (valid ec<master>.s<slavenumber>.<alias> or ec<master>.mm.<alias>).\n");
+  return asynError;
 }
 
 /* EPICS iocsh shell command:  ecmcAsynPortDriverAddParameter*/

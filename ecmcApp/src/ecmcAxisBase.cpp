@@ -194,6 +194,19 @@ void ecmcAxisBase::postExecute(bool masterOK)
   data_.status_.cntrlOutputOld=data_.status_.cntrlOutput;
   cycleCounter_++;
   refreshDebugInfoStruct();
+
+  //Update asyn parameters
+  if(updateDefAsynParams_){
+    if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
+      asynUpdateCycleCounter_=0;
+      asynPortDriver_->setDoubleParam(asynParIdActPos_,data_.status_.currentPositionActual);
+      asynPortDriver_->setDoubleParam(asynParIdSetPos_,data_.status_.currentPositionSetpoint);
+      asynPortDriver_->callParamCallbacks();
+    }
+    else{
+      asynUpdateCycleCounter_++;
+    }
+  }
 }
 
 axisType ecmcAxisBase::getAxisType()
@@ -279,6 +292,12 @@ void ecmcAxisBase::initVars()
   axisState_=ECMC_AXIS_STATE_STARTUP;
   oldPositionAct_=0;
   oldPositionSet_=0;
+  asynPortDriver_=NULL;
+  updateDefAsynParams_=0;
+  asynParIdActPos_=0;
+  asynParIdSetPos_=0;
+  asynUpdateCycleCounter_=0;
+  asynUpdateCycles_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -1037,4 +1056,51 @@ bool ecmcAxisBase::getEnable()
 bool ecmcAxisBase::getEnabled()
 {
   return data_.status_.enabled && data_.command_.enable;
+}
+
+int ecmcAxisBase::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles)
+{
+  asynPortDriver_=asynPortDriver;
+  updateDefAsynParams_=regAsynParams;
+  asynUpdateCycles_=skipCycles;
+
+  if(!regAsynParams){
+    return 0;
+  }
+
+  if(asynPortDriver_==NULL){
+    LOGERR("%s/%s:%d: ERROR: AsynPortDriver object NULL (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASYN_PORT_OBJ_NULL);
+    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
+  }
+
+  char asynParName[1024];
+
+  //actpos
+  int ret=snprintf(asynParName,1023,"ax%d.actpos",data_.axisId_);
+  if(ret>=1024 || ret <=0){
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  asynStatus status = asynPortDriver_->createParam(asynParName,asynParamFloat64,&asynParIdActPos_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,asynParName);
+    return asynError;
+  }
+  asynPortDriver_-> setDoubleParam(asynParIdActPos_,0);
+
+  //setpos
+  ret=snprintf(asynParName,1023,"ax%d.setpos",data_.axisId_);
+  if(ret>=1024 || ret <=0){
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  status = asynPortDriver_->createParam(asynParName,asynParamFloat64,&asynParIdSetPos_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,asynParName);
+    return asynError;
+  }
+  asynPortDriver_-> setDoubleParam(asynParIdSetPos_,0);
+
+  asynPortDriver_-> callParamCallbacks();
+  return 0;
 }

@@ -3536,18 +3536,47 @@ int readEcSlaveIndex(int slavePosition,int *value);
  * on slave 10: "ec.s10.INPUT_1".\n
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
+int linkEcEntryToAsynParameter(const char *entryIDString, int asynParType,int skipCycles);
 
-/** \breif Set asyn port driver object
+/** \breif Initilize asyn for ecmc
  *
  *  \param[in] asynPortObject Asyn port object.\n
- *  \param[in] regAsynParams Register default asyn parameters.\n
- *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int initEcmcAsyn(void* asynPortObject,int regAsynParams);
+int initEcmcAsyn(void* asynPortObject);
+
+/** \breif Add default asyn parameters for thread
+ *
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDefaultAsynThread(int regAsynParams,int skipCycles);
+
+/** \breif Add default asyn parameters for axis
+ *
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] axisIndex Index of axis.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
+
+/** \breif Add default asyn parameters for ethercat master
+ *
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDefaultAsynEc(int regAsynParams,int skipCycles);
 
 /** \breif Link EtherCAT memory map to ASYN parameter.
  *
@@ -3578,7 +3607,7 @@ int initEcmcAsyn(void* asynPortObject,int regAsynParams);
  * "ec.mm.AI_1_ARRAY".\n
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
+int linkEcMemMapToAsynParameter(const char *memMapIDString, int asynParType,int skipCycles);
 
 /** \breif Read EtherCAT memory map object.
  *

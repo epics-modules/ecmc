@@ -17,14 +17,6 @@
 #include "asynPortDriver.h"
 #include <epicsEvent.h>
 
-
-enum ecmcAsynDataAccessType{
-  ECMC_ASYN_NONE=0,
-  ECMC_ASYN_EC=1,
-  ECMC_ASYN_ECMM=2,
-  ECMC_ASYN_AX=3,
-};
-
 class ecmcAsynPortDriver : public asynPortDriver {
 public:
     ecmcAsynPortDriver(const char *portName,int paramTableSize,int autoConnect,int priority);

@@ -95,23 +95,23 @@ public:
   int writeSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize);
   int writeSDOComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value, int byteSize);
   int addEntry(
-      uint16_t       position, /**< Slave position. */
-      uint32_t       vendorId, /**< Expected vendor ID. */
-      uint32_t       productCode, /**< Expected product code. */
-      ec_direction_t direction,
-      uint8_t        syncMangerIndex,
-      uint16_t       pdoIndex,
-      uint16_t       entryIndex,
-      uint8_t        entrySubIndex,
-      uint8_t        bits,
-      std::string    id
+        uint16_t       position, /**< Slave position. */
+        uint32_t       vendorId, /**< Expected vendor ID. */
+        uint32_t       productCode, /**< Expected product code. */
+        ec_direction_t direction,
+        uint8_t        syncMangerIndex,
+        uint16_t       pdoIndex,
+        uint16_t       entryIndex,
+        uint8_t        entrySubIndex,
+        uint8_t        bits,
+        std::string    id
   );
   int addMemMap(uint16_t startEntryBusPosition,
-		    std::string startEntryIDString,
-		    int byteSize,
-		    int type,
-		    ec_direction_t direction,
-		    std::string memMapIDString);
+        std::string startEntryIDString,
+	int byteSize,
+	int type,
+	ec_direction_t direction,
+	std::string memMapIDString);
   ecmcEcMemMap *findMemMap(std::string id);
   ecmcEcSlave *findSlave(int busPosition);
   int findSlaveIndex(int busPosition,int *slaveIndex);
@@ -124,7 +124,7 @@ public:
   int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
   int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
   int setEcStatusOutputEntry(ecmcEcEntry *entry);
-  int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams);
+  int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
   int printAllConfig();
   int printSlaveConfig(int slaveIndex);
   int autoConfigSlave(int slaveIndex,int addAsAsynParams);
@@ -176,5 +176,7 @@ private:
   int asynParIdMasterStatus_;
   int asynParIdEntryCounter_;
 
+  int asynUpdateCycleCounter_;
+  int asynUpdateCycles_;
 };
 #endif /* ECMCEC_H_ */

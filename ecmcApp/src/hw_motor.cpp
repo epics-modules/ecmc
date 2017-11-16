@@ -83,7 +83,7 @@ static ecmcCommandList  *commandLists[ECMC_MAX_COMMANDS_LISTS];
 static struct timespec  masterActivationTimeMonotonic={};
 static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
-static ecmcAsynPortDriver *asynPort=0;
+static ecmcAsynPortDriver *asynPort=NULL;
 
 //Default asyn params
 static int asynParIdLatencyMin=0;
@@ -96,7 +96,9 @@ static int asynParIdSendMin=0;
 static int asynParIdSendMax=0;
 static int asynParIdEcmcAppMode=0;
 
-
+static int asynSkipCyclesThread=0;
+static int asynUpdateCounterThread=0;
+static int asynThreadParamsEnable=0;
 
 /****************************************************************************/
 
@@ -277,6 +279,36 @@ void cyclic_task(void * usr)
       }
     }
 
+    //Update Asyn thread diagnostics parameters
+    if(asynUpdateCounterThread){
+      asynUpdateCounterThread--;
+    }
+    else{
+
+      asynUpdateCounterThread=asynSkipCyclesThread;
+
+      if(asynPort && asynSkipCyclesThread>=0 && asynThreadParamsEnable){
+        asynPort-> setIntegerParam(asynParIdLatencyMin,(latency_min_ns));
+        asynPort-> setIntegerParam(asynParIdLatencyMax,(latency_max_ns));
+        asynPort-> setIntegerParam(asynParIdExecuteMin,(exec_min_ns));
+        asynPort-> setIntegerParam(asynParIdExecuteMax,(exec_max_ns));
+        asynPort-> setIntegerParam(asynParIdPeriodMin,(period_min_ns));
+        asynPort-> setIntegerParam(asynParIdPeriodMax,(period_max_ns));
+        asynPort-> setIntegerParam(asynParIdSendMin,(send_min_ns));
+        asynPort-> setIntegerParam(asynParIdSendMax,(send_max_ns));
+        asynPort-> callParamCallbacks();
+        period_max_ns = 0;
+        period_min_ns = 0xffffffff;
+        exec_max_ns = 0;
+        exec_min_ns = 0xffffffff;
+        latency_max_ns = 0;
+        latency_min_ns = 0xffffffff;
+        send_max_ns=0;
+        send_min_ns=0xffffffff;
+        sendperiod_ns=0;
+      }
+    }
+
     if (counter) {
       counter--;
     }
@@ -294,42 +326,29 @@ void cyclic_task(void * usr)
         }
 
         ec.slowExecute();
-        struct timespec testtime;
-        clock_gettime(CLOCK_MONOTONIC, &testtime);
-
-        if(asynPort /*&& enableAsynThreadDiag*/){
-          asynPort-> setIntegerParam(asynParIdLatencyMin,(latency_min_ns));
-          asynPort-> setIntegerParam(asynParIdLatencyMax,(latency_max_ns));
-          asynPort-> setIntegerParam(asynParIdExecuteMin,(exec_min_ns));
-          asynPort-> setIntegerParam(asynParIdExecuteMax,(exec_max_ns));
-          asynPort-> setIntegerParam(asynParIdPeriodMin,(period_min_ns));
-          asynPort-> setIntegerParam(asynParIdPeriodMax,(period_max_ns));
-          asynPort-> setIntegerParam(asynParIdSendMin,(send_min_ns));
-          asynPort-> setIntegerParam(asynParIdSendMax,(send_max_ns));
-          asynPort-> callParamCallbacks();
-        }
-
-        if(PRINT_STDOUT_BIT13()){
-
-          LOGINFO("%s/%s:%d: thread.clock=%ld.%09ld;\n",__FILE__, __FUNCTION__, __LINE__,testtime.tv_sec,testtime.tv_nsec);
-          LOGINFO("%s/%s:%d: thread.period.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_min_ns);
-          LOGINFO("%s/%s:%d: thread.period.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_max_ns);
-          LOGINFO("%s/%s:%d: thread.execute.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_min_ns);
-          LOGINFO("%s/%s:%d: thread.execute.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_max_ns);
-          LOGINFO("%s/%s:%d: thread.latency.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_min_ns);
-          LOGINFO("%s/%s:%d: thread.latency.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_max_ns);
-          LOGINFO("%s/%s:%d: thread.send.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_min_ns);
-          LOGINFO("%s/%s:%d: thread.send.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_max_ns);
-        }
-        period_max_ns = 0;
-        period_min_ns = 0xffffffff;
-        exec_max_ns = 0;
-        exec_min_ns = 0xffffffff;
-        latency_max_ns = 0;
-        latency_min_ns = 0xffffffff;
-        send_max_ns=0;
-        send_min_ns=0xffffffff;
-        sendperiod_ns=0;
+//        struct timespec testtime;
+//        clock_gettime(CLOCK_MONOTONIC, &testtime);
+//
+//        if(PRINT_STDOUT_BIT13()){
+//          LOGINFO("%s/%s:%d: thread.clock=%ld.%09ld;\n",__FILE__, __FUNCTION__, __LINE__,testtime.tv_sec,testtime.tv_nsec);
+//          LOGINFO("%s/%s:%d: thread.period.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_min_ns);
+//          LOGINFO("%s/%s:%d: thread.period.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_max_ns);
+//          LOGINFO("%s/%s:%d: thread.execute.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_min_ns);
+//          LOGINFO("%s/%s:%d: thread.execute.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_max_ns);
+//          LOGINFO("%s/%s:%d: thread.latency.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_min_ns);
+//          LOGINFO("%s/%s:%d: thread.latency.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_max_ns);
+//          LOGINFO("%s/%s:%d: thread.send.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_min_ns);
+//          LOGINFO("%s/%s:%d: thread.send.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_max_ns);
+//          period_max_ns = 0;
+//          period_min_ns = 0xffffffff;
+//          exec_max_ns = 0;
+//          exec_min_ns = 0xffffffff;
+//          latency_max_ns = 0;
+//          latency_min_ns = 0xffffffff;
+//          send_max_ns=0;
+//          send_min_ns=0xffffffff;
+//          sendperiod_ns=0;
+//        }
       }
     }
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
@@ -427,9 +446,10 @@ int setAppModeRun(int mode)
   appModeOld=appMode;
   appMode=(app_mode_type)mode;
 
-  asynPort-> setIntegerParam(asynParIdEcmcAppMode,mode);
-  asynPort-> callParamCallbacks();
-
+  if(asynPort && asynThreadParamsEnable){
+    asynPort-> setIntegerParam(asynParIdEcmcAppMode,mode);
+    asynPort-> callParamCallbacks();
+  }
 
   for(int i=0;i<ECMC_MAX_AXES;i++){
     if(axes[i]!=NULL){
@@ -2680,27 +2700,60 @@ int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString)
   return ec.setEcStatusOutputEntry(entry);
 }
 
-int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles)
+int linkEcEntryToAsynParameter(const char *entryIDString, int asynParType,int skipCycles)
 {
   LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,entryIDString,asynParType,skipCycles);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.linkEcEntryToAsynParameter(asynPortObject,entryIDString,asynParType,skipCycles);
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  return ec.linkEcEntryToAsynParameter(asynPort,entryIDString,asynParType,skipCycles);
 }
 
-int initEcmcAsyn(void* asynPortObject, int regAsynParams)
+int initEcmcAsyn(void* asynPortObject)
 {
   LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
-
   asynPort=(ecmcAsynPortDriver*)asynPortObject;
+  return 0;
+}
 
+int addDefaultAsynEc(int regAsynParams,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,skipCycles);
 
-  int errorCode=ec.initAsyn(asynPort,regAsynParams);
-  if(errorCode){
-    return errorCode;
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
+
+  return ec.initAsyn(asynPort,regAsynParams,skipCycles);
+}
+
+int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,axisIndex,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->initAsyn(asynPort,regAsynParams,skipCycles);
+}
+
+int addDefaultAsynThread(int regAsynParams,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  asynSkipCyclesThread=skipCycles;
 
   if(!regAsynParams ){
     return 0;
@@ -2771,18 +2824,22 @@ int initEcmcAsyn(void* asynPortObject, int regAsynParams)
   asynPort-> setIntegerParam(asynParIdEcmcAppMode,0);
 
   asynPort-> callParamCallbacks();
-
+  asynThreadParamsEnable=1;
   return 0;
 }
 
-int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles)
+int linkEcMemMapToAsynParameter(const char *memMapIDString, int asynParType,int skipCycles)
 {
   LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,asynParType,skipCycles);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.linkEcMemMapToAsynParameter(asynPortObject,memMapIDString,asynParType,skipCycles);
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  return ec.linkEcMemMapToAsynParameter(asynPort,memMapIDString,asynParType,skipCycles);
 
 }
 

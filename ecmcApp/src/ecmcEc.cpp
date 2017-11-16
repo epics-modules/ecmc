@@ -75,6 +75,10 @@ void ecmcEc::initVars()
   entryCounter_=0;
   asynParIdDomianFailCounterTotal_=0;
 
+  asynUpdateCycleCounter_=0;
+  asynUpdateCycles_=0;
+
+
 }
 
 int ecmcEc::init(int nMasterIndex)
@@ -473,6 +477,18 @@ int ecmcEc::updateOutProcessImage()
 
   //I/O intr to EPCIS.
   if(asynPortDriver_){
+    if(updateDefAsynParams_){
+      if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
+        asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,masterOK_);
+        asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
+        asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,domainOK_);
+        asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
+        asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
+      }
+      else{
+        asynUpdateCycleCounter_++;
+      }
+    }
     asynPortDriver_-> callParamCallbacks();  //also for memmap and ecEntry
   }
 
@@ -576,16 +592,6 @@ void ecmcEc::slowExecute()
   checkState();
   checkSlavesConfState();
 
-  if(updateDefAsynParams_){
-    asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,masterOK_);
-    asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
-    asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,domainOK_);
-    asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
-    asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
-
-    //callParamCallbacks is made in updateOutputProcessImage
-  }
-
   domainNotOKCounterMax_=0;
 }
 
@@ -682,7 +688,6 @@ int ecmcEc::linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMap
   }
 
   std::string sID=alias;
-  //std::string sID=memMapIDString;
 
   ecmcEcMemMap *memMap=findMemMap(sID);
   if(memMap==NULL){
@@ -788,7 +793,7 @@ int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry)
   return 0;
 }
 
-int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams)
+int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles)
 {
   asynPortDriver_=asynPortDriver;
   updateDefAsynParams_=regAsynParams;

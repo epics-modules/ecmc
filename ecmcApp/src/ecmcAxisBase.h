@@ -23,6 +23,7 @@
 #include "ecmcTrajectoryTrapetz.hpp"
 #include "ecmcMasterSlaveIF.h"
 #include "ecmcAxisData.h"
+#include "ecmcAsynPortDriver.h"
 
 //AXIS ERRORS
 #define ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL 0x14300
@@ -56,6 +57,8 @@
 #define ERROR_AXIS_BUSY 0x1431C
 #define ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL 0x1431D
 #define ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL 0x1431E
+#define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
+#define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
 
 enum axisState{
   ECMC_AXIS_STATE_STARTUP=0,
@@ -172,6 +175,7 @@ public:
   ecmcAxisStatusType *getDebugInfoDataPointer();
   int getCycleCounter();
   void printAxisStatus();
+  int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
 protected:
   void printAxisState();
   void initVars();
@@ -202,6 +206,12 @@ protected:
   axisState axisState_;
   double oldPositionAct_;
   double oldPositionSet_;
+  ecmcAsynPortDriver* asynPortDriver_;
+  int updateDefAsynParams_;
+  int asynParIdActPos_;
+  int asynParIdSetPos_;
+  int asynUpdateCycleCounter_;
+  int asynUpdateCycles_;
 
 };
 

@@ -200,6 +200,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x1431E:
       return "ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL";
       break;
+    case 0x1431F:
+      return "ERROR_AXIS_ASYN_PORT_OBJ_NULL";
+      break;
+    case 0x14320:
+      return "ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
@@ -892,6 +898,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x2002F:
       return "ERROR_MAIN_MEM_MAP_NULL";
+      break;
+    case 0x20030:
+      return "ERROR_MAIN_AXIS_ASYN_PAR_FORMAT_ERROR";
+      break;
+    case 0x20031:
+      return "ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL";
       break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
