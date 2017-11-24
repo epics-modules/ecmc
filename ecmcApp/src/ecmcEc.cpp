@@ -77,8 +77,7 @@ void ecmcEc::initVars()
 
   asynUpdateCycleCounter_=0;
   asynUpdateCycles_=0;
-
-
+  asynParIdMasterLink_=0;
 }
 
 int ecmcEc::init(int nMasterIndex)
@@ -479,12 +478,14 @@ int ecmcEc::updateOutProcessImage()
   if(asynPortDriver_){
     if(updateDefAsynParams_){
       if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
-	asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,slaveCounter_);
-	asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,masterOK_);
+	asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,masterState_.slaves_responding );
+	asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,masterState_.al_states);
+	asynPortDriver_-> setIntegerParam(asynParIdMasterLink_,masterState_.link_up);
         asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
         asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,domainOK_);
         asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
         asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
+        asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,entryCounter_);
       }
       else{
         asynUpdateCycleCounter_++;
@@ -810,6 +811,13 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int s
   }
   asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,0);
 
+  status = asynPortDriver_->createParam("ec.masterlink",asynParamInt32,&asynParIdMasterLink_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.masterlink failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdMasterLink_,0);
+
   status = asynPortDriver_->createParam("ec.slavecounter",asynParamInt32,&asynParIdSlaveCounter_);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.slavecounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
@@ -858,6 +866,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int s
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,0);
+
 
   asynPortDriver_-> callParamCallbacks();
 
@@ -987,7 +996,7 @@ int ecmcEc::printSlaveConfig(int slaveIndex)
 
   errorCode=ecrt_master_get_slave( master_, slaveIndex, &slaveInfo);
   if(errorCode){
-    LOGERR("%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+    LOGERR("%s/%s:%d: Error: Function ecrt_master_geasynParIdMasterLink_t_slave() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
   }
 
   printf("#############################################\n");

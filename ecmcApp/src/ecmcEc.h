@@ -175,6 +175,7 @@ private:
   int asynParIdDomianFailCounterTotal_;
   int asynParIdMasterStatus_;
   int asynParIdEntryCounter_;
+  int asynParIdMasterLink_;
 
   int asynUpdateCycleCounter_;
   int asynUpdateCycles_;
