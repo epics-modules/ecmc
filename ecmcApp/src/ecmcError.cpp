@@ -792,7 +792,7 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       return "ERROR_MAIN_DRIVE_INDEX_OUT_OF_RANGE";
       break;
     case 0x2000C:
-      return "ERROR_MAIN_DRIVE_INDEX_OUT_OF_RANGE";
+      return "ERROR_MAIN_DRIVE_OBJECT_NULL";
       break;
     case 0x2000D:
       return "ERROR_MAIN_MONITOR_INDEX_OUT_OF_RANGE";
