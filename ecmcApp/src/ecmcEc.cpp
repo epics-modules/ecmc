@@ -479,7 +479,8 @@ int ecmcEc::updateOutProcessImage()
   if(asynPortDriver_){
     if(updateDefAsynParams_){
       if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
-        asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,masterOK_);
+	asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,slaveCounter_);
+	asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,masterOK_);
         asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
         asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,domainOK_);
         asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
