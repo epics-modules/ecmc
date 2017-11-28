@@ -452,25 +452,44 @@ static void initCallFunc(const iocshArgBuf *args)
     ecmcAsynPortDriverConfigure(args[0].sval, args[1].ival,args[2].ival,args[3].ival);
 }
 
-/** \breif EPICS iocsh command for adding an asyn-parameter
- * linked to an EtherCAT entry or memory map object.\n
+/** \breif EPICS iocsh command for adding asyn-parameter(s)
+ * linked to objects in ECMC.\n
  *
- * Fast access of EtherCAT data from EPICS records is possible by linking an
- * EtherCAT memory map to an ASYN parameter. Update frequency of the asyn parameter
- * can be changed with the "skipCycles" parameter. Maximum update frequency is
- * the same frequency as the EtherCAT realtime bus.\n
- * This function is called by the iocsh command
- * "ecmcAsynPortDriverAddParameter()". For more information see documentation
- * of ecmcAsynPortDriverAddParameter(), ecAddMemMap(), readEcMemMap() and
- * ecSetEntryUpdateInRealtime().\n
+ * Fast access of different types of objects in ECMC via asyn parameters is
+ * possible:
+ * 1. EtherCAT entries\n
+ * 2. EtherCAT memory maps\n
+ * 3. EtherCAT master diagnostics\n
+ * 4. EtherCAT slave diagnostics\n
+ * 5. Motion axis information\n
+ * 6. Timing diagnostics.\n
+ *
+ * For example it's possible to access EtherCAT data directly from EPICS records
+ * by linking an EtherCAT memory map or entry to an asyn parameter.
+ * Update frequency of the asyn parameter can be changed with the "skipCycles"
+ * parameter. Maximum update frequency is the same frequency as the EtherCAT
+ * realtime bus (skipCycles=0).\n
+ * This function can be called from within the iocsh context:
+ * "ecmcAsynPortDriverAddParameter()".\n
  *
  *  \param[in] portName Name of asyn port (created with iocsh command:
  *  "ecmcAsynPortDriverConfigure()").\n
- *  \param[in] idString String for addressing ethercat entry or memory map:\n
- *             idStringnt asynType=-10; = ec.s<slave number>.<ethercat entry id>  (ethercat
- *             entry)\n
- *             idString = ec.mm.<memory map id>  (memory map)\n
- *  \param[in] asynParType Data type to be transfered.\n
+ *  \param[in] idString String for defining which parameter(s) to add (and link):\n
+ *             idString = ec<masterindex>.mm.<memory map id>  (access to
+ *             memory map).\n
+ *             idString = ec<masterindex>.default  (set of ec diag params).\n
+ *             idString = ec<masterindex>.s<slaveIndex>.default
+ *             (set of ec slave diag params).\n
+ *             idString = ec<masterindex>.s<busposition>.<ethercat entry id>
+ *             (access to ethercat entry, "default" cannot be used as
+ *             <ethercat entry id> ).\n
+ *             idString = thread.default  (set of timing diag params).\n
+ *             idString = ax<axis index>.default  (set of motion diag params).\n
+ *
+ *  \param[in] asynParType Data type to be transfered (valid only for
+ *             ec<masterindex>.mm.<memory map id>) and
+ *             ec<masterindex>.s<busposition>.<ethercat entry id>.
+ *             For other types of idString, use asynInt32).
  *             asynParType="asynInt32": 32 bit int (ethercat entry)\n
  *             asynParType="asynFloat64": 64 bit float (ethercat entry)\n
  *             asynParType="asynInt8ArrayIn": array of 8 bit int input (memory map)\n
@@ -485,17 +504,38 @@ static void initCallFunc(const iocshArgBuf *args)
  *
  * \note Example: Link  asyn parameter to a memory map called "CH1_ARRAY",
  * skip cycles=0 (update at realtime loop freq):
- * ecmcAsynPortDriverAddParameter(ASYNPORT,ec.mm.CH1_ARRAY,"asynInt16ArrayIn",0)
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ec0.mm.CH1_ARRAY,"asynInt16ArrayIn",0)
  *
  * \note Example: Link  asyn parameter to EtherCAT entry called "AI_1" on
  * slave 5, skip cycles =9 (skip 9 cycles then update=> every 10 value will
  * trigger asyn update):
- * ecmcAsynPortDriverAddParameter(ASYNPORT,ec.s5.AI_1,"asynInt32",9)
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ec0.s5.AI_1,"asynInt32",9)
+ *
+ * \note Example: Generate diag asyn parameters for timing
+ *  skip cycles =9 (skip 9 cycles then update=> every 10 value will
+ * trigger asyn update):
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,thread.default,"asynInt32",9)
+ *
+ * \note Example: Generate diag asyn parameters for ec master 0
+ *  skip cycles =9 (skip 9 cycles then update=> every 10 value will
+ * trigger asyn update):
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ec0.default,"asynInt32",9)
+ *
+ * \note Example: Generate diag asyn parameters for ec master 0 slave 7
+ *  skip cycles =9 (skip 9 cycles then update=> every 10 value will
+ * trigger asyn update):
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ec0.s7.default,"asynInt32",9)
+ *
+ * \note Example: Generate diag asyn parameters motion axis 8
+ *  skip cycles =9 (skip 9 cycles then update=> every 10 value will
+ * trigger asyn update):
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ax8.default,"asynInt32",9)
+ *
  */
 int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, const char *asynTypeString, int skipCycles)
 {
   if(!ecmcAsynPortObj){
-    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object N const char *asynTypeStringULL (ecmcAsynPortObj==NULL).\n");
+    printf("ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object NULL (ecmcAsynPortObj==NULL).\n");
     return(asynError);
   }
 
@@ -516,7 +556,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
 
   int errorCode=0;
 
-  //Check if EtherCAT memorymap../../ecmcApp/src/ecmcAsynPortDriver.cpp:409:133: (ECMC)
+  //Check if EtherCAT memorymap
   char buffer[1024];
   int masterIndex=0;
   int nvals = sscanf(idString, "ec%d.mm.%s",&masterIndex,buffer);
@@ -528,7 +568,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
       return(asynError);
     }
 
-    errorCode=linkEcMemMapToAsynParameter(idString,asynType,skipCycles);
+    errorCode=linkEcMemMapToAsynParameter(masterIndex,idString,asynType,skipCycles);
 
     if(errorCode){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
@@ -540,16 +580,30 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
     return asynSuccess;
   }
 
+  //Check if default parameters for ec slave
+  int busPosition=-10;
+  nvals = sscanf(idString, "ec%d.s%d.default",&masterIndex,&busPosition);
+  if (nvals == 2){
+    errorCode=addDefaultAsynEcSlave(masterIndex,busPosition,skipCycles,masterIndex);
+    if(errorCode){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
+      return asynError;
+    }
+    parameterCounter++;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",idString);
+    return asynSuccess;
+  }
+
   //Check if EtherCAT EtherCAT entry
-  int slave=-10;
-  nvals = sscanf(idString, "ec%d.s%d.%s",&masterIndex,&slave,buffer);
+  busPosition=-10;
+  nvals = sscanf(idString, "ec%d.s%d.%s",&masterIndex,&busPosition,buffer);
   if (nvals == 3){
     int asynType=parseAsynDataType(asynTypeString);
     if(asynType<=0){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Parameter type not supported (use asynParamInt32 or asynParamFloat64).\n");
       return(asynError);
     }
-    errorCode=linkEcEntryToAsynParameter(idString,asynType,skipCycles);
+    errorCode=linkEcEntryToAsynParameter(masterIndex,busPosition,idString,asynType,skipCycles);
     if(errorCode){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
       return asynError;
@@ -589,7 +643,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
   //Check if default parameters for ec
    nvals = sscanf(idString, "ec%d.default",&masterIndex);
    if (nvals == 1){
-     errorCode=addDefaultAsynEc(1,skipCycles);
+     errorCode=addDefaultAsynEc(1,skipCycles,masterIndex);
      if(errorCode){
        asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
        return asynError;
@@ -600,7 +654,11 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
    }
 
   //No parameter assigned...
-  asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: No defined data access transfer type in idString (valid ec<master>.s<slavenumber>.<alias> or ec<master>.mm.<alias>).\n");
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter:\
+      ERROR: No defined data access transfer type in idString. Vaild syntax:\
+      ec<master>.default, ec<master>.s<slavenumber>.defualt, \
+      ec<master>.s<slavenumber>.<alias>, ec<master>.mm.<alias>, thread.default\
+      ax<index>.default.\n");
   return asynError;
 }
 

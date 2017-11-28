@@ -27,14 +27,12 @@
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 
-
 //Hardware
 #include "ecmcEc.h"
 #include "ecmcEcPdo.h"
 #include "ecmcEcSlave.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcEcEntry.h"
-
 
 //Motion
 #include "ecmcAxisBase.h"      //Abstract class for all axis types
@@ -2700,18 +2698,41 @@ int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString)
   return ec.setEcStatusOutputEntry(entry);
 }
 
-int linkEcEntryToAsynParameter(const char *entryIDString, int asynParType,int skipCycles)
+int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entryIDString, int asynParType,int skipCycles)
 {
-  LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,entryIDString,asynParType,skipCycles);
-
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  LOGINFO4("%s/%s:%d masterIndex=%d busPosition=%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,busPosition,entryIDString,asynParType,skipCycles);
 
   if(asynPort==NULL){
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(ec.getMasterIndex()!=masterIndex){
+    return ERROR_MAIN_EC_MASTER_NULL;
+  }
+
   return ec.linkEcEntryToAsynParameter(asynPort,entryIDString,asynParType,skipCycles);
+}
+
+int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int asynParType,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d masterIndex=%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,memMapIDString,asynParType,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(ec.getMasterIndex()!=masterIndex){
+    return ERROR_MAIN_EC_MASTER_NULL;
+  }
+
+  return ec.linkEcMemMapToAsynParameter(asynPort,memMapIDString,asynParType,skipCycles);
+
 }
 
 int initEcmcAsyn(void* asynPortObject)
@@ -2721,15 +2742,45 @@ int initEcmcAsyn(void* asynPortObject)
   return 0;
 }
 
-int addDefaultAsynEc(int regAsynParams,int skipCycles)
+int addDefaultAsynEc(int masterIndex,int regAsynParams,int skipCycles)
 {
-  LOGINFO4("%s/%s:%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,skipCycles);
+  LOGINFO4("%s/%s:%d masterIndex=%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,regAsynParams,skipCycles);
 
   if(asynPort==NULL){
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(ec.getMasterIndex()!=masterIndex){
+    return ERROR_MAIN_EC_MASTER_NULL;
+  }
+
   return ec.initAsyn(asynPort,regAsynParams,skipCycles);
+}
+
+int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d masterIndex=%d busPosition=%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,busPosition,regAsynParams,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(ec.getMasterIndex()!=masterIndex){
+    return ERROR_MAIN_EC_MASTER_NULL;
+  }
+
+  ecmcEcSlave *tempSlave=ec.findSlave(busPosition);
+  if(!tempSlave){
+    return ERROR_MAIN_EC_SLAVE_NULL;
+  }
+
+  return tempSlave->initAsyn(asynPort,regAsynParams,skipCycles,masterIndex);
 }
 
 int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
@@ -2826,21 +2877,6 @@ int addDefaultAsynThread(int regAsynParams,int skipCycles)
   asynPort-> callParamCallbacks();
   asynThreadParamsEnable=1;
   return 0;
-}
-
-int linkEcMemMapToAsynParameter(const char *memMapIDString, int asynParType,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,asynParType,skipCycles);
-
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-
-  if(asynPort==NULL){
-    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
-  }
-
-  return ec.linkEcMemMapToAsynParameter(asynPort,memMapIDString,asynParType,skipCycles);
-
 }
 
 int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead)

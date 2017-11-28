@@ -71,7 +71,7 @@ void ecmcEc::initVars()
   asynParIdSlavesStatus_=0;
   asynParIdDomianStatus_=0;
   asynParIdDomianFailCounter_=0;
-  asynParIdMasterStatus_=0;
+  asynParIdAlState=0;
   entryCounter_=0;
   asynParIdDomianFailCounterTotal_=0;
 
@@ -131,6 +131,11 @@ ec_domain_t *ecmcEc::getDomain()
 ec_master_t *ecmcEc::getMaster()
 {
   return master_;
+}
+
+int ecmcEc::getMasterIndex()
+{
+  return masterIndex_;
 }
 
 //Step 1
@@ -479,7 +484,7 @@ int ecmcEc::updateOutProcessImage()
     if(updateDefAsynParams_){
       if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
 	asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,masterState_.slaves_responding );
-	asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,masterState_.al_states);
+	asynPortDriver_-> setIntegerParam(asynParIdAlState,masterState_.al_states);
 	asynPortDriver_-> setIntegerParam(asynParIdMasterLink_,masterState_.link_up);
         asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
         asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,domainOK_);
@@ -799,70 +804,114 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int s
 {
   asynPortDriver_=asynPortDriver;
   updateDefAsynParams_=regAsynParams;
+  asynUpdateCycles_=skipCycles;
 
   if(!regAsynParams){
     return 0;
   }
 
-  asynStatus status = asynPortDriver_->createParam("ec.masterstatus",asynParamInt32,&asynParIdMasterStatus_);
+  char buffer[128];
+
+  unsigned int charCount=snprintf(buffer,sizeof(buffer),"ec%d.alstate",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  asynStatus status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdAlState);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.masterstatus failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
   }
-  asynPortDriver_-> setIntegerParam(asynParIdMasterStatus_,0);
+  asynPortDriver_-> setIntegerParam(asynParIdAlState,0);
 
-  status = asynPortDriver_->createParam("ec.masterlink",asynParamInt32,&asynParIdMasterLink_);
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.link",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdMasterLink_);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.masterlink failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdMasterLink_,0);
 
-  status = asynPortDriver_->createParam("ec.slavecounter",asynParamInt32,&asynParIdSlaveCounter_);
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.slavecounter",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdSlaveCounter_);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.slavecounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,0);
 
-  status = asynPortDriver_->createParam("ec.slavesstatus",asynParamInt32,&asynParIdSlavesStatus_);
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.slavestatus",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdSlavesStatus_);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.slavesstatus failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,0);
 
-  status = asynPortDriver_->createParam("ec.memmapcounter",asynParamInt32,&asynParIdMemMapCounter_);
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.memmapcounter",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdMemMapCounter_);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.memmapcounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdMemMapCounter_,0);
 
-  status = asynPortDriver_->createParam("ec.domainstatus",asynParamInt32,&asynParIdDomianStatus_);
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.domainstatus",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdDomianStatus_);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.domainstatus failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,0);
 
-  status = asynPortDriver_->createParam("ec.domainfailcounter",asynParamInt32,&asynParIdDomianFailCounter_);
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.domainfailcounter",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdDomianFailCounter_);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.domainfailcounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,0);
 
-  status = asynPortDriver_->createParam("ec.domainfailcountertotal",asynParamInt32,&asynParIdDomianFailCounterTotal_);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.domainfailcountertotal failed.\n",__FILE__,__FUNCTION__,__LINE__);
-    return asynError;
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.entrycounter",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
-  asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,0);
 
-  status = asynPortDriver_->createParam("ec.entrycounter",asynParamInt32,&asynParIdEntryCounter_);
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdEntryCounter_);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ec.entrycounter failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,0);

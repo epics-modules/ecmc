@@ -71,7 +71,17 @@ void ecmcEcSlave::initVars()
   }
 
   domain_=NULL;
+  memset(&slaveState_,0,sizeof(slaveState_));
   memset(&slaveStateOld_,0,sizeof(slaveStateOld_));
+
+  asynPortDriver_=NULL;
+  updateDefAsynParams_=0;
+  asynParIdOperational_=0;
+  asynParIdOnline_=0;
+  asynParIdAlState_=0;
+  asynParIdEntryCounter_=0;
+  asynUpdateCycleCounter_=0;
+  asynUpdateCycles_=0;
 }
 
 ecmcEcSlave::~ecmcEcSlave()
@@ -148,34 +158,34 @@ int ecmcEcSlave::checkConfigState(void)
     LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Simulation slave: Functionality not supported (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE);
   }
-  ec_slave_config_state_t slaveState;
-  memset(&slaveState,0,sizeof(slaveState));
-  ecrt_slave_config_state(slaveConfig_, &slaveState);
-  if (slaveState.al_state != slaveStateOld_.al_state){
+
+  memset(&slaveState_,0,sizeof(slaveState_));
+  ecrt_slave_config_state(slaveConfig_, &slaveState_);
+  if (slaveState_.al_state != slaveStateOld_.al_state){
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_ ,slaveState.al_state);
   }
-  if (slaveState.online != slaveStateOld_.online){
+  if (slaveState_.online != slaveStateOld_.online){
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_ ,slaveState.online ? "Online" : "Offline");
   }
-  if (slaveState.operational != slaveStateOld_.operational){
+  if (slaveState_.operational != slaveStateOld_.operational){
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s operational.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,slaveState.operational ? "" : "Not ");
   }
-  slaveStateOld_ = slaveState;
+  slaveStateOld_ = slaveState_;
 
-  if(!slaveState.online){
+  if(!slaveState_.online){
     if(getErrorID()!=ERROR_EC_SLAVE_NOT_ONLINE){
      LOGERR("%s/%s:%d: ERROR: Slave %d: Not online (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,ERROR_EC_SLAVE_NOT_ONLINE);
     }
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_NOT_ONLINE);
   }
-  if(!slaveState.operational){
+  if(!slaveState_.operational){
     if(getErrorID()!=ERROR_EC_SLAVE_NOT_OPERATIONAL){
       LOGERR("%s/%s:%d: ERROR: Slave %d: Not operational (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,ERROR_EC_SLAVE_NOT_OPERATIONAL);
     }
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SLAVE_NOT_OPERATIONAL);
   }
 
-  switch(slaveState.al_state){
+  switch(slaveState_.al_state){
     case 1:
       if(getErrorID()!=ERROR_EC_SLAVE_STATE_INIT){
         LOGERR("%s/%s:%d: ERROR: Slave %d: State INIT (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,ERROR_EC_SLAVE_STATE_INIT);
@@ -260,6 +270,21 @@ int ecmcEcSlave::updateOutProcessImage()
     }
   }
 
+  //I/O intr to EPCIS.
+ if(asynPortDriver_){
+   if(updateDefAsynParams_){
+     if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
+       asynPortDriver_-> setIntegerParam(asynParIdAlState_,slaveState_.al_state);
+       asynPortDriver_-> setIntegerParam(asynParIdOnline_,slaveState_.online);
+       asynPortDriver_-> setIntegerParam(asynParIdOperational_,slaveState_.operational);
+       asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,entryCounter_);
+     }
+     else{
+       asynUpdateCycleCounter_++;
+     }
+   }
+   asynPortDriver_-> callParamCallbacks();
+ }
   return 0;
 }
 
@@ -404,4 +429,85 @@ int ecmcEcSlave::addSDOWrite(uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t writ
   }
 
   return ecmcEcSDO::addSdoConfig(slaveConfig_,slavePosition_,sdoIndex,sdoSubIndex,writeValue,byteSize);;
+}
+
+
+int ecmcEcSlave::getSlaveState(ec_slave_config_state_t* state)
+{
+  state=&slaveState_;
+  return 0;
+}
+
+int ecmcEcSlave::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles, int masterIndex)
+{
+  asynPortDriver_=asynPortDriver;
+  updateDefAsynParams_=regAsynParams;
+  asynUpdateCycles_=skipCycles;
+
+  if(!regAsynParams){
+    return 0;
+  }
+
+  char buffer[128];
+
+  //"ec%d.s%d.online"
+  unsigned int charCount=snprintf(buffer,sizeof(buffer),"ec%d.s%d.online",masterIndex,slavePosition_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  asynStatus status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdOnline_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdOnline_,0);
+
+  //"ec%d.s%d.alstate"
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.s%d.alstate",masterIndex,slavePosition_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  asynStatus status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdAlState_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdAlState_,0);
+
+  //"ec%d.s%d.operational"
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.s%d.operational",masterIndex,slavePosition_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  asynStatus status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdOperational_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdOperational_,0);
+
+  //"ec%d.s%d.entrycounter"
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.s%d.entrycounter",masterIndex,slavePosition_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  asynStatus status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdEntryCounter_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,0);
+
+
+  asynPortDriver_-> callParamCallbacks();
+
+  return 0;
 }

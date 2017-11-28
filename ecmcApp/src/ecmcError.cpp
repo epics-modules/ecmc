@@ -635,6 +635,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x24012:
       return "ERROR_EC_SLAVE_NOT_ONLINE";
       break;
+    case 0x24013:
+      return "ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW";
+      break;
     case 0x25000://ECSYNCMANAGER
       return "ERROR_EC_SM_PDO_ARRAY_FULL";
       break;
@@ -757,6 +760,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x26023:
       return "ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID";
+      break;
+    case 0x26024:
+      return "ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW";
       break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
@@ -904,6 +910,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20031:
       return "ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL";
+      break;
+    case 0x20032:
+      return "ERROR_MAIN_EC_MASTER_NULL";
       break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";

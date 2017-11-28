@@ -61,6 +61,8 @@
 #define ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL 0x26021
 #define ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE 0x26022
 #define ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID 0x26023
+#define ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW 0x26024
+
 
 
 class ecmcEc : public ecmcError
@@ -78,6 +80,7 @@ public:
   ecmcEcSlave *getSlave(int slave); //NOTE: index not bus position
   ec_domain_t *getDomain();
   ec_master_t *getMaster();
+  int getMasterIndex();
   bool getInitDone();
   void receive();
   void send(timespec timeOffset);
@@ -159,13 +162,14 @@ private:
   int domainNotOKCounterMax_;
   int domainNotOKCyclesLimit_;
   bool inStartupPhase_;
-  ecmcAsynPortDriver *asynPortDriver_;
+
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
   int ecMemMapArrayCounter_;
   size_t domainSize_;
   ecmcEcEntry *statusOutputEntry_;
   int masterIndex_;
 
+  ecmcAsynPortDriver *asynPortDriver_;
   int updateDefAsynParams_;
   int asynParIdSlaveCounter_;
   int asynParIdMemMapCounter_;
@@ -173,7 +177,7 @@ private:
   int asynParIdDomianStatus_;
   int asynParIdDomianFailCounter_;
   int asynParIdDomianFailCounterTotal_;
-  int asynParIdMasterStatus_;
+  int asynParIdAlState;
   int asynParIdEntryCounter_;
   int asynParIdMasterLink_;
 

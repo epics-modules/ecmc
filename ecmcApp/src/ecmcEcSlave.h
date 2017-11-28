@@ -19,6 +19,7 @@
 #include "ecmcError.h"
 #include "ecmcEcSDO.h"
 #include "cmd.h" //Logging macros
+#include "ecmcAsynPortDriver.h"
 
 #define SIMULATION_ENTRIES 2
 
@@ -42,6 +43,7 @@
 #define ERROR_EC_SLAVE_STATE_UNDEFINED 0x24010
 #define ERROR_EC_SLAVE_NOT_OPERATIONAL 0x24011
 #define ERROR_EC_SLAVE_NOT_ONLINE 0x24012
+#define ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW 0x24013
 
 typedef struct
 {
@@ -80,11 +82,6 @@ public:
       uint8_t        entrySubIndex,
       uint8_t        bits,
       std::string    id);
-  /*int addMemMap(std::string startEntryIDString,
-		    size_t byteSize,
-		    int type,
-		    ec_direction_t direction,
-		    std::string entryIDString);*/
   int configDC(
       uint16_t assignActivate, /**< AssignActivate word. */
       uint32_t sync0Cycle, /**< SYNC0 cycle time [ns]. */
@@ -105,6 +102,8 @@ public:
                                      */
       );
   int addSDOWrite(uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t writeValue, int byteSize);
+  int getSlaveState(ec_slave_config_state_t* state);
+  int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles,int masterIndex);
 private:
   void initVars();
   ecmcEcSyncManager *findSyncMan(uint8_t syncMangerIndex);
@@ -121,10 +120,21 @@ private:
   int syncManArrayIndex_;
   int syncManCounter_;
   int pdosInSMCount_;
+  ec_slave_config_state_t slaveState_;
   ec_slave_config_state_t slaveStateOld_;
   bool simSlave_;  //used to simulate endswitches Consider make derived simulation class insteaed
   uint8_t simBuffer_[8*SIMULATION_ENTRIES]; //used to simulate endswitches
   ecmcEcEntry *simEntries_[SIMULATION_ENTRIES]; //used to simulate endswitches
   ec_domain_t *domain_;
+
+  ecmcAsynPortDriver *asynPortDriver_;
+  int updateDefAsynParams_;
+  int asynParIdOperational_;
+  int asynParIdOnline_;
+  int asynParIdAlState_;
+  int asynParIdEntryCounter_;
+  int asynUpdateCycleCounter_;
+  int asynUpdateCycles_;
+
 };
 #endif /* ECMCECSLAVE_H_ */

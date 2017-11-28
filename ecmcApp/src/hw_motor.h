@@ -3521,7 +3521,8 @@ int readEcSlaveIndex(int slavePosition,int *value);
  * "ecmcAsynPortDriverAddParameter()". For more information see documentation
  * of ecmcAsynPortDriverAddParameter().\n
  *
- *  \param[in] asynPortObject Asyn port object.\n
+ *  \param[in] masterIndex Index of EtherCAT master.\n
+ *  \param[in] busPosition Bus position of EtherCAT slave.\n
  *  \param[in] entryIdString String for addressing ethercat entry:\n
  *             ec.s<slave number>.<ethercat entry id>
  *  \param[in] asynParType Data type to be transfered.\n*
@@ -3536,8 +3537,7 @@ int readEcSlaveIndex(int slavePosition,int *value);
  * on slave 10: "ec.s10.INPUT_1".\n
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int linkEcEntryToAsynParameter(const char *entryIDString, int asynParType,int skipCycles);
-
+int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entryIDString, int asynParType,int skipCycles);
 /** \breif Initilize asyn for ecmc
  *
  *  \param[in] asynPortObject Asyn port object.\n
@@ -3568,15 +3568,28 @@ int addDefaultAsynThread(int regAsynParams,int skipCycles);
  */
 int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
 
-/** \breif Add default asyn parameters for ethercat master
+/** \breif Add default asyn parameters for EtherCAT master
  *
+ *  \param[in] masterIndex Index of EtherCAT master.\n
  *  \param[in] regAsynParams Register default asyn parameters.\n
  *  \param[in] skipCycles Number of cycles to postpone update.\n
  * \return 0 if success or otherwise an error code.\n
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int addDefaultAsynEc(int regAsynParams,int skipCycles);
+int addDefaultAsynEc(int masterIndex,int regAsynParams,int skipCycles);
+
+/** \breif Add default asyn parameters for EtherCAT slave
+ *
+ *  \param[in] masterIndex Index of EtherCAT master.\n
+ *  \param[in] busPosition Bus position of EtherCAT slave.\n
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int skipCycles);
 
 /** \breif Link EtherCAT memory map to ASYN parameter.
  *
@@ -3589,7 +3602,7 @@ int addDefaultAsynEc(int regAsynParams,int skipCycles);
  * of ecmcAsynPortDriverAddParameter(), ecAddMemMap(), readEcMemMap() and
  * ecSetEntryUpdateInRealtime().\n
  *
- *  \param[in] asynPortObject Asyn port object.\n
+ *  \param[in] masterIndex Index of EtherCAT master.\n
  *  \param[in] memMapIDString String for addressing ethercat entry:\n
  *             ec.mm.<memory map id>
  *  \param[in] asynParType Data type to be transfered.\n*
@@ -3607,7 +3620,7 @@ int addDefaultAsynEc(int regAsynParams,int skipCycles);
  * "ec.mm.AI_1_ARRAY".\n
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int linkEcMemMapToAsynParameter(const char *memMapIDString, int asynParType,int skipCycles);
+int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int asynParType,int skipCycles);
 
 /** \breif Read EtherCAT memory map object.
  *
