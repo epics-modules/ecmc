@@ -201,7 +201,6 @@ void ecmcAxisBase::postExecute(bool masterOK)
       asynUpdateCycleCounter_=0;
       asynPortDriver_->setDoubleParam(asynParIdActPos_,data_.status_.currentPositionActual);
       asynPortDriver_->setDoubleParam(asynParIdSetPos_,data_.status_.currentPositionSetpoint);
-      asynPortDriver_->callParamCallbacks();
     }
     else{
       asynUpdateCycleCounter_++;

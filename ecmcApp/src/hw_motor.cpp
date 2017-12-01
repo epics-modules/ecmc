@@ -98,6 +98,9 @@ static int asynSkipCyclesThread=0;
 static int asynUpdateCounterThread=0;
 static int asynThreadParamsEnable=0;
 
+static int asynSkipCyclesFastest=-1;
+static int asynSkipUpdateCounterFastest=0;
+
 /****************************************************************************/
 
 const struct timespec cycletime = {0, MCU_PERIOD_NS};
@@ -294,7 +297,6 @@ void cyclic_task(void * usr)
         asynPort-> setIntegerParam(asynParIdPeriodMax,(period_max_ns));
         asynPort-> setIntegerParam(asynParIdSendMin,(send_min_ns));
         asynPort-> setIntegerParam(asynParIdSendMax,(send_max_ns));
-        asynPort-> callParamCallbacks();
         period_max_ns = 0;
         period_min_ns = 0xffffffff;
         exec_max_ns = 0;
@@ -315,40 +317,27 @@ void cyclic_task(void * usr)
         counter = MCU_FREQUENCY/axisDiagFreq;
         ec.checkState();
         ec.checkSlavesConfState();
-
         printStatus();
         for(int i=0;i<ECMC_MAX_AXES;i++){
           if(axes[i]!=NULL){
             axes[i]->slowExecute();
           }
         }
-
         ec.slowExecute();
-//        struct timespec testtime;
-//        clock_gettime(CLOCK_MONOTONIC, &testtime);
-//
-//        if(PRINT_STDOUT_BIT13()){
-//          LOGINFO("%s/%s:%d: thread.clock=%ld.%09ld;\n",__FILE__, __FUNCTION__, __LINE__,testtime.tv_sec,testtime.tv_nsec);
-//          LOGINFO("%s/%s:%d: thread.period.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_min_ns);
-//          LOGINFO("%s/%s:%d: thread.period.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_max_ns);
-//          LOGINFO("%s/%s:%d: thread.execute.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_min_ns);
-//          LOGINFO("%s/%s:%d: thread.execute.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_max_ns);
-//          LOGINFO("%s/%s:%d: thread.latency.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_min_ns);
-//          LOGINFO("%s/%s:%d: thread.latency.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_max_ns);
-//          LOGINFO("%s/%s:%d: thread.send.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_min_ns);
-//          LOGINFO("%s/%s:%d: thread.send.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_max_ns);
-//          period_max_ns = 0;
-//          period_min_ns = 0xffffffff;
-//          exec_max_ns = 0;
-//          exec_min_ns = 0xffffffff;
-//          latency_max_ns = 0;
-//          latency_min_ns = 0xffffffff;
-//          send_max_ns=0;
-//          send_min_ns=0xffffffff;
-//          sendperiod_ns=0;
-//        }
       }
     }
+
+    //Asyn callbacks for all parameters (except arrays)
+    if(asynSkipUpdateCounterFastest){
+      asynSkipUpdateCounterFastest--;
+    }
+    else{
+      asynSkipUpdateCounterFastest=asynSkipCyclesFastest;
+      if(asynPort){
+        asynPort-> callParamCallbacks();
+      }
+    }
+
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
     ec.send(masterActivationTimeOffset);
     clock_gettime(CLOCK_MONOTONIC, &endTime);
@@ -2713,7 +2702,16 @@ int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entry
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  return ec.linkEcEntryToAsynParameter(asynPort,entryIDString,asynParType,skipCycles);
+  int err=ec.linkEcEntryToAsynParameter(asynPort,entryIDString,asynParType,skipCycles);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
 }
 
 int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int asynParType,int skipCycles)
@@ -2731,8 +2729,16 @@ int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int 
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  return ec.linkEcMemMapToAsynParameter(asynPort,memMapIDString,asynParType,skipCycles);
+  int err=ec.linkEcMemMapToAsynParameter(asynPort,memMapIDString,asynParType,skipCycles);
+  if(err){
+    return err;
+  }
 
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+   return 0;
 }
 
 int initEcmcAsyn(void* asynPortObject)
@@ -2757,7 +2763,16 @@ int addDefaultAsynEc(int masterIndex,int regAsynParams,int skipCycles)
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  return ec.initAsyn(asynPort,regAsynParams,skipCycles);
+  int err=ec.initAsyn(asynPort,regAsynParams,skipCycles);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
 }
 
 int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int skipCycles)
@@ -2780,7 +2795,16 @@ int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int 
     return ERROR_MAIN_EC_SLAVE_NULL;
   }
 
-  return tempSlave->initAsyn(asynPort,regAsynParams,skipCycles,masterIndex);
+  int err=tempSlave->initAsyn(asynPort,regAsynParams,skipCycles,masterIndex);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
 }
 
 int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
@@ -2793,7 +2817,17 @@ int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->initAsyn(asynPort,regAsynParams,skipCycles);
+
+  int err=axes[axisIndex]->initAsyn(asynPort,regAsynParams,skipCycles);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
 }
 
 int addDefaultAsynThread(int regAsynParams,int skipCycles)
@@ -2876,6 +2910,11 @@ int addDefaultAsynThread(int regAsynParams,int skipCycles)
 
   asynPort-> callParamCallbacks();
   asynThreadParamsEnable=1;
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
   return 0;
 }
 

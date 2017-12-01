@@ -162,13 +162,13 @@ int ecmcEcSlave::checkConfigState(void)
   memset(&slaveState_,0,sizeof(slaveState_));
   ecrt_slave_config_state(slaveConfig_, &slaveState_);
   if (slaveState_.al_state != slaveStateOld_.al_state){
-    LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_ ,slaveState.al_state);
+    LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_ ,slaveState_.al_state);
   }
   if (slaveState_.online != slaveStateOld_.online){
-    LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_ ,slaveState.online ? "Online" : "Offline");
+    LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_ ,slaveState_.online ? "Online" : "Offline");
   }
   if (slaveState_.operational != slaveStateOld_.operational){
-    LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s operational.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,slaveState.operational ? "" : "Not ");
+    LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s operational.\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,slaveState_.operational ? "" : "Not ");
   }
   slaveStateOld_ = slaveState_;
 
@@ -283,7 +283,6 @@ int ecmcEcSlave::updateOutProcessImage()
        asynUpdateCycleCounter_++;
      }
    }
-   asynPortDriver_-> callParamCallbacks();
  }
   return 0;
 }
@@ -471,7 +470,7 @@ int ecmcEcSlave::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,
     return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
 
-  asynStatus status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdAlState_);
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdAlState_);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
@@ -485,7 +484,7 @@ int ecmcEcSlave::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,
     return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
 
-  asynStatus status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdOperational_);
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdOperational_);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;
@@ -499,7 +498,7 @@ int ecmcEcSlave::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,
     return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
 
-  asynStatus status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdEntryCounter_);
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdEntryCounter_);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
     return asynError;

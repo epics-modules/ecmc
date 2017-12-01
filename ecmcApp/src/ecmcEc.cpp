@@ -496,7 +496,6 @@ int ecmcEc::updateOutProcessImage()
         asynUpdateCycleCounter_++;
       }
     }
-    asynPortDriver_-> callParamCallbacks();  //also for memmap and ecEntry
   }
 
   return 0;
@@ -812,7 +811,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int s
 
   char buffer[128];
 
-  unsigned int charCount=snprintf(buffer,sizeof(buffer),"ec%d.alstate",masterIndex_);
+  unsigned int charCount=snprintf(buffer,sizeof(buffer),"ec%d.alstates",masterIndex_);
   if(charCount>=sizeof(buffer)-1){
     LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
     return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
@@ -851,7 +850,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int s
   }
   asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,0);
 
-  charCount=snprintf(buffer,sizeof(buffer),"ec%d.slavestatus",masterIndex_);
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.slavesstatus",masterIndex_);
   if(charCount>=sizeof(buffer)-1){
     LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
     return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
@@ -902,6 +901,19 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int s
     return asynError;
   }
   asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,0);
+
+  charCount=snprintf(buffer,sizeof(buffer),"ec%d.domainfailcountertotal",masterIndex_);
+  if(charCount>=sizeof(buffer)-1){
+    LOGERR("%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
+    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
+  }
+
+  status = asynPortDriver_->createParam(buffer,asynParamInt32,&asynParIdDomianFailCounterTotal_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,buffer);
+    return asynError;
+  }
+  asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,0);
 
   charCount=snprintf(buffer,sizeof(buffer),"ec%d.entrycounter",masterIndex_);
   if(charCount>=sizeof(buffer)-1){
