@@ -60,6 +60,7 @@ public:
   bool getEnableLagMon();
   bool getHomeSwitch();
   int setMaxVel(double vel);
+  double getMaxVel(void);
   int setEnableMaxVelMon(bool enable);
   bool getEnableMaxVelMon();
   int setMaxVelDriveTime(int time);
