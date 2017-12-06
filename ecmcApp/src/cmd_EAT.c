@@ -1170,7 +1170,10 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisTrajTransExpr(int axis_no, char* cExpr);   */
   //nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d)=%[^\n]",&iValue,cExprBuffer);
-  if (nvals == 2){
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
     //Change all # to ; (since ; is used as command delimiter)
     size_t str_len=strlen(cExprBuffer);
 
@@ -1186,7 +1189,10 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisEncTransExpr(int axis_no, char* cExpr);   */
   //nvals = sscanf(myarg_1, "SetAxisEncTransExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisEncTransExpr(%d)=%[^\n]",&iValue,cExprBuffer);
-  if (nvals == 2){
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
     //Change all # to ; (since ; is used as command delimiter in tcpip communication)
     size_t str_len=strlen(cExprBuffer);
 
@@ -1202,7 +1208,10 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisTransformCommandExpr(int axis_no,char *cExpr); */
   //nvals = sscanf(myarg_1, "SetAxisTransformCommandExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisTransformCommandExpr(%d)=%[^\n]",&iValue,cExprBuffer);
-  if (nvals == 2){
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
     //Change all # to ; (since ; is used as command delimiter in tcpip communication)
     size_t str_len=strlen(cExprBuffer);
 

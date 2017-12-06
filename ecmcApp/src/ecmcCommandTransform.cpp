@@ -68,6 +68,11 @@ int ecmcCommandTransform::setExpression(std::string expressionString)
   expressionString_=expressionString;
   compiled_=false;
 
+  // Expression cleared (Allow ";" as empty expression)
+  if(expressionString_.length()<=1){
+    return 0;
+  }
+
   int errorCode=compile();
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
