@@ -744,50 +744,8 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  ecmcAxisStatusType data;
-  int error=axes[axisIndex]->getDebugInfoData(&data);
-  if(error){
-    return error;
-  }
-
-  //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
-  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-       data.axisID,
-       data.onChangeData.positionSetpoint,
-       data.onChangeData.positionActual,
-       data.onChangeData.cntrlError,
-       data.onChangeData.positionTarget,
-       data.onChangeData.positionError,
-       data.onChangeData.positionRaw,
-       data.onChangeData.cntrlOutput,
-       data.onChangeData.velocitySetpoint,
-       data.onChangeData.velocityActual,
-       data.onChangeData.velocityFFRaw,
-       data.onChangeData.velocitySetpointRaw,
-       data.cycleCounter,
-       data.onChangeData.error,
-       data.onChangeData.command,
-       data.onChangeData.cmdData,
-       data.onChangeData.seqState,
-       data.onChangeData.trajInterlock,
-       data.onChangeData.trajSource,
-       data.onChangeData.encSource,
-       data.onChangeData.enable,
-       data.onChangeData.enabled,
-       data.onChangeData.execute,
-       data.onChangeData.busy,
-       data.onChangeData.atTarget,
-       data.onChangeData.homed,
-       data.onChangeData.limitBwd,
-       data.onChangeData.limitFwd,
-       data.onChangeData.homeSwitch
-       );
-
-  if(ret>=bufferByteSize || ret <=0){
-    return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
-  }
-
-  return 0;
+  int bytesUsed=0;
+  return axes[axisIndex]->getAxisDebugInfoData(buffer,bufferByteSize,&bytesUsed);
 }
 
 int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize)
@@ -2848,6 +2806,21 @@ int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
 
   return 0;
 }
+
+int addDiagAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,axisIndex,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  //Array so updated in axis base object
+  return axes[axisIndex]->initDiagAsyn(asynPort,regAsynParams,skipCycles);
+}
+
 
 int addDefaultAsynThread(int regAsynParams,int skipCycles)
 {

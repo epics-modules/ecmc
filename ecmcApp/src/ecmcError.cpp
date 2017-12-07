@@ -206,6 +206,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14320:
       return "ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL";
       break;
+    case 0x14321:
+      return "ERROR_AXIS_PRINT_TO_BUFFER_FAIL";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;

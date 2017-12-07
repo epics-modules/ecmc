@@ -626,11 +626,22 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
     return asynSuccess;
   }
 
-  //Check if default parameters for axis
+  //Check if default or diagnositc parameters for axis
   int axisIndex=0;
-  nvals = sscanf(idString, "ax%d.default",&axisIndex);
-  if (nvals == 1){
+  buffer[0]='\0';
+  nvals = sscanf(idString, "ax%d.%s",&axisIndex,buffer);
+  if (nvals == 2 && strcmp(buffer,"default")==0){
     errorCode=addDefaultAsynAxis(1,axisIndex,skipCycles);
+    if(errorCode){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
+      return asynError;
+    }
+    parameterCounter++;
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverAddParameter: INFO: Parameter with alias=%s added successfully.\n",idString);
+    return asynSuccess;
+  }
+  if (nvals == 2 &&  strcmp(buffer,"diagnostic")==0){
+    errorCode=addDiagAsynAxis(1,axisIndex,skipCycles);
     if(errorCode){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
       return asynError;
@@ -657,8 +668,8 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter:\
       ERROR: No defined data access transfer type in idString. Vaild syntax:\
       ec<master>.default, ec<master>.s<slavenumber>.defualt, \
-      ec<master>.s<slavenumber>.<alias>, ec<master>.mm.<alias>, thread.default\
-      ax<index>.default.\n");
+      ec<master>.s<slavenumber>.<alias>, ec<master>.mm.<alias>, thread.default,\
+      ax<index>.default, ax<index>.diagnostic.\n");
   return asynError;
 }
 

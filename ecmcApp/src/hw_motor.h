@@ -3591,6 +3591,17 @@ int addDefaultAsynThread(int regAsynParams,int skipCycles);
  */
 int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
 
+/** \breif Add diagnostic string for axis as asyn parameter.\n
+ *
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] axisIndex Index of axis.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDiagAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
+
 /** \breif Add default asyn parameters for EtherCAT master
  *
  *  \param[in] masterIndex Index of EtherCAT master.\n

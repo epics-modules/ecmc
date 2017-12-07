@@ -206,6 +206,25 @@ void ecmcAxisBase::postExecute(bool masterOK)
       asynUpdateCycleCounter_++;
     }
   }
+
+
+  if(asynPortDriverDiag_ && asynParIdDiag_>=0){
+    if(asynUpdateCycleCounterDiag_>=asynUpdateCyclesDiag_ && updateAsynParamsDiag_){
+      int bytesUsed=0;
+      char diagBuffer[1024];
+      int error=getAxisDebugInfoData(&diagBuffer[0], sizeof(diagBuffer),&bytesUsed);
+      if(error){
+	LOGERR("%s/%s:%d: Fail to update asyn par axis<id>.diag. Buffer to small.\n",__FILE__,__FUNCTION__,__LINE__);
+      }
+      else{
+        asynPortDriverDiag_->doCallbacksInt8Array((epicsInt8*)diagBuffer,bytesUsed, asynParIdDiag_, 0);
+      }
+      asynUpdateCycleCounterDiag_=0;
+    }
+    else{
+      asynUpdateCycleCounterDiag_++;
+    }
+  }
 }
 
 axisType ecmcAxisBase::getAxisType()
@@ -297,6 +316,12 @@ void ecmcAxisBase::initVars()
   asynParIdSetPos_=0;
   asynUpdateCycleCounter_=0;
   asynUpdateCycles_=0;
+
+  asynPortDriverDiag_=NULL;
+  updateAsynParamsDiag_=0;
+  asynParIdDiag_=-1;
+  asynUpdateCycleCounterDiag_=0;
+  asynUpdateCyclesDiag_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -1101,5 +1126,87 @@ int ecmcAxisBase::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams
   asynPortDriver_-> setDoubleParam(asynParIdSetPos_,0);
 
   asynPortDriver_-> callParamCallbacks();
+  return 0;
+}
+
+int ecmcAxisBase::initDiagAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles)
+{
+
+  asynPortDriverDiag_=asynPortDriver;
+  updateAsynParamsDiag_=regAsynParams;
+  asynUpdateCyclesDiag_=skipCycles;
+
+  if(!regAsynParams){
+    return 0;
+  }
+
+  if(asynPortDriverDiag_==NULL){
+    LOGERR("%s/%s:%d: ERROR: AsynPortDriver object NULL (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASYN_PORT_OBJ_NULL);
+    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
+  }
+
+  char asynParName[1024];
+
+  //Diagnostic string
+  int ret=snprintf(asynParName,1023,"ax%d.diagnostic",data_.axisId_);
+  if(ret>=1024 || ret <=0){
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  asynStatus status = asynPortDriverDiag_->createParam(asynParName,asynParamInt8Array,&asynParIdDiag_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add diagnostic asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,asynParName);
+    return asynError;
+  }
+
+  return 0;
+}
+
+int ecmcAxisBase::getAxisDebugInfoData(char *buffer, int bufferByteSize, int *bytesUsed)
+{
+  ecmcAxisStatusType data;
+  int error=getDebugInfoData(&data);
+  if(error){
+    return error;
+  }
+
+  //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+       data.axisID,
+       data.onChangeData.positionSetpoint,
+       data.onChangeData.positionActual,
+       data.onChangeData.cntrlError,
+       data.onChangeData.positionTarget,
+       data.onChangeData.positionError,
+       data.onChangeData.positionRaw,
+       data.onChangeData.cntrlOutput,
+       data.onChangeData.velocitySetpoint,
+       data.onChangeData.velocityActual,
+       data.onChangeData.velocityFFRaw,
+       data.onChangeData.velocitySetpointRaw,
+       data.cycleCounter,
+       data.onChangeData.error,
+       data.onChangeData.command,
+       data.onChangeData.cmdData,
+       data.onChangeData.seqState,
+       data.onChangeData.trajInterlock,
+       data.onChangeData.trajSource,
+       data.onChangeData.encSource,
+       data.onChangeData.enable,
+       data.onChangeData.enabled,
+       data.onChangeData.execute,
+       data.onChangeData.busy,
+       data.onChangeData.atTarget,
+       data.onChangeData.homed,
+       data.onChangeData.limitBwd,
+       data.onChangeData.limitFwd,
+       data.onChangeData.homeSwitch
+       );
+
+  if(ret>=bufferByteSize || ret <=0){
+    *bytesUsed=0;
+    return ERROR_AXIS_PRINT_TO_BUFFER_FAIL ;
+  }
+  *bytesUsed=ret;
   return 0;
 }

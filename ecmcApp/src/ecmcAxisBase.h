@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 #include <string.h>
+#define __STDC_FORMAT_MACROS  //To "reinclude" inttypes.h
+#include <inttypes.h>
 #include "ecmcCommandTransform.h"
 #include "ecmcDefinitions.h"
 #include "ecmcDriveBase.hpp"
@@ -59,6 +61,7 @@
 #define ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL 0x1431E
 #define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
 #define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
+#define ERROR_AXIS_PRINT_TO_BUFFER_FAIL 0x14321
 
 enum axisState{
   ECMC_AXIS_STATE_STARTUP=0,
@@ -172,10 +175,12 @@ public:
   ecmcMasterSlaveIF *getExternalEncIF();
   bool getBusy();
   int getDebugInfoData(ecmcAxisStatusType *data);  //memcpy
+  int getAxisDebugInfoData(char *buffer, int bufferByteSize,int *bytesUsed);
   ecmcAxisStatusType *getDebugInfoDataPointer();
   int getCycleCounter();
   void printAxisStatus();
   int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
+  int initDiagAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
 protected:
   void printAxisState();
   void initVars();
@@ -206,6 +211,8 @@ protected:
   axisState axisState_;
   double oldPositionAct_;
   double oldPositionSet_;
+
+  //Axis default parameters over asyn I/O intr
   ecmcAsynPortDriver* asynPortDriver_;
   int updateDefAsynParams_;
   int asynParIdActPos_;
@@ -213,6 +220,12 @@ protected:
   int asynUpdateCycleCounter_;
   int asynUpdateCycles_;
 
+  //Axis diagnostic string over asyn I/O intr
+  ecmcAsynPortDriver* asynPortDriverDiag_;
+  int updateAsynParamsDiag_;
+  int asynParIdDiag_;
+  int asynUpdateCycleCounterDiag_;
+  int asynUpdateCyclesDiag_;
 };
 
 #endif /* ECMCAXISBASE_H_ */
