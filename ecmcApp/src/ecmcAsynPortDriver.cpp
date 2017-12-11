@@ -125,6 +125,12 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser *pasynUser, epicsInt32 value)
   /* Fetch the parameter string name for possible use in debugging */
   getParamName(function, &paramName);
 
+  // Check if error reset
+  if (strcmp(paramName,"ecmc.error.reset")==0){
+    controllerErrorReset();
+    return asynSuccess;
+  }
+
   char buffer[1024];
   char *aliasBuffer=&buffer[0];
   int slavePosition=-10;
