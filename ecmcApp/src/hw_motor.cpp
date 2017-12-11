@@ -2829,7 +2829,7 @@ int addDiagAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
 }
 
 
-int addDefaultAsynThread(int regAsynParams,int skipCycles)
+int addDefaultAsynParams(int regAsynParams,int skipCycles)
 {
   LOGINFO4("%s/%s:%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,skipCycles);
 

@@ -527,10 +527,10 @@ static void initCallFunc(const iocshArgBuf *args)
  * trigger asyn update):
  * ecmcAsynPortDriverAddParameter(ASYNPORT,ec0.s5.AI_1,"asynInt32",9)
  *
- * \note Example: Generate diag asyn parameters for timing
+ * \note Example: Generate general diag asyn parameters
  *  skip cycles =9 (skip 9 cycles then update=> every 10 value will
  * trigger asyn update):
- * ecmcAsynPortDriverAddParameter(ASYNPORT,thread.default,"asynInt32",9)
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ecmc.default,"asynInt32",9)
  *
  * \note Example: Generate diag asyn parameters for ec master 0
  *  skip cycles =9 (skip 9 cycles then update=> every 10 value will
@@ -635,10 +635,10 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
     return asynSuccess;
   }
 
-  //Check if default parameters for thread
-  nvals=strcmp(idString,"thread.default");
+  //Check if default parameters for ecmc
+  nvals=strcmp(idString,"ecmc.default");
   if (nvals == 0) {
-    errorCode=addDefaultAsynThread(1,skipCycles);
+    errorCode=addDefaultAsynParams(1,skipCycles);
     if(errorCode){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
       return asynError;

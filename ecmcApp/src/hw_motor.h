@@ -3570,7 +3570,7 @@ int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entry
  */
 int initEcmcAsyn(void* asynPortObject);
 
-/** \breif Add default asyn parameters for thread
+/** \breif Add default asyn parameters for ecmc
  *
  *  \param[in] regAsynParams Register default asyn parameters.\n
  *  \param[in] skipCycles Number of cycles to postpone update.\n
@@ -3578,7 +3578,7 @@ int initEcmcAsyn(void* asynPortObject);
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int addDefaultAsynThread(int regAsynParams,int skipCycles);
+int addDefaultAsynParams(int regAsynParams,int skipCycles);
 
 /** \breif Add default asyn parameters for axis
  *
