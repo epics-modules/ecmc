@@ -70,7 +70,7 @@
 static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static int              axisDiagIndex;
 static int              axisDiagFreq;
-static int              controllerError=0;
+static int              controllerError=-1;
 static app_mode_type    appMode,appModeOld;
 static unsigned int     counter = 0;
 static ecmcEc           ec;
@@ -93,6 +93,8 @@ static int asynParIdPeriodMax=0;
 static int asynParIdSendMin=0;
 static int asynParIdSendMax=0;
 static int asynParIdEcmcAppMode=0;
+static int asynParIdEcmcErrorId=0;
+static int asynParIdEcmcErrorMsg=0;
 
 static int asynSkipCyclesThread=0;
 static int asynUpdateCounterThread=0;
@@ -289,14 +291,21 @@ void cyclic_task(void * usr)
       asynUpdateCounterThread=asynSkipCyclesThread;
 
       if(asynPort && asynSkipCyclesThread>=0 && asynThreadParamsEnable){
-        asynPort-> setIntegerParam(asynParIdLatencyMin,(latency_min_ns));
-        asynPort-> setIntegerParam(asynParIdLatencyMax,(latency_max_ns));
-        asynPort-> setIntegerParam(asynParIdExecuteMin,(exec_min_ns));
-        asynPort-> setIntegerParam(asynParIdExecuteMax,(exec_max_ns));
-        asynPort-> setIntegerParam(asynParIdPeriodMin,(period_min_ns));
-        asynPort-> setIntegerParam(asynParIdPeriodMax,(period_max_ns));
-        asynPort-> setIntegerParam(asynParIdSendMin,(send_min_ns));
-        asynPort-> setIntegerParam(asynParIdSendMax,(send_max_ns));
+        asynPort-> setIntegerParam(asynParIdLatencyMin,latency_min_ns);
+        asynPort-> setIntegerParam(asynParIdLatencyMax,latency_max_ns);
+        asynPort-> setIntegerParam(asynParIdExecuteMin,exec_min_ns);
+        asynPort-> setIntegerParam(asynParIdExecuteMax,exec_max_ns);
+        asynPort-> setIntegerParam(asynParIdPeriodMin,period_min_ns);
+        asynPort-> setIntegerParam(asynParIdPeriodMax,period_max_ns);
+        asynPort-> setIntegerParam(asynParIdSendMin,send_min_ns);
+        asynPort-> setIntegerParam(asynParIdSendMax,send_max_ns);
+        int ecmcErr=getControllerError();
+        if(ecmcErr!=controllerError){
+          asynPort->setIntegerParam(asynParIdEcmcErrorId,getControllerError());
+          const char* ecmcErrMsg=getErrorString(ecmcErr);
+          asynPort->doCallbacksInt8Array((epicsInt8*)ecmcErrMsg,(int)strlen(ecmcErrMsg), asynParIdEcmcErrorMsg,0);
+          controllerError=getControllerError();
+        }
         period_max_ns = 0;
         period_min_ns = 0xffffffff;
         exec_max_ns = 0;
@@ -2837,68 +2846,83 @@ int addDefaultAsynThread(int regAsynParams,int skipCycles)
   }
 
   //Timing info (only updated in real time)!
-  asynStatus status = asynPort->createParam("thread.latency.min",asynParamInt32,&asynParIdLatencyMin);
+  asynStatus status = asynPort->createParam("ecmc.thread.latency.min",asynParamInt32,&asynParIdLatencyMin);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.latency.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdLatencyMin,0);
 
-  status = asynPort->createParam("thread.latency.max",asynParamInt32,&asynParIdLatencyMax);
+  status = asynPort->createParam("ecmc.thread.latency.max",asynParamInt32,&asynParIdLatencyMax);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.latency.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdLatencyMax,0);
 
-  status = asynPort->createParam("thread.period.min",asynParamInt32,&asynParIdPeriodMin);
+  status = asynPort->createParam("ecmc.thread.period.min",asynParamInt32,&asynParIdPeriodMin);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.period.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdPeriodMin,0);
 
-  status = asynPort->createParam("thread.period.max",asynParamInt32,&asynParIdPeriodMax);
+  status = asynPort->createParam("ecmc.thread.period.max",asynParamInt32,&asynParIdPeriodMax);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.period.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdPeriodMax,0);
 
-  status = asynPort->createParam("thread.execute.min",asynParamInt32,&asynParIdExecuteMin);
+  status = asynPort->createParam("ecmc.thread.execute.min",asynParamInt32,&asynParIdExecuteMin);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.execute.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdExecuteMin,0);
 
-  status = asynPort->createParam("thread.execute.max",asynParamInt32,&asynParIdExecuteMax);
+  status = asynPort->createParam("ecmc.thread.execute.max",asynParamInt32,&asynParIdExecuteMax);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.execute.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdExecuteMax,0);
 
-  status = asynPort->createParam("thread.send.min",asynParamInt32,&asynParIdSendMin);
+  status = asynPort->createParam("ecmc.thread.send.min",asynParamInt32,&asynParIdSendMin);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.send.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdSendMin,0);
 
-  status = asynPort->createParam("thread.send.max",asynParamInt32,&asynParIdSendMax);
+  status = asynPort->createParam("ecmc.thread.send.max",asynParamInt32,&asynParIdSendMax);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.send.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdSendMax,0);
 
-  status = asynPort->createParam("appmode",asynParamInt32,&asynParIdEcmcAppMode);
+  status = asynPort->createParam("ecmc.appmode",asynParamInt32,&asynParIdEcmcAppMode);
   if(status!=asynSuccess){
     LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdEcmcAppMode,0);
+
+  status = asynPort->createParam("ecmc.error.id",asynParamInt32,&asynParIdEcmcErrorId);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdEcmcErrorId,0);
+
+  status = asynPort->createParam("ecmc.error.msg",asynParamInt8Array,&asynParIdEcmcErrorMsg);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+
+  asynPort->doCallbacksInt8Array((epicsInt8*)getErrorString(getControllerError()),(int)strlen(getErrorString(getControllerError())), asynParIdEcmcErrorMsg,0);
 
   asynPort-> callParamCallbacks();
   asynThreadParamsEnable=1;
@@ -3490,7 +3514,7 @@ int getControllerError()
     }
   }
 
-  return controllerError;
+  return 0;
 }
 
 int controllerErrorReset()
