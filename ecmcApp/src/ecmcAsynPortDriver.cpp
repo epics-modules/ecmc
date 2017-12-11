@@ -365,6 +365,13 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
 
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,"ecmcAsynPortDriverConfigure: INFO: New AsynPortDriver success (%s,%i,%i,%i).",portName,paramTableSize,disableAutoConnect==0,priority);
 
+    //Add one "generic" parameter for Motor-record
+    int comParamIndex=0;
+    asynStatus status = ecmcAsynPortObj->createParam("default_com",asynParamOctet,&comParamIndex);
+    if(status!=asynSuccess){
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverConfigure: ERROR: Create default communication parameter failed.\n");
+      return asynError;
+    }
     return(asynSuccess);
   }
   else{
@@ -377,7 +384,6 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
 
 static int parseAsynDataType( const char *asynTypeString)
 {
-
   /*
   "asynInt8ArrayIn"
   "asynInt8ArrayOut"
@@ -389,11 +395,11 @@ static int parseAsynDataType( const char *asynTypeString)
   "asynFloat32ArrayOut"
   "asynFloat64ArrayIn"
   "asynFloat64ArrayOut"
-  asynParamInt8Array
-  asynParamInt16Array
-  asynParamInt32Array
-  asynParamFloat32ArrayinitEcmcAsyn(void* asynPortObject)
-  asynParamFloat64Array
+  "asynParamInt8Array"
+  "asynParamInt16Array"
+  "asynParamInt32Array"
+  "asynParamFloat32Array"
+  "asynParamFloat64Array"
   */
 
   int asynType=-10;
@@ -461,8 +467,9 @@ static void initCallFunc(const iocshArgBuf *args)
  * 2. EtherCAT memory maps\n
  * 3. EtherCAT master diagnostics\n
  * 4. EtherCAT slave diagnostics\n
- * 5. Motion axis information\n
- * 6. Timing diagnostics.\n
+ * 5. Timing diagnostics\n
+ * 6. Motion axis information\n
+ * 7. Motion axis diagnostic array\n
  *
  * For example it's possible to access EtherCAT data directly from EPICS records
  * by linking an EtherCAT memory map or entry to an asyn parameter.
@@ -481,10 +488,12 @@ static void initCallFunc(const iocshArgBuf *args)
  *             idString = ec<masterindex>.s<slaveIndex>.default
  *             (set of ec slave diag params).\n
  *             idString = ec<masterindex>.s<busposition>.<ethercat entry id>
- *             (access to ethercat entry, "default" cannot be used as
+ *             (access to ethercat entry, "default" cannot be asynInt8ArrayInused as
  *             <ethercat entry id> ).\n
  *             idString = thread.default  (set of timing diag params).\n
- *             idString = ax<axis index>.default  (set of motion diag params).\n
+ *             idString = ax<axis index>.default  (setpoint and actual value).\n
+ *             idString = ax<axis index>.diagnostic (make diagnostic "string"
+ *              available).\n
  *
  *  \param[in] asynParType Data type to be transfered (valid only for
  *             ec<masterindex>.mm.<memory map id>) and
@@ -526,10 +535,16 @@ static void initCallFunc(const iocshArgBuf *args)
  * trigger asyn update):
  * ecmcAsynPortDriverAddParameter(ASYNPORT,ec0.s7.default,"asynInt32",9)
  *
- * \note Example: Generate diag asyn parameters motion axis 8
+ * \note Example: Generate asyn parameters for motion axis 8
  *  skip cycles =9 (skip 9 cycles then update=> every 10 value will
  * trigger asyn update):
  * ecmcAsynPortDriverAddParameter(ASYNPORT,ax8.default,"asynInt32",9)
+ *
+ * \note Example: Generate asyn parameter for axis diagnostic array
+ * containing most importatnt diag info.\n
+ *  skip cycles =9 (skip 9 cycles then update=> every 10 value will
+ * trigger asyn update):
+ * ecmcAsynPortDriverAddParameter(ASYNPORT,ax8.diagnostic,"asynInt8ArrayIn",9)
  *
  */
 int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, const char *asynTypeString, int skipCycles)
