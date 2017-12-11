@@ -71,6 +71,7 @@ static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static int              axisDiagIndex;
 static int              axisDiagFreq;
 static int              controllerError=-1;
+static const char*      controllerErrorMsg="NO_ERROR";
 static app_mode_type    appMode,appModeOld;
 static unsigned int     counter = 0;
 static ecmcEc           ec;
@@ -95,7 +96,7 @@ static int asynParIdSendMax=0;
 static int asynParIdEcmcAppMode=0;
 static int asynParIdEcmcErrorId=0;
 static int asynParIdEcmcErrorMsg=0;
-
+static int asynParIdEcmcErrorReset=0;
 static int asynSkipCyclesThread=0;
 static int asynUpdateCounterThread=0;
 static int asynThreadParamsEnable=0;
@@ -299,13 +300,15 @@ void cyclic_task(void * usr)
         asynPort-> setIntegerParam(asynParIdPeriodMax,period_max_ns);
         asynPort-> setIntegerParam(asynParIdSendMin,send_min_ns);
         asynPort-> setIntegerParam(asynParIdSendMax,send_max_ns);
-        int ecmcErr=getControllerError();
-        if(ecmcErr!=controllerError){
-          asynPort->setIntegerParam(asynParIdEcmcErrorId,getControllerError());
-          const char* ecmcErrMsg=getErrorString(ecmcErr);
-          asynPort->doCallbacksInt8Array((epicsInt8*)ecmcErrMsg,(int)strlen(ecmcErrMsg), asynParIdEcmcErrorMsg,0);
-          controllerError=getControllerError();
-        }
+        //int ecmcErr=getControllerError();
+        controllerError=getControllerError();
+        //if(ecmcErr!=controllerError){
+        asynPort->setIntegerParam(asynParIdEcmcErrorId,controllerError);
+        controllerErrorMsg=getErrorString(controllerError);
+        asynPort->doCallbacksInt8Array((epicsInt8*)controllerErrorMsg,(int)strlen(controllerErrorMsg)+1, asynParIdEcmcErrorMsg,0);
+        //  controllerError=ecmcErr;
+        //  printf("#### %s (0x%x)",controllerErrorMsg,controllerError);
+        //}
         period_max_ns = 0;
         period_min_ns = 0xffffffff;
         exec_max_ns = 0;
@@ -2911,18 +2914,25 @@ int addDefaultAsynThread(int regAsynParams,int skipCycles)
 
   status = asynPort->createParam("ecmc.error.id",asynParamInt32,&asynParIdEcmcErrorId);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.id failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
   asynPort-> setIntegerParam(asynParIdEcmcErrorId,0);
 
+  status = asynPort->createParam("ecmc.error.reset",asynParamInt32,&asynParIdEcmcErrorReset);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.reset failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdEcmcErrorReset,0);
+
   status = asynPort->createParam("ecmc.error.msg",asynParamInt8Array,&asynParIdEcmcErrorMsg);
   if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.msg failed.\n",__FILE__,__FUNCTION__,__LINE__);
     return asynError;
   }
 
-  asynPort->doCallbacksInt8Array((epicsInt8*)getErrorString(getControllerError()),(int)strlen(getErrorString(getControllerError())), asynParIdEcmcErrorMsg,0);
+  asynPort->doCallbacksInt8Array((epicsInt8*)"NO_ERROR\0",9, asynParIdEcmcErrorMsg,0);
 
   asynPort-> callParamCallbacks();
   asynThreadParamsEnable=1;
