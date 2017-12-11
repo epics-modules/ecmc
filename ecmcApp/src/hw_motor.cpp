@@ -300,15 +300,10 @@ void cyclic_task(void * usr)
         asynPort-> setIntegerParam(asynParIdPeriodMax,period_max_ns);
         asynPort-> setIntegerParam(asynParIdSendMin,send_min_ns);
         asynPort-> setIntegerParam(asynParIdSendMax,send_max_ns);
-        //int ecmcErr=getControllerError();
         controllerError=getControllerError();
-        //if(ecmcErr!=controllerError){
         asynPort->setIntegerParam(asynParIdEcmcErrorId,controllerError);
         controllerErrorMsg=getErrorString(controllerError);
         asynPort->doCallbacksInt8Array((epicsInt8*)controllerErrorMsg,(int)strlen(controllerErrorMsg)+1, asynParIdEcmcErrorMsg,0);
-        //  controllerError=ecmcErr;
-        //  printf("#### %s (0x%x)",controllerErrorMsg,controllerError);
-        //}
         period_max_ns = 0;
         period_min_ns = 0xffffffff;
         exec_max_ns = 0;

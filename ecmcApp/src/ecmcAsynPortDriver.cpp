@@ -378,6 +378,7 @@ int ecmcAsynPortDriverConfigure(const char *portName,int paramTableSize,int prio
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverConfigure: ERROR: Create default communication parameter failed.\n");
       return asynError;
     }
+
     return(asynSuccess);
   }
   else{
