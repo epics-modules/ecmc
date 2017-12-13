@@ -738,7 +738,7 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       return "ERROR_EC_MEM_MAP_NULL";
       break;
     case 0x2601B:
-      return "ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW";
+      return "ERROR_EC_ASYN_ALIAS_NOT_VALID";
       break;
     case 0x2601C:
       return "ERROR_EC_AUTO_CONFIG_MASTER_INFO_FAIL";
