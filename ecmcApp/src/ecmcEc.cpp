@@ -491,6 +491,7 @@ int ecmcEc::updateOutProcessImage()
         asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
         asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
         asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,entryCounter_);
+        asynPortDriver_-> setIntegerParam(asynParIdMemMapCounter_,ecMemMapArrayCounter_);
       }
       else{
         asynUpdateCycleCounter_++;
