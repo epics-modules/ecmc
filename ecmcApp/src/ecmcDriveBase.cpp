@@ -218,7 +218,6 @@ void ecmcDriveBase::writeEntries()
   }
 
   if(enableBrake_){
-    //errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT,(uint64_t) data_->command_.enable);
     errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT,(uint64_t) brakeOutputCmd_);
     if(errorCode){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -230,7 +229,7 @@ void ecmcDriveBase::writeEntries()
     if(reduceTorqueOutputCmd_!=reduceTorqueOutputCmdOld_){
       LOGINFO15("%s/%s:%d: axis[%d].drive.reduceTorqueOutputCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,reduceTorqueOutputCmd_>0);
     }
-    reduceTorqueOutputCmd_=reduceTorqueOutputCmdOld_;
+    reduceTorqueOutputCmdOld_=reduceTorqueOutputCmd_;
     errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,(uint64_t)reduceTorqueOutputCmd_);
     if(errorCode){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -360,9 +359,6 @@ int ecmcDriveBase::setBrakeCloseAheadTime(int aheadTime)
 int ecmcDriveBase::updateBrakeState()
 {
   //General state transitions
-
-
-
   switch(data_->command_.operationModeCmd){
     case ECMC_MODE_OP_AUTO:
 

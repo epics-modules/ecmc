@@ -571,8 +571,18 @@ static int handleCfgCommand(const char *myarg_1){
   }
 
   /// "Cfg.LinkEcEntryToAxisDrive(slaveBusPosition,entryIdString,axisIndex,driveEntryIndex,entrybitIndex)"
+  cIdBuffer[0]='\0';
+  iValue5=-10;
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisDrive(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
-  if (nvals == 5) {
+  //Allow empty entryIdString and/or entrybitIndex
+  if (nvals == 5){
+    return linkEcEntryToAxisDrv(iValue,cIdBuffer,iValue3,iValue4,iValue5);
+  }
+
+  // Allow empty entryIdString
+  cIdBuffer[0]='\0';
+  nvals = sscanf(myarg_1, "LinkEcEntryToAxisDrive(%d,,%d,%d,%d)", &iValue,&iValue3,&iValue4,&iValue5);
+  if (nvals == 4){
     return linkEcEntryToAxisDrv(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 

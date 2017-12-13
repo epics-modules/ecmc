@@ -2571,6 +2571,19 @@ int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int dr
 {
   LOGINFO4("%s/%s:%d slave_index=%d entry=%s drive=%d drive_entry=%d bit_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,driveEntryIndex,bitIndex);
 
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  //Disable brake output with empty string
+  if(strlen(entryIDString)==0 && driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT){
+    return axes[axisIndex]->getDrv()->setEnableBrake(0);
+  }
+
+  //Disable reduce torque output with empty string
+  if(strlen(entryIDString)==0 && driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT){
+    return axes[axisIndex]->getDrv()->setEnableReduceTorque(0);
+  }
+
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
@@ -2593,13 +2606,32 @@ int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int dr
   if(entry==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  if(driveEntryIndex>=MaxEcEntryLinks && driveEntryIndex<0)
+  if(driveEntryIndex>=MaxEcEntryLinks && driveEntryIndex<0){
     return ERROR_MAIN_DRIVE_ENTRY_INDEX_OUT_OF_RANGE;
+  }
 
-  return axes[axisIndex]->getDrv()->setEntryAtIndex(entry,driveEntryIndex,bitIndex);
+  int ret=axes[axisIndex]->getDrv()->setEntryAtIndex(entry,driveEntryIndex,bitIndex);
+  if(ret){
+    return ret;
+  }
+
+  //Auto enable break
+  if(driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT){
+    ret=axes[axisIndex]->getDrv()->setEnableBrake(1);
+    if(ret){
+      return ret;
+    }
+  }
+
+  //Auto enable reduce torque
+  if(driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT){
+    ret=axes[axisIndex]->getDrv()->setEnableReduceTorque(1);
+    if(ret){
+      return ret;
+    }
+  }
+
+  return 0;
 }
 
 int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int monitorEntryIndex, int bitIndex)

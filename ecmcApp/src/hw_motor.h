@@ -2398,14 +2398,18 @@ int linkEcEntryToAxisEnc(int slaveBusPosition,char *entryIdString,int axisIndex,
    *                         value 0 and "ONE" with default value 1.\n
    *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves\n
    *  \param[in] entryIdString String for addressing purpose (see command
-   *                      "Cfg.EcAddEntryComplete() for more information").\n
+   *                      "Cfg.EcAddEntryComplete() for more information").
+   *                      If left blank driveEntryIndex == 3 or4, the corresponding
+   *                      functionality will be disabled.\n
    *  \param[in] axisIndex Index of axis to link to.\n
    *  \param[in] driveEntryIndex Index of drive objects entry list.\n
    *    driveEntryIndex = 0: Amplifier enable (output).\n
    *    driveEntryIndex = 1: Velocity setpoint (output).\n
    *    driveEntryIndex = 2: Amplifier enabled (input).\n
    *    driveEntryIndex = 3: Brake (output).\n
-   *    driveEntryIndex = 4: Reduce torque (output).\n
+    *                        Brake func will be enabled.\n
+   *    driveEntryIndex = 4: Reduce torque (output).
+   *                         Reduce torque func will be enabled.\n
    *  \param[in] entryBitIndex Bit index of EtherCAT entry to use.\n
    *    entryBitIndex = -1: All bits of the entry will be used.\n
    *    entryBitIndex = 0..64: Only the selected bit will be used.\n
