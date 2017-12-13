@@ -606,7 +606,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName, const char *idString, c
   int busPosition=-10;
   nvals = sscanf(idString, "ec%d.s%d.%s",&masterIndex,&busPosition,buffer);
   if (nvals == 3 && strcmp("default",buffer)==0){
-    errorCode=addDefaultAsynEcSlave(masterIndex,busPosition,skipCycles,masterIndex);
+    errorCode=addDefaultAsynEcSlave(masterIndex,busPosition,1,skipCycles);
     if(errorCode){
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,"ecmcAsynPortDriverAddParameter: ERROR: Add parameter %s failed (0x%x).\n",idString,errorCode);
       return asynError;
