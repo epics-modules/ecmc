@@ -960,6 +960,7 @@ int ecmcEc::printAllConfig()
   int errorCode=ecrt_master(master_,&masterInfo);
   if(errorCode){
     LOGERR("%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+    return 0;
   }
 
   LOGINFO("ec%d.slaveCount=%d\n",masterIndex_,masterInfo.slave_count);
@@ -970,6 +971,7 @@ int ecmcEc::printAllConfig()
     errorCode=ecrt_master_get_slave( master_, slaveLoopIndex, &slaveInfo);
     if(errorCode){
       LOGERR("%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+      return 0;
     }
     LOGINFO("ec%d.s%d.position=%d\n",masterIndex_,slaveLoopIndex,slaveInfo.position);
     LOGINFO("ec%d.s%d.syncManCount=%d\n",masterIndex_,slaveLoopIndex,slaveInfo.sync_count);
@@ -1044,6 +1046,7 @@ int ecmcEc::printSlaveConfig(int slaveIndex)
   int errorCode=ecrt_master(master_,&masterInfo);
   if(errorCode){
     LOGERR("%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+    return 0;
   }
 
   LOGINFO("ec%d.slaveCount=%d\n",masterIndex_,masterInfo.slave_count);
@@ -1059,6 +1062,7 @@ int ecmcEc::printSlaveConfig(int slaveIndex)
   errorCode=ecrt_master_get_slave( master_, slaveIndex, &slaveInfo);
   if(errorCode){
     LOGERR("%s/%s:%d: Error: Function ecrt_master_geasynParIdMasterLink_t_slave() failed with error code 0x%x.\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
+    return 0;
   }
 
   printf("#############################################\n");
