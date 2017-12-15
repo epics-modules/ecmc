@@ -125,7 +125,7 @@ int ecmcDriveBase::getVelSetRaw()
 
 int ecmcDriveBase::setEnable(bool enable)
 {
-  //Only allowed in manual mode
+  //Only allowed in manual mode !!
   if(data_->command_.operationModeCmd!=ECMC_MODE_OP_MAN){
     manualModeEnableAmpCmd_=false;
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE);
@@ -240,8 +240,8 @@ void ecmcDriveBase::writeEntries()
     LOGINFO15("%s/%s:%d: axis[%d].drive.enableAmpCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,enableAmpCmd_>0);
   }
 
-  enableAmpCmdOld_=enableAmpCmd_;
-  enableCmdOld_=data_->command_.enable;
+  enableAmpCmdOld_=enableAmpCmd_;    //Enable command sent to amplfier (if break is not used then enableAmpCmdOld_==enableCmdOld_)
+  enableCmdOld_=data_->command_.enable;  // Enable command from "user"
 }
 
 void ecmcDriveBase::readEntries()
@@ -308,15 +308,6 @@ int ecmcDriveBase::validate()
 
 bool ecmcDriveBase::getEnable()
 {
-/*  switch(data_->command_.operationModeCmd){
-    case ECMC_MODE_OP_AUTO:
-      return data_->command_.enable;
-      break;
-    case ECMC_MODE_OP_MAN:
-      return manualModeEnableAmpCmd_;
-      break;
-  }
-  return data_->command_.enable;*/
   return enableAmpCmd_;
 }
 
@@ -427,9 +418,5 @@ int ecmcDriveBase::updateBrakeState()
       break;
   }
 
-  /*if(brakeOutputCmdOld_!=brakeOutputCmd_){
-    LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOutputCmd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,brakeOutputCmd_>0);
-  }*/
-  //brakeOutputCmdOld_=brakeOutputCmd_;
   return 0;
 }

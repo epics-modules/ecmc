@@ -75,12 +75,12 @@ public:
 protected:
   int updateBrakeState();
   bool driveInterlocksOK();
+  //Enable command to amplifier (could be delayed or sent earlier depending on if break is used
   bool enableAmpCmd_;
   bool enableAmpCmdOld_;
   double scale_;
   double scaleNum_;
   double scaleDenom_;
-  //int velSetRawOutput_;
   double velSet_;
   uint64_t controlWord_;
   uint64_t statusWord_;
