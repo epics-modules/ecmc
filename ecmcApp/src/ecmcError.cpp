@@ -200,6 +200,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x1431E:
       return "ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL";
       break;
+    case 0x1431F:
+      return "ERROR_AXIS_ASYN_PORT_OBJ_NULL";
+      break;
+    case 0x14320:
+      return "ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL";
+      break;
+    case 0x14321:
+      return "ERROR_AXIS_PRINT_TO_BUFFER_FAIL";
+      break;
     case 0x14600: //DRIVE
       return "ERROR_DRV_DRIVE_INTERLOCKED";
       break;
@@ -250,6 +259,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14654:
       return "ERROR_DRV_DS402_STATUS_WORD_START_BIT_ERROR";
+      break;
+    case 0x14655:
+      return "ERROR_DRV_DS402_FAULT_STATE";
       break;
     case 0x14400:  //ENCODER
       return "ERROR_ENC_ASSIGN_ENTRY_FAILED";
@@ -545,8 +557,20 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x21009:
       return "ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED";
       break;
+    case 0x2100A:
+      return "ERROR_EC_ENTRY_ASSIGN_ADD_FAIL";
+      break;
+    case 0x2100B:
+      return "ERROR_EC_ENTRY_REGISTER_FAIL";
+      break;
     case 0x22000:  //ECPDO
       return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
+      break;
+    case 0x22001:
+      return "ERROR_EC_PDO_ADD_FAIL";
+      break;
+    case 0x22002:
+      return "ERROR_EC_PDO_CLEAR_ENTRIES_FAIL";
       break;
     case 0x23000:  //ECSDO
       return "ERROR_EC_SDO_SIZE_TO_LARGE";
@@ -617,6 +641,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x24012:
       return "ERROR_EC_SLAVE_NOT_ONLINE";
       break;
+    case 0x24013:
+      return "ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW";
+      break;
     case 0x25000://ECSYNCMANAGER
       return "ERROR_EC_SM_PDO_ARRAY_FULL";
       break;
@@ -625,6 +652,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x25002:
       return "ERROR_EC_SM_ENTRY_INFO_STRUCT_NULL";
+      break;
+    case 0x25003:
+      return "ERROR_EC_SM_CONFIG_FAIL";
+      break;
+    case 0x25004:
+      return "ERROR_EC_SM_CLEAR_PDO_FAIL";
       break;
     case 0x26000: //EC
       return "ERROR_EC_MAIN_REQUEST_FAILED";
@@ -710,6 +743,33 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x2601B:
       return "ERROR_EC_ASYN_ALIAS_NOT_VALID";
       break;
+    case 0x2601C:
+      return "ERROR_EC_AUTO_CONFIG_MASTER_INFO_FAIL";
+      break;
+    case 0x2601D:
+      return "ERROR_EC_AUTO_CONFIG_SLAVE_INFO_FAIL";
+      break;
+    case 0x2601E:
+      return "ERROR_EC_AUTO_CONFIG_SM_INFO_FAIL";
+      break;
+    case 0x2601F:
+      return "ERROR_EC_AUTO_CONFIG_PDO_INFO_FAIL";
+      break;
+    case 0x26020:
+      return "ERROR_EC_AUTO_CONFIG_ENTRY_INFO_FAIL";
+      break;
+    case 0x26021:
+      return "ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL";
+      break;
+    case 0x26022:
+      return "ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x26023:
+      return "ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID";
+      break;
+    case 0x26024:
+      return "ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW";
+      break;
     case 0x20000://HW_MOTOR
       return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
       break;
@@ -744,7 +804,7 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       return "ERROR_MAIN_DRIVE_INDEX_OUT_OF_RANGE";
       break;
     case 0x2000C:
-      return "ERROR_MAIN_DRIVE_INDEX_OUT_OF_RANGE";
+      return "ERROR_MAIN_DRIVE_OBJECT_NULL";
       break;
     case 0x2000D:
       return "ERROR_MAIN_MONITOR_INDEX_OUT_OF_RANGE";
@@ -850,6 +910,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x2002F:
       return "ERROR_MAIN_MEM_MAP_NULL";
+      break;
+    case 0x20030:
+      return "ERROR_MAIN_AXIS_ASYN_PAR_FORMAT_ERROR";
+      break;
+    case 0x20031:
+      return "ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL";
+      break;
+    case 0x20032:
+      return "ERROR_MAIN_EC_MASTER_NULL";
       break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";

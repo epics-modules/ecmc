@@ -1022,19 +1022,36 @@ int setAxisCommand(int axisIndex, int value);
  *
  * The command data word is an argument linked to the axis command. See
  * fbDriveVirtual manual for more information.\n
+ * A new command will be triggered with a positive edge on the bExecute
+ * flag.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value  Axis command data word.\n
  *
  * The command data word have different meaning depending on the command
  * word.\n
- * Command word = 10 (homing):\n
- *   Command Data 1..6: Different homing sequences.\n
  *
- * Command word = 4 (absolute positioning): \n
+ * Command word = 1 (Move velocity): \n
+ *   Command data 0: Move Velocity\n
+ *
+ * Command word = 2 (Relative positioning): \n
+ *   Command data 0: Move relative\n
+ *
+ * Command word = 3 (absolute positioning): \n
+ *   Command data 0: Default absolute positioning\n
  *   Command Data 1: Go to start position of trajectory generator external
  *   transformation expressions. This is useful to avoid jumps  during
  *   start phase when absolute synchronizing.\n
+ *
+ * Command word = 10 (Referencing to fHomePosition):\n
+ *   Command Data 0: Simplest homing sequence. The actual position of the
+ *                   encoder will be set to fHomePosition.
+ *   Command Data 1: Ref. on low limit switch.\n
+ *   Command Data 2: Ref. on high limit switch.\n
+ *   Command Data 3: Ref. on home sensor via low limit switch.\n
+ *   Command Data 4: Ref. on home sensor via high limit switch.\n
+ *   Command Data 5: Ref. on center of home sensor via low limit switch.\n
+ *   Command Data 6: Ref. on center of home sensor via high limit switch.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -2381,14 +2398,18 @@ int linkEcEntryToAxisEnc(int slaveBusPosition,char *entryIdString,int axisIndex,
    *                         value 0 and "ONE" with default value 1.\n
    *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves\n
    *  \param[in] entryIdString String for addressing purpose (see command
-   *                      "Cfg.EcAddEntryComplete() for more information").\n
+   *                      "Cfg.EcAddEntryComplete() for more information").
+   *                      If left blank driveEntryIndex == 3 or4, the corresponding
+   *                      functionality will be disabled.\n
    *  \param[in] axisIndex Index of axis to link to.\n
    *  \param[in] driveEntryIndex Index of drive objects entry list.\n
    *    driveEntryIndex = 0: Amplifier enable (output).\n
    *    driveEntryIndex = 1: Velocity setpoint (output).\n
    *    driveEntryIndex = 2: Amplifier enabled (input).\n
    *    driveEntryIndex = 3: Brake (output).\n
-   *    driveEntryIndex = 4: Reduce torque (output).\n
+    *                        Brake func will be enabled.\n
+   *    driveEntryIndex = 4: Reduce torque (output).
+   *                         Reduce torque func will be enabled.\n
    *  \param[in] entryBitIndex Bit index of EtherCAT entry to use.\n
    *    entryBitIndex = -1: All bits of the entry will be used.\n
    *    entryBitIndex = 0..64: Only the selected bit will be used.\n
@@ -2444,6 +2465,28 @@ int linkEcEntryToAxisDrv(int slaveBusPosition,char *entryIdString,int axisIndex,
  *   "Cfg.LinkEcEntryToAxisEncoder(-1,ONE,5,1,0)" //Command string to cmd_EAT.c\n
  */
 int linkEcEntryToAxisMon(int slaveBusPosition,char *entryIdString,int axisIndex,int monitorEntryIndex,int entryBitIndex);
+
+/** \breif Links an EtherCAT entry to the ethecat master object for hardware
+ *   status output\n
+ *
+ *  The output will be high when the EtherCAT master is without error code and
+ *  otherwise zero.
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] entryIdString String for addressing purpose (see command
+ *                      "Cfg.EcAddEntryComplete() for more information").\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ *  \note Example 1: Link an EtherCAT entry configured as "OUTPUT_0" in slave 1 as
+ *  status output for ethercat master.\n
+ *   "Cfg.LinkEcEntryToEcStatusOutput(1,"OUTPUT_0")" //Command string to cmd_EAT.c\n
+ */
+int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString);
 
 /** \breif Create an event object.
  *
@@ -3172,7 +3215,7 @@ int ecAddEntryComplete(
  *    direction  = 1:  Output (from master).\n
  *    direction  = 2:  Input (to master).\n
  *  \param[in] entryIDString Identification string used for addressing the
- *                           memory map object.\n
+ object.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -3290,7 +3333,15 @@ int ecAddSdo(uint16_t slaveBusPosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uin
  * on slave position 2.\n
  * "Cfg.EcWriteSdo(2,0x8010,0x1,1000,2)" //Command string to cmd_EAT.c\n
  */
-int ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,int byteSize);
+int ecWriteSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,int byteSize);
+
+/** \breif Write to a Service Data Object.
+ *
+ * Note: same  as "ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,
+ * uint32_t value,int byteSize)" but without subindex. Complete SDO access will be used.
+ *
+ */
+int ecWriteSdoComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value,int byteSize);
 
 /** \breif Read a Service Data Object.
  *
@@ -3316,7 +3367,7 @@ int ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,uin
  * on slave position 2.\n
  * "Cfg.EcReadSdo(2,0x8010,0x1,2)" //Command string to cmd_EAT.c\n
  */
-uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize);
+uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize,uint32_t *value);
 
 /** \breif Configure Slave watch dog.\n
  *
@@ -3487,24 +3538,169 @@ int readEcEntryIndexIDString(int slavePosition,char *entryIDString,int *value);
   */
 int readEcSlaveIndex(int slavePosition,int *value);
 
-/* \breif Links ethercat entry to asyn parameter
+/** \breif Link EtherCAT entry to ASYN parameter.
+ *
+ * Fast access of EtherCAT data from EPICS records is possible by linking an
+ * EtherCAT entry to an ASYN parameter. Update frequency of the asyn parameter
+ * can be changed with the "skipCycles" parameter. Maximum update frequency is
+ * the same frequency as the EtherCAT realtime bus.\n
+ * This function is called by the iocsh command
+ * "ecmcAsynPortDriverAddParameter()". For more information see documentation
+ * of ecmcAsynPortDriverAddParameter().\n
+ *
+ *  \param[in] masterIndex Index of EtherCAT master.\n
+ *  \param[in] busPosition Bus position of EtherCAT slave.\n
+ *  \param[in] entryIdString String for addressing ethercat entry:\n
+ *             ec.s<slave number>.<ethercat entry id>
+ *  \param[in] asynParType Data type to be transfered.\n*
+ *             asynParType=1: asynInt32
+ *             asynParType=3: asynFloat64
+ *  \param[in] skipCycles Number of realtime loops in between updates of asyn-
+ *  parameter.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: entryIdString for an EtherCAT entry called "INPUT_1"
+ * on slave 10: "ec.s10.INPUT_1".\n
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
-
-/* \breif Links ethercat memory map to asyn parameter
+int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entryIDString, int asynParType,int skipCycles);
+/** \breif Initilize asyn for ecmc
+ *
+ *  \param[in] asynPortObject Asyn port object.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
+int initEcmcAsyn(void* asynPortObject);
 
-/* \breif reads mem map object
+/** \breif Add default asyn parameters for ecmc
+ *
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead);
+int addDefaultAsynParams(int regAsynParams,int skipCycles);
 
-/* \breif Set update in realtime bit for an entry
+/** \breif Add default asyn parameters for axis
+ *
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] axisIndex Index of axis.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
+
+/** \breif Add diagnostic string for axis as asyn parameter.\n
+ *
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] axisIndex Index of axis.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDiagAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
+
+/** \breif Add default asyn parameters for EtherCAT master
+ *
+ *  \param[in] masterIndex Index of EtherCAT master.\n
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDefaultAsynEc(int masterIndex,int regAsynParams,int skipCycles);
+
+/** \breif Add default asyn parameters for EtherCAT slave
+ *
+ *  \param[in] masterIndex Index of EtherCAT master.\n
+ *  \param[in] busPosition Bus position of EtherCAT slave.\n
+ *  \param[in] regAsynParams Register default asyn parameters.\n
+ *  \param[in] skipCycles Number of cycles to postpone update.\n
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int skipCycles);
+
+/** \breif Link EtherCAT memory map to ASYN parameter.
+ *
+ * Fast access of EtherCAT data from EPICS records is possible by linking an
+ * EtherCAT memory map to an ASYN parameter. Update frequency of the asyn parameter
+ * can be changed with the "skipCycles" parameter. Maximum update frequency is
+ * the same frequency as the EtherCAT realtime bus.\n
+ * This function is called by the iocsh command
+ * "ecmcAsynPortDriverAddParameter()". For more information see documentation
+ * of ecmcAsynPortDriverAddParameter(), ecAddMemMap(), readEcMemMap() and
+ * ecSetEntryUpdateInRealtime().\n
+ *
+ *  \param[in] masterIndex Index of EtherCAT master.\n
+ *  \param[in] memMapIDString String for addressing ethercat entry:\n
+ *             ec.mm.<memory map id>
+ *  \param[in] asynParType Data type to be transfered.\n*
+ *             asynParType=5: asynParamInt8Array
+ *             asynParType=6: asynParamInt16Array
+ *             asynParType=7: asynParamInt32Array
+ *             asynParType=8: asynParamFloat32Array
+ *             asynParType=9: asynParamFloat64Array
+ *  \param[in] skipCycles Number of realtime loops in between updates of asyn-
+ *  parameter.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: memMapIDString for an memory map called "AI_1_ARRAY":
+ * "ec.mm.AI_1_ARRAY".\n
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */
+int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int asynParType,int skipCycles);
+
+/** \breif Read EtherCAT memory map object.
+ *
+ * Fast access of EtherCAT data from EPICS records is possible by linking an
+ * EtherCAT memory map to an ASYN parameter. The memory map objects is most
+ * usefull for acquire arrays of data (waveforms).This function is called by
+ * the iocsh command"ecmcAsynPortDriverAddParameter()". For more information
+ * see documentation of ecmcAsynPortDriverAddParameter(), ecAddMemMap(),
+ * readEcMemMap() and ecSetEntryUpdateInRealtime().\n
+ *
+ *  \param[in] memMapIDString String for addressing ethercat entry:\n
+ *             ec.mm.<memory map id>
+ *  \param[out] *data Output data buffer.\n*
+ *  \param[in]  bytesToRead Output data buffer size.\n*
+ *  \param[out] bytesRead Bytes read.\n*
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: memMapIDString for an memory map called "AI_1_ARRAY":
+ * "ec.mm.AI_1_ARRAY".\n
+ * \note There's no ascii command in cmd_EAT.c for this method.\n
+ */int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead);
+
+/** \breif Set update in realtime bit for an entry
  *
  * If set to zero the entry will not be updated during realtime operation.\n
  * Useful when accessing data with memory maps instead covering many entries
  * like oversampling arrays (its the unnecessary to update each entry in
  * array).\n
+ *
+ *  \param[in] slavePosition Position of the EtherCAT slave on the bus.\n
+ *    slavePosition = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] entryIdString String for addressing purpose (see command
+ *                      "Cfg.EcAddEntryComplete() for more information").\n
+ *  \param[in] updateInRealtime 1 for update of entry data in realtime and
+ *                      0 not to update data in realtime.\n
+ * \note Example: Disable update of value in realtime for entry with name "AI_1" on
+ * bus position 5.\n
+ *  "Cfg.EcSetEntryUpdateInRealtime(AI_1,5,0)" //Command string to cmd_EAT.c\n
  */
 int ecSetEntryUpdateInRealtime(
     uint16_t slavePosition,
@@ -3588,6 +3784,42 @@ int ecResetError();
  */
 int ecEnablePrintouts(int value);
 
+/** \breif Prints all hardware connected to selected master.\n
+ *
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example:
+ *  "EcPrintAllHardware()" //Command string to cmd_EAT.c\n
+ */
+int ecPrintAllHardware();
+
+/** \breif Prints hardware configuration for a selected slave.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example:Print hardware configuration for slave 1
+ *  "EcPrintSlaveConfig(1)" //Command string to cmd_EAT.c\n
+ */
+int ecPrintSlaveConfig(int slaveIndex);
+
+/** \breif Autoconfigurs all available pdo entries on a slave.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \param[in] slaveIndex Index of EtherCAT slave.\n
+ * \param[in] addAsynParams Make pdo-entries availabe as asyn parameters.\n
+ *
+ * \note Example:Auto configure hardware for slave 3 and make entries
+ * available over ASYN. (addAsynParams default to 1)\n
+ *  "Cfg.EcSlaveAutoConfig(3)" //Command string to cmd_EAT.c\n
+ *
+ * \note Example:Auto configure hardware for slave 3 without asyn.\n
+ *  "Cfg.EcSlaveAutoConfig(3,0)" //Command string to cmd_EAT.c\n
+ *
+ */
+int ecAutoConfigSlave(int slaveIndex, int addAsynParams);
+
 /** \breif Set axis index for detailed motion diagnostics.\n
  *
  * \param[in] axisIndex Index of axis.\n
@@ -3648,6 +3880,14 @@ int setEnableTimeDiag(int value);
  *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to cmd_EAT.c\n
  */
 int setEnableFunctionCallDiag(int value);
+/** \breif Set indixes of default asyn parameters during startup.\n
+ *
+ * \param[in] indices Array containing asyn param indices.\n
+ * \param[in] size Size of indices array.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
 
 #ifdef __cplusplus
 }

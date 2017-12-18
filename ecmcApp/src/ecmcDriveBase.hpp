@@ -54,6 +54,7 @@ public:
   virtual void readEntries();
   virtual void writeEntries();
   virtual void printCurrentState();
+  virtual void errorReset();
   int setEnable(bool enable);
   bool getEnable();
   bool getEnabled();
@@ -75,12 +76,12 @@ public:
 protected:
   int updateBrakeState();
   bool driveInterlocksOK();
+  //Enable command to amplifier (could be delayed or sent earlier depending on if break is used
   bool enableAmpCmd_;
   bool enableAmpCmdOld_;
   double scale_;
   double scaleNum_;
   double scaleDenom_;
-  //int velSetRawOutput_;
   double velSet_;
   uint64_t controlWord_;
   uint64_t statusWord_;
@@ -90,14 +91,14 @@ private:
   bool manualModeEnableAmpCmdOld_;
   int brakeOpenDelayTime_;
   int brakeCloseAheadTime_;
-  bool brakeOutputCmd_;
   bool brakeOutputCmdOld_;
-  bool reduceTorqueOutputCmd_;
   bool reduceTorqueOutputCmdOld_;
-  ecmcBrakeStates brakeState_;
-  int brakeCounter_;
   bool enableBrake_;
   bool enableReduceTorque_;
+  bool brakeOutputCmd_;
+  bool reduceTorqueOutputCmd_;
+  ecmcBrakeStates brakeState_;
+  int brakeCounter_;
   operationMode opeationMode_;
   bool enableCmdOld_;
 };

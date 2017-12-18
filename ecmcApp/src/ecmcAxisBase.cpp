@@ -194,6 +194,37 @@ void ecmcAxisBase::postExecute(bool masterOK)
   data_.status_.cntrlOutputOld=data_.status_.cntrlOutput;
   cycleCounter_++;
   refreshDebugInfoStruct();
+
+  //Update asyn parameters
+  if(updateDefAsynParams_){
+    if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
+      asynUpdateCycleCounter_=0;
+      asynPortDriver_->setDoubleParam(asynParIdActPos_,data_.status_.currentPositionActual);
+      asynPortDriver_->setDoubleParam(asynParIdSetPos_,data_.status_.currentPositionSetpoint);
+    }
+    else{
+      asynUpdateCycleCounter_++;
+    }
+  }
+
+
+  if(asynPortDriverDiag_ && asynParIdDiag_>=0){
+    if(asynUpdateCycleCounterDiag_>=asynUpdateCyclesDiag_ && updateAsynParamsDiag_){
+      int bytesUsed=0;
+      char diagBuffer[1024];
+      int error=getAxisDebugInfoData(&diagBuffer[0], sizeof(diagBuffer),&bytesUsed);
+      if(error){
+	LOGERR("%s/%s:%d: Fail to update asyn par axis<id>.diag. Buffer to small.\n",__FILE__,__FUNCTION__,__LINE__);
+      }
+      else{
+        asynPortDriverDiag_->doCallbacksInt8Array((epicsInt8*)diagBuffer,bytesUsed, asynParIdDiag_, 0);
+      }
+      asynUpdateCycleCounterDiag_=0;
+    }
+    else{
+      asynUpdateCycleCounterDiag_++;
+    }
+  }
 }
 
 axisType ecmcAxisBase::getAxisType()
@@ -279,6 +310,18 @@ void ecmcAxisBase::initVars()
   axisState_=ECMC_AXIS_STATE_STARTUP;
   oldPositionAct_=0;
   oldPositionSet_=0;
+  asynPortDriver_=NULL;
+  updateDefAsynParams_=0;
+  asynParIdActPos_=0;
+  asynParIdSetPos_=0;
+  asynUpdateCycleCounter_=0;
+  asynUpdateCycles_=0;
+
+  asynPortDriverDiag_=NULL;
+  updateAsynParamsDiag_=0;
+  asynParIdDiag_=-1;
+  asynUpdateCycleCounterDiag_=0;
+  asynUpdateCyclesDiag_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -937,7 +980,7 @@ void ecmcAxisBase::printAxisStatus()
 
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("\necmc:: Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
+    LOGINFO("ecmc::  Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
@@ -976,7 +1019,7 @@ int ecmcAxisBase::setExecute(bool execute)
 {
   //Internal trajectory source
   if(externalInputTrajectoryIF_->getDataSourceType()==ECMC_DATA_SOURCE_INTERNAL){
-    if(execute && !getEnable()){
+    if(execute && !getEnable() && !(data_.command_.cmdData==0 && data_.command_.command==10)){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_NOT_ENABLED);
     }
 
@@ -1037,4 +1080,133 @@ bool ecmcAxisBase::getEnable()
 bool ecmcAxisBase::getEnabled()
 {
   return data_.status_.enabled && data_.command_.enable;
+}
+
+int ecmcAxisBase::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles)
+{
+  asynPortDriver_=asynPortDriver;
+  updateDefAsynParams_=regAsynParams;
+  asynUpdateCycles_=skipCycles;
+
+  if(!regAsynParams){
+    return 0;
+  }
+
+  if(asynPortDriver_==NULL){
+    LOGERR("%s/%s:%d: ERROR: AsynPortDriver object NULL (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASYN_PORT_OBJ_NULL);
+    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
+  }
+
+  char asynParName[1024];
+
+  //actpos
+  int ret=snprintf(asynParName,1023,"ax%d.actpos",data_.axisId_);
+  if(ret>=1024 || ret <=0){
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  asynStatus status = asynPortDriver_->createParam(asynParName,asynParamFloat64,&asynParIdActPos_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,asynParName);
+    return asynError;
+  }
+  asynPortDriver_-> setDoubleParam(asynParIdActPos_,0);
+
+  //setpos
+  ret=snprintf(asynParName,1023,"ax%d.setpos",data_.axisId_);
+  if(ret>=1024 || ret <=0){
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  status = asynPortDriver_->createParam(asynParName,asynParamFloat64,&asynParIdSetPos_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,asynParName);
+    return asynError;
+  }
+  asynPortDriver_-> setDoubleParam(asynParIdSetPos_,0);
+
+  asynPortDriver_-> callParamCallbacks();
+  return 0;
+}
+
+int ecmcAxisBase::initDiagAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles)
+{
+
+  asynPortDriverDiag_=asynPortDriver;
+  updateAsynParamsDiag_=regAsynParams;
+  asynUpdateCyclesDiag_=skipCycles;
+
+  if(!regAsynParams){
+    return 0;
+  }
+
+  if(asynPortDriverDiag_==NULL){
+    LOGERR("%s/%s:%d: ERROR: AsynPortDriver object NULL (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ASYN_PORT_OBJ_NULL);
+    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
+  }
+
+  char asynParName[1024];
+
+  //Diagnostic string
+  int ret=snprintf(asynParName,1023,"ax%d.diagnostic",data_.axisId_);
+  if(ret>=1024 || ret <=0){
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  asynStatus status = asynPortDriverDiag_->createParam(asynParName,asynParamInt8Array,&asynParIdDiag_);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add diagnostic asyn parameter %s failed.\n",__FILE__,__FUNCTION__,__LINE__,asynParName);
+    return asynError;
+  }
+
+  return 0;
+}
+
+int ecmcAxisBase::getAxisDebugInfoData(char *buffer, int bufferByteSize, int *bytesUsed)
+{
+  ecmcAxisStatusType data;
+  int error=getDebugInfoData(&data);
+  if(error){
+    return error;
+  }
+
+  //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+       data.axisID,
+       data.onChangeData.positionSetpoint,
+       data.onChangeData.positionActual,
+       data.onChangeData.cntrlError,
+       data.onChangeData.positionTarget,
+       data.onChangeData.positionError,
+       data.onChangeData.positionRaw,
+       data.onChangeData.cntrlOutput,
+       data.onChangeData.velocitySetpoint,
+       data.onChangeData.velocityActual,
+       data.onChangeData.velocityFFRaw,
+       data.onChangeData.velocitySetpointRaw,
+       data.cycleCounter,
+       data.onChangeData.error,
+       data.onChangeData.command,
+       data.onChangeData.cmdData,
+       data.onChangeData.seqState,
+       data.onChangeData.trajInterlock,
+       data.onChangeData.trajSource,
+       data.onChangeData.encSource,
+       data.onChangeData.enable,
+       data.onChangeData.enabled,
+       data.onChangeData.execute,
+       data.onChangeData.busy,
+       data.onChangeData.atTarget,
+       data.onChangeData.homed,
+       data.onChangeData.limitBwd,
+       data.onChangeData.limitFwd,
+       data.onChangeData.homeSwitch
+       );
+
+  if(ret>=bufferByteSize || ret <=0){
+    *bytesUsed=0;
+    return ERROR_AXIS_PRINT_TO_BUFFER_FAIL ;
+  }
+  *bytesUsed=ret;
+  return 0;
 }

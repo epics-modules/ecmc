@@ -27,14 +27,12 @@
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 
-
 //Hardware
 #include "ecmcEc.h"
 #include "ecmcEcPdo.h"
 #include "ecmcEcSlave.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcEcEntry.h"
-
 
 //Motion
 #include "ecmcAxisBase.h"      //Abstract class for all axis types
@@ -50,6 +48,7 @@
 #include "ecmcDataRecorder.h"
 #include "ecmcDataStorage.h"
 #include "ecmcCommandList.h"
+#include "ecmcAsynPortDriver.h"
 
 
 /****************************************************************************/
@@ -71,7 +70,8 @@
 static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static int              axisDiagIndex;
 static int              axisDiagFreq;
-static int              controllerError=0;
+static int              controllerError=-1;
+static const char*      controllerErrorMsg="NO_ERROR";
 static app_mode_type    appMode,appModeOld;
 static unsigned int     counter = 0;
 static ecmcEc           ec;
@@ -82,6 +82,27 @@ static ecmcCommandList  *commandLists[ECMC_MAX_COMMANDS_LISTS];
 static struct timespec  masterActivationTimeMonotonic={};
 static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
+static ecmcAsynPortDriver *asynPort=NULL;
+
+//Default asyn params
+static int asynParIdLatencyMin=0;
+static int asynParIdLatencyMax=0;
+static int asynParIdExecuteMin=0;
+static int asynParIdExecuteMax=0;
+static int asynParIdPeriodMin=0;
+static int asynParIdPeriodMax=0;
+static int asynParIdSendMin=0;
+static int asynParIdSendMax=0;
+static int asynParIdEcmcAppMode=0;
+static int asynParIdEcmcErrorId=0;
+static int asynParIdEcmcErrorMsg=0;
+static int asynParIdEcmcErrorReset=0;
+static int asynSkipCyclesThread=0;
+static int asynUpdateCounterThread=0;
+static int asynThreadParamsEnable=0;
+
+static int asynSkipCyclesFastest=-1;
+static int asynSkipUpdateCounterFastest=0;
 
 /****************************************************************************/
 
@@ -262,6 +283,39 @@ void cyclic_task(void * usr)
       }
     }
 
+    //Update Asyn thread diagnostics parameters
+    if(asynUpdateCounterThread){
+      asynUpdateCounterThread--;
+    }
+    else{
+
+      asynUpdateCounterThread=asynSkipCyclesThread;
+
+      if(asynPort && asynSkipCyclesThread>=0 && asynThreadParamsEnable){
+        asynPort-> setIntegerParam(asynParIdLatencyMin,latency_min_ns);
+        asynPort-> setIntegerParam(asynParIdLatencyMax,latency_max_ns);
+        asynPort-> setIntegerParam(asynParIdExecuteMin,exec_min_ns);
+        asynPort-> setIntegerParam(asynParIdExecuteMax,exec_max_ns);
+        asynPort-> setIntegerParam(asynParIdPeriodMin,period_min_ns);
+        asynPort-> setIntegerParam(asynParIdPeriodMax,period_max_ns);
+        asynPort-> setIntegerParam(asynParIdSendMin,send_min_ns);
+        asynPort-> setIntegerParam(asynParIdSendMax,send_max_ns);
+        controllerError=getControllerError();
+        asynPort->setIntegerParam(asynParIdEcmcErrorId,controllerError);
+        controllerErrorMsg=getErrorString(controllerError);
+        asynPort->doCallbacksInt8Array((epicsInt8*)controllerErrorMsg,(int)strlen(controllerErrorMsg)+1, asynParIdEcmcErrorMsg,0);
+        period_max_ns = 0;
+        period_min_ns = 0xffffffff;
+        exec_max_ns = 0;
+        exec_min_ns = 0xffffffff;
+        latency_max_ns = 0;
+        latency_min_ns = 0xffffffff;
+        send_max_ns=0;
+        send_min_ns=0xffffffff;
+        sendperiod_ns=0;
+      }
+    }
+
     if (counter) {
       counter--;
     }
@@ -270,51 +324,27 @@ void cyclic_task(void * usr)
         counter = MCU_FREQUENCY/axisDiagFreq;
         ec.checkState();
         ec.checkSlavesConfState();
-
         printStatus();
         for(int i=0;i<ECMC_MAX_AXES;i++){
           if(axes[i]!=NULL){
             axes[i]->slowExecute();
           }
         }
-
-        ec.printStatus();
-
-        if(PRINT_STDOUT_BIT13()){
-          struct timespec testtime;
-          clock_gettime(CLOCK_MONOTONIC, &testtime);
-
-          //
-          LOGINFO("%s/%s:%d: thread.clock=%ld.%09ld;\n",__FILE__, __FUNCTION__, __LINE__,testtime.tv_sec,testtime.tv_nsec);
-          //LOGINFO("\nCLOCK: %ld, %ld\n", testtime.tv_sec,testtime.tv_nsec);
-          //LOGINFO("period     %10u ... %10u\n",
-          //        		period_min_ns, period_max_ns);
-          LOGINFO("%s/%s:%d: thread.period.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_min_ns);
-          LOGINFO("%s/%s:%d: thread.period.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,period_max_ns);
-          LOGINFO("%s/%s:%d: thread.execute.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_min_ns);
-          LOGINFO("%s/%s:%d: thread.execute.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,exec_max_ns);
-          LOGINFO("%s/%s:%d: thread.latency.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_min_ns);
-          LOGINFO("%s/%s:%d: thread.latency.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,latency_max_ns);
-          LOGINFO("%s/%s:%d: thread.send.min=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_min_ns);
-          LOGINFO("%s/%s:%d: thread.send.max=%10u;\n",__FILE__, __FUNCTION__, __LINE__,send_max_ns);
-          //LOGINFO("exec       %10u ... %10u\n",
-          //      exec_min_ns, exec_max_ns);
-          //LOGINFO("latency    %10u ... %10u\n",
-          //      latency_min_ns, latency_max_ns);
-          //LOGINFO("send       %10u ... %10u\n",
-          //		send_min_ns, send_max_ns);
-          period_max_ns = 0;
-          period_min_ns = 0xffffffff;
-          exec_max_ns = 0;
-          exec_min_ns = 0xffffffff;
-          latency_max_ns = 0;
-          latency_min_ns = 0xffffffff;
-          send_max_ns=0;
-          send_min_ns=0xffffffff;
-          sendperiod_ns=0;
-        }
+        ec.slowExecute();
       }
     }
+
+    //Asyn callbacks for all parameters (except arrays)
+    if(asynSkipUpdateCounterFastest){
+      asynSkipUpdateCounterFastest--;
+    }
+    else{
+      asynSkipUpdateCounterFastest=asynSkipCyclesFastest;
+      if(asynPort){
+        asynPort-> callParamCallbacks();
+      }
+    }
+
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
     ec.send(masterActivationTimeOffset);
     clock_gettime(CLOCK_MONOTONIC, &endTime);
@@ -388,6 +418,7 @@ int waitForEtherCATtoStart(int timeoutSeconds)
     }
   }
   LOGERR("Timeout error: EtherCAT bus did not start correctly in %ds.\n",timeoutSeconds);
+  setAppMode(0);
   return ec.getErrorID();
 }
 
@@ -408,6 +439,11 @@ int setAppModeRun(int mode)
 {
   appModeOld=appMode;
   appMode=(app_mode_type)mode;
+
+  if(asynPort && asynThreadParamsEnable){
+    asynPort-> setIntegerParam(asynParIdEcmcAppMode,mode);
+    asynPort-> callParamCallbacks();
+  }
 
   for(int i=0;i<ECMC_MAX_AXES;i++){
     if(axes[i]!=NULL){
@@ -544,10 +580,10 @@ int ecApplyConfig(int masterIndex)
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex);
 
   int errorCode=0;
-  if((errorCode=ec.writeAndVerifySDOs())){
+  /*if((errorCode=ec.writeAndVerifySDOs())){
     LOGERR("ERROR:\tSDO write and verify failed\n");
     return errorCode;
-  }
+  }*/
   if((errorCode=ec.compileRegInfo())){
     LOGERR("ERROR:\tCompileRegInfo failed\n");
     return errorCode;
@@ -569,7 +605,6 @@ int ecSetDomainFailedCyclesLimit(int value)
   return ec.setDomainFailedCyclesLimitInterlock(value);
 }
 
-
 int ecEnablePrintouts(int value)
 {
   LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
@@ -577,6 +612,24 @@ int ecEnablePrintouts(int value)
   WRITE_DIAG_BIT(FUNCTION_ETHERCAT_DIAGNOSTICS_BIT,value);
 
   return 0;
+}
+
+int ecPrintAllHardware()
+{
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+  return ec.printAllConfig();
+}
+
+int ecPrintSlaveConfig(int slaveIndex)
+{
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+  return ec.printSlaveConfig(slaveIndex);
+}
+
+int ecAutoConfigSlave(int slaveIndex,int addAsynParams)
+{
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+  return ec.autoConfigSlave(slaveIndex,addAsynParams);
 }
 
 int setEnableFunctionCallDiag(int value)
@@ -698,50 +751,8 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  ecmcAxisStatusType data;
-  int error=axes[axisIndex]->getDebugInfoData(&data);
-  if(error){
-    return error;
-  }
-
-  //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
-  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-       data.axisID,
-       data.onChangeData.positionSetpoint,
-       data.onChangeData.positionActual,
-       data.onChangeData.cntrlError,
-       data.onChangeData.positionTarget,
-       data.onChangeData.positionError,
-       data.onChangeData.positionRaw,
-       data.onChangeData.cntrlOutput,
-       data.onChangeData.velocitySetpoint,
-       data.onChangeData.velocityActual,
-       data.onChangeData.velocityFFRaw,
-       data.onChangeData.velocitySetpointRaw,
-       data.cycleCounter,
-       data.onChangeData.error,
-       data.onChangeData.command,
-       data.onChangeData.cmdData,
-       data.onChangeData.seqState,
-       data.onChangeData.trajInterlock,
-       data.onChangeData.trajSource,
-       data.onChangeData.encSource,
-       data.onChangeData.enable,
-       data.onChangeData.enabled,
-       data.onChangeData.execute,
-       data.onChangeData.busy,
-       data.onChangeData.atTarget,
-       data.onChangeData.homed,
-       data.onChangeData.limitBwd,
-       data.onChangeData.limitFwd,
-       data.onChangeData.homeSwitch
-       );
-
-  if(ret>=bufferByteSize || ret <=0){
-    return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
-  }
-
-  return 0;
+  int bytesUsed=0;
+  return axes[axisIndex]->getAxisDebugInfoData(buffer,bufferByteSize,&bytesUsed);
 }
 
 int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize)
@@ -2490,13 +2501,23 @@ int ecWriteSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint
   return ec.writeSDO(slavePosition,sdoIndex,sdoSubIndex,value,byteSize);
 }
 
-uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize)
+int ecWriteSdoComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value,int byteSize)
+{
+  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d value=%d bytesize=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,value,byteSize);
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.writeSDOComplete(slavePosition,sdoIndex,value,byteSize);
+}
+
+uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize, uint32_t *value)
 {
   LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d bytesize=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,sdoSubIndex,byteSize);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
-  return ec.readSDO(slavePosition,sdoIndex,sdoSubIndex,byteSize);
+  return ec.readSDO(slavePosition,sdoIndex,sdoSubIndex,byteSize,value);
 }
 
 int ecSlaveConfigWatchDog(int slaveBusPosition,int watchdogDivider,int watchdogIntervals)
@@ -2550,6 +2571,19 @@ int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int dr
 {
   LOGINFO4("%s/%s:%d slave_index=%d entry=%s drive=%d drive_entry=%d bit_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,driveEntryIndex,bitIndex);
 
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  //Disable brake output with empty string
+  if(strlen(entryIDString)==0 && driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT){
+    return axes[axisIndex]->getDrv()->setEnableBrake(0);
+  }
+
+  //Disable reduce torque output with empty string
+  if(strlen(entryIDString)==0 && driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT){
+    return axes[axisIndex]->getDrv()->setEnableReduceTorque(0);
+  }
+
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
@@ -2572,13 +2606,32 @@ int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int dr
   if(entry==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  if(driveEntryIndex>=MaxEcEntryLinks && driveEntryIndex<0)
+  if(driveEntryIndex>=MaxEcEntryLinks && driveEntryIndex<0){
     return ERROR_MAIN_DRIVE_ENTRY_INDEX_OUT_OF_RANGE;
+  }
 
-  return axes[axisIndex]->getDrv()->setEntryAtIndex(entry,driveEntryIndex,bitIndex);
+  int ret=axes[axisIndex]->getDrv()->setEntryAtIndex(entry,driveEntryIndex,bitIndex);
+  if(ret){
+    return ret;
+  }
+
+  //Auto enable break
+  if(driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT){
+    ret=axes[axisIndex]->getDrv()->setEnableBrake(1);
+    if(ret){
+      return ret;
+    }
+  }
+
+  //Auto enable reduce torque
+  if(driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT){
+    ret=axes[axisIndex]->getDrv()->setEnableReduceTorque(1);
+    if(ret){
+      return ret;
+    }
+  }
+
+  return 0;
 }
 
 int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int monitorEntryIndex, int bitIndex)
@@ -2604,12 +2657,9 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
 
   ecmcEcEntry *entry=slave->findEntry(sEntryID);
 
-  if(entry==NULL)
+  if(entry==NULL){
     return ERROR_MAIN_EC_ENTRY_NULL;
-
-
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  }
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2620,25 +2670,305 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
   return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);
 }
 
-int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles)
+int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString)
 {
-  LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,entryIDString,asynParType,skipCycles);
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString);
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.linkEcEntryToAsynParameter(asynPortObject,entryIDString,asynParType,skipCycles);
+  ecmcEcSlave *slave=NULL;
+  if(slaveIndex>=0){
+    slave=ec.findSlave(slaveIndex);
+  }
+  else
+  {
+    slave=ec.getSlave(slaveIndex);
+  }
+
+  if(slave==NULL)
+    return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID=entryIDString;
+
+  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+  return ec.setEcStatusOutputEntry(entry);
 }
 
-int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles)
+int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entryIDString, int asynParType,int skipCycles)
 {
-  LOGINFO4("%s/%s:%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,asynParType,skipCycles);
+  LOGINFO4("%s/%s:%d masterIndex=%d busPosition=%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,busPosition,entryIDString,asynParType,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.linkEcMemMapToAsynParameter(asynPortObject,memMapIDString,asynParType,skipCycles);
+  if(ec.getMasterIndex()!=masterIndex){
+    return ERROR_MAIN_EC_MASTER_NULL;
+  }
 
+  int err=ec.linkEcEntryToAsynParameter(asynPort,entryIDString,asynParType,skipCycles);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
+}
+
+int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int asynParType,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d masterIndex=%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,memMapIDString,asynParType,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(ec.getMasterIndex()!=masterIndex){
+    return ERROR_MAIN_EC_MASTER_NULL;
+  }
+
+  int err=ec.linkEcMemMapToAsynParameter(asynPort,memMapIDString,asynParType,skipCycles);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+   return 0;
+}
+
+int initEcmcAsyn(void* asynPortObject)
+{
+  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+  asynPort=(ecmcAsynPortDriver*)asynPortObject;
+  return 0;
+}
+
+int addDefaultAsynEc(int masterIndex,int regAsynParams,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d masterIndex=%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,regAsynParams,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(ec.getMasterIndex()!=masterIndex){
+    return ERROR_MAIN_EC_MASTER_NULL;
+  }
+
+  int err=ec.initAsyn(asynPort,regAsynParams,skipCycles);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
+}
+
+int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d masterIndex=%d busPosition=%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,busPosition,regAsynParams,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(ec.getMasterIndex()!=masterIndex){
+    return ERROR_MAIN_EC_MASTER_NULL;
+  }
+
+  ecmcEcSlave *tempSlave=ec.findSlave(busPosition);
+  if(!tempSlave){
+    return ERROR_MAIN_EC_SLAVE_NULL;
+  }
+
+  int err=tempSlave->initAsyn(asynPort,regAsynParams,skipCycles,masterIndex);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
+}
+
+int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,axisIndex,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+
+  int err=axes[axisIndex]->initAsyn(asynPort,regAsynParams,skipCycles);
+  if(err){
+    return err;
+  }
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
+}
+
+int addDiagAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,axisIndex,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  //Array so updated in axis base object
+  return axes[axisIndex]->initDiagAsyn(asynPort,regAsynParams,skipCycles);
+}
+
+
+int addDefaultAsynParams(int regAsynParams,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,skipCycles);
+
+  if(asynPort==NULL){
+    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+  }
+
+  asynSkipCyclesThread=skipCycles;
+
+  if(!regAsynParams ){
+    return 0;
+  }
+
+  //Timing info (only updated in real time)!
+  asynStatus status = asynPort->createParam("ecmc.thread.latency.min",asynParamInt32,&asynParIdLatencyMin);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.latency.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdLatencyMin,0);
+
+  status = asynPort->createParam("ecmc.thread.latency.max",asynParamInt32,&asynParIdLatencyMax);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.latency.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdLatencyMax,0);
+
+  status = asynPort->createParam("ecmc.thread.period.min",asynParamInt32,&asynParIdPeriodMin);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.period.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdPeriodMin,0);
+
+  status = asynPort->createParam("ecmc.thread.period.max",asynParamInt32,&asynParIdPeriodMax);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.period.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdPeriodMax,0);
+
+  status = asynPort->createParam("ecmc.thread.execute.min",asynParamInt32,&asynParIdExecuteMin);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.execute.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdExecuteMin,0);
+
+  status = asynPort->createParam("ecmc.thread.execute.max",asynParamInt32,&asynParIdExecuteMax);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.execute.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdExecuteMax,0);
+
+  status = asynPort->createParam("ecmc.thread.send.min",asynParamInt32,&asynParIdSendMin);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.send.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdSendMin,0);
+
+  status = asynPort->createParam("ecmc.thread.send.max",asynParamInt32,&asynParIdSendMax);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.send.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdSendMax,0);
+
+  status = asynPort->createParam("ecmc.appmode",asynParamInt32,&asynParIdEcmcAppMode);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdEcmcAppMode,0);
+
+  status = asynPort->createParam("ecmc.error.id",asynParamInt32,&asynParIdEcmcErrorId);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.id failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdEcmcErrorId,0);
+
+  status = asynPort->createParam("ecmc.error.reset",asynParamInt32,&asynParIdEcmcErrorReset);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.reset failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+  asynPort-> setIntegerParam(asynParIdEcmcErrorReset,0);
+
+  status = asynPort->createParam("ecmc.error.msg",asynParamInt8Array,&asynParIdEcmcErrorMsg);
+  if(status!=asynSuccess){
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.msg failed.\n",__FILE__,__FUNCTION__,__LINE__);
+    return asynError;
+  }
+
+  asynPort->doCallbacksInt8Array((epicsInt8*)"NO_ERROR\0",9, asynParIdEcmcErrorMsg,0);
+
+  asynPort-> callParamCallbacks();
+  asynThreadParamsEnable=1;
+
+  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
+    asynSkipCyclesFastest=skipCycles;
+  }
+
+  return 0;
 }
 
 int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead)
@@ -2666,7 +2996,7 @@ int writeEcEntry(int slaveIndex, int entryIndex,uint64_t value)
     return ERROR_MAIN_EC_SLAVE_NULL;
   if(ec.getSlave(slaveIndex)->getEntry(entryIndex)==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
-  return ec.getSlave(slaveIndex)->getEntry(entryIndex)->writeValue(value);
+  return ec.getSlave(slaveIndex)->getEntry(entryIndex)->writeValueForce(value);
 }
 
 int writeEcEntryIDString(int slavePosition,char * entryIDString,uint64_t value)
@@ -2694,7 +3024,7 @@ int writeEcEntryIDString(int slavePosition,char * entryIDString,uint64_t value)
   if(entry==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
 
-  return entry->writeValue(value);;
+  return entry->writeValueForce(value);
 }
 
 int readEcEntry(int slaveIndex, int entryIndex,uint64_t *value)
@@ -3221,7 +3551,7 @@ int getControllerError()
     }
   }
 
-  return controllerError;
+  return 0;
 }
 
 int controllerErrorReset()

@@ -79,7 +79,7 @@ public:
 private:
   void initVars();
   double checkSoftLimits(double posSetpoint);
-  //int seq1SimpleHoming();
+  int seqHoming0(); //nCmdData==1
   int seqHoming1(); //nCmdData==1
   int seqHoming2(); //nCmdData==2
   int seqHoming3(); //nCmdData==3

@@ -7,11 +7,22 @@
 
 #include "ecmcEcSyncManager.h"
 
-ecmcEcSyncManager::ecmcEcSyncManager(ec_direction_t direction,uint8_t syncMangerIndex)
+ecmcEcSyncManager::ecmcEcSyncManager(ec_domain_t *domain,ec_slave_config_t *slave,ec_direction_t direction,uint8_t syncMangerIndex)
 {
   initVars();
   syncMangerIndex_=syncMangerIndex;
   direction_=direction;
+  slaveConfig_=slave;
+  domain_=domain;
+
+  int errorCode=ecrt_slave_config_sync_manager(slaveConfig_,syncMangerIndex_,direction_,EC_WD_DEFAULT);
+  if(errorCode){
+    LOGERR("%s/%s:%d: ERROR: ecrt_slave_config_sync_manager() failed with error code %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_SM_CONFIG_FAIL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SM_CONFIG_FAIL);
+  }
+
+  ecrt_slave_config_pdo_assign_clear(slaveConfig_,syncMangerIndex_);
+  LOGINFO5("%s/%s:%d: INFO: Sync manager %d configured: direction %d.\n",__FILE__, __FUNCTION__, __LINE__,syncMangerIndex,direction);
 }
 
 void ecmcEcSyncManager::initVars()
@@ -23,6 +34,8 @@ void ecmcEcSyncManager::initVars()
   direction_=EC_DIR_INPUT;
   syncMangerIndex_=0;
   pdoCounter_=0;
+  slaveConfig_=NULL;
+  domain_=NULL;
 }
 
 ecmcEcSyncManager::~ecmcEcSyncManager()
@@ -41,7 +54,7 @@ int ecmcEcSyncManager::addPdo(uint16_t pdoIndex)
     LOGERR("%s/%s:%d: ERROR: PDO array full (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_SM_PDO_ARRAY_FULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_SM_PDO_ARRAY_FULL);
   }
-  pdoArray_[pdoCounter_]=new ecmcEcPdo( pdoIndex, direction_);
+  pdoArray_[pdoCounter_]=new ecmcEcPdo(domain_,slaveConfig_,syncMangerIndex_,pdoIndex, direction_);
   pdoCounter_++;
   return 0;
 }
@@ -88,25 +101,33 @@ uint8_t ecmcEcSyncManager::getSyncMangerIndex()
   return syncMangerIndex_;
 }
 
-int ecmcEcSyncManager::addEntry(
+ecmcEcEntry *ecmcEcSyncManager::addEntry(
     uint16_t       pdoIndex,
     uint16_t       entryIndex,
     uint8_t        entrySubIndex,
     uint8_t        bits,
-    std::string    id
+    std::string    id,
+    int *errorCode
     )
 {
-
-ecmcEcPdo *pdo=findPdo(pdoIndex);
+ int err=0;
+ ecmcEcPdo *pdo=findPdo(pdoIndex);
  if(pdo==NULL){
-   int error=addPdo(pdoIndex);
-   if(error){
-     return error;
+   err=addPdo(pdoIndex);
+   if(err){
+     *errorCode=err;
+     return NULL;
    }
    pdo=pdoArray_[pdoCounter_-1]; //last added sync manager
  }
- pdo->addEntry(entryIndex,entrySubIndex,bits,id);
- return 0;
+
+ ecmcEcEntry *entry=pdo->addEntry(entryIndex,entrySubIndex,bits,id,&err);
+ if(err || !entry){
+   *errorCode=err;
+   return NULL;
+ }
+
+ return entry;
 }
 
 ecmcEcPdo *ecmcEcSyncManager::findPdo(uint16_t pdoIndex)

@@ -70,7 +70,6 @@ int ecmcEcMemMap::updateInputProcessImage()
     if(validate()!=0){
       return 0;
     }
-    validationDone_=1;
   }
 
   memcpy(buffer_,(domainAdr_+byteOffset_),byteSize_);
@@ -88,7 +87,6 @@ int ecmcEcMemMap::updateOutProcessImage()
     if(validate()!=0){
       return 0;
     }
-    validationDone_=1;
   }
 
   memcpy((domainAdr_+byteOffset_),buffer_,byteSize_);
@@ -147,25 +145,31 @@ int ecmcEcMemMap::updateAsyn(bool force)
   return 0;
 }
 
-
 int ecmcEcMemMap::validate()
 {
   byteOffset_=startEntry_->getByteOffset();
   domainAdr_=startEntry_->getDomainAdr();
 
-  if(byteOffset_<0 ){
-    LOGERR("%s/%s:%d: ERROR: MemMap %s: Invalid data offset (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),ERROR_EC_ENTRY_INVALID_OFFSET);
+  if(byteOffset_<0){
+    if(getErrorID()!=ERROR_EC_ENTRY_INVALID_OFFSET){
+      LOGERR("%s/%s:%d: ERROR: MemMap %s: Invalid data offset (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),ERROR_EC_ENTRY_INVALID_OFFSET);
+    }
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_OFFSET);
   }
 
   if(domainAdr_<0 || domainAdr_==NULL){
-    LOGERR("%s/%s:%d: ERROR: MemMap %s: Invalid domain address (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
+    if(getErrorID()!=ERROR_EC_ENTRY_INVALID_DOMAIN_ADR){
+      LOGERR("%s/%s:%d: ERROR: MemMap %s: Invalid domain address (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
+    }
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
   if(byteOffset_+byteSize_>domainSize_){
-    LOGERR("%s/%s:%d: ERROR: MemMap %s: Byte size, including offset, exceeds domain size (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),ERROR_MEM_MAP_SIZE_OUT_OF_RANGE);
+    if(getErrorID()!=ERROR_MEM_MAP_SIZE_OUT_OF_RANGE){
+      LOGERR("%s/%s:%d: ERROR: MemMap %s: Byte size, including offset, exceeds domain size (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),ERROR_MEM_MAP_SIZE_OUT_OF_RANGE);
+    }
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MEM_MAP_SIZE_OUT_OF_RANGE);
   }
+  validationDone_=1;
   return 0;
 }

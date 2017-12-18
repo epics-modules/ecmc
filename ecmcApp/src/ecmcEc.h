@@ -21,6 +21,7 @@
 #include "cmd.h" //Logging macros
 #include "ecmcAsynPortDriver.h"
 #include "ecmcEcMemMap.h"
+#include <iocsh.h>
 
 //EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
@@ -51,6 +52,18 @@
 #define ERROR_EC_MEM_MAP_START_ENTRY_NULL 0x26019
 #define ERROR_EC_MEM_MAP_NULL 0x2601A
 #define ERROR_EC_ASYN_ALIAS_NOT_VALID 0x2601B
+#define ERROR_EC_AUTO_CONFIG_BUFFER_OVERFLOW 0x2601C
+#define ERROR_EC_AUTO_CONFIG_MASTER_INFO_FAIL 0x2601D
+#define ERROR_EC_AUTO_CONFIG_SLAVE_INFO_FAIL 0x2601E
+#define ERROR_EC_AUTO_CONFIG_SM_INFO_FAIL 0x2601F
+#define ERROR_EC_AUTO_CONFIG_PDO_INFO_FAIL 0x2601F
+#define ERROR_EC_AUTO_CONFIG_ENTRY_INFO_FAIL 0x26020
+#define ERROR_EC_AUTO_CONFIG_MASTER_NOT_SELECTED_FAIL 0x26021
+#define ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE 0x26022
+#define ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID 0x26023
+#define ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW 0x26024
+
+
 
 class ecmcEc : public ecmcError
 {
@@ -67,6 +80,7 @@ public:
   ecmcEcSlave *getSlave(int slave); //NOTE: index not bus position
   ec_domain_t *getDomain();
   ec_master_t *getMaster();
+  int getMasterIndex();
   bool getInitDone();
   void receive();
   void send(timespec timeOffset);
@@ -79,26 +93,28 @@ public:
   int setDiagnostics(bool diag);
   int addSDOWrite(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize);
   int writeAndVerifySDOs();
-  uint32_t readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize);
+  int readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize,uint32_t *value);
+  //uint32_t readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize);
   int writeSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize);
+  int writeSDOComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value, int byteSize);
   int addEntry(
-      uint16_t       position, /**< Slave position. */
-      uint32_t       vendorId, /**< Expected vendor ID. */
-      uint32_t       productCode, /**< Expected product code. */
-      ec_direction_t direction,
-      uint8_t        syncMangerIndex,
-      uint16_t       pdoIndex,
-      uint16_t       entryIndex,
-      uint8_t        entrySubIndex,
-      uint8_t        bits,
-      std::string    id
+        uint16_t       position, /**< Slave position. */
+        uint32_t       vendorId, /**< Expected vendor ID. */
+        uint32_t       productCode, /**< Expected product code. */
+        ec_direction_t direction,
+        uint8_t        syncMangerIndex,
+        uint16_t       pdoIndex,
+        uint16_t       entryIndex,
+        uint8_t        entrySubIndex,
+        uint8_t        bits,
+        std::string    id
   );
   int addMemMap(uint16_t startEntryBusPosition,
-		    std::string startEntryIDString,
-		    int byteSize,
-		    int type,
-		    ec_direction_t direction,
-		    std::string memMapIDString);
+        std::string startEntryIDString,
+	int byteSize,
+	int type,
+	ec_direction_t direction,
+	std::string memMapIDString);
   ecmcEcMemMap *findMemMap(std::string id);
   ecmcEcSlave *findSlave(int busPosition);
   int findSlaveIndex(int busPosition,int *slaveIndex);
@@ -106,17 +122,23 @@ public:
   int printTimingInformation();
   int statusOK();
   int setDomainFailedCyclesLimitInterlock(int cycles);
-  void printStatus();
+  void slowExecute();
   int reset();
   int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
   int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
+  int setEcStatusOutputEntry(ecmcEcEntry *entry);
+  int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
+  int printAllConfig();
+  int printSlaveConfig(int slaveIndex);
+  int autoConfigSlave(int slaveIndex,int addAsAsynParams);
+
+
 private:
   void initVars();
   int updateInputProcessImage();
   int updateOutProcessImage();
   timespec timespecAdd(timespec time1, timespec time2);
-
-  ec_master_t *master_; /**< EtherCAT master */
+  ec_master_t *master_;
   ec_domain_t *domain_;
   ec_domain_state_t domainStateOld_;
   ec_domain_state_t domainState_;
@@ -124,12 +146,11 @@ private:
   ec_master_state_t masterState_;
   uint8_t *domainPd_ ;
   int slaveCounter_;
-  int sdoCounter_;
+  int entryCounter_;
   ecmcEcSlave *slaveArray_[EC_MAX_SLAVES];
   ec_pdo_entry_reg_t slaveEntriesReg_[EC_MAX_ENTRIES];
   unsigned int pdoByteOffsetArray_[EC_MAX_ENTRIES];
   unsigned int pdoBitOffsetArray_[EC_MAX_ENTRIES];
-  ecmcEcSDO *sdoArray_[EC_MAX_ENTRIES];
   bool initDone_;
   bool diag_;
   ecmcEcSlave *simSlave_;
@@ -137,13 +158,30 @@ private:
   int masterOK_;
   int domainOK_;
   int domainNotOKCounter_;
+  int domainNotOKCounterTotal_;
   int domainNotOKCounterMax_;
   int domainNotOKCyclesLimit_;
   bool inStartupPhase_;
-  ecmcAsynPortDriver *asynPortDriver_;
+
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
   int ecMemMapArrayCounter_;
   size_t domainSize_;
+  ecmcEcEntry *statusOutputEntry_;
+  int masterIndex_;
 
+  ecmcAsynPortDriver *asynPortDriver_;
+  int updateDefAsynParams_;
+  int asynParIdSlaveCounter_;
+  int asynParIdMemMapCounter_;
+  int asynParIdSlavesStatus_;
+  int asynParIdDomianStatus_;
+  int asynParIdDomianFailCounter_;
+  int asynParIdDomianFailCounterTotal_;
+  int asynParIdAlState;
+  int asynParIdEntryCounter_;
+  int asynParIdMasterLink_;
+
+  int asynUpdateCycleCounter_;
+  int asynUpdateCycles_;
 };
 #endif /* ECMCEC_H_ */

@@ -42,7 +42,7 @@ void ecmcDriveStepper::printCurrentState()
 
 void ecmcDriveStepper::initVars()
 {
-  //ecmcDriveBase::initVars();
+
 }
 
 int ecmcDriveStepper::validate()
@@ -56,19 +56,12 @@ int ecmcDriveStepper::validate()
 
 void ecmcDriveStepper::writeEntries()
 {
-/*  switch(data_->command_.operationModeCmd){
-    case ECMC_MODE_OP_AUTO:
-      //controlWord_=!getError() && (uint64_t)data_->command_.enable;
-      controlWord_=!getError() && (uint64_t)enableAmpCmd_;
-      break;
-    case ECMC_MODE_OP_MAN:
-      controlWord_=!getError() && (uint64_t)manualModeEnable_;
-      break;
-  }*/
-
-  //controlWord_=(uint64_t)data_->command_.enable;
   controlWord_=!getError() && (uint64_t)enableAmpCmd_;
-
+  if(getError()){
+    enableAmpCmd_=false;
+    controlWord_=0;
+    data_->status_.currentVelocitySetpointRaw=0;
+  }
   ecmcDriveBase::writeEntries();
 }
 

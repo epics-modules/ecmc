@@ -58,6 +58,19 @@ static int ecmcInit=0;
   }                                                   \
   while(0)
 
+#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT(function) \
+  do {                                                \
+    int iRet=function;                                \
+    if(iRet){                                         \
+      cmd_buf_printf(buffer,"Error: %d", iRet);       \
+      return 0;                                       \
+    }                                                 \
+    cmd_buf_printf(buffer,"%u", u32Value);              \
+    return 0;                                         \
+  }                                                   \
+  while(0)
+
+
 #define SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(function) \
   do {                                                   \
     int iRet=function;                                   \
@@ -558,8 +571,18 @@ static int handleCfgCommand(const char *myarg_1){
   }
 
   /// "Cfg.LinkEcEntryToAxisDrive(slaveBusPosition,entryIdString,axisIndex,driveEntryIndex,entrybitIndex)"
+  cIdBuffer[0]='\0';
+  iValue5=-10;
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisDrive(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
-  if (nvals == 5) {
+  //Allow empty entryIdString and/or entrybitIndex
+  if (nvals == 5){
+    return linkEcEntryToAxisDrv(iValue,cIdBuffer,iValue3,iValue4,iValue5);
+  }
+
+  // Allow empty entryIdString
+  cIdBuffer[0]='\0';
+  nvals = sscanf(myarg_1, "LinkEcEntryToAxisDrive(%d,,%d,%d,%d)", &iValue,&iValue3,&iValue4,&iValue5);
+  if (nvals == 4){
     return linkEcEntryToAxisDrv(iValue,cIdBuffer,iValue3,iValue4,iValue5);
   }
 
@@ -567,6 +590,12 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisMonitor(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return linkEcEntryToAxisMon(iValue,cIdBuffer,iValue3,iValue4,iValue5);
+  }
+
+  /// "Cfg.LinkEcEntryToEcStatusOutput(slaveBusPosition,entryIdString)"
+  nvals = sscanf(myarg_1, "LinkEcEntryToEcStatusOutput(%d,%[^)])", &iValue,cIdBuffer);
+  if (nvals == 2) {
+    return linkEcEntryToEcStatusOutput(iValue,cIdBuffer);
   }
 
   /// "Cfg.WriteEcEntryIDString(slaveBusPosition,entryIdString,value)"
@@ -711,10 +740,34 @@ static int handleCfgCommand(const char *myarg_1){
     return ecAddSdo(iValue,iValue2,iValue3,iValue4,iValue5);
   }
 
+  /*Cfg.EcAddSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcAddSdo(%d,%x,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5);
+  if (nvals == 5) {
+    return ecAddSdo(iValue,iValue2,iValue3,iValue4,iValue5);
+  }
+
   /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1, "EcWriteSdo(%d,%x,%x,%d,%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return ecWriteSdo(iValue,iValue2,iValue3,iValue4,iValue5);
+  }
+
+  /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcWriteSdo(%d,%x,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5);
+  if (nvals == 5) {
+    return ecWriteSdo(iValue,iValue2,iValue3,iValue4,iValue5);
+  }
+
+  /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcWriteSdo(%d,%x,%d,%d)", &iValue,&iValue2,&iValue3,&iValue4);
+  if (nvals == 4) {
+    return ecWriteSdoComplete(iValue,iValue2,iValue3,iValue4);
+  }
+
+  /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1, "EcWriteSdo(%d,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4);
+  if (nvals == 4) {
+    return ecWriteSdoComplete(iValue,iValue2,iValue3,iValue4);
   }
 
   /*Cfg.EcApplyConfig(int nMasterIndex)*/
@@ -739,6 +792,18 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "EcSetDomainFailedCyclesLimit(%d)",&iValue);
   if (nvals == 1) {
     return ecSetDomainFailedCyclesLimit(iValue);
+  }
+
+  /*Cfg.EcSlaveAutoConfig(int nSlaveIndex)*/
+  nvals = sscanf(myarg_1, "EcSlaveAutoConfig(%d)=", &iValue);
+  if (nvals == 1) {
+    return ecAutoConfigSlave(iValue,1);
+  }
+
+  /*Cfg.EcSlaveAutoConfig(int nSlaveIndex,int nAddAsynParams)*/
+  nvals = sscanf(myarg_1, "EcSlaveAutoConfig(%d,%d)=", &iValue,&iValue2);
+  if (nvals == 2) {
+    return ecAutoConfigSlave(iValue,iValue2);
   }
 
   /*int Cfg.SetAxisJogVel(int traj_no, double value);*/
@@ -1115,7 +1180,10 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisTrajTransExpr(int axis_no, char* cExpr);   */
   //nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d)=%[^\n]",&iValue,cExprBuffer);
-  if (nvals == 2){
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
     //Change all # to ; (since ; is used as command delimiter)
     size_t str_len=strlen(cExprBuffer);
 
@@ -1131,7 +1199,10 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisEncTransExpr(int axis_no, char* cExpr);   */
   //nvals = sscanf(myarg_1, "SetAxisEncTransExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisEncTransExpr(%d)=%[^\n]",&iValue,cExprBuffer);
-  if (nvals == 2){
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
     //Change all # to ; (since ; is used as command delimiter in tcpip communication)
     size_t str_len=strlen(cExprBuffer);
 
@@ -1147,7 +1218,10 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisTransformCommandExpr(int axis_no,char *cExpr); */
   //nvals = sscanf(myarg_1, "SetAxisTransformCommandExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisTransformCommandExpr(%d)=%[^\n]",&iValue,cExprBuffer);
-  if (nvals == 2){
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
     //Change all # to ; (since ; is used as command delimiter in tcpip communication)
     size_t str_len=strlen(cExprBuffer);
 
@@ -1363,6 +1437,8 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   int iValue2=0;
   int iValue3=0;
   int iValue4=0;
+  int iValue5=0;
+  uint32_t u32Value=0;
   uint64_t i64Value=0;
   double fValue = 0;
   int motor_axis_no = 0;
@@ -1461,11 +1537,9 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   }
 
   /*EcReadSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,int byteSize)*/
-  nvals = sscanf(myarg_1, "EcReadSdo(%d,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4);
+  nvals = sscanf(myarg_1, "EcReadSdo(%d,%x,%x,%d)", &iValue2,&iValue3,&iValue4,&iValue5);
   if (nvals == 4) {
-    cmd_buf_printf(buffer,"%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
-    //PRINT_TO_OUT_BUFFER("%d",ecReadSdo(iValue,iValue2,iValue3,iValue4));
-    return 0; //Read command TODO move to read section
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecReadSdo(iValue2,iValue3,iValue4,iValue5,&u32Value));
   }
 
   /*GetAxisOpMode(int nAxis)*/
@@ -1733,7 +1807,14 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(appendAsciiDataToStorageBuffer(iValue,myarg_1));
   }
 
+  if (!strcmp(myarg_1, "EcPrintAllHardware()")) {
+    SEND_OK_OR_ERROR_AND_RETURN(ecPrintAllHardware());
+  }
 
+  nvals = sscanf(myarg_1, "EcPrintSlaveConfig(%d)=", &iValue);
+  if (nvals == 1) {
+    SEND_OK_OR_ERROR_AND_RETURN(ecPrintSlaveConfig(iValue));
+  }
 
   /* Main.*/
   if (!strncmp(myarg_1, Main_dot_str, strlen(Main_dot_str))) {

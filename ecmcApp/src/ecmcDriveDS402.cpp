@@ -71,7 +71,7 @@ void ecmcDriveDS402::initVars()
   driveState_=ECMC_DS402_INVALID_STATE_STATUS;
   LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_INVALID_STATE_STATUS");
   //enableCmdOld_=false;
-  enableSequenceRunning_=false;
+  //enableSequenceRunning_=false;
   enableStateMachine_=ECMC_DS402_RESET_STATE;
 }
 
@@ -122,31 +122,9 @@ void ecmcDriveDS402::readEntries()
 
   checkDS402State();
 
-  /*switch(data_->command_.operationModeCmd){
-    case ECMC_MODE_OP_AUTO:
-      if(getError() || !enableAmpCmd_){
-	controlWord_=0;
-	return;
-      }
-      break;
-    case ECMC_MODE_OP_MAN:
-      if(getError() || !manualModeEnable_){
-	controlWord_=0;
-	return;
-      }
-      break;
-  }*/
-
-  if(getError() || !enableAmpCmd_){
-    controlWord_=0;
-    return;
-  }
-
-
-  if(cycleCounter>ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME)
+  if(cycleCounter_>ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME)
   {
-    enableSequenceRunning_=false;
-    controlWord_=0;
+    enableStateMachine_= ECMC_DS402_FAULT_STATE;
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT);
     return;
   }
@@ -154,57 +132,78 @@ void ecmcDriveDS402::readEntries()
   driveStateOld_=driveState_;
   enableStateMachineOld_=enableStateMachine_;
 
-  //bool inManualMode=data_->command_.operationModeCmd==ECMC_MODE_OP_MAN;
-
-  //if((data_->command_.enable || (manualModeEnable_ && inManualMode)) && !enableCmdOld_){ //Trigger new power on sequence
-  if((enableAmpCmd_ /*|| (manualModeEnable_ && inManualMode)*/) && !enableAmpCmdOld_){ //Trigger new power on sequence
-    enableSequenceRunning_=true;
-    enableStateMachine_=ECMC_DS402_RESET_STATE;
-    controlWord_=128;
-    cycleCounter=0;
-  }
-
-  if(enableSequenceRunning_)
+  cycleCounter_++;
+  switch(enableStateMachine_)
   {
-    switch(enableStateMachine_)
-    {
-      cycleCounter++;
-      case ECMC_DS402_RESET_STATE:
- 	controlWord_=128;
-        if(driveState_==ECMC_DS402_SWITCH_ON_DISABLED_STATUS){
-          cycleCounter=0;
-          enableStateMachine_=ECMC_DS402_SWITCH_ON_DISABLED_STATE;
-        }
- 	break;
-      case ECMC_DS402_SWITCH_ON_DISABLED_STATE:
-        controlWord_=6;
-        if(driveState_==ECMC_DS402_READY_TO_SWITCH_ON_STATUS){
-          cycleCounter=0;
-          enableStateMachine_=ECMC_DS402_READY_TO_SWITCH_ON_STATE;
-        }
- 	break;
-      case ECMC_DS402_READY_TO_SWITCH_ON_STATE:
- 	controlWord_=7;
-        if(driveState_==ECMC_DS402_SWITCHED_ON_STATUS){
-          cycleCounter=0;
-          enableStateMachine_=ECMC_DS402_SWITCHED_ON_STATE;
-        }
- 	break;
-      case ECMC_DS402_SWITCHED_ON_STATE:
- 	controlWord_=15;
-        if(driveState_==ECMC_DS402_OPERATION_ENABLED_STATUS){
-          cycleCounter=0;
-          enableStateMachine_=ECMC_DS402_OPERATION_ENABLED_STATE;
-        }
- 	break;
-      case ECMC_DS402_OPERATION_ENABLED_STATE:
-        cycleCounter=0;
-        enableSequenceRunning_=false; //startup sequence ready
-	break;
-     }
-   }
-
-   //enableCmdOld_=data_->command_.enable;
+    case ECMC_DS402_IDLE_STATE:
+      controlWord_=0;
+      cycleCounter_=0;
+      if(enableAmpCmd_ && !enableAmpCmdOld_){
+	LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_STARTUP_RESET");
+        enableStateMachine_=ECMC_DS402_STARTUP_RESET;
+      }
+      break;
+    case ECMC_DS402_STARTUP_RESET:
+      controlWord_=128;
+      cycleCounter_=0;
+      enableStateMachine_=ECMC_DS402_SWITCH_ON_DISABLED_STATE;
+      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_SWITCH_ON_DISABLED_STATE");
+      break;
+    case ECMC_DS402_SWITCH_ON_DISABLED_STATE:
+      controlWord_=6;
+      if(driveState_==ECMC_DS402_READY_TO_SWITCH_ON_STATUS){
+        cycleCounter_=0;
+        enableStateMachine_=ECMC_DS402_READY_TO_SWITCH_ON_STATE;
+        LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_READY_TO_SWITCH_ON_STATE");
+      }
+      if(!enableAmpCmd_){
+        enableStateMachine_=ECMC_DS402_IDLE_STATE;
+      }
+      break;
+    case ECMC_DS402_READY_TO_SWITCH_ON_STATE:
+      controlWord_=7;
+      if(driveState_==ECMC_DS402_SWITCHED_ON_STATUS){
+        cycleCounter_=0;
+        enableStateMachine_=ECMC_DS402_SWITCHED_ON_STATE;
+        LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_SWITCHED_ON_STATE");
+      }
+      if(!enableAmpCmd_){
+        enableStateMachine_=ECMC_DS402_IDLE_STATE;
+      }
+      break;
+    case ECMC_DS402_SWITCHED_ON_STATE:
+      controlWord_=15;
+      if(driveState_==ECMC_DS402_OPERATION_ENABLED_STATUS){
+        cycleCounter_=0;
+        enableStateMachine_=ECMC_DS402_OPERATION_ENABLED_STATE;
+        LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_OPERATION_ENABLED_STATE");
+      }
+      if(!enableAmpCmd_){
+        enableStateMachine_=ECMC_DS402_IDLE_STATE;
+      }
+      break;
+    case ECMC_DS402_OPERATION_ENABLED_STATE:
+      cycleCounter_=0;
+      if(!enableAmpCmd_){
+        enableStateMachine_=ECMC_DS402_IDLE_STATE;
+      }
+      break;
+    case ECMC_DS402_FAULT_STATE:
+      controlWord_=0;
+      cycleCounter_=0;
+      enableAmpCmd_=false;
+      data_->command_.enable=false;
+      break;
+    case ECMC_DS402_RESET_STATE:
+      controlWord_=128;
+      cycleCounter_=0;
+      if(driveState_!=ECMC_DS402_FAULT_STATUS){
+	LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_IDLE_STATE");
+        enableStateMachine_=ECMC_DS402_IDLE_STATE;
+        data_->command_.enable=false;
+      }
+      break;
+  }
   return;
 }
 
@@ -322,13 +321,25 @@ int ecmcDriveDS402::checkDS402State()
   {
     driveState_=ECMC_DS402_FAULT_STATUS;
     data_->status_.enabled=false;
+    if(enableStateMachine_!=ECMC_DS402_RESET_STATE){
+      enableStateMachine_=ECMC_DS402_FAULT_STATE;
+      data_->command_.enable=false;
+    }
     if(enabledOld!=data_->status_.enabled){
       LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->status_.enabled>0);
     }
     if(driveStateOld!=driveState_){
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_FAULT_STATUS");
+      LOGERR("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ERROR_DRV_DS402_FAULT_STATE");
     }
-    return 0;
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DS402_FAULT_STATE);
   }
   return 0;
+}
+
+void ecmcDriveDS402::errorReset()
+{
+  //Reset error in drive (controlword=128)
+  enableStateMachine_=ECMC_DS402_RESET_STATE;
+  LOGINFO("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_RESET_STATE");
+  ecmcDriveBase::errorReset();
 }

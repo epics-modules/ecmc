@@ -17,7 +17,9 @@
 #include "ecmcEcMemMap.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcError.h"
+#include "ecmcEcSDO.h"
 #include "cmd.h" //Logging macros
+#include "ecmcAsynPortDriver.h"
 
 #define SIMULATION_ENTRIES 2
 
@@ -41,6 +43,7 @@
 #define ERROR_EC_SLAVE_STATE_UNDEFINED 0x24010
 #define ERROR_EC_SLAVE_NOT_OPERATIONAL 0x24011
 #define ERROR_EC_SLAVE_NOT_ONLINE 0x24012
+#define ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW 0x24013
 
 typedef struct
 {
@@ -55,6 +58,7 @@ class ecmcEcSlave : public ecmcError
 public:
   ecmcEcSlave(
     ec_master_t *master, /**< EtherCAT master */
+    ec_domain_t *domain,
     uint16_t alias, /**< Slave alias. */
     uint16_t position, /**< Slave position. */
     uint32_t vendorId, /**< Expected vendor ID. */
@@ -64,9 +68,7 @@ public:
   ecmcEcSyncManager *getSyncManager(int syncManagerIndex);
   int getSlaveInfo(mcu_ec_slave_info_light *info);
   int getEntryCount();
-  int getEntryInfo(int entryIndex, ec_pdo_entry_info_t *info);
   ecmcEcEntry *getEntry(int entryIndex);
-  int configPdos( ec_domain_t *domain); //Step 4  //For all entries in slave!!
   int checkConfigState(void);
   void setDomainBaseAdr(uint8_t * domainAdr);
   int updateInputProcessImage();
@@ -80,11 +82,6 @@ public:
       uint8_t        entrySubIndex,
       uint8_t        bits,
       std::string    id);
-  /*int addMemMap(std::string startEntryIDString,
-		    size_t byteSize,
-		    int type,
-		    ec_direction_t direction,
-		    std::string entryIDString);*/
   int configDC(
       uint16_t assignActivate, /**< AssignActivate word. */
       uint32_t sync0Cycle, /**< SYNC0 cycle time [ns]. */
@@ -104,11 +101,12 @@ public:
                                       is not written, so the default is used.
                                      */
       );
-
+  int addSDOWrite(uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t writeValue, int byteSize);
+  int getSlaveState(ec_slave_config_state_t* state);
+  int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles,int masterIndex);
 private:
   void initVars();
   ecmcEcSyncManager *findSyncMan(uint8_t syncMangerIndex);
-  int configSlave() ;
   ec_master_t *master_; /**< EtherCAT master */
   uint16_t alias_; /**< Slave alias. */
   uint16_t slavePosition_; /**< Slave position. */
@@ -116,21 +114,27 @@ private:
   uint32_t productCode_; /**< Expected product code. */
   ec_slave_config_t *slaveConfig_;
   ecmcEcSyncManager *syncManagerArray_[EC_MAX_SYNC_MANAGERS];
-  ec_pdo_entry_info_t slavePdoEntries_[EC_MAX_ENTRIES];
-  ec_pdo_info_t slavePdos_[EC_MAX_PDOS];
-  ec_sync_info_t slaveSyncs_[EC_MAX_SYNC_MANAGERS];
   ecmcEcEntry *entryList_[EC_MAX_ENTRIES];
   int entryCounter_;
   int pdosArrayIndex_;
   int syncManArrayIndex_;
   int syncManCounter_;
-  void writePdoStruct();
-  void writeSyncsStruct();
-  void writeEntriesStruct();
   int pdosInSMCount_;
+  ec_slave_config_state_t slaveState_;
   ec_slave_config_state_t slaveStateOld_;
   bool simSlave_;  //used to simulate endswitches Consider make derived simulation class insteaed
   uint8_t simBuffer_[8*SIMULATION_ENTRIES]; //used to simulate endswitches
   ecmcEcEntry *simEntries_[SIMULATION_ENTRIES]; //used to simulate endswitches
+  ec_domain_t *domain_;
+
+  ecmcAsynPortDriver *asynPortDriver_;
+  int updateDefAsynParams_;
+  int asynParIdOperational_;
+  int asynParIdOnline_;
+  int asynParIdAlState_;
+  int asynParIdEntryCounter_;
+  int asynUpdateCycleCounter_;
+  int asynUpdateCycles_;
+
 };
 #endif /* ECMCECSLAVE_H_ */

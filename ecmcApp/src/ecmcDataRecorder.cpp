@@ -148,7 +148,6 @@ void ecmcDataRecorder::printAxisDataSource()
    }
 }
 
-
 void ecmcDataRecorder::initVars()
 {
   errorReset();
