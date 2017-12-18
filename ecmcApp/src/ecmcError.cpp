@@ -260,6 +260,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14654:
       return "ERROR_DRV_DS402_STATUS_WORD_START_BIT_ERROR";
       break;
+    case 0x14655:
+      return "ERROR_DRV_DS402_FAULT_STATE";
+      break;
     case 0x14400:  //ENCODER
       return "ERROR_ENC_ASSIGN_ENTRY_FAILED";
       break;
