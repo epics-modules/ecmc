@@ -200,12 +200,6 @@ void ecmcDriveBase::writeEntries()
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_DRV_DRIVE_INTERLOCKED);
   }
 
-  if(getError()){
-    enableAmpCmd_=false;
-    controlWord_=0;
-    data_->status_.currentVelocitySetpointRaw=0;
-  }
-
   int errorCode=0;
   errorCode=writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD,(uint64_t)controlWord_); //will only write the number of bits configured in st.cmd file defined by link commands
   if(errorCode){
@@ -419,4 +413,9 @@ int ecmcDriveBase::updateBrakeState()
   }
 
   return 0;
+}
+
+void ecmcDriveBase::errorReset()
+{
+  ecmcError::errorReset();
 }

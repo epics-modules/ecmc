@@ -57,6 +57,11 @@ int ecmcDriveStepper::validate()
 void ecmcDriveStepper::writeEntries()
 {
   controlWord_=!getError() && (uint64_t)enableAmpCmd_;
+  if(getError()){
+    enableAmpCmd_=false;
+    controlWord_=0;
+    data_->status_.currentVelocitySetpointRaw=0;
+  }
   ecmcDriveBase::writeEntries();
 }
 
