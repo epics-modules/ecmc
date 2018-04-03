@@ -251,6 +251,9 @@ int ecmcEcEntry::updateAsyn(bool force)
       case asynParamInt32:
         asynPortDriver_-> setIntegerParam(asynParameterIndex_,*tempInt32);
         break;
+      case asynParamUInt32Digital:
+        asynPortDriver_->setUIntDigitalParam(asynParameterIndex_, *tempInt32, 0xFFFFFFFF);
+        break;
       case asynParamFloat64:
         asynPortDriver_-> setDoubleParam(asynParameterIndex_,*tempDouble64);
         break;

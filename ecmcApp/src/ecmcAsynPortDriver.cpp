@@ -34,8 +34,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
    : asynPortDriver(portName, 
                     1, /* maxAddr */ 
 		    paramTableSize,
-                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask | asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask, /* Interface mask */
-		    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask | asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask,  /* Interrupt mask */
+                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask | asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask | asynUInt32DigitalMask, /* Interface mask */
+		    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask | asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask | asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask | asynUInt32DigitalMask,  /* Interrupt mask */
 		    ASYN_CANBLOCK, /* asynFlags.  This driver does not block and it is not multi-device, so flag is 0 */
 		    autoConnect, /* Autoconnect */
 		    priority, /* Default priority */
@@ -443,6 +443,11 @@ static int parseAsynDataType( const char *asynTypeString)
   res=strcmp(asynTypeString,"asynFloat64ArrayIn");
   if (res == 0) {
     asynType=asynParamFloat64Array;
+  }
+
+  res=strcmp(asynTypeString,"asynUInt32Digital");
+  if (res == 0) {
+    asynType=asynParamUInt32Digital;
   }
 
   return asynType;
