@@ -111,7 +111,7 @@ int ecmcEcMemMap::updateAsyn(bool force)
    return 0;
   }
 
-  if(asynUpdateCycleCounter_>=asynUpdateCycles_ || force){ //Only update at desired samplerate
+  if(asynPortDriver_->getAllowRtThreadCom() && (asynUpdateCycleCounter_>=asynUpdateCycles_ || force)){ //Only update at desired samplerate
 
     switch(asynParameterType_){
       case asynParamInt8Array:

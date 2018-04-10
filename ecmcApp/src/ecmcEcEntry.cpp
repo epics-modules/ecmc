@@ -242,7 +242,7 @@ int ecmcEcEntry::updateAsyn(bool force)
    return 0;
   }
 
-  if(asynUpdateCycleCounter_>=asynUpdateCycles_ || force){ //Only update at desired samplerate
+  if(asynPortDriver_->getAllowRtThreadCom() && (asynUpdateCycleCounter_>=asynUpdateCycles_ || force)){ //Only update at desired samplerate
     /// Probably not byte order safe!
     asynUpdateCycleCounter_=0;
     int32_t *tempInt32=(int32_t *)&value_;

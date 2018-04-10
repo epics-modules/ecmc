@@ -41,7 +41,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
 		    priority, /* Default priority */
                     0) /* Default stack size*/    
 {
-  eventId_ = epicsEventCreate(epicsEventEmpty);
+  allowRtThreadCom_=0;
 }
 
 asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason)
@@ -326,6 +326,16 @@ int ecmcAsynPortDriver::readArrayGeneric(asynUser *pasynUser, epicsUInt8 *value,
   }
   *nIn=bytesRead/typeSize;
   return errorId;
+}
+
+void ecmcAsynPortDriver::setAllowRtThreadCom(bool allowRtCom)
+{
+  allowRtThreadCom_=allowRtCom;
+}
+
+bool ecmcAsynPortDriver::getAllowRtThreadCom()
+{
+  return allowRtThreadCom_;
 }
 
 /* Configuration routine.  Called directly, or from the iocsh function below */

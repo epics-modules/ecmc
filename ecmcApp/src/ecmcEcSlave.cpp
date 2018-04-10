@@ -272,8 +272,8 @@ int ecmcEcSlave::updateOutProcessImage()
 
   //I/O intr to EPCIS.
  if(asynPortDriver_){
-   if(updateDefAsynParams_){
-     if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
+   if(updateDefAsynParams_ && asynPortDriver_->getAllowRtThreadCom()){
+     if(asynUpdateCycleCounter_>=asynUpdateCycles_){ //Only update at desired samplerate
        asynPortDriver_-> setIntegerParam(asynParIdAlState_,slaveState_.al_state);
        asynPortDriver_-> setIntegerParam(asynParIdOnline_,slaveState_.online);
        asynPortDriver_-> setIntegerParam(asynParIdOperational_,slaveState_.operational);
