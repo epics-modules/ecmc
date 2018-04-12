@@ -7,6 +7,10 @@
 
 #include "ecmcEcEntry.h"
 
+#define EC_READ_2_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x03)
+#define EC_READ_3_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x07)
+#define EC_READ_4_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x0F)
+
 ecmcEcEntry::ecmcEcEntry(ec_domain_t *domain,ec_slave_config_t *slave,uint16_t pdoIndex,uint16_t entryIndex,uint8_t entrySubIndex,uint8_t bits,ec_direction_t direction,std::string id)
 {
   initVars();
@@ -159,6 +163,15 @@ int ecmcEcEntry::updateInputProcessImage()
   switch( bitLength_){
     case 1:
       value_=(uint64_t)EC_READ_BIT(domainAdr_+byteOffset_, bitOffset_);
+      break;
+    case 2:
+      value_=(uint64_t)EC_READ_2_BITS(domainAdr_+byteOffset_, bitOffset_);
+      break;
+    case 3:
+      value_=(uint64_t)EC_READ_3_BITS(domainAdr_+byteOffset_, bitOffset_);
+      break;
+    case 4:
+      value_=(uint64_t)EC_READ_4_BITS(domainAdr_+byteOffset_, bitOffset_);
       break;
     case 8:
       value_=(uint64_t)EC_READ_U8(domainAdr_+byteOffset_);
