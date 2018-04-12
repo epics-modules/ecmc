@@ -465,6 +465,8 @@ int setAppModeRun(int mode)
     return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;
   }
 
+  asynPort->setAllowRtThreadCom(false);  //Block rt communication during startup (since sleep in waitForEtherCATtoStart())
+
   appModeCmdOld=appModeCmd;
   appModeCmd=(app_mode_type)mode;
 

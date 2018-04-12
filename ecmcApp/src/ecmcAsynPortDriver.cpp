@@ -41,7 +41,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(const char *portName/*, int maxPoints*/,i
 		    priority, /* Default priority */
                     0) /* Default stack size*/    
 {
-  allowRtThreadCom_=0;
+  allowRtThreadCom_=1; // Allow at startup (RT thread not started)
 }
 
 asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser, char *value, size_t maxChars,size_t *nActual, int *eomReason)

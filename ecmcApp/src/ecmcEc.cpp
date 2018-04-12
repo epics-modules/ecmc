@@ -679,6 +679,7 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, const char *entryID
   entry->setAsynParameterType((asynParamType)asynParType);
   entry->setAsynPortDriver(asynPortDriver_);
   entry->setAsynParameterSkipCycles(skipCycles);
+  entry->updateAsyn(1);
 
   return 0;
 }

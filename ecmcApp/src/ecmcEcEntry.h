@@ -62,8 +62,8 @@ public:
   int getUpdateInRealtime();
   std::string getIdentificationName();
   int registerInDomain();
-private:
   int updateAsyn(bool force);
+private:
   uint8_t *domainAdr_;
   uint16_t entryIndex_;
   uint8_t  entrySubIndex_;
