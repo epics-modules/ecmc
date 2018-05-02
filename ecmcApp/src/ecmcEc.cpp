@@ -481,8 +481,8 @@ int ecmcEc::updateOutProcessImage()
 
   //I/O intr to EPCIS.
   if(asynPortDriver_){
-    if(updateDefAsynParams_){
-      if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
+    if(updateDefAsynParams_ && asynPortDriver_->getAllowRtThreadCom()){
+      if(asynUpdateCycleCounter_>=asynUpdateCycles_){ //Only update at desired samplerate
 	asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,masterState_.slaves_responding );
 	asynPortDriver_-> setIntegerParam(asynParIdAlState,masterState_.al_states);
 	asynPortDriver_-> setIntegerParam(asynParIdMasterLink_,masterState_.link_up);
@@ -679,6 +679,7 @@ int ecmcEc::linkEcEntryToAsynParameter(void* asynPortObject, const char *entryID
   entry->setAsynParameterType((asynParamType)asynParType);
   entry->setAsynPortDriver(asynPortDriver_);
   entry->setAsynParameterSkipCycles(skipCycles);
+  entry->updateAsyn(1);
 
   return 0;
 }
@@ -1233,7 +1234,9 @@ int ecmcEc::autoConfigSlave(int slaveIndex,int addAsAsynParams)
           case 1:
             charCount=snprintf(dbLoadBuffer,sizeof(dbLoadBuffer),"dbLoadRecords(\"ecmcAsynGenericAnalogOutput.db\",\"P=$(ECMC_PREFIX),PORT=$(ECMC_ASYN_PORT),ADDR=0,TIMEOUT=1,SLAVE_POS=%d,HWTYPE=%s,NAME=%s,REC_SUFFIX=data,TYPE=asynInt32\")",slaveIndex,entryAliasBuffer,entryAliasPathBuffer);
             break;
-          case 2:
+          case 2:  void setInRealtime(bool inRealtime);
+          int getInRealtime();
+
             charCount=snprintf(dbLoadBuffer,sizeof(dbLoadBuffer),"dbLoadRecords(\"ecmcAsynGenericAnalogInput.db\",\"P=$(ECMC_PREFIX),PORT=$(ECMC_ASYN_PORT),ADDR=0,TIMEOUT=1,SLAVE_POS=%d,HWTYPE=%s,NAME=%s,REC_SUFFIX=data,TYPE=asynInt32\")",slaveIndex,entryAliasBuffer,entryAliasPathBuffer);
             break;
           default:

@@ -132,7 +132,6 @@ public:
   int printSlaveConfig(int slaveIndex);
   int autoConfigSlave(int slaveIndex,int addAsAsynParams);
 
-
 private:
   void initVars();
   int updateInputProcessImage();

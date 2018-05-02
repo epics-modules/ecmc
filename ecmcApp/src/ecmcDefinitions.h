@@ -53,7 +53,8 @@
 //Motion
 enum app_mode_type{
   ECMC_MODE_CONFIG=0,
-  ECMC_MODE_RUNTIME=1
+  ECMC_MODE_RUNTIME=1,
+  ECMC_MODE_STARTUP=2
 };
 
 enum {

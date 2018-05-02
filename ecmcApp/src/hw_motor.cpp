@@ -72,7 +72,7 @@ static int              axisDiagIndex;
 static int              axisDiagFreq;
 static int              controllerError=-1;
 static const char*      controllerErrorMsg="NO_ERROR";
-static app_mode_type    appMode,appModeOld;
+static app_mode_type    appModeCmd,appModeCmdOld,appModeStat;
 static unsigned int     counter = 0;
 static ecmcEc           ec;
 static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
@@ -228,11 +228,22 @@ void cyclic_task(void * usr)
 
   // get current time
   wakeupTime=timespec_add(masterActivationTimeMonotonic,offsetStartTime); // start 50 (49+1) cycle times after master activate
-  while(appMode==ECMC_MODE_RUNTIME)
+  while(appModeCmd==ECMC_MODE_RUNTIME)
   {
     wakeupTime = timespec_add(wakeupTime, cycletime);
-    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
 
+    /* Only lock asyn port when ec is started
+     * otherwise deadlock in stratup phase
+     * (sleep in waitforstartup() this is called
+     * in asyn thread) .
+     * */
+    if(asynPort && appModeStat==ECMC_MODE_RUNTIME){
+      asynPort->unlock();
+    }
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
+    if(asynPort && appModeStat==ECMC_MODE_RUNTIME){
+      asynPort->lock();
+    }
     clock_gettime(CLOCK_MONOTONIC, &startTime);
     latency_ns = DIFF_NS(wakeupTime, startTime);
     period_ns = DIFF_NS(lastStartTime, startTime);
@@ -292,18 +303,20 @@ void cyclic_task(void * usr)
       asynUpdateCounterThread=asynSkipCyclesThread;
 
       if(asynPort && asynSkipCyclesThread>=0 && asynThreadParamsEnable){
-        asynPort-> setIntegerParam(asynParIdLatencyMin,latency_min_ns);
-        asynPort-> setIntegerParam(asynParIdLatencyMax,latency_max_ns);
-        asynPort-> setIntegerParam(asynParIdExecuteMin,exec_min_ns);
-        asynPort-> setIntegerParam(asynParIdExecuteMax,exec_max_ns);
-        asynPort-> setIntegerParam(asynParIdPeriodMin,period_min_ns);
-        asynPort-> setIntegerParam(asynParIdPeriodMax,period_max_ns);
-        asynPort-> setIntegerParam(asynParIdSendMin,send_min_ns);
-        asynPort-> setIntegerParam(asynParIdSendMax,send_max_ns);
-        controllerError=getControllerError();
-        asynPort->setIntegerParam(asynParIdEcmcErrorId,controllerError);
-        controllerErrorMsg=getErrorString(controllerError);
-        asynPort->doCallbacksInt8Array((epicsInt8*)controllerErrorMsg,(int)strlen(controllerErrorMsg)+1, asynParIdEcmcErrorMsg,0);
+	if(asynPort->getAllowRtThreadCom()){
+          asynPort-> setIntegerParam(asynParIdLatencyMin,latency_min_ns);
+          asynPort-> setIntegerParam(asynParIdLatencyMax,latency_max_ns);
+          asynPort-> setIntegerParam(asynParIdExecuteMin,exec_min_ns);
+          asynPort-> setIntegerParam(asynParIdExecuteMax,exec_max_ns);
+          asynPort-> setIntegerParam(asynParIdPeriodMin,period_min_ns);
+          asynPort-> setIntegerParam(asynParIdPeriodMax,period_max_ns);
+          asynPort-> setIntegerParam(asynParIdSendMin,send_min_ns);
+          asynPort-> setIntegerParam(asynParIdSendMax,send_max_ns);
+          controllerError=getControllerError();
+          asynPort->setIntegerParam(asynParIdEcmcErrorId,controllerError);
+          controllerErrorMsg=getErrorString(controllerError);
+          asynPort->doCallbacksInt8Array((epicsInt8*)controllerErrorMsg,(int)strlen(controllerErrorMsg)+1, asynParIdEcmcErrorMsg,0);
+	}
         period_max_ns = 0;
         period_min_ns = 0xffffffff;
         exec_max_ns = 0;
@@ -341,7 +354,9 @@ void cyclic_task(void * usr)
     else{
       asynSkipUpdateCounterFastest=asynSkipCyclesFastest;
       if(asynPort){
-        asynPort-> callParamCallbacks();
+        if(asynPort->getAllowRtThreadCom()){
+          asynPort-> callParamCallbacks();
+        }
       }
     }
 
@@ -349,16 +364,19 @@ void cyclic_task(void * usr)
     ec.send(masterActivationTimeOffset);
     clock_gettime(CLOCK_MONOTONIC, &endTime);
   }
+  appModeStat=ECMC_MODE_CONFIG;
 }
 
 /****************************************************************************/
 
 int  hw_motor_global_init(void){
   LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
-  appMode=ECMC_MODE_CONFIG;
-  appModeOld=appMode;
   LOGINFO("\nESS Open Source EtherCAT Motion Control Unit Initializes......\n");
   LOGINFO("\nMode: Configuration\n");
+
+  appModeStat=ECMC_MODE_CONFIG;
+  appModeCmd=ECMC_MODE_CONFIG;
+  appModeCmdOld=appModeCmd;
 
   axisDiagIndex=0;
   axisDiagFreq=10;
@@ -425,8 +443,13 @@ int waitForEtherCATtoStart(int timeoutSeconds)
 int setAppModeCfg(int mode)
 {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
-  appModeOld = appMode;
-  appMode=(app_mode_type)mode;
+  appModeCmdOld = appModeCmd;
+  appModeCmd=(app_mode_type)mode;
+
+  if(asynPort){
+    asynPort->setAllowRtThreadCom(false);
+  }
+
   for(int i=0;i<ECMC_MAX_AXES;i++){
     if(axes[i]!=NULL){
       axes[i]->setRealTimeStarted(false);
@@ -437,8 +460,17 @@ int setAppModeCfg(int mode)
 
 int setAppModeRun(int mode)
 {
-  appModeOld=appMode;
-  appMode=(app_mode_type)mode;
+
+  if(appModeStat==ECMC_MODE_RUNTIME){
+    return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;
+  }
+
+  asynPort->setAllowRtThreadCom(false);  //Block rt communication during startup (since sleep in waitForEtherCATtoStart())
+
+  appModeCmdOld=appModeCmd;
+  appModeCmd=(app_mode_type)mode;
+
+  appModeStat=ECMC_MODE_STARTUP;
 
   if(asynPort && asynThreadParamsEnable){
     asynPort-> setIntegerParam(asynParIdEcmcAppMode,mode);
@@ -449,10 +481,6 @@ int setAppModeRun(int mode)
     if(axes[i]!=NULL){
       axes[i]->setInStartupPhase(true);
     }
-  }
-
-  if(appModeOld!=ECMC_MODE_CONFIG){
-    return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;
   }
 
   int errorCode=validateConfig();
@@ -478,11 +506,16 @@ int setAppModeRun(int mode)
       axes[i]->setRealTimeStarted(true);
     }
   }
-
   errorCode=waitForEtherCATtoStart(30);
   if(errorCode){
     return errorCode;
   }
+  appModeStat=ECMC_MODE_RUNTIME;
+
+  if(asynPort){
+    asynPort->setAllowRtThreadCom(true);
+  }
+
   return 0;
 }
 

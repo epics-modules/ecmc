@@ -339,7 +339,9 @@ int ecmcDriveDS402::checkDS402State()
 void ecmcDriveDS402::errorReset()
 {
   //Reset error in drive (controlword=128)
-  enableStateMachine_=ECMC_DS402_RESET_STATE;
-  LOGINFO("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_RESET_STATE");
+  if(enableStateMachine_==ECMC_DS402_FAULT_STATE){
+    enableStateMachine_=ECMC_DS402_RESET_STATE;
+    LOGINFO("%s/%s:%d: axis[%d].drive.state=%s;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,"ECMC_DS402_RESET_STATE");
+  }
   ecmcDriveBase::errorReset();
 }

@@ -196,8 +196,8 @@ void ecmcAxisBase::postExecute(bool masterOK)
   refreshDebugInfoStruct();
 
   //Update asyn parameters
-  if(updateDefAsynParams_){
-    if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_!=NULL){ //Only update at desired samplerate
+  if(updateDefAsynParams_ && asynPortDriver_){
+    if(asynUpdateCycleCounter_>=asynUpdateCycles_ && asynPortDriver_->getAllowRtThreadCom()){ //Only update at desired samplerate
       asynUpdateCycleCounter_=0;
       asynPortDriver_->setDoubleParam(asynParIdActPos_,data_.status_.currentPositionActual);
       asynPortDriver_->setDoubleParam(asynParIdSetPos_,data_.status_.currentPositionSetpoint);
@@ -207,9 +207,8 @@ void ecmcAxisBase::postExecute(bool masterOK)
     }
   }
 
-
   if(asynPortDriverDiag_ && asynParIdDiag_>=0){
-    if(asynUpdateCycleCounterDiag_>=asynUpdateCyclesDiag_ && updateAsynParamsDiag_){
+    if(asynUpdateCycleCounterDiag_>=asynUpdateCyclesDiag_ && updateAsynParamsDiag_ && asynPortDriverDiag_->getAllowRtThreadCom()){
       int bytesUsed=0;
       char diagBuffer[1024];
       int error=getAxisDebugInfoData(&diagBuffer[0], sizeof(diagBuffer),&bytesUsed);
