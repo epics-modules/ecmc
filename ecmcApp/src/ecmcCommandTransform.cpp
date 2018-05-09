@@ -22,15 +22,23 @@ ecmcCommandTransform::ecmcCommandTransform(int commandCount, int elementsPerComm
   catch(std::exception &e)
   {
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
-    LOGINFO7("%s/%s:%d: INFO: Exception in allocation of vector: %s. Error number: %x\n",__FILE__, __FUNCTION__, __LINE__,e.what(),ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
+    LOGERR("%s/%s:%d: INFO: Exception in allocation of vector: %s. Error number: %x\n",__FILE__, __FUNCTION__, __LINE__,e.what(),ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED);
+    exit(EXIT_FAILURE);
   }
 
   for(int i=0;i<elementsPerCommand*commandCount;i++){
     inputArray_[i]=0;
     outputArray_[i]=0;
   }
-  symbolTable_.add_constants();
+
   printCurrentState();
+
+  exprtk_=new exprtkWrap();
+  if(!exprtk_){
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EXPRTK.\n",__FILE__,__FUNCTION__,__LINE__);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_EXPRTK_ALLOCATION_FAILED);
+    exit(EXIT_FAILURE);
+  }
 }
 
 void ecmcCommandTransform::printCurrentState()
@@ -56,7 +64,7 @@ int ecmcCommandTransform::addCmdPrefix(std::string commandPrefix, int commandInd
   for(int i=0;i<elementsPerCommand_;i++){
     char varNameBuffer [100];
     snprintf ( varNameBuffer, 100,"%s%d",commandPrefix.c_str(),i);
-    if(!symbolTable_.add_variable(varNameBuffer,outputArray_[i+commandIndex*elementsPerCommand_])){
+    if(exprtk_->addVariable(varNameBuffer,outputArray_[i+commandIndex*elementsPerCommand_])){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
     }
   }
@@ -88,10 +96,9 @@ ecmcCommandTransform::~ecmcCommandTransform()
 
 int ecmcCommandTransform::compile()
 {
-  expression_.register_symbol_table(symbolTable_);
-  if(!parser_.compile(expressionString_,expression_)){
+  if(exprtk_->compile(expressionString_)){
     compiled_=false;
-    LOGINFO7("%s/%s:%d: Error: Transform compile error: %s.\n",__FILE__, __FUNCTION__, __LINE__,parser_.error().c_str());
+    LOGINFO7("%s/%s:%d: Error: Transform compile error: %s.\n",__FILE__, __FUNCTION__, __LINE__,exprtk_->getParserError().c_str());
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_COMPILE_ERROR);
   }
   compiled_=true;
@@ -106,7 +113,7 @@ bool ecmcCommandTransform::getCompiled()
 
 int ecmcCommandTransform::refresh()
 {
-  expression_.value();
+  exprtk_->refresh();
   return 0;
 }
 
