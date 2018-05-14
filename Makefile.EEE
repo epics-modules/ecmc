@@ -3,7 +3,8 @@ EXCLUDE_VERSIONS=3.14.12.5
 include ${EPICS_ENV_PATH}/module.Makefile
 
 USR_DEPENDENCIES += asyn,4.31.0
-USR_DEPENDENCIES += exprtk,anderssandstrom
+USR_DEPENDENCIES += ethercatlib,1.5.2-ESS0
+USR_DEPENDENCIES += exprtk,1.0.0
 
 # Don't include debug symbols in the binary needed for a debugger
 # We don't have a debuuger, so shrink the size from 29MB to 9MB under
