@@ -8,12 +8,13 @@
 #ifndef ECMCCOMMANDTRANSFORM_H_
 #define ECMCCOMMANDTRANSFORM_H_
 
-#include "exprtk.hpp"
+#include "exprtkWrap.h"
 #include <stdio.h>
 #include <iostream>
 #include <string>
 #include <vector>
 #include "cmd.h"
+#include <cstdlib>
 
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
@@ -26,12 +27,7 @@
 #define ERROR_TRANSFORM_INPUT_DATA_SOURCE_COUNT_ZERO 0x30005
 #define ERROR_TRANSFORM_NOT_ENABLED 0x30006
 #define ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED 0x30007
-
-
-typedef exprtk::symbol_table<double> symbol_table_double;
-typedef exprtk::expression<double>   expression_double;
-typedef exprtk::parser<double>       parser_double;
-
+#define ERROR_TRANSFORM_EXPRTK_ALLOCATION_FAILED 0x30008
 
 class ecmcCommandTransform : public ecmcError
 {
@@ -51,16 +47,13 @@ public:
 private:
   void initVars();
   int compile();
-  symbol_table_double symbolTable_;
-  expression_double expression_;
-  parser_double parser_;
   std::string expressionString_;
   std::vector<double> inputArray_;
   std::vector<double> outputArray_;
   bool compiled_;
   int commandCount_;
   int elementsPerCommand_;
-
+  exprtkWrap *exprtk_;
 };
 
 #endif /* ECMCCOMMANDTRANSFORM_H_ */

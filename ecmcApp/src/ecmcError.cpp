@@ -515,6 +515,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x30007:
       return "ERROR_TRANSFORM_VECTOR_ALLOCATION_FAILED";
       break;
+    case 0x30008:
+      return "ERROR_TRANSFORM_EXPRTK_ALLOCATION_FAILED";
+      break;
     case 0x30100:  //MASTERDATA INTERFACE
       return "ERROR_MASTER_DATA_IF_INDEX_OUT_OF_RANGE";
       break;
