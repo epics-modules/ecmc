@@ -137,16 +137,6 @@ void ecmcSequencer::execute()
       break;
     case ECMC_CMD_HOMING:
       switch (data_->command_.cmdData){
-	case 0:
-	  seqReturnVal=seqHoming0();
-          if(seqReturnVal>0){//Error
-            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
-            stopSeq();
-          }
-          else if(seqReturnVal==0){//Homing ready
-            stopSeq();
-          }
-          break;
         case 1:
           seqReturnVal=seqHoming1();
           if(seqReturnVal>0){//Error
@@ -207,6 +197,17 @@ void ecmcSequencer::execute()
             stopSeq();
           }
           break;
+	case 15:
+	  seqReturnVal=seqHoming15();
+          if(seqReturnVal>0){//Error
+            setErrorID(__FILE__,__FUNCTION__,__LINE__,seqReturnVal);
+            stopSeq();
+          }
+          else if(seqReturnVal==0){//Homing ready
+            stopSeq();
+          }
+          break;
+
         default:
           setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_CMD_DATA_UNDEFINED);
           LOGINFO15("%s/%s:%d: axis[%d].sequencer.cmdData=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,data_->command_.cmdData);
@@ -603,7 +604,7 @@ ecmcTrajectoryTrapetz * ecmcSequencer::getTraj()
   return traj_;
 }
 
-int ecmcSequencer::seqHoming0() //nCmdData==0
+int ecmcSequencer::seqHoming15() //nCmdData==15
 {
   // Return = 0 ready
   // State 0 set encoder position to same as fHomePosition

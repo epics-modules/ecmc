@@ -79,13 +79,13 @@ public:
 private:
   void initVars();
   double checkSoftLimits(double posSetpoint);
-  int seqHoming0(); //nCmdData==1
   int seqHoming1(); //nCmdData==1
   int seqHoming2(); //nCmdData==2
   int seqHoming3(); //nCmdData==3
   int seqHoming4(); //nCmdData==4
   int seqHoming5(); //nCmdData==5
   int seqHoming6(); //nCmdData==6
+  int seqHoming15(); //nCmdData==15
   int checkHWLimitsAndStop(bool checkBWD,bool checkFWD);
   int stopSeq();
   int getExtTrajSetpoint(double *pos);
