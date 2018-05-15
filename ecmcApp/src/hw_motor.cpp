@@ -2163,6 +2163,14 @@ int setAxisMonPosLagTime(int axisIndex, int value)
   return 0;
 }
 
+int getAxisMonEnableLagMon(int axisIndex, int *value)
+{
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getEnableLagMon();
+  return 0;
+}
+
 int setAxisMonEnableLagMon(int axisIndex, int value)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);

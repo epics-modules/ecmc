@@ -167,6 +167,11 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
     int motor_axis_no = (int)group_no - 0x5000;
     int ret;
     switch (offset_in_group) {
+      case 0x6:
+        /* Motor direction */
+        ret = getAxisEncScaleDenom(motor_axis_no, &tmpValue);
+        *iValue = tmpValue < 0 ? 1 : 0;
+        return ret;
       case 0x8:
         /* Encoder direction */
         ret = getAxisEncScaleNum(motor_axis_no, &tmpValue);
@@ -180,6 +185,15 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
         //ADSPORT=501/.ADR.16#5001,16#C,2,2?; #high Softlimit enabled
         getAxisEnableSoftLimitFwd(motor_axis_no, iValue);
         return 0;
+    }
+  } else if (group_no >= 0x6000 && group_no < 0x7000) {
+    //group 6000
+    int ret;
+    int motor_axis_no = (int)group_no - 0x6000;
+    switch(offset_in_group) {
+    case 0x10:
+      ret = getAxisMonEnableLagMon(motor_axis_no, iValue);
+      return ret;
     }
   } else if (group_no >= 0x7000 && group_no < 0x8000) {
     double fValue;
@@ -295,29 +309,38 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
       int ret;
       int motor_axis_no = (int)group_no - 0x5000;
 
-      //ADSPORT=501/.ADR.16#5001,16#D,8,5?; #low Softlimit
-      if (offset_in_group == 0xD) {
+      switch(offset_in_group) {
+      case 0xD:
         return getAxisSoftLimitPosBwd(motor_axis_no, fValue);
-      }
-      //ADSPORT=501/.ADR.16#5001,16#E,8,5?; #high Softlimit
-      if (offset_in_group == 0xE) {
+      case 0xE:
         return getAxisSoftLimitPosFwd(motor_axis_no, fValue);
-      }
-
-      //ADSPORT=501/.ADR.16#5001,16#23,8,5?; #Encoder scale num for axis
-      if (offset_in_group == 0x23) {
+      case 0x23:
         ret = getAxisEncScaleNum(motor_axis_no, &tmpValue);
         *fValue = fabs(tmpValue);
         return ret;
-      }
-      //ADSPORT=501/.ADR.16#5001,16#24,8,5?; #Encoder scale denom for axis
-      if (offset_in_group == 0x24) {
+      case 0x24:
         ret = getAxisEncScaleDenom(motor_axis_no, &tmpValue);
         *fValue = fabs(tmpValue);
         return ret;
       }
-      //group 7000
+    } else if (group_no >= 0x6000 && group_no < 0x7000) {
+      //group 6000
+      double tmpValue;
+      int iValue;
+      int ret;
+      int motor_axis_no = (int)group_no - 0x6000;
+      switch(offset_in_group) {
+        case 0x12:
+          ret = getAxisMonPosLagTol(motor_axis_no, &tmpValue);
+          *fValue = tmpValue;
+          return ret;
+        case 0x13:
+          ret = getAxisMonPosLagTime(motor_axis_no, &iValue);
+          *fValue = iValue * 0.001; /* TODO: retrieve the cycle time */
+          return ret;
+      }
     } else if (group_no >= 0x7000 && group_no < 0x8000) {
+      //group 7000
       double tmpValue;
       int ret;
       int motor_axis_no = (int)group_no - 0x7000;
@@ -912,6 +935,26 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "SetAxisCntrlIPartLL(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
     return setAxisCntrlIpartLL(iValue,dValue);
+  }
+
+    nvals = sscanf(myarg_1, "SetAxisSoftLimitPosBwd(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisSoftLimitPosBwd(iValue,dValue);
+  }
+
+  nvals = sscanf(myarg_1, "SetAxisEnableSoftLimitBwd(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisEnableSoftLimitBwd(iValue,iValue2);
+  }
+
+  nvals = sscanf(myarg_1, "SetAxisSoftLimitPosFwd(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisSoftLimitPosFwd(iValue,dValue);
+  }
+
+  nvals = sscanf(myarg_1, "SetAxisEnableSoftLimitFwd(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisEnableSoftLimitFwd(iValue,iValue2);
   }
 
   /*int Cfg.SetAxisMonAtTargetTol(int axis_no, double value);*/
