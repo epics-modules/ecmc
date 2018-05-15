@@ -2802,6 +2802,7 @@ int initEcmcAsyn(void* asynPortObject)
 {
   LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
   asynPort=(ecmcAsynPortDriver*)asynPortObject;
+  ec.setAsynPortDriver(asynPort);
   return 0;
 }
 

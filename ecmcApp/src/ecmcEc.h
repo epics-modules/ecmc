@@ -128,6 +128,7 @@ public:
   int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
   int setEcStatusOutputEntry(ecmcEcEntry *entry);
   int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
+  int setAsynPortDriver(ecmcAsynPortDriver* asynPortDriver);
   int printAllConfig();
   int printSlaveConfig(int slaveIndex);
   int autoConfigSlave(int slaveIndex,int addAsAsynParams);
