@@ -937,6 +937,26 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisCntrlIpartLL(iValue,dValue);
   }
 
+    nvals = sscanf(myarg_1, "SetAxisSoftLimitPosBwd(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisSoftLimitPosBwd(iValue,dValue);
+  }
+
+  nvals = sscanf(myarg_1, "SetAxisEnableSoftLimitBwd(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisEnableSoftLimitBwd(iValue,iValue2);
+  }
+
+  nvals = sscanf(myarg_1, "SetAxisSoftLimitPosFwd(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisSoftLimitPosFwd(iValue,dValue);
+  }
+
+  nvals = sscanf(myarg_1, "SetAxisEnableSoftLimitFwd(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisEnableSoftLimitFwd(iValue,iValue2);
+  }
+
   /*int Cfg.SetAxisMonAtTargetTol(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisMonAtTargetTol(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
