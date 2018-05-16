@@ -125,12 +125,12 @@ void ecmcAxisBase::preExecute(bool masterOK)
       setEnable(false);
       data_.status_.busy=false;
       data_.status_.distToStop=0;
-      if(data_.status_.inStartupPhase && masterOK){
+      if(masterOK){
         //Auto reset hardware error if starting up
-        if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK){
+        if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK && data_.status_.inStartupPhase){
           errorReset();
+          setInStartupPhase(false);
         }
-        setInStartupPhase(false);
         LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
         axisState_=ECMC_AXIS_STATE_DISABLED;
       }
