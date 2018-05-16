@@ -18,7 +18,6 @@ EXCLUDE_ARCHS += eldk
 SOURCES = \
   ecmcApp/src/cmd.c \
   ecmcApp/src/cmd_EAT.c \
-  ecmcApp/src/drvAsynECMCPort.cpp \
   ecmcApp/src/ecmcAxisBase.cpp \
   ecmcApp/src/ecmcAxisReal.cpp \
   ecmcApp/src/ecmcAxisVirt.cpp \
