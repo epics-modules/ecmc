@@ -801,6 +801,12 @@ int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry)
   return 0;
 }
 
+int ecmcEc::setAsynPortDriver(ecmcAsynPortDriver* asynPortDriver)
+{
+  asynPortDriver_=asynPortDriver;
+  return 0;
+}
+
 int ecmcEc::initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles)
 {
   asynPortDriver_=asynPortDriver;
@@ -1237,7 +1243,7 @@ int ecmcEc::autoConfigSlave(int slaveIndex,int addAsAsynParams)
           case 2:  void setInRealtime(bool inRealtime);
           int getInRealtime();
 
-            charCount=snprintf(dbLoadBuffer,sizeof(dbLoadBuffer),"dbLoadRecords(\"ecmcAsynGenericAnalogInput.db\",\"P=$(ECMC_PREFIX),PORT=$(ECMC_ASYN_PORT),ADDR=0,TIMEOUT=1,SLAVE_POS=%d,HWTYPE=%s,NAME=%s,REC_SUFFIX=data,TYPE=asynInt32\")",slaveIndex,entryAliasBuffer,entryAliasPathBuffer);
+            charCount=snprintf(dbLoadBuffer,sizeof(dbLoadBuffer),"dbLoadRecords(\"ecmcAsynGenericAnalogInput.db\",\"P=$(ECMC_PREFIX),PORT=$(ECMC_ASYN_PORT),ADDR=0,TIMEOUT=1,SLAVE_POS=%d,HWTYPE=%s,NAME=%s,REC_SUFFIX=data,TYPE=asynInt32,MASTER_ID=%d\")",slaveIndex,entryAliasBuffer,entryAliasPathBuffer,masterIndex_);
             break;
           default:
             LOGERR("%s/%s:%d: Error: Autoconfig. Direction not input or output (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID);
