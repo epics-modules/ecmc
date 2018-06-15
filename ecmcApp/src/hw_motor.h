@@ -3190,6 +3190,8 @@ int ecAddPdo(int slaveIndex,int syncManager,uint16_t pdoIndex);
  *  \param[in] bits Bit count.\n
  *  \param[in] entryIDString Identification string used for addressing the
  *                           entry.\n
+ *  \param[in] signedValue 1 if value is of signed type otherwise 0
+ *
  *
  * \note All configuration data can be found in the documentation of
  * the slave, in the ESI slave description file or by using the etherlab
@@ -3217,7 +3219,8 @@ int ecAddEntryComplete(
     uint16_t entryIndex,
     uint8_t  entrySubIndex,
     uint8_t bits,
-    char *entryIDString);
+    char *entryIDString,
+    int signedValue);
 
 /** \breif Adds a memory map object to access data directly from EtherCAT
  *   domain.\n

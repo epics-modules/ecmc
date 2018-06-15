@@ -81,7 +81,9 @@ public:
       uint16_t       entryIndex,
       uint8_t        entrySubIndex,
       uint8_t        bits,
-      std::string    id);
+      std::string    id,
+      int            signedValue
+      );
   int configDC(
       uint16_t assignActivate, /**< AssignActivate word. */
       uint32_t sync0Cycle, /**< SYNC0 cycle time [ns]. */

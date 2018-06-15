@@ -2437,7 +2437,8 @@ int ecAddEntryComplete(
     uint16_t entryIndex,
     uint8_t  entrySubIndex,
     uint8_t bits,
-    char *entryIDString
+    char *entryIDString,
+    int signedValue
     )
 {
   std::string id=entryIDString;
@@ -2446,7 +2447,7 @@ int ecAddEntryComplete(
 
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
-  return ec.addEntry(position,vendorId,productCode,(ec_direction_t)direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
+  return ec.addEntry(position,vendorId,productCode,(ec_direction_t)direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id,signedValue);
 }
 
 int ecSetEntryUpdateInRealtime(

@@ -43,6 +43,7 @@ public:
       uint8_t        entrySubIndex,
       uint8_t        bits,
       std::string    id,
+      int            signedValue,
       int            *errorCode);
   ecmcEcEntry *findEntry(std::string id);
 private:

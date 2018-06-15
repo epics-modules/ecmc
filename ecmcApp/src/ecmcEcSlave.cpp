@@ -299,7 +299,8 @@ int ecmcEcSlave::addEntry(
     uint16_t       entryIndex,
     uint8_t        entrySubIndex,
     uint8_t        bits,
-    std::string    id
+    std::string    id,
+    int            signedValue
     )
 {
   int err=0;
@@ -313,7 +314,7 @@ int ecmcEcSlave::addEntry(
     syncManager=syncManagerArray_[syncManCounter_-1]; //last added sync manager
   }
 
-  ecmcEcEntry *entry=syncManager->addEntry(pdoIndex,entryIndex,entrySubIndex,bits,id,&err);
+  ecmcEcEntry *entry=syncManager->addEntry(pdoIndex,entryIndex,entrySubIndex,bits,id,signedValue,&err);
   if(!entry){
     LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add entry failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,err);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,err);

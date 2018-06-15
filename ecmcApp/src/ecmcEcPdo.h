@@ -26,7 +26,7 @@ class ecmcEcPdo : public ecmcError
 public:
   ecmcEcPdo(ec_domain_t *domain,ec_slave_config_t *slave,uint8_t syncMangerIndex,uint16_t pdoIndex,ec_direction_t direction);
   ~ecmcEcPdo();
-  ecmcEcEntry *addEntry( uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits,std::string id,int *errorCode);
+  ecmcEcEntry *addEntry( uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits,std::string id,int signedValue,int *errorCode);
   ecmcEcEntry *getEntry(int index);
   ecmcEcEntry *findEntry(std::string id);
   int getEntryCount();

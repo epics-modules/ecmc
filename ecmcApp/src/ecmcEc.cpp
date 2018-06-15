@@ -512,7 +512,8 @@ int ecmcEc::addEntry(
     uint16_t       entryIndex,
     uint8_t        entrySubIndex,
     uint8_t        bits,
-    std::string    id
+    std::string    id,
+    int            signedValue
     )
 {
   ecmcEcSlave *slave=findSlave(position);
@@ -524,7 +525,7 @@ int ecmcEc::addEntry(
     slave=slaveArray_[slaveIndex]; //last added slave
   }
 
-  int errorCode=slave->addEntry(direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id);
+  int errorCode=slave->addEntry(direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id,signedValue);
   if(errorCode){
     return errorCode;
   }
@@ -1204,7 +1205,7 @@ int ecmcEc::autoConfigSlave(int slaveIndex,int addAsAsynParams)
         }
 
         //Add the entry!
-        errorCode=addEntry(slaveInfo.position,slaveInfo.vendor_id,slaveInfo.product_code,syncInfo.dir,syncManLoopIndex,pdoInfo.index,pdoEntryInfo.index,pdoEntryInfo.subindex,pdoEntryInfo.bit_length,entryAlias);
+        errorCode=addEntry(slaveInfo.position,slaveInfo.vendor_id,slaveInfo.product_code,syncInfo.dir,syncManLoopIndex,pdoInfo.index,pdoEntryInfo.index,pdoEntryInfo.subindex,pdoEntryInfo.bit_length,entryAlias,0);
         if(errorCode){
           LOGERR("%s/%s:%d: Error: Autoconfig. Add entry, alias %s, failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,entryAlias,errorCode);
           return errorCode;
