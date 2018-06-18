@@ -107,6 +107,7 @@ ecmcEcEntry *ecmcEcSyncManager::addEntry(
     uint8_t        entrySubIndex,
     uint8_t        bits,
     std::string    id,
+    int            signedValue,
     int *errorCode
     )
 {
@@ -121,7 +122,7 @@ ecmcEcEntry *ecmcEcSyncManager::addEntry(
    pdo=pdoArray_[pdoCounter_-1]; //last added sync manager
  }
 
- ecmcEcEntry *entry=pdo->addEntry(entryIndex,entrySubIndex,bits,id,&err);
+ ecmcEcEntry *entry=pdo->addEntry(entryIndex,entrySubIndex,bits,id,signedValue,&err);
  if(err || !entry){
    *errorCode=err;
    return NULL;

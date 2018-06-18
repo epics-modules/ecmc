@@ -32,6 +32,28 @@ ecmcEcEntry::ecmcEcEntry(ec_domain_t *domain,ec_slave_config_t *slave,uint16_t p
   LOGINFO5("INFO: Entry %s added: pdoIndex 0x%x, entryIndex 0x%x, entrySubIndex 0x%x, direction %d, bits %d.\n",idString_.c_str(),pdoIndex_,entryIndex_,entrySubIndex_,direction_,bitLength_);
 }
 
+ecmcEcEntry::ecmcEcEntry(ec_domain_t *domain,ec_slave_config_t *slave,uint16_t pdoIndex,uint16_t entryIndex,uint8_t entrySubIndex,uint8_t bits,ec_direction_t direction,std::string id,int signedValue)
+{
+  initVars();
+  entryIndex_=entryIndex;
+  entrySubIndex_=entrySubIndex;
+  bitLength_= bits;
+  direction_=direction;
+  sim_=false;
+  idString_=id;
+  domain_=domain;
+  pdoIndex_=pdoIndex;
+  slave_=slave;
+  signedValue_=signedValue;
+  int errorCode=ecrt_slave_config_pdo_mapping_add(slave,pdoIndex_,entryIndex_,entrySubIndex_,bitLength_);
+  if(errorCode){
+    LOGERR("%s/%s:%d: ERROR: ecrt_slave_config_pdo_mapping_add() failed with error code %d (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode,ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
+  }
+
+  LOGINFO5("INFO: Entry %s added: pdoIndex 0x%x, entryIndex 0x%x, entrySubIndex 0x%x, direction %d, bits %d.\n",idString_.c_str(),pdoIndex_,entryIndex_,entrySubIndex_,direction_,bitLength_);
+}
+
 ecmcEcEntry::ecmcEcEntry(uint8_t bits,uint8_t *domainAdr, std::string id)
 {
   initVars();
@@ -64,6 +86,7 @@ void ecmcEcEntry::initVars()
   domain_=NULL;
   pdoIndex_=0;
   slave_=NULL;
+  signedValue_=0;
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -256,18 +279,17 @@ int ecmcEcEntry::updateAsyn(bool force)
   }
 
   if(asynPortDriver_->getAllowRtThreadCom() && (asynUpdateCycleCounter_>=asynUpdateCycles_ || force)){ //Only update at desired samplerate
-    /// Probably not byte order safe!
     asynUpdateCycleCounter_=0;
-    int32_t *tempInt32=(int32_t *)&value_;
-    double *tempDouble64=(double *)&value_;
+    double *tempDouble64=0;
     switch(asynParameterType_){
       case asynParamInt32:
-        asynPortDriver_-> setIntegerParam(asynParameterIndex_,*tempInt32);
+        asynPortDriver_-> setIntegerParam(asynParameterIndex_,ecValue2Int32());
         break;
       case asynParamUInt32Digital:
-        asynPortDriver_->setUIntDigitalParam(asynParameterIndex_, *tempInt32, 0xFFFFFFFF);
+        asynPortDriver_->setUIntDigitalParam(asynParameterIndex_,ecValue2Int32(), 0xFFFFFFFF);
         break;
       case asynParamFloat64:
+	tempDouble64=(double *)&value_;
         asynPortDriver_-> setDoubleParam(asynParameterIndex_,*tempDouble64);
         break;
       default:
@@ -313,4 +335,20 @@ int ecmcEcEntry::registerInDomain()
   }
   LOGINFO5("%s/%s:%d: INFO: Entry %s registered in domain: bits %d, byteOffset %d, bitOffset %d.\n",__FILE__, __FUNCTION__, __LINE__,idString_.c_str(),bitLength_,byteOffset_,bitOffset_);
   return 0;
+}
+
+int32_t ecmcEcEntry::ecValue2Int32()
+{
+  int32_t tempInt32=(int32_t)value_;
+  if(signedValue_){
+    switch( bitLength_){
+      case 8:
+        tempInt32=(int32_t)((int8_t)value_);
+        break;
+      case 16:
+	tempInt32=(int32_t)((int16_t)value_);
+	break;
+    }
+  }
+  return tempInt32;
 }

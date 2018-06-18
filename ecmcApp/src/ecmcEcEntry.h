@@ -41,6 +41,7 @@ class ecmcEcEntry : public ecmcError , public ecmcAsynLink
 {
 public:
   ecmcEcEntry(ec_domain_t *domain,ec_slave_config_t *slave,uint16_t pdoIndex,uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits, ec_direction_t nDirection, std::string id);
+  ecmcEcEntry(ec_domain_t *domain,ec_slave_config_t *slave,uint16_t pdoIndex,uint16_t entryIndex,uint8_t  entrySubIndex, uint8_t bits, ec_direction_t nDirection, std::string id,int signedValue);
   ecmcEcEntry(uint8_t bitLength,uint8_t *domainAdr, std::string id);  //only used for simulation purpose
   ~ecmcEcEntry();
   void initVars();
@@ -64,6 +65,7 @@ public:
   int registerInDomain();
   int updateAsyn(bool force);
 private:
+  int32_t ecValue2Int32();
   uint8_t *domainAdr_;
   uint16_t entryIndex_;
   uint8_t  entrySubIndex_;
@@ -78,6 +80,6 @@ private:
   ec_domain_t *domain_;
   uint16_t pdoIndex_;
   ec_slave_config_t *slave_;
-
+  int signedValue_;
 };
 #endif /* ECMCECENTRY_H_ */

@@ -664,6 +664,23 @@ static int handleCfgCommand(const char *myarg_1){
   }*/
 
   /*Cfg.EcAddEntryComplete(
+    uint16_t position,
+    uint32_t vendor_id,
+    uint32_t product_code,
+    int nDirection,
+    uint8_t nSyncMangerIndex,
+    uint16_t nPdoIndex,
+    uint16_t nEntryIndex,
+    uint8_t  nEntrySubIndex,
+    uint8_t nBits,
+    int signed,
+    char *cID)*/
+  nvals = sscanf(myarg_1, "EcAddEntryComplete(%d,%x,%x,%d,%d,%x,%x,%x,%d,%d,%[^)])", &iValue,&iValue2,&iValue3,&iValue4,&iValue5,&iValue6,&iValue7,&iValue8,&iValue9,&iValue10,cIdBuffer);
+  if (nvals == 11) {
+    return ecAddEntryComplete(iValue,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,cIdBuffer,iValue10);
+  }
+
+  /*Cfg.EcAddEntryComplete(
       uint16_t position,
       uint32_t vendor_id,
       uint32_t product_code,
@@ -678,7 +695,7 @@ static int handleCfgCommand(const char *myarg_1){
       )*/
   nvals = sscanf(myarg_1, "EcAddEntryComplete(%d,%x,%x,%d,%d,%x,%x,%x,%d,%[^,],%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5,&iValue6,&iValue7,&iValue8,&iValue9,cIdBuffer,&iValue10);
   if (nvals == 11) {
-    int ret=ecAddEntryComplete(iValue,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,cIdBuffer);
+    int ret=ecAddEntryComplete(iValue,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,cIdBuffer,0);
     if(ret){
       return ret;
     }
@@ -698,7 +715,7 @@ static int handleCfgCommand(const char *myarg_1){
     char *cID)*/
   nvals = sscanf(myarg_1, "EcAddEntryComplete(%d,%x,%x,%d,%d,%x,%x,%x,%d,%[^)])", &iValue,&iValue2,&iValue3,&iValue4,&iValue5,&iValue6,&iValue7,&iValue8,&iValue9,cIdBuffer);
   if (nvals == 10) {
-    return ecAddEntryComplete(iValue,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,cIdBuffer);
+    return ecAddEntryComplete(iValue,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,cIdBuffer,0);
   }
 
   /*Cfg.EcAddMemMap(
