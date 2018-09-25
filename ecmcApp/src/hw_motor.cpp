@@ -210,6 +210,136 @@ struct timespec timespec_sub(struct timespec time1, struct timespec time2)
   return result;
 }
 
+/*Available strings:
+ *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
+ *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
+*/
+
+static int parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit)
+{
+  int masterId=0;
+  int slaveId=0;
+  int bitId=0;
+  char *aliasPtr;
+  int nvals=0;
+
+  nvals = sscanf(ecPath, "ec%d.s%d.%[^.].%d",&masterIndex,&busPosition,aliasPtr,&bitId);
+  if (nvals == 4){
+	*master=masterId;
+	*slave=slaveId;
+	*bit=bitId;
+	alias=aliasPtr;
+    return 0;
+  }
+  nvals = sscanf(ecPath, "ec%d.s%d.%s",&masterIndex,&busPosition,aliasPtr);
+  if (nvals == 3){
+	*master=masterId;
+	*slave=slaveId;
+	*bit=-1;
+	alias=aliasPtr;
+    return 0;
+  }
+  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+}
+
+static int parseAxisPath(char* axisPath,int *axis, motionObjectType *objectType,int *objectFunction)
+{
+
+  int objectId=0;
+  int axisId=0;
+  char *objectTypePtr;
+  char *objectFunctionPtr;
+  int nvals=0;
+  nvals = sscanf(ecPath, ECMC_AX_STR"%d.%[^.].%s",&axisId,objectTypePtr,objectFunctionPtr);
+  if (nvals == 3){
+	  axis=axisId;
+
+	  //Drive
+	  nvals=strcmp(objectTypePtr,ECMC_DRV_STR);
+	  if( nvals==0 ){
+		objectType=ECMC_OBJ_DRIVE;
+		//Enable
+		nvals=strcmp(objectFunctionPtr,ECMC_DRV_ENABLE_STR);
+		if(nvals==0){
+		  objectFunction=0;
+          return 0;
+		}
+		//Velocity
+		nvals=strcmp(objectFunctionPtr,ECMC_DRV_VELOCITY_STR);
+		if(nvals==0){
+		  objectFunction=1;
+          return 0;
+		}
+		//Enabled
+		nvals=strcmp(objectFunctionPtr,ECMC_DRV_ENABLED_STR);
+		if(nvals==0){
+		  objectFunction=2;
+          return 0;
+		}
+		//Break
+		nvals=strcmp(objectFunctionPtr,ECMC_DRV_BREAK_STR);
+		if(nvals==0){
+		  objectFunction=3;
+          return 0;
+		}
+		//Reduce Torque
+		nvals=strcmp(objectFunctionPtr,ECMC_DRV_REDUCETORQUE_STR);
+		if(nvals==0){
+		  objectFunction=4;
+          return 0;
+		}
+		return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+	  }
+
+	  //Encoder
+	  nvals=strcmp(objectTypePtr,ECMC_ENC_STR);
+	  if( nvals==0 ){
+		objectType=ECMC_OBJ_ENCODER;
+		//Enable
+		nvals=strcmp(objectFunctionPtr,ECMC_ENC_ACTPOS_STR);
+		if(nvals==0){
+		  objectFunction=0;
+          return 0;
+		}
+		return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+	  }
+
+	  //Monitor
+	  nvals=strcmp(objectTypePtr,ECMC_MON_STR);
+	  if( nvals==0 ){
+		objectType=ECMC_OBJ_MONITOR;
+		//Lowlim
+		nvals=strcmp(objectFunctionPtr,ECMC_MON_LOWLIM_STR);
+		if(nvals==0){
+		  objectFunction=0;
+          return 0;
+		}
+		//Highlim
+		nvals=strcmp(objectFunctionPtr,ECMC_MON_HIGHLIM_STR);
+		if(nvals==0){
+		  objectFunction=1;
+          return 0;
+		}
+		//Home sensor
+		nvals=strcmp(objectFunctionPtr,ECMC_MON_HOMESENSOR_STR);
+		if(nvals==0){
+		  objectFunction=2;
+          return 0;
+		}
+		//ExternalInterupt
+		nvals=strcmp(objectFunctionPtr,ECMC_MON_EXTINTERLOCK_STR);
+		if(nvals==0){
+		  objectFunction=3;
+          return 0;
+		}
+		return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+	  }
+
+  }
+  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+}
+
+
 void cyclic_task(void * usr)
 {
   LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
@@ -2603,10 +2733,68 @@ int linkEcEntryToAxisEnc(int slaveIndex, char *entryIDString,int axisIndex,int e
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  if(encoderEntryIndex>=MaxEcEntryLinks && encoderEntryIndex<0)
+  if(encoderEntryIndex>=MaxEcEntryLinks || encoderEntryIndex<0)
     return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
 
   return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,encoderEntryIndex,bitIndex);
+}
+
+int linkEcEntryToAxisEnc(char *ecPath,char *axPath)
+{
+  LOGINFO4("%s/%s:%d ecPath=%s axPath=%s\n",__FILE__, __FUNCTION__, __LINE__, ecPath,axPath);
+
+  int masterId=-1;
+  int slaveIndex=-1;
+  char alias[256];
+  int bitIndex=-1;
+
+  int errorCode=parseEcPath(ecPath, &masterId,&slaveIndex,alias,&bitIndex,)
+  if(errorCode){
+  	return errorCode;
+  }
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(masterId!=ec.getMasterIndex()){
+   	return ERROR_MAIN_EC_MASTER_NULL;
+  }
+
+  ecmcEcSlave *slave=NULL;
+  if(slaveIndex>=0){
+    slave=ec.findSlave(slaveIndex);
+  }
+  else{ //simulation slave
+    slave=ec.getSlave(slaveIndex);
+  }
+
+  if(slave==NULL)
+    return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID=alias;
+
+  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+
+
+  if(entry==NULL)
+    return ERROR_MAIN_EC_ENTRY_NULL;
+
+  int axisIndex=0;
+  int objectType=0;
+  int encoderEntryIndex=0;
+  errorCode=parseAxisPath(axPath,&axisIndex,&objectType,&encoderEntryIndex);
+  if(errorCode){
+  	return errorCode;
+   }
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+
+  if(encoderEntryIndex>=MaxEcEntryLinks || encoderEntryIndex<0)
+    return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
+
+  return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,encoderEntryIndex,bitIndex);
+
 }
 
 int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int driveEntryIndex, int bitIndex)
@@ -2648,7 +2836,7 @@ int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int dr
   if(entry==NULL)
     return ERROR_MAIN_EC_ENTRY_NULL;
 
-  if(driveEntryIndex>=MaxEcEntryLinks && driveEntryIndex<0){
+  if(driveEntryIndex>=MaxEcEntryLinks || driveEntryIndex<0){
     return ERROR_MAIN_DRIVE_ENTRY_INDEX_OUT_OF_RANGE;
   }
 
@@ -2706,7 +2894,7 @@ int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int mo
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  if(monitorEntryIndex>=MaxEcEntryLinks && monitorEntryIndex<0)
+  if(monitorEntryIndex>=MaxEcEntryLinks || monitorEntryIndex<0)
     return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
 
   return axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);

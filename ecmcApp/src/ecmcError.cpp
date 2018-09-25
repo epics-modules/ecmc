@@ -923,6 +923,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20032:
       return "ERROR_MAIN_EC_MASTER_NULL";
       break;
+    case 0x20033:
+      return "ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;

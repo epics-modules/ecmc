@@ -588,6 +588,22 @@ static int handleCfgCommand(const char *myarg_1){
   }
 
   /// "Cfg.LinkEcEntryToAxisEncoder(slaveBusPosition,entryIdString,axisIndex,encoderEntryIndex,entrybitIndex)"
+  //ec0.s1.POSITION.-1
+  //ax1.enc.actpos
+  nvals = sscanf(myarg_1, "LinkEcEntryToAxisEncoder(%[^,],%[^)])", cIdBuffer,cIdBuffer2);
+  if (nvals == 2) {
+   //Check ethercat entry
+
+
+
+
+
+
+    return linkEcEntryToAxisEnc(iValue,cIdBuffer,iValue3,iValue4,iValue5);
+  }
+  //
+
+  /// "Cfg.LinkEcEntryToAxisEncoder(slaveBusPosition,entryIdString,axisIndex,encoderEntryIndex,entrybitIndex)"
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisEncoder(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return linkEcEntryToAxisEnc(iValue,cIdBuffer,iValue3,iValue4,iValue5);
@@ -1777,7 +1793,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(moveAbsolutePosition(iValue,dValue1,dValue2,dValue3,dValue4));
   }
 
-  /*int MoveRelativePosECMC_COMMAND_FORMAT_ERRORition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
+  /*int MoveRelativePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
   nvals = sscanf(myarg_1, "MoveRelativePosition(%d,%lf,%lf,%lf,%lf)", &iValue,&dValue1,&dValue2,&dValue3,&dValue4);
   if (nvals == 5) {
     SEND_OK_OR_ERROR_AND_RETURN(moveRelativePosition(iValue,dValue1,dValue2,dValue3,dValue4));
