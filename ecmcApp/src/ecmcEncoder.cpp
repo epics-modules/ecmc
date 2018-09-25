@@ -297,3 +297,12 @@ int ecmcEncoder::validate()
 
   return 0;
 }
+
+//Set encoder value to zero at startup if incremental
+int ecmcEncoder::setToZeroIfRelative()
+{
+  if(encType_==ECMC_ENCODER_TYPE_INCREMENTAL){
+	setActPos(0);
+  }
+  return 0;
+}

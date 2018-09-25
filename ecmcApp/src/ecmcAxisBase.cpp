@@ -130,6 +130,7 @@ void ecmcAxisBase::preExecute(bool masterOK)
         if(getErrorID()==ERROR_AXIS_HARDWARE_STATUS_NOT_OK && data_.status_.inStartupPhase){
           errorReset();
           setInStartupPhase(false);
+          enc_->setToZeroIfRelative();
         }
         LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
         axisState_=ECMC_AXIS_STATE_DISABLED;

@@ -63,6 +63,7 @@ public:
   void setOffset(double offset);
   int validate();
   void printCurrentState();
+  int setToZeroIfRelative();
  protected:
   void initVars();
   int32_t turns_;
