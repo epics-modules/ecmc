@@ -2739,63 +2739,6 @@ int linkEcEntryToAxisEnc(int slaveIndex, char *entryIDString,int axisIndex,int e
   return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,encoderEntryIndex,bitIndex);
 }
 
-int linkEcEntryToAxisEnc(char *ecPath,char *axPath)
-{
-  LOGINFO4("%s/%s:%d ecPath=%s axPath=%s\n",__FILE__, __FUNCTION__, __LINE__, ecPath,axPath);
-
-  int masterId=-1;
-  int slaveIndex=-1;
-  char alias[256];
-  int bitIndex=-1;
-
-  int errorCode=parseEcPath(ecPath, &masterId,&slaveIndex,alias,&bitIndex,)
-  if(errorCode){
-  	return errorCode;
-  }
-
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-
-  if(masterId!=ec.getMasterIndex()){
-   	return ERROR_MAIN_EC_MASTER_NULL;
-  }
-
-  ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveIndex);
-  }
-  else{ //simulation slave
-    slave=ec.getSlave(slaveIndex);
-  }
-
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
-
-  std::string sEntryID=alias;
-
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
-
-
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
-
-  int axisIndex=0;
-  int objectType=0;
-  int encoderEntryIndex=0;
-  errorCode=parseAxisPath(axPath,&axisIndex,&objectType,&encoderEntryIndex);
-  if(errorCode){
-  	return errorCode;
-   }
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
-
-  if(encoderEntryIndex>=MaxEcEntryLinks || encoderEntryIndex<0)
-    return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
-
-  return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,encoderEntryIndex,bitIndex);
-
-}
 
 int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int driveEntryIndex, int bitIndex)
 {
@@ -2862,6 +2805,48 @@ int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int dr
   }
 
   return 0;
+}
+
+int linkEcEntryToObject(char *ecPath,char *axPath)
+{
+  LOGINFO4("%s/%s:%d ecPath=%s axPath=%s\n",__FILE__, __FUNCTION__, __LINE__, ecPath,axPath);
+
+  int masterId=-1;
+  int slaveIndex=-1;
+  char alias[256];
+  int bitIndex=-1;
+
+  int errorCode=parseEcPath(ecPath, &masterId,&slaveIndex,alias,&bitIndex);
+  if(errorCode){
+  	return errorCode;
+  }
+
+  int axisIndex=0;
+  int objectType=0;
+  int entryIndex=0;
+  errorCode=parseAxisPath(axPath,&axisIndex,&objectType,&driveEntryIndex);
+  if(errorCode){
+  	return errorCode;
+  }
+
+  switch(objectType){
+    case ECMC_OBJ_DRIVE:
+      return linkEcEntryToAxisDrv(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
+	  break;
+    case ECMC_OBJ_ENCODER:
+      return linkEcEntryToAxisEnc(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
+      break;
+    case ECMC_OBJ_MONITOR:
+      return linkEcEntryToAxisMon(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
+      break;
+    case ECMC_OBJ_CONTROLLER:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+      break;
+    case ECMC_OBJ_TRAJECTORY:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+      break;
+  }
+  return ERROR_MAIN_ECMC_LINK_INVALID;
 }
 
 int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int monitorEntryIndex, int bitIndex)

@@ -587,23 +587,18 @@ static int handleCfgCommand(const char *myarg_1){
     return createAxis(iValue,1);
   }
 
-  /// "Cfg.LinkEcEntryToAxisEncoder(slaveBusPosition,entryIdString,axisIndex,encoderEntryIndex,entrybitIndex)"
+  /// "Cfg.LinkEcEntryToObject(ecEntryPathString,objPathString)"
   //ec0.s1.POSITION.-1
   //ax1.enc.actpos
-  nvals = sscanf(myarg_1, "LinkEcEntryToAxisEncoder(%[^,],%[^)])", cIdBuffer,cIdBuffer2);
+  cIdBuffer[0]='\0';
+  cIdBuffer2[0]='\0';
+  nvals = sscanf(myarg_1, "LinkEcEntryToObject(%[^,],%[^)])", cIdBuffer,cIdBuffer2);
   if (nvals == 2) {
-   //Check ethercat entry
-
-
-
-
-
-
-    return linkEcEntryToAxisEnc(iValue,cIdBuffer,iValue3,iValue4,iValue5);
+    return linkEcEntryToObject(cIdBuffer,cIdBuffer2);
   }
-  //
 
   /// "Cfg.LinkEcEntryToAxisEncoder(slaveBusPosition,entryIdString,axisIndex,encoderEntryIndex,entrybitIndex)"
+  cIdBuffer[0]='\0';
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisEncoder(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return linkEcEntryToAxisEnc(iValue,cIdBuffer,iValue3,iValue4,iValue5);

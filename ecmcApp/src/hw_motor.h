@@ -2409,7 +2409,7 @@ int validateConfig();
    */
 int linkEcEntryToAxisEnc(int slaveBusPosition,char *entryIdString,int axisIndex,int encoderEntryIndex,int entryBitIndex);
 
-/** \breif Links an EtherCAT entry to the encoder object of an axis.
+/** \breif Links an EtherCAT entry to an object.
    *
    *
    *  \param[in] ecPath EtherCAT entry path in the following format:\n
@@ -2417,6 +2417,15 @@ int linkEcEntryToAxisEnc(int slaveBusPosition,char *entryIdString,int axisIndex,
    *                    ec<masterId>.s<slaveId>.<alias>
    *  \param[in] axPath Axis parameter path in the following format:\n
    *                    ax<id>.enc.actpos\n
+   *                    ax<id>.drv.enable\n
+   *                    ax<id>.drv.velocity\n
+   *                    ax<id>.drv.enabled\n
+   *                    ax<id>.drv.break\n
+   *                    ax<id>.drv.reducetorque\n
+   *                    ax<id>.mon.lowlim\n
+   *                    ax<id>.mon.highlim\n
+   *                    ax<id>.mon.homesensor\n
+   *                    ax<id>.mon.extinterlock\n
    *
    *  \return 0 if success or otherwise an error code.\n
    *
@@ -2426,7 +2435,7 @@ int linkEcEntryToAxisEnc(int slaveBusPosition,char *entryIdString,int axisIndex,
    *  to cmd_EAT.c\n
    *     *
    */
-int linkEcEntryToAxisEnc(char *ecPath,char *axPath);
+int linkEcEntryToObject(char *ecPath,char *objPath);
 
 /** \breif Links an EtherCAT entry to the drive object of the axis at axisIndex.
    *
@@ -2472,29 +2481,6 @@ int linkEcEntryToAxisEnc(char *ecPath,char *axPath);
    */
 int linkEcEntryToAxisDrv(int slaveBusPosition,char *entryIdString,int axisIndex,int driveEntryIndex,int entryBitIndex);
 
-/** \breif Links an EtherCAT entry to the drive object of an axis.
-   *
-   *
-   *  \param[in] ecPath EtherCAT entry path in the following format:\n
-   *                    ec<masterId>.s<slaveId>.<alias>.<bitId>
-   *                    ec<masterId>.s<slaveId>.<alias>
-   *  \param[in] axPath Axis parameter path in the following format:\n
-   *                    ax<id>.drv.enable\n
-   *                    ax<id>.drv.velocity\n
-   *                    ax<id>.drv.enabled\n
-   *                    ax<id>.drv.break\n
-   *                    ax<id>.drv.reducetorque\n
-   *
-   *  \return 0 if success or otherwise an error code.\n
-   *
-   *  \note Example: Link bit 4 of an EtherCAT entry configured as "CONTROL" in slave 1
-   *  as enable for the drive of axis 3.\n
-   *  "Cfg.LinkEcEntryToAxisDrive(ec0.s1.CONTROL.4,ax3.drv.enable)" //Command string
-   *  to cmd_EAT.c\n
-   *     *
-   */
-int linkEcEntryToAxisDrv(char *ecPath,char *axPath);
-
 /** \breif Links an EtherCAT entry to the monitor object of the axis at axisIndex\n
  *
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
@@ -2527,28 +2513,6 @@ int linkEcEntryToAxisDrv(char *ecPath,char *axPath);
  *   "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,5,1,0)" //Command string to cmd_EAT.c\n
  */
 int linkEcEntryToAxisMon(int slaveBusPosition,char *entryIdString,int axisIndex,int monitorEntryIndex,int entryBitIndex);
-
-/** \breif Links an EtherCAT entry to the monitor object of an axis.
-   *
-   *
-   *  \param[in] ecPath EtherCAT entry path in the following format:\n
-   *                    ec<masterId>.s<slaveId>.<alias>.<bitId>
-   *                    ec<masterId>.s<slaveId>.<alias>
-   *  \param[in] axPath Axis parameter path in the following format:\n
-   *                    ax<id>.mon.lowlim\n
-   *                    ax<id>.mon.highlim\n
-   *                    ax<id>.mon.homesensor\n
-   *                    ax<id>.mon.extinterlock\n
-   *
-   *  \return 0 if success or otherwise an error code.\n
-   *
-   *  \note Example: Link bit 1 of an EtherCAT entry configured as "OUTPUTS"
-   *  in slave 1 as low limit for the monitor of axis 5.\n
-   *  "Cfg.LinkEcEntryToAxisMonitor(ec0.s1.POSITION_ACT.1,ax5.mon.lowlim)" //Command string
-   *  to cmd_EAT.c\n
-   *     *
-   */
-int linkEcEntryToAxisMon(char *ecPath,char *axPath);
 
 /** \breif Links an EtherCAT entry to the ethecat master object for hardware
  *   status output\n
