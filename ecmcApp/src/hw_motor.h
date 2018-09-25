@@ -2426,6 +2426,8 @@ int linkEcEntryToAxisEnc(int slaveBusPosition,char *entryIdString,int axisIndex,
    *                    ax<id>.mon.highlim\n
    *                    ax<id>.mon.homesensor\n
    *                    ax<id>.mon.extinterlock\n
+   *                    ax<id>.health\n
+   *                    ec<masterId>.health\n
    *
    *  \return 0 if success or otherwise an error code.\n
    *
@@ -2520,11 +2522,11 @@ int linkEcEntryToAxisMon(int slaveBusPosition,char *entryIdString,int axisIndex,
  *  The output will be high when the EtherCAT master is without error code and
  *  otherwise zero.
  *
- *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
- *    slaveBusPosition = -1: Used to address the simulation slave. Only two
- *                           entries are configured, "ZERO" with default
- *                           value 0 and "ONE" with default value 1.\n
- *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] slaveIndex Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = -1: Used to address the simulation slave. Only two
+ *                     entries are configured, "ZERO" with default
+ *                     value 0 and "ONE" with default value 1.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
  *  \param[in] entryIdString String for addressing purpose (see command
  *                      "Cfg.EcAddEntryComplete() for more information").\n
  *
@@ -2535,6 +2537,30 @@ int linkEcEntryToAxisMon(int slaveBusPosition,char *entryIdString,int axisIndex,
  *   "Cfg.LinkEcEntryToEcStatusOutput(1,"OUTPUT_0")" //Command string to cmd_EAT.c\n
  */
 int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString);
+
+/** \breif Links an EtherCAT entry to the an axis object for
+ *   status output\n
+ *
+ *  The output will be high when the axis object is without error code and
+ *  otherwise zero.
+ *
+ *  \param[in] slaveIndex Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] entryIdString String for addressing purpose (see command
+ *                      "Cfg.EcAddEntryComplete() for more information").\n
+ *  \param[in] axisIndex Index of axis.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ *  \note Example 1: Link an EtherCAT entry configured as "OUTPUT_0" in slave 1 as
+ *  status output for axis with index 2.\n
+ *   "Cfg.LinkEcEntryToAxisStatusOutput(1,"OUTPUT_0",2)" //Command string to cmd_EAT.c\n
+ */
+
+int linkEcEntryToAxisStatusOutput(int slaveIndex,char *entryIDString,int axisIndex);
 
 /** \breif Create an event object.
  *

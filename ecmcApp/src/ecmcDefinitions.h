@@ -25,6 +25,9 @@
 //#define MSG_TICK 0
 #define MAX_MESSAGE 10000
 
+//Buffer size
+#define EC_MAX_OBJECT_PATH_CHAR_LENGTH 256
+
 //Transforms
 #define MAX_TRANSFORM_INPUTS ECMC_MAX_AXES*2
 #define TRANSFORM_EXPR_LINE_END_CHAR '#'
@@ -164,17 +167,21 @@ enum triggerEdgeType{
 
 //Object types
 enum motionObjectType{
-  ECMC_OBJ_DRIVE=0,
-  ECMC_OBJ_ENCODER=1,
-  ECMC_OBJ_MONITOR=2
-  ECMC_OBJ_CONTROLLER=3
-  ECMC_OBJ_TRAJECTORY=4
+  ECMC_OBJ_INVALID=0,
+  ECMC_OBJ_DRIVE=1,
+  ECMC_OBJ_ENCODER=2,
+  ECMC_OBJ_MONITOR=3,
+  ECMC_OBJ_CONTROLLER=4,
+  ECMC_OBJ_TRAJECTORY=5,
+  ECMC_OBJ_AXIS=6,
+  ECMC_OBJ_EC=7
 };
 
 /*Available strings:
- *  ax<id>.drv.enable          (output)
+ *  ax<id>.health              (output)
+ *  ax<id>.drv.control         (output)
  *  ax<id>.drv.velocity        (output)
- *  ax<id>.drv.enabled         (input)
+ *  ax<id>.drv.status          (input)
  *  ax<id>.drv.break           (output)
  *  ax<id>.drv.reducetorque    (output)
  *  ax<id>.enc.actpos          (input)
@@ -187,12 +194,15 @@ enum motionObjectType{
 #define ECMC_AX_PATH_BUFFER_SIZE 256
 #define ECMC_EC_PATH_BUFFER_SIZE 256
 
+#define ECMC_EC_STR "ec"
+#define ECMC_EC_HEALTH_STR "health"
 #define ECMC_AX_STR "ax"
+#define ECMC_AX_HEALTH_STR "health"
 #define ECMC_DRV_STR "drv"
-#define ECMC_DRV_ENABLE_STR "enable"
+#define ECMC_DRV_ENABLE_STR "control"
 #define ECMC_DRV_VELOCITY_STR "velocity"
-#define ECMC_DRV_ENABLED_STR "enabled"
-#define ECMC_DRV_BREAK_STR "break"
+#define ECMC_DRV_ENABLED_STR "status"
+#define ECMC_DRV_BREAK_STR "brake"
 #define ECMC_DRV_REDUCETORQUE_STR "reducetorque"
 
 #define ECMC_ENC_STR "enc"
@@ -202,7 +212,7 @@ enum motionObjectType{
 #define ECMC_MON_LOWLIM_STR "lowlim"
 #define ECMC_MON_HIGHLIM_STR "highlim"
 #define ECMC_MON_HOMESENSOR_STR "homesensor"
-#define ECMC_MON_EXTINTERLOCK_STR "extInterlock"
+#define ECMC_MON_EXTINTERLOCK_STR "extinterlock"
 #define ECMC_TRAJ_STR "traj"
 #define ECMC_CNTRL_STR "cntrl"
 
