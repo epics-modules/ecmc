@@ -13,6 +13,7 @@
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
+#include <inttypes.h>
 
 #include "ecmcDefinitions.h"
 #include "ecmcEcEntry.h"
@@ -36,8 +37,11 @@
 #define ERROR_ENC_TRANSFORM_VALIDATION_ERROR 0x1440A
 #define ERROR_ENC_SLAVE_INTERFACE_NULL 0x1440B
 #define ERROR_ENC_VELOCITY_FILTER_NULL 0x1440C
+#define ERROR_ENC_RAW_MASK_INVALID 0x1440D
+#define ERROR_ENC_ABS_MASK_INVALID 0x1440E
 
 #define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
+#define ECMC_ENCODER_MAX_VALUE_64_BIT ((uint64_t)(0xFFFFFFFFFFFFFFFFULL))
 
 class ecmcEncoder : public ecmcEcEntryLink
 {
@@ -45,6 +49,7 @@ public:
   ecmcEncoder(ecmcAxisData *axisData,double sampleTime);
   ~ecmcEncoder();
   int setBits(int bits);
+  int setAbsBits(int absBits);
   int64_t getRawPos();
   int setScaleNum(double scaleNum);
   int setScaleDenom(double scaleDenom);
@@ -60,12 +65,15 @@ public:
   encoderType getType();
   int setType(encoderType encType);
   double readEntries();
-  void setOffset(double offset);
+  int setOffset(double offset);
   int validate();
   void printCurrentState();
   int setToZeroIfRelative();
+  int setRawMask(uint64_t mask);
  protected:
   void initVars();
+  int countTrailingZerosInMask(uint64_t mask);
+  int countBitWidthOfMask(uint64_t mask,int trailZeros);
   int32_t turns_;
   uint64_t rawPosUint_;
   uint64_t rawPosUintOld_;
@@ -86,6 +94,9 @@ public:
   int64_t handleOverUnderFlow(uint64_t newValue,int bits);
   ecmcFilter *velocityFilter_;
   ecmcAxisData* data_;
+  int absBits_; //Used for homing of partly absolute encoders (applied after raw mask)
+  uint64_t totalRawMask_;
+  uint64_t totalRawOffset_;
 };
 
 #endif /* ECMCENCODER_H_ */

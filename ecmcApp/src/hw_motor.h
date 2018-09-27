@@ -1564,15 +1564,47 @@ int setAxisEncType(int axisIndex, int value);
  *
  * The bit count is used to handle over/under flow.\n
  *
+ *\note: The bits will be considered to be the least significant\n
+ * of the encoder data area. The raw encoder mask will therefore\n
+ * be set to 2^bits-1 (see setAxisEncRawMask() for more info).\n
+ *
  * \param[in] axisIndex  Axis index.\n
- * \param[in] value Encoder register bit count.\n
+ * \param[in] bits Encoder register bit count.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder bit count to 16 for axis 3.\n
  * "Cfg.SetAxisEncBits(3,16)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncBits(int axisIndex, int value);
+int setAxisEncBits(int axisIndex, int bits);
+
+/** \breif Set encoder register bit count for absolute data.\n
+ *
+ * The bit count is used to handle over/under flow.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Encoder register bit count for absolute data.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set encoder bit count to 16 for axis 3.\n
+ * "Cfg.SetAxisEncBits(3,16)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisEncAbsBits(int axisIndex, int value);
+
+/** \breif Set encoder raw data mask.\n
+ *
+ * Mask to filter Encoder data from encoder 64bit data\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] rawMask Encoder raw mask.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set encoder mask to 0xFFFF for axis 3.\n
+ * "Cfg.SetAxisEncRawMask(3,0xFFFF)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisEncRawMask(int axisIndex, uint64_t rawMask);
 
 /** \breif Set PID-controller proportional gain.\n
  *
