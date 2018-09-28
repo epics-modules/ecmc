@@ -54,13 +54,14 @@ public:
   int         getAbsBits();
   int64_t     getRawPosMultiTurn();
   uint64_t    getRawPosRegister();
-  uint64_t    getRawAbsPosRegister();  //Only absolute bits
+  uint64_t    getRawAbsPosRegister(); //Only absolute bits
   int         setScaleNum(double scaleNum);
   int         setScaleDenom(double scaleDenom);
   double      getScaleNum();
   double      getScaleDenom();
   double      getScale();
   double      getActPos();
+  double      getAbsBitsActPos();
   void        setActPos(double pos);
   double      getSampleTime();
   double      getActVel();

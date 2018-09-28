@@ -301,7 +301,7 @@ int ecmcEncoder::setRawMask(uint64_t mask)
 
   bits_=bitWidth;
   rawRange_=pow(2,bits_)-1;
-  rawLimit_=rawRange_*2/3;  //Limit for over/under-flow
+  rawLimit_=rawRange_*2.0/3.0;  //Limit for over/under-flow
 
   if(totalRawRegShift_!=mask){
     LOGINFO15("%s/%s:%d: axis[%d].encoder.rawmask=%"PRIx64";\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,mask);
@@ -398,7 +398,6 @@ int ecmcEncoder::countTrailingZerosInMask(uint64_t mask)
 	zeros++;
 	mask>>=1;
   }
-  printf("==========================countTrailingZerosInMask=%d\n",zeros);
   return zeros;
 }
 
@@ -420,7 +419,6 @@ int ecmcEncoder::countBitWidthOfMask(uint64_t mask,int trailZeros)
   if(maskNoTrailingZeros>(pow(2,ones)-1)){
 	return -1;
   }
-  printf("==========================countBitWidthOfMask=%d\n",ones);
   return ones;
 }
 
