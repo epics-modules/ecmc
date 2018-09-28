@@ -926,7 +926,7 @@ int ecmcAxisBase::setEncScaleDenom(double scale)
 
 int ecmcAxisBase::getEncPosRaw(int64_t *rawPos)
 {
-  *rawPos=enc_->getRawPos();
+  *rawPos=enc_->getRawPosMultiTurn();
   return 0;
 }
 

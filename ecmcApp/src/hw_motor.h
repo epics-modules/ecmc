@@ -1566,7 +1566,9 @@ int setAxisEncType(int axisIndex, int value);
  *
  *\note: The bits will be considered to be the least significant\n
  * of the encoder data area. The raw encoder mask will therefore\n
- * be set to 2^bits-1 (see setAxisEncRawMask() for more info).\n
+ * be set to 2^bits-1 (see setAxisEncRawMask() for more info). If\n
+ * bits need to be filtered away then use setAxisEncRawMask() command\n
+ * instead.
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] bits Encoder register bit count.\n
@@ -1580,21 +1582,29 @@ int setAxisEncBits(int axisIndex, int bits);
 
 /** \breif Set encoder register bit count for absolute data.\n
  *
- * The bit count is used to handle over/under flow.\n
+ * This setting is used for homing of partly absolute encoders\n
+ * like resolvers (single turn absolute). The data is always\n
+ * considered to be located at the least significant bits\n
+ * of the encoder data (masked). See setAxisEncBits() and\n
+ * setAxisEncRawMask() for more information.\n
  *
  * \param[in] axisIndex  Axis index.\n
- * \param[in] value Encoder register bit count for absolute data.\n
+ * \param[in] bits Encoder register bit count for absolute data.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set encoder bit count to 16 for axis 3.\n
- * "Cfg.SetAxisEncBits(3,16)" //Command string to cmd_EAT.c.\n
+ * \note Example: Set encoder absolute bit count to 10 for axis 3.\n
+ * "Cfg.SetAxisEncAbsBits(3,10)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncAbsBits(int axisIndex, int value);
+int setAxisEncAbsBits(int axisIndex, int bits);
 
 /** \breif Set encoder raw data mask.\n
  *
  * Mask to filter Encoder data from encoder 64bit data\n
+ * Also calculates bit-count of encoder data. If this function \n
+ * is used then the setAxisEncBits() should NOT be used since\n.
+ * setAxisEncBits() also calculates and sets the a raw-mask\n
+ * (but based on all data located on the least significant bits).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] rawMask Encoder raw mask.\n

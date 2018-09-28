@@ -30,6 +30,20 @@
 #define ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL 0x14D0B
 #define ERROR_SEQ_NO_HOME_SWITCH_FLANK 0x14D0C
 #define ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK 0x14D0D
+#define ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO 0x14D0E
+
+//Homing
+enum ecmcHomingType{
+  ECMC_SEQ_HOME_NOT_VALID = 0,
+  ECMC_SEQ_HOME_LOW_LIM = 1,
+  ECMC_SEQ_HOME_HIGH_LIM = 2,
+  ECMC_SEQ_HOME_LOW_LIM_HOME = 3,
+  ECMC_SEQ_HOME_HIGH_LIM_HOME = 4,
+  ECMC_SEQ_HOME_LOW_LIM_HOME_HOME = 5,
+  ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME = 6,
+  ECMC_SEQ_HOME_SET_POS = 15,
+  ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS = 23,
+};
 
 class ecmcSequencer : public ecmcError
 {
@@ -86,6 +100,7 @@ private:
   int seqHoming5(); //nCmdData==5
   int seqHoming6(); //nCmdData==6
   int seqHoming15(); //nCmdData==15
+  int seqHoming23(); //nCmdData==23
   int checkHWLimitsAndStop(bool checkBWD,bool checkFWD);
   int stopSeq();
   int getExtTrajSetpoint(double *pos);
@@ -127,6 +142,8 @@ private:
   //bool externalExecute_;
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcAxisData* data_;
+  uint64_t oldEncAbsPosReg_;
+  uint64_t encAbsPosReg_;
 };
 
 #endif /* ECMCSEQUENCER_HPP_ */
