@@ -265,7 +265,7 @@ void ecmcMonitor::readEntries(){
   uint64_t tempRaw=0;
 
   //Hard limit BWD
-  if (readEcEntryValue(0,&tempRaw)) {
+  if (readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM,&tempRaw)) {
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
@@ -279,7 +279,7 @@ void ecmcMonitor::readEntries(){
 
   //Hard limit FWD
   tempRaw=0;
-  if(readEcEntryValue(1,&tempRaw)){
+  if(readEcEntryValue(ECMC_MON_ENTRY_INDEX_HIGHLIM,&tempRaw)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
@@ -292,7 +292,7 @@ void ecmcMonitor::readEntries(){
 
   //Home
   tempRaw=0;
-  if(readEcEntryValue(2,&tempRaw)){
+  if(readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR,&tempRaw)){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
@@ -308,7 +308,7 @@ void ecmcMonitor::readEntries(){
 
   if(enableHardwareInterlock_){
     tempRaw=0;
-    if(readEcEntryValue(3,&tempRaw)){
+    if(readEcEntryValue(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK,&tempRaw)){
       setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_ENTRY_READ_FAIL);
       return;
     }

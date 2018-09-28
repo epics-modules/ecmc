@@ -587,7 +587,34 @@ static int handleCfgCommand(const char *myarg_1){
     return createAxis(iValue,1);
   }
 
+  /// "Cfg.LinkEcEntryToObject(ecEntryPathString,objPathString)"
+  //ec0.s1.POSITION.-1
+  //ax1.enc.actpos
+  cIdBuffer[0]='\0';
+  cIdBuffer2[0]='\0';
+  nvals = sscanf(myarg_1, "LinkEcEntryToObject(%[^,],%[^)])", cIdBuffer,cIdBuffer2);
+  if (nvals == 2) {
+    return linkEcEntryToObject(cIdBuffer,cIdBuffer2);
+  }
+
+  /// "Cfg.LinkEcEntryToObject(ecEntryPathString,objPathString)"
+  // Allow empty entryIdString (no action will be taken)
+  cIdBuffer[0]='\0';
+  cIdBuffer2[0]='\0';
+  nvals = sscanf(myarg_1, "LinkEcEntryToObject(,%[^)])", cIdBuffer2);
+  if (nvals == 1) {
+    return 0;
+  }
+
+  /// "Cfg.LinkEcEntryToObject(ecEntryPathString,objPathString)"
+  // Allow empty
+  nvals = strcmp(myarg_1, "LinkEcEntryToObject(,)");
+  if (nvals == 0) {
+    return 0;
+  }
+
   /// "Cfg.LinkEcEntryToAxisEncoder(slaveBusPosition,entryIdString,axisIndex,encoderEntryIndex,entrybitIndex)"
+  cIdBuffer[0]='\0';
   nvals = sscanf(myarg_1, "LinkEcEntryToAxisEncoder(%d,%[^,],%d,%d,%d)", &iValue,cIdBuffer,&iValue3,&iValue4,&iValue5);
   if (nvals == 5) {
     return linkEcEntryToAxisEnc(iValue,cIdBuffer,iValue3,iValue4,iValue5);
@@ -619,6 +646,12 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "LinkEcEntryToEcStatusOutput(%d,%[^)])", &iValue,cIdBuffer);
   if (nvals == 2) {
     return linkEcEntryToEcStatusOutput(iValue,cIdBuffer);
+  }
+
+  /// "Cfg.LinkEcEntryToAxisStatusOutput(slaveBusPosition,entryIdString)"
+  nvals = sscanf(myarg_1, "LinkEcEntryToAxisStatusOutput(%d,%[^,],%d)", &iValue,cIdBuffer,&iValue2);
+  if (nvals == 3) {
+    return linkEcEntryToAxisStatusOutput(iValue,cIdBuffer,iValue2);
   }
 
   /// "Cfg.WriteEcEntryIDString(slaveBusPosition,entryIdString,value)"
@@ -1777,7 +1810,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(moveAbsolutePosition(iValue,dValue1,dValue2,dValue3,dValue4));
   }
 
-  /*int MoveRelativePosECMC_COMMAND_FORMAT_ERRORition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
+  /*int MoveRelativePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet);*/
   nvals = sscanf(myarg_1, "MoveRelativePosition(%d,%lf,%lf,%lf,%lf)", &iValue,&dValue1,&dValue2,&dValue3,&dValue4);
   if (nvals == 5) {
     SEND_OK_OR_ERROR_AND_RETURN(moveRelativePosition(iValue,dValue1,dValue2,dValue3,dValue4));

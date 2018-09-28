@@ -63,6 +63,8 @@
 #define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
 #define ERROR_AXIS_PRINT_TO_BUFFER_FAIL 0x14321
 
+#define ECMC_AXIS_ENTRY_INDEX_HEALTH 0
+
 enum axisState{
   ECMC_AXIS_STATE_STARTUP=0,
   ECMC_AXIS_STATE_DISABLED=1,
@@ -181,6 +183,8 @@ public:
   void printAxisStatus();
   int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
   int initDiagAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
+  int setEcStatusOutputEntry(ecmcEcEntry *entry);
+
 protected:
   void printAxisState();
   void initVars();
@@ -226,6 +230,7 @@ protected:
   int asynParIdDiag_;
   int asynUpdateCycleCounterDiag_;
   int asynUpdateCyclesDiag_;
+  ecmcEcEntry *statusOutputEntry_;
 };
 
 #endif /* ECMCAXISBASE_H_ */
