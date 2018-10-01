@@ -1441,14 +1441,16 @@ int ecmcSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute b
         LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
 	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
-
+      printf("state=%d, encAbsPosReg_=%"PRIx64",encAbsPosRegOld_=%"PRIx64 ", actpos=%lf\n",seqState_,encAbsPosReg_,oldEncAbsPosReg_,enc_->getActPos());
       //Over or under-flow triggered when 2/3 of bit-width change in value
-      if(((double)std::abs(encAbsPosReg_-oldEncAbsPosReg_))>(double)(2.0/3.0*pow(2,encAbsBits))){
+      if( (encAbsPosReg_>oldEncAbsPosReg_+2.0/3.0*pow(2,encAbsBits)) || (oldEncAbsPosReg_>encAbsPosReg_+2.0/3.0*pow(2,encAbsBits))){
+    	printf("OVER/UNDERFLOW\n");
     	homePosLatch1_=enc_->getActPos();  // save to ensure taht movement is resonable in next step
     	seqState_=5;
       }
       break;
     case 5:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
+      printf("state=%d, encAbsPosReg_=%"PRIx64",encAbsPosRegOld_=%"PRIx64 ", actpos=%lf\n",seqState_,encAbsPosReg_,oldEncAbsPosReg_,enc_->getActPos());
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
@@ -1581,7 +1583,7 @@ int ecmcSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolute b
 	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       //Over or under-flow triggered when 2/3 of bit-width change in value
-      if(((double)std::abs(encAbsPosReg_-oldEncAbsPosReg_))>(double)(2.0/3.0*pow(2,encAbsBits))){
+      if( (encAbsPosReg_>oldEncAbsPosReg_+2.0/3.0*pow(2,encAbsBits)) || (oldEncAbsPosReg_>encAbsPosReg_+2.0/3.0*pow(2,encAbsBits))){
         homePosLatch1_=enc_->getActPos();  // save to ensure taht movement is resonable in next step
     	seqState_=5;
       }
