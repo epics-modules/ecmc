@@ -708,7 +708,7 @@ int ecmcAxisBase::getErrorID()
   }
 
   //Sequencer
-  ecmcSequencer *seq =getSeq();
+  ecmcAxisSequencer *seq =getSeq();
   if(seq){
     if(seq->getErrorID()){
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,seq->getErrorID());
@@ -770,7 +770,7 @@ void ecmcAxisBase::errorReset()
   }
 
   //Sequencer
-  ecmcSequencer *seq =getSeq();
+  ecmcAxisSequencer *seq =getSeq();
   if(seq){
     seq->errorReset();
   }
@@ -889,7 +889,7 @@ ecmcMonitor *ecmcAxisBase::getMon()
   return mon_;
 }
 
-ecmcSequencer *ecmcAxisBase::getSeq()
+ecmcAxisSequencer *ecmcAxisBase::getSeq()
 {
   return &seq_;
 }

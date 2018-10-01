@@ -21,7 +21,7 @@
 #include "ecmcError.h"
 #include "ecmcMonitor.hpp"
 #include "ecmcPIDController.hpp"
-#include "ecmcSequencer.hpp"
+#include "ecmcAxisSequencer.h"
 #include "ecmcTrajectoryTrapetz.hpp"
 #include "ecmcMasterSlaveIF.h"
 #include "ecmcAxisData.h"
@@ -147,7 +147,7 @@ public:
   ecmcTrajectoryTrapetz *getTraj();
   ecmcMonitor *getMon();
   ecmcEncoder *getEnc();
-  ecmcSequencer * getSeq();
+  ecmcAxisSequencer * getSeq();
   int getPosAct(double *pos);
   int getPosSet(double *pos);
   int getVelAct(double *vel);
@@ -204,7 +204,7 @@ protected:
   ecmcTrajectoryTrapetz *traj_;
   ecmcMonitor *mon_;
   ecmcEncoder *enc_;
-  ecmcSequencer seq_;
+  ecmcAxisSequencer seq_;
   ecmcAxisStatusType statusData_;
   ecmcAxisStatusType statusDataOld_;
   int printHeaderCounter_;
