@@ -1443,7 +1443,7 @@ int ecmcSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute b
       }
 
       //Over or under-flow triggered when 2/3 of bit-width change in value
-      if(((double)abs(encAbsPosReg_-oldEncAbsPosReg_))>(double)(2.0/3.0*pow(2,encAbsBits))){
+      if(((double)std::abs(encAbsPosReg_-oldEncAbsPosReg_))>(double)(2.0/3.0*pow(2,encAbsBits))){
     	seqState_=5;
       }
       break;
@@ -1569,7 +1569,7 @@ int ecmcSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolute b
 	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       //Over or under-flow triggered when 2/3 of bit-width change in value
-      if(((double)abs(encAbsPosReg_-oldEncAbsPosReg_))>(double)(2.0/3.0*pow(2,encAbsBits))){
+      if(((double)std::abs(encAbsPosReg_-oldEncAbsPosReg_))>(double)(2.0/3.0*pow(2,encAbsBits))){
     	seqState_=5;
       }
       break;
