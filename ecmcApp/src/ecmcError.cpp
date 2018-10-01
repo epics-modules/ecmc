@@ -416,6 +416,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14D0E:
       return "ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO";
       break;
+    case 0x14D0F:
+      return "ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED";
+      break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";
       break;

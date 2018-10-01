@@ -1444,6 +1444,7 @@ int ecmcSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute b
 
       //Over or under-flow triggered when 2/3 of bit-width change in value
       if(((double)std::abs(encAbsPosReg_-oldEncAbsPosReg_))>(double)(2.0/3.0*pow(2,encAbsBits))){
+    	homePosLatch1_=enc_->getActPos();  // save to ensure taht movement is resonable in next step
     	seqState_=5;
       }
       break;
@@ -1455,8 +1456,14 @@ int ecmcSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute b
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
-        if((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) || !mon_->getEnableAtTargetMon())//Wait for controller to settle in order to minimize bump
+        //Wait for controller to settle in order to minimize bump
+        if((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) || !mon_->getEnableAtTargetMon())
         {
+          //Sanity check: Encoder position at homing must be bigger than in step 4
+          if(enc_->getActPos()<=homePosLatch1_){
+       	    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Position sanity check failed (position in step 5 less than in step 4)(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
+       	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
+          }
           double currPos=0;
           if(encAbsPosReg_< (1.0/2.0*pow(2,encAbsBits))){//Overflow
             //Always positive value
@@ -1470,7 +1477,12 @@ int ecmcSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute b
           traj_->setTargetPos(currPos);
           enc_->setActPos(currPos);
           enc_->setHomed(true);
-          cntrl_->reset();  //TODO.. Should this really be needed.. Error should be zero anyway.. Controller jumps otherwise.. PROBLEM
+          /*TODO..
+           * Should this really be needed..
+           * Error should be zero anyway..
+           * Controller jumps otherwise..
+           * PROBLEM*/
+          cntrl_->reset();  //
           stopSeq();
         }
       }
@@ -1570,6 +1582,7 @@ int ecmcSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolute b
       }
       //Over or under-flow triggered when 2/3 of bit-width change in value
       if(((double)std::abs(encAbsPosReg_-oldEncAbsPosReg_))>(double)(2.0/3.0*pow(2,encAbsBits))){
+        homePosLatch1_=enc_->getActPos();  // save to ensure taht movement is resonable in next step
     	seqState_=5;
       }
       break;
@@ -1583,6 +1596,12 @@ int ecmcSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolute b
 		data_->command_.positionTarget=traj_->getCurrentPosSet();
 		if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
 		{
+          //Sanity check: Encoder position at homing must be bigger than in step 4
+          if(enc_->getActPos()>=homePosLatch1_){
+       	    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Position sanity check failed (position in step 5 less than in step 4)(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
+       	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
+          }
+
           double currPos=0;
           if(encAbsPosReg_< (1.0/2.0*pow(2,encAbsBits))){//Overflow
         	//Always negative value
