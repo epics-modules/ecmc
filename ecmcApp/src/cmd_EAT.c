@@ -556,6 +556,7 @@ static int handleCfgCommand(const char *myarg_1){
   int iValue8 = 0;
   int iValue9 = 0;
   int iValue10 = 0;
+  uint64_t u64Value=0;
 
   int nvals = 0;
   double dValue=0;
@@ -925,6 +926,18 @@ static int handleCfgCommand(const char *myarg_1){
   nvals = sscanf(myarg_1, "SetAxisEncBits(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return setAxisEncBits(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisEncAbsBits(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisEncAbsBits(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisEncAbsBits(iValue,iValue2);
+  }
+
+  /*int Cfg.SetAxisEncRawMask(int axis_no, int rawMask);*/
+  nvals = sscanf(myarg_1, "SetAxisEncRawMask(%d,%"PRIx64")",&iValue,&u64Value);
+  if (nvals == 2) {
+    return setAxisEncRawMask(iValue,u64Value);
   }
 
   /*int Cfg.SetAxisEncType(int axis_no, int value);*/

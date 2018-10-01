@@ -2040,8 +2040,7 @@ int setAxisEncOffset(int axisIndex, double value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getEnc()->setOffset(value);
-  return 0;
+  return axes[axisIndex]->getEnc()->setOffset(value);
 }
 
 int setAxisEncBits(int axisIndex, int value)
@@ -2051,8 +2050,27 @@ int setAxisEncBits(int axisIndex, int value)
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getEnc()->setBits(value);
-  return 0;
+  return axes[axisIndex]->getEnc()->setBits(value);
+}
+
+int setAxisEncAbsBits(int axisIndex, int value)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getEnc()->setAbsBits(value);
+}
+
+int setAxisEncRawMask(int axisIndex, uint64_t rawMask)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, (uint)rawMask);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getEnc()->setRawMask(rawMask);
 }
 
 int setAxisEncType(int axisIndex, int value)
