@@ -213,7 +213,7 @@ void ecmcAxisBase::postExecute(bool masterOK)
       char diagBuffer[1024];
       int error=getAxisDebugInfoData(&diagBuffer[0], sizeof(diagBuffer),&bytesUsed);
       if(error){
-	LOGERR("%s/%s:%d: Fail to update asyn par axis<id>.diag. Buffer to small.\n",__FILE__,__FUNCTION__,__LINE__);
+	    LOGERR("%s/%s:%d: Fail to update asyn par axis<id>.diag. Buffer to small.\n",__FILE__,__FUNCTION__,__LINE__);
       }
       else{
         asynPortDriverDiag_->doCallbacksInt8Array((epicsInt8*)diagBuffer,bytesUsed, asynParIdDiag_, 0);
@@ -223,6 +223,10 @@ void ecmcAxisBase::postExecute(bool masterOK)
     else{
       asynUpdateCycleCounterDiag_++;
     }
+  }
+  //Update status entry if linked
+  if(statusOutputEntry_){
+    statusOutputEntry_->writeValue(getErrorID()==0);
   }
 }
 
@@ -321,6 +325,7 @@ void ecmcAxisBase::initVars()
   asynParIdDiag_=-1;
   asynUpdateCycleCounterDiag_=0;
   asynUpdateCyclesDiag_=0;
+  statusOutputEntry_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -1207,5 +1212,11 @@ int ecmcAxisBase::getAxisDebugInfoData(char *buffer, int bufferByteSize, int *by
     return ERROR_AXIS_PRINT_TO_BUFFER_FAIL ;
   }
   *bytesUsed=ret;
+  return 0;
+}
+
+int ecmcAxisBase::setEcStatusOutputEntry(ecmcEcEntry *entry)
+{
+  statusOutputEntry_=entry;
   return 0;
 }
