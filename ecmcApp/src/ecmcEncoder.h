@@ -13,6 +13,7 @@
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
+#include <inttypes.h>
 
 #include "ecmcDefinitions.h"
 #include "ecmcEcEntry.h"
@@ -22,7 +23,7 @@
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"
 
-//ENCODER
+//ENCODER ERRORS
 #define ERROR_ENC_ASSIGN_ENTRY_FAILED 0x14400
 #define ERROR_ENC_TYPE_NOT_SUPPORTED 0x14401
 #define ERROR_ENC_SCALE_DENOM_ZERO 0x14402
@@ -36,55 +37,72 @@
 #define ERROR_ENC_TRANSFORM_VALIDATION_ERROR 0x1440A
 #define ERROR_ENC_SLAVE_INTERFACE_NULL 0x1440B
 #define ERROR_ENC_VELOCITY_FILTER_NULL 0x1440C
+#define ERROR_ENC_RAW_MASK_INVALID 0x1440D
+#define ERROR_ENC_ABS_MASK_INVALID 0x1440E
 
+//CONSTANTS
 #define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
+#define ECMC_ENCODER_MAX_VALUE_64_BIT ((uint64_t)(0xFFFFFFFFFFFFFFFFULL))
 
 class ecmcEncoder : public ecmcEcEntryLink
 {
 public:
   ecmcEncoder(ecmcAxisData *axisData,double sampleTime);
   ~ecmcEncoder();
-  int setBits(int bits);
-  int64_t getRawPos();
-  int setScaleNum(double scaleNum);
-  int setScaleDenom(double scaleDenom);
-  double getScaleNum();
-  double getScaleDenom();
-  double  getScale();
-  double getActPos();
-  void setActPos(double pos);
-  double getSampleTime();
-  double getActVel();
-  void setHomed(bool homed);
-  bool getHomed();
+  int         setBits(int bits);
+  int         setAbsBits(int absBits);
+  int         getAbsBits();
+  int64_t     getRawPosMultiTurn();
+  uint64_t    getRawPosRegister();
+  uint64_t    getRawAbsPosRegister(); //Only absolute bits
+  int         setScaleNum(double scaleNum);
+  int         setScaleDenom(double scaleDenom);
+  double      getScaleNum();
+  double      getScaleDenom();
+  double      getScale();
+  double      getActPos();
+  double      getAbsBitsActPos();
+  void        setActPos(double pos);
+  double      getSampleTime();
+  double      getActVel();
+  void        setHomed(bool homed);
+  bool        getHomed();
   encoderType getType();
-  int setType(encoderType encType);
-  double readEntries();
-  void setOffset(double offset);
-  int validate();
-  void printCurrentState();
- protected:
-  void initVars();
-  int32_t turns_;
-  uint64_t rawPosUint_;
-  uint64_t rawPosUintOld_;
-  int64_t rawPos_;
-  double scaleNum_;
-  double scaleDenom_;
-  double scale_;
-  double offset_;
-  double actPos_;
-  double actPosOld_;
-  double sampleTime_;
-  double actVel_;
+  int         setType(encoderType encType);
+  double      readEntries();
+  int         setOffset(double offset);
+  int         validate();
+  void        printCurrentState();
+  int         setToZeroIfRelative();
+  int         setRawMask(uint64_t mask);
+protected:
+  void        initVars();
+  int         countTrailingZerosInMask(uint64_t mask);
+  int         countBitWidthOfMask(uint64_t mask,int trailZeros);
+  int64_t     handleOverUnderFlow(uint64_t newValue,int bits);
   encoderType encType_;
-  bool homed_;
-  int64_t range_;
-  uint64_t limit_;
-  int bits_;
-  int64_t handleOverUnderFlow(uint64_t newValue,int bits);
   ecmcFilter *velocityFilter_;
   ecmcAxisData* data_;
+  int64_t     turns_;
+  uint64_t    rawPosUint_;
+  uint64_t    rawPosUintOld_;
+  uint64_t    totalRawMask_;
+  uint64_t    totalRawRegShift_;
+  uint64_t    rawLimit_;
+  int64_t     rawPosMultiTurn_;
+  int64_t     rawPosOffset_;
+  int64_t     rawRange_;
+  int         bits_;
+  int         absBits_; //Used for homing of partly absolute encoders (applied after raw mask)
+  double      scaleNum_;
+  double      scaleDenom_;
+  double      scale_;
+  double      engOffset_;
+  double      actPos_;
+  double      actPosOld_;
+  double      sampleTime_;
+  double      actVel_;
+  bool        homed_;
 };
 
 #endif /* ECMCENCODER_H_ */

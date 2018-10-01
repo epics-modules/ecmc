@@ -302,6 +302,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x1440C:
       return "ERROR_ENC_VELOCITY_FILTER_NULL";
       break;
+    case 0x1440D:
+      return "ERROR_ENC_RAW_MASK_INVALID";
+      break;
+    case 0x1440E:
+      return "ERROR_ENC_ABS_MASK_INVALID";
+      break;
     case 0x14C00://MONITOR
       return "ERROR_MON_ASSIGN_ENTRY_FAILED";
       break;
@@ -406,6 +412,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14D0D:
       return "ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK";
+      break;
+    case 0x14D0E:
+      return "ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO";
+      break;
+    case 0x14D0F:
+      return "ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED";
       break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";
