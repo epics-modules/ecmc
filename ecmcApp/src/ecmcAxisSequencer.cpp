@@ -4,19 +4,19 @@
  *      Author: anderssandstrom
  */
 
-#include "ecmcSequencer.hpp"
+#include "ecmcAxisSequencer.h"
 
-ecmcSequencer::ecmcSequencer()
+ecmcAxisSequencer::ecmcAxisSequencer()
 {
   initVars();
 }
 
-ecmcSequencer::~ecmcSequencer()
+ecmcAxisSequencer::~ecmcAxisSequencer()
 {
   ;
 }
 
-void ecmcSequencer::printCurrentState()
+void ecmcAxisSequencer::printCurrentState()
 {
   //Must be calles when data_ is set
   if(!data_){
@@ -40,7 +40,7 @@ void ecmcSequencer::printCurrentState()
   LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jogFwd_);
 }
 
-void ecmcSequencer::printHomeDirection()
+void ecmcAxisSequencer::printHomeDirection()
 {
   switch(homeDirection_){
     case ECMC_DIR_FORWARD:
@@ -58,7 +58,7 @@ void ecmcSequencer::printHomeDirection()
   }
 }
 
-void ecmcSequencer::initVars()
+void ecmcAxisSequencer::initVars()
 {
   //errorReset();
   homeSensorOld_=false;
@@ -93,7 +93,7 @@ void ecmcSequencer::initVars()
   encAbsPosReg_=0;
 }
 
-void ecmcSequencer::execute()
+void ecmcAxisSequencer::execute()
 {  //Cyclic execution
   if(traj_==NULL){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
@@ -242,7 +242,7 @@ void ecmcSequencer::execute()
   }
 }
 
-int  ecmcSequencer::setExecute(bool execute)
+int  ecmcAxisSequencer::setExecute(bool execute)
 {
   if(traj_==NULL){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
@@ -350,12 +350,12 @@ int  ecmcSequencer::setExecute(bool execute)
   return 0;
 }
 
-bool ecmcSequencer::getExecute()
+bool ecmcAxisSequencer::getExecute()
 {
   return data_->command_.execute;
 }
 
-void ecmcSequencer::setCommand(motionCommandTypes command)
+void ecmcAxisSequencer::setCommand(motionCommandTypes command)
 {
   if(data_->command_.command!=command){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.command=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,command);
@@ -364,12 +364,12 @@ void ecmcSequencer::setCommand(motionCommandTypes command)
   data_->command_.command=command;
 }
 
-motionCommandTypes ecmcSequencer::getCommand()
+motionCommandTypes ecmcAxisSequencer::getCommand()
 {
   return data_->command_.command;
 }
 
-void ecmcSequencer::setCmdData(int cmdData)
+void ecmcAxisSequencer::setCmdData(int cmdData)
 {
   if(data_->command_.cmdData!=cmdData){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.cmdData=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,cmdData);
@@ -378,32 +378,32 @@ void ecmcSequencer::setCmdData(int cmdData)
   data_->command_.cmdData=cmdData;
 }
 
-int ecmcSequencer::getCmdData()
+int ecmcAxisSequencer::getCmdData()
 {
   return data_->command_.cmdData;
 }
 
-void ecmcSequencer::setTraj(ecmcTrajectoryTrapetz *traj)
+void ecmcAxisSequencer::setTraj(ecmcTrajectoryTrapetz *traj)
 {
   traj_=traj;
 }
 
-void ecmcSequencer::setEnc(ecmcEncoder *enc)
+void ecmcAxisSequencer::setEnc(ecmcEncoder *enc)
 {
   enc_=enc;
 }
 
-void ecmcSequencer::setMon(ecmcMonitor *mon)
+void ecmcAxisSequencer::setMon(ecmcMonitor *mon)
 {
   mon_=mon;
 }
 
-void ecmcSequencer::setCntrl(ecmcPIDController *cntrl)
+void ecmcAxisSequencer::setCntrl(ecmcPIDController *cntrl)
 {
   cntrl_=cntrl;
 }
 
-bool ecmcSequencer::getBusy()
+bool ecmcAxisSequencer::getBusy()
 {
   if(traj_==NULL){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
@@ -417,7 +417,7 @@ bool ecmcSequencer::getBusy()
   return traj_->getBusy();
 }
 
-void ecmcSequencer::setJogVel(double vel)
+void ecmcAxisSequencer::setJogVel(double vel)
 {
   if(jogVel_!=vel){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogVel=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
@@ -426,12 +426,12 @@ void ecmcSequencer::setJogVel(double vel)
   jogVel_=vel;
 }
 
-double ecmcSequencer::getJogVel()
+double ecmcAxisSequencer::getJogVel()
 {
   return jogVel_;
 }
 
-int ecmcSequencer::setHomeVelTwordsCam(double vel)
+int ecmcAxisSequencer::setHomeVelTwordsCam(double vel)
 {
   if(homeVelTwordsCam_!=vel){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeVelTwordsCam=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
@@ -441,7 +441,7 @@ int ecmcSequencer::setHomeVelTwordsCam(double vel)
   return 0;
 }
 
-int ecmcSequencer::setHomeVelOffCam(double vel)
+int ecmcAxisSequencer::setHomeVelOffCam(double vel)
 {
   if(homeVelOffCam_!=vel){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeVelOffCam=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,vel);
@@ -451,17 +451,17 @@ int ecmcSequencer::setHomeVelOffCam(double vel)
   return 0;
 }
 
-double ecmcSequencer::getHomeVelTwordsCam()
+double ecmcAxisSequencer::getHomeVelTwordsCam()
 {
   return homeVelTwordsCam_;
 }
 
-double ecmcSequencer::getHomeVelOffCam()
+double ecmcAxisSequencer::getHomeVelOffCam()
 {
   return homeVelOffCam_;
 }
 
-int ecmcSequencer::setHomeDir(motionDirection dir)
+int ecmcAxisSequencer::setHomeDir(motionDirection dir)
 {
   if(homeDirection_!=dir){
     printHomeDirection();
@@ -470,12 +470,12 @@ int ecmcSequencer::setHomeDir(motionDirection dir)
   return 0;
 }
 
-motionDirection ecmcSequencer::getHomeDir()
+motionDirection ecmcAxisSequencer::getHomeDir()
 {
   return homeDirection_;
 }
 
-void ecmcSequencer::setHomePosition(double pos)
+void ecmcAxisSequencer::setHomePosition(double pos)
 {
   if(homePosition_!=pos){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.homePosition=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
@@ -484,12 +484,12 @@ void ecmcSequencer::setHomePosition(double pos)
   homePosition_=pos;
 }
 
-double ecmcSequencer::getHomePosition()
+double ecmcAxisSequencer::getHomePosition()
 {
   return homePosition_;
 }
 
-void ecmcSequencer::setTargetPos(double pos)
+void ecmcAxisSequencer::setTargetPos(double pos)
 {
   double tempPos=checkSoftLimits(pos);
 
@@ -509,7 +509,7 @@ void ecmcSequencer::setTargetPos(double pos)
   data_->command_.positionTarget=pos;
 }
 
-void ecmcSequencer::setTargetPos(double pos, bool force)
+void ecmcAxisSequencer::setTargetPos(double pos, bool force)
 {
  if(force){
    if(data_->command_.positionTarget!=pos){
@@ -522,12 +522,12 @@ void ecmcSequencer::setTargetPos(double pos, bool force)
  }
 }
 
-double ecmcSequencer::getTargetPos()
+double ecmcAxisSequencer::getTargetPos()
 {
   return data_->command_.positionTarget;
 }
 
-void ecmcSequencer::setTargetVel(double velTarget)
+void ecmcAxisSequencer::setTargetVel(double velTarget)
 {
   if(data_->command_.velocityTarget!=velTarget){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.velocityTarget=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,velTarget);
@@ -536,12 +536,12 @@ void ecmcSequencer::setTargetVel(double velTarget)
   data_->command_.velocityTarget=velTarget;
 }
 
-double ecmcSequencer::getTargetVel()
+double ecmcAxisSequencer::getTargetVel()
 {
   return data_->command_.velocityTarget;
 }
 
-void ecmcSequencer::setJogFwd(bool jog)
+void ecmcAxisSequencer::setJogFwd(bool jog)
 {
   if(jogFwd_!=jog){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogFwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jog);
@@ -562,7 +562,7 @@ void ecmcSequencer::setJogFwd(bool jog)
   }
 }
 
-bool ecmcSequencer::getJogFwd()
+bool ecmcAxisSequencer::getJogFwd()
 {
   if(traj_==NULL){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
@@ -571,7 +571,7 @@ bool ecmcSequencer::getJogFwd()
   return jogFwd_;
 }
 
-void ecmcSequencer::setJogBwd(bool jog)
+void ecmcAxisSequencer::setJogBwd(bool jog)
 {
   if(jogBwd_!=jog){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.jogBwd=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,jog);
@@ -593,7 +593,7 @@ void ecmcSequencer::setJogBwd(bool jog)
   }
 }
 
-bool ecmcSequencer::getJogBwd()
+bool ecmcAxisSequencer::getJogBwd()
 {
   if(traj_==NULL){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
@@ -602,7 +602,7 @@ bool ecmcSequencer::getJogBwd()
   return jogBwd_;
 }
 
-double ecmcSequencer::checkSoftLimits(double posSetpoint)
+double ecmcAxisSequencer::checkSoftLimits(double posSetpoint)
 {
   if(!mon_){
     setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_MON_NULL);
@@ -621,12 +621,12 @@ double ecmcSequencer::checkSoftLimits(double posSetpoint)
   return dSet;
 }
 
-ecmcTrajectoryTrapetz * ecmcSequencer::getTraj()
+ecmcTrajectoryTrapetz * ecmcAxisSequencer::getTraj()
 {
   return traj_;
 }
 
-int ecmcSequencer::seqHoming15() //nCmdData==15
+int ecmcAxisSequencer::seqHoming15() //nCmdData==15
 {
   // Return = 0 ready
   // State 0 set encoder position to same as fHomePosition
@@ -640,7 +640,7 @@ int ecmcSequencer::seqHoming15() //nCmdData==15
   return 0;
 }
 
-int ecmcSequencer::seqHoming1() //nCmdData==1
+int ecmcAxisSequencer::seqHoming1() //nCmdData==1
 {
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
@@ -742,7 +742,7 @@ int ecmcSequencer::seqHoming1() //nCmdData==1
   return -seqState_;
 }
 
-int ecmcSequencer::seqHoming2() //nCmdData==2
+int ecmcAxisSequencer::seqHoming2() //nCmdData==2
 {
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
@@ -843,7 +843,7 @@ int ecmcSequencer::seqHoming2() //nCmdData==2
   return -seqState_;
 }
 
-int ecmcSequencer::seqHoming3() //nCmdData==3
+int ecmcAxisSequencer::seqHoming3() //nCmdData==3
 {
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
@@ -948,7 +948,7 @@ int ecmcSequencer::seqHoming3() //nCmdData==3
   return -seqState_;
 }
 
-int ecmcSequencer::seqHoming4() //nCmdData==4
+int ecmcAxisSequencer::seqHoming4() //nCmdData==4
 {
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
@@ -1051,7 +1051,7 @@ int ecmcSequencer::seqHoming4() //nCmdData==4
   return -seqState_;
 }
 
-int ecmcSequencer::seqHoming5() //nCmdData==5
+int ecmcAxisSequencer::seqHoming5() //nCmdData==5
 {
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
@@ -1201,7 +1201,7 @@ int ecmcSequencer::seqHoming5() //nCmdData==5
   return -seqState_;
 }
 
-int ecmcSequencer::seqHoming6() //nCmdData==6
+int ecmcAxisSequencer::seqHoming6() //nCmdData==6
 {
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
@@ -1351,7 +1351,7 @@ int ecmcSequencer::seqHoming6() //nCmdData==6
   return -seqState_;
 }
 
-int ecmcSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute bits)
+int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute bits)
 {
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
@@ -1441,16 +1441,13 @@ int ecmcSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute b
         LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
 	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
-      printf("state=%d, encAbsPosReg_=%"PRIx64",encAbsPosRegOld_=%"PRIx64 ", actpos=%lf\n",seqState_,encAbsPosReg_,oldEncAbsPosReg_,enc_->getActPos());
       //Over or under-flow triggered when 2/3 of bit-width change in value
       if( (encAbsPosReg_>oldEncAbsPosReg_+2.0/3.0*pow(2,encAbsBits)) || (oldEncAbsPosReg_>encAbsPosReg_+2.0/3.0*pow(2,encAbsBits))){
-    	printf("OVER/UNDERFLOW\n");
     	homePosLatch1_=enc_->getActPos();  // save to ensure taht movement is resonable in next step
     	seqState_=5;
       }
       break;
     case 5:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-      printf("state=%d, encAbsPosReg_=%"PRIx64",encAbsPosRegOld_=%"PRIx64 ", actpos=%lf\n",seqState_,encAbsPosReg_,oldEncAbsPosReg_,enc_->getActPos());
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
@@ -1493,7 +1490,7 @@ int ecmcSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolute b
   return -seqState_;
 }
 
-int ecmcSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolute bits)
+int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolute bits)
 {
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
@@ -1626,7 +1623,7 @@ int ecmcSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolute b
   return -seqState_;
 }
 
-int ecmcSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
+int ecmcAxisSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
 {
   if(traj_==NULL){
     stopSeq();
@@ -1653,12 +1650,12 @@ int ecmcSequencer::checkHWLimitsAndStop(bool checkBWD,bool checkFWD)
   return 0;
 }
 
-int ecmcSequencer::getSeqState()
+int ecmcAxisSequencer::getSeqState()
 {
   return seqState_;
 }
 
-int ecmcSequencer::stopSeq(){
+int ecmcAxisSequencer::stopSeq(){
   if(traj_!=NULL){
     traj_->setExecute(false);
   }
@@ -1675,12 +1672,12 @@ int ecmcSequencer::stopSeq(){
   return 0;
 }
 
-int ecmcSequencer::validate()
+int ecmcAxisSequencer::validate()
 {
   return 0;
 }
 
-int ecmcSequencer::setSequenceTimeout(int timeout)
+int ecmcAxisSequencer::setSequenceTimeout(int timeout)
 {
   if(seqTimeout_!=timeout){
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.timeout=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,timeout);
@@ -1690,13 +1687,13 @@ int ecmcSequencer::setSequenceTimeout(int timeout)
   return 0;
 }
 
-int ecmcSequencer::setExtTrajIF(ecmcMasterSlaveIF * extIf)
+int ecmcAxisSequencer::setExtTrajIF(ecmcMasterSlaveIF * extIf)
 {
   externalInputTrajectoryIF_=extIf;
   return 0;
 }
 
-int ecmcSequencer::getExtTrajSetpoint(double *pos)
+int ecmcAxisSequencer::getExtTrajSetpoint(double *pos)
 {
   if(!externalInputTrajectoryIF_){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL);
@@ -1721,7 +1718,7 @@ int ecmcSequencer::getExtTrajSetpoint(double *pos)
   return 0;
 }
 
-int ecmcSequencer::setAxisDataRef(ecmcAxisData* data)
+int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData* data)
 {
   data_= data;
   PRINT_ERROR_PATH("axis[%d].sequencer.error",data->axisId_);

@@ -5,8 +5,8 @@
  *      Author: anderssandstrom
  */
 
-#ifndef ECMCSEQUENCER_HPP_
-#define ECMCSEQUENCER_HPP_
+#ifndef ecmcAxisSequencer_H_
+#define ecmcAxisSequencer_H_
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
 #include "ecmcMonitor.hpp"
@@ -48,11 +48,11 @@ enum ecmcHomingType{
   ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS = 22,
 };
 
-class ecmcSequencer : public ecmcError
+class ecmcAxisSequencer : public ecmcError
 {
 public:
-  ecmcSequencer();
-  ~ecmcSequencer();
+  ecmcAxisSequencer();
+  ~ecmcAxisSequencer();
   int    setExecute(bool execute);
   bool   getExecute();
   void   execute();
@@ -145,4 +145,4 @@ private:
   uint64_t encAbsPosReg_;
 };
 
-#endif /* ECMCSEQUENCER_HPP_ */
+#endif /* ecmcAxisSequencer_H_ */
