@@ -16,7 +16,9 @@
 #define MCU_PERIOD_NS (int)(MCU_NSEC_PER_SEC / MCU_FREQUENCY)
 #define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC + \
   (B).tv_nsec - (A).tv_nsec)
+
 #define ECMC_MAX_AXES 64
+#define ECMC_MAX_PLCS 8
 
 //Test new conversion
 #define TIMESPEC2NS(T) ((uint64_t) (((T).tv_sec - 946684800ULL) * 1000000000ULL) + (T).tv_nsec)
@@ -208,6 +210,7 @@ enum motionObjectType{
 #define ECMC_ENC_STR "enc"
 #define ECMC_ENC_ACTPOS_STR "actpos"
 
+
 #define ECMC_MON_STR "mon"
 #define ECMC_MON_LOWLIM_STR "lowlim"
 #define ECMC_MON_HIGHLIM_STR "highlim"
@@ -215,6 +218,78 @@ enum motionObjectType{
 #define ECMC_MON_EXTINTERLOCK_STR "extinterlock"
 #define ECMC_TRAJ_STR "traj"
 #define ECMC_CNTRL_STR "cntrl"
+
+#define ECMC_AXIS_DATA_STR_AXIS_ID "id"
+#define ECMC_AXIS_DATA_STR_POS_SET "traj.setpos"
+#define ECMC_AXIS_DATA_STR_POS_ACT "enc.actpos"
+#define ECMC_AXIS_DATA_STR_CNTRL_ERROR "cntrl.error"
+#define ECMC_AXIS_DATA_STR_POS_TARGET "traj.targetpos"
+#define ECMC_AXIS_DATA_STR_POS_ERROR "cntrl.poserror"
+#define ECMC_AXIS_DATA_STR_POS_RAW "enc.rawpos"
+#define ECMC_AXIS_DATA_STR_CNTRL_OUT "cntrl.output"
+#define ECMC_AXIS_DATA_STR_VEL_SET "traj.setvel"
+#define ECMC_AXIS_DATA_STR_VEL_ACT "enc.actvel"
+#define ECMC_AXIS_DATA_STR_VEL_SET_FF_RAW "traj.setvelffraw"
+#define ECMC_AXIS_DATA_STR_VEL_SET_RAW "drv.setvelraw"
+#define ECMC_AXIS_DATA_STR_CYCLE_COUNTER "counter"
+#define ECMC_AXIS_DATA_STR_ERROR "error"
+#define ECMC_AXIS_DATA_STR_COMMAND "traj.command"
+#define ECMC_AXIS_DATA_STR_CMD_DATA "traj.cmddata"
+#define ECMC_AXIS_DATA_STR_SEQ_STATE "seq.state"
+#define ECMC_AXIS_DATA_STR_INTERLOCK_TYPE "mon.ilock"
+#define ECMC_AXIS_DATA_STR_TRAJ_SOURCE "traj.source"
+#define ECMC_AXIS_DATA_STR_ENC_SOURCE 20 "enc.source"
+#define ECMC_AXIS_DATA_STR_ENABLE "drv.enable"
+#define ECMC_AXIS_DATA_STR_ENABLED "drv.enabled"
+#define ECMC_AXIS_DATA_STR_EXECUTE "traj.execute"
+#define ECMC_AXIS_DATA_STR_BUSY "traj.busy"
+#define ECMC_AXIS_DATA_STR_AT_TARGET "mon.attarget"
+#define ECMC_AXIS_DATA_STR_HOMED "enc.homed"
+#define ECMC_AXIS_DATA_STR_LIMIT_BWD "mon.lowlim"
+#define ECMC_AXIS_DATA_STR_LIMIT_FWD "mon.highlim"
+#define ECMC_AXIS_DATA_STR_HOME_SWITCH "mon.homesensor"
+#define ECMC_AXIS_DATA_STR_RESET "reset"
+
+enum ecmcAxisDataType{
+  ECMC_AXIS_DATA_NONE=0,
+  ECMC_AXIS_DATA_AXIS_ID=1,
+  ECMC_AXIS_DATA_POS_SET=2,
+  ECMC_AXIS_DATA_POS_ACT=3,
+  ECMC_AXIS_DATA_CNTRL_ERROR=4,
+  ECMC_AXIS_DATA_POS_TARGET=5,
+  ECMC_AXIS_DATA_POS_ERROR=6,
+  ECMC_AXIS_DATA_POS_RAW=7,
+  ECMC_AXIS_DATA_CNTRL_OUT=8,
+  ECMC_AXIS_DATA_VEL_SET=9,
+  ECMC_AXIS_DATA_VEL_ACT=10,
+  ECMC_AXIS_DATA_VEL_SET_FF_RAW=11,
+  ECMC_AXIS_DATA_VEL_SET_RAW=12,
+  ECMC_AXIS_DATA_CYCLE_COUNTER=13,
+  ECMC_AXIS_DATA_ERROR=14,
+  ECMC_AXIS_DATA_COMMAND=15,
+  ECMC_AXIS_DATA_CMD_DATA=16,
+  ECMC_AXIS_DATA_SEQ_STATE=17,
+  ECMC_AXIS_DATA_INTERLOCK_TYPE=18,
+  ECMC_AXIS_DATA_TRAJ_SOURCE=19,
+  ECMC_AXIS_DATA_ENC_SOURCE=20,
+  ECMC_AXIS_DATA_ENABLE=21,
+  ECMC_AXIS_DATA_ENABLED=22,
+  ECMC_AXIS_DATA_EXECUTE=23,
+  ECMC_AXIS_DATA_BUSY=24,
+  ECMC_AXIS_DATA_AT_TARGET=25,
+  ECMC_AXIS_DATA_HOMED=26,
+  ECMC_AXIS_DATA_LIMIT_BWD=27,
+  ECMC_AXIS_DATA_LIMIT_FWD=28,
+  ECMC_AXIS_DATA_HOME_SWITCH=29,
+  ECMC_AXIS_DATA_RESET=30,
+};
+
+enum ecmcDataSourceType{
+  ECMC_RECORDER_SOURCE_NONE=0,
+  ECMC_RECORDER_SOURCE_ETHERCAT=1,
+  ECMC_RECORDER_SOURCE_AXIS=2,
+};
+
 
 #endif /* ECMCDEFINITIONS_H_ */
 

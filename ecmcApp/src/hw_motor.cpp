@@ -49,6 +49,7 @@
 #include "ecmcDataStorage.h"
 #include "ecmcCommandList.h"
 #include "ecmcAsynPortDriver.h"
+#include "ecmcPLC.h"
 
 
 /****************************************************************************/
@@ -83,6 +84,7 @@ static struct timespec  masterActivationTimeMonotonic={};
 static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
 static ecmcAsynPortDriver *asynPort=NULL;
+static ecmcPLC          *plcs[ECMC_MAX_PLCS];
 
 //Default asyn params
 static int asynParIdLatencyMin=0;
@@ -539,6 +541,10 @@ int  hw_motor_global_init(void){
 
   for(int i=0; i<ECMC_MAX_AXES;i++){
     axes[i]=NULL;
+  }
+
+  for(int i=0; i<ECMC_MAX_PLCS;i++){
+    plcs[i]=NULL;
   }
 
   for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
@@ -2538,6 +2544,27 @@ int createAxis(int index, int type)
   return 0;
 }
 
+int createPlc(int index)
+{
+  LOGINFO4("%s/%s:%d index=%d type:%d\n",__FILE__, __FUNCTION__, __LINE__,index,type);
+
+  if(index<0 && index>=ECMC_MAX_PLCS){
+    return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;
+  }
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(plcs[index]){
+    delete plcs[index];
+    plcs[index]=NULL;
+  }
+
+  plcs[index]=new ecmcPLC(axes,ec);
+
+  return plcs[index]->getErrorID();
+}
+
 int ecSetMaster(int masterIndex)
 {
   LOGINFO4("%s/%s:%d master index=%d \n",__FILE__, __FUNCTION__, __LINE__, masterIndex);
@@ -2904,7 +2931,7 @@ int linkEcEntryToObject(char *ecPath,char *axPath)
 
   int errorCode=parseEcPath(ecPath, &masterId,&slaveIndex,alias,&bitIndex);
   if(errorCode){
-  	return errorCode;
+    return errorCode;
   }
 
   int axisIndex=0;
@@ -2912,16 +2939,16 @@ int linkEcEntryToObject(char *ecPath,char *axPath)
   int entryIndex=0;
   errorCode=parseObjectPath(axPath,&axisIndex,&objectType,&entryIndex);
   if(errorCode){
-  	return errorCode;
+    return errorCode;
   }
 
   switch(objectType){
     case ECMC_OBJ_INVALID:
       return ERROR_MAIN_ECMC_LINK_INVALID;
-	  break;
+      break;
     case ECMC_OBJ_DRIVE:
       return linkEcEntryToAxisDrv(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
-	  break;
+      break;
     case ECMC_OBJ_ENCODER:
       return linkEcEntryToAxisEnc(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
       break;
@@ -3759,7 +3786,7 @@ int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore)
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  int error= dataRecorders[indexRecorder]->setAxisDataSource(axes[axisIndex]->getDebugInfoDataPointer(),(ecmcAxisDataRecordType)dataToStore);
+  int error= dataRecorders[indexRecorder]->setAxisDataSource(axes[axisIndex]->getDebugInfoDataPointer(),(ecmcAxisDataType)dataToStore);
   if(error){
     return error;
   }

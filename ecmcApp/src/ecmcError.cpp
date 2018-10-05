@@ -941,6 +941,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20034:
       return "ERROR_MAIN_ECMC_LINK_INVALID";
       break;
+    case 0x20035:
+      return "ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
@@ -1024,6 +1027,36 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20407:
       return "ERROR_COMMAND_LIST_RESULT_BUFFER_OVERFLOW";
+      break;
+    case 0x20500: //ecmcPLC
+      return "ERROR_PLC_EXPRTK_ALLOCATION_FAILED";
+      break;
+    case 0x20501:
+      return "ERROR_PLC_COMPILE_ERROR";
+      break;
+    case 0x20502:
+      return "ERROR_PLC_AXIS_ID_OUT_OF_RANGE";
+      break;
+    case 0x20600: //ecmcPLCDataIF
+      return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
+      break;
+    case 0x20601:
+      return "ERROR_PLC_AXIS_NULL";
+      break;
+    case 0x20602:
+      return "ERROR_PLC_EC_NULL";
+      break;
+    case 0x20603:
+      return "ERROR_PLC_SOURCE_INVALID";
+      break;
+    case 0x20604:
+      return "ERROR_PLC_EC_MASTER_INVALID";
+      break;
+    case 0x20605:
+      return "ERROR_PLC_EC_SLAVE_NULL";
+      break;
+    case 0x20606:
+      return "ERROR_PLC_EC_ENTRY_NULL";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
