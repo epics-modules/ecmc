@@ -66,7 +66,7 @@
 #define CHECK_EVENT_RETURN_IF_ERROR(indexEvent) {if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){LOGERR("ERROR: Event index out of range.\n");return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;}if(events[indexEvent]==NULL){LOGERR("ERROR: Event object NULL.\n");return ERROR_MAIN_EVENT_NULL;}}
 #define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage) { if(indexStorage>=ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage<0){LOGERR("ERROR: Data storage index out of range.\n");return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;}if(dataStorages[indexStorage]==NULL){LOGERR("ERROR: Data storage object NULL.\n");return ERROR_MAIN_DATA_STORAGE_NULL;}}
 #define CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder) {if(indexRecorder>=ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder<0){LOGERR("ERROR: Data recorder index out of range.\n");return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;}if(dataRecorders[indexRecorder]==NULL){LOGERR("ERROR: Data recorder object NULL.\n");return ERROR_MAIN_DATA_RECORDER_NULL;}}
-
+#define CHECK_PLC_RETURN_IF_ERROR(index) {if(index>=ECMC_MAX_PLCS || index<0){LOGERR("ERROR: PLC index out of range.\n");return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;}if(plcs[index]==NULL){LOGERR("ERROR: PLC object NULL.\n");return ERROR_MAIN_PLC_OBJECT_NULL;}}
 /****************************************************************************/
 static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static int              axisDiagIndex;
@@ -450,6 +450,14 @@ void cyclic_task(void * usr)
 	events[i]->execute(ec.statusOK());
       }
     }
+
+    //PLCs
+    for( i=0;i<ECMC_MAX_PLCS;i++){
+      if(plcs[i]!=NULL){
+	plcs[i]->refresh();
+      }
+    }
+
 
     //Update Asyn thread diagnostics parameters
     if(asynUpdateCounterThread){
@@ -1458,6 +1466,15 @@ int setAxisTransformCommandExpr(int axisIndex,char *expr)
   std::string tempExpr=expr;
 
   return axes[axisIndex]->setCommandsTransformExpression(tempExpr);
+}
+
+int setPLCExpr(int index,char *expr)
+{
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
+
+  CHECK_PLC_RETURN_IF_ERROR(index)
+
+  return plcs[index]->setExpression(expr);
 }
 
 int setAxisTrajExtVelFilterEnable(int axisIndex, int enable)
@@ -2544,9 +2561,9 @@ int createAxis(int index, int type)
   return 0;
 }
 
-int createPlc(int index)
+int createPLC(int index)
 {
-  LOGINFO4("%s/%s:%d index=%d type:%d\n",__FILE__, __FUNCTION__, __LINE__,index,type);
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
 
   if(index<0 && index>=ECMC_MAX_PLCS){
     return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;
@@ -2560,7 +2577,12 @@ int createPlc(int index)
     plcs[index]=NULL;
   }
 
-  plcs[index]=new ecmcPLC(axes,ec);
+  plcs[index]=new ecmcPLC(&ec);
+
+  //Set axes pointers (for the already configuered axes)
+  for(int i=0; i<ECMC_MAX_AXES;i++){
+    plcs[index]->setAxisArrayPointer(axes[i],i);
+  }
 
   return plcs[index]->getErrorID();
 }

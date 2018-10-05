@@ -1473,6 +1473,24 @@ int setAxisTrajExtVelFilterEnable(int axisIndex, int enable);
  */
 int setAxisEncTransExpr(int axisIndex, char *expr);
 
+
+/** \breif Set PLC expression.\n
+ *
+ * The PLC expression is used for PLC functionalities. Data from axes and\n
+ * ethercat entries are available.
+ *
+ *
+ * \param[in] index  PLC index.\n
+ * \param[in] expr Expression.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set encoder transformation expression for PLC 5 to
+ * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
+ * "Cfg.SetPLCExpr(5)=ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#" //Command string to cmd_EAT.c.\n
+ */
+int setPLCExpr(int index,char *expr);
+
 /** \breif Enables/disables velocity filter of external actual value.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -3999,14 +4017,18 @@ int setEnableTimeDiag(int value);
  *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to cmd_EAT.c\n
  */
 int setEnableFunctionCallDiag(int value);
-/** \breif Set indixes of default asyn parameters during startup.\n
+
+/** \breif Create a PLC object
+ * called.\n
  *
- * \param[in] indices Array containing asyn param indices.\n
- * \param[in] size Size of indices array.\n
+ * \param[in] index PLC index number
  *
  * \return 0 if success or otherwise an error code.\n
  *
+ * \note Example: Create PLC at index 0.\n
+ *  "Cfg.CreatePLC(0)" //Command string to cmd_EAT.c\n
  */
+int createPLC(int index);
 
 #ifdef __cplusplus
 }

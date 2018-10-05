@@ -1,17 +1,21 @@
 /*
- * ecmPLCDataIF.h
+ * ecmcPLCDataIF.h
  *
  *  Created on: Oct 4, 2018
  *      Author: anderssandstrom
  */
 
-#ifndef ecmPLCDataIF_H_
-#define ecmPLCDataIF_H_
+#ifndef ecmcPLCDataIF_H_
+#define ecmcPLCDataIF_H_
 
 #include "ecmcAxisBase.h"
 #include "ecmcEc.h"
 #include "ecmcEcEntry.h"
+#include "ecmcEcEntryLink.h"
 #include "ecmcEcSlave.h"
+#include "ecmcError.h"
+#include <string.h>
+
 
 #define ECMC_PLC_EC_ENTRY_INDEX 0
 
@@ -22,29 +26,32 @@
 #define ERROR_PLC_EC_MASTER_INVALID 0x20604
 #define ERROR_PLC_EC_SLAVE_NULL 0x20605
 #define ERROR_PLC_EC_ENTRY_NULL 0x20606
+#define ERROR_PLC_EC_VAR_NAME_INVALID 0x20607
 
-class ecmPLCDataIF : public ecmcError : public ecmcEcEntryLink
+
+class ecmcPLCDataIF : public ecmcEcEntryLink
 {
 public:
-  ecmPLCDataIF(ecmcAxisBase *axis,std::string axisDataSource);
-  ecmPLCDataIF(ecmcEc *ec,std::string ecDataSource);
-  ~ecmPLCDataIF();
+  ecmcPLCDataIF(ecmcAxisBase *axis,char *axisDataSource);
+  ecmcPLCDataIF(ecmcEc *ec,char *ecDataSource);
+  ~ecmcPLCDataIF();
   int     read();
   int     write();
-  double& getDataRef()
+  double& getDataRef();
 private:
   int                readAxis();
-  int                writeAxis()
+  int                writeAxis();
   int                readEc();
-  int                writeEc()
-  ecmcAxisDataType   parseAxisDataSource(std::string axisDataSource);
-  int                parseAndLinkEcDataSource(std::string EcDataSource);
+  int                writeEc();
+  ecmcAxisDataType   parseAxisDataSource(char *axisDataSource);
+  int                parseAndLinkEcDataSource(char *ecDataSource);
   int                parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit);
+  void               initVars();
   ecmcAxisBase       *axis_;
   ecmcEc             *ec_;
   double             data_;
-  double             dataOld_;
+  double             dataRead_;
   ecmcAxisDataType   dataSourceAxis_;
   ecmcDataSourceType source_;
 };
-#endif /* ecmPLCDataIF_H_ */
+#endif /* ecmcPLCDataIF_H_ */

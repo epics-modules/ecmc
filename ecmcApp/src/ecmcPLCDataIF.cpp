@@ -4,9 +4,9 @@
  *      Author: anderssandstrom
  */
 
-#include "ecmPLCDataIF.h"
+#include "ecmcPLCDataIF.h"
 
-ecmPLCDataIF::ecmPLCDataIF(ecmcAxisBase *axis,std::string axisDataSource)
+ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis,char *axisDataSource)
 {
   errorReset();
   initVars();
@@ -14,11 +14,11 @@ ecmPLCDataIF::ecmPLCDataIF(ecmcAxisBase *axis,std::string axisDataSource)
   source_=ECMC_RECORDER_SOURCE_AXIS;
   dataSourceAxis_=parseAxisDataSource(axisDataSource);
   if(dataSourceAxis_==ECMC_AXIS_DATA_NONE){
-    LOGERR("%s/%s:%d: ERROR: Axis data Source %s Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,axisDataSource,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
+    LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
   }
 }
 
-ecmPLCDataIF(ecmcEc *ec,std::string ecDataSource)
+ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec,char *ecDataSource)
 {
   errorReset();
   initVars();
@@ -26,69 +26,67 @@ ecmPLCDataIF(ecmcEc *ec,std::string ecDataSource)
   source_=ECMC_RECORDER_SOURCE_ETHERCAT;
   int errorCode=parseAndLinkEcDataSource(ecDataSource);
   if(errorCode){
-    LOGERR("%s/%s:%d: ERROR: Ec data Source %s Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ecDataSource,errorCode);
+    LOGERR("%s/%s:%d: ERROR: EC data Source Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
   }
 }
 
-ecmPLCDataIF::~ecmPLCDataIF()
+ecmcPLCDataIF::~ecmcPLCDataIF()
 {
 
 }
 
-void ecmPLCDataIF::initVars()
+void ecmcPLCDataIF::initVars()
 {
   axis_=0;
   ec_=0;
   data_=0;
   dataSourceAxis_=ECMC_AXIS_DATA_NONE;
   source_=ECMC_RECORDER_SOURCE_NONE;
-  entry_=0;
 }
 
-double& ecmPLCDataIF::getDataRef(){
+double& ecmcPLCDataIF::getDataRef(){
   return data_;
 }
 
-int ecmPLCDataIF::read()
+int ecmcPLCDataIF::read()
 {
- int =0;
+ int errorCode=0;
  switch(source_){
-   ECMC_RECORDER_SOURCE_NONE:
+   case ECMC_RECORDER_SOURCE_NONE:
      errorCode=ERROR_PLC_SOURCE_INVALID;
      break;
-   ECMC_RECORDER_SOURCE_ETHERCAT:
+   case ECMC_RECORDER_SOURCE_ETHERCAT:
      errorCode=readEc();
      break;
-   ECMC_RECORDER_SOURCE_AXIS:
+   case ECMC_RECORDER_SOURCE_AXIS:
      errorCode=readAxis();
      break;
  }
- dataOld_=data_;
+ dataRead_=data_;
  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
 }
 
-int ecmPLCDataIF::write()
+int ecmcPLCDataIF::write()
 {
   //Only write if data changed between read and write
-  if(data_==dataOld_){
+  if(data_==dataRead_){
     return 0;
   }
-
   switch(source_){
-    ECMC_RECORDER_SOURCE_NONE:
+    case ECMC_RECORDER_SOURCE_NONE:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_SOURCE_INVALID);
       break;
-    ECMC_RECORDER_SOURCE_ETHERCAT:
+    case ECMC_RECORDER_SOURCE_ETHERCAT:
       return writeEc();
       break;
-    ECMC_RECORDER_SOURCE_AXIS:
+    case ECMC_RECORDER_SOURCE_AXIS:
       return writeAxis();
       break;
   }
   return ERROR_PLC_SOURCE_INVALID;
 }
 
-int ecmPLCDataIF::readEc()
+int ecmcPLCDataIF::readEc()
 {
   uint64_t value;
   int errorCode=readEcEntryValue(ECMC_PLC_EC_ENTRY_INDEX,&value);
@@ -100,17 +98,17 @@ int ecmPLCDataIF::readEc()
   return 0;
 }
 
-int ecmPLCDataIF::writeEc()
+int ecmcPLCDataIF::writeEc()
 {
   uint64_t value=(uint64_t)data_;
-  int errorCode=writeEcEntryValue(int entryIndex,uint64_t value);
+  int errorCode=writeEcEntryValue(ECMC_PLC_EC_ENTRY_INDEX,value);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
   return 0;
 }
 
-int ecmPLCDataIF::readAxis()
+int ecmcPLCDataIF::readAxis()
 {
   if(axis_==NULL){
     return ERROR_PLC_AXIS_NULL;
@@ -126,88 +124,88 @@ int ecmPLCDataIF::readAxis()
       data_=(double)axisData->axisID;
       break;
     case ECMC_AXIS_DATA_POS_SET:
-      data_=axisData->onChangeData->positionSetpoint;
+      data_=axisData->onChangeData.positionSetpoint;
       break;
     case ECMC_AXIS_DATA_POS_ACT:
-      data_=axisData->onChangeData->positionActual;
+      data_=axisData->onChangeData.positionActual;
       break;
     case ECMC_AXIS_DATA_CNTRL_ERROR:
-      data_=axisData->onChangeData->cntrlError;
+      data_=axisData->onChangeData.cntrlError;
       break;
     case ECMC_AXIS_DATA_POS_TARGET:
-      data_=axisData->onChangeData->positionTarget;
+      data_=axisData->onChangeData.positionTarget;
       break;
     case ECMC_AXIS_DATA_POS_ERROR:
-      data_=axisData->onChangeData->positionError;
+      data_=axisData->onChangeData.positionError;
       break;
     case ECMC_AXIS_DATA_POS_RAW:
-      data_=(double)axisData->onChangeData->positionRaw;  //Risc of data loss
+      data_=(double)axisData->onChangeData.positionRaw;  //Risc of data loss
       break;
     case ECMC_AXIS_DATA_CNTRL_OUT:
-      data_=axisData->onChangeData->cntrlOutput;
+      data_=axisData->onChangeData.cntrlOutput;
       break;
     case ECMC_AXIS_DATA_VEL_SET:
-      data_=axisData->onChangeData->velocitySetpoint;
+      data_=axisData->onChangeData.velocitySetpoint;
       break;
     case ECMC_AXIS_DATA_VEL_ACT:
-      data_=axisData->onChangeData->velocityActual;
+      data_=axisData->onChangeData.velocityActual;
       break;
     case ECMC_AXIS_DATA_VEL_SET_FF_RAW:
-      data_=axisData->onChangeData->velocityFFRaw;
+      data_=axisData->onChangeData.velocityFFRaw;
       break;
     case ECMC_AXIS_DATA_VEL_SET_RAW:
-      data_=(double)axisData->onChangeData->velocitySetpointRaw;
+      data_=(double)axisData->onChangeData.velocitySetpointRaw;
       break;
     case ECMC_AXIS_DATA_CYCLE_COUNTER:
       data_=(double)axisData->cycleCounter;
       break;
     case ECMC_AXIS_DATA_ERROR:
-      data_=(double)axisData->onChangeData->error;
+      data_=(double)axisData->onChangeData.error;
       break;
     case ECMC_AXIS_DATA_COMMAND:
-      data_=(double)axisData->onChangeData->command;
+      data_=(double)axisData->onChangeData.command;
       break;
     case ECMC_AXIS_DATA_CMD_DATA:
-      data_=(double)axisData->onChangeData->cmdData;
+      data_=(double)axisData->onChangeData.cmdData;
       break;
     case ECMC_AXIS_DATA_SEQ_STATE:
-      data_=(double)axisData->onChangeData->seqState;
+      data_=(double)axisData->onChangeData.seqState;
       break;
     case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-      data_=(double)axisData->onChangeData->trajInterlock;
+      data_=(double)axisData->onChangeData.trajInterlock;
       break;
     case ECMC_AXIS_DATA_TRAJ_SOURCE:
-      data_=(double)axisData->onChangeData->trajSource;
+      data_=(double)axisData->onChangeData.trajSource;
       break;
     case ECMC_AXIS_DATA_ENC_SOURCE:
-      data_=(double)axisData->onChangeData->encSource;
+      data_=(double)axisData->onChangeData.encSource;
       break;
     case ECMC_AXIS_DATA_ENABLE:
-      data_=(double)axisData->onChangeData->enable;
+      data_=(double)axisData->onChangeData.enable;
       break;
     case ECMC_AXIS_DATA_ENABLED:
-      data_=(double)axisData->onChangeData->enabled;
+      data_=(double)axisData->onChangeData.enabled;
       break;
     case ECMC_AXIS_DATA_EXECUTE:
-      data_=(double)axisData->onChangeData->execute;
+      data_=(double)axisData->onChangeData.execute;
       break;
     case ECMC_AXIS_DATA_BUSY:
-      data_=(double)axisData->onChangeData->busy;
+      data_=(double)axisData->onChangeData.busy;
       break;
     case ECMC_AXIS_DATA_AT_TARGET:
-      data_=(double)axisData->onChangeData->atTarget;
+      data_=(double)axisData->onChangeData.atTarget;
       break;
     case ECMC_AXIS_DATA_HOMED:
-      data_=(double)axisData->onChangeData->homed;
+      data_=(double)axisData->onChangeData.homed;
       break;
     case ECMC_AXIS_DATA_LIMIT_BWD:
-      data_=(double)axisData->onChangeData->limitBwd;
+      data_=(double)axisData->onChangeData.limitBwd;
       break;
     case ECMC_AXIS_DATA_LIMIT_FWD:
-      data_=(double)axisData->onChangeData->limitFwd;
+      data_=(double)axisData->onChangeData.limitFwd;
       break;
     case ECMC_AXIS_DATA_HOME_SWITCH:
-      data_=(double)axisData->onChangeData->homeSwitch;
+      data_=(double)axisData->onChangeData.homeSwitch;
       break;
     case ECMC_AXIS_DATA_RESET:
       data_=(double )axis_->getReset();
@@ -220,10 +218,10 @@ int ecmPLCDataIF::readAxis()
   return 0;
 }
 
-int ecmPLCDataIF::writeAxis()
+int ecmcPLCDataIF::writeAxis()
 {
   if(axis_==NULL){
-    return ERROR_PLC_AXIS_AXIS_NULL;
+    return ERROR_PLC_AXIS_NULL;
   }
 
   //Only write commands if changed
@@ -244,7 +242,8 @@ int ecmPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_POS_TARGET:
-      return axis_->getSeq()->setTargetPos(data_);
+      axis_->getSeq()->setTargetPos(data_);
+      return 0;
       break;
     case ECMC_AXIS_DATA_POS_ERROR:
       return 0;
@@ -256,7 +255,8 @@ int ecmPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_VEL_SET:
-      return axis_->getSeq()->setTargetVel(data_);
+      axis_->getSeq()->setTargetVel(data_);
+      return 0;
       break;
     case ECMC_AXIS_DATA_VEL_ACT:
       return 0;
@@ -319,7 +319,8 @@ int ecmPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_RESET:
-      return axis_->setReset((bool)data_);
+      axis_->setReset((bool)data_);
+      return 0;
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
@@ -328,149 +329,162 @@ int ecmPLCDataIF::writeAxis()
   return 0;
 }
 
-ecmcAxisDataType ecmPLCDataIF::parseAxisDataSource(std::string axisDataSource)
+ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char * axisDataSource)
 {
-  int npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_AXIS_ID);
+  printf("parseAxisDataSource %s\n",axisDataSource);
+  char *varName;
+
+  varName=strstr(axisDataSource,ECMC_AX_STR);
+  if(!varName){
+    return ECMC_AXIS_DATA_NONE;
+  }
+  varName=strstr(axisDataSource,".");
+  if(!varName){
+    return ECMC_AXIS_DATA_NONE;
+  }
+  varName++;
+
+  int npos=strcmp(varName,ECMC_AXIS_DATA_STR_AXIS_ID);
   if(npos==0){
     return ECMC_AXIS_DATA_AXIS_ID;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_POS_SET);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_POS_SET);
   if(npos==0){
    return ECMC_AXIS_DATA_POS_SET;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_POS_ACT);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_POS_ACT);
   if(npos==0){
     return ECMC_AXIS_DATA_POS_ACT;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_POS_TARGET);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_POS_TARGET);
   if(npos==0){
     return ECMC_AXIS_DATA_POS_TARGET;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_POS_ERROR);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_POS_ERROR);
   if(npos==0){
     return ECMC_AXIS_DATA_POS_ERROR;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_POS_RAW);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_POS_RAW);
   if(npos==0){
     return ECMC_AXIS_DATA_POS_RAW;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_CNTRL_OUT);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_CNTRL_OUT);
   if(npos==0){
     return ECMC_AXIS_DATA_CNTRL_OUT;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_VEL_SET);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_VEL_SET);
   if(npos==0){
     return ECMC_AXIS_DATA_VEL_SET;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_VEL_ACT);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_VEL_ACT);
   if(npos==0){
     return ECMC_AXIS_DATA_VEL_ACT;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_VEL_SET_FF_RAW);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_VEL_SET_FF_RAW);
   if(npos==0){
     return ECMC_AXIS_DATA_VEL_SET_FF_RAW;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_VEL_SET_RAW);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_VEL_SET_RAW);
   if(npos==0){
     return ECMC_AXIS_DATA_VEL_SET_RAW;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_CYCLE_COUNTER);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_CYCLE_COUNTER);
   if(npos==0){
     return ECMC_AXIS_DATA_CYCLE_COUNTER;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_ERROR);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_ERROR);
   if(npos==0){
     return ECMC_AXIS_DATA_ERROR;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_COMMAND);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_COMMAND);
   if(npos==0){
     return ECMC_AXIS_DATA_COMMAND;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_CMD_DATA);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_CMD_DATA);
   if(npos==0){
     return ECMC_AXIS_DATA_CMD_DATA;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_SEQ_STATE);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_SEQ_STATE);
   if(npos==0){
     return ECMC_AXIS_DATA_SEQ_STATE;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_INTERLOCK_TYPE);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_INTERLOCK_TYPE);
   if(npos==0){
     return ECMC_AXIS_DATA_INTERLOCK_TYPE;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_TRAJ_SOURCE);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_TRAJ_SOURCE);
   if(npos==0){
     return ECMC_AXIS_DATA_TRAJ_SOURCE;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_ENC_SOURCE);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_ENC_SOURCE);
   if(npos==0){
     return ECMC_AXIS_DATA_ENC_SOURCE;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_ENABLE);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_ENABLE);
   if(npos==0){
     return ECMC_AXIS_DATA_ENABLE;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_ENABLED);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_ENABLED);
   if(npos==0){
     return ECMC_AXIS_DATA_ENABLED;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_EXECUTE);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_EXECUTE);
   if(npos==0){
     return ECMC_AXIS_DATA_EXECUTE;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_BUSY);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_BUSY);
   if(npos==0){
     return ECMC_AXIS_DATA_BUSY;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_AT_TARGET);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_AT_TARGET);
   if(npos==0){
     return ECMC_AXIS_DATA_AT_TARGET ;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_HOMED);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_HOMED);
   if(npos==0){
     return ECMC_AXIS_DATA_HOMED  ;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_LIMIT_BWD);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_LIMIT_BWD);
   if(npos==0){
     return ECMC_AXIS_DATA_LIMIT_BWD;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_LIMIT_FWD);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_LIMIT_FWD);
   if(npos==0){
     return ECMC_AXIS_DATA_LIMIT_FWD;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_HOME_SWITCH);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_HOME_SWITCH);
   if(npos==0){
     return ECMC_AXIS_DATA_HOME_SWITCH;
   }
 
-  npos=strcmp(axisDataSource,ECMC_AXIS_DATA_STR_RESET);
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_RESET);
   if(npos==0){
     return ECMC_AXIS_DATA_RESET;
   }
@@ -478,14 +492,13 @@ ecmcAxisDataType ecmPLCDataIF::parseAxisDataSource(std::string axisDataSource)
   return ECMC_AXIS_DATA_NONE;
 }
 
-int ecmPLCDataIF::parseAndLinkEcDataSource(std::string ecDataSource)
+int ecmcPLCDataIF::parseAndLinkEcDataSource(char* ecDataSource)
 {
   int masterId=0;
   int slaveId=0;
   int bitId=0;
-  int nvals=0;
   char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int errorCode=parseEcPath(ecDataSource.c_str(), &masterId, &slaveId, alias,&bitId);
+  int errorCode=parseEcPath(ecDataSource, &masterId, &slaveId, alias,&bitId);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
@@ -495,11 +508,11 @@ int ecmPLCDataIF::parseAndLinkEcDataSource(std::string ecDataSource)
   }
 
   ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveId);
+  if(slaveId>=0){
+    slave=ec_->findSlave(slaveId);
   }
   else{
-    slave=ec.getSlave(slaveId);
+    slave=ec_->getSlave(slaveId);
   }
 
   if(slave==NULL){
@@ -519,10 +532,10 @@ int ecmPLCDataIF::parseAndLinkEcDataSource(std::string ecDataSource)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
-  return 0;
+  return validateEntry(ECMC_PLC_EC_ENTRY_INDEX);
 }
 
-int ecmPLCDataIF::parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit)
+int ecmcPLCDataIF::parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit)
 {
   int masterId=0;
   int slaveId=0;
@@ -543,5 +556,5 @@ int ecmPLCDataIF::parseEcPath(char* ecPath, int *master,int *slave, char*alias,i
 	*bit=-1;
     return 0;
   }
-  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+  return ERROR_PLC_EC_VAR_NAME_INVALID;
 }

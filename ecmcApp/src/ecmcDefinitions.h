@@ -238,7 +238,7 @@ enum motionObjectType{
 #define ECMC_AXIS_DATA_STR_SEQ_STATE "seq.state"
 #define ECMC_AXIS_DATA_STR_INTERLOCK_TYPE "mon.ilock"
 #define ECMC_AXIS_DATA_STR_TRAJ_SOURCE "traj.source"
-#define ECMC_AXIS_DATA_STR_ENC_SOURCE 20 "enc.source"
+#define ECMC_AXIS_DATA_STR_ENC_SOURCE "enc.source"
 #define ECMC_AXIS_DATA_STR_ENABLE "drv.enable"
 #define ECMC_AXIS_DATA_STR_ENABLED "drv.enabled"
 #define ECMC_AXIS_DATA_STR_EXECUTE "traj.execute"

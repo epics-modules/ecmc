@@ -588,6 +588,12 @@ static int handleCfgCommand(const char *myarg_1){
     return createAxis(iValue,1);
   }
 
+  /// "Cfg.CreatePLC(int index)"
+  nvals = sscanf(myarg_1, "CreatePLC(%d)", &iValue);
+  if (nvals == 1) {
+    return createPLC(iValue);
+  }
+
   /// "Cfg.LinkEcEntryToObject(ecEntryPathString,objPathString)"
   //ec0.s1.POSITION.-1
   //ax1.enc.actpos
@@ -1338,6 +1344,25 @@ static int handleCfgCommand(const char *myarg_1){
       }
     }
     return  setAxisTransformCommandExpr(iValue,cExprBuffer);
+  }
+
+  /*int Cfg.SetPLCExpr(int index,char *cExpr); */
+  //nvals = sscanf(myarg_1, "SetPLCExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
+  nvals = sscanf(myarg_1, "SetPLCExpr(%d)=%[^\n]",&iValue,cExprBuffer);
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
+    //Change all # to ; (since ; is used as command delimiter in tcpip communication)
+    size_t str_len=strlen(cExprBuffer);
+
+    int i=0;
+    for(i=0;i<str_len;i++){
+      if(cExprBuffer[i]==TRANSFORM_EXPR_LINE_END_CHAR){
+        cExprBuffer[i]=';';
+      }
+    }
+    return  setPLCExpr(iValue,cExprBuffer);
   }
 
   /*int Cfg.SetAxisEnableCommandsFromOtherAxis(int master_axis_no, int value);*/

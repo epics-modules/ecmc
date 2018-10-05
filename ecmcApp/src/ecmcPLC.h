@@ -8,11 +8,12 @@
 #ifndef ecmcPLC_H_
 #define ecmcPLC_H_
 
-#include "ecmcPLCAxisDataID.h"
+#include "ecmcPLCDataIF.h"
 #include "ecmcDefinitions.h"
 #include "exprtkWrap.h"
 #include "ecmcAxisBase.h"
 #include "ecmcEc.h"
+#include <string.h>
 
 #define ECMC_MAX_PLC_VARIABLES 1024
 
@@ -23,9 +24,10 @@
 class ecmcPLC : public ecmcError
 {
 public:
-  ecmcPLC(ecmcAxisBase *axes[ECMC_MAX_AXES],ecmcEc *ec);
+  ecmcPLC(ecmcEc *ec);
   ~ecmcPLC();
-  int setExpression(std::string expressionString);
+  int setExpression(char *exprStr);
+  int setAxisArrayPointer(ecmcAxisBase *axis,int index);
   bool getCompiled();
   int validate();
   int refresh();
@@ -35,12 +37,14 @@ private:
   int compile();
   int addAxisVar(int axisId,char *axisVarStr);
   int addEcVar(int ecId,char *ecVarStr);
-  std::string expressionString_;
+  int parseExpression(char *exprStr);
+  std::string exprStr_;
   bool compiled_;
   exprtkWrap *exprtk_;
-  ecmcPLCDataID dataArray_[ECMC_MAX_PLC_VARIABLES];
+  ecmcPLCDataIF *dataArray_[ECMC_MAX_PLC_VARIABLES];
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   ecmcEc *ec_;
+  int variableCount_;
 };
 
 #endif /* ecmcPLC_H_ */

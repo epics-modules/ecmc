@@ -6,7 +6,7 @@
 
 #include "ecmcPLC.h"
 
-ecmcPLC::ecmcPLC(ecmcAxisBase *axes[ECMC_MAX_AXES],ecmcEc *ec)
+ecmcPLC::ecmcPLC(ecmcEc *ec)
 {
   initVars();
   exprtk_=new exprtkWrap();
@@ -16,7 +16,6 @@ ecmcPLC::ecmcPLC(ecmcAxisBase *axes[ECMC_MAX_AXES],ecmcEc *ec)
     exit(EXIT_FAILURE);
   }
   ec_=ec;
-  axes_=axes;
 }
 
 ecmcPLC::~ecmcPLC()
@@ -26,82 +25,111 @@ ecmcPLC::~ecmcPLC()
   }
 }
 
+int ecmcPLC::setAxisArrayPointer(ecmcAxisBase *axis,int index)
+{
+  if(index>=ECMC_MAX_AXES || index<0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_INDEX_OUT_OF_RANGE);
+  }
+  axes_[index]=axis;
+  return 0;
+}
+
 void ecmcPLC::initVars()
 {
   errorReset();
-  expressionString_="";
+  exprStr_="";
   compiled_=false;
+  variableCount_=0;
   for(int i=0;i<ECMC_MAX_PLC_VARIABLES;i++){
-    dataArray_[i]=0;
+    dataArray_[i]=NULL;
   }
 }
 
-int ecmcPLC::setExpression(std::string expressionString)
+int ecmcPLC::setExpression(char *exprStr)
 {
-  expressionString_=expressionString;
+  exprStr_=exprStr;
   compiled_=false;
 
   // Expression cleared (Allow ";" as empty expression)
-  if(expressionString_.length()<=1){
+  if(exprStr_.length()<=1){
     return 0;
   }
 
-  int errorCode=compile();
+  int errorCode=parseExpression(exprStr);
+
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+
+  errorCode=compile();
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
   return 0;
 }
 
-int ecmcPLC::parseExpression(std::string expressionString)
+int ecmcPLC::parseExpression(char * exprStr)
 {
   variableCount_=0;
   // Find axes
-  size_t pos=-1;
   int nvals=0;
   int axisId;
   int errorCode=0;
-  char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  while(pos=expressionString.find(ECMC_AX_STR,pos+1)>0){
-    nvals = sscanf(expressionString.c_str()[pos], ECMC_AX_STR"%d.%s0-9a-zA-Z._",&axisId,objectFunctionStr);
+  char *strAxis=exprStr;
+  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  while((strAxis=strstr(strAxis,ECMC_AX_STR)) && strlen(strAxis)>0){
+    // Sanity check
+    nvals = sscanf(strAxis,ECMC_AX_STR"%d.%[0-9a-zA-Z._]",&axisId,varName);
     if (nvals == 2){
-      if(axisId>=ECMC_MAX_AXES){
+      if(axisId>=ECMC_MAX_AXES || !axes_[axisId]){
 	return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
       }
-      errorCode=addAxisVar(axisId,objectFunctionStr);
-      if(errorCode){
-	return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+      varName[0]='\0';
+      nvals = sscanf(strAxis,"%[0-9a-zA-Z._]",varName);
+      if (nvals == 1){
+        errorCode=addAxisVar(axisId,varName);
+        if(errorCode){
+	  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+        }
       }
     }
+    strAxis++;
   }
 
   //find EC
-  pos=0;
   int ecId;
-  while(pos=expressionString.find(ECMC_EC_STR,pos+1)>0){
+  char *strEc=exprStr;
+  varName[0]='\0';
+  while((strEc=strstr(strEc,ECMC_EC_STR)) && strlen(strEc)>0){
     //Sanity check
-    nvals = sscanf(expressionString.c_str()[pos], ECMC_EC_STR"%d.%s[0-9a-zA-Z._]",&ecId,objectFunctionStr);
+    nvals = sscanf(strEc, ECMC_EC_STR"%d.%[0-9a-zA-Z._]",&ecId,varName);
     if (nvals == 2){
-      errorCode=addEcVar(ecId,expressionString.c_str()[pos]);
-      if(errorCode){
-	return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+      varName[0]='\0';
+      nvals = sscanf(strEc,"%[0-9a-zA-Z._]",varName);
+      if (nvals == 1){
+        errorCode=addEcVar(ecId,varName);
+        if(errorCode){
+	  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+        }
       }
     }
+    strEc++;
   }
 
-  return compile();
+  return 0;
 }
 
 int ecmcPLC::addAxisVar(int axisId, char *axisVarStr)
 {
-  dataArray_[variableCount_]=new ecmcPLCDataIF(axes_[axisId],axisVarStr)
-  int errorCode=dataArray_[variableCount_].getErrorID();
+  dataArray_[variableCount_]=new ecmcPLCDataIF(axes_[axisId],axisVarStr);
+  int errorCode=dataArray_[variableCount_]->getErrorID();
   if(errorCode){
     delete dataArray_[variableCount_];
     return errorCode;
   }
 
-  if(exprtk_->addVariable(,)){
+  if(exprtk_->addVariable(axisVarStr,dataArray_[variableCount_]->getDataRef())){
+    delete dataArray_[variableCount_];
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
   }
 
@@ -111,14 +139,15 @@ int ecmcPLC::addAxisVar(int axisId, char *axisVarStr)
 
 int ecmcPLC::addEcVar(int ecId,char *ecVarStr)
 {
-  dataArray_[variableCount_]=new ecmcPLCDataIF(ec_,ecVarStr)
-  int errorCode=dataArray_[variableCount_].getErrorID();
+  dataArray_[variableCount_]=new ecmcPLCDataIF(ec_,ecVarStr);
+  int errorCode=dataArray_[variableCount_]->getErrorID();
   if(errorCode){
     delete dataArray_[variableCount_];
     return errorCode;
   }
 
-  if(exprtk_->addVariable(varNameBuffer,outputArray_[i+commandIndex*elementsPerCommand_])){
+  if(exprtk_->addVariable(ecVarStr,dataArray_[variableCount_]->getDataRef())){
+    delete dataArray_[variableCount_];
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
   }
 
@@ -128,11 +157,12 @@ int ecmcPLC::addEcVar(int ecId,char *ecVarStr)
 
 int ecmcPLC::compile()
 {
-  if(exprtk_->compile(expressionString_)){
+  if(exprtk_->compile(exprStr_)){
     compiled_=false;
     LOGERR("%s/%s:%d: Error: Transform compile error: %s.\n",__FILE__, __FUNCTION__, __LINE__,exprtk_->getParserError().c_str());
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_COMPILE_ERROR);
   }
+  printf("Compile OK expression %s\n",exprStr_.c_str());
   compiled_=true;
   return 0;
 }
@@ -144,10 +174,14 @@ bool ecmcPLC::getCompiled()
 
 int ecmcPLC::refresh()
 {
+  if(exprtk_==NULL){
+    return 0;
+  }
+
   //Update data from sources
   for(int i=0; i<variableCount_;i++){
     if(dataArray_[i]){
-      dataArray_[i].read();
+      dataArray_[i]->read();
     }
   }
 
@@ -157,7 +191,7 @@ int ecmcPLC::refresh()
   //Update changed data
   for(int i=0; i<variableCount_;i++){
     if(dataArray_[i]){
-      dataArray_[i].write();
+      dataArray_[i]->write();
     }
   }
 
@@ -174,5 +208,5 @@ int ecmcPLC::validate()
 
 std::string *ecmcPLC::getExpression()
 {
-  return &expressionString_;
+  return &exprStr_;
 }

@@ -944,6 +944,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20035:
       return "ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE";
       break;
+    case 0x20036:
+      return "ERROR_MAIN_PLC_OBJECT_NULL";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
@@ -1057,6 +1060,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20606:
       return "ERROR_PLC_EC_ENTRY_NULL";
+      break;
+    case 0x20607:
+      return "ERROR_PLC_EC_VAR_NAME_INVALID";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
