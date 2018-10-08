@@ -196,6 +196,7 @@ enum motionObjectType{
 #define ECMC_AX_PATH_BUFFER_SIZE 256
 #define ECMC_EC_PATH_BUFFER_SIZE 256
 
+#define ECMC_STATIC_VAR "static."
 #define ECMC_EC_STR "ec"
 #define ECMC_EC_HEALTH_STR "health"
 #define ECMC_AX_STR "ax"
@@ -288,9 +289,7 @@ enum ecmcDataSourceType{
   ECMC_RECORDER_SOURCE_NONE=0,
   ECMC_RECORDER_SOURCE_ETHERCAT=1,
   ECMC_RECORDER_SOURCE_AXIS=2,
+  ECMC_RECORDER_SOURCE_STATIC_VAR=3,
 };
 
-
 #endif /* ECMCDEFINITIONS_H_ */
-
-

@@ -32,19 +32,21 @@
 class ecmcPLCDataIF : public ecmcEcEntryLink
 {
 public:
-  ecmcPLCDataIF(ecmcAxisBase *axis,char *axisDataSource);
-  ecmcPLCDataIF(ecmcEc *ec,char *ecDataSource);
+  ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName);
+  ecmcPLCDataIF(ecmcEc *ec,char *ecVarName);
+  ecmcPLCDataIF(char *statVarName);
   ~ecmcPLCDataIF();
   int     read();
   int     write();
   double& getDataRef();
+  const char *getVarName();
 private:
   int                readAxis();
   int                writeAxis();
   int                readEc();
   int                writeEc();
-  ecmcAxisDataType   parseAxisDataSource(char *axisDataSource);
-  int                parseAndLinkEcDataSource(char *ecDataSource);
+  ecmcAxisDataType   parseAxisDataSource(char *axisVarName);
+  int                parseAndLinkEcDataSource(char *ecVarName);
   int                parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit);
   void               initVars();
   ecmcAxisBase       *axis_;
@@ -53,5 +55,6 @@ private:
   double             dataRead_;
   ecmcAxisDataType   dataSourceAxis_;
   ecmcDataSourceType source_;
+  std::string        varName_;
 };
 #endif /* ecmcPLCDataIF_H_ */

@@ -6,13 +6,14 @@
 
 #include "ecmcPLCDataIF.h"
 
-ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis,char *axisDataSource)
+ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName)
 {
   errorReset();
   initVars();
   axis_=axis;
+  varName_=axisVarName;
   source_=ECMC_RECORDER_SOURCE_AXIS;
-  dataSourceAxis_=parseAxisDataSource(axisDataSource);
+  dataSourceAxis_=parseAxisDataSource(axisVarName);
   if(dataSourceAxis_==ECMC_AXIS_DATA_NONE){
     LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
   }
@@ -23,11 +24,20 @@ ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec,char *ecDataSource)
   errorReset();
   initVars();
   ec_=ec;
+  varName_=ecDataSource;
   source_=ECMC_RECORDER_SOURCE_ETHERCAT;
   int errorCode=parseAndLinkEcDataSource(ecDataSource);
   if(errorCode){
     LOGERR("%s/%s:%d: ERROR: EC data Source Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
   }
+}
+
+ecmcPLCDataIF::ecmcPLCDataIF(char *statVarName)
+{
+  errorReset();
+  initVars();
+  varName_=statVarName;
+  source_=ECMC_RECORDER_SOURCE_STATIC_VAR;
 }
 
 ecmcPLCDataIF::~ecmcPLCDataIF()
@@ -40,6 +50,7 @@ void ecmcPLCDataIF::initVars()
   axis_=0;
   ec_=0;
   data_=0;
+  varName_="";
   dataSourceAxis_=ECMC_AXIS_DATA_NONE;
   source_=ECMC_RECORDER_SOURCE_NONE;
 }
@@ -61,6 +72,9 @@ int ecmcPLCDataIF::read()
    case ECMC_RECORDER_SOURCE_AXIS:
      errorCode=readAxis();
      break;
+   case ECMC_RECORDER_SOURCE_STATIC_VAR:
+     return 0;
+     break;
  }
  dataRead_=data_;
  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -81,6 +95,9 @@ int ecmcPLCDataIF::write()
       break;
     case ECMC_RECORDER_SOURCE_AXIS:
       return writeAxis();
+      break;
+    case ECMC_RECORDER_SOURCE_STATIC_VAR:
+      return 0;
       break;
   }
   return ERROR_PLC_SOURCE_INVALID;
@@ -331,7 +348,6 @@ int ecmcPLCDataIF::writeAxis()
 
 ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char * axisDataSource)
 {
-  printf("parseAxisDataSource %s\n",axisDataSource);
   char *varName;
 
   varName=strstr(axisDataSource,ECMC_AX_STR);
@@ -557,4 +573,9 @@ int ecmcPLCDataIF::parseEcPath(char* ecPath, int *master,int *slave, char*alias,
     return 0;
   }
   return ERROR_PLC_EC_VAR_NAME_INVALID;
+}
+
+const char *ecmcPLCDataIF::getVarName()
+{
+  return varName_.c_str();
 }

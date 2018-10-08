@@ -1040,6 +1040,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20502:
       return "ERROR_PLC_AXIS_ID_OUT_OF_RANGE";
       break;
+    case 0x20503:
+      return "ERROR_PLC_ADD_EXPR_LINE_ERROR";
+      break;
+    case 0x20504:
+      return "ERROR_PLC_EXPR_LINE_TO_LONG";
+      break;
     case 0x20600: //ecmcPLCDataIF
       return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
       break;

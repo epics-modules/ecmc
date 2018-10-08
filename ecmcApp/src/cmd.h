@@ -29,6 +29,9 @@ extern  asynUser *pPrintOutAsynUser;
  */
 
 #define ECMC_CMD_BUFFER_SIZE 65536
+#define ECMC_CMD_MAX_SINGLE_CMD_LENGTH 4096
+
+#define ERROR_CMD_TO_LONG  0x1000
 
 #define PRINT_OUT    (1<<1)
 

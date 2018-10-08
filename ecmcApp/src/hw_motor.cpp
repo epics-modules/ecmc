@@ -1474,7 +1474,34 @@ int setPLCExpr(int index,char *expr)
 
   CHECK_PLC_RETURN_IF_ERROR(index)
 
-  return plcs[index]->setExpression(expr);
+  return plcs[index]->setExpr(expr);
+}
+
+int appendPLCExpr(int index,char *expr)
+{
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
+
+  CHECK_PLC_RETURN_IF_ERROR(index)
+
+  return plcs[index]->addExprLine(expr);
+}
+
+int clearPLCExpr(int index)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index)
+
+  return plcs[index]->clearExpr();
+}
+
+int compilePLCExpr(int index)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index)
+
+  return plcs[index]->compile();
 }
 
 int setAxisTrajExtVelFilterEnable(int axisIndex, int enable)
@@ -3903,6 +3930,15 @@ int getControllerError()
     if(commandLists[i]!=NULL){
       if(commandLists[i]->getError()){
         return commandLists[i]->getErrorID();
+      }
+    }
+  }
+
+  //PLC:s
+  for(int i=0; i< ECMC_MAX_PLCS;i++){
+    if(plcs[i]!=NULL){
+      if(plcs[i]->getError()){
+        return plcs[i]->getErrorID();
       }
     }
   }

@@ -45,17 +45,18 @@ void ecmcPLC::initVars()
   }
 }
 
-int ecmcPLC::setExpression(char *exprStr)
+int ecmcPLC::setExpr(char *exprStr)
 {
   exprStr_=exprStr;
   compiled_=false;
+  variableCount_=0;
 
-  // Expression cleared (Allow ";" as empty expression)
+  // Expr cleared (Allow ";" as empty expression)
   if(exprStr_.length()<=1){
     return 0;
   }
 
-  int errorCode=parseExpression(exprStr);
+  int errorCode=parseExpr(exprStr);
 
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -68,9 +69,13 @@ int ecmcPLC::setExpression(char *exprStr)
   return 0;
 }
 
-int ecmcPLC::parseExpression(char * exprStr)
+int ecmcPLC::parseExpr(char * exprStr)
 {
-  variableCount_=0;
+  if(strlen(exprStr)>=ECMC_MAX_PLC_VARIABLES-1){
+    LOGERR("%s/%s:%d: ERROR: Expression to long (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_EXPR_LINE_TO_LONG);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EXPR_LINE_TO_LONG);
+  }
+
   // Find axes
   int nvals=0;
   int axisId;
@@ -116,11 +121,30 @@ int ecmcPLC::parseExpression(char * exprStr)
     strEc++;
   }
 
+  //find static variable
+  char *strStatic=exprStr;
+  varName[0]='\0';
+  while((strStatic=strstr(strStatic,ECMC_STATIC_VAR)) && strlen(strStatic)>0){
+    //Sanity check
+    nvals = sscanf(strStatic,"%[0-9a-zA-Z._]",varName);
+    if (nvals == 1){
+      errorCode=addStaticVar(varName);
+      if(errorCode){
+	return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+      }
+    }
+    strStatic++;
+  }
+
   return 0;
 }
 
 int ecmcPLC::addAxisVar(int axisId, char *axisVarStr)
 {
+  //Already added?
+  if(varExist(axisVarStr)){
+    return 0;
+  }
   dataArray_[variableCount_]=new ecmcPLCDataIF(axes_[axisId],axisVarStr);
   int errorCode=dataArray_[variableCount_]->getErrorID();
   if(errorCode){
@@ -139,6 +163,10 @@ int ecmcPLC::addAxisVar(int axisId, char *axisVarStr)
 
 int ecmcPLC::addEcVar(int ecId,char *ecVarStr)
 {
+  //Already added?
+  if(varExist(ecVarStr)){
+    return 0;
+  }
   dataArray_[variableCount_]=new ecmcPLCDataIF(ec_,ecVarStr);
   int errorCode=dataArray_[variableCount_]->getErrorID();
   if(errorCode){
@@ -155,6 +183,28 @@ int ecmcPLC::addEcVar(int ecId,char *ecVarStr)
   return 0;
 }
 
+int ecmcPLC::addStaticVar(char *staticVarStr)
+{
+  //Already added?
+  if(varExist(staticVarStr)){
+    return 0;
+  }
+  dataArray_[variableCount_]=new ecmcPLCDataIF(staticVarStr);
+  int errorCode=dataArray_[variableCount_]->getErrorID();
+  if(errorCode){
+    delete dataArray_[variableCount_];
+    return errorCode;
+  }
+
+  if(exprtk_->addVariable(staticVarStr,dataArray_[variableCount_]->getDataRef())){
+    delete dataArray_[variableCount_];
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+  }
+
+  variableCount_++;
+  return 0;
+}
+
 int ecmcPLC::compile()
 {
   if(exprtk_->compile(exprStr_)){
@@ -162,7 +212,7 @@ int ecmcPLC::compile()
     LOGERR("%s/%s:%d: Error: Transform compile error: %s.\n",__FILE__, __FUNCTION__, __LINE__,exprtk_->getParserError().c_str());
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_COMPILE_ERROR);
   }
-  printf("Compile OK expression %s\n",exprStr_.c_str());
+
   compiled_=true;
   return 0;
 }
@@ -201,12 +251,59 @@ int ecmcPLC::refresh()
 int ecmcPLC::validate()
 {
   if(!compiled_){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_COMPILE_ERROR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_COMPILE_ERROR);
   }
   return 0;
 }
 
-std::string *ecmcPLC::getExpression()
+std::string *ecmcPLC::getExpr()
 {
   return &exprStr_;
+}
+
+int ecmcPLC::addExprLine(char *exprStr)
+{
+
+  try {
+    exprStr_+=exprStr;
+  }
+  catch (const std::exception& e) {
+    LOGERR("%s/%s:%d: Append of expression line failed: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,e.what(),ERROR_PLC_ADD_EXPR_LINE_ERROR);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_ADD_EXPR_LINE_ERROR);
+  }
+
+  compiled_=false;
+  int errorCode=parseExpr(exprStr);
+
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+
+  return 0;
+}
+
+int ecmcPLC::clearExpr()
+{
+  exprStr_="";
+  compiled_=false;
+  for(int i=0; i<variableCount_;i++){
+    if(dataArray_[i]){
+      delete dataArray_[i];
+    }
+  }
+  variableCount_=0;
+  return 0;
+}
+
+int ecmcPLC::varExist(char *varName)
+{
+  for(int i=0; i<variableCount_;i++){
+    if(dataArray_[i]){
+      int n =strcmp(varName,dataArray_[i]->getVarName());
+      if(n==0){
+        return 1;
+      }
+    }
+  }
+  return 0;
 }

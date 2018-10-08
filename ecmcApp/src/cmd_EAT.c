@@ -1288,7 +1288,7 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisEncExtVelFilterEnable(iValue,iValue2);;
   }
 
-  char cExprBuffer[4096];
+  char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
   /*int Cfg.SetAxisTrajTransExpr(int axis_no, char* cExpr);   */
   //nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d)=%[^\n]",&iValue,cExprBuffer);
@@ -1363,6 +1363,36 @@ static int handleCfgCommand(const char *myarg_1){
       }
     }
     return  setPLCExpr(iValue,cExprBuffer);
+  }
+
+  /*int Cfg.AppendPLCExpr(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "AppendPLCExpr(%d)=%[^\n]",&iValue,cExprBuffer);
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
+    //Change all # to ; (since ; is used as command delimiter in tcpip communication)
+    size_t str_len=strlen(cExprBuffer);
+
+    int i=0;
+    for(i=0;i<str_len;i++){
+      if(cExprBuffer[i]==TRANSFORM_EXPR_LINE_END_CHAR){
+        cExprBuffer[i]=';';
+      }
+    }
+    return  appendPLCExpr(iValue,cExprBuffer);
+  }
+
+  /*int Cfg.ClearPLCExpr(int plcIndex);*/
+  nvals = sscanf(myarg_1, "ClearPLCExpr(%d)",&iValue);
+  if (nvals == 1) {
+    return clearPLCExpr(iValue);
+  }
+
+  /*int Cfg.CompilePLC(int plcIndex);*/
+  nvals = sscanf(myarg_1, "CompilePLC(%d)",&iValue);
+  if (nvals == 1) {
+    return compilePLCExpr(iValue);
   }
 
   /*int Cfg.SetAxisEnableCommandsFromOtherAxis(int master_axis_no, int value);*/
@@ -1583,6 +1613,12 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   if(!ecmcInit){
     hw_motor_global_init();
     ecmcInit=1;
+  }
+
+  //Check Command length
+  if(strlen(myarg_1)>=ECMC_CMD_MAX_SINGLE_CMD_LENGTH-1){
+    LOGERR("%s/%s:%d: Command to long. Command buffer size %d :(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ECMC_CMD_MAX_SINGLE_CMD_LENGTH,ERROR_CMD_TO_LONG);
+    return ERROR_CMD_TO_LONG;
   }
 
   //Check if configuration command

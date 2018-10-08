@@ -20,24 +20,30 @@
 #define ERROR_PLC_EXPRTK_ALLOCATION_FAILED 0x20500
 #define ERROR_PLC_COMPILE_ERROR 0x20501
 #define ERROR_PLC_AXIS_ID_OUT_OF_RANGE 0x20502
+#define ERROR_PLC_ADD_EXPR_LINE_ERROR 0x20503
+#define ERROR_PLC_EXPR_LINE_TO_LONG 0x20504
 
 class ecmcPLC : public ecmcError
 {
 public:
   ecmcPLC(ecmcEc *ec);
   ~ecmcPLC();
-  int setExpression(char *exprStr);
+  int setExpr(char *exprStr);
   int setAxisArrayPointer(ecmcAxisBase *axis,int index);
   bool getCompiled();
   int validate();
   int refresh();
-  std::string *getExpression();
+  std::string *getExpr();
+  int addExprLine(char *exprStr);
+  int clearExpr();
+  int compile();
 private:
   void initVars();
-  int compile();
   int addAxisVar(int axisId,char *axisVarStr);
   int addEcVar(int ecId,char *ecVarStr);
-  int parseExpression(char *exprStr);
+  int addStaticVar(char *staticVarStr);
+  int parseExpr(char *exprStr);
+  int varExist(char *varName);
   std::string exprStr_;
   bool compiled_;
   exprtkWrap *exprtk_;
@@ -48,3 +54,4 @@ private:
 };
 
 #endif /* ecmcPLC_H_ */
+
