@@ -225,6 +225,9 @@ bool ecmcPLC::getCompiled()
 
 int ecmcPLC::execute(bool ecOK)
 {
+  if(!compiled_){
+    return 0;
+  }
   //Wait for EC OK
   if(ecOK){
     inStartup_=0;
@@ -321,6 +324,7 @@ int ecmcPLC::varExist(char *varName)
 
 int ecmcPLC::validate()
 {
+
   if(getErrorID()){
     return getErrorID();
   }
