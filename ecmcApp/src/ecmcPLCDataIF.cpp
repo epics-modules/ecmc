@@ -131,6 +131,10 @@ int ecmcPLCDataIF::readAxis()
     return ERROR_PLC_AXIS_NULL;
   }
 
+  if(axis_->getTraj()==NULL){
+    return ERROR_PLC_TRAJ_NULL;
+  }
+
   ecmcAxisStatusType *axisData=axis_->getDebugInfoDataPointer();
 
   switch(dataSourceAxis_){
@@ -227,6 +231,16 @@ int ecmcPLCDataIF::readAxis()
     case ECMC_AXIS_DATA_RESET:
       data_=(double )axis_->getReset();
       break;
+    case ECMC_AXIS_DATA_VEL_TARGET_SET:
+      data_=(double )axis_->getSeq()->getTargetVel();
+      break;
+      break;
+    case ECMC_AXIS_DATA_ACC_TARGET_SET:
+      data_=(double ) axis_->getTraj()->getAcc();
+      break;
+    case ECMC_AXIS_DATA_DEC_TARGET_SET:
+      data_=(double )axis_->getTraj()->getDec();
+      break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
       break;
@@ -239,6 +253,10 @@ int ecmcPLCDataIF::writeAxis()
 {
   if(axis_==NULL){
     return ERROR_PLC_AXIS_NULL;
+  }
+
+  if(axis_->getTraj()==NULL){
+    return ERROR_PLC_TRAJ_NULL;
   }
 
   //Only write commands if changed
@@ -272,7 +290,6 @@ int ecmcPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_VEL_SET:
-      axis_->getSeq()->setTargetVel(data_);
       return 0;
       break;
     case ECMC_AXIS_DATA_VEL_ACT:
@@ -291,9 +308,11 @@ int ecmcPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_COMMAND:
+      printf("=======================COMMAND\n");
       return axis_->setCommand((motionCommandTypes)data_);
       break;
     case ECMC_AXIS_DATA_CMD_DATA:
+      printf("=======================CMDDATA\n");
       return axis_->setCmdData((int)data_);
       break;
     case ECMC_AXIS_DATA_SEQ_STATE:
@@ -309,12 +328,14 @@ int ecmcPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_ENABLE:
+      printf("=======================ENABLE\n");
       return axis_->setEnable((bool)data_);
       break;
     case ECMC_AXIS_DATA_ENABLED:
       return 0;
       break;
     case ECMC_AXIS_DATA_EXECUTE:
+      printf("=======================EXECUTE\n");
       return axis_->setExecute((bool)data_);
       break;
     case ECMC_AXIS_DATA_BUSY:
@@ -338,6 +359,18 @@ int ecmcPLCDataIF::writeAxis()
     case ECMC_AXIS_DATA_RESET:
       axis_->setReset((bool)data_);
       return 0;
+      break;
+    case ECMC_AXIS_DATA_VEL_TARGET_SET:
+      printf("=======================TARGET VEL\n");
+      axis_->getSeq()->setTargetVel(data_);
+      break;
+    case ECMC_AXIS_DATA_ACC_TARGET_SET:
+      printf("=======================TARGET ACC\n");
+      axis_->getTraj()->setAcc(data_);
+      break;
+    case ECMC_AXIS_DATA_DEC_TARGET_SET:
+      printf("=======================TARGET ACC\n");
+      axis_->getTraj()->setDec(data_);
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
@@ -505,6 +538,21 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char * axisDataSource)
     return ECMC_AXIS_DATA_RESET;
   }
 
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_VEL_TARGET_SET);
+  if(npos==0){
+    return ECMC_AXIS_DATA_VEL_TARGET_SET;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_ACC_TARGET_SET);
+  if(npos==0){
+    return ECMC_AXIS_DATA_ACC_TARGET_SET;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_DEC_TARGET_SET);
+  if(npos==0){
+    return ECMC_AXIS_DATA_DEC_TARGET_SET;
+  }
+
   return ECMC_AXIS_DATA_NONE;
 }
 
@@ -578,4 +626,37 @@ int ecmcPLCDataIF::parseEcPath(char* ecPath, int *master,int *slave, char*alias,
 const char *ecmcPLCDataIF::getVarName()
 {
   return varName_.c_str();
+}
+
+int ecmcPLCDataIF::validate()
+{
+  if(getErrorID()){
+    return getErrorID();
+  }
+
+  switch(source_){
+    case ECMC_RECORDER_SOURCE_NONE:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_SOURCE_INVALID);
+      break;
+    case ECMC_RECORDER_SOURCE_ETHERCAT:
+      if(!ec_){
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EC_NULL);
+      }
+      else{
+	return 0;
+      }
+      break;
+    case ECMC_RECORDER_SOURCE_AXIS:
+      if(!axis_){
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_NULL);
+      }
+      else{
+	return 0;
+      }
+      break;
+    case ECMC_RECORDER_SOURCE_STATIC_VAR:
+      return 0;
+      break;
+  }
+  return ERROR_PLC_SOURCE_INVALID;
 }

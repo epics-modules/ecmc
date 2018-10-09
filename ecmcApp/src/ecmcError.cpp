@@ -1055,6 +1055,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20504:
       return "ERROR_PLC_EXPR_LINE_TO_LONG";
       break;
+    case 0x20505:
+      return "ERROR_PLC_PLC_DATA_IF_NULL";
+      break;
     case 0x20600: //ecmcPLCDataIF
       return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
       break;
@@ -1078,6 +1081,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20607:
       return "ERROR_PLC_EC_VAR_NAME_INVALID";
+      break;
+    case 0x20608:
+      return "ERROR_PLC_TRAJ_NULL";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";

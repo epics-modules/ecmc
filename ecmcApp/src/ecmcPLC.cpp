@@ -40,6 +40,7 @@ void ecmcPLC::initVars()
   exprStr_="";
   compiled_=false;
   variableCount_=0;
+  inStartup_=1;
   for(int i=0;i<ECMC_MAX_PLC_VARIABLES;i++){
     dataArray_[i]=NULL;
   }
@@ -222,13 +223,23 @@ bool ecmcPLC::getCompiled()
   return compiled_;
 }
 
-int ecmcPLC::refresh()
+int ecmcPLC::execute(bool ecOK)
 {
+  //Wait for EC OK
+  if(ecOK){
+    inStartup_=0;
+  }
+
+  //Wait for EC OK
+  if(!ecOK and inStartup_){
+    return 0;
+  }
+
   if(exprtk_==NULL){
     return 0;
   }
 
-  //Update data from sources
+  // Update data from sources
   for(int i=0; i<variableCount_;i++){
     if(dataArray_[i]){
       dataArray_[i]->read();
@@ -238,7 +249,7 @@ int ecmcPLC::refresh()
   // Run equation
   exprtk_->refresh();
 
-  //Update changed data
+  // Update changed data
   for(int i=0; i<variableCount_;i++){
     if(dataArray_[i]){
       dataArray_[i]->write();
@@ -303,6 +314,27 @@ int ecmcPLC::varExist(char *varName)
       if(n==0){
         return 1;
       }
+    }
+  }
+  return 0;
+}
+
+int ecmcPLC::validate()
+{
+  if(getErrorID()){
+    return getErrorID();
+  }
+
+  int errorCode=0;
+  for(int i=0; i<variableCount_;i++){
+    if(dataArray_[i]){
+      errorCode=dataArray_[i]->validate();
+      if(errorCode){
+	return errorCode;
+      }
+    }
+    else{
+      return ERROR_PLC_PLC_DATA_IF_NULL;
     }
   }
   return 0;

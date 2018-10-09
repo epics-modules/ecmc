@@ -454,7 +454,7 @@ void cyclic_task(void * usr)
     //PLCs
     for( i=0;i<ECMC_MAX_PLCS;i++){
       if(plcs[i]!=NULL){
-	plcs[i]->refresh();
+	plcs[i]->execute(ec.statusOK());
       }
     }
 
@@ -768,6 +768,16 @@ int validateConfig(){
       errorCode=dataRecorders[i]->validate();
       if(errorCode){
         LOGERR("ERROR: Validation failed on data recorder %d with error code %d.",i,errorCode);
+        return errorCode;
+      }
+    }
+  }
+
+  for(int i=0; i<ECMC_MAX_PLCS;i++){
+    if(plcs[i]!=NULL){
+      errorCode=plcs[i]->validate();
+      if(errorCode){
+        LOGERR("ERROR: Validation failed on plc object %d with error code %d.",i,errorCode);
         return errorCode;
       }
     }

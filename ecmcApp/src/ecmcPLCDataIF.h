@@ -27,7 +27,7 @@
 #define ERROR_PLC_EC_SLAVE_NULL 0x20605
 #define ERROR_PLC_EC_ENTRY_NULL 0x20606
 #define ERROR_PLC_EC_VAR_NAME_INVALID 0x20607
-
+#define ERROR_PLC_TRAJ_NULL 0x20608
 
 class ecmcPLCDataIF : public ecmcEcEntryLink
 {
@@ -40,6 +40,7 @@ public:
   int     write();
   double& getDataRef();
   const char *getVarName();
+  int validate();
 private:
   int                readAxis();
   int                writeAxis();

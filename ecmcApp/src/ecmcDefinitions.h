@@ -229,6 +229,9 @@ enum motionObjectType{
 #define ECMC_AXIS_DATA_STR_POS_RAW "enc.rawpos"
 #define ECMC_AXIS_DATA_STR_CNTRL_OUT "cntrl.output"
 #define ECMC_AXIS_DATA_STR_VEL_SET "traj.setvel"
+#define ECMC_AXIS_DATA_STR_VEL_TARGET_SET "traj.targetvel"
+#define ECMC_AXIS_DATA_STR_ACC_TARGET_SET "traj.targetacc"
+#define ECMC_AXIS_DATA_STR_DEC_TARGET_SET "traj.targetdec"
 #define ECMC_AXIS_DATA_STR_VEL_ACT "enc.actvel"
 #define ECMC_AXIS_DATA_STR_VEL_SET_FF_RAW "traj.setvelffraw"
 #define ECMC_AXIS_DATA_STR_VEL_SET_RAW "drv.setvelraw"
@@ -250,6 +253,10 @@ enum motionObjectType{
 #define ECMC_AXIS_DATA_STR_LIMIT_FWD "mon.highlim"
 #define ECMC_AXIS_DATA_STR_HOME_SWITCH "mon.homesensor"
 #define ECMC_AXIS_DATA_STR_RESET "reset"
+
+ECMC_AXIS_DATA_ACC_TARGET_SET=32,
+ECMC_AXIS_DATA_DEC_TARGET_SET=33,
+
 
 enum ecmcAxisDataType{
   ECMC_AXIS_DATA_NONE=0,
@@ -283,6 +290,9 @@ enum ecmcAxisDataType{
   ECMC_AXIS_DATA_LIMIT_FWD=28,
   ECMC_AXIS_DATA_HOME_SWITCH=29,
   ECMC_AXIS_DATA_RESET=30,
+  ECMC_AXIS_DATA_VEL_TARGET_SET=31,
+  ECMC_AXIS_DATA_ACC_TARGET_SET=32,
+  ECMC_AXIS_DATA_DEC_TARGET_SET=33,
 };
 
 enum ecmcDataSourceType{
