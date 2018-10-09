@@ -1156,7 +1156,8 @@ int setAxisSoftLimitPosFwd(int axisIndex, double value);
  * \note Example: Set acceleration setpoint for axis 3 to 500.\n
  * "Main.M3.fAcceleration=500"  //Command string to cmd_EAT.c.\n
  *
- * \todo  "TwinCAT syntax. Needs to be changed.\n
+ * \note Example: Set deceleration setpoint for axis 3 to 500.\n
+ * "Cfg.SetAxisAcc(3,500)"  //Command string to cmd_EAT.c.\n
  */
 int setAxisAcceleration(int axisIndex, double value);
 
@@ -1170,7 +1171,8 @@ int setAxisAcceleration(int axisIndex, double value);
  * \note Example: Set deceleration setpoint for axis 3 to 500.\n
  * "Main.M3.fDeceleration=500"  //Command string to cmd_EAT.c.\n
  *
- * \todo  "TwinCAT syntax. Needs to be changed.\n
+ * \note Example: Set deceleration setpoint for axis 3 to 500.\n
+ * "Cfg.SetAxisDec(3,500)"  //Command string to cmd_EAT.c.\n
  */
 int setAxisDeceleration(int axisIndex, double value);
 
