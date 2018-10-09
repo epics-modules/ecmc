@@ -257,6 +257,13 @@ int  ecmcAxisSequencer::setExecute(bool execute)
   seqInProgress_=false;
   seqState_=0;
 
+  if(data_->command_.execute  && !executeOld_){
+    int errorCode=checkVelAccDec();
+    if(errorCode){
+      return errorCode;
+    }
+  }
+
   switch (data_->command_.command){
     case ECMC_CMD_JOG:
       //Triggered via jog inputs
@@ -1723,5 +1730,29 @@ int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData* data)
   data_= data;
   PRINT_ERROR_PATH("axis[%d].sequencer.error",data->axisId_);
   printCurrentState();
+  return 0;
+}
+
+int ecmcAxisSequencer::checkVelAccDec()
+{
+  //Sanity check of target velocity
+  if(std::abs(data_->command_.velocityTarget)==0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_ERROR_VELOCITY_ZERO);
+  }
+
+  if(traj_==NULL){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
+  }
+
+  //Sanity check of acceleration
+  if(traj_->getAcc()<=0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_ERROR_ACCELERATION_ZERO);
+  }
+
+  //Sanity check of deceleration
+  if(traj_->getDec()<=0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_ERROR_DECELERATION_ZERO);
+  }
+
   return 0;
 }

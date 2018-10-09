@@ -1276,6 +1276,18 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisTrajStartPos(iValue,dValue);;
   }
 
+  /*int Cfg.SetAxisAcc(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisAcc(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisAcceleration(iValue,dValue);;
+  }
+
+  /*int Cfg.SetAxisDec(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisDec(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisDeceleration(iValue,dValue);;
+  }
+
   /*int Cfg.SetAxisTrajExtVelFilterEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1, "SetAxisTrajExtVelFilterEnable(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {

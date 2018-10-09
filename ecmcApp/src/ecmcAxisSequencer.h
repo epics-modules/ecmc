@@ -32,6 +32,9 @@
 #define ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK 0x14D0D
 #define ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO 0x14D0E
 #define ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED 0x14D0F
+#define ERROR_SEQ_ERROR_ACCELERATION_ZERO 0x14D10
+#define ERROR_SEQ_ERROR_DECELERATION_ZERO 0x14D11
+#define ERROR_SEQ_ERROR_VELOCITY_ZERO 0x14D12
 
 
 //Homing
@@ -108,7 +111,7 @@ private:
   int    checkHWLimitsAndStop(bool checkBWD,bool checkFWD);
   int    stopSeq();
   int    getExtTrajSetpoint(double *pos);
-
+  int    checkVelAccDec();
   int    seqState_;
   int    seqStateOld_;
   int    seqTimeout_;
