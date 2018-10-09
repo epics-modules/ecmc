@@ -419,6 +419,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14D0F:
       return "ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED";
       break;
+    case 0x14D10:
+      return "ERROR_SEQ_ERROR_ACCELERATION_ZERO";
+      break;
+    case 0x14D11:
+      return "ERROR_SEQ_ERROR_DECELERATION_ZERO";
+      break;
+    case 0x14D12:
+      return "ERROR_SEQ_ERROR_VELOCITY_ZERO";
+      break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";
       break;
