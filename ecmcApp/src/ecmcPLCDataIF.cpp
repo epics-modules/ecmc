@@ -229,7 +229,7 @@ int ecmcPLCDataIF::readAxis()
       data_=(double)axisData->onChangeData.homeSwitch;
       break;
     case ECMC_AXIS_DATA_RESET:
-      data_=(double )axis_->getReset();
+      data_=0;
       break;
     case ECMC_AXIS_DATA_VEL_TARGET_SET:
       data_=(double )axis_->getSeq()->getTargetVel();
@@ -240,6 +240,18 @@ int ecmcPLCDataIF::readAxis()
       break;
     case ECMC_AXIS_DATA_DEC_TARGET_SET:
       data_=(double )axis_->getTraj()->getDec();
+      break;
+    case ECMC_AXIS_DATA_SOFT_LIMIT_BWD:
+      data_=axis_->getMon()->getSoftLimitBwd();
+      break;
+    case ECMC_AXIS_DATA_SOFT_LIMIT_FWD:
+      data_=axis_->getMon()->getSoftLimitFwd();
+      break;
+    case ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE:
+      data_=(bool)axis_->getMon()->getEnableSoftLimitBwd();
+      break;
+    case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
+      data_=(bool)axis_->getMon()->getEnableSoftLimitFwd();
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
@@ -257,6 +269,10 @@ int ecmcPLCDataIF::writeAxis()
 
   if(axis_->getTraj()==NULL){
     return ERROR_PLC_TRAJ_NULL;
+  }
+
+  if(axis_->getMon()==NULL){
+    return ERROR_PLC_MON_NULL;
   }
 
   //Only write commands if changed
@@ -357,7 +373,10 @@ int ecmcPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_RESET:
-      axis_->setReset((bool)data_);
+      printf("=======================RESET\n");
+      if(data_){
+        axis_->errorReset();
+      }
       return 0;
       break;
     case ECMC_AXIS_DATA_VEL_TARGET_SET:
@@ -369,8 +388,24 @@ int ecmcPLCDataIF::writeAxis()
       axis_->getTraj()->setAcc(data_);
       break;
     case ECMC_AXIS_DATA_DEC_TARGET_SET:
-      printf("=======================TARGET ACC\n");
+      printf("=======================TARGET DEC\n");
       axis_->getTraj()->setDec(data_);
+      break;
+    case ECMC_AXIS_DATA_SOFT_LIMIT_BWD:
+      printf("=======================SOFT LIMIT BWD\n");
+      axis_->getMon()->setSoftLimitBwd(data_);
+      break;
+    case ECMC_AXIS_DATA_SOFT_LIMIT_FWD:
+      printf("=======================SOFT LIMIT FWD\n");
+      axis_->getMon()->setSoftLimitFwd(data_);
+      break;
+    case ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE:
+      printf("=======================SOFT LIMIT ENABLE BWD\n");
+      axis_->getMon()->setEnableSoftLimitBwd((bool)data_);
+      break;
+    case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
+      printf("=======================SOFT LIMIT ENABLE FWD\n");
+      axis_->getMon()->setEnableSoftLimitFwd((bool)data_);
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
@@ -551,6 +586,26 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char * axisDataSource)
   npos=strcmp(varName,ECMC_AXIS_DATA_STR_DEC_TARGET_SET);
   if(npos==0){
     return ECMC_AXIS_DATA_DEC_TARGET_SET;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_SOFT_LIMIT_BWD);
+  if(npos==0){
+    return ECMC_AXIS_DATA_SOFT_LIMIT_BWD;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_SOFT_LIMIT_FWD);
+  if(npos==0){
+    return ECMC_AXIS_DATA_SOFT_LIMIT_FWD;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_SOFT_LIMIT_BWD_ENABLE);
+  if(npos==0){
+    return ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_SOFT_LIMIT_FWD_ENABLE);
+  if(npos==0){
+    return ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE;
   }
 
   return ECMC_AXIS_DATA_NONE;

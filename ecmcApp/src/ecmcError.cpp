@@ -1085,6 +1085,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20608:
       return "ERROR_PLC_TRAJ_NULL";
       break;
+    case 0x20609:
+      return "ERROR_PLC_MON_NULL";
+      break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
       break;

@@ -28,6 +28,7 @@
 #define ERROR_PLC_EC_ENTRY_NULL 0x20606
 #define ERROR_PLC_EC_VAR_NAME_INVALID 0x20607
 #define ERROR_PLC_TRAJ_NULL 0x20608
+#define ERROR_PLC_MON_NULL 0x20609
 
 class ecmcPLCDataIF : public ecmcEcEntryLink
 {
