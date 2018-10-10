@@ -1475,7 +1475,6 @@ int setAxisTrajExtVelFilterEnable(int axisIndex, int enable);
  */
 int setAxisEncTransExpr(int axisIndex, char *expr);
 
-
 /** \breif Set PLC expression.\n
  *
  * The PLC expression is used for PLC functionalities. Data from axes and\n
@@ -1532,6 +1531,34 @@ int clearPLCExpr(int index);
  * "Cfg.CompulePLC(5)" //Command string to cmd_EAT.c.\n
  */
 int compilePLCExpr(int index);
+
+/** \breif Set enable of PLC.\n
+ *
+ * Enable a PLC.\n
+ *
+ * \param[in] index  PLC index.\n
+ * \param[in] enable Enable.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set enable for PLC 5\n
+ * "Cfg.SetPLCEnable(5,1);" //Command string to cmd_EAT.c.\n
+ */
+int setPLCEnable(int index,int enable);
+
+/** \breif Delete PLC.\n
+ *
+ * Delete PLC object
+ * ethercat entries are available.
+ *
+ * \param[in] index  PLC index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Delete PLC 4\n
+ * "Cfg.DeletePLC(4);" //Command string to cmd_EAT.c.\n
+ */
+int deletePLC(int index);
 
 /** \breif Enables/disables velocity filter of external actual value.\n
  *

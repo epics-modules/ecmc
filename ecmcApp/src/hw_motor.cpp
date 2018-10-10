@@ -2624,6 +2624,25 @@ int createPLC(int index)
   return plcs[index]->getErrorID();
 }
 
+int setPLCEnable(int index,int enable)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index);
+
+  return plcs[index]->setEnable(enable);
+}
+
+int deletePLC(int index)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index);
+  delete plcs[index];
+  return 0;
+}
+
+
 int ecSetMaster(int masterIndex)
 {
   LOGINFO4("%s/%s:%d master index=%d \n",__FILE__, __FUNCTION__, __LINE__, masterIndex);

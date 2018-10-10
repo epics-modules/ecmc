@@ -594,6 +594,18 @@ static int handleCfgCommand(const char *myarg_1){
     return createPLC(iValue);
   }
 
+  /// "Cfg.DeletePLC(int index)"
+  nvals = sscanf(myarg_1, "DeletePLC(%d)", &iValue);
+  if (nvals == 1) {
+    return deletePLC(iValue);
+  }
+
+  /// "Cfg.SetPLCEnable(int index,int enable)"
+  nvals = sscanf(myarg_1, "SetPLCEnable(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setPLCEnable(iValue,iValue2);
+  }
+
   /// "Cfg.LinkEcEntryToObject(ecEntryPathString,objPathString)"
   //ec0.s1.POSITION.-1
   //ax1.enc.actpos

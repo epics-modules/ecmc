@@ -41,6 +41,7 @@ void ecmcPLC::initVars()
   compiled_=false;
   variableCount_=0;
   inStartup_=1;
+  enable_=0;
   for(int i=0;i<ECMC_MAX_PLC_VARIABLES;i++){
     dataArray_[i]=NULL;
   }
@@ -225,7 +226,7 @@ bool ecmcPLC::getCompiled()
 
 int ecmcPLC::execute(bool ecOK)
 {
-  if(!compiled_){
+  if(!compiled_ or !enable_){
     return 0;
   }
   //Wait for EC OK
@@ -259,14 +260,6 @@ int ecmcPLC::execute(bool ecOK)
     }
   }
 
-  return 0;
-}
-
-int ecmcPLC::validate()
-{
-  if(!compiled_){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_COMPILE_ERROR);
-  }
   return 0;
 }
 
@@ -324,6 +317,9 @@ int ecmcPLC::varExist(char *varName)
 
 int ecmcPLC::validate()
 {
+  if(!compiled_){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_COMPILE_ERROR);
+  }
 
   if(getErrorID()){
     return getErrorID();
@@ -341,5 +337,11 @@ int ecmcPLC::validate()
       return ERROR_PLC_PLC_DATA_IF_NULL;
     }
   }
+  return 0;
+}
+
+int ecmcPLC::setEnable(int enable)
+{
+  enable_=enable;
   return 0;
 }

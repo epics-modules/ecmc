@@ -38,7 +38,8 @@ public:
   int addExprLine(char *exprStr);
   int clearExpr();
   int compile();
-  int validate();
+  int setEnable(int enable);
+
 private:
   void initVars();
   int addAxisVar(int axisId,char *axisVarStr);
@@ -54,6 +55,7 @@ private:
   ecmcEc *ec_;
   int variableCount_;
   int inStartup_;
+  int enable_;
 };
 
 #endif /* ecmcPLC_H_ */
