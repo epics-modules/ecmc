@@ -324,11 +324,9 @@ int ecmcPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_COMMAND:
-      printf("=======================COMMAND\n");
       return axis_->setCommand((motionCommandTypes)data_);
       break;
     case ECMC_AXIS_DATA_CMD_DATA:
-      printf("=======================CMDDATA\n");
       return axis_->setCmdData((int)data_);
       break;
     case ECMC_AXIS_DATA_SEQ_STATE:
@@ -344,14 +342,12 @@ int ecmcPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_ENABLE:
-      printf("=======================ENABLE\n");
       return axis_->setEnable((bool)data_);
       break;
     case ECMC_AXIS_DATA_ENABLED:
       return 0;
       break;
     case ECMC_AXIS_DATA_EXECUTE:
-      printf("=======================EXECUTE\n");
       return axis_->setExecute((bool)data_);
       break;
     case ECMC_AXIS_DATA_BUSY:
@@ -373,38 +369,30 @@ int ecmcPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_RESET:
-      printf("=======================RESET\n");
       if(data_){
         axis_->errorReset();
       }
       return 0;
       break;
     case ECMC_AXIS_DATA_VEL_TARGET_SET:
-      printf("=======================TARGET VEL\n");
       axis_->getSeq()->setTargetVel(data_);
       break;
     case ECMC_AXIS_DATA_ACC_TARGET_SET:
-      printf("=======================TARGET ACC\n");
       axis_->getTraj()->setAcc(data_);
       break;
     case ECMC_AXIS_DATA_DEC_TARGET_SET:
-      printf("=======================TARGET DEC\n");
       axis_->getTraj()->setDec(data_);
       break;
     case ECMC_AXIS_DATA_SOFT_LIMIT_BWD:
-      printf("=======================SOFT LIMIT BWD\n");
       axis_->getMon()->setSoftLimitBwd(data_);
       break;
     case ECMC_AXIS_DATA_SOFT_LIMIT_FWD:
-      printf("=======================SOFT LIMIT FWD\n");
       axis_->getMon()->setSoftLimitFwd(data_);
       break;
     case ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE:
-      printf("=======================SOFT LIMIT ENABLE BWD\n");
       axis_->getMon()->setEnableSoftLimitBwd((bool)data_);
       break;
     case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
-      printf("=======================SOFT LIMIT ENABLE FWD\n");
       axis_->getMon()->setEnableSoftLimitFwd((bool)data_);
       break;
     default:
