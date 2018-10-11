@@ -2633,6 +2633,16 @@ int setPLCEnable(int index,int enable)
   return plcs[index]->setEnable(enable);
 }
 
+int getPLCEnable(int index,int *enabled)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index);
+
+  *enabled=plcs[index]->getEnable();
+  return 0;
+}
+
 int deletePLC(int index)
 {
   LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);

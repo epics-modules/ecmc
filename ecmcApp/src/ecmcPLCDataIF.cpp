@@ -706,3 +706,13 @@ int ecmcPLCDataIF::validate()
   }
   return ERROR_PLC_SOURCE_INVALID;
 }
+
+double ecmcPLCDataIF::getData()
+{
+  return data_;
+}
+
+void ecmcPLCDataIF::setData(double data)
+{
+  data_=data;
+}

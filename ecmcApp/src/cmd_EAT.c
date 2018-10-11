@@ -1787,6 +1787,12 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableCommandsTransform(motor_axis_no,&iValue));
   }
 
+  /*GetPLCEnable(int plcIndex)*/
+  nvals = sscanf(myarg_1, "GetPLCEnable(%d)",&iValue2);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getPLCEnable(iValue2,&iValue));
+  }
+
   /*int GetAxisTrajTransExpr(int axis_no, char* cExpr);   */
   nvals = sscanf(myarg_1, "GetAxisTrajTransExpr(%d)",&iValue);
   if (nvals == 1){

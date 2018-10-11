@@ -12,10 +12,46 @@ ecmcPLC::ecmcPLC(ecmcEc *ec,int skipCycles)
   skipCycles_=skipCycles;
   exprtk_=new exprtkWrap();
   if(!exprtk_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EXPRTK.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_EXPRTK_ALLOCATION_FAILED);
+    LOGERR("%s/%s:%d: Failed allocation of EXPRTK (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EXPRTK_ALLOCATION_FAILED);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EXPRTK_ALLOCATION_FAILED);
     exit(EXIT_FAILURE);
   }
+
+  plcEnable_=new ecmcPLCDataIF((char*)ECMC_PLC_ENABLE_DATA_STR);
+  if(!plcEnable_){
+    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcEnable object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_ENABLE_DATA_STR,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    exit(EXIT_FAILURE);
+  }
+  if(exprtk_->addVariable(ECMC_PLC_ENABLE_DATA_STR,plcEnable_->getDataRef())){
+    LOGERR("%s/%s:%d: Failed to add plcEnable object %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_ENABLE_DATA_STR,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+  }
+
+  plcError_=new ecmcPLCDataIF((char*)ECMC_PLC_ERROR_DATA_STR);
+  if(!plcError_){
+    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcError object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_ERROR_DATA_STR,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    exit(EXIT_FAILURE);
+  }
+  if(exprtk_->addVariable(ECMC_PLC_ERROR_DATA_STR,plcError_->getDataRef())){
+    LOGERR("%s/%s:%d: Failed to add plcError object %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_ERROR_DATA_STR,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+  }
+
+  plcScanTime_=new ecmcPLCDataIF((char*)ECMC_PLC_SCAN_TIME_DATA_STR);
+  if(!plcScanTime_){
+    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcScanTime object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_SCAN_TIME_DATA_STR,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    exit(EXIT_FAILURE);
+  }
+  if(exprtk_->addVariable(ECMC_PLC_SCAN_TIME_DATA_STR,plcScanTime_->getDataRef())){
+    LOGERR("%s/%s:%d: Failed to add plcScanTime object %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_SCAN_TIME_DATA_STR,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+  }
+
+  plcScanTimeInSecs_=1/MCU_FREQUENCY*(skipCycles+1);
+
   ec_=ec;
 }
 
@@ -24,6 +60,7 @@ ecmcPLC::~ecmcPLC()
   for(int i=0;i<ECMC_MAX_PLC_VARIABLES;i++){
     delete dataArray_[i];
   }
+  delete plcEnable_;
 }
 
 int ecmcPLC::setAxisArrayPointer(ecmcAxisBase *axis,int index)
@@ -42,9 +79,12 @@ void ecmcPLC::initVars()
   compiled_=false;
   variableCount_=0;
   inStartup_=1;
-  enable_=0;
   skipCycles_=0;
   skipCyclesCounter_=0;
+  plcScanTimeInSecs_=0;
+  plcEnable_=NULL;
+  plcError_=NULL;
+  plcScanTime_=NULL;
   for(int i=0;i<ECMC_MAX_PLC_VARIABLES;i++){
     dataArray_[i]=NULL;
   }
@@ -229,13 +269,12 @@ bool ecmcPLC::getCompiled()
 
 int ecmcPLC::execute(bool ecOK)
 {
-  if(!compiled_ or !enable_ or skipCyclesCounter_<skipCycles_){
+  if(!compiled_ or !(int)plcEnable_->getData() or skipCyclesCounter_<skipCycles_){
     skipCyclesCounter_++;
     return 0;
   }
   skipCyclesCounter_=0;
 
-  //Wait for EC OK
   if(ecOK){
     inStartup_=0;
   }
@@ -248,6 +287,9 @@ int ecmcPLC::execute(bool ecOK)
   if(exprtk_==NULL){
     return 0;
   }
+
+  //Set sample time
+  plcScanTime_->setData(plcScanTimeInSecs_);
 
   // Update data from sources
   for(int i=0; i<variableCount_;i++){
@@ -348,6 +390,29 @@ int ecmcPLC::validate()
 
 int ecmcPLC::setEnable(int enable)
 {
-  enable_=enable;
+  plcEnable_->setData((double)enable);
   return 0;
+}
+
+int ecmcPLC::getEnable()
+{
+  return (int)plcEnable_->getData();
+}
+
+int ecmcPLC::getPLCErrorID()
+{
+  return (int)plcError_->getData();
+}
+
+bool ecmcPLC::getError()
+{
+  return getPLCErrorID() || ecmcError::getError();
+}
+
+int ecmcPLC::getErrorID()
+{
+  if(getPLCErrorID()){
+    return getPLCErrorID();
+  }
+  return ecmcError::getErrorID();
 }

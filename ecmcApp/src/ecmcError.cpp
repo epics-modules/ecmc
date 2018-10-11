@@ -1058,6 +1058,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20505:
       return "ERROR_PLC_PLC_DATA_IF_NULL";
       break;
+    case 0x20506:
+      return "ERROR_PLC_DATA_IF_ALLOCATION_FAILED";
+      break;
     case 0x20600: //ecmcPLCDataIF
       return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
       break;

@@ -40,6 +40,8 @@ public:
   int     read();
   int     write();
   double& getDataRef();
+  double getData();
+  void setData(double data);
   const char *getVarName();
   int validate();
 private:
