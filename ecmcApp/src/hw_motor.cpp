@@ -49,6 +49,7 @@
 #include "ecmcDataStorage.h"
 #include "ecmcCommandList.h"
 #include "ecmcAsynPortDriver.h"
+#include "ecmcPLC.h"
 
 
 /****************************************************************************/
@@ -65,7 +66,7 @@
 #define CHECK_EVENT_RETURN_IF_ERROR(indexEvent) {if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){LOGERR("ERROR: Event index out of range.\n");return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;}if(events[indexEvent]==NULL){LOGERR("ERROR: Event object NULL.\n");return ERROR_MAIN_EVENT_NULL;}}
 #define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage) { if(indexStorage>=ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage<0){LOGERR("ERROR: Data storage index out of range.\n");return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;}if(dataStorages[indexStorage]==NULL){LOGERR("ERROR: Data storage object NULL.\n");return ERROR_MAIN_DATA_STORAGE_NULL;}}
 #define CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder) {if(indexRecorder>=ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder<0){LOGERR("ERROR: Data recorder index out of range.\n");return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;}if(dataRecorders[indexRecorder]==NULL){LOGERR("ERROR: Data recorder object NULL.\n");return ERROR_MAIN_DATA_RECORDER_NULL;}}
-
+#define CHECK_PLC_RETURN_IF_ERROR(index) {if(index>=ECMC_MAX_PLCS || index<0){LOGERR("ERROR: PLC index out of range.\n");return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;}if(plcs[index]==NULL){LOGERR("ERROR: PLC object NULL.\n");return ERROR_MAIN_PLC_OBJECT_NULL;}}
 /****************************************************************************/
 static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static int              axisDiagIndex;
@@ -83,6 +84,7 @@ static struct timespec  masterActivationTimeMonotonic={};
 static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
 static ecmcAsynPortDriver *asynPort=NULL;
+static ecmcPLC          *plcs[ECMC_MAX_PLCS];
 
 //Default asyn params
 static int asynParIdLatencyMin=0;
@@ -449,6 +451,14 @@ void cyclic_task(void * usr)
       }
     }
 
+    //PLCs
+    for( i=0;i<ECMC_MAX_PLCS;i++){
+      if(plcs[i]!=NULL){
+	plcs[i]->execute(ec.statusOK());
+      }
+    }
+
+
     //Update Asyn thread diagnostics parameters
     if(asynUpdateCounterThread){
       asynUpdateCounterThread--;
@@ -539,6 +549,10 @@ int  hw_motor_global_init(void){
 
   for(int i=0; i<ECMC_MAX_AXES;i++){
     axes[i]=NULL;
+  }
+
+  for(int i=0; i<ECMC_MAX_PLCS;i++){
+    plcs[i]=NULL;
   }
 
   for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
@@ -754,6 +768,16 @@ int validateConfig(){
       errorCode=dataRecorders[i]->validate();
       if(errorCode){
         LOGERR("ERROR: Validation failed on data recorder %d with error code %d.",i,errorCode);
+        return errorCode;
+      }
+    }
+  }
+
+  for(int i=0; i<ECMC_MAX_PLCS;i++){
+    if(plcs[i]!=NULL){
+      errorCode=plcs[i]->validate();
+      if(errorCode){
+        LOGERR("ERROR: Validation failed on plc object %d with error code %d.",i,errorCode);
         return errorCode;
       }
     }
@@ -1452,6 +1476,42 @@ int setAxisTransformCommandExpr(int axisIndex,char *expr)
   std::string tempExpr=expr;
 
   return axes[axisIndex]->setCommandsTransformExpression(tempExpr);
+}
+
+int setPLCExpr(int index,char *expr)
+{
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
+
+  CHECK_PLC_RETURN_IF_ERROR(index)
+
+  return plcs[index]->setExpr(expr);
+}
+
+int appendPLCExpr(int index,char *expr)
+{
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
+
+  CHECK_PLC_RETURN_IF_ERROR(index)
+
+  return plcs[index]->addExprLine(expr);
+}
+
+int clearPLCExpr(int index)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index)
+
+  return plcs[index]->clearExpr();
+}
+
+int compilePLCExpr(int index)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index)
+
+  return plcs[index]->compile();
 }
 
 int setAxisTrajExtVelFilterEnable(int axisIndex, int enable)
@@ -2538,6 +2598,61 @@ int createAxis(int index, int type)
   return 0;
 }
 
+int createPLC(int index,int skipCycles)
+{
+  LOGINFO4("%s/%s:%d index=%d, skipcyles=%d\n",__FILE__, __FUNCTION__, __LINE__,index,skipCycles);
+
+  if(index<0 && index>=ECMC_MAX_PLCS){
+    return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;
+  }
+
+  if(!ec.getInitDone())
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(plcs[index]){
+    delete plcs[index];
+    plcs[index]=NULL;
+  }
+
+  plcs[index]=new ecmcPLC(&ec,skipCycles);
+
+  //Set axes pointers (for the already configuered axes)
+  for(int i=0; i<ECMC_MAX_AXES;i++){
+    plcs[index]->setAxisArrayPointer(axes[i],i);
+  }
+
+  return plcs[index]->getErrorID();
+}
+
+int setPLCEnable(int index,int enable)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index);
+
+  return plcs[index]->setEnable(enable);
+}
+
+int getPLCEnable(int index,int *enabled)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index);
+
+  *enabled=plcs[index]->getEnable();
+  return 0;
+}
+
+int deletePLC(int index)
+{
+  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+
+  CHECK_PLC_RETURN_IF_ERROR(index);
+  delete plcs[index];
+  return 0;
+}
+
+
 int ecSetMaster(int masterIndex)
 {
   LOGINFO4("%s/%s:%d master index=%d \n",__FILE__, __FUNCTION__, __LINE__, masterIndex);
@@ -2904,7 +3019,7 @@ int linkEcEntryToObject(char *ecPath,char *axPath)
 
   int errorCode=parseEcPath(ecPath, &masterId,&slaveIndex,alias,&bitIndex);
   if(errorCode){
-  	return errorCode;
+    return errorCode;
   }
 
   int axisIndex=0;
@@ -2912,16 +3027,16 @@ int linkEcEntryToObject(char *ecPath,char *axPath)
   int entryIndex=0;
   errorCode=parseObjectPath(axPath,&axisIndex,&objectType,&entryIndex);
   if(errorCode){
-  	return errorCode;
+    return errorCode;
   }
 
   switch(objectType){
     case ECMC_OBJ_INVALID:
       return ERROR_MAIN_ECMC_LINK_INVALID;
-	  break;
+      break;
     case ECMC_OBJ_DRIVE:
       return linkEcEntryToAxisDrv(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
-	  break;
+      break;
     case ECMC_OBJ_ENCODER:
       return linkEcEntryToAxisEnc(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
       break;
@@ -3759,7 +3874,7 @@ int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore)
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  int error= dataRecorders[indexRecorder]->setAxisDataSource(axes[axisIndex]->getDebugInfoDataPointer(),(ecmcAxisDataRecordType)dataToStore);
+  int error= dataRecorders[indexRecorder]->setAxisDataSource(axes[axisIndex]->getDebugInfoDataPointer(),(ecmcAxisDataType)dataToStore);
   if(error){
     return error;
   }
@@ -3854,6 +3969,15 @@ int getControllerError()
     if(commandLists[i]!=NULL){
       if(commandLists[i]->getError()){
         return commandLists[i]->getErrorID();
+      }
+    }
+  }
+
+  //PLC:s
+  for(int i=0; i< ECMC_MAX_PLCS;i++){
+    if(plcs[i]!=NULL){
+      if(plcs[i]->getError()){
+        return plcs[i]->getErrorID();
       }
     }
   }

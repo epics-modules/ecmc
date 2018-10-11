@@ -588,6 +588,30 @@ static int handleCfgCommand(const char *myarg_1){
     return createAxis(iValue,1);
   }
 
+  /// "Cfg.CreatePLC(int index, int skipcycles)"
+  nvals = sscanf(myarg_1, "CreatePLC(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return createPLC(iValue,iValue2);
+  }
+
+  /// "Cfg.CreatePLC(int index)"
+  nvals = sscanf(myarg_1, "CreatePLC(%d)", &iValue);
+  if (nvals == 1) {
+    return createPLC(iValue,0);
+  }
+
+  /// "Cfg.DeletePLC(int index)"
+  nvals = sscanf(myarg_1, "DeletePLC(%d)", &iValue);
+  if (nvals == 1) {
+    return deletePLC(iValue);
+  }
+
+  /// "Cfg.SetPLCEnable(int index,int enable)"
+  nvals = sscanf(myarg_1, "SetPLCEnable(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setPLCEnable(iValue,iValue2);
+  }
+
   /// "Cfg.LinkEcEntryToObject(ecEntryPathString,objPathString)"
   //ec0.s1.POSITION.-1
   //ax1.enc.actpos
@@ -1270,6 +1294,18 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisTrajStartPos(iValue,dValue);;
   }
 
+  /*int Cfg.SetAxisAcc(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisAcc(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisAcceleration(iValue,dValue);;
+  }
+
+  /*int Cfg.SetAxisDec(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisDec(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisDeceleration(iValue,dValue);;
+  }
+
   /*int Cfg.SetAxisTrajExtVelFilterEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1, "SetAxisTrajExtVelFilterEnable(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
@@ -1282,7 +1318,7 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisEncExtVelFilterEnable(iValue,iValue2);;
   }
 
-  char cExprBuffer[4096];
+  char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
   /*int Cfg.SetAxisTrajTransExpr(int axis_no, char* cExpr);   */
   //nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetAxisTrajTransExpr(%d)=%[^\n]",&iValue,cExprBuffer);
@@ -1338,6 +1374,55 @@ static int handleCfgCommand(const char *myarg_1){
       }
     }
     return  setAxisTransformCommandExpr(iValue,cExprBuffer);
+  }
+
+  /*int Cfg.SetPLCExpr(int index,char *cExpr); */
+  //nvals = sscanf(myarg_1, "SetPLCExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
+  nvals = sscanf(myarg_1, "SetPLCExpr(%d)=%[^\n]",&iValue,cExprBuffer);
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
+    //Change all # to ; (since ; is used as command delimiter in tcpip communication)
+    size_t str_len=strlen(cExprBuffer);
+
+    int i=0;
+    for(i=0;i<str_len;i++){
+      if(cExprBuffer[i]==TRANSFORM_EXPR_LINE_END_CHAR){
+        cExprBuffer[i]=';';
+      }
+    }
+    return  setPLCExpr(iValue,cExprBuffer);
+  }
+
+  /*int Cfg.AppendPLCExpr(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "AppendPLCExpr(%d)=%[^\n]",&iValue,cExprBuffer);
+  if(nvals == 1 ){
+    cExprBuffer[0]='\0';
+  }
+  if (nvals >= 1 ){ //allow empty expression
+    //Change all # to ; (since ; is used as command delimiter in tcpip communication)
+    size_t str_len=strlen(cExprBuffer);
+
+    int i=0;
+    for(i=0;i<str_len;i++){
+      if(cExprBuffer[i]==TRANSFORM_EXPR_LINE_END_CHAR){
+        cExprBuffer[i]=';';
+      }
+    }
+    return  appendPLCExpr(iValue,cExprBuffer);
+  }
+
+  /*int Cfg.ClearPLCExpr(int plcIndex);*/
+  nvals = sscanf(myarg_1, "ClearPLCExpr(%d)",&iValue);
+  if (nvals == 1) {
+    return clearPLCExpr(iValue);
+  }
+
+  /*int Cfg.CompilePLC(int plcIndex);*/
+  nvals = sscanf(myarg_1, "CompilePLC(%d)",&iValue);
+  if (nvals == 1) {
+    return compilePLCExpr(iValue);
   }
 
   /*int Cfg.SetAxisEnableCommandsFromOtherAxis(int master_axis_no, int value);*/
@@ -1560,6 +1645,12 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     ecmcInit=1;
   }
 
+  //Check Command length
+  if(strlen(myarg_1)>=ECMC_CMD_MAX_SINGLE_CMD_LENGTH-1){
+    LOGERR("%s/%s:%d: Command to long. Command buffer size %d :(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ECMC_CMD_MAX_SINGLE_CMD_LENGTH,ERROR_CMD_TO_LONG);
+    return ERROR_CMD_TO_LONG;
+  }
+
   //Check if configuration command
   if (0 == strncmp(myarg_1, Cfg_dot_str,strlen(Cfg_dot_str))) {
     myarg_1 += strlen(Cfg_dot_str);
@@ -1694,6 +1785,12 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   nvals = sscanf(myarg_1, "GetAxisEnableCommandsTransform(%d)", &motor_axis_no);
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableCommandsTransform(motor_axis_no,&iValue));
+  }
+
+  /*GetPLCEnable(int plcIndex)*/
+  nvals = sscanf(myarg_1, "GetPLCEnable(%d)",&iValue2);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getPLCEnable(iValue2,&iValue));
   }
 
   /*int GetAxisTrajTransExpr(int axis_no, char* cExpr);   */

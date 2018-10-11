@@ -1156,7 +1156,8 @@ int setAxisSoftLimitPosFwd(int axisIndex, double value);
  * \note Example: Set acceleration setpoint for axis 3 to 500.\n
  * "Main.M3.fAcceleration=500"  //Command string to cmd_EAT.c.\n
  *
- * \todo  "TwinCAT syntax. Needs to be changed.\n
+ * \note Example: Set deceleration setpoint for axis 3 to 500.\n
+ * "Cfg.SetAxisAcc(3,500)"  //Command string to cmd_EAT.c.\n
  */
 int setAxisAcceleration(int axisIndex, double value);
 
@@ -1170,7 +1171,8 @@ int setAxisAcceleration(int axisIndex, double value);
  * \note Example: Set deceleration setpoint for axis 3 to 500.\n
  * "Main.M3.fDeceleration=500"  //Command string to cmd_EAT.c.\n
  *
- * \todo  "TwinCAT syntax. Needs to be changed.\n
+ * \note Example: Set deceleration setpoint for axis 3 to 500.\n
+ * "Cfg.SetAxisDec(3,500)"  //Command string to cmd_EAT.c.\n
  */
 int setAxisDeceleration(int axisIndex, double value);
 
@@ -1472,6 +1474,163 @@ int setAxisTrajExtVelFilterEnable(int axisIndex, int enable);
  * "Cfg.SetAxisEncTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to cmd_EAT.c.\n
  */
 int setAxisEncTransExpr(int axisIndex, char *expr);
+
+/** \breif Set PLC expression.\n
+ *
+ * The PLC expression is used for PLC functionalities.\n
+ *
+ * See appendPLCExpr() for more information.\n
+ *
+ * \param[in] index  PLC index.\n
+ * \param[in] expr Expression.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set expression for PLC 5 to
+ * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
+ * "Cfg.SetPLCExpr(5)=ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#" //Command string to cmd_EAT.c.\n
+ */
+int setPLCExpr(int index,char *expr);
+
+/** \breif Append Line to PLC expression.\n
+ *
+ * Append one line of PLC Code. Code syntax is defined on exprtk website.\n
+ * Variables that can be used are described below.\n
+ *
+ * \param[in] index  PLC index.\n
+ * \param[in] expr Expression.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ *  Accessible variables in code:
+ *  EtherCAT data:
+ *   1.  ec<masterid>.s<slaveid>.<alias>.<bitnum>  ethetcat data       (rw)\n
+ *                                                 (bitnum is optional)
+ *
+ *  Static variables:
+ *   1.  static.<varname>            static variable. (initiated to 0) (rw)\n
+ *
+ *  Motion variables:
+ *   1.  ax<id>.id                    axis id                          (ro)\n
+ *   2.  ax<id>.reset                 reset axis error                 (rw)\n
+ *   3.  ax<id>.counter               execution counter                (ro)\n
+ *   4.  ax<id>.error                 error                            (ro)\n
+ *   5.  ax<id>.enc.actpos            actual position                  (ro)\n
+ *   6.  ax<id>.enc.actvel            actual velocity                  (ro)\n
+ *   7.  ax<id>.enc.rawpos            actual raw position              (ro)\n
+ *   8.  ax<id>.enc.source            actual position                  (ro)\n
+ *   9.  ax<id>.enc.homed             encoder homed                    (ro)\n
+ *   10. ax<id>.traj.setpos           curent trajectory setpoint       (ro)\n
+ *   11. ax<id>.traj.targetpos        target position                  (rw)\n
+ *   12. ax<id>.traj.targetvel        target velocity setpoint         (rw)\n
+ *   13. ax<id>.traj.targetacc        target acceleration setpoint     (rw)\n
+ *   14. ax<id>.traj.targetdec        target deceleration setpoint     (rw)\n
+ *   15. ax<id>.traj.setvel           current velocity setpoint        (ro)\n
+ *   16. ax<id>.traj.setvelffraw      feed forward raw velocity        (ro)\n
+ *   17. ax<id>.traj.command          command                          (rw)\n
+ *   18. ax<id>.traj.cmddata          cmddata                          (rw)\n
+ *   19. ax<id>.traj.source           internal source expressions      (ro)\n
+ *   20. ax<id>.traj.execute          execute motion command           (rw)\n
+ *   21. ax<id>.traj.busy             axis busy                        (ro)\n
+ *   22. ax<id>.cntrl.error           actual controller error          (ro)\n
+ *   23. ax<id>.cntrl.poserror        actual position error            (ro)\n
+ *   24. ax<id>.cntrl.output          actual controller output         (ro)\n
+ *   25. ax<id>.drv.setvelraw         actual raw velocity setpoint     (ro)\n
+ *   26. ax<id>.drv.enable            enable drive command             (rw)\n
+ *   27. ax<id>.drv.enabled           drive enabled                    (ro)\n
+ *   28. ax<id>.seq.state             sequence state (homing)          (ro)\n
+ *   29. ax<id>.mon.ilock             motion interlock type            (ro)\n
+ *   30. ax<id>.mon.attarget          axis at taget                    (ro)\n
+ *   31. ax<id>.mon.lowlim            low limit switch                 (ro)\n
+ *   32. ax<id>.mon.highlim           high limit switch                (ro)\n
+ *   33. ax<id>.mon.homesensor        home sensor                      (ro)\n
+ *   34. ax<id>.mon.lowsoftlim        low soft limit                   (rw)\n
+ *   35. ax<id>.mon.highsoftlim       high soft limit                  (rw)\n
+ *   36. ax<id>.mon.lowsoftlimenable  low soft limit enable            (rw)\n
+ *   37. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
+ *
+ *  PLC variables:
+ *   1.  plc.enable                   plc enable                       (rw)\n
+ *                                    (end execution with "plc.enable:=0#"\n
+ *                                    Could be usefull for startup sequences)+n
+ *   2.  plc.error                    plc error                        (rw)\n
+ *                                    Will be forwarded to user as controller\n
+ *                                    error.\n
+ *   3.  plc.scantime                 plc sample time in seconds       (ro)\n
+ *
+ * \note Example: Add one line of PLC code to PLC 5
+ * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
+ * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#)" //Command string to cmd_EAT.c.\n
+ */
+int appendPLCExpr(int index,char *expr);
+
+/** \breif Clear PLC expression.\n
+ *
+ * Clears all plc code of a PLC object.\n
+ *
+ * \param[in] index  PLC index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Clear code of PLC 5\n
+ * "Cfg.ClearPLCExpr(5)" //Command string to cmd_EAT.c.\n
+ */
+int clearPLCExpr(int index);
+
+/** \breif Compile PLC expression.\n
+ *
+ * Compiles code of PLC object
+ *
+ * \param[in] index  PLC index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Compile code of PLC 5\n
+ * "Cfg.CompulePLC(5)" //Command string to cmd_EAT.c.\n
+ */
+int compilePLCExpr(int index);
+
+/** \breif Set enable of PLC.\n
+ *
+ * Enable a PLC.\n
+ *
+ * \param[in] index  PLC index.\n
+ * \param[in] enable Enable.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set enable for PLC 5\n
+ * "Cfg.SetPLCEnable(5,1);" //Command string to cmd_EAT.c.\n
+ */
+int setPLCEnable(int index,int enable);
+
+/** \breif Set enable of PLC.\n
+ *
+ * Enable a PLC.\n
+ *
+ * \param[in] index  PLC index.\n
+ * \param[out] enabled Enabled.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get enable for PLC 5\n
+ * "GetPLCEnable(5);" //Command string to cmd_EAT.c.\n
+ */
+int getPLCEnable(int index,int *enabled);
+
+/** \breif Delete PLC.\n
+ *
+ * Delete PLC object
+ * ethercat entries are available.
+ *
+ * \param[in] index  PLC index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Delete PLC 4\n
+ * "Cfg.DeletePLC(4);" //Command string to cmd_EAT.c.\n
+ */
+int deletePLC(int index);
 
 /** \breif Enables/disables velocity filter of external actual value.\n
  *
@@ -3999,14 +4158,22 @@ int setEnableTimeDiag(int value);
  *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to cmd_EAT.c\n
  */
 int setEnableFunctionCallDiag(int value);
-/** \breif Set indixes of default asyn parameters during startup.\n
+
+/** \breif Create a PLC object
+ * called.\n
  *
- * \param[in] indices Array containing asyn param indices.\n
- * \param[in] size Size of indices array.\n
+ * \param[in] index PLC index number
+ * \param[in] skipcycles idle loops between execution
  *
  * \return 0 if success or otherwise an error code.\n
  *
+ * \note Example: Create PLC at index 0 (executing every 10th cycle).\n
+ *  "Cfg.CreatePLC(0,9)" //Command string to cmd_EAT.c\n
+ *
+ * \note Example: Create PLC at index 0 (executing every cycle).\n
+ *  "Cfg.CreatePLC(0)" //Command string to cmd_EAT.c\n
  */
+int createPLC(int index, int skipcycles);
 
 #ifdef __cplusplus
 }

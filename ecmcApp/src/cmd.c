@@ -173,9 +173,9 @@ static int create_argv_sepv(const char *line,
   }
   if (strchr(input_line, ';') != NULL) {
     separator = ";";
-  } else if (strchr(input_line, ' ') != NULL) {
-    separator = " ";
-  }
+  } //else if (strchr(input_line, ' ') != NULL) {
+    //separator = " ";
+  //}
   if (separator) {
     argc++;
     /* Start the loop */

@@ -419,6 +419,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14D0F:
       return "ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED";
       break;
+    case 0x14D10:
+      return "ERROR_SEQ_ERROR_ACCELERATION_ZERO";
+      break;
+    case 0x14D11:
+      return "ERROR_SEQ_ERROR_DECELERATION_ZERO";
+      break;
+    case 0x14D12:
+      return "ERROR_SEQ_ERROR_VELOCITY_ZERO";
+      break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";
       break;
@@ -941,6 +950,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20034:
       return "ERROR_MAIN_ECMC_LINK_INVALID";
       break;
+    case 0x20035:
+      return "ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20036:
+      return "ERROR_MAIN_PLC_OBJECT_NULL";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
@@ -1024,6 +1039,57 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20407:
       return "ERROR_COMMAND_LIST_RESULT_BUFFER_OVERFLOW";
+      break;
+    case 0x20500: //ecmcPLC
+      return "ERROR_PLC_EXPRTK_ALLOCATION_FAILED";
+      break;
+    case 0x20501:
+      return "ERROR_PLC_COMPILE_ERROR";
+      break;
+    case 0x20502:
+      return "ERROR_PLC_AXIS_ID_OUT_OF_RANGE";
+      break;
+    case 0x20503:
+      return "ERROR_PLC_ADD_EXPR_LINE_ERROR";
+      break;
+    case 0x20504:
+      return "ERROR_PLC_EXPR_LINE_TO_LONG";
+      break;
+    case 0x20505:
+      return "ERROR_PLC_PLC_DATA_IF_NULL";
+      break;
+    case 0x20506:
+      return "ERROR_PLC_DATA_IF_ALLOCATION_FAILED";
+      break;
+    case 0x20600: //ecmcPLCDataIF
+      return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
+      break;
+    case 0x20601:
+      return "ERROR_PLC_AXIS_NULL";
+      break;
+    case 0x20602:
+      return "ERROR_PLC_EC_NULL";
+      break;
+    case 0x20603:
+      return "ERROR_PLC_SOURCE_INVALID";
+      break;
+    case 0x20604:
+      return "ERROR_PLC_EC_MASTER_INVALID";
+      break;
+    case 0x20605:
+      return "ERROR_PLC_EC_SLAVE_NULL";
+      break;
+    case 0x20606:
+      return "ERROR_PLC_EC_ENTRY_NULL";
+      break;
+    case 0x20607:
+      return "ERROR_PLC_EC_VAR_NAME_INVALID";
+      break;
+    case 0x20608:
+      return "ERROR_PLC_TRAJ_NULL";
+      break;
+    case 0x20609:
+      return "ERROR_PLC_MON_NULL";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
