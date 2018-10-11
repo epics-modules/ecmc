@@ -4091,13 +4091,17 @@ int setEnableFunctionCallDiag(int value);
  * called.\n
  *
  * \param[in] index PLC index number
+ * \param[in] skipcycles idle loops between execution
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Create PLC at index 0.\n
+ * \note Example: Create PLC at index 0 (executing every 10th cycle).\n
+ *  "Cfg.CreatePLC(0,9)" //Command string to cmd_EAT.c\n
+ *
+ * \note Example: Create PLC at index 0 (executing every cycle).\n
  *  "Cfg.CreatePLC(0)" //Command string to cmd_EAT.c\n
  */
-int createPLC(int index);
+int createPLC(int index, int skipcycles);
 
 #ifdef __cplusplus
 }

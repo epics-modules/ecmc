@@ -6,9 +6,10 @@
 
 #include "ecmcPLC.h"
 
-ecmcPLC::ecmcPLC(ecmcEc *ec)
+ecmcPLC::ecmcPLC(ecmcEc *ec,int skipCycles)
 {
   initVars();
+  skipCycles_=skipCycles;
   exprtk_=new exprtkWrap();
   if(!exprtk_){
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EXPRTK.\n",__FILE__,__FUNCTION__,__LINE__);
@@ -42,6 +43,8 @@ void ecmcPLC::initVars()
   variableCount_=0;
   inStartup_=1;
   enable_=0;
+  skipCycles_=0;
+  skipCyclesCounter_=0;
   for(int i=0;i<ECMC_MAX_PLC_VARIABLES;i++){
     dataArray_[i]=NULL;
   }
@@ -226,9 +229,12 @@ bool ecmcPLC::getCompiled()
 
 int ecmcPLC::execute(bool ecOK)
 {
-  if(!compiled_ or !enable_){
+  if(!compiled_ or !enable_ or skipCyclesCounter_<skipCycles_){
+    skipCyclesCounter_++;
     return 0;
   }
+  skipCyclesCounter_=0;
+
   //Wait for EC OK
   if(ecOK){
     inStartup_=0;

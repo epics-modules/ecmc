@@ -2598,9 +2598,9 @@ int createAxis(int index, int type)
   return 0;
 }
 
-int createPLC(int index)
+int createPLC(int index,int skipCycles)
 {
-  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+  LOGINFO4("%s/%s:%d index=%d, skipcyles=%d\n",__FILE__, __FUNCTION__, __LINE__,index,skipCycles);
 
   if(index<0 && index>=ECMC_MAX_PLCS){
     return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;
@@ -2614,7 +2614,7 @@ int createPLC(int index)
     plcs[index]=NULL;
   }
 
-  plcs[index]=new ecmcPLC(&ec);
+  plcs[index]=new ecmcPLC(&ec,skipCycles);
 
   //Set axes pointers (for the already configuered axes)
   for(int i=0; i<ECMC_MAX_AXES;i++){

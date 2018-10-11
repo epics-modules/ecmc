@@ -611,6 +611,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char* ecDataSource)
   }
 
   if(ec_->getMasterIndex()!=masterId){
+    LOGERR("%s/%s:%d: ERROR: Master %s not configured (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ecDataSource,ERROR_PLC_EC_MASTER_INVALID);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EC_MASTER_INVALID);
   }
 
@@ -623,6 +624,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char* ecDataSource)
   }
 
   if(slave==NULL){
+    LOGERR("%s/%s:%d: ERROR: Slave %s not configured (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ecDataSource,ERROR_PLC_EC_SLAVE_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EC_SLAVE_NULL);
   }
 
@@ -631,6 +633,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char* ecDataSource)
   ecmcEcEntry *entry=slave->findEntry(sEntryID);
 
   if(entry==NULL){
+    LOGERR("%s/%s:%d: ERROR: Entry %s not configured (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ecDataSource,ERROR_PLC_EC_ENTRY_NULL);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EC_ENTRY_NULL);
   }
 

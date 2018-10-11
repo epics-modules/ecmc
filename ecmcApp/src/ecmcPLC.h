@@ -27,7 +27,7 @@
 class ecmcPLC : public ecmcError
 {
 public:
-  ecmcPLC(ecmcEc *ec);
+  ecmcPLC(ecmcEc *ec,int skipCycles);
   ~ecmcPLC();
   int setExpr(char *exprStr);
   int setAxisArrayPointer(ecmcAxisBase *axis,int index);
@@ -56,6 +56,8 @@ private:
   int variableCount_;
   int inStartup_;
   int enable_;
+  int skipCycles_;
+  int skipCyclesCounter_;
 };
 
 #endif /* ecmcPLC_H_ */
