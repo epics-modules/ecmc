@@ -112,6 +112,8 @@ private:
   int    stopSeq();
   int    getExtTrajSetpoint(double *pos);
   int    checkVelAccDec();
+  void   initHomingSeq();
+  void   finalizeHomingSeq(double newPosition);
   int    seqState_;
   int    seqStateOld_;
   int    seqTimeout_;

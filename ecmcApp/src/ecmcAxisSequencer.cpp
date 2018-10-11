@@ -668,13 +668,7 @@ int ecmcAxisSequencer::seqHoming1() //nCmdData==1
   //Sequence code
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
-      enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-      mon_->getEnableSoftLimitBwd();
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(0);
+      initHomingSeq();
       if(hwLimitSwitchBwd_){
         currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
         traj_->setTargetVel(-homeVelTwordsCam_); //high speed
@@ -734,16 +728,7 @@ int ecmcAxisSequencer::seqHoming1() //nCmdData==1
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
-          traj_->setCurrentPosSet(currPos);
-          traj_->setTargetPos(currPos);
-          enc_->setActPos(currPos);
-          enc_->setHomed(true);
-          cntrl_->reset();
-          mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-          mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
-          homePosLatch1_=0;
-          homePosLatch2_=0;
-          stopSeq();
+          finalizeHomingSeq(currPos);
         }
       }
       break;
@@ -771,13 +756,7 @@ int ecmcAxisSequencer::seqHoming2() //nCmdData==2
   //Sequence code
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
-      enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-      mon_->getEnableSoftLimitBwd();
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(0);
+      initHomingSeq();
       if(hwLimitSwitchFwd_){
         currSeqDirection_=ECMC_DIR_FORWARD;  //StartDirection
         traj_->setTargetVel(homeVelTwordsCam_); //high speed
@@ -837,16 +816,7 @@ int ecmcAxisSequencer::seqHoming2() //nCmdData==2
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
-          traj_->setCurrentPosSet(currPos);
-          traj_->setTargetPos(currPos);
-          enc_->setActPos(currPos);
-          enc_->setHomed(true);
-          cntrl_->reset();
-          mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-          mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
-          homePosLatch1_=0;
-          homePosLatch2_=0;
-          stopSeq();
+          finalizeHomingSeq(currPos);
         }
       }
       break;
@@ -875,13 +845,7 @@ int ecmcAxisSequencer::seqHoming3() //nCmdData==3
   //Sequence code
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
-      enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-      mon_->getEnableSoftLimitBwd();
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(0);
+      initHomingSeq();
       if(hwLimitSwitchBwd_){
         currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
         traj_->setTargetVel(-homeVelTwordsCam_); //high speed
@@ -944,16 +908,7 @@ int ecmcAxisSequencer::seqHoming3() //nCmdData==3
         if((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) || !mon_->getEnableAtTargetMon())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
-          traj_->setCurrentPosSet(currPos);
-          traj_->setTargetPos(currPos);
-          enc_->setActPos(currPos);
-          enc_->setHomed(true);
-          cntrl_->reset();
-          mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-          mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
-          homePosLatch1_=0;
-          homePosLatch2_=0;
-          stopSeq();
+          finalizeHomingSeq(currPos);
         }
       }
       break;
@@ -982,13 +937,7 @@ int ecmcAxisSequencer::seqHoming4() //nCmdData==4
   //Sequence code
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
-      enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-      mon_->getEnableSoftLimitBwd();
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(0);
+      initHomingSeq();
       if(hwLimitSwitchFwd_){
         currSeqDirection_=ECMC_DIR_FORWARD;  //StartDirection
         traj_->setTargetVel(homeVelTwordsCam_); //high speed
@@ -1049,16 +998,7 @@ int ecmcAxisSequencer::seqHoming4() //nCmdData==4
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
-          traj_->setCurrentPosSet(currPos);
-          traj_->setTargetPos(currPos);
-          enc_->setActPos(currPos);
-          enc_->setHomed(true);
-          cntrl_->reset();
-          mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-          mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
-          homePosLatch1_=0;
-          homePosLatch2_=0;
-          stopSeq();
+          finalizeHomingSeq(currPos);
         }
       }
       break;
@@ -1090,13 +1030,7 @@ int ecmcAxisSequencer::seqHoming5() //nCmdData==5
   //Sequence code
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
-      enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-      mon_->getEnableSoftLimitBwd();
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(0);
+      initHomingSeq();
       if(hwLimitSwitchBwd_){
         currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
         traj_->setTargetVel(-homeVelTwordsCam_); //high speed
@@ -1200,16 +1134,7 @@ int ecmcAxisSequencer::seqHoming5() //nCmdData==5
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-((homePosLatch2_+homePosLatch1_)/2)+homePosition_;
-          traj_->setCurrentPosSet(currPos);
-          traj_->setTargetPos(currPos);
-          enc_->setActPos(currPos);
-          enc_->setHomed(true);
-          cntrl_->reset();
-          mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-          mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
-          homePosLatch1_=0;
-          homePosLatch2_=0;
-          stopSeq();
+          finalizeHomingSeq(currPos);
         }
       }
       break;
@@ -1242,13 +1167,7 @@ int ecmcAxisSequencer::seqHoming6() //nCmdData==6
   //Sequence code
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
-      enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-      mon_->getEnableSoftLimitBwd();
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(0);
+      initHomingSeq();
       if(hwLimitSwitchFwd_){
         currSeqDirection_=ECMC_DIR_FORWARD ;  //StartDirection
         traj_->setTargetVel(homeVelTwordsCam_); //high speed
@@ -1352,16 +1271,7 @@ int ecmcAxisSequencer::seqHoming6() //nCmdData==6
         if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-((homePosLatch2_+homePosLatch1_)/2)+homePosition_;
-          traj_->setCurrentPosSet(currPos);
-          traj_->setTargetPos(currPos);
-          enc_->setActPos(currPos);
-          enc_->setHomed(true);
-          cntrl_->reset();
-          mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-          mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
-          homePosLatch1_=0;
-          homePosLatch2_=0;
-          stopSeq();
+          finalizeHomingSeq(currPos);
         }
       }
       break;
@@ -1399,13 +1309,7 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
   //Sequence code
   switch(seqState_){
     case 0:  //Set parameters and start initial motion
-      enc_->setHomed(false);
-      enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-      enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-      mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-      mon_->getEnableSoftLimitBwd();
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(0);
+      initHomingSeq();
       if(hwLimitSwitchBwd_){
         currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
         traj_->setTargetVel(-homeVelTwordsCam_); //high speed
@@ -1458,7 +1362,7 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
-	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+	return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       //Over or under-flow triggered when 2/3 of bit-width change in value
       if( (encAbsPosReg_>oldEncAbsPosReg_+2.0/3.0*pow(2,encAbsBits)) || (oldEncAbsPosReg_>encAbsPosReg_+2.0/3.0*pow(2,encAbsBits))){
@@ -1491,14 +1395,7 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
             //Always positive value
             currPos=std::abs((pow(2,encAbsBits)-(double)encAbsPosReg_)*enc_->getScale()+homePosition_);
           }
-          traj_->setCurrentPosSet(currPos);
-          traj_->setTargetPos(currPos);
-          enc_->setActPos(currPos);
-          enc_->setHomed(true);
-          cntrl_->reset();
-	  mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-	  mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
-          stopSeq();
+          finalizeHomingSeq(currPos);
         }
       }
       break;
@@ -1535,65 +1432,59 @@ int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolu
 
   //Sequence code
   switch(seqState_){
-	case 0:  //Set parameters and start initial motion
-	  enc_->setHomed(false);
-          enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-	  enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-	  mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-	  mon_->getEnableSoftLimitBwd();
-	  traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-	  traj_->setExecute(0);
-	  if(hwLimitSwitchFwd_){
-		currSeqDirection_=ECMC_DIR_FORWARD;  //StartDirection
-		traj_->setTargetVel(homeVelTwordsCam_); //high speed
-		traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-		traj_->setExecute(1);
-		seqState_=1;
-	  }
-	  else{ //Already at bwd limit jump to step 2
-		currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
-		seqState_=2;
-	  }
-	  break;
+    case 0:  //Set parameters and start initial motion
+      initHomingSeq();
+      if(hwLimitSwitchFwd_){
+       currSeqDirection_=ECMC_DIR_FORWARD;  //StartDirection
+	traj_->setTargetVel(homeVelTwordsCam_); //high speed
+	traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+	traj_->setExecute(1);
+	seqState_=1;
+      }
+      else{ //Already at bwd limit jump to step 2
+	currSeqDirection_=ECMC_DIR_BACKWARD;  //StartDirection
+	seqState_=2;
+      }
+      break;
 
-	case 1: //Wait for positive limit switch and turn other direction
-	  if(hwLimitSwitchFwdOld_ && !hwLimitSwitchFwd_){
-		traj_->setExecute(0);
-		//Switch direction
-		currSeqDirection_=ECMC_DIR_BACKWARD;
-		seqState_=2;
-	  }
-	  break;
+    case 1: //Wait for positive limit switch and turn other direction
+      if(hwLimitSwitchFwdOld_ && !hwLimitSwitchFwd_){
+	traj_->setExecute(0);
+	//Switch direction
+	currSeqDirection_=ECMC_DIR_BACKWARD;
+	seqState_=2;
+      }
+      break;
 
-	case 2: //Wait for standstill and then trigger move
-	  retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit switch
-	  if(retValue){
-		return retValue;
-	  }
-	  if(!traj_->getBusy()){
-		traj_->setTargetVel(-homeVelOffCam_); //low speed
-		traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-		traj_->setExecute(1);//Trigg new movement
-		seqState_=3;
-	  }
-	  else{
-		traj_->setExecute(0);
-	  }
-	  break;
-	case 3: //Latch encoder value on falling or rising edge of home sensor
-	  retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
-	  if(retValue){
-		return retValue;
-	  }
-	  if(hwLimitSwitchFwd_!=hwLimitSwitchFwdOld_){
-		seqState_=4;
-	  }
-	  break;
+    case 2: //Wait for standstill and then trigger move
+      retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit switch
+      if(retValue){
+	return retValue;
+      }
+      if(!traj_->getBusy()){
+	traj_->setTargetVel(-homeVelOffCam_); //low speed
+	traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+	traj_->setExecute(1);//Trigg new movement
+	seqState_=3;
+      }
+      else{
+	traj_->setExecute(0);
+      }
+      break;
+    case 3: //Latch encoder value on falling or rising edge of home sensor
+      retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
+      if(retValue){
+	return retValue;
+      }
+      if(hwLimitSwitchFwd_!=hwLimitSwitchFwdOld_){
+	seqState_=4;
+      }
+      break;
     case 4: //Wait for over/under-flow of absolute bits of encoder
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit switch
       if(retValue){
         LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
-	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
       //Over or under-flow triggered when 2/3 of bit-width change in value
       if( (encAbsPosReg_>oldEncAbsPosReg_+2.0/3.0*pow(2,encAbsBits)) || (oldEncAbsPosReg_>encAbsPosReg_+2.0/3.0*pow(2,encAbsBits))){
@@ -1601,42 +1492,34 @@ int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolu
     	seqState_=5;
       }
       break;
-	case 5:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-	  retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit or backward switch
-	  if(retValue){
-		return retValue;
-	  }
-	  traj_->setExecute(0);
-	  if(!traj_->getBusy()){ //Wait for stop ramp ready
-		data_->command_.positionTarget=traj_->getCurrentPosSet();
-		if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
-		{
+    case 5:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
+      retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit or backward switch
+      if(retValue){
+        return retValue;
+      }
+      traj_->setExecute(0);
+      if(!traj_->getBusy()){ //Wait for stop ramp ready
+        data_->command_.positionTarget=traj_->getCurrentPosSet();
+        if(mon_->getAtTarget()){//Wait for controller to settle in order to minimize bump
           //Sanity check: Encoder position at homing must be bigger than in step 4
           if(enc_->getActPos()>=homePosLatch1_){
-       	    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Position sanity check failed (position in step 5 less than in step 4)(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
-       	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
+	    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Position sanity check failed (position in step 5 less than in step 4)(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
+	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
           }
 
           double currPos=0;
           if(encAbsPosReg_< (1.0/2.0*pow(2,encAbsBits))){//Overflow
-        	//Always negative value
-        	currPos=-std::abs((double)encAbsPosReg_*enc_->getScale()+homePosition_);
+            //Always negative value
+	    currPos=-std::abs((double)encAbsPosReg_*enc_->getScale()+homePosition_);
           }
           else{//Underflow
-        	//Always negative value
-        	currPos=-std::abs((pow(2,encAbsBits)-(double)encAbsPosReg_)*enc_->getScale()+homePosition_);
+	    //Always negative value
+	    currPos=-std::abs((pow(2,encAbsBits)-(double)encAbsPosReg_)*enc_->getScale()+homePosition_);
           }
-		  traj_->setCurrentPosSet(currPos);
-		  traj_->setTargetPos(currPos);
-		  enc_->setActPos(currPos);
-		  enc_->setHomed(true);
-		  cntrl_->reset();
-		  mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-		  mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
-		  stopSeq();
-		}
-	  }
-	  break;
+          finalizeHomingSeq(currPos);
+        }
+      }
+      break;
   }
   return -seqState_;
 }
@@ -1768,4 +1651,29 @@ int ecmcAxisSequencer::checkVelAccDec()
   }
 
   return 0;
+}
+
+void ecmcAxisSequencer::initHomingSeq()
+{
+  enc_->setHomed(false);
+  enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
+  enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
+  mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
+  mon_->getEnableSoftLimitBwd();
+  traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+  traj_->setExecute(0);
+}
+
+void ecmcAxisSequencer::finalizeHomingSeq(double newPosition)
+{
+  traj_->setCurrentPosSet(newPosition);
+  traj_->setTargetPos(newPosition);
+  enc_->setActPos(newPosition);
+  enc_->setHomed(true);
+  cntrl_->reset();
+  mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
+  mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
+  homePosLatch1_=0;
+  homePosLatch2_=0;
+  stopSeq();
 }
