@@ -1233,9 +1233,21 @@ int setAxisTargetPos(int axisIndex, double value);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set target velocity setpoint for axis 3 to 55.\n
+ * "Cfg.SetAxisVel(3,55)"  //Command string to cmd_EAT.c.\n
+ *
+ * \note Example: Set target velocity setpoint for axis 3 to 55 in\n
+ * "TwinCAT" syntax.\n
  * "Main.M3.fVelocity=55"  //Command string to cmd_EAT.c.\n
  *
- * \todo  "TwinCAT syntax. Needs to be changed.\n
+ * \note The "CfgSetAxisVelAccDecTime()" Command can be used to set\n
+ * velocity, acceleration and decelartion simultaneously\n
+ * Acceleration and deceleration are defined by time to reach target velocity\n
+ * Syntax: "Cfg.SetAxisVelAccDecTime(axisIndex,targetVel,timeToVel)"
+ *
+ * \note Example: Set target velocity setpoint for axis 3 to 55 and
+ * time to reach target velocity to 2s (acc and dec will be set to the same\n
+ * value).\n
+ * "Cfg.SetAxisVelAccDecTime(3,55,2)."  //Command string to cmd_EAT.c.\n
  */
 int setAxisTargetVel(int axisIndex, double value);
 
