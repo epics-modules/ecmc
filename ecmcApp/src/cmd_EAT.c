@@ -406,11 +406,11 @@ static int motorHandleADS_ADR_putFloat(ecmcOutputBufferType *buffer,unsigned ads
 
       //ADSPORT=501/.ADR.16#5001,16#D,8,5=-13.5; #low Softlimit
       if (offset_in_group == 0xD) {
-        return setAxisSoftLimitPosBwd(motor_axis_no, fValue);;
+        return setAxisSoftLimitPosBwd(motor_axis_no, fValue);
       }
       //ADSPORT=501/.ADR.16#5001,16#E,8,5=140.0; #high Softlimit
       if (offset_in_group == 0xE) {
-        return setAxisSoftLimitPosFwd(motor_axis_no, fValue);;
+        return setAxisSoftLimitPosFwd(motor_axis_no, fValue);
       }
 
       //ADSPORT=501/.ADR.16#5001,16#23,8,5=-13.5; #Encoder scale num for axis
@@ -1291,31 +1291,63 @@ static int handleCfgCommand(const char *myarg_1){
   /*int Cfg.SetAxisTrajStartPos(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisTrajStartPos(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    return setAxisTrajStartPos(iValue,dValue);;
+    return setAxisTrajStartPos(iValue,dValue);
   }
 
   /*int Cfg.SetAxisAcc(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisAcc(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    return setAxisAcceleration(iValue,dValue);;
+    return setAxisAcceleration(iValue,dValue);
   }
 
   /*int Cfg.SetAxisDec(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisDec(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
-    return setAxisDeceleration(iValue,dValue);;
+    return setAxisDeceleration(iValue,dValue);
+  }
+
+  /*int Cfg.SetAxisVel(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisVel(%d,%lf)", &iValue,&dValue);
+  if (nvals == 2) {
+    return setAxisTargetVel(iValue,dValue);
+  }
+
+  /*int Cfg.SetAxisVelAccDecTime(int axis_no, double vel,double timeToVel);*/
+
+  /* Set Velcoity acceleration and deceleration
+   * Acceleration and deceleration is defined by time to reach velocity.
+   * (because motor record uses this concept)
+  */
+  nvals = sscanf(myarg_1, "SetAxisVelAccDecTime(%d,%lf,%lf)", &iValue,&dValue,&dValue2);
+  if (nvals == 3) {
+    double acc=0;
+    if(dValue2!=0){
+      acc=fabs(dValue/dValue2);
+    }
+    //Set velocity
+    int errorCode=setAxisTargetVel(iValue,dValue);
+    if(errorCode){
+      return errorCode;
+    }
+    //Set acceleration
+    errorCode=setAxisAcceleration(iValue,acc);
+    if(errorCode){
+      return errorCode;
+    }
+    //Set deceleration
+    return setAxisDeceleration(iValue,acc);
   }
 
   /*int Cfg.SetAxisTrajExtVelFilterEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1, "SetAxisTrajExtVelFilterEnable(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
-    return setAxisTrajExtVelFilterEnable(iValue,iValue2);;
+    return setAxisTrajExtVelFilterEnable(iValue,iValue2);
   }
 
   /*int Cfg.SetAxisEncExtVelFilterEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1, "SetAxisEncExtVelFilterEnable(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
-    return setAxisEncExtVelFilterEnable(iValue,iValue2);;
+    return setAxisEncExtVelFilterEnable(iValue,iValue2);
   }
 
   char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
@@ -2187,7 +2219,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     int bLimitFwd = iValue;
 
     IF_ERROR_SEND_ERROR_AND_RETURN(getAxisAtHardBwd(motor_axis_no,&iValue));
-    int bLimitBwd = iValue;;
+    int bLimitBwd = iValue;
 
 
     double fOverride = 100;
