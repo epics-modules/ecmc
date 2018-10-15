@@ -128,8 +128,6 @@ private:
   bool   seqInProgressOld_;
   bool   jogFwd_;
   bool   jogBwd_;
-  bool   enableSoftLimitBwdBackup_;
-  bool   enableSoftLimitFwdBackup_;
   bool   executeOld_;
   bool   busy_;
   double jogVel_;
