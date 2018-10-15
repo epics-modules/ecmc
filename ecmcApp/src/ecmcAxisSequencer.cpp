@@ -77,8 +77,6 @@ void ecmcAxisSequencer::initVars()
   homePosition_=0;
   jogFwd_=false;
   jogBwd_=false;
-  enableSoftLimitBwdBackup_=false;
-  enableSoftLimitFwdBackup_=false;
   hwLimitSwitchBwdOld_=false;
   hwLimitSwitchFwdOld_=false;
   homePosLatch1_=0;
@@ -866,8 +864,6 @@ int ecmcAxisSequencer::seqHoming3() //nCmdData==3
         currSeqDirection_=ECMC_DIR_FORWARD;
         seqState_=2;
       }
-      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
-      data_->command_.enableSoftLimitFwd=false;
       break;
 
     case 2: //Wait for standstill and then trigger move
@@ -1330,8 +1326,6 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
         currSeqDirection_=ECMC_DIR_FORWARD;
         seqState_=2;
       }
-      data_->command_.enableSoftLimitBwd=false; //Disable softlimits for homing
-      data_->command_.enableSoftLimitFwd=false;
       break;
 
     case 2: //Wait for standstill and then trigger move
@@ -1656,10 +1650,6 @@ int ecmcAxisSequencer::checkVelAccDec()
 void ecmcAxisSequencer::initHomingSeq()
 {
   enc_->setHomed(false);
-  enableSoftLimitBwdBackup_=mon_->getEnableSoftLimitBwd(); //Read setting to be able to restore later
-  enableSoftLimitFwdBackup_=mon_->getEnableSoftLimitFwd(); //Read setting to be able to restore later
-  mon_->getEnableSoftLimitBwd(); //Disable softlimits for homing
-  mon_->getEnableSoftLimitBwd();
   traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
   traj_->setExecute(0);
 }
@@ -1671,8 +1661,6 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition)
   enc_->setActPos(newPosition);
   enc_->setHomed(true);
   cntrl_->reset();
-  mon_->setEnableSoftLimitBwd(enableSoftLimitBwdBackup_);
-  mon_->setEnableSoftLimitFwd(enableSoftLimitFwdBackup_);
   homePosLatch1_=0;
   homePosLatch2_=0;
   stopSeq();

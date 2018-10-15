@@ -584,7 +584,7 @@ int ecmcMonitor::checkLimits()
   //Bwd soft limit switch
   bool virtSoftlimitBwd=(data_->status_.currentPositionSetpoint < data_->command_.softLimitBwd) && data_->status_.enabled && data_->status_.enabledOld
       && (/*data_->status_.currentVelocitySetpoint<0 ||*/ data_->status_.currentPositionSetpoint < data_->status_.currentPositionSetpointOld);
-  if(virtSoftlimitBwd && data_->status_.busy && data_->command_.enableSoftLimitBwd){
+  if(virtSoftlimitBwd && data_->status_.busy && data_->command_.enableSoftLimitBwd && data_->command_.command !=ECMC_CMD_HOMING){
     data_->interlocks_.bwdSoftLimitInterlock=true;
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
   }
@@ -595,7 +595,7 @@ int ecmcMonitor::checkLimits()
   bool virtSoftlimitFwd=(data_->status_.currentPositionSetpoint > data_->command_.softLimitFwd) && data_->status_.enabled && data_->status_.enabledOld
       && (/*data_->status_.currentVelocitySetpoint>0||*/ data_->status_.currentPositionSetpoint>data_->status_.currentPositionSetpointOld);
   //Fwd soft limit switch
-  if(virtSoftlimitFwd && data_->status_.busy && data_->command_.enableSoftLimitFwd){
+  if(virtSoftlimitFwd && data_->status_.busy && data_->command_.enableSoftLimitFwd && data_->command_.command !=ECMC_CMD_HOMING){
     data_->interlocks_.fwdSoftLimitInterlock=true;
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
   }
@@ -774,12 +774,12 @@ double ecmcMonitor::getSoftLimitFwd()
 
 bool ecmcMonitor::getEnableSoftLimitBwd()
 {
-  return data_->command_.enableSoftLimitBwd;
+  return data_->command_.enableSoftLimitBwd && data_->command_.command !=ECMC_CMD_HOMING;
 }
 
 bool ecmcMonitor::getEnableSoftLimitFwd()
 {
-  return data_->command_.enableSoftLimitFwd;
+  return data_->command_.enableSoftLimitFwd && data_->command_.command !=ECMC_CMD_HOMING;
 }
 
 bool ecmcMonitor::getAtSoftLimitBwd()
