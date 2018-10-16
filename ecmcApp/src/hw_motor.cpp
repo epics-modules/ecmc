@@ -49,8 +49,7 @@
 #include "ecmcDataStorage.h"
 #include "ecmcCommandList.h"
 #include "ecmcAsynPortDriver.h"
-#include "ecmcPLC.h"
-
+#include "ecmcPLCs.h"
 
 /****************************************************************************/
 #define CHECK_AXIS_RETURN_IF_ERROR(axisIndex) {if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){LOGERR("ERROR: Axis index out of range.\n");return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;}if(axes[axisIndex]==NULL){LOGERR("ERROR: Axis object NULL\n");return ERROR_MAIN_AXIS_OBJECT_NULL;}}
@@ -66,7 +65,7 @@
 #define CHECK_EVENT_RETURN_IF_ERROR(indexEvent) {if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){LOGERR("ERROR: Event index out of range.\n");return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;}if(events[indexEvent]==NULL){LOGERR("ERROR: Event object NULL.\n");return ERROR_MAIN_EVENT_NULL;}}
 #define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage) { if(indexStorage>=ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage<0){LOGERR("ERROR: Data storage index out of range.\n");return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;}if(dataStorages[indexStorage]==NULL){LOGERR("ERROR: Data storage object NULL.\n");return ERROR_MAIN_DATA_STORAGE_NULL;}}
 #define CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder) {if(indexRecorder>=ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder<0){LOGERR("ERROR: Data recorder index out of range.\n");return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;}if(dataRecorders[indexRecorder]==NULL){LOGERR("ERROR: Data recorder object NULL.\n");return ERROR_MAIN_DATA_RECORDER_NULL;}}
-#define CHECK_PLC_RETURN_IF_ERROR(index) {if(index>=ECMC_MAX_PLCS || index<0){LOGERR("ERROR: PLC index out of range.\n");return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;}if(plcs[index]==NULL){LOGERR("ERROR: PLC object NULL.\n");return ERROR_MAIN_PLC_OBJECT_NULL;}}
+#define CHECK_PLCS_RETURN_IF_ERROR() {if(!plcs){return ERROR_MAIN_PLCS_NULL;}}
 /****************************************************************************/
 static ecmcAxisBase     *axes[ECMC_MAX_AXES];
 static int              axisDiagIndex;
@@ -84,7 +83,7 @@ static struct timespec  masterActivationTimeMonotonic={};
 static struct timespec  masterActivationTimeOffset={};
 static struct timespec  masterActivationTimeRealtime={};
 static ecmcAsynPortDriver *asynPort=NULL;
-static ecmcPLC          *plcs[ECMC_MAX_PLCS];
+static ecmcPLCs         *plcs;
 
 //Default asyn params
 static int asynParIdLatencyMin=0;
@@ -102,7 +101,6 @@ static int asynParIdEcmcErrorReset=0;
 static int asynSkipCyclesThread=0;
 static int asynUpdateCounterThread=0;
 static int asynThreadParamsEnable=0;
-
 static int asynSkipCyclesFastest=-1;
 static int asynSkipUpdateCounterFastest=0;
 
@@ -216,7 +214,6 @@ struct timespec timespec_sub(struct timespec time1, struct timespec time2)
  *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
  *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
 */
-
 static int parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit)
 {
   int masterId=0;
@@ -252,120 +249,119 @@ static int parseObjectPath(char* objPath,int *axis, motionObjectType *objectType
   //Axis sub objects
   nvals = sscanf(objPath, ECMC_AX_STR"%d.%[^.].%s",&axisId,objectTypeStr,objectFunctionStr);
   if (nvals == 3){
-	*axis=axisId;
-	//Drive
-	nvals=strcmp(objectTypeStr,ECMC_DRV_STR);
-	if( nvals==0 ){
-	  *objectType=ECMC_OBJ_DRIVE;
-	  //Enable
-	  nvals=strcmp(objectFunctionStr,ECMC_DRV_ENABLE_STR);
-	  if(nvals==0){
-		*objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD;
+	  *axis=axisId;
+	  //Drive
+	  nvals=strcmp(objectTypeStr,ECMC_DRV_STR);
+	  if( nvals==0 ){
+	    *objectType=ECMC_OBJ_DRIVE;
+	    //Enable
+	    nvals=strcmp(objectFunctionStr,ECMC_DRV_ENABLE_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD;
         return 0;
-	  }
-	  //Velocity
-	  nvals=strcmp(objectFunctionStr,ECMC_DRV_VELOCITY_STR);
-	  if(nvals==0){
-		*objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT;
+	    }
+	    //Velocity
+	    nvals=strcmp(objectFunctionStr,ECMC_DRV_VELOCITY_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT;
         return 0;
-	  }
-	  //Enabled
-	  nvals=strcmp(objectFunctionStr,ECMC_DRV_ENABLED_STR);
+	    }
+	    //Enabled
+	    nvals=strcmp(objectFunctionStr,ECMC_DRV_ENABLED_STR);
       if(nvals==0){
-		*objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD;
+		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD;
         return 0;
-	  }
-	  //Break
-	  nvals=strcmp(objectFunctionStr,ECMC_DRV_BREAK_STR);
-	  if(nvals==0){
-		*objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT;
+	    }
+	    //Break
+	    nvals=strcmp(objectFunctionStr,ECMC_DRV_BREAK_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT;
         return 0;
-	  }
-	  //Reduce Torque
-	  nvals=strcmp(objectFunctionStr,ECMC_DRV_REDUCETORQUE_STR);
-	  if(nvals==0){
-		*objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT;
+	    }
+	    //Reduce Torque
+	    nvals=strcmp(objectFunctionStr,ECMC_DRV_REDUCETORQUE_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT;
         return 0;
+	    }
+	    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 	  }
-	  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-	}
 
-	//Encoder
-	nvals=strcmp(objectTypeStr,ECMC_ENC_STR);
-	if( nvals==0 ){
-	  *objectType=ECMC_OBJ_ENCODER;
-	  //Enable
+	  //Encoder
+	  nvals=strcmp(objectTypeStr,ECMC_ENC_STR);
+	  if( nvals==0 ){
+	    *objectType=ECMC_OBJ_ENCODER;
+	    //Enable
       nvals=strcmp(objectFunctionStr,ECMC_ENC_ACTPOS_STR);
-	  if(nvals==0){
-		*objectFunction=ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION;
+	    if(nvals==0){
+		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION;
         return 0;
+	    }
+	    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 	  }
-	  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-	}
 
-	//Monitor
-	nvals=strcmp(objectTypeStr,ECMC_MON_STR);
-	if( nvals==0 ){
-	  *objectType=ECMC_OBJ_MONITOR;
-	  //Lowlim
-	  nvals=strcmp(objectFunctionStr,ECMC_MON_LOWLIM_STR);
-	  if(nvals==0){
-	    *objectFunction=ECMC_MON_ENTRY_INDEX_LOWLIM;
+	  //Monitor
+	  nvals=strcmp(objectTypeStr,ECMC_MON_STR);
+	  if( nvals==0 ){
+	    *objectType=ECMC_OBJ_MONITOR;
+  	  //Lowlim
+	    nvals=strcmp(objectFunctionStr,ECMC_MON_LOWLIM_STR);
+	    if(nvals==0){
+  	    *objectFunction=ECMC_MON_ENTRY_INDEX_LOWLIM;
         return 0;
-	  }
-	  //Highlim
-	  nvals=strcmp(objectFunctionStr,ECMC_MON_HIGHLIM_STR);
-	  if(nvals==0){
-		*objectFunction=ECMC_MON_ENTRY_INDEX_HIGHLIM;
+	    }
+	    //Highlim
+  	  nvals=strcmp(objectFunctionStr,ECMC_MON_HIGHLIM_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_MON_ENTRY_INDEX_HIGHLIM;
         return 0;
-	  }
-	  //Home sensor
-	  nvals=strcmp(objectFunctionStr,ECMC_MON_HOMESENSOR_STR);
-	  if(nvals==0){
-		*objectFunction=ECMC_MON_ENTRY_INDEX_HOMESENSOR;
+	    }
+	    //Home sensor
+	    nvals=strcmp(objectFunctionStr,ECMC_MON_HOMESENSOR_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_MON_ENTRY_INDEX_HOMESENSOR;
         return 0;
-	  }
-	  //ExternalInterupt
-	  nvals=strcmp(objectFunctionStr,ECMC_MON_EXTINTERLOCK_STR);
-	  if(nvals==0){
-		*objectFunction=ECMC_MON_ENTRY_INDEX_EXTINTERLOCK;
+	    }
+	    //ExternalInterupt
+	    nvals=strcmp(objectFunctionStr,ECMC_MON_EXTINTERLOCK_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_MON_ENTRY_INDEX_EXTINTERLOCK;
         return 0;
+	    }
+	    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 	  }
-	  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-	}
   }
 
   //Axis object only
   nvals = sscanf(objPath, ECMC_AX_STR"%d.%s",&axisId,objectFunctionStr);
   if (nvals == 2){
-	*objectType=ECMC_OBJ_AXIS;
-	*axis=axisId;
-	//Health
+	  *objectType=ECMC_OBJ_AXIS;
+	  *axis=axisId;
+	   //Health
     nvals=strcmp(objectFunctionStr,ECMC_AX_HEALTH_STR);
-	if(nvals==0){
-	  *objectFunction=ECMC_AXIS_ENTRY_INDEX_HEALTH;
-	  return 0;
-	}
-	return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+	  if(nvals==0){
+	    *objectFunction=ECMC_AXIS_ENTRY_INDEX_HEALTH;
+	    return 0;
+ 	  }
+	  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
   }
 
   //Ec object
   int masterId=0;
   nvals = sscanf(objPath, ECMC_EC_STR"%d.%s",&masterId,objectFunctionStr);
   if (nvals == 2){
-	*objectType=ECMC_OBJ_EC;
-	//Health
+	  *objectType=ECMC_OBJ_EC;
+	  //Health
     nvals=strcmp(objectFunctionStr,ECMC_EC_HEALTH_STR);
-	if(nvals==0){
-	  *objectFunction=ECMC_EC_ENTRY_INDEX_HEALTH;
-	  return 0;
-	}
-
-	return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+	  if(nvals==0){
+	    *objectFunction=ECMC_EC_ENTRY_INDEX_HEALTH;
+	    return 0;
+	  }
+	  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
   }
+
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
-
 
 void cyclic_task(void * usr)
 {
@@ -428,10 +424,10 @@ void cyclic_task(void * usr)
       exec_min_ns = exec_ns;
     }
     if (sendperiod_ns > send_max_ns) {
-	send_max_ns = sendperiod_ns;
+	    send_max_ns = sendperiod_ns;
     }
     if (sendperiod_ns < send_min_ns) {
-	send_min_ns = sendperiod_ns;
+	    send_min_ns = sendperiod_ns;
     }
 
     ec.receive();
@@ -447,17 +443,14 @@ void cyclic_task(void * usr)
     //Data events
     for( i=0;i<ECMC_MAX_EVENT_OBJECTS;i++){
       if(events[i]!=NULL){
-	events[i]->execute(ec.statusOK());
+	      events[i]->execute(ec.statusOK());
       }
     }
 
     //PLCs
-    for( i=0;i<ECMC_MAX_PLCS;i++){
-      if(plcs[i]!=NULL){
-	plcs[i]->execute(ec.statusOK());
-      }
+    if(plcs){
+      plcs->execute(ec.statusOK());
     }
-
 
     //Update Asyn thread diagnostics parameters
     if(asynUpdateCounterThread){
@@ -466,9 +459,8 @@ void cyclic_task(void * usr)
     else{
 
       asynUpdateCounterThread=asynSkipCyclesThread;
-
       if(asynPort && asynSkipCyclesThread>=0 && asynThreadParamsEnable){
-	if(asynPort->getAllowRtThreadCom()){
+	      if(asynPort->getAllowRtThreadCom()){
           asynPort-> setIntegerParam(asynParIdLatencyMin,latency_min_ns);
           asynPort-> setIntegerParam(asynParIdLatencyMax,latency_max_ns);
           asynPort-> setIntegerParam(asynParIdExecuteMin,exec_min_ns);
@@ -481,7 +473,7 @@ void cyclic_task(void * usr)
           asynPort->setIntegerParam(asynParIdEcmcErrorId,controllerError);
           controllerErrorMsg=getErrorString(controllerError);
           asynPort->doCallbacksInt8Array((epicsInt8*)controllerErrorMsg,(int)strlen(controllerErrorMsg)+1, asynParIdEcmcErrorMsg,0);
-	}
+	      }
         period_max_ns = 0;
         period_min_ns = 0xffffffff;
         exec_max_ns = 0;
@@ -551,10 +543,6 @@ int  hw_motor_global_init(void){
     axes[i]=NULL;
   }
 
-  for(int i=0; i<ECMC_MAX_PLCS;i++){
-    plcs[i]=NULL;
-  }
-
   for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
     events[i]=NULL;
   }
@@ -570,6 +558,8 @@ int  hw_motor_global_init(void){
   for(int i=0; i<ECMC_MAX_COMMANDS_LISTS;i++){
     commandLists[i]=NULL;
   }
+
+  plcs=NULL;
 
   return 0;
 }
@@ -773,16 +763,13 @@ int validateConfig(){
     }
   }
 
-  for(int i=0; i<ECMC_MAX_PLCS;i++){
-    if(plcs[i]!=NULL){
-      errorCode=plcs[i]->validate();
-      if(errorCode){
-        LOGERR("ERROR: Validation failed on plc object %d with error code %d.",i,errorCode);
-        return errorCode;
-      }
+  if(plcs){
+    errorCode=plcs->validate();
+    if(errorCode){
+      LOGERR("ERROR: Validation failed on plc object with error code %d.",errorCode);
+      return errorCode;
     }
   }
-
   return 0;
 }
 
@@ -1470,57 +1457,44 @@ int setAxisTrajTransExpr(int axisIndex, char *expr)
 int setAxisTransformCommandExpr(int axisIndex,char *expr)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,axisIndex, expr);
-
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
   std::string tempExpr=expr;
-
   return axes[axisIndex]->setCommandsTransformExpression(tempExpr);
 }
 
 int setPLCExpr(int index,char *expr)
 {
   LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
-
-  CHECK_PLC_RETURN_IF_ERROR(index)
-
-  return plcs[index]->setExpr(expr);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->setExpr(index,expr);
 }
 
 int appendPLCExpr(int index,char *expr)
 {
   LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
-
-  CHECK_PLC_RETURN_IF_ERROR(index)
-
-  return plcs[index]->addExprLine(expr);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->addExprLine(index,expr);
 }
 
 int clearPLCExpr(int index)
 {
   LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
-
-  CHECK_PLC_RETURN_IF_ERROR(index)
-
-  return plcs[index]->clearExpr();
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->clearExpr(index);
 }
 
 int compilePLCExpr(int index)
 {
   LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
-
-  CHECK_PLC_RETURN_IF_ERROR(index)
-
-  return plcs[index]->compile();
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->compileExpr(index);
 }
 
 int setAxisTrajExtVelFilterEnable(int axisIndex, int enable)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
-
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)
-
   ecmcMasterSlaveIF *tempIf=axes[axisIndex]->getExternalTrajIF();
   if(!tempIf){
     return ERROR_MAIN_MASTER_SLAVE_IF_NULL;
@@ -2602,6 +2576,10 @@ int createPLC(int index,int skipCycles)
 {
   LOGINFO4("%s/%s:%d index=%d, skipcyles=%d\n",__FILE__, __FUNCTION__, __LINE__,index,skipCycles);
 
+  if(!plcs){
+    plcs=new ecmcPLCs(&ec);
+  }
+
   if(index<0 && index>=ECMC_MAX_PLCS){
     return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;
   }
@@ -2609,54 +2587,38 @@ int createPLC(int index,int skipCycles)
   if(!ec.getInitDone())
     return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if(plcs[index]){
-    delete plcs[index];
-    plcs[index]=NULL;
-  }
-
-  plcs[index]=new ecmcPLC(&ec,skipCycles);
-
   //Set axes pointers (for the already configuered axes)
   for(int i=0; i<ECMC_MAX_AXES;i++){
-    plcs[index]->setAxisArrayPointer(axes[i],i);
+    plcs->setAxisArrayPointer(axes[i],i);
   }
 
-  return plcs[index]->getErrorID();
+  return plcs->createPLC(index,skipCycles);
 }
 
 int setPLCEnable(int index,int enable)
 {
   LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
-
-  CHECK_PLC_RETURN_IF_ERROR(index);
-
-  return plcs[index]->setEnable(enable);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->setEnable(index,enable);
 }
 
 int getPLCEnable(int index,int *enabled)
 {
   LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
-
-  CHECK_PLC_RETURN_IF_ERROR(index);
-
-  *enabled=plcs[index]->getEnable();
-  return 0;
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->getEnable(index,enabled);
 }
 
 int deletePLC(int index)
 {
   LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
-
-  CHECK_PLC_RETURN_IF_ERROR(index);
-  delete plcs[index];
-  return 0;
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->deletePLC(index);
 }
-
 
 int ecSetMaster(int masterIndex)
 {
   LOGINFO4("%s/%s:%d master index=%d \n",__FILE__, __FUNCTION__, __LINE__, masterIndex);
-
   return ec.init(masterIndex);
 }
 
@@ -3974,11 +3936,9 @@ int getControllerError()
   }
 
   //PLC:s
-  for(int i=0; i< ECMC_MAX_PLCS;i++){
-    if(plcs[i]!=NULL){
-      if(plcs[i]->getError()){
-        return plcs[i]->getErrorID();
-      }
+  if(plcs!=NULL){
+    if(plcs->getError()){
+      return plcs->getErrorID();
     }
   }
 

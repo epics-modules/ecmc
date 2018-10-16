@@ -956,6 +956,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20036:
       return "ERROR_MAIN_PLC_OBJECT_NULL";
       break;
+    case 0x20037:
+      return "ERROR_MAIN_PLCS_NULL";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
@@ -1090,6 +1093,15 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20609:
       return "ERROR_PLC_MON_NULL";
+      break;
+    case 0x20700:
+      return "ERROR_PLCS_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20701:
+      return "ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20702:
+      return "ERROR_PLCS_EC_NOT_INITIALIZED";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
