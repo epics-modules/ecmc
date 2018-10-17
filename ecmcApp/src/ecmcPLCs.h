@@ -48,11 +48,13 @@ private:
   int createAndRegisterNewDataIF(int plcIndex,char * varName,ecmcDataSourceType dataSource);
   int getAxisIndex(char *varName);
   int addPLCDefaultVariables(int plcIndex,int skipCycles);
+  int updateAllScanTimeVars();
   int parseAxis(int plcIndex,char * exprStr);
   int parseEC(int plcIndex,char * exprStr);
   int parseStatic(int plcIndex,char * exprStr);
   int parseGlobal(int plcIndex,char * exprStr);
-  int findGlobalDataIF(char * varName, ecmcPLCDataIF *outDataIF);
+  int parsePLC(int plcIndex,char * exprStr);
+  int findGlobalDataIF(char * varName, ecmcPLCDataIF **outDataIF);
   int getPLCErrorID();
   int globalVariableCount_;
   ecmcPLC *plcs_[ECMC_MAX_PLCS];

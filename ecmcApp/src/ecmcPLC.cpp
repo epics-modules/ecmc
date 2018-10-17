@@ -252,3 +252,8 @@ int ecmcPLC::addAndReisterGlobalVar(ecmcPLCDataIF *dataIF)
   }
   return 0;
 }
+
+double ecmcPLC::getSampleTime()
+{
+  return 1/MCU_FREQUENCY*(skipCycles_+1);
+}

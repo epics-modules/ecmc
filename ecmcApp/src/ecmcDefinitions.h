@@ -203,6 +203,7 @@ enum motionObjectType{
 
 #define ECMC_STATIC_VAR "static."
 #define ECMC_GLOBAL_VAR "global."
+
 #define ECMC_EC_STR "ec"
 #define ECMC_EC_HEALTH_STR "health"
 #define ECMC_AX_STR "ax"

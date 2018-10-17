@@ -2592,6 +2592,10 @@ int createPLC(int index,int skipCycles)
     plcs->setAxisArrayPointer(axes[i],i);
   }
 
+  if(skipCycles<0){
+    return ERROR_MAIN_PLCS_SKIPCYCLES_INVALID;
+  }
+
   return plcs->createPLC(index,skipCycles);
 }
 

@@ -78,6 +78,13 @@ int ecmcPLCs::setAxisArrayPointer(ecmcAxisBase *axis,int index)
 
 int ecmcPLCs::validate()
 {
+  //Set scantime
+  int errorCode=updateAllScanTimeVars();
+  if(errorCode){
+    return errorCode;
+  }
+
+  //Validate
   for(int i=0; i<ECMC_MAX_PLCS;i++){
     if(plcs_[i]!=NULL){
       int errorCode=plcs_[i]->validate();
@@ -220,16 +227,22 @@ int ecmcPLCs::parseExpr(int plcIndex,char * exprStr)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
+  // PLC
+  errorCode=parsePLC(plcIndex,exprStr);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+
   return 0;
 }
 
-int ecmcPLCs::findGlobalDataIF(char * varName, ecmcPLCDataIF *outDataIF)
+int ecmcPLCs::findGlobalDataIF(char * varName, ecmcPLCDataIF **outDataIF)
 {
   for(int i=0; i<globalVariableCount_;i++){
     if(globalDataArray_[i]){
       int n =strcmp(varName,globalDataArray_[i]->getVarName());
       if(n==0){
-        outDataIF=globalDataArray_[i];
+        *outDataIF=globalDataArray_[i];
         return 0;
       }
     }
@@ -400,13 +413,40 @@ int ecmcPLCs::parseGlobal(int plcIndex,char * exprStr)
   return 0;
 }
 
+int ecmcPLCs::parsePLC(int plcIndex,char * exprStr)
+{
+  //find plc variable
+  char *strPLC=exprStr;
+  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  
+  varName[0]='\0';
+  while((strPLC=strstr(strPLC,ECMC_PLC_DATA_STR)) && strlen(strPLC)>0){
+    //Sanity check 1
+    int tempInt=0;
+    int nvals = sscanf(strPLC,ECMC_PLC_DATA_STR"%d.%[0-9a-zA-Z._]",&tempInt,varName);
+    if (nvals == 2){                  
+      varName[0]='\0';
+      //Sanity check 2
+      int nvals = sscanf(strPLC,"%[0-9a-zA-Z._]",varName);
+      if (nvals == 1){
+        int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+        if(errorCode){
+          return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+        }
+      }
+    }
+    strPLC++;
+  }
+  return 0;
+}
+
 /*
  * Create new dataIF if needed and register in PLC
  */
 int ecmcPLCs::createAndRegisterNewDataIF(int plcIndex,char * varName,ecmcDataSourceType dataSource)
 { 
   ecmcPLCDataIF *dataIF=NULL;
-  int errorCode=findGlobalDataIF(varName, dataIF);
+  int errorCode=findGlobalDataIF(varName, &dataIF);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
@@ -423,6 +463,7 @@ int ecmcPLCs::createAndRegisterNewDataIF(int plcIndex,char * varName,ecmcDataSou
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
+
   return 0;
 }
 
@@ -433,16 +474,19 @@ int ecmcPLCs::addPLCDefaultVariables(int plcIndex,int skipCycles)
   int chars = snprintf (varName,EC_MAX_OBJECT_PATH_CHAR_LENGTH-1,ECMC_PLC_DATA_STR"%d."ECMC_PLC_ENABLE_DATA_STR,plcIndex);
   if(chars>=EC_MAX_OBJECT_PATH_CHAR_LENGTH-1){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+  } 
+  int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
-  
-  ecmcPLCDataIF *dataIF=new ecmcPLCDataIF(varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+  ecmcPLCDataIF *dataIF=NULL;
+  errorCode=findGlobalDataIF(varName,&dataIF);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
   if(!dataIF){
     LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcEnable object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-  }
-  int errorCode=plcs_[plcIndex]->addAndReisterGlobalVar(dataIF);
-  if(errorCode){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
   plcEnable_[plcIndex]=dataIF;
   
@@ -451,14 +495,18 @@ int ecmcPLCs::addPLCDefaultVariables(int plcIndex,int skipCycles)
   if(chars>=EC_MAX_OBJECT_PATH_CHAR_LENGTH-1){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
   }
-  dataIF=new ecmcPLCDataIF(varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
-  if(!dataIF){
-    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcError object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-  }
-  errorCode=plcs_[plcIndex]->addAndReisterGlobalVar(dataIF);
+  errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+  dataIF=NULL;
+  errorCode=findGlobalDataIF(varName,&dataIF);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+  if(!dataIF){
+    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcError_ object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
   }
   plcError_[plcIndex]=dataIF;
   
@@ -467,17 +515,22 @@ int ecmcPLCs::addPLCDefaultVariables(int plcIndex,int skipCycles)
   if(chars>=EC_MAX_OBJECT_PATH_CHAR_LENGTH-1){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
   }
-  dataIF=new ecmcPLCDataIF(varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+  errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+  dataIF=NULL;
+  errorCode=findGlobalDataIF(varName,&dataIF);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
   if(!dataIF){
-    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcScanTime object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcScanTime_ object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
   }
   dataIF->setReadOnly(1);
   dataIF->setData(1/MCU_FREQUENCY*(skipCycles+1));  
-  errorCode=plcs_[plcIndex]->addAndReisterGlobalVar(dataIF);
-  if(errorCode){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-  }
+
   return 0;
 }
 
@@ -506,3 +559,26 @@ int ecmcPLCs::getErrorID()
   return ecmcError::getErrorID();
 }
 
+int ecmcPLCs::updateAllScanTimeVars(){
+
+//Update all scantime variables
+char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  for(int i=0; i<ECMC_MAX_PLCS;i++){
+    if(plcs_[i]){ 
+      int chars = snprintf (varName,EC_MAX_OBJECT_PATH_CHAR_LENGTH-1,ECMC_PLC_DATA_STR"%d."ECMC_PLC_ENABLE_DATA_STR,i);
+      if(chars>=EC_MAX_OBJECT_PATH_CHAR_LENGTH-1){
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+      } 
+      ecmcPLCDataIF *dataIF=NULL;
+      int errorCode=findGlobalDataIF(varName,&dataIF);
+      if(errorCode){
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+      }
+      if(dataIF){
+        dataIF->setReadOnly(1);
+        dataIF->setData(plcs_[i]->getSampleTime());  
+      }
+    }
+  }
+  return 0;
+}

@@ -40,6 +40,7 @@ public:
   int  compile();
   int  addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
   int  addAndRegisterLocalVar(char *localVarStr);
+  double  getSampleTime();
 private:
   void initVars();
   int varExist(char *varName);
