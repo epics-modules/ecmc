@@ -19,25 +19,22 @@ ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName)
   }
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec,char *ecDataSource)
+ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec,char *ecVarName)
 {
   errorReset();
   initVars();
   ec_=ec;
-  varName_=ecDataSource;
+  varName_=ecVarName;
   source_=ECMC_RECORDER_SOURCE_ETHERCAT;
-  int errorCode=parseAndLinkEcDataSource(ecDataSource);
-  if(errorCode){
-    LOGERR("%s/%s:%d: ERROR: EC data Source Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
-  }
+  parseAndLinkEcDataSource(ecVarName);
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(char *statVarName)
+ecmcPLCDataIF::ecmcPLCDataIF(char *varName,ecmcDataSourceType dataSource)
 {
   errorReset();
   initVars();
-  varName_=statVarName;
-  source_=ECMC_RECORDER_SOURCE_STATIC_VAR;
+  varName_=varName;
+  source_=dataSource;
 }
 
 ecmcPLCDataIF::~ecmcPLCDataIF()
@@ -53,6 +50,7 @@ void ecmcPLCDataIF::initVars()
   varName_="";
   dataSourceAxis_=ECMC_AXIS_DATA_NONE;
   source_=ECMC_RECORDER_SOURCE_NONE;
+  readOnly_=0;
 }
 
 double& ecmcPLCDataIF::getDataRef(){
@@ -75,6 +73,10 @@ int ecmcPLCDataIF::read()
    case ECMC_RECORDER_SOURCE_STATIC_VAR:
      return 0;
      break;
+   case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
+     return 0;
+     break;
+
  }
  dataRead_=data_;
  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -83,7 +85,7 @@ int ecmcPLCDataIF::read()
 int ecmcPLCDataIF::write()
 {
   //Only write if data changed between read and write
-  if(data_==dataRead_){
+  if(data_==dataRead_ || readOnly_){
     return 0;
   }
   switch(source_){
@@ -97,6 +99,9 @@ int ecmcPLCDataIF::write()
       return writeAxis();
       break;
     case ECMC_RECORDER_SOURCE_STATIC_VAR:
+      return 0;
+      break;
+   case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
       return 0;
       break;
   }
@@ -689,7 +694,7 @@ int ecmcPLCDataIF::validate()
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EC_NULL);
       }
       else{
-	return 0;
+	      return 0;
       }
       break;
     case ECMC_RECORDER_SOURCE_AXIS:
@@ -697,10 +702,13 @@ int ecmcPLCDataIF::validate()
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_NULL);
       }
       else{
-	return 0;
+	      return 0;
       }
       break;
     case ECMC_RECORDER_SOURCE_STATIC_VAR:
+      return 0;
+      break;
+    case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
       return 0;
       break;
   }
@@ -715,4 +723,10 @@ double ecmcPLCDataIF::getData()
 void ecmcPLCDataIF::setData(double data)
 {
   data_=data;
+}
+
+int ecmcPLCDataIF::setReadOnly(int readOnly)
+{
+  readOnly_=readOnly;
+  return 0;
 }

@@ -1064,6 +1064,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20506:
       return "ERROR_PLC_DATA_IF_ALLOCATION_FAILED";
       break;
+    case 0x20507:
+      return "ERROR_PLC_VARIABLE_COUNT_EXCEEDED";
+      break;
     case 0x20600: //ecmcPLCDataIF
       return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
       break;
@@ -1102,6 +1105,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20702:
       return "ERROR_PLCS_EC_NOT_INITIALIZED";
+      break;
+    case 0x20703:
+      return "ERROR_PLCS_VARIABLE_NAME_TO_LONG";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";

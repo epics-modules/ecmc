@@ -196,11 +196,13 @@ enum motionObjectType{
 #define ECMC_AX_PATH_BUFFER_SIZE 256
 #define ECMC_EC_PATH_BUFFER_SIZE 256
 
-#define ECMC_PLC_ENABLE_DATA_STR "plc.enable"
-#define ECMC_PLC_ERROR_DATA_STR "plc.error"
-#define ECMC_PLC_SCAN_TIME_DATA_STR "plc.scantime"
+#define ECMC_PLC_DATA_STR "plc"
+#define ECMC_PLC_ENABLE_DATA_STR "enable"
+#define ECMC_PLC_ERROR_DATA_STR "error"
+#define ECMC_PLC_SCAN_TIME_DATA_STR "scantime"
 
 #define ECMC_STATIC_VAR "static."
+#define ECMC_GLOBAL_VAR "global."
 #define ECMC_EC_STR "ec"
 #define ECMC_EC_HEALTH_STR "health"
 #define ECMC_AX_STR "ax"
@@ -307,6 +309,7 @@ enum ecmcDataSourceType{
   ECMC_RECORDER_SOURCE_ETHERCAT=1,
   ECMC_RECORDER_SOURCE_AXIS=2,
   ECMC_RECORDER_SOURCE_STATIC_VAR=3,
+  ECMC_RECORDER_SOURCE_GLOBAL_VAR=4,
 };
 
 #endif /* ECMCDEFINITIONS_H_ */

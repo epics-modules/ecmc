@@ -6,70 +6,19 @@
 
 #include "ecmcPLC.h"
 
-ecmcPLC::ecmcPLC(ecmcEc *ec,int skipCycles)
+ecmcPLC::ecmcPLC(int skipCycles)
 {
   initVars();
   skipCycles_=skipCycles;
   exprtk_=new exprtkWrap();
-  if(!exprtk_){
-    LOGERR("%s/%s:%d: Failed allocation of EXPRTK (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EXPRTK_ALLOCATION_FAILED);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EXPRTK_ALLOCATION_FAILED);
-    exit(EXIT_FAILURE);
-  }
-
-  plcEnable_=new ecmcPLCDataIF((char*)ECMC_PLC_ENABLE_DATA_STR);
-  if(!plcEnable_){
-    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcEnable object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_ENABLE_DATA_STR,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    exit(EXIT_FAILURE);
-  }
-  if(exprtk_->addVariable(ECMC_PLC_ENABLE_DATA_STR,plcEnable_->getDataRef())){
-    LOGERR("%s/%s:%d: Failed to add plcEnable object %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_ENABLE_DATA_STR,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
-  }
-
-  plcError_=new ecmcPLCDataIF((char*)ECMC_PLC_ERROR_DATA_STR);
-  if(!plcError_){
-    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcError object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_ERROR_DATA_STR,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    exit(EXIT_FAILURE);
-  }
-  if(exprtk_->addVariable(ECMC_PLC_ERROR_DATA_STR,plcError_->getDataRef())){
-    LOGERR("%s/%s:%d: Failed to add plcError object %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_ERROR_DATA_STR,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
-  }
-
-  plcScanTime_=new ecmcPLCDataIF((char*)ECMC_PLC_SCAN_TIME_DATA_STR);
-  if(!plcScanTime_){
-    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcScanTime object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_SCAN_TIME_DATA_STR,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    exit(EXIT_FAILURE);
-  }
-  if(exprtk_->addVariable(ECMC_PLC_SCAN_TIME_DATA_STR,plcScanTime_->getDataRef())){
-    LOGERR("%s/%s:%d: Failed to add plcScanTime object %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ECMC_PLC_SCAN_TIME_DATA_STR,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
-  }
-
   plcScanTimeInSecs_=1/MCU_FREQUENCY*(skipCycles+1);
-
-  ec_=ec;
 }
 
 ecmcPLC::~ecmcPLC()
 {
   for(int i=0;i<ECMC_MAX_PLC_VARIABLES;i++){
-    delete dataArray_[i];
+    delete localArray_[i];
   }
-  delete plcEnable_;
-}
-
-int ecmcPLC::setAxisArrayPointer(ecmcAxisBase *axis,int index)
-{
-  if(index>=ECMC_MAX_AXES || index<0){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_INDEX_OUT_OF_RANGE);
-  }
-  axes_[index]=axis;
-  return 0;
 }
 
 void ecmcPLC::initVars()
@@ -77,176 +26,45 @@ void ecmcPLC::initVars()
   errorReset();
   exprStr_="";
   compiled_=false;
-  variableCount_=0;
+  globalVariableCount_=0;
+  localVariableCount_=0;
   inStartup_=1;
   skipCycles_=0;
   skipCyclesCounter_=0;
   plcScanTimeInSecs_=0;
-  plcEnable_=NULL;
-  plcError_=NULL;
-  plcScanTime_=NULL;
   for(int i=0;i<ECMC_MAX_PLC_VARIABLES;i++){
-    dataArray_[i]=NULL;
+    globalArray_[i]=NULL;
+    localArray_[i]=NULL;
   }
 }
 
-int ecmcPLC::setExpr(char *exprStr)
+int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
 {
-  exprStr_=exprStr;
-  compiled_=false;
-  variableCount_=0;
-
-  // Expr cleared (Allow ";" as empty expression)
-  if(exprStr_.length()<=1){
+  //Already added?addAndReisterGlobalVar
+  if(localVarExist(localVarStr)){
     return 0;
   }
 
-  int errorCode=parseExpr(exprStr);
+  if(localVariableCount_>=ECMC_MAX_PLC_VARIABLES-1 || localVariableCount_<0){
+    LOGERR("%s/%s:%d: PLC local variable count excedded. Adding %s failed (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,localVarStr,ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
+  }
 
+  localArray_[localVariableCount_]=new ecmcPLCDataIF(localVarStr,ECMC_RECORDER_SOURCE_STATIC_VAR);
+  int errorCode=localArray_[localVariableCount_]->getErrorID();
   if(errorCode){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-  }
-
-  errorCode=compile();
-  if(errorCode){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-  }
-  return 0;
-}
-
-int ecmcPLC::parseExpr(char * exprStr)
-{
-  if(strlen(exprStr)>=ECMC_MAX_PLC_VARIABLES-1){
-    LOGERR("%s/%s:%d: ERROR: Expression to long (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_EXPR_LINE_TO_LONG);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EXPR_LINE_TO_LONG);
-  }
-
-  // Find axes
-  int nvals=0;
-  int axisId;
-  int errorCode=0;
-  char *strAxis=exprStr;
-  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  while((strAxis=strstr(strAxis,ECMC_AX_STR)) && strlen(strAxis)>0){
-    // Sanity check
-    nvals = sscanf(strAxis,ECMC_AX_STR"%d.%[0-9a-zA-Z._]",&axisId,varName);
-    if (nvals == 2){
-      if(axisId>=ECMC_MAX_AXES || !axes_[axisId]){
-	return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
-      }
-      varName[0]='\0';
-      nvals = sscanf(strAxis,"%[0-9a-zA-Z._]",varName);
-      if (nvals == 1){
-        errorCode=addAxisVar(axisId,varName);
-        if(errorCode){
-	  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-        }
-      }
-    }
-    strAxis++;
-  }
-
-  //find EC
-  int ecId;
-  char *strEc=exprStr;
-  varName[0]='\0';
-  while((strEc=strstr(strEc,ECMC_EC_STR)) && strlen(strEc)>0){
-    //Sanity check
-    nvals = sscanf(strEc, ECMC_EC_STR"%d.%[0-9a-zA-Z._]",&ecId,varName);
-    if (nvals == 2){
-      varName[0]='\0';
-      nvals = sscanf(strEc,"%[0-9a-zA-Z._]",varName);
-      if (nvals == 1){
-        errorCode=addEcVar(ecId,varName);
-        if(errorCode){
-	  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-        }
-      }
-    }
-    strEc++;
-  }
-
-  //find static variable
-  char *strStatic=exprStr;
-  varName[0]='\0';
-  while((strStatic=strstr(strStatic,ECMC_STATIC_VAR)) && strlen(strStatic)>0){
-    //Sanity check
-    nvals = sscanf(strStatic,"%[0-9a-zA-Z._]",varName);
-    if (nvals == 1){
-      errorCode=addStaticVar(varName);
-      if(errorCode){
-	return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-      }
-    }
-    strStatic++;
-  }
-
-  return 0;
-}
-
-int ecmcPLC::addAxisVar(int axisId, char *axisVarStr)
-{
-  //Already added?
-  if(varExist(axisVarStr)){
-    return 0;
-  }
-  dataArray_[variableCount_]=new ecmcPLCDataIF(axes_[axisId],axisVarStr);
-  int errorCode=dataArray_[variableCount_]->getErrorID();
-  if(errorCode){
-    delete dataArray_[variableCount_];
+    LOGERR("%s/%s:%d: PLC local variable: Create data interface failed. Adding %s failed (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,localVarStr,errorCode);
+    delete localArray_[localVariableCount_];    
     return errorCode;
   }
 
-  if(exprtk_->addVariable(axisVarStr,dataArray_[variableCount_]->getDataRef())){
-    delete dataArray_[variableCount_];
+  if(exprtk_->addVariable(localVarStr,localArray_[localVariableCount_]->getDataRef())){
+    LOGERR("%s/%s:%d: Failed to add variable %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,localVarStr,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+    delete localArray_[localVariableCount_];
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
   }
 
-  variableCount_++;
-  return 0;
-}
-
-int ecmcPLC::addEcVar(int ecId,char *ecVarStr)
-{
-  //Already added?
-  if(varExist(ecVarStr)){
-    return 0;
-  }
-  dataArray_[variableCount_]=new ecmcPLCDataIF(ec_,ecVarStr);
-  int errorCode=dataArray_[variableCount_]->getErrorID();
-  if(errorCode){
-    delete dataArray_[variableCount_];
-    return errorCode;
-  }
-
-  if(exprtk_->addVariable(ecVarStr,dataArray_[variableCount_]->getDataRef())){
-    delete dataArray_[variableCount_];
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
-  }
-
-  variableCount_++;
-  return 0;
-}
-
-int ecmcPLC::addStaticVar(char *staticVarStr)
-{
-  //Already added?
-  if(varExist(staticVarStr)){
-    return 0;
-  }
-  dataArray_[variableCount_]=new ecmcPLCDataIF(staticVarStr);
-  int errorCode=dataArray_[variableCount_]->getErrorID();
-  if(errorCode){
-    delete dataArray_[variableCount_];
-    return errorCode;
-  }
-
-  if(exprtk_->addVariable(staticVarStr,dataArray_[variableCount_]->getDataRef())){
-    delete dataArray_[variableCount_];
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
-  }
-
-  variableCount_++;
+  localVariableCount_++;
   return 0;
 }
 
@@ -269,7 +87,7 @@ bool ecmcPLC::getCompiled()
 
 int ecmcPLC::execute(bool ecOK)
 {
-  if(!compiled_ or !(int)plcEnable_->getData() or skipCyclesCounter_<skipCycles_){
+  if(!compiled_ || skipCyclesCounter_<skipCycles_){
     skipCyclesCounter_++;
     return 0;
   }
@@ -284,27 +102,22 @@ int ecmcPLC::execute(bool ecOK)
     return 0;
   }
 
-  if(exprtk_==NULL){
+  if(!exprtk_){
     return 0;
   }
 
-  //Set sample time
-  plcScanTime_->setData(plcScanTimeInSecs_);
-
-  // Update data from sources
-  for(int i=0; i<variableCount_;i++){
-    if(dataArray_[i]){
-      dataArray_[i]->read();
+  for(int i=0; i<localVariableCount_;i++){
+    if(localArray_[i]){
+      localArray_[i]->read();
     }
   }
 
   // Run equation
   exprtk_->refresh();
 
-  // Update changed data
-  for(int i=0; i<variableCount_;i++){
-    if(dataArray_[i]){
-      dataArray_[i]->write();
+  for(int i=0; i<localVariableCount_;i++){
+    if(localArray_[i]){
+      localArray_[i]->write();
     }
   }
 
@@ -318,7 +131,6 @@ std::string *ecmcPLC::getExpr()
 
 int ecmcPLC::addExprLine(char *exprStr)
 {
-
   try {
     exprStr_+=exprStr;
   }
@@ -326,14 +138,8 @@ int ecmcPLC::addExprLine(char *exprStr)
     LOGERR("%s/%s:%d: Append of expression line failed: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,e.what(),ERROR_PLC_ADD_EXPR_LINE_ERROR);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_ADD_EXPR_LINE_ERROR);
   }
-
   compiled_=false;
-  int errorCode=parseExpr(exprStr);
-
-  if(errorCode){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-  }
-
+  
   return 0;
 }
 
@@ -341,20 +147,33 @@ int ecmcPLC::clearExpr()
 {
   exprStr_="";
   compiled_=false;
-  for(int i=0; i<variableCount_;i++){
-    if(dataArray_[i]){
-      delete dataArray_[i];
+  for(int i=0; i<localVariableCount_;i++){
+    if(localArray_[i]){
+      delete localArray_[i];
     }
   }
-  variableCount_=0;
+  localVariableCount_=0;
   return 0;
 }
 
-int ecmcPLC::varExist(char *varName)
+int ecmcPLC::localVarExist(const char *varName)
 {
-  for(int i=0; i<variableCount_;i++){
-    if(dataArray_[i]){
-      int n =strcmp(varName,dataArray_[i]->getVarName());
+  for(int i=0; i<localVariableCount_;i++){
+    if(localArray_[i]){
+      int n =strcmp(varName,localArray_[i]->getVarName());
+      if(n==0){
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+int ecmcPLC::globalVarExist(const char *varName)
+{
+  for(int i=0; i<globalVariableCount_;i++){
+    if(globalArray_[i]){   
+      int n = strcmp(varName,globalArray_[i]->getVarName());
       if(n==0){
         return 1;
       }
@@ -366,6 +185,7 @@ int ecmcPLC::varExist(char *varName)
 int ecmcPLC::validate()
 {
   if(!compiled_){
+    LOGERR("%s/%s:%d: Error: Validation of PLC object failed: Not compiled (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_COMPILE_ERROR);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_COMPILE_ERROR);
   }
 
@@ -374,45 +194,61 @@ int ecmcPLC::validate()
   }
 
   int errorCode=0;
-  for(int i=0; i<variableCount_;i++){
-    if(dataArray_[i]){
-      errorCode=dataArray_[i]->validate();
+
+  //Check global variables
+  for(int i=0; i<globalVariableCount_;i++){
+    if(globalArray_[i]){
+      errorCode=globalArray_[i]->validate();
       if(errorCode){
-	return errorCode;
+        LOGERR("%s/%s:%d: Error: Validation of Global PLCDataIF  %s at index %d  failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,globalArray_[i]->getVarName(),i,errorCode);
+	      return errorCode;
       }
     }
     else{
+      LOGERR("%s/%s:%d: Error: Validation of Global PLCDataIF failed. PLCDataIf NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_PLC_DATA_IF_NULL);
       return ERROR_PLC_PLC_DATA_IF_NULL;
     }
   }
-  return 0;
-}
 
-int ecmcPLC::setEnable(int enable)
-{
-  plcEnable_->setData((double)enable);
-  return 0;
-}
-
-int ecmcPLC::getEnable()
-{
-  return (int)plcEnable_->getData();
-}
-
-int ecmcPLC::getPLCErrorID()
-{
-  return (int)plcError_->getData();
-}
-
-bool ecmcPLC::getError()
-{
-  return getPLCErrorID() || ecmcError::getError();
-}
-
-int ecmcPLC::getErrorID()
-{
-  if(getPLCErrorID()){
-    return getPLCErrorID();
+  //Check local variables
+  for(int i=0; i<localVariableCount_;i++){
+    if(localArray_[i]){
+      errorCode=localArray_[i]->validate();
+      if(errorCode){
+        LOGERR("%s/%s:%d: Error: Validation of Global PLCDataIF  %s at index %d  failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,localArray_[i]->getVarName(),i,errorCode);
+	      return errorCode;
+      }
+    }
+    else{
+      LOGERR("%s/%s:%d: Error: Validation of Local PLCDataIF failed. PLCDataIf NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_PLC_DATA_IF_NULL);
+      return ERROR_PLC_PLC_DATA_IF_NULL;
+    }
   }
-  return ecmcError::getErrorID();
+
+  return 0;
+}
+
+int ecmcPLC::addAndReisterGlobalVar(ecmcPLCDataIF *dataIF)
+{
+  if(!dataIF){
+    LOGERR("%s/%s:%d: Data IF NULL  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_PLC_DATA_IF_NULL);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_PLC_DATA_IF_NULL);
+  }
+
+  //Check if already added
+  if(!globalVarExist(dataIF->getVarName())){
+    if(globalVariableCount_>=ECMC_MAX_PLC_VARIABLES-1 || globalVariableCount_<0){
+      LOGERR("%s/%s:%d: PLC global variable count excedded. Adding %s failed (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,dataIF->getVarName(),ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
+    }
+
+    if(exprtk_->addVariable(dataIF->getVarName(),dataIF->getDataRef())){
+      LOGERR("%s/%s:%d: Failed to add variable %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,dataIF->getVarName(),ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+    }
+
+    globalArray_[globalVariableCount_]=dataIF;
+    globalVariableCount_++;
+  }
+  return 0;
 }

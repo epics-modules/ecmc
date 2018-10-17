@@ -35,7 +35,7 @@ class ecmcPLCDataIF : public ecmcEcEntryLink
 public:
   ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName);
   ecmcPLCDataIF(ecmcEc *ec,char *ecVarName);
-  ecmcPLCDataIF(char *statVarName);
+  ecmcPLCDataIF(char *varName,ecmcDataSourceType dataSource);
   ~ecmcPLCDataIF();
   int     read();
   int     write();
@@ -44,6 +44,7 @@ public:
   void setData(double data);
   const char *getVarName();
   int validate();
+  int setReadOnly(int readOnly);
 private:
   int                readAxis();
   int                writeAxis();
@@ -60,5 +61,6 @@ private:
   ecmcAxisDataType   dataSourceAxis_;
   ecmcDataSourceType source_;
   std::string        varName_;
+  int                readOnly_;
 };
 #endif /* ecmcPLCDataIF_H_ */

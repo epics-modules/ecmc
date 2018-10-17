@@ -1466,7 +1466,7 @@ int setPLCExpr(int index,char *expr)
 {
   LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
   CHECK_PLCS_RETURN_IF_ERROR();
-  return plcs->setExpr(index,expr);
+  return plcs->setExpr(index,expr);               
 }
 
 int appendPLCExpr(int index,char *expr)
