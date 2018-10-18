@@ -19,25 +19,22 @@ ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName)
   }
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec,char *ecDataSource)
+ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec,char *ecVarName)
 {
   errorReset();
   initVars();
   ec_=ec;
-  varName_=ecDataSource;
+  varName_=ecVarName;
   source_=ECMC_RECORDER_SOURCE_ETHERCAT;
-  int errorCode=parseAndLinkEcDataSource(ecDataSource);
-  if(errorCode){
-    LOGERR("%s/%s:%d: ERROR: EC data Source Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,errorCode);
-  }
+  parseAndLinkEcDataSource(ecVarName);
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(char *statVarName)
+ecmcPLCDataIF::ecmcPLCDataIF(char *varName,ecmcDataSourceType dataSource)
 {
   errorReset();
   initVars();
-  varName_=statVarName;
-  source_=ECMC_RECORDER_SOURCE_STATIC_VAR;
+  varName_=varName;
+  source_=dataSource;
 }
 
 ecmcPLCDataIF::~ecmcPLCDataIF()
@@ -53,6 +50,7 @@ void ecmcPLCDataIF::initVars()
   varName_="";
   dataSourceAxis_=ECMC_AXIS_DATA_NONE;
   source_=ECMC_RECORDER_SOURCE_NONE;
+  readOnly_=0;
 }
 
 double& ecmcPLCDataIF::getDataRef(){
@@ -75,6 +73,10 @@ int ecmcPLCDataIF::read()
    case ECMC_RECORDER_SOURCE_STATIC_VAR:
      return 0;
      break;
+   case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
+     return 0;
+     break;
+
  }
  dataRead_=data_;
  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -83,7 +85,7 @@ int ecmcPLCDataIF::read()
 int ecmcPLCDataIF::write()
 {
   //Only write if data changed between read and write
-  if(data_==dataRead_){
+  if(data_==dataRead_ || readOnly_){
     return 0;
   }
   switch(source_){
@@ -97,6 +99,9 @@ int ecmcPLCDataIF::write()
       return writeAxis();
       break;
     case ECMC_RECORDER_SOURCE_STATIC_VAR:
+      return 0;
+      break;
+   case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
       return 0;
       break;
   }
@@ -192,8 +197,8 @@ int ecmcPLCDataIF::readAxis()
     case ECMC_AXIS_DATA_SEQ_STATE:
       data_=(double)axisData->onChangeData.seqState;
       break;
-    case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-      data_=(double)axisData->onChangeData.trajInterlock;
+    case ECMC_AXIS_DATA_INTERLOCK_TYPE:      
+      data_=(double)axisData->onChangeData.trajInterlock==0;
       break;
     case ECMC_AXIS_DATA_TRAJ_SOURCE:
       data_=(double)axisData->onChangeData.trajSource;
@@ -252,6 +257,22 @@ int ecmcPLCDataIF::readAxis()
       break;
     case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
       data_=(bool)axis_->getMon()->getEnableSoftLimitFwd();
+      break;
+    case ECMC_AXIS_DATA_TRAJ_DIRECTION:      
+      switch(axis_->getAxisSetDirection()){
+        case ECMC_DIR_BACKWARD:
+          data_=-1;
+          break;
+        case ECMC_DIR_FORWARD:
+          data_=1;
+          break;
+        case ECMC_DIR_STANDSTILL:
+          data_=0;
+          break;
+      }
+      break;
+    case ECMC_AXIS_DATA_ENC_HOMEPOS:
+      data_=axis_->getSeq()->getHomePosition();
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
@@ -332,8 +353,8 @@ int ecmcPLCDataIF::writeAxis()
     case ECMC_AXIS_DATA_SEQ_STATE:
       return 0;
       break;
-    case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-      return 0;
+    case ECMC_AXIS_DATA_INTERLOCK_TYPE:      
+      return axis_->getMon()->setPLCInterlock(data_==0);
       break;
     case ECMC_AXIS_DATA_TRAJ_SOURCE:
       return 0;
@@ -394,6 +415,12 @@ int ecmcPLCDataIF::writeAxis()
       break;
     case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
       axis_->getMon()->setEnableSoftLimitFwd((bool)data_);
+      break;
+    case ECMC_AXIS_DATA_TRAJ_DIRECTION:
+      return 0;
+      break;
+    case ECMC_AXIS_DATA_ENC_HOMEPOS:
+      axis_->getSeq()->setHomePosition(data_);
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
@@ -596,6 +623,16 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char * axisDataSource)
     return ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE;
   }
 
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_TRAJ_DIRECTION);
+  if(npos==0){
+    return ECMC_AXIS_DATA_TRAJ_DIRECTION;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_ENC_HOMEPOS);
+  if(npos==0){
+    return ECMC_AXIS_DATA_ENC_HOMEPOS;
+  }
+
   return ECMC_AXIS_DATA_NONE;
 }
 
@@ -689,7 +726,7 @@ int ecmcPLCDataIF::validate()
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EC_NULL);
       }
       else{
-	return 0;
+	      return 0;
       }
       break;
     case ECMC_RECORDER_SOURCE_AXIS:
@@ -697,10 +734,13 @@ int ecmcPLCDataIF::validate()
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_NULL);
       }
       else{
-	return 0;
+	      return 0;
       }
       break;
     case ECMC_RECORDER_SOURCE_STATIC_VAR:
+      return 0;
+      break;
+    case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
       return 0;
       break;
   }
@@ -715,4 +755,10 @@ double ecmcPLCDataIF::getData()
 void ecmcPLCDataIF::setData(double data)
 {
   data_=data;
+}
+
+int ecmcPLCDataIF::setReadOnly(int readOnly)
+{
+  readOnly_=readOnly;
+  return 0;
 }

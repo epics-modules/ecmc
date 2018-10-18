@@ -2,6 +2,7 @@
 #ifndef SRC_ECMCAXISDATA_H_
 #define SRC_ECMCAXISDATA_H_
 
+#include <stdio.h>
 #include "ecmcDefinitions.h"
 #include "string.h"
 
@@ -83,12 +84,12 @@ typedef struct {
   bool axisErrorStateInterlock;
   bool noExecuteInterlock;
   bool driveSummaryInterlock;
-  //bool trajSummaryInterlock;
   bool trajSummaryInterlockFWD;
   bool trajSummaryInterlockBWD;
-  //bool trajSummaryInterlockOld;
   bool etherCatMasterInterlock;
-  interlockTypes interlockStatus;
+  bool plcInterlock;
+  interlockTypes lastActiveInterlock;
+  interlockTypes interlockStatus;  
   stopMode currStopMode;
 } ecmcAxisDataInterlocks;
 

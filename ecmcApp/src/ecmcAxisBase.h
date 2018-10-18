@@ -88,6 +88,7 @@ typedef struct {
     int cmdData;
     motionCommandTypes command;
     interlockTypes trajInterlock;
+    interlockTypes lastActiveInterlock;
     dataSource trajSource;
     dataSource encSource;
     bool enable;
@@ -184,7 +185,7 @@ public:
   int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
   int initDiagAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
   int setEcStatusOutputEntry(ecmcEcEntry *entry);
-
+  motionDirection getAxisSetDirection();
 protected:
   void printAxisState();
   void initVars();
@@ -210,7 +211,6 @@ protected:
   int printHeaderCounter_;
   ecmcAxisData data_;
   bool executeCmdOld_;
-  bool trajInterlockOld;
   int cycleCounter_;
   axisState axisState_;
   double oldPositionAct_;

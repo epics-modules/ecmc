@@ -25,7 +25,19 @@ ecmcAxisData::~ecmcAxisData()
 stopMode ecmcAxisData::refreshInterlocks()
 {
   setSummaryInterlocks();
-
+  
+  //Latch latest active interlock
+  if(interlocks_.interlockStatus!=ECMC_INTERLOCK_NONE && interlocks_.interlockStatus!=interlocks_.lastActiveInterlock){
+    interlocks_.lastActiveInterlock=interlocks_.interlockStatus;
+  }
+  
+  //If now summary interlocks then no interlocks
+  if(!interlocks_.driveSummaryInterlock && !interlocks_.trajSummaryInterlockBWD  && !interlocks_.trajSummaryInterlockFWD){    
+    interlocks_.interlockStatus=ECMC_INTERLOCK_NONE;
+    interlocks_.currStopMode=ECMC_STOP_MODE_RUN;
+    return interlocks_.currStopMode;
+  }
+  
   //Emergency interlocks first
   if(interlocks_.axisErrorStateInterlock){
     interlocks_.interlockStatus=ECMC_INTERLOCK_AXIS_ERROR_STATE;
@@ -122,6 +134,12 @@ stopMode ecmcAxisData::refreshInterlocks()
     interlocks_.currStopMode=ECMC_STOP_MODE_NORMAL;
     return interlocks_.currStopMode;
   }
+  
+  if(interlocks_.plcInterlock){
+    interlocks_.interlockStatus=ECMC_INTERLOCK_PLC_NORMAL;
+    interlocks_.currStopMode=ECMC_STOP_MODE_NORMAL;
+    return interlocks_.currStopMode;
+  }
 
   interlocks_.interlockStatus=ECMC_INTERLOCK_NONE;
 
@@ -141,24 +159,6 @@ int ecmcAxisData::setSummaryInterlocks()
       || interlocks_.hardwareInterlock
       || interlocks_.etherCatMasterInterlock;
 
-  //interlocks_.trajSummaryInterlockOld=interlocks_.trajSummaryInterlock;
-
-  /*interlocks_.trajSummaryInterlock=interlocks_.driveSummaryInterlock
-      || interlocks_.axisErrorStateInterlock
-      || interlocks_.bwdLimitInterlock
-      || interlocks_.bwdSoftLimitInterlock
-      || interlocks_.cntrlOutputHLTrajInterlock
-      || interlocks_.encTransformInterlock
-      || interlocks_.fwdLimitInterlock
-      || interlocks_.fwdSoftLimitInterlock
-      || interlocks_.lagTrajInterlock
-      || interlocks_.maxVelocityTrajInterlock
-      || interlocks_.noExecuteInterlock
-      || interlocks_.trajTransformInterlock
-      || interlocks_.unexpectedLimitSwitchBehaviourInterlock
-      || interlocks_.velocityDiffTrajInterlock;*/
-
-
   interlocks_.trajSummaryInterlockBWD=interlocks_.driveSummaryInterlock
       || interlocks_.axisErrorStateInterlock
       || interlocks_.bwdLimitInterlock
@@ -170,7 +170,8 @@ int ecmcAxisData::setSummaryInterlocks()
       || interlocks_.noExecuteInterlock
       || interlocks_.trajTransformInterlock
       || interlocks_.unexpectedLimitSwitchBehaviourInterlock
-      || interlocks_.velocityDiffTrajInterlock;
+      || interlocks_.velocityDiffTrajInterlock
+      || interlocks_.plcInterlock;
 
   interlocks_.trajSummaryInterlockFWD=interlocks_.driveSummaryInterlock
       || interlocks_.axisErrorStateInterlock
@@ -183,13 +184,15 @@ int ecmcAxisData::setSummaryInterlocks()
       || interlocks_.noExecuteInterlock
       || interlocks_.trajTransformInterlock
       || interlocks_.unexpectedLimitSwitchBehaviourInterlock
-      || interlocks_.velocityDiffTrajInterlock;
+      || interlocks_.velocityDiffTrajInterlock
+      || interlocks_.plcInterlock;
 
   return 0;
 }
 
 void ecmcAxisData::clearInterlocks()
 {
+  //Clear and refresh struct
   memset(&interlocks_,0,sizeof(interlocks_));
   refreshInterlocks();
 }

@@ -122,6 +122,7 @@ public:
   double distToStop(double vel);
   int initStopRamp(double currentPos, double currentVel,double currentAcc);
   void printCurrentState();
+  motionDirection getCurrSetDir();
 private:
   void initVars();
   void initTraj();

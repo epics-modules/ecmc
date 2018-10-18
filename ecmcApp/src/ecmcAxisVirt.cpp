@@ -186,6 +186,7 @@ void ecmcAxisVirt::refreshDebugInfoStruct()
   statusData_.onChangeData.positionTarget=data_.status_.currentTargetPosition;
   statusData_.onChangeData.seqState=seq_.getSeqState();
   statusData_.onChangeData.trajInterlock=data_.interlocks_.interlockStatus;
+  statusData_.onChangeData.lastActiveInterlock=data_.interlocks_.lastActiveInterlock;
   statusData_.onChangeData.velocityActual=data_.status_.currentVelocityActual;
   statusData_.onChangeData.velocitySetpoint=data_.status_.currentVelocitySetpoint;
   statusData_.onChangeData.velocitySetpointRaw=0;

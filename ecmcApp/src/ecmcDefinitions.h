@@ -138,6 +138,7 @@ enum interlockTypes {
   ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR=14,
   ECMC_INTERLOCK_VELOCITY_DIFF=15,
   ECMC_INTERLOCK_ETHERCAT_MASTER_NOT_OK=16,
+  ECMC_INTERLOCK_PLC_NORMAL=17,
 };
 
 enum encoderType{
@@ -196,11 +197,14 @@ enum motionObjectType{
 #define ECMC_AX_PATH_BUFFER_SIZE 256
 #define ECMC_EC_PATH_BUFFER_SIZE 256
 
-#define ECMC_PLC_ENABLE_DATA_STR "plc.enable"
-#define ECMC_PLC_ERROR_DATA_STR "plc.error"
-#define ECMC_PLC_SCAN_TIME_DATA_STR "plc.scantime"
+#define ECMC_PLC_DATA_STR "plc"
+#define ECMC_PLC_ENABLE_DATA_STR "enable"
+#define ECMC_PLC_ERROR_DATA_STR "error"
+#define ECMC_PLC_SCAN_TIME_DATA_STR "scantime"
 
 #define ECMC_STATIC_VAR "static."
+#define ECMC_GLOBAL_VAR "global."
+
 #define ECMC_EC_STR "ec"
 #define ECMC_EC_HEALTH_STR "health"
 #define ECMC_AX_STR "ax"
@@ -260,6 +264,8 @@ enum motionObjectType{
 #define ECMC_AXIS_DATA_STR_SOFT_LIMIT_FWD_ENABLE "mon.highsoftlimenable"
 #define ECMC_AXIS_DATA_STR_HOME_SWITCH "mon.homesensor"
 #define ECMC_AXIS_DATA_STR_RESET "reset"
+#define ECMC_AXIS_DATA_STR_TRAJ_DIRECTION "traj.dir"
+#define ECMC_AXIS_DATA_STR_ENC_HOMEPOS "enc.homepos"
 
 enum ecmcAxisDataType{
   ECMC_AXIS_DATA_NONE=0,
@@ -300,6 +306,8 @@ enum ecmcAxisDataType{
   ECMC_AXIS_DATA_SOFT_LIMIT_FWD=35,
   ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE=36,
   ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE=37,
+  ECMC_AXIS_DATA_TRAJ_DIRECTION=38,
+  ECMC_AXIS_DATA_ENC_HOMEPOS=39,
 };
 
 enum ecmcDataSourceType{
@@ -307,6 +315,7 @@ enum ecmcDataSourceType{
   ECMC_RECORDER_SOURCE_ETHERCAT=1,
   ECMC_RECORDER_SOURCE_AXIS=2,
   ECMC_RECORDER_SOURCE_STATIC_VAR=3,
+  ECMC_RECORDER_SOURCE_GLOBAL_VAR=4,
 };
 
 #endif /* ECMCDEFINITIONS_H_ */
