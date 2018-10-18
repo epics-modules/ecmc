@@ -985,12 +985,12 @@ void ecmcAxisBase::printAxisStatus()
 
   // Only print header once per 25 status lines
   if(printHeaderCounter_<=0){
-    LOGINFO("ecmc::  Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL TS ES En Ex Bu Ta Hd L- L+ Ho\n");
+    LOGINFO("ecmc::  Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL LI TS ES En Ex Bu Ta Hd L- L+ Ho\n");
     printHeaderCounter_=25;
   }
   printHeaderCounter_--;
 
-  LOGINFO("ecmc:: %3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x %2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
+  LOGINFO("ecmc:: %3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x %2d %2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
        statusData_.axisID,
        statusData_.onChangeData.positionSetpoint,
        statusData_.onChangeData.positionActual,
@@ -1007,6 +1007,7 @@ void ecmcAxisBase::printAxisStatus()
        statusData_.onChangeData.cmdData,
        statusData_.onChangeData.seqState,
        statusData_.onChangeData.trajInterlock,
+       statusData_.onChangeData.lastActiveInterlock,
        statusData_.onChangeData.trajSource,
        statusData_.onChangeData.encSource,
        statusData_.onChangeData.enable,
@@ -1176,7 +1177,7 @@ int ecmcAxisBase::getAxisDebugInfoData(char *buffer, int bufferByteSize, int *by
   }
 
   //(Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
-  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+  int ret=snprintf(buffer,bufferByteSize,"%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
        data.axisID,
        data.onChangeData.positionSetpoint,
        data.onChangeData.positionActual,
@@ -1195,6 +1196,7 @@ int ecmcAxisBase::getAxisDebugInfoData(char *buffer, int bufferByteSize, int *by
        data.onChangeData.cmdData,
        data.onChangeData.seqState,
        data.onChangeData.trajInterlock,
+       data.onChangeData.lastActiveInterlock,
        data.onChangeData.trajSource,
        data.onChangeData.encSource,
        data.onChangeData.enable,

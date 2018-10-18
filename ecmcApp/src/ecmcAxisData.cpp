@@ -25,7 +25,19 @@ ecmcAxisData::~ecmcAxisData()
 stopMode ecmcAxisData::refreshInterlocks()
 {
   setSummaryInterlocks();
-
+  
+  //Latch latest active interlock
+  if(interlocks_.interlockStatus!=ECMC_INTERLOCK_NONE && interlocks_.interlockStatus!=interlocks_.lastActiveInterlock){
+    interlocks_.lastActiveInterlock=interlocks_.interlockStatus;
+  }
+  
+  //If now summary interlocks then no interlocks
+  if(!interlocks_.driveSummaryInterlock && !interlocks_.trajSummaryInterlockBWD  && !interlocks_.trajSummaryInterlockFWD){    
+    interlocks_.interlockStatus=ECMC_INTERLOCK_NONE;
+    interlocks_.currStopMode=ECMC_STOP_MODE_RUN;
+    return interlocks_.currStopMode;
+  }
+  
   //Emergency interlocks first
   if(interlocks_.axisErrorStateInterlock){
     interlocks_.interlockStatus=ECMC_INTERLOCK_AXIS_ERROR_STATE;
@@ -180,6 +192,7 @@ int ecmcAxisData::setSummaryInterlocks()
 
 void ecmcAxisData::clearInterlocks()
 {
+  //Clear and refresh struct
   memset(&interlocks_,0,sizeof(interlocks_));
   refreshInterlocks();
 }
