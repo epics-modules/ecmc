@@ -1515,13 +1515,26 @@ int setPLCExpr(int index,char *expr);
  * \return 0 if success or otherwise an error code.\n
  *
  *  Accessible variables in code:
+ *   1.  static.<varname>             Static variable. Initiated to 0. (rw)\n                                    
+ *                                    Access only in the PLC where defined.\n
+ *                                    Will keep value between execution\n
+ *                                    loops.\n
+ *   2.  global.<varname>             Global variable. Initiated to 0. (rw)\n
+ *                                    Access from all PLCs.\n
+ *                                    Will keep value between execution\n
+ *                                    loops.\n
+ *   3.  var <varname>                Local variable (exprtk syntax)   (rw)\n
+ *                                    Will NOT keep value between\n
+ *                                    execution loops.\n
+ *
  *  EtherCAT data:
- *   1.  ec<masterid>.s<slaveid>.<alias>.<bitnum>  ethetcat data       (rw)\n
- *                                                 (bitnum is optional)
- *
- *  Static variables:
- *   1.  static.<varname>            static variable. (initiated to 0) (rw)\n
- *
+ *   1.  ec<ecid>.s<sid>.<alias>.<bitid>  ethetcat data                (rw)\n
+ *                                    ecid:  ethercat master index\n
+ *                                    sid:   ethercat slave bus position\n
+ *                                    alias: entry name as defined in\n
+ *                                           "Cfg.EcAddEntryComplete()\n
+ *                                    bitid: bit index (optional)\n
+ * 
  *  Motion variables:
  *   1.  ax<id>.id                    axis id                          (ro)\n
  *   2.  ax<id>.reset                 reset axis error                 (rw)\n
@@ -1562,13 +1575,14 @@ int setPLCExpr(int index,char *expr);
  *   37. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
  *
  *  PLC variables:
- *   1.  plc.enable                   plc enable                       (rw)\n
- *                                    (end execution with "plc.enable:=0#"\n
- *                                    Could be usefull for startup sequences)+n
- *   2.  plc.error                    plc error                        (rw)\n
- *                                    Will be forwarded to user as controller\n
- *                                    error.\n
- *   3.  plc.scantime                 plc sample time in seconds       (ro)\n
+ *   1.  plc<id>.enable               plc enable                       (rw)\n
+ *                                    (end exe with "plc<id>.enable:=0#"\n
+ *                                    Could be usefull for startup\n
+ *                                    sequences)\n
+ *   2.  plc<id>.error                plc error                        (rw)\n
+ *                                    Will be forwarded to user as\n
+ *                                    controller error.\n
+ *   3.  plc<id>.scantime             plc sample time in seconds       (ro)\n
  *
  * \note Example: Add one line of PLC code to PLC 5
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
