@@ -112,6 +112,12 @@ int ecmcPLC::execute(bool ecOK)
     }
   }
 
+  for(int i=0; i<globalVariableCount_;i++){
+    if(globalArray_[i]){
+      globalArray_[i]->read();
+    }
+  }
+
   // Run equation
   exprtk_->refresh();
 
@@ -120,6 +126,13 @@ int ecmcPLC::execute(bool ecOK)
       localArray_[i]->write();
     }
   }
+
+    for(int i=0; i<globalVariableCount_;i++){
+    if(globalArray_[i]){
+      globalArray_[i]->write();
+    }
+  }
+
 
   return 0;
 }

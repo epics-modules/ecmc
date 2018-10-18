@@ -42,6 +42,7 @@ public:
   int validate();
   int  getErrorID();
   bool getError();
+  void errorReset();
 private:
   void initVars();
   int createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource,ecmcPLCDataIF **outDataIF);

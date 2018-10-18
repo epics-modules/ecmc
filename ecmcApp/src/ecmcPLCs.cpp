@@ -100,26 +100,11 @@ int ecmcPLCs::execute(bool ecOK)
 {
   for(int plcIndex=0;plcIndex<ECMC_MAX_PLCS;plcIndex++){
     if(plcs_[plcIndex]!=NULL){
-
-      // Update data from global sources
-      for(int i=0; i<globalVariableCount_;i++){
-        if(globalDataArray_[i]){
-          globalDataArray_[i]->read();
-        }
-      }
-
       if(plcEnable_[plcIndex]){
         if(plcEnable_[plcIndex]->getData()){
           plcs_[plcIndex]->execute(ecOK);
         }
-      }
-      
-      // Update changed global data
-      for(int i=0; i<globalVariableCount_;i++){
-        if(globalDataArray_[i]){
-          globalDataArray_[i]->write();
-        }
-      }
+      }     
     }  
   }
   return 0;
@@ -559,10 +544,22 @@ int ecmcPLCs::getErrorID()
   return ecmcError::getErrorID();
 }
 
-int ecmcPLCs::updateAllScanTimeVars(){
+void ecmcPLCs::errorReset()
+{
+  //reset all plc error
+   for(int i=0;i<ECMC_MAX_PLCS;i++){
+    if(plcError_[i]){
+      if(plcError_[i]->getData()){
+        plcError_[i]->setData(0);
+      }
+    } 
+  }
+  ecmcError::errorReset();
+}
 
-//Update all scantime variables
-char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+int ecmcPLCs::updateAllScanTimeVars(){
+  //Update all scantime variables
+  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   for(int i=0; i<ECMC_MAX_PLCS;i++){
     if(plcs_[i]){ 
       int chars = snprintf (varName,EC_MAX_OBJECT_PATH_CHAR_LENGTH-1,ECMC_PLC_DATA_STR"%d."ECMC_PLC_ENABLE_DATA_STR,i);
