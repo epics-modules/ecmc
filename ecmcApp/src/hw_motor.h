@@ -1553,14 +1553,38 @@ int setPLCExpr(int index,char *expr);
  *   15. ax<id>.traj.setvel           current velocity setpoint        (ro)\n
  *   16. ax<id>.traj.setvelffraw      feed forward raw velocity        (ro)\n
  *   17. ax<id>.traj.command          command                          (rw)\n
- *   18. ax<id>.traj.cmddata          cmddata                          (rw)\n
+ *                                    command=1: move velocity\n  
+ *                                    command=2: move rel. pos\n
+ *                                    command=3: move abs. pos\n
+ *                                    command=10: homing\n
+ *   18. ax<id>.traj.cmddata          cmddat. Homing procedure\n
+ *                                    only valid if ax<id>.traj.command=10\n
+ *                                    cmddata=1 : ref low limit\n
+ *                                    cmddata=2 : ref high limit\n
+ *                                    cmddata=3 : ref home sensor\n
+ *                                                (via low limit)\n
+ *                                    cmddata=4 : ref home sensor\n
+ *                                                (via high limit)\n
+ *                                    cmddata=5 : ref center of home sensor\n
+ *                                                (via low limit)\n
+ *                                    cmddata=6 : ref center of home sensor\n
+ *                                                (via high limit)\n
+ *                                    cmddata=15 : direct homing\n
+  *                                   cmddata=21 : ref partly abs. encoder\n
+ *                                                 (via low limit).\n
+ *                                                 ref at abs bits.\n
+ *                                                 over/under-flow.\n.
+ *                                    cmddata=22 : ref partly abs. encoder\n
+ *                                                 (via high limit).\n
+ *                                                 ref at abs bits.\n
+ *                                                 over/under-flow.\n.
  *   19. ax<id>.traj.source           internal source expressions      (ro)\n
  *   20. ax<id>.traj.execute          execute motion command           (rw)\n
  *   21. ax<id>.traj.busy             axis busy                        (ro)\n
  *   22. ax<id>.traj.dir              axis setpoint direction          (ro)\n
- *                                    ax<id>.traj.dir>0 forward\n
- *                                    ax<id>.traj.dir<0 backward\n
- *                                    ax<id>.traj.dir=0 standstill\n
+ *                                    ax<id>.traj.dir>0: forward\n
+ *                                    ax<id>.traj.dir<0: backward\n
+ *                                    ax<id>.traj.dir=0: standstill\n
  *   23. ax<id>.cntrl.error           actual controller error          (ro)\n
  *   24. ax<id>.cntrl.poserror        actual position error            (ro)\n
  *   25. ax<id>.cntrl.output          actual controller output         (ro)\n
@@ -1568,7 +1592,9 @@ int setPLCExpr(int index,char *expr);
  *   26. ax<id>.drv.enable            enable drive command             (rw)\n
  *   27. ax<id>.drv.enabled           drive enabled                    (ro)\n
  *   28. ax<id>.seq.state             sequence state (homing)          (ro)\n
- *   30. ax<id>.mon.ilock             motion interlock type            (ro)\n
+ *   30. ax<id>.mon.ilock             motion interlock                 (rw)\n
+ *                                    ax<id>.mon.ilock=1: motion allowed
+ *                                    ax<id>.mon.ilock=0: motion not allowed                                      
  *   31. ax<id>.mon.attarget          axis at taget                    (ro)\n
  *   32. ax<id>.mon.lowlim            low limit switch                 (ro)\n
  *   33. ax<id>.mon.highlim           high limit switch                (ro)\n
