@@ -597,3 +597,8 @@ int ecmcTrajectoryTrapetz::initStopRamp(double currentPos, double currentVel, do
   prevStepSize_=velocity_*sampleTime_;
   return 0;
 }
+
+motionDirection ecmcTrajectoryTrapetz::getCurrSetDir()
+{
+  return setDirection_;
+}

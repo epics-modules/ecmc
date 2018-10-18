@@ -184,7 +184,7 @@ public:
   int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
   int initDiagAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
   int setEcStatusOutputEntry(ecmcEcEntry *entry);
-
+  motionDirection getAxisSetDirection();
 protected:
   void printAxisState();
   void initVars();

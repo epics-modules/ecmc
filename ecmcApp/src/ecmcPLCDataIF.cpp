@@ -258,6 +258,20 @@ int ecmcPLCDataIF::readAxis()
     case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
       data_=(bool)axis_->getMon()->getEnableSoftLimitFwd();
       break;
+    case ECMC_AXIS_DATA_TRAJ_DIRECTION:      
+      switch(axis_->getAxisSetDirection()){
+        case ECMC_DIR_BACKWARD:
+          data_=-1;
+          break;
+        case ECMC_DIR_FORWARD:
+          data_=1;
+          break;
+        case ECMC_DIR_STANDSTILL:
+          data_=0;
+          break;
+      }
+      break;
+
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
       break;
@@ -399,6 +413,9 @@ int ecmcPLCDataIF::writeAxis()
       break;
     case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
       axis_->getMon()->setEnableSoftLimitFwd((bool)data_);
+      break;
+    case ECMC_AXIS_DATA_TRAJ_DIRECTION:
+      return 0;
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
@@ -599,6 +616,11 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char * axisDataSource)
   npos=strcmp(varName,ECMC_AXIS_DATA_STR_SOFT_LIMIT_FWD_ENABLE);
   if(npos==0){
     return ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_TRAJ_DIRECTION);
+  if(npos==0){
+    return ECMC_AXIS_DATA_TRAJ_DIRECTION;
   }
 
   return ECMC_AXIS_DATA_NONE;

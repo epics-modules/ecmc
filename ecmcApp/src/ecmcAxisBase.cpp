@@ -1221,3 +1221,30 @@ int ecmcAxisBase::setEcStatusOutputEntry(ecmcEcEntry *entry)
   statusOutputEntry_=entry;
   return 0;
 }
+
+motionDirection ecmcAxisBase::getAxisSetDirection()
+{ 
+  if(!data_.status_.enabled){
+   return ECMC_DIR_STANDSTILL;
+  }
+
+  //Transform or internal trajectory
+  if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
+    return getTraj()->getCurrSetDir();
+  }
+  else{
+    if(data_.status_.currentPositionSetpoint<data_.status_.currentPositionSetpointOld){
+      return ECMC_DIR_BACKWARD;
+    } 
+    else if(data_.status_.currentPositionSetpoint>data_.status_.currentPositionSetpointOld){
+      return ECMC_DIR_FORWARD;
+    }
+    else{
+      return ECMC_DIR_STANDSTILL;
+    }
+  }
+  return ECMC_DIR_STANDSTILL;
+}
+
+
+

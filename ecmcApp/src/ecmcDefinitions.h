@@ -264,6 +264,7 @@ enum motionObjectType{
 #define ECMC_AXIS_DATA_STR_SOFT_LIMIT_FWD_ENABLE "mon.highsoftlimenable"
 #define ECMC_AXIS_DATA_STR_HOME_SWITCH "mon.homesensor"
 #define ECMC_AXIS_DATA_STR_RESET "reset"
+#define ECMC_AXIS_DATA_STR_TRAJ_DIRECTION "traj.dir"
 
 enum ecmcAxisDataType{
   ECMC_AXIS_DATA_NONE=0,
@@ -304,6 +305,7 @@ enum ecmcAxisDataType{
   ECMC_AXIS_DATA_SOFT_LIMIT_FWD=35,
   ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE=36,
   ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE=37,
+  ECMC_AXIS_DATA_TRAJ_DIRECTION=38,
 };
 
 enum ecmcDataSourceType{
