@@ -4000,6 +4000,11 @@ int controllerErrorReset()
     }
   }
 
+  //PLCs
+  if(plcs){
+    plcs->errorReset();
+  }
+
   return 0;
 }
 
