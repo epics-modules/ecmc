@@ -911,3 +911,9 @@ int ecmcMonitor::setHardwareInterlockPolarity(externalHWInterlockPolarity pol)
   }
   return 0;
 }
+
+int ecmcMonitor::setPLCInterlock(bool ilock)
+{
+  data_->interlocks_.plcInterlock=ilock;
+  return 0;
+}

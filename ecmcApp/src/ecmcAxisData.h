@@ -83,11 +83,11 @@ typedef struct {
   bool axisErrorStateInterlock;
   bool noExecuteInterlock;
   bool driveSummaryInterlock;
-  //bool trajSummaryInterlock;
   bool trajSummaryInterlockFWD;
   bool trajSummaryInterlockBWD;
-  //bool trajSummaryInterlockOld;
   bool etherCatMasterInterlock;
+  bool plcInterlock;
+
   interlockTypes interlockStatus;
   stopMode currStopMode;
 } ecmcAxisDataInterlocks;

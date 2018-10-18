@@ -197,8 +197,8 @@ int ecmcPLCDataIF::readAxis()
     case ECMC_AXIS_DATA_SEQ_STATE:
       data_=(double)axisData->onChangeData.seqState;
       break;
-    case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-      data_=(double)axisData->onChangeData.trajInterlock;
+    case ECMC_AXIS_DATA_INTERLOCK_TYPE:      
+      data_=(double)axisData->onChangeData.trajInterlock==0;
       break;
     case ECMC_AXIS_DATA_TRAJ_SOURCE:
       data_=(double)axisData->onChangeData.trajSource;
@@ -337,8 +337,8 @@ int ecmcPLCDataIF::writeAxis()
     case ECMC_AXIS_DATA_SEQ_STATE:
       return 0;
       break;
-    case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-      return 0;
+    case ECMC_AXIS_DATA_INTERLOCK_TYPE:      
+      return axis_->getMon()->setPLCInterlock(data_==0);
       break;
     case ECMC_AXIS_DATA_TRAJ_SOURCE:
       return 0;

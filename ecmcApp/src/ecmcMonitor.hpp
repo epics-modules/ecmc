@@ -78,6 +78,7 @@ public:
   int validate();
   int reset();
   void errorReset();
+  int setPLCInterlock(bool ilock);
   int setEnableHardwareInterlock(bool enable);
   int setHardwareInterlockPolarity(externalHWInterlockPolarity pol);
   int setCntrlOutputHL(double outputHL);
