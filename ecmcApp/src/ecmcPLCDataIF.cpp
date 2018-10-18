@@ -271,7 +271,9 @@ int ecmcPLCDataIF::readAxis()
           break;
       }
       break;
-
+    case ECMC_AXIS_DATA_ENC_HOMEPOS:
+      data_=axis_->getSeq()->getHomePosition();
+      break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
       break;
@@ -416,6 +418,9 @@ int ecmcPLCDataIF::writeAxis()
       break;
     case ECMC_AXIS_DATA_TRAJ_DIRECTION:
       return 0;
+      break;
+    case ECMC_AXIS_DATA_ENC_HOMEPOS:
+      axis_->getSeq()->setHomePosition(data_);
       break;
     default:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
@@ -621,6 +626,11 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char * axisDataSource)
   npos=strcmp(varName,ECMC_AXIS_DATA_STR_TRAJ_DIRECTION);
   if(npos==0){
     return ECMC_AXIS_DATA_TRAJ_DIRECTION;
+  }
+
+  npos=strcmp(varName,ECMC_AXIS_DATA_STR_ENC_HOMEPOS);
+  if(npos==0){
+    return ECMC_AXIS_DATA_ENC_HOMEPOS;
   }
 
   return ECMC_AXIS_DATA_NONE;

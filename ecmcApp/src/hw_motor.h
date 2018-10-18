@@ -1545,19 +1545,20 @@ int setPLCExpr(int index,char *expr);
  *   7.  ax<id>.enc.rawpos            actual raw position              (ro)\n
  *   8.  ax<id>.enc.source            actual position                  (ro)\n
  *   9.  ax<id>.enc.homed             encoder homed                    (ro)\n
- *   10. ax<id>.traj.setpos           curent trajectory setpoint       (ro)\n
- *   11. ax<id>.traj.targetpos        target position                  (rw)\n
- *   12. ax<id>.traj.targetvel        target velocity setpoint         (rw)\n
- *   13. ax<id>.traj.targetacc        target acceleration setpoint     (rw)\n
- *   14. ax<id>.traj.targetdec        target deceleration setpoint     (rw)\n
- *   15. ax<id>.traj.setvel           current velocity setpoint        (ro)\n
- *   16. ax<id>.traj.setvelffraw      feed forward raw velocity        (ro)\n
- *   17. ax<id>.traj.command          command                          (rw)\n
+ *   10. ax<id>.enc.homepos           homing position                  (rw)\n
+ *   11. ax<id>.traj.setpos           curent trajectory setpoint       (ro)\n
+ *   12. ax<id>.traj.targetpos        target position                  (rw)\n
+ *   13. ax<id>.traj.targetvel        target velocity setpoint         (rw)\n
+ *   14. ax<id>.traj.targetacc        target acceleration setpoint     (rw)\n
+ *   15. ax<id>.traj.targetdec        target deceleration setpoint     (rw)\n
+ *   16. ax<id>.traj.setvel           current velocity setpoint        (ro)\n
+ *   17. ax<id>.traj.setvelffraw      feed forward raw velocity        (ro)\n
+ *   18. ax<id>.traj.command          command                          (rw)\n
  *                                    command=1: move velocity\n  
  *                                    command=2: move rel. pos\n
  *                                    command=3: move abs. pos\n
  *                                    command=10: homing\n
- *   18. ax<id>.traj.cmddata          cmddat. Homing procedure\n
+ *   19. ax<id>.traj.cmddata          cmddat. Homing procedure\n
  *                                    only valid if ax<id>.traj.command=10\n
  *                                    cmddata=1 : ref low limit\n
  *                                    cmddata=2 : ref high limit\n
@@ -1578,31 +1579,31 @@ int setPLCExpr(int index,char *expr);
  *                                                 (via high limit).\n
  *                                                 ref at abs bits.\n
  *                                                 over/under-flow.\n.
- *   19. ax<id>.traj.source           internal source expressions      (ro)\n
- *   20. ax<id>.traj.execute          execute motion command           (rw)\n
- *   21. ax<id>.traj.busy             axis busy                        (ro)\n
- *   22. ax<id>.traj.dir              axis setpoint direction          (ro)\n
+ *   20. ax<id>.traj.source           internal source expressions      (ro)\n
+ *   21. ax<id>.traj.execute          execute motion command           (rw)\n
+ *   22. ax<id>.traj.busy             axis busy                        (ro)\n
+ *   23. ax<id>.traj.dir              axis setpoint direction          (ro)\n
  *                                    ax<id>.traj.dir>0: forward\n
  *                                    ax<id>.traj.dir<0: backward\n
  *                                    ax<id>.traj.dir=0: standstill\n
- *   23. ax<id>.cntrl.error           actual controller error          (ro)\n
- *   24. ax<id>.cntrl.poserror        actual position error            (ro)\n
- *   25. ax<id>.cntrl.output          actual controller output         (ro)\n
- *   25. ax<id>.drv.setvelraw         actual raw velocity setpoint     (ro)\n
- *   26. ax<id>.drv.enable            enable drive command             (rw)\n
- *   27. ax<id>.drv.enabled           drive enabled                    (ro)\n
- *   28. ax<id>.seq.state             sequence state (homing)          (ro)\n
- *   30. ax<id>.mon.ilock             motion interlock                 (rw)\n
+ *   24. ax<id>.cntrl.error           actual controller error          (ro)\n
+ *   25. ax<id>.cntrl.poserror        actual position error            (ro)\n
+ *   26. ax<id>.cntrl.output          actual controller output         (ro)\n
+ *   27. ax<id>.drv.setvelraw         actual raw velocity setpoint     (ro)\n
+ *   28. ax<id>.drv.enable            enable drive command             (rw)\n
+ *   29. ax<id>.drv.enabled           drive enabled                    (ro)\n
+ *   30. ax<id>.seq.state             sequence state (homing)          (ro)\n
+ *   31. ax<id>.mon.ilock             motion interlock                 (rw)\n
  *                                    ax<id>.mon.ilock=1: motion allowed
  *                                    ax<id>.mon.ilock=0: motion not allowed                                      
- *   31. ax<id>.mon.attarget          axis at taget                    (ro)\n
- *   32. ax<id>.mon.lowlim            low limit switch                 (ro)\n
- *   33. ax<id>.mon.highlim           high limit switch                (ro)\n
- *   34. ax<id>.mon.homesensor        home sensor                      (ro)\n
- *   35. ax<id>.mon.lowsoftlim        low soft limit                   (rw)\n
- *   36. ax<id>.mon.highsoftlim       high soft limit                  (rw)\n
- *   37. ax<id>.mon.lowsoftlimenable  low soft limit enable            (rw)\n
- *   38. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
+ *   32. ax<id>.mon.attarget          axis at taget                    (ro)\n
+ *   33. ax<id>.mon.lowlim            low limit switch                 (ro)\n
+ *   34. ax<id>.mon.highlim           high limit switch                (ro)\n
+ *   35. ax<id>.mon.homesensor        home sensor                      (ro)\n
+ *   36. ax<id>.mon.lowsoftlim        low soft limit                   (rw)\n
+ *   37. ax<id>.mon.highsoftlim       high soft limit                  (rw)\n
+ *   38. ax<id>.mon.lowsoftlimenable  low soft limit enable            (rw)\n
+ *   39. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
  *
  *  PLC variables:
  *   1.  plc<id>.enable               plc enable                       (rw)\n
