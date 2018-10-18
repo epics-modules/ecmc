@@ -1543,7 +1543,9 @@ int setPLCExpr(int index,char *expr);
  *   5.  ax<id>.enc.actpos            actual position                  (ro)\n
  *   6.  ax<id>.enc.actvel            actual velocity                  (ro)\n
  *   7.  ax<id>.enc.rawpos            actual raw position              (ro)\n
- *   8.  ax<id>.enc.source            actual position                  (ro)\n
+ *   8.  ax<id>.enc.source            internal source or expressions   (ro)\n
+ *                                    source = 0: internal encoder\n
+ *                                    source > 0: actual pos from expr\n
  *   9.  ax<id>.enc.homed             encoder homed                    (ro)\n
  *   10. ax<id>.enc.homepos           homing position                  (rw)\n
  *   11. ax<id>.traj.setpos           curent trajectory setpoint       (ro)\n
@@ -1579,7 +1581,9 @@ int setPLCExpr(int index,char *expr);
  *                                                 (via high limit).\n
  *                                                 ref at abs bits.\n
  *                                                 over/under-flow.\n.
- *   20. ax<id>.traj.source           internal source expressions      (ro)\n
+ *   20. ax<id>.traj.source           internal source or expressions   (ro)\n
+ *                                    source = 0: internal traj\n
+ *                                    source > 0: setpoints from expr\n
  *   21. ax<id>.traj.execute          execute motion command           (rw)\n
  *   22. ax<id>.traj.busy             axis busy                        (ro)\n
  *   23. ax<id>.traj.dir              axis setpoint direction          (ro)\n
