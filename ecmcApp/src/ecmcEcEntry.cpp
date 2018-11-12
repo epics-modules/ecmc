@@ -72,7 +72,6 @@ void ecmcEcEntry::initVars()
   byteOffset_=0;
   entryIndex_=0;
   entrySubIndex_=0;
-  bitLength_= 0;
   value_=0;
   direction_=EC_DIR_INVALID;
   sim_=false;
@@ -158,8 +157,7 @@ int ecmcEcEntry::readValue(uint64_t *value)
 
 int ecmcEcEntry::readBit(int bitNumber, uint64_t* value)
 {
-  *value=BIT_CHECK(value_,bitNumber);
-
+  *value=BIT_CHECK(value_,bitNumber)>0;
   return 0;
 }
 
