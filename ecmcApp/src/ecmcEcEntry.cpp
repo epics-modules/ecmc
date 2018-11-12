@@ -167,7 +167,7 @@ int ecmcEcEntry::updateInputProcessImage()
     return 0;
   }
 
-  if(direction_!=EC_DIR_INPUT && !sim_){
+  if(direction_!=EC_DIR_INPUT /*&& !sim_*/){
     return 0;
   }
 
@@ -238,7 +238,7 @@ int ecmcEcEntry::updateOutProcessImage()
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
-  switch( bitLength_){
+  switch(bitLength_){
     case 1:
       EC_WRITE_BIT(domainAdr_+byteOffset_, bitOffset_,value_);
       break;
@@ -349,4 +349,9 @@ int32_t ecmcEcEntry::ecValue2Int32()
     }
   }
   return tempInt32;
+}
+
+bool ecmcEcEntry::getSimEntry()
+{
+  return sim_;
 }

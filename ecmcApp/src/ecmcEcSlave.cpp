@@ -33,6 +33,12 @@ ecmcEcSlave::ecmcEcSlave(
     return;
   }
 
+  //Add simulation entries as first two entries
+  entryList_[entryCounter_]=simEntries_[0];
+  entryCounter_++;
+  entryList_[entryCounter_]=simEntries_[1];
+  entryCounter_++;
+
   domain_=domain;
   if (!(slaveConfig_ = ecrt_master_slave_config(master_, alias_,slavePosition_, vendorId_,productCode_))) {
     LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Failed to get slave configuration (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,slavePosition_,vendorId_,productCode_,ERROR_EC_SLAVE_CONFIG_FAILED);
