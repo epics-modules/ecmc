@@ -206,6 +206,8 @@ enum motionObjectType{
 #define ECMC_GLOBAL_VAR "global."
 
 #define ECMC_EC_STR "ec"
+#define ECMC_SLAVE_CHAR "s"
+#define ECMC_DUMMY_SLAVE_STR "ds"
 #define ECMC_EC_HEALTH_STR "health"
 #define ECMC_AX_STR "ax"
 #define ECMC_AX_HEALTH_STR "health"
@@ -215,6 +217,9 @@ enum motionObjectType{
 #define ECMC_DRV_ENABLED_STR "status"
 #define ECMC_DRV_BREAK_STR "brake"
 #define ECMC_DRV_REDUCETORQUE_STR "reducetorque"
+
+#define ECMC_PLC_VAR_FORMAT "%[0-9a-zA-Z._]"
+#define ECMC_PLC_EC_ALIAS_FORMAT "%[0-9a-zA-Z_]"
 
 #define ECMC_ENC_STR "enc"
 #define ECMC_ENC_ACTPOS_STR "actpos"

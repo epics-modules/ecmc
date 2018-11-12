@@ -255,7 +255,7 @@ int ecmcPLC::addAndReisterGlobalVar(ecmcPLCDataIF *dataIF)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
     }
 
-    if(exprtk_->addVariable(dataIF->getVarName(),dataIF->getDataRef())){
+    if(exprtk_->addVariable(dataIF->getExprTkVarName(),dataIF->getDataRef())){
       LOGERR("%s/%s:%d: Failed to add variable %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,dataIF->getVarName(),ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
     }

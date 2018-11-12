@@ -136,7 +136,36 @@ int ecmcPLCs::addExprLine(int plcIndex,char *expr)
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
-  return plcs_[plcIndex]->addExprLine(expr);
+
+  /*
+    Special case: 
+    Remove unsupported syntax for simulation slave (ec<id>.s-1.xxx to ec<id>.d1.xxx )
+    Expression TK cant handle "-" in var name
+  */
+  
+  int ecId,ecSlave;  
+  char *localExpr=strdup(expr) ;  
+  assert(strcmp(localExpr, expr) == 0);  
+  char *strEc=localExpr;
+  char* strSimSlave=0;
+  while((strEc=strstr(strEc,ECMC_EC_STR)) && strlen(strEc)>0){
+    //Sanity check
+    int nvals = sscanf(strEc, ECMC_EC_STR"%d."ECMC_SLAVE_CHAR"%d.",&ecId,&ecSlave);
+    if (nvals == 2){      
+      if(ecSlave<0){  //Simulation slave
+        strSimSlave=strstr(strEc,"."ECMC_SLAVE_CHAR);
+        if(strSimSlave && strlen(strSimSlave)>2){
+          strSimSlave=strSimSlave+1;
+          strSimSlave[0]=ECMC_DUMMY_SLAVE_STR[0];
+          strSimSlave[1]=ECMC_DUMMY_SLAVE_STR[1];
+        }
+      }      
+    }  
+    strEc++;
+  }  
+  errorCode=plcs_[plcIndex]->addExprLine(localExpr);
+  free(localExpr);
+  return errorCode;
 }
 
 int ecmcPLCs::clearExpr(int plcIndex)
@@ -289,7 +318,7 @@ int ecmcPLCs::getAxisIndex(char *varName)
 {
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int axisId=0;
-  int nvals = sscanf(varName,ECMC_AX_STR"%d.%[0-9a-zA-Z._]",&axisId,buffer);
+  int nvals = sscanf(varName,ECMC_AX_STR"%d."ECMC_PLC_VAR_FORMAT,&axisId,buffer);
   if (nvals == 2){
      return axisId;
   }
@@ -309,7 +338,7 @@ int ecmcPLCs::parseAxis(int plcIndex,char * exprStr)
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   while((strAxis=strstr(strAxis,ECMC_AX_STR)) && strlen(strAxis)>0){
     // Sanity check
-    nvals = sscanf(strAxis,ECMC_AX_STR"%d.%[0-9a-zA-Z._]",&axisId,varName);
+    nvals = sscanf(strAxis,ECMC_AX_STR"%d."ECMC_PLC_VAR_FORMAT,&axisId,varName);
     if (nvals == 2){
       if(axisId>=ECMC_MAX_AXES || axisId<0){
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
@@ -318,7 +347,7 @@ int ecmcPLCs::parseAxis(int plcIndex,char * exprStr)
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
       }
       varName[0]='\0';
-      nvals = sscanf(strAxis,"%[0-9a-zA-Z._]",varName);
+      nvals = sscanf(strAxis,ECMC_PLC_VAR_FORMAT,varName);
       if (nvals == 1){
         errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_AXIS);
         if(errorCode){
@@ -336,21 +365,24 @@ int ecmcPLCs::parseAxis(int plcIndex,char * exprStr)
  */
 int ecmcPLCs::parseEC(int plcIndex,char * exprStr)
 {
-  int ecId;
+  int ecId,ecSlave;
   char *strEc=exprStr;
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char varNameTemp[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   varName[0]='\0';
+  varNameTemp[0]='\0';
   while((strEc=strstr(strEc,ECMC_EC_STR)) && strlen(strEc)>0){
     //Sanity check
-    int nvals = sscanf(strEc, ECMC_EC_STR"%d.%[0-9a-zA-Z._]",&ecId,varName);
-    if (nvals == 2){
-      varName[0]='\0';
-      nvals = sscanf(strEc,"%[0-9a-zA-Z._]",varName);
-      if (nvals == 1){        
-        int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_ETHERCAT);
-        if(errorCode){
-          return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-        }
+    int nvals = sscanf(strEc, ECMC_EC_STR"%d."ECMC_SLAVE_CHAR"%d."ECMC_PLC_VAR_FORMAT,&ecId,&ecSlave,varNameTemp);
+    if (nvals == 3){      
+      unsigned int charCount=snprintf(varName,sizeof(varName),ECMC_EC_STR"%d.%s%d.%s",ecId,ECMC_SLAVE_CHAR,ecSlave,varNameTemp);
+      if(charCount>=sizeof(varName)-1){
+        LOGERR("%s/%s:%d:  Error: Variable name %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,varNameTemp,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+        return ERROR_PLCS_VARIABLE_NAME_TO_LONG;
+      }   
+      int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_ETHERCAT);
+      if(errorCode){
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
     }
     strEc++;
@@ -366,7 +398,7 @@ int ecmcPLCs::parseStatic(int plcIndex,char * exprStr)
   varName[0]='\0';
   while((strStatic=strstr(strStatic,ECMC_STATIC_VAR)) && strlen(strStatic)>0){
     //Sanity check
-    int nvals = sscanf(strStatic,"%[0-9a-zA-Z._]",varName);
+    int nvals = sscanf(strStatic,ECMC_PLC_VAR_FORMAT,varName);
     if (nvals == 1){
       int errorCode=plcs_[plcIndex]->addAndRegisterLocalVar(varName);
       if(errorCode){
@@ -386,7 +418,7 @@ int ecmcPLCs::parseGlobal(int plcIndex,char * exprStr)
   varName[0]='\0';
   while((strGlobal=strstr(strGlobal,ECMC_GLOBAL_VAR)) && strlen(strGlobal)>0){
     //Sanity check
-    int nvals = sscanf(strGlobal,"%[0-9a-zA-Z._]",varName);
+    int nvals = sscanf(strGlobal,ECMC_PLC_VAR_FORMAT,varName);
     if (nvals == 1){
       int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
       if(errorCode){
@@ -408,11 +440,11 @@ int ecmcPLCs::parsePLC(int plcIndex,char * exprStr)
   while((strPLC=strstr(strPLC,ECMC_PLC_DATA_STR)) && strlen(strPLC)>0){
     //Sanity check 1
     int tempInt=0;
-    int nvals = sscanf(strPLC,ECMC_PLC_DATA_STR"%d.%[0-9a-zA-Z._]",&tempInt,varName);
+    int nvals = sscanf(strPLC,ECMC_PLC_DATA_STR"%d."ECMC_PLC_VAR_FORMAT,&tempInt,varName);
     if (nvals == 2){                  
       varName[0]='\0';
       //Sanity check 2
-      int nvals = sscanf(strPLC,"%[0-9a-zA-Z._]",varName);
+      int nvals = sscanf(strPLC,ECMC_PLC_VAR_FORMAT,varName);
       if (nvals == 1){
         int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
         if(errorCode){

@@ -12,6 +12,7 @@ ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName)
   initVars();
   axis_=axis;
   varName_=axisVarName;
+  exprTkVarName_=axisVarName;
   source_=ECMC_RECORDER_SOURCE_AXIS;
   dataSourceAxis_=parseAxisDataSource(axisVarName);
   if(dataSourceAxis_==ECMC_AXIS_DATA_NONE){
@@ -25,6 +26,7 @@ ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec,char *ecVarName)
   initVars();
   ec_=ec;
   varName_=ecVarName;
+  exprTkVarName_=ecVarName;
   source_=ECMC_RECORDER_SOURCE_ETHERCAT;
   parseAndLinkEcDataSource(ecVarName);
 }
@@ -34,6 +36,7 @@ ecmcPLCDataIF::ecmcPLCDataIF(char *varName,ecmcDataSourceType dataSource)
   errorReset();
   initVars();
   varName_=varName;
+  exprTkVarName_=varName;
   source_=dataSource;
 }
 
@@ -48,6 +51,7 @@ void ecmcPLCDataIF::initVars()
   ec_=0;
   data_=0;
   varName_="";
+  exprTkVarName_="";
   dataSourceAxis_=ECMC_AXIS_DATA_NONE;
   source_=ECMC_RECORDER_SOURCE_NONE;
   readOnly_=0;
@@ -641,9 +645,10 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char* ecDataSource)
   int masterId=0;
   int slaveId=0;
   int bitId=0;
-  char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
   int errorCode=parseEcPath(ecDataSource, &masterId, &slaveId, alias,&bitId);
   if(errorCode){
+    LOGERR("%s/%s:%d: ERROR: Parse %s failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ecDataSource,errorCode);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
@@ -657,6 +662,15 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char* ecDataSource)
     slave=ec_->findSlave(slaveId);
   }
   else{
+    //Change exprtk var name ('-' not allowed in var name)
+    std::stringstream ss;
+    if(bitId>=0){
+      ss << ECMC_EC_STR << masterId << "."ECMC_DUMMY_SLAVE_STR << -slaveId << "." << alias << "." << bitId  ;
+    }
+    else{
+      ss << ECMC_EC_STR << masterId << "."ECMC_DUMMY_SLAVE_STR << -slaveId << "." << alias;
+    }
+    exprTkVarName_= ss.str();
     slave=ec_->getSlave(slaveId);
   }
 
@@ -689,18 +703,19 @@ int ecmcPLCDataIF::parseEcPath(char* ecPath, int *master,int *slave, char*alias,
   int bitId=0;
   int nvals=0;
 
-  nvals = sscanf(ecPath, "ec%d.s%d.%[^.].%d",&masterId,&slaveId,alias,&bitId);
+  nvals = sscanf(ecPath,ECMC_EC_STR"%d."ECMC_SLAVE_CHAR"%d."ECMC_PLC_EC_ALIAS_FORMAT".%d",&masterId,&slaveId,alias,&bitId);
   if (nvals == 4){
-	*master=masterId;
-	*slave=slaveId;
-	*bit=bitId;
+	  *master=masterId;
+	  *slave=slaveId;
+	  *bit=bitId;
     return 0;
   }
-  nvals = sscanf(ecPath, "ec%d.s%d.%s",&masterId,&slaveId,alias);
+  
+  nvals = sscanf(ecPath, ECMC_EC_STR"%d."ECMC_SLAVE_CHAR"%d."ECMC_PLC_EC_ALIAS_FORMAT,&masterId,&slaveId,alias);
   if (nvals == 3){
-	*master=masterId;
-	*slave=slaveId;
-	*bit=-1;
+	  *master=masterId;
+	  *slave=slaveId;
+	  *bit=-1;
     return 0;
   }
   return ERROR_PLC_EC_VAR_NAME_INVALID;
@@ -709,6 +724,11 @@ int ecmcPLCDataIF::parseEcPath(char* ecPath, int *master,int *slave, char*alias,
 const char *ecmcPLCDataIF::getVarName()
 {
   return varName_.c_str();
+}
+
+const char *ecmcPLCDataIF::getExprTkVarName()
+{
+  return exprTkVarName_.c_str();
 }
 
 int ecmcPLCDataIF::validate()
