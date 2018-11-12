@@ -64,7 +64,7 @@ int ecmcEcEntryLink::validateEntryBit(int index)
     return ERROR_EC_ENTRY_DATA_POINTER_NULL;
   }
 
-  if(entryInfoArray_[index].bitNumber<0 || entryInfoArray_[index].bitNumber>entryInfoArray_[index].entry->getBits()){
+  if(entryInfoArray_[index].bitNumber<0 || entryInfoArray_[index].bitNumber>entryInfoArray_[index].entry->getBits()-1){
     LOGERR("%s/%s:%d: ERROR: Invalid bit index.(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_ENTRY_INVALID_BIT_INDEX);
     return ERROR_EC_ENTRY_INVALID_BIT_INDEX;
   }
