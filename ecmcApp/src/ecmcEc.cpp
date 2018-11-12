@@ -486,15 +486,15 @@ int ecmcEc::updateOutProcessImage()
   if(asynPortDriver_){
     if(updateDefAsynParams_ && asynPortDriver_->getAllowRtThreadCom()){
       if(asynUpdateCycleCounter_>=asynUpdateCycles_){ //Only update at desired samplerate
-	asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,masterState_.slaves_responding );
-	asynPortDriver_-> setIntegerParam(asynParIdAlState,masterState_.al_states);
-	asynPortDriver_-> setIntegerParam(asynParIdMasterLink_,masterState_.link_up);
-        asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
-        asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,domainOK_);
-        asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
-        asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
-        asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,entryCounter_);
-        asynPortDriver_-> setIntegerParam(asynParIdMemMapCounter_,ecMemMapArrayCounter_);
+	      asynPortDriver_->setIntegerParam(asynParIdSlaveCounter_,masterState_.slaves_responding );
+	      asynPortDriver_->setIntegerParam(asynParIdAlState,masterState_.al_states);
+	      asynPortDriver_->setIntegerParam(asynParIdMasterLink_,masterState_.link_up);
+        asynPortDriver_->setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
+        asynPortDriver_->setIntegerParam(asynParIdDomianStatus_,domainOK_);
+        asynPortDriver_->setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
+        asynPortDriver_->setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
+        asynPortDriver_->setIntegerParam(asynParIdEntryCounter_,entryCounter_);
+        asynPortDriver_->setIntegerParam(asynParIdMemMapCounter_,ecMemMapArrayCounter_);
       }
       else{
         asynUpdateCycleCounter_++;
