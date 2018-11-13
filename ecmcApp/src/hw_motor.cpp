@@ -2592,6 +2592,11 @@ int createPLC(int index,int skipCycles)
     plcs->setAxisArrayPointer(axes[i],i);
   }
 
+  //Set data storage pointers
+  for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
+    plcs->setDataStoragePointer(dataStorages[i],i);
+  }
+
   if(skipCycles<0){
     return ERROR_MAIN_PLCS_SKIPCYCLES_INVALID;
   }

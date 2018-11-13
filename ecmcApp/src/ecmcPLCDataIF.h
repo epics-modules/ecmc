@@ -10,6 +10,7 @@
 
 #include "ecmcDefinitions.h"
 #include "ecmcAxisBase.h"
+#include "ecmcDataStorage.h"
 #include "ecmcEc.h"
 #include "ecmcEcEntry.h"
 #include "ecmcEcEntryLink.h"
@@ -30,11 +31,16 @@
 #define ERROR_PLC_EC_VAR_NAME_INVALID 0x20607
 #define ERROR_PLC_TRAJ_NULL 0x20608
 #define ERROR_PLC_MON_NULL 0x20609
+#define ERROR_PLC_DATA_STORGAE_DATA_TYPE_ERROR 0x2060A
+#define ERROR_PLC_DATA_STORAGE_NULL 0x2060B
+
+
 
 class ecmcPLCDataIF : public ecmcEcEntryLink
 {
 public:
   ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName);
+  ecmcPLCDataIF(ecmcDataStorage *ds,char *dsVarName);
   ecmcPLCDataIF(ecmcEc *ec,char *ecVarName);
   ecmcPLCDataIF(char *varName,ecmcDataSourceType dataSource);
   ~ecmcPLCDataIF();
@@ -50,17 +56,23 @@ public:
 private:
   int                readAxis();
   int                writeAxis();
+  int                readDs();
   int                readEc();
+  int                writeDs();
   int                writeEc();
   ecmcAxisDataType   parseAxisDataSource(char *axisVarName);
+  ecmcDataStorageType parseDataStorageDataSource(char *axisVarName);
+  
   int                parseAndLinkEcDataSource(char *ecVarName);
   int                parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit);
   void               initVars();
   ecmcAxisBase       *axis_;
+  ecmcDataStorage    *ds_;
   ecmcEc             *ec_;
   double             data_;
   double             dataRead_;
   ecmcAxisDataType   dataSourceAxis_;
+  ecmcDataStorageType dataSourceDs_;
   ecmcDataSourceType source_;
   std::string        varName_;
   std::string        exprTkVarName_;

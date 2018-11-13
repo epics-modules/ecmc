@@ -20,6 +20,20 @@ ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName)
   }
 }
 
+ecmcPLCDataIF::ecmcPLCDataIF(ecmcDataStorage *ds,char *dsVarName)
+{
+  errorReset();
+  initVars();
+  ds_=ds;
+  varName_=dsVarName;
+  exprTkVarName_=dsVarName;
+  source_=ECMC_RECORDER_SOURCE_DATA_STORAGE;
+  dataSourceDs_=parseDataStorageDataSource(dsVarName);
+  if(dataSourceDs_==ECMC_DATA_STORAGE_DATA_NONE){
+    LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_AXIS_DATA_TYPE_ERROR);
+  }
+}
+
 ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec,char *ecVarName)
 {
   errorReset();
@@ -48,11 +62,13 @@ ecmcPLCDataIF::~ecmcPLCDataIF()
 void ecmcPLCDataIF::initVars()
 {
   axis_=0;
+  ds_=0;
   ec_=0;
   data_=0;
   varName_="";
   exprTkVarName_="";
   dataSourceAxis_=ECMC_AXIS_DATA_NONE;
+  dataSourceDs_=ECMC_DATA_STORAGE_DATA_NONE;
   source_=ECMC_RECORDER_SOURCE_NONE;
   readOnly_=0;
 }
@@ -63,27 +79,35 @@ double& ecmcPLCDataIF::getDataRef(){
 
 int ecmcPLCDataIF::read()
 {
- int errorCode=0;
- switch(source_){
-   case ECMC_RECORDER_SOURCE_NONE:
-     errorCode=ERROR_PLC_SOURCE_INVALID;
-     break;
-   case ECMC_RECORDER_SOURCE_ETHERCAT:
-     errorCode=readEc();
-     break;
-   case ECMC_RECORDER_SOURCE_AXIS:
-     errorCode=readAxis();
-     break;
-   case ECMC_RECORDER_SOURCE_STATIC_VAR:
-     return 0;
-     break;
-   case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
-     return 0;
-     break;
+  int errorCode=0;
+  switch(source_){
+    case ECMC_RECORDER_SOURCE_NONE:
+      errorCode=ERROR_PLC_SOURCE_INVALID;
+      break;
 
- }
- dataRead_=data_;
- return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+    case ECMC_RECORDER_SOURCE_ETHERCAT:
+      errorCode=readEc();
+      break;
+
+    case ECMC_RECORDER_SOURCE_AXIS:
+      errorCode=readAxis();
+      break;
+
+    case ECMC_RECORDER_SOURCE_STATIC_VAR:
+      return 0;
+      break;
+
+    case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
+      return 0;
+      break;
+
+    case ECMC_RECORDER_SOURCE_DATA_STORAGE:
+      errorCode=readDs();
+      break;  
+  }
+
+  dataRead_=data_;
+  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
 }
 
 int ecmcPLCDataIF::write()
@@ -96,19 +120,28 @@ int ecmcPLCDataIF::write()
     case ECMC_RECORDER_SOURCE_NONE:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_SOURCE_INVALID);
       break;
+
     case ECMC_RECORDER_SOURCE_ETHERCAT:
       return writeEc();
       break;
+
     case ECMC_RECORDER_SOURCE_AXIS:
       return writeAxis();
       break;
+
     case ECMC_RECORDER_SOURCE_STATIC_VAR:
       return 0;
       break;
+
    case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
       return 0;
       break;
+
+   case ECMC_RECORDER_SOURCE_DATA_STORAGE:
+      return writeDs();
+      break;  
   }
+
   return ERROR_PLC_SOURCE_INVALID;
 }
 
@@ -158,6 +191,109 @@ int ecmcPLCDataIF::writeEc()
   }
   return 0;
 }
+
+int ecmcPLCDataIF::readDs()
+{
+ if(ds_==NULL){
+    return ERROR_PLC_DATA_STORAGE_NULL;
+  }
+
+  int errorCode=0;
+  double tempData=0;
+
+  switch(dataSourceDs_){
+    case ECMC_DATA_STORAGE_DATA_NONE:
+      data_=0;
+      break;
+
+    case ECMC_DATA_STORAGE_DATA_APPEND:
+      data_=NAN;
+      break; 
+
+    case ECMC_DATA_STORAGE_DATA_SIZE:
+      data_=ds_->getSize();
+      break; 
+
+    case ECMC_DATA_STORAGE_DATA_INDEX:
+      data_=ds_->getIndex();
+      break; 
+
+    case ECMC_DATA_STORAGE_DATA_ERROR:      
+      data_=ds_->getErrorID();
+      break;     
+
+    case ECMC_DATA_STORAGE_DATA_DATA:
+      errorCode=ds_->getDataElement(ds_->getIndex(),&tempData);
+      if(!errorCode){
+        data_=tempData;
+      }
+      break;
+
+    case ECMC_DATA_STORAGE_DATA_CLEAR:
+      data_=NAN;      
+      break;
+
+    case ECMC_DATA_STORAGE_DATA_FULL:      
+      data_=(double)ds_->isStorageFull();
+      break;
+
+    default:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_STORGAE_DATA_TYPE_ERROR);
+      break;
+  }
+
+  return 0; 
+}
+
+int ecmcPLCDataIF::writeDs()
+{
+ if(ds_==NULL){
+    return ERROR_PLC_DATA_STORAGE_NULL;
+  }
+
+  switch(dataSourceDs_){
+    case ECMC_DATA_STORAGE_DATA_NONE:
+      data_=0;
+      break;
+
+    case ECMC_DATA_STORAGE_DATA_APPEND:      
+      if(data_==data_){ //Check for NAN (only append new value)
+        ds_->appendData(data_);
+      }
+      break;
+
+    case ECMC_DATA_STORAGE_DATA_SIZE:
+      ds_->setBufferSize(data_);
+      break;
+
+    case ECMC_DATA_STORAGE_DATA_INDEX:
+      ds_->setCurrentPosition(data_);
+      break; 
+
+    case ECMC_DATA_STORAGE_DATA_ERROR:      
+      ;
+      break;
+
+    case ECMC_DATA_STORAGE_DATA_DATA:
+      ds_->setDataElement(ds_->getIndex(),data_);      
+      break; 
+         
+    case ECMC_DATA_STORAGE_DATA_CLEAR:      
+      if(data_){
+        ds_->clearBuffer();
+      }
+      break; 
+
+    case ECMC_DATA_STORAGE_DATA_FULL:      
+      ;
+      break; 
+    default:
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_STORGAE_DATA_TYPE_ERROR);
+      break;
+  }
+  return 0;
+}
+
 
 int ecmcPLCDataIF::readAxis()
 {
@@ -456,6 +592,58 @@ int ecmcPLCDataIF::writeAxis()
       break;
   }
   return 0;
+}
+
+ecmcDataStorageType ecmcPLCDataIF::parseDataStorageDataSource(char * axisDataSource)
+{
+  char *varName;
+
+  varName=strstr(axisDataSource,ECMC_PLC_DATA_STORAGE_STR);
+  if(!varName){
+    return ECMC_DATA_STORAGE_DATA_NONE;
+  }
+  varName=strstr(axisDataSource,".");
+  if(!varName){
+    return ECMC_DATA_STORAGE_DATA_NONE;
+  }
+  varName++;
+
+  int npos=strcmp(varName,ECMC_DATA_STORAGE_DATA_APPEND_STR);
+  if(npos==0){
+    return ECMC_DATA_STORAGE_DATA_APPEND;
+  }
+
+  npos=strcmp(varName,ECMC_DATA_STORAGE_DATA_INDEX_STR);
+  if(npos==0){
+   return ECMC_DATA_STORAGE_DATA_INDEX;
+  }
+
+  npos=strcmp(varName,ECMC_DATA_STORAGE_DATA_ERROR_STR);
+  if(npos==0){
+    return ECMC_DATA_STORAGE_DATA_ERROR;
+  }
+
+  npos=strcmp(varName,ECMC_DATA_STORAGE_DATA_SIZE_STR);
+  if(npos==0){
+    return ECMC_DATA_STORAGE_DATA_SIZE;
+  }
+
+  npos=strcmp(varName,ECMC_DATA_STORAGE_DATA_CLEAR_STR);
+  if(npos==0){
+    return ECMC_DATA_STORAGE_DATA_CLEAR;
+  }
+
+  npos=strcmp(varName,ECMC_DATA_STORAGE_DATA_DATA_STR);
+  if(npos==0){
+    return ECMC_DATA_STORAGE_DATA_DATA;
+  }
+
+  npos=strcmp(varName,ECMC_DATA_STORAGE_DATA_FULL_STR);
+  if(npos==0){
+    return ECMC_DATA_STORAGE_DATA_FULL;
+  }
+
+  return ECMC_DATA_STORAGE_DATA_NONE;
 }
 
 ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char * axisDataSource)
@@ -771,6 +959,7 @@ int ecmcPLCDataIF::validate()
     case ECMC_RECORDER_SOURCE_NONE:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_SOURCE_INVALID);
       break;
+
     case ECMC_RECORDER_SOURCE_ETHERCAT:
       if(!ec_){
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EC_NULL);
@@ -779,6 +968,7 @@ int ecmcPLCDataIF::validate()
 	      return 0;
       }
       break;
+
     case ECMC_RECORDER_SOURCE_AXIS:
       if(!axis_){
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_NULL);
@@ -787,11 +977,22 @@ int ecmcPLCDataIF::validate()
 	      return 0;
       }
       break;
+
     case ECMC_RECORDER_SOURCE_STATIC_VAR:
       return 0;
       break;
+
     case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
       return 0;
+      break;
+
+    case ECMC_RECORDER_SOURCE_DATA_STORAGE:
+      if(!ds_){
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_STORAGE_NULL);
+      }
+      else{
+	      return 0;
+      }
       break;
   }
   return ERROR_PLC_SOURCE_INVALID;

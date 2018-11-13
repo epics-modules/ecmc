@@ -40,7 +40,9 @@ public:
   int getCurrentIndex();
   int getIndex();
   int getData(double **data, int *size);
+  int getDataElement(int index,double *data);
   int setData(double *data, int size);
+  int setDataElement(int index,double data);
   int appendData(double *data, int size);
   int setCurrentPosition(int position);
   void printCurrentState();

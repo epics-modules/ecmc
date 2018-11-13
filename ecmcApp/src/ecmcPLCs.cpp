@@ -32,6 +32,10 @@ void ecmcPLCs::initVars()
     axes_[i]=NULL;
   }
 
+  for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
+    ds_[i]=NULL;
+  }
+
   for(int i=0; i<ECMC_MAX_PLC_VARIABLES;i++){
     globalDataArray_[i]=0;    
   }
@@ -73,6 +77,15 @@ int ecmcPLCs::setAxisArrayPointer(ecmcAxisBase *axis,int index)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE);
   }
   axes_[index]=axis;
+  return 0;
+}
+
+int ecmcPLCs::setDataStoragePointer(ecmcDataStorage *ds,int index)
+{
+  if(index>=ECMC_MAX_DATA_STORAGE_OBJECTS || index<0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE);
+  }
+  ds_[index]=ds;
   return 0;
 }
 
@@ -211,6 +224,7 @@ int ecmcPLCs::getCompiled(int plcIndex,int *compiled)
 int ecmcPLCs::parseExpr(int plcIndex,char * exprStr)
 {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
+  printf("parseExpr, %s\n",exprStr);
 
   if(strlen(exprStr)>=EC_MAX_OBJECT_PATH_CHAR_LENGTH-1){
     LOGERR("%s/%s:%d: ERROR: Expression to long (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_EXPR_LINE_TO_LONG);
@@ -247,6 +261,13 @@ int ecmcPLCs::parseExpr(int plcIndex,char * exprStr)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
+  // Data storage
+  printf("parseExpr at call ds, %s\n",exprStr);
+  errorCode=parseDataStorage(plcIndex,exprStr);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+
   return 0;
 }
 
@@ -270,11 +291,14 @@ int ecmcPLCs::createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource
   //Axes data
   //Ec data
   //Global data 
+  //DataStorage
   if(globalVariableCount_>=ECMC_MAX_PLC_VARIABLES-1 || globalVariableCount_<0){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
   }
   int errorCode=0;
   int axisId=-1;
+  int dsId=-1;
+
   switch(dataSource){
     case ECMC_RECORDER_SOURCE_NONE:
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_SOURCE_INVALID);
@@ -315,7 +339,7 @@ int ecmcPLCs::createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource
       break;
 
     case ECMC_RECORDER_SOURCE_STATIC_VAR:
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_SOURCE_INVALID);    
+      return  setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_SOURCE_INVALID);    
       break;
     
     case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
@@ -329,6 +353,28 @@ int ecmcPLCs::createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource
       *outDataIF=globalDataArray_[globalVariableCount_];
       globalVariableCount_++;      
       break;
+
+    case ECMC_RECORDER_SOURCE_DATA_STORAGE:
+      printf("createNewGlobalDataIF, %s\n",varName);
+      dsId=getDsIndex(varName);
+      if(dsId>=ECMC_MAX_DATA_RECORDERS_OBJECTS || dsId<0){
+	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE);
+      }
+      if(!ds_[dsId]){
+	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE);
+      }
+
+      globalDataArray_[globalVariableCount_]=new ecmcPLCDataIF(ds_[dsId],varName); 
+      errorCode=globalDataArray_[globalVariableCount_]->getErrorID();
+      if(errorCode){
+        delete globalDataArray_[globalVariableCount_];
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+      }
+
+      *outDataIF=globalDataArray_[globalVariableCount_];
+      globalVariableCount_++;      
+      break;
+      
   }
   return 0;
 }
@@ -340,6 +386,17 @@ int ecmcPLCs::getAxisIndex(char *varName)
   int nvals = sscanf(varName,ECMC_AX_STR"%d."ECMC_PLC_VAR_FORMAT,&axisId,buffer);
   if (nvals == 2){
      return axisId;
+  }
+  return -1;
+}
+
+int ecmcPLCs::getDsIndex(char *varName)
+{
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int dsId=0;
+  int nvals = sscanf(varName,ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_PLC_VAR_FORMAT,&dsId,buffer);
+  if (nvals == 2){
+     return dsId;
   }
   return -1;
 }
@@ -449,6 +506,33 @@ int ecmcPLCs::parseGlobal(int plcIndex,char * exprStr)
   return 0;
 }
 
+int ecmcPLCs::parseDataStorage(int plcIndex,char * exprStr)
+{
+    //find plc variable
+  char *strDS=exprStr;
+  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  
+  varName[0]='\0';
+  while((strDS=strstr(strDS,ECMC_PLC_DATA_STORAGE_STR)) && strlen(strDS)>0){
+    //Sanity check 1
+    int tempInt=0;
+    int nvals = sscanf(strDS,ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_PLC_VAR_FORMAT,&tempInt,varName);
+    if (nvals == 2){                  
+      varName[0]='\0';
+      //Sanity check 2
+      int nvals = sscanf(strDS,ECMC_PLC_VAR_FORMAT,varName);
+      if (nvals == 1){
+        int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_DATA_STORAGE);
+        if(errorCode){
+          return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+        }
+      }
+    }
+    strDS++;
+  }
+  return 0;
+}
+
 int ecmcPLCs::parsePLC(int plcIndex,char * exprStr)
 {
   //find plc variable
@@ -481,6 +565,7 @@ int ecmcPLCs::parsePLC(int plcIndex,char * exprStr)
  */
 int ecmcPLCs::createAndRegisterNewDataIF(int plcIndex,char * varName,ecmcDataSourceType dataSource)
 { 
+  printf("createAndRegisterNewDataIF, %s\n",varName);
   ecmcPLCDataIF *dataIF=NULL;
   int errorCode=findGlobalDataIF(varName, &dataIF);
   if(errorCode){

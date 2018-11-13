@@ -11,6 +11,7 @@
 #include "ecmcPLC.h"
 #include "ecmcDefinitions.h"
 #include "ecmcAxisBase.h"
+#include "ecmcDataStorage.h"
 #include "ecmcEc.h"
 #include "exprtkWrap.h"
 
@@ -18,6 +19,7 @@
 #define ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE 0x20701
 #define ERROR_PLCS_EC_NOT_INITIALIZED 0x20702
 #define ERROR_PLCS_VARIABLE_NAME_TO_LONG 0x20703
+#define ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20704
 
 #define CHECK_PLC_RETURN_IF_ERROR(index) {if(index>=ECMC_MAX_PLCS || index<0){LOGERR("ERROR: PLC index out of range.\n");return ERROR_PLCS_INDEX_OUT_OF_RANGE;}}
 
@@ -29,6 +31,7 @@ public:
   int createPLC(int plcIndex, int skipCycles);
   int deletePLC(int plcIndex);
   int setAxisArrayPointer(ecmcAxisBase *axis,int index);
+  int setDataStoragePointer(ecmcDataStorage *ds,int index);
   int execute(bool ecOK);
   int setExpr(int plcIndex,char *expr);
   int parseExpr(int plcIndex,char * exprStr);
@@ -48,6 +51,7 @@ private:
   int createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource,ecmcPLCDataIF **outDataIF);
   int createAndRegisterNewDataIF(int plcIndex,char * varName,ecmcDataSourceType dataSource);
   int getAxisIndex(char *varName);
+  int getDsIndex(char *varName);
   int addPLCDefaultVariables(int plcIndex,int skipCycles);
   int updateAllScanTimeVars();
   int parseAxis(int plcIndex,char * exprStr);
@@ -55,11 +59,13 @@ private:
   int parseStatic(int plcIndex,char * exprStr);
   int parseGlobal(int plcIndex,char * exprStr);
   int parsePLC(int plcIndex,char * exprStr);
+  int parseDataStorage(int plcIndex,char * exprStr);
   int findGlobalDataIF(char * varName, ecmcPLCDataIF **outDataIF);
   int getPLCErrorID();
   int globalVariableCount_;
   ecmcPLC *plcs_[ECMC_MAX_PLCS];
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
+  ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   ecmcEc *ec_;
   ecmcPLCDataIF *plcEnable_[ECMC_MAX_PLCS];
   ecmcPLCDataIF *plcError_[ECMC_MAX_PLCS];

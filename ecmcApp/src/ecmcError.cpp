@@ -1100,6 +1100,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20609:
       return "ERROR_PLC_MON_NULL";
       break;
+    case 0x2060A:
+      return "ERROR_PLC_DATA_STORGAE_DATA_TYPE_ERROR";
+      break;
+    case 0x2060B:
+      return "ERROR_PLC_DATA_STORAGE_NULL";
+      break;
     case 0x20700:
       return "ERROR_PLCS_INDEX_OUT_OF_RANGE";
       break;
@@ -1111,6 +1117,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20703:
       return "ERROR_PLCS_VARIABLE_NAME_TO_LONG";
+      break;
+    case 0x20704:
+      return "ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
