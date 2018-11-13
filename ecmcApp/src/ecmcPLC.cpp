@@ -55,7 +55,7 @@ int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
   if(errorCode){
     LOGERR("%s/%s:%d: PLC local variable: Create data interface failed. Adding %s failed (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,localVarStr,errorCode);
     delete localArray_[localVariableCount_];    
-    return errorCode;
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
   if(exprtk_->addVariable(localVarStr,localArray_[localVariableCount_]->getDataRef())){

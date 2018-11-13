@@ -165,7 +165,7 @@ int ecmcPLCs::addExprLine(int plcIndex,char *expr)
   }  
   errorCode=plcs_[plcIndex]->addExprLine(localExpr);
   free(localExpr);
-  return errorCode;
+  return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
 }
 
 int ecmcPLCs::clearExpr(int plcIndex)
@@ -266,13 +266,14 @@ int ecmcPLCs::findGlobalDataIF(char * varName, ecmcPLCDataIF **outDataIF)
 
 int ecmcPLCs::createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource,ecmcPLCDataIF **outDataIF)
 {
+  
   //Axes data
   //Ec data
   //Global data 
   if(globalVariableCount_>=ECMC_MAX_PLC_VARIABLES-1 || globalVariableCount_<0){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
   }
-
+  int errorCode=0;
   int axisId=-1;
   switch(dataSource){
     case ECMC_RECORDER_SOURCE_NONE:
@@ -284,6 +285,12 @@ int ecmcPLCs::createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_EC_NULL);
       }
 	    globalDataArray_[globalVariableCount_]=new ecmcPLCDataIF(ec_,varName); 
+      errorCode=globalDataArray_[globalVariableCount_]->getErrorID();
+      if(errorCode){
+        delete globalDataArray_[globalVariableCount_];
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+      }
+
       *outDataIF=globalDataArray_[globalVariableCount_];
       globalVariableCount_++;      
       break;
@@ -296,7 +303,13 @@ int ecmcPLCs::createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource
       if(!axes_[axisId]){
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
       }
-	    globalDataArray_[globalVariableCount_]=new ecmcPLCDataIF(axes_[axisId],varName); 
+	    globalDataArray_[globalVariableCount_]=new ecmcPLCDataIF(axes_[axisId],varName);
+      errorCode=globalDataArray_[globalVariableCount_]->getErrorID();
+      if(errorCode){
+        delete globalDataArray_[globalVariableCount_];
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+      }
+ 
       *outDataIF=globalDataArray_[globalVariableCount_];
       globalVariableCount_++;      
       break;
@@ -307,6 +320,12 @@ int ecmcPLCs::createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource
     
     case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
       globalDataArray_[globalVariableCount_]=new ecmcPLCDataIF(varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR); 
+      errorCode=globalDataArray_[globalVariableCount_]->getErrorID();
+      if(errorCode){
+        delete globalDataArray_[globalVariableCount_];
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+      }
+
       *outDataIF=globalDataArray_[globalVariableCount_];
       globalVariableCount_++;      
       break;
@@ -378,7 +397,7 @@ int ecmcPLCs::parseEC(int plcIndex,char * exprStr)
       unsigned int charCount=snprintf(varName,sizeof(varName),ECMC_EC_STR"%d.%s%d.%s",ecId,ECMC_SLAVE_CHAR,ecSlave,varNameTemp);
       if(charCount>=sizeof(varName)-1){
         LOGERR("%s/%s:%d:  Error: Variable name %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,varNameTemp,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
-        return ERROR_PLCS_VARIABLE_NAME_TO_LONG;
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
       }   
       int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_ETHERCAT);
       if(errorCode){

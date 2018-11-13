@@ -121,12 +121,37 @@ int ecmcPLCDataIF::readEc()
   }
 
   data_=(double)value; //Risk of data loss
+  /*printf("READ DATA %s: %lf (%"PRIu64"),\n",varName_.c_str(),data_,value);
+  uint64_t temp=value;
+  while (temp) {
+    if (temp & 1)
+        printf("1");
+    else
+        printf("0");
+
+    temp >>= 1;
+  }
+  printf("\n");*/
   return 0;
 }
 
 int ecmcPLCDataIF::writeEc()
 {
+  
   uint64_t value=(uint64_t)data_;
+
+  /*printf("WRITE DATA %s: %lf (%"PRIu64"),\n",varName_.c_str(),data_,value);
+  uint64_t temp=value;
+  while (temp) {
+    if (temp & 1)
+        printf("1");
+    else
+        printf("0");
+
+    temp >>= 1;
+  }
+  printf("\n");*/
+
   int errorCode=writeEcEntryValue(ECMC_PLC_EC_ENTRY_INDEX,value);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -692,8 +717,13 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char* ecDataSource)
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
+  
+  errorCode=validateEntry(ECMC_PLC_EC_ENTRY_INDEX);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
 
-  return validateEntry(ECMC_PLC_EC_ENTRY_INDEX);
+  return 0;
 }
 
 int ecmcPLCDataIF::parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit)
