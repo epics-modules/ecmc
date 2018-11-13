@@ -26,7 +26,7 @@ ecmcEcSlave::ecmcEcSlave(
   simEntries_[0]=new ecmcEcEntry((uint8_t)32,&simBuffer_[0],"ZERO");
   simEntries_[1]=new ecmcEcEntry((uint8_t)32,&simBuffer_[8],"ONE");
   simEntries_[0]->writeValue(0); //ALways 0
-  simEntries_[1]->writeValue(-1); //Always 1 (all 64 bits)
+  simEntries_[1]->writeValue(0xFFFFFFFF); //Always 1 (all 32 bits)
 
   if(alias==0 && position==0 && vendorId==0 && productCode==0){
     simSlave_=true;
