@@ -14,12 +14,16 @@
 #include "ecmcDataStorage.h"
 #include "ecmcEc.h"
 #include "exprtkWrap.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 
 #define ERROR_PLCS_INDEX_OUT_OF_RANGE 0x20700
 #define ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE 0x20701
 #define ERROR_PLCS_EC_NOT_INITIALIZED 0x20702
 #define ERROR_PLCS_VARIABLE_NAME_TO_LONG 0x20703
 #define ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20704
+#define ERROR_PLCS_FILE_NOT_FOUND 0x20705
 
 #define CHECK_PLC_RETURN_IF_ERROR(index) {if(index>=ECMC_MAX_PLCS || index<0){LOGERR("ERROR: PLC index out of range.\n");return ERROR_PLCS_INDEX_OUT_OF_RANGE;}}
 
@@ -34,9 +38,10 @@ public:
   int setDataStoragePointer(ecmcDataStorage *ds,int index);
   int execute(bool ecOK);
   int setExpr(int plcIndex,char *expr);
-  int parseExpr(int plcIndex,char * exprStr);
+  int parseExpr(int plcIndex,const char * exprStr);
   int getExpr(int plcIndex, std::string *expr);
-  int addExprLine(int plcIndex,char *exprStr);
+  int addExprLine(int plcIndex,const char *exprStr);
+  int loadPLCFile(int plcIndex,char *fileName);
   int clearExpr(int plcIndex);
   int compileExpr(int plcIndex);
   int setEnable(int plcIndex,int enable);
@@ -54,12 +59,12 @@ private:
   int getDsIndex(char *varName);
   int addPLCDefaultVariables(int plcIndex,int skipCycles);
   int updateAllScanTimeVars();
-  int parseAxis(int plcIndex,char * exprStr);
-  int parseEC(int plcIndex,char * exprStr);
-  int parseStatic(int plcIndex,char * exprStr);
-  int parseGlobal(int plcIndex,char * exprStr);
-  int parsePLC(int plcIndex,char * exprStr);
-  int parseDataStorage(int plcIndex,char * exprStr);
+  int parseAxis(int plcIndex,const char * exprStr);
+  int parseEC(int plcIndex,const char * exprStr);
+  int parseStatic(int plcIndex,const char * exprStr);
+  int parseGlobal(int plcIndex,const char * exprStr);
+  int parsePLC(int plcIndex,const char * exprStr);
+  int parseDataStorage(int plcIndex,const char * exprStr);
   int findGlobalDataIF(char * varName, ecmcPLCDataIF **outDataIF);
   int getPLCErrorID();
   int globalVariableCount_;

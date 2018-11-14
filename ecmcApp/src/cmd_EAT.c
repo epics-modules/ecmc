@@ -1445,6 +1445,12 @@ static int handleCfgCommand(const char *myarg_1){
     return  appendPLCExpr(iValue,cExprBuffer);
   }
 
+  /*int Cfg.LoadPLCFile(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "LoadPLCFile(%d,%[^)])",&iValue,cExprBuffer);
+  if (nvals == 2 ){    
+    return  loadPLCFile(iValue,cExprBuffer);
+  }
+  
   /*int Cfg.ClearPLCExpr(int plcIndex);*/
   nvals = sscanf(myarg_1, "ClearPLCExpr(%d)",&iValue);
   if (nvals == 1) {

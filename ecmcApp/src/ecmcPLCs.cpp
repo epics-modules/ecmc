@@ -142,7 +142,7 @@ int ecmcPLCs::setExpr(int plcIndex,char *expr)
   return compileExpr(plcIndex);
 }
 
-int ecmcPLCs::addExprLine(int plcIndex,char *expr)
+int ecmcPLCs::addExprLine(int plcIndex,const char *expr)
 {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   int errorCode=parseExpr(plcIndex,expr);
@@ -179,6 +179,47 @@ int ecmcPLCs::addExprLine(int plcIndex,char *expr)
   errorCode=plcs_[plcIndex]->addExprLine(localExpr);
   free(localExpr);
   return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+}
+
+int ecmcPLCs::loadPLCFile(int plcIndex,char *fileName)
+{  
+  CHECK_PLC_RETURN_IF_ERROR(plcIndex)
+  std::ifstream plcFile;
+  plcFile.open(fileName);
+    
+  if(!plcFile.good()){
+   LOGERR("%s/%s:%d: ERROR PLC%d: File not found: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,plcIndex,fileName,ERROR_PLCS_FILE_NOT_FOUND);
+   return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_FILE_NOT_FOUND); 
+  }
+
+  std::string line,lineNoComments;
+  int lineNumber=1;  
+  int errorCode=0;
+  while(std::getline(plcFile, line)) {
+    //Remove Comemnts (everything after #)
+    lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
+    errorCode=addExprLine(plcIndex,lineNoComments.c_str());
+    if(errorCode){
+      LOGERR("%s/%s:%d: ERROR PLC%d: Error parsing file at line %d: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,plcIndex,lineNumber,line.c_str(),errorCode);
+      return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode); 
+    }
+    lineNumber++;
+  }
+
+  errorCode=compileExpr(plcIndex);
+  if(errorCode){
+    LOGERR("%s/%s:%d: ERROR PLC%d: Error Compiling file: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,plcIndex,fileName,errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode); 
+  }
+
+  //Set enable as default
+  errorCode=setEnable(plcIndex,1);
+  if(errorCode){
+    LOGERR("%s/%s:%d: ERROR PLC%d: Error Enabling PLC file: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,plcIndex,fileName,errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode); 
+  }
+
+  return 0;
 }
 
 int ecmcPLCs::clearExpr(int plcIndex)
@@ -221,7 +262,7 @@ int ecmcPLCs::getCompiled(int plcIndex,int *compiled)
   return 0;
 }
 
-int ecmcPLCs::parseExpr(int plcIndex,char * exprStr)
+int ecmcPLCs::parseExpr(int plcIndex,const char * exprStr)
 {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
 
@@ -401,22 +442,24 @@ int ecmcPLCs::getDsIndex(char *varName)
 /*
  * find and register all axis variables in string
  */
-int ecmcPLCs::parseAxis(int plcIndex,char * exprStr)
+int ecmcPLCs::parseAxis(int plcIndex,const char * exprStr)
 {
   //find  and register all axis variables in string
   int nvals=0;
   int axisId;
   int errorCode=0;
-  char *strAxis=exprStr;
+  char *strAxis=strdup(exprStr);
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   while((strAxis=strstr(strAxis,ECMC_AX_STR)) && strlen(strAxis)>0){
     // Sanity check
     nvals = sscanf(strAxis,ECMC_AX_STR"%d."ECMC_PLC_VAR_FORMAT,&axisId,varName);
     if (nvals == 2){
       if(axisId>=ECMC_MAX_AXES || axisId<0){
+        free(strAxis);
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
       }
       if(!axes_[axisId]){
+        free(strAxis);
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
       }
       varName[0]='\0';
@@ -424,22 +467,24 @@ int ecmcPLCs::parseAxis(int plcIndex,char * exprStr)
       if (nvals == 1){
         errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_AXIS);
         if(errorCode){
+          free(strAxis);
           return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
         }
       }
     }
     strAxis++;
   }
+  free(strAxis);
   return 0;
 }
 
 /*
  * find and register all ec variables in string
  */
-int ecmcPLCs::parseEC(int plcIndex,char * exprStr)
+int ecmcPLCs::parseEC(int plcIndex,const char * exprStr)
 {
   int ecId,ecSlave;
-  char *strEc=exprStr;
+  char *strEc=strdup(exprStr);
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   char varNameTemp[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   varName[0]='\0';
@@ -450,23 +495,26 @@ int ecmcPLCs::parseEC(int plcIndex,char * exprStr)
     if (nvals == 3){      
       unsigned int charCount=snprintf(varName,sizeof(varName),ECMC_EC_STR"%d.%s%d.%s",ecId,ECMC_SLAVE_CHAR,ecSlave,varNameTemp);
       if(charCount>=sizeof(varName)-1){
+        free(strEc);
         LOGERR("%s/%s:%d:  Error: Variable name %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,varNameTemp,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
       }   
       int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_ETHERCAT);
       if(errorCode){
+        free(strEc);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
     }
     strEc++;
   }
+  free(strEc);
   return 0;
 }
 
-int ecmcPLCs::parseStatic(int plcIndex,char * exprStr)
+int ecmcPLCs::parseStatic(int plcIndex,const char * exprStr)
 {
   //find static variable
-  char *strStatic=exprStr;
+  char *strStatic=strdup(exprStr);
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   varName[0]='\0';
   while((strStatic=strstr(strStatic,ECMC_STATIC_VAR)) && strlen(strStatic)>0){
@@ -475,18 +523,20 @@ int ecmcPLCs::parseStatic(int plcIndex,char * exprStr)
     if (nvals == 1){
       int errorCode=plcs_[plcIndex]->addAndRegisterLocalVar(varName);
       if(errorCode){
+        free(strStatic);
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
     }
     strStatic++;
   }
+  free(strStatic);
   return 0;
 }
 
-int ecmcPLCs::parseGlobal(int plcIndex,char * exprStr)
+int ecmcPLCs::parseGlobal(int plcIndex,const char * exprStr)
 {
   //find global variable
-  char *strGlobal=exprStr;
+  char *strGlobal=strdup(exprStr);
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   varName[0]='\0';
   while((strGlobal=strstr(strGlobal,ECMC_GLOBAL_VAR)) && strlen(strGlobal)>0){
@@ -495,18 +545,20 @@ int ecmcPLCs::parseGlobal(int plcIndex,char * exprStr)
     if (nvals == 1){
       int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
       if(errorCode){
+        free(strGlobal);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
     }
     strGlobal++;
   }
+  free(strGlobal);
   return 0;
 }
 
-int ecmcPLCs::parseDataStorage(int plcIndex,char * exprStr)
+int ecmcPLCs::parseDataStorage(int plcIndex,const char * exprStr)
 {
     //find plc variable
-  char *strDS=exprStr;
+  char *strDS=strdup(exprStr);
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   
   varName[0]='\0';
@@ -521,19 +573,21 @@ int ecmcPLCs::parseDataStorage(int plcIndex,char * exprStr)
       if (nvals == 1){
         int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_DATA_STORAGE);
         if(errorCode){
+          free(strDS);
           return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
         }
       }
     }
     strDS++;
   }
+  free(strDS);
   return 0;
 }
 
-int ecmcPLCs::parsePLC(int plcIndex,char * exprStr)
+int ecmcPLCs::parsePLC(int plcIndex,const char * exprStr)
 {
   //find plc variable
-  char *strPLC=exprStr;
+  char *strPLC=strdup(exprStr);
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   
   varName[0]='\0';
@@ -548,12 +602,14 @@ int ecmcPLCs::parsePLC(int plcIndex,char * exprStr)
       if (nvals == 1){
         int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
         if(errorCode){
+          free(strPLC);
           return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
         }
       }
     }
     strPLC++;
   }
+  free(strPLC);
   return 0;
 }
 

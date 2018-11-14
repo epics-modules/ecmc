@@ -1121,6 +1121,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20704:
       return "ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE";
       break;
+    case 0x20705:
+      return "ERROR_PLCS_FILE_NOT_FOUND";
+      break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
       break;

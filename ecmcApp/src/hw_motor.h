@@ -1608,7 +1608,7 @@ int setPLCExpr(int index,char *expr);
  *   37. ax<id>.mon.highsoftlim       high soft limit                  (rw)\n
  *   38. ax<id>.mon.lowsoftlimenable  low soft limit enable            (rw)\n
  *   39. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
- *
+ *   
  *  PLC variables:
  *   1.  plc<id>.enable               plc enable                       (rw)\n
  *                                    (end exe with "plc<id>.enable:=0#"\n
@@ -1618,12 +1618,45 @@ int setPLCExpr(int index,char *expr);
  *                                    Will be forwarded to user as\n
  *                                    controller error.\n
  *   3.  plc<id>.scantime             plc sample time in seconds       (ro)\n
+ * 
+ *  Data Storage variables:
+ *   1.  ds<id>.size                  Set/get size of data storage     (rw)\n
+ *                                    Set will clear the data storage\n 
+ *   2.  ds<id>.append                Add new data at end              (rw)\n
+ *                                    Current position index will be 
+ *                                    increased
+ *   3.  ds<id>.data                  Set/get data ar current position (rw)\n
+ *   4.  ds<id>.index                 Set/get current position index   (rw)\n
+ *   5.  ds<id>.error                 Data storage class error         (ro)\n
+ *   6.  ds<id>.clear                 Data buffer clear (set to zero)  (ro)\n
+ *   7.  ds<id>.full                  True if data storage is full     (ro)\n
+ * 
  *
  * \note Example: Add one line of PLC code to PLC 5
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
  * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#)" //Command string to cmd_EAT.c.\n
+ * 
+ * \note Example: Add code by plc file to PLC 5 (prefered solution):\n
+ * "Cfg.LoadPLCFile(5,<filename with path>)" //Command string to cmd_EAT.c.\n
  */
 int appendPLCExpr(int index,char *expr);
+
+/** \breif Load PLC file.\n
+ *
+ * Load file with PLC code to PLC.\n
+ * For syntax look at "appendPLCExpr()".\n
+ * PLC file will be compiled and 
+ * enabled.\n
+ *
+ * \param[in] index     PLC index.\n
+ * \param[in] fileName  File name.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Load plc fil with code to PLC 5\n
+ * "Cfg.LoadPLCFile(5,/home/iocuser/dummyPLC.plc)" //Command string to cmd_EAT.c.\n
+ */
+int loadPLCFile(int index,char *fileName);
 
 /** \breif Clear PLC expression.\n
  *
@@ -3027,8 +3060,9 @@ int armEvent(int indexEvent);
  * \param[in] index Index of data storage object to create.\n
  * \param[in] elements Size of data buffer.\n
  * \param[in] bufferType Data buffer type.\n
- *  bufferType = 0: LIFO buffer.\n
- *  bufferType = 1: Ring buffer.\n
+ *  bufferType = 0: Normal  buffer (fill from beginning stop when full).\n
+ *  bufferType = 1: Ring buffer (fill from beginning start over when full).\n
+ *  bufferType = 2: FIFO buffer (fill from end. old values shifted out).\n
  *
  * \return 0 if success or otherwise an error code.\n
  *

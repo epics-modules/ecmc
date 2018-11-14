@@ -20,10 +20,10 @@
 #define ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE 0x20203
 
 enum storageType{
-  ECMC_STORAGE_LIFO_BUFFER=0,
-  ECMC_STORAGE_RING_BUFFER=1,
+  ECMC_STORAGE_NORMAL_BUFFER=0, //Fill from beginning. Stop when full.
+  ECMC_STORAGE_RING_BUFFER=1,   //Fill from beginning. Start over in beginning
+  ECMC_STORAGE_FIFO_BUFFER=2,   //Fill from end (newwst value in the end). Old values shifted out
 };
-
 
 class ecmcDataStorage: public ecmcError
 {
@@ -47,12 +47,16 @@ public:
   int setCurrentPosition(int position);
   void printCurrentState();
 private:
+  int appendDataFifo(double *data, int size);
+  int appendDataRing(double *data, int size);
+  int appendDataNormal(double *data, int size);
   void initVars();
   int currentBufferIndex_;
   double* buffer_;
   int bufferElementCount_;
   storageType bufferType_;
   int index_;
+  int bufferFullCounter_;
 };
 
 #endif /* ECMCDATASTORAGE_H_ */

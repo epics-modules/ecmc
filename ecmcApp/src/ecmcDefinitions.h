@@ -197,12 +197,14 @@ enum motionObjectType{
 #define ECMC_AX_PATH_BUFFER_SIZE 256
 #define ECMC_EC_PATH_BUFFER_SIZE 256
 
+#define ECMC_PLC_FILE_COMMENT_CHAR "#"
+
 #define ECMC_PLC_DATA_STR "plc"
 #define ECMC_PLC_ENABLE_DATA_STR "enable"
 #define ECMC_PLC_ERROR_DATA_STR "error"
 #define ECMC_PLC_SCAN_TIME_DATA_STR "scantime"
 
-#define ECMC_PLC_DATA_STORAGE_STR "datastorage"
+#define ECMC_PLC_DATA_STORAGE_STR "ds"
 #define ECMC_DATA_STORAGE_DATA_APPEND_STR "append"
 #define ECMC_DATA_STORAGE_DATA_INDEX_STR "index"
 #define ECMC_DATA_STORAGE_DATA_ERROR_STR "error"

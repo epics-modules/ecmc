@@ -1476,6 +1476,13 @@ int appendPLCExpr(int index,char *expr)
   return plcs->addExprLine(index,expr);
 }
 
+int loadPLCFile(int index,char *fileName)
+{
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, fileName);
+  CHECK_PLCS_RETURN_IF_ERROR();  
+  return plcs->loadPLCFile(index,fileName);
+}
+
 int clearPLCExpr(int index)
 {
   LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);

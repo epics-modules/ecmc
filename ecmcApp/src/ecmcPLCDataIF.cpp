@@ -279,7 +279,7 @@ int ecmcPLCDataIF::writeDs()
       break; 
          
     case ECMC_DATA_STORAGE_DATA_CLEAR:      
-      if(data_){
+      if(data_==data_ && data_>0){ //Check for NAN (only append new value)
         ds_->clearBuffer();
       }
       break; 
