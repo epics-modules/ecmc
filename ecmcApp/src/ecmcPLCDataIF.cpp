@@ -215,7 +215,7 @@ int ecmcPLCDataIF::readDs()
       break; 
 
     case ECMC_DATA_STORAGE_DATA_INDEX:
-      data_=ds_->getIndex();
+      data_=ds_->getCurrentIndex();
       break; 
 
     case ECMC_DATA_STORAGE_DATA_ERROR:      
@@ -223,7 +223,7 @@ int ecmcPLCDataIF::readDs()
       break;     
 
     case ECMC_DATA_STORAGE_DATA_DATA:
-      errorCode=ds_->getDataElement(ds_->getIndex(),&tempData);
+      errorCode=ds_->getDataElement(&tempData);
       if(!errorCode){
         data_=tempData;
       }
@@ -275,7 +275,7 @@ int ecmcPLCDataIF::writeDs()
       break;
 
     case ECMC_DATA_STORAGE_DATA_DATA:
-      ds_->setDataElement(ds_->getIndex(),data_);      
+      ds_->setDataElement(data_);      
       break; 
          
     case ECMC_DATA_STORAGE_DATA_CLEAR:      

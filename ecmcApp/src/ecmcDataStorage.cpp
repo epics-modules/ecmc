@@ -141,6 +141,11 @@ int ecmcDataStorage::getDataElement(int index,double *data)
   return 0;
 }
 
+int ecmcDataStorage::getDataElement(double *data)
+{
+  return getDataElement(currentBufferIndex_,data);
+}
+
 int ecmcDataStorage::setDataElement(int index,double data)
 {
   if(index<0 || index>=bufferElementCount_){
@@ -148,6 +153,11 @@ int ecmcDataStorage::setDataElement(int index,double data)
   }
   buffer_[index]=data;
   return 0;
+}
+
+int ecmcDataStorage::setDataElement(double data)
+{
+  return setDataElement(currentBufferIndex_, data);
 }
 
 int ecmcDataStorage::setData(double *data, int size)
