@@ -39,8 +39,7 @@ void ecmcPLC::initVars()
 }
 
 int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
-{
-  printf("addAndRegisterLocalVar, %s \n",localVarStr);
+{  
   //Already added?addAndReisterGlobalVar
   if(localVarExist(localVarStr)){
     return 0;

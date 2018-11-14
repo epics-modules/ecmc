@@ -224,7 +224,6 @@ int ecmcPLCs::getCompiled(int plcIndex,int *compiled)
 int ecmcPLCs::parseExpr(int plcIndex,char * exprStr)
 {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
-  printf("parseExpr, %s\n",exprStr);
 
   if(strlen(exprStr)>=EC_MAX_OBJECT_PATH_CHAR_LENGTH-1){
     LOGERR("%s/%s:%d: ERROR: Expression to long (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLC_EXPR_LINE_TO_LONG);
@@ -262,7 +261,6 @@ int ecmcPLCs::parseExpr(int plcIndex,char * exprStr)
   }
 
   // Data storage
-  printf("parseExpr at call ds, %s\n",exprStr);
   errorCode=parseDataStorage(plcIndex,exprStr);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
@@ -355,7 +353,6 @@ int ecmcPLCs::createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource
       break;
 
     case ECMC_RECORDER_SOURCE_DATA_STORAGE:
-      printf("createNewGlobalDataIF, %s\n",varName);
       dsId=getDsIndex(varName);
       if(dsId>=ECMC_MAX_DATA_RECORDERS_OBJECTS || dsId<0){
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE);
@@ -565,7 +562,6 @@ int ecmcPLCs::parsePLC(int plcIndex,char * exprStr)
  */
 int ecmcPLCs::createAndRegisterNewDataIF(int plcIndex,char * varName,ecmcDataSourceType dataSource)
 { 
-  printf("createAndRegisterNewDataIF, %s\n",varName);
   ecmcPLCDataIF *dataIF=NULL;
   int errorCode=findGlobalDataIF(varName, &dataIF);
   if(errorCode){
