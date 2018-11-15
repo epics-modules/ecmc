@@ -63,6 +63,16 @@ int ecmcPLCs::createPLC(int plcIndex, int skipCycles)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
+  //Set axes pointers (for the already configuered axes)
+  for(int i=0; i<ECMC_MAX_AXES;i++){
+    plcs_[plcIndex]->setAxisArrayPointer(axes_[i],i);
+  }
+
+  //Set data storage pointers
+  for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
+    plcs_[plcIndex]->setDataStoragePointer(ds_[i],i);
+  }
+
   errorCode=addPLCDefaultVariables(plcIndex,skipCycles);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);

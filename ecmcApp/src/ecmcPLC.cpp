@@ -6,6 +6,29 @@
 
 #include "ecmcPLC.h"
 
+#define BIT_SET(a,b) ((a) |= (1<<(b)))
+#define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))
+#define BIT_FLIP(a,b) ((a) ^= (1<<(b)))
+#define BIT_CHECK(a,b) ((a) & (1<<(b)))
+
+double compute3(double v0, double v1, double v2)
+{
+   return v0 * v1 * v2;
+}
+
+double ec_set_bit(double value, double bitIndex)
+{
+  uint64_t temp=(uint64_t)value;  
+  return (double)BIT_SET(temp,(int)bitIndex);
+}
+
+double ec_clr_bit(double value, double bitIndex)
+{
+  uint64_t temp=(uint64_t)value;  
+  return (double)BIT_CLEAR(temp,(int)bitIndex);;
+}
+
+
 ecmcPLC::ecmcPLC(int skipCycles)
 {
   initVars();
@@ -36,6 +59,13 @@ void ecmcPLC::initVars()
     globalArray_[i]=NULL;
     localArray_[i]=NULL;
   }
+    for(int i=0; i<ECMC_MAX_AXES;i++){
+    axes_[i]=NULL;
+  }
+
+  for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
+    ds_[i]=NULL;
+  }
 }
 
 int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
@@ -64,9 +94,26 @@ int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
   }
 
+  //Test Add fucntion
+  if(!localVariableCount_){
+    printf("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\n");    
+    exprtk_->addFunction("compute3",compute3);
+    exprtk_->addFunction("ec_set_bit",ec_set_bit);
+    exprtk_->addFunction("ec_clr_bit",ec_clr_bit);
+  }
+
   localVariableCount_++;
   return 0;
 }
+
+/*double ecmcPLC::custFuncDsAppend(double dsIndex,double data)
+{
+   int index=(int)dsIndex;
+   if(index>=ECMC_MAX_DATA_STORAGE_OBJECTS || index<0){
+    return -(double)ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE;
+  }
+  ds_[index]->appendData(data);
+}*/
 
 int ecmcPLC::compile()
 {
@@ -269,4 +316,22 @@ int ecmcPLC::addAndReisterGlobalVar(ecmcPLCDataIF *dataIF)
 double ecmcPLC::getSampleTime()
 {
   return 1/MCU_FREQUENCY*(skipCycles_+1);
+}
+
+int ecmcPLC::setAxisArrayPointer(ecmcAxisBase *axis,int index)
+{
+  if(index>=ECMC_MAX_AXES || index<0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_INDEX_OUT_OF_RANGE);
+  }
+  axes_[index]=axis;
+  return 0;
+}
+
+int ecmcPLC::setDataStoragePointer(ecmcDataStorage *ds,int index)
+{
+  if(index>=ECMC_MAX_DATA_STORAGE_OBJECTS || index<0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_INDEX_OUT_OF_RANGE);
+  }
+  ds_[index]=ds;
+  return 0;
 }

@@ -25,6 +25,9 @@
 #define ERROR_PLC_PLC_DATA_IF_NULL 0x20505
 #define ERROR_PLC_DATA_IF_ALLOCATION_FAILED 0x20506
 #define ERROR_PLC_VARIABLE_COUNT_EXCEEDED 0x20507
+#define ERROR_PLC_AXIS_INDEX_OUT_OF_RANGE 0x20508
+#define ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20509
+
 
 class ecmcPLC : public ecmcError
 {
@@ -40,6 +43,8 @@ public:
   int  compile();
   int  addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
   int  addAndRegisterLocalVar(char *localVarStr);
+  int setAxisArrayPointer(ecmcAxisBase *axis,int index);
+  int setDataStoragePointer(ecmcDataStorage *ds,int index);
   double  getSampleTime();
 private:
   void initVars();
@@ -47,6 +52,7 @@ private:
   int globalVarExist(const char *varName);
   int localVarExist(const char *varName);
   int getPLCErrorID(); //from PLC Code
+  //double custFuncDsAppend(double dsIndex,double data);
   std::string exprStr_;
   bool compiled_;
   exprtkWrap *exprtk_;
@@ -58,6 +64,8 @@ private:
   int skipCycles_;
   int skipCyclesCounter_;
   double plcScanTimeInSecs_;
+  ecmcAxisBase *axes_[ECMC_MAX_AXES];
+  ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
 };
 
 #endif /* ecmcPLC_H_ */
