@@ -6,10 +6,18 @@
 
 #include "ecmcPLC.h"
 
+/*
+* Functions available in exprssion TK
+*/
 #define BIT_SET(a,b) ((a) |= (1<<(b)))
 #define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))
 #define BIT_FLIP(a,b) ((a) ^= (1<<(b)))
 #define BIT_CHECK(a,b) ((a) & (1<<(b)))
+
+ecmcAxisBase *ecmcPLC::statAxes_[ECMC_MAX_AXES]={};
+ecmcDataStorage *ecmcPLC::statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS]={};
+int statLastAxesExecuteAbs_[ECMC_MAX_AXES]={};
+int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 
 double compute3(double v0, double v1, double v2)
 {
@@ -25,9 +33,82 @@ double ec_set_bit(double value, double bitIndex)
 double ec_clr_bit(double value, double bitIndex)
 {
   uint64_t temp=(uint64_t)value;  
-  return (double)BIT_CLEAR(temp,(int)bitIndex);;
+  return (double)BIT_CLEAR(temp,(int)bitIndex);
 }
 
+double ec_flp_bit(double value, double bitIndex)
+{
+  uint64_t temp=(uint64_t)value;  
+  return (double)BIT_FLIP(temp,(int)bitIndex);
+}
+
+double ec_chk_bit(double value, double bitIndex)
+{
+  uint64_t temp=(uint64_t)value;  
+  return (double)BIT_CHECK(temp,(int)bitIndex)>0;
+}
+
+double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  
+  double errorCode=0;
+  int trigg=!statLastAxesExecuteAbs_[index] && (bool)execute;
+  statLastAxesExecuteAbs_[index]=execute;
+  
+  if(trigg){    
+    errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
+    if(errorCode){
+      return errorCode;
+    }
+    ecmcPLC::statAxes_[index]->getSeq()->setTargetPos(pos);
+    ecmcPLC::statAxes_[index]->getSeq()->setTargetVel(vel);
+    ecmcPLC::statAxes_[index]->getTraj()->setDec(dec);
+    ecmcPLC::statAxes_[index]->getTraj()->setAcc(acc);
+
+    errorCode=(double)ecmcPLC::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
+    if(errorCode){
+      return errorCode;
+    }
+    errorCode=(double)ecmcPLC::statAxes_[index]->setCmdData(0);
+    if(errorCode){
+      return errorCode;
+    }
+    errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    if(errorCode){
+      return errorCode;
+    }
+  }
+
+  return 0.0;
+}
+
+double mc_halt(double axIndex,double execute)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  
+  double errorCode=0;
+  int trigg=!statLastAxesExecuteHalt_[index] && (bool)execute;
+  statLastAxesExecuteHalt_[index]=execute;
+
+  if(trigg){    
+    errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
+    if(errorCode){
+      return errorCode;
+    }
+  }
+  return 0.0;
+}
+
+double ds_append(double dsIndex,double data)
+{
+  int index=(int)dsIndex;
+  CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);  
+  
+  return (double) ecmcPLC::statDs_[index]->appendData(data);
+}
 
 ecmcPLC::ecmcPLC(int skipCycles)
 {
@@ -59,13 +140,6 @@ void ecmcPLC::initVars()
     globalArray_[i]=NULL;
     localArray_[i]=NULL;
   }
-    for(int i=0; i<ECMC_MAX_AXES;i++){
-    axes_[i]=NULL;
-  }
-
-  for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
-    ds_[i]=NULL;
-  }
 }
 
 int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
@@ -94,12 +168,17 @@ int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
   }
 
-  //Test Add fucntion
+  //Add fucntion
   if(!localVariableCount_){
-    printf("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\n");    
+    printf("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\n");
     exprtk_->addFunction("compute3",compute3);
     exprtk_->addFunction("ec_set_bit",ec_set_bit);
     exprtk_->addFunction("ec_clr_bit",ec_clr_bit);
+    exprtk_->addFunction("ec_flp_bit",ec_flp_bit);
+    exprtk_->addFunction("ec_chk_bit",ec_chk_bit);
+    exprtk_->addFunction("mc_move_abs",mc_move_abs);
+    exprtk_->addFunction("mc_halt",mc_halt);
+    exprtk_->addFunction("ds_append",ds_append);
   }
 
   localVariableCount_++;
@@ -321,17 +400,17 @@ double ecmcPLC::getSampleTime()
 int ecmcPLC::setAxisArrayPointer(ecmcAxisBase *axis,int index)
 {
   if(index>=ECMC_MAX_AXES || index<0){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_INDEX_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
   }
-  axes_[index]=axis;
+  ecmcPLC::statAxes_[index]=axis;
   return 0;
 }
 
 int ecmcPLC::setDataStoragePointer(ecmcDataStorage *ds,int index)
 {
   if(index>=ECMC_MAX_DATA_STORAGE_OBJECTS || index<0){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_INDEX_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
   }
-  ds_[index]=ds;
+  ecmcPLC::statDs_[index]=ds;
   return 0;
 }

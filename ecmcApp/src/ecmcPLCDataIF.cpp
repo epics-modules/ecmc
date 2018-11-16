@@ -257,7 +257,7 @@ int ecmcPLCDataIF::writeDs()
       break;
 
     case ECMC_DATA_STORAGE_DATA_APPEND:      
-      if(data_==data_){ //Check for NAN (only append new value)
+      if(data_==data_){ //Check for NAN (only append new value)        
         ds_->appendData(data_);
       }
       break;

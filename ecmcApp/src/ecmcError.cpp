@@ -1071,10 +1071,13 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       return "ERROR_PLC_VARIABLE_COUNT_EXCEEDED";
       break;
     case 0x20508:
-      return "ERROR_PLC_AXIS_INDEX_OUT_OF_RANGE";
+      return "ERROR_PLC_AXIS_OBJECT_NULL";
       break;
     case 0x20509:
       return "ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x2050A:
+      return "ERROR_PLC_DATA_STORAGE_OBJECT_NULL";
       break;
     case 0x20600: //ecmcPLCDataIF
       return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";

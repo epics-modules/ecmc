@@ -25,9 +25,29 @@
 #define ERROR_PLC_PLC_DATA_IF_NULL 0x20505
 #define ERROR_PLC_DATA_IF_ALLOCATION_FAILED 0x20506
 #define ERROR_PLC_VARIABLE_COUNT_EXCEEDED 0x20507
-#define ERROR_PLC_AXIS_INDEX_OUT_OF_RANGE 0x20508
+#define ERROR_PLC_AXIS_OBJECT_NULL 0x20508
 #define ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20509
+#define ERROR_PLC_DATA_STORAGE_OBJECT_NULL 0x2050A
 
+#define CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndex) {             \
+  if(axIndex>=ECMC_MAX_AXES || axIndex<=0){                   \
+    LOGERR("ERROR: Axis index out of range.\n");              \
+    return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
+    if(ecmcPLC::statAxes_[axIndex]==NULL){                    \
+      LOGERR("ERROR: Axis object NULL\n");                    \
+      return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
+    }                                                         \
+  }                                                           \
+
+#define CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(dsIndex) {     \
+  if(dsIndex>=ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex<=0){   \
+    LOGERR("ERROR: Data Storage index out of range.\n");      \
+    return (double)ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;}\
+    if(ecmcPLC::statDs_[dsIndex]==NULL){                      \
+      LOGERR("ERROR: Data Storage object NULL\n");            \
+      return (double)ERROR_PLC_DATA_STORAGE_OBJECT_NULL;      \
+    }                                                         \
+  }                                                           \
 
 class ecmcPLC : public ecmcError
 {
@@ -46,13 +66,14 @@ public:
   int setAxisArrayPointer(ecmcAxisBase *axis,int index);
   int setDataStoragePointer(ecmcDataStorage *ds,int index);
   double  getSampleTime();
+  static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
+  static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
 private:
   void initVars();
   int varExist(char *varName);
   int globalVarExist(const char *varName);
   int localVarExist(const char *varName);
   int getPLCErrorID(); //from PLC Code
-  //double custFuncDsAppend(double dsIndex,double data);
   std::string exprStr_;
   bool compiled_;
   exprtkWrap *exprtk_;
@@ -64,8 +85,6 @@ private:
   int skipCycles_;
   int skipCyclesCounter_;
   double plcScanTimeInSecs_;
-  ecmcAxisBase *axes_[ECMC_MAX_AXES];
-  ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
 };
 
 #endif /* ecmcPLC_H_ */
