@@ -1618,6 +1618,8 @@ int setPLCExpr(int index,char *expr);
  *                                    Will be forwarded to user as\n
  *                                    controller error.\n
  *   3.  plc<id>.scantime             plc sample time in seconds       (ro)\n
+ *   4.  plc<id>.firstscan            true during first plc scan only  (ro)\n
+ *                                    usefull for initiations of variables\n
  * 
  *  Data Storage variables:
  *   1.  ds<id>.size                  Set/get size of data storage     (rw)\n
@@ -1631,7 +1633,154 @@ int setPLCExpr(int index,char *expr);
  *   6.  ds<id>.clear                 Data buffer clear (set to zero)  (ro)\n
  *   7.  ds<id>.full                  True if data storage is full     (ro)\n
  * 
+ *  Function Lib: EtherCAT
+ *   1. retvalue = ec_set_bit(
+ *                           <value>,         : Value to change
+ *                           <bitindex>       : Bit index 
+ *                           );
+ *      Sets bit at bitindex position of value. Returns the new value.\n
+ * 
+ *   2. retvalue = ec_clr_bit(
+ *                           <value>,         : Value to change
+ *                           <bitindex>       : Bit index 
+ *                           );
+ *      Clears bit at bitindex position of value. Returns the new value.\n
+ * 
+ *   3. retvalue = ec_flp_bit(
+ *                           <value>,         : Value to change
+ *                           <bitindex>       : Bit index 
+ *                           );
+ *      Flips bit at bitindex position of value. Returns the new value.\n
+ * 
+ *   4. retvalue = ec_chk_bit(
+ *                           <value>,         : Value to change
+ *                           <bitindex>       : Bit index 
+ *                           );
+ *      Checks bit at bitindex position of value. Returns the value of bit.\n
+ * 
+ *   5. retvalue=ec_get_err():
+ *      Returns error code from last lib call.\n
+ * 
+ *  Function Lib: Motion
+ *   1. retvalue = mc_move_abs(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           <pos>,           : Target position\n
+ *                           <vel>,           : Target velocity\n
+ *                           <acc>,           : Acceleration\n
+ *                           <dec>            : Deceleration\n
+ *                           ):
+ *      Absolute motion of axis.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ *      
+ *   2. retvalue = mc_move_rel(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           <pos>,           : Target position\n
+ *                           <vel>,           : Target velocity\n
+ *                           <acc>,           : Acceleration\n
+ *                           <dec>            : Deceleration\n
+ *                           );
+ * 
+ *      Relative motion of axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   3. retvalue = mc_move_vel(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           <vel>,           : Target velocity\n
+ *                           <acc>,           : Acceleration\n
+ *                           <dec>            : Deceleration\n
+ *                           );
+ *      Constant velocity motion of axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   4. retvalue = mc_home(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           <seqId>,         : Motion sequence\n
+ *                           <velTwoardsCam>, : Target Velocity twords cam\n
+ *                           <velOffCam>      : Target velocity off cam\n
+ *                           );
+ *      Perform a homing sequence of axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   5. retvalue = mc_halt(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           );
+ *      Stop motion of axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   6. retvalue = mc_power(
+ *                           <axIndex>,       : Axis index\n
+ *                           <enable>,        : Enable power\n
+ *                           );
+ *      Enable power of  axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
  *
+ *   7. retvalue = mc_get_err();
+ *      Returns error code for last lib call.\n
+ *   
+ *  Function Lib: Data Storage
+ *   1. retvalue = ds_append_data(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           <data>,          : Data\n
+ *                           );
+ *      Append data to data storage.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   2. retvalue = ds_clear_data(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Clear data to data storage.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   3. retvalue = ds_get_data(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           <bufferIndex>,   : Buffer index\n
+ *                           );
+ *      Returns data from buffer.\n
+ *
+ *   4. retvalue = ds_set_data(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           <bufferIndex>,   : Buffer index\n
+ *                           );
+ *      Sets data in data storage buffer.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   5. retvalue = ds_get_buff_id(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns current buffer index.\n
+ *
+ *   6. retvalue = ds_set_buff_id(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           <bufferIndex>,   : Buffer index\n
+ *                           );
+ *      Sets current buffer index in data storage buffer.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   7. retvalue = ds_is_full(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns true if buffer is full.\n
+ * 
+ *   8. retvalue = ds_get_size(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns buffer size of data storage.\n
+ * 
+ *   9. retvalue = ds_get_err()
+ *      Returns error code for last lib call.\n
+ *
+ *  
  * \note Example: Add one line of PLC code to PLC 5
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
  * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#)" //Command string to cmd_EAT.c.\n
