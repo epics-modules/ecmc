@@ -202,8 +202,11 @@ inline double mc_power(double axIndex,double enable)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  mc_errorCode=ecmcPLC::statAxes_[index]->setEnable((bool)enable);
-  return (double)mc_errorCode;
+  if(ecmcPLC::statAxes_[index]->getEnable() != (bool)enable){
+    mc_errorCode=ecmcPLC::statAxes_[index]->setEnable((bool)enable);    
+    return (double)mc_errorCode;
+  }
+  return 0;
 }
 
 inline double mc_get_err()
