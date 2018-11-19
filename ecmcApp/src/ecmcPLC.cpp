@@ -6,109 +6,17 @@
 
 #include "ecmcPLC.h"
 
-/*
-* Functions available in exprssion TK
-*/
-#define BIT_SET(a,b) ((a) |= (1<<(b)))
-#define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))
-#define BIT_FLIP(a,b) ((a) ^= (1<<(b)))
-#define BIT_CHECK(a,b) ((a) & (1<<(b)))
+#include "ecmcPLC_libEc.h"
+#include "ecmcPLC_libMc.h"
+#include "ecmcPLC_libDs.h"
 
-ecmcAxisBase *ecmcPLC::statAxes_[ECMC_MAX_AXES]={};
-ecmcDataStorage *ecmcPLC::statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS]={};
-int statLastAxesExecuteAbs_[ECMC_MAX_AXES]={};
-int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
-
-double compute3(double v0, double v1, double v2)
-{
-   return v0 * v1 * v2;
-}
-
-double ec_set_bit(double value, double bitIndex)
-{
-  uint64_t temp=(uint64_t)value;  
-  return (double)BIT_SET(temp,(int)bitIndex);
-}
-
-double ec_clr_bit(double value, double bitIndex)
-{
-  uint64_t temp=(uint64_t)value;  
-  return (double)BIT_CLEAR(temp,(int)bitIndex);
-}
-
-double ec_flp_bit(double value, double bitIndex)
-{
-  uint64_t temp=(uint64_t)value;  
-  return (double)BIT_FLIP(temp,(int)bitIndex);
-}
-
-double ec_chk_bit(double value, double bitIndex)
-{
-  uint64_t temp=(uint64_t)value;  
-  return (double)BIT_CHECK(temp,(int)bitIndex)>0;
-}
-
-double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
-{
-  int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
-  double errorCode=0;
-  int trigg=!statLastAxesExecuteAbs_[index] && (bool)execute;
-  statLastAxesExecuteAbs_[index]=execute;
-  
-  if(trigg){    
-    errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
-    if(errorCode){
-      return errorCode;
-    }
-    ecmcPLC::statAxes_[index]->getSeq()->setTargetPos(pos);
-    ecmcPLC::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLC::statAxes_[index]->getTraj()->setDec(dec);
-    ecmcPLC::statAxes_[index]->getTraj()->setAcc(acc);
-
-    errorCode=(double)ecmcPLC::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
-    if(errorCode){
-      return errorCode;
-    }
-    errorCode=(double)ecmcPLC::statAxes_[index]->setCmdData(0);
-    if(errorCode){
-      return errorCode;
-    }
-    errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
-    if(errorCode){
-      return errorCode;
-    }
-  }
-
-  return 0.0;
-}
-
-double mc_halt(double axIndex,double execute)
-{
-  int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
-  double errorCode=0;
-  int trigg=!statLastAxesExecuteHalt_[index] && (bool)execute;
-  statLastAxesExecuteHalt_[index]=execute;
-
-  if(trigg){    
-    errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
-    if(errorCode){
-      return errorCode;
-    }
-  }
-  return 0.0;
-}
-
-double ds_append(double dsIndex,double data)
-{
-  int index=(int)dsIndex;
-  CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);  
-  
-  return (double) ecmcPLC::statDs_[index]->appendData(data);
-}
+#define ecmcPLCAddFunction(cmd,func){          \
+  errorCode=exprtk_->addFunction(cmd,func);    \
+  cmdCounter++;                                \
+  if(errorCode){                               \
+    return errorCode;                          \
+  }                                            \
+}                                              \
 
 ecmcPLC::ecmcPLC(int skipCycles)
 {
@@ -140,6 +48,10 @@ void ecmcPLC::initVars()
     globalArray_[i]=NULL;
     localArray_[i]=NULL;
   }
+  firstScanDone_=0;
+  libMcLoaded_=0;
+  libEcLoaded_=0;
+  libDsLoaded_=0;
 }
 
 int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
@@ -169,9 +81,7 @@ int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
   }
 
   //Add fucntion
-  if(!localVariableCount_){
-    printf("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\n");
-    exprtk_->addFunction("compute3",compute3);
+  /*if(!localVariableCount_){
     exprtk_->addFunction("ec_set_bit",ec_set_bit);
     exprtk_->addFunction("ec_clr_bit",ec_clr_bit);
     exprtk_->addFunction("ec_flp_bit",ec_flp_bit);
@@ -179,7 +89,8 @@ int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
     exprtk_->addFunction("mc_move_abs",mc_move_abs);
     exprtk_->addFunction("mc_halt",mc_halt);
     exprtk_->addFunction("ds_append",ds_append);
-  }
+    exprtk_->addFunction("ds_clear",ds_clear);
+  }*/
 
   localVariableCount_++;
   return 0;
@@ -259,7 +170,8 @@ int ecmcPLC::execute(bool ecOK)
     }
   }
 
-
+  firstScanDone_=1;
+  
   return 0;
 }
 
@@ -397,6 +309,11 @@ double ecmcPLC::getSampleTime()
   return 1/MCU_FREQUENCY*(skipCycles_+1);
 }
 
+int ecmcPLC::getFirstScanDone()
+{
+  return firstScanDone_;
+}
+
 int ecmcPLC::setAxisArrayPointer(ecmcAxisBase *axis,int index)
 {
   if(index>=ECMC_MAX_AXES || index<0){
@@ -412,5 +329,127 @@ int ecmcPLC::setDataStoragePointer(ecmcDataStorage *ds,int index)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
   }
   ecmcPLC::statDs_[index]=ds;
+  return 0;
+}
+
+int  ecmcPLC::parseFunctions(const char * exprStr)
+{
+  //look for Ec function  
+  int errorCode=0;
+  if(!libEcLoaded_){
+    if(findEcFunction(exprStr)){
+      errorCode=loadEcLib();
+      if(errorCode){
+        return errorCode;
+      }
+    }
+  }
+
+  //look for Ds function 
+  if(!libDsLoaded_){
+    if(findDsFunction(exprStr) ){
+      errorCode=loadDsLib();
+      if(errorCode){
+        return errorCode;
+      }
+    }
+  }
+
+  //look for Mc function  
+  if(!libMcLoaded_){
+    if(findMcFunction(exprStr)){
+      errorCode=loadMcLib();
+      if(errorCode){
+        return errorCode;
+      }
+    }
+  }
+  return 0;
+}
+
+bool ecmcPLC::findEcFunction(const char * exprStr)
+{ 
+  for(int i=0;i<ec_cmd_count;i++){
+    if(strstr(exprStr,ecLibCmdList[i])){
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ecmcPLC::findMcFunction(const char * exprStr)
+{ 
+  for(int i=0;i<mc_cmd_count;i++){
+    if(strstr(exprStr,mcLibCmdList[i])){
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ecmcPLC::findDsFunction(const char * exprStr)
+{
+  for(int i=0;i<ds_cmd_count;i++){
+    if(strstr(exprStr,dsLibCmdList[i])){
+      return true;
+    }
+  }
+  return false;
+}
+
+int  ecmcPLC::loadEcLib()
+{
+  int errorCode=0;
+  int cmdCounter=0;
+  ecmcPLCAddFunction("ec_set_bit",ec_set_bit);
+  ecmcPLCAddFunction("ec_clr_bit",ec_clr_bit);
+  ecmcPLCAddFunction("ec_flp_bit",ec_flp_bit);
+  ecmcPLCAddFunction("ec_chk_bit",ec_chk_bit);
+  ecmcPLCAddFunction("ec_get_err",ec_get_err);
+  if(ec_cmd_count!=cmdCounter){
+    LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+  }
+  libEcLoaded_=1;
+  return 0;
+}
+
+int  ecmcPLC::loadMcLib()
+{
+  int errorCode=0;
+  int cmdCounter=0;
+  ecmcPLCAddFunction("mc_move_abs",mc_move_abs);
+  ecmcPLCAddFunction("mc_move_rel",mc_move_rel);
+  ecmcPLCAddFunction("mc_move_vel",mc_move_vel);
+  ecmcPLCAddFunction("mc_home",mc_home);
+  ecmcPLCAddFunction("mc_halt",mc_halt);
+  ecmcPLCAddFunction("mc_power",mc_power);
+  ecmcPLCAddFunction("mc_get_err",ec_get_err);
+  if(mc_cmd_count!=cmdCounter){
+    LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+  }
+  libMcLoaded_=1;
+  return 0;
+}
+
+int  ecmcPLC::loadDsLib()
+{
+  int errorCode=0;
+  int cmdCounter=0;
+  ecmcPLCAddFunction("ds_append_data",ds_append_data);
+  ecmcPLCAddFunction("ds_clear_data",ds_clear_data);
+  ecmcPLCAddFunction("ds_get_data",ds_get_data);
+  ecmcPLCAddFunction("ds_set_data",ds_set_data);
+  ecmcPLCAddFunction("ds_get_buff_id",ds_get_buff_id);
+  ecmcPLCAddFunction("ds_set_buff_id",ds_set_buff_id);
+  ecmcPLCAddFunction("ds_get_err",ds_get_err);
+  ecmcPLCAddFunction("ds_is_full",ds_is_full);
+  ecmcPLCAddFunction("ds_get_size",ds_get_size);  
+  if(ds_cmd_count!=cmdCounter){
+    LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+  }
+  libDsLoaded_=1;
   return 0;
 }

@@ -1079,6 +1079,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x2050A:
       return "ERROR_PLC_DATA_STORAGE_OBJECT_NULL";
       break;
+    case 0x2050B:
+      return "ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH";
+      break;
     case 0x20600: //ecmcPLCDataIF
       return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
       break;
@@ -1132,6 +1135,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20705:
       return "ERROR_PLCS_FILE_NOT_FOUND";
+      break;
+    case 0x20800:
+      return "ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";

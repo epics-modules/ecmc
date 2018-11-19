@@ -28,26 +28,7 @@
 #define ERROR_PLC_AXIS_OBJECT_NULL 0x20508
 #define ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20509
 #define ERROR_PLC_DATA_STORAGE_OBJECT_NULL 0x2050A
-
-#define CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndex) {             \
-  if(axIndex>=ECMC_MAX_AXES || axIndex<=0){                   \
-    LOGERR("ERROR: Axis index out of range.\n");              \
-    return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
-    if(ecmcPLC::statAxes_[axIndex]==NULL){                    \
-      LOGERR("ERROR: Axis object NULL\n");                    \
-      return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
-    }                                                         \
-  }                                                           \
-
-#define CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(dsIndex) {     \
-  if(dsIndex>=ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex<=0){   \
-    LOGERR("ERROR: Data Storage index out of range.\n");      \
-    return (double)ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;}\
-    if(ecmcPLC::statDs_[dsIndex]==NULL){                      \
-      LOGERR("ERROR: Data Storage object NULL\n");            \
-      return (double)ERROR_PLC_DATA_STORAGE_OBJECT_NULL;      \
-    }                                                         \
-  }                                                           \
+#define ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH 0x2050B
 
 class ecmcPLC : public ecmcError
 {
@@ -63,8 +44,10 @@ public:
   int  compile();
   int  addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
   int  addAndRegisterLocalVar(char *localVarStr);
-  int setAxisArrayPointer(ecmcAxisBase *axis,int index);
-  int setDataStoragePointer(ecmcDataStorage *ds,int index);
+  int  setAxisArrayPointer(ecmcAxisBase *axis,int index);
+  int  setDataStoragePointer(ecmcDataStorage *ds,int index);
+  int  parseFunctions(const char * exprStr);
+  int  getFirstScanDone();
   double  getSampleTime();
   static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
@@ -74,6 +57,12 @@ private:
   int globalVarExist(const char *varName);
   int localVarExist(const char *varName);
   int getPLCErrorID(); //from PLC Code
+  bool findMcFunction(const char * exprStr);
+  bool findEcFunction(const char * exprStr);
+  bool findDsFunction(const char * exprStr);
+  int loadMcLib();
+  int loadEcLib();
+  int loadDsLib();
   std::string exprStr_;
   bool compiled_;
   exprtkWrap *exprtk_;
@@ -82,9 +71,13 @@ private:
   int globalVariableCount_;
   int localVariableCount_;
   int inStartup_;
+  int firstScanDone_;
   int skipCycles_;
   int skipCyclesCounter_;
   double plcScanTimeInSecs_;
+  int libMcLoaded_;
+  int libEcLoaded_;
+  int libDsLoaded_;
 };
 
 #endif /* ecmcPLC_H_ */

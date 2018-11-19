@@ -65,6 +65,7 @@ private:
   int parseGlobal(int plcIndex,const char * exprStr);
   int parsePLC(int plcIndex,const char * exprStr);
   int parseDataStorage(int plcIndex,const char * exprStr);
+  int parseFunctions(int plcIndex,const char * exprStr);
   int findGlobalDataIF(char * varName, ecmcPLCDataIF **outDataIF);
   int getPLCErrorID();
   int globalVariableCount_;
@@ -74,6 +75,7 @@ private:
   ecmcEc *ec_;
   ecmcPLCDataIF *plcEnable_[ECMC_MAX_PLCS];
   ecmcPLCDataIF *plcError_[ECMC_MAX_PLCS];
+  ecmcPLCDataIF *plcFirstScan_[ECMC_MAX_PLCS];
   ecmcPLCDataIF *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
 };
 

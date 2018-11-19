@@ -25,7 +25,8 @@ void ecmcPLCs::initVars()
   for(int i=0; i<ECMC_MAX_PLCS;i++){
     plcs_[i]=NULL;
     plcEnable_[i]=NULL;
-    plcError_[i]=NULL;    
+    plcError_[i]=NULL;   
+    plcFirstScan_[i]=NULL; 
   }
   
   for(int i=0; i<ECMC_MAX_AXES;i++){
@@ -124,8 +125,13 @@ int ecmcPLCs::execute(bool ecOK)
   for(int plcIndex=0;plcIndex<ECMC_MAX_PLCS;plcIndex++){
     if(plcs_[plcIndex]!=NULL){
       if(plcEnable_[plcIndex]){
-        if(plcEnable_[plcIndex]->getData()){
+        if(plcEnable_[plcIndex]->getData()){          
           plcs_[plcIndex]->execute(ecOK);
+          if(ecOK){
+            if(plcFirstScan_[plcIndex]){
+              plcFirstScan_[plcIndex]->setData(!plcs_[plcIndex]->getFirstScanDone());  //First scan done
+            }
+          }
         }
       }     
     }  
@@ -208,10 +214,12 @@ int ecmcPLCs::loadPLCFile(int plcIndex,char *fileName)
   while(std::getline(plcFile, line)) {
     //Remove Comemnts (everything after #)
     lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
-    errorCode=addExprLine(plcIndex,lineNoComments.c_str());
-    if(errorCode){
-      LOGERR("%s/%s:%d: ERROR PLC%d: Error parsing file at line %d: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,plcIndex,lineNumber,line.c_str(),errorCode);
-      return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode); 
+    if(lineNoComments.length()>0){
+      errorCode=addExprLine(plcIndex,lineNoComments.c_str());
+      if(errorCode){
+        LOGERR("%s/%s:%d: ERROR PLC%d: Error parsing file at line %d: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,plcIndex,lineNumber,line.c_str(),errorCode);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode); 
+      }
     }
     lineNumber++;
   }
@@ -313,6 +321,12 @@ int ecmcPLCs::parseExpr(int plcIndex,const char * exprStr)
 
   // Data storage
   errorCode=parseDataStorage(plcIndex,exprStr);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+
+  // Functions
+  errorCode=parseFunctions(plcIndex,exprStr);
   if(errorCode){
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
@@ -543,6 +557,11 @@ int ecmcPLCs::parseStatic(int plcIndex,const char * exprStr)
   return 0;
 }
 
+int ecmcPLCs::parseFunctions(int plcIndex,const char * exprStr)
+{
+  return plcs_[plcIndex]->parseFunctions(exprStr);
+}
+
 int ecmcPLCs::parseGlobal(int plcIndex,const char * exprStr)
 {
   //find global variable
@@ -692,7 +711,7 @@ int ecmcPLCs::addPLCDefaultVariables(int plcIndex,int skipCycles)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
   }
   plcError_[plcIndex]=dataIF;
-  
+ 
   //Add plc<index>.scantime
   chars = snprintf (varName,EC_MAX_OBJECT_PATH_CHAR_LENGTH-1,ECMC_PLC_DATA_STR"%d."ECMC_PLC_SCAN_TIME_DATA_STR,plcIndex);
   if(chars>=EC_MAX_OBJECT_PATH_CHAR_LENGTH-1){
@@ -712,8 +731,29 @@ int ecmcPLCs::addPLCDefaultVariables(int plcIndex,int skipCycles)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
   }
   dataIF->setReadOnly(1);
-  dataIF->setData(1/MCU_FREQUENCY*(skipCycles+1));  
+  dataIF->setData(1/MCU_FREQUENCY*(skipCycles+1));    
 
+  //Add plc<index>.firstscan
+  chars = snprintf (varName,EC_MAX_OBJECT_PATH_CHAR_LENGTH-1,ECMC_PLC_DATA_STR"%d."ECMC_PLC_FIRST_SCAN_STR,plcIndex);
+  if(chars>=EC_MAX_OBJECT_PATH_CHAR_LENGTH-1){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+  }
+  errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+  dataIF=NULL;
+  errorCode=findGlobalDataIF(varName,&dataIF);
+  if(errorCode){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+  }
+  if(!dataIF){
+    LOGERR("%s/%s:%d: Failed allocation of ecmcPLCDataIF plcFirstScan_ object %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+  }
+  dataIF->setReadOnly(1);
+  dataIF->setData(1);  
+  plcFirstScan_[plcIndex]=dataIF;
   return 0;
 }
 
