@@ -60,9 +60,11 @@ private:
   bool findMcFunction(const char * exprStr);
   bool findEcFunction(const char * exprStr);
   bool findDsFunction(const char * exprStr);
+  bool findFileIOFunction(const char * exprStr);
   int loadMcLib();
   int loadEcLib();
   int loadDsLib();
+  int loadFileIOLib();
   std::string exprStr_;
   bool compiled_;
   exprtkWrap *exprtk_;
@@ -78,6 +80,7 @@ private:
   int libMcLoaded_;
   int libEcLoaded_;
   int libDsLoaded_;
+  int libFileIOLoaded_;
 };
 
 #endif /* ecmcPLC_H_ */

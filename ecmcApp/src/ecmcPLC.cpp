@@ -9,6 +9,7 @@
 #include "ecmcPLC_libEc.h"
 #include "ecmcPLC_libMc.h"
 #include "ecmcPLC_libDs.h"
+#include "ecmcPLC_libFileIO.h"
 
 #define ecmcPLCAddFunction(cmd,func){          \
   errorCode=exprtk_->addFunction(cmd,func);    \
@@ -52,6 +53,7 @@ void ecmcPLC::initVars()
   libMcLoaded_=0;
   libEcLoaded_=0;
   libDsLoaded_=0;
+  libFileIOLoaded_=0;
 }
 
 int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
@@ -171,7 +173,7 @@ int ecmcPLC::execute(bool ecOK)
   }
 
   firstScanDone_=1;
-  
+
   return 0;
 }
 
@@ -364,6 +366,17 @@ int  ecmcPLC::parseFunctions(const char * exprStr)
       }
     }
   }
+
+  //look for File IO function  
+  if(!libFileIOLoaded_){
+    if(findFileIOFunction(exprStr)){
+      errorCode=loadFileIOLib();
+      if(errorCode){
+        return errorCode;
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -391,6 +404,16 @@ bool ecmcPLC::findDsFunction(const char * exprStr)
 {
   for(int i=0;i<ds_cmd_count;i++){
     if(strstr(exprStr,dsLibCmdList[i])){
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ecmcPLC::findFileIOFunction(const char * exprStr)
+{
+  for(int i=0;i<fileIO_cmd_count;i++){
+    if(strstr(exprStr,fileIOLibCmdList[i])){
       return true;
     }
   }
@@ -453,3 +476,14 @@ int  ecmcPLC::loadDsLib()
   libDsLoaded_=1;
   return 0;
 }
+
+int  ecmcPLC::loadFileIOLib()
+{
+  int errorCode=exprtk_->addFileIO();
+  if(errorCode){
+    return errorCode;
+  }
+  libFileIOLoaded_=1;
+  return errorCode;
+}
+
