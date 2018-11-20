@@ -1289,7 +1289,7 @@ static int handleCfgCommand(const char *myarg_1){
   }
 
   /*int Cfg.SetAxisBlockCom(int axis_no, int block);*/
-  nvals = sscanf(myarg_1, "SetBlockCom(%d,%d)", &iValue,&iValue2);
+  nvals = sscanf(myarg_1, "SetAxisBlockCom(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return setAxisBlockCom(iValue,iValue2);
   }

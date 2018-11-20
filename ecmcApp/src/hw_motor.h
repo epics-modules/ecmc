@@ -1634,8 +1634,15 @@ int setPLCExpr(int index,char *expr);
  *   37. ax<id>.mon.highsoftlim       high soft limit                  (rw)\n
  *   38. ax<id>.mon.lowsoftlimenable  low soft limit enable            (rw)\n
  *   39. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
- *   
- *  PLC variables:
+ *   40. ax<id>.blockcom              Enables/disables "set" commands   (rw)\n
+ *                                    via command parser (ascii commands)\n
+ *                                    Statuses can still be read.\n
+ *                                    Exceptions ("set"-commands) that 
+ *                                    will work: 
+ *                                    - "StopMotion(axid)"
+ *                                    - "Cfg.SetAxisBlockCom(axid,block)"
+ *
+ *  PLC variables: 
  *   1.  plc<id>.enable               plc enable                       (rw)\n
  *                                    (end exe with "plc<id>.enable:=0#"\n
  *                                    Could be usefull for startup\n
