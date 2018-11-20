@@ -1572,7 +1572,7 @@ int setPLCExpr(int index,char *expr);
  *   8.  ax<id>.enc.source            internal source or expressions   (ro)\n
  *                                    source = 0: internal encoder\n
  *                                    source > 0: actual pos from expr\n
- *   9.  ax<id>.enc.homed             encoder homed                    (ro)\n
+ *   9.  ax<id>.enc.homed             encoder homed                    (rw)\n
  *   10. ax<id>.enc.homepos           homing position                  (rw)\n
  *   11. ax<id>.traj.setpos           curent trajectory setpoint       (ro)\n
  *   12. ax<id>.traj.targetpos        target position                  (rw)\n

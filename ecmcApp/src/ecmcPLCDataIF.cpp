@@ -546,6 +546,7 @@ int ecmcPLCDataIF::writeAxis()
       return 0;
       break;
     case ECMC_AXIS_DATA_HOMED:
+      axis_->setAxisHomed((bool)data_);
       return 0;
       break;
     case ECMC_AXIS_DATA_LIMIT_BWD:
