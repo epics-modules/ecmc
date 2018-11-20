@@ -1139,6 +1139,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20705:
       return "ERROR_PLCS_FILE_NOT_FOUND";
       break;
+    case 0x20706:
+      return "ERROR_PLCS_INVALID_VAR_NAME";
+      break;
     case 0x20800:
       return "ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE";
       break;

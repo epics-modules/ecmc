@@ -472,18 +472,19 @@ int ecmcPLCs::parseAxis(int plcIndex,const char * exprStr)
   int nvals=0;
   int axisId;
   int errorCode=0;
-  char *strAxis=strdup(exprStr);
+  char *strLocal=strdup(exprStr);
+  char *strAxis=strLocal;
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   while((strAxis=strstr(strAxis,ECMC_AX_STR)) && strlen(strAxis)>0){
     // Sanity check
     nvals = sscanf(strAxis,ECMC_AX_STR"%d."ECMC_PLC_VAR_FORMAT,&axisId,varName);
     if (nvals == 2){
       if(axisId>=ECMC_MAX_AXES || axisId<0){
-        free(strAxis);
+        free(strLocal);
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
       }
       if(!axes_[axisId]){
-        free(strAxis);
+        free(strLocal);
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
       }
       varName[0]='\0';
@@ -491,14 +492,14 @@ int ecmcPLCs::parseAxis(int plcIndex,const char * exprStr)
       if (nvals == 1){
         errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_AXIS);
         if(errorCode){
-          free(strAxis);
+          free(strLocal);
           return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
         }
       }
     }
     strAxis++;
   }
-  free(strAxis);
+  free(strLocal);
   return 0;
 }
 
@@ -508,7 +509,8 @@ int ecmcPLCs::parseAxis(int plcIndex,const char * exprStr)
 int ecmcPLCs::parseEC(int plcIndex,const char * exprStr)
 {
   int ecId,ecSlave;
-  char *strEc=strdup(exprStr);
+  char *strLocal=strdup(exprStr);
+  char *strEc=strLocal;
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   char varNameTemp[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   varName[0]='\0';
@@ -519,26 +521,27 @@ int ecmcPLCs::parseEC(int plcIndex,const char * exprStr)
     if (nvals == 3){      
       unsigned int charCount=snprintf(varName,sizeof(varName),ECMC_EC_STR"%d.%s%d.%s",ecId,ECMC_SLAVE_CHAR,ecSlave,varNameTemp);
       if(charCount>=sizeof(varName)-1){
-        free(strEc);
+        free(strLocal);
         LOGERR("%s/%s:%d:  Error: Variable name %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,varNameTemp,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_VARIABLE_NAME_TO_LONG);
       }   
       int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_ETHERCAT);
       if(errorCode){
-        free(strEc);
+        free(strLocal);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
     }
     strEc++;
   }
-  free(strEc);
+  free(strLocal);
   return 0;
 }
 
 int ecmcPLCs::parseStatic(int plcIndex,const char * exprStr)
 {
   //find static variable
-  char *strStatic=strdup(exprStr);
+  char *strLocal=strdup(exprStr);
+  char *strStatic=strLocal;
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   varName[0]='\0';
   while((strStatic=strstr(strStatic,ECMC_STATIC_VAR)) && strlen(strStatic)>0){
@@ -547,13 +550,13 @@ int ecmcPLCs::parseStatic(int plcIndex,const char * exprStr)
     if (nvals == 1){
       int errorCode=plcs_[plcIndex]->addAndRegisterLocalVar(varName);
       if(errorCode){
-        free(strStatic);
+        free(strLocal);
 	      return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
     }
     strStatic++;
   }
-  free(strStatic);
+  free(strLocal);
   return 0;
 }
 
@@ -565,7 +568,8 @@ int ecmcPLCs::parseFunctions(int plcIndex,const char * exprStr)
 int ecmcPLCs::parseGlobal(int plcIndex,const char * exprStr)
 {
   //find global variable
-  char *strGlobal=strdup(exprStr);
+  char *strLocal=strdup(exprStr);
+  char *strGlobal=strLocal;
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   varName[0]='\0';
   while((strGlobal=strstr(strGlobal,ECMC_GLOBAL_VAR)) && strlen(strGlobal)>0){
@@ -574,20 +578,21 @@ int ecmcPLCs::parseGlobal(int plcIndex,const char * exprStr)
     if (nvals == 1){
       int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
       if(errorCode){
-        free(strGlobal);
+        free(strLocal);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
       }
     }
     strGlobal++;
   }
-  free(strGlobal);
+  free(strLocal);
   return 0;
 }
 
 int ecmcPLCs::parseDataStorage(int plcIndex,const char * exprStr)
 {
     //find plc variable
-  char *strDS=strdup(exprStr);
+  char *strLocal=strdup(exprStr);
+  char *strDS=strLocal;
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   
   varName[0]='\0';
@@ -602,21 +607,22 @@ int ecmcPLCs::parseDataStorage(int plcIndex,const char * exprStr)
       if (nvals == 1){
         int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_DATA_STORAGE);
         if(errorCode){
-          free(strDS);
+          free(strLocal);
           return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
         }
       }
     }
     strDS++;
   }
-  free(strDS);
+  free(strLocal);
   return 0;
 }
 
 int ecmcPLCs::parsePLC(int plcIndex,const char * exprStr)
 {
   //find plc variable
-  char *strPLC=strdup(exprStr);
+  char *strLocal=strdup(exprStr);
+  char *strPLC=strLocal;
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   
   varName[0]='\0';
@@ -624,24 +630,52 @@ int ecmcPLCs::parsePLC(int plcIndex,const char * exprStr)
     //Sanity check 1
     int tempInt=0;
     int nvals = sscanf(strPLC,ECMC_PLC_DATA_STR"%d."ECMC_PLC_VAR_FORMAT,&tempInt,varName);
-    if (nvals == 2){                  
-      varName[0]='\0';
-      //Sanity check 2
-      int nvals = sscanf(strPLC,ECMC_PLC_VAR_FORMAT,varName);
-      if (nvals == 1){
-        int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
-        if(errorCode){
-          free(strPLC);
-          return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
-        }
+    if (nvals == 2){  
+      if(plcVarNameValid(varName)){
+        varName[0]='\0';
+        //Sanity check 2
+        int nvals = sscanf(strPLC,ECMC_PLC_VAR_FORMAT,varName);
+        if (nvals == 1){
+          int errorCode=createAndRegisterNewDataIF(plcIndex,varName,ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+          if(errorCode){
+            free(strLocal);
+            return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
+          }
+        }        
+      }
+      else{
+        LOGERR("%s/%s:%d: Invalid variable name: %s (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,ERROR_PLCS_INVALID_VAR_NAME);
+        free(strLocal);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_INVALID_VAR_NAME);
+
       }
     }
     strPLC++;
   }
-  free(strPLC);
+  free(strLocal);
   return 0;
 }
 
+/*
+* Ensure that plc variable name is correct
+*/
+int ecmcPLCs::plcVarNameValid(const char * plcVar)
+{
+  int length=strlen(plcVar);  
+  if(strstr(plcVar,ECMC_PLC_ENABLE_DATA_STR) && length==strlen(ECMC_PLC_ENABLE_DATA_STR)){
+    return 1;
+  }
+  if(strstr(plcVar,ECMC_PLC_ERROR_DATA_STR) && length==strlen(ECMC_PLC_ERROR_DATA_STR)){
+    return 1;
+  }
+  if(strstr(plcVar,ECMC_PLC_SCAN_TIME_DATA_STR) && length==strlen(ECMC_PLC_SCAN_TIME_DATA_STR)){
+    return 1;
+  }
+  if(strstr(plcVar,ECMC_PLC_FIRST_SCAN_STR) && length==strlen(ECMC_PLC_FIRST_SCAN_STR)){
+    return 1;
+  }
+  return 0;
+}
 /*
  * Create new dataIF if needed and register in PLC
  */

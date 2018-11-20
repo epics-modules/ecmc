@@ -24,6 +24,7 @@
 #define ERROR_PLCS_VARIABLE_NAME_TO_LONG 0x20703
 #define ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20704
 #define ERROR_PLCS_FILE_NOT_FOUND 0x20705
+#define ERROR_PLCS_INVALID_VAR_NAME 0x20706
 
 #define CHECK_PLC_RETURN_IF_ERROR(index) {if(index>=ECMC_MAX_PLCS || index<0){LOGERR("ERROR: PLC index out of range.\n");return ERROR_PLCS_INDEX_OUT_OF_RANGE;}}
 
@@ -68,6 +69,7 @@ private:
   int parseFunctions(int plcIndex,const char * exprStr);
   int findGlobalDataIF(char * varName, ecmcPLCDataIF **outDataIF);
   int getPLCErrorID();
+  int plcVarNameValid(const char * plcVar);
   int globalVariableCount_;
   ecmcPLC *plcs_[ECMC_MAX_PLCS];
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
