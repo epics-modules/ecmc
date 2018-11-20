@@ -82,30 +82,9 @@ int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
   }
 
-  //Add fucntion
-  /*if(!localVariableCount_){
-    exprtk_->addFunction("ec_set_bit",ec_set_bit);
-    exprtk_->addFunction("ec_clr_bit",ec_clr_bit);
-    exprtk_->addFunction("ec_flp_bit",ec_flp_bit);
-    exprtk_->addFunction("ec_chk_bit",ec_chk_bit);
-    exprtk_->addFunction("mc_move_abs",mc_move_abs);
-    exprtk_->addFunction("mc_halt",mc_halt);
-    exprtk_->addFunction("ds_append",ds_append);
-    exprtk_->addFunction("ds_clear",ds_clear);
-  }*/
-
   localVariableCount_++;
   return 0;
 }
-
-/*double ecmcPLC::custFuncDsAppend(double dsIndex,double data)
-{
-   int index=(int)dsIndex;
-   if(index>=ECMC_MAX_DATA_STORAGE_OBJECTS || index<0){
-    return -(double)ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE;
-  }
-  ds_[index]->appendData(data);
-}*/
 
 int ecmcPLC::compile()
 {
