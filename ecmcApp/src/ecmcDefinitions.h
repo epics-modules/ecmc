@@ -283,6 +283,7 @@ enum motionObjectType{
 #define ECMC_AXIS_DATA_STR_RESET "reset"
 #define ECMC_AXIS_DATA_STR_TRAJ_DIRECTION "traj.dir"
 #define ECMC_AXIS_DATA_STR_ENC_HOMEPOS "enc.homepos"
+#define ECMC_AXIS_DATA_STR_BLOCK_COM "blockcom"
 
 enum ecmcAxisDataType{
   ECMC_AXIS_DATA_NONE=0,
@@ -325,6 +326,7 @@ enum ecmcAxisDataType{
   ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE=37,
   ECMC_AXIS_DATA_TRAJ_DIRECTION=38,
   ECMC_AXIS_DATA_ENC_HOMEPOS=39,
+  ECMC_AXIS_DATA_BLOCK_COM=40,
 };
 
 enum ecmcDataStorageType{
