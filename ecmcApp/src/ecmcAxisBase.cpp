@@ -901,6 +901,12 @@ int ecmcAxisBase::getAxisHomed(bool *homed)
   return 0;
 }
 
+int ecmcAxisBase::setAxisHomed(bool homed)
+{
+  enc_->setHomed(homed);
+  return 0;
+}
+
 int ecmcAxisBase::getEncScaleNum(double *scale)
 {
   *scale=enc_->getScaleNum();

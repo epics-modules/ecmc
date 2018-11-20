@@ -135,6 +135,7 @@ public:
   int setExecute(bool execute);
   bool getExecute();
   int getAxisHomed(bool *homed);
+  int setAxisHomed(bool homed);
   int getEncScaleNum(double *scale);
   int setEncScaleNum(double scale);
   int getEncScaleDenom(double *scale);
