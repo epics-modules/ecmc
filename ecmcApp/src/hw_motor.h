@@ -305,6 +305,20 @@ int getAxisEnabled(int cntrl_no,int *value);
  */
 int getAxisEnable(int axisIndex,int *value);
 
+/** \breif Get axis block external com.\n
+ *   If true the axis will not take any active commands via cmd\n 
+ *   parser (statuses can still be read).\n 
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] block  Axis blocked.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get axis block for axis 3.\n
+ * "GetAxisBlockCom(3)" //Command string to cmd_EAT.c.\n
+ */
+int getAxisBlockCom(int axisIndex,int *block);
+
 /** \breif Get axis busy bit.\n
  *
  * The axis busy bit is high while an command is executed or while synchronizing to other axes.
@@ -1089,6 +1103,18 @@ int setAxisEnable(int axisIndex, int value);
  * "Cfg.SetAxisEnableAlarmAtHardLimits(3,1)" //Command string to cmd_EAT.c.\n
  */
 int setAxisEnableAlarmAtHardLimits(int axisIndex,int value);
+
+/** \breif Block/unblock communicatiom from via cmd parser.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] block      block or unblock com.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Block Com for axis 3.\n
+ * "Cfg.SetAxisBlockCom(3,1)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisBlockCom(int axisIndex, int block);
 
 /** \breif Set enable backward soft-limit of an axis.\n
  *

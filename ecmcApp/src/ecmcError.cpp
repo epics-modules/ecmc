@@ -962,6 +962,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20038:
       return "ERROR_MAIN_PLCS_SKIPCYCLES_INVALID";
       break;
+    case 0x20039:
+      return "ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
