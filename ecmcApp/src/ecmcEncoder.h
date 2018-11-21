@@ -8,6 +8,8 @@
 #ifndef ECMCENCODER_H_
 #define ECMCENCODER_H_
 
+#define __STDC_FORMAT_MACROS  //To have PRIx64
+#include <inttypes.h>
 #include <stdint.h>  //TODO different include in hw_motor for uint8_t ???
 #include <stdio.h>
 #include <ecrt.h>
