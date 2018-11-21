@@ -1085,6 +1085,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x2050B:
       return "ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH";
       break;
+    case 0x2050C:
+      return "ERROR_PLC_VARIABLE_NOT_FOUND";
+      break;
     case 0x20600: //ecmcPLCDataIF
       return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
       break;
@@ -1141,6 +1144,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20706:
       return "ERROR_PLCS_INVALID_VAR_NAME";
+      break;
+    case 0x20707:
+      return "ERROR_PLCS_PLC_NULL";
       break;
     case 0x20800:
       return "ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE";

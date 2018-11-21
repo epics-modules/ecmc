@@ -1534,6 +1534,20 @@ int compilePLCExpr(int index)
   return plcs->compileExpr(index);
 }
 
+int writePLCVar(int index,const char* varName,double value)
+{
+  LOGINFO4("%s/%s:%d index=%d, varName=%s, value=%lf\n",__FILE__, __FUNCTION__, __LINE__,index,varName,value);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->writeStaticPLCVar(index,varName,value);
+}
+
+int readPLCVar(int index,const char* varName,double *value)
+{
+  LOGINFO4("%s/%s:%d index=%d, varName=%s\n",__FILE__, __FUNCTION__, __LINE__,index,varName);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->readStaticPLCVar(index,varName,value);
+}
+
 int setAxisTrajExtVelFilterEnable(int axisIndex, int enable)
 {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);

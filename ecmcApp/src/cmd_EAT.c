@@ -1771,6 +1771,18 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     SEND_OK_OR_ERROR_AND_RETURN(writeEcEntry(iValue,iValue2,iValue3));
   }
 
+  /*WritePLCVar(int plcIndex,const char* varName,double value)*/
+  nvals = sscanf(myarg_1, "WritePLCVar(%d,%[^,],%lf)", &iValue,cIdBuffer,&dValue1);
+  if (nvals == 3) {
+    SEND_OK_OR_ERROR_AND_RETURN(writePLCVar(iValue,cIdBuffer,dValue1));
+  }
+
+  /*ReadPLCVar(int plcIndex,const char* varName,double *value)*/
+  nvals = sscanf(myarg_1, "ReadPLCVar(%d,%[^)])", &iValue,cIdBuffer);
+  if (nvals == 2) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(readPLCVar(iValue,cIdBuffer,&fValue));
+  }
+
   /*ReadAxisGearRatio(int nAxis)*/
   nvals = sscanf(myarg_1, "ReadAxisGearRatio(%d)",&motor_axis_no);
   if (nvals == 1) {
