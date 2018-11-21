@@ -466,3 +466,40 @@ int  ecmcPLC::loadFileIOLib()
   return errorCode;
 }
 
+int  ecmcPLC::readStaticPLCVar(const char *varName,double* data)
+{
+  ecmcPLCDataIF *dataIF=NULL;
+  int errorCode=findLocalVar(varName, &dataIF);
+  if(errorCode || dataIF==NULL){
+    LOGERR("%s/%s:%d: PLC static variable %s not found  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);    
+  }
+  *data=dataIF->getData();
+  return 0;  
+}
+
+int  ecmcPLC::writeStaticPLCVar(const char *varName,double data)
+{
+  ecmcPLCDataIF *dataIF=NULL;
+  int errorCode=findLocalVar(varName, &dataIF);
+  if(errorCode || dataIF==NULL){
+    LOGERR("%s/%s:%d: PLC static variable %s not found  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,varName,errorCode);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);    
+  }
+  dataIF->setData(data);
+  return 0;
+}
+  
+int ecmcPLC::findLocalVar(const char *varName, ecmcPLCDataIF **outDataIF)
+{
+  for(int i=0; i<localVariableCount_;i++){
+    if(localArray_[i]){
+      int n =strcmp(varName,localArray_[i]->getVarName());
+      if(n==0){
+        *outDataIF=localArray_[i];
+        return 0;
+      }
+    }
+  }
+  return ERROR_PLC_VARIABLE_NOT_FOUND;
+}

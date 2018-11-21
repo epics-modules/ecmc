@@ -1840,6 +1840,34 @@ int appendPLCExpr(int index,char *expr);
  */
 int loadPLCFile(int index,char *fileName);
 
+/** \breif Write to PLC variable.\n
+ * \note: Only static variables are supported.\n
+ *
+ * \param[in] index     PLC index.\n
+ * \param[in] varName   Variable name.\n
+ * \param[in] value     Value to write.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Write 100.0 to variable static.test in plc 5\n
+ * "WritePLCVar(5,static.test,100.0)" //Command string to cmd_EAT.c.\n
+ */
+int writePLCVar(int index,const char* varName,double value);
+
+/** \breif Read PLC variable.\n
+ * \note: Only static variables are supported.\n
+ *
+ * \param[in] index     PLC index.\n
+ * \param[in] varName   Variable name.\n
+ * \param[out] value    Read value.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Read variable static.test in plc 5\n
+ * "ReadPLCVar(5,static.test)" //Command string to cmd_EAT.c.\n
+ */
+int readPLCVar(int index,const char* varName,double *value);
+
 /** \breif Clear PLC expression.\n
  *
  * Clears all plc code of a PLC object.\n

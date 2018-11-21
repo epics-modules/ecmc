@@ -25,8 +25,18 @@
 #define ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20704
 #define ERROR_PLCS_FILE_NOT_FOUND 0x20705
 #define ERROR_PLCS_INVALID_VAR_NAME 0x20706
+#define ERROR_PLCS_PLC_NULL 0x20707
 
-#define CHECK_PLC_RETURN_IF_ERROR(index) {if(index>=ECMC_MAX_PLCS || index<0){LOGERR("ERROR: PLC index out of range.\n");return ERROR_PLCS_INDEX_OUT_OF_RANGE;}}
+#define CHECK_PLC_RETURN_IF_ERROR(index) {            \
+  if(index>=ECMC_MAX_PLCS || index<0){                \
+    LOGERR("ERROR: PLC index out of range.\n");       \
+    return ERROR_PLCS_INDEX_OUT_OF_RANGE;             \
+  }                                                   \
+  if(plcs_[index]==NULL){                             \
+    LOGERR("ERROR: PLC index NULL.\n");               \
+    return ERROR_PLCS_PLC_NULL;                       \
+  }                                                   \
+}                                                     \
 
 class ecmcPLCs : public ecmcError
 {
@@ -48,6 +58,8 @@ public:
   int setEnable(int plcIndex,int enable);
   int getEnable(int plcIndex,int *enabled);
   int getCompiled(int plcIndex,int *compiled);
+  int readStaticPLCVar(int plcIndex,const char *varName,double* data);
+  int writeStaticPLCVar(int plcIndex,const char *varName,double data);
   int validate();
   int  getErrorID();
   bool getError();

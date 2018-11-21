@@ -29,6 +29,7 @@
 #define ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20509
 #define ERROR_PLC_DATA_STORAGE_OBJECT_NULL 0x2050A
 #define ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH 0x2050B
+#define ERROR_PLC_VARIABLE_NOT_FOUND 0x2050C
 
 class ecmcPLC : public ecmcError
 {
@@ -48,6 +49,9 @@ public:
   int  setDataStoragePointer(ecmcDataStorage *ds,int index);
   int  parseFunctions(const char * exprStr);
   int  getFirstScanDone();
+  int  readStaticPLCVar(const char *varName,double* data);
+  int  writeStaticPLCVar(const char *varName,double data);
+  int  findLocalVar(const char *varName, ecmcPLCDataIF **outDataIF);
   double  getSampleTime();
   static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];

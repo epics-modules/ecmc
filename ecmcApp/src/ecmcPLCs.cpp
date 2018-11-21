@@ -851,3 +851,15 @@ int ecmcPLCs::updateAllScanTimeVars(){
   }
   return 0;
 }
+
+int ecmcPLCs::readStaticPLCVar(int plcIndex,const char  *varName,double* data)
+{
+  CHECK_PLC_RETURN_IF_ERROR(plcIndex);
+  return plcs_[plcIndex]->readStaticPLCVar(varName,data);
+}
+
+int ecmcPLCs::writeStaticPLCVar(int plcIndex,const char  *varName,double data)
+{
+  CHECK_PLC_RETURN_IF_ERROR(plcIndex);
+  return plcs_[plcIndex]->writeStaticPLCVar(varName,data);
+}
