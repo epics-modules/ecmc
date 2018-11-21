@@ -427,6 +427,11 @@ int  ecmcPLC::loadMcLib()
   ecmcPLCAddFunction("mc_halt",mc_halt);
   ecmcPLCAddFunction("mc_power",mc_power);
   ecmcPLCAddFunction("mc_get_err",ec_get_err);
+  ecmcPLCAddFunction("mc_reset",mc_reset);
+  ecmcPLCAddFunction("mc_get_busy",mc_get_busy);
+  ecmcPLCAddFunction("mc_get_homed",mc_get_homed);
+  ecmcPLCAddFunction("mc_get_axis_err",mc_get_axis_err);
+
   if(mc_cmd_count!=cmdCounter){
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
