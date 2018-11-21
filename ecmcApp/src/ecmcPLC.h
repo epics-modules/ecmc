@@ -25,6 +25,10 @@
 #define ERROR_PLC_PLC_DATA_IF_NULL 0x20505
 #define ERROR_PLC_DATA_IF_ALLOCATION_FAILED 0x20506
 #define ERROR_PLC_VARIABLE_COUNT_EXCEEDED 0x20507
+#define ERROR_PLC_AXIS_OBJECT_NULL 0x20508
+#define ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE 0x20509
+#define ERROR_PLC_DATA_STORAGE_OBJECT_NULL 0x2050A
+#define ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH 0x2050B
 
 class ecmcPLC : public ecmcError
 {
@@ -40,13 +44,27 @@ public:
   int  compile();
   int  addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
   int  addAndRegisterLocalVar(char *localVarStr);
+  int  setAxisArrayPointer(ecmcAxisBase *axis,int index);
+  int  setDataStoragePointer(ecmcDataStorage *ds,int index);
+  int  parseFunctions(const char * exprStr);
+  int  getFirstScanDone();
   double  getSampleTime();
+  static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
+  static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
 private:
   void initVars();
   int varExist(char *varName);
   int globalVarExist(const char *varName);
   int localVarExist(const char *varName);
   int getPLCErrorID(); //from PLC Code
+  bool findMcFunction(const char * exprStr);
+  bool findEcFunction(const char * exprStr);
+  bool findDsFunction(const char * exprStr);
+  bool findFileIOFunction(const char * exprStr);
+  int loadMcLib();
+  int loadEcLib();
+  int loadDsLib();
+  int loadFileIOLib();
   std::string exprStr_;
   bool compiled_;
   exprtkWrap *exprtk_;
@@ -55,9 +73,14 @@ private:
   int globalVariableCount_;
   int localVariableCount_;
   int inStartup_;
+  int firstScanDone_;
   int skipCycles_;
   int skipCyclesCounter_;
   double plcScanTimeInSecs_;
+  int libMcLoaded_;
+  int libEcLoaded_;
+  int libDsLoaded_;
+  int libFileIOLoaded_;
 };
 
 #endif /* ecmcPLC_H_ */

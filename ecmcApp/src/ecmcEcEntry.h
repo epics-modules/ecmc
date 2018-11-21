@@ -64,6 +64,7 @@ public:
   std::string getIdentificationName();
   int registerInDomain();
   int updateAsyn(bool force);
+  bool getSimEntry();
 private:
   int32_t ecValue2Int32();
   uint8_t *domainAdr_;

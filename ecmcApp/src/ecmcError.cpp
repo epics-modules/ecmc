@@ -962,6 +962,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20038:
       return "ERROR_MAIN_PLCS_SKIPCYCLES_INVALID";
       break;
+    case 0x20039:
+      return "ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
@@ -1070,6 +1073,18 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20507:
       return "ERROR_PLC_VARIABLE_COUNT_EXCEEDED";
       break;
+    case 0x20508:
+      return "ERROR_PLC_AXIS_OBJECT_NULL";
+      break;
+    case 0x20509:
+      return "ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x2050A:
+      return "ERROR_PLC_DATA_STORAGE_OBJECT_NULL";
+      break;
+    case 0x2050B:
+      return "ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH";
+      break;
     case 0x20600: //ecmcPLCDataIF
       return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
       break;
@@ -1100,6 +1115,12 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20609:
       return "ERROR_PLC_MON_NULL";
       break;
+    case 0x2060A:
+      return "ERROR_PLC_DATA_STORGAE_DATA_TYPE_ERROR";
+      break;
+    case 0x2060B:
+      return "ERROR_PLC_DATA_STORAGE_NULL";
+      break;
     case 0x20700:
       return "ERROR_PLCS_INDEX_OUT_OF_RANGE";
       break;
@@ -1111,6 +1132,18 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20703:
       return "ERROR_PLCS_VARIABLE_NAME_TO_LONG";
+      break;
+    case 0x20704:
+      return "ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE";
+      break;
+    case 0x20705:
+      return "ERROR_PLCS_FILE_NOT_FOUND";
+      break;
+    case 0x20706:
+      return "ERROR_PLCS_INVALID_VAR_NAME";
+      break;
+    case 0x20800:
+      return "ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE";
       break;
     case 0x200000:
       return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";

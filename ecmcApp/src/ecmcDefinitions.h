@@ -197,15 +197,29 @@ enum motionObjectType{
 #define ECMC_AX_PATH_BUFFER_SIZE 256
 #define ECMC_EC_PATH_BUFFER_SIZE 256
 
+#define ECMC_PLC_FILE_COMMENT_CHAR "#"
+
 #define ECMC_PLC_DATA_STR "plc"
 #define ECMC_PLC_ENABLE_DATA_STR "enable"
 #define ECMC_PLC_ERROR_DATA_STR "error"
 #define ECMC_PLC_SCAN_TIME_DATA_STR "scantime"
+#define ECMC_PLC_FIRST_SCAN_STR "firstscan"
+
+#define ECMC_PLC_DATA_STORAGE_STR "ds"
+#define ECMC_DATA_STORAGE_DATA_APPEND_STR "append"
+#define ECMC_DATA_STORAGE_DATA_INDEX_STR "index"
+#define ECMC_DATA_STORAGE_DATA_ERROR_STR "error"
+#define ECMC_DATA_STORAGE_DATA_SIZE_STR "size"
+#define ECMC_DATA_STORAGE_DATA_DATA_STR "data"
+#define ECMC_DATA_STORAGE_DATA_CLEAR_STR "clear"
+#define ECMC_DATA_STORAGE_DATA_FULL_STR "full"
 
 #define ECMC_STATIC_VAR "static."
 #define ECMC_GLOBAL_VAR "global."
 
 #define ECMC_EC_STR "ec"
+#define ECMC_SLAVE_CHAR "s"
+#define ECMC_DUMMY_SLAVE_STR "ds"
 #define ECMC_EC_HEALTH_STR "health"
 #define ECMC_AX_STR "ax"
 #define ECMC_AX_HEALTH_STR "health"
@@ -215,6 +229,9 @@ enum motionObjectType{
 #define ECMC_DRV_ENABLED_STR "status"
 #define ECMC_DRV_BREAK_STR "brake"
 #define ECMC_DRV_REDUCETORQUE_STR "reducetorque"
+
+#define ECMC_PLC_VAR_FORMAT "%[0-9a-zA-Z._]"
+#define ECMC_PLC_EC_ALIAS_FORMAT "%[0-9a-zA-Z_]"
 
 #define ECMC_ENC_STR "enc"
 #define ECMC_ENC_ACTPOS_STR "actpos"
@@ -266,6 +283,7 @@ enum motionObjectType{
 #define ECMC_AXIS_DATA_STR_RESET "reset"
 #define ECMC_AXIS_DATA_STR_TRAJ_DIRECTION "traj.dir"
 #define ECMC_AXIS_DATA_STR_ENC_HOMEPOS "enc.homepos"
+#define ECMC_AXIS_DATA_STR_BLOCK_COM "blockcom"
 
 enum ecmcAxisDataType{
   ECMC_AXIS_DATA_NONE=0,
@@ -308,6 +326,18 @@ enum ecmcAxisDataType{
   ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE=37,
   ECMC_AXIS_DATA_TRAJ_DIRECTION=38,
   ECMC_AXIS_DATA_ENC_HOMEPOS=39,
+  ECMC_AXIS_DATA_BLOCK_COM=40,
+};
+
+enum ecmcDataStorageType{
+  ECMC_DATA_STORAGE_DATA_NONE=0,
+  ECMC_DATA_STORAGE_DATA_APPEND=1,
+  ECMC_DATA_STORAGE_DATA_SIZE=2,
+  ECMC_DATA_STORAGE_DATA_INDEX=3,
+  ECMC_DATA_STORAGE_DATA_ERROR=4,
+  ECMC_DATA_STORAGE_DATA_DATA=5,
+  ECMC_DATA_STORAGE_DATA_CLEAR=6,
+  ECMC_DATA_STORAGE_DATA_FULL=7,
 };
 
 enum ecmcDataSourceType{
@@ -316,6 +346,7 @@ enum ecmcDataSourceType{
   ECMC_RECORDER_SOURCE_AXIS=2,
   ECMC_RECORDER_SOURCE_STATIC_VAR=3,
   ECMC_RECORDER_SOURCE_GLOBAL_VAR=4,
+  ECMC_RECORDER_SOURCE_DATA_STORAGE=5,
 };
 
 #endif /* ECMCDEFINITIONS_H_ */

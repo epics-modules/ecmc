@@ -6,6 +6,19 @@
 
 #include "ecmcPLC.h"
 
+#include "ecmcPLC_libEc.h"
+#include "ecmcPLC_libMc.h"
+#include "ecmcPLC_libDs.h"
+#include "ecmcPLC_libFileIO.h"
+
+#define ecmcPLCAddFunction(cmd,func){          \
+  errorCode=exprtk_->addFunction(cmd,func);    \
+  cmdCounter++;                                \
+  if(errorCode){                               \
+    return errorCode;                          \
+  }                                            \
+}                                              \
+
 ecmcPLC::ecmcPLC(int skipCycles)
 {
   initVars();
@@ -36,10 +49,15 @@ void ecmcPLC::initVars()
     globalArray_[i]=NULL;
     localArray_[i]=NULL;
   }
+  firstScanDone_=0;
+  libMcLoaded_=0;
+  libEcLoaded_=0;
+  libDsLoaded_=0;
+  libFileIOLoaded_=0;
 }
 
 int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
-{
+{  
   //Already added?addAndReisterGlobalVar
   if(localVarExist(localVarStr)){
     return 0;
@@ -55,7 +73,7 @@ int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
   if(errorCode){
     LOGERR("%s/%s:%d: PLC local variable: Create data interface failed. Adding %s failed (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,localVarStr,errorCode);
     delete localArray_[localVariableCount_];    
-    return errorCode;
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,errorCode);
   }
 
   if(exprtk_->addVariable(localVarStr,localArray_[localVariableCount_]->getDataRef())){
@@ -133,6 +151,7 @@ int ecmcPLC::execute(bool ecOK)
     }
   }
 
+  firstScanDone_=1;
 
   return 0;
 }
@@ -255,7 +274,7 @@ int ecmcPLC::addAndReisterGlobalVar(ecmcPLCDataIF *dataIF)
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
     }
 
-    if(exprtk_->addVariable(dataIF->getVarName(),dataIF->getDataRef())){
+    if(exprtk_->addVariable(dataIF->getExprTkVarName(),dataIF->getDataRef())){
       LOGERR("%s/%s:%d: Failed to add variable %s to exprtk  (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,dataIF->getVarName(),ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
       return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
     }
@@ -270,3 +289,180 @@ double ecmcPLC::getSampleTime()
 {
   return 1/MCU_FREQUENCY*(skipCycles_+1);
 }
+
+int ecmcPLC::getFirstScanDone()
+{
+  return firstScanDone_;
+}
+
+int ecmcPLC::setAxisArrayPointer(ecmcAxisBase *axis,int index)
+{
+  if(index>=ECMC_MAX_AXES || index<0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
+  }
+  ecmcPLC::statAxes_[index]=axis;
+  return 0;
+}
+
+int ecmcPLC::setDataStoragePointer(ecmcDataStorage *ds,int index)
+{
+  if(index>=ECMC_MAX_DATA_STORAGE_OBJECTS || index<0){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
+  }
+  ecmcPLC::statDs_[index]=ds;
+  return 0;
+}
+
+int  ecmcPLC::parseFunctions(const char * exprStr)
+{
+  //look for Ec function  
+  int errorCode=0;
+  if(!libEcLoaded_){
+    if(findEcFunction(exprStr)){
+      errorCode=loadEcLib();
+      if(errorCode){
+        return errorCode;
+      }
+    }
+  }
+
+  //look for Ds function 
+  if(!libDsLoaded_){
+    if(findDsFunction(exprStr) ){
+      errorCode=loadDsLib();
+      if(errorCode){
+        return errorCode;
+      }
+    }
+  }
+
+  //look for Mc function  
+  if(!libMcLoaded_){
+    if(findMcFunction(exprStr)){
+      errorCode=loadMcLib();
+      if(errorCode){
+        return errorCode;
+      }
+    }
+  }
+
+  //look for File IO function  
+  if(!libFileIOLoaded_){
+    if(findFileIOFunction(exprStr)){
+      errorCode=loadFileIOLib();
+      if(errorCode){
+        return errorCode;
+      }
+    }
+  }
+
+  return 0;
+}
+
+bool ecmcPLC::findEcFunction(const char * exprStr)
+{ 
+  for(int i=0;i<ec_cmd_count;i++){
+    if(strstr(exprStr,ecLibCmdList[i])){
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ecmcPLC::findMcFunction(const char * exprStr)
+{ 
+  for(int i=0;i<mc_cmd_count;i++){
+    if(strstr(exprStr,mcLibCmdList[i])){
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ecmcPLC::findDsFunction(const char * exprStr)
+{
+  for(int i=0;i<ds_cmd_count;i++){
+    if(strstr(exprStr,dsLibCmdList[i])){
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ecmcPLC::findFileIOFunction(const char * exprStr)
+{
+  for(int i=0;i<fileIO_cmd_count;i++){
+    if(strstr(exprStr,fileIOLibCmdList[i])){
+      return true;
+    }
+  }
+  return false;
+}
+
+int  ecmcPLC::loadEcLib()
+{
+  int errorCode=0;
+  int cmdCounter=0;
+  ecmcPLCAddFunction("ec_set_bit",ec_set_bit);
+  ecmcPLCAddFunction("ec_clr_bit",ec_clr_bit);
+  ecmcPLCAddFunction("ec_flp_bit",ec_flp_bit);
+  ecmcPLCAddFunction("ec_chk_bit",ec_chk_bit);
+  ecmcPLCAddFunction("ec_get_err",ec_get_err);
+  if(ec_cmd_count!=cmdCounter){
+    LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+  }
+  libEcLoaded_=1;
+  return 0;
+}
+
+int  ecmcPLC::loadMcLib()
+{
+  int errorCode=0;
+  int cmdCounter=0;
+  ecmcPLCAddFunction("mc_move_abs",mc_move_abs);
+  ecmcPLCAddFunction("mc_move_rel",mc_move_rel);
+  ecmcPLCAddFunction("mc_move_vel",mc_move_vel);
+  ecmcPLCAddFunction("mc_home",mc_home);
+  ecmcPLCAddFunction("mc_halt",mc_halt);
+  ecmcPLCAddFunction("mc_power",mc_power);
+  ecmcPLCAddFunction("mc_get_err",ec_get_err);
+  if(mc_cmd_count!=cmdCounter){
+    LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+  }
+  libMcLoaded_=1;
+  return 0;
+}
+
+int  ecmcPLC::loadDsLib()
+{
+  int errorCode=0;
+  int cmdCounter=0;
+  ecmcPLCAddFunction("ds_append_data",ds_append_data);
+  ecmcPLCAddFunction("ds_clear_data",ds_clear_data);
+  ecmcPLCAddFunction("ds_get_data",ds_get_data);
+  ecmcPLCAddFunction("ds_set_data",ds_set_data);
+  ecmcPLCAddFunction("ds_get_buff_id",ds_get_buff_id);
+  ecmcPLCAddFunction("ds_set_buff_id",ds_set_buff_id);
+  ecmcPLCAddFunction("ds_get_err",ds_get_err);
+  ecmcPLCAddFunction("ds_is_full",ds_is_full);
+  ecmcPLCAddFunction("ds_get_size",ds_get_size);  
+  if(ds_cmd_count!=cmdCounter){
+    LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+  }
+  libDsLoaded_=1;
+  return 0;
+}
+
+int  ecmcPLC::loadFileIOLib()
+{
+  int errorCode=exprtk_->addFileIO();
+  if(errorCode){
+    return errorCode;
+  }
+  libFileIOLoaded_=1;
+  return errorCode;
+}
+

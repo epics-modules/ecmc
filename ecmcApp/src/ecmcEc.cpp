@@ -206,11 +206,13 @@ int ecmcEc::activate()
     for(int entryIndex=0;entryIndex<nEntryCount;entryIndex++){
       ecmcEcEntry *tempEntry=slaveArray_[slaveIndex]->getEntry(entryIndex);
       if(tempEntry==NULL){
-	LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_ENTRY_NULL);
+	      LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_ENTRY_NULL);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_ENTRY_NULL);
       }
-      tempEntry->setDomainAdr(domainPd_);
-      LOGINFO5("%s/%s:%d: INFO: Entry %s (index = %d): domainAdr: %p.\n",__FILE__, __FUNCTION__, __LINE__,tempEntry->getIdentificationName().c_str(),entryIndex,domainPd_);
+      if(!tempEntry->getSimEntry()){
+        tempEntry->setDomainAdr(domainPd_);
+        LOGINFO5("%s/%s:%d: INFO: Entry %s (index = %d): domainAdr: %p.\n",__FILE__, __FUNCTION__, __LINE__,tempEntry->getIdentificationName().c_str(),entryIndex,domainPd_);
+      }
     }
   }
 
@@ -233,10 +235,12 @@ int ecmcEc::compileRegInfo()
         LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_EC_MAIN_ENTRY_NULL);
         return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_EC_MAIN_ENTRY_NULL);
       }
-      int ret=tempEntry->registerInDomain();
-      if(ret){
-         LOGERR("%s/%s:%d: ERROR: register entry in domain failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ret);
-	 return setErrorID(__FILE__,__FUNCTION__,__LINE__,ret);
+      if(!tempEntry->getSimEntry()){
+        int ret=tempEntry->registerInDomain();
+        if(ret){
+          LOGERR("%s/%s:%d: ERROR: register entry in domain failed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ret);
+	        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ret);
+        }
       }
       entryCounter++;
     }
@@ -486,15 +490,15 @@ int ecmcEc::updateOutProcessImage()
   if(asynPortDriver_){
     if(updateDefAsynParams_ && asynPortDriver_->getAllowRtThreadCom()){
       if(asynUpdateCycleCounter_>=asynUpdateCycles_){ //Only update at desired samplerate
-	asynPortDriver_-> setIntegerParam(asynParIdSlaveCounter_,masterState_.slaves_responding );
-	asynPortDriver_-> setIntegerParam(asynParIdAlState,masterState_.al_states);
-	asynPortDriver_-> setIntegerParam(asynParIdMasterLink_,masterState_.link_up);
-        asynPortDriver_-> setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
-        asynPortDriver_-> setIntegerParam(asynParIdDomianStatus_,domainOK_);
-        asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
-        asynPortDriver_-> setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
-        asynPortDriver_-> setIntegerParam(asynParIdEntryCounter_,entryCounter_);
-        asynPortDriver_-> setIntegerParam(asynParIdMemMapCounter_,ecMemMapArrayCounter_);
+	      asynPortDriver_->setIntegerParam(asynParIdSlaveCounter_,masterState_.slaves_responding );
+	      asynPortDriver_->setIntegerParam(asynParIdAlState,masterState_.al_states);
+	      asynPortDriver_->setIntegerParam(asynParIdMasterLink_,masterState_.link_up);
+        asynPortDriver_->setIntegerParam(asynParIdSlavesStatus_,slavesOK_);
+        asynPortDriver_->setIntegerParam(asynParIdDomianStatus_,domainOK_);
+        asynPortDriver_->setIntegerParam(asynParIdDomianFailCounter_,domainNotOKCounterMax_);
+        asynPortDriver_->setIntegerParam(asynParIdDomianFailCounterTotal_,domainNotOKCounterTotal_);
+        asynPortDriver_->setIntegerParam(asynParIdEntryCounter_,entryCounter_);
+        asynPortDriver_->setIntegerParam(asynParIdMemMapCounter_,ecMemMapArrayCounter_);
       }
       else{
         asynUpdateCycleCounter_++;

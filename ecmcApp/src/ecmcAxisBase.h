@@ -135,6 +135,7 @@ public:
   int setExecute(bool execute);
   bool getExecute();
   int getAxisHomed(bool *homed);
+  int setAxisHomed(bool homed);
   int getEncScaleNum(double *scale);
   int setEncScaleNum(double scale);
   int getEncScaleDenom(double *scale);
@@ -177,6 +178,8 @@ public:
   ecmcMasterSlaveIF *getExternalTrajIF();
   ecmcMasterSlaveIF *getExternalEncIF();
   bool getBusy();
+  int getBlockExtCom();
+  int setBlockExtCom(int block);
   int getDebugInfoData(ecmcAxisStatusType *data);  //memcpy
   int getAxisDebugInfoData(char *buffer, int bufferByteSize,int *bytesUsed);
   ecmcAxisStatusType *getDebugInfoDataPointer();
@@ -231,6 +234,7 @@ protected:
   int asynUpdateCycleCounterDiag_;
   int asynUpdateCyclesDiag_;
   ecmcEcEntry *statusOutputEntry_;
+  int blockExtCom_;
 };
 
 #endif /* ECMCAXISBASE_H_ */

@@ -1288,6 +1288,12 @@ static int handleCfgCommand(const char *myarg_1){
     return setEnableTimeDiag(iValue);
   }
 
+  /*int Cfg.SetAxisBlockCom(int axis_no, int block);*/
+  nvals = sscanf(myarg_1, "SetAxisBlockCom(%d,%d)", &iValue,&iValue2);
+  if (nvals == 2) {
+    return setAxisBlockCom(iValue,iValue2);
+  }
+
   /*int Cfg.SetAxisTrajStartPos(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisTrajStartPos(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
@@ -1445,6 +1451,12 @@ static int handleCfgCommand(const char *myarg_1){
     return  appendPLCExpr(iValue,cExprBuffer);
   }
 
+  /*int Cfg.LoadPLCFile(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "LoadPLCFile(%d,%[^)])",&iValue,cExprBuffer);
+  if (nvals == 2 ){    
+    return  loadPLCFile(iValue,cExprBuffer);
+  }
+  
   /*int Cfg.ClearPLCExpr(int plcIndex);*/
   nvals = sscanf(myarg_1, "ClearPLCExpr(%d)",&iValue);
   if (nvals == 1) {
@@ -1775,6 +1787,12 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   nvals = sscanf(myarg_1, "GetAxisOpMode(%d)",&motor_axis_no);
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisOpMode(motor_axis_no,&iValue));
+  }
+
+/*GetAxisBlockCom(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisBlockCom(%d)",&motor_axis_no);
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisBlockCom(motor_axis_no,&iValue));
   }
 
   /*GetAxisCycleCounter(int nAxis)*/

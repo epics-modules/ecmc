@@ -23,15 +23,21 @@ ecmcEcSlave::ecmcEcSlave(
   productCode_=productCode; /**< Expected product code. */
 
   //Simulation entries
-  simEntries_[0]=new ecmcEcEntry((uint8_t)1,&simBuffer_[0],"ZERO");
-  simEntries_[1]=new ecmcEcEntry((uint8_t)1,&simBuffer_[8],"ONE");
+  simEntries_[0]=new ecmcEcEntry((uint8_t)32,&simBuffer_[0],"ZERO");
+  simEntries_[1]=new ecmcEcEntry((uint8_t)32,&simBuffer_[8],"ONE");
   simEntries_[0]->writeValue(0); //ALways 0
-  simEntries_[1]->writeValue(1); //Always 1
+  simEntries_[1]->writeValue(0xFFFFFFFF); //Always 1 (all 32 bits)
 
   if(alias==0 && position==0 && vendorId==0 && productCode==0){
     simSlave_=true;
     return;
   }
+
+  //Add simulation entries as first two entries
+  entryList_[entryCounter_]=simEntries_[0];
+  entryCounter_++;
+  entryList_[entryCounter_]=simEntries_[1];
+  entryCounter_++;
 
   domain_=domain;
   if (!(slaveConfig_ = ecrt_master_slave_config(master_, alias_,slavePosition_, vendorId_,productCode_))) {

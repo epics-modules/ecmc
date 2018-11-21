@@ -327,6 +327,7 @@ void ecmcAxisBase::initVars()
   asynUpdateCycleCounterDiag_=0;
   asynUpdateCyclesDiag_=0;
   statusOutputEntry_=0;
+  blockExtCom_=0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable)
@@ -900,6 +901,12 @@ int ecmcAxisBase::getAxisHomed(bool *homed)
   return 0;
 }
 
+int ecmcAxisBase::setAxisHomed(bool homed)
+{
+  enc_->setHomed(homed);
+  return 0;
+}
+
 int ecmcAxisBase::getEncScaleNum(double *scale)
 {
   *scale=enc_->getScaleNum();
@@ -1248,5 +1255,13 @@ motionDirection ecmcAxisBase::getAxisSetDirection()
   return ECMC_DIR_STANDSTILL;
 }
 
+int ecmcAxisBase::getBlockExtCom()
+{
+  return blockExtCom_;
+}
 
-
+int ecmcAxisBase::setBlockExtCom(int block)
+{
+  blockExtCom_=block;
+  return 0;
+}

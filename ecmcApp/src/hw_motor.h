@@ -305,6 +305,20 @@ int getAxisEnabled(int cntrl_no,int *value);
  */
 int getAxisEnable(int axisIndex,int *value);
 
+/** \breif Get axis block external com.\n
+ *   If true the axis will not take any active commands via cmd\n 
+ *   parser (statuses can still be read).\n 
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] block  Axis blocked.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get axis block for axis 3.\n
+ * "GetAxisBlockCom(3)" //Command string to cmd_EAT.c.\n
+ */
+int getAxisBlockCom(int axisIndex,int *block);
+
 /** \breif Get axis busy bit.\n
  *
  * The axis busy bit is high while an command is executed or while synchronizing to other axes.
@@ -1090,6 +1104,18 @@ int setAxisEnable(int axisIndex, int value);
  */
 int setAxisEnableAlarmAtHardLimits(int axisIndex,int value);
 
+/** \breif Block/unblock communicatiom from via cmd parser.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] block      block or unblock com.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Block Com for axis 3.\n
+ * "Cfg.SetAxisBlockCom(3,1)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisBlockCom(int axisIndex, int block);
+
 /** \breif Set enable backward soft-limit of an axis.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -1546,7 +1572,7 @@ int setPLCExpr(int index,char *expr);
  *   8.  ax<id>.enc.source            internal source or expressions   (ro)\n
  *                                    source = 0: internal encoder\n
  *                                    source > 0: actual pos from expr\n
- *   9.  ax<id>.enc.homed             encoder homed                    (ro)\n
+ *   9.  ax<id>.enc.homed             encoder homed                    (rw)\n
  *   10. ax<id>.enc.homepos           homing position                  (rw)\n
  *   11. ax<id>.traj.setpos           curent trajectory setpoint       (ro)\n
  *   12. ax<id>.traj.targetpos        target position                  (rw)\n
@@ -1608,8 +1634,15 @@ int setPLCExpr(int index,char *expr);
  *   37. ax<id>.mon.highsoftlim       high soft limit                  (rw)\n
  *   38. ax<id>.mon.lowsoftlimenable  low soft limit enable            (rw)\n
  *   39. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
+ *   40. ax<id>.blockcom              Enables/disables "set" commands   (rw)\n
+ *                                    via command parser (ascii commands)\n
+ *                                    Statuses can still be read.\n
+ *                                    Exceptions ("set"-commands) that 
+ *                                    will work: 
+ *                                    - "StopMotion(axid)"
+ *                                    - "Cfg.SetAxisBlockCom(axid,block)"
  *
- *  PLC variables:
+ *  PLC variables: 
  *   1.  plc<id>.enable               plc enable                       (rw)\n
  *                                    (end exe with "plc<id>.enable:=0#"\n
  *                                    Could be usefull for startup\n
@@ -1618,12 +1651,194 @@ int setPLCExpr(int index,char *expr);
  *                                    Will be forwarded to user as\n
  *                                    controller error.\n
  *   3.  plc<id>.scantime             plc sample time in seconds       (ro)\n
+ *   4.  plc<id>.firstscan            true during first plc scan only  (ro)\n
+ *                                    usefull for initiations of variables\n
+ * 
+ *  Data Storage variables:
+ *   1.  ds<id>.size                  Set/get size of data storage     (rw)\n
+ *                                    Set will clear the data storage\n 
+ *   2.  ds<id>.append                Add new data at end              (rw)\n
+ *                                    Current position index will be 
+ *                                    increased
+ *   3.  ds<id>.data                  Set/get data ar current position (rw)\n
+ *   4.  ds<id>.index                 Set/get current position index   (rw)\n
+ *   5.  ds<id>.error                 Data storage class error         (ro)\n
+ *   6.  ds<id>.clear                 Data buffer clear (set to zero)  (ro)\n
+ *   7.  ds<id>.full                  True if data storage is full     (ro)\n
+ * 
+ *  Function Lib: EtherCAT
+ *   1. retvalue = ec_set_bit(
+ *                           <value>,         : Value to change
+ *                           <bitindex>       : Bit index 
+ *                           );
+ *      Sets bit at bitindex position of value. Returns the new value.\n
+ * 
+ *   2. retvalue = ec_clr_bit(
+ *                           <value>,         : Value to change
+ *                           <bitindex>       : Bit index 
+ *                           );
+ *      Clears bit at bitindex position of value. Returns the new value.\n
+ * 
+ *   3. retvalue = ec_flp_bit(
+ *                           <value>,         : Value to change
+ *                           <bitindex>       : Bit index 
+ *                           );
+ *      Flips bit at bitindex position of value. Returns the new value.\n
+ * 
+ *   4. retvalue = ec_chk_bit(
+ *                           <value>,         : Value to change
+ *                           <bitindex>       : Bit index 
+ *                           );
+ *      Checks bit at bitindex position of value. Returns the value of bit.\n
+ * 
+ *   5. retvalue=ec_get_err():
+ *      Returns error code from last lib call.\n
+ * 
+ *  Function Lib: Motion
+ *   1. retvalue = mc_move_abs(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           <pos>,           : Target position\n
+ *                           <vel>,           : Target velocity\n
+ *                           <acc>,           : Acceleration\n
+ *                           <dec>            : Deceleration\n
+ *                           ):
+ *      Absolute motion of axis.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ *      
+ *   2. retvalue = mc_move_rel(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           <pos>,           : Target position\n
+ *                           <vel>,           : Target velocity\n
+ *                           <acc>,           : Acceleration\n
+ *                           <dec>            : Deceleration\n
+ *                           );
+ * 
+ *      Relative motion of axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   3. retvalue = mc_move_vel(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           <vel>,           : Target velocity\n
+ *                           <acc>,           : Acceleration\n
+ *                           <dec>            : Deceleration\n
+ *                           );
+ *      Constant velocity motion of axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   4. retvalue = mc_home(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           <seqId>,         : Motion sequence\n
+ *                           <velTwoardsCam>, : Target Velocity twords cam\n
+ *                           <velOffCam>      : Target velocity off cam\n
+ *                           );
+ *      Perform a homing sequence of axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   5. retvalue = mc_halt(
+ *                           <axIndex>,       : Axis index\n
+ *                           <execute>,       : Trigger\n
+ *                           );
+ *      Stop motion of axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   6. retvalue = mc_power(
+ *                           <axIndex>,       : Axis index\n
+ *                           <enable>,        : Enable power\n
+ *                           );
+ *      Enable power of  axis <axIndex>.\n
+ *      Motion is triggerd with a positive edge on <execute> input.\n
+ *      returns 0 if success or error code.\n
  *
+ *   7. retvalue = mc_get_err();
+ *      Returns error code for last lib call.\n
+ *   
+ *  Function Lib: Data Storage
+ *   1. retvalue = ds_append_data(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           <data>,          : Data\n
+ *                           );
+ *      Append data to data storage.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   2. retvalue = ds_clear_data(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Clear data to data storage.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   3. retvalue = ds_get_data(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           <bufferIndex>,   : Buffer index\n
+ *                           );
+ *      Returns data from buffer.\n
+ *
+ *   4. retvalue = ds_set_data(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           <bufferIndex>,   : Buffer index\n
+ *                           );
+ *      Sets data in data storage buffer.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   5. retvalue = ds_get_buff_id(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns current buffer index.\n
+ *
+ *   6. retvalue = ds_set_buff_id(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           <bufferIndex>,   : Buffer index\n
+ *                           );
+ *      Sets current buffer index in data storage buffer.\n
+ *      returns 0 if success or error code.\n
+ * 
+ *   7. retvalue = ds_is_full(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns true if buffer is full.\n
+ * 
+ *   8. retvalue = ds_get_size(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns buffer size of data storage.\n
+ * 
+ *   9. retvalue = ds_get_err()
+ *      Returns error code for last lib call.\n
+ *
+ *  
  * \note Example: Add one line of PLC code to PLC 5
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
  * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#)" //Command string to cmd_EAT.c.\n
+ * 
+ * \note Example: Add code by plc file to PLC 5 (prefered solution):\n
+ * "Cfg.LoadPLCFile(5,<filename with path>)" //Command string to cmd_EAT.c.\n
  */
 int appendPLCExpr(int index,char *expr);
+
+/** \breif Load PLC file.\n
+ *
+ * Load file with PLC code to PLC.\n
+ * For syntax look at "appendPLCExpr()".\n
+ * PLC file will be compiled and 
+ * enabled.\n
+ *
+ * \param[in] index     PLC index.\n
+ * \param[in] fileName  File name.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Load plc fil with code to PLC 5\n
+ * "Cfg.LoadPLCFile(5,/home/iocuser/dummyPLC.plc)" //Command string to cmd_EAT.c.\n
+ */
+int loadPLCFile(int index,char *fileName);
 
 /** \breif Clear PLC expression.\n
  *
@@ -3027,8 +3242,9 @@ int armEvent(int indexEvent);
  * \param[in] index Index of data storage object to create.\n
  * \param[in] elements Size of data buffer.\n
  * \param[in] bufferType Data buffer type.\n
- *  bufferType = 0: LIFO buffer.\n
- *  bufferType = 1: Ring buffer.\n
+ *  bufferType = 0: Normal  buffer (fill from beginning stop when full).\n
+ *  bufferType = 1: Ring buffer (fill from beginning start over when full).\n
+ *  bufferType = 2: FIFO buffer (fill from end. old values shifted out).\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
