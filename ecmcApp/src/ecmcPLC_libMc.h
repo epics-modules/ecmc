@@ -25,7 +25,11 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_home(",
                                "mc_halt(",
                                "mc_power(",    
-                               "mc_get_err(",    
+                               "mc_get_err(",
+                               "mc_reset(",
+                               "mc_get_busy(",
+                               "mc_get_homed(",
+                               "mc_get_axis_err",
                               };
 
 ecmcAxisBase *ecmcPLC::statAxes_[ECMC_MAX_AXES]={};
@@ -43,9 +47,14 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
+    
   int trigg=!statLastAxesExecuteAbs_[index] && (bool)execute;
   statLastAxesExecuteAbs_[index]=execute;
+
+  if (!(bool)execute){
+    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    return mc_errorCode;
+  }
   
   if(trigg){    
     mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
@@ -82,6 +91,11 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
   int trigg=!statLastAxesExecuteRel_[index] && (bool)execute;
   statLastAxesExecuteRel_[index]=execute;
   
+  if (!(bool)execute){
+    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    return mc_errorCode;
+  }
+
   if(trigg){    
     mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
@@ -113,10 +127,15 @@ inline double mc_move_vel(double axIndex,double execute, double vel, double acc,
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
+
   int trigg=!statLastAxesExecuteVel_[index] && (bool)execute;
   statLastAxesExecuteVel_[index]=execute;
-  
+
+  if (!(bool)execute){
+    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    return mc_errorCode;
+  }
+
   if(trigg){    
     mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
@@ -151,6 +170,11 @@ inline double mc_home(double axIndex,double execute,double seqId, double velTwoa
   int trigg=!statLastAxesExecuteHome_[index] && (bool)execute;
   statLastAxesExecuteHome_[index]=execute;
   
+  if (!(bool)execute){
+    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    return mc_errorCode;
+  }
+
   if(trigg){    
     mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
@@ -186,6 +210,11 @@ inline double mc_halt(double axIndex,double execute)
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
   
+  if (!(bool)execute){
+    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    return mc_errorCode;
+  }
+
   int trigg=!statLastAxesExecuteHalt_[index] && (bool)execute;
   statLastAxesExecuteHalt_[index]=execute;
 
@@ -209,10 +238,42 @@ inline double mc_power(double axIndex,double enable)
   return 0;
 }
 
+inline double mc_reset(double axIndex)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  ecmcPLC::statAxes_[index]->setReset(1);
+  return 0;
+}
+
+inline double mc_get_busy(double axIndex)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  return (double) ecmcPLC::statAxes_[index]->getBusy();
+}
+
+inline double mc_get_homed(double axIndex)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  bool homed=0;
+  mc_errorCode=ecmcPLC::statAxes_[index]->getAxisHomed(&homed);
+  return (double) homed;
+}
+
+inline double mc_get_axis_err(double axIndex)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  return (double) ecmcPLC::statAxes_[index]->getErrorID();
+}
+
 inline double mc_get_err()
 {
   return (double)mc_errorCode;
 }
+
 
 #endif /* ecmcPLC_libMc_H_ */
 
