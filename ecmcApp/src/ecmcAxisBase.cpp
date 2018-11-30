@@ -136,43 +136,41 @@ void ecmcAxisBase::preExecute(bool masterOK)
         axisState_=ECMC_AXIS_STATE_DISABLED;
       }
       break;
+
     case ECMC_AXIS_STATE_DISABLED:
       data_.status_.busy=false;
-
       data_.status_.distToStop=0;
       if(data_.status_.enabled){
-	LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_ENABLED;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
-	axisState_=ECMC_AXIS_STATE_ENABLED;
+        LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_ENABLED;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+        axisState_=ECMC_AXIS_STATE_ENABLED;
       }
       if(!masterOK){
-	LOGERR("Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
-	axisState_=ECMC_AXIS_STATE_STARTUP;
+        LOGERR("Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
+        axisState_=ECMC_AXIS_STATE_STARTUP;
       }
-
       break;
+
     case ECMC_AXIS_STATE_ENABLED:
       data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
       if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
-
         data_.status_.busy=seq_.getBusy();
         data_.status_.currentTargetPosition=traj_->getTargetPos();
       }
       else{ //Synchronized to other axis
         data_.status_.busy=true;
-        //data_.status_.moving=std::abs(data_.status_.currentVelocityActual)>0;
         data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
       }
       if(!data_.status_.enabled){
-	LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
-	axisState_=ECMC_AXIS_STATE_DISABLED;
+        LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+        axisState_=ECMC_AXIS_STATE_DISABLED;
       }
       if(!masterOK){
-	LOGERR("Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
-	LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_STARTUP;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
-	axisState_=ECMC_AXIS_STATE_STARTUP;
+        LOGERR("Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_STARTUP).\n",data_.axisId_);
+        LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_STARTUP;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_);
+        axisState_=ECMC_AXIS_STATE_STARTUP;
       }
 
-      break;
+      break;      
   }
   mon_->readEntries();
   refreshExternalInputSources();
