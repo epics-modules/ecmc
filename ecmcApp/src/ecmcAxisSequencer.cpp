@@ -85,7 +85,7 @@ void ecmcAxisSequencer::initVars()
   seqTimeCounter_=0;
   seqStateOld_=0;
   seqInProgressOld_=0;
-  busy_=false;
+  localSeqBusy_=false;
   data_=NULL;
   oldEncAbsPosReg_=0;
   encAbsPosReg_=0;
@@ -102,6 +102,19 @@ void ecmcAxisSequencer::execute()
     return;
   }
 
+  //Reset busy (set in setExecute)
+  if(data_->command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
+    if(data_->command_.command==ECMC_CMD_HOMING){
+      data_->status_.busy=localSeqBusy_ || traj_->getBusy();
+    }
+    else{
+      data_->status_.busy=traj_->getBusy();
+    }    
+  }
+  else{  //Sync to other axis
+    data_->status_.busy=true;
+  }
+  
   hwLimitSwitchBwdOld_=hwLimitSwitchBwd_;
   hwLimitSwitchFwdOld_=hwLimitSwitchFwd_;
   hwLimitSwitchBwd_=data_->status_.limitBwd;
@@ -268,15 +281,17 @@ int  ecmcAxisSequencer::setExecute(bool execute)
       break;
     case ECMC_CMD_MOVEVEL:
       if(data_->command_.execute  && !executeOld_){
+        data_->status_.busy=true;
         traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
         traj_->setTargetVel(data_->command_.velocityTarget);
         data_->command_.positionTarget=checkSoftLimits(data_->command_.positionTarget); //not needed
         traj_->setTargetPos(data_->command_.positionTarget);
       }
-      traj_->setExecute(data_->command_.execute);
+      traj_->setExecute(data_->command_.execute);      
       break;
     case ECMC_CMD_MOVEREL:
       if(data_->command_.execute && !executeOld_){
+        data_->status_.busy=true;
         traj_->setMotionMode(ECMC_MOVE_MODE_POS);
         traj_->setTargetVel(data_->command_.velocityTarget);
         traj_->setTargetPos(checkSoftLimits(traj_->getCurrentPosSet()+data_->command_.positionTarget));
@@ -285,6 +300,7 @@ int  ecmcAxisSequencer::setExecute(bool execute)
       break;
     case ECMC_CMD_MOVEABS:
       if(data_->command_.execute && !executeOld_){
+        data_->status_.busy=true;
         traj_->setMotionMode(ECMC_MOVE_MODE_POS);
         traj_->setTargetVel(data_->command_.velocityTarget);
         switch(data_->command_.cmdData){
@@ -313,7 +329,8 @@ int  ecmcAxisSequencer::setExecute(bool execute)
         stopSeq();
         if(traj_!=NULL && enc_!=NULL && mon_!=NULL && cntrl_!=NULL){
           seqInProgress_=true;
-          busy_=true;
+          localSeqBusy_=true;     
+          data_->status_.busy=true;     
         }
         else{
           if(traj_==NULL){
@@ -410,16 +427,7 @@ void ecmcAxisSequencer::setCntrl(ecmcPIDController *cntrl)
 
 bool ecmcAxisSequencer::getBusy()
 {
-  if(traj_==NULL){
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_SEQ_TRAJ_NULL);
-    return false;
-  }
-
-  if(data_->command_.command==ECMC_CMD_HOMING){
-    return busy_;
-  }
-
-  return traj_->getBusy();
+  return data_->status_.busy;
 }
 
 void ecmcAxisSequencer::setJogVel(double vel)
@@ -1556,8 +1564,8 @@ int ecmcAxisSequencer::stopSeq()
     traj_->setExecute(false);
   }
 
-  seqInProgress_=false;
-  busy_=false;
+  seqInProgress_=false;  
+  localSeqBusy_=false;
   seqState_=0;
   seqTimeCounter_=0;
   return 0;

@@ -129,7 +129,7 @@ private:
   bool   jogFwd_;
   bool   jogBwd_;
   bool   executeOld_;
-  bool   busy_;
+  bool   localSeqBusy_;
   double jogVel_;
   double homeVelTwordsCam_; //ADR command
   double homeVelOffCam_; //ADR command

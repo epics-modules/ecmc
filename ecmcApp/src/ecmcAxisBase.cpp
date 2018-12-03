@@ -153,11 +153,9 @@ void ecmcAxisBase::preExecute(bool masterOK)
     case ECMC_AXIS_STATE_ENABLED:
       data_.status_.distToStop=traj_->distToStop(data_.status_.currentVelocitySetpoint);
       if(data_.command_.trajSource==ECMC_DATA_SOURCE_INTERNAL){
-        data_.status_.busy=seq_.getBusy();
         data_.status_.currentTargetPosition=traj_->getTargetPos();
       }
-      else{ //Synchronized to other axis
-        data_.status_.busy=true;
+      else{ //Synchronized to other axis        
         data_.status_.currentTargetPosition=data_.status_.currentPositionSetpoint;
       }
       if(!data_.status_.enabled){
@@ -588,6 +586,7 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource)
   if(refSource!=ECMC_DATA_SOURCE_INTERNAL){
     data_.interlocks_.noExecuteInterlock=false;
     data_.refreshInterlocks();
+    data_.status_.busy=true;
   }
 
   if(data_.command_.trajSource!=refSource){
