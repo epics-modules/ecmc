@@ -1,6 +1,9 @@
 #ifndef EEMC_CMD_H
 #define EEMC_CMD_H
 
+#define __STDC_FORMAT_MACROS  //To have PRIx64
+#include <inttypes.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
