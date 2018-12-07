@@ -213,8 +213,9 @@ int ecmcPLCs::loadPLCFile(int plcIndex,char *fileName)
   int errorCode=0;
   while(std::getline(plcFile, line)) {
     //Remove Comemnts (everything after #)
-    lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
+    lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));    
     if(lineNoComments.length()>0){
+      lineNoComments.append("\n");
       errorCode=addExprLine(plcIndex,lineNoComments.c_str());
       if(errorCode){
         LOGERR("%s/%s:%d: ERROR PLC%d: Error parsing file at line %d: %s (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,plcIndex,lineNumber,line.c_str(),errorCode);

@@ -88,9 +88,12 @@ int ecmcPLC::addAndRegisterLocalVar(char *localVarStr)
 
 int ecmcPLC::compile()
 {
-  if(exprtk_->compile(exprStr_)){
+  exprtk_->setExpression(exprStr_);
+  std::vector<std::string> varList;
+  if(exprtk_->compile()){
     compiled_=false;
     LOGERR("%s/%s:%d: Error: Transform compile error: %s.\n",__FILE__, __FUNCTION__, __LINE__,exprtk_->getParserError().c_str());
+    printf(exprtk_->getParserError().c_str());
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_COMPILE_ERROR);
   }
 

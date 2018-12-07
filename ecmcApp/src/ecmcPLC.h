@@ -12,7 +12,8 @@
 #include "ecmcDefinitions.h"
 #include "exprtkWrap.h"
 #include "ecmcAxisBase.h"
-#include <string.h>
+#include <string>
+#include <vector>
 
 #define ECMC_MAX_PLC_VARIABLES 1024
 #define ECMC_MAX_PLC_VARIABLES_NAME_LENGTH 1024
