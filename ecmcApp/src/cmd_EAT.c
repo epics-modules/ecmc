@@ -892,18 +892,6 @@ static int handleCfgCommand(const char *myarg_1){
     return ecSetDomainFailedCyclesLimit(iValue);
   }
 
-  /*Cfg.EcSlaveAutoConfig(int nSlaveIndex)*/
-  nvals = sscanf(myarg_1, "EcSlaveAutoConfig(%d)=", &iValue);
-  if (nvals == 1) {
-    return ecAutoConfigSlave(iValue,1);
-  }
-
-  /*Cfg.EcSlaveAutoConfig(int nSlaveIndex,int nAddAsynParams)*/
-  nvals = sscanf(myarg_1, "EcSlaveAutoConfig(%d,%d)=", &iValue,&iValue2);
-  if (nvals == 2) {
-    return ecAutoConfigSlave(iValue,iValue2);
-  }
-
   /*int Cfg.SetAxisJogVel(int traj_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisJogVel(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {

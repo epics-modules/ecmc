@@ -21,7 +21,6 @@
 #include "cmd.h" //Logging macros
 #include "ecmcAsynPortDriver.h"
 #include "ecmcEcMemMap.h"
-#include <iocsh.h>
 
 //EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
@@ -133,7 +132,6 @@ public:
   int setAsynPortDriver(ecmcAsynPortDriver* asynPortDriver);
   int printAllConfig();
   int printSlaveConfig(int slaveIndex);
-  int autoConfigSlave(int slaveIndex,int addAsAsynParams);
 private:
   void initVars();
   int updateInputProcessImage();
