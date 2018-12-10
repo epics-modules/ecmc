@@ -8,7 +8,7 @@
 #include "ecmcAxisReal.h"
 
 ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID,sampleTime)
-{
+{  
   PRINT_ERROR_PATH("axis[%d].error",axisID);
   initVars();
   data_.axisId_=axisID;
@@ -19,18 +19,7 @@ ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(axisID
   LOGINFO15("%s/%s:%d: axis[%d]=new;\n",__FILE__, __FUNCTION__, __LINE__,axisID);
 
   drv_=new ecmcDriveStepper(&data_);
-  if(!drv_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
-    exit(EXIT_FAILURE);
-  }
-
   cntrl_=new ecmcPIDController(&data_,data_.sampleTime_);
-  if(!cntrl_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR PID-CONTROLLER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_CNTRL_OBJECT_NULL);
-    exit(EXIT_FAILURE);
-  }
 
   seq_.setCntrl(cntrl_);
   printCurrentState();
@@ -368,26 +357,16 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
   if(currentDriveType_==driveType){
     return 0;
   }
+  
+  ecmcDriveBase *tempDrive;
 
   switch(driveType){
     case ECMC_STEPPER:
-      delete drv_;
-      drv_ =new ecmcDriveStepper(&data_);
-      if(!drv_){
-        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT (%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
-        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
-        exit(EXIT_FAILURE);
-      }
+      tempDrive =new ecmcDriveStepper(&data_);
       currentDriveType_=ECMC_STEPPER;
       break;
-    case ECMC_DS402:
-      delete drv_;
-      drv_ =new ecmcDriveDS402(&data_);
-      if(!drv_){
-        LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DRIVE OBJECT (%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
-        setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_DRV_OBJECT_NULL);
-        exit(EXIT_FAILURE);
-      }
+    case ECMC_DS402:  
+      tempDrive =new ecmcDriveDS402(&data_);
       currentDriveType_=ECMC_DS402;
       break;
     default:
@@ -395,6 +374,10 @@ int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType)
       return ERROR_AXIS_FUNCTION_NOT_SUPPRTED;
       break;
   }
+  
+  delete drv_;
+  drv_=tempDrive;
+
   printDriveType();
   return 0;
 }

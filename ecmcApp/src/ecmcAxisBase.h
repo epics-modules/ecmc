@@ -10,8 +10,10 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <new>
 #define __STDC_FORMAT_MACROS  //To "reinclude" inttypes.h
 #include <inttypes.h>
+
 #include "ecmcCommandTransform.h"
 #include "ecmcDefinitions.h"
 #include "ecmcDriveBase.hpp"

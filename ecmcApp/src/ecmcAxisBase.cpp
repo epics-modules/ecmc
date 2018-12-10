@@ -8,51 +8,20 @@
 #include "ecmcAxisBase.h"
 
 ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime)
-{
+{  
   PRINT_ERROR_PATH("axis[%d].error",axisID);
   initVars();
   data_.axisId_=axisID;
   data_.sampleTime_=sampleTime;
   data_.command_.operationModeCmd=ECMC_MODE_OP_AUTO;
   commandTransform_=new ecmcCommandTransform(2,ECMC_MAX_AXES);  //currently two commands
-  if(!commandTransform_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR COMMAND-TRANSFORM OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MASTER_AXIS_TRANSFORM_NULL);
-    exit(EXIT_FAILURE);
-  }
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,ECMC_CMD_TYPE_EXECUTE);
   commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,ECMC_CMD_TYPE_ENABLE);
-
   externalInputTrajectoryIF_=new ecmcMasterSlaveIF(data_.axisId_,ECMC_TRAJECTORY_INTERFACE,data_.sampleTime_);
-  if(!externalInputTrajectoryIF_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRAJECTORY-EXTERNAL-INPUT-INTERFACE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL);
-    exit(EXIT_FAILURE);
-  }
   externalInputEncoderIF_=new ecmcMasterSlaveIF(data_.axisId_,ECMC_ENCODER_INTERFACE,data_.sampleTime_);
-  if(!externalInputEncoderIF_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR ENCODER-EXTERNAL-INPUT_INTERFACE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL);
-    exit(EXIT_FAILURE);
-  }
   enc_=new ecmcEncoder(&data_,data_.sampleTime_);
-  if(!enc_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR ENCODER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_ENC_OBJECT_NULL);
-    exit(EXIT_FAILURE);
-  }
   traj_=new ecmcTrajectoryTrapetz(&data_,data_.sampleTime_);
-  if(!traj_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRAJECTORY OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_TRAJ_OBJECT_NULL);
-    exit(EXIT_FAILURE);
-  }
   mon_ =new ecmcMonitor(&data_);
-  if(!mon_){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR MONITOR OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-    setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_AXIS_MON_OBJECT_NULL);
-    exit(EXIT_FAILURE);
-  }
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
   seq_.setMon(mon_);

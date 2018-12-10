@@ -9,6 +9,7 @@
 #define ECMCAXISREAL_H_
 
 #include <stdint.h>
+#include <new>
 #include "ecmcAxisBase.h"
 #include "ecmcEncoder.h"
 

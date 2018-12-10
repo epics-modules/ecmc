@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <sched.h>
 #include <pthread.h>
+#include <exception>
 
 #include <stdlib.h>
 #include <math.h>
@@ -2265,7 +2266,15 @@ int setAxisDrvType(int axisIndex, int type)
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->setDriveType((ecmcDriveTypes)type);
+  try{
+    return axes[axisIndex]->setDriveType((ecmcDriveTypes)type);
+  }  
+  catch(std::exception& e){    
+	  LOGERR("%s/%s:%d: EXCEPTION %s WHEN SET DRIVE TYPE.\n",__FILE__,__FUNCTION__,__LINE__,e.what());
+    return ERROR_MAIN_EXCEPTION;    
+  }
+
+  return 0;
 }
 
 //Drv GET
@@ -2577,31 +2586,31 @@ int createAxis(int index, int type)
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
   }
 
-  switch((axisType)type){
+  try{
+    switch((axisType)type){
 
-    case ECMC_AXIS_TYPE_REAL:
-      if(axes[index]!=NULL){
-        delete axes[index];
-      }
-      axes[index]=new ecmcAxisReal(index,1/MCU_FREQUENCY);
-      if(!axes[index]){
-	      LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR NORMAL AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-        exit(EXIT_FAILURE);
-      }
+      case ECMC_AXIS_TYPE_REAL:
+        if(axes[index]!=NULL){
+          delete axes[index];
+        }
+        axes[index]=new ecmcAxisReal(index,1/MCU_FREQUENCY);            
+        break;
+
+      case ECMC_AXIS_TYPE_VIRTUAL:
+        if(axes[index]!=NULL){
+          delete axes[index];
+        }
+        axes[index]=new ecmcAxisVirt(index,1/MCU_FREQUENCY);
       break;
 
-    case ECMC_AXIS_TYPE_VIRTUAL:
-      if(axes[index]!=NULL){
-        delete axes[index];
-      }
-      axes[index]=new ecmcAxisVirt(index,1/MCU_FREQUENCY);
-      if(!axes[index]){
-	      LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VITRUAL AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-        exit(EXIT_FAILURE);
-       }
-      break;
     default:
       return ERROR_MAIN_AXIS_TYPE_UNKNOWN;
+    }
+  }
+  catch(std::exception& e){
+    delete axes[index];
+	  LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__,e.what());
+    return ERROR_MAIN_EXCEPTION;    
   }
 
   axisDiagIndex=index; //Always printout last axis added

@@ -965,6 +965,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20039:
       return "ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED";
       break;
+    case 0x2003A:
+      return "ERROR_MAIN_EXCEPTION";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
