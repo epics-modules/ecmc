@@ -26,6 +26,7 @@
 #define ERROR_PLCS_FILE_NOT_FOUND 0x20705
 #define ERROR_PLCS_INVALID_VAR_NAME 0x20706
 #define ERROR_PLCS_PLC_NULL 0x20707
+#define ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED 0x20708
 
 #define CHECK_PLC_RETURN_IF_ERROR(index) {            \
   if(index>=ECMC_MAX_PLCS || index<0){                \

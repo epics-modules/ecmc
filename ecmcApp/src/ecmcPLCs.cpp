@@ -509,7 +509,7 @@ int ecmcPLCs::parseAxis(int plcIndex,const char * exprStr)
  */
 int ecmcPLCs::parseEC(int plcIndex,const char * exprStr)
 {
-  int ecId,ecSlave;
+  int ecId,ecSlave,bitIndex;
   char *strLocal=strdup(exprStr);
   char *strEc=strLocal;
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
@@ -519,7 +519,14 @@ int ecmcPLCs::parseEC(int plcIndex,const char * exprStr)
   while((strEc=strstr(strEc,ECMC_EC_STR)) && strlen(strEc)>0){
     //Sanity check
     int nvals = sscanf(strEc, ECMC_EC_STR"%d."ECMC_SLAVE_CHAR"%d."ECMC_PLC_VAR_FORMAT,&ecId,&ecSlave,varNameTemp);
-    if (nvals == 3){      
+    if (nvals == 3){
+      //Ensure not bit access
+      nvals = sscanf(strEc, ECMC_EC_STR"%d."ECMC_SLAVE_CHAR"%d."ECMC_PLC_EC_ALIAS_FORMAT".%d",&ecId,&ecSlave,varNameTemp,&bitIndex);      
+      if (nvals == 4){
+        free(strLocal);
+        LOGERR("%s/%s:%d:  Error: Variable bit access syntax not allowed (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED);
+        return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED);
+      }
       unsigned int charCount=snprintf(varName,sizeof(varName),ECMC_EC_STR"%d.%s%d.%s",ecId,ECMC_SLAVE_CHAR,ecSlave,varNameTemp);
       if(charCount>=sizeof(varName)-1){
         free(strLocal);

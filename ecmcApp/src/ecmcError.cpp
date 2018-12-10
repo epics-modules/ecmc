@@ -1151,6 +1151,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x20707:
       return "ERROR_PLCS_PLC_NULL";
       break;
+    case 0x20708:
+      return "ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED";
+      break;      
     case 0x20800:
       return "ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE";
       break;
