@@ -718,8 +718,8 @@ static const iocshArg initArg3_2 = { "skipCycles",iocshArgInt};
 
 static const iocshArg * const initArgs_2[] = {&initArg0_2,
                                               &initArg1_2,
-					      &initArg2_2,
-					      &initArg3_2
+                                              &initArg2_2,
+                                              &initArg3_2
                                               };
 
 static const iocshFuncDef initFuncDef_2 = {"ecmcAsynPortDriverAddParameter",4,initArgs_2};
