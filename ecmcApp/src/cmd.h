@@ -31,8 +31,6 @@ extern  asynUser *pPrintOutAsynUser;
 #define ECMC_CMD_BUFFER_SIZE 65536
 #define ECMC_CMD_MAX_SINGLE_CMD_LENGTH 4096
 
-#define ERROR_CMD_TO_LONG  0x1000
-
 #define PRINT_OUT    (1<<1)
 
 #define PRINT_STDOUT_BIT1() (debug_print_flags & (1<<1))
@@ -154,10 +152,11 @@ do {                                              \
   (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);      \
 }
 
-#define RETURN_OR_DIE(buffer,fmt, ...)            \
-  do {                                            \
-    cmd_buf_printf(buffer,"Error: ");             \
-    cmd_buf_printf(buffer,fmt, ##__VA_ARGS__);    \
+#define ECMC_RETURN_ERROR_STRING "Error: " 
+#define RETURN_OR_DIE(buffer,fmt, ...)                \
+  do {                                                \
+    cmd_buf_printf(buffer,ECMC_RETURN_ERROR_STRING);  \
+    cmd_buf_printf(buffer,fmt, ##__VA_ARGS__);        \
     if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO, fmt, ##__VA_ARGS__);   \
     if (DIE_ON_ERROR_BIT0()) (void)asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,  "%s", "\n"); \
     if (DIE_ON_ERROR_BIT1())  exit(2);            \

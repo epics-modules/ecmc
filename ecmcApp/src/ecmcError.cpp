@@ -968,6 +968,18 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x2003A:
       return "ERROR_MAIN_EXCEPTION";
       break;
+    case 0x2003B:
+      return "ERROR_MAIN_PARSER_UNKOWN_CMD";
+      break;
+    case 0x2003C:
+      return "ERROR_MAIN_PARSER_BUFFER_NULL";
+      break;
+    case 0x2003D:
+      return "ERROR_MAIN_PARSER_CMD_TO_LONG";
+      break;
+    case 0x2003E:
+      return "ERROR_MAIN_INVALID_ADS_ADR_CMD";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;

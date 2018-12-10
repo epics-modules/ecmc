@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include "cmd.h"
+#include "cmd_EAT.h"
 #include "gitversion.h"
 
 #include <epicsTypes.h>
@@ -728,14 +729,71 @@ static void initCallFunc_2(const iocshArgBuf *args)
   ecmcAsynPortDriverAddParameter(args[0].sval, args[1].sval,args[2].sval, args[3].ival);
 }
 
+/* EPICS iocsh shell command:  ecmcConfigOrDie*/
+static ecmcOutputBufferType ecmcConfigBuffer;
+int ecmcConfigOrDie(const char *ecmcCommand)
+{
+  clearBuffer(&ecmcConfigBuffer);
+  int errorCode=motorHandleOneArg(ecmcCommand,&ecmcConfigBuffer);
+  if(errorCode){
+    LOGINFO("ERROR: Command %s resulted in buffer overflow error: %s.\n",ecmcCommand,ecmcConfigBuffer.buffer);
+    exit(EXIT_FAILURE);        
+  }
+  
+  //Check return value
+  if (strcmp(ecmcConfigBuffer.buffer,"OK")) {    
+    
+    int ecmcError=0;
+    int nvals = sscanf(ecmcConfigBuffer.buffer, ECMC_RETURN_ERROR_STRING"%d",&ecmcError);
+    if(nvals==1){
+      LOGINFO("ECMC returned error: %s (0x%x)\n",getErrorString(ecmcError),ecmcError);       
+    }
+    else{
+      LOGINFO("ECMC did not return \"OK\": %s\n",ecmcConfigBuffer.buffer);      
+    }
+    exit(EXIT_FAILURE);            
+  }
+  LOGINFO("%s\n",ecmcConfigBuffer.buffer);
+
+  return 0;
+}
+
+static const iocshArg initArg0_3 = { "Ecmc Command",iocshArgString};
+static const iocshArg * const initArgs_3[] = {&initArg0_3};
+static const iocshFuncDef initFuncDef_3 = {"ecmcConfigOrDie",1,initArgs_3};
+static void initCallFunc_3(const iocshArgBuf *args)
+{
+  ecmcConfigOrDie(args[0].sval);
+}
+
+/* EPICS iocsh shell command:  ecmcConfig*/
+int ecmcConfig(const char *ecmcCommand)
+{
+  clearBuffer(&ecmcConfigBuffer);
+  int errorCode=motorHandleOneArg(ecmcCommand,&ecmcConfigBuffer);
+  if(errorCode){
+    LOGINFO("ERROR: Command \"%s\" resulted in error code: %s.\n",ecmcCommand,ecmcConfigBuffer.buffer);    
+  }
+  
+  LOGINFO("%s\n",ecmcConfigBuffer.buffer);
+  return 0;
+}
+
+static const iocshArg initArg0_4 = { "Ecmc Command",iocshArgString};
+static const iocshArg * const initArgs_4[] = {&initArg0_4};
+static const iocshFuncDef initFuncDef_4 = {"ecmcConfig",1,initArgs_4};
+static void initCallFunc_4(const iocshArgBuf *args)
+{
+  ecmcConfig(args[0].sval);
+}
+
 void ecmcAsynPortDriverRegister(void)
 {
     iocshRegister(&initFuncDef,initCallFunc);
     iocshRegister(&initFuncDef_2,initCallFunc_2);
+    iocshRegister(&initFuncDef_3,initCallFunc_3);
+    iocshRegister(&initFuncDef_4,initCallFunc_4);
 }
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
 
 }
-
-
-

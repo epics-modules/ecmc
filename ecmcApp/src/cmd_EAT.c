@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include "cmd.h"
 #include "hw_motor.h"
+#include "ecmcErrorsList.h"
 #include "cmd_EAT.h"
 #include <inttypes.h>
 #include <string.h>
@@ -214,7 +215,7 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
                 group_no,
                 offset_in_group);
 
-  return __LINE__;
+  return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
 
 static int motorHandleADS_ADR_putInt(ecmcOutputBufferType *buffer,unsigned adsport,
@@ -254,7 +255,7 @@ static int motorHandleADS_ADR_putInt(ecmcOutputBufferType *buffer,unsigned adspo
                group_no,
                offset_in_group);
 
-  return __LINE__;
+  ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
 
 
@@ -358,7 +359,7 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
                group_no,
                offset_in_group);
 
-  return __LINE__;
+  return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
 
 /*
@@ -429,7 +430,7 @@ static int motorHandleADS_ADR_putFloat(ecmcOutputBufferType *buffer,unsigned ads
                group_no,
                offset_in_group);
 
-  return __LINE__;
+  return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
 
 /*
@@ -1648,7 +1649,7 @@ static int handleCfgCommand(const char *myarg_1){
    if (nvals == 1) {
      return triggerCommandList(iValue);
    }
-  return 1;
+  return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
 
 int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
@@ -1669,7 +1670,7 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   double dValue1,dValue2,dValue3,dValue4;
 
   if(buffer->buffer==NULL){
-    return __LINE__;
+    return ERROR_MAIN_PARSER_BUFFER_NULL;
   }
 
   if(!ecmcInit){
@@ -1679,8 +1680,8 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 
   //Check Command length
   if(strlen(myarg_1)>=ECMC_CMD_MAX_SINGLE_CMD_LENGTH-1){
-    LOGERR("%s/%s:%d: Command to long. Command buffer size %d :(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ECMC_CMD_MAX_SINGLE_CMD_LENGTH,ERROR_CMD_TO_LONG);
-    return ERROR_CMD_TO_LONG;
+    LOGERR("%s/%s:%d: Command to long. Command buffer size %d :(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ECMC_CMD_MAX_SINGLE_CMD_LENGTH,ERROR_MAIN_PARSER_CMD_TO_LONG);
+    return ERROR_MAIN_PARSER_CMD_TO_LONG;
   }
 
   //Check if configuration command
