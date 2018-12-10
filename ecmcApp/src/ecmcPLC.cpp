@@ -6,10 +6,10 @@
 
 #include "ecmcPLC.h"
 
-#include "ecmcPLC_libEc.h"
-#include "ecmcPLC_libMc.h"
-#include "ecmcPLC_libDs.h"
-#include "ecmcPLC_libFileIO.h"
+#include "ecmcPLC_libEc.inc"
+#include "ecmcPLC_libMc.inc"
+#include "ecmcPLC_libDs.inc"
+#include "ecmcPLC_libFileIO.inc"
 
 #define ecmcPLCAddFunction(cmd,func){          \
   errorCode=exprtk_->addFunction(cmd,func);    \
@@ -410,6 +410,8 @@ int  ecmcPLC::loadEcLib()
   ecmcPLCAddFunction("ec_clr_bit",ec_clr_bit);
   ecmcPLCAddFunction("ec_flp_bit",ec_flp_bit);
   ecmcPLCAddFunction("ec_chk_bit",ec_chk_bit);
+  ecmcPLCAddFunction("ec_print_hex",ec_print_hex);
+  ecmcPLCAddFunction("ec_print_bin",ec_print_bin);
   ecmcPLCAddFunction("ec_get_err",ec_get_err);
   if(ec_cmd_count!=cmdCounter){
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
