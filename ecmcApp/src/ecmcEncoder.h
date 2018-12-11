@@ -42,8 +42,12 @@
 #define ERROR_ENC_RAW_MASK_INVALID 0x1440D
 #define ERROR_ENC_ABS_MASK_INVALID 0x1440E
 
-//CONSTANTS
+//Entries
 #define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
+//Below special for hardware with latch
+#define ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS 1
+#define ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE 2
+#define ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL 3
 #define ECMC_ENCODER_MAX_VALUE_64_BIT ((uint64_t)(0xFFFFFFFFFFFFFFFFULL))
 
 class ecmcEncoder : public ecmcEcEntryLink
@@ -72,16 +76,21 @@ public:
   encoderType getType();
   int         setType(encoderType encType);
   double      readEntries();
+  int         writeEntries();
   int         setOffset(double offset);
   int         validate();
   void        printCurrentState();
   int         setToZeroIfRelative();
   int         setRawMask(uint64_t mask);
+  bool        getEncLatchFuncEnabled();
+  void        setArmEncLatch(bool arm);
+  bool        getNewEncValueLatched();
+  double      getEncLatchPosEng();
 protected:
   void        initVars();
   int         countTrailingZerosInMask(uint64_t mask);
-  int         countBitWidthOfMask(uint64_t mask,int trailZeros);
-  int64_t     handleOverUnderFlow(uint64_t newValue,int bits);
+  int         countBitWidthOfMask(uint64_t mask,int trailZeros);  
+  int64_t     handleOverUnderFlow(uint64_t rawPosOld,uint64_t rawPos,int64_t rawTurns, uint64_t rawLimit, int bits);
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcAxisData* data_;
@@ -94,6 +103,8 @@ protected:
   int64_t     rawPosMultiTurn_;
   int64_t     rawPosOffset_;
   int64_t     rawRange_;
+  int64_t     rawTurns_;
+  int64_t     rawTurnsOld_;
   int         bits_;
   int         absBits_; //Used for homing of partly absolute encoders (applied after raw mask)
   double      scaleNum_;
@@ -105,6 +116,14 @@ protected:
   double      sampleTime_;
   double      actVel_;
   bool        homed_;
+  bool        encLatchFunctEnabled_;
+  bool        encLatchStatus_;
+  bool        encLatchStatusOld_;
+  int64_t     rawEncLatchPos_;
+  int64_t     rawEncLatchPosMultiTurn_;
+  bool        encLatchControl_;
+  double      actEncLatchPos_;
+
 };
 
 #endif /* ECMCENCODER_H_ */

@@ -124,3 +124,11 @@ int ecmcEcEntryLink::getEntryStartBit(int index, int *startBit)
   return 0;
 
 }
+
+bool ecmcEcEntryLink::checkEntryExist(int entryIndex)
+{
+  if(entryIndex<MaxEcEntryLinks){
+    return entryInfoArray_[entryIndex].entry != NULL;
+  }
+  return false;
+}
