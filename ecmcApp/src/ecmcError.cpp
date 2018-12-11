@@ -978,8 +978,20 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       return "ERROR_MAIN_PARSER_CMD_TO_LONG";
       break;
     case 0x2003E:
-      return "ERROR_MAIN_INVALID_ADS_ADR_CMD";
+      return "ERROR_MAIN_PARSER_INVALID_ADS_FORMAT";
       break;
+    case 0x2003F:
+      return "ERROR_MAIN_PARSER_INVALID_ADS_PORT";
+      break;
+    case 0x20040:
+      return "ERROR_MAIN_PARSER_INVALID_ADS_LEN";
+      break;
+    case 0x20041:
+      return "ERROR_MAIN_PARSER_UNKNOWN_ADS_CMD";
+      break;
+    case 0x20042:
+      return "ERROR_MAIN_PARSER_INVALID_ADS_OFFSET";
+      break;   
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;

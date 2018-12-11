@@ -210,11 +210,6 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
     }
   }
 
-  RETURN_ERROR_OR_DIE(buffer,__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
-                __FILE__, __FUNCTION__, __LINE__,
-                group_no,
-                offset_in_group);
-
   return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
 
@@ -227,14 +222,12 @@ static int motorHandleADS_ADR_putInt(ecmcOutputBufferType *buffer,unsigned adspo
     int motor_axis_no = (int)group_no - 0x5000;
 
     //ADSPORT=501/.ADR.16#5001,16#B,2,2=1; #enable low Softlimit
-    if (offset_in_group == 0xB) {
-      setAxisEnableSoftLimitBwd(motor_axis_no, iValue);
-      return 0;
+    if (offset_in_group == 0xB) {      
+      return setAxisEnableSoftLimitBwd(motor_axis_no, iValue);;
     }
     //ADSPORT=501/.ADR.16#5001,16#C,2,2=1; #enable high Softlimit
-    if (offset_in_group == 0xC) {
-      setAxisEnableSoftLimitFwd(motor_axis_no, iValue);
-      return 0;
+    if (offset_in_group == 0xC) {      
+      return setAxisEnableSoftLimitFwd(motor_axis_no, iValue);
     }
   }
 
@@ -245,19 +238,8 @@ static int motorHandleADS_ADR_putInt(ecmcOutputBufferType *buffer,unsigned adspo
     }
   }
 
-  //2015-02-10: Removed this command because it will not work with beckhoff or Open Source
-  //if (group_no == 0x4001 && offset_in_group == 0x15) {
-  //  return 0; /* Monitor What is this*/
-  //}
-
-  RETURN_ERROR_OR_DIE(buffer,__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
-               __FILE__, __FUNCTION__, __LINE__,
-               group_no,
-               offset_in_group);
-
-  ERROR_MAIN_PARSER_UNKOWN_CMD;
+  return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
-
 
 static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned adsport,
                                        unsigned group_no,
@@ -280,15 +262,15 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
           return getAxisHomeVelOffCam(motor_axis_no,fValue);
         case 0x8:
           *fValue = cmd_Motor_cmd[motor_axis_no].manualVelocitySlow;
-          return 0;
+          return 0; //ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
         case 0x9:
           *fValue = cmd_Motor_cmd[motor_axis_no].manualVelocityFast;
-          return 0;
+          return 0; //ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
         case 0x16:
           return getAxisMonAtTargetTol(motor_axis_no, fValue);
         case 0x17:
           ret = getAxisMonAtTargetTime(motor_axis_no, &iValue);
-          *fValue = iValue * 0.001; /* TODO: retrieve the cycle time */
+          *fValue = iValue * 1/(double)MCU_FREQUENCY;
           return ret;
         case 0x27:
           ret = getAxisMonEnableMaxVel(motor_axis_no, &iValue);
@@ -299,8 +281,12 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
             return 0;
           }
         case 0x101:
-          *fValue = cmd_Motor_cmd[motor_axis_no].defaultAcceleration;
-          return 0;
+          //*fValue = cmd_Motor_cmd[motor_axis_no].defaultAcceleration;
+          return getAxisAcceleration(motor_axis_no, fValue);;
+
+        default:
+          return ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
+
       }
     }
 
@@ -311,18 +297,20 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
       int motor_axis_no = (int)group_no - 0x5000;
 
       switch(offset_in_group) {
-      case 0xD:
-        return getAxisSoftLimitPosBwd(motor_axis_no, fValue);
-      case 0xE:
-        return getAxisSoftLimitPosFwd(motor_axis_no, fValue);
-      case 0x23:
-        ret = getAxisEncScaleNum(motor_axis_no, &tmpValue);
-        *fValue = fabs(tmpValue);
-        return ret;
-      case 0x24:
-        ret = getAxisEncScaleDenom(motor_axis_no, &tmpValue);
-        *fValue = fabs(tmpValue);
-        return ret;
+        case 0xD:
+          return getAxisSoftLimitPosBwd(motor_axis_no, fValue);
+        case 0xE:
+          return getAxisSoftLimitPosFwd(motor_axis_no, fValue);
+        case 0x23:
+          ret = getAxisEncScaleNum(motor_axis_no, &tmpValue);
+          *fValue = fabs(tmpValue);
+          return ret;
+        case 0x24:
+          ret = getAxisEncScaleDenom(motor_axis_no, &tmpValue);
+          *fValue = fabs(tmpValue);
+          return ret;
+        default:
+          return ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
       }
     } else if (group_no >= 0x6000 && group_no < 0x7000) {
       //group 6000
@@ -337,8 +325,10 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
           return ret;
         case 0x13:
           ret = getAxisMonPosLagTime(motor_axis_no, &iValue);
-          *fValue = iValue * 0.001; /* TODO: retrieve the cycle time */
+          *fValue = iValue * 1/(double)MCU_FREQUENCY;
           return ret;
+        default:
+          return ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
       }
     } else if (group_no >= 0x7000 && group_no < 0x8000) {
       //group 7000
@@ -350,14 +340,11 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,unsigned ads
           ret = getAxisDrvScaleNum(motor_axis_no, &tmpValue);
           *fValue = fabs(tmpValue);
           return ret;
+        default:
+          return ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
       }
     }
   }
-
-  RETURN_ERROR_OR_DIE(buffer,__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
-               __FILE__, __FUNCTION__, __LINE__,
-               group_no,
-               offset_in_group);
 
   return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
@@ -388,16 +375,18 @@ static int motorHandleADS_ADR_putFloat(ecmcOutputBufferType *buffer,unsigned ads
           return setAxisHomeVelOffCam(motor_axis_no,fValue);
         case 0x8:
           cmd_Motor_cmd[motor_axis_no].manualVelocitySlow = fValue;
-          return 0;
+          return 0; //ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
         case 0x9:
           cmd_Motor_cmd[motor_axis_no].manualVelocityFast = fValue;
-          return 0;
+          return 0; //ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
         case 0x27:
           ret = setAxisMonEnableMaxVel(motor_axis_no, fValue != 0.0);
           if (ret) { /* error */
             return ret;
           }
           return setAxisMonMaxVel(motor_axis_no, fValue);
+        default:
+          return ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
       }
     }
 
@@ -424,11 +413,6 @@ static int motorHandleADS_ADR_putFloat(ecmcOutputBufferType *buffer,unsigned ads
       }
     }
   }
-
-  RETURN_ERROR_OR_DIE(buffer,__LINE__, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
-               __FILE__, __FUNCTION__, __LINE__,
-               group_no,
-               offset_in_group);
 
   return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
@@ -461,8 +445,8 @@ static int motorHandleADS_ADR(const char *arg,ecmcOutputBufferType *buffer)
            len_in_PLC,
            type_in_PLC);
 
-  if (nvals != 5) return __LINE__;
-  if (adsport != 501) return __LINE__;
+  if (nvals != 5) return ERROR_MAIN_PARSER_INVALID_ADS_FORMAT;
+  if (adsport != 501) return ERROR_MAIN_PARSER_INVALID_ADS_PORT;
 
   myarg_1 = strchr(arg, '=');
   if (myarg_1) {
@@ -470,28 +454,30 @@ static int motorHandleADS_ADR(const char *arg,ecmcOutputBufferType *buffer)
     switch (type_in_PLC) {
       case 5: {
         double fValue;
-        if (len_in_PLC != 8) return __LINE__;
+        if (len_in_PLC != 8) return ERROR_MAIN_PARSER_INVALID_ADS_LEN;
         nvals = sscanf(myarg_1, "%lf", &fValue);
-        if (nvals != 1) return __LINE__;
-        return motorHandleADS_ADR_putFloat(buffer,adsport,
-                                        group_no,
-                                        offset_in_group,
-                                        fValue);
+        if (nvals != 1) return ERROR_MAIN_PARSER_INVALID_ADS_FORMAT;
+        return motorHandleADS_ADR_putFloat(buffer,
+                                           adsport,
+                                           group_no,
+                                           offset_in_group,
+                                           fValue);
       }
         break;
       case 2: {
         int iValue;
-        if (len_in_PLC != 2) return __LINE__;
+        if (len_in_PLC != 2) return ERROR_MAIN_PARSER_INVALID_ADS_LEN;
         nvals = sscanf(myarg_1, "%d", &iValue);
-        if (nvals != 1) return __LINE__;
-        return motorHandleADS_ADR_putInt(buffer,adsport,
-                                      group_no,
-                                      offset_in_group,
-                                      iValue);
+        if (nvals != 1) return ERROR_MAIN_PARSER_INVALID_ADS_FORMAT;
+        return motorHandleADS_ADR_putInt(buffer,
+                                         adsport,
+                                         group_no,
+                                         offset_in_group,
+                                         iValue);
       }
         break;
       default:
-        return __LINE__;
+        return ERROR_MAIN_PARSER_INVALID_ADS_FORMAT;
     }
   }
   myarg_1 = strchr(arg, '?');
@@ -501,9 +487,9 @@ static int motorHandleADS_ADR(const char *arg,ecmcOutputBufferType *buffer)
     switch (type_in_PLC) {
       case 5: {
         double fValue;
-        if (len_in_PLC != 8) return __LINE__;
+        if (len_in_PLC != 8) return ERROR_MAIN_PARSER_INVALID_ADS_LEN;
         res = motorHandleADS_ADR_getFloat(buffer,
-					  adsport,
+					                                adsport,
                                           group_no,
                                           offset_in_group,
                                           &fValue);
@@ -511,40 +497,40 @@ static int motorHandleADS_ADR(const char *arg,ecmcOutputBufferType *buffer)
 
         int errorCode=cmd_buf_printf(buffer,"%g", fValue);
         if(errorCode){
-          return __LINE__;
+          return errorCode;
         }
-      return -1;
-      }
+        return -1;
+        }
         break;
+
       case 2: {
         int res;
         int iValue = -1;
-        if (len_in_PLC != 2) return __LINE__;
+        if (len_in_PLC != 2) return ERROR_MAIN_PARSER_INVALID_ADS_LEN;
         res = motorHandleADS_ADR_getInt(buffer,
-					adsport,
+					                              adsport,
                                         group_no,
                                         offset_in_group,
                                         &iValue);
         if (res) return res;
         int errorCode=cmd_buf_printf(buffer,"%d", iValue);
         if(errorCode){
-          RETURN_ERROR_OR_DIE(buffer,errorCode, "%s/%s:%d group_no=0x%x offset_in_group=0x%x",
-                         __FILE__, __FUNCTION__, __LINE__,
-                         group_no,
-                         offset_in_group);
-          return __LINE__;
+          return errorCode;
         }
 
         return -1;
-      }
+        }
         break;
+
       default:
-        return __LINE__;
+        return ERROR_MAIN_PARSER_UNKNOWN_ADS_CMD;
     }
   }
-  return __LINE__;
+  return ERROR_MAIN_PARSER_UNKNOWN_ADS_CMD;
 }
-/** \breif Handles all the configuration commands"
+
+/** 
+ * \breif Handles all the configuration commands"
 */
 static int handleCfgCommand(const char *myarg_1){
   int iValue = 0;
@@ -715,12 +701,6 @@ static int handleCfgCommand(const char *myarg_1){
   if (nvals == 3) {
     return ecAddPdo(iValue,iValue2,iValue3);
   }
-
-  /*Cfg.EcAddEntry(int nSlave,uint16_t nEntryIndex,uint8_t  nEntrySubIndex, uint8_t nBits) wrong comment*/
-  /*nvals = sscanf(myarg_1, "EcAddEntry(%d,%d,%d,%x,%x,%d)", &iValue,&iValue2,&iValue3,&iValue4,&iValue5,&iValue6);
-  if (nvals == 6) {
-    return ecAddEntry(iValue,iValue2,iValue3,iValue4,iValue5,iValue6);
-  }*/
 
   /*Cfg.EcAddEntryComplete(
     uint16_t position,
@@ -1013,21 +993,25 @@ static int handleCfgCommand(const char *myarg_1){
     return setAxisCntrlIpartLL(iValue,dValue);
   }
 
-    nvals = sscanf(myarg_1, "SetAxisSoftLimitPosBwd(%d,%lf)", &iValue,&dValue);
+  /*int Cfg.SetAxisSoftLimitPosBwd(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisSoftLimitPosBwd(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
     return setAxisSoftLimitPosBwd(iValue,dValue);
   }
 
+  /*int Cfg.SetAxisEnableSoftLimitBwd(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisEnableSoftLimitBwd(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return setAxisEnableSoftLimitBwd(iValue,iValue2);
   }
 
+  /*int Cfg.SetAxisSoftLimitPosFwd(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisSoftLimitPosFwd(%d,%lf)", &iValue,&dValue);
   if (nvals == 2) {
     return setAxisSoftLimitPosFwd(iValue,dValue);
   }
 
+  /*int Cfg.SetAxisEnableSoftLimitFwd(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisEnableSoftLimitFwd(%d,%d)", &iValue,&iValue2);
   if (nvals == 2) {
     return setAxisEnableSoftLimitFwd(iValue,iValue2);
@@ -1654,9 +1638,6 @@ static int handleCfgCommand(const char *myarg_1){
 
 int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
 {
-
-
-  const char *myarg = myarg_1;
   int iValue = 0;
   int iValue2=0;
   int iValue3=0;
@@ -1705,10 +1686,11 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
       err_code = motorHandleADS_ADR(myarg_1,buffer);
 
       if (err_code == -1) return 0;
-      if (err_code == 0) {
+/*      if (err_code == 0) {
         cmd_buf_printf(buffer,"OK");
-        return 0;
-      }
+        return 0;       
+      }*/
+      SEND_OK_OR_ERROR_AND_RETURN(err_code);
       return 0;
     }
     nvals = sscanf(myarg_1, "%u/", &adsport);
@@ -2023,13 +2005,11 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
       cmd_buf_printf(buffer,"Error: %d", error);
       return 0;
     }
-    //LOGINFO("%s/%s:%d. Data storage buffer copied to cmd_EAT (buffer size in ecmc= %d)\n",__FILE__,__FUNCTION__,__LINE__,size);
-    //LOGINFO("%s/%s:%d. ecmcOutputBufferType buffer size %d.\n",__FILE__,__FUNCTION__,__LINE__,buffer->bufferSize);
+    
     if(!bufferdata){
       cmd_buf_printf(buffer,"Error: %d", CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL);
       return 0;
     }
-
 
     //Write ascii array delimited with ','
     cmd_buf_printf(buffer,"ReadDataStorage(%d)=",iValue);
@@ -2047,7 +2027,6 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     return 0;
   }
 
-  //LOGINFO("%s/%s:%d. ecmcOutputBufferType buffer size left %d and used bytes %d.\n",__FILE__,__FUNCTION__,__LINE__,buffer->bufferSize-buffer->bytesUsed,buffer->bytesUsed);
   /*int WriteStorageBuffer(int axisIndex)=0,0,0,0*/
   nvals = sscanf(myarg_1, "WriteDataStorage(%d)=", &iValue);
   if (nvals == 1) {
@@ -2080,16 +2059,18 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   nvals = sscanf(myarg_1, "M%d.", &motor_axis_no);
   if (nvals != 1) {
 
-    RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=\"%s\" nvals=%d",
+    /*RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=\"%s\" nvals=%d",
                   __FILE__, __FUNCTION__, __LINE__,
-                  myarg, nvals);
+                  myarg, nvals);*/
+    SEND_OK_OR_ERROR_AND_RETURN(ERROR_MAIN_PARSER_UNKOWN_CMD);
   }
   AXIS_CHECK_RETURN_USED_BUFFER(motor_axis_no);
   myarg_1 = strchr(myarg_1, '.');
   if (!myarg_1) {
-    RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=%s missing '.'",
+    /*RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=%s missing '.'",
                   __FILE__, __FUNCTION__, __LINE__,
-                  myarg);
+                  myarg);*/
+    SEND_OK_OR_ERROR_AND_RETURN(ERROR_MAIN_PARSER_UNKOWN_CMD);
   }
   myarg_1++; /* Jump over '.' */
 
@@ -2125,9 +2106,9 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   }
 
   /* bReset? */
-    if (!strcmp(myarg_1, "bReset?")) {
-      SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisReset(motor_axis_no,&iValue));
-    }
+  if (!strcmp(myarg_1, "bReset?")) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisReset(motor_axis_no,&iValue));
+  }
 
   /* bHomeSensor? */
   if (0 == strcmp(myarg_1, "bHomeSensor?")) {
@@ -2138,18 +2119,22 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
   if (0 == strcmp(myarg_1, "bLimitBwd?")) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAtHardBwd(motor_axis_no,&iValue));
   }
+  
   /* bLimitFwd? */
   if (0 == strcmp(myarg_1, "bLimitFwd?")) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAtHardFwd(motor_axis_no,&iValue));
   }
+  
   /* bHomed? */
   if (0 == strcmp(myarg_1, "bHomed?")) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomed(motor_axis_no,&iValue));
   }
+  
   /* fActPosition? */
   if (0 == strcmp(myarg_1, "fActPosition?")) {
     SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncPosAct(motor_axis_no,&fValue));
   }
+
   /* fActVelocity? */
   if (0 == strcmp(myarg_1, "fActVelocity?")) {
     SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncVelAct(motor_axis_no,&fValue));
@@ -2404,9 +2389,10 @@ int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer)
     }
 
   /* if we come here, we do not understand the command */
-  RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=%s",
+  /*RETURN_ERROR_OR_DIE(buffer,__LINE__,"%s/%s:%d line=%s",
                 __FILE__, __FUNCTION__, __LINE__,
-                myarg);
+                myarg);*/
+  SEND_OK_OR_ERROR_AND_RETURN(ERROR_MAIN_PARSER_UNKOWN_CMD);
 }
 
 int cmd_EAT(int argc, const char *argv[], const char *sepv[],ecmcOutputBufferType *buffer)

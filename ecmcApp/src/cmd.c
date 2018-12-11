@@ -6,6 +6,7 @@
 
 #include "cmd.h"
 #include "cmd_EAT.h"
+#include "ecmcErrorsList.h"
 
 unsigned int debug_print_flags = 0;//65535;
 unsigned int die_on_error_flags = 1;
@@ -35,7 +36,7 @@ static int cmd_buf_vprintf(ecmcOutputBufferType *buffer,  const char* format, va
 int cmd_buf_printf(ecmcOutputBufferType *buffer,const char *format, ...)
 {
   if(buffer==NULL){
-    return __LINE__;
+    return ERROR_MAIN_PARSER_BUFFER_NULL;
   }
   va_list ap;
   va_start(ap, format);
