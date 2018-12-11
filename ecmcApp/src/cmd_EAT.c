@@ -186,15 +186,21 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
         //ADSPORT=501/.ADR.16#5001,16#C,2,2?; #high Softlimit enabled
         getAxisEnableSoftLimitFwd(motor_axis_no, iValue);
         return 0;
+      default:
+        return ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
     }
   } else if (group_no >= 0x6000 && group_no < 0x7000) {
     //group 6000
     int ret;
     int motor_axis_no = (int)group_no - 0x6000;
     switch(offset_in_group) {
-    case 0x10:
-      ret = getAxisMonEnableLagMon(motor_axis_no, iValue);
-      return ret;
+      case 0x10:
+        ret = getAxisMonEnableLagMon(motor_axis_no, iValue);
+        return ret;
+
+      default:
+        return ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
+
     }
   } else if (group_no >= 0x7000 && group_no < 0x8000) {
     double fValue;
@@ -207,6 +213,9 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,unsigned adspo
         ret = getAxisDrvScaleNum(motor_axis_no, &fValue);
         *iValue = fValue < 0 ? 1 : 0;
         return ret;
+
+      default:
+        return ERROR_MAIN_PARSER_INVALID_ADS_OFFSET;
     }
   }
 
@@ -523,7 +532,7 @@ static int motorHandleADS_ADR(const char *arg,ecmcOutputBufferType *buffer)
         break;
 
       default:
-        return ERROR_MAIN_PARSER_UNKNOWN_ADS_CMD;
+        return ERROR_MAIN_PARSER_INVALID_ADS_TYPE;
     }
   }
   return ERROR_MAIN_PARSER_UNKNOWN_ADS_CMD;

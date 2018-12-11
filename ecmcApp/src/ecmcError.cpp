@@ -991,7 +991,10 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x20042:
       return "ERROR_MAIN_PARSER_INVALID_ADS_OFFSET";
-      break;   
+      break;
+    case 0x20043:
+      return "ERROR_MAIN_PARSER_INVALID_ADS_TYPE";
+      break;
     case 0x20100: //Data Recorder
       return "ERROR_DATA_RECORDER_BUFFER_NULL";
       break;
