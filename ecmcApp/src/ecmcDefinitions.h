@@ -235,6 +235,9 @@ enum motionObjectType{
 
 #define ECMC_ENC_STR "enc"
 #define ECMC_ENC_ACTPOS_STR "actpos"
+#define ECMC_ENC_LATCHPOS_STR "latchpos"
+#define ECMC_ENC_LATCH_STATUS_STR "latchstatus"
+#define ECMC_ENC_LATCH_CONTROL_STR "latchcontrol"
 
 #define ECMC_MON_STR "mon"
 #define ECMC_MON_LOWLIM_STR "lowlim"

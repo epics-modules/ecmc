@@ -82,10 +82,11 @@ public:
   void        printCurrentState();
   int         setToZeroIfRelative();
   int         setRawMask(uint64_t mask);
-  bool        getEncLatchFuncEnabled();
-  void        setArmEncLatch(bool arm);
-  bool        getNewEncValueLatched();
-  double      getEncLatchPosEng();
+  bool        getLatchFuncEnabled();
+  void        setArmLatch(bool arm);
+  bool        getArmLatch();
+  bool        getNewValueLatched();
+  double      getLatchPosEng();
 protected:
   void        initVars();
   int         countTrailingZerosInMask(uint64_t mask);

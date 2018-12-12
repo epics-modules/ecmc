@@ -153,6 +153,7 @@ void ecmcEncoder::setActPos(double pos)
 
   //reset overflow counter  
   engOffset_=0;
+  rawTurns_=0;
   rawPosOffset_=pos/scale_-rawPosUint_;
   rawPosMultiTurn_=rawPosUint_+rawPosOffset_;
 
@@ -465,7 +466,7 @@ int ecmcEncoder::validate()
 int ecmcEncoder::setToZeroIfRelative()
 {
   if(encType_==ECMC_ENCODER_TYPE_INCREMENTAL){
-	setActPos(0);
+	  setActPos(0);
   }
   return 0;
 }
@@ -507,7 +508,7 @@ int ecmcEncoder::countBitWidthOfMask(uint64_t mask,int trailZeros)
 /*
 * Return if encoder latch entries are linked and valid
 */
-bool ecmcEncoder::getEncLatchFuncEnabled()
+bool ecmcEncoder::getLatchFuncEnabled()
 {
   return encLatchFunctEnabled_;
 }
@@ -515,15 +516,23 @@ bool ecmcEncoder::getEncLatchFuncEnabled()
 /*
 * Arm encoder hardware latch
 */
-void ecmcEncoder::setArmEncLatch(bool arm)
+void ecmcEncoder::setArmLatch(bool arm)
 {
   encLatchControl_=arm;  
 }
 
 /*
+* Return arm state of encoder hardware latch
+*/
+bool ecmcEncoder::getArmLatch()
+{
+  return encLatchControl_;  
+}
+
+/*
 * New value latched (only high during one cycle)
 */
-bool ecmcEncoder::getNewEncValueLatched()
+bool ecmcEncoder::getNewValueLatched()
 {
   return encLatchStatus_>encLatchStatusOld_; 
 }
@@ -531,7 +540,7 @@ bool ecmcEncoder::getNewEncValueLatched()
 /*
 * Return last latched encoder value in engineering units
 */
-double ecmcEncoder::getEncLatchPosEng()
+double ecmcEncoder::getLatchPosEng()
 {  
   return actEncLatchPos_; 
 }

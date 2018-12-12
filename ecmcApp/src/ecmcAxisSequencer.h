@@ -46,6 +46,8 @@ enum ecmcHomingType{
   ECMC_SEQ_HOME_HIGH_LIM_HOME = 4,
   ECMC_SEQ_HOME_LOW_LIM_HOME_HOME = 5,
   ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME = 6,
+  ECMC_SEQ_HOME_LOW_LIM_INDEX = 11,
+  ECMC_SEQ_HOME_HIGH_LIM_INDEX = 12,
   ECMC_SEQ_HOME_SET_POS = 15,
   ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS = 21,
   ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS = 22,
@@ -79,6 +81,10 @@ public:
   motionDirection getHomeDir();
   void   setHomePosition(double pos);
   double getHomePosition();
+  // Home on hardware latch (index or external) 
+  // Homing will be made after <count> latches have been identified
+  // only valid for certain home sequences
+  void   setHomeLatchCountOffset(int count);
   void   setTargetPos(double pos);
   void   setTargetPos(double pos, bool force);
   double getTargetPos();
@@ -105,6 +111,8 @@ private:
   int    seqHoming4();  //nCmdData==4
   int    seqHoming5();  //nCmdData==5
   int    seqHoming6();  //nCmdData==6
+  int    seqHoming11(); //nCmdData==11
+  int    seqHoming12(); //nCmdData==12
   int    seqHoming15(); //nCmdData==15
   int    seqHoming21(); //nCmdData==21
   int    seqHoming22(); //nCmdData==22
@@ -146,6 +154,8 @@ private:
   ecmcAxisData* data_;
   uint64_t oldEncAbsPosReg_;
   uint64_t encAbsPosReg_;
+  int homeLatchCountOffset_;
+  int homeLatchCountAct_;
 };
 
 #endif /* ecmcAxisSequencer_H_ */
