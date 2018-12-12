@@ -35,6 +35,7 @@
 #define ERROR_SEQ_ERROR_ACCELERATION_ZERO 0x14D10
 #define ERROR_SEQ_ERROR_DECELERATION_ZERO 0x14D11
 #define ERROR_SEQ_ERROR_VELOCITY_ZERO 0x14D12
+#define ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR 0x14D13
 
 
 //Homing
@@ -152,8 +153,9 @@ private:
   ecmcPIDController *cntrl_;
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcAxisData* data_;
-  uint64_t oldEncAbsPosReg_;
-  uint64_t encAbsPosReg_;
+  uint64_t oldencRawAbsPosReg_;
+  uint64_t encRawAbsPosReg_;
+  ecmcOverUnderFlowType overUnderFlowLatch_;
   int homeLatchCountOffset_;
   int homeLatchCountAct_;
 };

@@ -428,6 +428,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x14D12:
       return "ERROR_SEQ_ERROR_VELOCITY_ZERO";
       break;
+    case 0x14D13:
+      return "ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR";
+      break;      
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";
       break;

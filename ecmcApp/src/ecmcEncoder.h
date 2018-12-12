@@ -50,6 +50,12 @@
 #define ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL 3
 #define ECMC_ENCODER_MAX_VALUE_64_BIT ((uint64_t)(0xFFFFFFFFFFFFFFFFULL))
 
+enum ecmcOverUnderFlowType{
+  ECMC_ENC_NORMAL = 0,
+  ECMC_ENC_UNDERFLOW = 1,
+  ECMC_ENC_OVERFLOW =2,
+};
+
 class ecmcEncoder : public ecmcEcEntryLink
 {
 public:
@@ -87,6 +93,8 @@ public:
   bool        getArmLatch();
   bool        getNewValueLatched();
   double      getLatchPosEng();
+  ecmcOverUnderFlowType getOverUnderflow();
+  ecmcOverUnderFlowType getAbsBitsOverUnderflow();
 protected:
   void        initVars();
   int         countTrailingZerosInMask(uint64_t mask);
@@ -96,15 +104,19 @@ protected:
   ecmcFilter *velocityFilter_;
   ecmcAxisData* data_;
   int64_t     turns_;
-  uint64_t    rawPosUint_;
-  uint64_t    rawPosUintOld_;
+  uint64_t    rawPosUint_;       //Raw position register (masked and shifted)
+  uint64_t    rawPosUintOld_;    //Raw position register (masked and shifted)
+  uint64_t    rawAbsPosUint_;    //Only absolute bits
+  uint64_t    rawAbsPosUintOld_; //Only absolute bits
   uint64_t    totalRawMask_;
   uint64_t    totalRawRegShift_;
   uint64_t    rawLimit_;
+  uint64_t    rawAbsLimit_;
   int64_t     rawPosMultiTurn_;
   int64_t     rawPosOffset_;
   int64_t     rawRange_;
-  int64_t     rawTurns_;
+  int64_t     rawAbsRange_;
+  int64_t     rawTurns_;  
   int64_t     rawTurnsOld_;
   int         bits_;
   int         absBits_; //Used for homing of partly absolute encoders (applied after raw mask)

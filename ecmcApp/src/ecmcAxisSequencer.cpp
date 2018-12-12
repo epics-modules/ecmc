@@ -87,10 +87,11 @@ void ecmcAxisSequencer::initVars()
   seqInProgressOld_=0;
   busy_=false;
   data_=NULL;
-  oldEncAbsPosReg_=0;
-  encAbsPosReg_=0;
+  oldencRawAbsPosReg_=0;
+  encRawAbsPosReg_=0;
   homeLatchCountOffset_=0;
   homeLatchCountAct_=0;
+  overUnderFlowLatch_=ECMC_ENC_NORMAL;
 }
 
 void ecmcAxisSequencer::execute()
@@ -1026,7 +1027,7 @@ int ecmcAxisSequencer::seqHoming4() //nCmdData==4
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
-        if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
+        if((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) || !mon_->getEnableAtTargetMon())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           finalizeHomingSeq(currPos);
@@ -1320,8 +1321,9 @@ int ecmcAxisSequencer::seqHoming11() //nCmdData==11
   // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
   // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
   // State 2 Wait for stop and trigger motion in positive direction
-  // State 3 Arm hw latch and wait for the deifned counts of latches (rearm for each latch)
-  // State 4 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
+  // State 3 Wait for leaving limit switch.
+  // State 4 Arm hw latch and wait for the deifned counts of latches (rearm for each latch)
+  // State 5 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
 
 
   int retValue=traj_->getErrorID();  //Abort if error from trajectory
@@ -1373,7 +1375,17 @@ int ecmcAxisSequencer::seqHoming11() //nCmdData==11
       }
       break;
 
-    case 3: //Start supervising encoder latches
+    case 3: //Wait for an falling or rising edge of bwd limit switch
+      retValue=checkHWLimitsAndStop(0,1); // should never go to forward or backward limit switch
+      if(retValue){
+        return retValue;
+      }
+      if(hwLimitSwitchBwd_!=hwLimitSwitchBwdOld_){
+        seqState_=4;
+      }
+      break;
+
+    case 4: //Start supervising encoder latches
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
@@ -1383,7 +1395,7 @@ int ecmcAxisSequencer::seqHoming11() //nCmdData==11
         homeLatchCountAct_++;         
         if(homeLatchCountAct_>=homeLatchCountOffset_){
           homePosLatch1_=enc_->getLatchPosEng();
-          seqState_=4;
+          seqState_=5;
         }
         enc_->setArmLatch(false);
       }
@@ -1392,7 +1404,7 @@ int ecmcAxisSequencer::seqHoming11() //nCmdData==11
       }
       break;
 
-    case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
+    case 5:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
         return retValue;
@@ -1420,9 +1432,9 @@ int ecmcAxisSequencer::seqHoming12() //nCmdData==12
   // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
   // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
   // State 2 Wait for stop and trigger motion in negative direction
-  // State 3 Arm hw latch and wait for the deifned counts of latches (rearm for each latch)
-  // State 4 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-
+  // State 3 Wait for leaving limit switch.
+  // State 4 Arm hw latch and wait for the deifned counts of latches (rearm for each latch)
+  // State 5 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
 
   int retValue=traj_->getErrorID();  //Abort if error from trajectory
   if(retValue){
@@ -1473,7 +1485,17 @@ int ecmcAxisSequencer::seqHoming12() //nCmdData==12
       }
       break;
 
-    case 3: //Latch encoder value on falling or rising edge of home sensor
+    case 3: //Wait for leaving limit switch
+      retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
+      if(retValue){
+	      return retValue;
+      }
+      if(hwLimitSwitchFwd_!=hwLimitSwitchFwdOld_){
+	      seqState_=4;
+      }
+      break;
+
+    case 4: //Latch encoder value on falling or rising edge of home sensor
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
         LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
@@ -1483,7 +1505,7 @@ int ecmcAxisSequencer::seqHoming12() //nCmdData==12
         homeLatchCountAct_++;         
         if(homeLatchCountAct_>=homeLatchCountOffset_){
           homePosLatch1_=enc_->getLatchPosEng();
-          seqState_=4;
+          seqState_=5;
         }
         enc_->setArmLatch(false);
       }
@@ -1491,7 +1513,8 @@ int ecmcAxisSequencer::seqHoming12() //nCmdData==12
         enc_->setArmLatch(true);
       }
       break;
-    case 4:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
+
+    case 5:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
       retValue=checkHWLimitsAndStop(1,0); // should never go to backward limit switch
       if(retValue){
         return retValue;
@@ -1499,7 +1522,7 @@ int ecmcAxisSequencer::seqHoming12() //nCmdData==12
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
-        if(mon_->getAtTarget())//Wait for controller to settle in order to minimize bump
+        if((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) || !mon_->getEnableAtTargetMon())//Wait for controller to settle in order to minimize bump
         {
           double currPos=enc_->getActPos()-homePosLatch1_+homePosition_;
           finalizeHomingSeq(currPos);
@@ -1519,8 +1542,9 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
   // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
   // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
   // State 2 Wait for stop and trigger motion in positive direction
-  // State 3 Wait for over/underflow of absolute encoder bits.
-  // State 4 Wait for standstill before rescale of encoder. Keep encoder absolute bits
+  // State 3 Wait for leaving limit switch.
+  // State 4 Wait for over/underflow of absolute encoder bits.
+  // State 5 Wait for standstill before rescale of encoder. Keep encoder absolute bits
 
   int retValue=traj_->getErrorID();  //Abort if error from trajectory
   if(retValue){
@@ -1533,8 +1557,9 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO);
   }
 
-  oldEncAbsPosReg_=encAbsPosReg_;
-  encAbsPosReg_=enc_->getRawAbsPosRegister();
+  oldencRawAbsPosReg_=encRawAbsPosReg_;
+  encRawAbsPosReg_=enc_->getRawAbsPosRegister();
+  ecmcOverUnderFlowType tmp;
 
   //Sequence code
   switch(seqState_){
@@ -1592,12 +1617,18 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
         LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
 	      return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
-      //Over or under-flow triggered when 2/3 of bit-width change in value
-      if( (encAbsPosReg_>oldEncAbsPosReg_+2.0/3.0*pow(2,encAbsBits)) || (oldEncAbsPosReg_>encAbsPosReg_+2.0/3.0*pow(2,encAbsBits))){
-    	homePosLatch1_=enc_->getActPos();  // save to ensure taht movement is resonable in next step
-    	seqState_=5;
+      tmp = enc_->getAbsBitsOverUnderflow();
+      if(tmp!=ECMC_ENC_NORMAL){
+        overUnderFlowLatch_=tmp;
+        homeLatchCountAct_++;
+        if(homeLatchCountAct_>=homeLatchCountOffset_){
+          // Save to ensure that movement is resonable in next step
+          homePosLatch1_=enc_->getActPos();
+          seqState_=5;
+        }
       }
       break;
+
     case 5:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
       retValue=checkHWLimitsAndStop(0,1); // should never go to forward limit switch
       if(retValue){
@@ -1614,14 +1645,22 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
        	    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Position sanity check failed (position in step 5 less than in step 4)(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
        	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
           }
-          double currPos=0;
-          if(encAbsPosReg_< (1.0/2.0*pow(2,encAbsBits))){//Overflow
-            //Always positive value
-       	    currPos=std::abs((double)encAbsPosReg_*enc_->getScale()+homePosition_);
-          }
-          else{//Underflow
-            //Always positive value
-            currPos=std::abs((pow(2,encAbsBits)-(double)encAbsPosReg_)*enc_->getScale()+homePosition_);
+          double currPos=0;          
+          switch(overUnderFlowLatch_){
+            case ECMC_ENC_NORMAL:
+         	    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Invalid over underflow of absolute bits (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR);
+         	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR);
+              break;
+
+            case ECMC_ENC_UNDERFLOW:
+              // Moving positive so the absolute position needs to be added
+              currPos=std::abs((pow(2,encAbsBits)-(double)encRawAbsPosReg_)*enc_->getScale())+homePosition_;
+              break;
+
+            case ECMC_ENC_OVERFLOW:
+              // Moving positive so the absolute position needs to be added
+              currPos=std::abs((double)encRawAbsPosReg_*enc_->getScale())+homePosition_;
+              break;
           }
           finalizeHomingSeq(currPos);
         }
@@ -1640,9 +1679,9 @@ int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolu
   // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
   // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
   // State 2 Wait for stop and trigger motion in negative direction
-  // State 3 Wait for over/underflow of absolute encoder bits.
-  // State 4 Wait for standstill before rescale of encoder. Keep encoder absolute bits
-
+  // State 3 Wait for leaving limit switch.
+  // State 4 Wait for over/underflow of absolute encoder bits.
+  // State 5 Wait for standstill before rescale of encoder. Keep encoder absolute bits
 
   int retValue=traj_->getErrorID();  //Abort if error from trajectory
   if(retValue){
@@ -1655,8 +1694,9 @@ int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolu
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO);
   }
 
-  oldEncAbsPosReg_=encAbsPosReg_;
-  encAbsPosReg_=enc_->getRawAbsPosRegister();
+  oldencRawAbsPosReg_=encRawAbsPosReg_;
+  encRawAbsPosReg_=enc_->getRawAbsPosRegister();
+  ecmcOverUnderFlowType tmp;
 
   //Sequence code
   switch(seqState_){
@@ -1699,7 +1739,8 @@ int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolu
 	      traj_->setExecute(0);
       }
       break;
-    case 3: //Latch encoder value on falling or rising edge of home sensor
+
+    case 3: //Wait for leaving limit switch
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward or backward limit switch
       if(retValue){
 	      return retValue;
@@ -1708,18 +1749,25 @@ int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolu
 	      seqState_=4;
       }
       break;
+
     case 4: //Wait for over/under-flow of absolute bits of encoder
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit switch
       if(retValue){
         LOGERR("%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
         return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_NO_HOME_SWITCH_FLANK);
       }
-      //Over or under-flow triggered when 2/3 of bit-width change in value
-      if( (encAbsPosReg_>oldEncAbsPosReg_+2.0/3.0*pow(2,encAbsBits)) || (oldEncAbsPosReg_>encAbsPosReg_+2.0/3.0*pow(2,encAbsBits))){
-        homePosLatch1_=enc_->getActPos();  // save to ensure taht movement is resonable in next step
-    	  seqState_=5;
+      tmp = enc_->getAbsBitsOverUnderflow();
+      if(tmp!=ECMC_ENC_NORMAL){
+        overUnderFlowLatch_=tmp;
+        homeLatchCountAct_++;
+        if(homeLatchCountAct_>=homeLatchCountOffset_){
+          // Save to ensure that movement is resonable in next step
+          homePosLatch1_=enc_->getActPos();
+          seqState_=5;
+        }
       }
       break;
+
     case 5:  //Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
       retValue=checkHWLimitsAndStop(1,0); // should never go to forward limit or backward switch
       if(retValue){
@@ -1728,21 +1776,28 @@ int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolu
       traj_->setExecute(0);
       if(!traj_->getBusy()){ //Wait for stop ramp ready
         data_->command_.positionTarget=traj_->getCurrentPosSet();
-        if(mon_->getAtTarget()){//Wait for controller to settle in order to minimize bump
+        if((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) || !mon_->getEnableAtTargetMon()){//Wait for controller to settle in order to minimize bump
           //Sanity check: Encoder position at homing must be bigger than in step 4
           if(enc_->getActPos()>=homePosLatch1_){
 	          LOGERR("%s/%s:%d: ERROR: Sequence aborted. Position sanity check failed (position in step 5 less than in step 4)(0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
 	          return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED);
           }
+          double currPos=0;          
+          switch(overUnderFlowLatch_){
+            case ECMC_ENC_NORMAL:
+         	    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Invalid over underflow of absolute bits (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR);
+         	    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR);
+              break;
 
-          double currPos=0;
-          if(encAbsPosReg_< (1.0/2.0*pow(2,encAbsBits))){//Overflow
-            //Always negative value
-	          currPos=-std::abs((double)encAbsPosReg_*enc_->getScale()+homePosition_);
-          }
-          else{//Underflow
-	          //Always negative value
-	          currPos=-std::abs((pow(2,encAbsBits)-(double)encAbsPosReg_)*enc_->getScale()+homePosition_);
+            case ECMC_ENC_UNDERFLOW:
+              // Moving negative so the absolute position needs to be subtracted
+              currPos=homePosition_-std::abs((pow(2,encAbsBits)-(double)encRawAbsPosReg_)*enc_->getScale());
+              break;
+
+            case ECMC_ENC_OVERFLOW:
+              // Moving negative so the absolute position needs to be subtracted
+              currPos=homePosition_-std::abs((double)encRawAbsPosReg_*enc_->getScale());
+              break;
           }
           finalizeHomingSeq(currPos);
         }
@@ -1899,6 +1954,7 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition)
   homePosLatch1_=0;
   homePosLatch2_=0;
   homeLatchCountAct_=0;
+  overUnderFlowLatch_=ECMC_ENC_NORMAL;
   stopSeq();
 }
 

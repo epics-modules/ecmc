@@ -61,6 +61,7 @@ void ecmcEncoder::initVars()
   rawPosMultiTurn_=0;
   rawRange_=0;
   rawLimit_=0;
+  rawAbsLimit_=0;
   bits_=0;
   rawPosUintOld_=0;
   rawPosUint_=0;
@@ -85,6 +86,8 @@ void ecmcEncoder::initVars()
   rawTurns_=0;
   rawTurnsOld_=0;
   actEncLatchPos_=0;
+  rawAbsPosUint_=0;
+  rawAbsPosUintOld_=0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn()
@@ -102,7 +105,7 @@ uint64_t ecmcEncoder::getRawPosRegister()
 uint64_t ecmcEncoder::getRawAbsPosRegister()
 {
   //Non overflow compensated raw value of abs bits only
-  return rawPosUint_ & (uint64_t)(pow(2,absBits_)-1);
+  return rawAbsPosUint_;
 }
 
 int ecmcEncoder::setScaleNum(double scaleNum)
@@ -153,6 +156,7 @@ void ecmcEncoder::setActPos(double pos)
 
   //reset overflow counter  
   engOffset_=0;
+  rawTurnsOld_=0;
   rawTurns_=0;
   rawPosOffset_=pos/scale_-rawPosUint_;
   rawPosMultiTurn_=rawPosUint_+rawPosOffset_;
@@ -253,7 +257,6 @@ int64_t ecmcEncoder::handleOverUnderFlow(uint64_t rawPosOld,
   else{
     turns=0;
   }
-
   return turns;
 }
 
@@ -271,7 +274,7 @@ int ecmcEncoder::setBits(int bits)
       LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",
                 __FILE__,__FUNCTION__, __LINE__,data_->axisId_,bits);
     }
-	return 0;
+	  return 0;
   }
 
   int errorCode=setRawMask((uint64_t)(pow(2,bits)-1));
@@ -293,6 +296,8 @@ int ecmcEncoder::setAbsBits(int absBits)
   }
 
   absBits_=absBits;
+  rawAbsRange_=pow(2,absBits_);
+  rawAbsLimit_=rawAbsRange_*2.0/3.0;  //Limit for over/under-flow
   return 0;
 }
 
@@ -376,6 +381,16 @@ double ecmcEncoder::readEntries()
                                 bits_);
   rawPosMultiTurn_=rawTurns_*rawRange_+rawPosUint_+rawPosOffset_;
   
+  //Calculate absolute bits
+  if(absBits_>0){
+    rawAbsPosUintOld_=rawAbsPosUint_;
+    rawAbsPosUint_=(rawAbsRange_-1) & rawPosUint_; //filter abs bits
+  }
+  else{
+    rawAbsPosUintOld_=0;
+    rawAbsPosUint_=0;
+  }
+
   actPosOld_=actPos_;
   actPos_=scale_*rawPosMultiTurn_+engOffset_;
   actVel_=velocityFilter_->positionBasedVelAveraging(actPos_);
@@ -543,4 +558,37 @@ bool ecmcEncoder::getNewValueLatched()
 double ecmcEncoder::getLatchPosEng()
 {  
   return actEncLatchPos_; 
+}
+
+/*
+* Over or underflow occured
+*/
+ecmcOverUnderFlowType ecmcEncoder::getOverUnderflow()
+{
+  if(rawTurnsOld_>rawTurns_){
+    return ECMC_ENC_UNDERFLOW;
+  }
+  else if(rawTurnsOld_<rawTurns_){
+    return ECMC_ENC_OVERFLOW;
+  }
+  return ECMC_ENC_NORMAL;
+}
+
+/*
+* Over or underflow of absolute bits occured
+*/
+ecmcOverUnderFlowType ecmcEncoder::getAbsBitsOverUnderflow()
+{
+  int turns=handleOverUnderFlow(rawAbsPosUintOld_,
+                                rawAbsPosUint_,
+                                0,
+                                rawAbsLimit_,
+                                absBits_);
+  if(turns<0){
+    return ECMC_ENC_UNDERFLOW;
+  }
+  else if(turns>0){
+    return ECMC_ENC_OVERFLOW;
+  }
+  return ECMC_ENC_NORMAL;
 }
