@@ -308,6 +308,9 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x1440E:
       return "ERROR_ENC_ABS_MASK_INVALID";
       break;
+    case 0x1440F:
+      return "ERROR_ENC_ABS_BIT_OUT_OF_RANGE";
+      break;
     case 0x14C00://MONITOR
       return "ERROR_MON_ASSIGN_ENTRY_FAILED";
       break;

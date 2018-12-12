@@ -290,6 +290,20 @@ int ecmcEncoder::setBits(int bits)
 
 int ecmcEncoder::setAbsBits(int absBits)
 {
+  //if bits_ is not set
+  if(bits_==0){
+    bits_=absBits;
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",
+              __FILE__, __FUNCTION__, __LINE__,data_->axisId_,absBits);
+  }
+
+  if(absBits < ECMC_ENCODER_ABS_BIT_MIN || absBits > bits_){
+    LOGERR("%s/%s:%d: Absolute bit count (%d) out of range. Allowed bitrange: %d:%d (0x%x)\n",
+           __FILE__,__FUNCTION__,__LINE__,absBits,ECMC_ENCODER_ABS_BIT_MIN,
+           bits_,ERROR_ENC_ABS_BIT_OUT_OF_RANGE);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ABS_BIT_OUT_OF_RANGE);
+  }
+
   if(absBits_!=absBits){
     LOGINFO15("%s/%s:%d: axis[%d].encoder.absbits=%d;\n",
               __FILE__, __FUNCTION__, __LINE__,data_->axisId_,absBits);
