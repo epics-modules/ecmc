@@ -191,7 +191,7 @@ void ecmcAxisVirt::refreshDebugInfoStruct()
   statusData_.onChangeData.velocitySetpoint=data_.status_.currentVelocitySetpoint;
   statusData_.onChangeData.velocitySetpointRaw=0;
   statusData_.onChangeData.velocityFFRaw=0;
-  statusData_.onChangeData.positionRaw=enc_->getRawPosMultiTurn();
+  statusData_.onChangeData.positionRaw=enc_->getRawPosRegister();
   statusData_.onChangeData.homed=enc_->getHomed();
   statusData_.acceleration=traj_->getAcc();
   statusData_.deceleration=traj_->getDec();
