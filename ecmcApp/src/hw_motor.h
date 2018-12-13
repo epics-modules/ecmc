@@ -1364,6 +1364,23 @@ int setAxisEncScaleNum(int axisIndex, double value);
  */
 int setAxisHomePos(int axisIndex, double value);
 
+/** \breif Set home index pulse count offset.\n
+ *
+ * Sets number of latches before homing is made.\n
+ * 
+ *  \note Only valid for some homing sequences when\
+ *  homing on hardware latched position (encoder index or external hw latch).\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] count Number of latches before homing.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set home latch count to 1 for axis 10.\n
+ * "Cfg.SetAxisHomeLatchCountOffset(10,1)" //Command string to cmd_EAT.c.\n
+ */
+int setAxisHomeLatchCountOffset(int axisIndex, int count);
+
 /** \breif Set twords cam referencing/homing velocity setpoint.\n
  *
  * This velocity setpoint is only used during homing sequence when finding
@@ -1411,6 +1428,8 @@ int setAxisHomeVelOffCam(int axisIndex,double dVel);
 /** \breif Set start direction of referencing/homing sequence. NOTE: NOT
  * USED!!\n
  *
+ *  !!!!!!TODO Remove command!!!!!!\n
+ * 
  * \note This command is not used. The different directions are implemented as
  * different values of command data instead.\n
  *

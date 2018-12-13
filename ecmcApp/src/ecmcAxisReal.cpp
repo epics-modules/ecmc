@@ -279,7 +279,7 @@ void ecmcAxisReal::refreshDebugInfoStruct()
   statusData_.onChangeData.velocityFFRaw=data_.status_.currentvelocityFFRaw;
   statusData_.onChangeData.cmdData=data_.command_.cmdData;
   statusData_.onChangeData.command=data_.command_.command;
-  statusData_.onChangeData.positionRaw=enc_->getRawPosMultiTurn();
+  statusData_.onChangeData.positionRaw=enc_->getRawPosRegister();
   statusData_.onChangeData.homed=enc_->getHomed();
   statusData_.acceleration=traj_->getAcc();
   statusData_.deceleration=traj_->getDec();

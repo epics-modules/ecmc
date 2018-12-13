@@ -312,10 +312,28 @@ static int parseObjectPath(char* objPath,int *axis, motionObjectType *objectType
 	  nvals=strcmp(objectTypeStr,ECMC_ENC_STR);
 	  if( nvals==0 ){
 	    *objectType=ECMC_OBJ_ENCODER;
-	    //Enable
+	    //Actpos
       nvals=strcmp(objectFunctionStr,ECMC_ENC_ACTPOS_STR);
 	    if(nvals==0){
 		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION;
+        return 0;
+	    }
+ 	    //Latch status
+      nvals=strcmp(objectFunctionStr,ECMC_ENC_LATCH_STATUS_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS;
+        return 0;
+	    }
+ 	    //Latch pos
+      nvals=strcmp(objectFunctionStr,ECMC_ENC_LATCHPOS_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE;
+        return 0;
+	    }
+      //Latch control
+      nvals=strcmp(objectFunctionStr,ECMC_ENC_LATCH_CONTROL_STR);
+	    if(nvals==0){
+		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL;
         return 0;
 	    }
 	    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
@@ -1377,6 +1395,17 @@ int setAxisHomePos(int axisIndex, double value)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
   axes[axisIndex]->getSeq()->setHomePosition(value);
+  return 0;
+}
+
+int setAxisHomeLatchCountOffset(int axisIndex, int count)
+{
+  LOGINFO4("%s/%s:%d axisIndex=%d count=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, count);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  axes[axisIndex]->getSeq()->setHomeLatchCountOffset(count);
   return 0;
 }
 
