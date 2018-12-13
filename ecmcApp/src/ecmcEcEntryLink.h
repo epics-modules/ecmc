@@ -27,6 +27,7 @@ public:
   int validateEntry(int index);
   int readEcEntryValue(int entryIndex,uint64_t *value);
   int writeEcEntryValue(int entryIndex,uint64_t value);
+  bool checkEntryExist(int entryIndex);
 protected:
   int validateEntryBit(int index);
   int getEntryBitCount(int index, int *bitCount);

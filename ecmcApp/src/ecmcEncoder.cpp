@@ -61,10 +61,10 @@ void ecmcEncoder::initVars()
   rawPosMultiTurn_=0;
   rawRange_=0;
   rawLimit_=0;
+  rawAbsLimit_=0;
   bits_=0;
   rawPosUintOld_=0;
   rawPosUint_=0;
-  turns_=0;
   scale_=0;
   engOffset_=0;
   actPos_=0;
@@ -78,6 +78,16 @@ void ecmcEncoder::initVars()
   totalRawMask_=ECMC_ENCODER_MAX_VALUE_64_BIT;
   totalRawRegShift_=0;
   rawPosOffset_=0;
+  encLatchFunctEnabled_=0;
+  encLatchStatus_=0;
+  encLatchStatusOld_=0;
+  rawEncLatchPos_=0;
+  encLatchControl_=0;
+  rawTurns_=0;
+  rawTurnsOld_=0;
+  actEncLatchPos_=0;
+  rawAbsPosUint_=0;
+  rawAbsPosUintOld_=0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn()
@@ -95,7 +105,7 @@ uint64_t ecmcEncoder::getRawPosRegister()
 uint64_t ecmcEncoder::getRawAbsPosRegister()
 {
   //Non overflow compensated raw value of abs bits only
-  return rawPosUint_ & (uint64_t)(pow(2,absBits_)-1);
+  return rawAbsPosUint_;
 }
 
 int ecmcEncoder::setScaleNum(double scaleNum)
@@ -144,19 +154,16 @@ void ecmcEncoder::setActPos(double pos)
     LOGINFO15("%s/%s:%d: axis[%d].encoder.actPos=%lf;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,pos);
   }
 
-  //calculate new offset
-
-  // engOffset_=engOffset_+pos-actPos_;
-  //////actPos_=scale_*rawPosMultiTurn_+engOffset_;
-
-  //reset overflow counter
-  turns_=0;
+  //reset overflow counter  
   engOffset_=0;
+  rawTurnsOld_=0;
+  rawTurns_=0;
   rawPosOffset_=pos/scale_-rawPosUint_;
   rawPosMultiTurn_=rawPosUint_+rawPosOffset_;
 
   actPosOld_=pos;
   actPos_=pos;
+
   //Must clear velocity filter
   velocityFilter_->initFilter(pos);
 }
@@ -227,38 +234,47 @@ encoderType ecmcEncoder::getType()
   return encType_;
 }
 
-int64_t ecmcEncoder::handleOverUnderFlow(uint64_t newValue, int bits)
-{
+/*
+* Return updated turns (based on over/underflow)
+*/
+int64_t ecmcEncoder::handleOverUnderFlow(uint64_t rawPosOld,
+                                         uint64_t rawPos,
+                                         int64_t rawTurns, 
+                                         uint64_t rawLimit, 
+                                         int bits)
+{  
+  int turns=rawTurns;
   if(bits<64){//Only support for over/under flow of datatypes less than 64 bit
-    if(rawPosUintOld_>rawPosUint_ && rawPosUintOld_-rawPosUint_>rawLimit_){//Overflow
-      turns_++;
+    if(rawPosOld > rawPos && rawPosOld-rawPos > rawLimit){//Overflow
+      turns++;
     }
     else{
-      if(rawPosUintOld_<rawPosUint_ &&rawPosUint_-rawPosUintOld_ >rawLimit_){//Underflow
-        turns_--;
+      if(rawPosOld < rawPos && rawPos-rawPosOld > rawLimit){//Underflow
+        turns--;
       }
     }
   }
   else{
-    turns_=0;
+    turns=0;
   }
-
-  return turns_*rawRange_+rawPosUint_+rawPosOffset_;
+  return turns;
 }
 
 int ecmcEncoder::setBits(int bits)
 {
   if(bits==0){
-	// Special case.. Need to support this since otherwise axis with external source will lead to config error
+	  // Special case.. Need to support this since otherwise axis 
+    // with external source will lead to config error
     bits_=0;
     rawRange_=0;
     rawLimit_=0;
     totalRawRegShift_=0;
     totalRawMask_=0;
     if(bits_!=bits){
-      LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,bits);
+      LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",
+                __FILE__,__FUNCTION__, __LINE__,data_->axisId_,bits);
     }
-	return 0;
+	  return 0;
   }
 
   int errorCode=setRawMask((uint64_t)(pow(2,bits)-1));
@@ -266,18 +282,34 @@ int ecmcEncoder::setBits(int bits)
     return errorCode;
   }
   if(bits_!=bits){
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,bits);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",
+              __FILE__, __FUNCTION__, __LINE__,data_->axisId_,bits);
   }
   return 0;
 }
 
+int ecmcEncoder::getBits()
+{
+  return bits_;
+}
+
 int ecmcEncoder::setAbsBits(int absBits)
 {
+  //if bits_ is not set
+  if(bits_==0){
+    bits_=absBits;
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.bits=%d;\n",
+              __FILE__, __FUNCTION__, __LINE__,data_->axisId_,absBits);
+  }
+
   if(absBits_!=absBits){
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.absbits=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,absBits);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.absbits=%d;\n",
+              __FILE__, __FUNCTION__, __LINE__,data_->axisId_,absBits);
   }
 
   absBits_=absBits;
+  rawAbsRange_=pow(2,absBits_);
+  rawAbsLimit_=rawAbsRange_*2.0/3.0;  //Limit for over/under-flow
   return 0;
 }
 
@@ -290,13 +322,17 @@ int ecmcEncoder::setRawMask(uint64_t mask)
 {
   int trailingZeros=countTrailingZerosInMask(mask);
   if(trailingZeros<0){
-    LOGERR("%s/%s:%d: Encoder Raw Mask Invalid. Mask not allowed to be 0 (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_RAW_MASK_INVALID);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_RAW_MASK_INVALID);
+    LOGERR("%s/%s:%d: Encoder Raw Mask Invalid, mask==0 (0x%x).\n",
+           __FILE__,__FUNCTION__,__LINE__,ERROR_ENC_RAW_MASK_INVALID);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,
+                      ERROR_ENC_RAW_MASK_INVALID);
   }
   int bitWidth=countBitWidthOfMask(mask,trailingZeros);
   if(bitWidth<0){
-    LOGERR("%s/%s:%d: Encoder Raw Mask Invalid. Mask must be continuous with ones (0x%x).\n",__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_RAW_MASK_INVALID);
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_RAW_MASK_INVALID);
+    LOGERR("%s/%s:%d: Encoder Raw Mask Invalid. Mask not continuous (0x%x).\n",
+           __FILE__,__FUNCTION__,__LINE__,ERROR_ENC_RAW_MASK_INVALID);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,
+                      ERROR_ENC_RAW_MASK_INVALID);
   }
 
   bits_=bitWidth;
@@ -304,7 +340,8 @@ int ecmcEncoder::setRawMask(uint64_t mask)
   rawLimit_=rawRange_*2.0/3.0;  //Limit for over/under-flow
 
   if(totalRawRegShift_!=mask){
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.rawmask=%"PRIx64";\n",__FILE__, __FUNCTION__, __LINE__,data_->axisId_,mask);
+    LOGINFO15("%s/%s:%d: axis[%d].encoder.rawmask=%"PRIx64";\n",
+              __FILE__, __FUNCTION__, __LINE__,data_->axisId_,mask);
   }
   totalRawRegShift_=pow(2,trailingZeros)-1;
   totalRawMask_=mask;
@@ -347,33 +384,106 @@ double ecmcEncoder::readEntries()
   //Filter value with mask
   rawPosUintOld_=rawPosUint_;
   rawPosUint_=(totalRawMask_ & tempRaw)-totalRawRegShift_;
+  // Check over/underflow (update turns counter)
+  rawTurnsOld_=rawTurns_;
+  rawTurns_=handleOverUnderFlow(rawPosUintOld_,
+                                rawPosUint_,
+                                rawTurns_,
+                                rawLimit_,
+                                bits_);
+  rawPosMultiTurn_=rawTurns_*rawRange_+rawPosUint_+rawPosOffset_;
+  
+  //Calculate absolute encoder data 
+  if(absBits_>0){  
+    rawAbsPosUintOld_=rawAbsPosUint_;
+    rawAbsPosUint_=(rawAbsRange_-1) & rawPosUint_; //filter abs bits
+  }
+  else{
+    rawAbsPosUintOld_=0;
+    rawAbsPosUint_=0;
+  }
 
-  rawPosMultiTurn_=handleOverUnderFlow(rawPosUint_,bits_); //With sign and simulated multiturn
   actPosOld_=actPos_;
   actPos_=scale_*rawPosMultiTurn_+engOffset_;
   actVel_=velocityFilter_->positionBasedVelAveraging(actPos_);
 
+  //Encoder latch entries (status and position)
+  if(encLatchFunctEnabled_){
+    if(readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS,&tempRaw)){
+      setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_READ_FAIL);
+    }
+    encLatchStatusOld_=encLatchStatus_;
+    encLatchStatus_=tempRaw>0;
+
+    if(readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE,&tempRaw)){
+      setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_READ_FAIL);
+    }
+    //Also treat latched position as actual position (same mask and shift)
+    rawEncLatchPos_=(totalRawMask_ & tempRaw)-totalRawRegShift_;
+    
+    //if new latched value then calculate latched value in engineering units
+    if(encLatchStatus_>encLatchStatusOld_){
+      //Calculate multiturn latch value position (raw)
+      //Use rawTurnsOld_ since over/under flow might have occured after 
+      //value was latched in hardware
+      int64_t turns=handleOverUnderFlow(rawPosUintOld_,
+                                        rawEncLatchPos_,
+                                        rawTurnsOld_,
+                                        rawLimit_,
+                                        bits_);
+      rawEncLatchPosMultiTurn_=turns*rawRange_+rawEncLatchPos_+rawPosOffset_;
+      actEncLatchPos_=scale_*rawEncLatchPosMultiTurn_+engOffset_;
+    }
+  }
+
   return actPos_;
+}
+
+int ecmcEncoder::writeEntries()
+{
+  if(encLatchFunctEnabled_){    
+    if(writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
+                         encLatchControl_>0)){
+      setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_READ_FAIL);
+    }    
+  }
+  return 0;
 }
 
 int ecmcEncoder::validate()
 {
-
   if(sampleTime_<=0){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_INVALID_SAMPLE_TIME);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,
+                      ERROR_ENC_INVALID_SAMPLE_TIME);
   }
 
   if(scaleDenom_==0){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_SCALE_DENOM_ZERO);
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,
+                      ERROR_ENC_SCALE_DENOM_ZERO);
   }
 
-  if(encType_!=ECMC_ENCODER_TYPE_ABSOLUTE && encType_!= ECMC_ENCODER_TYPE_INCREMENTAL){
-    return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_TYPE_NOT_SUPPORTED);
+  if(encType_!=ECMC_ENCODER_TYPE_ABSOLUTE && encType_ != 
+     ECMC_ENCODER_TYPE_INCREMENTAL){
+    return setErrorID(__FILE__,__FUNCTION__,__LINE__,
+                      ERROR_ENC_TYPE_NOT_SUPPORTED);
   }
 
   int errorCode=validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
   if(errorCode){   //Act position
     return setErrorID(__FILE__,__FUNCTION__,__LINE__,ERROR_ENC_ENTRY_NULL);
+  }
+
+  //Check if latch entries are linked then "enable" latch funct
+  if(checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS) &&
+     checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE)  && 
+     checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL)){
+
+     encLatchFunctEnabled_=!validateEntry(ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS) &&
+                           !validateEntry(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE)  && 
+                           !validateEntry(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL);
+  }
+  else{
+    encLatchFunctEnabled_=false;
   }
 
   return 0;
@@ -383,7 +493,7 @@ int ecmcEncoder::validate()
 int ecmcEncoder::setToZeroIfRelative()
 {
   if(encType_==ECMC_ENCODER_TYPE_INCREMENTAL){
-	setActPos(0);
+	  setActPos(0);
   }
   return 0;
 }
@@ -417,9 +527,77 @@ int ecmcEncoder::countBitWidthOfMask(uint64_t mask,int trailZeros)
 
   //ensure no more ones in more significant part (must be a cont. ones)
   if(maskNoTrailingZeros>(pow(2,ones)-1)){
-	return -1;
+	  return -1;
   }
   return ones;
 }
 
+/*
+* Return if encoder latch entries are linked and valid
+*/
+bool ecmcEncoder::getLatchFuncEnabled()
+{
+  return encLatchFunctEnabled_;
+}
 
+/*
+* Arm encoder hardware latch
+*/
+void ecmcEncoder::setArmLatch(bool arm)
+{
+  encLatchControl_=arm;  
+}
+
+/*
+* Return arm state of encoder hardware latch
+*/
+bool ecmcEncoder::getArmLatch()
+{
+  return encLatchControl_;  
+}
+
+/*
+* New value latched (only high during one cycle)
+*/
+bool ecmcEncoder::getNewValueLatched()
+{
+  return encLatchStatus_>encLatchStatusOld_; 
+}
+
+/*
+* Return last latched encoder value in engineering units
+*/
+double ecmcEncoder::getLatchPosEng()
+{  
+  return actEncLatchPos_; 
+}
+
+/*
+* Over or underflow occured
+*/
+ecmcOverUnderFlowType ecmcEncoder::getOverUnderflow()
+{
+  if(rawTurnsOld_>rawTurns_){
+    return ECMC_ENC_UNDERFLOW;
+  }
+  else if(rawTurnsOld_<rawTurns_){
+    return ECMC_ENC_OVERFLOW;
+  }
+  return ECMC_ENC_NORMAL;
+}
+
+/*
+* absolute range in engineering units
+*/
+double ecmcEncoder::getAbsRangeEng()
+{
+  return std::abs(rawAbsRange_*scale_);
+}
+
+/*
+* absolute range in counts
+*/
+int64_t ecmcEncoder::getAbsRangeRaw()
+{
+  return rawAbsRange_;
+}

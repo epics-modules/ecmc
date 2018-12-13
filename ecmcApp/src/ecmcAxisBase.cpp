@@ -180,6 +180,9 @@ void ecmcAxisBase::preExecute(bool masterOK)
 
 void ecmcAxisBase::postExecute(bool masterOK)
 {
+  //Write encoder entries
+  enc_->writeEntries();
+
   if(data_.status_.busyOld!=data_.status_.busy){
     LOGINFO15("%s/%s:%d: axis[%d].busy=%d;\n",__FILE__, __FUNCTION__, __LINE__,data_.axisId_,data_.status_.busy>0);
   }

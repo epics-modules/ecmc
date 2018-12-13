@@ -30,12 +30,13 @@
 #define ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL 0x14D0B
 #define ERROR_SEQ_NO_HOME_SWITCH_FLANK 0x14D0C
 #define ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK 0x14D0D
-#define ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO 0x14D0E
+#define ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE 0x14D0E
 #define ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED 0x14D0F
 #define ERROR_SEQ_ERROR_ACCELERATION_ZERO 0x14D10
 #define ERROR_SEQ_ERROR_DECELERATION_ZERO 0x14D11
 #define ERROR_SEQ_ERROR_VELOCITY_ZERO 0x14D12
-
+#define ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR 0x14D13
+#define ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE 0x14D14
 
 //Homing
 enum ecmcHomingType{
@@ -46,6 +47,8 @@ enum ecmcHomingType{
   ECMC_SEQ_HOME_HIGH_LIM_HOME = 4,
   ECMC_SEQ_HOME_LOW_LIM_HOME_HOME = 5,
   ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME = 6,
+  ECMC_SEQ_HOME_LOW_LIM_INDEX = 11,
+  ECMC_SEQ_HOME_HIGH_LIM_INDEX = 12,
   ECMC_SEQ_HOME_SET_POS = 15,
   ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS = 21,
   ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS = 22,
@@ -79,6 +82,10 @@ public:
   motionDirection getHomeDir();
   void   setHomePosition(double pos);
   double getHomePosition();
+  // Home on hardware latch (index or external) 
+  // Homing will be made after <count> latches have been identified
+  // only valid for certain home sequences
+  void   setHomeLatchCountOffset(int count);
   void   setTargetPos(double pos);
   void   setTargetPos(double pos, bool force);
   double getTargetPos();
@@ -105,6 +112,8 @@ private:
   int    seqHoming4();  //nCmdData==4
   int    seqHoming5();  //nCmdData==5
   int    seqHoming6();  //nCmdData==6
+  int    seqHoming11(); //nCmdData==11
+  int    seqHoming12(); //nCmdData==12
   int    seqHoming15(); //nCmdData==15
   int    seqHoming21(); //nCmdData==21
   int    seqHoming22(); //nCmdData==22
@@ -144,8 +153,11 @@ private:
   ecmcPIDController *cntrl_;
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcAxisData* data_;
-  uint64_t oldEncAbsPosReg_;
-  uint64_t encAbsPosReg_;
+  uint64_t oldencRawAbsPosReg_;
+  uint64_t encRawAbsPosReg_;
+  ecmcOverUnderFlowType overUnderFlowLatch_;
+  int homeLatchCountOffset_;
+  int homeLatchCountAct_;
 };
 
 #endif /* ecmcAxisSequencer_H_ */
