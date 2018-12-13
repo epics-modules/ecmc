@@ -67,6 +67,7 @@ public:
   ecmcEncoder(ecmcAxisData *axisData,double sampleTime);
   ~ecmcEncoder();
   int         setBits(int bits);
+  //Used for homing of partly absolute encoders (applied after raw mask)
   int         setAbsBits(int absBits);
   int         getAbsBits();
   int64_t     getRawPosMultiTurn();
@@ -78,7 +79,8 @@ public:
   double      getScaleDenom();
   double      getScale();
   double      getActPos();
-  double      getAbsBitsActPos();
+  double      getAbsRangeEng();
+  int64_t     getAbsRangeRaw();
   void        setActPos(double pos);
   double      getSampleTime();
   double      getActVel();
@@ -99,7 +101,6 @@ public:
   bool        getNewValueLatched();
   double      getLatchPosEng();
   ecmcOverUnderFlowType getOverUnderflow();
-  ecmcOverUnderFlowType getAbsBitsOverUnderflow();
 protected:
   void        initVars();
   int         countTrailingZerosInMask(uint64_t mask);
@@ -124,7 +125,7 @@ protected:
   int64_t     rawTurns_;  
   int64_t     rawTurnsOld_;
   int         bits_;
-  int         absBits_; //Used for homing of partly absolute encoders (applied after raw mask)
+  int         absBits_; 
   double      scaleNum_;
   double      scaleDenom_;
   double      scale_;
@@ -141,7 +142,6 @@ protected:
   int64_t     rawEncLatchPosMultiTurn_;
   bool        encLatchControl_;
   double      actEncLatchPos_;
-
 };
 
 #endif /* ECMCENCODER_H_ */

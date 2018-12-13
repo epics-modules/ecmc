@@ -395,8 +395,8 @@ double ecmcEncoder::readEntries()
                                 bits_);
   rawPosMultiTurn_=rawTurns_*rawRange_+rawPosUint_+rawPosOffset_;
   
-  //Calculate absolute bits
-  if(absBits_>0){
+  //Calculate absolute encoder data 
+  if(absBits_>0){  
     rawAbsPosUintOld_=rawAbsPosUint_;
     rawAbsPosUint_=(rawAbsRange_-1) & rawPosUint_; //filter abs bits
   }
@@ -589,20 +589,17 @@ ecmcOverUnderFlowType ecmcEncoder::getOverUnderflow()
 }
 
 /*
-* Over or underflow of absolute bits occured
+* absolute range in engineering units
 */
-ecmcOverUnderFlowType ecmcEncoder::getAbsBitsOverUnderflow()
+double ecmcEncoder::getAbsRangeEng()
 {
-  int turns=handleOverUnderFlow(rawAbsPosUintOld_,
-                                rawAbsPosUint_,
-                                0,
-                                rawAbsLimit_,
-                                absBits_);
-  if(turns<0){
-    return ECMC_ENC_UNDERFLOW;
-  }
-  else if(turns>0){
-    return ECMC_ENC_OVERFLOW;
-  }
-  return ECMC_ENC_NORMAL;
+  return std::abs(rawAbsRange_*scale_);
+}
+
+/*
+* absolute range in counts
+*/
+int64_t ecmcEncoder::getAbsRangeRaw()
+{
+  return rawAbsRange_;
 }

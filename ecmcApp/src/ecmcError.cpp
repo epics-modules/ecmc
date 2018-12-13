@@ -433,7 +433,10 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       break;
     case 0x14D13:
       return "ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR";
-      break;      
+      break;
+    case 0x14D14:
+      return "ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE";
+      break;
     case 0x14E00:  //TRAJECTORY
       return "ERROR_TRAJ_EXT_ENC_NULL";
       break;
