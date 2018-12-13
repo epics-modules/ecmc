@@ -308,9 +308,6 @@ const char *ecmcError::convertErrorIdToString(int errorId)
     case 0x1440E:
       return "ERROR_ENC_ABS_MASK_INVALID";
       break;
-    case 0x1440F:
-      return "ERROR_ENC_ABS_BIT_OUT_OF_RANGE";
-      break;
     case 0x14C00://MONITOR
       return "ERROR_MON_ASSIGN_ENTRY_FAILED";
       break;
@@ -417,7 +414,7 @@ const char *ecmcError::convertErrorIdToString(int errorId)
       return "ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK";
       break;
     case 0x14D0E:
-      return "ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO";
+      return "ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE";
       break;
     case 0x14D0F:
       return "ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED";

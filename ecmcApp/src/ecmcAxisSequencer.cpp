@@ -1561,10 +1561,10 @@ int ecmcAxisSequencer::seqHoming21() //nCmdData==21 Resolver homing (keep absolu
     return retValue;
   }
 
-  int encAbsBits=enc_->getAbsBits();
-  if(encAbsBits==0){
-    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Absolute bit count of encoder is 0. Consider other sequence (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO);
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO);
+  if(enc_->getAbsBits()<ECMC_ENCODER_ABS_BIT_MIN || enc_->getAbsBits()> enc_->getBits()){
+    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Encoder absolute bit count out of range (%d). Allowed range: %d:%d. (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__,enc_->getAbsBits(),enc_->getAbsBits(),enc_->getBits(),ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE);
   }
 
   if(homeLatchCountOffset_<=0){
@@ -1673,11 +1673,12 @@ int ecmcAxisSequencer::seqHoming22() //nCmdData==22 Resolver homing (keep absolu
     return retValue;
   }
 
-  int encAbsBits=enc_->getAbsBits();
-  if(encAbsBits==0){
-    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Absolute bit count of encoder is 0. Consider other sequence (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO);
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_ABS_BIT_COUNT_ZERO);
+  if(enc_->getAbsBits()<ECMC_ENCODER_ABS_BIT_MIN || enc_->getAbsBits()> enc_->getBits()){
+    LOGERR("%s/%s:%d: ERROR: Sequence aborted. Encoder absolute bit count out of range (%d). Allowed range: %d:%d. (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__,enc_->getAbsBits(),enc_->getAbsBits(),enc_->getBits(),ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE);
   }
+
   if(homeLatchCountOffset_<=0){
     LOGERR("%s/%s:%d: ERROR: Sequence aborted. Latch count out of range (%d). Allowed: value>0 (0x%x).\n",__FILE__, __FUNCTION__, __LINE__,homeLatchCountOffset_,ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE);

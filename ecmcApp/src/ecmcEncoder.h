@@ -41,7 +41,6 @@
 #define ERROR_ENC_VELOCITY_FILTER_NULL 0x1440C
 #define ERROR_ENC_RAW_MASK_INVALID 0x1440D
 #define ERROR_ENC_ABS_MASK_INVALID 0x1440E
-#define ERROR_ENC_ABS_BIT_OUT_OF_RANGE 0x1440F
 
 //Entries
 #define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
@@ -67,6 +66,7 @@ public:
   ecmcEncoder(ecmcAxisData *axisData,double sampleTime);
   ~ecmcEncoder();
   int         setBits(int bits);
+  int         getBits();
   //Used for homing of partly absolute encoders (applied after raw mask)
   int         setAbsBits(int absBits);
   int         getAbsBits();
