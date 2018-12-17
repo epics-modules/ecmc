@@ -7,23 +7,22 @@
 
 #ifndef ECMCEC_H_
 #define ECMCEC_H_
-#include "ecrt.h"
-#include "stdio.h"
+
+#include <time.h>
 #include <cmath>
 #include <string>
-#include <time.h>
-
+#include "stdio.h"
+#include "ecrt.h"
 #include "ecmcDefinitions.h"
 #include "ecmcEcEntry.h"
 #include "ecmcEcSDO.h"
 #include "ecmcEcSlave.h"
 #include "ecmcError.h"
-#include "cmd.h" //Logging macros
+#include "cmd.h"  // Logging macros
 #include "ecmcAsynPortDriver.h"
 #include "ecmcEcMemMap.h"
-#include <iocsh.h>
 
-//EC ERRORS
+// EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
 #define ERROR_EC_MAIN_CREATE_DOMAIN_FAILED 0x26001
 #define ERROR_EC_MAIN_INVALID_SLAVE_INDEX 0x26002
@@ -63,89 +62,113 @@
 #define ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID 0x26023
 #define ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW 0x26024
 
-//Entry index
+// Entry index
 #define ECMC_EC_ENTRY_INDEX_HEALTH 0
 
-class ecmcEc : public ecmcError
-{
-public:
+class ecmcEc : public ecmcError {
+ public:
   ecmcEc();
   ~ecmcEc();
   int init(int nMasterIndex);
-  //void setMaster(ec_master_t *master);
+
+  // void setMaster(ec_master_t *master);
   int addSlave(
-      uint16_t alias, /**< Slave alias. */
-      uint16_t position, /**< Slave position. */
-      uint32_t vendorId, /**< Expected vendor ID. */
-      uint32_t productCode /**< Expected product code. */);
-  ecmcEcSlave *getSlave(int slave); //NOTE: index not bus position
-  ec_domain_t *getDomain();
-  ec_master_t *getMaster();
-  int getMasterIndex();
-  bool getInitDone();
-  void receive();
-  void send(timespec timeOffset);
-  int compileRegInfo();
-  void checkDomainState();
-  int checkSlaveConfState(int slave);
-  bool checkSlavesConfState();
-  bool checkState();
-  int activate();
-  int setDiagnostics(bool diag);
-  int addSDOWrite(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize);
+    uint16_t alias,   /**< Slave alias. */
+    uint16_t position,   /**< Slave position. */
+    uint32_t vendorId,   /**< Expected vendor ID. */
+    uint32_t productCode  /**< Expected product code. */);
+  ecmcEcSlave* getSlave(int slave);  // NOTE: index not bus position
+  ec_domain_t* getDomain();
+  ec_master_t* getMaster();
+  int          getMasterIndex();
+  bool         getInitDone();
+  void         receive();
+  void         send(timespec timeOffset);
+  int          compileRegInfo();
+  void         checkDomainState();
+  int          checkSlaveConfState(int slave);
+  bool         checkSlavesConfState();
+  bool         checkState();
+  int          activate();
+  int          setDiagnostics(bool diag);
+  int          addSDOWrite(uint16_t slavePosition,
+                           uint16_t sdoIndex,
+                           uint8_t  sdoSubIndex,
+                           uint32_t value,
+                           int      byteSize);
   int writeAndVerifySDOs();
-  int readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize,uint32_t *value);
-  //uint32_t readSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex, int byteSize);
-  int writeSDO(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize);
-  int writeSDOComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value, int byteSize);
+  int readSDO(uint16_t  slavePosition,
+              uint16_t  sdoIndex,
+              uint8_t   sdoSubIndex,
+              int       byteSize,
+              uint32_t *value);
+
+  int writeSDO(uint16_t slavePosition,
+               uint16_t sdoIndex,
+               uint8_t  sdoSubIndex,
+               uint32_t value,
+               int      byteSize);
+  int writeSDOComplete(uint16_t slavePosition,
+                       uint16_t sdoIndex,
+                       uint32_t value,
+                       int      byteSize);
   int addEntry(
-        uint16_t       position, /**< Slave position. */
-        uint32_t       vendorId, /**< Expected vendor ID. */
-        uint32_t       productCode, /**< Expected product code. */
-        ec_direction_t direction,
-        uint8_t        syncMangerIndex,
-        uint16_t       pdoIndex,
-        uint16_t       entryIndex,
-        uint8_t        entrySubIndex,
-        uint8_t        bits,
-        std::string    id,
-	int            signedValue
-  );
-  int addMemMap(uint16_t startEntryBusPosition,
-        std::string startEntryIDString,
-	int byteSize,
-	int type,
-	ec_direction_t direction,
-	std::string memMapIDString);
-  ecmcEcMemMap *findMemMap(std::string id);
-  ecmcEcSlave *findSlave(int busPosition);
-  int findSlaveIndex(int busPosition,int *slaveIndex);
-  int updateTime();
-  int printTimingInformation();
-  int statusOK();
-  int setDomainFailedCyclesLimitInterlock(int cycles);
-  void slowExecute();
-  int reset();
-  int linkEcEntryToAsynParameter(void* asynPortObject, const char *entryIDString, int asynParType,int skipCycles);
-  int linkEcMemMapToAsynParameter(void* asynPortObject, const char *memMapIDString, int asynParType,int skipCycles);
-  int setEcStatusOutputEntry(ecmcEcEntry *entry);
-  int initAsyn(ecmcAsynPortDriver* asynPortDriver,bool regAsynParams,int skipCycles);
-  int setAsynPortDriver(ecmcAsynPortDriver* asynPortDriver);
-  int printAllConfig();
-  int printSlaveConfig(int slaveIndex);
-  int autoConfigSlave(int slaveIndex,int addAsAsynParams);
-private:
-  void initVars();
-  int updateInputProcessImage();
-  int updateOutProcessImage();
-  timespec timespecAdd(timespec time1, timespec time2);
+    uint16_t       position,     // Slave position.
+    uint32_t       vendorId,     // Expected vendor ID.
+    uint32_t       productCode,  // Expected product code.
+    ec_direction_t direction,
+    uint8_t        syncMangerIndex,
+    uint16_t       pdoIndex,
+    uint16_t       entryIndex,
+    uint8_t        entrySubIndex,
+    uint8_t        bits,
+    std::string    id,
+    int            signedValue);
+  int addMemMap(uint16_t       startEntryBusPosition,
+                std::string    startEntryIDString,
+                int            byteSize,
+                int            type,
+                ec_direction_t direction,
+                std::string    memMapIDString);
+  ecmcEcMemMap* findMemMap(std::string id);
+  ecmcEcSlave * findSlave(int busPosition);
+  int           findSlaveIndex(int  busPosition,
+                               int *slaveIndex);
+  int           updateTime();
+  int           printTimingInformation();
+  int           statusOK();
+  int           setDomainFailedCyclesLimitInterlock(int cycles);
+  void          slowExecute();
+  int           reset();
+  int           linkEcEntryToAsynParameter(void       *asynPortObject,
+                                           const char *entryIDString,
+                                           int         asynParType,
+                                           int         skipCycles);
+  int linkEcMemMapToAsynParameter(void       *asynPortObject,
+                                  const char *memMapIDString,
+                                  int         asynParType,
+                                  int         skipCycles);
+  int      setEcStatusOutputEntry(ecmcEcEntry *entry);
+  int      initAsyn(ecmcAsynPortDriver *asynPortDriver,
+                    bool                regAsynParams,
+                    int                 skipCycles);
+  int      setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
+  int      printAllConfig();
+  int      printSlaveConfig(int slaveIndex);
+
+ private:
+  void     initVars();
+  int      updateInputProcessImage();
+  int      updateOutProcessImage();
+  timespec timespecAdd(timespec time1,
+                       timespec time2);
   ec_master_t *master_;
   ec_domain_t *domain_;
   ec_domain_state_t domainStateOld_;
   ec_domain_state_t domainState_;
   ec_master_state_t masterStateOld_;
   ec_master_state_t masterState_;
-  uint8_t *domainPd_ ;
+  uint8_t *domainPd_;
   int slaveCounter_;
   int entryCounter_;
   ecmcEcSlave *slaveArray_[EC_MAX_SLAVES];
@@ -181,8 +204,7 @@ private:
   int asynParIdAlState;
   int asynParIdEntryCounter_;
   int asynParIdMasterLink_;
-
   int asynUpdateCycleCounter_;
   int asynUpdateCycles_;
 };
-#endif /* ECMCEC_H_ */
+#endif  /* ECMCEC_H_ */

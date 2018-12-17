@@ -8,19 +8,20 @@
 #include "ecmcEcEntryLink.h"
 #include "ecmcEcPdo.h"
 #include "ecmcError.h"
-#include "ecmcDriveBase.hpp"
+#include "ecmcDriveBase.h"
 
-class ecmcDriveStepper : public ecmcDriveBase
-{
-public:
-  ecmcDriveStepper(ecmcAxisData *axisData);
-  ecmcDriveStepper(ecmcAxisData *axisData,double scale);
+class ecmcDriveStepper : public ecmcDriveBase {
+ public:
+  explicit ecmcDriveStepper(ecmcAxisData *axisData);
+  ecmcDriveStepper(ecmcAxisData *axisData,
+                   double        scale);
   ~ecmcDriveStepper();
-  int validate();
+  int  validate();
   void writeEntries();
   void readEntries();
   void printCurrentState();
-private:
+
+ private:
   void initVars();
 };
-#endif
+#endif  // ifndef ECMCDRIVESTEPPER_H_

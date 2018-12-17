@@ -35,47 +35,53 @@
 #define ERROR_PLC_DATA_STORAGE_NULL 0x2060B
 
 
-
-class ecmcPLCDataIF : public ecmcEcEntryLink
-{
-public:
-  ecmcPLCDataIF(ecmcAxisBase *axis,char *axisVarName);
-  ecmcPLCDataIF(ecmcDataStorage *ds,char *dsVarName);
-  ecmcPLCDataIF(ecmcEc *ec,char *ecVarName);
-  ecmcPLCDataIF(char *varName,ecmcDataSourceType dataSource);
+class ecmcPLCDataIF : public ecmcEcEntryLink {
+ public:
+  ecmcPLCDataIF(ecmcAxisBase *axis,
+                char         *axisVarName);
+  ecmcPLCDataIF(ecmcDataStorage *ds,
+                char            *dsVarName);
+  ecmcPLCDataIF(ecmcEc *ec,
+                char   *ecVarName);
+  ecmcPLCDataIF(char              *varName,
+                ecmcDataSourceType dataSource);
   ~ecmcPLCDataIF();
-  int     read();
-  int     write();
-  double& getDataRef();
-  double getData();
-  void setData(double data);
-  const char *getVarName();
-  const char *getExprTkVarName();
-  int validate();
-  int setReadOnly(int readOnly);
-private:
-  int                readAxis();
-  int                writeAxis();
-  int                readDs();
-  int                readEc();
-  int                writeDs();
-  int                writeEc();
-  ecmcAxisDataType   parseAxisDataSource(char *axisVarName);
+  int                 read();
+  int                 write();
+  double            & getDataRef();
+  double              getData();
+  void                setData(double data);
+  const char        * getVarName();
+  const char        * getExprTkVarName();
+  int                 validate();
+  int                 setReadOnly(int readOnly);
+
+ private:
+  int                 readAxis();
+  int                 writeAxis();
+  int                 readDs();
+  int                 readEc();
+  int                 writeDs();
+  int                 writeEc();
+  ecmcAxisDataType    parseAxisDataSource(char *axisVarName);
   ecmcDataStorageType parseDataStorageDataSource(char *axisVarName);
-  
-  int                parseAndLinkEcDataSource(char *ecVarName);
-  int                parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit);
-  void               initVars();
-  ecmcAxisBase       *axis_;
-  ecmcDataStorage    *ds_;
-  ecmcEc             *ec_;
-  double             data_;
-  double             dataRead_;
-  ecmcAxisDataType   dataSourceAxis_;
+  int                 parseAndLinkEcDataSource(char *ecVarName);
+  int                 parseEcPath(char *ecPath,
+                                  int  *master,
+                                  int  *slave,
+                                  char *alias,
+                                  int  *bit);
+  void initVars();
+  ecmcAxisBase *axis_;
+  ecmcDataStorage *ds_;
+  ecmcEc *ec_;
+  double data_;
+  double dataRead_;
+  ecmcAxisDataType dataSourceAxis_;
   ecmcDataStorageType dataSourceDs_;
   ecmcDataSourceType source_;
-  std::string        varName_;
-  std::string        exprTkVarName_;
-  int                readOnly_;
+  std::string varName_;
+  std::string exprTkVarName_;
+  int readOnly_;
 };
-#endif /* ecmcPLCDataIF_H_ */
+#endif  /* ecmcPLCDataIF_H_ */

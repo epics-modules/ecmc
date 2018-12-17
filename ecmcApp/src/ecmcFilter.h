@@ -7,10 +7,10 @@
 
 #ifndef ECMCFILTER_H_
 #define ECMCFILTER_H_
+#include <stdio.h>
 #include <iomanip>
 #include <iostream>
 #include <cstring>
-#include <stdio.h>
 #include "ecmcError.h"
 #include "cmd.h"
 
@@ -18,21 +18,19 @@
 #define FILTER_BUFFER_SIZE_POS 150
 #define FILTER_BUFFER_SIZE_VEL 100
 
-class ecmcFilter : public ecmcError
-{
-public:
-  ecmcFilter(double sampleTime);
+class ecmcFilter : public ecmcError {
+ public:
+  explicit ecmcFilter(double sampleTime);
   ~ecmcFilter();
-  //double Update(double input);
+  // returns velocity
+  double positionBasedVelAveraging(double actPosition);
+  void   setSampleTime(double sampleTime);
+  int    reset();
+  // Init filter to certain position
+  int    initFilter(double pos);
 
-  double positionBasedVelAveraging(double actPosition);  //returns velocity
-  //double lowPassExponential(double input, double average, double factor);
-  //double lowPassFrequency(double input);
-  void setSampleTime(double sampleTime);
-  int reset();
-  int initFilter(double pos); //Init filter to certain position
-  private:
-  void initVars();
+ private:
+  void   initVars();
   double lowPassAveraging(double input);
   double bufferVel_[FILTER_BUFFER_SIZE_VEL];
   double bufferPos_[FILTER_BUFFER_SIZE_POS];
@@ -44,4 +42,4 @@ public:
   int indexVel_;
 };
 
-#endif /* ECMCFILTER_H_ */
+#endif  /* ECMCFILTER_H_ */

@@ -12,28 +12,34 @@
 
 #define MaxEcEntryLinks 20
 
-struct entryInfo
-{
+struct entryInfo{
   ecmcEcEntry *entry;
-  int bitNumber;
+  int          bitNumber;
 };
 
-class ecmcEcEntryLink : public ecmcError
-{
-public:
+class ecmcEcEntryLink : public ecmcError {
+ public:
   ecmcEcEntryLink();
   ~ecmcEcEntryLink();
-  int setEntryAtIndex(ecmcEcEntry *entry,int index,int bitIndex);
-  int validateEntry(int index);
-  int readEcEntryValue(int entryIndex,uint64_t *value);
-  int writeEcEntryValue(int entryIndex,uint64_t value);
+  int  setEntryAtIndex(ecmcEcEntry *entry,
+                       int          index,
+                       int          bitIndex);
+  int  validateEntry(int index);
+  int  readEcEntryValue(int       entryIndex,
+                        uint64_t *value);
+  int  writeEcEntryValue(int      entryIndex,
+                         uint64_t value);
   bool checkEntryExist(int entryIndex);
-protected:
-  int validateEntryBit(int index);
-  int getEntryBitCount(int index, int *bitCount);
-  int getEntryStartBit(int index, int *startBit);
-private:
+
+ protected:
+  int  validateEntryBit(int index);
+  int  getEntryBitCount(int  index,
+                        int *bitCount);
+  int  getEntryStartBit(int  index,
+                        int *startBit);
+
+ private:
   entryInfo entryInfoArray_[MaxEcEntryLinks];
 };
 
-#endif /* ECMCECENTRYLINK_H_ */
+#endif  /* ECMCECENTRYLINK_H_ */

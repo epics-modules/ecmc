@@ -1,12 +1,12 @@
 /*
- * ecmcPLC_libMc.h
+ * ecmcPLC_libMc.inc
  *
  *  Created on: Nov 19, 2018
  *      Author: anderssandstrom
  */
 
-#ifndef ecmcPLC_libMc_H_
-#define ecmcPLC_libMc_H_
+#ifndef ecmcPLC_libMc_inc_
+#define ecmcPLC_libMc_inc_
 
 #define CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndex) {             \
   if(axIndex>=ECMC_MAX_AXES || axIndex<=0){                   \
@@ -275,5 +275,5 @@ inline double mc_get_err()
 }
 
 
-#endif /* ecmcPLC_libMc_H_ */
+#endif /* ecmcPLC_libMc_inc_ */
 

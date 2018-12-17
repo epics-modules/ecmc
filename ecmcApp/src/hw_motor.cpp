@@ -1,9 +1,12 @@
 
-#define __STDC_FORMAT_MACROS  //for printf uint_64_t
+#define __STDC_FORMAT_MACROS  // for printf uint_64_t
+#include <inttypes.h>
+#include <stdlib.h>
+#include <math.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
-#include <string.h>
+#include <time.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -11,38 +14,35 @@
 #include <assert.h>
 #include <sched.h>
 #include <pthread.h>
+#include <exception>
+#include <algorithm>
+#include <string>
 
-#include <stdlib.h>
-#include <math.h>
 #include "cmd.h"
 #include "hw_motor.h"
-#include <inttypes.h>
-#include <algorithm>
-
 #include "ecrt.h"
 #include "messages.h"
-#include <time.h>
 
-//General
+// General
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 
-//Hardware
+// Hardware
 #include "ecmcEc.h"
 #include "ecmcEcPdo.h"
 #include "ecmcEcSlave.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcEcEntry.h"
 
-//Motion
-#include "ecmcAxisBase.h"      //Abstract class for all axis types
-#include "ecmcAxisReal.h"      //Normal axis (controller, drive, encoder, trajectory, monitor, sequencer)
-#include "ecmcAxisVirt.h"      //Axis without drive and controller
-#include "ecmcDriveBase.hpp"
-#include "ecmcTrajectoryTrapetz.hpp"
-#include "ecmcPIDController.hpp"
+// Motion
+#include "ecmcAxisBase.h"      // Abstract class for all axis types
+#include "ecmcAxisReal.h"      // Normal axis (cntr,drv, enc, traj, mon, seq)
+#include "ecmcAxisVirt.h"      // Axis without drive and controller
+#include "ecmcDriveBase.h"
+#include "ecmcTrajectoryTrapetz.h"
+#include "ecmcPIDController.h"
 #include "ecmcEncoder.h"
-#include "ecmcMonitor.hpp"
+#include "ecmcMonitor.h"
 #include "ecmcCommandTransform.h"
 #include "ecmcEvent.h"
 #include "ecmcDataRecorder.h"
@@ -53,76 +53,191 @@
 
 /****************************************************************************/
 #define CHECK_AXIS_RETURN_IF_ERROR(axisIndex)                                 \
-{                                                                             \
-  if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){                               \
-    LOGERR("ERROR: Axis index out of range.\n");                              \
-    return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;                                \
+  {                                                                           \
+    if (axisIndex >= ECMC_MAX_AXES || axisIndex <= 0) {                       \
+      LOGERR("ERROR: Axis index out of range.\n");                            \
+      return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;                              \
+    }                                                                         \
+    if (axes[axisIndex] == NULL) {                                            \
+      LOGERR("ERROR: Axis object NULL\n");                                    \
+      return ERROR_MAIN_AXIS_OBJECT_NULL;                                     \
+    }                                                                         \
   }                                                                           \
-  if(axes[axisIndex]==NULL){                                                  \
-    LOGERR("ERROR: Axis object NULL\n");                                      \
-    return ERROR_MAIN_AXIS_OBJECT_NULL;                                       \
-  }                                                                           \
-}                                                                             \
 
 #define CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)                   \
 {                                                                             \
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if(axes[axisIndex]->getBlockExtCom()){                                     \
+  if (axes[axisIndex]->getBlockExtCom()) {                                    \
     LOGERR("ERROR: External Commands Disabled\n");                            \
     return ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED;                             \
   }                                                                           \
 }                                                                             \
 
-#define CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getEnc()==NULL){LOGERR("ERROR: Encoder object NULL.\n");return ERROR_MAIN_ENCODER_OBJECT_NULL;}}
-#define CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getCntrl()==NULL){LOGERR("ERROR: Controller object NULL.\n");return ERROR_MAIN_CONTROLLER_OBJECT_NULL;}}
-#define CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getDrv()==NULL){LOGERR("ERROR: Drive object NULL.\n");return ERROR_MAIN_DRIVE_OBJECT_NULL;}}
-#define CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getTraj()==NULL){LOGERR("ERROR: Trajectory object NULL.\n");return ERROR_MAIN_TRAJECTORY_OBJECT_NULL;}}
-#define CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getSeq()==NULL){LOGERR("ERROR: Sequence object NULL.\n");return ERROR_MAIN_SEQUENCE_OBJECT_NULL;}}
-#define CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getMon()==NULL){LOGERR("ERROR: Monitor object NULL.\n");return ERROR_MAIN_MONITOR_OBJECT_NULL;}}
-#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()==NULL){LOGERR("ERROR: Trajectory transform object NULL.\n");return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;}}
-#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex) {if(axes[axisIndex]->getExternalEncIF()->getExtInputTransform()==NULL){LOGERR("ERROR: Encoder transform object NULL.\n");return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;}}
-#define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex) {  if(indexCommandList>=ECMC_MAX_COMMANDS_LISTS || indexCommandList<0){LOGERR("ERROR: Command list index out of range.\n");return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;}if(commandLists[indexCommandList]==NULL){LOGERR("ERROR: Command list object NULL.\n");return ERROR_COMMAND_LIST_NULL;}}
-#define CHECK_EVENT_RETURN_IF_ERROR(indexEvent) {if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){LOGERR("ERROR: Event index out of range.\n");return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;}if(events[indexEvent]==NULL){LOGERR("ERROR: Event object NULL.\n");return ERROR_MAIN_EVENT_NULL;}}
-#define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage) { if(indexStorage>=ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage<0){LOGERR("ERROR: Data storage index out of range.\n");return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;}if(dataStorages[indexStorage]==NULL){LOGERR("ERROR: Data storage object NULL.\n");return ERROR_MAIN_DATA_STORAGE_NULL;}}
-#define CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder) {if(indexRecorder>=ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder<0){LOGERR("ERROR: Data recorder index out of range.\n");return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;}if(dataRecorders[indexRecorder]==NULL){LOGERR("ERROR: Data recorder object NULL.\n");return ERROR_MAIN_DATA_RECORDER_NULL;}}
-#define CHECK_PLCS_RETURN_IF_ERROR() {if(!plcs){return ERROR_MAIN_PLCS_NULL;}}
-/****************************************************************************/
-static ecmcAxisBase     *axes[ECMC_MAX_AXES];
-static int              axisDiagIndex;
-static int              axisDiagFreq;
-static int              controllerError=-1;
-static const char*      controllerErrorMsg="NO_ERROR";
-static app_mode_type    appModeCmd,appModeCmdOld,appModeStat;
-static unsigned int     counter = 0;
-static ecmcEc           ec;
-static ecmcEvent        *events[ECMC_MAX_EVENT_OBJECTS];
-static ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
-static ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
-static ecmcCommandList  *commandLists[ECMC_MAX_COMMANDS_LISTS];
-static struct timespec  masterActivationTimeMonotonic={};
-static struct timespec  masterActivationTimeOffset={};
-static struct timespec  masterActivationTimeRealtime={};
-static ecmcAsynPortDriver *asynPort=NULL;
-static ecmcPLCs         *plcs;
+#define CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)                         \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->                                                       \
+    getEnc() == NULL) {                                                       \
+    LOGERR("ERROR: Encoder object NULL.\n");                                  \
+    return ERROR_MAIN_ENCODER_OBJECT_NULL;                                    \
+  }                                                                           \
+}                                                                             \
 
-//Default asyn params
-static int asynParIdLatencyMin=0;
-static int asynParIdLatencyMax=0;
-static int asynParIdExecuteMin=0;
-static int asynParIdExecuteMax=0;
-static int asynParIdPeriodMin=0;
-static int asynParIdPeriodMax=0;
-static int asynParIdSendMin=0;
-static int asynParIdSendMax=0;
-static int asynParIdEcmcAppMode=0;
-static int asynParIdEcmcErrorId=0;
-static int asynParIdEcmcErrorMsg=0;
-static int asynParIdEcmcErrorReset=0;
-static int asynSkipCyclesThread=0;
-static int asynUpdateCounterThread=0;
-static int asynThreadParamsEnable=0;
-static int asynSkipCyclesFastest=-1;
-static int asynSkipUpdateCounterFastest=0;
+#define CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex)                      \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->getCntrl() ==NULL) {                                   \
+    LOGERR("ERROR: Controller object NULL.\n");                               \
+    return ERROR_MAIN_CONTROLLER_OBJECT_NULL;                                 \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex)                           \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->getDrv() == NULL) {                                    \
+    LOGERR("ERROR: Drive object NULL.\n");                                    \
+    return ERROR_MAIN_DRIVE_OBJECT_NULL;                                      \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)                            \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->getTraj() == NULL) {                                   \
+    LOGERR("ERROR: Trajectory object NULL.\n");                               \
+    return ERROR_MAIN_TRAJECTORY_OBJECT_NULL;                                 \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)                             \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->getSeq()== NULL) {                                     \
+    LOGERR("ERROR: Sequence object NULL.\n");                                 \
+    return ERROR_MAIN_SEQUENCE_OBJECT_NULL;                                   \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)                             \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->getMon() == NULL) {                                    \
+    LOGERR("ERROR: Monitor object NULL.\n");                                  \
+    return ERROR_MAIN_MONITOR_OBJECT_NULL;                                    \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)                  \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->getExternalTrajIF()->getExtInputTransform() == NULL) { \
+    LOGERR("ERROR: Trajectory transform object NULL.\n");                     \
+    return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;                             \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)                   \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->getExternalEncIF()->getExtInputTransform() == NULL) {  \
+    LOGERR("ERROR: Encoder transform object NULL.\n");                        \
+    return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;                              \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex)                  \
+{                                                                             \
+  if (indexCommandList >= ECMC_MAX_COMMANDS_LISTS || indexCommandList < 0) {  \
+    LOGERR("ERROR: Command list index out of range.\n");                      \
+    return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;                             \
+  }                                                                           \
+  if (commandLists[indexCommandList] == NULL) {                               \
+    LOGERR("ERROR: Command list object NULL.\n");                             \
+    return ERROR_COMMAND_LIST_NULL;                                           \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_EVENT_RETURN_IF_ERROR(indexEvent)                               \
+{                                                                             \
+  if (indexEvent >= ECMC_MAX_EVENT_OBJECTS || indexEvent < 0) {               \
+    LOGERR("ERROR: Event index out of range.\n");                             \
+    return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;                               \
+  }                                                                           \
+  if (events[indexEvent] == NULL) {                                           \
+    LOGERR("ERROR: Event object NULL.\n");                                    \
+    return ERROR_MAIN_EVENT_NULL;                                             \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage)                           \
+{                                                                             \
+  if (indexStorage >= ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage < 0) {    \
+    LOGERR("ERROR: Data storage index out of range.\n");                      \
+    return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;                        \
+  }                                                                           \
+  if (dataStorages[indexStorage] == NULL) {                                   \
+    LOGERR("ERROR: Data storage object NULL.\n");                             \
+    return ERROR_MAIN_DATA_STORAGE_NULL;                                      \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder)                         \
+{                                                                             \
+  if (indexRecorder >= ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder < 0) {\
+    LOGERR("ERROR: Data recorder index out of range.\n");                     \
+    return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;                       \
+  }                                                                           \
+  if (dataRecorders[indexRecorder] == NULL) {                                 \
+    LOGERR("ERROR: Data recorder object NULL.\n");                            \
+    return ERROR_MAIN_DATA_RECORDER_NULL;                                     \
+  }                                                                           \
+}                                                                             \
+
+#define CHECK_PLCS_RETURN_IF_ERROR()                                          \
+{                                                                             \
+  if (!plcs) {                                                                \
+    return ERROR_MAIN_PLCS_NULL;                                              \
+  }                                                                           \
+}                                                                             \
+
+/****************************************************************************/
+static ecmcAxisBase *axes[ECMC_MAX_AXES];
+static int axisDiagIndex;
+static int axisDiagFreq;
+static int controllerError = -1;
+static const char   *controllerErrorMsg = "NO_ERROR";
+static app_mode_type appModeCmd, appModeCmdOld, appModeStat;
+static unsigned int  counter = 0;
+static ecmcEc ec;
+static ecmcEvent *events[ECMC_MAX_EVENT_OBJECTS];
+static ecmcDataRecorder   *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
+static ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
+static ecmcCommandList    *commandLists[ECMC_MAX_COMMANDS_LISTS];
+static struct timespec     masterActivationTimeMonotonic = {};
+static struct timespec     masterActivationTimeOffset    = {};
+static struct timespec     masterActivationTimeRealtime  = {};
+static ecmcAsynPortDriver *asynPort                      = NULL;
+static ecmcPLCs *plcs;
+
+// Default asyn params
+static int asynParIdLatencyMin          = 0;
+static int asynParIdLatencyMax          = 0;
+static int asynParIdExecuteMin          = 0;
+static int asynParIdExecuteMax          = 0;
+static int asynParIdPeriodMin           = 0;
+static int asynParIdPeriodMax           = 0;
+static int asynParIdSendMin             = 0;
+static int asynParIdSendMax             = 0;
+static int asynParIdEcmcAppMode         = 0;
+static int asynParIdEcmcErrorId         = 0;
+static int asynParIdEcmcErrorMsg        = 0;
+static int asynParIdEcmcErrorReset      = 0;
+static int asynSkipCyclesThread         = 0;
+static int asynUpdateCounterThread      = 0;
+static int asynThreadParamsEnable       = 0;
+static int asynSkipCyclesFastest        = -1;
+static int asynSkipUpdateCounterFastest = 0;
 
 /****************************************************************************/
 
@@ -130,101 +245,104 @@ const struct timespec cycletime = {0, MCU_PERIOD_NS};
 
 /*****************************************************************************/
 
-void printStatus()
-{
-  //Print axis diagnostics to screen
-  if(PRINT_STDOUT_BIT12() && axisDiagIndex<ECMC_MAX_AXES && axisDiagIndex>=0){
-    if(axes[axisDiagIndex]!=NULL){
+void printStatus() {
+  // Print axis diagnostics to screen
+  if (PRINT_STDOUT_BIT12() && (axisDiagIndex < ECMC_MAX_AXES) &&
+      (axisDiagIndex >= 0)) {
+    if (axes[axisDiagIndex] != NULL) {
       axes[axisDiagIndex]->printAxisStatus();
     }
   }
 }
 
-//****** Threading
+// ****** Threading
 typedef void (*rtTHREADFUNC)(void *parm);
 
-struct rtThreadOSD
-{
-  pthread_t thread;
+struct rtThreadOSD{
+  pthread_t      thread;
   pthread_attr_t attr;
-  void * usr;
-  rtTHREADFUNC start;
+  void          *usr;
+  rtTHREADFUNC   start;
 };
 
 typedef struct rtThreadOSD *rtThreadId;
 
-static void * start_routine(void *arg)
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+static void* start_routine(void *arg) {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   rtThreadId thread = (rtThreadId)arg;
   thread->start(thread->usr);
   return NULL;
 }
 
-rtThreadId rtThreadCreate (
-    const char * name, unsigned int priority, unsigned int stackSize,
-    rtTHREADFUNC funptr, void * parm)
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+rtThreadId rtThreadCreate(
+  const char *name, unsigned int priority, unsigned int stackSize,
+  rtTHREADFUNC funptr, void *parm) {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   struct sched_param sched = {0};
-  rtThreadId thread =(rtThreadId)calloc(1, sizeof(struct rtThreadOSD));
+  rtThreadId thread        = (rtThreadId)calloc(1, sizeof(struct rtThreadOSD));
   assert(thread != NULL);
   sched.sched_priority = priority;
   assert(pthread_attr_init(&thread->attr) == 0);
-  if(priority){
+
+  if (priority) {
     assert(pthread_attr_setinheritsched(&thread->attr,
-                PTHREAD_EXPLICIT_SCHED) == 0);
+                                        PTHREAD_EXPLICIT_SCHED) == 0);
     assert(pthread_attr_setschedpolicy(&thread->attr,
-                SCHED_FIFO) == 0);
+                                       SCHED_FIFO) == 0);
     assert(pthread_attr_setschedparam(&thread->attr,
-                &sched) == 0);
+                                      &sched) == 0);
   }
   thread->start = funptr;
-  thread->usr = parm;
-  int result = pthread_create(&thread->thread, &thread->attr, start_routine, thread);
-  if( result == 0){
+  thread->usr   = parm;
+  int result = pthread_create(&thread->thread,
+                              &thread->attr,
+                              start_routine,
+                              thread);
+
+  if (result == 0) {
     return thread;
-  }
-  else{
-    switch(result){
-      case EAGAIN: LOGERR("rtThreadCreate: EAGAIN (%d)\n", result);
-        break;
-      case EINVAL: LOGERR("rtThreadCreate: EINVAL (%d)\n", result);
-        break;
-      case EPERM: LOGERR("rtThreadCreate: EPERM (%d)\n", result);
-        break;
-      default:
-        LOGERR("rtThreadCreate: other error %d\n", result );
-        break;
+  } else {
+    switch (result) {
+    case EAGAIN: LOGERR("rtThreadCreate: EAGAIN (%d)\n", result);
+      break;
+
+    case EINVAL: LOGERR("rtThreadCreate: EINVAL (%d)\n", result);
+      break;
+
+    case EPERM: LOGERR("rtThreadCreate: EPERM (%d)\n", result);
+      break;
+
+    default:
+      LOGERR("rtThreadCreate: other error %d\n", result);
+      break;
     }
     return NULL;
   }
 }
 
-//******
+// ******
 
-struct timespec timespec_add(struct timespec time1, struct timespec time2)
-{
+struct timespec timespec_add(struct timespec time1, struct timespec time2) {
   struct timespec result;
 
   if ((time1.tv_nsec + time2.tv_nsec) >= MCU_NSEC_PER_SEC) {
-    result.tv_sec = time1.tv_sec + time2.tv_sec + 1;
+    result.tv_sec  = time1.tv_sec + time2.tv_sec + 1;
     result.tv_nsec = time1.tv_nsec + time2.tv_nsec - MCU_NSEC_PER_SEC;
   } else {
-    result.tv_sec = time1.tv_sec + time2.tv_sec;
+    result.tv_sec  = time1.tv_sec + time2.tv_sec;
     result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
   }
   return result;
 }
 
-struct timespec timespec_sub(struct timespec time1, struct timespec time2)
-{
+struct timespec timespec_sub(struct timespec time1, struct timespec time2) {
   struct timespec result;
 
-  result.tv_sec = time1.tv_sec -time2.tv_sec;
-  result.tv_nsec = time1.tv_nsec -time2.tv_nsec;
+  result.tv_sec  = time1.tv_sec - time2.tv_sec;
+  result.tv_nsec = time1.tv_nsec - time2.tv_nsec;
+
   if ((time1.tv_nsec - time2.tv_nsec) < 0) {
-    result.tv_sec = result.tv_sec -1;
+    result.tv_sec  = result.tv_sec - 1;
     result.tv_nsec = result.tv_nsec + MCU_NSEC_PER_SEC;
   }
   return result;
@@ -234,193 +352,246 @@ struct timespec timespec_sub(struct timespec time1, struct timespec time2)
  *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
  *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
 */
-static int parseEcPath(char* ecPath, int *master,int *slave, char*alias,int *bit)
-{
-  int masterId=0;
-  int slaveId=0;
-  int bitId=0;
-  int nvals=0;
+static int parseEcPath(char *ecPath,
+                       int  *master,
+                       int  *slave,
+                       char *alias,
+                       int  *bit) {
+  int masterId = 0;
+  int slaveId  = 0;
+  int bitId    = 0;
+  int nvals    = 0;
 
-  nvals = sscanf(ecPath, "ec%d.s%d.%[^.].%d",&masterId,&slaveId,alias,&bitId);
-  if (nvals == 4){
-	*master=masterId;
-	*slave=slaveId;
-	*bit=bitId;
+  nvals = sscanf(ecPath,
+                 "ec%d.s%d.%[^.].%d",
+                 &masterId,
+                 &slaveId,
+                 alias,
+                 &bitId);
+
+  if (nvals == 4) {
+    *master = masterId;
+    *slave  = slaveId;
+    *bit    = bitId;
     return 0;
   }
-  nvals = sscanf(ecPath, "ec%d.s%d.%s",&masterId,&slaveId,alias);
-  if (nvals == 3){
-	*master=masterId;
-	*slave=slaveId;
-	*bit=-1;
+  nvals = sscanf(ecPath, "ec%d.s%d.%s", &masterId, &slaveId, alias);
+
+  if (nvals == 3) {
+    *master = masterId;
+    *slave  = slaveId;
+    *bit    = -1;
     return 0;
   }
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 
-static int parseObjectPath(char* objPath,int *axis, motionObjectType *objectType,int *objectFunction)
-{
-  int axisId=0;
+static int parseObjectPath(char             *objPath,
+                           int              *axis,
+                           motionObjectType *objectType,
+                           int              *objectFunction) {
+  int  axisId = 0;
   char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int nvals=0;
-  *objectType=ECMC_OBJ_INVALID;
+  int  nvals = 0;
 
-  //Axis sub objects
-  nvals = sscanf(objPath, ECMC_AX_STR"%d.%[^.].%s",&axisId,objectTypeStr,objectFunctionStr);
-  if (nvals == 3){
-	  *axis=axisId;
-	  //Drive
-	  nvals=strcmp(objectTypeStr,ECMC_DRV_STR);
-	  if( nvals==0 ){
-	    *objectType=ECMC_OBJ_DRIVE;
-	    //Enable
-	    nvals=strcmp(objectFunctionStr,ECMC_DRV_ENABLE_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD;
-        return 0;
-	    }
-	    //Velocity
-	    nvals=strcmp(objectFunctionStr,ECMC_DRV_VELOCITY_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT;
-        return 0;
-	    }
-	    //Enabled
-	    nvals=strcmp(objectFunctionStr,ECMC_DRV_ENABLED_STR);
-      if(nvals==0){
-		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD;
-        return 0;
-	    }
-	    //Break
-	    nvals=strcmp(objectFunctionStr,ECMC_DRV_BREAK_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT;
-        return 0;
-	    }
-	    //Reduce Torque
-	    nvals=strcmp(objectFunctionStr,ECMC_DRV_REDUCETORQUE_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT;
-        return 0;
-	    }
-	    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-	  }
+  *objectType = ECMC_OBJ_INVALID;
 
-	  //Encoder
-	  nvals=strcmp(objectTypeStr,ECMC_ENC_STR);
-	  if( nvals==0 ){
-	    *objectType=ECMC_OBJ_ENCODER;
-	    //Actpos
-      nvals=strcmp(objectFunctionStr,ECMC_ENC_ACTPOS_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION;
-        return 0;
-	    }
- 	    //Latch status
-      nvals=strcmp(objectFunctionStr,ECMC_ENC_LATCH_STATUS_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS;
-        return 0;
-	    }
- 	    //Latch pos
-      nvals=strcmp(objectFunctionStr,ECMC_ENC_LATCHPOS_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE;
-        return 0;
-	    }
-      //Latch control
-      nvals=strcmp(objectFunctionStr,ECMC_ENC_LATCH_CONTROL_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL;
-        return 0;
-	    }
-	    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-	  }
+  // Axis sub objects
+  nvals = sscanf(objPath,
+                 ECMC_AX_STR "%d.%[^.].%s",
+                 &axisId,
+                 objectTypeStr,
+                 objectFunctionStr);
 
-	  //Monitor
-	  nvals=strcmp(objectTypeStr,ECMC_MON_STR);
-	  if( nvals==0 ){
-	    *objectType=ECMC_OBJ_MONITOR;
-  	  //Lowlim
-	    nvals=strcmp(objectFunctionStr,ECMC_MON_LOWLIM_STR);
-	    if(nvals==0){
-  	    *objectFunction=ECMC_MON_ENTRY_INDEX_LOWLIM;
+  if (nvals == 3) {
+    *axis = axisId;
+
+    // Drive
+    nvals = strcmp(objectTypeStr, ECMC_DRV_STR);
+
+    if (nvals == 0) {
+      *objectType = ECMC_OBJ_DRIVE;
+
+      // Enable
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_ENABLE_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD;
         return 0;
-	    }
-	    //Highlim
-  	  nvals=strcmp(objectFunctionStr,ECMC_MON_HIGHLIM_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_MON_ENTRY_INDEX_HIGHLIM;
+      }
+
+      // Velocity
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_VELOCITY_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT;
         return 0;
-	    }
-	    //Home sensor
-	    nvals=strcmp(objectFunctionStr,ECMC_MON_HOMESENSOR_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_MON_ENTRY_INDEX_HOMESENSOR;
+      }
+
+      // Enabled
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_ENABLED_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD;
         return 0;
-	    }
-	    //ExternalInterupt
-	    nvals=strcmp(objectFunctionStr,ECMC_MON_EXTINTERLOCK_STR);
-	    if(nvals==0){
-		    *objectFunction=ECMC_MON_ENTRY_INDEX_EXTINTERLOCK;
+      }
+
+      // Break
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_BREAK_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT;
         return 0;
-	    }
-	    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-	  }
+      }
+
+      // Reduce Torque
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_REDUCETORQUE_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT;
+        return 0;
+      }
+      return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+    }
+
+    // Encoder
+    nvals = strcmp(objectTypeStr, ECMC_ENC_STR);
+
+    if (nvals == 0) {
+      *objectType = ECMC_OBJ_ENCODER;
+
+      // Actpos
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_ACTPOS_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION;
+        return 0;
+      }
+
+      // Latch status
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_LATCH_STATUS_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS;
+        return 0;
+      }
+
+      // Latch pos
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_LATCHPOS_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE;
+        return 0;
+      }
+
+      // Latch control
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_LATCH_CONTROL_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL;
+        return 0;
+      }
+      return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+    }
+
+    // Monitor
+    nvals = strcmp(objectTypeStr, ECMC_MON_STR);
+
+    if (nvals == 0) {
+      *objectType = ECMC_OBJ_MONITOR;
+
+      // Lowlim
+      nvals = strcmp(objectFunctionStr, ECMC_MON_LOWLIM_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_MON_ENTRY_INDEX_LOWLIM;
+        return 0;
+      }
+
+      // Highlim
+      nvals = strcmp(objectFunctionStr, ECMC_MON_HIGHLIM_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_MON_ENTRY_INDEX_HIGHLIM;
+        return 0;
+      }
+
+      // Home sensor
+      nvals = strcmp(objectFunctionStr, ECMC_MON_HOMESENSOR_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_MON_ENTRY_INDEX_HOMESENSOR;
+        return 0;
+      }
+
+      // ExternalInterupt
+      nvals = strcmp(objectFunctionStr, ECMC_MON_EXTINTERLOCK_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_MON_ENTRY_INDEX_EXTINTERLOCK;
+        return 0;
+      }
+      return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+    }
   }
 
-  //Axis object only
-  nvals = sscanf(objPath, ECMC_AX_STR"%d.%s",&axisId,objectFunctionStr);
-  if (nvals == 2){
-	  *objectType=ECMC_OBJ_AXIS;
-	  *axis=axisId;
-	   //Health
-    nvals=strcmp(objectFunctionStr,ECMC_AX_HEALTH_STR);
-	  if(nvals==0){
-	    *objectFunction=ECMC_AXIS_ENTRY_INDEX_HEALTH;
-	    return 0;
- 	  }
-	  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+  // Axis object only
+  nvals = sscanf(objPath, ECMC_AX_STR "%d.%s", &axisId, objectFunctionStr);
+
+  if (nvals == 2) {
+    *objectType = ECMC_OBJ_AXIS;
+    *axis       = axisId;
+
+    // Health
+    nvals = strcmp(objectFunctionStr, ECMC_AX_HEALTH_STR);
+
+    if (nvals == 0) {
+      *objectFunction = ECMC_AXIS_ENTRY_INDEX_HEALTH;
+      return 0;
+    }
+    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
   }
 
-  //Ec object
-  int masterId=0;
-  nvals = sscanf(objPath, ECMC_EC_STR"%d.%s",&masterId,objectFunctionStr);
-  if (nvals == 2){
-	  *objectType=ECMC_OBJ_EC;
-	  //Health
-    nvals=strcmp(objectFunctionStr,ECMC_EC_HEALTH_STR);
-	  if(nvals==0){
-	    *objectFunction=ECMC_EC_ENTRY_INDEX_HEALTH;
-	    return 0;
-	  }
-	  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+  // Ec object
+  int masterId = 0;
+  nvals = sscanf(objPath, ECMC_EC_STR "%d.%s", &masterId, objectFunctionStr);
+
+  if (nvals == 2) {
+    *objectType = ECMC_OBJ_EC;
+
+    // Health
+    nvals = strcmp(objectFunctionStr, ECMC_EC_HEALTH_STR);
+
+    if (nvals == 0) {
+      *objectFunction = ECMC_EC_ENTRY_INDEX_HEALTH;
+      return 0;
+    }
+    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
   }
 
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 
-void cyclic_task(void * usr)
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
-  int i=0;
-  struct timespec wakeupTime , sendTime, lastSendTime= {};
-  struct timespec startTime, endTime, lastStartTime= {};
-  struct timespec offsetStartTime= {};
-  uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0,sendperiod_ns = 0,
+void cyclic_task(void *usr) {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+  int i = 0;
+  struct timespec wakeupTime, sendTime, lastSendTime = {};
+  struct timespec startTime, endTime, lastStartTime = {};
+  struct timespec offsetStartTime = {};
+  uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0, sendperiod_ns = 0,
            latency_min_ns = 0, latency_max_ns = 0,
            period_min_ns = 0, period_max_ns = 0,
            exec_min_ns = 0, exec_max_ns = 0,
            send_min_ns = 0, send_max_ns = 0;
 
-  offsetStartTime.tv_nsec=49*MCU_PERIOD_NS;
-  offsetStartTime.tv_sec=0;
+  offsetStartTime.tv_nsec = 49 * MCU_PERIOD_NS;
+  offsetStartTime.tv_sec  = 0;
 
-  // get current time
-  wakeupTime=timespec_add(masterActivationTimeMonotonic,offsetStartTime); // start 50 (49+1) cycle times after master activate
-  while(appModeCmd==ECMC_MODE_RUNTIME)
-  {
+  // start 50 (49+1) cycle times after master activate
+  wakeupTime = timespec_add(masterActivationTimeMonotonic, offsetStartTime);
+
+  while (appModeCmd == ECMC_MODE_RUNTIME) {
     wakeupTime = timespec_add(wakeupTime, cycletime);
 
     /* Only lock asyn port when ec is started
@@ -428,113 +599,124 @@ void cyclic_task(void * usr)
      * (sleep in waitforstartup() this is called
      * in asyn thread) .
      * */
-    if(asynPort && appModeStat==ECMC_MODE_RUNTIME){
+    if (asynPort && (appModeStat == ECMC_MODE_RUNTIME)) {
       asynPort->unlock();
     }
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
-    if(asynPort && appModeStat==ECMC_MODE_RUNTIME){
+
+    if (asynPort && (appModeStat == ECMC_MODE_RUNTIME)) {
       asynPort->lock();
     }
     clock_gettime(CLOCK_MONOTONIC, &startTime);
-    latency_ns = DIFF_NS(wakeupTime, startTime);
-    period_ns = DIFF_NS(lastStartTime, startTime);
-    exec_ns = DIFF_NS(lastStartTime, endTime);
+    latency_ns    = DIFF_NS(wakeupTime, startTime);
+    period_ns     = DIFF_NS(lastStartTime, startTime);
+    exec_ns       = DIFF_NS(lastStartTime, endTime);
     sendperiod_ns = DIFF_NS(lastSendTime, sendTime);
     lastStartTime = startTime;
-    lastSendTime=sendTime;
+    lastSendTime  = sendTime;
 
     if (latency_ns > latency_max_ns) {
       latency_max_ns = latency_ns;
     }
+
     if (latency_ns < latency_min_ns) {
       latency_min_ns = latency_ns;
     }
+
     if (period_ns > period_max_ns) {
       period_max_ns = period_ns;
     }
+
     if (period_ns < period_min_ns) {
-      period_min_ns= period_ns;
+      period_min_ns = period_ns;
     }
+
     if (exec_ns > exec_max_ns) {
       exec_max_ns = exec_ns;
     }
+
     if (exec_ns < exec_min_ns) {
       exec_min_ns = exec_ns;
     }
+
     if (sendperiod_ns > send_max_ns) {
-	    send_max_ns = sendperiod_ns;
+      send_max_ns = sendperiod_ns;
     }
+
     if (sendperiod_ns < send_min_ns) {
-	    send_min_ns = sendperiod_ns;
+      send_min_ns = sendperiod_ns;
     }
 
     ec.receive();
     ec.checkDomainState();
 
-    //Motion
-    for( i=0;i<ECMC_MAX_AXES;i++){
-      if(axes[i]!=NULL){
+    // Motion
+    for (i = 0; i < ECMC_MAX_AXES; i++) {
+      if (axes[i] != NULL) {
         axes[i]->execute(ec.statusOK());
       }
     }
 
-    //Data events
-    for( i=0;i<ECMC_MAX_EVENT_OBJECTS;i++){
-      if(events[i]!=NULL){
-	      events[i]->execute(ec.statusOK());
+    // Data events
+    for (i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
+      if (events[i] != NULL) {
+        events[i]->execute(ec.statusOK());
       }
     }
 
-    //PLCs
-    if(plcs){
+    // PLCs
+    if (plcs) {
       plcs->execute(ec.statusOK());
     }
 
-    //Update Asyn thread diagnostics parameters
-    if(asynUpdateCounterThread){
+    // Update Asyn thread diagnostics parameters
+    if (asynUpdateCounterThread) {
       asynUpdateCounterThread--;
-    }
-    else{
+    } else {
+      asynUpdateCounterThread = asynSkipCyclesThread;
 
-      asynUpdateCounterThread=asynSkipCyclesThread;
-      if(asynPort && asynSkipCyclesThread>=0 && asynThreadParamsEnable){
-	      if(asynPort->getAllowRtThreadCom()){
-          asynPort-> setIntegerParam(asynParIdLatencyMin,latency_min_ns);
-          asynPort-> setIntegerParam(asynParIdLatencyMax,latency_max_ns);
-          asynPort-> setIntegerParam(asynParIdExecuteMin,exec_min_ns);
-          asynPort-> setIntegerParam(asynParIdExecuteMax,exec_max_ns);
-          asynPort-> setIntegerParam(asynParIdPeriodMin,period_min_ns);
-          asynPort-> setIntegerParam(asynParIdPeriodMax,period_max_ns);
-          asynPort-> setIntegerParam(asynParIdSendMin,send_min_ns);
-          asynPort-> setIntegerParam(asynParIdSendMax,send_max_ns);
-          controllerError=getControllerError();
-          asynPort->setIntegerParam(asynParIdEcmcErrorId,controllerError);
-          controllerErrorMsg=getErrorString(controllerError);
-          asynPort->doCallbacksInt8Array((epicsInt8*)controllerErrorMsg,(int)strlen(controllerErrorMsg)+1, asynParIdEcmcErrorMsg,0);
-	      }
-        period_max_ns = 0;
-        period_min_ns = 0xffffffff;
-        exec_max_ns = 0;
-        exec_min_ns = 0xffffffff;
+      if (asynPort && (asynSkipCyclesThread >= 0) && asynThreadParamsEnable) {
+        if (asynPort->getAllowRtThreadCom()) {
+          asynPort->setIntegerParam(asynParIdLatencyMin,  latency_min_ns);
+          asynPort->setIntegerParam(asynParIdLatencyMax,  latency_max_ns);
+          asynPort->setIntegerParam(asynParIdExecuteMin,  exec_min_ns);
+          asynPort->setIntegerParam(asynParIdExecuteMax,  exec_max_ns);
+          asynPort->setIntegerParam(asynParIdPeriodMin,   period_min_ns);
+          asynPort->setIntegerParam(asynParIdPeriodMax,   period_max_ns);
+          asynPort->setIntegerParam(asynParIdSendMin,     send_min_ns);
+          asynPort->setIntegerParam(asynParIdSendMax,     send_max_ns);
+          controllerError = getControllerError();
+          asynPort->setIntegerParam(asynParIdEcmcErrorId, controllerError);
+          controllerErrorMsg = getErrorString(controllerError);
+          asynPort->doCallbacksInt8Array(
+                        (epicsInt8 *)controllerErrorMsg,
+                        static_cast<int>(strlen(controllerErrorMsg)) + 1,
+                        asynParIdEcmcErrorMsg,
+                        0);
+        }
+        period_max_ns  = 0;
+        period_min_ns  = 0xffffffff;
+        exec_max_ns    = 0;
+        exec_min_ns    = 0xffffffff;
         latency_max_ns = 0;
         latency_min_ns = 0xffffffff;
-        send_max_ns=0;
-        send_min_ns=0xffffffff;
-        sendperiod_ns=0;
+        send_max_ns    = 0;
+        send_min_ns    = 0xffffffff;
+        sendperiod_ns  = 0;
       }
     }
 
     if (counter) {
       counter--;
-    }
-    else{ //Lower freq
-      if(axisDiagFreq>0){
-        counter = MCU_FREQUENCY/axisDiagFreq;
+    } else {    // Lower freq
+      if (axisDiagFreq > 0) {
+        counter = MCU_FREQUENCY / axisDiagFreq;
         ec.checkState();
         ec.checkSlavesConfState();
         printStatus();
-        for(int i=0;i<ECMC_MAX_AXES;i++){
-          if(axes[i]!=NULL){
+
+        for (int i = 0; i < ECMC_MAX_AXES; i++) {
+          if (axes[i] != NULL) {
             axes[i]->slowExecute();
           }
         }
@@ -542,15 +724,15 @@ void cyclic_task(void * usr)
       }
     }
 
-    //Asyn callbacks for all parameters (except arrays)
-    if(asynSkipUpdateCounterFastest){
+    // Asyn callbacks for all parameters (except arrays)
+    if (asynSkipUpdateCounterFastest) {
       asynSkipUpdateCounterFastest--;
-    }
-    else{
-      asynSkipUpdateCounterFastest=asynSkipCyclesFastest;
-      if(asynPort){
-        if(asynPort->getAllowRtThreadCom()){
-          asynPort-> callParamCallbacks();
+    } else {
+      asynSkipUpdateCounterFastest = asynSkipCyclesFastest;
+
+      if (asynPort) {
+        if (asynPort->getAllowRtThreadCom()) {
+          asynPort->callParamCallbacks();
         }
       }
     }
@@ -559,343 +741,382 @@ void cyclic_task(void * usr)
     ec.send(masterActivationTimeOffset);
     clock_gettime(CLOCK_MONOTONIC, &endTime);
   }
-  appModeStat=ECMC_MODE_CONFIG;
+  appModeStat = ECMC_MODE_CONFIG;
 }
 
 /****************************************************************************/
 
-int  hw_motor_global_init(void){
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+int hw_motor_global_init(void) {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   LOGINFO("\nESS Open Source EtherCAT Motion Control Unit Initializes......\n");
   LOGINFO("\nMode: Configuration\n");
 
-  appModeStat=ECMC_MODE_CONFIG;
-  appModeCmd=ECMC_MODE_CONFIG;
-  appModeCmdOld=appModeCmd;
+  appModeStat   = ECMC_MODE_CONFIG;
+  appModeCmd    = ECMC_MODE_CONFIG;
+  appModeCmdOld = appModeCmd;
 
-  axisDiagIndex=0;
-  axisDiagFreq=10;
+  axisDiagIndex = 0;
+  axisDiagFreq  = 10;
   setDiagAxisEnable(1);
 
-  for(int i=0; i<ECMC_MAX_AXES;i++){
-    axes[i]=NULL;
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    axes[i] = NULL;
   }
 
-  for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
-    events[i]=NULL;
+  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
+    events[i] = NULL;
   }
 
-  for(int i=0; i<ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
-    dataRecorders[i]=NULL;
+  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
+    dataRecorders[i] = NULL;
   }
 
-  for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
-    dataStorages[i]=NULL;
+  for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
+    dataStorages[i] = NULL;
   }
 
-  for(int i=0; i<ECMC_MAX_COMMANDS_LISTS;i++){
-    commandLists[i]=NULL;
+  for (int i = 0; i < ECMC_MAX_COMMANDS_LISTS; i++) {
+    commandLists[i] = NULL;
   }
 
-  plcs=NULL;
+  plcs = NULL;
 
   return 0;
 }
 
 /****************************************************************************/
 
-void startRTthread()
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+void startRTthread() {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   int prio = ECMC_PRIO_HIGH;
-  if(rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) == NULL){
-    LOGERR("ERROR: Can't create high priority thread, fallback to low priority\n");
+
+  if (rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) == NULL) {
+    LOGERR(
+      "ERROR: Can't create high priority thread, fallback to low priority\n");
     prio = ECMC_PRIO_LOW;
     assert(rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) != NULL);
-  }
-  else{
+  } else {
     LOGINFO4("INFO:\t\tCreated high priority thread for cyclic task\n");
   }
 }
 
-int waitForEtherCATtoStart(int timeoutSeconds)
-{
+int waitForEtherCATtoStart(int timeoutSeconds) {
   struct timespec timeToPause;
-  timeToPause.tv_sec = 1;
+
+  timeToPause.tv_sec  = 1;
   timeToPause.tv_nsec = 0;
-  for(int i=0;i<timeoutSeconds;i++){
-    LOGINFO("Starting up EtherCAT bus: %d second(s).\n",i);
+
+  for (int i = 0; i < timeoutSeconds; i++) {
+    LOGINFO("Starting up EtherCAT bus: %d second(s).\n", i);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
-    if(/*!ec.getError() && */ec.statusOK()){
+
+    if (ec.statusOK()) {
       clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
       LOGINFO("EtherCAT bus started!\n");
       return 0;
     }
   }
-  LOGERR("Timeout error: EtherCAT bus did not start correctly in %ds.\n",timeoutSeconds);
+  LOGERR("Timeout error: EtherCAT bus did not start correctly in %ds.\n",
+         timeoutSeconds);
   setAppMode(0);
   return ec.getErrorID();
 }
 
-int setAppModeCfg(int mode)
-{
+int setAppModeCfg(int mode) {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
   appModeCmdOld = appModeCmd;
-  appModeCmd=(app_mode_type)mode;
+  appModeCmd    = (app_mode_type)mode;
 
-  if(asynPort){
+  if (asynPort) {
     asynPort->setAllowRtThreadCom(false);
   }
 
-  for(int i=0;i<ECMC_MAX_AXES;i++){
-    if(axes[i]!=NULL){
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    if (axes[i] != NULL) {
       axes[i]->setRealTimeStarted(false);
     }
   }
   return 0;
 }
 
-int setAppModeRun(int mode)
-{
-
-  if(appModeStat==ECMC_MODE_RUNTIME){
+int setAppModeRun(int mode) {
+  if (appModeStat == ECMC_MODE_RUNTIME) {
     return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;
   }
 
-  asynPort->setAllowRtThreadCom(false);  //Block rt communication during startup (since sleep in waitForEtherCATtoStart())
+  // Block rt communication during startup (since sleep in waitForEtherCATtoStart())
+  asynPort->setAllowRtThreadCom(false);
 
-  appModeCmdOld=appModeCmd;
-  appModeCmd=(app_mode_type)mode;
+  appModeCmdOld = appModeCmd;
+  appModeCmd    = (app_mode_type)mode;
 
-  appModeStat=ECMC_MODE_STARTUP;
+  appModeStat = ECMC_MODE_STARTUP;
 
-  if(asynPort && asynThreadParamsEnable){
-    asynPort-> setIntegerParam(asynParIdEcmcAppMode,mode);
-    asynPort-> callParamCallbacks();
+  if (asynPort && asynThreadParamsEnable) {
+    asynPort->setIntegerParam(asynParIdEcmcAppMode, mode);
+    asynPort->callParamCallbacks();
   }
 
-  for(int i=0;i<ECMC_MAX_AXES;i++){
-    if(axes[i]!=NULL){
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    if (axes[i] != NULL) {
       axes[i]->setInStartupPhase(true);
     }
   }
 
-  int errorCode=validateConfig();
-  if (errorCode){
+  int errorCode = validateConfig();
+
+  if (errorCode) {
     return errorCode;
   }
 
   clock_gettime(CLOCK_MONOTONIC, &masterActivationTimeMonotonic);
-  clock_gettime(CLOCK_REALTIME, &masterActivationTimeRealtime); // absolute clock (epoch)
+  // absolute clock (epoch)
+  clock_gettime(CLOCK_REALTIME,  &masterActivationTimeRealtime);
 
-  masterActivationTimeOffset=timespec_sub(masterActivationTimeRealtime,masterActivationTimeMonotonic);
-  ecrt_master_application_time(ec.getMaster(), TIMESPEC2NS(masterActivationTimeRealtime));
+  masterActivationTimeOffset = timespec_sub(masterActivationTimeRealtime,
+                                            masterActivationTimeMonotonic);
+  ecrt_master_application_time(ec.getMaster(),
+                               TIMESPEC2NS(masterActivationTimeRealtime));
 
 
-  if(ec.activate()){
+  if (ec.activate()) {
     LOGERR("INFO:\t\tActivation of master failed.\n");
     return ERROR_MAIN_EC_ACTIVATE_FAILED;
   }
   LOGINFO4("INFO:\t\tApplication in runtime mode.\n");
   startRTthread();
-  for(int i=0;i<ECMC_MAX_AXES;i++){
-    if(axes[i]!=NULL){
+
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    if (axes[i] != NULL) {
       axes[i]->setRealTimeStarted(true);
     }
   }
-  errorCode=waitForEtherCATtoStart(30);
-  if(errorCode){
+  errorCode = waitForEtherCATtoStart(30);
+
+  if (errorCode) {
     return errorCode;
   }
-  appModeStat=ECMC_MODE_RUNTIME;
+  appModeStat = ECMC_MODE_RUNTIME;
 
-  if(asynPort){
+  if (asynPort) {
     asynPort->setAllowRtThreadCom(true);
   }
 
   return 0;
 }
 
-int setAppMode(int mode)
-{
-  LOGINFO4("%s/%s:%d mode=%d\n",__FILE__, __FUNCTION__, __LINE__,mode);
-  switch((app_mode_type)mode){
-    case ECMC_MODE_CONFIG:
-      return setAppModeCfg(mode);
-      break;
-    case ECMC_MODE_RUNTIME:
-       return setAppModeRun(mode);
-      break;
-    default:
-      LOGERR("WARNING: Mode %d not implemented. (Config=%d, Runtime=%d).\n",mode, ECMC_MODE_CONFIG,ECMC_MODE_RUNTIME);
-      return ERROR_MAIN_APP_MODE_NOT_SUPPORTED;
-      break;
+int setAppMode(int mode) {
+  LOGINFO4("%s/%s:%d mode=%d\n", __FILE__, __FUNCTION__, __LINE__, mode);
+
+  switch ((app_mode_type)mode) {
+  case ECMC_MODE_CONFIG:
+    return setAppModeCfg(mode);
+
+    break;
+
+  case ECMC_MODE_RUNTIME:
+    return setAppModeRun(mode);
+
+    break;
+
+  default:
+    LOGERR("WARNING: Mode %d not implemented. (Config=%d, Runtime=%d).\n",
+           mode,
+           ECMC_MODE_CONFIG,
+           ECMC_MODE_RUNTIME);
+    return ERROR_MAIN_APP_MODE_NOT_SUPPORTED;
+
+    break;
   }
   return 0;
 }
 
-int prepareForRuntime(){
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
-  //Update input sources for all trajectories and encoders (transforms)
-  for(int i=0;i<ECMC_MAX_AXES;i++){
-    for(int j=0;j<ECMC_MAX_AXES;j++){
-      if(axes[i] !=NULL && axes[j] !=NULL){
-        //Trajectory
-        if(axes[i]->getExternalTrajIF()!=NULL){
-          if(axes[j]->getExternalTrajIF()!=NULL){
-            axes[j]->getExternalTrajIF()->addInputDataInterface(axes[i]->getExternalTrajIF()->getOutputDataInterface(),i);
+int prepareForRuntime() {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+
+  // Update input sources for all trajectories and encoders (transforms)
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    for (int j = 0; j < ECMC_MAX_AXES; j++) {
+      if ((axes[i] != NULL) && (axes[j] != NULL)) {
+        // Trajectory
+        if (axes[i]->getExternalTrajIF() != NULL) {
+          if (axes[j]->getExternalTrajIF() != NULL) {
+            axes[j]->getExternalTrajIF()->addInputDataInterface(
+              axes[i]->getExternalTrajIF()->getOutputDataInterface(),
+              i);
           }
-          if(axes[j]->getExternalEncIF()!=NULL){
-            axes[j]->getExternalEncIF()->addInputDataInterface(axes[i]->getExternalTrajIF()->getOutputDataInterface(),i);
-          }
-        }
-        //Encoder
-        if(axes[i]->getExternalEncIF()!=NULL){
-          if(axes[j]->getExternalTrajIF()!=NULL){
-            axes[j]->getExternalTrajIF()->addInputDataInterface(axes[i]->getExternalEncIF()->getOutputDataInterface(),i+ECMC_MAX_AXES);
-          }
-          if(axes[j]->getExternalEncIF()!=NULL){
-            axes[j]->getExternalEncIF()->addInputDataInterface(axes[i]->getExternalEncIF()->getOutputDataInterface(),i+ECMC_MAX_AXES);
+
+          if (axes[j]->getExternalEncIF() != NULL) {
+            axes[j]->getExternalEncIF()->addInputDataInterface(
+              axes[i]->getExternalTrajIF()->getOutputDataInterface(),
+              i);
           }
         }
-        axes[i]->setAxisArrayPointer(axes[j],j);
+
+        // Encoder
+        if (axes[i]->getExternalEncIF() != NULL) {
+          if (axes[j]->getExternalTrajIF() != NULL) {
+            axes[j]->getExternalTrajIF()->addInputDataInterface(
+              axes[i]->getExternalEncIF()->getOutputDataInterface(),
+              i + ECMC_MAX_AXES);
+          }
+
+          if (axes[j]->getExternalEncIF() != NULL) {
+            axes[j]->getExternalEncIF()->addInputDataInterface(
+              axes[i]->getExternalEncIF()->getOutputDataInterface(),
+              i + ECMC_MAX_AXES);
+          }
+        }
+        axes[i]->setAxisArrayPointer(axes[j], j);
       }
     }
   }
   return 0;
 }
 
-int validateConfig(){
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+int validateConfig() {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   prepareForRuntime();
-  int errorCode=0;
-  int axisCount=0;
-  for(int i=0;i<ECMC_MAX_AXES;i++){
-    if(axes[i]!=NULL){
+  int errorCode = 0;
+  int axisCount = 0;
+
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    if (axes[i] != NULL) {
       axisCount++;
-      errorCode=axes[i]->validate();
-      if(errorCode){
-        LOGERR("ERROR: Validation failed on axis %d with error code %d.",i,errorCode);
+      errorCode = axes[i]->validate();
+
+      if (errorCode) {
+        LOGERR("ERROR: Validation failed on axis %d with error code %d.",
+               i,
+               errorCode);
         return errorCode;
       }
     }
   }
 
-  for(int i=0; i<ECMC_MAX_EVENT_OBJECTS;i++){
-    if(events[i]!=NULL){
-      errorCode=events[i]->validate();
-      if(errorCode){
-        LOGERR("ERROR: Validation failed on event %d with error code %d.",i,errorCode);
+  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
+    if (events[i] != NULL) {
+      errorCode = events[i]->validate();
+
+      if (errorCode) {
+        LOGERR("ERROR: Validation failed on event %d with error code %d.",
+               i,
+               errorCode);
         return errorCode;
       }
     }
   }
 
-  for(int i=0; i<ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
-    if(dataRecorders[i]!=NULL){
-      errorCode=dataRecorders[i]->validate();
-      if(errorCode){
-        LOGERR("ERROR: Validation failed on data recorder %d with error code %d.",i,errorCode);
+  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
+    if (dataRecorders[i] != NULL) {
+      errorCode = dataRecorders[i]->validate();
+
+      if (errorCode) {
+        LOGERR(
+          "ERROR: Validation failed on data recorder %d with error code %d.",
+          i,
+          errorCode);
         return errorCode;
       }
     }
   }
 
-  if(plcs){
-    errorCode=plcs->validate();
-    if(errorCode){
-      LOGERR("ERROR: Validation failed on plc object with error code %d.",errorCode);
+  if (plcs) {
+    errorCode = plcs->validate();
+
+    if (errorCode) {
+      LOGERR("ERROR: Validation failed on plc object with error code %d.",
+             errorCode);
       return errorCode;
     }
   }
   return 0;
 }
 
-int ecApplyConfig(int masterIndex)
-{
-  //Master index not used right now..
-  LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex);
+int ecApplyConfig(int masterIndex) {
+  // Master index not used right now..
+  LOGINFO4("%s/%s:%d value=%d\n", __FILE__, __FUNCTION__, __LINE__,
+           masterIndex);
 
-  int errorCode=0;
+  int errorCode = 0;
+
   /*if((errorCode=ec.writeAndVerifySDOs())){
     LOGERR("ERROR:\tSDO write and verify failed\n");
     return errorCode;
   }*/
-  if((errorCode=ec.compileRegInfo())){
+  if ((errorCode = ec.compileRegInfo())) {
     LOGERR("ERROR:\tCompileRegInfo failed\n");
     return errorCode;
   }
   return 0;
 }
 
-int ecSetDiagnostics(int value)
-{  //Set diagnostics mode
-  LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
+int ecSetDiagnostics(int value) {  // Set diagnostics mode
+  LOGINFO4("%s/%s:%d value=%d\n", __FILE__, __FUNCTION__, __LINE__, value);
 
   return ec.setDiagnostics(value);
 }
 
-int ecSetDomainFailedCyclesLimit(int value)
-{
-  LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
+int ecSetDomainFailedCyclesLimit(int value) {
+  LOGINFO4("%s/%s:%d value=%d\n", __FILE__, __FUNCTION__, __LINE__, value);
 
   return ec.setDomainFailedCyclesLimitInterlock(value);
 }
 
-int ecEnablePrintouts(int value)
-{
-  LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
+int ecEnablePrintouts(int value) {
+  LOGINFO4("%s/%s:%d value=%d\n", __FILE__, __FUNCTION__, __LINE__, value);
 
-  WRITE_DIAG_BIT(FUNCTION_ETHERCAT_DIAGNOSTICS_BIT,value);
+  WRITE_DIAG_BIT(FUNCTION_ETHERCAT_DIAGNOSTICS_BIT, value);
 
   return 0;
 }
 
-int ecPrintAllHardware()
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+int ecPrintAllHardware() {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   return ec.printAllConfig();
 }
 
-int ecPrintSlaveConfig(int slaveIndex)
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+int ecPrintSlaveConfig(int slaveIndex) {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   return ec.printSlaveConfig(slaveIndex);
 }
 
-int ecAutoConfigSlave(int slaveIndex,int addAsynParams)
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
-  return ec.autoConfigSlave(slaveIndex,addAsynParams);
-}
+int setEnableFunctionCallDiag(int value) {
+  LOGINFO4("%s/%s:%d value=%d\n", __FILE__, __FUNCTION__, __LINE__, value);
 
-int setEnableFunctionCallDiag(int value)
-{
-  LOGINFO4("%s/%s:%d value=%d\n",__FILE__, __FUNCTION__, __LINE__,value);
-
-  WRITE_DIAG_BIT(FUNCTION_CALL_DIAGNOSTICS_BIT,value);
+  WRITE_DIAG_BIT(FUNCTION_CALL_DIAGNOSTICS_BIT, value);
 
   return 0;
 }
 
 /****************************************************************************/
 
-int setAxisExecute(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisExecute(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
-  if(value &&axes[axisIndex]->getError()){ //Axis needs to be reset before new command is executed (however allow execute=0)
+  // Axis needs to be reset before new command is executed
+  // (however allow execute=0)
+  if (value && axes[axisIndex]->getError()) {
     return ERROR_MAIN_AXIS_ERROR_EXECUTE_INTERLOCKED;
   }
 
   return axes[axisIndex]->setExecute(value);
 }
 
-int setAxisCommand(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCommand(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -904,9 +1125,13 @@ int setAxisCommand(int axisIndex, int value)
   return 0;
 }
 
-int setAxisCmdData(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCmdData(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -915,300 +1140,387 @@ int setAxisCmdData(int axisIndex, int value)
   return 0;
 }
 
-int setAxisSeqTimeout(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisSeqTimeout(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setSequenceTimeout(value*MCU_FREQUENCY);
+  axes[axisIndex]->getSeq()->setSequenceTimeout(value * MCU_FREQUENCY);
   return 0;
 }
 
+int getAxisCommand(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-int getAxisCommand(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value= (int)axes[axisIndex]->getSeq()->getCommand();
+  * value = 0;
+  *value  =  static_cast<int>(axes[axisIndex]->getSeq()->getCommand());
   return 0;
 }
 
-int getAxisCmdData(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisCmdData(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getCmdData();
+  * value = axes[axisIndex]->getSeq()->getCmdData();
   return 0;
 }
 
-int getAxisError(int axisIndex)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisError(int axisIndex) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getError();;
+  return axes[axisIndex]->getError();
 }
 
-int getAxisErrorID(int axisIndex)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisErrorID(int axisIndex) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getErrorID();
 }
 
-const char *getErrorString(int error_number)
-{
-  LOGINFO4("%s/%s:%d error_no=%d\n",__FILE__, __FUNCTION__, __LINE__, error_number);
+const char* getErrorString(int error_number) {
+  LOGINFO4("%s/%s:%d error_no=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           error_number);
 
   return ecmcError::convertErrorIdToString(error_number);
 }
 
-int getAxisCycleCounter(int axisIndex,int *counter)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisCycleCounter(int axisIndex, int *counter) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  *counter=axes[axisIndex]->getCycleCounter();
+  *counter = axes[axisIndex]->getCycleCounter();
   return 0;
 }
 
-int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisDebugInfoData(int axisIndex, char *buffer, int bufferByteSize) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  int bytesUsed=0;
-  return axes[axisIndex]->getAxisDebugInfoData(buffer,bufferByteSize,&bytesUsed);
+  int bytesUsed = 0;
+  return axes[axisIndex]->getAxisDebugInfoData(buffer,
+                                               bufferByteSize,
+                                               &bytesUsed);
 }
 
-int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisStatusStructV2(int axisIndex, char *buffer, int bufferByteSize) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
   ecmcAxisStatusType data;
-  int error=axes[axisIndex]->getDebugInfoData(&data);
-  if(error){
+  int error = axes[axisIndex]->getDebugInfoData(&data);
+
+  if (error) {
     return error;
   }
 
-  // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
-  int ret=snprintf(buffer,bufferByteSize,
-       "Main.M%d.stAxisStatusV2=%g,%g,%" PRId64 ",%g,%g,%g,%g,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-       axisIndex,
-       data.onChangeData.positionTarget,
-       data.onChangeData.positionActual,
-       data.onChangeData.positionRaw,  //UINT64_t
-       data.onChangeData.velocitySetpoint,
-       data.onChangeData.velocityActual,
-       data.acceleration,
-       data.deceleration,
-       data.cycleCounter,
-       0,  //EtherCAT time low32 not available yet
-       0,  //EtherCAT time high32 not available yet
-       data.onChangeData.enable,
-       data.onChangeData.enabled,
-       data.onChangeData.execute,
-       data.onChangeData.command,
-       data.onChangeData.cmdData,
-       data.onChangeData.limitBwd,
-       data.onChangeData.limitFwd,
-       data.onChangeData.homeSwitch,
-       data.onChangeData.error>0,
-       data.onChangeData.error,
-       data.reset,
-       data.onChangeData.homed,
-       data.onChangeData.busy,
-       data.onChangeData.atTarget,
-       data.moving,
-       data.stall
-      );
+  // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,
+  // Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+  int ret = snprintf(buffer,
+                     bufferByteSize,
+                     "Main.M%d.stAxisStatusV2=%g,%g,%" PRId64 ",%g,%g,%g,%g,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+                     axisIndex,
+                     data.onChangeData.positionTarget,
+                     data.onChangeData.positionActual,
+                     data.onChangeData.positionRaw,
+                     // UINT64_t
+                     data.onChangeData.velocitySetpoint,
+                     data.onChangeData.velocityActual,
+                     data.acceleration,
+                     data.deceleration,
+                     data.cycleCounter,
+                     0,
+                     // EtherCAT time low32 not available yet
+                     0,
+                     // EtherCAT time high32 not available yet
+                     data.onChangeData.enable,
+                     data.onChangeData.enabled,
+                     data.onChangeData.execute,
+                     data.onChangeData.command,
+                     data.onChangeData.cmdData,
+                     data.onChangeData.limitBwd,
+                     data.onChangeData.limitFwd,
+                     data.onChangeData.homeSwitch,
+                     data.onChangeData.error > 0,
+                     data.onChangeData.error,
+                     data.reset,
+                     data.onChangeData.homed,
+                     data.onChangeData.busy,
+                     data.onChangeData.atTarget,
+                     data.moving,
+                     data.stall);
 
-  if(ret>=bufferByteSize || ret <=0){
+  if ((ret >= bufferByteSize) || (ret <= 0)) {
     return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
   }
 
   return 0;
 }
 
-int setAxisEnable(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEnable(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
-  if(!value){
+  if (!value) {
     axes[axisIndex]->setExecute(value);
   }
 
   return axes[axisIndex]->setEnable(value);
 }
 
-int getAxisEnable(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEnable(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value= axes[axisIndex]->getEnable()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getEnable() > 0;
   return 0;
 }
 
-int setAxisEnableAlarmAtHardLimits(int axisIndex,int enable)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+int setAxisEnableAlarmAtHardLimits(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  int error=axes[axisIndex]->getMon()->setEnableHardLimitBWDAlarm(enable);
-  if (error){
+  int error = axes[axisIndex]->getMon()->setEnableHardLimitBWDAlarm(enable);
+
+  if (error) {
     return error;
   }
 
-  error=axes[axisIndex]->getMon()->setEnableHardLimitFWDAlarm(enable);
-  if (error){
+  error = axes[axisIndex]->getMon()->setEnableHardLimitFWDAlarm(enable);
+
+  if (error) {
     return error;
   }
   return 0;
 }
 
-int setAxisBlockCom(int axisIndex, int block)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d, block=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex,block);
+int setAxisBlockCom(int axisIndex, int block) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, block=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           block);
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
   return axes[axisIndex]->setBlockExtCom(block);
 }
 
-int getAxisBlockCom(int axisIndex,int *block)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisBlockCom(int axisIndex, int *block) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *block=0;
-  *block=axes[axisIndex]->getBlockExtCom();
+  * block = 0;
+  *block  = axes[axisIndex]->getBlockExtCom();
   return 0;
 }
 
-int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEnableAlarmAtHardLimits(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value= axes[axisIndex]->getMon()->getEnableAlarmAtHardLimit()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getMon()->getEnableAlarmAtHardLimit() > 0;
   return 0;
 }
 
-int getAxisEnabled(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEnabled(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=axes[axisIndex]->getEnabled()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getEnabled() > 0;
   return 0;
 }
 
-int getAxisTrajSource(int axisIndex, int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisTrajSource(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  *value=(int)axes[axisIndex]->getExternalTrajIF()->getDataSourceType();
+  *value =  static_cast<int>(axes[axisIndex]->
+                                 getExternalTrajIF()->
+                                 getDataSourceType());
   return 0;
 }
 
-int getAxisEncSource(int axisIndex, int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEncSource(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  *value=(int)axes[axisIndex]->getExternalEncIF()->getDataSourceType();
+  *value =  static_cast<int>(axes[axisIndex]->
+                                 getExternalEncIF()->
+                                 getDataSourceType());
   return 0;
 }
 
-int getAxisEnableCommandsFromOtherAxis(int axisIndex, int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEnableCommandsFromOtherAxis(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=(int)axes[axisIndex]->getCascadedCommandsEnabled()>0;
+  * value = 0;
+  *value  =  static_cast<int>(axes[axisIndex]->getCascadedCommandsEnabled() > 0);
   return 0;
 }
 
-int getAxisEnableCommandsTransform(int axisIndex, int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEnableCommandsTransform(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=(int)axes[axisIndex]->getEnableCommandsTransform()>0;
+  *value  =  static_cast<int>(axes[axisIndex]->
+                                  getEnableCommandsTransform() > 0);
   return 0;
 }
 
-int getAxisType(int axisIndex, int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisType(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getAxisType();
+  * value = axes[axisIndex]->getAxisType();
   return 0;
-
 }
 
-int setAxisOpMode(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisOpMode(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
   return axes[axisIndex]->setOpMode((operationMode)value);
 }
 
-int getAxisOpMode(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisOpMode(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  *value= axes[axisIndex]->getOpMode();
+  * value = axes[axisIndex]->getOpMode();
   return 0;
 }
 
-int setAxisEnableSoftLimitBwd(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+int setAxisEnableSoftLimitBwd(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+  
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
   axes[axisIndex]->getMon()->setEnableSoftLimitBwd(value);
   return 0;
 }
 
-int setAxisEnableSoftLimitFwd(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEnableSoftLimitFwd(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
@@ -1217,9 +1529,13 @@ int setAxisEnableSoftLimitFwd(int axisIndex, int value)
   return 0;
 }
 
-int setAxisSoftLimitPosBwd(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisSoftLimitPosBwd(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
@@ -1228,9 +1544,13 @@ int setAxisSoftLimitPosBwd(int axisIndex, double value)
   return 0;
 }
 
-int setAxisSoftLimitPosFwd(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisSoftLimitPosFwd(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
@@ -1239,63 +1559,78 @@ int setAxisSoftLimitPosFwd(int axisIndex, double value)
   return 0;
 }
 
-int getAxisSoftLimitPosBwd(int axisIndex, double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+int getAxisSoftLimitPosBwd(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getMon()->getSoftLimitBwd();
+  * value = axes[axisIndex]->getMon()->getSoftLimitBwd();
   return 0;
 }
 
-int getAxisSoftLimitPosFwd(int axisIndex, double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisSoftLimitPosFwd(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getMon()->getSoftLimitFwd();
+  * value = axes[axisIndex]->getMon()->getSoftLimitFwd();
   return 0;
 }
 
-int getAxisEnableSoftLimitBwd(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEnableSoftLimitBwd(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=axes[axisIndex]->getMon()->getEnableSoftLimitBwd()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getMon()->getEnableSoftLimitBwd() > 0;
   return 0;
 }
 
-int getAxisEnableSoftLimitFwd(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEnableSoftLimitFwd(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=axes[axisIndex]->getMon()->getEnableSoftLimitFwd()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getMon()->getEnableSoftLimitFwd() > 0;
   return 0;
 }
 
-int getAxisBusy(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisBusy(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=axes[axisIndex]->getBusy()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getBusy() > 0;
   return 0;
 }
 
-int setAxisAcceleration(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisAcceleration(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
@@ -1304,9 +1639,13 @@ int setAxisAcceleration(int axisIndex, double value)
   return 0;
 }
 
-int setAxisDeceleration(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisDeceleration(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
@@ -1315,9 +1654,13 @@ int setAxisDeceleration(int axisIndex, double value)
   return 0;
 }
 
-int setAxisEmergDeceleration(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEmergDeceleration(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
@@ -1326,20 +1669,29 @@ int setAxisEmergDeceleration(int axisIndex, double value)
   return 0;
 }
 
-int setAxisJerk(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisJerk(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getTraj()->setJerk(value);  //TODO not implemented in trajectory generator
+  // TODO not implemented in trajectory generator
+  axes[axisIndex]->getTraj()->setJerk(value);
   return 0;
 }
 
-int setAxisTargetPos(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisTargetPos(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -1348,9 +1700,13 @@ int setAxisTargetPos(int axisIndex, double value)
   return 0;
 }
 
-int setAxisTargetVel(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisTargetVel(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -1360,9 +1716,13 @@ int setAxisTargetVel(int axisIndex, double value)
   return 0;
 }
 
-int setAxisJogVel(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisJogVel(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -1371,9 +1731,13 @@ int setAxisJogVel(int axisIndex, double value)
   return 0;
 }
 
-int setAxisHomeVelTwordsCam(int axisIndex,double dVel)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, dVel);
+int setAxisHomeVelTwordsCam(int axisIndex, double dVel) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           dVel);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -1381,10 +1745,13 @@ int setAxisHomeVelTwordsCam(int axisIndex,double dVel)
   return axes[axisIndex]->getSeq()->setHomeVelTwordsCam(dVel);
 }
 
-int setAxisHomeVelOffCam(int axisIndex,double dVel)
-{
-
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, dVel);
+int setAxisHomeVelOffCam(int axisIndex, double dVel) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           dVel);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -1392,9 +1759,13 @@ int setAxisHomeVelOffCam(int axisIndex,double dVel)
   return axes[axisIndex]->getSeq()->setHomeVelOffCam(dVel);
 }
 
-int setAxisHomePos(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisHomePos(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -1403,9 +1774,13 @@ int setAxisHomePos(int axisIndex, double value)
   return 0;
 }
 
-int setAxisHomeLatchCountOffset(int axisIndex, int count)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d count=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, count);
+int setAxisHomeLatchCountOffset(int axisIndex, int count) {
+  LOGINFO4("%s/%s:%d axisIndex=%d count=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           count);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
@@ -1414,69 +1789,83 @@ int setAxisHomeLatchCountOffset(int axisIndex, int count)
   return 0;
 }
 
-int setAxisHomeDir(int axisIndex,int nDir)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, nDir);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-
-  return axes[axisIndex]->getSeq()->setHomeDir((motionDirection)nDir);
-}
-
-int setAxisEnableCommandsFromOtherAxis(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEnableCommandsFromOtherAxis(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
   return axes[axisIndex]->setEnableCascadedCommands(value);
 }
 
-int setAxisEnableCommandsTransform(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEnableCommandsTransform(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
   return axes[axisIndex]->setEnableCommandsTransform(value);
 }
 
-int axisErrorReset(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex,value);
+int axisErrorReset(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   axes[axisIndex]->setReset(value);
   return 0;
 }
 
-int setAxisGearRatio(int axisIndex,double ratioNum,double ratioDenom)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d num=%lf denom=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, ratioNum,ratioDenom);
+int setAxisGearRatio(int axisIndex, double ratioNum, double ratioDenom) {
+  LOGINFO4("%s/%s:%d axisIndex=%d num=%lf denom=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           ratioNum,
+           ratioDenom);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
-  return axes[axisIndex]->getExternalTrajIF()->setGearRatio(ratioNum,ratioDenom);
+  return axes[axisIndex]->getExternalTrajIF()->setGearRatio(ratioNum,
+                                                            ratioDenom);
 }
 
-int setAxisEncScaleNum(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEncScaleNum(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
-  double temp=0;
-  int errorCode=axes[axisIndex]->getEncScaleNum(&temp);
-  if(errorCode){
+  double temp = 0;
+  int errorCode = axes[axisIndex]->getEncScaleNum(&temp);
+
+  if (errorCode) {
     return errorCode;
   }
 
-  if(temp==value){
+  if (temp == value) {
     return 0;
   }
 
-  if(axes[axisIndex]->getEnable()){  //Change of encoder scale while axis enabled is not allowed (jump in position)
+  // Change of encoder scale while axis enabled is not allowed
+  if (axes[axisIndex]->getEnable()) {
     return ERROR_MAIN_ENC_SET_SCALE_FAIL_DRV_ENABLED;
   }
   axes[axisIndex]->setEncScaleNum(value);
@@ -1484,22 +1873,29 @@ int setAxisEncScaleNum(int axisIndex, double value)
   return 0;
 }
 
-int setAxisEncScaleDenom(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEncScaleDenom(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
-  double temp=0;
-  int errorCode=axes[axisIndex]->getEncScaleDenom(&temp);
-  if(errorCode)  {
+  double temp = 0;
+  int errorCode = axes[axisIndex]->getEncScaleDenom(&temp);
+
+  if (errorCode) {
     return errorCode;
   }
-  if(temp==value){
+
+  if (temp == value) {
     return 0;
   }
 
-  if(axes[axisIndex]->getEnable()){  //Change of encoder scale while axis enabled is not allowed (jump in position)
+  // Change of encoder scale while axis enabled is not allowed
+  if (axes[axisIndex]->getEnable()) {
     return ERROR_MAIN_ENC_SET_SCALE_FAIL_DRV_ENABLED;
   }
   axes[axisIndex]->setEncScaleDenom(value);
@@ -1507,202 +1903,267 @@ int setAxisEncScaleDenom(int axisIndex, double value)
   return 0;
 }
 
-int setAxisTrajTransExpr(int axisIndex, char *expr)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, expr);
+int setAxisTrajTransExpr(int axisIndex, char *expr) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           expr);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)
 
-  std::string tempExpr=expr;
+  std::string tempExpr = expr;
 
   return axes[axisIndex]->setTrajTransformExpression(tempExpr);
 }
 
-int setAxisTransformCommandExpr(int axisIndex,char *expr)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,axisIndex, expr);
+int setAxisTransformCommandExpr(int axisIndex, char *expr) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           expr);
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  std::string tempExpr=expr;
+  std::string tempExpr = expr;
   return axes[axisIndex]->setCommandsTransformExpression(tempExpr);
 }
 
-int setPLCExpr(int index,char *expr)
-{
-  LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
+int setPLCExpr(int index, char *expr) {
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           expr);
   CHECK_PLCS_RETURN_IF_ERROR();
-  return plcs->setExpr(index,expr);               
+  return plcs->setExpr(index, expr);
 }
 
-int appendPLCExpr(int index,char *expr)
-{
-  LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, expr);
+int appendPLCExpr(int index, char *expr) {
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           expr);
   CHECK_PLCS_RETURN_IF_ERROR();
-  return plcs->addExprLine(index,expr);
+  return plcs->addExprLine(index, expr);
 }
 
-int loadPLCFile(int index,char *fileName)
-{
-  LOGINFO4("%s/%s:%d index=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__,index, fileName);
-  CHECK_PLCS_RETURN_IF_ERROR();  
-  return plcs->loadPLCFile(index,fileName);
+int loadPLCFile(int index, char *fileName) {
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           fileName);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->loadPLCFile(index, fileName);
 }
 
-int clearPLCExpr(int index)
-{
-  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+int clearPLCExpr(int index) {
+  LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);
   CHECK_PLCS_RETURN_IF_ERROR();
   return plcs->clearExpr(index);
 }
 
-int compilePLCExpr(int index)
-{
-  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+int compilePLCExpr(int index) {
+  LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);
   CHECK_PLCS_RETURN_IF_ERROR();
   return plcs->compileExpr(index);
 }
 
-int writePLCVar(int index,const char* varName,double value)
-{
-  LOGINFO4("%s/%s:%d index=%d, varName=%s, value=%lf\n",__FILE__, __FUNCTION__, __LINE__,index,varName,value);
+int writePLCVar(int index, const char *varName, double value) {
+  LOGINFO4("%s/%s:%d index=%d, varName=%s, value=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           varName,
+           value);
   CHECK_PLCS_RETURN_IF_ERROR();
-  return plcs->writeStaticPLCVar(index,varName,value);
+  return plcs->writeStaticPLCVar(index, varName, value);
 }
 
-int readPLCVar(int index,const char* varName,double *value)
-{
-  LOGINFO4("%s/%s:%d index=%d, varName=%s\n",__FILE__, __FUNCTION__, __LINE__,index,varName);
+int readPLCVar(int index, const char *varName, double *value) {
+  LOGINFO4("%s/%s:%d index=%d, varName=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           varName);
   CHECK_PLCS_RETURN_IF_ERROR();
-  return plcs->readStaticPLCVar(index,varName,value);
+  return plcs->readStaticPLCVar(index, varName, value);
 }
 
-int setAxisTrajExtVelFilterEnable(int axisIndex, int enable)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+int setAxisTrajExtVelFilterEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)
-  ecmcMasterSlaveIF *tempIf=axes[axisIndex]->getExternalTrajIF();
-  if(!tempIf){
+  ecmcMasterSlaveIF *tempIf = axes[axisIndex]->getExternalTrajIF();
+
+  if (!tempIf) {
     return ERROR_MAIN_MASTER_SLAVE_IF_NULL;
   }
   return tempIf->setEnableVelFilter(enable);
 }
 
-int setAxisEncTransExpr(int axisIndex, char *expr)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, expr);
+int setAxisEncTransExpr(int axisIndex, char *expr) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           expr);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)
 
-  std::string tempExpr=expr;
+  std::string tempExpr = expr;
 
   return axes[axisIndex]->setEncTransformExpression(tempExpr);
 }
 
-int setAxisEncExtVelFilterEnable(int axisIndex, int enable)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+int setAxisEncExtVelFilterEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)
 
-  ecmcMasterSlaveIF *tempIf=axes[axisIndex]->getExternalEncIF();
-  if(!tempIf){
+  ecmcMasterSlaveIF *tempIf = axes[axisIndex]->getExternalEncIF();
+
+  if (!tempIf) {
     return ERROR_MAIN_MASTER_SLAVE_IF_NULL;
   }
   return tempIf->setEnableVelFilter(enable);
 }
 
-const char* getAxisTrajTransExpr(int axisIndex, int *error)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+const char* getAxisTrajTransExpr(int axisIndex, int *error) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){
+  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {
     LOGERR("ERROR: Axis index out of range.\n");
-    *error=ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
+    *error = ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
     return "";
   }
-  if(axes[axisIndex]==NULL){
+
+  if (axes[axisIndex] == NULL) {
     LOGERR("ERROR: Axis object NULL\n");
-    *error=ERROR_MAIN_AXIS_OBJECT_NULL;
+    *error = ERROR_MAIN_AXIS_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getTraj()==NULL){
+
+  if (axes[axisIndex]->getTraj() == NULL) {
     LOGERR("ERROR: Trajectory object NULL.\n");
-    *error=ERROR_MAIN_TRAJECTORY_OBJECT_NULL;
+    *error = ERROR_MAIN_TRAJECTORY_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()==NULL){
+
+  if (axes[axisIndex]->getExternalTrajIF()->getExtInputTransform() == NULL) {
     LOGERR("ERROR: Trajectory transform object NULL.\n");
-    *error=ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;
+    *error = ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;
     return "";
   }
-  std::string *sExpr=axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()->getExpression();
-  *error=0;
+  std::string *sExpr =
+    axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()->
+                                          getExpression();
+  *error = 0;
   return sExpr->c_str();
 }
 
-const char* getAxisEncTransExpr(int axisIndex, int *error)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+const char* getAxisEncTransExpr(int axisIndex, int *error) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){
+  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {
     LOGERR("ERROR: Axis index out of range.\n");
-    *error=ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
+    *error = ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
     return "";
   }
-  if(axes[axisIndex]==NULL){
+
+  if (axes[axisIndex] == NULL) {
     LOGERR("ERROR: Axis object NULL\n");
-    *error=ERROR_MAIN_AXIS_OBJECT_NULL;
+    *error = ERROR_MAIN_AXIS_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getEnc()==NULL){
+
+  if (axes[axisIndex]->getEnc() == NULL) {
     LOGERR("ERROR: Encoder object NULL.\n");
-    *error=ERROR_MAIN_ENCODER_OBJECT_NULL;
+    *error = ERROR_MAIN_ENCODER_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getExternalEncIF()->getExtInputTransform()==NULL){
+
+  if (axes[axisIndex]->getExternalEncIF()->getExtInputTransform() == NULL) {
     LOGERR("ERROR: Encoder transform object NULL.\n");
-    *error=ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;
+    *error = ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;
     return "";
   }
-  std::string *sExpr=axes[axisIndex]->getExternalEncIF()->getExtInputTransform()->getExpression();
-  *error=0;
+  std::string *sExpr =
+    axes[axisIndex]->getExternalEncIF()->getExtInputTransform()->
+                                         getExpression();
+  *error = 0;
   return sExpr->c_str();
 }
 
-const char* getAxisTransformCommandExpr(int axisIndex, int *error)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+const char* getAxisTransformCommandExpr(int axisIndex, int *error) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  if(axisIndex>=ECMC_MAX_AXES || axisIndex<=0){
+  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {
     LOGERR("ERROR: Axis index out of range.\n");
-    *error=ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
+    *error = ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
     return "";
   }
-  if(axes[axisIndex]==NULL){
+
+  if (axes[axisIndex] == NULL) {
     LOGERR("ERROR: Axis object NULL\n");
-    *error=ERROR_MAIN_AXIS_OBJECT_NULL;
+    *error = ERROR_MAIN_AXIS_OBJECT_NULL;
     return "";
   }
-  if(axes[axisIndex]->getCommandTransform()==NULL){
+
+  if (axes[axisIndex]->getCommandTransform() == NULL) {
     LOGERR("ERROR: Axis command transform object NULL.\n");
-    *error=ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED;
+    *error = ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED;
     return "";
   }
-  std::string *sExpr=axes[axisIndex]->getCommandTransform()->getExpression();
+  std::string *sExpr = axes[axisIndex]->getCommandTransform()->getExpression();
 
-  *error=0;
+  *error = 0;
   return sExpr->c_str();
-
 }
 
-int setAxisTrajSource(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisTrajSource(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
@@ -1710,9 +2171,13 @@ int setAxisTrajSource(int axisIndex, int value)
   return axes[axisIndex]->setTrajDataSourceType((dataSource)value);
 }
 
-int setAxisEncSource(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEncSource(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)
@@ -1720,9 +2185,13 @@ int setAxisEncSource(int axisIndex, int value)
   return axes[axisIndex]->setEncDataSourceType((dataSource)value);
 }
 
-int setAxisTrajStartPos(int axisIndex,double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisTrajStartPos(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
@@ -1731,265 +2200,326 @@ int setAxisTrajStartPos(int axisIndex,double value)
   return 0;
 }
 
-//*****GET*********
-int getAxisAcceleration(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+// *****GET*********
+int getAxisAcceleration(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getAcc();
+  * value = axes[axisIndex]->getTraj()->getAcc();
   return 0;
 }
 
-int getAxisDeceleration(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisDeceleration(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getDec();
+  * value = axes[axisIndex]->getTraj()->getDec();
   return 0;
 }
 
-int getAxisTargetPos(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisTargetPos(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  return axes[axisIndex]->getPosSet(value);;
+  return axes[axisIndex]->getPosSet(value);
 }
 
-int getAxisTargetVel(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisTargetVel(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getSeq()->getTargetVel();
+  * value = axes[axisIndex]->getSeq()->getTargetVel();
   return 0;
 }
 
-int getAxisDone(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisDone(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=!axes[axisIndex]->getSeq()->getBusy()>0;
+  * value = 0;
+  *value  = !axes[axisIndex]->getSeq()->getBusy() > 0;
   return 0;
 }
 
-int getAxisPosSet(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisPosSet(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
   return axes[axisIndex]->getPosSet(value);
 }
 
-int getAxisVelFF(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisVelFF(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  *value=axes[axisIndex]->getTraj()->getVel();
+  * value = axes[axisIndex]->getTraj()->getVel();
   return 0;
 }
 
-int getAxisExecute(int axisIndex, int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisExecute(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=axes[axisIndex]->getExecute()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getExecute() > 0;
   return 0;
 }
 
-int getAxisReset(int axisIndex, int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisReset(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=axes[axisIndex]->getReset()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getReset() > 0;
   return 0;
 }
 
-int getAxisID(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisID(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value=axes[axisIndex]->getAxisID();
+  * value = axes[axisIndex]->getAxisID();
   return 0;
 }
 
-int getAxisGearRatio(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisGearRatio(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]-> getExternalTrajIF()->getGearRatio(value);
+  return axes[axisIndex]->getExternalTrajIF()->getGearRatio(value);
 }
 
-int getAxisAtHardFwd(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisAtHardFwd(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=axes[axisIndex]->getMon()->getHardLimitFwd()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getMon()->getHardLimitFwd() > 0;
   return 0;
 }
 
-int getAxisAtHardBwd(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisAtHardBwd(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
-  *value=0;
-  *value=axes[axisIndex]->getMon()->getHardLimitBwd()>0;
+  * value = 0;
+  *value  = axes[axisIndex]->getMon()->getHardLimitBwd() > 0;
   return 0;
 }
 
-int getAxisEncHomed(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEncHomed(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  bool tempHomed=0;
-  int errorCode=axes[axisIndex]->getAxisHomed(&tempHomed);
-  if(errorCode){
+  bool tempHomed = 0;
+  int errorCode = axes[axisIndex]->getAxisHomed(&tempHomed);
+
+  if (errorCode) {
     return errorCode;
   }
-  *value=0;
-  *value=tempHomed>0;
+  *value = 0;
+  *value = tempHomed > 0;
   return 0;
 }
 
-int getAxisEncPosAct(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEncPosAct(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-    if(int iRet=axes[axisIndex]->getPosAct(value)){
-      value=0;
-      return iRet;
-    }
+  if (int iRet = axes[axisIndex]->getPosAct(value)) {
+    value = 0;
+    return iRet;
+  }
   return 0;
 }
 
-int getAxisEncVelAct(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEncVelAct(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  if(int iRet=axes[axisIndex]->getVelAct(value)){
-    *value=0;
+  if (int iRet = axes[axisIndex]->getVelAct(value)) {
+    *value = 0;
     return iRet;
   }
 
   return 0;
 }
 
-int getAxisAtHome(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisAtHome(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  if(axes[axisIndex]->getMon()==NULL){
+  if (axes[axisIndex]->getMon() == NULL) {
     return ERROR_MAIN_MONITOR_OBJECT_NULL;
   }
-  *value=0;
-  *value=axes[axisIndex]->getMon()->getHomeSwitch()>0;
+  *value = 0;
+  *value = axes[axisIndex]->getMon()->getHomeSwitch() > 0;
   return 0;
 }
 
-int getAxisCntrlError(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisCntrlError(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  if(int iRet=axes[axisIndex]->getCntrlError(value)){
-    *value=0;
+  if (int iRet = axes[axisIndex]->getCntrlError(value)) {
+    *value = 0;
     return iRet;
   }
   return 0;
 }
 
-int getAxisHomeVelOffCam(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisHomeVelOffCam(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
 
-  *value=axes[axisIndex]->getSeq()->getHomeVelOffCam();
+  *value = axes[axisIndex]->getSeq()->getHomeVelOffCam();
   return 0;
 }
 
-int getAxisHomeVelTwordsCam(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+int getAxisHomeVelTwordsCam(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
 
-  *value=axes[axisIndex]->getSeq()->getHomeVelTwordsCam();
+  *value = axes[axisIndex]->getSeq()->getHomeVelTwordsCam();
   return 0;
 }
 
-int getAxisEncScaleNum(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEncScaleNum(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  if(int iRet=axes[axisIndex]->getEncScaleNum(value)){
-    value=0;
+  if (int iRet = axes[axisIndex]->getEncScaleNum(value)) {
+    value = 0;
     return iRet;
   }
   return 0;
 }
 
-int getAxisEncScaleDenom(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEncScaleDenom(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  if(int iRet=axes[axisIndex]->getEncScaleDenom(value)){
-    *value=0;
+  if (int iRet = axes[axisIndex]->getEncScaleDenom(value)) {
+    *value = 0;
     return iRet;
   }
   return 0;
 }
 
-int getAxisEncPosRaw(int axisIndex,int64_t *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisEncPosRaw(int axisIndex, int64_t *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  if(int iRet=axes[axisIndex]->getEncPosRaw(value)){
-    *value=0;
+  if (int iRet = axes[axisIndex]->getEncPosRaw(value)) {
+    *value = 0;
     return iRet;
   }
   return 0;
@@ -1997,9 +2527,13 @@ int getAxisEncPosRaw(int axisIndex,int64_t *value)
 
 /****************************************************************************/
 
-int setAxisCntrlKp(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCntrlKp(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
@@ -2008,9 +2542,13 @@ int setAxisCntrlKp(int axisIndex, double value)
   return 0;
 }
 
-int setAxisCntrlKi(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCntrlKi(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
@@ -2019,9 +2557,13 @@ int setAxisCntrlKi(int axisIndex, double value)
   return 0;
 }
 
-int setAxisCntrlKd(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCntrlKd(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
@@ -2030,9 +2572,13 @@ int setAxisCntrlKd(int axisIndex, double value)
   return 0;
 }
 
-int setAxisCntrlKff(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCntrlKff(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
@@ -2041,9 +2587,13 @@ int setAxisCntrlKff(int axisIndex, double value)
   return 0;
 }
 
-int setAxisCntrlOutHL(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCntrlOutHL(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
@@ -2052,9 +2602,13 @@ int setAxisCntrlOutHL(int axisIndex, double value)
   return 0;
 }
 
-int setAxisCntrlOutLL(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCntrlOutLL(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
@@ -2063,9 +2617,13 @@ int setAxisCntrlOutLL(int axisIndex, double value)
   return 0;
 }
 
-int setAxisCntrlIpartHL(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCntrlIpartHL(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
@@ -2074,9 +2632,13 @@ int setAxisCntrlIpartHL(int axisIndex, double value)
   return 0;
 }
 
-int setAxisCntrlIpartLL(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisCntrlIpartLL(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
@@ -2085,64 +2647,78 @@ int setAxisCntrlIpartLL(int axisIndex, double value)
   return 0;
 }
 
-int getAxisCntrlOutPpart(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisCntrlOutPpart(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  *value=axes[axisIndex]->getCntrl()->getOutPPart();
+  *value = axes[axisIndex]->getCntrl()->getOutPPart();
   return 0;
 }
 
-int getAxisCntrlOutIpart(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisCntrlOutIpart(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  *value=axes[axisIndex]->getCntrl()->getOutIPart();
+  *value = axes[axisIndex]->getCntrl()->getOutIPart();
   return 0;
 }
 
-int getAxisCntrlOutDpart(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisCntrlOutDpart(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  *value=axes[axisIndex]->getCntrl()->getOutDPart();
+  *value = axes[axisIndex]->getCntrl()->getOutDPart();
   return 0;
 }
 
-int getAxisCntrlOutFFpart(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisCntrlOutFFpart(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  *value=axes[axisIndex]->getCntrl()->getOutFFPart();
+  *value = axes[axisIndex]->getCntrl()->getOutFFPart();
   return 0;
 }
 
-int getAxisCntrlOutput(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+int getAxisCntrlOutput(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  *value=axes[axisIndex]->getCntrl()->getOutTot();
+  *value = axes[axisIndex]->getCntrl()->getOutTot();
   return 0;
 }
 
-int setAxisEncOffset(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEncOffset(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
@@ -2150,9 +2726,13 @@ int setAxisEncOffset(int axisIndex, double value)
   return axes[axisIndex]->getEnc()->setOffset(value);
 }
 
-int setAxisEncBits(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEncBits(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
@@ -2160,9 +2740,13 @@ int setAxisEncBits(int axisIndex, int value)
   return axes[axisIndex]->getEnc()->setBits(value);
 }
 
-int setAxisEncAbsBits(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEncAbsBits(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
@@ -2170,9 +2754,13 @@ int setAxisEncAbsBits(int axisIndex, int value)
   return axes[axisIndex]->getEnc()->setAbsBits(value);
 }
 
-int setAxisEncRawMask(int axisIndex, uint64_t rawMask)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, (uint)rawMask);
+int setAxisEncRawMask(int axisIndex, uint64_t rawMask) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           (uint)rawMask);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
@@ -2180,9 +2768,13 @@ int setAxisEncRawMask(int axisIndex, uint64_t rawMask)
   return axes[axisIndex]->getEnc()->setRawMask(rawMask);
 }
 
-int setAxisEncType(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisEncType(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
@@ -2191,20 +2783,22 @@ int setAxisEncType(int axisIndex, int value)
 }
 
 /****************************************************************************/
-//Drv GET
-int getAxisDrvScaleNum(int axisIndex, double *value)
-{
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
 
+// Drv GET
+int getAxisDrvScaleNum(int axisIndex, double *value) {  
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
   *value = axes[axisIndex]->getDrv()->getScaleNum();
   return 0;
 }
 
-//Drv SET
-int setAxisDrvScaleNum(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+// Drv SET
+int setAxisDrvScaleNum(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2213,9 +2807,13 @@ int setAxisDrvScaleNum(int axisIndex, double value)
   return 0;
 }
 
-int setAxisDrvScaleDenom(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisDrvScaleDenom(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2223,9 +2821,13 @@ int setAxisDrvScaleDenom(int axisIndex, double value)
   return axes[axisIndex]->getDrv()->setScaleDenom(value);
 }
 
-int setAxisDrvEnable(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisDrvEnable(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2233,9 +2835,13 @@ int setAxisDrvEnable(int axisIndex, int value)
   return axes[axisIndex]->getDrv()->setEnable(value);
 }
 
-int setAxisDrvVelSet(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisDrvVelSet(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2243,9 +2849,13 @@ int setAxisDrvVelSet(int axisIndex, double value)
   return axes[axisIndex]->getDrv()->setVelSet(value);
 }
 
-int setAxisDrvVelSetRaw(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisDrvVelSetRaw(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2253,9 +2863,13 @@ int setAxisDrvVelSetRaw(int axisIndex, int value)
   return axes[axisIndex]->getDrv()->setVelSetRaw(value);
 }
 
-int setAxisDrvBrakeEnable(int axisIndex, int enable)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+int setAxisDrvBrakeEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2263,9 +2877,13 @@ int setAxisDrvBrakeEnable(int axisIndex, int enable)
   return axes[axisIndex]->getDrv()->setEnableBrake(enable);
 }
 
-int setAxisDrvBrakeOpenDelayTime(int axisIndex, int delayTime)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d delayTime=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, delayTime);
+int setAxisDrvBrakeOpenDelayTime(int axisIndex, int delayTime) {
+  LOGINFO4("%s/%s:%d axisIndex=%d delayTime=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           delayTime);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2273,9 +2891,13 @@ int setAxisDrvBrakeOpenDelayTime(int axisIndex, int delayTime)
   return axes[axisIndex]->getDrv()->setBrakeOpenDelayTime(delayTime);
 }
 
-int setAxisDrvBrakeCloseAheadTime(int axisIndex, int aheadTime)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d aheadTime=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, aheadTime);
+int setAxisDrvBrakeCloseAheadTime(int axisIndex, int aheadTime) {
+  LOGINFO4("%s/%s:%d axisIndex=%d aheadTime=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           aheadTime);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2283,9 +2905,13 @@ int setAxisDrvBrakeCloseAheadTime(int axisIndex, int aheadTime)
   return axes[axisIndex]->getDrv()->setBrakeCloseAheadTime(aheadTime);
 }
 
-int setAxisDrvReduceTorqueEnable(int axisIndex, int enable)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+int setAxisDrvReduceTorqueEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
@@ -2293,54 +2919,76 @@ int setAxisDrvReduceTorqueEnable(int axisIndex, int enable)
   return axes[axisIndex]->getDrv()->setEnableReduceTorque(enable);
 }
 
-int setAxisDrvType(int axisIndex, int type)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d type=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, type);
+int setAxisDrvType(int axisIndex, int type) {
+  LOGINFO4("%s/%s:%d axisIndex=%d type=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           type);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->setDriveType((ecmcDriveTypes)type);
-}
-
-//Drv GET
-int getAxisDrvScale(int axisIndex,double *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  *value=axes[axisIndex]->getDrv()->getScale();;
+  try {
+    return axes[axisIndex]->setDriveType((ecmcDriveTypes)type);
+  }
+  catch (std::exception& e) {
+    LOGERR("%s/%s:%d: EXCEPTION %s WHEN SET DRIVE TYPE.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           e.what());
+    return ERROR_MAIN_EXCEPTION;
+  }
   return 0;
 }
 
-int getAxisDrvEnable(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+// Drv GET
+int getAxisDrvScale(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-  *value=0;
-  *value=axes[axisIndex]->getDrv()->getEnable()>0;
+
+  *value = axes[axisIndex]->getDrv()->getScale();
+  return 0;
+}
+
+int getAxisDrvEnable(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+  *value = 0;
+  *value = axes[axisIndex]->getDrv()->getEnable() > 0;
   return 0;
 }
 
 /****************************************************************************/
-//Mon GET
-int getAxisMonAtTargetTol(int axisIndex, double *value)
-{
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+// Mon GET
+int getAxisMonAtTargetTol(int axisIndex, double *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   *value = axes[axisIndex]->getMon()->getAtTargetTol();
   return 0;
 }
 
-//Mon SET
-int setAxisMonAtTargetTol(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+// Mon SET
+int setAxisMonAtTargetTol(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2349,18 +2997,20 @@ int setAxisMonAtTargetTol(int axisIndex, double value)
   return 0;
 }
 
-int getAxisMonAtTargetTime(int axisIndex, int *value)
-{
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+int getAxisMonAtTargetTime(int axisIndex, int *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   *value = axes[axisIndex]->getMon()->getAtTargetTime();
   return 0;
 }
 
-int setAxisMonAtTargetTime(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonAtTargetTime(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2369,8 +3019,7 @@ int setAxisMonAtTargetTime(int axisIndex, int value)
   return 0;
 }
 
-int getAxisMonEnableAtTargetMon(int axisIndex, int *value)
-{
+int getAxisMonEnableAtTargetMon(int axisIndex, int *value) {
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
@@ -2378,9 +3027,13 @@ int getAxisMonEnableAtTargetMon(int axisIndex, int *value)
   return 0;
 }
 
-int setAxisMonEnableAtTargetMon(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonEnableAtTargetMon(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2389,30 +3042,36 @@ int setAxisMonEnableAtTargetMon(int axisIndex, int value)
   return 0;
 }
 
-int setAxisMonExtHWInterlockPolarity(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonExtHWInterlockPolarity(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getMon()->setHardwareInterlockPolarity((externalHWInterlockPolarity)value);
+  axes[axisIndex]->getMon()->setHardwareInterlockPolarity(
+                                        (externalHWInterlockPolarity)value);
   return 0;
 }
 
-
-int getAxisMonPosLagTol(int axisIndex, double *value)
-{
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+int getAxisMonPosLagTol(int axisIndex, double *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   *value = axes[axisIndex]->getMon()->getPosLagTol();
   return 0;
 }
 
-int setAxisMonPosLagTol(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonPosLagTol(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2421,18 +3080,20 @@ int setAxisMonPosLagTol(int axisIndex, double value)
   return 0;
 }
 
-int getAxisMonPosLagTime(int axisIndex, int *value)
-{
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+int getAxisMonPosLagTime(int axisIndex, int *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   *value = axes[axisIndex]->getMon()->getPosLagTime();
   return 0;
 }
 
-int setAxisMonPosLagTime(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonPosLagTime(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2441,17 +3102,19 @@ int setAxisMonPosLagTime(int axisIndex, int value)
   return 0;
 }
 
-int getAxisMonEnableLagMon(int axisIndex, int *value)
-{
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+int getAxisMonEnableLagMon(int axisIndex, int *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
   *value = axes[axisIndex]->getMon()->getEnableLagMon();
   return 0;
 }
 
-int setAxisMonEnableLagMon(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonEnableLagMon(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2460,29 +3123,34 @@ int setAxisMonEnableLagMon(int axisIndex, int value)
   return 0;
 }
 
-int setAxisMonMaxVel(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonMaxVel(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getMon()->setMaxVel(value);;
+  return axes[axisIndex]->getMon()->setMaxVel(value);
 }
 
-int getAxisMonMaxVel(int axisIndex, double *value)
-{
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+int getAxisMonMaxVel(int axisIndex, double *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   *value = axes[axisIndex]->getMon()->getMaxVel();
   return 0;
 }
 
-int setAxisMonEnableMaxVel(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonEnableMaxVel(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2490,18 +3158,20 @@ int setAxisMonEnableMaxVel(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setEnableMaxVelMon(value);
 }
 
-int getAxisMonEnableMaxVel(int axisIndex, int *value)
-{
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+int getAxisMonEnableMaxVel(int axisIndex, int *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   *value = axes[axisIndex]->getMon()->getEnableMaxVelMon();
   return 0;
 }
 
-int setAxisMonMaxVelDriveILDelay(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonMaxVelDriveILDelay(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2509,9 +3179,13 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setMaxVelDriveTime(value);
 }
 
-int setAxisMonMaxVelTrajILDelay(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonMaxVelTrajILDelay(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2519,9 +3193,13 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setMaxVelTrajTime(value);
 }
 
-int setAxisMonEnableExternalInterlock(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonEnableExternalInterlock(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2529,9 +3207,13 @@ int setAxisMonEnableExternalInterlock(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setEnableHardwareInterlock(value);
 }
 
-int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2539,9 +3221,13 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setEnableCntrlHLMon(value);
 }
 
-int setAxisMonEnableVelocityDiff(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonEnableVelocityDiff(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2549,9 +3235,13 @@ int setAxisMonEnableVelocityDiff(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setEnableVelocityDiffMon(value);
 }
 
-int setAxisMonVelDiffTol(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonVelDiffTol(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2559,9 +3249,13 @@ int setAxisMonVelDiffTol(int axisIndex, double value)
   return axes[axisIndex]->getMon()->setVelDiffMaxDifference(value);
 }
 
-int setAxisMonVelDiffTrajILDelay(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonVelDiffTrajILDelay(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2569,9 +3263,13 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setVelDiffTimeTraj(value);
 }
 
-int setAxisMonVelDiffDriveILDelay(int axisIndex, int value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonVelDiffDriveILDelay(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2579,9 +3277,13 @@ int setAxisMonVelDiffDriveILDelay(int axisIndex, int value)
   return axes[axisIndex]->getMon()->setVelDiffTimeDrive(value);
 }
 
-int setAxisMonCntrlOutHL(int axisIndex, double value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",__FILE__, __FUNCTION__, __LINE__, axisIndex, value);
+int setAxisMonCntrlOutHL(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
@@ -2589,168 +3291,213 @@ int setAxisMonCntrlOutHL(int axisIndex, double value)
   return axes[axisIndex]->getMon()->setCntrlOutputHL(value);
 }
 
-//Mon GET
-int getAxisMonAtTarget(int axisIndex,int *value)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",__FILE__, __FUNCTION__, __LINE__, axisIndex);
+// Mon GET
+int getAxisMonAtTarget(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
-  *value=0;
-  *value=axes[axisIndex]->getMon()->getAtTarget()>0;
+  *value = 0;
+  *value = axes[axisIndex]->getMon()->getAtTarget() > 0;
   return 0;
 }
 
 /****************************************************************************/
-//Configuration procedures
 
-int createAxis(int index, int type)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d type:%d\n",__FILE__, __FUNCTION__, __LINE__,index,type);
+// Configuration procedures
 
-  if(index<0 && index>=ECMC_MAX_AXES){
+int createAxis(int index, int type) {
+  LOGINFO4("%s/%s:%d axisIndex=%d type:%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           type);
+
+  if ((index < 0) && (index >= ECMC_MAX_AXES)) {
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
   }
 
-  switch((axisType)type){
-
+  try {
+    switch ((axisType)type) {
     case ECMC_AXIS_TYPE_REAL:
-      if(axes[index]!=NULL){
+
+      if (axes[index] != NULL) {
         delete axes[index];
       }
-      axes[index]=new ecmcAxisReal(index,1/MCU_FREQUENCY);
-      if(!axes[index]){
-	      LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR NORMAL AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-        exit(EXIT_FAILURE);
-      }
+      axes[index] = new ecmcAxisReal(index, 1 / MCU_FREQUENCY);
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:
-      if(axes[index]!=NULL){
+
+      if (axes[index] != NULL) {
         delete axes[index];
       }
-      axes[index]=new ecmcAxisVirt(index,1/MCU_FREQUENCY);
-      if(!axes[index]){
-	      LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VITRUAL AXIS OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
-        exit(EXIT_FAILURE);
-       }
+      axes[index] = new ecmcAxisVirt(index, 1 / MCU_FREQUENCY);
       break;
+
     default:
       return ERROR_MAIN_AXIS_TYPE_UNKNOWN;
+    }
   }
-
-  axisDiagIndex=index; //Always printout last axis added
+  catch (std::exception& e) {
+    delete axes[index];
+    LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS OBJECT.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           e.what());
+    return ERROR_MAIN_EXCEPTION;
+  }
+  axisDiagIndex = index;  // Always printout last axis added
   return 0;
 }
 
-int createPLC(int index,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d index=%d, skipcyles=%d\n",__FILE__, __FUNCTION__, __LINE__,index,skipCycles);
+int createPLC(int index, int skipCycles) {
+  LOGINFO4("%s/%s:%d index=%d, skipcyles=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           skipCycles);
 
-  if(!plcs){
-    plcs=new ecmcPLCs(&ec);
+  if (!plcs) {
+    plcs = new ecmcPLCs(&ec);
   }
 
-  if(index<0 && index>=ECMC_MAX_PLCS){
+  if ((index < 0) && (index >= ECMC_MAX_PLCS)) {
     return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;
   }
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  //Set axes pointers (for the already configuered axes)
-  for(int i=0; i<ECMC_MAX_AXES;i++){
-    plcs->setAxisArrayPointer(axes[i],i);
+  // Set axes pointers (for the already configuered axes)
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    plcs->setAxisArrayPointer(axes[i], i);
   }
 
-  //Set data storage pointers
-  for(int i=0; i<ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
-    plcs->setDataStoragePointer(dataStorages[i],i);
+  // Set data storage pointers
+  for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
+    plcs->setDataStoragePointer(dataStorages[i], i);
   }
 
-  if(skipCycles<0){
+  if (skipCycles < 0) {
     return ERROR_MAIN_PLCS_SKIPCYCLES_INVALID;
   }
 
-  return plcs->createPLC(index,skipCycles);
+  return plcs->createPLC(index, skipCycles);
 }
 
-int setPLCEnable(int index,int enable)
-{
-  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+int setPLCEnable(int index, int enable) {
+  LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);
   CHECK_PLCS_RETURN_IF_ERROR();
-  return plcs->setEnable(index,enable);
+  return plcs->setEnable(index, enable);
 }
 
-int getPLCEnable(int index,int *enabled)
-{
-  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+int getPLCEnable(int index, int *enabled) {
+  LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);
   CHECK_PLCS_RETURN_IF_ERROR();
-  return plcs->getEnable(index,enabled);
+  return plcs->getEnable(index, enabled);
 }
 
-int deletePLC(int index)
-{
-  LOGINFO4("%s/%s:%d index=%d\n",__FILE__, __FUNCTION__, __LINE__,index);
+int deletePLC(int index) {
+  LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);
   CHECK_PLCS_RETURN_IF_ERROR();
   return plcs->deletePLC(index);
 }
 
-int ecSetMaster(int masterIndex)
-{
-  LOGINFO4("%s/%s:%d master index=%d \n",__FILE__, __FUNCTION__, __LINE__, masterIndex);
+int ecSetMaster(int masterIndex) {
+  LOGINFO4("%s/%s:%d master index=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           masterIndex);
   return ec.init(masterIndex);
 }
 
-int ecResetMaster(int masterIndex)
-{
-  LOGINFO4("%s/%s:%d master index=%d \n",__FILE__, __FUNCTION__, __LINE__, masterIndex);
-  ///todo  master index not used. Only there for future use.
+int ecResetMaster(int masterIndex) {
+  LOGINFO4("%s/%s:%d master index=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           masterIndex);
+
+  /// todo  master index not used. Only there for future use.
   return ec.reset();
 }
 
-int ecResetError()
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+int ecResetError() {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
   ec.errorReset();
   return 0;
 }
 
-int ecAddSlave(uint16_t alias, uint16_t position, uint32_t vendorId,uint32_t productCode)
-{
-  LOGINFO4("%s/%s:%d alias=%d position=%d vendor_id=%d product_code=%d\n",__FILE__, __FUNCTION__, __LINE__, alias,position,vendorId,productCode);
+int ecAddSlave(uint16_t alias,
+               uint16_t position,
+               uint32_t vendorId,
+               uint32_t productCode) {
+  LOGINFO4("%s/%s:%d alias=%d position=%d vendor_id=%d product_code=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           alias,
+           position,
+           vendorId,
+           productCode);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-  ec.addSlave(alias,position,vendorId,productCode);
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ec.addSlave(alias, position, vendorId, productCode);
   return 0;
 }
 
 int ecSlaveConfigDC(
-    int slaveBusPosition,
-    uint16_t assignActivate, /**< AssignActivate word. */
-    uint32_t sync0Cycle, /**< SYNC0 cycle time [ns]. */
-    int32_t sync0Shift, /**< SYNC0 shift time [ns]. */
-    uint32_t sync1Cycle, /**< SYNC1 cycle time [ns]. */
-    int32_t sync1Shift /**< SYNC1 shift time [ns]. */)
-{
-  LOGINFO4("%s/%s:%d position=%d assign_axtive=%x sync0_cycle=%d sync0_shift=%d sync1_cycle=%d sync1_shift=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveBusPosition,assignActivate,sync0Cycle,sync0Shift,sync1Cycle,sync1Shift);
+  int      slaveBusPosition,
+  uint16_t assignActivate,   /**< AssignActivate word. */
+  uint32_t sync0Cycle,   /**< SYNC0 cycle time [ns]. */
+  int32_t  sync0Shift,  /**< SYNC0 shift time [ns]. */
+  uint32_t sync1Cycle,   /**< SYNC1 cycle time [ns]. */
+  int32_t  sync1Shift  /**< SYNC1 shift time [ns]. */) {
+  LOGINFO4(
+    "%s/%s:%d position=%d assign_active=%x sync0_cycle=%d sync0_shift=%d sync1_cycle=%d sync1_shift=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slaveBusPosition,
+    assignActivate,
+    sync0Cycle,
+    sync0Shift,
+    sync1Cycle,
+    sync1Shift);
 
-  ecmcEcSlave *slave=ec.findSlave(slaveBusPosition);
-  if(slave==NULL){
+  ecmcEcSlave *slave = ec.findSlave(slaveBusPosition);
+
+  if (slave == NULL) {
     return ERROR_EC_MAIN_SLAVE_NULL;
   }
 
-  return slave->configDC(assignActivate,sync0Cycle,sync0Shift,sync1Cycle,sync1Shift);
+  return slave->configDC(assignActivate,
+                         sync0Cycle,
+                         sync0Shift,
+                         sync1Cycle,
+                         sync1Shift);
 }
 
-int ecSelectReferenceDC(int masterIndex,int slaveBusPosition)
-{
-  LOGINFO4("%s/%s:%d master=%d position=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex, slaveBusPosition);
+int ecSelectReferenceDC(int masterIndex, int slaveBusPosition) {
+  LOGINFO4("%s/%s:%d master=%d position=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           masterIndex,
+           slaveBusPosition);
 
-  ecmcEcSlave *slave=ec.findSlave(slaveBusPosition);
-  if(slave==NULL){
+  ecmcEcSlave *slave = ec.findSlave(slaveBusPosition);
+
+  if (slave == NULL) {
     return ERROR_EC_MAIN_SLAVE_NULL;
   }
 
@@ -2758,247 +3505,373 @@ int ecSelectReferenceDC(int masterIndex,int slaveBusPosition)
 }
 
 int ecAddEntryComplete(
-    uint16_t position,
-    uint32_t vendorId,
-    uint32_t productCode,
-    int direction,
-    uint8_t syncMangerIndex,
-    uint16_t pdoIndex,
-    uint16_t entryIndex,
-    uint8_t  entrySubIndex,
-    uint8_t bits,
-    char *entryIDString,
-    int signedValue
-    )
-{
-  std::string id=entryIDString;
+  uint16_t position,
+  uint32_t vendorId,
+  uint32_t productCode,
+  int      direction,
+  uint8_t  syncMangerIndex,
+  uint16_t pdoIndex,
+  uint16_t entryIndex,
+  uint8_t  entrySubIndex,
+  uint8_t  bits,
+  char    *entryIDString,
+  int      signedValue
+  ) {
+  std::string id = entryIDString;
 
-  LOGINFO4("%s/%s:%d slave=%d vendor=%d productcode=%d direction=%d sm=%d pdoindex=%d entry_index=%d entry_subindex=%d bits=%d id=%s\n",__FILE__, __FUNCTION__, __LINE__, position,vendorId,productCode,direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,entryIDString);
+  LOGINFO4(
+    "%s/%s:%d slave=%d vendor=%d productcode=%d direction=%d sm=%d pdoindex=%d entry_index=%d entry_subindex=%d bits=%d id=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    position,
+    vendorId,
+    productCode,
+    direction,
+    syncMangerIndex,
+    pdoIndex,
+    entryIndex,
+    entrySubIndex,
+    bits,
+    entryIDString);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-  return ec.addEntry(position,vendorId,productCode,(ec_direction_t)direction,syncMangerIndex,pdoIndex,entryIndex,entrySubIndex,bits,id,signedValue);
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.addEntry(position,
+                     vendorId,
+                     productCode,
+                     (ec_direction_t)direction,
+                     syncMangerIndex,
+                     pdoIndex,
+                     entryIndex,
+                     entrySubIndex,
+                     bits,
+                     id,
+                     signedValue);
 }
 
 int ecSetEntryUpdateInRealtime(
-    uint16_t slavePosition,
-    char *entryIDString,
-    int updateInRealtime
-    )
-{
-  LOGINFO4("%s/%s:%d slave=%d id=%s updateInRealtime=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,entryIDString,updateInRealtime);
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  uint16_t slavePosition,
+  char    *entryIDString,
+  int      updateInRealtime
+  ) {
+  LOGINFO4("%s/%s:%d slave=%d id=%s updateInRealtime=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slavePosition,
+           entryIDString,
+           updateInRealtime);
 
-  ecmcEcSlave *slave=NULL;
-  if(slavePosition>=0){
-    slave=ec.findSlave(slavePosition);
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave = NULL;
+
+  if (slavePosition >= 0) {
+    slave = ec.findSlave(slavePosition);
+  } else {    // simulation slave
+    slave = ec.getSlave(slavePosition);
   }
-  else{ //simulation slave
-    slave=ec.getSlave(slavePosition);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   return entry->setUpdateInRealtime(updateInRealtime);
 }
 
 int ecAddMemMap(
-    uint16_t startEntryBusPosition,
-    char *startEntryIDString,
-    size_t byteSize,
-    int direction,
-    char *memMapIDString
-    )
-{
-  std::string memMapId=memMapIDString;
-  std::string startEntryId=startEntryIDString;
+  uint16_t startEntryBusPosition,
+  char    *startEntryIDString,
+  size_t   byteSize,
+  int      direction,
+  char    *memMapIDString
+  ) {
+  std::string memMapId     = memMapIDString;
+  std::string startEntryId = startEntryIDString;
 
-  LOGINFO4("%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%lu, direction=%d entryId=%s\n",__FILE__, __FUNCTION__, __LINE__,startEntryBusPosition,startEntryIDString,byteSize,direction,memMapIDString);
+  LOGINFO4(
+    "%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%lu, direction=%d entryId=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    startEntryBusPosition,
+    startEntryIDString,
+    byteSize,
+    direction,
+    memMapIDString);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.addMemMap(startEntryBusPosition,startEntryId,byteSize,0,(ec_direction_t)direction,memMapId);
+  return ec.addMemMap(startEntryBusPosition, startEntryId, byteSize, 0,
+                      (ec_direction_t)direction, memMapId);
 }
 
-int ecAddPdo(int slaveIndex,int syncManager,uint16_t pdoIndex)
-{
-  LOGINFO4("%s/%s:%d slave=%d sm=%d pdo_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,syncManager,pdoIndex);
+int ecAddPdo(int slaveIndex, int syncManager, uint16_t pdoIndex) {
+  LOGINFO4("%s/%s:%d slave=%d sm=%d pdo_index=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           syncManager,
+           pdoIndex);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-  if(ec.getSlave(slaveIndex)==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
-  if(ec.getSlave(slaveIndex)->getSyncManager(syncManager)==NULL)
-    return ERROR_MAIN_EC_SM_NULL;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if (ec.getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+
+  if (ec.getSlave(slaveIndex)->getSyncManager(syncManager) ==
+      NULL) return ERROR_MAIN_EC_SM_NULL;
+
   return ec.getSlave(slaveIndex)->getSyncManager(syncManager)->addPdo(pdoIndex);
 }
 
-int ecAddSyncManager(int slaveIndex,int direction,uint8_t syncMangerIndex)
-{
-  LOGINFO4("%s/%s:%d slave=%d direction=%d sm_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,direction,syncMangerIndex);
+int ecAddSyncManager(int slaveIndex, int direction, uint8_t syncMangerIndex) {
+  LOGINFO4("%s/%s:%d slave=%d direction=%d sm_index=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           direction,
+           syncMangerIndex);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-  if(ec.getSlave(slaveIndex)==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
-  return ec.getSlave(slaveIndex)->addSyncManager((ec_direction_t)direction,syncMangerIndex);;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if (ec.getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+
+  return ec.getSlave(slaveIndex)->addSyncManager((ec_direction_t)direction,
+                                                 syncMangerIndex);
 }
 
-int ecAddSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize)
-{
-  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d value=%d bytesize=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,sdoSubIndex,value,byteSize);
+int ecAddSdo(uint16_t slavePosition,
+             uint16_t sdoIndex,
+             uint8_t  sdoSubIndex,
+             uint32_t value,
+             int      byteSize) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d value=%d bytesize=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,
+    sdoSubIndex,
+    value,
+    byteSize);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-  return (int)ec.addSDOWrite(slavePosition,sdoIndex,sdoSubIndex,value,byteSize);
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return  ec.addSDOWrite(slavePosition,
+                         sdoIndex,
+                         sdoSubIndex,
+                         value,
+                         byteSize);
 }
 
-int ecWriteSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,int byteSize)
-{
-  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d value=%d bytesize=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,sdoSubIndex,value,byteSize);
+int ecWriteSdo(uint16_t slavePosition,
+               uint16_t sdoIndex,
+               uint8_t  sdoSubIndex,
+               uint32_t value,
+               int      byteSize) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d value=%d bytesize=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,
+    sdoSubIndex,
+    value,
+    byteSize);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.writeSDO(slavePosition,sdoIndex,sdoSubIndex,value,byteSize);
+  return ec.writeSDO(slavePosition, sdoIndex, sdoSubIndex, value, byteSize);
 }
 
-int ecWriteSdoComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value,int byteSize)
-{
-  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d value=%d bytesize=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,value,byteSize);
+int ecWriteSdoComplete(uint16_t slavePosition,
+                       uint16_t sdoIndex,
+                       uint32_t value,
+                       int      byteSize) {
+  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d value=%d bytesize=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slavePosition,
+           sdoIndex,
+           value,
+           byteSize);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.writeSDOComplete(slavePosition,sdoIndex,value,byteSize);
+  return ec.writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
 }
 
-uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize, uint32_t *value)
-{
-  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d bytesize=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,sdoIndex,sdoSubIndex,byteSize);
+uint32_t ecReadSdo(uint16_t  slavePosition,
+                   uint16_t  sdoIndex,
+                   uint8_t   sdoSubIndex,
+                   int       byteSize,
+                   uint32_t *value) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d bytesize=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,
+    sdoSubIndex,
+    byteSize);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-  return ec.readSDO(slavePosition,sdoIndex,sdoSubIndex,byteSize,value);
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec.readSDO(slavePosition, sdoIndex, sdoSubIndex, byteSize, value);
 }
 
-int ecSlaveConfigWatchDog(int slaveBusPosition,int watchdogDivider,int watchdogIntervals)
-{
-  LOGINFO4("%s/%s:%d position=%d, watchdogDivider=%d watchdogIntervals=%d\n",__FILE__, __FUNCTION__, __LINE__,slaveBusPosition,watchdogDivider,watchdogIntervals);
+int ecSlaveConfigWatchDog(int slaveBusPosition,
+                          int watchdogDivider,
+                          int watchdogIntervals) {
+  LOGINFO4("%s/%s:%d position=%d, watchdogDivider=%d watchdogIntervals=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveBusPosition,
+           watchdogDivider,
+           watchdogIntervals);
 
-  ecmcEcSlave *slave=ec.findSlave(slaveBusPosition);
-  if(slave==NULL){
+  ecmcEcSlave *slave = ec.findSlave(slaveBusPosition);
+
+  if (slave == NULL) {
     return ERROR_EC_MAIN_SLAVE_NULL;
   }
 
-  return slave->setWatchDogConfig(watchdogDivider,watchdogIntervals);
+  return slave->setWatchDogConfig(watchdogDivider, watchdogIntervals);
 }
 
-int linkEcEntryToAxisEnc(int slaveIndex, char *entryIDString,int axisIndex,int encoderEntryIndex, int bitIndex)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%s encoder=%d encoder_entry=%d bit_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,encoderEntryIndex, bitIndex);
+int linkEcEntryToAxisEnc(int   slaveIndex,
+                         char *entryIDString,
+                         int   axisIndex,
+                         int   encoderEntryIndex,
+                         int   bitIndex) {
+  LOGINFO4(
+    "%s/%s:%d slave_index=%d entry=%s encoder=%d encoder_entry=%d bit_index=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slaveIndex,
+    entryIDString,
+    axisIndex,
+    encoderEntryIndex,
+    bitIndex);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveIndex);
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec.findSlave(slaveIndex);
+  } else {    // simulation slave
+    slave = ec.getSlave(slaveIndex);
   }
-  else{ //simulation slave
-    slave=ec.getSlave(slaveIndex);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  if(encoderEntryIndex>=MaxEcEntryLinks || encoderEntryIndex<0)
-    return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
+  if ((encoderEntryIndex >= MaxEcEntryLinks) ||
+      (encoderEntryIndex <
+       0)) return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
 
-  return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,encoderEntryIndex,bitIndex);
+  return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,
+                                                    encoderEntryIndex,
+                                                    bitIndex);
 }
 
-
-int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int driveEntryIndex, int bitIndex)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%s drive=%d drive_entry=%d bit_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,driveEntryIndex,bitIndex);
+int linkEcEntryToAxisDrv(int   slaveIndex,
+                         char *entryIDString,
+                         int   axisIndex,
+                         int   driveEntryIndex,
+                         int   bitIndex) {
+  LOGINFO4(
+    "%s/%s:%d slave_index=%d entry=%s drive=%d drive_entry=%d bit_index=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slaveIndex,
+    entryIDString,
+    axisIndex,
+    driveEntryIndex,
+    bitIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
 
-  //Disable brake output with empty string
-  if(strlen(entryIDString)==0 && driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT){
+  // Disable brake output with empty string
+  if ((strlen(entryIDString) == 0) &&
+      (driveEntryIndex == ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT)) {
     return axes[axisIndex]->getDrv()->setEnableBrake(0);
   }
 
-  //Disable reduce torque output with empty string
-  if(strlen(entryIDString)==0 && driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT){
+  // Disable reduce torque output with empty string
+  if ((strlen(entryIDString) == 0) &&
+      (driveEntryIndex == ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT)) {
     return axes[axisIndex]->getDrv()->setEnableReduceTorque(0);
   }
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveIndex);
-  }
-  else
-  {
-    slave=ec.getSlave(slaveIndex);
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec.findSlave(slaveIndex);
+  } else {
+    slave = ec.getSlave(slaveIndex);
   }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  if(driveEntryIndex>=MaxEcEntryLinks || driveEntryIndex<0){
+  if ((driveEntryIndex >= MaxEcEntryLinks) || (driveEntryIndex < 0)) {
     return ERROR_MAIN_DRIVE_ENTRY_INDEX_OUT_OF_RANGE;
   }
 
-  int ret=axes[axisIndex]->getDrv()->setEntryAtIndex(entry,driveEntryIndex,bitIndex);
-  if(ret){
+  int ret = axes[axisIndex]->getDrv()->setEntryAtIndex(entry,
+                                                       driveEntryIndex,
+                                                       bitIndex);
+
+  if (ret) {
     return ret;
   }
 
-  //Auto enable break
-  if(driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT){
-    ret=axes[axisIndex]->getDrv()->setEnableBrake(1);
-    if(ret){
+  // Auto enable break
+  if (driveEntryIndex == ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT) {
+    ret = axes[axisIndex]->getDrv()->setEnableBrake(1);
+
+    if (ret) {
       return ret;
     }
   }
 
-  //Auto enable reduce torque
-  if(driveEntryIndex==ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT){
-    ret=axes[axisIndex]->getDrv()->setEnableReduceTorque(1);
-    if(ret){
+  // Auto enable reduce torque
+  if (driveEntryIndex == ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT) {
+    ret = axes[axisIndex]->getDrv()->setEnableReduceTorque(1);
+
+    if (ret) {
       return ret;
     }
   }
@@ -3006,1026 +3879,1389 @@ int linkEcEntryToAxisDrv(int slaveIndex,char *entryIDString,int axisIndex,int dr
   return 0;
 }
 
-int linkEcEntryToAxisMon(int slaveIndex,char *entryIDString,int axisIndex,int monitorEntryIndex, int bitIndex)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%s monitor=%d monitor_entry=%d bit_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex,monitorEntryIndex,bitIndex);
+int linkEcEntryToAxisMon(int   slaveIndex,
+                         char *entryIDString,
+                         int   axisIndex,
+                         int   monitorEntryIndex,
+                         int   bitIndex) {
+  LOGINFO4(
+    "%s/%s:%d slave_index=%d entry=%s monitor=%d monitor_entry=%d bit_index=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slaveIndex,
+    entryIDString,
+    axisIndex,
+    monitorEntryIndex,
+    bitIndex);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveIndex);
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec.findSlave(slaveIndex);
+  } else {
+    slave = ec.getSlave(slaveIndex);
   }
-  else
-  {
-    slave=ec.getSlave(slaveIndex);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL){
+  if (entry == NULL) {
     return ERROR_MAIN_EC_ENTRY_NULL;
   }
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  if(monitorEntryIndex>=MaxEcEntryLinks || monitorEntryIndex<0)
-    return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
+  if ((monitorEntryIndex >= MaxEcEntryLinks) ||
+      (monitorEntryIndex <
+       0)) return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
 
-  int errorCode=axes[axisIndex]->getMon()->setEntryAtIndex(entry,monitorEntryIndex,bitIndex);
-  if(errorCode){
-	return errorCode;
+  int errorCode = axes[axisIndex]->getMon()->setEntryAtIndex(entry,
+                                                             monitorEntryIndex,
+                                                             bitIndex);
+
+  if (errorCode) {
+    return errorCode;
   }
-  if(monitorEntryIndex==ECMC_MON_ENTRY_INDEX_EXTINTERLOCK){
-    return setAxisMonEnableExternalInterlock(axisIndex,1);
+
+  if (monitorEntryIndex == ECMC_MON_ENTRY_INDEX_EXTINTERLOCK) {
+    return setAxisMonEnableExternalInterlock(axisIndex, 1);
   }
 
   return 0;
 }
 
-int linkEcEntryToObject(char *ecPath,char *axPath)
-{
-  LOGINFO4("%s/%s:%d ecPath=%s axPath=%s\n",__FILE__, __FUNCTION__, __LINE__, ecPath,axPath);
+int linkEcEntryToObject(char *ecPath, char *axPath) {
+  LOGINFO4("%s/%s:%d ecPath=%s axPath=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ecPath,
+           axPath);
 
-  int masterId=-1;
-  int slaveIndex=-1;
+  int  masterId   = -1;
+  int  slaveIndex = -1;
   char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int bitIndex=-1;
+  int  bitIndex = -1;
 
-  int errorCode=parseEcPath(ecPath, &masterId,&slaveIndex,alias,&bitIndex);
-  if(errorCode){
+  int errorCode =
+    parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+
+  if (errorCode) {
     return errorCode;
   }
 
-  int axisIndex=0;
-  motionObjectType objectType=ECMC_OBJ_INVALID;
-  int entryIndex=0;
-  errorCode=parseObjectPath(axPath,&axisIndex,&objectType,&entryIndex);
-  if(errorCode){
+  int axisIndex               = 0;
+  motionObjectType objectType = ECMC_OBJ_INVALID;
+  int entryIndex              = 0;
+  errorCode = parseObjectPath(axPath, &axisIndex, &objectType, &entryIndex);
+
+  if (errorCode) {
     return errorCode;
   }
 
-  switch(objectType){
-    case ECMC_OBJ_INVALID:
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
-    case ECMC_OBJ_DRIVE:
-      return linkEcEntryToAxisDrv(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
-      break;
-    case ECMC_OBJ_ENCODER:
-      return linkEcEntryToAxisEnc(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
-      break;
-    case ECMC_OBJ_MONITOR:
-      return linkEcEntryToAxisMon(slaveIndex,alias,axisIndex,entryIndex,bitIndex);
-      break;
-    case ECMC_OBJ_CONTROLLER:
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
-    case ECMC_OBJ_TRAJECTORY:
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
-    case ECMC_OBJ_AXIS:
-      if(entryIndex==ECMC_AXIS_ENTRY_INDEX_HEALTH){
-        return linkEcEntryToAxisStatusOutput(slaveIndex,alias,axisIndex);
-      }
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
-    case ECMC_OBJ_EC:
-      if(entryIndex==ECMC_EC_ENTRY_INDEX_HEALTH){
-        return linkEcEntryToEcStatusOutput(slaveIndex,alias);
-      }
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
+  switch (objectType) {
+  case ECMC_OBJ_INVALID:
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
+
+  case ECMC_OBJ_DRIVE:
+    return linkEcEntryToAxisDrv(slaveIndex,
+                                alias,
+                                axisIndex,
+                                entryIndex,
+                                bitIndex);
+
+    break;
+
+  case ECMC_OBJ_ENCODER:
+    return linkEcEntryToAxisEnc(slaveIndex,
+                                alias,
+                                axisIndex,
+                                entryIndex,
+                                bitIndex);
+
+    break;
+
+  case ECMC_OBJ_MONITOR:
+    return linkEcEntryToAxisMon(slaveIndex,
+                                alias,
+                                axisIndex,
+                                entryIndex,
+                                bitIndex);
+
+    break;
+
+  case ECMC_OBJ_CONTROLLER:
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
+
+  case ECMC_OBJ_TRAJECTORY:
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
+
+  case ECMC_OBJ_AXIS:
+
+    if (entryIndex == ECMC_AXIS_ENTRY_INDEX_HEALTH) {
+      return linkEcEntryToAxisStatusOutput(slaveIndex, alias, axisIndex);
+    }
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
+
+  case ECMC_OBJ_EC:
+
+    if (entryIndex == ECMC_EC_ENTRY_INDEX_HEALTH) {
+      return linkEcEntryToEcStatusOutput(slaveIndex, alias);
+    }
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
   }
   return ERROR_MAIN_ECMC_LINK_INVALID;
 }
 
-int linkEcEntryToAxisStatusOutput(int slaveIndex,char *entryIDString,int axisIndex)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%s, axisId=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString,axisIndex);
+int linkEcEntryToAxisStatusOutput(int   slaveIndex,
+                                  char *entryIDString,
+                                  int   axisIndex) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s, axisId=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           entryIDString,
+           axisIndex);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveIndex);
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec.findSlave(slaveIndex);
+  } else {
+    slave = ec.getSlave(slaveIndex);
   }
-  else
-  {
-    slave=ec.getSlave(slaveIndex);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
 
   return axes[axisIndex]->setEcStatusOutputEntry(entry);
 }
 
-int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%s\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIDString);
+int linkEcEntryToEcStatusOutput(int slaveIndex, char *entryIDString) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           entryIDString);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveIndex);
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec.findSlave(slaveIndex);
+  } else {
+    slave = ec.getSlave(slaveIndex);
   }
-  else
-  {
-    slave=ec.getSlave(slaveIndex);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   return ec.setEcStatusOutputEntry(entry);
 }
 
-int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entryIDString, int asynParType,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d masterIndex=%d busPosition=%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,busPosition,entryIDString,asynParType,skipCycles);
+int linkEcEntryToAsynParameter(int         masterIndex,
+                               int         busPosition,
+                               const char *entryIDString,
+                               int         asynParType,
+                               int         skipCycles) {
+  LOGINFO4(
+    "%s/%s:%d masterIndex=%d busPosition=%d alias=%s type=%d,skipCycles=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    masterIndex,
+    busPosition,
+    entryIDString,
+    asynParType,
+    skipCycles);
 
-  if(asynPort==NULL){
+  if (asynPort == NULL) {
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if(ec.getMasterIndex()!=masterIndex){
+  if (ec.getMasterIndex() != masterIndex) {
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  int err=ec.linkEcEntryToAsynParameter(asynPort,entryIDString,asynParType,skipCycles);
-  if(err){
+  int err = ec.linkEcEntryToAsynParameter(asynPort,
+                                          entryIDString,
+                                          asynParType,
+                                          skipCycles);
+
+  if (err) {
     return err;
   }
 
-  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
-    asynSkipCyclesFastest=skipCycles;
+  if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
+    asynSkipCyclesFastest = skipCycles;
   }
 
   return 0;
 }
 
-int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int asynParType,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d masterIndex=%d alias=%s type=%d,skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,memMapIDString,asynParType,skipCycles);
+int linkEcMemMapToAsynParameter(int         masterIndex,
+                                const char *memMapIDString,
+                                int         asynParType,
+                                int         skipCycles) {
+  LOGINFO4("%s/%s:%d masterIndex=%d alias=%s type=%d,skipCycles=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           masterIndex,
+           memMapIDString,
+           asynParType,
+           skipCycles);
 
-  if(asynPort==NULL){
+  if (asynPort == NULL) {
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if(ec.getMasterIndex()!=masterIndex){
+  if (ec.getMasterIndex() != masterIndex) {
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  int err=ec.linkEcMemMapToAsynParameter(asynPort,memMapIDString,asynParType,skipCycles);
-  if(err){
+  int err = ec.linkEcMemMapToAsynParameter(asynPort,
+                                           memMapIDString,
+                                           asynParType,
+                                           skipCycles);
+
+  if (err) {
     return err;
   }
 
-  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
-    asynSkipCyclesFastest=skipCycles;
+  if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
+    asynSkipCyclesFastest = skipCycles;
   }
 
-   return 0;
+  return 0;
 }
 
-int initEcmcAsyn(void* asynPortObject)
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
-  asynPort=(ecmcAsynPortDriver*)asynPortObject;
+int initEcmcAsyn(void *asynPortObject) {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+  asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);
   ec.setAsynPortDriver(asynPort);
   return 0;
 }
 
-int addDefaultAsynEc(int masterIndex,int regAsynParams,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d masterIndex=%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,regAsynParams,skipCycles);
+int addDefaultAsynEc(int masterIndex, int regAsynParams, int skipCycles) {
+  LOGINFO4("%s/%s:%d masterIndex=%d regAsynParams=%d skipCycles=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           masterIndex,
+           regAsynParams,
+           skipCycles);
 
-  if(asynPort==NULL){
+  if (asynPort == NULL) {
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if(ec.getMasterIndex()!=masterIndex){
+  if (ec.getMasterIndex() != masterIndex) {
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  int err=ec.initAsyn(asynPort,regAsynParams,skipCycles);
-  if(err){
+  int err = ec.initAsyn(asynPort, regAsynParams, skipCycles);
+
+  if (err) {
     return err;
   }
 
-  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
-    asynSkipCyclesFastest=skipCycles;
+  if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
+    asynSkipCyclesFastest = skipCycles;
   }
 
   return 0;
 }
 
-int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d masterIndex=%d busPosition=%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,masterIndex,busPosition,regAsynParams,skipCycles);
+int addDefaultAsynEcSlave(int masterIndex,
+                          int busPosition,
+                          int regAsynParams,
+                          int skipCycles) {
+  LOGINFO4(
+    "%s/%s:%d masterIndex=%d busPosition=%d regAsynParams=%d skipCycles=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    masterIndex,
+    busPosition,
+    regAsynParams,
+    skipCycles);
 
-  if(asynPort==NULL){
+  if (asynPort == NULL) {
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if(ec.getMasterIndex()!=masterIndex){
+  if (ec.getMasterIndex() != masterIndex) {
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  ecmcEcSlave *tempSlave=ec.findSlave(busPosition);
-  if(!tempSlave){
+  ecmcEcSlave *tempSlave = ec.findSlave(busPosition);
+
+  if (!tempSlave) {
     return ERROR_MAIN_EC_SLAVE_NULL;
   }
 
-  int err=tempSlave->initAsyn(asynPort,regAsynParams,skipCycles,masterIndex);
-  if(err){
+  int err = tempSlave->initAsyn(asynPort,
+                                regAsynParams,
+                                skipCycles,
+                                masterIndex);
+
+  if (err) {
     return err;
   }
 
-  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
-    asynSkipCyclesFastest=skipCycles;
+  if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
+    asynSkipCyclesFastest = skipCycles;
   }
 
   return 0;
 }
 
-int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,axisIndex,skipCycles);
+int addDefaultAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
+  LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           regAsynParams,
+           axisIndex,
+           skipCycles);
 
-  if(asynPort==NULL){
+  if (asynPort == NULL) {
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
 
 
-  int err=axes[axisIndex]->initAsyn(asynPort,regAsynParams,skipCycles);
-  if(err){
+  int err = axes[axisIndex]->initAsyn(asynPort, regAsynParams, skipCycles);
+
+  if (err) {
     return err;
   }
 
-  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
-    asynSkipCyclesFastest=skipCycles;
+  if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
+    asynSkipCyclesFastest = skipCycles;
   }
 
   return 0;
 }
 
-int addDiagAsynAxis(int regAsynParams, int axisIndex,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,axisIndex,skipCycles);
+int addDiagAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
+  LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           regAsynParams,
+           axisIndex,
+           skipCycles);
 
-  if(asynPort==NULL){
+  if (asynPort == NULL) {
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
 
-  //Array so updated in axis base object
-  return axes[axisIndex]->initDiagAsyn(asynPort,regAsynParams,skipCycles);
+  // Array so updated in axis base object
+  return axes[axisIndex]->initDiagAsyn(asynPort, regAsynParams, skipCycles);
 }
 
+int addDefaultAsynParams(int regAsynParams, int skipCycles) {
+  LOGINFO4("%s/%s:%d regAsynParams=%d skipCycles=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           regAsynParams,
+           skipCycles);
 
-int addDefaultAsynParams(int regAsynParams,int skipCycles)
-{
-  LOGINFO4("%s/%s:%d regAsynParams=%d skipCycles=%d\n",__FILE__, __FUNCTION__, __LINE__,regAsynParams,skipCycles);
-
-  if(asynPort==NULL){
+  if (asynPort == NULL) {
     return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
   }
 
-  asynSkipCyclesThread=skipCycles;
+  asynSkipCyclesThread = skipCycles;
 
-  if(!regAsynParams ){
+  if (!regAsynParams) {
     return 0;
   }
 
-  //Timing info (only updated in real time)!
-  asynStatus status = asynPort->createParam("ecmc.thread.latency.min",asynParamInt32,&asynParIdLatencyMin);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.latency.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  // Timing info (only updated in real time)!
+  asynStatus status = asynPort->createParam("ecmc.thread.latency.min",
+                                            asynParamInt32,
+                                            &asynParIdLatencyMin);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.latency.min failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdLatencyMin,0);
+  asynPort->setIntegerParam(asynParIdLatencyMin, 0);
 
-  status = asynPort->createParam("ecmc.thread.latency.max",asynParamInt32,&asynParIdLatencyMax);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.latency.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.thread.latency.max",
+                                 asynParamInt32,
+                                 &asynParIdLatencyMax);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.latency.max failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdLatencyMax,0);
+  asynPort->setIntegerParam(asynParIdLatencyMax, 0);
 
-  status = asynPort->createParam("ecmc.thread.period.min",asynParamInt32,&asynParIdPeriodMin);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.period.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.thread.period.min",
+                                 asynParamInt32,
+                                 &asynParIdPeriodMin);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.period.min failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdPeriodMin,0);
+  asynPort->setIntegerParam(asynParIdPeriodMin, 0);
 
-  status = asynPort->createParam("ecmc.thread.period.max",asynParamInt32,&asynParIdPeriodMax);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.period.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.thread.period.max",
+                                 asynParamInt32,
+                                 &asynParIdPeriodMax);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.period.max failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdPeriodMax,0);
+  asynPort->setIntegerParam(asynParIdPeriodMax, 0);
 
-  status = asynPort->createParam("ecmc.thread.execute.min",asynParamInt32,&asynParIdExecuteMin);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.execute.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.thread.execute.min",
+                                 asynParamInt32,
+                                 &asynParIdExecuteMin);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.execute.min failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdExecuteMin,0);
+  asynPort->setIntegerParam(asynParIdExecuteMin, 0);
 
-  status = asynPort->createParam("ecmc.thread.execute.max",asynParamInt32,&asynParIdExecuteMax);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.execute.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.thread.execute.max",
+                                 asynParamInt32,
+                                 &asynParIdExecuteMax);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.execute.max failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdExecuteMax,0);
+  asynPort->setIntegerParam(asynParIdExecuteMax, 0);
 
-  status = asynPort->createParam("ecmc.thread.send.min",asynParamInt32,&asynParIdSendMin);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.send.min failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.thread.send.min",
+                                 asynParamInt32,
+                                 &asynParIdSendMin);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.send.min failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdSendMin,0);
+  asynPort->setIntegerParam(asynParIdSendMin, 0);
 
-  status = asynPort->createParam("ecmc.thread.send.max",asynParamInt32,&asynParIdSendMax);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter thread.send.max failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.thread.send.max",
+                                 asynParamInt32,
+                                 &asynParIdSendMax);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.send.max failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdSendMax,0);
+  asynPort->setIntegerParam(asynParIdSendMax, 0);
 
-  status = asynPort->createParam("ecmc.appmode",asynParamInt32,&asynParIdEcmcAppMode);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.appmode",
+                                 asynParamInt32,
+                                 &asynParIdEcmcAppMode);
+
+  if (status != asynSuccess) {
+    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdEcmcAppMode,0);
+  asynPort->setIntegerParam(asynParIdEcmcAppMode, 0);
 
-  status = asynPort->createParam("ecmc.error.id",asynParamInt32,&asynParIdEcmcErrorId);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.id failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.error.id",
+                                 asynParamInt32,
+                                 &asynParIdEcmcErrorId);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.id failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdEcmcErrorId,0);
+  asynPort->setIntegerParam(asynParIdEcmcErrorId, 0);
 
-  status = asynPort->createParam("ecmc.error.reset",asynParamInt32,&asynParIdEcmcErrorReset);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.reset failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.error.reset",
+                                 asynParamInt32,
+                                 &asynParIdEcmcErrorReset);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.reset failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
-  asynPort-> setIntegerParam(asynParIdEcmcErrorReset,0);
+  asynPort->setIntegerParam(asynParIdEcmcErrorReset, 0);
 
-  status = asynPort->createParam("ecmc.error.msg",asynParamInt8Array,&asynParIdEcmcErrorMsg);
-  if(status!=asynSuccess){
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.msg failed.\n",__FILE__,__FUNCTION__,__LINE__);
+  status = asynPort->createParam("ecmc.error.msg",
+                                 asynParamInt8Array,
+                                 &asynParIdEcmcErrorMsg);
+
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.msg failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
 
-  asynPort->doCallbacksInt8Array((epicsInt8*)"NO_ERROR\0",9, asynParIdEcmcErrorMsg,0);
+  asynPort->doCallbacksInt8Array((epicsInt8 *)"NO_ERROR\0",
+                                 9,
+                                 asynParIdEcmcErrorMsg,
+                                 0);
 
-  asynPort-> callParamCallbacks();
-  asynThreadParamsEnable=1;
+  asynPort->callParamCallbacks();
+  asynThreadParamsEnable = 1;
 
-  if(skipCycles<asynSkipCyclesFastest || asynSkipCyclesFastest<0){
-    asynSkipCyclesFastest=skipCycles;
+  if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
+    asynSkipCyclesFastest = skipCycles;
   }
 
   return 0;
 }
 
-int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead)
-{
-  LOGINFO4("%s/%s:%d alias=%s bytesToRead=%lu\n",__FILE__, __FUNCTION__, __LINE__,memMapIDString,bytesToRead);
+int readEcMemMap(const char *memMapIDString,
+                 uint8_t    *data,
+                 size_t      bytesToRead,
+                 size_t     *bytesRead) {
+  LOGINFO4("%s/%s:%d alias=%s bytesToRead=%lu\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           memMapIDString,
+           bytesToRead);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcMemMap *memMap=ec.findMemMap(memMapIDString);
-  if(!memMap){
+  ecmcEcMemMap *memMap = ec.findMemMap(memMapIDString);
+
+  if (!memMap) {
     return ERROR_MAIN_MEM_MAP_NULL;
   }
 
-  return memMap->read(data,bytesToRead,bytesRead);
+  return memMap->read(data, bytesToRead, bytesRead);
 }
 
-int writeEcEntry(int slaveIndex, int entryIndex,uint64_t value)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%d value=%llu \n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIndex,(long long unsigned int)value);
+int writeEcEntry(int slaveIndex, int entryIndex, uint64_t value) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%d value=%"PRIu64"\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           entryIndex,
+           value);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-  if(ec.getSlave(slaveIndex)==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
-  if(ec.getSlave(slaveIndex)->getEntry(entryIndex)==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if (ec.getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+
+  if (ec.getSlave(slaveIndex)->getEntry(entryIndex) ==
+      NULL) return ERROR_MAIN_EC_ENTRY_NULL;
+
   return ec.getSlave(slaveIndex)->getEntry(entryIndex)->writeValueForce(value);
 }
 
-int writeEcEntryIDString(int slavePosition,char * entryIDString,uint64_t value)
-{
-  LOGINFO4("%s/%s:%d slave_position=%d entry=%s value=%llu \n",__FILE__, __FUNCTION__, __LINE__, slavePosition,entryIDString,(long long unsigned int)value);
+int writeEcEntryIDString(int slavePosition, char *entryIDString,
+                         uint64_t value) {
+  LOGINFO4("%s/%s:%d slave_position=%d entry=%s value=%"PRIu64"\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slavePosition,
+           entryIDString,
+           value);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slavePosition>=0){
-    slave=ec.findSlave(slavePosition);
+  ecmcEcSlave *slave = NULL;
+
+  if (slavePosition >= 0) {
+    slave = ec.findSlave(slavePosition);
+  } else {    // simulation slave
+    slave = ec.getSlave(slavePosition);
   }
-  else{ //simulation slave
-    slave=ec.getSlave(slavePosition);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   return entry->writeValueForce(value);
 }
 
-int readEcEntry(int slaveIndex, int entryIndex,uint64_t *value)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%d\n",__FILE__, __FUNCTION__, __LINE__, slaveIndex,entryIndex);
+int readEcEntry(int slaveIndex, int entryIndex, uint64_t *value) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           entryIndex);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
-  if(ec.getSlave(slaveIndex)==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
-  if(ec.getSlave(slaveIndex)->getEntry(entryIndex)==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if (ec.getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+
+  if (ec.getSlave(slaveIndex)->getEntry(entryIndex) ==
+      NULL) return ERROR_MAIN_EC_ENTRY_NULL;
+
   return ec.getSlave(slaveIndex)->getEntry(entryIndex)->readValue(value);
 }
 
-int readEcEntryIDString(int slavePosition,char *entryIDString,uint64_t *value)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%s\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,entryIDString);
+int readEcEntryIDString(int slavePosition, char *entryIDString,
+                        uint64_t *value) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slavePosition,
+           entryIDString);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slavePosition>=0){
-    slave=ec.findSlave(slavePosition);
+  ecmcEcSlave *slave = NULL;
+
+  if (slavePosition >= 0) {
+    slave = ec.findSlave(slavePosition);
+  } else {    // simulation slave
+    slave = ec.getSlave(slavePosition);
   }
-  else{ //simulation slave
-    slave=ec.getSlave(slavePosition);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string tempEntryIDString=entryIDString;
+  std::string tempEntryIDString = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(tempEntryIDString);
+  ecmcEcEntry *entry = slave->findEntry(tempEntryIDString);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   return entry->readValue(value);
 }
 
-int readEcEntryIndexIDString(int slavePosition,char *entryIDString,int *value)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%s\n",__FILE__, __FUNCTION__, __LINE__, slavePosition,entryIDString);
+int readEcEntryIndexIDString(int slavePosition, char *entryIDString,
+                             int *value) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slavePosition,
+           entryIDString);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slavePosition>=0){
-    slave=ec.findSlave(slavePosition);
+  ecmcEcSlave *slave = NULL;
+
+  if (slavePosition >= 0) {
+    slave = ec.findSlave(slavePosition);
+  } else {    // simulation slave
+    slave = ec.getSlave(slavePosition);
   }
-  else{ //simulation slave
-    slave=ec.getSlave(slavePosition);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string tempEntryIDString=entryIDString;
+  std::string tempEntryIDString = entryIDString;
 
-  int entryIndex=slave->findEntryIndex(tempEntryIDString);
+  int entryIndex = slave->findEntryIndex(tempEntryIDString);
 
-  if(entryIndex<0)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entryIndex < 0) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  *value=entryIndex;
+  *value = entryIndex;
   return 0;
 }
 
-int readEcSlaveIndex(int slavePosition,int *value)
-{
-  LOGINFO4("%s/%s:%d slave_index=%d\n",__FILE__, __FUNCTION__, __LINE__, slavePosition);
+int readEcSlaveIndex(int slavePosition, int *value) {
+  LOGINFO4("%s/%s:%d slave_index=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slavePosition);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.findSlaveIndex(slavePosition,value);
+  return ec.findSlaveIndex(slavePosition, value);
 }
 
-int setDiagAxisIndex(int axisIndex)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d \n",__FILE__, __FUNCTION__, __LINE__,axisIndex);
+int setDiagAxisIndex(int axisIndex) {
+  LOGINFO4("%s/%s:%d axisIndex=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  axisDiagIndex=axisIndex;
+  axisDiagIndex = axisIndex;
   return 0;
 }
 
-int setDiagAxisFreq(int value)
-{
-  LOGINFO4("%s/%s:%d frequency=%d \n",__FILE__, __FUNCTION__, __LINE__,value);
+int setDiagAxisFreq(int value) {
+  LOGINFO4("%s/%s:%d frequency=%d \n", __FILE__, __FUNCTION__, __LINE__,
+           value);
 
-  if(value<1 || value>500)
-    return ERROR_MAIN_DIAG_AXIS_FREQ_OUT_OF_RANGE;
+  if ((value < 1) ||
+      (value > 500)) return ERROR_MAIN_DIAG_AXIS_FREQ_OUT_OF_RANGE;
 
-  axisDiagFreq=value;
+  axisDiagFreq = value;
   return 0;
 }
 
-int setDiagAxisEnable(int value)
-{
-  LOGINFO4("%s/%s:%d enable=%d \n",__FILE__, __FUNCTION__, __LINE__,value);
+int setDiagAxisEnable(int value) {
+  LOGINFO4("%s/%s:%d enable=%d \n", __FILE__, __FUNCTION__, __LINE__, value);
 
-  WRITE_DIAG_BIT(FUNCTION_HW_MOTOR_AXIS_DIAGNOSTICS_BIT,value);
-
-  return 0;
-}
-
-int setEnableTimeDiag(int value)
-{
-  LOGINFO4("%s/%s:%d enable=%d \n",__FILE__, __FUNCTION__, __LINE__,value);
-
-  WRITE_DIAG_BIT(FUNCTION_TIMING_DIAGNOSTICS_BIT,value);
+  WRITE_DIAG_BIT(FUNCTION_HW_MOTOR_AXIS_DIAGNOSTICS_BIT, value);
 
   return 0;
 }
 
-int createEvent(int indexEvent)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d \n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+int setEnableTimeDiag(int value) {
+  LOGINFO4("%s/%s:%d enable=%d \n", __FILE__, __FUNCTION__, __LINE__, value);
 
-  if(indexEvent>=ECMC_MAX_EVENT_OBJECTS || indexEvent<0){
+  WRITE_DIAG_BIT(FUNCTION_TIMING_DIAGNOSTICS_BIT, value);
+
+  return 0;
+}
+
+int createEvent(int indexEvent) {
+  LOGINFO4("%s/%s:%d indexEvent=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent);
+
+  if ((indexEvent >= ECMC_MAX_EVENT_OBJECTS) || (indexEvent < 0)) {
     return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;
   }
 
   delete events[indexEvent];
-  events[indexEvent]=new ecmcEvent(1/MCU_FREQUENCY,indexEvent);
-  if(!events[indexEvent]){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EVENT OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+  events[indexEvent] = new ecmcEvent(1 / MCU_FREQUENCY, indexEvent);
+
+  if (!events[indexEvent]) {
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EVENT OBJECT.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
   return 0;
 }
 
-int createDataStorage(int index, int elements, int bufferType)
-{
-  LOGINFO4("%s/%s:%d index=%d elements=%d \n",__FILE__, __FUNCTION__, __LINE__,index,elements);
+int createDataStorage(int index, int elements, int bufferType) {
+  LOGINFO4("%s/%s:%d index=%d elements=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           elements);
 
-  if(index>=ECMC_MAX_DATA_STORAGE_OBJECTS || index<0){
+  if ((index >= ECMC_MAX_DATA_STORAGE_OBJECTS) || (index < 0)) {
     return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;
   }
 
-  if(elements<=0){
+  if (elements <= 0) {
     return ERROR_MAIN_DATA_STORAGE_INVALID_SIZE;
   }
 
   delete dataStorages[index];
-  dataStorages[index]=new ecmcDataStorage(index,elements,(storageType)bufferType);
-  if(!dataStorages[index]){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+  dataStorages[index] = new ecmcDataStorage(index,
+                                            elements,
+                                            (storageType)bufferType);
+
+  if (!dataStorages[index]) {
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
 
   return 0;
 }
 
-int linkStorageToRecorder(int indexStorage,int indexRecorder)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d indexRecorder=%d \n",__FILE__, __FUNCTION__, __LINE__,indexStorage,indexRecorder);
+int linkStorageToRecorder(int indexStorage, int indexRecorder) {
+  LOGINFO4("%s/%s:%d indexStorage=%d indexRecorder=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage,
+           indexRecorder);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  return dataRecorders[indexRecorder]->setDataStorage(dataStorages[indexStorage]);
+  return dataRecorders[indexRecorder]->setDataStorage(
+    dataStorages[indexStorage]);
 }
 
-int linkEcEntryToEvent(int indexEvent,int eventEntryIndex,int slaveIndex,char *entryIDString,int bitIndex)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d eventEntryIndex=%d slave_index=%d entry=%s bitIndex=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, eventEntryIndex,slaveIndex,entryIDString,bitIndex);
+int linkEcEntryToEvent(int   indexEvent,
+                       int   eventEntryIndex,
+                       int   slaveIndex,
+                       char *entryIDString,
+                       int   bitIndex) {
+  LOGINFO4(
+    "%s/%s:%d indexEvent=%d eventEntryIndex=%d slave_index=%d entry=%s bitIndex=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    indexEvent,
+    eventEntryIndex,
+    slaveIndex,
+    entryIDString,
+    bitIndex);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveIndex);
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec.findSlave(slaveIndex);
+  } else {    // simulation slave
+    slave = ec.getSlave(slaveIndex);
   }
-  else{ //simulation slave
-    slave=ec.getSlave(slaveIndex);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  return events[indexEvent]->setEntryAtIndex(entry,eventEntryIndex,bitIndex);
+  return events[indexEvent]->setEntryAtIndex(entry, eventEntryIndex, bitIndex);
 }
 
-int setEventType(int indexEvent,int type)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d recordingType=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, type);
+int setEventType(int indexEvent, int type) {
+  LOGINFO4("%s/%s:%d indexEvent=%d recordingType=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent,
+           type);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->setEventType((eventType)type);
 }
 
-int setEventSampleTime(int indexEvent,int sampleTime)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d sampleTime=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, sampleTime);
+int setEventSampleTime(int indexEvent, int sampleTime) {
+  LOGINFO4("%s/%s:%d indexEvent=%d sampleTime=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent,
+           sampleTime);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->setDataSampleTime(sampleTime);
 }
 
-int setEventEnable(int indexEvent,int enable)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, enable);
+int setEventEnable(int indexEvent, int enable) {
+  LOGINFO4("%s/%s:%d indexEvent=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent,
+           enable);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->setEnable(enable);
 }
 
-int getEventEnabled(int indexEvent,int *enabled)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+int getEventEnabled(int indexEvent, int *enabled) {
+  LOGINFO4("%s/%s:%d indexEvent=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->getEnabled(enabled);
 }
 
-int clearStorage(int indexStorage)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+int clearStorage(int indexStorage) {
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
   return dataStorages[indexStorage]->clearBuffer();
 }
 
-int getStorageDataIndex(int indexStorage,int *index)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+int getStorageDataIndex(int indexStorage, int *index) {
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
-  *index=dataStorages[indexStorage]->getCurrentIndex();
+  *index = dataStorages[indexStorage]->getCurrentIndex();
   return 0;
 }
 
-
-int setStorageEnablePrintouts(int indexStorage,int enable)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage,enable);
+int setStorageEnablePrintouts(int indexStorage, int enable) {
+  LOGINFO4("%s/%s:%d indexStorage=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage,
+           enable);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
-  WRITE_DIAG_BIT(FUNCTION_DATA_STORAGE_DIAGNOSTICS_BIT,enable);
+  WRITE_DIAG_BIT(FUNCTION_DATA_STORAGE_DIAGNOSTICS_BIT, enable);
   return 0;
 }
 
-int printStorageBuffer(int indexStorage)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+int printStorageBuffer(int indexStorage) {
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
   return dataStorages[indexStorage]->printBuffer();
 }
 
-int readStorageBuffer(int indexStorage, double **data, int* size)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+int readStorageBuffer(int indexStorage, double **data, int *size) {
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
-  return dataStorages[indexStorage]->getData(data,size);
+  return dataStorages[indexStorage]->getData(data, size);
 }
 
-int writeStorageBuffer(int indexStorage, double *data, int size)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+int writeStorageBuffer(int indexStorage, double *data, int size) {
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
-  return dataStorages[indexStorage]->setData(data,size);
+  return dataStorages[indexStorage]->setData(data, size);
 }
 
-int appendStorageBuffer(int indexStorage, double *data, int size)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage);
+int appendStorageBuffer(int indexStorage, double *data, int size) {
+  LOGINFO4("%s/%s:%d indexStorage=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
-  return dataStorages[indexStorage]->appendData(data,size);
+  return dataStorages[indexStorage]->appendData(data, size);
 }
 
-int setDataStorageCurrentDataIndex(int indexStorage,int position)
-{
-  LOGINFO4("%s/%s:%d indexStorage=%d position=%d\n",__FILE__, __FUNCTION__, __LINE__,indexStorage, position);
+int setDataStorageCurrentDataIndex(int indexStorage, int position) {
+  LOGINFO4("%s/%s:%d indexStorage=%d position=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexStorage,
+           position);
 
   CHECK_STORAGE_RETURN_IF_ERROR(indexStorage);
 
   return dataStorages[indexStorage]->setCurrentPosition(position);
 }
 
-int setEventTriggerEdge(int indexEvent,int triggerEdge)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d triggerEdge=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, triggerEdge);
+int setEventTriggerEdge(int indexEvent, int triggerEdge) {
+  LOGINFO4("%s/%s:%d indexEvent=%d triggerEdge=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent,
+           triggerEdge);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->setTriggerEdge((triggerEdgeType)triggerEdge);
 }
 
-int setEventEnableArmSequence(int indexEvent,int enable)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent, enable);
+int setEventEnableArmSequence(int indexEvent, int enable) {
+  LOGINFO4("%s/%s:%d indexEvent=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent,
+           enable);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->setEnableArmSequence(enable);
 }
 
-int setEventEnablePrintouts(int indexEvent,int enable)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent,enable);
+int setEventEnablePrintouts(int indexEvent, int enable) {
+  LOGINFO4("%s/%s:%d indexEvent=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent,
+           enable);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  WRITE_DIAG_BIT(FUNCTION_EVENTS_DIAGNOSTICS_BIT,enable);
+  WRITE_DIAG_BIT(FUNCTION_EVENTS_DIAGNOSTICS_BIT, enable);
   return 0;
 }
 
-int triggerEvent(int indexEvent)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+int triggerEvent(int indexEvent) {
+  LOGINFO4("%s/%s:%d indexEvent=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->triggerEvent(ec.statusOK());
 }
 
-int armEvent(int indexEvent)
-{
-  LOGINFO4("%s/%s:%d indexEvent=%d\n",__FILE__, __FUNCTION__, __LINE__,indexEvent);
+int armEvent(int indexEvent) {
+  LOGINFO4("%s/%s:%d indexEvent=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexEvent);
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
   return events[indexEvent]->arm();
 }
 
-int createRecorder(int indexRecorder)
-{
-  LOGINFO4("%s/%s:%d indexRecorder=%d \n",__FILE__, __FUNCTION__, __LINE__,indexRecorder);
+int createRecorder(int indexRecorder) {
+  LOGINFO4("%s/%s:%d indexRecorder=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexRecorder);
 
-  if(indexRecorder>=ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder<0){
+  if ((indexRecorder >= ECMC_MAX_DATA_RECORDERS_OBJECTS) ||
+      (indexRecorder < 0)) {
     return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;
   }
 
   delete dataRecorders[indexRecorder];
-  dataRecorders[indexRecorder]=new ecmcDataRecorder(indexRecorder);
-  if(!dataRecorders[indexRecorder]){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA RECORDER OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+  dataRecorders[indexRecorder] = new ecmcDataRecorder(indexRecorder);
+
+  if (!dataRecorders[indexRecorder]) {
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA RECORDER OBJECT.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
 
   return 0;
 }
 
-int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveIndex,char *entryIDString,int bitIndex)
-{
-  LOGINFO4("%s/%s:%d indexRecorder=%d recorderEntryIndex=%d slave_index=%d entry=%s bitIndex=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, recorderEntryIndex,slaveIndex,entryIDString,bitIndex);
+int linkEcEntryToRecorder(int   indexRecorder,
+                          int   recorderEntryIndex,
+                          int   slaveIndex,
+                          char *entryIDString,
+                          int   bitIndex) {
+  LOGINFO4(
+    "%s/%s:%d indexRecorder=%d recorderEntryIndex=%d slave_index=%d entry=%s bitIndex=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    indexRecorder,
+    recorderEntryIndex,
+    slaveIndex,
+    entryIDString,
+    bitIndex);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  if(!ec.getInitDone())
-    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcSlave *slave=NULL;
-  if(slaveIndex>=0){
-    slave=ec.findSlave(slaveIndex);
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec.findSlave(slaveIndex);
+  } else {    // simulation slave
+    slave = ec.getSlave(slaveIndex);
   }
-  else{ //simulation slave
-    slave=ec.getSlave(slaveIndex);
-  }
 
-  if(slave==NULL)
-    return ERROR_MAIN_EC_SLAVE_NULL;
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  std::string sEntryID=entryIDString;
+  std::string sEntryID = entryIDString;
 
-  ecmcEcEntry *entry=slave->findEntry(sEntryID);
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
-  if(entry==NULL)
-    return ERROR_MAIN_EC_ENTRY_NULL;
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  int error=dataRecorders[indexRecorder]->setEntryAtIndex(entry,recorderEntryIndex,bitIndex);
-  if(error){
+  int error = dataRecorders[indexRecorder]->setEntryAtIndex(entry,
+                                                            recorderEntryIndex,
+                                                            bitIndex);
+
+  if (error) {
     return error;
   }
 
-  //set source to EtherCAT
-  return dataRecorders[indexRecorder]->setDataSourceType(ECMC_RECORDER_SOURCE_ETHERCAT);
+  // set source to EtherCAT
+  return dataRecorders[indexRecorder]->setDataSourceType(
+    ECMC_RECORDER_SOURCE_ETHERCAT);
 }
 
-int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore)
-{
-  LOGINFO4("%s/%s:%d indexRecorder=%d axisIndex=%d dataToStore=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, axisIndex,dataToStore);
+int linkAxisDataToRecorder(int indexRecorder, int axisIndex, int dataToStore) {
+  LOGINFO4("%s/%s:%d indexRecorder=%d axisIndex=%d dataToStore=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexRecorder,
+           axisIndex,
+           dataToStore);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  int error= dataRecorders[indexRecorder]->setAxisDataSource(axes[axisIndex]->getDebugInfoDataPointer(),(ecmcAxisDataType)dataToStore);
-  if(error){
+  int error = dataRecorders[indexRecorder]->setAxisDataSource(
+    axes[axisIndex]->getDebugInfoDataPointer(),
+    (ecmcAxisDataType)dataToStore);
+
+  if (error) {
     return error;
   }
-  //set source to Axis data
-  return dataRecorders[indexRecorder]->setDataSourceType(ECMC_RECORDER_SOURCE_AXIS);
+
+  // set source to Axis data
+  return dataRecorders[indexRecorder]->setDataSourceType(
+    ECMC_RECORDER_SOURCE_AXIS);
 }
 
-int setRecorderEnablePrintouts(int indexRecorder,int enable)
-{
-  LOGINFO4("%s/%s:%d indexRecorder=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder,enable);
+int setRecorderEnablePrintouts(int indexRecorder, int enable) {
+  LOGINFO4("%s/%s:%d indexRecorder=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexRecorder,
+           enable);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  WRITE_DIAG_BIT(FUNCTION_DATA_RECORDER_DIAGNOSTICS_BIT,enable);
+  WRITE_DIAG_BIT(FUNCTION_DATA_RECORDER_DIAGNOSTICS_BIT, enable);
   return 0;
 }
 
-int setRecorderEnable(int indexRecorder,int enable)
-{
-  LOGINFO4("%s/%s:%d indexRecorder=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, enable);
+int setRecorderEnable(int indexRecorder, int enable) {
+  LOGINFO4("%s/%s:%d indexRecorder=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexRecorder,
+           enable);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
   return dataRecorders[indexRecorder]->setEnable(enable);
 }
 
-int getRecorderEnabled(int indexRecorder,int *enabled)
-{
-  LOGINFO4("%s/%s:%d indexRecorder=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder);
+int getRecorderEnabled(int indexRecorder, int *enabled) {
+  LOGINFO4("%s/%s:%d indexRecorder=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexRecorder);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
   return dataRecorders[indexRecorder]->getEnabled(enabled);
 }
 
-int linkRecorderToEvent(int indexRecorder,int indexEvent, int consumerIndex)
-{
-  LOGINFO4("%s/%s:%d indexRecorder=%d indexEvent=%d consumerIndex=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder, indexEvent,consumerIndex);
+int linkRecorderToEvent(int indexRecorder, int indexEvent, int consumerIndex) {
+  LOGINFO4("%s/%s:%d indexRecorder=%d indexEvent=%d consumerIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexRecorder,
+           indexEvent,
+           consumerIndex);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
-  return events[indexEvent]->linkEventConsumer(dataRecorders[indexRecorder],consumerIndex);
+  return events[indexEvent]->linkEventConsumer(dataRecorders[indexRecorder],
+                                               consumerIndex);
 }
 
-int triggerRecorder(int indexRecorder)
-{
-  LOGINFO4("%s/%s:%d indexRecorder=%d\n",__FILE__, __FUNCTION__, __LINE__,indexRecorder);
+int triggerRecorder(int indexRecorder) {
+  LOGINFO4("%s/%s:%d indexRecorder=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexRecorder);
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
   return dataRecorders[indexRecorder]->executeEvent(ec.statusOK());
 }
 
-int getControllerError()
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+int getControllerError() {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
-  //EtherCAT errors
-  if(ec.getError()){
+  // EtherCAT errors
+  if (ec.getError()) {
     return ec.getErrorID();
   }
 
-  //Event errors
-  for(int i=0; i< ECMC_MAX_EVENT_OBJECTS;i++){
-    if(events[i]!=NULL){
-      if(events[i]->getError()){
+  // Event errors
+  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
+    if (events[i] != NULL) {
+      if (events[i]->getError()) {
         return events[i]->getErrorID();
       }
     }
   }
 
-  //DataRecorders
-  for(int i=0; i< ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
-    if(dataRecorders[i]!=NULL){
-      if(dataRecorders[i]->getError()){
+  // DataRecorders
+  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
+    if (dataRecorders[i] != NULL) {
+      if (dataRecorders[i]->getError()) {
         return dataRecorders[i]->getErrorID();
       }
     }
   }
 
-  //Data Storages
-  for(int i=0; i< ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
-    if(dataStorages[i]!=NULL){
-      if(dataStorages[i]->getError()){
+  // Data Storages
+  for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
+    if (dataStorages[i] != NULL) {
+      if (dataStorages[i]->getError()) {
         return dataStorages[i]->getErrorID();
       }
     }
   }
 
-  //CommandLists
-  for(int i=0; i< ECMC_MAX_COMMANDS_LISTS;i++){
-    if(commandLists[i]!=NULL){
-      if(commandLists[i]->getError()){
+  // CommandLists
+  for (int i = 0; i < ECMC_MAX_COMMANDS_LISTS; i++) {
+    if (commandLists[i] != NULL) {
+      if (commandLists[i]->getError()) {
         return commandLists[i]->getErrorID();
       }
     }
   }
 
-  //PLC:s
-  if(plcs!=NULL){
-    if(plcs->getError()){
+  // PLC:s
+  if (plcs != NULL) {
+    if (plcs->getError()) {
       return plcs->getErrorID();
     }
   }
 
-  //Axes
-  for(int i=0; i< ECMC_MAX_AXES;i++){
-    if(axes[i]!=NULL){
-      if(axes[i]->getError()){
+  // Axes
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    if (axes[i] != NULL) {
+      if (axes[i]->getError()) {
         return axes[i]->getErrorID();
       }
     }
@@ -4034,246 +5270,330 @@ int getControllerError()
   return 0;
 }
 
-int controllerErrorReset()
-{
-  LOGINFO4("%s/%s:%d\n",__FILE__, __FUNCTION__, __LINE__);
+int controllerErrorReset() {
+  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
-  //EtherCAT errors
+  // EtherCAT errors
   ec.errorReset();
 
-  //Event errors
-  for(int i=0; i< ECMC_MAX_EVENT_OBJECTS;i++){
-    if(events[i]!=NULL){
+  // Event errors
+  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
+    if (events[i] != NULL) {
       events[i]->errorReset();
     }
   }
 
-  //DataRecorders
-  for(int i=0; i< ECMC_MAX_DATA_RECORDERS_OBJECTS;i++){
-    if(dataRecorders[i]!=NULL){
+  // DataRecorders
+  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
+    if (dataRecorders[i] != NULL) {
       dataRecorders[i]->errorReset();
     }
   }
 
-  //Data Storages
-  for(int i=0; i< ECMC_MAX_DATA_STORAGE_OBJECTS;i++){
-    if(dataStorages[i]!=NULL){
+  // Data Storages
+  for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
+    if (dataStorages[i] != NULL) {
       dataStorages[i]->errorReset();
     }
   }
 
-  //CommandLists
-  for(int i=0; i< ECMC_MAX_COMMANDS_LISTS;i++){
-    if(commandLists[i]!=NULL){
+  // CommandLists
+  for (int i = 0; i < ECMC_MAX_COMMANDS_LISTS; i++) {
+    if (commandLists[i] != NULL) {
       commandLists[i]->errorReset();
     }
   }
 
-  //Axes
-  for(int i=0; i< ECMC_MAX_AXES;i++){
-    if(axes[i]!=NULL){
+  // Axes
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    if (axes[i] != NULL) {
       axes[i]->errorReset();
     }
   }
 
-  //PLCs
-  if(plcs){
+  // PLCs
+  if (plcs) {
     plcs->errorReset();
   }
 
   return 0;
 }
 
-int createCommandList(int indexCommandList)
-{
-  LOGINFO4("%s/%s:%d indexCommandList=%d \n",__FILE__, __FUNCTION__, __LINE__,indexCommandList);
+int createCommandList(int indexCommandList) {
+  LOGINFO4("%s/%s:%d indexCommandList=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexCommandList);
 
-  if(indexCommandList>=ECMC_MAX_COMMANDS_LISTS || indexCommandList<0){
+  if ((indexCommandList >= ECMC_MAX_COMMANDS_LISTS) ||
+      (indexCommandList < 0)) {
     return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;
   }
 
   delete commandLists[indexCommandList];
-  commandLists[indexCommandList]=new ecmcCommandList(indexCommandList);
-  if(!commandLists[indexCommandList]){
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR COMAMND-LIST OBJECT.\n",__FILE__,__FUNCTION__,__LINE__);
+  commandLists[indexCommandList] = new ecmcCommandList(indexCommandList);
+
+  if (!commandLists[indexCommandList]) {
+    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR COMAMND-LIST OBJECT.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
 
   return 0;
 }
 
-int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerIndex)
-{
-  LOGINFO4("%s/%s:%d indexCommandList=%d indexEvent=%d consumerIndex=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList, indexEvent,consumerIndex);
+int linkCommandListToEvent(int indexCommandList,
+                           int indexEvent,
+                           int consumerIndex) {
+  LOGINFO4("%s/%s:%d indexCommandList=%d indexEvent=%d consumerIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexCommandList,
+           indexEvent,
+           consumerIndex);
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  return events[indexEvent]->linkEventConsumer(commandLists[indexCommandList],consumerIndex);
+  return events[indexEvent]->linkEventConsumer(commandLists[indexCommandList],
+                                               consumerIndex);
 }
 
-int setCommandListEnable(int indexCommandList,int enable)
-{
-  LOGINFO4("%s/%s:%d indexCommandList=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList, enable);
+int setCommandListEnable(int indexCommandList, int enable) {
+  LOGINFO4("%s/%s:%d indexCommandList=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexCommandList,
+           enable);
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
 
   return commandLists[indexCommandList]->setEnable(enable);
 }
 
-int setCommandListEnablePrintouts(int indexCommandList,int enable)
-{
-  LOGINFO4("%s/%s:%d indexCommandList=%d enable=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList,enable);
+int setCommandListEnablePrintouts(int indexCommandList, int enable) {
+  LOGINFO4("%s/%s:%d indexCommandList=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexCommandList,
+           enable);
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
 
-  WRITE_DIAG_BIT(FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT,enable);
+  WRITE_DIAG_BIT(FUNCTION_COMMAND_LIST_DIAGNOSTICS_BIT, enable);
   return 0;
 }
 
-int addCommandListCommand(int indexCommandList,char *expr)
-{
-  LOGINFO4("%s/%s:%d indexCommandList=%d value=%s\n",__FILE__, __FUNCTION__, __LINE__, indexCommandList, expr);
+int addCommandListCommand(int indexCommandList, char *expr) {
+  LOGINFO4("%s/%s:%d indexCommandList=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexCommandList,
+           expr);
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
 
-  std::string tempExpr=expr;
+  std::string tempExpr = expr;
 
   return commandLists[indexCommandList]->addCommand(tempExpr);
 }
 
-int triggerCommandList(int indexCommandList)
-{
-  LOGINFO4("%s/%s:%d indexCommandList=%d\n",__FILE__, __FUNCTION__, __LINE__,indexCommandList);
+int triggerCommandList(int indexCommandList) {
+  LOGINFO4("%s/%s:%d indexCommandList=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           indexCommandList);
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
-
-  return commandLists[indexCommandList]->executeEvent(1); //No need for state of ethercat master
+  // No need for state of ethercat master
+  return commandLists[indexCommandList]->executeEvent(1);
 }
 
-
-//Summary functions
-int moveAbsolutePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d, positionSet=%lf, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",__FILE__, __FUNCTION__, __LINE__,axisIndex,positionSet,velocitySet,accelerationSet,decelerationSet);
+// Summary functions
+int moveAbsolutePosition(int    axisIndex,
+                         double positionSet,
+                         double velocitySet,
+                         double accelerationSet,
+                         double decelerationSet) {
+  LOGINFO4(
+    "%s/%s:%d axisIndex=%d, positionSet=%lf, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,
+    positionSet,
+    velocitySet,
+    accelerationSet,
+    decelerationSet);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  int errorCode=axes[axisIndex]->getErrorID();
-  if(errorCode){
+  int errorCode = axes[axisIndex]->getErrorID();
+
+  if (errorCode) {
     return errorCode;
   }
-  errorCode=axes[axisIndex]->setExecute(0);
-  if(errorCode){
+  errorCode = axes[axisIndex]->setExecute(0);
+
+  if (errorCode) {
     return errorCode;
   }
-  errorCode=axes[axisIndex]->setCommand(ECMC_CMD_MOVEABS);
-  if(errorCode){
+  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEABS);
+
+  if (errorCode) {
     return errorCode;
   }
-  errorCode=axes[axisIndex]->setCmdData(0);
-  if(errorCode){
+  errorCode = axes[axisIndex]->setCmdData(0);
+
+  if (errorCode) {
     return errorCode;
   }
   axes[axisIndex]->getSeq()->setTargetPos(positionSet);
   axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
   axes[axisIndex]->getTraj()->setAcc(accelerationSet);
   axes[axisIndex]->getTraj()->setDec(decelerationSet);
-  errorCode=axes[axisIndex]->setExecute(1);
-  if(errorCode){
+  errorCode = axes[axisIndex]->setExecute(1);
+
+  if (errorCode) {
     return errorCode;
   }
   return 0;
 }
 
-int moveRelativePosition(int axisIndex,double positionSet, double velocitySet, double accelerationSet, double decelerationSet)
-{
-  LOGINFO4("%s/%s:%d axisIndex=%d, positionSet=%lf, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",__FILE__, __FUNCTION__, __LINE__,axisIndex,positionSet,velocitySet,accelerationSet,decelerationSet);
+int moveRelativePosition(int    axisIndex,
+                         double positionSet,
+                         double velocitySet,
+                         double accelerationSet,
+                         double decelerationSet) {
+  LOGINFO4(
+    "%s/%s:%d axisIndex=%d, positionSet=%lf, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,
+    positionSet,
+    velocitySet,
+    accelerationSet,
+    decelerationSet);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  int errorCode=axes[axisIndex]->getErrorID();
-  if(errorCode){
+  int errorCode = axes[axisIndex]->getErrorID();
+
+  if (errorCode) {
     return errorCode;
   }
-  errorCode=axes[axisIndex]->setExecute(0);
-  if(errorCode){
+  errorCode = axes[axisIndex]->setExecute(0);
+
+  if (errorCode) {
     return errorCode;
   }
-  errorCode=axes[axisIndex]->setCommand(ECMC_CMD_MOVEREL);
-  if(errorCode){
+  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEREL);
+
+  if (errorCode) {
     return errorCode;
   }
-  errorCode=axes[axisIndex]->setCmdData(0);
-  if(errorCode){
+  errorCode = axes[axisIndex]->setCmdData(0);
+
+  if (errorCode) {
     return errorCode;
   }
   axes[axisIndex]->getSeq()->setTargetPos(positionSet);
   axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
   axes[axisIndex]->getTraj()->setAcc(accelerationSet);
   axes[axisIndex]->getTraj()->setDec(decelerationSet);
-  errorCode=axes[axisIndex]->setExecute(1);
-  if(errorCode){
+  errorCode = axes[axisIndex]->setExecute(1);
+
+  if (errorCode) {
     return errorCode;
   }
   return 0;
 }
 
-int moveVelocity(int axisIndex,double velocitySet, double accelerationSet, double decelerationSet)
-{
-   LOGINFO4("%s/%s:%d axisIndex=%d, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",__FILE__, __FUNCTION__, __LINE__,axisIndex,velocitySet,accelerationSet,decelerationSet);
+int moveVelocity(int    axisIndex,
+                 double velocitySet,
+                 double accelerationSet,
+                 double decelerationSet) {
+  LOGINFO4(
+    "%s/%s:%d axisIndex=%d, velocitySet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,
+    velocitySet,
+    accelerationSet,
+    decelerationSet);
 
-   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
-   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-   int errorCode=axes[axisIndex]->getErrorID();
-   if(errorCode){
-     return errorCode;
-   }
-   errorCode=axes[axisIndex]->setExecute(0);
-   if(errorCode){
-     return errorCode;
-   }
-   errorCode=axes[axisIndex]->setCommand(ECMC_CMD_MOVEVEL);
-   if(errorCode){
-     return errorCode;
-   }
-   errorCode=axes[axisIndex]->setCmdData(0);
-   if(errorCode){
-     return errorCode;
-   }
-   axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
-   axes[axisIndex]->getTraj()->setAcc(accelerationSet);
-   axes[axisIndex]->getTraj()->setAcc(decelerationSet);
-   errorCode=axes[axisIndex]->setExecute(1);
-   if(errorCode){
-     return errorCode;
-   }
-   return 0;
+  int errorCode = axes[axisIndex]->getErrorID();
+
+  if (errorCode) {
+    return errorCode;
+  }
+  errorCode = axes[axisIndex]->setExecute(0);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEVEL);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  errorCode = axes[axisIndex]->setCmdData(0);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
+  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
+  axes[axisIndex]->getTraj()->setAcc(decelerationSet);
+  errorCode = axes[axisIndex]->setExecute(1);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
 }
 
-int stopMotion(int axisIndex,int killAmplifier)
-{
-   LOGINFO4("%s/%s:%d axisIndex=%d, killAmplifier=%d\n",__FILE__, __FUNCTION__, __LINE__,axisIndex,killAmplifier);
+int stopMotion(int axisIndex, int killAmplifier) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, killAmplifier=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           killAmplifier);
 
-   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-   if(killAmplifier){
-     int errorCode=axes[axisIndex]->setEnable(0);
-     if(errorCode){
-       return errorCode;
-     }
-   }
+  if (killAmplifier) {
+    int errorCode = axes[axisIndex]->setEnable(0);
 
-   int errorCode=axes[axisIndex]->setExecute(0);
-   if(errorCode){
-     return errorCode;
-   }
+    if (errorCode) {
+      return errorCode;
+    }
+  }
 
-   return 0;
+  int errorCode = axes[axisIndex]->setExecute(0);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  return 0;
 }

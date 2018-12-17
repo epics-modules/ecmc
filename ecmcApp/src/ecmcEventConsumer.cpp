@@ -7,11 +7,8 @@
 
 #include "ecmcEventConsumer.h"
 
-ecmcEventConsumer::ecmcEventConsumer ()
-{
-}
+ecmcEventConsumer::ecmcEventConsumer()
+{}
 
-ecmcEventConsumer::~ecmcEventConsumer ()
-{
-}
-
+ecmcEventConsumer::~ecmcEventConsumer()
+{}
