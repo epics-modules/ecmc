@@ -1518,28 +1518,6 @@ int setAxisHomeVelTwordsCam(int    axisIndex,
 int setAxisHomeVelOffCam(int    axisIndex,
                          double dVel);
 
-/** \breif Set start direction of referencing/homing sequence. NOTE: NOT
- * USED!!\n
- *
- *  !!!!!!TODO Remove command!!!!!!\n
- *
- * \note This command is not used. The different directions are implemented as
- * different values of command data instead.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[in] value Velocity setpoint.\n
- *    value = 0: Forward direction.\n
- *    value = 1: Backward direction.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Set off referencing/homing direction for axes
- * 3 to positive.\n
- * "Cfg.SetAxisHomeDirection(3,0)" //Command string to cmd_EAT.c.\n
- */
-int setAxisHomeDir(int axisIndex,
-                   int nDir);
-
 /** \breif Set gear ration setting.\n
  *
  * Note: The gear ratio is only valid during synchronized motions.\n

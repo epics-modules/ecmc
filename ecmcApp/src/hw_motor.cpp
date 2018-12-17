@@ -1789,20 +1789,6 @@ int setAxisHomeLatchCountOffset(int axisIndex, int count) {
   return 0;
 }
 
-int setAxisHomeDir(int axisIndex, int nDir) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           nDir);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
-
-  return axes[axisIndex]->getSeq()->setHomeDir((motionDirection)nDir);
-}
-
 int setAxisEnableCommandsFromOtherAxis(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,

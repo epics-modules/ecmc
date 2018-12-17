@@ -73,7 +73,6 @@ void ecmcAxisSequencer::printCurrentState() {
             __LINE__,
             data_->axisId_,
             homeVelOffCam_);
-  printHomeDirection();
   LOGINFO15("%s/%s:%d: axis[%d].sequencer.homePosition=%lf;\n",
             __FILE__,
             __FUNCTION__,
@@ -106,46 +105,6 @@ void ecmcAxisSequencer::printCurrentState() {
             jogFwd_);
 }
 
-void ecmcAxisSequencer::printHomeDirection() {
-  switch (homeDirection_) {
-  case ECMC_DIR_FORWARD:
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DIR_FORWARD");
-    break;
-
-  case ECMC_DIR_BACKWARD:
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DIR_BACKWARD");
-    break;
-
-  case ECMC_DIR_STANDSTILL:
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DIR_STANDSTILL");
-    break;
-
-  default:
-    LOGINFO15("%s/%s:%d: axis[%d].sequencer.homeDirection=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              homeDirection_);
-    break;
-  }
-}
-
 void ecmcAxisSequencer::initVars() {
   homeSensorOld_        = false;
   executeOld_           = false;
@@ -159,7 +118,6 @@ void ecmcAxisSequencer::initVars() {
   jogVel_               = 0;
   homeVelTwordsCam_     = 0;
   homeVelOffCam_        = 0;
-  homeDirection_        = ECMC_DIR_FORWARD;
   homePosition_         = 0;
   jogFwd_               = false;
   jogBwd_               = false;
@@ -675,18 +633,6 @@ double ecmcAxisSequencer::getHomeVelOffCam() {
   return homeVelOffCam_;
 }
 
-int ecmcAxisSequencer::setHomeDir(motionDirection dir) {
-  if (homeDirection_ != dir) {
-    printHomeDirection();
-  }
-  homeDirection_ = dir;
-  return 0;
-}
-
-motionDirection ecmcAxisSequencer::getHomeDir() {
-  return homeDirection_;
-}
-
 void ecmcAxisSequencer::setHomePosition(double pos) {
   if (homePosition_ != pos) {
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.homePosition=%lf;\n",
@@ -1090,7 +1036,6 @@ int ecmcAxisSequencer::seqHoming3() {  // nCmdData==3
   // State 3 Latch encoder value on falling or rising edge of home sensor.
   // State 4 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
 
-
   int retValue = traj_->getErrorID();  // Abort if error from trajectory
 
   if (retValue) {
@@ -1203,7 +1148,6 @@ int ecmcAxisSequencer::seqHoming4() {  // nCmdData==4
   // State 2 Wait for stop and trigger motion in negative direction
   // State 3 Latch encoder value on falling or rising edge of home sensor.
   // State 4 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-
 
   int retValue = traj_->getErrorID();  // Abort if error from trajectory
 

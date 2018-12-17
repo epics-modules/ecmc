@@ -1625,13 +1625,6 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisHomeLatchCountOffset(iValue, iValue2);
   }
 
-  /*int Cfg.SetAxisHomeDirection(int axis_no, int value);*/
-  nvals = sscanf(myarg_1, "SetAxisHomeDirection(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setAxisHomeDir(iValue, iValue2);
-  }
-
   /*int Cfg.SetAxisGearRatio(int axis_no, double dGearNum, 
   double dGearDenom);*/
   nvals = sscanf(myarg_1,

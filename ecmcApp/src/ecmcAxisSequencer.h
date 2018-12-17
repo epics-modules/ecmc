@@ -77,8 +77,6 @@ class ecmcAxisSequencer : public ecmcError {
   int                    setHomeVelOffCam(double vel);
   double                 getHomeVelTwordsCam();
   double                 getHomeVelOffCam();
-  int                    setHomeDir(motionDirection dir);
-  motionDirection        getHomeDir();
   void                   setHomePosition(double pos);
   double                 getHomePosition();
 
@@ -103,7 +101,6 @@ class ecmcAxisSequencer : public ecmcError {
   int    setExtTrajIF(ecmcMasterSlaveIF *extIf);
   int    setAxisDataRef(ecmcAxisData *data);
   void   printCurrentState();
-  void   printHomeDirection();
 
  private:
   void   initVars();
@@ -149,7 +146,6 @@ class ecmcAxisSequencer : public ecmcError {
   double homePosLatch1_;
   double homePosLatch2_;
   motionDirection currSeqDirection_;
-  motionDirection homeDirection_;
   ecmcTrajectoryTrapetz *traj_;
   ecmcEncoder *enc_;
   ecmcMonitor *mon_;
