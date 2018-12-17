@@ -10,23 +10,22 @@
 #include "ecmcError.h"
 
 
-class ecmcMasterSlaveData : public ecmcError
-{
-public:
+class ecmcMasterSlaveData : public ecmcError {
+ public:
   ecmcMasterSlaveData();
   ~ecmcMasterSlaveData();
-  void setPosition(double pos);
-  void setVelocity(double vel);
-  void setInterlock(bool ilock);
+  void   setPosition(double pos);
+  void   setVelocity(double vel);
+  void   setInterlock(bool ilock);
   double getPosition();
   double getVelocity();
-  bool getInterlock();
+  bool   getInterlock();
 
-private:
-  void initVars();
+ private:
+  void   initVars();
   double pos_;
   double vel_;
   bool ilock_;
 };
 
-#endif /* ECMCMASTERSLAVEDATA_H_ */
+#endif  /* ECMCMASTERSLAVEDATA_H_ */

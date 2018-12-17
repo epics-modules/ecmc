@@ -9,13 +9,13 @@
 #define ecmcAxisSequencer_H_
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
-#include "ecmcMonitor.hpp"
-#include "ecmcPIDController.hpp"
-#include "ecmcTrajectoryTrapetz.hpp"
+#include "ecmcMonitor.h"
+#include "ecmcPIDController.h"
+#include "ecmcTrajectoryTrapetz.h"
 #include "ecmcMasterSlaveIF.h"
 #include "ecmcAxisData.h"
 
-//SEQUENCER ERRORS
+// SEQUENCER ERRORS
 #define ERROR_SEQ_TRAJ_NULL 0x14D00
 #define ERROR_SEQ_ENC_NULL 0x14D01
 #define ERROR_SEQ_MON_NULL 0x14D02
@@ -38,56 +38,57 @@
 #define ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR 0x14D13
 #define ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE 0x14D14
 
-//Homing
-enum ecmcHomingType{
-  ECMC_SEQ_HOME_NOT_VALID = 0,
-  ECMC_SEQ_HOME_LOW_LIM = 1,
-  ECMC_SEQ_HOME_HIGH_LIM = 2,
-  ECMC_SEQ_HOME_LOW_LIM_HOME = 3,
-  ECMC_SEQ_HOME_HIGH_LIM_HOME = 4,
-  ECMC_SEQ_HOME_LOW_LIM_HOME_HOME = 5,
-  ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME = 6,
-  ECMC_SEQ_HOME_LOW_LIM_INDEX = 11,
-  ECMC_SEQ_HOME_HIGH_LIM_INDEX = 12,
-  ECMC_SEQ_HOME_SET_POS = 15,
-  ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS = 21,
+// Homing
+enum ecmcHomingType {
+  ECMC_SEQ_HOME_NOT_VALID                = 0,
+  ECMC_SEQ_HOME_LOW_LIM                  = 1,
+  ECMC_SEQ_HOME_HIGH_LIM                 = 2,
+  ECMC_SEQ_HOME_LOW_LIM_HOME             = 3,
+  ECMC_SEQ_HOME_HIGH_LIM_HOME            = 4,
+  ECMC_SEQ_HOME_LOW_LIM_HOME_HOME        = 5,
+  ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME       = 6,
+  ECMC_SEQ_HOME_LOW_LIM_INDEX            = 11,
+  ECMC_SEQ_HOME_HIGH_LIM_INDEX           = 12,
+  ECMC_SEQ_HOME_SET_POS                  = 15,
+  ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS  = 21,
   ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS = 22,
 };
 
-class ecmcAxisSequencer : public ecmcError
-{
-public:
+class ecmcAxisSequencer : public ecmcError {
+ public:
   ecmcAxisSequencer();
   ~ecmcAxisSequencer();
-  int    setExecute(bool execute);
-  bool   getExecute();
-  void   execute();
-  void   setCommand(motionCommandTypes command);
-  motionCommandTypes getCommand();
-  void   setCmdData(int cmdData);
-  int    getCmdData();
-  void   setTraj(ecmcTrajectoryTrapetz *traj);
-  ecmcTrajectoryTrapetz *getTraj();
-  void   setEnc(ecmcEncoder *enc);
-  void   setMon(ecmcMonitor *mon);
-  void   setCntrl(ecmcPIDController *con);
-  bool   getBusy();
-  void   setJogVel(double velTarget);
-  double getJogVel();
-  int    setHomeVelTwordsCam(double vel);
-  int    setHomeVelOffCam(double vel);
-  double getHomeVelTwordsCam();
-  double getHomeVelOffCam();
-  int    setHomeDir(motionDirection dir);
-  motionDirection getHomeDir();
-  void   setHomePosition(double pos);
-  double getHomePosition();
-  // Home on hardware latch (index or external) 
+  int                    setExecute(bool execute);
+  bool                   getExecute();
+  void                   execute();
+  void                   setCommand(motionCommandTypes command);
+  motionCommandTypes     getCommand();
+  void                   setCmdData(int cmdData);
+  int                    getCmdData();
+  void                   setTraj(ecmcTrajectoryTrapetz *traj);
+  ecmcTrajectoryTrapetz* getTraj();
+  void                   setEnc(ecmcEncoder *enc);
+  void                   setMon(ecmcMonitor *mon);
+  void                   setCntrl(ecmcPIDController *con);
+  bool                   getBusy();
+  void                   setJogVel(double velTarget);
+  double                 getJogVel();
+  int                    setHomeVelTwordsCam(double vel);
+  int                    setHomeVelOffCam(double vel);
+  double                 getHomeVelTwordsCam();
+  double                 getHomeVelOffCam();
+  int                    setHomeDir(motionDirection dir);
+  motionDirection        getHomeDir();
+  void                   setHomePosition(double pos);
+  double                 getHomePosition();
+
+  // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
   // only valid for certain home sequences
   void   setHomeLatchCountOffset(int count);
   void   setTargetPos(double pos);
-  void   setTargetPos(double pos, bool force);
+  void   setTargetPos(double pos,
+                      bool   force);
   double getTargetPos();
   void   setTargetVel(double velTarget);
   double getTargetVel();
@@ -100,48 +101,50 @@ public:
   int    setSequenceTimeout(int timeout);
   int    setExternalExecute(bool execute);
   int    setExtTrajIF(ecmcMasterSlaveIF *extIf);
-  int    setAxisDataRef(ecmcAxisData* data);
+  int    setAxisDataRef(ecmcAxisData *data);
   void   printCurrentState();
   void   printHomeDirection();
-private:
+
+ private:
   void   initVars();
   double checkSoftLimits(double posSetpoint);
-  int    seqHoming1();  //nCmdData==1
-  int    seqHoming2();  //nCmdData==2
-  int    seqHoming3();  //nCmdData==3
-  int    seqHoming4();  //nCmdData==4
-  int    seqHoming5();  //nCmdData==5
-  int    seqHoming6();  //nCmdData==6
-  int    seqHoming11(); //nCmdData==11
-  int    seqHoming12(); //nCmdData==12
-  int    seqHoming15(); //nCmdData==15
-  int    seqHoming21(); //nCmdData==21
-  int    seqHoming22(); //nCmdData==22
-  int    checkHWLimitsAndStop(bool checkBWD,bool checkFWD);
+  int    seqHoming1();   // nCmdData==1
+  int    seqHoming2();   // nCmdData==2
+  int    seqHoming3();   // nCmdData==3
+  int    seqHoming4();   // nCmdData==4
+  int    seqHoming5();   // nCmdData==5
+  int    seqHoming6();   // nCmdData==6
+  int    seqHoming11();  // nCmdData==11
+  int    seqHoming12();  // nCmdData==12
+  int    seqHoming15();  // nCmdData==15
+  int    seqHoming21();  // nCmdData==21
+  int    seqHoming22();  // nCmdData==22
+  int    checkHWLimitsAndStop(bool checkBWD,
+                              bool checkFWD);
   int    stopSeq();
   int    getExtTrajSetpoint(double *pos);
   int    checkVelAccDec();
   void   initHomingSeq();
   void   finalizeHomingSeq(double newPosition);
-  int    seqState_;
-  int    seqStateOld_;
-  int    seqTimeout_;
-  int    seqTimeCounter_;
-  bool   hwLimitSwitchFwd_;
-  bool   hwLimitSwitchFwdOld_;
-  bool   hwLimitSwitchBwd_;
-  bool   hwLimitSwitchBwdOld_;
-  bool   homeSensor_;
-  bool   homeSensorOld_;
-  bool   seqInProgress_;
-  bool   seqInProgressOld_;
-  bool   jogFwd_;
-  bool   jogBwd_;
-  bool   executeOld_;
-  bool   localSeqBusy_;
+  int seqState_;
+  int seqStateOld_;
+  int seqTimeout_;
+  int seqTimeCounter_;
+  bool hwLimitSwitchFwd_;
+  bool hwLimitSwitchFwdOld_;
+  bool hwLimitSwitchBwd_;
+  bool hwLimitSwitchBwdOld_;
+  bool homeSensor_;
+  bool homeSensorOld_;
+  bool seqInProgress_;
+  bool seqInProgressOld_;
+  bool jogFwd_;
+  bool jogBwd_;
+  bool executeOld_;
+  bool localSeqBusy_;
   double jogVel_;
-  double homeVelTwordsCam_; //ADR command
-  double homeVelOffCam_; //ADR command
+  double homeVelTwordsCam_;
+  double homeVelOffCam_;
   double homePosition_;
   double homePosLatch1_;
   double homePosLatch2_;
@@ -152,7 +155,7 @@ private:
   ecmcMonitor *mon_;
   ecmcPIDController *cntrl_;
   ecmcMasterSlaveIF *externalInputTrajectoryIF_;
-  ecmcAxisData* data_;
+  ecmcAxisData *data_;
   uint64_t oldencRawAbsPosReg_;
   uint64_t encRawAbsPosReg_;
   ecmcOverUnderFlowType overUnderFlowLatch_;
@@ -160,4 +163,4 @@ private:
   int homeLatchCountAct_;
 };
 
-#endif /* ecmcAxisSequencer_H_ */
+#endif  /* ecmcAxisSequencer_H_ */

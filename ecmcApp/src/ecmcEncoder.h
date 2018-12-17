@@ -8,15 +8,13 @@
 #ifndef ECMCENCODER_H_
 #define ECMCENCODER_H_
 
-#define __STDC_FORMAT_MACROS  //To have PRIx64
+#define __STDC_FORMAT_MACROS  // To have PRIx64
 #include <inttypes.h>
-#include <stdint.h>  //TODO different include in hw_motor for uint8_t ???
+#include <stdint.h>
 #include <stdio.h>
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
-#include <inttypes.h>
-
 #include "ecmcDefinitions.h"
 #include "ecmcEcEntry.h"
 #include "ecmcEcEntryLink.h"
@@ -25,7 +23,7 @@
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"
 
-//ENCODER ERRORS
+// ENCODER ERRORS
 #define ERROR_ENC_ASSIGN_ENTRY_FAILED 0x14400
 #define ERROR_ENC_TYPE_NOT_SUPPORTED 0x14401
 #define ERROR_ENC_SCALE_DENOM_ZERO 0x14402
@@ -42,106 +40,115 @@
 #define ERROR_ENC_RAW_MASK_INVALID 0x1440D
 #define ERROR_ENC_ABS_MASK_INVALID 0x1440E
 
-//Entries
+// Entries
 #define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
-//Below special for hardware with latch
+
+// Below special for hardware with latch
 #define ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS 1
 #define ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE 2
 #define ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL 3
 
-//Constants
+// Constants
 #define ECMC_ENCODER_MAX_VALUE_64_BIT ((uint64_t)(0xFFFFFFFFFFFFFFFFULL))
-//Do not allow absolute encoders with less than 4 bits
+
+// Do not allow absolute encoders with less than 4 bits
 #define ECMC_ENCODER_ABS_BIT_MIN 4
 
-enum ecmcOverUnderFlowType{
-  ECMC_ENC_NORMAL = 0,
+enum ecmcOverUnderFlowType {
+  ECMC_ENC_NORMAL    = 0,
   ECMC_ENC_UNDERFLOW = 1,
-  ECMC_ENC_OVERFLOW =2,
+  ECMC_ENC_OVERFLOW  = 2,
 };
 
-class ecmcEncoder : public ecmcEcEntryLink
-{
-public:
-  ecmcEncoder(ecmcAxisData *axisData,double sampleTime);
+class ecmcEncoder : public ecmcEcEntryLink {
+ public:
+  ecmcEncoder(ecmcAxisData *axisData,
+              double        sampleTime);
   ~ecmcEncoder();
-  int         setBits(int bits);
-  int         getBits();
-  //Used for homing of partly absolute encoders (applied after raw mask)
-  int         setAbsBits(int absBits);
-  int         getAbsBits();
-  int64_t     getRawPosMultiTurn();
-  uint64_t    getRawPosRegister();
-  uint64_t    getRawAbsPosRegister(); //Only absolute bits
-  int         setScaleNum(double scaleNum);
-  int         setScaleDenom(double scaleDenom);
-  double      getScaleNum();
-  double      getScaleDenom();
-  double      getScale();
-  double      getActPos();
-  double      getAbsRangeEng();
-  int64_t     getAbsRangeRaw();
-  void        setActPos(double pos);
-  double      getSampleTime();
-  double      getActVel();
-  void        setHomed(bool homed);
-  bool        getHomed();
-  encoderType getType();
-  int         setType(encoderType encType);
-  double      readEntries();
-  int         writeEntries();
-  int         setOffset(double offset);
-  int         validate();
-  void        printCurrentState();
-  int         setToZeroIfRelative();
-  int         setRawMask(uint64_t mask);
-  bool        getLatchFuncEnabled();
-  void        setArmLatch(bool arm);
-  bool        getArmLatch();
-  bool        getNewValueLatched();
-  double      getLatchPosEng();
+
+  int                   setBits(int bits);
+  int                   getBits();
+  // Used for homing of partly absolute encoders (applied after raw mask)
+  int                   setAbsBits(int absBits);
+  int                   getAbsBits();
+  int64_t               getRawPosMultiTurn();
+  uint64_t              getRawPosRegister();
+  uint64_t              getRawAbsPosRegister();  // Only absolute bits
+  int                   setScaleNum(double scaleNum);
+  int                   setScaleDenom(double scaleDenom);
+  double                getScaleNum();
+  double                getScaleDenom();
+  double                getScale();
+  double                getActPos();
+  double                getAbsRangeEng();
+  int64_t               getAbsRangeRaw();
+  void                  setActPos(double pos);
+  double                getSampleTime();
+  double                getActVel();
+  void                  setHomed(bool homed);
+  bool                  getHomed();
+  encoderType           getType();
+  int                   setType(encoderType encType);
+  double                readEntries();
+  int                   writeEntries();
+  int                   setOffset(double offset);
+  int                   validate();
+  void                  printCurrentState();
+  int                   setToZeroIfRelative();
+  int                   setRawMask(uint64_t mask);
+  bool                  getLatchFuncEnabled();
+  void                  setArmLatch(bool arm);
+  bool                  getArmLatch();
+  bool                  getNewValueLatched();
+  double                getLatchPosEng();
   ecmcOverUnderFlowType getOverUnderflow();
-protected:
-  void        initVars();
-  int         countTrailingZerosInMask(uint64_t mask);
-  int         countBitWidthOfMask(uint64_t mask,int trailZeros);  
-  int64_t     handleOverUnderFlow(uint64_t rawPosOld,uint64_t rawPos,int64_t rawTurns, uint64_t rawLimit, int bits);
+
+ protected:
+  void                  initVars();
+  int                   countTrailingZerosInMask(uint64_t mask);
+  int                   countBitWidthOfMask(uint64_t mask,
+                                            int      trailZeros);
+  int64_t               handleOverUnderFlow(uint64_t rawPosOld,
+                                            uint64_t rawPos,
+                                            int64_t  rawTurns,
+                                            uint64_t rawLimit,
+                                            int      bits);
   encoderType encType_;
   ecmcFilter *velocityFilter_;
-  ecmcAxisData* data_;
-  int64_t     turns_;
-  uint64_t    rawPosUint_;       //Raw position register (masked and shifted)
-  uint64_t    rawPosUintOld_;    //Raw position register (masked and shifted)
-  uint64_t    rawAbsPosUint_;    //Only absolute bits
-  uint64_t    rawAbsPosUintOld_; //Only absolute bits
-  uint64_t    totalRawMask_;
-  uint64_t    totalRawRegShift_;
-  uint64_t    rawLimit_;
-  uint64_t    rawAbsLimit_;
-  int64_t     rawPosMultiTurn_;
-  int64_t     rawPosOffset_;
-  int64_t     rawRange_;
-  int64_t     rawAbsRange_;
-  int64_t     rawTurns_;  
-  int64_t     rawTurnsOld_;
-  int         bits_;
-  int         absBits_; 
-  double      scaleNum_;
-  double      scaleDenom_;
-  double      scale_;
-  double      engOffset_;
-  double      actPos_;
-  double      actPosOld_;
-  double      sampleTime_;
-  double      actVel_;
-  bool        homed_;
-  bool        encLatchFunctEnabled_;
-  bool        encLatchStatus_;
-  bool        encLatchStatusOld_;
-  int64_t     rawEncLatchPos_;
-  int64_t     rawEncLatchPosMultiTurn_;
-  bool        encLatchControl_;
-  double      actEncLatchPos_;
+  ecmcAxisData *data_;
+  int64_t turns_;
+  uint64_t rawPosUint_;          // Raw position register (masked and shifted)
+  uint64_t rawPosUintOld_;       // Raw position register (masked and shifted)
+  uint64_t rawAbsPosUint_;       // Only absolute bits
+  uint64_t rawAbsPosUintOld_;    // Only absolute bits
+  uint64_t totalRawMask_;
+  uint64_t totalRawRegShift_;
+  uint64_t rawLimit_;
+  uint64_t rawAbsLimit_;
+  int64_t rawPosMultiTurn_;
+  int64_t rawPosOffset_;
+  int64_t rawRange_;
+  int64_t rawAbsRange_;
+  int64_t rawTurns_;
+  int64_t rawTurnsOld_;
+  int bits_;
+  int absBits_;
+  double scaleNum_;
+  double scaleDenom_;
+  double scale_;
+  double engOffset_;
+  double actPos_;
+  double actPosOld_;
+  double sampleTime_;
+  double actVel_;
+  bool homed_;
+  bool encLatchFunctEnabled_;
+  bool encLatchStatus_;
+  bool encLatchStatusOld_;
+  int64_t rawEncLatchPos_;
+  int64_t rawEncLatchPosMultiTurn_;
+  bool encLatchControl_;
+  double actEncLatchPos_;
 };
 
-#endif /* ECMCENCODER_H_ */
+#endif  /* ECMCENCODER_H_ */

@@ -17,7 +17,7 @@
 #include "ecmcEcEntryLink.h"
 #include "ecmcEventConsumer.h"
 
-//Event
+// Event
 #define ERROR_EVENT_TRIGGER_ECENTRY_NULL 0x20301
 #define ERROR_EVENT_INVALID_SAMPLE_TIME 0x20302
 #define ERROR_EVENT_ECENTRY_READ_FAIL 0x20303
@@ -26,29 +26,31 @@
 #define ERROR_EVENT_HARDWARE_STATUS_NOT_OK 0x20306
 #define ERROR_EVENT_ARM_NOT_ENABLED 0x20307
 
-class ecmcEvent : public ecmcEcEntryLink
-{
-public:
-  ecmcEvent(double sampleTime, int index);
+class ecmcEvent : public ecmcEcEntryLink {
+ public:
+  ecmcEvent(double sampleTime,
+            int    index);
   ~ecmcEvent();
-  int setEventType(eventType recordType);
-  int setTriggerEdge(triggerEdgeType triggerEdge);
-  int setDataSampleTime(int sampleTime);
-  int setEnable(int enable);
-  int getEnabled(int *enabled);
-  int execute(int masterOK);
-  int setEnableArmSequence(int enable);
-  int linkEventConsumer(ecmcEventConsumer *consumer,int index);
-  int validate();
+  int  setEventType(eventType recordType);
+  int  setTriggerEdge(triggerEdgeType triggerEdge);
+  int  setDataSampleTime(int sampleTime);
+  int  setEnable(int enable);
+  int  getEnabled(int *enabled);
+  int  execute(int masterOK);
+  int  setEnableArmSequence(int enable);
+  int  linkEventConsumer(ecmcEventConsumer *consumer,
+                         int                index);
+  int  validate();
   void setInStartupPhase(bool startup);
   void printStatus();
-  int callConsumers(int masterOK);
-  int triggerEvent(int masterOK);
-  int arm();
+  int  callConsumers(int masterOK);
+  int  triggerEvent(int masterOK);
+  int  arm();
   void printCurrentState();
-private:
+
+ private:
   void initVars();
-  int armSequence();
+  int  armSequence();
   double sampleTime_;
   int dataSampleTime_;
   int dataSampleTimeCounter_;
@@ -68,4 +70,4 @@ private:
   bool reArm_;
 };
 
-#endif /* ECMCEVENT_H_ */
+#endif  /* ECMCEVENT_H_ */

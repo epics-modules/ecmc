@@ -1,20 +1,12 @@
 /*
- * ecmcPLC_libEc.h
+ * ecmcPLC_libEc.inc
  *
  *  Created on: Nov 19, 2018
  *      Author: anderssandstrom
  */
 
-#ifndef ecmcPLC_libEc_H_
-#define ecmcPLC_libEc_H_
-
-/*
-* Functions available in exprssion TK
-*/
-#define BIT_SET(a,b) ((a) |= (1<<(b)))
-#define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))
-#define BIT_FLIP(a,b) ((a) ^= (1<<(b)))
-#define BIT_CHECK(a,b) ((a) & (1<<(b)))
+#ifndef ecmcPLC_libEc_inc_
+#define ecmcPLC_libEc_inc_
 
 #define ECMC_EC_LIB_MAX_BITS 64
 
@@ -98,6 +90,6 @@ inline double ec_get_err()
 {  
   return (double)ec_errorCode;
 }
-#endif /* ecmcPLC_libEc_H_ */
+#endif /* ecmcPLC_libEc_inc_ */
 
 

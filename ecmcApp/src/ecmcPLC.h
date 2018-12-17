@@ -14,6 +14,8 @@
 #include "ecmcAxisBase.h"
 #include <string>
 #include <vector>
+#include "ecmcEcEntry.h"  // Bit macros
+
 
 #define ECMC_MAX_PLC_VARIABLES 1024
 #define ECMC_MAX_PLC_VARIABLES_NAME_LENGTH 1024
@@ -32,44 +34,49 @@
 #define ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH 0x2050B
 #define ERROR_PLC_VARIABLE_NOT_FOUND 0x2050C
 
-class ecmcPLC : public ecmcError
-{
-public:
-  ecmcPLC(int skipCycles);
+class ecmcPLC : public ecmcError {
+ public:
+  explicit ecmcPLC(int skipCycles);
   ~ecmcPLC();
-  bool getCompiled();
-  int  validate();
-  int  execute(bool ecOK);
-  std::string *getExpr();
-  int  addExprLine(char *exprStr);
-  int  clearExpr();
-  int  compile();
-  int  addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
-  int  addAndRegisterLocalVar(char *localVarStr);
-  int  setAxisArrayPointer(ecmcAxisBase *axis,int index);
-  int  setDataStoragePointer(ecmcDataStorage *ds,int index);
-  int  parseFunctions(const char * exprStr);
-  int  getFirstScanDone();
-  int  readStaticPLCVar(const char *varName,double* data);
-  int  writeStaticPLCVar(const char *varName,double data);
-  int  findLocalVar(const char *varName, ecmcPLCDataIF **outDataIF);
-  double  getSampleTime();
+  bool         getCompiled();
+  int          validate();
+  int          execute(bool ecOK);
+  std::string* getExpr();
+  int          addExprLine(char *exprStr);
+  int          clearExpr();
+  int          compile();
+  int          addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
+  int          addAndRegisterLocalVar(char *localVarStr);
+  int          setAxisArrayPointer(ecmcAxisBase *axis,
+                                   int           index);
+  int          setDataStoragePointer(ecmcDataStorage *ds,
+                                     int              index);
+  int          parseFunctions(const char *exprStr);
+  int          getFirstScanDone();
+  int          readStaticPLCVar(const char *varName,
+                                double     *data);
+  int          writeStaticPLCVar(const char *varName,
+                                 double      data);
+  int          findLocalVar(const char     *varName,
+                            ecmcPLCDataIF **outDataIF);
+  double       getSampleTime();
   static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
-private:
+
+ private:
   void initVars();
-  int varExist(char *varName);
-  int globalVarExist(const char *varName);
-  int localVarExist(const char *varName);
-  int getPLCErrorID(); //from PLC Code
-  bool findMcFunction(const char * exprStr);
-  bool findEcFunction(const char * exprStr);
-  bool findDsFunction(const char * exprStr);
-  bool findFileIOFunction(const char * exprStr);
-  int loadMcLib();
-  int loadEcLib();
-  int loadDsLib();
-  int loadFileIOLib();
+  int  varExist(char *varName);
+  int  globalVarExist(const char *varName);
+  int  localVarExist(const char *varName);
+  int  getPLCErrorID();  // from PLC Code
+  bool findMcFunction(const char *exprStr);
+  bool findEcFunction(const char *exprStr);
+  bool findDsFunction(const char *exprStr);
+  bool findFileIOFunction(const char *exprStr);
+  int  loadMcLib();
+  int  loadEcLib();
+  int  loadDsLib();
+  int  loadFileIOLib();
   std::string exprStr_;
   bool compiled_;
   exprtkWrap *exprtk_;
@@ -88,5 +95,4 @@ private:
   int libFileIOLoaded_;
 };
 
-#endif /* ecmcPLC_H_ */
-
+#endif  /* ecmcPLC_H_ */

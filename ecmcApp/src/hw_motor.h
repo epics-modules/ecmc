@@ -1,6 +1,6 @@
 
-#ifndef MOTOR_H
-#define MOTOR_H
+#ifndef HW_MOTOR_H_
+# define HW_MOTOR_H_
 
 /**\file
  * \defgroup ecmc
@@ -8,23 +8,33 @@
  * \author Anders Sandström
  * \contact anders.sandstrom@esss.se
  */
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
-#include <string.h>
 
-#include "ecmcDefinitions.h"
+# define __STDC_FORMAT_MACROS
+# include <inttypes.h>
+# include <string.h>
 
-#ifdef __cplusplus
+# include "ecmcDefinitions.h"
+
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif  // ifdef __cplusplus
 
-///Checks if an axis index is valid
-#define AXIS_CHECK_RETURN(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return;}
-#define AXIS_CHECK_RETURN_ZERO(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
-#define AXIS_CHECK_RETURN_USED_BUFFER(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
+//  Checks if an axis index is valid
+# define AXIS_CHECK_RETURN(_axis) { init_axis(_axis);     \
+                                    if (((_axis) <= 0) || \
+                                        ((_axis) >= ECMC_MAX_AXES)) return; }
+# define AXIS_CHECK_RETURN_ZERO(_axis) { init_axis(_axis);     \
+                                         if (((_axis) <= 0) || \
+                                             ((_axis) >=       \
+                                              ECMC_MAX_AXES)) return 0; }
+# define AXIS_CHECK_RETURN_USED_BUFFER(_axis) { init_axis(_axis);              \
+                                                if (((_axis) <= 0) ||          \
+                                                    ((_axis) >=                \
+                                                     ECMC_MAX_AXES)) return 0; \
+}
 
-//Error Codes
-#define CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL 0x200000
+// Error Codes
+# define CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL 0x200000
 
 
 /** \breif Initialization routine for ecmc.\n
@@ -63,12 +73,11 @@ int controllerErrorReset();
  * "MoveAbsolutePosition(5,1234,10,100,200)" //Command string to cmd_EAT.c\n
  */
 int moveAbsolutePosition(
-    int axisIndex,
-    double positionSet,
-    double velocitySet,
-    double accelerationSet,
-    double decelerationSet
-    );
+  int    axisIndex,
+  double positionSet,
+  double velocitySet,
+  double accelerationSet,
+  double decelerationSet);
 
 /** \breif Move axis to a relative position.\n
  *
@@ -85,11 +94,11 @@ int moveAbsolutePosition(
  * "MoveRelativePosition(5,1234,10,100,200)" //Command string to cmd_EAT.c\n
  */
 int moveRelativePosition(
-    int axisIndex,
-    double positionSet,
-    double velocitySet,
-    double accelerationSet,
-    double decelerationSet);
+  int    axisIndex,
+  double positionSet,
+  double velocitySet,
+  double accelerationSet,
+  double decelerationSet);
 
 /** \breif Move axis in a constant velocity.\n
  *
@@ -104,7 +113,10 @@ int moveRelativePosition(
  * 100, and deceleration of 200.\n
  * "MoveVelocity(5,10,100,200)" //Command string to cmd_EAT.c\n
  */
-int moveVelocity(int axisIndex,double velocitySet, double accelerationSet, double decelerationSet);
+int moveVelocity(int    axisIndex,
+                 double velocitySet,
+                 double accelerationSet,
+                 double decelerationSet);
 
 /** \breif Stop axis.\n
  *
@@ -116,7 +128,8 @@ int moveVelocity(int axisIndex,double velocitySet, double accelerationSet, doubl
  * \note Example: Stop motion and kill amplifier of axis 2.\n
  * "StopMotion(2,1)" //Command string to cmd_EAT.c\n
  */
-int stopMotion(int axisIndex,int killAmplifier);
+int stopMotion(int axisIndex,
+               int killAmplifier);
 
 /** \breif Get axis error state.\n
  *
@@ -129,7 +142,7 @@ int stopMotion(int axisIndex,int killAmplifier);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisError(int axisIndex);
+int         getAxisError(int axisIndex);
 
 /** \breif Get axis error code.\n
  *
@@ -142,7 +155,7 @@ int getAxisError(int axisIndex);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisErrorID(int axisIndex);
+int         getAxisErrorID(int axisIndex);
 
 /** \breif Get axis error code in string format.\n
  *
@@ -155,7 +168,7 @@ int getAxisErrorID(int axisIndex);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-const char *getErrorString(int errorNumber);
+const char* getErrorString(int errorNumber);
 
 /** \breif Get axis execution cycle counter.\n
  * Can be used for checking that logic for an axis object is
@@ -169,7 +182,8 @@ const char *getErrorString(int errorNumber);
  * \note Example: Get cycle counter of axis 3.\n
  * "GetAxisCycleCounter(3)" //Command string to cmd_EAT.c.\n
   */
-int getAxisCycleCounter(int axisIndex,int *counter);
+int         getAxisCycleCounter(int  axisIndex,
+                                int *counter);
 
 /** \breif Get axis debug information string.\n
  *
@@ -184,7 +198,9 @@ int getAxisCycleCounter(int axisIndex,int *counter);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize);
+int getAxisDebugInfoData(int   axisIndex,
+                         char *buffer,
+                         int   bufferByteSize);
 
 /** \breif Get axis status structure V2.\n
  *
@@ -199,7 +215,9 @@ int getAxisDebugInfoData(int axisIndex,char *buffer, int bufferByteSize);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize);
+int getAxisStatusStructV2(int   axisIndex,
+                          char *buffer,
+                          int   bufferByteSize);
 
 /** \breif Get axis execute bit.\n
  *
@@ -213,7 +231,8 @@ int getAxisStatusStructV2(int axisIndex,char *buffer, int bufferByteSize);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisExecute(int axisIndex,int *value);
+int getAxisExecute(int  axisIndex,
+                   int *value);
 
 /** \breif Get axis command word.\n
  *
@@ -236,7 +255,8 @@ int getAxisExecute(int axisIndex,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisCommand(int axisIndex,int *value);
+int getAxisCommand(int  axisIndex,
+                   int *value);
 
 /** \breif Get axis command data word.\n
  *
@@ -261,7 +281,8 @@ int getAxisCommand(int axisIndex,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisCmdData(int axisIndex,int *value);
+int getAxisCmdData(int  axisIndex,
+                   int *value);
 
 /** \breif Get axis reset bit.\n
  *
@@ -275,7 +296,8 @@ int getAxisCmdData(int axisIndex,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisReset(int axisIndex,int *value);
+int getAxisReset(int  axisIndex,
+                 int *value);
 
 /** \breif Get axis amplifier state bit.\n
  *
@@ -289,7 +311,8 @@ int getAxisReset(int axisIndex,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEnabled(int cntrl_no,int *value);
+int getAxisEnabled(int  cntrl_no,
+                   int *value);
 
 /** \breif Get axis amplifier command bit.\n
  *
@@ -303,11 +326,12 @@ int getAxisEnabled(int cntrl_no,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEnable(int axisIndex,int *value);
+int getAxisEnable(int  axisIndex,
+                  int *value);
 
 /** \breif Get axis block external com.\n
- *   If true the axis will not take any active commands via cmd\n 
- *   parser (statuses can still be read).\n 
+ *   If true the axis will not take any active commands via cmd\n
+ *   parser (statuses can still be read).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] block  Axis blocked.\n
@@ -317,7 +341,8 @@ int getAxisEnable(int axisIndex,int *value);
  * \note Example: Get axis block for axis 3.\n
  * "GetAxisBlockCom(3)" //Command string to cmd_EAT.c.\n
  */
-int getAxisBlockCom(int axisIndex,int *block);
+int getAxisBlockCom(int  axisIndex,
+                    int *block);
 
 /** \breif Get axis busy bit.\n
  *
@@ -332,7 +357,8 @@ int getAxisBlockCom(int axisIndex,int *block);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisBusy(int axisIndex,int*value);
+int getAxisBusy(int  axisIndex,
+                int *value);
 
 /** \breif Get axis index.\n
  *
@@ -352,7 +378,8 @@ int getAxisBusy(int axisIndex,int*value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisID(int axisIndex,int*value);
+int getAxisID(int  axisIndex,
+              int *value);
 
 /** \breif Get enable alarms at limits bit.\n
  *
@@ -364,7 +391,8 @@ int getAxisID(int axisIndex,int*value);
  * \note Example: Get state of enable alarm at limits bit for axis 3.\n
  * "GetAxisEnableAlarmAtHardLimits(3)" //Command string to cmd_EAT.c.\n
  */
-int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value);
+int getAxisEnableAlarmAtHardLimits(int  axisIndex,
+                                   int *value);
 
 /** \breif Get backward soft-limit position.\n
  *
@@ -378,7 +406,8 @@ int getAxisEnableAlarmAtHardLimits(int axisIndex,int *value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisSoftLimitPosBwd(int axisIndex,double *value);
+int getAxisSoftLimitPosBwd(int     axisIndex,
+                           double *value);
 
 /** \breif Get forward soft-limit position.\n
  *
@@ -392,7 +421,8 @@ int getAxisSoftLimitPosBwd(int axisIndex,double *value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisSoftLimitPosFwd(int axisIndex,double *value);
+int getAxisSoftLimitPosFwd(int     axisIndex,
+                           double *value);
 
 /** \breif Get backward soft-limit enabled state of an axis.\n
  *
@@ -406,7 +436,8 @@ int getAxisSoftLimitPosFwd(int axisIndex,double *value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEnableSoftLimitBwd(int axisIndex,int *value);
+int getAxisEnableSoftLimitBwd(int  axisIndex,
+                              int *value);
 
 /** \breif Get forward soft-limit enabled state of an axis.\n
  *
@@ -420,7 +451,8 @@ int getAxisEnableSoftLimitBwd(int axisIndex,int *value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEnableSoftLimitFwd(int axisIndex,int *value);
+int getAxisEnableSoftLimitFwd(int  axisIndex,
+                              int *value);
 
 /** \breif Get axis operation mode.\n
  *
@@ -436,7 +468,8 @@ int getAxisEnableSoftLimitFwd(int axisIndex,int *value);
  * \note Example: Get current operation mode of axis 3.\n
  * "GetAxisOpMode(3)"  //Command string to cmd_EAT.c.\n
  */
-int getAxisOpMode(int axisIndex,int *value);
+int getAxisOpMode(int  axisIndex,
+                  int *value);
 
 /** \breif Get axis acceleration setpoint.\n
  *
@@ -450,7 +483,8 @@ int getAxisOpMode(int axisIndex,int *value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisAcceleration(int axisIndex,double *value);
+int getAxisAcceleration(int     axisIndex,
+                        double *value);
 
 /** \breif Get axis deceleration setpoint.\n
  *
@@ -464,7 +498,8 @@ int getAxisAcceleration(int axisIndex,double *value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisDeceleration(int axisIndex,double *value);
+int getAxisDeceleration(int     axisIndex,
+                        double *value);
 
 /** \breif Get axis target position setpoint.\n
  *
@@ -480,7 +515,8 @@ int getAxisDeceleration(int axisIndex,double *value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisTargetPos(int axisIndex,double *value);
+int getAxisTargetPos(int     axisIndex,
+                     double *value);
 
 /** \breif Get axis target velocity setpoint.\n
  *
@@ -497,7 +533,8 @@ int getAxisTargetPos(int axisIndex,double *value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisTargetVel(int axisIndex,double *value);
+int getAxisTargetVel(int     axisIndex,
+                     double *value);
 
 /** \breif Get axis done bit.\n
  *
@@ -514,7 +551,8 @@ int getAxisTargetVel(int axisIndex,double *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisDone(int axisIndex,double *value);
+int getAxisDone(int     axisIndex,
+                double *value);
 
 /** \breif Get gear ration setting.\n
  *
@@ -528,7 +566,8 @@ int getAxisDone(int axisIndex,double *value);
  * \note Example: Get gear ratio setting for axis 3.\n
  * "ReadAxisGearRatio(3)*" //Command string to cmd_EAT.c.\n
  */
-int getAxisGearRatio(int axisIndex,double *value);
+int getAxisGearRatio(int     axisIndex,
+                     double *value);
 
 /** \breif Get state of forward hard limit.\n
  *
@@ -544,7 +583,8 @@ int getAxisGearRatio(int axisIndex,double *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisAtHardFwd(int axisIndex,int *value);
+int getAxisAtHardFwd(int  axisIndex,
+                     int *value);
 
 /** \breif Get state of backward hard limit.\n
  *
@@ -560,7 +600,8 @@ int getAxisAtHardFwd(int axisIndex,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisAtHardBwd(int axisIndex,int *value);
+int getAxisAtHardBwd(int  axisIndex,
+                     int *value);
 
 /** \breif Get encoder homed bit.\n
  *
@@ -576,7 +617,8 @@ int getAxisAtHardBwd(int axisIndex,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEncHomed(int axisIndex,int *value);
+int getAxisEncHomed(int  axisIndex,
+                    int *value);
 
 /** \breif Get actual encoder position.\n
  *
@@ -590,7 +632,8 @@ int getAxisEncHomed(int axisIndex,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEncPosAct(int axisIndex,double *value);
+int getAxisEncPosAct(int     axisIndex,
+                     double *value);
 
 /** \breif Get actual encoder velocity.\n
  *
@@ -604,7 +647,8 @@ int getAxisEncPosAct(int axisIndex,double *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEncVelAct(int axisIndex,double *value);
+int getAxisEncVelAct(int     axisIndex,
+                     double *value);
 
 /** \breif Get state of reference/home switch.\n
  *
@@ -620,7 +664,8 @@ int getAxisEncVelAct(int axisIndex,double *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisAtHome(int axisIndex,int *value);
+int getAxisAtHome(int  axisIndex,
+                  int *value);
 
 /** \breif Get actual pid controller error.\n
  *
@@ -636,7 +681,8 @@ int getAxisAtHome(int axisIndex,int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisCntrlError(int axisIndex,double *value);
+int getAxisCntrlError(int     axisIndex,
+                      double *value);
 
 /** \breif Get off cam referencing/homing velocity setpoint.\n
  *
@@ -654,7 +700,8 @@ int getAxisCntrlError(int axisIndex,double *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisHomeVelOffCam(int axisIndex,double *value);
+int getAxisHomeVelOffCam(int     axisIndex,
+                         double *value);
 
 /** \breif Get twords cam referencing/homing velocity setpoint.\n
  *
@@ -672,7 +719,8 @@ int getAxisHomeVelOffCam(int axisIndex,double *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisHomeVelTwordsCam(int axisIndex,double *value);
+int getAxisHomeVelTwordsCam(int     axisIndex,
+                            double *value);
 
 /** \breif Get the numerator part of the encoder scale.\n
  *
@@ -689,7 +737,8 @@ int getAxisHomeVelTwordsCam(int axisIndex,double *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEncScaleNum(int axisIndex,double *value);
+int getAxisEncScaleNum(int     axisIndex,
+                       double *value);
 
 /** \breif Get the denominator part of the encoder scale.\n
  *
@@ -706,7 +755,8 @@ int getAxisEncScaleNum(int axisIndex,double *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEncScaleDenom(int axisIndex,double *value);
+int getAxisEncScaleDenom(int     axisIndex,
+                         double *value);
 
 /** \breif Get raw unscaled encoder value.\n
  *
@@ -718,7 +768,8 @@ int getAxisEncScaleDenom(int axisIndex,double *value);
  * \note Example: Get raw encoder value for axis 3.\n
  * "GetAxisEncPosRaw(3)" //Command string to cmd_EAT.c.\n
  */
-int getAxisEncPosRaw(int axisIndex,int64_t *value);
+int getAxisEncPosRaw(int      axisIndex,
+                     int64_t *value);
 
 /** \breif Get enable state of PID-controller.\n
  *
@@ -729,9 +780,10 @@ int getAxisEncPosRaw(int axisIndex,int64_t *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-//int getAxisCntrlEnable(int axisIndex,int *value);
-//int getAxisCntrlTargetPos(int axisIndex,double *value);
-//int getAxisCntrlEnabled(int axisIndex,int *value);
+
+// int getAxisCntrlEnable(int axisIndex,int *value);
+// int getAxisCntrlTargetPos(int axisIndex,double *value);
+// int getAxisCntrlEnabled(int axisIndex,int *value);
 
 /** \breif Get PID-controller proportional output part.\n
  *
@@ -742,7 +794,8 @@ int getAxisEncPosRaw(int axisIndex,int64_t *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisCntrlOutPpart(int axisIndex,double *value);
+int getAxisCntrlOutPpart(int     axisIndex,
+                         double *value);
 
 /** \breif Get PID-controller integral output part.\n
  *
@@ -753,7 +806,8 @@ int getAxisCntrlOutPpart(int axisIndex,double *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisCntrlOutIpart(int axisIndex,double *value);
+int getAxisCntrlOutIpart(int     axisIndex,
+                         double *value);
 
 /** \breif Get PID-controller differential output part.\n
  *
@@ -764,7 +818,8 @@ int getAxisCntrlOutIpart(int axisIndex,double *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisCntrlOutDpart(int axisIndex,double *value);
+int getAxisCntrlOutDpart(int     axisIndex,
+                         double *value);
 
 /** \breif Get PID-controller feed forward output part.\n
  *
@@ -775,7 +830,8 @@ int getAxisCntrlOutDpart(int axisIndex,double *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisCntrlOutFFpart(int axisIndex,double *value);
+int getAxisCntrlOutFFpart(int     axisIndex,
+                          double *value);
 
 /** \breif Get PID-controllegetAxisAtHomer total output part.\n
  *
@@ -789,10 +845,11 @@ int getAxisCntrlOutFFpart(int axisIndex,double *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisCntrlOutput(int axisIndex,double *value);
+int getAxisCntrlOutput(int     axisIndex,
+                       double *value);
 
-//int getAxisCntrlVelSet(int axisIndex,double *value);
-//int getAxisCntrlRate(int axisIndex,double *value);
+// int getAxisCntrlVelSet(int axisIndex,double *value);
+// int getAxisCntrlRate(int axisIndex,double *value);
 
 /** \breif Get the drive output scale factor.\n
  *
@@ -804,7 +861,8 @@ int getAxisCntrlOutput(int axisIndex,double *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisDrvScale(int axisIndex,double *value);
+int getAxisDrvScale(int     axisIndex,
+                    double *value);
 
 /** \breif Get enable state of drive.\n
  *
@@ -815,7 +873,8 @@ int getAxisDrvScale(int axisIndex,double *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisDrvEnable(int axisIndex,int *value);
+int getAxisDrvEnable(int  axisIndex,
+                     int *value);
 
 /** \breif Get at target.\n
  *
@@ -828,13 +887,15 @@ int getAxisDrvEnable(int axisIndex,int *value);
  *
  * \note No command string implemented in the cmd_EAT.c parser.\n
  */
-int getAxisMonAtTarget(int axisIndex,int *value);
-//int getAxisMonAtTargetCounter(int axisIndex,int *value);
-//int getAxisMonLagError(int axisIndex,double *value);
-//int getAxisMonLagMonCounter(int axisIndex,double *value);
-//int getAxisMonAtHome(int axisIndex,int *value);
-//int getAxisTrajTransEnable(int axisIndex, int *value);
-//int getAxisEncTransEnable(int axisIndex, int *value);
+int getAxisMonAtTarget(int  axisIndex,
+                       int *value);
+
+// int getAxisMonAtTargetCounter(int axisIndex,int *value);
+// int getAxisMonLagError(int axisIndex,double *value);
+// int getAxisMonLagMonCounter(int axisIndex,double *value);
+// int getAxisMonAtHome(int axisIndex,int *value);
+// int getAxisTrajTransEnable(int axisIndex, int *value);
+// int getAxisEncTransEnable(int axisIndex, int *value);
 
 /** \breif Get axis type.\n
  *
@@ -852,7 +913,8 @@ int getAxisMonAtTarget(int axisIndex,int *value);
  * \note Example: Get encoder scale denominator for axes 8.\n
  * "GetAxisType(8)" //Command string to cmd_EAT.c.\n
  */
-int getAxisType(int axisIndex, int *value);
+int getAxisType(int  axisIndex,
+                int *value);
 
 /** \breif Get axis trajectory transformation expression.\n
  *
@@ -875,7 +937,8 @@ int getAxisType(int axisIndex, int *value);
  * \note Example: Get trajectory transformation expression for axes 5.\n
  * "GetAxisTrajTransExpr(5)" //Command string to cmd_EAT.c.\n
  */
-const char* getAxisTrajTransExpr(int axisIndex, int *error);
+const char* getAxisTrajTransExpr(int  axisIndex,
+                                 int *error);
 
 /** \breif Get axis encoder transformation expression.\n
  *
@@ -898,7 +961,8 @@ const char* getAxisTrajTransExpr(int axisIndex, int *error);
  * \note Example: Get encoder transformation expression for axes 5.\n
  * "GetAxisEncTransExpr(5)" //Command string to cmd_EAT.c.\n
  */
-const char* getAxisEncTransExpr(int axisIndex, int *error);
+const char* getAxisEncTransExpr(int  axisIndex,
+                                int *error);
 
 /** \breif Get axis command transformation expression.\n
  *
@@ -924,7 +988,8 @@ const char* getAxisEncTransExpr(int axisIndex, int *error);
  * \note Example: Get command transformation expression for axes 5.\n
  * "GetAxisTransformCommandExpr(5)" //Command string to cmd_EAT.c.\n
  */
-const char* getAxisTransformCommandExpr(int axisIndex, int *error);
+const char* getAxisTransformCommandExpr(int  axisIndex,
+                                        int *error);
 
 /** \breif Get axis trajectory data source.\n
  *
@@ -941,7 +1006,8 @@ const char* getAxisTransformCommandExpr(int axisIndex, int *error);
  * \note Example: Get trajectory generator data source type for axis 3.\n
  * "GetAxisTrajSourceType(3)" //Command string to cmd_EAT.c.\n
  */
-int getAxisTrajSource(int axisIndex, int *value);
+int getAxisTrajSource(int  axisIndex,
+                      int *value);
 
 /** \breif Get axis encoder data source.\n
  *
@@ -957,7 +1023,8 @@ int getAxisTrajSource(int axisIndex, int *value);
  * \note Example: Get encoder generator data source type for axis 3.\n
  * "GetAxisEncSourceType(3)" //Command string to cmd_EAT.c.\n
  */
-int getAxisEncSource(int axisIndex, int *value);
+int getAxisEncSource(int  axisIndex,
+                     int *value);
 
 /** \breif Get axis enable command from other axis.\n
  *
@@ -973,7 +1040,8 @@ int getAxisEncSource(int axisIndex, int *value);
  * \note Example: Get axis enable command from other axis for axis 3.\n
  * "GetAxisEnableCommandsFromOtherAxis(3)" //Command string to cmd_EAT.c.\n
  */
-int getAxisEnableCommandsFromOtherAxis(int axisIndex, int *value);
+int getAxisEnableCommandsFromOtherAxis(int  axisIndex,
+                                       int *value);
 
 /** \breif Get axis enable command transform.\n
  *
@@ -988,7 +1056,8 @@ int getAxisEnableCommandsFromOtherAxis(int axisIndex, int *value);
  * \note Example: Get axis enable command transform for axis 5.\n
  * "GetAxisEnableCommandsTransform(5)" //Command string to cmd_EAT.c.\n
  */
-int getAxisEnableCommandsTransform(int axisIndex, int *value);
+int getAxisEnableCommandsTransform(int  axisIndex,
+                                   int *value);
 
 /** \breif Set axis execute bit.\n
  *
@@ -1008,7 +1077,8 @@ int getAxisEnableCommandsTransform(int axisIndex, int *value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisExecute(int axisIndex, int value);
+int setAxisExecute(int axisIndex,
+                   int value);
 
 /** \breif Set axis command word.\n
  *
@@ -1030,7 +1100,8 @@ int setAxisExecute(int axisIndex, int value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisCommand(int axisIndex, int value);
+int setAxisCommand(int axisIndex,
+                   int value);
 
 /** \breif Set axis command data word.\n
  *
@@ -1076,7 +1147,8 @@ int setAxisCommand(int axisIndex, int value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisCmdData(int axisIndex, int value);
+int setAxisCmdData(int axisIndex,
+                   int value);
 
 /** \breif Set axis amplifier enable command bit.\n
  *
@@ -1090,7 +1162,8 @@ int setAxisCmdData(int axisIndex, int value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisEnable(int axisIndex, int value);
+int setAxisEnable(int axisIndex,
+                  int value);
 
 /** \breif Set enable alarms at limits bit.\n
  *
@@ -1102,7 +1175,8 @@ int setAxisEnable(int axisIndex, int value);
  * \note Example: Enable alarm at limits bit for axis 3.\n
  * "Cfg.SetAxisEnableAlarmAtHardLimits(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEnableAlarmAtHardLimits(int axisIndex,int value);
+int setAxisEnableAlarmAtHardLimits(int axisIndex,
+                                   int value);
 
 /** \breif Block/unblock communicatiom from via cmd parser.\n
  *
@@ -1114,7 +1188,8 @@ int setAxisEnableAlarmAtHardLimits(int axisIndex,int value);
  * \note Example: Block Com for axis 3.\n
  * "Cfg.SetAxisBlockCom(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisBlockCom(int axisIndex, int block);
+int setAxisBlockCom(int axisIndex,
+                    int block);
 
 /** \breif Set enable backward soft-limit of an axis.\n
  *
@@ -1128,7 +1203,8 @@ int setAxisBlockCom(int axisIndex, int block);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisEnableSoftLimitBwd(int axisIndex, int value);
+int setAxisEnableSoftLimitBwd(int axisIndex,
+                              int value);
 
 /** \breif Set enable forward soft-limit of an axis.\n
  *
@@ -1142,7 +1218,8 @@ int setAxisEnableSoftLimitBwd(int axisIndex, int value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisEnableSoftLimitFwd(int axisIndex, int value);
+int setAxisEnableSoftLimitFwd(int axisIndex,
+                              int value);
 
 /** \breif Set backward soft-limit position.\n
  *
@@ -1156,7 +1233,8 @@ int setAxisEnableSoftLimitFwd(int axisIndex, int value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisSoftLimitPosBwd(int axisIndex, double value);
+int setAxisSoftLimitPosBwd(int    axisIndex,
+                           double value);
 
 /** \breif Set forward soft-limit position.\n
  *
@@ -1170,7 +1248,8 @@ int setAxisSoftLimitPosBwd(int axisIndex, double value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisSoftLimitPosFwd(int axisIndex, double value);
+int setAxisSoftLimitPosFwd(int    axisIndex,
+                           double value);
 
 /** \breif Set axis acceleration setpoint.\n
  *
@@ -1185,7 +1264,8 @@ int setAxisSoftLimitPosFwd(int axisIndex, double value);
  * \note Example: Set deceleration setpoint for axis 3 to 500.\n
  * "Cfg.SetAxisAcc(3,500)"  //Command string to cmd_EAT.c.\n
  */
-int setAxisAcceleration(int axisIndex, double value);
+int setAxisAcceleration(int    axisIndex,
+                        double value);
 
 /** \breif Set axis deceleration setpoint.\n
  *
@@ -1200,7 +1280,8 @@ int setAxisAcceleration(int axisIndex, double value);
  * \note Example: Set deceleration setpoint for axis 3 to 500.\n
  * "Cfg.SetAxisDec(3,500)"  //Command string to cmd_EAT.c.\n
  */
-int setAxisDeceleration(int axisIndex, double value);
+int setAxisDeceleration(int    axisIndex,
+                        double value);
 
 /** \breif Set axis emergency deceleration setpoint.\n
  *
@@ -1217,7 +1298,8 @@ int setAxisDeceleration(int axisIndex, double value);
  * \note Example: Set emergency deceleration setpoint for axis 3 to 54321.\n
  * "Cfg.SetAxisEmergDeceleration(3,54321)"  //Command string to cmd_EAT.c.\n
  */
-int setAxisEmergDeceleration(int axisIndex, double value);
+int setAxisEmergDeceleration(int    axisIndex,
+                             double value);
 
 /** \breif Set axis maximum jerk setpoint. NOT USED!\n
  *
@@ -1230,7 +1312,8 @@ int setAxisEmergDeceleration(int axisIndex, double value);
  *
  * \note Example: No command string implemented in the cmd_EAT.c parser.\n
  */
-int setAxisJerk(int axisIndex, double value);
+int setAxisJerk(int    axisIndex,
+                double value);
 
 /** \breif Set axis target position setpoint.\n
  *
@@ -1246,7 +1329,8 @@ int setAxisJerk(int axisIndex, double value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisTargetPos(int axisIndex, double value);
+int setAxisTargetPos(int    axisIndex,
+                     double value);
 
 /** \breif Set axis target velocity setpoint.\n
  *
@@ -1275,7 +1359,8 @@ int setAxisTargetPos(int axisIndex, double value);
  * value).\n
  * "Cfg.SetAxisVelAccDecTime(3,55,2)."  //Command string to cmd_EAT.c.\n
  */
-int setAxisTargetVel(int axisIndex, double value);
+int setAxisTargetVel(int    axisIndex,
+                     double value);
 
 /** \breif Set axis jog velocity setpoint.\n
  *
@@ -1291,7 +1376,8 @@ int setAxisTargetVel(int axisIndex, double value);
  * \note Example: Set target velocity setpoint for axis 3 to 55.\n
  * "Cfg.SetAxisJogVel(3,55)"  //Command string to cmd_EAT.c.\n
  */
-int setAxisJogVel(int axisIndex, double value);
+int setAxisJogVel(int    axisIndex,
+                  double value);
 
 /** \breif Set axis operation mode.\n
  *
@@ -1310,7 +1396,8 @@ int setAxisJogVel(int axisIndex, double value);
  * \note Example: Set current operation mode of axis 3 to manual.\n
  * "Cfg.SetAxisOpMode(3,1)"  //Command string to cmd_EAT.c.\n
  */
-int setAxisOpMode(int axisIndex, int value);
+int setAxisOpMode(int axisIndex,
+                  int value);
 
 /** \breif Set the denominator part of the encoder scale.\n
  *
@@ -1327,7 +1414,8 @@ int setAxisOpMode(int axisIndex, int value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisEncScaleDenom(int axisIndex, double value);
+int setAxisEncScaleDenom(int    axisIndex,
+                         double value);
 
 /** \breif Set the numerator part of the encoder scale.\n
  *
@@ -1344,7 +1432,8 @@ int setAxisEncScaleDenom(int axisIndex, double value);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisEncScaleNum(int axisIndex, double value);
+int setAxisEncScaleNum(int    axisIndex,
+                       double value);
 
 /** \breif Set axis home reference position setpoint.\n
  *
@@ -1362,12 +1451,13 @@ int setAxisEncScaleNum(int axisIndex, double value);
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisHomePos(int axisIndex, double value);
+int setAxisHomePos(int    axisIndex,
+                   double value);
 
 /** \breif Set home index pulse count offset.\n
  *
  * Sets number of latches before homing is made.\n
- * 
+ *
  *  \note Only valid for some homing sequences when\
  *  homing on hardware latched position (encoder index or external hw latch).\n
  *
@@ -1379,7 +1469,8 @@ int setAxisHomePos(int axisIndex, double value);
  * \note Example: Set home latch count to 1 for axis 10.\n
  * "Cfg.SetAxisHomeLatchCountOffset(10,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisHomeLatchCountOffset(int axisIndex, int count);
+int setAxisHomeLatchCountOffset(int axisIndex,
+                                int count);
 
 /** \breif Set twords cam referencing/homing velocity setpoint.\n
  *
@@ -1401,7 +1492,8 @@ int setAxisHomeLatchCountOffset(int axisIndex, int count);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisHomeVelTwordsCam(int axisIndex,double dVel);
+int setAxisHomeVelTwordsCam(int    axisIndex,
+                            double dVel);
 
 /** \breif Set off cam referencing/homing velocity setpoint.\n
  *
@@ -1423,13 +1515,14 @@ int setAxisHomeVelTwordsCam(int axisIndex,double dVel);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisHomeVelOffCam(int axisIndex,double dVel);
+int setAxisHomeVelOffCam(int    axisIndex,
+                         double dVel);
 
 /** \breif Set start direction of referencing/homing sequence. NOTE: NOT
  * USED!!\n
  *
  *  !!!!!!TODO Remove command!!!!!!\n
- * 
+ *
  * \note This command is not used. The different directions are implemented as
  * different values of command data instead.\n
  *
@@ -1444,7 +1537,8 @@ int setAxisHomeVelOffCam(int axisIndex,double dVel);
  * 3 to positive.\n
  * "Cfg.SetAxisHomeDirection(3,0)" //Command string to cmd_EAT.c.\n
  */
-int setAxisHomeDir(int axisIndex,int nDir);
+int setAxisHomeDir(int axisIndex,
+                   int nDir);
 
 /** \breif Set gear ration setting.\n
  *
@@ -1459,7 +1553,9 @@ int setAxisHomeDir(int axisIndex,int nDir);
  * \note Example: Set gear ratio setting for axis 3 to 1/7.\n
  * "Cfg.SetAxisGearRatio(3,1,7)" //Command string to cmd_EAT.c.\n
  */
-int setAxisGearRatio(int axisIndex,double ratioNum,double ratioDenom);
+int setAxisGearRatio(int    axisIndex,
+                     double ratioNum,
+                     double ratioDenom);
 
 /** \breif Set axis reset bit.\n
  *
@@ -1473,7 +1569,8 @@ int setAxisGearRatio(int axisIndex,double ratioNum,double ratioDenom);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int axisErrorReset(int axisIndex, int value);
+int axisErrorReset(int axisIndex,
+                   int value);
 
 /** \breif Set axis trajectory transformation expression.\n
  *
@@ -1496,7 +1593,8 @@ int axisErrorReset(int axisIndex, int value);
  * "out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#".\n
  * "Cfg.SetAxisTrajTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to cmd_EAT.c.\n
  */
-int setAxisTrajTransExpr(int axisIndex, char *expr);
+int setAxisTrajTransExpr(int   axisIndex,
+                         char *expr);
 
 /** \breif Enables/disables velocity filter of external setpoint.\n
  *
@@ -1508,7 +1606,8 @@ int setAxisTrajTransExpr(int axisIndex, char *expr);
  * \note Example: Enable velocity filter for external setpoint position for axis 5.
  * "Cfg.SetAxisTrajExtVelFilterEnable(5,1) //Command string to cmd_EAT.c.\n
  */
-int setAxisTrajExtVelFilterEnable(int axisIndex, int enable);
+int setAxisTrajExtVelFilterEnable(int axisIndex,
+                                  int enable);
 
 /** \breif Set axis encoder transformation expression.\n
  *
@@ -1530,7 +1629,8 @@ int setAxisTrajExtVelFilterEnable(int axisIndex, int enable);
  * "out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#".\n
  * "Cfg.SetAxisEncTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncTransExpr(int axisIndex, char *expr);
+int setAxisEncTransExpr(int   axisIndex,
+                        char *expr);
 
 /** \breif Set PLC expression.\n
  *
@@ -1547,7 +1647,8 @@ int setAxisEncTransExpr(int axisIndex, char *expr);
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
  * "Cfg.SetPLCExpr(5)=ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#" //Command string to cmd_EAT.c.\n
  */
-int setPLCExpr(int index,char *expr);
+int setPLCExpr(int   index,
+               char *expr);
 
 /** \breif Append Line to PLC expression.\n
  *
@@ -1560,7 +1661,7 @@ int setPLCExpr(int index,char *expr);
  * \return 0 if success or otherwise an error code.\n
  *
  *  Accessible variables in code:
- *   1.  static.<varname>             Static variable. Initiated to 0. (rw)\n                                    
+ *   1.  static.<varname>             Static variable. Initiated to 0. (rw)\n
  *                                    Access only in the PLC where defined.\n
  *                                    Will keep value between execution\n
  *                                    loops.\n
@@ -1579,7 +1680,7 @@ int setPLCExpr(int index,char *expr);
  *                                    alias: entry name as defined in\n
  *                                           "Cfg.EcAddEntryComplete()\n
  *                                    bitid: bit index (optional)\n
- * 
+ *
  *  Motion variables:
  *   1.  ax<id>.id                    axis id                          (ro)\n
  *   2.  ax<id>.reset                 reset axis error                 (rw)\n
@@ -1601,7 +1702,7 @@ int setPLCExpr(int index,char *expr);
  *   16. ax<id>.traj.setvel           current velocity setpoint        (ro)\n
  *   17. ax<id>.traj.setvelffraw      feed forward raw velocity        (ro)\n
  *   18. ax<id>.traj.command          command                          (rw)\n
- *                                    command=1: move velocity\n  
+ *                                    command=1: move velocity\n
  *                                    command=2: move rel. pos\n
  *                                    command=3: move abs. pos\n
  *                                    command=10: homing\n
@@ -1644,7 +1745,7 @@ int setPLCExpr(int index,char *expr);
  *   30. ax<id>.seq.state             sequence state (homing)          (ro)\n
  *   31. ax<id>.mon.ilock             motion interlock                 (rw)\n
  *                                    ax<id>.mon.ilock=1: motion allowed
- *                                    ax<id>.mon.ilock=0: motion not allowed                                      
+ *                                    ax<id>.mon.ilock=0: motion not allowed
  *   32. ax<id>.mon.attarget          axis at taget                    (ro)\n
  *   33. ax<id>.mon.lowlim            low limit switch                 (ro)\n
  *   34. ax<id>.mon.highlim           high limit switch                (ro)\n
@@ -1656,12 +1757,12 @@ int setPLCExpr(int index,char *expr);
  *   40. ax<id>.blockcom              Enables/disables "set" commands   (rw)\n
  *                                    via command parser (ascii commands)\n
  *                                    Statuses can still be read.\n
- *                                    Exceptions ("set"-commands) that 
- *                                    will work: 
+ *                                    Exceptions ("set"-commands) that
+ *                                    will work:
  *                                    - "StopMotion(axid)"
  *                                    - "Cfg.SetAxisBlockCom(axid,block)"
  *
- *  PLC variables: 
+ *  PLC variables:
  *   1.  plc<id>.enable               plc enable                       (rw)\n
  *                                    (end exe with "plc<id>.enable:=0#"\n
  *                                    Could be usefull for startup\n
@@ -1672,47 +1773,47 @@ int setPLCExpr(int index,char *expr);
  *   3.  plc<id>.scantime             plc sample time in seconds       (ro)\n
  *   4.  plc<id>.firstscan            true during first plc scan only  (ro)\n
  *                                    usefull for initiations of variables\n
- * 
+ *
  *  Data Storage variables:
  *   1.  ds<id>.size                  Set/get size of data storage     (rw)\n
- *                                    Set will clear the data storage\n 
+ *                                    Set will clear the data storage\n
  *   2.  ds<id>.append                Add new data at end              (rw)\n
- *                                    Current position index will be 
+ *                                    Current position index will be
  *                                    increased
  *   3.  ds<id>.data                  Set/get data ar current position (rw)\n
  *   4.  ds<id>.index                 Set/get current position index   (rw)\n
  *   5.  ds<id>.error                 Data storage class error         (ro)\n
  *   6.  ds<id>.clear                 Data buffer clear (set to zero)  (ro)\n
  *   7.  ds<id>.full                  True if data storage is full     (ro)\n
- * 
+ *
  *  Function Lib: EtherCAT
  *   1. retvalue = ec_set_bit(
  *                           <value>,         : Value to change
- *                           <bitindex>       : Bit index 
+ *                           <bitindex>       : Bit index
  *                           );
  *      Sets bit at bitindex position of value. Returns the new value.\n
- * 
+ *
  *   2. retvalue = ec_clr_bit(
  *                           <value>,         : Value to change
- *                           <bitindex>       : Bit index 
+ *                           <bitindex>       : Bit index
  *                           );
  *      Clears bit at bitindex position of value. Returns the new value.\n
- * 
+ *
  *   3. retvalue = ec_flp_bit(
  *                           <value>,         : Value to change
- *                           <bitindex>       : Bit index 
+ *                           <bitindex>       : Bit index
  *                           );
  *      Flips bit at bitindex position of value. Returns the new value.\n
- * 
+ *
  *   4. retvalue = ec_chk_bit(
  *                           <value>,         : Value to change
- *                           <bitindex>       : Bit index 
+ *                           <bitindex>       : Bit index
  *                           );
  *      Checks bit at bitindex position of value. Returns the value of bit.\n
- * 
+ *
  *   5. retvalue=ec_get_err():
  *      Returns error code from last lib call.\n
- * 
+ *
  *  Function Lib: Motion
  *   1. retvalue = mc_move_abs(
  *                           <axIndex>,       : Axis index\n
@@ -1725,7 +1826,7 @@ int setPLCExpr(int index,char *expr);
  *      Absolute motion of axis.\n
  *      Motion is triggerd with a positive edge on <execute> input.\n
  *      returns 0 if success or error code.\n
- *      
+ *
  *   2. retvalue = mc_move_rel(
  *                           <axIndex>,       : Axis index\n
  *                           <execute>,       : Trigger\n
@@ -1734,11 +1835,11 @@ int setPLCExpr(int index,char *expr);
  *                           <acc>,           : Acceleration\n
  *                           <dec>            : Deceleration\n
  *                           );
- * 
+ *
  *      Relative motion of axis <axIndex>.\n
  *      Motion is triggerd with a positive edge on <execute> input.\n
  *      returns 0 if success or error code.\n
- * 
+ *
  *   3. retvalue = mc_move_vel(
  *                           <axIndex>,       : Axis index\n
  *                           <execute>,       : Trigger\n
@@ -1749,7 +1850,7 @@ int setPLCExpr(int index,char *expr);
  *      Constant velocity motion of axis <axIndex>.\n
  *      Motion is triggerd with a positive edge on <execute> input.\n
  *      returns 0 if success or error code.\n
- * 
+ *
  *   4. retvalue = mc_home(
  *                           <axIndex>,       : Axis index\n
  *                           <execute>,       : Trigger\n
@@ -1760,7 +1861,7 @@ int setPLCExpr(int index,char *expr);
  *      Perform a homing sequence of axis <axIndex>.\n
  *      Motion is triggerd with a positive edge on <execute> input.\n
  *      returns 0 if success or error code.\n
- * 
+ *
  *   5. retvalue = mc_halt(
  *                           <axIndex>,       : Axis index\n
  *                           <execute>,       : Trigger\n
@@ -1768,7 +1869,7 @@ int setPLCExpr(int index,char *expr);
  *      Stop motion of axis <axIndex>.\n
  *      Motion is triggerd with a positive edge on <execute> input.\n
  *      returns 0 if success or error code.\n
- * 
+ *
  *   6. retvalue = mc_power(
  *                           <axIndex>,       : Axis index\n
  *                           <enable>,        : Enable power\n
@@ -1779,7 +1880,7 @@ int setPLCExpr(int index,char *expr);
  *
  *   7. retvalue = mc_get_err();
  *      Returns error code for last lib call.\n
- *   
+ *
  *  Function Lib: Data Storage
  *   1. retvalue = ds_append_data(
  *                           <dsIndex>,       : Data storage index\n
@@ -1787,13 +1888,13 @@ int setPLCExpr(int index,char *expr);
  *                           );
  *      Append data to data storage.\n
  *      returns 0 if success or error code.\n
- * 
+ *
  *   2. retvalue = ds_clear_data(
  *                           <dsIndex>,       : Data storage index\n
  *                           );
  *      Clear data to data storage.\n
  *      returns 0 if success or error code.\n
- * 
+ *
  *   3. retvalue = ds_get_data(
  *                           <dsIndex>,       : Data storage index\n
  *                           <bufferIndex>,   : Buffer index\n
@@ -1806,7 +1907,7 @@ int setPLCExpr(int index,char *expr);
  *                           );
  *      Sets data in data storage buffer.\n
  *      returns 0 if success or error code.\n
- * 
+ *
  *   5. retvalue = ds_get_buff_id(
  *                           <dsIndex>,       : Data storage index\n
  *                           );
@@ -1818,35 +1919,36 @@ int setPLCExpr(int index,char *expr);
  *                           );
  *      Sets current buffer index in data storage buffer.\n
  *      returns 0 if success or error code.\n
- * 
+ *
  *   7. retvalue = ds_is_full(
  *                           <dsIndex>,       : Data storage index\n
  *                           );
  *      Returns true if buffer is full.\n
- * 
+ *
  *   8. retvalue = ds_get_size(
  *                           <dsIndex>,       : Data storage index\n
  *                           );
  *      Returns buffer size of data storage.\n
- * 
+ *
  *   9. retvalue = ds_get_err()
  *      Returns error code for last lib call.\n
  *
- *  
+ *
  * \note Example: Add one line of PLC code to PLC 5
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
  * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#)" //Command string to cmd_EAT.c.\n
- * 
+ *
  * \note Example: Add code by plc file to PLC 5 (prefered solution):\n
  * "Cfg.LoadPLCFile(5,<filename with path>)" //Command string to cmd_EAT.c.\n
  */
-int appendPLCExpr(int index,char *expr);
+int appendPLCExpr(int   index,
+                  char *expr);
 
 /** \breif Load PLC file.\n
  *
  * Load file with PLC code to PLC.\n
  * For syntax look at "appendPLCExpr()".\n
- * PLC file will be compiled and 
+ * PLC file will be compiled and
  * enabled.\n
  *
  * \param[in] index     PLC index.\n
@@ -1857,7 +1959,8 @@ int appendPLCExpr(int index,char *expr);
  * \note Example: Load plc fil with code to PLC 5\n
  * "Cfg.LoadPLCFile(5,/home/iocuser/dummyPLC.plc)" //Command string to cmd_EAT.c.\n
  */
-int loadPLCFile(int index,char *fileName);
+int loadPLCFile(int   index,
+                char *fileName);
 
 /** \breif Write to PLC variable.\n
  * \note: Only static variables are supported.\n
@@ -1871,7 +1974,9 @@ int loadPLCFile(int index,char *fileName);
  * \note Example: Write 100.0 to variable static.test in plc 5\n
  * "WritePLCVar(5,static.test,100.0)" //Command string to cmd_EAT.c.\n
  */
-int writePLCVar(int index,const char* varName,double value);
+int writePLCVar(int         index,
+                const char *varName,
+                double      value);
 
 /** \breif Read PLC variable.\n
  * \note: Only static variables are supported.\n
@@ -1885,7 +1990,9 @@ int writePLCVar(int index,const char* varName,double value);
  * \note Example: Read variable static.test in plc 5\n
  * "ReadPLCVar(5,static.test)" //Command string to cmd_EAT.c.\n
  */
-int readPLCVar(int index,const char* varName,double *value);
+int readPLCVar(int         index,
+               const char *varName,
+               double     *value);
 
 /** \breif Clear PLC expression.\n
  *
@@ -1925,7 +2032,8 @@ int compilePLCExpr(int index);
  * \note Example: Set enable for PLC 5\n
  * "Cfg.SetPLCEnable(5,1);" //Command string to cmd_EAT.c.\n
  */
-int setPLCEnable(int index,int enable);
+int setPLCEnable(int index,
+                 int enable);
 
 /** \breif Set enable of PLC.\n
  *
@@ -1939,7 +2047,8 @@ int setPLCEnable(int index,int enable);
  * \note Example: Get enable for PLC 5\n
  * "GetPLCEnable(5);" //Command string to cmd_EAT.c.\n
  */
-int getPLCEnable(int index,int *enabled);
+int getPLCEnable(int  index,
+                 int *enabled);
 
 /** \breif Delete PLC.\n
  *
@@ -1965,7 +2074,8 @@ int deletePLC(int index);
  * \note Example: Enable velocity filter for external actual position for axis 5.
  * "Cfg.SetAxisEncExtVelFilterEnable(5,1) //Command string to cmd_EAT.c.\n
  */
-int setAxisEncExtVelFilterEnable(int axisIndex, int enable);
+int setAxisEncExtVelFilterEnable(int axisIndex,
+                                 int enable);
 
 /** \breif Set axis trajectory data source.\n
  *
@@ -1983,7 +2093,8 @@ int setAxisEncExtVelFilterEnable(int axisIndex, int enable);
  * internal.\n
  * "Cfg.SetAxisTrajSourceType(3,0)" //Command string to cmd_EAT.c.\n
  */
-int setAxisTrajSource(int axisIndex, int value);
+int setAxisTrajSource(int axisIndex,
+                      int value);
 
 /** \breif Set axis encoder data source.\n
  *
@@ -2000,7 +2111,8 @@ int setAxisTrajSource(int axisIndex, int value);
  * external.\n
  * "Cfg.SetAxisEncSourceType(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncSource(int axisIndex, int value);
+int setAxisEncSource(int axisIndex,
+                     int value);
 
 /** \breif Set axis trajectory start position. NOTE: NOT USED!!.\n
  *
@@ -2014,7 +2126,8 @@ int setAxisEncSource(int axisIndex, int value);
  * \note Example: Set trajectory start position to 100 for axis 3.\n
  * "Cfg.SetAxisTrajStartPos(3,100)" //Command string to cmd_EAT.c.\n
  */
-int setAxisTrajStartPos(int axisIndex,double value);
+int setAxisTrajStartPos(int    axisIndex,
+                        double value);
 
 /** \breif Set encoder offset value.\n
  *
@@ -2026,7 +2139,8 @@ int setAxisTrajStartPos(int axisIndex,double value);
  * \note Example: Set encoder offset value to 100 for axis 3.\n
  * "Cfg.SetAxisEncOffset(3,100)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncOffset(int axisIndex, double value);
+int setAxisEncOffset(int    axisIndex,
+                     double value);
 
 /** \breif Set encoder type.\n
  *
@@ -2040,7 +2154,8 @@ int setAxisEncOffset(int axisIndex, double value);
  * \note Example: Set encoder type to absolute for axis 3.\n
  * "Cfg.SetAxisEncType(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncType(int axisIndex, int value);
+int setAxisEncType(int axisIndex,
+                   int value);
 
 /** \breif Set encoder register bit count.\n
  *
@@ -2060,7 +2175,8 @@ int setAxisEncType(int axisIndex, int value);
  * \note Example: Set encoder bit count to 16 for axis 3.\n
  * "Cfg.SetAxisEncBits(3,16)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncBits(int axisIndex, int bits);
+int setAxisEncBits(int axisIndex,
+                   int bits);
 
 /** \breif Set encoder register bit count for absolute data.\n
  *
@@ -2078,7 +2194,8 @@ int setAxisEncBits(int axisIndex, int bits);
  * \note Example: Set encoder absolute bit count to 10 for axis 3.\n
  * "Cfg.SetAxisEncAbsBits(3,10)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncAbsBits(int axisIndex, int bits);
+int setAxisEncAbsBits(int axisIndex,
+                      int bits);
 
 /** \breif Set encoder raw data mask.\n
  *
@@ -2096,7 +2213,8 @@ int setAxisEncAbsBits(int axisIndex, int bits);
  * \note Example: Set encoder mask to 0xFFFF for axis 3.\n
  * "Cfg.SetAxisEncRawMask(3,0xFFFF)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEncRawMask(int axisIndex, uint64_t rawMask);
+int setAxisEncRawMask(int      axisIndex,
+                      uint64_t rawMask);
 
 /** \breif Set PID-controller proportional gain.\n
  *
@@ -2108,7 +2226,8 @@ int setAxisEncRawMask(int axisIndex, uint64_t rawMask);
  * \note Example: Set PID-controller proportional gain to 1.5 for axis 3.\n
  * "Cfg.SetAxisCntrlKp(3,1.5)" //Command string to cmd_EAT.c.\n
  */
-int setAxisCntrlKp(int axisIndex, double value);
+int setAxisCntrlKp(int    axisIndex,
+                   double value);
 
 /** \breif Set PID-controller integral gain.\n
  *
@@ -2120,7 +2239,8 @@ int setAxisCntrlKp(int axisIndex, double value);
  * \note Example: Set PID-controller integral gain to 0.1 for axis 3.\n
  * "Cfg.SetAxisCntrlKi(3,0.1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisCntrlKi(int axisIndex, double value);
+int setAxisCntrlKi(int    axisIndex,
+                   double value);
 
 /** \breif Set PID-controller differential gain.\n
  *
@@ -2132,7 +2252,8 @@ int setAxisCntrlKi(int axisIndex, double value);
  * \note Example: Set PID-controller differential gain to 1.1 for axis 3.\n
  * "Cfg.SetAxisCntrlKd(3,1.1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisCntrlKd(int axisIndex, double value);
+int setAxisCntrlKd(int    axisIndex,
+                   double value);
 
 /** \breif Set PID-controller feed forward gain.\n
  *
@@ -2144,7 +2265,8 @@ int setAxisCntrlKd(int axisIndex, double value);
  * \note Example: Set PID-controller feed forward gain to 4.1 for axis 3.\n
  * "Cfg.SetAxisCntrlKff(3,4.1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisCntrlKff(int axisIndex, double value);
+int setAxisCntrlKff(int    axisIndex,
+                    double value);
 
 /** \breif Set PID-controller maximum output value.\n
  *
@@ -2156,7 +2278,8 @@ int setAxisCntrlKff(int axisIndex, double value);
  * \note Example: Set PID-controller max value to 1000 for axis 3.\n
  * "Cfg.SetAxisCntrlOutHL(3,1000)" //Command string to cmd_EAT.c.\n
  */
-int setAxisCntrlOutHL(int axisIndex, double value);
+int setAxisCntrlOutHL(int    axisIndex,
+                      double value);
 
 /** \breif Set PID-controller minimum output value.\n
  *
@@ -2168,7 +2291,8 @@ int setAxisCntrlOutHL(int axisIndex, double value);
  * \note Example: Set PID-controller min value to -1000 for axis 3.\n
  * "Cfg.SetAxisCntrlOutLL(3,-1000)" //Command string to cmd_EAT.c.\n
  */
-int setAxisCntrlOutLL(int axisIndex, double value);
+int setAxisCntrlOutLL(int    axisIndex,
+                      double value);
 
 /** \breif Set PID-controller minimum integral part output value.\n
  *
@@ -2180,7 +2304,8 @@ int setAxisCntrlOutLL(int axisIndex, double value);
  * \note Example: Set PID-controller minimum integral part output value to -700 for axis 3.\n
  * "Cfg.SetAxisCntrlIpartLL(3,-700)" //Command string to cmd_EAT.c.\n
  */
-int setAxisCntrlIpartLL(int axisIndex, double value);
+int setAxisCntrlIpartLL(int    axisIndex,
+                        double value);
 
 /** \breif Set PID-controller maximum integral part output value.\n
  *
@@ -2192,7 +2317,8 @@ int setAxisCntrlIpartLL(int axisIndex, double value);
  * \note Example: Set PID-controller maximum integral part output value to 700 for axis 3.\n
  * "Cfg.SetAxisCntrlIpartHL(3,700)" //Command string to cmd_EAT.c.\n
  */
-int setAxisCntrlIpartHL(int axisIndex, double value);
+int setAxisCntrlIpartHL(int    axisIndex,
+                        double value);
 
 /** \breif Get drive output scale numerator.\n
  *
@@ -2201,7 +2327,8 @@ int setAxisCntrlIpartHL(int axisIndex, double value);
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int getAxisDrvScaleNum(int axisIndex, double *value);
+int getAxisDrvScaleNum(int     axisIndex,
+                       double *value);
 
 /** \breif Set drive output scale numerator.\n
  *
@@ -2213,7 +2340,8 @@ int getAxisDrvScaleNum(int axisIndex, double *value);
  * \note Example: Set drive output scale numerator to 10000 for axis 3.\n
  * "Cfg.SetAxisDrvScaleNum(3,10000)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvScaleNum(int axisIndex, double value);
+int setAxisDrvScaleNum(int    axisIndex,
+                       double value);
 
 /** \breif Set drive output scale denominator.\n
  *
@@ -2225,7 +2353,8 @@ int setAxisDrvScaleNum(int axisIndex, double value);
  * \note Example: Set drive output scale denominator to 32000 for axis 3.\n
  * "Cfg.SetAxisDrvScaleDenom(3,32000)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvScaleDenom(int axisIndex, double value);
+int setAxisDrvScaleDenom(int    axisIndex,
+                         double value);
 
 /** \breif Set drive amplifier enable. NOTE: Only used in manual mode!!!\n
  *
@@ -2240,7 +2369,8 @@ int setAxisDrvScaleDenom(int axisIndex, double value);
  * \note Example: Enable amplifier for axis 3.\n
  * "Cfg.SetAxisDrvEnable(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvEnable(int axisIndex, int value);
+int setAxisDrvEnable(int axisIndex,
+                     int value);
 
 /** \breif Set drive velocity setpoint. NOTE: Only used in manual mode!!!\n
  *
@@ -2257,7 +2387,8 @@ int setAxisDrvEnable(int axisIndex, int value);
  * \note Example: Set drive velocity setpoint to 10 for axis 3.\n
  * "Cfg.SetAxisDrvVelSet(3,10)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvVelSet(int axisIndex, double value);
+int setAxisDrvVelSet(int    axisIndex,
+                     double value);
 
 /** \breif Set drive raw velocity setpoint. NOTE: Only used in manual mode!!!\n
  *
@@ -2274,7 +2405,8 @@ int setAxisDrvVelSet(int axisIndex, double value);
  * \note Example: Set raw drive velocity setpoint to 1000 for axis 3.\n
  * "Cfg.SetAxisDrvVelSetRaw(3,1000)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvVelSetRaw(int axisIndex, int value);
+int setAxisDrvVelSetRaw(int axisIndex,
+                        int value);
 
 /** \breif Set enable of brake.\n
  *
@@ -2297,7 +2429,8 @@ int setAxisDrvVelSetRaw(int axisIndex, int value);
  * \note Example: Enable brake for axis 3.\n
  * "Cfg.SetAxisDrvBrakeEnable(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvBrakeEnable(int axisIndex, int enable);
+int setAxisDrvBrakeEnable(int axisIndex,
+                          int enable);
 
 /** \breif Set brake open delay time .\n
  *
@@ -2315,7 +2448,8 @@ int setAxisDrvBrakeEnable(int axisIndex, int enable);
  * \note Example: Set brake open delay time for axis 3 to 100 cycles.\n
  * "Cfg.SetAxisDrvBrakeOpenDelayTime(3,100)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvBrakeOpenDelayTime(int axisIndex, int delayTime);
+int setAxisDrvBrakeOpenDelayTime(int axisIndex,
+                                 int delayTime);
 
 /** \breif Set brake close ahead time .\n
  *
@@ -2332,7 +2466,8 @@ int setAxisDrvBrakeOpenDelayTime(int axisIndex, int delayTime);
  * \note Example: Set brake close ahead time for axis 3 to 100 cycles.\n
  * "Cfg.SetAxisDrvBrakeCloseAheadTime(3,100)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvBrakeCloseAheadTime(int axisIndex, int aheadTime);
+int setAxisDrvBrakeCloseAheadTime(int axisIndex,
+                                  int aheadTime);
 
 /** \breif Set enable of reduce torque functionality.\n
  *
@@ -2351,7 +2486,8 @@ int setAxisDrvBrakeCloseAheadTime(int axisIndex, int aheadTime);
  * \note Example: Enable reduce torque for axis 3.\n
  * "Cfg.SetAxisDrvReduceTorqueEnable(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvReduceTorqueEnable(int axisIndex, int enable);
+int setAxisDrvReduceTorqueEnable(int axisIndex,
+                                 int enable);
 
 /** \breif Set drive type.\n
  *
@@ -2367,7 +2503,8 @@ int setAxisDrvReduceTorqueEnable(int axisIndex, int enable);
  * \note Example: Set axis 3 drive type to stepper.\n
  * "Cfg.SetAxisDrvType(3,0)" //Command string to cmd_EAT.c.\n
  */
-int setAxisDrvType(int axisIndex, int type);
+int setAxisDrvType(int axisIndex,
+                   int type);
 
 /** \breif Get "at target" monitoring tolerance.\n
  * \param[in] axisIndex  Axis index.\n
@@ -2375,7 +2512,8 @@ int setAxisDrvType(int axisIndex, int type);
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int getAxisMonAtTargetTol(int axisIndex, double *value);
+int getAxisMonAtTargetTol(int     axisIndex,
+                          double *value);
 
 /** \breif Set "at target" monitoring tolerance.\n
  *
@@ -2396,7 +2534,8 @@ int getAxisMonAtTargetTol(int axisIndex, double *value);
  * \note Example: Set at target tolerance to 0.1 for axis 7.\n
  * "Cfg.SetAxisMonAtTargetTol(7,0.1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonAtTargetTol(int axisIndex, double value);
+int setAxisMonAtTargetTol(int    axisIndex,
+                          double value);
 
 /** \breif Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n
@@ -2404,7 +2543,8 @@ int setAxisMonAtTargetTol(int axisIndex, double value);
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int getAxisMonAtTargetTime(int axisIndex, int *value);
+int getAxisMonAtTargetTime(int  axisIndex,
+                           int *value);
 
 /** \breif Set "at target" monitoring time (cycles).\n
  *
@@ -2424,7 +2564,8 @@ int getAxisMonAtTargetTime(int axisIndex, int *value);
  * \note Example: Set at target tolerance time (cycles) to 10 for axis 7.\n
  * "Cfg.SetAxisMonAtTargetTime(7,10)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonAtTargetTime(int axisIndex, int value);
+int setAxisMonAtTargetTime(int axisIndex,
+                           int value);
 
 /** \breif Get enable "at target" monitoring.\n
  *
@@ -2433,7 +2574,8 @@ int setAxisMonAtTargetTime(int axisIndex, int value);
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int getAxisMonEnableAtTargetMon(int axisIndex, int *value);
+int getAxisMonEnableAtTargetMon(int  axisIndex,
+                                int *value);
 
 /** \breif Enable "at target" monitoring.\n
  *
@@ -2451,7 +2593,8 @@ int getAxisMonEnableAtTargetMon(int axisIndex, int *value);
  * \note Example: Enable at target monitoring for axis 7.\n
  * "Cfg.SetAxisMonEnableAtTargetMon(7,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonEnableAtTargetMon(int axisIndex, int value);
+int setAxisMonEnableAtTargetMon(int axisIndex,
+                                int value);
 
 /** \breif Get position lag maximum monitoring tolerance.\n
  *
@@ -2460,7 +2603,8 @@ int setAxisMonEnableAtTargetMon(int axisIndex, int value);
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int getAxisMonPosLagTol(int axisIndex, double *value);
+int getAxisMonPosLagTol(int     axisIndex,
+                        double *value);
 
 /** \breif Set position lag maximum monitoring tolerance.\n
  *
@@ -2483,7 +2627,8 @@ int getAxisMonPosLagTol(int axisIndex, double *value);
  * \note Example: Set maximum position lag tolerance to 0.2 for axis 7.\n
  * "Cfg.SetAxisMonPosLagTol(7,0.2)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonPosLagTol(int axisIndex, double value);
+int setAxisMonPosLagTol(int    axisIndex,
+                        double value);
 
 /** \breif Get position lag monitoring time (cycles).\n
  *
@@ -2492,7 +2637,8 @@ int setAxisMonPosLagTol(int axisIndex, double value);
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int getAxisMonPosLagTime(int axisIndex, int *value);
+int getAxisMonPosLagTime(int  axisIndex,
+                         int *value);
 
 /** \breif Set position lag monitoring time (cycles).\n
  *
@@ -2515,7 +2661,8 @@ int getAxisMonPosLagTime(int axisIndex, int *value);
  * \note Example: Set position lag time (cycles) to 10 for axis 7.\n
  * "Cfg.SetAxisMonPosLagTime(7,10)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonPosLagTime(int axisIndex, int value);
+int setAxisMonPosLagTime(int axisIndex,
+                         int value);
 
 /** \breif Get position lag monitoring enable.\n
  *
@@ -2535,27 +2682,29 @@ int setAxisMonPosLagTime(int axisIndex, int value);
  * \note Example: Disable position lag monitoring for axis 2.\n
  * "Cfg.SetAxisMonEnableLagMon(2,0)" //Command string to cmd_EAT.c.\n
  */
-int getAxisMonEnableLagMon(int axisIndex, int *value);
+int getAxisMonEnableLagMon(int  axisIndex,
+                           int *value);
 
-  /** \breif Enable position lag monitoring.\n
- *
-  *  The position lag monitoring functionality monitors the difference between
- *  the actual position and trajectory generated setpoint position. The motion
- *  can be interlocked if the difference exceeds a certain tolerance for a certain
- *  number of cycles, see command setAxisMonPosLagTime() and setAxisMonPosLagTol()
- *  for more information.\n
- *  A big position lag error during a motion could be generated by bad tuning or
- *  mechanical issues.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[in] value monitoring enabled.\n.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Disable position lag monitoring for axis 2.\n
- * "Cfg.SetAxisMonEnableLagMon(2,0)" //Command string to cmd_EAT.c.\n
- */
-int setAxisMonEnableLagMon(int axisIndex, int value);
+/** \breif Enable position lag monitoring.\n
+*
+*  The position lag monitoring functionality monitors the difference between
+*  the actual position and trajectory generated setpoint position. The motion
+*  can be interlocked if the difference exceeds a certain tolerance for a certain
+*  number of cycles, see command setAxisMonPosLagTime() and setAxisMonPosLagTol()
+*  for more information.\n
+*  A big position lag error during a motion could be generated by bad tuning or
+*  mechanical issues.\n
+*
+* \param[in] axisIndex  Axis index.\n
+* \param[in] value monitoring enabled.\n.\n
+*
+* \return 0 if success or otherwise an error code.\n
+*
+* \note Example: Disable position lag monitoring for axis 2.\n
+* "Cfg.SetAxisMonEnableLagMon(2,0)" //Command string to cmd_EAT.c.\n
+*/
+int setAxisMonEnableLagMon(int axisIndex,
+                           int value);
 
 /** \breif Set maximum allowed velocity.\n
  *
@@ -2573,7 +2722,8 @@ int setAxisMonEnableLagMon(int axisIndex, int value);
  * \note Example: Set maximum velocoity for axis 3 to 20.\n
  * "Cfg.SetAxisMonMaxVel(3,20)" //Command string to cmd_EAT.c.\n
  */
-int getAxisMonMaxVel(int axisIndex, double *value);
+int getAxisMonMaxVel(int     axisIndex,
+                     double *value);
 
 /** \breif Get maximum allowed velocity.\n
  *
@@ -2586,7 +2736,8 @@ int getAxisMonMaxVel(int axisIndex, double *value);
  * \return 0 if success or otherwise an error code.\n
  *
  */
-int setAxisMonMaxVel(int axisIndex, double value);
+int setAxisMonMaxVel(int    axisIndex,
+                     double value);
 
 /** \breif Enable maximum velocity monitoring (over speed).\n
  *
@@ -2601,7 +2752,8 @@ int setAxisMonMaxVel(int axisIndex, double value);
  * \note Example: Enable over speed monitoring for axis 3.\n
  * "Cfg.SetAxisMonEnableMaxVel(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonEnableMaxVel(int axisIndex, int value);
+int setAxisMonEnableMaxVel(int axisIndex,
+                           int value);
 
 /** \breif Get enable maximum velocity monitoring (over speed).\n
  *
@@ -2611,7 +2763,8 @@ int setAxisMonEnableMaxVel(int axisIndex, int value);
  * \return 0 if success or otherwise an error code.\n
  *
  */
-int getAxisMonEnableMaxVel(int axisIndex, int *value);
+int getAxisMonEnableMaxVel(int  axisIndex,
+                           int *value);
 
 /** \breif Set velocity monitoring interlock delay for drive.\n
  *
@@ -2632,7 +2785,8 @@ int getAxisMonEnableMaxVel(int axisIndex, int *value);
  * \note Example: Set drive over speed interlock delay to 10 cycles for axis 4.\n
  * "Cfg.SetAxisMonMaxVelDriveILDelay(4,10)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonMaxVelDriveILDelay(int axisIndex, int value);
+int setAxisMonMaxVelDriveILDelay(int axisIndex,
+                                 int value);
 
 /** \breif Set velocity monitoring interlock delay for trajectory.\n
  *
@@ -2654,7 +2808,8 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex, int value);
  * for axis 4.\n
  * "Cfg.SetAxisMonMaxVelTrajILDelay(4,10)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonMaxVelTrajILDelay(int axisIndex, int value);
+int setAxisMonMaxVelTrajILDelay(int axisIndex,
+                                int value);
 
 /** \breif Set sequence timeout time in seconds.\n
  *
@@ -2671,7 +2826,8 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex, int value);
  * \note Example: Set sequence timeout value for axis 2 to 1 minute.\n
  * "Cfg.SetAxisSeqTimeout(2,60)" //Command string to cmd_EAT.c.\n
  */
-int setAxisSeqTimeout(int axisIndex, int value);
+int setAxisSeqTimeout(int axisIndex,
+                      int value);
 
 /** \breif Enable controller output high limit monitoring.\n
  *
@@ -2694,7 +2850,8 @@ int setAxisSeqTimeout(int axisIndex, int value);
  * \note Example: Disable controller output high limit monitoring for axis 2.\n
  * "Cfg.SetAxisMonEnableCntrlOutHLMon(2,0)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value);
+int setAxisMonEnableCntrlOutHLMon(int axisIndex,
+                                  int value);
 
 /** \breif Set monitoring controller output high limit.\n
  *
@@ -2715,7 +2872,8 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value);
  * \note Example: Set maximum allowed output to 2000 for for axis 3.\n
  * "Cfg.SetAxisMonCntrlOutHL(3,2000)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonCntrlOutHL(int axisIndex, double value);
+int setAxisMonCntrlOutHL(int    axisIndex,
+                         double value);
 
 /** \breif Enable monitoring of velocity difference.\n
  *
@@ -2727,7 +2885,8 @@ int setAxisMonCntrlOutHL(int axisIndex, double value);
  * \note Example: Enable monitoring for axis 2.\n
  * "Cfg.SetAxisMonEnableVelocityDiff(2,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonEnableVelocityDiff(int axisIndex, int value);
+int setAxisMonEnableVelocityDiff(int axisIndex,
+                                 int value);
 
 /** \breif Set trajectory interlock filter time in cycles for velocity
  * difference monitoring.\n
@@ -2740,7 +2899,8 @@ int setAxisMonEnableVelocityDiff(int axisIndex, int value);
  * \note Example: Set filter time to 100 cycles for axis 2.\n
  * "Cfg.SetAxisMonVelDiffTrajILDelay(2,100)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonVelDiffTrajILDelay(int axisIndex, int value);
+int setAxisMonVelDiffTrajILDelay(int axisIndex,
+                                 int value);
 
 /** \breif Set drive interlock filter time in cycles for velocity
  * difference monitoring.\n
@@ -2753,7 +2913,8 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex, int value);
  * \note Example: Set filter time to 500 cycles for axis 2.\n
  * "Cfg.SetAxisMonVelDiffDriveILDelay(2,500)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonVelDiffDriveILDelay(int axisIndex, int value);
+int setAxisMonVelDiffDriveILDelay(int axisIndex,
+                                  int value);
 
 /** \breif Set maximum allowed difference between setpoint speed and
  * actual speed±n
@@ -2766,7 +2927,8 @@ int setAxisMonVelDiffDriveILDelay(int axisIndex, int value);
  * \note Example: Set maximum difference 0.5 for axis 2.\n
  * "Cfg.SetAxisMonVelDiffTol(2,0.5)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonVelDiffTol(int axisIndex, double value);
+int setAxisMonVelDiffTol(int    axisIndex,
+                         double value);
 
 /** \breif Enable motion axis interlock from EtherCAT entry.\n
  *
@@ -2786,7 +2948,8 @@ int setAxisMonVelDiffTol(int axisIndex, double value);
  * \note Example: Enable external interlock for axis 7.\n
  * "Cfg.SetAxisMonEnableExtHWInterlock(7,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonEnableExternalInterlock(int axisIndex, int value);
+int setAxisMonEnableExternalInterlock(int axisIndex,
+                                      int value);
 
 /** \breif Set polarity of motion axis interlock from EtherCAT entry.\n
  *
@@ -2808,7 +2971,8 @@ int setAxisMonEnableExternalInterlock(int axisIndex, int value);
  * \note Example: Set external interlock to NC for axis 7.\n
  * "Cfg.SetAxisMonExtHWInterlockPolarity(7,0)" //Command string to cmd_EAT.c.\n
  */
-int setAxisMonExtHWInterlockPolarity(int axisIndex, int value);
+int setAxisMonExtHWInterlockPolarity(int axisIndex,
+                                     int value);
 
 /** \breif Enable commands from other axis.\n
  *
@@ -2824,7 +2988,8 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex, int value);
  * \note Example: Enable command from other axis for axis 3.\n
  * "SetAxisEnableCommandsFromOtherAxis(3,1)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEnableCommandsFromOtherAxis(int axisIndex, int value);
+int setAxisEnableCommandsFromOtherAxis(int axisIndex,
+                                       int value);
 
 /** \breif Enable command transformation expression.\n
  *
@@ -2839,7 +3004,8 @@ int setAxisEnableCommandsFromOtherAxis(int axisIndex, int value);
  * \note Example: Disable command transformation expression axis 5.\n
  * "SetAxisEnableCommandsTransform(5,0)" //Command string to cmd_EAT.c.\n
  */
-int setAxisEnableCommandsTransform(int axisIndex, int value);
+int setAxisEnableCommandsTransform(int axisIndex,
+                                   int value);
 
 /** \breif Set axis command transformation expression.\n
  *
@@ -2865,7 +3031,8 @@ int setAxisEnableCommandsTransform(int axisIndex, int value);
  * "SetAxisTransformCommandExpr(5)=en2:=en1 or en5# ex1:=ex2 + ex7#"
  * //Command string to cmd_EAT.c.\n
  */
-int setAxisTransformCommandExpr(int axisIndex,char *expr);
+int setAxisTransformCommandExpr(int   axisIndex,
+                                char *expr);
 
 /** \breif Sets application mode
  *
@@ -2895,7 +3062,8 @@ int setAppMode(int mode);
  * \note Example: Create a virtual axis at axisIndex 1.\n
  *  "Cfg.CreateAxis(1,2)" //Command string to cmd_EAT.c\n
  */
-int createAxis(int axisIndex, int type);
+int createAxis(int axisIndex,
+               int type);
 
 /** \breif Validates the current configuration)"
  *
@@ -2931,7 +3099,11 @@ int validateConfig();
    *  "Cfg.LinkEcEntryToAxisEncoder(1,POSITION_ACT,5,0,-1)" //Command string
    *  to cmd_EAT.c\n
    */
-int linkEcEntryToAxisEnc(int slaveBusPosition,char *entryIdString,int axisIndex,int encoderEntryIndex,int entryBitIndex);
+int linkEcEntryToAxisEnc(int   slaveBusPosition,
+                         char *entryIdString,
+                         int   axisIndex,
+                         int   encoderEntryIndex,
+                         int   entryBitIndex);
 
 /** \breif Links an EtherCAT entry to an object.
    *
@@ -2961,7 +3133,8 @@ int linkEcEntryToAxisEnc(int slaveBusPosition,char *entryIdString,int axisIndex,
    *  to cmd_EAT.c\n
    *     *
    */
-int linkEcEntryToObject(char *ecPath,char *objPath);
+int linkEcEntryToObject(char *ecPath,
+                        char *objPath);
 
 /** \breif Links an EtherCAT entry to the drive object of the axis at axisIndex.
    *
@@ -3005,7 +3178,11 @@ int linkEcEntryToObject(char *ecPath,char *objPath);
    *  and "ONE" with default value set to 1.\n
    *   "Cfg.LinkEcEntryToAxisDrive(-1,ONE,5,0,0)" //Command string to cmd_EAT.c\n
    */
-int linkEcEntryToAxisDrv(int slaveBusPosition,char *entryIdString,int axisIndex,int driveEntryIndex,int entryBitIndex);
+int linkEcEntryToAxisDrv(int   slaveBusPosition,
+                         char *entryIdString,
+                         int   axisIndex,
+                         int   driveEntryIndex,
+                         int   entryBitIndex);
 
 /** \breif Links an EtherCAT entry to the monitor object of the axis at axisIndex\n
  *
@@ -3038,7 +3215,11 @@ int linkEcEntryToAxisDrv(int slaveBusPosition,char *entryIdString,int axisIndex,
  *  zero and "ONE" with default value set to 1.\n
  *   "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,5,1,0)" //Command string to cmd_EAT.c\n
  */
-int linkEcEntryToAxisMon(int slaveBusPosition,char *entryIdString,int axisIndex,int monitorEntryIndex,int entryBitIndex);
+int linkEcEntryToAxisMon(int   slaveBusPosition,
+                         char *entryIdString,
+                         int   axisIndex,
+                         int   monitorEntryIndex,
+                         int   entryBitIndex);
 
 /** \breif Links an EtherCAT entry to the ethecat master object for hardware
  *   status output\n
@@ -3060,7 +3241,8 @@ int linkEcEntryToAxisMon(int slaveBusPosition,char *entryIdString,int axisIndex,
  *  status output for ethercat master.\n
  *   "Cfg.LinkEcEntryToEcStatusOutput(1,"OUTPUT_0")" //Command string to cmd_EAT.c\n
  */
-int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString);
+int linkEcEntryToEcStatusOutput(int   slaveIndex,
+                                char *entryIDString);
 
 /** \breif Links an EtherCAT entry to the an axis object for
  *   status output\n
@@ -3084,7 +3266,9 @@ int linkEcEntryToEcStatusOutput(int slaveIndex,char *entryIDString);
  *   "Cfg.LinkEcEntryToAxisStatusOutput(1,"OUTPUT_0",2)" //Command string to cmd_EAT.c\n
  */
 
-int linkEcEntryToAxisStatusOutput(int slaveIndex,char *entryIDString,int axisIndex);
+int linkEcEntryToAxisStatusOutput(int   slaveIndex,
+                                  char *entryIDString,
+                                  int   axisIndex);
 
 /** \breif Create an event object.
  *
@@ -3140,7 +3324,11 @@ int createEvent(int index);
  *   \todo This function have not consistent parameter order with the other
  *    link functions as "linkEcEntryToAxisMon".\n
  */
-int linkEcEntryToEvent(int indexEvent,int eventEntryIndex,int slaveBusPosition,char *entryIDString,int bitIndex);
+int linkEcEntryToEvent(int   indexEvent,
+                       int   eventEntryIndex,
+                       int   slaveBusPosition,
+                       char *entryIDString,
+                       int   bitIndex);
 
 /** \breif Set event type.\n
  *
@@ -3154,7 +3342,8 @@ int linkEcEntryToEvent(int indexEvent,int eventEntryIndex,int slaveBusPosition,c
  * \note Example: Set event type to edge triggered for event 5.\n
  *  "Cfg.SetEventType(5,1)" //Command string to cmd_EAT.c\n
  */
-int setEventType(int indexEvent,int type);
+int setEventType(int indexEvent,
+                 int type);
 
 /** \breif Set event sampling time (cycle counts).\n
  *
@@ -3173,7 +3362,8 @@ int setEventType(int indexEvent,int type);
  * \note Example: Set event sample time (cycle counts) to 10 for event 5.\n
  *  "Cfg.SetEventSampleTime(5,10)" //Command string to cmd_EAT.c\n
  */
-int setEventSampleTime(int indexEvent,int sampleTime);
+int setEventSampleTime(int indexEvent,
+                       int sampleTime);
 
 /** \breif Set event trigger edge.\n
  *
@@ -3188,7 +3378,8 @@ int setEventSampleTime(int indexEvent,int sampleTime);
  * \note Example: Create a event object at index 1.\n
  *  "Cfg.CreateEvent(1)" //Command string to cmd_EAT.c\n
  */
-int setEventTriggerEdge(int indexEvent,int triggerEdge);
+int setEventTriggerEdge(int indexEvent,
+                        int triggerEdge);
 
 /** \breif Enable event.\n
  *
@@ -3203,7 +3394,8 @@ int setEventTriggerEdge(int indexEvent,int triggerEdge);
  * \note Example: Start evaluation of events for event object 4 .\n
  *  "Cfg.SetEventEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setEventEnable(int indexEvent,int enable);
+int setEventEnable(int indexEvent,
+                   int enable);
 
 /** \breif Get event enabled.\n
  *
@@ -3218,7 +3410,8 @@ int setEventEnable(int indexEvent,int enable);
  * \note Example: Get Enabled for event 2 .\n
  *  "GetEventEnabled(2)" //Command string to cmd_EAT.c\n
  */
-int getEventEnabled(int indexEvent,int *enabled);
+int getEventEnabled(int  indexEvent,
+                    int *enabled);
 
 /** \breif Enable arm sequence.\n
  *
@@ -3235,7 +3428,8 @@ int getEventEnabled(int indexEvent,int *enabled);
  * \note Example: Enable arm sequence for event 3 .\n
  *  "Cfg.SetEventEnableArmSequence(3,1)" //Command string to cmd_EAT.c\n
  */
-int setEventEnableArmSequence(int indexEvent,int enable);
+int setEventEnableArmSequence(int indexEvent,
+                              int enable);
 
 /** \breif Enable diagnostic printouts from event object.\n
  *
@@ -3247,7 +3441,8 @@ int setEventEnableArmSequence(int indexEvent,int enable);
  * \note Example: Enable diagnostic printouts for event 3 .\n
  *  "Cfg.SetEventEnablePrintouts(3,1)" //Command string to cmd_EAT.c\n
  */
-int setEventEnablePrintouts(int indexEvent,int enable);
+int setEventEnablePrintouts(int indexEvent,
+                            int enable);
 
 /** \breif Force trigger event.\n
  *
@@ -3299,7 +3494,9 @@ int armEvent(int indexEvent);
  * index 1.\n
  *  "Cfg.CreateStorage(1,1000,0)" //Command string to cmd_EAT.c\n
  */
-int createDataStorage(int index, int elements, int bufferType);
+int createDataStorage(int index,
+                      int elements,
+                      int bufferType);
 
 /** \breif Clear data storage buffer.
  *
@@ -3325,7 +3522,8 @@ int clearStorage(int indexStorage);
  * with index 4.\n
  *  "GetStorageDataIndex(4)" //Command string to cmd_EAT.c\n
  */
-int getStorageDataIndex(int indexStorage,int *index);
+int getStorageDataIndex(int  indexStorage,
+                        int *index);
 
 /** \breif Enable diagnostic printouts from data storage object.\n
  *
@@ -3337,7 +3535,8 @@ int getStorageDataIndex(int indexStorage,int *index);
  * \note Example: Enable diagnostic printouts for data storage object 3 .\n
  *  "Cfg.SetStorageEnablePrintouts(3,1)" //Command string to cmd_EAT.c\n
  */
-int setStorageEnablePrintouts(int indexStorage,int enable);
+int setStorageEnablePrintouts(int indexStorage,
+                              int enable);
 
 /** \breif Print contents of buffer.\n
  *
@@ -3361,7 +3560,9 @@ int printStorageBuffer(int indexStorage);
  * \note Example: Read contents of data storage object 3 .\n
  *  "ReadDataStorage(3)" //Command string to cmd_EAT.c\n
  */
-int readStorageBuffer(int indexStorage, double **data, int* size);
+int readStorageBuffer(int      indexStorage,
+                      double **data,
+                      int     *size);
 
 /** \breif Writes data to storage buffer.\n
  *
@@ -3374,7 +3575,9 @@ int readStorageBuffer(int indexStorage, double **data, int* size);
  * \note Example: Write contents of data storage object 3 .\n
  *  "WriteDataStorage(3)=0,0,0,0,0,0...." //Command string to cmd_EAT.c\n
  */
-int writeStorageBuffer(int indexStorage, double *data, int size);
+int writeStorageBuffer(int     indexStorage,
+                       double *data,
+                       int     size);
 
 /** \breif Appends data to the end of storage buffer.\n
  *
@@ -3387,7 +3590,9 @@ int writeStorageBuffer(int indexStorage, double *data, int size);
  * \note Example: Append data to data storage object 3 .\n
  *  "AppendDataStorage(3)=0,0,0,0,0,0....." //Command string to cmd_EAT.c\n
  */
-int appendStorageBuffer(int indexStorage, double *data, int size);
+int appendStorageBuffer(int     indexStorage,
+                        double *data,
+                        int     size);
 
 /** \breif Set current data index of storage buffer.\n
  *
@@ -3403,7 +3608,8 @@ int appendStorageBuffer(int indexStorage, double *data, int size);
  * \note Example: Set current index of data storage 0 to 10.\n
  *  "Cfg.SetDataStorageCurrentDataIndex(0,10)" //Command string to cmd_EAT.c\n
  */
-int setDataStorageCurrentDataIndex(int indexStorage,int position);
+int setDataStorageCurrentDataIndex(int indexStorage,
+                                   int position);
 
 /** \breif Create recorder object.
  *
@@ -3436,7 +3642,8 @@ int createRecorder(int indexRecorder);
  * \note Example: Link storage object 5 to recorder object 3.\n
  * "Cfg.LinkStorageToRecorder(5,3)" //Command string to cmd_EAT.c\n
  */
-int linkStorageToRecorder(int indexStorage,int indexRecorder);
+int linkStorageToRecorder(int indexStorage,
+                          int indexRecorder);
 
 /** \breif Links an EtherCAT entry to a recorder object. \n
  *
@@ -3464,7 +3671,11 @@ int linkStorageToRecorder(int indexStorage,int indexRecorder);
  * \todo This function have not consistent parameter order with the other
  *  link functions as "linkEcEntryToAxisMon".\n
  */
-int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveBusPosition,char *entryIDString,int bitIndex);
+int linkEcEntryToRecorder(int   indexRecorder,
+                          int   recorderEntryIndex,
+                          int   slaveBusPosition,
+                          char *entryIDString,
+                          int   bitIndex);
 
 /** \breif Links an axis data source to a recorder object. \n
  *
@@ -3512,7 +3723,9 @@ int linkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,int slaveBusP
  *  in slave 1 as data for recorder object 7.\n
  *  "Cfg.linkAxisDataToRecorder(1,4,2)" //Command string to cmd_EAT.c\n
  */
-int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore);
+int linkAxisDataToRecorder(int indexRecorder,
+                           int axisIndex,
+                           int dataToStore);
 
 /** \breif Enable recorder.\n
  *
@@ -3526,7 +3739,8 @@ int linkAxisDataToRecorder(int indexRecorder,int axisIndex,int dataToStore);
  * \note Example: Start data recording of recorder object 4.\n
  *  "Cfg.SetRecorderEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setRecorderEnable(int indexRecorder,int enable);
+int setRecorderEnable(int indexRecorder,
+                      int enable);
 
 /** \breif Get recorder enabled.\n
  *
@@ -3540,7 +3754,8 @@ int setRecorderEnable(int indexRecorder,int enable);
  * \note Example: Get recorder object 4 enabled.\n
  *  "GetRecorderEnabled(4)" //Command string to cmd_EAT.c\n
  */
-int getRecorderEnabled(int indexRecorder,int *enabled);
+int getRecorderEnabled(int  indexRecorder,
+                       int *enabled);
 
 /** \breif Enable diagnostic printouts from recorder object.\n
  *
@@ -3552,7 +3767,8 @@ int getRecorderEnabled(int indexRecorder,int *enabled);
  * \note Example: Enable diagnostic printouts for recorder object 3 .\n
  *  "Cfg.SetRecorderEnablePrintouts(3,1)" //Command string to cmd_EAT.c\n
  */
-int setRecorderEnablePrintouts(int indexRecorder,int enable);
+int setRecorderEnablePrintouts(int indexRecorder,
+                               int enable);
 
 /** \breif Link recorder object to event object.\n
  *
@@ -3566,7 +3782,9 @@ int setRecorderEnablePrintouts(int indexRecorder,int enable);
  * \note Example: Link recorder object 3 with event object 4, event consumer index 0.\n
  *  "Cfg.LinkRecorderToEvent(3,4,0)" //Command string to cmd_EAT.c\n
  */
-int linkRecorderToEvent(int indexRecorder,int indexEvent, int consumerIndex);
+int linkRecorderToEvent(int indexRecorder,
+                        int indexEvent,
+                        int consumerIndex);
 
 /** \breif Force trigger recorder.\n
  *
@@ -3615,7 +3833,9 @@ int createCommandList(int indexCommandList);
  * \note Example: Link coommand list object 3 with event object 4, event consumer index 0.\n
  *  "Cfg.LinkCommandListToEvent(3,4,0)" //Command string to cmd_EAT.c\n
  */
-int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerIndex);
+int linkCommandListToEvent(int indexCommandList,
+                           int indexEvent,
+                           int consumerIndex);
 
 /** \breif Enable command list.\n
  *
@@ -3629,7 +3849,8 @@ int linkCommandListToEvent(int indexCommandList,int indexEvent, int consumerInde
  * \note Example: "Enable" command list execution for object 4.\n
  *  "Cfg.SetCommandListEnable(4,1)" //Command string to cmd_EAT.c\n
  */
-int setCommandListEnable(int indexCommandList,int enable);
+int setCommandListEnable(int indexCommandList,
+                         int enable);
 
 /** \breif Enable diagnostic printouts from command list object.\n
  *
@@ -3641,7 +3862,8 @@ int setCommandListEnable(int indexCommandList,int enable);
  * \note Example: Enable diagnostic printouts for command list object 3 .\n
  *  "Cfg.SetCommandListEnablePrintouts(3,1)" //Command string to cmd_EAT.c\n
  */
-int setCommandListEnablePrintouts(int indexCommandList,int enable);
+int setCommandListEnablePrintouts(int indexCommandList,
+                                  int enable);
 
 /** \breif Add command to command list.\n
  *
@@ -3654,7 +3876,8 @@ int setCommandListEnablePrintouts(int indexCommandList,int enable);
  *  "Cfg.AddCommandToCommandList(1)=Main.M1.bExecute=1" //Command string to
  *  cmd_EAT.c\n
  */
-int addCommandListCommand(int indexCommandList,char *expr);
+int addCommandListCommand(int   indexCommandList,
+                          char *expr);
 
 /** \breif Force trigger command list.\n
  *
@@ -3730,15 +3953,20 @@ int ecResetMaster(int masterIndex);
  * \note Example: Add a EL5101 Beckhoff slave at slave position 1.\n
  *  "Cfg.EcAddSlave(0,1,0x2,0x13ed3052)" //Command string to cmd_EAT.c\n
  */
-int ecAddSlave(uint16_t alias, uint16_t position, uint32_t vendorId,uint32_t productCode);
+int ecAddSlave(uint16_t alias,
+               uint16_t position,
+               uint32_t vendorId,
+               uint32_t productCode);
 
-///obsolete command. Use ecAddEntryComplete() command instead.\n
-int ecAddSyncManager(int slaveIndex,int direction,uint8_t syncMangerIndex);
+/// obsolete command. Use ecAddEntryComplete() command instead.\n
+int ecAddSyncManager(int     slaveIndex,
+                     int     direction,
+                     uint8_t syncMangerIndex);
 
-///obsolete command. Use ecAddEntryComplete() command instead.\n
-int ecAddPdo(int slaveIndex,int syncManager,uint16_t pdoIndex);
-
-//int ecAddEntry(int slaveIndex,int nSyncManager,int nPdo,uint16_t nEntryIndex,uint8_t  nEntrySubIndex, uint8_t nBits);
+/// obsolete command. Use ecAddEntryComplete() command instead.\n
+int ecAddPdo(int      slaveIndex,
+             int      syncManager,
+             uint16_t pdoIndex);
 
 /** \breif Adds an EtherCAT slave to the hardware configuration.\n
  *
@@ -3789,17 +4017,17 @@ int ecAddPdo(int slaveIndex,int syncManager,uint16_t pdoIndex);
  * VELOCITY_SETPOINT)" //Command string to cmd_EAT.c\n
  */
 int ecAddEntryComplete(
-    uint16_t slaveBusPosition,
-    uint32_t vendorId,
-    uint32_t productCode,
-    int direction,
-    uint8_t syncMangerIndex,
-    uint16_t pdoIndex,
-    uint16_t entryIndex,
-    uint8_t  entrySubIndex,
-    uint8_t bits,
-    char *entryIDString,
-    int signedValue);
+  uint16_t slaveBusPosition,
+  uint32_t vendorId,
+  uint32_t productCode,
+  int      direction,
+  uint8_t  syncMangerIndex,
+  uint16_t pdoIndex,
+  uint16_t entryIndex,
+  uint8_t  entrySubIndex,
+  uint8_t  bits,
+  char    *entryIDString,
+  int      signedValue);
 
 /** \breif Adds a memory map object to access data directly from EtherCAT
  *   domain.\n
@@ -3827,12 +4055,11 @@ int ecAddEntryComplete(
  * "Cfg.EcAddMemMap(10,AI1,200,2,WAVEFORM)" //Command string to cmd_EAT.c\n
  */
 int ecAddMemMap(
-    uint16_t startEntryBusPosition,
-    char *startEntryIDString,
-    size_t byteSize,
-    int direction,
-    char *memMapIDString
-    );
+  uint16_t startEntryBusPosition,
+  char    *startEntryIDString,
+  size_t   byteSize,
+  int      direction,
+  char    *memMapIDString);
 
 /** \breif Configure slave DC clock.\n
  *
@@ -3859,12 +4086,12 @@ int ecAddMemMap(
  * cmd_EAT.c\n
  */
 int ecSlaveConfigDC(
-    int slaveBusPosition,
-    uint16_t assignActivate, /**< AssignActivate word. */
-    uint32_t sync0Cycle, /**< SYNC0 cycle time [ns]. */
-    int32_t sync0Shift, /**< SYNC0 shift time [ns]. */
-    uint32_t sync1Cycle, /**< SYNC1 cycle time [ns]. */
-    int32_t sync1Shift /**< SYNC1 shift time [ns]. */);
+  int      slaveBusPosition,
+  uint16_t assignActivate,   /**< AssignActivate word. */
+  uint32_t sync0Cycle,   /**< SYNC0 cycle time [ns]. */
+  int32_t  sync0Shift,  /**< SYNC0 shift time [ns]. */
+  uint32_t sync1Cycle,   /**< SYNC1 cycle time [ns]. */
+  int32_t  sync1Shift  /**< SYNC1 shift time [ns]. */);
 
 /** \breif Select EtherCAT reference clock.\n
  *
@@ -3879,7 +4106,8 @@ int ecSlaveConfigDC(
  * \note Example: Select slave 3 as reference clock for master 0.\n
  * "Cfg.EcSelectReferenceDC(0,3)" //Command string to cmd_EAT.c\n
  */
-int ecSelectReferenceDC(int masterIndex,int slaveBusPosition);
+int ecSelectReferenceDC(int masterIndex,
+                        int slaveBusPosition);
 
 /** \breif Adds a Service Data Object for writing.
  *
@@ -3908,7 +4136,11 @@ int ecSelectReferenceDC(int masterIndex,int slaveBusPosition);
  * on slave position 2.\n
  * "Cfg.EcAddSdo(2,0x8010,0x1,1000,2)" //Command string to cmd_EAT.c\n
  */
-int ecAddSdo(uint16_t slaveBusPosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value, int byteSize); //size in bytes
+int ecAddSdo(uint16_t slaveBusPosition,
+             uint16_t sdoIndex,
+             uint8_t  sdoSubIndex,
+             uint32_t value,
+             int      byteSize);
 
 /** \breif Write to a Service Data Object.
  *
@@ -3935,7 +4167,11 @@ int ecAddSdo(uint16_t slaveBusPosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uin
  * on slave position 2.\n
  * "Cfg.EcWriteSdo(2,0x8010,0x1,1000,2)" //Command string to cmd_EAT.c\n
  */
-int ecWriteSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint32_t value,int byteSize);
+int ecWriteSdo(uint16_t slavePosition,
+               uint16_t sdoIndex,
+               uint8_t  sdoSubIndex,
+               uint32_t value,
+               int      byteSize);
 
 /** \breif Write to a Service Data Object.
  *
@@ -3943,7 +4179,10 @@ int ecWriteSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,uint
  * uint32_t value,int byteSize)" but without subindex. Complete SDO access will be used.
  *
  */
-int ecWriteSdoComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value,int byteSize);
+int ecWriteSdoComplete(uint16_t slavePosition,
+                       uint16_t sdoIndex,
+                       uint32_t value,
+                       int      byteSize);
 
 /** \breif Read a Service Data Object.
  *
@@ -3969,7 +4208,11 @@ int ecWriteSdoComplete(uint16_t slavePosition,uint16_t sdoIndex,uint32_t value,i
  * on slave position 2.\n
  * "Cfg.EcReadSdo(2,0x8010,0x1,2)" //Command string to cmd_EAT.c\n
  */
-uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,int byteSize,uint32_t *value);
+uint32_t ecReadSdo(uint16_t  slavePosition,
+                   uint16_t  sdoIndex,
+                   uint8_t   sdoSubIndex,
+                   int       byteSize,
+                   uint32_t *value);
 
 /** \breif Configure Slave watch dog.\n
  *
@@ -3990,7 +4233,9 @@ uint32_t ecReadSdo(uint16_t slavePosition,uint16_t sdoIndex,uint8_t sdoSubIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int ecSlaveConfigWatchDog(int slaveBusPosition,int watchdogDivider,int watchdogIntervals);
+int ecSlaveConfigWatchDog(int slaveBusPosition,
+                          int watchdogDivider,
+                          int watchdogIntervals);
 
 /** \breif Apply hardware configuration to master.\n
  *
@@ -4023,7 +4268,9 @@ int ecApplyConfig(int masterIndex);
   * added slave (slaveIndex=3).\n
   *  "Cfg.WriteEcEntry(3,1,0)" //Command string to cmd_EAT.c\n
   */
-int writeEcEntry(int slaveIndex,int entryIndex,uint64_t value);
+int writeEcEntry(int      slaveIndex,
+                 int      entryIndex,
+                 uint64_t value);
 
 /** \breif Writes a value to an EtherCAT entry addressed by slaveBusPosition
  * and entryIdString.\n
@@ -4045,7 +4292,9 @@ int writeEcEntry(int slaveIndex,int entryIndex,uint64_t value);
   * \note Example: Write a 1 to a digital output configured as "OUTPUT_0" on slave 1\n
   *  "Cfg.WriteEcEntryIDString(1,OUTPUT_1,1)" //Command string to cmd_EAT.c\n
   */
-int writeEcEntryIDString(int slaveBusPosition,char *entryIdString,uint64_t value);
+int writeEcEntryIDString(int      slaveBusPosition,
+                         char    *entryIdString,
+                         uint64_t value);
 
 /** \breif Read a value from an EtherCAT entry.\n
   *
@@ -4063,7 +4312,9 @@ int writeEcEntryIDString(int slaveBusPosition,char *entryIdString,uint64_t value
   * slave (slaveIndex=3).\n
   * "Cfg.ReadEcEntry(3,1)" //Command string to cmd_EAT.c\n
   */
-int readEcEntry(int slaveIndex,int entryIndex,uint64_t *value);
+int readEcEntry(int       slaveIndex,
+                int       entryIndex,
+                uint64_t *value);
 
 /** \breif Read a value from an EtherCAT entry addressed by slaveBusPosition
  *   and entryIdString.\n
@@ -4085,7 +4336,9 @@ int readEcEntry(int slaveIndex,int entryIndex,uint64_t *value);
   * \note Example: Read a digital input configured as "INPUT_0" on slave 1\n
   *  "Cfg.ReadEcEntryIDString(1,INPUT_0)" //Command string to cmd_EAT.c\n
   */
-int readEcEntryIDString(int slavePosition,char *entryIDString,uint64_t *value);
+int readEcEntryIDString(int       slavePosition,
+                        char     *entryIDString,
+                        uint64_t *value);
 
 /** \breif Read the object Index of an entry addressed by slaveBusPosition
  *   and entryIdString.\n
@@ -4115,7 +4368,9 @@ int readEcEntryIDString(int slavePosition,char *entryIDString,uint64_t *value);
   * \note Example: Read a the index of an entry configured as "INPUT_0" on slave 1\n
   *  "Cfg.ReadEcEntryIndexIDString(1,INPUT_0)" //Command string to cmd_EAT.c\n
   */
-int readEcEntryIndexIDString(int slavePosition,char *entryIDString,int *value);
+int readEcEntryIndexIDString(int   slavePosition,
+                             char *entryIDString,
+                             int  *value);
 
 /** \breif Read the object Index of an slave addressed by slaveBusPosition.\n
   *
@@ -4138,7 +4393,8 @@ int readEcEntryIndexIDString(int slavePosition,char *entryIDString,int *value);
   * \note Example: Read the slave index of the slave with bus position 5.\n
   *  "Cfg.ReadEcSlaveIndex(5)" //Command string to cmd_EAT.c\n
   */
-int readEcSlaveIndex(int slavePosition,int *value);
+int readEcSlaveIndex(int  slavePosition,
+                     int *value);
 
 /** \breif Link EtherCAT entry to ASYN parameter.
  *
@@ -4166,7 +4422,12 @@ int readEcSlaveIndex(int slavePosition,int *value);
  * on slave 10: "ec.s10.INPUT_1".\n
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entryIDString, int asynParType,int skipCycles);
+int linkEcEntryToAsynParameter(int         masterIndex,
+                               int         busPosition,
+                               const char *entryIDString,
+                               int         asynParType,
+                               int         skipCycles);
+
 /** \breif Initilize asyn for ecmc
  *
  *  \param[in] asynPortObject Asyn port object.\n
@@ -4174,7 +4435,7 @@ int linkEcEntryToAsynParameter(int masterIndex,int busPosition,const char *entry
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int initEcmcAsyn(void* asynPortObject);
+int initEcmcAsyn(void *asynPortObject);
 
 /** \breif Add default asyn parameters for ecmc
  *
@@ -4184,7 +4445,8 @@ int initEcmcAsyn(void* asynPortObject);
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int addDefaultAsynParams(int regAsynParams,int skipCycles);
+int addDefaultAsynParams(int regAsynParams,
+                         int skipCycles);
 
 /** \breif Add default asyn parameters for axis
  *
@@ -4195,7 +4457,9 @@ int addDefaultAsynParams(int regAsynParams,int skipCycles);
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
+int addDefaultAsynAxis(int regAsynParams,
+                       int axisIndex,
+                       int skipCycles);
 
 /** \breif Add diagnostic string for axis as asyn parameter.\n
  *
@@ -4206,7 +4470,9 @@ int addDefaultAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int addDiagAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
+int addDiagAsynAxis(int regAsynParams,
+                    int axisIndex,
+                    int skipCycles);
 
 /** \breif Add default asyn parameters for EtherCAT master
  *
@@ -4217,7 +4483,9 @@ int addDiagAsynAxis(int regAsynParams, int axisIndex,int skipCycles);
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int addDefaultAsynEc(int masterIndex,int regAsynParams,int skipCycles);
+int addDefaultAsynEc(int masterIndex,
+                     int regAsynParams,
+                     int skipCycles);
 
 /** \breif Add default asyn parameters for EtherCAT slave
  *
@@ -4229,7 +4497,10 @@ int addDefaultAsynEc(int masterIndex,int regAsynParams,int skipCycles);
  *
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int skipCycles);
+int addDefaultAsynEcSlave(int masterIndex,
+                          int busPosition,
+                          int regAsynParams,
+                          int skipCycles);
 
 /** \breif Link EtherCAT memory map to ASYN parameter.
  *
@@ -4260,7 +4531,10 @@ int addDefaultAsynEcSlave(int masterIndex,int busPosition,int regAsynParams,int 
  * "ec.mm.AI_1_ARRAY".\n
  * \note There's no ascii command in cmd_EAT.c for this method.\n
  */
-int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int asynParType,int skipCycles);
+int linkEcMemMapToAsynParameter(int         masterIndex,
+                                const char *memMapIDString,
+                                int         asynParType,
+                                int         skipCycles);
 
 /** \breif Read EtherCAT memory map object.
  *
@@ -4282,7 +4556,11 @@ int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int 
  * \note Example: memMapIDString for an memory map called "AI_1_ARRAY":
  * "ec.mm.AI_1_ARRAY".\n
  * \note There's no ascii command in cmd_EAT.c for this method.\n
- */int readEcMemMap(const char *memMapIDString,uint8_t *data,size_t bytesToRead, size_t *bytesRead);
+ */
+int readEcMemMap(const char *memMapIDString,
+                 uint8_t    *data,
+                 size_t      bytesToRead,
+                 size_t     *bytesRead);
 
 /** \breif Set update in realtime bit for an entry
  *
@@ -4305,10 +4583,9 @@ int linkEcMemMapToAsynParameter(int masterIndex,const char *memMapIDString, int 
  *  "Cfg.EcSetEntryUpdateInRealtime(AI_1,5,0)" //Command string to cmd_EAT.c\n
  */
 int ecSetEntryUpdateInRealtime(
-    uint16_t slavePosition,
-    char *entryIDString,
-    int updateInRealtime
-    );
+  uint16_t slavePosition,
+  char    *entryIDString,
+  int      updateInRealtime);
 
 /** \breif Enable EtherCAT bus diagnostics.\n
   *
@@ -4480,10 +4757,11 @@ int setEnableFunctionCallDiag(int value);
  * \note Example: Create PLC at index 0 (executing every cycle).\n
  *  "Cfg.CreatePLC(0)" //Command string to cmd_EAT.c\n
  */
-int createPLC(int index, int skipcycles);
+int createPLC(int index,
+              int skipcycles);
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif  // ifdef __cplusplus
 
-#endif /* MOTOR_H */
+#endif  /* HW_MOTOR_H_ */

@@ -1,17 +1,21 @@
-#ifndef CMD_EAT_H
-#define CMD_EAT_H
+#ifndef ECMC_CMD_EAT_H
+# define ECMC_CMD_EAT_H
 
-#include "cmd.h"
+# include "cmd.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif /* ifdef __cplusplus */
 
-  int cmd_EAT(int argc, const char *argv[], const char *seperator[],ecmcOutputBufferType *buffer);
-  int motorHandleOneArg(const char *myarg_1,ecmcOutputBufferType *buffer);
+int cmd_EAT(int                   argc,
+            const char           *argv[],
+            const char           *seperator[],
+            ecmcOutputBufferType *buffer);
+int motorHandleOneArg(const char           *myarg_1,
+                      ecmcOutputBufferType *buffer);
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif /* ifdef __cplusplus */
 
-#endif /* CMD_EAT_H */
+#endif  /* ECMC_CMD_EAT_H */

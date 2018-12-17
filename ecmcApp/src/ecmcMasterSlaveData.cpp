@@ -7,48 +7,39 @@
 
 #include "ecmcMasterSlaveData.h"
 
-ecmcMasterSlaveData::ecmcMasterSlaveData()
-{
+ecmcMasterSlaveData::ecmcMasterSlaveData() {
   initVars();
 }
 
 ecmcMasterSlaveData::~ecmcMasterSlaveData()
-{
- ;
+{}
+
+void ecmcMasterSlaveData::setPosition(double pos) {
+  pos_ = pos;
 }
 
-void ecmcMasterSlaveData::setPosition(double pos)
-{
-  pos_=pos;
+void ecmcMasterSlaveData::setVelocity(double vel) {
+  vel_ = vel;
 }
 
-void ecmcMasterSlaveData::setVelocity(double vel)
-{
-  vel_=vel;
-}
-
-double ecmcMasterSlaveData::getPosition()
-{
+double ecmcMasterSlaveData::getPosition() {
   return pos_;
 }
 
-double ecmcMasterSlaveData::getVelocity()
-{
+double ecmcMasterSlaveData::getVelocity() {
   return vel_;
 }
 
-void ecmcMasterSlaveData::initVars(){
-  pos_=0;
-  vel_=0;
-  ilock_=false;
+void ecmcMasterSlaveData::initVars() {
+  pos_   = 0;
+  vel_   = 0;
+  ilock_ = false;
 }
 
-void ecmcMasterSlaveData::setInterlock(bool ilock)
-{
-  ilock_=ilock;
+void ecmcMasterSlaveData::setInterlock(bool ilock) {
+  ilock_ = ilock;
 }
 
-bool ecmcMasterSlaveData::getInterlock()
-{
+bool ecmcMasterSlaveData::getInterlock() {
   return ilock_;
 }

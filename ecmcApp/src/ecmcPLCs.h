@@ -28,61 +28,89 @@
 #define ERROR_PLCS_PLC_NULL 0x20707
 #define ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED 0x20708
 
-#define CHECK_PLC_RETURN_IF_ERROR(index) {            \
-  if(index>=ECMC_MAX_PLCS || index<0){                \
-    LOGERR("ERROR: PLC index out of range.\n");       \
-    return ERROR_PLCS_INDEX_OUT_OF_RANGE;             \
-  }                                                   \
-  if(plcs_[index]==NULL){                             \
-    LOGERR("ERROR: PLC index NULL.\n");               \
-    return ERROR_PLCS_PLC_NULL;                       \
-  }                                                   \
-}                                                     \
+#define CHECK_PLC_RETURN_IF_ERROR(index) {        \
+    if (index >= ECMC_MAX_PLCS || index < 0) {    \
+      LOGERR("ERROR: PLC index out of range.\n"); \
+      return ERROR_PLCS_INDEX_OUT_OF_RANGE;       \
+    }                                             \
+    if (plcs_[index] == NULL) {                   \
+      LOGERR("ERROR: PLC index NULL.\n");         \
+      return ERROR_PLCS_PLC_NULL;                 \
+    }                                             \
+}                                                 \
 
-class ecmcPLCs : public ecmcError
-{
-public:
-  ecmcPLCs(ecmcEc *ec);
+class ecmcPLCs : public ecmcError {
+ public:
+  explicit ecmcPLCs(ecmcEc *ec);
   ~ecmcPLCs();
-  int createPLC(int plcIndex, int skipCycles);
-  int deletePLC(int plcIndex);
-  int setAxisArrayPointer(ecmcAxisBase *axis,int index);
-  int setDataStoragePointer(ecmcDataStorage *ds,int index);
-  int execute(bool ecOK);
-  int setExpr(int plcIndex,char *expr);
-  int parseExpr(int plcIndex,const char * exprStr);
-  int getExpr(int plcIndex, std::string *expr);
-  int addExprLine(int plcIndex,const char *exprStr);
-  int loadPLCFile(int plcIndex,char *fileName);
-  int clearExpr(int plcIndex);
-  int compileExpr(int plcIndex);
-  int setEnable(int plcIndex,int enable);
-  int getEnable(int plcIndex,int *enabled);
-  int getCompiled(int plcIndex,int *compiled);
-  int readStaticPLCVar(int plcIndex,const char *varName,double* data);
-  int writeStaticPLCVar(int plcIndex,const char *varName,double data);
-  int validate();
+  int  createPLC(int plcIndex,
+                 int skipCycles);
+  int  deletePLC(int plcIndex);
+  int  setAxisArrayPointer(ecmcAxisBase *axis,
+                           int           index);
+  int  setDataStoragePointer(ecmcDataStorage *ds,
+                             int              index);
+  int  execute(bool ecOK);
+  int  setExpr(int   plcIndex,
+               char *expr);
+  int  parseExpr(int         plcIndex,
+                 const char *exprStr);
+  int  getExpr(int          plcIndex,
+               std::string *expr);
+  int  addExprLine(int         plcIndex,
+                   const char *exprStr);
+  int  loadPLCFile(int   plcIndex,
+                   char *fileName);
+  int  clearExpr(int plcIndex);
+  int  compileExpr(int plcIndex);
+  int  setEnable(int plcIndex,
+                 int enable);
+  int  getEnable(int  plcIndex,
+                 int *enabled);
+  int  getCompiled(int  plcIndex,
+                   int *compiled);
+  int  readStaticPLCVar(int         plcIndex,
+                        const char *varName,
+                        double     *data);
+  int  writeStaticPLCVar(int         plcIndex,
+                         const char *varName,
+                         double      data);
+  int  validate();
   int  getErrorID();
   bool getError();
   void errorReset();
-private:
+
+ private:
   void initVars();
-  int createNewGlobalDataIF(char * varName,ecmcDataSourceType dataSource,ecmcPLCDataIF **outDataIF);
-  int createAndRegisterNewDataIF(int plcIndex,char * varName,ecmcDataSourceType dataSource);
-  int getAxisIndex(char *varName);
-  int getDsIndex(char *varName);
-  int addPLCDefaultVariables(int plcIndex,int skipCycles);
-  int updateAllScanTimeVars();
-  int parseAxis(int plcIndex,const char * exprStr);
-  int parseEC(int plcIndex,const char * exprStr);
-  int parseStatic(int plcIndex,const char * exprStr);
-  int parseGlobal(int plcIndex,const char * exprStr);
-  int parsePLC(int plcIndex,const char * exprStr);
-  int parseDataStorage(int plcIndex,const char * exprStr);
-  int parseFunctions(int plcIndex,const char * exprStr);
-  int findGlobalDataIF(char * varName, ecmcPLCDataIF **outDataIF);
-  int getPLCErrorID();
-  int plcVarNameValid(const char * plcVar);
+  int  createNewGlobalDataIF(char              *varName,
+                             ecmcDataSourceType dataSource,
+                             ecmcPLCDataIF    **outDataIF);
+  int  createAndRegisterNewDataIF(int                plcIndex,
+                                  char              *varName,
+                                  ecmcDataSourceType dataSource);
+  int  getAxisIndex(char *varName);
+  int  getDsIndex(char *varName);
+  int  addPLCDefaultVariables(int plcIndex,
+                              int skipCycles);
+  int  updateAllScanTimeVars();
+  int  parseAxis(int         plcIndex,
+                 const char *exprStr);
+  int  parseEC(int         plcIndex,
+               const char *exprStr);
+  int  parseStatic(int         plcIndex,
+                   const char *exprStr);
+  int  parseGlobal(int         plcIndex,
+                   const char *exprStr);
+  int  parsePLC(int         plcIndex,
+                const char *exprStr);
+  int  parseDataStorage(int         plcIndex,
+                        const char *exprStr);
+  int  parseFunctions(int         plcIndex,
+                      const char *exprStr);
+  int  findGlobalDataIF(char           *varName,
+                        ecmcPLCDataIF **outDataIF);
+  int  getPLCErrorID();
+  int  plcVarNameValid(const char *plcVar);
   int globalVariableCount_;
   ecmcPLC *plcs_[ECMC_MAX_PLCS];
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
@@ -94,4 +122,4 @@ private:
   ecmcPLCDataIF *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
 };
 
-#endif /* ecmcPLCs_H_ */
+#endif  /* ecmcPLCs_H_ */

@@ -1,8 +1,8 @@
 #ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_
 #define SRC_ECMCTRAJECTORYTRAPETZ_H_
-#include <cmath>
-#include <string.h>
 
+#include <string.h>
+#include <cmath>
 #include "ecmcDefinitions.h"
 #include "ecmcEncoder.h"
 #include "ecmcError.h"
@@ -57,90 +57,132 @@
  * Created on: 2015-11-01
  *
  */
-class ecmcTrajectoryTrapetz : public ecmcError
-{
-public:
-  ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double sampleTime);
-  ecmcTrajectoryTrapetz(ecmcAxisData *axisData,double velocityTarget, double acceleration, double deceleration, double jerk,double sampleTime);
+class ecmcTrajectoryTrapetz : public ecmcError {
+ public:
+  ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
+                        double        sampleTime);
+  ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
+                        double        velocityTarget,
+                        double        acceleration,
+                        double        deceleration,
+                        double        jerk,
+                        double        sampleTime);
   ~ecmcTrajectoryTrapetz();
+
   /** \breif Calculates and returns next position setpoint.
    * This function should only be executed once for each sample period.
    */
-  double getNextPosSet();
+  double          getNextPosSet();
+
   /** \breif Returns current position setpoint.
    * This function can be called several times each sample period.
    */
-  double getCurrentPosSet();
+  double          getCurrentPosSet();
+
   /// Sets position setpoint.
-  void setCurrentPosSet(double posSet);
+  void            setCurrentPosSet(double posSet);
+
   /** \breif Returns current velocity of trajectory.
    * Useful for feed-forward purpose of the velocity directly to the velocity control loop.
    */
-  double getVel();
+  double          getVel();
+
   /// Returns sample period count since beginning of trajectory.
-  int getIndex();
+  int             getIndex();
+
   /// Returns if trajectory generator is busy (motion in progress).
-  bool getBusy();
+  bool            getBusy();
+
   /** \breif Sets target velocity of trajectory (max velocity).
    * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
    */
-  void setTargetVel(double velTarget);
-  ///Returns target velocity.
-  double getTargetVel();
-  ///Sets acceleration.
-  void setAcc(double acc);
-  ///Returns acceleration.
-  double getAcc();
-  ///Sets deceleration.
-  void setDec(double dec);
-  ///Returns deceleration.
-  double getDec();
+  void            setTargetVel(double velTarget);
+
+  /// Returns target velocity.
+  double          getTargetVel();
+
+  /// Sets acceleration.
+  void            setAcc(double acc);
+
+  /// Returns acceleration.
+  double          getAcc();
+
+  /// Sets deceleration.
+  void            setDec(double dec);
+
+  /// Returns deceleration.
+  double          getDec();
+
   /** \breif Sets emergency deceleration.
    * Used for ramp down at hard limits.
    */
-  void setEmergDec(double dec);
-  /// Currently not implemented (will be used when s-shaped trajectory is implemented).
-  void setJerk(double jerk);
+  void            setEmergDec(double dec);
+
+  /** Currently not implemented (will be used when 
+   * s-shaped trajectory is implemented).
+   */
+  void            setJerk(double jerk);
+
   /// Not used.
-  double getJerk();
+  double          getJerk();
+
   /// Sets target position (end position of trajectory).
-  void setTargetPos(double pos);
+  void            setTargetPos(double pos);
+
   /// returns target position (end position of trajectory).
-  double getTargetPos();
+  double          getTargetPos();
+
   /** \breif Sets start position of trajectory.
    * Normally encoder position at amplifier enable
    */
-  void setStartPos(double pos);
-  void setExecute(bool execute);
-  bool getExecute();
-  void setEnable(bool enable);
-  bool getEnable();
-  void setMotionMode(motionMode mode);
-  interlockTypes getInterlockStatus();
-  double getSampleTime();
-  int validate();
-  double distToStop(double vel);
-  int initStopRamp(double currentPos, double currentVel,double currentAcc);
-  void printCurrentState();
+  void            setStartPos(double pos);
+  void            setExecute(bool execute);
+  bool            getExecute();
+  void            setEnable(bool enable);
+  bool            getEnable();
+  void            setMotionMode(motionMode mode);
+  interlockTypes  getInterlockStatus();
+  double          getSampleTime();
+  int             validate();
+  double          distToStop(double vel);
+  int             initStopRamp(double currentPos,
+                               double currentVel,
+                               double currentAcc);
+  void            printCurrentState();
   motionDirection getCurrSetDir();
-private:
-  void initVars();
-  void initTraj();
-  //void stop();
-  double internalTraj(double *velocity);
-  double moveVel(double currSetpoint, double currVelo,double targetVelo,bool *trajBusy);
-  double movePos(double currSetpoint,double targetSetpoint,double stopDistance, double currVelo,double targetVelo, bool *trajBusy);
-  double moveStop(stopMode stopMode,double currSetpoint, double currVelo,double targetVelo, bool *stopped,double *velocity);
-  stopMode checkInterlocks();
-  double updateSetpoint(double nextSetpoint,double nextVelocity);
-  motionDirection checkDirection(double oldPos, double newPos);
+
+ private:
+  void            initVars();
+  void            initTraj();
+  double          internalTraj(double *velocity);
+  double          moveVel(double currSetpoint,
+                          double currVelo,
+                          double targetVelo,
+                          bool  *trajBusy);
+  double movePos(double currSetpoint,
+                 double targetSetpoint,
+                 double stopDistance,
+                 double currVelo,
+                 double targetVelo,
+                 bool  *trajBusy);
+  double moveStop(stopMode stopMode,
+                  double   currSetpoint,
+                  double   currVelo,
+                  double   targetVelo,
+                  bool    *stopped,
+                  double  *velocity);
+  stopMode        checkInterlocks();
+  double          updateSetpoint(double nextSetpoint,
+                                 double nextVelocity);
+  motionDirection checkDirection(double oldPos,
+                                 double newPos);
   double acceleration_;
   double deceleration_;
   double decelerationEmergency_;
   double velocityTarget_;
   double targetPosition_;
   double jerk_;
-  double sampleTime_; //s
+  double sampleTime_;
   double posSetMinus1_;
   double posSetMinus2_;
   double stepACC_;
@@ -149,22 +191,21 @@ private:
   double stepDECEmerg_;
   double currentPositionSetpoint_;
   double velocity_;
-  bool   busy_;
-  int    index_;
-  bool   execute_;
-  bool   executeOld_;
+  bool busy_;
+  int index_;
+  bool execute_;
+  bool executeOld_;
   double startPosition_;
-  bool   enable_;
-  bool   enableOld_;
-  bool   internalStopCmd_;
+  bool enable_;
+  bool enableOld_;
+  bool internalStopCmd_;
   double distToStop_;
   double prevStepSize_;
-  //interlockTypes externalInterlock_; //Interlock from Monitor class
   motionDirection actDirection_;
   motionDirection setDirection_;
   motionMode motionMode_;
   interlockTypes interlockStatus_;
-  ecmcAxisData* data_;
+  ecmcAxisData *data_;
   stopMode latchedStopMode_;
 };
-#endif
+#endif  // ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_

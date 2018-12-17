@@ -11,7 +11,7 @@
 #include "ecmcError.h"
 #include "ecmcAxisData.h"
 
-//DRIVE
+// DRIVE
 #define ERROR_DRV_DRIVE_INTERLOCKED 0x14600
 #define ERROR_DRV_ASSIGN_ENTRY_FAILED 0x14601
 #define ERROR_DRV_SCALE_DENOM_ZERO 0x14602
@@ -31,52 +31,52 @@
 #define ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT 3
 #define ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT 4
 
-enum ecmcDriveTypes{
-  ECMC_STEPPER=0,
-  ECMC_DS402=1,
+enum ecmcDriveTypes {
+  ECMC_STEPPER = 0,
+  ECMC_DS402   = 1,
 };
 
-enum ecmcBrakeStates{
-  ECMC_BRAKE_CLOSED=0,
-  ECMC_BRAKE_OPENING=1,
-  ECMC_BRAKE_OPEN=2,
-  ECMC_BRAKE_CLOSING=3
+enum ecmcBrakeStates {
+  ECMC_BRAKE_CLOSED  = 0,
+  ECMC_BRAKE_OPENING = 1,
+  ECMC_BRAKE_OPEN    = 2,
+  ECMC_BRAKE_CLOSING = 3
 };
 
-class ecmcDriveBase : public ecmcEcEntryLink
-{
-public:
-  ecmcDriveBase(ecmcAxisData * axisData);
-  ecmcDriveBase(ecmcAxisData * axisData, double scale);
+class ecmcDriveBase : public ecmcEcEntryLink {
+ public:
+  explicit ecmcDriveBase(ecmcAxisData *axisData);
+  ecmcDriveBase(ecmcAxisData *axisData,
+                double        scale);
   virtual ~ecmcDriveBase();
   virtual void initVars();
-  virtual int validate();
+  virtual int  validate();
   virtual void readEntries();
   virtual void writeEntries();
   virtual void printCurrentState();
   virtual void errorReset();
-  int setEnable(bool enable);
-  bool getEnable();
-  bool getEnabled();
-  double  getScaleNum(void);
-  void setScaleNum(double scaleNum);
-  int setScaleDenom(double scaleDenom);
-  double getScale();
-  int setVelSet(double vel);
-  double getVelSet();
-  int setVelSetRaw(int rawVel);
-  int getVelSetRaw();
-  int setEnableBrake(bool enable);
-  int setEnableReduceTorque(bool enable);
-  int getEnableBrake();
-  int getEnableReduceTorque();
-  int setAxisDataRef(ecmcAxisData* data);
-  int setBrakeOpenDelayTime(int delayTime);
-  int setBrakeCloseAheadTime(int aheadTime);
-protected:
-  int updateBrakeState();
-  bool driveInterlocksOK();
-  //Enable command to amplifier (could be delayed or sent earlier depending on if break is used
+  int          setEnable(bool enable);
+  bool         getEnable();
+  bool         getEnabled();
+  double       getScaleNum(void);
+  void         setScaleNum(double scaleNum);
+  int          setScaleDenom(double scaleDenom);
+  double       getScale();
+  int          setVelSet(double vel);
+  double       getVelSet();
+  int          setVelSetRaw(int rawVel);
+  int          getVelSetRaw();
+  int          setEnableBrake(bool enable);
+  int          setEnableReduceTorque(bool enable);
+  int          getEnableBrake();
+  int          getEnableReduceTorque();
+  int          setAxisDataRef(ecmcAxisData *data);
+  int          setBrakeOpenDelayTime(int delayTime);
+  int          setBrakeCloseAheadTime(int aheadTime);
+
+ protected:
+  int          updateBrakeState();
+  bool         driveInterlocksOK();
   bool enableAmpCmd_;
   bool enableAmpCmdOld_;
   double scale_;
@@ -85,8 +85,9 @@ protected:
   double velSet_;
   uint64_t controlWord_;
   uint64_t statusWord_;
-  ecmcAxisData* data_;
-private:
+  ecmcAxisData *data_;
+
+ private:
   bool manualModeEnableAmpCmd_;
   bool manualModeEnableAmpCmdOld_;
   int brakeOpenDelayTime_;
@@ -102,4 +103,4 @@ private:
   operationMode opeationMode_;
   bool enableCmdOld_;
 };
-#endif
+#endif  // ifndef ECMCDRIVEBASE_H_
