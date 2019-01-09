@@ -8,21 +8,20 @@
 #include <math.h>
 #include <iocsh.h>
 
-#include "cmd.h"
-#include "cmd_EAT.h"
-#include "gitversion.h"
 #include <epicsTypes.h>
 #include <epicsTime.h>
 #include <epicsThread.h>
 #include <epicsString.h>
 #include <epicsTimer.h>
 #include <epicsMutex.h>
-
-#include "ecmcAsynPortDriver.h"
 #include <epicsExport.h>
 
+#include "../general/gitversion.h"
+#include "cmd.h"
+#include "cmd_EAT.h"
+#include "ecmcAsynPortDriver.h"
 
-#include "hw_motor.h"
+#include "../hw_motor.h"
 
 static const char *driverName = "ecmcAsynPortDriver";
 
