@@ -12,9 +12,9 @@
 #include <cmath>
 #include "stdio.h"
 #include "ecrt.h"
-#include "ecmcDefinitions.h"
-#include "ecmcError.h"
-#include "cmd.h"  // Logging macros
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../com/cmd.h"  // Logging macros
 #include "ecmcAsynLink.h"
 
 #define BIT_SET(a, b) ((a) |= (1 << (b)))

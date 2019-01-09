@@ -8,14 +8,13 @@
 #ifndef ecmcPLC_H_
 #define ecmcPLC_H_
 
-#include "ecmcPLCDataIF.h"
-#include "ecmcDefinitions.h"
-#include "exprtkWrap.h"
-#include "ecmcAxisBase.h"
 #include <string>
 #include <vector>
-#include "ethercat/ecmcEcEntry.h"  // Bit macros
-
+#include "exprtkWrap.h"
+#include "../general/ecmcDefinitions.h"
+#include "../motion/ecmcAxisBase.h"
+#include "../ethercat/ecmcEcEntry.h"  // Bit macros
+#include "ecmcPLCDataIF.h"
 
 #define ECMC_MAX_PLC_VARIABLES 1024
 #define ECMC_MAX_PLC_VARIABLES_NAME_LENGTH 1024

@@ -3,8 +3,8 @@
 #define SRC_ECMCAXISDATA_H_
 
 #include <stdio.h>
-#include "ecmcDefinitions.h"
 #include "string.h"
+#include "../general/ecmcDefinitions.h"
 
 typedef struct {
   double             positionTarget;

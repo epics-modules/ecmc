@@ -9,14 +9,13 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "cmd.h"
-#include "hw_motor.h"
-#include "ecmcErrorsList.h"
-#include "cmd_EAT.h"
 #include <inttypes.h>
 #include <string.h>
 #include <math.h>
-
+#include "cmd.h"
+#include "../hw_motor.h"
+#include "../general/ecmcErrorsList.h"
+#include "cmd_EAT.h"
 typedef struct
 {
   int      command_no;

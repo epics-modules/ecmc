@@ -3,9 +3,9 @@
 
 #include <string.h>
 #include <cmath>
-#include "ecmcDefinitions.h"
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
 #include "ecmcEncoder.h"
-#include "ecmcError.h"
 #include "ecmcAxisData.h"
 
 /// Error codes for class ecmcTrajectoryTrapetz

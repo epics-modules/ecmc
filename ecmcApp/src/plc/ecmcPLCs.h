@@ -8,15 +8,15 @@
 #ifndef ecmcPLCs_H_
 #define ecmcPLCs_H_
 
-#include "ecmcPLC.h"
-#include "ecmcDefinitions.h"
-#include "ecmcAxisBase.h"
-#include "ecmcDataStorage.h"
-#include "ethercat/ecmcEc.h"
 #include "exprtkWrap.h"
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "../general/ecmcDefinitions.h"
+#include "../motion/ecmcAxisBase.h"
+#include "../misc/ecmcDataStorage.h"
+#include "../ethercat/ecmcEc.h"
+#include "ecmcPLC.h"
 
 #define ERROR_PLCS_INDEX_OUT_OF_RANGE 0x20700
 #define ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE 0x20701

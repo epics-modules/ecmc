@@ -15,9 +15,9 @@
 #include <cstdlib>
 
 #include "exprtkWrap.h"
-#include "ecmcDefinitions.h"
-#include "ecmcError.h"
-#include "cmd.h"
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../com/cmd.h"
 
 #define ERROR_TRANSFORM_EXPR_NOT_COMPILED 0x30000
 #define ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE 0x30001

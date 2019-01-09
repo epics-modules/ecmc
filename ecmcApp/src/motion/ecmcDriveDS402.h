@@ -3,11 +3,11 @@
 #include <stdio.h>
 #include <cmath>
 
-#include "ecmcDefinitions.h"
-#include "ethercat/ecmcEcEntry.h"
-#include "ethercat/ecmcEcEntryLink.h"
-#include "ecmcEcPdo.h"
-#include "ecmcError.h"
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../ethercat/ecmcEcEntry.h"
+#include "../ethercat/ecmcEcEntryLink.h"
+#include "../ethercat/ecmcEcPdo.h"
 #include "ecmcDriveBase.h"
 
 // Error codes

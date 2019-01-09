@@ -4,10 +4,10 @@
 #include <cmath>
 #include "stdio.h"
 #include "ecrt.h"
-#include "ecmcDefinitions.h"
-#include "ecmcError.h"
-#include "cmd.h"  // Logging macros
-#include "ecmcAsynPortDriver.h"
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../com/cmd.h"  // Logging macros
+#include "../com/ecmcAsynPortDriver.h"
 #include "ecmcEcEntry.h"
 
 #define ERROR_MEM_MAP_SIZE_OUT_OF_RANGE 0x211000

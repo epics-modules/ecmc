@@ -11,14 +11,14 @@
 #include <string>
 #include "stdio.h"
 #include "ecrt.h"
-#include "ecmcDefinitions.h"
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../com/cmd.h"  // Logging macros
+#include "../com/ecmcAsynPortDriver.h"
 #include "ecmcEcEntry.h"
 #include "ecmcEcMemMap.h"
 #include "ecmcEcSyncManager.h"
-#include "ecmcError.h"
 #include "ecmcEcSDO.h"
-#include "cmd.h"  // Logging macros
-#include "ecmcAsynPortDriver.h"
 
 #define SIMULATION_ENTRIES 2
 

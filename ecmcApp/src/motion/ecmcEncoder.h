@@ -15,11 +15,11 @@
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
-#include "ecmcDefinitions.h"
-#include "ethercat/ecmcEcEntry.h"
-#include "ethercat/ecmcEcEntryLink.h"
-#include "ethercat/ecmcEcPdo.h"
-#include "ecmcError.h"
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../ethercat/ecmcEcEntry.h"
+#include "../ethercat/ecmcEcEntryLink.h"
+#include "../ethercat/ecmcEcPdo.h"
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"
 

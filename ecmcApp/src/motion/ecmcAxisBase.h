@@ -14,20 +14,20 @@
 #include <string>
 #include <new>
 
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../com/ecmcAsynPortDriver.h"
 #include "ecmcCommandTransform.h"
-#include "ecmcDefinitions.h"
 #include "ecmcDriveBase.h"
 #include "ecmcDriveStepper.h"
 #include "ecmcDriveDS402.h"
 #include "ecmcEncoder.h"
-#include "ecmcError.h"
 #include "ecmcMonitor.h"
 #include "ecmcPIDController.h"
 #include "ecmcAxisSequencer.h"
 #include "ecmcTrajectoryTrapetz.h"
 #include "ecmcMasterSlaveIF.h"
 #include "ecmcAxisData.h"
-#include "ecmcAsynPortDriver.h"
 
 // AXIS ERRORS
 #define ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL 0x14300

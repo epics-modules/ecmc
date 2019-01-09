@@ -10,13 +10,13 @@
 
 #include "stdio.h"
 
-#include "ecmcDefinitions.h"
-#include "ecmcError.h"
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../ethercat/ecmcEcEntry.h"
+#include "../motion/ecmcAxisBase.h"
 #include "ecmcDataStorage.h"
-#include "ethercat/ecmcEcEntry.h"
 #include "ecmcEvent.h"
 #include "ecmcEventConsumer.h"
-#include "ecmcAxisBase.h"
 
 // Data recorder
 #define ERROR_DATA_RECORDER_BUFFER_NULL 0x20100

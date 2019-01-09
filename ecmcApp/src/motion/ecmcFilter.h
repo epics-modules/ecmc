@@ -11,8 +11,8 @@
 #include <iomanip>
 #include <iostream>
 #include <cstring>
-#include "ecmcError.h"
-#include "cmd.h"
+#include "../general/ecmcError.h"
+#include "../com/cmd.h"
 
 #define CUTOFF 100
 #define FILTER_BUFFER_SIZE_POS 150

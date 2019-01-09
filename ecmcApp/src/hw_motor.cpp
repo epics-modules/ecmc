@@ -18,14 +18,14 @@
 #include <algorithm>
 #include <string>
 
-#include "cmd.h"
+#include "com/cmd.h"
 #include "hw_motor.h"
 #include "ecrt.h"
 #include "messages.h"
 
 // General
-#include "ecmcDefinitions.h"
-#include "ecmcErrorsList.h"
+#include "general/ecmcDefinitions.h"
+#include "general/ecmcErrorsList.h"
 
 // Hardware
 #include "ethercat/ecmcEc.h"
@@ -35,21 +35,23 @@
 #include "ethercat/ecmcEcEntry.h"
 
 // Motion
-#include "ecmcAxisBase.h"      // Abstract class for all axis types
-#include "ecmcAxisReal.h"      // Normal axis (cntr,drv, enc, traj, mon, seq)
-#include "ecmcAxisVirt.h"      // Axis without drive and controller
-#include "ecmcDriveBase.h"
-#include "ecmcTrajectoryTrapetz.h"
-#include "ecmcPIDController.h"
-#include "ecmcEncoder.h"
-#include "ecmcMonitor.h"
-#include "ecmcCommandTransform.h"
-#include "ecmcEvent.h"
-#include "ecmcDataRecorder.h"
-#include "ecmcDataStorage.h"
-#include "ecmcCommandList.h"
-#include "ecmcAsynPortDriver.h"
-#include "ecmcPLCs.h"
+#include "motion/ecmcAxisBase.h"      // Abstract class for all axis types
+#include "motion/ecmcAxisReal.h"      // Normal axis (cntr,drv, enc, traj, mon, seq)
+#include "motion/ecmcAxisVirt.h"      // Axis without drive and controller
+#include "motion/ecmcDriveBase.h"
+#include "motion/ecmcTrajectoryTrapetz.h"
+#include "motion/ecmcPIDController.h"
+#include "motion/ecmcEncoder.h"
+#include "motion/ecmcMonitor.h"
+#include "motion/ecmcCommandTransform.h"
+
+//Other
+#include "misc/ecmcEvent.h"
+#include "misc/ecmcDataRecorder.h"
+#include "misc/ecmcDataStorage.h"
+#include "misc/ecmcCommandList.h"
+#include "com/ecmcAsynPortDriver.h"
+#include "plc/ecmcPLCs.h"
 
 /****************************************************************************/
 #define CHECK_AXIS_RETURN_IF_ERROR(axisIndex)                                 \

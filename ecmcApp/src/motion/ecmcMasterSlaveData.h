@@ -7,8 +7,8 @@
 
 #ifndef ECMCMASTERSLAVEDATA_H_
 #define ECMCMASTERSLAVEDATA_H_
-#include "ecmcError.h"
 
+#include "../general/ecmcError.h"
 
 class ecmcMasterSlaveData : public ecmcError {
  public:

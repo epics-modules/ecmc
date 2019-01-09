@@ -10,10 +10,10 @@
 
 #include <stdio.h>
 #include <string>
-#include "ecmcDefinitions.h"
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
 #include "ecmcMasterSlaveData.h"
 #include "ecmcCommandTransform.h"
-#include "ecmcError.h"
 #include "ecmcFilter.h"
 
 // MASTERDATA INTERFACE

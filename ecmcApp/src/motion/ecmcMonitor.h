@@ -1,8 +1,8 @@
 #ifndef MOTIONMONITOR_H
 #define MOTIONMONITOR_H
 #include <cmath>
-#include "ethercat/ecmcEcEntry.h"
-#include "ecmcError.h"
+#include "../ethercat/ecmcEcEntry.h"
+#include "../general/ecmcError.h"
 #include "ecmcTrajectoryTrapetz.h"
 #include "ecmcAxisData.h"
 

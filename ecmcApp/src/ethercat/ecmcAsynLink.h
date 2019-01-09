@@ -5,7 +5,7 @@
 #include <string>
 #include <cmath>
 
-#include "ecmcAsynPortDriver.h"
+#include "../com/ecmcAsynPortDriver.h"
 
 class ecmcAsynLink
 {

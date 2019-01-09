@@ -12,12 +12,11 @@
 #include <vector>
 #include "stdio.h"
 
-#include "ecmcError.h"
-#include "ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../general/ecmcDefinitions.h"
+#include "../com/cmd_EAT.h"
+#include "../com/cmd.h"
 #include "ecmcEventConsumer.h"
-#include "cmd_EAT.h"
-#include "cmd.h"
-
 
 // Command List
 #define ERROR_COMMAND_LIST_NULL 0x20400

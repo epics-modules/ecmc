@@ -8,16 +8,17 @@
 #ifndef ecmcPLCDataIF_H_
 #define ecmcPLCDataIF_H_
 
-#include "ecmcDefinitions.h"
-#include "ecmcAxisBase.h"
-#include "ecmcDataStorage.h"
-#include "ethercat/ecmcEc.h"
-#include "ethercat/ecmcEcEntry.h"
-#include "ethercat/ecmcEcEntryLink.h"
-#include "ethercat/ecmcEcSlave.h"
-#include "ecmcError.h"
 #include <string>
 #include <sstream>
+
+#include "../general/ecmcDefinitions.h"
+#include "../general/ecmcError.h"
+#include "../motion/ecmcAxisBase.h"
+#include "../misc/ecmcDataStorage.h"
+#include "../ethercat/ecmcEc.h"
+#include "../ethercat/ecmcEcEntry.h"
+#include "../ethercat/ecmcEcEntryLink.h"
+#include "../ethercat/ecmcEcSlave.h"
 
 #define ECMC_PLC_EC_ENTRY_INDEX 0
 
