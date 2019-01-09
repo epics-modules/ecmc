@@ -1821,5 +1821,15 @@ int ecmcEc::validate() {
     }
   }
 
+  // Mem maps
+  for (int i = 0; i < ecMemMapArrayCounter_; i++) {
+    if(ecMemMapArray_[i]) {
+      errorCode = ecMemMapArray_[i]->validate();
+      if (errorCode) {
+        return errorCode;
+      }
+    }
+  }
+
   return 0;
 }

@@ -32,12 +32,13 @@ class ecmcEcMemMap : public ecmcError, public ecmcAsynLink {
   int         updateOutProcessImage();
   std::string getIdentificationName();
   int         setDomainSize(size_t size);
+  int         validate();
 
  private:
-  int         updateAsyn(bool force);
-  int         validate();
+  int         updateAsyn(bool force);  
   uint8_t *domainAdr_;
   int byteOffset_;
+  uint8_t *adr_;
   ec_direction_t direction_;
   std::string idString_;
   ecmcEcEntry *startEntry_;
@@ -45,6 +46,6 @@ class ecmcEcMemMap : public ecmcError, public ecmcAsynLink {
   uint8_t *buffer_;
   int type_;
   size_t domainSize_;
-  int validationDone_;
+  
 };
 #endif  /* ECMCECMEMMAP_H_ */

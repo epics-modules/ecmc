@@ -30,7 +30,7 @@ void ecmcEcMemMap::initVars() {
   buffer_         = NULL;
   type_           = 0;
   domainSize_     = 0;
-  validationDone_ = 0;
+  adr_            = 0;
 }
 
 ecmcEcMemMap::~ecmcEcMemMap() {
@@ -68,13 +68,7 @@ int ecmcEcMemMap::updateInputProcessImage() {
     return 0;
   }
 
-  if (!validationDone_) {
-    if (validate() != 0) {
-      return 0;
-    }
-  }
-
-  memcpy(buffer_, (domainAdr_ + byteOffset_), byteSize_);
+  memcpy(buffer_, adr_, byteSize_);
   updateAsyn(0);
   return 0;
 }
@@ -84,13 +78,7 @@ int ecmcEcMemMap::updateOutProcessImage() {
     return 0;
   }
 
-  if (!validationDone_) {
-    if (validate() != 0) {
-      return 0;
-    }
-  }
-
-  memcpy((domainAdr_ + byteOffset_), buffer_, byteSize_);
+  memcpy(adr_, buffer_, byteSize_);
   return 0;
 }
 
@@ -216,6 +204,6 @@ int ecmcEcMemMap::validate() {
                       __LINE__,
                       ERROR_MEM_MAP_SIZE_OUT_OF_RANGE);
   }
-  validationDone_ = 1;
+  adr_ = domainAdr_ + byteOffset_;
   return 0;
 }
