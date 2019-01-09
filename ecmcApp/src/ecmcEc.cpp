@@ -1055,7 +1055,7 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   ecmcEcSlave *slave = findSlave(startEntryBusPosition);
 
   if (!slave) {
-    LOGERR("%s/%s:%d: ERROR: Slave with busposition %d noy found (0x%x).\n",
+    LOGERR("%s/%s:%d: ERROR: Slave with busposition %d not found (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
