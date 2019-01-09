@@ -21,7 +21,6 @@
 #include "com/cmd.h"
 #include "hw_motor.h"
 #include "ecrt.h"
-#include "messages.h"
 
 // General
 #include "general/ecmcDefinitions.h"
