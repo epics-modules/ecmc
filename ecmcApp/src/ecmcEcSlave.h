@@ -111,6 +111,7 @@ class ecmcEcSlave : public ecmcError {
                bool                regAsynParams,
                int                 skipCycles,
                int                 masterIndex);
+  int validate();
 
  private:
   void               initVars();

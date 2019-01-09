@@ -36,7 +36,7 @@ void ecmcEc::initVars() {
   domainNotOKCyclesLimit_           = 0;
   domainNotOKCounterMax_            = 0;
 
-  for (int i = 1; i < EC_MAX_SLAVES; i++) {
+  for (int i = 0; i < EC_MAX_SLAVES; i++) {
     slaveArray_[i] = NULL;
   }
 
@@ -301,7 +301,7 @@ int ecmcEc::activate() {
     }
   }
 
-  return 0;
+  return validate();
 }
 
 int ecmcEc::compileRegInfo() {
@@ -1797,5 +1797,29 @@ int ecmcEc::printSlaveConfig(int slaveIndex) {
     }
     printf("#############################################\n");
   }
+  return 0;
+}
+
+int ecmcEc::validate() {
+  int errorCode = 0;
+  
+  // All real slaves
+  for (int i = 0; i < slaveCounter_; i++) {
+    if(slaveArray_[i]) {
+      errorCode = slaveArray_[i]->validate();
+      if (errorCode) {
+        return errorCode;
+      }
+    }
+  }
+
+  // Simulation slave
+  if (simSlave_) {
+    errorCode = simSlave_->validate();
+    if (errorCode) {
+      return errorCode;
+    }
+  }
+
   return 0;
 }

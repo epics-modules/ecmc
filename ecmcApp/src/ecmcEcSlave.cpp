@@ -853,3 +853,16 @@ int ecmcEcSlave::initAsyn(ecmcAsynPortDriver *asynPortDriver,
 
   return 0;
 }
+
+int ecmcEcSlave::validate() {
+  int errorCode=0;
+  for (int i = 0; i < entryCounter_; i++) {
+    if (entryList_[i]) {
+      errorCode=entryList_[i]->validate();
+      if (errorCode) {
+        return errorCode;
+      }
+    }
+  }
+  return 0;
+}

@@ -155,7 +155,8 @@ class ecmcEc : public ecmcError {
   int      setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
   int      printAllConfig();
   int      printSlaveConfig(int slaveIndex);
-
+  int      validate();
+  
  private:
   void     initVars();
   int      updateInputProcessImage();

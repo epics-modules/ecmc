@@ -986,7 +986,7 @@ int validateConfig() {
       errorCode = axes[i]->validate();
 
       if (errorCode) {
-        LOGERR("ERROR: Validation failed on axis %d with error code %d.",
+        LOGERR("ERROR: Validation failed on axis %d with error code %x.",
                i,
                errorCode);
         return errorCode;
@@ -999,7 +999,7 @@ int validateConfig() {
       errorCode = events[i]->validate();
 
       if (errorCode) {
-        LOGERR("ERROR: Validation failed on event %d with error code %d.",
+        LOGERR("ERROR: Validation failed on event %d with error code %x.",
                i,
                errorCode);
         return errorCode;
@@ -1013,7 +1013,7 @@ int validateConfig() {
 
       if (errorCode) {
         LOGERR(
-          "ERROR: Validation failed on data recorder %d with error code %d.",
+          "ERROR: Validation failed on data recorder %d with error code %x.",
           i,
           errorCode);
         return errorCode;
@@ -1025,11 +1025,12 @@ int validateConfig() {
     errorCode = plcs->validate();
 
     if (errorCode) {
-      LOGERR("ERROR: Validation failed on plc object with error code %d.",
+      LOGERR("ERROR: Validation failed on plc object with error code %x.",
              errorCode);
       return errorCode;
     }
   }
+  
   return 0;
 }
 
@@ -1040,10 +1041,6 @@ int ecApplyConfig(int masterIndex) {
 
   int errorCode = 0;
 
-  /*if((errorCode=ec.writeAndVerifySDOs())){
-    LOGERR("ERROR:\tSDO write and verify failed\n");
-    return errorCode;
-  }*/
   if ((errorCode = ec.compileRegInfo())) {
     LOGERR("ERROR:\tCompileRegInfo failed\n");
     return errorCode;

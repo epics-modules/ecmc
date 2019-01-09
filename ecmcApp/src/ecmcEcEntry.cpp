@@ -111,6 +111,7 @@ ecmcEcEntry::ecmcEcEntry(uint8_t bits, uint8_t *domainAdr, std::string id) {
   bitLength_ = bits;
   sim_       = true;
   idString_  = id;
+  adr_       = 0;
 }
 
 void ecmcEcEntry::initVars() {
@@ -212,89 +213,41 @@ int ecmcEcEntry::updateInputProcessImage() {
     return 0;
   }
 
-  if (direction_ != EC_DIR_INPUT  /*&& !sim_*/) {
+  if (direction_ != EC_DIR_INPUT ) {
     return 0;
-  }
-
-  if (byteOffset_ < 0) {
-    LOGERR("%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid data offset (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           entryIndex_,
-           entrySubIndex_,
-           ERROR_EC_ENTRY_INVALID_OFFSET);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_INVALID_OFFSET);
-  }
-
-  if ((domainAdr_ < 0) || (domainAdr_ == NULL)) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid domain address (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      entryIndex_,
-      entrySubIndex_,
-      ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
   switch (bitLength_) {
   case 1:
-    value_ = (uint64_t)EC_READ_BIT(domainAdr_ + byteOffset_, bitOffset_);
+    value_ = (uint64_t)EC_READ_BIT(adr_, bitOffset_);
     break;
 
   case 2:
-    value_ = (uint64_t)EC_READ_2_BITS(domainAdr_ + byteOffset_, bitOffset_);
+    value_ = (uint64_t)EC_READ_2_BITS(adr_, bitOffset_);
     break;
 
   case 3:
-    value_ = (uint64_t)EC_READ_3_BITS(domainAdr_ + byteOffset_, bitOffset_);
+    value_ = (uint64_t)EC_READ_3_BITS(adr_, bitOffset_);
     break;
 
   case 4:
-    value_ = (uint64_t)EC_READ_4_BITS(domainAdr_ + byteOffset_, bitOffset_);
+    value_ = (uint64_t)EC_READ_4_BITS(adr_, bitOffset_);
     break;
 
   case 8:
-    value_ = (uint64_t)EC_READ_U8(domainAdr_ + byteOffset_);
+    value_ = (uint64_t)EC_READ_U8(adr_);
     break;
 
   case 16:
-    value_ = (uint64_t)EC_READ_U16(domainAdr_ + byteOffset_);
+    value_ = (uint64_t)EC_READ_U16(adr_);
     break;
 
   case 32:
-    value_ = (uint64_t)EC_READ_U32(domainAdr_ + byteOffset_);
+    value_ = (uint64_t)EC_READ_U32(adr_);
     break;
 
   case 64:
-    value_ = (uint64_t)EC_READ_U64(domainAdr_ + byteOffset_);
-    break;
-
-  default:
-
-    if (ERROR_EC_ENTRY_INVALID_BIT_LENGTH != getErrorID()) {
-      LOGERR(
-        "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid bit length (0x%x).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        entryIndex_,
-        entrySubIndex_,
-        ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
-    }
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
-
+    value_ = (uint64_t)EC_READ_U64(adr_);
     break;
   }
 
@@ -311,74 +264,27 @@ int ecmcEcEntry::updateOutProcessImage() {
     return 0;
   }
 
-  if (byteOffset_ < 0) {
-    LOGERR("%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid data offset (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           entryIndex_,
-           entrySubIndex_,
-           ERROR_EC_ENTRY_INVALID_OFFSET);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_INVALID_OFFSET);
-  }
-
-  if ((domainAdr_ < 0) || (domainAdr_ == NULL)) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid domain address (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      entryIndex_,
-      entrySubIndex_,
-      ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
-  }
-
   switch (bitLength_) {
   case 1:
-    EC_WRITE_BIT(domainAdr_ + byteOffset_, bitOffset_, value_);
+    EC_WRITE_BIT(adr_, bitOffset_, value_);
     break;
 
   case 8:
-    EC_WRITE_U8(domainAdr_ + byteOffset_, value_);
+    EC_WRITE_U8(adr_, value_);
     break;
 
   case 16:
-    EC_WRITE_U16(domainAdr_ + byteOffset_, value_);
+    EC_WRITE_U16(adr_, value_);
     break;
 
   case 32:
-    EC_WRITE_U32(domainAdr_ + byteOffset_, value_);
+    EC_WRITE_U32(adr_, value_);
     break;
 
   case 64:
-    EC_WRITE_U64(domainAdr_ + byteOffset_, value_);
+    EC_WRITE_U64(adr_, value_);
     break;
 
-  default:
-
-    if (ERROR_EC_ENTRY_INVALID_BIT_LENGTH != getErrorID()) {
-      LOGERR(
-        "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid bit length (0x%x).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        entryIndex_,
-        entrySubIndex_,
-        ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
-    }
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
-
-    break;
   }
   return 0;
 }
@@ -498,4 +404,81 @@ int32_t ecmcEcEntry::ecValue2Int32() {
 
 bool ecmcEcEntry::getSimEntry() {
   return sim_;
+}
+
+int ecmcEcEntry::validate() {
+   if (byteOffset_ < 0) {
+    LOGERR("%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid data offset (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           entryIndex_,
+           entrySubIndex_,
+           ERROR_EC_ENTRY_INVALID_OFFSET);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_INVALID_OFFSET);
+  }
+
+  if ((domainAdr_ < 0) || (domainAdr_ == NULL)) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid domain address (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      entryIndex_,
+      entrySubIndex_,
+      ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
+  }
+  adr_ = domainAdr_ + byteOffset_;
+
+  switch (bitLength_) {
+  case 1:
+    break;
+
+  case 2:      
+    break;
+
+  case 3:    
+    break;
+
+  case 4:    
+    break;
+
+  case 8:
+    break;
+
+  case 16:    
+    break;
+
+  case 32:    
+    break;
+
+  case 64:    
+    break;
+
+  default:    
+    LOGERR(
+      "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid bit length (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      entryIndex_,
+      entrySubIndex_,
+      ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
+
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
+
+    break;
+  }
+
+  return 0;
 }

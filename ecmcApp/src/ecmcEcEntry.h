@@ -83,10 +83,12 @@ class ecmcEcEntry : public ecmcError, public ecmcAsynLink {
   int         registerInDomain();
   int         updateAsyn(bool force);
   bool        getSimEntry();
+  int         validate();
 
  private:
   int32_t     ecValue2Int32();
   uint8_t *domainAdr_;
+  uint8_t *adr_;
   uint16_t entryIndex_;
   uint8_t entrySubIndex_;
   int bitLength_;
