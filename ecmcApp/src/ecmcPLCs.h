@@ -12,7 +12,7 @@
 #include "ecmcDefinitions.h"
 #include "ecmcAxisBase.h"
 #include "ecmcDataStorage.h"
-#include "ecmcEc.h"
+#include "ethercat/ecmcEc.h"
 #include "exprtkWrap.h"
 #include <iostream>
 #include <fstream>

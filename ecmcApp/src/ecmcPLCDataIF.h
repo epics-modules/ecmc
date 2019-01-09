@@ -11,10 +11,10 @@
 #include "ecmcDefinitions.h"
 #include "ecmcAxisBase.h"
 #include "ecmcDataStorage.h"
-#include "ecmcEc.h"
-#include "ecmcEcEntry.h"
-#include "ecmcEcEntryLink.h"
-#include "ecmcEcSlave.h"
+#include "ethercat/ecmcEc.h"
+#include "ethercat/ecmcEcEntry.h"
+#include "ethercat/ecmcEcEntryLink.h"
+#include "ethercat/ecmcEcSlave.h"
 #include "ecmcError.h"
 #include <string>
 #include <sstream>

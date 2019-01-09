@@ -12,7 +12,7 @@
 
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
-#include "ecmcEcEntry.h"
+#include "ethercat/ecmcEcEntry.h"
 #include "ecmcDataStorage.h"
 #include "ecmcEcEntryLink.h"
 #include "ecmcEventConsumer.h"

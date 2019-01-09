@@ -5,8 +5,8 @@
 #include <cmath>
 
 #include "ecmcDefinitions.h"
-#include "ecmcEcEntry.h"
-#include "ecmcEcEntryLink.h"
+#include "ethercat/ecmcEcEntry.h"
+#include "ethercat/ecmcEcEntryLink.h"
 #include "ecmcEcPdo.h"
 #include "ecmcError.h"
 #include "ecmcAxisData.h"

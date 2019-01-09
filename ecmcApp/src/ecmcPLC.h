@@ -14,7 +14,7 @@
 #include "ecmcAxisBase.h"
 #include <string>
 #include <vector>
-#include "ecmcEcEntry.h"  // Bit macros
+#include "ethercat/ecmcEcEntry.h"  // Bit macros
 
 
 #define ECMC_MAX_PLC_VARIABLES 1024

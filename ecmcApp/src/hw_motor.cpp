@@ -28,11 +28,11 @@
 #include "ecmcErrorsList.h"
 
 // Hardware
-#include "ecmcEc.h"
-#include "ecmcEcPdo.h"
-#include "ecmcEcSlave.h"
-#include "ecmcEcSyncManager.h"
-#include "ecmcEcEntry.h"
+#include "ethercat/ecmcEc.h"
+#include "ethercat/ecmcEcPdo.h"
+#include "ethercat/ecmcEcSlave.h"
+#include "ethercat/ecmcEcSyncManager.h"
+#include "ethercat/ecmcEcEntry.h"
 
 // Motion
 #include "ecmcAxisBase.h"      // Abstract class for all axis types

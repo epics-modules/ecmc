@@ -16,9 +16,9 @@
 #include <string.h>
 #include <cmath>
 #include "ecmcDefinitions.h"
-#include "ecmcEcEntry.h"
-#include "ecmcEcEntryLink.h"
-#include "ecmcEcPdo.h"
+#include "ethercat/ecmcEcEntry.h"
+#include "ethercat/ecmcEcEntryLink.h"
+#include "ethercat/ecmcEcPdo.h"
 #include "ecmcError.h"
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"

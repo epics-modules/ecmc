@@ -13,7 +13,7 @@
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
 #include "ecmcDataStorage.h"
-#include "ecmcEcEntry.h"
+#include "ethercat/ecmcEcEntry.h"
 #include "ecmcEvent.h"
 #include "ecmcEventConsumer.h"
 #include "ecmcAxisBase.h"
