@@ -156,6 +156,7 @@ class ecmcEc : public ecmcError {
   int      printAllConfig();
   int      printSlaveConfig(int slaveIndex);
   int      validate();
+  
  private:
   void     initVars();
   int      updateInputProcessImage();
