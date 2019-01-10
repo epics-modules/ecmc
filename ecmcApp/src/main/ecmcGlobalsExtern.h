@@ -1,6 +1,6 @@
 
 /*
- * ecmcGlobals.h
+ * ecmcGlobalsExtern.h
  *
  *  Created on: Jan 10, 2019
  *      Author: anderssandstrom
