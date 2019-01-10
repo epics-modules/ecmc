@@ -20,7 +20,7 @@ SOURCES = \
   ecmcApp/src/com/cmd_EAT.c \
   ecmcApp/src/main/gitversion.h \
   ecmcApp/src/main/ecmcError.cpp \
-  ecmcApp/src/main/hw_motor.cpp \
+  ecmcApp/src/main/ecmcMainTask.cpp \
   ecmcApp/src/main/ecmcMain.cpp \
   ecmcApp/src/com/ecmcAsynLink.cpp \
   ecmcApp/src/com/ecmcAsynPortDriver.cpp \

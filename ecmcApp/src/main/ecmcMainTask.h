@@ -1,6 +1,6 @@
 
-#ifndef HW_MOTOR_H_
-# define HW_MOTOR_H_
+#ifndef ECMC_MAIN_TASK_H_
+# define ECMC_MAIN_TASK_H_
 
 /**\file
  * \defgroup ecmc
@@ -14,37 +14,19 @@
 # include <string.h>
 # include "main/ecmcDefinitions.h"
 
+#define AXIS_CHECK_RETURN_USED_BUFFER(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
+
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus
 
-//  Checks if an axis index is valid
-# define AXIS_CHECK_RETURN(_axis) { init_axis(_axis);     \
-                                    if (((_axis) <= 0) || \
-                                        ((_axis) >= ECMC_MAX_AXES)) return; }
-# define AXIS_CHECK_RETURN_ZERO(_axis) { init_axis(_axis);     \
-                                         if (((_axis) <= 0) || \
-                                             ((_axis) >=       \
-                                              ECMC_MAX_AXES)) return 0; }
-# define AXIS_CHECK_RETURN_USED_BUFFER(_axis) { init_axis(_axis);              \
-                                                if (((_axis) <= 0) ||          \
-                                                    ((_axis) >=                \
-                                                     ECMC_MAX_AXES)) return 0; \
-}
-
 // Error Codes
 # define CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL 0x200000
-
-
-
-
-
-
 
 /** 
  * \breif Initialization routine for ecmc.\n
  */
-int hw_motor_global_init(void);
+int ecmcInit(void);
 
 /** \breif Sets application mode
  *
@@ -66,4 +48,4 @@ int setAppMode(int mode);
 }
 # endif  // ifdef __cplusplus
 
-#endif  /* HW_MOTOR_H_ */
+#endif  /* ECMC_MAIN_TASK_H_ */

@@ -19,6 +19,7 @@
 #include "../misc/ecmcCommandList.h"
 #include "../plc/ecmcPLCMain.h"
 #include "../motion/ecmcMotion.h"
+#include "../ethercat/ecmcEthercat.h"
 
 
 extern ecmcAxisBase *axes[ECMC_MAX_AXES];

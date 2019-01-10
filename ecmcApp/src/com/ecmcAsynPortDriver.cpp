@@ -21,7 +21,7 @@
 #include "cmd_EAT.h"
 #include "ecmcAsynPortDriver.h"
 
-#include "../main/hw_motor.h"
+#include "../main/ecmcMainTask.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"

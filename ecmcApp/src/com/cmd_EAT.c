@@ -13,7 +13,7 @@
 #include <string.h>
 #include <math.h>
 #include "cmd.h"
-#include "../main/hw_motor.h"
+#include "../main/ecmcMainTask.h"
 #include "../main/ecmcErrorsList.h"
 #include "cmd_EAT.h"
 #include "../motion/ecmcMotion.h"
@@ -38,7 +38,7 @@ typedef struct
 } cmd_Motor_cmd_type;
 
 static cmd_Motor_cmd_type cmd_Motor_cmd[ECMC_MAX_AXES];
-static int ecmcInit = 0;
+static int ecmcInitDone = 0;
 
 // TODO: Cleanup macros.. should not need different for different types
 #define SEND_OK_OR_ERROR_AND_RETURN(function)            \
@@ -2214,9 +2214,9 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     return ERROR_MAIN_PARSER_BUFFER_NULL;
   }
 
-  if (!ecmcInit) {
-    hw_motor_global_init();
-    ecmcInit = 1;
+  if (!ecmcInitDone) {
+    ecmcInit();
+    ecmcInitDone = 1;
   }
 
   // Check Command length
