@@ -22,6 +22,10 @@
 #include "ecmcAsynPortDriver.h"
 
 #include "../hw_motor.h"
+#include "../ethercat/ecmcEthercat.h"
+#include "../general/ecmcGeneral.h"
+#include "../com/ecmcCom.h"
+
 
 static const char *driverName = "ecmcAsynPortDriver";
 

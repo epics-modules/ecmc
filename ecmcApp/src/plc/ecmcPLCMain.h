@@ -1,12 +1,12 @@
 /*
- * ecmcPLCs.h
+ * ecmcPLCMain.h
  *
  *  Created on: Oct 15, 2018
  *      Author: anderssandstrom
  */
 
-#ifndef ecmcPLCs_H_
-#define ecmcPLCs_H_
+#ifndef ECMC_PLC_MAIN_H_
+#define ECMC_PLC_MAIN_H_
 
 #include "exprtkWrap.h"
 #include <iostream>
@@ -16,7 +16,8 @@
 #include "../motion/ecmcAxisBase.h"
 #include "../misc/ecmcDataStorage.h"
 #include "../ethercat/ecmcEc.h"
-#include "ecmcPLC.h"
+#include "ecmcPLCTask.h"
+#include "ecmcPLCDataIF.h"
 
 #define ERROR_PLCS_INDEX_OUT_OF_RANGE 0x20700
 #define ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE 0x20701
@@ -39,10 +40,10 @@
     }                                             \
 }                                                 \
 
-class ecmcPLCs : public ecmcError {
+class ecmcPLCMain : public ecmcError {
  public:
-  explicit ecmcPLCs(ecmcEc *ec);
-  ~ecmcPLCs();
+  explicit ecmcPLCMain(ecmcEc *ec);
+  ~ecmcPLCMain();
   int  createPLC(int plcIndex,
                  int skipCycles);
   int  deletePLC(int plcIndex);
@@ -112,7 +113,7 @@ class ecmcPLCs : public ecmcError {
   int  getPLCErrorID();
   int  plcVarNameValid(const char *plcVar);
   int globalVariableCount_;
-  ecmcPLC *plcs_[ECMC_MAX_PLCS];
+  ecmcPLCTask *plcs_[ECMC_MAX_PLCS];
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   ecmcEc *ec_;
@@ -122,4 +123,4 @@ class ecmcPLCs : public ecmcError {
   ecmcPLCDataIF *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
 };
 
-#endif  /* ecmcPLCs_H_ */
+#endif  /* ECMC_PLC_MAIN_H_ */

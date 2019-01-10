@@ -6,6 +6,9 @@
  */
 
 #include "ecmcEc.h"
+#include <cmath>
+#include <time.h>
+#include <string>
 
 ecmcEc::ecmcEc() {
   initVars();

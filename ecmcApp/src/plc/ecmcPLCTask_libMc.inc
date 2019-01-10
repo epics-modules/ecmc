@@ -13,7 +13,7 @@
     mc_errorCode=0;                                           \
     LOGERR("ERROR: Axis index out of range.\n");              \
     return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
-    if(ecmcPLC::statAxes_[axIndex]==NULL){                    \
+    if(ecmcPLCTask::statAxes_[axIndex]==NULL){                    \
       LOGERR("ERROR: Axis object NULL\n");                    \
       return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
     }                                                         \
@@ -32,8 +32,8 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_get_axis_err",
                               };
 
-ecmcAxisBase *ecmcPLC::statAxes_[ECMC_MAX_AXES]={};
-ecmcDataStorage *ecmcPLC::statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS]={};
+ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
+ecmcDataStorage *ecmcPLCTask::statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS]={};
 static int statLastAxesExecuteAbs_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteRel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
@@ -52,29 +52,29 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
   statLastAxesExecuteAbs_[index]=execute;
 
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
   
   if(trigg){    
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    ecmcPLC::statAxes_[index]->getSeq()->setTargetPos(pos);
-    ecmcPLC::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLC::statAxes_[index]->getTraj()->setDec(dec);
-    ecmcPLC::statAxes_[index]->getTraj()->setAcc(acc);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
+    ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
+    ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);
 
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setCmdData(0);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -92,29 +92,29 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
   statLastAxesExecuteRel_[index]=execute;
   
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
   if(trigg){    
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    ecmcPLC::statAxes_[index]->getSeq()->setTargetPos(pos);
-    ecmcPLC::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLC::statAxes_[index]->getTraj()->setDec(dec);
-    ecmcPLC::statAxes_[index]->getTraj()->setAcc(acc);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
+    ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
+    ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);
 
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setCommand(ECMC_CMD_MOVEREL);    
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEREL);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setCmdData(0);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -132,28 +132,28 @@ inline double mc_move_vel(double axIndex,double execute, double vel, double acc,
   statLastAxesExecuteVel_[index]=execute;
 
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
   if(trigg){    
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }    
-    ecmcPLC::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLC::statAxes_[index]->getTraj()->setDec(dec);
-    ecmcPLC::statAxes_[index]->getTraj()->setAcc(acc);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
+    ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
+    ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);
 
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setCommand(ECMC_CMD_MOVEVEL);    
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEVEL);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setCmdData(0);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -171,32 +171,32 @@ inline double mc_home(double axIndex,double execute,double seqId, double velTwoa
   statLastAxesExecuteHome_[index]=execute;
   
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
   if(trigg){    
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }    
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->getSeq()->setHomeVelTwordsCam(velTwoardsCam);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelTwordsCam(velTwoardsCam);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->getSeq()->setHomeVelOffCam(velOffCam);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelOffCam(velOffCam);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setCommand(ECMC_CMD_HOMING);    
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_HOMING);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setCmdData((int)seqId);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData((int)seqId);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -211,7 +211,7 @@ inline double mc_halt(double axIndex,double execute)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
   
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
@@ -219,7 +219,7 @@ inline double mc_halt(double axIndex,double execute)
   statLastAxesExecuteHalt_[index]=execute;
 
   if(trigg){    
-    mc_errorCode=(double)ecmcPLC::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -231,8 +231,8 @@ inline double mc_power(double axIndex,double enable)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  if(ecmcPLC::statAxes_[index]->getEnable() != (bool)enable){
-    mc_errorCode=ecmcPLC::statAxes_[index]->setEnable((bool)enable);    
+  if(ecmcPLCTask::statAxes_[index]->getEnable() != (bool)enable){
+    mc_errorCode=ecmcPLCTask::statAxes_[index]->setEnable((bool)enable);    
     return (double)mc_errorCode;
   }
   return 0;
@@ -242,7 +242,7 @@ inline double mc_reset(double axIndex)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  ecmcPLC::statAxes_[index]->setReset(1);
+  ecmcPLCTask::statAxes_[index]->setReset(1);
   return 0;
 }
 
@@ -250,7 +250,7 @@ inline double mc_get_busy(double axIndex)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  return (double) ecmcPLC::statAxes_[index]->getBusy();
+  return (double) ecmcPLCTask::statAxes_[index]->getBusy();
 }
 
 inline double mc_get_homed(double axIndex)
@@ -258,7 +258,7 @@ inline double mc_get_homed(double axIndex)
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   bool homed=0;
-  mc_errorCode=ecmcPLC::statAxes_[index]->getAxisHomed(&homed);
+  mc_errorCode=ecmcPLCTask::statAxes_[index]->getAxisHomed(&homed);
   return (double) homed;
 }
 
@@ -266,7 +266,7 @@ inline double mc_get_axis_err(double axIndex)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  return (double) ecmcPLC::statAxes_[index]->getErrorID();
+  return (double) ecmcPLCTask::statAxes_[index]->getErrorID();
 }
 
 inline double mc_get_err()

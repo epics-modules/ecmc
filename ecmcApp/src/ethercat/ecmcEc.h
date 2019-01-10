@@ -8,9 +8,6 @@
 #ifndef ECMCEC_H_
 #define ECMCEC_H_
 
-#include <time.h>
-#include <cmath>
-#include <string>
 #include "stdio.h"
 #include "ecrt.h"
 #include "../general/ecmcDefinitions.h"

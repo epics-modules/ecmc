@@ -6,6 +6,11 @@
  */
 
 #include "ecmcAxisBase.h"
+#include <inttypes.h>
+#include <stdint.h>
+#include <string>
+#include <new>
+
 
 ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime) {
   PRINT_ERROR_PATH("axis[%d].error", axisID);

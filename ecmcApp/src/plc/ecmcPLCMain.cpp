@@ -4,20 +4,20 @@
  *      Author: anderssandstrom
  */
 
-#include "ecmcPLCs.h"
+#include "ecmcPLCMain.h"
 
-ecmcPLCs::ecmcPLCs(ecmcEc *ec) {
+ecmcPLCMain::ecmcPLCMain(ecmcEc *ec) {
   initVars();
   ec_ = ec;
 }
 
-ecmcPLCs::~ecmcPLCs() {
+ecmcPLCMain::~ecmcPLCMain() {
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
     delete plcs_[i];
   }
 }
 
-void ecmcPLCs::initVars() {
+void ecmcPLCMain::initVars() {
   globalVariableCount_ = 0;
 
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
@@ -42,7 +42,7 @@ void ecmcPLCs::initVars() {
   ec_ = NULL;
 }
 
-int ecmcPLCs::createPLC(int plcIndex, int skipCycles) {
+int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
   if ((plcIndex < 0) || (plcIndex >= ECMC_MAX_PLCS)) {
     return ERROR_PLCS_INDEX_OUT_OF_RANGE;
   }
@@ -54,7 +54,7 @@ int ecmcPLCs::createPLC(int plcIndex, int skipCycles) {
     plcs_[plcIndex] = NULL;
   }
 
-  plcs_[plcIndex] = new ecmcPLC(skipCycles);
+  plcs_[plcIndex] = new ecmcPLCTask(skipCycles);
   int errorCode = plcs_[plcIndex]->getErrorID();
 
   if (errorCode) {
@@ -80,7 +80,7 @@ int ecmcPLCs::createPLC(int plcIndex, int skipCycles) {
   return 0;
 }
 
-int ecmcPLCs::setAxisArrayPointer(ecmcAxisBase *axis, int index) {
+int ecmcPLCMain::setAxisArrayPointer(ecmcAxisBase *axis, int index) {
   if ((index >= ECMC_MAX_AXES) || (index < 0)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -91,7 +91,7 @@ int ecmcPLCs::setAxisArrayPointer(ecmcAxisBase *axis, int index) {
   return 0;
 }
 
-int ecmcPLCs::setDataStoragePointer(ecmcDataStorage *ds, int index) {
+int ecmcPLCMain::setDataStoragePointer(ecmcDataStorage *ds, int index) {
   if ((index >= ECMC_MAX_DATA_STORAGE_OBJECTS) || (index < 0)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -102,7 +102,7 @@ int ecmcPLCs::setDataStoragePointer(ecmcDataStorage *ds, int index) {
   return 0;
 }
 
-int ecmcPLCs::validate() {
+int ecmcPLCMain::validate() {
   // Set scantime
   int errorCode = updateAllScanTimeVars();
 
@@ -123,7 +123,7 @@ int ecmcPLCs::validate() {
   return 0;
 }
 
-int ecmcPLCs::execute(bool ecOK) {
+int ecmcPLCMain::execute(bool ecOK) {
   for (int plcIndex = 0; plcIndex < ECMC_MAX_PLCS; plcIndex++) {
     if (plcs_[plcIndex] != NULL) {
       if (plcEnable_[plcIndex]) {
@@ -143,13 +143,13 @@ int ecmcPLCs::execute(bool ecOK) {
   return 0;
 }
 
-int ecmcPLCs::getExpr(int plcIndex, std::string *expr) {
+int ecmcPLCMain::getExpr(int plcIndex, std::string *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   expr = plcs_[plcIndex]->getExpr();
   return 0;
 }
 
-int ecmcPLCs::setExpr(int plcIndex, char *expr) {
+int ecmcPLCMain::setExpr(int plcIndex, char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   plcs_[plcIndex]->clearExpr();
   int errorCode = addExprLine(plcIndex, expr);
@@ -161,7 +161,7 @@ int ecmcPLCs::setExpr(int plcIndex, char *expr) {
   return compileExpr(plcIndex);
 }
 
-int ecmcPLCs::addExprLine(int plcIndex, const char *expr) {
+int ecmcPLCMain::addExprLine(int plcIndex, const char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   int errorCode = parseExpr(plcIndex, expr);
 
@@ -206,7 +206,7 @@ int ecmcPLCs::addExprLine(int plcIndex, const char *expr) {
   return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
 }
 
-int ecmcPLCs::loadPLCFile(int plcIndex, char *fileName) {
+int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   std::ifstream plcFile;
   plcFile.open(fileName);
@@ -283,41 +283,41 @@ int ecmcPLCs::loadPLCFile(int plcIndex, char *fileName) {
   return 0;
 }
 
-int ecmcPLCs::clearExpr(int plcIndex) {
+int ecmcPLCMain::clearExpr(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   return plcs_[plcIndex]->clearExpr();
 }
 
-int ecmcPLCs::compileExpr(int plcIndex) {
+int ecmcPLCMain::compileExpr(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   return plcs_[plcIndex]->compile();
 }
 
-int ecmcPLCs::setEnable(int plcIndex, int enable) {
+int ecmcPLCMain::setEnable(int plcIndex, int enable) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   plcEnable_[plcIndex]->setData(static_cast<double>(enable));
   return 0;
 }
 
-int ecmcPLCs::getEnable(int plcIndex, int *enabled) {
+int ecmcPLCMain::getEnable(int plcIndex, int *enabled) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   *enabled = static_cast<int>(plcEnable_[plcIndex]->getData());
   return 0;
 }
 
-int ecmcPLCs::deletePLC(int plcIndex) {
+int ecmcPLCMain::deletePLC(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   delete plcs_[plcIndex];
   return 0;
 }
 
-int ecmcPLCs::getCompiled(int plcIndex, int *compiled) {
+int ecmcPLCMain::getCompiled(int plcIndex, int *compiled) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   *compiled = plcs_[plcIndex]->getCompiled();
   return 0;
 }
 
-int ecmcPLCs::parseExpr(int plcIndex, const char *exprStr) {
+int ecmcPLCMain::parseExpr(int plcIndex, const char *exprStr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
 
   if (strlen(exprStr) >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
@@ -384,7 +384,7 @@ int ecmcPLCs::parseExpr(int plcIndex, const char *exprStr) {
   return 0;
 }
 
-int ecmcPLCs::findGlobalDataIF(char *varName, ecmcPLCDataIF **outDataIF) {
+int ecmcPLCMain::findGlobalDataIF(char *varName, ecmcPLCDataIF **outDataIF) {
   for (int i = 0; i < globalVariableCount_; i++) {
     if (globalDataArray_[i]) {
       int n = strcmp(varName, globalDataArray_[i]->getVarName());
@@ -398,7 +398,7 @@ int ecmcPLCs::findGlobalDataIF(char *varName, ecmcPLCDataIF **outDataIF) {
   return 0;
 }
 
-int ecmcPLCs::createNewGlobalDataIF(char              *varName,
+int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
                                     ecmcDataSourceType dataSource,
                                     ecmcPLCDataIF    **outDataIF) {
   // Axes data
@@ -530,7 +530,7 @@ int ecmcPLCs::createNewGlobalDataIF(char              *varName,
   return 0;
 }
 
-int ecmcPLCs::getAxisIndex(char *varName) {
+int ecmcPLCMain::getAxisIndex(char *varName) {
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  axisId = 0;
   int  nvals  = sscanf(varName,
@@ -544,7 +544,7 @@ int ecmcPLCs::getAxisIndex(char *varName) {
   return -1;
 }
 
-int ecmcPLCs::getDsIndex(char *varName) {
+int ecmcPLCMain::getDsIndex(char *varName) {
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  dsId  = 0;
   int  nvals = sscanf(varName,
@@ -561,7 +561,7 @@ int ecmcPLCs::getDsIndex(char *varName) {
 /*
  * find and register all axis variables in string
  */
-int ecmcPLCs::parseAxis(int plcIndex, const char *exprStr) {
+int ecmcPLCMain::parseAxis(int plcIndex, const char *exprStr) {
   // find  and register all axis variables in string
   int   nvals = 0;
   int   axisId;
@@ -616,7 +616,7 @@ int ecmcPLCs::parseAxis(int plcIndex, const char *exprStr) {
 /*
  * find and register all ec variables in string
  */
-int ecmcPLCs::parseEC(int plcIndex, const char *exprStr) {
+int ecmcPLCMain::parseEC(int plcIndex, const char *exprStr) {
   int   ecId, ecSlave, bitIndex;
   char *strLocal = strdup(exprStr);
   char *strEc    = strLocal;
@@ -692,7 +692,7 @@ int ecmcPLCs::parseEC(int plcIndex, const char *exprStr) {
   return 0;
 }
 
-int ecmcPLCs::parseStatic(int plcIndex, const char *exprStr) {
+int ecmcPLCMain::parseStatic(int plcIndex, const char *exprStr) {
   // find static variable
   char *strLocal  = strdup(exprStr);
   char *strStatic = strLocal;
@@ -719,11 +719,11 @@ int ecmcPLCs::parseStatic(int plcIndex, const char *exprStr) {
   return 0;
 }
 
-int ecmcPLCs::parseFunctions(int plcIndex, const char *exprStr) {
+int ecmcPLCMain::parseFunctions(int plcIndex, const char *exprStr) {
   return plcs_[plcIndex]->parseFunctions(exprStr);
 }
 
-int ecmcPLCs::parseGlobal(int plcIndex, const char *exprStr) {
+int ecmcPLCMain::parseGlobal(int plcIndex, const char *exprStr) {
   // find global variable
   char *strLocal  = strdup(exprStr);
   char *strGlobal = strLocal;
@@ -752,7 +752,7 @@ int ecmcPLCs::parseGlobal(int plcIndex, const char *exprStr) {
   return 0;
 }
 
-int ecmcPLCs::parseDataStorage(int plcIndex, const char *exprStr) {
+int ecmcPLCMain::parseDataStorage(int plcIndex, const char *exprStr) {
   // find plc variable
   char *strLocal = strdup(exprStr);
   char *strDS    = strLocal;
@@ -792,7 +792,7 @@ int ecmcPLCs::parseDataStorage(int plcIndex, const char *exprStr) {
   return 0;
 }
 
-int ecmcPLCs::parsePLC(int plcIndex, const char *exprStr) {
+int ecmcPLCMain::parsePLC(int plcIndex, const char *exprStr) {
   // find plc variable
   char *strLocal = strdup(exprStr);
   char *strPLC   = strLocal;
@@ -848,7 +848,7 @@ int ecmcPLCs::parsePLC(int plcIndex, const char *exprStr) {
 /*
 * Ensure that plc variable name is correct
 */
-int ecmcPLCs::plcVarNameValid(const char *plcVar) {
+int ecmcPLCMain::plcVarNameValid(const char *plcVar) {
   int length = strlen(plcVar);
 
   if (strstr(plcVar,
@@ -880,7 +880,7 @@ int ecmcPLCs::plcVarNameValid(const char *plcVar) {
 /*
  * Create new dataIF if needed and register in PLC
  */
-int ecmcPLCs::createAndRegisterNewDataIF(int                plcIndex,
+int ecmcPLCMain::createAndRegisterNewDataIF(int                plcIndex,
                                          char              *varName,
                                          ecmcDataSourceType dataSource) {
   ecmcPLCDataIF *dataIF = NULL;
@@ -909,7 +909,7 @@ int ecmcPLCs::createAndRegisterNewDataIF(int                plcIndex,
   return 0;
 }
 
-int ecmcPLCs::addPLCDefaultVariables(int plcIndex, int skipCycles) {
+int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   // Add plc<index>.enable
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  chars = snprintf(varName,
@@ -1080,7 +1080,7 @@ int ecmcPLCs::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   return 0;
 }
 
-int ecmcPLCs::getPLCErrorID() {
+int ecmcPLCMain::getPLCErrorID() {
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
     if (plcError_[i]) {
       if (plcError_[i]->getData()) {
@@ -1091,18 +1091,18 @@ int ecmcPLCs::getPLCErrorID() {
   return 0;
 }
 
-bool ecmcPLCs::getError() {
+bool ecmcPLCMain::getError() {
   return getPLCErrorID() || ecmcError::getError();
 }
 
-int ecmcPLCs::getErrorID() {
+int ecmcPLCMain::getErrorID() {
   if (getPLCErrorID()) {
     return getPLCErrorID();
   }
   return ecmcError::getErrorID();
 }
 
-void ecmcPLCs::errorReset() {
+void ecmcPLCMain::errorReset() {
   // reset all plc error
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
     if (plcError_[i]) {
@@ -1114,7 +1114,7 @@ void ecmcPLCs::errorReset() {
   ecmcError::errorReset();
 }
 
-int ecmcPLCs::updateAllScanTimeVars() {
+int ecmcPLCMain::updateAllScanTimeVars() {
   // Update all scantime variables
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
 
@@ -1147,13 +1147,13 @@ int ecmcPLCs::updateAllScanTimeVars() {
   return 0;
 }
 
-int ecmcPLCs::readStaticPLCVar(int plcIndex, const char  *varName,
+int ecmcPLCMain::readStaticPLCVar(int plcIndex, const char  *varName,
                                double *data) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   return plcs_[plcIndex]->readStaticPLCVar(varName, data);
 }
 
-int ecmcPLCs::writeStaticPLCVar(int plcIndex, const char  *varName,
+int ecmcPLCMain::writeStaticPLCVar(int plcIndex, const char  *varName,
                                 double data) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   return plcs_[plcIndex]->writeStaticPLCVar(varName, data);
