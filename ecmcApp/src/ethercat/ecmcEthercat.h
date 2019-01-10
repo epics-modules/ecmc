@@ -1,7 +1,7 @@
 #ifndef ECMC_ETHERCAT_H_
 #define ECMC_ETHERCAT_H_
 
-#include "../com/cmd.h"        // Log Macros
+#include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcErrorsList.h"
 #include "../main/ecmcDefinitions.h"
 
@@ -16,7 +16,7 @@ extern "C" {
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Select /dev/EtherCAT0.\n
- *  "Cfg.EcSetMaster(0)" //Command string to cmd_EAT.c\n
+ *  "Cfg.EcSetMaster(0)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetMaster(int masterIndex);
 
@@ -35,7 +35,7 @@ int ecSetMaster(int masterIndex);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Reset master. Master index is NOT currently supported.\n
- *  "Cfg.EcResetMaster(10)" //Command string to cmd_EAT.c\n
+ *  "Cfg.EcResetMaster(10)" //Command string to ecmcCmdParser.c\n
  */
 int ecResetMaster(int masterIndex);
 
@@ -68,7 +68,7 @@ int ecResetMaster(int masterIndex);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Add a EL5101 Beckhoff slave at slave position 1.\n
- *  "Cfg.EcAddSlave(0,1,0x2,0x13ed3052)" //Command string to cmd_EAT.c\n
+ *  "Cfg.EcAddSlave(0,1,0x2,0x13ed3052)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddSlave(uint16_t alias,
                uint16_t position,
@@ -126,12 +126,12 @@ int ecAddPdo(int      slaveIndex,
  * \note Example: Add an EtherCAT entry for the actual position of an EL5101
  * incremental encoder card.\n
  * "Cfg.EcAddEntryComplete(2,0x2,0x13ed3052,2,3,0x1a03,0x6010,0x10,16,POSITION)"
- * //Command string to cmd_EAT.c\n
+ * //Command string to ecmcCmdParser.c\n
  *
  * \note Example: Add an EtherCAT entry for the velocity setpoint of an EL7037
  * stepper drive card.\n
  * "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,1,2,0x1604,0x7010,0x21,16,
- * VELOCITY_SETPOINT)" //Command string to cmd_EAT.c\n
+ * VELOCITY_SETPOINT)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddEntryComplete(
   uint16_t slaveBusPosition,
@@ -169,7 +169,7 @@ int ecAddEntryComplete(
  * \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
  * entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
  * argument is excluded in\n
- * "Cfg.EcAddMemMap(10,AI1,200,2,WAVEFORM)" //Command string to cmd_EAT.c\n
+ * "Cfg.EcAddMemMap(10,AI1,200,2,WAVEFORM)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddMemMap(
   uint16_t startEntryBusPosition,
@@ -200,7 +200,7 @@ int ecAddMemMap(
  * input card: slaveBusPosition=1, assignActivate=0x320, sync0Cycle=1000000
  * (1kHz), sync0Shift=10, sync1Cycle=1000000 (1kHz).\n
  * "Cfg.EcSlaveConfigDC(1,0x320,1000000,10,1000000,0)" //Command string to
- * cmd_EAT.c\n
+ * ecmcCmdParser.c\n
  */
 int ecSlaveConfigDC(
   int      slaveBusPosition,
@@ -221,7 +221,7 @@ int ecSlaveConfigDC(
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Select slave 3 as reference clock for master 0.\n
- * "Cfg.EcSelectReferenceDC(0,3)" //Command string to cmd_EAT.c\n
+ * "Cfg.EcSelectReferenceDC(0,3)" //Command string to ecmcCmdParser.c\n
  */
 int ecSelectReferenceDC(int masterIndex,
                         int slaveBusPosition);
@@ -251,7 +251,7 @@ int ecSelectReferenceDC(int masterIndex,
  *
  * \note Example: Write 1A (1000mA) to maximum current of the EL7037 stepper drive card
  * on slave position 2.\n
- * "Cfg.EcAddSdo(2,0x8010,0x1,1000,2)" //Command string to cmd_EAT.c\n
+ * "Cfg.EcAddSdo(2,0x8010,0x1,1000,2)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddSdo(uint16_t slaveBusPosition,
              uint16_t sdoIndex,
@@ -282,7 +282,7 @@ int ecAddSdo(uint16_t slaveBusPosition,
  *
  * \note Example: Write 1A (1000mA) to maximum current of the EL7037 stepper drive card
  * on slave position 2.\n
- * "Cfg.EcWriteSdo(2,0x8010,0x1,1000,2)" //Command string to cmd_EAT.c\n
+ * "Cfg.EcWriteSdo(2,0x8010,0x1,1000,2)" //Command string to ecmcCmdParser.c\n
  */
 int ecWriteSdo(uint16_t slavePosition,
                uint16_t sdoIndex,
@@ -323,7 +323,7 @@ int ecWriteSdoComplete(uint16_t slavePosition,
  *
  * \note Example: Read maximum current setting of the EL7037 stepper drive card
  * on slave position 2.\n
- * "Cfg.EcReadSdo(2,0x8010,0x1,2)" //Command string to cmd_EAT.c\n
+ * "Cfg.EcReadSdo(2,0x8010,0x1,2)" //Command string to ecmcCmdParser.c\n
  */
 uint32_t ecReadSdo(uint16_t  slavePosition,
                    uint16_t  sdoIndex,
@@ -346,7 +346,7 @@ uint32_t ecReadSdo(uint16_t  slavePosition,
  *                              is not written, so the default is used.\n
  *
  * \note Example: Set watchdog times to 100,100 for slave at busposition 1.\n
- * "Cfg.EcSlaveConfigWatchDog(1,100,100)" //Command string to cmd_EAT.c\n
+ * "Cfg.EcSlaveConfigWatchDog(1,100,100)" //Command string to ecmcCmdParser.c\n
  *
  * \return 0 if success or otherwise an error code.\n
  */
@@ -365,7 +365,7 @@ int ecSlaveConfigWatchDog(int slaveBusPosition,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Apply hardware configuration to master 0 (/dev/EtherCAT0).\n
- * "Cfg.EcApplyConfig(0)" //Command string to cmd_EAT.c\n
+ * "Cfg.EcApplyConfig(0)" //Command string to ecmcCmdParser.c\n
  */
 int ecApplyConfig(int masterIndex);
 
@@ -383,7 +383,7 @@ int ecApplyConfig(int masterIndex);
   *
   * \note Example: Write a 0 to the 2:nd added entry (entryIndex=1) in the 4:th
   * added slave (slaveIndex=3).\n
-  *  "Cfg.WriteEcEntry(3,1,0)" //Command string to cmd_EAT.c\n
+  *  "Cfg.WriteEcEntry(3,1,0)" //Command string to ecmcCmdParser.c\n
   */
 int writeEcEntry(int      slaveIndex,
                  int      entryIndex,
@@ -407,7 +407,7 @@ int writeEcEntry(int      slaveIndex,
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Write a 1 to a digital output configured as "OUTPUT_0" on slave 1\n
-  *  "Cfg.WriteEcEntryIDString(1,OUTPUT_1,1)" //Command string to cmd_EAT.c\n
+  *  "Cfg.WriteEcEntryIDString(1,OUTPUT_1,1)" //Command string to ecmcCmdParser.c\n
   */
 int writeEcEntryIDString(int      slaveBusPosition,
                          char    *entryIdString,
@@ -427,7 +427,7 @@ int writeEcEntryIDString(int      slaveBusPosition,
   *
   * \note Example: Read the 2:nd added entry (entryIndex=1) in the 4:th added
   * slave (slaveIndex=3).\n
-  * "Cfg.ReadEcEntry(3,1)" //Command string to cmd_EAT.c\n
+  * "Cfg.ReadEcEntry(3,1)" //Command string to ecmcCmdParser.c\n
   */
 int readEcEntry(int       slaveIndex,
                 int       entryIndex,
@@ -451,7 +451,7 @@ int readEcEntry(int       slaveIndex,
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Read a digital input configured as "INPUT_0" on slave 1\n
-  *  "Cfg.ReadEcEntryIDString(1,INPUT_0)" //Command string to cmd_EAT.c\n
+  *  "Cfg.ReadEcEntryIDString(1,INPUT_0)" //Command string to ecmcCmdParser.c\n
   */
 int readEcEntryIDString(int       slavePosition,
                         char     *entryIDString,
@@ -483,7 +483,7 @@ int readEcEntryIDString(int       slavePosition,
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Read a the index of an entry configured as "INPUT_0" on slave 1\n
-  *  "Cfg.ReadEcEntryIndexIDString(1,INPUT_0)" //Command string to cmd_EAT.c\n
+  *  "Cfg.ReadEcEntryIndexIDString(1,INPUT_0)" //Command string to ecmcCmdParser.c\n
   */
 int readEcEntryIndexIDString(int   slavePosition,
                              char *entryIDString,
@@ -508,7 +508,7 @@ int readEcEntryIndexIDString(int   slavePosition,
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Read the slave index of the slave with bus position 5.\n
-  *  "Cfg.ReadEcSlaveIndex(5)" //Command string to cmd_EAT.c\n
+  *  "Cfg.ReadEcSlaveIndex(5)" //Command string to ecmcCmdParser.c\n
   */
 int readEcSlaveIndex(int  slavePosition,
                      int *value);
@@ -533,7 +533,7 @@ int readEcSlaveIndex(int  slavePosition,
  *
  * \note Example: memMapIDString for an memory map called "AI_1_ARRAY":
  * "ec.mm.AI_1_ARRAY".\n
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int readEcMemMap(const char *memMapIDString,
                  uint8_t    *data,
@@ -558,7 +558,7 @@ int readEcMemMap(const char *memMapIDString,
  *                      0 not to update data in realtime.\n
  * \note Example: Disable update of value in realtime for entry with name "AI_1" on
  * bus position 5.\n
- *  "Cfg.EcSetEntryUpdateInRealtime(AI_1,5,0)" //Command string to cmd_EAT.c\n
+ *  "Cfg.EcSetEntryUpdateInRealtime(AI_1,5,0)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetEntryUpdateInRealtime(
   uint16_t slavePosition,
@@ -581,7 +581,7 @@ int ecSetEntryUpdateInRealtime(
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Enable EtherCAT diagnostics.\n
-  *  "Cfg.EcSetDiagnostics(1)" //Command string to cmd_EAT.c\n
+  *  "Cfg.EcSetDiagnostics(1)" //Command string to ecmcCmdParser.c\n
   */
 int ecSetDiagnostics(int enable);
 
@@ -601,7 +601,7 @@ int ecSetDiagnostics(int enable);
   *
   * \note Example: Set the allowd bus cycles of non complete domain data to
   * 10.\n
-  *  "Cfg.EcSetDomainFailedCyclesLimit(10)" //Command string to cmd_EAT.c\n
+  *  "Cfg.EcSetDomainFailedCyclesLimit(10)" //Command string to ecmcCmdParser.c\n
   */
 int ecSetDomainFailedCyclesLimit(int cycles);
 
@@ -618,7 +618,7 @@ int ecSetDomainFailedCyclesLimit(int cycles);
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Reset EtherCAT errors.\n
-  *  "Cfg.EcResetError()" //Command string to cmd_EAT.c\n
+  *  "Cfg.EcResetError()" //Command string to ecmcCmdParser.c\n
   */
 int ecResetError();
 
@@ -637,7 +637,7 @@ int ecResetError();
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable EtherCAT related diagnostic printouts.\n
- *  "Cfg.EcEnablePrintouts(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.EcEnablePrintouts(1)" //Command string to ecmcCmdParser.c\n
  */
 int ecEnablePrintouts(int value);
 
@@ -647,7 +647,7 @@ int ecEnablePrintouts(int value);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example:
- *  "EcPrintAllHardware()" //Command string to cmd_EAT.c\n
+ *  "EcPrintAllHardware()" //Command string to ecmcCmdParser.c\n
  */
 int ecPrintAllHardware();
 
@@ -656,7 +656,7 @@ int ecPrintAllHardware();
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example:Print hardware configuration for slave 1
- *  "EcPrintSlaveConfig(1)" //Command string to cmd_EAT.c\n
+ *  "EcPrintSlaveConfig(1)" //Command string to ecmcCmdParser.c\n
  */
 int ecPrintSlaveConfig(int slaveIndex);
 
@@ -678,7 +678,7 @@ int ecPrintSlaveConfig(int slaveIndex);
  *
  *  \note Example 1: Link an EtherCAT entry configured as "OUTPUT_0" in slave 1 as
  *  status output for ethercat master.\n
- *   "Cfg.LinkEcEntryToEcStatusOutput(1,"OUTPUT_0")" //Command string to cmd_EAT.c\n
+ *   "Cfg.LinkEcEntryToEcStatusOutput(1,"OUTPUT_0")" //Command string to ecmcCmdParser.c\n
  */
 int linkEcEntryToEcStatusOutput(int   slaveIndex,
                                 char *entryIDString);

@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "cmd.h"
-#include "cmd_EAT.h"
+#include "ecmcOctetIF.h"
+#include "ecmcCmdParser.h"
 #include "../main/ecmcErrorsList.h"
 
 unsigned int debug_print_flags      = 0; // 65535;
@@ -263,12 +263,12 @@ int cmd_handle_input_line(const char           *input_line,
   int is_EAT_cmd    = 1; // strchr(input_line, ';') != NULL;
 
   if (is_EAT_cmd) {
-    int errorCode = cmd_EAT(argc, my_argv, (const char **)my_sepv, buffer);
+    int errorCode = ecmcCmdParser(argc, my_argv, (const char **)my_sepv, buffer);
 
     if (errorCode) {
       RETURN_ERROR_OR_DIE(buffer,
                           __LINE__,
-                          "%s/%s:%d cmd_EAT returned error: %x.",
+                          "%s/%s:%d ecmcCmdParser returned error: %x.",
                           __FILE__,
                           __FUNCTION__,
                           __LINE__,
@@ -348,7 +348,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
   if (errorCode) {
     RETURN_ERROR_OR_DIE(getEpicsBuffer(),
                         __LINE__,
-                        "%s/%s:%d cmd_EAT returned error: %x.",
+                        "%s/%s:%d cmd_handle_input_line returned error: %x.",
                         __FILE__,
                         __FUNCTION__,
                         __LINE__,

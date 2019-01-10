@@ -1,7 +1,7 @@
 #ifndef ECMC_GENERAL_H_
 #define ECMC_GENERAL_H_
 
-#include "../com/cmd.h"        // Log Macros
+#include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcErrorsList.h"
 #include "../main/ecmcDefinitions.h"
 
@@ -15,7 +15,7 @@ extern "C" {
  * \return current error code of controller.
  *
  * \note Example: Get current controller error code.\n
- * "GetControllerError()" //Command string to cmd_EAT.c\n
+ * "GetControllerError()" //Command string to ecmcCmdParser.c\n
  */
 int getControllerError();
 
@@ -24,7 +24,7 @@ int getControllerError();
  * \return 0
  *
  * \note Example: Reset controller error.\n
- * "ControllerErrorReset()" //Command string to cmd_EAT.c\n
+ * "ControllerErrorReset()" //Command string to ecmcCmdParser.c\n
  */
 int controllerErrorReset();
 
@@ -35,7 +35,7 @@ int controllerErrorReset();
  * \return axis error string.\n
  *
  * \note Example: Get error code of axis 3.\n
- * "Main.M3.sErrorMessage?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.sErrorMessage?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -47,7 +47,7 @@ const char* getErrorString(int errorNumber);
  * error code.\n
  *
  * \note Example: Validate configuration.\n
- * "Cfg.ValidateConfig()" //Command string to cmd_EAT.c\n
+ * "Cfg.ValidateConfig()" //Command string to ecmcCmdParser.c\n
  */
 int validateConfig();
 
@@ -76,7 +76,7 @@ int validateConfig();
    *  \note Example: Link an EtherCAT entry configured as "POSITION_ACT" in slave 1
    *  as actual position for the encoder of axis 5.\n
    *  "Cfg.LinkEcEntryToObject(ec0.s1.POSITION_ACT,ax5.enc.actpos)" //Command string
-   *  to cmd_EAT.c\n
+   *  to ecmcCmdParser.c\n
    *     *
    */
 int linkEcEntryToObject(char *ecPath,
@@ -90,7 +90,7 @@ int linkEcEntryToObject(char *ecPath,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable printout time diagnostics.\n
- *  "Cfg.SetEnableTimeDiag(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEnableTimeDiag(1)" //Command string to ecmcCmdParser.c\n
  */
 int setEnableTimeDiag(int value);
 
@@ -102,7 +102,7 @@ int setEnableTimeDiag(int value);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable function call diagnostics.\n
- *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to ecmcCmdParser.c\n
  */
 int setEnableFunctionCallDiag(int value);
 

@@ -12,10 +12,10 @@
 #include <inttypes.h>
 #include <string.h>
 #include <math.h>
-#include "cmd.h"
+#include "ecmcOctetIF.h"
 #include "../main/ecmcMainTask.h"
 #include "../main/ecmcErrorsList.h"
-#include "cmd_EAT.h"
+#include "ecmcCmdParser.h"
 #include "../motion/ecmcMotion.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../misc/ecmcMisc.h"
@@ -2685,7 +2685,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
     if (!bufferdata) {
       cmd_buf_printf(buffer, "Error: %d",
-                     CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL);
+                     ECMC_PARSER_READ_STORAGE_BUFFER_DATA_NULL);
       return 0;
     }
 
@@ -3105,7 +3105,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   SEND_OK_OR_ERROR_AND_RETURN(ERROR_MAIN_PARSER_UNKOWN_CMD);
 }
 
-int cmd_EAT(int                   argc,
+int ecmcCmdParser(int                   argc,
             const char           *argv[],
             const char           *sepv[],
             ecmcOutputBufferType *buffer) {

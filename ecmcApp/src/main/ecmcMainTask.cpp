@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <string>
 
-#include "../com/cmd.h"
+#include "../com/ecmcOctetIF.h"
 #include "ecmcMainTask.h"
 #include "ecrt.h"
 #include "ecmcDefinitions.h"

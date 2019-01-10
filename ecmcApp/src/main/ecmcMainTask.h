@@ -21,7 +21,7 @@ extern "C" {
 # endif  // ifdef __cplusplus
 
 // Error Codes
-# define CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL 0x200000
+# define ECMC_PARSER_READ_STORAGE_BUFFER_DATA_NULL 0x200000
 
 /** 
  * \breif Initialization routine for ecmc.\n
@@ -40,7 +40,7 @@ int ecmcInit(void);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set the application mode to runtime.\n
- * "Cfg.SetAppMode(1)" //Command string to cmd_EAT.c
+ * "Cfg.SetAppMode(1)" //Command string to ecmcCmdParser.c
  */
 int setAppMode(int mode);
 

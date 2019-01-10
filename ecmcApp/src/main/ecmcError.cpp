@@ -1929,7 +1929,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     break;
 
   case 0x200000:
-    return "CMD_EAT_READ_STORAGE_BUFFER_DATA_NULL";
+    return "ECMC_PARSER_READ_STORAGE_BUFFER_DATA_NULL";
 
     break;
 

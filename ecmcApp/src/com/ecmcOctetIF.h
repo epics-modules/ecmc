@@ -1,5 +1,5 @@
-#ifndef EEMC_CMD_H
-# define EEMC_CMD_H
+#ifndef ECMC_OCTET_IF_H
+# define ECMC_OCTET_IF_H
 
 # define __STDC_FORMAT_MACROS // To have PRIx64
 # include <inttypes.h>
@@ -258,4 +258,4 @@ extern int  removeBytesFromBuffer(ecmcOutputBufferType *buffer,
 }
 # endif /* ifdef __cplusplus */
 
-#endif  /* EEMC_CMD_H */
+#endif  /* ECMC_OCTET_IF_H */

@@ -16,8 +16,8 @@ PROJECT=ecmc
 EXCLUDE_ARCHS += eldk
 
 SOURCES = \
-  ecmcApp/src/com/cmd.c \
-  ecmcApp/src/com/cmd_EAT.c \
+  ecmcApp/src/com/ecmcOctetIF.c \
+  ecmcApp/src/com/ecmcCmdParser.c \
   ecmcApp/src/main/gitversion.h \
   ecmcApp/src/main/ecmcError.cpp \
   ecmcApp/src/main/ecmcMainTask.cpp \

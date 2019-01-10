@@ -6,7 +6,7 @@
 #include "ecrt.h"
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcError.h"
-#include "../com/cmd.h"  // Logging macros
+#include "../com/ecmcOctetIF.h"  // Logging macros
 #include "../com/ecmcAsynPortDriver.h"
 #include "ecmcEcEntry.h"
 

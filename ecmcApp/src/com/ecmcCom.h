@@ -1,7 +1,7 @@
 #ifndef ECMC_MISC_H_
 #define ECMC_MISC_H_
 
-#include "../com/cmd.h"        // Log Macros
+#include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcErrorsList.h"
 #include "../main/ecmcDefinitions.h"
 
@@ -35,7 +35,7 @@ extern "C" {
  *
  * \note Example: entryIdString for an EtherCAT entry called "INPUT_1"
  * on slave 10: "ec.s10.INPUT_1".\n
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int linkEcEntryToAsynParameter(int         masterIndex,
                                int         busPosition,
@@ -70,7 +70,7 @@ int linkEcEntryToAsynParameter(int         masterIndex,
  *
  * \note Example: memMapIDString for an memory map called "AI_1_ARRAY":
  * "ec.mm.AI_1_ARRAY".\n
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int linkEcMemMapToAsynParameter(int         masterIndex,
                                 const char *memMapIDString,
@@ -82,7 +82,7 @@ int linkEcMemMapToAsynParameter(int         masterIndex,
  *  \param[in] asynPortObject Asyn port object.\n
  * \return 0 if success or otherwise an error code.\n
  *
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int initEcmcAsyn(void *asynPortObject);
 
@@ -92,7 +92,7 @@ int initEcmcAsyn(void *asynPortObject);
  *  \param[in] skipCycles Number of cycles to postpone update.\n
  * \return 0 if success or otherwise an error code.\n
  *
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int addDefaultAsynParams(int regAsynParams,
                          int skipCycles);
@@ -104,7 +104,7 @@ int addDefaultAsynParams(int regAsynParams,
  *  \param[in] skipCycles Number of cycles to postpone update.\n
  * \return 0 if success or otherwise an error code.\n
  *
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int addDefaultAsynAxis(int regAsynParams,
                        int axisIndex,
@@ -117,7 +117,7 @@ int addDefaultAsynAxis(int regAsynParams,
  *  \param[in] skipCycles Number of cycles to postpone update.\n
  * \return 0 if success or otherwise an error code.\n
  *
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int addDiagAsynAxis(int regAsynParams,
                     int axisIndex,
@@ -130,7 +130,7 @@ int addDiagAsynAxis(int regAsynParams,
  *  \param[in] skipCycles Number of cycles to postpone update.\n
  * \return 0 if success or otherwise an error code.\n
  *
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int addDefaultAsynEc(int masterIndex,
                      int regAsynParams,
@@ -144,7 +144,7 @@ int addDefaultAsynEc(int masterIndex,
  *  \param[in] skipCycles Number of cycles to postpone update.\n
  * \return 0 if success or otherwise an error code.\n
  *
- * \note There's no ascii command in cmd_EAT.c for this method.\n
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int addDefaultAsynEcSlave(int masterIndex,
                           int busPosition,

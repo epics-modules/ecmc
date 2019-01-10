@@ -12,7 +12,7 @@
 #include <iostream>
 #include <cstring>
 #include "../main/ecmcError.h"
-#include "../com/cmd.h"
+#include "../com/ecmcOctetIF.h"
 
 #define CUTOFF 100
 #define FILTER_BUFFER_SIZE_POS 150

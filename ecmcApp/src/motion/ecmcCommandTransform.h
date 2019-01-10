@@ -17,7 +17,7 @@
 #include "exprtkWrap.h"
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcError.h"
-#include "../com/cmd.h"
+#include "../com/ecmcOctetIF.h"
 
 #define ERROR_TRANSFORM_EXPR_NOT_COMPILED 0x30000
 #define ERROR_TRANSFORM_INPUT_INDEX_OUT_OF_RANGE 0x30001

@@ -1,7 +1,7 @@
 #ifndef ECMC_MOTION_H_
 #define ECMC_MOTION_H_
 
-#include "../com/cmd.h"        // Log Macros
+#include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcErrorsList.h"
 #include "../main/ecmcDefinitions.h"
 
@@ -115,7 +115,7 @@ extern "C" {
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Move axis 5 to position 1234 with a velocity of 10, acceleration of 100, and deceleration of 200.\n
- * "MoveAbsolutePosition(5,1234,10,100,200)" //Command string to cmd_EAT.c\n
+ * "MoveAbsolutePosition(5,1234,10,100,200)" //Command string to ecmcCmdParser.c\n
  */
 int moveAbsolutePosition(
   int    axisIndex,
@@ -136,7 +136,7 @@ int moveAbsolutePosition(
  *
  * \note Example: Move axis 5 to 123 relative to current position with a velocity of 10,
  * acceleration of 100, and deceleration of 200.\n
- * "MoveRelativePosition(5,1234,10,100,200)" //Command string to cmd_EAT.c\n
+ * "MoveRelativePosition(5,1234,10,100,200)" //Command string to ecmcCmdParser.c\n
  */
 int moveRelativePosition(
   int    axisIndex,
@@ -156,7 +156,7 @@ int moveRelativePosition(
  *
  * \note Example: Move axis 5  at a constant velocity of 10, acceleration of
  * 100, and deceleration of 200.\n
- * "MoveVelocity(5,10,100,200)" //Command string to cmd_EAT.c\n
+ * "MoveVelocity(5,10,100,200)" //Command string to ecmcCmdParser.c\n
  */
 int moveVelocity(int    axisIndex,
                  double velocitySet,
@@ -171,7 +171,7 @@ int moveVelocity(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Stop motion and kill amplifier of axis 2.\n
- * "StopMotion(2,1)" //Command string to cmd_EAT.c\n
+ * "StopMotion(2,1)" //Command string to ecmcCmdParser.c\n
  */
 int stopMotion(int axisIndex,
                int killAmplifier);
@@ -183,7 +183,7 @@ int stopMotion(int axisIndex,
  * \return axis error state.\n
  *
  * \note Example: Get error code of axis 3.\n
- * "Main.M3.bError?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bError?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -196,7 +196,7 @@ int         getAxisError(int axisIndex);
  * \return axis error code.\n
  *
  * \note Example: Get error code of axis 3.\n
- * "Main.M3.nErrorId?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.nErrorId?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -212,7 +212,7 @@ int         getAxisErrorID(int axisIndex);
  * \return  error code.\n
  * \note The counter can overflow.
  * \note Example: Get cycle counter of axis 3.\n
- * "GetAxisCycleCounter(3)" //Command string to cmd_EAT.c.\n
+ * "GetAxisCycleCounter(3)" //Command string to ecmcCmdParser.c.\n
   */
 int         getAxisCycleCounter(int  axisIndex,
                                 int *counter);
@@ -226,7 +226,7 @@ int         getAxisCycleCounter(int  axisIndex,
  * \return error code.\n
  *
  * \note Example: Get information of axis 3.\n
- * "GetAxisDebugInfoData(3)" //Command string to cmd_EAT.c.\n
+ * "GetAxisDebugInfoData(3)" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -243,7 +243,7 @@ int getAxisDebugInfoData(int   axisIndex,
  * \return error code.\n
  *
  * \note Example: Get information of axis 3.\n
- * "Main.M3.stAxisStatusV2?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.stAxisStatusV2?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -259,7 +259,7 @@ int getAxisStatusStructV2(int   axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get execute bit for axis 3.\n
- * "Main.M3.bExecute?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bExecute?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -283,7 +283,7 @@ int getAxisExecute(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get command word for axis 3.\n
- * "Main.M3.nCommand?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.nCommand?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -309,7 +309,7 @@ int getAxisCommand(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get command data word for axis 3.\n
- * "Main.M3.nCmdData?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.nCmdData?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -324,7 +324,7 @@ int getAxisCmdData(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get reset bit for axis 3.\n
- * "Main.M3.bReset?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bReset?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -339,7 +339,7 @@ int getAxisReset(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get amplifier actual state for axis 3.\n
- * "Main.M3.bEnabled?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bEnabled?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -354,7 +354,7 @@ int getAxisEnabled(int  cntrl_no,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get amplifier enable command bit for axis 3.\n
- * "Main.M3.bEnable?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bEnable?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -371,7 +371,7 @@ int getAxisEnable(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get axis block for axis 3.\n
- * "GetAxisBlockCom(3)" //Command string to cmd_EAT.c.\n
+ * "GetAxisBlockCom(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisBlockCom(int  axisIndex,
                     int *block);
@@ -385,7 +385,7 @@ int getAxisBlockCom(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get busy state for axis 3.\n
- * "Main.M3.bBusy?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bBusy?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -406,7 +406,7 @@ int getAxisBusy(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get busy state for axis 3.\n
- * "Main.M3.nMotionAxisID?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.nMotionAxisID?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -421,7 +421,7 @@ int getAxisID(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get state of enable alarm at limits bit for axis 3.\n
- * "GetAxisEnableAlarmAtHardLimits(3)" //Command string to cmd_EAT.c.\n
+ * "GetAxisEnableAlarmAtHardLimits(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisEnableAlarmAtHardLimits(int  axisIndex,
                                    int *value);
@@ -434,7 +434,7 @@ int getAxisEnableAlarmAtHardLimits(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get soft-limit backward position for axis 3.\n
- * "ADSPORT=501/.ADR.16#5003,16#D,8,5?" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5003,16#D,8,5?" //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -449,7 +449,7 @@ int getAxisSoftLimitPosBwd(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get soft-limit forward position for axis 3.\n
- * "ADSPORT=501/.ADR.16#5003,16#E,8,5?" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5003,16#E,8,5?" //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -464,7 +464,7 @@ int getAxisSoftLimitPosFwd(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get soft-limit backward enabled state for axis 3.\n
- * "ADSPORT=501/.ADR.16#5003,16#B,2,2?"  //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5003,16#B,2,2?"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -479,7 +479,7 @@ int getAxisEnableSoftLimitBwd(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get soft-limit forward enabled state for axis 3.\n
- * "ADSPORT=501/.ADR.16#5001,16#C,2,2?"  //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5001,16#C,2,2?"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -498,7 +498,7 @@ int getAxisEnableSoftLimitFwd(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get current operation mode of axis 3.\n
- * "GetAxisOpMode(3)"  //Command string to cmd_EAT.c.\n
+ * "GetAxisOpMode(3)"  //Command string to ecmcCmdParser.c.\n
  */
 int getAxisOpMode(int  axisIndex,
                   int *value);
@@ -511,7 +511,7 @@ int getAxisOpMode(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get acceleration setpoint for axis 3.\n
- * "Main.M3.fAcceleration?"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fAcceleration?"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -526,7 +526,7 @@ int getAxisAcceleration(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get deceleration setpoint for axis 3.\n
- * "Main.M3.fDeceleration?"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fDeceleration?"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -543,7 +543,7 @@ int getAxisDeceleration(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get target position setpoint for axis 3.\n
- * "Main.M3.fPosition?"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fPosition?"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -561,7 +561,7 @@ int getAxisTargetPos(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get target velocity setpoint for axis 3.\n
- * "Main.M3.fVelocity?"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fVelocity?"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -579,7 +579,7 @@ int getAxisTargetVel(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get done state for axis 3.\n
- * "Main.M3.bDone?" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bDone?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -596,7 +596,7 @@ int getAxisDone(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get gear ratio setting for axis 3.\n
- * "ReadAxisGearRatio(3)*" //Command string to cmd_EAT.c.\n
+ * "ReadAxisGearRatio(3)*" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisGearRatio(int     axisIndex,
                      double *value);
@@ -611,7 +611,7 @@ int getAxisGearRatio(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get state of forward limit switch for axis 3.\n
- * "Main.M3.bLimitFwd?*" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bLimitFwd?*" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -628,7 +628,7 @@ int getAxisAtHardFwd(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get state of backward limit switch for axis 3.\n
- * "Main.M3.bLimitBwd?*" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bLimitBwd?*" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -645,7 +645,7 @@ int getAxisAtHardBwd(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Check if encoder of axis 3 has been homed.\n
- * "Main.M3.bHomed?*" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bHomed?*" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -660,7 +660,7 @@ int getAxisEncHomed(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get actual encoder position for axis 3.\n
- * "Main.M3.fActPosition?*" //Command string to cmd_EAT.c.\n
+ * "Main.M3.fActPosition?*" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -675,7 +675,7 @@ int getAxisEncPosAct(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get actual encoder velocity for axis 3.\n
- * "Main.M3.fActVelocity?*" //Command string to cmd_EAT.c.\n
+ * "Main.M3.fActVelocity?*" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -692,7 +692,7 @@ int getAxisEncVelAct(int     axisIndex,
  * \note Example: Get state of reference/home switch for axis 3.\n
  * "Main.M3.stAxisStatus?" //The command returns a complete structure of
  * information including the state of the reference switch
- * //Command string to cmd_EAT.c.\n
+ * //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -709,7 +709,7 @@ int getAxisAtHome(int  axisIndex,
  * \note Example: Get pid controller error for axis 3.\n
  * "Main.M3.stAxisStatus?" //The command returns a complete structure of
  * information including the state of the pid controller error *
- * //Command string to cmd_EAT.c.\n
+ * //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -728,7 +728,7 @@ int getAxisCntrlError(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get off cam referencing/homing velocity setpoint for axes 3.\n
- * "ADSPORT=501/.ADR.16#4003,16#7,8,5?" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#4003,16#7,8,5?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -747,7 +747,7 @@ int getAxisHomeVelOffCam(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get twords cam referencing/homing velocity setpoint for axes 3.\n
- * "ADSPORT=501/.ADR.16#4003,16#6,8,5?" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#4003,16#6,8,5?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -765,7 +765,7 @@ int getAxisHomeVelTwordsCam(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get encoder scale numerator for axes 3.\n
- * "ADSPORT=501/.ADR.16#5003,16#23,8,5?" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5003,16#23,8,5?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -783,7 +783,7 @@ int getAxisEncScaleNum(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get encoder scale denominator for axes 8.\n
- * "ADSPORT=501/.ADR.16#5008,16#24,8,5?" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5008,16#24,8,5?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -798,7 +798,7 @@ int getAxisEncScaleDenom(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get raw encoder value for axis 3.\n
- * "GetAxisEncPosRaw(3)" //Command string to cmd_EAT.c.\n
+ * "GetAxisEncPosRaw(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisEncPosRaw(int      axisIndex,
                      int64_t *value);
@@ -810,7 +810,7 @@ int getAxisEncPosRaw(int      axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 
 // int getAxisCntrlEnable(int axisIndex,int *value);
@@ -824,7 +824,7 @@ int getAxisEncPosRaw(int      axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int getAxisCntrlOutPpart(int     axisIndex,
                          double *value);
@@ -836,7 +836,7 @@ int getAxisCntrlOutPpart(int     axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int getAxisCntrlOutIpart(int     axisIndex,
                          double *value);
@@ -848,7 +848,7 @@ int getAxisCntrlOutIpart(int     axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int getAxisCntrlOutDpart(int     axisIndex,
                          double *value);
@@ -860,7 +860,7 @@ int getAxisCntrlOutDpart(int     axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int getAxisCntrlOutFFpart(int     axisIndex,
                           double *value);
@@ -875,7 +875,7 @@ int getAxisCntrlOutFFpart(int     axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int getAxisCntrlOutput(int     axisIndex,
                        double *value);
@@ -891,7 +891,7 @@ int getAxisCntrlOutput(int     axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int getAxisDrvScale(int     axisIndex,
                     double *value);
@@ -903,7 +903,7 @@ int getAxisDrvScale(int     axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int getAxisDrvEnable(int  axisIndex,
                      int *value);
@@ -917,7 +917,7 @@ int getAxisDrvEnable(int  axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note No command string implemented in the cmd_EAT.c parser.\n
+ * \note No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int getAxisMonAtTarget(int  axisIndex,
                        int *value);
@@ -943,7 +943,7 @@ int getAxisMonAtTarget(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get encoder scale denominator for axes 8.\n
- * "GetAxisType(8)" //Command string to cmd_EAT.c.\n
+ * "GetAxisType(8)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisType(int  axisIndex,
                 int *value);
@@ -967,7 +967,7 @@ int getAxisType(int  axisIndex,
  * \return pointer to transformation expression.\n
  *
  * \note Example: Get trajectory transformation expression for axes 5.\n
- * "GetAxisTrajTransExpr(5)" //Command string to cmd_EAT.c.\n
+ * "GetAxisTrajTransExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
 const char* getAxisTrajTransExpr(int  axisIndex,
                                  int *error);
@@ -991,7 +991,7 @@ const char* getAxisTrajTransExpr(int  axisIndex,
  * \return pointer to transformation expression.\n
  *
  * \note Example: Get encoder transformation expression for axes 5.\n
- * "GetAxisEncTransExpr(5)" //Command string to cmd_EAT.c.\n
+ * "GetAxisEncTransExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
 const char* getAxisEncTransExpr(int  axisIndex,
                                 int *error);
@@ -1018,7 +1018,7 @@ const char* getAxisEncTransExpr(int  axisIndex,
  * \return pointer to transformation expression.\n
  *
  * \note Example: Get command transformation expression for axes 5.\n
- * "GetAxisTransformCommandExpr(5)" //Command string to cmd_EAT.c.\n
+ * "GetAxisTransformCommandExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
 const char* getAxisTransformCommandExpr(int  axisIndex,
                                         int *error);
@@ -1036,7 +1036,7 @@ const char* getAxisTransformCommandExpr(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get trajectory generator data source type for axis 3.\n
- * "GetAxisTrajSourceType(3)" //Command string to cmd_EAT.c.\n
+ * "GetAxisTrajSourceType(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisTrajSource(int  axisIndex,
                       int *value);
@@ -1053,7 +1053,7 @@ int getAxisTrajSource(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get encoder generator data source type for axis 3.\n
- * "GetAxisEncSourceType(3)" //Command string to cmd_EAT.c.\n
+ * "GetAxisEncSourceType(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisEncSource(int  axisIndex,
                      int *value);
@@ -1070,7 +1070,7 @@ int getAxisEncSource(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get axis enable command from other axis for axis 3.\n
- * "GetAxisEnableCommandsFromOtherAxis(3)" //Command string to cmd_EAT.c.\n
+ * "GetAxisEnableCommandsFromOtherAxis(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisEnableCommandsFromOtherAxis(int  axisIndex,
                                        int *value);
@@ -1086,7 +1086,7 @@ int getAxisEnableCommandsFromOtherAxis(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get axis enable command transform for axis 5.\n
- * "GetAxisEnableCommandsTransform(5)" //Command string to cmd_EAT.c.\n
+ * "GetAxisEnableCommandsTransform(5)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisEnableCommandsTransform(int  axisIndex,
                                    int *value);
@@ -1102,10 +1102,10 @@ int getAxisEnableCommandsTransform(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set execute bit for axis 3.\n
- * "Main.M3.bExecute=1" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bExecute=1" //Command string to ecmcCmdParser.c.\n
  *
  * Example: Stop motion on axis 3.\n
- * "Main.M3.bExecute=0" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bExecute=0" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1128,7 +1128,7 @@ int setAxisExecute(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set command word to absolute positioning for axis 4.\n
- * "Main.M4.nCommand=3" //Command string to cmd_EAT.c.\n
+ * "Main.M4.nCommand=3" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1174,8 +1174,8 @@ int setAxisCommand(int axisIndex,
  *
  * \note Example: Prepare homing sequence 3 at next positive edge of execute
  * for axis 3 (two command needed).\n
- * "Main.M3.nCommand=10" //Set homing. Command string to cmd_EAT.c.\n
- * "Main.M3.nCmdData=3"  //Set homing sequence. Command string to cmd_EAT.c.\n
+ * "Main.M3.nCommand=10" //Set homing. Command string to ecmcCmdParser.c.\n
+ * "Main.M3.nCmdData=3"  //Set homing sequence. Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1190,7 +1190,7 @@ int setAxisCmdData(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set amplifier enable command bit for axis 3.\n
- * "Main.M3.bEnable=1" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bEnable=1" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1205,7 +1205,7 @@ int setAxisEnable(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable alarm at limits bit for axis 3.\n
- * "Cfg.SetAxisEnableAlarmAtHardLimits(3,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEnableAlarmAtHardLimits(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEnableAlarmAtHardLimits(int axisIndex,
                                    int value);
@@ -1218,7 +1218,7 @@ int setAxisEnableAlarmAtHardLimits(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Block Com for axis 3.\n
- * "Cfg.SetAxisBlockCom(3,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisBlockCom(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisBlockCom(int axisIndex,
                     int block);
@@ -1231,7 +1231,7 @@ int setAxisBlockCom(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Disable backward soft-limit for axis 3.\n
- * "ADSPORT=501/.ADR.16#5003,16#B,2,2=0"  //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5003,16#B,2,2=0"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1246,7 +1246,7 @@ int setAxisEnableSoftLimitBwd(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable forward soft-limit for axis 3.\n
- * "ADSPORT=501/.ADR.16#5001,16#C,2,2=1"  //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5001,16#C,2,2=1"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1261,7 +1261,7 @@ int setAxisEnableSoftLimitFwd(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set backward soft-limit position to -100 for axis 3.\n
- * "ADSPORT=501/.ADR.16#5003,16#E,8,5=-100" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5003,16#E,8,5=-100" //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1276,7 +1276,7 @@ int setAxisSoftLimitPosBwd(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set forward soft-limit position to 123 for axis 3.\n
- * "ADSPORT=501/.ADR.16#5003,16#E,8,5=123" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5003,16#E,8,5=123" //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1291,10 +1291,10 @@ int setAxisSoftLimitPosFwd(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set acceleration setpoint for axis 3 to 500.\n
- * "Main.M3.fAcceleration=500"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fAcceleration=500"  //Command string to ecmcCmdParser.c.\n
  *
  * \note Example: Set deceleration setpoint for axis 3 to 500.\n
- * "Cfg.SetAxisAcc(3,500)"  //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisAcc(3,500)"  //Command string to ecmcCmdParser.c.\n
  */
 int setAxisAcceleration(int    axisIndex,
                         double value);
@@ -1307,10 +1307,10 @@ int setAxisAcceleration(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set deceleration setpoint for axis 3 to 500.\n
- * "Main.M3.fDeceleration=500"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fDeceleration=500"  //Command string to ecmcCmdParser.c.\n
  *
  * \note Example: Set deceleration setpoint for axis 3 to 500.\n
- * "Cfg.SetAxisDec(3,500)"  //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDec(3,500)"  //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDeceleration(int    axisIndex,
                         double value);
@@ -1328,7 +1328,7 @@ int setAxisDeceleration(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set emergency deceleration setpoint for axis 3 to 54321.\n
- * "Cfg.SetAxisEmergDeceleration(3,54321)"  //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEmergDeceleration(3,54321)"  //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEmergDeceleration(int    axisIndex,
                              double value);
@@ -1342,7 +1342,7 @@ int setAxisEmergDeceleration(int    axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: No command string implemented in the cmd_EAT.c parser.\n
+ * \note Example: No command string implemented in the ecmcCmdParser.c parser.\n
  */
 int setAxisJerk(int    axisIndex,
                 double value);
@@ -1357,7 +1357,7 @@ int setAxisJerk(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set target position setpoint for axis 3 to 111.\n
- * "Main.M3.fPosition=111"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fPosition=111"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1375,11 +1375,11 @@ int setAxisTargetPos(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set target velocity setpoint for axis 3 to 55.\n
- * "Cfg.SetAxisVel(3,55)"  //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisVel(3,55)"  //Command string to ecmcCmdParser.c.\n
  *
  * \note Example: Set target velocity setpoint for axis 3 to 55 in\n
  * "TwinCAT" syntax.\n
- * "Main.M3.fVelocity=55"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fVelocity=55"  //Command string to ecmcCmdParser.c.\n
  *
  * \note The "CfgSetAxisVelAccDecTime()" Command can be used to set\n
  * velocity, acceleration and decelartion simultaneously\n
@@ -1389,7 +1389,7 @@ int setAxisTargetPos(int    axisIndex,
  * \note Example: Set target velocity setpoint for axis 3 to 55 and
  * time to reach target velocity to 2s (acc and dec will be set to the same\n
  * value).\n
- * "Cfg.SetAxisVelAccDecTime(3,55,2)."  //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisVelAccDecTime(3,55,2)."  //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTargetVel(int    axisIndex,
                      double value);
@@ -1406,7 +1406,7 @@ int setAxisTargetVel(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set target velocity setpoint for axis 3 to 55.\n
- * "Cfg.SetAxisJogVel(3,55)"  //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisJogVel(3,55)"  //Command string to ecmcCmdParser.c.\n
  */
 int setAxisJogVel(int    axisIndex,
                   double value);
@@ -1426,7 +1426,7 @@ int setAxisJogVel(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set current operation mode of axis 3 to manual.\n
- * "Cfg.SetAxisOpMode(3,1)"  //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisOpMode(3,1)"  //Command string to ecmcCmdParser.c.\n
  */
 int setAxisOpMode(int axisIndex,
                   int value);
@@ -1442,7 +1442,7 @@ int setAxisOpMode(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder scale denominator for axes 8 to 4096.\n
- * "ADSPORT=501/.ADR.16#5008,16#24,8,5=4096" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5008,16#24,8,5=4096" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1460,7 +1460,7 @@ int setAxisEncScaleDenom(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder scale numerator for axes 3 to 360.\n
- * "ADSPORT=501/.ADR.16#5003,16#23,8,5=360" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#5003,16#23,8,5=360" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1479,7 +1479,7 @@ int setAxisEncScaleNum(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set home position setpoint for axis 3 to 111.\n
- * "Main.M3.fHomePosition=111"  //Command string to cmd_EAT.c.\n
+ * "Main.M3.fHomePosition=111"  //Command string to ecmcCmdParser.c.\n
  *
  * \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1499,7 +1499,7 @@ int setAxisHomePos(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set home latch count to 1 for axis 10.\n
- * "Cfg.SetAxisHomeLatchCountOffset(10,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisHomeLatchCountOffset(10,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisHomeLatchCountOffset(int axisIndex,
                                 int count);
@@ -1520,7 +1520,7 @@ int setAxisHomeLatchCountOffset(int axisIndex,
  *
  * \note Example: Set twords cam referencing/homing velocity setpoint for axes
  * 3 to 10.\n
- * "ADSPORT=501/.ADR.16#4003,16#6,8,5=10" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#4003,16#6,8,5=10" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1543,7 +1543,7 @@ int setAxisHomeVelTwordsCam(int    axisIndex,
  *
  * \note Example: Set off cam referencing/homing velocity setpoint for axes
  * 3 to 7.5.\n
- * "ADSPORT=501/.ADR.16#4003,16#7,8,5=7.5" //Command string to cmd_EAT.c.\n
+ * "ADSPORT=501/.ADR.16#4003,16#7,8,5=7.5" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1561,7 +1561,7 @@ int setAxisHomeVelOffCam(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set gear ratio setting for axis 3 to 1/7.\n
- * "Cfg.SetAxisGearRatio(3,1,7)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisGearRatio(3,1,7)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisGearRatio(int    axisIndex,
                      double ratioNum,
@@ -1575,7 +1575,7 @@ int setAxisGearRatio(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set reset bit for axis 3.\n
- * "Main.M3.bReset=1" //Command string to cmd_EAT.c.\n
+ * "Main.M3.bReset=1" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1601,7 +1601,7 @@ int axisErrorReset(int axisIndex,
  *
  * \note Example: Set trajectory transformation expression for axes 5 to
  * "out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#".\n
- * "Cfg.SetAxisTrajTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisTrajTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTrajTransExpr(int   axisIndex,
                          char *expr);
@@ -1614,7 +1614,7 @@ int setAxisTrajTransExpr(int   axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable velocity filter for external setpoint position for axis 5.
- * "Cfg.SetAxisTrajExtVelFilterEnable(5,1) //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisTrajExtVelFilterEnable(5,1) //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTrajExtVelFilterEnable(int axisIndex,
                                   int enable);
@@ -1637,7 +1637,7 @@ int setAxisTrajExtVelFilterEnable(int axisIndex,
  *
  * \note Example: Set encoder transformation expression for axes 5 to
  * "out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#".\n
- * "Cfg.SetAxisEncTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEncTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncTransExpr(int   axisIndex,
                         char *expr);
@@ -1651,7 +1651,7 @@ int setAxisEncTransExpr(int   axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable velocity filter for external actual position for axis 5.
- * "Cfg.SetAxisEncExtVelFilterEnable(5,1) //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEncExtVelFilterEnable(5,1) //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncExtVelFilterEnable(int axisIndex,
                                  int enable);
@@ -1670,7 +1670,7 @@ int setAxisEncExtVelFilterEnable(int axisIndex,
  *
  * \note Example: Set trajectory generator data source type for axis 3 to
  * internal.\n
- * "Cfg.SetAxisTrajSourceType(3,0)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisTrajSourceType(3,0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTrajSource(int axisIndex,
                       int value);
@@ -1688,7 +1688,7 @@ int setAxisTrajSource(int axisIndex,
  *
  * \note Example: Set encoder data source type for axis 3 to
  * external.\n
- * "Cfg.SetAxisEncSourceType(3,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEncSourceType(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncSource(int axisIndex,
                      int value);
@@ -1703,7 +1703,7 @@ int setAxisEncSource(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set trajectory start position to 100 for axis 3.\n
- * "Cfg.SetAxisTrajStartPos(3,100)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisTrajStartPos(3,100)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTrajStartPos(int    axisIndex,
                         double value);
@@ -1716,7 +1716,7 @@ int setAxisTrajStartPos(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder offset value to 100 for axis 3.\n
- * "Cfg.SetAxisEncOffset(3,100)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEncOffset(3,100)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncOffset(int    axisIndex,
                      double value);
@@ -1731,7 +1731,7 @@ int setAxisEncOffset(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder type to absolute for axis 3.\n
- * "Cfg.SetAxisEncType(3,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEncType(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncType(int axisIndex,
                    int value);
@@ -1752,7 +1752,7 @@ int setAxisEncType(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder bit count to 16 for axis 3.\n
- * "Cfg.SetAxisEncBits(3,16)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEncBits(3,16)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncBits(int axisIndex,
                    int bits);
@@ -1771,7 +1771,7 @@ int setAxisEncBits(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder absolute bit count to 10 for axis 3.\n
- * "Cfg.SetAxisEncAbsBits(3,10)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEncAbsBits(3,10)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncAbsBits(int axisIndex,
                       int bits);
@@ -1790,7 +1790,7 @@ int setAxisEncAbsBits(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder mask to 0xFFFF for axis 3.\n
- * "Cfg.SetAxisEncRawMask(3,0xFFFF)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisEncRawMask(3,0xFFFF)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncRawMask(int      axisIndex,
                       uint64_t rawMask);
@@ -1803,7 +1803,7 @@ int setAxisEncRawMask(int      axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller proportional gain to 1.5 for axis 3.\n
- * "Cfg.SetAxisCntrlKp(3,1.5)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisCntrlKp(3,1.5)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlKp(int    axisIndex,
                    double value);
@@ -1816,7 +1816,7 @@ int setAxisCntrlKp(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller integral gain to 0.1 for axis 3.\n
- * "Cfg.SetAxisCntrlKi(3,0.1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisCntrlKi(3,0.1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlKi(int    axisIndex,
                    double value);
@@ -1829,7 +1829,7 @@ int setAxisCntrlKi(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller differential gain to 1.1 for axis 3.\n
- * "Cfg.SetAxisCntrlKd(3,1.1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisCntrlKd(3,1.1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlKd(int    axisIndex,
                    double value);
@@ -1842,7 +1842,7 @@ int setAxisCntrlKd(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller feed forward gain to 4.1 for axis 3.\n
- * "Cfg.SetAxisCntrlKff(3,4.1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisCntrlKff(3,4.1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlKff(int    axisIndex,
                     double value);
@@ -1855,7 +1855,7 @@ int setAxisCntrlKff(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller max value to 1000 for axis 3.\n
- * "Cfg.SetAxisCntrlOutHL(3,1000)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisCntrlOutHL(3,1000)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlOutHL(int    axisIndex,
                       double value);
@@ -1868,7 +1868,7 @@ int setAxisCntrlOutHL(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller min value to -1000 for axis 3.\n
- * "Cfg.SetAxisCntrlOutLL(3,-1000)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisCntrlOutLL(3,-1000)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlOutLL(int    axisIndex,
                       double value);
@@ -1881,7 +1881,7 @@ int setAxisCntrlOutLL(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller minimum integral part output value to -700 for axis 3.\n
- * "Cfg.SetAxisCntrlIpartLL(3,-700)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisCntrlIpartLL(3,-700)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlIpartLL(int    axisIndex,
                         double value);
@@ -1894,7 +1894,7 @@ int setAxisCntrlIpartLL(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller maximum integral part output value to 700 for axis 3.\n
- * "Cfg.SetAxisCntrlIpartHL(3,700)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisCntrlIpartHL(3,700)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlIpartHL(int    axisIndex,
                         double value);
@@ -1917,7 +1917,7 @@ int getAxisDrvScaleNum(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set drive output scale numerator to 10000 for axis 3.\n
- * "Cfg.SetAxisDrvScaleNum(3,10000)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvScaleNum(3,10000)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvScaleNum(int    axisIndex,
                        double value);
@@ -1930,7 +1930,7 @@ int setAxisDrvScaleNum(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set drive output scale denominator to 32000 for axis 3.\n
- * "Cfg.SetAxisDrvScaleDenom(3,32000)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvScaleDenom(3,32000)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvScaleDenom(int    axisIndex,
                          double value);
@@ -1946,7 +1946,7 @@ int setAxisDrvScaleDenom(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable amplifier for axis 3.\n
- * "Cfg.SetAxisDrvEnable(3,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvEnable(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvEnable(int axisIndex,
                      int value);
@@ -1964,7 +1964,7 @@ int setAxisDrvEnable(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set drive velocity setpoint to 10 for axis 3.\n
- * "Cfg.SetAxisDrvVelSet(3,10)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvVelSet(3,10)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvVelSet(int    axisIndex,
                      double value);
@@ -1982,7 +1982,7 @@ int setAxisDrvVelSet(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set raw drive velocity setpoint to 1000 for axis 3.\n
- * "Cfg.SetAxisDrvVelSetRaw(3,1000)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvVelSetRaw(3,1000)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvVelSetRaw(int axisIndex,
                         int value);
@@ -2006,7 +2006,7 @@ int setAxisDrvVelSetRaw(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable brake for axis 3.\n
- * "Cfg.SetAxisDrvBrakeEnable(3,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvBrakeEnable(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvBrakeEnable(int axisIndex,
                           int enable);
@@ -2025,7 +2025,7 @@ int setAxisDrvBrakeEnable(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set brake open delay time for axis 3 to 100 cycles.\n
- * "Cfg.SetAxisDrvBrakeOpenDelayTime(3,100)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvBrakeOpenDelayTime(3,100)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvBrakeOpenDelayTime(int axisIndex,
                                  int delayTime);
@@ -2043,7 +2043,7 @@ int setAxisDrvBrakeOpenDelayTime(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set brake close ahead time for axis 3 to 100 cycles.\n
- * "Cfg.SetAxisDrvBrakeCloseAheadTime(3,100)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvBrakeCloseAheadTime(3,100)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvBrakeCloseAheadTime(int axisIndex,
                                   int aheadTime);
@@ -2063,7 +2063,7 @@ int setAxisDrvBrakeCloseAheadTime(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable reduce torque for axis 3.\n
- * "Cfg.SetAxisDrvReduceTorqueEnable(3,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvReduceTorqueEnable(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvReduceTorqueEnable(int axisIndex,
                                  int enable);
@@ -2080,7 +2080,7 @@ int setAxisDrvReduceTorqueEnable(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set axis 3 drive type to stepper.\n
- * "Cfg.SetAxisDrvType(3,0)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisDrvType(3,0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvType(int axisIndex,
                    int type);
@@ -2111,7 +2111,7 @@ int getAxisMonAtTargetTol(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set at target tolerance to 0.1 for axis 7.\n
- * "Cfg.SetAxisMonAtTargetTol(7,0.1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonAtTargetTol(7,0.1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonAtTargetTol(int    axisIndex,
                           double value);
@@ -2141,7 +2141,7 @@ int getAxisMonAtTargetTime(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set at target tolerance time (cycles) to 10 for axis 7.\n
- * "Cfg.SetAxisMonAtTargetTime(7,10)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonAtTargetTime(7,10)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonAtTargetTime(int axisIndex,
                            int value);
@@ -2170,7 +2170,7 @@ int getAxisMonEnableAtTargetMon(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable at target monitoring for axis 7.\n
- * "Cfg.SetAxisMonEnableAtTargetMon(7,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonEnableAtTargetMon(7,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonEnableAtTargetMon(int axisIndex,
                                 int value);
@@ -2204,7 +2204,7 @@ int getAxisMonPosLagTol(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set maximum position lag tolerance to 0.2 for axis 7.\n
- * "Cfg.SetAxisMonPosLagTol(7,0.2)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonPosLagTol(7,0.2)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonPosLagTol(int    axisIndex,
                         double value);
@@ -2238,7 +2238,7 @@ int getAxisMonPosLagTime(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set position lag time (cycles) to 10 for axis 7.\n
- * "Cfg.SetAxisMonPosLagTime(7,10)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonPosLagTime(7,10)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonPosLagTime(int axisIndex,
                          int value);
@@ -2259,7 +2259,7 @@ int setAxisMonPosLagTime(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Disable position lag monitoring for axis 2.\n
- * "Cfg.SetAxisMonEnableLagMon(2,0)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonEnableLagMon(2,0)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisMonEnableLagMon(int  axisIndex,
                            int *value);
@@ -2280,7 +2280,7 @@ int getAxisMonEnableLagMon(int  axisIndex,
 * \return 0 if success or otherwise an error code.\n
 *
 * \note Example: Disable position lag monitoring for axis 2.\n
-* "Cfg.SetAxisMonEnableLagMon(2,0)" //Command string to cmd_EAT.c.\n
+* "Cfg.SetAxisMonEnableLagMon(2,0)" //Command string to ecmcCmdParser.c.\n
 */
 int setAxisMonEnableLagMon(int axisIndex,
                            int value);
@@ -2299,7 +2299,7 @@ int setAxisMonEnableLagMon(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set maximum velocoity for axis 3 to 20.\n
- * "Cfg.SetAxisMonMaxVel(3,20)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonMaxVel(3,20)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisMonMaxVel(int     axisIndex,
                      double *value);
@@ -2329,7 +2329,7 @@ int setAxisMonMaxVel(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable over speed monitoring for axis 3.\n
- * "Cfg.SetAxisMonEnableMaxVel(3,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonEnableMaxVel(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonEnableMaxVel(int axisIndex,
                            int value);
@@ -2362,7 +2362,7 @@ int getAxisMonEnableMaxVel(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set drive over speed interlock delay to 10 cycles for axis 4.\n
- * "Cfg.SetAxisMonMaxVelDriveILDelay(4,10)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonMaxVelDriveILDelay(4,10)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonMaxVelDriveILDelay(int axisIndex,
                                  int value);
@@ -2385,7 +2385,7 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex,
  *
  * \note Example: Set trajectory generator over speed interlock delay to 10 cycles
  * for axis 4.\n
- * "Cfg.SetAxisMonMaxVelTrajILDelay(4,10)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonMaxVelTrajILDelay(4,10)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonMaxVelTrajILDelay(int axisIndex,
                                 int value);
@@ -2403,7 +2403,7 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set sequence timeout value for axis 2 to 1 minute.\n
- * "Cfg.SetAxisSeqTimeout(2,60)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisSeqTimeout(2,60)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisSeqTimeout(int axisIndex,
                       int value);
@@ -2427,7 +2427,7 @@ int setAxisSeqTimeout(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Disable controller output high limit monitoring for axis 2.\n
- * "Cfg.SetAxisMonEnableCntrlOutHLMon(2,0)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonEnableCntrlOutHLMon(2,0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonEnableCntrlOutHLMon(int axisIndex,
                                   int value);
@@ -2449,7 +2449,7 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set maximum allowed output to 2000 for for axis 3.\n
- * "Cfg.SetAxisMonCntrlOutHL(3,2000)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonCntrlOutHL(3,2000)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonCntrlOutHL(int    axisIndex,
                          double value);
@@ -2462,7 +2462,7 @@ int setAxisMonCntrlOutHL(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable monitoring for axis 2.\n
- * "Cfg.SetAxisMonEnableVelocityDiff(2,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonEnableVelocityDiff(2,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonEnableVelocityDiff(int axisIndex,
                                  int value);
@@ -2476,7 +2476,7 @@ int setAxisMonEnableVelocityDiff(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set filter time to 100 cycles for axis 2.\n
- * "Cfg.SetAxisMonVelDiffTrajILDelay(2,100)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonVelDiffTrajILDelay(2,100)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonVelDiffTrajILDelay(int axisIndex,
                                  int value);
@@ -2490,7 +2490,7 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set filter time to 500 cycles for axis 2.\n
- * "Cfg.SetAxisMonVelDiffDriveILDelay(2,500)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonVelDiffDriveILDelay(2,500)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonVelDiffDriveILDelay(int axisIndex,
                                   int value);
@@ -2504,7 +2504,7 @@ int setAxisMonVelDiffDriveILDelay(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set maximum difference 0.5 for axis 2.\n
- * "Cfg.SetAxisMonVelDiffTol(2,0.5)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonVelDiffTol(2,0.5)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonVelDiffTol(int    axisIndex,
                          double value);
@@ -2525,7 +2525,7 @@ int setAxisMonVelDiffTol(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable external interlock for axis 7.\n
- * "Cfg.SetAxisMonEnableExtHWInterlock(7,1)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonEnableExtHWInterlock(7,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonEnableExternalInterlock(int axisIndex,
                                       int value);
@@ -2548,7 +2548,7 @@ int setAxisMonEnableExternalInterlock(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set external interlock to NC for axis 7.\n
- * "Cfg.SetAxisMonExtHWInterlockPolarity(7,0)" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetAxisMonExtHWInterlockPolarity(7,0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonExtHWInterlockPolarity(int axisIndex,
                                      int value);
@@ -2565,7 +2565,7 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable command from other axis for axis 3.\n
- * "SetAxisEnableCommandsFromOtherAxis(3,1)" //Command string to cmd_EAT.c.\n
+ * "SetAxisEnableCommandsFromOtherAxis(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEnableCommandsFromOtherAxis(int axisIndex,
                                        int value);
@@ -2581,7 +2581,7 @@ int setAxisEnableCommandsFromOtherAxis(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Disable command transformation expression axis 5.\n
- * "SetAxisEnableCommandsTransform(5,0)" //Command string to cmd_EAT.c.\n
+ * "SetAxisEnableCommandsTransform(5,0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEnableCommandsTransform(int axisIndex,
                                    int value);
@@ -2608,7 +2608,7 @@ int setAxisEnableCommandsTransform(int axisIndex,
  * \note Example: Set command transformation expression for axes 5 to
  * en2:=en1 or en5# ex1:=ex2 + ex7#.\n
  * "SetAxisTransformCommandExpr(5)=en2:=en1 or en5# ex1:=ex2 + ex7#"
- * //Command string to cmd_EAT.c.\n
+ * //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTransformCommandExpr(int   axisIndex,
                                 char *expr);
@@ -2623,7 +2623,7 @@ int setAxisTransformCommandExpr(int   axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create a virtual axis at axisIndex 1.\n
- *  "Cfg.CreateAxis(1,2)" //Command string to cmd_EAT.c\n
+ *  "Cfg.CreateAxis(1,2)" //Command string to ecmcCmdParser.c\n
  */
 int createAxis(int axisIndex,
                int type);
@@ -2650,7 +2650,7 @@ int createAxis(int axisIndex,
    *  \note Example: Link an EtherCAT entry configured as "POSITION_ACT" in slave 1
    *  as actual position for the encoder of axis 5.\n
    *  "Cfg.LinkEcEntryToAxisEncoder(1,POSITION_ACT,5,0,-1)" //Command string
-   *  to cmd_EAT.c\n
+   *  to ecmcCmdParser.c\n
    */
 int linkEcEntryToAxisEnc(int   slaveBusPosition,
                          char *entryIdString,
@@ -2687,18 +2687,18 @@ int linkEcEntryToAxisEnc(int   slaveBusPosition,
    *
    *  \note Example 1: Link an EtherCAT entry configured as "VELOCITY_SET" in slave 3
    *  as velocity setpoint entry for the drive object of axis 5.\n
-   *   "Cfg.LinkEcEntryToAxisDrive(3,VELOCITY_SET,5,1,-1)" //Command string to cmd_EAT.c\n
+   *   "Cfg.LinkEcEntryToAxisDrive(3,VELOCITY_SET,5,1,-1)" //Command string to ecmcCmdParser.c\n
    *
    *  Example 2: Link bit 0 of an EtherCAT entry configured as "STM_CONTROL" in
    *  slave 3 as enable amplifier output entry for the drive object of axis 5.\n
-   *   "Cfg.LinkEcEntryToAxisDrive(3,STM_CONTROL,5,0,0)" //Command string to cmd_EAT.c\n
+   *   "Cfg.LinkEcEntryToAxisDrive(3,STM_CONTROL,5,0,0)" //Command string to ecmcCmdParser.c\n
    *
    *  Example 3: If a drive have no feedback for enable, a simulation slave and
    *  entry can be used. The simulation EtherCAT slave can be addressed with a
    *  slaveBusIndex of -1.
    *  The simulation slave contains two entries, "ZERO" with default value zero
    *  and "ONE" with default value set to 1.\n
-   *   "Cfg.LinkEcEntryToAxisDrive(-1,ONE,5,0,0)" //Command string to cmd_EAT.c\n
+   *   "Cfg.LinkEcEntryToAxisDrive(-1,ONE,5,0,0)" //Command string to ecmcCmdParser.c\n
    */
 int linkEcEntryToAxisDrv(int   slaveBusPosition,
                          char *entryIdString,
@@ -2729,13 +2729,13 @@ int linkEcEntryToAxisDrv(int   slaveBusPosition,
  *
  *  \note Example 1: Link an EtherCAT entry configured as "INPUT_0" in slave 1 as
  *  forward limit switch entry for the monitor object of axis 5.\n
- *   "Cfg.LinkEcEntryToAxisMonitor(1,"INPUT_0",5,1,0)" //Command string to cmd_EAT.c\n
+ *   "Cfg.LinkEcEntryToAxisMonitor(1,"INPUT_0",5,1,0)" //Command string to ecmcCmdParser.c\n
  *
  *  Example 2: If an axis is not equipped with limit switches the entries for
  *  limit switches needs to be linked to the simulation entries. The
  *  simulation slave contains two entries, "ZERO" with default value
  *  zero and "ONE" with default value set to 1.\n
- *   "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,5,1,0)" //Command string to cmd_EAT.c\n
+ *   "Cfg.LinkEcEntryToAxisMonitor(-1,ONE,5,1,0)" //Command string to ecmcCmdParser.c\n
  */
 int linkEcEntryToAxisMon(int   slaveBusPosition,
                          char *entryIdString,
@@ -2762,7 +2762,7 @@ int linkEcEntryToAxisMon(int   slaveBusPosition,
  *
  *  \note Example 1: Link an EtherCAT entry configured as "OUTPUT_0" in slave 1 as
  *  status output for axis with index 2.\n
- *   "Cfg.LinkEcEntryToAxisStatusOutput(1,"OUTPUT_0",2)" //Command string to cmd_EAT.c\n
+ *   "Cfg.LinkEcEntryToAxisStatusOutput(1,"OUTPUT_0",2)" //Command string to ecmcCmdParser.c\n
  */
 
 int linkEcEntryToAxisStatusOutput(int   slaveIndex,
@@ -2778,7 +2778,7 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Choose detailed motion diagnostics for axis 3.\n
- *  "Cfg.SetDiagAxisIndex(3)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetDiagAxisIndex(3)" //Command string to ecmcCmdParser.c\n
  */
 int setDiagAxisIndex(int axisIndex);
 
@@ -2789,7 +2789,7 @@ int setDiagAxisIndex(int axisIndex);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set printout frequency to 10.\n
- *  "Cfg.SetDiagAxisFreq(10)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetDiagAxisFreq(10)" //Command string to ecmcCmdParser.c\n
  */
 int setDiagAxisFreq(int freq);
 
@@ -2804,7 +2804,7 @@ int setDiagAxisFreq(int freq);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable printout of detailed motion diagnostics.\n
- *  "Cfg.SetDiagAxisEnable(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetDiagAxisEnable(1)" //Command string to ecmcCmdParser.c\n
  */
 int setDiagAxisEnable(int enable);
 

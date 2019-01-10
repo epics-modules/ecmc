@@ -10,7 +10,7 @@
 #include <string.h>
 #include <time.h>
 #include "stdio.h"
-#include "../com/cmd.h"
+#include "../com/ecmcOctetIF.h"
 
 enum ecmcAlarmSeverity {
   ECMC_SEVERITY_NONE      = 0,

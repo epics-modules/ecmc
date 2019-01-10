@@ -1,7 +1,7 @@
 #ifndef ECMC_PLC_H_
 #define ECMC_PLC_H_
 
-#include "../com/cmd.h"        // Log Macros
+#include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcErrorsList.h"
 #include "../main/ecmcDefinitions.h"
 
@@ -25,10 +25,10 @@ extern "C" {
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create PLC at index 0 (executing every 10th cycle).\n
- *  "Cfg.CreatePLC(0,9)" //Command string to cmd_EAT.c\n
+ *  "Cfg.CreatePLC(0,9)" //Command string to ecmcCmdParser.c\n
  *
  * \note Example: Create PLC at index 0 (executing every cycle).\n
- *  "Cfg.CreatePLC(0)" //Command string to cmd_EAT.c\n
+ *  "Cfg.CreatePLC(0)" //Command string to ecmcCmdParser.c\n
  */
 int createPLC(int index,
               int skipcycles);
@@ -43,7 +43,7 @@ int createPLC(int index,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Delete PLC 4\n
- * "Cfg.DeletePLC(4);" //Command string to cmd_EAT.c.\n
+ * "Cfg.DeletePLC(4);" //Command string to ecmcCmdParser.c.\n
  */
 int deletePLC(int index);
 
@@ -60,7 +60,7 @@ int deletePLC(int index);
  *
  * \note Example: Set expression for PLC 5 to
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
- * "Cfg.SetPLCExpr(5)=ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetPLCExpr(5)=ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#" //Command string to ecmcCmdParser.c.\n
  */
 int setPLCExpr(int   index,
                char *expr);
@@ -351,10 +351,10 @@ int setPLCExpr(int   index,
  *
  * \note Example: Add one line of PLC code to PLC 5
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
- * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#)" //Command string to cmd_EAT.c.\n
+ * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0#)" //Command string to ecmcCmdParser.c.\n
  *
  * \note Example: Add code by plc file to PLC 5 (prefered solution):\n
- * "Cfg.LoadPLCFile(5,<filename with path>)" //Command string to cmd_EAT.c.\n
+ * "Cfg.LoadPLCFile(5,<filename with path>)" //Command string to ecmcCmdParser.c.\n
  */
 int appendPLCExpr(int   index,
                   char *expr);
@@ -372,7 +372,7 @@ int appendPLCExpr(int   index,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Load plc fil with code to PLC 5\n
- * "Cfg.LoadPLCFile(5,/home/iocuser/dummyPLC.plc)" //Command string to cmd_EAT.c.\n
+ * "Cfg.LoadPLCFile(5,/home/iocuser/dummyPLC.plc)" //Command string to ecmcCmdParser.c.\n
  */
 int loadPLCFile(int   index,
                 char *fileName);
@@ -387,7 +387,7 @@ int loadPLCFile(int   index,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Write 100.0 to variable static.test in plc 5\n
- * "WritePLCVar(5,static.test,100.0)" //Command string to cmd_EAT.c.\n
+ * "WritePLCVar(5,static.test,100.0)" //Command string to ecmcCmdParser.c.\n
  */
 int writePLCVar(int         index,
                 const char *varName,
@@ -403,7 +403,7 @@ int writePLCVar(int         index,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Read variable static.test in plc 5\n
- * "ReadPLCVar(5,static.test)" //Command string to cmd_EAT.c.\n
+ * "ReadPLCVar(5,static.test)" //Command string to ecmcCmdParser.c.\n
  */
 int readPLCVar(int         index,
                const char *varName,
@@ -418,7 +418,7 @@ int readPLCVar(int         index,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Clear code of PLC 5\n
- * "Cfg.ClearPLCExpr(5)" //Command string to cmd_EAT.c.\n
+ * "Cfg.ClearPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
 int clearPLCExpr(int index);
 
@@ -431,7 +431,7 @@ int clearPLCExpr(int index);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Compile code of PLC 5\n
- * "Cfg.CompulePLC(5)" //Command string to cmd_EAT.c.\n
+ * "Cfg.CompulePLC(5)" //Command string to ecmcCmdParser.c.\n
  */
 int compilePLCExpr(int index);
 
@@ -445,7 +445,7 @@ int compilePLCExpr(int index);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set enable for PLC 5\n
- * "Cfg.SetPLCEnable(5,1);" //Command string to cmd_EAT.c.\n
+ * "Cfg.SetPLCEnable(5,1);" //Command string to ecmcCmdParser.c.\n
  */
 int setPLCEnable(int index,
                  int enable);
@@ -460,7 +460,7 @@ int setPLCEnable(int index,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get enable for PLC 5\n
- * "GetPLCEnable(5);" //Command string to cmd_EAT.c.\n
+ * "GetPLCEnable(5);" //Command string to ecmcCmdParser.c.\n
  */
 int getPLCEnable(int  index,
                  int *enabled);

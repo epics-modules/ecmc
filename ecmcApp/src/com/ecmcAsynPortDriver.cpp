@@ -17,8 +17,8 @@
 #include <epicsExport.h>
 
 #include "../main/gitversion.h"
-#include "cmd.h"
-#include "cmd_EAT.h"
+#include "ecmcOctetIF.h"
+#include "ecmcCmdParser.h"
 #include "ecmcAsynPortDriver.h"
 
 #include "../main/ecmcMainTask.h"

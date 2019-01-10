@@ -1,7 +1,7 @@
 #ifndef ECMC_MISC_H_
 #define ECMC_MISC_H_
 
-#include "../com/cmd.h"        // Log Macros
+#include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcErrorsList.h"
 #include "../main/ecmcDefinitions.h"
 
@@ -82,7 +82,7 @@ extern "C" {
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create a event object at index 1.\n
- *  "Cfg.CreateEvent(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.CreateEvent(1)" //Command string to ecmcCmdParser.c\n
  */
 int createEvent(int index);
 
@@ -108,7 +108,7 @@ int createEvent(int index);
  *
  *  \note Example 1: Link bit 0 of an EtherCAT entry configured as "INPUT_0"
  *  in slave 1 as "event trigger data" for event object 7.\n
- *  "Cfg.LinkEcEntryToEvent(7,0,1,"INPUT_0",0)" //Command string to cmd_EAT.c\n
+ *  "Cfg.LinkEcEntryToEvent(7,0,1,"INPUT_0",0)" //Command string to ecmcCmdParser.c\n
  *
  *   \todo This function have not consistent parameter order with the other
  *    link functions as "linkEcEntryToAxisMon".\n
@@ -129,7 +129,7 @@ int linkEcEntryToEvent(int   indexEvent,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set event type to edge triggered for event 5.\n
- *  "Cfg.SetEventType(5,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEventType(5,1)" //Command string to ecmcCmdParser.c\n
  */
 int setEventType(int indexEvent,
                  int type);
@@ -149,7 +149,7 @@ int setEventType(int indexEvent,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set event sample time (cycle counts) to 10 for event 5.\n
- *  "Cfg.SetEventSampleTime(5,10)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEventSampleTime(5,10)" //Command string to ecmcCmdParser.c\n
  */
 int setEventSampleTime(int indexEvent,
                        int sampleTime);
@@ -165,7 +165,7 @@ int setEventSampleTime(int indexEvent,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create a event object at index 1.\n
- *  "Cfg.CreateEvent(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.CreateEvent(1)" //Command string to ecmcCmdParser.c\n
  */
 int setEventTriggerEdge(int indexEvent,
                         int triggerEdge);
@@ -181,7 +181,7 @@ int setEventTriggerEdge(int indexEvent,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Start evaluation of events for event object 4 .\n
- *  "Cfg.SetEventEnable(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEventEnable(4,1)" //Command string to ecmcCmdParser.c\n
  */
 int setEventEnable(int indexEvent,
                    int enable);
@@ -197,7 +197,7 @@ int setEventEnable(int indexEvent,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get Enabled for event 2 .\n
- *  "GetEventEnabled(2)" //Command string to cmd_EAT.c\n
+ *  "GetEventEnabled(2)" //Command string to ecmcCmdParser.c\n
  */
 int getEventEnabled(int  indexEvent,
                     int *enabled);
@@ -215,7 +215,7 @@ int getEventEnabled(int  indexEvent,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable arm sequence for event 3 .\n
- *  "Cfg.SetEventEnableArmSequence(3,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEventEnableArmSequence(3,1)" //Command string to ecmcCmdParser.c\n
  */
 int setEventEnableArmSequence(int indexEvent,
                               int enable);
@@ -228,7 +228,7 @@ int setEventEnableArmSequence(int indexEvent,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable diagnostic printouts for event 3 .\n
- *  "Cfg.SetEventEnablePrintouts(3,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetEventEnablePrintouts(3,1)" //Command string to ecmcCmdParser.c\n
  */
 int setEventEnablePrintouts(int indexEvent,
                             int enable);
@@ -242,7 +242,7 @@ int setEventEnablePrintouts(int indexEvent,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Force trigger event 1.\n
- *  "Cfg.TriggerEvent(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.TriggerEvent(1)" //Command string to ecmcCmdParser.c\n
  */
 int triggerEvent(int indexEvent);
 
@@ -255,7 +255,7 @@ int triggerEvent(int indexEvent);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Run arm sequence for event 7.\n
- *  "Cfg.ArmEvent(7)" //Command string to cmd_EAT.c\n
+ *  "Cfg.ArmEvent(7)" //Command string to ecmcCmdParser.c\n
  */
 int armEvent(int indexEvent);
 
@@ -281,7 +281,7 @@ int armEvent(int indexEvent);
  *
  * \note Example: Create a LIFO data storage object with 1000 elements at
  * index 1.\n
- *  "Cfg.CreateStorage(1,1000,0)" //Command string to cmd_EAT.c\n
+ *  "Cfg.CreateStorage(1,1000,0)" //Command string to ecmcCmdParser.c\n
  */
 int createDataStorage(int index,
                       int elements,
@@ -296,7 +296,7 @@ int createDataStorage(int index,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Clear data storage object with index 4.\n
- *  "Cfg.ClearStorage(4)" //Command string to cmd_EAT.c\n
+ *  "Cfg.ClearStorage(4)" //Command string to ecmcCmdParser.c\n
  */
 int clearStorage(int indexStorage);
 
@@ -309,7 +309,7 @@ int clearStorage(int indexStorage);
  *
  * \note Example: Get current data element index for data storage object
  * with index 4.\n
- *  "GetStorageDataIndex(4)" //Command string to cmd_EAT.c\n
+ *  "GetStorageDataIndex(4)" //Command string to ecmcCmdParser.c\n
  */
 int getStorageDataIndex(int  indexStorage,
                         int *index);
@@ -322,7 +322,7 @@ int getStorageDataIndex(int  indexStorage,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable diagnostic printouts for data storage object 3 .\n
- *  "Cfg.SetStorageEnablePrintouts(3,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetStorageEnablePrintouts(3,1)" //Command string to ecmcCmdParser.c\n
  */
 int setStorageEnablePrintouts(int indexStorage,
                               int enable);
@@ -334,7 +334,7 @@ int setStorageEnablePrintouts(int indexStorage,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Print contents of data storage object 3 .\n
- *  "Cfg.PrintDataStorage(3)" //Command string to cmd_EAT.c\n
+ *  "Cfg.PrintDataStorage(3)" //Command string to ecmcCmdParser.c\n
  */
 int printStorageBuffer(int indexStorage);
 
@@ -347,7 +347,7 @@ int printStorageBuffer(int indexStorage);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Read contents of data storage object 3 .\n
- *  "ReadDataStorage(3)" //Command string to cmd_EAT.c\n
+ *  "ReadDataStorage(3)" //Command string to ecmcCmdParser.c\n
  */
 int readStorageBuffer(int      indexStorage,
                       double **data,
@@ -362,7 +362,7 @@ int readStorageBuffer(int      indexStorage,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Write contents of data storage object 3 .\n
- *  "WriteDataStorage(3)=0,0,0,0,0,0...." //Command string to cmd_EAT.c\n
+ *  "WriteDataStorage(3)=0,0,0,0,0,0...." //Command string to ecmcCmdParser.c\n
  */
 int writeStorageBuffer(int     indexStorage,
                        double *data,
@@ -377,7 +377,7 @@ int writeStorageBuffer(int     indexStorage,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Append data to data storage object 3 .\n
- *  "AppendDataStorage(3)=0,0,0,0,0,0....." //Command string to cmd_EAT.c\n
+ *  "AppendDataStorage(3)=0,0,0,0,0,0....." //Command string to ecmcCmdParser.c\n
  */
 int appendStorageBuffer(int     indexStorage,
                         double *data,
@@ -395,7 +395,7 @@ int appendStorageBuffer(int     indexStorage,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set current index of data storage 0 to 10.\n
- *  "Cfg.SetDataStorageCurrentDataIndex(0,10)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetDataStorageCurrentDataIndex(0,10)" //Command string to ecmcCmdParser.c\n
  */
 int setDataStorageCurrentDataIndex(int indexStorage,
                                    int position);
@@ -417,7 +417,7 @@ int setDataStorageCurrentDataIndex(int indexStorage,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create a recorder object at index 1.\n
- * "Cfg.CreateRecorder(1)" //Command string to cmd_EAT.c\n
+ * "Cfg.CreateRecorder(1)" //Command string to ecmcCmdParser.c\n
  */
 int createRecorder(int indexRecorder);
 
@@ -429,7 +429,7 @@ int createRecorder(int indexRecorder);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Link storage object 5 to recorder object 3.\n
- * "Cfg.LinkStorageToRecorder(5,3)" //Command string to cmd_EAT.c\n
+ * "Cfg.LinkStorageToRecorder(5,3)" //Command string to ecmcCmdParser.c\n
  */
 int linkStorageToRecorder(int indexStorage,
                           int indexRecorder);
@@ -455,7 +455,7 @@ int linkStorageToRecorder(int indexStorage,
  *
  *  \note Example 1: Link bit 0 of an EtherCAT entry configured as "INPUT_0"
  *  in slave 1 as data for recorder object 7.\n
- *  "Cfg.LinkEcEntryToRecorder(7,0,1,"INPUT_0",0)" //Command string to cmd_EAT.c\n
+ *  "Cfg.LinkEcEntryToRecorder(7,0,1,"INPUT_0",0)" //Command string to ecmcCmdParser.c\n
  *
  * \todo This function have not consistent parameter order with the other
  *  link functions as "linkEcEntryToAxisMon".\n
@@ -510,7 +510,7 @@ int linkEcEntryToRecorder(int   indexRecorder,
  *
  *  \note Example 1: Link Actual position of axis 4 to recorder 1:.\n
  *  in slave 1 as data for recorder object 7.\n
- *  "Cfg.linkAxisDataToRecorder(1,4,2)" //Command string to cmd_EAT.c\n
+ *  "Cfg.linkAxisDataToRecorder(1,4,2)" //Command string to ecmcCmdParser.c\n
  */
 int linkAxisDataToRecorder(int indexRecorder,
                            int axisIndex,
@@ -526,7 +526,7 @@ int linkAxisDataToRecorder(int indexRecorder,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Start data recording of recorder object 4.\n
- *  "Cfg.SetRecorderEnable(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetRecorderEnable(4,1)" //Command string to ecmcCmdParser.c\n
  */
 int setRecorderEnable(int indexRecorder,
                       int enable);
@@ -541,7 +541,7 @@ int setRecorderEnable(int indexRecorder,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get recorder object 4 enabled.\n
- *  "GetRecorderEnabled(4)" //Command string to cmd_EAT.c\n
+ *  "GetRecorderEnabled(4)" //Command string to ecmcCmdParser.c\n
  */
 int getRecorderEnabled(int  indexRecorder,
                        int *enabled);
@@ -554,7 +554,7 @@ int getRecorderEnabled(int  indexRecorder,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable diagnostic printouts for recorder object 3 .\n
- *  "Cfg.SetRecorderEnablePrintouts(3,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetRecorderEnablePrintouts(3,1)" //Command string to ecmcCmdParser.c\n
  */
 int setRecorderEnablePrintouts(int indexRecorder,
                                int enable);
@@ -569,7 +569,7 @@ int setRecorderEnablePrintouts(int indexRecorder,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Link recorder object 3 with event object 4, event consumer index 0.\n
- *  "Cfg.LinkRecorderToEvent(3,4,0)" //Command string to cmd_EAT.c\n
+ *  "Cfg.LinkRecorderToEvent(3,4,0)" //Command string to ecmcCmdParser.c\n
  */
 int linkRecorderToEvent(int indexRecorder,
                         int indexEvent,
@@ -584,7 +584,7 @@ int linkRecorderToEvent(int indexRecorder,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Force trigger recorder 1.\n
- *  "Cfg.TriggerRecorder(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.TriggerRecorder(1)" //Command string to ecmcCmdParser.c\n
  */
 int triggerRecorder(int indexRecorder);
 
@@ -606,7 +606,7 @@ int triggerRecorder(int indexRecorder);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create a command list object at index 1.\n
- * "Cfg.CreateCommandList(1)" //Command string to cmd_EAT.c\n
+ * "Cfg.CreateCommandList(1)" //Command string to ecmcCmdParser.c\n
  */
 int createCommandList(int indexCommandList);
 
@@ -620,7 +620,7 @@ int createCommandList(int indexCommandList);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Link coommand list object 3 with event object 4, event consumer index 0.\n
- *  "Cfg.LinkCommandListToEvent(3,4,0)" //Command string to cmd_EAT.c\n
+ *  "Cfg.LinkCommandListToEvent(3,4,0)" //Command string to ecmcCmdParser.c\n
  */
 int linkCommandListToEvent(int indexCommandList,
                            int indexEvent,
@@ -636,7 +636,7 @@ int linkCommandListToEvent(int indexCommandList,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: "Enable" command list execution for object 4.\n
- *  "Cfg.SetCommandListEnable(4,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetCommandListEnable(4,1)" //Command string to ecmcCmdParser.c\n
  */
 int setCommandListEnable(int indexCommandList,
                          int enable);
@@ -649,7 +649,7 @@ int setCommandListEnable(int indexCommandList,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable diagnostic printouts for command list object 3 .\n
- *  "Cfg.SetCommandListEnablePrintouts(3,1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.SetCommandListEnablePrintouts(3,1)" //Command string to ecmcCmdParser.c\n
  */
 int setCommandListEnablePrintouts(int indexCommandList,
                                   int enable);
@@ -663,7 +663,7 @@ int setCommandListEnablePrintouts(int indexCommandList,
  *
  * \note Example: Add "Main.M1.bExecute=1" to command list 1.\n
  *  "Cfg.AddCommandToCommandList(1)=Main.M1.bExecute=1" //Command string to
- *  cmd_EAT.c\n
+ *  ecmcCmdParser.c\n
  */
 int addCommandListCommand(int   indexCommandList,
                           char *expr);
@@ -677,7 +677,7 @@ int addCommandListCommand(int   indexCommandList,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Force trigger command list 1.\n
- *  "Cfg.TriggerCommandList(1)" //Command string to cmd_EAT.c\n
+ *  "Cfg.TriggerCommandList(1)" //Command string to ecmcCmdParser.c\n
  */
 int triggerCommandList(int indexCommandList);
 

@@ -14,8 +14,8 @@
 
 #include "../main/ecmcError.h"
 #include "../main/ecmcDefinitions.h"
-#include "../com/cmd_EAT.h"
-#include "../com/cmd.h"
+#include "../com/ecmcCmdParser.h"
+#include "../com/ecmcOctetIF.h"
 #include "ecmcEventConsumer.h"
 
 // Command List
