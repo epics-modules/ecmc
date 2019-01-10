@@ -10,8 +10,8 @@
 
 #include <stdlib.h>
 #include "stdio.h"
-#include "../general/ecmcError.h"
-#include "../general/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
 
 // Data storage
 #define ERROR_DATA_STORAGE_FULL 0x20200

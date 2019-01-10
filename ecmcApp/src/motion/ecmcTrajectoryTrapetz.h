@@ -3,8 +3,8 @@
 
 #include <string.h>
 #include <cmath>
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "ecmcEncoder.h"
 #include "ecmcAxisData.h"
 

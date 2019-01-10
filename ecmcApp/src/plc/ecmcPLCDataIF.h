@@ -11,8 +11,8 @@
 #include <string>
 #include <sstream>
 
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "../motion/ecmcAxisBase.h"
 #include "../misc/ecmcDataStorage.h"
 #include "../ethercat/ecmcEc.h"

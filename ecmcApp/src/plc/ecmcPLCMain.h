@@ -12,7 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "../general/ecmcDefinitions.h"
+#include "../main/ecmcDefinitions.h"
 #include "../motion/ecmcAxisBase.h"
 #include "../misc/ecmcDataStorage.h"
 #include "../ethercat/ecmcEc.h"

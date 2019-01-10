@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <iostream>
 #include <cstring>
-#include "../general/ecmcError.h"
+#include "../main/ecmcError.h"
 #include "../com/cmd.h"
 
 #define CUTOFF 100

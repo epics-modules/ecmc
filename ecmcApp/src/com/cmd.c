@@ -6,7 +6,7 @@
 
 #include "cmd.h"
 #include "cmd_EAT.h"
-#include "../general/ecmcErrorsList.h"
+#include "../main/ecmcErrorsList.h"
 
 unsigned int debug_print_flags      = 0; // 65535;
 unsigned int die_on_error_flags     = 1;

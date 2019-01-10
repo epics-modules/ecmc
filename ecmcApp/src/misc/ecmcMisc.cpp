@@ -2,7 +2,7 @@
 #include "ecmcMisc.h"
 
 // TODO: REMOVE GLOBALS
-#include "../general/ecmcGlobalsExtern.h"
+#include "../main/ecmcGlobalsExtern.h"
 
 int createEvent(int indexEvent) {
   LOGINFO4("%s/%s:%d indexEvent=%d \n",

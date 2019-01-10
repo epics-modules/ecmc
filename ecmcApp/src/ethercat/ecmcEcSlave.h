@@ -11,8 +11,8 @@
 #include <string>
 #include "stdio.h"
 #include "ecrt.h"
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "../com/cmd.h"  // Logging macros
 #include "../com/ecmcAsynPortDriver.h"
 #include "ecmcEcEntry.h"

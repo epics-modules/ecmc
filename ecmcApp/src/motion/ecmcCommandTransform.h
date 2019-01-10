@@ -15,8 +15,8 @@
 #include <cstdlib>
 
 #include "exprtkWrap.h"
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "../com/cmd.h"
 
 #define ERROR_TRANSFORM_EXPR_NOT_COMPILED 0x30000

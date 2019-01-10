@@ -4,7 +4,7 @@ if test -z "$1"; then
   echo >&2 "gitversion.sh <filename>"
   exit 1
 fi
-echo '#include "gitversion.h"' >"$1" &&
+echo '#include "main/gitversion.h"' >"$1" &&
 printf 'const char *git_version_str = "' >>"$1" &&
 shatoday=$(git rev-parse HEAD  | cut -b 1-9) &&
 

@@ -12,8 +12,8 @@
 #include <vector>
 #include "stdio.h"
 
-#include "../general/ecmcError.h"
-#include "../general/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
 #include "../com/cmd_EAT.h"
 #include "../com/cmd.h"
 #include "ecmcEventConsumer.h"

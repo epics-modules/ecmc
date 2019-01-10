@@ -2,7 +2,7 @@
 #include "ecmcCom.h"
 
 // TODO: REMOVE GLOBALS
-#include "../general/ecmcGlobalsExtern.h"
+#include "../main/ecmcGlobalsExtern.h"
 
 int linkEcEntryToAsynParameter(int         masterIndex,
                                int         busPosition,

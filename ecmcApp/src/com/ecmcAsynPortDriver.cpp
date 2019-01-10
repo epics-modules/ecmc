@@ -16,14 +16,14 @@
 #include <epicsMutex.h>
 #include <epicsExport.h>
 
-#include "../general/gitversion.h"
+#include "../main/gitversion.h"
 #include "cmd.h"
 #include "cmd_EAT.h"
 #include "ecmcAsynPortDriver.h"
 
-#include "../hw_motor.h"
+#include "../main/hw_motor.h"
 #include "../ethercat/ecmcEthercat.h"
-#include "../general/ecmcGeneral.h"
+#include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"
 
 

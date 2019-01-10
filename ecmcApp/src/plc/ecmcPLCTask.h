@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 #include "exprtkWrap.h"
-#include "../general/ecmcDefinitions.h"
+#include "../main/ecmcDefinitions.h"
 #include "../motion/ecmcAxisBase.h"
 #include "../ethercat/ecmcEcEntry.h"  // Bit macros
 #include "ecmcPLCDataIF.h"

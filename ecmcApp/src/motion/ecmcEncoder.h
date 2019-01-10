@@ -15,8 +15,8 @@
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "../ethercat/ecmcEcEntry.h"
 #include "../ethercat/ecmcEcEntryLink.h"
 #include "../ethercat/ecmcEcPdo.h"

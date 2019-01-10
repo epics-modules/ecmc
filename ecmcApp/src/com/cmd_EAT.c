@@ -13,13 +13,13 @@
 #include <string.h>
 #include <math.h>
 #include "cmd.h"
-#include "../hw_motor.h"
-#include "../general/ecmcErrorsList.h"
+#include "../main/hw_motor.h"
+#include "../main/ecmcErrorsList.h"
 #include "cmd_EAT.h"
 #include "../motion/ecmcMotion.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../misc/ecmcMisc.h"
-#include "../general/ecmcGeneral.h"
+#include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"
 #include "../plc/ecmcPLC.h"
 

@@ -23,9 +23,9 @@
 #include "ecrt.h"
 
 // General
-#include "general/ecmcDefinitions.h"
-#include "general/ecmcErrorsList.h"
-#include "general/ecmcGlobals.h" 
+#include "main/ecmcDefinitions.h"
+#include "main/ecmcErrorsList.h"
+#include "main/ecmcGlobals.h" 
 
 // Hardware
 #include "ethercat/ecmcEthercat.h"
@@ -37,7 +37,7 @@
 #include "plc/ecmcPLC.h"
 
 // Other
-#include "general/ecmcGeneral.h"
+#include "main/ecmcGeneral.h"
 #include "misc/ecmcMisc.h"
 #include "com/ecmcAsynPortDriver.h"
 

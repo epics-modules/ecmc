@@ -10,8 +10,8 @@
 
 #include <stdio.h>
 #include <string>
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "ecmcMasterSlaveData.h"
 #include "ecmcCommandTransform.h"
 #include "ecmcFilter.h"

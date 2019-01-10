@@ -2,7 +2,7 @@
 
 
 // TODO: REMOVE GLOBALS
-#include "../general/ecmcGlobalsExtern.h"
+#include "../main/ecmcGlobalsExtern.h"
 
 int getControllerError() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);

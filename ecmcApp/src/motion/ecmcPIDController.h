@@ -3,7 +3,7 @@
 
 #define ERROR_BASE_PID 0x14500
 
-#include "../general/ecmcError.h"
+#include "../main/ecmcError.h"
 #include "ecmcAxisData.h"
 
 // CONTROLLER ERRORS

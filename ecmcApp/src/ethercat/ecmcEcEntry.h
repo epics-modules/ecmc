@@ -12,8 +12,8 @@
 #include <cmath>
 #include "stdio.h"
 #include "ecrt.h"
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "../com/cmd.h"  // Logging macros
 #include "ecmcAsynLink.h"
 

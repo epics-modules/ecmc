@@ -9,8 +9,8 @@
 #define ECMCAXISBASE_H_
 
 #define __STDC_FORMAT_MACROS  // To "reinclude" inttypes
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "../com/ecmcAsynPortDriver.h"
 #include "ecmcCommandTransform.h"
 #include "ecmcDriveBase.h"

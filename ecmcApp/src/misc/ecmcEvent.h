@@ -9,8 +9,8 @@
 #define ECMCEVENT_H_
 
 #include "stdio.h"
-#include "../general/ecmcDefinitions.h"
-#include "../general/ecmcError.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcError.h"
 #include "../ethercat/ecmcEcEntry.h"
 #include "../ethercat/ecmcEcEntryLink.h"
 #include "ecmcDataStorage.h"

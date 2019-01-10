@@ -2,8 +2,8 @@
 #define ECMC_MISC_H_
 
 #include "../com/cmd.h"        // Log Macros
-#include "../general/ecmcErrorsList.h"
-#include "../general/ecmcDefinitions.h"
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
 
 
 #define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex)                  \

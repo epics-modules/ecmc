@@ -8,7 +8,7 @@
 #ifndef ecmcAxisSequencer_H_
 #define ecmcAxisSequencer_H_
 
-#include "../general/ecmcError.h"
+#include "../main/ecmcError.h"
 #include "ecmcEncoder.h"
 #include "ecmcMonitor.h"
 #include "ecmcPIDController.h"

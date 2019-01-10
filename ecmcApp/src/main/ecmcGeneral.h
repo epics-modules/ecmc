@@ -2,8 +2,8 @@
 #define ECMC_GENERAL_H_
 
 #include "../com/cmd.h"        // Log Macros
-#include "../general/ecmcErrorsList.h"
-#include "../general/ecmcDefinitions.h"
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
 
 
 # ifdef __cplusplus

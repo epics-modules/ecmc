@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include "string.h"
-#include "../general/ecmcDefinitions.h"
+#include "../main/ecmcDefinitions.h"
 
 typedef struct {
   double             positionTarget;

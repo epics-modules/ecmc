@@ -23,7 +23,7 @@
 #include "ecmcEcEntry.h"
 
 // TODO: REMOVE GLOBALS
-#include "../general/ecmcGlobalsExtern.h"
+#include "../main/ecmcGlobalsExtern.h"
 
 
 int moveAbsolutePosition(int    axisIndex,

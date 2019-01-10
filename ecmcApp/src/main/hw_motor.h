@@ -12,7 +12,7 @@
 # define __STDC_FORMAT_MACROS
 # include <inttypes.h>
 # include <string.h>
-# include "general/ecmcDefinitions.h"
+# include "main/ecmcDefinitions.h"
 
 # ifdef __cplusplus
 extern "C" {
