@@ -583,8 +583,8 @@ int getAxisTargetVel(int     axisIndex,
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisDone(int     axisIndex,
-                double *value);
+int getAxisDone(int axisIndex,
+                int *value);
 
 /** \breif Get gear ration setting.\n
  *

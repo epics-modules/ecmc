@@ -2814,6 +2814,12 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                         &iValue));
   }
 
+  /* bDone? */
+  if (0 == strcmp(myarg_1, "bDone?")) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisDone(motor_axis_no,
+                                                        &iValue));
+  }
+  
   /* fActPosition? */
   if (0 == strcmp(myarg_1, "fActPosition?")) {
     SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncPosAct(motor_axis_no,
