@@ -21,7 +21,7 @@
 #include "ecmcCmdParser.h"
 #include "ecmcAsynPortDriver.h"
 
-#include "../main/ecmcMainTask.h"
+#include "../main/ecmcMainThread.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"

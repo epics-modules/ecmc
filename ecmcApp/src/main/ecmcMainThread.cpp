@@ -18,16 +18,16 @@
 #include <algorithm>
 #include <string>
 
-#include "../com/ecmcOctetIF.h"
-#include "ecmcMainTask.h"
+#include "ecmcMainThread.h"
+#include "ecmcGeneral.h"
 #include "ecrt.h"
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
-#include "ecmcGlobals.h" 
+#include "ecmcGlobals.h"
+#include "../com/ecmcOctetIF.h" 
 #include "../ethercat/ecmcEthercat.h"
 #include "../motion/ecmcMotion.h"
 #include "../plc/ecmcPLC.h"
-#include "ecmcGeneral.h"
 #include "../misc/ecmcMisc.h"
 #include "../com/ecmcAsynPortDriver.h"
 

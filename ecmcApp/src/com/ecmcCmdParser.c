@@ -12,10 +12,10 @@
 #include <inttypes.h>
 #include <string.h>
 #include <math.h>
-#include "ecmcOctetIF.h"
-#include "../main/ecmcMainTask.h"
-#include "../main/ecmcErrorsList.h"
 #include "ecmcCmdParser.h"
+#include "ecmcOctetIF.h"
+#include "../main/ecmcMainThread.h"
+#include "../main/ecmcErrorsList.h"
 #include "../motion/ecmcMotion.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../misc/ecmcMisc.h"
