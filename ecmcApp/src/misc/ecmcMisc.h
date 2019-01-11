@@ -164,8 +164,8 @@ int setEventSampleTime(int indexEvent,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Create a event object at index 1.\n
- *  "Cfg.CreateEvent(1)" //Command string to ecmcCmdParser.c\n
+ * \note Example: Set event trigger edge to positive.\n
+ *  "Cfg.SetEventTriggerEdge(1,0)" //Command string to ecmcCmdParser.c\n
  */
 int setEventTriggerEdge(int indexEvent,
                         int triggerEdge);
@@ -510,7 +510,7 @@ int linkEcEntryToRecorder(int   indexRecorder,
  *
  *  \note Example 1: Link Actual position of axis 4 to recorder 1:.\n
  *  in slave 1 as data for recorder object 7.\n
- *  "Cfg.linkAxisDataToRecorder(1,4,2)" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.LinkAxisDataToRecorder(1,4,2)" //Command string to ecmcCmdParser.c\n
  */
 int linkAxisDataToRecorder(int indexRecorder,
                            int axisIndex,
