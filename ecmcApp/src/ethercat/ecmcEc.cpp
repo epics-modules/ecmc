@@ -1781,7 +1781,7 @@ int ecmcEc::printSlaveConfig(int slaveIndex) {
           return 0;
         }
 
-        printf("EthercatMCConfigController ${ECMC_MOTOR_PORT},");
+        printf(ECMC_IOCSH_CFG_CMD" ");
         printf(
           "\"Cfg.EcAddEntryComplete(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%d,sm%d.p%d.e%d)\"\n",
           slaveIndex,

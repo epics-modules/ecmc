@@ -55,6 +55,9 @@
 #define ECMC_MAX_COMMANDS_LISTS 10
 #define ECMC_MAX_COMMANDS_IN_COMMANDS_LISTS 100
 
+// ECMC iocsh config command
+#define ECMC_IOCSH_CFG_CMD "ecmcConfigOrDie"
+
 // Motion
 enum app_mode_type {
   ECMC_MODE_CONFIG  = 0,
