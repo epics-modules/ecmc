@@ -431,7 +431,7 @@ int clearPLCExpr(int index);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Compile code of PLC 5\n
- * "Cfg.CompulePLC(5)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.CompilePLC(5)" //Command string to ecmcCmdParser.c.\n
  */
 int compilePLCExpr(int index);
 
@@ -445,7 +445,7 @@ int compilePLCExpr(int index);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set enable for PLC 5\n
- * "Cfg.SetPLCEnable(5,1);" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetPLCEnable(5,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setPLCEnable(int index,
                  int enable);
@@ -460,7 +460,7 @@ int setPLCEnable(int index,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get enable for PLC 5\n
- * "GetPLCEnable(5);" //Command string to ecmcCmdParser.c.\n
+ * "GetPLCEnable(5)" //Command string to ecmcCmdParser.c.\n
  */
 int getPLCEnable(int  index,
                  int *enabled);

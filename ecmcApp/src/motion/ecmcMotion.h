@@ -596,7 +596,7 @@ int getAxisDone(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get gear ratio setting for axis 3.\n
- * "ReadAxisGearRatio(3)*" //Command string to ecmcCmdParser.c.\n
+ * "ReadAxisGearRatio(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisGearRatio(int     axisIndex,
                      double *value);
@@ -611,7 +611,7 @@ int getAxisGearRatio(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get state of forward limit switch for axis 3.\n
- * "Main.M3.bLimitFwd?*" //Command string to ecmcCmdParser.c.\n
+ * "Main.M3.bLimitFwd?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -628,7 +628,7 @@ int getAxisAtHardFwd(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get state of backward limit switch for axis 3.\n
- * "Main.M3.bLimitBwd?*" //Command string to ecmcCmdParser.c.\n
+ * "Main.M3.bLimitBwd?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -645,7 +645,7 @@ int getAxisAtHardBwd(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Check if encoder of axis 3 has been homed.\n
- * "Main.M3.bHomed?*" //Command string to ecmcCmdParser.c.\n
+ * "Main.M3.bHomed?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -660,7 +660,7 @@ int getAxisEncHomed(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get actual encoder position for axis 3.\n
- * "Main.M3.fActPosition?*" //Command string to ecmcCmdParser.c.\n
+ * "Main.M3.fActPosition?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -675,7 +675,7 @@ int getAxisEncPosAct(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get actual encoder velocity for axis 3.\n
- * "Main.M3.fActVelocity?*" //Command string to ecmcCmdParser.c.\n
+ * "Main.M3.fActVelocity?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -803,20 +803,6 @@ int getAxisEncScaleDenom(int     axisIndex,
 int getAxisEncPosRaw(int      axisIndex,
                      int64_t *value);
 
-/** \breif Get enable state of PID-controller.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[out] value PID-controller enabled.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note No command string implemented in the ecmcCmdParser.c parser.\n
- */
-
-// int getAxisCntrlEnable(int axisIndex,int *value);
-// int getAxisCntrlTargetPos(int axisIndex,double *value);
-// int getAxisCntrlEnabled(int axisIndex,int *value);
-
 /** \breif Get PID-controller proportional output part.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -922,20 +908,11 @@ int getAxisDrvEnable(int  axisIndex,
 int getAxisMonAtTarget(int  axisIndex,
                        int *value);
 
-// int getAxisMonAtTargetCounter(int axisIndex,int *value);
-// int getAxisMonLagError(int axisIndex,double *value);
-// int getAxisMonLagMonCounter(int axisIndex,double *value);
-// int getAxisMonAtHome(int axisIndex,int *value);
-// int getAxisTrajTransEnable(int axisIndex, int *value);
-// int getAxisEncTransEnable(int axisIndex, int *value);
-
 /** \breif Get axis type.\n
  *
  * An axis can be of the following types:
  *   type = 1 : Normal axis (drive, encoder, monitor,pid-controller,trajectory).\n
  *   type = 2 : Virtual axis (encoder, monitor, trajectory).\n
- *   type = 3 : Trajectory axis (monitor, trajectory generator).\n
- *   type = 4 : Encoder axis (encoder, monitor).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value Axis type.\n
@@ -1389,7 +1366,7 @@ int setAxisTargetPos(int    axisIndex,
  * \note Example: Set target velocity setpoint for axis 3 to 55 and
  * time to reach target velocity to 2s (acc and dec will be set to the same\n
  * value).\n
- * "Cfg.SetAxisVelAccDecTime(3,55,2)."  //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisVelAccDecTime(3,55,2)"  //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTargetVel(int    axisIndex,
                      double value);
@@ -1587,12 +1564,12 @@ int axisErrorReset(int axisIndex,
  * The axis transformation expression is used for synchronization of axes. The
  * expression is a mathematical expression describing relation ship between
  * different axes.\n
+ * Syntax used is defined and explained  on the exprtk website.\n
  *
- * Example: "out:=sin(traj1+enc5)/500;il1=il2 and enc3>123;".\n
- *   trajY = trajectory setpoint of axis Y.\n
- *   encY  = actual encoder position of axis Y.\n
- *   out   = the trajectory setpoint for the current axis (axes[axisIndex]).\n
- *   ilY   = interlock state for axis Y..\n
+ * Example: "setPos2:=setPos6*sin(2*pi*actPos5/10000)#ilock2:=1#".\n
+ *   setpos<id> = trajectory setpoint of axis id.\n
+ *   actPos<id>  = actual encoder position of axis id.\n   
+ *   ilock<id>   = interlock state for axis Y..\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] expr Expression.\n
@@ -1600,8 +1577,9 @@ int axisErrorReset(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set trajectory transformation expression for axes 5 to
- * "out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#".\n
- * "Cfg.SetAxisTrajTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to ecmcCmdParser.c.\n
+ * "setPos2:=setPos6*sin(2*pi*actPos5/10000)#ilock2:=1#".\n
+ * "Cfg.SetAxisTrajTransExpr(5)=setPos2:=setPos6*sin(2*pi*actPos5/10000)#ilock2:=1#"\n
+ * //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTrajTransExpr(int   axisIndex,
                          char *expr);
@@ -1623,12 +1601,13 @@ int setAxisTrajExtVelFilterEnable(int axisIndex,
  *
  * The axis transformation expression is used for synchronization of axes. The
  * expression is a mathematical expression describing relation ship between
- * different axes.\n
+ * different axes.\n 
+ * Syntax used is defined and explained on the exprtk website.\n
  *
- * Example: "out:=sin(traj1+enc5)/500;".\n
- *   trajY = trajectory setpoint of axis Y.
- *   encY  = actual encoder position of axis Y.
- *   out   = the trajectory setpoint for the current axis (axes[axisIndex]).\n
+ * Example: "actPos2:=(actPos4)-(actPos3)#ilock2:=1#".\n
+ *   setpos<id> = trajectory setpoint of axis id.\n
+ *   actPos<id>  = actual encoder position of axis id.\n   
+ *   ilock<id>   = interlock state for axis Y..\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] expr Expression.\n
@@ -1636,8 +1615,9 @@ int setAxisTrajExtVelFilterEnable(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set encoder transformation expression for axes 5 to
- * "out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#".\n
- * "Cfg.SetAxisEncTransExpr(5)=out:=sin(traj1+enc5)/500#il1=il2 and enc3>123#" //Command string to ecmcCmdParser.c.\n
+ * "actPos2:=(actPos4)-(actPos3)#ilock2:=1#".\n
+ * "Cfg.SetAxisEncTransExpr(5)=actPos2:=(actPos4)-(actPos3)#ilock2:=1#"\n
+ * //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncTransExpr(int   axisIndex,
                         char *expr);
@@ -1651,7 +1631,7 @@ int setAxisEncTransExpr(int   axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable velocity filter for external actual position for axis 5.
- * "Cfg.SetAxisEncExtVelFilterEnable(5,1) //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisEncExtVelFilterEnable(5,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncExtVelFilterEnable(int axisIndex,
                                  int enable);
@@ -1881,7 +1861,7 @@ int setAxisCntrlOutLL(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller minimum integral part output value to -700 for axis 3.\n
- * "Cfg.SetAxisCntrlIpartLL(3,-700)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisCntrlIPartLL(3,-700)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlIpartLL(int    axisIndex,
                         double value);
@@ -1894,7 +1874,7 @@ int setAxisCntrlIpartLL(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller maximum integral part output value to 700 for axis 3.\n
- * "Cfg.SetAxisCntrlIpartHL(3,700)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisCntrlIPartHL(3,700)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlIpartHL(int    axisIndex,
                         double value);
@@ -2257,9 +2237,6 @@ int setAxisMonPosLagTime(int axisIndex,
  * \param[in] value Enable monitoring.\n.\n
  *
  * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Disable position lag monitoring for axis 2.\n
- * "Cfg.SetAxisMonEnableLagMon(2,0)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisMonEnableLagMon(int  axisIndex,
                            int *value);
@@ -2285,6 +2262,20 @@ int getAxisMonEnableLagMon(int  axisIndex,
 int setAxisMonEnableLagMon(int axisIndex,
                            int value);
 
+/** \breif Get maximum allowed velocity.\n
+ *
+ * The motion will be interlocked if the actual velocity or the velocity
+ * setpoint exceeds this value.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] value Maximum velocity.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int getAxisMonMaxVel(int     axisIndex,
+                     double *value);
+
 /** \breif Set maximum allowed velocity.\n
  *
  * The motion will be interlocked if the actual velocity or the velocity
@@ -2300,20 +2291,6 @@ int setAxisMonEnableLagMon(int axisIndex,
  *
  * \note Example: Set maximum velocoity for axis 3 to 20.\n
  * "Cfg.SetAxisMonMaxVel(3,20)" //Command string to ecmcCmdParser.c.\n
- */
-int getAxisMonMaxVel(int     axisIndex,
-                     double *value);
-
-/** \breif Get maximum allowed velocity.\n
- *
- * The motion will be interlocked if the actual velocity or the velocity
- * setpoint exceeds this value.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[out] value Maximum velocity.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
  */
 int setAxisMonMaxVel(int    axisIndex,
                      double value);
@@ -2565,7 +2542,7 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable command from other axis for axis 3.\n
- * "SetAxisEnableCommandsFromOtherAxis(3,1)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisEnableCommandsFromOtherAxis(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEnableCommandsFromOtherAxis(int axisIndex,
                                        int value);
@@ -2581,7 +2558,7 @@ int setAxisEnableCommandsFromOtherAxis(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Disable command transformation expression axis 5.\n
- * "SetAxisEnableCommandsTransform(5,0)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisEnableCommandsTransform(5,0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEnableCommandsTransform(int axisIndex,
                                    int value);
@@ -2607,7 +2584,7 @@ int setAxisEnableCommandsTransform(int axisIndex,
  *
  * \note Example: Set command transformation expression for axes 5 to
  * en2:=en1 or en5# ex1:=ex2 + ex7#.\n
- * "SetAxisTransformCommandExpr(5)=en2:=en1 or en5# ex1:=ex2 + ex7#"
+ * "Cfg.SetAxisTransformCommandExpr(5)=en2:=en1 or en5# ex1:=ex2 + ex7#"
  * //Command string to ecmcCmdParser.c.\n
  */
 int setAxisTransformCommandExpr(int   axisIndex,
@@ -2807,16 +2784,6 @@ int setDiagAxisFreq(int freq);
  *  "Cfg.SetDiagAxisEnable(1)" //Command string to ecmcCmdParser.c\n
  */
 int setDiagAxisEnable(int enable);
-
-/** \breif Get Axis object by index
- **
- * \param[in] axisIndex index of axis.\n
- * \param[out] axisObj axis object.\n
- *
- * \return 0 if success or otherwise an error code.\n
- */
-//int getAxisObject(int axisIndex, ecmcAxisBase **axisObj);
-
 
 # ifdef __cplusplus
 }
