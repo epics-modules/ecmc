@@ -169,7 +169,7 @@ int ecAddEntryComplete(
  * \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
  * entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
  * argument is excluded in\n
- * "Cfg.EcAddMemMap(10,AI1,200,2,WAVEFORM)" //Command string to ecmcCmdParser.c\n
+ * "Cfg.EcAddMemMap(10,AI1,200,2,ec0.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddMemMap(
   uint16_t startEntryBusPosition,
@@ -383,7 +383,7 @@ int ecApplyConfig(int masterIndex);
   *
   * \note Example: Write a 0 to the 2:nd added entry (entryIndex=1) in the 4:th
   * added slave (slaveIndex=3).\n
-  *  "Cfg.WriteEcEntry(3,1,0)" //Command string to ecmcCmdParser.c\n
+  *  "WriteEcEntry(3,1,0)" //Command string to ecmcCmdParser.c\n
   */
 int writeEcEntry(int      slaveIndex,
                  int      entryIndex,
@@ -427,7 +427,7 @@ int writeEcEntryIDString(int      slaveBusPosition,
   *
   * \note Example: Read the 2:nd added entry (entryIndex=1) in the 4:th added
   * slave (slaveIndex=3).\n
-  * "Cfg.ReadEcEntry(3,1)" //Command string to ecmcCmdParser.c\n
+  * "ReadEcEntry(3,1)" //Command string to ecmcCmdParser.c\n
   */
 int readEcEntry(int       slaveIndex,
                 int       entryIndex,
@@ -451,7 +451,7 @@ int readEcEntry(int       slaveIndex,
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Read a digital input configured as "INPUT_0" on slave 1\n
-  *  "Cfg.ReadEcEntryIDString(1,INPUT_0)" //Command string to ecmcCmdParser.c\n
+  *  "ReadEcEntryIDString(1,INPUT_0)" //Command string to ecmcCmdParser.c\n
   */
 int readEcEntryIDString(int       slavePosition,
                         char     *entryIDString,
@@ -483,7 +483,7 @@ int readEcEntryIDString(int       slavePosition,
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Read a the index of an entry configured as "INPUT_0" on slave 1\n
-  *  "Cfg.ReadEcEntryIndexIDString(1,INPUT_0)" //Command string to ecmcCmdParser.c\n
+  *  "ReadEcEntryIndexIDString(1,INPUT_0)" //Command string to ecmcCmdParser.c\n
   */
 int readEcEntryIndexIDString(int   slavePosition,
                              char *entryIDString,
@@ -508,7 +508,7 @@ int readEcEntryIndexIDString(int   slavePosition,
   * \return 0 if success or otherwise an error code.\n
   *
   * \note Example: Read the slave index of the slave with bus position 5.\n
-  *  "Cfg.ReadEcSlaveIndex(5)" //Command string to ecmcCmdParser.c\n
+  *  "ReadEcSlaveIndex(5)" //Command string to ecmcCmdParser.c\n
   */
 int readEcSlaveIndex(int  slavePosition,
                      int *value);
@@ -544,7 +544,7 @@ int readEcMemMap(const char *memMapIDString,
  *
  * If set to zero the entry will not be updated during realtime operation.\n
  * Useful when accessing data with memory maps instead covering many entries
- * like oversampling arrays (its the unnecessary to update each entry in
+ * like oversampling arrays (it's then unnecessary to update each entry in
  * array).\n
  *
  *  \param[in] slavePosition Position of the EtherCAT slave on the bus.\n
@@ -558,7 +558,7 @@ int readEcMemMap(const char *memMapIDString,
  *                      0 not to update data in realtime.\n
  * \note Example: Disable update of value in realtime for entry with name "AI_1" on
  * bus position 5.\n
- *  "Cfg.EcSetEntryUpdateInRealtime(AI_1,5,0)" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.EcSetEntryUpdateInRealtime(5,AI_1,0)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetEntryUpdateInRealtime(
   uint16_t slavePosition,
