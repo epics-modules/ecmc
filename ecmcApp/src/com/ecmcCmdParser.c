@@ -821,7 +821,7 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /// "Cfg.EcResetMaster(masterIndex)"
-  nvals = sscanf(myarg_1, "EcSetMaster(%d)", &iValue);
+  nvals = sscanf(myarg_1, "EcResetMaster(%d)", &iValue);
 
   if (nvals == 1) {
     return ecResetMaster(iValue);
