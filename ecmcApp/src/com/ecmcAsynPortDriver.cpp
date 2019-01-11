@@ -469,6 +469,11 @@ int ecmcAsynPortDriverConfigure(const char *portName,
                                 int         paramTableSize,
                                 int         priority,
                                 int         disableAutoConnect) {
+  if(portName == NULL) {
+    printf("Error: portName missing.\n");
+    return asynError;  
+  }
+
   parameterCounter = 0;
   maxParameters    = paramTableSize;
   ecmcAsynPortObj  = new ecmcAsynPortDriver(portName,
@@ -719,6 +724,22 @@ int ecmcAsynPortDriverAddParameter(const char *portName,
                                    const char *idString,
                                    const char *asynTypeString,
                                    int         skipCycles) {
+
+  if(portName == NULL) {
+    printf("Error: portName missing.\n");
+    return asynError;  
+  }
+
+  if(idString == NULL) {
+    printf("Error: idString missing.\n");
+    return asynError;  
+  }
+
+  if(asynTypeString == NULL) {
+    printf("Error: asynTypeString missing.\n");
+    return asynError;  
+  }
+
   if (!ecmcAsynPortObj) {
     printf(
       "ecmcAsynPortDriverAddParameter: ERROR: asynPortDriver object NULL (ecmcAsynPortObj==NULL).\n");
@@ -971,6 +992,12 @@ static void initCallFunc_2(const iocshArgBuf *args) {
 /* EPICS iocsh shell command:  ecmcConfigOrDie*/
 static ecmcOutputBufferType ecmcConfigBuffer;
 int ecmcConfigOrDie(const char *ecmcCommand) {
+
+  if(ecmcCommand == NULL) {
+    printf("Error: Command missing.\n");
+    return asynError;  
+  }
+
   clearBuffer(&ecmcConfigBuffer);
   int errorCode = motorHandleOneArg(ecmcCommand, &ecmcConfigBuffer);
 
@@ -1013,6 +1040,12 @@ static void initCallFunc_3(const iocshArgBuf *args) {
 
 /* EPICS iocsh shell command:  ecmcConfig*/
 int ecmcConfig(const char *ecmcCommand) {
+  
+  if(ecmcCommand == NULL) {
+    printf("Error: Command missing.\n");
+    return asynError;  
+  }
+
   clearBuffer(&ecmcConfigBuffer);
   int errorCode = motorHandleOneArg(ecmcCommand, &ecmcConfigBuffer);
 
