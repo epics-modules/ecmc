@@ -15,6 +15,7 @@
 #define ECMCASYNPORTDRIVER_H_
 
 #include "asynPortDriver.h"
+#include "ecmcAsynPortDriverUtils.h"
 #include <epicsEvent.h>
 
 class ecmcAsynPortDriver : public asynPortDriver {
@@ -56,6 +57,11 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                       epicsFloat64 *value,
                                       size_t        nElements,
                                       size_t       *nIn);
+  virtual asynStatus drvUserCreate(asynUser *pasynUser,
+                                   const char *drvInfo,
+                                   const char **pptypeName,
+                                   size_t *psize);
+  virtual void report(FILE *fp, int details);
   void      setAllowRtThreadCom(bool allowRtCom);
   bool      getAllowRtThreadCom();
   asynUser* getTraceAsynUser();
@@ -67,7 +73,21 @@ class ecmcAsynPortDriver : public asynPortDriver {
                        size_t     *nIn,
                        size_t      typeSize,
                        const char *functionName);
+  void initVars();
+  asynStatus validateDrvInfo(const char *drvInfo);
+  asynStatus getRecordInfoFromDrvInfo(const char *drvInfo,
+                                      ecmcParamInfo *paramInfo);
+  asynStatus parseInfofromDrvInfo(const char* drvInfo,
+                                     ecmcParamInfo *paramInfo);
   bool allowRtThreadCom_;
+  ecmcParamInfo  **pEcmcParamArray_;
+  int ecmcParamArrayCount_;
+  int paramTableSize_;
+  int defaultSampleTimeMS_;
+  int defaultMaxDelayTimeMS_;
+  ECMCTIMESOURCE defaultTimeSource_;
+  int autoConnect_;
+  unsigned int priority_;
 };
 
 #endif  /* ECMCASYNPORTDRIVER_H_ */

@@ -186,6 +186,39 @@ static int parseObjectPath(char             *objPath,
                            int              *axis,
                            motionObjectType *objectType,
                            int              *objectFunction) {
+
+
+  motionObjectType objType;
+  int objIndex=0;
+  int errorCode=getEcmcObjectType(objPath,&objIndex,&objType);
+  if(errorCode){
+    return errorCode;
+  }
+
+  switch(objType){
+    case ECMC_OBJ_INVALID:
+      return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+      break;
+    case ECMC_OBJ_AXIS:
+      *axis=objIndex;
+
+       // get sub object here!!
+       
+      break;
+    case ECMC_OBJ_EC:
+      *axis=objIndex;
+      break;
+    case ECMC_OBJ_DS:
+      *axis=objIndex;
+      break;
+    case ECMC_OBJ_MAIN:
+      *axis=objIndex;
+      break;
+    case ECMC_OBJ_THREAD:
+      *axis=objIndex;
+      break;
+  }
+
   int  axisId = 0;
   char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
@@ -367,6 +400,109 @@ static int parseObjectPath(char             *objPath,
   }
 
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+}
+
+static int getAxSubObjectType(char              *objPath,
+                                  int               *objIndex
+                                  axisSubObjectType *objectType) {
+
+
+saldfkhalsfhalsfh NEEEDD dalöwdjaösdj
+
+}
+static int getMainObjectType(char             *objPath,
+                                 int              *objIndex
+                                 mainObjectType *objectType) {
+
+  char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  nvals = 0;
+  int objectIndex=0;
+  *objectType = ECMC_OBJ_INVALID;
+   
+  // Axis sub objects
+  nvals = sscanf(objPath,
+                 ECMC_AX_STR "%d.%[^.]",
+                 &objectIndex,
+                 objectTypeStr);
+
+  if (nvals == 2) {
+    *objIndex = objectIndex;
+
+    // Drive
+    nvals = strcmp(objectTypeStr, ECMC_DRV_STR);
+
+    if (nvals == 0) {
+      *objectType = ECMC_OBJ_DRIVE;
+      return 0;
+    }
+
+    // Encoder
+    nvals = strcmp(objectTypeStr, ECMC_ENC_STR);
+
+    if (nvals == 0) {
+      *objectType = ECMC_OBJ_ENCODER;
+      return 0;
+    }
+
+    // Monitor
+    nvals = strcmp(objectTypeStr, ECMC_MON_STR);
+
+    if (nvals == 0) {
+      *objectType = ECMC_OBJ_MONITOR;
+      return 0;
+    }
+  }
+
+  // Axis object only
+  nvals = sscanf(objPath, ECMC_AX_STR "%d.%s", &objectIndex, objectFunctionStr);
+
+  if (nvals == 2) {
+    *objectType = ECMC_OBJ_AXIS;
+    *objIndex   = objectIndex;
+    return 0;
+  }
+
+  // Ec object
+  int masterId = 0;
+  nvals = sscanf(objPath, ECMC_EC_STR "%d.%s", &objectIndex, objectFunctionStr);
+
+  if (nvals == 2) {
+    *objectType = ECMC_OBJ_EC;
+    *objIndex=objectIndex;
+    return 0;
+  }
+
+  // Ds object
+  int masterId = 0;
+  nvals = sscanf(objPath, ECMC_PLC_DATA_STORAGE_STR "%d.%s", &objectIndex, objectFunctionStr);
+
+  if (nvals == 2) {
+    *objectType = ECMC_OBJ_DS;
+    *objIndex=objectIndex;
+    return 0;
+  }
+
+  // Main object
+  int masterId = 0;
+  nvals = sscanf(objPath, ECMC_MAIN_STR ".%s", objectFunctionStr);
+
+  if (nvals == 1) {
+    *objectType = ECMC_OBJ_MAIN;
+    *objIndex=0;  // Not used
+    return 0;
+  }
+
+  // Thread object
+  int masterId = 0;
+  nvals = sscanf(objPath, ECMC_THREAD_STR ".%s", objectFunctionStr);
+
+  if (nvals == 1) {
+    *objectType = ECMC_OBJ_THREAD;
+    *objIndex=0; // Not used
+    return 0;
+  }
+
+  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;             
 }
 
 int linkEcEntryToObject(char *ecPath, char *axPath) {

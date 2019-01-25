@@ -1,6 +1,6 @@
 
 /*
- * ESSOSMCU-definitions.h
+ * ecmcDefinitions.h
  *
  *  Created on: March 14, 2016
  *      Author: anderssandstrom
@@ -41,9 +41,9 @@
 #define TRANSFORM_EXPR_INTERLOCK_PREFIX "ilock"
 
 // EtherCAT
-#define EC_MAX_PDOS 512
+#define EC_MAX_PDOS 1024
 #define EC_MAX_ENTRIES 8192
-#define EC_MAX_MEM_MAPS 8
+#define EC_MAX_MEM_MAPS 16
 #define EC_MAX_SLAVES 512
 
 // Data recording
@@ -174,16 +174,27 @@ enum triggerEdgeType {
 };
 
 // Object types
-enum motionObjectType {
+enum mainObjectType {
   ECMC_OBJ_INVALID    = 0,
-  ECMC_OBJ_DRIVE      = 1,
-  ECMC_OBJ_ENCODER    = 2,
-  ECMC_OBJ_MONITOR    = 3,
-  ECMC_OBJ_CONTROLLER = 4,
-  ECMC_OBJ_TRAJECTORY = 5,
-  ECMC_OBJ_AXIS       = 6,
-  ECMC_OBJ_EC         = 7
+  ECMC_OBJ_AXIS       = 1,
+  ECMC_OBJ_EC         = 2,
+  ECMC_OBJ_DS         = 3,
+  ECMC_OBJ_MAIN       = 4,
+  ECMC_OBJ_THREAD     =5
 };
+// Object types
+enum axisSubObjectType {
+  ECMC_AX_SUB_OBJ_INVALID    = 0,
+  ECMC_AX_SUB_OBJ_DRIVE      = 1,
+  ECMC_AX_SUB_OBJ_ENCODER    = 2,
+  ECMC_AX_SUB_OBJ_MONITOR    = 3,
+  ECMC_AX_SUB_OBJ_CONTROLLER = 4,
+  ECMC_AX_SUB_OBJ_TRAJECTORY = 5,
+}
+
+
+#define ECMC_MAIN_STR "main"
+#define ECMC_THREAD_STR "thread"
 
 #define ECMC_AX_PATH_BUFFER_SIZE 256
 #define ECMC_EC_PATH_BUFFER_SIZE 256
