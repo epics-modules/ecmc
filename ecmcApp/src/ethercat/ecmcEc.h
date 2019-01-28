@@ -59,9 +59,6 @@
 #define ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID 0x26023
 #define ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW 0x26024
 
-// Entry index
-#define ECMC_EC_ENTRY_INDEX_HEALTH 0
-
 class ecmcEc : public ecmcError {
  public:
   ecmcEc();

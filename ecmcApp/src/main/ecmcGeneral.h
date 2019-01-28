@@ -105,30 +105,6 @@ int setEnableTimeDiag(int value);
  *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to ecmcCmdParser.c\n
  */
 int setEnableFunctionCallDiag(int value);
-
-/** \breif Parse main ECMC object type from string.\n
- *
- * \param[in] objPath variable name.\n
- * \param[out] objIndex Object index.\n
- * \param[out] objectType Object type.\n
- *
- * \return 0 if success or otherwise an error code.\n
- */
-int getMainObjectType(char             *objPath,
-                      int              *objIndex
-                      mainObjectType   *objectType);
-
-/** \breif Parse Axis sub object type from string.\n
- *
- * \param[in] objPath variable name.\n
- * \param[out] objIndex Object index.\n
- * \param[out] objectType Object type.\n
- *
- * \return 0 if success or otherwise an error code.\n
- */
-int getAxSubObjectType(char      *objPath,
-                       int               *objIndex
-                       axisSubObjectType *objectType);
                        
 # ifdef __cplusplus
 }

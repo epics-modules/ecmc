@@ -11,6 +11,7 @@
 #include <inttypes.h>
 
 #include "../main/ecmcDefinitions.h"
+#include "../main/ecmcErrorsList.h"
 
 #define ECMC_MAX_FIELD_CHAR_LENGTH 128
 
@@ -64,13 +65,95 @@ typedef struct ecmcParamInfo{
   int            alarmSeverity;
   bool           refreshNeeded;
 }ecmcParamInfo;
-#endif  /* ECMCASYNPORTDRIVERUTILS_H_ */
 
 const char *asynTypeToString(long type);
 const char *epicsStateToString(int state);
 asynParamType stringToAsynType(char *typeStr);
 int windowsToEpicsTimeStamp(uint64_t plcTime, epicsTimeStamp *ts);
-motionObjectType dataSourceFromVarName(char* varName);
+//motionObjectType dataSourceFromVarName(char* varName);
+
+/*Available strings:
+ *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
+ *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
+*/
+int parseEcPath(char *ecPath,
+                int  *master,
+                int  *slave,
+                char *alias,
+                int  *bit);
+
+/** \breif Parse main ECMC object type from string.\n
+ *
+ * \param[in] objPath variable name.\n
+ * \param[out] objIndex Object index.\n
+ * \param[out] objectType Object type.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getMainObjectType(char             *objPath,
+                      int              *objIndex,
+                      mainObjectType   *objectType);
+
+/** \breif Parse Axis sub object type from string.\n
+ *
+ * \param[in] objPath variable name.\n
+ * \param[out] objIndex Object index.\n
+ * \param[out] objectType Object type.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxSubObjectType(char              *objPath,                       
+                       axisSubObjectType *objectType);
+
+/** \breif Parse Axis Encoder function type from string.\n
+ *
+ * \param[in] objPath variable name.\n
+ * \param[out] objectFunction Object Function.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxEncFuncType(char *objPath,                              
+                     int  *objectFunction);
+
+/** \breif Parse Axis Drive function type from string.\n
+ *
+ * \param[in] objPath variable name.\n
+ * \param[out] objectFunction Object Function.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxDriveFuncType(char *objPath,                              
+                       int *objectFunction);
+
+/** \breif Parse Axis Monitor function type from string.\n
+ *
+ * \param[in] objPath variable name.\n
+ * \param[out] objectFunction Object Function.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxMonFuncType(char *objPath,                              
+                     int *objectFunction);
+
+/** \breif Parse Axis Main object function type from string.\n
+ *
+ * \param[in] objPath variable name.\n
+ * \param[out] objectFunction Object Function.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getAxMainFuncType(char *objPath,
+                    int *objectFunction);
+
+/** \breif Parse Ec Main object function type from string.\n
+ *
+ * \param[in] objPath variable name.\n
+ * \param[out] objectFunction Object Function.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getEcMainFuncType(char *objPath,
+                      int *objectFunction);
 
 
 /*typedef enum {
@@ -87,3 +170,5 @@ motionObjectType dataSourceFromVarName(char* varName);
     asynParamGenericPointer
 } asynParamType;
 */
+
+#endif  /* ECMCASYNPORTDRIVERUTILS_H_ */

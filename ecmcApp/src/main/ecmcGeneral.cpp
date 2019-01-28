@@ -3,6 +3,7 @@
 
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
+#include "../com/ecmcAsynPortDriverUtils.h"
 
 int getControllerError() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
@@ -143,457 +144,120 @@ int setEnableFunctionCallDiag(int value) {
   return 0;
 }
 
-
-/*Available strings:
- *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
- *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
-*/
-static int parseEcPath(char *ecPath,
-                       int  *master,
-                       int  *slave,
-                       char *alias,
-                       int  *bit) {
-  int masterId = 0;
-  int slaveId  = 0;
-  int bitId    = 0;
-  int nvals    = 0;
-
-  nvals = sscanf(ecPath,
-                 "ec%d.s%d.%[^.].%d",
-                 &masterId,
-                 &slaveId,
-                 alias,
-                 &bitId);
-
-  if (nvals == 4) {
-    *master = masterId;
-    *slave  = slaveId;
-    *bit    = bitId;
-    return 0;
-  }
-  nvals = sscanf(ecPath, "ec%d.s%d.%s", &masterId, &slaveId, alias);
-
-  if (nvals == 3) {
-    *master = masterId;
-    *slave  = slaveId;
-    *bit    = -1;
-    return 0;
-  }
-  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-}
-
-static int parseObjectPath(char             *objPath,
-                           int              *axis,
-                           motionObjectType *objectType,
-                           int              *objectFunction) {
-
-
-  motionObjectType objType;
-  int objIndex=0;
-  int errorCode=getEcmcObjectType(objPath,&objIndex,&objType);
-  if(errorCode){
-    return errorCode;
-  }
-
-  switch(objType){
-    case ECMC_OBJ_INVALID:
-      return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-      break;
-    case ECMC_OBJ_AXIS:
-      *axis=objIndex;
-
-       // get sub object here!!
-       
-      break;
-    case ECMC_OBJ_EC:
-      *axis=objIndex;
-      break;
-    case ECMC_OBJ_DS:
-      *axis=objIndex;
-      break;
-    case ECMC_OBJ_MAIN:
-      *axis=objIndex;
-      break;
-    case ECMC_OBJ_THREAD:
-      *axis=objIndex;
-      break;
-  }
-
-  int  axisId = 0;
-  char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int  nvals = 0;
-
-  *objectType = ECMC_OBJ_INVALID;
-
-  // Axis sub objects
-  nvals = sscanf(objPath,
-                 ECMC_AX_STR "%d.%[^.].%s",
-                 &axisId,
-                 objectTypeStr,
-                 objectFunctionStr);
-
-  if (nvals == 3) {
-    *axis = axisId;
-
-    // Drive
-    nvals = strcmp(objectTypeStr, ECMC_DRV_STR);
-
-    if (nvals == 0) {
-      *objectType = ECMC_OBJ_DRIVE;
-
-      // Enable
-      nvals = strcmp(objectFunctionStr, ECMC_DRV_ENABLE_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD;
-        return 0;
-      }
-
-      // Velocity
-      nvals = strcmp(objectFunctionStr, ECMC_DRV_VELOCITY_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT;
-        return 0;
-      }
-
-      // Enabled
-      nvals = strcmp(objectFunctionStr, ECMC_DRV_ENABLED_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD;
-        return 0;
-      }
-
-      // Break
-      nvals = strcmp(objectFunctionStr, ECMC_DRV_BREAK_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT;
-        return 0;
-      }
-
-      // Reduce Torque
-      nvals = strcmp(objectFunctionStr, ECMC_DRV_REDUCETORQUE_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT;
-        return 0;
-      }
-      return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-    }
-
-    // Encoder
-    nvals = strcmp(objectTypeStr, ECMC_ENC_STR);
-
-    if (nvals == 0) {
-      *objectType = ECMC_OBJ_ENCODER;
-
-      // Actpos
-      nvals = strcmp(objectFunctionStr, ECMC_ENC_ACTPOS_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION;
-        return 0;
-      }
-
-      // Latch status
-      nvals = strcmp(objectFunctionStr, ECMC_ENC_LATCH_STATUS_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS;
-        return 0;
-      }
-
-      // Latch pos
-      nvals = strcmp(objectFunctionStr, ECMC_ENC_LATCHPOS_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE;
-        return 0;
-      }
-
-      // Latch control
-      nvals = strcmp(objectFunctionStr, ECMC_ENC_LATCH_CONTROL_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL;
-        return 0;
-      }
-      return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-    }
-
-    // Monitor
-    nvals = strcmp(objectTypeStr, ECMC_MON_STR);
-
-    if (nvals == 0) {
-      *objectType = ECMC_OBJ_MONITOR;
-
-      // Lowlim
-      nvals = strcmp(objectFunctionStr, ECMC_MON_LOWLIM_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_MON_ENTRY_INDEX_LOWLIM;
-        return 0;
-      }
-
-      // Highlim
-      nvals = strcmp(objectFunctionStr, ECMC_MON_HIGHLIM_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_MON_ENTRY_INDEX_HIGHLIM;
-        return 0;
-      }
-
-      // Home sensor
-      nvals = strcmp(objectFunctionStr, ECMC_MON_HOMESENSOR_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_MON_ENTRY_INDEX_HOMESENSOR;
-        return 0;
-      }
-
-      // ExternalInterupt
-      nvals = strcmp(objectFunctionStr, ECMC_MON_EXTINTERLOCK_STR);
-
-      if (nvals == 0) {
-        *objectFunction = ECMC_MON_ENTRY_INDEX_EXTINTERLOCK;
-        return 0;
-      }
-      return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-    }
-  }
-
-  // Axis object only
-  nvals = sscanf(objPath, ECMC_AX_STR "%d.%s", &axisId, objectFunctionStr);
-
-  if (nvals == 2) {
-    *objectType = ECMC_OBJ_AXIS;
-    *axis       = axisId;
-
-    // Health
-    nvals = strcmp(objectFunctionStr, ECMC_AX_HEALTH_STR);
-
-    if (nvals == 0) {
-      *objectFunction = ECMC_AXIS_ENTRY_INDEX_HEALTH;
-      return 0;
-    }
-    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-  }
-
-  // Ec object
-  int masterId = 0;
-  nvals = sscanf(objPath, ECMC_EC_STR "%d.%s", &masterId, objectFunctionStr);
-
-  if (nvals == 2) {
-    *objectType = ECMC_OBJ_EC;
-
-    // Health
-    nvals = strcmp(objectFunctionStr, ECMC_EC_HEALTH_STR);
-
-    if (nvals == 0) {
-      *objectFunction = ECMC_EC_ENTRY_INDEX_HEALTH;
-      return 0;
-    }
-    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-  }
-
-  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-}
-
-static int getAxSubObjectType(char              *objPath,
-                                  int               *objIndex
-                                  axisSubObjectType *objectType) {
-
-
-saldfkhalsfhalsfh NEEEDD dalöwdjaösdj
-
-}
-static int getMainObjectType(char             *objPath,
-                                 int              *objIndex
-                                 mainObjectType *objectType) {
-
-  char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int  nvals = 0;
-  int objectIndex=0;
-  *objectType = ECMC_OBJ_INVALID;
-   
-  // Axis sub objects
-  nvals = sscanf(objPath,
-                 ECMC_AX_STR "%d.%[^.]",
-                 &objectIndex,
-                 objectTypeStr);
-
-  if (nvals == 2) {
-    *objIndex = objectIndex;
-
-    // Drive
-    nvals = strcmp(objectTypeStr, ECMC_DRV_STR);
-
-    if (nvals == 0) {
-      *objectType = ECMC_OBJ_DRIVE;
-      return 0;
-    }
-
-    // Encoder
-    nvals = strcmp(objectTypeStr, ECMC_ENC_STR);
-
-    if (nvals == 0) {
-      *objectType = ECMC_OBJ_ENCODER;
-      return 0;
-    }
-
-    // Monitor
-    nvals = strcmp(objectTypeStr, ECMC_MON_STR);
-
-    if (nvals == 0) {
-      *objectType = ECMC_OBJ_MONITOR;
-      return 0;
-    }
-  }
-
-  // Axis object only
-  nvals = sscanf(objPath, ECMC_AX_STR "%d.%s", &objectIndex, objectFunctionStr);
-
-  if (nvals == 2) {
-    *objectType = ECMC_OBJ_AXIS;
-    *objIndex   = objectIndex;
-    return 0;
-  }
-
-  // Ec object
-  int masterId = 0;
-  nvals = sscanf(objPath, ECMC_EC_STR "%d.%s", &objectIndex, objectFunctionStr);
-
-  if (nvals == 2) {
-    *objectType = ECMC_OBJ_EC;
-    *objIndex=objectIndex;
-    return 0;
-  }
-
-  // Ds object
-  int masterId = 0;
-  nvals = sscanf(objPath, ECMC_PLC_DATA_STORAGE_STR "%d.%s", &objectIndex, objectFunctionStr);
-
-  if (nvals == 2) {
-    *objectType = ECMC_OBJ_DS;
-    *objIndex=objectIndex;
-    return 0;
-  }
-
-  // Main object
-  int masterId = 0;
-  nvals = sscanf(objPath, ECMC_MAIN_STR ".%s", objectFunctionStr);
-
-  if (nvals == 1) {
-    *objectType = ECMC_OBJ_MAIN;
-    *objIndex=0;  // Not used
-    return 0;
-  }
-
-  // Thread object
-  int masterId = 0;
-  nvals = sscanf(objPath, ECMC_THREAD_STR ".%s", objectFunctionStr);
-
-  if (nvals == 1) {
-    *objectType = ECMC_OBJ_THREAD;
-    *objIndex=0; // Not used
-    return 0;
-  }
-
-  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;             
-}
-
-int linkEcEntryToObject(char *ecPath, char *axPath) {
+int linkEcEntryToObject(char *ecPath, char *objPath) {
   LOGINFO4("%s/%s:%d ecPath=%s axPath=%s\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            ecPath,
-           axPath);
+           objPath);
 
   int  masterId   = -1;
   int  slaveIndex = -1;
   char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  bitIndex = -1;
 
-  int errorCode =
-    parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+  int errorCode = parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
 
   if (errorCode) {
     return errorCode;
   }
 
-  int axisIndex               = 0;
-  motionObjectType objectType = ECMC_OBJ_INVALID;
-  int entryIndex              = 0;
-  errorCode = parseObjectPath(axPath, &axisIndex, &objectType, &entryIndex);
-
-  if (errorCode) {
+  // Get object type
+  mainObjectType objType;  
+  int objIndex=-1;
+  int objFunctionId=0;
+  errorCode = getMainObjectType(objPath,&objIndex,&objType);
+  if(errorCode) {
     return errorCode;
   }
+  switch(objType){
+    case ECMC_OBJ_INVALID:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+      break;
+    case ECMC_OBJ_AXIS:
+      axisSubObjectType axSubObjType;
+      errorCode = getAxSubObjectType(objPath,&axSubObjType);
+      if(errorCode) {
+        return errorCode;
+      }
+      switch(axSubObjType){
+        case ECMC_AX_SUB_OBJ_INVALID:
+          return ERROR_MAIN_ECMC_LINK_INVALID;
+          break;
+        case ECMC_AX_SUB_OBJ_DRIVE:
+          errorCode = getAxDriveFuncType(objPath,&objFunctionId);
+          if(errorCode) {
+            return errorCode;
+          }
+          return linkEcEntryToAxisDrv(slaveIndex,
+                                      alias,
+                                      objIndex,
+                                      objFunctionId,
+                                      bitIndex);
+          break;
+        case ECMC_AX_SUB_OBJ_ENCODER:
+          errorCode = getAxEncFuncType(objPath,&objFunctionId);
+          if(errorCode) {
+            return errorCode;
+          }
+          return linkEcEntryToAxisEnc(slaveIndex,
+                                      alias,
+                                      objIndex,
+                                      objFunctionId,
+                                      bitIndex);
 
-  switch (objectType) {
-  case ECMC_OBJ_INVALID:
-    return ERROR_MAIN_ECMC_LINK_INVALID;
-
-    break;
-
-  case ECMC_OBJ_DRIVE:
-    return linkEcEntryToAxisDrv(slaveIndex,
-                                alias,
-                                axisIndex,
-                                entryIndex,
-                                bitIndex);
-
-    break;
-
-  case ECMC_OBJ_ENCODER:
-    return linkEcEntryToAxisEnc(slaveIndex,
-                                alias,
-                                axisIndex,
-                                entryIndex,
-                                bitIndex);
-
-    break;
-
-  case ECMC_OBJ_MONITOR:
-    return linkEcEntryToAxisMon(slaveIndex,
-                                alias,
-                                axisIndex,
-                                entryIndex,
-                                bitIndex);
-
-    break;
-
-  case ECMC_OBJ_CONTROLLER:
-    return ERROR_MAIN_ECMC_LINK_INVALID;
-
-    break;
-
-  case ECMC_OBJ_TRAJECTORY:
-    return ERROR_MAIN_ECMC_LINK_INVALID;
-
-    break;
-
-  case ECMC_OBJ_AXIS:
-
-    if (entryIndex == ECMC_AXIS_ENTRY_INDEX_HEALTH) {
-      return linkEcEntryToAxisStatusOutput(slaveIndex, alias, axisIndex);
-    }
-    return ERROR_MAIN_ECMC_LINK_INVALID;
-
-    break;
-
-  case ECMC_OBJ_EC:
-
-    if (entryIndex == ECMC_EC_ENTRY_INDEX_HEALTH) {
-      return linkEcEntryToEcStatusOutput(slaveIndex, alias);
-    }
-    return ERROR_MAIN_ECMC_LINK_INVALID;
-
-    break;
+          break;
+        case ECMC_AX_SUB_OBJ_MONITOR:
+          errorCode = getAxMonFuncType(objPath,&objFunctionId);
+          if(errorCode) {
+            return errorCode;
+          }
+          return linkEcEntryToAxisMon(slaveIndex,
+                                      alias,
+                                      objIndex,
+                                      objFunctionId,
+                                      bitIndex);
+       
+          break;
+        case ECMC_AX_SUB_OBJ_CONTROLLER:
+          return ERROR_MAIN_ECMC_LINK_INVALID;
+          break;
+        case ECMC_AX_SUB_OBJ_TRAJECTORY:
+          return ERROR_MAIN_ECMC_LINK_INVALID;
+          break;
+        case ECMC_AX_SUB_OBJ_MAIN:
+          errorCode = getAxMainFuncType(objPath,&objFunctionId);
+          if(errorCode) {
+            return errorCode;
+          }
+          if (objFunctionId == ECMC_AXIS_ENTRY_INDEX_HEALTH) {
+            return linkEcEntryToAxisStatusOutput(slaveIndex, alias, objIndex);
+          }
+          return ERROR_MAIN_ECMC_LINK_INVALID;
+          break;
+      }
+      break;
+    case ECMC_OBJ_EC:
+      errorCode=getEcMainFuncType(objPath,&objFunctionId);
+      if(errorCode) {
+        return errorCode;
+      }
+      if (objFunctionId == ECMC_EC_ENTRY_INDEX_HEALTH) {
+        return linkEcEntryToEcStatusOutput(slaveIndex, alias);
+      }
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+      break;
+    case ECMC_OBJ_DS:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+      break;
+    case ECMC_OBJ_MAIN:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+      break;
+    case ECMC_OBJ_THREAD:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+      break;
   }
+
   return ERROR_MAIN_ECMC_LINK_INVALID;
 }

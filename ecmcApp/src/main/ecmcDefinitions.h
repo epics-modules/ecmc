@@ -1,4 +1,3 @@
-
 /*
  * ecmcDefinitions.h
  *
@@ -6,8 +5,8 @@
  *      Author: anderssandstrom
  */
 
-#ifndef ECMCDEFINITIONS_H_
-#define ECMCDEFINITIONS_H_
+#ifndef ECMC_DEFINITIONS_H_
+#define ECMC_DEFINITIONS_H_
 
 #define UNPACK(...) __VA_ARGS__
 
@@ -45,6 +44,32 @@
 #define EC_MAX_ENTRIES 8192
 #define EC_MAX_MEM_MAPS 16
 #define EC_MAX_SLAVES 512
+
+// EC entry links
+#define ECMC_EC_ENTRY_INDEX_HEALTH 0
+
+// Axis entry links
+#define ECMC_AXIS_ENTRY_INDEX_HEALTH 0
+
+// Drive entry links
+#define ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD 0
+#define ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT 1
+#define ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD 2
+#define ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT 3
+#define ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT 4
+
+// Encoder drive entries
+#define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
+#define ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS 1
+#define ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE 2
+#define ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL 3
+
+// Monitor drive entries
+#define ECMC_MON_ENTRY_INDEX_LOWLIM 0
+#define ECMC_MON_ENTRY_INDEX_HIGHLIM 1
+#define ECMC_MON_ENTRY_INDEX_HOMESENSOR 2
+#define ECMC_MON_ENTRY_INDEX_EXTINTERLOCK 3
+
 
 // Data recording
 #define ECMC_MAX_DATA_RECORDERS_OBJECTS 10
@@ -180,8 +205,9 @@ enum mainObjectType {
   ECMC_OBJ_EC         = 2,
   ECMC_OBJ_DS         = 3,
   ECMC_OBJ_MAIN       = 4,
-  ECMC_OBJ_THREAD     =5
+  ECMC_OBJ_THREAD     = 5
 };
+
 // Object types
 enum axisSubObjectType {
   ECMC_AX_SUB_OBJ_INVALID    = 0,
@@ -190,8 +216,8 @@ enum axisSubObjectType {
   ECMC_AX_SUB_OBJ_MONITOR    = 3,
   ECMC_AX_SUB_OBJ_CONTROLLER = 4,
   ECMC_AX_SUB_OBJ_TRAJECTORY = 5,
-}
-
+  ECMC_AX_SUB_OBJ_MAIN       = 6,
+};
 
 #define ECMC_MAIN_STR "main"
 #define ECMC_THREAD_STR "thread"
@@ -354,4 +380,4 @@ enum ecmcDataSourceType {
   ECMC_RECORDER_SOURCE_DATA_STORAGE = 5,
 };
 
-#endif  /* ECMCDEFINITIONS_H_ */
+#endif  /* ECMC_DEFINITIONS_H_ */
