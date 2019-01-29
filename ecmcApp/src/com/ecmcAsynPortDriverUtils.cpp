@@ -9,6 +9,7 @@
 */
 
 #include "ecmcAsynPortDriverUtils.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <initHooks.h>
@@ -748,7 +749,6 @@ int getMainObjectType(char           *objPath,
   }
 
   // Ec object
-  int masterId = 0;
   nvals = sscanf(objPath, ECMC_EC_STR "%d.%s", &objectIndex, objectFunctionStr);
 
   if (nvals == 2) {

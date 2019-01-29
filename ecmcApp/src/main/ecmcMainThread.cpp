@@ -151,11 +151,11 @@ void cyclic_task(void *usr) {
   struct timespec wakeupTime, sendTime, lastSendTime = {};
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
-  uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0, sendperiod_ns = 0,
+  /*uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0, sendperiod_ns = 0,
            latency_min_ns = 0, latency_max_ns = 0,
            period_min_ns = 0, period_max_ns = 0,
            exec_min_ns = 0, exec_max_ns = 0,
-           send_min_ns = 0, send_max_ns = 0;
+           send_min_ns = 0, send_max_ns = 0;*/
 
   offsetStartTime.tv_nsec = 49 * MCU_PERIOD_NS;
   offsetStartTime.tv_sec  = 0;
@@ -180,43 +180,43 @@ void cyclic_task(void *usr) {
       asynPort->lock();
     }
     clock_gettime(CLOCK_MONOTONIC, &startTime);
-    latency_ns    = DIFF_NS(wakeupTime, startTime);
-    period_ns     = DIFF_NS(lastStartTime, startTime);
-    exec_ns       = DIFF_NS(lastStartTime, endTime);
-    sendperiod_ns = DIFF_NS(lastSendTime, sendTime);
+    threadDiag.latency_ns    = DIFF_NS(wakeupTime, startTime);
+    threadDiag.period_ns     = DIFF_NS(lastStartTime, startTime);
+    threadDiag.exec_ns       = DIFF_NS(lastStartTime, endTime);
+    threadDiag.sendperiod_ns = DIFF_NS(lastSendTime, sendTime);
     lastStartTime = startTime;
     lastSendTime  = sendTime;
 
-    if (latency_ns > latency_max_ns) {
-      latency_max_ns = latency_ns;
+    if (threadDiag.latency_ns > threadDiag.latency_max_ns) {
+      threadDiag.latency_max_ns = threadDiag.latency_ns;
     }
 
-    if (latency_ns < latency_min_ns) {
-      latency_min_ns = latency_ns;
+    if (threadDiag.latency_ns < threadDiag.latency_min_ns) {
+      threadDiag.latency_min_ns = threadDiag.latency_ns;
     }
 
-    if (period_ns > period_max_ns) {
-      period_max_ns = period_ns;
+    if (threadDiag.period_ns > threadDiag.period_max_ns) {
+      threadDiag.period_max_ns = threadDiag.period_ns;
     }
 
-    if (period_ns < period_min_ns) {
-      period_min_ns = period_ns;
+    if (threadDiag.period_ns < threadDiag.period_min_ns) {
+      threadDiag.period_min_ns = threadDiag.period_ns;
     }
 
-    if (exec_ns > exec_max_ns) {
-      exec_max_ns = exec_ns;
+    if (threadDiag.exec_ns > threadDiag.exec_max_ns) {
+      threadDiag.exec_max_ns = threadDiag.exec_ns;
     }
 
-    if (exec_ns < exec_min_ns) {
-      exec_min_ns = exec_ns;
+    if (threadDiag.exec_ns < threadDiag.exec_min_ns) {
+      threadDiag.exec_min_ns = threadDiag.exec_ns;
     }
 
-    if (sendperiod_ns > send_max_ns) {
-      send_max_ns = sendperiod_ns;
+    if (threadDiag.sendperiod_ns > threadDiag.send_max_ns) {
+      threadDiag.send_max_ns = threadDiag.sendperiod_ns;
     }
 
-    if (sendperiod_ns < send_min_ns) {
-      send_min_ns = sendperiod_ns;
+    if (threadDiag.sendperiod_ns < threadDiag.send_min_ns) {
+      threadDiag.send_min_ns = threadDiag.sendperiod_ns;
     }
 
     ec.receive();
@@ -249,7 +249,8 @@ void cyclic_task(void *usr) {
 
       if (asynPort && (asynSkipCyclesThread >= 0) && asynThreadParamsEnable) {
         if (asynPort->getAllowRtThreadCom()) {
-          asynPort->setIntegerParam(asynParIdLatencyMin,  latency_min_ns);
+          mainAsynParams[0]->refreshParamRT(0);  //LatencyMin
+          /*asynPort->setIntegerParam(asynParIdLatencyMin,  latency_min_ns);
           asynPort->setIntegerParam(asynParIdLatencyMax,  latency_max_ns);
           asynPort->setIntegerParam(asynParIdExecuteMin,  exec_min_ns);
           asynPort->setIntegerParam(asynParIdExecuteMax,  exec_max_ns);
@@ -264,17 +265,18 @@ void cyclic_task(void *usr) {
                         (epicsInt8 *)controllerErrorMsg,
                         static_cast<int>(strlen(controllerErrorMsg)) + 1,
                         asynParIdEcmcErrorMsg,
-                        0);
+                        0);*/
         }
-        period_max_ns  = 0;
-        period_min_ns  = 0xffffffff;
-        exec_max_ns    = 0;
-        exec_min_ns    = 0xffffffff;
-        latency_max_ns = 0;
-        latency_min_ns = 0xffffffff;
-        send_max_ns    = 0;
-        send_min_ns    = 0xffffffff;
-        sendperiod_ns  = 0;
+        
+        threadDiag.period_max_ns  = 0;
+        threadDiag.period_min_ns  = 0xffffffff;
+        threadDiag.exec_max_ns    = 0;
+        threadDiag.exec_min_ns    = 0xffffffff;
+        threadDiag.latency_max_ns = 0;
+        threadDiag.latency_min_ns = 0xffffffff;
+        threadDiag.send_max_ns    = 0;
+        threadDiag.send_min_ns    = 0xffffffff;
+        threadDiag.sendperiod_ns  = 0;
       }
     }
 
@@ -605,4 +607,3 @@ int validateConfig() {
   
   return 0;
 }
-

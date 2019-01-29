@@ -33,6 +33,8 @@ extern ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
 extern ecmcCommandList    *commandLists[ECMC_MAX_COMMANDS_LISTS];
 extern ecmcPLCMain        *plcs;
 extern ecmcAsynPortDriver *asynPort;
+extern ecmcAsynDataItem   *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];
+extern ecmcMainThreadDiag threadDiag;
 
 // Default asyn params
 extern int asynParIdLatencyMin;

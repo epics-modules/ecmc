@@ -21,7 +21,7 @@ int linkEcEntryToAsynParameter(int         masterIndex,
     skipCycles);
 
   if (asynPort == NULL) {
-    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+    return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
   }
 
   if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
@@ -60,7 +60,7 @@ int linkEcMemMapToAsynParameter(int         masterIndex,
            skipCycles);
 
   if (asynPort == NULL) {
-    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+    return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
   }
 
   if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
@@ -102,7 +102,7 @@ int addDefaultAsynEc(int masterIndex, int regAsynParams, int skipCycles) {
            skipCycles);
 
   if (asynPort == NULL) {
-    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+    return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
   }
 
   if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
@@ -139,7 +139,7 @@ int addDefaultAsynEcSlave(int masterIndex,
     skipCycles);
 
   if (asynPort == NULL) {
-    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+    return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
   }
 
   if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
@@ -180,7 +180,7 @@ int addDefaultAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
            skipCycles);
 
   if (asynPort == NULL) {
-    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+    return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
   }
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
@@ -209,7 +209,7 @@ int addDiagAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
            skipCycles);
 
   if (asynPort == NULL) {
-    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+    return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
   }
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
@@ -227,16 +227,29 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
            skipCycles);
 
   if (asynPort == NULL) {
-    return ERROR_MAIN_AXIS_ASYN_PORT_DRIVER_NULL;
+    return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
   }
 
-  asynSkipCyclesThread = skipCycles;
-
-  if (!regAsynParams) {
+    if (!regAsynParams) {
     return 0;
   }
 
   // Timing info (only updated in real time)!
+  ecmcAsynDataItem *paramTemp = asynPort->createNewDefaultParam(ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME,asynParamInt32,0);
+  paramTemp->setEcmcDataPointer((uint8_t *)&(threadDiag.latency_min_ns), sizeof(threadDiag.latency_min_ns));
+  asynStatus status = asynPort->appendAsynDataItem(paramTemp,0);
+  
+  if (status != asynSuccess) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add default asyn parameter thread.latency.min failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+  mainAsynParams[0] = paramTemp;
+  
+  /*
   asynStatus status = asynPort->createParam("ecmc.thread.latency.min",
                                             asynParamInt32,
                                             &asynParIdLatencyMin);
@@ -413,8 +426,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
     asynSkipCyclesFastest = skipCycles;
-  }
+  }*/
 
   return 0;
 }
-

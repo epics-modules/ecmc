@@ -5,6 +5,9 @@
  *      Author: anderssandstrom
  */
 
+#define __STDC_FORMAT_MACROS  // for printf uint_64_t
+#include <stdint.h>
+
 #ifndef ECMC_DEFINITIONS_H_
 #define ECMC_DEFINITIONS_H_
 
@@ -70,7 +73,6 @@
 #define ECMC_MON_ENTRY_INDEX_HOMESENSOR 2
 #define ECMC_MON_ENTRY_INDEX_EXTINTERLOCK 3
 
-
 // Data recording
 #define ECMC_MAX_DATA_RECORDERS_OBJECTS 10
 #define ECMC_MAX_EVENT_OBJECTS 10
@@ -82,6 +84,11 @@
 
 // ECMC iocsh config command
 #define ECMC_IOCSH_CFG_CMD "ecmcConfigOrDie"
+
+
+// Asyn
+#define ECMC_ASYN_MAIN_PAR_COUNT 10
+#define ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME  "ecmc.thread.latency.min"
 
 // Motion
 enum app_mode_type {
@@ -380,4 +387,20 @@ enum ecmcDataSourceType {
   ECMC_RECORDER_SOURCE_DATA_STORAGE = 5,
 };
 
+typedef struct ecmcMainThreadDiag{
+  uint32_t period_ns;
+  uint32_t exec_ns;
+  uint32_t latency_ns;
+  uint32_t sendperiod_ns;
+  uint32_t latency_min_ns;
+  uint32_t latency_max_ns;
+  uint32_t period_min_ns;
+  uint32_t period_max_ns;
+  uint32_t exec_min_ns;
+  uint32_t exec_max_ns;
+  uint32_t send_min_ns;
+  uint32_t send_max_ns;
+}ecmcMainThreadDiag;
+
+  
 #endif  /* ECMC_DEFINITIONS_H_ */

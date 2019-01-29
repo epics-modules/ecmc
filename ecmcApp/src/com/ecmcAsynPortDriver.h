@@ -1,21 +1,13 @@
 /*
  * ecmcAsynPortDriver.h
- *
- * Asyn driver that inherits from the asynPortDriver class to demonstrate its use.
- * It simulates a digital scope looking at a 1kHz 1000-point noisy sine wave.  Controls are
- * provided for time/division, volts/division, volt offset, trigger delay, noise amplitude, update time,
- * and run/stop.
- * Readbacks are provides for the waveform data, min, max and mean values.
- *
- * Author: Mark Rivers
- *
- * Created Feb. 5, 2009
  */
-#ifndef ECMCASYNPORTDRIVER_H_
-#define ECMCASYNPORTDRIVER_H_
+
+#ifndef ECMC_ASYN_PORT_DRIVER_H_
+#define ECMC_ASYN_PORT_DRIVER_H_
 
 #include "asynPortDriver.h"
 #include "ecmcAsynPortDriverUtils.h"
+#include "ecmcAsynDataItem.h"
 #include <epicsEvent.h>
 
 class ecmcAsynPortDriver : public asynPortDriver {
@@ -61,11 +53,13 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                    const char *drvInfo,
                                    const char **pptypeName,
                                    size_t *psize);
+                                   
   virtual void report(FILE *fp, int details);
   void      setAllowRtThreadCom(bool allowRtCom);
   bool      getAllowRtThreadCom();
   asynUser* getTraceAsynUser();
-
+  ecmcAsynDataItem *createNewDefaultParam(const char * name, asynParamType type,bool dieIfFail);
+  asynStatus appendAsynDataItem(ecmcAsynDataItem *dataItem,bool dieIfFail);
  private:
   int readArrayGeneric(asynUser   *pasynUser,
                        epicsUInt8 *value,
@@ -79,8 +73,9 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                       ecmcParamInfo *paramInfo);
   asynStatus parseInfofromDrvInfo(const char* drvInfo,
                                      ecmcParamInfo *paramInfo);
+
   bool allowRtThreadCom_;
-  ecmcParamInfo  **pEcmcParamArray_;
+  ecmcAsynDataItem  **pEcmcParamArray_;
   int ecmcParamArrayCount_;
   int paramTableSize_;
   int defaultSampleTimeMS_;
@@ -90,4 +85,4 @@ class ecmcAsynPortDriver : public asynPortDriver {
   unsigned int priority_;
 };
 
-#endif  /* ECMCASYNPORTDRIVER_H_ */
+#endif  /* ECMC_ASYN_PORT_DRIVER_H_ */

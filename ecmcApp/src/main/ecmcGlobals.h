@@ -8,7 +8,6 @@
 
 #ifndef ECMC_GLOBALS_H_
 #define ECMC_GLOBALS_H_
-
 #include "../ethercat/ecmcEc.h"
 #include "../motion/ecmcAxisBase.h"
 #include "../misc/ecmcEvent.h"
@@ -17,6 +16,7 @@
 #include "../misc/ecmcCommandList.h"
 #include "../plc/ecmcPLCMain.h"
 #include "../motion/ecmcMotion.h"
+#include "../com/ecmcAsynDataItem.h"
 
 ecmcAxisBase *axes[ECMC_MAX_AXES];
 int axisDiagIndex;
@@ -29,6 +29,8 @@ ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
 ecmcCommandList    *commandLists[ECMC_MAX_COMMANDS_LISTS];
 ecmcPLCMain        *plcs;
 ecmcAsynPortDriver *asynPort = NULL;
+ecmcAsynDataItem   *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];
+ecmcMainThreadDiag threadDiag={0};
 
 // Default asyn params
 int asynParIdLatencyMin          = 0;

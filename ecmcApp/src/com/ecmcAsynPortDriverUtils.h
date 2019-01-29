@@ -3,8 +3,8 @@
 
  * Created Feb. 25 Jan, 2019
  */
-#ifndef ECMCASYNPORTDRIVERUTILS_H_
-#define ECMCASYNPORTDRIVERUTILS_H_
+#ifndef ECMC_ASYN_PORT_DRIVER_UTILS_H_
+#define ECMC_ASYN_PORT_DRIVER_UTILS_H_
 
 #include "asynPortDriver.h"  //data types
 #define __STDC_FORMAT_MACROS
@@ -16,11 +16,13 @@
 #define ECMC_MAX_FIELD_CHAR_LENGTH 128
 
 #define ECMC_OPTION_T_MAX_DLY_MS "T_DLY_MS"
-#define ECMC_OPTION_T_SAMPLE_RATE_MS "TS_MS"
+#define ECMC_OPTION_T_SAMPLE_RATE_MS "T_SMP_MS"
 #define ECMC_OPTION_TIMEBASE "TIMEBASE"  // PLC or EPICS
 #define ECMC_OPTION_TIMEBASE_EPICS "EPICS"
 #define ECMC_OPTION_TIMEBASE_ECMC "ECMC"
 #define ECMC_OPTION_TYPE "TYPE"
+
+#define ECMC_ASYN_PAR_OCTET_NAME "ecmc.asynoctet"
 
 typedef enum{
   ECMC_TIME_BASE_ECMC=0,
@@ -45,19 +47,22 @@ typedef struct ecmcParamInfo{
   char           *inp;
   char           *out;
   char           *drvInfo;
+  int            initilized;
   asynParamType  asynType;
   char*          asynTypeStr;
+  asynUser       *pasynUser;
   int            asynAddr;
   bool           isIOIntr;
   double         sampleTimeMS;    // milli seconds
   double         maxDelayTimeMS;  // milli seconds
-  int            paramIndex;      // also used as hUser for ads callback
+  int32_t        sampleTimeCycles;  // milli seconds
+  int            index;      // also used as hUser for ads callback
+  char           *name;
   uint32_t       ecmcSize;
   uint32_t       ecmcDataType;
   bool           ecmcDataIsArray;
-  char           *ecmcVariablePathStr;
   size_t         arrayDataBufferSize;
-  void*          arrayDataBuffer;
+  int            ecmcDataPointerValid;
   ECMCTIMESOURCE timeBase;
   uint64_t       timeStampRaw;
   epicsTimeStamp epicsTimestamp;
@@ -155,7 +160,6 @@ int getAxMainFuncType(char *objPath,
 int getEcMainFuncType(char *objPath,
                       int *objectFunction);
 
-
 /*typedef enum {
     asynParamNotDefined,
     asynParamInt32,
@@ -171,4 +175,4 @@ int getEcMainFuncType(char *objPath,
 } asynParamType;
 */
 
-#endif  /* ECMCASYNPORTDRIVERUTILS_H_ */
+#endif  /* ECMC_ASYN_PORT_DRIVER_UTILS_H_ */
