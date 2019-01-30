@@ -234,199 +234,238 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
     return 0;
   }
 
-  // Timing info (only updated in real time)!
-  ecmcAsynDataItem *paramTemp = asynPort->createNewDefaultParam(ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME,asynParamInt32,0);
-  paramTemp->setEcmcDataPointer((uint8_t *)&(threadDiag.latency_min_ns), sizeof(threadDiag.latency_min_ns));
-  asynStatus status = asynPort->appendAsynDataItem(paramTemp,0);
-  
-  if (status != asynSuccess) {
+  int arrayIndex=0;
+  const char * name;
+
+  // Timing info (only updated in real time)!  
+  // ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME
+  name = ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME;
+  ecmcAsynDataItem *paramTemp=NULL;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(threadDiag.latency_min_ns),
+                                           sizeof(threadDiag.latency_min_ns),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.latency.min failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  mainAsynParams[0] = paramTemp;
-  
-  /*
-  asynStatus status = asynPort->createParam("ecmc.thread.latency.min",
-                                            asynParamInt32,
-                                            &asynParIdLatencyMin);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID] = paramTemp;
 
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_LATENCY_MAX_NAME
+  name = ECMC_ASYN_MAIN_PAR_LATENCY_MAX_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(threadDiag.latency_max_ns),
+                                           sizeof(threadDiag.latency_max_ns),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.latency.min failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdLatencyMin, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MAX_ID] = paramTemp;
 
-  status = asynPort->createParam("ecmc.thread.latency.max",
-                                 asynParamInt32,
-                                 &asynParIdLatencyMax);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_PERIOD_MIN_NAME
+  name = ECMC_ASYN_MAIN_PAR_PERIOD_MIN_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(threadDiag.period_min_ns),
+                                           sizeof(threadDiag.period_min_ns),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.latency.max failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdLatencyMax, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MIN_ID] = paramTemp;
 
-  status = asynPort->createParam("ecmc.thread.period.min",
-                                 asynParamInt32,
-                                 &asynParIdPeriodMin);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_PERIOD_MAX_NAME
+  name = ECMC_ASYN_MAIN_PAR_PERIOD_MAX_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(threadDiag.period_max_ns),
+                                           sizeof(threadDiag.period_max_ns),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.period.min failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdPeriodMin, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MAX_ID] = paramTemp;
 
-  status = asynPort->createParam("ecmc.thread.period.max",
-                                 asynParamInt32,
-                                 &asynParIdPeriodMax);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_NAME
+  name = ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(threadDiag.exec_min_ns),
+                                           sizeof(threadDiag.exec_min_ns),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.period.max failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdPeriodMax, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_ID] = paramTemp;
 
-  status = asynPort->createParam("ecmc.thread.execute.min",
-                                 asynParamInt32,
-                                 &asynParIdExecuteMin);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_NAME
+  name = ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(threadDiag.exec_max_ns),
+                                           sizeof(threadDiag.exec_max_ns),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.execute.min failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdExecuteMin, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_ID] = paramTemp;
 
-  status = asynPort->createParam("ecmc.thread.execute.max",
-                                 asynParamInt32,
-                                 &asynParIdExecuteMax);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_SEND_MIN_NAME
+  name = ECMC_ASYN_MAIN_PAR_SEND_MIN_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(threadDiag.send_min_ns),
+                                           sizeof(threadDiag.send_min_ns),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.execute.max failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdExecuteMax, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MIN_ID] = paramTemp;
 
-  status = asynPort->createParam("ecmc.thread.send.min",
-                                 asynParamInt32,
-                                 &asynParIdSendMin);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_SEND_MAX_NAME
+  name = ECMC_ASYN_MAIN_PAR_SEND_MAX_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(threadDiag.send_max_ns),
+                                           sizeof(threadDiag.send_max_ns),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.send.min failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdSendMin, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MAX_ID] = paramTemp;
 
-  status = asynPort->createParam("ecmc.thread.send.max",
-                                 asynParamInt32,
-                                 &asynParIdSendMax);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_APP_MODE_NAME
+  name = ECMC_ASYN_MAIN_PAR_APP_MODE_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(appModeCmd),
+                                           sizeof(appModeCmd),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter thread.send.max failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdSendMax, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID] = paramTemp;  
 
-  status = asynPort->createParam("ecmc.appmode",
-                                 asynParamInt32,
-                                 &asynParIdEcmcAppMode);
-
-  if (status != asynSuccess) {
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter appmode failed.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    return asynError;
-  }
-  asynPort->setIntegerParam(asynParIdEcmcAppMode, 0);
-
-  status = asynPort->createParam("ecmc.error.id",
-                                 asynParamInt32,
-                                 &asynParIdEcmcErrorId);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_ERROR_ID_NAME
+  name = ECMC_ASYN_MAIN_PAR_ERROR_ID_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(controllerError),
+                                           sizeof(controllerError),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.id failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdEcmcErrorId, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID] = paramTemp;
 
-  status = asynPort->createParam("ecmc.error.reset",
-                                 asynParamInt32,
-                                 &asynParIdEcmcErrorReset);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_RESET_NAME
+  name = ECMC_ASYN_MAIN_PAR_RESET_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(controllerReset),
+                                           sizeof(controllerReset),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.reset failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPort->setIntegerParam(asynParIdEcmcErrorReset, 0);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_RESET_ID] = paramTemp;  
 
-  status = asynPort->createParam("ecmc.error.msg",
-                                 asynParamInt8Array,
-                                 &asynParIdEcmcErrorMsg);
-
-  if (status != asynSuccess) {
+  // ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME
+  name = ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME;
+  paramTemp = asynPort->addNewDefaultParam(name,
+                                           asynParamInt8Array,
+                                           (uint8_t *)(controllerErrorMsg),
+                                           strlen(controllerErrorMsg),
+                                           0);
+  if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add default asyn parameter ecmc.error.msg failed.\n",
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
-    return asynError;
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-
-  asynPort->doCallbacksInt8Array((epicsInt8 *)"NO_ERROR\0",
-                                 9,
-                                 asynParIdEcmcErrorMsg,
-                                 0);
-
-  asynPort->callParamCallbacks();
-  asynThreadParamsEnable = 1;
-
-  if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
-    asynSkipCyclesFastest = skipCycles;
-  }*/
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID] = paramTemp;
 
   return 0;
 }

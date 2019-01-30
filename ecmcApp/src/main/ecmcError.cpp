@@ -1612,6 +1612,8 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_PARSER_INVALID_ADS_TYPE";
 
     break;
+  case 0x20044:
+    return "ERROR_MAIN_ASYN_CREATE_PARAM_FAIL";
 
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
@@ -1935,6 +1937,30 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x210000:
     return "ECMC_COMMAND_FORMAT_ERROR";
+
+    break;
+
+  // asynDataItem  
+  case 0x220000:
+    return "ERROR_ASYN_PORT_NULL";
+
+    break;
+  case 0x220001:
+    return "ERROR_ASYN_DATA_NULL";
+
+    break;
+
+  case 0x220002:
+    return "ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED";
+
+    break;
+
+  case 0x220003:
+    return "ERROR_ASYN_CREATE_PARAM_FAIL";
+
+    break;
+  case 0x220004:
+    return "ERROR_ASYN_PARAM_NOT_VALIDATED";
 
     break;
   }

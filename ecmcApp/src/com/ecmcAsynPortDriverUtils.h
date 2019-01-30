@@ -47,14 +47,13 @@ typedef struct ecmcParamInfo{
   char           *inp;
   char           *out;
   char           *drvInfo;
-  int            initilized;
+  int            initialized;
   asynParamType  asynType;
   char*          asynTypeStr;
   asynUser       *pasynUser;
   int            asynAddr;
   bool           isIOIntr;
   double         sampleTimeMS;    // milli seconds
-  double         maxDelayTimeMS;  // milli seconds
   int32_t        sampleTimeCycles;  // milli seconds
   int            index;      // also used as hUser for ads callback
   char           *name;

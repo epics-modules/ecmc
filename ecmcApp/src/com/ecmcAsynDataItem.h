@@ -11,6 +11,10 @@
 #define ERROR_ASYN_DATA_NULL 0x220001
 #define ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED 0x220002
 #define ERROR_ASYN_CREATE_PARAM_FAIL 0x220003
+#define ERROR_ASYN_PARAM_NOT_VALIDATED 0x220004
+
+
+#define ERROR_ASYN_NOT_REFRESHED_RETURN -1
 
 class ecmcAsynPortDriver;  //Include in cpp
 
@@ -34,6 +38,9 @@ public:
   int setAsynParameterType(asynParamType parType);
   int getAsynParameterType();
   int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);  
+  int validate();
+  bool initialized();
+  int32_t getSampleTimeCycles();
   ecmcParamInfo *getParamInfo();
 
 private:
@@ -42,6 +49,7 @@ private:
   uint8_t *data_;
   size_t bytes_;
   ecmcParamInfo *paramInfo_;
+  bool validated_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

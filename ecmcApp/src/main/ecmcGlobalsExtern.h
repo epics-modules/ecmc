@@ -35,24 +35,13 @@ extern ecmcPLCMain        *plcs;
 extern ecmcAsynPortDriver *asynPort;
 extern ecmcAsynDataItem   *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];
 extern ecmcMainThreadDiag threadDiag;
+extern app_mode_type appModeCmd, appModeCmdOld, appModeStat;
+extern int controllerError;
+extern int controllerErrorOld;
+extern int controllerReset;
+extern const char   *controllerErrorMsg;
 
-// Default asyn params
-extern int asynParIdLatencyMin;
-extern int asynParIdLatencyMax;
-extern int asynParIdExecuteMin;
-extern int asynParIdExecuteMax;
-extern int asynParIdPeriodMin;
-extern int asynParIdPeriodMax;
-extern int asynParIdSendMin;
-extern int asynParIdSendMax;
-extern int asynParIdEcmcAppMode;
-extern int asynParIdEcmcErrorId;
-extern int asynParIdEcmcErrorMsg;
-extern int asynSkipCyclesThread;
-extern int asynUpdateCounterThread;
-extern int asynThreadParamsEnable;
 extern int asynSkipCyclesFastest;
 extern int asynSkipUpdateCounterFastest;
-extern int asynParIdEcmcErrorReset;
 
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */

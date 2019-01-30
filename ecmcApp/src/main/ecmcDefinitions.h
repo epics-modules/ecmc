@@ -85,10 +85,32 @@
 // ECMC iocsh config command
 #define ECMC_IOCSH_CFG_CMD "ecmcConfigOrDie"
 
-
-// Asyn
-#define ECMC_ASYN_MAIN_PAR_COUNT 10
-#define ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME  "ecmc.thread.latency.min"
+// Asyn  parameters in main
+#define ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID 0
+#define ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME "ecmc.thread.latency.min"
+#define ECMC_ASYN_MAIN_PAR_LATENCY_MAX_ID 1
+#define ECMC_ASYN_MAIN_PAR_LATENCY_MAX_NAME "ecmc.thread.latency.max"
+#define ECMC_ASYN_MAIN_PAR_PERIOD_MIN_ID 2
+#define ECMC_ASYN_MAIN_PAR_PERIOD_MIN_NAME "ecmc.thread.period.min"
+#define ECMC_ASYN_MAIN_PAR_PERIOD_MAX_ID 3
+#define ECMC_ASYN_MAIN_PAR_PERIOD_MAX_NAME "ecmc.thread.period.max"
+#define ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_ID 4
+#define ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_NAME "ecmc.thread.execute.min"
+#define ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_ID 5
+#define ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_NAME "ecmc.thread.execute.max"
+#define ECMC_ASYN_MAIN_PAR_SEND_MIN_ID 6
+#define ECMC_ASYN_MAIN_PAR_SEND_MIN_NAME "ecmc.thread.send.min"
+#define ECMC_ASYN_MAIN_PAR_SEND_MAX_ID 7
+#define ECMC_ASYN_MAIN_PAR_SEND_MAX_NAME "ecmc.thread.send.max"
+#define ECMC_ASYN_MAIN_PAR_APP_MODE_ID 8
+#define ECMC_ASYN_MAIN_PAR_APP_MODE_NAME "ecmc.appmode"
+#define ECMC_ASYN_MAIN_PAR_ERROR_ID_ID 9
+#define ECMC_ASYN_MAIN_PAR_ERROR_ID_NAME "ecmc.error.id"
+#define ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID 10
+#define ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME "ecmc.error.msg"
+#define ECMC_ASYN_MAIN_PAR_RESET_ID 11
+#define ECMC_ASYN_MAIN_PAR_RESET_NAME "ecmc.error.reset"
+#define ECMC_ASYN_MAIN_PAR_COUNT 12
 
 // Motion
 enum app_mode_type {

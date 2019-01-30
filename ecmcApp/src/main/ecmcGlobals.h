@@ -31,24 +31,13 @@ ecmcPLCMain        *plcs;
 ecmcAsynPortDriver *asynPort = NULL;
 ecmcAsynDataItem   *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];
 ecmcMainThreadDiag threadDiag={0};
+app_mode_type appModeCmd, appModeCmdOld, appModeStat;
+int controllerError = -1;
+int controllerErrorOld = -2;
+int controllerReset = 0;
+const char   *controllerErrorMsg = "NO_ERROR";
 
-// Default asyn params
-int asynParIdLatencyMin          = 0;
-int asynParIdLatencyMax          = 0;
-int asynParIdExecuteMin          = 0;
-int asynParIdExecuteMax          = 0;
-int asynParIdPeriodMin           = 0;
-int asynParIdPeriodMax           = 0;
-int asynParIdSendMin             = 0;
-int asynParIdSendMax             = 0;
-int asynParIdEcmcAppMode         = 0;
-int asynParIdEcmcErrorId         = 0;
-int asynParIdEcmcErrorMsg        = 0;
-int asynSkipCyclesThread         = 0;
-int asynUpdateCounterThread      = 0;
-int asynThreadParamsEnable       = 0;
-int asynSkipCyclesFastest        = -1;
+int asynSkipCyclesFastest   = -1;
 int asynSkipUpdateCounterFastest = 0;
-int asynParIdEcmcErrorReset      = 0;
 
 #endif  /* ECMC_GLOBALS_H_ */

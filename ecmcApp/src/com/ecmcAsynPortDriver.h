@@ -15,7 +15,8 @@ class ecmcAsynPortDriver : public asynPortDriver {
   ecmcAsynPortDriver(const char *portName,
                      int         paramTableSize,
                      int         autoConnect,
-                     int         priority);
+                     int         priority,
+                     double      defaultSampleRateMS);
   virtual asynStatus writeOctet(asynUser   *pasynUser,
                                 const char *value,
                                 size_t      maxChars,
@@ -58,8 +59,13 @@ class ecmcAsynPortDriver : public asynPortDriver {
   void      setAllowRtThreadCom(bool allowRtCom);
   bool      getAllowRtThreadCom();
   asynUser* getTraceAsynUser();
-  ecmcAsynDataItem *createNewDefaultParam(const char * name, asynParamType type,bool dieIfFail);
-  asynStatus appendAsynDataItem(ecmcAsynDataItem *dataItem,bool dieIfFail);
+  ecmcAsynDataItem *addNewDefaultParam(const char * name,
+                                       asynParamType type,
+                                       uint8_t *data,
+                                       size_t bytes,
+                                       bool dieIfFail);
+   int32_t getFastestUpdateRate();
+   int32_t calcFastestUpdateRate();
  private:
   int readArrayGeneric(asynUser   *pasynUser,
                        epicsUInt8 *value,
@@ -73,7 +79,8 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                       ecmcParamInfo *paramInfo);
   asynStatus parseInfofromDrvInfo(const char* drvInfo,
                                      ecmcParamInfo *paramInfo);
-
+  ecmcAsynDataItem *createNewDefaultParam(const char * name, asynParamType type,bool dieIfFail);                                     
+  asynStatus appendAsynDataItem(ecmcAsynDataItem *dataItem,bool dieIfFail);
   bool allowRtThreadCom_;
   ecmcAsynDataItem  **pEcmcParamArray_;
   int ecmcParamArrayCount_;
@@ -83,6 +90,7 @@ class ecmcAsynPortDriver : public asynPortDriver {
   ECMCTIMESOURCE defaultTimeSource_;
   int autoConnect_;
   unsigned int priority_;
+  int32_t fastestParamUpdateCycles_;
 };
 
 #endif  /* ECMC_ASYN_PORT_DRIVER_H_ */

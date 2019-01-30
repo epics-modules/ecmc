@@ -32,15 +32,11 @@
 #include "../com/ecmcAsynPortDriver.h"
 
 /****************************************************************************/
-
-static int controllerError = -1;
-static const char   *controllerErrorMsg = "NO_ERROR";
-static app_mode_type appModeCmd, appModeCmdOld, appModeStat;
-static unsigned int  counter = 0;
-static struct timespec     masterActivationTimeMonotonic = {};
-static struct timespec     masterActivationTimeOffset    = {};
-static struct timespec     masterActivationTimeRealtime  = {};
-const struct timespec cycletime = {0, MCU_PERIOD_NS};
+static unsigned int    counter = 0;
+static struct timespec masterActivationTimeMonotonic = {};
+static struct timespec masterActivationTimeOffset    = {};
+static struct timespec masterActivationTimeRealtime  = {};
+const struct timespec  cycletime = {0, MCU_PERIOD_NS};
 
 /*****************************************************************************/
 
@@ -50,6 +46,66 @@ void printStatus() {
       (axisDiagIndex >= 0)) {
     if (axes[axisDiagIndex] != NULL) {
       axes[axisDiagIndex]->printAxisStatus();
+    }
+  }
+}
+
+void updateAsynParams() {
+
+  if(!asynPort->getAllowRtThreadCom()){
+    return;
+  }
+
+  int errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID]->refreshParamRT(0);
+  if(errorCode==0){ //Reset after successfull write      
+    threadDiag.latency_min_ns  = 0xffffffff;
+  }
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MAX_ID]->refreshParamRT(0);
+  if(errorCode==0){
+    threadDiag.latency_max_ns  = 0;
+  }
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MIN_ID]->refreshParamRT(0);
+  if(errorCode==0){
+    threadDiag.period_min_ns  = 0xffffffff;
+  }
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MAX_ID]->refreshParamRT(0);
+  if(errorCode==0){
+    threadDiag.period_max_ns  = 0;
+  }
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_ID]->refreshParamRT(0);
+  if(errorCode==0){
+    threadDiag.exec_min_ns  = 0xffffffff;
+  }
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_ID]->refreshParamRT(0);
+  if(errorCode==0){
+    threadDiag.exec_max_ns  = 0;
+  }
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MIN_ID]->refreshParamRT(0);
+  if(errorCode==0){
+    threadDiag.send_min_ns  = 0xffffffff;
+  }    
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MAX_ID]->refreshParamRT(0);
+  if(errorCode==0){
+    threadDiag.send_max_ns  = 0;    
+  }
+  
+  controllerErrorOld=controllerError;
+  controllerError=getControllerError();
+  if(controllerErrorOld!=controllerError) { // update on change
+    controllerErrorMsg=getErrorString(controllerError);
+    errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID]->refreshParamRT(1);
+    errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID]->refreshParamRT(1,strlen(controllerErrorMsg));
+  }
+
+  // Asyn callbacks for all parameters (except arrays)
+  if (asynSkipUpdateCounterFastest) {
+    asynSkipUpdateCounterFastest--;
+  } else {      
+    if (asynPort) {
+      asynSkipUpdateCounterFastest = asynPort->getFastestUpdateRate();
+      if (asynPort->getAllowRtThreadCom()) {
+        asynPort->callParamCallbacks();
+      }
     }
   }
 }
@@ -151,12 +207,6 @@ void cyclic_task(void *usr) {
   struct timespec wakeupTime, sendTime, lastSendTime = {};
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
-  /*uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0, sendperiod_ns = 0,
-           latency_min_ns = 0, latency_max_ns = 0,
-           period_min_ns = 0, period_max_ns = 0,
-           exec_min_ns = 0, exec_max_ns = 0,
-           send_min_ns = 0, send_max_ns = 0;*/
-
   offsetStartTime.tv_nsec = 49 * MCU_PERIOD_NS;
   offsetStartTime.tv_sec  = 0;
 
@@ -241,48 +291,9 @@ void cyclic_task(void *usr) {
       plcs->execute(ec.statusOK());
     }
 
-    // Update Asyn thread diagnostics parameters
-    if (asynUpdateCounterThread) {
-      asynUpdateCounterThread--;
-    } else {
-      asynUpdateCounterThread = asynSkipCyclesThread;
-
-      if (asynPort && (asynSkipCyclesThread >= 0) && asynThreadParamsEnable) {
-        if (asynPort->getAllowRtThreadCom()) {
-          mainAsynParams[0]->refreshParamRT(0);  //LatencyMin
-          /*asynPort->setIntegerParam(asynParIdLatencyMin,  latency_min_ns);
-          asynPort->setIntegerParam(asynParIdLatencyMax,  latency_max_ns);
-          asynPort->setIntegerParam(asynParIdExecuteMin,  exec_min_ns);
-          asynPort->setIntegerParam(asynParIdExecuteMax,  exec_max_ns);
-          asynPort->setIntegerParam(asynParIdPeriodMin,   period_min_ns);
-          asynPort->setIntegerParam(asynParIdPeriodMax,   period_max_ns);
-          asynPort->setIntegerParam(asynParIdSendMin,     send_min_ns);
-          asynPort->setIntegerParam(asynParIdSendMax,     send_max_ns);
-          controllerError = getControllerError();
-          asynPort->setIntegerParam(asynParIdEcmcErrorId, controllerError);
-          controllerErrorMsg = getErrorString(controllerError);
-          asynPort->doCallbacksInt8Array(
-                        (epicsInt8 *)controllerErrorMsg,
-                        static_cast<int>(strlen(controllerErrorMsg)) + 1,
-                        asynParIdEcmcErrorMsg,
-                        0);*/
-        }
-        
-        threadDiag.period_max_ns  = 0;
-        threadDiag.period_min_ns  = 0xffffffff;
-        threadDiag.exec_max_ns    = 0;
-        threadDiag.exec_min_ns    = 0xffffffff;
-        threadDiag.latency_max_ns = 0;
-        threadDiag.latency_min_ns = 0xffffffff;
-        threadDiag.send_max_ns    = 0;
-        threadDiag.send_min_ns    = 0xffffffff;
-        threadDiag.sendperiod_ns  = 0;
-      }
-    }
-
     if (counter) {
       counter--;
-    } else {    // Lower freq
+    } else {    // Lower freq      
       if (axisDiagFreq > 0) {
         counter = MCU_FREQUENCY / axisDiagFreq;
         ec.checkState();
@@ -298,18 +309,7 @@ void cyclic_task(void *usr) {
       }
     }
 
-    // Asyn callbacks for all parameters (except arrays)
-    if (asynSkipUpdateCounterFastest) {
-      asynSkipUpdateCounterFastest--;
-    } else {
-      asynSkipUpdateCounterFastest = asynSkipCyclesFastest;
-
-      if (asynPort) {
-        if (asynPort->getAllowRtThreadCom()) {
-          asynPort->callParamCallbacks();
-        }
-      }
-    }
+    updateAsynParams();
 
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
     ec.send(masterActivationTimeOffset);
@@ -426,8 +426,8 @@ int setAppModeRun(int mode) {
 
   appModeStat = ECMC_MODE_STARTUP;
 
-  if (asynPort && asynThreadParamsEnable) {
-    asynPort->setIntegerParam(asynParIdEcmcAppMode, mode);
+  if (mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID]) {
+    mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID]->refreshParam(1);    
     asynPort->callParamCallbacks();
   }
 
@@ -472,9 +472,9 @@ int setAppModeRun(int mode) {
   }
   appModeStat = ECMC_MODE_RUNTIME;
 
-  if (asynPort) {
-    asynPort->setAllowRtThreadCom(true);
-  }
+  /*if (asynPort) {
+    asynPort->setAllowRtThreadCom(true);  // Set by epics state hooks
+  }*/
 
   return 0;
 }

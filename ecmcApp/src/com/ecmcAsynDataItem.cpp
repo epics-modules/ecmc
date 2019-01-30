@@ -6,11 +6,13 @@
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
 {
   asynPortDriver_=asynPortDriver;  
-  data_=0;  
+  data_=0;
+  bytes_=0;
   asynUpdateCycleCounter_=0;
   paramInfo_= new ecmcParamInfo();
   memset(paramInfo_,0,sizeof(ecmcParamInfo));
   paramInfo_->asynType=asynParamNotDefined;
+  validated_=false;
 }
 
 ecmcAsynDataItem::~ecmcAsynDataItem ()
@@ -38,7 +40,7 @@ int ecmcAsynDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)
 int ecmcAsynDataItem::refreshParamRT(int force)
 {
   if(!asynPortDriver_->getAllowRtThreadCom()){
-    return 0;
+    return ERROR_ASYN_NOT_REFRESHED_RETURN;
   }
   return refreshParam(force,data_,paramInfo_->ecmcSize);
 }
@@ -51,7 +53,7 @@ int ecmcAsynDataItem::refreshParam(int force)
 int ecmcAsynDataItem::refreshParamRT(int force, size_t bytes)
 {
   if(!asynPortDriver_->getAllowRtThreadCom()){
-    return 0;
+    return ERROR_ASYN_NOT_REFRESHED_RETURN;
   }
   return refreshParam(force,data_,bytes);
 }
@@ -64,26 +66,34 @@ int ecmcAsynDataItem::refreshParam(int force, size_t bytes)
 int ecmcAsynDataItem::refreshParamRT(int force,uint8_t *data, size_t bytes)
 {
   if(!asynPortDriver_->getAllowRtThreadCom()){
-    return 0;
+    return ERROR_ASYN_NOT_REFRESHED_RETURN;
   }
   return refreshParam(force,data,bytes);
 }
+
+/*
+* Returns 0 if refreshed.
+* Retrun -1 or error code if not refreshed. 
+*/
 int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 {
-
-  if(asynUpdateCycleCounter_<paramInfo_->sampleTimeCycles && !force){ //Only update at desired samplerate
-    asynUpdateCycleCounter_++;
+  if(!paramInfo_->initialized) {
     return 0;
+  }
+
+   if(!validated_) {
+     return ERROR_ASYN_PARAM_NOT_VALIDATED;
+   }
+
+  if(asynUpdateCycleCounter_< paramInfo_->sampleTimeCycles && !force){ //Only update at desired samplerate
+    asynUpdateCycleCounter_++;
+    return ERROR_ASYN_NOT_REFRESHED_RETURN;  //Not refreshed
   }
 
   if(data==0 || bytes<0){
     return ERROR_ASYN_DATA_NULL;
   }
-
-  if(asynPortDriver_==0){
-    return ERROR_ASYN_PORT_NULL;
-  }
-
+  
   data_=data;
   paramInfo_->ecmcSize=bytes;
 
@@ -91,13 +101,13 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     case asynParamUInt32Digital:
       asynPortDriver_->setUIntDigitalParam(paramInfo_->index,*((epicsInt32*)data),0xFFFFFFFF);
       break;
-    case asynParamInt32:
+    case asynParamInt32:      
       asynPortDriver_->setIntegerParam(paramInfo_->index,*((epicsInt32*)data));
       break;
     case asynParamFloat64:
       asynPortDriver_->setDoubleParam(paramInfo_->index,*((epicsFloat64*)data));
       break;
-    case asynParamInt8Array:
+    case asynParamInt8Array:      
       asynPortDriver_->doCallbacksInt8Array((epicsInt8*)data,bytes, paramInfo_->index, 0);
       break;
     case asynParamInt16Array:
@@ -116,12 +126,13 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
       return ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED;
       break;
   }
+
   asynUpdateCycleCounter_=0;
   return 0;
 }
 
 int ecmcAsynDataItem::createParam()
-{  
+{    
   return createParam(paramInfo_->name,paramInfo_->asynType);
 }
 
@@ -138,7 +149,8 @@ int ecmcAsynDataItem::createParam(const char *paramName,asynParamType asynParTyp
   }
   paramInfo_->name=strdup(paramName);  
   paramInfo_->asynType=asynParType;
-  asynStatus status = asynPortDriver_->createParam(paramName,paramInfo_->asynType,&paramInfo_->index);
+  paramInfo_->ecmcDataIsArray=asynParType>asynParamOctet;
+  asynStatus status = asynPortDriver_->createParam(paramName,paramInfo_->asynType,&paramInfo_->index);  
   return (status==asynSuccess) ? 0 : ERROR_ASYN_CREATE_PARAM_FAIL;
 }
 
@@ -167,11 +179,29 @@ int ecmcAsynDataItem::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
 int ecmcAsynDataItem::setAsynParSampleTimeMS(double sampleTime)
 {
   paramInfo_->sampleTimeMS=sampleTime;
-  paramInfo_->sampleTimeCycles=sampleTime/MCU_FREQUENCY-1;
+  paramInfo_->sampleTimeCycles=(int32_t)(sampleTime/1000.0*(double)MCU_FREQUENCY);
   return 0;
 }
 
 ecmcParamInfo *ecmcAsynDataItem::getParamInfo()
 {
   return paramInfo_;
+}
+
+int ecmcAsynDataItem::validate() {
+
+  if(asynPortDriver_==0){
+    return ERROR_ASYN_PORT_NULL;
+  }
+
+  validated_=true;
+  return 0;
+}
+
+bool ecmcAsynDataItem::initialized() {
+  return paramInfo_->initialized;
+}
+
+int32_t ecmcAsynDataItem::getSampleTimeCycles() {
+  return paramInfo_->sampleTimeCycles;
 }

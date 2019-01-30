@@ -17,6 +17,7 @@
 #include <dbBase.h>
 #include <dbStaticLib.h>
 #include <dbAccess.h>
+#include <initHooks.h>
 
 #include "ecmcAsynPortDriver.h"
 #include "../main/gitversion.h"
@@ -31,6 +32,58 @@
 
 static const char *driverName = "ecmcAsynPortDriver";
 
+
+static int allowCallbackEpicsState=0;
+static initHookState currentEpicsState=initHookAtIocBuild;
+static ecmcAsynPortDriver *ecmcAsynPortObj;
+
+/** Callback hook for EPICS state.
+ * \param[in] state EPICS state
+ * \return void
+ * Will be called be the EPICS framework with the current EPICS state as it changes.
+ */
+static void getEpicsState(initHookState state)
+{
+  const char* functionName = "getEpicsState";
+
+  if(!ecmcAsynPortObj){
+    printf("%s:%s: ERROR: ecmcAsynPortObj==NULL\n", driverName, functionName);
+    return;
+  }
+
+  asynUser *asynTraceUser=ecmcAsynPortObj->getTraceAsynUser();
+  int32_t rate = 0;
+  switch(state) {
+      break;
+    //case initHookAfterScanInit:
+    case initHookAfterIocRunning:
+      allowCallbackEpicsState=1;
+      rate = ecmcAsynPortObj->calcFastestUpdateRate();
+      ecmcAsynPortObj->setAllowRtThreadCom(1);
+      asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: EPICS CALC FASTEST UPDATE RATE : %d.\n", driverName, functionName,rate);
+      //make all callbacks if data arrived from callback before interrupts were registered (before allowCallbackEpicsState==1)
+      /*if(!ecmcAsynPortObj){
+        printf("%s:%s: ERROR: ecmcAsynPortObj==NULL\n", driverName, functionName);
+        return;
+      }
+      ecmcAsynPortObj->fireAllCallbacksLock();*/
+      break;
+    default:
+      break;
+  }
+
+  currentEpicsState=state;
+  asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: EPICS state: %s (%d). Allow callbacks: %s.\n", driverName, functionName,epicsStateToString((int)state),(int)state,ecmcAsynPortObj->getAllowRtThreadCom() ? "true" : "false");
+}
+
+/** Register EPICS hook function
+ * \return void
+ */
+int initHook(void)
+{
+  return(initHookRegister(getEpicsState));
+}
+
 /** Constructor for the ecmcAsynPortDriver class.
   * Calls constructor for the asynPortDriver base class.
   * \param[in] portName The name of the asyn port driver to be created. */
@@ -38,7 +91,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   const char *portName  /*, int maxPoints*/,
   int         paramTableSize,
   int         autoConnect,
-  int         priority)
+  int         priority,
+  double      defaultSampleRateMS)
   : asynPortDriver(portName,
                    1,
                    /* maxAddr */
@@ -66,7 +120,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   paramTableSize_   = paramTableSize;
   autoConnect_      = autoConnect;
   priority_         = priority;
-
+  defaultSampleTimeMS_ = defaultSampleRateMS;
+  fastestParamUpdateCycles_=(int32_t)(defaultSampleRateMS/1000.0*(double)MCU_FREQUENCY);
   if(paramTableSize_<1){  //If paramTableSize_==1 then only stream device or motor record can use the driver through the "default access" param below.
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Param table size to small: %d\n", driverName, functionName,paramTableSize_);
     exit(1);
@@ -137,6 +192,51 @@ asynStatus ecmcAsynPortDriver::appendAsynDataItem(ecmcAsynDataItem *dataItem, bo
   pEcmcParamArray_[ecmcParamArrayCount_]=dataItem;
   ecmcParamArrayCount_++; 
   return asynSuccess;
+}
+
+ecmcAsynDataItem *ecmcAsynPortDriver::addNewDefaultParam(const char * name, 
+                                                         asynParamType type,
+                                                         uint8_t *data,
+                                                         size_t bytes,
+                                                         bool dieIfFail) {
+
+  const char* functionName = "addNewDefaultParam";
+
+  ecmcAsynDataItem *paramTemp = createNewDefaultParam(name,type,dieIfFail);
+  if(!paramTemp) {   
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s: ERROR: Create default asyn parameter %s failed.", 
+              driverName, functionName, name);
+    delete paramTemp;
+    return NULL;
+  } 
+
+  int errorCode=paramTemp->setEcmcDataPointer(data, bytes);
+  if(errorCode) {
+      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
+               "%s:%s: ERROR: Set data pointer to asyn parameter %s failed.", 
+               driverName, functionName, name);
+    delete paramTemp;
+    return NULL;
+  }
+  asynStatus status = appendAsynDataItem(paramTemp,0);
+  if (status != asynSuccess) {
+      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
+               "%s:%s: ERROR: Append asyn parameter %s to list failed.", 
+               driverName, functionName, name);
+    delete paramTemp;
+    return NULL;
+  }
+  errorCode = paramTemp->validate();
+  if(errorCode) {
+      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
+               "%s:%s: ERROR: Validation of asyn parameter %s failed (0x%x).", 
+               driverName, functionName, name,errorCode);
+    delete paramTemp;
+    return NULL;
+  }
+
+  return paramTemp;
 }
 
 asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser,
@@ -554,14 +654,13 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     return(status);
   }
 
-// Collect data from drvInfo string and recordpasynUser->reason=index;
-  ecmcAsynDataItem *param=new ecmcAsynDataItem(this);
-  ecmcParamInfo *newParamInfo=param->getParamInfo();
-  newParamInfo->sampleTimeMS=defaultSampleTimeMS_;
-  newParamInfo->maxDelayTimeMS=defaultMaxDelayTimeMS_;
+  // Collect data from drvInfo string and recordpasynUser->reason=index;
+  ecmcParamInfo *newParamInfo=new ecmcParamInfo();
+  memset(newParamInfo,0,sizeof(ecmcParamInfo));
+  newParamInfo->sampleTimeMS=defaultSampleTimeMS_;      
   newParamInfo->asynAddr=addr;
 
-  //Parse options and name
+  // Parse options and name
   status=parseInfofromDrvInfo(drvInfo,newParamInfo);
   if(status!=asynSuccess){
     return asynError;
@@ -574,64 +673,52 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   }
 
   int index=0;
-  status=findParam(newParamInfo->name,&index);
-  if(status==asynSuccess){
-    asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter index found at: %d for %s.\n",
-              driverName, functionName,index,newParamInfo->name);
-    if(!pEcmcParamArray_[index]) {
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s:pAdsParamArray_[%d]==NULL (drvInfo=%s).",
-                driverName, functionName,index,drvInfo);
-      delete param;
-      return asynError;
-    }
-
-    ecmcParamInfo *currentParInfo = pEcmcParamArray_[index]->getParamInfo();
-
-    //Ensure that type is the same in the drvInfo strings
-    if(newParamInfo->asynType !=  currentParInfo->asynType ) {
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Error: asynType missmatch (%s != %s). One asyn parameter can only have one type.\n", 
-                 driverName, functionName,newParamInfo->asynTypeStr,currentParInfo->asynTypeStr);
-      delete param;
-      return asynError;      
-    }
-
-    //Ensure that sample time is the shortest
-    if(newParamInfo->sampleTimeMS <   currentParInfo->sampleTimeMS ) {
-      currentParInfo->sampleTimeMS = newParamInfo->sampleTimeMS; 
-    }
-    //Ensure that dly time is the shortest
-    if(newParamInfo->maxDelayTimeMS <  currentParInfo->maxDelayTimeMS ) {
-      currentParInfo->maxDelayTimeMS = newParamInfo->maxDelayTimeMS; 
-    }
-
-    delete param;
-    return asynPortDriver::drvUserCreate(pasynUser,currentParInfo->name,pptypeName,psize);
-  }
-  
-  // Create new parameter needed
-
-  // Ensure space left in param table
-  if(ecmcParamArrayCount_>=(paramTableSize_-1)){
-    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter table full. Parameter with drvInfo %s will be discarded.", driverName, functionName,drvInfo);
+  status=findParam(newParamInfo->name,&index);  
+  // Param not found ERROR
+  if(status!=asynSuccess){ 
+    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter %s not found (drvInfo=%s).",
+              driverName, functionName,newParamInfo->name,drvInfo);
     return asynError;
   }
 
-  int errorCode=param->createParam();
-  if(errorCode){
-    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Failed to create param with drvInfo %s. (0x%x)", driverName, functionName,drvInfo,errorCode);
+  //Asyn parameter found. Update with new info from record defs
+  asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter index found at: %d for %s.\n",
+            driverName, functionName,index,newParamInfo->name);
+  if(!pEcmcParamArray_[index]) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s:pAdsParamArray_[%d]==NULL (drvInfo=%s).",
+              driverName, functionName,index,drvInfo);
     return asynError;
   }
-  asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter created: \"%s\" (index %d).\n", driverName, functionName,newParamInfo->name,newParamInfo->index);
 
-  pasynUser->timeout=(newParamInfo->maxDelayTimeMS*2)/1000;
-  
-  status = appendAsynDataItem(param,0);
-  if(status!=asynSuccess){
-    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Failed to apppend new parameter %s.", driverName, functionName,newParamInfo->name);
-    return asynError;
+  ecmcParamInfo *existentParInfo = pEcmcParamArray_[index]->getParamInfo();
+
+  //Ensure that type is the same in the drvInfo strings
+  if(newParamInfo->asynType !=  existentParInfo->asynType ) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Error: asynType missmatch (%s != %s). Parameter is of type %s.\n", 
+               driverName, functionName,newParamInfo->asynTypeStr,existentParInfo->asynTypeStr,existentParInfo->asynTypeStr);
+    return asynError;      
+  }  
+ 
+  if(!existentParInfo->initialized) {
+    pEcmcParamArray_[index]->setAsynParSampleTimeMS(newParamInfo->sampleTimeMS);    
+    existentParInfo->recordName=strdup(newParamInfo->recordName);
+    existentParInfo->recordType=strdup(newParamInfo->recordType);
+    existentParInfo->dtyp=strdup(newParamInfo->dtyp);
+    existentParInfo->drvInfo=strdup(newParamInfo->drvInfo);
   }
-  newParamInfo->initilized=1;
-  return asynPortDriver::drvUserCreate(pasynUser,newParamInfo->name,pptypeName,psize); //Assigns pasynUser->reason;
+
+  // Ensure that sample time is the shortest (if several records 
+  // on the same parameter)
+  if(newParamInfo->sampleTimeMS <  existentParInfo->sampleTimeMS ) {
+    pEcmcParamArray_[index]->setAsynParSampleTimeMS(newParamInfo->sampleTimeMS);      
+  }
+
+  if(pasynUser->timeout < newParamInfo->sampleTimeMS*2/1000.0) {
+    pasynUser->timeout = (newParamInfo->sampleTimeMS*2)/1000;
+  }
+
+  existentParInfo->initialized=1;
+  return asynPortDriver::drvUserCreate(pasynUser,existentParInfo->name,pptypeName,psize);
 }
 
 /** Validates drvInfo string
@@ -831,7 +918,7 @@ asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcPara
   }
 
   //Check if ECMC_OPTION_T_MAX_DLY_MS option
-  const char *option=ECMC_OPTION_T_MAX_DLY_MS;
+  /*const char *option=ECMC_OPTION_T_MAX_DLY_MS;
   const char *isThere=strstr(drvInfo,option);
   if(isThere){
     if(strlen(isThere)<(strlen(option)+strlen("=0/"))){
@@ -846,12 +933,12 @@ asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcPara
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Failed to parse %s option from drvInfo (%s). Wrong format.\n", driverName, functionName,option,drvInfo);
       return asynError;
     }
-  }
+  }*/
 
   //Check if ECMC_OPTION_T_SAMPLE_RATE_MS option
-  option=ECMC_OPTION_T_SAMPLE_RATE_MS;
+  const char *option=ECMC_OPTION_T_SAMPLE_RATE_MS;
   paramInfo->sampleTimeMS=defaultSampleTimeMS_;
-  isThere=strstr(drvInfo,option);
+  const char *isThere=strstr(drvInfo,option);
   if(isThere){
     if(strlen(isThere)<(strlen(option)+strlen("=0/"))){
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Failed to parse %s option from drvInfo (%s). String to short.\n", driverName, functionName,option,drvInfo);
@@ -859,8 +946,10 @@ asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcPara
     }
 
     int nvals = sscanf(isThere+strlen(option),"=%lf/",&paramInfo->sampleTimeMS);
-
-    if(nvals!=1){
+    if(nvals==1) {
+      paramInfo->sampleTimeCycles=(int32_t)paramInfo->sampleTimeMS/1000.0*(double)MCU_FREQUENCY;
+    } 
+    else {
       paramInfo->sampleTimeMS=defaultSampleTimeMS_;
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Failed to parse %s option from drvInfo (%s). Wrong format.\n", driverName, functionName,option,drvInfo);
       return asynError;
@@ -921,6 +1010,26 @@ asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcPara
   return asynSuccess;
 }
 
+int32_t ecmcAsynPortDriver::getFastestUpdateRate() { 
+   return fastestParamUpdateCycles_;
+}
+
+int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
+
+  fastestParamUpdateCycles_=(int32_t)(defaultSampleTimeMS_/1000.0*(double)MCU_FREQUENCY);
+  for(int i=0;i<ecmcParamArrayCount_;i++) {
+    if(pEcmcParamArray_[i]) {
+      if(!pEcmcParamArray_[i]->initialized()) {        
+        continue;
+      }
+      if(pEcmcParamArray_[i]->getSampleTimeCycles()<fastestParamUpdateCycles_) {
+        fastestParamUpdateCycles_ = pEcmcParamArray_[i]->getSampleTimeCycles();
+      } 
+    }
+  }
+  return fastestParamUpdateCycles_;
+}
+
 /** Report of configured parameters.
  * \param[in] fp Output file.
  * \param[in] details Details of printout. A higher number results in more
@@ -940,14 +1049,15 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
 
   if (details >= 1) {
     fprintf(fp, "General information:\n");
-    fprintf(fp, "  Port:                        %s\n",portName);
-    fprintf(fp, "  Auto-connect:                %s\n",autoConnect_ ? "true" : "false");
-    fprintf(fp, "  Priority:                    %d\n",priority_);
-    fprintf(fp, "  Param. table size:           %d\n",paramTableSize_);
-    fprintf(fp, "  Param. count:                %d\n",ecmcParamArrayCount_);
-    fprintf(fp, "  Default sample time [ms]:    %d\n",defaultSampleTimeMS_);
-    fprintf(fp, "  Default max delay time [ms]: %d\n",defaultMaxDelayTimeMS_);
-    fprintf(fp, "  Default time source:         %s\n",(defaultTimeSource_==ECMC_TIME_BASE_ECMC) ? ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
+    fprintf(fp, "  Port:                         %s\n",portName);
+    fprintf(fp, "  Auto-connect:                 %s\n",autoConnect_ ? "true" : "false");
+    fprintf(fp, "  Priority:                     %d\n",priority_);
+    fprintf(fp, "  Param. table size:            %d\n",paramTableSize_);
+    fprintf(fp, "  Param. count:                 %d\n",ecmcParamArrayCount_);
+    fprintf(fp, "  Default sample time [ms]:     %d\n",defaultSampleTimeMS_);
+    fprintf(fp, "  Fastest update rate [cycles]: %d\n",fastestParamUpdateCycles_);
+    //fprintf(fp, "  Default max delay time [ms]: %d\n",defaultMaxDelayTimeMS_);
+    fprintf(fp, "  Default time source:          %s\n",(defaultTimeSource_==ECMC_TIME_BASE_ECMC) ? ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
     fprintf(fp,"\n");
   }
   if(details>=2){
@@ -960,22 +1070,23 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
       }
       ecmcParamInfo *paramInfo=pEcmcParamArray_[i]->getParamInfo();
       fprintf(fp,"  Parameter %d:\n",i);
-/*      if(i==0){
-        fprintf(fp,"    Parameter 0 (pasynUser->reason==0) is reserved for Asyn octet interface (Motor Record and Stream Device access).\n");
-        fprintf(fp,"\n");
-        continue;
-      }*/
       fprintf(fp,"    Param name:                %s\n",paramInfo->name);
       fprintf(fp,"    Param index:               %d\n",paramInfo->index);
-      fprintf(fp,"    Param initialized:         %s\n",paramInfo->initilized ? "true" : "false");
-      if(!paramInfo->initilized) {  //No record linked to record (no more valid data)
+      fprintf(fp,"    Param type:                %s (%d)\n",asynTypeToString((long)paramInfo->asynType),paramInfo->asynType);
+      if(!paramInfo->initialized) {  //No record linked to record (no more valid data)
+        fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
+        fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false"); 
+        fprintf(fp,"    ECMC size [bytes]:         %d\n",paramInfo->ecmcSize); 
+        fprintf(fp,"    Param linked to record:    %s\n",paramInfo->initialized ? "true" : "false");
         fprintf(fp,"\n");
         continue;
       }
+      fprintf(fp,"    Param linked to record:    %s\n",paramInfo->initialized ? "true" : "false");
       fprintf(fp,"    Param drvInfo:             %s\n",paramInfo->drvInfo);
-      fprintf(fp,"    Param type:                %s (%d)\n",asynTypeToString((long)paramInfo->asynType),paramInfo->asynType);
+  
       fprintf(fp,"    Param sample time [ms]:    %lf\n",paramInfo->sampleTimeMS);
-      fprintf(fp,"    Param max delay time [ms]: %lf\n",paramInfo->maxDelayTimeMS);
+      fprintf(fp,"    Param sample cycles []:    %d\n",paramInfo->sampleTimeCycles);
+      //fprintf(fp,"    Param max delay time [ms]: %lf\n",paramInfo->maxDelayTimeMS);
       fprintf(fp,"    Param isIOIntr:            %s\n",paramInfo->isIOIntr ? "true" : "false");
       fprintf(fp,"    Param asyn addr:           %d\n",paramInfo->asynAddr);
       fprintf(fp,"    Param time source:         %s\n",(paramInfo->timeBase==ECMC_TIME_BASE_ECMC) ? ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
@@ -985,6 +1096,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
       fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);      
       fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
       fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");            
+      fprintf(fp,"    ECMC size [bytes]:         %d\n",paramInfo->ecmcSize); 
       fprintf(fp,"    Record name:               %s\n",paramInfo->recordName);
       fprintf(fp,"    Record type:               %s\n",paramInfo->recordType);
       fprintf(fp,"    Record dtyp:               %s\n",paramInfo->dtyp);      
@@ -996,7 +1108,6 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
 extern "C" {
-static ecmcAsynPortDriver *ecmcAsynPortObj;
 static int maxParameters;
 static int parameterCounter;
 
@@ -1008,11 +1119,13 @@ asynUser *pPrintOutAsynUser;
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] paramTableSize The max number of parameters.
   * \param[in] priority Priority.
-  * \param[in] disableAutoConnect Disable auto connect */
+  * \param[in] disableAutoConnect Disable auto connect 
+  * \param[in] default parameter update rate in milli seconds (for I/O intr records)*/
 int ecmcAsynPortDriverConfigure(const char *portName,
                                 int         paramTableSize,
                                 int         priority,
-                                int         disableAutoConnect) {
+                                int         disableAutoConnect,
+                                double      defaultSampleRateMS) {
   if(portName == NULL) {
     printf("Error: portName missing.\n");
     return asynError;  
@@ -1023,8 +1136,13 @@ int ecmcAsynPortDriverConfigure(const char *portName,
   ecmcAsynPortObj  = new ecmcAsynPortDriver(portName,
                                             paramTableSize,
                                             disableAutoConnect == 0,
-                                            priority);
+                                            priority,
+                                            defaultSampleRateMS);
+  initHook();
 
+  printf ("ecmcAsynPortDriverConfigure: portName = %s, paramTableSize = %d, disableAutoConnect = %d, priority = %d, defaultSampleRateMS = %lf\n",
+           portName,paramTableSize,disableAutoConnect,priority,defaultSampleRateMS);
+             
   if (ecmcAsynPortObj) {
     asynUser *traceUser = ecmcAsynPortObj->getTraceAsynUser();
 
@@ -1162,18 +1280,21 @@ static const iocshArg initArg0 = { "port name", iocshArgString };
 static const iocshArg initArg1 = { "parameter table size", iocshArgInt };
 static const iocshArg initArg2 = { "priority", iocshArgInt };
 static const iocshArg initArg3 = { "disable auto connect", iocshArgInt };
+static const iocshArg initArg4 = { "default param sample rate (ms)", iocshArgDouble};
 
 static const iocshArg *const initArgs[] = { &initArg0,
                                             &initArg1,
                                             &initArg2,
-                                            &initArg3 };
+                                            &initArg3, 
+                                            &initArg4};
 static const iocshFuncDef    initFuncDef =
-{ "ecmcAsynPortDriverConfigure", 4, initArgs };
+{ "ecmcAsynPortDriverConfigure", 5, initArgs };
 static void initCallFunc(const iocshArgBuf *args) {
   ecmcAsynPortDriverConfigure(args[0].sval,
                               args[1].ival,
                               args[2].ival,
-                              args[3].ival);
+                              args[3].ival,
+                              args[4].dval);
 }
 
 /** \breif EPICS iocsh command for adding asyn-parameter(s)
