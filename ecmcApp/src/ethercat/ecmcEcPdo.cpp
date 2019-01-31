@@ -7,12 +7,18 @@
 
 #include "ecmcEcPdo.h"
 
-ecmcEcPdo::ecmcEcPdo(ec_domain_t       *domain,
+ecmcEcPdo::ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
+                     int masterId,
+                     int slaveId,
+                     ec_domain_t       *domain,
                      ec_slave_config_t *slave,
                      uint8_t            syncMangerIndex,
                      uint16_t           pdoIndex,
                      ec_direction_t     direction) {
   initVars();
+  asynPortDriver_ = asynPortDriver;
+  masterId_  = masterId;
+  slaveId_   = slaveId;
   pdoIndex_  = pdoIndex;
   direction_ = direction;
   domain_    = domain;
@@ -46,6 +52,9 @@ void ecmcEcPdo::initVars() {
     entryArray_[i] = NULL;
   }
   errorReset();
+  asynPortDriver_ = NULL;
+  masterId_     = -1;
+  slaveId_      = -1;
   entryCounter_ = 0;
   pdoIndex_     = 0;
   direction_    = EC_DIR_INVALID;
@@ -79,7 +88,10 @@ ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t    entryIndex,
     *errorCode = ERROR_EC_PDO_ENTRY_ARRAY_FULL;
     return NULL;
   }
-  ecmcEcEntry *entry = new ecmcEcEntry(domain_,
+  ecmcEcEntry *entry = new ecmcEcEntry(asynPortDriver_,
+                                       masterId_,
+                                       slaveId_,
+                                       domain_,
                                        slave_,
                                        pdoIndex_,
                                        entryIndex,

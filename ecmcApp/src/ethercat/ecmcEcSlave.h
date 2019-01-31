@@ -15,6 +15,7 @@
 #include "../main/ecmcError.h"
 #include "../com/ecmcOctetIF.h"  // Logging macros
 #include "../com/ecmcAsynPortDriver.h"
+#include "../com/ecmcAsynDataItem.h"
 #include "ecmcEcEntry.h"
 #include "ecmcEcMemMap.h"
 #include "ecmcEcSyncManager.h"
@@ -54,7 +55,9 @@ typedef struct {
 class ecmcEcSlave : public ecmcError {
  public:
   ecmcEcSlave(
-    ec_master_t *master,  /**< EtherCAT master */
+    ecmcAsynPortDriver* asynPortDriver,  /** Asyn port driver*/
+    int masterId,
+    ec_master_t *master,  /**< EtherCAT master */    
     ec_domain_t *domain,
     uint16_t     alias, /**< Slave alias. */
     uint16_t     position, /**< Slave position. */
@@ -107,14 +110,11 @@ class ecmcEcSlave : public ecmcError {
                   uint32_t writeValue,
                   int      byteSize);
   int getSlaveState(ec_slave_config_state_t *state);
-  int initAsyn(ecmcAsynPortDriver *asynPortDriver,
-               bool                regAsynParams,
-               int                 skipCycles,
-               int                 masterIndex);
   int validate();
 
  private:
-  void               initVars();
+  void  initVars();
+  int   initAsyn();
   ecmcEcSyncManager* findSyncMan(uint8_t syncMangerIndex);
   ec_master_t *master_;     // EtherCAT master
   uint16_t alias_;          // Slave alias.
@@ -137,12 +137,10 @@ class ecmcEcSlave : public ecmcError {
   ecmcEcEntry *simEntries_[SIMULATION_ENTRIES];  // Simulate endswitches
   ec_domain_t *domain_;
   ecmcAsynPortDriver *asynPortDriver_;
-  int updateDefAsynParams_;
-  int asynParIdOperational_;
-  int asynParIdOnline_;
-  int asynParIdAlState_;
-  int asynParIdEntryCounter_;
-  int asynUpdateCycleCounter_;
-  int asynUpdateCycles_;
+  ecmcAsynDataItem  *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
+  int masterId_;
+  int online_;
+  int operational_;
+  int alState_;
 };
 #endif  /* ECMCECSLAVE_H_ */

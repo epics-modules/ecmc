@@ -37,11 +37,11 @@ extern "C" {
  * on slave 10: "ec.s10.INPUT_1".\n
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int linkEcEntryToAsynParameter(int         masterIndex,
+/*int linkEcEntryToAsynParameter(int         masterIndex,
                                int         busPosition,
                                const char *entryIDString,
                                int         asynParType,
-                               int         skipCycles);
+                               int         skipCycles);*/
 
 /** \breif Link EtherCAT memory map to ASYN parameter.
  *
@@ -141,10 +141,10 @@ int addDefaultAsynEc(int masterIndex);
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int addDefaultAsynEcSlave(int masterIndex,
+/*int addDefaultAsynEcSlave(int masterIndex,
                           int busPosition,
                           int regAsynParams,
-                          int skipCycles);
+                          int skipCycles);*/
 
 # ifdef __cplusplus
 }

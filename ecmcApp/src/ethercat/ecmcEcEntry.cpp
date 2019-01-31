@@ -11,7 +11,10 @@
 #define EC_READ_3_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x07)
 #define EC_READ_4_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x0F)
 
-ecmcEcEntry::ecmcEcEntry(ec_domain_t       *domain,
+ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
+                         int masterId,
+                         int slaveId,                         
+                         ec_domain_t       *domain,
                          ec_slave_config_t *slave,
                          uint16_t           pdoIndex,
                          uint16_t           entryIndex,
@@ -20,12 +23,16 @@ ecmcEcEntry::ecmcEcEntry(ec_domain_t       *domain,
                          ec_direction_t     direction,
                          std::string        id) {
   initVars();
+  asynPortDriver_ = asynPortDriver;
+  masterId_=masterId;
+  slaveId_=slaveId;
   entryIndex_    = entryIndex;
   entrySubIndex_ = entrySubIndex;
   bitLength_     = bits;
   direction_     = direction;
   sim_           = false;
   idString_      = id;
+  idStringChar_  = strdup(idString_.c_str());
   domain_        = domain;
   pdoIndex_      = pdoIndex;
   slave_         = slave;
@@ -55,24 +62,32 @@ ecmcEcEntry::ecmcEcEntry(ec_domain_t       *domain,
     entrySubIndex_,
     direction_,
     bitLength_);
+    initAsyn();
 }
 
-ecmcEcEntry::ecmcEcEntry(ec_domain_t       *domain,
-                         ec_slave_config_t *slave,
-                         uint16_t           pdoIndex,
-                         uint16_t           entryIndex,
-                         uint8_t            entrySubIndex,
-                         uint8_t            bits,
-                         ec_direction_t     direction,
-                         std::string        id,
-                         int                signedValue) {
+ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
+                        int masterId,
+                        int slaveId,
+                        ec_domain_t       *domain,
+                        ec_slave_config_t *slave,
+                        uint16_t           pdoIndex,
+                        uint16_t           entryIndex,
+                        uint8_t            entrySubIndex,
+                        uint8_t            bits,
+                        ec_direction_t     direction,
+                        std::string        id,
+                        int                signedValue) {
   initVars();
+  asynPortDriver_ = asynPortDriver;
+  masterId_=masterId;
+  slaveId_=slaveId;
   entryIndex_    = entryIndex;
   entrySubIndex_ = entrySubIndex;
   bitLength_     = bits;
   direction_     = direction;
   sim_           = false;
   idString_      = id;
+  idStringChar_  = strdup(idString_.c_str());
   domain_        = domain;
   pdoIndex_      = pdoIndex;
   slave_         = slave;
@@ -103,19 +118,35 @@ ecmcEcEntry::ecmcEcEntry(ec_domain_t       *domain,
     entrySubIndex_,
     direction_,
     bitLength_);
+
+    initAsyn();
 }
 
-ecmcEcEntry::ecmcEcEntry(uint8_t bits, uint8_t *domainAdr, std::string id) {
+ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
+                         int masterId,
+                         int slaveId,                         
+                         uint8_t bits,
+                         uint8_t *domainAdr,
+                         std::string id) {
   initVars();
+  asynPortDriver_ = asynPortDriver;
+  masterId_=masterId;
+  slaveId_=slaveId;
   domainAdr_ = domainAdr;
   bitLength_ = bits;
   sim_       = true;
   idString_  = id;
+  idStringChar_  = strdup(idString_.c_str());
   adr_       = 0;
+  initAsyn();
 }
 
 void ecmcEcEntry::initVars() {
   errorReset();
+  asynPortDriver_         = NULL;
+  masterId_               = -1;
+  slaveId_                = -1;
+  entryAsynParam_         = NULL;
   domainAdr_              = NULL;
   bitLength_              = 0;
   bitOffset_              = 0;
@@ -126,20 +157,20 @@ void ecmcEcEntry::initVars() {
   direction_              = EC_DIR_INVALID;
   sim_                    = false;
   idString_               = "";
-  asynParameterIndex_     = -1;
-  asynParameterType_      = asynParamFloat64;
+  idStringChar_           = NULL;
   asynPortDriver_         = NULL;
-  asynUpdateCycles_       = 0;
-  asynUpdateCycleCounter_ = 0;
   updateInRealTime_       = 1;
   domain_                 = NULL;
   pdoIndex_               = 0;
   slave_                  = NULL;
   signedValue_            = 0;
+  tempAsynValue_          = 0;
 }
 
 ecmcEcEntry::~ecmcEcEntry()
-{}
+{
+  delete idStringChar_;
+}
 
 void ecmcEcEntry::setDomainAdr(uint8_t *domainAdr) {
   domainAdr_ = domainAdr;
@@ -294,31 +325,28 @@ std::string ecmcEcEntry::getIdentificationName() {
 }
 
 int ecmcEcEntry::updateAsyn(bool force) {
-  // I/O intr to EPICS
-  if (!asynPortDriver_ || (asynParameterIndex_ < 0)) {
+
+  if(!entryAsynParam_) {
     return 0;
   }
 
-  // Only update at desired samplerate
-  if (asynPortDriver_->getAllowRtThreadCom() &&
-      ((asynUpdateCycleCounter_ >= asynUpdateCycles_) || force)) {
-    asynUpdateCycleCounter_ = 0;
-    double *tempDouble64 = 0;
-
-    switch (asynParameterType_) {
+  double *tempDouble64 = 0;
+  int32_t tempInt32=0;
+  switch (entryAsynParam_->getAsynParameterType()) {
     case asynParamInt32:
-      asynPortDriver_->setIntegerParam(asynParameterIndex_, ecValue2Int32());
+      
+      tempInt32=ecValue2Int32();
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&tempInt32, sizeof(tempInt32));      
       break;
 
     case asynParamUInt32Digital:
-      asynPortDriver_->setUIntDigitalParam(asynParameterIndex_,
-                                           ecValue2Int32(),
-                                           0xFFFFFFFF);
+      tempInt32=ecValue2Int32();
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&tempInt32, sizeof(tempInt32));      
       break;
 
     case asynParamFloat64:
       tempDouble64 = reinterpret_cast<double *>(&value_);
-      asynPortDriver_->setDoubleParam(asynParameterIndex_, *tempDouble64);
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)tempDouble64, sizeof(double));            
       break;
 
     default:
@@ -328,9 +356,6 @@ int ecmcEcEntry::updateAsyn(bool force) {
                         ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
 
       break;
-    }
-  } else {
-    asynUpdateCycleCounter_++;
   }
   return 0;
 }
@@ -479,6 +504,49 @@ int ecmcEcEntry::validate() {
 
     break;
   }
+
+  return 0;
+}
+
+int ecmcEcEntry::initAsyn() {
+  
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
+  char *name = buffer;
+
+  // "ec%d.s%d.alias"
+  unsigned int charCount = snprintf(buffer,
+                                    sizeof(buffer),
+                                    ECMC_EC_STR"%d." ECMC_SLAVE_CHAR "%d.%s",
+                                    masterId_,
+                                    slaveId_,
+                                    idStringChar_);
+
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_EC_ENTRY_REGISTER_FAIL);
+    return ERROR_EC_ENTRY_REGISTER_FAIL;
+  }
+  name = buffer;
+  entryAsynParam_ = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamFloat64,
+                                         (uint8_t *)&(tempAsynValue_),
+                                         sizeof(tempAsynValue_),
+                                         0);
+  if(!entryAsynParam_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  entryAsynParam_->refreshParam(1);
+  asynPortDriver_->callParamCallbacks();
 
   return 0;
 }

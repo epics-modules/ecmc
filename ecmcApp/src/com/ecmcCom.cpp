@@ -4,7 +4,7 @@
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
 
-int linkEcEntryToAsynParameter(int         masterIndex,
+/*int linkEcEntryToAsynParameter(int         masterIndex,
                                int         busPosition,
                                const char *entryIDString,
                                int         asynParType,
@@ -44,7 +44,7 @@ int linkEcEntryToAsynParameter(int         masterIndex,
   }
 
   return 0;
-}
+}*/
 
 int linkEcMemMapToAsynParameter(int         masterIndex,
                                 const char *memMapIDString,
@@ -121,7 +121,7 @@ int ecmcInitAsyn(void *asynPortObject) {
   return 0;
 }*/
 
-int addDefaultAsynEcSlave(int masterIndex,
+/*int addDefaultAsynEcSlave(int masterIndex,
                           int busPosition,
                           int regAsynParams,
                           int skipCycles) {
@@ -165,7 +165,7 @@ int addDefaultAsynEcSlave(int masterIndex,
   }
 
   return 0;
-}
+}*/
 
 int addDefaultAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
   LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",

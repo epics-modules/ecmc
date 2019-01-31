@@ -7,11 +7,17 @@
 
 #include "ecmcEcSyncManager.h"
 
-ecmcEcSyncManager::ecmcEcSyncManager(ec_domain_t       *domain,
+ecmcEcSyncManager::ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
+                                     int masterId,
+                                     int slaveId,
+                                     ec_domain_t       *domain,
                                      ec_slave_config_t *slave,
                                      ec_direction_t     direction,
                                      uint8_t            syncMangerIndex) {
   initVars();
+  asynPortDriver_ = asynPortDriver;
+  masterId_=masterId;
+  slaveId_=slaveId;
   syncMangerIndex_ = syncMangerIndex;
   direction_       = direction;
   slaveConfig_     = slave;
@@ -48,6 +54,9 @@ void ecmcEcSyncManager::initVars() {
   for (int i = 0; i < EC_MAX_PDOS; i++) {
     pdoArray_[i] = NULL;
   }
+  asynPortDriver_  = NULL;
+  masterId_        = -1;
+  slaveId_         = -1;
   direction_       = EC_DIR_INPUT;
   syncMangerIndex_ = 0;
   pdoCounter_      = 0;
@@ -76,7 +85,10 @@ int ecmcEcSyncManager::addPdo(uint16_t pdoIndex) {
                       __LINE__,
                       ERROR_EC_SM_PDO_ARRAY_FULL);
   }
-  pdoArray_[pdoCounter_] = new ecmcEcPdo(domain_,
+  pdoArray_[pdoCounter_] = new ecmcEcPdo(asynPortDriver_,
+                                         masterId_,
+                                         slaveId_,
+                                         domain_,
                                          slaveConfig_,
                                          syncMangerIndex_,
                                          pdoIndex,

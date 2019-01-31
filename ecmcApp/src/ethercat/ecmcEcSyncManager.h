@@ -27,7 +27,10 @@
 
 class ecmcEcSyncManager : public ecmcError {
  public:
-  ecmcEcSyncManager(ec_domain_t       *domain,
+  ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
+                    int masterId,
+                    int slaveId,
+                    ec_domain_t       *domain,
                     ec_slave_config_t *slave,
                     ec_direction_t     direction,
                     uint8_t            syncMangerIndex);
@@ -39,13 +42,13 @@ class ecmcEcSyncManager : public ecmcError {
   ec_direction_t getDirection();
   uint8_t        getSyncMangerIndex();
   ecmcEcEntry  * addEntry(
-    uint16_t    pdoIndex,
-    uint16_t    entryIndex,
-    uint8_t     entrySubIndex,
-    uint8_t     bits,
-    std::string id,
-    int         signedValue,
-    int        *errorCode);
+  uint16_t    pdoIndex,
+  uint16_t    entryIndex,
+  uint8_t     entrySubIndex,
+  uint8_t     bits,
+  std::string id,
+  int         signedValue,
+  int        *errorCode);
   ecmcEcEntry* findEntry(std::string id);
 
  private:
@@ -57,6 +60,9 @@ class ecmcEcSyncManager : public ecmcError {
   int pdoCounter_;
   ec_slave_config_t *slaveConfig_;
   ec_domain_t *domain_;
+  int masterId_;
+  int slaveId_;
+  ecmcAsynPortDriver *asynPortDriver_;
 };
 
 #endif  /* ECMCECSYNCMANAGER_H_ */

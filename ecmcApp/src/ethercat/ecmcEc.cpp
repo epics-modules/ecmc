@@ -12,7 +12,7 @@
 
 ecmcEc::ecmcEc() {
   initVars();
-  simSlave_ = new ecmcEcSlave(NULL, NULL, 0, 0, 0, 0);
+  //simSlave_ = new ecmcEcSlave(asynPo NULL, NULL, 0, 0, 0, 0);
   setErrorID(ERROR_EC_STATUS_NOT_OK);
 }
 
@@ -162,7 +162,9 @@ int ecmcEc::addSlave(
     productCode);
 
   if (slaveCounter_ < EC_MAX_SLAVES - 1) {
-    slaveArray_[slaveCounter_] = new ecmcEcSlave(master_,
+    slaveArray_[slaveCounter_] = new ecmcEcSlave(asynPortDriver_,
+                                                 masterIndex_,
+                                                 master_,
                                                  domain_,
                                                  alias,
                                                  position,
@@ -817,7 +819,7 @@ timespec ecmcEc::timespecAdd(timespec time1, timespec time2) {
   return result;
 }
 
-int ecmcEc::linkEcEntryToAsynParameter(void       *asynPortObject,
+/*int ecmcEc::linkEcEntryToAsynParameter(void       *asynPortObject,
                                        const char *entryIDString,
                                        int         asynParType,
                                        int         skipCycles) {
@@ -936,7 +938,7 @@ int ecmcEc::linkEcEntryToAsynParameter(void       *asynPortObject,
   entry->updateAsyn(1);
 
   return 0;
-}
+}*/
 
 int ecmcEc::linkEcMemMapToAsynParameter(void       *asynPortObject,
                                         const char *memMapIDString,
@@ -1143,8 +1145,6 @@ int ecmcEc::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver) {
 }
 
 int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
-
-  asynPortDriver_      = asynPortDriver;
   
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
 
@@ -1411,7 +1411,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   // Entry counter
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR"%d."ECMC_ASYN_EC_PAR_ENTRY_COUNT_TOT_NAME,
+                       ECMC_EC_STR"%d."ECMC_ASYN_EC_PAR_ENTRY_COUNT_NAME,
                        masterIndex_);
 
   if (charCount >= sizeof(buffer) - 1) {

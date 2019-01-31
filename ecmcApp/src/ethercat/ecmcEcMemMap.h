@@ -8,6 +8,7 @@
 #include "../main/ecmcError.h"
 #include "../com/ecmcOctetIF.h"  // Logging macros
 #include "../com/ecmcAsynPortDriver.h"
+#include "ecmcAsynLink.h"
 #include "ecmcEcEntry.h"
 
 #define ERROR_MEM_MAP_SIZE_OUT_OF_RANGE 0x211000

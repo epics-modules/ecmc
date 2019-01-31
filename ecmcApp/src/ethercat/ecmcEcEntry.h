@@ -15,7 +15,7 @@
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcError.h"
 #include "../com/ecmcOctetIF.h"  // Logging macros
-#include "ecmcAsynLink.h"
+#include "../com/ecmcAsynPortDriver.h"  // Logging macros
 
 #define BIT_SET(a, b) ((a) |= (1 << (b)))
 #define BIT_CLEAR(a, b) ((a) &= ~(1 << (b)))
@@ -37,9 +37,12 @@
 #define ERROR_EC_ENTRY_REGISTER_FAIL 0x2100B
 
 
-class ecmcEcEntry : public ecmcError, public ecmcAsynLink {
+class ecmcEcEntry : public ecmcError {
  public:
-  ecmcEcEntry(ec_domain_t       *domain,
+  ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
+              int masterId,
+              int slaveId,
+              ec_domain_t       *domain,
               ec_slave_config_t *slave,
               uint16_t           pdoIndex,
               uint16_t           entryIndex,
@@ -47,7 +50,10 @@ class ecmcEcEntry : public ecmcError, public ecmcAsynLink {
               uint8_t            bits,
               ec_direction_t     nDirection,
               std::string        id);
-  ecmcEcEntry(ec_domain_t       *domain,
+  ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
+              int masterId,
+              int slaveId,
+              ec_domain_t       *domain,
               ec_slave_config_t *slave,
               uint16_t           pdoIndex,
               uint16_t           entryIndex,
@@ -56,7 +62,10 @@ class ecmcEcEntry : public ecmcError, public ecmcAsynLink {
               ec_direction_t     nDirection,
               std::string        id,
               int                signedValue);
-  ecmcEcEntry(uint8_t     bitLength,
+  ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
+              int masterId,
+              int slaveId,
+              uint8_t     bitLength,
               uint8_t    *domainAdr,
               std::string id);  // only used for simulation purpose
   ~ecmcEcEntry();
@@ -86,7 +95,8 @@ class ecmcEcEntry : public ecmcError, public ecmcAsynLink {
   int         validate();
 
  private:
-  int32_t     ecValue2Int32();
+  int    initAsyn();
+  int32_t ecValue2Int32();
   uint8_t *domainAdr_;
   uint8_t *adr_;
   uint16_t entryIndex_;
@@ -98,10 +108,16 @@ class ecmcEcEntry : public ecmcError, public ecmcAsynLink {
   ec_direction_t direction_;
   bool sim_;
   std::string idString_;
+  char * idStringChar_;
   int updateInRealTime_;
   ec_domain_t *domain_;
   uint16_t pdoIndex_;
   ec_slave_config_t *slave_;
   int signedValue_;
+  int masterId_;
+  int slaveId_;
+  ecmcAsynPortDriver *asynPortDriver_;
+  ecmcAsynDataItem  *entryAsynParam_;
+  double tempAsynValue_;
 };
 #endif  /* ECMCECENTRY_H_ */

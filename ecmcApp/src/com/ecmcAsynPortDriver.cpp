@@ -177,22 +177,6 @@ void ecmcAsynPortDriver::initVars() {
   priority_              = 0;
 }
 
-
-/*ecmcAsynDataItem *ecmcAsynPortDriver::createNewParam(const char * name, asynParamType type,bool dieIfFail) {
-  const char* functionName = "createNewParam";
-  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this);
-  
-  if(paramTemp->createParam(name,type)){
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: createParam for %s failed.\n", driverName, functionName,name);
-    delete paramTemp;    
-    if(dieIfFail){
-      exit(1);
-    }
-    return NULL;
-  }
-  return paramTemp;
-}*/
-
 asynStatus ecmcAsynPortDriver::appendInUseParam(ecmcAsynDataItem *dataItem, bool dieIfFail){
   const char* functionName = "appendInUseParam";
   if(!dataItem){
@@ -959,7 +943,6 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
  * \return asynSuccess or asynError.
  * Methods checks if input or output ('?' or '=') and parses options:
  * - "ADSPORT" (Ams port for varaible)\n
- * - "T_DLY_MS" (maximum delay time ms)\n
  * - "TS_MS" (sample time ms)\n
  * - "TIMEBASE" ("PLC" or "EPICS")\n
  * Also supports the following commands:

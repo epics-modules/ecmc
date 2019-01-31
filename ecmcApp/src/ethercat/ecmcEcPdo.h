@@ -23,7 +23,10 @@
 
 class ecmcEcPdo : public ecmcError {
  public:
-  ecmcEcPdo(ec_domain_t       *domain,
+  ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
+            int masterId,
+            int slaveId,
+            ec_domain_t       *domain,
             ec_slave_config_t *slave,
             uint8_t            syncMangerIndex,
             uint16_t           pdoIndex,
@@ -48,5 +51,8 @@ class ecmcEcPdo : public ecmcError {
   ec_direction_t direction_;
   ec_domain_t *domain_;
   ec_slave_config_t *slave_;
+  int masterId_;
+  int slaveId_;
+  ecmcAsynPortDriver *asynPortDriver_;
 };
 #endif  // ifndef ECMCECPDO_H_
