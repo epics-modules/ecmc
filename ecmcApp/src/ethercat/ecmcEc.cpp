@@ -940,7 +940,7 @@ timespec ecmcEc::timespecAdd(timespec time1, timespec time2) {
   return 0;
 }*/
 
-int ecmcEc::linkEcMemMapToAsynParameter(void       *asynPortObject,
+/*int ecmcEc::linkEcMemMapToAsynParameter(void       *asynPortObject,
                                         const char *memMapIDString,
                                         int         asynParType,
                                         int         skipCycles) {
@@ -1027,7 +1027,7 @@ int ecmcEc::linkEcMemMapToAsynParameter(void       *asynPortObject,
   memMap->setAsynParameterSkipCycles(skipCycles);
 
   return 0;
-}
+}*/
 
 int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
                       std::string    startEntryIDString,
@@ -1098,7 +1098,9 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
                       ERROR_EC_ASYN_ALIAS_NOT_VALID);
   }
   aliasString                           = alias;
-  ecMemMapArray_[ecMemMapArrayCounter_] = new ecmcEcMemMap(entry,
+  ecMemMapArray_[ecMemMapArrayCounter_] = new ecmcEcMemMap(asynPortDriver_,
+                                                           masterIndex_,                                                           
+                                                           entry,
                                                            byteSize,
                                                            type,
                                                            direction,

@@ -118,6 +118,6 @@ class ecmcEcEntry : public ecmcError {
   int slaveId_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *entryAsynParam_;
-  double tempAsynValue_;
+  int32_t tempAsynValue_;
 };
 #endif  /* ECMCECENTRY_H_ */

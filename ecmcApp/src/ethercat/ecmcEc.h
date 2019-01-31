@@ -134,14 +134,14 @@ class ecmcEc : public ecmcError {
   int           setDomainFailedCyclesLimitInterlock(int cycles);
   void          slowExecute();
   int           reset();
-  int           linkEcEntryToAsynParameter(void       *asynPortObject,
+  /*int           linkEcEntryToAsynParameter(void       *asynPortObject,
                                            const char *entryIDString,
                                            int         asynParType,
-                                           int         skipCycles);
-  int linkEcMemMapToAsynParameter(void       *asynPortObject,
+                                           int         skipCycles);*/
+  /*int linkEcMemMapToAsynParameter(void       *asynPortObject,
                                   const char *memMapIDString,
                                   int         asynParType,
-                                  int         skipCycles);
+                                  int         skipCycles);*/
   int      setEcStatusOutputEntry(ecmcEcEntry *entry);
   int      initAsyn(ecmcAsynPortDriver *asynPortDriver);
   int      setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);

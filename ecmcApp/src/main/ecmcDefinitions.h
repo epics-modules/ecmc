@@ -309,6 +309,7 @@ enum axisSubObjectType {
 #define ECMC_GLOBAL_VAR "global."
 
 #define ECMC_EC_STR "ec"
+#define ECMC_MEMMAP_STR "mm"
 #define ECMC_SLAVE_CHAR "s"
 #define ECMC_DUMMY_SLAVE_STR "ds"
 #define ECMC_EC_HEALTH_STR "health"

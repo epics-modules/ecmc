@@ -46,7 +46,7 @@
   return 0;
 }*/
 
-int linkEcMemMapToAsynParameter(int         masterIndex,
+/*int linkEcMemMapToAsynParameter(int         masterIndex,
                                 const char *memMapIDString,
                                 int         asynParType,
                                 int         skipCycles) {
@@ -83,7 +83,7 @@ int linkEcMemMapToAsynParameter(int         masterIndex,
   }
 
   return 0;
-}
+}*/
 
 int ecmcInitAsyn(void *asynPortObject) {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);

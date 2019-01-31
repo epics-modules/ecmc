@@ -532,10 +532,10 @@ int ecmcEcEntry::initAsyn() {
   }
   name = buffer;
   entryAsynParam_ = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamFloat64,
-                                         (uint8_t *)&(tempAsynValue_),
-                                         sizeof(tempAsynValue_),
-                                         0);
+                                    asynParamInt32,  //default type
+                                    (uint8_t *)&(tempAsynValue_), //Not used
+                                    sizeof(tempAsynValue_),//Not used..
+                                    0);
   if(!entryAsynParam_) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",

@@ -72,10 +72,10 @@ extern "C" {
  * "ec.mm.AI_1_ARRAY".\n
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int linkEcMemMapToAsynParameter(int         masterIndex,
+/*int linkEcMemMapToAsynParameter(int         masterIndex,
                                 const char *memMapIDString,
                                 int         asynParType,
-                                int         skipCycles);
+                                int         skipCycles);*/
 
 /** \breif Initilize asyn for ecmc
  *

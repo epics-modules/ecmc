@@ -1940,6 +1940,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  // Mem Map
+  case 0x211000:
+    return "ERROR_MEM_MAP_SIZE_OUT_OF_RANGE";
+
+    break;
+  case 0x211001:
+    return "ERROR_MEM_ASYN_VAR_BUFFER_OUT_OF_RANGE";
+
+    break;
+
   // asynDataItem  
   case 0x220000:
     return "ERROR_ASYN_PORT_NULL";

@@ -7,22 +7,30 @@
 
 #include "ecmcEcMemMap.h"
 
-ecmcEcMemMap::ecmcEcMemMap(ecmcEcEntry   *startEntry,
+ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
+                           int masterId,
+                           ecmcEcEntry   *startEntry,
                            size_t         byteSize,
                            int            type,
                            ec_direction_t nDirection,
                            std::string    id) {
   initVars();
+  asynPortDriver_ = asynPortDriver;
+  masterId_=masterId;
   startEntry_ = startEntry;
   byteSize_   = byteSize;
   direction_  = nDirection;
   idString_   = id;
+  idStringChar_  = strdup(idString_.c_str());
   buffer_     = new uint8_t[byteSize_];
   type_       = type;
+  initAsyn();
 }
 
 void ecmcEcMemMap::initVars() {
   errorReset();
+  asynPortDriver_ = NULL;
+  masterId_       = -1;
   direction_      = EC_DIR_INVALID;
   idString_       = "";
   startEntry_     = NULL;
@@ -31,10 +39,12 @@ void ecmcEcMemMap::initVars() {
   type_           = 0;
   domainSize_     = 0;
   adr_            = 0;
+  memMapAsynParam_ = NULL;
 }
 
 ecmcEcMemMap::~ecmcEcMemMap() {
   delete buffer_;
+  delete idStringChar_;
 }
 
 int ecmcEcMemMap::write(uint8_t *values,
@@ -92,66 +102,7 @@ int ecmcEcMemMap::setDomainSize(size_t size) {
 }
 
 int ecmcEcMemMap::updateAsyn(bool force) {
-  // I/O intr to EPICS
-  if (!asynPortDriver_ || (asynParameterIndex_ < 0)) {
-    return 0;
-  }
-  
-  // Only update at desired samplerate
-  if (asynPortDriver_->getAllowRtThreadCom() &&
-      ((asynUpdateCycleCounter_ >= asynUpdateCycles_) || force)) {
-    switch (asynParameterType_) {
-    case asynParamInt8Array:
-      asynPortDriver_->doCallbacksInt8Array(reinterpret_cast<epicsInt8 *>(buffer_),
-                                            byteSize_,
-                                            asynParameterIndex_,
-                                            0);
-      asynUpdateCycleCounter_ = 0;
-      break;
-
-    case asynParamInt16Array:
-      asynPortDriver_->doCallbacksInt16Array(reinterpret_cast<epicsInt16 *>(buffer_),
-                                             byteSize_,
-                                             asynParameterIndex_,
-                                             0);
-      asynUpdateCycleCounter_ = 0;
-      break;
-
-    case asynParamInt32Array:
-      asynPortDriver_->doCallbacksInt32Array(reinterpret_cast<epicsInt32 *>(buffer_),
-                                             byteSize_,
-                                             asynParameterIndex_,
-                                             0);
-      asynUpdateCycleCounter_ = 0;
-      break;
-
-    case asynParamFloat32Array:
-      asynPortDriver_->doCallbacksFloat32Array(reinterpret_cast<epicsFloat32 *>(buffer_),
-                                               byteSize_,
-                                               asynParameterIndex_,
-                                               0);
-      asynUpdateCycleCounter_ = 0;
-      break;
-
-    case asynParamFloat64Array:
-      asynPortDriver_->doCallbacksFloat64Array(reinterpret_cast<epicsFloat64 *>(buffer_),
-                                               byteSize_,
-                                               asynParameterIndex_,
-                                               0);
-      asynUpdateCycleCounter_ = 0;
-      break;
-
-    default:
-      return setErrorID(__FILE__,
-                        __FUNCTION__,
-                        __LINE__,
-                        ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED);
-
-      break;
-    }
-  } else {
-    asynUpdateCycleCounter_++;
-  }
+  memMapAsynParam_->refreshParamRT(force);
   return 0;
 }
 
@@ -205,5 +156,47 @@ int ecmcEcMemMap::validate() {
                       ERROR_MEM_MAP_SIZE_OUT_OF_RANGE);
   }
   adr_ = domainAdr_ + byteOffset_;
+  return 0;
+}
+
+int ecmcEcMemMap::initAsyn() {
+  
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
+  char *name = buffer;
+
+  // "ec%d.mm.alias"
+  unsigned int charCount = snprintf(buffer,
+                                    sizeof(buffer),
+                                    ECMC_EC_STR"%d."ECMC_MEMMAP_STR".%s",
+                                    masterId_,
+                                    idStringChar_);
+
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_MEM_ASYN_VAR_BUFFER_OUT_OF_RANGE);
+    return ERROR_MEM_ASYN_VAR_BUFFER_OUT_OF_RANGE;
+  }
+  name = buffer;
+  memMapAsynParam_ = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamInt8Array,  //default type
+                                         buffer_,
+                                         byteSize_,
+                                         0);
+  if(!memMapAsynParam_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  memMapAsynParam_->refreshParam(1);
+  asynPortDriver_->callParamCallbacks();
+
   return 0;
 }
