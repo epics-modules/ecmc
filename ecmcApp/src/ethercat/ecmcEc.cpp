@@ -106,7 +106,8 @@ int ecmcEc::init(int nMasterIndex) {
   }
   initDone_    = true;
   masterIndex_ = nMasterIndex;
-  return 0;
+
+  return initAsyn(asynPortDriver_);
 }
 
 ecmcEc::~ecmcEc() {
@@ -663,17 +664,17 @@ int ecmcEc::updateOutProcessImage() {
   }
 
   // I/O intr to EPCIS.
-  if (asynPortDriver_) {
+  if (asynPortDriver_) {    
     ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID]->refreshParamRT(0,
                                   (uint8_t *)&masterState_.slaves_responding,
                                   sizeof(masterState_.slaves_responding));
     ecAsynParams_[ECMC_ASYN_EC_PAR_AL_STATE_ID]->refreshParamRT(0);
-    ecAsynParams_[ECMC_ASYN_EC_PAR_LINK_ID]->refreshParamRT(0);
-    ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_STAT_ID]->refreshParamRT(0);
-    ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID]->refreshParamRT(0);
-    ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_ID]->refreshParamRT(0);
-    ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER__TOT_ID]->refreshParamRT(0);
-    ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParamRT(0);
+    ecAsynParams_[ECMC_ASYN_EC_PAR_LINK_ID]->refreshParamRT(0);    
+    ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_STAT_ID]->refreshParamRT(0);    
+    ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID]->refreshParamRT(0);    
+    ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_ID]->refreshParamRT(0);    
+    ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER__TOT_ID]->refreshParamRT(0);    
+    ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParamRT(0);    
     ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParamRT(0);      
   }
   return 0;
@@ -716,6 +717,7 @@ int ecmcEc::addEntry(
     return errorCode;
   }
   entryCounter_++;
+  
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
   asynPortDriver_->callParamCallbacks();
 
@@ -1288,6 +1290,24 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
     return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamInt32,
+                                         (uint8_t *)&(ecMemMapArrayCounter_),
+                                         sizeof(ecMemMapArrayCounter_),
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->refreshParam(1);
+  ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID] = paramTemp;
+
 
   // Domain status
   charCount = snprintf(buffer,

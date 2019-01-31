@@ -133,15 +133,6 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
     return;
   }
 
-  int errorCode = initEcmcAsyn((void *)this);
-  if (errorCode) {
-    asynPrint(pasynUserSelf,
-              ASYN_TRACE_ERROR,
-              "ecmcAsynPortDriverConfigure: ERROR: New AsynPortDriver (setAsynPort()) failed (0x%x).\n",
-              errorCode);
-    exit(1);
-    }
-
   // Add first param for other access (like motor record or stream device).
   ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,ECMC_ASYN_PAR_OCTET_NAME,asynParamNotDefined);
   if(paramTemp->createParam()){
@@ -160,10 +151,16 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Append asyn octet param %s failed.\n", driverName, functionName,ECMC_ASYN_PAR_OCTET_NAME);
     delete paramTemp;
     exit(1);
-  }  
-
-  //Add default main asyn parameters
-  ecmcAddDefaultAsynParams();
+  }
+  
+  int errorCode = ecmcInitAsyn((void *)this);
+  if (errorCode) {
+    asynPrint(pasynUserSelf,
+              ASYN_TRACE_ERROR,
+              "ecmcAsynPortDriverConfigure: ERROR: New AsynPortDriver (setAsynPort()) failed (0x%x).\n",
+              errorCode);
+    exit(1);
+    }  
 }
 
 void ecmcAsynPortDriver::initVars() {

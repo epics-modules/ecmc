@@ -85,21 +85,27 @@ int linkEcMemMapToAsynParameter(int         masterIndex,
   return 0;
 }
 
-int initEcmcAsyn(void *asynPortObject) {
+int ecmcInitAsyn(void *asynPortObject) {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);
   ec.setAsynPortDriver(asynPort);
+
+  //Main params
+  int errorCode=ecmcAddDefaultAsynParams();
+  if(errorCode) {
+    return errorCode;
+  }
+
+
   return 0;
 }
 
-int addDefaultAsynEc(int masterIndex, int regAsynParams, int skipCycles) {
-  LOGINFO4("%s/%s:%d masterIndex=%d regAsynParams=%d skipCycles=%d\n",
+/*int addDefaultAsynEc(int masterIndex) {
+  LOGINFO4("%s/%s:%d masterIndex=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           masterIndex,
-           regAsynParams,
-           skipCycles);
+           masterIndex);
 
   if (asynPort == NULL) {
     return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
@@ -111,18 +117,9 @@ int addDefaultAsynEc(int masterIndex, int regAsynParams, int skipCycles) {
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  int err = ec.initAsyn(asynPort);
-
-  if (err) {
-    return err;
-  }
-
-  if ((skipCycles < asynSkipCyclesFastest) || (asynSkipCyclesFastest < 0)) {
-    asynSkipCyclesFastest = skipCycles;
-  }
-
+  
   return 0;
-}
+}*/
 
 int addDefaultAsynEcSlave(int masterIndex,
                           int busPosition,
@@ -234,7 +231,6 @@ int ecmcAddDefaultAsynParams() {
 
   const char * name;
 
-  // Timing info (only updated in real time)!  
   // ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME
   name = ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME;
   ecmcAsynDataItem *paramTemp=NULL;

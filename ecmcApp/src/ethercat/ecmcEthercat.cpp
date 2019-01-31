@@ -5,7 +5,7 @@
 #include "ecmcEcSyncManager.h"
 #include "ecmcEcEntry.h"
 
-extern ecmcEc ec;
+#include "ecmcGlobalsExtern.h"
 
 int ecSetMaster(int masterIndex) {
   LOGINFO4("%s/%s:%d masterIndex=%d \n",
@@ -13,7 +13,16 @@ int ecSetMaster(int masterIndex) {
            __FUNCTION__,
            __LINE__,
            masterIndex);
-  return ec.init(masterIndex);
+  int errorCode = ec.setAsynPortDriver(asynPort);
+  if(errorCode) {
+    return errorCode;
+  }
+
+  errorCode = ec.init(masterIndex);
+  if(errorCode) {
+    return errorCode;
+  }
+  return 0;
 }
 
 int ecResetMaster(int masterIndex) {

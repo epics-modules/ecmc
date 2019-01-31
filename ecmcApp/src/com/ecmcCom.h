@@ -84,7 +84,7 @@ int linkEcMemMapToAsynParameter(int         masterIndex,
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int initEcmcAsyn(void *asynPortObject);
+int ecmcInitAsyn(void *asynPortObject);
 
 /** \breif Add default asyn parameters for ecmc
  *
@@ -129,9 +129,7 @@ int addDiagAsynAxis(int regAsynParams,
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int addDefaultAsynEc(int masterIndex,
-                     int regAsynParams,
-                     int skipCycles);
+int addDefaultAsynEc(int masterIndex);
 
 /** \breif Add default asyn parameters for EtherCAT slave
  *
