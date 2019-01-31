@@ -59,11 +59,11 @@ class ecmcAsynPortDriver : public asynPortDriver {
   void      setAllowRtThreadCom(bool allowRtCom);
   bool      getAllowRtThreadCom();
   asynUser* getTraceAsynUser();
-  ecmcAsynDataItem *addNewDefaultParam(const char * name,
-                                       asynParamType type,
-                                       uint8_t *data,
-                                       size_t bytes,
-                                       bool dieIfFail);
+  ecmcAsynDataItem *addNewAvailParam(const char * name,
+                                     asynParamType type,
+                                     uint8_t *data,
+                                     size_t bytes,
+                                     bool dieIfFail);
    int32_t getFastestUpdateRate();
    int32_t calcFastestUpdateRate();
  private:
@@ -79,11 +79,18 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                       ecmcParamInfo *paramInfo);
   asynStatus parseInfofromDrvInfo(const char* drvInfo,
                                      ecmcParamInfo *paramInfo);
-  ecmcAsynDataItem *createNewDefaultParam(const char * name, asynParamType type,bool dieIfFail);                                     
-  asynStatus appendAsynDataItem(ecmcAsynDataItem *dataItem,bool dieIfFail);
+  ecmcAsynDataItem *createNewParam(const char * name,
+                                   asynParamType type,
+                                   bool dieIfFail);
+  asynStatus appendInUseParam(ecmcAsynDataItem *dataItem,bool dieIfFail);
+  asynStatus appendAvailParam(ecmcAsynDataItem *dataItem, bool dieIfFail);
+  ecmcAsynDataItem *findAvailParam(const char * name);
+  void reportParamInfo(FILE *fp,ecmcParamInfo *param, int listIndex);
   bool allowRtThreadCom_;
-  ecmcAsynDataItem  **pEcmcParamArray_;
-  int ecmcParamArrayCount_;
+  ecmcAsynDataItem  **pEcmcParamAvailArray_;
+  ecmcAsynDataItem  **pEcmcParamInUseArray_;
+  int ecmcParamAvailCount_;
+  int ecmcParamInUseCount_;
   int paramTableSize_;
   int defaultSampleTimeMS_;
   int defaultMaxDelayTimeMS_;

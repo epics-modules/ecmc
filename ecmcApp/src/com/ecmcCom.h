@@ -88,14 +88,11 @@ int initEcmcAsyn(void *asynPortObject);
 
 /** \breif Add default asyn parameters for ecmc
  *
- *  \param[in] regAsynParams Register default asyn parameters.\n
- *  \param[in] skipCycles Number of cycles to postpone update.\n
  * \return 0 if success or otherwise an error code.\n
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int addDefaultAsynParams(int regAsynParams,
-                         int skipCycles);
+int ecmcAddDefaultAsynParams();
 
 /** \breif Add default asyn parameters for axis
  *

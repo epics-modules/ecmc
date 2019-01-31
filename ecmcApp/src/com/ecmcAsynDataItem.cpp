@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
+ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const char *paramName,asynParamType asynParType)
 {
   asynPortDriver_=asynPortDriver;  
   data_=0;
@@ -11,7 +11,8 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
   asynUpdateCycleCounter_=0;
   paramInfo_= new ecmcParamInfo();
   memset(paramInfo_,0,sizeof(ecmcParamInfo));
-  paramInfo_->asynType=asynParamNotDefined;
+  paramInfo_->name=strdup(paramName);
+  paramInfo_->asynType=asynParType;
   validated_=false;
 }
 
@@ -150,7 +151,7 @@ int ecmcAsynDataItem::createParam(const char *paramName,asynParamType asynParTyp
   paramInfo_->name=strdup(paramName);  
   paramInfo_->asynType=asynParType;
   paramInfo_->ecmcDataIsArray=asynParType>asynParamOctet;
-  asynStatus status = asynPortDriver_->createParam(paramName,paramInfo_->asynType,&paramInfo_->index);  
+  asynStatus status = asynPortDriver_->createParam(paramName,paramInfo_->asynType,&paramInfo_->index);
   return (status==asynSuccess) ? 0 : ERROR_ASYN_CREATE_PARAM_FAIL;
 }
 
@@ -204,4 +205,8 @@ bool ecmcAsynDataItem::initialized() {
 
 int32_t ecmcAsynDataItem::getSampleTimeCycles() {
   return paramInfo_->sampleTimeCycles;
+}
+
+char *ecmcAsynDataItem::getName() {  
+  return paramInfo_->name;
 }

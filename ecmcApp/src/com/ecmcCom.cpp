@@ -218,30 +218,23 @@ int addDiagAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
   return axes[axisIndex]->initDiagAsyn(asynPort, regAsynParams, skipCycles);
 }
 
-int addDefaultAsynParams(int regAsynParams, int skipCycles) {
-  LOGINFO4("%s/%s:%d regAsynParams=%d skipCycles=%d\n",
+int ecmcAddDefaultAsynParams() {
+  LOGINFO4("%s/%s:%d\n",
            __FILE__,
            __FUNCTION__,
-           __LINE__,
-           regAsynParams,
-           skipCycles);
+           __LINE__);
 
   if (asynPort == NULL) {
     return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
   }
 
-    if (!regAsynParams) {
-    return 0;
-  }
-
-  int arrayIndex=0;
   const char * name;
 
   // Timing info (only updated in real time)!  
   // ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME
   name = ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME;
   ecmcAsynDataItem *paramTemp=NULL;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.latency_min_ns),
                                            sizeof(threadDiag.latency_min_ns),
@@ -260,7 +253,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_LATENCY_MAX_NAME
   name = ECMC_ASYN_MAIN_PAR_LATENCY_MAX_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.latency_max_ns),
                                            sizeof(threadDiag.latency_max_ns),
@@ -279,7 +272,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_PERIOD_MIN_NAME
   name = ECMC_ASYN_MAIN_PAR_PERIOD_MIN_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.period_min_ns),
                                            sizeof(threadDiag.period_min_ns),
@@ -298,7 +291,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_PERIOD_MAX_NAME
   name = ECMC_ASYN_MAIN_PAR_PERIOD_MAX_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.period_max_ns),
                                            sizeof(threadDiag.period_max_ns),
@@ -317,7 +310,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_NAME
   name = ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.exec_min_ns),
                                            sizeof(threadDiag.exec_min_ns),
@@ -336,7 +329,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_NAME
   name = ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.exec_max_ns),
                                            sizeof(threadDiag.exec_max_ns),
@@ -355,7 +348,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_SEND_MIN_NAME
   name = ECMC_ASYN_MAIN_PAR_SEND_MIN_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.send_min_ns),
                                            sizeof(threadDiag.send_min_ns),
@@ -374,7 +367,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_SEND_MAX_NAME
   name = ECMC_ASYN_MAIN_PAR_SEND_MAX_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.send_max_ns),
                                            sizeof(threadDiag.send_max_ns),
@@ -393,7 +386,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_APP_MODE_NAME
   name = ECMC_ASYN_MAIN_PAR_APP_MODE_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(appModeCmd),
                                            sizeof(appModeCmd),
@@ -412,7 +405,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_ERROR_ID_NAME
   name = ECMC_ASYN_MAIN_PAR_ERROR_ID_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(controllerError),
                                            sizeof(controllerError),
@@ -431,7 +424,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_RESET_NAME
   name = ECMC_ASYN_MAIN_PAR_RESET_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt32,
                                            (uint8_t *)&(controllerReset),
                                            sizeof(controllerReset),
@@ -450,7 +443,7 @@ int addDefaultAsynParams(int regAsynParams, int skipCycles) {
 
   // ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME
   name = ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME;
-  paramTemp = asynPort->addNewDefaultParam(name,
+  paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt8Array,
                                            (uint8_t *)(controllerErrorMsg),
                                            strlen(controllerErrorMsg),

@@ -21,7 +21,9 @@ class ecmcAsynPortDriver;  //Include in cpp
 class ecmcAsynDataItem
 {
 public:
-  ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver);
+  ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
+                    const char *paramName,
+                    asynParamType asynParType);
   ~ecmcAsynDataItem ();
   int setEcmcDataPointer(uint8_t *data,size_t bytes);
   int refreshParam(int force);
@@ -40,6 +42,7 @@ public:
   int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);  
   int validate();
   bool initialized();
+  char * getName();  
   int32_t getSampleTimeCycles();
   ecmcParamInfo *getParamInfo();
 
