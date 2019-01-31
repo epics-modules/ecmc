@@ -111,7 +111,7 @@ int addDefaultAsynEc(int masterIndex, int regAsynParams, int skipCycles) {
     return ERROR_MAIN_EC_MASTER_NULL;
   }
 
-  int err = ec.initAsyn(asynPort, regAsynParams, skipCycles);
+  int err = ec.initAsyn(asynPort);
 
   if (err) {
     return err;
@@ -226,6 +226,10 @@ int ecmcAddDefaultAsynParams() {
 
   if (asynPort == NULL) {
     return ERROR_MAIN_ASYN_PORT_DRIVER_NULL;
+  }
+
+  for(int i=0;i<ECMC_ASYN_MAIN_PAR_COUNT;i++) {
+    mainAsynParams[i] = NULL;
   }
 
   const char * name;

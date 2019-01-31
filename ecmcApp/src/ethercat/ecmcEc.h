@@ -143,9 +143,7 @@ class ecmcEc : public ecmcError {
                                   int         asynParType,
                                   int         skipCycles);
   int      setEcStatusOutputEntry(ecmcEcEntry *entry);
-  int      initAsyn(ecmcAsynPortDriver *asynPortDriver,
-                    bool                regAsynParams,
-                    int                 skipCycles);
+  int      initAsyn(ecmcAsynPortDriver *asynPortDriver);
   int      setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
   int      printAllConfig();
   int      printSlaveConfig(int slaveIndex);
@@ -187,19 +185,10 @@ class ecmcEc : public ecmcError {
   size_t domainSize_;
   ecmcEcEntry *statusOutputEntry_;
   int masterIndex_;
+  int masterAlStates_;
+  int masterLinkUp_;
 
   ecmcAsynPortDriver *asynPortDriver_;
-  int updateDefAsynParams_;
-  int asynParIdSlaveCounter_;
-  int asynParIdMemMapCounter_;
-  int asynParIdSlavesStatus_;
-  int asynParIdDomianStatus_;
-  int asynParIdDomianFailCounter_;
-  int asynParIdDomianFailCounterTotal_;
-  int asynParIdAlState;
-  int asynParIdEntryCounter_;
-  int asynParIdMasterLink_;
-  int asynUpdateCycleCounter_;
-  int asynUpdateCycles_;
+  ecmcAsynDataItem  *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];
 };
 #endif  /* ECMCEC_H_ */

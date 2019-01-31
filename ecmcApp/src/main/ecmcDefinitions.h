@@ -112,6 +112,27 @@
 #define ECMC_ASYN_MAIN_PAR_RESET_NAME "ecmc.error.reset"
 #define ECMC_ASYN_MAIN_PAR_COUNT 12
 
+// Asyn  parameters in ec
+#define ECMC_ASYN_EC_PAR_AL_STATE_ID 0
+#define ECMC_ASYN_EC_PAR_AL_STATE_NAME "alstates"
+#define ECMC_ASYN_EC_PAR_LINK_ID 1
+#define ECMC_ASYN_EC_PAR_LINK_NAME "link"
+#define ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID 2
+#define ECMC_ASYN_EC_PAR_SLAVE_COUNT_NAME "slavecounter"
+#define ECMC_ASYN_EC_PAR_SLAVE_STAT_ID 3
+#define ECMC_ASYN_EC_PAR_SLAVE_STAT_NAME "slavesstatus"
+#define ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID 4
+#define ECMC_ASYN_EC_PAR_MEMMAP_COUNT_NAME "memmapcounter"
+#define ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID 5
+#define ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME "domainstatus"
+#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_ID 6
+#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_NAME "domainfailcounter"
+#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER__TOT_ID 7
+#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME "domainfailcountertotal"
+#define ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID 8
+#define ECMC_ASYN_EC_PAR_ENTRY_COUNT_TOT_NAME "entrycounter"
+#define ECMC_ASYN_EC_PAR_COUNT 9
+
 // Motion
 enum app_mode_type {
   ECMC_MODE_CONFIG  = 0,

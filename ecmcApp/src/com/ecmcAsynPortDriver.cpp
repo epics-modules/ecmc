@@ -116,8 +116,12 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   initVars();
   const char* functionName = "ecmcAsynPortDriver";
   allowRtThreadCom_ = 1;  // Allow at startup (RT thread not started)
-  pEcmcParamInUseArray_  = new ecmcAsynDataItem*[paramTableSize];
+  pEcmcParamInUseArray_  = new ecmcAsynDataItem*[paramTableSize];  
   pEcmcParamAvailArray_  = new ecmcAsynDataItem*[paramTableSize];
+  for(int i=0; i<paramTableSize; i++) {
+    pEcmcParamInUseArray_[i]=NULL;
+    pEcmcParamAvailArray_[i]=NULL;
+  }
   paramTableSize_   = paramTableSize;
   autoConnect_      = autoConnect;
   priority_         = priority;
