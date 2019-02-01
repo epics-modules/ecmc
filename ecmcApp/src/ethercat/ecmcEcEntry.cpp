@@ -545,6 +545,12 @@ int ecmcEcEntry::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+
+  //Add supported types
+  entryAsynParam_->addSupportedAsynType(asynParamInt32);
+  entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+  entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+
   entryAsynParam_->refreshParam(1);
   asynPortDriver_->callParamCallbacks();
 

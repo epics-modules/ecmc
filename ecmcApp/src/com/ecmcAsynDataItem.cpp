@@ -9,11 +9,16 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   data_=0;
   bytes_=0;
   asynUpdateCycleCounter_=0;
+  supoortedTypesCounter_=0;
+  for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
+    supportedTypes_[i]=asynParamNotDefined;
+  }
   paramInfo_= new ecmcParamInfo();
   memset(paramInfo_,0,sizeof(ecmcParamInfo));
   paramInfo_->name=strdup(paramName);
   paramInfo_->asynType=asynParType;
   validated_=false;
+  addSupportedAsynType(asynParType);
 }
 
 ecmcAsynDataItem::~ecmcAsynDataItem ()
@@ -209,4 +214,40 @@ int32_t ecmcAsynDataItem::getSampleTimeCycles() {
 
 char *ecmcAsynDataItem::getName() {  
   return paramInfo_->name;
+}
+
+int ecmcAsynDataItem::addSupportedAsynType(asynParamType type) {
+  
+  //check so not already in list
+  if(asynTypeSupported(type)) {
+    return 0;
+  }
+  
+  if(supoortedTypesCounter_<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT-1) {
+    supportedTypes_[supoortedTypesCounter_]=type;
+    supoortedTypesCounter_++;
+    return 0;
+  }
+  return ERROR_ASYN_SUPPORTED_TYPES_ARRAY_FULL;
+}
+
+bool ecmcAsynDataItem::asynTypeSupported(asynParamType type) {
+  for(int i=0;i<supoortedTypesCounter_;i++) {
+   
+   if (supportedTypes_[i]==type) {
+     return true;
+   }
+  }
+  return false;
+}
+
+int ecmcAsynDataItem::getSupportedAsynTypeCount() {
+  return supoortedTypesCounter_;
+}
+
+asynParamType ecmcAsynDataItem::getSupportedAsynType(int index) {
+  if(index<supoortedTypesCounter_) {
+    return supportedTypes_[index];
+  }
+  return asynParamNotDefined;
 }

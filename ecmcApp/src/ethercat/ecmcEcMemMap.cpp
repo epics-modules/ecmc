@@ -195,6 +195,13 @@ int ecmcEcMemMap::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+
+  memMapAsynParam_->addSupportedAsynType(asynParamInt8Array);
+  memMapAsynParam_->addSupportedAsynType(asynParamInt16Array);
+  memMapAsynParam_->addSupportedAsynType(asynParamInt32Array);
+  memMapAsynParam_->addSupportedAsynType(asynParamFloat32Array);
+  memMapAsynParam_->addSupportedAsynType(asynParamFloat64Array);
+
   memMapAsynParam_->refreshParam(1);
   asynPortDriver_->callParamCallbacks();
 

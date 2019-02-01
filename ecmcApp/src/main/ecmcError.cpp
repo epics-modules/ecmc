@@ -1973,6 +1973,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_ASYN_PARAM_NOT_VALIDATED";
 
     break;
+  case 0x220005:
+    return "ERROR_ASYN_SUPPORTED_TYPES_ARRAY_FULL";
+
+    break;
   }
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
 }
