@@ -65,6 +65,9 @@ asynParamType stringToAsynType(char *typeStr)
   if(strcmp("asynInt32",typeStr)==0){
     return asynParamInt32;
   }
+  if(strcmp("asynUInt32Digital",typeStr)==0){
+    return asynParamUInt32Digital;
+  }
   if(strcmp("asynInt8ArrayIn",typeStr)==0 || strcmp("asynInt8ArrayOut",typeStr)==0){
     return asynParamInt8Array;
   }
@@ -81,7 +84,6 @@ asynParamType stringToAsynType(char *typeStr)
     return asynParamFloat64Array;
   }
 
-  //  asynParamUInt32Digital,
   //  asynParamOctet,
   //  asynParamGenericPointer
 

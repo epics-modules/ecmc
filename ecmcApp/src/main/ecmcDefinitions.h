@@ -31,6 +31,7 @@
 
 // Buffer size
 #define EC_MAX_OBJECT_PATH_CHAR_LENGTH 256
+#define AX_MAX_DIAG_STRING_CHAR_LENGTH 1024
 
 // Transforms
 #define MAX_TRANSFORM_INPUTS ECMC_MAX_AXES *2
@@ -133,7 +134,6 @@
 #define ECMC_ASYN_EC_PAR_ENTRY_COUNT_NAME "entrycounter"
 #define ECMC_ASYN_EC_PAR_COUNT 9
 
-
 // Asyn  parameters in ec slave
 #define ECMC_ASYN_EC_SLAVE_PAR_ONLINE_ID 0
 #define ECMC_ASYN_EC_SLAVE_PAR_ONLINE_NAME "online"
@@ -143,8 +143,20 @@
 #define ECMC_ASYN_EC_SLAVE_PAR_OPER_NAME "operational"
 #define ECMC_ASYN_EC_SLAVE_PAR_ENTRY_COUNT_ID 3
 #define ECMC_ASYN_EC_SLAVE_PAR_ENTRY_COUNT_NAME "entrycounter"
+#define ECMC_ASYN_EC_SLAVE_PAR_COUNT 4
 
-#define ECMC_ASYN_EC_SLAVE_PAR_COUNT 9
+// Asyn  parameters in axis
+#define ECMC_ASYN_AX_ACT_POS_ID 0
+#define ECMC_ASYN_AX_ACT_POS_NAME "actPos"
+#define ECMC_ASYN_AX_SET_POS_ID 1
+#define ECMC_ASYN_AX_SET_POS_NAME "setPos"
+#define ECMC_ASYN_AX_POS_ERR_ID 2
+#define ECMC_ASYN_AX_POS_ERR_NAME "posErr"
+#define ECMC_ASYN_AX_DIAG_ID 3
+#define ECMC_ASYN_AX_DIAG_NAME "diagnostic"
+#define ECMC_ASYN_AX_PAR_COUNT 4
+
+
 
 // Motion
 enum app_mode_type {

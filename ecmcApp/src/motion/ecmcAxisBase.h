@@ -110,7 +110,8 @@ typedef struct {
 
 class ecmcAxisBase : public ecmcError {
  public:
-  ecmcAxisBase(int    axisID,
+  ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
+               int    axisID,
                double sampleTime);
   virtual ~ecmcAxisBase();
   virtual int                setOpMode(operationMode nMode) = 0;
@@ -186,12 +187,7 @@ class ecmcAxisBase : public ecmcError {
   ecmcAxisStatusType  * getDebugInfoDataPointer();
   int                   getCycleCounter();
   void                  printAxisStatus();
-  int                   initAsyn(ecmcAsynPortDriver *asynPortDriver,
-                                 bool                regAsynParams,
-                                 int                 skipCycles);
-  int                   initDiagAsyn(ecmcAsynPortDriver *asynPortDriver,
-                                     bool                regAsynParams,
-                                     int                 skipCycles);
+  int                   initAsyn();
   int                   setEcStatusOutputEntry(ecmcEcEntry *entry);
   motionDirection       getAxisSetDirection();
 
@@ -229,20 +225,10 @@ class ecmcAxisBase : public ecmcError {
 
   // Axis default parameters over asyn I/O intr
   ecmcAsynPortDriver *asynPortDriver_;
-  int updateDefAsynParams_;
-  int asynParIdActPos_;
-  int asynParIdSetPos_;
-  int asynUpdateCycleCounter_;
-  int asynUpdateCycles_;
-
-  // Axis diagnostic string over asyn I/O intr
-  ecmcAsynPortDriver *asynPortDriverDiag_;
-  int updateAsynParamsDiag_;
-  int asynParIdDiag_;
-  int asynUpdateCycleCounterDiag_;
-  int asynUpdateCyclesDiag_;
+  ecmcAsynDataItem  *axAsynParams_[ECMC_ASYN_AX_PAR_COUNT];
   ecmcEcEntry *statusOutputEntry_;
   int blockExtCom_;
+  char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
 };
 
 #endif  /* ECMCAXISBASE_H_ */

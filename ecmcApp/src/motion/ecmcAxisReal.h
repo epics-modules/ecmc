@@ -15,7 +15,8 @@
 
 class ecmcAxisReal : public ecmcAxisBase {
  public:
-  ecmcAxisReal(int    axisID,
+  ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
+               int    axisID,
                double sampleTime);
   ~ecmcAxisReal();
   void               execute(bool masterOK);

@@ -9,7 +9,9 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   data_=0;
   bytes_=0;
   asynUpdateCycleCounter_=0;
-  supoortedTypesCounter_=0;
+  supportedTypesCounter_=0;
+  allowWriteToEcmc_=false;
+  validated_=false;
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
@@ -17,7 +19,6 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   memset(paramInfo_,0,sizeof(ecmcParamInfo));
   paramInfo_->name=strdup(paramName);
   paramInfo_->asynType=asynParType;
-  validated_=false;
   addSupportedAsynType(asynParType);
 }
 
@@ -91,7 +92,7 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
      return ERROR_ASYN_PARAM_NOT_VALIDATED;
    }
 
-  if(asynUpdateCycleCounter_< paramInfo_->sampleTimeCycles && !force){ //Only update at desired samplerate
+  if(asynUpdateCycleCounter_< paramInfo_->sampleTimeCycles-1 && !force){ //Only update at desired samplerate
     asynUpdateCycleCounter_++;
     return ERROR_ASYN_NOT_REFRESHED_RETURN;  //Not refreshed
   }
@@ -223,16 +224,16 @@ int ecmcAsynDataItem::addSupportedAsynType(asynParamType type) {
     return 0;
   }
   
-  if(supoortedTypesCounter_<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT-1) {
-    supportedTypes_[supoortedTypesCounter_]=type;
-    supoortedTypesCounter_++;
+  if(supportedTypesCounter_<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT-1) {
+    supportedTypes_[supportedTypesCounter_]=type;
+    supportedTypesCounter_++;
     return 0;
   }
   return ERROR_ASYN_SUPPORTED_TYPES_ARRAY_FULL;
 }
 
 bool ecmcAsynDataItem::asynTypeSupported(asynParamType type) {
-  for(int i=0;i<supoortedTypesCounter_;i++) {
+  for(int i=0;i<supportedTypesCounter_;i++) {
    
    if (supportedTypes_[i]==type) {
      return true;
@@ -242,12 +243,49 @@ bool ecmcAsynDataItem::asynTypeSupported(asynParamType type) {
 }
 
 int ecmcAsynDataItem::getSupportedAsynTypeCount() {
-  return supoortedTypesCounter_;
+  return supportedTypesCounter_;
 }
 
 asynParamType ecmcAsynDataItem::getSupportedAsynType(int index) {
-  if(index<supoortedTypesCounter_) {
+  if(index<supportedTypesCounter_) {
     return supportedTypes_[index];
   }
   return asynParamNotDefined;
+}
+
+void ecmcAsynDataItem::allowWriteToEcmc(bool allowWrite) {
+  allowWriteToEcmc_ = allowWrite;
+}
+
+bool ecmcAsynDataItem::writeToEcmcAllowed() {
+  return allowWriteToEcmc_;
+}
+
+int ecmcAsynDataItem::writeParam(uint8_t *dataToWrite, size_t bytes) {
+
+  if(!paramInfo_->initialized || !allowWriteToEcmc_) {
+    return 0;
+  }
+  
+  if(!validated_) {
+     return ERROR_ASYN_PARAM_NOT_VALIDATED;
+  }
+
+  if(!dataToWrite || !data_ || bytes<0){
+    return ERROR_ASYN_DATA_NULL;
+  }
+  
+  int bytesToWrite=bytes;
+  if(bytes > paramInfo_->ecmcSize) {
+    bytesToWrite = paramInfo_->ecmcSize;
+  }
+  
+  //Need to check type...
+  memcpy(data_,dataToWrite,bytesToWrite);
+
+  return 0;
+}
+
+bool ecmcAsynDataItem::willRefreshNext() {
+  return asynUpdateCycleCounter_>= paramInfo_->sampleTimeCycles-2;
 }

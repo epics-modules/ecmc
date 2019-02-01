@@ -763,6 +763,7 @@ int ecmcEcSlave::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_ONLINE_ID] = paramTemp;
 
@@ -797,6 +798,7 @@ int ecmcEcSlave::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_AL_STATE_ID] = paramTemp;
 
@@ -831,6 +833,7 @@ int ecmcEcSlave::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_OPERA_ID] = paramTemp;
 
@@ -866,6 +869,7 @@ int ecmcEcSlave::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_ENTRY_COUNT_ID] = paramTemp;
   asynPortDriver_->callParamCallbacks();

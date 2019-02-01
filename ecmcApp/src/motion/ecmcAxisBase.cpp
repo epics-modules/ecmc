@@ -12,9 +12,12 @@
 #include <new>
 
 
-ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime) {
+ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
+                           int axisID, 
+                           double sampleTime) {
   PRINT_ERROR_PATH("axis[%d].error", axisID);
   initVars();
+  asynPortDriver_                 = asynPortDriver;
   data_.axisId_                   = axisID;
   data_.sampleTime_               = sampleTime;
   data_.command_.operationModeCmd = ECMC_MODE_OP_AUTO;
@@ -46,6 +49,7 @@ ecmcAxisBase::ecmcAxisBase(int axisID, double sampleTime) {
                __LINE__,
                ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
   }
+  initAsyn();
 }
 
 ecmcAxisBase::~ecmcAxisBase() {
@@ -55,6 +59,53 @@ ecmcAxisBase::~ecmcAxisBase() {
   delete commandTransform_;
   delete externalInputEncoderIF_;
   delete externalInputTrajectoryIF_;
+}
+
+void ecmcAxisBase::initVars() {
+  // errorReset();  //THIS IS NONO..
+  data_.axisType_              = ECMC_AXIS_TYPE_BASE;
+  data_.command_.reset         = false;
+  cascadedCommandsEnable_      = false;
+  enableCommandTransform_      = false;
+  data_.status_.inStartupPhase = false;
+
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    axes_[i] = NULL;
+  }
+
+  data_.status_.inRealtime = false;
+
+  data_.status_.externalTrajectoryPosition  = 0;
+  data_.status_.externalTrajectoryVelocity  = 0;
+  data_.status_.externalTrajectoryInterlock = ECMC_INTERLOCK_EXTERNAL;
+
+  data_.status_.externalEncoderPosition  = 0;
+  data_.status_.externalEncoderVelocity  = 0;
+  data_.status_.externalEncoderInterlock = ECMC_INTERLOCK_EXTERNAL;
+
+  data_.status_.currentPositionActual   = 0;
+  data_.status_.currentPositionSetpoint = 0;
+  data_.status_.currentVelocityActual   = 0;
+  data_.status_.currentVelocitySetpoint = 0;
+
+  data_.sampleTime_ = 1 / 1000;
+  memset(&statusData_,    0, sizeof(statusData_));
+  memset(&statusDataOld_, 0, sizeof(statusDataOld_));
+  printHeaderCounter_      = 0;
+  data_.status_.enabledOld = false;
+  data_.status_.enableOld  = false;
+  data_.status_.executeOld = false;
+  cycleCounter_            = 0;
+  axisState_               = ECMC_AXIS_STATE_STARTUP;
+  oldPositionAct_          = 0;
+  oldPositionSet_          = 0;
+  asynPortDriver_          = NULL;
+  for (int i = 0; i < ECMC_ASYN_AX_PAR_COUNT; i++) {
+    axAsynParams_[i] = NULL;
+  }
+  statusOutputEntry_          = 0;
+  blockExtCom_                = 0;
+  memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
 }
 
 void ecmcAxisBase::printAxisState() {
@@ -277,44 +328,25 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   cycleCounter_++;
   refreshDebugInfoStruct();
 
-  // Update asyn parameters
-  if (updateDefAsynParams_ && asynPortDriver_) {
-    if ((asynUpdateCycleCounter_ >= asynUpdateCycles_) &&
-        asynPortDriver_->getAllowRtThreadCom()) {
-      asynUpdateCycleCounter_ = 0;
-      asynPortDriver_->setDoubleParam(asynParIdActPos_,
-                                      data_.status_.currentPositionActual);
-      asynPortDriver_->setDoubleParam(asynParIdSetPos_,
-                                      data_.status_.currentPositionSetpoint);
-    } else {
-      asynUpdateCycleCounter_++;
-    }
-  }
+  // Update asyn parameters  
+  axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
+  
+  if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext()) {
+    int  bytesUsed = 0;
+    int  error = getAxisDebugInfoData(&diagBuffer_[0],
+                                      AX_MAX_DIAG_STRING_CHAR_LENGTH,
+                                      &bytesUsed);
 
-  if (asynPortDriverDiag_ && (asynParIdDiag_ >= 0)) {
-    if ((asynUpdateCycleCounterDiag_ >= asynUpdateCyclesDiag_) &&
-        updateAsynParamsDiag_ && asynPortDriverDiag_->getAllowRtThreadCom()) {
-      int  bytesUsed = 0;
-      char diagBuffer[1024];
-      int  error = getAxisDebugInfoData(&diagBuffer[0],
-                                        sizeof(diagBuffer),
-                                        &bytesUsed);
-
-      if (error) {
-        LOGERR(
-          "%s/%s:%d: Fail to update asyn par axis<id>.diag. Buffer to small.\n",
-          __FILE__,
-          __FUNCTION__,
-          __LINE__);
-      } else {
-        asynPortDriverDiag_->doCallbacksInt8Array(reinterpret_cast<epicsInt8 *>(diagBuffer),
-                                                  bytesUsed,
-                                                  asynParIdDiag_,
-                                                  0);
-      }
-      asynUpdateCycleCounterDiag_ = 0;
+    if (error) {
+      LOGERR(
+        "%s/%s:%d: Fail to update asyn par axis<id>.diag. Buffer to small.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__);
     } else {
-      asynUpdateCycleCounterDiag_++;
+      axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
     }
   }
 
@@ -375,59 +407,6 @@ void ecmcAxisBase::setReset(bool reset) {
 
 bool ecmcAxisBase::getReset() {
   return data_.command_.reset;
-}
-
-void ecmcAxisBase::initVars() {
-  // errorReset();  //THIS IS NONO..
-  data_.axisType_              = ECMC_AXIS_TYPE_BASE;
-  data_.command_.reset         = false;
-  cascadedCommandsEnable_      = false;
-  enableCommandTransform_      = false;
-  data_.status_.inStartupPhase = false;
-
-  for (int i = 0; i < ECMC_MAX_AXES; i++) {
-    axes_[i] = NULL;
-  }
-  data_.status_.inRealtime = false;
-
-  data_.status_.externalTrajectoryPosition  = 0;
-  data_.status_.externalTrajectoryVelocity  = 0;
-  data_.status_.externalTrajectoryInterlock = ECMC_INTERLOCK_EXTERNAL;
-
-  data_.status_.externalEncoderPosition  = 0;
-  data_.status_.externalEncoderVelocity  = 0;
-  data_.status_.externalEncoderInterlock = ECMC_INTERLOCK_EXTERNAL;
-
-  data_.status_.currentPositionActual   = 0;
-  data_.status_.currentPositionSetpoint = 0;
-  data_.status_.currentVelocityActual   = 0;
-  data_.status_.currentVelocitySetpoint = 0;
-
-  data_.sampleTime_ = 1 / 1000;
-  memset(&statusData_,    0, sizeof(statusData_));
-  memset(&statusDataOld_, 0, sizeof(statusDataOld_));
-  printHeaderCounter_      = 0;
-  data_.status_.enabledOld = false;
-  data_.status_.enableOld  = false;
-  data_.status_.executeOld = false;
-  cycleCounter_            = 0;
-  axisState_               = ECMC_AXIS_STATE_STARTUP;
-  oldPositionAct_          = 0;
-  oldPositionSet_          = 0;
-  asynPortDriver_          = NULL;
-  updateDefAsynParams_     = 0;
-  asynParIdActPos_         = 0;
-  asynParIdSetPos_         = 0;
-  asynUpdateCycleCounter_  = 0;
-  asynUpdateCycles_        = 0;
-
-  asynPortDriverDiag_         = NULL;
-  updateAsynParamsDiag_       = 0;
-  asynParIdDiag_              = -1;
-  asynUpdateCycleCounterDiag_ = 0;
-  asynUpdateCyclesDiag_       = 0;
-  statusOutputEntry_          = 0;
-  blockExtCom_                = 0;
 }
 
 int ecmcAxisBase::setEnableCascadedCommands(bool enable) {
@@ -1321,17 +1300,7 @@ bool ecmcAxisBase::getEnabled() {
   return data_.status_.enabled && data_.command_.enable;
 }
 
-int ecmcAxisBase::initAsyn(ecmcAsynPortDriver *asynPortDriver,
-                           bool                regAsynParams,
-                           int                 skipCycles) {
-  asynPortDriver_      = asynPortDriver;
-  updateDefAsynParams_ = regAsynParams;
-  asynUpdateCycles_    = skipCycles;
-
-  if (!regAsynParams) {
-    return 0;
-  }
-
+int ecmcAxisBase::initAsyn() {
   if (asynPortDriver_ == NULL) {
     LOGERR("%s/%s:%d: ERROR: AsynPortDriver object NULL (0x%x).\n",
            __FILE__,
@@ -1341,96 +1310,143 @@ int ecmcAxisBase::initAsyn(ecmcAsynPortDriver *asynPortDriver,
     return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
   }
 
-  char asynParName[1024];
-
-  // actpos
-  int ret = snprintf(asynParName, sizeof(asynParName), "ax%d.actpos", data_.axisId_);
-
-  if ((ret >= static_cast<int>(sizeof(asynParName))) || (ret <= 0)) {
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name = NULL;
+  unsigned int charCount = 0;
+  ecmcAsynDataItem *paramTemp = NULL;
+  // Act pos
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR"%d."ECMC_ASYN_AX_ACT_POS_NAME,
+                       getAxisID());
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
-
-  asynStatus status = asynPortDriver_->createParam(asynParName,
-                                                   asynParamFloat64,
-                                                   &asynParIdActPos_);
-
-  if (status != asynSuccess) {
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           asynParName);
-    return asynError;
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamFloat64,
+                                         (uint8_t *)&(data_.status_.currentPositionActual),
+                                         sizeof(data_.status_.currentPositionActual),
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPortDriver_->setDoubleParam(asynParIdActPos_, 0);
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
 
-  // setpos
-  ret = snprintf(asynParName, sizeof(asynParName), "ax%d.setpos", data_.axisId_);
-
-  if ((ret >= static_cast<int>(sizeof(asynParName))) || (ret <= 0)) {
+  // Set pos
+  charCount = snprintf(buffer,
+                      sizeof(buffer),
+                      ECMC_AX_STR"%d."ECMC_ASYN_AX_SET_POS_NAME,
+                      getAxisID());
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
-
-  status = asynPortDriver_->createParam(asynParName,
-                                        asynParamFloat64,
-                                        &asynParIdSetPos_);
-
-  if (status != asynSuccess) {
-    LOGERR("%s/%s:%d: ERROR: Add default asyn parameter %s failed.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           asynParName);
-    return asynError;
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamFloat64,
+                                         (uint8_t *)&(data_.status_.currentPositionSetpoint),
+                                         sizeof(data_.status_.currentPositionSetpoint),
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  asynPortDriver_->setDoubleParam(asynParIdSetPos_, 0);
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_SET_POS_ID] = paramTemp;
+
+  // Pos error (following error)
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR"%d."ECMC_ASYN_AX_POS_ERR_NAME,
+                       getAxisID());
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamFloat64,
+                                         (uint8_t *)&(data_.status_.positionError),
+                                         sizeof(data_.status_.positionError),
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID] = paramTemp;
+
+  // Diagnostic string (array)
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR"%d."ECMC_ASYN_AX_DIAG_NAME,
+                       getAxisID());
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+  name = buffer;  
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamInt8Array,
+                                         (uint8_t *)diagBuffer_,
+                                         strlen(diagBuffer_),
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
 
   asynPortDriver_->callParamCallbacks();
-  return 0;
-}
-
-int ecmcAxisBase::initDiagAsyn(ecmcAsynPortDriver *asynPortDriver,
-                               bool                regAsynParams,
-                               int                 skipCycles) {
-  asynPortDriverDiag_   = asynPortDriver;
-  updateAsynParamsDiag_ = regAsynParams;
-  asynUpdateCyclesDiag_ = skipCycles;
-
-  if (!regAsynParams) {
-    return 0;
-  }
-
-  if (asynPortDriverDiag_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR: AsynPortDriver object NULL (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           ERROR_AXIS_ASYN_PORT_OBJ_NULL);
-    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
-  }
-
-  char asynParName[1024];
-
-  // Diagnostic string
-  int ret = snprintf(asynParName, sizeof(asynParName), "ax%d.diagnostic", data_.axisId_);
-
-  if ((ret >= 1024) || (ret <= 0)) {
-    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
-  }
-
-  asynStatus status = asynPortDriverDiag_->createParam(asynParName,
-                                                       asynParamInt8Array,
-                                                       &asynParIdDiag_);
-
-  if (status != asynSuccess) {
-    LOGERR("%s/%s:%d: ERROR: Add diagnostic asyn parameter %s failed.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           asynParName);
-    return asynError;
-  }
-
   return 0;
 }
 

@@ -368,8 +368,37 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
   /* Fetch the parameter string name for possible use in debugging */
   getParamName(function, &paramName);
 
+  // Check object
+  if(!pEcmcParamInUseArray_[function]) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter object NULL for function %d (%s).\n",
+            driverName, functionName, function, paramName);
+    return asynError;
+  }
+ 
+  // Check name
+  if(strcmp(paramName,pEcmcParamInUseArray_[function]->getName())!=0) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter name missmatch for function %d (%s != %s).\n",
+            driverName, functionName, function, paramName,pEcmcParamInUseArray_[function]->getName());
+    return asynError;
+  }
+
+  // Check type
+  if(pEcmcParamInUseArray_[function]->getAsynParameterType() != asynParamInt32) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter %s type missmatch for function %d (%s != %s).\n",
+            driverName, functionName, paramName, function,"asynParamInt32",
+            asynTypeToString(pEcmcParamInUseArray_[function]->getAsynParameterType()));
+    return asynError;
+  }
+
+  // Write data
+  pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsInt32));
+
+  
   // Check if error reset
-  if (strcmp(paramName, "ecmc.error.reset") == 0) {
+  /*if (strcmp(paramName, "ecmc.error.reset") == 0) {
     controllerErrorReset();
     return asynSuccess;
   }
@@ -421,11 +450,10 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
               aliasBuffer,
               errorId);
     return asynError;
-  }
+  }*/
 
-  /* Set the parameter in the parameter library. */
-  asynStatus status = (asynStatus)setIntegerParam(function, value);
-
+  // Set the parameter in the parameter library.
+  asynStatus status = setIntegerParam(function, value);
   if (status != asynSuccess) {
     asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:%s: error, setIngerParam() failed.\n",
@@ -433,10 +461,8 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
     return asynError;
   }
 
-  /* Do callbacks so higher layers see any changes */
-  status = (asynStatus)callParamCallbacks();
-
-  return status;
+  // Do callbacks so higher layers see any changes
+  return callParamCallbacks();
 }
 
 asynStatus ecmcAsynPortDriver::writeFloat64(asynUser    *pasynUser,
@@ -684,7 +710,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   int addr=0;
   asynStatus status = getAddress(pasynUser, &addr);
   if (status != asynSuccess){
-    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: getAddress() failed.",driverName, functionName);
+    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: getAddress() failed.\n",driverName, functionName);
     return(status);
   }
 
@@ -702,7 +728,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
 
   status=getRecordInfoFromDrvInfo(drvInfo, newParamInfo);
   if(status!=asynSuccess){
-    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Failed to find record with drvInfo %s.", driverName, functionName,drvInfo);
+    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Failed to find record with drvInfo %s.\n", driverName, functionName,drvInfo);
     return asynError;
   }
 
@@ -714,7 +740,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     // Param not found see if found in available list
     ecmcAsynDataItem * param = findAvailParam(newParamInfo->name);
     if(!param) {
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter %s not found (drvInfo=%s).",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter %s not found (drvInfo=%s).\n",
                 driverName, functionName,newParamInfo->name,drvInfo);
       return asynError;
     }
@@ -737,7 +763,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     // Add parameter to In use list
     status = appendInUseParam(param,0);
     if(status!=asynSuccess) {
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Append parameter %s to in-use list failed.",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Append parameter %s to in-use list failed.\n",
                 driverName, functionName,newParamInfo->name);
       return asynError;
     }
@@ -745,14 +771,14 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     // Create asyn param
     int errorCode=param->createParam();
     if(errorCode) {
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Create parameter %s failed (0x%x).",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Create parameter %s failed (0x%x).\n",
                 driverName, functionName,newParamInfo->name,errorCode);
       return asynError;
     }
 
     // Ensure that parameter index is correct
     if(param->getAsynParameterIndex() != (ecmcParamInUseCount_-1)) {
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter index missmatch for  %s  (%d != %d).",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter index missmatch for  %s  (%d != %d).\n",
                 driverName, functionName,newParamInfo->name,param->getAsynParameterIndex(),ecmcParamInUseCount_-1);
       return asynError;
     }
@@ -770,7 +796,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter index found at: %d for %s.\n",
             driverName, functionName,index,newParamInfo->name);
   if(!pEcmcParamInUseArray_[index]) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s:pAdsParamArray_[%d]==NULL (drvInfo=%s).",
+    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s:pAdsParamArray_[%d]==NULL (drvInfo=%s).\n",
               driverName, functionName,index,drvInfo);
     return asynError;
   }
@@ -794,8 +820,12 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   if(pasynUser->timeout < newParamInfo->sampleTimeMS*2/1000.0) {
     pasynUser->timeout = (newParamInfo->sampleTimeMS*2)/1000;
   }
+  
+  pEcmcParamInUseArray_[index]->refreshParam(1);
+  callParamCallbacks();
 
   existentParInfo->initialized=1;
+
   return asynPortDriver::drvUserCreate(pasynUser,existentParInfo->name,pptypeName,psize);
 }
 
@@ -868,11 +898,20 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
           int adr;
           int timeout;
           char currdrvInfo[ECMC_MAX_FIELD_CHAR_LENGTH];
-          int nvals=sscanf(paramInfo->inp,"@asyn(%[^,],%d,%d)%s",port,&adr,&timeout,currdrvInfo);
+          int nvals=sscanf(paramInfo->inp,ECMC_ASYN_INP_FORMAT,port,&adr,&timeout,currdrvInfo);
           if(nvals==4){
             // Ensure correct port and drvinfo
             if(strcmp(port,portName)==0 && strcmp(drvInfo,currdrvInfo)==0){
               recordFound=true;  // Correct port and drvinfo!\n");
+            }
+          } else {
+            int mask=0;
+            nvals=sscanf(paramInfo->inp,ECMC_ASYN_MASK_INP_FORMAT,port,&adr,&mask,&timeout,currdrvInfo);
+            if(nvals==5){
+              // Ensure correct port and drvinfo
+              if(strcmp(port,portName)==0 && strcmp(drvInfo,currdrvInfo)==0){
+                recordFound=true;  // Correct port and drvinfo!\n");
+              }
             }
           }
         }
@@ -887,11 +926,20 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
           int adr;
           int timeout;
           char currdrvInfo[ECMC_MAX_FIELD_CHAR_LENGTH];
-          int nvals=sscanf(paramInfo->out,"@asyn(%[^,],%d,%d)%s",port,&adr,&timeout,currdrvInfo);
+          int nvals=sscanf(paramInfo->out,ECMC_ASYN_INP_FORMAT,port,&adr,&timeout,currdrvInfo);
           if(nvals==4){
             // Ensure correct port and drvinfo
             if(strcmp(port,portName)==0 && strcmp(drvInfo,currdrvInfo)==0){
               recordFound=true;  // Correct port and drvinfo!\n");
+            }
+          } else {
+            int mask=0;
+            nvals=sscanf(paramInfo->inp,ECMC_ASYN_MASK_INP_FORMAT,port,&adr,&mask,&timeout,currdrvInfo);
+            if(nvals==5){
+              // Ensure correct port and drvinfo
+              if(strcmp(port,portName)==0 && strcmp(drvInfo,currdrvInfo)==0){
+                recordFound=true;  // Correct port and drvinfo!\n");
+              }
             }
           }
         }
@@ -1131,6 +1179,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
     fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false"); 
     fprintf(fp,"    ECMC size [bytes]:         %d\n",paramInfo->ecmcSize); 
     fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
+    fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");      
     fprintf(fp,"\n");
     return;
   }
@@ -1142,12 +1191,13 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param asyn addr:           %d\n",paramInfo->asynAddr);
   fprintf(fp,"    Param time source:         %s\n",(paramInfo->timeBase==ECMC_TIME_BASE_ECMC) ? ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
   fprintf(fp,"    Param epics time:          %us:%uns\n",paramInfo->epicsTimestamp.secPastEpoch,paramInfo->epicsTimestamp.nsec);
-  fprintf(fp,"    Param array buffer size:   %lu\n",paramInfo->arrayDataBufferSize);
+  //fprintf(fp,"    Param array buffer size:   %lu\n",paramInfo->arrayDataBufferSize);
   fprintf(fp,"    Param alarm:               %d\n",paramInfo->alarmStatus);
-  fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);      
-  fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");            
-  fprintf(fp,"    ECMC size [bytes]:         %d\n",paramInfo->ecmcSize); 
-  fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
+  fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
+  fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");
+  fprintf(fp,"    ECMC size [bytes]:         %d\n",paramInfo->ecmcSize);
+  fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
+  fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
   fprintf(fp,"    Record name:               %s\n",paramInfo->recordName);
   fprintf(fp,"    Record type:               %s\n",paramInfo->recordType);
   fprintf(fp,"    Record dtyp:               %s\n",paramInfo->dtyp);      

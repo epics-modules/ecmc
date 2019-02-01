@@ -1180,6 +1180,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_AL_STATE_ID] = paramTemp;
 
@@ -1209,6 +1210,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_LINK_ID] = paramTemp;
 
@@ -1274,6 +1276,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_STAT_ID] = paramTemp;
 
@@ -1307,6 +1310,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID] = paramTemp;
 
@@ -1341,6 +1345,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID] = paramTemp;
 
@@ -1374,6 +1379,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_ID] = paramTemp;
 
@@ -1407,6 +1413,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER__TOT_ID] = paramTemp;
 
@@ -1440,6 +1447,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID] = paramTemp;
 

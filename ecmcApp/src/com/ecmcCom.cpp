@@ -167,7 +167,7 @@ int ecmcInitAsyn(void *asynPortObject) {
   return 0;
 }*/
 
-int addDefaultAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
+/*int addDefaultAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
   LOGINFO4("%s/%s:%d regAsynParams=%d axisIndex=%d skipCycles=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -213,7 +213,7 @@ int addDiagAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
 
   // Array so updated in axis base object
   return axes[axisIndex]->initDiagAsyn(asynPort, regAsynParams, skipCycles);
-}
+}*/
 
 int ecmcAddDefaultAsynParams() {
   LOGINFO4("%s/%s:%d\n",
@@ -248,6 +248,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID] = paramTemp;
 
@@ -267,6 +268,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MAX_ID] = paramTemp;
 
@@ -286,6 +288,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MIN_ID] = paramTemp;
 
@@ -305,6 +308,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MAX_ID] = paramTemp;
 
@@ -324,6 +328,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_ID] = paramTemp;
 
@@ -343,6 +348,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_ID] = paramTemp;
 
@@ -362,6 +368,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MIN_ID] = paramTemp;
 
@@ -381,6 +388,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MAX_ID] = paramTemp;
 
@@ -400,6 +408,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID] = paramTemp;  
 
@@ -419,6 +428,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID] = paramTemp;
 
@@ -438,6 +448,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_RESET_ID] = paramTemp;  
 
@@ -457,6 +468,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID] = paramTemp;
 

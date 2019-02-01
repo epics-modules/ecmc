@@ -2365,7 +2365,7 @@ int createAxis(int index, int type) {
       if (axes[index] != NULL) {
         delete axes[index];
       }
-      axes[index] = new ecmcAxisReal(index, 1 / MCU_FREQUENCY);
+      axes[index] = new ecmcAxisReal(asynPort, index, 1 / MCU_FREQUENCY);
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:
@@ -2373,7 +2373,7 @@ int createAxis(int index, int type) {
       if (axes[index] != NULL) {
         delete axes[index];
       }
-      axes[index] = new ecmcAxisVirt(index, 1 / MCU_FREQUENCY);
+      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / MCU_FREQUENCY);
       break;
 
     default:

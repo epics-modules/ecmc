@@ -33,6 +33,7 @@ public:
   int refreshParamRT(int force);
   int refreshParamRT(int force, size_t bytes);
   int refreshParamRT(int force, uint8_t *data, size_t bytes);
+  int writeParam(uint8_t *data, size_t bytes);
   int createParam();
   int createParam(const char *paramName,asynParamType asynParType);
   int createParam(const char *paramName,asynParamType asynParType, uint8_t *data,size_t bytes);
@@ -50,6 +51,9 @@ public:
   bool asynTypeSupported(asynParamType type);
   int getSupportedAsynTypeCount();
   asynParamType getSupportedAsynType(int index);
+  void allowWriteToEcmc(bool allowWrite);
+  bool writeToEcmcAllowed();
+  bool willRefreshNext();
   
 private:
   ecmcAsynPortDriver *asynPortDriver_;
@@ -58,8 +62,9 @@ private:
   size_t bytes_;
   ecmcParamInfo *paramInfo_;
   bool validated_;
+  bool allowWriteToEcmc_;
   asynParamType supportedTypes_[ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT];
-  int supoortedTypesCounter_;
+  int supportedTypesCounter_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

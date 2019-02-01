@@ -20,7 +20,9 @@
 class ecmcAxisVirt: public ecmcAxisBase
 {
 public:
-  ecmcAxisVirt(int axisID, double sampleTime);
+  ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
+               int axisID,
+               double sampleTime);
   ~ecmcAxisVirt();
   void execute(bool masterOK);
   int setOpMode(operationMode mode);

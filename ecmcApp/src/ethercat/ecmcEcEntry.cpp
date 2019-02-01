@@ -533,8 +533,8 @@ int ecmcEcEntry::initAsyn() {
   name = buffer;
   entryAsynParam_ = asynPortDriver_->addNewAvailParam(name,
                                     asynParamInt32,  //default type
-                                    (uint8_t *)&(tempAsynValue_), //Not used
-                                    sizeof(tempAsynValue_),//Not used..
+                                    (uint8_t *)&(value_), //Not used
+                                    sizeof(value_),//Not used..
                                     0);
   if(!entryAsynParam_) {
     LOGERR(
@@ -550,7 +550,7 @@ int ecmcEcEntry::initAsyn() {
   entryAsynParam_->addSupportedAsynType(asynParamInt32);
   entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
   entryAsynParam_->addSupportedAsynType(asynParamFloat64);
-
+  entryAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT);
   entryAsynParam_->refreshParam(1);
   asynPortDriver_->callParamCallbacks();
 

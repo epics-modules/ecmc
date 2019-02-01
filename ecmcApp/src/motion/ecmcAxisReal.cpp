@@ -7,9 +7,12 @@
 
 #include "ecmcAxisReal.h"
 
-ecmcAxisReal::ecmcAxisReal(int axisID, double sampleTime) :  ecmcAxisBase(
-    axisID,
-    sampleTime) {
+ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
+                           int axisID,
+                           double sampleTime) :  
+              ecmcAxisBase(asynPortDriver,
+                           axisID,
+                           sampleTime) {
   PRINT_ERROR_PATH("axis[%d].error", axisID);
   initVars();
   data_.axisId_     = axisID;

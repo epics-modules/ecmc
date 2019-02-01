@@ -23,7 +23,8 @@
 #define ECMC_OPTION_TYPE "TYPE"
 
 #define ECMC_ASYN_PAR_OCTET_NAME "ecmc.asynoctet"
-
+#define ECMC_ASYN_INP_FORMAT "@asyn(%[^,],%d,%d)%s"
+#define ECMC_ASYN_MASK_INP_FORMAT "@asynMask(%[^,],%d,%x,%d)%s"
 typedef enum{
   ECMC_TIME_BASE_ECMC=0,
   ECMC_TIME_BASE_EPICS=1,
