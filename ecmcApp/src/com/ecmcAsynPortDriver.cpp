@@ -59,7 +59,7 @@ static void getEpicsState(initHookState state)
     case initHookAfterIocRunning:
       allowCallbackEpicsState=1;
       rate = ecmcAsynPortObj->calcFastestUpdateRate();
-      ecmcAsynPortObj->setAllowRtThreadCom(1);
+      //ecmcAsynPortObj->setAllowRtThreadCom(1);
       asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: EPICS CALC FASTEST UPDATE RATE : %d.\n", driverName, functionName,rate);
       //make all callbacks if data arrived from callback before interrupts were registered (before allowCallbackEpicsState==1)
       /*if(!ecmcAsynPortObj){

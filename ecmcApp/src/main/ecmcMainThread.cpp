@@ -465,16 +465,16 @@ int setAppModeRun(int mode) {
       axes[i]->setRealTimeStarted(true);
     }
   }
-  errorCode = waitForEtherCATtoStart(30);
+  errorCode = waitForEtherCATtoStart(EC_START_TIMEOUT_S);
 
   if (errorCode) {
     return errorCode;
   }
   appModeStat = ECMC_MODE_RUNTIME;
 
-  /*if (asynPort) {
+  if (asynPort) {
     asynPort->setAllowRtThreadCom(true);  // Set by epics state hooks
-  }*/
+  }
 
   return 0;
 }

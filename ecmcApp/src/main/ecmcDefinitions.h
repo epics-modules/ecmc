@@ -48,6 +48,8 @@
 #define EC_MAX_ENTRIES 8192
 #define EC_MAX_MEM_MAPS 16
 #define EC_MAX_SLAVES 512
+#define EC_START_TIMEOUT_S 30
+
 
 // EC entry links
 #define ECMC_EC_ENTRY_INDEX_HEALTH 0
