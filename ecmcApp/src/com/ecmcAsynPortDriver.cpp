@@ -281,6 +281,7 @@ asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser,
   size_t thisRead   = 0;
   int    reason     = 0;
   asynStatus status = asynSuccess;
+  //int function = pasynUser->reason;
 
   /*
    * Feed what writeIt() gave us into the MCU
@@ -308,7 +309,8 @@ asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser,
       status = asynTimeout;
     }
   } else {
-    printf("FAIL");
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+            "%s FAIL in ecmcAsynPortDriver::readOctet.\n", portName);
   }
 
   if (eomReason) *eomReason = reason;
@@ -321,6 +323,7 @@ asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser,
             value);
 
   // unlock();
+
   return status;
 }
 
@@ -328,6 +331,8 @@ asynStatus ecmcAsynPortDriver::writeOctet(asynUser   *pasynUser,
                                           const char *value,
                                           size_t      maxChars,
                                           size_t     *nActual) {
+
+  //int function = pasynUser->reason;
   size_t thisWrite  = 0;
   asynStatus status = asynError;
 
@@ -880,10 +885,11 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
   pdbentry = dbAllocEntry(pdbbase);
   long status = dbFirstRecordType(pdbentry);
   bool recordFound=false;
-  if(status) {
+  if(status || !paramInfo) {
     dbFreeEntry(pdbentry);
     return asynError;
   }
+
   while(!status) {
     paramInfo->recordType=strdup(dbGetRecordTypeName(pdbentry));
     status = dbFirstRecord(pdbentry);
@@ -893,6 +899,7 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
         status=dbFindField(pdbentry,"INP");
         if(!status){
           paramInfo->inp=strdup(dbGetString(pdbentry));
+
           isInput=true;
           char port[ECMC_MAX_FIELD_CHAR_LENGTH];
           int adr;
@@ -934,7 +941,7 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
             }
           } else {
             int mask=0;
-            nvals=sscanf(paramInfo->inp,ECMC_ASYN_MASK_INP_FORMAT,port,&adr,&mask,&timeout,currdrvInfo);
+            nvals=sscanf(paramInfo->out,ECMC_ASYN_MASK_INP_FORMAT,port,&adr,&mask,&timeout,currdrvInfo);
             if(nvals==5){
               // Ensure correct port and drvinfo
               if(strcmp(port,portName)==0 && strcmp(drvInfo,currdrvInfo)==0){
@@ -985,12 +992,14 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
       status = dbNextRecord(pdbentry);
       free(paramInfo->recordName);
       paramInfo->recordName=0;
+      recordFound = false;
     }
     status = dbNextRecordType(pdbentry);
     free(paramInfo->recordType);
     paramInfo->recordType=0;
   }
-  dbFreeEntry(pdbentry);
+  dbFreeEntry(pdbentry);  
+
   return asynError;
 }
 
