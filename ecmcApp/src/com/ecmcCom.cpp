@@ -216,7 +216,182 @@ int addDiagAsynAxis(int regAsynParams, int axisIndex, int skipCycles) {
   return axes[axisIndex]->initDiagAsyn(asynPort, regAsynParams, skipCycles);
 }*/
 
+#define ECMC_TEST_ASYN_ARRAY_ELEMENT_SIZE 128
+ecmcAsynDataItem   *testAsynParams[10];
+double  testDouble = 0;
+int32_t testInt32 = 0;
+int8_t  testInt8Array[ECMC_TEST_ASYN_ARRAY_ELEMENT_SIZE];
+int16_t testInt16Array[ECMC_TEST_ASYN_ARRAY_ELEMENT_SIZE];
+int32_t testInt32Array[ECMC_TEST_ASYN_ARRAY_ELEMENT_SIZE];
+float   testFloatArray[ECMC_TEST_ASYN_ARRAY_ELEMENT_SIZE];
+double  testDoubleArray[ECMC_TEST_ASYN_ARRAY_ELEMENT_SIZE];
+
+int ecmcAddTestParams() {
+
+  const char * name;
+  //Initilaize test data area
+  memset(testInt8Array,0,sizeof(testInt8Array));
+  memset(testInt16Array,0,sizeof(testInt16Array));
+  memset(testInt32Array,0,sizeof(testInt32Array));
+  memset(testFloatArray,0,sizeof(testFloatArray));
+  memset(testDoubleArray,0,sizeof(testDoubleArray));
+  
+  // Test int 32
+  name = "ecmc.test.int32";
+  ecmcAsynDataItem *paramTemp=NULL;
+  paramTemp = asynPort->addNewAvailParam(name,
+                                           asynParamInt32,
+                                           (uint8_t *)&(testInt32),
+                                           sizeof(testInt32),
+                                           0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  testAsynParams[0] = paramTemp;
+
+  // Test double
+  name = "ecmc.test.double";
+  paramTemp=NULL;
+  paramTemp = asynPort->addNewAvailParam(name,
+                                           asynParamFloat64,
+                                           (uint8_t *)&(testDouble),
+                                           sizeof(testDouble),
+                                           0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  testAsynParams[1] = paramTemp;
+
+  // Test int8 array (string)
+  name = "ecmc.test.int8array";
+  paramTemp=NULL;
+  paramTemp = asynPort->addNewAvailParam(name,
+                                           asynParamInt8Array,
+                                           (uint8_t *)testInt8Array,
+                                           sizeof(testInt8Array),
+                                           0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  testAsynParams[2] = paramTemp;
+
+  // Test int16 array
+  name = "ecmc.test.int16array";
+  paramTemp=NULL;
+  paramTemp = asynPort->addNewAvailParam(name,
+                                           asynParamInt16Array,
+                                           (uint8_t *)testInt16Array,
+                                           sizeof(testInt16Array),
+                                           0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  testAsynParams[3] = paramTemp;
+
+  // Test int32 array
+  name = "ecmc.test.int32array";
+  paramTemp=NULL;
+  paramTemp = asynPort->addNewAvailParam(name,
+                                           asynParamInt32Array,
+                                           (uint8_t *)testInt32Array,
+                                           sizeof(testInt32Array),
+                                           0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  testAsynParams[4] = paramTemp;
+
+  // Test float array
+  name = "ecmc.test.float32array";
+  paramTemp=NULL;
+  paramTemp = asynPort->addNewAvailParam(name,
+                                           asynParamFloat32Array,
+                                           (uint8_t *)testFloatArray,
+                                           sizeof(testFloatArray),
+                                           0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  testAsynParams[5] = paramTemp;
+
+  // Test double array
+  name = "ecmc.test.double64array";
+  paramTemp=NULL;
+  paramTemp = asynPort->addNewAvailParam(name,
+                                           asynParamFloat64Array,
+                                           (uint8_t *)testDoubleArray,
+                                           sizeof(testDoubleArray),
+                                           0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  testAsynParams[6] = paramTemp;
+
+  return 0;
+}
+
 int ecmcAddDefaultAsynParams() {
+
+  // Add test params
+
+  ecmcAddTestParams();
+
   LOGINFO4("%s/%s:%d\n",
            __FILE__,
            __FUNCTION__,
@@ -469,8 +644,7 @@ int ecmcAddDefaultAsynParams() {
       __LINE__,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  printf("controllerErrorMsg%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  %s\n",controllerErrorMsg);
+  }  
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
   mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID] = paramTemp;

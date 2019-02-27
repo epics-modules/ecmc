@@ -39,8 +39,8 @@ ecmcEcSlave::ecmcEcSlave(
                                    (uint8_t)32,
                                    &simBuffer_[8],
                                    "ONE");
-  simEntries_[0]->writeValue(0);  // ALways 0
-  simEntries_[1]->writeValue(0xFFFFFFFF);  // Always 1 (all 32 bits)
+  simEntries_[0]->writeValue(0);  // Default 0
+  simEntries_[1]->writeValue(0x7FFFFFFF);  // Default 1 (31 bits (not sign bit for int))
 
   if ((alias == 0) && (position == 0) && (vendorId == 0) &&
       (productCode == 0)) {

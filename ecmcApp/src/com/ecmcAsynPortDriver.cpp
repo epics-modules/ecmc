@@ -299,7 +299,6 @@ asynStatus ecmcAsynPortDriver::readOctet(asynUser *pasynUser,
 
     /* May be not enough space ? */
 
-    // printf("readOctet: thisread: %d\n",thisRead);
     if (thisRead > maxChars - 1) {
       reason |= ASYN_EOM_CNT;
     } else {
@@ -401,7 +400,6 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
 
   // Write data
   pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsInt32));
-
   
   // Special case commands
   if (strcmp(paramName, ECMC_ASYN_MAIN_PAR_RESET_NAME) == 0  && value>0) {
@@ -430,7 +428,7 @@ asynStatus ecmcAsynPortDriver::writeFloat64(asynUser    *pasynUser,
   /* Fetch the parameter string name for possible use in debugging */
   getParamName(function, &paramName);
 
-  char  buffer[1024];
+  /*char  buffer[1024];
   char *aliasBuffer   = &buffer[0];
   int   slavePosition = -10;
   int   masterIndex   = 0;
@@ -476,7 +474,38 @@ asynStatus ecmcAsynPortDriver::writeFloat64(asynUser    *pasynUser,
               aliasBuffer,
               errorId);
     return asynError;
+  }*/
+
+   /* Fetch the parameter string name for possible use in debugging */
+  getParamName(function, &paramName);
+
+  // Check object
+  if(!pEcmcParamInUseArray_[function]) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter object NULL for function %d (%s).\n",
+            driverName, functionName, function, paramName);
+    return asynError;
   }
+ 
+  // Check name
+  if(strcmp(paramName,pEcmcParamInUseArray_[function]->getName())!=0) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter name missmatch for function %d (%s != %s).\n",
+            driverName, functionName, function, paramName,pEcmcParamInUseArray_[function]->getName());
+    return asynError;
+  }
+
+  // Check type
+  if(pEcmcParamInUseArray_[function]->getAsynParameterType() != asynParamFloat64) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter %s type missmatch for function %d (%s != %s).\n",
+            driverName, functionName, paramName, function,"asynParamFloat64",
+            asynTypeToString(pEcmcParamInUseArray_[function]->getAsynParameterType()));
+    return asynError;
+  }
+
+  // Write data
+  pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsFloat64));
 
   /* Set the parameter in the parameter library. */
   asynStatus status = (asynStatus)setDoubleParam(function, value);
