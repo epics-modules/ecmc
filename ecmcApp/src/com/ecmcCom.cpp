@@ -1,5 +1,6 @@
 
 #include "ecmcCom.h"
+#include "ecmcGeneral.h"
 
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
@@ -453,6 +454,7 @@ int ecmcAddDefaultAsynParams() {
   mainAsynParams[ECMC_ASYN_MAIN_PAR_RESET_ID] = paramTemp;  
 
   // ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME
+  controllerErrorMsg=getErrorString(controllerError);
   name = ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME;
   paramTemp = asynPort->addNewAvailParam(name,
                                            asynParamInt8Array,
@@ -468,8 +470,9 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+  printf("controllerErrorMsg%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  %s\n",controllerErrorMsg);
   paramTemp->allowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
+  paramTemp->refreshParam(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
   mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID] = paramTemp;
 
   return 0;

@@ -50,51 +50,51 @@ void printStatus() {
   }
 }
 
-void updateAsynParams() {
+void updateAsynParams(int force) {
 
   if(!asynPort->getAllowRtThreadCom()){
     return;
   }
 
-  int errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID]->refreshParamRT(0);
+  int errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID]->refreshParamRT(force);
   if(errorCode==0){ //Reset after successfull write      
     threadDiag.latency_min_ns  = 0xffffffff;
   }
-  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MAX_ID]->refreshParamRT(0);
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MAX_ID]->refreshParamRT(force);
   if(errorCode==0){
     threadDiag.latency_max_ns  = 0;
   }
-  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MIN_ID]->refreshParamRT(0);
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MIN_ID]->refreshParamRT(force);
   if(errorCode==0){
     threadDiag.period_min_ns  = 0xffffffff;
   }
-  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MAX_ID]->refreshParamRT(0);
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MAX_ID]->refreshParamRT(force);
   if(errorCode==0){
     threadDiag.period_max_ns  = 0;
   }
-  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_ID]->refreshParamRT(0);
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_ID]->refreshParamRT(force);
   if(errorCode==0){
     threadDiag.exec_min_ns  = 0xffffffff;
   }
-  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_ID]->refreshParamRT(0);
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_ID]->refreshParamRT(force);
   if(errorCode==0){
     threadDiag.exec_max_ns  = 0;
   }
-  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MIN_ID]->refreshParamRT(0);
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MIN_ID]->refreshParamRT(force);
   if(errorCode==0){
     threadDiag.send_min_ns  = 0xffffffff;
   }    
-  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MAX_ID]->refreshParamRT(0);
+  errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MAX_ID]->refreshParamRT(force);
   if(errorCode==0){
     threadDiag.send_max_ns  = 0;    
   }
   
-  controllerErrorOld=controllerError;
-  controllerError=getControllerError();
-  if(controllerErrorOld!=controllerError) { // update on change
-    controllerErrorMsg=getErrorString(controllerError);
+  controllerErrorOld = controllerError;
+  controllerError = getControllerError();
+  if(controllerErrorOld != controllerError || force) { // update on change
+    controllerErrorMsg = getErrorString(controllerError);
     errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID]->refreshParamRT(1);
-    errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID]->refreshParamRT(1,strlen(controllerErrorMsg));
+    errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID]->refreshParamRT(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
   }
 
   // Asyn callbacks for all parameters (except arrays)
@@ -309,7 +309,7 @@ void cyclic_task(void *usr) {
       }
     }
 
-    updateAsynParams();
+    updateAsynParams(0);
 
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
     ec.send(masterActivationTimeOffset);

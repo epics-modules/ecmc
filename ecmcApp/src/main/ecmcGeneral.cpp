@@ -70,7 +70,7 @@ int getControllerError() {
 
 int controllerErrorReset() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-
+  int errorCodeBackup=getControllerError();
   // EtherCAT errors
   ec.errorReset();
 
@@ -113,7 +113,13 @@ int controllerErrorReset() {
   if (plcs) {
     plcs->errorReset();
   }
-
+  
+  if(errorCodeBackup!=getControllerError()) {
+    controllerErrorMsg=getErrorString(controllerError);
+    mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID]->refreshParamRT(1);
+    mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID]->refreshParamRT(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
+  }
+  
   return 0;
 }
 

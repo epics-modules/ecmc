@@ -67,6 +67,7 @@ static void getEpicsState(initHookState state)
         return;
       }
       ecmcAsynPortObj->fireAllCallbacksLock();*/
+      updateAsynParams(1);
       break;
     default:
       break;
@@ -402,60 +403,10 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
   pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsInt32));
 
   
-  // Check if error reset
-  /*if (strcmp(paramName, "ecmc.error.reset") == 0) {
-    controllerErrorReset();
-    return asynSuccess;
+  // Special case commands
+  if (strcmp(paramName, ECMC_ASYN_MAIN_PAR_RESET_NAME) == 0  && value>0) {
+    controllerErrorReset();    
   }
-
-  char  buffer[1024];
-  char *aliasBuffer   = &buffer[0];
-  int   slavePosition = -10;
-  int   masterIndex   = 0;
-  int   nvals         = sscanf(paramName,
-                               "ec%d.s%d.%s",
-                               &masterIndex,
-                               &slavePosition,
-                               aliasBuffer);
-
-  if (nvals != 3) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:%s: error, parameter name not valid: %s.\n",
-              driverName, functionName, paramName);
-    return asynError;
-  }
-
-  if (slavePosition < -1) {
-    asynPrint(pasynUser,
-              ASYN_TRACE_ERROR,
-              "%s:%s: error, slave bus position not valid (needs to be equal or larger than -1): %d.\n",
-              driverName,
-              functionName,
-              slavePosition);
-    return asynError;
-  }
-
-  if (strlen(aliasBuffer) <= 0) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:%s: error, ethercat slave alias not valid: %s.\n",
-              driverName, functionName, aliasBuffer);
-    return asynError;
-  }
-
-  int errorId = writeEcEntryIDString(slavePosition,
-                                     aliasBuffer,
-                                     (uint64_t)value);
-
-  if (errorId) {
-    asynPrint(pasynUser,
-              ASYN_TRACE_ERROR,
-              "%s:%s: error, write of parameter %s failed with error code 0x%x.\n",
-              driverName,
-              functionName,
-              aliasBuffer,
-              errorId);
-    return asynError;
-  }*/
 
   // Set the parameter in the parameter library.
   asynStatus status = setIntegerParam(function, value);

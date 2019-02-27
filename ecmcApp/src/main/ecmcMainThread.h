@@ -44,6 +44,14 @@ int ecmcInit(void);
  */
 int setAppMode(int mode);
 
+/** \breif Update main asyn parameters
+ *
+ * \param[in] force Force update\n
+ *
+ */
+
+void updateAsynParams(int force);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus
