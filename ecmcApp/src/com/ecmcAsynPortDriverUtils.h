@@ -40,37 +40,6 @@ typedef enum{
   ECMC_SOURCE_MAX
 } ECMC_SOURCE;
 
-typedef struct ecmcParamInfo{
-  char           *recordName;
-  char           *recordType;
-  char           *scan;
-  char           *dtyp;
-  char           *inp;
-  char           *out;
-  char           *drvInfo;
-  int            initialized;
-  asynParamType  asynType;
-  char*          asynTypeStr;
-  asynUser       *pasynUser;
-  int            asynAddr;
-  bool           isIOIntr;
-  double         sampleTimeMS;    // milli seconds
-  int32_t        sampleTimeCycles;  // milli seconds
-  int            index;      // also used as hUser for ads callback
-  char           *name;
-  uint32_t       ecmcSize;
-  uint32_t       ecmcDataType;
-  bool           ecmcDataIsArray;
-  size_t         arrayDataBufferSize;
-  int            ecmcDataPointerValid;
-  ECMCTIMESOURCE timeBase;
-  uint64_t       timeStampRaw;
-  epicsTimeStamp epicsTimestamp;
-  int            alarmStatus;
-  int            alarmSeverity;
-  bool           refreshNeeded;
-}ecmcParamInfo;
-
 const char *asynTypeToString(long type);
 const char *epicsStateToString(int state);
 asynParamType stringToAsynType(char *typeStr);

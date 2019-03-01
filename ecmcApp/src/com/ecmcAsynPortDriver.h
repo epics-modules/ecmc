@@ -30,22 +30,37 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                 epicsInt32 value);
   virtual asynStatus writeFloat64(asynUser    *pasynUser,
                                   epicsFloat64 value);
+  virtual asynStatus writeInt8Array(asynUser *pasynUser,
+                                    epicsInt8 *value,
+                                    size_t nElements);
   virtual asynStatus readInt8Array(asynUser  *pasynUser,
                                    epicsInt8 *value,
                                    size_t     nElements,
                                    size_t    *nIn);
+  virtual asynStatus writeInt16Array(asynUser *pasynUser,
+                                     epicsInt16 *value,
+                                     size_t nElements);
   virtual asynStatus readInt16Array(asynUser   *pasynUser,
                                     epicsInt16 *value,
                                     size_t      nElements,
                                     size_t     *nIn);
+  virtual asynStatus writeInt32Array(asynUser *pasynUser,
+                                     epicsInt32 *value,
+                                     size_t nElements);
   virtual asynStatus readInt32Array(asynUser   *pasynUser,
                                     epicsInt32 *value,
                                     size_t      nElements,
                                     size_t     *nIn);
+  virtual asynStatus writeFloat32Array(asynUser *pasynUser,
+                                       epicsFloat32 *value,
+                                       size_t nElements);
   virtual asynStatus readFloat32Array(asynUser     *pasynUser,
                                       epicsFloat32 *value,
                                       size_t        nElements,
                                       size_t       *nIn);
+  virtual asynStatus writeFloat64Array(asynUser *pasynUser,
+                                       epicsFloat64 *value,
+                                       size_t nElements);
   virtual asynStatus readFloat64Array(asynUser     *pasynUser,
                                       epicsFloat64 *value,
                                       size_t        nElements,
@@ -66,6 +81,8 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                      bool dieIfFail);
    int32_t getFastestUpdateRate();
    int32_t calcFastestUpdateRate();
+   void    refreshAllInUseParamsRT();
+
  private:
   int readArrayGeneric(asynUser   *pasynUser,
                        epicsUInt8 *value,
@@ -73,6 +90,10 @@ class ecmcAsynPortDriver : public asynPortDriver {
                        size_t     *nIn,
                        size_t      typeSize,
                        const char *functionName);
+  asynStatus writeArrayGeneric(asynUser *pasynUser,
+                              asynParamType allowedType,
+                              const void *epicsDataBuffer,
+                              size_t nEpicsBufferBytes);                       
   void initVars();
   asynStatus validateDrvInfo(const char *drvInfo);
   asynStatus getRecordInfoFromDrvInfo(const char *drvInfo,

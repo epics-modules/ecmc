@@ -235,6 +235,14 @@ int ecmcAddTestParams() {
   memset(testInt32Array,0,sizeof(testInt32Array));
   memset(testFloatArray,0,sizeof(testFloatArray));
   memset(testDoubleArray,0,sizeof(testDoubleArray));
+
+  for(int i=0;i < ECMC_TEST_ASYN_ARRAY_ELEMENT_SIZE; i++) {
+    testInt8Array[i] = i;
+    testInt16Array[i] = i*2;
+    testInt32Array[i] = i*3;
+    testFloatArray[i] = i*4;
+    testDoubleArray[i] = i*5;  
+  }
   
   // Test int 32
   name = "ecmc.test.int32";

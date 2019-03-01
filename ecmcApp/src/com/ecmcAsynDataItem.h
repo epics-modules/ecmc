@@ -19,6 +19,36 @@
 
 class ecmcAsynPortDriver;  //Include in cpp
 
+typedef struct ecmcParamInfo{
+  char           *recordName;
+  char           *recordType;
+  char           *scan;
+  char           *dtyp;
+  char           *inp;
+  char           *out;
+  char           *drvInfo;
+  int            initialized;
+  asynParamType  asynType;
+  char*          asynTypeStr;
+  asynUser       *pasynUser;
+  int            asynAddr;
+  bool           isIOIntr;
+  double         sampleTimeMS;      // milli seconds
+  int32_t        sampleTimeCycles;  // milli seconds
+  int            index;             // also used as hUser for ads callback
+  char           *name;
+  uint32_t       ecmcSize;          // Last refresh
+  uint32_t       ecmcMaxSize;       // Max buffer size
+  bool           ecmcDataIsArray;
+  int            ecmcDataPointerValid;
+  ECMCTIMESOURCE timeBase;
+  uint64_t       timeStampRaw;
+  epicsTimeStamp epicsTimestamp;
+  int            alarmStatus;
+  int            alarmSeverity;
+  bool           refreshNeeded;
+}ecmcParamInfo;
+
 class ecmcAsynDataItem
 {
 public:
@@ -54,7 +84,10 @@ public:
   void allowWriteToEcmc(bool allowWrite);
   bool writeToEcmcAllowed();
   bool willRefreshNext();
-  
+  asynStatus setAlarmParam(int alarm,int severity);
+  int getAlarmStatus();
+  int getAlarmSeverity();
+
 private:
   ecmcAsynPortDriver *asynPortDriver_;
   int asynUpdateCycleCounter_;

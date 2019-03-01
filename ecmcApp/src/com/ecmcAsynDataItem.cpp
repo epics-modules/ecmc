@@ -40,6 +40,7 @@ int ecmcAsynDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)
 {
   data_=data;
   paramInfo_->ecmcSize=bytes;
+  paramInfo_->ecmcMaxSize=bytes;
   paramInfo_->ecmcDataPointerValid =  data && bytes>0;
   return 0;
 }
@@ -88,9 +89,9 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     return 0;
   }
 
-   if(!validated_) {
-     return ERROR_ASYN_PARAM_NOT_VALIDATED;
-   }
+  if(!validated_) {
+    return ERROR_ASYN_PARAM_NOT_VALIDATED;
+  }
 
   if(asynUpdateCycleCounter_< paramInfo_->sampleTimeCycles-1 && !force){ //Only update at desired samplerate
     asynUpdateCycleCounter_++;
@@ -100,21 +101,25 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
   if(data==0 || bytes<0){
     return ERROR_ASYN_DATA_NULL;
   }
-  
-  data_=data;
-  paramInfo_->ecmcSize=bytes;
 
+  if(bytes > paramInfo_->ecmcMaxSize) {
+    bytes = paramInfo_->ecmcMaxSize;
+  }
+
+  data_=data;
+  paramInfo_->ecmcSize=bytes;  //Last refresh size
+ 
   switch(paramInfo_->asynType){
     case asynParamUInt32Digital:
       asynPortDriver_->setUIntDigitalParam(paramInfo_->index,*((epicsInt32*)data),0xFFFFFFFF);
       break;
-    case asynParamInt32:      
+    case asynParamInt32:
       asynPortDriver_->setIntegerParam(paramInfo_->index,*((epicsInt32*)data));
       break;
     case asynParamFloat64:
       asynPortDriver_->setDoubleParam(paramInfo_->index,*((epicsFloat64*)data));
       break;
-    case asynParamInt8Array:      
+    case asynParamInt8Array:
       asynPortDriver_->doCallbacksInt8Array((epicsInt8*)data,bytes, paramInfo_->index, 0);
       break;
     case asynParamInt16Array:
@@ -276,8 +281,8 @@ int ecmcAsynDataItem::writeParam(uint8_t *dataToWrite, size_t bytes) {
   }
   
   int bytesToWrite=bytes;
-  if(bytes > paramInfo_->ecmcSize) {
-    bytesToWrite = paramInfo_->ecmcSize;
+  if(bytes > paramInfo_->ecmcMaxSize) {
+    bytesToWrite = paramInfo_->ecmcMaxSize;
   }
   
   //Need to check type...
@@ -288,4 +293,75 @@ int ecmcAsynDataItem::writeParam(uint8_t *dataToWrite, size_t bytes) {
 
 bool ecmcAsynDataItem::willRefreshNext() {
   return asynUpdateCycleCounter_>= paramInfo_->sampleTimeCycles-2;
+}
+
+
+/** Set parameter alarm state.
+ *
+ * \param[in] paramInfo Parameter information.
+ * \param[in] alarm Alarm type (EPICS def).
+ * \param[in] severity Alarm severity (EPICS def).
+ *
+ * \return asynSuccess or asynError.
+ */
+asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
+{
+  asynStatus stat;
+  int oldAlarmStatus=0;
+  stat = asynPortDriver_->getParamAlarmStatus(getAsynParameterIndex(),&oldAlarmStatus);
+  if(stat!=asynSuccess){
+    //asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: getParamAlarmStatus failed for parameter %s (%d).\n", driverName, functionName,paramInfo_->drvInfo,paramInfo_->paramIndex);
+    return asynError;
+  }
+
+  bool doCallbacks=false;
+
+  if(oldAlarmStatus!=alarm){
+    stat = asynPortDriver_->setParamAlarmStatus(getAsynParameterIndex(),alarm);
+    if(stat!=asynSuccess){
+      //asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Failed set alarm status for parameter %s (%d).\n", driverName, functionName,paramInfo_->drvInfo,paramInfo_->paramIndex);
+      return asynError;
+    }
+    paramInfo_->alarmStatus=alarm;
+    doCallbacks=true;
+  }
+
+  int oldAlarmSeverity=0;
+  stat = asynPortDriver_->getParamAlarmSeverity(getAsynParameterIndex(),&oldAlarmSeverity);
+  if(stat!=asynSuccess){
+    //asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: getParamAlarmStatus failed for parameter %s (%d).\n", driverName, functionName,paramInfo_->drvInfo,paramInfo_->paramIndex);
+    return asynError;
+  }
+
+  if(oldAlarmSeverity!=severity){
+    stat = asynPortDriver_->setParamAlarmSeverity(getAsynParameterIndex(),severity);
+    if(stat!=asynSuccess){
+      //asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Failed set alarm severity for parameter %s (%d).\n", driverName, functionName,paramInfo_->drvInfo,paramInfo_->paramIndex);
+      return asynError;
+    }
+    paramInfo_->alarmSeverity=severity;
+    doCallbacks=true;
+  }
+
+  if(!doCallbacks || !asynPortDriver_->getAllowRtThreadCom()){
+    return asynSuccess;
+  }
+  
+  //Alarm status or severity changed=>Do callbacks with old buffered data (if nElemnts==0 then no data in record...)
+  if(paramInfo_->ecmcDataIsArray && paramInfo_->ecmcSize>0){
+    refreshParamRT(1);
+  }
+  else{
+      stat = asynPortDriver_->callParamCallbacks();
+  }
+
+  return stat;
+}
+
+int ecmcAsynDataItem::getAlarmStatus() {
+  return paramInfo_->alarmStatus;
+}
+
+int ecmcAsynDataItem::getAlarmSeverity() {
+  return paramInfo_->alarmSeverity;
 }
