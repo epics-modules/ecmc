@@ -19,6 +19,7 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   memset(paramInfo_,0,sizeof(ecmcParamInfo));
   paramInfo_->name=strdup(paramName);
   paramInfo_->asynType=asynParType;
+  paramInfo_->ecmcDataIsArray = asynTypeIsArray(asynParType);
   addSupportedAsynType(asynParType);
 }
 
@@ -160,8 +161,7 @@ int ecmcAsynDataItem::createParam(const char *paramName,asynParamType asynParTyp
     return ERROR_ASYN_PORT_NULL;
   }
   paramInfo_->name=strdup(paramName);  
-  paramInfo_->asynType=asynParType;
-  paramInfo_->ecmcDataIsArray=asynParType>asynParamOctet;
+  paramInfo_->asynType=asynParType;  
   asynStatus status = asynPortDriver_->createParam(paramName,paramInfo_->asynType,&paramInfo_->index);
   return (status==asynSuccess) ? 0 : ERROR_ASYN_CREATE_PARAM_FAIL;
 }
@@ -295,7 +295,6 @@ bool ecmcAsynDataItem::willRefreshNext() {
   return asynUpdateCycleCounter_>= paramInfo_->sampleTimeCycles-2;
 }
 
-
 /** Set parameter alarm state.
  *
  * \param[in] paramInfo Parameter information.
@@ -364,4 +363,29 @@ int ecmcAsynDataItem::getAlarmStatus() {
 
 int ecmcAsynDataItem::getAlarmSeverity() {
   return paramInfo_->alarmSeverity;
+}
+
+int ecmcAsynDataItem::asynTypeIsArray(asynParamType asynParType) {
+
+  switch(asynParType){
+    case asynParamInt8Array:
+      return 1;      
+      break;
+    case asynParamInt16Array:
+      return 1;
+      break;
+    case asynParamInt32Array:
+      return 1;
+      break;
+    case asynParamFloat32Array:
+      return 1;
+      break;
+    case asynParamFloat64Array:
+      return 1;
+      break;
+    default:
+      return 0;
+      break;
+  }
+  return 0;
 }

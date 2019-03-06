@@ -103,9 +103,9 @@ int ecmcAddDefaultAsynParams();
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int addDefaultAsynAxis(int regAsynParams,
+/*int addDefaultAsynAxis(int regAsynParams,
                        int axisIndex,
-                       int skipCycles);
+                       int skipCycles);*/
 
 /** \breif Add diagnostic string for axis as asyn parameter.\n
  *
@@ -116,9 +116,9 @@ int addDefaultAsynAxis(int regAsynParams,
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int addDiagAsynAxis(int regAsynParams,
+/*int addDiagAsynAxis(int regAsynParams,
                     int axisIndex,
-                    int skipCycles);
+                    int skipCycles);*/
 
 /** \breif Add default asyn parameters for EtherCAT master
  *

@@ -12,12 +12,14 @@
 #include "stdio.h"
 #include "../main/ecmcError.h"
 #include "../main/ecmcDefinitions.h"
+#include "../com/ecmcAsynPortDriver.h"
 
 // Data storage
 #define ERROR_DATA_STORAGE_FULL 0x20200
 #define ERROR_DATA_STORAGE_NULL 0x20201
 #define ERROR_DATA_STORAGE_SIZE_TO_SMALL 0x20202
 #define ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE 0x20203
+#define ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL 0x20204
 
 enum storageType {
   // Fill from beginning. Stop when full.
@@ -30,8 +32,9 @@ enum storageType {
 
 class ecmcDataStorage : public ecmcError {
  public:
-  explicit ecmcDataStorage(int index);
-  ecmcDataStorage(int         index,
+  //explicit ecmcDataStorage(int index);
+  ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
+                  int         index,
                   int         size,
                   storageType bufferType);
   ~ecmcDataStorage();
@@ -66,12 +69,21 @@ class ecmcDataStorage : public ecmcError {
   int  appendDataNormal(double *data,
                         int     size);
   void initVars();
+  int  initAsyn();
+  int  updateAsyn(bool force);
   int currentBufferIndex_;
   double *buffer_;
   int bufferElementCount_;
   storageType bufferType_;
   int index_;
   int bufferFullCounter_;
+  ecmcAsynPortDriver *asynPortDriver_;
+  ecmcAsynDataItem  *dataAsynDataItem_;
+  ecmcAsynDataItem  *fullAsynDataItem_;
+  ecmcAsynDataItem  *indexAsynDataItem_;
+  ecmcAsynDataItem  *sizeAsynDataItem_;
+  int isFull_;
+
 };
 
 #endif  /* ECMCDATASTORAGE_H_ */

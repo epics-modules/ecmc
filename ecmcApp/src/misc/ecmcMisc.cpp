@@ -29,6 +29,7 @@ int createEvent(int indexEvent) {
 }
 
 int createDataStorage(int index, int elements, int bufferType) {
+  
   LOGINFO4("%s/%s:%d index=%d elements=%d \n",
            __FILE__,
            __FUNCTION__,
@@ -45,7 +46,7 @@ int createDataStorage(int index, int elements, int bufferType) {
   }
 
   delete dataStorages[index];
-  dataStorages[index] = new ecmcDataStorage(index,
+  dataStorages[index] = new ecmcDataStorage(asynPort, index,
                                             elements,
                                             (storageType)bufferType);
 

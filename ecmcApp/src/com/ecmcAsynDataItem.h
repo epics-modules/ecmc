@@ -89,6 +89,7 @@ public:
   int getAlarmSeverity();
 
 private:
+  int asynTypeIsArray(asynParamType asynParType);
   ecmcAsynPortDriver *asynPortDriver_;
   int asynUpdateCycleCounter_;
   uint8_t *data_;

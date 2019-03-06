@@ -14,8 +14,8 @@
 #include "ecrt.h"
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcError.h"
-#include "../com/ecmcOctetIF.h"  // Logging macros
-#include "../com/ecmcAsynPortDriver.h"  // Logging macros
+#include "../com/ecmcOctetIF.h"
+#include "../com/ecmcAsynPortDriver.h"
 
 #define BIT_SET(a, b) ((a) |= (1 << (b)))
 #define BIT_CLEAR(a, b) ((a) &= ~(1 << (b)))

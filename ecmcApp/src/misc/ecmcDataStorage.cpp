@@ -7,7 +7,7 @@
 
 #include "ecmcDataStorage.h"
 
-ecmcDataStorage::ecmcDataStorage(int index) {
+/*ecmcDataStorage::ecmcDataStorage(int index) {
   index_ = index;
   PRINT_ERROR_PATH("dataStorage[%d].error", index_);
   initVars();
@@ -19,21 +19,26 @@ ecmcDataStorage::ecmcDataStorage(int index) {
            __LINE__,
            index);
   printCurrentState();
-}
+}*/
 
-ecmcDataStorage::ecmcDataStorage(int index, int size, storageType bufferType) {
-  index_ = index;
-  PRINT_ERROR_PATH("dataStorage[%d].error", index_);
+ecmcDataStorage::ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
+                                 int index,
+                                 int size,
+                                 storageType bufferType) {
+  PRINT_ERROR_PATH("dataStorage[%d].error", index);
   initVars();
+  index_=index;
   setBufferSize(size);
   bufferElementCount_ = size;
   bufferType_         = bufferType;
+  asynPortDriver_ = asynPortDriver;
   LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            index);
   printCurrentState();
+  initAsyn();
 }
 
 ecmcDataStorage::~ecmcDataStorage() {
@@ -98,6 +103,12 @@ void ecmcDataStorage::initVars() {
   buffer_             = NULL;
   currentBufferIndex_ = 0;
   bufferFullCounter_  = 0;
+  index_              = 0;
+  asynPortDriver_     = NULL;
+  dataAsynDataItem_   = NULL;
+  fullAsynDataItem_   = NULL;
+  indexAsynDataItem_  = NULL;
+  sizeAsynDataItem_   = NULL;
 }
 
 int ecmcDataStorage::clearBuffer() {
@@ -115,28 +126,38 @@ int ecmcDataStorage::clearBuffer() {
   memset(buffer_, 0, bufferElementCount_ * sizeof(double));
   currentBufferIndex_ = 0;
   bufferFullCounter_  = 0;
+  isFull_ = 0;
+  updateAsyn(1);
   return 0;
 }
 
-int ecmcDataStorage::setBufferSize(int elements) {
-  delete buffer_;
+int ecmcDataStorage::setBufferSize(int elements) {  
   bufferElementCount_ = elements;
   bufferFullCounter_  = 0;
-  buffer_             = new double[elements];
-
-  if (buffer_ == NULL) {
+  isFull_ = 0;
+  double * tempBuffer = new double[elements];
+  if (tempBuffer == NULL) {
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DATA_STORAGE_NULL);
-    exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);  
+  }  
+  //Set new adress to asyn interface
+  if(dataAsynDataItem_){
+    dataAsynDataItem_->setEcmcDataPointer((uint8_t*)tempBuffer,bufferElementCount_*sizeof(double));
+    updateAsyn(1);
   }
+  delete buffer_;
+  buffer_ = tempBuffer;
+  
   return 0;
 }
 
 int ecmcDataStorage::isStorageFull() {
-  return bufferFullCounter_ >= bufferElementCount_;
+  isFull_=bufferFullCounter_ >= bufferElementCount_;
+  return isFull_;
 }
 
 int ecmcDataStorage::getSize() {
@@ -225,6 +246,8 @@ int ecmcDataStorage::appendDataNormal(double *data, int size) {
   if (bufferFullCounter_ < bufferElementCount_) {
     bufferFullCounter_ = bufferFullCounter_ + sizeToCopy;
   }
+  isStorageFull();
+
   return 0;
 }
 
@@ -266,8 +289,9 @@ int ecmcDataStorage::appendDataRing(double *data, int size) {
   }
 
   if (bufferFullCounter_ < bufferElementCount_) {
-    bufferFullCounter_ = bufferFullCounter_ + size;
+    bufferFullCounter_ = bufferFullCounter_ + sizeToCopy;
   }
+  isStorageFull();
 
   return 0;
 }
@@ -291,9 +315,9 @@ int ecmcDataStorage::appendDataFifo(double *data, int size) {
          sizeof(double) * sizeToCopy);
 
   if (bufferFullCounter_ < bufferElementCount_) {
-    bufferFullCounter_ = bufferFullCounter_ + size;
+    bufferFullCounter_ = bufferFullCounter_ + sizeToCopy;
   }
-
+  isStorageFull();
   return 0;
 }
 
@@ -365,5 +389,157 @@ int ecmcDataStorage::setCurrentPosition(int position) {
   }
 
   currentBufferIndex_ = position;
+  return 0;
+}
+
+int ecmcDataStorage::initAsyn() {
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
+  char *name = buffer;
+  unsigned int charCount = 0;
+
+  // "ds%d.data"
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_DATA_DATA_STR,
+                       index_);
+
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL);
+    return ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL;
+  }
+  name = buffer;
+
+  dataAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
+                                    asynParamFloat64Array, //default type
+                                    (uint8_t *)(buffer_),
+                                    bufferElementCount_*sizeof(double),
+                                    0);
+
+  if(!dataAsynDataItem_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  dataAsynDataItem_->allowWriteToEcmc(true);
+  dataAsynDataItem_->refreshParam(1);
+  
+  // "ds%d.index"
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_DATA_INDEX_STR,
+                       index_);
+
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL);
+    return ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL;
+  }
+  name = buffer;
+  indexAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
+                                    asynParamInt32, //default type
+                                    (uint8_t *)&(currentBufferIndex_),
+                                    sizeof(currentBufferIndex_),
+                                    0);
+  if(!indexAsynDataItem_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  indexAsynDataItem_->allowWriteToEcmc(false);
+  indexAsynDataItem_->refreshParam(1);  
+
+  // "ds%d.full"
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_DATA_FULL_STR,
+                       index_);
+
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL);
+    return ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL;
+  }
+  name = buffer;
+  fullAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
+                                    asynParamInt32, //default type
+                                    (uint8_t *)&(isFull_),
+                                    sizeof(isFull_),
+                                    0);
+  if(!fullAsynDataItem_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  fullAsynDataItem_->allowWriteToEcmc(false);
+  fullAsynDataItem_->refreshParam(1);
+
+  // "ds%d.size"
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_DATA_SIZE_STR,
+                       index_);
+
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL);
+    return ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL;
+  }
+  name = buffer;
+  sizeAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
+                                    asynParamInt32, //default type
+                                    (uint8_t *)&(bufferElementCount_),
+                                    sizeof(bufferElementCount_),
+                                    0);
+  if(!sizeAsynDataItem_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  sizeAsynDataItem_->allowWriteToEcmc(false);
+  sizeAsynDataItem_->refreshParam(1);
+  
+  asynPortDriver_->callParamCallbacks();
+
+  return 0;
+}
+
+int ecmcDataStorage::updateAsyn(bool force) {
+  dataAsynDataItem_->refreshParamRT(force);
+  fullAsynDataItem_->refreshParamRT(force);
+  indexAsynDataItem_->refreshParamRT(force);
+  sizeAsynDataItem_-> refreshParamRT(force);
   return 0;
 }

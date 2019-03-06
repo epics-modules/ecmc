@@ -2034,5 +2034,3 @@ void ecmcAsynPortDriverRegister(void) {
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
 }
-
-
