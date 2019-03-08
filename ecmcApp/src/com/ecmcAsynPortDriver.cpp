@@ -58,16 +58,16 @@ static void getEpicsState(initHookState state)
     case initHookAfterIocRunning:
       allowCallbackEpicsState=1;
       ecmcAsynPortObj->calcFastestUpdateRate();
-      //ecmcAsynPortObj->setAllowRtThreadCom(1);      
+      /*ecmcAsynPortObj->setAllowRtThreadCom(1);      
       //make all callbacks if data arrived from callback before interrupts were registered (before allowCallbackEpicsState==1)
-      /*if(!ecmcAsynPortObj){
+      if(!ecmcAsynPortObj){
         printf("%s:%s: ERROR: ecmcAsynPortObj==NULL\n", driverName, functionName);
         return;
       }
-      ecmcAsynPortObj->fireAllCallbacksLock();*/
-      //updateAsynParams(1);
-      asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: REFRESHING ALL PARAMETERS!!!.\n", driverName, functionName);
+      ecmcAsynPortObj->fireAllCallbacksLock();
+      updateAsynParams(1);*/      
       ecmcAsynPortObj->refreshAllInUseParamsRT();
+      asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: All Parameters refreshed.\n", driverName, functionName);
       break;
     default:
       break;
@@ -108,7 +108,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
                    asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask |
                    asynInt32ArrayMask | asynUInt32DigitalMask,
                    /* Interrupt mask */
-                   ASYN_CANBLOCK,
+                   0 , /*NOT ASYN_CANBLOCK OR ASYN_MULTI_DEVICE*/
                    autoConnect,
                    /* Autoconnect */
                    priority,
@@ -164,6 +164,9 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
     }  
 }
 
+/** 
+ * Initiate variables
+ */
 void ecmcAsynPortDriver::initVars() {
   allowRtThreadCom_      = 0;
   pEcmcParamInUseArray_  = NULL;
@@ -178,6 +181,14 @@ void ecmcAsynPortDriver::initVars() {
   priority_              = 0;
 }
 
+/** Append parameter to in-use list\n
+ * All parameters that are linked to records are found in this list\n
+ * 
+  * \param[in] dataItem Parameter to add\n
+  * \param[in] dieIfFail Exit if add fails\n 
+  * 
+  * returns asynError or asunSuccess
+  * */
 asynStatus ecmcAsynPortDriver::appendInUseParam(ecmcAsynDataItem *dataItem, bool dieIfFail){
   const char* functionName = "appendInUseParam";
   if(!dataItem){
@@ -201,6 +212,12 @@ asynStatus ecmcAsynPortDriver::appendInUseParam(ecmcAsynDataItem *dataItem, bool
   return asynSuccess;
 }
 
+/** Append parameter to list of availabe parameters
+  * \param[in] dataItem Parameter to add 
+  * \param[in] dieIfFail Exit if add fails. 
+  * 
+  * returns asynError or asunSuccess
+  * */
 asynStatus ecmcAsynPortDriver::appendAvailParam(ecmcAsynDataItem *dataItem, bool dieIfFail){
   const char* functionName = "appendAvailParam";
   if(!dataItem){
@@ -224,6 +241,11 @@ asynStatus ecmcAsynPortDriver::appendAvailParam(ecmcAsynDataItem *dataItem, bool
   return asynSuccess;
 }
 
+/** Find parameter in list of available paremeters by name\n
+  * \param[in] name Parameter name\n
+  * 
+  * returns parameter if found otherwise NULL\n
+  * */
 ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
   //const char* functionName = "findAvailParam";
   for(int i=0;i<ecmcParamAvailCount_;i++) {
@@ -236,6 +258,15 @@ ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
   return NULL;
 } 
 
+/** Create and add new parameter to list of available parameters\n
+  * \param[in] name Parameter name\n
+  * \param[in] type Parameter type\n
+  * \param[in] data Pointer to data\n
+  * \param[in] bytes size of data\n
+  * \param[in] dieIfFail Exit if method fails\n
+  * 
+  * returns parameter (ecmcAsynDataItem)\n
+  * */
 ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name, 
                                                        asynParamType type,
                                                        uint8_t *data,

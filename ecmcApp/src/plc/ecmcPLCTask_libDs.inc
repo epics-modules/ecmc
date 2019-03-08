@@ -59,6 +59,7 @@ const char *dsLibCmdList[] = { "ds_append_data(",
                                "ds_get_err(",
                                "ds_is_full(",
                                "ds_get_size(",
+                               "ds_push_asyn("
 };
 
 static int ds_errorCode = 0;
@@ -131,6 +132,14 @@ inline double ds_get_size(double dsIndex) {
   CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(index);
   ds_errorCode = 0;
   return (double)ecmcPLCTask::statDs_[index]->getSize();
+}
+
+inline double ds_push_asyn(double dsIndex) {
+  int index = (int)dsIndex;
+
+  CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(index);
+  ds_errorCode = 0;
+  return (double)ecmcPLCTask::statDs_[index]->updateAsyn(1);
 }
 
 #endif  /* ecmcPLC_libDs_inc_ */

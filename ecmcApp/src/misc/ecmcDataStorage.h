@@ -60,7 +60,8 @@ class ecmcDataStorage : public ecmcError {
                   int     size);
   int  setCurrentPosition(int position);
   void printCurrentState();
-
+  int  updateAsyn(bool force);
+  
  private:
   int  appendDataFifo(double *data,
                       int     size);
@@ -70,7 +71,6 @@ class ecmcDataStorage : public ecmcError {
                         int     size);
   void initVars();
   int  initAsyn();
-  int  updateAsyn(bool force);
   int currentBufferIndex_;
   double *buffer_;
   int bufferElementCount_;

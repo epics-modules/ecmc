@@ -94,7 +94,11 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     return ERROR_ASYN_PARAM_NOT_VALIDATED;
   }
 
-  if(asynUpdateCycleCounter_< paramInfo_->sampleTimeCycles-1 && !force){ //Only update at desired samplerate
+  if(paramInfo_->sampleTimeCycles < 0 && !force) {
+    return ERROR_ASYN_NOT_REFRESHED_RETURN;
+  }
+
+  if(paramInfo_->sampleTimeCycles >= 0 && asynUpdateCycleCounter_< paramInfo_->sampleTimeCycles-1 && !force){
     asynUpdateCycleCounter_++;
     return ERROR_ASYN_NOT_REFRESHED_RETURN;  //Not refreshed
   }
@@ -139,7 +143,6 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
       return ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED;
       break;
   }
-
   asynUpdateCycleCounter_=0;
   return 0;
 }

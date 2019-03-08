@@ -7,20 +7,6 @@
 
 #include "ecmcDataStorage.h"
 
-/*ecmcDataStorage::ecmcDataStorage(int index) {
-  index_ = index;
-  PRINT_ERROR_PATH("dataStorage[%d].error", index_);
-  initVars();
-  setBufferSize(ECMC_DEFAULT_DATA_STORAGE_SIZE);
-  bufferType_ = ECMC_STORAGE_NORMAL_BUFFER;
-  LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           index);
-  printCurrentState();
-}*/
-
 ecmcDataStorage::ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
                                  int index,
                                  int size,
@@ -127,7 +113,7 @@ int ecmcDataStorage::clearBuffer() {
   currentBufferIndex_ = 0;
   bufferFullCounter_  = 0;
   isFull_ = 0;
-  updateAsyn(1);
+  updateAsyn(0);
   return 0;
 }
 
@@ -347,24 +333,25 @@ int ecmcDataStorage::appendData(double *data, int size) {
                       __LINE__,
                       ERROR_DATA_STORAGE_SIZE_TO_SMALL);
   }
-
+  int errorCode = 0;
   switch (bufferType_) {
   case ECMC_STORAGE_NORMAL_BUFFER:
-    return appendDataNormal(data, size);
-
+     errorCode = appendDataNormal(data, size);     
     break;
 
   case ECMC_STORAGE_RING_BUFFER:
-    return appendDataRing(data, size);
-
+    errorCode = appendDataRing(data, size);
     break;
 
   case ECMC_STORAGE_FIFO_BUFFER:
-    return appendDataFifo(data, size);
-
+    errorCode = appendDataFifo(data, size);
     break;
   }
-  return 0;
+  if(errorCode) {
+    return errorCode;
+  }
+
+  return updateAsyn(0);  
 }
 
 int ecmcDataStorage::appendData(double data) {
@@ -536,10 +523,10 @@ int ecmcDataStorage::initAsyn() {
   return 0;
 }
 
-int ecmcDataStorage::updateAsyn(bool force) {
+int ecmcDataStorage::updateAsyn(bool force) {  
   dataAsynDataItem_->refreshParamRT(force);
   fullAsynDataItem_->refreshParamRT(force);
   indexAsynDataItem_->refreshParamRT(force);
-  sizeAsynDataItem_-> refreshParamRT(force);
+  sizeAsynDataItem_-> refreshParamRT(force);  
   return 0;
 }

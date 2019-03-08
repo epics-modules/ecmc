@@ -561,6 +561,7 @@ int ecmcPLCTask::loadDsLib() {
   ecmcPLCTaskAddFunction("ds_get_err",     ds_get_err);
   ecmcPLCTaskAddFunction("ds_is_full",     ds_is_full);
   ecmcPLCTaskAddFunction("ds_get_size",    ds_get_size);
+  ecmcPLCTaskAddFunction("ds_push_asyn",   ds_push_asyn);
 
   if (ds_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",
