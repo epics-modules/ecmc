@@ -933,6 +933,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2100C:
+    return "ERROR_EC_ENTRY_VALUE_OUT_OF_RANGE";
+
+    break;
+
   case 0x22000:    // ECPDO
     return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
 
@@ -1975,6 +1980,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     break;
   case 0x220005:
     return "ERROR_ASYN_SUPPORTED_TYPES_ARRAY_FULL";
+
+    break;
+  case 0x220006:
+    return "ERROR_ASYN_WRITE_FAIL";
 
     break;
   }

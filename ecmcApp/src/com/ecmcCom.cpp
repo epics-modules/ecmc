@@ -248,10 +248,10 @@ int ecmcAddTestParams() {
   name = "ecmc.test.int32";
   ecmcAsynDataItem *paramTemp=NULL;
   paramTemp = asynPort->addNewAvailParam(name,
-                                           asynParamInt32,
-                                           (uint8_t *)&(testInt32),
-                                           sizeof(testInt32),
-                                           0);
+                                         asynParamInt32,
+                                         (uint8_t *)&(testInt32),
+                                         sizeof(testInt32),
+                                         0);
   if(!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",

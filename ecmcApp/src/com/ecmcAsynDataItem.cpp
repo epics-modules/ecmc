@@ -11,7 +11,7 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   asynUpdateCycleCounter_=0;
   supportedTypesCounter_=0;
   allowWriteToEcmc_=false;
-  validated_=false;
+  asynLink_=NULL;
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
@@ -88,10 +88,6 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 {
   if(!paramInfo_->initialized) {
     return 0;
-  }
-
-  if(!validated_) {
-    return ERROR_ASYN_PARAM_NOT_VALIDATED;
   }
 
   if(paramInfo_->sampleTimeCycles < 0 && !force) {
@@ -203,16 +199,6 @@ ecmcParamInfo *ecmcAsynDataItem::getParamInfo()
   return paramInfo_;
 }
 
-int ecmcAsynDataItem::validate() {
-
-  if(asynPortDriver_==0){
-    return ERROR_ASYN_PORT_NULL;
-  }
-
-  validated_=true;
-  return 0;
-}
-
 bool ecmcAsynDataItem::initialized() {
   return paramInfo_->initialized;
 }
@@ -269,30 +255,63 @@ bool ecmcAsynDataItem::writeToEcmcAllowed() {
   return allowWriteToEcmc_;
 }
 
-int ecmcAsynDataItem::writeParam(uint8_t *dataToWrite, size_t bytes) {
-
+/*int ecmcAsynDataItem::writeParam(uint8_t *dataToWrite, size_t bytes) {
+  
   if(!paramInfo_->initialized || !allowWriteToEcmc_) {
     return 0;
   }
   
-  if(!validated_) {
+  if( !asynLink_) {
      return ERROR_ASYN_PARAM_NOT_VALIDATED;
-  }
-
+  } 
+  
   if(!dataToWrite || !data_ || bytes<0){
     return ERROR_ASYN_DATA_NULL;
   }
+  
   
   int bytesToWrite=bytes;
   if(bytes > paramInfo_->ecmcMaxSize) {
     bytesToWrite = paramInfo_->ecmcMaxSize;
   }
   
-  //Need to check type...
-  memcpy(data_,dataToWrite,bytesToWrite);
-
+  int errorCode;
+    switch(paramInfo_->asynType){
+    case asynParamUInt32Digital:
+      errorCode = asynLink_->writeUInt32Digital(*((epicsInt32*)dataToWrite),0xFFFFFFFF);
+      break;
+    case asynParamInt32:
+  
+      errorCode = asynLink_->writeInt32(*((epicsInt32*)dataToWrite));
+      break;
+    case asynParamFloat64:
+      errorCode = asynLink_->writeFloat64(*((epicsFloat64*)dataToWrite));
+      break;
+    case asynParamInt8Array:
+      errorCode = asynLink_->writeInt8Array((epicsInt8*)dataToWrite,bytesToWrite);
+      break;
+    case asynParamInt16Array:
+      errorCode = asynLink_->writeInt16Array((epicsInt16*)dataToWrite,bytesToWrite/sizeof(epicsInt16));
+      break;
+    case asynParamInt32Array:
+      errorCode = asynLink_->writeInt32Array((epicsInt32*)dataToWrite,bytesToWrite/sizeof(epicsInt32));
+      break;
+    case asynParamFloat32Array:
+      errorCode = asynLink_->writeFloat32Array((epicsFloat32*)dataToWrite,bytesToWrite/sizeof(epicsFloat32));
+      break;
+    case asynParamFloat64Array:
+      errorCode = asynLink_->writeFloat64Array((epicsFloat64*)dataToWrite,bytesToWrite/sizeof(epicsFloat64));
+      break;
+    default:
+      return ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED;
+      break;
+  }
+  if(errorCode) {
+    return errorCode;
+  }
+  
   return 0;
-}
+}*/
 
 bool ecmcAsynDataItem::willRefreshNext() {
   return asynUpdateCycleCounter_>= paramInfo_->sampleTimeCycles-2;
@@ -391,4 +410,13 @@ int ecmcAsynDataItem::asynTypeIsArray(asynParamType asynParType) {
       break;
   }
   return 0;
+}
+
+int ecmcAsynDataItem::setAsynLink(ecmcAsynLink *asynLink) {
+  asynLink_ = asynLink;
+  return 0;
+}
+
+ecmcAsynLink *ecmcAsynDataItem::getAsynLink() {
+  return asynLink_;
 }

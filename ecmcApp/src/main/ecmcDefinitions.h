@@ -50,7 +50,6 @@
 #define EC_MAX_SLAVES 512
 #define EC_START_TIMEOUT_S 30
 
-
 // EC entry links
 #define ECMC_EC_ENTRY_INDEX_HEALTH 0
 

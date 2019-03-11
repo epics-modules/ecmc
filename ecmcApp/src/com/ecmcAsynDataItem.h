@@ -7,6 +7,8 @@
 #include "ecmcAsynPortDriverUtils.h"
 #include "asynPortDriver.h"
 
+#include "../ethercat/ecmcAsynLink.h"
+
 #define ERROR_ASYN_PORT_NULL 0x220000
 #define ERROR_ASYN_DATA_NULL 0x220001
 #define ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED 0x220002
@@ -55,6 +57,11 @@ public:
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                     const char *paramName,
                     asynParamType asynParType);
+  /*ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
+                    ecmcAsynLink *asynLink,
+                    const char *paramName,
+                    asynParamType asynParType);*/
+
   ~ecmcAsynDataItem ();
   int setEcmcDataPointer(uint8_t *data,size_t bytes);
   int refreshParam(int force);
@@ -63,7 +70,8 @@ public:
   int refreshParamRT(int force);
   int refreshParamRT(int force, size_t bytes);
   int refreshParamRT(int force, uint8_t *data, size_t bytes);
-  int writeParam(uint8_t *data, size_t bytes);
+  //int writeParam(uint8_t *data, size_t bytes);
+  //int readParam(uint8_t *data, size_t *bytes);
   int createParam();
   int createParam(const char *paramName,asynParamType asynParType);
   int createParam(const char *paramName,asynParamType asynParType, uint8_t *data,size_t bytes);
@@ -72,7 +80,6 @@ public:
   int setAsynParameterType(asynParamType parType);
   int getAsynParameterType();
   int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);  
-  int validate();
   bool initialized();
   char * getName();  
   int32_t getSampleTimeCycles();
@@ -87,6 +94,8 @@ public:
   asynStatus setAlarmParam(int alarm,int severity);
   int getAlarmStatus();
   int getAlarmSeverity();
+  int setAsynLink(ecmcAsynLink *asynLink);
+  ecmcAsynLink *getAsynLink();
 
 private:
   int asynTypeIsArray(asynParamType asynParType);
@@ -95,10 +104,10 @@ private:
   uint8_t *data_;
   size_t bytes_;
   ecmcParamInfo *paramInfo_;
-  bool validated_;
   bool allowWriteToEcmc_;
   asynParamType supportedTypes_[ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT];
   int supportedTypesCounter_;
+  ecmcAsynLink *asynLink_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

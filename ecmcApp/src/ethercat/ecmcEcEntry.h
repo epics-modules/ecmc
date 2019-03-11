@@ -11,11 +11,13 @@
 #include <string>
 #include <cmath>
 #include "stdio.h"
+#include "limits.h"
 #include "ecrt.h"
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcError.h"
 #include "../com/ecmcOctetIF.h"
 #include "../com/ecmcAsynPortDriver.h"
+#include "ecmcAsynLink.h"
 
 #define BIT_SET(a, b) ((a) |= (1 << (b)))
 #define BIT_CLEAR(a, b) ((a) &= ~(1 << (b)))
@@ -35,9 +37,9 @@
 #define ERROR_EC_ENTRY_ASYN_TYPE_NOT_SUPPORTED 0x21009
 #define ERROR_EC_ENTRY_ASSIGN_ADD_FAIL 0x2100A
 #define ERROR_EC_ENTRY_REGISTER_FAIL 0x2100B
+#define ERROR_EC_ENTRY_VALUE_OUT_OF_RANGE 0x2100C
 
-
-class ecmcEcEntry : public ecmcError {
+class ecmcEcEntry : public ecmcError, public ecmcAsynLink {
  public:
   ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
               int masterId,
@@ -94,9 +96,37 @@ class ecmcEcEntry : public ecmcError {
   bool        getSimEntry();
   int         validate();
 
+  //ecmcAsynLink
+  int readInt32(epicsInt32 *value);
+  int writeInt32(epicsInt32 value);
+  int readUInt32Digital(epicsUInt32 *value, epicsUInt32 mask);
+  int writeUInt32Digital(epicsUInt32 value, epicsUInt32 mask);
+  int readFloat64(epicsFloat64 *value);
+  int writeFloat64(epicsFloat64 value);
+  int readInt8Array(epicsInt8 *value, 
+                                   size_t nElements, size_t *nIn);
+  int writeInt8Array(epicsInt8 *value,
+                                    size_t nElements);
+  int readInt16Array(epicsInt16 *value,
+                                    size_t nElements, size_t *nIn);
+  int writeInt16Array(epicsInt16 *value,
+                                     size_t nElements);
+  int readInt32Array(epicsInt32 *value,
+                                    size_t nElements, size_t *nIn);
+  int writeInt32Array(epicsInt32 *value,
+                                     size_t nElements);
+  int readFloat32Array(epicsFloat32 *value,
+                                      size_t nElements, size_t *nIn);
+  int writeFloat32Array(epicsFloat32 *value,
+                                       size_t nElements);
+  int readFloat64Array(epicsFloat64 *value,
+                                      size_t nElements, size_t *nIn);
+  int writeFloat64Array(epicsFloat64 *value,
+                                      size_t nElements);
  private:
   int    initAsyn();
   int32_t ecValue2Int32();
+  int writeRangeOK(epicsInt32 value);
   uint8_t *domainAdr_;
   uint8_t *adr_;
   uint16_t entryIndex_;
@@ -113,11 +143,19 @@ class ecmcEcEntry : public ecmcError {
   ec_domain_t *domain_;
   uint16_t pdoIndex_;
   ec_slave_config_t *slave_;
-  int signedValue_;
+  int signed_;
   int masterId_;
   int slaveId_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *entryAsynParam_;
   int32_t tempAsynValue_;
+
+  //value limits for writes
+  int64_t maxU8_;
+  int64_t minS8_;
+  int64_t maxS8_;
+  int64_t maxU16_;
+  int64_t minS16_;
+  int64_t maxS16_;  
 };
 #endif  /* ECMCECENTRY_H_ */

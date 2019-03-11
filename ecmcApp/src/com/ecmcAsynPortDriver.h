@@ -6,9 +6,9 @@
 #define ECMC_ASYN_PORT_DRIVER_H_
 
 #include "asynPortDriver.h"
-#include "ecmcAsynPortDriverUtils.h"
-#include "ecmcAsynDataItem.h"
 #include <epicsEvent.h>
+#include "../com/ecmcAsynPortDriverUtils.h"
+#include "../com/ecmcAsynDataItem.h"
 
 class ecmcAsynPortDriver : public asynPortDriver {
  public:
@@ -28,8 +28,12 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                int      *eomReason);
   virtual asynStatus writeInt32(asynUser  *pasynUser,
                                 epicsInt32 value);
+  virtual asynStatus readInt32(asynUser *pasynUser,
+                               epicsInt32 *value);
   virtual asynStatus writeFloat64(asynUser    *pasynUser,
                                   epicsFloat64 value);
+  virtual asynStatus readFloat64(asynUser *pasynUser,
+                                 epicsFloat64 *value);                                 
   virtual asynStatus writeInt8Array(asynUser *pasynUser,
                                     epicsInt8 *value,
                                     size_t nElements);

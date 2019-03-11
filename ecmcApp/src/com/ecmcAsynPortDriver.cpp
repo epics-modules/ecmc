@@ -293,14 +293,15 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
     delete paramTemp;
     return NULL;
   }
-  errorCode = paramTemp->validate();
+  
+  /*errorCode = paramTemp->validate();
   if(errorCode) {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
                "%s:%s: ERROR: Validation of asyn parameter %s failed (0x%x).", 
                driverName, functionName, name,errorCode);
     delete paramTemp;
     return NULL;
-  }
+  }*/
 
   return paramTemp;
 }
@@ -429,14 +430,18 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
     return asynError;
   }
 
-  // Write data
-  pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsInt32));
-  
-  // Special case commands
-  if (strcmp(paramName, ECMC_ASYN_MAIN_PAR_RESET_NAME) == 0  && value>0) {
-    controllerErrorReset();    
+  ecmcAsynLink * ecmcLink = pEcmcParamInUseArray_[function]->getAsynLink();
+  if(!ecmcLink) {
+  asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter %s link to ecmc object NULL.\n",
+            driverName, functionName, paramName);
+    return asynError;
   }
+  int errorCode = ecmcLink->writeInt32(value);
 
+  // Write data
+  //pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsInt32));
+  
   // Set the parameter in the parameter library.
   asynStatus status = setIntegerParam(function, value);
   if (status != asynSuccess) {
@@ -450,7 +455,47 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
   return callParamCallbacks();
 }
 
-asynStatus ecmcAsynPortDriver::writeFloat64(asynUser    *pasynUser,
+asynStatus ecmcAsynPortDriver::readInt32(asynUser *pasynUser,
+                                         epicsInt32 *value) {                                           
+  int function = pasynUser->reason;
+  const char *paramName;
+  const char *functionName = "writeInt32";
+
+  /* Fetch the parameter string name for possible use in debugging */
+  getParamName(function, &paramName);
+
+  // Check object
+  if(!pEcmcParamInUseArray_[function]) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter object NULL for function %d (%s).\n",
+            driverName, functionName, function, paramName);
+    return asynError;
+  }
+ 
+  // Check name
+  if(strcmp(paramName,pEcmcParamInUseArray_[function]->getName())!=0) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter name missmatch for function %d (%s != %s).\n",
+            driverName, functionName, function, paramName,pEcmcParamInUseArray_[function]->getName());
+    return asynError;
+  }
+
+  // Check type
+  if(pEcmcParamInUseArray_[function]->getAsynParameterType() != asynParamInt32) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter %s type missmatch for function %d (%s != %s).\n",
+            driverName, functionName, paramName, function,"asynParamInt32",
+            asynTypeToString(pEcmcParamInUseArray_[function]->getAsynParameterType()));
+    return asynError;
+  }
+
+  // Read data
+  //pEcmcParamInUseArray_[function]->readParam((uint8_t*)&value,sizeof(epicsInt32));
+  //hepp
+  return asynSuccess;
+}
+
+asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser,
                                             epicsFloat64 value) {
   int function = pasynUser->reason;
   const char *paramName;
@@ -488,7 +533,16 @@ asynStatus ecmcAsynPortDriver::writeFloat64(asynUser    *pasynUser,
   }
 
   // Write data
-  pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsFloat64));
+  //pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsFloat64));
+
+  ecmcAsynLink * ecmcLink = pEcmcParamInUseArray_[function]->getAsynLink();
+  if(!ecmcLink) {
+  asynPrint(pasynUser, ASYN_TRACE_ERROR,
+           "%s:%s: Error: Parameter %s link to ecmc object NULL.\n",
+            driverName, functionName, paramName);
+    return asynError;
+  }
+  int errorCode = ecmcLink->writeFloat64(value);
 
   /* Set the parameter in the parameter library. */
   asynStatus status = (asynStatus)setDoubleParam(function, value);
@@ -505,6 +559,12 @@ asynStatus ecmcAsynPortDriver::writeFloat64(asynUser    *pasynUser,
 
   return status;
 }
+
+asynStatus ecmcAsynPortDriver::readFloat64(asynUser *pasynUser,
+                                           epicsFloat64 *value) {
+
+}
+
 
 asynUser * ecmcAsynPortDriver::getTraceAsynUser() {
   return pasynUserSelf;
@@ -547,10 +607,10 @@ asynStatus ecmcAsynPortDriver::writeArrayGeneric(asynUser *pasynUser,asynParamTy
   }
 
   //Write 
-  if(pEcmcParamInUseArray_[function]->writeParam((uint8_t*)data,bytesToWrite)){
+  /*if(pEcmcParamInUseArray_[function]->writeParam((uint8_t*)data,bytesToWrite)){
     pEcmcParamInUseArray_[function]->setAlarmParam(WRITE_ALARM,INVALID_ALARM);
     return asynError;
-  }
+  }*/
 
   // Do callbacks to refresh params
   int errorCode = pEcmcParamInUseArray_[function]->refreshParamRT(1);
