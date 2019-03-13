@@ -165,12 +165,12 @@ void ecmcEcEntry::initVars() {
   signed_            = 0;
   tempAsynValue_          = 0;
   value_                  = 0;
-  maxU8_                  = 255;
+  /*maxU8_                  = 255;
   minS8_                  = -127;
   maxS8_                  = 127;
   maxU16_                 = 65535;
   minS16_                 = -32767;
-  maxS16_                 = 32767;  
+  maxS16_                 = 32767;  */
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -598,7 +598,7 @@ int ecmcEcEntry::initAsyn() {
 }
 
 // implementation of ecmcAsynLink virtuel methods
-int ecmcEcEntry::readInt32(epicsInt32 *value) {
+/*int ecmcEcEntry::readInt32(epicsInt32 *value) {
  *value = (epicsInt32) ecValue2Int32();
  return asynSuccess;
 }
@@ -618,12 +618,12 @@ int ecmcEcEntry::writeInt32(epicsInt32 value) {
   }
 
   return writeValueForce(value) ? asynError : asynSuccess;
-}
+}*/
 
 /**
  * Check if value from epics is within range
 */
-int ecmcEcEntry::writeRangeOK(epicsInt32 value) { 
+/*int ecmcEcEntry::writeRangeOK(epicsInt32 value) { 
   //only check bitLengths shorter than 32
   switch(bitLength_){
    case 8:
@@ -817,4 +817,4 @@ int ecmcEcEntry::writeFloat64Array(epicsFloat64 *value,
                ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
 
   return asynError;
-}
+}*/

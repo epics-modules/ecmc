@@ -1983,7 +1983,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
   case 0x220006:
-    return "ERROR_ASYN_WRITE_FAIL";
+    return "ERROR_ASYN_DATA_BUFFER_TO_SMALL";
 
     break;
   }

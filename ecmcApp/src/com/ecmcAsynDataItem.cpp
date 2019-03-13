@@ -5,6 +5,12 @@
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const char *paramName,asynParamType asynParType)
 {
+  maxU8_                  = 255;
+  minS8_                  = -127;
+  maxS8_                  = 127;
+  maxU16_                 = 65535;
+  minS16_                 = -32767;
+  maxS16_                 = 32767;  
   asynPortDriver_=asynPortDriver;  
   data_=0;
   bytes_=0;
@@ -39,7 +45,7 @@ ecmcAsynDataItem::~ecmcAsynDataItem ()
 
 int ecmcAsynDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)
 {
-  data_=data;
+  data_ = data;
   paramInfo_->ecmcSize=bytes;
   paramInfo_->ecmcMaxSize=bytes;
   paramInfo_->ecmcDataPointerValid =  data && bytes>0;
@@ -412,11 +418,253 @@ int ecmcAsynDataItem::asynTypeIsArray(asynParamType asynParType) {
   return 0;
 }
 
-int ecmcAsynDataItem::setAsynLink(ecmcAsynLink *asynLink) {
+/*int ecmcAsynDataItem::setAsynLink(ecmcAsynLink *asynLink) {
   asynLink_ = asynLink;
   return 0;
+}*/
+
+/*ecmcAsynLink *ecmcAsynDataItem::getAsynLink() {
+  return asynLink_;
+}*/
+
+//new
+
+/**
+ * Check if value from epics is within range
+*/
+/*int ecmcEcEntry::writeRangeOK(epicsInt32 value) { 
+  //only check bitLengths shorter than 32
+  switch(bitLength_){
+   case 8:
+     if(signed_) {
+      return value<=maxS8_ && value>= minS8_;
+     } else {
+      return value<=maxU8_ && value>=0;
+     }
+   case 16:
+     if(signed_) {
+      return value<=maxS16_ && value>= minS16_;
+     } else {
+      return value<=maxU16_ && value>=0;
+     }
+    default:
+    return 1;
+  }
+  return 0;
+}*/
+
+asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, asynParamType type, size_t *writtenBytes) {
+
+   if(!asynTypeSupported(type)) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED);
+      return asynError;
+  }
+
+  int bytes = bytesToWrite;
+  if (asynTypeIsArray(type)) {
+    if (bytes > paramInfo_->ecmcMaxSize) {
+      bytes = paramInfo_->ecmcMaxSize;
+    }
+  } else {
+    if ( bytes > paramInfo_->ecmcMaxSize ) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Write error. Data buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_ASYN_DATA_BUFFER_TO_SMALL);
+      return asynError;
+    }
+  }
+
+  memcpy(data_, data, bytes);
+  *writtenBytes = bytes; 
+
+  //refresh params
+  int errorCode=refreshParamRT(1);
+  if(errorCode) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Write error. Refresh of params failed (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode);
+      return asynError;
+  }
+
+  // Trigger callbacks if not array
+  if(!asynTypeIsArray(type)) {
+   return asynPortDriver_->callParamCallbacks();
+  }
+  
+  return asynSuccess;
 }
 
-ecmcAsynLink *ecmcAsynDataItem::getAsynLink() {
-  return asynLink_;
+asynStatus ecmcAsynDataItem::readGeneric(uint8_t *data, size_t bytesToRead, asynParamType type, size_t *readBytes) {
+
+   if(!asynTypeSupported(type)) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED);
+      return asynError;
+  }
+
+  int bytes = bytesToRead;
+  if (asynTypeIsArray(type)) {
+    if (bytes > paramInfo_->ecmcMaxSize) {
+      bytes = paramInfo_->ecmcMaxSize;
+    }
+  } else {
+    if ( bytes > paramInfo_->ecmcMaxSize ) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Read error. Data buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_ASYN_DATA_BUFFER_TO_SMALL);
+      return asynError;
+    }
+  }
+
+  memcpy(data, data_, bytes);
+  *readBytes = bytes; 
+  return asynSuccess;
 }
+
+asynStatus ecmcAsynDataItem::readInt32(epicsInt32 *value) {
+
+  size_t bytesRead = 0;
+  return readGeneric((uint8_t*)value, sizeof(epicsInt32),
+                     asynParamInt32, &bytesRead);
+}
+
+asynStatus ecmcAsynDataItem::writeInt32(epicsInt32 value) {
+
+  size_t bytesWritten = 0;
+  return writeGeneric((uint8_t*)&value, sizeof(epicsInt32),
+                      asynParamInt32, &bytesWritten);
+}
+
+asynStatus ecmcAsynDataItem::readUInt32Digital(epicsUInt32 *value, epicsUInt32 mask) {
+
+  epicsUInt32 tempValue = 0;
+  size_t bytesRead = 0;
+  asynStatus stat = readGeneric((uint8_t*)&tempValue, sizeof(epicsUInt32),
+                                asynParamUInt32Digital, &bytesRead);
+  if(stat != asynSuccess) {
+    return stat;
+  }
+
+  *value = tempValue & mask;  
+  return asynSuccess;
+}
+
+asynStatus  ecmcAsynDataItem::writeUInt32Digital(epicsUInt32 value, epicsUInt32 mask) {  
+
+  epicsUInt32 tempVal = (value_ & ~mask) | (value & mask);
+  size_t bytesWritten = 0;
+  return writeGeneric((uint8_t*)&tempVal, sizeof(epicsUInt32),
+                      asynParamUInt32Digital, &bytesWritten);
+}
+
+asynStatus  ecmcAsynDataItem::readFloat64(epicsFloat64 *value) {
+
+  size_t bytesRead = 0;
+  return readGeneric((uint8_t*)value, sizeof(epicsFloat64),
+                     asynParamFloat64, &bytesRead);
+}
+
+asynStatus  ecmcAsynDataItem::writeFloat64(epicsFloat64 value) {
+
+  size_t bytesWritten = 0;
+  return writeGeneric(&(uint8_t)value, sizeof(epicsFloat64),
+                      asynParamFloat64, &bytesWritten);
+
+}
+
+asynStatus ecmcAsynDataItem::readInt8Array(epicsInt8 *value,                   
+                                           size_t nElements,
+                                           size_t *nIn) {
+  
+  return readGeneric((uint8_t*)value, nElements * sizeof(epicsInt8),
+                     asynParamInt8Array, nIn);
+}
+
+asynStatus ecmcAsynDataItem::writeInt8Array(epicsInt8 *value,
+                                            size_t nElements) {
+
+  size_t bytesWritten = 0;
+  return writeGeneric(&(uint8_t)value, nElements * sizeof(epicsInt8),
+                      asynParamInt8Array, &bytesWritten);
+}
+
+asynStatus ecmcAsynDataItem::readInt16Array(epicsInt16 *value,
+                                       size_t nElements,
+                                       size_t *nIn) {
+
+  return readGeneric((uint8_t*)value, nElements * sizeof(epicsInt16),
+                     asynParamInt16Array, nIn);
+}
+
+asynStatus ecmcAsynDataItem::writeInt16Array(epicsInt16 *value,
+                                     size_t nElements) {
+  size_t bytesWritten = 0;
+  return writeGeneric(&(uint8_t)value, nElements * sizeof(epicsInt16),
+                      asynParamInt16Array, &bytesWritten);
+}
+
+asynStatus ecmcAsynDataItem::readInt32Array(epicsInt32 *value,
+                                      size_t nElements,
+                                      size_t *nIn) {
+
+ return readGeneric((uint8_t*)value, nElements * sizeof(epicsInt32),
+                    asynParamInt32Array, nIn);
+}
+
+asynStatus ecmcAsynDataItem::writeInt32Array(epicsInt32 *value,
+                                        size_t nElements) {
+  size_t bytesWritten = 0;
+  return writeGeneric(&(uint8_t)value, nElements * sizeof(epicsInt32),
+                      asynParamInt32Array, &bytesWritten);
+}
+
+asynStatus ecmcAsynDataItem::readFloat32Array(epicsFloat32 *value,
+                                         size_t nElements,
+                                         size_t *nIn) {
+
+  return readGeneric((uint8_t*)value, nElements * sizeof(epicsFloat32), 
+                     asynParamFloat32Array, nIn);
+}
+
+asynStatus ecmcAsynDataItem::writeFloat32Array(epicsFloat32 *value,
+                                          size_t nElements) {
+  size_t bytesWritten = 0;
+  return writeGeneric(&(uint8_t)value, nElements * sizeof(epicsFloat32),
+                      asynParamFloat32Array, &bytesWritten);
+}
+
+asynStatus ecmcAsynDataItem::readFloat64Array(epicsFloat64 *value,
+                                         size_t nElements,
+                                         size_t *nIn) {
+
+  return readGeneric((uint8_t*)value, nElements * sizeof(epicsFloat64), 
+                     asynParamFloat64Array, nIn);
+}
+
+asynStatus ecmcAsynDataItem::writeFloat64Array(epicsFloat64 *value,
+                                          size_t nElements) {
+
+  size_t bytesWritten = 0;
+  return writeGeneric(&(uint8_t)value, nElements * sizeof(epicsFloat64),
+                      asynParamFloat64Array, &bytesWritten);
+}
+
+

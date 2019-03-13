@@ -421,38 +421,7 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
     return asynError;
   }
 
-  // Check type
-  if(pEcmcParamInUseArray_[function]->getAsynParameterType() != asynParamInt32) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter %s type missmatch for function %d (%s != %s).\n",
-            driverName, functionName, paramName, function,"asynParamInt32",
-            asynTypeToString(pEcmcParamInUseArray_[function]->getAsynParameterType()));
-    return asynError;
-  }
-
-  ecmcAsynLink * ecmcLink = pEcmcParamInUseArray_[function]->getAsynLink();
-  if(!ecmcLink) {
-  asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter %s link to ecmc object NULL.\n",
-            driverName, functionName, paramName);
-    return asynError;
-  }
-  int errorCode = ecmcLink->writeInt32(value);
-
-  // Write data
-  //pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsInt32));
-  
-  // Set the parameter in the parameter library.
-  asynStatus status = setIntegerParam(function, value);
-  if (status != asynSuccess) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:%s: error, setIngerParam() failed.\n",
-              driverName, functionName);
-    return asynError;
-  }
-
-  // Do callbacks so higher layers see any changes
-  return callParamCallbacks();
+  return pEcmcParamInUseArray_[function]->writeInt32(value);
 }
 
 asynStatus ecmcAsynPortDriver::readInt32(asynUser *pasynUser,
@@ -500,9 +469,6 @@ asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser,
   int function = pasynUser->reason;
   const char *paramName;
   const char *functionName = "writeFloat64";
-
-  /* Fetch the parameter string name for possible use in debugging */
-  getParamName(function, &paramName);
 
   /* Fetch the parameter string name for possible use in debugging */
   getParamName(function, &paramName);

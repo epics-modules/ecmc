@@ -15,6 +15,7 @@
 #define ERROR_ASYN_CREATE_PARAM_FAIL 0x220003
 #define ERROR_ASYN_PARAM_NOT_VALIDATED 0x220004
 #define ERROR_ASYN_SUPPORTED_TYPES_ARRAY_FULL 0x220005
+#define ERROR_ASYN_DATA_BUFFER_TO_SMALL 0x220006
 
 #define ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT 10
 #define ERROR_ASYN_NOT_REFRESHED_RETURN -1
@@ -94,20 +95,63 @@ public:
   asynStatus setAlarmParam(int alarm,int severity);
   int getAlarmStatus();
   int getAlarmSeverity();
-  int setAsynLink(ecmcAsynLink *asynLink);
-  ecmcAsynLink *getAsynLink();
+  //int setAsynLink(ecmcAsynLink *asynLink);
+  //ecmcAsynLink *getAsynLink();  
+
+  asynStatus readInt32(epicsInt32 *value);
+  asynStatus writeInt32(epicsInt32 value);
+  asynStatus readUInt32Digital(epicsUInt32 *value,
+                               epicsUInt32 mask);
+  asynStatus writeUInt32Digital(epicsUInt32 value,
+                                epicsUInt32 mask);
+  asynStatus readFloat64(epicsFloat64 *value);
+  asynStatus writeFloat64(epicsFloat64 value);
+  asynStatus readInt8Array(epicsInt8 *value, 
+                           size_t nElements,
+                           size_t *nIn);
+  asynStatus writeInt8Array(epicsInt8 *value,
+                            size_t nElements);
+  asynStatus readInt16Array(epicsInt16 *value,
+                            size_t nElements,
+                            size_t *nIn);
+  asynStatus writeInt16Array(epicsInt16 *value,
+                             size_t nElements);
+  asynStatus readInt32Array(epicsInt32 *value,
+                            size_t nElements,
+                            size_t *nIn);
+  asynStatus writeInt32Array(epicsInt32 *value,
+                             size_t nElements);
+  asynStatus readFloat32Array(epicsFloat32 *value,
+                              size_t nElements,
+                              size_t *nIn);
+  asynStatus writeFloat32Array(epicsFloat32 *value,
+                               size_t nElements);
+  asynStatus readFloat64Array(epicsFloat64 *value,
+                              size_t nElements,
+                              size_t *nIn);
+  asynStatus writeFloat64Array(epicsFloat64 *value,
+                               size_t nElements);
 
 private:
   int asynTypeIsArray(asynParamType asynParType);
+  asynStatus checkTypeAndSize(asynParamType type, size_t bytes);
+  asynStatus writeGeneric(uint8_t *data, size_t bytes, asynParamType type, size_t *writtenBytes);
   ecmcAsynPortDriver *asynPortDriver_;
   int asynUpdateCycleCounter_;
   uint8_t *data_;
-  size_t bytes_;
+  //size_t bytes_; //take from paramInfo_ instead
   ecmcParamInfo *paramInfo_;
   bool allowWriteToEcmc_;
   asynParamType supportedTypes_[ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT];
   int supportedTypesCounter_;
   ecmcAsynLink *asynLink_;
+  //value limits for writes
+  int64_t maxU8_;
+  int64_t minS8_;
+  int64_t maxS8_;
+  int64_t maxU16_;
+  int64_t minS16_;
+  int64_t maxS16_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */
