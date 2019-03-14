@@ -6,7 +6,7 @@
 #include "../main/ecmcDefinitions.h"
 #include "ecmcAsynPortDriverUtils.h"
 #include "asynPortDriver.h"
-
+#include "ecmcOctetIF.h"  //LOG macros
 #include "../ethercat/ecmcAsynLink.h"
 
 #define ERROR_ASYN_PORT_NULL 0x220000
@@ -40,8 +40,8 @@ typedef struct ecmcParamInfo{
   int32_t        sampleTimeCycles;  // milli seconds
   int            index;             // also used as hUser for ads callback
   char           *name;
-  uint32_t       ecmcSize;          // Last refresh
-  uint32_t       ecmcMaxSize;       // Max buffer size
+  size_t       ecmcSize;          // Last refresh
+  size_t       ecmcMaxSize;       // Max buffer size
   bool           ecmcDataIsArray;
   int            ecmcDataPointerValid;
   ECMCTIMESOURCE timeBase;
@@ -135,7 +135,14 @@ public:
 private:
   int asynTypeIsArray(asynParamType asynParType);
   asynStatus checkTypeAndSize(asynParamType type, size_t bytes);
-  asynStatus writeGeneric(uint8_t *data, size_t bytes, asynParamType type, size_t *writtenBytes);
+  asynStatus readGeneric(uint8_t *data,
+                         size_t bytesToRead,
+                         asynParamType type,
+                         size_t *readBytes);
+  asynStatus writeGeneric(uint8_t *data,
+                          size_t bytes,
+                          asynParamType type,
+                          size_t *writtenBytes);
   ecmcAsynPortDriver *asynPortDriver_;
   int asynUpdateCycleCounter_;
   uint8_t *data_;

@@ -108,7 +108,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
                    asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask |
                    asynInt32ArrayMask | asynUInt32DigitalMask,
                    /* Interrupt mask */
-                   0 , /*NOT ASYN_CANBLOCK OR ASYN_MULTI_DEVICE*/
+                   ASYN_CANBLOCK , /*NOT ASYN_MULTI_DEVICE*/
                    autoConnect,
                    /* Autoconnect */
                    priority,
@@ -396,28 +396,44 @@ asynStatus ecmcAsynPortDriver::writeOctet(asynUser   *pasynUser,
   return status;
 }
 
-asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
-                                          epicsInt32 value) {
-  int function = pasynUser->reason;
+/** 
+ * Ensure name and id is valid for parameter at reads or writes\n
+ * \param[in] paramIndex Index of parameter.\n
+ * \param[in] functionName Name of calling function.\n
+ *
+ * \return asynSuccess or asynError.
+ */
+asynStatus ecmcAsynPortDriver::checkParamNameAndId(int paramIndex, const char *functionName) {
+
   const char *paramName;
-  const char *functionName = "writeInt32";
-
   /* Fetch the parameter string name for possible use in debugging */
-  getParamName(function, &paramName);
-
+  getParamName(paramIndex, &paramName);
+  
   // Check object
-  if(!pEcmcParamInUseArray_[function]) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+  if(!pEcmcParamInUseArray_[paramIndex]) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
            "%s:%s: Error: Parameter object NULL for function %d (%s).\n",
-            driverName, functionName, function, paramName);
+            driverName, functionName, paramIndex, paramName);
     return asynError;
   }
  
   // Check name
-  if(strcmp(paramName,pEcmcParamInUseArray_[function]->getName())!=0) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+  if(strcmp(paramName,pEcmcParamInUseArray_[paramIndex]->getName())!=0) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
            "%s:%s: Error: Parameter name missmatch for function %d (%s != %s).\n",
-            driverName, functionName, function, paramName,pEcmcParamInUseArray_[function]->getName());
+            driverName, functionName, paramIndex, paramName,pEcmcParamInUseArray_[paramIndex]->getName());
+    return asynError;
+  }
+  
+  return asynSuccess;
+}
+
+asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
+                                          epicsInt32 value) {
+  int function = pasynUser->reason;  
+  const char *functionName = "writeInt32";
+  
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
     return asynError;
   }
 
@@ -427,108 +443,37 @@ asynStatus ecmcAsynPortDriver::writeInt32(asynUser  *pasynUser,
 asynStatus ecmcAsynPortDriver::readInt32(asynUser *pasynUser,
                                          epicsInt32 *value) {                                           
   int function = pasynUser->reason;
-  const char *paramName;
-  const char *functionName = "writeInt32";
+  const char *functionName = "readInt32";
 
-  /* Fetch the parameter string name for possible use in debugging */
-  getParamName(function, &paramName);
-
-  // Check object
-  if(!pEcmcParamInUseArray_[function]) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter object NULL for function %d (%s).\n",
-            driverName, functionName, function, paramName);
-    return asynError;
-  }
- 
-  // Check name
-  if(strcmp(paramName,pEcmcParamInUseArray_[function]->getName())!=0) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter name missmatch for function %d (%s != %s).\n",
-            driverName, functionName, function, paramName,pEcmcParamInUseArray_[function]->getName());
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
     return asynError;
   }
 
-  // Check type
-  if(pEcmcParamInUseArray_[function]->getAsynParameterType() != asynParamInt32) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter %s type missmatch for function %d (%s != %s).\n",
-            driverName, functionName, paramName, function,"asynParamInt32",
-            asynTypeToString(pEcmcParamInUseArray_[function]->getAsynParameterType()));
-    return asynError;
-  }
-
-  // Read data
-  //pEcmcParamInUseArray_[function]->readParam((uint8_t*)&value,sizeof(epicsInt32));
-  //hepp
-  return asynSuccess;
+  return pEcmcParamInUseArray_[function]->readInt32(value);;
 }
 
 asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser,
                                             epicsFloat64 value) {
   int function = pasynUser->reason;
-  const char *paramName;
   const char *functionName = "writeFloat64";
 
-  /* Fetch the parameter string name for possible use in debugging */
-  getParamName(function, &paramName);
-
-  // Check object
-  if(!pEcmcParamInUseArray_[function]) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter object NULL for function %d (%s).\n",
-            driverName, functionName, function, paramName);
-    return asynError;
-  }
- 
-  // Check name
-  if(strcmp(paramName,pEcmcParamInUseArray_[function]->getName())!=0) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter name missmatch for function %d (%s != %s).\n",
-            driverName, functionName, function, paramName,pEcmcParamInUseArray_[function]->getName());
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
     return asynError;
   }
 
-  // Check type
-  if(pEcmcParamInUseArray_[function]->getAsynParameterType() != asynParamFloat64) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter %s type missmatch for function %d (%s != %s).\n",
-            driverName, functionName, paramName, function,"asynParamFloat64",
-            asynTypeToString(pEcmcParamInUseArray_[function]->getAsynParameterType()));
-    return asynError;
-  }
-
-  // Write data
-  //pEcmcParamInUseArray_[function]->writeParam((uint8_t*)&value,sizeof(epicsFloat64));
-
-  ecmcAsynLink * ecmcLink = pEcmcParamInUseArray_[function]->getAsynLink();
-  if(!ecmcLink) {
-  asynPrint(pasynUser, ASYN_TRACE_ERROR,
-           "%s:%s: Error: Parameter %s link to ecmc object NULL.\n",
-            driverName, functionName, paramName);
-    return asynError;
-  }
-  int errorCode = ecmcLink->writeFloat64(value);
-
-  /* Set the parameter in the parameter library. */
-  asynStatus status = (asynStatus)setDoubleParam(function, value);
-
-  if (status != asynSuccess) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:%s: error, setIngerParam() failed.\n",
-              driverName, functionName);
-    return asynError;
-  }
-
-  /* Do callbacks so higher layers see any changes */
-  status = (asynStatus)callParamCallbacks();
-
-  return status;
+  return pEcmcParamInUseArray_[function]->writeFloat64(value);
 }
 
 asynStatus ecmcAsynPortDriver::readFloat64(asynUser *pasynUser,
                                            epicsFloat64 *value) {
+  int function = pasynUser->reason;
+  const char *functionName = "readFloat64";
 
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->readFloat64(value);
 }
 
 
@@ -544,54 +489,54 @@ asynUser * ecmcAsynPortDriver::getTraceAsynUser() {
  *
  * \return asynSuccess or asynError.
  */
-asynStatus ecmcAsynPortDriver::writeArrayGeneric(asynUser *pasynUser,asynParamType allowedType,const void *data,size_t nEpicsBufferBytes)
-{
-  const char* functionName = "writeArrayGeneric";
-  asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+// asynStatus ecmcAsynPortDriver::writeArrayGeneric(asynUser *pasynUser,asynParamType allowedType,const void *data,size_t nEpicsBufferBytes)
+// {
+//   const char* functionName = "writeArrayGeneric";
+//   asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
 
-  int function=pasynUser->reason;
+//   int function=pasynUser->reason;
 
-  if(!pEcmcParamInUseArray_[function] || function>=paramTableSize_){
-    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: pAdsParamArray NULL or index (pasynUser->reason) our of range\n", driverName, functionName);
-    pasynUser->alarmStatus=WRITE_ALARM;
-    pasynUser->alarmSeverity=INVALID_ALARM;
-    return asynError;
-  }
+//   if(!pEcmcParamInUseArray_[function] || function>=paramTableSize_){
+//     asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: pAdsParamArray NULL or index (pasynUser->reason) our of range\n", driverName, functionName);
+//     pasynUser->alarmStatus=WRITE_ALARM;
+//     pasynUser->alarmSeverity=INVALID_ALARM;
+//     return asynError;
+//   }
   
-  //Only support same datatype as in PLC
-  if(!pEcmcParamInUseArray_[function]->asynTypeSupported(allowedType)){
-    asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Data types not compatible. Write canceled.\n", driverName, functionName);
-    pEcmcParamInUseArray_[function]->setAlarmParam(WRITE_ALARM,INVALID_ALARM);
-    return asynError;
-  }
+//   //Only support same datatype as in PLC
+//   if(!pEcmcParamInUseArray_[function]->asynTypeSupported(allowedType)){
+//     asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Data types not compatible. Write canceled.\n", driverName, functionName);
+//     pEcmcParamInUseArray_[function]->setAlarmParam(WRITE_ALARM,INVALID_ALARM);
+//     return asynError;
+//   }
 
-  ecmcParamInfo *paramInfo=pEcmcParamInUseArray_[function]->getParamInfo();
+//   ecmcParamInfo *paramInfo=pEcmcParamInUseArray_[function]->getParamInfo();
 
-  size_t bytesToWrite=nEpicsBufferBytes;
-  if(paramInfo->ecmcSize<nEpicsBufferBytes){
-    bytesToWrite=paramInfo->ecmcSize;
-  }
+//   size_t bytesToWrite=nEpicsBufferBytes;
+//   if(paramInfo->ecmcSize<nEpicsBufferBytes){
+//     bytesToWrite=paramInfo->ecmcSize;
+//   }
 
-  //Write 
-  /*if(pEcmcParamInUseArray_[function]->writeParam((uint8_t*)data,bytesToWrite)){
-    pEcmcParamInUseArray_[function]->setAlarmParam(WRITE_ALARM,INVALID_ALARM);
-    return asynError;
-  }*/
+//   //Write 
+//   /*if(pEcmcParamInUseArray_[function]->writeParam((uint8_t*)data,bytesToWrite)){
+//     pEcmcParamInUseArray_[function]->setAlarmParam(WRITE_ALARM,INVALID_ALARM);
+//     return asynError;
+//   }*/
 
-  // Do callbacks to refresh params
-  int errorCode = pEcmcParamInUseArray_[function]->refreshParamRT(1);
-  if(errorCode>0) {
-    asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s: Error in refreshing parameter after write (0x%x).\n", driverName, functionName,errorCode);
-    return asynError;
-  }
+//   // Do callbacks to refresh params
+//   int errorCode = pEcmcParamInUseArray_[function]->refreshParamRT(1);
+//   if(errorCode>0) {
+//     asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s: Error in refreshing parameter after write (0x%x).\n", driverName, functionName,errorCode);
+//     return asynError;
+//   }
 
-  //Only reset if write alarm
-  if(pEcmcParamInUseArray_[function]->getAlarmStatus() == WRITE_ALARM){
-    return pEcmcParamInUseArray_[function]->setAlarmParam(NO_ALARM,NO_ALARM);
-  }
+//   //Only reset if write alarm
+//   if(pEcmcParamInUseArray_[function]->getAlarmStatus() == WRITE_ALARM){
+//     return pEcmcParamInUseArray_[function]->setAlarmParam(NO_ALARM,NO_ALARM);
+//   }
 
-  return asynSuccess;
-}
+//   return asynSuccess;
+// }
 
 /** Overrides asynPortDriver::writeInt8Array.
  * Writes int8Array
@@ -601,35 +546,31 @@ asynStatus ecmcAsynPortDriver::writeArrayGeneric(asynUser *pasynUser,asynParamTy
  *
  * \return asynSuccess or asynError.
  */
-asynStatus ecmcAsynPortDriver::writeInt8Array(asynUser *pasynUser, epicsInt8 *value,size_t nElements)
-{
-  const char* functionName = "writeInt8Array";
-  asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+asynStatus ecmcAsynPortDriver::writeInt8Array(asynUser *pasynUser, 
+                                              epicsInt8 *value,
+                                              size_t nElements) {
+  int function = pasynUser->reason;
+  const char *functionName = "writeInt8Array";
 
-  asynParamType allowedType=asynParamInt8Array;
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
 
-  //Also allow string and bool array as int8array (special case)
-  return writeArrayGeneric(pasynUser,allowedType,(const void *)value,nElements*sizeof(epicsInt8));
+  return pEcmcParamInUseArray_[function]->writeInt8Array(value,nElements);
 }
 
 asynStatus ecmcAsynPortDriver::readInt8Array(asynUser  *pasynUser,
                                              epicsInt8 *value,
                                              size_t     nElements,
                                              size_t    *nIn) {
+  int function = pasynUser->reason;
   const char *functionName = "readInt8Array";
 
-  int errorId = readArrayGeneric(pasynUser,
-                                 reinterpret_cast<uint8_t *>(value),
-                                 nElements,
-                                 nIn,
-                                 2,
-                                 functionName);
-
-  if (errorId) {
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
     return asynError;
   }
 
-  return asynSuccess;
+  return pEcmcParamInUseArray_[function]->readInt8Array(value,nElements,nIn);
 }
 
 /** Overrides asynPortDriver::writeInt16Array.
@@ -640,35 +581,31 @@ asynStatus ecmcAsynPortDriver::readInt8Array(asynUser  *pasynUser,
  *
  * \return asynSuccess or asynError.
  */
-asynStatus ecmcAsynPortDriver::writeInt16Array(asynUser *pasynUser, epicsInt16 *value,size_t nElements)
-{
-  const char* functionName = "writeInt16Array";
-  asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+asynStatus ecmcAsynPortDriver::writeInt16Array(asynUser *pasynUser,
+                                               epicsInt16 *value,
+                                               size_t nElements) {
+  int function = pasynUser->reason;
+  const char *functionName = "writeInt16Array";
 
-  asynParamType allowedType=asynParamInt16Array;
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
 
-  //Also allow string and bool array as int8array (special case)
-  return writeArrayGeneric(pasynUser,allowedType,(const void *)value,nElements*sizeof(epicsInt16));
+  return pEcmcParamInUseArray_[function]->writeInt16Array(value,nElements);
 }
 
 asynStatus ecmcAsynPortDriver::readInt16Array(asynUser   *pasynUser,
                                               epicsInt16 *value,
                                               size_t      nElements,
                                               size_t     *nIn) {
+  int function = pasynUser->reason;
   const char *functionName = "readInt16Array";
 
-  int errorId = readArrayGeneric(pasynUser,
-                                 reinterpret_cast<uint8_t *>(value),
-                                 nElements,
-                                 nIn,
-                                 2,
-                                 functionName);
-
-  if (errorId) {
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
     return asynError;
   }
 
-  return asynSuccess;
+  return pEcmcParamInUseArray_[function]->readInt16Array(value,nElements,nIn);
 }
 
 /** Overrides asynPortDriver::writeInt32Array.
@@ -679,35 +616,31 @@ asynStatus ecmcAsynPortDriver::readInt16Array(asynUser   *pasynUser,
  *
  * \return asynSuccess or asynError.
  */
-asynStatus ecmcAsynPortDriver::writeInt32Array(asynUser *pasynUser, epicsInt32 *value,size_t nElements)
-{
-  const char* functionName = "writeInt32Array";
-  asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+asynStatus ecmcAsynPortDriver::writeInt32Array(asynUser *pasynUser,
+                                               epicsInt32 *value,
+                                               size_t nElements) {
+  int function = pasynUser->reason;
+  const char *functionName = "writeInt32Array";
 
-  asynParamType allowedType=asynParamInt32Array;
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
 
-  //Also allow string and bool array as int8array (special case)
-  return writeArrayGeneric(pasynUser,allowedType,(const void *)value,nElements*sizeof(epicsInt32));
+  return pEcmcParamInUseArray_[function]->writeInt32Array(value,nElements);
 }
 
 asynStatus ecmcAsynPortDriver::readInt32Array(asynUser   *pasynUser,
                                               epicsInt32 *value,
                                               size_t      nElements,
                                               size_t     *nIn) {
+  int function = pasynUser->reason;
   const char *functionName = "readInt32Array";
 
-  int errorId = readArrayGeneric(pasynUser,
-                                 reinterpret_cast<uint8_t *>(value),
-                                 nElements,
-                                 nIn,
-                                 2,
-                                 functionName);
-
-  if (errorId) {
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
     return asynError;
   }
 
-  return asynSuccess;
+  return pEcmcParamInUseArray_[function]->readInt32Array(value,nElements,nIn);
 }
 
 /** Overrides asynPortDriver::writeFloat32Array.
@@ -718,35 +651,31 @@ asynStatus ecmcAsynPortDriver::readInt32Array(asynUser   *pasynUser,
  *
  * \return asynSuccess or asynError.
  */
-asynStatus ecmcAsynPortDriver::writeFloat32Array(asynUser *pasynUser, epicsFloat32 *value,size_t nElements)
-{
-  const char* functionName = "writeFloat32Array";
-  asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+asynStatus ecmcAsynPortDriver::writeFloat32Array(asynUser *pasynUser,
+                                                 epicsFloat32 *value,
+                                                 size_t nElements) {
+  int function = pasynUser->reason;
+  const char *functionName = "writeFloat32Array";
 
-  asynParamType allowedType=asynParamFloat32Array;
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
 
-  //Also allow string and bool array as int8array (special case)
-  return writeArrayGeneric(pasynUser,allowedType,(const void *)value,nElements*sizeof(epicsFloat32));
+  return pEcmcParamInUseArray_[function]->writeFloat32Array(value,nElements);
 }
 
 asynStatus ecmcAsynPortDriver::readFloat32Array(asynUser     *pasynUser,
                                                 epicsFloat32 *value,
                                                 size_t        nElements,
                                                 size_t       *nIn) {
-  const char *functionName = "readFloat32rray";
+  int function = pasynUser->reason;
+  const char *functionName = "readFloat32Array";
 
-  int errorId = readArrayGeneric(pasynUser,
-                                 reinterpret_cast<uint8_t *>(value),
-                                 nElements,
-                                 nIn,
-                                 2,
-                                 functionName);
-
-  if (errorId) {
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
     return asynError;
   }
 
-  return asynSuccess;
+  return pEcmcParamInUseArray_[function]->readFloat32Array(value,nElements,nIn);
 }
 
 /** Overrides asynPortDriver::writeFloat64Array.
@@ -757,74 +686,71 @@ asynStatus ecmcAsynPortDriver::readFloat32Array(asynUser     *pasynUser,
  *
  * \return asynSuccess or asynError.
  */
-asynStatus ecmcAsynPortDriver::writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value,size_t nElements)
-{
-  const char* functionName = "writeFloat64Array";
-  asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+asynStatus ecmcAsynPortDriver::writeFloat64Array(asynUser *pasynUser,
+                                                 epicsFloat64 *value,
+                                                 size_t nElements) {
+  int function = pasynUser->reason;
+  const char *functionName = "writeFloat64Array";
 
-  asynParamType allowedType=asynParamFloat64Array;
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
 
-  //Also allow string and bool array as int8array (special case)
-  return writeArrayGeneric(pasynUser,allowedType,(const void *)value,nElements*sizeof(epicsFloat64));
+  return pEcmcParamInUseArray_[function]->writeFloat64Array(value,nElements);
 }
 
 asynStatus ecmcAsynPortDriver::readFloat64Array(asynUser     *pasynUser,
                                                 epicsFloat64 *value,
                                                 size_t        nElements,
                                                 size_t       *nIn) {
-  const char *functionName = "readFloat64Array";
-  int errorId = readArrayGeneric(pasynUser,
-                                 reinterpret_cast<uint8_t *>(value),
-                                 nElements,
-                                 nIn,
-                                 2,
-                                 functionName);
-
-  if (errorId) {
-    return asynError;
-  }
-
-  return asynSuccess;
-}
-
-int ecmcAsynPortDriver::readArrayGeneric(asynUser   *pasynUser,
-                                         epicsUInt8 *value,
-                                         size_t      nElements,
-                                         size_t     *nIn,
-                                         size_t      typeSize,
-                                         const char *functionName) {
-  const char *paramName;
-  int errorId  = 0;
   int function = pasynUser->reason;
+  const char *functionName = "readFloat64Array";
 
-  getParamName(function, &paramName);
-
-  size_t bytesRead = 0;
-  char   buffer[1024];
-  int    masterIndex = 0;
-  int    nvals       = sscanf(paramName, "ec%d.mm.%s", &masterIndex, buffer);
-
-  if (nvals == 2) {
-    errorId = readEcMemMap(buffer,
-                           reinterpret_cast<uint8_t *>(value),
-                           nElements * typeSize,
-                           &bytesRead);
-  }
-
-  if (errorId) {
-    asynPrint(pasynUser,
-              ASYN_TRACE_ERROR,
-              "%s:%s: error, read of parameter %s failed with error code 0x%x.\n",
-              driverName,
-              functionName,
-              paramName,
-              errorId);
-    *nIn = 0;
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
     return asynError;
   }
-  *nIn = bytesRead / typeSize;
-  return errorId;
+
+  return pEcmcParamInUseArray_[function]->readFloat64Array(value,nElements,nIn);
 }
+
+// int ecmcAsynPortDriver::readArrayGeneric(asynUser   *pasynUser,
+//                                          epicsUInt8 *value,
+//                                          size_t      nElements,
+//                                          size_t     *nIn,
+//                                          size_t      typeSize,
+//                                          const char *functionName) {
+//   const char *paramName;
+//   int errorId  = 0;
+//   int function = pasynUser->reason;
+
+//   getParamName(function, &paramName);
+
+//   size_t bytesRead = 0;
+//   char   buffer[1024];
+//   int    masterIndex = 0;
+//   int    nvals       = sscanf(paramName, "ec%d.mm.%s", &masterIndex, buffer);
+
+//   if (nvals == 2) {
+//     errorId = readEcMemMap(buffer,
+//                            reinterpret_cast<uint8_t *>(value),
+//                            nElements * typeSize,
+//                            &bytesRead);
+//   }
+
+//   if (errorId) {
+//     asynPrint(pasynUser,
+//               ASYN_TRACE_ERROR,
+//               "%s:%s: error, read of parameter %s failed with error code 0x%x.\n",
+//               driverName,
+//               functionName,
+//               paramName,
+//               errorId);
+//     *nIn = 0;
+//     return asynError;
+//   }
+//   *nIn = bytesRead / typeSize;
+//   return errorId;
+// }
 
 void ecmcAsynPortDriver::setAllowRtThreadCom(bool allowRtCom) {
   allowRtThreadCom_ = allowRtCom;
@@ -1363,7 +1289,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param linked to record:    %s\n",paramInfo->initialized ? "true" : "false");
   if(!paramInfo->initialized) {  //No record linked to record (no more valid data)
     fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false"); 
-    fprintf(fp,"    ECMC size [bytes]:         %d\n",paramInfo->ecmcSize); 
+    fprintf(fp,"    ECMC size [bytes]:         %lu\n",paramInfo->ecmcSize); 
     fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
     fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");      
     fprintf(fp,"\n");
@@ -1381,7 +1307,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param alarm:               %d\n",paramInfo->alarmStatus);
   fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
   fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");
-  fprintf(fp,"    ECMC size [bytes]:         %d\n",paramInfo->ecmcSize);
+  fprintf(fp,"    ECMC size [bytes]:         %lu\n",paramInfo->ecmcSize);
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
   fprintf(fp,"    Record name:               %s\n",paramInfo->recordName);

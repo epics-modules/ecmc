@@ -586,7 +586,7 @@ int ecmcEcEntry::initAsyn() {
   }
 
   //Add supported types
-  entryAsynParam_->setAsynLink(this);
+  //entryAsynParam_->setAsynLink(this);
   entryAsynParam_->addSupportedAsynType(asynParamInt32);
   entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
   entryAsynParam_->addSupportedAsynType(asynParamFloat64); //Really..
