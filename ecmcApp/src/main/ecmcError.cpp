@@ -1986,6 +1986,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_ASYN_DATA_BUFFER_TO_SMALL";
 
     break;
+  case 0x220007:
+    return "ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE";
+
+    break;
   }
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
 }

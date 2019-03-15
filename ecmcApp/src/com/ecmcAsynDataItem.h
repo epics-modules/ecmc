@@ -16,6 +16,7 @@
 #define ERROR_ASYN_PARAM_NOT_VALIDATED 0x220004
 #define ERROR_ASYN_SUPPORTED_TYPES_ARRAY_FULL 0x220005
 #define ERROR_ASYN_DATA_BUFFER_TO_SMALL 0x220006
+#define ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE 0x220007
 
 #define ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT 10
 #define ERROR_ASYN_NOT_REFRESHED_RETURN -1
@@ -40,8 +41,8 @@ typedef struct ecmcParamInfo{
   int32_t        sampleTimeCycles;  // milli seconds
   int            index;             // also used as hUser for ads callback
   char           *name;
-  size_t       ecmcSize;          // Last refresh
-  size_t       ecmcMaxSize;       // Max buffer size
+  size_t         ecmcSize;          // Last refresh
+  size_t         ecmcMaxSize;       // Max buffer size
   bool           ecmcDataIsArray;
   int            ecmcDataPointerValid;
   ECMCTIMESOURCE timeBase;
@@ -95,8 +96,12 @@ public:
   asynStatus setAlarmParam(int alarm,int severity);
   int getAlarmStatus();
   int getAlarmSeverity();
-  //int setAsynLink(ecmcAsynLink *asynLink);
-  //ecmcAsynLink *getAsynLink();  
+  void setEcmcMaxValueInt(int64_t intMax);
+  void setEcmcMinValueInt(int64_t intMin);
+  void setEcmcBitCount(size_t bits);
+  int64_t getEcmcMinValueInt();
+  int64_t getEcmcMaxValueInt();
+  size_t getEcmcBitCount();
 
   asynStatus readInt32(epicsInt32 *value);
   asynStatus writeInt32(epicsInt32 value);
@@ -134,7 +139,6 @@ public:
 
 private:
   int asynTypeIsArray(asynParamType asynParType);
-  asynStatus checkTypeAndSize(asynParamType type, size_t bytes);
   asynStatus readGeneric(uint8_t *data,
                          size_t bytesToRead,
                          asynParamType type,
@@ -146,19 +150,16 @@ private:
   ecmcAsynPortDriver *asynPortDriver_;
   int asynUpdateCycleCounter_;
   uint8_t *data_;
-  //size_t bytes_; //take from paramInfo_ instead
   ecmcParamInfo *paramInfo_;
   bool allowWriteToEcmc_;
   asynParamType supportedTypes_[ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT];
   int supportedTypesCounter_;
   ecmcAsynLink *asynLink_;
+  int checkIntRange_;
   //value limits for writes
-  int64_t maxU8_;
-  int64_t minS8_;
-  int64_t maxS8_;
-  int64_t maxU16_;
-  int64_t minS16_;
-  int64_t maxS16_;
+  int64_t intMax_;
+  int64_t intMin_;
+  size_t intBits_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

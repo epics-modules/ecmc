@@ -5,12 +5,16 @@
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const char *paramName,asynParamType asynParType)
 {
-  maxU8_                  = 255;
+  /*maxU8_                  = 255;
   minS8_                  = -127;
   maxS8_                  = 127;
   maxU16_                 = 65535;
   minS16_                 = -32767;
-  maxS16_                 = 32767;  
+  maxS16_                 = 32767;  */
+  checkIntRange_ = 0;
+  intMax_ = 0;
+  intMin_ = 0;
+  intBits_ = 0;
   asynPortDriver_=asynPortDriver;  
   data_=0;  
   asynUpdateCycleCounter_=0;
@@ -548,6 +552,19 @@ asynStatus ecmcAsynDataItem::readInt32(epicsInt32 *value) {
 asynStatus ecmcAsynDataItem::writeInt32(epicsInt32 value) {
 
   size_t bytesWritten = 0;
+  if(checkIntRange_ && (value > intMax_ || value < intMin_)) {
+    LOGERR(
+      "%s/%s:%d: Error: Value Out Of Range %d. Allowed Range %ld..%ld (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      value,
+      intMin_,
+      intMax_,
+      ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE);
+      return asynError;
+  }
+
   return writeGeneric((uint8_t*)&value, sizeof(epicsInt32),
                       asynParamInt32, &bytesWritten);
 }
@@ -567,7 +584,21 @@ asynStatus ecmcAsynDataItem::readUInt32Digital(epicsUInt32 *value,
 }
 
 asynStatus  ecmcAsynDataItem::writeUInt32Digital(epicsUInt32 value,
-                                                 epicsUInt32 mask) {  
+                                                 epicsUInt32 mask) {
+
+  if(checkIntRange_ && (value > intMax_ || value < intMin_)) {
+    LOGERR(
+      "%s/%s:%d: Error: Value Out Of Range %d. Allowed Range %ld..%ld (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      value,
+      intMin_,
+      intMax_,
+      ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE);
+      return asynError;
+  }
+
   epicsUInt32 tempVal1 = 0;
   asynStatus stat = readUInt32Digital(&tempVal1,~mask);
   if(stat != asynSuccess) {
@@ -671,4 +702,29 @@ asynStatus ecmcAsynDataItem::writeFloat64Array(epicsFloat64 *value,
                       asynParamFloat64Array, &bytesWritten);
 }
 
+void ecmcAsynDataItem::setEcmcMaxValueInt(int64_t intMax) {
+  checkIntRange_ = 1;
+  intMax_ = intMax;  
+}
+
+void ecmcAsynDataItem::setEcmcMinValueInt(int64_t intMin) {
+  checkIntRange_ = 1;
+  intMin_ = intMin;
+}
+
+void ecmcAsynDataItem::setEcmcBitCount(size_t bits) {
+   intBits_ = bits;
+}
+
+int64_t ecmcAsynDataItem::getEcmcMaxValueInt() {  
+  return intMax_;
+}
+
+int64_t ecmcAsynDataItem::getEcmcMinValueInt() {
+  return intMin_;
+}
+
+size_t ecmcAsynDataItem::getEcmcBitCount() {
+  return intBits_;
+}
 

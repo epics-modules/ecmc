@@ -91,7 +91,7 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
   domain_        = domain;
   pdoIndex_      = pdoIndex;
   slave_         = slave;
-  signed_   = signedValue;
+  signed_        = signedValue;
   int errorCode = ecrt_slave_config_pdo_mapping_add(slave,
                                                     pdoIndex_,
                                                     entryIndex_,
@@ -162,15 +162,9 @@ void ecmcEcEntry::initVars() {
   domain_                 = NULL;
   pdoIndex_               = 0;
   slave_                  = NULL;
-  signed_            = 0;
+  signed_                 = 0;
   tempAsynValue_          = 0;
   value_                  = 0;
-  /*maxU8_                  = 255;
-  minS8_                  = -127;
-  maxS8_                  = 127;
-  maxU16_                 = 65535;
-  minS16_                 = -32767;
-  maxS16_                 = 32767;  */
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -585,236 +579,20 @@ int ecmcEcEntry::initAsyn() {
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
 
-  //Add supported types
-  //entryAsynParam_->setAsynLink(this);
+  //Add supported types  
   entryAsynParam_->addSupportedAsynType(asynParamInt32);
   entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
-  entryAsynParam_->addSupportedAsynType(asynParamFloat64); //Really..
+  entryAsynParam_->addSupportedAsynType(asynParamFloat64);
   entryAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT);
+  entryAsynParam_->setEcmcBitCount(bitLength_);
+  if( signed_ ) {
+    entryAsynParam_->setEcmcMinValueInt(-pow(2,bitLength_-1));
+    entryAsynParam_->setEcmcMaxValueInt(pow(2,bitLength_-1)-1);
+  } else {
+    entryAsynParam_->setEcmcMinValueInt(0);
+    entryAsynParam_->setEcmcMaxValueInt(pow(2,bitLength_)-1);
+  }
   entryAsynParam_->refreshParam(1);
   asynPortDriver_->callParamCallbacks();
-
   return 0;
 }
-
-// implementation of ecmcAsynLink virtuel methods
-/*int ecmcEcEntry::readInt32(epicsInt32 *value) {
- *value = (epicsInt32) ecValue2Int32();
- return asynSuccess;
-}
-
-int ecmcEcEntry::writeInt32(epicsInt32 value) {
-  if(!writeRangeOK(value)) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Value out of range. Value = %d, bits = %d , signed = %d  (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      value, bitLength_,signed_,ERROR_EC_ENTRY_VALUE_OUT_OF_RANGE);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_VALUE_OUT_OF_RANGE);
-
-    return asynError;
-  }
-
-  return writeValueForce(value) ? asynError : asynSuccess;
-}*/
-
-/**
- * Check if value from epics is within range
-*/
-/*int ecmcEcEntry::writeRangeOK(epicsInt32 value) { 
-  //only check bitLengths shorter than 32
-  switch(bitLength_){
-   case 8:
-     if(signed_) {
-      return value<=maxS8_ && value>= minS8_;
-     } else {
-      return value<=maxU8_ && value>=0;
-     }
-   case 16:
-     if(signed_) {
-      return value<=maxS16_ && value>= minS16_;
-     } else {
-      return value<=maxU16_ && value>=0;
-     }
-    default:
-    return 1;
-  }
-  return 0;
-}
-
-int ecmcEcEntry::readUInt32Digital(epicsUInt32 *value, epicsUInt32 mask) {
- *value = (uint32_t)value_ & mask;
- return asynSuccess;
-}
-
-int ecmcEcEntry::writeUInt32Digital(epicsUInt32 value, epicsUInt32 mask) {  
-  return writeValueForce((value_ & ~mask) | (value & mask)) ? asynError : asynSuccess;
-}
-
-int ecmcEcEntry::readFloat64(epicsFloat64 *value) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::writeFloat64(epicsFloat64 value) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::readInt8Array(epicsInt8 *value,                   
-                                      size_t nElements, size_t *nIn) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::writeInt8Array(epicsInt8 *value,
-                                      size_t nElements) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::readInt16Array(epicsInt16 *value,
-                                       size_t nElements, size_t *nIn) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::writeInt16Array(epicsInt16 *value,
-                                     size_t nElements) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::readInt32Array(epicsInt32 *value,
-                                      size_t nElements, size_t *nIn) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::writeInt32Array(epicsInt32 *value,
-                                        size_t nElements) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::readFloat32Array(epicsFloat32 *value,
-                                         size_t nElements, size_t *nIn) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::writeFloat32Array(epicsFloat32 *value,
-                                          size_t nElements) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::readFloat64Array(epicsFloat64 *value,
-                                         size_t nElements, size_t *nIn) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}
-
-int ecmcEcEntry::writeFloat64Array(epicsFloat64 *value,
-                                          size_t nElements) {
-  LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-
-  return asynError;
-}*/

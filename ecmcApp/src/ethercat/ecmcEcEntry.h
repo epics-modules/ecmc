@@ -96,33 +96,6 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
   bool        getSimEntry();
   int         validate();
 
-  //ecmcAsynLink
-  /*int readInt32(epicsInt32 *value);
-  int writeInt32(epicsInt32 value);
-  int readUInt32Digital(epicsUInt32 *value, epicsUInt32 mask);
-  int writeUInt32Digital(epicsUInt32 value, epicsUInt32 mask);
-  int readFloat64(epicsFloat64 *value);
-  int writeFloat64(epicsFloat64 value);
-  int readInt8Array(epicsInt8 *value, 
-                                   size_t nElements, size_t *nIn);
-  int writeInt8Array(epicsInt8 *value,
-                                    size_t nElements);
-  int readInt16Array(epicsInt16 *value,
-                                    size_t nElements, size_t *nIn);
-  int writeInt16Array(epicsInt16 *value,
-                                     size_t nElements);
-  int readInt32Array(epicsInt32 *value,
-                                    size_t nElements, size_t *nIn);
-  int writeInt32Array(epicsInt32 *value,
-                                     size_t nElements);
-  int readFloat32Array(epicsFloat32 *value,
-                                      size_t nElements, size_t *nIn);
-  int writeFloat32Array(epicsFloat32 *value,
-                                       size_t nElements);
-  int readFloat64Array(epicsFloat64 *value,
-                                      size_t nElements, size_t *nIn);
-  int writeFloat64Array(epicsFloat64 *value,
-                                      size_t nElements);*/
  private:
   int    initAsyn();
   int32_t ecValue2Int32();
@@ -149,13 +122,5 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *entryAsynParam_;
   int32_t tempAsynValue_;
-
-  //value limits for writes
-  /*int64_t maxU8_;
-  int64_t minS8_;
-  int64_t maxS8_;
-  int64_t maxU16_;
-  int64_t minS16_;
-  int64_t maxS16_;  */
 };
 #endif  /* ECMCECENTRY_H_ */

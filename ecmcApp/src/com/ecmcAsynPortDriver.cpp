@@ -1282,9 +1282,11 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param index:               %d\n",paramInfo->index);
   fprintf(fp,"    Param type:                %s (%d)\n",asynTypeToString((long)paramInfo->asynType),paramInfo->asynType);
   //supported types
-  fprintf(fp,"    Supported types:\n");
+  fprintf(fp,"    Supported asyn types:\n");
   for(int i=0;i<param->getSupportedAsynTypeCount();i++) {
-    fprintf(fp,"      - %s (%d)\n",asynTypeToString((long)param->getSupportedAsynType(i)),param->getSupportedAsynType(i));
+    fprintf(fp,"      - %s (%d)\n",asynTypeToString(
+                            (long)param->getSupportedAsynType(i)),
+                            param->getSupportedAsynType(i));
   }
   fprintf(fp,"    Param linked to record:    %s\n",paramInfo->initialized ? "true" : "false");
   if(!paramInfo->initialized) {  //No record linked to record (no more valid data)
@@ -1301,8 +1303,12 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   //fprintf(fp,"    Param max delay time [ms]: %lf\n",paramInfo->maxDelayTimeMS);
   fprintf(fp,"    Param isIOIntr:            %s\n",paramInfo->isIOIntr ? "true" : "false");
   fprintf(fp,"    Param asyn addr:           %d\n",paramInfo->asynAddr);
-  fprintf(fp,"    Param time source:         %s\n",(paramInfo->timeBase==ECMC_TIME_BASE_ECMC) ? ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
-  fprintf(fp,"    Param epics time:          %us:%uns\n",paramInfo->epicsTimestamp.secPastEpoch,paramInfo->epicsTimestamp.nsec);
+  fprintf(fp,"    Param time source:         %s\n",
+                           (paramInfo->timeBase == ECMC_TIME_BASE_ECMC) ?
+                           ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
+  fprintf(fp,"    Param epics time:          %us:%uns\n",
+                           paramInfo->epicsTimestamp.secPastEpoch,
+                           paramInfo->epicsTimestamp.nsec);
   //fprintf(fp,"    Param array buffer size:   %lu\n",paramInfo->arrayDataBufferSize);
   fprintf(fp,"    Param alarm:               %d\n",paramInfo->alarmStatus);
   fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
@@ -1310,6 +1316,13 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    ECMC size [bytes]:         %lu\n",paramInfo->ecmcSize);
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
+  // Value range only applicable for ints
+  if(param->getEcmcMinValueInt() != param->getEcmcMaxValueInt()) {
+    fprintf(fp,"    ECMC Value Range:          %ld..%ld, %ld bit(s)\n",
+            param->getEcmcMinValueInt(),
+            param->getEcmcMaxValueInt(),
+            param->getEcmcBitCount());    
+  }
   fprintf(fp,"    Record name:               %s\n",paramInfo->recordName);
   fprintf(fp,"    Record type:               %s\n",paramInfo->recordType);
   fprintf(fp,"    Record dtyp:               %s\n",paramInfo->dtyp);      
