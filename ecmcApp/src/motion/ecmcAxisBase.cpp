@@ -333,11 +333,11 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   
-  if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext()) {
+  if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
     int  bytesUsed = 0;
     int  error = getAxisDebugInfoData(&diagBuffer_[0],
                                       AX_MAX_DIAG_STRING_CHAR_LENGTH,
-                                      &bytesUsed);
+                                      &bytesUsed);   
 
     if (error) {
       LOGERR(
@@ -346,8 +346,12 @@ void ecmcAxisBase::postExecute(bool masterOK) {
         __FUNCTION__,
         __LINE__);
     } else {
-      axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
+      axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->refreshParamRT(1,(uint8_t*)diagBuffer_,bytesUsed);
     }
+  }
+  else {
+    //Just to count up for correct freq
+    axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->refreshParamRT(0);  
   }
 
   // Update status entry if linked
@@ -1331,8 +1335,8 @@ int ecmcAxisBase::initAsyn() {
   name = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                          asynParamFloat64,
-                                         (uint8_t *)&(data_.status_.currentPositionActual),
-                                         sizeof(data_.status_.currentPositionActual),
+                                         (uint8_t *)&(statusData_.onChangeData.positionActual),
+                                         sizeof(statusData_.onChangeData.positionActual),
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1364,8 +1368,8 @@ int ecmcAxisBase::initAsyn() {
   name = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                          asynParamFloat64,
-                                         (uint8_t *)&(data_.status_.currentPositionSetpoint),
-                                         sizeof(data_.status_.currentPositionSetpoint),
+                                         (uint8_t *)&(statusData_.onChangeData.positionSetpoint),
+                                         sizeof(statusData_.onChangeData.positionSetpoint),
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1397,8 +1401,8 @@ int ecmcAxisBase::initAsyn() {
   name = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                          asynParamFloat64,
-                                         (uint8_t *)&(data_.status_.positionError),
-                                         sizeof(data_.status_.positionError),
+                                         (uint8_t *)&(statusData_.onChangeData.cntrlError),
+                                         sizeof(statusData_.onChangeData.cntrlError),
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1431,7 +1435,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                          asynParamInt8Array,
                                          (uint8_t *)diagBuffer_,
-                                         strlen(diagBuffer_),
+                                         AX_MAX_DIAG_STRING_CHAR_LENGTH,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1442,6 +1446,7 @@ int ecmcAxisBase::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;

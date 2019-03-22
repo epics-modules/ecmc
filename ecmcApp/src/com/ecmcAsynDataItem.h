@@ -7,7 +7,6 @@
 #include "ecmcAsynPortDriverUtils.h"
 #include "asynPortDriver.h"
 #include "ecmcOctetIF.h"  //LOG macros
-#include "../ethercat/ecmcAsynLink.h"
 
 #define ERROR_ASYN_PORT_NULL 0x220000
 #define ERROR_ASYN_DATA_NULL 0x220001
@@ -59,11 +58,6 @@ public:
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                     const char *paramName,
                     asynParamType asynParType);
-  /*ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
-                    ecmcAsynLink *asynLink,
-                    const char *paramName,
-                    asynParamType asynParType);*/
-
   ~ecmcAsynDataItem ();
   int setEcmcDataPointer(uint8_t *data,size_t bytes);
   int refreshParam(int force);
@@ -72,8 +66,6 @@ public:
   int refreshParamRT(int force);
   int refreshParamRT(int force, size_t bytes);
   int refreshParamRT(int force, uint8_t *data, size_t bytes);
-  //int writeParam(uint8_t *data, size_t bytes);
-  //int readParam(uint8_t *data, size_t *bytes);
   int createParam();
   int createParam(const char *paramName,asynParamType asynParType);
   int createParam(const char *paramName,asynParamType asynParType, uint8_t *data,size_t bytes);
@@ -153,8 +145,7 @@ private:
   ecmcParamInfo *paramInfo_;
   bool allowWriteToEcmc_;
   asynParamType supportedTypes_[ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT];
-  int supportedTypesCounter_;
-  ecmcAsynLink *asynLink_;
+  int supportedTypesCounter_;  
   int checkIntRange_;
   //value limits for writes
   int64_t intMax_;

@@ -6,8 +6,9 @@
 
 #include "ecmcPLCMain.h"
 
-ecmcPLCMain::ecmcPLCMain(ecmcEc *ec) {
+ecmcPLCMain::ecmcPLCMain(ecmcEc *ec, ecmcAsynPortDriver *asynPortDriver) {
   initVars();
+  asynPortDriver_ = asynPortDriver;
   ec_ = ec;
 }
 
@@ -18,8 +19,7 @@ ecmcPLCMain::~ecmcPLCMain() {
 }
 
 void ecmcPLCMain::initVars() {
-  globalVariableCount_ = 0;
-
+  globalVariableCount_ = 0;  
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
     plcs_[i]         = NULL;
     plcEnable_[i]    = NULL;
@@ -38,7 +38,7 @@ void ecmcPLCMain::initVars() {
   for (int i = 0; i < ECMC_MAX_PLC_VARIABLES; i++) {
     globalDataArray_[i] = 0;
   }
-
+  asynPortDriver_ = NULL;
   ec_ = NULL;
 }
 
@@ -54,7 +54,7 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     plcs_[plcIndex] = NULL;
   }
 
-  plcs_[plcIndex] = new ecmcPLCTask(skipCycles);
+  plcs_[plcIndex] = new ecmcPLCTask(plcIndex,skipCycles,asynPortDriver_);
   int errorCode = plcs_[plcIndex]->getErrorID();
 
   if (errorCode) {
@@ -399,8 +399,8 @@ int ecmcPLCMain::findGlobalDataIF(char *varName, ecmcPLCDataIF **outDataIF) {
 }
 
 int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
-                                    ecmcDataSourceType dataSource,
-                                    ecmcPLCDataIF    **outDataIF) {
+                                       ecmcDataSourceType dataSource,
+                                       ecmcPLCDataIF    **outDataIF) {
   // Axes data
   // Ec data
   // Global data
@@ -430,7 +430,10 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
     if (!ec_) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_PLC_EC_NULL);
     }
-    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(ec_, varName);
+    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                               ec_,
+                                                               varName,
+                                                               asynPortDriver_);
     errorCode                              =
       globalDataArray_[globalVariableCount_]->getErrorID();
 
@@ -459,8 +462,10 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
                         __LINE__,
                         ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
     }
-    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(axes_[axisId],
-                                                               varName);
+    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                               axes_[axisId],
+                                                               varName,
+                                                               asynPortDriver_);
     errorCode =
       globalDataArray_[globalVariableCount_]->getErrorID();
 
@@ -482,8 +487,10 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
     break;
 
   case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
-    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(varName,
-                                                               ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                               varName,
+                                                               ECMC_RECORDER_SOURCE_GLOBAL_VAR,
+                                                               asynPortDriver_);
     errorCode =
       globalDataArray_[globalVariableCount_]->getErrorID();
 
@@ -513,8 +520,10 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
                         ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE);
     }
 
-    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(ds_[dsId],
-                                                               varName);
+    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                               ds_[dsId],
+                                                               varName,
+                                                               asynPortDriver_);
     errorCode =
       globalDataArray_[globalVariableCount_]->getErrorID();
 
@@ -881,8 +890,8 @@ int ecmcPLCMain::plcVarNameValid(const char *plcVar) {
  * Create new dataIF if needed and register in PLC
  */
 int ecmcPLCMain::createAndRegisterNewDataIF(int                plcIndex,
-                                         char              *varName,
-                                         ecmcDataSourceType dataSource) {
+                                            char               *varName,
+                                            ecmcDataSourceType dataSource) {
   ecmcPLCDataIF *dataIF = NULL;
   int errorCode         = findGlobalDataIF(varName, &dataIF);
 
@@ -905,7 +914,6 @@ int ecmcPLCMain::createAndRegisterNewDataIF(int                plcIndex,
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
-
   return 0;
 }
 
@@ -923,8 +931,9 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
                       __LINE__,
                       ERROR_PLCS_VARIABLE_NAME_TO_LONG);
   }
+
   int errorCode = createAndRegisterNewDataIF(plcIndex,
-                                             varName,
+                                             varName,                                             
                                              ECMC_RECORDER_SOURCE_GLOBAL_VAR);
 
   if (errorCode) {

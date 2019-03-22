@@ -4,13 +4,15 @@
 #include "../motion/ecmcAxisBase.h"
 #include "../ethercat/ecmcEc.h"
 #include "../misc/ecmcDataStorage.h"
+#include "../com/ecmcAsynPortDriver.h"
 #include "ecmcPLCMain.h"
 #include "ecmcPLCTask.h"
 
-extern ecmcAxisBase     *axes[ECMC_MAX_AXES];
-extern ecmcEc           ec;
-extern ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
-extern ecmcPLCMain      *plcs;
+extern ecmcAxisBase       *axes[ECMC_MAX_AXES];
+extern ecmcEc             ec;
+extern ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
+extern ecmcPLCMain        *plcs;
+extern ecmcAsynPortDriver *asynPort;
 
 int createPLC(int index, int skipCycles) {
   LOGINFO4("%s/%s:%d index=%d, skipcyles=%d\n",
@@ -21,7 +23,7 @@ int createPLC(int index, int skipCycles) {
            skipCycles);
 
   if (!plcs) {
-    plcs = new ecmcPLCMain(&ec);
+    plcs = new ecmcPLCMain(&ec,asynPort);
   }
 
   if ((index < 0) && (index >= ECMC_MAX_PLCS)) {

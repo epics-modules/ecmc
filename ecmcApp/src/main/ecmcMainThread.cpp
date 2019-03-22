@@ -98,7 +98,7 @@ void updateAsynParams(int force) {
   }
 
   // Asyn callbacks for all parameters (except arrays)
-  if (asynSkipUpdateCounterFastest) {
+  if (asynSkipUpdateCounterFastest && !force) {
     asynSkipUpdateCounterFastest--;
   } else {      
     if (asynPort) {

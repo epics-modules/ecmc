@@ -19,6 +19,7 @@
 #include "../ethercat/ecmcEcEntry.h"
 #include "../ethercat/ecmcEcEntryLink.h"
 #include "../ethercat/ecmcEcSlave.h"
+#include "../com/ecmcAsynPortDriver.h"
 
 #define ECMC_PLC_EC_ENTRY_INDEX 0
 
@@ -38,14 +39,22 @@
 
 class ecmcPLCDataIF : public ecmcEcEntryLink {
  public:
-  ecmcPLCDataIF(ecmcAxisBase *axis,
-                char         *axisVarName);
-  ecmcPLCDataIF(ecmcDataStorage *ds,
-                char            *dsVarName);
-  ecmcPLCDataIF(ecmcEc *ec,
-                char   *ecVarName);
-  ecmcPLCDataIF(char              *varName,
-                ecmcDataSourceType dataSource);
+  ecmcPLCDataIF(int          plcIndex,
+                ecmcAxisBase *axis,
+                char         *axisVarName,
+                ecmcAsynPortDriver *asynPortDriver);
+  ecmcPLCDataIF(int             plcIndex,
+                ecmcDataStorage *ds,
+                char            *dsVarName,
+                ecmcAsynPortDriver *asynPortDriver);
+  ecmcPLCDataIF(int    plcIndex,
+                ecmcEc *ec,
+                char   *ecVarName,
+                ecmcAsynPortDriver *asynPortDriver);
+  ecmcPLCDataIF(int                plcIndex,
+                char               *varName,
+                ecmcDataSourceType dataSource,
+                ecmcAsynPortDriver *asynPortDriver);
   ~ecmcPLCDataIF();
   int                 read();
   int                 write();
@@ -73,6 +82,8 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
                                   char *alias,
                                   int  *bit);
   void initVars();
+  int  initAsyn();
+  int  updateAsyn(int force);
   ecmcAxisBase *axis_;
   ecmcDataStorage *ds_;
   ecmcEc *ec_;
@@ -84,5 +95,9 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
   std::string varName_;
   std::string exprTkVarName_;
   int readOnly_;
+  int plcIndex_;
+  ecmcAsynPortDriver *asynPortDriver_;
+  ecmcAsynDataItem *asynDataItem_;
+  int asynWriteAllow_;
 };
 #endif  /* ecmcPLCDataIF_H_ */

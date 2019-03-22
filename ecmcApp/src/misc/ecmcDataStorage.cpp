@@ -233,7 +233,7 @@ int ecmcDataStorage::appendDataNormal(double *data, int size) {
     bufferFullCounter_ = bufferFullCounter_ + sizeToCopy;
   }
   isStorageFull();
-
+  
   return 0;
 }
 
@@ -350,7 +350,7 @@ int ecmcDataStorage::appendData(double *data, int size) {
   if(errorCode) {
     return errorCode;
   }
-
+  
   return updateAsyn(0);  
 }
 
@@ -449,7 +449,7 @@ int ecmcDataStorage::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  indexAsynDataItem_->allowWriteToEcmc(false);
+  indexAsynDataItem_->allowWriteToEcmc(true);
   indexAsynDataItem_->refreshParam(1);  
 
   // "ds%d.full"

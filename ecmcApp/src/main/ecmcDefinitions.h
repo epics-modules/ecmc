@@ -148,11 +148,11 @@
 
 // Asyn  parameters in axis
 #define ECMC_ASYN_AX_ACT_POS_ID 0
-#define ECMC_ASYN_AX_ACT_POS_NAME "actPos"
+#define ECMC_ASYN_AX_ACT_POS_NAME "actpos"
 #define ECMC_ASYN_AX_SET_POS_ID 1
-#define ECMC_ASYN_AX_SET_POS_NAME "setPos"
+#define ECMC_ASYN_AX_SET_POS_NAME "setpos"
 #define ECMC_ASYN_AX_POS_ERR_ID 2
-#define ECMC_ASYN_AX_POS_ERR_NAME "posErr"
+#define ECMC_ASYN_AX_POS_ERR_NAME "poserr"
 #define ECMC_ASYN_AX_DIAG_ID 3
 #define ECMC_ASYN_AX_DIAG_NAME "diagnostic"
 #define ECMC_ASYN_AX_PAR_COUNT 4
@@ -304,6 +304,7 @@ enum axisSubObjectType {
 #define ECMC_PLC_FILE_COMMENT_CHAR "#"
 
 #define ECMC_PLC_DATA_STR "plc"
+#define ECMC_PLCS_DATA_STR "plcs"
 #define ECMC_PLC_ENABLE_DATA_STR "enable"
 #define ECMC_PLC_ERROR_DATA_STR "error"
 #define ECMC_PLC_SCAN_TIME_DATA_STR "scantime"
@@ -449,12 +450,12 @@ enum ecmcDataStorageType {
 };
 
 enum ecmcDataSourceType {
-  ECMC_RECORDER_SOURCE_NONE         = 0,
-  ECMC_RECORDER_SOURCE_ETHERCAT     = 1,
-  ECMC_RECORDER_SOURCE_AXIS         = 2,
-  ECMC_RECORDER_SOURCE_STATIC_VAR   = 3,
-  ECMC_RECORDER_SOURCE_GLOBAL_VAR   = 4,
-  ECMC_RECORDER_SOURCE_DATA_STORAGE = 5,
+  ECMC_RECORDER_SOURCE_NONE            = 0,
+  ECMC_RECORDER_SOURCE_ETHERCAT        = 1,
+  ECMC_RECORDER_SOURCE_AXIS            = 2,
+  ECMC_RECORDER_SOURCE_STATIC_VAR      = 3,
+  ECMC_RECORDER_SOURCE_GLOBAL_VAR      = 4,
+  ECMC_RECORDER_SOURCE_DATA_STORAGE    = 5
 };
 
 typedef struct ecmcMainThreadDiag{

@@ -12,6 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "../com/ecmcAsynPortDriver.h"
 #include "../main/ecmcDefinitions.h"
 #include "../motion/ecmcAxisBase.h"
 #include "../misc/ecmcDataStorage.h"
@@ -42,7 +43,7 @@
 
 class ecmcPLCMain : public ecmcError {
  public:
-  explicit ecmcPLCMain(ecmcEc *ec);
+  explicit ecmcPLCMain(ecmcEc *ec, ecmcAsynPortDriver *asynPortDriver);
   ~ecmcPLCMain();
   int  createPLC(int plcIndex,
                  int skipCycles);
@@ -117,6 +118,7 @@ class ecmcPLCMain : public ecmcError {
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   ecmcEc *ec_;
+  ecmcAsynPortDriver *asynPortDriver_;
   ecmcPLCDataIF *plcEnable_[ECMC_MAX_PLCS];
   ecmcPLCDataIF *plcError_[ECMC_MAX_PLCS];
   ecmcPLCDataIF *plcFirstScan_[ECMC_MAX_PLCS];

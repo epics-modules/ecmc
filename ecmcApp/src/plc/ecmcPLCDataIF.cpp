@@ -6,12 +6,14 @@
 
 #include "ecmcPLCDataIF.h"
 
-ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis, char *axisVarName) {
+ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex, ecmcAxisBase *axis, char *axisVarName, ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
+  plcIndex_       = plcIndex;
   axis_           = axis;
   varName_        = axisVarName;
   exprTkVarName_  = axisVarName;
+  asynPortDriver_ =asynPortDriver;
   source_         = ECMC_RECORDER_SOURCE_AXIS;
   dataSourceAxis_ = parseAxisDataSource(axisVarName);
 
@@ -22,14 +24,21 @@ ecmcPLCDataIF::ecmcPLCDataIF(ecmcAxisBase *axis, char *axisVarName) {
            __LINE__,
            ERROR_PLC_AXIS_DATA_TYPE_ERROR);
   }
+  asynWriteAllow_ = 0; 
+  initAsyn();
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(ecmcDataStorage *ds, char *dsVarName) {
+ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
+                             ecmcDataStorage *ds,
+                             char *dsVarName,
+                             ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
+  plcIndex_      = plcIndex;
   ds_            = ds;
   varName_       = dsVarName;
   exprTkVarName_ = dsVarName;
+  asynPortDriver_ =asynPortDriver;
   source_        = ECMC_RECORDER_SOURCE_DATA_STORAGE;
   dataSourceDs_  = parseDataStorageDataSource(dsVarName);
 
@@ -40,30 +49,47 @@ ecmcPLCDataIF::ecmcPLCDataIF(ecmcDataStorage *ds, char *dsVarName) {
            __LINE__,
            ERROR_PLC_AXIS_DATA_TYPE_ERROR);
   }
+  asynWriteAllow_ = 0; 
+  initAsyn();
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(ecmcEc *ec, char *ecVarName) {
+ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
+                             ecmcEc *ec,
+                             char *ecVarName,
+                             ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
+  plcIndex_      = plcIndex;
   ec_            = ec;
   varName_       = ecVarName;
   exprTkVarName_ = ecVarName;
+  asynPortDriver_ =asynPortDriver;
   source_        = ECMC_RECORDER_SOURCE_ETHERCAT;
   parseAndLinkEcDataSource(ecVarName);
+  asynWriteAllow_ = 0; 
+  initAsyn();
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(char *varName, ecmcDataSourceType dataSource) {
+ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex, 
+                             char *varName,
+                             ecmcDataSourceType dataSource,
+                             ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
-  initVars();
+  initVars();  
+  plcIndex_      = plcIndex;  
   varName_       = varName;
   exprTkVarName_ = varName;
+  asynPortDriver_ =asynPortDriver;
   source_        = dataSource;
+  asynWriteAllow_ = 1; 
+  initAsyn();  // Only static and global variables accessible from PLC
 }
 
 ecmcPLCDataIF::~ecmcPLCDataIF()
 {}
 
 void ecmcPLCDataIF::initVars() {
+  plcIndex_       = 0;
   axis_           = 0;
   ds_             = 0;
   ec_             = 0;
@@ -74,6 +100,9 @@ void ecmcPLCDataIF::initVars() {
   dataSourceDs_   = ECMC_DATA_STORAGE_DATA_NONE;
   source_         = ECMC_RECORDER_SOURCE_NONE;
   readOnly_       = 0;
+  asynPortDriver_ = 0;
+  asynDataItem_   = 0;
+  asynWriteAllow_ = 0; 
 }
 
 double& ecmcPLCDataIF::getDataRef() {
@@ -115,7 +144,9 @@ int ecmcPLCDataIF::read() {
   return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
 }
 
-int ecmcPLCDataIF::write() {
+int ecmcPLCDataIF::write() {  
+
+  updateAsyn(0);
   // Only write if data changed between read and write
   if ((data_ == dataRead_) || readOnly_) {
     return 0;
@@ -1245,3 +1276,64 @@ int ecmcPLCDataIF::setReadOnly(int readOnly) {
   readOnly_ = readOnly;
   return 0;
 }
+
+int ecmcPLCDataIF::initAsyn() {
+  
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
+  char *name = buffer;
+  unsigned int charCount = 0;
+  if(plcIndex_>=0) { //local variable (plc index)
+    // "plc%d.%s"
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         ECMC_PLCS_DATA_STR"."ECMC_PLC_DATA_STR"%d.%s",
+                         plcIndex_,
+                         varName_.c_str());
+  } else { //global variable (no plc index)
+    // "%s"
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         ECMC_PLCS_DATA_STR".%s",
+                         varName_.c_str());
+  }
+ 
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_ASYN_DATA_BUFFER_TO_SMALL);
+      return setErrorID(ERROR_ASYN_DATA_BUFFER_TO_SMALL);
+  }
+  
+  name = buffer;
+  asynDataItem_ = asynPortDriver_->addNewAvailParam(name,
+                                                    asynParamFloat64,
+                                                    (uint8_t *)&data_,
+                                                    sizeof(data_),
+                                                    0);
+    if(!asynDataItem_) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Add create default parameter for %s failed (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        name,
+        ERROR_ASYN_CREATE_PARAM_FAIL);
+        return setErrorID(ERROR_ASYN_CREATE_PARAM_FAIL);
+    }
+
+  asynDataItem_->allowWriteToEcmc(asynWriteAllow_);    
+  updateAsyn(1);
+  asynPortDriver_->callParamCallbacks();
+  return 0;
+}
+
+int ecmcPLCDataIF::updateAsyn(int force) {  
+  if(asynDataItem_) {
+    asynDataItem_->refreshParamRT(force);    
+  }
+  return 0;
+}
+  

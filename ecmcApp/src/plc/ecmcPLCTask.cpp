@@ -19,9 +19,11 @@
     }                                            \
 }                                                \
 
-ecmcPLCTask::ecmcPLCTask(int skipCycles) {
+ecmcPLCTask::ecmcPLCTask(int plcIndex, int skipCycles, ecmcAsynPortDriver *asynPortDriver) {
   initVars();
+  plcIndex_          = plcIndex;
   skipCycles_        = skipCycles;
+  asynPortDriver_    = asynPortDriver;
   exprtk_            = new exprtkWrap();
   plcScanTimeInSecs_ = 1 / MCU_FREQUENCY * (skipCycles + 1);
 }
@@ -34,6 +36,7 @@ ecmcPLCTask::~ecmcPLCTask() {
 
 void ecmcPLCTask::initVars() {
   errorReset();
+  plcIndex_            = 0;
   exprStr_             = "";
   compiled_            = false;
   globalVariableCount_ = 0;
@@ -52,10 +55,11 @@ void ecmcPLCTask::initVars() {
   libEcLoaded_     = 0;
   libDsLoaded_     = 0;
   libFileIOLoaded_ = 0;
+  asynPortDriver_  = 0;
 }
 
 int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
-  // Already added?addAndReisterGlobalVar
+  // Already added?
   if (localVarExist(localVarStr)) {
     return 0;
   }
@@ -74,9 +78,11 @@ int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
                       __LINE__,
                       ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
   }
-
-  localArray_[localVariableCount_] = new ecmcPLCDataIF(localVarStr,
-                                                       ECMC_RECORDER_SOURCE_STATIC_VAR);
+  
+    localArray_[localVariableCount_] = new ecmcPLCDataIF(plcIndex_,
+                                                         localVarStr,
+                                                         ECMC_RECORDER_SOURCE_STATIC_VAR,
+                                                         asynPortDriver_);
   int errorCode = localArray_[localVariableCount_]->getErrorID();
 
   if (errorCode) {

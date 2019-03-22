@@ -1248,11 +1248,13 @@ int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
       if(!pEcmcParamInUseArray_[i]->initialized()) {        
         continue;
       }
-      if(pEcmcParamInUseArray_[i]->getSampleTimeCycles()<fastestParamUpdateCycles_) {
+      if(pEcmcParamInUseArray_[i]->getSampleTimeCycles()<fastestParamUpdateCycles_ && 
+         pEcmcParamInUseArray_[i]->getSampleTimeCycles()>=0) {
         fastestParamUpdateCycles_ = pEcmcParamInUseArray_[i]->getSampleTimeCycles();
       } 
     }
   }
+  printf("FASTEST %d",fastestParamUpdateCycles_);
   return fastestParamUpdateCycles_;
 }
 void ecmcAsynPortDriver::refreshAllInUseParamsRT() {

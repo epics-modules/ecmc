@@ -5,12 +5,6 @@
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const char *paramName,asynParamType asynParType)
 {
-  /*maxU8_                  = 255;
-  minS8_                  = -127;
-  maxS8_                  = 127;
-  maxU16_                 = 65535;
-  minS16_                 = -32767;
-  maxS16_                 = 32767;  */
   checkIntRange_ = 0;
   intMax_ = 0;
   intMin_ = 0;
@@ -20,7 +14,6 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   asynUpdateCycleCounter_=0;
   supportedTypesCounter_=0;
   allowWriteToEcmc_=false;
-  asynLink_=NULL;
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
@@ -264,66 +257,8 @@ bool ecmcAsynDataItem::writeToEcmcAllowed() {
   return allowWriteToEcmc_;
 }
 
-/*int ecmcAsynDataItem::writeParam(uint8_t *dataToWrite, size_t bytes) {
-  
-  if(!paramInfo_->initialized || !allowWriteToEcmc_) {
-    return 0;
-  }
-  
-  if( !asynLink_) {
-     return ERROR_ASYN_PARAM_NOT_VALIDATED;
-  } 
-  
-  if(!dataToWrite || !data_ || bytes<0){
-    return ERROR_ASYN_DATA_NULL;
-  }
-  
-  
-  int bytesToWrite=bytes;
-  if(bytes > paramInfo_->ecmcMaxSize) {
-    bytesToWrite = paramInfo_->ecmcMaxSize;
-  }
-  
-  int errorCode;
-    switch(paramInfo_->asynType){
-    case asynParamUInt32Digital:
-      errorCode = asynLink_->writeUInt32Digital(*((epicsInt32*)dataToWrite),0xFFFFFFFF);
-      break;
-    case asynParamInt32:
-  
-      errorCode = asynLink_->writeInt32(*((epicsInt32*)dataToWrite));
-      break;
-    case asynParamFloat64:
-      errorCode = asynLink_->writeFloat64(*((epicsFloat64*)dataToWrite));
-      break;
-    case asynParamInt8Array:
-      errorCode = asynLink_->writeInt8Array((epicsInt8*)dataToWrite,bytesToWrite);
-      break;
-    case asynParamInt16Array:
-      errorCode = asynLink_->writeInt16Array((epicsInt16*)dataToWrite,bytesToWrite/sizeof(epicsInt16));
-      break;
-    case asynParamInt32Array:
-      errorCode = asynLink_->writeInt32Array((epicsInt32*)dataToWrite,bytesToWrite/sizeof(epicsInt32));
-      break;
-    case asynParamFloat32Array:
-      errorCode = asynLink_->writeFloat32Array((epicsFloat32*)dataToWrite,bytesToWrite/sizeof(epicsFloat32));
-      break;
-    case asynParamFloat64Array:
-      errorCode = asynLink_->writeFloat64Array((epicsFloat64*)dataToWrite,bytesToWrite/sizeof(epicsFloat64));
-      break;
-    default:
-      return ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED;
-      break;
-  }
-  if(errorCode) {
-    return errorCode;
-  }
-  
-  return 0;
-}*/
-
 bool ecmcAsynDataItem::willRefreshNext() {
-  return asynUpdateCycleCounter_>= paramInfo_->sampleTimeCycles-2;
+  return asynUpdateCycleCounter_>= paramInfo_->sampleTimeCycles-1;
 }
 
 /** Set parameter alarm state.
@@ -420,41 +355,6 @@ int ecmcAsynDataItem::asynTypeIsArray(asynParamType asynParType) {
   }
   return 0;
 }
-
-/*int ecmcAsynDataItem::setAsynLink(ecmcAsynLink *asynLink) {
-  asynLink_ = asynLink;
-  return 0;
-}*/
-
-/*ecmcAsynLink *ecmcAsynDataItem::getAsynLink() {
-  return asynLink_;
-}*/
-
-//new
-
-/**
- * Check if value from epics is within range
-*/
-/*int ecmcEcEntry::writeRangeOK(epicsInt32 value) { 
-  //only check bitLengths shorter than 32
-  switch(bitLength_){
-   case 8:
-     if(signed_) {
-      return value<=maxS8_ && value>= minS8_;
-     } else {
-      return value<=maxU8_ && value>=0;
-     }
-   case 16:
-     if(signed_) {
-      return value<=maxS16_ && value>= minS16_;
-     } else {
-      return value<=maxU16_ && value>=0;
-     }
-    default:
-    return 1;
-  }
-  return 0;
-}*/
 
 asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, asynParamType type, size_t *writtenBytes) {
 
@@ -727,4 +627,3 @@ int64_t ecmcAsynDataItem::getEcmcMinValueInt() {
 size_t ecmcAsynDataItem::getEcmcBitCount() {
   return intBits_;
 }
-

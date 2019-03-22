@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include "../com/ecmcAsynPortDriver.h"
 #include "exprtkWrap.h"
 #include "../main/ecmcDefinitions.h"
 #include "../motion/ecmcAxisBase.h"
@@ -35,7 +36,7 @@
 
 class ecmcPLCTask : public ecmcError {
  public:
-  explicit ecmcPLCTask(int skipCycles);
+  explicit ecmcPLCTask(int plcIndex,int skipCycles, ecmcAsynPortDriver *asynPortDriver_);
   ~ecmcPLCTask();
   bool         getCompiled();
   int          validate();
@@ -85,6 +86,7 @@ class ecmcPLCTask : public ecmcError {
   int localVariableCount_;
   int inStartup_;
   int firstScanDone_;
+  int plcIndex_;
   int skipCycles_;
   int skipCyclesCounter_;
   double plcScanTimeInSecs_;
@@ -92,6 +94,7 @@ class ecmcPLCTask : public ecmcError {
   int libEcLoaded_;
   int libDsLoaded_;
   int libFileIOLoaded_;
+  ecmcAsynPortDriver *asynPortDriver_;
 };
 
 #endif  /* ECMC_PLC_TASK_H_ */

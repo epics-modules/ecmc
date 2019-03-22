@@ -38,7 +38,7 @@ typedef struct {
   double currentVelocitySetpoint;
   int    currentVelocitySetpointRaw;
   double currentvelocityFFRaw;
-  double positionError;
+  //double positionError;
   double cntrlError;
   double cntrlOutput;
   double cntrlOutputOld;

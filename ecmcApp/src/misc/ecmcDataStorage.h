@@ -32,7 +32,6 @@ enum storageType {
 
 class ecmcDataStorage : public ecmcError {
  public:
-  //explicit ecmcDataStorage(int index);
   ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
                   int         index,
                   int         size,
@@ -61,7 +60,7 @@ class ecmcDataStorage : public ecmcError {
   int  setCurrentPosition(int position);
   void printCurrentState();
   int  updateAsyn(bool force);
-  
+
  private:
   int  appendDataFifo(double *data,
                       int     size);
