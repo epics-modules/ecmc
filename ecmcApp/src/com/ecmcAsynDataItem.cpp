@@ -88,6 +88,7 @@ int ecmcAsynDataItem::refreshParamRT(int force,uint8_t *data, size_t bytes)
 */
 int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 {
+
   if(!paramInfo_->initialized) {
     return 0;
   }
@@ -141,7 +142,7 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
       return ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED;
       break;
   }
-  asynUpdateCycleCounter_=0;
+  asynUpdateCycleCounter_=0;    
   return 0;
 }
 

@@ -67,7 +67,7 @@ static void getEpicsState(initHookState state)
       ecmcAsynPortObj->fireAllCallbacksLock();
       updateAsynParams(1);*/      
       ecmcAsynPortObj->refreshAllInUseParamsRT();
-      asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: All Parameters refreshed.\n", driverName, functionName);
+      //asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: All Parameters refreshed.\n", driverName, functionName);
       break;
     default:
       break;
@@ -893,10 +893,10 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     pasynUser->timeout = (newParamInfo->sampleTimeMS*2)/1000;
   }
   
+  
+  existentParInfo->initialized=1;
   pEcmcParamInUseArray_[index]->refreshParam(1);
   callParamCallbacks();
-
-  existentParInfo->initialized=1;
 
   return asynPortDriver::drvUserCreate(pasynUser,existentParInfo->name,pptypeName,psize);
 }
@@ -1105,7 +1105,7 @@ asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcPara
             driverName,
             functionName,
             drvInfo,
-            paramInfo->isIOIntr ? "I/O Intr (end with ?)": " not I/O Intr (end with =)");
+            paramInfo->isIOIntr ? "I/O Intr (end with ?)": "not I/O Intr (end with =)");
 
   //take part after last "/" if option or complete string..
   char buffer[ECMC_MAX_FIELD_CHAR_LENGTH];
@@ -1254,7 +1254,6 @@ int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
       } 
     }
   }
-  printf("FASTEST %d",fastestParamUpdateCycles_);
   return fastestParamUpdateCycles_;
 }
 void ecmcAsynPortDriver::refreshAllInUseParamsRT() {
