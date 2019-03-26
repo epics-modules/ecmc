@@ -550,9 +550,9 @@ void ecmcEc::send(timespec timeOffset) {
 
   // Write status hardware status to output
   if (statusOutputEntry_) {
-    if (!statusOK()) {
+    /*if (!statusOK()) {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_STATUS_NOT_OK);
-    }
+    }*/
     statusOutputEntry_->writeValue(getErrorID() == 0);
   }
 
