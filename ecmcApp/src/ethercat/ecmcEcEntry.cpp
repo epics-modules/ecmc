@@ -583,7 +583,12 @@ int ecmcEcEntry::initAsyn() {
   entryAsynParam_->addSupportedAsynType(asynParamInt32);
   entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
   entryAsynParam_->addSupportedAsynType(asynParamFloat64);
-  entryAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT);
+  if(sim_) {
+    entryAsynParam_->allowWriteToEcmc(1);
+  }
+  else {
+    entryAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT);
+  }
   entryAsynParam_->setEcmcBitCount(bitLength_);
   if( signed_ ) {
     entryAsynParam_->setEcmcMinValueInt(-pow(2,bitLength_-1));
