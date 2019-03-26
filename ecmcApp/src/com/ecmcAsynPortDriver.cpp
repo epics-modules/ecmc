@@ -58,14 +58,12 @@ static void getEpicsState(initHookState state)
     case initHookAfterIocRunning:
       allowCallbackEpicsState=1;
       ecmcAsynPortObj->calcFastestUpdateRate();
-      /*ecmcAsynPortObj->setAllowRtThreadCom(1);      
+      //ecmcAsynPortObj->setAllowRtThreadCom(1);
       //make all callbacks if data arrived from callback before interrupts were registered (before allowCallbackEpicsState==1)
       if(!ecmcAsynPortObj){
         printf("%s:%s: ERROR: ecmcAsynPortObj==NULL\n", driverName, functionName);
         return;
       }
-      ecmcAsynPortObj->fireAllCallbacksLock();
-      updateAsynParams(1);*/      
       ecmcAsynPortObj->refreshAllInUseParamsRT();
       //asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: All Parameters refreshed.\n", driverName, functionName);
       break;
