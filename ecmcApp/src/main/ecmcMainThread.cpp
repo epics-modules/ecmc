@@ -92,8 +92,8 @@ void updateAsynParams(int force) {
   controllerErrorOld = controllerError;
   controllerError = getControllerError();
   if(controllerErrorOld != controllerError || force) { // update on change
-    controllerErrorMsg = getErrorString(controllerError);
-    errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID]->refreshParamRT(1);
+    controllerErrorMsg = getErrorString(controllerError);    
+    errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID]->refreshParamRT(1);    
     errorCode=mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID]->refreshParamRT(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
   }
 

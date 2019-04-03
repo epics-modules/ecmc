@@ -16,6 +16,7 @@
 #define ERROR_ASYN_SUPPORTED_TYPES_ARRAY_FULL 0x220005
 #define ERROR_ASYN_DATA_BUFFER_TO_SMALL 0x220006
 #define ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE 0x220007
+#define ERROR_ASYN_REFRESH_FAIL 0x220008
 
 #define ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT 10
 #define ERROR_ASYN_NOT_REFRESHED_RETURN -1
@@ -50,6 +51,7 @@ typedef struct ecmcParamInfo{
   int            alarmStatus;
   int            alarmSeverity;
   bool           refreshNeeded;
+  bool           arrayCheckSize;
 }ecmcParamInfo;
 
 class ecmcAsynDataItem
@@ -94,6 +96,8 @@ public:
   int64_t getEcmcMinValueInt();
   int64_t getEcmcMaxValueInt();
   size_t getEcmcBitCount();
+  void setArrayCheckSize(bool check);
+  bool getArrayCheckSize();
 
   asynStatus readInt32(epicsInt32 *value);
   asynStatus writeInt32(epicsInt32 value);

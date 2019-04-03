@@ -1261,6 +1261,7 @@ void ecmcAsynPortDriver::refreshAllInUseParamsRT() {
       if(!pEcmcParamInUseArray_[i]->initialized()) {        
         continue;
       }
+      printf("##########refreshAllInUseParamsRT %s\n",pEcmcParamInUseArray_[i]->getName());
       pEcmcParamInUseArray_[i]->refreshParamRT(1);
     }
   }

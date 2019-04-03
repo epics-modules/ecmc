@@ -654,6 +654,7 @@ int ecmcAddDefaultAsynParams() {
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }  
   paramTemp->allowWriteToEcmc(false);
+  paramTemp->setArrayCheckSize(false);
   paramTemp->refreshParam(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
   mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID] = paramTemp;
 

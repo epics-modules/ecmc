@@ -88,6 +88,9 @@ int ecmcAsynDataItem::refreshParamRT(int force,uint8_t *data, size_t bytes)
 */
 int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 {
+  // set data pointer and size if param is not initialized (linked to record)
+  data_=data;
+  paramInfo_->ecmcSize=bytes;
 
   if(!paramInfo_->initialized) {
     return 0;
@@ -106,43 +109,50 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     return ERROR_ASYN_DATA_NULL;
   }
 
-  if(bytes > paramInfo_->ecmcMaxSize) {
+  if(bytes > paramInfo_->ecmcMaxSize && paramInfo_->arrayCheckSize) {
     bytes = paramInfo_->ecmcMaxSize;
   }
 
-  data_=data;
-  paramInfo_->ecmcSize=bytes;  //Last refresh size
- 
+  paramInfo_->ecmcSize = bytes;
+
+  //asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "refreshParam: %s, bytes %lu, force %d, sample time %d\n",getName(),bytes,force,paramInfo_->sampleTimeCycles);
+  asynStatus stat=asynError;
   switch(paramInfo_->asynType){
     case asynParamUInt32Digital:
-      asynPortDriver_->setUIntDigitalParam(paramInfo_->index,*((epicsInt32*)data),0xFFFFFFFF);
+      stat = asynPortDriver_->setUIntDigitalParam(paramInfo_->index,*((epicsInt32*)data),0xFFFFFFFF);
       break;
     case asynParamInt32:
-      asynPortDriver_->setIntegerParam(paramInfo_->index,*((epicsInt32*)data));
+      stat = asynPortDriver_->setIntegerParam(paramInfo_->index,*((epicsInt32*)data));
       break;
     case asynParamFloat64:
-      asynPortDriver_->setDoubleParam(paramInfo_->index,*((epicsFloat64*)data));
+      stat = asynPortDriver_->setDoubleParam(paramInfo_->index,*((epicsFloat64*)data));
       break;
     case asynParamInt8Array:
-      asynPortDriver_->doCallbacksInt8Array((epicsInt8*)data,bytes, paramInfo_->index, 0);
+      stat = asynPortDriver_->doCallbacksInt8Array((epicsInt8*)data,bytes, paramInfo_->index, 0);
       break;
     case asynParamInt16Array:
-      asynPortDriver_->doCallbacksInt16Array((epicsInt16*)data,bytes/sizeof(epicsInt16), paramInfo_->index, 0);
+      stat = asynPortDriver_->doCallbacksInt16Array((epicsInt16*)data,bytes/sizeof(epicsInt16), paramInfo_->index, 0);
       break;
     case asynParamInt32Array:
-      asynPortDriver_->doCallbacksInt32Array((epicsInt32*)data,bytes/sizeof(epicsInt32), paramInfo_->index, 0);
+      stat = asynPortDriver_->doCallbacksInt32Array((epicsInt32*)data,bytes/sizeof(epicsInt32), paramInfo_->index, 0);
       break;
     case asynParamFloat32Array:
-      asynPortDriver_->doCallbacksFloat32Array((epicsFloat32*)data,bytes/sizeof(epicsFloat32), paramInfo_->index, 0);
+      stat = asynPortDriver_->doCallbacksFloat32Array((epicsFloat32*)data,bytes/sizeof(epicsFloat32), paramInfo_->index, 0);
       break;
     case asynParamFloat64Array:
-      asynPortDriver_->doCallbacksFloat64Array((epicsFloat64*)data,bytes/sizeof(epicsFloat64), paramInfo_->index, 0);
+      stat = asynPortDriver_->doCallbacksFloat64Array((epicsFloat64*)data,bytes/sizeof(epicsFloat64), paramInfo_->index, 0);
       break;
     default:
       return ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED;
       break;
   }
+
   asynUpdateCycleCounter_=0;    
+  if(stat!=asynSuccess) {
+    asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "ecmcAsynDataItem::refreshParam: ERROR: Refresh failed for parameter %s, bytes %lu, force %d, sample time %d (0x%x).\n",
+    getName(),bytes,force,paramInfo_->sampleTimeCycles,ERROR_ASYN_REFRESH_FAIL);
+    return ERROR_ASYN_REFRESH_FAIL;
+  }
   return 0;
 }
 
@@ -423,11 +433,11 @@ asynStatus ecmcAsynDataItem::readGeneric(uint8_t *data, size_t bytesToRead, asyn
 
   size_t bytes = bytesToRead;
   if (asynTypeIsArray(type)) {
-    if (bytes > paramInfo_->ecmcMaxSize) {
+    if (bytes > paramInfo_->ecmcMaxSize && paramInfo_->arrayCheckSize) {
       bytes = paramInfo_->ecmcMaxSize;
     }
   } else {
-    if ( bytes > paramInfo_->ecmcMaxSize ) {
+    if ( bytes > paramInfo_->ecmcMaxSize) {
     LOGERR(
       "%s/%s:%d: ERROR: Read error. Data buffer to small (0x%x).\n",
       __FILE__,
@@ -627,4 +637,12 @@ int64_t ecmcAsynDataItem::getEcmcMinValueInt() {
 
 size_t ecmcAsynDataItem::getEcmcBitCount() {
   return intBits_;
+}
+
+void ecmcAsynDataItem:: setArrayCheckSize(bool check) {
+  paramInfo_->arrayCheckSize=check;
+}
+
+bool ecmcAsynDataItem:: getArrayCheckSize() {
+  return paramInfo_->arrayCheckSize;
 }
