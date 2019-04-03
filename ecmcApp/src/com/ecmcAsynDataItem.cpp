@@ -465,11 +465,12 @@ asynStatus ecmcAsynDataItem::writeInt32(epicsInt32 value) {
   size_t bytesWritten = 0;
   if(checkIntRange_ && (value > intMax_ || value < intMin_)) {
     LOGERR(
-      "%s/%s:%d: Error: Value Out Of Range %d. Allowed Range %ld..%ld (0x%x).\n",
+      "%s/%s:%d: Error: Parameter %s. Value Out Of Range %d (allowed Range %ld..%ld) (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      value,
+      getName(),
+      value,      
       intMin_,
       intMax_,
       ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE);

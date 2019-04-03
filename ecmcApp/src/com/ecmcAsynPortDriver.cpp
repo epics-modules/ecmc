@@ -57,15 +57,9 @@ static void getEpicsState(initHookState state)
     //case initHookAfterScanInit:
     case initHookAfterIocRunning:
       allowCallbackEpicsState=1;
-      ecmcAsynPortObj->calcFastestUpdateRate();
-      //ecmcAsynPortObj->setAllowRtThreadCom(1);
+      ecmcAsynPortObj->calcFastestUpdateRate();      
       //make all callbacks if data arrived from callback before interrupts were registered (before allowCallbackEpicsState==1)
-      if(!ecmcAsynPortObj){
-        printf("%s:%s: ERROR: ecmcAsynPortObj==NULL\n", driverName, functionName);
-        return;
-      }
-      ecmcAsynPortObj->refreshAllInUseParamsRT();
-      //asynPrint(asynTraceUser, ASYN_TRACE_INFO , "%s:%s: All Parameters refreshed.\n", driverName, functionName);
+      ecmcAsynPortObj->refreshAllInUseParamsRT();      
       break;
     default:
       break;
@@ -772,7 +766,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
 {
   const char* functionName = "drvUserCreate";
   asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s: drvInfo: %s\n", driverName, functionName,drvInfo);
-  printf("%s:%s: drvInfo: %s\n", driverName, functionName,drvInfo);
+
   if(validateDrvInfo(drvInfo)!=asynSuccess){
     return asynError;
   }
@@ -856,15 +850,15 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     //Update index
     index = param->getAsynParameterIndex();
 
-    asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter %s added to in-use list at index %d.\n",
+    asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter %s linked to record (asyn reason %d).\n",
             driverName, functionName,newParamInfo->name,index);
 
     //Now we have linked a parameter from available list into the inUse list successfully
   }
 
   //Asyn parameter found. Update with new info from record defs
-  asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter index found at: %d for %s.\n",
-            driverName, functionName,index,newParamInfo->name);
+  //asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter index found at: %d for %s.\n",
+  //          driverName, functionName,index,newParamInfo->name);
   if(!pEcmcParamInUseArray_[index]) {
     asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s:pAdsParamArray_[%d]==NULL (drvInfo=%s).\n",
               driverName, functionName,index,drvInfo);
@@ -1260,8 +1254,7 @@ void ecmcAsynPortDriver::refreshAllInUseParamsRT() {
     if(pEcmcParamInUseArray_[i]) {
       if(!pEcmcParamInUseArray_[i]->initialized()) {        
         continue;
-      }
-      printf("##########refreshAllInUseParamsRT %s\n",pEcmcParamInUseArray_[i]->getName());
+      }      
       pEcmcParamInUseArray_[i]->refreshParamRT(1);
     }
   }
