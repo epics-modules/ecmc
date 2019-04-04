@@ -40,7 +40,7 @@ ecmcEcSlave::ecmcEcSlave(
                                    &simBuffer_[8],
                                    "ONE");
   simEntries_[0]->writeValue(0);  // Default 0
-  simEntries_[1]->writeValue(0x7FFFFFFF);  // Default 1 (31 bits (not sign bit for int))
+  simEntries_[1]->writeValue(0xFFFFFFFF);  // Default 1 (32 bits)
 
   if ((alias == 0) && (position == 0) && (vendorId == 0) &&
       (productCode == 0)) {
@@ -97,6 +97,7 @@ void ecmcEcSlave::initVars() {
   entryCounter_      = 0;
   pdosArrayIndex_    = 0;
   syncManArrayIndex_ = 0;
+  statusWord_        = 0;
 
   for (int i = 0; i < EC_MAX_SYNC_MANAGERS; i++) {
     syncManagerArray_[i] = NULL;
@@ -123,9 +124,9 @@ void ecmcEcSlave::initVars() {
   memset(&slaveStateOld_, 0, sizeof(slaveStateOld_));
 
   asynPortDriver_  = NULL;
-  online_          = 0;
+  /*online_          = 0;
   operational_     = 0;
-  alState_         = 0;
+  alState_         = 0;*/
 }
 
 ecmcEcSlave::~ecmcEcSlave() {
@@ -272,6 +273,10 @@ int ecmcEcSlave::checkConfigState(void) {
 
   memset(&slaveState_, 0, sizeof(slaveState_));
   ecrt_slave_config_state(slaveConfig_, &slaveState_);
+  
+  //update status word
+  memcpy(&statusWord_,&slaveState_,2);
+  memcpy(&statusWord_+2,&entryCounter_,2);
 
   if (slaveState_.al_state != slaveStateOld_.al_state) {
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",
@@ -281,7 +286,6 @@ int ecmcEcSlave::checkConfigState(void) {
              slavePosition_,
              slaveState_.al_state);
   }
-  alState_ = slaveState_.al_state;
 
   if (slaveState_.online != slaveStateOld_.online) {
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s.\n",
@@ -291,7 +295,7 @@ int ecmcEcSlave::checkConfigState(void) {
              slavePosition_,
              slaveState_.online ? "Online" : "Offline");
   }
-  online_ = slaveState_.online;
+
 
   if (slaveState_.operational != slaveStateOld_.operational) {
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s operational.\n",
@@ -301,7 +305,6 @@ int ecmcEcSlave::checkConfigState(void) {
              slavePosition_,
              slaveState_.operational ? "" : "Not ");
   }
-  operational_ = slaveState_.operational;  
   slaveStateOld_ = slaveState_;
 
   if (!slaveState_.online) {
@@ -498,12 +501,8 @@ int ecmcEcSlave::updateOutProcessImage() {
   }
 
   // I/O intr to EPCIS.
-  if (asynPortDriver_) {
-    // Only update at desired samplerate
-    slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_ONLINE_ID]->refreshParamRT(0);
-    slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_AL_STATE_ID]->refreshParamRT(0);
-    slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_OPERA_ID]->refreshParamRT(0);
-    slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_ENTRY_COUNT_ID]->refreshParamRT(0);
+  if (asynPortDriver_) {    
+    slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID]->refreshParamRT(0);    
   }
   return 0;
 }
@@ -565,7 +564,9 @@ int ecmcEcSlave::addEntry(
 
   entryList_[entryCounter_] = entry;
   entryCounter_++;
-  slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_ENTRY_COUNT_ID]->refreshParam(1);
+  slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID]->refreshParam(1);
+  // entry counter last 16 bits of statusWord_
+  memcpy(&statusWord_+2,&entryCounter_,2);
   asynPortDriver_->callParamCallbacks();
   return 0;
 }
@@ -732,10 +733,10 @@ int ecmcEcSlave::initAsyn() {
   char *name = buffer;
   ecmcAsynDataItem *paramTemp=NULL;
 
-  // "ec%d.s%d.online"
+  // "ec%d.s%d.status"
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),
-                                    ECMC_EC_STR"%d." ECMC_SLAVE_CHAR "%d."ECMC_ASYN_EC_SLAVE_PAR_ONLINE_NAME,
+                                    ECMC_EC_STR"%d." ECMC_SLAVE_CHAR "%d."ECMC_ASYN_EC_SLAVE_PAR_STATUS_NAME,
                                     masterId_,
                                     slavePosition_);
 
@@ -750,9 +751,9 @@ int ecmcEcSlave::initAsyn() {
   }
   name = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(online_),
-                                         sizeof(online_),
+                                         asynParamUInt32Digital,
+                                         (uint8_t *)&(statusWord_),
+                                         sizeof(statusWord_),
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -765,115 +766,8 @@ int ecmcEcSlave::initAsyn() {
   }
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_ONLINE_ID] = paramTemp;
-
-  // "ec%d.s%d.alstate"
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_EC_STR"%d." ECMC_SLAVE_CHAR "%d."ECMC_ASYN_EC_SLAVE_PAR_AL_STATE_NAME,
-                       masterId_,
-                       slavePosition_);
-
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW);
-    return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(alState_),
-                                         sizeof(alState_),
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  paramTemp->allowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_AL_STATE_ID] = paramTemp;
-
-  // "ec%d.s%d.operational"
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_EC_STR"%d." ECMC_SLAVE_CHAR "%d."ECMC_ASYN_EC_SLAVE_PAR_OPER_NAME,
-                       masterId_,
-                       slavePosition_);
-
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW);
-    return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(operational_),
-                                         sizeof(operational_),
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  paramTemp->allowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_OPERA_ID] = paramTemp;
-
-
-  // "ec%d.s%d.entrycounter"
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_EC_STR"%d." ECMC_SLAVE_CHAR "%d."ECMC_ASYN_EC_SLAVE_PAR_ENTRY_COUNT_NAME,
-                       masterId_,
-                       slavePosition_);
-
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW);
-    return ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(entryCounter_),
-                                         sizeof(entryCounter_),
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  paramTemp->allowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_ENTRY_COUNT_ID] = paramTemp;
+  slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID] = paramTemp;
   asynPortDriver_->callParamCallbacks();
-
   return 0;
 }
 

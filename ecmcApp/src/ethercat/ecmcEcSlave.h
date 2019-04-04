@@ -124,7 +124,7 @@ class ecmcEcSlave : public ecmcError {
   ec_slave_config_t *slaveConfig_;
   ecmcEcSyncManager *syncManagerArray_[EC_MAX_SYNC_MANAGERS];
   ecmcEcEntry *entryList_[EC_MAX_ENTRIES];
-  int entryCounter_;
+  int16_t entryCounter_;
   int pdosArrayIndex_;
   int syncManArrayIndex_;
   int syncManCounter_;
@@ -139,8 +139,18 @@ class ecmcEcSlave : public ecmcError {
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
   int masterId_;
-  int online_;
+  /*int online_;
   int operational_;
-  int alState_;
+  int alState_;*/
+
+  // bit 0 online          : The slave is online.
+  // bit 1 int operational : The slave was brought into  OP state
+  // bit 2..5  al_state    :  The application-layer state of the slave.
+  //                             - 1: \a INIT
+  //                             - 2: \a PREOP
+  //                             - 4: \a SAFEOP
+  //                             - 8: \a OP
+  // bit 16..31            : entry counter
+  uint32_t statusWord_;  
 };
 #endif  /* ECMCECSLAVE_H_ */
