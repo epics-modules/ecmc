@@ -473,5 +473,19 @@ typedef struct ecmcMainThreadDiag{
   uint32_t send_max_ns;
 }ecmcMainThreadDiag;
 
-  
+/*enum ecmcDataType {
+  ECMC_TYPE_NAN  = 0,
+  ECMC_TYPE_BIT  = 1,
+  ECMC_TYPE_U8   = 2,
+  ECMC_TYPE_S8   = 3,
+  ECMC_TYPE_U16  = 4,
+  ECMC_TYPE_S16  = 5,
+  ECMC_TYPE_U32  = 6,
+  ECMC_TYPE_S32  = 7,
+  ECMC_TYPE_U64  = 8,
+  ECMC_TYPE_S64  = 9,
+  ECMC_TYPE_F32  = 10,
+  ECMC_TYPE_F64  = 11,
+};*/
+
 #endif  /* ECMC_DEFINITIONS_H_ */

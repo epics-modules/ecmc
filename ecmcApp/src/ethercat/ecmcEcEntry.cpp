@@ -135,6 +135,7 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
   domainAdr_ = domainAdr;
   bitLength_ = bits;
   sim_       = true;
+  direction_ = EC_DIR_OUTPUT;
   idString_  = id;
   idStringChar_  = strdup(idString_.c_str());
   adr_       = 0;
@@ -163,7 +164,6 @@ void ecmcEcEntry::initVars() {
   pdoIndex_               = 0;
   slave_                  = NULL;
   signed_                 = 0;
-  tempAsynValue_          = 0;
   value_                  = 0;
 }
 
@@ -363,23 +363,22 @@ int ecmcEcEntry::updateAsyn(bool force) {
     return 0;
   }
 
-  double *tempDouble64 = 0;
-  int32_t tempInt32=0;
   switch (entryAsynParam_->getAsynParameterType()) {
     case asynParamInt32:
       
-      tempInt32=ecValue2Int32();
-      entryAsynParam_->refreshParamRT(force, (uint8_t *)&tempInt32, sizeof(tempInt32));      
+      //tempInt32=ecValue2Int32();
+      //entryAsynParam_->refreshParamRT(force, (uint8_t *)&tempInt32, sizeof(tempInt32));
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(value_));
       break;
-
     case asynParamUInt32Digital:
-      tempInt32=ecValue2Int32();
-      entryAsynParam_->refreshParamRT(force, (uint8_t *)&tempInt32, sizeof(tempInt32));      
+      //tempInt32=ecValue2Int32();
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(value_));      
       break;
 
     case asynParamFloat64:
-      tempDouble64 = reinterpret_cast<double *>(&value_);
-      entryAsynParam_->refreshParamRT(force, (uint8_t *)tempDouble64, sizeof(double));            
+      //tempDouble64 = reinterpret_cast<double *>(&value_);
+      //entryAsynParam_->refreshParamRT(force, (uint8_t *)tempDouble64, sizeof(double));            
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(double));            
       break;
 
     default:
@@ -443,7 +442,7 @@ int ecmcEcEntry::registerInDomain() {
   return 0;
 }
 
-int32_t ecmcEcEntry::ecValue2Int32() {
+/*int32_t ecmcEcEntry::ecValue2Int32() {
   int32_t tempInt32 = (int32_t)value_;
 
   if (signed_) {
@@ -458,7 +457,7 @@ int32_t ecmcEcEntry::ecValue2Int32() {
     }
   }
   return tempInt32;
-}
+}*/
 
 bool ecmcEcEntry::getSimEntry() {
   return sim_;
@@ -566,8 +565,8 @@ int ecmcEcEntry::initAsyn() {
   name = buffer;
   entryAsynParam_ = asynPortDriver_->addNewAvailParam(name,
                                     asynParamInt32,  //default type
-                                    (uint8_t *)&(value_), //Not used
-                                    sizeof(value_),//Not used..
+                                    (uint8_t *)&(value_),
+                                    sizeof(value_),
                                     0);
   if(!entryAsynParam_) {
     LOGERR(

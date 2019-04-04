@@ -98,7 +98,7 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
 
  private:
   int    initAsyn();
-  int32_t ecValue2Int32();
+  //int32_t ecValue2Int32();
   //int writeRangeOK(epicsInt32 value);
   uint8_t *domainAdr_;
   uint8_t *adr_;
@@ -120,7 +120,6 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
   int masterId_;
   int slaveId_;
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcAsynDataItem  *entryAsynParam_;
-  int32_t tempAsynValue_;
+  ecmcAsynDataItem  *entryAsynParam_;    
 };
 #endif  /* ECMCECENTRY_H_ */
