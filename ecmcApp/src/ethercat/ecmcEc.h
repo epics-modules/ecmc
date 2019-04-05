@@ -187,6 +187,8 @@ class ecmcEc : public ecmcError {
   int masterIndex_;
   int masterAlStates_;
   int masterLinkUp_;
+  uint32_t statusWordMaster_;
+  uint32_t statusWordDomain_;
 
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];
