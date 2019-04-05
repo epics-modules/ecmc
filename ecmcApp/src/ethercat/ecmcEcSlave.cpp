@@ -97,7 +97,7 @@ void ecmcEcSlave::initVars() {
   entryCounter_      = 0;
   pdosArrayIndex_    = 0;
   syncManArrayIndex_ = 0;
-  statusWord_        = 0;
+  memset(&statusWord_,0,sizeof(statusWord_));
 
   for (int i = 0; i < EC_MAX_SYNC_MANAGERS; i++) {
     syncManagerArray_[i] = NULL;
@@ -274,9 +274,14 @@ int ecmcEcSlave::checkConfigState(void) {
   memset(&slaveState_, 0, sizeof(slaveState_));
   ecrt_slave_config_state(slaveConfig_, &slaveState_);
   
-  //update status word
-  memcpy(&statusWord_,&slaveState_,2);
-  memcpy(&statusWord_+2,&entryCounter_,2);
+  //Update status word
+  //  lower 16  : status bits
+  //  higher 16 : entrycounter
+  statusWord_ = 0 ;
+  statusWord_ = statusWord_ + (slaveState_.online);
+  statusWord_ = statusWord_ + (slaveState_.operational << 1);
+  statusWord_ = statusWord_ + (slaveState_.al_state << 2);
+  statusWord_ = statusWord_ + (entryCounter_ << 16);
 
   if (slaveState_.al_state != slaveStateOld_.al_state) {
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",
@@ -295,7 +300,6 @@ int ecmcEcSlave::checkConfigState(void) {
              slavePosition_,
              slaveState_.online ? "Online" : "Offline");
   }
-
 
   if (slaveState_.operational != slaveStateOld_.operational) {
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s operational.\n",
@@ -484,7 +488,7 @@ ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
 }
 
 int ecmcEcSlave::updateInputProcessImage() {
-  for (int i = 0; i < entryCounter_; i++) {
+  for (uint i = 0; i < entryCounter_; i++) {
     if (entryList_[i] != NULL) {
       entryList_[i]->updateInputProcessImage();
     }
@@ -494,7 +498,7 @@ int ecmcEcSlave::updateInputProcessImage() {
 }
 
 int ecmcEcSlave::updateOutProcessImage() {
-  for (int i = 0; i < entryCounter_; i++) {
+  for (uint i = 0; i < entryCounter_; i++) {
     if (entryList_[i] != NULL) {
       entryList_[i]->updateOutProcessImage();
     }
@@ -766,6 +770,8 @@ int ecmcEcSlave::initAsyn() {
   }
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
+  paramTemp->addSupportedAsynType(asynParamInt32);
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);  
   slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID] = paramTemp;
   asynPortDriver_->callParamCallbacks();
   return 0;
@@ -773,7 +779,7 @@ int ecmcEcSlave::initAsyn() {
 
 int ecmcEcSlave::validate() {
   int errorCode=0;
-  for (int i = 0; i < entryCounter_; i++) {
+  for (uint i = 0; i < entryCounter_; i++) {
     if (entryList_[i]) {
       errorCode=entryList_[i]->validate();
       if (errorCode) {

@@ -124,7 +124,7 @@ class ecmcEcSlave : public ecmcError {
   ec_slave_config_t *slaveConfig_;
   ecmcEcSyncManager *syncManagerArray_[EC_MAX_SYNC_MANAGERS];
   ecmcEcEntry *entryList_[EC_MAX_ENTRIES];
-  int16_t entryCounter_;
+  uint32_t entryCounter_;
   int pdosArrayIndex_;
   int syncManArrayIndex_;
   int syncManCounter_;
