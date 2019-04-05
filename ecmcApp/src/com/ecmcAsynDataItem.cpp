@@ -371,10 +371,11 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
 
    if(!asynTypeSupported(type)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
+      "%s/%s:%d: ERROR: %s asyn type not supported (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      getName(),
       ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED);
       return asynError;
   }
@@ -387,10 +388,11 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
   } else {
     if ( bytes > paramInfo_->ecmcMaxSize ) {
     LOGERR(
-      "%s/%s:%d: ERROR: Write error. Data buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: %s write error. Data buffer to small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      getName(),
       ERROR_ASYN_DATA_BUFFER_TO_SMALL);
       return asynError;
     }
@@ -403,10 +405,11 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
   int errorCode=refreshParamRT(1);
   if(errorCode) {
     LOGERR(
-      "%s/%s:%d: ERROR: Write error. Refresh of params failed (0x%x).\n",
+      "%s/%s:%d: ERROR: %s write error. Refresh of params failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      getName(),
       errorCode);
       return asynError;
   }
@@ -423,10 +426,11 @@ asynStatus ecmcAsynDataItem::readGeneric(uint8_t *data, size_t bytesToRead, asyn
 
    if(!asynTypeSupported(type)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Asyn type not supported (0x%x).\n",
+      "%s/%s:%d: ERROR: %s asyn type not supported (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      getName(),
       ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED);
       return asynError;
   }
@@ -439,10 +443,11 @@ asynStatus ecmcAsynDataItem::readGeneric(uint8_t *data, size_t bytesToRead, asyn
   } else {
     if ( bytes > paramInfo_->ecmcMaxSize) {
     LOGERR(
-      "%s/%s:%d: ERROR: Read error. Data buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: %s read error. Data buffer to small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      getName(),
       ERROR_ASYN_DATA_BUFFER_TO_SMALL);
       return asynError;
     }
@@ -465,7 +470,7 @@ asynStatus ecmcAsynDataItem::writeInt32(epicsInt32 value) {
   size_t bytesWritten = 0;
   if(checkIntRange_ && (value > intMax_ || value < intMin_)) {
     LOGERR(
-      "%s/%s:%d: Error: Parameter %s. Value Out Of Range %d (allowed Range %ld..%ld) (0x%x).\n",
+      "%s/%s:%d: Error: %s value Out Of Range %d (allowed Range %ld..%ld) (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -500,10 +505,11 @@ asynStatus  ecmcAsynDataItem::writeUInt32Digital(epicsUInt32 value,
 
   if(checkIntRange_ && (value > intMax_ || value < intMin_)) {
     LOGERR(
-      "%s/%s:%d: Error: Value Out Of Range %d. Allowed Range %ld..%ld (0x%x).\n",
+      "%s/%s:%d: Error: %s value Out Of Range %d. Allowed Range %ld..%ld (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      getName(),
       value,
       intMin_,
       intMax_,
