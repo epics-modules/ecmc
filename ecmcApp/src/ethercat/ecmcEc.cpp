@@ -24,12 +24,6 @@ void ecmcEc::initVars() {
   simSlave_                         = NULL;
   master_                           = NULL;
   domain_                           = NULL;
-  domainStateOld_.redundancy_active = 0;
-  domainStateOld_.wc_state          = EC_WC_ZERO;
-  domainStateOld_.working_counter   = 0;
-  masterStateOld_.slaves_responding = 0;
-  masterStateOld_.link_up           = 0;
-  masterStateOld_.al_states         = 0;
   domainPd_                         = 0;
   slavesOK_                         = 0;
   masterOK_                         = 0;
@@ -59,8 +53,12 @@ void ecmcEc::initVars() {
     slaveEntriesReg_[i].subindex     = 0;
     slaveEntriesReg_[i].vendor_id    = 0;
   }
+  
   memset(&domainState_, 0, sizeof(domainState_));
   memset(&masterState_, 0, sizeof(masterState_));
+  memset(&domainStateOld_,0,sizeof(domainStateOld_));
+  memset(&masterStateOld_,0,sizeof(masterStateOld_));
+  
   inStartupPhase_ = true;
   asynPortDriver_ = NULL;
 
@@ -469,13 +467,13 @@ bool ecmcEc::checkState(void) {
   statusWordMaster_ = statusWordMaster_ + masterState_.link_up;
   // bit 1..4
   statusWordMaster_ = statusWordMaster_ + (masterState_.al_states << 1);
-  //16..31 
+  // 16..31 
   statusWordMaster_ = statusWordMaster_ + ((uint16_t)(masterState_.slaves_responding) << 16);
-  // bit 0
+  
 
   //Build domain status word
   statusWordDomain_ = 0;
-  //bit 0
+  // bit 0
   statusWordDomain_ = statusWordDomain_ + (domainState_.redundancy_active > 0);
   // bit 1
   statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_ZERO) << 1);
