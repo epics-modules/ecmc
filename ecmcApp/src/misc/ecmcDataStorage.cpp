@@ -10,7 +10,7 @@
 ecmcDataStorage::ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
                                  int index,
                                  int size,
-                                 storageType bufferType) {
+                                 ecmcDSBufferType bufferType) {
   PRINT_ERROR_PATH("dataStorage[%d].error", index);
   initVars();
   index_=index;
@@ -92,9 +92,10 @@ void ecmcDataStorage::initVars() {
   index_              = 0;
   asynPortDriver_     = NULL;
   dataAsynDataItem_   = NULL;
-  fullAsynDataItem_   = NULL;
+  statusAsynDataItem_   = NULL;
   indexAsynDataItem_  = NULL;
   sizeAsynDataItem_   = NULL;
+  statusWord_         = 0;
 }
 
 int ecmcDataStorage::clearBuffer() {
@@ -452,10 +453,10 @@ int ecmcDataStorage::initAsyn() {
   indexAsynDataItem_->allowWriteToEcmc(true);
   indexAsynDataItem_->refreshParam(1);  
 
-  // "ds%d.full"
+  // "ds%d.status"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_DATA_FULL_STR,
+                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_STATUS_STR,
                        index_);
 
   if (charCount >= sizeof(buffer) - 1) {
@@ -468,12 +469,12 @@ int ecmcDataStorage::initAsyn() {
     return ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL;
   }
   name = buffer;
-  fullAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
-                                    asynParamInt32, //default type
-                                    (uint8_t *)&(isFull_),
-                                    sizeof(isFull_),
+  statusAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
+                                    asynParamUInt32Digital, //default type
+                                    (uint8_t *)&(statusWord_),
+                                    sizeof(statusWord_),
                                     0);
-  if(!fullAsynDataItem_) {
+  if(!statusAsynDataItem_) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
@@ -482,8 +483,10 @@ int ecmcDataStorage::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  fullAsynDataItem_->allowWriteToEcmc(false);
-  fullAsynDataItem_->refreshParam(1);
+  statusAsynDataItem_->addSupportedAsynType(asynParamInt32);
+  statusAsynDataItem_->addSupportedAsynType(asynParamUInt32Digital);    
+  statusAsynDataItem_->allowWriteToEcmc(false);
+  statusAsynDataItem_->refreshParam(1);
 
   // "ds%d.size"
   charCount = snprintf(buffer,
@@ -523,9 +526,15 @@ int ecmcDataStorage::initAsyn() {
   return 0;
 }
 
-int ecmcDataStorage::updateAsyn(bool force) {  
+int ecmcDataStorage::updateAsyn(bool force) {
+  statusWord_ = 0;
+  //bit 0
+  statusWord_ = statusWord_ + isFull_ > 0;
+  //bit 16..19
+  statusWord_ = statusWord_ + (((uint32_t)bufferType_) << 16);
+
   dataAsynDataItem_->refreshParamRT(force);
-  fullAsynDataItem_->refreshParamRT(force);
+  statusAsynDataItem_->refreshParamRT(force);
   indexAsynDataItem_->refreshParamRT(force);
   sizeAsynDataItem_-> refreshParamRT(force);  
   return 0;

@@ -48,7 +48,7 @@ int createDataStorage(int index, int elements, int bufferType) {
   delete dataStorages[index];
   dataStorages[index] = new ecmcDataStorage(asynPort, index,
                                             elements,
-                                            (storageType)bufferType);
+                                            (ecmcDSBufferType)bufferType);
 
   if (!dataStorages[index]) {
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",

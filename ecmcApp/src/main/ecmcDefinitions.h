@@ -306,6 +306,7 @@ enum axisSubObjectType {
 #define ECMC_DATA_STORAGE_DATA_DATA_STR "data"
 #define ECMC_DATA_STORAGE_DATA_CLEAR_STR "clear"
 #define ECMC_DATA_STORAGE_DATA_FULL_STR "full"
+#define ECMC_DATA_STORAGE_STATUS_STR "status"
 
 #define ECMC_STATIC_VAR "static."
 #define ECMC_GLOBAL_VAR "global."

@@ -21,7 +21,7 @@
 #define ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE 0x20203
 #define ERROR_DATA_STORAGE_ASYN_PARAM_REGISTER_FAIL 0x20204
 
-enum storageType {
+enum ecmcDSBufferType {
   // Fill from beginning. Stop when full.
   ECMC_STORAGE_NORMAL_BUFFER = 0,
   // Fill from beginning. Start over in beginning
@@ -35,7 +35,7 @@ class ecmcDataStorage : public ecmcError {
   ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
                   int         index,
                   int         size,
-                  storageType bufferType);
+                  ecmcDSBufferType bufferType);
   ~ecmcDataStorage();
   int  setBufferSize(int elements);
   int  clearBuffer();
@@ -73,15 +73,16 @@ class ecmcDataStorage : public ecmcError {
   int currentBufferIndex_;
   double *buffer_;
   int bufferElementCount_;
-  storageType bufferType_;
+  ecmcDSBufferType bufferType_;
   int index_;
   int bufferFullCounter_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *dataAsynDataItem_;
-  ecmcAsynDataItem  *fullAsynDataItem_;
+  ecmcAsynDataItem  *statusAsynDataItem_;
   ecmcAsynDataItem  *indexAsynDataItem_;
   ecmcAsynDataItem  *sizeAsynDataItem_;
   int isFull_;
+  uint32_t statusWord_;
 
 };
 
