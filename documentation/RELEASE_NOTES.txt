@@ -1,0 +1,10 @@
+Realese notes:
+  - Remove slave -1
+  - Remove addparameter iocsh command
+  - Add asyn params automatically
+  - add asyn report command
+  - Add ONE, ZERO entries
+  - Add status word:
+      -Ec
+      -EcSlave
+      -Axis
