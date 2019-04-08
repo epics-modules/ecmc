@@ -229,6 +229,7 @@ class ecmcAxisBase : public ecmcError {
   ecmcEcEntry *statusOutputEntry_;
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
+  uint32_t statusWord_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

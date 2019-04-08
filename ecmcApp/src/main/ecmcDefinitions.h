@@ -143,9 +143,9 @@
 #define ECMC_ASYN_AX_POS_ERR_NAME "poserr"
 #define ECMC_ASYN_AX_DIAG_ID 3
 #define ECMC_ASYN_AX_DIAG_NAME "diagnostic"
-#define ECMC_ASYN_AX_PAR_COUNT 4
-
-
+#define ECMC_ASYN_AX_STATUS_ID 4
+#define ECMC_ASYN_AX_STATUS_NAME "status"
+#define ECMC_ASYN_AX_PAR_COUNT 5
 
 // Motion
 enum app_mode_type {

@@ -105,6 +105,7 @@ void ecmcAxisBase::initVars() {
   }
   statusOutputEntry_          = 0;
   blockExtCom_                = 0;
+  statusWord_                 = 0;
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
 }
 
@@ -328,10 +329,37 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   cycleCounter_++;
   refreshDebugInfoStruct();
 
+  statusWord_ = 0;
+  // bit 0 enabled
+  statusWord_ = statusWord_ + (getEnabled()>0);
+  // bit 1 execute  
+  statusWord_ = statusWord_ + ((seq_.getExecute()>0) << 1);
+  // bit 2 busy
+  statusWord_ = statusWord_ + ((data_.status_.busy>0) << 2);
+  // bit 3 at target
+  statusWord_ = statusWord_ + ((data_.status_.atTarget>0) << 3);
+  // bit 4 moving
+  statusWord_ = statusWord_ + ((data_.status_.moving>0) << 4);
+  // bit 5 limit fwd
+  statusWord_ = statusWord_ + ((data_.status_.limitFwd>0) << 5);
+  // bit 6 limit bwd
+  statusWord_ = statusWord_ + ((data_.status_.limitBwd>0) << 6);
+  // bit 7 homeswitch
+  statusWord_ = statusWord_ + ((data_.status_.homeSwitch>0) << 7);
+  // bit 8 inStartupPhase
+  statusWord_ = statusWord_ + ((data_.status_.inStartupPhase>0) << 8);
+  // bit 9 inRealtime
+  statusWord_ = statusWord_ + ((data_.status_.inRealtime>0) << 9);
+  // bit 16..23 seq state
+  statusWord_ = statusWord_ + (((uint8_t)data_.status_.seqState) << 16);
+  // bit 24..31 lastActiveInterlock type
+  statusWord_ = statusWord_ + (((uint8_t)data_.interlocks_.lastActiveInterlock) << 24);
+
   // Update asyn parameters  
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
   
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
     int  bytesUsed = 0;
@@ -358,6 +386,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   if (statusOutputEntry_) {
     statusOutputEntry_->writeValue(getErrorID() == 0);
   }
+
 }
 
 axisType ecmcAxisBase::getAxisType() {
@@ -1450,6 +1479,41 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
+
+  // Status word
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR"%d."ECMC_ASYN_AX_STATUS_NAME,
+                       getAxisID());
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamUInt32Digital,
+                                         (uint8_t *)&(statusWord_),
+                                         sizeof(statusWord_),
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->addSupportedAsynType(asynParamInt32);
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
 
   asynPortDriver_->callParamCallbacks();
   return 0;
