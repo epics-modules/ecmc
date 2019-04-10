@@ -7,6 +7,7 @@
 
 #include "asynPortDriver.h"
 #include <epicsEvent.h>
+#include <epicsTime.h>
 #include "../com/ecmcAsynPortDriverUtils.h"
 #include "../com/ecmcAsynDataItem.h"
 

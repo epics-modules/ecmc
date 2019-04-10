@@ -45,9 +45,6 @@ typedef struct ecmcParamInfo{
   size_t         ecmcMaxSize;       // Max buffer size
   bool           ecmcDataIsArray;
   int            ecmcDataPointerValid;
-  ECMCTIMESOURCE timeBase;
-  uint64_t       timeStampRaw;
-  epicsTimeStamp epicsTimestamp;
   int            alarmStatus;
   int            alarmSeverity;
   bool           refreshNeeded;
@@ -98,7 +95,7 @@ public:
   size_t getEcmcBitCount();
   void setArrayCheckSize(bool check);
   bool getArrayCheckSize();
-
+  
   asynStatus readInt32(epicsInt32 *value);
   asynStatus writeInt32(epicsInt32 value);
   asynStatus readUInt32Digital(epicsUInt32 *value,

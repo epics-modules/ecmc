@@ -821,9 +821,9 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
       }
       return asynError;      
     }
-    //Type supported so use it.
+    // Type supported so use it.    
     param->setAsynParameterType(newParamInfo->asynType);
-
+    
     // Add parameter to In use list
     status = appendInUseParam(param,0);
     if(status!=asynSuccess) {
@@ -873,6 +873,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     existentParInfo->recordType=strdup(newParamInfo->recordType);
     existentParInfo->dtyp=strdup(newParamInfo->dtyp);
     existentParInfo->drvInfo=strdup(newParamInfo->drvInfo);
+    //existentParInfo->timeBase=newParamInfo->timeBase;
   }
 
   // Ensure that sample time is the shortest (if several records 
@@ -1153,46 +1154,6 @@ asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcPara
       return asynError;
     }
   }
-
-  //Check if ECMC_OPTION_TIMEBASE option
-  option=ECMC_OPTION_TIMEBASE;
-  paramInfo->timeBase=defaultTimeSource_;
-  isThere=strstr(drvInfo,option);
-  if(isThere){
-    int minLen=strlen(ECMC_OPTION_TIMEBASE_ECMC);
-    int epicsLen=strlen(ECMC_OPTION_TIMEBASE_EPICS);
-    if(epicsLen<minLen){
-      minLen=epicsLen;
-    }
-    if(strlen(isThere)<(strlen(option)+strlen("=/")+minLen)){ //Allowed "ECMC" or "EPICS"
-      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s:%s: Failed to parse %s option from drvInfo (%s). String to short.\n",
-                driverName,
-                functionName,
-                option,
-                drvInfo);
-      return asynError;
-    }
-
-    int nvals = sscanf(isThere+strlen(option),"=%[^/]/",buffer);
-    if(nvals!=1){
-      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s:%s: Failed to parse %s option from drvInfo (%s). Wrong format.\n",
-                driverName,
-                functionName,
-                option,
-                drvInfo);
-      return asynError;
-    }
-
-    if(strcmp(ECMC_OPTION_TIMEBASE_ECMC,buffer)==0){
-      paramInfo->timeBase=ECMC_TIME_BASE_ECMC;
-    }
-
-    if(strcmp(ECMC_OPTION_TIMEBASE_EPICS,buffer)==0){
-      paramInfo->timeBase=ECMC_TIME_BASE_EPICS;
-    }
-  }
   
   //Check if TYPE option
   option=ECMC_OPTION_TYPE;
@@ -1291,17 +1252,17 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
     return;
   }
   fprintf(fp,"    Param drvInfo:             %s\n",paramInfo->drvInfo);
-  fprintf(fp,"    Param sample time [ms]:    %lf\n",paramInfo->sampleTimeMS);
+  fprintf(fp,"    Param sample time [ms]:    %.0lf\n",paramInfo->sampleTimeMS);
   fprintf(fp,"    Param sample cycles []:    %d\n",paramInfo->sampleTimeCycles);
   //fprintf(fp,"    Param max delay time [ms]: %lf\n",paramInfo->maxDelayTimeMS);
   fprintf(fp,"    Param isIOIntr:            %s\n",paramInfo->isIOIntr ? "true" : "false");
   fprintf(fp,"    Param asyn addr:           %d\n",paramInfo->asynAddr);
-  fprintf(fp,"    Param time source:         %s\n",
+  /*fprintf(fp,"    Param time source:         %s (%d)\n",
                            (paramInfo->timeBase == ECMC_TIME_BASE_ECMC) ?
-                           ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
-  fprintf(fp,"    Param epics time:          %us:%uns\n",
-                           paramInfo->epicsTimestamp.secPastEpoch,
-                           paramInfo->epicsTimestamp.nsec);
+                           ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS,paramInfo->timeBase);*/
+  //fprintf(fp,"    Param epics time:          %us:%uns\n",
+  //                         paramInfo->epicsTimestamp.secPastEpoch,
+  //                         paramInfo->epicsTimestamp.nsec);
   //fprintf(fp,"    Param array buffer size:   %lu\n",paramInfo->arrayDataBufferSize);
   fprintf(fp,"    Param alarm:               %d\n",paramInfo->alarmStatus);
   fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
@@ -1350,7 +1311,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
     fprintf(fp, "  Default sample time [ms]:     %d\n",defaultSampleTimeMS_);
     fprintf(fp, "  Fastest update rate [cycles]: %d\n",fastestParamUpdateCycles_);
     //fprintf(fp, "  Default max delay time [ms]: %d\n",defaultMaxDelayTimeMS_);
-    fprintf(fp, "  Default time source:          %s\n",(defaultTimeSource_==ECMC_TIME_BASE_ECMC) ? ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
+    //fprintf(fp, "  Default time source:          %s\n",(defaultTimeSource_==ECMC_TIME_BASE_ECMC) ? ECMC_OPTION_TIMEBASE_ECMC : ECMC_OPTION_TIMEBASE_EPICS);
     fprintf(fp,"\n");
   }
 

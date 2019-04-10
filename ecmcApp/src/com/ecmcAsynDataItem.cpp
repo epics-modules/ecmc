@@ -652,4 +652,4 @@ void ecmcAsynDataItem:: setArrayCheckSize(bool check) {
 
 bool ecmcAsynDataItem:: getArrayCheckSize() {
   return paramInfo_->arrayCheckSize;
-}
+}  
