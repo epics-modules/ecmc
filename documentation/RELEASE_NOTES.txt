@@ -8,3 +8,7 @@ Realese notes:
       -Ec
       -EcSlave
       -Axis
+
+  Data time stamp: TSE=-2 for ECMC timestamp, TSE=0 for EPCIS timestamp
+  change from skip cycles to sample rate in ms
+  
