@@ -396,9 +396,8 @@ int ecmcAddTestParams() {
 
 int ecmcAddDefaultAsynParams() {
 
-  // Add test params
-
-  ecmcAddTestParams();
+  // Add test params.. Uncomment to get a few parameters use full for testing
+  //ecmcAddTestParams();
 
   LOGINFO4("%s/%s:%d\n",
            __FILE__,
