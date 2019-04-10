@@ -228,8 +228,11 @@ void cyclic_task(void *usr) {
 
     if (asynPort && (appModeStat == ECMC_MODE_RUNTIME)) {
       asynPort->lock();
+      asynPort->updateTimeStamp();
     }
+
     clock_gettime(CLOCK_MONOTONIC, &startTime);
+    
     threadDiag.latency_ns    = DIFF_NS(wakeupTime, startTime);
     threadDiag.period_ns     = DIFF_NS(lastStartTime, startTime);
     threadDiag.exec_ns       = DIFF_NS(lastStartTime, endTime);
