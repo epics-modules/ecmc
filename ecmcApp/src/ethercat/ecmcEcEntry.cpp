@@ -544,7 +544,11 @@ int ecmcEcEntry::initAsyn() {
   
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
   char *name = buffer;
-
+  
+  //Simulation slave
+  if(slaveId_ < 0) {
+    return 0;    
+  }
   // "ec%d.s%d.alias"
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),

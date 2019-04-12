@@ -13,10 +13,10 @@ ecmcEcSlave::ecmcEcSlave(
   ec_master_t *master,  /**< EtherCAT master */
   ec_domain_t *domain,  /** <Domain> */
   uint16_t     alias, /**< Slave alias. */
-  uint16_t     position, /**< Slave position. */
+  int32_t     position, /**< Slave position. */
   uint32_t     vendorId, /**< Expected vendor ID. */
   uint32_t     productCode  /**< Expected product code. */) {
-  
+
   initVars();
   asynPortDriver_ = asynPortDriver;
   masterId_       = masterId;
@@ -35,16 +35,16 @@ ecmcEcSlave::ecmcEcSlave(
                                     "ZERO");
   simEntries_[1] = new ecmcEcEntry(asynPortDriver_,
                                    masterId_,
-                                   position,
+                                   slavePosition_,
                                    (uint8_t)32,
                                    &simBuffer_[8],
                                    "ONE");
   simEntries_[0]->writeValue(0);  // Default 0
   simEntries_[1]->writeValue(0xFFFFFFFF);  // Default 1 (32 bits)
-
-  if ((alias == 0) && (position == 0) && (vendorId == 0) &&
+  
+  if ((alias == 0) && (position == -1) && (vendorId == 0) &&
       (productCode == 0)) {
-    simSlave_ = true;
+    simSlave_ = true;  
     return;
   }
 

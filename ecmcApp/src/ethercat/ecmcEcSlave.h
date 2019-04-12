@@ -60,7 +60,7 @@ class ecmcEcSlave : public ecmcError {
     ec_master_t *master,  /**< EtherCAT master */    
     ec_domain_t *domain,
     uint16_t     alias, /**< Slave alias. */
-    uint16_t     position, /**< Slave position. */
+    int32_t     position, /**< Slave position. */
     uint32_t     vendorId, /**< Expected vendor ID. */
     uint32_t     productCode  /**< Expected product code. */);
   ~ecmcEcSlave();
@@ -139,9 +139,6 @@ class ecmcEcSlave : public ecmcError {
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
   int masterId_;
-  /*int online_;
-  int operational_;
-  int alState_;*/
 
   // bit 0 online          : The slave is online.
   // bit 1 int operational : The slave was brought into  OP state
