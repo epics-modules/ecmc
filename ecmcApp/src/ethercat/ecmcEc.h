@@ -58,6 +58,8 @@
 #define ERROR_EC_AUTO_CONFIG_SLAVE_INDEX_OUT_OF_RANGE 0x26022
 #define ERROR_EC_AUTO_CONFIG_DIRECTION_INVALID 0x26023
 #define ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW 0x26024
+#define ERROR_EC_MASTER_NULL 0x26025
+#define ERROR_EC_SLAVE_VERIFICATION_FAIL 0x26026
 
 class ecmcEc : public ecmcError {
  public:
@@ -140,7 +142,10 @@ class ecmcEc : public ecmcError {
   int           printAllConfig();
   int           printSlaveConfig(int slaveIndex);
   int           validate();
-  
+  int           verifySlave(uint16_t alias,  /**< Slave alias. */
+                        uint16_t slavePos,   /**< Slave position. */
+                        uint32_t vendorId,   /**< Expected vendor ID. */
+                        uint32_t productCode  /**< Exp)*/);
  private:
   void     initVars();
   int      updateInputProcessImage();

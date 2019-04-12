@@ -1557,3 +1557,112 @@ int ecmcEc::validate() {
 
   return 0;
 }
+
+int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
+                        uint16_t slavePos,   /**< Slave position. */
+                        uint32_t vendorId,   /**< Expected vendor ID. */
+                        uint32_t productCode  /**< Exp)*/) {
+
+  ec_master_info_t masterInfo;
+  ec_slave_info_t  slaveInfo;
+  int slaveCount       = 0;
+
+  if (!master_) {
+    LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MASTER_NULL);
+    return setErrorID(ERROR_EC_MASTER_NULL);
+  }
+
+  int errorCode = ecrt_master(master_, &masterInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode);
+    return setErrorID(ERROR_EC_MASTER_NULL);
+  }  
+
+  // Slave loop
+  slaveCount = masterInfo.slave_count;
+  if (slavePos >= slaveCount) {
+    LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+    return setErrorID(ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+  }
+
+  errorCode = ecrt_master_get_slave(master_, slavePos, &slaveInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x (ecmc error 0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode,
+      ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
+    return setErrorID(ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
+  }
+
+  if(slaveInfo.position != slavePos) {
+    LOGERR(
+      "%s/%s:%d: Error: Slave verification for busposition %d failed. Bus position %d != %d (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePos,
+      slavePos,
+      slaveInfo.position,
+      ERROR_EC_SLAVE_VERIFICATION_FAIL);
+      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+  }
+
+  if(slaveInfo.alias != alias) {
+    LOGERR(
+      "%s/%s:%d: Error: Slave verification for busposition %d failed. Alias %d != %d (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePos,
+      alias,
+      slaveInfo.alias,
+      ERROR_EC_SLAVE_VERIFICATION_FAIL);
+      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+  }
+
+  if(slaveInfo.vendor_id != vendorId) {
+    LOGERR(
+      "%s/%s:%d: Error: Slave verification for busposition %d failed. Vendor Id 0x%x != 0x%x (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePos,
+      vendorId,
+      slaveInfo.vendor_id,
+      ERROR_EC_SLAVE_VERIFICATION_FAIL);
+      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+  }
+
+  if(slaveInfo.product_code != productCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Slave verification for busposition %d failed. Product Code 0x%x != 0x%x (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePos,
+      productCode,
+      slaveInfo.product_code,
+      ERROR_EC_SLAVE_VERIFICATION_FAIL);
+      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+  }
+
+  return 0;
+}

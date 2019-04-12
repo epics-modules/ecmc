@@ -683,6 +683,30 @@ int ecPrintSlaveConfig(int slaveIndex);
 int linkEcEntryToEcStatusOutput(int   slaveIndex,
                                 char *entryIDString);
 
+/** \breif Verfy slave at position
+ *
+ *  The command verifys that the actual slave at a certain position\
+ *  have the correct alias, position, vendor id and product code.\n
+ *
+ *  \param[in] alias Alias of slave. Set to zero to disable.\n
+ *  \param[in] slaveIn Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] vendorId Identification value for slave vendor.\n
+ *    vendorId = 0x2: Beckhoff.\n
+ *    vendorId = 0x48554B: Kendrion Kuhnke Automation GmbH.\n
+ *  \param productCode Product identification code.\n
+ *    productCode=0x13ed3052: EL5101 incremental encoder input.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ *  \note Example: Verify that slave 3 is an EL5101\n
+ *   "Cfg.EcVerifySlave(0,3,0x2,0x13ed3052)" //Command string to ecmcCmdParser.c\n
+ */
+int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
+                  uint16_t slavePos,   /**< Slave position. */
+                  uint32_t vendorId,   /**< Expected vendor ID. */
+                  uint32_t productCode  /**< Exp)*/);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

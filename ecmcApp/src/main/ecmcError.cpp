@@ -1282,6 +1282,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW";
 
     break;
+ 
+  case 0x26025:
+    return "ERROR_EC_MASTER_NULL";
+
+    break;
+
+  case 0x26026:
+    return "ERROR_EC_SLAVE_VERIFICATION_FAIL";
+
+    break;
 
   case 0x20000:  // HW_MOTOR
     return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
