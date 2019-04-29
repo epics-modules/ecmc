@@ -10,6 +10,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/mman.h>	
 #include <unistd.h>
 #include <assert.h>
 #include <sched.h>
@@ -145,8 +146,11 @@ rtThreadId rtThreadCreate(
     assert(pthread_attr_setschedpolicy(&thread->attr,
                                        SCHED_FIFO) == 0);
     assert(pthread_attr_setschedparam(&thread->attr,
-                                      &sched) == 0);
+                                      &sched) == 0);   
   }
+
+  assert(pthread_attr_setstacksize(&thread->attr, PTHREAD_STACK_MIN + stackSize)==0);
+
   thread->start = funptr;
   thread->usr   = parm;
   int result = pthread_create(&thread->thread,
@@ -155,6 +159,7 @@ rtThreadId rtThreadCreate(
                               thread);
 
   if (result == 0) {
+    pthread_setname_np(thread->thread,name);
     return thread;
   } else {
     switch (result) {
@@ -384,18 +389,46 @@ int waitForEtherCATtoStart(int timeoutSeconds) {
   return ec.getErrorID();
 }
 
-void startRTthread() {
+int lockMem(int size) {
+    LOGINFO("INFO: Locking memory\n");
+    // lock memory
+    if(mlockall(MCL_CURRENT | MCL_FUTURE) != 0)
+    {
+      LOGERR("WARNING: mlockall() failed (0x%x).\n",ERROR_MAIN_MLOCKALL_FAIL);
+      return ERROR_MAIN_MLOCKALL_FAIL;
+    }
+   	
+   	/* Touch each page in this piece of memory to get it mapped into RAM 
+       to avoid swapping*/
+    int i;
+   	char *buffer;
+   	buffer = (char*)malloc(size);
+
+   	for (i = 0; i < size; i += sysconf(_SC_PAGESIZE)) {
+   		/* Each write to this buffer will generate a pagefault.
+   		   Once the pagefault is handled a page will be locked in
+   		   memory and never given back to the system. */
+   		buffer[i] = 0;
+   	}
+   	free(buffer);
+
+    return 0;
+}
+
+int startRTthread() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   int prio = ECMC_PRIO_HIGH;
 
-  if (rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) == NULL) {
+  if (rtThreadCreate(ECMC_RT_THREAD_NAME, prio, ECMC_STACK_SIZE, cyclic_task, NULL) == NULL) {
     LOGERR(
       "ERROR: Can't create high priority thread, fallback to low priority\n");
     prio = ECMC_PRIO_LOW;
-    assert(rtThreadCreate("cyclic", prio, 0, cyclic_task, NULL) != NULL);
+    assert(rtThreadCreate(ECMC_RT_THREAD_NAME, prio, ECMC_STACK_SIZE, cyclic_task, NULL) != NULL);
   } else {
     LOGINFO4("INFO:\t\tCreated high priority thread for cyclic task\n");
   }
+
+  return lockMem(ECMC_PRE_ALLOCATION_SIZE);
 }
 
 int setAppModeCfg(int mode) {
@@ -455,13 +488,17 @@ int setAppModeRun(int mode) {
   ecrt_master_application_time(ec.getMaster(),
                                TIMESPEC2NS(masterActivationTimeRealtime));
 
-
   if (ec.activate()) {
     LOGERR("INFO:\t\tActivation of master failed.\n");
     return ERROR_MAIN_EC_ACTIVATE_FAILED;
   }
+  
+  errorCode = startRTthread();
+  if(errorCode) {
+    return errorCode;
+  }
+  
   LOGINFO4("INFO:\t\tApplication in runtime mode.\n");
-  startRTthread();
 
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     if (axes[i] != NULL) {

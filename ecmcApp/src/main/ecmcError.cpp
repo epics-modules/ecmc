@@ -1630,6 +1630,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
   case 0x20044:
     return "ERROR_MAIN_ASYN_CREATE_PARAM_FAIL";
 
+    break;
+  case 0x20045:
+    return "ERROR_MAIN_MLOCKALL_FAIL";
+
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 

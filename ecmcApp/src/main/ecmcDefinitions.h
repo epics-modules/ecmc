@@ -29,6 +29,12 @@
 // #define MSG_TICK 0
 #define MAX_MESSAGE 10000
 
+// Memory allocation
+#define ECMC_STACK_SIZE (100*1024)  /*RT thread stack size*/
+#define ECMC_PRE_ALLOCATION_SIZE (10*1024*1024) /* 1MB pagefault free buffer */
+
+#define ECMC_RT_THREAD_NAME "ecmc_rt" 
+
 // Buffer size
 #define EC_MAX_OBJECT_PATH_CHAR_LENGTH 256
 #define AX_MAX_DIAG_STRING_CHAR_LENGTH 1024
