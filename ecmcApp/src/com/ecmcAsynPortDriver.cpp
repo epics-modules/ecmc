@@ -156,6 +156,14 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
     }  
 }
 
+ecmcAsynPortDriver::~ecmcAsynPortDriver(){
+  for(int i=0;i<ecmcParamAvailCount_;i++) {
+    delete pEcmcParamAvailArray_[i];  
+  }
+  delete pEcmcParamInUseArray_; 
+  delete pEcmcParamAvailArray_; 
+}
+
 /** 
  * Initiate variables
  */

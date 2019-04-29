@@ -18,6 +18,7 @@ class ecmcAsynPortDriver : public asynPortDriver {
                      int         autoConnect,
                      int         priority,
                      double      defaultSampleRateMS);
+  ~ecmcAsynPortDriver();
   virtual asynStatus writeOctet(asynUser   *pasynUser,
                                 const char *value,
                                 size_t      maxChars,
