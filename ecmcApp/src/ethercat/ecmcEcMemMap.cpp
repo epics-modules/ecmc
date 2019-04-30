@@ -6,6 +6,7 @@
  */
 
 #include "ecmcEcMemMap.h"
+#include <stdlib.h> 
 
 ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                            int masterId,
@@ -45,7 +46,7 @@ void ecmcEcMemMap::initVars() {
 ecmcEcMemMap::~ecmcEcMemMap() {
   delete buffer_;
   buffer_ = NULL;
-  delete idStringChar_;
+  free(idStringChar_);
   idStringChar_ =NULL;
 }
 

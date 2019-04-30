@@ -32,6 +32,7 @@ static int cmd_buf_vprintf(ecmcOutputBufferType *buffer,
     addToBuffer(buffer, buf, res);
   }
   free(buf);
+  buf = NULL; 
   return res;
 }
 

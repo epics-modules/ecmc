@@ -2,6 +2,7 @@
 #include "../com/ecmcAsynPortDriver.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h> 
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const char *paramName,asynParamType asynParType)
 {
@@ -27,23 +28,23 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
 
 ecmcAsynDataItem::~ecmcAsynDataItem ()
 {
-  delete paramInfo_->recordName;
+  free(paramInfo_->recordName);
   paramInfo_->recordName = NULL;
-  delete paramInfo_->recordType;
+  free(paramInfo_->recordType);
   paramInfo_->recordType =NULL;
-  delete paramInfo_->scan;
+  free(paramInfo_->scan);
   paramInfo_->scan = NULL;
-  delete paramInfo_->dtyp;
+  free(paramInfo_->dtyp);
   paramInfo_->dtyp = 0;
-  delete paramInfo_->inp;
+  free(paramInfo_->inp);
   paramInfo_->inp = NULL;
-  delete paramInfo_->out;
+  free(paramInfo_->out);
   paramInfo_->out = NULL;
-  delete paramInfo_->drvInfo;
+  free(paramInfo_->drvInfo);
   paramInfo_->drvInfo = NULL;
-  delete paramInfo_->asynTypeStr;
+  free(paramInfo_->asynTypeStr);
   paramInfo_->asynTypeStr = NULL;
-  delete paramInfo_->name;
+  free(paramInfo_->name);
   paramInfo_->name = NULL;
   delete paramInfo_;  
   paramInfo_ = NULL;

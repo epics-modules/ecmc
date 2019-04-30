@@ -2472,6 +2472,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
     if (error) {
       free(retBuf);
+      retBuf = NULL;
       return error;
     }
 
@@ -2502,6 +2503,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
     if (error) {
       free(retBuf);
+      retBuf = NULL;
       return error;
     }
 
@@ -2531,6 +2533,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
     if (error) {
       free(retBuf);
+      retBuf = NULL;
       return error;
     }
 

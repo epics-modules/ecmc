@@ -6,6 +6,7 @@
  */
 
 #include "ecmcEcEntry.h"
+#include <stdlib.h> 
 
 #define EC_READ_2_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x03)
 #define EC_READ_3_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x07)
@@ -169,7 +170,7 @@ void ecmcEcEntry::initVars() {
 
 ecmcEcEntry::~ecmcEcEntry()
 {
-  delete idStringChar_;
+  free(idStringChar_);
   idStringChar_ = NULL;
 }
 
