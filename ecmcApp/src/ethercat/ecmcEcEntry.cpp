@@ -170,6 +170,7 @@ void ecmcEcEntry::initVars() {
 ecmcEcEntry::~ecmcEcEntry()
 {
   delete idStringChar_;
+  idStringChar_ = NULL;
 }
 
 void ecmcEcEntry::setDomainAdr(uint8_t *domainAdr) {

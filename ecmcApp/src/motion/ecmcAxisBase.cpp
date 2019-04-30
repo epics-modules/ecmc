@@ -54,11 +54,17 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
 
 ecmcAxisBase::~ecmcAxisBase() {
   delete enc_;
+  enc_ = NULL;
   delete traj_;
+  traj_ = NULL;
   delete mon_;
+  mon_ = NULL;
   delete commandTransform_;
+  commandTransform_ = NULL;
   delete externalInputEncoderIF_;
+  externalInputEncoderIF_ = NULL;
   delete externalInputTrajectoryIF_;
+  externalInputTrajectoryIF_ = NULL;
 }
 
 void ecmcAxisBase::initVars() {

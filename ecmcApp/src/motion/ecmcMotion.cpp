@@ -2382,6 +2382,7 @@ int createAxis(int index, int type) {
   }
   catch (std::exception& e) {
     delete axes[index];
+    axes[index] = NULL;
     LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS OBJECT.\n",
            __FILE__,
            __FUNCTION__,

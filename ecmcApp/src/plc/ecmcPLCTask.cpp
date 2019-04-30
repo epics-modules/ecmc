@@ -31,6 +31,7 @@ ecmcPLCTask::ecmcPLCTask(int plcIndex, int skipCycles, ecmcAsynPortDriver *asynP
 ecmcPLCTask::~ecmcPLCTask() {
   for (int i = 0; i < ECMC_MAX_PLC_VARIABLES; i++) {
     delete localArray_[i];
+    localArray_[i] = NULL;
   }
 }
 
@@ -94,6 +95,7 @@ int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
       localVarStr,
       errorCode);
     delete localArray_[localVariableCount_];
+    localArray_[localVariableCount_] = NULL;
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
@@ -106,6 +108,7 @@ int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
            localVarStr,
            ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
     delete localArray_[localVariableCount_];
+    localArray_[localVariableCount_] = NULL;
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -223,6 +226,7 @@ int ecmcPLCTask::clearExpr() {
   for (int i = 0; i < localVariableCount_; i++) {
     if (localArray_[i]) {
       delete localArray_[i];
+      localArray_[i] = NULL;
     }
   }
   localVariableCount_ = 0;

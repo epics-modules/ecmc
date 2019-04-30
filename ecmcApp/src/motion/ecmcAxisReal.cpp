@@ -35,7 +35,9 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
 
 ecmcAxisReal::~ecmcAxisReal() {
   delete cntrl_;
+  cntrl_ = NULL;
   delete drv_;
+  drv_ = NULL;
 }
 
 void ecmcAxisReal::printCurrentState() {

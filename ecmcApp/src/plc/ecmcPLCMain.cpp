@@ -15,6 +15,7 @@ ecmcPLCMain::ecmcPLCMain(ecmcEc *ec, ecmcAsynPortDriver *asynPortDriver) {
 ecmcPLCMain::~ecmcPLCMain() {
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
     delete plcs_[i];
+    plcs_[i] = NULL;
   }
 }
 
@@ -308,6 +309,7 @@ int ecmcPLCMain::getEnable(int plcIndex, int *enabled) {
 int ecmcPLCMain::deletePLC(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   delete plcs_[plcIndex];
+  plcs_[plcIndex] = NULL;
   return 0;
 }
 
@@ -439,6 +441,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
 
     if (errorCode) {
       delete globalDataArray_[globalVariableCount_];
+      globalDataArray_[globalVariableCount_] = NULL;
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
 
@@ -471,6 +474,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
 
     if (errorCode) {
       delete globalDataArray_[globalVariableCount_];
+      globalDataArray_[globalVariableCount_] = NULL;
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
 
@@ -496,6 +500,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
 
     if (errorCode) {
       delete globalDataArray_[globalVariableCount_];
+      globalDataArray_[globalVariableCount_] = NULL;
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
 
@@ -529,6 +534,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
 
     if (errorCode) {
       delete globalDataArray_[globalVariableCount_];
+      globalDataArray_[globalVariableCount_] = NULL;
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
 

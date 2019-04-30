@@ -52,7 +52,9 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int           defaultAxisId,
 
 ecmcMasterSlaveIF::~ecmcMasterSlaveIF() {
   delete transform_;
+  transform_ = NULL;
   delete velocityFilter_;
+  velocityFilter_ = NULL;
 }
 
 void ecmcMasterSlaveIF::printCurrentState() {

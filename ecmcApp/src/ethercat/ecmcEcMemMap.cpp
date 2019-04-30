@@ -44,7 +44,9 @@ void ecmcEcMemMap::initVars() {
 
 ecmcEcMemMap::~ecmcEcMemMap() {
   delete buffer_;
+  buffer_ = NULL;
   delete idStringChar_;
+  idStringChar_ =NULL;
 }
 
 int ecmcEcMemMap::write(uint8_t *values,

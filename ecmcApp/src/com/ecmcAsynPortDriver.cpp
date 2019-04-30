@@ -131,18 +131,21 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   if(paramTemp->createParam()){
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: createParam for %s failed.\n", driverName, functionName,ECMC_ASYN_PAR_OCTET_NAME);
     delete paramTemp;
+    paramTemp = NULL;
     exit(1);    
   }
 
   if(appendAvailParam(paramTemp,1)!=asynSuccess){
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Append asyn octet param %s failed.\n", driverName, functionName,ECMC_ASYN_PAR_OCTET_NAME);
     delete paramTemp;
+    paramTemp = NULL;
     exit(1);
   }  
 
   if(appendInUseParam(paramTemp,1)!=asynSuccess){
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Append asyn octet param %s failed.\n", driverName, functionName,ECMC_ASYN_PAR_OCTET_NAME);
     delete paramTemp;
+    paramTemp = NULL;
     exit(1);
   }
   
@@ -158,10 +161,13 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
 
 ecmcAsynPortDriver::~ecmcAsynPortDriver(){
   for(int i=0;i<ecmcParamAvailCount_;i++) {
-    delete pEcmcParamAvailArray_[i];  
+    delete pEcmcParamAvailArray_[i];
+    pEcmcParamAvailArray_[i] = NULL;
   }
   delete pEcmcParamInUseArray_; 
+  pEcmcParamInUseArray_ = NULL;
   delete pEcmcParamAvailArray_; 
+  pEcmcParamAvailArray_ = NULL;
 }
 
 /** 
@@ -283,6 +289,7 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
                "%s:%s: ERROR: Set data pointer to asyn parameter %s failed.", 
                driverName, functionName, name);
     delete paramTemp;
+    paramTemp = NULL;
     return NULL;
   }
   asynStatus status = appendAvailParam(paramTemp,0);
@@ -291,6 +298,7 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
                "%s:%s: ERROR: Append asyn parameter %s to list failed.", 
                driverName, functionName, name);
     delete paramTemp;
+    paramTemp = NULL;
     return NULL;
   }
   

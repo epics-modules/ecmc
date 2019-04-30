@@ -39,6 +39,7 @@ ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,
 
 ecmcEncoder::~ecmcEncoder() {
   delete velocityFilter_;
+  velocityFilter_ = NULL;
 }
 
 void ecmcEncoder::printCurrentState() {

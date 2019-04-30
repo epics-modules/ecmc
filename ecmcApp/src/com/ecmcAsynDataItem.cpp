@@ -28,15 +28,25 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
 ecmcAsynDataItem::~ecmcAsynDataItem ()
 {
   delete paramInfo_->recordName;
+  paramInfo_->recordName = NULL;
   delete paramInfo_->recordType;
+  paramInfo_->recordType =NULL;
   delete paramInfo_->scan;
+  paramInfo_->scan = NULL;
   delete paramInfo_->dtyp;
+  paramInfo_->dtyp = 0;
   delete paramInfo_->inp;
+  paramInfo_->inp = NULL;
   delete paramInfo_->out;
+  paramInfo_->out = NULL;
   delete paramInfo_->drvInfo;
+  paramInfo_->drvInfo = NULL;
   delete paramInfo_->asynTypeStr;
+  paramInfo_->asynTypeStr = NULL;
   delete paramInfo_->name;
-  delete paramInfo_;
+  paramInfo_->name = NULL;
+  delete paramInfo_;  
+  paramInfo_ = NULL;
 }
 
 int ecmcAsynDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)

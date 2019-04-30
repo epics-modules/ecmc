@@ -445,6 +445,8 @@ int setAppModeCfg(int mode) {
       axes[i]->setRealTimeStarted(false);
     }
   }
+
+  munlockall();
   return 0;
 }
 
