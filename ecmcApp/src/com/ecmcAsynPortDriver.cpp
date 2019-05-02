@@ -803,12 +803,14 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   // Parse options and name
   status=parseInfofromDrvInfo(drvInfo,newParamInfo);
   if(status!=asynSuccess){
+    delete newParamInfo;
     return asynError;
   }
 
   status=getRecordInfoFromDrvInfo(drvInfo, newParamInfo);
   if(status!=asynSuccess){
     asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Failed to find record with drvInfo %s.\n", driverName, functionName,drvInfo);
+    delete newParamInfo;
     return asynError;
   }
 
@@ -822,6 +824,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     if(!param) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter %s not found (drvInfo=%s).\n",
                 driverName, functionName,newParamInfo->name,drvInfo);
+      delete newParamInfo;
       return asynError;
     }
 
@@ -835,6 +838,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
                 asynTypeToString((long)param->getSupportedAsynType(i)),
                 param->getSupportedAsynType(i));
       }
+      delete newParamInfo;
       return asynError;      
     }
     // Type supported so use it.    
@@ -845,6 +849,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     if(status!=asynSuccess) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Append parameter %s to in-use list failed.\n",
                 driverName, functionName,newParamInfo->name);
+      delete newParamInfo;
       return asynError;
     }
     
@@ -853,6 +858,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     if(errorCode) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Create parameter %s failed (0x%x).\n",
                 driverName, functionName,newParamInfo->name,errorCode);
+      delete newParamInfo;
       return asynError;
     }
 
@@ -860,6 +866,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     if(param->getAsynParameterIndex() != (ecmcParamInUseCount_-1)) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter index missmatch for  %s  (%d != %d).\n",
                 driverName, functionName,newParamInfo->name,param->getAsynParameterIndex(),ecmcParamInUseCount_-1);
+      delete newParamInfo;                
       return asynError;
     }
 
@@ -878,6 +885,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   if(!pEcmcParamInUseArray_[index]) {
     asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s:pAdsParamArray_[%d]==NULL (drvInfo=%s).\n",
               driverName, functionName,index,drvInfo);
+    delete newParamInfo;
     return asynError;
   }
 
@@ -902,7 +910,8 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     pasynUser->timeout = (newParamInfo->sampleTimeMS*2)/1000;
   }
   
-  
+  delete newParamInfo;
+
   existentParInfo->initialized=1;
   pEcmcParamInUseArray_[index]->refreshParam(1);
   callParamCallbacks();
