@@ -5,17 +5,27 @@
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
 
-int ecmcInitAsyn(void *asynPortObject) {
+int ecmcInit(void *asynPortObject) {
+  
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-  asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);  
-  ec.setAsynPortDriver(asynPort);
 
-  //Main params
+  //ecmcInitThread();
+
+  asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);  
+  ec = new ecmcEc();
+
+  if(!ec) {
+    LOGERR("ERROR: Fail allocate ec master (0x%x)",ERROR_MAIN_EC_NULL);
+    return ERROR_MAIN_EC_NULL;
+  }
+
+  ec->setAsynPortDriver(asynPort);
+
+  //Main asyn params
   int errorCode=ecmcAddDefaultAsynParams();
   if(errorCode) {
     return errorCode;
   }
-
 
   return 0;
 }
@@ -196,6 +206,44 @@ int ecmcAddTestParams() {
   testAsynParams[6] = paramTemp;
 
   return 0;
+}
+
+void ecmcDelDefaultAsynParams() {
+  for(int i=0;i<ECMC_ASYN_MAIN_PAR_COUNT; i++) {
+    delete mainAsynParams[i];
+    mainAsynParams[i] = NULL;
+  }
+}
+
+void ecmcCleanup() {
+
+  ecmcDelDefaultAsynParams();
+
+  delete plcs;
+  plcs = NULL;
+  
+  for(int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
+    delete events[i];
+    events[i] = NULL;
+  }
+
+  for(int i = 0;i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
+    delete dataRecorders[i];
+    dataRecorders[i] = NULL;
+  }
+
+  for(int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
+    delete dataStorages[i];
+    dataStorages[i] = NULL;
+  }
+
+  for(int i = 0;i < ECMC_MAX_COMMANDS_LISTS; i++) {
+    delete commandLists[i];
+    commandLists[i] = NULL;
+  }
+
+  delete ec;
+  ec = NULL;
 }
 
 int ecmcAddDefaultAsynParams() {

@@ -85,8 +85,9 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                      uint8_t *data,
                                      size_t bytes,
                                      bool dieIfFail);
-   int32_t getFastestUpdateRate();
+   int32_t getFastestUpdateRate();   
    int32_t calcFastestUpdateRate();
+   int getDefaultSampleTimeMs();
    void    refreshAllInUseParamsRT();
 
  private:
@@ -102,11 +103,11 @@ class ecmcAsynPortDriver : public asynPortDriver {
   //                             size_t nEpicsBufferBytes);     
   void initVars();
   asynStatus checkParamNameAndId(int paramIndex,const char *functionName);
-  asynStatus validateDrvInfo(const char *drvInfo);
+  /*asynStatus validateDrvInfo(const char *drvInfo);
   asynStatus getRecordInfoFromDrvInfo(const char *drvInfo,
                                       ecmcParamInfo *paramInfo);
   asynStatus parseInfofromDrvInfo(const char* drvInfo,
-                                     ecmcParamInfo *paramInfo);
+                                     ecmcParamInfo *paramInfo);*/
   ecmcAsynDataItem *createNewParam(const char * name,
                                    asynParamType type,
                                    bool dieIfFail);

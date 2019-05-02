@@ -2227,7 +2227,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   }
 
   if (!ecmcInitDone) {
-    ecmcInit();
+    ecmcInitThread();
     ecmcInitDone = 1;
   }
 

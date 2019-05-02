@@ -57,8 +57,9 @@ public:
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                     const char *paramName,
                     asynParamType asynParType);
+  ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver);
   ~ecmcAsynDataItem ();
-  int setEcmcDataPointer(uint8_t *data,size_t bytes);
+  int setEcmcDataPointer(uint8_t *data,size_t bytes);  
   int refreshParam(int force);
   int refreshParam(int force, size_t bytes);
   int refreshParam(int force, uint8_t *data, size_t bytes);
@@ -71,15 +72,22 @@ public:
   int setAsynParSampleTimeMS(double sampleTime);
   int getAsynParameterIndex();
   int setAsynParameterType(asynParamType parType);
-  int getAsynParameterType();
+  asynParamType getAsynParameterType();
   int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);  
   bool initialized();
-  char * getName();  
+  char * getName();
+  char * getDrvInfo();
+  char * getDtyp();
+  char * getRecordType();
+  char * getRecordName();
   int32_t getSampleTimeCycles();
+  double getSampleTimeMs();
   ecmcParamInfo *getParamInfo();
   int addSupportedAsynType(asynParamType type);
   bool asynTypeSupported(asynParamType type);
   int getSupportedAsynTypeCount();
+  asynParamType getAsynType();
+  char * getAsynTypeName();
   asynParamType getSupportedAsynType(int index);
   void allowWriteToEcmc(bool allowWrite);
   bool writeToEcmcAllowed();
@@ -95,7 +103,9 @@ public:
   size_t getEcmcBitCount();
   void setArrayCheckSize(bool check);
   bool getArrayCheckSize();
-  
+    
+  asynStatus setDrvInfo(const char *drvInfo);
+
   asynStatus readInt32(epicsInt32 *value);
   asynStatus writeInt32(epicsInt32 value);
   asynStatus readUInt32Digital(epicsUInt32 *value,
@@ -131,6 +141,10 @@ public:
                                size_t nElements);
 
 private:
+  asynStatus validateDrvInfo(const char *drvInfo);
+  asynStatus getRecordInfoFromDrvInfo(const char *drvInfo);
+  asynStatus parseInfofromDrvInfo(const char* drvInfo);
+
   int asynTypeIsArray(asynParamType asynParType);
   asynStatus readGeneric(uint8_t *data,
                          size_t bytesToRead,
@@ -143,7 +157,7 @@ private:
   ecmcAsynPortDriver *asynPortDriver_;
   int asynUpdateCycleCounter_;
   uint8_t *data_;
-  ecmcParamInfo *paramInfo_;
+  ecmcParamInfo paramInfo_;
   bool allowWriteToEcmc_;
   asynParamType supportedTypes_[ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT];
   int supportedTypesCounter_;  

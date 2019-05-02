@@ -26,7 +26,7 @@ extern "C" {
 /** 
  * \breif Initialization routine for ecmc.\n
  */
-int ecmcInit(void);
+int ecmcInitThread(void);
 
 /** \breif Sets application mode
  *

@@ -277,26 +277,26 @@ void cyclic_task(void *usr) {
       threadDiag.send_min_ns = threadDiag.sendperiod_ns;
     }
 
-    ec.receive();
-    ec.checkDomainState();
+    ec->receive();
+    ec->checkDomainState();
 
     // Motion
     for (i = 0; i < ECMC_MAX_AXES; i++) {
       if (axes[i] != NULL) {
-        axes[i]->execute(ec.statusOK());
+        axes[i]->execute(ec->statusOK());
       }
     }
 
     // Data events
     for (i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
       if (events[i] != NULL) {
-        events[i]->execute(ec.statusOK());
+        events[i]->execute(ec->statusOK());
       }
     }
 
     // PLCs
     if (plcs) {
-      plcs->execute(ec.statusOK());
+      plcs->execute(ec->statusOK());
     }
 
     if (counter) {
@@ -304,8 +304,8 @@ void cyclic_task(void *usr) {
     } else {    // Lower freq      
       if (axisDiagFreq > 0) {
         counter = MCU_FREQUENCY / axisDiagFreq;
-        ec.checkState();
-        ec.checkSlavesConfState();
+        ec->checkState();
+        ec->checkSlavesConfState();
         printStatus();
 
         for (int i = 0; i < ECMC_MAX_AXES; i++) {
@@ -313,14 +313,14 @@ void cyclic_task(void *usr) {
             axes[i]->slowExecute();
           }
         }
-        ec.slowExecute();
+        ec->slowExecute();
       }
     }
 
     updateAsynParams(0);
 
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
-    ec.send(masterActivationTimeOffset);
+    ec->send(masterActivationTimeOffset);
     clock_gettime(CLOCK_MONOTONIC, &endTime);
   }
   appModeStat = ECMC_MODE_CONFIG;
@@ -329,9 +329,10 @@ void cyclic_task(void *usr) {
 /****************************************************************************/
 // Main functions
 
-int ecmcInit(void) {
+int ecmcInitThread(void) {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-  LOGINFO("\nESS Open Source EtherCAT Motion Control Unit Initializes......\n");
+  LOGINFO("\nECMC Initializes.............\n");
+  LOGINFO("ESS Open Source EtherCAT Motion Control Epics Module");
   LOGINFO("\nMode: Configuration\n");
 
   appModeStat   = ECMC_MODE_CONFIG;
@@ -377,7 +378,7 @@ int waitForEtherCATtoStart(int timeoutSeconds) {
     LOGINFO("Starting up EtherCAT bus: %d second(s).\n", i);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
 
-    if (ec.statusOK()) {
+    if (ec->statusOK()) {
       clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
       LOGINFO("EtherCAT bus started!\n");
       return 0;
@@ -386,7 +387,7 @@ int waitForEtherCATtoStart(int timeoutSeconds) {
   LOGERR("Timeout error: EtherCAT bus did not start correctly in %ds.\n",
          timeoutSeconds);
   setAppMode(0);
-  return ec.getErrorID();
+  return ec->getErrorID();
 }
 
 int lockMem(int size) {
@@ -487,10 +488,10 @@ int setAppModeRun(int mode) {
 
   masterActivationTimeOffset = timespec_sub(masterActivationTimeRealtime,
                                             masterActivationTimeMonotonic);
-  ecrt_master_application_time(ec.getMaster(),
+  ecrt_master_application_time(ec->getMaster(),
                                TIMESPEC2NS(masterActivationTimeRealtime));
 
-  if (ec.activate()) {
+  if (ec->activate()) {
     LOGERR("INFO:\t\tActivation of master failed.\n");
     return ERROR_MAIN_EC_ACTIVATE_FAILED;
   }

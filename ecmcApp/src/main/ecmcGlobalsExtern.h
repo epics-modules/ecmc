@@ -25,7 +25,7 @@
 extern ecmcAxisBase *axes[ECMC_MAX_AXES];
 extern int axisDiagIndex;
 extern int axisDiagFreq;
-extern ecmcEc ec;
+extern ecmcEc *ec;
 
 extern ecmcEvent          *events[ECMC_MAX_EVENT_OBJECTS];
 extern ecmcDataRecorder   *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];

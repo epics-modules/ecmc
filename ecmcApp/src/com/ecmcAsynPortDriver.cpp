@@ -149,25 +149,29 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
     exit(1);
   }
   
-  int errorCode = ecmcInitAsyn((void *)this);
+  int errorCode = ecmcInit((void *)this);
   if (errorCode) {
     asynPrint(pasynUserSelf,
               ASYN_TRACE_ERROR,
-              "ecmcAsynPortDriverConfigure: ERROR: New AsynPortDriver (setAsynPort()) failed (0x%x).\n",
+              "ecmcAsynPortDriverConfigure: ERROR: Init ECMC failed (0x%x).\n",
               errorCode);
     exit(1);
     }  
 }
 
 ecmcAsynPortDriver::~ecmcAsynPortDriver(){
-  for(int i=0;i<ecmcParamAvailCount_;i++) {
+
+  //Delete all dataitems where they are created
+  /*for(int i=0;i<ecmcParamAvailCount_;i++) {
     delete pEcmcParamAvailArray_[i];
     pEcmcParamAvailArray_[i] = NULL;
-  }
+  }*/
+  
   delete pEcmcParamInUseArray_; 
   pEcmcParamInUseArray_ = NULL;
   delete pEcmcParamAvailArray_; 
   pEcmcParamAvailArray_ = NULL;
+  ecmcCleanup();
 }
 
 /** 
@@ -783,10 +787,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   const char* functionName = "drvUserCreate";
   asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s: drvInfo: %s\n", driverName, functionName,drvInfo);
 
-  if(validateDrvInfo(drvInfo)!=asynSuccess){
-    return asynError;
-  }
-
+  
   int addr=0;
   asynStatus status = getAddress(pasynUser, &addr);
   if (status != asynSuccess){
@@ -795,10 +796,21 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   }
 
   // Collect data from drvInfo string and recordpasynUser->reason=index;
-  ecmcParamInfo *newParamInfo=new ecmcParamInfo();
+  /*ecmcParamInfo *newParamInfo=new ecmcParamInfo();
   memset(newParamInfo,0,sizeof(ecmcParamInfo));
   newParamInfo->sampleTimeMS=defaultSampleTimeMS_;      
-  newParamInfo->asynAddr=addr;
+  newParamInfo->asynAddr=addr;*/
+
+  ecmcAsynDataItem * newParam = new ecmcAsynDataItem(this);
+  status = newParam->setDrvInfo(drvInfo);
+  if(status!=asynSuccess){
+    delete newParam;
+    return asynError;
+  }
+
+  /*if(validateDrvInfo(drvInfo)!=asynSuccess){
+    return asynError;
+  }
 
   // Parse options and name
   status=parseInfofromDrvInfo(drvInfo,newParamInfo);
@@ -812,44 +824,44 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Failed to find record with drvInfo %s.\n", driverName, functionName,drvInfo);
     delete newParamInfo;
     return asynError;
-  }
+  }*/
 
   int index=0;
-  status=findParam(newParamInfo->name,&index);  
+  status=findParam(newParam->getName(),&index);  
   
   if(status!=asynSuccess) {
     
     // Param not found see if found in available list
-    ecmcAsynDataItem * param = findAvailParam(newParamInfo->name);
+    ecmcAsynDataItem * param = findAvailParam(newParam->getName());
     if(!param) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter %s not found (drvInfo=%s).\n",
-                driverName, functionName,newParamInfo->name,drvInfo);
-      delete newParamInfo;
+                driverName, functionName,newParam->getName(),drvInfo);
+      delete newParam;
       return asynError;
     }
 
     //Ensure that type is supported
-    if( !param->asynTypeSupported(newParamInfo->asynType)) {
+    if( !param->asynTypeSupported(newParam->getAsynType())) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Error: asynType %s not suppotrted for parameter %s. Supported types are:\n", 
-               driverName, functionName,newParamInfo->asynTypeStr,param->getName());
+               driverName, functionName,newParam->getAsynTypeName(),param->getName());
       for(int i=0;i < param->getSupportedAsynTypeCount();i++) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: AsynType: %s (%d)\n",
                 driverName, functionName,
                 asynTypeToString((long)param->getSupportedAsynType(i)),
                 param->getSupportedAsynType(i));
       }
-      delete newParamInfo;
+      delete newParam;
       return asynError;      
     }
     // Type supported so use it.    
-    param->setAsynParameterType(newParamInfo->asynType);
+    param->setAsynParameterType(newParam->getAsynType());
     
     // Add parameter to In use list
     status = appendInUseParam(param,0);
     if(status!=asynSuccess) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Append parameter %s to in-use list failed.\n",
-                driverName, functionName,newParamInfo->name);
-      delete newParamInfo;
+                driverName, functionName,newParam->getName());
+      delete newParam;
       return asynError;
     }
     
@@ -857,16 +869,16 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     int errorCode=param->createParam();
     if(errorCode) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Create parameter %s failed (0x%x).\n",
-                driverName, functionName,newParamInfo->name,errorCode);
-      delete newParamInfo;
+                driverName, functionName,newParam->getName(),errorCode);
+      delete newParam;
       return asynError;
     }
 
     // Ensure that parameter index is correct
     if(param->getAsynParameterIndex() != (ecmcParamInUseCount_-1)) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Parameter index missmatch for  %s  (%d != %d).\n",
-                driverName, functionName,newParamInfo->name,param->getAsynParameterIndex(),ecmcParamInUseCount_-1);
-      delete newParamInfo;                
+                driverName, functionName,newParam->getName(),param->getAsynParameterIndex(),ecmcParamInUseCount_-1);
+      delete newParam;                
       return asynError;
     }
 
@@ -874,43 +886,43 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     index = param->getAsynParameterIndex();
 
     asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter %s linked to record (asyn reason %d).\n",
-            driverName, functionName,newParamInfo->name,index);
+            driverName, functionName,newParam->getName(),index);
 
     //Now we have linked a parameter from available list into the inUse list successfully
   }
 
   //Asyn parameter found. Update with new info from record defs
   //asynPrint(pasynUser, ASYN_TRACE_INFO, "%s:%s: Parameter index found at: %d for %s.\n",
-  //          driverName, functionName,index,newParamInfo->name);
+  //          driverName, functionName,index,newParam->getName());
   if(!pEcmcParamInUseArray_[index]) {
     asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s:pAdsParamArray_[%d]==NULL (drvInfo=%s).\n",
               driverName, functionName,index,drvInfo);
-    delete newParamInfo;
+    delete newParam;
     return asynError;
   }
 
   ecmcParamInfo *existentParInfo = pEcmcParamInUseArray_[index]->getParamInfo();
  
   if(!existentParInfo->initialized) {
-    pEcmcParamInUseArray_[index]->setAsynParSampleTimeMS(newParamInfo->sampleTimeMS);    
-    existentParInfo->recordName=strdup(newParamInfo->recordName);
-    existentParInfo->recordType=strdup(newParamInfo->recordType);
-    existentParInfo->dtyp=strdup(newParamInfo->dtyp);
-    existentParInfo->drvInfo=strdup(newParamInfo->drvInfo);
+    pEcmcParamInUseArray_[index]->setAsynParSampleTimeMS(newParam->getSampleTimeMs());    
+    existentParInfo->recordName=strdup(newParam->getRecordName());
+    existentParInfo->recordType=strdup(newParam->getRecordType());
+    existentParInfo->dtyp=strdup(newParam->getDtyp());
+    existentParInfo->drvInfo=strdup(newParam->getDrvInfo());
     //existentParInfo->timeBase=newParamInfo->timeBase;
   }
 
   // Ensure that sample time is the shortest (if several records 
   // on the same parameter)
-  if(newParamInfo->sampleTimeMS <  existentParInfo->sampleTimeMS ) {
-    pEcmcParamInUseArray_[index]->setAsynParSampleTimeMS(newParamInfo->sampleTimeMS);      
+  if(newParam->getSampleTimeMs() <  existentParInfo->sampleTimeMS ) {
+    pEcmcParamInUseArray_[index]->setAsynParSampleTimeMS(newParam->getSampleTimeMs());      
   }
 
-  if(pasynUser->timeout < newParamInfo->sampleTimeMS*2/1000.0) {
-    pasynUser->timeout = (newParamInfo->sampleTimeMS*2)/1000;
+  if(pasynUser->timeout < newParam->getSampleTimeMs()*2/1000.0) {
+    pasynUser->timeout = (newParam->getSampleTimeMs()*2)/1000;
   }
   
-  delete newParamInfo;
+  delete newParam;
 
   existentParInfo->initialized=1;
   pEcmcParamInUseArray_[index]->refreshParam(1);
@@ -925,7 +937,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
  * The drvInfo string is what is after the asyn() in the "INP" or "OUT"
  * field of an record.
  */
-asynStatus ecmcAsynPortDriver::validateDrvInfo(const char *drvInfo)
+/*asynStatus ecmcAsynPortDriver::validateDrvInfo(const char *drvInfo)
 {
   const char* functionName = "validateDrvInfo";
   asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s: drvInfo: %s\n", driverName, functionName,drvInfo);
@@ -952,14 +964,14 @@ asynStatus ecmcAsynPortDriver::validateDrvInfo(const char *drvInfo)
 
   asynPrint(pasynUserSelf,ASYN_TRACE_ERROR,"Invalid drvInfo string (%s).\n", drvInfo);
   return asynError;
-}
+}*/
 
 /** Get asyn type from record.
  * \param[in] drvInfo String containing information about the parameter.
  * \param[in/out] paramInfo Parameter information structure.
  * \return asynSuccess or asynError.
  */
-asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecmcParamInfo *paramInfo)
+/*asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecmcParamInfo *paramInfo)
 {
   const char* functionName = "getRecordInfoFromDrvInfo";
   asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s: drvInfo: %s\n", driverName, functionName, drvInfo);
@@ -1087,7 +1099,7 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
   dbFreeEntry(pdbentry);  
 
   return asynError;
-}
+}*/
 
 /** Get variable information from drvInfo string.
  * \param[in] drvInfo String containing information about the parameter.
@@ -1101,7 +1113,7 @@ asynStatus ecmcAsynPortDriver::getRecordInfoFromDrvInfo(const char *drvInfo, ecm
  * - ".AMSPORTSTATE." (Read/write AMS-port state)\n
  * - ".ADR.*" (absolute access)\n
  */
-asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcParamInfo *paramInfo)
+/*asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcParamInfo *paramInfo)
 {
   const char* functionName = "parseInfofromDrvInfo";
   asynPrint(pasynUserSelf,ASYN_TRACE_FLOW,
@@ -1212,7 +1224,7 @@ asynStatus ecmcAsynPortDriver::parseInfofromDrvInfo(const char* drvInfo,ecmcPara
   }
 
   return asynSuccess;
-}
+}*/
 
 int32_t ecmcAsynPortDriver::getFastestUpdateRate() { 
    return fastestParamUpdateCycles_;
@@ -1368,6 +1380,9 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
   fprintf(fp,"####################################################################:\n");
 }
 
+int ecmcAsynPortDriver::getDefaultSampleTimeMs() {
+  return defaultSampleTimeMS_;
+}
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
 extern "C" {

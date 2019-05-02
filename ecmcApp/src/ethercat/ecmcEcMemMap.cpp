@@ -47,7 +47,9 @@ ecmcEcMemMap::~ecmcEcMemMap() {
   delete buffer_;
   buffer_ = NULL;
   free(idStringChar_);
-  idStringChar_ =NULL;
+  idStringChar_ = NULL;
+  delete memMapAsynParam_;
+  memMapAsynParam_=NULL;
 }
 
 int ecmcEcMemMap::write(uint8_t *values,

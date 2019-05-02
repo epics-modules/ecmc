@@ -13,12 +13,12 @@ int ecSetMaster(int masterIndex) {
            __FUNCTION__,
            __LINE__,
            masterIndex);
-  int errorCode = ec.setAsynPortDriver(asynPort);
+  int errorCode = ec->setAsynPortDriver(asynPort);
   if(errorCode) {
     return errorCode;
   }
 
-  errorCode = ec.init(masterIndex);
+  errorCode = ec->init(masterIndex);
   if(errorCode) {
     return errorCode;
   }
@@ -33,13 +33,13 @@ int ecResetMaster(int masterIndex) {
            masterIndex);
 
   /// todo  master index not used. Only there for future use.
-  return ec.reset();
+  return ec->reset();
 }
 
 int ecResetError() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
-  ec.errorReset();
+  ec->errorReset();
   return 0;
 }
 
@@ -56,9 +56,9 @@ int ecAddSlave(uint16_t alias,
            vendorId,
            productCode);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ec.addSlave(alias, position, vendorId, productCode);
+  ec->addSlave(alias, position, vendorId, productCode);
   return 0;
 }
 
@@ -81,7 +81,7 @@ int ecSlaveConfigDC(
     sync1Cycle,
     sync1Shift);
 
-  ecmcEcSlave *slave = ec.findSlave(slaveBusPosition);
+  ecmcEcSlave *slave = ec->findSlave(slaveBusPosition);
 
   if (slave == NULL) {
     return ERROR_EC_MAIN_SLAVE_NULL;
@@ -102,7 +102,7 @@ int ecSelectReferenceDC(int masterIndex, int slaveBusPosition) {
            masterIndex,
            slaveBusPosition);
 
-  ecmcEcSlave *slave = ec.findSlave(slaveBusPosition);
+  ecmcEcSlave *slave = ec->findSlave(slaveBusPosition);
 
   if (slave == NULL) {
     return ERROR_EC_MAIN_SLAVE_NULL;
@@ -142,9 +142,9 @@ int ecAddEntryComplete(
     bits,
     entryIDString);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.addEntry(position,
+  return ec->addEntry(position,
                      vendorId,
                      productCode,
                      (ec_direction_t)direction,
@@ -170,14 +170,14 @@ int ecSetEntryUpdateInRealtime(
            entryIDString,
            updateInRealtime);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slavePosition >= 0) {
-    slave = ec.findSlave(slavePosition);
+    slave = ec->findSlave(slavePosition);
   } else {    // simulation slave
-    slave = ec.getSlave(slavePosition);
+    slave = ec->getSlave(slavePosition);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -212,9 +212,9 @@ int ecAddMemMap(
     direction,
     memMapIDString);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.addMemMap(startEntryBusPosition, startEntryId, byteSize, 0,
+  return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize, 0,
                       (ec_direction_t)direction, memMapId);
 }
 
@@ -227,14 +227,14 @@ int ecAddPdo(int slaveIndex, int syncManager, uint16_t pdoIndex) {
            syncManager,
            pdoIndex);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if (ec.getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+  if (ec->getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  if (ec.getSlave(slaveIndex)->getSyncManager(syncManager) ==
+  if (ec->getSlave(slaveIndex)->getSyncManager(syncManager) ==
       NULL) return ERROR_MAIN_EC_SM_NULL;
 
-  return ec.getSlave(slaveIndex)->getSyncManager(syncManager)->addPdo(pdoIndex);
+  return ec->getSlave(slaveIndex)->getSyncManager(syncManager)->addPdo(pdoIndex);
 }
 
 int ecAddSyncManager(int slaveIndex, int direction, uint8_t syncMangerIndex) {
@@ -246,11 +246,11 @@ int ecAddSyncManager(int slaveIndex, int direction, uint8_t syncMangerIndex) {
            direction,
            syncMangerIndex);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if (ec.getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+  if (ec->getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  return ec.getSlave(slaveIndex)->addSyncManager((ec_direction_t)direction,
+  return ec->getSlave(slaveIndex)->addSyncManager((ec_direction_t)direction,
                                                  syncMangerIndex);
 }
 
@@ -270,9 +270,9 @@ int ecAddSdo(uint16_t slavePosition,
     value,
     byteSize);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return  ec.addSDOWrite(slavePosition,
+  return  ec->addSDOWrite(slavePosition,
                          sdoIndex,
                          sdoSubIndex,
                          value,
@@ -295,9 +295,9 @@ int ecWriteSdo(uint16_t slavePosition,
     value,
     byteSize);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.writeSDO(slavePosition, sdoIndex, sdoSubIndex, value, byteSize);
+  return ec->writeSDO(slavePosition, sdoIndex, sdoSubIndex, value, byteSize);
 }
 
 int ecWriteSdoComplete(uint16_t slavePosition,
@@ -313,9 +313,9 @@ int ecWriteSdoComplete(uint16_t slavePosition,
            value,
            byteSize);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
+  return ec->writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
 }
 
 uint32_t ecReadSdo(uint16_t  slavePosition,
@@ -333,9 +333,9 @@ uint32_t ecReadSdo(uint16_t  slavePosition,
     sdoSubIndex,
     byteSize);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.readSDO(slavePosition, sdoIndex, sdoSubIndex, byteSize, value);
+  return ec->readSDO(slavePosition, sdoIndex, sdoSubIndex, byteSize, value);
 }
 
 int ecSlaveConfigWatchDog(int slaveBusPosition,
@@ -349,7 +349,7 @@ int ecSlaveConfigWatchDog(int slaveBusPosition,
            watchdogDivider,
            watchdogIntervals);
 
-  ecmcEcSlave *slave = ec.findSlave(slaveBusPosition);
+  ecmcEcSlave *slave = ec->findSlave(slaveBusPosition);
 
   if (slave == NULL) {
     return ERROR_EC_MAIN_SLAVE_NULL;
@@ -370,9 +370,9 @@ int readEcMemMap(const char *memMapIDString,
            memMapIDString,
            bytesToRead);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ecmcEcMemMap *memMap = ec.findMemMap(memMapIDString);
+  ecmcEcMemMap *memMap = ec->findMemMap(memMapIDString);
 
   if (!memMap) {
     return ERROR_MAIN_MEM_MAP_NULL;
@@ -390,14 +390,14 @@ int writeEcEntry(int slaveIndex, int entryIndex, uint64_t value) {
            entryIndex,
            value);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if (ec.getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+  if (ec->getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  if (ec.getSlave(slaveIndex)->getEntry(entryIndex) ==
+  if (ec->getSlave(slaveIndex)->getEntry(entryIndex) ==
       NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  return ec.getSlave(slaveIndex)->getEntry(entryIndex)->writeValueForce(value);
+  return ec->getSlave(slaveIndex)->getEntry(entryIndex)->writeValueForce(value);
 }
 
 int writeEcEntryIDString(int slavePosition, char *entryIDString,
@@ -410,14 +410,14 @@ int writeEcEntryIDString(int slavePosition, char *entryIDString,
            entryIDString,
            value);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slavePosition >= 0) {
-    slave = ec.findSlave(slavePosition);
+    slave = ec->findSlave(slavePosition);
   } else {    // simulation slave
-    slave = ec.getSlave(slavePosition);
+    slave = ec->getSlave(slavePosition);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -439,14 +439,14 @@ int readEcEntry(int slaveIndex, int entryIndex, uint64_t *value) {
            slaveIndex,
            entryIndex);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  if (ec.getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+  if (ec->getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
-  if (ec.getSlave(slaveIndex)->getEntry(entryIndex) ==
+  if (ec->getSlave(slaveIndex)->getEntry(entryIndex) ==
       NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  return ec.getSlave(slaveIndex)->getEntry(entryIndex)->readValue(value);
+  return ec->getSlave(slaveIndex)->getEntry(entryIndex)->readValue(value);
 }
 
 int readEcEntryIDString(int slavePosition, char *entryIDString,
@@ -458,14 +458,14 @@ int readEcEntryIDString(int slavePosition, char *entryIDString,
            slavePosition,
            entryIDString);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slavePosition >= 0) {
-    slave = ec.findSlave(slavePosition);
+    slave = ec->findSlave(slavePosition);
   } else {    // simulation slave
-    slave = ec.getSlave(slavePosition);
+    slave = ec->getSlave(slavePosition);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -488,14 +488,14 @@ int readEcEntryIndexIDString(int slavePosition, char *entryIDString,
            slavePosition,
            entryIDString);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slavePosition >= 0) {
-    slave = ec.findSlave(slavePosition);
+    slave = ec->findSlave(slavePosition);
   } else {    // simulation slave
-    slave = ec.getSlave(slavePosition);
+    slave = ec->getSlave(slavePosition);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -517,9 +517,9 @@ int readEcSlaveIndex(int slavePosition, int *value) {
            __LINE__,
            slavePosition);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.findSlaveIndex(slavePosition, value);
+  return ec->findSlaveIndex(slavePosition, value);
 }
 
 int ecApplyConfig(int masterIndex) {
@@ -529,7 +529,7 @@ int ecApplyConfig(int masterIndex) {
 
   int errorCode = 0;
 
-  if ((errorCode = ec.compileRegInfo())) {
+  if ((errorCode = ec->compileRegInfo())) {
     LOGERR("ERROR:\tCompileRegInfo failed\n");
     return errorCode;
   }
@@ -539,13 +539,13 @@ int ecApplyConfig(int masterIndex) {
 int ecSetDiagnostics(int value) {  // Set diagnostics mode
   LOGINFO4("%s/%s:%d value=%d\n", __FILE__, __FUNCTION__, __LINE__, value);
 
-  return ec.setDiagnostics(value);
+  return ec->setDiagnostics(value);
 }
 
 int ecSetDomainFailedCyclesLimit(int value) {
   LOGINFO4("%s/%s:%d value=%d\n", __FILE__, __FUNCTION__, __LINE__, value);
 
-  return ec.setDomainFailedCyclesLimitInterlock(value);
+  return ec->setDomainFailedCyclesLimitInterlock(value);
 }
 
 int ecEnablePrintouts(int value) {
@@ -558,12 +558,12 @@ int ecEnablePrintouts(int value) {
 
 int ecPrintAllHardware() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-  return ec.printAllConfig();
+  return ec->printAllConfig();
 }
 
 int ecPrintSlaveConfig(int slaveIndex) {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-  return ec.printSlaveConfig(slaveIndex);
+  return ec->printSlaveConfig(slaveIndex);
 }
 
 int linkEcEntryToEcStatusOutput(int slaveIndex, char *entryIDString) {
@@ -574,14 +574,14 @@ int linkEcEntryToEcStatusOutput(int slaveIndex, char *entryIDString) {
            slaveIndex,
            entryIDString);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slaveIndex >= 0) {
-    slave = ec.findSlave(slaveIndex);
+    slave = ec->findSlave(slaveIndex);
   } else {
-    slave = ec.getSlave(slaveIndex);
+    slave = ec->getSlave(slaveIndex);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -595,7 +595,7 @@ int linkEcEntryToEcStatusOutput(int slaveIndex, char *entryIDString) {
 
   if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  return ec.setEcStatusOutputEntry(entry);
+  return ec->setEcStatusOutputEntry(entry);
 }
 
 int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
@@ -612,7 +612,7 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
            productCode
            );
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec.verifySlave(alias,slavePos,vendorId,productCode);
+  return ec->verifySlave(alias,slavePos,vendorId,productCode);
 }

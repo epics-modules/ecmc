@@ -141,7 +141,17 @@ ecmcEcSlave::~ecmcEcSlave() {
     if (simEntries_[i] != NULL) {
       delete simEntries_[i];
     }
-    simEntries_[i] = NULL;
+    simEntries_[i] = NULL;    
+  }
+  
+  //Clear pointers
+  for (int i = 0; i < EC_MAX_ENTRIES; i++) {
+    entryList_[i] = NULL; //deleted in ecmcEcPdo()
+  }
+
+  for (int i = 0; i < ECMC_ASYN_EC_SLAVE_PAR_COUNT; i++) {
+    delete slaveAsynParams_[i]; 
+    slaveAsynParams_[i] = NULL; 
   }
 }
 

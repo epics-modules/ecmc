@@ -94,14 +94,14 @@ int linkEcEntryToEvent(int   indexEvent,
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slaveIndex >= 0) {
-    slave = ec.findSlave(slaveIndex);
+    slave = ec->findSlave(slaveIndex);
   } else {    // simulation slave
-    slave = ec.getSlave(slaveIndex);
+    slave = ec->getSlave(slaveIndex);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -315,7 +315,7 @@ int triggerEvent(int indexEvent) {
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  return events[indexEvent]->triggerEvent(ec.statusOK());
+  return events[indexEvent]->triggerEvent(ec->statusOK());
 }
 
 int armEvent(int indexEvent) {
@@ -374,14 +374,14 @@ int linkEcEntryToRecorder(int   indexRecorder,
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slaveIndex >= 0) {
-    slave = ec.findSlave(slaveIndex);
+    slave = ec->findSlave(slaveIndex);
   } else {    // simulation slave
-    slave = ec.getSlave(slaveIndex);
+    slave = ec->getSlave(slaveIndex);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -493,7 +493,7 @@ int triggerRecorder(int indexRecorder) {
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  return dataRecorders[indexRecorder]->executeEvent(ec.statusOK());
+  return dataRecorders[indexRecorder]->executeEvent(ec->statusOK());
 }
 
 

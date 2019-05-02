@@ -9,8 +9,8 @@ int getControllerError() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
   // EtherCAT errors
-  if (ec.getError()) {
-    return ec.getErrorID();
+  if (ec->getError()) {
+    return ec->getErrorID();
   }
 
   // Event errors
@@ -72,7 +72,7 @@ int controllerErrorReset() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   int errorCodeBackup=getControllerError();
   // EtherCAT errors
-  ec.errorReset();
+  ec->errorReset();
 
   // Event errors
   for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {

@@ -4,6 +4,7 @@
 #include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcErrorsList.h"
 #include "../main/ecmcDefinitions.h"
+#include "../main/ecmcMainThread.h"
 
 # ifdef __cplusplus
 extern "C" {
@@ -77,14 +78,14 @@ extern "C" {
                                 int         asynParType,
                                 int         skipCycles);*/
 
-/** \breif Initilize asyn for ecmc
+/** \breif Initilize ecmc
  *
  *  \param[in] asynPortObject Asyn port object.\n
  * \return 0 if success or otherwise an error code.\n
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int ecmcInitAsyn(void *asynPortObject);
+int ecmcInit(void *asynPortObject);
 
 /** \breif Add default asyn parameters for ecmc
  *
@@ -93,6 +94,13 @@ int ecmcInitAsyn(void *asynPortObject);
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
 int ecmcAddDefaultAsynParams();
+
+/** \breif Cleanup (for exit)
+ *
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
+ */
+
+void ecmcCleanup();
 
 /** \breif Add default asyn parameters for axis
  *
@@ -129,22 +137,7 @@ int ecmcAddDefaultAsynParams();
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int addDefaultAsynEc(int masterIndex);
-
-/** \breif Add default asyn parameters for EtherCAT slave
- *
- *  \param[in] masterIndex Index of EtherCAT master.\n
- *  \param[in] busPosition Bus position of EtherCAT slave.\n
- *  \param[in] regAsynParams Register default asyn parameters.\n
- *  \param[in] skipCycles Number of cycles to postpone update.\n
- * \return 0 if success or otherwise an error code.\n
- *
- * \note There's no ascii command in ecmcCmdParser.c for this method.\n
- */
-/*int addDefaultAsynEcSlave(int masterIndex,
-                          int busPosition,
-                          int regAsynParams,
-                          int skipCycles);*/
+//int addDefaultAsynEc(int masterIndex);
 
 # ifdef __cplusplus
 }

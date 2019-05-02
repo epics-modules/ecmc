@@ -172,6 +172,8 @@ ecmcEcEntry::~ecmcEcEntry()
 {
   free(idStringChar_);
   idStringChar_ = NULL;
+  delete entryAsynParam_;
+  entryAsynParam_ = NULL;
 }
 
 void ecmcEcEntry::setDomainAdr(uint8_t *domainAdr) {

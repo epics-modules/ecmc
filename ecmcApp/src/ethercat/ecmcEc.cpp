@@ -127,6 +127,11 @@ ecmcEc::~ecmcEc() {
     delete ecMemMapArray_[i];
     ecMemMapArray_[i] = NULL;
   }
+
+  for (int i = 0; i < ECMC_ASYN_EC_PAR_COUNT; i++) {
+    delete ecAsynParams_[i];
+    ecAsynParams_[i] = NULL;
+  }  
 }
 
 bool ecmcEc::getInitDone() {

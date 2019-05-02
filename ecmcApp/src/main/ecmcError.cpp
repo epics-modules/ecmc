@@ -1634,6 +1634,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
   case 0x20045:
     return "ERROR_MAIN_MLOCKALL_FAIL";
 
+    break;
+  case 0x20046:
+    return "ERROR_MAIN_EC_NULL";
+
+    break;
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 

@@ -2410,14 +2410,14 @@ int linkEcEntryToAxisEnc(int   slaveIndex,
     encoderEntryIndex,
     bitIndex);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slaveIndex >= 0) {
-    slave = ec.findSlave(slaveIndex);
+    slave = ec->findSlave(slaveIndex);
   } else {    // simulation slave
-    slave = ec.getSlave(slaveIndex);
+    slave = ec->getSlave(slaveIndex);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -2471,14 +2471,14 @@ int linkEcEntryToAxisDrv(int   slaveIndex,
     return axes[axisIndex]->getDrv()->setEnableReduceTorque(0);
   }
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slaveIndex >= 0) {
-    slave = ec.findSlave(slaveIndex);
+    slave = ec->findSlave(slaveIndex);
   } else {
-    slave = ec.getSlave(slaveIndex);
+    slave = ec->getSlave(slaveIndex);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -2538,14 +2538,14 @@ int linkEcEntryToAxisMon(int   slaveIndex,
     monitorEntryIndex,
     bitIndex);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slaveIndex >= 0) {
-    slave = ec.findSlave(slaveIndex);
+    slave = ec->findSlave(slaveIndex);
   } else {
-    slave = ec.getSlave(slaveIndex);
+    slave = ec->getSlave(slaveIndex);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
@@ -2591,14 +2591,14 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
            entryIDString,
            axisIndex);
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
   if (slaveIndex >= 0) {
-    slave = ec.findSlave(slaveIndex);
+    slave = ec->findSlave(slaveIndex);
   } else {
-    slave = ec.getSlave(slaveIndex);
+    slave = ec->getSlave(slaveIndex);
   }
 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
