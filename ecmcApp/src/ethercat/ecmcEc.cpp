@@ -582,7 +582,7 @@ void ecmcEc::send(timespec timeOffset) {
   }
 
   updateOutProcessImage();
-  ecrt_domain_queue(domain_);
+
 
   clock_gettime(CLOCK_MONOTONIC, &timeRel);
   timeAbs = timespecAdd(timeRel, timeOffset);
@@ -590,6 +590,8 @@ void ecmcEc::send(timespec timeOffset) {
   ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
+  
+  ecrt_domain_queue(domain_);
   ecrt_master_send(master_);
 }
 
