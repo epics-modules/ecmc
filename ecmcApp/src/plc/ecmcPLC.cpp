@@ -9,7 +9,7 @@
 #include "ecmcPLCTask.h"
 
 extern ecmcAxisBase       *axes[ECMC_MAX_AXES];
-extern ecmcEc             ec;
+extern ecmcEc             *ec;
 extern ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
 extern ecmcPLCMain        *plcs;
 extern ecmcAsynPortDriver *asynPort;
@@ -23,14 +23,14 @@ int createPLC(int index, int skipCycles) {
            skipCycles);
 
   if (!plcs) {
-    plcs = new ecmcPLCMain(&ec,asynPort);
+    plcs = new ecmcPLCMain(ec,asynPort);
   }
 
   if ((index < 0) && (index >= ECMC_MAX_PLCS)) {
     return ERROR_MAIN_PLC_INDEX_OUT_OF_RANGE;
   }
 
-  if (!ec.getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   // Set axes pointers (for the already configuered axes)
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
