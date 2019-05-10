@@ -396,7 +396,7 @@ int lockMem(int size) {
     if(mlockall(MCL_CURRENT | MCL_FUTURE) != 0)
     {
       LOGERR("WARNING: mlockall() failed (0x%x).\n",ERROR_MAIN_MLOCKALL_FAIL);
-      return ERROR_MAIN_MLOCKALL_FAIL;
+      //return ERROR_MAIN_MLOCKALL_FAIL;
     }
    	
    	/* Touch each page in this piece of memory to get it mapped into RAM 
