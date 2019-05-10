@@ -94,6 +94,7 @@ class ecmcPLCMain : public ecmcError {
   int  getDsIndex(char *varName);
   int  addPLCDefaultVariables(int plcIndex,
                               int skipCycles);
+  int  addMainDefaultVariables();
   int  updateAllScanTimeVars();
   int  parseAxis(int         plcIndex,
                  const char *exprStr);
@@ -123,6 +124,7 @@ class ecmcPLCMain : public ecmcError {
   ecmcPLCDataIF *plcError_[ECMC_MAX_PLCS];
   ecmcPLCDataIF *plcFirstScan_[ECMC_MAX_PLCS];
   ecmcPLCDataIF *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
+  ecmcPLCDataIF *ecStatus_;
 };
 
 #endif  /* ECMC_PLC_MAIN_H_ */

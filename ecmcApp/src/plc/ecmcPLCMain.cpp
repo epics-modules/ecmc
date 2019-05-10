@@ -10,6 +10,7 @@ ecmcPLCMain::ecmcPLCMain(ecmcEc *ec, ecmcAsynPortDriver *asynPortDriver) {
   initVars();
   asynPortDriver_ = asynPortDriver;
   ec_ = ec;
+  addMainDefaultVariables();
 }
 
 ecmcPLCMain::~ecmcPLCMain() {
@@ -41,6 +42,7 @@ void ecmcPLCMain::initVars() {
   }
   asynPortDriver_ = NULL;
   ec_ = NULL;
+  ecStatus_ = NULL;
 }
 
 int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
@@ -125,6 +127,11 @@ int ecmcPLCMain::validate() {
 }
 
 int ecmcPLCMain::execute(bool ecOK) {
+  //refresh ec<id>.masterstatus
+  if(ecStatus_){
+    ecStatus_->setData((double)ecOK);
+  }
+
   for (int plcIndex = 0; plcIndex < ECMC_MAX_PLCS; plcIndex++) {
     if (plcs_[plcIndex] != NULL) {
       if (plcEnable_[plcIndex]) {
@@ -164,12 +171,13 @@ int ecmcPLCMain::setExpr(int plcIndex, char *expr) {
 
 int ecmcPLCMain::addExprLine(int plcIndex, const char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
-  int errorCode = parseExpr(plcIndex, expr);
 
+  int errorCode = parseExpr(plcIndex, expr);
+  
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
-
+  
   /*
     Special case:
     Remove unsupported syntax for simulation slave (ec<id>.s-1.xxx to ec<id>.d1.xxx )
@@ -211,7 +219,6 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   std::ifstream plcFile;
   plcFile.open(fileName);
-
   if (!plcFile.good()) {
     LOGERR("%s/%s:%d: ERROR PLC%d: File not found: %s (0x%x).\n",
            __FILE__,
@@ -231,7 +238,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   int errorCode  = 0;
 
   while (std::getline(plcFile, line)) {
-    // Remove Comemnts (everything after #)
+    // Remove Comments (everything after #)
     lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
 
     if (lineNoComments.length() > 0) {
@@ -253,9 +260,8 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
     }
     lineNumber++;
   }
-
+  
   errorCode = compileExpr(plcIndex);
-
   if (errorCode) {
     LOGERR("%s/%s:%d: ERROR PLC%d: Error Compiling file: %s (0x%x).\n",
            __FILE__,
@@ -923,7 +929,52 @@ int ecmcPLCMain::createAndRegisterNewDataIF(int                plcIndex,
   return 0;
 }
 
+int ecmcPLCMain::addMainDefaultVariables(){
+
+  int masterId = ec_->getMasterIndex();
+
+  // Add ec<index>.masterstatus
+  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  chars = snprintf(varName,
+                        EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
+                        ECMC_EC_STR "%d."ECMC_ASYN_EC_PAR_MASTER_STAT_NAME,
+                        masterId);
+
+  if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+  }
+
+  globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                             varName,
+                                                             ECMC_RECORDER_SOURCE_GLOBAL_VAR,
+                                                             asynPortDriver_);
+  int errorCode =
+    globalDataArray_[globalVariableCount_]->getErrorID();
+
+  if (errorCode) {
+    delete globalDataArray_[globalVariableCount_];
+    globalDataArray_[globalVariableCount_] = NULL;
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+
+  ecStatus_ = globalDataArray_[globalVariableCount_];
+  ecStatus_->setReadOnly(1);
+  globalVariableCount_++;
+
+  return 0;
+}
 int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
+  
+  //Add ec<id>.masterstatus
+  int errorCode = plcs_[plcIndex]->addAndReisterGlobalVar(ecStatus_);
+
+  if (errorCode) {
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+  
   // Add plc<index>.enable
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  chars = snprintf(varName,
@@ -938,7 +989,7 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
                       ERROR_PLCS_VARIABLE_NAME_TO_LONG);
   }
 
-  int errorCode = createAndRegisterNewDataIF(plcIndex,
+  errorCode = createAndRegisterNewDataIF(plcIndex,
                                              varName,                                             
                                              ECMC_RECORDER_SOURCE_GLOBAL_VAR);
 
