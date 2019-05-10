@@ -44,7 +44,6 @@ const char *asynTypeToString(long type);
 const char *epicsStateToString(int state);
 asynParamType stringToAsynType(char *typeStr);
 int windowsToEpicsTimeStamp(uint64_t plcTime, epicsTimeStamp *ts);
-//motionObjectType dataSourceFromVarName(char* varName);
 
 /*Available strings:
  *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)

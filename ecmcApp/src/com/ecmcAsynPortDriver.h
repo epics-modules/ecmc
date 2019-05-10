@@ -91,23 +91,8 @@ class ecmcAsynPortDriver : public asynPortDriver {
    void    refreshAllInUseParamsRT();
 
  private:
-  // int readArrayGeneric(asynUser   *pasynUser,
-  //                      epicsUInt8 *value,
-  //                      size_t      nElements,
-  //                      size_t     *nIn,
-  //                      size_t      typeSize,
-  //                      const char *functionName);
-  // asynStatus writeArrayGeneric(asynUser *pasynUser,
-  //                             asynParamType allowedType,
-  //                             const void *epicsDataBuffer,
-  //                             size_t nEpicsBufferBytes);     
   void initVars();
   asynStatus checkParamNameAndId(int paramIndex,const char *functionName);
-  /*asynStatus validateDrvInfo(const char *drvInfo);
-  asynStatus getRecordInfoFromDrvInfo(const char *drvInfo,
-                                      ecmcParamInfo *paramInfo);
-  asynStatus parseInfofromDrvInfo(const char* drvInfo,
-                                     ecmcParamInfo *paramInfo);*/
   ecmcAsynDataItem *createNewParam(const char * name,
                                    asynParamType type,
                                    bool dieIfFail);

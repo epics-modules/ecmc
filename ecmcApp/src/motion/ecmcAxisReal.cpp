@@ -214,8 +214,9 @@ void ecmcAxisReal::execute(bool masterOK) {
       if (getExecute()) {
         setExecute(false);
       }
-
-      if (!getEnable()) {  // Only update if enable cmd is low to avoid change of setpoint during between enable and enabled
+      // Only update if enable cmd is low to avoid change of setpoint 
+      // during between enable and enabled
+      if (!getEnable()) {
         data_.status_.currentPositionSetpoint =
           data_.status_.currentPositionActual;
         traj_->setStartPos(data_.status_.currentPositionSetpoint);
@@ -248,11 +249,13 @@ void ecmcAxisReal::execute(bool masterOK) {
     // Write to hardware
     refreshExternalOutputSources();
     drv_->writeEntries();
-  } else if (data_.command_.operationModeCmd == ECMC_MODE_OP_MAN) {       // MANUAL MODE: Raw Output..
+    // MANUAL MODE: Raw Output..
+  } else if (data_.command_.operationModeCmd == ECMC_MODE_OP_MAN) {
     mon_->readEntries();
     enc_->readEntries();
-
-    if (!data_.status_.limitBwd || !data_.status_.limitFwd) {  // PRIMITIVE CHECK FOR LIMIT SWITCHES
+    
+    // PRIMITIVE CHECK FOR LIMIT SWITCHES
+    if (!data_.status_.limitBwd || !data_.status_.limitFwd) {
       drv_->setVelSet(0);
     }
     drv_->writeEntries();

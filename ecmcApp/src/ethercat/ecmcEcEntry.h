@@ -98,8 +98,6 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
 
  private:
   int    initAsyn();
-  //int32_t ecValue2Int32();
-  //int writeRangeOK(epicsInt32 value);
   uint8_t *domainAdr_;
   uint8_t *adr_;
   uint16_t entryIndex_;

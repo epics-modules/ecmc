@@ -370,18 +370,15 @@ int ecmcEcEntry::updateAsyn(bool force) {
   switch (entryAsynParam_->getAsynParameterType()) {
     case asynParamInt32:
       
-      //tempInt32=ecValue2Int32();
-      //entryAsynParam_->refreshParamRT(force, (uint8_t *)&tempInt32, sizeof(tempInt32));
       entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(value_));
       break;
     case asynParamUInt32Digital:
-      //tempInt32=ecValue2Int32();
+
       entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(value_));      
       break;
 
     case asynParamFloat64:
-      //tempDouble64 = reinterpret_cast<double *>(&value_);
-      //entryAsynParam_->refreshParamRT(force, (uint8_t *)tempDouble64, sizeof(double));            
+
       entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(double));            
       break;
 
@@ -445,23 +442,6 @@ int ecmcEcEntry::registerInDomain() {
     bitOffset_);
   return 0;
 }
-
-/*int32_t ecmcEcEntry::ecValue2Int32() {
-  int32_t tempInt32 = (int32_t)value_;
-
-  if (signed_) {
-    switch (bitLength_) {
-    case 8:
-      tempInt32 = (int32_t)((int8_t)value_);
-      break;
-
-    case 16:
-      tempInt32 = (int32_t)((int16_t)value_);
-      break;
-    }
-  }
-  return tempInt32;
-}*/
 
 bool ecmcEcEntry::getSimEntry() {
   return sim_;

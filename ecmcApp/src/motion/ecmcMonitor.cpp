@@ -260,7 +260,6 @@ void ecmcMonitor::execute() {
   checkAtTarget();
 
   // External interlock (on ethercat I/O)
-
   if (enableHardwareInterlock_ && data_->interlocks_.hardwareInterlock &&
       enable_) {
     setErrorID(__FILE__,
@@ -961,8 +960,9 @@ int ecmcMonitor::checkPositionLag() {
       if (lagMonCounter_ > posLagTime_) {
         lagErrorTraj = true;
       }
-
-      if (lagMonCounter_ >= posLagTime_ * 2) {  // interlock the drive in twice the time..
+      
+      // interlock the drive in twice the time..
+      if (lagMonCounter_ >= posLagTime_ * 2) {
         lagErrorDrive = true;
       }
     } else {
@@ -983,7 +983,8 @@ int ecmcMonitor::checkPositionLag() {
 }
 
 int ecmcMonitor::checkVelocityDiff() {
-  double currentSetVelocityToDrive = data_->status_.cntrlOutput;  // cntrlOutput_/cntrlKff_;
+  // cntrlOutput_/cntrlKff_;
+  double currentSetVelocityToDrive = data_->status_.cntrlOutput;
   bool   velocityDiffErrorDrive    = false;
   bool   velocityDiffErrorTraj     = false;
 

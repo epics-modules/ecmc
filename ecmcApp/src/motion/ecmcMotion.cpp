@@ -2008,8 +2008,6 @@ int getAxisDrvEnable(int axisIndex, int *value) {
   return 0;
 }
 
-/****************************************************************************/
-
 // Mon GET
 int getAxisMonAtTargetTol(int axisIndex, double *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);

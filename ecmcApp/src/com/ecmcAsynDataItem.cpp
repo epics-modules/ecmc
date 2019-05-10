@@ -32,7 +32,6 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
-  //paramInfo_= new ecmcParamInfo();
   memset(&paramInfo_,0,sizeof(ecmcParamInfo));
   paramInfo_.name=strdup(paramName);
   paramInfo_.asynType=asynParType;
@@ -54,7 +53,6 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
-  //paramInfo_= new ecmcParamInfo();
   memset(&paramInfo_,0,sizeof(ecmcParamInfo));
 }
 
@@ -78,8 +76,6 @@ ecmcAsynDataItem::~ecmcAsynDataItem ()
   paramInfo_.asynTypeStr = NULL;
   free(paramInfo_.name);
   paramInfo_.name = NULL;
-  //delete paramInfo_;  
-  //paramInfo_ = NULL;
 }
 
 int ecmcAsynDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)
@@ -158,7 +154,6 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 
   paramInfo_.ecmcSize = bytes;
 
-  //asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "refreshParam: %s, bytes %lu, force %d, sample time %d\n",getName(),bytes,force,paramInfo_.sampleTimeCycles);
   asynStatus stat=asynError;
   switch(paramInfo_.asynType){
     case asynParamUInt32Digital:
@@ -357,7 +352,6 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
   int oldAlarmStatus=0;
   stat = asynPortDriver_->getParamAlarmStatus(getAsynParameterIndex(),&oldAlarmStatus);
   if(stat!=asynSuccess){
-    //asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "%s:%s: getParamAlarmStatus failed for parameter %s (%d).\n", driverName, functionName,paramInfo_.drvInfo,paramInfo_.paramIndex);
     return asynError;
   }
 
@@ -366,7 +360,6 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
   if(oldAlarmStatus!=alarm){
     stat = asynPortDriver_->setParamAlarmStatus(getAsynParameterIndex(),alarm);
     if(stat!=asynSuccess){
-      //asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "%s:%s: Failed set alarm status for parameter %s (%d).\n", driverName, functionName,paramInfo_.drvInfo,paramInfo_.paramIndex);
       return asynError;
     }
     paramInfo_.alarmStatus=alarm;
@@ -376,14 +369,12 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
   int oldAlarmSeverity=0;
   stat = asynPortDriver_->getParamAlarmSeverity(getAsynParameterIndex(),&oldAlarmSeverity);
   if(stat!=asynSuccess){
-    //asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "%s:%s: getParamAlarmStatus failed for parameter %s (%d).\n", driverName, functionName,paramInfo_.drvInfo,paramInfo_.paramIndex);
     return asynError;
   }
 
   if(oldAlarmSeverity!=severity){
     stat = asynPortDriver_->setParamAlarmSeverity(getAsynParameterIndex(),severity);
     if(stat!=asynSuccess){
-      //asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "%s:%s: Failed set alarm severity for parameter %s (%d).\n", driverName, functionName,paramInfo_.drvInfo,paramInfo_.paramIndex);
       return asynError;
     }
     paramInfo_.alarmSeverity=severity;

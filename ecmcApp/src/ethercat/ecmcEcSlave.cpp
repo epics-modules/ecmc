@@ -124,9 +124,6 @@ void ecmcEcSlave::initVars() {
   memset(&slaveStateOld_, 0, sizeof(slaveStateOld_));
 
   asynPortDriver_  = NULL;
-  /*online_          = 0;
-  operational_     = 0;
-  alState_         = 0;*/
 }
 
 ecmcEcSlave::~ecmcEcSlave() {
