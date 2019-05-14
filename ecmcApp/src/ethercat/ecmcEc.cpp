@@ -391,31 +391,36 @@ void ecmcEc::checkDomainState(void) {
 }
 
 bool ecmcEc::checkSlavesConfState() {
+
   if (!diag_) {
     slavesOK_ = true;
     return slavesOK_;
   }
-
+  
+  bool localSlavesOK = true;
   int retVal = 0;
 
   for (int i = 0; i < slaveCounter_; i++) {
     retVal = checkSlaveConfState(i);
-
-    if (retVal) {
-      LOGINFO5(
-        "%s/%s:%d: INFO: Slave with bus position %d reports error (0x%x).\n",
+    if (retVal && !getErrorID()) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Slave with bus position %d reports error (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
         slaveArray_[i]->getSlaveBusPosition(),
-        retVal);
-      slavesOK_ = false;
+        retVal);      
       setErrorID(__FILE__, __FUNCTION__, __LINE__, retVal);
-      return slavesOK_;
+    }
+    if(retVal){
+      localSlavesOK = false;
     }
   }
 
-  slavesOK_ = true;
+  if(localSlavesOK) {
+    slavesOK_ = true;
+  }
+
   return slavesOK_;
 }
 
@@ -516,6 +521,12 @@ bool ecmcEc::checkState(void) {
   
   masterStateOld_ = masterState_;
 
+  if (!masterState_.link_up) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_LINK_DOWN);
+    masterOK_ = false;
+    return false;
+  }
+
   if (static_cast<int>(masterState_.slaves_responding) < slaveCounter_) {
     LOGERR(
       "%s/%s:%d: ERROR: Respondig slave count VS configures slave count missmatch (0x%x).\n",
@@ -554,12 +565,6 @@ bool ecmcEc::checkState(void) {
 
       break;
     }
-  }
-
-  if (!masterState_.link_up) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_LINK_DOWN);
-    masterOK_ = false;
-    return false;
   }
 
   masterOK_ = true;

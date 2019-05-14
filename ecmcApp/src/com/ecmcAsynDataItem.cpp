@@ -390,7 +390,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
     refreshParamRT(1);
   }
   else{
-      stat = asynPortDriver_->callParamCallbacks();
+    stat = asynPortDriver_->callParamCallbacks();
   }
 
   return stat;

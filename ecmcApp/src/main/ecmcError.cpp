@@ -938,6 +938,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2100D:
+    return "ERROR_EC_ENTRY_SET_ALARM_STATE_FAIL";
+
+    break;
+
   case 0x22000:    // ECPDO
     return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
 

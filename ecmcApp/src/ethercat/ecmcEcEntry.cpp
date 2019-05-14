@@ -548,7 +548,10 @@ int ecmcEcEntry::initAsyn() {
       __FUNCTION__,
       __LINE__,
       ERROR_EC_ENTRY_REGISTER_FAIL);
-    return ERROR_EC_ENTRY_REGISTER_FAIL;
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_REGISTER_FAIL);
   }
   name = buffer;
   entryAsynParam_ = asynPortDriver_->addNewAvailParam(name,
@@ -563,7 +566,10 @@ int ecmcEcEntry::initAsyn() {
       __FUNCTION__,
       __LINE__,
       name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MAIN_ASYN_CREATE_PARAM_FAIL);
   }
 
   //Add supported types  
@@ -586,5 +592,20 @@ int ecmcEcEntry::initAsyn() {
   }
   entryAsynParam_->refreshParam(1);
   asynPortDriver_->callParamCallbacks();
+  return 0;
+}
+
+int ecmcEcEntry::setComAlarm(bool alarm) {
+  asynStatus stat;
+  if(alarm) {
+    stat = entryAsynParam_->setAlarmParam(COMM_ALARM,INVALID_ALARM); 
+  } else {
+    stat = entryAsynParam_->setAlarmParam(NO_ALARM,NO_ALARM); 
+  }
+
+  if(stat != asynSuccess){
+    return ERROR_EC_ENTRY_SET_ALARM_STATE_FAIL;
+  }
+
   return 0;
 }

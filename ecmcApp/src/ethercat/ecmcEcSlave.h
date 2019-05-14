@@ -148,6 +148,7 @@ class ecmcEcSlave : public ecmcError {
   //                             - 4: \a SAFEOP
   //                             - 8: \a OP
   // bit 16..31            : entry counter
-  uint32_t statusWord_;  
+  uint32_t statusWord_;
+  uint32_t statusWordOld_;
 };
 #endif  /* ECMCECSLAVE_H_ */

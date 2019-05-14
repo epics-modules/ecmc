@@ -18,6 +18,8 @@
 #include "../com/ecmcOctetIF.h"
 #include "../com/ecmcAsynPortDriver.h"
 #include "ecmcAsynLink.h"
+#include "alarm.h"  //EPICS alarms
+
 
 #define BIT_SET(a, b) ((a) |= (1 << (b)))
 #define BIT_CLEAR(a, b) ((a) &= ~(1 << (b)))
@@ -38,6 +40,7 @@
 #define ERROR_EC_ENTRY_ASSIGN_ADD_FAIL 0x2100A
 #define ERROR_EC_ENTRY_REGISTER_FAIL 0x2100B
 #define ERROR_EC_ENTRY_VALUE_OUT_OF_RANGE 0x2100C
+#define ERROR_EC_ENTRY_SET_ALARM_STATE_FAIL 0x2100D
 
 class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
  public:
@@ -95,6 +98,7 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
   int         updateAsyn(bool force);
   bool        getSimEntry();
   int         validate();
+  int         setComAlarm(bool alarm);
 
  private:
   int    initAsyn();

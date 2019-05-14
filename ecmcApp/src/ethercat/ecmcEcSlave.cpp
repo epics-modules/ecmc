@@ -97,7 +97,8 @@ void ecmcEcSlave::initVars() {
   entryCounter_      = 0;
   pdosArrayIndex_    = 0;
   syncManArrayIndex_ = 0;
-  memset(&statusWord_,0,sizeof(statusWord_));
+  statusWord_        = 0;
+  statusWordOld_     = 0;
 
   for (int i = 0; i < EC_MAX_SYNC_MANAGERS; i++) {
     syncManagerArray_[i] = NULL;
@@ -284,11 +285,18 @@ int ecmcEcSlave::checkConfigState(void) {
   //Update status word
   //  lower 16  : status bits
   //  higher 16 : entrycounter
+  
   statusWord_ = 0 ;
   statusWord_ = statusWord_ + (slaveState_.online);
   statusWord_ = statusWord_ + (slaveState_.operational << 1);
   statusWord_ = statusWord_ + (slaveState_.al_state << 2);
   statusWord_ = statusWord_ + (entryCounter_ << 16);
+
+  if(statusWord_ != statusWordOld_){
+    printf("Status changed SLAVE Id: %d #############################, 0x%x,0x%x\n",slavePosition_,statusWord_,statusWordOld_);
+    slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID]->refreshParamRT(1);
+  }  
+  statusWordOld_ = statusWord_;
 
   if (slaveState_.al_state != slaveStateOld_.al_state) {
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",
@@ -299,6 +307,8 @@ int ecmcEcSlave::checkConfigState(void) {
              slaveState_.al_state);
   }
 
+  bool updateAlarmState = false;
+
   if (slaveState_.online != slaveStateOld_.online) {
     LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s.\n",
              __FILE__,
@@ -306,6 +316,8 @@ int ecmcEcSlave::checkConfigState(void) {
              __LINE__,
              slavePosition_,
              slaveState_.online ? "Online" : "Offline");
+    // Status changed.. Update alarm status
+    updateAlarmState = true;
   }
 
   if (slaveState_.operational != slaveStateOld_.operational) {
@@ -315,7 +327,19 @@ int ecmcEcSlave::checkConfigState(void) {
              __LINE__,
              slavePosition_,
              slaveState_.operational ? "" : "Not ");
+    // Status changed.. Update alarm status
+    updateAlarmState = true;    
   }
+
+  // Alarm state
+  if(updateAlarmState) {
+    for (uint i = 0; i < entryCounter_; i++) {
+      if (entryList_[i] != NULL) {
+        entryList_[i]->setComAlarm((!slaveState_.online || !slaveState_.operational));
+      }
+    }
+  }
+
   slaveStateOld_ = slaveState_;
 
   if (!slaveState_.online) {
@@ -327,6 +351,7 @@ int ecmcEcSlave::checkConfigState(void) {
              slavePosition_,
              ERROR_EC_SLAVE_NOT_ONLINE);
     }
+
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -342,12 +367,14 @@ int ecmcEcSlave::checkConfigState(void) {
              slavePosition_,
              ERROR_EC_SLAVE_NOT_OPERATIONAL);
     }
+
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_EC_SLAVE_NOT_OPERATIONAL);
   }
-
+  
+ 
   switch (slaveState_.al_state) {
   case 1:
 
@@ -511,10 +538,6 @@ int ecmcEcSlave::updateOutProcessImage() {
     }
   }
 
-  // I/O intr to EPCIS.
-  if (asynPortDriver_) {    
-    slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID]->refreshParamRT(0);    
-  }
   return 0;
 }
 
@@ -575,10 +598,11 @@ int ecmcEcSlave::addEntry(
 
   entryList_[entryCounter_] = entry;
   entryCounter_++;
-  slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID]->refreshParam(1);
+  
   // entry counter last 16 bits of statusWord_
-  memcpy(&statusWord_+2,&entryCounter_,2);
-  asynPortDriver_->callParamCallbacks();
+  //memcpy(&statusWord_+2,&entryCounter_,2);
+  //slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID]->refreshParam(1);
+  //asynPortDriver_->callParamCallbacks();
   return 0;
 }
 
