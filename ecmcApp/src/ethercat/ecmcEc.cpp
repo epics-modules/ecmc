@@ -825,7 +825,6 @@ void ecmcEc::slowExecute() {
     getErrorID());
 
   checkState();
-  checkSlavesConfState();
 
   domainNotOKCounterMax_ = 0;
 }
