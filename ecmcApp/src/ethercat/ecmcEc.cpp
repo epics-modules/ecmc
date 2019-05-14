@@ -528,16 +528,18 @@ bool ecmcEc::checkState(void) {
   }
 
   if (static_cast<int>(masterState_.slaves_responding) < slaveCounter_) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Respondig slave count VS configures slave count missmatch (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH);
-    setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH);
+    if(getErrorID() != ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Respondig slave count VS configures slave count missmatch (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH);
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH);
+    }
     masterOK_ = false;
     return false;
   }
