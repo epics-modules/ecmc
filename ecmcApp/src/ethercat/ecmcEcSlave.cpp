@@ -292,8 +292,7 @@ int ecmcEcSlave::checkConfigState(void) {
   statusWord_ = statusWord_ + (slaveState_.al_state << 2);
   statusWord_ = statusWord_ + (entryCounter_ << 16);
 
-  if(statusWord_ != statusWordOld_){
-    printf("Status changed SLAVE Id: %d #############################, 0x%x,0x%x\n",slavePosition_,statusWord_,statusWordOld_);
+  if(statusWord_ != statusWordOld_){    
     slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID]->refreshParamRT(1);
   }  
   statusWordOld_ = statusWord_;
@@ -598,11 +597,6 @@ int ecmcEcSlave::addEntry(
 
   entryList_[entryCounter_] = entry;
   entryCounter_++;
-  
-  // entry counter last 16 bits of statusWord_
-  //memcpy(&statusWord_+2,&entryCounter_,2);
-  //slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID]->refreshParam(1);
-  //asynPortDriver_->callParamCallbacks();
   return 0;
 }
 
