@@ -97,7 +97,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   : asynPortDriver(portName,
                    1,
                    /* maxAddr */
-                   paramTableSize,
+                   /*paramTableSize,*/
                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask |
                    asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask |
                    asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask |
