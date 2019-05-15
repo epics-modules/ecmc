@@ -35,7 +35,7 @@ static const char *driverName = "ecmcAsynPortDriver";
 
 static int allowCallbackEpicsState=0;
 static initHookState currentEpicsState=initHookAtIocBuild;
-static ecmcAsynPortDriver *ecmcAsynPortObj;
+static ecmcAsynPortDriver *ecmcAsynPortObj=NULL;
 
 /** Callback hook for EPICS state.
  * \param[in] state EPICS state
@@ -97,7 +97,6 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   : asynPortDriver(portName,
                    1,
                    /* maxAddr */
-                   /*paramTableSize,*/
                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask |
                    asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask |
                    asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask |
@@ -1110,6 +1109,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName,
                                    int         skipCycles) {
 
   printf("Error: ecmcAsynPortDriverAddParameter is an obsolete command.\n");
+  printf("       Use the command asynReport 3 to list available parameters.\n");
   return 0;
 }
 
@@ -1138,14 +1138,25 @@ static void initCallFunc_2(const iocshArgBuf *args) {
 static ecmcOutputBufferType ecmcConfigBuffer;
 int ecmcConfigOrDie(const char *ecmcCommand) {
 
-  if(ecmcCommand == NULL) {
-    printf("Error: Command missing.\n");
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
     return asynError;  
   }
 
+  if(!ecmcCommand) {
+    printf("Error: Command missing.\n");
+    printf("       Use \"ecmcConfigOrDie <command>\" to configure ecmc system\n");
+    return asynError;  
+  }
+  
+  ecmcAsynPortObj->lock();
+
   clearBuffer(&ecmcConfigBuffer);
   int errorCode = motorHandleOneArg(ecmcCommand, &ecmcConfigBuffer);
-
+  
+  ecmcAsynPortObj->unlock();
+  
   if (errorCode) {
     LOGINFO("ERROR: Command %s resulted in buffer overflow error: %s.\n",
             ecmcCommand,
@@ -1186,13 +1197,24 @@ static void initCallFunc_3(const iocshArgBuf *args) {
 /* EPICS iocsh shell command:  ecmcConfig*/
 int ecmcConfig(const char *ecmcCommand) {
   
-  if(ecmcCommand == NULL) {
-    printf("Error: Command missing.\n");
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
     return asynError;  
   }
 
+  if(!ecmcCommand) {
+    printf("Error: Command missing.\n");
+    printf("       Use \"ecmcConfig <command>\" to configure ecmc system.\n");
+    return asynError;  
+  }
+  
+  ecmcAsynPortObj->lock();
+
   clearBuffer(&ecmcConfigBuffer);
   int errorCode = motorHandleOneArg(ecmcCommand, &ecmcConfigBuffer);
+
+  ecmcAsynPortObj->unlock();
 
   if (errorCode) {
     LOGINFO("ERROR: Command \"%s\" resulted in error code: %s.\n",
