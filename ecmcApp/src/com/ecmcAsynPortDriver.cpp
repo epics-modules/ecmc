@@ -192,13 +192,6 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
 }
 
 ecmcAsynPortDriver::~ecmcAsynPortDriver(){
-
-  //Delete all dataitems where they are created
-  /*for(int i=0;i<ecmcParamAvailCount_;i++) {
-    delete pEcmcParamAvailArray_[i];
-    pEcmcParamAvailArray_[i] = NULL;
-  }*/
-  
   delete pEcmcParamInUseArray_; 
   pEcmcParamInUseArray_ = NULL;
   delete pEcmcParamAvailArray_; 
