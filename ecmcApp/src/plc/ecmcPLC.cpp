@@ -14,13 +14,13 @@ extern ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
 extern ecmcPLCMain        *plcs;
 extern ecmcAsynPortDriver *asynPort;
 
-int createPLC(int index, int skipCycles) {
-  LOGINFO4("%s/%s:%d index=%d, skipcyles=%d\n",
+int createPLC(int index,  double cycleTime) {
+  LOGINFO4("%s/%s:%d index=%d, skipcyles=%lf\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            index,
-           skipCycles);
+           cycleTime);
 
   if (!plcs) {
     plcs = new ecmcPLCMain(ec,asynPort);
@@ -42,6 +42,7 @@ int createPLC(int index, int skipCycles) {
     plcs->setDataStoragePointer(dataStorages[i], i);
   }
 
+  int skipCycles = cycleTime*MCU_FREQUENCY;
   if (skipCycles < 0) {
     return ERROR_MAIN_PLCS_SKIPCYCLES_INVALID;
   }

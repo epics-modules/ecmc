@@ -20,7 +20,7 @@ extern "C" {
  * called.\n
  *
  * \param[in] index PLC index number
- * \param[in] skipcycles idle loops between execution
+ * \param[in] cycleTime CycleTime in seconds
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -31,7 +31,7 @@ extern "C" {
  *  "Cfg.CreatePLC(0)" //Command string to ecmcCmdParser.c\n
  */
 int createPLC(int index,
-              int skipcycles);
+              double cycleTime);
 
 /** \breif Delete PLC.\n
  *

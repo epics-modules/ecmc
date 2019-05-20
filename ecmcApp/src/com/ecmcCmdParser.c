@@ -662,18 +662,18 @@ static int handleCfgCommand(const char *myarg_1) {
     return createAxis(iValue, 1);
   }
 
-  /// "Cfg.CreatePLC(int index, int skipcycles)"
-  nvals = sscanf(myarg_1, "CreatePLC(%d,%d)", &iValue, &iValue2);
+  /// "Cfg.CreatePLC(int index, double cycleTime)"
+  nvals = sscanf(myarg_1, "CreatePLC(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
-    return createPLC(iValue, iValue2);
+    return createPLC(iValue, dValue);
   }
 
   /// "Cfg.CreatePLC(int index)"
   nvals = sscanf(myarg_1, "CreatePLC(%d)", &iValue);
 
   if (nvals == 1) {
-    return createPLC(iValue, 0);
+    return createPLC(iValue, 1/MCU_FREQUENCY);
   }
 
   /// "Cfg.DeletePLC(int index)"
