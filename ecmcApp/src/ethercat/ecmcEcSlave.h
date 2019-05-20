@@ -118,7 +118,7 @@ class ecmcEcSlave : public ecmcError {
   ecmcEcSyncManager* findSyncMan(uint8_t syncMangerIndex);
   ec_master_t *master_;     // EtherCAT master
   uint16_t alias_;          // Slave alias.
-  uint16_t slavePosition_;  // Slave position.
+  int32_t  slavePosition_;  // Slave position.
   uint32_t vendorId_;       // Expected vendor ID.
   uint32_t productCode_;    // Expected product code.
   ec_slave_config_t *slaveConfig_;
