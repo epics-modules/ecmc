@@ -150,6 +150,7 @@ void ecmcTrajectoryTrapetz::initVars() {
   setDirection_            = ECMC_DIR_FORWARD;
   actDirection_            = ECMC_DIR_FORWARD;
   latchedStopMode_         = ECMC_STOP_MODE_RUN;
+  modFactor_               = 0;
 }
 
 void ecmcTrajectoryTrapetz::initTraj() {
@@ -801,4 +802,13 @@ int ecmcTrajectoryTrapetz::initStopRamp(double currentPos,
 
 motionDirection ecmcTrajectoryTrapetz::getCurrSetDir() {
   return setDirection_;
+}
+
+int ecmcTrajectoryTrapetz::setModFactor(double mod) {
+  modFactor_ = mod;
+  return 0;
+}
+
+double ecmcTrajectoryTrapetz::getModFactor() {
+  return modFactor_;
 }

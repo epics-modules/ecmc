@@ -1613,3 +1613,24 @@ int ecmcAxisBase::setBlockExtCom(int block) {
   blockExtCom_ = block;
   return 0;
 }
+
+int ecmcAxisBase::setModFactor(double mod) {
+  //Must be same mod factor in traj and enc
+  int errorCode = getTraj()->setModFactor(mod);
+
+  if(errorCode) {
+    return setErrorID(errorCode);
+  }
+
+  errorCode = getEnc()->setModFactor(mod);
+
+  if(errorCode) {
+    return setErrorID(errorCode);
+  }
+
+  return 0;
+}
+
+double ecmcAxisBase::getModFactor() {
+  return getTraj()->getModFactor();
+}

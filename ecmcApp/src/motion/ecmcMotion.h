@@ -2785,6 +2785,32 @@ int setDiagAxisFreq(int freq);
  */
 int setDiagAxisEnable(int enable);
 
+/** \breif Get axis modulo factor.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] value  modulo factor.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get modulo factor for axis 3.\n
+ * "Cfg.GetAxisModFactor(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisModFactor(int  axisIndex,
+                     double *value);
+
+/** \breif Set axis modulo factor.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value  modulo factor.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set modulo factor for axis 3 to 360.\n
+ * "Cfg.SetAxisModFactor(3,360)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisModFactor(int  axisIndex,
+                     double value);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

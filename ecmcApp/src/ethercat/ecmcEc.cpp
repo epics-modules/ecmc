@@ -938,7 +938,7 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParam(1);
   asynPortDriver_->callParamCallbacks();  // also for memmap and ecEntry
 
-  return ecMemMapArray_[ecMemMapArrayCounter_]->getErrorID();
+  return ecMemMapArray_[ecMemMapArrayCounter_-1]->getErrorID();
 }
 
 ecmcEcMemMap * ecmcEc::findMemMap(std::string id) {

@@ -2644,6 +2644,34 @@ int setDiagAxisEnable(int value) {
   return 0;
 }
 
+int getAxisModFactor(int  axisIndex,
+                     double *value){
+  LOGINFO4("%s/%s:%d axisIndex=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  *value=axes[axisIndex]->getModFactor();
+  return 0;
+}
+
+int setAxisModFactor(int  axisIndex,
+                     double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, modfactor=%lf \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->setModFactor(value);
+}
+
 /*int getAxisObject(int axisIndex, ecmcAxisBase **axisObj) {
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   *axisObj=axes[axisIndex];
