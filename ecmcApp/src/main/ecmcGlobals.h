@@ -36,6 +36,7 @@ int controllerError = -1;
 int controllerErrorOld = -2;
 int controllerReset = 0;
 const char   *controllerErrorMsg = "NO_ERROR";
+int32_t ecmcUpdatedCounter = 0;
 
 int asynSkipCyclesFastest   = -1;
 int asynSkipUpdateCounterFastest = 0;

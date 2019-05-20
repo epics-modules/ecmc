@@ -106,9 +106,13 @@ void updateAsynParams(int force) {
       asynSkipUpdateCounterFastest = asynPort->getFastestUpdateRate();
       if (asynPort->getAllowRtThreadCom()) {
         asynPort->callParamCallbacks();
+        /* refresh updated counter (To know in epics when refresh have been made)
+        waveform*/
+        ecmcUpdatedCounter++;
+        mainAsynParams[ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID]->refreshParamRT(1);
       }
     }
-  }
+  }  
 }
 
 // ****** Threading

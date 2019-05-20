@@ -118,7 +118,9 @@
 #define ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME "ecmc.error.msg"
 #define ECMC_ASYN_MAIN_PAR_RESET_ID 11
 #define ECMC_ASYN_MAIN_PAR_RESET_NAME "ecmc.error.reset"
-#define ECMC_ASYN_MAIN_PAR_COUNT 12
+#define ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID 11
+#define ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME "ecmc.updated"
+#define ECMC_ASYN_MAIN_PAR_COUNT 13
 
 // Asyn  parameters in ec
 #define ECMC_ASYN_EC_PAR_MASTER_STAT_ID 0

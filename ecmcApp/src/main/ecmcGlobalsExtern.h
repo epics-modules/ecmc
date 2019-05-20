@@ -40,6 +40,7 @@ extern int controllerError;
 extern int controllerErrorOld;
 extern int controllerReset;
 extern const char   *controllerErrorMsg;
+extern int32_t ecmcUpdatedCounter;
 
 extern int asynSkipCyclesFastest;
 extern int asynSkipUpdateCounterFastest;
