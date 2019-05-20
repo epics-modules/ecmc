@@ -1028,7 +1028,7 @@ int ecmcAsynPortDriverConfigure(const char *portName,
                                 double      defaultSampleRateMS) {
 
   if(ecmcInitialized) {
-    printf("ecmcAsynPortDriverConfigure: Error: ECMC already initilaized. Command ignored.\n");
+    printf("ecmcAsynPortDriverConfigure: Error: ECMC already initialized. Command ignored.\n");
     return asynError;     
   }
 
