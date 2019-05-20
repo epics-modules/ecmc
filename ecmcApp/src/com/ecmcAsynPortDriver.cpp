@@ -266,7 +266,7 @@ asynStatus ecmcAsynPortDriver::appendAvailParam(ecmcAsynDataItem *dataItem, bool
   if(!dataItem){
     asynPrint(pasynUserSelf,
     ASYN_TRACE_ERROR,
-    "%s:%s: Error: DataItem NULL.",
+    "%s:%s: Error: DataItem NULL.\n",
     driverName,
     functionName);
     if(dieIfFail){
@@ -278,10 +278,11 @@ asynStatus ecmcAsynPortDriver::appendAvailParam(ecmcAsynDataItem *dataItem, bool
   if(ecmcParamAvailCount_>=(paramTableSize_-1)){
     asynPrint(pasynUserSelf,
               ASYN_TRACE_ERROR,
-              "%s:%s: Parameter table full (available params). Parameter with name %s will be discarded.", 
+              "%s:%s: Parameter table full (available params). Parameter with name %s will be discarded (max params = %d).\n", 
               driverName,
               functionName,
-              dataItem->getParamInfo()->name);
+              dataItem->getParamInfo()->name,
+              paramTableSize_);
     if(dieIfFail){
       exit(1);
     }
@@ -331,7 +332,7 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
   int errorCode=paramTemp->setEcmcDataPointer(data, bytes);
   if(errorCode) {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
-               "%s:%s: ERROR: Set data pointer to asyn parameter %s failed.", 
+               "%s:%s: ERROR: Set data pointer to asyn parameter %s failed.\n", 
                driverName,
                functionName,
                name);
@@ -342,7 +343,7 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
   asynStatus status = appendAvailParam(paramTemp,0);
   if (status != asynSuccess) {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
-               "%s:%s: ERROR: Append asyn parameter %s to list failed.", 
+               "%s:%s: ERROR: Append asyn parameter %s to list failed.\n", 
                driverName,
                functionName,
                name);
@@ -1027,6 +1028,14 @@ int ecmcAsynPortDriverConfigure(const char *portName,
     return asynError;  
   }
 
+  int paramTableMin = ECMC_ASYN_MAIN_PAR_COUNT + ECMC_ASYN_EC_PAR_COUNT + 1;
+  if(paramTableSize < paramTableMin) {
+     paramTableSize = paramTableMin;
+      printf(
+        "ecmcAsynPortDriverConfigure: WARNING: Parameter table to small. Increasing to minimum value (%d)\n",
+        paramTableMin);      
+  } 
+
   parameterCounter = 0;
   maxParameters    = paramTableSize;
   ecmcAsynPortObj  = new ecmcAsynPortDriver(portName,
@@ -1038,7 +1047,7 @@ int ecmcAsynPortDriverConfigure(const char *portName,
 
   printf ("ecmcAsynPortDriverConfigure: portName = %s, paramTableSize = %d, disableAutoConnect = %d, priority = %d, defaultSampleRateMS = %lf\n",
            portName,paramTableSize,disableAutoConnect,priority,defaultSampleRateMS);
-             
+
   if (ecmcAsynPortObj) {
     asynUser *traceUser = ecmcAsynPortObj->getTraceAsynUser();
 
@@ -1046,7 +1055,7 @@ int ecmcAsynPortDriverConfigure(const char *portName,
       printf(
         "ecmcAsynPortDriverConfigure: ERROR: Failed to retrieve asynUser for trace. \n");
       return asynError;
-    }
+    }    
 
     pPrintOutAsynUser = pasynManager->duplicateAsynUser(traceUser, 0, 0);
 

@@ -2389,7 +2389,7 @@ int createAxis(int index, int type) {
     return ERROR_MAIN_EXCEPTION;
   }
   axisDiagIndex = index;  // Always printout last axis added
-  return 0;
+  return axes[index]->getErrorID();
 }
 
 int linkEcEntryToAxisEnc(int   slaveIndex,

@@ -594,6 +594,10 @@ int ecmcEcSlave::addEntry(
            err);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, err);
   }
+  
+  if(entry->getError()) {
+    return entry->getErrorID();
+  }
 
   entryList_[entryCounter_] = entry;
   entryCounter_++;

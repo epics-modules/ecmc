@@ -25,7 +25,7 @@ int createEvent(int indexEvent) {
            __LINE__);
     exit(EXIT_FAILURE);
   }
-  return 0;
+  return events[indexEvent]->getErrorID();
 }
 
 int createDataStorage(int index, int elements, int bufferType) {
@@ -58,7 +58,7 @@ int createDataStorage(int index, int elements, int bufferType) {
     exit(EXIT_FAILURE);
   }
 
-  return 0;
+  return dataStorages[index]->getErrorID();
 }
 
 int linkStorageToRecorder(int indexStorage, int indexRecorder) {
@@ -353,7 +353,7 @@ int createRecorder(int indexRecorder) {
     exit(EXIT_FAILURE);
   }
 
-  return 0;
+  return dataRecorders[indexRecorder]->getErrorID();
 }
 
 int linkEcEntryToRecorder(int   indexRecorder,
@@ -520,7 +520,7 @@ int createCommandList(int indexCommandList) {
     exit(EXIT_FAILURE);
   }
 
-  return 0;
+  return commandLists[indexCommandList]->getErrorID();
 }
 
 int linkCommandListToEvent(int indexCommandList,
