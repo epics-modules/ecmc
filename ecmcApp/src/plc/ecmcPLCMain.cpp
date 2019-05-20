@@ -193,7 +193,7 @@ int ecmcPLCMain::addExprLine(int plcIndex, const char *expr) {
   while ((strEc = strstr(strEc, ECMC_EC_STR)) && strlen(strEc) > 0) {
     // Sanity check
     int nvals = sscanf(strEc,
-                       ECMC_EC_STR "%d."ECMC_SLAVE_CHAR "%d.",
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d.",
                        &ecId,
                        &ecSlave);
 
@@ -555,7 +555,7 @@ int ecmcPLCMain::getAxisIndex(char *varName) {
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  axisId = 0;
   int  nvals  = sscanf(varName,
-                       ECMC_AX_STR "%d."ECMC_PLC_VAR_FORMAT,
+                       ECMC_AX_STR "%d." ECMC_PLC_VAR_FORMAT,
                        &axisId,
                        buffer);
 
@@ -569,7 +569,7 @@ int ecmcPLCMain::getDsIndex(char *varName) {
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  dsId  = 0;
   int  nvals = sscanf(varName,
-                      ECMC_PLC_DATA_STORAGE_STR "%d."ECMC_PLC_VAR_FORMAT,
+                      ECMC_PLC_DATA_STORAGE_STR "%d." ECMC_PLC_VAR_FORMAT,
                       &dsId,
                       buffer);
 
@@ -594,7 +594,7 @@ int ecmcPLCMain::parseAxis(int plcIndex, const char *exprStr) {
   while ((strAxis = strstr(strAxis, ECMC_AX_STR)) && strlen(strAxis) > 0) {
     // Sanity check
     nvals = sscanf(strAxis,
-                   ECMC_AX_STR "%d."ECMC_PLC_VAR_FORMAT,
+                   ECMC_AX_STR "%d." ECMC_PLC_VAR_FORMAT,
                    &axisId,
                    varName);
 
@@ -650,7 +650,7 @@ int ecmcPLCMain::parseEC(int plcIndex, const char *exprStr) {
   while ((strEc = strstr(strEc, ECMC_EC_STR)) && strlen(strEc) > 0) {
     // Sanity check
     int nvals = sscanf(strEc,
-                       ECMC_EC_STR "%d."ECMC_SLAVE_CHAR "%d."ECMC_PLC_VAR_FORMAT,
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_VAR_FORMAT,
                        &ecId,
                        &ecSlave,
                        varNameTemp);
@@ -658,7 +658,7 @@ int ecmcPLCMain::parseEC(int plcIndex, const char *exprStr) {
     if (nvals == 3) {
       // Ensure not bit access
       nvals = sscanf(strEc,
-                     ECMC_EC_STR "%d."ECMC_SLAVE_CHAR "%d."ECMC_PLC_EC_ALIAS_FORMAT ".%d",
+                     ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_EC_ALIAS_FORMAT ".%d",
                      &ecId,
                      &ecSlave,
                      varNameTemp,
@@ -786,7 +786,7 @@ int ecmcPLCMain::parseDataStorage(int plcIndex, const char *exprStr) {
     // Sanity check 1
     int tempInt = 0;
     int nvals   = sscanf(strDS,
-                         ECMC_PLC_DATA_STORAGE_STR "%d."ECMC_PLC_VAR_FORMAT,
+                         ECMC_PLC_DATA_STORAGE_STR "%d." ECMC_PLC_VAR_FORMAT,
                          &tempInt,
                          varName);
 
@@ -937,7 +937,7 @@ int ecmcPLCMain::addMainDefaultVariables(){
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  chars = snprintf(varName,
                         EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                        ECMC_EC_STR "%d."ECMC_ASYN_EC_PAR_MASTER_STAT_NAME,
+                        ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_MASTER_STAT_NAME,
                         masterId);
 
   if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
@@ -979,7 +979,7 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  chars = snprintf(varName,
                         EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                        ECMC_PLC_DATA_STR "%d."ECMC_PLC_ENABLE_DATA_STR,
+                        ECMC_PLC_DATA_STR "%d." ECMC_PLC_ENABLE_DATA_STR,
                         plcIndex);
 
   if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
@@ -1021,7 +1021,7 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   // Add plc<index>.error
   chars = snprintf(varName,
                    EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                   ECMC_PLC_DATA_STR "%d."ECMC_PLC_ERROR_DATA_STR,
+                   ECMC_PLC_DATA_STR "%d." ECMC_PLC_ERROR_DATA_STR,
                    plcIndex);
 
   if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
@@ -1062,7 +1062,7 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   // Add plc<index>.scantime
   chars = snprintf(varName,
                    EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                   ECMC_PLC_DATA_STR "%d."ECMC_PLC_SCAN_TIME_DATA_STR,
+                   ECMC_PLC_DATA_STR "%d." ECMC_PLC_SCAN_TIME_DATA_STR,
                    plcIndex);
 
   if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
@@ -1104,7 +1104,7 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   // Add plc<index>.firstscan
   chars = snprintf(varName,
                    EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                   ECMC_PLC_DATA_STR "%d."ECMC_PLC_FIRST_SCAN_STR,
+                   ECMC_PLC_DATA_STR "%d." ECMC_PLC_FIRST_SCAN_STR,
                    plcIndex);
 
   if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
@@ -1188,7 +1188,7 @@ int ecmcPLCMain::updateAllScanTimeVars() {
     if (plcs_[i]) {
       int chars = snprintf(varName,
                            EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                           ECMC_PLC_DATA_STR "%d."ECMC_PLC_ENABLE_DATA_STR,
+                           ECMC_PLC_DATA_STR "%d." ECMC_PLC_ENABLE_DATA_STR,
                            i);
 
       if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
