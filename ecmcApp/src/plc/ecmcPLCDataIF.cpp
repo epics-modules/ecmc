@@ -1109,10 +1109,10 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
     std::stringstream ss;
 
     if (bitId >= 0) {
-      ss << ECMC_EC_STR << masterId << "."ECMC_DUMMY_SLAVE_STR << -slaveId <<
+      ss << ECMC_EC_STR << masterId << "." ECMC_DUMMY_SLAVE_STR << -slaveId <<
       "." << alias << "." << bitId;
     } else {
-      ss << ECMC_EC_STR << masterId << "."ECMC_DUMMY_SLAVE_STR << -slaveId <<
+      ss << ECMC_EC_STR << masterId << "." ECMC_DUMMY_SLAVE_STR << -slaveId <<
       "." << alias;
     }
     exprTkVarName_ = ss.str();
@@ -1171,7 +1171,7 @@ int ecmcPLCDataIF::parseEcPath(char *ecPath,
   int nvals    = 0;
 
   nvals = sscanf(ecPath,
-                 ECMC_EC_STR "%d."ECMC_SLAVE_CHAR "%d."ECMC_PLC_EC_ALIAS_FORMAT ".%d",
+                 ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_EC_ALIAS_FORMAT ".%d",
                  &masterId,
                  &slaveId,
                  alias,
@@ -1185,7 +1185,7 @@ int ecmcPLCDataIF::parseEcPath(char *ecPath,
   }
 
   nvals = sscanf(ecPath,
-                 ECMC_EC_STR "%d."ECMC_SLAVE_CHAR "%d."ECMC_PLC_EC_ALIAS_FORMAT,
+                 ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_EC_ALIAS_FORMAT,
                  &masterId,
                  &slaveId,
                  alias);
@@ -1286,14 +1286,14 @@ int ecmcPLCDataIF::initAsyn() {
     // "plc%d.%s"
     charCount = snprintf(buffer,
                          sizeof(buffer),
-                         ECMC_PLCS_DATA_STR"."ECMC_PLC_DATA_STR"%d.%s",
+                         ECMC_PLCS_DATA_STR "." ECMC_PLC_DATA_STR "%d.%s",
                          plcIndex_,
                          varName_.c_str());
   } else { //global variable (no plc index)
     // "%s"
     charCount = snprintf(buffer,
                          sizeof(buffer),
-                         ECMC_PLCS_DATA_STR".%s",
+                         ECMC_PLCS_DATA_STR ".%s",
                          varName_.c_str());
   }
  

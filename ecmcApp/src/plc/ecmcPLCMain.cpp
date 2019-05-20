@@ -199,7 +199,7 @@ int ecmcPLCMain::addExprLine(int plcIndex, const char *expr) {
 
     if (nvals == 2) {
       if (ecSlave < 0) {  // Simulation slave
-        strSimSlave = strstr(strEc, "."ECMC_SLAVE_CHAR);
+        strSimSlave = strstr(strEc, "." ECMC_SLAVE_CHAR);
 
         if (strSimSlave && (strlen(strSimSlave) > 2)) {
           strSimSlave    = strSimSlave + 1;
@@ -825,7 +825,7 @@ int ecmcPLCMain::parsePLC(int plcIndex, const char *exprStr) {
     // Sanity check 1
     int tempInt = 0;
     int nvals   = sscanf(strPLC,
-                         ECMC_PLC_DATA_STR "%d."ECMC_PLC_VAR_FORMAT,
+                         ECMC_PLC_DATA_STR "%d." ECMC_PLC_VAR_FORMAT,
                          &tempInt,
                          varName);
 
