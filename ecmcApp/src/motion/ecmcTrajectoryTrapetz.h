@@ -187,7 +187,6 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   double jerk_;
   double sampleTime_;
   double posSetMinus1_;
-  double posSetMinus2_;
   double stepACC_;
   double stepDEC_;
   double stepNOM_;

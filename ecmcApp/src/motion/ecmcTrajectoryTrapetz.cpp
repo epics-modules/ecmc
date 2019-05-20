@@ -130,7 +130,6 @@ void ecmcTrajectoryTrapetz::initVars() {
   jerk_                    = 0;
   sampleTime_              = 1;
   posSetMinus1_            = 0;
-  posSetMinus2_            = 0;
   targetPosition_          = 0;
   currentPositionSetpoint_ = 0;
   stepACC_                 = 0;
@@ -217,7 +216,6 @@ void ecmcTrajectoryTrapetz::setCurrentPosSet(double posSet) {
               posSet);
   }
   currentPositionSetpoint_ = posSet;
-  posSetMinus2_            = currentPositionSetpoint_;
   posSetMinus1_            = currentPositionSetpoint_;
   prevStepSize_            = 0;
   velocity_                = 0;
@@ -241,7 +239,6 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
                  __LINE__,
                  ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
     }
-    posSetMinus2_ = currentPositionSetpoint_;
     posSetMinus1_ = currentPositionSetpoint_;
     prevStepSize_ = 0;
     velocity_     = 0;
@@ -300,7 +297,6 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
 
 double ecmcTrajectoryTrapetz::updateSetpoint(double nextSetpoint,
                                              double nextVelocity) {
-  posSetMinus2_            = posSetMinus1_;
   posSetMinus1_            = currentPositionSetpoint_;
   currentPositionSetpoint_ = nextSetpoint;
   prevStepSize_            = currentPositionSetpoint_ - posSetMinus1_;
@@ -621,7 +617,6 @@ void ecmcTrajectoryTrapetz::setEnable(bool enable) {
   velocity_  = 0;
 
   if (!enableOld_ && enable_) {
-    posSetMinus2_            = startPosition_;
     posSetMinus1_            = startPosition_;
     currentPositionSetpoint_ = startPosition_;
     prevStepSize_            = 0;
@@ -690,7 +685,6 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute) {
 
     if (!busy_) {
       posSetMinus1_ = currentPositionSetpoint_;
-      posSetMinus2_ = currentPositionSetpoint_;
       velocity_     = 0;
     }
     initTraj();
