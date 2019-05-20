@@ -278,7 +278,9 @@ asynStatus ecmcAsynPortDriver::appendAvailParam(ecmcAsynDataItem *dataItem, bool
   if(ecmcParamAvailCount_>=(paramTableSize_-1)){
     asynPrint(pasynUserSelf,
               ASYN_TRACE_ERROR,
-              "%s:%s: Parameter table full (available params). Parameter with name %s will be discarded (max params = %d).\n", 
+              "%s:%s: ERROR: Parameter table full (available params).\n" 
+              "Parameter with name %s will be discarded (max params = %d).\n"
+              "Increase paramtable size in call to ecmcAsynPortDriverConfigure().\n", 
               driverName,
               functionName,
               dataItem->getParamInfo()->name,
@@ -342,11 +344,11 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
   }
   asynStatus status = appendAvailParam(paramTemp,0);
   if (status != asynSuccess) {
-      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
+    /*asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
                "%s:%s: ERROR: Append asyn parameter %s to list failed.\n", 
                driverName,
                functionName,
-               name);
+               name);*/
     delete paramTemp;
     paramTemp = NULL;
     return NULL;
@@ -1007,6 +1009,7 @@ int ecmcAsynPortDriver::getDefaultSampleTimeMs() {
 extern "C" {
 static int maxParameters;
 static int parameterCounter;
+static int ecmcInitialized = 0;
 
 /* global asynUser for Printing */
 asynUser *pPrintOutAsynUser;
@@ -1023,8 +1026,14 @@ int ecmcAsynPortDriverConfigure(const char *portName,
                                 int         priority,
                                 int         disableAutoConnect,
                                 double      defaultSampleRateMS) {
+
+  if(ecmcInitialized) {
+    printf("ecmcAsynPortDriverConfigure: Error: ECMC already initilaized. Command ignored.\n");
+    return asynError;     
+  }
+
   if(portName == NULL) {
-    printf("Error: portName missing.\n");
+    printf("ecmcAsynPortDriverConfigure: Error: portName missing.\n");
     return asynError;  
   }
 
@@ -1043,6 +1052,9 @@ int ecmcAsynPortDriverConfigure(const char *portName,
                                             disableAutoConnect == 0,
                                             priority,
                                             defaultSampleRateMS);
+
+  ecmcInitialized = 1;
+
   initHook();
 
   printf ("ecmcAsynPortDriverConfigure: portName = %s, paramTableSize = %d, disableAutoConnect = %d, priority = %d, defaultSampleRateMS = %lf\n",
