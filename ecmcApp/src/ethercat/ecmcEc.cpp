@@ -972,7 +972,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   // Master status
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),
-                                    ECMC_EC_STR"%d."ECMC_ASYN_EC_PAR_MASTER_STAT_NAME,
+                                    ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_MASTER_STAT_NAME,
                                     masterIndex_);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1008,7 +1008,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   // Status word domain
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR"%d."ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME,
+                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME,
                        masterIndex_);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1043,7 +1043,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   // Slave Counter
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR"%d."ECMC_ASYN_EC_PAR_SLAVE_COUNT_NAME,
+                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_SLAVE_COUNT_NAME,
                        masterIndex_);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1075,7 +1075,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   // Mem map counter
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR"%d."ECMC_ASYN_EC_PAR_MEMMAP_COUNT_NAME,
+                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_MEMMAP_COUNT_NAME,
                        masterIndex_);
 
   if (charCount >= sizeof(buffer) - 1) {
@@ -1109,7 +1109,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   // Domain fail counter total
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR"%d."ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME,
+                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME,
                        masterIndex_);
 
   if (charCount >= sizeof(buffer) - 1) {
@@ -1143,7 +1143,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   // Entry counter
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR"%d."ECMC_ASYN_EC_PAR_ENTRY_COUNT_NAME,
+                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_ENTRY_COUNT_NAME,
                        masterIndex_);
 
   if (charCount >= sizeof(buffer) - 1) {

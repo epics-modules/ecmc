@@ -536,7 +536,7 @@ int ecmcEcEntry::initAsyn() {
   // "ec%d.s%d.alias"
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),
-                                    ECMC_EC_STR"%d." ECMC_SLAVE_CHAR "%d.%s",
+                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d.%s",
                                     masterId_,
                                     slaveId_,
                                     idStringChar_);

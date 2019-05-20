@@ -1356,7 +1356,7 @@ int ecmcAxisBase::initAsyn() {
   // Act pos
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_AX_STR"%d."ECMC_ASYN_AX_ACT_POS_NAME,
+                       ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_POS_NAME,
                        getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1389,7 +1389,7 @@ int ecmcAxisBase::initAsyn() {
   // Set pos
   charCount = snprintf(buffer,
                       sizeof(buffer),
-                      ECMC_AX_STR"%d."ECMC_ASYN_AX_SET_POS_NAME,
+                      ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
                       getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1422,7 +1422,7 @@ int ecmcAxisBase::initAsyn() {
   // Pos error (following error)
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_AX_STR"%d."ECMC_ASYN_AX_POS_ERR_NAME,
+                       ECMC_AX_STR "%d." ECMC_ASYN_AX_POS_ERR_NAME,
                        getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1455,7 +1455,7 @@ int ecmcAxisBase::initAsyn() {
   // Diagnostic string (array)
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_AX_STR"%d."ECMC_ASYN_AX_DIAG_NAME,
+                       ECMC_AX_STR "%d." ECMC_ASYN_AX_DIAG_NAME,
                        getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1489,7 +1489,7 @@ int ecmcAxisBase::initAsyn() {
   // Status word
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_AX_STR"%d."ECMC_ASYN_AX_STATUS_NAME,
+                       ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_NAME,
                        getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(

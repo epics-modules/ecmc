@@ -388,7 +388,7 @@ int ecmcDataStorage::initAsyn() {
   // "ds%d.data"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_DATA_DATA_STR,
+                       ECMC_PLC_DATA_STORAGE_STR "%d." ECMC_DATA_STORAGE_DATA_DATA_STR,
                        index_);
 
   if (charCount >= sizeof(buffer) - 1) {
@@ -423,7 +423,7 @@ int ecmcDataStorage::initAsyn() {
   // "ds%d.index"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_DATA_INDEX_STR,
+                       ECMC_PLC_DATA_STORAGE_STR "%d." ECMC_DATA_STORAGE_DATA_INDEX_STR,
                        index_);
 
   if (charCount >= sizeof(buffer) - 1) {
@@ -456,7 +456,7 @@ int ecmcDataStorage::initAsyn() {
   // "ds%d.status"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_STATUS_STR,
+                       ECMC_PLC_DATA_STORAGE_STR "%d." ECMC_DATA_STORAGE_STATUS_STR,
                        index_);
 
   if (charCount >= sizeof(buffer) - 1) {
@@ -491,7 +491,7 @@ int ecmcDataStorage::initAsyn() {
   // "ds%d.size"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_PLC_DATA_STORAGE_STR"%d."ECMC_DATA_STORAGE_DATA_SIZE_STR,
+                       ECMC_PLC_DATA_STORAGE_STR "%d." ECMC_DATA_STORAGE_DATA_SIZE_STR,
                        index_);
 
   if (charCount >= sizeof(buffer) - 1) {

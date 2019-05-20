@@ -172,7 +172,7 @@ int ecmcEcMemMap::initAsyn() {
   // "ec%d.mm.alias"
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),
-                                    ECMC_EC_STR"%d."ECMC_MEMMAP_STR".%s",
+                                    ECMC_EC_STR "%d." ECMC_MEMMAP_STR".%s",
                                     masterId_,
                                     idStringChar_);
 
