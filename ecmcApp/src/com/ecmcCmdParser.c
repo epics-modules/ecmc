@@ -662,7 +662,7 @@ static int handleCfgCommand(const char *myarg_1) {
     return createAxis(iValue, 1);
   }
 
-  /// "Cfg.CreatePLC(int index, double cycleTime)"
+  /// "Cfg.CreatePLC(int index, double cycleTimeMs)"
   nvals = sscanf(myarg_1, "CreatePLC(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
@@ -673,7 +673,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreatePLC(%d)", &iValue);
 
   if (nvals == 1) {
-    return createPLC(iValue, 1/MCU_FREQUENCY);
+    return createPLC(iValue, 1);
   }
 
   /// "Cfg.DeletePLC(int index)"
