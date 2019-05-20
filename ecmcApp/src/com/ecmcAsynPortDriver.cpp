@@ -955,7 +955,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
     return;
   }
 
-  if (details >= 1) {
+  if (details >= 0) {
     fprintf(fp,"####################################################################:\n");
     fprintf(fp, "General information:\n");
     fprintf(fp, "  Port:                         %s\n",portName);
@@ -968,7 +968,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
     fprintf(fp,"\n");
   }
 
-  if( details >= 2){
+  if( details >= 1){
     //print all parameters in use
     fprintf(fp,"####################################################################:\n");
     fprintf(fp,"Parameters in use:\n");
@@ -981,7 +981,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
     }
   }
 
-  if( details >= 3){
+  if( details >= 2){
     //print all available parameters
     fprintf(fp,"####################################################################:\n");
     fprintf(fp,"Available parameters:\n");
@@ -993,7 +993,9 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
       reportParamInfo(fp, pEcmcParamAvailArray_[i],i);
     }
   }
-  fprintf(fp,"####################################################################:\n");
+  if (details >= 0) {
+    fprintf(fp,"####################################################################:\n");
+  }
 }
 
 int ecmcAsynPortDriver::getDefaultSampleTimeMs() {
@@ -1102,7 +1104,7 @@ int ecmcAsynPortDriverAddParameter(const char *portName,
                                    int         skipCycles) {
 
   printf("Error: ecmcAsynPortDriverAddParameter is an obsolete command.\n");
-  printf("       Use the command asynReport 3 to list available parameters.\n");
+  printf("       Use the command \"asynReport 3\" to list available parameters.\n");
   return 0;
 }
 
@@ -1227,11 +1229,35 @@ static void initCallFunc_4(const iocshArgBuf *args) {
   ecmcConfig(args[0].sval);
 }
 
+
+/* EPICS iocsh shell command:  ecmcReport (same as asynReport but only ECMC)*/
+int ecmcReport(int level) {
+  
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;  
+  }
+  
+  ecmcAsynPortObj->report(stdout,level);
+
+  return 0;
+}
+
+static const iocshArg initArg0_5 =
+{ "Details level", iocshArgInt };
+static const iocshArg *const initArgs_5[]  = { &initArg0_5 };
+static const iocshFuncDef    initFuncDef_5 = { "ecmcReport", 1, initArgs_5 };
+static void initCallFunc_5(const iocshArgBuf *args) {
+  ecmcReport(args[0].ival);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,   initCallFunc);
   iocshRegister(&initFuncDef_2, initCallFunc_2);
   iocshRegister(&initFuncDef_3, initCallFunc_3);
   iocshRegister(&initFuncDef_4, initCallFunc_4);
+  iocshRegister(&initFuncDef_5, initCallFunc_5);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
