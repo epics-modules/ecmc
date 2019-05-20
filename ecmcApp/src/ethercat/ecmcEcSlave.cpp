@@ -769,7 +769,7 @@ int ecmcEcSlave::initAsyn() {
   // "ec%d.s%d.status"
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),
-                                    ECMC_EC_STR"%d." ECMC_SLAVE_CHAR "%d."ECMC_ASYN_EC_SLAVE_PAR_STATUS_NAME,
+                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_ASYN_EC_SLAVE_PAR_STATUS_NAME,
                                     masterId_,
                                     slavePosition_);
 

@@ -382,7 +382,7 @@ int readEcMemMap(const char *memMapIDString,
 }
 
 int writeEcEntry(int slaveIndex, int entryIndex, uint64_t value) {
-  LOGINFO4("%s/%s:%d slave_index=%d entry=%d value=%"PRIu64"\n",
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%d value=%" PRIu64 "\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -402,7 +402,7 @@ int writeEcEntry(int slaveIndex, int entryIndex, uint64_t value) {
 
 int writeEcEntryIDString(int slavePosition, char *entryIDString,
                          uint64_t value) {
-  LOGINFO4("%s/%s:%d slave_position=%d entry=%s value=%"PRIu64"\n",
+  LOGINFO4("%s/%s:%d slave_position=%d entry=%s value=%" PRIu64 "\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

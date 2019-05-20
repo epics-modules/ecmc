@@ -69,7 +69,7 @@ inline double ec_print_hex(double value, double startBit,double stopBit)
   uint64_t temp=(uint64_t)value;
   temp = temp & ((1U << ((int)stopBit)) - 1); 
   temp = temp << (int)startBit;
-  printf("%"PRIx64"",temp);  
+  printf("%" PRIx64 "",temp);  
   return 0;
 }
 
