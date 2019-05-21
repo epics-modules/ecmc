@@ -2793,7 +2793,7 @@ int setDiagAxisEnable(int enable);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get modulo factor for axis 3.\n
- * "Cfg.GetAxisModFactor(3)" //Command string to ecmcCmdParser.c.\n
+ * "GetAxisModFactor(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisModFactor(int  axisIndex,
                      double *value);
