@@ -298,8 +298,12 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
 double ecmcTrajectoryTrapetz::updateSetpoint(double nextSetpoint,
                                              double nextVelocity) {
   posSetMinus1_            = currentPositionSetpoint_;
-  currentPositionSetpoint_ = nextSetpoint;
-  prevStepSize_            = currentPositionSetpoint_ - posSetMinus1_;
+  currentPositionSetpoint_ = checkModuloPos(nextSetpoint); //=nextSetpoint;
+  prevStepSize_            = dist(posSetMinus1_,currentPositionSetpoint_);
+  /*printf("updateSetpoint() prevdistance %lf (from %lf, to %lf)\n",
+    prevStepSize_,
+    posSetMinus1_,
+    currentPositionSetpoint_);*/
   velocity_                = nextVelocity;
   distToStop_              = distToStop(velocity_);
   return currentPositionSetpoint_;
@@ -327,8 +331,9 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
   }
   *actVelocity = 0;
 
-  if (busy_) {
-    *actVelocity = (posSetTemp - currentPositionSetpoint_) / sampleTime_;
+  if (busy_) { 
+
+    *actVelocity = dist(currentPositionSetpoint_,posSetTemp) / sampleTime_;
   }
   return posSetTemp;
 }
@@ -353,7 +358,8 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
   } else {
     posSetTemp = currSetpoint - positionStep;
   }
-  return posSetTemp;
+
+  return posSetTemp; //checkModuloPos(posSetTemp);
 }
 
 double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
@@ -410,7 +416,8 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
       *trajBusy       = false;
     }
   }
-  return posSetTemp;
+
+  return posSetTemp; //checkModuloPos(posSetTemp);
 }
 
 double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
@@ -453,7 +460,7 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
     return currSetpoint;
   }
 
-  return posSetTemp;
+  return posSetTemp; //checkModuloPos(posSetTemp);
 }
 
 double ecmcTrajectoryTrapetz::distToStop(double vel) {
@@ -805,4 +812,50 @@ int ecmcTrajectoryTrapetz::setModFactor(double mod) {
 
 double ecmcTrajectoryTrapetz::getModFactor() {
   return modFactor_;
+}
+
+/* Calculates distance between two points*/
+double ecmcTrajectoryTrapetz::dist(double from, double to) {
+  //check if modulo enabled
+  if(modFactor_==0){
+    return to-from;
+  }
+  
+  //modulo
+  switch(setDirection_){
+    case ECMC_DIR_BACKWARD:
+      if(from>to){
+        return to-from;
+      }
+      return -from-(modFactor_-to);
+    break;
+    case ECMC_DIR_FORWARD:
+      if(from<to){
+        return to-from;
+      }
+      return to + (modFactor_-from);
+    break;
+    
+    case ECMC_DIR_STANDSTILL:
+      return 0;
+  }
+  return 0;
+}
+
+double ecmcTrajectoryTrapetz::checkModuloPos(double pos){
+  //check modulo (allowed range 0..modFactor_)
+  double posSetTemp = pos;
+  if(modFactor_!=0) {
+    if (setDirection_ == ECMC_DIR_FORWARD) {
+      if(posSetTemp > modFactor_) {
+        posSetTemp = posSetTemp - modFactor_;
+      }
+    } else {
+      if(posSetTemp < 0) {
+        posSetTemp = modFactor_ + posSetTemp;
+      }
+    }
+  }
+  //printf("checkModuloPos input %lf, output %lf\n",pos, posSetTemp);
+  return posSetTemp;
 }

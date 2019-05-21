@@ -179,6 +179,9 @@ class ecmcTrajectoryTrapetz : public ecmcError {
                                  double nextVelocity);
   motionDirection checkDirection(double oldPos,
                                  double newPos);
+  double          dist(double from,
+                       double to);
+  double          checkModuloPos(double pos);
   double acceleration_;
   double deceleration_;
   double decelerationEmergency_;
