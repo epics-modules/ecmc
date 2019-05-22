@@ -94,9 +94,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool                  getNewValueLatched();
   double                getLatchPosEng();
   ecmcOverUnderFlowType getOverUnderflow();
-  int                   setModFactor(double mod);
-  double                getModFactor();
-
+  
  protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -143,7 +141,6 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int64_t rawEncLatchPosMultiTurn_;
   bool encLatchControl_;
   double actEncLatchPos_;
-  double modFactor_;
 };
 
 #endif  /* ECMCENCODER_H_ */

@@ -148,7 +148,6 @@ void ecmcEncoder::initVars() {
   actEncLatchPos_       = 0;
   rawAbsPosUint_        = 0;
   rawAbsPosUintOld_     = 0;
-  modFactor_            = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -680,13 +679,4 @@ double ecmcEncoder::getAbsRangeEng() {
 */
 int64_t ecmcEncoder::getAbsRangeRaw() {
   return rawAbsRange_;
-}
-
-int ecmcEncoder::setModFactor(double mod) {
-  modFactor_ = mod;
-  return 0;
-}
-
-double ecmcEncoder::getModFactor() {
-  return modFactor_;
 }

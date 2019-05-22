@@ -149,7 +149,6 @@ void ecmcTrajectoryTrapetz::initVars() {
   setDirection_            = ECMC_DIR_FORWARD;
   actDirection_            = ECMC_DIR_FORWARD;
   latchedStopMode_         = ECMC_STOP_MODE_RUN;
-  modFactor_               = 0;
 }
 
 void ecmcTrajectoryTrapetz::initTraj() {
@@ -805,19 +804,10 @@ motionDirection ecmcTrajectoryTrapetz::getCurrSetDir() {
   return setDirection_;
 }
 
-int ecmcTrajectoryTrapetz::setModFactor(double mod) {
-  modFactor_ = mod;
-  return 0;
-}
-
-double ecmcTrajectoryTrapetz::getModFactor() {
-  return modFactor_;
-}
-
 /* Calculates distance between two points*/
 double ecmcTrajectoryTrapetz::dist(double from, double to) {
   //check if modulo enabled
-  if(modFactor_==0){
+  if(data_->command_.moduloFactor==0){
     return to-from;
   }
   
@@ -827,13 +817,13 @@ double ecmcTrajectoryTrapetz::dist(double from, double to) {
       if(from>to){
         return to-from;
       }
-      return -from-(modFactor_-to);
+      return -from-(data_->command_.moduloFactor-to);
     break;
     case ECMC_DIR_FORWARD:
       if(from<to){
         return to-from;
       }
-      return to + (modFactor_-from);
+      return to + (data_->command_.moduloFactor-from);
     break;
     
     case ECMC_DIR_STANDSTILL:
@@ -843,16 +833,16 @@ double ecmcTrajectoryTrapetz::dist(double from, double to) {
 }
 
 double ecmcTrajectoryTrapetz::checkModuloPos(double pos){
-  //check modulo (allowed range 0..modFactor_)
+  //check modulo (allowed range 0..data_->command_.moduloFactor)
   double posSetTemp = pos;
-  if(modFactor_!=0) {
+  if(data_->command_.moduloFactor!=0) {
     if (setDirection_ == ECMC_DIR_FORWARD) {
-      if(posSetTemp > modFactor_) {
-        posSetTemp = posSetTemp - modFactor_;
+      if(posSetTemp > data_->command_.moduloFactor) {
+        posSetTemp = posSetTemp - data_->command_.moduloFactor;
       }
     } else {
       if(posSetTemp < 0) {
-        posSetTemp = modFactor_ + posSetTemp;
+        posSetTemp = data_->command_.moduloFactor + posSetTemp;
       }
     }
   }

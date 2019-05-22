@@ -150,9 +150,6 @@ class ecmcTrajectoryTrapetz : public ecmcError {
                                double currentAcc);
   void            printCurrentState();
   motionDirection getCurrSetDir();
-  int             setModFactor(double mod);
-  double          getModFactor();
-
 
  private:
   void            initVars();
@@ -212,6 +209,5 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   interlockTypes interlockStatus_;
   ecmcAxisData *data_;
   stopMode latchedStopMode_;
-  double modFactor_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_

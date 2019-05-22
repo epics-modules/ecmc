@@ -1616,21 +1616,21 @@ int ecmcAxisBase::setBlockExtCom(int block) {
 
 int ecmcAxisBase::setModFactor(double mod) {
   //Must be same mod factor in traj and enc
-  int errorCode = getTraj()->setModFactor(mod);
+  if(mod<0) {
+    LOGERR(
+       "Error (axis %d): Modulo factor out of range. Must be a positive value (0x%x).\n",
+        data_.axisId_,ERROR_AXIS_MODULO_OUT_OF_RANGE);
 
-  if(errorCode) {
-    return setErrorID(errorCode);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_MODULO_OUT_OF_RANGE);
+
   }
-
-  errorCode = getEnc()->setModFactor(mod);
-
-  if(errorCode) {
-    return setErrorID(errorCode);
-  }
-
+  data_.command_.moduloFactor = mod;
   return 0;
 }
 
 double ecmcAxisBase::getModFactor() {
-  return getTraj()->getModFactor();
+  return data_.command_.moduloFactor;
 }
