@@ -347,18 +347,23 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
   *trajBusy = true;
 
   if (std::abs(currVelo) < std::abs(targetVelo)) {
-    positionStep = std::abs(prevStepSize_) + stepACC_;
+    positionStep = std::abs(prevStepSize_) + stepACC_;    
   } else {
     positionStep = stepNOM_;
   }
 
+  if(positionStep > stepNOM_) {
+    positionStep = stepNOM_;
+  }
+
+  //printf("Position Step %lf, %lf\n",positionStep,prevStepSize_ );
   if (setDirection_ == ECMC_DIR_FORWARD) {
     posSetTemp = currSetpoint + positionStep;
   } else {
     posSetTemp = currSetpoint - positionStep;
   }
 
-  return posSetTemp; //checkModuloPos(posSetTemp);
+  return posSetTemp;
 }
 
 double ecmcTrajectoryTrapetz::movePos(double currSetpoint,

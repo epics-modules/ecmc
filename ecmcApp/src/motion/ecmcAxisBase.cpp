@@ -260,7 +260,10 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
     if (!masterOK) {
       LOGERR(
-        "Axis %d: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_STARTUP).\n",
+        "%s/%s:%d: ERROR (axis %d): State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_STARTUP).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
         data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_STARTUP;
     }
@@ -288,7 +291,10 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
     if (!masterOK) {
       LOGERR(
-        "Axis %d: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_STARTUP).\n",
+        "%s/%s:%d: ERROR (axis %d): State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_STARTUP).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
         data_.axisId_);
       LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_STARTUP;\n",
                 __FILE__,
@@ -304,7 +310,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   refreshExternalInputSources();
 }
 
-void ecmcAxisBase::postExecute(bool masterOK) {
+void ecmcAxisBase::postExecute(bool masterOK) {  
   // Write encoder entries
   enc_->writeEntries();
 
@@ -332,6 +338,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   data_.status_.currentPositionSetpointOld =
     data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld = data_.status_.cntrlOutput;
+
   cycleCounter_++;
   refreshDebugInfoStruct();
 
@@ -375,10 +382,11 @@ void ecmcAxisBase::postExecute(bool masterOK) {
 
     if (error) {
       LOGERR(
-        "%s/%s:%d: Fail to update asyn par axis<id>.diag. Buffer to small.\n",
+        "%s/%s:%d: ERROR (axis %d): Fail to update asyn par axis<id>.diag. Buffer to small.\n",
         __FILE__,
         __FUNCTION__,
-        __LINE__);
+        __LINE__,
+        data_.axisId_);
     } else {
       axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->refreshParamRT(1,(uint8_t*)diagBuffer_,bytesUsed);
     }
@@ -392,7 +400,6 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   if (statusOutputEntry_) {
     statusOutputEntry_->writeValue(getErrorID() == 0);
   }
-
 }
 
 axisType ecmcAxisBase::getAxisType() {
@@ -1341,10 +1348,11 @@ bool ecmcAxisBase::getEnabled() {
 
 int ecmcAxisBase::initAsyn() {
   if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR: AsynPortDriver object NULL (0x%x).\n",
+    LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
+           data_.axisId_,
            ERROR_AXIS_ASYN_PORT_OBJ_NULL);
     return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
   }
@@ -1360,10 +1368,11 @@ int ecmcAxisBase::initAsyn() {
                        getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
@@ -1375,10 +1384,11 @@ int ecmcAxisBase::initAsyn() {
                                          0);
   if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1393,10 +1403,11 @@ int ecmcAxisBase::initAsyn() {
                       getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
@@ -1408,10 +1419,11 @@ int ecmcAxisBase::initAsyn() {
                                          0);
   if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1426,10 +1438,11 @@ int ecmcAxisBase::initAsyn() {
                        getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
@@ -1441,10 +1454,11 @@ int ecmcAxisBase::initAsyn() {
                                          0);
   if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1459,10 +1473,11 @@ int ecmcAxisBase::initAsyn() {
                        getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
@@ -1474,10 +1489,11 @@ int ecmcAxisBase::initAsyn() {
                                          0);
   if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1493,10 +1509,11 @@ int ecmcAxisBase::initAsyn() {
                        getAxisID());
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
@@ -1508,10 +1525,11 @@ int ecmcAxisBase::initAsyn() {
                                          0);
   if(!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      data_.axisId_,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1618,7 +1636,7 @@ int ecmcAxisBase::setModFactor(double mod) {
   //Must be same mod factor in traj and enc
   if(mod<0) {
     LOGERR(
-       "Error (axis %d): Modulo factor out of range. Must be a positive value (0x%x).\n",
+       "ERROR (axis %d): Modulo factor out of range. Must be a positive value (0x%x).\n",
         data_.axisId_,ERROR_AXIS_MODULO_OUT_OF_RANGE);
 
     return setErrorID(__FILE__,

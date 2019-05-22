@@ -39,6 +39,7 @@ private:
   void initVars();
   bool initDone_;
   bool temporaryLocalTrajSource_;
+  double TEMP_;
 };
 
 #endif /* ECMCAXISVIRT_H_ */

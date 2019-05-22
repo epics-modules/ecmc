@@ -103,7 +103,10 @@ void updateAsynParams(int force) {
     asynSkipUpdateCounterFastest--;
   } else {      
     if (asynPort) {
-      asynSkipUpdateCounterFastest = asynPort->getFastestUpdateRate();
+      asynSkipUpdateCounterFastest = asynPort->getFastestUpdateRate()-1;
+      if(asynSkipUpdateCounterFastest<0){
+        asynSkipUpdateCounterFastest = 0;
+      }
       if (asynPort->getAllowRtThreadCom()) {
         asynPort->callParamCallbacks();
         /* refresh updated counter (To know in epics when refresh have been made)
