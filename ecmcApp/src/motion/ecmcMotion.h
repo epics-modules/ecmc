@@ -2811,6 +2811,41 @@ int getAxisModFactor(int  axisIndex,
 int setAxisModFactor(int  axisIndex,
                      double value);
 
+/** \breif Set axis modulo motion type.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] type Modulo type.\n
+ *    type = 0 : ECMC_MOD_MOTION_NORMAL\n
+             1:  ECMC_MOD_MOTION_FWD (Always forward)\n
+             2:  ECMC_MOD_MOTION_BWD (always backward)\n
+             3:  ECMC_MOD_MOTION_CLOSEST (closest path)\n
+
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set modulo type to "ECMC_MOD_MOTION_BWD"\n
+ * for axis 3.\n
+ * "Cfg.SetAxisModType(3,2)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisModType(int axisIndex,
+                   int type);
+
+/** \breif Set axis modulo motion type.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] type Modulo type.\n
+ *    type = 0 : ECMC_MOD_MOTION_NORMAL\n
+             1:  ECMC_MOD_MOTION_FWD (Always forward)\n
+             2:  ECMC_MOD_MOTION_BWD (always backward)\n
+             3:  ECMC_MOD_MOTION_CLOSEST (closest path)\n
+
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get modulo type for axis 3.\n
+ * "GetAxisModType(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisModType(int  axisIndex,
+                   int *value);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

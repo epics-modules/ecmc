@@ -293,6 +293,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14323:
+    return "ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE";
+
+    break;
+
   case 0x14600:   // DRIVE
     return "ERROR_DRV_DRIVE_INTERLOCKED";
 

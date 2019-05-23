@@ -12,6 +12,7 @@ typedef struct {
   double             softLimitBwd;
   double             softLimitFwd;
   double             moduloFactor;
+  ecmcMotionModType  moduloType;
   motionCommandTypes command;
   int                cmdData;
   bool               enable;

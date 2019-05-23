@@ -60,6 +60,7 @@
 #define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
 #define ERROR_AXIS_PRINT_TO_BUFFER_FAIL 0x14321
 #define ERROR_AXIS_MODULO_OUT_OF_RANGE 0x14322
+#define ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE 0x14323
 
 enum axisState {
   ECMC_AXIS_STATE_STARTUP  = 0,
@@ -193,6 +194,8 @@ class ecmcAxisBase : public ecmcError {
   motionDirection       getAxisSetDirection();
   int                   setModFactor(double mod);
   double                getModFactor();
+  int                   setModType(int type);
+  int                   getModType();
 
  protected:
   void         printAxisState();

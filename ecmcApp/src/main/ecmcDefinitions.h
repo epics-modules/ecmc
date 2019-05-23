@@ -456,6 +456,16 @@ enum ecmcDataSourceType {
   ECMC_RECORDER_SOURCE_DATA_STORAGE    = 5
 };
 
+
+enum ecmcMotionModType {
+  ECMC_MOD_MOTION_NORMAL = 0,
+  ECMC_MOD_MOTION_FWD    = 1,
+  ECMC_MOD_MOTION_BWD    = 2,
+  ECMC_MOD_MOTION_CLOSEST= 3,
+  ECMC_MOD_MOTION_MAX    = 4
+};
+
+
 typedef struct ecmcMainThreadDiag{
   uint32_t period_ns;
   uint32_t exec_ns;

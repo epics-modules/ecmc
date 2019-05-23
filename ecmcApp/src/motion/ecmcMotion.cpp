@@ -2672,8 +2672,30 @@ int setAxisModFactor(int  axisIndex,
   return axes[axisIndex]->setModFactor(value);
 }
 
-/*int getAxisObject(int axisIndex, ecmcAxisBase **axisObj) {
+int getAxisModType(int  axisIndex,
+                   int *type){
+  LOGINFO4("%s/%s:%d axisIndex=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  *axisObj=axes[axisIndex];
+
+  *type = axes[axisIndex]->getModType();
   return 0;
-}*/
+}
+
+int setAxisModType(int axisIndex,
+                   int type) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, mod type=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           type);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->setModType(type);
+}

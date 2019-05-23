@@ -1653,6 +1653,27 @@ double ecmcAxisBase::getModFactor() {
   return data_.command_.moduloFactor;
 }
 
+int ecmcAxisBase::setModType(int type) {
+  
+  if(type < 0 || type >= ECMC_MOD_MOTION_MAX) {
+    LOGERR(
+       "ERROR (axis %d): Modulo type out of range (0x%x).\n",
+        data_.axisId_,ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE);
+
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE);
+  }
+  
+  data_.command_.moduloType = (ecmcMotionModType) type;
+  return 0;
+}
+
+int ecmcAxisBase::getModType() {
+  return (int)data_.command_.moduloType;
+}
+
 double ecmcAxisBase::getPosErrorMod() {
 
   double normalCaseError = data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
