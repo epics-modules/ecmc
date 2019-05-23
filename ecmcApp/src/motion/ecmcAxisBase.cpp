@@ -1672,23 +1672,23 @@ double ecmcAxisBase::getPosErrorMod() {
     //Moving forward (overflow)
     if(setDiff>0 || setDiff < -data_.command_.moduloFactor*ECMC_OVER_UNDER_FLOW_FACTOR) {
       printf("MOD: Moving forward \n");
-      //Actual lagging setpoint
+      //Actual lagging setpoint  ACT SET
       if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
-        return overUnderFlowError;
-      } 
-      else { //Actual before setpoint
         return -overUnderFlowError;
+      } 
+      else { //Actual before setpoint SET ACT
+        return +overUnderFlowError;
       }
     }
     else {
       //Moving backward (underflow)    
       printf("MOD: Moving Backward \n");
-      //Actual lagging setpoint
+      //Actual lagging setpoint SET ACT
       if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {             
-        return -overUnderFlowError;
-      } 
-      else { //Actual before setpoint
         return overUnderFlowError;
+      } 
+      else { //Actual before setpoint ACT SET
+        return +overUnderFlowError;
       }       
     }         
   }
