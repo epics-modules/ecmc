@@ -202,8 +202,7 @@ void ecmcAxisReal::execute(bool masterOK) {
         cntrl_->reset();
         cntrOutput = 0;
       } else {
-        cntrOutput = cntrl_->control(data_.status_.currentPositionSetpoint,
-                                     data_.status_.currentPositionActual,
+        cntrOutput = cntrl_->control(getPosErrorMod(),
                                      data_.status_.currentVelocitySetpoint);
       }
       mon_->setEnable(true);

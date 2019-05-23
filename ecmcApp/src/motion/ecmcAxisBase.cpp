@@ -1652,3 +1652,44 @@ int ecmcAxisBase::setModFactor(double mod) {
 double ecmcAxisBase::getModFactor() {
   return data_.command_.moduloFactor;
 }
+
+double ecmcAxisBase::getPosErrorMod() {
+  double normalCaseError = data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
+
+  if(data_.command_.moduloFactor !=0) {
+    if(std::abs(normalCaseError)<data_.command_.moduloFactor*ECMC_OVER_UNDER_FLOW_FACTOR) {
+      // No overflows
+      return normalCaseError;
+    } else {
+      double normalCaseErrorAbs = data_.command_.moduloFactor-std::abs(normalCaseError);
+
+      double  setDiff = data_.status_.currentPositionSetpoint - data_.status_.currentPositionSetpointOld;
+      //Moving forward (overflow)
+      if(setDiff>0 || setDiff < -data_.command_.moduloFactor*ECMC_OVER_UNDER_FLOW_FACTOR) {
+
+        //Actual lagging setpoint
+        if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
+          return normalCaseErrorAbs;
+        } 
+        else { //Actual before setpoint
+          return -normalCaseErrorAbs;
+        }
+      }
+    
+      //Moving backward (underflow)
+      if(setDiff<0 || setDiff > data_.command_.moduloFactor*ECMC_OVER_UNDER_FLOW_FACTOR) {
+
+        //Actual lagging setpoint
+        if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
+          return -normalCaseErrorAbs;
+        } 
+        else { //Actual before setpoint
+          return normalCaseErrorAbs;
+        }       
+      }      
+    }
+  }
+
+  //No modulo
+  return normalCaseError;
+}

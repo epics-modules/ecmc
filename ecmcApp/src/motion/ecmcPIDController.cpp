@@ -261,7 +261,7 @@ void ecmcPIDController::setIOutMin(double outMin) {
   outputIMin_ = outMin;
 }
 
-double ecmcPIDController::control(double set, double act, double ff) {
+double ecmcPIDController::control(double error, double ff) {
   // Simple PID loop with FF.
   // Consider to make base class to derive other controller types
 
@@ -271,8 +271,8 @@ double ecmcPIDController::control(double set, double act, double ff) {
   }
 
   ff_                       = ff * kff_;
-  data_->status_.cntrlError = data_->status_.currentPositionSetpoint -
-                              data_->status_.currentPositionActual;
+  
+  data_->status_.cntrlError = error;                              
   outputP_ = data_->status_.cntrlError * kp_;
   outputI_ = outputI_ + data_->status_.cntrlError * ki_;
 

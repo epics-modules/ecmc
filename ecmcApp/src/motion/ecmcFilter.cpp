@@ -18,21 +18,16 @@ ecmcFilter::~ecmcFilter() {}
 void ecmcFilter::initVars() {
   errorReset();
 
-  for (int i = 0; i < FILTER_BUFFER_SIZE_POS; i++) {
-    bufferPos_[i] = 0;
-  }
-
   for (int i = 0; i < FILTER_BUFFER_SIZE_VEL; i++) {
     bufferVel_[i] = 0;
   }
-  indexPos_ = 0;
   indexVel_ = 0;
 }
 
-double ecmcFilter::lowPassAveraging(double input) {
+double ecmcFilter::getFiltVelo(double distSinceLastScan) {
   double sum = 0;
 
-  bufferVel_[indexVel_] = input;
+  bufferVel_[indexVel_] = distSinceLastScan;
   indexVel_++;
 
   if (indexVel_ >= FILTER_BUFFER_SIZE_VEL) {
@@ -42,11 +37,14 @@ double ecmcFilter::lowPassAveraging(double input) {
   for (int i = 0; i < (FILTER_BUFFER_SIZE_VEL); i++) {
     sum = sum + bufferVel_[i];
   }
-  return sum / (static_cast<double>(FILTER_BUFFER_SIZE_VEL));
+
+  lastOutput_ = sum / (static_cast<double>(FILTER_BUFFER_SIZE_VEL))/sampleTime_;
+
+  return lastOutput_;
 }
 
 // returns velocity
-double ecmcFilter::positionBasedVelAveraging(double actPosition) {
+/*double ecmcFilter::positionBasedVelAveraging(double actPosition) {
   if (indexPos_ >= FILTER_BUFFER_SIZE_POS) {
     indexPos_ = 0;
   }
@@ -62,7 +60,7 @@ double ecmcFilter::positionBasedVelAveraging(double actPosition) {
     (sampleTime_ * static_cast<double>(FILTER_BUFFER_SIZE_POS)));
   indexPos_ = nextIndex;
   return vel;
-}
+}*/
 
 int ecmcFilter::reset() {
   initVars();
@@ -70,14 +68,11 @@ int ecmcFilter::reset() {
 }
 
 int ecmcFilter::initFilter(double pos) {
-  for (int i = 0; i < FILTER_BUFFER_SIZE_POS; i++) {
-    bufferPos_[i] = pos;
-  }
 
   for (int i = 0; i < FILTER_BUFFER_SIZE_VEL; i++) {
     bufferVel_[i] = 0;
   }
-  indexPos_ = 0;
+
   indexVel_ = 0;
   return 0;
 }

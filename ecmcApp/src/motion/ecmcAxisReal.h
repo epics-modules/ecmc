@@ -36,7 +36,7 @@ class ecmcAxisReal : public ecmcAxisBase {
  private:
   void               printOpModeState();
   void               printDriveType();
-  void               initVars();
+  void               initVars();  
   bool initDone_;
   bool temporaryLocalTrajSource_;
   ecmcDriveBase *drv_;

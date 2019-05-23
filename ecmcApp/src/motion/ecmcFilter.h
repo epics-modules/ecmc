@@ -22,23 +22,19 @@ class ecmcFilter : public ecmcError {
  public:
   explicit ecmcFilter(double sampleTime);
   ~ecmcFilter();
-  // returns velocity
-  double positionBasedVelAveraging(double actPosition);
   void   setSampleTime(double sampleTime);
   int    reset();
   // Init filter to certain position
   int    initFilter(double pos);
+  double getFiltVelo(double input);
 
  private:
   void   initVars();
-  double lowPassAveraging(double input);
   double bufferVel_[FILTER_BUFFER_SIZE_VEL];
-  double bufferPos_[FILTER_BUFFER_SIZE_POS];
   double my_;
   double last_;
-  double lastOuput_;
+  double lastOutput_;
   double sampleTime_;
-  int indexPos_;
   int indexVel_;
 };
 

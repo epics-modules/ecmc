@@ -204,6 +204,7 @@ class ecmcAxisBase : public ecmcError {
   int          refreshExternalInputSources();
   int          refreshExternalOutputSources();
   virtual void refreshDebugInfoStruct() = 0;
+  double       getPosErrorMod();
   bool cascadedCommandsEnable_;  // Allow other axis to enable and execute this
                                  // axis
   bool enableCommandTransform_;  // Allow other axis to enable and execute this

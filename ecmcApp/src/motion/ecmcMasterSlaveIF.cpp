@@ -338,13 +338,13 @@ int ecmcMasterSlaveIF::refreshInputs() {
     }
 
     if (velocityFilterEnable_) {
-      externalVelocity_ = velocityFilter_->positionBasedVelAveraging(
-        externalPosition_);
+      externalVelocity_ = velocityFilter_->getFiltVelo(
+        externalPosition_-externalPositionOld_);
     } else {
       externalVelocity_ = (externalPosition_ - externalPositionOld_) /
-                          sampleTime_;
-      externalPositionOld_ = externalPosition_;
+                          sampleTime_;      
     }
+    externalPositionOld_ = externalPosition_;
     
     // 1=OK, 0=STOP
     if (!getExtInputInterlock(defaultAxisId_, ECMC_TRANSFORM_VAR_TYPE_IL)) {

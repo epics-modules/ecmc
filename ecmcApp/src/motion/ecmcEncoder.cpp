@@ -328,7 +328,7 @@ int64_t ecmcEncoder::handleOverUnderFlow(uint64_t rawPosOld,
                                          int64_t  rawTurns,
                                          uint64_t rawLimit,
                                          int      bits) {
-  int turns = rawTurns;
+  int64_t turns = rawTurns;
   // Only support for over/under flow of datatypes less than 64 bit
   if (bits < 64) {
     // Overflow
@@ -395,7 +395,7 @@ int ecmcEncoder::setAbsBits(int absBits) {
 
   absBits_     = absBits;
   rawAbsRange_ = pow(2, absBits_);
-  rawAbsLimit_ = rawAbsRange_ * 2.0 / 3.0;  // Limit for over/under-flow
+  rawAbsLimit_ = rawAbsRange_ * ECMC_OVER_UNDER_FLOW_FACTOR;  // Limit for over/under-flow
   return 0;
 }
 
@@ -423,7 +423,7 @@ int ecmcEncoder::setRawMask(uint64_t mask) {
 
   bits_     = bitWidth;
   rawRange_ = pow(2, bits_) - 1;
-  rawLimit_ = rawRange_ * 2.0 / 3.0;  // Limit for over/under-flow
+  rawLimit_ = rawRange_ * ECMC_OVER_UNDER_FLOW_FACTOR;  // Limit for over/under-flow
 
   if (totalRawRegShift_ != mask) {
     LOGINFO15("%s/%s:%d: axis[%d].encoder.rawmask=%" PRIx64 ";\n",
@@ -470,6 +470,7 @@ double ecmcEncoder::readEntries() {
   // Filter value with mask
   rawPosUintOld_ = rawPosUint_;
   rawPosUint_    = (totalRawMask_ & tempRaw) - totalRawRegShift_;
+  
 
   // Check over/underflow (update turns counter)
   rawTurnsOld_ = rawTurns_;
@@ -488,10 +489,32 @@ double ecmcEncoder::readEntries() {
     rawAbsPosUintOld_ = 0;
     rawAbsPosUint_    = 0;
   }
-
   actPosOld_ = actPos_;
   actPos_    = scale_ * rawPosMultiTurn_ + engOffset_;
-  actVel_    = velocityFilter_->positionBasedVelAveraging(actPos_);
+  //Not affected by modulo
+  actVel_    = velocityFilter_->getFiltVelo(actPos_ - actPosOld_);
+
+  // Check modulo
+  if(data_->command_.moduloFactor != 0) {    
+    if(actPos_ > data_->command_.moduloFactor){
+      actPos_ = actPos_-data_->command_.moduloFactor;
+      // Reset stuff to be able to run forever
+      engOffset_       = 0;
+      rawTurnsOld_     = 0;
+      rawTurns_        = 0;
+      rawPosOffset_    = actPos_ / scale_ - rawPosUint_;
+      rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
+    }
+    if(actPos_ < 0){
+      actPos_ = data_->command_.moduloFactor + actPos_;
+      // Reset stuff to be able to run forever
+      engOffset_       = 0;
+      rawTurnsOld_     = 0;
+      rawTurns_        = 0;
+      rawPosOffset_    = actPos_ / scale_ - rawPosUint_;
+      rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
+    }
+  }
 
   // Encoder latch entries (status and position)
   if (encLatchFunctEnabled_) {

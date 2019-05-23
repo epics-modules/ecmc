@@ -22,7 +22,6 @@
 #define ECMC_MAX_AXES 64
 #define ECMC_MAX_PLCS 8
 
-// Test new conversion
 #define TIMESPEC2NS(T) ((uint64_t)(((T).tv_sec - 946684800ULL) * \
                                    1000000000ULL) + (T).tv_nsec)
 
@@ -55,6 +54,8 @@
 #define EC_MAX_MEM_MAPS 16
 #define EC_MAX_SLAVES 512
 #define EC_START_TIMEOUT_S 30
+
+#define ECMC_OVER_UNDER_FLOW_FACTOR (0.7)
 
 // EC entry links
 #define ECMC_EC_ENTRY_INDEX_HEALTH 0
