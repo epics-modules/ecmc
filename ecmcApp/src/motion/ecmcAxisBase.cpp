@@ -1667,17 +1667,17 @@ double ecmcAxisBase::getPosErrorMod() {
   } else {
     //Overflow has happended in either encoder or setpoint
     double overUnderFlowError = data_.command_.moduloFactor-std::abs(normalCaseError);
-    printf("overUnderFlowError: %lf\n",overUnderFlowError);
+    printf("\noverUnderFlowError: %lf\n",overUnderFlowError);
     double  setDiff = data_.status_.currentPositionSetpoint - data_.status_.currentPositionSetpointOld;
     //Moving forward (overflow)
     if(setDiff>0 || setDiff < -data_.command_.moduloFactor*ECMC_OVER_UNDER_FLOW_FACTOR) {
       printf("MOD: Moving forward \n");
       //Actual lagging setpoint  ACT SET
       if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
-        return -overUnderFlowError;
+        return overUnderFlowError;
       } 
       else { //Actual before setpoint SET ACT
-        return +overUnderFlowError;
+        return -overUnderFlowError;
       }
     }
     else {
@@ -1685,10 +1685,10 @@ double ecmcAxisBase::getPosErrorMod() {
       printf("MOD: Moving Backward \n");
       //Actual lagging setpoint SET ACT
       if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {             
-        return overUnderFlowError;
+        return -overUnderFlowError;
       } 
       else { //Actual before setpoint ACT SET
-        return +overUnderFlowError;
+        return overUnderFlowError;
       }       
     }         
   }
