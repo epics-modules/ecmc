@@ -298,7 +298,7 @@ double ecmcTrajectoryTrapetz::updateSetpoint(double nextSetpoint,
                                              double nextVelocity) {
   posSetMinus1_            = currentPositionSetpoint_;
   currentPositionSetpoint_ = checkModuloPos(nextSetpoint); //=nextSetpoint;
-  prevStepSize_            = dist(posSetMinus1_,currentPositionSetpoint_);
+  prevStepSize_            = dist(posSetMinus1_,currentPositionSetpoint_,setDirection_);
   /*printf("updateSetpoint() prevdistance %lf (from %lf, to %lf)\n",
     prevStepSize_,
     posSetMinus1_,
@@ -332,7 +332,7 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
 
   if (busy_) { 
 
-    *actVelocity = dist(currentPositionSetpoint_,posSetTemp) / sampleTime_;
+    *actVelocity = dist(currentPositionSetpoint_,posSetTemp,setDirection_) / sampleTime_;
   }
   return posSetTemp;
 }
@@ -356,7 +356,6 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
     positionStep = stepNOM_;
   }
 
-  //printf("Position Step %lf, %lf\n",positionStep,prevStepSize_ );
   if (setDirection_ == ECMC_DIR_FORWARD) {
     posSetTemp = currSetpoint + positionStep;
   } else {
@@ -640,7 +639,11 @@ bool ecmcTrajectoryTrapetz::getEnable() {
   return enable_;
 }
 
-void ecmcTrajectoryTrapetz::setExecute(bool execute) {
+int ecmcTrajectoryTrapetz::setExecute(bool execute) {
+
+  double distFWD = 0;
+  double distBWD = 0;
+
   LOGINFO6("%s/%s:%d: INFO: setExecute=%d.\n",
            __FILE__,
            __FUNCTION__,
@@ -664,11 +667,10 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute) {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           ERROR_TRAJ_NOT_ENABLED);
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_NOT_ENABLED);
+           ERROR_TRAJ_NOT_ENABLED);    
     execute_  = false;
     velocity_ = 0;
-    return;
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_NOT_ENABLED);;
   }
 
   if (!executeOld_ && execute_) {
@@ -686,12 +688,69 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute) {
 
     case ECMC_MOVE_MODE_POS:
 
-      if (targetPosition_ < currentPositionSetpoint_) {
-        setDirection_ = ECMC_DIR_BACKWARD;
-      } else {
-        setDirection_ = ECMC_DIR_FORWARD;
+      // Normal motion
+      if(data_->command_.moduloFactor==0) {
+        if (targetPosition_ < currentPositionSetpoint_) {
+          setDirection_ = ECMC_DIR_BACKWARD;
+        } else {
+          setDirection_ = ECMC_DIR_FORWARD;
+        }
+        break;
+      } else { 
+     
+        if(data_->command_.moduloFactor < 0) {
+          LOGERR("%s/%s:%d: ERROR: Modulo factor out of range (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
+          return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
+        }
+
+        // Modulo motion
+        switch (data_->command_.moduloType)
+        {
+        case ECMC_MOD_MOTION_BWD:
+
+          setDirection_ = ECMC_DIR_BACKWARD;
+          break;
+
+        case ECMC_MOD_MOTION_FWD:
+
+          setDirection_ = ECMC_DIR_FORWARD;
+          break;
+
+        case ECMC_MOD_MOTION_NORMAL:
+
+          if (targetPosition_ < currentPositionSetpoint_) {
+            setDirection_ = ECMC_DIR_BACKWARD;
+          } else {
+            setDirection_ = ECMC_DIR_FORWARD;
+          }
+          break;
+        case ECMC_MOD_MOTION_CLOSEST:        
+
+          distFWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_FORWARD));
+          distBWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_BACKWARD));
+          if(distBWD < distFWD) {
+            setDirection_ = ECMC_DIR_BACKWARD;
+          } else {
+            setDirection_ = ECMC_DIR_FORWARD;
+          }
+
+          printf("MOD %s\n",setDirection_ == ECMC_DIR_BACKWARD ? "ECMC_DIR_BACKWARD" : "ECMC_DIR_FORWARD" );
+          break;
+
+        default:
+          LOGERR("%s/%s:%d: ERROR: Modulo type out of range (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE);
+          return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE);
+          break;
+        }
       }
-      break;
     }
 
     if (!busy_) {
@@ -715,6 +774,7 @@ void ecmcTrajectoryTrapetz::setExecute(bool execute) {
              __FUNCTION__,
              __LINE__);
   }
+  return 0;
 }
 
 void ecmcTrajectoryTrapetz::setStartPos(double pos) {
@@ -810,14 +870,14 @@ motionDirection ecmcTrajectoryTrapetz::getCurrSetDir() {
 }
 
 /* Calculates distance between two points*/
-double ecmcTrajectoryTrapetz::dist(double from, double to) {
+double ecmcTrajectoryTrapetz::dist(double from, double to, motionDirection direction) {
   //check if modulo enabled
   if(data_->command_.moduloFactor==0){
     return to-from;
   }
   
   //modulo
-  switch(setDirection_){
+  switch(direction){
     case ECMC_DIR_BACKWARD:
       if(from>to){
         return to-from;

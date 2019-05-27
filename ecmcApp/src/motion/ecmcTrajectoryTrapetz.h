@@ -31,6 +31,8 @@
 #define ERROR_TRAJ_TRANSFORM_VALIDATION_ERROR 0x14E13
 #define ERROR_TRAJ_SLAVE_INTERFACE_NULL 0x14E14
 #define ERROR_TRAJ_MAX_SPEED_INTERLOCK 0x14E15
+#define ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE 0x14E16
+#define ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE 0x14E17
 
 /**
  * \class ecmcTrajectoryTrapetz
@@ -136,7 +138,7 @@ class ecmcTrajectoryTrapetz : public ecmcError {
    * Normally encoder position at amplifier enable
    */
   void            setStartPos(double pos);
-  void            setExecute(bool execute);
+  int             setExecute(bool execute);
   bool            getExecute();
   void            setEnable(bool enable);
   bool            getEnable();
@@ -177,7 +179,8 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   motionDirection checkDirection(double oldPos,
                                  double newPos);
   double          dist(double from,
-                       double to);
+                       double to,
+                       motionDirection direction);
   double          checkModuloPos(double pos);
   double acceleration_;
   double deceleration_;

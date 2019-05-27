@@ -783,6 +783,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14E16:
+    return "ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE";
+
+    break;
+
+  case 0x14E17:
+    return "ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE";
+
+    break;
+
   case 0x14F00:    // VIRTUAL AXIS
     return "ERROR_VIRT_AXIS_TRAJ_NULL";
 

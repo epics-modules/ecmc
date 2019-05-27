@@ -352,6 +352,7 @@ void ecmcAxisSequencer::execute() {
 }
 
 int ecmcAxisSequencer::setExecute(bool execute) {
+  int errorCode=0;
   if (traj_ == NULL) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
   }
@@ -371,8 +372,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   seqState_               = 0;
 
   if (data_->command_.execute  && !executeOld_) {
-    int errorCode = checkVelAccDec();
-
+    
+    errorCode = checkVelAccDec();
     if (errorCode) {
       return errorCode;
     }
@@ -394,7 +395,12 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         data_->command_.positionTarget);
       traj_->setTargetPos(data_->command_.positionTarget);
     }
-    traj_->setExecute(data_->command_.execute);
+
+    errorCode =  traj_->setExecute(data_->command_.execute);
+    if (errorCode) {
+      return errorCode;
+    }
+
     break;
 
   case ECMC_CMD_MOVEREL:
@@ -406,7 +412,11 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       traj_->setTargetPos(checkSoftLimits(traj_->getCurrentPosSet() +
                                           data_->command_.positionTarget));
     }
-    traj_->setExecute(data_->command_.execute);
+    errorCode = traj_->setExecute(data_->command_.execute);
+    if (errorCode) {
+      return errorCode;
+    }
+
     break;
 
   case ECMC_CMD_MOVEABS:
@@ -436,7 +446,11 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         break;
       }
     }
-    traj_->setExecute(data_->command_.execute);
+    errorCode = traj_->setExecute(data_->command_.execute);
+    if (errorCode) {
+      return errorCode;
+    }
+
     break;
 
   case ECMC_CMD_MOVEMODULO:
@@ -490,7 +504,10 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
     } else if (!data_->command_.execute) {
       stopSeq();
-      traj_->setExecute(data_->command_.execute);
+      errorCode = traj_->setExecute(data_->command_.execute);
+      if (errorCode) {
+        return errorCode;
+      }
     }
     break;
 
