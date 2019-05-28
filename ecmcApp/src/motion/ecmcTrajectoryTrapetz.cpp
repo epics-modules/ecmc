@@ -333,6 +333,7 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
   if (busy_) { 
 
     *actVelocity = dist(currentPositionSetpoint_,posSetTemp,setDirection_) / sampleTime_;
+    //printf("Actvel: %lf\n", *actVelocity);
   }
   return posSetTemp;
 }
@@ -374,13 +375,14 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   double positionStep = 0;
   double posSetTemp   = 0;
   bool   timeToStop   = false;
-  bool   changeDir    = false;
+  //bool   changeDir    = false;
 
   *trajBusy = true;
-  changeDir =
-    ((targetSetpoint - currSetpoint) * currVelo < 0 && std::abs(currVelo)) > 0;
-  timeToStop = stopDistance > std::abs(targetSetpoint - currSetpoint) ||
-               changeDir;
+  /*changeDir =
+    ((targetSetpoint - currSetpoint) * currVelo < 0 && std::abs(currVelo)) > 0;*/
+
+  timeToStop = stopDistance > std::abs(dist(currSetpoint,targetSetpoint,setDirection_)); /*||
+               changeDir;*/
 
   if (!timeToStop) {
     if (std::abs(currVelo) < std::abs(targetVelo)) {
@@ -398,8 +400,9 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
     } else {
       posSetTemp = currSetpoint - positionStep;
     }
-
-    if (posSetTemp >= targetSetpoint) {
+    
+    //if (posSetTemp >= targetSetpoint) {
+    if(dist(posSetTemp,targetSetpoint,ECMC_DIR_FORWARD) >= 0) {
       posSetTemp      = targetSetpoint;
       // To allow for at target monitoring to go high (and then also bBusy)
       targetPosition_ = posSetTemp;
@@ -411,8 +414,9 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
     } else {
       posSetTemp = currSetpoint + positionStep;
     }
-
-    if (posSetTemp <= targetSetpoint) {
+    
+    //if (posSetTemp <= targetSetpoint) {
+    if(dist(posSetTemp,targetSetpoint,ECMC_DIR_BACKWARD) <= 0) {
       posSetTemp      = targetSetpoint;
       // To allow for at target monitoring to go high (and then also bBusy)
       targetPosition_ = posSetTemp;
@@ -738,7 +742,7 @@ int ecmcTrajectoryTrapetz::setExecute(bool execute) {
             setDirection_ = ECMC_DIR_FORWARD;
           }
 
-          printf("MOD %s\n",setDirection_ == ECMC_DIR_BACKWARD ? "ECMC_DIR_BACKWARD" : "ECMC_DIR_FORWARD" );
+          //printf("MOD %s\n",setDirection_ == ECMC_DIR_BACKWARD ? "ECMC_DIR_BACKWARD" : "ECMC_DIR_FORWARD" );
           break;
 
         default:
@@ -879,13 +883,13 @@ double ecmcTrajectoryTrapetz::dist(double from, double to, motionDirection direc
   //modulo
   switch(direction){
     case ECMC_DIR_BACKWARD:
-      if(from>to){
+      if(from > to){
         return to-from;
       }
       return -from-(data_->command_.moduloFactor-to);
     break;
     case ECMC_DIR_FORWARD:
-      if(from<to){
+      if(from < to){
         return to-from;
       }
       return to + (data_->command_.moduloFactor-from);
