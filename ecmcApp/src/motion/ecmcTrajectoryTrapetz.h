@@ -181,7 +181,8 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   double          dist(double from,
                        double to,
                        motionDirection direction);
-  double          checkModuloPos(double pos);
+  double          checkModuloPos(double pos,
+                       motionDirection direction);
   double acceleration_;
   double deceleration_;
   double decelerationEmergency_;
@@ -211,6 +212,6 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   motionMode motionMode_;
   interlockTypes interlockStatus_;
   ecmcAxisData *data_;
-  stopMode latchedStopMode_;
+  stopMode latchedStopMode_;  
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_

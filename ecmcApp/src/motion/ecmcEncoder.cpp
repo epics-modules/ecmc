@@ -496,7 +496,7 @@ double ecmcEncoder::readEntries() {
 
   // Check modulo
   if(data_->command_.moduloFactor != 0) {    
-    if(actPos_ > data_->command_.moduloFactor){
+    if(actPos_ >= data_->command_.moduloFactor){
       actPos_ = actPos_-data_->command_.moduloFactor;
       // Reset stuff to be able to run forever
       engOffset_       = 0;

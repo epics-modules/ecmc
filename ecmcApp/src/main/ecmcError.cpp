@@ -672,6 +672,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE";
 
     break;
+  case 0x14D15:
+    return "ERROR_SEQ_TARGET_POS_OUT_OF_RANGE";
+
+    break;
 
   case 0x14E00:    // TRAJECTORY
     return "ERROR_TRAJ_EXT_ENC_NULL";

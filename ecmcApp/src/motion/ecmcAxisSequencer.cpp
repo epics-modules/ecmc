@@ -422,6 +422,21 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   case ECMC_CMD_MOVEABS:
 
     if (data_->command_.execute && !executeOld_) {
+      if(data_->command_.moduloFactor>0) {
+        if(data_->command_.positionTarget<0 || data_->command_.positionTarget>= data_->command_.moduloFactor) {
+          LOGERR(
+            "%s/%s:%d: ERROR: Invalid target position. Allowed range 0..%lf (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            data_->command_.moduloFactor,
+            ERROR_SEQ_TARGET_POS_OUT_OF_RANGE);
+          return setErrorID(__FILE__,
+                            __FUNCTION__,
+                            __LINE__,
+                              ERROR_SEQ_TARGET_POS_OUT_OF_RANGE);
+        }
+      }
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);

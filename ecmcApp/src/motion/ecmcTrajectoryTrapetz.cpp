@@ -297,7 +297,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
 double ecmcTrajectoryTrapetz::updateSetpoint(double nextSetpoint,
                                              double nextVelocity) {
   posSetMinus1_            = currentPositionSetpoint_;
-  currentPositionSetpoint_ = checkModuloPos(nextSetpoint); //=nextSetpoint;
+  currentPositionSetpoint_ = checkModuloPos(nextSetpoint,setDirection_); //=nextSetpoint;
   prevStepSize_            = dist(posSetMinus1_,currentPositionSetpoint_,setDirection_);
   /*printf("updateSetpoint() prevdistance %lf (from %lf, to %lf)\n",
     prevStepSize_,
@@ -374,17 +374,19 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                                       bool  *trajBusy) {
   double positionStep = 0;
   double posSetTemp   = 0;
-  bool   timeToStop   = false;
+  bool   stopping   = false;
   //bool   changeDir    = false;
 
   *trajBusy = true;
   /*changeDir =
     ((targetSetpoint - currSetpoint) * currVelo < 0 && std::abs(currVelo)) > 0;*/
-
-  timeToStop = stopDistance > std::abs(dist(currSetpoint,targetSetpoint,setDirection_)); /*||
+  
+  double distToTargetOld = dist(currSetpoint,targetSetpoint,setDirection_);
+  
+  stopping = stopDistance > std::abs(distToTargetOld); /*||
                changeDir;*/
 
-  if (!timeToStop) {
+  if (!stopping) {
     if (std::abs(currVelo) < std::abs(targetVelo)) {
       positionStep = std::abs(prevStepSize_) + stepACC_;
     } else {
@@ -393,37 +395,36 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   } else {
     positionStep = std::abs(prevStepSize_) - stepDEC_;
   }
-
+  
   if (setDirection_ == ECMC_DIR_FORWARD) {
     if (currVelo >= 0) {
       posSetTemp = currSetpoint + positionStep;
     } else {
       posSetTemp = currSetpoint - positionStep;
     }
-    
-    //if (posSetTemp >= targetSetpoint) {
-    if(dist(posSetTemp,targetSetpoint,ECMC_DIR_FORWARD) >= 0) {
-      posSetTemp      = targetSetpoint;
-      // To allow for at target monitoring to go high (and then also bBusy)
-      targetPosition_ = posSetTemp;
-      *trajBusy       = false;
-    }
-  } else {    // Negative
+
+  } else {    
+    // Negative Direction setpoint
     if (currVelo <= 0) {
       posSetTemp = currSetpoint - positionStep;
     } else {
       posSetTemp = currSetpoint + positionStep;
     }
-    
-    //if (posSetTemp <= targetSetpoint) {
-    if(dist(posSetTemp,targetSetpoint,ECMC_DIR_BACKWARD) <= 0) {
-      posSetTemp      = targetSetpoint;
-      // To allow for at target monitoring to go high (and then also bBusy)
-      targetPosition_ = posSetTemp;
-      *trajBusy       = false;
-    }
   }
 
+  posSetTemp = checkModuloPos(posSetTemp,setDirection_);
+  double distToTargetnNew = dist(posSetTemp,targetSetpoint,setDirection_);
+  
+  // Tarjectory finished if passing target position
+  if( std::abs(distToTargetOld) <= std::abs(distToTargetnNew) || 
+      distToTargetnNew == 0 || distToTargetOld == 0) {
+    posSetTemp      = targetSetpoint;
+    // To allow for at target monitoring to go high (and then also bBusy)
+    targetPosition_ = posSetTemp;
+    *trajBusy       = false;
+  }
+
+  printf("Dist To target old %lf new %lf busy %d (old set %lf , new set %lf)\n",distToTargetOld,distToTargetnNew,*trajBusy,currSetpoint,posSetTemp);
   return posSetTemp; //checkModuloPos(posSetTemp);
 }
 
@@ -901,12 +902,13 @@ double ecmcTrajectoryTrapetz::dist(double from, double to, motionDirection direc
   return 0;
 }
 
-double ecmcTrajectoryTrapetz::checkModuloPos(double pos){
+double ecmcTrajectoryTrapetz::checkModuloPos(double pos,
+                                             motionDirection direction) {
   //check modulo (allowed range 0..data_->command_.moduloFactor)
   double posSetTemp = pos;
   if(data_->command_.moduloFactor!=0) {
-    if (setDirection_ == ECMC_DIR_FORWARD) {
-      if(posSetTemp > data_->command_.moduloFactor) {
+    if (direction == ECMC_DIR_FORWARD) {
+      if(posSetTemp >= data_->command_.moduloFactor) {
         posSetTemp = posSetTemp - data_->command_.moduloFactor;
       }
     } else {
@@ -915,6 +917,6 @@ double ecmcTrajectoryTrapetz::checkModuloPos(double pos){
       }
     }
   }
-  //printf("checkModuloPos input %lf, output %lf\n",pos, posSetTemp);
+  
   return posSetTemp;
 }
