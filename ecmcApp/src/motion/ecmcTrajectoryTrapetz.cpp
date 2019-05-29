@@ -299,10 +299,6 @@ double ecmcTrajectoryTrapetz::updateSetpoint(double nextSetpoint,
   posSetMinus1_            = currentPositionSetpoint_;
   currentPositionSetpoint_ = checkModuloPos(nextSetpoint,setDirection_); //=nextSetpoint;
   prevStepSize_            = dist(posSetMinus1_,currentPositionSetpoint_,setDirection_);
-  /*printf("updateSetpoint() prevdistance %lf (from %lf, to %lf)\n",
-    prevStepSize_,
-    posSetMinus1_,
-    currentPositionSetpoint_);*/
   velocity_                = nextVelocity;
   distToStop_              = distToStop(velocity_);
   return currentPositionSetpoint_;
@@ -333,7 +329,6 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
   if (busy_) { 
 
     *actVelocity = dist(currentPositionSetpoint_,posSetTemp,setDirection_) / sampleTime_;
-    //printf("Actvel: %lf\n", *actVelocity);
   }
   return posSetTemp;
 }
@@ -424,7 +419,6 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
     *trajBusy       = false;
   }
 
-  printf("Dist To target old %lf new %lf busy %d (old set %lf , new set %lf)\n",distToTargetOld,distToTargetnNew,*trajBusy,currSetpoint,posSetTemp);
   return posSetTemp; //checkModuloPos(posSetTemp);
 }
 
@@ -743,7 +737,6 @@ int ecmcTrajectoryTrapetz::setExecute(bool execute) {
             setDirection_ = ECMC_DIR_FORWARD;
           }
 
-          //printf("MOD %s\n",setDirection_ == ECMC_DIR_BACKWARD ? "ECMC_DIR_BACKWARD" : "ECMC_DIR_FORWARD" );
           break;
 
         default:
