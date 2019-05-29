@@ -11,7 +11,7 @@ typedef struct {
   double             velocityTarget;
   double             softLimitBwd;
   double             softLimitFwd;
-  double             moduloFactor;
+  double             moduloRange;
   ecmcMotionModType  moduloType;
   motionCommandTypes command;
   int                cmdData;

@@ -1632,7 +1632,7 @@ int ecmcAxisBase::setBlockExtCom(int block) {
   return 0;
 }
 
-int ecmcAxisBase::setModFactor(double mod) {
+int ecmcAxisBase::setModRange(double mod) {
   //Must be same mod factor in traj and enc
   if(mod<0) {
     LOGERR(
@@ -1645,12 +1645,12 @@ int ecmcAxisBase::setModFactor(double mod) {
                       ERROR_AXIS_MODULO_OUT_OF_RANGE);
 
   }
-  data_.command_.moduloFactor = mod;
+  data_.command_.moduloRange = mod;
   return 0;
 }
 
-double ecmcAxisBase::getModFactor() {
-  return data_.command_.moduloFactor;
+double ecmcAxisBase::getModRange() {
+  return data_.command_.moduloRange;
 }
 
 int ecmcAxisBase::setModType(int type) {
@@ -1677,20 +1677,20 @@ int ecmcAxisBase::getModType() {
 double ecmcAxisBase::getPosErrorMod() {
 
   double normalCaseError = data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
-  if(data_.command_.moduloFactor==0) {
+  if(data_.command_.moduloRange==0) {
     return normalCaseError;
   }
   
   // Modulo
-  if(std::abs(normalCaseError)<data_.command_.moduloFactor*ECMC_OVER_UNDER_FLOW_FACTOR) {
+  if(std::abs(normalCaseError)<data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
     // No overflows 
     return normalCaseError;
   } else {
     //Overflow has happended in either encoder or setpoint
-    double overUnderFlowError = data_.command_.moduloFactor-std::abs(normalCaseError);
+    double overUnderFlowError = data_.command_.moduloRange-std::abs(normalCaseError);
     double  setDiff = data_.status_.currentPositionSetpoint - data_.status_.currentPositionSetpointOld;
     //Moving forward (overflow)
-    if(setDiff>0 || setDiff < -data_.command_.moduloFactor*ECMC_OVER_UNDER_FLOW_FACTOR) {
+    if(setDiff>0 || setDiff < -data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
       //Actual lagging setpoint  ACT SET
       if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
         return overUnderFlowError;

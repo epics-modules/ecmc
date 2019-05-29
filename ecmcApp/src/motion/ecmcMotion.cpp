@@ -2644,7 +2644,7 @@ int setDiagAxisEnable(int value) {
   return 0;
 }
 
-int getAxisModFactor(int  axisIndex,
+int getAxisModRange(int  axisIndex,
                      double *value){
   LOGINFO4("%s/%s:%d axisIndex=%d \n",
            __FILE__,
@@ -2654,13 +2654,13 @@ int getAxisModFactor(int  axisIndex,
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  *value=axes[axisIndex]->getModFactor();
+  *value=axes[axisIndex]->getModRange();
   return 0;
 }
 
-int setAxisModFactor(int  axisIndex,
+int setAxisModRange(int  axisIndex,
                      double value) {
-  LOGINFO4("%s/%s:%d axisIndex=%d, modfactor=%lf \n",
+  LOGINFO4("%s/%s:%d axisIndex=%d, ModRange=%lf \n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -2669,7 +2669,7 @@ int setAxisModFactor(int  axisIndex,
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->setModFactor(value);
+  return axes[axisIndex]->setModRange(value);
 }
 
 int getAxisModType(int  axisIndex,

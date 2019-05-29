@@ -2785,34 +2785,37 @@ int setDiagAxisFreq(int freq);
  */
 int setDiagAxisEnable(int enable);
 
-/** \breif Get axis modulo factor.\n
+/** \breif Get axis modulo range.\n
  *
  * \param[in] axisIndex  Axis index.\n
- * \param[out] value  modulo factor.\n
+ * \param[out] value  modulo range.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Get modulo factor for axis 3.\n
- * "GetAxisModFactor(3)" //Command string to ecmcCmdParser.c.\n
+ * \note Example: Get modulo range for axis 3.\n
+ * "GetAxisModRange(3)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisModFactor(int  axisIndex,
-                     double *value);
+int getAxisModRange(int  axisIndex,
+                    double *range);
 
-/** \breif Set axis modulo factor.\n
+/** \breif Set axis modulo range.\n
  *
  * \param[in] axisIndex  Axis index.\n
- * \param[in] value  modulo factor.\n
+ * \param[in] value  modulo range.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set modulo factor for axis 3 to 360.\n
- * "Cfg.SetAxisModFactor(3,360)" //Command string to ecmcCmdParser.c.\n
+ * \note Example: Set modulo range for axis 3 to 360.\n
+ * "Cfg.SetAxisModRange(3,360)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisModFactor(int  axisIndex,
-                     double value);
+int setAxisModRange(int  axisIndex,
+                    double range);
 
 /** \breif Set axis modulo motion type.\n
- *
+ * 
+ * Used for positioning if modulo range is set (setAxisModRange())\n
+ * to a value greater than 0.\n
+ * 
  * \param[in] axisIndex  Axis index.\n
  * \param[in] type Modulo type.\n
  *    type = 0 : ECMC_MOD_MOTION_NORMAL\n

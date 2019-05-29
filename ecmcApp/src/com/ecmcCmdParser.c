@@ -1598,11 +1598,11 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisDrvType(iValue, iValue2);
   }
 
-  /*int Cfg.SetAxisModFactor(int axis_no, double modfactor);*/
-  nvals = sscanf(myarg_1, "SetAxisModFactor(%d,%lf)", &iValue, &dValue);
+  /*int Cfg.SetAxisModRange(int axis_no, double range);*/
+  nvals = sscanf(myarg_1, "SetAxisModRange(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
-    return setAxisModFactor(iValue, dValue);
+    return setAxisModRange(iValue, dValue);
   }
 
   /*int Cfg.SetAxisModType(int axis_no, int type);*/
@@ -2424,11 +2424,11 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisType(motor_axis_no, &iValue));
   }
 
-  /*GetAxisModFactor(int nAxis)*/
-  nvals = sscanf(myarg_1, "GetAxisModFactor(%d)", &motor_axis_no);
+  /*GetAxisModRange(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisModRange(%d)", &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisModFactor(motor_axis_no, &fValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisModRange(motor_axis_no, &fValue));
   }
 
   /*GetAxisModType(int nAxis)*/

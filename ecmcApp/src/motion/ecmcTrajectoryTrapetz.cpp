@@ -688,7 +688,7 @@ int ecmcTrajectoryTrapetz::setExecute(bool execute) {
     case ECMC_MOVE_MODE_POS:
 
       // Normal motion
-      if(data_->command_.moduloFactor==0) {
+      if(data_->command_.moduloRange==0) {
         if (targetPosition_ < currentPositionSetpoint_) {
           setDirection_ = ECMC_DIR_BACKWARD;
         } else {
@@ -697,7 +697,7 @@ int ecmcTrajectoryTrapetz::setExecute(bool execute) {
         break;
       } else { 
      
-        if(data_->command_.moduloFactor < 0) {
+        if(data_->command_.moduloRange < 0) {
           LOGERR("%s/%s:%d: ERROR: Modulo factor out of range (0x%x).\n",
             __FILE__,
             __FUNCTION__,
@@ -870,7 +870,7 @@ motionDirection ecmcTrajectoryTrapetz::getCurrSetDir() {
 /* Calculates distance between two points*/
 double ecmcTrajectoryTrapetz::dist(double from, double to, motionDirection direction) {
   //check if modulo enabled
-  if(data_->command_.moduloFactor==0){
+  if(data_->command_.moduloRange==0){
     return to-from;
   }
   
@@ -880,13 +880,13 @@ double ecmcTrajectoryTrapetz::dist(double from, double to, motionDirection direc
       if(from > to){
         return to-from;
       }
-      return -from-(data_->command_.moduloFactor-to);
+      return -from-(data_->command_.moduloRange-to);
     break;
     case ECMC_DIR_FORWARD:
       if(from < to){
         return to-from;
       }
-      return to + (data_->command_.moduloFactor-from);
+      return to + (data_->command_.moduloRange-from);
     break;
     
     case ECMC_DIR_STANDSTILL:
@@ -897,16 +897,16 @@ double ecmcTrajectoryTrapetz::dist(double from, double to, motionDirection direc
 
 double ecmcTrajectoryTrapetz::checkModuloPos(double pos,
                                              motionDirection direction) {
-  //check modulo (allowed range 0..data_->command_.moduloFactor)
+  //check modulo (allowed range 0..data_->command_.moduloRange)
   double posSetTemp = pos;
-  if(data_->command_.moduloFactor!=0) {
+  if(data_->command_.moduloRange!=0) {
     if (direction == ECMC_DIR_FORWARD) {
-      if(posSetTemp >= data_->command_.moduloFactor) {
-        posSetTemp = posSetTemp - data_->command_.moduloFactor;
+      if(posSetTemp >= data_->command_.moduloRange) {
+        posSetTemp = posSetTemp - data_->command_.moduloRange;
       }
     } else {
       if(posSetTemp < 0) {
-        posSetTemp = data_->command_.moduloFactor + posSetTemp;
+        posSetTemp = data_->command_.moduloRange + posSetTemp;
       }
     }
   }

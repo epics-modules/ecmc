@@ -192,8 +192,8 @@ class ecmcAxisBase : public ecmcError {
   int                   initAsyn();
   int                   setEcStatusOutputEntry(ecmcEcEntry *entry);
   motionDirection       getAxisSetDirection();
-  int                   setModFactor(double mod);
-  double                getModFactor();
+  int                   setModRange(double mod);
+  double                getModRange();
   int                   setModType(int type);
   int                   getModType();
 

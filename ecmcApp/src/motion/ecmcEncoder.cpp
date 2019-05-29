@@ -495,9 +495,9 @@ double ecmcEncoder::readEntries() {
   actVel_    = velocityFilter_->getFiltVelo(actPos_ - actPosOld_);
 
   // Check modulo
-  if(data_->command_.moduloFactor != 0) {    
-    if(actPos_ >= data_->command_.moduloFactor){
-      actPos_ = actPos_-data_->command_.moduloFactor;
+  if(data_->command_.moduloRange != 0) {    
+    if(actPos_ >= data_->command_.moduloRange){
+      actPos_ = actPos_-data_->command_.moduloRange;
       // Reset stuff to be able to run forever
       engOffset_       = 0;
       rawTurnsOld_     = 0;
@@ -506,7 +506,7 @@ double ecmcEncoder::readEntries() {
       rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
     }
     if(actPos_ < 0){
-      actPos_ = data_->command_.moduloFactor + actPos_;
+      actPos_ = data_->command_.moduloRange + actPos_;
       // Reset stuff to be able to run forever
       engOffset_       = 0;
       rawTurnsOld_     = 0;
