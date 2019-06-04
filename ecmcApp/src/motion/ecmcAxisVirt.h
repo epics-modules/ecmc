@@ -26,8 +26,7 @@ public:
   ~ecmcAxisVirt();
   void execute(bool masterOK);
   int setOpMode(operationMode mode);
-  operationMode getOpMode();  
-  int setEnable(bool enable);
+  operationMode getOpMode();
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();
   int validate();
@@ -36,8 +35,7 @@ public:
 private:
   void initVars();
   bool initDone_;
-  bool temporaryLocalTrajSource_;
-  double TEMP_;
+  bool temporaryLocalTrajSource_;  
 };
 
 #endif /* ECMCAXISVIRT_H_ */

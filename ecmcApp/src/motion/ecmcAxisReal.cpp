@@ -270,26 +270,6 @@ void ecmcAxisReal::execute(bool masterOK) {
   ecmcAxisBase::postExecute(masterOK);
 }
 
-int ecmcAxisReal::setEnable(bool enable) {
-  if (!enable) {  // Remove execute if enable is going down
-    setExecute(false);
-  }
-
-  if (enable && validate()) {
-    setExecute(false);
-    return getErrorID();
-  }
-
-  int error = setEnableLocal(enable);
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  // Cascade commands via command transformation
-  return setEnable_Transform();
-}
-
 int ecmcAxisReal::setOpMode(operationMode mode) {
   if (mode == ECMC_MODE_OP_MAN) {
     data_.command_.enable = false;

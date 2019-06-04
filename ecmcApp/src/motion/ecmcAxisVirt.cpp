@@ -154,26 +154,6 @@ void ecmcAxisVirt::execute(bool masterOK) {
   ecmcAxisBase::postExecute(masterOK);
 }
 
-int ecmcAxisVirt::setEnable(bool enable) {
-  if (!enable) {  // Remove execute if enable is going down
-    setExecute(false);
-  }
-
-  if (enable && validate()) {
-    setExecute(false);
-    return getErrorID();
-  }
-
-  int error = setEnableLocal(enable);
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  // Cascade commands via command transformation
-  return setEnable_Transform();
-}
-
 int ecmcAxisVirt::setOpMode(operationMode mode) {
   // NO DRIVE
   return setErrorID(__FILE__,
