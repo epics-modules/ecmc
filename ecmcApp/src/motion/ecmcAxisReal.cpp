@@ -305,11 +305,6 @@ operationMode ecmcAxisReal::getOpMode() {
   return data_.command_.operationModeCmd;
 }
 
-int ecmcAxisReal::getCntrlError(double *error) {
-  *error = data_.status_.cntrlError;
-  return 0;
-}
-
 ecmcPIDController * ecmcAxisReal::getCntrl() {
   return cntrl_;
 }
@@ -334,8 +329,7 @@ void ecmcAxisReal::refreshDebugInfoStruct() {
   statusData_.onChangeData.limitFwd       = data_.status_.limitFwd;
   statusData_.onChangeData.positionActual =
     data_.status_.currentPositionActual;
-  statusData_.onChangeData.positionError =
-    data_.status_.currentTargetPosition - data_.status_.currentPositionActual;
+  statusData_.onChangeData.positionError = getPosErrorMod();    
   statusData_.onChangeData.positionSetpoint =
     data_.status_.currentPositionSetpoint;
   statusData_.onChangeData.positionTarget =

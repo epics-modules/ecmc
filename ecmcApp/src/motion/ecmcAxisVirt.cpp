@@ -118,10 +118,11 @@ void ecmcAxisVirt::execute(bool masterOK) {
     }
 
     if (getEnabled() && masterOK && !getError()) {
+
       mon_->setEnable(true);
-      data_.status_.cntrlError = data_.status_.currentPositionSetpoint -
-                                 data_.status_.currentPositionActual;
+      data_.status_.cntrlError = getPosErrorMod();
     } else {
+      
       mon_->setEnable(false);
 
       if (getExecute()) {
@@ -186,11 +187,6 @@ operationMode ecmcAxisVirt::getOpMode() {
   return ECMC_MODE_OP_AUTO;
 }
 
-int ecmcAxisVirt::getCntrlError(double *error) {
-  *error = traj_->getCurrentPosSet() - enc_->getActPos();
-  return 0;
-}
-
 ecmcPIDController * ecmcAxisVirt::getCntrl() {
   return NULL;
 }
@@ -204,7 +200,7 @@ void ecmcAxisVirt::refreshDebugInfoStruct() {
   statusData_.axisID                      = data_.axisId_;
   statusData_.cycleCounter                = cycleCounter_;
   statusData_.onChangeData.busy           = data_.status_.busy;
-  statusData_.onChangeData.cntrlError     = 0;
+  statusData_.onChangeData.cntrlError     = data_.status_.cntrlError;
   statusData_.onChangeData.cntrlOutput    = 0;
   statusData_.onChangeData.enable         = data_.command_.enable;
   statusData_.onChangeData.enabled        = getEnabled();
@@ -215,8 +211,7 @@ void ecmcAxisVirt::refreshDebugInfoStruct() {
   statusData_.onChangeData.limitFwd       = data_.status_.limitFwd;
   statusData_.onChangeData.positionActual =
     data_.status_.currentPositionActual;
-  statusData_.onChangeData.positionError =
-    data_.status_.currentTargetPosition - data_.status_.currentPositionActual;
+  statusData_.onChangeData.positionError = getPosErrorMod();
   statusData_.onChangeData.positionSetpoint =
     data_.status_.currentPositionSetpoint;
   statusData_.onChangeData.positionTarget =

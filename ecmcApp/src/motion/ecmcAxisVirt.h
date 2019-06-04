@@ -26,8 +26,7 @@ public:
   ~ecmcAxisVirt();
   void execute(bool masterOK);
   int setOpMode(operationMode mode);
-  operationMode getOpMode();
-  int getCntrlError(double* error);
+  operationMode getOpMode();  
   int setEnable(bool enable);
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();

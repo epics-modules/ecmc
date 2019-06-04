@@ -1719,3 +1719,8 @@ double ecmcAxisBase::getPosErrorMod() {
 
   return 0;
 }
+
+int ecmcAxisBase::getCntrlError(double *error) {
+  *error = data_.status_.cntrlError;
+  return 0;
+}

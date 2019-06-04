@@ -118,7 +118,6 @@ class ecmcAxisBase : public ecmcError {
   virtual ~ecmcAxisBase();
   virtual int                setOpMode(operationMode nMode) = 0;
   virtual operationMode      getOpMode()                    = 0;
-  virtual int                getCntrlError(double *error)   = 0;
   virtual int                setEnable(bool enable)         = 0;
   virtual int                setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase    * getDrv()               = 0;
@@ -126,6 +125,7 @@ class ecmcAxisBase : public ecmcError {
   virtual int                validate()             = 0;
   virtual void               execute(bool masterOK) = 0;
   virtual void               printCurrentState();
+  int                        getCntrlError(double *error);
   bool                       getEnable();
   bool                       getEnabled();
   void                       preExecute(bool masterOK);
