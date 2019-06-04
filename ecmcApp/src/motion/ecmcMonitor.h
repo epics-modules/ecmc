@@ -129,7 +129,6 @@ class ecmcMonitor : public ecmcEcEntryLink {
   int lagMonCounter_;
   bool hardBwdOld_;
   bool hardFwdOld_;
-  double lagError_;
   double maxVel_;
   bool enableMaxVelMon_;
   int maxVelCounterDrive_;

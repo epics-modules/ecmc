@@ -51,7 +51,6 @@ void ecmcMonitor::initVars() {
   enableLagMon_              = true;
   atTargetCounter_           = 0;
   lagMonCounter_             = 0;
-  lagError_                  = 0;
   maxVel_                    = 0;
   enableMaxVelMon_           = true;
   maxVelCounterDrive_        = 0;
@@ -949,11 +948,8 @@ int ecmcMonitor::checkPositionLag() {
   bool lagErrorDrive = false;
 
   if (enableLagMon_ && !lagErrorDrive) {
-    lagError_ = std::abs(
-      data_->status_.currentPositionActual -
-      data_->status_.currentPositionSetpoint);
 
-    if ((lagError_ > posLagTol_) && data_->status_.enabled &&
+    if ((std::abs(data_->status_.cntrlError) > posLagTol_) && data_->status_.enabled &&
         data_->status_.enabledOld) {
       if (lagMonCounter_ <= posLagTime_ * 2) {
         lagMonCounter_++;
