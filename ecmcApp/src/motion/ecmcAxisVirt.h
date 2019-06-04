@@ -32,8 +32,7 @@ public:
   ecmcPIDController *getCntrl();
   int validate();
   void printCurrentState();
-protected:
-  void refreshDebugInfoStruct();
+
 private:
   void initVars();
   bool initDone_;

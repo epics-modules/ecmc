@@ -162,13 +162,13 @@ class ecmcAxisBase : public ecmcError {
   int                   setAxisArrayPointer(ecmcAxisBase *axes,
                                             int           index);
   int                   setCommandsTransformExpression(
-    std::string expression);
+                                          std::string expression);
   ecmcCommandTransform* getCommandTransform();
   void                  setInStartupPhase(bool startup);
   int                   setTrajTransformExpression(
-    std::string expressionString);
+                                          std::string expressionString);
   int                   setEncTransformExpression(
-    std::string expressionString);
+                                          std::string expressionString);
   int                   setTrajDataSourceType(dataSource refSource);
   int                   setEncDataSourceType(dataSource refSource);
   int                   setRealTimeStarted(bool realtime);
@@ -206,7 +206,7 @@ class ecmcAxisBase : public ecmcError {
   int          setExecute_Transform();
   int          refreshExternalInputSources();
   int          refreshExternalOutputSources();
-  virtual void refreshDebugInfoStruct() = 0;
+  void         refreshDebugInfoStruct();
   double       getPosErrorMod();
   bool cascadedCommandsEnable_;  // Allow other axis to enable and execute this
                                  // axis

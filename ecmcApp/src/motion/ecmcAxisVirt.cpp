@@ -195,54 +195,6 @@ ecmcDriveBase * ecmcAxisVirt::getDrv() {
   return NULL;
 }
 
-void ecmcAxisVirt::refreshDebugInfoStruct() {
-  statusData_.onChangeData.atTarget       = mon_->getAtTarget();
-  statusData_.axisID                      = data_.axisId_;
-  statusData_.cycleCounter                = cycleCounter_;
-  statusData_.onChangeData.busy           = data_.status_.busy;
-  statusData_.onChangeData.cntrlError     = data_.status_.cntrlError;
-  statusData_.onChangeData.cntrlOutput    = 0;
-  statusData_.onChangeData.enable         = data_.command_.enable;
-  statusData_.onChangeData.enabled        = getEnabled();
-  statusData_.onChangeData.error          = getErrorID();
-  statusData_.onChangeData.execute        = getExecute();
-  statusData_.onChangeData.homeSwitch     = data_.status_.homeSwitch;
-  statusData_.onChangeData.limitBwd       = data_.status_.limitBwd;
-  statusData_.onChangeData.limitFwd       = data_.status_.limitFwd;
-  statusData_.onChangeData.positionActual =
-    data_.status_.currentPositionActual;
-  statusData_.onChangeData.positionError = getPosErrorMod();
-  statusData_.onChangeData.positionSetpoint =
-    data_.status_.currentPositionSetpoint;
-  statusData_.onChangeData.positionTarget =
-    data_.status_.currentTargetPosition;
-  statusData_.onChangeData.seqState      = seq_.getSeqState();
-  statusData_.onChangeData.trajInterlock =
-    data_.interlocks_.interlockStatus;
-  statusData_.onChangeData.lastActiveInterlock =
-    data_.interlocks_.lastActiveInterlock;
-  statusData_.onChangeData.velocityActual =
-    data_.status_.currentVelocityActual;
-  statusData_.onChangeData.velocitySetpoint =
-    data_.status_.currentVelocitySetpoint;
-  statusData_.onChangeData.velocitySetpointRaw = 0;
-  statusData_.onChangeData.velocityFFRaw       = 0;
-  statusData_.onChangeData.positionRaw         = enc_->getRawPosRegister();
-  statusData_.onChangeData.homed               = enc_->getHomed();
-  statusData_.acceleration                     = traj_->getAcc();
-  statusData_.deceleration                     = traj_->getDec();
-  statusData_.reset                            = data_.command_.reset;
-  statusData_.moving                           = data_.status_.moving;
-  statusData_.stall                            =
-    data_.interlocks_.lagTrajInterlock
-    || data_.interlocks_.
-    lagDriveInterlock
-    || data_.interlocks_.
-    velocityDiffTrajInterlock
-    || data_.interlocks_.
-    velocityDiffDriveInterlock;
-}
-
 int ecmcAxisVirt::validate() {
   int error = 0;
 

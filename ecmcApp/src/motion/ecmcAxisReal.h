@@ -29,9 +29,6 @@ class ecmcAxisReal : public ecmcAxisBase {
   int                validate();
   void               printCurrentState();
 
- protected:
-  void               refreshDebugInfoStruct();
-
  private:
   void               printOpModeState();
   void               printDriveType();
