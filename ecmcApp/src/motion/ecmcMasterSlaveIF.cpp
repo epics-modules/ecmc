@@ -21,7 +21,7 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int           defaultAxisId,
             __LINE__,
             defaultAxisId_);
 
-  transform_ = new ecmcCommandTransform(5, ECMC_MAX_AXES);  // currently three commands
+  transform_ = new ecmcCommandTransform(3, ECMC_MAX_AXES);  // currently three commands
 
   if (!transform_) {
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRANSFORM OBJECT.\n",
