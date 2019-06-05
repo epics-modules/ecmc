@@ -35,7 +35,7 @@ class ecmcCommandTransform : public ecmcError {
                        int elementsPerCommand);
   ~ecmcCommandTransform();
   int          setExpression(std::string expressionString);
-  int          addCmdPrefix(std::string commandPrefix,
+  int          addCmdPrefix(std::string commandSuffix,
                             int         commandIndex);
   int          setData(double data,
                        int    commandIndex,

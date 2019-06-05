@@ -23,10 +23,13 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   data_.command_.operationModeCmd = ECMC_MODE_OP_AUTO;
   // currently two commands
   commandTransform_               = new ecmcCommandTransform(2, ECMC_MAX_AXES);
-  commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX,
+  // "traj.execute"
+  commandTransform_->addCmdPrefix(ECMC_AXIS_DATA_STR_EXECUTE,
                                   ECMC_CMD_TYPE_EXECUTE);
-  commandTransform_->addCmdPrefix(TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX,
+  // "drv.enable"
+  commandTransform_->addCmdPrefix(ECMC_AXIS_DATA_STR_ENABLE,
                                   ECMC_CMD_TYPE_ENABLE);
+                                  
   externalInputTrajectoryIF_ = new ecmcMasterSlaveIF(data_.axisId_,
                                                      ECMC_TRAJECTORY_INTERFACE,
                                                      data_.sampleTime_);
@@ -1738,7 +1741,7 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
   statusData_.onChangeData.execute        = getExecute();
   statusData_.onChangeData.homeSwitch     = data_.status_.homeSwitch;
   statusData_.onChangeData.limitBwd       = data_.status_.limitBwd;
-  statusData_.onChangeData.limitFwd       = data_.status_.limitFwd;
+  statusData_.onChangeData.limitFwd       = data_.status_.limitFwd;  
   statusData_.onChangeData.positionActual =
     data_.status_.currentPositionActual;
   statusData_.onChangeData.positionError = getPosErrorMod();    
@@ -1751,6 +1754,10 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
     data_.interlocks_.interlockStatus;
   statusData_.onChangeData.lastActiveInterlock =
     data_.interlocks_.lastActiveInterlock;
+  statusData_.onChangeData.sumIlockBwd = 
+    data_.interlocks_.trajSummaryInterlockBWD;
+  statusData_.onChangeData.sumIlockFwd = 
+    data_.interlocks_.trajSummaryInterlockFWD;
   statusData_.onChangeData.velocityActual =
     data_.status_.currentVelocityActual;
   statusData_.onChangeData.velocitySetpoint =

@@ -97,6 +97,8 @@ typedef struct {
   bool               limitFwd;
   bool               limitBwd;
   bool               homeSwitch;
+  bool               sumIlockFwd;
+  bool               sumIlockBwd;
 } ecmcAxisStatusOnChangeType;
 
 typedef struct {

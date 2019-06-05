@@ -1364,7 +1364,21 @@ int ecmcMonitor::setHardwareInterlockPolarity(externalHWInterlockPolarity pol) {
   return 0;
 }
 
-int ecmcMonitor::setPLCInterlock(bool ilock) {
-  data_->interlocks_.plcInterlock = ilock;
+int ecmcMonitor::setPLCInterlock(bool ilock,plcInterlockTypes type) {
+  
+  switch(type) {
+    case ECMC_PLC_INTERLOCK_DIR_BOTH:
+      data_->interlocks_.plcInterlock = ilock;
+      break;
+
+    case ECMC_PLC_INTERLOCK_DIR_BWD:
+      data_->interlocks_.plcInterlockBWD = ilock;
+      break;
+
+    case ECMC_PLC_INTERLOCK_DIR_FWD:      
+      data_->interlocks_.plcInterlockFWD = ilock;
+      break;
+  }
   return 0;
 }
+

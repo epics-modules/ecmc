@@ -28,7 +28,7 @@ stopMode ecmcAxisData::refreshInterlocks() {
     interlocks_.lastActiveInterlock = interlocks_.interlockStatus;
   }
 
-  // If now summary interlocks then no interlocks
+  // If no summary interlocks then no interlocks
   if (!interlocks_.driveSummaryInterlock &&
       !interlocks_.trajSummaryInterlockBWD  &&
       !interlocks_.trajSummaryInterlockFWD) {
@@ -144,6 +144,18 @@ stopMode ecmcAxisData::refreshInterlocks() {
     return interlocks_.currStopMode;
   }
 
+  if (interlocks_.plcInterlockBWD) {
+    interlocks_.interlockStatus = ECMC_INTERLOCK_PLC_BWD;
+    interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
+    return interlocks_.currStopMode;
+  }
+
+  if (interlocks_.plcInterlockFWD) {
+    interlocks_.interlockStatus = ECMC_INTERLOCK_PLC_FWD;
+    interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
+    return interlocks_.currStopMode;
+  }
+
   interlocks_.interlockStatus = ECMC_INTERLOCK_NONE;
 
   interlocks_.currStopMode = ECMC_STOP_MODE_RUN;
@@ -177,7 +189,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         unexpectedLimitSwitchBehaviourInterlock
                                         || interlocks_.
                                         velocityDiffTrajInterlock
-                                        || interlocks_.plcInterlock;
+                                        || interlocks_.plcInterlock
+                                        || interlocks_.plcInterlockBWD;
 
   interlocks_.trajSummaryInterlockFWD = interlocks_.driveSummaryInterlock
                                         || interlocks_.axisErrorStateInterlock
@@ -194,7 +207,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         unexpectedLimitSwitchBehaviourInterlock
                                         || interlocks_.
                                         velocityDiffTrajInterlock
-                                        || interlocks_.plcInterlock;
+                                        || interlocks_.plcInterlock
+                                        || interlocks_.plcInterlockFWD;
 
   return 0;
 }

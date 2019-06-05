@@ -91,11 +91,11 @@ void ecmcCommandTransform::initVars() {
   elementsPerCommand_ = 0;
 }
 
-int ecmcCommandTransform::addCmdPrefix(std::string commandPrefix,
+int ecmcCommandTransform::addCmdPrefix(std::string commandSuffix,
                                        int         commandIndex) {
   for (int i = 0; i < elementsPerCommand_; i++) {
     char varNameBuffer[100];
-    snprintf(varNameBuffer, sizeof(varNameBuffer), "%s%d", commandPrefix.c_str(), i);
+    snprintf(varNameBuffer, sizeof(varNameBuffer), ECMC_AX_STR "%d.%s", i,commandSuffix.c_str());
 
     if (exprtk_->addVariable(varNameBuffer,
                              outputArray_[i + commandIndex *

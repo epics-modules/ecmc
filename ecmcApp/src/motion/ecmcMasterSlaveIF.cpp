@@ -21,7 +21,7 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int           defaultAxisId,
             __LINE__,
             defaultAxisId_);
 
-  transform_ = new ecmcCommandTransform(3, ECMC_MAX_AXES);  // currently three commands
+  transform_ = new ecmcCommandTransform(5, ECMC_MAX_AXES);  // currently three commands
 
   if (!transform_) {
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR TRANSFORM OBJECT.\n",
@@ -30,11 +30,15 @@ ecmcMasterSlaveIF::ecmcMasterSlaveIF(int           defaultAxisId,
            __LINE__);
     exit(EXIT_FAILURE);
   }
-  transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX,
+
+  // "traj.setpos"
+  transform_->addCmdPrefix(ECMC_AXIS_DATA_STR_POS_SET,
                            ECMC_TRANSFORM_VAR_TYPE_TRAJ);
-  transform_->addCmdPrefix(TRANSFORM_EXPR_VARIABLE_ENC_PREFIX,
+  // "enc.actpos"
+  transform_->addCmdPrefix(ECMC_AXIS_DATA_STR_POS_ACT,
                            ECMC_TRANSFORM_VAR_TYPE_ENC);
-  transform_->addCmdPrefix(TRANSFORM_EXPR_INTERLOCK_PREFIX,
+  // "mon.ilock"
+  transform_->addCmdPrefix(ECMC_AXIS_DATA_STR_INTERLOCK_TYPE,
                            ECMC_TRANSFORM_VAR_TYPE_IL);
 
   velocityFilter_ = new ecmcFilter(sampleTime);
@@ -255,8 +259,10 @@ int ecmcMasterSlaveIF::validate(dataSource nextDataSource) {
     // Ensure that setpoint is defined in expression
     switch (interfaceType_) {
     case  ECMC_ENCODER_INTERFACE:
-      strToFind = TRANSFORM_EXPR_VARIABLE_ENC_PREFIX;
+      strToFind = ECMC_AX_STR; 
       strToFind.append(axisIdStr);
+      strToFind.append(".");
+      strToFind = ECMC_AXIS_DATA_STR_POS_ACT;      
       strToFind.append(":=");
       found = transform_->getExpression()->find(strToFind) !=
               std::string::npos;
@@ -267,8 +273,10 @@ int ecmcMasterSlaveIF::validate(dataSource nextDataSource) {
       break;
 
     case ECMC_TRAJECTORY_INTERFACE:
-      strToFind = TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX;
+      strToFind = ECMC_AX_STR; 
       strToFind.append(axisIdStr);
+      strToFind.append(".");
+      strToFind = ECMC_AXIS_DATA_STR_POS_SET;      
       strToFind.append(":=");
       found = transform_->getExpression()->find(strToFind) !=
               std::string::npos;
@@ -282,8 +290,11 @@ int ecmcMasterSlaveIF::validate(dataSource nextDataSource) {
   }
 
   // See if interlock is defined then transform needs to be executed
-  strToFind = TRANSFORM_EXPR_INTERLOCK_PREFIX;
+  strToFind = ECMC_AX_STR; 
   strToFind.append(axisIdStr);
+  strToFind.append(".");
+  strToFind.append(ECMC_AXIS_DATA_STR_INTERLOCK_TYPE);
+  
   interlockDefiendinExpr_ = transform_->getExpression()->find(strToFind) !=
                             std::string::npos;
 

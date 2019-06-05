@@ -89,6 +89,8 @@ typedef struct {
   bool           trajSummaryInterlockBWD;
   bool           etherCatMasterInterlock;
   bool           plcInterlock;
+  bool           plcInterlockFWD;
+  bool           plcInterlockBWD;
   interlockTypes lastActiveInterlock;
   interlockTypes interlockStatus;
   stopMode       currStopMode;
