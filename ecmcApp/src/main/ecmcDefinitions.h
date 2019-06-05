@@ -41,12 +41,6 @@
 // Transforms
 #define MAX_TRANSFORM_INPUTS ECMC_MAX_AXES *2
 #define TRANSFORM_EXPR_LINE_END_CHAR '#'
-#define TRANSFORM_EXPR_OUTPUT_VAR_NAME "out"
-#define TRANSFORM_EXPR_COMMAND_EXECUTE_PREFIX "ex"
-#define TRANSFORM_EXPR_COMMAND_ENABLE_PREFIX "en"
-#define TRANSFORM_EXPR_VARIABLE_TRAJ_PREFIX "setPos"
-#define TRANSFORM_EXPR_VARIABLE_ENC_PREFIX "actPos"
-#define TRANSFORM_EXPR_INTERLOCK_PREFIX "ilock"
 
 // EtherCAT
 #define EC_MAX_PDOS 1024
@@ -242,6 +236,14 @@ enum interlockTypes {
   ECMC_INTERLOCK_VELOCITY_DIFF                     = 15,
   ECMC_INTERLOCK_ETHERCAT_MASTER_NOT_OK            = 16,
   ECMC_INTERLOCK_PLC_NORMAL                        = 17,
+  ECMC_INTERLOCK_PLC_BWD                           = 18,
+  ECMC_INTERLOCK_PLC_FWD                           = 19,
+};
+
+enum plcInterlockTypes {
+  ECMC_PLC_INTERLOCK_DIR_BOTH                      = 0,
+  ECMC_PLC_INTERLOCK_DIR_FWD                       = 1,
+  ECMC_PLC_INTERLOCK_DIR_BWD                       = 2,
 };
 
 enum encoderType {
@@ -258,6 +260,8 @@ enum transformVariableType {
   ECMC_TRANSFORM_VAR_TYPE_TRAJ = 0,
   ECMC_TRANSFORM_VAR_TYPE_ENC  = 1,
   ECMC_TRANSFORM_VAR_TYPE_IL   = 2,
+  ECMC_TRANSFORM_VAR_TYPE_IL_BWD  = 3,
+  ECMC_TRANSFORM_VAR_TYPE_IL_FWD  = 4,
 };
 
 enum eventType {
@@ -391,6 +395,8 @@ enum axisSubObjectType {
 #define ECMC_AXIS_DATA_STR_TRAJ_DIRECTION "traj.dir"
 #define ECMC_AXIS_DATA_STR_ENC_HOMEPOS "enc.homepos"
 #define ECMC_AXIS_DATA_STR_BLOCK_COM "blockcom"
+#define ECMC_AXIS_DATA_STR_INTERLOCK_FWD_TYPE "mon.ilockfwd"
+#define ECMC_AXIS_DATA_STR_INTERLOCK_BWD_TYPE "mon.ilockbwd"
 
 enum ecmcAxisDataType {
   ECMC_AXIS_DATA_NONE                  = 0,
@@ -434,6 +440,8 @@ enum ecmcAxisDataType {
   ECMC_AXIS_DATA_TRAJ_DIRECTION        = 38,
   ECMC_AXIS_DATA_ENC_HOMEPOS           = 39,
   ECMC_AXIS_DATA_BLOCK_COM             = 40,
+  ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE    = 41,
+  ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE    = 42,
 };
 
 enum ecmcDataStorageType {

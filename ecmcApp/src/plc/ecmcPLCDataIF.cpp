@@ -516,6 +516,14 @@ int ecmcPLCDataIF::readAxis() {
     data_ = axis_->getBlockExtCom();
     break;
 
+  case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
+    data_ = static_cast<double>(axisData->onChangeData.sumIlockFwd == 0);
+    break;
+
+  case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
+    data_ = static_cast<double>(axisData->onChangeData.sumIlockBwd == 0);
+    break;
+
   default:
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -635,7 +643,7 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-    return axis_->getMon()->setPLCInterlock(data_ == 0);
+    return axis_->getMon()->setPLCInterlock(data_ == 0,ECMC_PLC_INTERLOCK_DIR_BOTH);
 
     break;
 
@@ -743,6 +751,14 @@ int ecmcPLCDataIF::writeAxis() {
 
   case ECMC_AXIS_DATA_BLOCK_COM:
     axis_->setBlockExtCom(data_);
+    break;
+
+  case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
+    return axis_->getMon()->setPLCInterlock(data_ == 0,ECMC_PLC_INTERLOCK_DIR_BWD);
+    break;
+
+  case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
+    return axis_->getMon()->setPLCInterlock(data_ == 0,ECMC_PLC_INTERLOCK_DIR_FWD);
     break;
 
   default:
@@ -1064,6 +1080,18 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
 
   if (npos == 0) {
     return ECMC_AXIS_DATA_BLOCK_COM;
+  }
+
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_INTERLOCK_FWD_TYPE);
+
+  if (npos == 0) {
+    return ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE;
+  }
+
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_INTERLOCK_BWD_TYPE);
+
+  if (npos == 0) {
+    return ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE;
   }
 
   return ECMC_AXIS_DATA_NONE;

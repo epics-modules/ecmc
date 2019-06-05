@@ -158,18 +158,24 @@ int setPLCExpr(int   index,
  *   28. ax<id>.drv.enable            enable drive command             (rw)\n
  *   29. ax<id>.drv.enabled           drive enabled                    (ro)\n
  *   30. ax<id>.seq.state             sequence state (homing)          (ro)\n
- *   31. ax<id>.mon.ilock             motion interlock                 (rw)\n
- *                                    ax<id>.mon.ilock=1: motion allowed
- *                                    ax<id>.mon.ilock=0: motion not allowed
- *   32. ax<id>.mon.attarget          axis at taget                    (ro)\n
- *   33. ax<id>.mon.lowlim            low limit switch                 (ro)\n
- *   34. ax<id>.mon.highlim           high limit switch                (ro)\n
- *   35. ax<id>.mon.homesensor        home sensor                      (ro)\n
- *   36. ax<id>.mon.lowsoftlim        low soft limit                   (rw)\n
- *   37. ax<id>.mon.highsoftlim       high soft limit                  (rw)\n
- *   38. ax<id>.mon.lowsoftlimenable  low soft limit enable            (rw)\n
- *   39. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
- *   40. ax<id>.blockcom              Enables/disables "set" commands   (rw)\n
+ *   31. ax<id>.mon.ilock             motion interlock  (both dir)     (rw)\n
+ *                                    ax<id>.mon.ilock=1: motion allowed\n
+ *                                    ax<id>.mon.ilock=0: motion not allowed\n
+ *   32. ax<id>.mon.ilockbwd          motion interlock bwd dir         (rw)\n
+ *                                    ax<id>.mon.ilockbwd=1: motion allowed\n
+ *                                    ax<id>.mon.ilockbwd=0: motion not allowed\n
+ *   33. ax<id>.mon.ilockfwd          motion interlock fwd dir         (rw)\n
+ *                                    ax<id>.mon.ilockfwd=1: motion allowed\n
+ *                                    ax<id>.mon.ilockfwd=0: motion not allowedn
+ *   34. ax<id>.mon.attarget          axis at taget                    (ro)\n
+ *   35. ax<id>.mon.lowlim            low limit switch                 (ro)\n
+ *   36. ax<id>.mon.highlim           high limit switch                (ro)\n
+ *   37. ax<id>.mon.homesensor        home sensor                      (ro)\n
+ *   38. ax<id>.mon.lowsoftlim        low soft limit                   (rw)\n
+ *   39. ax<id>.mon.highsoftlim       high soft limit                  (rw)\n
+ *   40. ax<id>.mon.lowsoftlimenable  low soft limit enable            (rw)\n
+ *   41. ax<id>.mon.highsoftlimenable high soft limit enable           (rw)\n
+ *   42. ax<id>.blockcom              Enables/disables "set" commands   (rw)\n
  *                                    via command parser (ascii commands)\n
  *                                    Statuses can still be read.\n
  *                                    Exceptions ("set"-commands) that
