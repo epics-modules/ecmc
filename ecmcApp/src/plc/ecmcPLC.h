@@ -21,6 +21,7 @@ extern "C" {
  *
  * \param[in] index PLC index number
  * \param[in] cycleTime CycleTime in seconds
+ * \param[in] axisPLC If PLC for axis
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -31,7 +32,8 @@ extern "C" {
  *  "Cfg.CreatePLC(0)" //Command string to ecmcCmdParser.c\n
  */
 int createPLC(int index,
-              double cycleTime);
+              double cycleTime,
+              int axisPLC);
 
 /** \breif Delete PLC.\n
  *

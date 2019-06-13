@@ -128,17 +128,17 @@ void ecmcAxisReal::initVars() {
 }
 
 void ecmcAxisReal::execute(bool masterOK) {
+
   ecmcAxisBase::preExecute(masterOK);
 
   if (data_.command_.operationModeCmd == ECMC_MODE_OP_AUTO) {
     drv_->readEntries();
 
     // Trajectory (External or internal)
-    if ((externalInputTrajectoryIF_->getDataSourceType() ==
-         ECMC_DATA_SOURCE_INTERNAL)) {
+    if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
       data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint = traj_->getVel();
-    } else {    // External source (Transform)
+    } else {    // External source (PLC)
       data_.status_.currentPositionSetpoint =
         data_.status_.externalTrajectoryPosition;
       data_.status_.currentVelocitySetpoint =
@@ -148,11 +148,10 @@ void ecmcAxisReal::execute(bool masterOK) {
     }
 
     // Encoder (External or internal)
-    if (externalInputEncoderIF_->getDataSourceType() ==
-        ECMC_DATA_SOURCE_INTERNAL) {
+    if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
       data_.status_.currentPositionActual = enc_->getActPos();
       data_.status_.currentVelocityActual = enc_->getActVel();
-    } else {  // External source (Transform)currentVelocitySetpoint
+    } else {  // External source (PLC)
       data_.status_.currentPositionActual =
         data_.status_.externalEncoderPosition;
       data_.status_.currentVelocityActual =
@@ -174,8 +173,7 @@ void ecmcAxisReal::execute(bool masterOK) {
         data_.status_.currentPositionSetpointOld));
 
     if (trajLock &&
-        (externalInputTrajectoryIF_->getDataSourceType() !=
-         ECMC_DATA_SOURCE_INTERNAL)) {
+        (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL)) {
       if (!temporaryLocalTrajSource_) {  // Initiate rampdown
         temporaryLocalTrajSource_ = true;
         traj_->setStartPos(data_.status_.currentPositionActual);
@@ -246,7 +244,7 @@ void ecmcAxisReal::execute(bool masterOK) {
     }
 
     // Write to hardware
-    refreshExternalOutputSources();
+    //refreshExternalOutputSources();
     drv_->writeEntries();
     // MANUAL MODE: Raw Output..
   } else if (data_.command_.operationModeCmd == ECMC_MODE_OP_MAN) {

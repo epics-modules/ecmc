@@ -555,7 +555,7 @@ int setAppMode(int mode) {
   return 0;
 }
 
-int prepareForRuntime() {
+/*int prepareForRuntime() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
   // Update input sources for all trajectories and encoders (transforms)
@@ -596,11 +596,11 @@ int prepareForRuntime() {
     }
   }
   return 0;
-}
+}*/
 
 int validateConfig() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-  prepareForRuntime();
+  //prepareForRuntime();
   int errorCode = 0;
   int axisCount = 0;
 

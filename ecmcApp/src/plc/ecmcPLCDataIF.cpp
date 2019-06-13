@@ -537,9 +537,15 @@ int ecmcPLCDataIF::readAxis() {
 }
 
 int ecmcPLCDataIF::writeAxis() {
+  
   if (axis_ == NULL) {
     return ERROR_PLC_AXIS_NULL;
   }
+
+  // Write from PLC to Axis allowed?
+  if(!axis_->getAllowCmdFromPLC()) {
+    return 0;
+  } 
 
   if (axis_->getTraj() == NULL) {
     return ERROR_PLC_TRAJ_NULL;
@@ -561,13 +567,13 @@ int ecmcPLCDataIF::writeAxis() {
 
     break;
 
-  case ECMC_AXIS_DATA_POS_SET:
-    return 0;
+  case ECMC_AXIS_DATA_POS_SET:    
+    return axis_->setExtSetPos(data_);;
 
     break;
 
   case ECMC_AXIS_DATA_POS_ACT:
-    return 0;
+    return axis_->setExtActPos(data_);
 
     break;
 

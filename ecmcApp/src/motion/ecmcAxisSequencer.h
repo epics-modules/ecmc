@@ -100,7 +100,7 @@ class ecmcAxisSequencer : public ecmcError {
   int    validate();
   int    setSequenceTimeout(int timeout);
   int    setExternalExecute(bool execute);
-  int    setExtTrajIF(ecmcMasterSlaveIF *extIf);
+  //int    setExtTrajIF(ecmcMasterSlaveIF *extIf);
   int    setAxisDataRef(ecmcAxisData *data);
   void   printCurrentState();
 
@@ -152,7 +152,7 @@ class ecmcAxisSequencer : public ecmcError {
   ecmcEncoder *enc_;
   ecmcMonitor *mon_;
   ecmcPIDController *cntrl_;
-  ecmcMasterSlaveIF *externalInputTrajectoryIF_;
+  //ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcAxisData *data_;
   uint64_t oldencRawAbsPosReg_;
   uint64_t encRawAbsPosReg_;

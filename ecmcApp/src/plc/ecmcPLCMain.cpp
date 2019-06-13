@@ -14,7 +14,7 @@ ecmcPLCMain::ecmcPLCMain(ecmcEc *ec, ecmcAsynPortDriver *asynPortDriver) {
 }
 
 ecmcPLCMain::~ecmcPLCMain() {
-  for (int i = 0; i < ECMC_MAX_PLCS; i++) {
+  for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
     delete plcs_[i];
     plcs_[i] = NULL;
   }
@@ -22,7 +22,7 @@ ecmcPLCMain::~ecmcPLCMain() {
 
 void ecmcPLCMain::initVars() {
   globalVariableCount_ = 0;  
-  for (int i = 0; i < ECMC_MAX_PLCS; i++) {
+  for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
     plcs_[i]         = NULL;
     plcEnable_[i]    = NULL;
     plcError_[i]     = NULL;
@@ -46,7 +46,7 @@ void ecmcPLCMain::initVars() {
 }
 
 int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
-  if ((plcIndex < 0) || (plcIndex >= ECMC_MAX_PLCS)) {
+  if ((plcIndex < 0) || (plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES)) {
     return ERROR_PLCS_INDEX_OUT_OF_RANGE;
   }
 
@@ -132,6 +132,7 @@ int ecmcPLCMain::execute(bool ecOK) {
     ecStatus_->setData((double)ecOK);
   }
 
+  // ONLY EXECUTE NORMAL PLCS (AXIS PLCs ARE EXE IN AXISBASE)
   for (int plcIndex = 0; plcIndex < ECMC_MAX_PLCS; plcIndex++) {
     if (plcs_[plcIndex] != NULL) {
       if (plcEnable_[plcIndex]) {
@@ -140,8 +141,7 @@ int ecmcPLCMain::execute(bool ecOK) {
 
           if (ecOK) {
             if (plcFirstScan_[plcIndex]) {
-              plcFirstScan_[plcIndex]->setData(
-                !plcs_[plcIndex]->getFirstScanDone());                                 // First scan done
+              plcFirstScan_[plcIndex]->setData(1);  // First scan done
             }
           }
         }
@@ -1223,4 +1223,48 @@ int ecmcPLCMain::writeStaticPLCVar(int plcIndex, const char  *varName,
                                 double data) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   return plcs_[plcIndex]->writeStaticPLCVar(varName, data);
+}
+
+ecmcPLCTask* ecmcPLCMain::getPLCTaskForAxis(int axisId) {
+  /*
+   PLCs in array:
+   0             .. (ECMC_MAX_PLCS-1)                   : Normal PLCs (exe here)
+   ECMC_MAX_PLCS .. (ECMC_MAX_PLCS + ECMC_MAX_AXES-1)   : PLC objects for axis syncs 
+                                                          exe in axis objects
+  */
+  int error = 0;
+  int index = ECMC_MAX_PLCS + axisId;
+  if (index >= ECMC_MAX_PLCS + ECMC_MAX_AXES || index < ECMC_MAX_PLCS) {
+    LOGERR("%s/%s:%d: ERROR: Axis PLC index out of range.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);    
+    return NULL;
+  }
+  
+  if (!plcs_[index]) {
+      //Always run sync with axis
+      try {
+        error = createPLC(index,0);
+        LOGERR("%s/%s:%d: ERROR: Fail create PLC for axis %d (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisId,
+           error);
+        return NULL;
+
+      }
+      catch (std::exception& e) {
+        delete plcs_[index];    
+        LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS PLC OBJECT.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           e.what());
+        return NULL;
+    }
+  }
+
+  return plcs_[index];
 }

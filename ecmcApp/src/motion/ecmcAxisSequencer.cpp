@@ -2331,40 +2331,13 @@ int ecmcAxisSequencer::setSequenceTimeout(int timeout) {
   return 0;
 }
 
-int ecmcAxisSequencer::setExtTrajIF(ecmcMasterSlaveIF *extIf) {
+/*int ecmcAxisSequencer::setExtTrajIF(ecmcMasterSlaveIF *extIf) {
   externalInputTrajectoryIF_ = extIf;
   return 0;
-}
+}*/
 
 int ecmcAxisSequencer::getExtTrajSetpoint(double *pos) {
-  if (!externalInputTrajectoryIF_) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL);
-  }
-
-  int error = externalInputTrajectoryIF_->validate();
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  error = externalInputTrajectoryIF_->refreshInputs();
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-  double tempPos = 0;
-  error = externalInputTrajectoryIF_->getExtInputPos(
-    ECMC_TRANSFORM_VAR_TYPE_TRAJ,
-    &tempPos);
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  *pos = tempPos;
+  *pos = data_->status_.externalTrajectoryPosition;  
   return 0;
 }
 

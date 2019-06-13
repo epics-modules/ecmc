@@ -27,11 +27,13 @@ typedef struct {
 
 typedef struct {
   double externalTrajectoryPosition;
+  double externalTrajectoryPositionOld;         
   double externalTrajectoryVelocity;
-  double externalTrajectoryInterlock;
+  //double externalTrajectoryInterlock;
   double externalEncoderPosition;
+  double externalEncoderPositionOld;
   double externalEncoderVelocity;
-  double externalEncoderInterlock;
+  //double externalEncoderInterlock;
   double currentPositionActual;
   double currentPositionSetpoint;
   double currentTargetPosition;
@@ -62,7 +64,7 @@ typedef struct {
   bool   inStartupPhase;
   bool   inRealtime;
   double distToStop;
-} ecmcAxisDataStatus;
+} ecmcAxisDataStatus;  
 
 typedef struct {
   bool           hardwareInterlock;  // Interlock on external I/O

@@ -86,23 +86,23 @@ extern "C" {
   }                                                                           \
 }                                                                             \
 
-#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)                  \
+/*#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)                  \
 {                                                                             \
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
   if (axes[axisIndex]->getExternalTrajIF()->getExtInputTransform() == NULL) { \
     LOGERR("ERROR: Trajectory transform object NULL.\n");                     \
     return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;                             \
   }                                                                           \
-}                                                                             \
+} */                                                                            \
 
-#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)                   \
+/*#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)                   \
 {                                                                             \
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
   if (axes[axisIndex]->getExternalEncIF()->getExtInputTransform() == NULL) {  \
     LOGERR("ERROR: Encoder transform object NULL.\n");                        \
     return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;                              \
   }                                                                           \
-}
+}*/
 
 /** \breif Move axis to an absolute position.\n
  *
@@ -598,8 +598,8 @@ int getAxisDone(int axisIndex,
  * \note Example: Get gear ratio setting for axis 3.\n
  * "ReadAxisGearRatio(3)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisGearRatio(int     axisIndex,
-                     double *value);
+/*int getAxisGearRatio(int     axisIndex,
+                     double *value);*/
 
 /** \breif Get state of forward hard limit.\n
  *
@@ -1540,9 +1540,9 @@ int setAxisHomeVelOffCam(int    axisIndex,
  * \note Example: Set gear ratio setting for axis 3 to 1/7.\n
  * "Cfg.SetAxisGearRatio(3,1,7)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisGearRatio(int    axisIndex,
+/*int setAxisGearRatio(int    axisIndex,
                      double ratioNum,
-                     double ratioDenom);
+                     double ratioDenom);*/
 
 /** \breif Set axis reset bit.\n
  *
@@ -1581,8 +1581,8 @@ int axisErrorReset(int axisIndex,
  * "Cfg.SetAxisTrajTransExpr(5)=setPos2:=setPos6*sin(2*pi*actPos5/10000)#ilock2:=1#"\n
  * //Command string to ecmcCmdParser.c.\n
  */
-int setAxisTrajTransExpr(int   axisIndex,
-                         char *expr);
+/*int setAxisTrajTransExpr(int   axisIndex,
+                         char *expr);*/
 
 /** \breif Enables/disables velocity filter of external setpoint.\n
  *
@@ -1619,8 +1619,8 @@ int setAxisTrajExtVelFilterEnable(int axisIndex,
  * "Cfg.SetAxisEncTransExpr(5)=actPos2:=(actPos4)-(actPos3)#ilock2:=1#"\n
  * //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEncTransExpr(int   axisIndex,
-                        char *expr);
+/*int setAxisEncTransExpr(int   axisIndex,
+                        char *expr);*/
 
 
 /** \breif Enables/disables velocity filter of external actual value.\n

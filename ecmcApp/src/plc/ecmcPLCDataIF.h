@@ -10,7 +10,6 @@
 
 #include <string>
 #include <sstream>
-
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcError.h"
 #include "../motion/ecmcAxisBase.h"

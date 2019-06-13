@@ -666,14 +666,14 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreatePLC(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
-    return createPLC(iValue, dValue);
+    return createPLC(iValue, dValue, 0);
   }
 
   /// "Cfg.CreatePLC(int index)"
   nvals = sscanf(myarg_1, "CreatePLC(%d)", &iValue);
 
   if (nvals == 1) {
-    return createPLC(iValue, 1);
+    return createPLC(iValue, 1, 0);
   }
 
   /// "Cfg.DeletePLC(int index)"
@@ -1659,7 +1659,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   /*int Cfg.SetAxisGearRatio(int axis_no, double dGearNum, 
   double dGearDenom);*/
-  nvals = sscanf(myarg_1,
+  /*nvals = sscanf(myarg_1,
                  "SetAxisGearRatio(%d,%lf,%lf)",
                  &iValue,
                  &dValue,
@@ -1667,7 +1667,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 3) {
     return setAxisGearRatio(iValue, dValue, dValue2);
-  }
+  }*/
 
   /*int Cfg.SetAxisOpMode(int axis_no, int nMode);*/
   nvals = sscanf(myarg_1, "SetAxisOpMode(%d,%d)", &iValue, &iValue2);
@@ -1803,7 +1803,7 @@ static int handleCfgCommand(const char *myarg_1) {
   char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 
   /*int Cfg.SetAxisTrajTransExpr(int axis_no, char* cExpr);   */
-  nvals = sscanf(myarg_1,
+  /*nvals = sscanf(myarg_1,
                  "SetAxisTrajTransExpr(%d)=%[^\n]",
                  &iValue,
                  cExprBuffer);
@@ -1824,10 +1824,10 @@ static int handleCfgCommand(const char *myarg_1) {
       }
     }
     return setAxisTrajTransExpr(iValue, cExprBuffer);
-  }
+  }*/
 
   /*int Cfg.SetAxisEncTransExpr(int axis_no, char* cExpr);   */
-  nvals = sscanf(myarg_1,
+  /*nvals = sscanf(myarg_1,
                  "SetAxisEncTransExpr(%d)=%[^\n]",
                  &iValue,
                  cExprBuffer);
@@ -1849,7 +1849,7 @@ static int handleCfgCommand(const char *myarg_1) {
       }
     }
     return setAxisEncTransExpr(iValue, cExprBuffer);
-  }
+  }*/
 
   /*int Cfg.SetAxisTransformCommandExpr(int axis_no,char *cExpr); */
   nvals = sscanf(myarg_1,
@@ -2373,12 +2373,12 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   }
 
   /*ReadAxisGearRatio(int nAxis)*/
-  nvals = sscanf(myarg_1, "ReadAxisGearRatio(%d)", &motor_axis_no);
+  /*nvals = sscanf(myarg_1, "ReadAxisGearRatio(%d)", &motor_axis_no);
 
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisGearRatio(motor_axis_no,
                                                             &fValue));
-  }
+  }*/
 
   /*EcReadSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,
   int byteSize)*/
@@ -2490,7 +2490,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   }
 
   /*int GetAxisTrajTransExpr(int axis_no, char* cExpr);   */
-  nvals = sscanf(myarg_1, "GetAxisTrajTransExpr(%d)", &iValue);
+  /*nvals = sscanf(myarg_1, "GetAxisTrajTransExpr(%d)", &iValue);
 
   if (nvals == 1) {
     char *retBuf;
@@ -2518,10 +2518,10 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
     free(retBuf);
     return 0;
-  }
+  }*/
 
   /*int GetAxisEncTransExpr(int axis_no, char* cExpr);   */
-  nvals = sscanf(myarg_1, "GetAxisEncTransExpr(%d)", &iValue);
+  /*nvals = sscanf(myarg_1, "GetAxisEncTransExpr(%d)", &iValue);
 
   if (nvals == 1) {
     char *retBuf;
@@ -2548,7 +2548,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     cmd_buf_printf(buffer, "%s", retBuf);
     free(retBuf);
     return 0;
-  }
+  }*/
 
   /*int GetAxisEncTransExpr(int axis_no);   */
   nvals = sscanf(myarg_1, "GetAxisTransformCommandExpr(%d)", &iValue);

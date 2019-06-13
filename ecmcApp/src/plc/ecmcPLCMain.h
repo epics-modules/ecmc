@@ -30,16 +30,12 @@
 #define ERROR_PLCS_PLC_NULL 0x20707
 #define ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED 0x20708
 
-#define CHECK_PLC_RETURN_IF_ERROR(index) {        \
-    if (index >= ECMC_MAX_PLCS || index < 0) {    \
-      LOGERR("ERROR: PLC index out of range.\n"); \
-      return ERROR_PLCS_INDEX_OUT_OF_RANGE;       \
-    }                                             \
-    if (plcs_[index] == NULL) {                   \
-      LOGERR("ERROR: PLC index NULL.\n");         \
-      return ERROR_PLCS_PLC_NULL;                 \
-    }                                             \
-}                                                 \
+#define CHECK_PLC_RETURN_IF_ERROR(index) {                        \
+    if (index >= ECMC_MAX_PLCS + ECMC_MAX_AXES || index < 0) {    \
+      LOGERR("ERROR: PLC index out of range.\n");                 \
+      return ERROR_PLCS_INDEX_OUT_OF_RANGE;                       \
+    }                                                             \
+}                                                                 \
 
 class ecmcPLCMain : public ecmcError {
  public:
@@ -81,6 +77,7 @@ class ecmcPLCMain : public ecmcError {
   int  getErrorID();
   bool getError();
   void errorReset();
+  ecmcPLCTask* getPLCTaskForAxis(int axisId);
 
  private:
   void initVars();
@@ -115,14 +112,15 @@ class ecmcPLCMain : public ecmcError {
   int  getPLCErrorID();
   int  plcVarNameValid(const char *plcVar);
   int globalVariableCount_;
-  ecmcPLCTask *plcs_[ECMC_MAX_PLCS];
+  //Dedicateed plcs then one per axis
+  ecmcPLCTask *plcs_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   ecmcEc *ec_;
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcPLCDataIF *plcEnable_[ECMC_MAX_PLCS];
-  ecmcPLCDataIF *plcError_[ECMC_MAX_PLCS];
-  ecmcPLCDataIF *plcFirstScan_[ECMC_MAX_PLCS];
+  ecmcPLCDataIF *plcEnable_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
+  ecmcPLCDataIF *plcError_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
+  ecmcPLCDataIF *plcFirstScan_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
   ecmcPLCDataIF *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
   ecmcPLCDataIF *ecStatus_;
 };

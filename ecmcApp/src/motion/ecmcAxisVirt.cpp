@@ -59,12 +59,12 @@ void ecmcAxisVirt::initVars() {
 }
 
 void ecmcAxisVirt::execute(bool masterOK) {
+
   ecmcAxisBase::preExecute(masterOK);
 
   if (masterOK) {
     // Trajectory (External or internal)
-    if ((externalInputTrajectoryIF_->getDataSourceType() ==
-         ECMC_DATA_SOURCE_INTERNAL)) {
+    if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {         
       data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint = traj_->getVel();
     } else {    // External source (Transform)
@@ -77,8 +77,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
     }
 
     // Encoder (External or internal)
-    if (externalInputEncoderIF_->getDataSourceType() ==
-        ECMC_DATA_SOURCE_INTERNAL) {
+    if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
       data_.status_.currentPositionActual = enc_->getActPos();
       data_.status_.currentVelocityActual = enc_->getActVel();
     } else {    // External source (Transform)
@@ -101,8 +100,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
         data_.status_.currentVelocitySetpoint < 0));
 
     if (trajLock &&
-        (externalInputTrajectoryIF_->getDataSourceType() !=
-         ECMC_DATA_SOURCE_INTERNAL)) {
+        (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL)) {
       if (!temporaryLocalTrajSource_) {  // Initiate rampdown
         temporaryLocalTrajSource_ = true;
         traj_->setStartPos(data_.status_.currentPositionActual);
@@ -144,7 +142,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
     }
 
     // Write to hardware
-    refreshExternalOutputSources();
+    //refreshExternalOutputSources();
   }
 
   // No drive object so update needed variables
@@ -185,8 +183,7 @@ int ecmcAxisVirt::validate() {
                       ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  if (externalInputEncoderIF_->getDataSourceType() ==
-      ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
     error = enc_->validate();
 
     if (error) {
