@@ -121,7 +121,7 @@ void ecmcAxisBase::initVars() {
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
   plc_ = NULL;
   extTrajVeloFilter_ = NULL;
-  extEncVeloFilter_ =NULL;
+  extEncVeloFilter_ = NULL;
   enableExtTrajVeloFilter_ = false;
   enableExtEncVeloFilter_ = false;
 }
@@ -322,7 +322,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
      /*(data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL ||
       data_.command_.encSource  != ECMC_DATA_SOURCE_INTERNAL) &&*/
       axisState_ != ECMC_AXIS_STATE_STARTUP) {
-    
+
     data_.status_.externalTrajectoryPositionOld = 
             data_.status_.externalTrajectoryPosition;
     data_.status_.externalEncoderPositionOld = 
@@ -543,6 +543,11 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
 //}
 
 int ecmcAxisBase::setEnablePLC(bool enable) {
+
+  if(!plc_) {
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_AXIS_PLC_OBJECT_NULL);
+  }
+
   if (data_.status_.inRealtime) {
     if (enable) {
       int error = plc_->validate();
@@ -806,21 +811,30 @@ int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType) {
 }*/
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
+  
+  if(refSource != ECMC_DATA_SOURCE_INTERNAL && !plc_) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_PLC_OBJECT_NULL);
+  }
+
   if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
   }
-
+  
   // If realtime: Ensure that transform object is compiled and ready to go
   if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime && !plc_->getCompiled()) {
     return setErrorID(__FILE__,
-                        __FUNCTION__,
-                        __LINE__,
-                        ERROR_TRAJ_TRANSFORM_NULL);
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_TRAJ_TRANSFORM_NULL);
   }
-   
+
+  
   // Check if object is ok to go to refSource
   int error = plc_->validate();
   if (error) {
@@ -846,8 +860,16 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
 }
 
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
+
+  if(refSource != ECMC_DATA_SOURCE_INTERNAL && !plc_) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_PLC_OBJECT_NULL);
+  }
+
   int error = 0;
-  if (getEnable()) {
+  if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -866,14 +888,16 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   }
 
   // If realtime: Ensure that transform object is compiled and ready to go
-  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime && !plc_->getCompiled()) {    
+  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime) {    
     
-    error = plc_->compile();
+    if(!plc_->getCompiled()) {
+      error = plc_->compile();
 
-    if (error) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
+      if (error) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
+      }
     }
-
+    
     error = plc_->validate();
 
     if (error) {
@@ -1126,7 +1150,7 @@ int ecmcAxisBase::validateBase() {
   if(plc_ && plcEnable_) {
     return plc_->validate();
   }
-  
+
   return 0;
 }
 
@@ -1837,6 +1861,14 @@ int ecmcAxisBase::setExtActPos(double pos) {
 }
 
 int ecmcAxisBase::setEnableExtTrajVeloFilter(bool enable) {
+
+  if(!extTrajVeloFilter_) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_FILTER_OBJECT_NULL);    
+  }
+
   if (enable && !enableExtTrajVeloFilter_) {
     extTrajVeloFilter_->reset();
   }
@@ -1847,6 +1879,14 @@ int ecmcAxisBase::setEnableExtTrajVeloFilter(bool enable) {
 }
 
 int ecmcAxisBase::setEnableExtEncVeloFilter(bool enable) {
+
+  if(!extEncVeloFilter_) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_FILTER_OBJECT_NULL);    
+  }
+
   if (enable && !enableExtEncVeloFilter_) {
     extEncVeloFilter_->reset();
   }

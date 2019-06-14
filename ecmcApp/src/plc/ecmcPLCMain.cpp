@@ -141,7 +141,7 @@ int ecmcPLCMain::execute(bool ecOK) {
 
           if (ecOK) {
             if (plcFirstScan_[plcIndex]) {
-              plcFirstScan_[plcIndex]->setData(1);  // First scan done
+              plcFirstScan_[plcIndex]->setData(1); // First scan done
             }
           }
         }
@@ -151,12 +151,21 @@ int ecmcPLCMain::execute(bool ecOK) {
   return 0;
 }
 
-int ecmcPLCMain::getExpr(int plcIndex, std::string *expr) {
-  CHECK_PLC_RETURN_IF_ERROR(plcIndex)
-  expr = plcs_[plcIndex]->getExpr();
-  return 0;
+std::string *ecmcPLCMain::getExpr(int plcIndex, int *error) {
+  
+  if (plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES || plcIndex < 0) {
+    LOGERR("ERROR: PLC index out of range.\n");
+    *error =  ERROR_PLCS_INDEX_OUT_OF_RANGE;
+    return NULL;
+  }      
+
+  return plcs_[plcIndex]->getExpr();
 }
 
+
+std::string *getExpr(int plcIndex,
+                       int *error);
+  
 int ecmcPLCMain::setExpr(int plcIndex, char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   plcs_[plcIndex]->clearExpr();

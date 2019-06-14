@@ -53,8 +53,8 @@ class ecmcPLCMain : public ecmcError {
                char *expr);
   int  parseExpr(int         plcIndex,
                  const char *exprStr);
-  int  getExpr(int          plcIndex,
-               std::string *expr);
+  std::string *getExpr(int plcIndex,
+                       int *error);
   int  addExprLine(int         plcIndex,
                    const char *exprStr);
   int  loadPLCFile(int   plcIndex,

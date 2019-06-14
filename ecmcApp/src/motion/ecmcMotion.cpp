@@ -1193,8 +1193,12 @@ const char* getAxisTransformCommandExpr(int axisIndex, int *error) {
     return "";
   }
     
-  std::string *expr = NULL;
-  *error = plcs->getExpr(plcIndex,expr);
+  int errorLocal = 0;
+  std::string *expr = plcs->getExpr(plcIndex,&errorLocal);
+  if(errorLocal) {
+    *error = errorLocal;
+    return "";
+  }
 
   return expr->c_str(); //axes[axisIndex]->setCommandsTransformExpression(tempExpr);
 }

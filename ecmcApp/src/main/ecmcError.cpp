@@ -298,6 +298,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14324:
+    return "ERROR_AXIS_FILTER_OBJECT_NULL";
+
+    break;
+
+  case 0x14325:
+    return "ERROR_AXIS_PLC_OBJECT_NULL";
+
+    break;
+
   case 0x14600:   // DRIVE
     return "ERROR_DRV_DRIVE_INTERLOCKED";
 
