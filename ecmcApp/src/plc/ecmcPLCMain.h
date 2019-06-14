@@ -49,6 +49,7 @@ class ecmcPLCMain : public ecmcError {
   int  setDataStoragePointer(ecmcDataStorage *ds,
                              int              index);
   int  execute(bool ecOK);
+  int  execute(int   plcIndex, bool ecOK);
   int  setExpr(int   plcIndex,
                char *expr);
   int  parseExpr(int         plcIndex,
@@ -67,6 +68,8 @@ class ecmcPLCMain : public ecmcError {
                  int *enabled);
   int  getCompiled(int  plcIndex,
                    int *compiled);
+  int  getCompiled(int  plcIndex);
+
   int  readStaticPLCVar(int         plcIndex,
                         const char *varName,
                         double     *data);
@@ -74,6 +77,7 @@ class ecmcPLCMain : public ecmcError {
                          const char *varName,
                          double      data);
   int  validate();
+  int  validate(int plcIndex);
   int  getErrorID();
   bool getError();
   void errorReset();
@@ -93,6 +97,7 @@ class ecmcPLCMain : public ecmcError {
                               int skipCycles);
   int  addMainDefaultVariables();
   int  updateAllScanTimeVars();
+  int  updateAllScanTimeVars(int plcIndex);
   int  parseAxis(int         plcIndex,
                  const char *exprStr);
   int  parseEC(int         plcIndex,

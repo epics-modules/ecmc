@@ -1036,7 +1036,7 @@ int setAxisTransformCommandExpr(int axisIndex, char *expr) {
   int plcIndex = ECMC_MAX_PLCS+axisIndex;
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);  
 
-  return plcs->parseExpr(plcIndex,expr);// axes[axisIndex]->setCommandsTransformExpression(tempExpr);
+  return axes[axisIndex]->setPLCExpr(expr);// axes[axisIndex]->setCommandsTransformExpression(tempExpr);
 }
 
 int setAxisTrajExtVelFilterEnable(int axisIndex, int enable) {
@@ -2401,12 +2401,13 @@ int createAxis(int index, int type) {
   axisDiagIndex = index;  // Always printout last axis added
   
   // Create PLC for axis
-  int error = createPLC(ECMC_MAX_PLCS + index,1,1);
+  int axisPLCIndex = ECMC_MAX_PLCS + index;
+  int error = createPLC(axisPLCIndex,1,1);
   if (error) {
     return error;
   }
 
-  axes[index]->setPLC(plcs->getPLCTaskForAxis(index));
+  axes[index]->setPLC(plcs,axisPLCIndex);
   return axes[index]->getErrorID();
 }
 

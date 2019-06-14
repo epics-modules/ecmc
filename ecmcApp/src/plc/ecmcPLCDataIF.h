@@ -98,5 +98,6 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *asynDataItem_;
   int asynWriteAllow_;
+  int isBool_;
 };
 #endif  /* ecmcPLCDataIF_H_ */

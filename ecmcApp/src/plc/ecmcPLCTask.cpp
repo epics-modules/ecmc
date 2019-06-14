@@ -125,10 +125,11 @@ int ecmcPLCTask::compile() {
 
   if (exprtk_->compile()) {
     compiled_ = false;
-    LOGERR("%s/%s:%d: Error: Transform compile error: %s.\n",
+    LOGERR("%s/%s:%d: Error: PLC%d compile error: %s.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
+           plcIndex_,
            exprtk_->getParserError().c_str());
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_PLC_COMPILE_ERROR);
@@ -260,12 +261,14 @@ int ecmcPLCTask::globalVarExist(const char *varName) {
 }
 
 int ecmcPLCTask::validate() {
+
   if (!compiled_) {
     LOGERR(
-      "%s/%s:%d: Error: Validation of PLC object failed: Not compiled (0x%x).\n",
+      "%s/%s:%d: Error: Validation of PLC object failed (index %d): Not compiled (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      plcIndex_,
       ERROR_PLC_COMPILE_ERROR);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_PLC_COMPILE_ERROR);

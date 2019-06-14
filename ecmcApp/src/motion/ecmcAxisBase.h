@@ -12,7 +12,6 @@
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcError.h"
 #include "../com/ecmcAsynPortDriver.h"
-//#include "ecmcCommandTransform.h"
 #include "ecmcDriveBase.h"
 #include "ecmcDriveStepper.h"
 #include "ecmcDriveDS402.h"
@@ -21,7 +20,6 @@
 #include "ecmcPIDController.h"
 #include "ecmcAxisSequencer.h"
 #include "ecmcTrajectoryTrapetz.h"
-//#include "ecmcMasterSlaveIF.h"
 #include "ecmcAxisData.h"
 #include "ecmcFilter.h"
 
@@ -115,7 +113,7 @@ typedef struct {
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
-class ecmcPLCTask;
+class ecmcPLCMain;
 
 class ecmcAxisBase : public ecmcError {
  public:
@@ -165,17 +163,8 @@ class ecmcAxisBase : public ecmcError {
   int                        setAllowCmdFromPLC(bool enable);
   bool                       getAllowCmdFromPLC();
   int                        setEnablePLC(bool enable);
-  bool                       getEnablePLC();
-  //int                        setAxisArrayPointer(ecmcAxisBase *axes,
-  //                                               int           index);
-  /*int                   setCommandsTransformExpression(
-                                          std::string expression);*/
-  /*ecmcCommandTransform* getCommandTransform();*/
+  bool                       getEnablePLC();  
   void                  setInStartupPhase(bool startup);
-  /*int                   setTrajTransformExpression(
-                                          std::string expressionString);*/
-  /*int                   setEncTransformExpression(
-                                          std::string expressionString);*/
   int                   setTrajDataSourceType(dataSource refSource);
   int                   setEncDataSourceType(dataSource refSource);
   dataSource            getTrajDataSourceType();
@@ -186,8 +175,6 @@ class ecmcAxisBase : public ecmcError {
   void                  errorReset();
   int                   setEnableLocal(bool enable);
   int                   validateBase();
-  //ecmcMasterSlaveIF   * getExternalTrajIF();
-  //ecmcMasterSlaveIF   * getExternalEncIF();
   bool                  getBusy();
   int                   getBlockExtCom();
   int                   setBlockExtCom(int block);
@@ -205,7 +192,8 @@ class ecmcAxisBase : public ecmcError {
   double                getModRange();
   int                   setModType(int type);
   int                   getModType();
-  int                   setPLC(ecmcPLCTask* plc);
+  int                   setPLC(ecmcPLCMain* plcs, int plcIndex);
+  int                   setPLCExpr(char *expr);
   int                   setExtSetPos(double pos);
   int                   setExtActPos(double pos);                        
   int                   setEnableExtEncVeloFilter(bool enable);
@@ -216,20 +204,10 @@ class ecmcAxisBase : public ecmcError {
  protected:
   void         printAxisState();
   void         initVars();
-  //int          fillCommandsTransformData();
-  //bool         checkAxesForEnabledTransfromCommands(commandType type);
-  //int          setEnable_Transform();
-  //int          setExecute_Transform();
-  //int          refreshExternalInputSources();
-  //int          refreshExternalOutputSources();
   void         refreshDebugInfoStruct();
   double       getPosErrorMod();
   bool allowCmdFromOtherPLC_;                                
   bool plcEnable_;
-  //ecmcCommandTransform *commandTransform_;
-  //ecmcAxisBase *axes_[ECMC_MAX_AXES];
-  //ecmcMasterSlaveIF *externalInputTrajectoryIF_;
-  //ecmcMasterSlaveIF *externalInputEncoderIF_;
   ecmcTrajectoryTrapetz *traj_;
   ecmcMonitor *mon_;
   ecmcEncoder *enc_;
@@ -251,11 +229,13 @@ class ecmcAxisBase : public ecmcError {
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
   uint32_t statusWord_;
-  ecmcPLCTask *plc_;
+  ecmcPLCMain *plcs_;
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;
   bool enableExtEncVeloFilter_;
+  char * plcExpr_;
+  int plcIndex_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

@@ -6,7 +6,7 @@
  */
 
 #include "ecmcAxisBase.h"
-#include "../plc/ecmcPLCTask.h"
+#include "../plc/ecmcPLCMain.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <string>
@@ -48,14 +48,6 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
   seq_.setEnc(enc_);
-/*  int error = seq_.setExtTrajIF(externalInputTrajectoryIF_);
-
-  if (error) {
-    setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED);
-  }*/
 
   initAsyn();
 }
@@ -71,6 +63,7 @@ ecmcAxisBase::~ecmcAxisBase() {
   extTrajVeloFilter_ = NULL;
   delete extEncVeloFilter_;
   extEncVeloFilter_ = NULL;
+  free(plcExpr_);
 }
 
 void ecmcAxisBase::initVars() {
@@ -80,26 +73,15 @@ void ecmcAxisBase::initVars() {
   allowCmdFromOtherPLC_        = false;
   plcEnable_                   = false;
   data_.status_.inStartupPhase = false;
-
-  /*for (int i = 0; i < ECMC_MAX_AXES; i++) {
-    axes_[i] = NULL;
-  }*/
-
   data_.status_.inRealtime = false;
-
   data_.status_.externalTrajectoryPosition  = 0;
   data_.status_.externalTrajectoryVelocity  = 0;
-  //data_.status_.externalTrajectoryInterlock = ECMC_INTERLOCK_EXTERNAL;
-
   data_.status_.externalEncoderPosition  = 0;
   data_.status_.externalEncoderVelocity  = 0;
-  //data_.status_.externalEncoderInterlock = ECMC_INTERLOCK_EXTERNAL;
-
   data_.status_.currentPositionActual   = 0;
   data_.status_.currentPositionSetpoint = 0;
   data_.status_.currentVelocityActual   = 0;
   data_.status_.currentVelocitySetpoint = 0;
-
   data_.sampleTime_ = 1 / 1000;
   memset(&statusData_,    0, sizeof(statusData_));
   memset(&statusDataOld_, 0, sizeof(statusDataOld_));
@@ -119,11 +101,13 @@ void ecmcAxisBase::initVars() {
   blockExtCom_                = 0;
   statusWord_                 = 0;
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
-  plc_ = NULL;
+  plcs_ = NULL;
   extTrajVeloFilter_ = NULL;
   extEncVeloFilter_ = NULL;
   enableExtTrajVeloFilter_ = false;
   enableExtEncVeloFilter_ = false;
+  plcExpr_ = NULL;
+  plcIndex_ = 0;
 }
 
 void ecmcAxisBase::printAxisState() {
@@ -318,10 +302,9 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   mon_->readEntries();
 
   //Exceute sync PLC always (if plcEnable_)
-  if(plc_ && plcEnable_ && 
-     /*(data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL ||
-      data_.command_.encSource  != ECMC_DATA_SOURCE_INTERNAL) &&*/
-      axisState_ != ECMC_AXIS_STATE_STARTUP) {
+  if(plcs_ && plcEnable_ && 
+      axisState_ != ECMC_AXIS_STATE_STARTUP && 
+      data_.status_.inRealtime) {
 
     data_.status_.externalTrajectoryPositionOld = 
             data_.status_.externalTrajectoryPosition;
@@ -330,7 +313,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
     /* plc writes directlly to data_.status_.externalEncoderPosition
      and data_.status_.externalTrajectoryPosition*/
-    plc_->execute(masterOK);
+    plcs_->execute(plcIndex_,masterOK);
     
     // Filter velocities from PLC source
     // Traj
@@ -353,7 +336,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
         data_.status_.externalEncoderPositionOld / data_.sampleTime_;
     }
   }
-  //refreshExternalInputSources();
 }
 
 void ecmcAxisBase::postExecute(bool masterOK) {  
@@ -518,39 +500,15 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
   return allowCmdFromOtherPLC_;
 }
 
-/*int ecmcAxisBase::setAxisArrayPointer(ecmcAxisBase *axis, int index) {
-  if ((index >= ECMC_MAX_AXES) || (index < 0)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_INDEX_OUT_OF_RANGE);
-  }
-  axes_[index] = axis;
-  
-  //Set axis ref to plc
-  return plc_->setAxisArrayPointer(axis,index);
-}*/
-
-//bool ecmcAxisBase::checkAxesForEnabledTransfromCommands(commandType type) {
-//  for (int i = 0; i < ECMC_MAX_AXES; i++) {
-//    if (axes_[i] != NULL) {
-//      if (axes_[i]->getCascadedCommandsEnabled()) {
-//        return true;
-//      }
-//    }
-//  }
-//  return false;
-//}
-
 int ecmcAxisBase::setEnablePLC(bool enable) {
 
-  if(!plc_) {
+  if(!plcs_) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_AXIS_PLC_OBJECT_NULL);
   }
 
   if (data_.status_.inRealtime) {
     if (enable) {
-      int error = plc_->validate();
+      int error = plcs_->validate(plcIndex_);
 
       if (error) {
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
@@ -575,156 +533,6 @@ bool ecmcAxisBase::getEnablePLC() {
   return plcEnable_;
 }
 
-/*int ecmcAxisBase::fillCommandsTransformData() {
-  int error = 0;
-
-  // Execute
-  for (int i = 0; i < ECMC_MAX_AXES; i++) {
-    if (axes_[i] != NULL) {
-      error = commandTransform_->setData(axes_[i]->getExecute(),
-                                         ECMC_CMD_TYPE_EXECUTE,
-                                         i);
-
-      if (error) {
-        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-      }
-    } else {
-      error = commandTransform_->setData(0, ECMC_CMD_TYPE_EXECUTE, i);
-
-      if (error) {
-        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-      }
-    }
-  }
-
-  // Enable
-  for (int i = 0; i < ECMC_MAX_AXES; i++) {
-    if (axes_[i] != NULL) {
-      error = commandTransform_->setData(axes_[i]->getEnable(),
-                                         ECMC_CMD_TYPE_ENABLE,
-                                         i);
-
-      if (error) {
-        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-      }
-    } else {
-      error = commandTransform_->setData(0, ECMC_CMD_TYPE_ENABLE, i);
-
-      if (error) {
-        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-      }
-    }
-  }
-  return 0;
-}*/
-
-/*int ecmcAxisBase::setCommandsTransformExpression(std::string expression) {
-  LOGINFO15("%s/%s:%d: axis[%d].commandTransformExpression=%s;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            expression.c_str());
-  return commandTransform_->setExpression(expression);
-}*/
-
-/*int ecmcAxisBase::setEnable_Transform() {
-  // Atleast one axis have enabled getting execute from transform
-  if (checkAxesForEnabledTransfromCommands(ECMC_CMD_TYPE_ENABLE) &&
-      enableCommandTransform_) {
-    if (!commandTransform_->getCompiled()) {
-      return setErrorID(__FILE__,
-                        __FUNCTION__,
-                        __LINE__,
-                        ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED);
-    }
-    int error = fillCommandsTransformData();
-
-    if (error) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-    }
-
-    // Execute transform
-    commandTransform_->refresh();
-
-    // write changes to axes
-    for (int i = 0; i < ECMC_MAX_AXES; i++) {
-      if (commandTransform_ == NULL) {
-        return setErrorID(__FILE__,
-                          __FUNCTION__,
-                          __LINE__,
-                          ERROR_AXIS_INVERSE_TRANSFORM_NULL);
-      }
-
-      if (axes_[i] != NULL) {
-        if (axes_[i]->getCascadedCommandsEnabled() &&
-            commandTransform_->getDataChanged(ECMC_CMD_TYPE_ENABLE,
-                                              i) && (i != data_.axisId_)) {
-          int error =
-            axes_[i]->setEnable(commandTransform_->getData(ECMC_CMD_TYPE_ENABLE,
-                                                           i));
-
-          if (error) {
-            return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-          }
-        }
-      }
-    }
-  }
-
-  return 0;
-}*/
-
-/*int ecmcAxisBase::setExecute_Transform() {
-  // Atleast one axis have enabled getting execute from transform
-  if (checkAxesForEnabledTransfromCommands(ECMC_CMD_TYPE_EXECUTE) &&
-      enableCommandTransform_) {
-    if (!commandTransform_->getCompiled()) {
-      LOGINFO7(
-        "%s/%s:%d: Error: Command transform not compiled for axis %d.\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        data_.axisId_);
-      return setErrorID(__FILE__,
-                        __FUNCTION__,
-                        __LINE__,
-                        ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED);
-    }
-
-    int error = fillCommandsTransformData();
-
-    if (error) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-    }
-
-    // Execute transform
-    commandTransform_->refresh();
-
-    // write changes to axes
-    for (int i = 0; i < ECMC_MAX_AXES; i++) {
-      if (axes_[i] != NULL) {
-        if (axes_[i]->getCascadedCommandsEnabled() &&
-            commandTransform_->getDataChanged(ECMC_CMD_TYPE_EXECUTE,
-                                              i) && (i != data_.axisId_)) {
-          int error =
-            axes_[i]->setExecute(commandTransform_->getData(
-                                   ECMC_CMD_TYPE_EXECUTE,
-                                   i));
-          if (error) {
-            return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-          }
-        }
-      }
-    }
-  }
-  return 0;
-}*/
-
-/*ecmcCommandTransform * ecmcAxisBase::getCommandTransform() {
-  return commandTransform_;
-}*/
-
 void ecmcAxisBase::setInStartupPhase(bool startup) {
   if (data_.status_.inStartupPhase != startup) {
     LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d;\n",
@@ -744,75 +552,10 @@ int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType) {
                     ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
 }
 
-/*int ecmcAxisBase::setTrajTransformExpression(std::string expressionString) {
-  ecmcCommandTransform *transform =
-    externalInputTrajectoryIF_->getExtInputTransform();
-
-  if (!transform) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
-  }
-
-  LOGINFO15("%s/%s:%d: axis[%d].trajTransformExpression=%s;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            expressionString.c_str());
-
-  int error = transform->setExpression(expressionString);
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  error = externalInputTrajectoryIF_->validate();
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  return 0;
-}*/
-
-/*int ecmcAxisBase::setEncTransformExpression(std::string expressionString) {
-  ecmcCommandTransform *transform =
-    externalInputEncoderIF_->getExtInputTransform();
-
-  if (!transform) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
-  }
-
-  LOGINFO15("%s/%s:%d: axis[%d].encTransformExpression=%s;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            expressionString.c_str());
-
-  int error = transform->setExpression(expressionString);
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  error = externalInputEncoderIF_->validate();
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  return 0;
-}*/
-
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   
-  if(refSource != ECMC_DATA_SOURCE_INTERNAL && !plc_) {
+  int error = 0;
+  if(refSource != ECMC_DATA_SOURCE_INTERNAL && !plcs_) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -827,20 +570,31 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   }
   
   // If realtime: Ensure that transform object is compiled and ready to go
-  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime && !plc_->getCompiled()) {
+  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime && !plcs_->getCompiled(plcIndex_)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_TRAJ_TRANSFORM_NULL);
   }
 
-  
-  // Check if object is ok to go to refSource
-  int error = plc_->validate();
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
+  // If realtime: Ensure that transform object is compiled and ready to go
+  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime) {    
+    
+    if(!plcs_->getCompiled(plcIndex_)) {
+      error = plcs_->compileExpr(plcIndex_);
 
+      if (error) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
+      }
+    }
+    
+    error = plcs_->validate(plcIndex_);
+
+    if (error) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
+    }
+  }
+  
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
     data_.interlocks_.noExecuteInterlock = false;
     data_.refreshInterlocks();
@@ -860,15 +614,15 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
 }
 
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
-
-  if(refSource != ECMC_DATA_SOURCE_INTERNAL && !plc_) {
+  
+  int error = 0;
+  if(refSource != ECMC_DATA_SOURCE_INTERNAL && !plcs_) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_PLC_OBJECT_NULL);
   }
 
-  int error = 0;
   if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -890,15 +644,15 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   // If realtime: Ensure that transform object is compiled and ready to go
   if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime) {    
     
-    if(!plc_->getCompiled()) {
-      error = plc_->compile();
+    if(!plcs_->getCompiled(plcIndex_)) {
+      error = plcs_->compileExpr(plcIndex_);
 
       if (error) {
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
       }
     }
     
-    error = plc_->validate();
+    error = plcs_->validate(plcIndex_);
 
     if (error) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
@@ -1072,83 +826,24 @@ void ecmcAxisBase::errorReset() {
   ecmcError::errorReset();
 }
 
-/*int ecmcAxisBase::refreshExternalInputSources() {
-  
-  // Trajectory
-  int error = externalInputTrajectoryIF_->refreshInputs();
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-  data_.status_.externalTrajectoryPosition =
-    externalInputTrajectoryIF_->getInputPos();
-  data_.status_.externalTrajectoryVelocity =
-    externalInputTrajectoryIF_->getInputVel();
-  data_.interlocks_.trajTransformInterlock =
-    externalInputTrajectoryIF_->getInputIlock();
-  data_.refreshInterlocks();
-
-  // Encoder
-  error = externalInputEncoderIF_->refreshInputs();
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-  data_.status_.externalEncoderPosition =
-    externalInputEncoderIF_->getInputPos();
-  data_.status_.externalEncoderVelocity =
-    externalInputEncoderIF_->getInputVel();
-  data_.interlocks_.encTransformInterlock =
-    externalInputEncoderIF_->getInputIlock();
-  data_.refreshInterlocks();
-  return 0;
-}*/
-
-/*int ecmcAxisBase::refreshExternalOutputSources() {
-  externalInputTrajectoryIF_->getOutputDataInterface()->setPosition(
-    data_.status_.currentPositionSetpoint);
-  externalInputTrajectoryIF_->getOutputDataInterface()->setVelocity(
-    data_.status_.currentVelocitySetpoint);
-
-  externalInputEncoderIF_->getOutputDataInterface()->setPosition(
-    data_.status_.currentPositionActual);
-  externalInputEncoderIF_->getOutputDataInterface()->setVelocity(
-    data_.status_.currentVelocityActual);
-
-  if (getMon()) {
-    externalInputEncoderIF_->getOutputDataInterface()->setInterlock(
-      data_.interlocks_.trajSummaryInterlockFWD ||
-      data_.interlocks_.trajSummaryInterlockBWD);
-    externalInputTrajectoryIF_->getOutputDataInterface()->setInterlock(
-      data_.interlocks_.trajSummaryInterlockFWD ||
-      data_.interlocks_.trajSummaryInterlockBWD);
-  }
-  return 0;
-}*/
-
-/*ecmcMasterSlaveIF * ecmcAxisBase::getExternalTrajIF() {
-  return externalInputTrajectoryIF_;
-}*/
-
-/*ecmcMasterSlaveIF * ecmcAxisBase::getExternalEncIF() {
-  return externalInputEncoderIF_;
-}*/
-
 int ecmcAxisBase::validateBase() {
-  /*int error = externalInputEncoderIF_->validate();
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }
-
-  error = externalInputTrajectoryIF_->validate();
-
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-  }*/
-
-  if(plc_ && plcEnable_) {
-    return plc_->validate();
+  
+  if(plcs_ && plcEnable_) {    
+  
+    int error = 0;
+    error = plcs_->setExpr(plcIndex_,plcExpr_);   
+    if (error) {
+      return error;
+    }
+  
+    if(!plcs_->getCompiled(plcIndex_)) {
+      error= plcs_->compileExpr(plcIndex_);
+      if (error) {
+        return error;
+      }
+    }
+  
+    return plcs_->validate(plcIndex_);
   }
 
   return 0;
@@ -1829,7 +1524,7 @@ int ecmcAxisBase::setEnable(bool enable) {
   if (!enable) {  // Remove execute if enable is going down
     setExecute(false);
   }
-
+  
   if (enable && validate()) {
     setExecute(false);
     return getErrorID();
@@ -1845,8 +1540,9 @@ int ecmcAxisBase::setEnable(bool enable) {
   return 0; //setEnable_Transform();
 }
 
-int ecmcAxisBase::setPLC(ecmcPLCTask* plc) {
-  plc_ = plc;
+int ecmcAxisBase::setPLC(ecmcPLCMain* plcs, int plcIndex) {
+  plcs_ = plcs;
+  plcIndex_ = plcIndex;
   return 0;
 }
 
@@ -1912,3 +1608,7 @@ bool ecmcAxisBase::getEnableExtEncVeloFilter() {
   return enableExtEncVeloFilter_;
 }
 
+int ecmcAxisBase::setPLCExpr(char *expr) {  
+  plcExpr_ = strdup(expr);
+  return 0;
+}

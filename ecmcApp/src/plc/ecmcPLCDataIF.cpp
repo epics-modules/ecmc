@@ -103,6 +103,7 @@ void ecmcPLCDataIF::initVars() {
   asynPortDriver_ = 0;
   asynDataItem_   = 0;
   asynWriteAllow_ = 0; 
+  isBool_         = 0;
 }
 
 double& ecmcPLCDataIF::getDataRef() {
@@ -148,7 +149,11 @@ int ecmcPLCDataIF::write() {
 
   updateAsyn(0);
   // Only write if data changed between read and write
-  if ((data_ == dataRead_) || readOnly_) {
+
+  /*if(ECMC_AXIS_DATA_ENABLE == dataSourceAxis_ && axis_) {
+    printf("Axis id %d, Read %lf,Write %lf\n",axis_->getAxisID(),dataRead_,data_ );
+  }*/
+  if ((data_ == dataRead_) || readOnly_ || (isBool_ && ((data_>0) == (dataRead_>0)))) {
     return 0;
   }
 
@@ -424,7 +429,8 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_ENABLE:
-    data_ = static_cast<double>(axisData->onChangeData.enable);
+
+    data_ = static_cast<double>(axisData->onChangeData.enable);    
     break;
 
   case ECMC_AXIS_DATA_ENABLED:
@@ -821,6 +827,7 @@ ecmcDataStorageType ecmcPLCDataIF::parseDataStorageDataSource(
   npos = strcmp(varName, ECMC_DATA_STORAGE_DATA_CLEAR_STR);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_DATA_STORAGE_DATA_CLEAR;
   }
 
@@ -833,6 +840,7 @@ ecmcDataStorageType ecmcPLCDataIF::parseDataStorageDataSource(
   npos = strcmp(varName, ECMC_DATA_STORAGE_DATA_FULL_STR);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_DATA_STORAGE_DATA_FULL;
   }
 
@@ -959,78 +967,90 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_TRAJ_SOURCE);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_TRAJ_SOURCE;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_ENC_SOURCE);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_ENC_SOURCE;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_ENABLE);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_ENABLE;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_ENABLED);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_ENABLED;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_EXECUTE);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_EXECUTE;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_BUSY);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_BUSY;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_AT_TARGET);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_AT_TARGET;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_HOMED);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_HOMED;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_LIMIT_BWD);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_LIMIT_BWD;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_LIMIT_FWD);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_LIMIT_FWD;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_HOME_SWITCH);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_HOME_SWITCH;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_RESET);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_RESET;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_VEL_TARGET_SET);
 
-  if (npos == 0) {
+  if (npos == 0) {    
     return ECMC_AXIS_DATA_VEL_TARGET_SET;
   }
 
@@ -1061,12 +1081,14 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_SOFT_LIMIT_BWD_ENABLE);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_SOFT_LIMIT_FWD_ENABLE);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE;
   }
 
@@ -1085,18 +1107,21 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_BLOCK_COM);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_BLOCK_COM;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_INTERLOCK_FWD_TYPE);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_INTERLOCK_BWD_TYPE);
 
   if (npos == 0) {
+    isBool_ = 1;
     return ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE;
   }
 

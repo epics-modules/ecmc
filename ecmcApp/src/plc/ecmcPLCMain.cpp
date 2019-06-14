@@ -105,6 +105,18 @@ int ecmcPLCMain::setDataStoragePointer(ecmcDataStorage *ds, int index) {
   return 0;
 }
 
+int ecmcPLCMain::validate(int plcIndex) {
+  
+  if (plcs_[plcIndex] != NULL) {
+    int errorCode = plcs_[plcIndex]->validate();
+
+    if (errorCode) {
+      return errorCode;
+    }
+  }
+  return 0;
+}
+
 int ecmcPLCMain::validate() {
   // Set scantime
   int errorCode = updateAllScanTimeVars();
@@ -115,12 +127,9 @@ int ecmcPLCMain::validate() {
 
   // Validate
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
-    if (plcs_[i] != NULL) {
-      int errorCode = plcs_[i]->validate();
-
-      if (errorCode) {
-        return errorCode;
-      }
+    int errorCode = validate(i);
+    if (errorCode) {
+      return errorCode;
     }
   }
   return 0;
@@ -143,6 +152,22 @@ int ecmcPLCMain::execute(bool ecOK) {
             if (plcFirstScan_[plcIndex]) {
               plcFirstScan_[plcIndex]->setData(1); // First scan done
             }
+          }
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+int ecmcPLCMain::execute(int plcIndex, bool ecOK) {
+  if (plcs_[plcIndex] != NULL) {
+    if (plcEnable_[plcIndex]) {
+      if (plcEnable_[plcIndex]->getData()) {
+        plcs_[plcIndex]->execute(ecOK);
+         if (ecOK) {
+          if (plcFirstScan_[plcIndex]) {
+            plcFirstScan_[plcIndex]->setData(1); // First scan done
           }
         }
       }
@@ -332,6 +357,14 @@ int ecmcPLCMain::getCompiled(int plcIndex, int *compiled) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   *compiled = plcs_[plcIndex]->getCompiled();
   return 0;
+}
+
+int ecmcPLCMain::getCompiled(int plcIndex) {
+  if (plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES || plcIndex < 0) {
+    LOGERR("ERROR: PLC index out of range.\n");
+    return 0;
+  }
+  return  plcs_[plcIndex]->getCompiled();
 }
 
 int ecmcPLCMain::parseExpr(int plcIndex, const char *exprStr) {
@@ -1189,34 +1222,43 @@ void ecmcPLCMain::errorReset() {
   ecmcError::errorReset();
 }
 
-int ecmcPLCMain::updateAllScanTimeVars() {
-  // Update all scantime variables
+int ecmcPLCMain::updateAllScanTimeVars(int plcIndex) {
+
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  if (plcs_[plcIndex]) {
+    int chars = snprintf(varName,
+                         EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
+                         ECMC_PLC_DATA_STR "%d." ECMC_PLC_ENABLE_DATA_STR,
+                         plcIndex);
 
-  for (int i = 0; i < ECMC_MAX_PLCS; i++) {
-    if (plcs_[i]) {
-      int chars = snprintf(varName,
-                           EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                           ECMC_PLC_DATA_STR "%d." ECMC_PLC_ENABLE_DATA_STR,
-                           i);
+    if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+    }
+    ecmcPLCDataIF *dataIF = NULL;
+    int errorCode         = findGlobalDataIF(varName, &dataIF);
 
-      if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
-        return setErrorID(__FILE__,
-                          __FUNCTION__,
-                          __LINE__,
-                          ERROR_PLCS_VARIABLE_NAME_TO_LONG);
-      }
-      ecmcPLCDataIF *dataIF = NULL;
-      int errorCode         = findGlobalDataIF(varName, &dataIF);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
 
-      if (errorCode) {
-        return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-      }
+    if (dataIF) {
+      dataIF->setReadOnly(1);
+      dataIF->setData(plcs_[plcIndex]->getSampleTime());
+    }
+  }
 
-      if (dataIF) {
-        dataIF->setReadOnly(1);
-        dataIF->setData(plcs_[i]->getSampleTime());
-      }
+  return 0;
+}
+
+int ecmcPLCMain::updateAllScanTimeVars() {
+  // Update all scantime variables for all axes)  
+  for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
+    int error = updateAllScanTimeVars(i);
+    if (error) {
+      return error;
     }
   }
   return 0;
