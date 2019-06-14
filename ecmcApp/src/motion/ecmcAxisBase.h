@@ -236,6 +236,7 @@ class ecmcAxisBase : public ecmcError {
   bool enableExtEncVeloFilter_;
   char * plcExpr_;
   int plcIndex_;
+  int newPLCExpr_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

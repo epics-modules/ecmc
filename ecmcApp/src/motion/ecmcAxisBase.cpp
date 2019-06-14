@@ -108,6 +108,7 @@ void ecmcAxisBase::initVars() {
   enableExtEncVeloFilter_ = false;
   plcExpr_ = NULL;
   plcIndex_ = 0;
+  newPLCExpr_ = 0;
 }
 
 void ecmcAxisBase::printAxisState() {
@@ -831,16 +832,14 @@ int ecmcAxisBase::validateBase() {
   if(plcs_ && plcEnable_) {    
   
     int error = 0;
-    error = plcs_->setExpr(plcIndex_,plcExpr_);   
-    if (error) {
-      return error;
-    }
-  
-    if(!plcs_->getCompiled(plcIndex_)) {
-      error= plcs_->compileExpr(plcIndex_);
+    
+    if(newPLCExpr_) {
+      plcs_->clearExpr(plcIndex_);
+      error = plcs_->setExpr(plcIndex_,plcExpr_);   
       if (error) {
         return error;
       }
+      newPLCExpr_ = 0;
     }
   
     return plcs_->validate(plcIndex_);
@@ -1609,6 +1608,8 @@ bool ecmcAxisBase::getEnableExtEncVeloFilter() {
 }
 
 int ecmcAxisBase::setPLCExpr(char *expr) {  
+  newPLCExpr_ = 1;
   plcExpr_ = strdup(expr);
+
   return 0;
 }
