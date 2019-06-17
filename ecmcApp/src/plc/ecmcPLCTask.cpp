@@ -107,13 +107,13 @@ int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
            __FUNCTION__,
            __LINE__,
            localVarStr,
-           ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+           ERROR_PLC_ADD_VARIABLE_FAIL);
     delete localArray_[localVariableCount_];
     localArray_[localVariableCount_] = NULL;
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+                      ERROR_PLC_ADD_VARIABLE_FAIL);
   }
 
   localVariableCount_++;
@@ -403,11 +403,11 @@ int ecmcPLCTask::addAndReisterGlobalVar(ecmcPLCDataIF *dataIF) {
              __FUNCTION__,
              __LINE__,
              dataIF->getVarName(),
-             ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+             ERROR_PLC_ADD_VARIABLE_FAIL);
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_TRANSFORM_ERROR_ADD_VARIABLE);
+                        ERROR_PLC_ADD_VARIABLE_FAIL);
     }
 
     globalArray_[globalVariableCount_] = dataIF;

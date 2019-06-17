@@ -1883,6 +1883,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2050D:
+    return "ERROR_PLC_ADD_VARIABLE_FAIL";
+
+    break;
+
   case 0x20600:   // ecmcPLCDataIF
     return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
 

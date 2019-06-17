@@ -13,7 +13,6 @@
 #include "ecmcMonitor.h"
 #include "ecmcPIDController.h"
 #include "ecmcTrajectoryTrapetz.h"
-#include "ecmcMasterSlaveIF.h"
 #include "ecmcAxisData.h"
 
 // SEQUENCER ERRORS
