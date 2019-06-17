@@ -6,7 +6,7 @@
  */
 
 #include "ecmcAxisBase.h"
-#include "../plc/ecmcPLCMain.h"
+//#include "../plc/ecmcPLCMain.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <string>
@@ -63,7 +63,7 @@ ecmcAxisBase::~ecmcAxisBase() {
   extTrajVeloFilter_ = NULL;
   delete extEncVeloFilter_;
   extEncVeloFilter_ = NULL;
-  free(plcExpr_);
+//  free(plcExpr_);
 }
 
 void ecmcAxisBase::initVars() {
@@ -101,14 +101,10 @@ void ecmcAxisBase::initVars() {
   blockExtCom_                = 0;
   statusWord_                 = 0;
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
-  plcs_ = NULL;
   extTrajVeloFilter_ = NULL;
   extEncVeloFilter_ = NULL;
   enableExtTrajVeloFilter_ = false;
   enableExtEncVeloFilter_ = false;
-  plcExpr_ = NULL;
-  plcIndex_ = 0;
-  newPLCExpr_ = 0;
 }
 
 void ecmcAxisBase::printAxisState() {
@@ -302,44 +298,35 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   }
   mon_->readEntries();
 
-  //Exceute sync PLC always (if plcEnable_)
-  if(plcs_ && plcEnable_ && 
-      axisState_ != ECMC_AXIS_STATE_STARTUP && 
-      data_.status_.inRealtime) {
-
-    data_.status_.externalTrajectoryPositionOld = 
-            data_.status_.externalTrajectoryPosition;
-    data_.status_.externalEncoderPositionOld = 
-            data_.status_.externalEncoderPosition;
-
-    /* plc writes directlly to data_.status_.externalEncoderPosition
-     and data_.status_.externalTrajectoryPosition*/
-    plcs_->execute(plcIndex_,masterOK);
-    
-    // Filter velocities from PLC source
-    // Traj
-    if(enableExtTrajVeloFilter_ && extTrajVeloFilter_) {
-      data_.status_.externalTrajectoryVelocity = extTrajVeloFilter_->getFiltVelo(
-        data_.status_.externalTrajectoryPosition -
-        data_.status_.externalTrajectoryPositionOld);
-    }
-    else {
-      data_.status_.externalTrajectoryVelocity = data_.status_.externalTrajectoryPosition -
-        data_.status_.externalTrajectoryPositionOld / data_.sampleTime_;
-    }
-    // Enc
-    if(enableExtEncVeloFilter_ && extEncVeloFilter_) {
-      data_.status_.externalEncoderVelocity = extEncVeloFilter_->getFiltVelo(
-        data_.status_.externalEncoderPosition -
-        data_.status_.externalEncoderPositionOld);
-    } else {
-      data_.status_.externalTrajectoryVelocity = data_.status_.externalEncoderPosition -
-        data_.status_.externalEncoderPositionOld / data_.sampleTime_;
-    }
+  // Filter velocities from PLC source
+  // Traj
+  if(enableExtTrajVeloFilter_ && extTrajVeloFilter_) {
+    data_.status_.externalTrajectoryVelocity = extTrajVeloFilter_->getFiltVelo(
+      data_.status_.externalTrajectoryPosition -
+      data_.status_.externalTrajectoryPositionOld);
+  }
+  else {
+    data_.status_.externalTrajectoryVelocity = data_.status_.externalTrajectoryPosition -
+      data_.status_.externalTrajectoryPositionOld / data_.sampleTime_;
+  }
+  // Enc
+  if(enableExtEncVeloFilter_ && extEncVeloFilter_) {
+    data_.status_.externalEncoderVelocity = extEncVeloFilter_->getFiltVelo(
+      data_.status_.externalEncoderPosition -
+      data_.status_.externalEncoderPositionOld);
+  } else {
+    data_.status_.externalTrajectoryVelocity = data_.status_.externalEncoderPosition -
+      data_.status_.externalEncoderPositionOld / data_.sampleTime_;
   }
 }
 
 void ecmcAxisBase::postExecute(bool masterOK) {  
+
+  data_.status_.externalTrajectoryPositionOld = 
+            data_.status_.externalTrajectoryPosition;
+  data_.status_.externalEncoderPositionOld = 
+            data_.status_.externalEncoderPosition;
+
   // Write encoder entries
   enc_->writeEntries();
 
@@ -501,39 +488,6 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
   return allowCmdFromOtherPLC_;
 }
 
-int ecmcAxisBase::setEnablePLC(bool enable) {
-
-  if(!plcs_) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_AXIS_PLC_OBJECT_NULL);
-  }
-
-  if (data_.status_.inRealtime) {
-    if (enable) {
-      int error = plcs_->validate(plcIndex_);
-
-      if (error) {
-        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-      }
-    }
-  }
-
-  if (plcEnable_ != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].enableCommandsTransform=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              enable > 0);
-  }
-  plcEnable_ = enable;
-
-  return 0;
-}
-
-bool ecmcAxisBase::getEnablePLC() {
-  return plcEnable_;
-}
-
 void ecmcAxisBase::setInStartupPhase(bool startup) {
   if (data_.status_.inStartupPhase != startup) {
     LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d;\n",
@@ -555,45 +509,11 @@ int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType) {
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   
-  int error = 0;
-  if(refSource != ECMC_DATA_SOURCE_INTERNAL && !plcs_) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_PLC_OBJECT_NULL);
-  }
-
   if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
-  }
-  
-  // If realtime: Ensure that transform object is compiled and ready to go
-  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime && !plcs_->getCompiled(plcIndex_)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_TRAJ_TRANSFORM_NULL);
-  }
-
-  // If realtime: Ensure that transform object is compiled and ready to go
-  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime) {    
-    
-    if(!plcs_->getCompiled(plcIndex_)) {
-      error = plcs_->compileExpr(plcIndex_);
-
-      if (error) {
-        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-      }
-    }
-    
-    error = plcs_->validate(plcIndex_);
-
-    if (error) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-    }
   }
   
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
@@ -615,14 +535,6 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
 }
 
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
-  
-  int error = 0;
-  if(refSource != ECMC_DATA_SOURCE_INTERNAL && !plcs_) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_PLC_OBJECT_NULL);
-  }
 
   if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
     return setErrorID(__FILE__,
@@ -634,29 +546,11 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   // If realtime: Ensure that ethercat enty for actual position is linked
   if ((refSource == ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime) {
     
-    error = getEnc()->validateEntry(
+    int errorCode = getEnc()->validateEntry(
       ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
 
-    if (error) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-    }
-  }
-
-  // If realtime: Ensure that transform object is compiled and ready to go
-  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime) {    
-    
-    if(!plcs_->getCompiled(plcIndex_)) {
-      error = plcs_->compileExpr(plcIndex_);
-
-      if (error) {
-        return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
-      }
-    }
-    
-    error = plcs_->validate(plcIndex_);
-
-    if (error) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
   }
   
@@ -828,22 +722,6 @@ void ecmcAxisBase::errorReset() {
 }
 
 int ecmcAxisBase::validateBase() {
-  
-  if(plcs_ && plcEnable_) {    
-  
-    int error = 0;
-    
-    if(newPLCExpr_) {
-      plcs_->clearExpr(plcIndex_);
-      error = plcs_->setExpr(plcIndex_,plcExpr_);   
-      if (error) {
-        return error;
-      }
-      newPLCExpr_ = 0;
-    }
-  
-    return plcs_->validate(plcIndex_);
-  }
 
   return 0;
 }
@@ -1043,7 +921,7 @@ int ecmcAxisBase::setExecute(bool execute) {
     }
   }
 
-  return 0; //setExecute_Transform();
+  return 0;
 }
 
 bool ecmcAxisBase::getExecute() {
@@ -1536,14 +1414,9 @@ int ecmcAxisBase::setEnable(bool enable) {
   }
 
   // Cascade commands via command transformation
-  return 0; //setEnable_Transform();
-}
-
-int ecmcAxisBase::setPLC(ecmcPLCMain* plcs, int plcIndex) {
-  plcs_ = plcs;
-  plcIndex_ = plcIndex;
   return 0;
 }
+
 
 int ecmcAxisBase::setExtSetPos(double pos) {
   data_.status_.externalTrajectoryPosition = pos;
@@ -1605,11 +1478,4 @@ bool ecmcAxisBase::getEnableExtTrajVeloFilter() {
   
 bool ecmcAxisBase::getEnableExtEncVeloFilter() {
   return enableExtEncVeloFilter_;
-}
-
-int ecmcAxisBase::setPLCExpr(char *expr) {  
-  newPLCExpr_ = 1;
-  plcExpr_ = strdup(expr);
-
-  return 0;
 }

@@ -296,6 +296,10 @@ enum axisSubObjectType {
   ECMC_AX_SUB_OBJ_MAIN       = 6,
 };
 
+
+#define AXIS_PLC_ID_TO_PLC_ID(axisId) (axisId) + ECMC_MAX_PLCS
+                                   
+
 #define ECMC_MAIN_STR "main"
 #define ECMC_THREAD_STR "thread"
 

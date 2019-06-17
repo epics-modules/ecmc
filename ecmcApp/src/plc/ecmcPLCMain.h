@@ -58,6 +58,8 @@ class ecmcPLCMain : public ecmcError {
                        int *error);
   int  addExprLine(int         plcIndex,
                    const char *exprStr);
+  int appendExprLine(int plcIndex,
+                    const char *expr);
   int  loadPLCFile(int   plcIndex,
                    char *fileName);
   int  clearExpr(int plcIndex);

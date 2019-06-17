@@ -42,7 +42,9 @@ class ecmcPLCTask : public ecmcError {
   int          validate();
   int          execute(bool ecOK);
   std::string* getExpr();
-  int          addExprLine(char *exprStr);
+  std::string* getRawExpr();
+  int          appendRawExpr(const char *exprStr);
+  int          addExprLine(const char *exprStr);
   int          clearExpr();
   int          compile();
   int          addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
@@ -78,6 +80,7 @@ class ecmcPLCTask : public ecmcError {
   int  loadDsLib();
   int  loadFileIOLib();
   std::string exprStr_;
+  std::string exprStrRaw_; //Before compile and preprocess
   bool compiled_;
   exprtkWrap *exprtk_;
   ecmcPLCDataIF *globalArray_[ECMC_MAX_PLC_VARIABLES];

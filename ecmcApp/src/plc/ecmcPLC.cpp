@@ -82,7 +82,7 @@ int appendPLCExpr(int index, char *expr) {
            index,
            expr);
   CHECK_PLCS_RETURN_IF_ERROR();
-  return plcs->addExprLine(index, expr);
+  return plcs->appendExprLine(index, expr);
 }
 
 int loadPLCFile(int index, char *fileName) {

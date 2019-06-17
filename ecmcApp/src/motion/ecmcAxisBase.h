@@ -113,8 +113,6 @@ typedef struct {
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
-class ecmcPLCMain;
-
 class ecmcAxisBase : public ecmcError {
  public:
   ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
@@ -162,8 +160,6 @@ class ecmcAxisBase : public ecmcError {
   bool                       getReset();
   int                        setAllowCmdFromPLC(bool enable);
   bool                       getAllowCmdFromPLC();
-  int                        setEnablePLC(bool enable);
-  bool                       getEnablePLC();  
   void                  setInStartupPhase(bool startup);
   int                   setTrajDataSourceType(dataSource refSource);
   int                   setEncDataSourceType(dataSource refSource);
@@ -178,7 +174,7 @@ class ecmcAxisBase : public ecmcError {
   bool                  getBusy();
   int                   getBlockExtCom();
   int                   setBlockExtCom(int block);
-  int                   getDebugInfoData(ecmcAxisStatusType *data);      // memcpy
+  int                   getDebugInfoData(ecmcAxisStatusType *data);
   int                   getAxisDebugInfoData(char *buffer,
                                              int   bufferByteSize,
                                              int  *bytesUsed);
@@ -192,8 +188,6 @@ class ecmcAxisBase : public ecmcError {
   double                getModRange();
   int                   setModType(int type);
   int                   getModType();
-  int                   setPLC(ecmcPLCMain* plcs, int plcIndex);
-  int                   setPLCExpr(char *expr);
   int                   setExtSetPos(double pos);
   int                   setExtActPos(double pos);                        
   int                   setEnableExtEncVeloFilter(bool enable);
@@ -229,14 +223,10 @@ class ecmcAxisBase : public ecmcError {
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
   uint32_t statusWord_;
-  ecmcPLCMain *plcs_;
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;
   bool enableExtEncVeloFilter_;
-  char * plcExpr_;
-  int plcIndex_;
-  int newPLCExpr_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

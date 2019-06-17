@@ -290,7 +290,8 @@ void cyclic_task(void *usr) {
     // Motion
     for (i = 0; i < ECMC_MAX_AXES; i++) {
       if (axes[i] != NULL) {
-        axes[i]->execute(ec->statusOK());
+        plcs->execute(AXIS_PLC_ID_TO_PLC_ID(i),ec->statusOK());
+        axes[i]->execute(ec->statusOK());        
       }
     }
 

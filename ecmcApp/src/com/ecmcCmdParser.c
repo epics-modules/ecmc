@@ -1802,58 +1802,9 @@ static int handleCfgCommand(const char *myarg_1) {
 
   char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 
-  /*int Cfg.SetAxisTrajTransExpr(int axis_no, char* cExpr);   */
-  /*nvals = sscanf(myarg_1,
-                 "SetAxisTrajTransExpr(%d)=%[^\n]",
-                 &iValue,
-                 cExprBuffer);
-
-  if (nvals == 1) {
-    cExprBuffer[0] = '\0';
-  }
-
-  if (nvals >= 1) {  // allow empty expression
-    // Change all # to ; (since ; is used as command delimiter)
-    size_t str_len = strlen(cExprBuffer);
-
-    int i = 0;
-
-    for (i = 0; i < str_len; i++) {
-      if (cExprBuffer[i] == TRANSFORM_EXPR_LINE_END_CHAR) {
-        cExprBuffer[i] = ';';
-      }
-    }
-    return setAxisTrajTransExpr(iValue, cExprBuffer);
-  }*/
-
-  /*int Cfg.SetAxisEncTransExpr(int axis_no, char* cExpr);   */
-  /*nvals = sscanf(myarg_1,
-                 "SetAxisEncTransExpr(%d)=%[^\n]",
-                 &iValue,
-                 cExprBuffer);
-
-  if (nvals == 1) {
-    cExprBuffer[0] = '\0';
-  }
-
-  if (nvals >= 1) {  // allow empty expression
-    // Change all # to ; (since ; is used as command delimiter
-    // in tcpip communication)
-    size_t str_len = strlen(cExprBuffer);
-
-    int i = 0;
-
-    for (i = 0; i < str_len; i++) {
-      if (cExprBuffer[i] == TRANSFORM_EXPR_LINE_END_CHAR) {
-        cExprBuffer[i] = ';';
-      }
-    }
-    return setAxisEncTransExpr(iValue, cExprBuffer);
-  }*/
-
-  /*int Cfg.SetAxisTransformCommandExpr(int axis_no,char *cExpr); */
+  /*int Cfg.SetAxisPLCExpr(int axis_no,char *cExpr); */
   nvals = sscanf(myarg_1,
-                 "SetAxisTransformCommandExpr(%d)=%[^\n]",
+                 "SetAxisPLCExpr(%d)=%[^\n]",
                  &iValue,
                  cExprBuffer);
 
@@ -1873,10 +1824,8 @@ static int handleCfgCommand(const char *myarg_1) {
         cExprBuffer[i] = ';';
       }
     }
-    return setAxisTransformCommandExpr(iValue, cExprBuffer);
+    return setAxisPLCExpr(iValue, cExprBuffer);
   }
-
-  /*int Cfg.SetPLCExpr(int index,char *cExpr); */
 
   // nvals = sscanf(myarg_1, "SetPLCExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
   nvals = sscanf(myarg_1, "SetPLCExpr(%d)=%[^\n]", &iValue, cExprBuffer);
@@ -1943,25 +1892,25 @@ static int handleCfgCommand(const char *myarg_1) {
     return compilePLCExpr(iValue);
   }
 
-  /*int Cfg.SetAxisEnableCommandsFromOtherAxis(int master_axis_no,
+  /*int Cfg.SetAxisAllowCommandsFromPLC(int master_axis_no,
     int value);*/
   nvals = sscanf(myarg_1,
-                 "SetAxisEnableCommandsFromOtherAxis(%d,%d)",
+                 "SetAxisAllowCommandsFromPLC(%d,%d)",
                  &iValue,
                  &iValue2);
 
   if (nvals == 2) {
-    return setAxisEnableCommandsFromOtherAxis(iValue, iValue2);
+    return setAxisAllowCommandsFromPLC(iValue, iValue2);
   }
 
-  /*int Cfg.SetAxisEnableCommandsTransform(int master_axis_no, int value);*/
+  /*int Cfg.SetAxisPLCEnable(int master_axis_no, int value);*/
   nvals = sscanf(myarg_1,
-                 "SetAxisEnableCommandsTransform(%d,%d)",
+                 "SetAxisPLCEnable(%d,%d)",
                  &iValue,
                  &iValue2);
 
   if (nvals == 2) {
-    return setAxisEnableCommandsTransform(iValue, iValue2);
+    return setAxisPLCEnable(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisSeqTimeout(int axis_no, int value);  IN seconds!!*/
@@ -2463,22 +2412,22 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                           &iValue));
   }
 
-  /*int GetAxisEnableCommandsFromOtherAxis(int axis_no);*/
+  /*int GetAxisAllowCommandsFromPLC(int axis_no);*/
   nvals = sscanf(myarg_1,
-                 "GetAxisEnableCommandsFromOtherAxis(%d)",
+                 "GetAxisAllowCommandsFromPLC(%d)",
                  &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableCommandsFromOtherAxis(
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisAllowCommandsFromPLC(
                                           motor_axis_no, &iValue));
   }
 
-  /*int GetAxisEnableCommandsTransform(int axis_no);*/
+  /*int GetAxisPLCEnable(int axis_no);*/
   nvals =
-    sscanf(myarg_1, "GetAxisEnableCommandsTransform(%d)", &motor_axis_no);
+    sscanf(myarg_1, "GetAxisPLCEnable(%d)", &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableCommandsTransform(
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisPLCEnable(
                                           motor_axis_no, &iValue));
   }
 
@@ -2489,82 +2438,20 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getPLCEnable(iValue2, &iValue));
   }
 
-  /*int GetAxisTrajTransExpr(int axis_no, char* cExpr);   */
-  /*nvals = sscanf(myarg_1, "GetAxisTrajTransExpr(%d)", &iValue);
+  /*int GetAxisPLCExpr(int axis_no);   */
+  nvals = sscanf(myarg_1, "GetAxisPLCExpr(%d)", &iValue);
 
   if (nvals == 1) {
     char *retBuf;
     int   error = 0;
 
-    retBuf = strdup(getAxisTrajTransExpr(iValue, &error));
+    retBuf = strdup(getAxisPLCExpr(iValue, &error));
 
     if (error) {
       free(retBuf);
       retBuf = NULL;
       return error;
     }
-
-    // Change all # to ; (since ; is used as command delimiter
-    // in tcpip communication)
-    size_t strLen = strlen(retBuf);
-    size_t i      = 0;
-
-    for (i = 0; i < strLen; i++) {
-      if (retBuf[i] == ';') {
-        retBuf[i] = TRANSFORM_EXPR_LINE_END_CHAR;
-      }
-    }
-    cmd_buf_printf(buffer, "%s", retBuf);
-
-    free(retBuf);
-    return 0;
-  }*/
-
-  /*int GetAxisEncTransExpr(int axis_no, char* cExpr);   */
-  /*nvals = sscanf(myarg_1, "GetAxisEncTransExpr(%d)", &iValue);
-
-  if (nvals == 1) {
-    char *retBuf;
-    int   error = 0;
-
-    retBuf = strdup(getAxisEncTransExpr(iValue, &error));
-
-    if (error) {
-      free(retBuf);
-      retBuf = NULL;
-      return error;
-    }
-
-    // Change all # to ; (since ; is used as command
-    // delimiter in tcpip communication)
-    size_t strLen = strlen(retBuf);
-    size_t i      = 0;
-
-    for (i = 0; i < strLen; i++) {
-      if (retBuf[i] == ';') {
-        retBuf[i] = TRANSFORM_EXPR_LINE_END_CHAR;
-      }
-    }
-    cmd_buf_printf(buffer, "%s", retBuf);
-    free(retBuf);
-    return 0;
-  }*/
-
-  /*int GetAxisEncTransExpr(int axis_no);   */
-  nvals = sscanf(myarg_1, "GetAxisTransformCommandExpr(%d)", &iValue);
-
-  if (nvals == 1) {
-    char *retBuf;
-    int   error = 0;
-
-    retBuf = strdup(getAxisTransformCommandExpr(iValue, &error));
-
-    if (error) {
-      free(retBuf);
-      retBuf = NULL;
-      return error;
-    }
-
 
     // Change all # to ; (since ; is used as command
     // delimiter in tcpip communication)

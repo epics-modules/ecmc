@@ -18,7 +18,6 @@
 #include "ecmcPIDController.h"
 #include "ecmcEncoder.h"
 #include "ecmcMonitor.h"
-//#include "ecmcCommandTransform.h"
 #include "ecmcEc.h"
 #include "ecmcEcSlave.h"
 #include "ecmcEcEntry.h"
@@ -539,7 +538,7 @@ int getAxisEncSource(int axisIndex, int *value) {
   return 0;
 }
 
-int getAxisEnableCommandsFromOtherAxis(int axisIndex, int *value) {
+int getAxisAllowCommandsFromPLC(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -552,16 +551,24 @@ int getAxisEnableCommandsFromOtherAxis(int axisIndex, int *value) {
   return 0;
 }
 
-int getAxisEnableCommandsTransform(int axisIndex, int *value) {
+int getAxisPLCEnable(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            axisIndex);
 
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-  *value  =  static_cast<int>(axes[axisIndex]->
-                                  getEnablePLC() > 0);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  CHECK_PLC_RETURN_IF_ERROR(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
+
+  int enable = 0;
+  int error = plcs->getEnable(AXIS_PLC_ID_TO_PLC_ID(axisIndex),&enable);
+  if(error) {
+    return error;
+  }
+
+  *value  = enable;
   return 0;
 }
 
@@ -893,7 +900,7 @@ int setAxisHomeLatchCountOffset(int axisIndex, int count) {
   return 0;
 }
 
-int setAxisEnableCommandsFromOtherAxis(int axisIndex, int value) {
+int setAxisAllowCommandsFromPLC(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -906,7 +913,7 @@ int setAxisEnableCommandsFromOtherAxis(int axisIndex, int value) {
   return axes[axisIndex]->setAllowCmdFromPLC(value);
 }
 
-int setAxisEnableCommandsTransform(int axisIndex, int value) {
+int setAxisPLCEnable(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -915,8 +922,10 @@ int setAxisEnableCommandsTransform(int axisIndex, int value) {
            value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_PLCS_RETURN_IF_ERROR();
+  CHECK_PLC_RETURN_IF_ERROR(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
 
-  return axes[axisIndex]->setEnablePLC(value);
+  return plcs->setEnable(AXIS_PLC_ID_TO_PLC_ID(axisIndex),value);
 }
 
 int axisErrorReset(int axisIndex, int value) {
@@ -1008,24 +1017,7 @@ int setAxisEncScaleDenom(int axisIndex, double value) {
   return 0;
 }
 
-/*int setAxisTrajTransExpr(int axisIndex, char *expr) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           expr);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)
-
-  std::string tempExpr = expr;
-
-  return axes[axisIndex]->setTrajTransformExpression(tempExpr);
-}*/
-
-int setAxisTransformCommandExpr(int axisIndex, char *expr) {
+int setAxisPLCExpr(int axisIndex, char *expr) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
            __FILE__,
            __FUNCTION__,
@@ -1033,10 +1025,10 @@ int setAxisTransformCommandExpr(int axisIndex, char *expr) {
            axisIndex,
            expr);
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  int plcIndex = ECMC_MAX_PLCS+axisIndex;
-  CHECK_PLC_RETURN_IF_ERROR(plcIndex);  
+  CHECK_PLCS_RETURN_IF_ERROR();
+  CHECK_PLC_RETURN_IF_ERROR(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
 
-  return axes[axisIndex]->setPLCExpr(expr);// axes[axisIndex]->setCommandsTransformExpression(tempExpr);
+  return plcs->appendExprLine(AXIS_PLC_ID_TO_PLC_ID(axisIndex),expr);
 }
 
 int setAxisTrajExtVelFilterEnable(int axisIndex, int enable) {
@@ -1051,23 +1043,6 @@ int setAxisTrajExtVelFilterEnable(int axisIndex, int enable) {
   return axes[axisIndex]->setEnableExtTrajVeloFilter(enable);
 }
 
-/*int setAxisEncTransExpr(int axisIndex, char *expr) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           expr);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)
-  CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)
-
-  std::string tempExpr = expr;
-
-  return axes[axisIndex]->setEncTransformExpression(tempExpr);
-}*/
-
 int setAxisEncExtVelFilterEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
@@ -1081,7 +1056,7 @@ int setAxisEncExtVelFilterEnable(int axisIndex, int enable) {
   return axes[axisIndex]->setEnableExtEncVeloFilter(enable);
 }
 
-/*const char* getAxisTrajTransExpr(int axisIndex, int *error) {
+const char* getAxisPLCExpr(int axisIndex, int *error) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -1099,91 +1074,6 @@ int setAxisEncExtVelFilterEnable(int axisIndex, int enable) {
     *error = ERROR_MAIN_AXIS_OBJECT_NULL;
     return "";
   }
-
-  if (axes[axisIndex]->getTraj() == NULL) {
-    LOGERR("ERROR: Trajectory object NULL.\n");
-    *error = ERROR_MAIN_TRAJECTORY_OBJECT_NULL;
-    return "";
-  }
-
-  if (axes[axisIndex]->getExternalTrajIF()->getExtInputTransform() == NULL) {
-    LOGERR("ERROR: Trajectory transform object NULL.\n");
-    *error = ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;
-    return "";
-  }
-  std::string *sExpr =
-    axes[axisIndex]->getExternalTrajIF()->getExtInputTransform()->
-                                          getExpression();
-    int plcIndex = ECMC_MAX_PLCS+axisIndex;
-  CHECK_PLC_RETURN_IF_ERROR(plcIndex);
-  std::string tempExpr = expr;
-
-  return plcs->parseExpr(plcIndex,tempExpr);// axes[axisIndex]->setCommandsTransformExpression(tempExpr);
-
-  *error = 0;
-  return ;//sExpr->c_str();
-}*/
-
-/*const char* getAxisEncTransExpr(int axisIndex, int *error) {
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex);
-
-  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {
-    LOGERR("ERROR: Axis index out of range.\n");
-    *error = ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
-    return "";
-  }
-
-  if (axes[axisIndex] == NULL) {
-    LOGERR("ERROR: Axis object NULL\n");
-    *error = ERROR_MAIN_AXIS_OBJECT_NULL;
-    return "";
-  }
-
-  if (axes[axisIndex]->getEnc() == NULL) {
-    LOGERR("ERROR: Encoder object NULL.\n");
-    *error = ERROR_MAIN_ENCODER_OBJECT_NULL;
-    return "";
-  }
-
-  if (axes[axisIndex]->getExternalEncIF()->getExtInputTransform() == NULL) {
-    LOGERR("ERROR: Encoder transform object NULL.\n");
-    *error = ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;
-    return "";
-  }
-  std::string *sExpr =
-    axes[axisIndex]->getExternalEncIF()->getExtInputTransform()->
-                                         getExpression();
-  *error = 0;
-  return sExpr->c_str();
-}*/
-
-const char* getAxisTransformCommandExpr(int axisIndex, int *error) {
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex);
-
-  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {
-    LOGERR("ERROR: Axis index out of range.\n");
-    *error = ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
-    return "";
-  }
-
-  if (axes[axisIndex] == NULL) {
-    LOGERR("ERROR: Axis object NULL\n");
-    *error = ERROR_MAIN_AXIS_OBJECT_NULL;
-    return "";
-  }
-    /*if (axes[axisIndex]->getCommandTransform() == NULL) {
-    LOGERR("ERROR: Axis command transform object NULL.\n");
-    *error = ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED;
-    return "";
-  }*/
 
   int plcIndex = ECMC_MAX_PLCS + axisIndex;
 
@@ -1200,7 +1090,7 @@ const char* getAxisTransformCommandExpr(int axisIndex, int *error) {
     return "";
   }
 
-  return expr->c_str(); //axes[axisIndex]->setCommandsTransformExpression(tempExpr);
+  return expr->c_str();
 }
 
 int setAxisTrajSource(int axisIndex, int value) {
@@ -2400,14 +2290,11 @@ int createAxis(int index, int type) {
 
   axisDiagIndex = index;  // Always printout last axis added
   
-  // Create PLC for axis
-  int axisPLCIndex = ECMC_MAX_PLCS + index;
-  int error = createPLC(axisPLCIndex,1,1);
+  int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index),1,1);
   if (error) {
     return error;
   }
 
-  axes[index]->setPLC(plcs,axisPLCIndex);
   return axes[index]->getErrorID();
 }
 

@@ -118,15 +118,26 @@ int ecmcPLCMain::validate(int plcIndex) {
 }
 
 int ecmcPLCMain::validate() {
+  // Parse and Compile all PLCs before runtime (all objects should be availabe)
+  int errorCode = 0;
+  for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
+    if(plcs_[i]) {      
+      errorCode = addExprLine(i,plcs_[i]->getRawExpr()->c_str());
+      if (errorCode) {
+        return errorCode;
+      }
+    }
+  }
+
   // Set scantime
-  int errorCode = updateAllScanTimeVars();
+  errorCode = updateAllScanTimeVars();
 
   if (errorCode) {
     return errorCode;
   }
 
   // Validate
-  for (int i = 0; i < ECMC_MAX_PLCS; i++) {
+  for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
     int errorCode = validate(i);
     if (errorCode) {
       return errorCode;
@@ -150,7 +161,7 @@ int ecmcPLCMain::execute(bool ecOK) {
 
           if (ecOK) {
             if (plcFirstScan_[plcIndex]) {
-              plcFirstScan_[plcIndex]->setData(1); // First scan done
+              plcFirstScan_[plcIndex]->setData(0); // First scan
             }
           }
         }
@@ -167,7 +178,7 @@ int ecmcPLCMain::execute(int plcIndex, bool ecOK) {
         plcs_[plcIndex]->execute(ecOK);
          if (ecOK) {
           if (plcFirstScan_[plcIndex]) {
-            plcFirstScan_[plcIndex]->setData(1); // First scan done
+            plcFirstScan_[plcIndex]->setData(0); // First scan
           }
         }
       }
@@ -202,6 +213,7 @@ int ecmcPLCMain::setExpr(int plcIndex, char *expr) {
 
   return compileExpr(plcIndex);
 }
+
 
 int ecmcPLCMain::addExprLine(int plcIndex, const char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
@@ -249,6 +261,12 @@ int ecmcPLCMain::addExprLine(int plcIndex, const char *expr) {
   return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
 }
 
+int ecmcPLCMain::appendExprLine(int plcIndex, const char *expr) {
+  CHECK_PLC_RETURN_IF_ERROR(plcIndex)
+  int errorCode = plcs_[plcIndex]->appendRawExpr(expr);  
+  return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+}
+
 int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   std::ifstream plcFile;
@@ -277,11 +295,11 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
 
     if (lineNoComments.length() > 0) {
       lineNoComments.append("\n");
-      errorCode = addExprLine(plcIndex, lineNoComments.c_str());
+      errorCode = appendExprLine(plcIndex, lineNoComments.c_str());
 
       if (errorCode) {
         LOGERR(
-          "%s/%s:%d: ERROR PLC%d: Error parsing file at line %d: %s (0x%x).\n",
+          "%s/%s:%d: ERROR PLC%d: Error appending file at line %d: %s (0x%x).\n",
           __FILE__,
           __FUNCTION__,
           __LINE__,
@@ -295,7 +313,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
     lineNumber++;
   }
   
-  errorCode = compileExpr(plcIndex);
+  /*errorCode = compileExpr(plcIndex);
   if (errorCode) {
     LOGERR("%s/%s:%d: ERROR PLC%d: Error Compiling file: %s (0x%x).\n",
            __FILE__,
@@ -305,7 +323,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
            fileName,
            errorCode);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
+  }*/
 
   // Set enable as default
   errorCode = setEnable(plcIndex, 1);
@@ -370,7 +388,7 @@ int ecmcPLCMain::getCompiled(int plcIndex) {
 int ecmcPLCMain::parseExpr(int plcIndex, const char *exprStr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
 
-  if (strlen(exprStr) >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
+  /*if (strlen(exprStr) >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
     LOGERR("%s/%s:%d: ERROR: Expression to long (0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -380,7 +398,7 @@ int ecmcPLCMain::parseExpr(int plcIndex, const char *exprStr) {
                       __FUNCTION__,
                       __LINE__,
                       ERROR_PLC_EXPR_LINE_TO_LONG);
-  }
+  }*/
 
   // Axis (global)
   int errorCode = parseAxis(plcIndex, exprStr);

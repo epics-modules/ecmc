@@ -973,19 +973,12 @@ const char* getAxisTrajTransExpr(int  axisIndex,
 const char* getAxisEncTransExpr(int  axisIndex,
                                 int *error);
 
-/** \breif Get axis command transformation expression.\n
+/** \breif Get axis sync. PLC expression.\n
  *
- * The axis transformation expression is used for enabling and executing of
- * axes based on mathematical expressions. This is useful when synchronizing
- * axes i.e. a slave axis could be enabled and executed at the same time as
- * the master axis.\n
- *
- * Example: Enable of axis 2 is related to the enable command of axis 1 and 5.
- * The execute command is related to an expression including the
- * execute command for axis 2 and 7.\n
- * "en2:=en1 or en5; ex1:=ex2 + ex7;".\n
- *   enY = enable command for axis Y.\n
- *   exY = execute command for axis Y.\n
+ * The axis sync PLC expression is used for enabling and executing of\n
+ * axes based on mathematical expressions. This is useful when synchronizing\n
+ * axes i.e. a slave axis could recive an custom trajatory, other enabled based\
+ * on other axes or ethercat data in the form of mathematical expressions.\n 
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] error Error code.\n
@@ -994,10 +987,10 @@ const char* getAxisEncTransExpr(int  axisIndex,
  *
  * \return pointer to transformation expression.\n
  *
- * \note Example: Get command transformation expression for axes 5.\n
- * "GetAxisTransformCommandExpr(5)" //Command string to ecmcCmdParser.c.\n
+ * \note Example: Get axis sync. PLC expression for axes 5.\n
+ * "getAxisPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
-const char* getAxisTransformCommandExpr(int  axisIndex,
+const char* getAxisPLCExpr(int  axisIndex,
                                         int *error);
 
 /** \breif Get axis trajectory data source.\n
@@ -1035,11 +1028,11 @@ int getAxisTrajSource(int  axisIndex,
 int getAxisEncSource(int  axisIndex,
                      int *value);
 
-/** \breif Get axis enable command from other axis.\n
+/** \breif Get axis allow command from PLC.\n
  *
- * An axis can receive commands from an other axis command expression.
+ * An axis can receive commands from  PLCs (expressions).\n
  * However, the axis must be allow to receive these commands, see
- * command getAxisTransformCommandExpr() for more information.\n
+ * command getAxisPLCExpr() for more information.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value enable.\n
@@ -1047,15 +1040,15 @@ int getAxisEncSource(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get axis enable command from other axis for axis 3.\n
- * "GetAxisEnableCommandsFromOtherAxis(3)" //Command string to ecmcCmdParser.c.\n
+ * "getAxisAllowCommandsFromPLC(3)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisEnableCommandsFromOtherAxis(int  axisIndex,
-                                       int *value);
+int getAxisAllowCommandsFromPLC(int  axisIndex,
+                                 int *value);
 
-/** \breif Get axis enable command transform.\n
+/** \breif Get axis enable for axis sync. PLC.\n
  *
- * The command transformation expression for an axis can be enabled/disabled.
- * see command getAxisTransformCommandExpr() for more information.\n
+ * The axis sync. PLC  expression  can be enabled/disabled.
+ * see command getAxisPLCExpr() for more information.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value enable.\n
@@ -1063,9 +1056,9 @@ int getAxisEnableCommandsFromOtherAxis(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get axis enable command transform for axis 5.\n
- * "GetAxisEnableCommandsTransform(5)" //Command string to ecmcCmdParser.c.\n
+ * "getAxisPLCEnable(5)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisEnableCommandsTransform(int  axisIndex,
+int getAxisPLCEnable(int  axisIndex,
                                    int *value);
 
 /** \breif Set axis execute bit.\n
@@ -2530,27 +2523,27 @@ int setAxisMonEnableExternalInterlock(int axisIndex,
 int setAxisMonExtHWInterlockPolarity(int axisIndex,
                                      int value);
 
-/** \breif Enable commands from other axis.\n
+/** \breif Allow commands from PLCs.\n
  *
- * An axis can receive commands from an other axis command expression.
+ * An axis can receive commands from PLCs (see PLC syntax).
  * However, the axis must be allow to receive these commands, see
- * command setAxisTransformCommandExpr() for more information.\n
+ * command setAxisPLCExpr() for more information.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Enable.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Enable command from other axis for axis 3.\n
- * "Cfg.SetAxisEnableCommandsFromOtherAxis(3,1)" //Command string to ecmcCmdParser.c.\n
+ * \note Example: Enable command from PLC for axis 3.\n
+ * "Cfg.setAxisAllowCommandsFromPLC(3,1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEnableCommandsFromOtherAxis(int axisIndex,
+int setAxisAllowCommandsFromPLC(int axisIndex,
                                        int value);
 
-/** \breif Enable command transformation expression.\n
+/** \breif Enable axis sync PLC expression.\n
  *
- * The command transformation expression for an axis can be enabled/disabled.
- * see command setAxisTransformCommandExpr() for more information.\n
+ * The axis sync PLC expression for an axis can be enabled/disabled.
+ * see command setAxisPLCExpr() for more information.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Enable.\n
@@ -2558,14 +2551,14 @@ int setAxisEnableCommandsFromOtherAxis(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Disable command transformation expression axis 5.\n
- * "Cfg.SetAxisEnableCommandsTransform(5,0)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisPLCEnable(5,0)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEnableCommandsTransform(int axisIndex,
-                                   int value);
+int setAxisPLCEnable(int axisIndex,
+                     int value);
 
-/** \breif Set axis command transformation expression.\n
+/** \breif Set axis sync. PLC expression.\n
  *
- * The axis transformation expression is used for enabling and executing of
+ * The axis PLC expression is used for enabling and executing of
  * axes based on mathematical expressions. This is useful when synchronizing
  * axes i.e. a slave axis could be enabled and executed at the same time as
  * the master axis.\n
@@ -2573,22 +2566,22 @@ int setAxisEnableCommandsTransform(int axisIndex,
  * Example: Enable of axis 2 is related to the enable command of axis 1 and 5.
  * The execute command is related to an expression including the
  * execute command for axis 2 and 7.\n
- * "en2:=en1 or en5; ex1:=ex2 + ex7;#".\n
- *   enY = enable command for axis Y.\n
- *   exY = execute command for axis Y.\n
+ * "ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable#".\n
  *
+ * For more syntax help plese view PLC syntax (setPLCExpr()).\n
+ * 
  * \param[in] axisIndex  Axis index.\n
- * \param[in] expr Command expression.\n
+ * \param[in] expr PLC expression.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set command transformation expression for axes 5 to
- * en2:=en1 or en5# ex1:=ex2 + ex7#.\n
- * "Cfg.SetAxisTransformCommandExpr(5)=en2:=en1 or en5# ex1:=ex2 + ex7#"
+ * \note Example: Set PLC expression for axes 5 to
+ * ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable#.\n
+ * "Cfg.setAxisPLCExpr(5)=ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable#"
  * //Command string to ecmcCmdParser.c.\n
  */
-int setAxisTransformCommandExpr(int   axisIndex,
-                                char *expr);
+int setAxisPLCExpr(int   axisIndex,
+                   char *expr);
 
 /** \breif Creates an axis object at index axisIndex.
  *

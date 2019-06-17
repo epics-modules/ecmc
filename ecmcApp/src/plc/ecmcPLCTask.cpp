@@ -39,6 +39,7 @@ void ecmcPLCTask::initVars() {
   errorReset();
   plcIndex_            = 0;
   exprStr_             = "";
+  exprStrRaw_          = "";
   compiled_            = false;
   globalVariableCount_ = 0;
   localVariableCount_  = 0;
@@ -199,7 +200,31 @@ std::string * ecmcPLCTask::getExpr() {
   return &exprStr_;
 }
 
-int ecmcPLCTask::addExprLine(char *exprStr) {
+std::string * ecmcPLCTask::getRawExpr() {
+  return &exprStrRaw_;
+}
+
+int ecmcPLCTask::appendRawExpr(const char *exprStr) {
+  try {
+    exprStrRaw_ += exprStr;
+  }
+  catch (const std::exception& e) {
+    LOGERR("%s/%s:%d: Append of expression line failed: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           e.what(),
+           ERROR_PLC_ADD_EXPR_LINE_ERROR);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLC_ADD_EXPR_LINE_ERROR);
+  }
+
+  return 0;
+}
+
+int ecmcPLCTask::addExprLine(const char *exprStr) {
   try {
     exprStr_ += exprStr;
   }
@@ -222,6 +247,7 @@ int ecmcPLCTask::addExprLine(char *exprStr) {
 
 int ecmcPLCTask::clearExpr() {
   exprStr_  = "";
+  exprStrRaw_  = "";
   compiled_ = false;
 
   for (int i = 0; i < localVariableCount_; i++) {
@@ -261,15 +287,20 @@ int ecmcPLCTask::globalVarExist(const char *varName) {
 }
 
 int ecmcPLCTask::validate() {
+  if(exprStr_.length()==0) {
+    return 0;  // Not used.. return OK
+  }
 
-  if (!compiled_) {
+  int errorCode = compile();
+
+  if (!compiled_ || errorCode) {
     LOGERR(
       "%s/%s:%d: Error: Validation of PLC object failed (index %d): Not compiled (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
       plcIndex_,
-      ERROR_PLC_COMPILE_ERROR);
+      errorCode);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_PLC_COMPILE_ERROR);
   }
@@ -277,8 +308,6 @@ int ecmcPLCTask::validate() {
   if (getErrorID()) {
     return getErrorID();
   }
-
-  int errorCode = 0;
 
   // Check global variables
   for (int i = 0; i < globalVariableCount_; i++) {

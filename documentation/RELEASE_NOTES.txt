@@ -1,8 +1,7 @@
 Realese notes:
-  - Remove slave -1
   - Remove addparameter iocsh command
   - Add asyn params automatically
-  - add asyn report command
+  - add asynReport command
   - Add ONE, ZERO entries
   - Add status word:
       -Ec
@@ -11,4 +10,25 @@ Realese notes:
 
   Data time stamp: TSE=-2 for ECMC timestamp, TSE=0 for EPCIS timestamp
   change from skip cycles to sample rate in ms
+
+PLCs:
+  Replace axis command transform with axis dedcicated PLC object (executed in sync before axis object). In order to use same syntax in entire ECMC.
+  Many new variables and functions can now be used in the axis sync PLC (same as normal PLC)
   
+  Currentlly the following indexes apply:
+   1. normal PLCs are in range 0..ECMC_MAX_PLCS-1
+   2. Axis PLCs are in range ECMC_MAX_PLCS..ECMC_MAX_AXES-1 
+
+  PLCs can set:
+   1. the current setpoint of an axis by writing to: ax<id>.traj.setpos. The axis will use this setpoint if trajectory source is set to external
+   2. the cutrrent encoder actual position by writing to: ax<id>.enc.actpos. The axis will use this setpoint if encoder source is set to external
+
+   Rename commands:
+   getAxisEnableCommandsTransform() -> getAxisPLCEnable()
+   setAxisEnableCommandsTransform() -> setAxisPLCEnable()
+   getAxisTransformCommandExpr()    -> getAxisPLCExpr()
+   setAxisTransformCommandExpr()    -> setAxisPLCExpr()
+   setAxisEnableCommandsFromOtherAxis() -> SetAxisAllowCommandsFromPLC()
+   getAxisEnableCommandsFromOtherAxis() -> GetAxisAllowCommandsFromPLC()
+
+   
