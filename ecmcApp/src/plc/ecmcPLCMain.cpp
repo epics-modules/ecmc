@@ -152,16 +152,15 @@ int ecmcPLCMain::execute(bool ecOK) {
     ecStatus_->setData((double)ecOK);
   }
 
-  // ONLY EXECUTE NORMAL PLCS (AXIS PLCs ARE EXE IN AXISBASE)
+  // ONLY EXECUTE NORMAL PLCS (AXIS PLCs are executed from main thread)
   for (int plcIndex = 0; plcIndex < ECMC_MAX_PLCS; plcIndex++) {
     if (plcs_[plcIndex] != NULL) {
       if (plcEnable_[plcIndex]) {
         if (plcEnable_[plcIndex]->getData()) {
           plcs_[plcIndex]->execute(ecOK);
-
           if (ecOK) {
             if (plcFirstScan_[plcIndex]) {
-              plcFirstScan_[plcIndex]->setData(0); // First scan
+              plcFirstScan_[plcIndex]->setData(plcs_[plcIndex]->getFirstScanDone()==0); // First scan
             }
           }
         }
@@ -178,7 +177,7 @@ int ecmcPLCMain::execute(int plcIndex, bool ecOK) {
         plcs_[plcIndex]->execute(ecOK);
          if (ecOK) {
           if (plcFirstScan_[plcIndex]) {
-            plcFirstScan_[plcIndex]->setData(0); // First scan
+            plcFirstScan_[plcIndex]->setData(plcs_[plcIndex]->getFirstScanDone()==0); // First scan
           }
         }
       }
