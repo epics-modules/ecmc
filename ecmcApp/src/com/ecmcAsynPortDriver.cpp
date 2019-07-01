@@ -1188,7 +1188,8 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
                            &ecmcError);
 
     if (nvals == 1) {
-      LOGINFO("ECMC returned error: %s (0x%x)\n",
+      LOGINFO("ECMC command \"%s\" returned error: %s (0x%x)\n",
+              ecmcCommand,
               getErrorString(ecmcError),
               ecmcError);
     } else {
