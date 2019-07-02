@@ -15,7 +15,7 @@ ecmcDataStorage::ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
   initVars();
   index_=index;
   setBufferSize(size);
-  bufferElementCount_ = size;
+  bufferSize_ = size;
   bufferType_         = bufferType;
   asynPortDriver_ = asynPortDriver;
   LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",
@@ -37,7 +37,7 @@ void ecmcDataStorage::printCurrentState() {
            __FUNCTION__,
            __LINE__,
            index_,
-           bufferElementCount_);
+           bufferSize_);
 
   switch (bufferType_) {
   case ECMC_STORAGE_NORMAL_BUFFER:
@@ -85,10 +85,10 @@ int ecmcDataStorage::getIndex() {
 void ecmcDataStorage::initVars() {
   errorReset();
   bufferType_         = ECMC_STORAGE_NORMAL_BUFFER;
-  bufferElementCount_ = ECMC_DEFAULT_DATA_STORAGE_SIZE;
+  bufferSize_ = ECMC_DEFAULT_DATA_STORAGE_SIZE;
   buffer_             = NULL;
   currentBufferIndex_ = 0;
-  bufferFullCounter_  = 0;
+  dataCountInBuffer_          = 0;
   index_              = 0;
   asynPortDriver_     = NULL;
   dataAsynDataItem_   = NULL;
@@ -110,17 +110,17 @@ int ecmcDataStorage::clearBuffer() {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_DATA_STORAGE_NULL);
   }
-  memset(buffer_, 0, bufferElementCount_ * sizeof(double));
+  memset(buffer_, 0, bufferSize_ * sizeof(double));
   currentBufferIndex_ = 0;
-  bufferFullCounter_  = 0;
+  dataCountInBuffer_  = 0;
   isFull_ = 0;
   updateAsyn(0);
   return 0;
 }
 
 int ecmcDataStorage::setBufferSize(int elements) {  
-  bufferElementCount_ = elements;
-  bufferFullCounter_  = 0;
+  bufferSize_ = elements;
+  dataCountInBuffer_  = 0;
   isFull_ = 0;
   double * tempBuffer = new double[elements];
   if (tempBuffer == NULL) {
@@ -133,7 +133,7 @@ int ecmcDataStorage::setBufferSize(int elements) {
   }  
   //Set new adress to asyn interface
   if(dataAsynDataItem_){
-    dataAsynDataItem_->setEcmcDataPointer((uint8_t*)tempBuffer,bufferElementCount_*sizeof(double));
+    dataAsynDataItem_->setEcmcDataPointer((uint8_t*)tempBuffer,bufferSize_*sizeof(double));
     updateAsyn(1);
   }
   delete buffer_;
@@ -143,12 +143,12 @@ int ecmcDataStorage::setBufferSize(int elements) {
 }
 
 int ecmcDataStorage::isStorageFull() {
-  isFull_=bufferFullCounter_ >= bufferElementCount_;
+  isFull_=dataCountInBuffer_ >= bufferSize_;
   return isFull_;
 }
 
 int ecmcDataStorage::getSize() {
-  return bufferElementCount_;
+  return bufferSize_;
 }
 
 int ecmcDataStorage::getCurrentIndex() {
@@ -157,7 +157,7 @@ int ecmcDataStorage::getCurrentIndex() {
 
 int ecmcDataStorage::printBuffer() {
   int start = 0;
-  int end   = bufferElementCount_;
+  int end   = bufferSize_;
 
   if (bufferType_ == ECMC_STORAGE_NORMAL_BUFFER) {
     end = currentBufferIndex_;
@@ -173,12 +173,12 @@ int ecmcDataStorage::printBuffer() {
 
 int ecmcDataStorage::getData(double **data, int *size) {
   *data = buffer_;
-  *size = bufferElementCount_;
+  *size = bufferSize_;
   return 0;
 }
 
 int ecmcDataStorage::getDataElement(int index, double *data) {
-  if ((index < 0) || (index >= bufferElementCount_)) {
+  if ((index < 0) || (index >= bufferSize_)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -193,7 +193,7 @@ int ecmcDataStorage::getDataElement(double *data) {
 }
 
 int ecmcDataStorage::setDataElement(int index, double data) {
-  if ((index < 0) || (index >= bufferElementCount_)) {
+  if ((index < 0) || (index >= bufferSize_)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -217,12 +217,12 @@ int ecmcDataStorage::appendDataNormal(double *data, int size) {
 
   int sizeToCopy = size;
 
-  if (sizeToCopy > bufferElementCount_) {
-    sizeToCopy = bufferElementCount_;
+  if (sizeToCopy > bufferSize_) {
+    sizeToCopy = bufferSize_;
   }
 
-  if (sizeToCopy > bufferElementCount_ - currentBufferIndex_) {
-    sizeToCopy = bufferElementCount_ - currentBufferIndex_;
+  if (sizeToCopy > bufferSize_ - currentBufferIndex_) {
+    sizeToCopy = bufferSize_ - currentBufferIndex_;
   }
 
   if (sizeToCopy > 0) {
@@ -230,16 +230,18 @@ int ecmcDataStorage::appendDataNormal(double *data, int size) {
     currentBufferIndex_ = currentBufferIndex_ + sizeToCopy;
   }
 
-  if (bufferFullCounter_ < bufferElementCount_) {
-    bufferFullCounter_ = bufferFullCounter_ + sizeToCopy;
-  }
+  dataCountInBuffer_ = dataCountInBuffer_ + sizeToCopy;
+  if(dataCountInBuffer_ > bufferSize_){
+    dataCountInBuffer_ = bufferSize_;
+  } 
+  
   isStorageFull();
   
   return 0;
 }
 
 int ecmcDataStorage::appendDataRing(double *data, int size) {
-  if (size > bufferElementCount_) {
+  if (size > bufferSize_) {
     LOGINFO9(
       "%s/%s:%d: ERROR: Data storage %d. Buffer size to small (0x%x).\n",
       __FILE__,
@@ -256,12 +258,12 @@ int ecmcDataStorage::appendDataRing(double *data, int size) {
   // Fill untill buffer is full. Start over in beginning
   int sizeToCopy = size;
 
-  if (sizeToCopy > bufferElementCount_) {
-    sizeToCopy = bufferElementCount_;
+  if (sizeToCopy > bufferSize_) {
+    sizeToCopy = bufferSize_;
   }
 
-  if (sizeToCopy > bufferElementCount_ - currentBufferIndex_) {
-    sizeToCopy = bufferElementCount_ - currentBufferIndex_;
+  if (sizeToCopy > bufferSize_ - currentBufferIndex_) {
+    sizeToCopy = bufferSize_ - currentBufferIndex_;
   }
 
   if (sizeToCopy > 0) {
@@ -275,9 +277,11 @@ int ecmcDataStorage::appendDataRing(double *data, int size) {
     currentBufferIndex_ = (size - sizeToCopy);
   }
 
-  if (bufferFullCounter_ < bufferElementCount_) {
-    bufferFullCounter_ = bufferFullCounter_ + sizeToCopy;
-  }
+  dataCountInBuffer_ = dataCountInBuffer_ + sizeToCopy;
+  if(dataCountInBuffer_ > bufferSize_){
+    dataCountInBuffer_ = bufferSize_;
+  } 
+
   isStorageFull();
 
   return 0;
@@ -285,25 +289,26 @@ int ecmcDataStorage::appendDataRing(double *data, int size) {
 
 int ecmcDataStorage::appendDataFifo(double *data, int size) {
   // Always add in end
-  if (size < bufferElementCount_) {
+  if (size < bufferSize_) {
     // Move old data left
-    int bytesToMove = sizeof(double) * (bufferElementCount_ - size);
+    int bytesToMove = sizeof(double) * (bufferSize_ - size);
     memmove(buffer_, buffer_ + size, bytesToMove);
   }
 
   int sizeToCopy = size;
 
-  if (sizeToCopy >= bufferElementCount_) {
-    sizeToCopy = bufferElementCount_;
+  if (sizeToCopy >= bufferSize_) {
+    sizeToCopy = bufferSize_;
   }
 
-  memcpy(buffer_ + (bufferElementCount_ - sizeToCopy),
+  memcpy(buffer_ + (bufferSize_ - sizeToCopy),
          data,
          sizeof(double) * sizeToCopy);
 
-  if (bufferFullCounter_ < bufferElementCount_) {
-    bufferFullCounter_ = bufferFullCounter_ + sizeToCopy;
-  }
+  dataCountInBuffer_ = dataCountInBuffer_ + sizeToCopy;
+  if(dataCountInBuffer_ > bufferSize_){
+    dataCountInBuffer_ = bufferSize_;
+  } 
   isStorageFull();
   return 0;
 }
@@ -321,7 +326,7 @@ int ecmcDataStorage::appendData(double *data, int size) {
                       ERROR_DATA_STORAGE_NULL);
   }
 
-  if (size > bufferElementCount_) {
+  if (size > bufferSize_) {
     LOGINFO9(
       "%s/%s:%d: ERROR: Data storage %d. Buffer size to small (0x%x).\n",
       __FILE__,
@@ -360,7 +365,7 @@ int ecmcDataStorage::appendData(double data) {
 }
 
 int ecmcDataStorage::setCurrentPosition(int position) {
-  if ((position > bufferElementCount_) || (position < 0)) {
+  if ((position > bufferSize_) || (position < 0)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -405,7 +410,7 @@ int ecmcDataStorage::initAsyn() {
   dataAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
                                     asynParamFloat64Array, //default type
                                     (uint8_t *)(buffer_),
-                                    bufferElementCount_*sizeof(double),
+                                    bufferSize_*sizeof(double),
                                     0);
 
   if(!dataAsynDataItem_) {
@@ -506,8 +511,8 @@ int ecmcDataStorage::initAsyn() {
   name = buffer;
   sizeAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
                                     asynParamInt32, //default type
-                                    (uint8_t *)&(bufferElementCount_),
-                                    sizeof(bufferElementCount_),
+                                    (uint8_t *)&(bufferSize_),
+                                    sizeof(bufferSize_),
                                     0);
   if(!sizeAsynDataItem_) {
     LOGERR(
@@ -538,4 +543,81 @@ int ecmcDataStorage::updateAsyn(bool force) {
   indexAsynDataItem_->refreshParamRT(force);
   sizeAsynDataItem_-> refreshParamRT(force);  
   return 0;
+}
+
+double ecmcDataStorage::getAvg() {
+  int elements = dataCountInBuffer_;
+
+  if(elements == 0 || bufferSize_ == 0) {
+    return 0;
+  }
+
+  double sum = 0;
+  if(bufferType_ == ECMC_STORAGE_NORMAL_BUFFER || bufferType_ == ECMC_STORAGE_RING_BUFFER) {
+    for(int i=0; i<elements;i++) {
+      sum = sum + buffer_[i];
+    }
+  } else if(bufferType_ == ECMC_STORAGE_FIFO_BUFFER) {
+    for(int i=bufferSize_-elements; i<bufferSize_;i++) {
+      sum = sum + buffer_[i];
+    }
+  }
+  
+  return sum / elements;
+}
+
+double ecmcDataStorage::getMin() {
+
+  int elements = dataCountInBuffer_;
+  
+  if(elements == 0 || bufferSize_ == 0) {
+    return 0;
+  }
+
+  double min = 0;
+  if(bufferType_ == ECMC_STORAGE_NORMAL_BUFFER || bufferType_ == ECMC_STORAGE_RING_BUFFER) {
+    min = buffer_[0];
+    for(int i=0; i<elements;i++) {
+      if(buffer_[i] < min) {
+        min = buffer_[i];
+      }
+    }
+  } else if(bufferType_ == ECMC_STORAGE_FIFO_BUFFER) {
+    min = buffer_[bufferSize_-elements];
+    for(int i=bufferSize_-elements; i<bufferSize_;i++) {
+      if(buffer_[i] < min) {
+        min = buffer_[i];
+      }
+    }
+  }
+  
+  return min;
+}
+
+double ecmcDataStorage::getMax() {
+
+  int elements = dataCountInBuffer_;
+  
+  if(elements == 0 || bufferSize_ == 0) {
+    return 0;
+  }
+
+  double max = 0;
+  if(bufferType_ == ECMC_STORAGE_NORMAL_BUFFER || bufferType_ == ECMC_STORAGE_RING_BUFFER) {
+    max = buffer_[0];
+    for(int i=0; i<elements;i++) {
+      if(buffer_[i] > max) {
+        max = buffer_[i];
+      }
+    }
+  } else if(bufferType_ == ECMC_STORAGE_FIFO_BUFFER) {
+    max = buffer_[bufferSize_-elements];
+    for(int i=bufferSize_-elements; i<bufferSize_;i++) {
+      if(buffer_[i] > max) {
+        max = buffer_[i];
+      }
+    }
+  }
+  
+  return max;
 }

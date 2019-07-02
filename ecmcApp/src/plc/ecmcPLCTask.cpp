@@ -604,6 +604,9 @@ int ecmcPLCTask::loadDsLib() {
   ecmcPLCTaskAddFunction("ds_is_full",     ds_is_full);
   ecmcPLCTaskAddFunction("ds_get_size",    ds_get_size);
   ecmcPLCTaskAddFunction("ds_push_asyn",   ds_push_asyn);
+  ecmcPLCTaskAddFunction("ds_get_avg",     ds_get_avg);
+  ecmcPLCTaskAddFunction("ds_get_min",     ds_get_min);
+  ecmcPLCTaskAddFunction("ds_get_max",     ds_get_max);
 
   if (ds_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",

@@ -355,7 +355,27 @@ int setPLCExpr(int   index,
  *
  *   9. retvalue = ds_get_err()
  *      Returns error code for last lib call.\n
+ * 
+ *   10. retvalue = ds_push_asyn(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Push data array to epics. (usefull if asyn param sample time\n
+ *      is set to -1).\n
  *
+ *   11. retvalue = ds_get_avg(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns average of the values in the data storage.\n
+ *
+ *   12. retvalue = ds_get_min(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns minimum of the values in the data storage.\n
+ *
+ *   13. retvalue = ds_get_max(
+ *                           <dsIndex>,       : Data storage index\n
+ *                           );
+ *      Returns maximum of the values in the data storage.\n
  *
  * \note Example: Add one line of PLC code to PLC 5
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n

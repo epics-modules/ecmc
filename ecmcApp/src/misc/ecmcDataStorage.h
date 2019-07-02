@@ -60,6 +60,10 @@ class ecmcDataStorage : public ecmcError {
   int  setCurrentPosition(int position);
   void printCurrentState();
   int  updateAsyn(bool force);
+  double getAvg();
+  double getStd();
+  double getMin();
+  double getMax();
 
  private:
   int  appendDataFifo(double *data,
@@ -72,10 +76,10 @@ class ecmcDataStorage : public ecmcError {
   int  initAsyn();
   int currentBufferIndex_;
   double *buffer_;
-  int bufferElementCount_;
+  int bufferSize_;
   ecmcDSBufferType bufferType_;
   int index_;
-  int bufferFullCounter_;
+  int dataCountInBuffer_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *dataAsynDataItem_;
   ecmcAsynDataItem  *statusAsynDataItem_;
@@ -83,7 +87,6 @@ class ecmcDataStorage : public ecmcError {
   ecmcAsynDataItem  *sizeAsynDataItem_;
   int isFull_;
   uint32_t statusWord_;
-
 };
 
 #endif  /* ECMCDATASTORAGE_H_ */

@@ -59,7 +59,10 @@ const char *dsLibCmdList[] = { "ds_append_data(",
                                "ds_get_err(",
                                "ds_is_full(",
                                "ds_get_size(",
-                               "ds_push_asyn("
+                               "ds_push_asyn(",
+                               "ds_get_avg(",
+                               "ds_get_min(",
+                               "ds_get_max("
 };
 
 static int ds_errorCode = 0;
@@ -140,6 +143,30 @@ inline double ds_push_asyn(double dsIndex) {
   CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(index);
   ds_errorCode = 0;
   return (double)ecmcPLCTask::statDs_[index]->updateAsyn(1);
+}
+
+inline double ds_get_avg(double dsIndex) {
+  int index = (int)dsIndex;
+
+  CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(index);
+  ds_errorCode = 0;
+  return (double)ecmcPLCTask::statDs_[index]->getAvg();
+}
+
+inline double ds_get_min(double dsIndex) {
+  int index = (int)dsIndex;
+
+  CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(index);
+  ds_errorCode = 0;
+  return (double)ecmcPLCTask::statDs_[index]->getMin();
+}
+
+inline double ds_get_max(double dsIndex) {
+  int index = (int)dsIndex;
+
+  CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(index);
+  ds_errorCode = 0;
+  return (double)ecmcPLCTask::statDs_[index]->getMax();
 }
 
 #endif  /* ecmcPLC_libDs_inc_ */
