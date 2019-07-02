@@ -834,10 +834,24 @@ int ecmcTrajectoryTrapetz::validate() {
 
 motionDirection ecmcTrajectoryTrapetz::checkDirection(double oldPos,
                                                       double newPos) {
-  if (newPos > oldPos) {
-    return ECMC_DIR_FORWARD;
-  } else if (newPos < oldPos) {
+  double diff = newPos-oldPos;
+  //No modulo or no overflow in modulo
+  if(data_->command_.moduloRange==0 || (std::abs(diff) < data_->command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR)) {
+    if (newPos > oldPos) {
+      return ECMC_DIR_FORWARD;
+    } 
+    else if (newPos < oldPos) {
+      return ECMC_DIR_BACKWARD;
+    }
+    return ECMC_DIR_STANDSTILL;
+  }
+
+  //Overflow in modulo
+  if(diff > 0) {
     return ECMC_DIR_BACKWARD;
+  }
+  else if(diff < 0) {
+   return ECMC_DIR_FORWARD;
   }
 
   return ECMC_DIR_STANDSTILL;

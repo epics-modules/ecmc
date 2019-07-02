@@ -152,6 +152,8 @@ class ecmcTrajectoryTrapetz : public ecmcError {
                                double currentAcc);
   void            printCurrentState();
   motionDirection getCurrSetDir();
+  motionDirection checkDirection(double oldPos,
+                                 double newPos);
 
  private:
   void            initVars();
@@ -176,8 +178,6 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   stopMode        checkInterlocks();
   double          updateSetpoint(double nextSetpoint,
                                  double nextVelocity);
-  motionDirection checkDirection(double oldPos,
-                                 double newPos);
   double          dist(double from,
                        double to,
                        motionDirection direction);

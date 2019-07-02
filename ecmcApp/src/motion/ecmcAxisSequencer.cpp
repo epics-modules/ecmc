@@ -378,7 +378,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       return errorCode;
     }
   }
-
+  
   switch (data_->command_.command) {
   case ECMC_CMD_JOG:
 
@@ -390,10 +390,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     if (data_->command_.execute  && !executeOld_) {
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setTargetVel(data_->command_.velocityTarget);
-      data_->command_.positionTarget = checkSoftLimits(
-        data_->command_.positionTarget);
-      traj_->setTargetPos(data_->command_.positionTarget);
+      traj_->setTargetVel(data_->command_.velocityTarget);                  
     }
 
     errorCode =  traj_->setExecute(data_->command_.execute);
@@ -409,8 +406,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);
-      traj_->setTargetPos(checkSoftLimits(traj_->getCurrentPosSet() +
-                                          data_->command_.positionTarget));
+      traj_->setTargetPos(traj_->getCurrentPosSet() +
+                          data_->command_.positionTarget);
     }
     errorCode = traj_->setExecute(data_->command_.execute);
     if (errorCode) {
@@ -443,8 +440,6 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       switch (data_->command_.cmdData) {
       case 0:     // Normal positioning
-        data_->command_.positionTarget = checkSoftLimits(
-          data_->command_.positionTarget);
         traj_->setTargetPos(data_->command_.positionTarget);
         break;
 
@@ -456,7 +451,6 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         if (errorCode) {
           return errorCode;
         }
-        data_->command_.positionTarget = checkSoftLimits(targPos);
         traj_->setTargetPos(data_->command_.positionTarget);
         break;
       }
@@ -683,18 +677,7 @@ double ecmcAxisSequencer::getHomePosition() {
 }
 
 void ecmcAxisSequencer::setTargetPos(double pos) {
-  double tempPos = checkSoftLimits(pos);
-
-  if (pos > tempPos) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_SOFT_LIMIT_FWD);
-    return;
-  }
-
-  if (pos < tempPos) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_SOFT_LIMIT_BWD);
-    return;
-  }
-
+  pos = checkSoftLimits(pos);
   if (data_->command_.positionTarget != pos) {
     LOGINFO15("%s/%s:%d: axis[%d].sequencer.positionTarget=%lf;\n",
               __FILE__,
@@ -819,16 +802,18 @@ double ecmcAxisSequencer::checkSoftLimits(double posSetpoint) {
   }
 
   double dSet    = posSetpoint;
-  double currPos = enc_->getActPos();
+  double dAct   = data_->status_.currentPositionSetpoint;
 
+  // soft limit FWD
   if ((posSetpoint > data_->command_.softLimitFwd) &&
-      data_->command_.enableSoftLimitFwd && (posSetpoint > currPos)) {
-    dSet = data_->command_.softLimitFwd;
+      data_->command_.enableSoftLimitFwd && dSet > dAct) {
+    dSet = dAct;
   }
 
+  // soft limit BWD
   if ((posSetpoint < data_->command_.softLimitBwd) &&
-      data_->command_.enableSoftLimitBwd && (posSetpoint < currPos)) {
-    dSet = data_->command_.softLimitBwd;
+      data_->command_.enableSoftLimitBwd && dSet < dAct) {
+    dSet = dAct;
   }
   return dSet;
 }
