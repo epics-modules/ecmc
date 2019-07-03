@@ -1871,6 +1871,37 @@ static int handleCfgCommand(const char *myarg_1) {
     return appendPLCExpr(iValue, cExprBuffer);
   }
 
+  /*int Cfg.AppendAxisPLCExpr(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "AppendAxisPLCExpr(%d)=%[^\n]", &iValue, cExprBuffer);
+
+  if (nvals == 1) {
+    cExprBuffer[0] = '\0';
+  }
+
+  if (nvals >= 1) {  // allow empty expression
+    // Change all # to ; (since ; is used as command
+    // delimiter in tcpip communication)
+    size_t str_len = strlen(cExprBuffer);
+
+    int i = 0;
+
+    for (i = 0; i < str_len; i++) {
+      if (cExprBuffer[i] == TRANSFORM_EXPR_LINE_END_CHAR) {
+        cExprBuffer[i] = ';';
+      }
+    }
+    // Axis plcs is indexed "above" normal PLCs in the PLC array
+    return appendPLCExpr(iValue + ECMC_MAX_PLCS, cExprBuffer);
+  }
+
+  /*int Cfg.LoadAxisPLCFile(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "LoadAxisPLCFile(%d,%[^)])", &iValue, cExprBuffer);
+
+  if (nvals == 2) {
+    // Axis plcs is indexed "above" normal PLCs in the PLC array
+    return loadPLCFile(iValue + ECMC_MAX_PLCS, cExprBuffer);
+  }
+
   /*int Cfg.LoadPLCFile(int index,char *cExpr); */
   nvals = sscanf(myarg_1, "LoadPLCFile(%d,%[^)])", &iValue, cExprBuffer);
 
