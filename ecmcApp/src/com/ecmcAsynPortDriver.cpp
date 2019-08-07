@@ -833,7 +833,8 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     existentParInfo->recordType=strdup(newParam->getRecordType());
     existentParInfo->dtyp=strdup(newParam->getDtyp());
     existentParInfo->drvInfo=strdup(newParam->getDrvInfo());
-    //existentParInfo->timeBase=newParamInfo->timeBase;
+    existentParInfo->cmdInt64ToFloat64=newParam->getParamInfo()->cmdInt64ToFloat64;
+    existentParInfo->cmdUint64ToFloat64=newParam->getParamInfo()->cmdUint64ToFloat64;
   }
 
   // Ensure that sample time is the shortest (if several records 
@@ -935,6 +936,8 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
             param->getEcmcMaxValueInt(),
             param->getEcmcBitCount());    
   }
+  fprintf(fp,"    ECMC Cmd: Uint2Float64:    %s\n",paramInfo->cmdUint64ToFloat64 ? "true" : "false");
+  fprintf(fp,"    ECMC Cmd: Int2Float64:     %s\n",paramInfo->cmdInt64ToFloat64 ? "true" : "false");
   fprintf(fp,"    Record name:               %s\n",paramInfo->recordName);
   fprintf(fp,"    Record type:               %s\n",paramInfo->recordType);
   fprintf(fp,"    Record dtyp:               %s\n",paramInfo->dtyp);      

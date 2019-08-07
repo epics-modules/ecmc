@@ -49,6 +49,8 @@ typedef struct ecmcParamInfo{
   int            alarmSeverity;
   bool           refreshNeeded;
   bool           arrayCheckSize;
+  bool           cmdUint64ToFloat64;
+  bool           cmdInt64ToFloat64;
 }ecmcParamInfo;
 
 class ecmcAsynDataItem

@@ -162,7 +162,19 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     case asynParamInt32:
       stat = asynPortDriver_->setIntegerParam(paramInfo_.index,*((epicsInt32*)data));
       break;
-    case asynParamFloat64:
+    case asynParamFloat64:            
+      if(paramInfo_.cmdInt64ToFloat64) {        
+        if(paramInfo_.ecmcSize==8) {          
+          stat = asynPortDriver_->setDoubleParam(paramInfo_.index,static_cast<epicsFloat64>(*(int64_t*)data));         
+          break;
+        }
+      }
+      if(paramInfo_.cmdUint64ToFloat64) {        
+        if(paramInfo_.ecmcSize==8) {          
+          stat = asynPortDriver_->setDoubleParam(paramInfo_.index,static_cast<epicsFloat64>(*(uint64_t*)data));         
+          break;
+        }
+      }
       stat = asynPortDriver_->setDoubleParam(paramInfo_.index,*((epicsFloat64*)data));
       break;
     case asynParamInt8Array:
@@ -1007,6 +1019,61 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
     }
     paramInfo_.asynTypeStr=strdup(buffer);
     paramInfo_.asynType=stringToAsynType(paramInfo_.asynTypeStr);
+  }
+
+  //Check if CMD option
+  option=ECMC_OPTION_CMD;
+  paramInfo_.cmdUint64ToFloat64=false;
+  paramInfo_.cmdInt64ToFloat64=false;
+  
+  isThere=strstr(drvInfo,option);
+  if(isThere){
+    if(strlen(isThere)<(strlen(option)+strlen("=0/"))){
+      asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR,
+                "%s:%s: Failed to parse %s option from drvInfo (%s). String to short.\n",
+                driverName,
+                functionName,
+                option,
+                drvInfo);
+      return asynError;
+    }
+    int nvals;
+    nvals = sscanf(isThere+strlen(option),"=%[^/]",buffer);
+     if(nvals!=1){
+      asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR,
+                "%s:%s: Failed to parse %s option from drvInfo (%s). Wrong format.\n",
+                driverName,
+                functionName,
+                option,
+                drvInfo);
+      return asynError;
+    }
+    bool cmdOK=false;
+
+    // Check UINT2FLOAT64
+    isThere=strstr(buffer,ECMC_OPTION_CMD_UINT_TO_FLOAT64);
+    if(isThere){    
+      paramInfo_.cmdUint64ToFloat64=true;
+      cmdOK=true;
+    }
+    if(!cmdOK) {
+      // Check INT2FLOAT64
+      isThere=strstr(buffer,ECMC_OPTION_CMD_INT_TO_FLOAT64);
+      if(isThere){
+        paramInfo_.cmdInt64ToFloat64=true;
+        cmdOK=true;
+      }
+    }    
+    if(!cmdOK){
+      asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR,
+                "%s:%s: Failed to parse %s option from drvInfo (%s). Command %s not valid.\n",
+                driverName,
+                functionName,
+                option,
+                drvInfo,
+                buffer);
+      return asynError;
+    }
   }
 
   return asynSuccess;
