@@ -833,8 +833,22 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     existentParInfo->recordType=strdup(newParam->getRecordType());
     existentParInfo->dtyp=strdup(newParam->getDtyp());
     existentParInfo->drvInfo=strdup(newParam->getDrvInfo());
+
+    //Conversion commands
     existentParInfo->cmdInt64ToFloat64=newParam->getParamInfo()->cmdInt64ToFloat64;
-    existentParInfo->cmdUint64ToFloat64=newParam->getParamInfo()->cmdUint64ToFloat64;
+    existentParInfo->cmdUint64ToFloat64=newParam->getParamInfo()->cmdUint64ToFloat64;    
+    if(existentParInfo->cmdInt64ToFloat64 && pEcmcParamInUseArray_[index]->getEcmcBitCount() !=64) {      
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_INT_TO_FLOAT64" is only valid for 8 byte parameters (drvInfo = %s).\n",
+                driverName, functionName,drvInfo);
+      delete newParam;
+      return asynError;
+    }
+    if(existentParInfo->cmdUint64ToFloat64 && pEcmcParamInUseArray_[index]->getEcmcBitCount() !=64) {      
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_UINT_TO_FLOAT64" is only valid for 8 byte parameters (drvInfo = %s).\n",
+                driverName, functionName,drvInfo);
+      delete newParam;
+      return asynError;
+    }
   }
 
   // Ensure that sample time is the shortest (if several records 
@@ -926,7 +940,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param alarm:               %d\n",paramInfo->alarmStatus);
   fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
   fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");
-  fprintf(fp,"    ECMC size [bytes]:         %lu\n",paramInfo->ecmcSize);
+  fprintf(fp,"    ECMC size [bits]:          %lu\n",param->getEcmcBitCount());
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
   // Value range only applicable for ints
