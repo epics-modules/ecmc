@@ -318,7 +318,7 @@ int ecWriteSdoComplete(uint16_t slavePosition,
   return ec->writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
 }
 
-uint32_t ecReadSdo(uint16_t  slavePosition,
+int ecReadSdo(uint16_t  slavePosition,
                    uint16_t  sdoIndex,
                    uint8_t   sdoSubIndex,
                    int       byteSize,
@@ -336,6 +336,48 @@ uint32_t ecReadSdo(uint16_t  slavePosition,
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   return ec->readSDO(slavePosition, sdoIndex, sdoSubIndex, byteSize, value);
+}
+
+int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
+                   uint8_t   driveNo, /**< Drive number. */
+                   uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+                   size_t    byteSize, /**< Size of data to write. */
+                   uint8_t  *value /**< Pointer to data to write. */
+                   ){
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%lu\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    driveNo,
+    idn,
+    byteSize);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec->readSoE(slavePosition, driveNo, idn, byteSize, value);
+}
+
+int ecWriteSoE(uint16_t  slavePosition, /**< Slave position. */
+                   uint8_t   driveNo, /**< Drive number. */
+                   uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+                   size_t    byteSize, /**< Size of data to write. */
+                   uint8_t  *value /**< Pointer to data to write. */
+                   ){
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%lu\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    driveNo,
+    idn,
+    byteSize);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec->writeSoE(slavePosition, driveNo, idn, byteSize, value);
 }
 
 int ecSlaveConfigWatchDog(int slaveBusPosition,

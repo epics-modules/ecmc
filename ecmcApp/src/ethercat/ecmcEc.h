@@ -108,6 +108,19 @@ class ecmcEc : public ecmcError {
                        uint16_t sdoIndex,
                        uint32_t value,
                        int      byteSize);
+  int readSoE(uint16_t  slavePosition, /**< Slave position. */
+              uint8_t   driveNo, /**< Drive number. */
+              uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+              size_t    byteSize, /**< Size of data to read. */
+              uint8_t  *value /**< Pointer to data to read. */
+              );
+  int writeSoE(uint16_t  slavePosition, /**< Slave position. */
+               uint8_t   driveNo, /**< Drive number. */
+               uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+               size_t    byteSize, /**< Size of data to write. */
+               uint8_t  *value /**< Pointer to data to write. */
+              );
+
   int addEntry(
     uint16_t       position,     // Slave position.
     uint32_t       vendorId,     // Expected vendor ID.

@@ -77,6 +77,17 @@ static int ecmcInitDone = 0;
   }                                                      \
   while (0)
 
+#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(function)   \
+  do {                                                   \
+    int iRet = function;                                 \
+    if (iRet) {                                          \
+      cmd_buf_printf(buffer, "Error: %d", iRet);         \
+      return 0;                                          \
+    }                                                    \
+    cmd_buf_printf(buffer, "%u", u64Value);              \
+    return 0;                                            \
+  }                                                      \
+  while (0)
 
 #define SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(function) \
   do {                                                   \
@@ -90,7 +101,7 @@ static int ecmcInitDone = 0;
   }                                                      \
   while (0)
 
-#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(function) \
+#define SEND_RESULT_OR_ERROR_AND_RETURN_INT64(function) \
   do {                                                   \
     int iRet = function;                                 \
     if (iRet) {                                          \
@@ -1133,6 +1144,24 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 5) {
     return ecWriteSdo(iValue, iValue2, iValue3, iValue4, iValue5);
+  }
+  
+  uint64_t uint64Value = 0;
+  /*EcWriteSoE(uint16_t  slavePosition,
+              uint8_t   driveNo,
+              uint16_t  idn, 
+              size_t    byteSize,
+              uint64_t  value)*/
+  nvals = sscanf(myarg_1,
+                 "EcWriteSoE(%d,%d,%d,%d,%lu)",
+                 &iValue2,
+                 &iValue3,
+                 &iValue4,
+                 &iValue5,
+                 &uint64Value);
+  
+  if (nvals == 5) {
+    return ecWriteSoE(iValue2, iValue3, iValue4,iValue5,(uint8_t*)(&uint64Value));
   }
 
   /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,
@@ -2210,6 +2239,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   int iValue4 = 0;
   int iValue5 = 0;
   uint32_t u32Value = 0;
+  uint64_t u64Value = 0;
   uint64_t i64Value = 0;
   double   fValue = 0;
   int motor_axis_no = 0;
@@ -2291,7 +2321,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "ReadEcEntry(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(readEcEntry(iValue, iValue2,
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT64(readEcEntry(iValue, iValue2,
                                                        &i64Value));
   }
 
@@ -2301,7 +2331,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "ReadEcEntryIDString(%d,%[^)])", &iValue, cIdBuffer);
 
   if (nvals == 2) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(readEcEntryIDString(iValue,
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT64(readEcEntryIDString(iValue,
                                                                cIdBuffer,
                                                                &i64Value));
   }
@@ -2352,13 +2382,6 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                       &fValue));
   }
 
-  /*ReadAxisGearRatio(int nAxis)*/
-  /*nvals = sscanf(myarg_1, "ReadAxisGearRatio(%d)", &motor_axis_no);
-
-  if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisGearRatio(motor_axis_no,
-                                                            &fValue));
-  }*/
 
   /*EcReadSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,
   int byteSize)*/
@@ -2372,6 +2395,22 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   if (nvals == 4) {
     SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecReadSdo(iValue2, iValue3, iValue4,
                                                    iValue5, &u32Value));
+  }
+
+  /*EcReadSoE(uint16_t  slavePosition,
+              uint8_t   driveNo,
+              uint16_t  idn, 
+              size_t    byteSize)*/
+  nvals = sscanf(myarg_1,
+                 "EcReadSoE(%d,%d,%d,%d)",
+                 &iValue2,
+                 &iValue3,
+                 &iValue4,
+                 &iValue5);
+
+  if (nvals == 4) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(ecReadSoE(iValue2, iValue3, iValue4,
+                                                      iValue5, (uint8_t*)(&u64Value)));
   }
 
   /*GetAxisOpMode(int nAxis)*/

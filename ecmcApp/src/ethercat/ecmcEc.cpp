@@ -670,6 +670,72 @@ int ecmcEc::readSDO(uint16_t  slavePosition,
   return 0;
 }
 
+int ecmcEc::readSoE(uint16_t  slavePosition, /**< Slave position. */
+                    uint8_t   driveNo, /**< Drive number. */
+                    uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+                    size_t    byteSize, /**< Size of data to write. */
+                    uint8_t  *value /**< Pointer to data to write. */
+                   ){
+    
+  size_t bytesRead = 0;
+  uint16_t soeError = 0;
+
+  int errorCode = ecrt_master_read_idn(
+        master_, /**< EtherCAT master. */
+        slavePosition, /**< Slave position. */
+        driveNo, /**< Drive number. */
+        idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+        value, /**< Pointer to memory where the read data can be stored. */
+        byteSize, /**< Size of the memory \a target points to. */
+        &bytesRead, /**< Actual size of the received data. */
+        &soeError /**< Pointer to variable, where an SoE error code
+                               can be stored. */
+        );
+
+  if(errorCode) {
+    LOGERR("%s/%s:%d: ERROR: SoE read failed with SoE error code 0x%x (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        soeError,
+        errorCode);
+   }
+
+   return errorCode;
+}
+
+int ecmcEc::writeSoE(uint16_t  slavePosition, /**< Slave position. */
+                     uint8_t   driveNo, /**< Drive number. */
+                     uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+                     size_t    byteSize, /**< Size of data to write. */
+                     uint8_t  *value /**< Pointer to data to write. */
+                     ){
+
+  uint16_t soeError = 0;
+
+  int errorCode = ecrt_master_write_idn(
+        master_, /**< EtherCAT master. */
+        slavePosition, /**< Slave position. */
+        driveNo, /**< Drive number. */
+        idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+        value, /**< Pointer to memory where the read data can be read. */
+        byteSize, /**< Size of the memory \a target points to. */        
+        &soeError /**< Pointer to variable, where an SoE error code
+                               can be stored. */
+        );
+
+  if(errorCode) {
+    LOGERR("%s/%s:%d: ERROR: SoE write failed with SoE error code 0x%x (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        soeError,
+        errorCode);
+   }
+
+   return errorCode;
+}
+
 int ecmcEc::updateInputProcessImage() {
   for (int i = 0; i < slaveCounter_; i++) {
     if (slaveArray_[i] != NULL) {

@@ -303,7 +303,7 @@ int ecWriteSdoComplete(uint16_t slavePosition,
 
 /** \breif Read a Service Data Object.
  *
- * Writing will occur directly when the command is issued.\n
+ * Read will occur directly when the command is issued.\n
  *
  * \note This command can only be used in configuration mode.\n
  *
@@ -314,22 +314,76 @@ int ecWriteSdoComplete(uint16_t slavePosition,
  *  \param[in] sdoSubIndex Sub index of service data object .
  *                           Needs to be entered in hex format.\n
  *  \param[in] byteSize Byte count to read.\n
+ *  \param[out] data      Read data.\n
  *
  * \note All configuration data can be found in the documentation of
  * the slave, in the ESI slave description file or by using the etherlab
  * (www.etherlab.org) ethercat tool.\n
  *
- * \return read result.\n
+ * \return 0 if success other wise an error code.\n
  *
  * \note Example: Read maximum current setting of the EL7037 stepper drive card
  * on slave position 2.\n
  * "Cfg.EcReadSdo(2,0x8010,0x1,2)" //Command string to ecmcCmdParser.c\n
  */
-uint32_t ecReadSdo(uint16_t  slavePosition,
-                   uint16_t  sdoIndex,
-                   uint8_t   sdoSubIndex,
-                   int       byteSize,
-                   uint32_t *value);
+int ecReadSdo(uint16_t  slavePosition,
+              uint16_t  sdoIndex,
+              uint8_t   sdoSubIndex,
+              int       byteSize,
+              uint32_t *value);
+
+/** \breif Read SoE \n
+ *
+ * \note This command can only be used in configuration mode.\n
+ *
+ *  \param[in]  slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in]  driveNo   SoE drive number.\n
+ *  \param[in]  idn       SoE IDN.\n
+ *  \param[in]  byteSize  Byte count to read.\n
+ *  \param[out] value     Pointer to read data.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave\n
+ *
+ * \return 0 if success other wise an error code.\n
+ *
+ * \note Example: Read data for drive 0
+ * on slave position 2.\n
+ * "Cfg.EcReadSoE(2,0,0x1000,2)" //Command string to ecmcCmdParser.c\n
+ */
+int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
+              uint8_t   driveNo, /**< Drive number. */
+              uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+              size_t    byteSize, /**< Size of data to write. */
+              uint8_t  *value /**< Pointer to data to write. */
+             );
+/** \breif Write SoE \n
+ *
+ * \note This command can only be used in configuration mode.\n
+ *
+ *  \param[in]  slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in]  driveNo   SoE drive number.\n
+ *  \param[in]  idn       SoE IDN.\n
+ *  \param[in]  byteSize  Byte count to write.\n
+ *  \param[out] value     Pointer to data to write.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave\n
+ *
+ * \return 0 if success other wise an error code.\n
+ *
+ * \note Example: Read data for drive 0
+ * on slave position 2.\n
+ * "Cfg.EcWriteSoE(2,0,0x1000,2)" //Command string to ecmcCmdParser.c\n
+ */
+int ecWriteSoE(uint16_t  slavePosition, /**< Slave position. */
+               uint8_t   driveNo, /**< Drive number. */
+               uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
+               size_t    byteSize, /**< Size of data to write. */
+               uint8_t  *value /**< Pointer to data to write. */
+              );
 
 /** \breif Configure Slave watch dog.\n
  *
