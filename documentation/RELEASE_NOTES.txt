@@ -127,6 +127,18 @@ What has changed:
   - Add basic implemetation of a basic comminsioning GUI (ecmccomgui). Currentlly in different repo:
     based on pyQT, pyEpics
 
+    -Add command that verifies a SDO enries value:
+                 Cfg.EcVerifySdo(uint16_t slave_position,
+                                 uint16_t sdo_index,
+                                 uint8_t sdo_subindex,
+                                 uint32_t verValue,
+                                 int byteSize)
+
+    -Add extra command for create an axis
+                 Cfg.CreateAxis(int axisIndex,
+                                int axisType,  //Optional, defaults to normal axis
+                                int drvType)   //optional, defaults to stepper axis 
+
    Todo:
     - Remove manual motion mode (not needed.. motors can be run manually directlly from etehrcat entries)
     - Add SoE communication (for "bigger" drives)
