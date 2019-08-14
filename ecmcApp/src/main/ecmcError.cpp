@@ -1678,6 +1678,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_EC_NULL";
 
     break;
+  case 0x20047:
+    return "ERROR_MAIN_EC_SDO_VERIFICATION_FAIL";
+
+    break;
+
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 

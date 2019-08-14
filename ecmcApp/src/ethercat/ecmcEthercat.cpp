@@ -260,7 +260,7 @@ int ecAddSdo(uint16_t slavePosition,
              uint32_t value,
              int      byteSize) {
   LOGINFO4(
-    "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d value=%d bytesize=%d\n",
+    "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d value=0x%x bytesize=%d\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -304,7 +304,7 @@ int ecWriteSdoComplete(uint16_t slavePosition,
                        uint16_t sdoIndex,
                        uint32_t value,
                        int      byteSize) {
-  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d value=%d bytesize=%d\n",
+  LOGINFO4("%s/%s:%d slave_position=%d sdo_index=%d value=0x%x bytesize=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -336,6 +336,45 @@ int ecReadSdo(uint16_t  slavePosition,
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   return ec->readSDO(slavePosition, sdoIndex, sdoSubIndex, byteSize, value);
+}
+
+int ecVerifySdo(uint16_t  slavePosition,
+                uint16_t  sdoIndex,
+                uint8_t   sdoSubIndex,
+                uint32_t  verValue,
+                int       byteSize
+                ) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d bytesize=%d verValue=0x%x\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,
+    sdoSubIndex,
+    byteSize,
+    verValue);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  
+  uint32_t readValue = 0;
+  int errorCode=ec->readSDO(slavePosition, sdoIndex, sdoSubIndex, byteSize, &readValue);
+  if(errorCode) {
+    return errorCode;
+  }
+
+  if(readValue != verValue) {
+    LOGERR("%s/%s:%d: ERROR: Verification of SDO failed (%u != %u) (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           readValue,
+           verValue,
+           ERROR_MAIN_EC_SDO_VERIFICATION_FAIL);
+    return ERROR_MAIN_EC_SDO_VERIFICATION_FAIL;
+  }
+  
+  return 0;
 }
 
 int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */

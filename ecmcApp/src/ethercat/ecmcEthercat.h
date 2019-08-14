@@ -332,6 +332,37 @@ int ecReadSdo(uint16_t  slavePosition,
               int       byteSize,
               uint32_t *value);
 
+/** \breif Verify a Service Data Object.
+ *
+ * Read will occur directly when the command is issued.\n
+ *
+ * \note This command can only be used in configuration mode.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in] sdoIndex Index of service data object. Needs to be
+ *                           entered in hex format.\n
+ *  \param[in] sdoSubIndex Sub index of service data object .
+ *                           Needs to be entered in hex format.\n
+ *  \param[in] byteSize Byte count to read.\n
+ *  \param[in] verValue      Expected value of SDO.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave, in the ESI slave description file or by using the etherlab
+ * (www.etherlab.org) ethercat tool.\n
+ *
+ * \return 0 if success other wise an error code.\n
+ *
+ * \note Example: Verify maximum current setting of the EL7037 stepper drive card
+ * on slave position 2 is set to 1000mA.\n
+ * "Cfg.EcVerifySdo(2,0x8010,0x1,1000,2)" //Command string to ecmcCmdParser.c\n
+ */
+int ecVerifySdo(uint16_t  slavePosition,
+                uint16_t  sdoIndex,
+                uint8_t   sdoSubIndex,
+                uint32_t  verValue,
+                int       byteSize);
+
 /** \breif Read SoE \n
  *
  * \note This command can only be used in configuration mode.\n
