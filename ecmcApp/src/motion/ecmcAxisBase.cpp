@@ -16,9 +16,9 @@
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int axisID, 
                            double sampleTime) {
-
   PRINT_ERROR_PATH("axis[%d].error", axisID);
   initVars();
+
   asynPortDriver_                 = asynPortDriver;
   data_.axisId_                   = axisID;
   data_.sampleTime_               = sampleTime;

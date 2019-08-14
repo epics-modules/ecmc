@@ -1855,7 +1855,7 @@ int setAxisDrvReduceTorqueEnable(int axisIndex, int enable) {
   return axes[axisIndex]->getDrv()->setEnableReduceTorque(enable);
 }
 
-int setAxisDrvType(int axisIndex, int type) {
+/*int setAxisDrvType(int axisIndex, int type) {
   LOGINFO4("%s/%s:%d axisIndex=%d type=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -1878,7 +1878,7 @@ int setAxisDrvType(int axisIndex, int type) {
     return ERROR_MAIN_EXCEPTION;
   }
   return 0;
-}
+}*/
 
 // Drv GET
 int getAxisDrvScale(int axisIndex, double *value) {
@@ -2262,7 +2262,8 @@ int createAxis(int index, int type, int drvType) {
 
       if (axes[index] != NULL) {
         delete axes[index];
-      }      
+      }
+
       axes[index] = new ecmcAxisReal(asynPort, index, 1 / MCU_FREQUENCY, (ecmcDriveTypes)drvType);
       break;
 

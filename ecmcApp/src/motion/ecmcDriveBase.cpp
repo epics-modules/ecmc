@@ -1,27 +1,19 @@
 #include "ecmcDriveBase.h"
 
-ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData) {
-  PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);
-  data_ = axisData;
+ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver, 
+                             ecmcAxisData *axisData) {
+  PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);  
   initVars();
+  data_ = axisData;
+  asynPortDriver_ = asynPortDriver;
 
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
   }
-  printCurrentState();
-}
 
-ecmcDriveBase::ecmcDriveBase(ecmcAxisData *axisData, double scale) {
-  PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);
-  data_ = axisData;
-  initVars();
+  initAsyn();
 
-  if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
-  scale_ = scale;
   printCurrentState();
 }
 
@@ -99,6 +91,9 @@ void ecmcDriveBase::initVars() {
   reduceTorqueOutputCmd_     = false;
   reduceTorqueOutputCmdOld_  = false;
   enableCmdOld_              = false;
+  asynPortDriver_            = NULL;
+  asynControlWd_             = NULL;
+  asynStatusWd_              = NULL;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -324,6 +319,8 @@ void ecmcDriveBase::writeEntries() {
   // (if break is not used then enableAmpCmdOld_==enableCmdOld_)
   enableAmpCmdOld_ = enableAmpCmd_;
   enableCmdOld_    = data_->command_.enable;
+
+  refreshAsyn();
 }
 
 void ecmcDriveBase::readEntries() {
@@ -573,4 +570,103 @@ int ecmcDriveBase::updateBrakeState() {
 
 void ecmcDriveBase::errorReset() {
   ecmcError::errorReset();
+}
+
+int ecmcDriveBase::initAsyn() {
+  if (asynPortDriver_ == NULL) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): Drive AsynPortDriver object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_->axisId_,
+           ERROR_DRV_ASYN_PORT_OBJ_NULL);
+    return ERROR_DRV_ASYN_PORT_OBJ_NULL;
+  }
+
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name = NULL;
+  unsigned int charCount = 0;
+  ecmcAsynDataItem *paramTemp = NULL;
+  // Control word "ax<id>.drv.control"
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR"%d."ECMC_DRV_STR"."ECMC_DRV_ENABLE_STR,
+                       data_->axisId_);
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamUInt32Digital,
+                                         (uint8_t *)&(controlWord_),
+                                         sizeof(controlWord_),
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->addSupportedAsynType(asynParamInt32);
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  asynControlWd_ = paramTemp;
+
+
+  // Status word "ax<id>.drv.status"
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR"%d."ECMC_DRV_STR"."ECMC_ASYN_AX_STATUS_NAME,
+                       data_->axisId_);
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamUInt32Digital,
+                                         (uint8_t *)&(statusWord_),
+                                         sizeof(statusWord_),
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->addSupportedAsynType(asynParamInt32);
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  asynStatusWd_ = paramTemp;
+  asynPortDriver_->callParamCallbacks();
+
+  return 0;
+}
+
+void ecmcDriveBase::refreshAsyn(){
+  asynStatusWd_->refreshParamRT(0);
+  asynControlWd_->refreshParamRT(0);
 }

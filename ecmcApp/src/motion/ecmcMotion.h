@@ -2042,7 +2042,8 @@ int setAxisDrvReduceTorqueEnable(int axisIndex,
                                  int enable);
 
 /** \breif Set drive type.\n
- *
+ *  OBSOLETE COMMAND. USE CREATEAXIS(id,type,drvtype).
+ * 
  * \note  ALL SETTINGS MADE TO THE DRIVE WILL BE OVERWRITTEN.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2055,8 +2056,8 @@ int setAxisDrvReduceTorqueEnable(int axisIndex,
  * \note Example: Set axis 3 drive type to stepper.\n
  * "Cfg.SetAxisDrvType(3,0)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisDrvType(int axisIndex,
-                   int type);
+/*int setAxisDrvType(int axisIndex,
+                   int type);*/
 
 /** \breif Get "at target" monitoring tolerance.\n
  * \param[in] axisIndex  Axis index.\n

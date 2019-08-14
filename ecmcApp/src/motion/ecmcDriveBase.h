@@ -24,6 +24,8 @@
 #define ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE 0x14609
 #define ERROR_DRV_BRAKE_OPEN_DELAY_TIME_INVALID 0x1460A
 #define ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID 0x1460B
+#define ERROR_DRV_ASYN_PORT_OBJ_NULL 0x1460C
+#define ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL 0x1460D
 
 enum ecmcDriveTypes {
   ECMC_STEPPER  = 0,
@@ -40,9 +42,10 @@ enum ecmcBrakeStates {
 
 class ecmcDriveBase : public ecmcEcEntryLink {
  public:
-  explicit ecmcDriveBase(ecmcAxisData *axisData);
-  ecmcDriveBase(ecmcAxisData *axisData,
-                double        scale);
+  explicit ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
+                         ecmcAxisData *axisData);
+  /*ecmcDriveBase(ecmcAxisData *axisData,
+                double        scale);*/
   virtual ~ecmcDriveBase();
   virtual void initVars();
   virtual int  validate();
@@ -72,6 +75,8 @@ class ecmcDriveBase : public ecmcEcEntryLink {
  protected:
   int          updateBrakeState();
   bool         driveInterlocksOK();
+  int          initAsyn();
+  void         refreshAsyn();
   bool enableAmpCmd_;
   bool enableAmpCmdOld_;
   double scale_;
@@ -97,5 +102,8 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int brakeCounter_;
   operationMode opeationMode_;
   bool enableCmdOld_;
+  ecmcAsynPortDriver *asynPortDriver_;
+  ecmcAsynDataItem  *asynControlWd_;
+  ecmcAsynDataItem  *asynStatusWd_;
 };
 #endif  // ifndef ECMCDRIVEBASE_H_

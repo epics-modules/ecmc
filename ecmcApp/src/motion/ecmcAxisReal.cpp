@@ -1,5 +1,5 @@
 /*
- * cMcuAxisReal.cpp
+ * ecmcAxisReal.cpp
  *
  *  Created on: Mar 10, 2016
  *      Author: anderssandstrom
@@ -13,6 +13,7 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
               ecmcAxisBase(asynPortDriver,
                            axisID,
                            sampleTime) {
+
   PRINT_ERROR_PATH("axis[%d].error", axisID);
   initVars();
   data_.axisId_     = axisID;
@@ -26,11 +27,30 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
             axisID);
 
   // Create drive
-  int errorCode = setDriveType(drvType);
-  if (errorCode || !drv_) {
+  switch (drvType) {
+    case ECMC_STEPPER:
+      drv_         = new ecmcDriveStepper(asynPortDriver_,&data_);
+      currentDriveType_ = ECMC_STEPPER;
+      break;
+
+    case ECMC_DS402:
+      drv_         = new ecmcDriveDS402(asynPortDriver_,&data_);
+      currentDriveType_ = ECMC_DS402;
+      break;
+
+  default:
+    LOGERR("%s/%s:%d: DRIVE TYPE NOT SUPPORTED (%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
     exit(1);
+
+    break;
   }
-  
+  printDriveType();
+
+  // Create PID
   cntrl_ = new ecmcPIDController(&data_, data_.sampleTime_);
 
   seq_.setCntrl(cntrl_);
@@ -375,41 +395,5 @@ int ecmcAxisReal::validate() {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
   }
 
-  return 0;
-}
-
-int ecmcAxisReal::setDriveType(ecmcDriveTypes driveType) {
-  if (currentDriveType_ == driveType) {
-    return 0;
-  }
-
-  ecmcDriveBase *tempDrive;
-
-  switch (driveType) {
-  case ECMC_STEPPER:
-    tempDrive         = new ecmcDriveStepper(&data_);
-    currentDriveType_ = ECMC_STEPPER;
-    break;
-
-  case ECMC_DS402:
-    tempDrive         = new ecmcDriveDS402(&data_);
-    currentDriveType_ = ECMC_DS402;
-    break;
-
-  default:
-    LOGERR("%s/%s:%d: DRIVE TYPE NOT SUPPORTED (%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
-    return ERROR_AXIS_FUNCTION_NOT_SUPPRTED;
-
-    break;
-  }
-
-  delete drv_;
-  drv_ = tempDrive;
-
-  printDriveType();
   return 0;
 }

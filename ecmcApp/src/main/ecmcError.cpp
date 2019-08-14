@@ -368,6 +368,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x1460C:
+    return "ERROR_DRV_ASYN_PORT_OBJ_NULL";
+
+    break;
+
+  case 0x1460D:
+    return "ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL";
+
+    break;
+
   case 0x14650:
     return "ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR";
 
@@ -1680,6 +1690,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     break;
   case 0x20047:
     return "ERROR_MAIN_EC_SDO_VERIFICATION_FAIL";
+
+    break;
+
+  case 0x20048:
+    return "ERROR_MAIN_OBSOLETE_COMMAND";
 
     break;
 

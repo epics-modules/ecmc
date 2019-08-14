@@ -23,7 +23,6 @@ class ecmcAxisReal : public ecmcAxisBase {
   void               execute(bool masterOK);
   int                setOpMode(operationMode mode);
   operationMode      getOpMode();
-  int                setDriveType(ecmcDriveTypes driveType);
   ecmcDriveBase    * getDrv();
   ecmcPIDController* getCntrl();
   int                validate();
@@ -32,7 +31,7 @@ class ecmcAxisReal : public ecmcAxisBase {
  private:
   void               printOpModeState();
   void               printDriveType();
-  void               initVars();  
+  void               initVars(); 
   bool initDone_;
   bool temporaryLocalTrajSource_;
   ecmcDriveBase *drv_;

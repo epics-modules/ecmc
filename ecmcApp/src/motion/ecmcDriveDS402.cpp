@@ -1,6 +1,8 @@
 #include "ecmcDriveDS402.h"
 
-ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData) : ecmcDriveBase(axisData) {
+ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver, 
+                               ecmcAxisData *axisData) : 
+                               ecmcDriveBase(asynPortDriver,axisData) {
   PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);
   data_ = axisData;
 
@@ -19,8 +21,10 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData) : ecmcDriveBase(axisData)
   printCurrentState();
 }
 
-ecmcDriveDS402::ecmcDriveDS402(ecmcAxisData *axisData,
-                               double        scale) : ecmcDriveBase(axisData) {
+ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver, 
+                              ecmcAxisData *axisData,
+                               double        scale) : 
+                               ecmcDriveBase(asynPortDriver,axisData) {
   PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);
   data_ = axisData;
   initVars();
@@ -120,7 +124,6 @@ void ecmcDriveDS402::printCurrentState() {
 }
 
 void ecmcDriveDS402::initVars() {
-  // ecmcDriveBase::initVars();
   driveState_ = ECMC_DS402_INVALID_STATE_STATUS;
   LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
             __FILE__,
@@ -129,8 +132,6 @@ void ecmcDriveDS402::initVars() {
             data_->axisId_,
             "ECMC_DS402_INVALID_STATE_STATUS");
 
-  // enableCmdOld_=false;
-  // enableSequenceRunning_=false;
   enableStateMachine_ = ECMC_DS402_RESET_STATE;
 }
 

@@ -1,10 +1,11 @@
 #include "ecmcDriveStepper.h"
 
-ecmcDriveStepper::ecmcDriveStepper(ecmcAxisData *axisData) : ecmcDriveBase(
-    axisData) {
+ecmcDriveStepper::ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
+                                   ecmcAxisData *axisData) : 
+                                   ecmcDriveBase(asynPortDriver,axisData) {
   PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);
-  data_ = axisData;
   initVars();
+  data_ = axisData;
 
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
@@ -18,12 +19,13 @@ ecmcDriveStepper::ecmcDriveStepper(ecmcAxisData *axisData) : ecmcDriveBase(
   printCurrentState();
 }
 
-ecmcDriveStepper::ecmcDriveStepper(ecmcAxisData *axisData,
-                                   double        scale) : ecmcDriveBase(
-    axisData) {
+ecmcDriveStepper::ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
+                                   ecmcAxisData *axisData,
+                                   double        scale) : 
+                                   ecmcDriveBase(asynPortDriver,axisData) {
   PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);
-  data_ = axisData;
   initVars();
+  data_ = axisData;
 
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);

@@ -1669,7 +1669,12 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetAxisDrvType(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
-    return setAxisDrvType(iValue, iValue2);
+    LOGERR("%s/%s:%d: Command obsolete. Use Cfg.CreateAxis(<id>,<type>,<drvType>) instead  (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_MAIN_OBSOLETE_COMMAND);           
+    //return setAxisDrvType(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisModRange(int axis_no, double range);*/
