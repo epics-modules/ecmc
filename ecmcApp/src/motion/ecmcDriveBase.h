@@ -26,8 +26,9 @@
 #define ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID 0x1460B
 
 enum ecmcDriveTypes {
-  ECMC_STEPPER = 0,
-  ECMC_DS402   = 1,
+  ECMC_STEPPER  = 0,
+  ECMC_DS402    = 1,
+  ECMC_NO_DRIVE = 2,
 };
 
 enum ecmcBrakeStates {
