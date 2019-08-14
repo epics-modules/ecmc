@@ -148,11 +148,8 @@ int ecmcPLCDataIF::read() {
 int ecmcPLCDataIF::write() {  
 
   updateAsyn(0);
+  
   // Only write if data changed between read and write
-
-  /*if(ECMC_AXIS_DATA_ENABLE == dataSourceAxis_ && axis_) {
-    printf("Axis id %d, Read %lf,Write %lf\n",axis_->getAxisID(),dataRead_,data_ );
-  }*/
   if ((data_ == dataRead_) || readOnly_ || (isBool_ && ((data_>0) == (dataRead_>0)))) {
     return 0;
   }
