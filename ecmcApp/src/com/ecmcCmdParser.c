@@ -659,18 +659,35 @@ static int handleCfgCommand(const char *myarg_1) {
     return validateConfig();
   }
 
-  /// "Cfg.CreateAxis(axisIndex, type)"
+  /// "Cfg.CreateAxis(axisIndex, axisType, drvType)"
+  nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2,&iValue3);
+
+  if (nvals == 3) {
+    return createAxis(iValue, iValue2, iValue3);
+  }
+
+  /// "Cfg.CreateAxis(axisIndex, axisType)"
+  // Defaults as stepper drive
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
-    return createAxis(iValue, iValue2);
+    return createAxis(iValue, iValue2,0);
+  }
+
+  /// "Cfg.CreateAxis(axisIndex)"
+  // Defaults as real axis with stepper drive
+  nvals = sscanf(myarg_1, "CreateAxis(%d)", &iValue);
+
+  if (nvals == 1) {
+    return createAxis(iValue, 1,0);
   }
 
   /// "Cfg.CreateDefaultAxis(axisIndex)"
+  // Defaults as real axis with stepper drive
   nvals = sscanf(myarg_1, "CreateDefaultAxis(%d)", &iValue);
 
   if (nvals == 1) {
-    return createAxis(iValue, 1);
+    return createAxis(iValue, 1,0);
   }
 
   /// "Cfg.CreatePLC(int index, double cycleTimeMs)"
@@ -840,7 +857,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   /// "Cfg.EcAddSlave(alias,slaveBusPosition,vendorId,productCode)"
   nvals = sscanf(myarg_1,
-                 "EcAddSlave(%d,%d,%x,%x)",
+                 "EcAddSlave(%d,%d,0x%x,0x%x)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -864,7 +881,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
 /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,productCode)"
   nvals = sscanf(myarg_1,
-                 "EcSlaveVerify(%d,%d,%x,%x)",
+                 "EcSlaveVerify(%d,%d,0x%x,0x%x)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -875,7 +892,7 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*Cfg.EcAddPdo(int nSlave,int nSyncManager,uint16_t nPdoIndex) wrong*/
-  nvals = sscanf(myarg_1, "EcAddPdo(%d,%d,%x)", &iValue, &iValue2, &iValue3);
+  nvals = sscanf(myarg_1, "EcAddPdo(%d,%d,0x%x)", &iValue, &iValue2, &iValue3);
 
   if (nvals == 3) {
     return ecAddPdo(iValue, iValue2, iValue3);
@@ -894,7 +911,7 @@ static int handleCfgCommand(const char *myarg_1) {
     int signed,
     char *cID)*/
   nvals = sscanf(myarg_1,
-                 "EcAddEntryComplete(%d,%x,%x,%d,%d,%x,%x,%x,%d,%d,%[^)])",
+                 "EcAddEntryComplete(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%d,%d,%[^)])",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -935,7 +952,7 @@ static int handleCfgCommand(const char *myarg_1) {
       int updateInRealtime
       )*/
   nvals = sscanf(myarg_1,
-                 "EcAddEntryComplete(%d,%x,%x,%d,%d,%x,%x,%x,%d,%[^,],%d)",
+                 "EcAddEntryComplete(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%d,%[^,],%d)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -979,7 +996,7 @@ static int handleCfgCommand(const char *myarg_1) {
     uint8_t nBits,
     char *cID)*/
   nvals = sscanf(myarg_1,
-                 "EcAddEntryComplete(%d,%x,%x,%d,%d,%x,%x,%x,%d,%[^)])",
+                 "EcAddEntryComplete(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%d,%[^)])",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -1033,7 +1050,7 @@ static int handleCfgCommand(const char *myarg_1) {
       uint32_t sync1_cycle,
       int32_t sync1_shift )*/
   nvals = sscanf(myarg_1,
-                 "EcSlaveConfigDC(%d,%x,%d,%d,%d,%d)",
+                 "EcSlaveConfigDC(%d,0x%x,%d,%d,%d,%d)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -1093,7 +1110,7 @@ static int handleCfgCommand(const char *myarg_1) {
   /*Cfg.EcAddSdo(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,
-                 "EcAddSdo(%d,%x,%x,%d,%d)",
+                 "EcAddSdo(%d,0x%x,0x%x,%d,%d)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -1107,7 +1124,7 @@ static int handleCfgCommand(const char *myarg_1) {
   /*Cfg.EcAddSdo(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,
-                 "EcAddSdo(%d,%x,%x,%x,%d)",
+                 "EcAddSdo(%d,0x%x,0x%x,0x%x,%d)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -1121,7 +1138,7 @@ static int handleCfgCommand(const char *myarg_1) {
   /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,
-                 "EcWriteSdo(%d,%x,%x,%d,%d)",
+                 "EcWriteSdo(%d,0x%x,0x%x,%d,%d)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -1135,7 +1152,7 @@ static int handleCfgCommand(const char *myarg_1) {
   /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,
-                 "EcWriteSdo(%d,%x,%x,%x,%d)",
+                 "EcWriteSdo(%d,0x%x,0x%x,0x%x,%d)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -1145,7 +1162,35 @@ static int handleCfgCommand(const char *myarg_1) {
   if (nvals == 5) {
     return ecWriteSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
-  
+
+  /*Cfg.EcVerifySdo(uint16_t slave_position,uint16_t sdo_index,
+  uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1,
+                 "EcVerifySdo(%d,0x%x,0x%x,%d,%d)",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 &iValue4,
+                 &iValue5);
+
+  if (nvals == 5) {
+    return ecVerifySdo(iValue, iValue2, iValue3, iValue4, iValue5);
+  }
+
+  /*Cfg.EcVerifySdo(uint16_t slave_position,uint16_t sdo_index,
+  uint8_t sdo_subindex,uint32_t value,int byteSize)*/
+  nvals = sscanf(myarg_1,
+                 "EcVerifySdo(%d,0x%x,0x%x,0x%x,%d)",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 &iValue4,
+                 &iValue5);
+
+  if (nvals == 5) {
+    return ecVerifySdo(iValue, iValue2, iValue3, iValue4, iValue5);
+  }
+
   uint64_t uint64Value = 0;
   /*EcWriteSoE(uint16_t  slavePosition,
               uint8_t   driveNo,
@@ -1164,10 +1209,10 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecWriteSoE(iValue2, iValue3, iValue4,iValue5,(uint8_t*)(&uint64Value));
   }
 
-  /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,
+  /*Cfg.EcWriteSdoComplete(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,
-                 "EcWriteSdo(%d,%x,%d,%d)",
+                 "EcWriteSdoComplete(%d,0x%x,%d,%d)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -1177,10 +1222,10 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecWriteSdoComplete(iValue, iValue2, iValue3, iValue4);
   }
 
-  /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,
+  /*Cfg.EcWriteSdoComplete(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,
-                 "EcWriteSdo(%d,%x,%x,%d)",
+                 "EcWriteSdoComplete(%d,0x%x,0x%x,%d)",
                  &iValue,
                  &iValue2,
                  &iValue3,
@@ -2386,7 +2431,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   /*EcReadSdo(uint16_t slave_position,uint16_t sdo_index,uint8_t sdo_subindex,
   int byteSize)*/
   nvals = sscanf(myarg_1,
-                 "EcReadSdo(%d,%x,%x,%d)",
+                 "EcReadSdo(%d,0x%x,0x%x,%d)",
                  &iValue2,
                  &iValue3,
                  &iValue4,
