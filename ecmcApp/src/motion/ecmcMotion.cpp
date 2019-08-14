@@ -2243,13 +2243,14 @@ int getAxisMonAtTarget(int axisIndex, int *value) {
 
 // Configuration procedures
 
-int createAxis(int index, int type) {
-  LOGINFO4("%s/%s:%d axisIndex=%d type:%d\n",
+int createAxis(int index, int type, int drvType) {
+  LOGINFO4("%s/%s:%d axisIndex=%d axisType=%d drvType=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            index,
-           type);
+           type,
+           drvType);
 
   if ((index < 0) && (index >= ECMC_MAX_AXES)) {
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
@@ -2261,12 +2262,12 @@ int createAxis(int index, int type) {
 
       if (axes[index] != NULL) {
         delete axes[index];
-      }
-      axes[index] = new ecmcAxisReal(asynPort, index, 1 / MCU_FREQUENCY);
+      }      
+      axes[index] = new ecmcAxisReal(asynPort, index, 1 / MCU_FREQUENCY, (ecmcDriveTypes)drvType);
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:
-
+      //Drive type ignored (Virtual axis have no drive)      
       if (axes[index] != NULL) {
         delete axes[index];
       }

@@ -2586,17 +2586,27 @@ int setAxisPLCExpr(int   axisIndex,
 /** \breif Creates an axis object at index axisIndex.
  *
  * \param[in] axisIndex Index of axis to address.\n
- * \param[in] type Type of axis.\n
+ * \param[in] axisType Type of axis.\n
  *   type = 1 : Normal axis (drive, encoder, monitor,pid-controller,trajectory).\n
  *   type = 2 : Virtual axis (encoder, monitor, trajectory).\n
+ * \param[in] drvType Type of axis.\n
+ *   type = 0 : Simple drive (stepper).\n
+ *   type = 1 : DS402 drive.\n 
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Create a virtual axis at axisIndex 1.\n
+ * \note Example: Create a normal axis with stepper drive at axisIndex 1.\n
+ *  "Cfg.CreateAxis(1)" //Command string to ecmcCmdParser.c\n
+ *
+ * \note Example: Create a virtual axis at axisIndex 1 (no drive).\n
  *  "Cfg.CreateAxis(1,2)" //Command string to ecmcCmdParser.c\n
+ * 
+ * \note Example: Create a normal axis with DS402 drive at axisIndex 1.\n
+ *  "Cfg.CreateAxis(1,2,1)" //Command string to ecmcCmdParser.c\n
  */
 int createAxis(int axisIndex,
-               int type);
+               int axisType,
+               int drvType);
 
 /** \breif Links an EtherCAT entry to the encoder object of the axis at axisIndex.
    *

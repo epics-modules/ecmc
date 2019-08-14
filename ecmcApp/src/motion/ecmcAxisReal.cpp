@@ -9,7 +9,7 @@
 
 ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
                            int axisID,
-                           double sampleTime) :  
+                           double sampleTime, ecmcDriveTypes drvType) :  
               ecmcAxisBase(asynPortDriver,
                            axisID,
                            sampleTime) {
@@ -17,8 +17,7 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
   initVars();
   data_.axisId_     = axisID;
   data_.axisType_   = ECMC_AXIS_TYPE_REAL;
-  data_.sampleTime_ = sampleTime;
-  currentDriveType_ = ECMC_STEPPER;
+  data_.sampleTime_ = sampleTime;  
 
   LOGINFO15("%s/%s:%d: axis[%d]=new;\n",
             __FILE__,
@@ -26,7 +25,12 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
             __LINE__,
             axisID);
 
-  drv_   = new ecmcDriveStepper(&data_);
+  // Create drive
+  int errorCode = setDriveType(drvType);
+  if (errorCode || !drv_) {
+    exit(1);
+  }
+  
   cntrl_ = new ecmcPIDController(&data_, data_.sampleTime_);
 
   seq_.setCntrl(cntrl_);
@@ -123,7 +127,7 @@ void ecmcAxisReal::printDriveType() {
 void ecmcAxisReal::initVars() {
   initDone_                       = false;
   data_.command_.operationModeCmd = ECMC_MODE_OP_AUTO;
-  currentDriveType_               = ECMC_STEPPER;
+  currentDriveType_               = ECMC_NO_DRIVE;
   temporaryLocalTrajSource_       = false;
 }
 

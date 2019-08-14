@@ -17,7 +17,8 @@ class ecmcAxisReal : public ecmcAxisBase {
  public:
   ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
                int    axisID,
-               double sampleTime);
+               double sampleTime,
+               ecmcDriveTypes drvType);
   ~ecmcAxisReal();
   void               execute(bool masterOK);
   int                setOpMode(operationMode mode);
