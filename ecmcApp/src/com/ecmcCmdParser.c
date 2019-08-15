@@ -22,6 +22,7 @@
 #include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"
 #include "../plc/ecmcPLC.h"
+#include <iocsh.h>
 
 typedef struct
 {
@@ -1736,18 +1737,6 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisHomeLatchCountOffset(iValue, iValue2);
   }
 
-  /*int Cfg.SetAxisGearRatio(int axis_no, double dGearNum, 
-  double dGearDenom);*/
-  /*nvals = sscanf(myarg_1,
-                 "SetAxisGearRatio(%d,%lf,%lf)",
-                 &iValue,
-                 &dValue,
-                 &dValue2);
-
-  if (nvals == 3) {
-    return setAxisGearRatio(iValue, dValue, dValue2);
-  }*/
-
   /*int Cfg.SetAxisOpMode(int axis_no, int nMode);*/
   nvals = sscanf(myarg_1, "SetAxisOpMode(%d,%d)", &iValue, &iValue2);
 
@@ -1762,9 +1751,7 @@ static int handleCfgCommand(const char *myarg_1) {
     return setEnableFunctionCallDiag(iValue);
   }
 
-  /*int Cfg.SetTraceMask(int mask);*/
-
-  // int iValue=0;
+  /*int Cfg.SetTraceMask(int mask);*/  
   nvals = sscanf(myarg_1, "SetTraceMask(%d)", &iValue);
 
   if (nvals == 1) {
@@ -1823,7 +1810,6 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisVelAccDecTime(int axis_no, double vel,double timeToVel);*/
-
   /* Set Velcoity acceleration and deceleration
    * Acceleration and deceleration is defined by time to reach velocity.
    * (because motor record uses this concept)
@@ -2279,6 +2265,13 @@ static int handleCfgCommand(const char *myarg_1) {
   if (nvals == 1) {
     return triggerCommandList(iValue);
   }
+
+  /*int Cfg.IocshCmd=<command string>*/
+  nvals = sscanf(myarg_1, "IocshCmd=%[^\n]",cExprBuffer);
+  if (nvals == 1) {
+    return iocshCmd(cExprBuffer);
+  }
+
   return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
 
