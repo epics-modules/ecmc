@@ -20,19 +20,31 @@
 
 #define ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME 5000
 
-// State machine
-#define ECMC_DS402_STATUS_MASK_1 0x004F  // Important bits xxxx.xxxx.x1xx.1111
-#define ECMC_DS402_STATUS_MASK_2 0x006F  // Important bits xxxx.xxxx.x11x.1111
+/** From EL7201 docs
+ * bit 0: Ready to swtich on
+ * bit 1: Switched on
+ * bit 2: Operation Enabeld
+ * bit 3: Fault
+ * bit 4:
+ * bit 5:
+ * bit 6: Switch on disabled
+ * bit 7: Warning
+ * bit 8: 
+ * bit 9:
+ * bit A: TxPDOToggle
+ * bit B: Internal limit active
+ * bit C: Target value ignored
+ * bit D:
+ * bit R:
+ * bit F:*/
+#define ECMC_DS402_READY_TO_SWITCH_ON_BIT 0
+#define ECMC_DS402_SWITCHED_ON_BIT 1
+#define ECMC_DS402_OPERATION_ENABLED_BIT 2
+#define ECMC_DS402_FAULT_BIT 3
+#define ECMC_DS402_SWITCH_ON_DISABLED_BIT 6
+#define ECMC_DS402_SWITCH_ON_WARNING_BIT 7
+#define ECMC_DS402_SWITCH_ON_INT_LIM 11
 
-#define ECMC_DS402_INVALID_STATE_STATUS -1  // Mask 1
-#define ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS 0x0000  // Mask 1
-#define ECMC_DS402_SWITCH_ON_DISABLED_STATUS 0x0040  // Mask 1
-#define ECMC_DS402_READY_TO_SWITCH_ON_STATUS 0x0021  // Mask 2
-#define ECMC_DS402_SWITCHED_ON_STATUS 0x0023  // Mask 2
-#define ECMC_DS402_OPERATION_ENABLED_STATUS 0x0027  // Mask 2
-#define ECMC_DS402_QUICK_STOP_ACTIVE_STATUS 0x0007  // Mask 2
-#define ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS 0x000F  // Mask 1
-#define ECMC_DS402_FAULT_STATUS 0x0008  // Mask 1
 
 enum stateMachine_DS402 {
   ECMC_DS402_IDLE_STATE               = 0,
@@ -61,11 +73,11 @@ class ecmcDriveDS402 : public ecmcDriveBase {
 
  private:
   void initVars();
-  int  checkDS402State();
-  int driveState_;
   stateMachine_DS402 enableStateMachine_;
   int driveStateOld_;
   stateMachine_DS402 enableStateMachineOld_;
   int cycleCounter_;
+  bool ds402WarningOld_;
 };
 #endif  // ifndef ECMCDRIVEDS402_H_
+

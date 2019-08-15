@@ -123,8 +123,7 @@ void ecmcDriveDS402::printCurrentState() {
   }
 }
 
-void ecmcDriveDS402::initVars() {
-  driveState_ = ECMC_DS402_INVALID_STATE_STATUS;
+void ecmcDriveDS402::initVars() {  
   LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
             __FILE__,
             __FUNCTION__,
@@ -133,6 +132,7 @@ void ecmcDriveDS402::initVars() {
             "ECMC_DS402_INVALID_STATE_STATUS");
 
   enableStateMachine_ = ECMC_DS402_RESET_STATE;
+  ds402WarningOld_ = false;
 }
 
 int ecmcDriveDS402::validate() {
@@ -189,10 +189,16 @@ void ecmcDriveDS402::writeEntries() {
   ecmcDriveBase::writeEntries();  // All not drive specific I/O
 }
 
+ /*ECMC_DS402_READY_TO_SWITCH_ON_BIT 0
+ ECMC_DS402_SWITCHED_ON_BIT 1
+ ECMC_DS402_OPERATION_ENABLED_BIT 2
+ ECMC_DS402_FAULT_BIT 3
+ ECMC_DS402_SWITCH_ON_DISABLED_BIT 6
+ ECMC_DS402_SWITCH_ON_WARNING_BIT 7
+ ECMC_DS402_SWITCH_ON_INT_LIM 11*/
+
 void ecmcDriveDS402::readEntries() {
   ecmcDriveBase::readEntries();
-
-  checkDS402State();
 
   if (cycleCounter_ > ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME) {
     enableStateMachine_ = ECMC_DS402_FAULT_STATE;
@@ -203,10 +209,19 @@ void ecmcDriveDS402::readEntries() {
     return;
   }
 
-  driveStateOld_         = driveState_;
   enableStateMachineOld_ = enableStateMachine_;
 
   cycleCounter_++;
+
+  bool ds402Fault = BIT_CHECK(statusWord_,ECMC_DS402_FAULT_BIT);
+  data_->status_.enabled = BIT_CHECK(statusWord_,ECMC_DS402_OPERATION_ENABLED_BIT);
+  bool ds402Warning =BIT_CHECK(statusWord_,ECMC_DS402_SWITCH_ON_WARNING_BIT);
+  
+  //Printout warning.. Do not stop
+  if(ds402Warning && ! ds402WarningOld_) {
+    LOGERR("%s/%s:%d: DS402 Warning bit high.\n", __FILE__, __FUNCTION__, __LINE__);
+  }
+  ds402WarningOld_ = ds402Warning;
 
   switch (enableStateMachine_) {
   case ECMC_DS402_IDLE_STATE:
@@ -214,12 +229,6 @@ void ecmcDriveDS402::readEntries() {
     cycleCounter_ = 0;
 
     if (enableAmpCmd_ && !enableAmpCmdOld_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_STARTUP_RESET");
       enableStateMachine_ = ECMC_DS402_STARTUP_RESET;
     }
     break;
@@ -228,26 +237,14 @@ void ecmcDriveDS402::readEntries() {
     controlWord_        = 128;
     cycleCounter_       = 0;
     enableStateMachine_ = ECMC_DS402_SWITCH_ON_DISABLED_STATE;
-    LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DS402_SWITCH_ON_DISABLED_STATE");
     break;
 
   case ECMC_DS402_SWITCH_ON_DISABLED_STATE:
     controlWord_ = 6;
 
-    if (driveState_ == ECMC_DS402_READY_TO_SWITCH_ON_STATUS) {
+    if (BIT_CHECK(statusWord_,ECMC_DS402_READY_TO_SWITCH_ON_BIT)) {
       cycleCounter_       = 0;
       enableStateMachine_ = ECMC_DS402_READY_TO_SWITCH_ON_STATE;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_READY_TO_SWITCH_ON_STATE");
     }
 
     if (!enableAmpCmd_) {
@@ -258,15 +255,14 @@ void ecmcDriveDS402::readEntries() {
   case ECMC_DS402_READY_TO_SWITCH_ON_STATE:
     controlWord_ = 7;
 
-    if (driveState_ == ECMC_DS402_SWITCHED_ON_STATUS) {
+    if(ds402Fault) {
+      cycleCounter_       = 0;
+      enableStateMachine_ = ECMC_DS402_FAULT_STATE;      
+    }
+
+    if (BIT_CHECK(statusWord_,ECMC_DS402_SWITCHED_ON_BIT)) {
       cycleCounter_       = 0;
       enableStateMachine_ = ECMC_DS402_SWITCHED_ON_STATE;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_SWITCHED_ON_STATE");
     }
 
     if (!enableAmpCmd_) {
@@ -277,15 +273,14 @@ void ecmcDriveDS402::readEntries() {
   case ECMC_DS402_SWITCHED_ON_STATE:
     controlWord_ = 15;
 
-    if (driveState_ == ECMC_DS402_OPERATION_ENABLED_STATUS) {
+    if(ds402Fault) {
+      cycleCounter_       = 0;
+      enableStateMachine_ = ECMC_DS402_FAULT_STATE;      
+    }
+
+    if (BIT_CHECK(statusWord_,ECMC_DS402_OPERATION_ENABLED_BIT)) {
       cycleCounter_       = 0;
       enableStateMachine_ = ECMC_DS402_OPERATION_ENABLED_STATE;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_OPERATION_ENABLED_STATE");
     }
 
     if (!enableAmpCmd_) {
@@ -294,6 +289,12 @@ void ecmcDriveDS402::readEntries() {
     break;
 
   case ECMC_DS402_OPERATION_ENABLED_STATE:
+
+    if(ds402Fault) {
+      cycleCounter_       = 0;
+      enableStateMachine_ = ECMC_DS402_FAULT_STATE;      
+    }
+
     cycleCounter_ = 0;
 
     if (!enableAmpCmd_) {
@@ -305,20 +306,15 @@ void ecmcDriveDS402::readEntries() {
     controlWord_           = 0;
     cycleCounter_          = 0;
     enableAmpCmd_          = false;
-    data_->command_.enable = false;
+    data_->command_.enable = false;    
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DS402_FAULT_STATE);
     break;
 
   case ECMC_DS402_RESET_STATE:
     controlWord_  = 128;
     cycleCounter_ = 0;
 
-    if (driveState_ != ECMC_DS402_FAULT_STATUS) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_IDLE_STATE");
+    if (!BIT_CHECK(statusWord_,ECMC_DS402_FAULT_BIT)) {
       enableStateMachine_    = ECMC_DS402_IDLE_STATE;
       data_->command_.enable = false;
     }
@@ -326,257 +322,10 @@ void ecmcDriveDS402::readEntries() {
   }
 }
 
-int ecmcDriveDS402::checkDS402State() {
-  int driveStateOld = driveState_;
-
-  driveState_ = ECMC_DS402_INVALID_STATE_STATUS;
-
-  bool enabledOld = data_->status_.enabled;
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_1) ==
-      ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS) {
-    driveState_            = ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS;
-    data_->status_.enabled = false;
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_NOT_READY_TO_SWITCH_ON_STATUS");
-    }
-    return 0;
-  }
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_1) ==
-      ECMC_DS402_SWITCH_ON_DISABLED_STATUS) {
-    driveState_            = ECMC_DS402_SWITCH_ON_DISABLED_STATUS;
-    data_->status_.enabled = false;
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_SWITCH_ON_DISABLED_STATUS");
-    }
-    return 0;
-  }
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_2) ==
-      ECMC_DS402_READY_TO_SWITCH_ON_STATUS) {
-    driveState_            = ECMC_DS402_READY_TO_SWITCH_ON_STATUS;
-    data_->status_.enabled = false;
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_READY_TO_SWITCH_ON_STATUS");
-    }
-    return 0;
-  }
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_2) ==
-      ECMC_DS402_SWITCHED_ON_STATUS) {
-    driveState_            = ECMC_DS402_SWITCHED_ON_STATUS;
-    data_->status_.enabled = false;
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_SWITCHED_ON_STATUS");
-    }
-    return 0;
-  }
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_2) ==
-      ECMC_DS402_OPERATION_ENABLED_STATUS) {
-    driveState_            = ECMC_DS402_OPERATION_ENABLED_STATUS;
-    data_->status_.enabled = true;
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_OPERATION_ENABLED_STATUS");
-    }
-    return 0;
-  }
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_2) ==
-      ECMC_DS402_QUICK_STOP_ACTIVE_STATUS) {
-    driveState_            = ECMC_DS402_QUICK_STOP_ACTIVE_STATUS;
-    data_->status_.enabled = false;
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_QUICK_STOP_ACTIVE_STATUS");
-    }
-    return 0;
-  }
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_2) ==
-      ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS) {
-    driveState_            = ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS;
-    data_->status_.enabled = false;
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS");
-    }
-    return 0;
-  }
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_1) ==
-      ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS) {
-    driveState_            = ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS;
-    data_->status_.enabled = false;
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_DS402_FAULT_REACTION_ACTIVE_STATUS");
-    }
-    return 0;
-  }
-
-  if ((statusWord_ & ECMC_DS402_STATUS_MASK_1) == ECMC_DS402_FAULT_STATUS) {
-    driveState_            = ECMC_DS402_FAULT_STATUS;
-    data_->status_.enabled = false;
-
-    if (enableStateMachine_ != ECMC_DS402_RESET_STATE) {
-      enableStateMachine_    = ECMC_DS402_FAULT_STATE;
-      data_->command_.enable = false;
-    }
-
-    if (enabledOld != data_->status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                data_->status_.enabled > 0);
-    }
-
-    if (driveStateOld != driveState_) {
-      LOGERR("%s/%s:%d: axis[%d].drive.state=%s;\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__,
-             data_->axisId_,
-             "ERROR_DRV_DS402_FAULT_STATE");
-    }
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_DRV_DS402_FAULT_STATE);
-  }
-  return 0;
-}
-
 void ecmcDriveDS402::errorReset() {
   // Reset error in drive (controlword=128)
   if (enableStateMachine_ == ECMC_DS402_FAULT_STATE) {
     enableStateMachine_ = ECMC_DS402_RESET_STATE;
-    LOGINFO("%s/%s:%d: axis[%d].drive.state=%s;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            "ECMC_DS402_RESET_STATE");
   }
   ecmcDriveBase::errorReset();
 }
