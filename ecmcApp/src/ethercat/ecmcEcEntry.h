@@ -20,12 +20,6 @@
 #include "ecmcAsynLink.h"
 #include "alarm.h"  //EPICS alarms
 
-
-#define BIT_SET(a, b) ((a) |= (1 << (b)))
-#define BIT_CLEAR(a, b) ((a) &= ~(1 << (b)))
-#define BIT_FLIP(a, b) ((a) ^= (1 << (b)))
-#define BIT_CHECK(a, b) ((a) & (1 << (b)))
-
 // ECENTRY ERRORS
 #define ERROR_EC_ENTRY_DATA_POINTER_NULL 0x21000
 #define ERROR_EC_ENTRY_INVALID_OFFSET 0x21001

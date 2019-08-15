@@ -493,4 +493,9 @@ typedef struct ecmcMainThreadDiag{
   uint32_t send_max_ns;
 }ecmcMainThreadDiag;
 
+#define BIT_SET(a, b) ((a) |= (1 << (b)))
+#define BIT_CLEAR(a, b) ((a) &= ~(1 << (b)))
+#define BIT_FLIP(a, b) ((a) ^= (1 << (b)))
+#define BIT_CHECK(a, b) ((a) & (1 << (b)))
+
 #endif  /* ECMC_DEFINITIONS_H_ */
