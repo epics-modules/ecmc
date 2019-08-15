@@ -134,7 +134,7 @@
 
 // Asyn  parameters in ec slave
 #define ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID 0
-#define ECMC_ASYN_EC_SLAVE_PAR_STATUS_NAME "status"
+#define ECMC_ASYN_EC_SLAVE_PAR_STATUS_NAME "slavestatus"
 #define ECMC_ASYN_EC_SLAVE_PAR_COUNT 1
 
 // Asyn  parameters in axis
