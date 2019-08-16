@@ -306,17 +306,18 @@ void ecmcAxisBase::preExecute(bool masterOK) {
       data_.status_.externalTrajectoryPositionOld);
   }
   else {
-    data_.status_.externalTrajectoryVelocity = data_.status_.externalTrajectoryPosition -
-      data_.status_.externalTrajectoryPositionOld / data_.sampleTime_;
+    data_.status_.externalTrajectoryVelocity = (data_.status_.externalTrajectoryPosition -
+      data_.status_.externalTrajectoryPositionOld) / data_.sampleTime_;      
   }
+
   // Enc
   if(enableExtEncVeloFilter_ && extEncVeloFilter_) {
     data_.status_.externalEncoderVelocity = extEncVeloFilter_->getFiltVelo(
       data_.status_.externalEncoderPosition -
       data_.status_.externalEncoderPositionOld);
   } else {
-    data_.status_.externalTrajectoryVelocity = data_.status_.externalEncoderPosition -
-      data_.status_.externalEncoderPositionOld / data_.sampleTime_;
+    data_.status_.externalEncoderVelocity = (data_.status_.externalEncoderPosition -
+      data_.status_.externalEncoderPositionOld) / data_.sampleTime_;
   }
 }
 
