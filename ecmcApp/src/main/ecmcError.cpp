@@ -1342,6 +1342,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x26027:
+    return "ERROR_EC_NO_VALID_CONFIG";
+
+    break;
+
   case 0x20000:  // HW_MOTOR
     return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
 

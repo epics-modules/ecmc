@@ -556,54 +556,16 @@ int setAppMode(int mode) {
   return 0;
 }
 
-/*int prepareForRuntime() {
-  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-
-  // Update input sources for all trajectories and encoders (transforms)
-  for (int i = 0; i < ECMC_MAX_AXES; i++) {
-    for (int j = 0; j < ECMC_MAX_AXES; j++) {
-      if ((axes[i] != NULL) && (axes[j] != NULL)) {
-        // Trajectory
-        if (axes[i]->getExternalTrajIF() != NULL) {
-          if (axes[j]->getExternalTrajIF() != NULL) {
-            axes[j]->getExternalTrajIF()->addInputDataInterface(
-              axes[i]->getExternalTrajIF()->getOutputDataInterface(),
-              i);
-          }
-
-          if (axes[j]->getExternalEncIF() != NULL) {
-            axes[j]->getExternalEncIF()->addInputDataInterface(
-              axes[i]->getExternalTrajIF()->getOutputDataInterface(),
-              i);
-          }
-        }
-
-        // Encoder
-        if (axes[i]->getExternalEncIF() != NULL) {
-          if (axes[j]->getExternalTrajIF() != NULL) {
-            axes[j]->getExternalTrajIF()->addInputDataInterface(
-              axes[i]->getExternalEncIF()->getOutputDataInterface(),
-              i + ECMC_MAX_AXES);
-          }
-
-          if (axes[j]->getExternalEncIF() != NULL) {
-            axes[j]->getExternalEncIF()->addInputDataInterface(
-              axes[i]->getExternalEncIF()->getOutputDataInterface(),
-              i + ECMC_MAX_AXES);
-          }
-        }
-        axes[i]->setAxisArrayPointer(axes[j], j);
-      }
-    }
-  }
-  return 0;
-}*/
-
 int validateConfig() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-  //prepareForRuntime();
+
   int errorCode = 0;
   int axisCount = 0;
+
+  errorCode = ec->checkReadyForRuntime();
+  if(errorCode) {
+    return errorCode;
+  }
 
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     if (axes[i] != NULL) {

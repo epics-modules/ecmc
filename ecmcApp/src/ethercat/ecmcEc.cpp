@@ -1745,3 +1745,18 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
 
   return 0;
 }
+
+int ecmcEc::checkReadyForRuntime() {
+  
+  if(slaveCounter_ == 0 || entryCounter_ == 0){
+    LOGERR(
+      "%s/%s:%d: Error: No valid EtherCAT configuration (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_EC_SLAVE_VERIFICATION_FAIL);
+    return setErrorID(ERROR_EC_NO_VALID_CONFIG);
+  }
+  
+  return 0;
+}

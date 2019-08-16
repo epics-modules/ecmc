@@ -60,6 +60,7 @@
 #define ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW 0x26024
 #define ERROR_EC_MASTER_NULL 0x26025
 #define ERROR_EC_SLAVE_VERIFICATION_FAIL 0x26026
+#define ERROR_EC_NO_VALID_CONFIG 0x26027
 
 class ecmcEc : public ecmcError {
  public:
@@ -159,6 +160,7 @@ class ecmcEc : public ecmcError {
                         uint16_t slavePos,   /**< Slave position. */
                         uint32_t vendorId,   /**< Expected vendor ID. */
                         uint32_t productCode  /**< Exp)*/);
+  int           checkReadyForRuntime();                   
  private:
   void     initVars();
   int      updateInputProcessImage();
