@@ -11,16 +11,17 @@ ecmcFilter::ecmcFilter(double sampleTime) {
   LOGINFO15("%s/%s:%d: filter[x]=new;\n", __FILE__, __FUNCTION__, __LINE__);
   initVars();
   sampleTime_ = sampleTime;
+  filterSize_ = FILTER_BUFFER_SIZE_VEL;
+  bufferVel_ = new double[filterSize_];
+  for (int i = 0; i < (int)filterSize_; i++) {
+    bufferVel_[i] = 0;
+  }
 }
 
 ecmcFilter::~ecmcFilter() {}
 
 void ecmcFilter::initVars() {
   errorReset();
-
-  for (int i = 0; i < FILTER_BUFFER_SIZE_VEL; i++) {
-    bufferVel_[i] = 0;
-  }
   indexVel_ = 0;
 }
 
@@ -30,37 +31,18 @@ double ecmcFilter::getFiltVelo(double distSinceLastScan) {
   bufferVel_[indexVel_] = distSinceLastScan;
   indexVel_++;
 
-  if (indexVel_ >= FILTER_BUFFER_SIZE_VEL) {
+  if (indexVel_ >= filterSize_) {
     indexVel_ = 0;
   }
 
-  for (int i = 0; i < (FILTER_BUFFER_SIZE_VEL); i++) {
+  for (int i = 0; i < (int)filterSize_; i++) {
     sum = sum + bufferVel_[i];
   }
 
-  lastOutput_ = sum / (static_cast<double>(FILTER_BUFFER_SIZE_VEL))/sampleTime_;
+  lastOutput_ = sum / (static_cast<double>(filterSize_))/sampleTime_;
 
   return lastOutput_;
 }
-
-// returns velocity
-/*double ecmcFilter::positionBasedVelAveraging(double actPosition) {
-  if (indexPos_ >= FILTER_BUFFER_SIZE_POS) {
-    indexPos_ = 0;
-  }
-  bufferPos_[indexPos_] = actPosition;
-  int nextIndex = indexPos_ + 1;
-
-  if (nextIndex >= FILTER_BUFFER_SIZE_POS) {
-    nextIndex = 0;
-  }
-
-  double vel = lowPassAveraging(
-    (bufferPos_[indexPos_] - bufferPos_[nextIndex]) /
-    (sampleTime_ * static_cast<double>(FILTER_BUFFER_SIZE_POS)));
-  indexPos_ = nextIndex;
-  return vel;
-}*/
 
 int ecmcFilter::reset() {
   initVars();
@@ -69,7 +51,7 @@ int ecmcFilter::reset() {
 
 int ecmcFilter::initFilter(double pos) {
 
-  for (int i = 0; i < FILTER_BUFFER_SIZE_VEL; i++) {
+  for (int i = 0; i < (int)filterSize_; i++) {
     bufferVel_[i] = 0;
   }
 
@@ -79,4 +61,29 @@ int ecmcFilter::initFilter(double pos) {
 
 void ecmcFilter::setSampleTime(double sampleTime) {
   sampleTime_ = sampleTime;
+}
+
+int ecmcFilter::setFilterSize(size_t size) {
+  
+  double * tempBuffer=NULL;
+  try {
+    tempBuffer = new double[size];  
+  } catch(std::bad_alloc& ex) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Filter Mem Alloc Error. Old filter settings still valid (size=%lu)\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        filterSize_
+        );
+      return ERROR_AXIS_FILTER_ALLOC_FAIL;
+  }
+  delete bufferVel_;
+  bufferVel_= tempBuffer;  
+  filterSize_=size;
+  for (int i = 0; i < (int)filterSize_; i++) {
+    bufferVel_[i] = 0;
+  }  
+  indexVel_=0;
+  return 0;
 }

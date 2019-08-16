@@ -194,6 +194,9 @@ class ecmcAxisBase : public ecmcError {
   int                   setEnableExtTrajVeloFilter(bool enable);
   bool                  getEnableExtEncVeloFilter();
   bool                  getEnableExtTrajVeloFilter();
+  int                   setExtTrajVeloFiltSize(size_t size);
+  int                   setExtEncVeloFiltSize(size_t size);
+  int                   setEncVeloFiltSize(size_t size);
 
  protected:
   void         printAxisState();

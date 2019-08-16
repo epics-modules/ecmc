@@ -94,6 +94,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool                  getNewValueLatched();
   double                getLatchPosEng();
   ecmcOverUnderFlowType getOverUnderflow();
+  int                   setVeloFilterSize(size_t size);
   
  protected:
   void                  initVars();

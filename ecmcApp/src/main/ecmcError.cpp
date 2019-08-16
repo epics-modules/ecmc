@@ -1703,6 +1703,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x20049:
+    return "ERROR_MAIN_FILTER_INVALID_SIZE";
+
+    break;
+
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 
@@ -2080,6 +2085,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     break;
   case 0x220008:
     return "ERROR_ASYN_REFRESH_FAIL";
+
+    break;
+  case 0x230000:
+    return "ERROR_AXIS_FILTER_ALLOC_FAIL";
 
     break;
   }

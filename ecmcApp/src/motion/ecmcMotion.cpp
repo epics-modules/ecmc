@@ -1031,7 +1031,7 @@ int setAxisPLCExpr(int axisIndex, char *expr) {
   return plcs->appendExprLine(AXIS_PLC_ID_TO_PLC_ID(axisIndex),expr);
 }
 
-int setAxisTrajExtVelFilterEnable(int axisIndex, int enable) {
+int setAxisPLCTrajVelFilterEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -1043,7 +1043,24 @@ int setAxisTrajExtVelFilterEnable(int axisIndex, int enable) {
   return axes[axisIndex]->setEnableExtTrajVeloFilter(enable);
 }
 
-int setAxisEncExtVelFilterEnable(int axisIndex, int enable) {
+int setAxisPLCTrajVelFilterSize(int axisIndex,
+                                int size) {
+  LOGINFO4("%s/%s:%d axisIndex=%d size=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           size);
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)  
+
+  if(size<=0) {
+    return ERROR_MAIN_FILTER_INVALID_SIZE;
+  }
+
+  return axes[axisIndex]->setExtTrajVeloFiltSize(size);
+}
+
+int setAxisPLCEncVelFilterEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -1054,6 +1071,39 @@ int setAxisEncExtVelFilterEnable(int axisIndex, int enable) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
   return axes[axisIndex]->setEnableExtEncVeloFilter(enable);
+}
+
+int setAxisPLCEncVelFilterSize(int axisIndex,
+                               int size) {
+  LOGINFO4("%s/%s:%d axisIndex=%d size=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           size);
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)  
+  
+  if(size<=0) {
+    return ERROR_MAIN_FILTER_INVALID_SIZE;
+  }
+  return axes[axisIndex]->setExtEncVeloFiltSize(size);
+}
+
+int setAxisEncVelFilterSize(int axisIndex,
+                            int size) {
+  LOGINFO4("%s/%s:%d axisIndex=%d size=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           size);
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)  
+
+  if(size<=0) {
+    return ERROR_MAIN_FILTER_INVALID_SIZE;
+  }
+
+  return axes[axisIndex]->setEncVeloFiltSize(size);
 }
 
 const char* getAxisPLCExpr(int axisIndex, int *error) {
@@ -1854,31 +1904,6 @@ int setAxisDrvReduceTorqueEnable(int axisIndex, int enable) {
 
   return axes[axisIndex]->getDrv()->setEnableReduceTorque(enable);
 }
-
-/*int setAxisDrvType(int axisIndex, int type) {
-  LOGINFO4("%s/%s:%d axisIndex=%d type=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           type);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  try {
-    return axes[axisIndex]->setDriveType((ecmcDriveTypes)type);
-  }
-  catch (std::exception& e) {
-    LOGERR("%s/%s:%d: EXCEPTION %s WHEN SET DRIVE TYPE.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           e.what());
-    return ERROR_MAIN_EXCEPTION;
-  }
-  return 0;
-}*/
 
 // Drv GET
 int getAxisDrvScale(int axisIndex, double *value) {

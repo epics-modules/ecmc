@@ -703,3 +703,11 @@ double ecmcEncoder::getAbsRangeEng() {
 int64_t ecmcEncoder::getAbsRangeRaw() {
   return rawAbsRange_;
 }
+
+/*
+* Set volocity filter size (to get stable velocity 
+  if resolution is poor compared to sample rate)
+*/
+int ecmcEncoder::setVeloFilterSize(size_t size) {
+  return velocityFilter_->setFilterSize(size);
+}

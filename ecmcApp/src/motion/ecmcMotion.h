@@ -1552,82 +1552,98 @@ int setAxisHomeVelOffCam(int    axisIndex,
 int axisErrorReset(int axisIndex,
                    int value);
 
-/** \breif Set axis trajectory transformation expression.\n
- *
- * The axis transformation expression is used for synchronization of axes. The
- * expression is a mathematical expression describing relation ship between
- * different axes.\n
- * Syntax used is defined and explained  on the exprtk website.\n
- *
- * Example: "setPos2:=setPos6*sin(2*pi*actPos5/10000)#ilock2:=1#".\n
- *   setpos<id> = trajectory setpoint of axis id.\n
- *   actPos<id>  = actual encoder position of axis id.\n   
- *   ilock<id>   = interlock state for axis Y..\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[in] expr Expression.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Set trajectory transformation expression for axes 5 to
- * "setPos2:=setPos6*sin(2*pi*actPos5/10000)#ilock2:=1#".\n
- * "Cfg.SetAxisTrajTransExpr(5)=setPos2:=setPos6*sin(2*pi*actPos5/10000)#ilock2:=1#"\n
- * //Command string to ecmcCmdParser.c.\n
- */
-/*int setAxisTrajTransExpr(int   axisIndex,
-                         char *expr);*/
-
 /** \breif Enables/disables velocity filter of external setpoint.\n
  *
+ *  This filter is needed in order to have a smoth feedforward value when\n
+ *  reciving setpoints form an PLC. If filter is disabled the velocity will\n 
+ *  be calculated based on the last two postion values recived from PLC. In many\n
+ *  cases this will result in a "unstable signal" depending onresoltions of the\n
+ *  values involved in the calculation. Using a filter will smoth the velocity\n 
+ *  feed forward value and will thereby result in a smoother motion.\n
+ * 
+ * \note: This filter is only enabled when the axis recives setpoin ts from an PLC.\n
+ * 
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable enable filter.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable velocity filter for external setpoint position for axis 5.
- * "Cfg.SetAxisTrajExtVelFilterEnable(5,1) //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisPLCTrajVelFilterEnable(5,1) //Command string to ecmcCmdParser.c.\n
  */
-int setAxisTrajExtVelFilterEnable(int axisIndex,
+int setAxisPLCTrajVelFilterEnable(int axisIndex,
                                   int enable);
 
-/** \breif Set axis encoder transformation expression.\n
+/** \breif Set size of external trajectory velocity filter.\n
  *
- * The axis transformation expression is used for synchronization of axes. The
- * expression is a mathematical expression describing relation ship between
- * different axes.\n 
- * Syntax used is defined and explained on the exprtk website.\n
- *
- * Example: "actPos2:=(actPos4)-(actPos3)#ilock2:=1#".\n
- *   setpos<id> = trajectory setpoint of axis id.\n
- *   actPos<id>  = actual encoder position of axis id.\n   
- *   ilock<id>   = interlock state for axis Y..\n
- *
+ *  Sets the size of the filter for velocity from "external" PLC code.\n
+ *  This filter is needed in order to have a smoth feedforward value when\n
+ *  reciving setpoints form an PLC. If filter is disabled the velocity will\n 
+ *  be calculated based on the last two postion values recived from PLC. In many\n
+ *  cases this will result in a "unstable signal" depending onresoltions of the\n
+ *  values involved in the calculation. Using a filter will smoth the velocity\n 
+ *  feed forward value and will thereby rresult in a smoother motion.\n
+ * 
+ * \note: This filter is only enabled when the axis recives setpoin ts from an PLC.\n
+ * 
  * \param[in] axisIndex  Axis index.\n
- * \param[in] expr Expression.\n
+ * \param[in] size       Size of filter (default 100).\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set encoder transformation expression for axes 5 to
- * "actPos2:=(actPos4)-(actPos3)#ilock2:=1#".\n
- * "Cfg.SetAxisEncTransExpr(5)=actPos2:=(actPos4)-(actPos3)#ilock2:=1#"\n
- * //Command string to ecmcCmdParser.c.\n
+ * \note Example: Set filter size to 10 for for axis 7.\n
+ * "Cfg.SetAxisPLCTrajVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
-/*int setAxisEncTransExpr(int   axisIndex,
-                        char *expr);*/
-
+int setAxisPLCTrajVelFilterSize(int axisIndex,
+                                int size);
 
 /** \breif Enables/disables velocity filter of external actual value.\n
  *
+ * NOTE: This filter is currentlly not used.\n
+ * 
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable enable filter.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable velocity filter for external actual position for axis 5.
- * "Cfg.SetAxisEncExtVelFilterEnable(5,1)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisPLCEncVelFilterEnable(5,1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEncExtVelFilterEnable(int axisIndex,
+int setAxisPLCEncVelFilterEnable(int axisIndex,
                                  int enable);
+
+/** \breif Set size of external encoder velocity filter.\n
+ *
+ * NOTE: This filter is currentlly not used.\n
+ * 
+ *  Sets the size of the filter for velocity from "external" PLC code.\n
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] size       Size of filter (default 100).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set filter size to 10 for for axis 7.\n
+ * "Cfg.SetAxisPLCEncVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisPLCEncVelFilterSize(int axisIndex,
+                               int size);
+
+/** \breif Set size of encoder velocity filter.\n
+ *
+ *  Sets the size of the low pass filter for velocity.\n
+ *  Needed when resolution of encoder is low compared to\n
+ *  sample rate and speed.\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] size       Size of filter (default 100), needs to be >0.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set filter size to 10 for for axis 7.\n
+ * "Cfg.SetAxisEncVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncVelFilterSize(int axisIndex,
+                            int size);
 
 /** \breif Set axis trajectory data source.\n
  *

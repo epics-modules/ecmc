@@ -2,7 +2,7 @@ ECMC 6.0.0 Realese notes:
 
 Introduction:
 Version 6.0.0 is not compeltely backward compatible since some changes 
-in command set have been made.  
+in command-set have been made.  
 
 What has changed:
   - Remove ecmcAsynPortDriverAddParameter iocsh command
@@ -25,11 +25,11 @@ What has changed:
      ec<m-id>.s<s-id>.ZERO : 0x0 (a 32 bit register filled with 0)    
      example: ec0.s23.ONE can be used.
      NOTE: The "ONE" and "ZERO" entries for slave -1 is still available for backward compatibility
-     (ec<m-id>.s<s-1>ONE/ZERO)
+     (ec<m-id>.s-1.ONE/ZERO)
 
   - Add status word for objects as asyn parameters:
-      - Ec           :  ec<m-id>.status
-      - EcSlave      :  ec<m-id>.s<s-id>.status : 
+      - Ec           :  ec<m-id>.masterstatus
+      - EcSlave      :  ec<m-id>.s<s-id>.slavestatus : 
              - bit 0      : online
              - bit 1      : operational
              - bit 2      : alstate.init
@@ -57,6 +57,7 @@ What has changed:
   - Update sample rates from skip cycles to rate in ms
 
   - Remove command: Cfg.SetAxisGearRatio(). Obsolete, handled through axis plc instaed.
+
   - ecmcConfigOrDie: Add printout of command if fail (error)
 
   - Add asyn parameter that updates when all other parameters have been updated:
@@ -65,7 +66,7 @@ What has changed:
   - Update to new asynPortDriver constructor (to remove warning)
 
   - Add command Cfg.EcSlaveVerify(). Check that a slave at a certain bus-position have the correct vendor-id and product-id.
-    This command is added to all hardware snippets in ecmc training to ensure that the slave is of correct type.
+    This command is added to all hardware snippets in ecmctraining to ensure that the slave is of correct type.
   
   - Add range checks for ec-entry writes (based on bit length and signed vs unsigned)
 
@@ -103,6 +104,10 @@ What has changed:
      - Cfg.SetAxisEnableCommandsFromOtherAxis() ->  Cfg.SetAxisAllowCommandsFromPLC()
        Allow commands (writes) from any PLC object (includig axis PLC)
 
+     - Cfg.SetAxisEncExtVelFilterEnable()   -> Cfg.SetAxisPLCEncVelFilterEnable()
+
+     - Cfg.SetAxisTrajExtVelFilterEnable()   -> Cfg.SetAxisPLCTrajVelFilterEnable()
+
     Add Commands:
      - Cfg.AppendAxisPLCExpr(<axis id>, <code string>)
        Append a line of code to a Axis PLC
@@ -112,7 +117,7 @@ What has changed:
    - Remove unused files (ecmcMasterSlave*, ecmcCommandTransform*)
 
   - Add plc functions for average, min and max of a data storage:
-     - ds_get_avg(<ds id>) : Get average
+     - ds_get_avg(<ds id>) : Get average (usefull as lowpass filter)
      - ds_get_min(<ds id>) : Get minimum
      - ds_get_max(<ds id>) : Get maximum
 
@@ -141,9 +146,19 @@ What has changed:
     
     - Remove Command Cfg.SetAxisDrvType(). Use Cfg.CreateAxis(<id>,<type>,<drvType>) instead
 
+    - Add command for remote access to iocsh over asynRecord: Cfg.IocshCmd=<cmd>
+
+    - Add command to set velocity low pass filter size for encoder (actpos) and trajetory (setpos):
+      Needed if resolution of encoder is low. Since the velocity is used for feed forward purpose. 
+      Two cases:
+      1. For internal source: 
+        Cfg.SetAxisEncVelFilterSize(<axisId>,<filtersize>)"
+      2. External velocity  (values from PLC code). 
+       Cfg.SetAxisPLCEncVelFilterSize(<axisId>,<filtersize>)"
+       Cfg.SetAxisPLCTrajVelFilterSize(<axisId>,<filtersize>)"
+           
    Todo:
-    - Remove manual motion mode (not needed.. motors can be run manually directlly from etehrcat entries)
-    - Add SoE communication (for "bigger" drives)
+    - Remove manual motion mode (not needed.. motors can be run manually directlly from ethercat entries)
     - Add PID controller in PLC lib
     - Add licence headers to all source files
     - Consider change error handling system to exception based (try catch)
@@ -152,7 +167,7 @@ What has changed:
            ecmcTrajectory: Make more independent of other code
            ecmcTrajectory: Make Spline Version
     - Implementation of robot and hexapod kinematics? How todo best possible?
-    - Make possible to add ethercat hardware on the fly
+    - Make possible to add ethercat hardware on the fly (hard, seems EPICS do not support dynamic load of records)
       - Only stop motion when the slaves used by axis are in error state or not reachable.
     - Redundacy test
 

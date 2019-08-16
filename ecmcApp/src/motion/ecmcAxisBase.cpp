@@ -1480,3 +1480,15 @@ bool ecmcAxisBase::getEnableExtTrajVeloFilter() {
 bool ecmcAxisBase::getEnableExtEncVeloFilter() {
   return enableExtEncVeloFilter_;
 }
+
+int ecmcAxisBase::setExtTrajVeloFiltSize(size_t size){
+  return extTrajVeloFilter_->setFilterSize(size);
+}
+
+int ecmcAxisBase::setExtEncVeloFiltSize(size_t size) {
+  return extEncVeloFilter_->setFilterSize(size);
+}
+
+int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
+  return enc_->setVeloFilterSize(size);
+}

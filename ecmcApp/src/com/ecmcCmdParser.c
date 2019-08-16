@@ -1845,24 +1845,54 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisDeceleration(iValue, acc);
   }
 
-  /*int Cfg.SetAxisTrajExtVelFilterEnable(int axis_no, int enable);*/
+  /*int Cfg.SetAxisPLCTrajVelFilterEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1,
-                 "SetAxisTrajExtVelFilterEnable(%d,%d)",
+                 "SetAxisPLCTrajVelFilterEnable(%d,%d)",
                  &iValue,
                  &iValue2);
 
   if (nvals == 2) {
-    return setAxisTrajExtVelFilterEnable(iValue, iValue2);
+    return setAxisPLCTrajVelFilterEnable(iValue, iValue2);
   }
 
-  /*int Cfg.SetAxisEncExtVelFilterEnable(int axis_no, int enable);*/
+  /*int Cfg.SetAxisPLCTrajVelFilterSize(int axis_no, int size);*/
   nvals = sscanf(myarg_1,
-                 "SetAxisEncExtVelFilterEnable(%d,%d)",
+                 "SetAxisPLCTrajVelFilterSize(%d,%d)",
                  &iValue,
                  &iValue2);
 
   if (nvals == 2) {
-    return setAxisEncExtVelFilterEnable(iValue, iValue2);
+    return setAxisPLCTrajVelFilterSize(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisPLCEncVelFilterEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisPLCEncVelFilterEnable(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisPLCEncVelFilterEnable(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisPLCEncVelFilterSize(int axis_no, int size);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisPLCEncVelFilterSize(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisPLCEncVelFilterSize(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisEncVelFilterSize(int axis_no, int size);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncVelFilterSize(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncVelFilterSize(iValue, iValue2);
   }
 
   char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
