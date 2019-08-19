@@ -354,6 +354,7 @@ int ecmcEcEntry::updateOutProcessImage() {
     }
     break;
   }
+  updateAsyn(0);
   return 0;
 }
 
