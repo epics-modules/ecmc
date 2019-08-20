@@ -377,8 +377,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
 }
 
 /* from MCU into EPICS */
-int CMDreadIt(char *outbuf, size_t outlen) {
-  // printf("************BEFORE READ: #%s# BYTES LEFT IN BUFFER:%d, outbuffer size=%d.\n",getEpicsBuffer()->buffer,getEpicsBuffer()->bytesUsed, outlen);
+int CMDreadIt(char *outbuf, size_t outlen) {  
   int ret;
 
   if (!outbuf || !outlen) return -1;
@@ -397,13 +396,10 @@ int CMDreadIt(char *outbuf, size_t outlen) {
     fprintf(stdout, "\"\n");
   }
 
-  // printf("************BYTES SENT:%s#\n",outbuf);
   if (ret >= outlen + 1) {
     ret = outlen;  // snprintf max utilize buffer size minus one.
   }
   removeFromBuffer(getEpicsBuffer(), ret);
-
-  // printf("************AFTER READ: #%s#BYTES LEFT IN BUFFER:  %d.\n",getEpicsBuffer()->buffer,getEpicsBuffer()->bytesUsed);
 
   if (PRINT_STDOUT_BIT1() && stdout) {
     fprintf(stdout, "%s/%s:%d OUT2=\"", __FILE__, __FUNCTION__, __LINE__);
