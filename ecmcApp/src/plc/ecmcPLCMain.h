@@ -35,6 +35,10 @@
       LOGERR("ERROR: PLC index out of range.\n");                 \
       return ERROR_PLCS_INDEX_OUT_OF_RANGE;                       \
     }                                                             \
+    if(!plcs_[index]) {                                           \
+      LOGERR("ERROR: PLC object NULL.\n");                        \
+      return ERROR_PLCS_PLC_NULL;                                 \
+    }                                                             \
 }                                                                 \
 
 class ecmcPLCMain : public ecmcError {

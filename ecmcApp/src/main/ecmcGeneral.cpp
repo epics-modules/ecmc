@@ -6,7 +6,6 @@
 #include "../com/ecmcAsynPortDriverUtils.h"
 
 int getControllerError() {
-  LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
   // EtherCAT errors
   if (ec->getError()) {

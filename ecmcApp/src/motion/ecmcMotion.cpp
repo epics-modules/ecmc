@@ -560,7 +560,6 @@ int getAxisPLCEnable(int axisIndex, int *value) {
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   CHECK_PLCS_RETURN_IF_ERROR();
-  CHECK_PLC_RETURN_IF_ERROR(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
 
   int enable = 0;
   int error = plcs->getEnable(AXIS_PLC_ID_TO_PLC_ID(axisIndex),&enable);
@@ -923,7 +922,6 @@ int setAxisPLCEnable(int axisIndex, int value) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_PLCS_RETURN_IF_ERROR();
-  CHECK_PLC_RETURN_IF_ERROR(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
 
   return plcs->setEnable(AXIS_PLC_ID_TO_PLC_ID(axisIndex),value);
 }
@@ -1025,8 +1023,7 @@ int setAxisPLCExpr(int axisIndex, char *expr) {
            axisIndex,
            expr);
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_PLCS_RETURN_IF_ERROR();
-  CHECK_PLC_RETURN_IF_ERROR(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
+  CHECK_PLCS_RETURN_IF_ERROR();  
 
   return plcs->appendExprLine(AXIS_PLC_ID_TO_PLC_ID(axisIndex),expr);
 }
