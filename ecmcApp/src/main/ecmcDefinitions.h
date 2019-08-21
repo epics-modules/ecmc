@@ -40,7 +40,7 @@
 
 // Transforms
 #define MAX_TRANSFORM_INPUTS ECMC_MAX_AXES *2
-#define TRANSFORM_EXPR_LINE_END_CHAR '#'
+#define TRANSFORM_EXPR_LINE_END_CHAR '|'
 
 // EtherCAT
 #define EC_MAX_PDOS 1024
