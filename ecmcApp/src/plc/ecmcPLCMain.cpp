@@ -387,18 +387,6 @@ int ecmcPLCMain::getCompiled(int plcIndex) {
 int ecmcPLCMain::parseExpr(int plcIndex, const char *exprStr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
 
-  /*if (strlen(exprStr) >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
-    LOGERR("%s/%s:%d: ERROR: Expression to long (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           ERROR_PLC_EXPR_LINE_TO_LONG);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLC_EXPR_LINE_TO_LONG);
-  }*/
-
   // Axis (global)
   int errorCode = parseAxis(plcIndex, exprStr);
 
