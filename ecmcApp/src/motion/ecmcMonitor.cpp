@@ -299,7 +299,15 @@ bool ecmcMonitor::getHardLimitBwd() {
   return data_->status_.limitBwd;
 }
 
-void ecmcMonitor::setAtTargetTol(double tol) {
+int ecmcMonitor::setAtTargetTol(double tol) {
+  
+  if(tol<0) {
+    LOGERR("%s/%s:%d: At target tolerance invalid (tol. < 0) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TOL_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_MON_TOL_OUT_OF_RANGE);
+  }
+
   if (atTargetTol_ != tol) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetTolerance=%lf;\n",
               __FILE__,
@@ -309,13 +317,22 @@ void ecmcMonitor::setAtTargetTol(double tol) {
               tol);
   }
   atTargetTol_ = tol;
+  return 0;
 }
 
 double ecmcMonitor::getAtTargetTol() {
   return atTargetTol_;
 }
 
-void ecmcMonitor::setAtTargetTime(int time) {
+int ecmcMonitor::setAtTargetTime(int time) {
+  
+  if(time<0) {
+    LOGERR("%s/%s:%d: At target time invalid (time < 0) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_MON_TIME_OUT_OF_RANGE);
+  }
+
   if (atTargetTime_ != time) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.atTargetTime=%d;\n",
               __FILE__,
@@ -325,6 +342,7 @@ void ecmcMonitor::setAtTargetTime(int time) {
               time);
   }
   atTargetTime_ = time;
+  return 0;
 }
 
 int ecmcMonitor::getAtTargetTime() {
@@ -347,7 +365,14 @@ bool ecmcMonitor::getEnableAtTargetMon() {
   return enableAtTargetMon_;
 }
 
-void ecmcMonitor::setPosLagTol(double tol) {
+int ecmcMonitor::setPosLagTol(double tol) {
+  if(tol<0) {
+    LOGERR("%s/%s:%d: Position lag tolerance invalid (tol. < 0) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TOL_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_MON_TOL_OUT_OF_RANGE);
+  }
+
   if (posLagTol_ != tol) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagTol=%lf;\n",
               __FILE__,
@@ -357,6 +382,7 @@ void ecmcMonitor::setPosLagTol(double tol) {
               tol);
   }
   posLagTol_ = tol;
+  return 0;
 }
 
 double ecmcMonitor::getPosLagTol() {
@@ -364,6 +390,14 @@ double ecmcMonitor::getPosLagTol() {
 }
 
 int ecmcMonitor::setVelDiffTimeTraj(int time) {
+
+  if(time<0) {
+    LOGERR("%s/%s:%d: Velocity diff traj time invalid (time < 0) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_MON_TIME_OUT_OF_RANGE);
+  }
+
   if (velDiffTimeTraj_ != time) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffTimeTraj=%d;\n",
               __FILE__,
@@ -377,6 +411,14 @@ int ecmcMonitor::setVelDiffTimeTraj(int time) {
 }
 
 int ecmcMonitor::setVelDiffTimeDrive(int time) {
+
+  if(time<0) {
+    LOGERR("%s/%s:%d: Velocity diff drive time invalid (time < 0) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_MON_TIME_OUT_OF_RANGE);
+  }
+
   if (velDiffTimeDrive_ != time) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.velDiffTimeDrive=%d;\n",
               __FILE__,
@@ -389,7 +431,15 @@ int ecmcMonitor::setVelDiffTimeDrive(int time) {
   return 0;
 }
 
-void ecmcMonitor::setPosLagTime(int time) {
+int ecmcMonitor::setPosLagTime(int time) {
+
+  if(time<0) {
+    LOGERR("%s/%s:%d: Position lag time invalid (time < 0) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_MON_TIME_OUT_OF_RANGE);
+  }
+
   if (posLagTime_ != time) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.posLagTime=%d;\n",
               __FILE__,
@@ -399,6 +449,7 @@ void ecmcMonitor::setPosLagTime(int time) {
               time);
   }
   posLagTime_ = time;
+  return 0;
 }
 
 int ecmcMonitor::getPosLagTime() {
@@ -619,6 +670,14 @@ bool ecmcMonitor::getEnableMaxVelMon() {
 }
 
 int ecmcMonitor::setMaxVelDriveTime(int time) {
+
+  if(time<0) {
+    LOGERR("%s/%s:%d: Max velocity drive time invalid (time < 0) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_MON_TIME_OUT_OF_RANGE);
+  }
+
   if (maxVelDriveILDelay_ != time) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelDriveTime=%d;\n",
               __FILE__,
@@ -632,6 +691,14 @@ int ecmcMonitor::setMaxVelDriveTime(int time) {
 }
 
 int ecmcMonitor::setMaxVelTrajTime(int time) {
+
+  if(time<0) {
+    LOGERR("%s/%s:%d: Max velocity traj time invalid (time < 0) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_MON_TIME_OUT_OF_RANGE);
+  }
+
   if (maxVelTrajILDelay_ != time) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.maxVelTrajTime=%d;\n",
               __FILE__,

@@ -381,6 +381,13 @@ int ecmcEncoder::getBits() {
 }
 
 int ecmcEncoder::setAbsBits(int absBits) {
+
+  if(absBits>bits_) {
+    LOGERR("%s/%s:%d: Encoder abs. bit count invalid. (abs. bits > total bits) (0x%x).\n",
+           __FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ABS_BIT_COUNT_INVALID);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_ENC_ABS_BIT_COUNT_INVALID);
+  }
   // if bits_ is not set
   if (bits_ == 0) {
     bits_ = absBits;

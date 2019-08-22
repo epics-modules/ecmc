@@ -33,6 +33,10 @@ int ecResetMaster(int masterIndex) {
            masterIndex);
 
   /// todo  master index not used. Only there for future use.
+  if(ec->getMasterIndex() != masterIndex) {
+    return ERROR_MAIN_EC_INDEX_OUT_OF_RANGE;
+  }
+
   return ec->reset();
 }
 
@@ -57,7 +61,7 @@ int ecAddSlave(uint16_t alias,
            productCode);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-
+  
   ec->addSlave(alias, position, vendorId, productCode);
   return 0;
 }

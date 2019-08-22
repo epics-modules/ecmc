@@ -28,6 +28,8 @@
 #define ERROR_MON_ENTRY_EXT_INTERLOCK_NULL 0x14C12
 #define ERROR_MON_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR_INTERLOCK 0x14C13
 #define ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED 0x14C14
+#define ERROR_MON_TOL_OUT_OF_RANGE 0x14C15
+#define ERROR_MON_TIME_OUT_OF_RANGE 0x14C16
 
 #define ECMC_MON_SWITCHES_FILTER_CYCLES 5
 
@@ -46,16 +48,16 @@ class ecmcMonitor : public ecmcEcEntryLink {
   ~ecmcMonitor();
   bool   getHardLimitFwd();
   bool   getHardLimitBwd();
-  void   setAtTargetTol(double tol);
+  int    setAtTargetTol(double tol);
   double getAtTargetTol();
-  void   setAtTargetTime(int time);
+  int    setAtTargetTime(int time);
   int    getAtTargetTime();
   bool   getAtTarget();
   void   setEnableAtTargetMon(bool enable);
   bool   getEnableAtTargetMon();
-  void   setPosLagTol(double tol);
+  int    setPosLagTol(double tol);
   double getPosLagTol();
-  void   setPosLagTime(int time);
+  int    setPosLagTime(int time);
   int    getPosLagTime();
   void   setEnableLagMon(bool enable);
   bool   getEnableLagMon();

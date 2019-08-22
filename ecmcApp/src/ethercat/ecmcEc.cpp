@@ -150,7 +150,6 @@ int ecmcEc::getMasterIndex() {
   return masterIndex_;
 }
 
-// Step 1
 int ecmcEc::addSlave(
   uint16_t alias,  /**< Slave alias. */
   uint16_t position,  /**< Slave position. */

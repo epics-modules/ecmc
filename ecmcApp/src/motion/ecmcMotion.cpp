@@ -1949,8 +1949,7 @@ int setAxisMonAtTargetTol(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getMon()->setAtTargetTol(value);
-  return 0;
+  return axes[axisIndex]->getMon()->setAtTargetTol(value);
 }
 
 int getAxisMonAtTargetTime(int axisIndex, int *value) {
@@ -1971,8 +1970,7 @@ int setAxisMonAtTargetTime(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getMon()->setAtTargetTime(value);
-  return 0;
+  return axes[axisIndex]->getMon()->setAtTargetTime(value);
 }
 
 int getAxisMonEnableAtTargetMon(int axisIndex, int *value) {
@@ -2032,8 +2030,7 @@ int setAxisMonPosLagTol(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getMon()->setPosLagTol(value);
-  return 0;
+  return axes[axisIndex]->getMon()->setPosLagTol(value);
 }
 
 int getAxisMonPosLagTime(int axisIndex, int *value) {
@@ -2054,8 +2051,7 @@ int setAxisMonPosLagTime(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getMon()->setPosLagTime(value);
-  return 0;
+  return axes[axisIndex]->getMon()->setPosLagTime(value);
 }
 
 int getAxisMonEnableLagMon(int axisIndex, int *value) {
@@ -2274,7 +2270,7 @@ int createAxis(int index, int type, int drvType) {
            type,
            drvType);
 
-  if ((index < 0) && (index >= ECMC_MAX_AXES)) {
+  if ((index < 0) || (index >= ECMC_MAX_AXES)) {
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
   }
 

@@ -482,6 +482,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_ENC_ABS_MASK_INVALID";
 
     break;
+  case 0x1440F:
+    return "ERROR_ENC_ABS_BIT_COUNT_INVALID";
+
+    break;
 
   case 0x14C00:  // MONITOR
     return "ERROR_MON_ASSIGN_ENTRY_FAILED";
@@ -585,6 +589,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x14C14:
     return "ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED";
+
+    break;
+
+  case 0x14C15:
+    return "ERROR_MON_TOL_OUT_OF_RANGE";
+
+    break;
+
+  case 0x14C16:
+    return "ERROR_MON_TIME_OUT_OF_RANGE";
 
     break;
 
@@ -1705,6 +1719,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x20049:
     return "ERROR_MAIN_FILTER_INVALID_SIZE";
+
+    break;
+  case 0x2004A:
+    return "ERROR_MAIN_EC_INDEX_OUT_OF_RANGE";
 
     break;
 
