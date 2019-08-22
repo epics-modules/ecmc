@@ -194,7 +194,13 @@ std::string *ecmcPLCMain::getExpr(int plcIndex, int *error) {
     LOGERR("ERROR: PLC index out of range.\n");
     *error =  ERROR_PLCS_INDEX_OUT_OF_RANGE;
     return NULL;
-  }      
+  }
+  
+  if (!plcs_[plcIndex]) {
+    LOGERR("ERROR: PLC NULL\n");
+    *error =  ERROR_PLCS_PLC_NULL;
+    return NULL;
+  }
 
   return plcs_[plcIndex]->getExpr();
 }

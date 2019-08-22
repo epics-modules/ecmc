@@ -2588,7 +2588,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
       return error;
     }
 
-    // Change all # to ; (since ; is used as command
+    // Change all | to ; (since ; is used as command
     // delimiter in tcpip communication)
     size_t strLen = strlen(retBuf);
     size_t i      = 0;
@@ -2603,6 +2603,38 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     free(retBuf);
     return 0;
   }
+
+  /*int GetPLCExpr(int axis_no);   */
+  nvals = sscanf(myarg_1, "GetPLCExpr(%d)", &iValue);
+
+  if (nvals == 1) {
+    char *retBuf;
+    int   error = 0;
+
+    retBuf = strdup(getPLCExpr(iValue, &error));
+
+    if (error) {
+      free(retBuf);
+      retBuf = NULL;
+      return error;
+    }
+
+    // Change all | to ; (since ; is used as command
+    // delimiter in tcpip communication)
+    size_t strLen = strlen(retBuf);
+    size_t i      = 0;
+
+    for (i = 0; i < strLen; i++) {
+      if (retBuf[i] == ';') {
+        retBuf[i] = TRANSFORM_EXPR_LINE_END_CHAR;
+      }
+    }
+
+    cmd_buf_printf(buffer, "%s", retBuf);
+    free(retBuf);
+    return 0;
+  }
+
 
   /* GetControllerError()*/
   if (!strcmp(myarg_1, "GetControllerError()")) {

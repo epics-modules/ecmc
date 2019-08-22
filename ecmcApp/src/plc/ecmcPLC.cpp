@@ -131,7 +131,6 @@ int readPLCVar(int index, const char *varName, double *value) {
   return plcs->readStaticPLCVar(index, varName, value);
 }
 
-
 int setPLCEnable(int index, int enable) {
   LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);
   CHECK_PLCS_RETURN_IF_ERROR();
@@ -142,4 +141,27 @@ int getPLCEnable(int index, int *enabled) {
   LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);
   CHECK_PLCS_RETURN_IF_ERROR();
   return plcs->getEnable(index, enabled);
+}
+
+const char* getPLCExpr(int plcIndex, int *error) {
+  LOGINFO4("%s/%s:%d plcIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           plcIndex);
+
+  if (plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES || plcIndex < 0) {
+    LOGERR("ERROR: PLC index out of range.\n");
+    *error=ERROR_PLCS_INDEX_OUT_OF_RANGE;
+    return "";
+  }
+    
+  int errorLocal = 0;
+  std::string *expr = plcs->getExpr(plcIndex,&errorLocal);
+  if(errorLocal) {
+    *error = errorLocal;
+    return "";
+  }
+
+  return expr->c_str();
 }

@@ -500,6 +500,22 @@ int setPLCEnable(int index,
 int getPLCEnable(int  index,
                  int *enabled);
 
+/** \breif Get PLC expression.\n
+ *
+ * \param[in] plcIndex  Axis index.\n
+ * \param[out] error Error code.\n
+ * error = 0: No error.\n
+ * error > 0: Error.\n
+ *
+ * \return pointer to transformation expression.\n
+ *
+ * \note Example: Get PLC expression for plcIndex 5.\n
+ * "getPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
+ */
+const char* getPLCExpr(int  axisIndex,
+                           int *error);
+
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus
