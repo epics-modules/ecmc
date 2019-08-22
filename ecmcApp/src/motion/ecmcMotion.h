@@ -991,7 +991,7 @@ const char* getAxisEncTransExpr(int  axisIndex,
  * "getAxisPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
 const char* getAxisPLCExpr(int  axisIndex,
-                                        int *error);
+                           int *error);
 
 /** \breif Get axis trajectory data source.\n
  *
