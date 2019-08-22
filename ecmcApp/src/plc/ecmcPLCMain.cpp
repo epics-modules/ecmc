@@ -119,6 +119,7 @@ int ecmcPLCMain::validate(int plcIndex) {
 
 int ecmcPLCMain::validate() {
   // Parse and Compile all PLCs before runtime (all objects should be availabe)
+
   int errorCode = 0;
   for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
     if(plcs_[i]) {      
@@ -143,6 +144,7 @@ int ecmcPLCMain::validate() {
       return errorCode;
     }
   }
+
   return 0;
 }
 
@@ -196,10 +198,6 @@ std::string *ecmcPLCMain::getExpr(int plcIndex, int *error) {
 
   return plcs_[plcIndex]->getExpr();
 }
-
-
-std::string *getExpr(int plcIndex,
-                       int *error);
   
 int ecmcPLCMain::setExpr(int plcIndex, char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
@@ -311,18 +309,6 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
     }
     lineNumber++;
   }
-  
-  /*errorCode = compileExpr(plcIndex);
-  if (errorCode) {
-    LOGERR("%s/%s:%d: ERROR PLC%d: Error Compiling file: %s (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           plcIndex,
-           fileName,
-           errorCode);
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }*/
 
   // Set enable as default
   errorCode = setEnable(plcIndex, 1);
@@ -337,7 +323,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
            errorCode);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
-
+  
   return 0;
 }
 
@@ -1037,8 +1023,8 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   }
 
   errorCode = createAndRegisterNewDataIF(plcIndex,
-                                             varName,                                             
-                                             ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+                                         varName,                                             
+                                         ECMC_RECORDER_SOURCE_GLOBAL_VAR);
 
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
@@ -1233,7 +1219,7 @@ int ecmcPLCMain::updateAllScanTimeVars(int plcIndex) {
   if (plcs_[plcIndex]) {
     int chars = snprintf(varName,
                          EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                         ECMC_PLC_DATA_STR "%d." ECMC_PLC_ENABLE_DATA_STR,
+                         ECMC_PLC_DATA_STR "%d." ECMC_PLC_SCAN_TIME_DATA_STR,
                          plcIndex);
 
     if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
