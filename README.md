@@ -310,24 +310,25 @@ Please use ecmctrainig version 6.0.0 for configuration
 Use ecmctraining 6.0.0 for all new projects
 
 Changes:
+
 * init snippet:
     * Added variable to select time stamp source (ECMC_TIME_SOURCE):
-        1. ECMC_TIME_SOURCE = -2 for time stamp in ECMC (default). 
-        2. ECMC_TIME_SOURCE = 0 for time stamp in EPICS
+        * ECMC_TIME_SOURCE = -2 for time stamp in ECMC (default). 
+        * ECMC_TIME_SOURCE = 0 for time stamp in EPICS
+    * TODO: Set ECMC_TIME_SOURCE if timestamp source is important
 
 * ecmc_axis snippet:
-    1. Cfg.SetAxisDrvType() command is obsolete.
-      "Cfg.CreateAxis(${ECMC_AXIS_NO},1,${ECMC_DRV_TYPE})" is used instead of "Cfg.CreateDefaultAxis(${ECMC_AXIS_NO})" and "Cfg.SetAxisDrvType(${ECMC_AXIS_NO},${ECMC_DRV_TYPE})".
-       
-    2. Settings for modulo are introduced via "ECMC_MOD_RANGE" and "ECMC_MOD_TYPE":
-        * "Cfg.SetAxisModRange(${ECMC_AXIS_NO}, ${ECMC_MOD_RANGE})"
-            Modulo range (trajectory setpoints and encoder values will be in range 0..ECMC_MOD_RANGE)
-        * "Cfg.SetAxisModType(${ECMC_AXIS_NO}, ${ECMC_MOD_TYPE})"
-            For positioning and MOD_RANGE > 0: 0 = Normal, 1 = Always Fwd, 2 = Always Bwd, 3 = Closest Distance
+    * TODO: Modulo support. Add below lines to all axes_* files (general section):
+        * epicsEnvSet("ECMC_MOD_RANGE" ,"0") # Modulo range (traj setpoints and encoder values will be in range 0..ECMC_MOD_RANGE)
+        * epicsEnvSet("ECMC_MOD_TYPE","0") # For positioning and MOD_RANGE>0: 0 = Normal, 1 = Always Fwd, 2 = Always Bwd, 3 = Closest Distance
+
+    * Cfg.SetAxisDrvType() command is obsolete:
+        * "Cfg.CreateAxis(${ECMC_AXIS_NO},1,${ECMC_DRV_TYPE})" is used instead of "Cfg.CreateDefaultAxis(${ECMC_AXIS_NO})" and "Cfg.SetAxisDrvType(${ECMC_AXIS_NO},${ECMC_DRV_TYPE})".
+        * TODO: No change needed (use ecmc_axis v6.0.0)    
 
 * ecmc_sync_axis:
     * Command transform object have been replaced with a PLC for each axis. Therefore all commands and syntax related to syncronization have been changed. See above for more info.
-    * Example: https://bitbucket.org/europeanspallationsource/ecmctraining/src/master/startup/ecmcProject_MCU1021_exampleMasterSlave/axis_2_sync 
+    * TODO: Convert sync expressions to new standard. See examples https://bitbucket.org/europeanspallationsource/ecmctraining/src/master/startup/ecmcProject_MCU1021_exampleMasterSlave/axis_2_sync
 
 * ethercat hardware snippets:
     * Have been renamed to allow easier use of macros. All snippest follow the standard ecmc<slave name>. example ecmcEL2004    
@@ -338,10 +339,14 @@ Changes:
     * ecmcAsynPortDriverAddParameter iocsh command have been removed from all "ecmc<slave name>-records" files
       Asyn links are instead automatically linked through asynportdriver::drvusercreate and adressed through the drvInfo string.
       See above in this doc for definition/syntax of drvInfo string in. Use "ecmcReport 3" or "asynReport 3" to see accessible parameters (see also ecmctraining 6.0.0). As long as you use the ecmctraining v6.0.0  snippets and database files this will not be an issue.
+    * TODO: Use new hardware snippets.
+
 * Startup files:
     * Sample time of records are defined by ECMC_SAMPLE_RATE_MS (now in milli seconds).
-* OPI: Have been updated to fit new records.
+    * TODO: Change ECMC_ASYN_SKIP_CYCLES to ECMC_SAMPLE_RATE_MS.
 
+* OPI: Have been updated to fit new records.
+    * TODO: Nothing
 
 ## Todo ##
 * Remove manual motion mode (not needed.. motors can be run manually directlly from ethercat entries)
