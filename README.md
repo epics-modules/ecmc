@@ -305,6 +305,10 @@ Please use ecmctrainig version 6.0.0 for configuration
     * axis<id>.mon.ilockbwd : allow motion in backward dir (stop if set to 0) 
     * axis<id>.mon.ilockfwd : allow motion in forward dir (stop if set to 0)
 
+* SetAppMode(1) compiles all PLC:s. If new PLC code is added at later stage then it needs to be compiled by:
+    * Cfg.CompilePLC(<plcIndex>)
+    * Cfg.CompileAxisPLC(<axisIndex>)
+
 ### Migration  guide (5.x.x to 6.0.0) ###
 
 Use ecmctraining 6.0.0 for all new projects
@@ -347,6 +351,10 @@ Changes:
 
 * OPI: Have been updated to fit new records.
     * TODO: Nothing
+
+* PLC:
+    * Remove Cfg.CompilePLC(<plcindex>). The compile is done automatically during valiadtion at transition to runtime (SetAppMode()).
+    * Allow load of new expression while "old" compiled are executing at runtime. Switch to new expression with Cfg.CompilePLC() or Cfg.CompileAxisPLC().
 
 ## Todo ##
 * Remove manual motion mode (not needed.. motors can be run manually directlly from ethercat entries)
