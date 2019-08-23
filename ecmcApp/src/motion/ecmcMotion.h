@@ -2573,8 +2573,9 @@ int setAxisAllowCommandsFromPLC(int axisIndex,
 int setAxisPLCEnable(int axisIndex,
                      int value);
 
-/** \breif Set axis sync. PLC expression.\n
+/** \breif Append axis sync. PLC expression.\n
  *
+ * Add one line to the axis PLC code.\n
  * The axis PLC expression is used for enabling and executing of
  * axes based on mathematical expressions. This is useful when synchronizing
  * axes i.e. a slave axis could be enabled and executed at the same time as
@@ -2583,7 +2584,7 @@ int setAxisPLCEnable(int axisIndex,
  * Example: Enable of axis 2 is related to the enable command of axis 1 and 5.
  * The execute command is related to an expression including the
  * execute command for axis 2 and 7.\n
- * "ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable#".\n
+ * "ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable|".\n
  *
  * For more syntax help plese view PLC syntax (setPLCExpr()).\n
  * 
@@ -2593,12 +2594,25 @@ int setAxisPLCEnable(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PLC expression for axes 5 to
- * ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable#.\n
- * "Cfg.setAxisPLCExpr(5)=ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable#"
+ * ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable|.\n
+ * "Cfg.setAxisPLCExpr(5)=ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable|"
  * //Command string to ecmcCmdParser.c.\n
  */
-int setAxisPLCExpr(int   axisIndex,
-                   char *expr);
+int appendAxisPLCExpr(int   axisIndex,
+                      char *expr);
+
+/** \breif Compile Axis PLC code\n
+ *
+ * For more syntax help plese view PLC syntax (setPLCExpr()).\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Compile code for the PLC of axis 5.\n
+ * "Cfg.CompileAxisPLC(5)" //Command string to ecmcCmdParser.c.\n
+ */
+int compileAxisPLCExpr(int   axisIndex);
 
 /** \breif Creates an axis object at index axisIndex.
  *

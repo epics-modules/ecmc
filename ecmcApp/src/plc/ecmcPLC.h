@@ -74,6 +74,9 @@ int setPLCExpr(int   index,
  *
  * Append one line of PLC Code. Code syntax is defined on exprtk website.\n
  * Variables that can be used are described below.\n
+ * 
+ * Compile will be performed automatically just before going to runtime during\n
+ * validation.\n
  *
  * \param[in] index  PLC index.\n
  * \param[in] expr Expression.\n
@@ -398,8 +401,8 @@ int appendPLCExpr(int   index,
  *
  * Load file with PLC code to PLC.\n
  * For syntax look at "appendPLCExpr()".\n
- * PLC file will be compiled and
- * enabled.\n
+ * PLC file will be enabled. Compile will be performed automatically just\n
+ * before going to runtime during validation.\n
  *
  * \param[in] index     PLC index.\n
  * \param[in] fileName  File name.\n

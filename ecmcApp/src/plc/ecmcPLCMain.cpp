@@ -119,7 +119,8 @@ int ecmcPLCMain::validate(int plcIndex) {
 
 int ecmcPLCMain::validate() {
   // Parse and Compile all PLCs before runtime (all objects should be availabe)
-
+  // Compile Axis PLC:S if needed
+ 
   int errorCode = 0;
   for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
     if(plcs_[i]) {      
@@ -195,7 +196,7 @@ std::string *ecmcPLCMain::getExpr(int plcIndex, int *error) {
     *error =  ERROR_PLCS_INDEX_OUT_OF_RANGE;
     return NULL;
   }
-  
+
   if (!plcs_[plcIndex]) {
     LOGERR("ERROR: PLC NULL\n");
     *error =  ERROR_PLCS_PLC_NULL;
@@ -297,7 +298,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
     lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
 
     if (lineNoComments.length() > 0) {
-      lineNoComments.append("\n");
+      lineNoComments.append("\n");      
       errorCode = appendExprLine(plcIndex, lineNoComments.c_str());
 
       if (errorCode) {
@@ -340,6 +341,12 @@ int ecmcPLCMain::clearExpr(int plcIndex) {
 
 int ecmcPLCMain::compileExpr(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
+  
+  int errorCode = addExprLine(plcIndex,plcs_[plcIndex]->getRawExpr()->c_str());
+  if (errorCode) {
+    return errorCode;
+  }
+
   return plcs_[plcIndex]->compile();
 }
 

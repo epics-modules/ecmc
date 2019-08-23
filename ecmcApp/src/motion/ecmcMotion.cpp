@@ -1015,7 +1015,7 @@ int setAxisEncScaleDenom(int axisIndex, double value) {
   return 0;
 }
 
-int setAxisPLCExpr(int axisIndex, char *expr) {
+int appendAxisPLCExpr(int axisIndex, char *expr) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
            __FILE__,
            __FUNCTION__,
@@ -1026,6 +1026,12 @@ int setAxisPLCExpr(int axisIndex, char *expr) {
   CHECK_PLCS_RETURN_IF_ERROR();  
 
   return plcs->appendExprLine(AXIS_PLC_ID_TO_PLC_ID(axisIndex),expr);
+}
+
+int compileAxisPLCExpr(int axisIndex) {
+  LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, axisIndex);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->compileExpr(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
 }
 
 int setAxisPLCTrajVelFilterEnable(int axisIndex, int enable) {
@@ -2625,3 +2631,4 @@ int setAxisModType(int axisIndex,
 
   return axes[axisIndex]->setModType(type);
 }
+

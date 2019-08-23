@@ -1889,9 +1889,9 @@ static int handleCfgCommand(const char *myarg_1) {
 
   char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 
-  /*int Cfg.SetAxisPLCExpr(int axis_no,char *cExpr); */
+  /*int Cfg.AppendAxisPLCExpr(int axis_no,char *cExpr); */
   nvals = sscanf(myarg_1,
-                 "SetAxisPLCExpr(%d)=%[^\n]",
+                 "AppendAxisPLCExpr(%d)=%[^\n]",
                  &iValue,
                  cExprBuffer);
 
@@ -1911,7 +1911,7 @@ static int handleCfgCommand(const char *myarg_1) {
         cExprBuffer[i] = ';';
       }
     }
-    return setAxisPLCExpr(iValue, cExprBuffer);
+    return appendAxisPLCExpr(iValue, cExprBuffer);
   }
 
   // nvals = sscanf(myarg_1, "SetPLCExpr(%d,\"%[^\"])",&iValue,cExprBuffer);
@@ -2008,6 +2008,13 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 1) {
     return compilePLCExpr(iValue);
+  }
+
+  /*int Cfg.CompileAxisPLC(int plcIndex);*/
+  nvals = sscanf(myarg_1, "CompileAxisPLC(%d)", &iValue);
+
+  if (nvals == 1) {
+    return compileAxisPLCExpr(iValue);
   }
 
   /*int Cfg.SetAxisAllowCommandsFromPLC(int master_axis_no,

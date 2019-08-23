@@ -207,6 +207,8 @@ std::string * ecmcPLCTask::getRawExpr() {
 int ecmcPLCTask::appendRawExpr(const char *exprStr) {
   try {
     exprStrRaw_ += exprStr;
+    exprStrRaw_ += "\n";  //Add Enter
+
   }
   catch (const std::exception& e) {
     LOGERR("%s/%s:%d: Append of expression line failed: %s (0x%x).\n",
