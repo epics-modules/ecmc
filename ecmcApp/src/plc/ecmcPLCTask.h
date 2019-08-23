@@ -47,6 +47,7 @@ class ecmcPLCTask : public ecmcError {
   int          appendRawExpr(const char *exprStr);
   int          addExprLine(const char *exprStr);
   int          clearExpr();
+  int          clearRawExpr();
   int          compile();
   int          addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
   int          addAndRegisterLocalVar(char *localVarStr);
@@ -63,6 +64,7 @@ class ecmcPLCTask : public ecmcError {
   int          findLocalVar(const char     *varName,
                             ecmcPLCDataIF **outDataIF);
   double       getSampleTime();
+  int          getNewExpr();
   static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
 
@@ -99,6 +101,7 @@ class ecmcPLCTask : public ecmcError {
   int libDsLoaded_;
   int libFileIOLoaded_;
   ecmcAsynPortDriver *asynPortDriver_;
+  int newExpr_;
 };
 
 #endif  /* ECMC_PLC_TASK_H_ */

@@ -58,6 +58,7 @@ void ecmcPLCTask::initVars() {
   libDsLoaded_     = 0;
   libFileIOLoaded_ = 0;
   asynPortDriver_  = 0;
+  newExpr_         = 0;
 }
 
 int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
@@ -137,6 +138,8 @@ int ecmcPLCTask::compile() {
   }
 
   compiled_ = true;
+  newExpr_  = false;
+  exprStrRaw_ = "";
   return 0;
 }
 
@@ -204,11 +207,10 @@ std::string * ecmcPLCTask::getRawExpr() {
   return &exprStrRaw_;
 }
 
-int ecmcPLCTask::appendRawExpr(const char *exprStr) {
+int ecmcPLCTask::appendRawExpr(const char *exprStr) {  
   try {
     exprStrRaw_ += exprStr;
     exprStrRaw_ += "\n";  //Add Enter
-
   }
   catch (const std::exception& e) {
     LOGERR("%s/%s:%d: Append of expression line failed: %s (0x%x).\n",
@@ -222,7 +224,7 @@ int ecmcPLCTask::appendRawExpr(const char *exprStr) {
                       __LINE__,
                       ERROR_PLC_ADD_EXPR_LINE_ERROR);
   }
-
+  newExpr_ = true;
   return 0;
 }
 
@@ -247,9 +249,13 @@ int ecmcPLCTask::addExprLine(const char *exprStr) {
   return 0;
 }
 
+int ecmcPLCTask::clearRawExpr() {
+  exprStrRaw_  = "";
+  return 0;
+}
+
 int ecmcPLCTask::clearExpr() {
   exprStr_  = "";
-  exprStrRaw_  = "";
   compiled_ = false;
 
   for (int i = 0; i < localVariableCount_; i++) {
@@ -681,4 +687,9 @@ int ecmcPLCTask::findLocalVar(const char *varName, ecmcPLCDataIF **outDataIF) {
     }
   }
   return ERROR_PLC_VARIABLE_NOT_FOUND;
+}
+
+//Check if new expression is loaded after compile
+int ecmcPLCTask::getNewExpr() {
+  return newExpr_;
 }

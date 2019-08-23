@@ -123,10 +123,12 @@ int ecmcPLCMain::validate() {
  
   int errorCode = 0;
   for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
-    if(plcs_[i]) {      
-      errorCode = addExprLine(i,plcs_[i]->getRawExpr()->c_str());
-      if (errorCode) {
-        return errorCode;
+    if(plcs_[i]) {
+      if(!getCompiled(i)) {      
+        errorCode = addExprLine(i,plcs_[i]->getRawExpr()->c_str());
+        if (errorCode) {
+          return errorCode;
+        }
       }
     }
   }
@@ -336,12 +338,18 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
 
 int ecmcPLCMain::clearExpr(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
-  return plcs_[plcIndex]->clearExpr();
+  return plcs_[plcIndex]->clearRawExpr();
 }
 
 int ecmcPLCMain::compileExpr(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
-  
+
+  if(plcs_[plcIndex]->getNewExpr())
+    plcs_[plcIndex]->clearExpr();
+  else {
+    return 0;
+  }
+
   int errorCode = addExprLine(plcIndex,plcs_[plcIndex]->getRawExpr()->c_str());
   if (errorCode) {
     return errorCode;
