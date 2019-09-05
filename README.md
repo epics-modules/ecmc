@@ -370,4 +370,4 @@ Changes:
 * Only stop motion when the slaves used by axis are in error state or not reachable.
 * Test EtherCAT redundacy
 * Move to ecmcconfig instead of ecmctraining
-* ......
+* Add command to set sm watchdog (ecrt_slave_config_sync_manager())
