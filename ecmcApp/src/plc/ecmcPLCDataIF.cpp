@@ -657,12 +657,22 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
-    return 0;
+    if (data_>=1) {
+      return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_EXTERNALENCODER);
+    }
+    else {
+      return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+    }
 
     break;
 
   case ECMC_AXIS_DATA_ENC_SOURCE:
-    return 0;
+    if (data_>=1) {
+      return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_EXTERNALENCODER);
+    }
+    else {
+      return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+    }
 
     break;
 
