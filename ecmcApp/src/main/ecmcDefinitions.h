@@ -401,6 +401,7 @@ enum axisSubObjectType {
 #define ECMC_AXIS_DATA_STR_BLOCK_COM "blockcom"
 #define ECMC_AXIS_DATA_STR_INTERLOCK_FWD_TYPE "mon.ilockfwd"
 #define ECMC_AXIS_DATA_STR_INTERLOCK_BWD_TYPE "mon.ilockbwd"
+#define ECMC_AXIS_DATA_STR_ALLOW_PLC_CMD "allowplccmd"
 
 enum ecmcAxisDataType {
   ECMC_AXIS_DATA_NONE                  = 0,
@@ -446,6 +447,7 @@ enum ecmcAxisDataType {
   ECMC_AXIS_DATA_BLOCK_COM             = 40,
   ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE    = 41,
   ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE    = 42,
+  ECMC_AXIS_DATA_ALLOW_PLC_WRITE       = 43,
 };
 
 enum ecmcDataStorageType {
