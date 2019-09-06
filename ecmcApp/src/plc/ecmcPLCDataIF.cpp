@@ -519,12 +519,16 @@ int ecmcPLCDataIF::readAxis() {
     data_ = axis_->getBlockExtCom();
     break;
 
+  case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
+    data_ = static_cast<double>(axisData->onChangeData.sumIlockBwd == 0);
+    break;
+
   case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
     data_ = static_cast<double>(axisData->onChangeData.sumIlockFwd == 0);
     break;
 
-  case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
-    data_ = static_cast<double>(axisData->onChangeData.sumIlockBwd == 0);
+  case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:
+    data_ = static_cast<double>(axis_->getAllowCmdFromPLC());
     break;
 
   default:
@@ -546,7 +550,8 @@ int ecmcPLCDataIF::writeAxis() {
   }
 
   // Write from PLC to Axis allowed?
-  if(!axis_->getAllowCmdFromPLC()) {
+  if(!axis_->getAllowCmdFromPLC() && 
+     (dataSourceAxis_ != ECMC_AXIS_DATA_ALLOW_PLC_WRITE)) {
     return 0;
   } 
 
@@ -657,12 +662,22 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
-    return 0;
+    if (data_>=1) {
+      return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_EXTERNALENCODER);
+    }
+    else {
+      return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+    }
 
     break;
 
   case ECMC_AXIS_DATA_ENC_SOURCE:
-    return 0;
+    if (data_>=1) {
+      return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_EXTERNALENCODER);
+    }
+    else {
+      return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+    }
 
     break;
 
@@ -768,6 +783,10 @@ int ecmcPLCDataIF::writeAxis() {
 
   case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
     return axis_->getMon()->setPLCInterlock(data_ == 0,ECMC_PLC_INTERLOCK_DIR_FWD);
+    break;
+
+  case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:
+    return axis_->setAllowCmdFromPLC(data_>=1);
     break;
 
   default:
@@ -1120,6 +1139,13 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
   if (npos == 0) {
     isBool_ = 1;
     return ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE;
+  }
+
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_ALLOW_PLC_CMD);
+
+  if (npos == 0) {
+    isBool_ = 1;
+    return ECMC_AXIS_DATA_ALLOW_PLC_WRITE;
   }
 
   return ECMC_AXIS_DATA_NONE;
