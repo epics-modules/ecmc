@@ -2105,6 +2105,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_ASYN_REFRESH_FAIL";
 
     break;
+  case 0x220009:
+    return "ERROR_ASYN_CMD_FAIL";
+
+    break;
+
   case 0x230000:
     return "ERROR_AXIS_FILTER_ALLOC_FAIL";
 
