@@ -768,7 +768,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
 
     //Ensure that type is supported
     if( !param->asynTypeSupported(newParam->getAsynType())) {
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Error: asynType %s not suppotrted for parameter %s. Supported types are:\n", 
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Error: asynType %s not supported for parameter %s. Supported types are:\n", 
                driverName, functionName,newParam->getAsynTypeName(),param->getName());
       for(int i=0;i < param->getSupportedAsynTypeCount();i++) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: AsynType: %s (%d)\n",
@@ -780,8 +780,11 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
       return asynError;      
     }
     // Type supported so use it.    
-    param->setAsynParameterType(newParam->getAsynType());
-    
+    param->setAsynParameterType(newParam->getAsynType());        
+    param->getParamInfo()->cmdFloat64ToInt32 = newParam->getParamInfo()->cmdFloat64ToInt32;
+    param->getParamInfo()->cmdInt64ToFloat64 = newParam->getParamInfo()->cmdInt64ToFloat64;
+    param->getParamInfo()->cmdUint64ToFloat64 = newParam->getParamInfo()->cmdUint64ToFloat64;
+
     // Add parameter to In use list
     status = appendInUseParam(param,0);
     if(status!=asynSuccess) {
@@ -833,10 +836,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     existentParInfo->recordType=strdup(newParam->getRecordType());
     existentParInfo->dtyp=strdup(newParam->getDtyp());
     existentParInfo->drvInfo=strdup(newParam->getDrvInfo());
-
-    //Conversion commands
-    existentParInfo->cmdInt64ToFloat64=newParam->getParamInfo()->cmdInt64ToFloat64;
-    existentParInfo->cmdUint64ToFloat64=newParam->getParamInfo()->cmdUint64ToFloat64;    
+    
     if(existentParInfo->cmdInt64ToFloat64 && pEcmcParamInUseArray_[index]->getEcmcBitCount() !=64) {      
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_INT_TO_FLOAT64" is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName, functionName,drvInfo);
@@ -849,6 +849,14 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
       delete newParam;
       return asynError;
     }
+
+    if(existentParInfo->cmdFloat64ToInt32 && pEcmcParamInUseArray_[index]->getParamInfo()->ecmcSize !=8) {      
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_FLOAT64_INT" is only valid for 8 byte parameters (drvInfo = %s).\n",
+                driverName, functionName,drvInfo);
+      delete newParam;
+      return asynError;
+    }
+
   }
 
   // Ensure that sample time is the shortest (if several records 
@@ -952,6 +960,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   }
   fprintf(fp,"    ECMC Cmd: Uint2Float64:    %s\n",paramInfo->cmdUint64ToFloat64 ? "true" : "false");
   fprintf(fp,"    ECMC Cmd: Int2Float64:     %s\n",paramInfo->cmdInt64ToFloat64 ? "true" : "false");
+  fprintf(fp,"    ECMC Cmd: Float642Int:     %s\n",paramInfo->cmdFloat64ToInt32 ? "true" : "false");
   fprintf(fp,"    Record name:               %s\n",paramInfo->recordName);
   fprintf(fp,"    Record type:               %s\n",paramInfo->recordType);
   fprintf(fp,"    Record dtyp:               %s\n",paramInfo->dtyp);      

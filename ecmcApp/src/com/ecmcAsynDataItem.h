@@ -17,6 +17,7 @@
 #define ERROR_ASYN_DATA_BUFFER_TO_SMALL 0x220006
 #define ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE 0x220007
 #define ERROR_ASYN_REFRESH_FAIL 0x220008
+#define ERROR_ASYN_CMD_FAIL 0x220009
 
 #define ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT 10
 #define ERROR_ASYN_NOT_REFRESHED_RETURN -1
@@ -51,6 +52,7 @@ typedef struct ecmcParamInfo{
   bool           arrayCheckSize;
   bool           cmdUint64ToFloat64;
   bool           cmdInt64ToFloat64;
+  bool           cmdFloat64ToInt32;
 }ecmcParamInfo;
 
 class ecmcAsynDataItem
