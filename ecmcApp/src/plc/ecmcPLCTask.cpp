@@ -551,6 +551,7 @@ int ecmcPLCTask::loadEcLib() {
   ecmcPLCTaskAddFunction("ec_print_hex", ec_print_hex);
   ecmcPLCTaskAddFunction("ec_print_bin", ec_print_bin);
   ecmcPLCTaskAddFunction("ec_get_err",   ec_get_err);
+  ecmcPLCTaskAddFunction("ec_wrt_bit",   ec_wrt_bit);
 
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",

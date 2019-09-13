@@ -28,6 +28,7 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_print_bin(",
                                "ec_print_hex(",
                                "ec_get_err(",
+                               "ec_wrt_bit(",
                               };
 
 static int ec_errorCode=0;
@@ -38,6 +39,18 @@ inline double ec_set_bit(double value, double bitIndex)
   CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(bitIndex);
   uint64_t temp=(uint64_t)value;  
   return (double)BIT_SET(temp,(int)bitIndex);
+}
+
+inline double ec_wrt_bit(double value, double wrtValue,double bitIndex)
+{
+  CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(bitIndex);
+  uint64_t temp=(uint64_t)value;
+  if(wrtValue>0) {
+    return (double)BIT_SET(temp,(int)bitIndex);
+  }
+  else {
+    return (double)BIT_CLEAR(temp,(int)bitIndex);
+  }
 }
 
 inline double ec_clr_bit(double value, double bitIndex)
