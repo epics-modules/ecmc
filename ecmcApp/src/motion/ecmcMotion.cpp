@@ -2013,8 +2013,101 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getMon()->setHardwareInterlockPolarity(
-                                        (externalHWInterlockPolarity)value);
+  return axes[axisIndex]->getMon()->setHardwareInterlockPolarity(
+                                    (ecmcSwitchPolarity)value);
+}
+
+int getAxisMonExtHWInterlockPolarity(int axisIndex, int *pol) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *pol = (int)axes[axisIndex]->getMon()->getHardwareInterlockPolarity();
+  return 0;
+}
+
+int setAxisMonLimitBwdPolarity(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setHardLimitBwdPolarity(
+                                   (ecmcSwitchPolarity)value);
+
+}
+
+int getAxisMonLimitBwdPolarity(int axisIndex, int *pol) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *pol = (int)axes[axisIndex]->getMon()->getHardLimitBwdPolarity();
+  return 0;
+}
+
+int setAxisMonLimitFwdPolarity(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setHardLimitFwdPolarity(
+                                    (ecmcSwitchPolarity)value);
+}
+
+int getAxisMonLimitFwdPolarity(int axisIndex, int *pol) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *pol = (int)axes[axisIndex]->getMon()->getHardLimitFwdPolarity();
+  return 0;
+}
+
+int setAxisMonHomeSwitchPolarity(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setHomePolarity(
+                                    (ecmcSwitchPolarity)value);
+}
+
+int getAxisMonHomeSwitchPolarity(int axisIndex, int *pol) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *pol = (int)axes[axisIndex]->getMon()->getHomePolarity();
   return 0;
 }
 
