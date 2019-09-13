@@ -1,8 +1,14 @@
-/*
- *
- *  Created on: Jan 14, 2016
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcAxisSequencer.cpp
+*
+*  Created on: Jan 14, 2016
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #include "ecmcAxisSequencer.h"
 

@@ -1,9 +1,14 @@
-/*
- * ecmcDataRecorder.h
- *
- *  Created on: May 27, 2016
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcEvent.h
+*
+*  Created on: May 27, 2016
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef ECMCEVENT_H_
 #define ECMCEVENT_H_

@@ -1,9 +1,14 @@
-/*
- * cMcuAxisReal.h
- *
- *  Created on: Mar 10, 2016
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcAxisReal.h
+*
+*  Created on: Mar 10, 2016
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef ECMCAXISREAL_H_
 #define ECMCAXISREAL_H_

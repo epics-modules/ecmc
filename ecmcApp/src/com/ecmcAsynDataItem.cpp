@@ -1,3 +1,15 @@
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcAsynDataItem.cpp
+*
+*  Created on: Jan 29, 2019
+*      Author: anderssandstrom
+*
+\*************************************************************************/
+
 #include "../com/ecmcAsynDataItem.h"
 #include "../com/ecmcAsynPortDriver.h"
 #include <stdio.h>

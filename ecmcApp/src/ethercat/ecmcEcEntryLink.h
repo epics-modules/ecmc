@@ -1,9 +1,14 @@
-/*
- * ecmcECEntryLink.h
- *
- *  Created on: May 23, 2016
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcEcEntryLink.h
+*
+*  Created on: May 23, 2016
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef ECMCECENTRYLINK_H_
 #define ECMCECENTRYLINK_H_

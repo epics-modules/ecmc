@@ -1,9 +1,14 @@
-/*
- * ecmcAxisData.cpp
- *
- *  Created on: Jan 24, 2017
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcAxisData.cpp
+*
+*  Created on: Jan 24, 2017
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #include "ecmcAxisData.h"
 

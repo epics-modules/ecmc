@@ -1,12 +1,14 @@
-/*
-* ecmcAsynPortDriverUtils.cpp
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
 *
-* Utilities and definitions used by ecmcAsynPortDriver-class.
+*  ecmcAsynPortDriverUtils.cpp
 *
-* Author: Anders Sandström
+*  Created on: Jan 25, 2019
+*      Author: anderssandstrom
 *
-* Created January 25, 2019
-*/
+\*************************************************************************/
 
 #include "ecmcAsynPortDriverUtils.h"
 

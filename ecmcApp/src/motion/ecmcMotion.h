@@ -1,3 +1,15 @@
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcMotion.h
+*
+*  Created on: Jan 10, 2019
+*      Author: anderssandstrom
+*
+\*************************************************************************/
+
 #ifndef ECMC_MOTION_H_
 #define ECMC_MOTION_H_
 

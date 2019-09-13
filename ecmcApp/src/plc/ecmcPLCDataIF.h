@@ -1,9 +1,14 @@
-/*
- * ecmcPLCDataIF.h
- *
- *  Created on: Oct 4, 2018
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcPLCDataIF.h
+*
+*  Created on: Oct 4, 2018
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef ecmcPLCDataIF_H_
 #define ecmcPLCDataIF_H_

@@ -1,3 +1,15 @@
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcMonitor.h
+*
+*  Created on: Jan 12, 2016
+*      Author: anderssandstrom
+*
+\*************************************************************************/
+
 #ifndef MOTIONMONITOR_H
 #define MOTIONMONITOR_H
 #include <cmath>

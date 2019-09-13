@@ -1,11 +1,16 @@
-/*
- *
- *  Created on: Oct 4, 2018
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcPLCTask.cpp
+*
+*  Created on: Oct 4, 2018
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #include "ecmcPLCTask.h"
-
 #include "ecmcPLCTask_libEc.inc"
 #include "ecmcPLCTask_libMc.inc"
 #include "ecmcPLCTask_libDs.inc"

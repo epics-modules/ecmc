@@ -1,3 +1,14 @@
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcMotion.cpp
+*
+*  Created on: Jan 10, 2019
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #define __STDC_FORMAT_MACROS  // for printf uint_64_t
 #include <inttypes.h>

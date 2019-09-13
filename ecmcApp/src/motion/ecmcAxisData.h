@@ -1,3 +1,14 @@
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcAxisData.h
+*
+*  Created on: Jan 24, 2017
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef SRC_ECMCAXISDATA_H_
 #define SRC_ECMCAXISDATA_H_

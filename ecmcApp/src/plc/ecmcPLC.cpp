@@ -1,3 +1,15 @@
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcPLC.cpp
+*
+*  Created on: Oct 5, 2018
+*      Author: anderssandstrom
+*
+\*************************************************************************/
+
 #include "ecmcPLC.h"
 
 #include "../motion/ecmcMotion.h"

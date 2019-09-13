@@ -1,9 +1,14 @@
-/*
- * ecmcEc.h
- *
- *  Created on: Dec 1, 2015
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcEc.h
+*
+*  Created on: Dec 1, 2015
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef ECMCEC_H_
 #define ECMCEC_H_

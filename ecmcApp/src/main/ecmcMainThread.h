@@ -1,3 +1,14 @@
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcMainThread.h
+*
+*  Created on: Jan 11, 2019
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef ECMC_MAIN_TASK_H_
 # define ECMC_MAIN_TASK_H_

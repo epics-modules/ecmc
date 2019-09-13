@@ -1,9 +1,14 @@
-/*
- * ecmcEcPdo.h
- *
- *  Created on: Nov 30, 2015
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcEcPdo.h
+*
+*  Created on: Nov 30, 2015
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef ECMCECPDO_H_
 #define ECMCECPDO_H_

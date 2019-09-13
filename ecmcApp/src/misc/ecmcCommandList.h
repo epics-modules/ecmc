@@ -1,9 +1,14 @@
-/*
- * ecmcCommadList.h
- *
- *  Created on: Jun 2, 2016
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcCommadList.h
+*
+*  Created on: Jun 2, 2016
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #ifndef ECMCCOMMANDLIST_H_
 #define ECMCCOMMANDLIST_H_

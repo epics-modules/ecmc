@@ -1,3 +1,15 @@
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcDriveDS402.cpp
+*
+*  Created on: Mar 14, 2016
+*      Author: anderssandstrom
+*
+\*************************************************************************/
+
 #include "ecmcDriveDS402.h"
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver, 

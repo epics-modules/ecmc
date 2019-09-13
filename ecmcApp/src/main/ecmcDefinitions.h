@@ -1,9 +1,14 @@
-/*
- * ecmcDefinitions.h
- *
- *  Created on: March 14, 2016
- *      Author: anderssandstrom
- */
+/*************************************************************************\
+* Copyright (c) 2019 European Spallation Source ERIC
+* ecmc is distributed subject to a Software License Agreement found
+* in file LICENSE that is included with this distribution. 
+*
+*  ecmcDefinitions.h
+*
+*  Created on: Mar 14, 2016
+*      Author: anderssandstrom
+*
+\*************************************************************************/
 
 #define __STDC_FORMAT_MACROS  // for printf uint_64_t
 #include <stdint.h>
