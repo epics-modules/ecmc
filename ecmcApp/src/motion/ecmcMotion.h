@@ -2540,6 +2540,112 @@ int setAxisMonEnableExternalInterlock(int axisIndex,
 int setAxisMonExtHWInterlockPolarity(int axisIndex,
                                      int value);
 
+/** \breif Get polarity of motion axis interlock from EtherCAT entry.\n
+ *
+ *
+ * The motion can be interlocked based on an EtherCAT entry. See command
+ * linkEcEntryToAxisMon() for more information.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] value Polarity external interlock.\n
+ *                0 = NC (High is OK) Default.\n
+ *                1 = NO (Low is OK).\n
+ *
+ * \note WARNING: If an error is detected, the enable (power) will be removed
+ *  from the axis. Please always ensure that the power less state is the
+ *  safe state.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get external interlock polarity for axis 7.\n
+ * "GetAxisMonExtHWInterlockPolarity(7)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisMonExtHWInterlockPolarity(int axisIndex, int *pol);
+
+/** \breif Set polarity of hard low limit switch.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Polarity.\n
+ *                0 = NC (High is OK) Default.\n
+ *                1 = NO (Low is OK).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set low limit polarity to NC for axis 7.\n
+ * "Cfg.SetAxisMonLimitBwdPolarity(7,0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonLimitBwdPolarity(int axisIndex, int value);
+
+/** \breif Get polarity of hard low limit switch.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pol Polarity.\n
+ *                0 = NC (High is OK) Default.\n
+ *                1 = NO (Low is OK).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get low limit polarity for axis 7.\n
+ * "GetAxisMonLimitBwdPolarity(7)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisMonLimitBwdPolarity(int axisIndex, int *pol);
+
+/** \breif Set polarity of hard high limit switch.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Polarity.\n
+ *                0 = NC (High is OK) Default.\n
+ *                1 = NO (Low is OK).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set high limit polarity to NC for axis 7.\n
+ * "Cfg.SetAxisMonLimitFwdPolarity(7,0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonLimitFwdPolarity(int axisIndex, int value);
+
+/** \breif Get polarity of hard high limit switch.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pol Polarity.\n
+ *                0 = NC (High is OK) Default.\n
+ *                1 = NO (Low is OK).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get high limit polarity for axis 7.\n
+ * "GetAxisMonLimitFwdPolarity(7)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisMonLimitFwdPolarity(int axisIndex, int *pol);
+
+/** \breif Set polarity of home switch.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Polarity.\n
+ *                0 = NC (High is 1) Default.\n
+ *                1 = NO (Low is 1).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set home switch polarity to NC for axis 7.\n
+ * "Cfg.SetAxisMonHomeSwitchPolarity(7,0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonHomeSwitchPolarity(int axisIndex, int value);
+
+/** \breif Get polarity of home switch.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] pol Polarity.\n
+ *                0 = NC (High is 1) Default.\n
+ *                1 = NO (Low is 1).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get home switch polarity for axis 7.\n
+ * "GetAxisMonHomeSwitchPolarity(7)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisMonHomeSwitchPolarity(int axisIndex, int *pol);
+
 /** \breif Allow commands from PLCs.\n
  *
  * An axis can receive commands from PLCs (see PLC syntax).

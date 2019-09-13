@@ -1532,6 +1532,36 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisMonExtHWInterlockPolarity(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisMonLimitBwdPolarity(int axisIndex, int value);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisMonLimitBwdPolarity(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisMonLimitBwdPolarity(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisMonLimitFwdPolarity(int axisIndex, int value);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisMonLimitFwdPolarity(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisMonLimitFwdPolarity(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisMonHomeSwitchPolarity(int axisIndex, int value);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisMonHomeSwitchPolarity(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisMonHomeSwitchPolarity(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisMonEnableCntrlOutHLMon(int axis_no, int value);*/
   nvals = sscanf(myarg_1,
                  "SetAxisMonEnableCntrlOutHLMon(%d,%d)",
@@ -2527,6 +2557,34 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisModType(motor_axis_no, &iValue));
+  }
+
+  /*GetAxisMonLimitFwdPolarity(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonLimitFwdPolarity(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLimitFwdPolarity(motor_axis_no, &iValue));
+  }
+
+  /*GetAxisMonLimitBwdPolarity(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonLimitBwdPolarity(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLimitBwdPolarity(motor_axis_no, &iValue));
+  }
+
+  /*GetAxisMonHomeSwitchPolarity(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonHomeSwitchPolarity(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonHomeSwitchPolarity(motor_axis_no, &iValue));
+  }
+
+  /*GetAxisMonExtHWInterlockPolarity(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonExtHWInterlockPolarity(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonExtHWInterlockPolarity(motor_axis_no, &iValue));
   }
 
   /*int GetAxisEnableAlarmAtHardLimits(int axis_no);*/

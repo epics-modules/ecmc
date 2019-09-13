@@ -30,10 +30,11 @@
 #define ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED 0x14C14
 #define ERROR_MON_TOL_OUT_OF_RANGE 0x14C15
 #define ERROR_MON_TIME_OUT_OF_RANGE 0x14C16
+#define ERROR_MON_POLARITY_OUT_OF_RANGE 0x14C17
 
 #define ECMC_MON_SWITCHES_FILTER_CYCLES 5
 
-enum externalHWInterlockPolarity {
+enum ecmcSwitchPolarity {
   ECMC_POLARITY_NC = 0,
   ECMC_POLARITY_NO = 1
 };
@@ -78,7 +79,14 @@ class ecmcMonitor : public ecmcEcEntryLink {
   void   errorReset();
   int    setPLCInterlock(bool ilock,plcInterlockTypes type);
   int    setEnableHardwareInterlock(bool enable);
-  int    setHardwareInterlockPolarity(externalHWInterlockPolarity pol);
+  int    setHardwareInterlockPolarity(ecmcSwitchPolarity pol);
+  int    setHardLimitBwdPolarity(ecmcSwitchPolarity pol);
+  int    setHardLimitFwdPolarity(ecmcSwitchPolarity pol);
+  int    setHomePolarity(ecmcSwitchPolarity pol);
+  ecmcSwitchPolarity getHardLimitBwdPolarity();
+  ecmcSwitchPolarity getHardLimitFwdPolarity();
+  ecmcSwitchPolarity getHomePolarity();
+  ecmcSwitchPolarity getHardwareInterlockPolarity();
   int    setCntrlOutputHL(double outputHL);
   int    setEnableCntrlHLMon(bool enable);
   bool   getEnableCntrlHLMon();
@@ -101,7 +109,7 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool   getAtSoftLimitBwd();
   bool   getAtSoftLimitFwd();
   void   printCurrentState();
-
+  
  private:
   int    checkLimits();
   int    checkAtTarget();
@@ -112,6 +120,7 @@ class ecmcMonitor : public ecmcEcEntryLink {
   int    filterSwitches();
   void   printInterlockStatus(interlockTypes ilock);
   void   printHwInterlockPolarity();
+  int    checkPolarity(ecmcSwitchPolarity pol);
   bool enable_;
   // Tolnoerance for reached target. Example 0.1 deg
   double atTargetTol_;
@@ -153,6 +162,9 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   interlockTypes interlockStatusOld_;
-  externalHWInterlockPolarity hardwareInterlockPolarity_;
+  ecmcSwitchPolarity hardwareInterlockPolarity_;
+  ecmcSwitchPolarity lowLimPolarity_;
+  ecmcSwitchPolarity highLimPolarity_;
+  ecmcSwitchPolarity homePolarity_;
 };
 #endif  // ifndef MOTIONMONITOR_H
