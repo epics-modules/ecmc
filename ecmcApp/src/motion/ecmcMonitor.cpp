@@ -79,6 +79,9 @@ void ecmcMonitor::initVars() {
   memset(&homeFilterBuffer_,     0, sizeof(homeFilterBuffer_));
   interlockStatusOld_        = ECMC_INTERLOCK_NONE;
   hardwareInterlockPolarity_ = ECMC_POLARITY_NC;
+  lowLimPolarity_            = ECMC_POLARITY_NC;
+  highLimPolarity_           = ECMC_POLARITY_NC;
+  homePolarity_              = ECMC_POLARITY_NC;
 }
 
 void ecmcMonitor::printCurrentState() {
@@ -484,7 +487,11 @@ void ecmcMonitor::readEntries() {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MON_ENTRY_READ_FAIL);
     return;
   }
-
+  
+  if(lowLimPolarity_==ECMC_POLARITY_NO) {
+    tempRaw = tempRaw==0;
+  }
+  
   if (data_->status_.limitBwd != (tempRaw > 0)) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.limitBwd=%d;\n",
               __FILE__,
@@ -505,6 +512,10 @@ void ecmcMonitor::readEntries() {
     return;
   }
 
+  if(highLimPolarity_==ECMC_POLARITY_NO) {
+    tempRaw = tempRaw==0;
+  }
+
   if (data_->status_.limitFwd != (tempRaw > 0)) {
     LOGINFO15("%s/%s:%d: axis[%d].monitor.limitFwd=%d;\n",
               __FILE__,
@@ -522,6 +533,10 @@ void ecmcMonitor::readEntries() {
   if (readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR, &tempRaw)) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MON_ENTRY_READ_FAIL);
     return;
+  }
+
+  if(homePolarity_==ECMC_POLARITY_NO) {
+    tempRaw = tempRaw==0;
   }
 
   if (data_->status_.homeSwitch != (tempRaw > 0)) {
@@ -1423,7 +1438,14 @@ void ecmcMonitor::printHwInterlockPolarity() {
   }
 }
 
-int ecmcMonitor::setHardwareInterlockPolarity(externalHWInterlockPolarity pol) {
+int ecmcMonitor::setHardwareInterlockPolarity(ecmcSwitchPolarity pol) {
+
+  int errorCode = checkPolarity(pol);
+  if(errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n", __FILE__, __FUNCTION__, __LINE__,errorCode);
+    return errorCode;
+  }
+
   if (hardwareInterlockPolarity_ != pol) {
     hardwareInterlockPolarity_ = pol;
     printHwInterlockPolarity();
@@ -1445,6 +1467,65 @@ int ecmcMonitor::setPLCInterlock(bool ilock,plcInterlockTypes type) {
     case ECMC_PLC_INTERLOCK_DIR_FWD:      
       data_->interlocks_.plcInterlockFWD = ilock;
       break;
+  }
+  return 0;
+}
+
+int ecmcMonitor::setHardLimitBwdPolarity(ecmcSwitchPolarity pol){
+  
+  int errorCode = checkPolarity(pol);
+  if(errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n", __FILE__, __FUNCTION__, __LINE__,errorCode);
+    return errorCode;
+  }
+
+  lowLimPolarity_ = pol;
+  return 0;
+}
+
+int ecmcMonitor::setHardLimitFwdPolarity(ecmcSwitchPolarity pol){
+  
+  int errorCode = checkPolarity(pol);
+  if(errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n", __FILE__, __FUNCTION__, __LINE__,errorCode);
+    return errorCode;
+  }
+
+  highLimPolarity_ = pol;
+  return 0;
+}
+
+int ecmcMonitor::setHomePolarity(ecmcSwitchPolarity pol) {
+
+  int errorCode = checkPolarity(pol);
+  if(errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n", __FILE__, __FUNCTION__, __LINE__,errorCode);
+    return errorCode;
+  }
+
+  homePolarity_ = pol;
+  return 0;
+}
+
+ecmcSwitchPolarity ecmcMonitor::getHardLimitBwdPolarity(){
+  return lowLimPolarity_;
+}
+
+ecmcSwitchPolarity ecmcMonitor::getHardLimitFwdPolarity(){
+ return highLimPolarity_;
+}
+
+ecmcSwitchPolarity ecmcMonitor::getHomePolarity() {
+  return homePolarity_;
+}
+
+ecmcSwitchPolarity ecmcMonitor::getHardwareInterlockPolarity() {
+  return hardwareInterlockPolarity_;
+}
+
+int ecmcMonitor::checkPolarity(ecmcSwitchPolarity pol) {
+  if( pol <  ECMC_POLARITY_NC || pol >  ECMC_POLARITY_NO) {
+    return ERROR_MON_POLARITY_OUT_OF_RANGE;
   }
   return 0;
 }

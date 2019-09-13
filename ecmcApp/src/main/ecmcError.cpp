@@ -602,6 +602,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14C17:
+    return "ERROR_MON_POLARITY_OUT_OF_RANGE";
+
+    break;
+
   case 0x14D00:    // SEQUENCER
     return "ERROR_SEQ_TRAJ_NULL";
 
