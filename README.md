@@ -404,9 +404,14 @@ Changes:
 * Test EtherCAT redundacy
 * Move to ecmccfg instead of ecmctraining. This work is in progress and ecmccfg repo is more or less complete and can be used.
 * Add command to set sm watchdog (ecrt_slave_config_sync_manager())
-* Add possability to link axis functionality to plcs (right now for isntance a limit needs to be an EtherCAT entry).
+* Add possibility to link axis functionality to plcs (right now for isntance a limit needs to be an EtherCAT entry).
 * Add oscilloscope functionality in data storage (oversampling):
-    * Add possability to write memmaps to data storage
-    * Add possability to change data type of data storage (so memcpy can be used)
-    * Add possability to link a trigger memmap, pretrigger sample count a window=> osc function
+    * Add possibility to write memmaps to data storage
+    * Add possibility to change data type of data storage (so memcpy can be used)
+    * Add possibility to link a trigger memmap, pretrigger sample count a window=> osc function
+* PLCs: Add possibility for Macros in plc code.
+    * For debug (comment away printouts)
+    * For defining plc index number
+    * For flexible configuration of axes numbers
+    * ....
  
