@@ -119,6 +119,39 @@ ECMC runs best under certain conditions:
 
 ## Release Notes ##
 
+### ECMC master branch (new features since last version) ###
+
+* The functionalities of ecmctraining is now migrated to ecmccfg repo: 
+    Main repo: https://github.com/paulscherrerinstitute/ecmccfg
+    Local ESS fork: https://github.com/icshwi/ecmccfg (For E3, use https://github.com/icshwi/e3-ecmccfg)
+    The preferred way to configure ecmc is by the use of ecmccfg instead of ecmctraining
+
+* PLC: 
+    1. Add ec_wrt_bit() command.
+    2. Add ax<if>.allowplccmd variable to plcs.
+    3. Allow write to ax<id>.traj.source and ax<id>.enc.source from plc.
+
+* Add possibility to change polarity of switches
+    1. "Cfg.SetAxisMonLimitBwdPolarity(<axis id>,<pol>)"
+    2. "GetAxisMonLimitBwdPolarity(<axis id>)"
+    3. "Cfg.SetAxisMonLimitFwdPolarity(<axis id>,<pol>)"
+    4. "GetAxisMonLimitFwdPolarity(<axisid>)"
+    5. "Cfg.SetAxisMonHomeSwitchPolarity(<axis id>,<pol>)"
+    6. "GetAxisMonHomeSwitchPolarity(<axis id>)"
+    7. "GetAxisMonExtHWInterlockPolarity(<axis id>)"
+    
+    * <axis id>   Id of axis
+    * <pol>       Polarity of switch
+        * 0 = NC (1=OK)
+        * 1 = NO (0=OK)
+
+    Note: Even if polarity of limit switches is set to NO, the internal representation
+    for limit switch values will still be 1 = OK (which then corresponds to a 0 on the physical input).
+
+* Add drvInfoString cmd :FLOAT64TOINT32:
+    Possibillity to convert ECMC float64 to int32. Usefull for instance when writing to plc bit variables 
+    from bo records
+
 ### ECMC 6.0.0 ###
 
 Version 6.0.0 is not compeltely backward compatible since some changes 
@@ -369,5 +402,11 @@ Changes:
 * Make possible to add ethercat hardware on the fly (hard, seems EPICS do not support dynamic load of records)
 * Only stop motion when the slaves used by axis are in error state or not reachable.
 * Test EtherCAT redundacy
-* Move to ecmcconfig instead of ecmctraining
+* Move to ecmccfg instead of ecmctraining. This work is in progress and ecmccfg repo is more or less complete and can be used.
 * Add command to set sm watchdog (ecrt_slave_config_sync_manager())
+* Add possability to link axis functionality to plcs (right now for isntance a limit needs to be an EtherCAT entry).
+* Add oscilloscope functionality in data storage (oversampling):
+    * Add possability to write memmaps to data storage
+    * Add possability to change data type of data storage (so memcpy can be used)
+    * Add possability to link a trigger memmap, pretrigger sample count a window=> osc function
+ 
