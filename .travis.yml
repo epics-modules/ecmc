@@ -1,0 +1,45 @@
+sudo: enabled
+
+language: generic
+
+branches:
+  only:
+    - devel/epics-modules
+
+git:
+  submodules: true
+
+env:
+  global:
+    - EPICS_PATH=${HOME}/epics_env
+    - EPICS_BASE=${EPICS_PATH}/epics-base
+    - EPICS_MODULES=${EPICS_PATH}/epics-modules
+    - MAKEFLAGS="-j 2"
+
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+    - os: linux
+      dist: bionic
+
+      
+before_install:
+  - sudo apt update
+  - bash .ci/setup_packages.bash
+  - bash .ci/ethercat.bash
+  - bash .ci/setup_repo.bash
+  - bash .ci/setup_epics_base.bash
+  
+install:
+#  - source $EPICS_PATH/setEpicsEnv.bash
+  - echo "ASYN=${EPICS_MODULES}/asyn" >  ${TRAVIS_BUILD_DIR}/configure/RELEASE.local
+  - echo "EPICS_BASE=${EPICS_BASE}"  >>  ${TRAVIS_BUILD_DIR}/configure/RELEASE.local
+  - echo "ASYN=${EPICS_MODULES}/asyn" >  ${TRAVIS_BUILD_DIR}/ecmcExampleTop/configure/RELEASE.local
+  - echo "EPICS_BASE=${EPICS_BASE}"  >>  ${TRAVIS_BUILD_DIR}/ecmcExampleTop/configure/RELEASE.local
+  - make
+
+after_success:
+  - tree ${TRAVIS_BUILD_DIR}
+
+
