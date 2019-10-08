@@ -961,6 +961,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
   fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");
   fprintf(fp,"    ECMC size [bits]:          %lu\n",param->getEcmcBitCount());
+  fprintf(fp,"    ECMC max size [bytes]:     %lu\n",paramInfo->ecmcMaxSize);
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
   // Value range only applicable for ints
