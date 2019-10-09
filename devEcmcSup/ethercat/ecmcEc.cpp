@@ -968,12 +968,14 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   char alias[1024];
   std::string aliasString;
   int masterIndex = 0;
+  int dummySlaveIndex = 0;
   int nvals       = sscanf(memMapIDString.c_str(),
-                           "ec%d.mm.%s",
+                           "ec%d.s%d.mm.%s",
                            &masterIndex,
+                           &dummySlaveIndex,
                            alias);
 
-  if (nvals != 2) {
+  if (nvals != 3) {
     LOGERR("%s/%s:%d: ERROR: Alias not found in idString %s (0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -987,7 +989,8 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   }
   aliasString                           = alias;
   ecMemMapArray_[ecMemMapArrayCounter_] = new ecmcEcMemMap(asynPortDriver_,
-                                                           masterIndex_,                                                           
+                                                           masterIndex_,
+                                                           startEntryBusPosition,                                                        
                                                            entry,
                                                            byteSize,
                                                            type,
