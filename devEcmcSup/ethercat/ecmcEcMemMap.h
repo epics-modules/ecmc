@@ -48,6 +48,8 @@ class ecmcEcMemMap : public ecmcError {
   std::string getIdentificationName();
   int         setDomainSize(size_t size);
   int         validate();
+  int         getByteSize();
+  uint8_t*    getBufferPointer();
 
  private:
   int        initAsyn();

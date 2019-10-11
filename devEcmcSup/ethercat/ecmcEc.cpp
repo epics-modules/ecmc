@@ -1027,6 +1027,15 @@ ecmcEcMemMap * ecmcEc::findMemMap(std::string id) {
   return temp;
 }
 
+ecmcEcMemMap * ecmcEc::getMemMap(int index) {
+
+  if(index<0 || index >= ecMemMapArrayCounter_) {
+    return NULL;
+  }
+  
+  return ecMemMapArray_[index];
+}
+
 int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry) {
   statusOutputEntry_ = entry;
   return 0;

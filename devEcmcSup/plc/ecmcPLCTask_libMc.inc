@@ -34,7 +34,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_reset(",
                                "mc_get_busy(",
                                "mc_get_homed(",
-                               "mc_get_axis_err",
+                               "mc_get_axis_err(",
                               };
 
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
@@ -248,6 +248,7 @@ inline double mc_reset(double axIndex)
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
   ecmcPLCTask::statAxes_[index]->setReset(1);
+  mc_errorCode = 0;
   return 0;
 }
 
@@ -278,7 +279,6 @@ inline double mc_get_err()
 {
   return (double)mc_errorCode;
 }
-
 
 #endif /* ecmcPLC_libMc_inc_ */
 

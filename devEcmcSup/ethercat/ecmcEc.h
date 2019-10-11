@@ -146,6 +146,7 @@ class ecmcEc : public ecmcError {
                 ec_direction_t direction,
                 std::string    memMapIDString);
   ecmcEcMemMap* findMemMap(std::string id);
+  ecmcEcMemMap* getMemMap(int index);
   ecmcEcSlave * findSlave(int busPosition);
   int           findSlaveIndex(int  busPosition,
                                int *slaveIndex);

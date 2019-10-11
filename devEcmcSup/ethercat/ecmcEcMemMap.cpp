@@ -221,3 +221,11 @@ int ecmcEcMemMap::initAsyn() {
 
   return 0;
 }
+
+int ecmcEcMemMap::getByteSize() {
+  return byteSize_;
+}
+
+uint8_t* ecmcEcMemMap::getBufferPointer() {
+  return buffer_;
+}
