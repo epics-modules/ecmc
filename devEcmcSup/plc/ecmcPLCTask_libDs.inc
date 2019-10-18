@@ -72,7 +72,7 @@ const char *dsLibCmdList[] = { "ds_append_data(",
 };
 
 static int ds_errorCode = 0;
-static int ds_cmd_count = sizeof(dsLibCmdList) / sizeof(dsLibCmdList[0]);
+static int ds_cmd_count = 14;
 
 inline double ds_append_data(double dsIndex, double data) {
   int index = (int)dsIndex;

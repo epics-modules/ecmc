@@ -40,8 +40,8 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_err_rst("
                               };
 
-static int ec_errorCode=0;
-static int ec_cmd_count=sizeof(ecLibCmdList)/sizeof(ecLibCmdList[0]);
+static int ec_errorCode = 0;
+static int ec_cmd_count = 10;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
