@@ -342,8 +342,8 @@ int ecmcAsynDataItem::addSupportedAsynType(asynParamType type) {
 
 bool ecmcAsynDataItem::asynTypeSupported(asynParamType type) {
 
-  std::qsort(supportedTypes_, ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT, sizeof(supportedTypes_[0]), compar);
-  asynParamType* found = (asynParamType*)std::bsearch(&type, supportedTypes_, ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT, sizeof(supportedTypes_[0]), compar);
+  std::qsort(supportedTypes_, supportedTypesCounter_, sizeof(supportedTypes_[0]), compar);
+  asynParamType* found = (asynParamType*)std::bsearch(&type, supportedTypes_, supportedTypesCounter_, sizeof(supportedTypes_[0]), compar);
   if (found)
     return true;
   else
