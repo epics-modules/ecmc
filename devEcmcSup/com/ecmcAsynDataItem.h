@@ -13,6 +13,7 @@
 #ifndef ECMC_ASYN_DATA_ITEM_H_
 #define ECMC_ASYN_DATA_ITEM_H_
 
+#include <bits/stdc++.h> 
 #include "inttypes.h"
 #include "../main/ecmcDefinitions.h"
 #include "ecmcAsynPortDriverUtils.h"
@@ -181,6 +182,7 @@ private:
   int64_t intMax_;
   int64_t intMin_;
   size_t intBits_;
+
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */
