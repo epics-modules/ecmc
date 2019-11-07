@@ -459,6 +459,11 @@ int ecmcPLCTask::setDataStoragePointer(ecmcDataStorage *ds, int index) {
   return 0;
 }
 
+int ecmcPLCTask::setEcPointer(ecmcEc *ec) {
+  ecmcPLCTask::statEc_ = ec;
+  return 0;
+}
+
 int ecmcPLCTask::parseFunctions(const char *exprStr) {
   // look for Ec function
   int errorCode = 0;
@@ -557,6 +562,11 @@ int ecmcPLCTask::loadEcLib() {
   ecmcPLCTaskAddFunction("ec_print_bin", ec_print_bin);
   ecmcPLCTaskAddFunction("ec_get_err",   ec_get_err);
   ecmcPLCTaskAddFunction("ec_wrt_bit",   ec_wrt_bit);
+  ecmcPLCTaskAddFunction("ec_mm_cp",     ec_mm_cp);
+  ecmcPLCTaskAddFunction("ec_err_rst",   ec_err_rst);
+  ecmcPLCTaskAddFunction("ec_wrt_bits",  ec_wrt_bits);
+  ecmcPLCTaskAddFunction("ec_chk_bits",  ec_chk_bits);
+  ecmcPLCTaskAddFunction("ec_get_time",  ec_get_time);
 
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
@@ -621,7 +631,8 @@ int ecmcPLCTask::loadDsLib() {
   ecmcPLCTaskAddFunction("ds_get_avg",     ds_get_avg);
   ecmcPLCTaskAddFunction("ds_get_min",     ds_get_min);
   ecmcPLCTaskAddFunction("ds_get_max",     ds_get_max);
-
+  ecmcPLCTaskAddFunction("ds_err_rst",     ds_err_rst);
+  
   if (ds_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",
            __FILE__,

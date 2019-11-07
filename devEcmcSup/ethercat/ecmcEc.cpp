@@ -79,6 +79,7 @@ void ecmcEc::initVars() {
   for (int i = 0; i < ECMC_ASYN_EC_PAR_COUNT; i++) {
     ecAsynParams_[i]=NULL;
   }
+  memset(&timeOffset_,0,sizeof(timeOffset_)); 
 }
 
 int ecmcEc::init(int nMasterIndex) {
@@ -586,7 +587,7 @@ void ecmcEc::receive() {
 
 void ecmcEc::send(timespec timeOffset) {
   struct timespec timeRel, timeAbs;
-
+  timeOffset_=timeOffset;
   // Write status hardware status to output
   if (statusOutputEntry_) {
     statusOutputEntry_->writeValue(getErrorID() == 0);
@@ -968,12 +969,14 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   char alias[1024];
   std::string aliasString;
   int masterIndex = 0;
+  int dummySlaveIndex = 0;
   int nvals       = sscanf(memMapIDString.c_str(),
-                           "ec%d.mm.%s",
+                           "ec%d.s%d.mm.%s",
                            &masterIndex,
+                           &dummySlaveIndex,
                            alias);
 
-  if (nvals != 2) {
+  if (nvals != 3) {
     LOGERR("%s/%s:%d: ERROR: Alias not found in idString %s (0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -987,7 +990,8 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   }
   aliasString                           = alias;
   ecMemMapArray_[ecMemMapArrayCounter_] = new ecmcEcMemMap(asynPortDriver_,
-                                                           masterIndex_,                                                           
+                                                           masterIndex_,
+                                                           startEntryBusPosition,                                                        
                                                            entry,
                                                            byteSize,
                                                            type,
@@ -1022,6 +1026,15 @@ ecmcEcMemMap * ecmcEc::findMemMap(std::string id) {
     }
   }
   return temp;
+}
+
+ecmcEcMemMap * ecmcEc::getMemMap(int index) {
+
+  if(index<0 || index >= ecMemMapArrayCounter_) {
+    return NULL;
+  }
+  
+  return ecMemMapArray_[index];
 }
 
 int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry) {
@@ -1763,4 +1776,11 @@ int ecmcEc::checkReadyForRuntime() {
   }
   
   return 0;
+}
+
+uint64_t ecmcEc::getTimeNs() {
+  struct timespec timeRel, timeAbs; 
+  clock_gettime(CLOCK_MONOTONIC, &timeRel);
+  timeAbs = timespecAdd(timeRel, timeOffset_);
+  return TIMESPEC2NS(timeAbs);
 }

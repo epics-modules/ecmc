@@ -3,6 +3,26 @@ Release Notes
 
 # ECMC master branch (new features since last version)
 
+* ECMC repo. moved to https://github.com/epics-modules/ecmc
+* ECMC tested with macros in plc code:
+    * Same syntax as other iocsh macros (code parsed with msi)
+    * Handled in ecmccfg loadPLCFile.cmd. 
+    * Usefull for writing generic code
+* Tested with analog output oversampling cards (100kHz) (EL4732).
+* Added PLC-functions:
+    1. ec_wrt_bits(<val>,<val_to_write>,<start_bit>,<stop_bit>):
+       Writes <val_to_write> to <start_bit>..<stop_bit> of <val>
+
+    2. ec_chk_bits(<val>,<start_bit>,<stop_bit>):
+       Returns value of bits in range <start_bit>..<stop_bit> of <val>
+
+    3. ec_get_time():
+       Returns current time in nanoseconds from (1 jan 2000)
+    
+* Fixed ec_print_hex() plc function.
+
+# ECMC 6.0.1
+
 * The functionalities of ecmctraining is now migrated to ecmccfg repo: 
     Main repo: https://github.com/paulscherrerinstitute/ecmccfg
     Local ESS fork: https://github.com/icshwi/ecmccfg (For E3, use https://github.com/icshwi/e3-ecmccfg)
@@ -274,7 +294,6 @@ Changes:
 # Todo
 * Remove manual motion mode (not needed.. motors can be run manually directly from ethercat entries)
 * Add PID controller in PLC lib
-* Add license headers to all source files
 * Consider change error handling system to exception based (try catch)
 * Clean up in axis sub objects:
     * emcmMonitor:  Add verify setpoint function (mostly rename)
@@ -290,10 +309,4 @@ Changes:
 * Add oscilloscope functionality in data storage (oversampling):
     * Add possibility to write memmaps to data storage
     * Add possibility to change data type of data storage (so memcpy can be used)
-    * Add possibility to link a trigger memmap, pretrigger sample count a window=> osc function
-* PLCs: Add possibility for Macros in plc code.
-    * For debug (comment away printouts)
-    * For defining plc index number
-    * For flexible configuration of axes numbers
-    * ....
- 
+    * Add possibility to link a trigger memmap, pretrigger sample count a window=> osc function 

@@ -1,5 +1,5 @@
 /*************************************************************************\
-* Copyright (c) 2019 European Spallation Source ERIC
+* Copyright (c) 2019 European spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
 * in file LICENSE that is included with this distribution. 
 *
@@ -15,6 +15,7 @@
 
 ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                            int masterId,
+                           int slaveId,
                            ecmcEcEntry   *startEntry,
                            size_t         byteSize,
                            int            type,
@@ -30,6 +31,7 @@ ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
   idStringChar_  = strdup(idString_.c_str());
   buffer_     = new uint8_t[byteSize_];
   type_       = type;
+  slaveId_=slaveId;
   initAsyn();
 }
 
@@ -46,6 +48,7 @@ void ecmcEcMemMap::initVars() {
   domainSize_     = 0;
   adr_            = 0;
   memMapAsynParam_ = NULL;
+  slaveId_ = 0;
 }
 
 ecmcEcMemMap::~ecmcEcMemMap() {
@@ -177,8 +180,9 @@ int ecmcEcMemMap::initAsyn() {
   // "ec%d.mm.alias"
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),
-                                    ECMC_EC_STR "%d." ECMC_MEMMAP_STR".%s",
+                                    ECMC_EC_STR"%d."ECMC_SLAVE_CHAR"%d."ECMC_MEMMAP_STR".%s",
                                     masterId_,
+                                    slaveId_,
                                     idStringChar_);
 
   if (charCount >= sizeof(buffer) - 1) {
@@ -216,4 +220,12 @@ int ecmcEcMemMap::initAsyn() {
   asynPortDriver_->callParamCallbacks();
 
   return 0;
+}
+
+int ecmcEcMemMap::getByteSize() {
+  return byteSize_;
+}
+
+uint8_t* ecmcEcMemMap::getBufferPointer() {
+  return buffer_;
 }

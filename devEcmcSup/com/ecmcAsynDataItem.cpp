@@ -499,7 +499,7 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
       return asynError;
     }
   }
-
+  
   memcpy(data_, data, bytes);
   *writtenBytes = bytes; 
 
@@ -769,7 +769,7 @@ asynStatus ecmcAsynDataItem::writeInt8Array(epicsInt8 *value,
                                             size_t nElements) {
 
   size_t bytesWritten = 0;
-  return writeGeneric((uint8_t*)&value, nElements * sizeof(epicsInt8),
+  return writeGeneric((uint8_t*)value, nElements * sizeof(epicsInt8),
                       asynParamInt8Array, &bytesWritten);
 }
 
@@ -782,9 +782,9 @@ asynStatus ecmcAsynDataItem::readInt16Array(epicsInt16 *value,
 }
 
 asynStatus ecmcAsynDataItem::writeInt16Array(epicsInt16 *value,
-                                     size_t nElements) {
+                                     size_t nElements) {  
   size_t bytesWritten = 0;
-  return writeGeneric((uint8_t*)&value, nElements * sizeof(epicsInt16),
+  return writeGeneric((uint8_t*)value, nElements * sizeof(epicsInt16),
                       asynParamInt16Array, &bytesWritten);
 }
 
@@ -799,7 +799,7 @@ asynStatus ecmcAsynDataItem::readInt32Array(epicsInt32 *value,
 asynStatus ecmcAsynDataItem::writeInt32Array(epicsInt32 *value,
                                         size_t nElements) {
   size_t bytesWritten = 0;
-  return writeGeneric((uint8_t*)&value, nElements * sizeof(epicsInt32),
+  return writeGeneric((uint8_t*)value, nElements * sizeof(epicsInt32),
                       asynParamInt32Array, &bytesWritten);
 }
 
@@ -814,7 +814,7 @@ asynStatus ecmcAsynDataItem::readFloat32Array(epicsFloat32 *value,
 asynStatus ecmcAsynDataItem::writeFloat32Array(epicsFloat32 *value,
                                           size_t nElements) {
   size_t bytesWritten = 0;
-  return writeGeneric((uint8_t*)&value, nElements * sizeof(epicsFloat32),
+  return writeGeneric((uint8_t*)value, nElements * sizeof(epicsFloat32),
                       asynParamFloat32Array, &bytesWritten);
 }
 
@@ -830,7 +830,7 @@ asynStatus ecmcAsynDataItem::writeFloat64Array(epicsFloat64 *value,
                                           size_t nElements) {
 
   size_t bytesWritten = 0;
-  return writeGeneric((uint8_t*)&value, nElements * sizeof(epicsFloat64),
+  return writeGeneric((uint8_t*)value, nElements * sizeof(epicsFloat64),
                       asynParamFloat64Array, &bytesWritten);
 }
 

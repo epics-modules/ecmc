@@ -80,6 +80,9 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     plcs_[plcIndex]->setDataStoragePointer(ds_[i], i);
   }
 
+  // Set ec pointer
+  plcs_[plcIndex]->setEcPointer(ec_);
+
   errorCode = addPLCDefaultVariables(plcIndex, skipCycles);
 
   if (errorCode) {

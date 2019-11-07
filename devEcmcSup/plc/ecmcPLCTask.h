@@ -19,6 +19,7 @@
 #include "exprtkWrap.h"
 #include "../main/ecmcDefinitions.h"
 #include "../motion/ecmcAxisBase.h"
+#include "../ethercat/ecmcEc.h"
 #include "../ethercat/ecmcEcEntry.h"  // Bit macros
 #include "ecmcPLCDataIF.h"
 
@@ -60,18 +61,20 @@ class ecmcPLCTask : public ecmcError {
                                    int           index);
   int          setDataStoragePointer(ecmcDataStorage *ds,
                                      int              index);
+  int          setEcPointer(ecmcEc *ec);
   int          parseFunctions(const char *exprStr);
   int          getFirstScanDone();
-  int          readStaticPLCVar(const char *varName,
-                                double     *data);
+  int          readStaticPLCVar(const char  *varName,
+                                double      *data);
   int          writeStaticPLCVar(const char *varName,
                                  double      data);
-  int          findLocalVar(const char     *varName,
-                            ecmcPLCDataIF **outDataIF);
+  int          findLocalVar(const char      *varName,
+                            ecmcPLCDataIF  **outDataIF);
   double       getSampleTime();
   int          getNewExpr();
-  static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
+  static ecmcAxisBase    *statAxes_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
+  static ecmcEc          *statEc_;
 
  private:
   void initVars();
