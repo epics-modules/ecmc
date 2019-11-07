@@ -79,6 +79,7 @@ void ecmcEc::initVars() {
   for (int i = 0; i < ECMC_ASYN_EC_PAR_COUNT; i++) {
     ecAsynParams_[i]=NULL;
   }
+  memset(&timeOffset_,0,sizeof(timeOffset_)); 
 }
 
 int ecmcEc::init(int nMasterIndex) {
@@ -586,7 +587,7 @@ void ecmcEc::receive() {
 
 void ecmcEc::send(timespec timeOffset) {
   struct timespec timeRel, timeAbs;
-
+  timeOffset_=timeOffset;
   // Write status hardware status to output
   if (statusOutputEntry_) {
     statusOutputEntry_->writeValue(getErrorID() == 0);
@@ -1775,4 +1776,11 @@ int ecmcEc::checkReadyForRuntime() {
   }
   
   return 0;
+}
+
+uint64_t ecmcEc::getTimeNs() {
+  struct timespec timeRel, timeAbs; 
+  clock_gettime(CLOCK_MONOTONIC, &timeRel);
+  timeAbs = timespecAdd(timeRel, timeOffset_);
+  return TIMESPEC2NS(timeAbs);
 }

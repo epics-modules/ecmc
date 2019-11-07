@@ -166,7 +166,8 @@ class ecmcEc : public ecmcError {
                         uint16_t slavePos,   /**< Slave position. */
                         uint32_t vendorId,   /**< Expected vendor ID. */
                         uint32_t productCode  /**< Exp)*/);
-  int           checkReadyForRuntime();                   
+  int           checkReadyForRuntime();
+  uint64_t      getTimeNs();                 
  private:
   void     initVars();
   int      updateInputProcessImage();
@@ -210,5 +211,6 @@ class ecmcEc : public ecmcError {
 
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];
+  timespec timeOffset_;
 };
 #endif  /* ECMCEC_H_ */

@@ -564,7 +564,9 @@ int ecmcPLCTask::loadEcLib() {
   ecmcPLCTaskAddFunction("ec_wrt_bit",   ec_wrt_bit);
   ecmcPLCTaskAddFunction("ec_mm_cp",     ec_mm_cp);
   ecmcPLCTaskAddFunction("ec_err_rst",   ec_err_rst);
-
+  ecmcPLCTaskAddFunction("ec_wrt_bits",  ec_wrt_bits);
+  ecmcPLCTaskAddFunction("ec_chk_bits",  ec_chk_bits);
+  ecmcPLCTaskAddFunction("ec_get_time",  ec_get_time);
 
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
