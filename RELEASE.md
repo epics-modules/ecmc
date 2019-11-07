@@ -9,6 +9,17 @@ Release Notes
     * Handled in ecmccfg loadPLCFile.cmd. 
     * Usefull for writing generic code
 * Tested with analog output oversampling cards (100kHz) (EL4732).
+* Added PLC-functions:
+    1. ec_wrt_bits(<val>,<val_to_write>,<start_bit>,<stop_bit>):
+       Writes <val_to_write> to <start_bit>..<stop_bit> of <val>
+
+    2. ec_chk_bits(<val>,<start_bit>,<stop_bit>):
+       Returns value of bits in range <start_bit>..<stop_bit> of <val>
+
+    3. ec_get_time():
+       Returns current time in nanoseconds from (1 jan 2000)
+    
+* Fixed ec_print_hex() plc function.
 
 # ECMC 6.0.1
 
