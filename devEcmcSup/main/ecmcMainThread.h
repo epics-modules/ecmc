@@ -23,7 +23,7 @@
 # define __STDC_FORMAT_MACROS
 # include <inttypes.h>
 # include <string.h>
-# include "main/ecmcDefinitions.h"
+# include "ecmcDefinitions.h"
 
 #define AXIS_CHECK_RETURN_USED_BUFFER(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
 
