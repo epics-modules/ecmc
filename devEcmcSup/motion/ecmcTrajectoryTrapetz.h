@@ -83,12 +83,12 @@ class ecmcTrajectoryTrapetz : public ecmcError {
                         double        sampleTime);
   ~ecmcTrajectoryTrapetz();
 
-  /** \breif Calculates and returns next position setpoint.
+  /** \brief Calculates and returns next position setpoint.
    * This function should only be executed once for each sample period.
    */
   double          getNextPosSet();
 
-  /** \breif Returns current position setpoint.
+  /** \brief Returns current position setpoint.
    * This function can be called several times each sample period.
    */
   double          getCurrentPosSet();
@@ -96,7 +96,7 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   /// Sets position setpoint.
   void            setCurrentPosSet(double posSet);
 
-  /** \breif Returns current velocity of trajectory.
+  /** \brief Returns current velocity of trajectory.
    * Useful for feed-forward purpose of the velocity directly to the velocity control loop.
    */
   double          getVel();
@@ -107,7 +107,7 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   /// Returns if trajectory generator is busy (motion in progress).
   bool            getBusy();
 
-  /** \breif Sets target velocity of trajectory (max velocity).
+  /** \brief Sets target velocity of trajectory (max velocity).
    * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
    */
   void            setTargetVel(double velTarget);
@@ -127,7 +127,7 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   /// Returns deceleration.
   double          getDec();
 
-  /** \breif Sets emergency deceleration.
+  /** \brief Sets emergency deceleration.
    * Used for ramp down at hard limits.
    */
   void            setEmergDec(double dec);
@@ -146,7 +146,7 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   /// returns target position (end position of trajectory).
   double          getTargetPos();
 
-  /** \breif Sets start position of trajectory.
+  /** \brief Sets start position of trajectory.
    * Normally encoder position at amplifier enable
    */
   void            setStartPos(double pos);

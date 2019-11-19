@@ -628,7 +628,7 @@ static int motorHandleADS_ADR(const char *arg, ecmcOutputBufferType *buffer) {
 }
 
 /**
- * \breif Handles all the configuration commands"
+ * \brief Handles all the configuration commands"
 */
 static int handleCfgCommand(const char *myarg_1) {
   int iValue        = 0;
