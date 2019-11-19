@@ -22,7 +22,7 @@
 extern "C" {
 # endif  // ifdef __cplusplus
 
-/** \breif Returns the controller error code.\n
+/** \brief Returns the controller error code.\n
  *
  * \return current error code of controller.
  *
@@ -31,7 +31,7 @@ extern "C" {
  */
 int getControllerError();
 
-/** \breif Resets the controller error code.\n
+/** \brief Resets the controller error code.\n
  *
  * \return 0
  *
@@ -40,7 +40,7 @@ int getControllerError();
  */
 int controllerErrorReset();
 
-/** \breif Get axis error code in string format.\n
+/** \brief Get axis error code in string format.\n
  *
  * \param[in] errorNumber Error code.\n
  *
@@ -53,7 +53,7 @@ int controllerErrorReset();
  */
 const char* getErrorString(int errorNumber);
 
-/** \breif Validates the current configuration)"
+/** \brief Validates the current configuration)"
  *
  * \return 0  if the current configuration is valid for runtime otherwise an
  * error code.\n
@@ -63,7 +63,7 @@ const char* getErrorString(int errorNumber);
  */
 int validateConfig();
 
-/** \breif Links an EtherCAT entry to an object.
+/** \brief Links an EtherCAT entry to an object.
    *
    *
    *  \param[in] ecPath EtherCAT entry path in the following format:\n
@@ -94,7 +94,7 @@ int validateConfig();
 int linkEcEntryToObject(char *ecPath,
                         char *objPath);
 
-/** \breif Enable printouts of timing information related to the realtime
+/** \brief Enable printouts of timing information related to the realtime
  * thread.\n
  *
  * \param[in] enable Enable printouts.\n
@@ -106,7 +106,7 @@ int linkEcEntryToObject(char *ecPath,
  */
 int setEnableTimeDiag(int value);
 
-/** \breif Enable printouts of which functions in hw_motor.cpp are being
+/** \brief Enable printouts of which functions in hw_motor.cpp are being
  * called.\n
  *
  * \param[in] enable Enable printouts.\n

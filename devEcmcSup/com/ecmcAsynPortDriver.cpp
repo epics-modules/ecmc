@@ -1156,7 +1156,7 @@ static void initCallFunc(const iocshArgBuf *args) {
                               args[4].dval);
 }
 
-/** \breif Obsolete EPICS iocsh command for adding asyn-parameter(s)
+/** \brief Obsolete EPICS iocsh command for adding asyn-parameter(s)
  */
 int ecmcAsynPortDriverAddParameter(const char *portName,
                                    const char *idString,

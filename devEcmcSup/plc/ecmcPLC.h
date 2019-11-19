@@ -28,7 +28,7 @@
 extern "C" {
 # endif  // ifdef __cplusplus
 
-/** \breif Create a PLC object
+/** \brief Create a PLC object
  * called.\n
  *
  * \param[in] index PLC index number
@@ -47,7 +47,7 @@ int createPLC(int index,
               double cycleTime,
               int axisPLC);
 
-/** \breif Delete PLC.\n
+/** \brief Delete PLC.\n
  *
  * Delete PLC object
  * ethercat entries are available.
@@ -61,7 +61,7 @@ int createPLC(int index,
  */
 int deletePLC(int index);
 
-/** \breif Set PLC expression.\n
+/** \brief Set PLC expression.\n
  *
  * The PLC expression is used for PLC functionalities.\n
  *
@@ -82,7 +82,7 @@ int deletePLC(int index);
 int setPLCExpr(int   index,
                char *expr);
 
-/** \breif Append Line to PLC expression.\n
+/** \brief Append Line to PLC expression.\n
  *
  * Append one line of PLC Code. Code syntax is defined on exprtk website.\n
  * Variables that can be used are described below.\n
@@ -409,7 +409,7 @@ int setPLCExpr(int   index,
 int appendPLCExpr(int   index,
                   char *expr);
 
-/** \breif Load PLC file.\n
+/** \brief Load PLC file.\n
  *
  * Load file with PLC code to PLC.\n
  * For syntax look at "appendPLCExpr()".\n
@@ -427,7 +427,7 @@ int appendPLCExpr(int   index,
 int loadPLCFile(int   index,
                 char *fileName);
 
-/** \breif Write to PLC variable.\n
+/** \brief Write to PLC variable.\n
  * \note: Only static variables are supported.\n
  *
  * \param[in] index     PLC index.\n
@@ -443,7 +443,7 @@ int writePLCVar(int         index,
                 const char *varName,
                 double      value);
 
-/** \breif Read PLC variable.\n
+/** \brief Read PLC variable.\n
  * \note: Only static variables are supported.\n
  *
  * \param[in] index     PLC index.\n
@@ -459,7 +459,7 @@ int readPLCVar(int         index,
                const char *varName,
                double     *value);
 
-/** \breif Clear PLC expression.\n
+/** \brief Clear PLC expression.\n
  *
  * Clears all plc code of a PLC object.\n
  *
@@ -472,7 +472,7 @@ int readPLCVar(int         index,
  */
 int clearPLCExpr(int index);
 
-/** \breif Compile PLC expression.\n
+/** \brief Compile PLC expression.\n
  *
  * Compiles code of PLC object
  *
@@ -485,7 +485,7 @@ int clearPLCExpr(int index);
  */
 int compilePLCExpr(int index);
 
-/** \breif Set enable of PLC.\n
+/** \brief Set enable of PLC.\n
  *
  * Enable a PLC.\n
  *
@@ -500,7 +500,7 @@ int compilePLCExpr(int index);
 int setPLCEnable(int index,
                  int enable);
 
-/** \breif Set enable of PLC.\n
+/** \brief Set enable of PLC.\n
  *
  * Enable a PLC.\n
  *
@@ -515,7 +515,7 @@ int setPLCEnable(int index,
 int getPLCEnable(int  index,
                  int *enabled);
 
-/** \breif Get PLC expression.\n
+/** \brief Get PLC expression.\n
  *
  * \param[in] plcIndex  Axis index.\n
  * \param[out] error Error code.\n

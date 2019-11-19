@@ -67,7 +67,7 @@ int parseEcPath(char *ecPath,
                 char *alias,
                 int  *bit);
 
-/** \breif Parse main ECMC object type from string.\n
+/** \brief Parse main ECMC object type from string.\n
  *
  * \param[in] objPath variable name.\n
  * \param[out] objIndex Object index.\n
@@ -79,7 +79,7 @@ int getMainObjectType(char             *objPath,
                       int              *objIndex,
                       mainObjectType   *objectType);
 
-/** \breif Parse Axis sub object type from string.\n
+/** \brief Parse Axis sub object type from string.\n
  *
  * \param[in] objPath variable name.\n
  * \param[out] objIndex Object index.\n
@@ -90,7 +90,7 @@ int getMainObjectType(char             *objPath,
 int getAxSubObjectType(char              *objPath,                       
                        axisSubObjectType *objectType);
 
-/** \breif Parse Axis Encoder function type from string.\n
+/** \brief Parse Axis Encoder function type from string.\n
  *
  * \param[in] objPath variable name.\n
  * \param[out] objectFunction Object Function.\n
@@ -100,7 +100,7 @@ int getAxSubObjectType(char              *objPath,
 int getAxEncFuncType(char *objPath,                              
                      int  *objectFunction);
 
-/** \breif Parse Axis Drive function type from string.\n
+/** \brief Parse Axis Drive function type from string.\n
  *
  * \param[in] objPath variable name.\n
  * \param[out] objectFunction Object Function.\n
@@ -110,7 +110,7 @@ int getAxEncFuncType(char *objPath,
 int getAxDriveFuncType(char *objPath,                              
                        int *objectFunction);
 
-/** \breif Parse Axis Monitor function type from string.\n
+/** \brief Parse Axis Monitor function type from string.\n
  *
  * \param[in] objPath variable name.\n
  * \param[out] objectFunction Object Function.\n
@@ -120,7 +120,7 @@ int getAxDriveFuncType(char *objPath,
 int getAxMonFuncType(char *objPath,                              
                      int *objectFunction);
 
-/** \breif Parse Axis Main object function type from string.\n
+/** \brief Parse Axis Main object function type from string.\n
  *
  * \param[in] objPath variable name.\n
  * \param[out] objectFunction Object Function.\n
@@ -130,7 +130,7 @@ int getAxMonFuncType(char *objPath,
 int getAxMainFuncType(char *objPath,
                     int *objectFunction);
 
-/** \breif Parse Ec Main object function type from string.\n
+/** \brief Parse Ec Main object function type from string.\n
  *
  * \param[in] objPath variable name.\n
  * \param[out] objectFunction Object Function.\n

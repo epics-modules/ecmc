@@ -116,7 +116,7 @@ extern "C" {
   }                                                                           \
 }*/
 
-/** \breif Move axis to an absolute position.\n
+/** \brief Move axis to an absolute position.\n
  *
  * \param[in] axisIndex Axis index.\n
  * \param[in] positionSet Position setpoint.\n
@@ -136,7 +136,7 @@ int moveAbsolutePosition(
   double accelerationSet,
   double decelerationSet);
 
-/** \breif Move axis to a relative position.\n
+/** \brief Move axis to a relative position.\n
  *
  * \param[in] axisIndex Axis index.\n
  * \param[in] positionSet Relative position setpoint.\n
@@ -157,7 +157,7 @@ int moveRelativePosition(
   double accelerationSet,
   double decelerationSet);
 
-/** \breif Move axis in a constant velocity.\n
+/** \brief Move axis in a constant velocity.\n
  *
  * \param[in] axisIndex Axis index.\n
  * \param[in] velocitySet Velocity setpoint.\n
@@ -175,7 +175,7 @@ int moveVelocity(int    axisIndex,
                  double accelerationSet,
                  double decelerationSet);
 
-/** \breif Stop axis.\n
+/** \brief Stop axis.\n
  *
  * \param[in] axisIndex Axis index.\n
  * \param[in] killAmplifier Disable amplifier.\n
@@ -188,7 +188,7 @@ int moveVelocity(int    axisIndex,
 int stopMotion(int axisIndex,
                int killAmplifier);
 
-/** \breif Get axis error state.\n
+/** \brief Get axis error state.\n
  *
  * \param[in] axisIndex Axis index.\n
  *
@@ -201,7 +201,7 @@ int stopMotion(int axisIndex,
  */
 int         getAxisError(int axisIndex);
 
-/** \breif Get axis error code.\n
+/** \brief Get axis error code.\n
  *
  * \param[in] axisIndex Axis index.\n
  *
@@ -214,7 +214,7 @@ int         getAxisError(int axisIndex);
  */
 int         getAxisErrorID(int axisIndex);
 
-/** \breif Get axis execution cycle counter.\n
+/** \brief Get axis execution cycle counter.\n
  * Can be used for checking that logic for an axis object is
  * executing.\n
  *
@@ -229,7 +229,7 @@ int         getAxisErrorID(int axisIndex);
 int         getAxisCycleCounter(int  axisIndex,
                                 int *counter);
 
-/** \breif Get axis debug information string.\n
+/** \brief Get axis debug information string.\n
  *
  * \param[in] axisIndex Axis index.\n
  * \param[in,out] buffer Pointer to char output data buffer.\n
@@ -246,7 +246,7 @@ int getAxisDebugInfoData(int   axisIndex,
                          char *buffer,
                          int   bufferByteSize);
 
-/** \breif Get axis status structure V2.\n
+/** \brief Get axis status structure V2.\n
  *
  * \param[in] axisIndex Axis index.\n
  * \param[in,out] buffer Pointer to char output data buffer.\n
@@ -263,7 +263,7 @@ int getAxisStatusStructV2(int   axisIndex,
                           char *buffer,
                           int   bufferByteSize);
 
-/** \breif Get axis execute bit.\n
+/** \brief Get axis execute bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value  state of axis execute bit.\n
@@ -278,7 +278,7 @@ int getAxisStatusStructV2(int   axisIndex,
 int getAxisExecute(int  axisIndex,
                    int *value);
 
-/** \breif Get axis command word.\n
+/** \brief Get axis command word.\n
  *
  * The command word defines different modes of operation for and axis. See
  * fbDriveVirtual manual for more information.\n
@@ -302,7 +302,7 @@ int getAxisExecute(int  axisIndex,
 int getAxisCommand(int  axisIndex,
                    int *value);
 
-/** \breif Get axis command data word.\n
+/** \brief Get axis command data word.\n
  *
  * The command data word is an argument linked to the axis command. See
  * fbDriveVirtual manual for more information.\n
@@ -328,7 +328,7 @@ int getAxisCommand(int  axisIndex,
 int getAxisCmdData(int  axisIndex,
                    int *value);
 
-/** \breif Get axis reset bit.\n
+/** \brief Get axis reset bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value  state of axis reset bit.\n
@@ -343,7 +343,7 @@ int getAxisCmdData(int  axisIndex,
 int getAxisReset(int  axisIndex,
                  int *value);
 
-/** \breif Get axis amplifier state bit.\n
+/** \brief Get axis amplifier state bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value  state of axis amplifier.\n
@@ -358,7 +358,7 @@ int getAxisReset(int  axisIndex,
 int getAxisEnabled(int  cntrl_no,
                    int *value);
 
-/** \breif Get axis amplifier command bit.\n
+/** \brief Get axis amplifier command bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value  state of axis amplifier command bit.\n
@@ -373,7 +373,7 @@ int getAxisEnabled(int  cntrl_no,
 int getAxisEnable(int  axisIndex,
                   int *value);
 
-/** \breif Get axis block external com.\n
+/** \brief Get axis block external com.\n
  *   If true the axis will not take any active commands via cmd\n
  *   parser (statuses can still be read).\n
  *
@@ -388,7 +388,7 @@ int getAxisEnable(int  axisIndex,
 int getAxisBlockCom(int  axisIndex,
                     int *block);
 
-/** \breif Get axis busy bit.\n
+/** \brief Get axis busy bit.\n
  *
  * The axis busy bit is high while an command is executed or while synchronizing to other axes.
  * \param[in] axisIndex  Axis index.\n
@@ -404,7 +404,7 @@ int getAxisBlockCom(int  axisIndex,
 int getAxisBusy(int  axisIndex,
                 int *value);
 
-/** \breif Get axis index.\n
+/** \brief Get axis index.\n
  *
  * This function is only implemented for compatibility reasons with the
  * ESS MCAG TwinCAT implementation. (An TwinCAT plc axis can be linked to
@@ -425,7 +425,7 @@ int getAxisBusy(int  axisIndex,
 int getAxisID(int  axisIndex,
               int *value);
 
-/** \breif Get enable alarms at limits bit.\n
+/** \brief Get enable alarms at limits bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value state of enable alarm at limits bit.\n
@@ -438,7 +438,7 @@ int getAxisID(int  axisIndex,
 int getAxisEnableAlarmAtHardLimits(int  axisIndex,
                                    int *value);
 
-/** \breif Get backward soft-limit position.\n
+/** \brief Get backward soft-limit position.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value soft-limit position.\n
@@ -453,7 +453,7 @@ int getAxisEnableAlarmAtHardLimits(int  axisIndex,
 int getAxisSoftLimitPosBwd(int     axisIndex,
                            double *value);
 
-/** \breif Get forward soft-limit position.\n
+/** \brief Get forward soft-limit position.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value Soft-limit position.\n
@@ -468,7 +468,7 @@ int getAxisSoftLimitPosBwd(int     axisIndex,
 int getAxisSoftLimitPosFwd(int     axisIndex,
                            double *value);
 
-/** \breif Get backward soft-limit enabled state of an axis.\n
+/** \brief Get backward soft-limit enabled state of an axis.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value soft-limit enabled.\n
@@ -483,7 +483,7 @@ int getAxisSoftLimitPosFwd(int     axisIndex,
 int getAxisEnableSoftLimitBwd(int  axisIndex,
                               int *value);
 
-/** \breif Get forward soft-limit enabled state of an axis.\n
+/** \brief Get forward soft-limit enabled state of an axis.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value soft-limit enabled.\n
@@ -498,7 +498,7 @@ int getAxisEnableSoftLimitBwd(int  axisIndex,
 int getAxisEnableSoftLimitFwd(int  axisIndex,
                               int *value);
 
-/** \breif Get axis operation mode.\n
+/** \brief Get axis operation mode.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value current operation mode of axis.\n
@@ -515,7 +515,7 @@ int getAxisEnableSoftLimitFwd(int  axisIndex,
 int getAxisOpMode(int  axisIndex,
                   int *value);
 
-/** \breif Get axis acceleration setpoint.\n
+/** \brief Get axis acceleration setpoint.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value acceleration setpoint.\n
@@ -530,7 +530,7 @@ int getAxisOpMode(int  axisIndex,
 int getAxisAcceleration(int     axisIndex,
                         double *value);
 
-/** \breif Get axis deceleration setpoint.\n
+/** \brief Get axis deceleration setpoint.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value deceleration setpoint.\n
@@ -545,7 +545,7 @@ int getAxisAcceleration(int     axisIndex,
 int getAxisDeceleration(int     axisIndex,
                         double *value);
 
-/** \breif Get axis target position setpoint.\n
+/** \brief Get axis target position setpoint.\n
  *
  * The target position is the desired end setpoint of a motion.
  *
@@ -562,7 +562,7 @@ int getAxisDeceleration(int     axisIndex,
 int getAxisTargetPos(int     axisIndex,
                      double *value);
 
-/** \breif Get axis target velocity setpoint.\n
+/** \brief Get axis target velocity setpoint.\n
  *
  * The target velocity is the desired velocity of a motion.\n
  * Note: The actual velocity can be higher than this setpoint.\n
@@ -580,7 +580,7 @@ int getAxisTargetPos(int     axisIndex,
 int getAxisTargetVel(int     axisIndex,
                      double *value);
 
-/** \breif Get axis done bit.\n
+/** \brief Get axis done bit.\n
  *
  * The axis done bit is high when an axis is ready to take a new command
  * (inverse of busy bit).\n
@@ -598,7 +598,7 @@ int getAxisTargetVel(int     axisIndex,
 int getAxisDone(int axisIndex,
                 int *value);
 
-/** \breif Get gear ration setting.\n
+/** \brief Get gear ration setting.\n
  *
  * Note: The gear ratio is only valid during synchronized motions.\n
  *
@@ -613,7 +613,7 @@ int getAxisDone(int axisIndex,
 /*int getAxisGearRatio(int     axisIndex,
                      double *value);*/
 
-/** \breif Get state of forward hard limit.\n
+/** \brief Get state of forward hard limit.\n
  *
  * Checks state of forward hard limit switch.\n
  *
@@ -630,7 +630,7 @@ int getAxisDone(int axisIndex,
 int getAxisAtHardFwd(int  axisIndex,
                      int *value);
 
-/** \breif Get state of backward hard limit.\n
+/** \brief Get state of backward hard limit.\n
  *
  * Checks state of backward hard limit switch.\n
  *
@@ -647,7 +647,7 @@ int getAxisAtHardFwd(int  axisIndex,
 int getAxisAtHardBwd(int  axisIndex,
                      int *value);
 
-/** \breif Get encoder homed bit.\n
+/** \brief Get encoder homed bit.\n
  *
  * Checks if encoder has been homed.\n
  *
@@ -664,7 +664,7 @@ int getAxisAtHardBwd(int  axisIndex,
 int getAxisEncHomed(int  axisIndex,
                     int *value);
 
-/** \breif Get actual encoder position.\n
+/** \brief Get actual encoder position.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value  encoder actual position.\n
@@ -679,7 +679,7 @@ int getAxisEncHomed(int  axisIndex,
 int getAxisEncPosAct(int     axisIndex,
                      double *value);
 
-/** \breif Get actual encoder velocity.\n
+/** \brief Get actual encoder velocity.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value  encoder actual velocity.\n
@@ -694,7 +694,7 @@ int getAxisEncPosAct(int     axisIndex,
 int getAxisEncVelAct(int     axisIndex,
                      double *value);
 
-/** \breif Get state of reference/home switch.\n
+/** \brief Get state of reference/home switch.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value  state of reference/home switch.\n
@@ -711,7 +711,7 @@ int getAxisEncVelAct(int     axisIndex,
 int getAxisAtHome(int  axisIndex,
                   int *value);
 
-/** \breif Get actual pid controller error.\n
+/** \brief Get actual pid controller error.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value actual error of pid controller.\n
@@ -728,7 +728,7 @@ int getAxisAtHome(int  axisIndex,
 int getAxisCntrlError(int     axisIndex,
                       double *value);
 
-/** \breif Get off cam referencing/homing velocity setpoint.\n
+/** \brief Get off cam referencing/homing velocity setpoint.\n
  *
  * This velocity setpoint is only used during homing sequence when the
  * reference switch already have been found. See command
@@ -747,7 +747,7 @@ int getAxisCntrlError(int     axisIndex,
 int getAxisHomeVelOffCam(int     axisIndex,
                          double *value);
 
-/** \breif Get twords cam referencing/homing velocity setpoint.\n
+/** \brief Get twords cam referencing/homing velocity setpoint.\n
  *
  * This velocity setpoint is only used during homing sequence when finding
  * the reference switch. See command "getAxisHomeVelTwordsCam()" for more
@@ -766,7 +766,7 @@ int getAxisHomeVelOffCam(int     axisIndex,
 int getAxisHomeVelTwordsCam(int     axisIndex,
                             double *value);
 
-/** \breif Get the numerator part of the encoder scale.\n
+/** \brief Get the numerator part of the encoder scale.\n
  *
  * The encoder scale factor is divided into one numerator and one denominator
  * part. This function reads the numerator part.
@@ -784,7 +784,7 @@ int getAxisHomeVelTwordsCam(int     axisIndex,
 int getAxisEncScaleNum(int     axisIndex,
                        double *value);
 
-/** \breif Get the denominator part of the encoder scale.\n
+/** \brief Get the denominator part of the encoder scale.\n
  *
  * The encoder scale factor is divided into one numerator and one denominator
  * part. This function reads the denominator part.
@@ -802,7 +802,7 @@ int getAxisEncScaleNum(int     axisIndex,
 int getAxisEncScaleDenom(int     axisIndex,
                          double *value);
 
-/** \breif Get raw unscaled encoder value.\n
+/** \brief Get raw unscaled encoder value.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value Raw encoder value.\n
@@ -815,7 +815,7 @@ int getAxisEncScaleDenom(int     axisIndex,
 int getAxisEncPosRaw(int      axisIndex,
                      int64_t *value);
 
-/** \breif Get PID-controller proportional output part.\n
+/** \brief Get PID-controller proportional output part.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value PID-controller proportional output.\n
@@ -827,7 +827,7 @@ int getAxisEncPosRaw(int      axisIndex,
 int getAxisCntrlOutPpart(int     axisIndex,
                          double *value);
 
-/** \breif Get PID-controller integral output part.\n
+/** \brief Get PID-controller integral output part.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value PID-controller integral output.\n
@@ -839,7 +839,7 @@ int getAxisCntrlOutPpart(int     axisIndex,
 int getAxisCntrlOutIpart(int     axisIndex,
                          double *value);
 
-/** \breif Get PID-controller differential output part.\n
+/** \brief Get PID-controller differential output part.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value PID-controller differential output.\n
@@ -851,7 +851,7 @@ int getAxisCntrlOutIpart(int     axisIndex,
 int getAxisCntrlOutDpart(int     axisIndex,
                          double *value);
 
-/** \breif Get PID-controller feed forward output part.\n
+/** \brief Get PID-controller feed forward output part.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value PID-controller feed forward output.\n
@@ -863,7 +863,7 @@ int getAxisCntrlOutDpart(int     axisIndex,
 int getAxisCntrlOutFFpart(int     axisIndex,
                           double *value);
 
-/** \breif Get PID-controllegetAxisAtHomer total output part.\n
+/** \brief Get PID-controllegetAxisAtHomer total output part.\n
  *
  * The current total output from the PID-controller (the sum of the P,I,D and
  * FF part).\n
@@ -881,7 +881,7 @@ int getAxisCntrlOutput(int     axisIndex,
 // int getAxisCntrlVelSet(int axisIndex,double *value);
 // int getAxisCntrlRate(int axisIndex,double *value);
 
-/** \breif Get the drive output scale factor.\n
+/** \brief Get the drive output scale factor.\n
  *
  *
  * \param[in] axisIndex  Axis index.\n
@@ -894,7 +894,7 @@ int getAxisCntrlOutput(int     axisIndex,
 int getAxisDrvScale(int     axisIndex,
                     double *value);
 
-/** \breif Get enable state of drive.\n
+/** \brief Get enable state of drive.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value Drive enabled.\n
@@ -906,7 +906,7 @@ int getAxisDrvScale(int     axisIndex,
 int getAxisDrvEnable(int  axisIndex,
                      int *value);
 
-/** \breif Get at target.\n
+/** \brief Get at target.\n
  *
  * Checks if axis is within a certain tolerance from target position.\n
  *
@@ -920,7 +920,7 @@ int getAxisDrvEnable(int  axisIndex,
 int getAxisMonAtTarget(int  axisIndex,
                        int *value);
 
-/** \breif Get axis type.\n
+/** \brief Get axis type.\n
  *
  * An axis can be of the following types:
  *   type = 1 : Normal axis (drive, encoder, monitor,pid-controller,trajectory).\n
@@ -937,7 +937,7 @@ int getAxisMonAtTarget(int  axisIndex,
 int getAxisType(int  axisIndex,
                 int *value);
 
-/** \breif Get axis trajectory transformation expression.\n
+/** \brief Get axis trajectory transformation expression.\n
  *
  * The axis transformation expression is used for synchronization of axes. The
  * expression is a mathematical expression describing relation ship between
@@ -961,7 +961,7 @@ int getAxisType(int  axisIndex,
 const char* getAxisTrajTransExpr(int  axisIndex,
                                  int *error);
 
-/** \breif Get axis encoder transformation expression.\n
+/** \brief Get axis encoder transformation expression.\n
  *
  * The axis transformation expression is used for synchronization of axes. The
  * expression is a mathematical expression describing relation ship between
@@ -985,7 +985,7 @@ const char* getAxisTrajTransExpr(int  axisIndex,
 const char* getAxisEncTransExpr(int  axisIndex,
                                 int *error);
 
-/** \breif Get axis sync. PLC expression.\n
+/** \brief Get axis sync. PLC expression.\n
  *
  * The axis sync PLC expression is used for enabling and executing of\n
  * axes based on mathematical expressions. This is useful when synchronizing\n
@@ -1005,7 +1005,7 @@ const char* getAxisEncTransExpr(int  axisIndex,
 const char* getAxisPLCExpr(int  axisIndex,
                            int *error);
 
-/** \breif Get axis trajectory data source.\n
+/** \brief Get axis trajectory data source.\n
  *
  * An axis trajectory generator can get position setpoints from different
  * sources:\n
@@ -1023,7 +1023,7 @@ const char* getAxisPLCExpr(int  axisIndex,
 int getAxisTrajSource(int  axisIndex,
                       int *value);
 
-/** \breif Get axis encoder data source.\n
+/** \brief Get axis encoder data source.\n
  *
  * An axis encoder can get actual position from different sources:\n
  *   source = 0 : Internal (EtherCAT entry).\n
@@ -1040,7 +1040,7 @@ int getAxisTrajSource(int  axisIndex,
 int getAxisEncSource(int  axisIndex,
                      int *value);
 
-/** \breif Get axis allow command from PLC.\n
+/** \brief Get axis allow command from PLC.\n
  *
  * An axis can receive commands from  PLCs (expressions).\n
  * However, the axis must be allow to receive these commands, see
@@ -1057,7 +1057,7 @@ int getAxisEncSource(int  axisIndex,
 int getAxisAllowCommandsFromPLC(int  axisIndex,
                                  int *value);
 
-/** \breif Get axis enable for axis sync. PLC.\n
+/** \brief Get axis enable for axis sync. PLC.\n
  *
  * The axis sync. PLC  expression  can be enabled/disabled.
  * see command getAxisPLCExpr() for more information.\n
@@ -1073,7 +1073,7 @@ int getAxisAllowCommandsFromPLC(int  axisIndex,
 int getAxisPLCEnable(int  axisIndex,
                                    int *value);
 
-/** \breif Set axis execute bit.\n
+/** \brief Set axis execute bit.\n
  *
  * An positive edge of the execute bit triggers a new command.\n
  * Motion is interlocked when the execute bit is low.\n
@@ -1094,7 +1094,7 @@ int getAxisPLCEnable(int  axisIndex,
 int setAxisExecute(int axisIndex,
                    int value);
 
-/** \breif Set axis command word.\n
+/** \brief Set axis command word.\n
  *
  * The command word defines different modes of operation for and axis. See
  * fbDriveVirtual manual for more information.\n
@@ -1117,7 +1117,7 @@ int setAxisExecute(int axisIndex,
 int setAxisCommand(int axisIndex,
                    int value);
 
-/** \breif Set axis command data word.\n
+/** \brief Set axis command data word.\n
  *
  * The command data word is an argument linked to the axis command. See
  * fbDriveVirtual manual for more information.\n
@@ -1164,7 +1164,7 @@ int setAxisCommand(int axisIndex,
 int setAxisCmdData(int axisIndex,
                    int value);
 
-/** \breif Set axis amplifier enable command bit.\n
+/** \brief Set axis amplifier enable command bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value  State of axis amplifier command bit.\n
@@ -1179,7 +1179,7 @@ int setAxisCmdData(int axisIndex,
 int setAxisEnable(int axisIndex,
                   int value);
 
-/** \breif Set enable alarms at limits bit.\n
+/** \brief Set enable alarms at limits bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Enable alarm at limits bit.\n
@@ -1192,7 +1192,7 @@ int setAxisEnable(int axisIndex,
 int setAxisEnableAlarmAtHardLimits(int axisIndex,
                                    int value);
 
-/** \breif Block/unblock communicatiom from via cmd parser.\n
+/** \brief Block/unblock communicatiom from via cmd parser.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] block      block or unblock com.\n
@@ -1205,7 +1205,7 @@ int setAxisEnableAlarmAtHardLimits(int axisIndex,
 int setAxisBlockCom(int axisIndex,
                     int block);
 
-/** \breif Set enable backward soft-limit of an axis.\n
+/** \brief Set enable backward soft-limit of an axis.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value Soft-limit enable command.\n
@@ -1220,7 +1220,7 @@ int setAxisBlockCom(int axisIndex,
 int setAxisEnableSoftLimitBwd(int axisIndex,
                               int value);
 
-/** \breif Set enable forward soft-limit of an axis.\n
+/** \brief Set enable forward soft-limit of an axis.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Soft-limit enable command.\n
@@ -1235,7 +1235,7 @@ int setAxisEnableSoftLimitBwd(int axisIndex,
 int setAxisEnableSoftLimitFwd(int axisIndex,
                               int value);
 
-/** \breif Set backward soft-limit position.\n
+/** \brief Set backward soft-limit position.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Soft-limit position.\n
@@ -1250,7 +1250,7 @@ int setAxisEnableSoftLimitFwd(int axisIndex,
 int setAxisSoftLimitPosBwd(int    axisIndex,
                            double value);
 
-/** \breif Set forward soft-limit position.\n
+/** \brief Set forward soft-limit position.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Soft-limit position.\n
@@ -1265,7 +1265,7 @@ int setAxisSoftLimitPosBwd(int    axisIndex,
 int setAxisSoftLimitPosFwd(int    axisIndex,
                            double value);
 
-/** \breif Set axis acceleration setpoint.\n
+/** \brief Set axis acceleration setpoint.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Acceleration setpoint.\n
@@ -1281,7 +1281,7 @@ int setAxisSoftLimitPosFwd(int    axisIndex,
 int setAxisAcceleration(int    axisIndex,
                         double value);
 
-/** \breif Set axis deceleration setpoint.\n
+/** \brief Set axis deceleration setpoint.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Deceleration setpoint.\n
@@ -1297,7 +1297,7 @@ int setAxisAcceleration(int    axisIndex,
 int setAxisDeceleration(int    axisIndex,
                         double value);
 
-/** \breif Set axis emergency deceleration setpoint.\n
+/** \brief Set axis emergency deceleration setpoint.\n
  *
  * The emergency deceleration setpoint is used:\n
  * - limit switch is engaged.\n
@@ -1315,7 +1315,7 @@ int setAxisDeceleration(int    axisIndex,
 int setAxisEmergDeceleration(int    axisIndex,
                              double value);
 
-/** \breif Set axis maximum jerk setpoint. NOT USED!\n
+/** \brief Set axis maximum jerk setpoint. NOT USED!\n
  *
  * \note Currently not used!!!!!.\n
  *
@@ -1329,7 +1329,7 @@ int setAxisEmergDeceleration(int    axisIndex,
 int setAxisJerk(int    axisIndex,
                 double value);
 
-/** \breif Set axis target position setpoint.\n
+/** \brief Set axis target position setpoint.\n
  *
  * The target position is the desired end setpoint of a motion.
  *
@@ -1346,7 +1346,7 @@ int setAxisJerk(int    axisIndex,
 int setAxisTargetPos(int    axisIndex,
                      double value);
 
-/** \breif Set axis target velocity setpoint.\n
+/** \brief Set axis target velocity setpoint.\n
  *
  * The target velocity is the desired velocity of a motion.\n
  * Note: The actual velocity can be higher than this setpoint.\n
@@ -1376,7 +1376,7 @@ int setAxisTargetPos(int    axisIndex,
 int setAxisTargetVel(int    axisIndex,
                      double value);
 
-/** \breif Set axis jog velocity setpoint.\n
+/** \brief Set axis jog velocity setpoint.\n
  *
  * The jog velocity is the desired velocity of a motion when executing a jog
  * command (command=10).\n
@@ -1393,7 +1393,7 @@ int setAxisTargetVel(int    axisIndex,
 int setAxisJogVel(int    axisIndex,
                   double value);
 
-/** \breif Set axis operation mode.\n
+/** \brief Set axis operation mode.\n
  *
  * \note This command can disable certain safety functionality and
  * should only be used with high caution and only during commissioning.\n
@@ -1413,7 +1413,7 @@ int setAxisJogVel(int    axisIndex,
 int setAxisOpMode(int axisIndex,
                   int value);
 
-/** \breif Set the denominator part of the encoder scale.\n
+/** \brief Set the denominator part of the encoder scale.\n
  *
  * The encoder scale factor is divided into one numerator and one denominator
  * part. This function reads the denominator part.
@@ -1431,7 +1431,7 @@ int setAxisOpMode(int axisIndex,
 int setAxisEncScaleDenom(int    axisIndex,
                          double value);
 
-/** \breif Set the numerator part of the encoder scale.\n
+/** \brief Set the numerator part of the encoder scale.\n
  *
  * The encoder scale factor is divided into one numerator and one denominator
  * part. This function reads the numerator part.
@@ -1449,7 +1449,7 @@ int setAxisEncScaleDenom(int    axisIndex,
 int setAxisEncScaleNum(int    axisIndex,
                        double value);
 
-/** \breif Set axis home reference position setpoint.\n
+/** \brief Set axis home reference position setpoint.\n
  *
  * The home reference position setpoint is only used during referencing/homing
  * sequence. The final referencing will be done to this position
@@ -1468,7 +1468,7 @@ int setAxisEncScaleNum(int    axisIndex,
 int setAxisHomePos(int    axisIndex,
                    double value);
 
-/** \breif Set home index pulse count offset.\n
+/** \brief Set home index pulse count offset.\n
  *
  * Sets number of latches before homing is made.\n
  *
@@ -1486,7 +1486,7 @@ int setAxisHomePos(int    axisIndex,
 int setAxisHomeLatchCountOffset(int axisIndex,
                                 int count);
 
-/** \breif Set twords cam referencing/homing velocity setpoint.\n
+/** \brief Set twords cam referencing/homing velocity setpoint.\n
  *
  * This velocity setpoint is only used during homing sequence when finding
  * the reference switch. See command "getAxisHomeVelTwordsCam()" for more
@@ -1509,7 +1509,7 @@ int setAxisHomeLatchCountOffset(int axisIndex,
 int setAxisHomeVelTwordsCam(int    axisIndex,
                             double dVel);
 
-/** \breif Set off cam referencing/homing velocity setpoint.\n
+/** \brief Set off cam referencing/homing velocity setpoint.\n
  *
  * This velocity setpoint is only used during homing sequence when the
  * reference switch already have been found. See command
@@ -1532,7 +1532,7 @@ int setAxisHomeVelTwordsCam(int    axisIndex,
 int setAxisHomeVelOffCam(int    axisIndex,
                          double dVel);
 
-/** \breif Set gear ration setting.\n
+/** \brief Set gear ration setting.\n
  *
  * Note: The gear ratio is only valid during synchronized motions.\n
  *
@@ -1549,7 +1549,7 @@ int setAxisHomeVelOffCam(int    axisIndex,
                      double ratioNum,
                      double ratioDenom);*/
 
-/** \breif Set axis reset bit.\n
+/** \brief Set axis reset bit.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value  State of axis reset bit.\n
@@ -1564,7 +1564,7 @@ int setAxisHomeVelOffCam(int    axisIndex,
 int axisErrorReset(int axisIndex,
                    int value);
 
-/** \breif Enables/disables velocity filter of external setpoint.\n
+/** \brief Enables/disables velocity filter of external setpoint.\n
  *
  *  This filter is needed in order to have a smoth feedforward value when\n
  *  reciving setpoints form an PLC. If filter is disabled the velocity will\n 
@@ -1586,7 +1586,7 @@ int axisErrorReset(int axisIndex,
 int setAxisPLCTrajVelFilterEnable(int axisIndex,
                                   int enable);
 
-/** \breif Set size of external trajectory velocity filter.\n
+/** \brief Set size of external trajectory velocity filter.\n
  *
  *  Sets the size of the filter for velocity from "external" PLC code.\n
  *  This filter is needed in order to have a smoth feedforward value when\n
@@ -1609,7 +1609,7 @@ int setAxisPLCTrajVelFilterEnable(int axisIndex,
 int setAxisPLCTrajVelFilterSize(int axisIndex,
                                 int size);
 
-/** \breif Enables/disables velocity filter of external actual value.\n
+/** \brief Enables/disables velocity filter of external actual value.\n
  *
  * NOTE: This filter is currentlly not used.\n
  * 
@@ -1624,7 +1624,7 @@ int setAxisPLCTrajVelFilterSize(int axisIndex,
 int setAxisPLCEncVelFilterEnable(int axisIndex,
                                  int enable);
 
-/** \breif Set size of external encoder velocity filter.\n
+/** \brief Set size of external encoder velocity filter.\n
  *
  * NOTE: This filter is currentlly not used.\n
  * 
@@ -1640,7 +1640,7 @@ int setAxisPLCEncVelFilterEnable(int axisIndex,
 int setAxisPLCEncVelFilterSize(int axisIndex,
                                int size);
 
-/** \breif Set size of encoder velocity filter.\n
+/** \brief Set size of encoder velocity filter.\n
  *
  *  Sets the size of the low pass filter for velocity.\n
  *  Needed when resolution of encoder is low compared to\n
@@ -1657,7 +1657,7 @@ int setAxisPLCEncVelFilterSize(int axisIndex,
 int setAxisEncVelFilterSize(int axisIndex,
                             int size);
 
-/** \breif Set axis trajectory data source.\n
+/** \brief Set axis trajectory data source.\n
  *
  * An axis trajectory generator can get position setpoints from different
  * sources:\n
@@ -1676,7 +1676,7 @@ int setAxisEncVelFilterSize(int axisIndex,
 int setAxisTrajSource(int axisIndex,
                       int value);
 
-/** \breif Set axis encoder data source.\n
+/** \brief Set axis encoder data source.\n
  *
  * An axis encoder can get actual position from different sources:\n
  *   source = 0 : Internal (EtherCAT entry).\n
@@ -1694,7 +1694,7 @@ int setAxisTrajSource(int axisIndex,
 int setAxisEncSource(int axisIndex,
                      int value);
 
-/** \breif Set axis trajectory start position. NOTE: NOT USED!!.\n
+/** \brief Set axis trajectory start position. NOTE: NOT USED!!.\n
  *
  * \note This function is not used currently.\n
  *
@@ -1709,7 +1709,7 @@ int setAxisEncSource(int axisIndex,
 int setAxisTrajStartPos(int    axisIndex,
                         double value);
 
-/** \breif Set encoder offset value.\n
+/** \brief Set encoder offset value.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Offset position.\n
@@ -1722,7 +1722,7 @@ int setAxisTrajStartPos(int    axisIndex,
 int setAxisEncOffset(int    axisIndex,
                      double value);
 
-/** \breif Set encoder type.\n
+/** \brief Set encoder type.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Encoder type.\n
@@ -1737,7 +1737,7 @@ int setAxisEncOffset(int    axisIndex,
 int setAxisEncType(int axisIndex,
                    int value);
 
-/** \breif Set encoder register bit count.\n
+/** \brief Set encoder register bit count.\n
  *
  * The bit count is used to handle over/under flow.\n
  *
@@ -1758,7 +1758,7 @@ int setAxisEncType(int axisIndex,
 int setAxisEncBits(int axisIndex,
                    int bits);
 
-/** \breif Set encoder register bit count for absolute data.\n
+/** \brief Set encoder register bit count for absolute data.\n
  *
  * This setting is used for homing of partly absolute encoders\n
  * like resolvers (single turn absolute). The data is always\n
@@ -1777,7 +1777,7 @@ int setAxisEncBits(int axisIndex,
 int setAxisEncAbsBits(int axisIndex,
                       int bits);
 
-/** \breif Set encoder raw data mask.\n
+/** \brief Set encoder raw data mask.\n
  *
  * Mask to filter Encoder data from encoder 64bit data\n
  * Also calculates bit-count of encoder data. If this function \n
@@ -1796,7 +1796,7 @@ int setAxisEncAbsBits(int axisIndex,
 int setAxisEncRawMask(int      axisIndex,
                       uint64_t rawMask);
 
-/** \breif Set PID-controller proportional gain.\n
+/** \brief Set PID-controller proportional gain.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Proportional gain.\n
@@ -1809,7 +1809,7 @@ int setAxisEncRawMask(int      axisIndex,
 int setAxisCntrlKp(int    axisIndex,
                    double value);
 
-/** \breif Set PID-controller integral gain.\n
+/** \brief Set PID-controller integral gain.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Integral gain.\n
@@ -1822,7 +1822,7 @@ int setAxisCntrlKp(int    axisIndex,
 int setAxisCntrlKi(int    axisIndex,
                    double value);
 
-/** \breif Set PID-controller differential gain.\n
+/** \brief Set PID-controller differential gain.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Differential gain.\n
@@ -1835,7 +1835,7 @@ int setAxisCntrlKi(int    axisIndex,
 int setAxisCntrlKd(int    axisIndex,
                    double value);
 
-/** \breif Set PID-controller feed forward gain.\n
+/** \brief Set PID-controller feed forward gain.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Feed forward gain.\n
@@ -1848,7 +1848,7 @@ int setAxisCntrlKd(int    axisIndex,
 int setAxisCntrlKff(int    axisIndex,
                     double value);
 
-/** \breif Set PID-controller maximum output value.\n
+/** \brief Set PID-controller maximum output value.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Max value.\n
@@ -1861,7 +1861,7 @@ int setAxisCntrlKff(int    axisIndex,
 int setAxisCntrlOutHL(int    axisIndex,
                       double value);
 
-/** \breif Set PID-controller minimum output value.\n
+/** \brief Set PID-controller minimum output value.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Min value.\n
@@ -1874,7 +1874,7 @@ int setAxisCntrlOutHL(int    axisIndex,
 int setAxisCntrlOutLL(int    axisIndex,
                       double value);
 
-/** \breif Set PID-controller minimum integral part output value.\n
+/** \brief Set PID-controller minimum integral part output value.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Min integral value.\n
@@ -1887,7 +1887,7 @@ int setAxisCntrlOutLL(int    axisIndex,
 int setAxisCntrlIpartLL(int    axisIndex,
                         double value);
 
-/** \breif Set PID-controller maximum integral part output value.\n
+/** \brief Set PID-controller maximum integral part output value.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Max integral value.\n
@@ -1900,7 +1900,7 @@ int setAxisCntrlIpartLL(int    axisIndex,
 int setAxisCntrlIpartHL(int    axisIndex,
                         double value);
 
-/** \breif Get drive output scale numerator.\n
+/** \brief Get drive output scale numerator.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pointer to return value Scale numerator.\n
@@ -1910,7 +1910,7 @@ int setAxisCntrlIpartHL(int    axisIndex,
 int getAxisDrvScaleNum(int     axisIndex,
                        double *value);
 
-/** \breif Set drive output scale numerator.\n
+/** \brief Set drive output scale numerator.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Scale numerator.\n
@@ -1923,7 +1923,7 @@ int getAxisDrvScaleNum(int     axisIndex,
 int setAxisDrvScaleNum(int    axisIndex,
                        double value);
 
-/** \breif Set drive output scale denominator.\n
+/** \brief Set drive output scale denominator.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Scale denominator.\n
@@ -1936,7 +1936,7 @@ int setAxisDrvScaleNum(int    axisIndex,
 int setAxisDrvScaleDenom(int    axisIndex,
                          double value);
 
-/** \breif Set drive amplifier enable. NOTE: Only used in manual mode!!!\n
+/** \brief Set drive amplifier enable. NOTE: Only used in manual mode!!!\n
  *
  * \note This function is only used in manual mode otherwise use
  * setAxisEnable() instead.\n
@@ -1952,7 +1952,7 @@ int setAxisDrvScaleDenom(int    axisIndex,
 int setAxisDrvEnable(int axisIndex,
                      int value);
 
-/** \breif Set drive velocity setpoint. NOTE: Only used in manual mode!!!\n
+/** \brief Set drive velocity setpoint. NOTE: Only used in manual mode!!!\n
  *
  * \note This function is only used in manual mode otherwise use.\n
  *
@@ -1970,7 +1970,7 @@ int setAxisDrvEnable(int axisIndex,
 int setAxisDrvVelSet(int    axisIndex,
                      double value);
 
-/** \breif Set drive raw velocity setpoint. NOTE: Only used in manual mode!!!\n
+/** \brief Set drive raw velocity setpoint. NOTE: Only used in manual mode!!!\n
  *
  * \note This function is only used in manual mode otherwise use.\n
  *
@@ -1988,7 +1988,7 @@ int setAxisDrvVelSet(int    axisIndex,
 int setAxisDrvVelSetRaw(int axisIndex,
                         int value);
 
-/** \breif Set enable of brake.\n
+/** \brief Set enable of brake.\n
  *
  *  The brake output will follow the amplifier enable state of the drive. The
  *  brake is high when amplifier enable is high and low when amplifier enable
@@ -2012,7 +2012,7 @@ int setAxisDrvVelSetRaw(int axisIndex,
 int setAxisDrvBrakeEnable(int axisIndex,
                           int enable);
 
-/** \breif Set brake open delay time .\n
+/** \brief Set brake open delay time .\n
  *
  *  The release of the brake will be delayed for an additional
  *  delay time when enabling the amplifier.
@@ -2031,7 +2031,7 @@ int setAxisDrvBrakeEnable(int axisIndex,
 int setAxisDrvBrakeOpenDelayTime(int axisIndex,
                                  int delayTime);
 
-/** \breif Set brake close ahead time .\n
+/** \brief Set brake close ahead time .\n
  *
  *  Activation of the brake will be made prior to disabling the amplifier.\n
  *
@@ -2049,7 +2049,7 @@ int setAxisDrvBrakeOpenDelayTime(int axisIndex,
 int setAxisDrvBrakeCloseAheadTime(int axisIndex,
                                   int aheadTime);
 
-/** \breif Set enable of reduce torque functionality.\n
+/** \brief Set enable of reduce torque functionality.\n
  *
  *  The reduce torque output will go high when the axis is atTarget. The
  *  "atTarget" monitoring functionality needs to be configured in order to
@@ -2069,7 +2069,7 @@ int setAxisDrvBrakeCloseAheadTime(int axisIndex,
 int setAxisDrvReduceTorqueEnable(int axisIndex,
                                  int enable);
 
-/** \breif Set drive type.\n
+/** \brief Set drive type.\n
  *  OBSOLETE COMMAND. USE CREATEAXIS(id,type,drvtype).
  * 
  * \note  ALL SETTINGS MADE TO THE DRIVE WILL BE OVERWRITTEN.\n
@@ -2087,7 +2087,7 @@ int setAxisDrvReduceTorqueEnable(int axisIndex,
 /*int setAxisDrvType(int axisIndex,
                    int type);*/
 
-/** \breif Get "at target" monitoring tolerance.\n
+/** \brief Get "at target" monitoring tolerance.\n
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pointer to return value At target tolerance.\n
  *
@@ -2096,7 +2096,7 @@ int setAxisDrvReduceTorqueEnable(int axisIndex,
 int getAxisMonAtTargetTol(int     axisIndex,
                           double *value);
 
-/** \breif Set "at target" monitoring tolerance.\n
+/** \brief Set "at target" monitoring tolerance.\n
  *
  *  The motion will be considered to have reached the target position
  *  when the difference between the actual position and target position
@@ -2118,7 +2118,7 @@ int getAxisMonAtTargetTol(int     axisIndex,
 int setAxisMonAtTargetTol(int    axisIndex,
                           double value);
 
-/** \breif Get "at target" monitoring time (cycles).\n
+/** \brief Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pointer to return value At target time (cycles) .\n
  *
@@ -2127,7 +2127,7 @@ int setAxisMonAtTargetTol(int    axisIndex,
 int getAxisMonAtTargetTime(int  axisIndex,
                            int *value);
 
-/** \breif Set "at target" monitoring time (cycles).\n
+/** \brief Set "at target" monitoring time (cycles).\n
  *
  *  The motion will be considered to have reached the target position
  *  when the difference between the actual position and target position
@@ -2148,7 +2148,7 @@ int getAxisMonAtTargetTime(int  axisIndex,
 int setAxisMonAtTargetTime(int axisIndex,
                            int value);
 
-/** \breif Get enable "at target" monitoring.\n
+/** \brief Get enable "at target" monitoring.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pointer to return value Enable monitoring .\n
@@ -2158,7 +2158,7 @@ int setAxisMonAtTargetTime(int axisIndex,
 int getAxisMonEnableAtTargetMon(int  axisIndex,
                                 int *value);
 
-/** \breif Enable "at target" monitoring.\n
+/** \brief Enable "at target" monitoring.\n
  *
  *  The motion will be considered to have reached the target position
  *  when the difference between the actual position and target position
@@ -2177,7 +2177,7 @@ int getAxisMonEnableAtTargetMon(int  axisIndex,
 int setAxisMonEnableAtTargetMon(int axisIndex,
                                 int value);
 
-/** \breif Get position lag maximum monitoring tolerance.\n
+/** \brief Get position lag maximum monitoring tolerance.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pointer to return value Position lag maximum tolerance.\n
@@ -2187,7 +2187,7 @@ int setAxisMonEnableAtTargetMon(int axisIndex,
 int getAxisMonPosLagTol(int     axisIndex,
                         double *value);
 
-/** \breif Set position lag maximum monitoring tolerance.\n
+/** \brief Set position lag maximum monitoring tolerance.\n
  *
  *  The position lag monitoring functionality monitors the difference between
  *  the actual position and trajectory generated setpoint position. The motion
@@ -2211,7 +2211,7 @@ int getAxisMonPosLagTol(int     axisIndex,
 int setAxisMonPosLagTol(int    axisIndex,
                         double value);
 
-/** \breif Get position lag monitoring time (cycles).\n
+/** \brief Get position lag monitoring time (cycles).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pointer to return value Position lag time (cycles).\n
@@ -2221,7 +2221,7 @@ int setAxisMonPosLagTol(int    axisIndex,
 int getAxisMonPosLagTime(int  axisIndex,
                          int *value);
 
-/** \breif Set position lag monitoring time (cycles).\n
+/** \brief Set position lag monitoring time (cycles).\n
  *
   *  The position lag monitoring functionality monitors the difference between
  *  the actual position and trajectory generated setpoint position. The motion
@@ -2245,7 +2245,7 @@ int getAxisMonPosLagTime(int  axisIndex,
 int setAxisMonPosLagTime(int axisIndex,
                          int value);
 
-/** \breif Get position lag monitoring enable.\n
+/** \brief Get position lag monitoring enable.\n
  *
   *  The position lag monitoring functionality monitors the difference between
  *  the actual position and trajectory generated setpoint position. The motion
@@ -2263,7 +2263,7 @@ int setAxisMonPosLagTime(int axisIndex,
 int getAxisMonEnableLagMon(int  axisIndex,
                            int *value);
 
-/** \breif Enable position lag monitoring.\n
+/** \brief Enable position lag monitoring.\n
 *
 *  The position lag monitoring functionality monitors the difference between
 *  the actual position and trajectory generated setpoint position. The motion
@@ -2284,7 +2284,7 @@ int getAxisMonEnableLagMon(int  axisIndex,
 int setAxisMonEnableLagMon(int axisIndex,
                            int value);
 
-/** \breif Get maximum allowed velocity.\n
+/** \brief Get maximum allowed velocity.\n
  *
  * The motion will be interlocked if the actual velocity or the velocity
  * setpoint exceeds this value.\n
@@ -2298,7 +2298,7 @@ int setAxisMonEnableLagMon(int axisIndex,
 int getAxisMonMaxVel(int     axisIndex,
                      double *value);
 
-/** \breif Set maximum allowed velocity.\n
+/** \brief Set maximum allowed velocity.\n
  *
  * The motion will be interlocked if the actual velocity or the velocity
  * setpoint exceeds this value.\n
@@ -2317,7 +2317,7 @@ int getAxisMonMaxVel(int     axisIndex,
 int setAxisMonMaxVel(int    axisIndex,
                      double value);
 
-/** \breif Enable maximum velocity monitoring (over speed).\n
+/** \brief Enable maximum velocity monitoring (over speed).\n
  *
  * The motion will be interlocked if the actual velocity or the velocity
  * setpoint exceeds the limit value set by the command setAxisMonMaxVel().\n
@@ -2333,7 +2333,7 @@ int setAxisMonMaxVel(int    axisIndex,
 int setAxisMonEnableMaxVel(int axisIndex,
                            int value);
 
-/** \breif Get enable maximum velocity monitoring (over speed).\n
+/** \brief Get enable maximum velocity monitoring (over speed).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value Enable monitoring.\n
@@ -2344,7 +2344,7 @@ int setAxisMonEnableMaxVel(int axisIndex,
 int getAxisMonEnableMaxVel(int  axisIndex,
                            int *value);
 
-/** \breif Set velocity monitoring interlock delay for drive.\n
+/** \brief Set velocity monitoring interlock delay for drive.\n
  *
  * The over speed interlock for the drive can be delayed in
  * order ensure that encoder noise reulsting in a high velocity will not
@@ -2366,7 +2366,7 @@ int getAxisMonEnableMaxVel(int  axisIndex,
 int setAxisMonMaxVelDriveILDelay(int axisIndex,
                                  int value);
 
-/** \breif Set velocity monitoring interlock delay for trajectory.\n
+/** \brief Set velocity monitoring interlock delay for trajectory.\n
  *
  * The over speed interlock for the trajectory generator can be delayed in
  * order ensure that encoder noise reulsting in a high velocity will not
@@ -2389,7 +2389,7 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex,
 int setAxisMonMaxVelTrajILDelay(int axisIndex,
                                 int value);
 
-/** \breif Set sequence timeout time in seconds.\n
+/** \brief Set sequence timeout time in seconds.\n
  *
  * The motion sequences (mainly related to homing) can be aborted if not
  * finalized within a certain time. This is to prevent that the motion
@@ -2407,7 +2407,7 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex,
 int setAxisSeqTimeout(int axisIndex,
                       int value);
 
-/** \breif Enable controller output high limit monitoring.\n
+/** \brief Enable controller output high limit monitoring.\n
  *
  *  The controller output high limit monitoring functionality monitors
  *  the controller output. The motion can be interlocked if the controller
@@ -2431,7 +2431,7 @@ int setAxisSeqTimeout(int axisIndex,
 int setAxisMonEnableCntrlOutHLMon(int axisIndex,
                                   int value);
 
-/** \breif Set monitoring controller output high limit.\n
+/** \brief Set monitoring controller output high limit.\n
  *
  * Set maximum allowed controller output for an axis.\n
  *  A high controller output during a motion could be generated by bad tuning
@@ -2453,7 +2453,7 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex,
 int setAxisMonCntrlOutHL(int    axisIndex,
                          double value);
 
-/** \breif Enable monitoring of velocity difference.\n
+/** \brief Enable monitoring of velocity difference.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Enable monitoring.\n
@@ -2466,7 +2466,7 @@ int setAxisMonCntrlOutHL(int    axisIndex,
 int setAxisMonEnableVelocityDiff(int axisIndex,
                                  int value);
 
-/** \breif Set trajectory interlock filter time in cycles for velocity
+/** \brief Set trajectory interlock filter time in cycles for velocity
  * difference monitoring.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2480,7 +2480,7 @@ int setAxisMonEnableVelocityDiff(int axisIndex,
 int setAxisMonVelDiffTrajILDelay(int axisIndex,
                                  int value);
 
-/** \breif Set drive interlock filter time in cycles for velocity
+/** \brief Set drive interlock filter time in cycles for velocity
  * difference monitoring.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2494,7 +2494,7 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex,
 int setAxisMonVelDiffDriveILDelay(int axisIndex,
                                   int value);
 
-/** \breif Set maximum allowed difference between setpoint speed and
+/** \brief Set maximum allowed difference between setpoint speed and
  * actual speed±n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2508,7 +2508,7 @@ int setAxisMonVelDiffDriveILDelay(int axisIndex,
 int setAxisMonVelDiffTol(int    axisIndex,
                          double value);
 
-/** \breif Enable motion axis interlock from EtherCAT entry.\n
+/** \brief Enable motion axis interlock from EtherCAT entry.\n
  *
  *Enable
  * The motion can be interlocked based on an EtherCAT entry. See command
@@ -2529,7 +2529,7 @@ int setAxisMonVelDiffTol(int    axisIndex,
 int setAxisMonEnableExternalInterlock(int axisIndex,
                                       int value);
 
-/** \breif Set polarity of motion axis interlock from EtherCAT entry.\n
+/** \brief Set polarity of motion axis interlock from EtherCAT entry.\n
  *
  *
  * The motion can be interlocked based on an EtherCAT entry. See command
@@ -2552,7 +2552,7 @@ int setAxisMonEnableExternalInterlock(int axisIndex,
 int setAxisMonExtHWInterlockPolarity(int axisIndex,
                                      int value);
 
-/** \breif Get polarity of motion axis interlock from EtherCAT entry.\n
+/** \brief Get polarity of motion axis interlock from EtherCAT entry.\n
  *
  *
  * The motion can be interlocked based on an EtherCAT entry. See command
@@ -2574,7 +2574,7 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex,
  */
 int getAxisMonExtHWInterlockPolarity(int axisIndex, int *pol);
 
-/** \breif Set polarity of hard low limit switch.\n
+/** \brief Set polarity of hard low limit switch.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Polarity.\n
@@ -2588,7 +2588,7 @@ int getAxisMonExtHWInterlockPolarity(int axisIndex, int *pol);
  */
 int setAxisMonLimitBwdPolarity(int axisIndex, int value);
 
-/** \breif Get polarity of hard low limit switch.\n
+/** \brief Get polarity of hard low limit switch.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pol Polarity.\n
@@ -2602,7 +2602,7 @@ int setAxisMonLimitBwdPolarity(int axisIndex, int value);
  */
 int getAxisMonLimitBwdPolarity(int axisIndex, int *pol);
 
-/** \breif Set polarity of hard high limit switch.\n
+/** \brief Set polarity of hard high limit switch.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Polarity.\n
@@ -2616,7 +2616,7 @@ int getAxisMonLimitBwdPolarity(int axisIndex, int *pol);
  */
 int setAxisMonLimitFwdPolarity(int axisIndex, int value);
 
-/** \breif Get polarity of hard high limit switch.\n
+/** \brief Get polarity of hard high limit switch.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pol Polarity.\n
@@ -2630,7 +2630,7 @@ int setAxisMonLimitFwdPolarity(int axisIndex, int value);
  */
 int getAxisMonLimitFwdPolarity(int axisIndex, int *pol);
 
-/** \breif Set polarity of home switch.\n
+/** \brief Set polarity of home switch.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Polarity.\n
@@ -2644,7 +2644,7 @@ int getAxisMonLimitFwdPolarity(int axisIndex, int *pol);
  */
 int setAxisMonHomeSwitchPolarity(int axisIndex, int value);
 
-/** \breif Get polarity of home switch.\n
+/** \brief Get polarity of home switch.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pol Polarity.\n
@@ -2658,7 +2658,7 @@ int setAxisMonHomeSwitchPolarity(int axisIndex, int value);
  */
 int getAxisMonHomeSwitchPolarity(int axisIndex, int *pol);
 
-/** \breif Allow commands from PLCs.\n
+/** \brief Allow commands from PLCs.\n
  *
  * An axis can receive commands from PLCs (see PLC syntax).
  * However, the axis must be allow to receive these commands, see
@@ -2675,7 +2675,7 @@ int getAxisMonHomeSwitchPolarity(int axisIndex, int *pol);
 int setAxisAllowCommandsFromPLC(int axisIndex,
                                        int value);
 
-/** \breif Enable axis sync PLC expression.\n
+/** \brief Enable axis sync PLC expression.\n
  *
  * The axis sync PLC expression for an axis can be enabled/disabled.
  * see command setAxisPLCExpr() for more information.\n
@@ -2691,7 +2691,7 @@ int setAxisAllowCommandsFromPLC(int axisIndex,
 int setAxisPLCEnable(int axisIndex,
                      int value);
 
-/** \breif Append axis sync. PLC expression.\n
+/** \brief Append axis sync. PLC expression.\n
  *
  * Add one line to the axis PLC code.\n
  * The axis PLC expression is used for enabling and executing of
@@ -2719,7 +2719,7 @@ int setAxisPLCEnable(int axisIndex,
 int appendAxisPLCExpr(int   axisIndex,
                       char *expr);
 
-/** \breif Compile Axis PLC code\n
+/** \brief Compile Axis PLC code\n
  *
  * For more syntax help plese view PLC syntax (setPLCExpr()).\n
  * 
@@ -2732,7 +2732,7 @@ int appendAxisPLCExpr(int   axisIndex,
  */
 int compileAxisPLCExpr(int   axisIndex);
 
-/** \breif Creates an axis object at index axisIndex.
+/** \brief Creates an axis object at index axisIndex.
  *
  * \param[in] axisIndex Index of axis to address.\n
  * \param[in] axisType Type of axis.\n
@@ -2757,7 +2757,7 @@ int createAxis(int axisIndex,
                int axisType,
                int drvType);
 
-/** \breif Links an EtherCAT entry to the encoder object of the axis at axisIndex.
+/** \brief Links an EtherCAT entry to the encoder object of the axis at axisIndex.
    *
    *
    *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
@@ -2787,7 +2787,7 @@ int linkEcEntryToAxisEnc(int   slaveBusPosition,
                          int   encoderEntryIndex,
                          int   entryBitIndex);
 
-/** \breif Links an EtherCAT entry to the drive object of the axis at axisIndex.
+/** \brief Links an EtherCAT entry to the drive object of the axis at axisIndex.
    *
    *
    *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
@@ -2835,7 +2835,7 @@ int linkEcEntryToAxisDrv(int   slaveBusPosition,
                          int   driveEntryIndex,
                          int   entryBitIndex);
 
-/** \breif Links an EtherCAT entry to the monitor object of the axis at axisIndex\n
+/** \brief Links an EtherCAT entry to the monitor object of the axis at axisIndex\n
  *
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
  *    slaveBusPosition = -1: Used to address the simulation slave. Only two
@@ -2872,7 +2872,7 @@ int linkEcEntryToAxisMon(int   slaveBusPosition,
                          int   monitorEntryIndex,
                          int   entryBitIndex);
 
-/** \breif Links an EtherCAT entry to the an axis object for
+/** \brief Links an EtherCAT entry to the an axis object for
  *   status output\n
  *
  *  The output will be high when the axis object is without error code and
@@ -2900,7 +2900,7 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
 
 
 
-/** \breif Set axis index for detailed motion diagnostics.\n
+/** \brief Set axis index for detailed motion diagnostics.\n
  *
  * \param[in] axisIndex Index of axis.\n
  *
@@ -2911,7 +2911,7 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
  */
 int setDiagAxisIndex(int axisIndex);
 
-/** \breif Set axis frequency of detailed motion diagnostics printouts.\n
+/** \brief Set axis frequency of detailed motion diagnostics printouts.\n
  *
  * \param[in] freq Printout frequency.\n
  *
@@ -2922,7 +2922,7 @@ int setDiagAxisIndex(int axisIndex);
  */
 int setDiagAxisFreq(int freq);
 
-/** \breif Enable detailed motion diagnostics printouts.\n
+/** \brief Enable detailed motion diagnostics printouts.\n
  *
  * The detailed motion diagnostics prints valuable motion related information
  * for one axis.\n
@@ -2937,7 +2937,7 @@ int setDiagAxisFreq(int freq);
  */
 int setDiagAxisEnable(int enable);
 
-/** \breif Get axis modulo range.\n
+/** \brief Get axis modulo range.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value  modulo range.\n
@@ -2950,7 +2950,7 @@ int setDiagAxisEnable(int enable);
 int getAxisModRange(int  axisIndex,
                     double *range);
 
-/** \breif Set axis modulo range.\n
+/** \brief Set axis modulo range.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value  modulo range.\n
@@ -2963,7 +2963,7 @@ int getAxisModRange(int  axisIndex,
 int setAxisModRange(int  axisIndex,
                     double range);
 
-/** \breif Set axis modulo motion type.\n
+/** \brief Set axis modulo motion type.\n
  * 
  * Used for positioning if modulo range is set (setAxisModRange())\n
  * to a value greater than 0.\n
@@ -2984,7 +2984,7 @@ int setAxisModRange(int  axisIndex,
 int setAxisModType(int axisIndex,
                    int type);
 
-/** \breif Set axis modulo motion type.\n
+/** \brief Set axis modulo motion type.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] type Modulo type.\n

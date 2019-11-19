@@ -35,11 +35,11 @@ extern "C" {
 # define ECMC_PARSER_READ_STORAGE_BUFFER_DATA_NULL 0x200000
 
 /** 
- * \breif Initialization routine for ecmc.\n
+ * \brief Initialization routine for ecmc.\n
  */
 int ecmcInitThread(void);
 
-/** \breif Sets application mode
+/** \brief Sets application mode
  *
  * Before entering runtime mode a validation of both hardware and motion
  * objects will be executed. See command validateConfig().\n
@@ -55,7 +55,7 @@ int ecmcInitThread(void);
  */
 int setAppMode(int mode);
 
-/** \breif Update main asyn parameters
+/** \brief Update main asyn parameters
  *
  * \param[in] force Force update\n
  *
