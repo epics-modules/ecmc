@@ -7,6 +7,7 @@
 *
 *  Created on: Jan 29, 2019
 *      Author: anderssandstrom
+*              Jeong Han Lee
 *
 \*************************************************************************/
 
@@ -29,6 +30,10 @@
 #include <dbAccess.h>
 
 static const char *driverName = "ecmcAsynPortDriver";
+
+static int compar (const void* pkey, const void* pelem) {
+  return ( *(int*)pkey - *(int*)pelem );
+};
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const char *paramName,asynParamType asynParType)
 {
@@ -337,14 +342,12 @@ int ecmcAsynDataItem::addSupportedAsynType(asynParamType type) {
 
 bool ecmcAsynDataItem::asynTypeSupported(asynParamType type) {
 
-  for(int i=0;i<supportedTypesCounter_;i++) {
-   
-   if ((supportedTypes_[i]==type)) {
-     return true;
-   } 
-
-  }  
-  return false;
+  std::qsort(supportedTypes_, supportedTypesCounter_, sizeof(supportedTypes_[0]), compar);
+  asynParamType* found = (asynParamType*)std::bsearch(&type, supportedTypes_, supportedTypesCounter_, sizeof(supportedTypes_[0]), compar);
+  if (found)
+    return true;
+  else
+    return false;
 }
 
 int ecmcAsynDataItem::getSupportedAsynTypeCount() {

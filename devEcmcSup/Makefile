@@ -20,7 +20,7 @@ LIBRARY_IOC += ecmc
 
 # Ubuntu needs the following ldflags
 USR_LDFLAGS += -Wl,--no-as-needed
-
+USR_LDFLAGS += -lstdc++
 
 ifeq ($(T_A),linux-x86_64)
 # Assume that the etherlab user library is done via
