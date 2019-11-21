@@ -25,8 +25,8 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
                          uint16_t           pdoIndex,
                          uint16_t           entryIndex,
                          uint8_t            entrySubIndex,
-                         uint8_t            bits,
                          ec_direction_t     direction,
+                         ecmcEcDataType     dt,
                          std::string        id) {
   initVars();
   asynPortDriver_ = asynPortDriver;
@@ -34,7 +34,7 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
   slaveId_=slaveId;
   entryIndex_    = entryIndex;
   entrySubIndex_ = entrySubIndex;
-  bitLength_     = bits;
+  bitLength_     = getEcDataTypeBits(dt);
   direction_     = direction;
   sim_           = false;
   idString_      = id;
@@ -78,18 +78,17 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
                         ec_slave_config_t *slave,
                         uint16_t           pdoIndex,
                         uint16_t           entryIndex,
-                        uint8_t            entrySubIndex,
-                        uint8_t            bits,
+                        uint8_t            entrySubIndex,                        
                         ec_direction_t     direction,
-                        std::string        id,
-                        int                signedValue) {
+                        ecmcEcDataType     dt,
+                        std::string        id) {
   initVars();
   asynPortDriver_ = asynPortDriver;
   masterId_=masterId;
   slaveId_=slaveId;
   entryIndex_    = entryIndex;
   entrySubIndex_ = entrySubIndex;
-  bitLength_     = bits;
+  bitLength_     = getEcDataTypeBits(dt);
   direction_     = direction;
   sim_           = false;
   idString_      = id;
@@ -97,7 +96,8 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
   domain_        = domain;
   pdoIndex_      = pdoIndex;
   slave_         = slave;
-  signed_        = signedValue;
+  dataType_      = dt;
+
   int errorCode = ecrt_slave_config_pdo_mapping_add(slave,
                                                     pdoIndex_,
                                                     entryIndex_,
@@ -128,23 +128,26 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
     initAsyn();
 }
 
+
+// Used for pure simulation entries
 ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
-                         int masterId,
-                         int slaveId,                         
-                         uint8_t bits,
-                         uint8_t *domainAdr,
-                         std::string id) {
+                         int                 masterId,
+                         int                 slaveId,                                                  
+                         uint8_t            *domainAdr,
+                         ecmcEcDataType      dt,
+                         std::string         id) {
   initVars();
   asynPortDriver_ = asynPortDriver;
-  masterId_=masterId;
-  slaveId_=slaveId;
-  domainAdr_ = domainAdr;
-  bitLength_ = bits;
-  sim_       = true;
-  direction_ = EC_DIR_OUTPUT;
-  idString_  = id;
-  idStringChar_  = strdup(idString_.c_str());
-  adr_       = 0;
+  masterId_       = masterId;
+  slaveId_        = slaveId;
+  domainAdr_      = domainAdr;
+  sim_            = true;
+  direction_      = EC_DIR_OUTPUT;
+  idString_       = id;
+  idStringChar_   = strdup(idString_.c_str());
+  adr_            = 0;
+  dataType_       = dt;
+  bitLength_      = getEcDataTypeBits(dt);
   initAsyn();
 }
 
@@ -155,7 +158,6 @@ void ecmcEcEntry::initVars() {
   slaveId_                = -1;
   entryAsynParam_         = NULL;
   domainAdr_              = NULL;
-  bitLength_              = 0;
   bitOffset_              = 0;
   byteOffset_             = 0;
   entryIndex_             = 0;
@@ -169,8 +171,9 @@ void ecmcEcEntry::initVars() {
   domain_                 = NULL;
   pdoIndex_               = 0;
   slave_                  = NULL;
-  signed_                 = 0;
   value_                  = 0;
+  dataType_               = ECMC_EC_NONE;
+  bitLength_              = 0;
 }
 
 ecmcEcEntry::~ecmcEcEntry()

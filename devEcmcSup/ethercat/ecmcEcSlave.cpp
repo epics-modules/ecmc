@@ -18,7 +18,7 @@ ecmcEcSlave::ecmcEcSlave(
   ec_master_t *master,  /**< EtherCAT master */
   ec_domain_t *domain,  /** <Domain> */
   uint16_t     alias, /**< Slave alias. */
-  int32_t     position, /**< Slave position. */
+  int32_t      position, /**< Slave position. */
   uint32_t     vendorId, /**< Expected vendor ID. */
   uint32_t     productCode  /**< Expected product code. */) {
 
@@ -555,10 +555,9 @@ int ecmcEcSlave::addEntry(
   uint16_t       pdoIndex,
   uint16_t       entryIndex,
   uint8_t        entrySubIndex,
-  uint8_t        bits,
-  std::string    id,
-  int            signedValue
-  ) {
+  ecmcEcDataType dt,
+  std::string    id) {
+
   int err                        = 0;
   ecmcEcSyncManager *syncManager = findSyncMan(syncMangerIndex);
 

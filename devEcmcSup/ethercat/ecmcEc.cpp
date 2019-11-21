@@ -782,19 +782,19 @@ int ecmcEc::updateOutProcessImage() {
   return 0;
 }
 
-int ecmcEc::addEntry(
-  uint16_t       position,   /**< Slave position. */
-  uint32_t       vendorId,   /**< Expected vendor ID. */
-  uint32_t       productCode,   /**< Expected product code. */
+int addEntry(
+  uint16_t       position,     // Slave position.
+  uint32_t       vendorId,     // Expected vendor ID.
+  uint32_t       productCode,  // Expected product code.
   ec_direction_t direction,
   uint8_t        syncMangerIndex,
   uint16_t       pdoIndex,
   uint16_t       entryIndex,
-  uint8_t        entrySubIndex,
-  uint8_t        bits,
-  std::string    id,
-  int            signedValue
-  ) {
+  uint8_t        entrySubIndex, 
+  ecmcEcDataType dt,
+  std::string    id) 
+  {
+
   ecmcEcSlave *slave = findSlave(position);
 
   if (slave == NULL) {
@@ -811,9 +811,8 @@ int ecmcEc::addEntry(
                                   pdoIndex,
                                   entryIndex,
                                   entrySubIndex,
-                                  bits,
-                                  id,
-                                  signedValue);
+                                  dt,
+                                  id);
 
   if (errorCode) {
     return errorCode;
@@ -1783,4 +1782,153 @@ uint64_t ecmcEc::getTimeNs() {
   clock_gettime(CLOCK_MONOTONIC, &timeRel);
   timeAbs = timespecAdd(timeRel, timeOffset_);
   return TIMESPEC2NS(timeAbs);
+}
+
+// Convert string to datatype
+static ecmcEcDataType ecmcEc::getEcDataTypeFromStr(const char* dt) {
+  int n=0; 
+  n = strcmp(dt,EC_DT_BIT1);
+  if (n == 0) {
+    return ECMC_EC_B1;
+  }
+
+  n = strcmp(dt,EC_DT_BIT2);
+  if (n == 0) {
+    return ECMC_EC_B2;
+  }
+
+  n = strcmp(dt,EC_DT_BIT3);
+  if (n == 0) {
+    return ECMC_EC_B3;
+  }
+
+  n = strcmp(dt,EC_DT_BIT4);
+  if (n == 0) {
+    return ECMC_EC_B4;
+  }
+
+  n = strcmp(dt,EC_DT_U8);
+  if (n == 0) {
+    return ECMC_EC_U8;
+  }
+
+  n = strcmp(dt,EC_DT_S8);
+  if (n == 0) {
+    return ECMC_EC_S8;
+  }
+
+  n = strcmp(dt,EC_DT_U16);
+  if (n == 0) {
+    return ECMC_EC_U16;
+  }
+
+  n = strcmp(dt,EC_DT_S16);
+  if (n == 0) {
+    return ECMC_EC_S16;
+  }
+
+  n = strcmp(dt,EC_DT_U32);
+  if (n == 0) {
+    return ECMC_EC_U32;
+  }
+
+  n = strcmp(dt,EC_DT_S32);
+  if (n == 0) {
+    return ECMC_EC_S32;
+  }
+
+  n = strcmp(dt,EC_DT_U64);
+  if (n == 0) {
+    return ECMC_EC_U64;
+  }
+
+  n = strcmp(dt,EC_DT_S64);
+  if (n == 0) {
+    return ECMC_EC_S64;
+  }
+
+  n = strcmp(dt,EC_DT_F32);
+  if (n == 0) {
+    return ECMC_EC_F32;
+  }
+
+  n = strcmp(dt,EC_DT_F64);
+  if (n == 0) {
+    return ECMC_EC_F64;
+  }
+
+  // Not a valid type
+  return ECMC_EC_NONE;
+}
+
+// Convert string to datatype
+static size_t ecmcEc::getEcDataTypeBits(ecmcEcDataType dt) {
+  
+  switch(dt) {
+  case ECMC_EC_NONE:
+    return 0;
+    break;
+
+  case ECMC_EC_B1:
+    return 1;
+    break;
+
+  case ECMC_EC_B2:
+    return 2;
+    break;
+
+  case ECMC_EC_B3:
+    return 3;
+    break;
+
+  case ECMC_EC_B4:
+    return 4;
+    break;
+
+  case ECMC_EC_U8:
+    return 8;
+    break;
+
+  case ECMC_EC_S8:
+    return 8;
+    break;
+
+  case ECMC_EC_U16:
+    return 16;
+    break;
+
+  case ECMC_EC_S16:
+    return 16;
+    break;
+
+  case ECMC_EC_U32:
+    return 32;
+    break;
+
+  case ECMC_EC_S32:
+    return 32;
+    break;
+
+  case ECMC_EC_U64:
+    return 64;
+    break;
+
+  case ECMC_EC_S64:
+    return 64;
+    break;
+
+  case ECMC_EC_F32:
+    return 32;
+    break;
+
+  case ECMC_EC_F64:
+    return 64;
+    break;
+
+  default:
+    return 0;
+    break;
+  }
+  // Not a valid type
+  return 0;
 }

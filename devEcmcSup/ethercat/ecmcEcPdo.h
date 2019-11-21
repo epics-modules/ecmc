@@ -37,12 +37,11 @@ class ecmcEcPdo : public ecmcError {
             uint16_t           pdoIndex,
             ec_direction_t     direction);
   ~ecmcEcPdo();
-  ecmcEcEntry* addEntry(uint16_t    entryIndex,
-                        uint8_t     entrySubIndex,
-                        uint8_t     bits,
-                        std::string id,
-                        int         signedValue,
-                        int        *errorCode);
+  ecmcEcEntry* addEntry(uint16_t     entryIndex,
+                        uint8_t      entrySubIndex,
+                        ecmcDataType dt,
+                        std::string  id,
+                        int         *errorCode);
   ecmcEcEntry* getEntry(int index);
   ecmcEcEntry* findEntry(std::string id);
   int          getEntryCount();

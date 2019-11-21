@@ -23,6 +23,7 @@
 #include "../com/ecmcOctetIF.h"
 #include "../com/ecmcAsynPortDriver.h"
 #include "ecmcAsynLink.h"
+#include "ecmcEc.h"
 #include "alarm.h"  //EPICS alarms
 
 // ECENTRY ERRORS
@@ -51,8 +52,8 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
               uint16_t           pdoIndex,
               uint16_t           entryIndex,
               uint8_t            entrySubIndex,
-              uint8_t            bits,
               ec_direction_t     nDirection,
+              ecmcEcDataType     dt,
               std::string        id);
   ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
               int masterId,
@@ -62,10 +63,9 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
               uint16_t           pdoIndex,
               uint16_t           entryIndex,
               uint8_t            entrySubIndex,
-              uint8_t            bits,
               ec_direction_t     nDirection,
-              std::string        id,
-              int                signedValue);
+              ecmcEcDataType     dt,
+              std::string        id);
   ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
               int masterId,
               int slaveId,
@@ -117,7 +117,7 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
   ec_domain_t *domain_;
   uint16_t pdoIndex_;
   ec_slave_config_t *slave_;
-  int signed_;
+  ecmcEcDataType dataType_;  
   int masterId_;
   int slaveId_;
   ecmcAsynPortDriver *asynPortDriver_;

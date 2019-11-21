@@ -136,9 +136,9 @@ class ecmcEc : public ecmcError {
     uint16_t       pdoIndex,
     uint16_t       entryIndex,
     uint8_t        entrySubIndex,
-    uint8_t        bits,
-    std::string    id,
-    int            signedValue);
+    ecmcEcDataType dt,
+    std::string    id);
+
   int addMemMap(uint16_t       startEntryBusPosition,
                 std::string    startEntryIDString,
                 int            byteSize,
@@ -167,7 +167,9 @@ class ecmcEc : public ecmcError {
                         uint32_t vendorId,   /**< Expected vendor ID. */
                         uint32_t productCode  /**< Exp)*/);
   int           checkReadyForRuntime();
-  uint64_t      getTimeNs();                 
+  uint64_t      getTimeNs();
+  static ecmcEcDataType getEcDataTypeFromStr(const char* dt);
+  static size_t         getEcDataTypeBits(ecmcEcDataType dt);
  private:
   void     initVars();
   int      updateInputProcessImage();

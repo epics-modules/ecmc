@@ -87,9 +87,8 @@ class ecmcEcSlave : public ecmcError {
     uint16_t       pdoIndex,
     uint16_t       entryIndex,
     uint8_t        entrySubIndex,
-    uint8_t        bits,
-    std::string    id,
-    int            signedValue);
+    ecmcEcDataType dt,
+    std::string    id);
   int configDC(
     // AssignActivate word.
     uint16_t assignActivate,

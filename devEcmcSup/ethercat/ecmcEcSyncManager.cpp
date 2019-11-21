@@ -152,13 +152,12 @@ uint8_t ecmcEcSyncManager::getSyncMangerIndex() {
 }
 
 ecmcEcEntry * ecmcEcSyncManager::addEntry(
-  uint16_t    pdoIndex,
-  uint16_t    entryIndex,
-  uint8_t     entrySubIndex,
-  uint8_t     bits,
-  std::string id,
-  int         signedValue,
-  int        *errorCode
+  uint16_t       pdoIndex,
+  uint16_t       entryIndex,
+  uint8_t        entrySubIndex,  
+  ecmcEcDataType dt,
+  std::string    id,
+  int            *errorCode
   ) {
   int err        = 0;
   ecmcEcPdo *pdo = findPdo(pdoIndex);
@@ -175,9 +174,8 @@ ecmcEcEntry * ecmcEcSyncManager::addEntry(
 
   ecmcEcEntry *entry = pdo->addEntry(entryIndex,
                                      entrySubIndex,
-                                     bits,
+                                     dt,
                                      id,
-                                     signedValue,
                                      &err);
 
   if (err || !entry) {
