@@ -754,6 +754,10 @@ int ecmcEcEntry::initAsyn() {
 
 int ecmcEcEntry::setComAlarm(bool alarm) {
   asynStatus stat;
+  if(entryAsynParam_==NULL) {
+    return 0;
+  }
+  
   if(alarm) {
     stat = entryAsynParam_->setAlarmParam(COMM_ALARM,INVALID_ALARM); 
   } else {
