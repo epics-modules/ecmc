@@ -125,6 +125,5 @@ class ecmcEcEntry : public ecmcError {
   uint64_t           *uint64Ptr_;
   float              *float32Ptr_;
   double             *float64Ptr_;
-  
 };
 #endif  /* ECMCECENTRY_H_ */

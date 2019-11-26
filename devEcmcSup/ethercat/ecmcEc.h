@@ -141,7 +141,6 @@ class ecmcEc : public ecmcError {
   int addMemMap(uint16_t       startEntryBusPosition,
                 std::string    startEntryIDString,
                 int            byteSize,
-                int            type,
                 ec_direction_t direction,
                 ecmcEcDataType dt,
                 std::string    memMapIDString);

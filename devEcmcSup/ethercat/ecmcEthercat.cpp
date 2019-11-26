@@ -299,7 +299,7 @@ int ecAddMemMapDT(
   std::string startEntryId = alias;
   ecmcEcDataType dt = getEcDataTypeFromStr(dataType);
 
-  return ec->addMemMap(slaveIndex, startEntryId, byteSize, 0,
+  return ec->addMemMap(slaveIndex, startEntryId, byteSize,
                       (ec_direction_t)direction, dt, memMapId);
 }
 
@@ -328,7 +328,7 @@ int ecAddMemMap(
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
   
-    return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize, 0,
+    return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize,
                       (ec_direction_t)direction, ECMC_EC_NONE, memMapId);
 }
 

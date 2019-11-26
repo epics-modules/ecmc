@@ -1065,3 +1065,73 @@ const char*getEcDataTypeStr(ecmcEcDataType dt) {
 
   return EC_DT_NONE;
 }
+
+size_t getEcDataTypeByteSize(ecmcEcDataType dt){
+  switch(dt) {
+  case ECMC_EC_NONE:
+    return 0;
+    break;
+
+  case ECMC_EC_B1:
+    return 1;
+    break;
+
+  case ECMC_EC_B2:
+    return 1;
+    break;
+
+  case ECMC_EC_B3:
+    return 1;
+    break;
+
+  case ECMC_EC_B4:
+    return 1;
+    break;
+
+  case ECMC_EC_U8:
+    return 1;
+    break;
+
+  case ECMC_EC_S8:
+    return 1;
+    break;
+
+  case ECMC_EC_U16:
+    return 2;
+    break;
+
+  case ECMC_EC_S16:
+    return 2;
+    break;
+
+  case ECMC_EC_U32:
+    return 4;
+    break;
+
+  case ECMC_EC_S32:
+    return 4;
+    break;
+
+  case ECMC_EC_U64:
+    return 8;
+    break;
+
+  case ECMC_EC_S64:
+    return 8;
+    break;
+
+  case ECMC_EC_F32:
+    return 4;
+    break;
+
+  case ECMC_EC_F64:
+    return 8;
+    break;
+
+  default:
+    return 0;
+    break;
+  }
+
+  return 0;
+}

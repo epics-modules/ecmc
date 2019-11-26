@@ -2076,6 +2076,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x211002:
+    return "ERROR_MEM_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x211003:
+    return "ERROR_MEM_INVALID_DATA_TYPE";
+
+    break;
+
   // asynDataItem  
   case 0x220000:
     return "ERROR_ASYN_PORT_NULL";

@@ -41,10 +41,14 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_wrt_bits(",
                                "ec_chk_bits(",
                                "ec_get_time(",
+                               "ec_get_mm_type("
+                               "ec_get_mm_data("
+                               "ec_set_mm_data("
+                               "ec_get_mm_size("
                               };
 
 static int ec_errorCode = 0;
-static int ec_cmd_count = 13;
+static int ec_cmd_count = 17;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
@@ -97,6 +101,7 @@ inline double ec_chk_bits(double value, double startBit, double stopBit)
 }
 
 inline double ec_get_time() {
+  ec_errorCode = 0;
   if(!ecmcPLCTask::statEc_) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return -(double)ec_errorCode;
@@ -160,7 +165,7 @@ inline double ec_get_err()
 
 // Mem map copy
 inline double ec_mm_cp(double srcId, double destId) {
-
+  ec_errorCode = 0;
   if(!ecmcPLCTask::statEc_) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return (double)ec_errorCode;
@@ -185,6 +190,87 @@ inline double ec_mm_cp(double srcId, double destId) {
   return ec_errorCode;
 }
 
+// Get mm data type
+inline double ec_get_mm_type(double srcId) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return -(double)ec_errorCode;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return -(double)ec_errorCode;
+  }
+  
+  return (double)src->getDataType();
+}
+
+// Get mm data type
+inline double ec_get_mm_data(double srcId,double index) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return 0;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return 0;
+  }
+
+  double dataTemp = 0;
+
+  ec_errorCode = src->getDoubleDataAtIndex((int)index,&dataTemp);
+  if(ec_errorCode) {
+    return 0;
+  }
+
+  return dataTemp;
+}
+
+// Set mm data type
+inline double ec_set_mm_data(double srcId,double index, double data) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return 0;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return 0;
+  }
+
+  ec_errorCode = src->setDoubleDataAtIndex((int)index,data);
+
+  return ec_errorCode;
+}
+
+// Get mm data size
+inline double ec_get_mm_size(double srcId) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return 0;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return 0;
+  }
+
+  return (double)src->getElementCount();
+}
+
 // Reset error
 inline double ec_err_rst() {
   ec_errorCode = 0;
@@ -192,5 +278,3 @@ inline double ec_err_rst() {
 }
 
 #endif /* ecmcPLC_libEc_inc_ */
-
-

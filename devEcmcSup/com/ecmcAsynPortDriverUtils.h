@@ -164,5 +164,6 @@ int            getEcDataTypeSigned(ecmcEcDataType dt);
 size_t         getEcDataTypeMinVal(ecmcEcDataType dt);
 size_t         getEcDataTypeMaxVal(ecmcEcDataType dt);
 const char*    getEcDataTypeStr(ecmcEcDataType dt);
+size_t         getEcDataTypeByteSize(ecmcEcDataType dt);
 
 #endif  /* ECMC_ASYN_PORT_DRIVER_UTILS_H_ */

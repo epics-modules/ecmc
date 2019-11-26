@@ -921,8 +921,7 @@ timespec ecmcEc::timespecAdd(timespec time1, timespec time2) {
 
 int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
                       std::string    startEntryIDString,
-                      int            byteSize,
-                      int            type,
+                      int            byteSize,                      
                       ec_direction_t direction,
                       ecmcEcDataType dt,
                       std::string    memMapIDString) {
@@ -996,7 +995,6 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
                                                            startEntryBusPosition,                                                        
                                                            entry,
                                                            byteSize,
-                                                           type,
                                                            direction,
                                                            dt,
                                                            aliasString);
