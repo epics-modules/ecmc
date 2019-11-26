@@ -156,7 +156,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   // Add first param for other access (like motor record or stream device).
   ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,
                                                      ECMC_ASYN_PAR_OCTET_NAME,
-                                                     asynParamNotDefined);
+                                                     asynParamNotDefined,
+                                                     ECMC_EC_NONE);
   if(paramTemp->createParam()){
     asynPrint(pasynUserSelf,
               ASYN_TRACE_ERROR,
@@ -326,7 +327,8 @@ ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
 
 /** Create and add new parameter to list of available parameters\n
   * \param[in] name Parameter name\n
-  * \param[in] type Parameter type\n
+  * \param[in] type Asyn parameter type\n
+  * \param[in] dt   Data type\n
   * \param[in] data Pointer to data\n
   * \param[in] bytes size of data\n
   * \param[in] dieIfFail Exit if method fails\n
@@ -337,11 +339,12 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
                                                        asynParamType type,
                                                        uint8_t *data,
                                                        size_t bytes,
+                                                       ecmcEcDataType dt,
                                                        bool dieIfFail) {
 
   const char* functionName = "addNewAvailParam";
 
-  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,name,type);
+  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,name,type,dt);
   
   int errorCode=paramTemp->setEcmcDataPointer(data, bytes);
   if(errorCode) {
@@ -964,6 +967,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    ECMC max size [bytes]:     %lu\n",paramInfo->ecmcMaxSize);
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
+  fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
   // Value range only applicable for ints
   if(param->getEcmcMinValueInt() != param->getEcmcMaxValueInt()) {
     fprintf(fp,"    ECMC Value Range:          %ld..%ld, %ld bit(s)\n",

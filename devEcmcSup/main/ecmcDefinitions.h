@@ -503,6 +503,7 @@ typedef struct ecmcMainThreadDiag{
 #define BIT_FLIP(a, b) ((a) ^= (1 << (b)))
 #define BIT_CHECK(a, b) ((a) & (1 << (b)))
 
+#define EC_DT_NONE "NONE"
 #define EC_DT_BIT1 "B1"
 #define EC_DT_BIT2 "B2"
 #define EC_DT_BIT3 "B3"
@@ -533,7 +534,7 @@ enum ecmcEcDataType {
   ECMC_EC_U64   = 11,
   ECMC_EC_S64   = 12,
   ECMC_EC_F32   = 13,
-  ECMC_EC_F64   = 14
+  ECMC_EC_F64   = 14  
 };
 
 

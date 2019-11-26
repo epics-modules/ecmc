@@ -199,22 +199,21 @@ int ecmcPLCDataIF::write() {
 }
 
 int ecmcPLCDataIF::readEc() {
-  uint64_t value;
-  int errorCode = readEcEntryValue(ECMC_PLC_EC_ENTRY_INDEX, &value);
+  double tempData = 0;
+  int errorCode = readEcEntryValueDouble(ECMC_PLC_EC_ENTRY_INDEX, &tempData);
 
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
-  data_ = static_cast<double>(value);  // Risk of data loss
+  data_ = tempData;
 
   return 0;
 }
 
 int ecmcPLCDataIF::writeEc() {
-  uint64_t value = (uint64_t)data_;
-
-  int errorCode = writeEcEntryValue(ECMC_PLC_EC_ENTRY_INDEX, value);
+  
+  int errorCode = writeEcEntryValueDouble(ECMC_PLC_EC_ENTRY_INDEX, data_);
 
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
@@ -1400,6 +1399,7 @@ int ecmcPLCDataIF::initAsyn() {
                                                     asynParamFloat64,
                                                     (uint8_t *)&data_,
                                                     sizeof(data_),
+                                                    ECMC_EC_F64,
                                                     0);
     if(!asynDataItem_) {
       LOGERR(

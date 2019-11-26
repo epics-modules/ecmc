@@ -648,6 +648,7 @@ static int handleCfgCommand(const char *myarg_1) {
   double dValue2 = 0;
   char   cIdBuffer[4096];
   char   cIdBuffer2[4096];
+  char   cIdBuffer3[4096];
 
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
@@ -906,14 +907,14 @@ static int handleCfgCommand(const char *myarg_1) {
     uint16_t position,
     uint32_t vendor_id,
     uint32_t product_code,
-    int nDirection,
-    uint8_t nSyncMangerIndex,
+    int      nDirection,
+    uint8_t  nSyncMangerIndex,
     uint16_t nPdoIndex,
     uint16_t nEntryIndex,
     uint8_t  nEntrySubIndex,
-    uint8_t nBits,
-    int signed,
-    char *cID)*/
+    uint8_t  nBits,
+    int      signed,
+    char    *cID)*/
   nvals = sscanf(myarg_1,
                  "EcAddEntryComplete(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%d,%d,%[^)])",
                  &iValue,
@@ -1026,6 +1027,116 @@ static int handleCfgCommand(const char *myarg_1) {
                               0);
   }
 
+  // New syntax
+  /*Cfg.EcAddEntryDT(
+    uint16_t position,
+    uint32_t vendor_id,
+    uint32_t product_code,
+    int      nDirection,
+    uint8_t  nSyncMangerIndex,
+    uint16_t nPdoIndex,
+    uint16_t nEntryIndex,
+    uint8_t  nEntrySubIndex,
+    char    *dataType,
+    char    *cID,
+    int      updateInRealtime)*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  cIdBuffer3[0] = '\0';
+  nvals = sscanf(myarg_1,
+                 "EcAddEntryDT(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%[^,],%[^,],%d)",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 &iValue4,
+                 &iValue5,
+                 &iValue6,
+                 &iValue7,
+                 &iValue8,                 
+                 cIdBuffer,
+                 cIdBuffer2,
+                 &iValue9);
+
+  if (nvals == 11) {
+    return ecAddEntry(iValue,
+                      iValue2,
+                      iValue3,
+                      iValue4,
+                      iValue5,
+                      iValue6,
+                      iValue7,
+                      iValue8,
+                      cIdBuffer,
+                      cIdBuffer2,
+                      iValue9);
+  }
+
+ // New syntax (default update in Real time)
+  /*Cfg.EcAddEntryDT(
+    uint16_t position,
+    uint32_t vendor_id,
+    uint32_t product_code,
+    int      nDirection,
+    uint8_t  nSyncMangerIndex,
+    uint16_t nPdoIndex,
+    uint16_t nEntryIndex,
+    uint8_t  nEntrySubIndex,
+    char    *dataType,
+    char    *cID)*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  cIdBuffer3[0] = '\0';
+  nvals = sscanf(myarg_1,
+                 "EcAddEntryDT(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%[^,],%[^)])",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 &iValue4,
+                 &iValue5,
+                 &iValue6,
+                 &iValue7,
+                 &iValue8,                 
+                 cIdBuffer,
+                 cIdBuffer2);
+
+  if (nvals == 10) {
+    return ecAddEntry(iValue,
+                      iValue2,
+                      iValue3,
+                      iValue4,
+                      iValue5,
+                      iValue6,
+                      iValue7,
+                      iValue8,
+                      cIdBuffer,
+                      cIdBuffer2,
+                      1);
+  }
+
+  /*Cfg.EcAddMemMapDT(
+      char *startEntryIDString,  (ec0.s1.AI1)
+      size_t byteSize,
+      int direction,
+      char *dataType,            (S32)
+      char *memMapIDString       (ec0.S1.CH1_ARRAY)
+      )*/
+
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  cIdBuffer3[0] = '\0';
+  nvals = sscanf(myarg_1,
+                 "EcAddMemMapDT(%[^,],%d,%d,%[^,],%[^)])",
+                 cIdBuffer,
+                 &iValue2,
+                 &iValue3,
+                 cIdBuffer2,
+                 cIdBuffer3);
+
+  if (nvals == 5) {    
+    return ecAddMemMapDT(cIdBuffer, (size_t)iValue2, iValue3,
+                       cIdBuffer2,cIdBuffer3);                       
+  }
+
   /*Cfg.EcAddMemMap(
       uint16_t startEntryBusPosition,
       char *startEntryIDString,
@@ -1033,6 +1144,9 @@ static int handleCfgCommand(const char *myarg_1) {
       int direction,
       char *memMapIDString
       )*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  cIdBuffer3[0] = '\0';      
   nvals = sscanf(myarg_1,
                  "EcAddMemMap(%d,%[^,],%d,%d,%[^)])",
                  &iValue,
@@ -1043,7 +1157,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 5) {
     return ecAddMemMap(iValue, cIdBuffer, (size_t)iValue2, iValue3,
-                       cIdBuffer2);
+                             cIdBuffer2);
   }
 
   /*Cfg.EcSlaveConfigDC(

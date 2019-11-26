@@ -52,6 +52,7 @@ class ecmcEcSyncManager : public ecmcError {
     uint8_t        entrySubIndex,
     ecmcEcDataType dt,
     std::string    id,
+    int            useInRealTime,
     int            *errorCode);
   ecmcEcEntry* findEntry(std::string id);
 

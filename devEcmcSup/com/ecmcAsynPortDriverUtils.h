@@ -16,6 +16,8 @@
 #include "asynPortDriver.h"  //data types
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+#include <limits>
+#include <cmath>
 
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcErrorsList.h"
@@ -154,5 +156,13 @@ int getEcMainFuncType(char *objPath,
     asynParamGenericPointer
 } asynParamType;
 */
+ 
+ecmcEcDataType getEcDataTypeFromStr(const char* dt);
+size_t         getEcDataTypeBits(ecmcEcDataType dt);
+ecmcEcDataType getEcDataType(size_t bitLength,bool signedVal);
+int            getEcDataTypeSigned(ecmcEcDataType dt);
+size_t         getEcDataTypeMinVal(ecmcEcDataType dt);
+size_t         getEcDataTypeMaxVal(ecmcEcDataType dt);
+const char*    getEcDataTypeStr(ecmcEcDataType dt);
 
 #endif  /* ECMC_ASYN_PORT_DRIVER_UTILS_H_ */

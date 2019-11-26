@@ -1002,6 +1002,7 @@ int ecmcAxisBase::initAsyn() {
                                          asynParamFloat64,
                                          (uint8_t *)&(statusData_.onChangeData.positionActual),
                                          sizeof(statusData_.onChangeData.positionActual),
+                                         ECMC_EC_F64,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1037,6 +1038,7 @@ int ecmcAxisBase::initAsyn() {
                                          asynParamFloat64,
                                          (uint8_t *)&(statusData_.onChangeData.positionSetpoint),
                                          sizeof(statusData_.onChangeData.positionSetpoint),
+                                         ECMC_EC_F64,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1072,6 +1074,7 @@ int ecmcAxisBase::initAsyn() {
                                          asynParamFloat64,
                                          (uint8_t *)&(statusData_.onChangeData.cntrlError),
                                          sizeof(statusData_.onChangeData.cntrlError),
+                                         ECMC_EC_F64,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1107,6 +1110,7 @@ int ecmcAxisBase::initAsyn() {
                                          asynParamInt8Array,
                                          (uint8_t *)diagBuffer_,
                                          AX_MAX_DIAG_STRING_CHAR_LENGTH,
+                                         ECMC_EC_S8,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1143,6 +1147,7 @@ int ecmcAxisBase::initAsyn() {
                                          asynParamUInt32Digital,
                                          (uint8_t *)&(statusWord_),
                                          sizeof(statusWord_),
+                                         ECMC_EC_U32,
                                          0);
   if(!paramTemp) {
     LOGERR(

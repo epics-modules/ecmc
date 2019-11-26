@@ -20,6 +20,7 @@ ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                            size_t         byteSize,
                            int            type,
                            ec_direction_t nDirection,
+                           ecmcEcDataType dt,
                            std::string    id) {
   initVars();
   asynPortDriver_ = asynPortDriver;
@@ -31,7 +32,8 @@ ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
   idStringChar_  = strdup(idString_.c_str());
   buffer_     = new uint8_t[byteSize_];
   type_       = type;
-  slaveId_=slaveId;
+  slaveId_    = slaveId;
+  dataType_   =dt;
   initAsyn();
 }
 
@@ -49,6 +51,7 @@ void ecmcEcMemMap::initVars() {
   adr_            = 0;
   memMapAsynParam_ = NULL;
   slaveId_ = 0;
+  dataType_ = ECMC_EC_NONE;
 }
 
 ecmcEcMemMap::~ecmcEcMemMap() {
@@ -199,6 +202,7 @@ int ecmcEcMemMap::initAsyn() {
                                          asynParamInt8Array,  //default type
                                          buffer_,
                                          byteSize_,
+                                         dataType_,
                                          0);
   if(!memMapAsynParam_) {
     LOGERR(

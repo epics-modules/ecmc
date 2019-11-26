@@ -82,13 +82,14 @@ class ecmcEcSlave : public ecmcError {
   int                updateOutProcessImage();
   int                getSlaveBusPosition();
   int                addEntry(
-    ec_direction_t direction,
-    uint8_t        syncMangerIndex,
-    uint16_t       pdoIndex,
-    uint16_t       entryIndex,
-    uint8_t        entrySubIndex,
-    ecmcEcDataType dt,
-    std::string    id);
+                       ec_direction_t direction,
+                       uint8_t        syncMangerIndex,
+                       uint16_t       pdoIndex,
+                       uint16_t       entryIndex,
+                       uint8_t        entrySubIndex,
+                       ecmcEcDataType dt,
+                       std::string    id,
+                       int            useInRealTime);
   int configDC(
     // AssignActivate word.
     uint16_t assignActivate,

@@ -619,6 +619,7 @@ int ecmcDriveBase::initAsyn() {
                                          asynParamUInt32Digital,
                                          (uint8_t *)&(controlWord_),
                                          sizeof(controlWord_),
+                                         ECMC_EC_U32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -657,6 +658,7 @@ int ecmcDriveBase::initAsyn() {
                                          asynParamUInt32Digital,
                                          (uint8_t *)&(statusWord_),
                                          sizeof(statusWord_),
+                                         ECMC_EC_U32,
                                          0);
   if(!paramTemp) {
     LOGERR(

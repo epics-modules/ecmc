@@ -97,7 +97,7 @@ int ecAddPdo(int      slaveIndex,
              int      syncManager,
              uint16_t pdoIndex);
 
-/** \brief Adds an EtherCAT slave to the hardware configuration.\n
+/** \breif Adds an EtherCAT slave to the hardware configuration.\n
  *
  * Each added slave will be assigned an additional index which will be zero for
  * the first successfully added slave and then incremented for each successful
@@ -158,8 +158,131 @@ int ecAddEntryComplete(
   char    *entryIDString,
   int      signedValue);
 
+/** \brief Adds an EtherCAT slave to the hardware configuration.\n
+ *
+ * Each added slave will be assigned an additional index which will be zero for
+ * the first successfully added slave and then incremented for each successful
+ * call to "Cfg.EcAddSlave()".\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] vendorId Identification value for slave vendor.\n
+ *    vendorId = 0x2: Beckhoff.\n
+ *    vendorId = 0x48554B: Kendrion Kuhnke Automation GmbH.\n
+ *  \param[in] productCode Product identification code.\n
+ *    productCode=0x13ed3052: EL5101 incremental encoder input.\n
+ *  \param[in] direction Data transfer direction..\n
+ *    direction  = 1:  Output (from master).\n
+ *    direction  = 2:  Input (to master).\n
+ *  \param[in] syncMangerIndex Index of sync manager.
+ *  \param[in] pdoIndex Index of process data object. Needs to be entered
+ *                           in hex format.\n
+ *  \param[in] entryIndex Index of process data object entry. Needs to be
+ *                           entered in hex format.\n
+ *  \param[in] entrySubIndex Index of process data object sub entry.
+ *                           Needs to be entered in hex format.\n
+ *  \param[in] dataType DataType of ethercat data:\n
+ *                      B1:  1-bit\n
+ *                      B2:  2-bits (lsb)\n
+ *                      B3:  3-bits (lsb)\n
+ *                      B4:  3-bits (lsb)\n
+ *                      U8:  Unsigned 8-bit\n
+ *                      S8:  Signed 8-bit\n
+ *                      U16: Unsigned 16-bit\n
+ *                      S16: Signed 16-bit\n
+ *                      U32: Unsigned 32-bit\n
+ *                      S32: Signed 32-bit\n
+ *                      U64: Unsigned 64-bit\n
+ *                      S64: Signed 64-bit\n
+ *                      F32: Real 32-bit\n 
+ *                      F64: Double 64-bit\n
+ * 
+ *  \param[in] entryIDString Identification string used for addressing the
+ *                           entry.\n
+ *  \param[in] updateInRT    1 if value should be updated in realtime 0\n
+ *                           normally set to zero for entries that are\n
+ *                           covered in memmaps.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave, in the ESI slave description file or by using the etherlab
+ * (www.etherlab.org) ethercat tool.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add an EtherCAT entry for the actual position of an EL5101
+ * incremental encoder card.\n
+ * "Cfg.EcAddEntry(2,0x2,0x13ed3052,2,3,0x1a03,0x6010,0x10,U16,POSITION,1)"
+ * //Command string to ecmcCmdParser.c\n
+ *
+ * \note Example: Add an EtherCAT entry for the velocity setpoint of an EL7037
+ * stepper drive card.\n
+ * "Cfg.EcAddEntry(7,0x2,0x1b7d3052,1,2,0x1604,0x7010,0x21,S16,
+ * VELOCITY_SETPOINT,1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddEntry(
+  uint16_t slaveBusPosition,
+  uint32_t vendorId,
+  uint32_t productCode,
+  int      direction,
+  uint8_t  syncMangerIndex,
+  uint16_t pdoIndex,
+  uint16_t entryIndex,
+  uint8_t  entrySubIndex,
+  char    *datatype,  
+  char    *entryIDString,
+  int      updateInRealTime);
+
 /** \brief Adds a memory map object to access data directly from EtherCAT
- *   domain.\n
+ *   domain. This is the preferred syntax.\n
+ *
+ *  The start of the memory map is addressed by a previously configured
+ *  EtherCAT entry and a size.
+ *
+ *  \param[in] ecPath   Identification string of the start EtherCAT
+ *   *                  entry (example "ec0.s1.AI_1").\n
+ *  \param[in] byteSize Size of memory map objects (size to access).\n
+ *  \param[in] direction Data transfer direction..\n
+ *    direction  = 1:  Output (from master).\n
+ *    direction  = 2:  Input (to master).\n
+ *  \param[in] dataType DataType of ethercat data:\n
+ *                      B1:  1-bit\n
+ *                      B2:  2-bits (lsb)\n
+ *                      B3:  3-bits (lsb)\n
+ *                      B4:  3-bits (lsb)\n
+ *                      U8:  Unsigned 8-bit\n
+ *                      S8:  Signed 8-bit\n
+ *                      U16: Unsigned 16-bit\n
+ *                      S16: Signed 16-bit\n
+ *                      U32: Unsigned 32-bit\n
+ *                      S32: Signed 32-bit\n
+ *                      U64: Unsigned 64-bit\n
+ *                      S64: Signed 64-bit\n
+ *                      F32: Real 32-bit\n 
+ *                      F64: Double 64-bit\n
+ * 
+ *  \param[in] memMapIdString Identification string used for addressing the
+ object.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
+ * entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
+ * argument is excluded in\n
+ * "Cfg.EcAddMemMapDT(10,AI1,200,2,ec0.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddMemMapDT(
+  char    *ecPath,  
+  size_t   byteSize,
+  int      direction,
+  char    *dataType,
+  char    *memMapIDString);
+
+/** \brief Adds a memory map object to access data directly from EtherCAT\n
+ *   domain. Support for this syntax might be dropped in newer releases.\n 
+ *   Please use new syntax.\n
  *
  *  The start of the memory map is addressed by a previously configured
  *  EtherCAT entry and a size.
@@ -173,6 +296,7 @@ int ecAddEntryComplete(
  *  \param[in] direction Data transfer direction..\n
  *    direction  = 1:  Output (from master).\n
  *    direction  = 2:  Input (to master).\n
+ * 
  *  \param[in] entryIDString Identification string used for addressing the
  object.\n
  *

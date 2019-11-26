@@ -35,14 +35,14 @@ ecmcEcSlave::ecmcEcSlave(
   simEntries_[0] = new ecmcEcEntry(asynPortDriver_,
                                    masterId_,
                                    slavePosition_,
-                                   (uint8_t)32,
                                    &simBuffer_[0],
+                                    ECMC_EC_U32,
                                     "ZERO");
   simEntries_[1] = new ecmcEcEntry(asynPortDriver_,
                                    masterId_,
                                    slavePosition_,
-                                   (uint8_t)32,
                                    &simBuffer_[8],
+                                   ECMC_EC_U32,
                                    "ONE");
   simEntries_[0]->writeValue(0);  // Default 0
   simEntries_[1]->writeValue(0xFFFFFFFF);  // Default 1 (32 bits)
@@ -556,7 +556,8 @@ int ecmcEcSlave::addEntry(
   uint16_t       entryIndex,
   uint8_t        entrySubIndex,
   ecmcEcDataType dt,
-  std::string    id) {
+  std::string    id,
+  int            useInRealTime) {
 
   int err                        = 0;
   ecmcEcSyncManager *syncManager = findSyncMan(syncMangerIndex);
@@ -582,9 +583,9 @@ int ecmcEcSlave::addEntry(
   ecmcEcEntry *entry = syncManager->addEntry(pdoIndex,
                                              entryIndex,
                                              entrySubIndex,
-                                             bits,
+                                             dt,
                                              id,
-                                             signedValue,
+                                             useInRealTime,
                                              &err);
 
   if (!entry) {
@@ -791,6 +792,7 @@ int ecmcEcSlave::initAsyn() {
                                          asynParamUInt32Digital,
                                          (uint8_t *)&(statusWord_),
                                          sizeof(statusWord_),
+                                         ECMC_EC_U32,
                                          0);
   if(!paramTemp) {
     LOGERR(

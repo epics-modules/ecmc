@@ -34,6 +34,7 @@ class ecmcEcMemMap : public ecmcError {
                size_t         byteSize,
                int            type,
                ec_direction_t nDirection,
+               ecmcEcDataType dt,
                std::string    id);
   ~ecmcEcMemMap();
   void        initVars();
@@ -65,9 +66,10 @@ class ecmcEcMemMap : public ecmcError {
   uint8_t    *buffer_;
   ec_direction_t     direction_;
   std::string        idString_;
-  char               *idStringChar_;
-  ecmcEcEntry        *startEntry_;
-  ecmcAsynPortDriver *asynPortDriver_;
-  ecmcAsynDataItem   *memMapAsynParam_;
+  char              *idStringChar_;
+  ecmcEcEntry       *startEntry_;
+  ecmcAsynPortDriver*asynPortDriver_;
+  ecmcAsynDataItem  *memMapAsynParam_;
+  ecmcEcDataType     dataType_;
 };
 #endif  /* ECMCECMEMMAP_H_ */

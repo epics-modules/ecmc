@@ -80,6 +80,7 @@ ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t       entryIndex,
                                   uint8_t        entrySubIndex,
                                   ecmcEcDataType dt,
                                   std::string    id,
+                                  int useInRealTime,
                                   int           *errorCode) {
   if (entryCounter_ >= (EC_MAX_ENTRIES)) {
     LOGERR("%s/%s:%d: ERROR: Entries array full (0x%x).\n",
@@ -102,7 +103,8 @@ ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t       entryIndex,
                                        entrySubIndex,
                                        direction_,
                                        dt,
-                                       id);
+                                       id,
+                                       useInRealTime);
   entryArray_[entryCounter_] = entry;
   entryCounter_++;
   *errorCode = 0;

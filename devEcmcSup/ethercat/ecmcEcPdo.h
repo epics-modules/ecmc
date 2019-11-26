@@ -39,8 +39,9 @@ class ecmcEcPdo : public ecmcError {
   ~ecmcEcPdo();
   ecmcEcEntry* addEntry(uint16_t     entryIndex,
                         uint8_t      entrySubIndex,
-                        ecmcDataType dt,
+                        ecmcEcDataType dt,
                         std::string  id,
+                        int          useInRealTime,
                         int         *errorCode);
   ecmcEcEntry* getEntry(int index);
   ecmcEcEntry* findEntry(std::string id);

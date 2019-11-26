@@ -89,9 +89,10 @@ class ecmcAsynPortDriver : public asynPortDriver {
   bool      getAllowRtThreadCom();
   asynUser* getTraceAsynUser();
   ecmcAsynDataItem *addNewAvailParam(const char * name,
-                                     asynParamType type,
+                                     asynParamType type,                                     
                                      uint8_t *data,
                                      size_t bytes,
+                                     ecmcEcDataType dt,
                                      bool dieIfFail);
    int32_t getFastestUpdateRate();   
    int32_t calcFastestUpdateRate();

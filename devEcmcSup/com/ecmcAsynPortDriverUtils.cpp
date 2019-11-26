@@ -201,10 +201,10 @@ int windowsToEpicsTimeStamp(uint64_t plcTime, epicsTimeStamp *ts)
  *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
 */
 int parseEcPath(char *ecPath,
-                       int  *master,
-                       int  *slave,
-                       char *alias,
-                       int  *bit) {
+                int  *master,
+                int  *slave,
+                char *alias,
+                int  *bit) {
   int masterId = 0;
   int slaveId  = 0;
   int bitId    = 0;
@@ -569,4 +569,499 @@ int getMainObjectType(char           *objPath,
   }
 
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;             
+}
+
+// Convert string to datatype
+ecmcEcDataType getEcDataTypeFromStr(const char* dt) {
+  int n=0; 
+  n = strcmp(dt,EC_DT_BIT1);
+  if (n == 0) {
+    return ECMC_EC_B1;
+  }
+
+  n = strcmp(dt,EC_DT_BIT2);
+  if (n == 0) {
+    return ECMC_EC_B2;
+  }
+
+  n = strcmp(dt,EC_DT_BIT3);
+  if (n == 0) {
+    return ECMC_EC_B3;
+  }
+
+  n = strcmp(dt,EC_DT_BIT4);
+  if (n == 0) {
+    return ECMC_EC_B4;
+  }
+
+  n = strcmp(dt,EC_DT_U8);
+  if (n == 0) {
+    return ECMC_EC_U8;
+  }
+
+  n = strcmp(dt,EC_DT_S8);
+  if (n == 0) {
+    return ECMC_EC_S8;
+  }
+
+  n = strcmp(dt,EC_DT_U16);
+  if (n == 0) {
+    return ECMC_EC_U16;
+  }
+
+  n = strcmp(dt,EC_DT_S16);
+  if (n == 0) {
+    return ECMC_EC_S16;
+  }
+
+  n = strcmp(dt,EC_DT_U32);
+  if (n == 0) {
+    return ECMC_EC_U32;
+  }
+
+  n = strcmp(dt,EC_DT_S32);
+  if (n == 0) {
+    return ECMC_EC_S32;
+  }
+
+  n = strcmp(dt,EC_DT_U64);
+  if (n == 0) {
+    return ECMC_EC_U64;
+  }
+
+  n = strcmp(dt,EC_DT_S64);
+  if (n == 0) {
+    return ECMC_EC_S64;
+  }
+
+  n = strcmp(dt,EC_DT_F32);
+  if (n == 0) {
+    return ECMC_EC_F32;
+  }
+
+  n = strcmp(dt,EC_DT_F64);
+  if (n == 0) {
+    return ECMC_EC_F64;
+  }
+
+  // Not a valid type
+  return ECMC_EC_NONE;
+}
+
+// Convert string to datatype
+size_t getEcDataTypeBits(ecmcEcDataType dt) {
+  
+  switch(dt) {
+  case ECMC_EC_NONE:
+    return 0;
+    break;
+
+  case ECMC_EC_B1:
+    return 1;
+    break;
+
+  case ECMC_EC_B2:
+    return 2;
+    break;
+
+  case ECMC_EC_B3:
+    return 3;
+    break;
+
+  case ECMC_EC_B4:
+    return 4;
+    break;
+
+  case ECMC_EC_U8:
+    return 8;
+    break;
+
+  case ECMC_EC_S8:
+    return 8;
+    break;
+
+  case ECMC_EC_U16:
+    return 16;
+    break;
+
+  case ECMC_EC_S16:
+    return 16;
+    break;
+
+  case ECMC_EC_U32:
+    return 32;
+    break;
+
+  case ECMC_EC_S32:
+    return 32;
+    break;
+
+  case ECMC_EC_U64:
+    return 64;
+    break;
+
+  case ECMC_EC_S64:
+    return 64;
+    break;
+
+  case ECMC_EC_F32:
+    return 32;
+    break;
+
+  case ECMC_EC_F64:
+    return 64;
+    break;
+
+  default:
+    return 0;
+    break;
+  }
+  // Not a valid type
+  return 0;
+}
+
+/*
+* For legacy support of old Cfg.EcAddEntryComplete() syntax
+* \note Will not work for data of types double or real
+*/
+ecmcEcDataType getEcDataType(size_t bitLength,bool signedVal) {
+  switch(bitLength)
+  {
+    case 1:
+      return ECMC_EC_B1;
+      break;
+
+    case 2:
+      return ECMC_EC_B2;
+      break;
+
+    case 3:
+      return ECMC_EC_B3;
+      break;
+
+    case 4:
+      return ECMC_EC_B4;
+      break;
+
+    case 8:
+      if(signedVal){
+        return ECMC_EC_S8;
+      }
+      else {
+        return ECMC_EC_U8;
+      }
+      break;
+
+    case 16:
+      if(signedVal){
+        return ECMC_EC_S16;
+      }
+      else {
+        return ECMC_EC_U16;
+      }    
+      break;
+
+    case 32:
+      if(signedVal){
+        return ECMC_EC_S32;
+      }
+      else {
+        return ECMC_EC_U32;
+      }    
+    
+      break;
+    case 64:
+      if(signedVal){
+        return ECMC_EC_S64;
+      }
+      else {
+        return ECMC_EC_U64;
+      }    
+    
+      break;
+    
+    default:    
+      return ECMC_EC_NONE;
+      break;
+  }
+
+  return ECMC_EC_NONE;
+}
+
+size_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
+  switch(dt) {
+  case ECMC_EC_NONE:
+    return 0;
+    break;
+
+  case ECMC_EC_B1:
+    return 1;
+    break;
+
+  case ECMC_EC_B2:
+    return 3;
+    break;
+
+  case ECMC_EC_B3:
+    return 7;
+    break;
+
+  case ECMC_EC_B4:
+    return 15;
+    break;
+
+  case ECMC_EC_U8:
+    return std::numeric_limits<uint8_t>::max();
+    break;
+
+  case ECMC_EC_S8:
+    return std::numeric_limits<int8_t>::max();
+    break;
+
+  case ECMC_EC_U16:
+    return std::numeric_limits<uint16_t>::max();
+    break;
+
+  case ECMC_EC_S16:
+    return std::numeric_limits<int16_t>::max();
+    break;
+
+  case ECMC_EC_U32:
+    return std::numeric_limits<uint32_t>::max();
+    break;
+
+  case ECMC_EC_S32:
+    return std::numeric_limits<int32_t>::max();
+    break;
+
+  case ECMC_EC_U64:
+    return std::numeric_limits<uint64_t>::max();
+    break;
+
+  case ECMC_EC_S64:
+    return std::numeric_limits<int64_t>::max();
+    break;
+
+  case ECMC_EC_F32:
+    return std::numeric_limits<float_t>::max();
+    break;
+
+  case ECMC_EC_F64:
+    return std::numeric_limits<double_t>::max();;
+    break;
+
+  default:
+    return 0;
+    break;
+  }
+  return 0;
+}
+
+size_t getEcDataTypeMinVal(ecmcEcDataType dt) {
+  switch(dt) {
+  case ECMC_EC_NONE:
+    return 0;
+    break;
+
+  case ECMC_EC_B1:
+    return 0;
+    break;
+
+  case ECMC_EC_B2:
+    return 0;
+    break;
+
+  case ECMC_EC_B3:
+    return 0;
+    break;
+
+  case ECMC_EC_B4:
+    return 0;
+    break;
+
+  case ECMC_EC_U8:
+    return 0;
+    break;
+
+  case ECMC_EC_S8:
+    return std::numeric_limits<int8_t>::min();
+    break;
+
+  case ECMC_EC_U16:
+    return 0;
+    break;
+
+  case ECMC_EC_S16:
+    return std::numeric_limits<int16_t>::min();
+    break;
+
+  case ECMC_EC_U32:
+    return 0;
+    break;
+
+  case ECMC_EC_S32:
+    return std::numeric_limits<int32_t>::min();
+    break;
+
+  case ECMC_EC_U64:
+    return 0;
+    break;
+
+  case ECMC_EC_S64:
+    return std::numeric_limits<int64_t>::min();
+    break;
+
+  case ECMC_EC_F32:
+    return std::numeric_limits<float_t>::min();
+    break;
+
+  case ECMC_EC_F64:
+    return std::numeric_limits<double_t>::min();;
+    break;
+
+  default:
+    return 0;
+    break;
+  }
+  return 0;
+}
+
+int getEcDataTypeSigned(ecmcEcDataType dt) {
+  switch(dt) {
+  case ECMC_EC_NONE:
+    return 0;
+    break;
+
+  case ECMC_EC_B1:
+    return 0;
+    break;
+
+  case ECMC_EC_B2:
+    return 0;
+    break;
+
+  case ECMC_EC_B3:
+    return 0;
+    break;
+
+  case ECMC_EC_B4:
+    return 0;
+    break;
+
+  case ECMC_EC_U8:
+    return 0;
+    break;
+
+  case ECMC_EC_S8:
+    return 1;
+    break;
+
+  case ECMC_EC_U16:
+    return 0;
+    break;
+
+  case ECMC_EC_S16:
+    return 1;
+    break;
+
+  case ECMC_EC_U32:
+    return 0;
+    break;
+
+  case ECMC_EC_S32:
+    return 1;
+    break;
+
+  case ECMC_EC_U64:
+    return 0;
+    break;
+
+  case ECMC_EC_S64:
+    return 1;
+    break;
+
+  case ECMC_EC_F32:
+    return 0;
+    break;
+
+  case ECMC_EC_F64:
+    return 0;
+    break;
+
+  default:
+    return 0;
+    break;
+  }
+
+  return 0;
+}
+
+const char*getEcDataTypeStr(ecmcEcDataType dt) {
+  switch(dt) {
+  case ECMC_EC_NONE:
+    return EC_DT_NONE;
+    break;
+
+  case ECMC_EC_B1:
+    return EC_DT_BIT1;
+    break;
+
+  case ECMC_EC_B2:
+    return EC_DT_BIT2;
+    break;
+
+  case ECMC_EC_B3:
+    return EC_DT_BIT3;
+    break;
+
+  case ECMC_EC_B4:
+    return EC_DT_BIT4;
+    break;
+
+  case ECMC_EC_U8:
+    return EC_DT_U8;
+    break;
+
+  case ECMC_EC_S8:
+    return EC_DT_S8;
+    break;
+
+  case ECMC_EC_U16:
+    return EC_DT_U16;
+    break;
+
+  case ECMC_EC_S16:
+    return EC_DT_S16;
+    break;
+
+  case ECMC_EC_U32:
+    return EC_DT_U32;
+    break;
+
+  case ECMC_EC_S32:
+    return EC_DT_S32;
+    break;
+
+  case ECMC_EC_U64:
+    return EC_DT_U64;
+    break;
+
+  case ECMC_EC_S64:
+    return EC_DT_S64;
+    break;
+
+  case ECMC_EC_F32:
+    return EC_DT_F32;
+    break;
+
+  case ECMC_EC_F64:
+    return EC_DT_F64;
+    break;
+
+  default:
+    return EC_DT_NONE;
+    break;
+  }
+
+  return EC_DT_NONE;
 }

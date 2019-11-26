@@ -157,7 +157,8 @@ ecmcEcEntry * ecmcEcSyncManager::addEntry(
   uint8_t        entrySubIndex,  
   ecmcEcDataType dt,
   std::string    id,
-  int            *errorCode
+  int            useInRealTime,
+  int           *errorCode
   ) {
   int err        = 0;
   ecmcEcPdo *pdo = findPdo(pdoIndex);
@@ -176,6 +177,7 @@ ecmcEcEntry * ecmcEcSyncManager::addEntry(
                                      entrySubIndex,
                                      dt,
                                      id,
+                                     useInRealTime,
                                      &err);
 
   if (err || !entry) {
