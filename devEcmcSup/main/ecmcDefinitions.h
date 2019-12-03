@@ -164,7 +164,7 @@ enum app_mode_type {
 
 enum {
   ECMC_PRIO_LOW  = 0,
-  ECMC_PRIO_HIGH = 60
+  ECMC_PRIO_HIGH = 72
 };
 
 enum axisType {
