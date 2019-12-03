@@ -2569,23 +2569,6 @@ static int handleTwincatSyntax(const char *myarg_1, ecmcOutputBufferType *buffer
     SEND_OK_OR_ERROR_AND_RETURN(setAxisHomePos(motor_axis_no, fValue));
   }
 
-  /* stAxisStatus? */  /* GetAxisDebugInfoData(in axisIndex) */
-  nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
-
-  if (nvals == 1) {
-    char tempBuffer[1024];  // TODO consider more efficient implementations
-    int  error = getAxisDebugInfoData(iValue,
-                                      &tempBuffer[0],
-                                      sizeof(tempBuffer));
-
-    if (error) {
-      cmd_buf_printf(buffer, "Error: %d", error);
-      return 0;
-    }
-    cmd_buf_printf(buffer, "%s", tempBuffer);
-    return 0;
-  }
-
   if (0 == strcmp(myarg_1, "stAxisStatus?")) {
     IF_ERROR_SEND_ERROR_AND_RETURN(getAxisEnabled(motor_axis_no, &iValue));
     int bEnable = iValue;
@@ -2926,6 +2909,23 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     return 0;
   }
 
+  /* GetControllerError()*/
+  if (!strcmp(myarg_1, "GetControllerError()")) {
+    cmd_buf_printf(buffer, "%d", getControllerError());
+    return 0;
+  }
+
+  /* ControllerErrorReset()*/
+  if (!strcmp(myarg_1, "ControllerErrorReset()")) {
+    SEND_OK_OR_ERROR_AND_RETURN(controllerErrorReset());
+  }
+
+  /* GetControllerErrorMessage() */
+  if (!strcmp(myarg_1, "GetControllerErrorMessage()")) {
+    cmd_buf_printf(buffer, "%s", getErrorString(getControllerError()));
+    return 0;
+  }
+
   /*ReadEcEntry(int nSlave, int nEntry)*/
   nvals = sscanf(myarg_1, "ReadEcEntry(%d,%d)", &iValue, &iValue2);
 
@@ -3206,11 +3206,21 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     free(retBuf);
     return 0;
   }
+ 
+  /* stAxisStatus? */  /* GetAxisDebugInfoData(in axisIndex) */
+  nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
 
+  if (nvals == 1) {
+    char tempBuffer[1024];  // TODO consider more efficient implementations
+    int  error = getAxisDebugInfoData(iValue,
+                                      &tempBuffer[0],
+                                      sizeof(tempBuffer));
 
-  /* GetControllerError()*/
-  if (!strcmp(myarg_1, "GetControllerError()")) {
-    cmd_buf_printf(buffer, "%d", getControllerError());
+    if (error) {
+      cmd_buf_printf(buffer, "Error: %d", error);
+      return 0;
+    }
+    cmd_buf_printf(buffer, "%s", tempBuffer);
     return 0;
   }
 
@@ -3226,17 +3236,6 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
       return 0;
     }
     cmd_buf_printf(buffer, "%" PRId64, iTemp);
-    return 0;
-  }
-
-  /* ControllerErrorReset()*/
-  if (!strcmp(myarg_1, "ControllerErrorReset()")) {
-    SEND_OK_OR_ERROR_AND_RETURN(controllerErrorReset());
-  }
-
-  /* GetControllerErrorMessage() */
-  if (!strcmp(myarg_1, "GetControllerErrorMessage()")) {
-    cmd_buf_printf(buffer, "%s", getErrorString(getControllerError()));
     return 0;
   }
 
