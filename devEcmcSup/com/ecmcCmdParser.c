@@ -52,6 +52,13 @@ typedef struct
 static cmd_Motor_cmd_type cmd_Motor_cmd[ECMC_MAX_AXES];
 static int ecmcInitDone = 0;
 
+//Buffers
+static char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+static char cIdBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+static char cIdBuffer2[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+static char cIdBuffer3[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+static char cPlcExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+
 // TODO: Cleanup macros.. should not need different for different types
 #define SEND_OK_OR_ERROR_AND_RETURN(function)            \
   do {                                                   \
@@ -646,10 +653,7 @@ static int handleCfgCommand(const char *myarg_1) {
   int nvals      = 0;
   double dValue  = 0;
   double dValue2 = 0;
-  char   cIdBuffer[4096];
-  char   cIdBuffer2[4096];
-  char   cIdBuffer3[4096];
-
+  
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
 
@@ -2042,8 +2046,6 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncVelFilterSize(iValue, iValue2);
   }
 
-  char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
-
   /*int Cfg.AppendAxisPLCExpr(int axis_no,char *cExpr); */
   nvals = sscanf(myarg_1,
                  "AppendAxisPLCExpr(%d)=%[^\n]",
@@ -2830,9 +2832,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   double   fValue = 0;
   int motor_axis_no = 0;
   int nvals = 0;
-  double dValue1, dValue2, dValue3, dValue4;
-  char cIdBuffer[4096];
-  char exprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  double dValue1, dValue2, dValue3, dValue4;  
 
   if (buffer->buffer == NULL) {
     return ERROR_MAIN_PARSER_BUFFER_NULL;
@@ -3146,7 +3146,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "GetAxisPLCExpr(%d)", &iValue);
 
   if (nvals == 1) {
-    char *retBuf = exprBuffer;
+    char *retBuf = cPlcExprBuffer;
     int   error = 0;
     char *expr = (char*)getAxisPLCExpr(iValue, &error);
     
@@ -3181,7 +3181,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "GetPLCExpr(%d)", &iValue);
 
   if (nvals == 1) {
-       char *retBuf = exprBuffer;
+       char *retBuf = cPlcExprBuffer;
     int   error = 0;
     char *expr = (char*)getPLCExpr(iValue, &error);
     
