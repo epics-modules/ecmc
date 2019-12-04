@@ -2831,6 +2831,8 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   int motor_axis_no = 0;
   int nvals = 0;
   double dValue1, dValue2, dValue3, dValue4;
+  char cIdBuffer[4096];
+  char exprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 
   if (buffer->buffer == NULL) {
     return ERROR_MAIN_PARSER_BUFFER_NULL;
@@ -2839,7 +2841,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   if (!ecmcInitDone) {
     ecmcInitThread();
     ecmcInitDone = 1;
-  }
+  }  
 
   // Check Command length
   if (strlen(myarg_1) >= ECMC_CMD_MAX_SINGLE_CMD_LENGTH - 1) {
@@ -2855,9 +2857,9 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   /* Main.*/
   if (!strncmp(myarg_1, Main_dot_str, strlen(Main_dot_str))) {
     myarg_1 += strlen(Main_dot_str);
-    SEND_OK_OR_ERROR_AND_RETURN(handleTwincatSyntax(myarg_1,buffer));
+    return handleTwincatSyntax(myarg_1,buffer);
   }
-  
+
   /* ADSPORT= */
   if (!strncmp(myarg_1, ADSPORT_equals_str, strlen(ADSPORT_equals_str))) {
     int err_code;
@@ -2873,12 +2875,9 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
       /* .ADR commands are handled here */
       err_code = motorHandleADS_ADR(myarg_1, buffer);
 
-      if (err_code == -1) return 0;
+      if (err_code == -1) 
+        return 0;
 
-      /*      if (err_code == 0) {
-              cmd_buf_printf(buffer,"OK");
-              return 0;
-            }*/
       SEND_OK_OR_ERROR_AND_RETURN(err_code);
       return 0;
     }
@@ -2933,8 +2932,6 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT64(readEcEntry(iValue, iValue2,
                                                        &i64Value));
   }
-
-  char cIdBuffer[4096];
 
   /*ReadEcEntryIDString(int nSlavePosition,char *cEntryID*/
   nvals = sscanf(myarg_1, "ReadEcEntryIDString(%d,%[^)])", &iValue, cIdBuffer);
@@ -3149,19 +3146,24 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "GetAxisPLCExpr(%d)", &iValue);
 
   if (nvals == 1) {
-    char *retBuf;
+    char *retBuf = exprBuffer;
     int   error = 0;
-
-    retBuf = strdup(getAxisPLCExpr(iValue, &error));
-
+    char *expr = (char*)getAxisPLCExpr(iValue, &error);
+    
     if (error) {
-      free(retBuf);
-      retBuf = NULL;
-      return error;
+      cmd_buf_printf(buffer, "Error: %d", error);
+      return 0;
+    }
+    
+    if(strlen(expr)>=ECMC_CMD_MAX_SINGLE_CMD_LENGTH) {
+      cmd_buf_printf(buffer, "Error: %d",ERROR_MAIN_PARSER_CMD_TO_LONG);
+      return 0;
     }
 
+    strcpy(retBuf,expr);
+
     // Change all | to ; (since ; is used as command
-    // delimiter in tcpip communication)
+    // delimiter in communication)
     size_t strLen = strlen(retBuf);
     size_t i      = 0;
 
@@ -3172,7 +3174,6 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     }
 
     cmd_buf_printf(buffer, "%s", retBuf);
-    free(retBuf);
     return 0;
   }
 
@@ -3180,19 +3181,24 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "GetPLCExpr(%d)", &iValue);
 
   if (nvals == 1) {
-    char *retBuf;
+       char *retBuf = exprBuffer;
     int   error = 0;
-
-    retBuf = strdup(getPLCExpr(iValue, &error));
-
+    char *expr = (char*)getPLCExpr(iValue, &error);
+    
     if (error) {
-      free(retBuf);
-      retBuf = NULL;
-      return error;
+      cmd_buf_printf(buffer, "Error: %d", error);
+      return 0;
+    }
+    
+    if(strlen(expr)>=ECMC_CMD_MAX_SINGLE_CMD_LENGTH) {
+      cmd_buf_printf(buffer, "Error: %d",ERROR_MAIN_PARSER_CMD_TO_LONG);
+      return 0;
     }
 
+    strcpy(retBuf,expr);
+
     // Change all | to ; (since ; is used as command
-    // delimiter in tcpip communication)
+    // delimiter in communication)
     size_t strLen = strlen(retBuf);
     size_t i      = 0;
 
@@ -3203,7 +3209,6 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     }
 
     cmd_buf_printf(buffer, "%s", retBuf);
-    free(retBuf);
     return 0;
   }
  
@@ -3403,38 +3408,41 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   SEND_OK_OR_ERROR_AND_RETURN(ERROR_MAIN_PARSER_UNKOWN_CMD);
 }
 
-int ecmcCmdParser(int                   argc,
+/*int ecmcCmdParser(int             argc,
             const char           *argv[],
             const char           *sepv[],
-            ecmcOutputBufferType *buffer) {
-  const char *myargline = (argc > 0) ? argv[0] : "";
-  int i;
+            ecmcOutputBufferType *buffer) {*/
 
-  if (PRINT_STDOUT_BIT6()) {
-    const char *myarg[6];
-    myarg[0] = myargline;
-    myarg[1] = (argc >= 1) ? argv[1] : "";
-    myarg[2] = (argc >= 2) ? argv[2] : "";
-    myarg[3] = (argc >= 3) ? argv[3] : "";
-    myarg[4] = (argc >= 4) ? argv[4] : "";
-    myarg[5] = (argc >= 5) ? argv[5] : "";
-    LOGINFO6("%s/%s:%d argc=%d "
-             "myargline=\"%s\" myarg[1]=\"%s\" myarg[2]=\"%s\" myarg[3]=\"%s\" myarg[4]=\"%s\" myarg[5]=\"%s\"\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__,
-             argc,
-             myargline,
-             myarg[1],
-             myarg[2],
-             myarg[3],
-             myarg[4],
-             myarg[5]);
+int ecmcCmdParser(const char           *cmdline, 
+                  int                   inLen,            
+                  ecmcOutputBufferType *buffer) {
+
+  char oneCommand[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+
+  int cmdCounter=0;  
+  int multiCmd = 0;
+  int done = 0;
+  char* nextStart=(char*)cmdline;  
+  char* nextEnd =strchr(nextStart,';');  //check if multline
+  if(nextEnd) {
+    multiCmd = 1;
   }
+  char *nextCmd = (char*)cmdline;
 
-  for (i = 1; i <= argc; i++) {
-    int errorCode = motorHandleOneArg(argv[i], buffer);
-
+  while (!done) {
+    if(nextEnd) {            
+      memcpy(oneCommand,nextStart,nextEnd-nextStart);
+      oneCommand[nextEnd-nextStart] = '\0';
+      nextCmd = oneCommand; // Use local buffer     
+    } 
+    else {  //Only one cmd
+      nextCmd = nextStart;
+      multiCmd = 0;
+      done = 1;
+    }
+    int errorCode = motorHandleOneArg(nextCmd, buffer);
+    cmdCounter++;
+    
     if (errorCode) {
       RETURN_ERROR_OR_DIE(buffer,
                           errorCode,
@@ -3444,17 +3452,22 @@ int ecmcCmdParser(int                   argc,
                           __LINE__,
                           errorCode);
     }
-    cmd_buf_printf(buffer, "%s", sepv[i]);
-
-    if (PRINT_STDOUT_BIT6()) {
-      LOGINFO6("%s/%s:%d i=%d "
-               "argv[%d]=%s, sepv[%d]=\"",
-               __FILE__, __FUNCTION__, __LINE__,
-               argc, i, argv[i], i);
-      cmd_dump_to_std(sepv[i], strlen(sepv[i]));
-      LOGINFO6("\"\n");
+        
+    if(multiCmd) {      
+      cmd_buf_printf(buffer, "%s", ";");        
+      if (strlen(nextEnd)>1) {
+        nextStart=nextEnd+1;
+        nextEnd = strchr(nextStart,';');  //check if multline        
+      }
+      else{
+        done = 1;
+      }
     }
-  }  /* while argc > 0 */
+    else {
+      done = 1;
+    }
+  }
+
   return 0;
 }
 
