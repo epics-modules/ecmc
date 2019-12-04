@@ -37,12 +37,10 @@ int cmd_buf_printf(ecmcOutputBufferType *buffer, const char *format, ...) {
   }
   va_list ap;
   va_start(ap, format);
-  char *buff = &buffer->buffer[buffer->bytesUsed];  
-  // (void)cmd_buf_vprintf(buffer, format, ap);
+  char *buff = &buffer->buffer[buffer->bytesUsed];    
   int   res = vsnprintf(buff, buffer->bufferSize-buffer->bytesUsed, format, ap);
   buffer->bytesUsed                += res;
   va_end(ap);
-
   if (res < 0) {
     return res;
   }

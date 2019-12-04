@@ -58,6 +58,7 @@ static char cIdBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cIdBuffer2[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cIdBuffer3[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cPlcExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+static char cOneCommand[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 
 // TODO: Cleanup macros.. should not need different for different types
 #define SEND_OK_OR_ERROR_AND_RETURN(function)            \
@@ -3215,17 +3216,16 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   /* stAxisStatus? */  /* GetAxisDebugInfoData(in axisIndex) */
   nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
 
-  if (nvals == 1) {
-    char tempBuffer[1024];  // TODO consider more efficient implementations
+  if (nvals == 1) {    
     int  error = getAxisDebugInfoData(iValue,
-                                      &tempBuffer[0],
-                                      sizeof(tempBuffer));
+                                      &cIdBuffer[0],
+                                      sizeof(cIdBuffer));
 
     if (error) {
       cmd_buf_printf(buffer, "Error: %d", error);
       return 0;
     }
-    cmd_buf_printf(buffer, "%s", tempBuffer);
+    cmd_buf_printf(buffer, "%s", cIdBuffer);
     return 0;
   }
 
@@ -3248,16 +3248,15 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
 
   if (nvals == 1) {
-    char tempBuffer[1024];  // TODO consider more efficient implementations
     int  error = getAxisDebugInfoData(iValue,
-                                      &tempBuffer[0],
-                                      sizeof(tempBuffer));
+                                      &cIdBuffer[0],
+                                      sizeof(cIdBuffer));
 
     if (error) {
       cmd_buf_printf(buffer, "Error: %d", error);
       return 0;
     }
-    cmd_buf_printf(buffer, "%s", tempBuffer);
+    cmd_buf_printf(buffer, "%s", cIdBuffer);
     return 0;
   }
 
@@ -3417,8 +3416,6 @@ int ecmcCmdParser(const char           *cmdline,
                   int                   inLen,            
                   ecmcOutputBufferType *buffer) {
 
-  char oneCommand[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
-
   int cmdCounter=0;  
   int multiCmd = 0;
   int done = 0;
@@ -3431,9 +3428,9 @@ int ecmcCmdParser(const char           *cmdline,
 
   while (!done) {
     if(nextEnd) {            
-      memcpy(oneCommand,nextStart,nextEnd-nextStart);
-      oneCommand[nextEnd-nextStart] = '\0';
-      nextCmd = oneCommand; // Use local buffer     
+      memcpy(cOneCommand,nextStart,nextEnd-nextStart);
+      cOneCommand[nextEnd-nextStart] = '\0';
+      nextCmd = cOneCommand; // Use local buffer     
     } 
     else {  //Only one cmd
       nextCmd = nextStart;
