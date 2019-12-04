@@ -3156,13 +3156,14 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
       return 0;
     }
     
-    if(strlen(expr)>=ECMC_CMD_MAX_SINGLE_CMD_LENGTH) {
+    int length = strlen(expr);
+    if(length >= ECMC_CMD_MAX_SINGLE_CMD_LENGTH) {
       cmd_buf_printf(buffer, "Error: %d",ERROR_MAIN_PARSER_CMD_TO_LONG);
       return 0;
     }
-
-    strcpy(retBuf,expr);
-
+    
+    memcpy(retBuf,expr,length+1);
+    
     // Change all | to ; (since ; is used as command
     // delimiter in communication)
     size_t strLen = strlen(retBuf);
