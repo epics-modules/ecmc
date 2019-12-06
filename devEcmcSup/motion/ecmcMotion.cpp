@@ -2227,6 +2227,14 @@ int getAxisMonEnableMaxVel(int axisIndex, int *value) {
   return 0;
 }
 
+int getAxisMonLatchOnLimit(int     axisIndex,
+                           int    *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getLatchAtLimit();
+  return 0;
+}
+
 int setAxisMonMaxVelDriveILDelay(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -2254,6 +2262,22 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex, int value) {
 
   return axes[axisIndex]->getMon()->setMaxVelTrajTime(value);
 }
+
+int setAxisMonLatchOnLimit(int     axisIndex,
+                           int     value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setLatchAtLimit(value);                             
+}
+
 
 int setAxisMonEnableExternalInterlock(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",

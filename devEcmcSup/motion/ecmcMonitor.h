@@ -81,6 +81,8 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool   getEnableMaxVelMon();
   int    setMaxVelDriveTime(int time);
   int    setMaxVelTrajTime(int time);
+  int    setLatchAtLimit(bool latchOnLimit);
+  int    getLatchAtLimit();
   double getCurrentPosSet();
   void   execute();
   void   readEntries();
@@ -173,6 +175,7 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool limitFwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
+  bool latchOnLimit_;  //stop even if just bounce
   interlockTypes interlockStatusOld_;
   ecmcSwitchPolarity hardwareInterlockPolarity_;
   ecmcSwitchPolarity lowLimPolarity_;

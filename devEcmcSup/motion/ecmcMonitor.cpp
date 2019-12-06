@@ -83,7 +83,7 @@ void ecmcMonitor::initVars() {
   velDiffTimeTraj_           = 100;
   velDiffTimeDrive_          = 100;
   velDiffMaxDiff_            = 0;
-
+  latchOnLimit_               = 1;
   switchFilterCounter_ = 0;
   memset(&limitFwdFilterBuffer_, 0, sizeof(limitFwdFilterBuffer_));
   memset(&limitBwdFilterBuffer_, 0, sizeof(limitBwdFilterBuffer_));
@@ -944,7 +944,14 @@ int ecmcMonitor::checkLimits() {
                         ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
     }
   } else {
-    data_->interlocks_.bwdLimitInterlock = false;
+    if(latchOnLimit_){
+      if(!data_->status_.moving || data_->status_.currentVelocityActual > 0){
+        data_->interlocks_.bwdLimitInterlock = false;
+      }
+    }
+    else{
+      data_->interlocks_.bwdLimitInterlock = false;
+    }    
   }
 
   // Fwd limit switch
@@ -958,7 +965,14 @@ int ecmcMonitor::checkLimits() {
                         ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
     }
   } else {
-    data_->interlocks_.fwdLimitInterlock = false;
+    if(latchOnLimit_){
+      if(!data_->status_.moving || data_->status_.currentVelocityActual < 0){
+        data_->interlocks_.fwdLimitInterlock = false;
+      }
+    }
+    else{
+      data_->interlocks_.fwdLimitInterlock = false;
+    }    
   }
 
   // Bwd soft limit switch
@@ -1541,3 +1555,12 @@ int ecmcMonitor::checkPolarity(ecmcSwitchPolarity pol) {
   return 0;
 }
 
+int ecmcMonitor::setLatchAtLimit(bool latchOnLimit) {
+  latchOnLimit_ = latchOnLimit;
+  return 0;
+}
+
+int ecmcMonitor::getLatchAtLimit() {
+  return latchOnLimit_;
+}
+  

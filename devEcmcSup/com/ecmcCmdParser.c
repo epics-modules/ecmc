@@ -1739,11 +1739,17 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisMonVelDiffTol(iValue, dValue);
   }
 
-  /*int Cfg.SetAxisMonCntrlOutHL(int axis_no, int value);*/
+  /*int Cfg.SetAxisMonCntrlOutHL(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisMonCntrlOutHL(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
     return setAxisMonCntrlOutHL(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisMonLatchOnLimit(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonLatchOnLimit(%d,%d)", &iValue, &iValue2);
+  if (nvals == 2) {
+    return setAxisMonLatchOnLimit(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisDrvScaleNum(int axis_no, double value);*/
@@ -3090,6 +3096,13 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonExtHWInterlockPolarity(motor_axis_no, &iValue));
+  }
+
+  /*GetAxisMonLatchOnLimit(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonLatchOnLimit(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLatchOnLimit(motor_axis_no, &iValue));
   }
 
   /*int GetAxisEnableAlarmAtHardLimits(int axis_no);*/
