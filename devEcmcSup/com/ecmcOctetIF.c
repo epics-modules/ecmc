@@ -234,32 +234,3 @@ int CMDreadIt(char *outbuf, size_t outlen) {
 
   return 0;
 }
-
-/*
- *
- command interface, argv argv
- inbuf                            argc  argv
- ""                                  0  argv[0] = "" // Special case; Does not happen
- "Main.M1.nMotionAxisID"             1  argv[0] = "Main.M1.nMotionAxisID?"
-                                        sepv[0] = ""
-                                        argv[1] = "Main.M1.nMotionAxisID?"
-                                        sepv[1] = ""
-
- "Main.M1.nMotionAxisID?"            1  argv[0] = "Main.M1.nMotionAxisID?"
-                                        sepv[0] = ""argv[1] = "Main.M1.nMotionAxisID?"
-                                        sepv[1] = ""
- "Main.M1.nMotionAxisID?;"           1  argv[0] = "Main.M1.nMotionAxisID?"
-                                        sepv[0] = ""
-                                        argv[1] = "Main.M1.nMotionAxisID?"
-                                        sepv[1] = ";"
-
- "X1;x2;x3;x4"                       4  argv[0] = "X1;x2;x3;x4"
-                                        sepv[0] = ""
-                                        argv[1] = "X2"
-                                        sepv[1] = ";"
-                                        argv[2] = "X3"
-                                        sepv[2] = ";"
-                                        argv[3] = "X4"
-                                        sepv[3] = ""
-
- */
