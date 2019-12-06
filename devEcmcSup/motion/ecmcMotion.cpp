@@ -2227,7 +2227,7 @@ int getAxisMonEnableMaxVel(int axisIndex, int *value) {
   return 0;
 }
 
-int getAxisMonLatchOnLimit(int     axisIndex,
+int getAxisMonLatchLimit(int     axisIndex,
                            int    *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
@@ -2263,7 +2263,7 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex, int value) {
   return axes[axisIndex]->getMon()->setMaxVelTrajTime(value);
 }
 
-int setAxisMonLatchOnLimit(int     axisIndex,
+int setAxisMonLatchLimit(int     axisIndex,
                            int     value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,

@@ -2396,27 +2396,26 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int getAxisMonLatchOnLimit(int     axisIndex,
+int getAxisMonLatchLimit(int     axisIndex,
                            int    *value);
 
-/** \brief Set latch on limit settings.\n
+/** \brief Set latch limit settings.\n
  *
- * If set: the axis must stop if limit switch is\n
- * actuated before new motion can be activated again.\n
- * (even if limit is just "bouncing"). Otherwise motion will\n
- * be allowed as long as limit is OK\n
+ * If set: limit switch is latched even if just a "bounce"\n
+ * Then motion must stop before a new motion can be activated.\n
+ * Otherwise motion will be allowed as long as limit is OK\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value  latch on limit setting value.\n
  *    0: disable
  *    1: enable (default)
  *                   
- * \note Example: Disable latch on limit for for axis 4.\n
- * "Cfg.SetAxisMonLatchOnLimit(4,0)" //Command string to ecmcCmdParser.c.\n
+ * \note Example: Disable latch limit for for axis 4.\n
+ * "Cfg.SetAxisMonLatchLimit(4,0)" //Command string to ecmcCmdParser.c.\n
  
  * \return 0 if success or otherwise an error code.\n
  */
-int setAxisMonLatchOnLimit(int     axisIndex,
+int setAxisMonLatchLimit(int     axisIndex,
                            int     value);
 
 /** \brief Set sequence timeout time in seconds.\n
