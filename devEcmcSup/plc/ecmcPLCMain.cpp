@@ -1037,175 +1037,40 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
+
+  ecmcPLCDataIF *dataIF = NULL;  
   
   // Add plc<index>.enable
-  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int  chars = snprintf(varName,
-                        EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                        ECMC_PLC_DATA_STR "%d." ECMC_PLC_ENABLE_DATA_STR,
-                        plcIndex);
-
-  if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLCS_VARIABLE_NAME_TO_LONG);
-  }
-
-  errorCode = createAndRegisterNewDataIF(plcIndex,
-                                         varName,                                             
-                                         ECMC_RECORDER_SOURCE_GLOBAL_VAR);
-
+  errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_ENABLE_DATA_STR, &dataIF);
   if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
-  ecmcPLCDataIF *dataIF = NULL;
-  errorCode = findGlobalDataIF(varName, &dataIF);
-
-  if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
-
-  if (!dataIF) {
-    LOGERR(
-      "%s/%s:%d: Failed allocation of ecmcPLCDataIF plcEnable object %s (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      varName,
-      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-  }
+    return errorCode;
+  }  
   plcEnable_[plcIndex] = dataIF;
 
   // Add plc<index>.error
-  chars = snprintf(varName,
-                   EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                   ECMC_PLC_DATA_STR "%d." ECMC_PLC_ERROR_DATA_STR,
-                   plcIndex);
-
-  if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLCS_VARIABLE_NAME_TO_LONG);
-  }
-  errorCode = createAndRegisterNewDataIF(plcIndex,
-                                         varName,
-                                         ECMC_RECORDER_SOURCE_GLOBAL_VAR);
-
+  errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_ERROR_DATA_STR, &dataIF);
   if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
-  dataIF    = NULL;
-  errorCode = findGlobalDataIF(varName, &dataIF);
-
-  if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
-
-  if (!dataIF) {
-    LOGERR(
-      "%s/%s:%d: Failed allocation of ecmcPLCDataIF plcError_ object %s (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      varName,
-      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    return errorCode;
   }
   plcError_[plcIndex] = dataIF;
 
   // Add plc<index>.scantime
-  chars = snprintf(varName,
-                   EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                   ECMC_PLC_DATA_STR "%d." ECMC_PLC_SCAN_TIME_DATA_STR,
-                   plcIndex);
-
-  if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLCS_VARIABLE_NAME_TO_LONG);
-  }
-  errorCode = createAndRegisterNewDataIF(plcIndex,
-                                         varName,
-                                         ECMC_RECORDER_SOURCE_GLOBAL_VAR);
-
+  errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_SCAN_TIME_DATA_STR, &dataIF);
   if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
-  dataIF    = NULL;
-  errorCode = findGlobalDataIF(varName, &dataIF);
-
-  if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
-
-  if (!dataIF) {
-    LOGERR(
-      "%s/%s:%d: Failed allocation of ecmcPLCDataIF plcScanTime_ object %s (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      varName,
-      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    return errorCode;
   }
   dataIF->setReadOnly(1);
   dataIF->setData(1 / MCU_FREQUENCY * (skipCycles + 1));
 
   // Add plc<index>.firstscan
-  chars = snprintf(varName,
-                   EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                   ECMC_PLC_DATA_STR "%d." ECMC_PLC_FIRST_SCAN_STR,
-                   plcIndex);
-
-  if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLCS_VARIABLE_NAME_TO_LONG);
-  }
-  errorCode = createAndRegisterNewDataIF(plcIndex,
-                                         varName,
-                                         ECMC_RECORDER_SOURCE_GLOBAL_VAR);
-
+  errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_FIRST_SCAN_STR, &dataIF);  
   if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
-  dataIF    = NULL;
-  errorCode = findGlobalDataIF(varName, &dataIF);
-
-  if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
-
-  if (!dataIF) {
-    LOGERR(
-      "%s/%s:%d: Failed allocation of ecmcPLCDataIF plcFirstScan_ object %s (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      varName,
-      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    return errorCode;
   }
   dataIF->setReadOnly(1);
   dataIF->setData(1);
   plcFirstScan_[plcIndex] = dataIF;
+
   return 0;
 }
 
@@ -1339,4 +1204,64 @@ ecmcPLCTask* ecmcPLCMain::getPLCTaskForAxis(int axisId) {
   }
 
   return plcs_[index];
+}
+
+int ecmcPLCMain::addPLCDefaultVariable(int plcIndex, const char *suffix, ecmcPLCDataIF **dataIFOut) {
+  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  chars = 0;
+  //Normal PLC
+  if(plcIndex < ECMC_MAX_PLCS){
+    chars = snprintf(varName,
+                     EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
+                     ECMC_PLC_DATA_STR "%d.%s",
+                     plcIndex, suffix);
+
+    if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+    }
+  }
+  else {  // Axis PLC
+    chars = snprintf(varName,
+                     EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
+                     ECMC_AX_STR "%d." ECMC_PLC_DATA_STR ".%s",
+                     plcIndex-ECMC_MAX_PLCS,suffix);
+
+    if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+    }
+  }
+  int errorCode = createAndRegisterNewDataIF(plcIndex,
+                                         varName,                                             
+                                         ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+
+  if (errorCode) {
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+  
+  errorCode = findGlobalDataIF(varName, dataIFOut);
+
+  if (errorCode) {
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+
+  if (!*dataIFOut) {
+    LOGERR(
+      "%s/%s:%d: Failed allocation of ecmcPLCDataIF object %s (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      varName,
+      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
+  }
+  return 0;
 }

@@ -249,8 +249,7 @@ class ecmcAxisBase : public ecmcError {
   ecmcEcEntry *statusOutputEntry_;
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
-  uint32_t statusWord_;
-  uint32_t statusWordOld_;
+  ecmcAxisStatusWordType statusWord_;
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;

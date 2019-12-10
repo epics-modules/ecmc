@@ -103,8 +103,7 @@ void ecmcAxisBase::initVars() {
   }
   statusOutputEntry_          = 0;
   blockExtCom_                = 0;
-  statusWord_                 = 0;
-  statusWordOld_              = 0;
+  memset(&statusWord_,0,sizeof(statusWord_));
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_ = NULL;
   extEncVeloFilter_ = NULL;
@@ -363,48 +362,44 @@ void ecmcAxisBase::postExecute(bool masterOK) {
 
   cycleCounter_++;
   refreshDebugInfoStruct();
-  statusWordOld_ = statusWord_;
-  statusWord_ = 0;
-  // bit 0 enabled
-  statusWord_ = statusWord_ + (getEnabled()>0);
+  
+  // bit 0 enabled  
+  statusWord_.enabled = getEnabled()>0;
   // bit 1 execute  
-  statusWord_ = statusWord_ + ((seq_.getExecute()>0) << 1);
+  statusWord_.execute = seq_.getExecute()>0;
   // bit 2 busy
-  statusWord_ = statusWord_ + ((data_.status_.busy>0) << 2);
+  statusWord_.busy = data_.status_.busy>0;
   // bit 3 at target
-  statusWord_ = statusWord_ + ((data_.status_.atTarget>0) << 3);
+  statusWord_.attarget = data_.status_.atTarget>0;
   // bit 4 moving
-  statusWord_ = statusWord_ + ((data_.status_.moving>0) << 4);
+  statusWord_.moving = data_.status_.moving>0;
   // bit 5 limit fwd
-  statusWord_ = statusWord_ + ((data_.status_.limitFwd>0) << 5);
+  statusWord_.limitfwd = data_.status_.limitFwd>0;
   // bit 6 limit bwd
-  statusWord_ = statusWord_ + ((data_.status_.limitBwd>0) << 6);
+  statusWord_.limitbwd = data_.status_.limitBwd>0;
   // bit 7 homeswitch
-  statusWord_ = statusWord_ + ((data_.status_.homeSwitch>0) << 7);
+  statusWord_.homeswitch = data_.status_.homeSwitch>0;
   // bit 8 inStartupPhase
-  statusWord_ = statusWord_ + ((data_.status_.inStartupPhase>0) << 8);
+  statusWord_.instartup = data_.status_.inStartupPhase>0;
   // bit 9 inRealtime  
-  statusWord_ = statusWord_ + ((data_.status_.inRealtime>0) << 9);
+  statusWord_.inrealtime = data_.status_.inRealtime>0;
   // bit 10 traj source  
-  statusWord_ = statusWord_ + ((data_.command_.trajSource>0) << 10);
+  statusWord_.trajsource = data_.command_.trajSource>0;
   // bit 11 enc source  
-  statusWord_ = statusWord_ + ((data_.command_.encSource>0) << 11);
+  statusWord_.encsource = data_.command_.encSource>0;
   // bit 12 Allow plc commands  
-  statusWord_ = statusWord_ + ((allowCmdFromOtherPLC_>0) << 12);
+  statusWord_.plccmdallowed = allowCmdFromOtherPLC_>0;
   // bit 16..23 seq state
-  statusWord_ = statusWord_ + (((uint8_t)data_.status_.seqState) << 16);
+  statusWord_.seqstate = (unsigned char)data_.status_.seqState;
   // bit 24..31 lastActiveInterlock type
-  statusWord_ = statusWord_ + (((uint8_t)data_.interlocks_.lastActiveInterlock) << 24);
+  statusWord_.lastilock = (unsigned char)data_.interlocks_.lastActiveInterlock;
 
   // Update asyn parameters  
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
-
-  if(statusWord_!=statusWordOld_) {
-    axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
-  }
-
+  axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
+  
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
     int  bytesUsed = 0;
     int  error = getAxisDebugInfoData(&diagBuffer_[0],

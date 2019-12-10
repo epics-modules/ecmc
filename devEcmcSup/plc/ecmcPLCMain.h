@@ -106,6 +106,9 @@ class ecmcPLCMain : public ecmcError {
   int  getDsIndex(char *varName);
   int  addPLCDefaultVariables(int plcIndex,
                               int skipCycles);
+  int addPLCDefaultVariable(int plcIndex, 
+                            const char *suffix,
+                            ecmcPLCDataIF **dataIFOut);
   int  addMainDefaultVariables();
   int  updateAllScanTimeVars();
   int  updateAllScanTimeVars(int plcIndex);
