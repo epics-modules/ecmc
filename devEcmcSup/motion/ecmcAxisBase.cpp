@@ -104,6 +104,7 @@ void ecmcAxisBase::initVars() {
   statusOutputEntry_          = 0;
   blockExtCom_                = 0;
   statusWord_                 = 0;
+  statusWordOld_              = 0;
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_ = NULL;
   extEncVeloFilter_ = NULL;
@@ -362,7 +363,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
 
   cycleCounter_++;
   refreshDebugInfoStruct();
-
+  statusWordOld_ = statusWord_;
   statusWord_ = 0;
   // bit 0 enabled
   statusWord_ = statusWord_ + (getEnabled()>0);
@@ -382,8 +383,14 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   statusWord_ = statusWord_ + ((data_.status_.homeSwitch>0) << 7);
   // bit 8 inStartupPhase
   statusWord_ = statusWord_ + ((data_.status_.inStartupPhase>0) << 8);
-  // bit 9 inRealtime
+  // bit 9 inRealtime  
   statusWord_ = statusWord_ + ((data_.status_.inRealtime>0) << 9);
+  // bit 10 traj source  
+  statusWord_ = statusWord_ + ((data_.command_.trajSource>0) << 10);
+  // bit 11 enc source  
+  statusWord_ = statusWord_ + ((data_.command_.encSource>0) << 11);
+  // bit 12 Allow plc commands  
+  statusWord_ = statusWord_ + ((allowCmdFromOtherPLC_>0) << 12);
   // bit 16..23 seq state
   statusWord_ = statusWord_ + (((uint8_t)data_.status_.seqState) << 16);
   // bit 24..31 lastActiveInterlock type
@@ -393,8 +400,11 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
-  
+
+  if(statusWord_!=statusWordOld_) {
+    axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
+  }
+
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
     int  bytesUsed = 0;
     int  error = getAxisDebugInfoData(&diagBuffer_[0],
