@@ -1046,6 +1046,59 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
   }
 }
 
+void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern) {
+  
+  const char* functionName = "grepParam";
+  asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+
+  if(!fp){
+    fprintf(fp,"%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    return;
+  }
+
+  //print all parameters that fit pattern
+  fprintf(fp,"####################################################################:\n");
+  fprintf(fp,"ecmc parameters that fit pattern %s:\n",pattern);
+  for(int i=0; i<ecmcParamAvailCount_;i++){
+    if(pEcmcParamAvailArray_[i]){
+      ecmcParamInfo *paramInfo=pEcmcParamAvailArray_[i]->getParamInfo();
+      if(paramInfo) {
+        if(epicsStrGlobMatch(paramInfo->name,pattern)) {
+          reportParamInfo(fp, pEcmcParamAvailArray_[i],i);
+        }
+      }
+    }         
+  }
+}
+
+void ecmcAsynPortDriver::grepRecord(FILE *fp, const char *pattern) {
+  
+  const char* functionName = "grepRecord";
+  asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+
+  if(!fp){
+    fprintf(fp,"%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    return;
+  }
+
+  //print all parameters that fit pattern
+  fprintf(fp,"####################################################################:\n");
+  fprintf(fp,"ecmc records that fit pattern %s:\n",pattern);
+  for(int i=0; i<ecmcParamAvailCount_;i++){
+    if(pEcmcParamAvailArray_[i]){
+      ecmcParamInfo *paramInfo=pEcmcParamAvailArray_[i]->getParamInfo();
+      if(paramInfo) {
+        // Match param-name or record-name
+        if(paramInfo->initialized) {
+          if(epicsStrGlobMatch(paramInfo->recordName,pattern)) {           
+            reportParamInfo(fp, pEcmcParamAvailArray_[i],i);
+          }
+        }
+      }
+    }         
+  }
+}
+
 int ecmcAsynPortDriver::getDefaultSampleTimeMs() {
   return defaultSampleTimeMS_;
 }
@@ -1296,8 +1349,7 @@ static void initCallFunc_4(const iocshArgBuf *args) {
   ecmcConfig(args[0].sval);
 }
 
-
-/* EPICS iocsh shell command:  ecmcReport (same as asynReport but only ECMC)*/
+/* EPICS iocsh shell command: ecmcReport (same as asynReport but only ECMC)*/
 int ecmcReport(int level) {
   
   if(!ecmcAsynPortObj) {
@@ -1319,12 +1371,70 @@ static void initCallFunc_5(const iocshArgBuf *args) {
   ecmcReport(args[0].ival);
 }
 
+/* EPICS iocsh shell command: ecmcGrepParam*/
+int ecmcGrepParam(const char *pattern) {
+  
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;  
+  }
+  
+  if(!pattern) {
+    printf("Error: Pattern missing.\n");
+    printf("       Use \"ecmcGrepParam <pattern>\" to list ecmc params/records.\n");
+    return asynError;  
+  }
+
+  ecmcAsynPortObj->grepParam(stdout,pattern);
+
+  return 0;
+}
+
+static const iocshArg initArg0_6 =
+{ "Pattern", iocshArgString };
+static const iocshArg *const initArgs_6[]  = { &initArg0_6 };
+static const iocshFuncDef    initFuncDef_6 = { "ecmcGrepParam", 1, initArgs_6 };
+static void initCallFunc_6(const iocshArgBuf *args) {
+  ecmcGrepParam(args[0].sval);
+}
+
+/* EPICS iocsh shell command: ecmcGrepRecord*/
+int ecmcGrepRecord(const char *pattern) {
+  
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;  
+  }
+  
+  if(!pattern) {
+    printf("Error: Pattern missing.\n");
+    printf("       Use \"ecmcGrepRecord <pattern>\" to list ecmc params/records.\n");
+    return asynError;  
+  }
+
+  ecmcAsynPortObj->grepRecord(stdout,pattern);
+
+  return 0;
+}
+
+static const iocshArg initArg0_7 =
+{ "Pattern", iocshArgString };
+static const iocshArg *const initArgs_7[]  = { &initArg0_7 };
+static const iocshFuncDef    initFuncDef_7 = { "ecmcGrepRecord", 1, initArgs_7 };
+static void initCallFunc_7(const iocshArgBuf *args) {
+  ecmcGrepRecord(args[0].sval);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,   initCallFunc);
   iocshRegister(&initFuncDef_2, initCallFunc_2);
   iocshRegister(&initFuncDef_3, initCallFunc_3);
   iocshRegister(&initFuncDef_4, initCallFunc_4);
   iocshRegister(&initFuncDef_5, initCallFunc_5);
+  iocshRegister(&initFuncDef_6, initCallFunc_6);
+  iocshRegister(&initFuncDef_7, initCallFunc_7);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
