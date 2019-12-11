@@ -67,6 +67,5 @@ void ecmcDriveStepper::writeEntries() {
 
 void ecmcDriveStepper::readEntries() {
   ecmcDriveBase::readEntries();
-  bool enabledOld = data_->status_.enabled;
   data_->status_.enabled = statusWord_ > 0;
 }
