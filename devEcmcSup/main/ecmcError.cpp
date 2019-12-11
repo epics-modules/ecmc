@@ -1946,6 +1946,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2050E:
+    return "ERROR_PLC_VARIABLE_NAME_TO_LONG";
+
+    break;
+
   case 0x20600:   // ecmcPLCDataIF
     return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
 

@@ -40,6 +40,7 @@
 #define ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH 0x2050B
 #define ERROR_PLC_VARIABLE_NOT_FOUND 0x2050C
 #define ERROR_PLC_ADD_VARIABLE_FAIL 0x2050D
+#define ERROR_PLC_VARIABLE_NAME_TO_LONG 0x2050E
 
 class ecmcPLCTask : public ecmcError {
  public:
@@ -78,6 +79,8 @@ class ecmcPLCTask : public ecmcError {
 
  private:
   void initVars();
+  int  initAsyn(int plcIndex);
+  void updateAsyn();
   int  varExist(char *varName);
   int  globalVarExist(const char *varName);
   int  localVarExist(const char *varName);
@@ -110,6 +113,7 @@ class ecmcPLCTask : public ecmcError {
   int libFileIOLoaded_;
   ecmcAsynPortDriver *asynPortDriver_;
   int newExpr_;
+  ecmcAsynDataItem   *asynParamExpr_;
 };
 
 #endif  /* ECMC_PLC_TASK_H_ */
