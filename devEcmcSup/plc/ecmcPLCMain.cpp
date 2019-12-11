@@ -370,6 +370,7 @@ int ecmcPLCMain::compileExpr(int plcIndex) {
 int ecmcPLCMain::setEnable(int plcIndex, int enable) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   plcEnable_[plcIndex]->setData(static_cast<double>(enable));
+  plcEnable_[plcIndex]->updateAsyn(1);
   return 0;
 }
 

@@ -195,7 +195,7 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
       }
       if(paramInfo_.cmdFloat64ToInt32) {        
         if(paramInfo_.ecmcSize == sizeof(double)) {          
-          stat = asynPortDriver_->setIntegerParam(paramInfo_.index,static_cast<epicsInt32>(*(float*)data));         
+          stat = asynPortDriver_->setIntegerParam(paramInfo_.index,static_cast<epicsInt32>(*(double*)data));         
           break;
         }
       }

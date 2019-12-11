@@ -1356,7 +1356,7 @@ double ecmcPLCDataIF::getData() {
 }
 
 void ecmcPLCDataIF::setData(double data) {
-  data_ = data;
+  data_ = data;  
 }
 
 int ecmcPLCDataIF::setReadOnly(int readOnly) {
