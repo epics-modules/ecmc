@@ -132,16 +132,16 @@ class ecmcPLCMain : public ecmcError {
   int  plcVarNameValid(const char *plcVar);
   int globalVariableCount_;
   //Dedicateed plcs then one per axis
-  ecmcPLCTask *plcs_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
-  ecmcAxisBase *axes_[ECMC_MAX_AXES];
-  ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
-  ecmcEc *ec_;
+  ecmcPLCTask        *plcs_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
+  ecmcAxisBase       *axes_[ECMC_MAX_AXES];
+  ecmcDataStorage    *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
+  ecmcEc             *ec_;
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcPLCDataIF *plcEnable_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
-  ecmcPLCDataIF *plcError_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
-  ecmcPLCDataIF *plcFirstScan_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
-  ecmcPLCDataIF *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
-  ecmcPLCDataIF *ecStatus_;
+  ecmcPLCDataIF      *plcEnable_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
+  ecmcPLCDataIF      *plcError_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
+  ecmcPLCDataIF      *plcFirstScan_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
+  ecmcPLCDataIF      *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
+  ecmcPLCDataIF      *ecStatus_;
 };
 
 #endif  /* ECMC_PLC_MAIN_H_ */

@@ -1030,6 +1030,7 @@ int ecmcPLCMain::addMainDefaultVariables(){
 
   return 0;
 }
+
 int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   
   //Add ec<id>.masterstatus
