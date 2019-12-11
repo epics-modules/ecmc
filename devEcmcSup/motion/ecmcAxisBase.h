@@ -150,7 +150,6 @@ class ecmcAxisBase : public ecmcError {
   virtual ecmcPIDController* getCntrl()             = 0;
   virtual int                validate()             = 0;
   virtual void               execute(bool masterOK) = 0;
-  virtual void               printCurrentState();
   int                        getCntrlError(double *error);
   int                        setEnable(bool enable);
   bool                       getEnable();
@@ -223,7 +222,6 @@ class ecmcAxisBase : public ecmcError {
   int                   setEncVeloFiltSize(size_t size);
 
  protected:
-  void         printAxisState();
   void         initVars();
   void         refreshDebugInfoStruct();
   double       getPosErrorMod();

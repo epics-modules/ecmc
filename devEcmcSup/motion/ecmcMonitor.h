@@ -122,7 +122,6 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool   getEnableSoftLimitFwd();
   bool   getAtSoftLimitBwd();
   bool   getAtSoftLimitFwd();
-  void   printCurrentState();
   
  private:
   int    checkLimits();
@@ -132,8 +131,6 @@ class ecmcMonitor : public ecmcEcEntryLink {
   int    checkVelocityDiff();
   int    checkCntrlMaxOutput();
   int    filterSwitches();
-  void   printInterlockStatus(interlockTypes ilock);
-  void   printHwInterlockPolarity();
   int    checkPolarity(ecmcSwitchPolarity pol);
   bool enable_;
   // Tolnoerance for reached target. Example 0.1 deg

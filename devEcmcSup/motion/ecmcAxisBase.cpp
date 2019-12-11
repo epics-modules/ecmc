@@ -20,7 +20,6 @@
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int axisID, 
                            double sampleTime) {
-  PRINT_ERROR_PATH("axis[%d].error", axisID);
   initVars();
 
   asynPortDriver_                 = asynPortDriver;
@@ -111,96 +110,6 @@ void ecmcAxisBase::initVars() {
   enableExtEncVeloFilter_ = false;
 }
 
-void ecmcAxisBase::printAxisState() {
-  switch (axisState_) {
-  case ECMC_AXIS_STATE_STARTUP:
-    LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_STARTUP;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_);
-    break;
-
-  case ECMC_AXIS_STATE_DISABLED:
-    LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_);
-    break;
-
-  case ECMC_AXIS_STATE_ENABLED:
-    LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_ENABLED;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_);
-    break;
-
-  default:
-    LOGINFO15("%s/%s:%d: axis[%d].state=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              axisState_);
-    break;
-  }
-}
-
-void ecmcAxisBase::printCurrentState() {
-  // called by derived classes
-  printAxisState();
-  LOGINFO15("%s/%s:%d: axis[%d].reset=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.command_.reset > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].allowCmdFromOtherPLC=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            allowCmdFromOtherPLC_ > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].plcEnable=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            plcEnable_ > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.status_.inStartupPhase > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].inRealtime=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.status_.inRealtime > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].enable=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.command_.enable > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.status_.enabled > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.status_.moving > 0);
-}
-
 void ecmcAxisBase::preExecute(bool masterOK) {
 
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
@@ -230,11 +139,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
         setInStartupPhase(false);
         enc_->setToZeroIfRelative();
       }
-      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
     break;
@@ -244,11 +148,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.distToStop = 0;
 
     if (data_.status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_ENABLED;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_ENABLED;
     }
 
@@ -275,11 +174,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     }
 
     if (!data_.status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
 
@@ -290,11 +184,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
         __FUNCTION__,
         __LINE__,
         data_.axisId_);
-      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_STARTUP;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_STARTUP;
     }
 
@@ -334,31 +223,12 @@ void ecmcAxisBase::postExecute(bool masterOK) {
 
   // Write encoder entries
   enc_->writeEntries();
-
-  if (data_.status_.busyOld != data_.status_.busy) {
-    LOGINFO15("%s/%s:%d: axis[%d].busy=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.busy > 0);
-  }
-  data_.status_.busyOld = data_.status_.busy;
-
-  if (data_.status_.enabledOld != data_.status_.enabled) {
-    LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.enabled > 0);
-  }
-  data_.status_.enabledOld = data_.status_.enabled;
-
+  data_.status_.busyOld                    = data_.status_.busy;
+  data_.status_.enabledOld                 = data_.status_.enabled;
   data_.status_.executeOld                 = getExecute();
   data_.status_.currentPositionSetpointOld =
     data_.status_.currentPositionSetpoint;
-  data_.status_.cntrlOutputOld = data_.status_.cntrlOutput;
+  data_.status_.cntrlOutputOld             = data_.status_.cntrlOutput;
 
   cycleCounter_++;
   refreshDebugInfoStruct();
@@ -437,15 +307,6 @@ int ecmcAxisBase::getAxisID() {
 }
 
 void ecmcAxisBase::setReset(bool reset) {
-  if (data_.command_.reset != reset) {
-    LOGINFO15("%s/%s:%d: axis[%d].reset=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              reset);
-  }
-
   data_.command_.reset = reset;
 
   if (reset) {
@@ -482,14 +343,6 @@ bool ecmcAxisBase::getReset() {
 }
 
 int ecmcAxisBase::setAllowCmdFromPLC(bool enable) {
-  if (allowCmdFromOtherPLC_ != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].enableCascadedCommands=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              enable);
-  }
   allowCmdFromOtherPLC_ = enable;
   return 0;
 }
@@ -499,14 +352,6 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
 }
 
 void ecmcAxisBase::setInStartupPhase(bool startup) {
-  if (data_.status_.inStartupPhase != startup) {
-    LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              startup);
-  }
   data_.status_.inStartupPhase = startup;
 }
 
@@ -532,14 +377,6 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
     data_.status_.busy = true;
   }
 
-  if (data_.command_.trajSource != refSource) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajDataSourceType=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              refSource);
-  }
   data_.command_.trajSource = refSource;
   return 0;
 }
@@ -564,28 +401,11 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
     }
   }
   
-  if (data_.command_.encSource != refSource) {
-    LOGINFO15("%s/%s:%d: axis[%d].encDataSourceType=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              refSource);
-  }
-
   data_.command_.encSource = refSource;
   return 0;
 }
 
 int ecmcAxisBase::setRealTimeStarted(bool realtime) {
-  if (data_.status_.inRealtime != realtime) {
-    LOGINFO15("%s/%s:%d: axis[%d].inRealtime=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              realtime);
-  }
   data_.status_.inRealtime = realtime;
   return 0;
 }
@@ -670,15 +490,6 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
     data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
   }
   traj_->setEnable(enable);
-
-  if (data_.command_.enable != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].enable=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              enable);
-  }
 
   data_.status_.enableOld = data_.command_.enable;
   data_.command_.enable   = enable;
@@ -827,36 +638,9 @@ int ecmcAxisBase::getCmdData() {
 }
 
 int ecmcAxisBase::slowExecute() {
-  if (oldPositionAct_ != data_.status_.currentPositionActual) {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.actPos=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.currentPositionActual);
-  }
   oldPositionAct_ = data_.status_.currentPositionActual;
-
-  if (oldPositionSet_ != data_.status_.currentPositionSetpoint) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.currentPositionSetpoint);
-  }
   oldPositionSet_ = data_.status_.currentPositionSetpoint;
-
-  if (data_.status_.movingOld != data_.status_.moving) {
-    LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.moving > 0);
-  }
   data_.status_.movingOld = data_.status_.moving;
-
   return 0;
 }
 
