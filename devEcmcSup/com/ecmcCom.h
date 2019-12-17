@@ -22,7 +22,7 @@
 extern "C" {
 # endif  // ifdef __cplusplus
 
-/** \breif Initilize ecmc
+/** \brief Initilize ecmc
  *
  *  \param[in] asynPortObject Asyn port object.\n
  * \return 0 if success or otherwise an error code.\n
@@ -31,7 +31,7 @@ extern "C" {
  */
 int ecmcInit(void *asynPortObject);
 
-/** \breif Add default asyn parameters for ecmc
+/** \brief Add default asyn parameters for ecmc
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -39,7 +39,7 @@ int ecmcInit(void *asynPortObject);
  */
 int ecmcAddDefaultAsynParams();
 
-/** \breif Cleanup (for exit)
+/** \brief Cleanup (for exit)
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */

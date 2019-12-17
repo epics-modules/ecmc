@@ -22,7 +22,6 @@
 #include "../main/ecmcError.h"
 #include "../com/ecmcOctetIF.h"
 #include "../com/ecmcAsynPortDriver.h"
-#include "ecmcAsynLink.h"
 #include "alarm.h"  //EPICS alarms
 
 // ECENTRY ERRORS
@@ -41,7 +40,7 @@
 #define ERROR_EC_ENTRY_VALUE_OUT_OF_RANGE 0x2100C
 #define ERROR_EC_ENTRY_SET_ALARM_STATE_FAIL 0x2100D
 
-class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
+class ecmcEcEntry : public ecmcError {
  public:
   ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
               int masterId,
@@ -51,27 +50,18 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
               uint16_t           pdoIndex,
               uint16_t           entryIndex,
               uint8_t            entrySubIndex,
-              uint8_t            bits,
               ec_direction_t     nDirection,
-              std::string        id);
-  ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
-              int masterId,
-              int slaveId,
-              ec_domain_t       *domain,
-              ec_slave_config_t *slave,
-              uint16_t           pdoIndex,
-              uint16_t           entryIndex,
-              uint8_t            entrySubIndex,
-              uint8_t            bits,
-              ec_direction_t     nDirection,
+              ecmcEcDataType     dt,
               std::string        id,
-              int                signedValue);
+              int useInRealtime);
+  
+  // only used for simulation purpose              
   ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
-              int masterId,
-              int slaveId,
-              uint8_t     bitLength,
-              uint8_t    *domainAdr,
-              std::string id);  // only used for simulation purpose
+              int                masterId,
+              int                slaveId,              
+              uint8_t           *domainAdr,
+              ecmcEcDataType     dt,
+              std::string        id);
   ~ecmcEcEntry();
   void        initVars();
   uint16_t    getEntryIndex();
@@ -79,13 +69,16 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
   int         getBits();
   int         getEntryInfo(ec_pdo_entry_info_t *info);
   int         getByteOffset();
-  void        setDomainAdr(uint8_t *domainAdr);  // After activate
+  // After activate
+  void        setDomainAdr(uint8_t *domainAdr);  
   uint8_t     *getDomainAdr();
   int         writeValue(uint64_t value);
+  int         writeDouble(double   value);
   int         writeValueForce(uint64_t value);
   int         writeBit(int      bitNumber,
                        uint64_t value);
   int         readValue(uint64_t *value);
+  int         readDouble(double *value);
   int         readBit(int       bitNumber,
                       uint64_t *value);
   int         updateInputProcessImage();
@@ -98,29 +91,39 @@ class ecmcEcEntry : public ecmcError /*, public ecmcAsynLink*/ {
   bool        getSimEntry();
   int         validate();
   int         setComAlarm(bool alarm);
-
+  
  private:
-  int    initAsyn();
-  uint8_t *domainAdr_;
-  uint8_t *adr_;
-  uint16_t entryIndex_;
-  uint8_t entrySubIndex_;
-  int bitLength_;
-  uint bitOffset_;
-  int byteOffset_;
-  uint64_t value_;
-  ec_direction_t direction_;
-  bool sim_;
-  std::string idString_;
-  char * idStringChar_;
-  int updateInRealTime_;
-  ec_domain_t *domain_;
-  uint16_t pdoIndex_;
-  ec_slave_config_t *slave_;
-  int signed_;
-  int masterId_;
-  int slaveId_;
+  int                 initAsyn();
+  uint8_t            *domainAdr_;
+  uint8_t            *adr_;
+  uint16_t            entryIndex_;
+  uint8_t             entrySubIndex_;
+  int16_t             pdoIndex_;
+  uint                bitOffset_;
+  bool                sim_;
+  std::string         idString_;
+  char               *idStringChar_;
+  int                 updateInRealTime_;
+  int                 masterId_;
+  int                 slaveId_;
+  int                 bitLength_;
+  int                 byteOffset_;
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcAsynDataItem  *entryAsynParam_;    
+  ecmcAsynDataItem   *entryAsynParam_;
+  ecmcEcDataType      dataType_;
+  ec_slave_config_t  *slave_;
+  ec_domain_t        *domain_;
+  ec_direction_t      direction_;
+  uint64_t            buffer_;
+  int8_t             *int8Ptr_;
+  uint8_t            *uint8Ptr_;
+  int16_t            *int16Ptr_;
+  uint16_t           *uint16Ptr_;
+  int32_t            *int32Ptr_;
+  uint32_t           *uint32Ptr_;
+  int64_t            *int64Ptr_;
+  uint64_t           *uint64Ptr_;
+  float              *float32Ptr_;
+  double             *float64Ptr_;
 };
 #endif  /* ECMCECENTRY_H_ */

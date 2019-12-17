@@ -1946,6 +1946,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2050E:
+    return "ERROR_PLC_VARIABLE_NAME_TO_LONG";
+
+    break;
+
   case 0x20600:   // ecmcPLCDataIF
     return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
 
@@ -2073,6 +2078,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     break;
   case 0x211001:
     return "ERROR_MEM_ASYN_VAR_BUFFER_OUT_OF_RANGE";
+
+    break;
+
+  case 0x211002:
+    return "ERROR_MEM_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x211003:
+    return "ERROR_MEM_INVALID_DATA_TYPE";
 
     break;
 

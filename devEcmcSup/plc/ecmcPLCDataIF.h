@@ -69,7 +69,8 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
   const char        * getExprTkVarName();
   int                 validate();
   int                 setReadOnly(int readOnly);
-
+  int  updateAsyn(int force);
+  
  private:
   int                 readAxis();
   int                 writeAxis();
@@ -86,8 +87,7 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
                                   char *alias,
                                   int  *bit);
   void initVars();
-  int  initAsyn();
-  int  updateAsyn(int force);
+  int  initAsyn();  
   ecmcAxisBase *axis_;
   ecmcDataStorage *ds_;
   ecmcEc *ec_;

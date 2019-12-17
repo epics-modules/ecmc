@@ -257,9 +257,6 @@ extern int  CMDreadIt(char  *outbuf,
                       size_t outlen);
 extern void cmd_dump_to_std(const char *buf,
                             unsigned    len);
-extern int  cmd_handle_input_line(const char           *input_line,
-                                  ecmcOutputBufferType *buffer);
-extern int  getBufferSize(ecmcOutputBufferType *buffer);
 extern int  clearBuffer(ecmcOutputBufferType *buffer);
 extern int  cmd_buf_printf(ecmcOutputBufferType *buffer,
                            const char           *format,

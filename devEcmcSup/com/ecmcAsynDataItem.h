@@ -13,6 +13,7 @@
 #ifndef ECMC_ASYN_DATA_ITEM_H_
 #define ECMC_ASYN_DATA_ITEM_H_
 
+#include <bits/stdc++.h> 
 #include "inttypes.h"
 #include "../main/ecmcDefinitions.h"
 #include "ecmcAsynPortDriverUtils.h"
@@ -71,7 +72,8 @@ class ecmcAsynDataItem
 public:
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                     const char *paramName,
-                    asynParamType asynParType);
+                    asynParamType asynParType,
+                    ecmcEcDataType dt);
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver);
   ~ecmcAsynDataItem ();
   int setEcmcDataPointer(uint8_t *data,size_t bytes);  
@@ -118,6 +120,7 @@ public:
   size_t getEcmcBitCount();
   void setArrayCheckSize(bool check);
   bool getArrayCheckSize();
+  void setType(ecmcEcDataType dt);
     
   asynStatus setDrvInfo(const char *drvInfo);
 
@@ -155,6 +158,8 @@ public:
   asynStatus writeFloat64Array(epicsFloat64 *value,
                                size_t nElements);
 
+  ecmcEcDataType getEcDataType();
+
 private:
   asynStatus validateDrvInfo(const char *drvInfo);
   asynStatus getRecordInfoFromDrvInfo(const char *drvInfo);
@@ -181,6 +186,7 @@ private:
   int64_t intMax_;
   int64_t intMin_;
   size_t intBits_;
+  ecmcEcDataType dataType_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

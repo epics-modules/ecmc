@@ -23,7 +23,7 @@
 # define __STDC_FORMAT_MACROS
 # include <inttypes.h>
 # include <string.h>
-# include "main/ecmcDefinitions.h"
+# include "ecmcDefinitions.h"
 
 #define AXIS_CHECK_RETURN_USED_BUFFER(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
 
@@ -35,11 +35,11 @@ extern "C" {
 # define ECMC_PARSER_READ_STORAGE_BUFFER_DATA_NULL 0x200000
 
 /** 
- * \breif Initialization routine for ecmc.\n
+ * \brief Initialization routine for ecmc.\n
  */
 int ecmcInitThread(void);
 
-/** \breif Sets application mode
+/** \brief Sets application mode
  *
  * Before entering runtime mode a validation of both hardware and motion
  * objects will be executed. See command validateConfig().\n
@@ -55,7 +55,7 @@ int ecmcInitThread(void);
  */
 int setAppMode(int mode);
 
-/** \breif Update main asyn parameters
+/** \brief Update main asyn parameters
  *
  * \param[in] force Force update\n
  *

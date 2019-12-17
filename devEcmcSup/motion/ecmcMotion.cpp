@@ -2227,6 +2227,14 @@ int getAxisMonEnableMaxVel(int axisIndex, int *value) {
   return 0;
 }
 
+int getAxisMonLatchLimit(int     axisIndex,
+                           int    *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getLatchAtLimit();
+  return 0;
+}
+
 int setAxisMonMaxVelDriveILDelay(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -2254,6 +2262,22 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex, int value) {
 
   return axes[axisIndex]->getMon()->setMaxVelTrajTime(value);
 }
+
+int setAxisMonLatchLimit(int     axisIndex,
+                           int     value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setLatchAtLimit(value);                             
+}
+
 
 int setAxisMonEnableExternalInterlock(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
@@ -2465,7 +2489,7 @@ int linkEcEntryToAxisEnc(int   slaveIndex,
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  if ((encoderEntryIndex >= MaxEcEntryLinks) ||
+  if ((encoderEntryIndex >= ECMC_EC_ENTRY_LINKS_MAX) ||
       (encoderEntryIndex <
        0)) return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
 
@@ -2523,7 +2547,7 @@ int linkEcEntryToAxisDrv(int   slaveIndex,
 
   if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  if ((driveEntryIndex >= MaxEcEntryLinks) || (driveEntryIndex < 0)) {
+  if ((driveEntryIndex >= ECMC_EC_ENTRY_LINKS_MAX) || (driveEntryIndex < 0)) {
     return ERROR_MAIN_DRIVE_ENTRY_INDEX_OUT_OF_RANGE;
   }
 
@@ -2595,7 +2619,7 @@ int linkEcEntryToAxisMon(int   slaveIndex,
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  if ((monitorEntryIndex >= MaxEcEntryLinks) ||
+  if ((monitorEntryIndex >= ECMC_EC_ENTRY_LINKS_MAX) ||
       (monitorEntryIndex <
        0)) return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
 

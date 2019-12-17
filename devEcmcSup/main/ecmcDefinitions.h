@@ -164,7 +164,7 @@ enum app_mode_type {
 
 enum {
   ECMC_PRIO_LOW  = 0,
-  ECMC_PRIO_HIGH = 60
+  ECMC_PRIO_HIGH = 72
 };
 
 enum axisType {
@@ -319,6 +319,7 @@ enum axisSubObjectType {
 #define ECMC_PLC_ERROR_DATA_STR "error"
 #define ECMC_PLC_SCAN_TIME_DATA_STR "scantime"
 #define ECMC_PLC_FIRST_SCAN_STR "firstscan"
+#define ECMC_PLC_EXPR_STR "expression"
 
 #define ECMC_PLC_DATA_STORAGE_STR "ds"
 #define ECMC_DATA_STORAGE_DATA_APPEND_STR "append"
@@ -502,5 +503,40 @@ typedef struct ecmcMainThreadDiag{
 #define BIT_CLEAR(a, b) ((a) &= ~(1 << (b)))
 #define BIT_FLIP(a, b) ((a) ^= (1 << (b)))
 #define BIT_CHECK(a, b) ((a) & (1 << (b)))
+
+#define EC_DT_NONE "NONE"
+#define EC_DT_BIT1 "B1"
+#define EC_DT_BIT2 "B2"
+#define EC_DT_BIT3 "B3"
+#define EC_DT_BIT4 "B4"
+#define EC_DT_U8   "U8"
+#define EC_DT_S8   "S8"
+#define EC_DT_U16  "U16"
+#define EC_DT_S16  "S16"
+#define EC_DT_U32  "U32"
+#define EC_DT_S32  "S32"
+#define EC_DT_U64  "U64"
+#define EC_DT_S64  "S64"
+#define EC_DT_F32  "F32"
+#define EC_DT_F64  "F64"
+
+enum ecmcEcDataType {
+  ECMC_EC_NONE  = 0,
+  ECMC_EC_B1    = 1,
+  ECMC_EC_B2    = 2,
+  ECMC_EC_B3    = 3,
+  ECMC_EC_B4    = 4,  
+  ECMC_EC_U8    = 5,
+  ECMC_EC_S8    = 6,
+  ECMC_EC_U16   = 7,
+  ECMC_EC_S16   = 8,
+  ECMC_EC_U32   = 9,
+  ECMC_EC_S32   = 10,
+  ECMC_EC_U64   = 11,
+  ECMC_EC_S64   = 12,
+  ECMC_EC_F32   = 13,
+  ECMC_EC_F64   = 14  
+};
+
 
 #endif  /* ECMC_DEFINITIONS_H_ */

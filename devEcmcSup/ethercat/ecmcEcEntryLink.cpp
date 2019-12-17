@@ -13,7 +13,7 @@
 #include "ecmcEcEntryLink.h"
 
 ecmcEcEntryLink::ecmcEcEntryLink() {
-  for (int i = 0; i < MaxEcEntryLinks; i++) {
+  for (int i = 0; i < ECMC_EC_ENTRY_LINKS_MAX; i++) {
     entryInfoArray_[i].entry     = NULL;
     entryInfoArray_[i].bitNumber = -1;
   }
@@ -25,7 +25,7 @@ ecmcEcEntryLink::~ecmcEcEntryLink()
 int ecmcEcEntryLink::setEntryAtIndex(ecmcEcEntry *entry,
                                      int          index,
                                      int          bitIndex) {
-  if ((entry != NULL) && (index < MaxEcEntryLinks) && (index >= 0)) {
+  if ((entry != NULL) && (index < ECMC_EC_ENTRY_LINKS_MAX) && (index >= 0)) {
     entryInfoArray_[index].entry     = entry;
     entryInfoArray_[index].bitNumber = bitIndex;
     return 0;
@@ -45,7 +45,7 @@ int ecmcEcEntryLink::setEntryAtIndex(ecmcEcEntry *entry,
 }
 
 int ecmcEcEntryLink::validateEntry(int index) {
-  if ((index >= MaxEcEntryLinks) || (index < 0)) {
+  if ((index >= ECMC_EC_ENTRY_LINKS_MAX) || (index < 0)) {
     LOGERR("%s/%s:%d: ERROR: Entry list index %d out of range.(0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -74,7 +74,7 @@ int ecmcEcEntryLink::validateEntry(int index) {
 }
 
 int ecmcEcEntryLink::validateEntryBit(int index) {
-  if ((index >= MaxEcEntryLinks) || (index < 0)) {
+  if ((index >= ECMC_EC_ENTRY_LINKS_MAX) || (index < 0)) {
     LOGERR("%s/%s:%d: ERROR: Entry list index %d out of range.(0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -133,6 +133,18 @@ int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
   return 0;
 }
 
+int ecmcEcEntryLink::readEcEntryValueDouble(int entryIndex, double *value) {
+  double tempDouble = 0;
+  if (entryInfoArray_[entryIndex].entry->readDouble(&tempDouble)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_READ_FAIL);
+  }
+  *value  = tempDouble;
+  return 0;
+}
+
 int ecmcEcEntryLink::writeEcEntryValue(int entryIndex, uint64_t value) {
   if (entryInfoArray_[entryIndex].bitNumber < 0) {
     if (entryInfoArray_[entryIndex].entry->writeValue(value)) {
@@ -149,6 +161,16 @@ int ecmcEcEntryLink::writeEcEntryValue(int entryIndex, uint64_t value) {
                         __LINE__,
                         ERROR_EC_ENTRY_WRITE_FAIL);
     }
+  }
+  return 0;
+}
+
+int ecmcEcEntryLink::writeEcEntryValueDouble(int entryIndex, double value) {
+  if (entryInfoArray_[entryIndex].entry->writeDouble(value)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_WRITE_FAIL);
   }
   return 0;
 }
@@ -172,7 +194,7 @@ int ecmcEcEntryLink::getEntryStartBit(int index, int *startBit) {
 }
 
 bool ecmcEcEntryLink::checkEntryExist(int entryIndex) {
-  if (entryIndex < MaxEcEntryLinks) {
+  if (entryIndex < ECMC_EC_ENTRY_LINKS_MAX) {
     return entryInfoArray_[entryIndex].entry != NULL;
   }
   return false;

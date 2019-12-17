@@ -127,6 +127,7 @@ int ecSelectReferenceDC(int masterIndex, int slaveBusPosition) {
   return slave->selectAsReferenceDC();
 }
 
+// Old syntax still supported
 int ecAddEntryComplete(
   uint16_t position,
   uint32_t vendorId,
@@ -143,7 +144,7 @@ int ecAddEntryComplete(
   std::string id = entryIDString;
 
   LOGINFO4(
-    "%s/%s:%d slave=%d vendor=%d productcode=%d direction=%d sm=%d pdoindex=%d entry_index=%d entry_subindex=%d bits=%d id=%s\n",
+    "%s/%s:%d slave=%d vendor=%d productcode=%d direction=%d sm=%d pdoindex=%d entry_index=%d entry_subindex=%d bits=%d id=%s,signed=%d\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -156,9 +157,13 @@ int ecAddEntryComplete(
     entryIndex,
     entrySubIndex,
     bits,
-    entryIDString);
+    entryIDString,
+    signedValue);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  // Old syntax only vaid for integers use "Cfg.EcAddEntry()" for double, real
+  ecmcEcDataType dataType = getEcDataType(bits,signedValue);
 
   return ec->addEntry(position,
                      vendorId,
@@ -168,9 +173,59 @@ int ecAddEntryComplete(
                      pdoIndex,
                      entryIndex,
                      entrySubIndex,
-                     bits,
+                     dataType,
                      id,
-                     signedValue);
+                     1); //Update in realtime as default
+}
+
+// New syntax
+int ecAddEntry(
+  uint16_t position,
+  uint32_t vendorId,
+  uint32_t productCode,
+  int      direction,
+  uint8_t  syncMangerIndex,
+  uint16_t pdoIndex,
+  uint16_t entryIndex,
+  uint8_t  entrySubIndex,
+  char    *datatype,  
+  char    *entryIDString,
+  int      updateInRealtime  
+  ) {
+  std::string id = entryIDString;
+
+  LOGINFO4(
+    "%s/%s:%d slave=%d vendor=%d productcode=%d direction=%d sm=%d pdoindex=%d entry_index=%d entry_subindex=%d datatype=%s id=%s rt=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    position,
+    vendorId,
+    productCode,
+    direction,
+    syncMangerIndex,
+    pdoIndex,
+    entryIndex,
+    entrySubIndex,    
+    entryIDString,
+    datatype,
+    updateInRealtime);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcDataType dt = getEcDataTypeFromStr(datatype);
+
+  return ec->addEntry(position,
+                     vendorId,
+                     productCode,
+                     (ec_direction_t)direction,
+                     syncMangerIndex,
+                     pdoIndex,
+                     entryIndex,
+                     entrySubIndex,
+                     dt,
+                     id,
+                     updateInRealtime);
 }
 
 int ecSetEntryUpdateInRealtime(
@@ -207,6 +262,48 @@ int ecSetEntryUpdateInRealtime(
   return entry->setUpdateInRealtime(updateInRealtime);
 }
 
+// New syntax with datatype
+int ecAddMemMapDT(  
+  char    *ecPath,
+  size_t   byteSize,
+  int      direction,
+  char    *dataType, 
+  char    *memMapIDString
+  ) {
+
+  LOGINFO4(
+    "%s/%s:%d startEntryID=%s byteSize=%lu, direction=%d dataType=%s entryId=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    ecPath,
+    byteSize,
+    direction,
+    dataType,
+    memMapIDString);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  int  masterId   = -1;
+  int  slaveIndex = -1;
+  char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  bitIndex = -1;
+
+  int errorCode = parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  
+  std::string memMapId     = memMapIDString;
+  std::string startEntryId = alias;
+  ecmcEcDataType dt = getEcDataTypeFromStr(dataType);
+
+  return ec->addMemMap(slaveIndex, startEntryId, byteSize,
+                      (ec_direction_t)direction, dt, memMapId);
+}
+
+//Legacy syntax support
 int ecAddMemMap(
   uint16_t startEntryBusPosition,
   char    *startEntryIDString,
@@ -214,6 +311,7 @@ int ecAddMemMap(
   int      direction,
   char    *memMapIDString
   ) {
+
   std::string memMapId     = memMapIDString;
   std::string startEntryId = startEntryIDString;
 
@@ -225,13 +323,13 @@ int ecAddMemMap(
     startEntryBusPosition,
     startEntryIDString,
     byteSize,
-    direction,
+    direction,    
     memMapIDString);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-
-  return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize, 0,
-                      (ec_direction_t)direction, memMapId);
+  
+    return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize,
+                      (ec_direction_t)direction, ECMC_EC_NONE, memMapId);
 }
 
 int ecAddPdo(int slaveIndex, int syncManager, uint16_t pdoIndex) {

@@ -13,9 +13,33 @@
 #include "ecmcEcEntry.h"
 #include <stdlib.h> 
 
-#define EC_READ_2_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x03)
-#define EC_READ_3_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x07)
-#define EC_READ_4_BITS(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & 0x0F)
+#define EC_MASK_B2 0x03
+#define EC_MASK_B3 0x07
+#define EC_MASK_B4 0x0F
+//Read 2 bits (lsb)
+#define EC_READ_B2(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & EC_MASK_B2)
+//Read 3 bits (lsb)
+#define EC_READ_B3(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & EC_MASK_B3)
+//Read 4 bits (lsb)
+#define EC_READ_B4(DATA, POS) ((*((uint8_t *) (DATA)) >> (POS)) & EC_MASK_B4)
+//Write 2 bits (lsb)
+#define EC_WRITE_B2(DATA, VAL) \
+    do { \
+	    *((uint8_t *) (DATA)) &= ~EC_MASK_B2;  \
+	    *((uint8_t *) (DATA)) |= (VAL & EC_MASK_B2); \
+	  } while (0)
+
+#define EC_WRITE_B3(DATA, VAL) \
+    do { \
+	    *((uint8_t *) (DATA)) &= ~EC_MASK_B3;  \
+	    *((uint8_t *) (DATA)) |= (VAL & EC_MASK_B3); \
+	  } while (0)
+
+#define EC_WRITE_B4(DATA, VAL) \
+    do { \
+	    *((uint8_t *) (DATA)) &= ~EC_MASK_B4;  \
+	    *((uint8_t *) (DATA)) |= (VAL & EC_MASK_B4); \
+	  } while (0)
 
 ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
                          int masterId,
@@ -25,16 +49,17 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
                          uint16_t           pdoIndex,
                          uint16_t           entryIndex,
                          uint8_t            entrySubIndex,
-                         uint8_t            bits,
                          ec_direction_t     direction,
-                         std::string        id) {
+                         ecmcEcDataType     dt,
+                         std::string        id,
+                         int useInRealtime) {
   initVars();
   asynPortDriver_ = asynPortDriver;
   masterId_=masterId;
   slaveId_=slaveId;
   entryIndex_    = entryIndex;
   entrySubIndex_ = entrySubIndex;
-  bitLength_     = bits;
+  bitLength_     = getEcDataTypeBits(dt);
   direction_     = direction;
   sim_           = false;
   idString_      = id;
@@ -42,6 +67,8 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
   domain_        = domain;
   pdoIndex_      = pdoIndex;
   slave_         = slave;
+  dataType_      = dt;
+  updateInRealTime_ = useInRealtime;
   int errorCode = ecrt_slave_config_pdo_mapping_add(slave,
                                                     pdoIndex_,
                                                     entryIndex_,
@@ -68,83 +95,31 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
     entrySubIndex_,
     direction_,
     bitLength_);
-    initAsyn();
+    updateInRealTime_ = 1;
+    if(useInRealtime) {
+      initAsyn();
+    }
 }
 
+// Used for pure simulation entries
 ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
-                        int masterId,
-                        int slaveId,
-                        ec_domain_t       *domain,
-                        ec_slave_config_t *slave,
-                        uint16_t           pdoIndex,
-                        uint16_t           entryIndex,
-                        uint8_t            entrySubIndex,
-                        uint8_t            bits,
-                        ec_direction_t     direction,
-                        std::string        id,
-                        int                signedValue) {
+                         int                 masterId,
+                         int                 slaveId,                                                  
+                         uint8_t            *domainAdr,
+                         ecmcEcDataType      dt,
+                         std::string         id) {
   initVars();
   asynPortDriver_ = asynPortDriver;
-  masterId_=masterId;
-  slaveId_=slaveId;
-  entryIndex_    = entryIndex;
-  entrySubIndex_ = entrySubIndex;
-  bitLength_     = bits;
-  direction_     = direction;
-  sim_           = false;
-  idString_      = id;
-  idStringChar_  = strdup(idString_.c_str());
-  domain_        = domain;
-  pdoIndex_      = pdoIndex;
-  slave_         = slave;
-  signed_        = signedValue;
-  int errorCode = ecrt_slave_config_pdo_mapping_add(slave,
-                                                    pdoIndex_,
-                                                    entryIndex_,
-                                                    entrySubIndex_,
-                                                    bitLength_);
-
-  if (errorCode) {
-    LOGERR(
-      "%s/%s:%d: ERROR: ecrt_slave_config_pdo_mapping_add() failed with error code %d (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      errorCode,
-      ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-    setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
-  }
-
-  LOGINFO5(
-    "INFO: Entry %s added: pdoIndex 0x%x, entryIndex 0x%x, entrySubIndex 0x%x, direction %d, bits %d.\n",
-    idString_.c_str(),
-    pdoIndex_,
-    entryIndex_,
-    entrySubIndex_,
-    direction_,
-    bitLength_);
-
-    initAsyn();
-}
-
-ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
-                         int masterId,
-                         int slaveId,                         
-                         uint8_t bits,
-                         uint8_t *domainAdr,
-                         std::string id) {
-  initVars();
-  asynPortDriver_ = asynPortDriver;
-  masterId_=masterId;
-  slaveId_=slaveId;
-  domainAdr_ = domainAdr;
-  bitLength_ = bits;
-  sim_       = true;
-  direction_ = EC_DIR_OUTPUT;
-  idString_  = id;
-  idStringChar_  = strdup(idString_.c_str());
-  adr_       = 0;
+  masterId_       = masterId;
+  slaveId_        = slaveId;
+  domainAdr_      = domainAdr;
+  sim_            = true;
+  direction_      = EC_DIR_OUTPUT;
+  idString_       = id;
+  idStringChar_   = strdup(idString_.c_str());
+  adr_            = 0;
+  dataType_       = dt;
+  bitLength_      = getEcDataTypeBits(dt);
   initAsyn();
 }
 
@@ -155,7 +130,6 @@ void ecmcEcEntry::initVars() {
   slaveId_                = -1;
   entryAsynParam_         = NULL;
   domainAdr_              = NULL;
-  bitLength_              = 0;
   bitOffset_              = 0;
   byteOffset_             = 0;
   entryIndex_             = 0;
@@ -169,8 +143,19 @@ void ecmcEcEntry::initVars() {
   domain_                 = NULL;
   pdoIndex_               = 0;
   slave_                  = NULL;
-  signed_                 = 0;
-  value_                  = 0;
+  buffer_                  = 0;
+  dataType_               = ECMC_EC_NONE;
+  bitLength_              = 0;
+  int8Ptr_                = (int8_t*)&buffer_;
+  uint8Ptr_               = (uint8_t*)&buffer_;
+  int16Ptr_               = (int16_t*)&buffer_;
+  uint16Ptr_              = (uint16_t*)&buffer_;
+  int32Ptr_               = (int32_t*)&buffer_;
+  uint32Ptr_              = (uint32_t*)&buffer_;
+  int64Ptr_               = (int64_t*)&buffer_;
+  uint64Ptr_              = (uint64_t*)&buffer_;
+  float32Ptr_             = (float*)&buffer_;
+  float64Ptr_             = (double*)&buffer_;
 }
 
 ecmcEcEntry::~ecmcEcEntry()
@@ -219,32 +204,105 @@ int ecmcEcEntry::getBits() {
 }
 
 int ecmcEcEntry::writeValue(uint64_t value) {
-  value_ = value;
+  buffer_ = value;
+  return updateAsyn(0);
+}
+
+int ecmcEcEntry::writeDouble(double value) {
+
+  switch(dataType_) {
+    case ECMC_EC_S8:
+      *int8Ptr_ = (int8_t)value;
+      break;
+
+    case ECMC_EC_S16:
+      *int16Ptr_ = (int16_t)value;
+      break;
+
+    case ECMC_EC_S32:
+      *int32Ptr_ = (int32_t)value;
+      break;
+
+    case ECMC_EC_S64:
+      *int64Ptr_ = (int64_t)value;
+      break;
+
+    case ECMC_EC_F32:      
+      *float32Ptr_ = (float)value;      
+      break;
+
+    case ECMC_EC_F64:    
+      *float64Ptr_= value;
+      break;
+
+    default:
+      // All unsigned and bits
+      buffer_ = (uint64_t)value;    
+      break;
+  }
+
   return updateAsyn(0);
 }
 
 int ecmcEcEntry::writeValueForce(uint64_t value) {
-  value_ = value;
+  buffer_ = value;
   return updateAsyn(1);
 }
 
 int ecmcEcEntry::writeBit(int bitNumber, uint64_t value) {
   if (value) {
-    BIT_SET(value_, bitNumber);
+    BIT_SET(buffer_, bitNumber);
   } else {
-    BIT_CLEAR(value_, bitNumber);
+    BIT_CLEAR(buffer_, bitNumber);
   }
 
   return 0;
 }
 
 int ecmcEcEntry::readValue(uint64_t *value) {
-  *value = value_;
+  *value = buffer_;
+  return 0;
+}
+
+int ecmcEcEntry::readDouble(double *value) {
+  
+  switch(dataType_) {
+    case ECMC_EC_S8:
+      *value = (double)(*int8Ptr_);
+      break;
+
+    case ECMC_EC_S16:
+      *value = (double)(*int16Ptr_);
+      break;
+
+    case ECMC_EC_S32:
+      *value = (double)(*int32Ptr_);
+      break;
+
+    case ECMC_EC_S64:
+      *value = (double)(*int64Ptr_);
+      break;
+
+    case ECMC_EC_F32:
+      
+      *value = (double)(*float32Ptr_);      
+      break;
+
+    case ECMC_EC_F64:
+      *value = *float64Ptr_;
+      break;
+
+    default:
+      // All unsigned and bits
+      *value = (double)(*uint64Ptr_);
+      break;
+  }
+
   return 0;
 }
 
 int ecmcEcEntry::readBit(int bitNumber, uint64_t *value) {
-  *value = BIT_CHECK(value_, bitNumber) > 0;
+  *value = BIT_CHECK(buffer_, bitNumber) > 0;
   return 0;
 }
 
@@ -257,56 +315,71 @@ int ecmcEcEntry::updateInputProcessImage() {
     return 0;
   }
 
-  value_ = 0;
+  buffer_ = 0;
 
-  switch (bitLength_) {
-  case 1:          
-    value_ = (uint64_t)EC_READ_BIT(adr_, bitOffset_);
-    break;
+  switch(dataType_) {
+    case ECMC_EC_NONE:
+      buffer_ = 0;
+      break;
 
-  case 2:    
-    value_ = (uint64_t)EC_READ_2_BITS(adr_, bitOffset_);
-    break;
+    case ECMC_EC_B1:
+      buffer_ = (uint64_t)EC_READ_BIT(adr_, bitOffset_);
+      break;
 
-  case 3:    
-    value_ = (uint64_t)EC_READ_3_BITS(adr_, bitOffset_);
-    break;
+    case ECMC_EC_B2:
+      buffer_ = (uint64_t)EC_READ_B2(adr_, bitOffset_);
+      break;
 
-  case 4:
-    value_ = (uint64_t)EC_READ_4_BITS(adr_, bitOffset_);
-    break;
+    case ECMC_EC_B3:
+      buffer_ = (uint64_t)EC_READ_B3(adr_, bitOffset_);
+      break;
 
-  case 8:
-    if(signed_){
-      value_ = (uint64_t)EC_READ_S8(adr_);
-    } else {
-      value_ = (uint64_t)EC_READ_U8(adr_);
-    }
-    break;
+    case ECMC_EC_B4:
+      buffer_ = (uint64_t)EC_READ_B4(adr_, bitOffset_);
+      break;
 
-  case 16:
-    if(signed_){
-      value_ = (uint64_t)EC_READ_S16(adr_);
-    } else {
-      value_ = (uint64_t)EC_READ_U16(adr_);
-    }
-    break;
+    case ECMC_EC_U8:
+      buffer_ = (uint64_t)EC_READ_U8(adr_);
+      break;
 
-  case 32:
-    if(signed_){
-      value_ = (uint64_t)EC_READ_S32(adr_);
-    } else {
-      value_ = (uint64_t)EC_READ_U32(adr_);
-    }
-    break;
+    case ECMC_EC_S8:
+      buffer_ = (uint64_t)EC_READ_S8(adr_);;
+      break;
 
-  case 64:
-    if(signed_){
-      value_ = (uint64_t)EC_READ_S64(adr_);
-    } else {
-      value_ = (uint64_t)EC_READ_U64(adr_);
-    }
-    break;
+    case ECMC_EC_U16:
+      buffer_ = (uint64_t)EC_READ_U16(adr_);
+      break;
+
+    case ECMC_EC_S16:
+      buffer_ = (uint64_t)EC_READ_S16(adr_);
+      break;
+
+    case ECMC_EC_U32:
+      buffer_ = (uint64_t)EC_READ_U32(adr_);
+      break;
+
+    case ECMC_EC_S32:
+      buffer_ = (uint64_t)EC_READ_S32(adr_);
+      break;
+
+    case ECMC_EC_U64:
+      buffer_ = (uint64_t)EC_READ_U64(adr_);
+      break;
+
+    case ECMC_EC_S64:
+      buffer_ = (uint64_t)EC_READ_S64(adr_);
+      break;
+
+    case ECMC_EC_F32:
+      buffer_ = (uint64_t)EC_READ_REAL(adr_);
+      break;
+
+    case ECMC_EC_F64:
+      buffer_ = (uint64_t)EC_READ_LREAL(adr_);
+      break;
+    default:
+      buffer_ = 0;      
+      break;
   }
 
   updateAsyn(0);
@@ -322,43 +395,72 @@ int ecmcEcEntry::updateOutProcessImage() {
     return 0;
   }
 
-  switch (bitLength_) {
-  case 1:
-    EC_WRITE_BIT(adr_, bitOffset_, value_);
-    break;
+  switch(dataType_) {
+    case ECMC_EC_NONE:
+      buffer_ = 0;
+      break;
 
-  case 8:
-    if(signed_){
-      EC_WRITE_S8(adr_, value_);
-    } else {
-      EC_WRITE_U8(adr_, value_);
-    }
-    break;
+    case ECMC_EC_B1:
+      EC_WRITE_BIT(adr_, bitOffset_, buffer_);      
+      break;
 
-  case 16:
-    if(signed_){
-      EC_WRITE_S16(adr_, value_);
-    } else {
-      EC_WRITE_U16(adr_, value_);
-    }
-    break;
+    case ECMC_EC_B2:
+      EC_WRITE_B2(adr_,buffer_);      
+      break;
 
-  case 32:
-    if(signed_){
-      EC_WRITE_S32(adr_, value_);
-    } else {
-      EC_WRITE_U32(adr_, value_);
-    }
-    break;
+    case ECMC_EC_B3:
+      EC_WRITE_B3(adr_,buffer_);
+      break;
 
-  case 64:
-    if(signed_){
-      EC_WRITE_S64(adr_, value_);
-    } else {
-      EC_WRITE_U64(adr_, value_);
-    }
-    break;
+    case ECMC_EC_B4:
+      EC_WRITE_B4(adr_,buffer_);
+      break;
+
+    case ECMC_EC_U8:
+      EC_WRITE_U8(adr_, buffer_);
+      break;
+
+    case ECMC_EC_S8:
+      EC_WRITE_S8(adr_, buffer_);
+      break;
+
+    case ECMC_EC_U16:
+      EC_WRITE_U16(adr_, buffer_);
+      break;
+
+    case ECMC_EC_S16:
+      EC_WRITE_S16(adr_, buffer_);
+      break;
+
+    case ECMC_EC_U32:
+      EC_WRITE_U32(adr_, buffer_);
+      break;
+
+    case ECMC_EC_S32:
+      EC_WRITE_S32(adr_, buffer_);
+      break;
+
+    case ECMC_EC_U64:
+      EC_WRITE_U64(adr_, buffer_);
+      break;
+
+    case ECMC_EC_S64:
+      EC_WRITE_S64(adr_, buffer_);
+      break;
+
+    case ECMC_EC_F32:
+      EC_WRITE_REAL(adr_, buffer_);
+      break;
+
+    case ECMC_EC_F64:
+      EC_WRITE_LREAL(adr_, buffer_);
+      break;
+    default:
+
+      buffer_ = 0;      
+      break;
   }
+
   updateAsyn(0);
   return 0;
 }
@@ -376,16 +478,16 @@ int ecmcEcEntry::updateAsyn(bool force) {
   switch (entryAsynParam_->getAsynParameterType()) {
     case asynParamInt32:
       
-      entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(value_));
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&buffer_, sizeof(buffer_));
       break;
     case asynParamUInt32Digital:
 
-      entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(value_));      
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&buffer_, sizeof(buffer_));      
       break;
 
     case asynParamFloat64:
 
-      entryAsynParam_->refreshParamRT(force, (uint8_t *)&value_, sizeof(double));            
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&buffer_, sizeof(double));            
       break;
 
     default:
@@ -481,37 +583,11 @@ int ecmcEcEntry::validate() {
                       __FUNCTION__,
                       __LINE__,
                       ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
-  }
-  adr_ = domainAdr_ + byteOffset_;
+  }  
 
-  switch (bitLength_) {
-  case 1:
-    break;
-
-  case 2:      
-    break;
-
-  case 3:    
-    break;
-
-  case 4:    
-    break;
-
-  case 8:
-    break;
-
-  case 16:    
-    break;
-
-  case 32:    
-    break;
-
-  case 64:    
-    break;
-
-  default:    
+  if(dataType_==ECMC_EC_NONE) {
     LOGERR(
-      "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid bit length (0x%x).\n",
+      "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid data type (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -523,9 +599,9 @@ int ecmcEcEntry::validate() {
                       __FUNCTION__,
                       __LINE__,
                       ERROR_EC_ENTRY_INVALID_BIT_LENGTH);
-
-    break;
   }
+  // Calculate final address
+  adr_ = domainAdr_ + byteOffset_;
 
   return 0;
 }
@@ -562,8 +638,9 @@ int ecmcEcEntry::initAsyn() {
   name = buffer;
   entryAsynParam_ = asynPortDriver_->addNewAvailParam(name,
                                     asynParamInt32,  //default type
-                                    (uint8_t *)&(value_),
-                                    sizeof(value_),
+                                    (uint8_t *)&(buffer_),
+                                    sizeof(buffer_),
+                                    dataType_,
                                     0);
   if(!entryAsynParam_) {
     LOGERR(
@@ -578,24 +655,98 @@ int ecmcEcEntry::initAsyn() {
                       ERROR_MAIN_ASYN_CREATE_PARAM_FAIL);
   }
 
-  //Add supported types  
-  entryAsynParam_->addSupportedAsynType(asynParamInt32);
-  entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
-  entryAsynParam_->addSupportedAsynType(asynParamFloat64);
-  if(sim_) {
-    entryAsynParam_->allowWriteToEcmc(1);
+  //Add supported types
+  switch(dataType_) {
+    case ECMC_EC_NONE:
+      return 0;
+      break;
+
+    case ECMC_EC_B1:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_B2:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_B3:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_B4:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_U8:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_S8:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);      
+      break;
+
+    case ECMC_EC_U16:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_S16:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_U32:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_S32:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_U64:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_S64:
+      entryAsynParam_->addSupportedAsynType(asynParamInt32);
+      entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);      
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_F32:
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
+
+    case ECMC_EC_F64:
+      entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      break;
   }
-  else {
-    entryAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT);
-  }
+
+  entryAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT || sim_);
   entryAsynParam_->setEcmcBitCount(bitLength_);
-  if( signed_ ) {
-    entryAsynParam_->setEcmcMinValueInt(-pow(2,bitLength_-1));
-    entryAsynParam_->setEcmcMaxValueInt(pow(2,bitLength_-1)-1);
-  } else {
-    entryAsynParam_->setEcmcMinValueInt(0);
-    entryAsynParam_->setEcmcMaxValueInt(pow(2,bitLength_)-1);
-  }
+  entryAsynParam_->setEcmcMinValueInt(getEcDataTypeMinVal(dataType_));
+  entryAsynParam_->setEcmcMaxValueInt(getEcDataTypeMaxVal(dataType_));
+  
   entryAsynParam_->refreshParam(1);
   asynPortDriver_->callParamCallbacks();
   return 0;
@@ -603,6 +754,10 @@ int ecmcEcEntry::initAsyn() {
 
 int ecmcEcEntry::setComAlarm(bool alarm) {
   asynStatus stat;
+  if(entryAsynParam_==NULL) {
+    return 0;
+  }
+  
   if(alarm) {
     stat = entryAsynParam_->setAlarmParam(COMM_ALARM,INVALID_ALARM); 
   } else {

@@ -71,7 +71,7 @@ extern "C" {
 # endif  // ifdef __cplusplus
 
 
-/** \breif Create an event object.
+/** \brief Create an event object.
  *
  * An event can be trigger actions based on hardware related events (changes
  * of values on the EtherCAT bus (entries)).\n
@@ -98,7 +98,7 @@ extern "C" {
  */
 int createEvent(int index);
 
-/** \breif Links an EtherCAT entry to an event object. \n
+/** \brief Links an EtherCAT entry to an event object. \n
  *
  *  \param[in] eventIndex Index of event object to link to.\n
  *  \param[in] eventEntryIndex Index of event objects entry list.\n
@@ -131,7 +131,7 @@ int linkEcEntryToEvent(int   indexEvent,
                        char *entryIDString,
                        int   bitIndex);
 
-/** \breif Set event type.\n
+/** \brief Set event type.\n
  *
  * \param[in] indexEvent Index of event to address.\n
  * \param[in] type Type of event.\n
@@ -146,7 +146,7 @@ int linkEcEntryToEvent(int   indexEvent,
 int setEventType(int indexEvent,
                  int type);
 
-/** \breif Set event sampling time (cycle counts).\n
+/** \brief Set event sampling time (cycle counts).\n
  *
  * Sets the sample rate at which events will be triggered.
  *
@@ -166,7 +166,7 @@ int setEventType(int indexEvent,
 int setEventSampleTime(int indexEvent,
                        int sampleTime);
 
-/** \breif Set event trigger edge.\n
+/** \brief Set event trigger edge.\n
  *
  * \param[in] indexEvent Index of event to address.\n
  * \param[in] triggerEdge Type of event.\n
@@ -182,7 +182,7 @@ int setEventSampleTime(int indexEvent,
 int setEventTriggerEdge(int indexEvent,
                         int triggerEdge);
 
-/** \breif Enable event.\n
+/** \brief Enable event.\n
  *
  * Event evaluation and triggering is only active when the enable bit is
  * high.\n
@@ -198,7 +198,7 @@ int setEventTriggerEdge(int indexEvent,
 int setEventEnable(int indexEvent,
                    int enable);
 
-/** \breif Get event enabled.\n
+/** \brief Get event enabled.\n
  *
  * Event evaluation and triggering is only active when the enable bit is
  * high.\n
@@ -214,7 +214,7 @@ int setEventEnable(int indexEvent,
 int getEventEnabled(int  indexEvent,
                     int *enabled);
 
-/** \breif Enable arm sequence.\n
+/** \brief Enable arm sequence.\n
  *
  * Some hardware require that the input card is re-armed after each value have
  * been collected (typically latched I/O). The arm sequence will, if enabled,
@@ -232,7 +232,7 @@ int getEventEnabled(int  indexEvent,
 int setEventEnableArmSequence(int indexEvent,
                               int enable);
 
-/** \breif Enable diagnostic printouts from event object.\n
+/** \brief Enable diagnostic printouts from event object.\n
  *
  * \param[in] indexEvent Index of event to address.\n
  * \param[in] enable Enable diagnostic printouts.\n
@@ -245,7 +245,7 @@ int setEventEnableArmSequence(int indexEvent,
 int setEventEnablePrintouts(int indexEvent,
                             int enable);
 
-/** \breif Force trigger event.\n
+/** \brief Force trigger event.\n
  *
  * Any subscriber functions to an event will be executed.\n
  *
@@ -258,7 +258,7 @@ int setEventEnablePrintouts(int indexEvent,
  */
 int triggerEvent(int indexEvent);
 
-/** \breif Arm event.\n
+/** \brief Arm event.\n
  *
  * Manually execute arm sequence, see command setEventEnableArmSequence().\n
  *
@@ -271,7 +271,7 @@ int triggerEvent(int indexEvent);
  */
 int armEvent(int indexEvent);
 
-/** \breif Create a data storage object.
+/** \brief Create a data storage object.
  *
  * The data storage object is a data buffer.
  *
@@ -299,7 +299,7 @@ int createDataStorage(int index,
                       int elements,
                       int bufferType);
 
-/** \breif Clear data storage buffer.
+/** \brief Clear data storage buffer.
  *
  *  Erases all data within a data storage object.
  *
@@ -312,7 +312,7 @@ int createDataStorage(int index,
  */
 int clearStorage(int indexStorage);
 
-/** \breif Get current index of data in storage buffer.\n
+/** \brief Get current index of data in storage buffer.\n
  *
  * \param[in] index Index of data storage object to clear.\n
  * \param[out] index Current data element index.\n
@@ -326,7 +326,7 @@ int clearStorage(int indexStorage);
 int getStorageDataIndex(int  indexStorage,
                         int *index);
 
-/** \breif Enable diagnostic printouts from data storage object.\n
+/** \brief Enable diagnostic printouts from data storage object.\n
  *
  * \param[in] indexStroage Index of data storage object to address.\n
  * \param[in] enable Enable diagnostic printouts.\n
@@ -339,7 +339,7 @@ int getStorageDataIndex(int  indexStorage,
 int setStorageEnablePrintouts(int indexStorage,
                               int enable);
 
-/** \breif Print contents of buffer.\n
+/** \brief Print contents of buffer.\n
  *
  * \param[in] indexStroage Index of data storage object to address.\n
  *
@@ -350,7 +350,7 @@ int setStorageEnablePrintouts(int indexStorage,
  */
 int printStorageBuffer(int indexStorage);
 
-/** \breif Reads contents of storage buffer.\n
+/** \brief Reads contents of storage buffer.\n
  *
  * \param[in] indexStorage Index of data storage object to address.\n
  * \param[out] data Pointer to data.\n
@@ -365,7 +365,7 @@ int readStorageBuffer(int      indexStorage,
                       double **data,
                       int     *size);
 
-/** \breif Writes data to storage buffer.\n
+/** \brief Writes data to storage buffer.\n
  *
  * \param[in] indexStorage Index of data storage object to address.\n
  * \param[in] data Pointer to data.\n
@@ -380,7 +380,7 @@ int writeStorageBuffer(int     indexStorage,
                        double *data,
                        int     size);
 
-/** \breif Appends data to the end of storage buffer.\n
+/** \brief Appends data to the end of storage buffer.\n
  *
  * \param[in] indexStorage Index of data storage object to address.\n
  * \param[in] data Pointer to data.\n
@@ -395,7 +395,7 @@ int appendStorageBuffer(int     indexStorage,
                         double *data,
                         int     size);
 
-/** \breif Set current data index of storage buffer.\n
+/** \brief Set current data index of storage buffer.\n
  *
  * This function can be used to set teh current index of a data
  * storage buffer. A subsequent append of data will start at this
@@ -412,7 +412,7 @@ int appendStorageBuffer(int     indexStorage,
 int setDataStorageCurrentDataIndex(int indexStorage,
                                    int position);
 
-/** \breif Create recorder object.
+/** \brief Create recorder object.
  *
  * The recorder object stores data, from an EtherCAT entry, in a data storage
  * object. The recording of a data point can be triggered by an event or by
@@ -433,7 +433,7 @@ int setDataStorageCurrentDataIndex(int indexStorage,
  */
 int createRecorder(int indexRecorder);
 
-/** \breif Link storage object to recorder object.
+/** \brief Link storage object to recorder object.
  *
  * \param[in] indexStorage Index of storage object.\n
  * \param[in] indexRecorder Index of recorder object.\n
@@ -446,7 +446,7 @@ int createRecorder(int indexRecorder);
 int linkStorageToRecorder(int indexStorage,
                           int indexRecorder);
 
-/** \breif Links an EtherCAT entry to a recorder object. \n
+/** \brief Links an EtherCAT entry to a recorder object. \n
  *
  *  \param[in] indexRecorder Index of recorder object to link to.\n
  *  \param[in] recorderEntryIndex Index of recorder objects entry list.\n
@@ -478,7 +478,7 @@ int linkEcEntryToRecorder(int   indexRecorder,
                           char *entryIDString,
                           int   bitIndex);
 
-/** \breif Links an axis data source to a recorder object. \n
+/** \brief Links an axis data source to a recorder object. \n
  *
  *  \param[in] indexRecorder Index of recorder object to link to.\n
  *  \param[in] axisIndex Index of axis to get data from.\n
@@ -528,7 +528,7 @@ int linkAxisDataToRecorder(int indexRecorder,
                            int axisIndex,
                            int dataToStore);
 
-/** \breif Enable recorder.\n
+/** \brief Enable recorder.\n
  *
  * Recording of data is only active when the enable bit is high.\n
  *
@@ -543,7 +543,7 @@ int linkAxisDataToRecorder(int indexRecorder,
 int setRecorderEnable(int indexRecorder,
                       int enable);
 
-/** \breif Get recorder enabled.\n
+/** \brief Get recorder enabled.\n
  *
  * Recording of data is only active when the enable bit is high.\n
  *
@@ -558,7 +558,7 @@ int setRecorderEnable(int indexRecorder,
 int getRecorderEnabled(int  indexRecorder,
                        int *enabled);
 
-/** \breif Enable diagnostic printouts from recorder object.\n
+/** \brief Enable diagnostic printouts from recorder object.\n
  *
  * \param[in] indexRecorder Index of recorder object to address.\n
  * \param[in] enable Enable diagnostic printouts.\n
@@ -571,7 +571,7 @@ int getRecorderEnabled(int  indexRecorder,
 int setRecorderEnablePrintouts(int indexRecorder,
                                int enable);
 
-/** \breif Link recorder object to event object.\n
+/** \brief Link recorder object to event object.\n
  *
  * \param[in] indexRecorder Index of recorder object to address.\n
  * \param[in] indexEvent Index of event object to address.\n
@@ -587,7 +587,7 @@ int linkRecorderToEvent(int indexRecorder,
                         int indexEvent,
                         int consumerIndex);
 
-/** \breif Force trigger recorder.\n
+/** \brief Force trigger recorder.\n
  *
  * The recorder object will store data in the linked data storage object.\n
  *
@@ -600,7 +600,7 @@ int linkRecorderToEvent(int indexRecorder,
  */
 int triggerRecorder(int indexRecorder);
 
-/** \breif Create a command list object.
+/** \brief Create a command list object.
  *
  * The command list object consists of a list of commands that can be executed.
  * Currently any command can be added to the command list. The execution of the
@@ -622,7 +622,7 @@ int triggerRecorder(int indexRecorder);
  */
 int createCommandList(int indexCommandList);
 
-/** \breif Link command list object to event object.\n
+/** \brief Link command list object to event object.\n
  *
  * \param[in] indexCommandList Index of command list object to address.\n
  * \param[in] indexEvent Index of event object to address.\n
@@ -638,7 +638,7 @@ int linkCommandListToEvent(int indexCommandList,
                            int indexEvent,
                            int consumerIndex);
 
-/** \breif Enable command list.\n
+/** \brief Enable command list.\n
  *
  * Command list will only be executed when the enable bit is high.\n
  *
@@ -653,7 +653,7 @@ int linkCommandListToEvent(int indexCommandList,
 int setCommandListEnable(int indexCommandList,
                          int enable);
 
-/** \breif Enable diagnostic printouts from command list object.\n
+/** \brief Enable diagnostic printouts from command list object.\n
  *
  * \param[in] indexCommandList Index of command list object to address.\n
  * \param[in] enable Enable diagnostic printouts.\n
@@ -666,7 +666,7 @@ int setCommandListEnable(int indexCommandList,
 int setCommandListEnablePrintouts(int indexCommandList,
                                   int enable);
 
-/** \breif Add command to command list.\n
+/** \brief Add command to command list.\n
  *
  * \param[in] indexCommandList Index of command list object to address.\n
  * \param[in] expr Command string.\n
@@ -680,7 +680,7 @@ int setCommandListEnablePrintouts(int indexCommandList,
 int addCommandListCommand(int   indexCommandList,
                           char *expr);
 
-/** \breif Force trigger command list.\n
+/** \brief Force trigger command list.\n
  *
  * All commands in the command list object will be executed.\n
  *

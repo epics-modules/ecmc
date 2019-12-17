@@ -18,7 +18,7 @@
     mc_errorCode=0;                                           \
     LOGERR("ERROR: Axis index out of range.\n");              \
     return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
-    if(ecmcPLCTask::statAxes_[axIndex]==NULL){                    \
+    if(ecmcPLCTask::statAxes_[axIndex]==NULL){                \
       LOGERR("ERROR: Axis object NULL\n");                    \
       return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
     }                                                         \
@@ -34,7 +34,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_reset(",
                                "mc_get_busy(",
                                "mc_get_homed(",
-                               "mc_get_axis_err",
+                               "mc_get_axis_err(",
                               };
 
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
@@ -45,7 +45,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count=sizeof(mcLibCmdList)/sizeof(mcLibCmdList[0]);
+static int mc_cmd_count = 11;
 
 
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -248,6 +248,7 @@ inline double mc_reset(double axIndex)
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
   ecmcPLCTask::statAxes_[index]->setReset(1);
+  mc_errorCode = 0;
   return 0;
 }
 
@@ -278,7 +279,6 @@ inline double mc_get_err()
 {
   return (double)mc_errorCode;
 }
-
 
 #endif /* ecmcPLC_libMc_inc_ */
 

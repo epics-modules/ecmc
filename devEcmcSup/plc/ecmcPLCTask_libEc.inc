@@ -17,6 +17,8 @@
 
 #define ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE 0x20800
 
+ecmcEc *ecmcPLCTask::statEc_=NULL;
+
 #define CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(bits) { \
   ec_errorCode=0;                                        \
   if(bits>=ECMC_EC_LIB_MAX_BITS || bits<0){              \
@@ -34,10 +36,19 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_print_hex(",
                                "ec_get_err(",
                                "ec_wrt_bit(",
+                               "ec_mm_cp(",
+                               "ec_err_rst(",
+                               "ec_wrt_bits(",
+                               "ec_chk_bits(",
+                               "ec_get_time(",
+                               "ec_get_mm_type("
+                               "ec_get_mm_data("
+                               "ec_set_mm_data("
+                               "ec_get_mm_size("
                               };
 
-static int ec_errorCode=0;
-static int ec_cmd_count=sizeof(ecLibCmdList)/sizeof(ecLibCmdList[0]);
+static int ec_errorCode = 0;
+static int ec_cmd_count = 17;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
@@ -56,6 +67,47 @@ inline double ec_wrt_bit(double value, double wrtValue,double bitIndex)
   else {
     return (double)BIT_CLEAR(temp,(int)bitIndex);
   }
+}
+
+inline double ec_wrt_bits(double value,
+                          double wrtValue,
+                          double startBit,
+                          double stopBit)
+{  
+  CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(startBit);
+  CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(stopBit);
+  uint64_t temp=(uint64_t)value;
+  uint64_t data=(uint64_t)wrtValue;
+  uint64_t mask=-1;
+  if((stopBit-startBit+1)<64) {
+    mask=((1LU << ((int)(stopBit-startBit+1)))-1);
+  }
+  
+  return (temp & ~(mask << (int)startBit)) | ((data & mask) << (int)startBit);
+}
+
+inline double ec_chk_bits(double value, double startBit, double stopBit)
+{  
+  CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(startBit);
+  CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(stopBit);
+  
+  uint64_t temp=(uint64_t)value;
+  uint64_t mask=-1 <<(int)startBit;
+  if((stopBit-startBit+1)<64) {
+    mask=((1LU << ((int)(stopBit-startBit+1)))-1)<<(int)startBit;
+  }   
+  
+  return (double)((temp & mask) >> (int)startBit);
+}
+
+inline double ec_get_time() {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return -(double)ec_errorCode;
+  }
+
+  return (double)ecmcPLCTask::statEc_->getTimeNs();
 }
 
 inline double ec_clr_bit(double value, double bitIndex)
@@ -85,9 +137,11 @@ inline double ec_print_hex(double value, double startBit,double stopBit)
   CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(stopBit);
   
   uint64_t temp=(uint64_t)value;
-  temp = temp & ((1U << ((int)stopBit)) - 1); 
-  temp = temp << (int)startBit;
-  printf("%" PRIx64 "",temp);  
+  uint64_t mask=-1 <<(int)startBit;
+  if((stopBit-startBit+1)<64) {
+    mask=((1LU << ((int)(stopBit-startBit+1)))-1)<<(int)startBit;
+  }   
+  printf("%" PRIx64 "",(temp & mask) >> (int)startBit);  
   return 0;
 }
 
@@ -108,6 +162,119 @@ inline double ec_get_err()
 {  
   return (double)ec_errorCode;
 }
+
+// Mem map copy
+inline double ec_mm_cp(double srcId, double destId) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return (double)ec_errorCode;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  ecmcEcMemMap *dest = ecmcPLCTask::statEc_->getMemMap((int)destId);
+  if(!src || !dest) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return (double)ec_errorCode;
+  }
+
+  //Size to copy
+  int sizeToCp = src->getByteSize();
+  int sizeDest = dest->getByteSize();
+  if(sizeDest<sizeToCp) {
+    sizeToCp = sizeDest;
+  }
+
+  //Write data from src to dest 
+  memcpy(dest->getBufferPointer(),src->getBufferPointer(),sizeToCp);
+  return ec_errorCode;
+}
+
+// Get mm data type
+inline double ec_get_mm_type(double srcId) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return -(double)ec_errorCode;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return -(double)ec_errorCode;
+  }
+  
+  return (double)src->getDataType();
+}
+
+// Get mm data type
+inline double ec_get_mm_data(double srcId,double index) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return 0;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return 0;
+  }
+
+  double dataTemp = 0;
+
+  ec_errorCode = src->getDoubleDataAtIndex((int)index,&dataTemp);
+  if(ec_errorCode) {
+    return 0;
+  }
+
+  return dataTemp;
+}
+
+// Set mm data type
+inline double ec_set_mm_data(double srcId,double index, double data) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return 0;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return 0;
+  }
+
+  ec_errorCode = src->setDoubleDataAtIndex((int)index,data);
+
+  return ec_errorCode;
+}
+
+// Get mm data size
+inline double ec_get_mm_size(double srcId) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return 0;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return 0;
+  }
+
+  return (double)src->getElementCount();
+}
+
+// Reset error
+inline double ec_err_rst() {
+  ec_errorCode = 0;
+  return 0;
+}
+
 #endif /* ecmcPLC_libEc_inc_ */
-
-

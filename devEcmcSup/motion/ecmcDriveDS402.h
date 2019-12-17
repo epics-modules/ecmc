@@ -80,7 +80,6 @@ class ecmcDriveDS402 : public ecmcDriveBase {
   int  validate();
   void readEntries();
   void writeEntries();
-  void printCurrentState();
   void errorReset();
 
  private:
