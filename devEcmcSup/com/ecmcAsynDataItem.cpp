@@ -256,7 +256,7 @@ int ecmcAsynDataItem::createParam(const char *paramName,asynParamType asynParTyp
 
   // ECMC double, epics record int32
   if(paramInfo_.cmdFloat64ToInt32 && paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(epicsFloat64) ) {
-    asynStatus status= asynPortDriver_->createParam(paramName,asynParamInt32,&paramInfo_.index);
+    asynStatus status= asynPortDriver_->createParam(ECMC_ASYN_DEFAULT_ADDR,paramName,asynParamInt32,&paramInfo_.index);
     return  (status==asynSuccess) ? 0 : ERROR_ASYN_CREATE_PARAM_FAIL;
   }
 
