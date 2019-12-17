@@ -1044,6 +1044,10 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
   if (details >= 0) {
     fprintf(fp,"####################################################################:\n");
   }
+
+  fprintf(fp,"Report from base class (asynPortDriver):\n");
+  asynPortDriver::report(fp,details);
+  fprintf(fp,"####################################################################:\n");
 }
 
 void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern) {
