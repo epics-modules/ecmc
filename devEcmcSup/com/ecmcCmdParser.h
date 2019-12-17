@@ -19,10 +19,14 @@
 extern "C" {
 # endif /* ifdef __cplusplus */
 
-int ecmcCmdParser(int                   argc,
+/*int ecmcCmdParser(int                   argc,
                   const char           *argv[],
                   const char           *seperator[],
-                ecmcOutputBufferType *buffer);
+                ecmcOutputBufferType *buffer);*/
+int ecmcCmdParser(const char           *cmdline, 
+                  int                   inLen,            
+                  ecmcOutputBufferType *buffer);
+
 int motorHandleOneArg(const char           *myarg_1,
                       ecmcOutputBufferType *buffer);
 

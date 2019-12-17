@@ -91,7 +91,6 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int                   writeEntries();
   int                   setOffset(double offset);
   int                   validate();
-  void                  printCurrentState();
   int                   setToZeroIfRelative();
   int                   setRawMask(uint64_t mask);
   bool                  getLatchFuncEnabled();

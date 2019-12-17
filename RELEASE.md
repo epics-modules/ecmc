@@ -3,6 +3,35 @@ Release Notes
 
 # ECMC master branch (new features since last version)
 
+* Add iocsh commands "ecmcGrepParam()" and "ecmcGrepRecord()"
+    1. ecmcGrepParam(<pattern>):
+       Lists information about all ecmc parameters which parameter name correpsonds to pattern.
+    2. ecmcGrepRecord(<pattern>):
+       Lists information about all ecmc parameters which record name correpsonds to pattern.
+* Add PLC expression as asyn param (to avoid stream device).
+* Use epicsThreadCreate() for rt thread.
+* Remove LOGINFO15 printouts. For printouts use PLC instead.
+* Fix inconversion command FLOAT64TOINT32 cmd.
+* Change naming of axis plc default parameters (Example: plcs.plc9.enable => plcs.ax1.plc.enable)
+* ecmcAxisBase: Add trajsource, encsource  and plccmdallowed in axis status word.
+* ecmcEcSlave: Only update ethercat entries that are in use (increase performance).
+* Add functionality to latch limit switch.
+  Motion will need to stop even if limit switch is just low for one cycle (bounce).
+  For safety reasons, this is also the default behaviour in ecmc from now on.
+  Before motion was allowed all the time when limits were OK (even after limit bounce).
+    
+  Two commands have been added for this functionallity:
+    1. "Cfg.SetAxisMonLatchLimit(<axis_no>,<enable>)"
+    2. "GetAxisMonLatchLimit(<axis_no>)"
+    
+  Currentlly it's a bit unclear how this will affect syncronized axes.
+  If issues then the functionality can be disabled of with:
+  "Cfg.SetAxisMonLatchLimit(<axis_no>, 0)"
+
+* Make cmd parser more effichent (runtime commands eval first).
+* Change ecmc_rt thread default prio to from 60 to 72.
+* Add access to memmap data in PLC:s (see below for added plc functions)
+* Add definitions of EC datatypes to entries and memmaps: 
 * ECMC repo. moved to https://github.com/epics-modules/ecmc
 * ECMC tested with macros in plc code:
     * Same syntax as other iocsh macros (code parsed with msi)
@@ -18,8 +47,31 @@ Release Notes
 
     3. ec_get_time():
        Returns current time in nanoseconds from (1 jan 2000)
-    
-* Fixed ec_print_hex() plc function.
+
+    4. ec_mm_cp( <srcId>,<sdestId>) 
+       Copy memmaps
+
+    5. ec_get_mm_type( <srcId>);
+       Return type of memmap
+
+    6. ec_get_mm_data(<srcId>,<index>)
+       Read data point from memmap
+
+    7. ec_set_mm_data(<srcId>,<index>,<data>)
+       Write data point to memmap
+
+    8. ec_get_mm_size(<srcId>)
+       Returns number of elements (of type "ec_get_mm_type()")in memmap with srcId. 
+       If return value is less than zero it should be considered to be an error code.
+
+    9. ec_get_time()
+       Returns current time in nano seconds (from 1 Jan 2000, same as EtherCAT DC:s).
+       If return value is less than zero it should be considered to be an error code.
+
+    10. ec_err_rst():
+        Reset ec li error code. 
+
+    11. Fixed ec_print_hex() plc function.
 
 # ECMC 6.0.1
 

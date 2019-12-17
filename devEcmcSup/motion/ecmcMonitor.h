@@ -81,6 +81,8 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool   getEnableMaxVelMon();
   int    setMaxVelDriveTime(int time);
   int    setMaxVelTrajTime(int time);
+  int    setLatchAtLimit(bool latchOnLimit);
+  int    getLatchAtLimit();
   double getCurrentPosSet();
   void   execute();
   void   readEntries();
@@ -120,7 +122,6 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool   getEnableSoftLimitFwd();
   bool   getAtSoftLimitBwd();
   bool   getAtSoftLimitFwd();
-  void   printCurrentState();
   
  private:
   int    checkLimits();
@@ -130,8 +131,6 @@ class ecmcMonitor : public ecmcEcEntryLink {
   int    checkVelocityDiff();
   int    checkCntrlMaxOutput();
   int    filterSwitches();
-  void   printInterlockStatus(interlockTypes ilock);
-  void   printHwInterlockPolarity();
   int    checkPolarity(ecmcSwitchPolarity pol);
   bool enable_;
   // Tolnoerance for reached target. Example 0.1 deg
@@ -173,6 +172,7 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool limitFwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
+  bool latchOnLimit_;  //stop even if just bounce
   interlockTypes interlockStatusOld_;
   ecmcSwitchPolarity hardwareInterlockPolarity_;
   ecmcSwitchPolarity lowLimPolarity_;

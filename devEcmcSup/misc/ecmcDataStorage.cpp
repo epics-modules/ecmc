@@ -416,6 +416,7 @@ int ecmcDataStorage::initAsyn() {
                                     asynParamFloat64Array, //default type
                                     (uint8_t *)(buffer_),
                                     bufferSize_*sizeof(double),
+                                    ECMC_EC_F64,
                                     0);
 
   if(!dataAsynDataItem_) {
@@ -450,6 +451,7 @@ int ecmcDataStorage::initAsyn() {
                                     asynParamInt32, //default type
                                     (uint8_t *)&(currentBufferIndex_),
                                     sizeof(currentBufferIndex_),
+                                    ECMC_EC_S32,
                                     0);
   if(!indexAsynDataItem_) {
     LOGERR(
@@ -483,6 +485,7 @@ int ecmcDataStorage::initAsyn() {
                                     asynParamUInt32Digital, //default type
                                     (uint8_t *)&(statusWord_),
                                     sizeof(statusWord_),
+                                    ECMC_EC_U32,
                                     0);
   if(!statusAsynDataItem_) {
     LOGERR(
@@ -518,6 +521,7 @@ int ecmcDataStorage::initAsyn() {
                                     asynParamInt32, //default type
                                     (uint8_t *)&(bufferSize_),
                                     sizeof(bufferSize_),
+                                    ECMC_EC_S32,
                                     0);
   if(!sizeAsynDataItem_) {
     LOGERR(

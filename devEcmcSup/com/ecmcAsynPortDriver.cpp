@@ -156,7 +156,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   // Add first param for other access (like motor record or stream device).
   ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,
                                                      ECMC_ASYN_PAR_OCTET_NAME,
-                                                     asynParamNotDefined);
+                                                     asynParamNotDefined,
+                                                     ECMC_EC_NONE);
   if(paramTemp->createParam()){
     asynPrint(pasynUserSelf,
               ASYN_TRACE_ERROR,
@@ -326,7 +327,8 @@ ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
 
 /** Create and add new parameter to list of available parameters\n
   * \param[in] name Parameter name\n
-  * \param[in] type Parameter type\n
+  * \param[in] type Asyn parameter type\n
+  * \param[in] dt   Data type\n
   * \param[in] data Pointer to data\n
   * \param[in] bytes size of data\n
   * \param[in] dieIfFail Exit if method fails\n
@@ -337,11 +339,12 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
                                                        asynParamType type,
                                                        uint8_t *data,
                                                        size_t bytes,
+                                                       ecmcEcDataType dt,
                                                        bool dieIfFail) {
 
   const char* functionName = "addNewAvailParam";
 
-  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,name,type);
+  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,name,type,dt);
   
   int errorCode=paramTemp->setEcmcDataPointer(data, bytes);
   if(errorCode) {
@@ -949,6 +952,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
     fprintf(fp,"    ECMC size [bytes]:         %lu\n",paramInfo->ecmcSize); 
     fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
     fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");      
+    fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
     fprintf(fp,"\n");
     return;
   }
@@ -964,6 +968,8 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    ECMC max size [bytes]:     %lu\n",paramInfo->ecmcMaxSize);
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
+  fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
+  
   // Value range only applicable for ints
   if(param->getEcmcMinValueInt() != param->getEcmcMaxValueInt()) {
     fprintf(fp,"    ECMC Value Range:          %ld..%ld, %ld bit(s)\n",
@@ -1037,6 +1043,59 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
   }
   if (details >= 0) {
     fprintf(fp,"####################################################################:\n");
+  }
+}
+
+void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern) {
+  
+  const char* functionName = "grepParam";
+  asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+
+  if(!fp){
+    fprintf(fp,"%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    return;
+  }
+
+  //print all parameters that fit pattern
+  fprintf(fp,"####################################################################:\n");
+  fprintf(fp,"ecmc parameters that fit pattern %s:\n",pattern);
+  for(int i=0; i<ecmcParamAvailCount_;i++){
+    if(pEcmcParamAvailArray_[i]){
+      ecmcParamInfo *paramInfo=pEcmcParamAvailArray_[i]->getParamInfo();
+      if(paramInfo) {
+        if(epicsStrGlobMatch(paramInfo->name,pattern)) {
+          reportParamInfo(fp, pEcmcParamAvailArray_[i],i);
+        }
+      }
+    }         
+  }
+}
+
+void ecmcAsynPortDriver::grepRecord(FILE *fp, const char *pattern) {
+  
+  const char* functionName = "grepRecord";
+  asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+
+  if(!fp){
+    fprintf(fp,"%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    return;
+  }
+
+  //print all parameters that fit pattern
+  fprintf(fp,"####################################################################:\n");
+  fprintf(fp,"ecmc records that fit pattern %s:\n",pattern);
+  for(int i=0; i<ecmcParamAvailCount_;i++){
+    if(pEcmcParamAvailArray_[i]){
+      ecmcParamInfo *paramInfo=pEcmcParamAvailArray_[i]->getParamInfo();
+      if(paramInfo) {
+        // Match param-name or record-name
+        if(paramInfo->initialized) {
+          if(epicsStrGlobMatch(paramInfo->recordName,pattern)) {           
+            reportParamInfo(fp, pEcmcParamAvailArray_[i],i);
+          }
+        }
+      }
+    }         
   }
 }
 
@@ -1290,8 +1349,7 @@ static void initCallFunc_4(const iocshArgBuf *args) {
   ecmcConfig(args[0].sval);
 }
 
-
-/* EPICS iocsh shell command:  ecmcReport (same as asynReport but only ECMC)*/
+/* EPICS iocsh shell command: ecmcReport (same as asynReport but only ECMC)*/
 int ecmcReport(int level) {
   
   if(!ecmcAsynPortObj) {
@@ -1313,12 +1371,70 @@ static void initCallFunc_5(const iocshArgBuf *args) {
   ecmcReport(args[0].ival);
 }
 
+/* EPICS iocsh shell command: ecmcGrepParam*/
+int ecmcGrepParam(const char *pattern) {
+  
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;  
+  }
+  
+  if(!pattern) {
+    printf("Error: Pattern missing.\n");
+    printf("       Use \"ecmcGrepParam <pattern>\" to list ecmc params/records.\n");
+    return asynError;  
+  }
+
+  ecmcAsynPortObj->grepParam(stdout,pattern);
+
+  return 0;
+}
+
+static const iocshArg initArg0_6 =
+{ "Pattern", iocshArgString };
+static const iocshArg *const initArgs_6[]  = { &initArg0_6 };
+static const iocshFuncDef    initFuncDef_6 = { "ecmcGrepParam", 1, initArgs_6 };
+static void initCallFunc_6(const iocshArgBuf *args) {
+  ecmcGrepParam(args[0].sval);
+}
+
+/* EPICS iocsh shell command: ecmcGrepRecord*/
+int ecmcGrepRecord(const char *pattern) {
+  
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;  
+  }
+  
+  if(!pattern) {
+    printf("Error: Pattern missing.\n");
+    printf("       Use \"ecmcGrepRecord <pattern>\" to list ecmc params/records.\n");
+    return asynError;  
+  }
+
+  ecmcAsynPortObj->grepRecord(stdout,pattern);
+
+  return 0;
+}
+
+static const iocshArg initArg0_7 =
+{ "Pattern", iocshArgString };
+static const iocshArg *const initArgs_7[]  = { &initArg0_7 };
+static const iocshFuncDef    initFuncDef_7 = { "ecmcGrepRecord", 1, initArgs_7 };
+static void initCallFunc_7(const iocshArgBuf *args) {
+  ecmcGrepRecord(args[0].sval);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,   initCallFunc);
   iocshRegister(&initFuncDef_2, initCallFunc_2);
   iocshRegister(&initFuncDef_3, initCallFunc_3);
   iocshRegister(&initFuncDef_4, initCallFunc_4);
   iocshRegister(&initFuncDef_5, initCallFunc_5);
+  iocshRegister(&initFuncDef_6, initCallFunc_6);
+  iocshRegister(&initFuncDef_7, initCallFunc_7);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);

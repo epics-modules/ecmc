@@ -13,7 +13,6 @@
 #include "ecmcFilter.h"
 
 ecmcFilter::ecmcFilter(double sampleTime) {
-  LOGINFO15("%s/%s:%d: filter[x]=new;\n", __FILE__, __FUNCTION__, __LINE__);
   initVars();
   sampleTime_ = sampleTime;
   filterSize_ = FILTER_BUFFER_SIZE_VEL;

@@ -31,6 +31,7 @@ ecmcPLCTask::ecmcPLCTask(int plcIndex, int skipCycles, ecmcAsynPortDriver *asynP
   asynPortDriver_    = asynPortDriver;
   exprtk_            = new exprtkWrap();
   plcScanTimeInSecs_ = 1 / MCU_FREQUENCY * (skipCycles + 1);
+  initAsyn(plcIndex);
 }
 
 ecmcPLCTask::~ecmcPLCTask() {
@@ -51,19 +52,19 @@ void ecmcPLCTask::initVars() {
   inStartup_           = 1;
   skipCycles_          = 0;
   skipCyclesCounter_   = 0;
-  plcScanTimeInSecs_   = 0;
-
+  plcScanTimeInSecs_   = 0;  
   for (int i = 0; i < ECMC_MAX_PLC_VARIABLES; i++) {
-    globalArray_[i] = NULL;
-    localArray_[i]  = NULL;
+    globalArray_[i]      = NULL;
+    localArray_[i]       = NULL;
   }
-  firstScanDone_   = 0;
-  libMcLoaded_     = 0;
-  libEcLoaded_     = 0;
-  libDsLoaded_     = 0;
-  libFileIOLoaded_ = 0;
-  asynPortDriver_  = 0;
-  newExpr_         = 0;
+  firstScanDone_       = 0;
+  libMcLoaded_         = 0;
+  libEcLoaded_         = 0;
+  libDsLoaded_         = 0;
+  libFileIOLoaded_     = 0;
+  asynPortDriver_      = 0;
+  newExpr_             = 0;
+  asynParamExpr_       = NULL;
 }
 
 int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
@@ -236,6 +237,7 @@ int ecmcPLCTask::appendRawExpr(const char *exprStr) {
 int ecmcPLCTask::addExprLine(const char *exprStr) {
   try {
     exprStr_ += exprStr;
+    updateAsyn();
   }
   catch (const std::exception& e) {
     LOGERR("%s/%s:%d: Append of expression line failed: %s (0x%x).\n",
@@ -261,6 +263,7 @@ int ecmcPLCTask::clearRawExpr() {
 
 int ecmcPLCTask::clearExpr() {
   exprStr_  = "";
+  updateAsyn();
   compiled_ = false;
 
   for (int i = 0; i < localVariableCount_; i++) {
@@ -554,19 +557,23 @@ int ecmcPLCTask::loadEcLib() {
   int errorCode  = 0;
   int cmdCounter = 0;
 
-  ecmcPLCTaskAddFunction("ec_set_bit",   ec_set_bit);
-  ecmcPLCTaskAddFunction("ec_clr_bit",   ec_clr_bit);
-  ecmcPLCTaskAddFunction("ec_flp_bit",   ec_flp_bit);
-  ecmcPLCTaskAddFunction("ec_chk_bit",   ec_chk_bit);
-  ecmcPLCTaskAddFunction("ec_print_hex", ec_print_hex);
-  ecmcPLCTaskAddFunction("ec_print_bin", ec_print_bin);
-  ecmcPLCTaskAddFunction("ec_get_err",   ec_get_err);
-  ecmcPLCTaskAddFunction("ec_wrt_bit",   ec_wrt_bit);
-  ecmcPLCTaskAddFunction("ec_mm_cp",     ec_mm_cp);
-  ecmcPLCTaskAddFunction("ec_err_rst",   ec_err_rst);
-  ecmcPLCTaskAddFunction("ec_wrt_bits",  ec_wrt_bits);
-  ecmcPLCTaskAddFunction("ec_chk_bits",  ec_chk_bits);
-  ecmcPLCTaskAddFunction("ec_get_time",  ec_get_time);
+  ecmcPLCTaskAddFunction("ec_set_bit",     ec_set_bit);
+  ecmcPLCTaskAddFunction("ec_clr_bit",     ec_clr_bit);
+  ecmcPLCTaskAddFunction("ec_flp_bit",     ec_flp_bit);
+  ecmcPLCTaskAddFunction("ec_chk_bit",     ec_chk_bit);
+  ecmcPLCTaskAddFunction("ec_print_hex",   ec_print_hex);
+  ecmcPLCTaskAddFunction("ec_print_bin",   ec_print_bin);
+  ecmcPLCTaskAddFunction("ec_get_err",     ec_get_err);
+  ecmcPLCTaskAddFunction("ec_wrt_bit",     ec_wrt_bit);
+  ecmcPLCTaskAddFunction("ec_mm_cp",       ec_mm_cp);
+  ecmcPLCTaskAddFunction("ec_err_rst",     ec_err_rst);
+  ecmcPLCTaskAddFunction("ec_wrt_bits",    ec_wrt_bits);
+  ecmcPLCTaskAddFunction("ec_chk_bits",    ec_chk_bits);
+  ecmcPLCTaskAddFunction("ec_get_time",    ec_get_time);
+  ecmcPLCTaskAddFunction("ec_get_mm_type", ec_get_mm_type);
+  ecmcPLCTaskAddFunction("ec_get_mm_data", ec_get_mm_data);
+  ecmcPLCTaskAddFunction("ec_set_mm_data", ec_set_mm_data);
+  ecmcPLCTaskAddFunction("ec_get_mm_size", ec_get_mm_size);
 
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
@@ -709,4 +716,66 @@ int ecmcPLCTask::findLocalVar(const char *varName, ecmcPLCDataIF **outDataIF) {
 //Check if new expression is loaded after compile
 int ecmcPLCTask::getNewExpr() {
   return newExpr_;
+}
+
+int ecmcPLCTask::initAsyn(int plcIndex) {
+  
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
+  char *name = buffer;
+  ecmcAsynDataItem *paramTemp=NULL;
+  int chars = 0;
+
+  // ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME  
+   if(plcIndex < ECMC_MAX_PLCS){
+    chars = snprintf(name,
+                     EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
+                     ECMC_PLC_DATA_STR "%d." ECMC_PLC_EXPR_STR,
+                     plcIndex);
+
+    if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_PLC_VARIABLE_NAME_TO_LONG);
+    }
+  }
+  else {  // Axis PLC
+    chars = snprintf(name,
+                     EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
+                     ECMC_AX_STR "%d." ECMC_PLC_DATA_STR "." ECMC_PLC_EXPR_STR,
+                     plcIndex-ECMC_MAX_PLCS);
+
+    if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_PLC_VARIABLE_NAME_TO_LONG);
+    }
+  }
+
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                         asynParamInt8Array,
+                                         (uint8_t *)exprStr_.c_str(),
+                                         strlen(exprStr_.c_str()),
+                                         ECMC_EC_S8,
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }  
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setArrayCheckSize(false);
+  paramTemp->refreshParam(1,(uint8_t*)exprStr_.c_str(),strlen(exprStr_.c_str()));
+  
+  asynParamExpr_ = paramTemp;  
+  return 0;
+}
+
+void ecmcPLCTask::updateAsyn() {
+  asynParamExpr_->refreshParam(1,(uint8_t*)exprStr_.c_str(),strlen(exprStr_.c_str()));
 }

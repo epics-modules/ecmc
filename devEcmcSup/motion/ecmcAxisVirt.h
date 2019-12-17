@@ -34,8 +34,7 @@ public:
   operationMode getOpMode();
   ecmcDriveBase *getDrv();
   ecmcPIDController *getCntrl();
-  int validate();
-  void printCurrentState();
+  int validate();  
 
 private:
   void initVars();

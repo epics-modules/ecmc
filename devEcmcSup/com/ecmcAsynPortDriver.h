@@ -85,13 +85,16 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                    size_t *psize);
                                    
   virtual void report(FILE *fp, int details);
+  void grepParam(FILE *fp, const char *pattern);
+  void grepRecord(FILE *fp, const char *pattern);
   void      setAllowRtThreadCom(bool allowRtCom);
   bool      getAllowRtThreadCom();
   asynUser* getTraceAsynUser();
   ecmcAsynDataItem *addNewAvailParam(const char * name,
-                                     asynParamType type,
+                                     asynParamType type,                                     
                                      uint8_t *data,
                                      size_t bytes,
+                                     ecmcEcDataType dt,
                                      bool dieIfFail);
    int32_t getFastestUpdateRate();   
    int32_t calcFastestUpdateRate();

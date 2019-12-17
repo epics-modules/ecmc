@@ -162,7 +162,6 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   int             initStopRamp(double currentPos,
                                double currentVel,
                                double currentAcc);
-  void            printCurrentState();
   motionDirection getCurrSetDir();
   motionDirection checkDirection(double oldPos,
                                  double newPos);

@@ -126,28 +126,28 @@ class ecmcEc : public ecmcError {
                size_t    byteSize, /**< Size of data to write. */
                uint8_t  *value /**< Pointer to data to write. */
               );
-
   int addEntry(
-    uint16_t       position,     // Slave position.
-    uint32_t       vendorId,     // Expected vendor ID.
-    uint32_t       productCode,  // Expected product code.
-    ec_direction_t direction,
-    uint8_t        syncMangerIndex,
-    uint16_t       pdoIndex,
-    uint16_t       entryIndex,
-    uint8_t        entrySubIndex,
-    uint8_t        bits,
-    std::string    id,
-    int            signedValue);
+               uint16_t       position,     // Slave position.
+               uint32_t       vendorId,     // Expected vendor ID.
+               uint32_t       productCode,  // Expected product code.
+               ec_direction_t direction,
+               uint8_t        syncMangerIndex,
+               uint16_t       pdoIndex,
+               uint16_t       entryIndex,
+               uint8_t        entrySubIndex,
+               ecmcEcDataType dt,
+               std::string    id,
+              int            useInRealTime);
   int addMemMap(uint16_t       startEntryBusPosition,
                 std::string    startEntryIDString,
                 int            byteSize,
-                int            type,
                 ec_direction_t direction,
+                ecmcEcDataType dt,
                 std::string    memMapIDString);
   ecmcEcMemMap* findMemMap(std::string id);
   ecmcEcMemMap* getMemMap(int index);
   ecmcEcSlave * findSlave(int busPosition);
+
   int           findSlaveIndex(int  busPosition,
                                int *slaveIndex);
   int           updateTime();
@@ -167,8 +167,9 @@ class ecmcEc : public ecmcError {
                         uint32_t vendorId,   /**< Expected vendor ID. */
                         uint32_t productCode  /**< Exp)*/);
   int           checkReadyForRuntime();
-  uint64_t      getTimeNs();                 
- private:
+  uint64_t      getTimeNs();
+
+private:
   void     initVars();
   int      updateInputProcessImage();
   int      updateOutProcessImage();

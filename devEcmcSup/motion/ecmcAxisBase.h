@@ -118,6 +118,25 @@ typedef struct {
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
+typedef struct {
+  unsigned char              enabled:1;
+  unsigned char              execute:1;
+  unsigned char              busy:1;
+  unsigned char              attarget:1;
+  unsigned char              moving:1;
+  unsigned char              limitfwd:1;
+  unsigned char              limitbwd:1;
+  unsigned char              homeswitch:1;
+  unsigned char              instartup:1;
+  unsigned char              inrealtime:1;
+  unsigned char              trajsource:1;
+  unsigned char              encsource:1;
+  unsigned char              plccmdallowed:1;
+  unsigned char              unused:3;
+  unsigned char              seqstate:8;
+  unsigned char              lastilock:8;
+} ecmcAxisStatusWordType;
+
 class ecmcAxisBase : public ecmcError {
  public:
   ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
@@ -131,7 +150,6 @@ class ecmcAxisBase : public ecmcError {
   virtual ecmcPIDController* getCntrl()             = 0;
   virtual int                validate()             = 0;
   virtual void               execute(bool masterOK) = 0;
-  virtual void               printCurrentState();
   int                        getCntrlError(double *error);
   int                        setEnable(bool enable);
   bool                       getEnable();
@@ -204,7 +222,6 @@ class ecmcAxisBase : public ecmcError {
   int                   setEncVeloFiltSize(size_t size);
 
  protected:
-  void         printAxisState();
   void         initVars();
   void         refreshDebugInfoStruct();
   double       getPosErrorMod();
@@ -230,7 +247,7 @@ class ecmcAxisBase : public ecmcError {
   ecmcEcEntry *statusOutputEntry_;
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
-  uint32_t statusWord_;
+  ecmcAxisStatusWordType statusWord_;
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;
