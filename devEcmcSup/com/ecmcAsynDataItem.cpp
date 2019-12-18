@@ -175,36 +175,36 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
   asynStatus stat=asynError;
   switch(paramInfo_.asynType){
     case asynParamUInt32Digital:
-      stat = asynPortDriver_->setUIntDigitalParam(paramInfo_.index,*((epicsInt32*)data),0xFFFFFFFF);
+      stat = asynPortDriver_->setUIntDigitalParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,*((epicsInt32*)data),0xFFFFFFFF);
       break;
     case asynParamInt32:
-      stat = asynPortDriver_->setIntegerParam(paramInfo_.index,*((epicsInt32*)data));      
+      stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,*((epicsInt32*)data));      
       break;
     case asynParamFloat64:            
       if(paramInfo_.cmdInt64ToFloat64) {        
         if(paramInfo_.ecmcSize == sizeof(int64_t)) {
-          stat = asynPortDriver_->setDoubleParam(paramInfo_.index,static_cast<epicsFloat64>(*(int64_t*)data));         
+          stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsFloat64>(*(int64_t*)data));         
           break;
         }
       }
       if(paramInfo_.cmdUint64ToFloat64) {        
         if(paramInfo_.ecmcSize == sizeof(uint64_t)) {          
-          stat = asynPortDriver_->setDoubleParam(paramInfo_.index,static_cast<epicsFloat64>(*(uint64_t*)data));         
+          stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsFloat64>(*(uint64_t*)data));         
           break;
         }
       }
       if(paramInfo_.cmdFloat64ToInt32) {        
         if(paramInfo_.ecmcSize == sizeof(double)) {          
-          stat = asynPortDriver_->setIntegerParam(paramInfo_.index,static_cast<epicsInt32>(*(double*)data));         
+          stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsInt32>(*(double*)data));         
           break;
         }
       }
       if(dataType_ == ECMC_EC_F32) {
-        stat = asynPortDriver_->setDoubleParam(paramInfo_.index,static_cast<epicsFloat64>(*(float*)data));                 
+        stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsFloat64>(*(float*)data));                 
         break;
       }
 
-      stat = asynPortDriver_->setDoubleParam(paramInfo_.index,*((epicsFloat64*)data));
+      stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,*((epicsFloat64*)data));
       break;
     case asynParamInt8Array:
       stat = asynPortDriver_->doCallbacksInt8Array((epicsInt8*)data,bytes, paramInfo_.index, 0);
@@ -256,11 +256,11 @@ int ecmcAsynDataItem::createParam(const char *paramName,asynParamType asynParTyp
 
   // ECMC double, epics record int32
   if(paramInfo_.cmdFloat64ToInt32 && paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(epicsFloat64) ) {
-    asynStatus status= asynPortDriver_->createParam(ECMC_ASYN_DEFAULT_ADDR,paramName,asynParamInt32,&paramInfo_.index);
+    asynStatus status= asynPortDriver_->createParam(ECMC_ASYN_DEFAULT_LIST,paramName,asynParamInt32,&paramInfo_.index);
     return  (status==asynSuccess) ? 0 : ERROR_ASYN_CREATE_PARAM_FAIL;
   }
 
-  asynStatus status = asynPortDriver_->createParam(paramName,paramInfo_.asynType,&paramInfo_.index);
+  asynStatus status = asynPortDriver_->createParam(ECMC_ASYN_DEFAULT_LIST,paramName,paramInfo_.asynType,&paramInfo_.index);
   return (status==asynSuccess) ? 0 : ERROR_ASYN_CREATE_PARAM_FAIL;
 }
 
@@ -398,7 +398,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
 {
   asynStatus stat;
   int oldAlarmStatus=0;
-  stat = asynPortDriver_->getParamAlarmStatus(getAsynParameterIndex(),&oldAlarmStatus);
+  stat = asynPortDriver_->getParamAlarmStatus(ECMC_ASYN_DEFAULT_LIST,getAsynParameterIndex(),&oldAlarmStatus);
   if(stat!=asynSuccess){
     return asynError;
   }
@@ -406,7 +406,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
   bool doCallbacks=false;
 
   if(oldAlarmStatus!=alarm){
-    stat = asynPortDriver_->setParamAlarmStatus(getAsynParameterIndex(),alarm);
+    stat = asynPortDriver_->setParamAlarmStatus(ECMC_ASYN_DEFAULT_LIST,getAsynParameterIndex(),alarm);
     if(stat!=asynSuccess){
       return asynError;
     }
@@ -415,13 +415,13 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
   }
 
   int oldAlarmSeverity=0;
-  stat = asynPortDriver_->getParamAlarmSeverity(getAsynParameterIndex(),&oldAlarmSeverity);
+  stat = asynPortDriver_->getParamAlarmSeverity(ECMC_ASYN_DEFAULT_LIST,getAsynParameterIndex(),&oldAlarmSeverity);
   if(stat!=asynSuccess){
     return asynError;
   }
 
   if(oldAlarmSeverity!=severity){
-    stat = asynPortDriver_->setParamAlarmSeverity(getAsynParameterIndex(),severity);
+    stat = asynPortDriver_->setParamAlarmSeverity(ECMC_ASYN_DEFAULT_LIST,getAsynParameterIndex(),severity);
     if(stat!=asynSuccess){
       return asynError;
     }
@@ -438,7 +438,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
     refreshParamRT(1);
   }
   else{
-    stat = asynPortDriver_->callParamCallbacks();
+    stat = asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   }
 
   return stat;
@@ -526,7 +526,7 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
 
   // Trigger callbacks if not array
   if(!asynTypeIsArray(type)) {
-   return asynPortDriver_->callParamCallbacks();
+   return asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   }
   
   return asynSuccess;
@@ -1083,6 +1083,15 @@ asynStatus ecmcAsynDataItem::getRecordInfoFromDrvInfo(const char *drvInfo)
     paramInfo_.recordType=0;
   }
   dbFreeEntry(pdbentry);  
+  
+  // Record not found so other asyn port driver/client
+  paramInfo_.recordType=strdup("none");
+  paramInfo_.recordName=strdup("asynPortDriver");
+  paramInfo_.inp=strdup("none");
+  paramInfo_.dtyp=strdup("none");
+  paramInfo_.out=strdup("none");
+  paramInfo_.drvInfo=strdup(drvInfo);
+  paramInfo_.scan = 0;
 
   return asynError;
 }
@@ -1279,7 +1288,6 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
 }
 
 asynStatus ecmcAsynDataItem::setDrvInfo(const char *drvInfo) {
-
   const char* functionName = "setDrvInfo";
 
   if(validateDrvInfo(drvInfo)!=asynSuccess){
@@ -1294,8 +1302,8 @@ asynStatus ecmcAsynDataItem::setDrvInfo(const char *drvInfo) {
 
   status=getRecordInfoFromDrvInfo(drvInfo);
   if(status!=asynSuccess){
-    asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "%s:%s: Failed to find record with drvInfo %s.\n", driverName, functionName,drvInfo);    
-    return asynError;
+    asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_INFO, "%s:%s: INFO: Failed to find record with drvInfo %s. Must be a connetion from other asyn client (motor record).\n", driverName, functionName,drvInfo);
+    //allow not linked to record (motorrecord could be motor record or other asyn client?!)
   }
 
   return asynSuccess;

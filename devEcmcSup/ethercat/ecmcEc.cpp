@@ -183,7 +183,7 @@ int ecmcEc::addSlave(
     slaveCounter_++;
 
     ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID]->refreshParam(1);
-    asynPortDriver_->callParamCallbacks();
+    asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
     return slaveCounter_ - 1;
   } else {
@@ -822,7 +822,7 @@ int ecmcEc::addEntry(
   entryCounter_++;
   
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }
@@ -1011,7 +1011,7 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
 
   ecMemMapArrayCounter_++;
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();  // also for memmap and ecEntry
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);  // also for memmap and ecEntry
 
   return ecMemMapArray_[ecMemMapArrayCounter_-1]->getErrorID();
 }
@@ -1264,7 +1264,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID] = paramTemp;
 
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }

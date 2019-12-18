@@ -502,7 +502,7 @@ int ecmcDriveBase::initAsyn() {
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   asynStatusWd_ = paramTemp;
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }

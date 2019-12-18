@@ -13,6 +13,8 @@
 #ifndef ECMC_ASYN_PORT_DRIVER_H_
 #define ECMC_ASYN_PORT_DRIVER_H_
 
+#include "asynMotorController.h"
+#include "asynMotorAxis.h"
 #include "asynPortDriver.h"
 #include <epicsEvent.h>
 #include <epicsTime.h>
@@ -123,6 +125,7 @@ class ecmcAsynPortDriver : public asynPortDriver {
   int autoConnect_;
   unsigned int priority_;
   int32_t fastestParamUpdateCycles_;
+  friend class paramList;
 };
 
 #endif  /* ECMC_ASYN_PORT_DRIVER_H_ */

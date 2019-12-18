@@ -234,31 +234,35 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   refreshDebugInfoStruct();
   
   // bit 0 enabled  
-  statusWord_.enabled = getEnabled()>0;
+  statusWord_.enabled = getEnabled() > 0;
   // bit 1 execute  
-  statusWord_.execute = seq_.getExecute()>0;
+  statusWord_.execute = seq_.getExecute() > 0;
   // bit 2 busy
-  statusWord_.busy = data_.status_.busy>0;
+  statusWord_.busy = data_.status_.busy > 0;
   // bit 3 at target
-  statusWord_.attarget = data_.status_.atTarget>0;
+  statusWord_.attarget = data_.status_.atTarget > 0;
   // bit 4 moving
-  statusWord_.moving = data_.status_.moving>0;
+  statusWord_.moving = data_.status_.moving > 0;
   // bit 5 limit fwd
-  statusWord_.limitfwd = data_.status_.limitFwd>0;
+  statusWord_.limitfwd = data_.status_.limitFwd > 0;
   // bit 6 limit bwd
-  statusWord_.limitbwd = data_.status_.limitBwd>0;
+  statusWord_.limitbwd = data_.status_.limitBwd > 0;
   // bit 7 homeswitch
-  statusWord_.homeswitch = data_.status_.homeSwitch>0;
+  statusWord_.homeswitch = data_.status_.homeSwitch > 0;
   // bit 8 inStartupPhase
-  statusWord_.instartup = data_.status_.inStartupPhase>0;
+  statusWord_.instartup = data_.status_.inStartupPhase > 0;
   // bit 9 inRealtime  
-  statusWord_.inrealtime = data_.status_.inRealtime>0;
+  statusWord_.inrealtime = data_.status_.inRealtime > 0;
   // bit 10 traj source  
-  statusWord_.trajsource = data_.command_.trajSource>0;
+  statusWord_.trajsource = data_.command_.trajSource > 0;
   // bit 11 enc source  
-  statusWord_.encsource = data_.command_.encSource>0;
+  statusWord_.encsource = data_.command_.encSource > 0;
   // bit 12 Allow plc commands  
-  statusWord_.plccmdallowed = allowCmdFromOtherPLC_>0;
+  statusWord_.plccmdallowed = allowCmdFromOtherPLC_ > 0;
+  // bit 13 softlimfwdena
+  statusWord_.softlimfwdena = data_.command_.enableSoftLimitFwd > 0;
+  // bit 14 softlimbwdena  
+  statusWord_.softlimfwdena = data_.command_.enableSoftLimitBwd > 0;
   // bit 16..23 seq state
   statusWord_.seqstate = (unsigned char)data_.status_.seqState;
   // bit 24..31 lastActiveInterlock type
@@ -954,7 +958,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
 
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
 }
 

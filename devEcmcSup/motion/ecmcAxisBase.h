@@ -132,7 +132,9 @@ typedef struct {
   unsigned char              trajsource:1;
   unsigned char              encsource:1;
   unsigned char              plccmdallowed:1;
-  unsigned char              unused:3;
+  unsigned char              softlimfwdena:1;
+  unsigned char              softlimbwdena:1;
+  unsigned char              unused:1;
   unsigned char              seqstate:8;
   unsigned char              lastilock:8;
 } ecmcAxisStatusWordType;

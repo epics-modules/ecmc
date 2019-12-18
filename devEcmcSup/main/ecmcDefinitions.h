@@ -27,6 +27,7 @@
 #define ECMC_MAX_AXES 64
 #define ECMC_MAX_PLCS 8
 
+#define ECMC_ASYN_DEFAULT_LIST 0
 #define ECMC_ASYN_DEFAULT_ADDR 0
 
 #define TIMESPEC2NS(T) ((uint64_t)(((T).tv_sec - 946684800ULL) * \

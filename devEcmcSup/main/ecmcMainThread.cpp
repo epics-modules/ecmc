@@ -119,7 +119,7 @@ void updateAsynParams(int force) {
         asynSkipUpdateCounterFastest = 0;
       }
       if (asynPort->getAllowRtThreadCom()) {
-        asynPort->callParamCallbacks();
+        asynPort->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
         /* refresh updated counter (To know in epics when refresh have been made)
         waveform*/
         ecmcUpdatedCounter++;
@@ -489,7 +489,7 @@ int setAppModeRun(int mode) {
 
   if (mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID]) {
     mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID]->refreshParam(1);    
-    asynPort->callParamCallbacks();
+    asynPort->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   }
 
   for (int i = 0; i < ECMC_MAX_AXES; i++) {

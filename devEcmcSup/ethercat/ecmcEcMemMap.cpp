@@ -234,7 +234,7 @@ int ecmcEcMemMap::initAsyn() {
   memMapAsynParam_->addSupportedAsynType(asynParamFloat64Array);
   memMapAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT);
   memMapAsynParam_->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }

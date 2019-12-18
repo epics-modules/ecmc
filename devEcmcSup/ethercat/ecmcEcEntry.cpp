@@ -748,7 +748,7 @@ int ecmcEcEntry::initAsyn() {
   entryAsynParam_->setEcmcMaxValueInt(getEcDataTypeMaxVal(dataType_));
   
   entryAsynParam_->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
 }
 
