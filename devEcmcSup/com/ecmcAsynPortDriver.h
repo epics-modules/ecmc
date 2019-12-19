@@ -13,8 +13,6 @@
 #ifndef ECMC_ASYN_PORT_DRIVER_H_
 #define ECMC_ASYN_PORT_DRIVER_H_
 
-#include "asynMotorController.h"
-#include "asynMotorAxis.h"
 #include "asynPortDriver.h"
 #include <epicsEvent.h>
 #include <epicsTime.h>

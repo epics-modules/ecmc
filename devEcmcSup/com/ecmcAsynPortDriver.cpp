@@ -33,7 +33,6 @@
 #include <alarm.h>
 
 #include "ecmcAsynPortDriver.h"
-#include "asynMotorController.h"
 #include "../main/gitversion.h"
 #include "ecmcOctetIF.h"
 #include "ecmcCmdParser.h"
