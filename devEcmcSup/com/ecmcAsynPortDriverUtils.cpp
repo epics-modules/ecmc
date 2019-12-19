@@ -843,11 +843,11 @@ size_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
     break;
 
   case ECMC_EC_F32:
-    return std::numeric_limits<float_t>::max();
+    return -1; //Not used of F32
     break;
 
   case ECMC_EC_F64:
-    return std::numeric_limits<double_t>::max();;
+    return -1; //Not used of F64
     break;
 
   default:
@@ -912,11 +912,11 @@ size_t getEcDataTypeMinVal(ecmcEcDataType dt) {
     break;
 
   case ECMC_EC_F32:
-    return std::numeric_limits<float_t>::min();
+    return 1; //Not used of F32
     break;
 
   case ECMC_EC_F64:
-    return std::numeric_limits<double_t>::min();;
+    return 1; //Not used of F64
     break;
 
   default:

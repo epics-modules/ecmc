@@ -66,6 +66,7 @@
 #define ERROR_EC_MASTER_NULL 0x26025
 #define ERROR_EC_SLAVE_VERIFICATION_FAIL 0x26026
 #define ERROR_EC_NO_VALID_CONFIG 0x26027
+#define ERROR_EC_DATATYPE_NOT_VALID 0x26028
 
 class ecmcEc : public ecmcError {
  public:
@@ -175,6 +176,7 @@ private:
   int      updateOutProcessImage();
   timespec timespecAdd(timespec time1,
                        timespec time2);
+  bool     validEntryType(ecmcEcDataType dt);
   ec_master_t *master_;
   ec_domain_t *domain_;
   ec_domain_state_t domainStateOld_;
