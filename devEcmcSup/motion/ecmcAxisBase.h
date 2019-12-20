@@ -139,6 +139,27 @@ typedef struct {
   unsigned char              lastilock:8;
 } ecmcAxisStatusWordType;
 
+typedef struct {
+  unsigned char              enable:1;
+  unsigned char              execute:1;
+  unsigned char              reset:1;
+  unsigned char              softlimfwdena:1;
+  unsigned char              softlimbwdena:1;
+  unsigned char              unused_1:3;
+  unsigned char              unused_2:8;
+  unsigned char              cmd:8;
+  unsigned int               cmddata:8;
+}ecmcAxisControlWordType;
+
+typedef struct {
+  ecmcAxisControlWordType    controlwd;
+  double                     softlimfwd;
+  double                     softlimbwd;
+  double                     targetpos;
+  double                     targetvel;
+  double                     targetacc;
+}ecmcAsynClinetCmdType;
+
 class ecmcAxisBase : public ecmcError {
  public:
   ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
@@ -227,6 +248,12 @@ class ecmcAxisBase : public ecmcError {
   void         initVars();
   void         refreshDebugInfoStruct();
   double       getPosErrorMod();
+  int          createAsynParam(const char        *nameFormat,
+                               asynParamType      asynType, 
+                               ecmcEcDataType     ecmcType,
+                               uint8_t*           data, 
+                               size_t             bytes,                                  
+                               ecmcAsynDataItem **asynParamOut);
   bool allowCmdFromOtherPLC_;                                
   bool plcEnable_;
   ecmcTrajectoryTrapetz *traj_;
@@ -250,6 +277,7 @@ class ecmcAxisBase : public ecmcError {
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
   ecmcAxisStatusWordType statusWord_;
+  ecmcAsynClinetCmdType  controlData_;
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;
