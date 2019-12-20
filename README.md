@@ -1,8 +1,6 @@
 ECMC Motion Control Module for EPICS 
 ==
 
-[![Build Status](https://travis-ci.org/epics-modules/ecmc.svg?branch=master)](https://travis-ci.org/epics-modules/ecmc)
-
 ECMC is a motion control and data acquisition module for use with EPICS system.
 
 
