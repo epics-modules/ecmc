@@ -274,6 +274,8 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
+
+  axAsynParams_[ECMC_ASYN_AX_DIAG_BIN_ID]->refreshParamRT(0);
   
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
     int  bytesUsed = 0;
@@ -891,6 +893,21 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->allowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_SOFTLIM_BWD_ID] = paramTemp;
+
+  // soflimfwd
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SOFTLIM_FWD_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t*)&(controlData_.softlimfwd),
+                              sizeof(controlData_.softlimfwd),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_SOFTLIM_FWD_ID] = paramTemp;
 
   // targetpos
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARGET_POS_NAME,
