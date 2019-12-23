@@ -11,7 +11,7 @@
 \*************************************************************************/
 
 #ifndef ECMC_MAIN_TASK_H_
-# define ECMC_MAIN_TASK_H_
+#define ECMC_MAIN_TASK_H_
 
 /**\file
  * \defgroup ecmc
@@ -20,19 +20,20 @@
  * \contact anders.sandstrom@esss.se
  */
 
-# define __STDC_FORMAT_MACROS
-# include <inttypes.h>
-# include <string.h>
-# include "ecmcDefinitions.h"
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+#include <string.h>
+#include "epicsThread.h" 
+#include "ecmcDefinitions.h"
 
 #define AXIS_CHECK_RETURN_USED_BUFFER(_axis) {init_axis(_axis); if (((_axis) <= 0) || ((_axis) >=ECMC_MAX_AXES)) return 0;}
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif  // ifdef __cplusplus
+#endif  // ifdef __cplusplus
 
 // Error Codes
-# define ECMC_PARSER_READ_STORAGE_BUFFER_DATA_NULL 0x200000
+#define ECMC_PARSER_READ_STORAGE_BUFFER_DATA_NULL 0x200000
 
 /** 
  * \brief Initialization routine for ecmc.\n
@@ -63,8 +64,8 @@ int setAppMode(int mode);
 
 void updateAsynParams(int force);
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 }
-# endif  // ifdef __cplusplus
+#endif  // ifdef __cplusplus
 
 #endif  /* ECMC_MAIN_TASK_H_ */
