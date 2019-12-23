@@ -1,15 +1,15 @@
 Release Notes
 ===
 
-# ECMC master branch (new features since last version)
+# ECMC 6.0.2
 
 * Add iocsh commands "ecmcGrepParam()" and "ecmcGrepRecord()"
     1. ecmcGrepParam(<pattern>):
-       Lists information about all ecmc parameters which parameter name correpsonds to pattern.
+       Lists information about all ecmc parameters which parameter name corresponds to pattern.
     2. ecmcGrepRecord(<pattern>):
-       Lists information about all ecmc parameters which record name correpsonds to pattern.
+       Lists information about all ecmc parameters which ecmc-record name corresponds to pattern.
 * Add PLC expression as asyn param (to avoid stream device).
-* Use epicsThreadCreate() for rt thread.
+* Use epicsThreadCreate() for rt thread (ecmc thread now accessible through MCoreUtils module).
 * Remove LOGINFO15 printouts. For printouts use PLC instead.
 * Fix inconversion command FLOAT64TOINT32 cmd.
 * Change naming of axis plc default parameters (Example: plcs.plc9.enable => plcs.ax1.plc.enable)
