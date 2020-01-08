@@ -156,21 +156,21 @@
 #define ECMC_ASYN_AX_DIAG_NAME "diagnostic"
 #define ECMC_ASYN_AX_STATUS_ID 4
 #define ECMC_ASYN_AX_STATUS_NAME "status"
-#define ECMC_ASYN_AX_CONTROL_ID 5
-#define ECMC_ASYN_AX_CONTROL_NAME "control"
+#define ECMC_ASYN_AX_CONTROL_BIN_ID 5
+#define ECMC_ASYN_AX_CONTROL_BIN_NAME "controlbin"
 #define ECMC_ASYN_AX_SOFTLIM_BWD_ID 6
-#define ECMC_ASYN_AX_SOFTLIM_BWD_NAME "softlimbwd"
-#define ECMC_ASYN_AX_SOFTLIM_FWD_ID 7
-#define ECMC_ASYN_AX_SOFTLIM_FWD_NAME "softlimfwd"
-#define ECMC_ASYN_AX_TARGET_POS_ID 8
-#define ECMC_ASYN_AX_TARGET_POS_NAME "targetpos"
-#define ECMC_ASYN_AX_TARGET_VEL_ID 9
-#define ECMC_ASYN_AX_TARGET_VEL_NAME "targetvel"
-#define ECMC_ASYN_AX_TARGET_ACC_ID 10
-#define ECMC_ASYN_AX_TARGET_ACC_NAME "targetacc"
-#define ECMC_ASYN_AX_DIAG_BIN_ID 11
-#define ECMC_ASYN_AX_DIAG_BIN_NAME "diagnosticbin"
-#define ECMC_ASYN_AX_PAR_COUNT 12
+#define ECMC_ASYN_AX_STATUS_BIN_ID 7
+#define ECMC_ASYN_AX_STATUS_BIN_NAME "statusbin"
+// #define ECMC_ASYN_AX_SOFTLIM_BWD_NAME "softlimbwd"
+// #define ECMC_ASYN_AX_SOFTLIM_FWD_ID 7
+// #define ECMC_ASYN_AX_SOFTLIM_FWD_NAME "softlimfwd"
+// #define ECMC_ASYN_AX_TARGET_POS_ID 8
+// #define ECMC_ASYN_AX_TARGET_POS_NAME "targetpos"
+// #define ECMC_ASYN_AX_TARGET_VEL_ID 9
+// #define ECMC_ASYN_AX_TARGET_VEL_NAME "targetvel"
+// #define ECMC_ASYN_AX_TARGET_ACC_ID 10
+// #define ECMC_ASYN_AX_TARGET_ACC_NAME "targetacc"
+#define ECMC_ASYN_AX_PAR_COUNT 8
 
 
 // Motion

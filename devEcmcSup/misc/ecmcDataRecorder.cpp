@@ -660,7 +660,7 @@ int ecmcDataRecorder::getAxisData(double *data) {
     break;
 
   case ECMC_AXIS_DATA_SEQ_STATE:
-    *data = static_cast<double>(axisData_->onChangeData.seqState);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.seqstate);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_TYPE:
@@ -668,47 +668,47 @@ int ecmcDataRecorder::getAxisData(double *data) {
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
-    *data = static_cast<double>(axisData_->onChangeData.trajSource);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.trajsource);
     break;
 
   case ECMC_AXIS_DATA_ENC_SOURCE:
-    *data = static_cast<double>(axisData_->onChangeData.encSource);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.encsource);
     break;
 
   case ECMC_AXIS_DATA_ENABLE:
-    *data = static_cast<double>(axisData_->onChangeData.enable);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.enable);
     break;
 
   case ECMC_AXIS_DATA_ENABLED:
-    *data = static_cast<double>(axisData_->onChangeData.enabled);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.enabled);
     break;
 
   case ECMC_AXIS_DATA_EXECUTE:
-    *data = static_cast<double>(axisData_->onChangeData.execute);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.execute);
     break;
 
   case ECMC_AXIS_DATA_BUSY:
-    *data = static_cast<double>(axisData_->onChangeData.busy);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.busy);
     break;
 
   case ECMC_AXIS_DATA_AT_TARGET:
-    *data = static_cast<double>(axisData_->onChangeData.atTarget);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.attarget);
     break;
 
   case ECMC_AXIS_DATA_HOMED:
-    *data = static_cast<double>(axisData_->onChangeData.homed);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.homed);
     break;
 
   case ECMC_AXIS_DATA_LIMIT_BWD:
-    *data = static_cast<double>(axisData_->onChangeData.limitBwd);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.limitbwd);
     break;
 
   case ECMC_AXIS_DATA_LIMIT_FWD:
-    *data = static_cast<double>(axisData_->onChangeData.limitFwd);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.limitfwd);
     break;
 
   case ECMC_AXIS_DATA_HOME_SWITCH:
-    *data = static_cast<double>(axisData_->onChangeData.homeSwitch);
+    *data = static_cast<double>(axisData_->onChangeData.statusWd.homeswitch);
     break;
 
   default:

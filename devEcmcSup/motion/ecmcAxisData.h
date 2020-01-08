@@ -26,25 +26,23 @@ typedef struct {
   ecmcMotionModType  moduloType;
   motionCommandTypes command;
   int                cmdData;
-  bool               enable;
-  bool               execute;
-  bool               reset;
-  bool               enableSoftLimitBwd;
-  bool               enableSoftLimitFwd;
+  bool               enable             : 1;
+  bool               execute            : 1;
+  bool               reset              : 1;
+  bool               enableSoftLimitBwd : 1;
+  bool               enableSoftLimitFwd : 1;
   dataSource         trajSource;
   dataSource         encSource;
-  operationMode      operationModeCmd;
+  operationMode      operationModeCmd;  
 } ecmcAxisDataCommand;
 
 typedef struct {
   double externalTrajectoryPosition;
   double externalTrajectoryPositionOld;         
-  double externalTrajectoryVelocity;
-  //double externalTrajectoryInterlock;
+  double externalTrajectoryVelocity;  
   double externalEncoderPosition;
   double externalEncoderPositionOld;
   double externalEncoderVelocity;
-  //double externalEncoderInterlock;
   double currentPositionActual;
   double currentPositionSetpoint;
   double currentTargetPosition;

@@ -102,7 +102,6 @@ void ecmcAxisBase::initVars() {
   }
   statusOutputEntry_          = 0;
   blockExtCom_                = 0;
-  memset(&statusWord_,0,sizeof(statusWord_));
   memset(&controlData_,0,sizeof(controlData_));
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_ = NULL;
@@ -116,8 +115,8 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
   data_.refreshInterlocks();
 
-  statusData_.onChangeData.trajSource = data_.command_.trajSource;    
-  statusData_.onChangeData.encSource = data_.command_.encSource;
+  statusData_.onChangeData.statusWd.trajsource = data_.command_.trajSource;
+  statusData_.onChangeData.statusWd.encsource = data_.command_.encSource;
   data_.status_.moving = std::abs(
     data_.status_.currentVelocityActual) > 0;
 
@@ -234,48 +233,12 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   cycleCounter_++;
   refreshDebugInfoStruct();
   
-  // bit 0 enabled  
-  statusWord_.enabled = getEnabled() > 0;
-  // bit 1 execute  
-  statusWord_.execute = seq_.getExecute() > 0;
-  // bit 2 busy
-  statusWord_.busy = data_.status_.busy > 0;
-  // bit 3 at target
-  statusWord_.attarget = data_.status_.atTarget > 0;
-  // bit 4 moving
-  statusWord_.moving = data_.status_.moving > 0;
-  // bit 5 limit fwd
-  statusWord_.limitfwd = data_.status_.limitFwd > 0;
-  // bit 6 limit bwd
-  statusWord_.limitbwd = data_.status_.limitBwd > 0;
-  // bit 7 homeswitch
-  statusWord_.homeswitch = data_.status_.homeSwitch > 0;
-  // bit 8 inStartupPhase
-  statusWord_.instartup = data_.status_.inStartupPhase > 0;
-  // bit 9 inRealtime  
-  statusWord_.inrealtime = data_.status_.inRealtime > 0;
-  // bit 10 traj source  
-  statusWord_.trajsource = data_.command_.trajSource > 0;
-  // bit 11 enc source  
-  statusWord_.encsource = data_.command_.encSource > 0;
-  // bit 12 Allow plc commands  
-  statusWord_.plccmdallowed = allowCmdFromOtherPLC_ > 0;
-  // bit 13 softlimfwdena
-  statusWord_.softlimfwdena = data_.command_.enableSoftLimitFwd > 0;
-  // bit 14 softlimbwdena  
-  statusWord_.softlimfwdena = data_.command_.enableSoftLimitBwd > 0;
-  // bit 16..23 seq state
-  statusWord_.seqstate = (unsigned char)data_.status_.seqState;
-  // bit 24..31 lastActiveInterlock type
-  statusWord_.lastilock = (unsigned char)data_.interlocks_.lastActiveInterlock;
-
   // Update asyn parameters  
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
-
-  axAsynParams_[ECMC_ASYN_AX_DIAG_BIN_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID]->refreshParamRT(0);
   
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
     int  bytesUsed = 0;
@@ -685,18 +648,18 @@ void ecmcAxisBase::printAxisStatus() {
     statusData_.onChangeData.cmdData,
     statusData_.onChangeData.seqState,
     statusData_.onChangeData.trajInterlock,
-    statusData_.onChangeData.lastActiveInterlock,
-    statusData_.onChangeData.trajSource,
-    statusData_.onChangeData.encSource,
-    statusData_.onChangeData.enable,
-    statusData_.onChangeData.enabled,
-    statusData_.onChangeData.execute,
-    statusData_.onChangeData.busy,
-    statusData_.onChangeData.atTarget,
-    statusData_.onChangeData.homed,
-    statusData_.onChangeData.limitBwd,
-    statusData_.onChangeData.limitFwd,
-    statusData_.onChangeData.homeSwitch);
+    statusData_.onChangeData.statusWd.lastilock,
+    statusData_.onChangeData.statusWd.trajsource,
+    statusData_.onChangeData.statusWd.encsource,
+    statusData_.onChangeData.statusWd.enable,
+    statusData_.onChangeData.statusWd.enabled,
+    statusData_.onChangeData.statusWd.execute,
+    statusData_.onChangeData.statusWd.busy,
+    statusData_.onChangeData.statusWd.attarget,
+    statusData_.onChangeData.statusWd.homed,
+    statusData_.onChangeData.statusWd.limitbwd,
+    statusData_.onChangeData.statusWd.limitfwd,
+    statusData_.onChangeData.statusWd.homeswitch);
 }
 
 int ecmcAxisBase::setExecute(bool execute) {
@@ -834,8 +797,8 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
 
-  // Diagnostic binary struct (over asynParamInt8Array interface)
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_DIAG_BIN_NAME,
+  // Status binary struct (for motor record)
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_BIN_NAME,
                               asynParamInt8Array,
                               ECMC_EC_S8,
                               (uint8_t *)&(statusData_),
@@ -846,14 +809,14 @@ int ecmcAxisBase::initAsyn() {
   }
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_DIAG_BIN_ID] = paramTemp;
+  axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID] = paramTemp;
  
   // Status word
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_NAME,
                               asynParamInt32,
                               ECMC_EC_U32,
-                              (uint8_t*)&(statusWord_),
-                              sizeof(statusWord_),
+                              (uint8_t*)&(statusData_.onChangeData.statusWd),
+                              sizeof(statusData_.onChangeData.statusWd),
                               &paramTemp);
   if(errorCode) {
     return errorCode;
@@ -863,96 +826,109 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
 
+  // Control structure binary (for motor record)
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
+                              asynParamInt8Array,
+                              ECMC_EC_S8,
+                              (uint8_t*)&(controlData_),
+                              sizeof(controlData_),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID] = paramTemp;
 
   // Control word
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_NAME,
-                              asynParamInt32,
-                              ECMC_EC_U32,
-                              (uint8_t*)&(controlData_.controlwd),
-                              sizeof(controlData_.controlwd),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
-  paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
-  paramTemp->allowWriteToEcmc(true);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_CONTROL_ID] = paramTemp;
+  // errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_NAME,
+  //                             asynParamInt32,
+  //                             ECMC_EC_U32,
+  //                             (uint8_t*)&(controlData_.controlwd),
+  //                             sizeof(controlData_.controlwd),
+  //                             &paramTemp);
+  // if(errorCode) {
+  //   return errorCode;
+  // }
+  // paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
+  // paramTemp->allowWriteToEcmc(true);
+  // paramTemp->refreshParam(1);
+  // axAsynParams_[ECMC_ASYN_AX_CONTROL_ID] = paramTemp;
 
-  // soflimbwd
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SOFTLIM_BWD_NAME,
-                              asynParamFloat64,
-                              ECMC_EC_F64,
-                              (uint8_t*)&(controlData_.softlimbwd),
-                              sizeof(controlData_.softlimbwd),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
+  // // soflimbwd
+  // errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SOFTLIM_BWD_NAME,
+  //                             asynParamFloat64,
+  //                             ECMC_EC_F64,
+  //                             (uint8_t*)&(controlData_.softlimbwd),
+  //                             sizeof(controlData_.softlimbwd),
+  //                             &paramTemp);
+  // if(errorCode) {
+  //   return errorCode;
+  // }
   
-  paramTemp->allowWriteToEcmc(true);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_SOFTLIM_BWD_ID] = paramTemp;
+  // paramTemp->allowWriteToEcmc(true);
+  // paramTemp->refreshParam(1);
+  // axAsynParams_[ECMC_ASYN_AX_SOFTLIM_BWD_ID] = paramTemp;
 
-  // soflimfwd
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SOFTLIM_FWD_NAME,
-                              asynParamFloat64,
-                              ECMC_EC_F64,
-                              (uint8_t*)&(controlData_.softlimfwd),
-                              sizeof(controlData_.softlimfwd),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
+  // // soflimfwd
+  // errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SOFTLIM_FWD_NAME,
+  //                             asynParamFloat64,
+  //                             ECMC_EC_F64,
+  //                             (uint8_t*)&(controlData_.softlimfwd),
+  //                             sizeof(controlData_.softlimfwd),
+  //                             &paramTemp);
+  // if(errorCode) {
+  //   return errorCode;
+  // }
   
-  paramTemp->allowWriteToEcmc(true);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_SOFTLIM_FWD_ID] = paramTemp;
+  // paramTemp->allowWriteToEcmc(true);
+  // paramTemp->refreshParam(1);
+  // axAsynParams_[ECMC_ASYN_AX_SOFTLIM_FWD_ID] = paramTemp;
 
-  // targetpos
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARGET_POS_NAME,
-                              asynParamFloat64,
-                              ECMC_EC_F64,
-                              (uint8_t*)&(controlData_.targetpos),
-                              sizeof(controlData_.targetpos),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
+  // // targetpos
+  // errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARGET_POS_NAME,
+  //                             asynParamFloat64,
+  //                             ECMC_EC_F64,
+  //                             (uint8_t*)&(controlData_.targetpos),
+  //                             sizeof(controlData_.targetpos),
+  //                             &paramTemp);
+  // if(errorCode) {
+  //   return errorCode;
+  // }
   
-  paramTemp->allowWriteToEcmc(true);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_TARGET_POS_ID] = paramTemp;
+  // paramTemp->allowWriteToEcmc(true);
+  // paramTemp->refreshParam(1);
+  // axAsynParams_[ECMC_ASYN_AX_TARGET_POS_ID] = paramTemp;
 
-  // targetpos
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARGET_VEL_NAME,
-                              asynParamFloat64,
-                              ECMC_EC_F64,
-                              (uint8_t*)&(controlData_.targetvel),
-                              sizeof(controlData_.targetvel),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
+  // // targetpos
+  // errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARGET_VEL_NAME,
+  //                             asynParamFloat64,
+  //                             ECMC_EC_F64,
+  //                             (uint8_t*)&(controlData_.targetvel),
+  //                             sizeof(controlData_.targetvel),
+  //                             &paramTemp);
+  // if(errorCode) {
+  //   return errorCode;
+  // }
   
-  paramTemp->allowWriteToEcmc(true);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_TARGET_VEL_ID] = paramTemp;
+  // paramTemp->allowWriteToEcmc(true);
+  // paramTemp->refreshParam(1);
+  // axAsynParams_[ECMC_ASYN_AX_TARGET_VEL_ID] = paramTemp;
 
-  // targetacc
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARGET_ACC_NAME,
-                              asynParamFloat64,
-                              ECMC_EC_F64,
-                              (uint8_t*)&(controlData_.targetacc),
-                              sizeof(controlData_.targetacc),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
+  // // targetacc
+  // errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARGET_ACC_NAME,
+  //                             asynParamFloat64,
+  //                             ECMC_EC_F64,
+  //                             (uint8_t*)&(controlData_.targetacc),
+  //                             sizeof(controlData_.targetacc),
+  //                             &paramTemp);
+  // if(errorCode) {
+  //   return errorCode;
+  // }
   
-  paramTemp->allowWriteToEcmc(true);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_TARGET_ACC_ID] = paramTemp;
+  // paramTemp->allowWriteToEcmc(true);
+  // paramTemp->refreshParam(1);
+  // axAsynParams_[ECMC_ASYN_AX_TARGET_ACC_ID] = paramTemp;
 
   // Vel act
   /*errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARGET_ACC_NAME,
@@ -1003,20 +979,20 @@ int ecmcAxisBase::getAxisDebugInfoData(char *buffer,
                      data.onChangeData.error,
                      data.onChangeData.command,
                      data.onChangeData.cmdData,
-                     data.onChangeData.seqState,
+                     data.onChangeData.statusWd.seqstate,
                      data.onChangeData.trajInterlock,
-                     data.onChangeData.lastActiveInterlock,
-                     data.onChangeData.trajSource,
-                     data.onChangeData.encSource,
-                     data.onChangeData.enable,
-                     data.onChangeData.enabled,
-                     data.onChangeData.execute,
-                     data.onChangeData.busy,
-                     data.onChangeData.atTarget,
-                     data.onChangeData.homed,
-                     data.onChangeData.limitBwd,
-                     data.onChangeData.limitFwd,
-                     data.onChangeData.homeSwitch);
+                     data.onChangeData.statusWd.lastilock,
+                     data.onChangeData.statusWd.trajsource,
+                     data.onChangeData.statusWd.encsource,
+                     data.onChangeData.statusWd.enable,
+                     data.onChangeData.statusWd.enabled,
+                     data.onChangeData.statusWd.execute,
+                     data.onChangeData.statusWd.busy,
+                     data.onChangeData.statusWd.attarget,
+                     data.onChangeData.statusWd.homed,
+                     data.onChangeData.statusWd.limitbwd,
+                     data.onChangeData.statusWd.limitfwd,
+                     data.onChangeData.statusWd.homeswitch);
 
   if ((ret >= bufferByteSize) || (ret <= 0)) {
     *bytesUsed = 0;
@@ -1156,34 +1132,72 @@ int ecmcAxisBase::getCntrlError(double *error) {
 }
 
 void ecmcAxisBase::refreshDebugInfoStruct() {
-  statusData_.onChangeData.atTarget       = data_.status_.atTarget;
-  statusData_.axisID                      = data_.axisId_;
-  statusData_.cycleCounter                = cycleCounter_;
-  statusData_.onChangeData.busy           = data_.status_.busy;
-  statusData_.onChangeData.cntrlError     = data_.status_.cntrlError;
-  statusData_.onChangeData.cntrlOutput    = data_.status_.cntrlOutput;
-  statusData_.onChangeData.enable         = data_.command_.enable;
-  statusData_.onChangeData.enabled        = getEnabled();
-  statusData_.onChangeData.error          = getErrorID();
-  statusData_.onChangeData.execute        = getExecute();
-  statusData_.onChangeData.homeSwitch     = data_.status_.homeSwitch;
-  statusData_.onChangeData.limitBwd       = data_.status_.limitBwd;
-  statusData_.onChangeData.limitFwd       = data_.status_.limitFwd;  
-  statusData_.onChangeData.positionActual =
+
+
+  // bit 0 enable
+  statusData_.onChangeData.statusWd.enable = getEnable() > 0;
+  // bit 1 enabled 
+  statusData_.onChangeData.statusWd.enabled = getEnabled() > 0;
+  // bit 2 execute  
+  statusData_.onChangeData.statusWd.execute = seq_.getExecute() > 0;
+  // bit 3 busy
+  statusData_.onChangeData.statusWd.busy = data_.status_.busy > 0;
+  // bit 4 at target
+  statusData_.onChangeData.statusWd.attarget = data_.status_.atTarget > 0;
+  // bit 5 moving
+  statusData_.onChangeData.statusWd.moving = data_.status_.moving > 0;
+  // bit 6 limit fwd
+  statusData_.onChangeData.statusWd.limitfwd = data_.status_.limitFwd > 0;
+  // bit 7 limit bwd
+  statusData_.onChangeData.statusWd.limitbwd = data_.status_.limitBwd > 0;
+  // bit 8 homeswitch
+  statusData_.onChangeData.statusWd.homeswitch = data_.status_.homeSwitch > 0;
+  // bit 9 inStartupPhase
+  statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase > 0;
+  // bit 10 inRealtime  
+  statusData_.onChangeData.statusWd.inrealtime = data_.status_.inRealtime > 0;
+  // bit 11 traj source  
+  statusData_.onChangeData.statusWd.trajsource = data_.command_.trajSource > 0;
+  // bit 12 enc source  
+  statusData_.onChangeData.statusWd.encsource = data_.command_.encSource > 0;
+  // bit 13 Allow plc commands  
+  statusData_.onChangeData.statusWd.plccmdallowed = allowCmdFromOtherPLC_ > 0;
+  // bit 14 softlimfwdena
+  statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitFwd > 0;
+  // bit 15 softlimbwdena  
+  statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitBwd > 0;
+  // bit 16 homed
+  bool homedtemp = 0;
+  getAxisHomed(&homedtemp);
+  statusData_.onChangeData.statusWd.homed = homedtemp > 0;
+  // bit 17..19 unused
+  // bit 20..23 seq state
+  statusData_.onChangeData.statusWd.seqstate = (unsigned char)data_.status_.seqState;
+  // bit 24..31 lastActiveInterlock type
+  statusData_.onChangeData.statusWd.lastilock = (unsigned char)data_.interlocks_.lastActiveInterlock;
+
+  statusData_.axisID                          = data_.axisId_;
+  statusData_.cycleCounter                    = cycleCounter_;
+  statusData_.onChangeData.cntrlError         = data_.status_.cntrlError;
+  statusData_.onChangeData.cntrlOutput        = data_.status_.cntrlOutput;
+  statusData_.onChangeData.statusWd.enable    = data_.command_.enable;
+  statusData_.onChangeData.statusWd.enabled   = getEnabled();
+  statusData_.onChangeData.error              = getErrorID(); 
+  statusData_.onChangeData.positionActual     =
     data_.status_.currentPositionActual;
-  statusData_.onChangeData.positionError = getPosErrorMod();    
-  statusData_.onChangeData.positionSetpoint =
+  statusData_.onChangeData.positionError      = getPosErrorMod();    
+  statusData_.onChangeData.positionSetpoint   =
     data_.status_.currentPositionSetpoint;
-  statusData_.onChangeData.positionTarget =
+  statusData_.onChangeData.positionTarget     =
     data_.status_.currentTargetPosition;
-  statusData_.onChangeData.seqState      = seq_.getSeqState();
-  statusData_.onChangeData.trajInterlock =
+  statusData_.onChangeData.seqState           = seq_.getSeqState();
+  statusData_.onChangeData.trajInterlock      =
     data_.interlocks_.interlockStatus;
-  statusData_.onChangeData.lastActiveInterlock =
+  statusData_.onChangeData.statusWd.lastilock =
     data_.interlocks_.lastActiveInterlock;
-  statusData_.onChangeData.sumIlockBwd = 
+  statusData_.onChangeData.statusWd.sumilockbwd = 
     data_.interlocks_.trajSummaryInterlockBWD;
-  statusData_.onChangeData.sumIlockFwd = 
+  statusData_.onChangeData.statusWd.sumilockfwd = 
     data_.interlocks_.trajSummaryInterlockFWD;
   statusData_.onChangeData.velocityActual =
     data_.status_.currentVelocityActual;
@@ -1193,14 +1207,13 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
     data_.status_.currentVelocitySetpointRaw;
   statusData_.onChangeData.velocityFFRaw =
     data_.status_.currentvelocityFFRaw;
-  statusData_.onChangeData.cmdData     = data_.command_.cmdData;
-  statusData_.onChangeData.command     = data_.command_.command;
-  statusData_.onChangeData.positionRaw = enc_->getRawPosRegister();
-  statusData_.onChangeData.homed       = enc_->getHomed();
-  statusData_.acceleration             = traj_->getAcc();
-  statusData_.deceleration             = traj_->getDec();
-  statusData_.reset                    = data_.command_.reset;
-  statusData_.moving                   = data_.status_.moving;
+  statusData_.onChangeData.cmdData        = data_.command_.cmdData;
+  statusData_.onChangeData.command        = data_.command_.command;
+  statusData_.onChangeData.positionRaw    = enc_->getRawPosRegister();
+  statusData_.acceleration                = traj_->getAcc();
+  statusData_.deceleration                = traj_->getDec();
+  statusData_.reset                       = data_.command_.reset;
+  statusData_.moving                      = data_.status_.moving;
   statusData_.stall                    =
     data_.interlocks_.lagTrajInterlock
     || data_.interlocks_.

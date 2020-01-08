@@ -75,6 +75,31 @@ enum axisState {
 };
 
 typedef struct {
+  unsigned char              enable        : 1;
+  unsigned char              enabled       : 1;
+  unsigned char              execute       : 1;
+  unsigned char              busy          : 1;
+  unsigned char              attarget      : 1;
+  unsigned char              moving        : 1;
+  unsigned char              limitfwd      : 1;
+  unsigned char              limitbwd      : 1;
+  unsigned char              homeswitch    : 1;
+  unsigned char              instartup     : 1;
+  unsigned char              inrealtime    : 1;
+  unsigned char              trajsource    : 1;
+  unsigned char              encsource     : 1;
+  unsigned char              plccmdallowed : 1;
+  unsigned char              softlimfwdena : 1;
+  unsigned char              softlimbwdena : 1;
+  unsigned char              homed         : 1;
+  unsigned char              sumilockfwd   : 1;
+  unsigned char              sumilockbwd   : 1;
+  unsigned char              unused        : 1;
+  unsigned char              seqstate      : 4;
+  unsigned char              lastilock     : 8;
+} ecmcAxisStatusWordType;
+
+typedef struct {
   double             positionSetpoint;
   double             positionActual;
   double             positionError;
@@ -91,20 +116,7 @@ typedef struct {
   int                cmdData;
   motionCommandTypes command;
   interlockTypes     trajInterlock;
-  interlockTypes     lastActiveInterlock;
-  dataSource         trajSource;
-  dataSource         encSource;
-  bool               enable;
-  bool               enabled;
-  bool               execute;
-  bool               busy;
-  bool               atTarget;
-  bool               homed;
-  bool               limitFwd;
-  bool               limitBwd;
-  bool               homeSwitch;
-  bool               sumIlockFwd;
-  bool               sumIlockBwd;
+  ecmcAxisStatusWordType statusWd;
 } ecmcAxisStatusOnChangeType;
 
 typedef struct {
@@ -112,43 +124,24 @@ typedef struct {
   int                        cycleCounter;
   double                     acceleration;
   double                     deceleration;
-  bool                       reset;
-  bool                       moving;
-  bool                       stall;
+  double                     soflimFwd;
+  double                     soflimBwd;
+  bool                       reset  : 1;
+  bool                       moving : 1;
+  bool                       stall  : 1;
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
 typedef struct {
-  unsigned char              enabled:1;
-  unsigned char              execute:1;
-  unsigned char              busy:1;
-  unsigned char              attarget:1;
-  unsigned char              moving:1;
-  unsigned char              limitfwd:1;
-  unsigned char              limitbwd:1;
-  unsigned char              homeswitch:1;
-  unsigned char              instartup:1;
-  unsigned char              inrealtime:1;
-  unsigned char              trajsource:1;
-  unsigned char              encsource:1;
-  unsigned char              plccmdallowed:1;
-  unsigned char              softlimfwdena:1;
-  unsigned char              softlimbwdena:1;
-  unsigned char              unused:1;
-  unsigned char              seqstate:8;
-  unsigned char              lastilock:8;
-} ecmcAxisStatusWordType;
-
-typedef struct {
-  unsigned char              enable:1;
-  unsigned char              execute:1;
-  unsigned char              reset:1;
-  unsigned char              softlimfwdena:1;
-  unsigned char              softlimbwdena:1;
-  unsigned char              unused_1:3;
-  unsigned char              unused_2:8;
-  unsigned char              cmd:8;
-  unsigned int               cmddata:8;
+  unsigned char              enable        : 1;
+  unsigned char              execute       : 1;
+  unsigned char              reset         : 1;
+  unsigned char              softlimfwdena : 1;
+  unsigned char              softlimbwdena : 1;
+  unsigned char              trigg         : 3;
+  unsigned char              unused_1      : 8;
+  unsigned char              cmd           : 8;
+  unsigned int               cmddata       : 8;
 }ecmcAxisControlWordType;
 
 typedef struct {
@@ -276,7 +269,6 @@ class ecmcAxisBase : public ecmcError {
   ecmcEcEntry *statusOutputEntry_;
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
-  ecmcAxisStatusWordType statusWord_;
   ecmcAsynClinetCmdType  controlData_;
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
