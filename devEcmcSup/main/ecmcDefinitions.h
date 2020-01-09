@@ -198,18 +198,37 @@ enum operationMode {
   ECMC_MODE_OP_MAN  = 1,
 };
 
-enum motionCommandTypes {
-  ECMC_CMD_NOCMD      = -1,
-  ECMC_CMD_JOG        = 0,
-  ECMC_CMD_MOVEVEL    = 1,
-  ECMC_CMD_MOVEREL    = 2,
-  ECMC_CMD_MOVEABS    = 3,
-  ECMC_CMD_MOVEMODULO = 4,   // NOT IMPLEMENTED
-  ECMC_CMD_HOMING     = 10,  // PARTLY IMPLEMENTED
-  // NOT IMPLEMENTED (implemented in another way..)
-  ECMC_CMD_SUPERIMP   = 20,  // NOT IMPLEMENTED
-  // NOT IMPLEMENTED (implemented in another way..)
-  ECMC_CMD_GEAR       = 30,
+// enum motionCommandTypes {
+//   ECMC_CMD_NOCMD      = -1,
+//   ECMC_CMD_JOG        = 0,
+//   ECMC_CMD_MOVEVEL    = 1,
+//   ECMC_CMD_MOVEREL    = 2,
+//   ECMC_CMD_MOVEABS    = 3,
+//   ECMC_CMD_MOVEMODULO = 4,   // NOT IMPLEMENTED
+//   ECMC_CMD_HOMING     = 10,  // PARTLY IMPLEMENTED
+//   // NOT IMPLEMENTED (implemented in another way..)
+//   ECMC_CMD_SUPERIMP   = 20,  // NOT IMPLEMENTED
+//   // NOT IMPLEMENTED (implemented in another way..)
+//   ECMC_CMD_GEAR       = 30,
+// };
+
+enum motionCommandTypes {             // Data order for motor record communications
+  ECMC_CMD_NOCMD              = -1,   
+  ECMC_CMD_JOG                = 0,    
+  ECMC_CMD_MOVEVEL            = 1,    // cmd, vel, acc
+  ECMC_CMD_MOVEREL            = 2,    // cmd, pos, vel, acc
+  ECMC_CMD_MOVEABS            = 3,    // cmd, pos, vel, acc
+  ECMC_CMD_MOVEMODULO         = 4,    
+  ECMC_CMD_HOMING             = 10,   // cmd, seqnbr,homepos,velhigh,vellow,acc
+  ECMC_CMD_SUPERIMP           = 20,   
+  ECMC_CMD_GEAR               = 30,   
+  ECMC_CMD_STOP               = 100,  // cmd, (Should have been 0 instead of 100)
+  ECMC_CMD_SET_ENABLE         = 101,  // cmd, enable
+  ECMC_CMD_SET_SOFTLIMBWD     = 102,  // cmd, soflimbwd
+  ECMC_CMD_SET_SOFTLIMFWD     = 103,  // cmd, soflimfwd
+  ECMC_CMD_SET_SOFTLIMBWD_ENA = 104,  // cmd, soflimbwdena
+  ECMC_CMD_SET_SOFTLIMFWD_ENA = 105,  // cmd, soflimfwdena
+  ECMC_CMD_SET_RESET          = 106,  // cmd
 };
 
 enum motionDirection {

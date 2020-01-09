@@ -107,9 +107,10 @@ typedef struct {
   double             cntrlError;
   double             cntrlOutput;
   double             velocityActual;
-  double             velocitySetpoint;
+  double             velocitySetpoint;  
   double             velocityFFRaw;
   int64_t            positionRaw;
+  double             homeposition;
   int                error;
   int                velocitySetpointRaw;
   int                seqState;
@@ -125,32 +126,47 @@ typedef struct {
   double                     acceleration;
   double                     deceleration;
   double                     soflimFwd;
-  double                     soflimBwd;
+  double                     soflimBwd;  
   bool                       reset  : 1;
   bool                       moving : 1;
   bool                       stall  : 1;
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
-typedef struct {
-  unsigned char              enable        : 1;
-  unsigned char              execute       : 1;
-  unsigned char              reset         : 1;
-  unsigned char              softlimfwdena : 1;
-  unsigned char              softlimbwdena : 1;
-  unsigned char              trigg         : 3;
-  unsigned char              unused_1      : 8;
-  unsigned char              cmd           : 8;
-  unsigned int               cmddata       : 8;
-}ecmcAxisControlWordType;
+// typedef struct {
+//   unsigned char              enable        : 1;
+//   unsigned char              execute       : 1;
+//   unsigned char              reset         : 1;
+//   unsigned char              softlimfwdena : 1;
+//   unsigned char              softlimbwdena : 1;
+//   unsigned char              trigg         : 4;
+//   unsigned char              unused_1      : 8;
+//   unsigned char              cmd           : 8;
+//   unsigned int               cmddata       : 8;
+// }ecmcAxisControlWordType;
+
+// typedef struct {  
+//   double                     softlimfwd;
+//   double                     softlimbwd;
+//   double                     targetpos;
+//   double                     targetvel;
+//   double                     targetacc;
+//   double                     homeposition;
+//   ecmcAxisControlWordType    controlwd;
+// }ecmcAsynClinetCmdType;
 
 typedef struct {
-  ecmcAxisControlWordType    controlwd;
-  double                     softlimfwd;
-  double                     softlimbwd;
-  double                     targetpos;
-  double                     targetvel;
-  double                     targetacc;
+  motionCommandTypes         cmd;
+  double                     val0;
+  double                     val1;
+  double                     val2;
+  double                     val3;
+  double                     val4;
+  double                     val5;
+  double                     val6;
+  double                     val7;
+  double                     val8;
+  double                     val9;
 }ecmcAsynClinetCmdType;
 
 class ecmcAxisBase : public ecmcError {
@@ -236,8 +252,11 @@ class ecmcAxisBase : public ecmcError {
   int                   setExtTrajVeloFiltSize(size_t size);
   int                   setExtEncVeloFiltSize(size_t size);
   int                   setEncVeloFiltSize(size_t size);
-
+  asynStatus            axisAsynWriteCmd(void* data, 
+                                         size_t bytes,
+                                         asynParamType asynParType);
  protected:
+  //int          executeControlWd();
   void         initVars();
   void         refreshDebugInfoStruct();
   double       getPosErrorMod();
@@ -270,6 +289,7 @@ class ecmcAxisBase : public ecmcError {
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
   ecmcAsynClinetCmdType  controlData_;
+  ecmcAsynClinetCmdType  controlDataOld_;
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;

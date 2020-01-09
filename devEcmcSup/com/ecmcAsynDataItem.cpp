@@ -37,16 +37,20 @@ static int compar (const void* pkey, const void* pelem) {
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const char *paramName,asynParamType asynParType,ecmcEcDataType dt)
 {
-  checkIntRange_ = 0;
-  intMax_ = 0;
-  intMin_ = 0;
-  intBits_ = 0;
-  asynPortDriver_=asynPortDriver;  
-  data_=0;  
-  asynUpdateCycleCounter_=0;
-  supportedTypesCounter_=0;
-  allowWriteToEcmc_=false;
-  dataType_=dt;
+  checkIntRange_          = 0;
+  intMax_                 = 0;
+  intMin_                 = 0;
+  intBits_                = 0;
+  asynPortDriver_         = asynPortDriver;  
+  data_                   = 0;  
+  asynUpdateCycleCounter_ = 0;
+  supportedTypesCounter_  = 0;
+  allowWriteToEcmc_       = false;
+  dataType_               = dt;
+  fctPtrExeCmd_           = NULL;
+  useExeCmdFunc_          = false;
+  exeCmdUserObj_          = NULL;
+  
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
@@ -59,15 +63,20 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
 {
-  checkIntRange_ = 0;
-  intMax_ = 0;
-  intMin_ = 0;
-  intBits_ = 0;
-  asynPortDriver_=asynPortDriver;  
-  data_=0;  
-  asynUpdateCycleCounter_=0;
-  supportedTypesCounter_=0;
-  allowWriteToEcmc_=false;
+  checkIntRange_          = 0;
+  intMax_                 = 0;
+  intMin_                 = 0;
+  intBits_                = 0;
+  asynPortDriver_         = asynPortDriver;  
+  data_                   = 0;    
+  asynUpdateCycleCounter_ = 0;
+  supportedTypesCounter_  = 0;
+  allowWriteToEcmc_       = false;
+  dataType_               = ECMC_EC_NONE;
+  fctPtrExeCmd_           = NULL;
+  useExeCmdFunc_          = false;
+  exeCmdUserObj_          = NULL;
+
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
@@ -478,7 +487,6 @@ int ecmcAsynDataItem::asynTypeIsArray(asynParamType asynParType) {
 }
 
 asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, asynParamType type, size_t *writtenBytes) {
-
    if(!asynTypeSupported(type)) {
     LOGERR(
       "%s/%s:%d: ERROR: %s asyn type not supported (0x%x).\n",
@@ -488,6 +496,11 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
       getName(),
       ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED);
       return asynError;
+  }
+
+  // Execute function instead of copy data
+  if(useExeCmdFunc_) {
+    return fctPtrExeCmd_((void*)data,bytesToWrite,type,exeCmdUserObj_);
   }
 
   size_t bytes = bytesToWrite;
@@ -1311,4 +1324,16 @@ asynStatus ecmcAsynDataItem::setDrvInfo(const char *drvInfo) {
 
 ecmcEcDataType ecmcAsynDataItem::getEcDataType() {
   return dataType_;
+}
+
+/**
+ * Function to be executed when asyn write occurs.
+ * This function needs to handle everything that should happen.
+ * if data should be copied then
+*/
+asynStatus ecmcAsynDataItem::setExeCmdFunctPtr(ecmcExeCmdFcn func, void* userObj) {
+  fctPtrExeCmd_  = func;
+  exeCmdUserObj_ = userObj;
+  useExeCmdFunc_ = true;
+  return asynSuccess;
 }
