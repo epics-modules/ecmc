@@ -1308,6 +1308,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
   memcpy(&controlData_,data,bytes);
   //printf("axisAsynWriteCmd CMD = %d!!!\n", (int)controlData_.cmd);
   int errorCode = 0;
+  int cmddata   = 0;
   switch(controlData_.cmd) {
     case ECMC_CMD_NOCMD:
       return asynError;
@@ -1402,7 +1403,6 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
       break;
 
     case ECMC_CMD_HOMING:
-      printf("ECMC Homing\n");
 
       // cmd, seqnbr,homepos,velhigh,vellow,acc
       if (getBusy() || getErrorID()) {
@@ -1416,17 +1416,20 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
       if (errorCode) {
         return asynError;
       }
-      errorCode = setCmdData((int)controlData_.val0);
+      cmddata = (int)controlData_.val0;
+      errorCode = setCmdData(cmddata);
       if (errorCode) {
         return asynError;
       }
-      
       seq_.setHomePosition(controlData_.val1);
-      seq_.setHomeVelTwordsCam(controlData_.val2);
-      seq_.setHomeVelOffCam(controlData_.val3);
-      traj_->setAcc(controlData_.val4);
-      traj_->setDec(controlData_.val4); //same as acc
-      printf("ECMC velto %lf, veloff %lf\n",controlData_.val2,controlData_.val3);
+
+      // Velo and acc not needed for set position
+      if(cmddata != ECMC_SEQ_HOME_SET_POS) {
+        seq_.setHomeVelTwordsCam(controlData_.val2);
+        seq_.setHomeVelOffCam(controlData_.val3);
+        traj_->setAcc(controlData_.val4);
+        traj_->setDec(controlData_.val4); //same as acc
+      }
       errorCode = setExecute(1);
       if (errorCode) {
         return asynError;

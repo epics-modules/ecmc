@@ -133,28 +133,6 @@ typedef struct {
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
-// typedef struct {
-//   unsigned char              enable        : 1;
-//   unsigned char              execute       : 1;
-//   unsigned char              reset         : 1;
-//   unsigned char              softlimfwdena : 1;
-//   unsigned char              softlimbwdena : 1;
-//   unsigned char              trigg         : 4;
-//   unsigned char              unused_1      : 8;
-//   unsigned char              cmd           : 8;
-//   unsigned int               cmddata       : 8;
-// }ecmcAxisControlWordType;
-
-// typedef struct {  
-//   double                     softlimfwd;
-//   double                     softlimbwd;
-//   double                     targetpos;
-//   double                     targetvel;
-//   double                     targetacc;
-//   double                     homeposition;
-//   ecmcAxisControlWordType    controlwd;
-// }ecmcAsynClinetCmdType;
-
 typedef struct {
   motionCommandTypes         cmd;
   double                     val0;
