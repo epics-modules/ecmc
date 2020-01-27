@@ -1,9 +1,9 @@
 /*
-FILENAME...   EthercatMCAxis.h
+FILENAME...   ecmcMotorRecordAxis.h
 */
 
-#ifndef ETHERCATMCAXIS_H
-#define ETHERCATMCAXIS_H
+#ifndef ECMC_MOTOR_RECORD_AXIS_H
+#define ECMC_MOTOR_RECORD_AXIS_H
 
 #include "asynMotorAxis.h"
 #include <stdint.h>

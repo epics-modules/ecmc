@@ -1,13 +1,13 @@
 /*
-FILENAME...   EthercatMCController.h
+FILENAME...   ecmcMotorRecordController.h
 */
 
-#ifndef ETHERCATMCCONTROLLER_H
-#define ETHERCATMCCONTROLLER_H
+#ifndef ECMC_MOTOR_RECORD_CONTROLLER_H
+#define ECMC_MOTOR_RECORD_CONTROLLER_H
 
 #include "asynMotorController.h"
 #include "asynMotorAxis.h"
-#include "EthercatMCAxisEcmc.h"
+#include "ecmcMotorRecordAxis.h"
 
 
 #ifndef motorRecResolutionString
@@ -29,8 +29,8 @@ FILENAME...   EthercatMCController.h
 #define EthercatMCaux5_String                "AuxBit5"
 #define EthercatMCaux6_String                "AuxBit6"
 #define EthercatMCaux7_String                "AuxBit7"
-#define EthercatMCreason24_String             "ReasonBit24"
-#define EthercatMCreason25_String             "ReasonBit25"
+#define EthercatMCreason24_String            "ReasonBit24"
+#define EthercatMCreason25_String            "ReasonBit25"
 #define EthercatMCreason26_String            "ReasonBit26"
 #define EthercatMCreason27_String            "ReasonBit27"
 #define EthercatMCHomProc_RBString           "HomProc-RB"

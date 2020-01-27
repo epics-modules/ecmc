@@ -1,1 +1,1 @@
-registrar(EthercatMCControllerRegister)
+registrar(ecmcMotorRecordControllerRegister)

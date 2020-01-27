@@ -12,8 +12,8 @@
 #include <epicsThread.h>
 
 #include "motor.h"
-#include "EthercatMCAxisEcmc.h"
-#include "EthercatMCController.h"
+#include "ecmcMotorRecordAxis.h"
+#include "ecmcMotorRecordController.h"
 
 #ifndef ASYN_TRACE_INFO
 #define ASYN_TRACE_INFO      0x0040
