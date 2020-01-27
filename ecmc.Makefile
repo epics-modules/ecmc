@@ -124,12 +124,13 @@ SOURCES += $(APPSRC_PLC)/ecmcPLCTask.cpp
 SOURCES += $(APPSRC_PLC)/ecmcPLCDataIF.cpp
 SOURCES += $(APPSRC_PLC)/ecmcPLCMain.cpp
 
-SOURCES += $(APPSRC_MOTOR)/EthercatMCController.cpp
-SOURCES += $(APPSRC_MOTOR)/EthercatMCAxisEcmc.cpp
+SOURCES += $(APPSRC_MOTOR)/ecmcMotorRecordController.cpp
+SOURCES += $(APPSRC_MOTOR)/ecmcMotorRecordAxis.cpp
 
 SOURCES += gitversion.c
 
 DBDS    += $(APPSRC_COM)/ecmcController.dbd
+DBDS    += $(APPSRC_MOTOR)/ecmcMotorRecordSupport.dbd
 
 ecmcEcMemMap$(DEP): gitversion.c
 
