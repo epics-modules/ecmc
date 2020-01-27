@@ -133,7 +133,7 @@ typedef struct {
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
-typedef struct {
+/*typedef struct {
   motionCommandTypes         cmd;
   double                     val0;
   double                     val1;
@@ -145,7 +145,7 @@ typedef struct {
   double                     val7;
   double                     val8;
   double                     val9;
-}ecmcAsynClinetCmdType;
+}ecmcAsynClinetCmdType;*/
 
 class ecmcAxisBase : public ecmcError {
  public:
@@ -230,9 +230,9 @@ class ecmcAxisBase : public ecmcError {
   int                   setExtTrajVeloFiltSize(size_t size);
   int                   setExtEncVeloFiltSize(size_t size);
   int                   setEncVeloFiltSize(size_t size);
-  asynStatus            axisAsynWriteCmd(void* data, 
+  /*asynStatus            axisAsynWriteCmd(void* data, 
                                          size_t bytes,
-                                         asynParamType asynParType);
+                                         asynParamType asynParType);*/
  protected:
   //int          executeControlWd();
   void         initVars();
@@ -266,8 +266,8 @@ class ecmcAxisBase : public ecmcError {
   ecmcEcEntry *statusOutputEntry_;
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
-  ecmcAsynClinetCmdType  controlData_;
-  ecmcAsynClinetCmdType  controlDataOld_;
+  /*ecmcAsynClinetCmdType  controlData_;
+  ecmcAsynClinetCmdType  controlDataOld_;*/
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;

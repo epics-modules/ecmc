@@ -24,12 +24,12 @@
  * userObj = axis object
  * 
  * */ 
-asynStatus asynWriteCmd(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+/*asynStatus asynWriteCmd(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
   if (!userObj) {
     return asynError;
   }
   return ((ecmcAxisBase*)userObj)->axisAsynWriteCmd(data, bytes, asynParType);
-}
+}*/
 
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int axisID, 
@@ -116,8 +116,8 @@ void ecmcAxisBase::initVars() {
   }
   statusOutputEntry_          = 0;
   blockExtCom_                = 0;
-  memset(&controlData_,0,sizeof(controlData_));
-  memset(&controlDataOld_,0,sizeof(controlDataOld_));
+  //memset(&controlData_,0,sizeof(controlData_));
+  //memset(&controlDataOld_,0,sizeof(controlDataOld_));
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_ = NULL;
   extEncVeloFilter_ = NULL;
@@ -842,7 +842,7 @@ int ecmcAxisBase::initAsyn() {
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
 
   // Control structure binary (for motor record)
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
+  /*errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
                               asynParamInt8Array,
                               ECMC_EC_S8,
                               (uint8_t*)&(controlData_),
@@ -855,7 +855,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setExeCmdFunctPtr(asynWriteCmd,this); // Access to this axis
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID] = paramTemp;
-
+*/
 
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
@@ -1293,7 +1293,7 @@ int ecmcAxisBase::createAsynParam(const char       *nameFormat,
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
 */
-asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType) 
+/*asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType) 
 {
   if(bytes != sizeof(ecmcAsynClinetCmdType)){
     LOGERR(
@@ -1500,7 +1500,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
   }
 
   return asynSuccess;
-}
+}*/
 
 // enum motionCommandTypes {             // Data order for motor record communications
 //   ECMC_CMD_NOCMD              = -1,   
