@@ -17,60 +17,60 @@ FILENAME...   ecmcMotorRecordController.h
 #define motorRecResolutionString        "MOTOR_REC_RESOLUTION"
 #endif
 
-#define EthercatMCErrString                  "MCUErr"
-#define EthercatMCErrIdString                "ErrId"
-#define EthercatMCStatusCodeString           "StatusCode"
-#define EthercatMCStatusBitsString           "StatusBits"
-#define EthercatMCaux0_String                "AuxBit0"
-#define EthercatMCaux1_String                "AuxBit1"
-#define EthercatMCaux2_String                "AuxBit2"
-#define EthercatMCaux3_String                "AuxBit3"
-#define EthercatMCaux4_String                "AuxBit4"
-#define EthercatMCaux5_String                "AuxBit5"
-#define EthercatMCaux6_String                "AuxBit6"
-#define EthercatMCaux7_String                "AuxBit7"
-#define EthercatMCreason24_String            "ReasonBit24"
-#define EthercatMCreason25_String            "ReasonBit25"
-#define EthercatMCreason26_String            "ReasonBit26"
-#define EthercatMCreason27_String            "ReasonBit27"
-#define EthercatMCHomProc_RBString           "HomProc-RB"
-#define EthercatMCHomPos_RBString            "HomPos-RB"
-#define EthercatMCHomProcString              "HomProc"
-#define EthercatMCHomPosString               "HomPos"
-#define EthercatMCVelToHomString             "VelToHom"
-#define EthercatMCVelFrmHomString            "VelFrmHom"
-#define EthercatMCAccHomString               "AccHom"
-#define EthercatMCEnc_ActString              "EncAct"
-#define EthercatMCErrRstString               "ErrRst"
-#define EthercatMCVelActString               "VelAct"
-#define EthercatMCVel_RBString               "Vel-RB"
-#define EthercatMCAcc_RBString               "Acc-RB"
-#define EthercatMCCfgVELO_String             "CfgVELO"
-#define EthercatMCCfgVMAX_String             "CfgVMAX"
-#define EthercatMCCfgJVEL_String             "CfgJVEL"
-#define EthercatMCCfgACCS_String             "CfgACCS"
-#define EthercatMCCfgDHLMString              "CfgDHLM"
-#define EthercatMCCfgDLLMString              "CfgDLLM"
-#define EthercatMCCfgDHLM_EnString           "CfgDHLM-En"
-#define EthercatMCCfgDLLM_EnString           "CfgDLLM-En"
-#define EthercatMCCfgSREV_RBString           "CfgSREV-RB"
-#define EthercatMCCfgUREV_RBString           "CfgUREV-RB"
-#define EthercatMCCfgPMIN_RBString           "CfgPMIN-RB"
-#define EthercatMCCfgPMAX_RBString           "CfgPMAX-RB"
-#define EthercatMCCfgSPDB_RBString           "CfgSPDB-RB"
-#define EthercatMCCfgRDBD_RBString           "CfgRDBD-RB"
-#define EthercatMCCfgRDBD_Tim_RBString       "CfgRDBD-Tim-RB"
-#define EthercatMCCfgRDBD_En_RBString        "CfgRDBD-En-RB"
-#define EthercatMCCfgPOSLAG_RBString         "CfgPOSLAG-RB"
-#define EthercatMCCfgPOSLAG_Tim_RBString     "CfgPOSLAG-Tim-RB"
-#define EthercatMCCfgPOSLAG_En_RBString      "CfgPOSLAG-En-RB"
-#define EthercatMCCfgDESC_RBString           "CfgDESC-RB"
-#define EthercatMCCfgEGU_RBString            "CfgEGU-RB"
+#define ecmcMotorRecordErrString                  "MCUErr"
+#define ecmcMotorRecordErrIdString                "ErrId"
+#define ecmcMotorRecordStatusCodeString           "StatusCode"
+#define ecmcMotorRecordStatusBitsString           "StatusBits"
+#define ecmcMotorRecordaux0_String                "AuxBit0"
+#define ecmcMotorRecordaux1_String                "AuxBit1"
+#define ecmcMotorRecordaux2_String                "AuxBit2"
+#define ecmcMotorRecordaux3_String                "AuxBit3"
+#define ecmcMotorRecordaux4_String                "AuxBit4"
+#define ecmcMotorRecordaux5_String                "AuxBit5"
+#define ecmcMotorRecordaux6_String                "AuxBit6"
+#define ecmcMotorRecordaux7_String                "AuxBit7"
+#define ecmcMotorRecordreason24_String            "ReasonBit24"
+#define ecmcMotorRecordreason25_String            "ReasonBit25"
+#define ecmcMotorRecordreason26_String            "ReasonBit26"
+#define ecmcMotorRecordreason27_String            "ReasonBit27"
+#define ecmcMotorRecordHomProc_RBString           "HomProc-RB"
+#define ecmcMotorRecordHomPos_RBString            "HomPos-RB"
+#define ecmcMotorRecordHomProcString              "HomProc"
+#define ecmcMotorRecordHomPosString               "HomPos"
+#define ecmcMotorRecordVelToHomString             "VelToHom"
+#define ecmcMotorRecordVelFrmHomString            "VelFrmHom"
+#define ecmcMotorRecordAccHomString               "AccHom"
+#define ecmcMotorRecordEnc_ActString              "EncAct"
+#define ecmcMotorRecordErrRstString               "ErrRst"
+#define ecmcMotorRecordVelActString               "VelAct"
+#define ecmcMotorRecordVel_RBString               "Vel-RB"
+#define ecmcMotorRecordAcc_RBString               "Acc-RB"
+#define ecmcMotorRecordCfgVELO_String             "CfgVELO"
+#define ecmcMotorRecordCfgVMAX_String             "CfgVMAX"
+#define ecmcMotorRecordCfgJVEL_String             "CfgJVEL"
+#define ecmcMotorRecordCfgACCS_String             "CfgACCS"
+#define ecmcMotorRecordCfgDHLMString              "CfgDHLM"
+#define ecmcMotorRecordCfgDLLMString              "CfgDLLM"
+#define ecmcMotorRecordCfgDHLM_EnString           "CfgDHLM-En"
+#define ecmcMotorRecordCfgDLLM_EnString           "CfgDLLM-En"
+#define ecmcMotorRecordCfgSREV_RBString           "CfgSREV-RB"
+#define ecmcMotorRecordCfgUREV_RBString           "CfgUREV-RB"
+#define ecmcMotorRecordCfgPMIN_RBString           "CfgPMIN-RB"
+#define ecmcMotorRecordCfgPMAX_RBString           "CfgPMAX-RB"
+#define ecmcMotorRecordCfgSPDB_RBString           "CfgSPDB-RB"
+#define ecmcMotorRecordCfgRDBD_RBString           "CfgRDBD-RB"
+#define ecmcMotorRecordCfgRDBD_Tim_RBString       "CfgRDBD-Tim-RB"
+#define ecmcMotorRecordCfgRDBD_En_RBString        "CfgRDBD-En-RB"
+#define ecmcMotorRecordCfgPOSLAG_RBString         "CfgPOSLAG-RB"
+#define ecmcMotorRecordCfgPOSLAG_Tim_RBString     "CfgPOSLAG-Tim-RB"
+#define ecmcMotorRecordCfgPOSLAG_En_RBString      "CfgPOSLAG-En-RB"
+#define ecmcMotorRecordCfgDESC_RBString           "CfgDESC-RB"
+#define ecmcMotorRecordCfgEGU_RBString            "CfgEGU-RB"
 
 
-#define EthercatMCMCUErrMsgString            "MCUErrMsg"
-#define EthercatMCDbgStrToMcuString          "StrToMCU"
-#define EthercatMCDbgStrToLogString          "StrToLOG"
+#define ecmcMotorRecordMCUErrMsgString            "MCUErrMsg"
+#define ecmcMotorRecordDbgStrToMcuString          "StrToMCU"
+#define ecmcMotorRecordDbgStrToLogString          "StrToLOG"
 
 #define HOMPROC_MANUAL_SETPOS    15
 
@@ -81,7 +81,7 @@ extern "C" {
   double     netToDouble(const void *data, size_t lenInPlc);
   void       doubleToNet(const double value, void *data, size_t lenInPlc);
   void       uintToNet(const unsigned value, void *data, size_t lenInPlc);
-  int EthercatMCCreateAxisEcmc(const char *EthercatMCName, int axisNo,
+  int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName, int axisNo,
                            int axisFlags, const char *axisOptionsStr);
 
   asynStatus disconnect_C(asynUser *pasynUser);
@@ -90,7 +90,7 @@ extern "C" {
                                           char *indata, size_t inlen);
   asynStatus checkACK(const char *outdata, size_t outlen, const char *indata);
   const char *plcUnitTxtFromUnitCode(unsigned unitCode);
-  const char *EthercatMCstrStatus(asynStatus status);
+  const char *ecmcMotorRecordstrStatus(asynStatus status);
   const char *errStringFromErrId(int nErrorId);
 }
 #define NETTOUINT(n)       netToUint((const void*)&n, sizeof(n))
@@ -98,7 +98,7 @@ extern "C" {
 #define UINTTONET(val,n)   uintToNet((val), (&n), sizeof(n))
 #define DOUBLETONET(val,n) doubleToNet((val), (&n), sizeof(n))
 
-class epicsShareClass EthercatMCController : public asynMotorController {
+class epicsShareClass ecmcMotorRecordController : public asynMotorController {
 public:
 #define PARAM_IDX_OPMODE_AUTO_UINT32            1
 #define PARAM_IDX_MICROSTEPS_UINT32             2
@@ -132,18 +132,18 @@ public:
 #define FEATURE_BITS_ECMC             (1<<5)
 
 
-  EthercatMCController(const char *portName, const char *EthercatMCPortName,
+  ecmcMotorRecordController(const char *portName, const char *ecmcMotorRecordPortName,
                        int numAxes, double movingPollPeriod,
                        double idlePollPeriod,
                        const char *optionStr);
 
-  ~EthercatMCController();
+  ~ecmcMotorRecordController();
   void report(FILE *fp, int level);
   asynStatus setMCUErrMsg(const char *value);
   asynStatus configController(int needOk, const char *value);
   asynStatus writeReadOnErrorDisconnect(void);
-  EthercatMCAxisEcmc* getAxis(asynUser *pasynUser);
-  EthercatMCAxisEcmc* getAxis(int axisNo);
+  ecmcMotorRecordAxis* getAxis(asynUser *pasynUser);
+  ecmcMotorRecordAxis* getAxis(int axisNo);
   int features_;
 
   protected:
@@ -182,29 +182,29 @@ public:
   } ctrlLocal;
 
   /* First parameter */
-  int EthercatMCErr_;
-  int EthercatMCStatusCode_;
-  int EthercatMCStatusBits_;
-  int EthercatMCaux0_;
-  int EthercatMCaux1_;
-  int EthercatMCaux2_;
-  int EthercatMCaux3_;
-  int EthercatMCaux4_;
-  int EthercatMCaux5_;
-  int EthercatMCaux6_;
-  int EthercatMCaux7_;
-  int EthercatMCreason24_;
-  int EthercatMCreason25_;
-  int EthercatMCreason26_;
-  int EthercatMCreason27_;
-  int EthercatMCHomProc_RB_;
-  int EthercatMCHomPos_RB_;
-  int EthercatMCHomProc_;
-  int EthercatMCHomPos_;
-  int EthercatMCVelToHom_;
-  int EthercatMCVelFrmHom_;
-  int EthercatMCAccHom_;
-  int EthercatMCEncAct_;
+  int ecmcMotorRecordErr_;
+  int ecmcMotorRecordStatusCode_;
+  int ecmcMotorRecordStatusBits_;
+  int ecmcMotorRecordaux0_;
+  int ecmcMotorRecordaux1_;
+  int ecmcMotorRecordaux2_;
+  int ecmcMotorRecordaux3_;
+  int ecmcMotorRecordaux4_;
+  int ecmcMotorRecordaux5_;
+  int ecmcMotorRecordaux6_;
+  int ecmcMotorRecordaux7_;
+  int ecmcMotorRecordreason24_;
+  int ecmcMotorRecordreason25_;
+  int ecmcMotorRecordreason26_;
+  int ecmcMotorRecordreason27_;
+  int ecmcMotorRecordHomProc_RB_;
+  int ecmcMotorRecordHomPos_RB_;
+  int ecmcMotorRecordHomProc_;
+  int ecmcMotorRecordHomPos_;
+  int ecmcMotorRecordVelToHom_;
+  int ecmcMotorRecordVelFrmHom_;
+  int ecmcMotorRecordAccHom_;
+  int ecmcMotorRecordEncAct_;
 
 #ifdef CREATE_MOTOR_REC_RESOLUTION
   int motorRecResolution_;
@@ -213,36 +213,36 @@ public:
 #endif
 
   /* Add parameters here */
-  int EthercatMCErrRst_;
-  int EthercatMCMCUErrMsg_;
-  int EthercatMCDbgStrToMcu_;
-  int EthercatMCDbgStrToLog_;
-  int EthercatMCVelAct_;
-  int EthercatMCVel_RB_;
-  int EthercatMCAcc_RB_;
-  int EthercatMCCfgVELO_;
-  int EthercatMCCfgVMAX_;
-  int EthercatMCCfgJVEL_;
-  int EthercatMCCfgACCS_;
-  int EthercatMCCfgSREV_RB_;
-  int EthercatMCCfgUREV_RB_;
-  int EthercatMCCfgPMIN_RB_;
-  int EthercatMCCfgPMAX_RB_;
-  int EthercatMCCfgSPDB_RB_;
-  int EthercatMCCfgRDBD_RB_;
-  int EthercatMCCfgRDBD_Tim_RB_;
-  int EthercatMCCfgRDBD_En_RB_;
-  int EthercatMCCfgPOSLAG_RB_;
-  int EthercatMCCfgPOSLAG_Tim_RB_;
-  int EthercatMCCfgPOSLAG_En_RB_;
-  int EthercatMCCfgDHLM_;
-  int EthercatMCCfgDLLM_;
-  int EthercatMCCfgDHLM_En_;
-  int EthercatMCCfgDLLM_En_;
-  int EthercatMCCfgDESC_RB_;
-  int EthercatMCCfgEGU_RB_;
+  int ecmcMotorRecordErrRst_;
+  int ecmcMotorRecordMCUErrMsg_;
+  int ecmcMotorRecordDbgStrToMcu_;
+  int ecmcMotorRecordDbgStrToLog_;
+  int ecmcMotorRecordVelAct_;
+  int ecmcMotorRecordVel_RB_;
+  int ecmcMotorRecordAcc_RB_;
+  int ecmcMotorRecordCfgVELO_;
+  int ecmcMotorRecordCfgVMAX_;
+  int ecmcMotorRecordCfgJVEL_;
+  int ecmcMotorRecordCfgACCS_;
+  int ecmcMotorRecordCfgSREV_RB_;
+  int ecmcMotorRecordCfgUREV_RB_;
+  int ecmcMotorRecordCfgPMIN_RB_;
+  int ecmcMotorRecordCfgPMAX_RB_;
+  int ecmcMotorRecordCfgSPDB_RB_;
+  int ecmcMotorRecordCfgRDBD_RB_;
+  int ecmcMotorRecordCfgRDBD_Tim_RB_;
+  int ecmcMotorRecordCfgRDBD_En_RB_;
+  int ecmcMotorRecordCfgPOSLAG_RB_;
+  int ecmcMotorRecordCfgPOSLAG_Tim_RB_;
+  int ecmcMotorRecordCfgPOSLAG_En_RB_;
+  int ecmcMotorRecordCfgDHLM_;
+  int ecmcMotorRecordCfgDLLM_;
+  int ecmcMotorRecordCfgDHLM_En_;
+  int ecmcMotorRecordCfgDLLM_En_;
+  int ecmcMotorRecordCfgDESC_RB_;
+  int ecmcMotorRecordCfgEGU_RB_;
 
-  int EthercatMCErrId_;
+  int ecmcMotorRecordErrId_;
   /* Last parameter */
 
   // ECMC
@@ -251,10 +251,10 @@ public:
   double idlePollPeriod_;
   // ECMC
 
-  #define FIRST_VIRTUAL_PARAM EthercatMCErr_
-  #define LAST_VIRTUAL_PARAM EthercatMCErrId_
+  #define FIRST_VIRTUAL_PARAM ecmcMotorRecordErr_
+  #define LAST_VIRTUAL_PARAM ecmcMotorRecordErrId_
   #define NUM_VIRTUAL_MOTOR_PARAMS ((int) (&LAST_VIRTUAL_PARAM - &FIRST_VIRTUAL_PARAM + 1))
-  friend class EthercatMCAxisEcmc;  
+  friend class ecmcMotorRecordAxis;  
 };
 
 #endif
