@@ -11,6 +11,8 @@ FILENAME...   ecmcMotorRecordAxis.h
 #include <asynFloat64SyncIO.h>
 #include <asynInt8ArraySyncIO.h>
 
+#include "../main/ecmcGlobalsExtern.h"
+
 #define AMPLIFIER_ON_FLAG_CREATE_AXIS  (1)
 #define AMPLIFIER_ON_FLAG_AUTO_ON      (1<<1)
 #define AMPLIFIER_ON_FLAG_USING_CNEN   (1<<2)
@@ -25,6 +27,7 @@ FILENAME...   ecmcMotorRecordAxis.h
 // Control
 #define ECMC_ASYN_AXIS_CONT_STRING          "T_SMP_MS=%d/TYPE=asynInt8ArrayOut/ax%d.controlbin?"
 
+/*
 typedef struct {
   unsigned char              enable:1;
   unsigned char              execute:1;
@@ -156,7 +159,7 @@ typedef struct {
   bool                       stall  : 1;
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
-
+*/
 //ECMC End
 
 extern const char *modNamEMC;
@@ -209,8 +212,11 @@ class epicsShareClass ecmcMotorRecordAxis : public asynMotorAxis
 {
 public:
   /* These are the methods we override from the base class */
-  ecmcMotorRecordAxis(class ecmcMotorRecordController *pC, int axisNo,
-            int axisFlags, const char *axisOptionsStr);
+  ecmcMotorRecordAxis(class ecmcMotorRecordController *pC,
+                      int axisNo,
+                      ecmcAxisBase *ecmcAxisRef,
+                      int axisFlags, 
+                      const char *axisOptionsStr);
 
   void report(FILE *fp, int level);
   void callParamCallbacksUpdateError();
@@ -225,8 +231,8 @@ public:
   asynStatus poll(bool *moving);
 
   // ECMC  added##############
-  asynStatus statBinDataCallback(epicsInt8 *data);
-  asynStatus contBinDataCallback(epicsInt8 *data);
+  //asynStatus statBinDataCallback(epicsInt8 *data);
+  //asynStatus contBinDataCallback(epicsInt8 *data);
 
   // ECMC End ##############
 private:
@@ -376,33 +382,33 @@ private:
   asynStatus stopAxisInternal(const char *function_name, double acceleration);
   asynStatus resetAxis(void);
   // ECMC specific
-  asynStatus connectEcmcAxis();
-  asynStatus readStatusBin();        // Read binary status data over int8array interface
-  asynStatus readAll();
-  asynStatus readControlBin();       // Read binary control data over int8array interface
-  asynStatus writeControlBin(ecmcAsynClinetCmdType controlWd);
+  //asynStatus connectEcmcAxis();
+  //asynStatus readStatusBin();        // Read binary status data over int8array interface
+  //asynStatus readAll();
+  //asynStatus readControlBin();       // Read binary control data over int8array interface
+  //asynStatus writeControlBin(ecmcAsynClinetCmdType controlWd);
   asynStatus printDiagBinData();
   asynStatus setEnable(int on);
   // Temporary convert betwwen differnt structure types.. Remove later
   asynStatus uglyConvertFunc(ecmcAxisStatusType*in ,st_axis_status_type *out);
-  asynUser *asynUserStatBin_;      // "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.diagnosticbin?"  
+/*  asynUser *asynUserStatBin_;      // "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.diagnosticbin?"  
   asynUser *asynUserStatBinIntr_;  // "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.diagnosticbin?"  
   asynUser *asynUserCntrlBin_;     // "T_SMP_MS=%d/TYPE=asynInt32/ax%d.controlstruct="
   asynUser *asynUserCntrlBinIntr_; // "T_SMP_MS=%d/TYPE=asynInt32/ax%d.controlstruct?"
-  int       axisId_;
+  
   ecmcAsynClinetCmdType   controlBinData_;
-  ecmcAsynClinetCmdType   controlBinDataRB_;
-
+  ecmcAsynClinetCmdType   controlBinDataRB_;*/
+  int       axisId_;
   ecmcAxisStatusType      statusBinData_;
   
-  asynInterface          *pasynIFStatBinIntr_;
+  /*asynInterface          *pasynIFStatBinIntr_;
   asynInt8Array          *pIFStatBinIntr_;
   void                   *interruptStatBinPvt_;
   
   asynInterface          *pasynIFContBinIntr_;
   asynInt8Array          *pIFContBinIntr_;
-  void                   *interruptContBinPvt_;
-
+  void                   *interruptContBinPvt_;*/
+  ecmcAxisBase           *ecmcAxis_;
   double                  oldPositionAct_;  // needed for uglyConvertFunc().. 
   // ECMC end
   friend class ecmcMotorRecordController;

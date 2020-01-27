@@ -29,7 +29,7 @@ static ecmcMotorRecordController *pC;
 
 /* Callback for axis status data struct (binary)
 */
-void statBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_t nelements) {
+/*void statBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_t nelements) {
 //  printf("diagBinCallback()\n");
   ecmcMotorRecordAxis * axis = (ecmcMotorRecordAxis*)userPvt;
   if(!axis) {
@@ -47,11 +47,11 @@ void statBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_
     return;
   }
   axis->statBinDataCallback(value);  
-}
+}*/
 
 /* Callback for axis control data struct (binary)
 */
-void contBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_t nelements) {
+/*void contBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_t nelements) {
 //  printf("diagBinCallback()\n");
   ecmcMotorRecordAxis * axis = (ecmcMotorRecordAxis*)userPvt;
   if(!axis) {
@@ -69,7 +69,7 @@ void contBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_
     return;
   }
   axis->contBinDataCallback(value);  
-}
+}*/
 
 /** Creates a new ecmcMotorRecordAxis object.
  * \param[in] pC Pointer to the ecmcMotorRecordController to which this axis belongs.
@@ -78,13 +78,27 @@ void contBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_
  *
  * Initializes register numbers, etc.
  */
-ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC, int axisNo,
-                               int axisFlags, const char *axisOptionsStr)
+ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
+                                         int axisNo,
+                                         ecmcAxisBase *ecmcAxisRef,
+                                         int axisFlags,
+                                         const char *axisOptionsStr)
   : asynMotorAxis(pC, axisNo),
     pC_(pC)
 {
+  ecmcAxis_ = ecmcAxisRef;
+  if(!ecmcAxis_) {
+        LOGERR(
+      "%s/%s:%d: ERROR: Axis ref NULL. Application exits...\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+
+    exit(EXIT_FAILURE)
+  }
+
   // ECMC  
-  asynUserStatBin_      = NULL; // "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.diagnosticbin?"
+  /*asynUserStatBin_      = NULL; // "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.diagnosticbin?"
   asynUserStatBinIntr_  = NULL; // "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.diagnosticbin?"  
   asynUserCntrlBin_     = NULL; // "T_SMP_MS=%d/TYPE=asynInt32/ax%d.controlstruct="
   asynUserCntrlBinIntr_ = NULL; // "T_SMP_MS=%d/TYPE=asynInt32/ax%d.controlstruct?"
@@ -100,8 +114,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC, int axis
 
   memset(&statusBinData_,0, sizeof(statusBinData_));
   memset(&controlBinData_,0, sizeof(ecmcAsynClinetCmdType));
-  memset(&controlBinDataRB_,0, sizeof(ecmcAsynClinetCmdType));
-
+  memset(&controlBinDataRB_,0, sizeof(ecmcAsynClinetCmdType));*/
+  ecmcAxis_= 
   axisId_ = axisNo;
 
   oldPositionAct_ = 0;
@@ -253,27 +267,37 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC, int axis
   /* Set the module name to "" if we have FILE/LINE enabled by asyn */
   if (pasynTrace->getTraceInfoMask(pC_->pasynUserController_) & ASYN_TRACEINFO_SOURCE) modNamEMC = "";
 
-  asynStatus status = connectEcmcAxis();
+  /*asynStatus status = connectEcmcAxis();
   if (status!=asynSuccess) {
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
               "connectEcmcAxis() failed on port %s\n",pC_->mcuPortName_);
-  }
+  }*/
   
   initialPoll();
 }
 
-
-extern "C" int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName, int axisNo,
-                                    int axisFlags, const char *axisOptionsStr)
+extern "C" int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName, 
+                                         int axisNo,
+                                         int axisFlags,
+                                         const char *axisOptionsStr)
 {
-  
   pC = (ecmcMotorRecordController*) findAsynPortDriver(ecmcMotorRecordName);
   if (!pC) {
     printf("Error port %s not found\n", ecmcMotorRecordName);
     return asynError;
   }
+
+  if (axisNo >= ECMC_MAX_AXES || axisNo <= 0) {
+    printf("ERROR: Axis index out of range.\n");
+    return asynError;
+  }
+  if (axes[axisNo] == NULL) {
+    printf("ERROR: Axis object NULL\n");
+    return asynError;
+  }
+
   pC->lock();
-  new ecmcMotorRecordAxis(pC, axisNo, axisFlags, axisOptionsStr);
+  new ecmcMotorRecordAxis(pC, axisNo, axes[axisNo], axisFlags, axisOptionsStr);
   pC->unlock();
   return asynSuccess;
   
@@ -1071,10 +1095,23 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     return asynSuccess;
   }
 
-  memset(&st_axis_status, 0, sizeof(st_axis_status));
+  
 
   // ---------------------ECMC
-   
+
+  // Get values from ecmc
+  ecmcAxisStatusType *tempAxisStat = ecmcAxis_->getDebugInfoDataPointer(axisId_);
+  if(!tempAxisStat) {
+    LOGERR(
+      "%s/%s:%d: ERROR: function getAxisDebugInfoDataPointer() returned NULL.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+
+    return asynError;
+  }
+  memcpy(&statusBinData_,&tempAxisStat,sizeof(ecmcAxisStatusType));
+  memset(&st_axis_status, 0, sizeof(st_axis_status));
   uglyConvertFunc(&statusBinData_,&st_axis_status);
   
   // ---------------------ECMC
@@ -2096,7 +2133,7 @@ asynStatus ecmcMotorRecordAxis::setValueOnAxis(const char* var, int value)
  *  2. "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.controlbin?"
  * 
 */
-asynStatus ecmcMotorRecordAxis::connectEcmcAxis() {
+/*asynStatus ecmcMotorRecordAxis::connectEcmcAxis() {
 
   char buffer[ECMC_MAX_ASYN_DRVINFO_STR_LEN];
   int movingPollPeriodMs = (int)(pC_->movingPollPeriod_*1000);
@@ -2324,9 +2361,9 @@ asynStatus ecmcMotorRecordAxis::connectEcmcAxis() {
 
   readAll();
   return asynSuccess;
-}
+}*/
 
-asynStatus ecmcMotorRecordAxis::readStatusBin() {
+/*asynStatus ecmcMotorRecordAxis::readStatusBin() {
   
   size_t inBytes = 0;
   ecmcAxisStatusType diagBinDataTemp;
@@ -2348,9 +2385,9 @@ asynStatus ecmcMotorRecordAxis::readStatusBin() {
 
   statusBinData_ = diagBinDataTemp;
   return asynSuccess;
-}
+}*/
 
-asynStatus ecmcMotorRecordAxis::readControlBin() {
+/*asynStatus ecmcMotorRecordAxis::readControlBin() {
 
   size_t inBytes = 0;
   ecmcAsynClinetCmdType controlBinTemp;
@@ -2367,9 +2404,9 @@ asynStatus ecmcMotorRecordAxis::readControlBin() {
   controlBinDataRB_ = controlBinTemp;
 
   return asynSuccess;
-}
+}*/
 
-asynStatus ecmcMotorRecordAxis::writeControlBin(ecmcAsynClinetCmdType controlStruct) {
+/*asynStatus ecmcMotorRecordAxis::writeControlBin(ecmcAsynClinetCmdType controlStruct) {
 
   epicsInt8 *pCntData = (epicsInt8 *)&controlStruct;
   asynStatus status = pasynInt8ArraySyncIO->write(asynUserCntrlBin_,pCntData,sizeof(ecmcAsynClinetCmdType),DEFAULT_CONTROLLER_TIMEOUT);
@@ -2383,9 +2420,9 @@ asynStatus ecmcMotorRecordAxis::writeControlBin(ecmcAsynClinetCmdType controlStr
     return asynError;
   }  
   return asynSuccess;
-}
+}*/
 
-asynStatus ecmcMotorRecordAxis::readAll() {
+/*asynStatus ecmcMotorRecordAxis::readAll() {
   
   asynStatus status;
 
@@ -2395,7 +2432,7 @@ asynStatus ecmcMotorRecordAxis::readAll() {
   }
 
   return readControlBin();
-}
+}*/
 
 //Just for debug
 asynStatus ecmcMotorRecordAxis::printDiagBinData() {
@@ -2483,12 +2520,12 @@ asynStatus ecmcMotorRecordAxis::uglyConvertFunc(ecmcAxisStatusType*in ,st_axis_s
   return asynSuccess;
 }
 
-asynStatus ecmcMotorRecordAxis::statBinDataCallback(epicsInt8 *data){
+/*asynStatus ecmcMotorRecordAxis::statBinDataCallback(epicsInt8 *data){
   memcpy(&statusBinData_,data,sizeof(ecmcAxisStatusType));
   return asynSuccess;
-}
+}*/
 
-asynStatus ecmcMotorRecordAxis::contBinDataCallback(epicsInt8 *data){
+/*asynStatus ecmcMotorRecordAxis::contBinDataCallback(epicsInt8 *data){
   memcpy(&controlBinDataRB_,data,sizeof(ecmcAsynClinetCmdType));
   return asynSuccess;
-}
+}*/

@@ -2759,4 +2759,3 @@ int setAxisModType(int axisIndex,
 
   return axes[axisIndex]->setModType(type);
 }
-
