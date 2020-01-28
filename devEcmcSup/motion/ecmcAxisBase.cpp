@@ -395,6 +395,10 @@ int ecmcAxisBase::setRealTimeStarted(bool realtime) {
   return 0;
 }
 
+int ecmcAxisBase::getRealTimeStarted() {
+  return data_.status_.inRealtime;
+}
+
 bool ecmcAxisBase::getError() {
   int error = ecmcAxisBase::getErrorID();
 
@@ -682,7 +686,7 @@ int ecmcAxisBase::setExecute(bool execute) {
   if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     // Allow direct homing without enable
     if (execute && !getEnable() &&
-        !((data_.command_.cmdData == 15) && (data_.command_.command == 10))) {
+        !((data_.command_.cmdData == ECMC_SEQ_HOME_SET_POS) && (data_.command_.command == ECMC_CMD_HOMING))) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -724,7 +728,7 @@ int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusType *data) {
   return 0;
 }
 
-ecmcAxisStatusType * ecmcAxisBase::getDebugInfoDataPointer() {
+ecmcAxisStatusType *ecmcAxisBase::getDebugInfoDataPointer() {
   return &statusData_;
 }
 
@@ -1288,6 +1292,174 @@ int ecmcAxisBase::createAsynParam(const char       *nameFormat,
   return 0;
 }
 
+int ecmcAxisBase::moveAbsolutePosition(                            
+                            double positionSet,
+                            double velocitySet,
+                            double accelerationSet,
+                            double decelerationSet) {
+ 
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_MOVEABS);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCmdData(0);
+  if (errorCode) {
+    return errorCode;
+  }
+  getSeq()->setTargetPos(positionSet);
+  getSeq()->setTargetVel(velocitySet);
+  getTraj()->setAcc(accelerationSet);
+  getTraj()->setDec(decelerationSet);
+  errorCode = setExecute(1);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
+}
+
+int ecmcAxisBase::moveRelativePosition(
+                            double positionSet,
+                            double velocitySet,
+                            double accelerationSet,
+                            double decelerationSet) {
+
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_MOVEREL);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCmdData(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  getSeq()->setTargetPos(positionSet);
+  getSeq()->setTargetVel(velocitySet);
+  getTraj()->setAcc(accelerationSet);
+  getTraj()->setDec(decelerationSet);
+
+  errorCode = setExecute(1);
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;                              
+ }
+
+int ecmcAxisBase::moveVelocity(
+                            double velocitySet,
+                            double accelerationSet,
+                            double decelerationSet) {
+
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_MOVEVEL);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCmdData(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  getSeq()->setTargetVel(velocitySet);
+  getTraj()->setAcc(accelerationSet);
+  getTraj()->setAcc(decelerationSet);
+  
+  errorCode = setExecute(1);
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
+}
+
+int ecmcAxisBase::moveHome(int    nCmdData,
+                           double homePositionSet,
+                           double velocityTwordsCamSet,
+                           double velocityOffCamSet,                            
+                           double accelerationSet,
+                           double decelerationSet
+                           ) {
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_HOMING);
+  if (errorCode) {
+    return errorCode;
+  }
+  errorCode = setCmdData(nCmdData);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  getSeq()->setHomePosition(homePositionSet);
+  getSeq()->setHomeVelOffCam(velocityOffCamSet);
+  getSeq()->setHomeVelTwordsCam(velocityTwordsCamSet);
+  getTraj()->setAcc(accelerationSet);
+  getTraj()->setDec(decelerationSet);
+  errorCode = setExecute(1);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
+}
+
+int ecmcAxisBase::stopMotion(int killAmplifier) {
+
+  int errorCode = setExecute(0);
+  
+  if (killAmplifier) {
+    errorCode = setEnable(0);    
+    if (errorCode) {
+      return errorCode;
+    }
+  }
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  return 0;
+}
+
 /**
  * Function to link to ecmcDataItem. Execute function instead of copoy data.
  * This function implements commands execution of commands from motor record
@@ -1456,7 +1628,7 @@ int ecmcAxisBase::createAsynParam(const char       *nameFormat,
       errorCode = setEnable(controlData_.val0>0);
       if(errorCode) {
         return asynError;
-      }
+      }= 15
       break;
 
     case ECMC_CMD_SET_SOFTLIMBWD:

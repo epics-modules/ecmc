@@ -265,73 +265,73 @@ extern "C" asynStatus disconnect_C(asynUser *pasynUser)
   return status;
 }
 
-extern "C"
-asynStatus writeReadOnErrorDisconnect_C(asynUser *pasynUser,
-                                        const char *outdata, size_t outlen,
-                                        char *indata, size_t inlen)
-{
-  size_t nwrite;
-  asynStatus status = asynError;
-  int eomReason = 0;
-  size_t nread;
-  status = pasynOctetSyncIO->writeRead(pasynUser, outdata, outlen,
-                                       indata, inlen,
-                                       DEFAULT_CONTROLLER_TIMEOUT,
-                                       &nwrite, &nread, &eomReason);
-  if ((status == asynTimeout) ||
-      (!nread && (eomReason & ASYN_EOM_END))) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-              "%s out=%s nread=%lu eomReason=%x (%s%s%s) status=%s (%d)\n",
-              modulName, outdata,(unsigned long)nread,
-              eomReason,
-              eomReason & ASYN_EOM_CNT ? "CNT" : "",
-              eomReason & ASYN_EOM_EOS ? "EOS" : "",
-              eomReason & ASYN_EOM_END ? "END" : "",
-              ecmcMotorRecordstrStatus(status), status);
-    disconnect_C(pasynUser);
-    return asynError; /* TimeOut -> Error */
-  }
-  return status;
-}
+// extern "C"
+// asynStatus writeReadOnErrorDisconnect_C(asynUser *pasynUser,
+//                                         const char *outdata, size_t outlen,
+//                                         char *indata, size_t inlen)
+// {
+//   size_t nwrite;
+//   asynStatus status = asynError;
+//   int eomReason = 0;
+//   size_t nread;
+//   status = pasynOctetSyncIO->writeRead(pasynUser, outdata, outlen,
+//                                        indata, inlen,
+//                                        DEFAULT_CONTROLLER_TIMEOUT,
+//                                        &nwrite, &nread, &eomReason);
+//   if ((status == asynTimeout) ||
+//       (!nread && (eomReason & ASYN_EOM_END))) {
+//     asynPrint(pasynUser, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
+//               "%s out=%s nread=%lu eomReason=%x (%s%s%s) status=%s (%d)\n",
+//               modulName, outdata,(unsigned long)nread,
+//               eomReason,
+//               eomReason & ASYN_EOM_CNT ? "CNT" : "",
+//               eomReason & ASYN_EOM_EOS ? "EOS" : "",
+//               eomReason & ASYN_EOM_END ? "END" : "",
+//               ecmcMotorRecordstrStatus(status), status);
+//     disconnect_C(pasynUser);
+//     return asynError; /* TimeOut -> Error */
+//   }
+//   return status;
+// }
 
 /** Writes a string to the controller and reads a response.
   * Disconnects in case of error
   */
-asynStatus ecmcMotorRecordController::writeReadOnErrorDisconnect(void)
-{
-  asynStatus status = asynError;
-  size_t outlen = strlen(outString_);
-  double timeBefore = ecmcMotorRecordgetNowTimeSecs();
-  inString_[0] = '\0';
-  status = writeReadOnErrorDisconnect_C(pasynUserController_, outString_, outlen,
-                                        inString_, sizeof(inString_));
-  if (!status) {
-    if (strstr(inString_, "State timout") ||
-        strstr(inString_, "To long time in one state")) {
-      double timeDelta = ecmcMotorRecordgetNowTimeSecs() - timeBefore;
+// asynStatus ecmcMotorRecordController::writeReadOnErrorDisconnect(void)
+// {
+//   asynStatus status = asynError;
+//   size_t outlen = strlen(outString_);
+//   double timeBefore = ecmcMotorRecordgetNowTimeSecs();
+//   inString_[0] = '\0';
+//   status = writeReadOnErrorDisconnect_C(pasynUserController_, outString_, outlen,
+//                                         inString_, sizeof(inString_));
+//   if (!status) {
+//     if (strstr(inString_, "State timout") ||
+//         strstr(inString_, "To long time in one state")) {
+//       double timeDelta = ecmcMotorRecordgetNowTimeSecs() - timeBefore;
 
-      asynPrint(pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-                "%sout=%s in=%s timeDelta=%f\n",
-                modNamEMC, outString_, inString_, timeDelta);
-      /* Try again */
-      timeBefore = ecmcMotorRecordgetNowTimeSecs();
-      status = writeReadOnErrorDisconnect_C(pasynUserController_,
-                                            outString_, outlen,
-                                            inString_, sizeof(inString_));
-      timeDelta = ecmcMotorRecordgetNowTimeSecs() - timeBefore;
-      asynPrint(pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-                "%sout=%s in=%s timeDelta=%f status=%s (%d)\n",
-                modNamEMC, outString_, inString_, timeDelta,
-                ecmcMotorRecordstrStatus(status), (int)status);
-    }
-  }
-  handleStatusChange(status);
-  if (status)
-  {
-    return asynError;
-  }
-  return status;
-}
+//       asynPrint(pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
+//                 "%sout=%s in=%s timeDelta=%f\n",
+//                 modNamEMC, outString_, inString_, timeDelta);
+//       /* Try again */
+//       timeBefore = ecmcMotorRecordgetNowTimeSecs();
+//       status = writeReadOnErrorDisconnect_C(pasynUserController_,
+//                                             outString_, outlen,
+//                                             inString_, sizeof(inString_));
+//       timeDelta = ecmcMotorRecordgetNowTimeSecs() - timeBefore;
+//       asynPrint(pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
+//                 "%sout=%s in=%s timeDelta=%f status=%s (%d)\n",
+//                 modNamEMC, outString_, inString_, timeDelta,
+//                 ecmcMotorRecordstrStatus(status), (int)status);
+//     }
+//   }
+//   handleStatusChange(status);
+//   if (status)
+//   {
+//     return asynError;
+//   }
+//   return status;
+// }
 
 extern "C"
 asynStatus checkACK(const char *outdata, size_t outlen,
@@ -354,65 +354,65 @@ asynStatus checkACK(const char *outdata, size_t outlen,
   return res ? asynError : asynSuccess;
 }
 
-asynStatus ecmcMotorRecordController::writeReadControllerPrint(int traceMask)
-{
-  asynStatus status = writeReadOnErrorDisconnect();
-  if (status && !ctrlLocal.oldStatus) traceMask |= ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER;
-  asynPrint(pasynUserController_, traceMask,
-            "%sout=%s in=%s status=%s (%d)\n",
-            modNamEMC, outString_, inString_,
-            ecmcMotorRecordstrStatus(status), (int)status);
-  return status;
-}
+// asynStatus ecmcMotorRecordController::writeReadControllerPrint(int traceMask)
+// {
+//   asynStatus status = writeReadOnErrorDisconnect();
+//   if (status && !ctrlLocal.oldStatus) traceMask |= ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER;
+//   asynPrint(pasynUserController_, traceMask,
+//             "%sout=%s in=%s status=%s (%d)\n",
+//             modNamEMC, outString_, inString_,
+//             ecmcMotorRecordstrStatus(status), (int)status);
+//   return status;
+// }
 
-asynStatus ecmcMotorRecordController::writeReadACK(int traceMask)
-{
-  asynStatus status = writeReadOnErrorDisconnect();
-  switch (status) {
-    case asynError:
-      return status;
-    case asynSuccess:
-    {
-      const char *semicolon = &outString_[0];
-      unsigned int numOK = 1;
-      int res = 1;
-      while (semicolon && semicolon[0]) {
-        semicolon = strchr(semicolon, ';');
-        if (semicolon) {
-          numOK++;
-          semicolon++;
-        }
-      }
-      switch(numOK) {
-        case 1: res = strcmp(inString_, "OK");  break;
-        case 2: res = strcmp(inString_, "OK;OK");  break;
-        case 3: res = strcmp(inString_, "OK:OK;OK");  break;
-        case 4: res = strcmp(inString_, "OK;OK;OK;OK");  break;
-        case 5: res = strcmp(inString_, "OK;OK;OK;OK;OK");  break;
-        case 6: res = strcmp(inString_, "OK;OK;OK;OK;OK;OK");  break;
-        case 7: res = strcmp(inString_, "OK;OK;OK;OK;OK;OK;OK");  break;
-        case 8: res = strcmp(inString_, "OK;OK;OK;OK;OK;OK;OK;OK");  break;
-        default:
-          ;
-      }
-      if (res) {
-        status = asynError;
-        asynPrint(pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-                  "%sout=%s in=%s return=%s (%d)\n",
-                  modNamEMC, outString_, inString_,
-                  ecmcMotorRecordstrStatus(status), (int)status);
-        return status;
-      }
-    }
-    default:
-      break;
-  }
-  asynPrint(pasynUserController_, traceMask,
-            "%sout=%s in=%s status=%s (%d)\n",
-            modNamEMC, outString_, inString_,
-            ecmcMotorRecordstrStatus(status), (int)status);
-  return status;
-}
+// asynStatus ecmcMotorRecordController::writeReadACK(int traceMask)
+// {
+//   asynStatus status = writeReadOnErrorDisconnect();
+//   switch (status) {
+//     case asynError:
+//       return status;
+//     case asynSuccess:
+//     {
+//       const char *semicolon = &outString_[0];
+//       unsigned int numOK = 1;
+//       int res = 1;
+//       while (semicolon && semicolon[0]) {
+//         semicolon = strchr(semicolon, ';');
+//         if (semicolon) {
+//           numOK++;
+//           semicolon++;
+//         }
+//       }
+//       switch(numOK) {
+//         case 1: res = strcmp(inString_, "OK");  break;
+//         case 2: res = strcmp(inString_, "OK;OK");  break;
+//         case 3: res = strcmp(inString_, "OK:OK;OK");  break;
+//         case 4: res = strcmp(inString_, "OK;OK;OK;OK");  break;
+//         case 5: res = strcmp(inString_, "OK;OK;OK;OK;OK");  break;
+//         case 6: res = strcmp(inString_, "OK;OK;OK;OK;OK;OK");  break;
+//         case 7: res = strcmp(inString_, "OK;OK;OK;OK;OK;OK;OK");  break;
+//         case 8: res = strcmp(inString_, "OK;OK;OK;OK;OK;OK;OK;OK");  break;
+//         default:
+//           ;
+//       }
+//       if (res) {
+//         status = asynError;
+//         asynPrint(pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
+//                   "%sout=%s in=%s return=%s (%d)\n",
+//                   modNamEMC, outString_, inString_,
+//                   ecmcMotorRecordstrStatus(status), (int)status);
+//         return status;
+//       }
+//     }
+//     default:
+//       break;
+//   }
+//   asynPrint(pasynUserController_, traceMask,
+//             "%sout=%s in=%s status=%s (%d)\n",
+//             modNamEMC, outString_, inString_,
+//             ecmcMotorRecordstrStatus(status), (int)status);
+//   return status;
+// }
 
 asynStatus ecmcMotorRecordController::setMCUErrMsg(const char *value)
 {

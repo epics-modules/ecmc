@@ -270,7 +270,7 @@ private:
     double scaleFactor;
     const char *externalEncoderStr;
     const char *cfgfileStr;
-    const char *cfgDebug_str;
+    // const char *cfgDebug_str;
     int axisFlags;
     int MCU_nErrorId;     /* nErrorID from MCU */
     int old_MCU_nErrorId; /* old nErrorID from MCU */
@@ -309,69 +309,62 @@ private:
     unsigned int adsPort;
   } drvlocal;
 
-  //asynStatus readConfigLine(const char *line, const char **errorTxt_p);
-  //asynStatus readConfigFile(void);
+  // asynStatus readConfigLine(const char *line, const char **errorTxt_p);
+  // asynStatus readConfigFile(void);
   asynStatus readBackAllConfig(int axisID);
   asynStatus updateCfgValue(int function, int    newValue, const char *name);
   asynStatus updateCfgValue(int function, double newValue, const char *name);
   asynStatus readBackSoftLimits(void);
-  asynStatus readBackHoming(void);
+  // asynStatus readBackHoming(void);
   asynStatus readScaling(int axisID);
   asynStatus readMonitoring(int axisID);
   asynStatus readBackVelocities(int axisID);
-  asynStatus readBackEncoders(int axisID);
+  // asynStatus readBackEncoders(int axisID);
   asynStatus initialPoll(void);
   asynStatus initialPollInternal(void);
-  asynStatus setValueOnAxis(const char* var, int value);
-  asynStatus setValueOnAxisVerify(const char *var, const char *rbvar,
-                                  int value, unsigned int retryCount);
-  asynStatus setValueOnAxis(const char* var, double value);
-  asynStatus setValuesOnAxis(const char* var1, double value1, const char* var2, double value2);
-  asynStatus setSAFValueOnAxis(unsigned indexGroup,
-                               unsigned indexOffset,
-                               int value);
-
-  asynStatus setSAFValueOnAxisVerify(unsigned indexGroup,
-                                     unsigned indexOffset,
-                                     int value,
-                                     unsigned int retryCount);
-
-  asynStatus setSAFValueOnAxis(unsigned indexGroup,
-                               unsigned indexOffset,
-                               double value);
-
-  asynStatus setSAFValueOnAxisVerify(unsigned indexGroup,
-                                     unsigned indexOffset,
-                                     double value,
-                                     unsigned int retryCount);
-
-  asynStatus getSAFValueFromAxisPrint(unsigned indexGroup,
-                                      unsigned indexOffset,
-                                      const char *name,
-                                      int *value);
-
-  asynStatus getSAFValuesFromAxisPrint(unsigned iIndexGroup,
-                                       unsigned iIndexOffset,
-                                       const char *iname,
-                                       int *iValue,
-                                       unsigned fIndexGroup,
-                                       unsigned fIndexOffset,
-                                       const char *fname,
-                                       double *fValue);
-
-  asynStatus getSAFValueFromAxisPrint(unsigned indexGroup,
-                                      unsigned indexOffset,
-                                      const char *name,
-                                      double *value);
-
-  asynStatus getValueFromAxis(const char* var, int *value);
-  asynStatus getValueFromAxis(const char* var, double *value);
-  asynStatus getStringFromAxis(const char* var, char *value, size_t maxlen);
-  asynStatus getValueFromController(const char* var, double *value);  
+  // asynStatus setValueOnAxis(const char* var, int value);
+  // asynStatus setValueOnAxisVerify(const char *var, const char *rbvar,
+  //                                 int value, unsigned int retryCount);
+  // asynStatus setValueOnAxis(const char* var, double value);
+  // asynStatus setValuesOnAxis(const char* var1, double value1, const char* var2, double value2);
+  // asynStatus setSAFValueOnAxis(unsigned indexGroup,
+  //                              unsigned indexOffset,
+  //                              int value);
+  // asynStatus setSAFValueOnAxisVerify(unsigned indexGroup,
+  //                                    unsigned indexOffset,
+  //                                    int value,
+  //                                    unsigned int retryCount);
+  // asynStatus setSAFValueOnAxis(unsigned indexGroup,
+  //                              unsigned indexOffset,
+  //                              double value);
+  // asynStatus setSAFValueOnAxisVerify(unsigned indexGroup,
+  //                                    unsigned indexOffset,
+  //                                    double value,
+  //                                    unsigned int retryCount);
+  // asynStatus getSAFValueFromAxisPrint(unsigned indexGroup,
+  //                                     unsigned indexOffset,
+  //                                     const char *name,
+  //                                     int *value);
+  // asynStatus getSAFValuesFromAxisPrint(unsigned iIndexGroup,
+  //                                      unsigned iIndexOffset,
+  //                                      const char *iname,
+  //                                      int *iValue,
+  //                                      unsigned fIndexGroup,
+  //                                      unsigned fIndexOffset,
+  //                                      const char *fname,
+  //                                      double *fValue);
+  // asynStatus getSAFValueFromAxisPrint(unsigned indexGroup,
+  //                                     unsigned indexOffset,
+  //                                     const char *name,
+  //                                     double *value);
+  // asynStatus getValueFromAxis(const char* var, int *value);
+  // asynStatus getValueFromAxis(const char* var, double *value);
+  // asynStatus getStringFromAxis(const char* var, char *value, size_t maxlen);
+  // asynStatus getValueFromController(const char* var, double *value);  
   asynStatus setIntegerParam(int function, int value);
   asynStatus setDoubleParam(int function, double value);
-  asynStatus setStringParamDbgStrToMcu(const char *value);
-  asynStatus setStringParam(int function, const char *value);
+  // asynStatus setStringParamDbgStrToMcu(const char *value);
+  // asynStatus setStringParam(int function, const char *value);
 #ifndef motorMessageTextString
   void updateMsgTxtFromDriver(const char *value);
 #endif
@@ -410,6 +403,8 @@ private:
   void                   *interruptContBinPvt_;*/
   ecmcAxisBase           *ecmcAxis_;
   double                  oldPositionAct_;  // needed for uglyConvertFunc().. 
+  double                  manualVelocSlow_;
+  double                  manualVelocFast_;
   // ECMC end
   friend class ecmcMotorRecordController;
 };

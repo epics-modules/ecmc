@@ -199,6 +199,7 @@ class ecmcAxisBase : public ecmcError {
   dataSource            getTrajDataSourceType();
   dataSource            getEncDataSourceType();
   int                   setRealTimeStarted(bool realtime);
+  int                   getRealTimeStarted();
   bool                  getError();
   int                   getErrorID();
   void                  errorReset();
@@ -230,6 +231,25 @@ class ecmcAxisBase : public ecmcError {
   int                   setExtTrajVeloFiltSize(size_t size);
   int                   setExtEncVeloFiltSize(size_t size);
   int                   setEncVeloFiltSize(size_t size);
+  int                   moveAbsolutePosition(double positionSet,
+                                             double velocitySet,
+                                             double accelerationSet,
+                                             double decelerationSet);
+  int                   moveRelativePosition(double positionSet,
+                                             double velocitySet,
+                                             double accelerationSet,
+                                             double decelerationSet);
+  int                   moveVelocity(double velocitySet,
+                                     double accelerationSet,
+                                     double decelerationSet);
+  int                   moveHome(int    nCmdData,
+                                 double homePositionSet,
+                                 double velocityTwordsCamSet,
+                                 double velocityOffCamSet,                            
+                                 double accelerationSet,
+                                 double decelerationSet);
+  int                   stopMotion(int killAmplifier);
+
   /*asynStatus            axisAsynWriteCmd(void* data, 
                                          size_t bytes,
                                          asynParamType asynParType);*/
