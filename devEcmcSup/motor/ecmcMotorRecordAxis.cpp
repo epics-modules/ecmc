@@ -1,7 +1,41 @@
 /*
   FILENAME... ecmcMotorRecordAxis.cpp
 */
-
+/*
+st_axis_status.bEnable              = statusBinData_.onChangeData.statusWd.enable;
+  st_axis_status.bExecute             = statusBinData_.onChangeData.statusWd.execute;
+  st_axis_status.nCommand             = statusBinData_.onChangeData.command;
+  st_axis_status.nCmdData             = statusBinData_.onChangeData.cmdData;
+  st_axis_status.fVelocity            = statusBinData_.onChangeData.velocitySetpoint;
+  st_axis_status.fPosition            = statusBinData_.onChangeData.positionTarget;
+  st_axis_status.fAcceleration        = statusBinData_.acceleration;
+  st_axis_status.fDecceleration       = statusBinData_.deceleration;  
+  st_axis_status.bHomeSensor          = statusBinData_.onChangeData.statusWd.homeswitch;
+  st_axis_status.bEnabled             = statusBinData_.onChangeData.statusWd.enabled;
+  st_axis_status.bError               = statusBinData_.onChangeData.error>0;
+  st_axis_status.nErrorId             = statusBinData_.onChangeData.error;
+  st_axis_status.fActVelocity         = statusBinData_.onChangeData.velocityActual;
+  st_axis_status.fActPosition         = statusBinData_.onChangeData.positionActual;
+  st_axis_status.fActDiff             = statusBinData_.onChangeData.positionError;
+  st_axis_status.bHomed               = statusBinData_.onChangeData.statusWd.homed;
+  st_axis_status.bBusy                = statusBinData_.onChangeData.statusWd.busy;
+  st_axis_status.encoderRaw           = statusBinData_.onChangeData.positionRaw;
+  st_axis_status.atTarget             = statusBinData_.onChangeData.statusWd.attarget;
+  st_axis_status.bLimitBwd            = statusBinData_.onChangeData.statusWd.limitbwd;
+  st_axis_status.bLimitFwd            = statusBinData_.onChangeData.statusWd.limitfwd;
+  
+  // Data derveid from struct
+  st_axis_status.mvnNRdyNex           = statusBinData_.onChangeData.statusWd.busy || !statusBinData_.onChangeData.statusWd.attarget;
+  st_axis_status.motorStatusDirection = statusBinData_.onChangeData.positionActual > 
+                                              oldPositionAct_ ? 1:0;
+  st_axis_status.motorDiffPostion     = 1; //Always set to 1?? why 
+  
+  //TODO not accesible for ecmc.. neeeded? Delete later
+  st_axis_status.bJogFwd              = 0;
+  st_axis_status.bJogBwd              = 0;
+  st_axis_status.bReset               = 0;
+  st_axis_status.fOverride            = 100;
+*/
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -27,50 +61,6 @@
 
 static ecmcMotorRecordController *pC;
 
-/* Callback for axis status data struct (binary)
-*/
-/*void statBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_t nelements) {
-//  printf("diagBinCallback()\n");
-  ecmcMotorRecordAxis * axis = (ecmcMotorRecordAxis*)userPvt;
-  if(!axis) {
-    printf("%s/%s:%d: Error: Axis not found.\n", 
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    return;
-  }
-  if(nelements!=sizeof(ecmcAxisStatusType)) {
-    printf("%s/%s:%d: Error: Wrong byte count (sizeof(value)!=(sizeof(ecmcAxisStatusType)).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    return;
-  }
-  axis->statBinDataCallback(value);  
-}*/
-
-/* Callback for axis control data struct (binary)
-*/
-/*void contBinCallback(void *userPvt, asynUser *pasynUser, epicsInt8 *value, size_t nelements) {
-//  printf("diagBinCallback()\n");
-  ecmcMotorRecordAxis * axis = (ecmcMotorRecordAxis*)userPvt;
-  if(!axis) {
-    printf("%s/%s:%d: Error: Axis not found.\n", 
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    return;
-  }
-  if(nelements!=sizeof(ecmcAsynClinetCmdType)) {
-    printf("%s/%s:%d: Error: Wrong byte count (sizeof(value)!=(sizeof(ecmcAxisStatusType)).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    return;
-  }
-  axis->contBinDataCallback(value);  
-}*/
-
 /** Creates a new ecmcMotorRecordAxis object.
  * \param[in] pC Pointer to the ecmcMotorRecordController to which this axis belongs.
  * \param[in] axisNo Index number of this axis, range 1 to pC->numAxes_. (0 is not used)
@@ -86,8 +76,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   : asynMotorAxis(pC, axisNo),
     pC_(pC)
 {
-  
-  // ECMC  
   ecmcAxis_ = ecmcAxisRef;
   if(!ecmcAxis_) {
         LOGERR(
@@ -101,29 +89,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
   manualVelocSlow_ = 0;
   manualVelocFast_ = 0;
-  oldPositionAct_ = 0;
-  
-  /*asynUserStatBin_      = NULL; // "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.diagnosticbin?"
-  asynUserStatBinIntr_  = NULL; // "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.diagnosticbin?"  
-  asynUserCntrlBin_     = NULL; // "T_SMP_MS=%d/TYPE=asynInt32/ax%d.controlstruct="
-  asynUserCntrlBinIntr_ = NULL; // "T_SMP_MS=%d/TYPE=asynInt32/ax%d.controlstruct?"
-
-  pasynIFStatBinIntr_   = NULL;
-  pIFStatBinIntr_       = NULL;
-  interruptStatBinPvt_  = NULL;
-
-
-  pasynIFContBinIntr_   = NULL;
-  pIFContBinIntr_       = NULL;
-  interruptContBinPvt_  = NULL;
-
-  memset(&statusBinData_,0, sizeof(statusBinData_));
-  memset(&controlBinData_,0, sizeof(ecmcAsynClinetCmdType));
-  memset(&controlBinDataRB_,0, sizeof(ecmcAsynClinetCmdType));*/
-  
-  axisId_ = axisNo;
-  
-  
+  oldPositionAct_  = 0;
+  axisId_          = axisNo;
   //ECMC End
   
   int powerAutoOnOff = -1; /* undefined */
@@ -171,15 +138,13 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
   drvlocal.scaleFactor = 1.0;
   if (axisOptionsStr && axisOptionsStr[0]) {
-    const char * const encoder_is_str = "encoder=";
-    const char * const cfgfile_str = "cfgFile=";
-    //const char * const cfgDebug_str = "getDebugText=";
+    const char * const encoder_is_str      = "encoder=";    
 #ifndef motorFlagsDriverUsesEGUString
     /* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
-    const char * const stepSize_str = "stepSize=";
+    const char * const stepSize_str        = "stepSize=";
 #endif
-    const char * const homProc_str 	   = "HomProc=";
-    const char * const homPos_str  	   = "HomPos=";
+    const char * const homProc_str 	       = "HomProc=";
+    const char * const homPos_str  	       = "HomPos=";
     const char * const adsPort_str         = "adsPort=";
     const char * const axisFlags_str       = "axisFlags=";
     const char * const powerAutoOnOff_str  = "powerAutoOnOff=";
@@ -200,12 +165,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
       if (!strncmp(pThisOption, encoder_is_str, strlen(encoder_is_str))) {
         pThisOption += strlen(encoder_is_str);
         drvlocal.externalEncoderStr = strdup(pThisOption);
-      }  else if (!strncmp(pThisOption, cfgfile_str, strlen(cfgfile_str))) {
-        pThisOption += strlen(cfgfile_str);
-        drvlocal.cfgfileStr = strdup(pThisOption);
-      // } else if (!strncmp(pThisOption, cfgDebug_str, strlen(cfgDebug_str))) {
-      //   pThisOption += strlen(cfgDebug_str);
-      //   drvlocal.cfgDebug_str = strdup(pThisOption);
 #ifndef motorFlagsDriverUsesEGUString
       } else if (!strncmp(pThisOption, stepSize_str, strlen(stepSize_str))) {
         pThisOption += strlen(stepSize_str);
@@ -271,12 +230,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   }
   /* Set the module name to "" if we have FILE/LINE enabled by asyn */
   if (pasynTrace->getTraceInfoMask(pC_->pasynUserController_) & ASYN_TRACEINFO_SOURCE) modNamEMC = "";
-
-  /*asynStatus status = connectEcmcAxis();
-  if (status!=asynSuccess) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "connectEcmcAxis() failed on port %s\n",pC_->mcuPortName_);
-  }*/
   
   initialPoll();
 }
@@ -380,39 +333,6 @@ asynStatus ecmcMotorRecordAxis::readBackSoftLimits(void)
   return asynSuccess;
 }
 
-// asynStatus ecmcMotorRecordAxis::readBackHoming(void)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-
-//   asynStatus status;
-//   int    homProc = 0;
-//   double homPos  = 0.0;
-
-//   /* Don't read it, when the driver has been configured with HomProc= */
-//   status = pC_->getIntegerParam(axisNo_, pC_->ecmcMotorRecordHomProc_,&homProc);
-
-//   if (status != asynSuccess) {
-//         LOGERR(
-//       "%s/%s:%d: ERROR: No valid homing procedure defined.\n",
-//       __FILE__,
-//       __FUNCTION__,
-//       __LINE__);
-//      return status;     
-//   }
-
-//   status = pC_->getIntegerParam(axisNo_, pC_->ecmcMotorRecordHomPos_,&homPos);
-//   if (status != asynSuccess) {
-//         LOGERR(
-//       "%s/%s:%d: ERROR: No valid homing position defined.\n",
-//       __FILE__,
-//       __FUNCTION__,
-//       __LINE__);
-//      return status;     
-//   }
-
-//   return asynSuccess;
-// }
-
 asynStatus ecmcMotorRecordAxis::readScaling(int axisID)
 {
 
@@ -460,7 +380,7 @@ asynStatus ecmcMotorRecordAxis::readScaling(int axisID)
     return asynError;
   }
 
-  // Why not needed?
+  // Why is not this scale needed/updated? Always 1?
   // drvlocal.scaleFactor = num / denom;
 
   updateCfgValue(pC_->ecmcMotorRecordCfgSREV_RB_, denom, "srev");
@@ -470,8 +390,6 @@ asynStatus ecmcMotorRecordAxis::readScaling(int axisID)
 
 asynStatus ecmcMotorRecordAxis::readMonitoring(int axisID)
 {
-  printf("Dbg################# %s\n",__FUNCTION__);
-
   double poslag_tol, attarget_tol;
   int    poslag_time, attarget_time, poslag_enable, attarget_enable;
 
@@ -532,41 +450,8 @@ asynStatus ecmcMotorRecordAxis::readBackVelocities(int axisID)
   return asynSuccess;
 }
 
-// asynStatus ecmcMotorRecordAxis::readBackEncoders(int axisID)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-
-//   /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcadsdevicenc2/index.html&id= */
-//   asynStatus status;
-//   uint32_t numEncoders = 0;
-//   int nvals;
-
-
-
-//   snprintf(pC_->outString_, sizeof(pC_->outString_),
-//            "ADSPORT=501/.ADR.16#%X,16#%X,8,19?;",
-//            0x4000 + axisID, 0x57
-//            );
-//   status = pC_->writeReadOnErrorDisconnect();
-//   if (status) return status;
-//   nvals = sscanf(pC_->inString_, "%u",
-//                  &numEncoders);
-//   if (nvals != 1) {
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%snvals=%d command=\"%s\" response=\"%s\"\n",
-//               modNamEMC, nvals, pC_->outString_, pC_->inString_);
-//     return asynError;
-//   }
-//   asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-//             "%sreadBackEncoders(%d) numEncoders=%u\n",
-//             modNamEMC, axisNo_, numEncoders);
-//   return asynSuccess;
-// }
-
 asynStatus ecmcMotorRecordAxis::initialPoll(void)
 {
-  printf("Dbg################# %s\n",__FUNCTION__);
-
   asynStatus status;
 
   if (!drvlocal.dirty.initialPollNeeded)
@@ -584,23 +469,10 @@ asynStatus ecmcMotorRecordAxis::initialPoll(void)
 asynStatus ecmcMotorRecordAxis::readBackAllConfig(int axisID)
 {
   asynStatus status = asynSuccess;
-  // /* for ECMC homing is configured from EPICS, do NOT do the readback */
-  // if (!(pC_->features_ & FEATURE_BITS_ECMC)) {
-  //   if (!drvlocal.scaleFactor) {
-  //     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-  //               "%sreadBackAllConfig(%d) drvlocal.scaleFactor=0.0\n",
-  //               modNamEMC, axisNo_);
-  //     return asynError;
-  //   }
-  //   if (status == asynSuccess) status = readBackHoming();
-  // }
   if (status == asynSuccess) status = readScaling(axisID);
   if (status == asynSuccess) status = readMonitoring(axisID);
   if (status == asynSuccess) status = readBackSoftLimits();
   if (status == asynSuccess) status = readBackVelocities(axisID);
-  // if (!(pC_->features_ & FEATURE_BITS_ECMC)) {
-  //   if (status == asynSuccess) status = readBackEncoders(axisID);
-  // }
   return status;
 }
 
@@ -614,14 +486,6 @@ asynStatus ecmcMotorRecordAxis::initialPollInternal(void)
 {
   asynStatus status = asynSuccess;
 
-  // status = readConfigFile();
-  // if (status) {
-  //   asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-  //             "%s(%d) readConfigFile() failed\n",
-  //             modNamEMC, axisNo_);
-  //   updateMsgTxtFromDriver("ConfigError Config File");
-  //   return status;
-  // }
   if (drvlocal.axisFlags & AMPLIFIER_ON_FLAG_CREATE_AXIS) {
     /* Enable the amplifier when the axis is created,
        but wait until we have a connection to the controller.
@@ -829,11 +693,10 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
   
   // Read from records / params
   double homPos    = 0.0; /* The homPos may be undefined, then use 0.0 */
-  //int    cmdData   = -1;
-   
+  
+  //int    cmdData   = -1; 
   // nCmdData (sequence number) Must be "manual cmddata (=15)"
   // asynStatus status = pC_->getIntegerParam(axisNo_, pC_->ecmcMotorRecordHomProc_,&cmdData);
-
   // if (cmdData != HOMPROC_MANUAL_SETPOS || status != asynSuccess) {
   //   return asynError;
   // }
@@ -1085,13 +948,6 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   if (!ecmcAxis_->getRealTimeStarted()) 
     return comStatus;
 
-  // if (drvlocal.supported.statusVer == -1) {
-  //   callParamCallbacksUpdateError();
-  //   return asynSuccess;
-  // }
-  
-  // ---------------------ECMC
-
   // Get values from ecmc
   ecmcAxisStatusType *tempAxisStat = ecmcAxis_->getDebugInfoDataPointer();
   if(!tempAxisStat) {
@@ -1107,19 +963,6 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   memset(&st_axis_status, 0, sizeof(st_axis_status));
   uglyConvertFunc(&statusBinData_,&st_axis_status);
   //printDiagBinData();
-
-  // ---------------------ECMC
-
-  /*if (drvlocal.cfgDebug_str) {
-    printf("Dbg################# 2 %s\n",__FUNCTION__);
-    asynStatus comStatus;
-    snprintf(pC_->outString_, sizeof(pC_->outString_), "%s", drvlocal.cfgDebug_str);
-    comStatus = pC_->writeReadOnErrorDisconnect();
-    if (!comStatus) {
-      printf("Dbg################# 3 %s\n",__FUNCTION__);
-      updateMsgTxtFromDriver(pC_->inString_);
-    }
-  }*/
 
   setIntegerParam(pC_->motorStatusHomed_, st_axis_status.bHomed);
   drvlocal.homed = st_axis_status.bHomed;
@@ -1182,15 +1025,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     drvlocal.old_st_axis_status.fActPosition = st_axis_status.fActPosition;
     setDoubleParam(pC_->ecmcMotorRecordVel_RB_, st_axis_status.fVelocity);
   }
-
-  /*if (drvlocal.externalEncoderStr) {
-    comStatus = getValueFromController(drvlocal.externalEncoderStr,
-                                       &st_axis_status.encoderRaw);
-    if (!comStatus) setDoubleParam(pC_->ecmcMotorRecordEncAct_,
-                                   st_axis_status.encoderRaw);
-  } else if (pC_->features_ & FEATURE_BITS_V2) {*/
   setDoubleParam(pC_->ecmcMotorRecordEncAct_, st_axis_status.encoderRaw);
-  //}
 
   if (drvlocal.old_st_axis_status.bHomed != st_axis_status.bHomed) {
     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
@@ -1251,9 +1086,6 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
 
   drvlocal.MCU_nErrorId = st_axis_status.nErrorId;
 
-//  if (drvlocal.cfgDebug_str) {
-//    ; /* Do not do the following */
- /* } else*/
   if (drvlocal.old_bError != st_axis_status.bError ||
              drvlocal.old_MCU_nErrorId != drvlocal.MCU_nErrorId ||
              drvlocal.dirty.sErrorMessage) {    
@@ -1272,11 +1104,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     
     if (nErrorId) {
       /* Get the ErrorMessage to have it in the log file */
-      strcpy(&sErrorMessage[0],ecmcError::convertErrorIdToString(nErrorId));
-      
-      // (void)getStringFromAxis("sErrorMessage", (char *)&sErrorMessage[0],
-      //                         sizeof(sErrorMessage));
-      
+      strcpy(&sErrorMessage[0],ecmcError::convertErrorIdToString(nErrorId));  
       asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
                 "%ssErrorMessage(%d)=\"%s\"\n",
                 modNamEMC, axisNo_, sErrorMessage);
@@ -1368,7 +1196,6 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
               "%ssetIntegerParam(%d ecmcMotorRecordCfgDHLM_En)=%d\n",
               modNamEMC, axisNo_, value);    
     errorCode = ecmcAxis_->getMon()->setEnableSoftLimitFwd(value);
-    //status = setSAFValueOnAxis(indexGroup5000, 0xC, value);
     readBackSoftLimits();
     return errorCode == 0 ? asynSuccess : asynError;
 
@@ -1381,7 +1208,6 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
               modNamEMC, axisNo_, value);
     
     errorCode = ecmcAxis_->getMon()->setEnableSoftLimitBwd(value);
-    // status = setSAFValueOnAxis(indexGroup5000, 0xB, value);
     readBackSoftLimits();
     return errorCode==0 ? asynSuccess : asynError;
   }
@@ -1480,7 +1306,6 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
               "%ssetDoubleParam(%d ecmcMotorRecordCfgDHLM_)=%f\n", modNamEMC, axisNo_, value);
     
     errorCode = ecmcAxis_->getMon()->setSoftLimitFwd(value);
-    //status = setSAFValueOnAxis(indexGroup5000, 0xE, value);
     readBackSoftLimits();
     return errorCode==0 ? asynSuccess : asynError;
 
@@ -1490,7 +1315,6 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
               "%ssetDoubleParam(%d ecmcMotorRecordCfgDLLM_)=%f\n", modNamEMC, axisNo_, value);
     
     errorCode = ecmcAxis_->getMon()->setSoftLimitBwd(value);
-    //status = setSAFValueOnAxis(indexGroup5000, 0xD, value);
     readBackSoftLimits();
     return errorCode==0 ? asynSuccess : asynError;
 
@@ -1500,7 +1324,6 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
               "%ssetDoubleParam(%d ecmcMotorRecordCfgVELO_)=%f\n", modNamEMC, axisNo_, value);
   
     manualVelocFast_ = value;
-    //status = setSAFValueOnAxis(0x4000, 0x9, value);
     return asynSuccess;
 
   } // Set monitor max velocity
@@ -1508,7 +1331,6 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgVMAX_)=%f\n", modNamEMC, axisNo_, value);
     errorCode = ecmcAxis_->getMon()->setMaxVel(value);
-    //status = setSAFValueOnAxis(0x4000, 0x27, value);
     return errorCode==0 ? asynSuccess : asynError;
 
   } // manual velo fast.. Just store here in "motor record" driver
@@ -1516,7 +1338,6 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgJVEL_)=%f\n", modNamEMC, axisNo_, value);    
     manualVelocSlow_ = value;
-    //status = setSAFValueOnAxis(0x4000, 0x8, value);
     return asynSuccess;
 
   } // Set acceleration
@@ -1524,7 +1345,6 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgACCS_)=%f\n", modNamEMC, axisNo_, value);
     ecmcAxis_->getTraj()->setAcc(value);
-    //status = setSAFValueOnAxis(0x4000, 0x101, value);
     return asynSuccess;
 
   }
@@ -1532,41 +1352,6 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
   status = asynMotorAxis::setDoubleParam(function, value);
   return status;
 }
-
-// asynStatus ecmcMotorRecordAxis::setStringParamDbgStrToMcu(const char *value)
-// {
-//   const char * const Main_this_str = "Main.this.";
-
-//   asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-//             "%ssetStringParamDbgStrToMcu(%d)=\"%s\"\n",
-//             modNamEMC, axisNo_, value);
-//   /* empty strings are not send to the controller */
-//   if (!value[0]) return asynSuccess;
-
-//   /* Check the string. E.g. Main.this. and Sim.this. are passed
-//      as Main.M1 or Sim.M1
-//      ADR commands are handled below */
-//   if (!strncmp(value, Main_this_str, strlen(Main_this_str))) {
-//     snprintf(pC_->outString_, sizeof(pC_->outString_), "%sMain.M%d.%s",
-//              drvlocal.adsport_str, axisNo_, value + strlen(Main_this_str));
-//     return pC_->writeReadACK(ASYN_TRACE_INFO);
-//   }
-//   /* If we come here, the command was not understood */
-//   return asynError;
-// }
-
-// asynStatus ecmcMotorRecordAxis::setStringParam(int function, const char *value)
-// {
-//   if (function == pC_->ecmcMotorRecordDbgStrToLog_) {
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-//               "%ssetStringParamDbgStrToLog(%d)=\"%s\"\n",
-//               modNamEMC, axisNo_, value);
-//   } else if (function == pC_->ecmcMotorRecordDbgStrToMcu_) {
-//     return setStringParamDbgStrToMcu(value);
-//   }
-//   /* Call base class method */
-//   return asynMotorAxis::setStringParam(function, value);
-// }
 
 #ifndef motorMessageTextString
 void ecmcMotorRecordAxis::updateMsgTxtFromDriver(const char *value)
@@ -1578,870 +1363,6 @@ void ecmcMotorRecordAxis::updateMsgTxtFromDriver(const char *value)
   }
 }
 #endif
-
-
-// asynStatus ecmcMotorRecordAxis::readConfigLine(const char *line, const char **errorTxt_p)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   const char *setRaw_str = "setRaw "; /* Raw is Raw */
-//   const char *setValue_str = "setValue "; /* prefixed with ADSPORT */
-//   const char *setADRinteger_str = "setADRinteger ";
-//   const char *setADRdouble_str  = "setADRdouble ";
-//   const char *setSim_str = "setSim ";
-
-//   asynStatus status = asynError;
-//   const char *errorTxt = NULL;
-
-//   while (*line == ' ') line++;
-//   if (line[0] == '#') {
-//     /*  Comment line */
-//     return asynSuccess;
-//   }
-
-//   if (!strncmp(setRaw_str, line, strlen(setRaw_str))) {
-//     const char *cfg_txt_p = &line[strlen(setRaw_str)];
-//     while (*cfg_txt_p == ' ') cfg_txt_p++;
-
-//     snprintf(pC_->outString_, sizeof(pC_->outString_), "%s", cfg_txt_p);
-//     status = pC_->writeReadACK(ASYN_TRACE_INFO);
-//   } else if (!strncmp(setValue_str, line, strlen(setValue_str))) {
-//     const char *cfg_txt_p = &line[strlen(setValue_str)];
-//     while (*cfg_txt_p == ' ') cfg_txt_p++;
-
-//     snprintf(pC_->outString_, sizeof(pC_->outString_), "%s%s",
-//              drvlocal.adsport_str, cfg_txt_p);
-//     status = pC_->writeReadACK(ASYN_TRACE_INFO);
-//   } else if (!strncmp(setSim_str, line, strlen(setSim_str))) {
-//     if (pC_->features_ & FEATURE_BITS_SIM) {
-//       const char *cfg_txt_p = &line[strlen(setRaw_str)];
-//       while (*cfg_txt_p == ' ') cfg_txt_p++;
-
-//       snprintf(pC_->outString_, sizeof(pC_->outString_),
-//                "Sim.M%d.%s", axisNo_, cfg_txt_p);
-//       status = pC_->writeReadACK(ASYN_TRACE_INFO);
-//     } else {
-//       status = asynSuccess;
-//     }
-//   } else if (!strncmp(setADRinteger_str, line, strlen(setADRinteger_str))) {
-//     unsigned indexGroup;
-//     unsigned indexOffset;
-//     int value;
-//     int nvals = 0;
-//     const char *cfg_txt_p = &line[strlen(setADRinteger_str)];
-//     while (*cfg_txt_p == ' ') cfg_txt_p++;
-//     nvals = sscanf(cfg_txt_p, "%x %x %d",
-//                    &indexGroup, &indexOffset, &value);
-//     if (nvals == 3) {
-//       status = setSAFValueOnAxisVerify(indexGroup, indexOffset, value, 1);
-//     } else {
-//       errorTxt = "Need 4 values";
-//     }
-//   } else if (!strncmp(setADRdouble_str, line, strlen(setADRdouble_str))) {
-//     unsigned indexGroup;
-//     unsigned indexOffset;
-//     double value;
-//     int nvals = 0;
-//     const char *cfg_txt_p = &line[strlen(setADRdouble_str)];
-//     while (*cfg_txt_p == ' ') cfg_txt_p++;
-//     nvals = sscanf(cfg_txt_p, "%x %x %lf",
-//                    &indexGroup, &indexOffset, &value);
-//     if (nvals == 3) {
-//       status = setSAFValueOnAxisVerify(indexGroup, indexOffset,
-//                                        value, 1);
-//     } else {
-//       errorTxt = "Need 4 values";
-//     }
-//   } else {
-//     errorTxt = "Illegal command";
-//   }
-//   if (errorTxt_p && errorTxt) {
-//     *errorTxt_p = errorTxt;
-//   }
-//   return status;
-// }
-
-
-// asynStatus ecmcMotorRecordAxis::readConfigFile(void)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-  
-//   const char *simOnly_str = "simOnly ";
-//   FILE *fp;
-//   char *ret = &pC_->outString_[0];
-//   int line_no = 0;
-//   asynStatus status = asynSuccess;
-//   const char *errorTxt = NULL;
-//   /* no config file, or successfully uploaded : return */
-//   if (!drvlocal.cfgfileStr) {
-//     return asynSuccess;
-//   }
-//   fp = fopen(drvlocal.cfgfileStr, "r");
-//   if (!fp) {
-//     int saved_errno = errno;
-//     char cwdbuf[4096];
-//     char errbuf[4196];
-
-//     char *mypwd = getcwd(cwdbuf, sizeof(cwdbuf));
-//     snprintf(errbuf, sizeof(errbuf)-1,
-//              "E: readConfigFile: %s\n%s/%s",
-//              strerror(saved_errno),
-//              mypwd ? mypwd : "",
-//              drvlocal.cfgfileStr);
-//     updateMsgTxtFromDriver(errbuf);
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%s(%d)%s\n", modNamEMC, axisNo_, errbuf);
-//     return asynError;
-//   }
-//   while (ret && !status && !errorTxt) {
-//     char rdbuf[256];
-//     size_t i;
-//     size_t len;
-
-//     line_no++;
-//     ret = fgets(rdbuf, sizeof(rdbuf), fp);
-//     if (!ret) break;    /* end of file or error */
-//     len = strlen(ret);
-//     if (!len) continue; /* empty line, no LF */
-//     for (i=0; i < len; i++) {
-//       /* No LF, no CR , no ctrl characters, */
-//       if (rdbuf[i] < 32) rdbuf[i] = 0;
-//     }
-//     len = strlen(ret);
-//     if (!len) continue; /* empty line with LF */
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%sreadConfigFile(%d) %s:%u %s\n",
-//               modNamEMC, axisNo_,
-//               drvlocal.cfgfileStr, line_no, rdbuf);
-
-//     if (!strncmp(simOnly_str, rdbuf, strlen(simOnly_str))) {
-//       /* "simOnly " Only for the simulator */
-//       if (pC_->features_ & FEATURE_BITS_SIM) {
-//         status = readConfigLine(&rdbuf[strlen(simOnly_str)], &errorTxt);
-//       }
-//     } else {
-//       status = readConfigLine(rdbuf, &errorTxt);
-//     }
-
-//     if (status || errorTxt) {
-//       char errbuf[256];
-//       errbuf[sizeof(errbuf)-1] = 0;
-//       if (status) {
-//         snprintf(errbuf, sizeof(errbuf)-1,
-//                  "E: %s:%d out=%s\nin=%s",
-//                  drvlocal.cfgfileStr, line_no, pC_->outString_, pC_->inString_);
-//       } else {
-//         snprintf(errbuf, sizeof(errbuf)-1,
-//                  "E: %s:%d \"%s\"\n%s",
-//                  drvlocal.cfgfileStr, line_no, rdbuf, errorTxt);
-//       }
-
-//       asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//                 "%sreadConfigFile %s\n", modNamEMC, errbuf);
-//       updateMsgTxtFromDriver(errbuf);
-//     }
-//   } /* while */
-
-//   if (ferror(fp) || status || errorTxt) {
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%sreadConfigFile %sstatus=%d errorTxt=%s (%s)\n",
-//               modNamEMC,
-//               ferror(fp) ? "ferror " : "",
-//               (int)status,
-//               errorTxt ? errorTxt : "",
-//               drvlocal.cfgfileStr);
-//     fclose(fp);
-//     return asynError;
-//   }
-//   return asynSuccess;
-// }
-
-// asynStatus ecmcMotorRecordAxis::setSAFValueOnAxisVerify(unsigned indexGroup,
-//                                                    unsigned indexOffset,
-//                                                    int value,
-//                                                    unsigned int retryCount)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   asynStatus status = asynSuccess;
-//   unsigned int counter = 0;
-//   int rbvalue = 0 - value;
-//   while (counter < retryCount) {
-//     status = getSAFValueFromAxisPrint(indexGroup, indexOffset, "value=", &rbvalue);
-//     if (status) break;
-//     if (rbvalue == value) break;
-//     status = setSAFValueOnAxis(indexGroup, indexOffset, value);
-//     counter++;
-//     if (status) break;
-//     epicsThreadSleep(.1);
-//   }
-//   return status;
-// }
-
-/** Sets a floating point value on an axis
- * the values in the controller must be updated
- * \param[in] name of the variable to be updated
- * \param[in] value the (floating point) variable to be updated
- *
- */
-// asynStatus ecmcMotorRecordAxis::setValueOnAxis(const char* var, double value)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   snprintf(pC_->outString_, sizeof(pC_->outString_),
-//            "%sMain.M%d.%s=%g",
-//            drvlocal.adsport_str, axisNo_, var, value);
-//   return pC_->writeReadACK(ASYN_TRACE_INFO);
-// }
-
-/** Sets 2 floating point value on an axis
- * the values in the controller must be updated
- * \param[in] name of the variable to be updated
- * \param[in] value the (floating point) variable to be updated
- *
- */
-// asynStatus ecmcMotorRecordAxis::setValuesOnAxis(const char* var1, double value1,
-//                                            const char* var2, double value2)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   snprintf(pC_->outString_, sizeof(pC_->outString_),
-//            "%sMain.M%d.%s=%g;%sMain.M%d.%s=%g",
-//            drvlocal.adsport_str, axisNo_, var1, value1,
-//            drvlocal.adsport_str, axisNo_, var2, value2);
-//   return pC_->writeReadACK(ASYN_TRACE_INFO);
-// }
-
-// asynStatus ecmcMotorRecordAxis::getSAFValueFromAxisPrint(unsigned indexGroup,
-//                                                     unsigned indexOffset,
-//                                                     const char *name,
-//                                                     int *value)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   int res;
-//   int nvals;
-//   asynStatus status;
-//   if (axisId_ <= 0) return asynError;
-//   snprintf(pC_->outString_, sizeof(pC_->outString_), "ADSPORT=%u/.ADR.16#%X,16#%X,2,2?",
-//           501, indexGroup + axisId_, indexOffset);
-//   status = pC_->writeReadOnErrorDisconnect();
-//   if (status)
-//     return status;
-//   nvals = sscanf(pC_->inString_, "%d", &res);
-//   if (nvals != 1) {
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%snvals=%d command=\"%s\" response=\"%s\"\n",
-//               modNamEMC, nvals, pC_->outString_, pC_->inString_);
-//     return asynError;
-//   }
-//   asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-//             "%sout=%s in=%s %s=%d\n",
-//             modNamEMC, pC_->outString_, pC_->inString_,name, res);
-//   *value = res;
-//   return asynSuccess;
-// }
-
-// asynStatus ecmcMotorRecordAxis::getSAFValueFromAxisPrint(unsigned indexGroup,
-//                                                     unsigned indexOffset,
-//                                                     const char *name,
-//                                                     double *value)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   double res;
-//   int nvals;
-//   asynStatus status;
-//   if (axisId_ <= 0) return asynError;
-//   snprintf(pC_->outString_, sizeof(pC_->outString_), "ADSPORT=%u/.ADR.16#%X,16#%X,8,5?",
-//           501, indexGroup + axisId_, indexOffset);
-//   status = pC_->writeReadOnErrorDisconnect();
-//   if (status)
-//     return status;
-//   nvals = sscanf(pC_->inString_, "%lf", &res);
-//   if (nvals != 1) {
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%snvals=%d command=\"%s\" response=\"%s\"\n",
-//                modNamEMC, nvals, pC_->outString_, pC_->inString_);
-//     return asynError;
-//   }
-//   asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-//             "%sout=%s in=%s %s=%g\n",
-//             modNamEMC, pC_->outString_, pC_->inString_,name, res);
-//   *value = res;
-//   return asynSuccess;
-// }
-
-
-/** Gets an integer or boolean value from an axis
- * \param[in] name of the variable to be retrieved
- * \param[in] pointer to the integer result
- *
- */
-// asynStatus ecmcMotorRecordAxis::getValueFromAxis(const char* var, int *value)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   asynStatus status;
-//   int res;
-//   snprintf(pC_->outString_, sizeof(pC_->outString_),
-//            "%sMain.M%d%s?",
-//            drvlocal.adsport_str, axisNo_, var);
-//   status = pC_->writeReadOnErrorDisconnect();
-//   if (status)
-//     return status;
-//   if (var[0] == 'b') {
-//     if (!strcmp(pC_->inString_, "0")) {
-//       res = 0;
-//     } else if (!strcmp(pC_->inString_, "1")) {
-//       res = 1;
-//     } else {
-//       asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//                 "%scommand=\"%s\" response=\"%s\"\n",
-//                 modNamEMC, pC_->outString_, pC_->inString_);
-//       return asynError;
-//     }
-//   } else {
-//     int nvals = sscanf(pC_->inString_, "%d", &res);
-//     if (nvals != 1) {
-//       asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//                 "%snvals=%d command=\"%s\" response=\"%s\"\n",
-//                  modNamEMC, nvals, pC_->outString_, pC_->inString_);
-//       return asynError;
-//     }
-//   }
-//   asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-//             "%sout=%s in=%s status=%s (%d) iValue=%d\n",
-//             modNamEMC,
-//             pC_->outString_, pC_->inString_,
-//             ecmcMotorRecordstrStatus(status), (int)status, res);
-
-//   *value = res;
-//   return asynSuccess;
-// }
-
-/** Gets an integer (or boolean) and a double value from an axis and print
- * \param[in] name of the variable to be retrieved
- * \param[in] pointer to the integer result
- *
- */
-// asynStatus ecmcMotorRecordAxis::getSAFValuesFromAxisPrint(unsigned iIndexGroup,
-//                                                      unsigned iIndexOffset,
-//                                                      const char *iname,
-//                                                      int *iValue,
-//                                                      unsigned fIndexGroup,
-//                                                      unsigned fIndexOffset,
-//                                                      const char *fname,
-//                                                      double *fValue)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   int iRes;
-//   int nvals;
-//   double fRes;
-//   asynStatus status;
-//   if (axisId_ <= 0) return asynError;
-//   snprintf(pC_->outString_, sizeof(pC_->outString_), "ADSPORT=%u/.ADR.16#%X,16#%X,2,2?;ADSPORT=%u/.ADR.16#%X,16#%X,8,5?",
-//           501, iIndexGroup + axisId_, iIndexOffset,
-//           501, fIndexGroup + axisId_, fIndexOffset);
-//   status = pC_->writeReadOnErrorDisconnect();
-//   if (status)
-//     return status;
-//   nvals = sscanf(pC_->inString_, "%d;%lf", &iRes, &fRes);
-//   if (nvals != 2) {
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%snvals=%d command=\"%s\" response=\"%s\"\n",
-//                modNamEMC, nvals, pC_->outString_, pC_->inString_);
-//     return asynError;
-//   }
-//   asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-//             "%sout=%s in=%s %s=%d %s=%g\n",
-//             modNamEMC, pC_->outString_, pC_->inString_, iname, iRes, fname, fRes);
-
-//   *iValue = iRes;
-//   *fValue = fRes;
-//   return asynSuccess;
-
-// }
-
-/** Gets a floating point value from an axis
- * \param[in] name of the variable to be retrieved
- * \param[in] pointer to the double result
- *
- */
-// asynStatus ecmcMotorRecordAxis::getValueFromAxis(const char* var, double *value)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   asynStatus status;
-//   int nvals;
-//   double res;
-//   snprintf(pC_->outString_, sizeof(pC_->outString_),
-//            "%sMain.M%d%s?",
-//            drvlocal.adsport_str, axisNo_, var);
-//   status = pC_->writeReadOnErrorDisconnect();
-//   if (status)
-//     return status;
-//   nvals = sscanf(pC_->inString_, "%lf", &res);
-//   if (nvals != 1) {
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%snvals=%d command=\"%s\" response=\"%s\"\n",
-//                modNamEMC, nvals, pC_->outString_, pC_->inString_);
-//     return asynError;
-//   }
-//   *value = res;
-//   return asynSuccess;
-// }
-
-/** Gets a string value from an axis
- * \param[in] name of the variable to be retrieved
- * \param[in] pointer to the string result
- *
- */
-// asynStatus ecmcMotorRecordAxis::getStringFromAxis(const char *var, char *value, size_t maxlen)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   value[0] = '\0'; /* Always have a valid string */
-//     asynStatus status;
-//     snprintf(pC_->outString_, sizeof(pC_->outString_),
-//              "%sMain.M%d.%s?", drvlocal.adsport_str, axisNo_, var);
-//     status = pC_->writeReadOnErrorDisconnect();
-//     if (status) return status;
-//     memcpy(value, pC_->inString_, maxlen);
-//   return asynSuccess;
-// }
-
-// asynStatus ecmcMotorRecordAxis::getValueFromController(const char* var, double *value)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   asynStatus status;
-//   int nvals;
-//   double res;
-//   snprintf(pC_->outString_, sizeof(pC_->outString_), "%s?", var);
-//   status = pC_->writeReadOnErrorDisconnect();
-//   if (status)
-//     return status;
-//   nvals = sscanf(pC_->inString_, "%lf", &res);
-//   if (nvals != 1) {
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//               "%snvals=%d command=\"%s\" response=\"%s\"\n",
-//                modNamEMC, nvals, pC_->outString_, pC_->inString_);
-//     return asynError;
-//   }
-//   *value = res;
-//   return asynSuccess;
-// }
-
-// asynStatus ecmcMotorRecordAxis::setSAFValueOnAxis(unsigned indexGroup,
-//                                              unsigned indexOffset,
-//                                              int value)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   if (axisId_ <= 0) return asynError;
-//   snprintf(pC_->outString_, sizeof(pC_->outString_), "ADSPORT=%u/.ADR.16#%X,16#%X,2,2=%d",
-//           501, indexGroup + axisId_, indexOffset, value);
-//   return pC_->writeReadACK(ASYN_TRACE_INFO);
-// }
-
-// asynStatus ecmcMotorRecordAxis::setSAFValueOnAxis(unsigned indexGroup,
-//                                              unsigned indexOffset,
-//                                              double value)
-// {
-//   if (axisId_ <= 0) return asynError;
-//   snprintf(pC_->outString_, sizeof(pC_->outString_), "ADSPORT=%u/.ADR.16#%X,16#%X,8,5=%g",
-//           501, indexGroup + axisId_, indexOffset, value);
-//   return pC_->writeReadACK(ASYN_TRACE_INFO);
-// }
-
-/** Sets an integer or boolean value on an axis, read it back and retry if needed
- * the values in the controller must be updated
- * \param[in] name of the variable to be updated
- * \param[in] name of the variable where we can read back
- * \param[in] value the (integer) variable to be updated
- * \param[in] number of retries
- */
-// asynStatus ecmcMotorRecordAxis::setValueOnAxisVerify(const char *var, const char *rbvar,
-//                                                 int value, unsigned int retryCount)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   asynStatus status = asynSuccess;
-//   unsigned int counter = 0;
-//   int rbvalue = 0 - value;
-//   while (counter <= retryCount) {
-//     snprintf(pC_->outString_, sizeof(pC_->outString_),
-//              "%sMain.M%d.%s=%d;%sMain.M%d.%s?",
-//              drvlocal.adsport_str, axisNo_, var, value,
-//              drvlocal.adsport_str, axisNo_, rbvar);
-//     status = pC_->writeReadOnErrorDisconnect();
-//     asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
-//               "%ssetValueOnAxisVerify(%d) out=%s in=%s status=%s (%d)\n",
-//               modNamEMC, axisNo_,pC_->outString_, pC_->inString_,
-//               ecmcMotorRecordstrStatus(status), (int)status);
-//     if (status) {
-//       return status;
-//     } else {
-//       int nvals = sscanf(pC_->inString_, "OK;%d", &rbvalue);
-//       if (nvals != 1) {
-//         asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//                   "%snvals=%d command=\"%s\" response=\"%s\"\n",
-//                   modNamEMC, nvals, pC_->outString_, pC_->inString_);
-//         return asynError;
-//       }
-//       if (status) break;
-//       if (rbvalue == value) break;
-//       counter++;
-//       epicsThreadSleep(.1);
-//     }
-//   }
-//   /* Verification failed.
-//      Store the error (unless there was an error before) */
-//   if ((rbvalue != value) && !drvlocal.cmdErrorMessage[0]) {
-//       asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-//                 "%ssetValueOnAxisV(%d) var=%s value=%d rbvalue=%d",
-//                 modNamEMC, axisNo_,var, value, rbvalue);
-//       snprintf(drvlocal.cmdErrorMessage, sizeof(drvlocal.cmdErrorMessage)-1,
-//                "E: setValueOnAxisV(%s) value=%d rbvalue=%d",
-//                var, value, rbvalue);
-
-//       /* The poller co-ordinates the writing into the parameter library */
-//   }
-//   return status;
-// }
-
-// asynStatus ecmcMotorRecordAxis::setSAFValueOnAxisVerify(unsigned indexGroup,
-//                                                    unsigned indexOffset,
-//                                                    double value,
-//                                                    unsigned int retryCount)
-// {
-//   printf("Dbg################# %s\n",__FUNCTION__);
-//   asynStatus status = asynSuccess;
-//   unsigned int counter = 0;
-//   double rbvalue = 0 - value;
-//   while (counter < retryCount) {
-//     status = getSAFValueFromAxisPrint(indexGroup, indexOffset, "value", &rbvalue);
-//     if (status) break;
-//     if (rbvalue == value) break;
-//     status = setSAFValueOnAxis(indexGroup, indexOffset, value);
-//     counter++;
-//     if (status) break;
-//     epicsThreadSleep(.1);
-//   }
-//   return status;
-// }
-
-/** Sets an integer or boolean value on an axis
- * the values in the controller must be updated
- * \param[in] name of the variable to be updated
- * \param[in] value the (integer) variable to be updated
- *
- */
-// asynStatus ecmcMotorRecordAxis::setValueOnAxis(const char* var, int value)
-// {
-//   snprintf(pC_->outString_, sizeof(pC_->outString_),
-//            "%sMain.M%d.%s=%d",
-//            drvlocal.adsport_str, axisNo_, var, value);
-//   return pC_->writeReadACK(ASYN_TRACE_INFO);
-// }
-
-/** 
- * Connect to ECMC axis over SyncIO interface
- * 
- *  All read / write parameters are connected:
- *  1. "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.statusbin?"
- *  2. "T_SMP_MS=%d/TYPE=asynInt8ArrayIn/ax%d.controlbin?"
- * 
-*/
-/*asynStatus ecmcMotorRecordAxis::connectEcmcAxis() {
-
-  char buffer[ECMC_MAX_ASYN_DRVINFO_STR_LEN];
-  int movingPollPeriodMs = (int)(pC_->movingPollPeriod_*1000);
-  char *name = &buffer[0];
-  unsigned int charCount = 0;
-  asynStatus status;
-
-  asynInterface *pinterface;
-  asynDrvUser *pDrvUser;
-
-  
-  // Control Data structure (sync io and interrupt)
-  charCount = snprintf(name,
-                       sizeof(buffer),
-                       ECMC_ASYN_AXIS_CONT_STRING,
-                       movingPollPeriodMs,
-                       axisId_);
-  if (charCount >= sizeof(buffer) - 1) {    
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): Failed to generate drvInfo for %s on asynport %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      ECMC_ASYN_AXIS_CONT_STRING,
-      pC_->mcuPortName_);
-    return asynError;
-  }
-
-  status = pasynInt8ArraySyncIO->connect(pC_->mcuPortName_, 0, &asynUserCntrlBin_, name);
-  if (status!=asynSuccess) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): Failed to connect drvInfo to ECMC for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);
-  }
-  
-  asynUserCntrlBinIntr_ = pasynManager->createAsynUser(0,0);
-  status = pasynManager->connectDevice(asynUserCntrlBinIntr_, pC_->mcuPortName_, 0);
-  if (status) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pasynManager->connectDevice() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);    
-    return asynError;
-  }
-  
-  pasynIFContBinIntr_ = pasynManager->findInterface(asynUserCntrlBinIntr_, "asynInt8Array", 1);
-  if (!pasynIFContBinIntr_) {    
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pasynManager->findInterface() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);    
-    return asynError;
-  }
-
-  pinterface = pasynManager->findInterface(asynUserCntrlBinIntr_, asynDrvUserType, 1);
-  if (!pinterface) {
-      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pasynManager->findInterface() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);    
-    return asynError;
-  }
-  
-  pDrvUser = (asynDrvUser *)pinterface->pinterface;
-
-  status = pDrvUser->create(pinterface->drvPvt, asynUserCntrlBinIntr_, name, 0, 0);
-  if (status) {
-      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pDrvUser->create() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);        
-    return asynError;
-  }
-
-  pIFContBinIntr_ = (asynInt8Array *)pasynIFContBinIntr_->pinterface;
-
-  if(interruptContBinPvt_!=NULL) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): interruptContBinPvt_->pinterface != NULL for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);        
-    return asynError;
-  }
-  
-  status = pIFContBinIntr_->registerInterruptUser(pasynIFContBinIntr_->drvPvt, asynUserCntrlBinIntr_,
-                                                    contBinCallback, this, &interruptContBinPvt_);
-  if (status) {      
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pIFContBinIntr_->registerInterruptUser() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);        
-
-    return asynError;
-  }  
-
-  // Status binary struct (interrupt and sync)
-  charCount = snprintf(name,
-                       sizeof(buffer),
-                       ECMC_ASYN_AXIS_STAT_BIN_STRING,
-                       movingPollPeriodMs,
-                       axisId_);
-  if (charCount >= sizeof(buffer) - 1) {    
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): Failed to generate drvInfo for %s on asynport %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      ECMC_ASYN_AXIS_STAT_BIN_STRING,
-      pC_->mcuPortName_);
-    return asynError;
-  }
-           
-  status = pasynInt8ArraySyncIO->connect(pC_->mcuPortName_, 0, &asynUserStatBin_, name);
-  if (status!=asynSuccess) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): Failed to connect drvInfo to ECMC for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);
-  }
-
-  asynUserStatBinIntr_ = pasynManager->createAsynUser(0,0);
-  status = pasynManager->connectDevice(asynUserStatBinIntr_, pC_->mcuPortName_, 0);
-  if (status) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pasynManager->connectDevice() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);    
-    return asynError;
-  }
-  
-  pasynIFStatBinIntr_ = pasynManager->findInterface(asynUserStatBinIntr_, "asynInt8Array", 1);
-  if (!pasynIFStatBinIntr_) {    
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pasynManager->findInterface() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);    
-    return asynError;
-  }
-
-  pinterface = pasynManager->findInterface(asynUserStatBinIntr_, asynDrvUserType, 1);
-  if (!pinterface) {
-      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pasynManager->findInterface() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);    
-    return asynError;
-  }
-  
-  pDrvUser = (asynDrvUser *)pinterface->pinterface;
-
-  status = pDrvUser->create(pinterface->drvPvt, asynUserStatBinIntr_, name, 0, 0);
-  if (status) {
-      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pDrvUser->create() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);        
-    return asynError;
-  }
-
-  pIFStatBinIntr_ = (asynInt8Array *)pasynIFStatBinIntr_->pinterface;
-
-  if(interruptStatBinPvt_!=NULL) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pasynIFStatBinIntr_->pinterface == NULL for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);        
-    return asynError;
-  }
-  
-  status = pIFStatBinIntr_->registerInterruptUser(pasynIFStatBinIntr_->drvPvt, asynUserStatBinIntr_,
-                                                    statBinCallback, this, &interruptStatBinPvt_);
-  if (status) {      
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): pIFStatBinIntr_->registerInterruptUser() failed for parameter %s.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_,
-      name);        
-
-    return asynError;
-  }  
-
-  readAll();
-  return asynSuccess;
-}*/
-
-/*asynStatus ecmcMotorRecordAxis::readStatusBin() {
-  
-  size_t inBytes = 0;
-  ecmcAxisStatusType diagBinDataTemp;
-  asynStatus status = pasynInt8ArraySyncIO->read(asynUserStatBin_,
-                                            (epicsInt8*)&diagBinDataTemp,
-                                            sizeof(ecmcAxisStatusType),
-                                            &inBytes,
-                                            DEFAULT_CONTROLLER_TIMEOUT);    
-
-  if (status!=asynSuccess || inBytes != sizeof(ecmcAxisStatusType)) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): Failed to read diag binary data from ecmc.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_);
-    return asynError;
-  }
-
-  statusBinData_ = diagBinDataTemp;
-  return asynSuccess;
-}*/
-
-/*asynStatus ecmcMotorRecordAxis::readControlBin() {
-
-  size_t inBytes = 0;
-  ecmcAsynClinetCmdType controlBinTemp;
-  asynStatus status = pasynInt8ArraySyncIO->read(asynUserCntrlBin_,(epicsInt8*)&controlBinTemp,sizeof(ecmcAsynClinetCmdType),&inBytes,DEFAULT_CONTROLLER_TIMEOUT);
-  if (status!=asynSuccess) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): Failed to read control data structure from ecmc.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_);
-    return asynError;
-  }
-  controlBinDataRB_ = controlBinTemp;
-
-  return asynSuccess;
-}*/
-
-/*asynStatus ecmcMotorRecordAxis::writeControlBin(ecmcAsynClinetCmdType controlStruct) {
-
-  epicsInt8 *pCntData = (epicsInt8 *)&controlStruct;
-  asynStatus status = pasynInt8ArraySyncIO->write(asynUserCntrlBin_,pCntData,sizeof(ecmcAsynClinetCmdType),DEFAULT_CONTROLLER_TIMEOUT);
-  if (status!=asynSuccess) {
-    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s/%s:%d: ERROR (axis %d): Failed to write control word to ecmc.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      axisId_);
-    return asynError;
-  }  
-  return asynSuccess;
-}*/
-
-/*asynStatus ecmcMotorRecordAxis::readAll() {
-  
-  asynStatus status;
-
-  status =readStatusBin();
-  if(status) {
-    return status;
-  }
-
-  return readControlBin();
-}*/
 
 //Just for debug
 asynStatus ecmcMotorRecordAxis::printDiagBinData() {
@@ -2515,7 +1436,6 @@ asynStatus ecmcMotorRecordAxis::uglyConvertFunc(ecmcAxisStatusType*in ,st_axis_s
   out->motorStatusDirection = in->onChangeData.positionActual > 
                                               oldPositionAct_ ? 1:0;
   out->motorDiffPostion     = 1; /*Always set to 1?? why */
-
   
   //TODO not accesible for ecmc.. neeeded? Delete later
   out->bJogFwd              = 0;
@@ -2525,6 +1445,5 @@ asynStatus ecmcMotorRecordAxis::uglyConvertFunc(ecmcAxisStatusType*in ,st_axis_s
 
   oldPositionAct_ =  in->onChangeData.positionActual;
 
-  //printDiagBinData();
   return asynSuccess;
 }
