@@ -124,15 +124,16 @@ private:
   asynStatus initialPollInternal(void);
   asynStatus setIntegerParam(int function, int value);
   asynStatus setDoubleParam(int function, double value);
-#ifndef motorMessageTextString
-  void updateMsgTxtFromDriver(const char *value);
-#endif
   asynStatus enableAmplifier(int);
   asynStatus setClosedLoop(bool closedLoop);
   asynStatus stopAxisInternal(const char *function_name, double acceleration);
   asynStatus resetAxis(void);
   asynStatus printDiagBinData();
   asynStatus setEnable(int on);
+#ifndef motorMessageTextString
+  void updateMsgTxtFromDriver(const char *value);
+#endif
+
   friend class ecmcMotorRecordController;
 };
 
