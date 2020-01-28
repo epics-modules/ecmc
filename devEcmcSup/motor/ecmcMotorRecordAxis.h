@@ -29,40 +29,6 @@ extern "C" {
   double ecmcMotorRecordgetNowTimeSecs(void);
 }
 
-typedef struct {
-  /* V1 members */
-  int bEnable;           /*  1 */
-  int bReset;            /*  2 */
-  int bExecute;          /*  3 */
-  int nCommand;          /*  4 */
-  int nCmdData;          /*  5 */
-  double fVelocity;      /*  6 */
-  double fPosition;      /*  7 */
-  double fAcceleration;  /*  8 */
-  double fDecceleration; /*  9 */
-  int bJogFwd;           /* 10 */
-  int bJogBwd;           /* 11 */
-  int bLimitFwd;         /* 12 */
-  int bLimitBwd;         /* 13 */
-  double fOverride;      /* 14 */
-  int bHomeSensor;       /* 15 */
-  int bEnabled;          /* 16 */
-  int bError;            /* 17 */
-  int nErrorId;          /* 18 */
-  double fActVelocity;   /* 19 */
-  double fActPosition;   /* 20 */
-  double fActDiff;       /* 21 */
-  int bHomed;            /* 22 */
-  int bBusy;             /* 23 */
-  /* V2 members */
-  double encoderRaw;
-  int atTarget;
-  /* neither V1 nor V2, but calculated here */
-  int mvnNRdyNex; /* Not in struct. Calculated in poll() */
-  int motorStatusDirection; /* Not in struct. Calculated in pollAll() */
-  int motorDiffPostion;     /* Not in struct. Calculated in poll() */
-} st_axis_status_type;
-
 class epicsShareClass ecmcMotorRecordAxis : public asynMotorAxis
 {
 public:
@@ -73,14 +39,15 @@ public:
                       int axisFlags, 
                       const char *axisOptionsStr);
 
-  void report(FILE *fp, int level);
-  void callParamCallbacksUpdateError();
+  void       report(FILE *fp, int level);
+  void       callParamCallbacksUpdateError();
   asynStatus moveVelocity(double min_velocity, double max_velocity, double acceleration);
   asynStatus stop(double acceleration);
   asynStatus move(double position, int relative, double min_velocity, double max_velocity, double acceleration);
   asynStatus home(double min_velocity, double max_velocity, double acceleration, int forwards);
   asynStatus setPosition(double value);
   asynStatus poll(bool *moving);
+
 private:
   typedef enum
   {
@@ -112,47 +79,38 @@ private:
   ecmcMotorRecordController *pC_; /**< Pointer to the asynMotorController to which this axis belongs.
                                    *   Abbreviated because it is used very frequently */
   struct {
-    st_axis_status_type old_st_axis_status;
-    double scaleFactor;
-    const char *externalEncoderStr;
-    const char *cfgfileStr;
-    // const char *cfgDebug_str;
-    int axisFlags;
-    int MCU_nErrorId;     /* nErrorID from MCU */
-    int old_MCU_nErrorId; /* old nErrorID from MCU */
-    int old_EPICS_nErrorId; /* old nErrorID from MCU */
-
-    int old_bError;   /* copy of bError */
-
-    unsigned int waitNumPollsBeforeReady;
-
-    int nCommandActive;
-    int old_nCommandActive;
-    int homed;
-    unsigned int illegalInTargetWindow :1;
-    eeAxisWarningType old_eeAxisWarning;
-    eeAxisWarningType eeAxisWarning;
-    eeAxisErrorType old_eeAxisError;
-    eeAxisErrorType eeAxisError;
-    eeAxisPollNowType eeAxisPollNow;
+    ecmcAxisStatusType statusBinDataOld;
+    ecmcAxisStatusType statusBinData;
+    ecmcAxisBase      *ecmcAxis;
+    double             scaleFactor;
+    double             manualVelocSlow;
+    double             manualVelocFast;
+    int                axisFlags;
+    int                nErrorIdMcu;     /* nErrorID from MCU */
+    int                nErrorIdMcuOld; /* old nErrorID from MCU */
+    int                nErrorIdEpicsOld; /* old nErrorID from MCU */
+    int                bErrorOld;   /* copy of bError */
+    int                nCommandActive;
+    int                nCommandActiveOld;
+    int                homed;
+    int                axisId;
+    unsigned int       waitNumPollsBeforeReady;
+    unsigned int       illegalInTargetWindow :1;
+    eeAxisWarningType  old_eeAxisWarning;
+    eeAxisWarningType  eeAxisWarning;
+    eeAxisErrorType    old_eeAxisError;
+    eeAxisErrorType    eeAxisError;
+    eeAxisPollNowType  eeAxisPollNow;
     /* Which values have changed in the EPICS IOC, but are not updated in the
        motion controller */
     struct {
-      unsigned int oldStatusDisconnected : 1;
-      unsigned int sErrorMessage    :1; /* From MCU */
-      unsigned int initialPollNeeded :1;
+      unsigned int     statusDisconnectedOld : 1;
+      unsigned int     sErrorMessage         : 1; /* From MCU */
+      unsigned int     initialPollNeeded     : 1;
     }  dirty;
-
-    struct {
-      int          statusVer;           /* 0==V1, busy old style 1==V1, new style*/
-    }  supported;
-
-    /* Error texts when we talk to the controller, there is not an "OK"
-       Or, failure in setValueOnAxisVerify() */
-    char cmdErrorMessage[80]; /* From driver */
-    char sErrorMessage[80]; /* From controller */
-    char adsport_str[15]; /* "ADSPORT=12345/" */ /* 14 should be enough, */
-    unsigned int adsPort;
+    int                moveNotReadyNext      : 1;
+    char               cmdErrorMessage[80]; /* From driver */
+    char               sErrorMessage[80]; /* From controller */
   } drvlocal;
 
   asynStatus readBackAllConfig(int axisID);
@@ -175,15 +133,6 @@ private:
   asynStatus resetAxis(void);
   asynStatus printDiagBinData();
   asynStatus setEnable(int on);
-  // Temporary convert betwwen differnt structure types.. Remove later
-  asynStatus uglyConvertFunc(ecmcAxisStatusType*in ,st_axis_status_type *out);
-  int       axisId_;
-  ecmcAxisStatusType      statusBinData_;
-  ecmcAxisBase           *ecmcAxis_;
-  double                  oldPositionAct_;  // needed for uglyConvertFunc().. 
-  double                  manualVelocSlow_;
-  double                  manualVelocFast_;
-  // ECMC end
   friend class ecmcMotorRecordController;
 };
 
