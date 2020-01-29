@@ -12,7 +12,6 @@ FILENAME... ecmcMotorRecordController.cpp
 #include <epicsExit.h>
 #include <epicsThread.h>
 
-#include <asynOctetSyncIO.h>
 #include <epicsExport.h>
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcMotorRecordController.h"
@@ -111,7 +110,8 @@ extern "C" const char *ecmcMotorRecordstrStatus(asynStatus status)
   * \param[in] idlePollPeriod    The time between polls when no axis is moving
   */
 ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
-                                           const char *MotorPortName, int numAxes,
+                                           const char *MotorPortName, // Not needed..
+                                           int numAxes,
                                            double movingPollPeriod,
                                            double idlePollPeriod,
                                            const char *optionStr)
@@ -122,12 +122,8 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
                          1, // autoconnect
                          0, 0)  // Default priority and stack size
 {
-  asynStatus status;
-  // ECMC
-  mcuPortName_      = strdup(MotorPortName);
   movingPollPeriod_ = movingPollPeriod;
   idlePollPeriod_   = idlePollPeriod;
-  // ECMC
 
   /* Controller */
   memset(&ctrlLocal, 0, sizeof(ctrlLocal));
@@ -197,43 +193,52 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
 
 #ifdef CREATE_MOTOR_REC_RESOLUTION
   /* Latest asynMotorController does this, but not the version in 6.81 (or 6.9x) */
-  createParam(motorRecResolutionString,        asynParamFloat64,      &motorRecResolution_);
-  createParam(motorRecDirectionString,           asynParamInt32,      &motorRecDirection_);
-  createParam(motorRecOffsetString,            asynParamFloat64,      &motorRecOffset_);
+  createParam(motorRecResolutionString,           asynParamFloat64,     &motorRecResolution_);
+  createParam(motorRecDirectionString,            asynParamInt32,       &motorRecDirection_);
+  createParam(motorRecOffsetString,               asynParamFloat64,     &motorRecOffset_);
 #endif
 
-  /* Connect to ecmcMotorRecord controller */
-  status = pasynOctetSyncIO->connect(MotorPortName, 0, &pasynUserController_, NULL);
-  if (status) {
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-              "%s cannot connect to motor controller\n", modulName);              
-  }
-
   startPoller(movingPollPeriod, idlePollPeriod, 2);
-
 }
 
 ecmcMotorRecordController::~ecmcMotorRecordController() {
-  // ECMC
-  free(mcuPortName_);
-  // ECMC
+  ;
 }
 
 /** Creates a new ecmcMotorRecordController object.
   * Configuration command, called directly or from iocsh
   * \param[in] portName          The name of the asyn port that will be created for this driver
-  * \param[in] MotorPortName  The name of the drvAsynIPPPort that was created previously to connect to the ecmcMotorRecord controller
+  * \param[in] MotorPortName     Obsolete.. Not used kept to keep same syntax. The name of the drvAsynIPPPort that was created previously to connect to the ecmcMotorRecord controller
   * \param[in] numAxes           The number of axes that this controller supports (0 is not used)
   * \param[in] movingPollPeriod  The time in ms between polls when any axis is moving
   * \param[in] idlePollPeriod    The time in ms between polls when no axis is moving
   */
 extern "C" int ecmcMotorRecordCreateController(const char *portName,
-                                          const char *MotorPortName,
-                                          int numAxes,
-                                          int movingPollPeriod,
-                                          int idlePollPeriod,
-                                          const char *optionStr)
-{
+                                               const char *MotorPortName,
+                                               int         numAxes,
+                                               int         movingPollPeriod,
+                                               int         idlePollPeriod,
+                                               const char *optionStr)
+{  
+  if (!portName || !MotorPortName || !numAxes || !movingPollPeriod || !idlePollPeriod) {
+    printf("\n");
+    printf("Iocsh command to create a model 3 asyn motor record driver for use with ECMC.\n");
+    printf("Creates an ecmcMotorRecordCreateController object (derived from asynMotorController).\n");
+    printf("\n");
+    printf("ecmcMotorRecordCreateController(\n");
+    printf("    portName         : Asyn port name for this motor record driver.                        : \"ECMC_ASYN_MOTOR_PORT\"\n");
+    printf("    MotorPortName    : Obsolete. Not used. Kept to keep syntax same as EthercatMC module.  : \"NOT_USED\"\n");
+    printf("    numAxes          : Maximum number of axes (asyn parameters will be created for all).   : \"10\"\n");
+    printf("    movingPollPeriod : Scan period rate of motor record status update when axis is moving. : \"0.2\" (unit [s])\n");
+    printf("    idlePollPeriod   : Scan rate of motor record status update when moving.                : \"1.0\" (unit [s])\n");
+    printf("    optionStr        : Currently Not used. Optional options string.                        : \"\" \n");
+    printf(")\n");    
+    printf("Example:\n");
+    printf("ecmcMotorRecordCreateController(\"ECMC_ASYN_MOTOR_PORT\",\"NOT_USED\",10,0.2,1.0,\"\")\n");
+    printf("\n");
+    return asynError;
+  }
+
   new ecmcMotorRecordController(portName, MotorPortName, 1+numAxes,
                            movingPollPeriod/1000., idlePollPeriod/1000.,
                            optionStr);
@@ -339,7 +344,7 @@ void ecmcMotorRecordController::udateMotorLimitsRO(int axisNo, int enabledHighAn
     getDoubleParam(axisNo, motorHighLimitRO_, &oldValueHigh);
     getDoubleParam(axisNo, motorLowLimitRO_,  &oldValueLow);
     if ((fValueHigh != oldValueHigh) || (fValueLow != oldValueLow)) {
-      asynPrint(pasynUserController_, ASYN_TRACE_INFO,
+      asynPrint(pasynUserSelf, ASYN_TRACE_INFO,
                 "%sudateMotorLimitsRO(%d) enabledHighAndLow=%d valid=%d fValueHigh=%g fValueLow=%g\n",
                 modNamEMC, axisNo,
                 enabledHighAndLow, valid, fValueHigh, fValueLow);
@@ -363,7 +368,7 @@ void ecmcMotorRecordController::udateMotorLimitsRO(int axisNo, int enabledHighAn
 void ecmcMotorRecordController::handleStatusChange(asynStatus status)
 {
   if (status != ctrlLocal.oldStatus) {
-    asynPrint(pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pasynUserSelf, ASYN_TRACE_INFO,
               "%soldStatus=%s (%d) status=%s (%d)\n",
               modNamEMC,
               ecmcMotorRecordstrStatus(ctrlLocal.oldStatus), (int)ctrlLocal.oldStatus,
@@ -394,7 +399,7 @@ asynStatus ecmcMotorRecordController::poll(void)
 {
   asynStatus status = asynSuccess;
 
-  asynPrint(pasynUserController_, ASYN_TRACE_FLOW,
+  asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
             "%spoll ctrlLocal.initialPollDone=%d\n",
             modNamEMC, ctrlLocal.initialPollDone);
   if (!features_) {
@@ -414,7 +419,7 @@ asynStatus ecmcMotorRecordController::poll(void)
   */
 void ecmcMotorRecordController::report(FILE *fp, int level)
 {
-  fprintf(fp, "Twincat motor driver %s, numAxes=%d, moving poll period=%f, idle poll period=%f\n",
+  fprintf(fp, "ECMC motor driver %s, numAxes=%d, moving poll period=%f, idle poll period=%f\n",
     this->portName, numAxes_, movingPollPeriod_, idlePollPeriod_);
 
   // Call the base class method

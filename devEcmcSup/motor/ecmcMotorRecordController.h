@@ -241,12 +241,9 @@ public:
 
   int ecmcMotorRecordErrId_;
   /* Last parameter */
-
-  // ECMC
-  char  *mcuPortName_;
+  
   double movingPollPeriod_;
   double idlePollPeriod_;
-  // ECMC
 
   #define FIRST_VIRTUAL_PARAM ecmcMotorRecordErr_
   #define LAST_VIRTUAL_PARAM ecmcMotorRecordErrId_
