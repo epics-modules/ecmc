@@ -130,9 +130,9 @@ public:
 
 
   ecmcMotorRecordController(const char *portName, const char *ecmcMotorRecordPortName,
-                       int numAxes, double movingPollPeriod,
-                       double idlePollPeriod,
-                       const char *optionStr);
+                            int numAxes, double movingPollPeriod,
+                            double idlePollPeriod,
+                            const char *optionStr);
 
   ~ecmcMotorRecordController();
   void report(FILE *fp, int level);
