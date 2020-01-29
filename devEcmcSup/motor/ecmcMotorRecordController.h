@@ -77,57 +77,17 @@ FILENAME...   ecmcMotorRecordController.h
 extern const char *modNamEMC;
 
 extern "C" {
-  unsigned   netToUint(const void *data, size_t lenInPlc);
-  double     netToDouble(const void *data, size_t lenInPlc);
-  void       doubleToNet(const double value, void *data, size_t lenInPlc);
-  void       uintToNet(const unsigned value, void *data, size_t lenInPlc);
   int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName, int axisNo,
                            int axisFlags, const char *axisOptionsStr);
-
-  asynStatus disconnect_C(asynUser *pasynUser);
-  asynStatus checkACK(const char *outdata, size_t outlen, const char *indata);
-  const char *plcUnitTxtFromUnitCode(unsigned unitCode);
   const char *ecmcMotorRecordstrStatus(asynStatus status);
   const char *errStringFromErrId(int nErrorId);
 }
-#define NETTOUINT(n)       netToUint((const void*)&n, sizeof(n))
-#define NETTODOUBLE(n)     netToDouble((const void*)&n, sizeof(n))
-#define UINTTONET(val,n)   uintToNet((val), (&n), sizeof(n))
-#define DOUBLETONET(val,n) doubleToNet((val), (&n), sizeof(n))
 
 class epicsShareClass ecmcMotorRecordController : public asynMotorController {
 public:
-#define PARAM_IDX_OPMODE_AUTO_UINT32            1
-#define PARAM_IDX_MICROSTEPS_UINT32             2
-#define PARAM_IDX_ABS_MIN_FLOAT32              30
-#define PARAM_IDX_ABS_MAX_FLOAT32              31
-#define PARAM_IDX_USR_MIN_FLOAT32              32
-#define PARAM_IDX_USR_MAX_FLOAT32              33
-#define PARAM_IDX_WRN_MIN_FLOAT32              34
-#define PARAM_IDX_WRN_MAX_FLOAT32              35
-#define PARAM_IDX_FOLLOWING_ERR_WIN_FLOAT32    55
-#define PARAM_IDX_HYTERESIS_FLOAT32            56
-#define PARAM_IDX_REFSPEED_FLOAT32             58
-#define PARAM_IDX_VBAS_FLOAT32                 59
-#define PARAM_IDX_SPEED_FLOAT32                60
-#define PARAM_IDX_ACCEL_FLOAT32                61
-#define PARAM_IDX_IDLE_CURRENT_FLOAT32         62
-#define PARAM_IDX_MOVE_CURRENT_FLOAT32         64
-#define PARAM_IDX_MICROSTEPS_FLOAT32           67
-#define PARAM_IDX_STEPS_PER_UNIT_FLOAT32       68
-#define PARAM_IDX_HOME_POSITION_FLOAT32        69
-#define PARAM_IDX_FUN_REFERENCE               133
-#define PARAM_IDX_FUN_SET_POSITION            137
-#define PARAM_IDX_FUN_MOVE_VELOCITY           142
 
-
-#define FEATURE_BITS_V1               (1)
 #define FEATURE_BITS_V2               (1<<1)
-#define FEATURE_BITS_V3               (1<<2)
-#define FEATURE_BITS_V4               (1<<3)
-
 #define FEATURE_BITS_ECMC             (1<<5)
-
 
   ecmcMotorRecordController(const char *portName, const char *ecmcMotorRecordPortName,
                             int numAxes, double movingPollPeriod,
@@ -137,8 +97,7 @@ public:
   ~ecmcMotorRecordController();
   void report(FILE *fp, int level);
   asynStatus setMCUErrMsg(const char *value);
-  asynStatus configController(int needOk, const char *value);
-  //asynStatus writeReadOnErrorDisconnect(void);
+  //asynStatus configController(int needOk, const char *value);
   ecmcMotorRecordAxis* getAxis(asynUser *pasynUser);
   ecmcMotorRecordAxis* getAxis(int axisNo);
   int features_;
@@ -148,34 +107,14 @@ public:
   void udateMotorLimitsRO(int axisNo, int enabledHighAndLow,
                           double fValueHigh, double fValueLow);
   void handleStatusChange(asynStatus status);
-  asynStatus writeReadBinaryOnErrorDisconnect(asynUser *pasynUser,
-                                              const char *outdata,
-                                              size_t outlen,
-                                              char *indata, size_t inlen,
-                                              size_t *pnread);
-
-  asynStatus writeReadControllerPrint(int traceMask);
-  asynStatus writeReadACK(int traceMask);
   int getFeatures(void);
   asynStatus poll();
 
-    struct {
+  struct {
     asynStatus   oldStatus;
-    unsigned int local_no_ASYN_;
-    unsigned int hasConfigError;
     unsigned int initialPollDone;
-    unsigned int indexerOffset;
-    unsigned int specialDbgStrToMcuDeviceLength;
-    unsigned int specialDbgStrToMcuDeviceOffset;
-    unsigned adsport;
-    int useADSbinary;
-    struct {
-      unsigned int stAxisStatus_V1  :1;
-      unsigned int stAxisStatus_V2  :1;
-      unsigned int bSIM             :1;
-      unsigned int bECMC            :1;
-      unsigned int bADS             :1;
-    } supported;
+    double       movingPollPeriod;
+    double       idlePollPeriod;
   } ctrlLocal;
 
   /* First parameter */
@@ -241,9 +180,6 @@ public:
 
   int ecmcMotorRecordErrId_;
   /* Last parameter */
-  
-  double movingPollPeriod_;
-  double idlePollPeriod_;
 
   #define FIRST_VIRTUAL_PARAM ecmcMotorRecordErr_
   #define LAST_VIRTUAL_PARAM ecmcMotorRecordErrId_

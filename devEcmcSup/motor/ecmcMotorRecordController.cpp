@@ -23,11 +23,7 @@ FILENAME... ecmcMotorRecordController.cpp
 const char *modNamEMC = "ecmcMotorRecord:: ";
 
 const static char *const strEcmcCreateControllerDef  = "ecmcMotorRecordCreateController";
-const static char *const strEcmcCreateAxisDef = "ecmcMotorRecordCreateAxis";
-
-const static char *const strCtrlReset = ".ctrl.ErrRst";
-
-const static char *const modulName = "ecmcMotorRecordAxis::";
+const static char *const strEcmcCreateAxisDef        = "ecmcMotorRecordCreateAxis";
 
 const static unsigned reportedFeatureBits =
    FEATURE_BITS_ECMC |
@@ -122,12 +118,11 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
                          1, // autoconnect
                          0, 0)  // Default priority and stack size
 {
-  movingPollPeriod_ = movingPollPeriod;
-  idlePollPeriod_   = idlePollPeriod;
-
   /* Controller */
   memset(&ctrlLocal, 0, sizeof(ctrlLocal));
-  ctrlLocal.oldStatus = asynDisconnected;  
+  ctrlLocal.movingPollPeriod = movingPollPeriod;
+  ctrlLocal.idlePollPeriod   = idlePollPeriod;
+  ctrlLocal.oldStatus = asynDisconnected;
   features_ = FEATURE_BITS_V2 | FEATURE_BITS_ECMC;
 #ifndef motorMessageTextString
   createParam("MOTOR_MESSAGE_TEXT",          asynParamOctet,       &ecmcMotorRecordMCUErrMsg_);
@@ -243,52 +238,6 @@ extern "C" int ecmcMotorRecordCreateController(const char *portName,
                            movingPollPeriod/1000., idlePollPeriod/1000.,
                            optionStr);
   return(asynSuccess);
-}
-
-extern "C" asynStatus disconnect_C(asynUser *pasynUser)
-{
-  asynStatus status = asynError;
-  asynInterface *pasynInterface = NULL;
-  asynCommon     *pasynCommon = NULL;
-  pasynInterface = pasynManager->findInterface(pasynUser,
-                                               asynCommonType,
-                                               0 /* FALSE */);
-  if (pasynInterface) {
-    pasynCommon = (asynCommon *)pasynInterface->pinterface;
-    status = pasynCommon->disconnect(pasynInterface->drvPvt,
-                                       pasynUser);
-    if (status != asynSuccess) {
-      asynPrint(pasynUser, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-                "%s status=%s (%d)\n",
-                modulName, ecmcMotorRecordstrStatus(status), (int)status);
-    }
-  } else {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
-              "%s pasynInterface=%p pasynCommon=%p\n",
-              modulName, pasynInterface, pasynCommon);
-  }
-  return status;
-}
-
-extern "C"
-asynStatus checkACK(const char *outdata, size_t outlen,
-                    const char *indata)
-{
-  size_t i;
-  unsigned int numOK = 1;
-  int res = 1;
-  for( i = 0; i < outlen; i++) {
-    if (outdata[i] == ';') numOK++;
-  }
-  switch(numOK) {
-    case 1: res = strcmp(indata, "OK");  break;
-    case 2: res = strcmp(indata, "OK;OK");  break;
-    case 3: res = strcmp(indata, "OK:OK;OK");  break;
-    case 4: res = strcmp(indata, "OK;OK;OK;OK");  break;
-    default:
-    ;
-  }
-  return res ? asynError : asynSuccess;
 }
 
 asynStatus ecmcMotorRecordController::setMCUErrMsg(const char *value)
@@ -420,7 +369,7 @@ asynStatus ecmcMotorRecordController::poll(void)
 void ecmcMotorRecordController::report(FILE *fp, int level)
 {
   fprintf(fp, "ECMC motor driver %s, numAxes=%d, moving poll period=%f, idle poll period=%f\n",
-    this->portName, numAxes_, movingPollPeriod_, idlePollPeriod_);
+    this->portName, numAxes_, ctrlLocal.movingPollPeriod, ctrlLocal.idlePollPeriod);
 
   // Call the base class method
   asynMotorController::report(fp, level);
