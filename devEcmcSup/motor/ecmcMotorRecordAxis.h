@@ -17,12 +17,10 @@ FILENAME...   ecmcMotorRecordAxis.h
 extern const char *modNamEMC;
 
 extern "C" {
-  int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName, int axisNo,
-                      int axisFlags, const char *axisOptionsStr);
-  asynStatus writeReadOnErrorDisconnect_C(asynUser *pasynUser,
-                                          const char *outdata, size_t outlen,
-                                          char *indata, size_t inlen);
-  asynStatus checkACK(const char *outdata, size_t outlen, const char *indata);
+  int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName,
+                                int axisNo,
+                                int axisFlags,
+                                const char *axisOptionsStr);
   double ecmcMotorRecordgetNowTimeSecs(void);
 }
 
@@ -38,10 +36,19 @@ public:
 
   void       report(FILE *fp, int level);
   void       callParamCallbacksUpdateError();
-  asynStatus moveVelocity(double min_velocity, double max_velocity, double acceleration);
+  asynStatus moveVelocity(double min_velocity,
+                          double max_velocity,
+                          double acceleration);
   asynStatus stop(double acceleration);
-  asynStatus move(double position, int relative, double min_velocity, double max_velocity, double acceleration);
-  asynStatus home(double min_velocity, double max_velocity, double acceleration, int forwards);
+  asynStatus move(double position,
+                  int relative,
+                  double min_velocity,
+                  double max_velocity,
+                  double acceleration);
+  asynStatus home(double min_velocity,
+                  double max_velocity,
+                  double acceleration,
+                  int forwards);
   asynStatus setPosition(double value);
   asynStatus poll(bool *moving);
 

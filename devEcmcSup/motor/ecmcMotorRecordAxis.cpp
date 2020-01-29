@@ -1305,7 +1305,10 @@ void ecmcMotorRecordAxis::updateMsgTxtFromDriver(const char *value)
 }
 #endif
 
-//Just for debug
+/**
+ * Printout entire drvlocal.statusBinData. Just for debug purpose..
+ * 
+*/
 asynStatus ecmcMotorRecordAxis::printDiagBinData() {
   int asynLevel=ASYN_TRACE_ERROR;
   asynPrint(pC_->pasynUserSelf, asynLevel,"  drvlocal.statusBinData.axisID = %d\n",drvlocal.statusBinData.axisID);
