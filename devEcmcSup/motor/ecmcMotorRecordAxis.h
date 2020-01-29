@@ -7,9 +7,6 @@ FILENAME...   ecmcMotorRecordAxis.h
 
 #include "asynMotorAxis.h"
 #include <stdint.h>
-#include <asynInt32SyncIO.h>
-#include <asynFloat64SyncIO.h>
-#include <asynInt8ArraySyncIO.h>
 
 #include "../main/ecmcGlobalsExtern.h"
 
