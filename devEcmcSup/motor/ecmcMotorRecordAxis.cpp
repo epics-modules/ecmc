@@ -177,7 +177,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #endif
   }
   /* Set the module name to "" if we have FILE/LINE enabled by asyn */
-  if (pasynTrace->getTraceInfoMask(pC_->pasynUserController_) & ASYN_TRACEINFO_SOURCE) modNamEMC = "";
+  if (pasynTrace->getTraceInfoMask(pC_->pasynUserSelf) & ASYN_TRACEINFO_SOURCE) modNamEMC = "";
   
   initialPoll();
 }
@@ -220,12 +220,12 @@ asynStatus ecmcMotorRecordAxis::updateCfgValue(int function,
        ECMC configures everything from the iocshell, no need to
        do a print here */
     if (!(pC_->features_ & FEATURE_BITS_ECMC)) {
-      asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
                 "%supdateCfgValue(%d) %s=%f\n",
                 modNamEMC, axisNo_, name, newValue);
     }
   } else if (newValue != oldValue) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%supdateCfgValue(%d) old%s=%f new%s=%f\n",
               modNamEMC, axisNo_, name, oldValue, name, newValue);
   }
@@ -243,12 +243,12 @@ asynStatus ecmcMotorRecordAxis::updateCfgValue(int function,
        ECMC configures everything from the iocshell, no need to
        do a print here */
     if (!((pC_->features_ & FEATURE_BITS_ECMC))) {
-      asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
                 "%supdateCfgValue(%d) %s=%d\n",
                 modNamEMC, axisNo_, name, newValue);
     }
   } else if (newValue != oldValue) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%supdateCfgValue(%d) old%s=%d new%s=%d\n",
               modNamEMC, axisNo_, name, oldValue, name, newValue);
   }
@@ -402,7 +402,7 @@ asynStatus ecmcMotorRecordAxis::initialPoll(void)
     return asynSuccess;
 
   status = initialPollInternal();
-  asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+  asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
             "%sinitialPoll(%d) status=%d\n",
             modNamEMC, axisNo_, status);
   if (status == asynSuccess) {
@@ -442,7 +442,7 @@ asynStatus ecmcMotorRecordAxis::initialPollInternal(void)
   }
   if (status == asynSuccess) status = readBackAllConfig(drvlocal.axisId);
   if (status == asynSuccess && drvlocal.dirty.statusDisconnectedOld) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
               "%sconnected(%d)\n", modNamEMC, axisNo_);
     drvlocal.dirty.statusDisconnectedOld = 0;
   }
@@ -475,7 +475,7 @@ void ecmcMotorRecordAxis::report(FILE *fp, int level)
  */
 asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVelocity, double maxVelocity, double acceleration)
 {
-  asynPrint(pC_->pasynUserController_, ASYN_TRACE_FLOW,
+  asynPrint(pC_->pasynUserSelf, ASYN_TRACE_FLOW,
             "%smove(%d) position=%f relative=%d maxVelocity=%f acceleration=%f\n",
             modNamEMC, axisNo_,
             position, relative, maxVelocity, acceleration);
@@ -521,7 +521,7 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
 asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, double acceleration, int forwards)
 {
   // cmd, nCmddata,homepos,velhigh,vellow,acc
-  asynPrint(pC_->pasynUserController_, ASYN_TRACE_FLOW,
+  asynPrint(pC_->pasynUserSelf, ASYN_TRACE_FLOW,
             "%shome(%d) forwards=%d maxVelocity=%f acceleration=%f\n",
             modNamEMC, axisNo_,
             forwards, maxVelocity, acceleration);
@@ -632,7 +632,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity, double maxVeloc
  */
 asynStatus ecmcMotorRecordAxis::setPosition(double value)
 {
-  asynPrint(pC_->pasynUserController_, ASYN_TRACE_FLOW,
+  asynPrint(pC_->pasynUserSelf, ASYN_TRACE_FLOW,
             "%ssetPosition(%d) value=%lf\n",
             modNamEMC, axisNo_, value);
 
@@ -853,7 +853,7 @@ void ecmcMotorRecordAxis::callParamCallbacksUpdateError()
     setIntegerParam(pC_->ecmcMotorRecordErr_,
                     drvlocal.eeAxisError == eeAxisErrorMCUError);
     setIntegerParam(pC_->ecmcMotorRecordErrId_, EPICS_nErrorId);
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%spoll(%d) callParamCallbacksUpdateError"
               " Error=%d old=%d ErrID=0x%x old=0x%x Warn=%d nCmd=%d old=%d txt=%s\n",
               modNamEMC, axisNo_, drvlocal.eeAxisError, drvlocal.old_eeAxisError,
@@ -969,19 +969,19 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   setDoubleParam(pC_->ecmcMotorRecordEncAct_, (double)drvlocal.statusBinData.onChangeData.positionRaw);
 
   if (drvlocal.statusBinDataOld.onChangeData.statusWd.homed != drvlocal.statusBinData.onChangeData.statusWd.homed) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%spoll(%d) homed=%d\n",
               modNamEMC, axisNo_, drvlocal.statusBinData.onChangeData.statusWd.homed);
     drvlocal.statusBinDataOld.onChangeData.statusWd.homed =  drvlocal.statusBinData.onChangeData.statusWd.homed;
   }
   if (drvlocal.statusBinDataOld.onChangeData.statusWd.limitbwd != drvlocal.statusBinData.onChangeData.statusWd.limitbwd) {    
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%spoll(%d) LLS=%d\n",
               modNamEMC, axisNo_, !drvlocal.statusBinData.onChangeData.statusWd.limitbwd);
     drvlocal.statusBinDataOld.onChangeData.statusWd.limitbwd =  drvlocal.statusBinData.onChangeData.statusWd.limitbwd;
   }
   if (drvlocal.statusBinDataOld.onChangeData.statusWd.limitfwd != drvlocal.statusBinData.onChangeData.statusWd.limitfwd) {    
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%spoll(%d) HLS=%d\n",
               modNamEMC, axisNo_,!drvlocal.statusBinData.onChangeData.statusWd.limitfwd);
     drvlocal.statusBinDataOld.onChangeData.statusWd.limitfwd = drvlocal.statusBinData.onChangeData.statusWd.limitfwd;
@@ -990,7 +990,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
 #ifndef motorWaitPollsBeforeReadyString
   if (drvlocal.waitNumPollsBeforeReady) {    
     /* Don't update moving, done, motorStatusProblem_ */
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%spoll(%d) mvnNRdyNexAt=%d bBusy=%d bExecute=%d bEnabled=%d atTarget=%d waitNumPollsBeforeReady=%d\n",
               modNamEMC,
               axisNo_, drvlocal.moveNotReadyNext,
@@ -1008,7 +1008,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
           drvlocal.statusBinDataOld.onChangeData.statusWd.enabled  != drvlocal.statusBinData.onChangeData.statusWd.enabled ||
           drvlocal.statusBinDataOld.onChangeData.statusWd.execute  != drvlocal.statusBinData.onChangeData.statusWd.execute ||
           drvlocal.statusBinDataOld.onChangeData.statusWd.attarget != drvlocal.statusBinData.onChangeData.statusWd.attarget) {
-        asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+        asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
                   "%spoll(%d) mvnNRdy=%d bBusy=%d bExecute=%d bEnabled=%d atTarget=%d wf=%d ENC=%g fPos=%g fActPosition=%g time=%f\n",
                   modNamEMC, axisNo_, drvlocal.moveNotReadyNext,                  
                   drvlocal.statusBinData.onChangeData.statusWd.busy, drvlocal.statusBinData.onChangeData.statusWd.execute,
@@ -1035,7 +1035,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     const char *errIdString = errStringFromErrId(nErrorId);
     sErrorMessage[0] = '\0';
     drvlocal.sErrorMessage[0] = '\0';
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%spoll(%d) bError=%d drvlocal.statusBinData.onChangeData.error=0x%x\n",
               modNamEMC, axisNo_, drvlocal.statusBinData.onChangeData.error>0,
               nErrorId);
@@ -1046,7 +1046,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     if (nErrorId) {
       /* Get the ErrorMessage to have it in the log file */
       strcpy(&sErrorMessage[0],ecmcError::convertErrorIdToString(nErrorId));  
-      asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
                 "%ssErrorMessage(%d)=\"%s\"\n",
                 modNamEMC, axisNo_, sErrorMessage);
     }
@@ -1076,7 +1076,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
 asynStatus ecmcMotorRecordAxis::setClosedLoop(bool closedLoop)
 {
   int value = closedLoop ? 1 : 0;
-  asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+  asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
             "%ssetClosedLoop(%d)=%d\n",  modNamEMC, axisNo_, value);
   if (drvlocal.axisFlags & AMPLIFIER_ON_FLAG_USING_CNEN) {
     return enableAmplifier(value);
@@ -1091,15 +1091,15 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
   //unsigned indexGroup5000 = 0x5000;
 
   if (function == pC_->motorUpdateStatus_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d motorUpdateStatus_)=%d\n", modNamEMC, axisNo_, value);
   } 
   else if (function == pC_->motorStatusCommsError_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_FLOW,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_FLOW,
               "%ssetIntegerParam(%d pC_->motorStatusCommsError_)=%d\n",
               modNamEMC, axisNo_, value);
     if (value && !drvlocal.dirty.statusDisconnectedOld) {
-      asynPrint(pC_->pasynUserController_, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
+      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_ERROR|ASYN_TRACEIO_DRIVER,
                 "%s Communication error(%d)\n", modNamEMC, axisNo_);
       memset(&drvlocal.dirty, 0xFF, sizeof(drvlocal.dirty));
       drvlocal.nErrorIdMcu = 0;
@@ -1107,20 +1107,20 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
 #ifdef motorPowerAutoOnOffString
   } 
   else if (function == pC_->motorPowerAutoOnOff_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d motorPowerAutoOnOff_)=%d\n", modNamEMC, axisNo_, value);
 #endif
   } 
   else if (function == pC_->ecmcMotorRecordHomProc_) {
     int motorNotHomedProblem = 0;
     setIntegerParam(pC_->ecmcMotorRecordHomProc_RB_, value);
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d HomProc_)=%d motorNotHomedProblem=%d\n",
               modNamEMC, axisNo_, value, motorNotHomedProblem);
   } 
   else if (function == pC_->ecmcMotorRecordErrRst_) {
     if (value) {
-      asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+      asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
                 "%ssetIntegerParam(%d ErrRst_)=%d\n",
                 modNamEMC, axisNo_, value);
       /*  We do not want to call the base class */
@@ -1133,7 +1133,7 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
   else if (function == pC_->ecmcMotorRecordCfgDHLM_En_) {
     // Set enable soft limit fwd
 
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d ecmcMotorRecordCfgDHLM_En)=%d\n",
               modNamEMC, axisNo_, value);    
     errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(value);
@@ -1144,7 +1144,7 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
   else if (function == pC_->ecmcMotorRecordCfgDLLM_En_) {
     // Set enable soft limit bwd
     
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d ecmcMotorRecordCfgDLLM_En)=%d\n",
               modNamEMC, axisNo_, value);
     
@@ -1172,78 +1172,78 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
   //unsigned indexGroup5000 = 0x5000;
 
   if (function == pC_->motorMoveRel_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorMoveRel_)=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorMoveAbs_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorMoveAbs_)=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorMoveVel_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorMoveVel_)=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorHome_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorHome__)=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorStop_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorStop_)=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorVelocity_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorVelocity_=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorVelBase_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorVelBase_)=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorAccel_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorAccel_)=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorDeferMoves_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motmotorDeferMoves_=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorMoveToHome_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motmotorMoveToHome_=%g\n", modNamEMC, axisNo_, value);
   } else if (function == pC_->motorResolution_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorResolution_=%g\n",  modNamEMC, axisNo_, value);
     /* Limits handled above */
 
 #ifdef motorPowerOnDelayString
   } else if (function == pC_->motorPowerOnDelay_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorPowerOnDelay_)=%g\n", modNamEMC, axisNo_, value);
 #endif
 #ifdef motorPowerOffDelayString
   } else if (function == pC_->motorPowerOffDelay_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorPowerOffDelay_=%g\n", modNamEMC, axisNo_, value);
 #endif
 #ifdef motorPowerOffFractionString
   } else if (function == pC_->motorPowerOffFraction_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motomotorPowerOffFraction_=%g\n", modNamEMC, axisNo_, value);
 #endif
 #ifdef motorPostMoveDelayString
   } else if (function == pC_->motorPostMoveDelay_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorPostMoveDelay_=%g\n", modNamEMC, axisNo_, value);
 #endif
   } else if (function == pC_->motorStatus_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d motorStatus_)=%g\n", modNamEMC, axisNo_, value);
 #ifdef ecmcMotorRecordHVELFRMString
   } else if (function == pC_->ecmcMotorRecordHVELfrm_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d HVELfrm_)=%g\n", modNamEMC, axisNo_, value);
 #endif
 #ifdef ecmcMotorRecordHomPosString
   } else if (function == pC_->ecmcMotorRecordHomPos_) {
     pC_->setDoubleParam(axisNo_, pC_->ecmcMotorRecordHomPos_RB_, value);
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d HomPos_)=%f\n", modNamEMC, axisNo_, value);
 #endif
 
   } // Set soft limit fwd
   else if (function == pC_->ecmcMotorRecordCfgDHLM_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgDHLM_)=%f\n", modNamEMC, axisNo_, value);
     
     errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitFwd(value);
@@ -1252,7 +1252,7 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
 
   } // Set soft limit bwd
   else if (function == pC_->ecmcMotorRecordCfgDLLM_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgDLLM_)=%f\n", modNamEMC, axisNo_, value);
     
     errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitBwd(value);
@@ -1261,7 +1261,7 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
 
   } // manual velo fast.. Just store here in "motor record" driver
   else if (function == pC_->ecmcMotorRecordCfgVELO_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgVELO_)=%f\n", modNamEMC, axisNo_, value);
   
     drvlocal.manualVelocFast = value;
@@ -1269,21 +1269,21 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
 
   } // Set monitor max velocity
   else if (function == pC_->ecmcMotorRecordCfgVMAX_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgVMAX_)=%f\n", modNamEMC, axisNo_, value);
     errorCode = drvlocal.ecmcAxis->getMon()->setMaxVel(value);
     return errorCode==0 ? asynSuccess : asynError;
 
   } // manual velo fast.. Just store here in "motor record" driver
   else if (function == pC_->ecmcMotorRecordCfgJVEL_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgJVEL_)=%f\n", modNamEMC, axisNo_, value);    
     drvlocal.manualVelocSlow = value;
     return asynSuccess;
 
   } // Set acceleration
   else if (function == pC_->ecmcMotorRecordCfgACCS_) {
-    asynPrint(pC_->pasynUserController_, ASYN_TRACE_INFO,
+    asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgACCS_)=%f\n", modNamEMC, axisNo_, value);
     drvlocal.ecmcAxis->getTraj()->setAcc(value);
     return asynSuccess;
