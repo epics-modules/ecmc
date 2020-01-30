@@ -377,9 +377,18 @@ asynStatus ecmcMotorRecordController::poll(void)
   */
 void ecmcMotorRecordController::report(FILE *fp, int level)
 {
-  fprintf(fp, "ECMC motor driver %s, numAxes=%d, moving poll period=%f, idle poll period=%f\n",
+  fprintf(fp, "ECMC motor record driver %s, numAxes=%d, moving poll period=%f, idle poll period=%f\n",
     this->portName, numAxes_, ctrlLocal.movingPollPeriod, ctrlLocal.idlePollPeriod);
 
+  if(level>0) {
+    ecmcMotorRecordAxis * tempAxis = NULL;
+    for(int i=0;i<numAxes_;i++) {
+      tempAxis=getAxis(i);
+      if(tempAxis) {
+        tempAxis->report(fp,level);
+      }
+    }
+  }
   // Call the base class method
   asynMotorController::report(fp, level);
 }

@@ -514,11 +514,8 @@ asynStatus ecmcMotorRecordAxis::initialPollInternal(void)
  */
 void ecmcMotorRecordAxis::report(FILE *fp, int level)
 {
-  if (level > 0) {
-    fprintf(fp, "  axis %d\n", axisNo_);
-  }
-
-
+  fprintf(fp, "  axis %d\n", axisNo_);
+  
   // Call the base class method
   asynMotorAxis::report(fp, level);
 }
