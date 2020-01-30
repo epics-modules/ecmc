@@ -389,8 +389,8 @@ asynStatus ecmcMotorRecordAxis::readScaling(int axisID)
 
 asynStatus ecmcMotorRecordAxis::readMonitoring(int axisID)
 {
-  double poslag_tol, attarget_tol;
-  int    poslag_time, attarget_time, poslag_enable, attarget_enable;
+  double poslag_tol, attarget_tol, attarget_time, poslag_time;
+  int    poslag_enable, attarget_enable;
 
   // Position lag monitoring (following error)
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
@@ -517,6 +517,7 @@ void ecmcMotorRecordAxis::report(FILE *fp, int level)
   if (level > 0) {
     fprintf(fp, "  axis %d\n", axisNo_);
   }
+
 
   // Call the base class method
   asynMotorAxis::report(fp, level);
