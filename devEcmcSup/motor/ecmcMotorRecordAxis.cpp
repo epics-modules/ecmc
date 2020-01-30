@@ -27,6 +27,21 @@
 
 static ecmcMotorRecordController *pC;
 
+/**
+ * Option strings
+*/
+#ifndef motorFlagsDriverUsesEGUString
+/* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
+#define stepSize_str "stepSize="
+#endif
+#define homProc_str "HomProc="
+#define homPos_str "HomPos="
+#define axisFlags_str "axisFlags="
+#define powerAutoOnOff_str "powerAutoOnOff="
+#define powerOffDelay_str "powerOffDelay="
+#define powerOnDelay_str "powerOnDelay="
+#define scaleFactor_str "scaleFactor="
+
 /** Creates a new ecmcMotorRecordAxis object.
  * \param[in] pC Pointer to the ecmcMotorRecordController to which this axis belongs.
  * \param[in] axisNo Index number of this axis, range 1 to pC->numAxes_. (0 is not used)
@@ -96,18 +111,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
   drvlocal.scaleFactor = 1.0;
   if (axisOptionsStr && axisOptionsStr[0]) {    
-#ifndef motorFlagsDriverUsesEGUString
-    /* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
-    const char * const stepSize_str        = "stepSize=";
-#endif
-    const char * const homProc_str 	       = "HomProc=";
-    const char * const homPos_str  	       = "HomPos=";
-    const char * const axisFlags_str       = "axisFlags=";
-    const char * const powerAutoOnOff_str  = "powerAutoOnOff=";
-    const char * const powerOffDelay_str   = "powerOffDelay=";
-    const char * const powerOnDelay_str    = "powerOnDelay=";
-    const char * const scaleFactor_str     = "scaleFactor=";
-
     char *pOptions = strdup(axisOptionsStr);
     char *pThisOption = pOptions;
     char *pNextOption = pOptions;
@@ -182,10 +185,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   initialPoll();
 }
 
-#define AMPLIFIER_ON_FLAG_CREATE_AXIS  (1)
-#define AMPLIFIER_ON_FLAG_AUTO_ON      (1<<1)
-#define AMPLIFIER_ON_FLAG_USING_CNEN   (1<<2)
-
 extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName, 
                                          int axisNo,
                                          int axisFlags,
@@ -203,7 +202,18 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
     printf("                             -bit 0 : AMPLIFIER_ON_FLAG_CREATE_AXIS\n");
     printf("                             -bit 1 : AMPLIFIER_ON_FLAG_AUTO_ON\n");
     printf("                             -bit 2 : AMPLIFIER_ON_FLAG_USING_CNEN\n");
-    printf("    axisOptionsStr     : Currently not used in ECMC. Optional options string.              : \"\" \n");
+    printf("    axisOptionsStr     : Optional options string.                                           : \"\" \n");
+    printf("                             -\"%s\"        : Set homing sequence type (over-rides/writes def in record/param)\n",homProc_str);
+    printf("                             -\"%s\"         : Set homing position (over-rides/writes def in record/param)\n",homPos_str);
+    printf("                             -\"%s\"      : Set axisFlags (over-rides/writes axisFlags in this call)\n",axisFlags_str);
+    printf("                             -\"%s\" : Set powerAutoOnOff (over-rides/writes def in record/param)\n",powerAutoOnOff_str);
+    printf("                             -\"%s\"  : Set powerOffDelay (over-rides/writes def in record/param)\n",powerOffDelay_str);
+    printf("                             -\"%s\"   : Set powerOnDelay (over-rides/writes def in record/param)\n",powerOnDelay_str);
+    printf("                             -\"%s\"    : Set scaleFactor\n",scaleFactor_str);
+    #ifndef motorFlagsDriverUsesEGUString
+    /* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
+    printf("                             -\"%s\"         : Set step-size (ESS-motor record, compensate for MRES)\n",stepSize_str);    
+    #endif
     printf(")\n");    
     printf("Example:\n");
     printf("ecmcMotorRecordCreateAxis(\"ECMC_ASYN_MOTOR_PORT\",10,6,\"\")\n");
