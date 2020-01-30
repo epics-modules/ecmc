@@ -186,34 +186,34 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #define AMPLIFIER_ON_FLAG_AUTO_ON      (1<<1)
 #define AMPLIFIER_ON_FLAG_USING_CNEN   (1<<2)
 
-extern "C" int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName, 
+extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName, 
                                          int axisNo,
                                          int axisFlags,
                                          const char *axisOptionsStr)
 {
-  if (!ecmcMotorRecordName || (axisNo < 0) || (axisFlags < 0)) {
+  if (!controllerPortName || (axisNo < 0) || (axisFlags < 0)) {
     printf("\n");
     printf("Iocsh command to create a model 3 asyn motor record driver axis for use with ECMC.\n");
-    printf("Creates an ecmcMotorRecordCreateAxis object (derived from asynMotorAxis).\n");
+    printf("Creates an ecmcMotorRecordAxis object (derived from asynMotorAxis).\n");
     printf("\n");
     printf("ecmcMotorRecordCreateAxis(\n");
-    printf("    MotorRecordName : Obsolete. Not used. Kept to keep syntax same as EthercatMC module.  : \"NOT_USED\"\n");
-    printf("    axisNo          : Maximum number of axes (asyn parameters will be created for all).   : \"10\"\n");
-    printf("    axisFlags       : Axis options (defaults to 6 in ecmccfg=> bit 1 and bit 2 set)       : \"6\"\n");
-    printf("                          bit 0 : AMPLIFIER_ON_FLAG_CREATE_AXIS\n");
-    printf("                          bit 1 : AMPLIFIER_ON_FLAG_AUTO_ON\n");
-    printf("                          bit 2 : AMPLIFIER_ON_FLAG_USING_CNEN\n");
-    printf("    axisOptionsStr  : Currently Not used in ECMC. Optional options string.                : \"\" \n");
+    printf("    controllerPortName : Asyn port name for the motor controller.                          : \"ECMC_ASYN_MOTOR_PORT\"\n");
+    printf("    axisNo             : Maximum number of axes (asyn parameters will be created for all). : \"10\"\n");
+    printf("    axisFlags          : Axis options (defaults to 6 in ecmccfg => 0x110):                 : \"6\"\n");
+    printf("                             -bit 0 : AMPLIFIER_ON_FLAG_CREATE_AXIS\n");
+    printf("                             -bit 1 : AMPLIFIER_ON_FLAG_AUTO_ON\n");
+    printf("                             -bit 2 : AMPLIFIER_ON_FLAG_USING_CNEN\n");
+    printf("    axisOptionsStr     : Currently not used in ECMC. Optional options string.              : \"\" \n");
     printf(")\n");    
     printf("Example:\n");
-    printf("ecmcMotorRecordCreateAxis(\"NOT_USED\",10,6,\"\")\n");
+    printf("ecmcMotorRecordCreateAxis(\"ECMC_ASYN_MOTOR_PORT\",10,6,\"\")\n");
     printf("\n");
     return asynError;
   }
 
-  pC = (ecmcMotorRecordController*) findAsynPortDriver(ecmcMotorRecordName);
+  pC = (ecmcMotorRecordController*) findAsynPortDriver(controllerPortName);
   if (!pC) {
-    printf("Error port %s not found\n", ecmcMotorRecordName);
+    printf("ERROR: Asyn port %s not found.\n", controllerPortName);
     return asynError;
   }
 
@@ -222,7 +222,7 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName,
     return asynError;
   }
   if (axes[axisNo] == NULL) {
-    printf("ERROR: Axis object NULL\n");
+    printf("ERROR: Axis object NULL.\n");
     return asynError;
   }
 

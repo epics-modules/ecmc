@@ -218,7 +218,7 @@ extern "C" int ecmcMotorRecordCreateController(const char *portName,
   if (!portName || !MotorPortName || !numAxes || !movingPollPeriod || !idlePollPeriod) {
     printf("\n");
     printf("Iocsh command to create a model 3 asyn motor record driver for use with ECMC.\n");
-    printf("Creates an ecmcMotorRecordCreateController object (derived from asynMotorController).\n");
+    printf("Creates an ecmcMotorRecordController object (derived from asynMotorController).\n");
     printf("\n");
     printf("ecmcMotorRecordCreateController(\n");
     printf("    portName         : Asyn port name for this motor record driver.                        : \"ECMC_ASYN_MOTOR_PORT\"\n");
