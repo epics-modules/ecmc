@@ -32,15 +32,16 @@ static ecmcMotorRecordController *pC;
 */
 #ifndef motorFlagsDriverUsesEGUString
 /* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
-#define stepSize_str "stepSize="
+#define ECMC_AXIS_OPT_STEP_SIZE         "stepSize="
 #endif
-#define homProc_str "HomProc="
-#define homPos_str "HomPos="
-#define axisFlags_str "axisFlags="
-#define powerAutoOnOff_str "powerAutoOnOff="
-#define powerOffDelay_str "powerOffDelay="
-#define powerOnDelay_str "powerOnDelay="
-#define scaleFactor_str "scaleFactor="
+#define ECMC_AXIS_OPT_HOME_PROC         "HomProc="
+#define ECMC_AXIS_OPT_HOME_POS          "HomPos="
+#define ECMC_AXIS_OPT_FLAGS             "axisFlags="
+#define ECMC_AXIS_OPT_POWER_AUTO_ON_OFF "powerAutoOnOff="
+#define ECMC_AXIS_OPT_POWER_OFF_DELAY   "powerOffDelay="
+#define ECMC_AXIS_OPT_POWER_ON_DELAY    "powerOnDelay="
+#define ECMC_AXIS_OPT_SCALE_FACTOR      "scaleFactor="
+#define ECMC_AXIS_OPT_STR_LEN 15
 
 /** Creates a new ecmcMotorRecordAxis object.
  * \param[in] pC Pointer to the ecmcMotorRecordController to which this axis belongs.
@@ -122,40 +123,40 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         pNextOption++;       /* Jump to (possible) next */
       }
       
-      if (!strncmp(pThisOption, axisFlags_str, strlen(axisFlags_str))) {
-        pThisOption += strlen(axisFlags_str);
+      if (!strncmp(pThisOption, ECMC_AXIS_OPT_FLAGS, strlen(ECMC_AXIS_OPT_FLAGS))) {
+        pThisOption += strlen(ECMC_AXIS_OPT_FLAGS);
         int myAxisFlags = atoi(pThisOption);
         if (myAxisFlags > 0) {
           axisFlags = myAxisFlags;
         }      
 #ifndef motorFlagsDriverUsesEGUString
-      } else if (!strncmp(pThisOption, stepSize_str, strlen(stepSize_str))) {
-        pThisOption += strlen(stepSize_str);
+      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_STEP_SIZE, strlen(ECMC_AXIS_OPT_STEP_SIZE))) {
+        pThisOption += strlen(ECMC_AXIS_OPT_STEP_SIZE);
         /* This option is obsolete, depending on motor */
         drvlocal.scaleFactor = atof(pThisOption);
 #endif
-      } else if (!strncmp(pThisOption, powerAutoOnOff_str, strlen(powerAutoOnOff_str))) {
-        pThisOption += strlen(powerAutoOnOff_str);
+      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_AUTO_ON_OFF, strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF))) {
+        pThisOption += strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF);
 	      powerAutoOnOff = atoi(pThisOption);
-      } else if (!strncmp(pThisOption, homProc_str, strlen(homProc_str))) {
-        pThisOption += strlen(homProc_str);
+      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_HOME_PROC, strlen(ECMC_AXIS_OPT_HOME_PROC))) {
+        pThisOption += strlen(ECMC_AXIS_OPT_HOME_PROC);
         int homProc = atoi(pThisOption);
         setIntegerParam(pC_->ecmcMotorRecordHomProc_, homProc);
-      } else if (!strncmp(pThisOption, homPos_str, strlen(homPos_str))) {
-        pThisOption += strlen(homPos_str);
+      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_HOME_POS, strlen(ECMC_AXIS_OPT_HOME_POS))) {
+        pThisOption += strlen(ECMC_AXIS_OPT_HOME_POS);
         double homPos = atof(pThisOption);
         setDoubleParam(pC_->ecmcMotorRecordHomPos_, homPos);
-      } else if (!strncmp(pThisOption, scaleFactor_str, strlen(scaleFactor_str))) {
-        pThisOption += strlen(scaleFactor_str);
+      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_SCALE_FACTOR, strlen(ECMC_AXIS_OPT_SCALE_FACTOR))) {
+        pThisOption += strlen(ECMC_AXIS_OPT_SCALE_FACTOR);
         drvlocal.scaleFactor = atof(pThisOption);
-      } else if (!strncmp(pThisOption, powerOffDelay_str, strlen(powerOffDelay_str))) {
+      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_OFF_DELAY, strlen(ECMC_AXIS_OPT_POWER_OFF_DELAY))) {
         double powerOffDelay;
-        pThisOption += strlen(powerOffDelay_str);
+        pThisOption += strlen(ECMC_AXIS_OPT_POWER_OFF_DELAY);
         powerOffDelay = atof(pThisOption);
         updateCfgValue(pC_->motorPowerOffDelay_, powerOffDelay, "powerOffDelay");
-      } else if (!strncmp(pThisOption, powerOnDelay_str, strlen(powerOnDelay_str))) {
+      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_ON_DELAY, strlen(ECMC_AXIS_OPT_POWER_ON_DELAY))) {
         double powerOnDelay;
-        pThisOption += strlen(powerOnDelay_str);
+        pThisOption += strlen(ECMC_AXIS_OPT_POWER_ON_DELAY);
         powerOnDelay = atof(pThisOption);
         updateCfgValue(pC_->motorPowerOnDelay_, powerOnDelay, "powerOnDelay");
       }
@@ -202,17 +203,25 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
     printf("                             -bit 0 : AMPLIFIER_ON_FLAG_CREATE_AXIS\n");
     printf("                             -bit 1 : AMPLIFIER_ON_FLAG_AUTO_ON\n");
     printf("                             -bit 2 : AMPLIFIER_ON_FLAG_USING_CNEN\n");
-    printf("    axisOptionsStr     : Optional options string.                                           : \"\" \n");
-    printf("                             -\"%s\"        : Set homing sequence type (over-rides/writes def in record/param)\n",homProc_str);
-    printf("                             -\"%s\"         : Set homing position (over-rides/writes def in record/param)\n",homPos_str);
-    printf("                             -\"%s\"      : Set axisFlags (over-rides/writes axisFlags in this call)\n",axisFlags_str);
-    printf("                             -\"%s\" : Set powerAutoOnOff (over-rides/writes def in record/param)\n",powerAutoOnOff_str);
-    printf("                             -\"%s\"  : Set powerOffDelay (over-rides/writes def in record/param)\n",powerOffDelay_str);
-    printf("                             -\"%s\"   : Set powerOnDelay (over-rides/writes def in record/param)\n",powerOnDelay_str);
-    printf("                             -\"%s\"    : Set scaleFactor\n",scaleFactor_str);
+    printf("    axisOptionsStr     : Optional options strings:                                         : \"\" \n");
+    printf("                             -%-*s : Set homing sequence type (over-rides/writes def in record/param)\n",
+            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_HOME_PROC);
+    printf("                             -%-*s : Set homing position (over-rides/writes def in record/param)\n",
+            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_HOME_POS);
+    printf("                             -%-*s : Set axisFlags (over-rides/writes axisFlags in this call)\n",
+            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_FLAGS);
+    printf("                             -%-*s : Set powerAutoOnOff (over-rides/writes def in record/param)\n",
+            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_AUTO_ON_OFF);
+    printf("                             -%-*s : Set powerOffDelay (over-rides/writes def in record/param)\n",
+            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_OFF_DELAY);
+    printf("                             -%-*s : Set powerOnDelay (over-rides/writes def in record/param)\n",
+            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_ON_DELAY);
+    printf("                             -%-*s : Set scaleFactor\n",
+            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_SCALE_FACTOR);
     #ifndef motorFlagsDriverUsesEGUString
     /* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
-    printf("                             -\"%s\"         : Set step-size (ESS-motor record, compensate for MRES)\n",stepSize_str);    
+    printf("                             -%-*s : Set step-size (ESS-motor record, compensate for MRES)\n",
+            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_STEP_SIZE);    
     #endif
     printf(")\n");    
     printf("Example:\n");
