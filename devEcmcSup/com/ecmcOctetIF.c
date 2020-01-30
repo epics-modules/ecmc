@@ -128,7 +128,6 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
   int   had_cr  = 0;
   int   had_lf  = 0;
 
-  printf("CMDREADIT %s\n",inbuf);
   if(!initDone) {
     init();
   }
@@ -204,8 +203,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
 
 /* from MCU into EPICS */
 int CMDreadIt(char *outbuf, size_t outlen) {  
-  int ret;
-  printf("CMDREADIT\n");
+  int ret;  
   if (!outbuf || !outlen) return -1;
 
   ret = snprintf(outbuf, outlen + 1, "%s", getEpicsBuffer()->buffer);
