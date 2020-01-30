@@ -20,8 +20,13 @@ int ecmcInit(void *asynPortObject) {
   
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
-  //ecmcInitThread();
-
+  ecmcRTMutex = epicsMutexCreate();
+  if(!ecmcRTMutex) {
+    LOGERR("ERROR: Failed to create Mutex (epicsMutexCreate())  (0x%x)",
+            ERROR_MAIN_RT_MUTEX_NULL);
+    return ERROR_MAIN_RT_MUTEX_NULL;
+  }
+  
   asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);  
   ec = new ecmcEc();
 

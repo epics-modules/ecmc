@@ -14,6 +14,7 @@
 #include "motor.h"
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcMotorRecordController.h"
+#include "../main/ecmcGlobalsExtern.h"
 
 #ifndef ASYN_TRACE_INFO
 #define ASYN_TRACE_INFO      0x0040
@@ -42,6 +43,10 @@ static ecmcMotorRecordController *pC;
 #define ECMC_AXIS_OPT_POWER_ON_DELAY    "powerOnDelay="
 #define ECMC_AXIS_OPT_SCALE_FACTOR      "scaleFactor="
 #define ECMC_AXIS_OPT_STR_LEN 15
+
+#define ECMC_AXIS_ENABLE_SLEEP_PERIOD 0.1
+#define ECMC_AXIS_ENABLE_MAX_SLEEP_TIME 3.0
+
 
 /** Creates a new ecmcMotorRecordAxis object.
  * \param[in] pC Pointer to the ecmcMotorRecordController to which this axis belongs.
@@ -303,11 +308,13 @@ asynStatus ecmcMotorRecordAxis::readBackSoftLimits(void)
   int    enabledFwd = 0,  enabledBwd = 0;
   double fValueFwd = 0.0, fValueBwd  = 0.0;
   double scaleFactor = drvlocal.scaleFactor;
-
+  
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   fValueBwd  = drvlocal.ecmcAxis->getMon()->getSoftLimitBwd();
   fValueFwd  = drvlocal.ecmcAxis->getMon()->getSoftLimitFwd();
   enabledBwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitBwd();
   enabledFwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitFwd();
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
   pC_->setIntegerParam(axisNo_, pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
   pC_->setDoubleParam(axisNo_, pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
@@ -326,8 +333,9 @@ asynStatus ecmcMotorRecordAxis::readScaling(int axisID)
 {
   int errorCode =0;
   double num = 0, denom = 0;
-
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   errorCode=drvlocal.ecmcAxis->getEncScaleNum(&num);
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
   if(errorCode) {
     LOGERR(
       "%s/%s:%d: ERROR: function getEncScaleNum() returned error (0x%x).\n",
@@ -337,7 +345,9 @@ asynStatus ecmcMotorRecordAxis::readScaling(int axisID)
       errorCode);
     return asynError;
   }
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   errorCode=drvlocal.ecmcAxis->getEncScaleDenom(&denom);
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
   if(errorCode) {
     LOGERR(
       "%s/%s:%d: ERROR: function getEncScaleDenom() returned error (0x%x).\n",
@@ -383,6 +393,7 @@ asynStatus ecmcMotorRecordAxis::readMonitoring(int axisID)
   int    poslag_time, attarget_time, poslag_enable, attarget_enable;
 
   // Position lag monitoring (following error)
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   poslag_tol = drvlocal.ecmcAxis->getMon()->getPosLagTol();
   poslag_time = drvlocal.ecmcAxis->getMon()->getPosLagTime() * 1 / (double)MCU_FREQUENCY;
   poslag_enable = drvlocal.ecmcAxis->getMon()->getEnableLagMon();
@@ -391,7 +402,8 @@ asynStatus ecmcMotorRecordAxis::readMonitoring(int axisID)
   attarget_tol = drvlocal.ecmcAxis->getMon()->getAtTargetTol();
   attarget_time = drvlocal.ecmcAxis->getMon()->getAtTargetTime() * 1 / (double)MCU_FREQUENCY;
   attarget_enable = drvlocal.ecmcAxis->getMon()->getEnableAtTargetMon();
-   
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
   // At target monitoring must be enabled
   drvlocal.illegalInTargetWindow = (!attarget_enable || !attarget_tol);
 
@@ -418,9 +430,11 @@ asynStatus ecmcMotorRecordAxis::readBackVelocities(int axisID)
 {
   double scaleFactor = drvlocal.scaleFactor;
   double vel_max, acceleration;
-
+  
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   vel_max = drvlocal.ecmcAxis->getMon()->getMaxVel();
   acceleration = drvlocal.ecmcAxis->getTraj()->getAcc();
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
   if (drvlocal.manualVelocFast > 0.0) {
     updateCfgValue(pC_->ecmcMotorRecordCfgVELO_, drvlocal.manualVelocFast / scaleFactor, "velo");
@@ -535,6 +549,8 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
   }
   
   int errorCode = 0;
+
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   if(relative) {
     errorCode = drvlocal.ecmcAxis->moveRelativePosition(position * drvlocal.scaleFactor,
                                                 maxVelocity * drvlocal.scaleFactor,
@@ -548,7 +564,9 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
                                                 acceleration * drvlocal.scaleFactor,
                                                 acceleration * drvlocal.scaleFactor);
     
-  }  
+  }
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+  
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
   return errorCode == 0 ? asynSuccess:asynError;
 }
@@ -610,9 +628,11 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
   if (status != asynSuccess) {
     return asynError;
   }
-  
+
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,homPos,velToCam,velOffCam,accHom,accHom);
-  
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
   return errorCode == 0 ? asynSuccess:asynError;
 }
@@ -662,9 +682,11 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity, double maxVeloc
     acc = -acc;
   }
 
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->moveVelocity(velo,
                                           acc,
                                           acc);
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
   return errorCode == 0 ? asynSuccess:asynError;
@@ -684,6 +706,7 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
   // Read from records / params
   double homPos    = 0.0; /* The homPos may be undefined, then use 0.0 */
   
+  // Home proc should always be 15 for this function (just set value)
   //int    cmdData   = -1; 
   // nCmdData (sequence number) Must be "manual cmddata (=15)"
   // asynStatus status = pC_->getIntegerParam(axisNo_, pC_->ecmcMotorRecordHomProc_,&cmdData);
@@ -695,22 +718,36 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
   (void)pC_->getDoubleParam(axisNo_, pC_->ecmcMotorRecordHomPos_, &homPos);
   
   // always use home sequence 15 for setPosition
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode =  drvlocal.ecmcAxis->moveHome(HOMPROC_MANUAL_SETPOS,
                                        homPos,0,0,0,0);
-  
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
   return errorCode == 0 ? asynSuccess:asynError;
 }
 
 asynStatus ecmcMotorRecordAxis::resetAxis(void)
 {
+  drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
+  drvlocal.cmdErrorMessage[0] = 0;
+
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   drvlocal.ecmcAxis->errorReset();
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
+  
+  // Refresh
+  bool moving;
+  poll(&moving);
   return asynSuccess;
 }
 
 asynStatus ecmcMotorRecordAxis::setEnable(int on) {
+
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->setEnable(on);
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
   if(errorCode){
     LOGERR(
       "%s/%s:%d: ERROR: Function setEnable(%d) returned errorCode (0x%x).\n",
@@ -733,7 +770,8 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
 asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
 {
   asynStatus status = asynSuccess;
-  unsigned counter = 10;
+  unsigned counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME / 
+                           ECMC_AXIS_ENABLE_SLEEP_PERIOD);
 
 //  const char *enableEnabledReadback = "bEnabled";
 // #ifdef POWERAUTOONOFFMODE2
@@ -764,7 +802,13 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
   if (status) return status;
 
   while (counter) {
-    epicsThreadSleep(.1);
+
+    epicsThreadSleep(ECMC_AXIS_ENABLE_SLEEP_PERIOD);
+    asynStatus status = readEcmcAxisStatusData();
+    if(status) {
+      return status;
+    }
+
     if (drvlocal.statusBinData.onChangeData.statusWd.enabled == on && 
         drvlocal.statusBinData.onChangeData.statusWd.enable == on &&
        !drvlocal.statusBinData.onChangeData.statusWd.busy) {
@@ -788,7 +832,10 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
  */
 asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name, double acceleration)
 { 
+
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->setExecute(0);
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
   if(errorCode){
     LOGERR(
       "%s/%s:%d: ERROR: Function setExecute(0) returned errorCode (0x%x).\n",
@@ -916,25 +963,18 @@ void ecmcMotorRecordAxis::callParamCallbacksUpdateError()
   callParamCallbacks();
 }
 
-/** Polls the axis.
- * This function reads the motor position, the limit status, the home status, the moving status,
- * and the drive power-on status.
- * It calls setIntegerParam() and setDoubleParam() for each item that it polls,
- * and then calls callParamCallbacks() at the end.
- * \param[out] moving A flag that is set indicating that the axis is moving (true) or done (false). */
-asynStatus ecmcMotorRecordAxis::poll(bool *moving)
-{
-  asynStatus comStatus = asynSuccess;
-
-  double timeBefore = ecmcMotorRecordgetNowTimeSecs();
-  int waitNumPollsBeforeReady_ = drvlocal.waitNumPollsBeforeReady;
-
+asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
+  
   /* Driver not yet initialized, do nothing */
-  if (!drvlocal.ecmcAxis->getRealTimeStarted()) 
-    return comStatus;
-
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
+  if (!drvlocal.ecmcAxis->getRealTimeStarted()){
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    return asynSuccess;
+  }
   // Get values from ecmc
   ecmcAxisStatusType *tempAxisStat = drvlocal.ecmcAxis->getDebugInfoDataPointer();
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
   if(!tempAxisStat) {
     LOGERR(
       "%s/%s:%d: ERROR: function getAxisDebugInfoDataPointer() returned NULL.\n",
@@ -946,6 +986,26 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   }
   // copy data locally
   memcpy(&drvlocal.statusBinData,tempAxisStat,sizeof(ecmcAxisStatusType));
+
+  return asynSuccess;
+}
+
+/** Polls the axis.
+ * This function reads the motor position, the limit status, the home status, the moving status,
+ * and the drive power-on status.
+ * It calls setIntegerParam() and setDoubleParam() for each item that it polls,
+ * and then calls callParamCallbacks() at the end.
+ * \param[out] moving A flag that is set indicating that the axis is moving (true) or done (false). */
+asynStatus ecmcMotorRecordAxis::poll(bool *moving)
+{
+  double timeBefore = ecmcMotorRecordgetNowTimeSecs();
+  int waitNumPollsBeforeReady_ = drvlocal.waitNumPollsBeforeReady;
+
+  asynStatus status = readEcmcAxisStatusData();
+  if(status) {
+    return status;
+  }
+
   drvlocal.moveNotReadyNext = drvlocal.statusBinData.onChangeData.statusWd.busy || !drvlocal.statusBinData.onChangeData.statusWd.attarget;
 
   setIntegerParam(pC_->motorStatusHomed_, drvlocal.statusBinData.onChangeData.statusWd.homed);
@@ -1178,8 +1238,12 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
 
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d ecmcMotorRecordCfgDHLM_En)=%d\n",
-              modNamEMC, axisNo_, value);    
+              modNamEMC, axisNo_, value);
+
+    if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(value);
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    
     readBackSoftLimits();
     return errorCode == 0 ? asynSuccess : asynError;
 
@@ -1190,8 +1254,11 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d ecmcMotorRecordCfgDLLM_En)=%d\n",
               modNamEMC, axisNo_, value);
-    
+
+    if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitBwd(value);
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
     readBackSoftLimits();
     return errorCode==0 ? asynSuccess : asynError;
   }
@@ -1288,8 +1355,11 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
   else if (function == pC_->ecmcMotorRecordCfgDHLM_) {
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgDHLM_)=%f\n", modNamEMC, axisNo_, value);
-    
+
+    if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitFwd(value);
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
     readBackSoftLimits();
     return errorCode==0 ? asynSuccess : asynError;
 
@@ -1297,8 +1367,11 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
   else if (function == pC_->ecmcMotorRecordCfgDLLM_) {
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgDLLM_)=%f\n", modNamEMC, axisNo_, value);
-    
+
+    if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitBwd(value);
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
     readBackSoftLimits();
     return errorCode==0 ? asynSuccess : asynError;
 
@@ -1314,7 +1387,11 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
   else if (function == pC_->ecmcMotorRecordCfgVMAX_) {
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgVMAX_)=%f\n", modNamEMC, axisNo_, value);
+
+    if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setMaxVel(value);
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
     return errorCode==0 ? asynSuccess : asynError;
 
   } // manual velo fast.. Just store here in "motor record" driver
@@ -1328,7 +1405,11 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
   else if (function == pC_->ecmcMotorRecordCfgACCS_) {
     asynPrint(pC_->pasynUserSelf, ASYN_TRACE_INFO,
               "%ssetDoubleParam(%d ecmcMotorRecordCfgACCS_)=%f\n", modNamEMC, axisNo_, value);
+
+    if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
     drvlocal.ecmcAxis->getTraj()->setAcc(value);
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
     return asynSuccess;
 
   }

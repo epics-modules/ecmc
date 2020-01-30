@@ -15,6 +15,7 @@ FILENAME... ecmcMotorRecordController.cpp
 #include <epicsExport.h>
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcMotorRecordController.h"
+#include "../main/ecmcGlobalsExtern.h"
 
 #ifndef ASYN_TRACE_INFO
 #define ASYN_TRACE_INFO      0x0040
@@ -234,9 +235,17 @@ extern "C" int ecmcMotorRecordCreateController(const char *portName,
     return asynError;
   }
 
-  new ecmcMotorRecordController(portName, MotorPortName, 1+numAxes,
-                           movingPollPeriod/1000., idlePollPeriod/1000.,
-                           optionStr);
+  if(asynPortMotorRecord) {
+    printf("Error: ecmcMotorRecordController already initialized. ECMC only supports one ecmcMotorRecordController\n");
+    return asynError;
+  }
+  
+  asynPortMotorRecord = new ecmcMotorRecordController(portName, 
+                                                      MotorPortName,
+                                                      numAxes + 1,
+                                                      movingPollPeriod/1000.0,
+                                                      idlePollPeriod/1000.0,
+                                                      optionStr);
   return(asynSuccess);
 }
 

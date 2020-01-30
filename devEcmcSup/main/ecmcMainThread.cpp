@@ -42,6 +42,7 @@
 #include "../plc/ecmcPLC.h"
 #include "../misc/ecmcMisc.h"
 #include "../com/ecmcAsynPortDriver.h"
+#include "../motor/ecmcMotorRecordController.h"
 
 /****************************************************************************/
 static unsigned int    counter = 0;
@@ -244,15 +245,21 @@ void cyclic_task(void *usr) {
      * (sleep in waitforstartup() this is called
      * in asyn thread) .
      * */
-    if (asynPort && (appModeStat == ECMC_MODE_RUNTIME)) {
-      asynPort->unlock();
+    if (appModeStat == ECMC_MODE_RUNTIME) {
+      if(asynPort) asynPort->unlock();      
     }
+    // Mutex for motor record access
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
 
-    if (asynPort && (appModeStat == ECMC_MODE_RUNTIME)) {
-      asynPort->lock();
-      asynPort->updateTimeStamp();
+    if (appModeStat == ECMC_MODE_RUNTIME) {      
+      if (asynPort) {
+        asynPort->lock();
+        asynPort->updateTimeStamp();
+      }
     }
+    // Mutex for motor record access
+    if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
 
     clock_gettime(CLOCK_MONOTONIC, &startTime);
     

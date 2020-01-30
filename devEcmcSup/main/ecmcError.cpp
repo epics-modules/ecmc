@@ -1374,7 +1374,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_DATATYPE_NOT_VALID";
 
     break;
-    
+
   case 0x20000:
     return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
 
@@ -1736,8 +1736,14 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_FILTER_INVALID_SIZE";
 
     break;
+    
   case 0x2004A:
     return "ERROR_MAIN_EC_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x2004B:
+    return "ERROR_MAIN_RT_MUTEX_NULL";
 
     break;
 

@@ -7,12 +7,14 @@ FILENAME...   ecmcMotorRecordAxis.h
 
 #include "asynMotorAxis.h"
 #include <stdint.h>
+#include "../motion/ecmcAxisBase.h"
 
-#include "../main/ecmcGlobalsExtern.h"
 
 #define AMPLIFIER_ON_FLAG_CREATE_AXIS  (1)
 #define AMPLIFIER_ON_FLAG_AUTO_ON      (1<<1)
 #define AMPLIFIER_ON_FLAG_USING_CNEN   (1<<2)
+
+#define ECMCAMPLIFIER_ON_FLAG_USING_CNEN   (1<<2)
 
 extern const char *modNamEMC;
 
@@ -134,6 +136,7 @@ private:
   asynStatus resetAxis(void);
   asynStatus printDiagBinData();
   asynStatus setEnable(int on);
+  asynStatus readEcmcAxisStatusData();
 #ifndef motorMessageTextString
   void updateMsgTxtFromDriver(const char *value);
 #endif
