@@ -766,8 +766,10 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
 }
 
 /** 
- *  Poll if power is in (used  if POWERAUTOONOFFMODE2)
- *  or motorPowerAutoOnOff_ = 2
+ *  Used by auto power on functionality 
+ *  (used  if POWERAUTOONOFFMODE2, motorPowerAutoOnOff_ = 2);
+ *  Method returns enabled state of axis.
+ *  Method is called cyclic from asynMotorController::autoPowerOn() 
  */
 bool ecmcMotorRecordAxis::pollPowerIsOn(void)
 {
