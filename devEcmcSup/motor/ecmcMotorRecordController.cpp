@@ -21,6 +21,8 @@ FILENAME... ecmcMotorRecordController.cpp
 #define ASYN_TRACE_INFO      0x0040
 #endif
 
+extern asynUser *pPrintOutAsynUser;
+
 const char *modNamEMC = "ecmcMotorRecord:: ";
 
 const static char *const strEcmcCreateControllerDef  = "ecmcMotorRecordCreateController";

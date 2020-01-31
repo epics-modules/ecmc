@@ -27,7 +27,7 @@
 #define WAITNUMPOLLSBEFOREREADY 3
 
 static ecmcMotorRecordController *pC;
-
+extern asynUser *pPrintOutAsynUser;
 /**
  * Option strings
 */
@@ -38,9 +38,9 @@ static ecmcMotorRecordController *pC;
 #define ECMC_AXIS_OPT_HOME_PROC         "HomProc="
 #define ECMC_AXIS_OPT_HOME_POS          "HomPos="
 #define ECMC_AXIS_OPT_FLAGS             "axisFlags="
-#define ECMC_AXIS_OPT_POWER_AUTO_ON_OFF "powerAutoOnOff="
-#define ECMC_AXIS_OPT_POWER_OFF_DELAY   "powerOffDelay="
-#define ECMC_AXIS_OPT_POWER_ON_DELAY    "powerOnDelay="
+ #define ECMC_AXIS_OPT_POWER_AUTO_ON_OFF "powerAutoOnOff="
+// #define ECMC_AXIS_OPT_POWER_OFF_DELAY   "powerOffDelay="
+// #define ECMC_AXIS_OPT_POWER_ON_DELAY    "powerOnDelay="
 #define ECMC_AXIS_OPT_SCALE_FACTOR      "scaleFactor="
 #define ECMC_AXIS_OPT_STR_LEN 15
 
@@ -63,7 +63,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   : asynMotorAxis(pC, axisNo),
     pC_(pC)
 {
-  int powerAutoOnOff = -1; /* undefined */
+  //int powerAutoOnOff = -1; /* undefined */
   /* Some parameters are only defined in the ESS fork of the motor module.
      So they have the ifdef */
 #ifdef motorFlagsDriverUsesEGUString
@@ -93,6 +93,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
   drvlocal.axisId          = axisNo;
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;
+  drvlocal.scaleFactor     = 1.0;
+  drvlocal.axisFlags       = axisFlags;
 
   /* We pretend to have an encoder (fActPosition) */
   setIntegerParam(pC_->motorStatusHasEncoder_, 1);
@@ -108,14 +110,24 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #ifdef motorFlagsPwrWaitForOnString
   setIntegerParam(pC_->motorFlagsPwrWaitForOn_, 1);
 #endif
+  if (axisFlags & AMPLIFIER_ON_FLAG_AUTO_ON) {
+#ifdef POWERAUTOONOFFMODE2    
+    setIntegerParam(pC_->motorPowerAutoOnOff_, POWERAUTOONOFFMODE2);
+    setDoubleParam(pC_->motorPowerOnDelay_,   6.0);
+    setDoubleParam(pC_->motorPowerOffDelay_, -1.0);
+#endif
 #ifdef motorShowPowerOffString
     setIntegerParam(pC_->motorShowPowerOff_, 1);
 #endif
 #ifdef  motorNotHomedProblemString
     setIntegerParam(pC_->motorNotHomedProblem_, MOTORNOTHOMEDPROBLEM_ERROR);
 #endif
+  }
 
-  drvlocal.scaleFactor = 1.0;
+  if (axisFlags & AMPLIFIER_ON_FLAG_USING_CNEN) {
+    setIntegerParam(pC->motorStatusGainSupport_, 1);
+  }
+
   if (axisOptionsStr && axisOptionsStr[0]) {    
     char *pOptions = strdup(axisOptionsStr);
     char *pThisOption = pOptions;
@@ -140,9 +152,9 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         /* This option is obsolete, depending on motor */
         drvlocal.scaleFactor = atof(pThisOption);
 #endif
-      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_AUTO_ON_OFF, strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF))) {
-        pThisOption += strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF);
-	      powerAutoOnOff = atoi(pThisOption);
+      // } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_AUTO_ON_OFF, strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF))) {
+      //   pThisOption += strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF);
+	    //   powerAutoOnOff = atoi(pThisOption);
       } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_HOME_PROC, strlen(ECMC_AXIS_OPT_HOME_PROC))) {
         pThisOption += strlen(ECMC_AXIS_OPT_HOME_PROC);
         int homProc = atoi(pThisOption);
@@ -154,37 +166,27 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
       } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_SCALE_FACTOR, strlen(ECMC_AXIS_OPT_SCALE_FACTOR))) {
         pThisOption += strlen(ECMC_AXIS_OPT_SCALE_FACTOR);
         drvlocal.scaleFactor = atof(pThisOption);
-      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_OFF_DELAY, strlen(ECMC_AXIS_OPT_POWER_OFF_DELAY))) {
-        double powerOffDelay;
-        pThisOption += strlen(ECMC_AXIS_OPT_POWER_OFF_DELAY);
-        powerOffDelay = atof(pThisOption);
-        updateCfgValue(pC_->motorPowerOffDelay_, powerOffDelay, "powerOffDelay");
-      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_ON_DELAY, strlen(ECMC_AXIS_OPT_POWER_ON_DELAY))) {
-        double powerOnDelay;
-        pThisOption += strlen(ECMC_AXIS_OPT_POWER_ON_DELAY);
-        powerOnDelay = atof(pThisOption);
-        updateCfgValue(pC_->motorPowerOnDelay_, powerOnDelay, "powerOnDelay");
+      // } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_OFF_DELAY, strlen(ECMC_AXIS_OPT_POWER_OFF_DELAY))) {
+      //   double powerOffDelay;
+      //   pThisOption += strlen(ECMC_AXIS_OPT_POWER_OFF_DELAY);
+      //   powerOffDelay = atof(pThisOption);
+      //   updateCfgValue(pC_->motorPowerOffDelay_, powerOffDelay, "powerOffDelay");
+      // } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_ON_DELAY, strlen(ECMC_AXIS_OPT_POWER_ON_DELAY))) {
+      //   double powerOnDelay;
+      //   pThisOption += strlen(ECMC_AXIS_OPT_POWER_ON_DELAY);
+      //   powerOnDelay = atof(pThisOption);
+      //   updateCfgValue(pC_->motorPowerOnDelay_, powerOnDelay, "powerOnDelay");
       }
       pThisOption = pNextOption;
     }
     free(pOptions);
   }
-  drvlocal.axisFlags = axisFlags;
-  if (axisFlags & AMPLIFIER_ON_FLAG_USING_CNEN) {
-    setIntegerParam(pC->motorStatusGainSupport_, 1);
-  }
-  if (powerAutoOnOff >= 0) {
-    /* The new handling using options */
-    setIntegerParam(pC_->motorPowerAutoOnOff_, powerAutoOnOff);
-    /* the delays had been set up above */
-  } else if (axisFlags & AMPLIFIER_ON_FLAG_AUTO_ON) {
-    /* old, legacy, to support old start scripts where flags == 6 are used */
-#ifdef POWERAUTOONOFFMODE2
-    setIntegerParam(pC_->motorPowerAutoOnOff_, POWERAUTOONOFFMODE2);
-    setDoubleParam(pC_->motorPowerOnDelay_,   6.0);
-    setDoubleParam(pC_->motorPowerOffDelay_, -1.0);
-#endif
-  }
+ 
+  // if (powerAutoOnOff >= 0) {
+  //   /* The new handling using options */
+  //   setIntegerParam(pC_->motorPowerAutoOnOff_, powerAutoOnOff);
+  //   /* the delays had been set up above */
+  // } 
   /* Set the module name to "" if we have FILE/LINE enabled by asyn */
   if (pasynTrace->getTraceInfoMask(pC_->pasynUserSelf) & ASYN_TRACEINFO_SOURCE) modNamEMC = "";
   
@@ -217,10 +219,10 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
             ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_FLAGS);
     printf("                             -%-*s : Set powerAutoOnOff (over-rides/writes def in record/param)\n",
             ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_AUTO_ON_OFF);
-    printf("                             -%-*s : Set powerOffDelay (over-rides/writes def in record/param)\n",
-            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_OFF_DELAY);
-    printf("                             -%-*s : Set powerOnDelay (over-rides/writes def in record/param)\n",
-            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_ON_DELAY);
+    // printf("                             -%-*s : Set powerOffDelay (over-rides/writes def in record/param)\n",
+    //         ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_OFF_DELAY);
+    // printf("                             -%-*s : Set powerOnDelay (over-rides/writes def in record/param)\n",
+    //         ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_ON_DELAY);
     printf("                             -%-*s : Set scaleFactor\n",
             ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_SCALE_FACTOR);
     #ifndef motorFlagsDriverUsesEGUString
@@ -564,8 +566,9 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
     
   }
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
-  
+#ifndef motorWaitPollsBeforeReadyString
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
+#endif
   return errorCode == 0 ? asynSuccess:asynError;
 }
 
@@ -595,13 +598,17 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
   double accHom    = 0;
    
   // nCmdData (sequence number)
-  asynStatus status = pC_->getIntegerParam(axisNo_, pC_->ecmcMotorRecordHomProc_,&cmdData);
+  asynStatus status = pC_->getIntegerParam(axisNo_,
+                                           pC_->ecmcMotorRecordHomProc_,
+                                           &cmdData);
   if (cmdData == HOMPROC_MANUAL_SETPOS || status != asynSuccess) {
     return asynError;
   }
   
   // Home position
-  (void)pC_->getDoubleParam(axisNo_, pC_->ecmcMotorRecordHomPos_, &homPos);
+  (void)pC_->getDoubleParam(axisNo_,
+                            pC_->ecmcMotorRecordHomPos_,
+                            &homPos);
   
   // Velocity to cam (high velo)
   status = pC_->getDoubleParam(axisNo_,
@@ -631,7 +638,9 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
   int errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,homPos,velToCam,velOffCam,accHom,accHom);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
+#ifndef motorWaitPollsBeforeReadyString
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
+#endif
   return errorCode == 0 ? asynSuccess:asynError;
 }
 
@@ -682,11 +691,13 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity, double maxVeloc
 
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->moveVelocity(velo,
-                                          acc,
-                                          acc);
+                                                  acc,
+                                                  acc);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
+#ifndef motorWaitPollsBeforeReadyString
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
+#endif
   return errorCode == 0 ? asynSuccess:asynError;
 }
 
@@ -720,7 +731,6 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
   int errorCode =  drvlocal.ecmcAxis->moveHome(HOMPROC_MANUAL_SETPOS,
                                        homPos,0,0,0,0);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
-  drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
   return errorCode == 0 ? asynSuccess:asynError;
 }
 
@@ -732,8 +742,6 @@ asynStatus ecmcMotorRecordAxis::resetAxis(void)
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   drvlocal.ecmcAxis->errorReset();
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
-
-  drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
   
   // Refresh
   bool moving;
@@ -742,7 +750,7 @@ asynStatus ecmcMotorRecordAxis::resetAxis(void)
 }
 
 asynStatus ecmcMotorRecordAxis::setEnable(int on) {
-
+  
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->setEnable(on);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
@@ -757,8 +765,7 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
 
     return asynError;
   }
-  
-  drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
+
   return asynSuccess;
 }
 
@@ -769,23 +776,24 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
 {
   asynStatus status = asynSuccess;
   unsigned counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME / 
-                           ECMC_AXIS_ENABLE_SLEEP_PERIOD);
+                           ECMC_AXIS_ENABLE_SLEEP_PERIOD);                       
+  int justCheckForEnable = 0;
+  bool moving = 0;
 
-//  const char *enableEnabledReadback = "bEnabled";
-// #ifdef POWERAUTOONOFFMODE2
-//   {
-//     int autoPower;
-//     pC_->getIntegerParam(axisNo_, pC_->motorPowerAutoOnOff_, &autoPower);
-//     if (autoPower) {
-//       /* The record/driver will check for enabled - don't do that here */
-//       enableEnabledReadback = "bEnable";
-//     }
-//   }
-// #endif
+ #ifdef POWERAUTOONOFFMODE2
+    {
+      int autoPower;
+      pC_->getIntegerParam(axisNo_, pC_->motorPowerAutoOnOff_, &autoPower);
+      if (autoPower) {
+        /* The record/driver will check for enabled - only check enable */
+        justCheckForEnable = 1;
+      }
+    }
+  #endif
   
   on = on ? 1 : 0; /* either 0 or 1 */
   
-  if(drvlocal.statusBinData.onChangeData.statusWd.enabled == on && 
+  if(drvlocal.statusBinData.onChangeData.statusWd.enabled == on &&
      drvlocal.statusBinData.onChangeData.statusWd.enable == on) {
     return status;  // status OK
   }
@@ -803,13 +811,15 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
 
     epicsThreadSleep(ECMC_AXIS_ENABLE_SLEEP_PERIOD);
     asynStatus status = readEcmcAxisStatusData();
-    if(status) {
+    if(status) {      
       return status;
     }
 
-    if (drvlocal.statusBinData.onChangeData.statusWd.enabled == on && 
+    if ((drvlocal.statusBinData.onChangeData.statusWd.enabled == on || justCheckForEnable) && 
         drvlocal.statusBinData.onChangeData.statusWd.enable == on &&
        !drvlocal.statusBinData.onChangeData.statusWd.busy) {
+      /* The poller co-ordinates the writing into the parameter library */      
+      poll(&moving);
       return asynSuccess;
     }
     counter = counter -1;
@@ -820,8 +830,8 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
     snprintf(drvlocal.cmdErrorMessage, sizeof(drvlocal.cmdErrorMessage)-1,
              "E: enableAmplifier(%d) failed. out=%s in=%s\n",
              axisNo_, pC_->outString_, pC_->inString_);
-    /* The poller co-ordinates the writing into the parameter library */
   }
+
   return asynError;
 }
 
@@ -844,8 +854,6 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name, doub
 
     return asynError;
   }
-
-  drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
   
   return asynSuccess;
 }
@@ -996,14 +1004,20 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
  * \param[out] moving A flag that is set indicating that the axis is moving (true) or done (false). */
 asynStatus ecmcMotorRecordAxis::poll(bool *moving)
 {
+  printf("POLLING\n");
+
   double timeBefore = ecmcMotorRecordgetNowTimeSecs();
+#ifndef motorWaitPollsBeforeReadyString
   int waitNumPollsBeforeReady_ = drvlocal.waitNumPollsBeforeReady;
+#endif
 
   asynStatus status = readEcmcAxisStatusData();
   if(status) {
     return status;
   }
 
+  printf("POLLING power on %d\n",drvlocal.statusBinData.onChangeData.statusWd.enabled);
+  
   drvlocal.moveNotReadyNext = drvlocal.statusBinData.onChangeData.statusWd.busy || !drvlocal.statusBinData.onChangeData.statusWd.attarget;
 
   setIntegerParam(pC_->motorStatusHomed_, drvlocal.statusBinData.onChangeData.statusWd.homed);
@@ -1012,7 +1026,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   setIntegerParam(pC_->motorStatusAtHome_, drvlocal.statusBinData.onChangeData.statusWd.homeswitch);
   setIntegerParam(pC_->motorStatusLowLimit_, !drvlocal.statusBinData.onChangeData.statusWd.limitbwd);
   setIntegerParam(pC_->motorStatusHighLimit_, !drvlocal.statusBinData.onChangeData.statusWd.limitfwd);
-  setIntegerParam(pC_->motorStatusPowerOn_, drvlocal.statusBinData.onChangeData.statusWd.enabled);
+  setIntegerParam(pC_->motorStatusPowerOn_, drvlocal.statusBinData.onChangeData.statusWd.enabled);  
   setDoubleParam(pC_->ecmcMotorRecordVelAct_, drvlocal.statusBinData.onChangeData.velocityActual);
   setDoubleParam(pC_->ecmcMotorRecordAcc_RB_, drvlocal.statusBinData.acceleration);
 
@@ -1098,7 +1112,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
               drvlocal.statusBinData.onChangeData.statusWd.busy, drvlocal.statusBinData.onChangeData.statusWd.execute,
               drvlocal.statusBinData.onChangeData.statusWd.enabled, drvlocal.statusBinData.onChangeData.statusWd.attarget,
               drvlocal.waitNumPollsBeforeReady);
-    drvlocal.waitNumPollsBeforeReady--;
+    drvlocal.waitNumPollsBeforeReady--;    
     callParamCallbacks();
   }
   else
@@ -1163,8 +1177,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
                sErrorMessage, nErrorId);
     }
     /* The poller will update the MsgTxt field */
-    updateMsgTxtFromDriver(drvlocal.sErrorMessage);
+    //updateMsgTxtFromDriver(drvlocal.sErrorMessage);
   }
+
   callParamCallbacksUpdateError();
 
   memcpy(&drvlocal.statusBinDataOld, &drvlocal.statusBinData,
