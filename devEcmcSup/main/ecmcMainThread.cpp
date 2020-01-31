@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <string>
 
+#include "epicsThread.h"
 #include "ecmcMainThread.h"
 #include "ecmcGeneral.h"
 #include "ecrt.h"
