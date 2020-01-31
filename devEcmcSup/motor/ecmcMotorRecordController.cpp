@@ -304,7 +304,7 @@ void ecmcMotorRecordController::udateMotorLimitsRO(int axisNo, int enabledHighAn
     getDoubleParam(axisNo, motorHighLimitRO_, &oldValueHigh);
     getDoubleParam(axisNo, motorLowLimitRO_,  &oldValueLow);
     if ((fValueHigh != oldValueHigh) || (fValueLow != oldValueLow)) {
-      asynPrint(pasynUserSelf, ASYN_TRACE_INFO,
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
                 "%sudateMotorLimitsRO(%d) enabledHighAndLow=%d valid=%d fValueHigh=%g fValueLow=%g\n",
                 modNamEMC, axisNo,
                 enabledHighAndLow, valid, fValueHigh, fValueLow);
@@ -328,7 +328,7 @@ void ecmcMotorRecordController::udateMotorLimitsRO(int axisNo, int enabledHighAn
 void ecmcMotorRecordController::handleStatusChange(asynStatus status)
 {
   if (status != ctrlLocal.oldStatus) {
-    asynPrint(pasynUserSelf, ASYN_TRACE_INFO,
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
               "%soldStatus=%s (%d) status=%s (%d)\n",
               modNamEMC,
               ecmcMotorRecordstrStatus(ctrlLocal.oldStatus), (int)ctrlLocal.oldStatus,
@@ -359,7 +359,7 @@ asynStatus ecmcMotorRecordController::poll(void)
 {
   asynStatus status = asynSuccess;
 
-  asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
             "%spoll ctrlLocal.initialPollDone=%d\n",
             modNamEMC, ctrlLocal.initialPollDone);
   if (!features_) {

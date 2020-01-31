@@ -114,7 +114,7 @@ private:
       unsigned int     sErrorMessage         : 1; /* From MCU */
       unsigned int     initialPollNeeded     : 1;
     }  dirty;
-    int                moveNotReadyNext      : 1;
+    int                moveNotReadyNext;
     char               cmdErrorMessage[80]; /* From driver */
     char               sErrorMessage[80]; /* From controller */
   } drvlocal;
@@ -137,6 +137,7 @@ private:
   asynStatus printDiagBinData();
   asynStatus setEnable(int on);
   asynStatus readEcmcAxisStatusData();
+  bool       pollPowerIsOn(void);
 #ifndef motorMessageTextString
   void updateMsgTxtFromDriver(const char *value);
 #endif
