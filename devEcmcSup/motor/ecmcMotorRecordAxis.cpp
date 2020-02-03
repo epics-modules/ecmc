@@ -26,6 +26,7 @@
 
 static ecmcMotorRecordController *pC;
 extern asynUser *pPrintOutAsynUser;
+
 /**
  * Option strings
 */
@@ -605,7 +606,6 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
   return errorCode == 0 ? asynSuccess:asynError;
 }
 
-
 /** jog the the motor, search the home position
  * \param[in] minimum velocity, mm/sec (not used)
  * \param[in] maximum velocity, mm/sec (positive or negative)
@@ -687,7 +687,7 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
   // always use home sequence 15 for setPosition
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode =  drvlocal.ecmcAxis->moveHome(ECMC_SEQ_HOME_SET_POS,
-                                       homPos,0,0,0,0);
+                                               homPos,0,0,0,0);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
   return errorCode == 0 ? asynSuccess:asynError;
 }
@@ -1001,34 +1001,8 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   if (drvlocal.waitNumPollsBeforeReady) {
     *moving = true;
   }
-  //else
 #endif
-    // { // remove this option section
-    //   *moving = drvlocal.moveNotReadyNext ? true : false;
-    //   if (!drvlocal.moveNotReadyNext &&
-    //       !(pC_->features_ & FEATURE_BITS_ECMC)) {
-    //     /* not moving: poll the parameters for this axis */        
-    //     switch (drvlocal.eeAxisPollNow) {          
-    //     case pollNowReadScaling:
-    //       readScaling(drvlocal.axisId);          
-    //       break;
-    //     case pollNowReadMonitoring:
-    //       readMonitoring(drvlocal.axisId);
-    //       drvlocal.eeAxisPollNow = pollNowReadBackSoftLimits;
-    //       break;
-    //     case pollNowReadBackSoftLimits:
-    //       readBackSoftLimits();
-    //       drvlocal.eeAxisPollNow = pollNowReadBackVelocities;
-    //       break;
-    //     case pollNowReadBackVelocities:
-    //     default:          
-    //       readBackVelocities(drvlocal.axisId);
-    //       drvlocal.eeAxisPollNow = pollNowReadScaling;
-    //       break;
-    //     }
-    //   }
-    // }
-
+  
   if (drvlocal.moveNotReadyNext){
     drvlocal.nCommandActive = drvlocal.statusBinData.onChangeData.command;
   }
