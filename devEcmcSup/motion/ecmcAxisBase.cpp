@@ -22,6 +22,7 @@
  * 
  * Callback function for asynWrites (commands)
  * userObj = axis object
+ * Keep code as example how to link functions to a param
  * 
  * */ 
 /*asynStatus asynWriteCmd(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
@@ -116,8 +117,6 @@ void ecmcAxisBase::initVars() {
   }
   statusOutputEntry_          = 0;
   blockExtCom_                = 0;
-  //memset(&controlData_,0,sizeof(controlData_));
-  //memset(&controlDataOld_,0,sizeof(controlDataOld_));
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_ = NULL;
   extEncVeloFilter_ = NULL;
@@ -1673,21 +1672,3 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
 
   return asynSuccess;
 }*/
-
-// enum motionCommandTypes {             // Data order for motor record communications
-//   ECMC_CMD_NOCMD              = -1,   
-//   ECMC_CMD_JOG                = 0,    
-//   ECMC_CMD_MOVEVEL            = 1,    // cmd, vel, acc
-//   ECMC_CMD_MOVEREL            = 2,    // cmd, pos,vel,acc
-//   ECMC_CMD_MOVEABS            = 3,    // cmd, pos,vel,acc
-//   ECMC_CMD_MOVEMODULO         = 4,    
-//   ECMC_CMD_HOMING             = 10,   // cmd, seqnbr,homepos,velhigh,vellow,acc
-//   ECMC_CMD_SUPERIMP           = 20,   
-//   ECMC_CMD_GEAR               = 30,   
-//   ECMC_CMD_STOP               = 100,  // cmd, (Should have been 0 instead of 100)
-//   ECMC_CMD_SET_ENABLE         = 101,  // cmd,  enable
-//   ECMC_CMD_SET_SOFTLIMBWD     = 102,  // cmd,  soflimbwd
-//   ECMC_CMD_SET_SOFTLIMFWD     = 103,  // cmd,  soflimfwd
-//   ECMC_CMD_SET_SOFTLIMBWD_ENA = 104,  // cmd,  soflimbwdena
-//   ECMC_CMD_SET_SOFTLIMFWD_ENA = 105,  // cmd,  soflimfwdena
-// };
