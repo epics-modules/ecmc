@@ -31,10 +31,6 @@ extern asynUser *pPrintOutAsynUser;
 /**
  * Option strings
 */
-#ifndef motorFlagsDriverUsesEGUString  // remove this option 
-/* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
-#define ECMC_AXIS_OPT_STEP_SIZE         "stepSize="
-#endif
 #define ECMC_AXIS_OPT_HOME_PROC         "HomProc="
 #define ECMC_AXIS_OPT_HOME_POS          "HomPos="
 #define ECMC_AXIS_OPT_FLAGS             "axisFlags="
@@ -65,9 +61,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 {
   /* Some parameters are only defined in the ESS fork of the motor module.
      So they have the ifdef */
-#ifdef motorFlagsDriverUsesEGUString
   setIntegerParam(pC_->motorFlagsDriverUsesEGU_,1);
-#endif
 #ifdef motorFlagsAdjAfterHomedString
   setIntegerParam(pC_->motorFlagsAdjAfterHomed_, 1);
 #endif
@@ -145,12 +139,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         if (myAxisFlags > 0) {
           axisFlags = myAxisFlags;
         }      
-#ifndef motorFlagsDriverUsesEGUString // remove this option
-      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_STEP_SIZE, strlen(ECMC_AXIS_OPT_STEP_SIZE))) {
-        pThisOption += strlen(ECMC_AXIS_OPT_STEP_SIZE);
-        /* This option is obsolete, depending on motor */
-        drvlocal.scaleFactor = atof(pThisOption); // remove this option
-#endif
       } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_AUTO_ON_OFF, strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF))) {
         pThisOption += strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF);
 	      int powerAutoOnOff = -1; /* undefined */
@@ -221,11 +209,6 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
             ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_ON_DELAY);
     printf("                             -%-*s : Set scaleFactor\n",
             ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_SCALE_FACTOR);
-    #ifndef motorFlagsDriverUsesEGUString
-    /* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
-    printf("                             -%-*s : Set step-size (ESS-motor record, compensate for MRES)\n",
-            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_STEP_SIZE);    
-    #endif
     printf(")\n");    
     printf("Example:\n");
     printf("ecmcMotorRecordCreateAxis(\"ECMC_ASYN_MOTOR_PORT\",10,6,\"\")\n");
