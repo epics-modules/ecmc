@@ -26,7 +26,7 @@ int ecmcInit(void *asynPortObject) {
             ERROR_MAIN_RT_MUTEX_NULL);
     return ERROR_MAIN_RT_MUTEX_NULL;
   }
-  
+
   asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);  
   ec = new ecmcEc();
 
@@ -269,9 +269,28 @@ void ecmcCleanup() {
   ec = NULL;
 }
 
+/**
+ * 
+ * Callback function for asynWrites (commands): ecmc.error.reset
+ * userObj = NULL
+ *  Will controllerErrorReset()   
+ * 
+ */ 
+asynStatus asynWriteReset(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  // userobj = NULL
+  if(asynParType!=asynParamInt32 || bytes != sizeof(asynParamInt32)) {
+    return asynError;
+  }
+  int reset = *(int32_t*)data;
+  if(reset){
+    return (asynStatus)controllerErrorReset();
+  }
+  return asynSuccess;
+}
+
 int ecmcAddDefaultAsynParams() {
 
-  // Add test params.. Uncomment to get a few parameters use full for testing
+  // Add test params.. Uncomment to get a few parameters usefull for testing
   //ecmcAddTestParams();
 
   LOGINFO4("%s/%s:%d\n",
@@ -517,7 +536,9 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+
   paramTemp->allowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteReset,NULL); // Nu object defined
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_RESET_ID] = paramTemp;  
 
