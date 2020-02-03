@@ -37,7 +37,6 @@ extern asynUser *pPrintOutAsynUser;
 #define ECMC_AXIS_OPT_POWER_AUTO_ON_OFF "powerAutoOnOff="
 #define ECMC_AXIS_OPT_POWER_OFF_DELAY   "powerOffDelay="
 #define ECMC_AXIS_OPT_POWER_ON_DELAY    "powerOnDelay="
-#define ECMC_AXIS_OPT_SCALE_FACTOR      "scaleFactor="
 #define ECMC_AXIS_OPT_STR_LEN 15
 
 #define ECMC_AXIS_ENABLE_SLEEP_PERIOD 0.1
@@ -86,7 +85,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
   drvlocal.axisId          = axisNo;
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;
-  drvlocal.scaleFactor     = 1.0;
   drvlocal.axisFlags       = axisFlags;
 
   /* We pretend to have an encoder (fActPosition) */
@@ -152,9 +150,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         pThisOption += strlen(ECMC_AXIS_OPT_HOME_POS);
         double homPos = atof(pThisOption);
         setDoubleParam(pC_->ecmcMotorRecordHomPos_, homPos);
-      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_SCALE_FACTOR, strlen(ECMC_AXIS_OPT_SCALE_FACTOR))) {
-        pThisOption += strlen(ECMC_AXIS_OPT_SCALE_FACTOR);
-        drvlocal.scaleFactor = atof(pThisOption);
       } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_OFF_DELAY, strlen(ECMC_AXIS_OPT_POWER_OFF_DELAY))) {
         double powerOffDelay;
         pThisOption += strlen(ECMC_AXIS_OPT_POWER_OFF_DELAY);
@@ -207,8 +202,6 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
             ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_OFF_DELAY);
     printf("                             -%-*s : Set powerOnDelay (over-rides/writes def in record/param)\n",
             ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_POWER_ON_DELAY);
-    printf("                             -%-*s : Set scaleFactor\n",
-            ECMC_AXIS_OPT_STR_LEN,ECMC_AXIS_OPT_SCALE_FACTOR);
     printf(")\n");    
     printf("Example:\n");
     printf("ecmcMotorRecordCreateAxis(\"ECMC_ASYN_MOTOR_PORT\",10,6,\"\")\n");
@@ -288,7 +281,6 @@ asynStatus ecmcMotorRecordAxis::readBackSoftLimits(void)
 {
   int    enabledFwd = 0,  enabledBwd = 0;
   double fValueFwd = 0.0, fValueBwd  = 0.0;
-  double scaleFactor = drvlocal.scaleFactor;
   
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   fValueBwd  = drvlocal.ecmcAxis->getMon()->getSoftLimitBwd();
@@ -302,11 +294,11 @@ asynStatus ecmcMotorRecordAxis::readBackSoftLimits(void)
   pC_->setIntegerParam(axisNo_, pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
   pC_->setDoubleParam(axisNo_, pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
   
-  if (scaleFactor) {
-    pC_->udateMotorLimitsRO(axisNo_, enabledBwd && enabledFwd,
-                            fValueFwd / scaleFactor, 
-                            fValueBwd / scaleFactor);
-  }
+  
+  pC_->udateMotorLimitsRO(axisNo_,
+                          enabledBwd && enabledFwd,
+                          fValueFwd, 
+                          fValueBwd);
   return asynSuccess;
 }
 
@@ -358,10 +350,6 @@ asynStatus ecmcMotorRecordAxis::readScaling(int axisID)
 
     return asynError;
   }
-
-  // Why is not the "drvlocal.scaleFactor" needed/updated? Always 1..
-  // drvlocal.scaleFactor = num / denom;
-
   updateCfgValue(pC_->ecmcMotorRecordCfgSREV_RB_, denom, "srev");
   updateCfgValue(pC_->ecmcMotorRecordCfgUREV_RB_, num, "urev");
 
@@ -409,7 +397,6 @@ asynStatus ecmcMotorRecordAxis::readMonitoring(int axisID)
 
 asynStatus ecmcMotorRecordAxis::readBackVelocities(int axisID)
 {
-  double scaleFactor = drvlocal.scaleFactor;
   double vel_max, acceleration;
   
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
@@ -418,16 +405,16 @@ asynStatus ecmcMotorRecordAxis::readBackVelocities(int axisID)
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
   if (drvlocal.manualVelocFast > 0.0) {
-    updateCfgValue(pC_->ecmcMotorRecordCfgVELO_, drvlocal.manualVelocFast / scaleFactor, "velo");
+    updateCfgValue(pC_->ecmcMotorRecordCfgVELO_, drvlocal.manualVelocFast, "velo");
   }
   if (vel_max > 0.0) {
-    updateCfgValue(pC_->ecmcMotorRecordCfgVMAX_, vel_max / scaleFactor, "vmax");
+    updateCfgValue(pC_->ecmcMotorRecordCfgVMAX_, vel_max, "vmax");
   }
   if (drvlocal.manualVelocSlow > 0.0) {
-    updateCfgValue(pC_->ecmcMotorRecordCfgJVEL_, drvlocal.manualVelocSlow / scaleFactor, "jvel");
+    updateCfgValue(pC_->ecmcMotorRecordCfgJVEL_, drvlocal.manualVelocSlow, "jvel");
   }
   if (acceleration > 0.0) {
-    updateCfgValue(pC_->ecmcMotorRecordCfgACCS_, acceleration / scaleFactor, "accs");
+    updateCfgValue(pC_->ecmcMotorRecordCfgACCS_, acceleration, "accs");
   }
   return asynSuccess;
 }
@@ -519,10 +506,7 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
   /* Do range check */
-  if (!drvlocal.scaleFactor) {
-    drvlocal.eeAxisWarning = eeAxisWarningCfgZero;
-    return asynSuccess;
-  } else if (!maxVelocity) {
+  if (!maxVelocity) {
     drvlocal.eeAxisWarning = eeAxisWarningVeloZero;
     return asynSuccess;
   }
@@ -531,17 +515,17 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
 
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   if(relative) {
-    errorCode = drvlocal.ecmcAxis->moveRelativePosition(position * drvlocal.scaleFactor,
-                                                maxVelocity * drvlocal.scaleFactor,
-                                                acceleration * drvlocal.scaleFactor,
-                                                acceleration * drvlocal.scaleFactor);
+    errorCode = drvlocal.ecmcAxis->moveRelativePosition(position,
+                                                        maxVelocity,
+                                                        acceleration,
+                                                        acceleration);
   }
   else
   {
-    errorCode = drvlocal.ecmcAxis->moveAbsolutePosition(position * drvlocal.scaleFactor,
-                                                maxVelocity * drvlocal.scaleFactor,
-                                                acceleration * drvlocal.scaleFactor,
-                                                acceleration * drvlocal.scaleFactor);
+    errorCode = drvlocal.ecmcAxis->moveAbsolutePosition(position,
+                                                        maxVelocity,
+                                                        acceleration,
+                                                        acceleration);
     
   }
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
@@ -635,10 +619,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity, double maxVeloc
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
   /* Do range check */
-  if (!drvlocal.scaleFactor) {
-    drvlocal.eeAxisWarning = eeAxisWarningCfgZero;
-    return asynSuccess;
-  } else if (!maxVelocity) {
+  if (!maxVelocity) {
     drvlocal.eeAxisWarning = eeAxisWarningVeloZero;
     return asynSuccess;
   }
@@ -653,7 +634,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity, double maxVeloc
   }
 
   // Velocity
-  double velo = maxVelocity * drvlocal.scaleFactor;
+  double velo = maxVelocity;
 
   // Acc m/sec2
   double acc = 0.0;
@@ -891,9 +872,6 @@ void ecmcMotorRecordAxis::callParamCallbacksUpdateError()
     if (!msgTxtFromDriver && drvlocal.eeAxisWarning) {
       /* No error to show yet */
       switch(drvlocal.eeAxisWarning) {
-      case eeAxisWarningCfgZero:
-        msgTxtFromDriver = "E: scaleFactor is 0.0";
-        break;
       case eeAxisWarningVeloZero:
         msgTxtFromDriver = "E: velo is 0.0";
         break;
@@ -1066,9 +1044,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   if (drvlocal.nCommandActive != ECMC_CMD_HOMING) {
   
     setDoubleParam(pC_->motorPosition_,
-                   drvlocal.statusBinData.onChangeData.positionActual / drvlocal.scaleFactor);
+                   drvlocal.statusBinData.onChangeData.positionActual);
     setDoubleParam(pC_->motorEncoderPosition_,
-                   drvlocal.statusBinData.onChangeData.positionActual  / drvlocal.scaleFactor);
+                   drvlocal.statusBinData.onChangeData.positionActual);
     drvlocal.statusBinDataOld.onChangeData.positionActual = drvlocal.statusBinData.onChangeData.positionActual;
     setDoubleParam(pC_->ecmcMotorRecordVel_RB_, drvlocal.statusBinData.onChangeData.velocitySetpoint);
   }

@@ -68,8 +68,7 @@ private:
 
   typedef enum
   {
-    eeAxisWarningNoWarning,
-    eeAxisWarningCfgZero,
+    eeAxisWarningNoWarning,    
     eeAxisWarningVeloZero,
     eeAxisWarningSpeedLimit
   } eeAxisWarningType;
@@ -88,7 +87,6 @@ private:
     ecmcAxisStatusType statusBinDataOld;
     ecmcAxisStatusType statusBinData;
     ecmcAxisBase      *ecmcAxis;
-    double             scaleFactor;
     double             manualVelocSlow;
     double             manualVelocFast;
     int                axisFlags;
