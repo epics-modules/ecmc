@@ -31,7 +31,7 @@ extern asynUser *pPrintOutAsynUser;
 /**
  * Option strings
 */
-#ifndef motorFlagsDriverUsesEGUString
+#ifndef motorFlagsDriverUsesEGUString  // remove this option 
 /* The non-ESS motor needs a dummy "stepm-size" to compensate for MRES */
 #define ECMC_AXIS_OPT_STEP_SIZE         "stepSize="
 #endif
@@ -145,11 +145,11 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         if (myAxisFlags > 0) {
           axisFlags = myAxisFlags;
         }      
-#ifndef motorFlagsDriverUsesEGUString
+#ifndef motorFlagsDriverUsesEGUString // remove this option
       } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_STEP_SIZE, strlen(ECMC_AXIS_OPT_STEP_SIZE))) {
         pThisOption += strlen(ECMC_AXIS_OPT_STEP_SIZE);
         /* This option is obsolete, depending on motor */
-        drvlocal.scaleFactor = atof(pThisOption);
+        drvlocal.scaleFactor = atof(pThisOption); // remove this option
 #endif
       } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_POWER_AUTO_ON_OFF, strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF))) {
         pThisOption += strlen(ECMC_AXIS_OPT_POWER_AUTO_ON_OFF);
@@ -1042,33 +1042,33 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   if (drvlocal.waitNumPollsBeforeReady) {
     *moving = true;
   }
-  else
+  //else
 #endif
-    {
-      *moving = drvlocal.moveNotReadyNext ? true : false;
-      if (!drvlocal.moveNotReadyNext &&
-          !(pC_->features_ & FEATURE_BITS_ECMC)) {
-        /* not moving: poll the parameters for this axis */        
-        switch (drvlocal.eeAxisPollNow) {          
-        case pollNowReadScaling:
-          readScaling(drvlocal.axisId);          
-          break;
-        case pollNowReadMonitoring:
-          readMonitoring(drvlocal.axisId);
-          drvlocal.eeAxisPollNow = pollNowReadBackSoftLimits;
-          break;
-        case pollNowReadBackSoftLimits:
-          readBackSoftLimits();
-          drvlocal.eeAxisPollNow = pollNowReadBackVelocities;
-          break;
-        case pollNowReadBackVelocities:
-        default:          
-          readBackVelocities(drvlocal.axisId);
-          drvlocal.eeAxisPollNow = pollNowReadScaling;
-          break;
-        }
-      }
-    }
+    // { // remove this option section
+    //   *moving = drvlocal.moveNotReadyNext ? true : false;
+    //   if (!drvlocal.moveNotReadyNext &&
+    //       !(pC_->features_ & FEATURE_BITS_ECMC)) {
+    //     /* not moving: poll the parameters for this axis */        
+    //     switch (drvlocal.eeAxisPollNow) {          
+    //     case pollNowReadScaling:
+    //       readScaling(drvlocal.axisId);          
+    //       break;
+    //     case pollNowReadMonitoring:
+    //       readMonitoring(drvlocal.axisId);
+    //       drvlocal.eeAxisPollNow = pollNowReadBackSoftLimits;
+    //       break;
+    //     case pollNowReadBackSoftLimits:
+    //       readBackSoftLimits();
+    //       drvlocal.eeAxisPollNow = pollNowReadBackVelocities;
+    //       break;
+    //     case pollNowReadBackVelocities:
+    //     default:          
+    //       readBackVelocities(drvlocal.axisId);
+    //       drvlocal.eeAxisPollNow = pollNowReadScaling;
+    //       break;
+    //     }
+    //   }
+    // }
 
   if (drvlocal.moveNotReadyNext){
     drvlocal.nCommandActive = drvlocal.statusBinData.onChangeData.command;
@@ -1211,8 +1211,7 @@ asynStatus ecmcMotorRecordAxis::setClosedLoop(bool closedLoop)
 asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
 {
   asynStatus status;
-  int errorCode = 0;
-  //unsigned indexGroup5000 = 0x5000;
+  int errorCode = 0;  
 
   if (function == pC_->motorUpdateStatus_) {
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
