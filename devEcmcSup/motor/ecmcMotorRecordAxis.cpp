@@ -20,8 +20,6 @@
 #define ASYN_TRACE_INFO      0x0040
 #endif
 
-#define HOMPROC_MANUAL_SETPOS    15
-
 /* The maximum number of polls we wait for the motor
    to "start" (report moving after a new move command */
 #define WAITNUMPOLLSBEFOREREADY 3
@@ -564,7 +562,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
   asynStatus status = pC_->getIntegerParam(axisNo_,
                                            pC_->ecmcMotorRecordHomProc_,
                                            &cmdData);
-  if (cmdData == HOMPROC_MANUAL_SETPOS || status != asynSuccess) {
+  if (cmdData ==  ECMC_SEQ_HOME_SET_POS || status != asynSuccess) {
     return asynError;
   }
   
@@ -679,7 +677,7 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
   //int    cmdData   = -1; 
   // nCmdData (sequence number) Must be "manual cmddata (=15)"
   // asynStatus status = pC_->getIntegerParam(axisNo_, pC_->ecmcMotorRecordHomProc_,&cmdData);
-  // if (cmdData != HOMPROC_MANUAL_SETPOS || status != asynSuccess) {
+  // if (cmdData != ECMC_SEQ_HOME_SET_POS || status != asynSuccess) {
   //   return asynError;
   // }
 
@@ -688,7 +686,7 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
   
   // always use home sequence 15 for setPosition
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
-  int errorCode =  drvlocal.ecmcAxis->moveHome(HOMPROC_MANUAL_SETPOS,
+  int errorCode =  drvlocal.ecmcAxis->moveHome(ECMC_SEQ_HOME_SET_POS,
                                        homPos,0,0,0,0);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
   return errorCode == 0 ? asynSuccess:asynError;
