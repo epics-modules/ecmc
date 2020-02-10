@@ -106,7 +106,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   int         autoConnect,
   int         priority,
   double      defaultSampleRateMS)
-  : asynPortDriver(portName,
+   : asynPortDriver(portName,
                    1,
                    /* maxAddr */
                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask |
@@ -124,8 +124,10 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
                    /* Autoconnect */
                    priority,
                    /* Default priority */
-                   0) { /* Default stack size*/
+                   ECMC_STACK_SIZE)
+                   {
   initVars();
+
   const char* functionName = "ecmcAsynPortDriver";
   allowRtThreadCom_ = 1;  // Allow at startup (RT thread not started)
   pEcmcParamInUseArray_  = new ecmcAsynDataItem*[paramTableSize];  
@@ -752,7 +754,6 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   const char* functionName = "drvUserCreate";
   asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s: drvInfo: %s\n", driverName, functionName,drvInfo);
 
-  
   int addr=0;
   asynStatus status = getAddress(pasynUser, &addr);
   if (status != asynSuccess){
@@ -768,7 +769,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   }
 
   int index=0;
-  status=findParam(newParam->getName(),&index);  
+  status=findParam(ECMC_ASYN_DEFAULT_LIST,newParam->getName(),&index);  
   
   if(status!=asynSuccess) {
     
@@ -842,7 +843,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     delete newParam;
     return asynError;
   }
-
+  
   ecmcParamInfo *existentParInfo = pEcmcParamInUseArray_[index]->getParamInfo();
  
   if(!existentParInfo->initialized) {
@@ -851,22 +852,23 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     existentParInfo->recordType=strdup(newParam->getRecordType());
     existentParInfo->dtyp=strdup(newParam->getDtyp());
     existentParInfo->drvInfo=strdup(newParam->getDrvInfo());
-    
+
     if(existentParInfo->cmdInt64ToFloat64 && pEcmcParamInUseArray_[index]->getEcmcBitCount() !=64) {      
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_INT_TO_FLOAT64" is only valid for 8 byte parameters (drvInfo = %s).\n",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command " ECMC_OPTION_CMD_INT_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName, functionName,drvInfo);
       delete newParam;
       return asynError;
     }
+    
     if(existentParInfo->cmdUint64ToFloat64 && pEcmcParamInUseArray_[index]->getEcmcBitCount() !=64) {      
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_UINT_TO_FLOAT64" is only valid for 8 byte parameters (drvInfo = %s).\n",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command " ECMC_OPTION_CMD_UINT_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName, functionName,drvInfo);
       delete newParam;
       return asynError;
     }
 
     if(existentParInfo->cmdFloat64ToInt32 && pEcmcParamInUseArray_[index]->getParamInfo()->ecmcSize !=8) {      
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_FLOAT64_INT" is only valid for 8 byte parameters (drvInfo = %s).\n",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command " ECMC_OPTION_CMD_FLOAT64_INT " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName, functionName,drvInfo);
       delete newParam;
       return asynError;
@@ -883,12 +885,12 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   if(pasynUser->timeout < newParam->getSampleTimeMs()*2/1000.0) {
     pasynUser->timeout = (newParam->getSampleTimeMs()*2)/1000;
   }
-  
+
   delete newParam;
 
   existentParInfo->initialized=1;
   pEcmcParamInUseArray_[index]->refreshParam(1);
-  callParamCallbacks();
+  callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return asynPortDriver::drvUserCreate(pasynUser,existentParInfo->name,pptypeName,psize);
 }
@@ -1042,6 +1044,12 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
     }
   }
   if (details >= 0) {
+    fprintf(fp,"####################################################################:\n");
+  }
+  
+  if( details >= 3){
+    fprintf(fp,"Report from base class (asynPortDriver):\n");
+    asynPortDriver::report(fp,details);
     fprintf(fp,"####################################################################:\n");
   }
 }

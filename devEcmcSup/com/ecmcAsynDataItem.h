@@ -34,6 +34,8 @@
 #define ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT 10
 #define ERROR_ASYN_NOT_REFRESHED_RETURN -1
 
+typedef asynStatus(*ecmcExeCmdFcn)(void*,size_t,asynParamType,void*);
+
 class ecmcAsynPortDriver;  //Include in cpp
 
 typedef struct ecmcParamInfo{
@@ -157,8 +159,10 @@ public:
                               size_t *nIn);
   asynStatus writeFloat64Array(epicsFloat64 *value,
                                size_t nElements);
-
+  
   ecmcEcDataType getEcDataType();
+
+  asynStatus setExeCmdFunctPtr(ecmcExeCmdFcn func, void* userObj);
 
 private:
   asynStatus validateDrvInfo(const char *drvInfo);
@@ -187,6 +191,11 @@ private:
   int64_t intMin_;
   size_t intBits_;
   ecmcEcDataType dataType_;
+
+  // Add function to allow action on writes
+  asynStatus (*fctPtrExeCmd_)(void* data, size_t bytes, asynParamType asynParType,void *userObj);
+  bool useExeCmdFunc_;
+  void* exeCmdUserObj_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

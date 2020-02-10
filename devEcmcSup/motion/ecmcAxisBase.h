@@ -75,6 +75,31 @@ enum axisState {
 };
 
 typedef struct {
+  unsigned char              enable        : 1;
+  unsigned char              enabled       : 1;
+  unsigned char              execute       : 1;
+  unsigned char              busy          : 1;
+  unsigned char              attarget      : 1;
+  unsigned char              moving        : 1;
+  unsigned char              limitfwd      : 1;
+  unsigned char              limitbwd      : 1;
+  unsigned char              homeswitch    : 1;
+  unsigned char              instartup     : 1;
+  unsigned char              inrealtime    : 1;
+  unsigned char              trajsource    : 1;
+  unsigned char              encsource     : 1;
+  unsigned char              plccmdallowed : 1;
+  unsigned char              softlimfwdena : 1;
+  unsigned char              softlimbwdena : 1;
+  unsigned char              homed         : 1;
+  unsigned char              sumilockfwd   : 1;
+  unsigned char              sumilockbwd   : 1;
+  unsigned char              unused        : 1;
+  unsigned char              seqstate      : 4;
+  unsigned char              lastilock     : 8;
+} ecmcAxisStatusWordType;
+
+typedef struct {
   double             positionSetpoint;
   double             positionActual;
   double             positionError;
@@ -82,29 +107,17 @@ typedef struct {
   double             cntrlError;
   double             cntrlOutput;
   double             velocityActual;
-  double             velocitySetpoint;
+  double             velocitySetpoint;  
   double             velocityFFRaw;
   int64_t            positionRaw;
+  double             homeposition;
   int                error;
   int                velocitySetpointRaw;
   int                seqState;
   int                cmdData;
   motionCommandTypes command;
   interlockTypes     trajInterlock;
-  interlockTypes     lastActiveInterlock;
-  dataSource         trajSource;
-  dataSource         encSource;
-  bool               enable;
-  bool               enabled;
-  bool               execute;
-  bool               busy;
-  bool               atTarget;
-  bool               homed;
-  bool               limitFwd;
-  bool               limitBwd;
-  bool               homeSwitch;
-  bool               sumIlockFwd;
-  bool               sumIlockBwd;
+  ecmcAxisStatusWordType statusWd;
 } ecmcAxisStatusOnChangeType;
 
 typedef struct {
@@ -112,30 +125,13 @@ typedef struct {
   int                        cycleCounter;
   double                     acceleration;
   double                     deceleration;
-  bool                       reset;
-  bool                       moving;
-  bool                       stall;
+  double                     soflimFwd;
+  double                     soflimBwd;  
+  bool                       reset  : 1;
+  bool                       moving : 1;
+  bool                       stall  : 1;
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
-
-typedef struct {
-  unsigned char              enabled:1;
-  unsigned char              execute:1;
-  unsigned char              busy:1;
-  unsigned char              attarget:1;
-  unsigned char              moving:1;
-  unsigned char              limitfwd:1;
-  unsigned char              limitbwd:1;
-  unsigned char              homeswitch:1;
-  unsigned char              instartup:1;
-  unsigned char              inrealtime:1;
-  unsigned char              trajsource:1;
-  unsigned char              encsource:1;
-  unsigned char              plccmdallowed:1;
-  unsigned char              unused:3;
-  unsigned char              seqstate:8;
-  unsigned char              lastilock:8;
-} ecmcAxisStatusWordType;
 
 class ecmcAxisBase : public ecmcError {
  public:
@@ -189,6 +185,7 @@ class ecmcAxisBase : public ecmcError {
   dataSource            getTrajDataSourceType();
   dataSource            getEncDataSourceType();
   int                   setRealTimeStarted(bool realtime);
+  int                   getRealTimeStarted();
   bool                  getError();
   int                   getErrorID();
   void                  errorReset();
@@ -220,11 +217,35 @@ class ecmcAxisBase : public ecmcError {
   int                   setExtTrajVeloFiltSize(size_t size);
   int                   setExtEncVeloFiltSize(size_t size);
   int                   setEncVeloFiltSize(size_t size);
+  int                   moveAbsolutePosition(double positionSet,
+                                             double velocitySet,
+                                             double accelerationSet,
+                                             double decelerationSet);
+  int                   moveRelativePosition(double positionSet,
+                                             double velocitySet,
+                                             double accelerationSet,
+                                             double decelerationSet);
+  int                   moveVelocity(double velocitySet,
+                                     double accelerationSet,
+                                     double decelerationSet);
+  int                   moveHome(int    nCmdData,
+                                 double homePositionSet,
+                                 double velocityTwordsCamSet,
+                                 double velocityOffCamSet,                            
+                                 double accelerationSet,
+                                 double decelerationSet);
+  int                   stopMotion(int killAmplifier);
 
  protected:
   void         initVars();
   void         refreshDebugInfoStruct();
   double       getPosErrorMod();
+  int          createAsynParam(const char        *nameFormat,
+                               asynParamType      asynType, 
+                               ecmcEcDataType     ecmcType,
+                               uint8_t*           data, 
+                               size_t             bytes,                                  
+                               ecmcAsynDataItem **asynParamOut);
   bool allowCmdFromOtherPLC_;                                
   bool plcEnable_;
   ecmcTrajectoryTrapetz *traj_;
@@ -247,7 +268,6 @@ class ecmcAxisBase : public ecmcError {
   ecmcEcEntry *statusOutputEntry_;
   int blockExtCom_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
-  ecmcAxisStatusWordType statusWord_;
   ecmcFilter  *extTrajVeloFilter_;
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;

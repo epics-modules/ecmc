@@ -120,7 +120,7 @@ void ecmcAxisReal::execute(bool masterOK) {
                             data_.status_.currentVelocityActual,
                             0);
       }
-      statusData_.onChangeData.trajSource   = ECMC_DATA_SOURCE_INTERNAL;  // Temporary
+      statusData_.onChangeData.statusWd.trajsource = ECMC_DATA_SOURCE_INTERNAL;  // Temporary
       data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint = traj_->getVel();
     } else {

@@ -361,22 +361,29 @@ int ecmcEcEntry::updateInputProcessImage() {
     case ECMC_EC_S32:
       buffer_ = (uint64_t)EC_READ_S32(adr_);
       break;
-
+#ifdef EC_READ_U64
     case ECMC_EC_U64:
       buffer_ = (uint64_t)EC_READ_U64(adr_);
       break;
+#endif
 
+#ifdef EC_READ_S64
     case ECMC_EC_S64:
       buffer_ = (uint64_t)EC_READ_S64(adr_);
       break;
+#endif
 
+#ifdef EC_READ_REAL
     case ECMC_EC_F32:
       buffer_ = (uint64_t)EC_READ_REAL(adr_);
       break;
+#endif
 
+#ifdef EC_READ_LREAL
     case ECMC_EC_F64:
       buffer_ = (uint64_t)EC_READ_LREAL(adr_);
       break;
+#endif      
     default:
       buffer_ = 0;      
       break;
@@ -440,23 +447,31 @@ int ecmcEcEntry::updateOutProcessImage() {
       EC_WRITE_S32(adr_, buffer_);
       break;
 
+#ifdef EC_WRITE_U64
     case ECMC_EC_U64:
       EC_WRITE_U64(adr_, buffer_);
       break;
+#endif
 
+#ifdef EC_WRITE_S64
     case ECMC_EC_S64:
       EC_WRITE_S64(adr_, buffer_);
       break;
+#endif
 
+#ifdef EC_WRITE_REAL
     case ECMC_EC_F32:
       EC_WRITE_REAL(adr_, buffer_);
       break;
+#endif
 
+#ifdef EC_WRITE_LREAL
     case ECMC_EC_F64:
       EC_WRITE_LREAL(adr_, buffer_);
       break;
-    default:
+#endif
 
+    default:
       buffer_ = 0;      
       break;
   }
@@ -748,7 +763,7 @@ int ecmcEcEntry::initAsyn() {
   entryAsynParam_->setEcmcMaxValueInt(getEcDataTypeMaxVal(dataType_));
   
   entryAsynParam_->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
 }
 

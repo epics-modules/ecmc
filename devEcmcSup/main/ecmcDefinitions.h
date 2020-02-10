@@ -27,6 +27,9 @@
 #define ECMC_MAX_AXES 64
 #define ECMC_MAX_PLCS 8
 
+#define ECMC_ASYN_DEFAULT_LIST 0
+#define ECMC_ASYN_DEFAULT_ADDR 0
+
 #define TIMESPEC2NS(T) ((uint64_t)(((T).tv_sec - 946684800ULL) * \
                                    1000000000ULL) + (T).tv_nsec)
 
@@ -153,7 +156,22 @@
 #define ECMC_ASYN_AX_DIAG_NAME "diagnostic"
 #define ECMC_ASYN_AX_STATUS_ID 4
 #define ECMC_ASYN_AX_STATUS_NAME "status"
-#define ECMC_ASYN_AX_PAR_COUNT 5
+#define ECMC_ASYN_AX_CONTROL_BIN_ID 5
+#define ECMC_ASYN_AX_CONTROL_BIN_NAME "controlbin"
+#define ECMC_ASYN_AX_SOFTLIM_BWD_ID 6
+#define ECMC_ASYN_AX_STATUS_BIN_ID 7
+#define ECMC_ASYN_AX_STATUS_BIN_NAME "statusbin"
+// #define ECMC_ASYN_AX_SOFTLIM_BWD_NAME "softlimbwd"
+// #define ECMC_ASYN_AX_SOFTLIM_FWD_ID 7
+// #define ECMC_ASYN_AX_SOFTLIM_FWD_NAME "softlimfwd"
+// #define ECMC_ASYN_AX_TARGET_POS_ID 8
+// #define ECMC_ASYN_AX_TARGET_POS_NAME "targetpos"
+// #define ECMC_ASYN_AX_TARGET_VEL_ID 9
+// #define ECMC_ASYN_AX_TARGET_VEL_NAME "targetvel"
+// #define ECMC_ASYN_AX_TARGET_ACC_ID 10
+// #define ECMC_ASYN_AX_TARGET_ACC_NAME "targetacc"
+#define ECMC_ASYN_AX_PAR_COUNT 8
+
 
 // Motion
 enum app_mode_type {
@@ -180,18 +198,37 @@ enum operationMode {
   ECMC_MODE_OP_MAN  = 1,
 };
 
-enum motionCommandTypes {
-  ECMC_CMD_NOCMD      = -1,
-  ECMC_CMD_JOG        = 0,
-  ECMC_CMD_MOVEVEL    = 1,
-  ECMC_CMD_MOVEREL    = 2,
-  ECMC_CMD_MOVEABS    = 3,
-  ECMC_CMD_MOVEMODULO = 4,   // NOT IMPLEMENTED
-  ECMC_CMD_HOMING     = 10,  // PARTLY IMPLEMENTED
-  // NOT IMPLEMENTED (implemented in another way..)
-  ECMC_CMD_SUPERIMP   = 20,  // NOT IMPLEMENTED
-  // NOT IMPLEMENTED (implemented in another way..)
-  ECMC_CMD_GEAR       = 30,
+// enum motionCommandTypes {
+//   ECMC_CMD_NOCMD      = -1,
+//   ECMC_CMD_JOG        = 0,
+//   ECMC_CMD_MOVEVEL    = 1,
+//   ECMC_CMD_MOVEREL    = 2,
+//   ECMC_CMD_MOVEABS    = 3,
+//   ECMC_CMD_MOVEMODULO = 4,   // NOT IMPLEMENTED
+//   ECMC_CMD_HOMING     = 10,  // PARTLY IMPLEMENTED
+//   // NOT IMPLEMENTED (implemented in another way..)
+//   ECMC_CMD_SUPERIMP   = 20,  // NOT IMPLEMENTED
+//   // NOT IMPLEMENTED (implemented in another way..)
+//   ECMC_CMD_GEAR       = 30,
+// };
+
+enum motionCommandTypes {             // Data order for motor record communications
+  ECMC_CMD_NOCMD              = -1,   
+  ECMC_CMD_JOG                = 0,    
+  ECMC_CMD_MOVEVEL            = 1,    // cmd, vel, acc
+  ECMC_CMD_MOVEREL            = 2,    // cmd, pos, vel, acc
+  ECMC_CMD_MOVEABS            = 3,    // cmd, pos, vel, acc
+  ECMC_CMD_MOVEMODULO         = 4,    
+  ECMC_CMD_HOMING             = 10,   // cmd, seqnbr,homepos,velhigh,vellow,acc
+  ECMC_CMD_SUPERIMP           = 20,   
+  ECMC_CMD_GEAR               = 30,   
+  ECMC_CMD_STOP               = 100,  // cmd, (Should have been 0 instead of 100)
+  ECMC_CMD_SET_ENABLE         = 101,  // cmd, enable
+  ECMC_CMD_SET_SOFTLIMBWD     = 102,  // cmd, soflimbwd
+  ECMC_CMD_SET_SOFTLIMFWD     = 103,  // cmd, soflimfwd
+  ECMC_CMD_SET_SOFTLIMBWD_ENA = 104,  // cmd, soflimbwdena
+  ECMC_CMD_SET_SOFTLIMFWD_ENA = 105,  // cmd, soflimfwdena
+  ECMC_CMD_SET_RESET          = 106,  // cmd
 };
 
 enum motionDirection {

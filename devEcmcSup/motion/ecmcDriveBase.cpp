@@ -429,7 +429,7 @@ int ecmcDriveBase::initAsyn() {
   // Control word "ax<id>.drv.control"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_AX_STR"%d."ECMC_DRV_STR"."ECMC_DRV_ENABLE_STR,
+                       ECMC_AX_STR "%d." ECMC_DRV_STR "." ECMC_DRV_ENABLE_STR,
                        data_->axisId_);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -468,7 +468,7 @@ int ecmcDriveBase::initAsyn() {
   // Status word "ax<id>.drv.status"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_AX_STR"%d."ECMC_DRV_STR"."ECMC_ASYN_AX_STATUS_NAME,
+                       ECMC_AX_STR "%d." ECMC_DRV_STR "." ECMC_ASYN_AX_STATUS_NAME,
                        data_->axisId_);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -502,7 +502,7 @@ int ecmcDriveBase::initAsyn() {
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   asynStatusWd_ = paramTemp;
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }

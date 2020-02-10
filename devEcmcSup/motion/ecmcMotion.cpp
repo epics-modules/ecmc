@@ -57,36 +57,10 @@ int moveAbsolutePosition(int    axisIndex,
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  int errorCode = axes[axisIndex]->getErrorID();
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEABS);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCmdData(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  axes[axisIndex]->getSeq()->setTargetPos(positionSet);
-  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
-  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
-  axes[axisIndex]->getTraj()->setDec(decelerationSet);
-  errorCode = axes[axisIndex]->setExecute(1);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  return 0;
+  return axes[axisIndex]->moveAbsolutePosition(positionSet,
+                                               velocitySet,
+                                               accelerationSet,
+                                               decelerationSet);
 }
 
 int moveRelativePosition(int    axisIndex,
@@ -109,36 +83,10 @@ int moveRelativePosition(int    axisIndex,
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  int errorCode = axes[axisIndex]->getErrorID();
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEREL);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCmdData(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  axes[axisIndex]->getSeq()->setTargetPos(positionSet);
-  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
-  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
-  axes[axisIndex]->getTraj()->setDec(decelerationSet);
-  errorCode = axes[axisIndex]->setExecute(1);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  return 0;
+  return axes[axisIndex]->moveRelativePosition(positionSet,
+                                               velocitySet,
+                                               accelerationSet,
+                                               decelerationSet);
 }
 
 int moveVelocity(int    axisIndex,
@@ -159,36 +107,44 @@ int moveVelocity(int    axisIndex,
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  int errorCode = axes[axisIndex]->getErrorID();
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEVEL);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCmdData(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
-  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
-  axes[axisIndex]->getTraj()->setAcc(decelerationSet);
-  errorCode = axes[axisIndex]->setExecute(1);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  return 0;
+  return axes[axisIndex]->moveVelocity(velocitySet,
+                                       accelerationSet,
+                                       decelerationSet);
 }
+
+int moveHome(int    axisIndex,
+             int    nCmdData,
+             double homePositionSet,
+             double velocityTwordsCamSet,
+             double velocityOffCamSet,                            
+             double accelerationSet,
+             double decelerationSet) {
+LOGINFO4(
+    "%s/%s:%d axisIndex=%d, nCmdData=%d, homePositionSet=%lf, velocityTwordsCamSet=%lf, "
+    "velocityOffCamSet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,
+    nCmdData,
+    homePositionSet,
+    velocityTwordsCamSet,
+    velocityOffCamSet,
+    accelerationSet,
+    decelerationSet);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->moveHome(nCmdData,
+                                   homePositionSet,
+                                   velocityTwordsCamSet,
+                                   velocityOffCamSet,                            
+                                   accelerationSet,
+                                   decelerationSet);
+}
+
 
 int stopMotion(int axisIndex, int killAmplifier) {
   LOGINFO4("%s/%s:%d axisIndex=%d, killAmplifier=%d\n",
@@ -200,21 +156,7 @@ int stopMotion(int axisIndex, int killAmplifier) {
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  if (killAmplifier) {
-    int errorCode = axes[axisIndex]->setEnable(0);
-
-    if (errorCode) {
-      return errorCode;
-    }
-  }
-
-  int errorCode = axes[axisIndex]->setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-
-  return 0;
+  return axes[axisIndex]->stopMotion(killAmplifier);
 }
 
 int getAxisError(int axisIndex) {
@@ -392,20 +334,20 @@ int getAxisStatusStructV2(int axisIndex, char *buffer, int bufferByteSize) {
                      // EtherCAT time low32 not available yet
                      0,
                      // EtherCAT time high32 not available yet
-                     data.onChangeData.enable,
-                     data.onChangeData.enabled,
-                     data.onChangeData.execute,
+                     data.onChangeData.statusWd.enable,
+                     data.onChangeData.statusWd.enabled,
+                     data.onChangeData.statusWd.execute,
                      data.onChangeData.command,
                      data.onChangeData.cmdData,
-                     data.onChangeData.limitBwd,
-                     data.onChangeData.limitFwd,
-                     data.onChangeData.homeSwitch,
+                     data.onChangeData.statusWd.limitbwd,
+                     data.onChangeData.statusWd.limitfwd,
+                     data.onChangeData.statusWd.homeswitch,
                      data.onChangeData.error > 0,
                      data.onChangeData.error,
                      data.reset,
-                     data.onChangeData.homed,
-                     data.onChangeData.busy,
-                     data.onChangeData.atTarget,
+                     data.onChangeData.statusWd.homed,
+                     data.onChangeData.statusWd.busy,
+                     data.onChangeData.statusWd.attarget,
                      data.moving,
                      data.stall);
 
@@ -2759,4 +2701,3 @@ int setAxisModType(int axisIndex,
 
   return axes[axisIndex]->setModType(type);
 }
-

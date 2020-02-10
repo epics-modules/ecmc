@@ -183,7 +183,7 @@ int ecmcEc::addSlave(
     slaveCounter_++;
 
     ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID]->refreshParam(1);
-    asynPortDriver_->callParamCallbacks();
+    asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
     return slaveCounter_ - 1;
   } else {
@@ -796,6 +796,17 @@ int ecmcEc::addEntry(
   int            useInRealTime) 
   {
 
+   // Ensure master can support datatype
+   if(!validEntryType(dt)){
+    LOGERR("%s/%s:%d: ERROR: Data type is not supported for current installed master. Please upgrade to newer ethercat master version (0x%x).\n",
+         __FILE__,
+         __FUNCTION__,
+         __LINE__,
+         ERROR_EC_DATATYPE_NOT_VALID);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                    ERROR_EC_DATATYPE_NOT_VALID);
+  }
+
   ecmcEcSlave *slave = findSlave(position);
 
   if (slave == NULL) {
@@ -822,8 +833,96 @@ int ecmcEc::addEntry(
   entryCounter_++;
   
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
+  return 0;
+}
+
+/*
+* Check if valid entry type for the installed master
+*
+*/
+bool ecmcEc::validEntryType(ecmcEcDataType dt) {
+ switch(dt) {
+    case ECMC_EC_NONE:
+      return 1;
+      break;
+
+    case ECMC_EC_B1:
+      return 1;
+      break;
+
+    case ECMC_EC_B2:
+      return 1;
+      break;
+
+    case ECMC_EC_B3:
+      return 1;
+      break;
+
+    case ECMC_EC_B4:
+      return 1;
+      break;
+
+    case ECMC_EC_U8:
+      return 1;
+      break;
+
+    case ECMC_EC_S8:
+      return 1;
+      break;
+
+    case ECMC_EC_U16:
+      return 1;
+      break;
+
+    case ECMC_EC_S16:
+      return 1;
+      break;
+
+    case ECMC_EC_U32:
+      return 1;
+      break;
+
+    case ECMC_EC_S32:
+      return 1;
+      break;
+    case ECMC_EC_U64:
+#ifdef EC_READ_U64
+      return 1;
+#else
+      return 0;
+#endif
+      break;
+
+    case ECMC_EC_S64:
+#ifdef EC_READ_S64
+      return 1;
+#else
+      return 0;
+#endif
+      break;
+
+    case ECMC_EC_F32:
+#ifdef EC_READ_F32
+      return 1;
+#else
+      return 0;
+#endif
+      break;
+
+    case ECMC_EC_F64:
+#ifdef EC_READ_F64
+      return 1;
+#else
+      return 0;
+#endif
+      break;
+
+    default:
+      return 0; 
+      break;
+  }
   return 0;
 }
 
@@ -1011,7 +1110,7 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
 
   ecMemMapArrayCounter_++;
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();  // also for memmap and ecEntry
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);  // also for memmap and ecEntry
 
   return ecMemMapArray_[ecMemMapArrayCounter_-1]->getErrorID();
 }
@@ -1264,7 +1363,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID] = paramTemp;
 
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }
