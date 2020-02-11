@@ -1,6 +1,6 @@
 Release Notes
 ===
-# ECMC master
+# ECMC 6.1
 
 * Add custom motor record driver (asynMotor) in order to improve realtime performance
 * New iocsh commands (same syntax as EthercatMC):
