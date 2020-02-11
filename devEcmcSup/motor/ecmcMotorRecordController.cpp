@@ -114,7 +114,7 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
                                            double movingPollPeriod,
                                            double idlePollPeriod,
                                            const char *optionStr)
-  :  asynMotorController(portName, numAxes, NUM_VIRTUAL_MOTOR_PARAMS,
+  :  asynMotorController(portName, ECMC_MAX_AXES, NUM_VIRTUAL_MOTOR_PARAMS,
                          0, // No additional interfaces beyond those in base class
                          0, // No additional callback interfaces beyond those in base class
                          ASYN_CANBLOCK | ASYN_MULTIDEVICE,
@@ -218,7 +218,7 @@ extern "C" int ecmcMotorRecordCreateController(const char *portName,
                                                int         idlePollPeriod,
                                                const char *optionStr)
 {  
-  if (!portName || !MotorPortName || !numAxes || !movingPollPeriod || !idlePollPeriod) {
+  if (!portName || !MotorPortName || !movingPollPeriod || !idlePollPeriod) {
     printf("\n");
     printf("Iocsh command to create a model 3 asyn motor record driver for use with ECMC.\n");
     printf("Creates an ecmcMotorRecordController object (derived from asynMotorController).\n");
@@ -226,13 +226,14 @@ extern "C" int ecmcMotorRecordCreateController(const char *portName,
     printf("ecmcMotorRecordCreateController(\n");
     printf("    portName         : Asyn port name for this motor record driver.                        : \"ECMC_ASYN_MOTOR_PORT\"\n");
     printf("    MotorPortName    : Obsolete. Not used. Kept to keep syntax same as EthercatMC module.  : \"NOT_USED\"\n");
-    printf("    numAxes          : Maximum number of axes (asyn parameters will be created for all).   : \"10\"\n");
+    printf("    numAxes          : Obsolete. Not used. Kept to keep syntax same as EthercatMC module.  : \"0\"\n");
+    printf("                       numAxes already defined in ecmc to %d\n",ECMC_MAX_AXES);
     printf("    movingPollPeriod : Scan period rate of motor record status update when axis is moving. : \"0.2\" (unit [s])\n");
     printf("    idlePollPeriod   : Scan rate of motor record status update when moving.                : \"1.0\" (unit [s])\n");
     printf("    optionStr        : Currently Not used. Optional options string.                        : \"\" \n");
     printf(")\n");    
     printf("Example:\n");
-    printf("ecmcMotorRecordCreateController(\"ECMC_ASYN_MOTOR_PORT\",\"NOT_USED\",10,0.2,1.0,\"\")\n");
+    printf("ecmcMotorRecordCreateController(\"ECMC_ASYN_MOTOR_PORT\",\"NOT_USED\",0,0.2,1.0,\"\")\n");
     printf("\n");
     return asynError;
   }
@@ -414,8 +415,8 @@ ecmcMotorRecordAxis* ecmcMotorRecordController::getAxis(int axisNo)
 
 /** Code for iocsh registration */
 static const iocshArg ecmcMotorRecordCreateControllerArg0 = {"Port name", iocshArgString};
-static const iocshArg ecmcMotorRecordCreateControllerArg1 = {"EPICS ASYN TCP motor port name", iocshArgString};
-static const iocshArg ecmcMotorRecordCreateControllerArg2 = {"Number of axes", iocshArgInt};
+static const iocshArg ecmcMotorRecordCreateControllerArg1 = {"NOT_USED", iocshArgString};
+static const iocshArg ecmcMotorRecordCreateControllerArg2 = {"NOT_USED", iocshArgInt};
 static const iocshArg ecmcMotorRecordCreateControllerArg3 = {"Moving poll period (ms)", iocshArgInt};
 static const iocshArg ecmcMotorRecordCreateControllerArg4 = {"Idle poll period (ms)", iocshArgInt};
 static const iocshArg ecmcMotorRecordCreateControllerArg5 = {"options", iocshArgString};
