@@ -176,6 +176,11 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
                                          int axisFlags,
                                          const char *axisOptionsStr)
 {
+  if( (axisNo >= ECMC_MAX_AXES) || (axisNo < 0)) {
+    printf("ERROR: axisNo out of range. Allowed values 0..%d\n", ECMC_MAX_AXES - 1);
+    return asynError;
+  }
+
   if (!controllerPortName || (axisNo < 0) || (axisFlags < 0)) {
     printf("\n");
     printf("Iocsh command to create a model 3 asyn motor record driver axis for use with ECMC.\n");
