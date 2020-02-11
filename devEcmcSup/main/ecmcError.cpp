@@ -1370,8 +1370,12 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_NO_VALID_CONFIG";
 
     break;
+  case 0x26028:
+    return "ERROR_EC_DATATYPE_NOT_VALID";
 
-  case 0x20000:  // HW_MOTOR
+    break;
+
+  case 0x20000:
     return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
 
     break;
@@ -1705,6 +1709,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_PARSER_INVALID_ADS_TYPE";
 
     break;
+
   case 0x20044:
     return "ERROR_MAIN_ASYN_CREATE_PARAM_FAIL";
 
@@ -1731,8 +1736,14 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_FILTER_INVALID_SIZE";
 
     break;
+    
   case 0x2004A:
     return "ERROR_MAIN_EC_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x2004B:
+    return "ERROR_MAIN_RT_MUTEX_NULL";
 
     break;
 

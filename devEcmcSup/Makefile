@@ -102,6 +102,11 @@ ecmc_SRCS += ecmcAxisSequencer.cpp
 ecmc_SRCS += ecmcTrajectoryTrapetz.cpp 
 ecmc_SRCS += ecmcAxisData.cpp
 
+SRC_DIRS  += $(ECMC)/motor
+DBD       += ecmcMotorRecordSupport.dbd
+ecmc_SRCS += ecmcMotorRecordController.cpp
+ecmc_SRCS += ecmcMotorRecordAxis.cpp
+
 
 ecmc_LIBS += exprtkSupport
 ecmc_LIBS += $(EPICS_BASE_IOC_LIBS)

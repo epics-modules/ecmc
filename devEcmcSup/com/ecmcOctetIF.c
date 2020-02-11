@@ -203,8 +203,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
 
 /* from MCU into EPICS */
 int CMDreadIt(char *outbuf, size_t outlen) {  
-  int ret;
-
+  int ret;  
   if (!outbuf || !outlen) return -1;
 
   ret = snprintf(outbuf, outlen + 1, "%s", getEpicsBuffer()->buffer);

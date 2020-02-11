@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <string>
 
+#include "epicsThread.h"
 #include "ecmcMainThread.h"
 #include "ecmcGeneral.h"
 #include "ecrt.h"
@@ -42,6 +43,7 @@
 #include "../plc/ecmcPLC.h"
 #include "../misc/ecmcMisc.h"
 #include "../com/ecmcAsynPortDriver.h"
+#include "../motor/ecmcMotorRecordController.h"
 
 /****************************************************************************/
 static unsigned int    counter = 0;
@@ -119,7 +121,7 @@ void updateAsynParams(int force) {
         asynSkipUpdateCounterFastest = 0;
       }
       if (asynPort->getAllowRtThreadCom()) {
-        asynPort->callParamCallbacks();
+        asynPort->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
         /* refresh updated counter (To know in epics when refresh have been made)
         waveform*/
         ecmcUpdatedCounter++;
@@ -244,15 +246,21 @@ void cyclic_task(void *usr) {
      * (sleep in waitforstartup() this is called
      * in asyn thread) .
      * */
-    if (asynPort && (appModeStat == ECMC_MODE_RUNTIME)) {
-      asynPort->unlock();
+    if (appModeStat == ECMC_MODE_RUNTIME) {
+      if(asynPort) asynPort->unlock();      
     }
+    // Mutex for motor record access
+    if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
 
-    if (asynPort && (appModeStat == ECMC_MODE_RUNTIME)) {
-      asynPort->lock();
-      asynPort->updateTimeStamp();
+    if (appModeStat == ECMC_MODE_RUNTIME) {      
+      if (asynPort) {
+        asynPort->lock();
+        asynPort->updateTimeStamp();
+      }
     }
+    // Mutex for motor record access
+    if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
 
     clock_gettime(CLOCK_MONOTONIC, &startTime);
     
@@ -489,7 +497,7 @@ int setAppModeRun(int mode) {
 
   if (mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID]) {
     mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID]->refreshParam(1);    
-    asynPort->callParamCallbacks();
+    asynPort->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   }
 
   for (int i = 0; i < ECMC_MAX_AXES; i++) {

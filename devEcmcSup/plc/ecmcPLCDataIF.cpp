@@ -423,48 +423,48 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
-    data_ = static_cast<double>(axisData->onChangeData.trajSource);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.trajsource);
     break;
 
   case ECMC_AXIS_DATA_ENC_SOURCE:
-    data_ = static_cast<double>(axisData->onChangeData.encSource);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.encsource);
     break;
 
   case ECMC_AXIS_DATA_ENABLE:
 
-    data_ = static_cast<double>(axisData->onChangeData.enable);    
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.enable);
     break;
 
   case ECMC_AXIS_DATA_ENABLED:
-    data_ = static_cast<double>(axisData->onChangeData.enabled);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.enabled);
     break;
 
   case ECMC_AXIS_DATA_EXECUTE:
-    data_ = static_cast<double>(axisData->onChangeData.execute);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.execute);
     break;
 
   case ECMC_AXIS_DATA_BUSY:
-    data_ = static_cast<double>(axisData->onChangeData.busy);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.busy);
     break;
 
   case ECMC_AXIS_DATA_AT_TARGET:
-    data_ = static_cast<double>(axisData->onChangeData.atTarget);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.attarget);
     break;
 
   case ECMC_AXIS_DATA_HOMED:
-    data_ = static_cast<double>(axisData->onChangeData.homed);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.homed);
     break;
 
   case ECMC_AXIS_DATA_LIMIT_BWD:
-    data_ = static_cast<double>(axisData->onChangeData.limitBwd);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.limitbwd);
     break;
 
   case ECMC_AXIS_DATA_LIMIT_FWD:
-    data_ = static_cast<double>(axisData->onChangeData.limitFwd);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.limitfwd);
     break;
 
   case ECMC_AXIS_DATA_HOME_SWITCH:
-    data_ = static_cast<double>(axisData->onChangeData.homeSwitch);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.homeswitch);
     break;
 
   case ECMC_AXIS_DATA_RESET:
@@ -525,11 +525,11 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
-    data_ = static_cast<double>(axisData->onChangeData.sumIlockBwd == 0);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.sumilockbwd == 0);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
-    data_ = static_cast<double>(axisData->onChangeData.sumIlockFwd == 0);
+    data_ = static_cast<double>(axisData->onChangeData.statusWd.sumilockfwd == 0);
     break;
 
   case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:
@@ -1414,7 +1414,7 @@ int ecmcPLCDataIF::initAsyn() {
 
   asynDataItem_->allowWriteToEcmc(asynWriteAllow_);    
   updateAsyn(1);
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
 }
 

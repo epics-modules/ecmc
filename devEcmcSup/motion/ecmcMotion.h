@@ -98,24 +98,6 @@ extern "C" {
   }                                                                           \
 }                                                                             \
 
-/*#define CHECK_AXIS_TRAJ_TRANSFORM_RETURN_IF_ERROR(axisIndex)                  \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->getExternalTrajIF()->getExtInputTransform() == NULL) { \
-    LOGERR("ERROR: Trajectory transform object NULL.\n");                     \
-    return ERROR_MAIN_TRAJ_TRANSFORM_OBJECT_NULL;                             \
-  }                                                                           \
-} */                                                                            \
-
-/*#define CHECK_AXIS_ENC_TRANSFORM_RETURN_IF_ERROR(axisIndex)                   \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->getExternalEncIF()->getExtInputTransform() == NULL) {  \
-    LOGERR("ERROR: Encoder transform object NULL.\n");                        \
-    return ERROR_MAIN_ENC_TRANSFORM_OBJECT_NULL;                              \
-  }                                                                           \
-}*/
-
 /** \brief Move axis to an absolute position.\n
  *
  * \param[in] axisIndex Axis index.\n
@@ -187,6 +169,26 @@ int moveVelocity(int    axisIndex,
  */
 int stopMotion(int axisIndex,
                int killAmplifier);
+
+/** \brief Execute homing sequence.\n
+ *
+ * \param[in] axisIndex Axis index.\n
+ * \param[in] nCmdData Homing sequence number.\n
+ * \param[in] homePositionSet Position to set at homing.\n
+ * \param[in] velocityTwordsCamSet Velocity setpoint twords cam.\n
+ * \param[in] velocityOffCamSet Velocity setpoint off cam.\n
+ * \param[in] accelerationSet Acceleration setpoint.\n
+ * \param[in] decelerationSet Deceleration setpoint.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int moveHome(int    axisIndex,
+             int    nCmdData,
+             double homePositionSet,
+             double velocityTwordsCamSet,
+             double velocityOffCamSet,                            
+             double accelerationSet,
+             double decelerationSet);
 
 /** \brief Get axis error state.\n
  *
