@@ -1,6 +1,28 @@
 Release Notes
 ===
+# ECMC master
 
+* Add custom motor record driver (asynMotor) in order to improve realtime performance
+* New iocsh commands (same syntax as EthercatMC):
+
+ ```sh
+ecmcMotorRecordCreateController(portName,         // Asyn port name for asyn com with ecmcMotorRecord
+                                 motorPortName,    // Not used. Kept to keep syntax same as EthercatMC
+                                 numAxes,          // Not used. Kept to keep syntax same as EthercatMC
+                                 movingPollPeriod, // Poll period when moving [ms]
+                                 idlePollPeriod,   // Poll period when idle [ms]
+                                 optionStr)        // Options (execute "ecmcMotorRecordCreateController" in iocsh to see available options)
+```
+
+```sh
+ecmcMotorRecordCreateAxis(controllerPortName,     // Same as portName for controller
+                          axisNo,                 // Axis index
+                          axisFlags,              // Options mainly for powering axis.
+                          axisOptionsStr)         // Options (execute "ecmcMotorRecordCreateAxis" in iocsh to see available options)
+
+```
+* Note: EthercatMC is still supported and can be used like before
+    
 # ECMC 6.0.2
 
 * Add iocsh commands "ecmcGrepParam()" and "ecmcGrepRecord()"
