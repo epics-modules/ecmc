@@ -1,10 +1,38 @@
 # ECMC knowledgebase:
 
-## Error codes:
-Item | Error | Error Id | When | Description 
---- | --- | --- | ---|
+## Error codes (quick guide):
+Item | Error | Error Id | When | Description
+--- | --- | --- | --- | --- |
 1   | ERROR_EC_MAIN_DOMAIN_DATA_FAILED | 0x2600c | At "Cfg.SetAppMode(1)" | No hardware configured. Missing "addSlave.cmd" or missing "Cfg.EcApplyConfig(1)"
 2   | ERROR_MAIN_EC_ACTIVATE_FAILED    | 0x2001b | At "Cfg.SetAppMode(1)" | No hardware configured. Missing "addSlave.cmd" or missing "Cfg.EcApplyConfig(1)"
+3   | ERROR_MON_BOTH_LIMIT_INTERLOCK    | 0x14c10 | In runtime | See "Lost frames. Lost Slaves, ECMC in error state" below.
+4   | ERROR_AXIS_HARDWARE_STATUS_NOT_OK    | 0x14315 | In runtime | See "Lost frames. Lost Slaves, ECMC in error state" below.
+5   | ERROR_EC_SLAVE_NOT_OPERATIONAL    | 0x24011 | In runtime | See "Lost frames. Lost Slaves, ECMC in error state" below.
+6   | ERROR_EC_SLAVE_NOT_ONLINE    | 0x24012 | In runtime | See "Lost frames. Lost Slaves, ECMC in error state" below.
+7   | ERROR_EC_LINK_DOWN    | 0x26011 | In runtime | Link is down. Could be lost physical connection. Ensure that cable is connected. See "Lost frames. Lost Slaves, ECMC in error state" below.
+
+
+## Lost frames. Lost Slaves, ECMC in error state
+### Issues: 
+* EtherCAT frames are lost resulting in ecmc alarm state.
+* Connection to slaves are lost resulting in ecmc alarm state
+* Error codes:
+  * ERROR_MON_BOTH_LIMIT_INTERLOCK (0x14c10)
+  * ERROR_AXIS_HARDWARE_STATUS_NOT_OK (0x14315)
+  * ERROR_EC_SLAVE_NOT_OPERATIONAL (0x24011)
+  * ERROR_EC_SLAVE_NOT_ONLINE (0x24012)
+  * ERROR_EC_LINK_DOWN (0x26011)
+
+Note: These error codes always appear when starting ecmc. This is because it can take up to 30s untill the bus in syncronized and stable. After this startup you should see a printout stating "NO_ERROR". If any of the above error appear after the system have been started up then please see below for suggestions.
+
+### Remidy:
+1. Check cabling. There have also been cases where cabling have failed resulting in intermittent failures.
+2. Make sure you run rt-patch (for more info see repo: https://github.com/icshwi/realtime-config)
+3. Check NIC perfromance (with "iperf"). There have been cases where NIC have been broken which took a significat time to find.
+4. Measure ecmc jitter:
+  * camonitor ${P}MCU-thread-latency-max | tee jitter.log
+  * Unit of jitter in log file is nano seconds
+  * Jitter above 100 micro seconds is to be considered to be high and should be avoided.
 
 ## Slaves in error state, strange behaviour when using ethercat slaves, ethercat rescan
 ### Issues: 
@@ -20,27 +48,12 @@ Item | Error | Error Id | When | Description
 ### Remidy:
 * Seemed issue was fundamental, so needed complete reinstall (Centos, realtime-config etherlabmaster, e3)
 * Did not work with only reinstall of etherlabmaster
-
-## Lost frames. Lost Slaves, ECMC in error state
-### Issues: 
-* EtherCAT frames are lost resulting in ecmc alarm state.
-* Connection to slaves are lost resulting in ecmc alarm state
-* Error codes:
-  * ERROR_MON_BOTH_LIMIT_INTERLOCK (0x14c10)
-  * ERROR_AXIS_HARDWARE_STATUS_NOT_OK (0x14315)
-  * ERROR_EC_SLAVE_NOT_OPERATIONAL (0x24011)
-Note: These error codes always appear when starting ecmc. This is because it can take up to 30s untill the bus in syncronized and stable. After this startup you should see a printout stating "NO_ERROR". If any of the above error appear after the system have been started up then please see below for suggestions.
-
-### Remidy:
-1. Make sure you run rt-patch (for more info see repo: https://github.com/icshwi/realtime-config)
-2. Check NIC perfromance (with "iperf"). There have been cases where NIC have been broken which took a significat time to find.
-3. Check cabling. There have also been cases where cabling have failed resulting in intermittent failuers.
-4. Measure ecmc jitter:
-  * camonitor ${P}MCU-thread-latency-max | tee jitter.log
-  * Unit of jitter in log file is nano seconds
-  * Jitter above 100 micro seconds is to be considered to be high and should be avoided.
+* After reinstall everything worked properly.
 
 ## Fast callbacks on waveforms
+
+If excpetced callbacks are failing it could usefull to read the below text:
+
 From EPICS tech talk 2014: https://epics.anl.gov/tech-talk/2014/msg00284.php
 
 Subject: 	RE: Waveform record I/O interrupt. asyn
