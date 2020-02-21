@@ -6,6 +6,40 @@ Item | Error | Error Id | When | Description
 1   | ERROR_EC_MAIN_DOMAIN_DATA_FAILED | 0x2600c | At "Cfg.SetAppMode(1)" | No hardware configured. Missing "addSlave.cmd" or missing "Cfg.EcApplyConfig(1)"
 2   | ERROR_MAIN_EC_ACTIVATE_FAILED    | 0x2001b | At "Cfg.SetAppMode(1)" | No hardware configured. Missing "addSlave.cmd" or missing "Cfg.EcApplyConfig(1)"
 
+## Slaves in error state, strange behaviour when using ethercat slaves, ethercat rescan
+### Issues: 
+* Errors in dmesg, 
+  * Problem reading SII, 
+  * Timeouts
+  * Much more.....
+* Slaves stuck in "INIT E" 
+* Somtimes succeded when ethercat rescan but not consistent failed again.
+* Slaves in error state
+* A few times the bus was failing soon again.
+
+### Remidy:
+* Seemed issue was fundamental, so needed complete reinstall (Centos, realtime-config etherlabmaster, e3)
+* Did not work with only reinstall of etherlabmaster
+
+## Lost frames. Lost Slaves, ECMC in error state
+### Issues: 
+* EtherCAT frames are lost resulting in ecmc alarm state.
+* Connection to slaves are lost resulting in ecmc alarm state
+* Error codes:
+  * ERROR_MON_BOTH_LIMIT_INTERLOCK (0x14c10)
+  * ERROR_AXIS_HARDWARE_STATUS_NOT_OK (0x14315)
+  * ERROR_EC_SLAVE_NOT_OPERATIONAL (0x24011)
+Note: These error codes always appear when starting ecmc. This is because it can take up to 30s untill the bus in syncronized and stable. After this startup you should see a printout stating "NO_ERROR". If any of the above error appear after the system have been started up then please see below for suggestions.
+
+### Remidy:
+1. Make sure you run rt-patch (for more info see repo: https://github.com/icshwi/realtime-config)
+2. Check NIC perfromance (with "iperf"). There have been cases where NIC have been broken which took a significat time to find.
+3. Check cabling. There have also been cases where cabling have failed resulting in intermittent failuers.
+4. Measure ecmc jitter:
+  * camonitor ${P}MCU-thread-latency-max | tee jitter.log
+  * Unit of jitter in log file is nano seconds
+  * Jitter above 100 micro seconds is to be considered to be high and should be avoided.
+
 ## Fast callbacks on waveforms
 From EPICS tech talk 2014: https://epics.anl.gov/tech-talk/2014/msg00284.php
 
@@ -54,8 +88,3 @@ For array records like you are using there is no ring buffer, because the size c
 The bug that I fixed in asyn 4.21 was that the record was not locked while the data was being copied.  This meant that the record could post a monitor with data that was partly from callback 1 and partly from callback 2.  This was a bad behavior, but that has been fixed.  Now the record data is guaranteed to either be the complete array from callback 1 or callback 2, and not a mixture.
 
 Mark
-
-## Lost frames, bad performance
-
-Realtime repo
-Check hardware (NIC and cables)
