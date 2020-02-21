@@ -12,7 +12,7 @@ Item | Error | Error Id | When | Description
 7   | ERROR_EC_LINK_DOWN    | 0x26011 | In runtime | Link is down. Could be lost physical connection. Ensure that cable is connected. See "Lost frames. Lost Slaves, ECMC in error state" below.
 
 
-## Lost frames. Lost Slaves, ECMC in error state
+## Lost frames, lost slaves, ECMC in error state
 ### Issues: 
 * EtherCAT frames are lost resulting in ecmc alarm state.
 * Connection to slaves are lost resulting in ecmc alarm state
@@ -25,7 +25,7 @@ Item | Error | Error Id | When | Description
 
 Note: These error codes always appear when starting ecmc. This is because it can take up to 30s untill the bus in syncronized and stable. After this startup you should see a printout stating "NO_ERROR". If any of the above error appear after the system have been started up then please see below for suggestions.
 
-### Remidy:
+### Remedy:
 1. Check cabling. There have also been cases where cabling have failed resulting in intermittent failures.
 2. Make sure you run rt-patch (for more info see repo: https://github.com/icshwi/realtime-config)
 3. Check NIC perfromance (with "iperf"). There have been cases where NIC have been broken which took a significat time to find.
@@ -45,7 +45,7 @@ Note: These error codes always appear when starting ecmc. This is because it can
 * Slaves in error state
 * A few times the bus was failing soon again.
 
-### Remidy:
+### Remedy:
 * Seemed issue was fundamental, so needed complete reinstall (Centos, realtime-config etherlabmaster, e3)
 * Did not work with only reinstall of etherlabmaster
 * After reinstall everything worked properly.
