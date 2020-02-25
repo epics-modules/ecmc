@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <stdio.h>
 #include <errno.h>
 #include <math.h>
@@ -41,6 +42,7 @@
 #include "../ethercat/ecmcEthercat.h"
 #include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"
+#include "exprtkWrap.h"
 
 static const char *driverName = "ecmcAsynPortDriver";
 
@@ -1435,6 +1437,50 @@ static void initCallFunc_7(const iocshArgBuf *args) {
   ecmcGrepRecord(args[0].sval);
 }
 
+/* EPICS iocsh shell command: ecmcGrepRecord*/
+int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const char *format) {
+  
+  if(!envVarName || !expression || !format) {
+    printf("Error: Environment variable name, expression or format missing.\n");
+    printf("       Use \"ecmcEpicsEnvSetCalc <envVarName>,  <expression>, <format> \" to evaluate the expression and assign the variable");
+    return asynError;  
+  }
+
+  printf ("You called ecmcEpicsEnvSetCalc %s %s %s\n", envVarName,expression,format);
+  exprtkWrap *exprtk = new exprtkWrap();
+  if(!exprtk) {
+     printf ("Failed allocation of exprtk expression parser.\n");
+    return asynError;
+  }
+  double result = 0;
+  std::string resultStr="RESULT";
+  exprtk->addVariable(resultStr.c_str(), result);
+  std::string exprStr=resultStr+ ":=" + expression + ";";
+  if(exprtk->compile(exprStr)) {
+    printf ("Failed compile of expression with error message: %s.\n", exprtk->getParserError().c_str());
+    return asynError;
+  }
+  exprtk->refresh();
+  //strcmp(format)
+  //Need to check if cast is needed of the double data to int..
+  printf(format, result);
+  //SepicsEnvSet()
+  delete exprtk;
+  return 0;
+}
+
+static const iocshArg initArg0_8 =
+{ "Variable name", iocshArgString };
+static const iocshArg initArg0_9 =
+{ "Expression", iocshArgString };
+static const iocshArg initArg0_10 =
+{ "Format", iocshArgString };
+static const iocshArg *const initArgs_8[]  = { &initArg0_8, &initArg0_9, &initArg0_10 };
+static const iocshFuncDef    initFuncDef_8 = { "ecmcEpicsEnvSetCalc", 3, initArgs_8 };
+static void initCallFunc_8(const iocshArgBuf *args) {
+  ecmcEpicsEnvSetCalc(args[0].sval,args[1].sval,args[2].sval);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,   initCallFunc);
   iocshRegister(&initFuncDef_2, initCallFunc_2);
@@ -1443,6 +1489,7 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_5, initCallFunc_5);
   iocshRegister(&initFuncDef_6, initCallFunc_6);
   iocshRegister(&initFuncDef_7, initCallFunc_7);
+  iocshRegister(&initFuncDef_8, initCallFunc_8);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
