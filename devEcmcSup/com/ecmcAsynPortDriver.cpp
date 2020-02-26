@@ -26,6 +26,7 @@
 #include <epicsMutex.h>
 #include <epicsExport.h>
 #include <epicsEvent.h>
+#include <envDefs.h>
 #include <dbCommon.h>
 #include <dbBase.h>
 #include <dbStaticLib.h>
@@ -1437,35 +1438,136 @@ static void initCallFunc_7(const iocshArgBuf *args) {
   ecmcGrepRecord(args[0].sval);
 }
 
-/* EPICS iocsh shell command: ecmcGrepRecord*/
-int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const char *format) {
+static const char * allowedFormats[] = {
+  "a","A", "e", "E", "f", "F", "g" ,"G", 
+  "d", "i", "o", "u", "x"  "l"
+};
+
+int formatIsDouble2(const char* format) {
   
-  if(!envVarName || !expression || !format) {
-    printf("Error: Environment variable name, expression or format missing.\n");
-    printf("       Use \"ecmcEpicsEnvSetCalc <envVarName>,  <expression>, <format> \" to evaluate the expression and assign the variable");
-    return asynError;  
+  if(strlen(format )>= (ECMC_CMD_MAX_SINGLE_CMD_LENGTH -1)){
+    printf("Format string to long (max length %d).\n",ECMC_CMD_MAX_SINGLE_CMD_LENGTH);
+    return -1;
   }
 
-  printf ("You called ecmcEpicsEnvSetCalc %s %s %s\n", envVarName,expression,format);
+  const char *firstProcent = strchr(format,'%');
+  if(!firstProcent) {
+    return -1;
+  }
+
+  char flags[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  memset(flags,0,sizeof(flags));
+  int nvals = sscanf(firstProcent,"%%%[0-9 | +-#hl]",flags);
+  if (nvals == 1) {
+    printf("flags are:%s\n",flags);
+  }
+
+  char specifiers[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  memset(specifiers,0,sizeof(specifiers));
+  char *formatStart = (char*)firstProcent+strlen(flags);
+  nvals = sscanf(formatStart,"%s",specifiers);
+  
+  if (nvals == 1) {
+    printf("specifiers are:%s\n",specifiers);
+  }
+  return 1;
+}
+
+int formatIsDouble(const char* format) {
+  if(strchr(format,'%')  == 0) return -1;
+  if(strstr(format,"%s")  > 0) return -1;
+  if(strstr(format,"%%")  > 0) return -1;
+  if(strstr(format,"%c")  > 0) return -1;
+  if(strstr(format,"%lf") > 0) return  1;
+  if(strstr(format,"%a")  > 0) return  1;
+  if(strstr(format,"%A")  > 0) return  1;
+  if(strstr(format,"%e")  > 0) return  1;
+  if(strstr(format,"%E")  > 0) return  1;
+  if(strstr(format,"%f")  > 0) return  1;
+  if(strstr(format,"%F")  > 0) return  1;
+  if(strstr(format,"%g")  > 0) return  1;
+  if(strstr(format,"%G")  > 0) return  1;
+  
+  
+  //"LinkEcEntryToObject(%[^,],%[^)])",
+
+  return 0;
+}
+
+/** EPICS iocsh shell command: ecmcEpicsEnvSetCalc
+ *  Evaluates an expression and sets an EPICS environment variable
+*/
+#define ECMC_ENVSETCALC_DEF_FORMAT "%d"
+int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const char *format) {
+
+  //test formatIsDouble2
+
+  formatIsDouble2(format);
+
+  const char *localFormat=format;
+  if (!localFormat) {
+    localFormat=ECMC_ENVSETCALC_DEF_FORMAT;
+  }
+  if(!envVarName || !expression) {
+    printf("Error: Environment variable name, expression or format missing.\n");
+    printf("       Use \"ecmcEpicsEnvSetCalc <envVarName>,  <expression>, <format> \" to evaluate the expression and assign the variable\n");
+    printf("          <envVarName> : EPICS environment variable name\n");
+    printf("          <expression> : Calculation expression (see exprTK for available functionality)\n");
+    printf("          <format>     : Optional format string. Example \"%%lf\",\"%%x\" or \"%%d\", defaults to \"%%d\".\n");
+    printf("                         Can contain text like \"0x%%x\" or \"Hex value is 0x60%%x\".\n");
+    printf("                         Must contain one numeric value.\n");
+    printf("                         In general cannot handle width and space specifiers (some might work). \"0x%%03d\" is invalid \n");
+    return 0;
+  }
+
+  // Evaluate expression
   exprtkWrap *exprtk = new exprtkWrap();
   if(!exprtk) {
      printf ("Failed allocation of exprtk expression parser.\n");
     return asynError;
   }
-  double result = 0;
+  double resultDouble = 0;
   std::string resultStr="RESULT";
-  exprtk->addVariable(resultStr.c_str(), result);
+  exprtk->addVariable(resultStr.c_str(), resultDouble);
   std::string exprStr=resultStr+ ":=" + expression + ";";
   if(exprtk->compile(exprStr)) {
     printf ("Failed compile of expression with error message: %s.\n", exprtk->getParserError().c_str());
     return asynError;
   }
   exprtk->refresh();
-  //strcmp(format)
-  //Need to check if cast is needed of the double data to int..
-  printf(format, result);
-  //SepicsEnvSet()
-  delete exprtk;
+  delete exprtk;  // not needed anymore (result in "resultDouble")
+
+  // Convert if int in format string
+  
+  int resultInt=round(resultDouble);
+  char buffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  unsigned int charCount = 0;
+  memset(buffer,0,sizeof(buffer));
+  
+  int isDouble = formatIsDouble(localFormat);
+  if(isDouble < 0) {
+    printf ("Failed to determine datatype from format..\n");
+    return asynError;
+  }
+
+  if(isDouble){
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         localFormat,
+                         resultDouble);
+  }else{
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         localFormat,
+                         resultInt);
+  }
+  if (charCount >= sizeof(buffer) - 1) {
+    printf ("Write buffer size exceeded, format results in a to long string.\n");
+    return asynError;
+  }
+
+  printf("Result %lf, %d, format=%s, resultingstring=%s\n",resultDouble,resultInt,localFormat,buffer);
+  epicsEnvSet(envVarName,buffer);
   return 0;
 }
 
