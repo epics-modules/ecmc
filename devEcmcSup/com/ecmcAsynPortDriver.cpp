@@ -1438,14 +1438,22 @@ static void initCallFunc_7(const iocshArgBuf *args) {
   ecmcGrepRecord(args[0].sval);
 }
 
-static const char * allowedFormats[] = {
-  "a","A", "e", "E", "f", "F", "g" ,"G", 
-  "d", "i", "o", "u", "x"  "l"
+static const char * allowedSpecInt[] = {
+  "d", "i", "o", "u", "x", "l", "\0"
 };
 
-int formatIsDouble2(const char* format) {
+static const char * allowedSpecFloat[] = {
+  "a","A", "e", "E", "f", "F", "g" ,"G", "\0"
+};
+
+int formatIsDouble(const char* format) {
+
+  if(!format) {
+    printf("Invalid or empty format string.\n");
+    return -1;
+  } 
   
-  if(strlen(format )>= (ECMC_CMD_MAX_SINGLE_CMD_LENGTH -1)){
+  if(strlen(format)>= (ECMC_CMD_MAX_SINGLE_CMD_LENGTH -1)){
     printf("Format string to long (max length %d).\n",ECMC_CMD_MAX_SINGLE_CMD_LENGTH);
     return -1;
   }
@@ -1457,41 +1465,55 @@ int formatIsDouble2(const char* format) {
 
   char flags[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
   memset(flags,0,sizeof(flags));
-  int nvals = sscanf(firstProcent,"%%%[0-9 | +-#hl]",flags);
-  if (nvals == 1) {
-    printf("flags are:%s\n",flags);
-  }
+  int nvals = sscanf(firstProcent,"%%%[0-9 | +-.#hl]",flags);
 
   char specifiers[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
   memset(specifiers,0,sizeof(specifiers));
-  char *formatStart = (char*)firstProcent+strlen(flags);
+  char *formatStart = (char*)firstProcent+strlen(flags)+1;
   nvals = sscanf(formatStart,"%s",specifiers);
   
-  if (nvals == 1) {
-    printf("specifiers are:%s\n",specifiers);
+  if (nvals != 1) {
+    printf("Format string error. Could not determine specifier in string %s.\n",specifiers);
+    return -1;
   }
-  return 1;
+
+  //Check specifiers for int
+  size_t i=0;
+  const char* element=allowedSpecInt[i];
+  while(element[0] != 0) {  
+    if(strstr(specifiers,element)) {
+      return 0;
+    }
+    i++;
+    element=allowedSpecInt[i];
+  }
+
+  //Check specifiers for double
+  i=0;
+  element=allowedSpecFloat[i];
+  while(element[0] != 0) {  
+    if(strstr(specifiers,element)) {
+      return 1;
+    }
+    i++;
+    element=allowedSpecFloat[i];
+  }
+  
+  return -1; //invalid
 }
-
-int formatIsDouble(const char* format) {
-  if(strchr(format,'%')  == 0) return -1;
-  if(strstr(format,"%s")  > 0) return -1;
-  if(strstr(format,"%%")  > 0) return -1;
-  if(strstr(format,"%c")  > 0) return -1;
-  if(strstr(format,"%lf") > 0) return  1;
-  if(strstr(format,"%a")  > 0) return  1;
-  if(strstr(format,"%A")  > 0) return  1;
-  if(strstr(format,"%e")  > 0) return  1;
-  if(strstr(format,"%E")  > 0) return  1;
-  if(strstr(format,"%f")  > 0) return  1;
-  if(strstr(format,"%F")  > 0) return  1;
-  if(strstr(format,"%g")  > 0) return  1;
-  if(strstr(format,"%G")  > 0) return  1;
-  
-  
-  //"LinkEcEntryToObject(%[^,],%[^)])",
-
-  return 0;
+void ecmcEpicsEnvSetCalcPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcEpicsEnvSetCalc(<envVarName>,  <expression>, <format>)\" to evaluate the expression and assign the variable.\n");
+  printf("          <envVarName> : EPICS environment variable name.\n");
+  printf("          <expression> : Calculation expression (see exprTK for available functionality).\n");
+  printf("          <format>     : Optional format string. Example \"%%lf\", \"%%8.3lf\", \"%%x\", \"%%04d\" or \"%%d\", defaults to \"%%d\".\n");
+  printf("                         Can contain text like \"0x%%x\" or \"Hex value is 0x60%%x\".\n");
+  printf("                         Must contain one numeric value where result of expression will be written.\n");
+  printf("\n");
+  printf("       Restrictions:\n");
+  printf("         - Some flags and/or width/precision combinations might not be supported.\n");
+  printf("         - Hex numbers in the expression is not allowed (but hex as output by formating is OK).\n");
+  printf("\n");
 }
 
 /** EPICS iocsh shell command: ecmcEpicsEnvSetCalc
@@ -1500,24 +1522,26 @@ int formatIsDouble(const char* format) {
 #define ECMC_ENVSETCALC_DEF_FORMAT "%d"
 int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const char *format) {
 
-  //test formatIsDouble2
-
-  formatIsDouble2(format);
-
   const char *localFormat=format;
   if (!localFormat) {
     localFormat=ECMC_ENVSETCALC_DEF_FORMAT;
   }
-  if(!envVarName || !expression) {
-    printf("Error: Environment variable name, expression or format missing.\n");
-    printf("       Use \"ecmcEpicsEnvSetCalc <envVarName>,  <expression>, <format> \" to evaluate the expression and assign the variable\n");
-    printf("          <envVarName> : EPICS environment variable name\n");
-    printf("          <expression> : Calculation expression (see exprTK for available functionality)\n");
-    printf("          <format>     : Optional format string. Example \"%%lf\",\"%%x\" or \"%%d\", defaults to \"%%d\".\n");
-    printf("                         Can contain text like \"0x%%x\" or \"Hex value is 0x60%%x\".\n");
-    printf("                         Must contain one numeric value.\n");
-    printf("                         In general cannot handle width and space specifiers (some might work). \"0x%%03d\" is invalid \n");
-    return 0;
+
+  if(!envVarName) {
+    printf("Error: Environment variable name  missing.\n");
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(envVarName,"-h") == 0 || strcmp(envVarName,"--help") == 0 ) {
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynSuccess;
+  }
+
+  if(!expression) {
+    printf("Error: Expression missing.\n");
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynError;
   }
 
   // Evaluate expression
@@ -1538,7 +1562,6 @@ int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const ch
   delete exprtk;  // not needed anymore (result in "resultDouble")
 
   // Convert if int in format string
-  
   int resultInt=round(resultDouble);
   char buffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
   unsigned int charCount = 0;
@@ -1546,7 +1569,7 @@ int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const ch
   
   int isDouble = formatIsDouble(localFormat);
   if(isDouble < 0) {
-    printf ("Failed to determine datatype from format..\n");
+    printf ("Error: Failed to determine datatype from format. Invalid format string \"%s\".\n", localFormat);
     return asynError;
   }
 
@@ -1566,9 +1589,8 @@ int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const ch
     return asynError;
   }
 
-  printf("Result %lf, %d, format=%s, resultingstring=%s\n",resultDouble,resultInt,localFormat,buffer);
   epicsEnvSet(envVarName,buffer);
-  return 0;
+  return asynSuccess;
 }
 
 static const iocshArg initArg0_8 =
