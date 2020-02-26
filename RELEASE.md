@@ -30,13 +30,13 @@ ecmcEpicsEnvSetCalc("test2", "061+1+2+3+4+5*10.1", "%03x")
 epicsEnvShow("test2")
 test2=07a
 
-#### Hex + text
+#### Hex + text in format string
 # ecmcEpicsEnvSetCalc("test2", "$(test1)+1+2+3+4+5*10.1", "This is the number: 0x%06x")
 ecmcEpicsEnvSetCalc("test2", "061+1+2+3+4+5*10.1", "This is the number: 0x%06x")
 epicsEnvShow("test2")
 test2=This is the number: 0x00007a
 
-#### Calculate scalings ()
+#### Calculate scalings (floating point)
 epicsEnvSet("IORange",32768)
 # ecmcEpicsEnvSetCalc("scaling", "$(test1)/$(IORange)*10", "%lf")
 ecmcEpicsEnvSetCalc("scaling", "061/32768*10", "%lf")
