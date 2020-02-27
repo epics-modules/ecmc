@@ -645,13 +645,51 @@ int ecmcEc::writeSDO(uint16_t slavePosition,
                           sdoSubIndex,
                           value,
                           (size_t)byteSize);
+}                    
+
+int ecmcEc::addSDOWriteComplete(uint16_t    slavePosition,
+                                uint16_t    sdoIndex,
+                                const char* dataBuffer,
+                                int         byteSize) {
+ecmcEcSlave *slave = findSlave(slavePosition);
+
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+  return slave->addSDOWriteComplete(sdoIndex,
+                                    dataBuffer,
+                                    (size_t)byteSize);
 }
 
-int ecmcEc::writeSDOComplete(uint16_t slavePosition,
-                             uint16_t sdoIndex,
-                             uint32_t value,
-                             int      byteSize) {
-  return ecmcEcSDO::writeComplete(master_, slavePosition, sdoIndex, value,
+int ecmcEc::addSDOWriteBuffer(uint16_t    slavePosition,
+                              uint16_t    sdoIndex,
+                              uint8_t     sdoSubIndex,
+                              const char* dataBuffer,
+                              int         byteSize) {
+ecmcEcSlave *slave = findSlave(slavePosition);
+
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+  return slave->addSDOWriteBuffer(sdoIndex,
+                                  sdoSubIndex,
+                                  dataBuffer,
                                   (size_t)byteSize);
 }
 

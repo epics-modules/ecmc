@@ -115,6 +115,14 @@ class ecmcEcSlave : public ecmcError {
                   uint8_t  sdoSubIndex,
                   uint32_t writeValue,
                   int      byteSize);
+  int addSDOWriteComplete(uint16_t    sdoIndex,
+                         const char* dataBuffer,
+                         int         byteSize);
+
+  int addSDOWriteBuffer(uint16_t    sdoIndex,
+                        uint8_t     sdoSubIndex,
+                        const char* dataBuffer,
+                        int         byteSize);
   int getSlaveState(ec_slave_config_state_t *state);
   int validate();
 

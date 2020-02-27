@@ -395,6 +395,67 @@ int ecAddSdo(uint16_t slaveBusPosition,
              uint32_t value,
              int      byteSize);
 
+/** \brief Adds a Service Data Object for writing.
+ *
+ * Adds a Service Data Object for writing to the sdo registers of EtherCAT
+ * slaves. An sdo object will be added to the hardware configuration.
+ * The writing will occur when the hardware configuration is applied.\n
+ *
+ * \note This command can only be used in configuration mode.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in] sdoIndex Index of service data object. Needs to be
+ *                           entered in hex format.\n
+ *  \param[in] valueBuffer Values to be written as hex string, each byte separted with space.\n
+ *  \param[in] byteSize Byte count to write.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave, in the ESI slave description file or by using the etherlab
+ * (www.etherlab.org) ethercat tool.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Write a hex string of data to slave position 2.\n
+ * "Cfg.EcAddSdoComplete(2,0x8010,0A FF CA 01 25 F1,6)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddSdoComplete(uint16_t    slaveBusPosition,
+                     uint16_t    sdoIndex,                     
+                     const char* valueBuffer,
+                     int         byteSize);
+
+/** \brief Adds a Service Data Object for writing.
+ *
+ * Adds a Service Data Object for writing to the sdo registers of EtherCAT
+ * slaves. An sdo object will be added to the hardware configuration.
+ * The writing will occur when the hardware configuration is applied.\n
+ *
+ * \note This command can only be used in configuration mode.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in] sdoIndex Index of service data object. Needs to be
+ *                           entered in hex format.\n
+ *  \param[in] sdoSubIndex Sub index of service data object. Needs to be
+ *                         entered in hex format.\n
+ *  \param[in] valueBuffer Values to be written as hex string, each byte separted with space.\n
+ *  \param[in] byteSize Byte count to write.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave, in the ESI slave description file or by using the etherlab
+ * (www.etherlab.org) ethercat tool.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Write a hex string of data to slave position 2.\n
+ * "Cfg.EcAddSdoBuffer(2,0x8010,0x1,0A FF CA 01 25 F1,6)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddSdoBuffer(uint16_t    slavePosition,
+                   uint16_t    sdoIndex,
+                   uint8_t     sdoSubIndex,
+                   const char* valueBuffer,
+                   int         byteSize);
+
 /** \brief Write to a Service Data Object.
  *
  * Writing will occur directly when the command is issued.\n
@@ -432,10 +493,10 @@ int ecWriteSdo(uint16_t slavePosition,
  * uint32_t value,int byteSize)" but without subindex. Complete SDO access will be used.
  *
  */
-int ecWriteSdoComplete(uint16_t slavePosition,
+/*int ecWriteSdoComplete(uint16_t slavePosition,
                        uint16_t sdoIndex,
                        uint32_t value,
-                       int      byteSize);
+                       int      byteSize);*/
 
 /** \brief Read a Service Data Object.
  *
