@@ -198,20 +198,6 @@ enum operationMode {
   ECMC_MODE_OP_MAN  = 1,
 };
 
-// enum motionCommandTypes {
-//   ECMC_CMD_NOCMD      = -1,
-//   ECMC_CMD_JOG        = 0,
-//   ECMC_CMD_MOVEVEL    = 1,
-//   ECMC_CMD_MOVEREL    = 2,
-//   ECMC_CMD_MOVEABS    = 3,
-//   ECMC_CMD_MOVEMODULO = 4,   // NOT IMPLEMENTED
-//   ECMC_CMD_HOMING     = 10,  // PARTLY IMPLEMENTED
-//   // NOT IMPLEMENTED (implemented in another way..)
-//   ECMC_CMD_SUPERIMP   = 20,  // NOT IMPLEMENTED
-//   // NOT IMPLEMENTED (implemented in another way..)
-//   ECMC_CMD_GEAR       = 30,
-// };
-
 enum motionCommandTypes {             // Data order for motor record communications
   ECMC_CMD_NOCMD              = -1,   
   ECMC_CMD_JOG                = 0,    

@@ -47,5 +47,6 @@ const char                *controllerErrorMsg = "NO_ERROR";
 int32_t                    ecmcUpdatedCounter = 0;
 int                        asynSkipCyclesFastest   = -1;
 int                        asynSkipUpdateCounterFastest = 0;
+int                        ecTimeoutSeconds = EC_START_TIMEOUT_S;
 
 #endif  /* ECMC_GLOBALS_H_ */

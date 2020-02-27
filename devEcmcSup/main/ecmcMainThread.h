@@ -56,6 +56,19 @@ int ecmcInitThread(void);
  */
 int setAppMode(int mode);
 
+/** \brief Sets EtherCAT startup timeout time
+ *
+ * Can be needed if many slaves in ethercat network. Default time is 30s.
+ * 
+ * \param[in] time_seconds  Timeout in seconds (default 30s).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set EtherCAT startup timeout to 100s.\n
+ * "Cfg.SetEcStartupTimeout(100)" //Command string to ecmcCmdParser.c
+ */
+int setEcStartupTimeout(int time_seconds);
+
 /** \brief Update main asyn parameters
  *
  * \param[in] force Force update\n
