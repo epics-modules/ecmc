@@ -22,6 +22,8 @@
 #define ERROR_EC_SDO_WRITE_FAILED 0x23001
 #define ERROR_EC_SDO_READ_FAILED 0x23002
 #define ERROR_EC_SDO_VERIFY_FAILED 0x23003
+#define ERROR_EC_SDO_DATA_SIZE_ERROR 0x23004
+#define ERROR_EC_SDO_BUFFER_ALLOC_FAIL 0x23005
 
 class ecmcEcSDO : public ecmcError {
  public:
@@ -33,11 +35,10 @@ class ecmcEcSDO : public ecmcError {
                    uint8_t      sdoSubIndex,
                    uint32_t     value,
                    size_t       byteSize);
-  static int writeComplete(ec_master_t *master,
-                           uint16_t     slavePosition,
-                           uint16_t     sdoIndex,
-                           uint32_t     value,
-                           size_t       byteSize);
+  static int addWriteComplete(ec_slave_config_t *sc,
+                           uint16_t           sdoIndex,
+                           const char*        dataString,
+                           size_t             byteSize);
   static int read(ec_master_t *master,
                   uint16_t     slavePosition,
                   uint16_t     sdoIndex,
@@ -56,5 +57,10 @@ class ecmcEcSDO : public ecmcError {
                           uint8_t            sdoSubIndex,
                           uint32_t           value,
                           size_t             byteSize);
+  static int addSdoConfigBuffer(ec_slave_config_t *sc,
+                                uint16_t           sdoIndex,
+                                uint8_t            sdoSubIndex,
+                                const char*        dataString,
+                                size_t             byteSize);                          
 };
 #endif  /* ECMCECSDO_H_ */

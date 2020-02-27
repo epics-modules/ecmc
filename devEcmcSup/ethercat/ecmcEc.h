@@ -111,10 +111,15 @@ class ecmcEc : public ecmcError {
                uint8_t  sdoSubIndex,
                uint32_t value,
                int      byteSize);
-  int writeSDOComplete(uint16_t slavePosition,
-                       uint16_t sdoIndex,
-                       uint32_t value,
-                       int      byteSize);
+  int addSDOWriteComplete(uint16_t    slavePosition,
+                          uint16_t    sdoIndex,                       
+                          const char *valueString,
+                          int         byteSize); 
+  int addSDOWriteBuffer(uint16_t    slavePosition,
+                        uint16_t    sdoIndex,
+                        uint8_t     sdoSubIndex,
+                        const char* dataBuffer,
+                        int         byteSize);
   int readSoE(uint16_t  slavePosition, /**< Slave position. */
               uint8_t   driveNo, /**< Drive number. */
               uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */

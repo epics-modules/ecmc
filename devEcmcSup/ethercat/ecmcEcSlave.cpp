@@ -842,3 +842,55 @@ int ecmcEcSlave::appendEntryToList(ecmcEcEntry *entry, bool useInRealTime) {
   }
   return 0;
 }
+
+int ecmcEcSlave::addSDOWriteComplete(uint16_t    sdoIndex,
+                                     const char* dataBuffer,
+                                     int         byteSize) {
+  if (!slaveConfig_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      vendorId_,
+      productCode_,
+      ERROR_EC_SLAVE_CONFIG_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_SLAVE_CONFIG_NULL);
+  }
+
+  return ecmcEcSDO::addWriteComplete(slaveConfig_,
+                                    sdoIndex,
+                                    dataBuffer,
+                                    (size_t)byteSize);
+}
+
+int ecmcEcSlave::addSDOWriteBuffer(uint16_t    sdoIndex,
+                                   uint8_t     sdoSubIndex,
+                                   const char* dataBuffer,
+                                   int         byteSize) {
+  if (!slaveConfig_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      vendorId_,
+      productCode_,
+      ERROR_EC_SLAVE_CONFIG_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_SLAVE_CONFIG_NULL);
+  }
+
+  return ecmcEcSDO::addSdoConfigBuffer(slaveConfig_,
+                                       sdoIndex,
+                                       sdoSubIndex,
+                                       dataBuffer,
+                                       (size_t)byteSize);
+}
