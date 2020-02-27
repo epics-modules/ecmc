@@ -52,6 +52,10 @@ epicsEnvShow("ECMC_SLAVE_NUM")
 ECMC_SLAVE_NUM=35
 
 ```
+* Add commands for SDO complete and buffer access:
+ * "Cfg.EcAddSdoComplete()"
+ * "Cfg.EcAddSdoBuffer()"
+* Remove obsolete command "EcWriteSdoComplete()"
 
 # ECMC 6.1
 
