@@ -1510,7 +1510,9 @@ void ecmcEpicsEnvSetCalcPrintHelp() {
   printf("\n");
   printf("       Use \"ecmcEpicsEnvSetCalc(<envVarName>,  <expression>, <format>)\" to evaluate the expression and assign the variable.\n");
   printf("          <envVarName> : EPICS environment variable name.\n");
-  printf("          <expression> : Calculation expression (see exprTK for available functionality).\n");
+  printf("          <expression> : Calculation expression (see exprTK for available functionality). Examples:\n");
+  printf("                         Simple expression:\"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)\".\n");
+  printf("                         Use of \"RESULT\" variable: \"if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};\".\n");
   printf("          <format>     : Optional format string. Example \"%%lf\", \"%%8.3lf\", \"%%x\", \"%%04d\" or \"%%d\", defaults to \"%%d\".\n");
   printf("                         Can contain text like \"0x%%x\" or \"Hex value is 0x60%%x\".\n");
   printf("                         Must contain one numeric value where result of expression will be written.\n");
@@ -1518,13 +1520,13 @@ void ecmcEpicsEnvSetCalcPrintHelp() {
   printf("       Restrictions:\n");
   printf("         - Some flags and/or width/precision combinations might not be supported.\n");
   printf("         - Hex numbers in the expression is not allowed (but hex as output by formating is OK).\n");
+  printf("         - Non floatingpoint values will be rounded to nearest int.\n");
   printf("\n");
 }
 
 /** EPICS iocsh shell command: ecmcEpicsEnvSetCalc
  *  Evaluates an expression and sets an EPICS environment variable
 */
-#define ECMC_ENVSETCALC_DEF_FORMAT "%d"
 int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const char *format) {
 
   const char *localFormat=format;
@@ -1556,9 +1558,26 @@ int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const ch
     return asynError;
   }
   double resultDouble = 0;
-  std::string resultStr="RESULT";    
-  exprtk->addVariable(resultStr.c_str(), resultDouble);
-  std::string exprStr=resultStr+ ":=" + expression + ";";
+
+  exprtk->addVariable(ECMC_ENVSETCALC_RESULT_VAR, resultDouble);
+
+  std::string exprStr="";
+
+  // Check if "RESULT" variable in str. If not then simple expression.. Add in beginning
+  if(strstr(expression,ECMC_ENVSETCALC_RESULT_VAR)) {
+    exprStr = expression;   
+  }
+  else {
+    exprStr = ECMC_ENVSETCALC_RESULT_VAR;   
+    exprStr += ":=";
+    exprStr += expression;       
+  }
+
+  //Check if need to add ";" last
+  if(exprStr.c_str()[strlen(exprStr.c_str())-1] != ';') {
+    exprStr += ";";
+  }
+  
   if(exprtk->compile(exprStr)) {
     printf ("Failed compile of expression with error message: %s.\n", exprtk->getParserError().c_str());
     return asynError;

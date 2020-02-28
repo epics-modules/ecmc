@@ -97,6 +97,10 @@
 #define ECMC_IOCSH_CFG_CMD "ecmcConfigOrDie"
 #define ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME "ECMC_CONFIG_RETURN_VAL"
 
+// ECMC ecmcEpicsEnvSetCalc
+#define ECMC_ENVSETCALC_DEF_FORMAT "%d"
+#define ECMC_ENVSETCALC_RESULT_VAR "RESULT"
+
 // Asyn  parameters in main
 #define ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID 0
 #define ECMC_ASYN_MAIN_PAR_LATENCY_MIN_NAME "ecmc.thread.latency.min"
