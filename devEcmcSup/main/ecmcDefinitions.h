@@ -95,6 +95,7 @@
 
 // ECMC iocsh config command
 #define ECMC_IOCSH_CFG_CMD "ecmcConfigOrDie"
+#define ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME "ECMC_CONFIG_RETURN_VAL"
 
 // Asyn  parameters in main
 #define ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID 0
@@ -197,20 +198,6 @@ enum operationMode {
   ECMC_MODE_OP_AUTO = 0,
   ECMC_MODE_OP_MAN  = 1,
 };
-
-// enum motionCommandTypes {
-//   ECMC_CMD_NOCMD      = -1,
-//   ECMC_CMD_JOG        = 0,
-//   ECMC_CMD_MOVEVEL    = 1,
-//   ECMC_CMD_MOVEREL    = 2,
-//   ECMC_CMD_MOVEABS    = 3,
-//   ECMC_CMD_MOVEMODULO = 4,   // NOT IMPLEMENTED
-//   ECMC_CMD_HOMING     = 10,  // PARTLY IMPLEMENTED
-//   // NOT IMPLEMENTED (implemented in another way..)
-//   ECMC_CMD_SUPERIMP   = 20,  // NOT IMPLEMENTED
-//   // NOT IMPLEMENTED (implemented in another way..)
-//   ECMC_CMD_GEAR       = 30,
-// };
 
 enum motionCommandTypes {             // Data order for motor record communications
   ECMC_CMD_NOCMD              = -1,   

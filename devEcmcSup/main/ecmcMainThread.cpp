@@ -402,7 +402,7 @@ int waitForEtherCATtoStart(int timeoutSeconds) {
   timeToPause.tv_nsec = 0;
 
   for (int i = 0; i < timeoutSeconds; i++) {
-    LOGINFO("Starting up EtherCAT bus: %d second(s).\n", i);
+    LOGINFO("Starting up EtherCAT bus: %d second(s). Max wait time %d second(s).\n", i,timeoutSeconds);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
 
     if (ec->statusOK()) {
@@ -538,7 +538,8 @@ int setAppModeRun(int mode) {
       axes[i]->setRealTimeStarted(true);
     }
   }
-  errorCode = waitForEtherCATtoStart(EC_START_TIMEOUT_S);
+
+  errorCode = waitForEtherCATtoStart(ecTimeoutSeconds > 0 ? ecTimeoutSeconds : EC_START_TIMEOUT_S);
 
   if (errorCode) {
     return errorCode;
@@ -575,6 +576,20 @@ int setAppMode(int mode) {
 
     break;
   }
+  return 0;
+}
+
+int setEcStartupTimeout(int time_seconds) {
+  LOGINFO4("%s/%s:%d time_seconds=%d\n", __FILE__, __FUNCTION__, __LINE__, time_seconds);
+  if(time_seconds<=0) {
+    LOGERR("ERROR: Invalid EtherCAT timeout value %d. Must be > 0 (0x%x).",
+               time_seconds,
+               ERROR_MAIN_EC_TIMEOUT_OUT_OF_RANGE);
+    return ERROR_MAIN_EC_TIMEOUT_OUT_OF_RANGE;
+  }
+
+  ecTimeoutSeconds = time_seconds;
+
   return 0;
 }
 

@@ -1307,7 +1307,9 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
     exit(EXIT_FAILURE);
   }
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
-
+  // Set return variable
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
+  
   return 0;
 }
 
@@ -1349,6 +1351,9 @@ int ecmcConfig(const char *ecmcCommand) {
   }
 
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
+  // Set return variable
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
+  
   return 0;
 }
 
@@ -1551,7 +1556,7 @@ int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const ch
     return asynError;
   }
   double resultDouble = 0;
-  std::string resultStr="RESULT";
+  std::string resultStr="RESULT";    
   exprtk->addVariable(resultStr.c_str(), resultDouble);
   std::string exprStr=resultStr+ ":=" + expression + ";";
   if(exprtk->compile(exprStr)) {

@@ -50,5 +50,6 @@ extern const char                *controllerErrorMsg;
 extern int32_t                    ecmcUpdatedCounter;
 extern int                        asynSkipCyclesFastest;
 extern int                        asynSkipUpdateCounterFastest;
+extern int                        ecTimeoutSeconds;
 
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */

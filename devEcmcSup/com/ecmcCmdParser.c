@@ -669,6 +669,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return validateConfig();
   }
 
+ /// "Cfg.SetEcStartupTimeout(time_seconds)"
+  nvals = sscanf(myarg_1, "SetEcStartupTimeout(%d)", &iValue);
+
+  if (nvals == 1) {
+    return setEcStartupTimeout(iValue);
+  }
+
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType)"
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2,&iValue3);
 
