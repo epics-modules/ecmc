@@ -1046,6 +1046,15 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x23004:
+    return "ERROR_EC_SDO_DATA_SIZE_ERROR";
+
+    break;
+  case 0x23005:
+    return "ERROR_EC_SDO_BUFFER_ALLOC_FAIL";
+
+    break;
+    
   case 0x24000:  // ECSLAVE
     return "ERROR_EC_SLAVE_CONFIG_FAILED";
 
@@ -1744,6 +1753,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x2004B:
     return "ERROR_MAIN_RT_MUTEX_NULL";
+
+    break;
+
+  case 0x2004C:
+    return "ERROR_MAIN_EC_TIMEOUT_OUT_OF_RANGE";
 
     break;
 

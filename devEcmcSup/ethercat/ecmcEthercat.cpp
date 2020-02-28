@@ -393,6 +393,54 @@ int ecAddSdo(uint16_t slavePosition,
                          byteSize);
 }
 
+
+int ecAddSdoComplete(uint16_t    slavePosition,
+                     uint16_t    sdoIndex,                     
+                     const char* valueBuffer,
+                     int         byteSize) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d value=%s bytesize=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,    
+    valueBuffer,
+    byteSize);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return  ec->addSDOWriteComplete(slavePosition,
+                                  sdoIndex,
+                                  valueBuffer,
+                                  byteSize);
+}
+
+int ecAddSdoBuffer(uint16_t    slavePosition,
+                   uint16_t    sdoIndex,
+                   uint8_t     sdoSubIndex,
+                   const char* valueBuffer,
+                   int         byteSize) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d sdo_sub_index=%d value=%s bytesize=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,
+    sdoSubIndex,
+    valueBuffer,
+    byteSize);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return  ec->addSDOWriteBuffer(slavePosition,
+                                sdoIndex,
+                                sdoSubIndex,
+                                valueBuffer,
+                                byteSize);
+}
+
 int ecWriteSdo(uint16_t slavePosition,
                uint16_t sdoIndex,
                uint8_t  sdoSubIndex,
@@ -414,7 +462,7 @@ int ecWriteSdo(uint16_t slavePosition,
   return ec->writeSDO(slavePosition, sdoIndex, sdoSubIndex, value, byteSize);
 }
 
-int ecWriteSdoComplete(uint16_t slavePosition,
+/*int ecWriteSdoComplete(uint16_t slavePosition,
                        uint16_t sdoIndex,
                        uint32_t value,
                        int      byteSize) {
@@ -430,7 +478,7 @@ int ecWriteSdoComplete(uint16_t slavePosition,
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   return ec->writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
-}
+}*/
 
 int ecReadSdo(uint16_t  slavePosition,
                    uint16_t  sdoIndex,

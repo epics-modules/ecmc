@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <stdio.h>
 #include <errno.h>
 #include <math.h>
@@ -25,6 +26,7 @@
 #include <epicsMutex.h>
 #include <epicsExport.h>
 #include <epicsEvent.h>
+#include <envDefs.h>
 #include <dbCommon.h>
 #include <dbBase.h>
 #include <dbStaticLib.h>
@@ -41,6 +43,7 @@
 #include "../ethercat/ecmcEthercat.h"
 #include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"
+#include "exprtkWrap.h"
 
 static const char *driverName = "ecmcAsynPortDriver";
 
@@ -1304,7 +1307,9 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
     exit(EXIT_FAILURE);
   }
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
-
+  // Set return variable
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
+  
   return 0;
 }
 
@@ -1346,6 +1351,9 @@ int ecmcConfig(const char *ecmcCommand) {
   }
 
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
+  // Set return variable
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
+  
   return 0;
 }
 
@@ -1435,6 +1443,270 @@ static void initCallFunc_7(const iocshArgBuf *args) {
   ecmcGrepRecord(args[0].sval);
 }
 
+static const char * allowedSpecInt[] = {
+  "d", "i", "o", "u", "x", "l", "\0"
+};
+
+static const char * allowedSpecFloat[] = {
+  "a","A", "e", "E", "f", "F", "g" ,"G", "\0"
+};
+
+int formatIsDouble(const char* format) {
+
+  if(!format) {
+    printf("Invalid or empty format string.\n");
+    return -1;
+  } 
+  
+  if(strlen(format)>= (ECMC_CMD_MAX_SINGLE_CMD_LENGTH -1)){
+    printf("Format string to long (max length %d).\n",ECMC_CMD_MAX_SINGLE_CMD_LENGTH);
+    return -1;
+  }
+
+  const char *firstProcent = strchr(format,'%');
+  if(!firstProcent) {
+    return -1;
+  }
+
+  char flags[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  memset(flags,0,sizeof(flags));
+  int nvals = sscanf(firstProcent,"%%%[0-9 | +-.#hl]",flags);
+
+  char specifiers[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  memset(specifiers,0,sizeof(specifiers));
+  char *formatStart = (char*)firstProcent+strlen(flags)+1;
+  nvals = sscanf(formatStart,"%s",specifiers);
+  
+  if (nvals != 1) {
+    printf("Format string error. Could not determine specifier in string %s.\n",specifiers);
+    return -1;
+  }
+
+  //Check specifiers for int
+  size_t i=0;
+  const char* element=allowedSpecInt[i];
+  while(element[0] != 0) {  
+    if(strstr(specifiers,element)) {
+      return 0;
+    }
+    i++;
+    element=allowedSpecInt[i];
+  }
+
+  //Check specifiers for double
+  i=0;
+  element=allowedSpecFloat[i];
+  while(element[0] != 0) {  
+    if(strstr(specifiers,element)) {
+      return 1;
+    }
+    i++;
+    element=allowedSpecFloat[i];
+  }
+  
+  return -1; //invalid
+}
+
+asynStatus evalExprTK(const char* expression, double *result) {
+
+  // Evaluate expression
+  exprtkWrap *exprtk = new exprtkWrap();
+  if(!exprtk) {
+     printf ("Failed allocation of exprtk expression parser.\n");
+    return asynError;
+  }
+  double resultDouble = 0;
+
+  exprtk->addVariable(ECMC_ENVSETCALC_RESULT_VAR, resultDouble);
+
+  std::string exprStr="";
+
+  // Check if "RESULT" variable in str. If not then simple expression.. Add in beginning
+  if(strstr(expression,ECMC_ENVSETCALC_RESULT_VAR)) {
+    exprStr = expression;   
+  }
+  else {
+    exprStr = ECMC_ENVSETCALC_RESULT_VAR;   
+    exprStr += ":=";
+    exprStr += expression;       
+  }
+
+  //Check if need to add ";" last
+  if(exprStr.c_str()[strlen(exprStr.c_str())-1] != ';') {
+    exprStr += ";";
+  }
+  
+  if(exprtk->compile(exprStr)) {
+    printf ("Failed compile of expression with error message: %s.\n", exprtk->getParserError().c_str());
+    return asynError;
+  }
+  exprtk->refresh();
+  delete exprtk;  // not needed anymore (result in "resultDouble")
+
+  *result = resultDouble;
+  return asynSuccess;
+}
+
+void ecmcEpicsEnvSetCalcPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcEpicsEnvSetCalc(<envVarName>,  <expression>, <format>)\" to evaluate the expression and assign the variable.\n");
+  printf("          <envVarName> : EPICS environment variable name.\n");
+  printf("          <expression> : Calculation expression (see exprTK for available functionality). Examples:\n");
+  printf("                         Simple expression:\"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)\".\n");
+  printf("                         Use of \"RESULT\" variable: \"if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};\".\n");
+  printf("          <format>     : Optional format string. Example \"%%lf\", \"%%8.3lf\", \"%%x\", \"%%04d\" or \"%%d\", defaults to \"%%d\".\n");
+  printf("                         Can contain text like \"0x%%x\" or \"Hex value is 0x60%%x\".\n");
+  printf("                         Must contain one numeric value where result of expression will be written.\n");
+  printf("\n");
+  printf("       Restrictions:\n");
+  printf("         - Some flags and/or width/precision combinations might not be supported.\n");
+  printf("         - Hex numbers in the expression is not allowed (but hex as output by formating is OK).\n");
+  printf("         - Non floatingpoint values will be rounded to nearest int.\n");
+  printf("\n");
+}
+
+/** EPICS iocsh shell command: ecmcEpicsEnvSetCalc
+ *  Evaluates an expression and sets an EPICS environment variable
+*/
+int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const char *format) {
+
+  const char *localFormat=format;
+  if (!localFormat) {
+    localFormat=ECMC_ENVSETCALC_DEF_FORMAT;
+  }
+
+  if(!envVarName) {
+    printf("Error: Environment variable name  missing.\n");
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(envVarName,"-h") == 0 || strcmp(envVarName,"--help") == 0 ) {
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynSuccess;
+  }
+
+  if(!expression) {
+    printf("Error: Expression missing.\n");
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynError;
+  }
+
+  double resultDouble = 0;
+  if(evalExprTK(expression, &resultDouble) != asynSuccess) {
+    return asynError;
+  }
+
+  // Convert if int in format string
+  int resultInt=round(resultDouble);
+  char buffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  unsigned int charCount = 0;
+  memset(buffer,0,sizeof(buffer));
+  
+  int isDouble = formatIsDouble(localFormat);
+  if(isDouble < 0) {
+    printf ("Error: Failed to determine datatype from format. Invalid format string \"%s\".\n", localFormat);
+    return asynError;
+  }
+
+  if(isDouble){
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         localFormat,
+                         resultDouble);
+  }else{
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         localFormat,
+                         resultInt);
+  }
+  if (charCount >= sizeof(buffer) - 1) {
+    printf ("Write buffer size exceeded, format results in a to long string.\n");
+    return asynError;
+  }
+
+  epicsEnvSet(envVarName,buffer);
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_8 =
+{ "Variable name", iocshArgString };
+static const iocshArg initArg1_8 =
+{ "Expression", iocshArgString };
+static const iocshArg initArg2_8 =
+{ "Format", iocshArgString };
+static const iocshArg *const initArgs_8[]  = { &initArg0_8, &initArg1_8, &initArg2_8};
+static const iocshFuncDef    initFuncDef_8 = { "ecmcEpicsEnvSetCalc", 3, initArgs_8 };
+static void initCallFunc_8(const iocshArgBuf *args) {
+  ecmcEpicsEnvSetCalc(args[0].sval,args[1].sval,args[2].sval);
+}
+
+void ecmcEpicsEnvSetCalcTenaryPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcEpicsEnvSetCalcTenary(<envVarName>,  <expression>, <trueString>, <falseString>)\" to evaluate the expression and assign the variable.\n");
+  printf("          <envVarName>  : EPICS environment variable name.\n");
+  printf("          <expression>  : Calculation expression (see exprTK for available functionality). Examples:\n");
+  printf("                          Simple expression:\"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)\".\n");
+  printf("                          Use of \"RESULT\" variable: \"if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};\".\n");
+  printf("          <trueString>  : String to set <envVarName> if expression (or \"RESULT\") evaluates to true.\n");
+  printf("          <falseString> : String to set <envVarName> if expression (or \"RESULT\") evaluates to false.\n");
+  printf("\n");
+}
+
+/** EPICS iocsh shell command: ecmcEpicsEnvSetCalcTenary
+ *  Evaluates an expression and sets an EPICS environment variable to:
+ *   expression>0 : trueString
+ *   expression<=0: falseString
+*/
+int ecmcEpicsEnvSetCalcTenary(const char *envVarName, const char *expression, const char *trueString, const char *falseString) {
+
+  if(!envVarName) {
+    printf("Error: Environment variable name  missing.\n");
+    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(envVarName,"-h") == 0 || strcmp(envVarName,"--help") == 0 ) {
+    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    return asynSuccess;
+  }
+
+  if(!expression || ! trueString || ! falseString) {
+    printf("Error: \"expression\", \"trueString\" and/or \"falseString\" missing.\n");
+    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    return asynError;
+  }
+
+  double resultDouble = 0;
+  if(evalExprTK(expression, &resultDouble) != asynSuccess) {
+    return asynError;
+  }
+
+  if(resultDouble) {
+    epicsEnvSet(envVarName,trueString);
+  }
+  else{
+    epicsEnvSet(envVarName,falseString);
+  }
+
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_9 =
+{ "Variable name", iocshArgString };
+static const iocshArg initArg1_9 =
+{ "Expression", iocshArgString };
+static const iocshArg initArg2_9=
+{ "True string", iocshArgString };
+static const iocshArg initArg3_9 =
+{ "False string", iocshArgString };
+
+static const iocshArg *const initArgs_9[]  = { &initArg0_9, &initArg1_9, &initArg2_9, &initArg3_9 };
+static const iocshFuncDef    initFuncDef_9 = { "ecmcEpicsEnvSetCalcTenary", 4, initArgs_9 };
+static void initCallFunc_9(const iocshArgBuf *args) {
+  ecmcEpicsEnvSetCalcTenary(args[0].sval,args[1].sval,args[2].sval,args[3].sval);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,   initCallFunc);
   iocshRegister(&initFuncDef_2, initCallFunc_2);
@@ -1443,6 +1715,8 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_5, initCallFunc_5);
   iocshRegister(&initFuncDef_6, initCallFunc_6);
   iocshRegister(&initFuncDef_7, initCallFunc_7);
+  iocshRegister(&initFuncDef_8, initCallFunc_8);
+  iocshRegister(&initFuncDef_9, initCallFunc_9);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);

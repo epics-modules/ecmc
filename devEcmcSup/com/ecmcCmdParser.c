@@ -669,6 +669,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return validateConfig();
   }
 
+ /// "Cfg.SetEcStartupTimeout(time_seconds)"
+  nvals = sscanf(myarg_1, "SetEcStartupTimeout(%d)", &iValue);
+
+  if (nvals == 1) {
+    return setEcStartupTimeout(iValue);
+  }
+
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType)"
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2,&iValue3);
 
@@ -1258,6 +1265,32 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecAddSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
+  /*Cfg.EcAddSdoComplete(uint16_t slave_position,uint16_t sdo_index,
+  ,const char* values,int byteSize)*/
+  nvals = sscanf(myarg_1,
+                 "EcAddSdoComplete(%d,0x%x,%[^,],%d)",
+                 &iValue,
+                 &iValue2,
+                 &cIdBuffer[0],
+                 &iValue3);
+  if (nvals == 4) {
+    return ecAddSdoComplete(iValue, iValue2, cIdBuffer, iValue3);
+  }
+
+
+  /*Cfg.EcAddSdoBuffer(uint16_t slave_position,uint16_t sdo_index,
+  ,const char* values,int byteSize)*/
+  nvals = sscanf(myarg_1,
+                 "EcAddSdoBuffer(%d,0x%x,0x%x,%[^,],%d)",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 &cIdBuffer[0],
+                 &iValue4);
+  if (nvals == 5) {
+    return ecAddSdoBuffer(iValue, iValue2, iValue3, cIdBuffer, iValue4);
+  }
+
   /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,
@@ -1334,7 +1367,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   /*Cfg.EcWriteSdoComplete(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
-  nvals = sscanf(myarg_1,
+  /*nvals = sscanf(myarg_1,
                  "EcWriteSdoComplete(%d,0x%x,%d,%d)",
                  &iValue,
                  &iValue2,
@@ -1343,11 +1376,11 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 4) {
     return ecWriteSdoComplete(iValue, iValue2, iValue3, iValue4);
-  }
+  }*/
 
   /*Cfg.EcWriteSdoComplete(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
-  nvals = sscanf(myarg_1,
+  /*nvals = sscanf(myarg_1,
                  "EcWriteSdoComplete(%d,0x%x,0x%x,%d)",
                  &iValue,
                  &iValue2,
@@ -1356,7 +1389,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 4) {
     return ecWriteSdoComplete(iValue, iValue2, iValue3, iValue4);
-  }
+  }*/
 
   /*Cfg.EcApplyConfig(int nMasterIndex)*/
   nvals = sscanf(myarg_1, "EcApplyConfig(%d)", &iValue);
