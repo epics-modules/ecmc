@@ -63,6 +63,18 @@ ecmcEpicsEnvSetCalcTenary("filename", "10>20","./plc_fast.cfg","./plc_slow.cfg")
 epicsEnvShow("filename")
 filename=./plc_slow.cfg
 
+### Comparing strings 1 (simple):
+# ecmcEpicsEnvSetCalcTenary("result", "'$(filename)'='./plc_slow.cfg'","equal","not_equal")
+ecmcEpicsEnvSetCalcTenary("result", "'./plc_slow.cfg'='./plc_slow.cfg'","equal","not_equal")
+epicsEnvShow("result")
+result=equal
+
+### Comparing strings 2 (with if-else):
+# ecmcEpicsEnvSetCalcTenary("result", "if('$(filename)'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
+ecmcEpicsEnvSetCalcTenary("result", "if('./plc_slow.cfg'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
+epicsEnvShow("result")
+result=no_use_this_file.cfg
+
 ```
 
 ### Add "ecmcEpicsEnvSetCalc()"
@@ -115,6 +127,19 @@ epicsEnvSet("ECMC_SLAVE_NUM_OFFSET",25)
 ecmcEpicsEnvSetCalc("ECMC_SLAVE_NUM", "10+25")
 epicsEnvShow("ECMC_SLAVE_NUM")
 ECMC_SLAVE_NUM=35
+
+#### Comparing strings 1 (use '<string>'):
+epicsEnvSet("filename","ecmcEL3002.cmd")
+# ecmcEpicsEnvSetCalc("result", "'$(filename)'='test.script'")
+ecmcEpicsEnvSetCalc("result", "'ecmcEL3002.cmd'='test.script'")
+epicsEnvShow("result")
+result=0
+
+#### Comparing strings 2 (if-else):
+# ecmcEpicsEnvSetCalc("result", "if('$(filename)'='test.script') {RESULT:=1;}else{RESULT:=0;};")
+ecmcEpicsEnvSetCalc("result", "if('ecmcEL3002.cmd'='test.script') {RESULT:=1;}else{RESULT:=0;};")
+epicsEnvShow("result")
+result=0
 
 ```
 ### Misc
