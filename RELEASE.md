@@ -1,7 +1,72 @@
 Release Notes
 ===
 # Master
-* Add iocsh command for evaluating expressions and setting epics environment variables. Usefull for calculate:
+### ecmcConfig(OrDie) result to epics environment variable
+
+The return value from ecmcConfig(OrDie) is stored in the EPICS environment variable
+"ECMC_CONFIG_RETURN_VAL". This value can be used to make som dynamic configuration.
+All ASCII configuration commands for ecmcConfig(OrDie) can be used in the same way.
+
+Example: Read firmware version of an EL7037 stepper drive
+Note: SDO reads need to be before "SetAppMode(1)"
+```
+ecmcConfig "EcReadSdo(${ECMC_SLAVE_NUM},0x100a,0x0,2)"
+epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
+ECMC_CONFIG_RETURN_VAL=14640
+
+```
+The variable "ECMC_CONFIG_RETURN_VAL" then can be used to set record fields, name or alias for instance.. 
+
+Example: Read "ID" PDO from EK1101 (shown in detail in aliasRecordFromPdoData.script)
+Note: PDO reads need to be after "SetAppMode(1)" since cyclic value
+```
+ecmcConfig "ReadEcEntryIDString(${ECMC_SLAVE_NUM},"ID")"
+2020/02/28 08:58:03.771 1024
+## This is the value of the EK1101 ID switch
+epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
+ECMC_CONFIG_RETURN_VAL=1024
+```
+
+### Add "ecmcEpicsEnvSetCalcTenary()" 
+Used for evaluating expressions and set EPCIS environment variables to different strings.
+depending on if the expression evaluates to "true" or "false". Can be usefull for:
+* Choose different files to load like plc-files, axis configurations, db-files or..
+* making conditional ecmc settings
+* ...
+  
+``` 
+ecmcEpicsEnvSetCalcTenary -h
+
+ Test iocsh function "ecmcEpicsEnvSetCalcTenary()" t
+
+        Use "ecmcEpicsEnvSetCalcTenary(<envVarName>,  <expression>, <trueString>, <falseString>)" to evaluate the expression and        assign the variable.
+          <envVarName>  : EPICS environment variable name.
+          <expression>  : Calculation expression (see exprTK for available functionality). Examples:
+                          Simple expression:"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)".
+                          Use of "RESULT" variable: "if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};".
+          <trueString>  : String to set <envVarName> if expression (or "RESULT") evaluates to true.
+          <falseString> : String to set <envVarName> if expression (or "RESULT") evaluates to false.
+
+```
+Examples:
+```
+#### Simple true false
+epicsEnvSet("VALUE",10)
+# ecmcEpicsEnvSetCalcTenary("test_var", "${VALUE}+2+5/10","True","False")
+ecmcEpicsEnvSetCalcTenary("test_var", "10+2+5/10","True","False")
+epicsEnvShow("test_var")
+test_var=True
+
+### Can be used for choosing different files
+# ecmcEpicsEnvSetCalcTenary("filename", "${VALUE}>20","./plc_fast.cfg","./plc_slow.cfg")
+ecmcEpicsEnvSetCalcTenary("filename", "10>20","./plc_fast.cfg","./plc_slow.cfg")
+epicsEnvShow("filename")
+filename=./plc_slow.cfg
+
+```
+
+### Add "ecmcEpicsEnvSetCalc()"
+iocsh command for evaluating expressions and setting epics environment variables. Usefull for calculate:
   * slave offsets
   * sdo/pdo adresses (also in hex)
   * scalings in motion
@@ -52,10 +117,12 @@ epicsEnvShow("ECMC_SLAVE_NUM")
 ECMC_SLAVE_NUM=35
 
 ```
+### Misc
 * Add commands for SDO complete and buffer access:
  * "Cfg.EcAddSdoComplete()"
  * "Cfg.EcAddSdoBuffer()"
 * Remove obsolete command "EcWriteSdoComplete()"
+* Add command to set EtherCAT startup timeout: "Cfg.SetEcStartupTimeout(<time_seconds>)"
 
 # ECMC 6.1
 
