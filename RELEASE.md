@@ -42,8 +42,10 @@ ecmcEpicsEnvSetCalcTenary -h
         Use "ecmcEpicsEnvSetCalcTenary(<envVarName>,  <expression>, <trueString>, <falseString>)" to evaluate the expression and        assign the variable.
           <envVarName>  : EPICS environment variable name.
           <expression>  : Calculation expression (see exprTK for available functionality). Examples:
-                          Simple expression:"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)".
+                          Simple expression:"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)".                          
                           Use of "RESULT" variable: "if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};".
+                          Strings are used within '<str>': "'test'='test'". Note: expression result must be numeric and 
+                          not string (in this case expression result is 1 => <envVarName> will be set to <trueString>).
           <trueString>  : String to set <envVarName> if expression (or "RESULT") evaluates to true.
           <falseString> : String to set <envVarName> if expression (or "RESULT") evaluates to false.
 
@@ -90,6 +92,10 @@ ecmcEpicsEnvSetCalc -h
       "ecmcEpicsEnvSetCalc(<envVarName>,  <expression>, <format>)"
           <envVarName> : EPICS environment variable name.
           <expression> : Calculation expression (see exprTK for available functionality).
+                         Simple expression:"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)".                          
+                         Use of "RESULT" variable: "if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};".
+                         Strings are used within '<str>': "'test'='test'". Note: expression result must be numeric and 
+                         not string (in this case expression result is 1 => <envVarName> will be set to "1").
           <format>     : Optional format string. Example "%lf", "%8.3lf", "%x", "%04d" or "%d", defaults to "%d".
                          Can contain text like "0x%x" or "Hex value is 0x60%x".
                          Must contain one numeric value where result of expression will be written.
