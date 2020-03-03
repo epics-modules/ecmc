@@ -24,13 +24,17 @@
     }                                            \
 }                                                \
 
-ecmcPLCTask::ecmcPLCTask(int plcIndex, int skipCycles, ecmcAsynPortDriver *asynPortDriver) {
+ecmcPLCTask::ecmcPLCTask(int plcIndex, 
+                         int skipCycles,
+                         double mcuFreq,
+                         ecmcAsynPortDriver *asynPortDriver) {
   initVars();
   plcIndex_          = plcIndex;
   skipCycles_        = skipCycles;
   asynPortDriver_    = asynPortDriver;
   exprtk_            = new exprtkWrap();
-  plcScanTimeInSecs_ = 1 / MCU_FREQUENCY * (skipCycles + 1);
+  mcuFreq_           = mcuFreq;
+  plcScanTimeInSecs_ = 1 / mcuFreq_ * (skipCycles + 1);
   initAsyn(plcIndex);
 }
 
@@ -64,6 +68,7 @@ void ecmcPLCTask::initVars() {
   libFileIOLoaded_     = 0;
   asynPortDriver_      = 0;
   newExpr_             = 0;
+  mcuFreq_             = MCU_FREQUENCY;
   asynParamExpr_       = NULL;
 }
 
@@ -433,7 +438,7 @@ int ecmcPLCTask::addAndReisterGlobalVar(ecmcPLCDataIF *dataIF) {
 }
 
 double ecmcPLCTask::getSampleTime() {
-  return 1 / MCU_FREQUENCY * (skipCycles_ + 1);
+  return 1 / mcuFreq_ * (skipCycles_ + 1);
 }
 
 int ecmcPLCTask::getFirstScanDone() {

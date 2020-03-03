@@ -25,6 +25,7 @@ extern ecmcEc             *ec;
 extern ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
 extern ecmcPLCMain        *plcs;
 extern ecmcAsynPortDriver *asynPort;
+extern double              mcuFrequency;
 
 int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   LOGINFO4("%s/%s:%d index=%d, cycleTimeMs=%lf, axisPLC?=%d\n",
@@ -35,8 +36,21 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
            cycleTimeMs,
            axisPLC);
 
+  if(cycleTimeMs / 1000 < (1 / mcuFrequency)) {
+    LOGERR(
+      "%s/%s:%d: PLC cycletime out of range."
+      " Cycle time must be higher than realtime thread (time >= %lf ms)."
+      " (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      (1 / mcuFrequency * 1000),
+      ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE);
+    return ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE;
+  }
+
   if (!plcs) {
-    plcs = new ecmcPLCMain(ec,asynPort);
+    plcs = new ecmcPLCMain(ec,mcuFrequency,asynPort);
   }
 
   if (axisPLC) {
@@ -61,7 +75,7 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
     plcs->setDataStoragePointer(dataStorages[i], i);
   }
 
-  int skipCycles = cycleTimeMs*MCU_FREQUENCY / 1000-1;
+  int skipCycles = cycleTimeMs * mcuFrequency / 1000-1;
   if (skipCycles < 0) {
     return ERROR_MAIN_PLCS_SKIPCYCLES_INVALID;
   }

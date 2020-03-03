@@ -44,7 +44,10 @@
 
 class ecmcPLCTask : public ecmcError {
  public:
-  explicit ecmcPLCTask(int plcIndex,int skipCycles, ecmcAsynPortDriver *asynPortDriver_);
+  explicit ecmcPLCTask(int plcIndex,
+                       int skipCycles,
+                       double mcuFreq,
+                       ecmcAsynPortDriver *asynPortDriver_);
   ~ecmcPLCTask();
   bool         getCompiled();
   int          validate();
@@ -114,6 +117,7 @@ class ecmcPLCTask : public ecmcError {
   ecmcAsynPortDriver *asynPortDriver_;
   int newExpr_;
   ecmcAsynDataItem   *asynParamExpr_;
+  double mcuFreq_;
 };
 
 #endif  /* ECMC_PLC_TASK_H_ */

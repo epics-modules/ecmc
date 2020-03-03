@@ -48,7 +48,9 @@
 
 class ecmcPLCMain : public ecmcError {
  public:
-  explicit ecmcPLCMain(ecmcEc *ec, ecmcAsynPortDriver *asynPortDriver);
+  explicit ecmcPLCMain(ecmcEc *ec,
+                       double mcuFreq,
+                       ecmcAsynPortDriver *asynPortDriver);
   ~ecmcPLCMain();
   int  createPLC(int plcIndex,
                  int skipCycles);
@@ -142,6 +144,7 @@ class ecmcPLCMain : public ecmcError {
   ecmcPLCDataIF      *plcFirstScan_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
   ecmcPLCDataIF      *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
   ecmcPLCDataIF      *ecStatus_;
+  double              mcuFreq_;
 };
 
 #endif  /* ECMC_PLC_MAIN_H_ */
