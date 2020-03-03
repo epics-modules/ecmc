@@ -27,7 +27,7 @@ int createEvent(int indexEvent) {
   }
 
   delete events[indexEvent];
-  events[indexEvent] = new ecmcEvent(1 / MCU_FREQUENCY, indexEvent);
+  events[indexEvent] = new ecmcEvent(1 / mcuFrequency, indexEvent);
 
   if (!events[indexEvent]) {
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EVENT OBJECT.\n",
