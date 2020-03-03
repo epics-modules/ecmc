@@ -52,6 +52,8 @@ typedef struct
 static cmd_Motor_cmd_type cmd_Motor_cmd[ECMC_MAX_AXES];
 static int ecmcInitDone = 0;
 
+extern double mcuFrequency;
+
 //Buffers
 static char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cIdBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
@@ -328,7 +330,7 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,
 
       case 0x17:
         ret     = getAxisMonAtTargetTime(motor_axis_no, &iValue);
-        *fValue = iValue * 1 / (double)MCU_FREQUENCY;
+        *fValue = iValue * 1 / mcuFrequency;
         return ret;
 
       case 0x27:
@@ -392,7 +394,7 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,
 
       case 0x13:
         ret     = getAxisMonPosLagTime(motor_axis_no, &iValue);
-        *fValue = iValue * 1 / (double)MCU_FREQUENCY;
+        *fValue = iValue * 1 / mcuFrequency;
         return ret;
 
       default:
