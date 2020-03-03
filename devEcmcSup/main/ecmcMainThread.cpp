@@ -50,7 +50,6 @@ static unsigned int    counter = 0;
 static struct timespec masterActivationTimeMonotonic = {};
 static struct timespec masterActivationTimeOffset    = {};
 static struct timespec masterActivationTimeRealtime  = {};
-const struct timespec  cycletime = {0, MCU_PERIOD_NS};
 
 /*****************************************************************************/
 
@@ -232,7 +231,8 @@ void cyclic_task(void *usr) {
   struct timespec wakeupTime, sendTime, lastSendTime = {};
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
-  offsetStartTime.tv_nsec = 49 * MCU_PERIOD_NS;
+  const struct timespec  cycletime = {0, mcuPeriod};
+  offsetStartTime.tv_nsec = 49 * mcuPeriod;
   offsetStartTime.tv_sec  = 0;
 
   // start 50 (49+1) cycle times after master activate

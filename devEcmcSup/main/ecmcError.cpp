@@ -1761,6 +1761,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+ case 0x2004D:
+    return "ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE";
+
+    break;
+
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 

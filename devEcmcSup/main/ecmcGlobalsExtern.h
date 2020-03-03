@@ -51,5 +51,7 @@ extern int32_t                    ecmcUpdatedCounter;
 extern int                        asynSkipCyclesFastest;
 extern int                        asynSkipUpdateCounterFastest;
 extern int                        ecTimeoutSeconds;
+extern double                     mcuFrequency;
+extern double                     mcuPeriod;
 
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */
