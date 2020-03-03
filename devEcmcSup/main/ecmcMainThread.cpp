@@ -231,11 +231,12 @@ void cyclic_task(void *usr) {
   struct timespec wakeupTime, sendTime, lastSendTime = {};
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
-  const struct timespec  cycletime = {0, mcuPeriod};
-  offsetStartTime.tv_nsec = 49 * mcuPeriod;
+  const struct timespec  cycletime = {0, (long int)mcuPeriod};
+
+  offsetStartTime.tv_nsec = MCU_NSEC_PER_SEC / 10;
   offsetStartTime.tv_sec  = 0;
 
-  // start 50 (49+1) cycle times after master activate
+  // start 100ms + 1 period after  master activate (in setAppMode())
   wakeupTime = timespec_add(masterActivationTimeMonotonic, offsetStartTime);
 
   while (appModeCmd == ECMC_MODE_RUNTIME) {
@@ -330,7 +331,7 @@ void cyclic_task(void *usr) {
       counter--;
     } else {    // Lower freq      
       if (axisDiagFreq > 0) {
-        counter = MCU_FREQUENCY / axisDiagFreq;
+        counter = mcuFrequency / axisDiagFreq;
         ec->checkState();
         ec->checkSlavesConfState();
         printStatus();
