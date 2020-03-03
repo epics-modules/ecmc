@@ -254,7 +254,7 @@ int setAxisSeqTimeout(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setSequenceTimeout(value * MCU_FREQUENCY);
+  axes[axisIndex]->getSeq()->setSequenceTimeout(value * mcuFrequency);
   return 0;
 }
 
@@ -2358,7 +2358,7 @@ int createAxis(int index, int type, int drvType) {
         delete axes[index];
       }
 
-      axes[index] = new ecmcAxisReal(asynPort, index, 1 / MCU_FREQUENCY, (ecmcDriveTypes)drvType);
+      axes[index] = new ecmcAxisReal(asynPort, index, 1 / mcuFrequency, (ecmcDriveTypes)drvType);
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:
@@ -2366,7 +2366,7 @@ int createAxis(int index, int type, int drvType) {
       if (axes[index] != NULL) {
         delete axes[index];
       }
-      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / MCU_FREQUENCY);      
+      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / mcuFrequency);      
       break;
 
     default:
