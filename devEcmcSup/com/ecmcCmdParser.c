@@ -671,11 +671,25 @@ static int handleCfgCommand(const char *myarg_1) {
     return validateConfig();
   }
 
- /// "Cfg.SetEcStartupTimeout(time_seconds)"
+  /// "Cfg.SetEcStartupTimeout(timeSeconds)"
   nvals = sscanf(myarg_1, "SetEcStartupTimeout(%d)", &iValue);
 
   if (nvals == 1) {
     return setEcStartupTimeout(iValue);
+  }
+
+  /// "Cfg.SetSampleRate(double sampleRate)"
+  nvals = sscanf(myarg_1, "SetSampleRate(%lf)", &dValue);
+
+  if (nvals == 1) {
+    return setSampleRate(dValue);
+  }
+
+  /// "Cfg.SetSamplePeriodMs(double samplePeriodMs)"
+  nvals = sscanf(myarg_1, "SetSamplePeriodMs(%lf)", &dValue);
+
+  if (nvals == 1) {
+    return setSamplePeriodMs(dValue);
   }
 
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType)"

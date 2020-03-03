@@ -2357,15 +2357,18 @@ int createAxis(int index, int type, int drvType) {
       if (axes[index] != NULL) {
         delete axes[index];
       }
-
+      // Sample rate fixed
+      sampleRateChangeAllowed = 0;
       axes[index] = new ecmcAxisReal(asynPort, index, 1 / mcuFrequency, (ecmcDriveTypes)drvType);
       break;
 
-    case ECMC_AXIS_TYPE_VIRTUAL:
+    case ECMC_AXIS_TYPE_VIRTUAL:    
       //Drive type ignored (Virtual axis have no drive)      
       if (axes[index] != NULL) {
         delete axes[index];
       }
+      // Sample rate fixed
+      sampleRateChangeAllowed = 0;
       axes[index] = new ecmcAxisVirt(asynPort, index, 1 / mcuFrequency);      
       break;
 

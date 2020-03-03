@@ -50,5 +50,6 @@ int                        asynSkipUpdateCounterFastest = 0;
 int                        ecTimeoutSeconds = EC_START_TIMEOUT_S;
 double                     mcuFrequency = MCU_FREQUENCY;
 double                     mcuPeriod = MCU_PERIOD_NS;
+int                        sampleRateChangeAllowed = 1;
 
 #endif  /* ECMC_GLOBALS_H_ */

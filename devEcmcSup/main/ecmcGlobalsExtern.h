@@ -53,5 +53,5 @@ extern int                        asynSkipUpdateCounterFastest;
 extern int                        ecTimeoutSeconds;
 extern double                     mcuFrequency;
 extern double                     mcuPeriod;
-
+extern int                        sampleRateChangeAllowed;
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */

@@ -26,6 +26,7 @@ extern ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
 extern ecmcPLCMain        *plcs;
 extern ecmcAsynPortDriver *asynPort;
 extern double              mcuFrequency;
+extern int                 sampleRateChangeAllowed;
 
 int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   LOGINFO4("%s/%s:%d index=%d, cycleTimeMs=%lf, axisPLC?=%d\n",
@@ -48,6 +49,9 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
       ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE);
     return ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE;
   }
+
+  // Sample rate fixed
+  sampleRateChangeAllowed = 0;
 
   if (!plcs) {
     plcs = new ecmcPLCMain(ec,mcuFrequency,asynPort);
