@@ -31,6 +31,8 @@
 
 static const char *driverName = "ecmcAsynPortDriver";
 
+extern double mcuFrequency;
+
 static int compar (const void* pkey, const void* pelem) {
   return ( *(int*)pkey - *(int*)pelem );
 };
@@ -298,7 +300,7 @@ int ecmcAsynDataItem::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
 int ecmcAsynDataItem::setAsynParSampleTimeMS(double sampleTime)
 {
   paramInfo_.sampleTimeMS=sampleTime;
-  paramInfo_.sampleTimeCycles=(int32_t)(sampleTime/1000.0*(double)MCU_FREQUENCY);
+  paramInfo_.sampleTimeCycles=(int32_t)(sampleTime / 1000.0 * mcuFrequency);
   return 0;
 }
 
@@ -316,7 +318,7 @@ int32_t ecmcAsynDataItem::getSampleTimeCycles() {
 }
 
 double ecmcAsynDataItem::getSampleTimeMs(){
-  return paramInfo_.sampleTimeCycles*1000.0/MCU_FREQUENCY;
+  return paramInfo_.sampleTimeCycles*1000.0 / mcuFrequency;
 }
 
 char *ecmcAsynDataItem::getName() {  
@@ -1185,10 +1187,7 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
     }
 
     int nvals = sscanf(isThere+strlen(option),"=%lf/",&paramInfo_.sampleTimeMS);
-    if(nvals==1) {
-      paramInfo_.sampleTimeCycles=(int32_t)paramInfo_.sampleTimeMS/1000.0*(double)MCU_FREQUENCY;
-    } 
-    else {
+    if(nvals!=1) {      
       paramInfo_.sampleTimeMS=asynPortDriver_->getDefaultSampleTimeMs();
       asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR,
                 "%s:%s: Failed to parse %s option from drvInfo (%s). Wrong format.\n",
@@ -1199,6 +1198,21 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
       return asynError;
     }
   }
+  // emsure that sample rate is not faster than ethercat realtime loop
+  double ethercatRateMs=1/mcuFrequency*1000;
+  if(paramInfo_.sampleTimeMS < ethercatRateMs) {
+    asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR,
+              "%s:%s: WARNING: Sample rate faster than EtherCAT realtime loop (%3.1lfms<%3.1lfms),"
+              " %3.1lfms will be used. (drvInfo = %s).\n",
+              driverName,
+              functionName,
+              paramInfo_.sampleTimeMS,
+              ethercatRateMs,
+              ethercatRateMs,
+              drvInfo);
+    paramInfo_.sampleTimeMS = ethercatRateMs;
+  }      
+  paramInfo_.sampleTimeCycles = (int32_t)paramInfo_.sampleTimeMS / 1000.0 * mcuFrequency;
   
   //Check if TYPE option
   option=ECMC_OPTION_TYPE;

@@ -254,7 +254,7 @@ int setAxisSeqTimeout(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setSequenceTimeout(value * MCU_FREQUENCY);
+  axes[axisIndex]->getSeq()->setSequenceTimeout(value * mcuFrequency);
   return 0;
 }
 
@@ -2357,16 +2357,19 @@ int createAxis(int index, int type, int drvType) {
       if (axes[index] != NULL) {
         delete axes[index];
       }
-
-      axes[index] = new ecmcAxisReal(asynPort, index, 1 / MCU_FREQUENCY, (ecmcDriveTypes)drvType);
+      // Sample rate fixed
+      sampleRateChangeAllowed = 0;
+      axes[index] = new ecmcAxisReal(asynPort, index, 1 / mcuFrequency, (ecmcDriveTypes)drvType);
       break;
 
-    case ECMC_AXIS_TYPE_VIRTUAL:
+    case ECMC_AXIS_TYPE_VIRTUAL:    
       //Drive type ignored (Virtual axis have no drive)      
       if (axes[index] != NULL) {
         delete axes[index];
       }
-      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / MCU_FREQUENCY);      
+      // Sample rate fixed
+      sampleRateChangeAllowed = 0;
+      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / mcuFrequency);      
       break;
 
     default:
@@ -2386,7 +2389,7 @@ int createAxis(int index, int type, int drvType) {
 
   axisDiagIndex = index;  // Always printout last axis added
   
-  int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index),1,1);
+  int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index),mcuPeriod/1e6,1);
   if (error) {
     return error;
   }

@@ -47,6 +47,7 @@
 
 static const char *driverName = "ecmcAsynPortDriver";
 
+extern double mcuFrequency;
 
 static int allowCallbackEpicsState=0;
 static initHookState currentEpicsState=initHookAtIocBuild;
@@ -143,7 +144,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   autoConnect_      = autoConnect;
   priority_         = priority;
   defaultSampleTimeMS_ = defaultSampleRateMS;
-  fastestParamUpdateCycles_=(int32_t)(defaultSampleRateMS/1000.0*(double)MCU_FREQUENCY);
+  fastestParamUpdateCycles_=(int32_t)(defaultSampleRateMS/1000.0*mcuFrequency);
   /* If paramTableSize_==1 then only stream device or motor record
   can use the driver through the "default access" param below.
   */
@@ -904,7 +905,7 @@ int32_t ecmcAsynPortDriver::getFastestUpdateRate() {
 
 int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
 
-  fastestParamUpdateCycles_=(int32_t)(defaultSampleTimeMS_/1000.0*(double)MCU_FREQUENCY);
+  fastestParamUpdateCycles_=(int32_t)(defaultSampleTimeMS_/1000.0*mcuFrequency);
   for(int i=0;i<ecmcParamInUseCount_;i++) {
     if(pEcmcParamInUseArray_[i]) {
       if(!pEcmcParamInUseArray_[i]->initialized()) {        

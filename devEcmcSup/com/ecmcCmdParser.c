@@ -52,6 +52,8 @@ typedef struct
 static cmd_Motor_cmd_type cmd_Motor_cmd[ECMC_MAX_AXES];
 static int ecmcInitDone = 0;
 
+extern double mcuFrequency;
+
 //Buffers
 static char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cIdBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
@@ -328,7 +330,7 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,
 
       case 0x17:
         ret     = getAxisMonAtTargetTime(motor_axis_no, &iValue);
-        *fValue = iValue * 1 / (double)MCU_FREQUENCY;
+        *fValue = iValue * 1 / mcuFrequency;
         return ret;
 
       case 0x27:
@@ -392,7 +394,7 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,
 
       case 0x13:
         ret     = getAxisMonPosLagTime(motor_axis_no, &iValue);
-        *fValue = iValue * 1 / (double)MCU_FREQUENCY;
+        *fValue = iValue * 1 / mcuFrequency;
         return ret;
 
       default:
@@ -669,11 +671,25 @@ static int handleCfgCommand(const char *myarg_1) {
     return validateConfig();
   }
 
- /// "Cfg.SetEcStartupTimeout(time_seconds)"
+  /// "Cfg.SetEcStartupTimeout(timeSeconds)"
   nvals = sscanf(myarg_1, "SetEcStartupTimeout(%d)", &iValue);
 
   if (nvals == 1) {
     return setEcStartupTimeout(iValue);
+  }
+
+  /// "Cfg.SetSampleRate(double sampleRate)"
+  nvals = sscanf(myarg_1, "SetSampleRate(%lf)", &dValue);
+
+  if (nvals == 1) {
+    return setSampleRate(dValue);
+  }
+
+  /// "Cfg.SetSamplePeriodMs(double samplePeriodMs)"
+  nvals = sscanf(myarg_1, "SetSamplePeriodMs(%lf)", &dValue);
+
+  if (nvals == 1) {
+    return setSamplePeriodMs(dValue);
   }
 
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType)"

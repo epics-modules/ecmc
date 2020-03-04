@@ -19,10 +19,16 @@
 #define UNPACK(...) __VA_ARGS__
 
 #define MCU_FREQUENCY 1000.0
+#define MCU_MIN_FREQUENCY 1.0
+#define MCU_MAX_FREQUENCY 10000.0
 #define MCU_NSEC_PER_SEC 1000000000
 #define MCU_PERIOD_NS (int)(MCU_NSEC_PER_SEC / MCU_FREQUENCY)
 #define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC + \
                        (B).tv_nsec - (A).tv_nsec)
+
+#define MCU_MIN_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MAX_FREQUENCY)
+#define MCU_MAX_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MIN_FREQUENCY)
+
 
 #define ECMC_MAX_AXES 64
 #define ECMC_MAX_PLCS 8
