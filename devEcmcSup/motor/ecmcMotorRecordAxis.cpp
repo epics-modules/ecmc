@@ -368,12 +368,12 @@ asynStatus ecmcMotorRecordAxis::readMonitoring(int axisID)
   // Position lag monitoring (following error)
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   poslag_tol = drvlocal.ecmcAxis->getMon()->getPosLagTol();
-  poslag_time = drvlocal.ecmcAxis->getMon()->getPosLagTime() * 1 / (double)MCU_FREQUENCY;
+  poslag_time = drvlocal.ecmcAxis->getMon()->getPosLagTime() * 1 / mcuFrequency;
   poslag_enable = drvlocal.ecmcAxis->getMon()->getEnableLagMon();
 
   // At target monitoring (must be enabled)
   attarget_tol = drvlocal.ecmcAxis->getMon()->getAtTargetTol();
-  attarget_time = drvlocal.ecmcAxis->getMon()->getAtTargetTime() * 1 / (double)MCU_FREQUENCY;
+  attarget_time = drvlocal.ecmcAxis->getMon()->getAtTargetTime() * 1 / mcuFrequency;
   attarget_enable = drvlocal.ecmcAxis->getMon()->getEnableAtTargetMon();
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 

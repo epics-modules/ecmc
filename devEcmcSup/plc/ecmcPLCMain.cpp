@@ -12,11 +12,14 @@
 
 #include "ecmcPLCMain.h"
 
-ecmcPLCMain::ecmcPLCMain(ecmcEc *ec, ecmcAsynPortDriver *asynPortDriver) {
+ecmcPLCMain::ecmcPLCMain(ecmcEc *ec,
+                         double mcuFreq,
+                         ecmcAsynPortDriver *asynPortDriver) {
   initVars();
   asynPortDriver_ = asynPortDriver;
   ec_ = ec;
-  addMainDefaultVariables();
+  mcuFreq_ = mcuFreq;
+  addMainDefaultVariables();  
 }
 
 ecmcPLCMain::~ecmcPLCMain() {
@@ -49,6 +52,7 @@ void ecmcPLCMain::initVars() {
   asynPortDriver_ = NULL;
   ec_ = NULL;
   ecStatus_ = NULL;
+  mcuFreq_ = MCU_FREQUENCY;
 }
 
 int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
@@ -63,7 +67,11 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     plcs_[plcIndex] = NULL;
   }
 
-  plcs_[plcIndex] = new ecmcPLCTask(plcIndex,skipCycles,asynPortDriver_);
+  plcs_[plcIndex] = new ecmcPLCTask(plcIndex,
+                                    skipCycles,
+                                    mcuFreq_,
+                                    asynPortDriver_);
+
   int errorCode = plcs_[plcIndex]->getErrorID();
 
   if (errorCode) {
@@ -1062,7 +1070,7 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
     return errorCode;
   }
   dataIF->setReadOnly(1);
-  dataIF->setData(1 / MCU_FREQUENCY * (skipCycles + 1));
+  dataIF->setData(1 / mcuFreq_ * (skipCycles + 1));
 
   // Add plc<index>.firstscan
   errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_FIRST_SCAN_STR, &dataIF);  

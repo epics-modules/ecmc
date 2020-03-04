@@ -50,7 +50,6 @@ static unsigned int    counter = 0;
 static struct timespec masterActivationTimeMonotonic = {};
 static struct timespec masterActivationTimeOffset    = {};
 static struct timespec masterActivationTimeRealtime  = {};
-const struct timespec  cycletime = {0, MCU_PERIOD_NS};
 
 /*****************************************************************************/
 
@@ -232,10 +231,12 @@ void cyclic_task(void *usr) {
   struct timespec wakeupTime, sendTime, lastSendTime = {};
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
-  offsetStartTime.tv_nsec = 49 * MCU_PERIOD_NS;
+  const struct timespec  cycletime = {0, (long int)mcuPeriod};
+
+  offsetStartTime.tv_nsec = MCU_NSEC_PER_SEC / 10;
   offsetStartTime.tv_sec  = 0;
 
-  // start 50 (49+1) cycle times after master activate
+  // start 100ms + 1 period after  master activate (in setAppMode())
   wakeupTime = timespec_add(masterActivationTimeMonotonic, offsetStartTime);
 
   while (appModeCmd == ECMC_MODE_RUNTIME) {
@@ -330,7 +331,7 @@ void cyclic_task(void *usr) {
       counter--;
     } else {    // Lower freq      
       if (axisDiagFreq > 0) {
-        counter = MCU_FREQUENCY / axisDiagFreq;
+        counter = mcuFrequency / axisDiagFreq;
         ec->checkState();
         ec->checkSlavesConfState();
         printStatus();
@@ -579,16 +580,80 @@ int setAppMode(int mode) {
   return 0;
 }
 
-int setEcStartupTimeout(int time_seconds) {
-  LOGINFO4("%s/%s:%d time_seconds=%d\n", __FILE__, __FUNCTION__, __LINE__, time_seconds);
-  if(time_seconds<=0) {
+int setEcStartupTimeout(int timeSeconds) {
+  LOGINFO4("%s/%s:%d timeSeconds=%d\n", __FILE__, __FUNCTION__, __LINE__, timeSeconds);
+  if(timeSeconds<=0) {
     LOGERR("ERROR: Invalid EtherCAT timeout value %d. Must be > 0 (0x%x).",
-               time_seconds,
+               timeSeconds,
                ERROR_MAIN_EC_TIMEOUT_OUT_OF_RANGE);
     return ERROR_MAIN_EC_TIMEOUT_OUT_OF_RANGE;
   }
 
-  ecTimeoutSeconds = time_seconds;
+  ecTimeoutSeconds = timeSeconds;
+
+  return 0;
+}
+
+int setSampleRate(double sampleRate) {
+  LOGINFO4("%s/%s:%d sampleRate=%lf\n", __FILE__, __FUNCTION__, __LINE__, sampleRate);
+
+  if (!sampleRateChangeAllowed) {
+    LOGERR(
+      "%s/%s:%d: Error: Sample rate change not allowed. Change of sample rate is only allowed prior any object creation (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_MAIN_SAMPLE_RATE_CHANGE_NOT_ALLOWED);
+    return ERROR_MAIN_SAMPLE_RATE_CHANGE_NOT_ALLOWED;
+  }
+
+  if(sampleRate < MCU_MIN_FREQUENCY || sampleRate > MCU_MAX_FREQUENCY) {
+    LOGERR(
+      "%s/%s:%d: Sample rate out of range. Allowed range  %lf.. %lfhz. Sample rate = %lfhz (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      MCU_MIN_FREQUENCY,
+      MCU_MAX_FREQUENCY,
+      mcuFrequency,
+      ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE);
+    return ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE;
+  }
+
+  mcuFrequency = sampleRate;
+  mcuPeriod = (MCU_NSEC_PER_SEC / mcuFrequency);
+
+  return 0;
+}
+
+int setSamplePeriodMs(double samplePeriodMs) {
+  LOGINFO4("%s/%s:%d samplePeriod=%lf\n", __FILE__, __FUNCTION__, __LINE__, samplePeriodMs);
+
+  if (!sampleRateChangeAllowed) {
+    LOGERR(
+      "%s/%s:%d: Error: Sample rate change not allowed. Change of sample rate is only allowed prior any object creation (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_MAIN_SAMPLE_RATE_CHANGE_NOT_ALLOWED);
+    return ERROR_MAIN_SAMPLE_RATE_CHANGE_NOT_ALLOWED;
+  }
+
+  if(samplePeriodMs < MCU_MIN_PERIOD_NS || samplePeriodMs > MCU_MAX_PERIOD_NS) {
+    LOGERR(
+      "%s/%s:%d: Sample period out of range. Allowed range  %lf.. %lfms. Sample period = %lfms (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      MCU_MIN_PERIOD_NS/1e6,
+      MCU_MAX_PERIOD_NS/1e6,
+      mcuPeriod,
+      ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE);
+    return ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE;
+  }
+
+  mcuPeriod = samplePeriodMs*1e6;  // ms to ns
+  mcuFrequency = MCU_NSEC_PER_SEC / mcuPeriod;
 
   return 0;
 }
