@@ -2389,7 +2389,7 @@ int createAxis(int index, int type, int drvType) {
 
   axisDiagIndex = index;  // Always printout last axis added
   
-  int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index),1,1);
+  int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index),mcuPeriod/1e6,1);
   if (error) {
     return error;
   }
