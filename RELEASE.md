@@ -1,6 +1,30 @@
 Release Notes
 ===
 # Master
+
+### Add new commands to set Set sample rate:
+
+1. Preferred way. Write to the parameter "EC_RATE" of startup.cmd (unit of EC_RATE is [Hz]):
+
+```
+$(ECMCCFG_INIT)$(SCRIPTEXEC) ${ecmccfg_DIR}startup.cmd, "IOC=$(IOC),ECMC_VER=<ecmcVersion>,stream_VER=<stremVer>, EC_RATE=<rate>"
+```
+
+2. Issueing the command "ecmcConfigOrDie "Cfg.SetSampleRate(<sampleRate>)" where the unit of sampleRate is [Hz]:
+
+```
+ecmcConfigOrDie "Cfg.SetSampleRate(500)"
+```
+3. Issueing the command "ecmcConfigOrDie "Cfg.SetSampleTimeMs(<sampleTimeMs>)" where unit of sampleTime is [ms]:
+```
+ecmcConfigOrDie "Cfg.SetSampleTimeMs(2)"
+```
+
+Note: The commands "Cfg.SetSampleRate()" or "Cfg.SetSampleTimeMs()" needs to be executed before any ecmc configuration 
+is performed but of cource after the "require ecmc" statement. Therefore the parameter EC_RATE is the prefereed way to handle changed sample rates.
+
+Example and doc in: ecmccfg/examples/test/changeSampleRate/
+
 ### ecmcConfig(OrDie) result to epics environment variable
 
 The return value from ecmcConfig(OrDie) is stored in the EPICS environment variable
