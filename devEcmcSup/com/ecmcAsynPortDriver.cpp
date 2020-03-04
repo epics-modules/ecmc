@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <math.h>
+#include <unistd.h>
 #include <iocsh.h>
 
 #include <epicsTypes.h>
@@ -1708,6 +1709,48 @@ static void initCallFunc_9(const iocshArgBuf *args) {
   ecmcEpicsEnvSetCalcTenary(args[0].sval,args[1].sval,args[2].sval,args[3].sval);
 }
 
+void ecmcFileExistPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcFileExist(<filename>,<die>)\" to check if a file exists.\n");
+  printf("          <filename>  : Filename to check.\n");
+  printf("          <die>       : Die if file not exist.\n");
+  printf("\n");
+}
+
+/** EPICS iocsh shell command: ecmcFileExist
+ * Return if file exists otherwise "die"
+*/
+int ecmcFileExist(const char *filename, int die) {
+  if(!filename) {
+    printf("Error: filename missing.\n");
+    ecmcFileExistPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(filename,"-h") == 0 || strcmp(filename,"--help") == 0 ) {
+    ecmcFileExistPrintHelp();
+    return asynSuccess;
+  }
+
+  int fileExist = access( filename, 0 ) == 0;
+  if(die && !fileExist) {
+    printf("Error: File \"%s\" does not exist. ECMC shuts down.\n",filename);
+    exit(EXIT_FAILURE);
+  }
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,fileExist ? "1":"0");
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_10 =
+{ "Filename", iocshArgString };
+static const iocshArg initArg1_10 =
+{ "DieIfNoFile", iocshArgInt };
+static const iocshArg *const initArgs_10[]  = { &initArg0_10, &initArg1_10 };
+static const iocshFuncDef    initFuncDef_10 = { "ecmcFileExist", 2, initArgs_10 };
+static void initCallFunc_10(const iocshArgBuf *args) {
+  ecmcFileExist(args[0].sval,args[1].ival);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,   initCallFunc);
   iocshRegister(&initFuncDef_2, initCallFunc_2);
@@ -1718,6 +1761,7 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_7, initCallFunc_7);
   iocshRegister(&initFuncDef_8, initCallFunc_8);
   iocshRegister(&initFuncDef_9, initCallFunc_9);
+  iocshRegister(&initFuncDef_10, initCallFunc_10);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);

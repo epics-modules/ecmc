@@ -1,8 +1,25 @@
 Release Notes
 ===
 # Master
+### Add iocsh command to check if a file exist
+Usefull for checking that configuration files really exist and then can be loaded.
 
-### Add new commands to set Set sample rate:
+"ecmcFileExist(<filename>,<die>)"
+    <filename> : filename to check
+    <die>      : exit ecmc if file does not exist
+result will be stored in the EPICS environment variable "ECMC_CONFIG_RETURN_VAL"
+
+```
+ecmcFileExist("file_exist.cfg")
+epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
+ECMC_CONFIG_RETURN_VAL=1
+
+ecmcFileExist("file_not_exist.cfg",1)
+Error: File "file_not_exist.cfg" does not exist. ECMC shuts down.
+
+```
+
+### Add new commands to set sample rate:
 
 1. Preferred way. Write to the parameter "EC_RATE" of startup.cmd (unit of EC_RATE is [Hz]):
 
