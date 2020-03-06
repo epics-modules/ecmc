@@ -1738,14 +1738,14 @@ int ecmcFileExist(const char *filename, int die, int checkDirs) {
   
   // Search EPICS_DB_INCLUDE_PATH if not found
   if(checkDirs && !fileExist) {
-    char buffer[1024];
+    char buffer[4096];
     char* dirs = getenv("EPICS_DB_INCLUDE_PATH");
     char* pdirs=dirs; 
     char *pdirs_old=pdirs;
     if(dirs){
       bool stop = false;
       while((pdirs=strchr(pdirs,':')) && !stop){
-        memset(buffer,0,1024);
+        memset(buffer,0,4096);
         int chars=(int)(pdirs-pdirs_old);
         strncpy(buffer,pdirs_old,chars);
         buffer[chars]='/';
@@ -1766,7 +1766,7 @@ int ecmcFileExist(const char *filename, int die, int checkDirs) {
 
       //take the last also (if not already found)
       if(strlen(pdirs_old)>0 && !fileExist){
-        memset(buffer,0,1024);
+        memset(buffer,0,4096);
         int chars=strlen(pdirs_old);
         strncpy(buffer,pdirs_old,chars);
         buffer[chars]='/';
