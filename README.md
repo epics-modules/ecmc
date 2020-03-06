@@ -51,7 +51,7 @@ git submodule update --init --reference ./
         * Up to 100kHz analog and 1Mhz digital (oversampling slaves)      
     * Control
         * PLC objects can be created with custom sample rate where logic (including motion) can be handled in realtime.
-        (see examples in ecmctraining repository: https://github.com/icshwi/ecmccfg/tree/master/examples/test
+        (see examples in ecmccfg repository: https://github.com/icshwi/ecmccfg/tree/master/examples/test
         * Same syntax as for synchronization:
             * "ec0.s45.VALUE:=static.gain*77+ax2.traj.setpos/10;"                        
         * PLC variables can be accessed from EPICS. 
@@ -65,7 +65,7 @@ git submodule update --init --reference ./
 # How do I get set up?
 
 Fastest and easiest way to get started is by using the configuration scripts accessible in
-ecmctraining repository: https://github.com/paulscherrerinstitute/ecmccfg,(or ESS fork https://github.com/icshwi/ecmccfg/)
+ecmccfg repository: https://github.com/paulscherrerinstitute/ecmccfg (or ESS fork https://github.com/icshwi/ecmccfg)
 
 ECMC is configured via EPICS-iocsh:
 
@@ -102,6 +102,10 @@ ECMC runs best under certain conditions:
 * E3 (ESS EPICS Environment)
 * RT-patch
 * Settings found in https://github.com/icshwi/realtime-config
+* configuration by ecmccfg:
+  * https://github.com/paulscherrerinstitute/ecmccfg
+  * https://github.com/icshwi/ecmccfg (ESS fork)
+
 
 # Needed EPICS modules
 
@@ -113,13 +117,16 @@ ECMC runs best under certain conditions:
 * EthercatMC (motor record driver): https://github.com/icshwi/e3-ethercatmc
 * Asyn driver:                      https://github.com/icshwi/e3-asyn
 * Stream Device:                    https://github.com/icshwi/e3-StreamDevice
+* ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg or
+                                    https://github.com/icshwi/ecmccfg
 
 # Issues/bug report
 
   https://jira.esss.lu.se/projects/ECMC/issues/
 
-# Supports
+# Support
 
-* Motor Record:  Torsten Bögershausen, torsten.bogershausen@esss.se
-* ECMC:          Anders Sandström, anders.sandstrom@esss.se
-
+* ECMC                     : Anders Sandström, anders.sandstrom@esss.se
+* Motor Record             : Torsten Bögershausen, torsten.bogershausen@esss.se
+  * EthercatMC driver      : Torsten Bögershausen, torsten.bogershausen@esss.se
+  * ecmcMotorRecord driver : Anders Sandström, anders.sandstrom@esss.se
