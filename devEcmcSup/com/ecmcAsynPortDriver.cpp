@@ -1733,8 +1733,11 @@ int ecmcFileExist(const char *filename, int die, int checkDirs) {
     return asynSuccess;
   }
   
-  int fileExist = 0;
-  if(checkDirs) {
+  // Check filename directlly
+  int fileExist  = access( filename, 0 ) == 0;
+  
+  // Search EPICS_DB_INCLUDE_PATH if not found
+  if(checkDirs && !fileExist) {
     char buffer[1024];
     char* dirs = getenv("EPICS_DB_INCLUDE_PATH");
     char* pdirs=dirs; 
@@ -1773,9 +1776,6 @@ int ecmcFileExist(const char *filename, int die, int checkDirs) {
         fileExist = access( buffer, 0 ) == 0;
       }
     }
-  }
-  else{ //Not check EPICS_DB_INCLUDE_PATH
-    fileExist = access( filename, 0 ) == 0;
   }
 
   if(die && !fileExist) {
