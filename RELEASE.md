@@ -4,10 +4,10 @@ Release Notes
 ### Add iocsh command to check if a file exist
 Usefull for checking that configuration files really exist and then can be loaded.
 ```
-ecmcFileExist(<filename>, <die>, <check epics path>)" to check if a file exists.
-          <filename>         : Filename to check.
-          <die>              : Exit EPICS if file not exist. Optional, defaults to 0.
-          <check epics path> : Also look for files in "EPICS_DB_INCLUDE_PATH". Optional, defaults to 0.
+ecmcFileExist(<filename>, <die>, <dirs>)" to check if a file exists.
+          <filename> : Filename to check.
+          <die>      : Exit EPICS if file not exist. Optional, defaults to 0.
+          <dirs>     : List of dirs to search for file in (separated with ':').
 result will be stored in the EPICS environment variable "ECMC_CONFIG_RETURN_VAL"
 ```
 Example:
