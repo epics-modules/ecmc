@@ -1310,7 +1310,7 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
   }
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
   // Set return variable
-  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
+  setenv(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer,1);
   
   return 0;
 }
@@ -1354,7 +1354,7 @@ int ecmcConfig(const char *ecmcCommand) {
 
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
   // Set return variable
-  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
+  setenv(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer,1);
   
   return 0;
 }
@@ -1627,7 +1627,7 @@ int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const ch
     return asynError;
   }
 
-  epicsEnvSet(envVarName,buffer);
+  setenv(envVarName,buffer,1);
   return asynSuccess;
 }
 
@@ -1685,10 +1685,10 @@ int ecmcEpicsEnvSetCalcTenary(const char *envVarName, const char *expression, co
   }
 
   if(resultDouble) {
-    epicsEnvSet(envVarName,trueString);
+    setenv(envVarName,trueString,1);
   }
   else{
-    epicsEnvSet(envVarName,falseString);
+    setenv(envVarName,falseString,1);
   }
 
   return asynSuccess;
@@ -1711,17 +1711,17 @@ static void initCallFunc_9(const iocshArgBuf *args) {
 
 void ecmcFileExistPrintHelp() {
   printf("\n");
-  printf("       Use \"ecmcFileExist(<filename>, <die>, <check epics path>)\" to check if a file exists.\n");
-  printf("          <filename>         : Filename to check.\n");
-  printf("          <die>              : Exit EPICS if file not exist. Optional, defaults to 0.\n");
-  printf("          <check epics path> : Also look for files in \"EPICS_DB_INCLUDE_PATH\". Optional, defaults to 0.\n");
+  printf("       Use \"ecmcFileExist(<filename>, <die>, <dirs>)\" to check if a file exists.\n");
+  printf("          <filename>  : Filename to check.\n");
+  printf("          <die>       : Exit EPICS if file not exist. Optional, defaults to 0.\n");
+  printf("          <dirs>      : List of dirs to search for file in (separated with ':').\n");
   printf("\n");
 }
 
 /** EPICS iocsh shell command: ecmcFileExist
  * Return if file exists otherwise "die"
 */
-int ecmcFileExist(const char *filename, int die, int checkDirs) {
+int ecmcFileExist(const char *filename, int die, const char *dirs) {
   if(!filename) {
     printf("Error: filename missing.\n");
     ecmcFileExistPrintHelp();
@@ -1736,18 +1736,18 @@ int ecmcFileExist(const char *filename, int die, int checkDirs) {
   // Check filename directlly
   int fileExist  = access( filename, 0 ) == 0;
   
-  // Search EPICS_DB_INCLUDE_PATH if not found
-  if(checkDirs && !fileExist) {
+  // Search dirs list also if not found
+  if(dirs && !fileExist) {
     char buffer[4096];
-    char* dirs = getenv("EPICS_DB_INCLUDE_PATH");
-    char* pdirs=dirs; 
-    char *pdirs_old=pdirs;
+    //char* dirs = getenv("EPICS_DB_INCLUDE_PATH");
+    char* pdirs = (char*)dirs; 
+    char *pdirs_old = pdirs;
     if(dirs){
       bool stop = false;
       while((pdirs=strchr(pdirs,':')) && !stop){
         memset(buffer,0,4096);
         int chars=(int)(pdirs-pdirs_old);
-        strncpy(buffer,pdirs_old,chars);
+        strncpy(buffer, pdirs_old, chars);
         buffer[chars]='/';
         chars++;
         strncpy(&buffer[chars],filename,strlen(filename));
@@ -1782,7 +1782,7 @@ int ecmcFileExist(const char *filename, int die, int checkDirs) {
     printf("Error: File \"%s\" does not exist. ECMC shuts down.\n",filename);
     exit(EXIT_FAILURE);
   }
-  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,fileExist ? "1":"0");
+  setenv(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,fileExist ? "1":"0",1);
   return asynSuccess;
 }
 
@@ -1791,23 +1791,23 @@ static const iocshArg initArg0_10 =
 static const iocshArg initArg1_10 =
 { "DieIfNoFile", iocshArgInt };
 static const iocshArg initArg2_10 =
-{ "Check EPICS dirs", iocshArgInt };
+{ "List of dirs", iocshArgString };
 static const iocshArg *const initArgs_10[]  = { &initArg0_10, &initArg1_10, &initArg2_10 };
 static const iocshFuncDef    initFuncDef_10 = { "ecmcFileExist", 3, initArgs_10 };
 static void initCallFunc_10(const iocshArgBuf *args) {
-  ecmcFileExist(args[0].sval,args[1].ival,args[2].ival);
+  ecmcFileExist(args[0].sval, args[1].ival, args[2].sval);
 }
 
 void ecmcAsynPortDriverRegister(void) {
-  iocshRegister(&initFuncDef,   initCallFunc);
-  iocshRegister(&initFuncDef_2, initCallFunc_2);
-  iocshRegister(&initFuncDef_3, initCallFunc_3);
-  iocshRegister(&initFuncDef_4, initCallFunc_4);
-  iocshRegister(&initFuncDef_5, initCallFunc_5);
-  iocshRegister(&initFuncDef_6, initCallFunc_6);
-  iocshRegister(&initFuncDef_7, initCallFunc_7);
-  iocshRegister(&initFuncDef_8, initCallFunc_8);
-  iocshRegister(&initFuncDef_9, initCallFunc_9);
+  iocshRegister(&initFuncDef,    initCallFunc);
+  iocshRegister(&initFuncDef_2,  initCallFunc_2);
+  iocshRegister(&initFuncDef_3,  initCallFunc_3);
+  iocshRegister(&initFuncDef_4,  initCallFunc_4);
+  iocshRegister(&initFuncDef_5,  initCallFunc_5);
+  iocshRegister(&initFuncDef_6,  initCallFunc_6);
+  iocshRegister(&initFuncDef_7,  initCallFunc_7);
+  iocshRegister(&initFuncDef_8,  initCallFunc_8);
+  iocshRegister(&initFuncDef_9,  initCallFunc_9);
   iocshRegister(&initFuncDef_10, initCallFunc_10);
 }
 
