@@ -1712,16 +1712,61 @@ static void initCallFunc_9(const iocshArgBuf *args) {
 void ecmcFileExistPrintHelp() {
   printf("\n");
   printf("       Use \"ecmcFileExist(<filename>, <die>, <dirs>)\" to check if a file exists.\n");
-  printf("          <filename>  : Filename to check.\n");
-  printf("          <die>       : Exit EPICS if file not exist. Optional, defaults to 0.\n");
-  printf("          <dirs>      : List of dirs to search for file in (separated with ':').\n");
+  printf("          <filename>               : Filename to check.\n");
+  printf("          <die>                    : Exit EPICS if file not exist. Optional, defaults to 0.\n");
+  printf("          <check EPICS dirs>       : Look for files in EPICS_DB_INCLUDE_PATH dirs. Optional, defaults to 0.\n");
+  printf("          <dirs>                   : List of dirs to search for file in (separated with ':'). Optional, defaults to \"\".\n");
   printf("\n");
+}
+
+int isFile(const char* filename, const char * dirs) {
+
+  int fileExist = 0;
+  char buffer[4096];  
+  char* pdirs = (char*)dirs; 
+  char *pdirs_old = pdirs;
+  if(dirs){
+    bool stop = false;
+    while((pdirs=strchr(pdirs,':')) && !stop){
+      memset(buffer,0,4096);
+      int chars=(int)(pdirs-pdirs_old);
+      strncpy(buffer, pdirs_old, chars);
+      buffer[chars]='/';
+      chars++;
+      strncpy(&buffer[chars],filename,strlen(filename));
+      //printf("Buffer %s\n",buffer);
+      fileExist = access( buffer, 0 ) == 0;
+      if(fileExist) {
+        break;
+      }
+      if(strlen(pdirs)>0){
+        pdirs++;
+      }else{
+        stop = true;
+      }
+      pdirs_old = pdirs;
+    }
+
+    //take the last also (if not already found)
+    if(strlen(pdirs_old)>0 && !fileExist){
+      memset(buffer,0,4096);
+      int chars=strlen(pdirs_old);
+      strncpy(buffer,pdirs_old,chars);
+      buffer[chars]='/';
+      chars++;
+      strncpy(&buffer[chars],filename,strlen(filename));
+      //printf("Buffer %s\n",buffer);
+      fileExist = access( buffer, 0 ) == 0;
+    }
+  }
+
+  return fileExist;
 }
 
 /** EPICS iocsh shell command: ecmcFileExist
  * Return if file exists otherwise "die"
 */
-int ecmcFileExist(const char *filename, int die, const char *dirs) {
+int ecmcFileExist(const char *filename, int die, int checkEpicsDirs, const char *dirs) {
   if(!filename) {
     printf("Error: filename missing.\n");
     ecmcFileExistPrintHelp();
@@ -1736,50 +1781,25 @@ int ecmcFileExist(const char *filename, int die, const char *dirs) {
   // Check filename directlly
   int fileExist  = access( filename, 0 ) == 0;
   
-  // Search dirs list also if not found
-  if(dirs && !fileExist) {
-    char buffer[4096];
-    //char* dirs = getenv("EPICS_DB_INCLUDE_PATH");
-    char* pdirs = (char*)dirs; 
-    char *pdirs_old = pdirs;
-    if(dirs){
-      bool stop = false;
-      while((pdirs=strchr(pdirs,':')) && !stop){
-        memset(buffer,0,4096);
-        int chars=(int)(pdirs-pdirs_old);
-        strncpy(buffer, pdirs_old, chars);
-        buffer[chars]='/';
-        chars++;
-        strncpy(&buffer[chars],filename,strlen(filename));
-        //printf("Buffer %s\n",buffer);
-        fileExist = access( buffer, 0 ) == 0;
-        if(fileExist) {
-          break;
-        }
-        if(strlen(pdirs)>0){
-          pdirs++;
-        }else{
-          stop = true;
-        }
-        pdirs_old = pdirs;
-      }
+  if(!fileExist && checkEpicsDirs){
+    fileExist = isFile(filename,getenv("EPICS_DB_INCLUDE_PATH"));
+  }
 
-      //take the last also (if not already found)
-      if(strlen(pdirs_old)>0 && !fileExist){
-        memset(buffer,0,4096);
-        int chars=strlen(pdirs_old);
-        strncpy(buffer,pdirs_old,chars);
-        buffer[chars]='/';
-        chars++;
-        strncpy(&buffer[chars],filename,strlen(filename));
-        //printf("Buffer %s\n",buffer);
-        fileExist = access( buffer, 0 ) == 0;
-      }
-    }
+  if(!fileExist && dirs){
+    fileExist = isFile(filename,dirs);
   }
 
   if(die && !fileExist) {
     printf("Error: File \"%s\" does not exist. ECMC shuts down.\n",filename);
+    char buffer[PATH_MAX];
+    memset(buffer, 0, PATH_MAX);
+    printf("       Current working directory             = %s\n",filename);
+    if(checkEpicsDirs){      
+      printf("       Search path \"EPICS_DB_INCLUDE_PATH\" = %s.\n",getenv("EPICS_DB_INCLUDE_PATH"));
+    }
+    if(dirs) {
+      printf("       Search path \"dirs\"                  = %s.\n","");
+    }
     exit(EXIT_FAILURE);
   }
   setenv(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,fileExist ? "1":"0",1);
@@ -1791,11 +1811,13 @@ static const iocshArg initArg0_10 =
 static const iocshArg initArg1_10 =
 { "DieIfNoFile", iocshArgInt };
 static const iocshArg initArg2_10 =
+{ "Check EPICS dirs", iocshArgInt};
+static const iocshArg initArg3_10 =
 { "List of dirs", iocshArgString };
-static const iocshArg *const initArgs_10[]  = { &initArg0_10, &initArg1_10, &initArg2_10 };
-static const iocshFuncDef    initFuncDef_10 = { "ecmcFileExist", 3, initArgs_10 };
+static const iocshArg *const initArgs_10[]  = { &initArg0_10, &initArg1_10, &initArg2_10, &initArg3_10 };
+static const iocshFuncDef    initFuncDef_10 = { "ecmcFileExist", 4, initArgs_10 };
 static void initCallFunc_10(const iocshArgBuf *args) {
-  ecmcFileExist(args[0].sval, args[1].ival, args[2].sval);
+  ecmcFileExist(args[0].sval, args[1].ival, args[2].ival, args[3].sval);
 }
 
 void ecmcAsynPortDriverRegister(void) {
