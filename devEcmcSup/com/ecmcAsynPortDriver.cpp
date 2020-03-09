@@ -1310,7 +1310,7 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
   }
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
   // Set return variable
-  setenv(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer,1);
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
   
   return 0;
 }
@@ -1354,7 +1354,7 @@ int ecmcConfig(const char *ecmcCommand) {
 
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
   // Set return variable
-  setenv(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer,1);
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
   
   return 0;
 }
@@ -1627,7 +1627,7 @@ int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const ch
     return asynError;
   }
 
-  setenv(envVarName,buffer,1);
+  epicsEnvSet(envVarName,buffer);
   return asynSuccess;
 }
 
@@ -1685,10 +1685,10 @@ int ecmcEpicsEnvSetCalcTenary(const char *envVarName, const char *expression, co
   }
 
   if(resultDouble) {
-    setenv(envVarName,trueString,1);
+    epicsEnvSet(envVarName,trueString);
   }
   else{
-    setenv(envVarName,falseString,1);
+    epicsEnvSet(envVarName,falseString);
   }
 
   return asynSuccess;
@@ -1803,7 +1803,7 @@ int ecmcFileExist(const char *filename, int die, int checkEpicsDirs, const char 
     }
     exit(EXIT_FAILURE);
   }
-  setenv(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,fileExist ? "1":"0",1);
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,fileExist ? "1":"0");
   return asynSuccess;
 }
 
