@@ -1791,14 +1791,15 @@ int ecmcFileExist(const char *filename, int die, int checkEpicsDirs, const char 
 
   if(die && !fileExist) {
     printf("Error: File \"%s\" does not exist. ECMC shuts down.\n",filename);
-    char buffer[PATH_MAX];
-    memset(buffer, 0, PATH_MAX);
-    printf("       Current working directory             = %s\n",filename);
+    char * workdirname = get_current_dir_name();
+    printf("       Current working directory           = %s\n",workdirname);
+    free(workdirname);
+
     if(checkEpicsDirs){      
       printf("       Search path \"EPICS_DB_INCLUDE_PATH\" = %s.\n",getenv("EPICS_DB_INCLUDE_PATH"));
     }
     if(dirs) {
-      printf("       Search path \"dirs\"                  = %s.\n","");
+      printf("       Search path \"dirs\"                  = %s\n",dirs);
     }
     exit(EXIT_FAILURE);
   }
