@@ -1824,7 +1824,7 @@ static void initCallFunc_10(const iocshArgBuf *args) {
 
 void ecmcForLoopPrintHelp() {
   printf("\n");
-  printf("       Use \"ecmcFileExist(<filename>, <macros>, <loopvar>, <from>, <to>, <step>)\" to loop execution of file with a changing loop variable.\n");
+  printf("       Use \"ecmcForLoop(<filename>, <macros>, <loopvar>, <from>, <to>, <step>)\" to loop execution of file with a changing loop variable.\n");
   printf("          <filename> : Filename to execute in for loop.\n");
   printf("          <macros>   : Macros to feed to execution of file.\n");
   printf("          <loopvar   : Environment variable to use as index in for loop.\n");
