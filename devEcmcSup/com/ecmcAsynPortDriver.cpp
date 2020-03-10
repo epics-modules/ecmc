@@ -1712,10 +1712,10 @@ static void initCallFunc_9(const iocshArgBuf *args) {
 void ecmcFileExistPrintHelp() {
   printf("\n");
   printf("       Use \"ecmcFileExist(<filename>, <die>, <dirs>)\" to check if a file exists.\n");
-  printf("          <filename>               : Filename to check.\n");
-  printf("          <die>                    : Exit EPICS if file not exist. Optional, defaults to 0.\n");
-  printf("          <check EPICS dirs>       : Look for files in EPICS_DB_INCLUDE_PATH dirs. Optional, defaults to 0.\n");
-  printf("          <dirs>                   : List of dirs to search for file in (separated with ':'). Optional, defaults to \"\".\n");
+  printf("          <filename>         : Filename to check.\n");
+  printf("          <die>              : Exit EPICS if file not exist. Optional, defaults to 0.\n");
+  printf("          <check EPICS dirs> : Look for files in EPICS_DB_INCLUDE_PATH dirs. Optional, defaults to 0.\n");
+  printf("          <dirs>             : List of dirs to search for file in (separated with ':'). Optional, defaults to \"\".\n");
   printf("\n");
 }
 
@@ -1763,6 +1763,7 @@ int isFile(const char* filename, const char * dirs) {
   return fileExist;
 }
 
+
 /** EPICS iocsh shell command: ecmcFileExist
  * Return if file exists otherwise "die"
 */
@@ -1803,7 +1804,7 @@ int ecmcFileExist(const char *filename, int die, int checkEpicsDirs, const char 
     }
     exit(EXIT_FAILURE);
   }
-  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,fileExist ? "1":"0");
+  epicsEnvSet(ECMC_IOCSH_FILE_EXIST_RETURN_VAR_NAME,fileExist ? "1":"0");
   return asynSuccess;
 }
 
@@ -1821,6 +1822,110 @@ static void initCallFunc_10(const iocshArgBuf *args) {
   ecmcFileExist(args[0].sval, args[1].ival, args[2].ival, args[3].sval);
 }
 
+void ecmcForLoopPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcFileExist(<filename>, <macros>, <loopvar>, <from>, <to>, <step>)\" to loop execution of file with a changing loop variable.\n");
+  printf("          <filename> : Filename to execute in for loop.\n");
+  printf("          <macros>   : Macros to feed to execution of file.\n");
+  printf("          <loopvar   : Environment variable to use as index in for loop.\n");
+  printf("          <from>     : <loopvar> start value.\n");
+  printf("          <to>       : <loopvar> end value.\n");
+  printf("          <step>     : Step to increase <loopvar> each loop cycle.\n");
+  printf("\n");
+}
+
+int forLoopStep(const char* filename, const char* macros, const char *loopvar, int i) {
+  char buffer[256];
+  memset(buffer,0,sizeof(buffer));
+  // Set loop variable
+  snprintf(buffer,sizeof(buffer),"%d",i);  
+  epicsEnvSet(loopvar,buffer);
+  //Execute file in iocsh
+  iocshLoad(filename,macros);
+  return 0;
+}
+
+/** EPICS iocsh shell command: ecmcForLoop
+*/
+int ecmcForLoop(const char *filename, const char* macros, const char *loopvar, int from, int to, int step) {
+  if(!filename) {
+    printf("Error: Filename missing.\n");
+    ecmcForLoopPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(filename,"-h") == 0 || strcmp(filename,"--help") == 0 ) {
+    ecmcForLoopPrintHelp();
+    return asynSuccess;
+  }
+
+  if(!macros) {
+    printf("Error: Macros missing.\n");
+    ecmcForLoopPrintHelp();
+    return asynError;
+  }
+
+  if(!loopvar) {
+    printf("Error: Loop variable missing.\n");
+    ecmcForLoopPrintHelp();
+    return asynError;
+  }
+
+  // Check filename
+  int fileExist  = access( filename, 0 ) == 0;
+
+  if(!fileExist){
+    printf("Error: File \"%s\" not found.\n",filename);
+    return asynError;
+  }
+  
+  if(from > to && step > 0 ){
+    printf("Error: from > to and step > 0.\n");
+    return asynError;
+  }
+
+  if(from < to && step < 0 ){
+    printf("Error: from < to and step < 0.\n");
+    return asynError;    
+  }
+
+  // Start loop
+  if(from<to){
+    for(int i= from; i <= to; i+=step){
+      forLoopStep(filename, macros, loopvar, i);
+    }
+  }else {
+    for(int i= from; i >= to; i+=step){
+      forLoopStep(filename, macros, loopvar, i);
+    }
+  }
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_11 =
+{ "Filename", iocshArgString };
+static const iocshArg initArg1_11 =
+{ "Macros", iocshArgString };
+static const iocshArg initArg2_11 =
+{ "Loop variable", iocshArgString};
+static const iocshArg initArg3_11 =
+{ "From", iocshArgInt };
+static const iocshArg initArg4_11 =
+{ "To", iocshArgInt };
+static const iocshArg initArg5_11 =
+{ "Step", iocshArgInt };
+
+
+static const iocshArg *const initArgs_11[]  = { &initArg0_11, 
+                                                &initArg1_11,
+                                                &initArg2_11,
+                                                &initArg3_11,
+                                                &initArg4_11,
+                                                &initArg5_11};
+static const iocshFuncDef    initFuncDef_11 = { "ecmcForLoop", 6, initArgs_11 };
+static void initCallFunc_11(const iocshArgBuf *args) {
+  ecmcForLoop(args[0].sval, args[1].sval, args[2].sval, args[3].ival, args[4].ival, args[5].ival);
+}
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,    initCallFunc);
   iocshRegister(&initFuncDef_2,  initCallFunc_2);
@@ -1832,6 +1937,7 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_8,  initCallFunc_8);
   iocshRegister(&initFuncDef_9,  initCallFunc_9);
   iocshRegister(&initFuncDef_10, initCallFunc_10);
+  iocshRegister(&initFuncDef_11, initCallFunc_11);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
