@@ -1,32 +1,77 @@
 Release Notes
 ===
 # Master
+
+### Add iocsh command to execute for loop
+Usefull for:
+* Large systems with many similar sub systems
+* Configuring hardware with many PDOs (oversampling)
+
+```
+"ecmcForLoop(<filename>, <macros>, <loopvar>, <from>, <to>, <step>)" to loop execution of file with a changing loop variable.
+             <filename> : Filename to execute in for loop.
+             <macros>   : Macros to feed to execution of file.
+             <loopvar   : Environment variable to use as index in for loop.
+             <from>     : <loopvar> start value.
+             <to>       : <loopvar> end value.
+             <step>     : Step to increase <loopvar> each loop cycle.
+
+```
+Example ("ECMC_LOOP_IDX" as loop variable):
+
+```
+ecmcForLoop(./loopStep.cmd,"",ECMC_LOOP_IDX,1,5,1)
+ecmcEpicsEnvSetCalc("TESTING",1*10)
+epicsEnvShow("TESTING")
+TESTING=10
+ecmcEpicsEnvSetCalc("TESTING",2*10)
+epicsEnvShow("TESTING")
+TESTING=20
+ecmcEpicsEnvSetCalc("TESTING",3*10)
+epicsEnvShow("TESTING")
+TESTING=30
+ecmcEpicsEnvSetCalc("TESTING",4*10)
+epicsEnvShow("TESTING")
+TESTING=40
+ecmcEpicsEnvSetCalc("TESTING",5*10)
+epicsEnvShow("TESTING")
+TESTING=50
+
+```
+where "loopStep.cmd" file looks like this (note the use of "ECMC_LOOP_IDX"):
+```
+#- Commands tp execute in each loop of example ecmcForLoop.script
+ecmcEpicsEnvSetCalc("TESTING",${ECMC_LOOP_IDX}*10)
+epicsEnvShow("TESTING")
+
+```
+
 ### Add iocsh command to check if a file exist
 Usefull for checking that configuration files really exist and then can be loaded.
 ```
 ecmcFileExist(<filename>, <die>, <check EPICS dirs>, <dirs>)" to check if a file exists.
-          <filename>          : Filename to check.
-          <die>               : Exit EPICS if file not exist. Optional, defaults to 0.
-          <check EPICS dirs>  : Look for files in EPICS_DB_INCLUDE_PATH dirs. Optional, defaults to 0.\n");
-          <dirs>              : List of dirs to search for file in (separated with ':').
-result will be stored in the EPICS environment variable "ECMC_CONFIG_RETURN_VAL"
+              <filename>          : Filename to check.
+              <die>               : Exit EPICS if file not exist. Optional, defaults to 0.
+              <check EPICS dirs>  : Look for files in EPICS_DB_INCLUDE_PATH dirs. Optional, defaults to 0.\n");
+              <dirs>              : List of dirs to search for file in (separated with ':').
+result will be stored in the EPICS environment variable "ECMC_FILE_EXIST_RETURN_VAL"
 ```
 Example:
 ```
 ecmcFileExist("file_exist.cfg")
-epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
-ECMC_CONFIG_RETURN_VAL=1
+epicsEnvShow(ECMC_FILE_EXIST_RETURN_VAL)
+ECMC_FILE_EXIST_RETURN_VAL=1
 
 ecmcFileExist("file_not_exist.cfg",1)
 Error: File "file_not_exist.cfg" does not exist. ECMC shuts down.
 
 ecmcFileExist("ecmcEK1100.substitutions",1,1)
-epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
-ECMC_CONFIG_RETURN_VAL=1
+epicsEnvShow(ECMC_FILE_EXIST_RETURN_VAL)
+ECMC_FILE_EXIST_RETURN_VAL=1
 
 ecmcFileExist("ecmcEK1100.substitutions",0,0,"/home/")
-epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
-ECMC_CONFIG_RETURN_VAL=0
+epicsEnvShow(ECMC_FILE_EXIST_RETURN_VAL)
+ECMC_FILE_EXIST_RETURN_VAL=0
 
 ```
 
