@@ -9,24 +9,24 @@ ecmcFileExist(<filename>, <die>, <check EPICS dirs>, <dirs>)" to check if a file
           <die>               : Exit EPICS if file not exist. Optional, defaults to 0.
           <check EPICS dirs>  : Look for files in EPICS_DB_INCLUDE_PATH dirs. Optional, defaults to 0.\n");
           <dirs>              : List of dirs to search for file in (separated with ':').
-result will be stored in the EPICS environment variable "ECMC_CONFIG_RETURN_VAL"
+result will be stored in the EPICS environment variable "ECMC_FILE_EXIST_RETURN_VAL"
 ```
 Example:
 ```
 ecmcFileExist("file_exist.cfg")
-epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
-ECMC_CONFIG_RETURN_VAL=1
+epicsEnvShow(ECMC_FILE_EXIST_RETURN_VAL)
+ECMC_FILE_EXIST_RETURN_VAL=1
 
 ecmcFileExist("file_not_exist.cfg",1)
 Error: File "file_not_exist.cfg" does not exist. ECMC shuts down.
 
 ecmcFileExist("ecmcEK1100.substitutions",1,1)
-epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
-ECMC_CONFIG_RETURN_VAL=1
+epicsEnvShow(ECMC_FILE_EXIST_RETURN_VAL)
+ECMC_FILE_EXIST_RETURN_VAL=1
 
 ecmcFileExist("ecmcEK1100.substitutions",0,0,"/home/")
-epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
-ECMC_CONFIG_RETURN_VAL=0
+epicsEnvShow(ECMC_FILE_EXIST_RETURN_VAL)
+ECMC_FILE_EXIST_RETURN_VAL=0
 
 ```
 
