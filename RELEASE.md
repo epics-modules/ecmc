@@ -1,6 +1,15 @@
 Release Notes
 ===
 # Master
+### Add iocsh command to exit
+Add ecmcExit() to exit EPICS/ECMC (needed since the iocsh command "exit" just stops reading current "file"). 
+Can be used for stopping execution when a configuration error occurs.
+
+```
+  Use "ecmcExit" to exit ecmc/EPICS.
+  Use "ecmcExit -h | --help" to get help message.
+
+```
 
 ### Add iocsh command to execute for loop
 Usefull for:
