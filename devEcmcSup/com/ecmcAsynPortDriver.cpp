@@ -1845,7 +1845,8 @@ int forLoopStep(const char* filename, const char* macros, const char *loopvar, i
   return 0;
 }
 
-/** EPICS iocsh shell command: ecmcForLoop
+/** 
+ * EPICS iocsh shell command: ecmcForLoop
 */
 int ecmcForLoop(const char *filename, const char* macros, const char *loopvar, int from, int to, int step) {
   if(!filename) {
@@ -1926,6 +1927,33 @@ static const iocshFuncDef    initFuncDef_11 = { "ecmcForLoop", 6, initArgs_11 };
 static void initCallFunc_11(const iocshArgBuf *args) {
   ecmcForLoop(args[0].sval, args[1].sval, args[2].sval, args[3].ival, args[4].ival, args[5].ival);
 }
+
+/** 
+ * EPICS iocsh shell command: ecmcExit
+*/
+int ecmcExit(const char *help) {
+  
+  if(strcmp(help,"-h") == 0 || strcmp(help,"--help") == 0 ) {
+    printf("\n");
+    printf("       Use \"ecmcExit\" to exit ecmc/EPICS.\n");
+    printf("       Use \"ecmcExit -h | --help\" to get this help message.\n");
+    printf("\n");
+    return asynSuccess;
+  }
+
+  exit(EXIT_SUCCESS);    
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_12 =
+{ "help", iocshArgString };
+
+static const iocshArg *const initArgs_12[]  = { &initArg0_12};
+static const iocshFuncDef    initFuncDef_12 = { "ecmcExit", 1, initArgs_12 };
+static void initCallFunc_12(const iocshArgBuf *args) {
+  ecmcExit(args[0].sval);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,    initCallFunc);
   iocshRegister(&initFuncDef_2,  initCallFunc_2);
@@ -1938,6 +1966,7 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_9,  initCallFunc_9);
   iocshRegister(&initFuncDef_10, initCallFunc_10);
   iocshRegister(&initFuncDef_11, initCallFunc_11);
+  iocshRegister(&initFuncDef_12, initCallFunc_12);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
