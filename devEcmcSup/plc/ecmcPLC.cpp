@@ -67,7 +67,7 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
     }
   }
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  //if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   // Set axes pointers (for the already configuered axes)
   for (int i = 0; i < ECMC_MAX_AXES; i++) {

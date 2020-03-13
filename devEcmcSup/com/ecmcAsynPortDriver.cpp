@@ -49,6 +49,7 @@
 static const char *driverName = "ecmcAsynPortDriver";
 
 extern double mcuFrequency;
+extern double mcuPeriod;
 
 static int allowCallbackEpicsState=0;
 static initHookState currentEpicsState=initHookAtIocBuild;
@@ -1013,13 +1014,15 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
   if (details >= 0) {
     fprintf(fp,"####################################################################:\n");
     fprintf(fp, "General information:\n");
-    fprintf(fp, "  Port:                         %s\n",portName);
-    fprintf(fp, "  Auto-connect:                 %s\n",autoConnect_ ? "true" : "false");
-    fprintf(fp, "  Priority:                     %d\n",priority_);
-    fprintf(fp, "  Param. table size:            %d\n",paramTableSize_);
-    fprintf(fp, "  Param. count:                 %d\n",ecmcParamInUseCount_);
-    fprintf(fp, "  Default sample time [ms]:     %d\n",defaultSampleTimeMS_);
-    fprintf(fp, "  Fastest update rate [cycles]: %d\n",fastestParamUpdateCycles_);
+    fprintf(fp, "  Port:                           %s\n",portName);
+    fprintf(fp, "  Auto-connect:                   %s\n",autoConnect_ ? "true" : "false");
+    fprintf(fp, "  Priority:                       %d\n",priority_);
+    fprintf(fp, "  Param. table size:              %d\n",paramTableSize_);
+    fprintf(fp, "  Param. count:                   %d\n",ecmcParamInUseCount_);
+    fprintf(fp, "  Default sample time [ms]:       %d\n",defaultSampleTimeMS_);
+    fprintf(fp, "  Fastest update rate [cycles]:   %d\n",fastestParamUpdateCycles_);
+    fprintf(fp, "  Realtime loop rate [Hz]:        %lf\n",mcuFrequency);
+    fprintf(fp, "  Realtime loop sample time [ns]: %lf\n",mcuPeriod);
     fprintf(fp,"\n");
   }
 

@@ -228,6 +228,7 @@ struct timespec timespec_sub(struct timespec time1, struct timespec time2) {
 void cyclic_task(void *usr) {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   int i = 0;
+  int ecStat = 0;
   struct timespec wakeupTime, sendTime, lastSendTime = {};
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
@@ -303,28 +304,29 @@ void cyclic_task(void *usr) {
     if (threadDiag.sendperiod_ns < threadDiag.send_min_ns) {
       threadDiag.send_min_ns = threadDiag.sendperiod_ns;
     }
-
-    ec->receive();
-    ec->checkDomainState();
-
+    if(ec->getInitDone()) {
+      ec->receive();
+      ec->checkDomainState();
+    }
+    ecStat = ec->statusOK() || !ec->getInitDone();
     // Motion
     for (i = 0; i < ECMC_MAX_AXES; i++) {
       if (axes[i] != NULL) {
-        plcs->execute(AXIS_PLC_ID_TO_PLC_ID(i),ec->statusOK());
-        axes[i]->execute(ec->statusOK());        
+        plcs->execute(AXIS_PLC_ID_TO_PLC_ID(i),ecStat);
+        axes[i]->execute(ecStat);        
       }
     }
 
     // Data events
     for (i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
       if (events[i] != NULL) {
-        events[i]->execute(ec->statusOK());
+        events[i]->execute(ecStat);
       }
     }
 
     // PLCs
     if (plcs) {
-      plcs->execute(ec->statusOK());
+      plcs->execute(ecStat);
     }
 
     if (counter) {
@@ -332,8 +334,10 @@ void cyclic_task(void *usr) {
     } else {    // Lower freq      
       if (axisDiagFreq > 0) {
         counter = mcuFrequency / axisDiagFreq;
-        ec->checkState();
-        ec->checkSlavesConfState();
+        if(ec->getInitDone()) {
+          ec->checkState();
+          ec->checkSlavesConfState();
+        }
         printStatus();
 
         for (int i = 0; i < ECMC_MAX_AXES; i++) {
@@ -341,14 +345,18 @@ void cyclic_task(void *usr) {
             axes[i]->slowExecute();
           }
         }
-        ec->slowExecute();
+        if(ec->getInitDone()) {
+          ec->slowExecute();
+        }
       }
     }
 
     updateAsynParams(0);
 
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
-    ec->send(masterActivationTimeOffset);
+    if(ec->getInitDone()) {
+      ec->send(masterActivationTimeOffset);
+    }
     clock_gettime(CLOCK_MONOTONIC, &endTime);
   }
   appModeStat = ECMC_MODE_CONFIG;
@@ -403,12 +411,18 @@ int waitForEtherCATtoStart(int timeoutSeconds) {
   timeToPause.tv_nsec = 0;
 
   for (int i = 0; i < timeoutSeconds; i++) {
-    LOGINFO("Starting up EtherCAT bus: %d second(s). Max wait time %d second(s).\n", i,timeoutSeconds);
+    if(ec->getInitDone()) {
+      LOGINFO("Starting up EtherCAT bus: %d second(s). Max wait time %d second(s).\n", i,timeoutSeconds);
+    } else {
+      LOGINFO("Starting up Realtime thread without EtherCAT support.\n");
+    }
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
 
-    if (ec->statusOK()) {
+    if (ec->statusOK() || !ec->getInitDone()) {
       clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
-      LOGINFO("EtherCAT bus started!\n");
+      if(ec->getInitDone()) {
+        LOGINFO("EtherCAT bus started!\n");
+      }
       return 0;
     }
   }
@@ -519,14 +533,17 @@ int setAppModeRun(int mode) {
 
   masterActivationTimeOffset = timespec_sub(masterActivationTimeRealtime,
                                             masterActivationTimeMonotonic);
-  ecrt_master_application_time(ec->getMaster(),
+  if(ec->getInitDone()) {
+    ecrt_master_application_time(ec->getMaster(),
                                TIMESPEC2NS(masterActivationTimeRealtime));
 
-  if (ec->activate()) {
-    LOGERR("INFO:\t\tActivation of master failed.\n");
-    return ERROR_MAIN_EC_ACTIVATE_FAILED;
+    if (ec->activate()) {
+      LOGERR("INFO:\t\tActivation of master failed.\n");
+      return ERROR_MAIN_EC_ACTIVATE_FAILED;
+    }
+  } else {
+      LOGERR("WARNING: EtherCAT master not initialized. Starting ECMC without EtherCAT support.\n");
   }
-  
   errorCode = startRTthread();
   if(errorCode) {
     return errorCode;
@@ -663,12 +680,13 @@ int validateConfig() {
 
   int errorCode = 0;
   int axisCount = 0;
-
-  errorCode = ec->checkReadyForRuntime();
-  if(errorCode) {
-    return errorCode;
+  
+  if(ec->getInitDone()){
+    errorCode = ec->checkReadyForRuntime();
+    if(errorCode) {
+      return errorCode;
+    }
   }
-
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     if (axes[i] != NULL) {
       axisCount++;

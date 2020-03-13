@@ -60,7 +60,7 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     return ERROR_PLCS_INDEX_OUT_OF_RANGE;
   }
 
-  if (!ec_->getInitDone()) return ERROR_PLCS_EC_NOT_INITIALIZED;
+  //if (!ec_->getInitDone()) return ERROR_PLCS_EC_NOT_INITIALIZED;
 
   if (plcs_[plcIndex]) {
     delete plcs_[plcIndex];
@@ -1002,50 +1002,54 @@ int ecmcPLCMain::createAndRegisterNewDataIF(int                plcIndex,
 }
 
 int ecmcPLCMain::addMainDefaultVariables(){
+  
+  if(ec_->getInitDone()) {
+    int masterId = ec_->getMasterIndex();
 
-  int masterId = ec_->getMasterIndex();
+    // Add ec<index>.masterstatus
+    char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+    int  chars = snprintf(varName,
+                          EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
+                          ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_MASTER_STAT_NAME,
+                          masterId);
 
-  // Add ec<index>.masterstatus
-  char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int  chars = snprintf(varName,
-                        EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
-                        ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_MASTER_STAT_NAME,
-                        masterId);
-
-  if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLCS_VARIABLE_NAME_TO_LONG);
-  }
-
-  globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+    if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_PLCS_VARIABLE_NAME_TO_LONG);
+    }
+  
+    globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
                                                              varName,
                                                              ECMC_RECORDER_SOURCE_GLOBAL_VAR,
                                                              asynPortDriver_);
-  int errorCode =
-    globalDataArray_[globalVariableCount_]->getErrorID();
+    int errorCode =
+      globalDataArray_[globalVariableCount_]->getErrorID();
 
-  if (errorCode) {
-    delete globalDataArray_[globalVariableCount_];
-    globalDataArray_[globalVariableCount_] = NULL;
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    if (errorCode) {
+      delete globalDataArray_[globalVariableCount_];
+      globalDataArray_[globalVariableCount_] = NULL;
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+
+    ecStatus_ = globalDataArray_[globalVariableCount_];
+    ecStatus_->setReadOnly(1);
+    globalVariableCount_++;
   }
-
-  ecStatus_ = globalDataArray_[globalVariableCount_];
-  ecStatus_->setReadOnly(1);
-  globalVariableCount_++;
-
   return 0;
 }
 
 int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   
-  //Add ec<id>.masterstatus
-  int errorCode = plcs_[plcIndex]->addAndReisterGlobalVar(ecStatus_);
+  int errorCode = 0;
+  if(ec_->getInitDone()) {
+    //Add ec<id>.masterstatus
+    errorCode = plcs_[plcIndex]->addAndReisterGlobalVar(ecStatus_);
 
-  if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
   }
 
   ecmcPLCDataIF *dataIF = NULL;  
