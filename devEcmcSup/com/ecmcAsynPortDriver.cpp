@@ -69,7 +69,8 @@ static void getEpicsState(initHookState state)
     return;
   }
 
-  asynUser *asynTraceUser=ecmcAsynPortObj->getTraceAsynUser();  
+  asynUser *asynTraceUser=ecmcAsynPortObj->getTraceAsynUser(); 
+  ecmcAsynPortObj->setEpicsState(state);  
   switch(state) {
       break;
     //case initHookAfterScanInit:
@@ -79,7 +80,8 @@ static void getEpicsState(initHookState state)
       /** Make all callbacks if data arrived from callback before interrupts 
         were registered (before allowCallbackEpicsState==1)
         */
-      ecmcAsynPortObj->refreshAllInUseParamsRT();      
+      ecmcAsynPortObj->refreshAllInUseParamsRT();    
+       
       break;
     default:
       break;
@@ -235,6 +237,15 @@ void ecmcAsynPortDriver::initVars() {
   defaultTimeSource_     = ECMC_TIME_BASE_ECMC;
   autoConnect_           = 0;
   priority_              = 0;
+  epicsState_            = 0;
+}
+
+int ecmcAsynPortDriver::getEpicsState() {
+  return epicsState_;
+}
+
+void ecmcAsynPortDriver::setEpicsState(int state) {
+  epicsState_ = state;
 }
 
 /** Append parameter to in-use list\n
@@ -1022,7 +1033,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
     fprintf(fp, "  Default sample time [ms]:       %d\n",defaultSampleTimeMS_);
     fprintf(fp, "  Fastest update rate [cycles]:   %d\n",fastestParamUpdateCycles_);
     fprintf(fp, "  Realtime loop rate [Hz]:        %lf\n",mcuFrequency);
-    fprintf(fp, "  Realtime loop sample time [ns]: %lf\n",mcuPeriod);
+    fprintf(fp, "  Realtime loop sample time [ms]: %lf\n",mcuPeriod/1E6);
     fprintf(fp,"\n");
   }
 

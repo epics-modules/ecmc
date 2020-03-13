@@ -64,7 +64,7 @@ void printStatus() {
 }
 
 void updateAsynParams(int force) {
-
+  
   if(!asynPort->getAllowRtThreadCom()){
     return;
   }
@@ -350,9 +350,10 @@ void cyclic_task(void *usr) {
         }
       }
     }
-
-    updateAsynParams(0);
-
+    if(asynPort->getEpicsState()>=14){
+      updateAsynParams(0);
+    }
+    
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
     if(ec->getInitDone()) {
       ec->send(masterActivationTimeOffset);
@@ -404,7 +405,7 @@ int ecmcInitThread(void) {
   return 0;
 }
 
-int waitForEtherCATtoStart(int timeoutSeconds) {
+int waitForThreadToStart(int timeoutSeconds) {
   struct timespec timeToPause;
 
   timeToPause.tv_sec  = 1;
@@ -417,12 +418,12 @@ int waitForEtherCATtoStart(int timeoutSeconds) {
       LOGINFO("Starting up Realtime thread without EtherCAT support.\n");
     }
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
-
-    if (ec->statusOK() || !ec->getInitDone()) {
+    if(!ec->getInitDone()){
+        return 0;
+    }
+    if (ec->statusOK()) {
       clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
-      if(ec->getInitDone()) {
-        LOGINFO("EtherCAT bus started!\n");
-      }
+      LOGINFO("EtherCAT bus started!\n");
       return 0;
     }
   }
@@ -502,7 +503,7 @@ int setAppModeRun(int mode) {
   }
 
   // Block rt communication during startup 
-  // (since sleep in waitForEtherCATtoStart())
+  // (since sleep in waitForThreadToStart())
   asynPort->setAllowRtThreadCom(false);
 
   appModeCmdOld = appModeCmd;
@@ -557,7 +558,7 @@ int setAppModeRun(int mode) {
     }
   }
 
-  errorCode = waitForEtherCATtoStart(ecTimeoutSeconds > 0 ? ecTimeoutSeconds : EC_START_TIMEOUT_S);
+  errorCode = waitForThreadToStart(ecTimeoutSeconds > 0 ? ecTimeoutSeconds : EC_START_TIMEOUT_S);
 
   if (errorCode) {
     return errorCode;

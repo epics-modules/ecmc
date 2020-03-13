@@ -32,7 +32,7 @@
 static const char *driverName = "ecmcAsynPortDriver";
 
 extern double mcuFrequency;
-
+extern double mcuPeriod;
 static int compar (const void* pkey, const void* pelem) {
   return ( *(int*)pkey - *(int*)pelem );
 };
@@ -1199,8 +1199,8 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
     }
   }
   // emsure that sample rate is not faster than ethercat realtime loop
-  double ethercatRateMs=1/mcuFrequency*1000;
-  if(paramInfo_.sampleTimeMS < ethercatRateMs && paramInfo_.sampleTimeMS>0) {
+  double ethercatRateMs=mcuPeriod/1E6;
+  if(paramInfo_.sampleTimeMS < ethercatRateMs && paramInfo_.sampleTimeMS > 0) {
     asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR,
               "%s:%s: WARNING: Sample rate faster than EtherCAT realtime loop (%3.1lfms<%3.1lfms),"
               " %3.1lfms will be used. (drvInfo = %s).\n",

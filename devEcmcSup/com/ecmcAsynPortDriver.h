@@ -98,8 +98,10 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                      bool dieIfFail);
    int32_t getFastestUpdateRate();   
    int32_t calcFastestUpdateRate();
-   int getDefaultSampleTimeMs();
+   int     getDefaultSampleTimeMs();
    void    refreshAllInUseParamsRT();
+   int     getEpicsState();
+   void    setEpicsState(int state);
 
  private:
   void initVars();
@@ -124,6 +126,7 @@ class ecmcAsynPortDriver : public asynPortDriver {
   unsigned int priority_;
   int32_t fastestParamUpdateCycles_;
   friend class paramList;
+  int epicsState_;
 };
 
 #endif  /* ECMC_ASYN_PORT_DRIVER_H_ */
