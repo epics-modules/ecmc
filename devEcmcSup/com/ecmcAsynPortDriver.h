@@ -95,6 +95,13 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                      uint8_t *data,
                                      size_t bytes,
                                      ecmcEcDataType dt,
+                                     double sampleTimeMs,
+                                     bool dieIfFail);
+  ecmcAsynDataItem *addNewAvailParam(const char * name,
+                                     asynParamType type,                                     
+                                     uint8_t *data,
+                                     size_t bytes,
+                                     ecmcEcDataType dt,
                                      bool dieIfFail);
    int32_t getFastestUpdateRate();   
    int32_t calcFastestUpdateRate();

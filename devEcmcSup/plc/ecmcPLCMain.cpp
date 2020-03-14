@@ -189,6 +189,15 @@ int ecmcPLCMain::execute(bool ecOK) {
       }
     }
   }
+  
+  /** update asyn params here for all globals to get sample rate correct
+      (if globals are used in many plcs) */
+  for (int i = 0; i < globalVariableCount_; ++i) {
+    if (globalDataArray_[i]) {
+      globalDataArray_[i]->updateAsyn(0);
+    }
+  }
+
   return 0;
 }
 
@@ -511,6 +520,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_PLC_EC_NULL);
     }
     globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                               -1,
                                                                ec_,
                                                                varName,
                                                                asynPortDriver_);
@@ -544,6 +554,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
                         ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
     }
     globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                               -1,
                                                                axes_[axisId],
                                                                varName,
                                                                asynPortDriver_);
@@ -570,6 +581,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
 
   case ECMC_RECORDER_SOURCE_GLOBAL_VAR:
     globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                               -1,
                                                                varName,
                                                                ECMC_RECORDER_SOURCE_GLOBAL_VAR,
                                                                asynPortDriver_);
@@ -604,6 +616,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
     }
 
     globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
+                                                               -1,
                                                                ds_[dsId],
                                                                varName,
                                                                asynPortDriver_);
@@ -1021,9 +1034,10 @@ int ecmcPLCMain::addMainDefaultVariables(){
     }
   
     globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
-                                                             varName,
-                                                             ECMC_RECORDER_SOURCE_GLOBAL_VAR,
-                                                             asynPortDriver_);
+                                                               -1,
+                                                               varName,
+                                                               ECMC_RECORDER_SOURCE_GLOBAL_VAR,
+                                                               asynPortDriver_);
     int errorCode =
       globalDataArray_[globalVariableCount_]->getErrorID();
 

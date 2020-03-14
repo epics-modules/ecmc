@@ -27,8 +27,7 @@
                        (B).tv_nsec - (A).tv_nsec)
 
 #define MCU_MIN_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MAX_FREQUENCY)
-#define MCU_MAX_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MIN_FREQUENCY)
-
+#define MCU_MAX_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MIN_FREQUENCY) 
 
 #define ECMC_MAX_AXES 64
 #define ECMC_MAX_PLCS 8

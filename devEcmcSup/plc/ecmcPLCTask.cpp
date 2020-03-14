@@ -92,11 +92,12 @@ int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
                       __LINE__,
                       ERROR_PLC_VARIABLE_COUNT_EXCEEDED);
   }
-  
-    localArray_[localVariableCount_] = new ecmcPLCDataIF(plcIndex_,
-                                                         localVarStr,
-                                                         ECMC_RECORDER_SOURCE_STATIC_VAR,
-                                                         asynPortDriver_);
+
+  localArray_[localVariableCount_] = new ecmcPLCDataIF(plcIndex_,
+                                                       plcScanTimeInSecs_*1000,
+                                                       localVarStr,
+                                                       ECMC_RECORDER_SOURCE_STATIC_VAR,
+                                                       asynPortDriver_);
   int errorCode = localArray_[localVariableCount_]->getErrorID();
 
   if (errorCode) {
@@ -196,12 +197,15 @@ int ecmcPLCTask::execute(bool ecOK) {
   for (int i = 0; i < localVariableCount_; i++) {
     if (localArray_[i]) {
       localArray_[i]->write();
+      localArray_[i]->updateAsyn(0);
     }
   }
 
   for (int i = 0; i < globalVariableCount_; i++) {
     if (globalArray_[i]) {
       globalArray_[i]->write();
+      // Update globals "centrally2 in ecmcPLCMain
+      // to get asyn sample rate correct.
     }
   }
 
@@ -763,6 +767,7 @@ int ecmcPLCTask::initAsyn(int plcIndex) {
                                          (uint8_t *)exprStr_.c_str(),
                                          strlen(exprStr_.c_str()),
                                          ECMC_EC_S8,
+                                         plcScanTimeInSecs_*1000, //milliseconds
                                          0);
   if(!paramTemp) {
     LOGERR(

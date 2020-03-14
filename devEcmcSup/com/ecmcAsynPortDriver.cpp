@@ -167,7 +167,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,
                                                      ECMC_ASYN_PAR_OCTET_NAME,
                                                      asynParamNotDefined,
-                                                     ECMC_EC_NONE);
+                                                     ECMC_EC_NONE,
+                                                     mcuPeriod/1e6);
   if(paramTemp->createParam()){
     asynPrint(pasynUserSelf,
               ASYN_TRACE_ERROR,
@@ -342,7 +343,22 @@ ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
     }
   }
   return NULL;
-} 
+}
+
+ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
+                                                       asynParamType type,
+                                                       uint8_t *data,
+                                                       size_t bytes,
+                                                       ecmcEcDataType dt,
+                                                       bool dieIfFail) {
+  return addNewAvailParam(name,
+                          type,
+                          data,
+                          bytes,
+                          dt,
+                          -1,
+                          dieIfFail);
+}
 
 /** Create and add new parameter to list of available parameters\n
   * \param[in] name Parameter name\n
@@ -350,20 +366,22 @@ ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
   * \param[in] dt   Data type\n
   * \param[in] data Pointer to data\n
   * \param[in] bytes size of data\n
+  * \param[in] sampleTimeMs parameter update rate
   * \param[in] dieIfFail Exit if method fails\n
   * 
   * returns parameter (ecmcAsynDataItem)\n
   * */
-ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name, 
+ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
                                                        asynParamType type,
                                                        uint8_t *data,
                                                        size_t bytes,
                                                        ecmcEcDataType dt,
+                                                       double sampleTimeMs,
                                                        bool dieIfFail) {
 
   const char* functionName = "addNewAvailParam";
 
-  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,name,type,dt);
+  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,name,type,dt,sampleTimeMs);
   
   int errorCode=paramTemp->setEcmcDataPointer(data, bytes);
   if(errorCode) {
@@ -798,7 +816,13 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
       delete newParam;
       return asynError;
     }
-
+    // Set drvInfo to found param
+    status = param->setDrvInfo(drvInfo);
+    if(status!=asynSuccess){
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Error: setDrvInfo failed.\n", 
+               driverName, functionName);
+      return asynError;
+    }
     //Ensure that type is supported
     if( !param->asynTypeSupported(newParam->getAsynType())) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Error: asynType %s not supported for parameter %s. Supported types are:\n", 
@@ -864,11 +888,11 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   ecmcParamInfo *existentParInfo = pEcmcParamInUseArray_[index]->getParamInfo();
  
   if(!existentParInfo->initialized) {
-    pEcmcParamInUseArray_[index]->setAsynParSampleTimeMS(newParam->getSampleTimeMs());    
+    /*pEcmcParamInUseArray_[index]->setAsynParSampleTimeMS(newParam->getSampleTimeMs());    
     existentParInfo->recordName=strdup(newParam->getRecordName());
     existentParInfo->recordType=strdup(newParam->getRecordType());
     existentParInfo->dtyp=strdup(newParam->getDtyp());
-    existentParInfo->drvInfo=strdup(newParam->getDrvInfo());
+    existentParInfo->drvInfo=strdup(newParam->getDrvInfo());*/
 
     if(existentParInfo->cmdInt64ToFloat64 && pEcmcParamInUseArray_[index]->getEcmcBitCount() !=64) {      
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command " ECMC_OPTION_CMD_INT_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",

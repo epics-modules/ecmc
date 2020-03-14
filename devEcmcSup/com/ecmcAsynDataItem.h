@@ -75,7 +75,12 @@ public:
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                     const char *paramName,
                     asynParamType asynParType,
-                    ecmcEcDataType dt);
+                    ecmcEcDataType dt,
+                    double updateRateMs); //if "-1" then realtime loop
+  ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
+                    const char *paramName,
+                    asynParamType asynParType,
+                    ecmcEcDataType dt); //sample time -1 update rate
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver);
   ~ecmcAsynDataItem ();
   int setEcmcDataPointer(uint8_t *data,size_t bytes);  
@@ -196,6 +201,7 @@ private:
   asynStatus (*fctPtrExeCmd_)(void* data, size_t bytes, asynParamType asynParType,void *userObj);
   bool useExeCmdFunc_;
   void* exeCmdUserObj_;
+  double updateRateMs_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */
