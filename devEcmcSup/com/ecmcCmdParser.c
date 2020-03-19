@@ -1370,7 +1370,7 @@ static int handleCfgCommand(const char *myarg_1) {
               size_t    byteSize,
               uint64_t  value)*/
   nvals = sscanf(myarg_1,
-                 "EcWriteSoE(%d,%d,%d,%d,%lu)",
+                 "EcWriteSoE(%d,%d,%d,%d,%" SCNu64 ")",
                  &iValue2,
                  &iValue3,
                  &iValue4,
