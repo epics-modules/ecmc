@@ -28,14 +28,12 @@ int ecmcInit(void *asynPortObject) {
   }
 
   asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);  
-  ec = new ecmcEc();
+  ec = new ecmcEc(asynPort);
 
   if(!ec) {
     LOGERR("ERROR: Fail allocate ec master (0x%x)",ERROR_MAIN_EC_NULL);
     return ERROR_MAIN_EC_NULL;
   }
-
-  ec->setAsynPortDriver(asynPort);
 
   //Main asyn params
   int errorCode=ecmcAddDefaultAsynParams();

@@ -25,13 +25,10 @@ int ecSetMaster(int masterIndex) {
            __FUNCTION__,
            __LINE__,
            masterIndex);
-  int errorCode = ec->setAsynPortDriver(asynPort);
-  if(errorCode) {
-    return errorCode;  
-  }
+  
   // Sample rate fixed
   sampleRateChangeAllowed = 0;
-  errorCode = ec->init(masterIndex);
+  int errorCode = ec->init(masterIndex);
   if(errorCode) {
     return errorCode;
   }

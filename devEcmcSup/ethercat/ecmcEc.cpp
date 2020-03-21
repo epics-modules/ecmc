@@ -15,9 +15,11 @@
 #include <time.h>
 #include <string>
 
-ecmcEc::ecmcEc() {
-  initVars();  
+ecmcEc::ecmcEc(ecmcAsynPortDriver *asynPortDriver) {
+  initVars();
   setErrorID(ERROR_EC_STATUS_NOT_OK);
+  asynPortDriver_ = asynPortDriver;
+  simSlave_ = new ecmcEcSlave(asynPortDriver_,0 ,NULL, NULL,0, -1, 0, 0);  
 }
 
 void ecmcEc::initVars() {
@@ -1180,11 +1182,11 @@ int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry) {
   return 0;
 }
 
-int ecmcEc::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver) {
-  asynPortDriver_ = asynPortDriver;
-  simSlave_ = new ecmcEcSlave(asynPortDriver_,0 ,NULL, NULL,0, -1, 0, 0);  
-  return 0;
-}
+// int ecmcEc::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver) {
+//   asynPortDriver_ = asynPortDriver;
+//   simSlave_ = new ecmcEcSlave(asynPortDriver_,0 ,NULL, NULL,0, -1, 0, 0);  
+//   return 0;
+// }
 
 int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   
