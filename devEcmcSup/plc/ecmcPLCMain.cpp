@@ -60,7 +60,7 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     return ERROR_PLCS_INDEX_OUT_OF_RANGE;
   }
 
-  //if (!ec_->getInitDone()) return ERROR_PLCS_EC_NOT_INITIALIZED;
+  if (!ec_) return ERROR_PLCS_EC_NOT_INITIALIZED;
 
   if (plcs_[plcIndex]) {
     delete plcs_[plcIndex];

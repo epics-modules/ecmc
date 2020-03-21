@@ -2173,7 +2173,39 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
   case 0x230000:
     return "ERROR_AXIS_FILTER_ALLOC_FAIL";
 
+  break;
+  
+  case 0x231000:
+    return "ERROR_PLUGIN_FLIE_NOT_FOUND";
+
     break;
+
+  case 0x231001:
+    return "ERROR_PLUGIN_OPEN_FAIL";
+
+    break;
+
+  case 0x231002:
+    return "ERROR_PLUGIN_GET_DATA_FUNC_FAIL";
+
+    break;
+
+  case 0x231003:
+    return "ERROR_PLUGIN_GET_DATA_FAIL";
+
+    break;
+
+  case 0x231004:
+    return "ERROR_PLUGIN_VERSION_MISSMATCH";
+
+    break;
+    
+  case 0x231005:
+    return "ERROR_PLUGIN_LIB_NAME_UNDEFINED";
+
+    break;
+
   }
+
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
 }
