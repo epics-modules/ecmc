@@ -161,8 +161,8 @@ ecmcEcDataType getEcDataTypeFromStr(const char* dt);
 size_t         getEcDataTypeBits(ecmcEcDataType dt);
 ecmcEcDataType getEcDataType(size_t bitLength,bool signedVal);
 int            getEcDataTypeSigned(ecmcEcDataType dt);
-size_t         getEcDataTypeMinVal(ecmcEcDataType dt);
-size_t         getEcDataTypeMaxVal(ecmcEcDataType dt);
+int64_t        getEcDataTypeMinVal(ecmcEcDataType dt);
+uint64_t       getEcDataTypeMaxVal(ecmcEcDataType dt);
 const char*    getEcDataTypeStr(ecmcEcDataType dt);
 size_t         getEcDataTypeByteSize(ecmcEcDataType dt);
 
