@@ -273,7 +273,7 @@ int ecAddMemMapDT(
   ) {
 
   LOGINFO4(
-    "%s/%s:%d startEntryID=%s byteSize=%lu, direction=%d dataType=%s entryId=%s\n",
+    "%s/%s:%d startEntryID=%s byteSize=%zu, direction=%d dataType=%s entryId=%s\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -317,7 +317,7 @@ int ecAddMemMap(
   std::string startEntryId = startEntryIDString;
 
   LOGINFO4(
-    "%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%lu, direction=%d entryId=%s\n",
+    "%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%zu, direction=%d entryId=%s\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -547,7 +547,7 @@ int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
                    uint8_t  *value /**< Pointer to data to write. */
                    ){
   LOGINFO4(
-    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%lu\n",
+    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%zu\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -568,7 +568,7 @@ int ecWriteSoE(uint16_t  slavePosition, /**< Slave position. */
                    uint8_t  *value /**< Pointer to data to write. */
                    ){
   LOGINFO4(
-    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%lu\n",
+    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%zu\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -607,7 +607,7 @@ int readEcMemMap(const char *memMapIDString,
                  uint8_t    *data,
                  size_t      bytesToRead,
                  size_t     *bytesRead) {
-  LOGINFO4("%s/%s:%d alias=%s bytesToRead=%lu\n",
+  LOGINFO4("%s/%s:%d alias=%s bytesToRead=%zu\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

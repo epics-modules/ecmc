@@ -239,7 +239,7 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 
   asynUpdateCycleCounter_=0;    
   if(stat!=asynSuccess) {
-    asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "ecmcAsynDataItem::refreshParam: ERROR: Refresh failed for parameter %s, bytes %lu, force %d, sample time %d (0x%x).\n",
+    asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR, "ecmcAsynDataItem::refreshParam: ERROR: Refresh failed for parameter %s, bytes %zu, force %d, sample time %d (0x%x).\n",
     getName(),bytes,force,paramInfo_.sampleTimeCycles,ERROR_ASYN_REFRESH_FAIL);
     return ERROR_ASYN_REFRESH_FAIL;
   }
@@ -636,7 +636,7 @@ asynStatus ecmcAsynDataItem::writeInt32(epicsInt32 value) {
   if(checkIntRange_) {
     if(value > intMax_ || value < intMin_) {
       LOGERR(
-        "%s/%s:%d: Error: %s value Out Of Range %d (allowed Range %ld..%ld) (0x%x).\n",
+        "%s/%s:%d: Error: %s value Out Of Range %d (allowed Range %" PRId64 "..%" PRId64 ") (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
@@ -672,7 +672,7 @@ asynStatus  ecmcAsynDataItem::writeUInt32Digital(epicsUInt32 value,
 
   if(checkIntRange_ && (value > intMax_ || value < intMin_)) {
     LOGERR(
-      "%s/%s:%d: Error: %s value Out Of Range %d. Allowed Range %ld..%ld (0x%x).\n",
+      "%s/%s:%d: Error: %s value Out Of Range %d (allowed Range %" PRId64 "..%" PRId64 ") (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,

@@ -113,6 +113,7 @@ private:
       unsigned int     initialPollNeeded     : 1;
     }  dirty;
     int                moveNotReadyNext;
+    int                moveNotReadyNextOld;
     char               cmdErrorMessage[80]; /* From driver */
     char               sErrorMessage[80]; /* From controller */
   } drvlocal;

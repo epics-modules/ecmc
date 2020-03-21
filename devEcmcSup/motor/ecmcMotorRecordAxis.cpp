@@ -806,8 +806,8 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
   /* if we come here, it went wrong */
   if (!drvlocal.cmdErrorMessage[0]) {
     snprintf(drvlocal.cmdErrorMessage, sizeof(drvlocal.cmdErrorMessage)-1,
-             "E: enableAmplifier(%d) failed. out=%s in=%s\n",
-             axisNo_, pC_->outString_, pC_->inString_);
+             "E: enableAmplifier(%d) failed.",
+             axisNo_);
   }
 
   return asynError;
@@ -989,6 +989,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     return status;
   }
 
+  drvlocal.moveNotReadyNextOld = drvlocal.moveNotReadyNext;
   drvlocal.moveNotReadyNext = ((drvlocal.statusBinData.onChangeData.statusWd.busy > 0) || 
                              !(drvlocal.statusBinData.onChangeData.statusWd.attarget > 0)) > 0;
 
@@ -996,8 +997,8 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   drvlocal.homed = drvlocal.statusBinData.onChangeData.statusWd.homed > 0;
   setIntegerParam(pC_->motorStatusCommsError_, 0);
   setIntegerParam(pC_->motorStatusAtHome_, (drvlocal.statusBinData.onChangeData.statusWd.homeswitch > 0));
-  setIntegerParam(pC_->motorStatusLowLimit_, (!drvlocal.statusBinData.onChangeData.statusWd.limitbwd > 0));
-  setIntegerParam(pC_->motorStatusHighLimit_,(!drvlocal.statusBinData.onChangeData.statusWd.limitfwd > 0));
+  setIntegerParam(pC_->motorStatusLowLimit_, ((!drvlocal.statusBinData.onChangeData.statusWd.limitbwd) > 0));
+  setIntegerParam(pC_->motorStatusHighLimit_,((!drvlocal.statusBinData.onChangeData.statusWd.limitfwd) > 0));
   setIntegerParam(pC_->motorStatusPowerOn_, (drvlocal.statusBinData.onChangeData.statusWd.enabled > 0));
   setDoubleParam(pC_->ecmcMotorRecordVelAct_, drvlocal.statusBinData.onChangeData.velocityActual);
   setDoubleParam(pC_->ecmcMotorRecordAcc_RB_, drvlocal.statusBinData.acceleration);
@@ -1064,7 +1065,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   else
 #endif
     {
-      if (drvlocal.moveNotReadyNext != drvlocal.moveNotReadyNext ||
+      if (drvlocal.moveNotReadyNextOld != drvlocal.moveNotReadyNext ||
           drvlocal.statusBinDataOld.onChangeData.statusWd.busy     != drvlocal.statusBinData.onChangeData.statusWd.busy ||
           drvlocal.statusBinDataOld.onChangeData.statusWd.enabled  != drvlocal.statusBinData.onChangeData.statusWd.enabled ||
           drvlocal.statusBinDataOld.onChangeData.statusWd.execute  != drvlocal.statusBinData.onChangeData.statusWd.execute ||
@@ -1114,14 +1115,19 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     
     // Write error string to drvlocal.sErrorMessage
     /* First choice: "well known" ErrorIds */
+    size_t bytes = 0;
     if (errIdString[0]) {
-      snprintf(drvlocal.sErrorMessage, sizeof(drvlocal.sErrorMessage)-1, "E: %s (0x%x)",
+      bytes = snprintf(drvlocal.sErrorMessage, sizeof(drvlocal.sErrorMessage)-1, "E: %s (0x%x)",
                errIdString, nErrorId);
     } else {
       /* ecmc has error messages */
-      snprintf(drvlocal.sErrorMessage, sizeof(drvlocal.sErrorMessage)-1, "E: %s (0x%x)",
+      bytes = snprintf(drvlocal.sErrorMessage, sizeof(drvlocal.sErrorMessage)-1, "E: %s (0x%x)",
                sErrorMessage, nErrorId);
     }
+  if(bytes >= sizeof(drvlocal.sErrorMessage)-1) {
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+            "Warning: Error message trucated (%s)\n",sErrorMessage);
+  }
     /* The poller will update the MsgTxt field */
     //updateMsgTxtFromDriver(drvlocal.sErrorMessage);
   }
@@ -1391,7 +1397,7 @@ void ecmcMotorRecordAxis::updateMsgTxtFromDriver(const char *value)
  * Printout entire drvlocal.statusBinData. Just for debug purpose..
  * 
 */
-asynStatus ecmcMotorRecordAxis::printDiagBinData() {
+/*asynStatus ecmcMotorRecordAxis::printDiagBinData() {
   int asynLevel=ASYN_TRACE_ERROR;
   asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.axisID = %d\n",drvlocal.statusBinData.axisID);
   asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.cycleCounter = %d\n",drvlocal.statusBinData.cycleCounter);
@@ -1431,4 +1437,4 @@ asynStatus ecmcMotorRecordAxis::printDiagBinData() {
   asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.sumIlockFwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.sumilockfwd);
   asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.sumIlockBwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.sumilockbwd);
   return asynSuccess;
-}
+}*/

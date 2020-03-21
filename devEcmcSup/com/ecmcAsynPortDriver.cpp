@@ -956,7 +956,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param linked to record:    %s\n",paramInfo->initialized ? "true" : "false");
   if(!paramInfo->initialized) {  //No record linked to record (no more valid data)
     fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false"); 
-    fprintf(fp,"    ECMC size [bytes]:         %lu\n",paramInfo->ecmcSize); 
+    fprintf(fp,"    ECMC size [bytes]:         %zu\n",paramInfo->ecmcSize); 
     fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
     fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");      
     fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
@@ -971,15 +971,15 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param alarm:               %d\n",paramInfo->alarmStatus);
   fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
   fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");
-  fprintf(fp,"    ECMC size [bits]:          %lu\n",param->getEcmcBitCount());
-  fprintf(fp,"    ECMC max size [bytes]:     %lu\n",paramInfo->ecmcMaxSize);
+  fprintf(fp,"    ECMC size [bits]:          %zu\n",param->getEcmcBitCount());
+  fprintf(fp,"    ECMC max size [bytes]:     %zu\n",paramInfo->ecmcMaxSize);
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
   fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
   
   // Value range only applicable for ints
   if(param->getEcmcMinValueInt() != param->getEcmcMaxValueInt()) {
-    fprintf(fp,"    ECMC Value Range:          %ld..%ld, %ld bit(s)\n",
+    fprintf(fp,"    ECMC Value Range:          %" PRId64 "..%" PRIu64 ", %zu bit(s)\n",
             param->getEcmcMinValueInt(),
             param->getEcmcMaxValueInt(),
             param->getEcmcBitCount());    
@@ -1006,7 +1006,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
   asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
 
   if(!fp){
-    fprintf(fp,"%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    printf("%s:%s: ERROR: File NULL.\n", driverName, functionName);
     return;
   }
 
@@ -1065,7 +1065,7 @@ void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern) {
   asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
 
   if(!fp){
-    fprintf(fp,"%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    printf("%s:%s: ERROR: File NULL.\n", driverName, functionName);
     return;
   }
 
@@ -1090,7 +1090,7 @@ void ecmcAsynPortDriver::grepRecord(FILE *fp, const char *pattern) {
   asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
 
   if(!fp){
-    fprintf(fp,"%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    printf("%s:%s: ERROR: File NULL.\n", driverName, functionName);
     return;
   }
 
@@ -1719,22 +1719,25 @@ void ecmcFileExistPrintHelp() {
   printf("\n");
 }
 
+#define ECMC_IS_FILE_BUFFER_SIZE 4096
+
 int isFile(const char* filename, const char * dirs) {
 
   int fileExist = 0;
-  char buffer[4096];  
+  char buffer[ECMC_IS_FILE_BUFFER_SIZE];  
   char* pdirs = (char*)dirs; 
   char *pdirs_old = pdirs;
   if(dirs){
     bool stop = false;
     while((pdirs=strchr(pdirs,':')) && !stop){
-      memset(buffer,0,4096);
+      memset(buffer,0,ECMC_IS_FILE_BUFFER_SIZE);
       int chars=(int)(pdirs-pdirs_old);
-      strncpy(buffer, pdirs_old, chars);
+      memcpy(buffer,  pdirs_old, chars);
+      //strncpy(buffer, pdirs_old, chars);
       buffer[chars]='/';
       chars++;
-      strncpy(&buffer[chars],filename,strlen(filename));
-      //printf("Buffer %s\n",buffer);
+      memcpy(&buffer[chars], filename, strlen(filename));
+      //strncpy(&buffer[chars], filename, strlen(filename));
       fileExist = access( buffer, 0 ) == 0;
       if(fileExist) {
         break;
@@ -1749,13 +1752,14 @@ int isFile(const char* filename, const char * dirs) {
 
     //take the last also (if not already found)
     if(strlen(pdirs_old)>0 && !fileExist){
-      memset(buffer,0,4096);
+      memset(buffer,0,ECMC_IS_FILE_BUFFER_SIZE);
       int chars=strlen(pdirs_old);
-      strncpy(buffer,pdirs_old,chars);
+      memcpy(buffer,  pdirs_old, chars);
+      //strncpy(buffer, pdirs_old, chars);
       buffer[chars]='/';
       chars++;
-      strncpy(&buffer[chars],filename,strlen(filename));
-      //printf("Buffer %s\n",buffer);
+      memcpy(&buffer[chars], filename, strlen(filename));
+      //strncpy(&buffer[chars], filename, strlen(filename));
       fileExist = access( buffer, 0 ) == 0;
     }
   }
