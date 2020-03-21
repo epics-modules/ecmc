@@ -1182,12 +1182,6 @@ int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry) {
   return 0;
 }
 
-// int ecmcEc::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver) {
-//   asynPortDriver_ = asynPortDriver;
-//   simSlave_ = new ecmcEcSlave(asynPortDriver_,0 ,NULL, NULL,0, -1, 0, 0);  
-//   return 0;
-// }
-
 int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
