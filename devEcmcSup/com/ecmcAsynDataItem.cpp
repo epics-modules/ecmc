@@ -1242,7 +1242,7 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
   
   if(paramInfo_.sampleTimeMS < dataUpdateRateMs && paramInfo_.sampleTimeMS > 0) {
     asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR,
-              "%s:%s: WARNING: Sample rate faster than EtherCAT realtime loop (%3.1lfms<%3.1lfms),"
+              "%s:%s: WARNING: Record sample rate faster than parameter update rate (%3.1lfms<%3.1lfms),"
               " %3.1lfms will be used. (drvInfo = %s).\n",
               driverName,
               functionName,

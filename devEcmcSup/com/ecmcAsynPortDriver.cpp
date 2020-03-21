@@ -72,7 +72,6 @@ static void getEpicsState(initHookState state)
   asynUser *asynTraceUser=ecmcAsynPortObj->getTraceAsynUser(); 
   ecmcAsynPortObj->setEpicsState(state);  
   switch(state) {
-      break;
     //case initHookAfterScanInit:
     case initHookAfterIocRunning:
       allowCallbackEpicsState=1;
@@ -88,13 +87,13 @@ static void getEpicsState(initHookState state)
   }
 
   currentEpicsState=state;
-  asynPrint(asynTraceUser,
+  /*asynPrint(asynTraceUser,
             ASYN_TRACE_INFO ,
             "%s:%s: EPICS state: %s (%d). Allow callbacks: %s.\n",
             driverName,
             functionName,
             epicsStateToString((int)state),
-            (int)state,ecmcAsynPortObj->getAllowRtThreadCom() ? "true" : "false");
+            (int)state,ecmcAsynPortObj->getAllowRtThreadCom() ? "true" : "false");*/
 }
 
 /** Register EPICS hook function
