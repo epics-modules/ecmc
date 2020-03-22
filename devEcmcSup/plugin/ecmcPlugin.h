@@ -22,27 +22,18 @@
 extern "C" {
 # endif  // ifdef __cplusplus
 
-/** \brief Create a PLC object
- * called.\n
+/** \brief Load a ecmc plugin.\n
  *
- * \param[in] index PLC index number
- * \param[in] cycleTime CycleTime in seconds
- * \param[in] axisPLC If PLC for axis
+ * \param[in] filenameWP Filename of sharded lib with path.
+ 
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create PLC at index 0 (executing every 10th cycle).\n
- *  "Cfg.CreatePLC(0,9)" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.LoadPlugin(./ecmcExampleLip.so)" //Command string to ecmcCmdParser.c\n
  *
- * \note Example: Create PLC at index 0 (executing every cycle).\n
- *  "Cfg.CreatePLC(0)" //Command string to ecmcCmdParser.c\n
  */
-int createPLC(int index,
-              double cycleTime,
-              int axisPLC);
-
-
-
+int loadPlugin(const char* filenameWP);
 
 # ifdef __cplusplus
 }

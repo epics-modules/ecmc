@@ -1770,6 +1770,14 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_SAMPLE_RATE_CHANGE_NOT_ALLOWED";
 
     break;
+  case 0x2004F:
+    return "ERROR_MAIN_PLUGIN_LIST_FULL";
+
+    break;
+  case 0x20050:
+    return "ERROR_MAIN_PLUGIN_OBJECT_NULL";
+
+    break;
 
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
@@ -2199,7 +2207,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_PLUGIN_VERSION_MISSMATCH";
 
     break;
-    
+
   case 0x231005:
     return "ERROR_PLUGIN_LIB_NAME_UNDEFINED";
 

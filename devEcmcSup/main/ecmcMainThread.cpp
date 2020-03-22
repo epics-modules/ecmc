@@ -400,6 +400,10 @@ int ecmcInitThread(void) {
     commandLists[i] = NULL;
   }
 
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
+    plugins[i] = NULL;
+  }
+  
   plcs = NULL;
 
   return 0;

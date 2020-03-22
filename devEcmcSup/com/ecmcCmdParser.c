@@ -33,6 +33,7 @@
 #include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"
 #include "../plc/ecmcPLC.h"
+#include "../plugin/ecmcPlugin.h"
 #include <iocsh.h>
 
 typedef struct
@@ -2249,6 +2250,13 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisPLCEnable(iValue, iValue2);
+  }
+
+  /*int Cfg.LoadPlugin(char *cExpr); */
+  nvals = sscanf(myarg_1, "LoadPlugin(%[^)])", cExprBuffer);
+
+  if (nvals == 1) {
+    return loadPlugin(cExprBuffer);
   }
 
   /*int Cfg.SetAxisSeqTimeout(int axis_no, int value);  IN seconds!!*/

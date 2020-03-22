@@ -22,7 +22,7 @@ ecmcPluginLib::ecmcPluginLib() {
 }
 
 ecmcPluginLib::~ecmcPluginLib() {
-  unloadLib();
+  unload();
 }
 
 void ecmcPluginLib::initVars() {
@@ -31,11 +31,19 @@ void ecmcPluginLib::initVars() {
   dlHandle_      = NULL;
   getDataFunc_   = NULL;
   data_          = NULL;
+  loaded_        = 0;
 }
 
-int ecmcPluginLib::loadLib(const char* libFilenameWP) {
+int ecmcPluginLib::load(const char* libFilenameWP) {
+  
+  // Unload old lib if loaded
+  if(loaded_){
+    unload();
+  }
+
   libFilenameWP_ = libFilenameWP;
-  //Ensure that file exist
+  
+  // Ensure that file exist
   if(access( libFilenameWP, 0 ) != 0){
     LOGERR("%s/%s:%d: Error: Plugin %s: File not found (0x%x) .\n",
            __FILE__, __FUNCTION__, __LINE__,
@@ -52,7 +60,7 @@ int ecmcPluginLib::loadLib(const char* libFilenameWP) {
     return setErrorID(ERROR_PLUGIN_OPEN_FAIL);
   }
 
-  if ( (getDataFunc_ = (ecmcPluginData*)dlsym(dlHandle_, "_plugin_get_data")) == NULL) {
+  if ( (getDataFunc_ = (ecmcPluginData* (*)())dlsym(dlHandle_, "_plugin_get_data")) == NULL) {
     LOGERR("%s/%s:%d: Error: Plugin %s: GetDataFunc failed with error: %s (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, libFilenameWP_, dlerror(),
            ERROR_PLUGIN_GET_DATA_FUNC_FAIL);
@@ -68,15 +76,15 @@ int ecmcPluginLib::loadLib(const char* libFilenameWP) {
     return setErrorID(ERROR_PLUGIN_GET_DATA_FAIL);
   }
 
-  if (data_->ifVer != ECMC_PLUG_VERSION_MAGIC) {
+  if (data_->ifVersion != ECMC_PLUG_VERSION_MAGIC) {
     LOGERR("%s/%s:%d: Error: Plugin %s: Interface version missmatch (%d!=%d) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, libFilenameWP_, ECMC_PLUG_VERSION_MAGIC,
-           data->ifVer,ERROR_PLUGIN_VERSION_MISSMATCH);
+           data_->ifVersion,ERROR_PLUGIN_VERSION_MISSMATCH);
     dlclose(dlHandle_);
     return setErrorID(ERROR_PLUGIN_VERSION_MISSMATCH);
   }
  
-  if (data_->libName == NULL || strlen(data_->libName) == 0) {
+  if (data_->name == NULL || strlen(data_->name) == 0) {
     LOGERR("%s/%s:%d: Error: Plugin %s: Name undefinded in data (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, libFilenameWP_,
            ERROR_PLUGIN_LIB_NAME_UNDEFINED);
@@ -85,21 +93,96 @@ int ecmcPluginLib::loadLib(const char* libFilenameWP) {
   }
 
   // Module loaded
+  loaded_ = 1;
+  LOGINFO4("%s/%s:%d: Info: Plugin %s: Loaded.\n",
+           __FILE__, __FUNCTION__, __LINE__, libFilenameWP_);
+ 
+  // call funcs
+  int dummy=1;
+  data_->constructFnc((void*)&dummy);
+  data_->realtimeFnc(dummy);
+  data_->destructFnc();
+  report();
   return 0;
 }
 
-void ecmcPluginLib::unloadLib() {
- // call destruct function if defined
+void ecmcPluginLib::unload() {
+ 
+ // Call destruct function if defined
  if(data_->destructFnc) {
     data_->destructFnc();
   }
 
-  // Clode lib
+  // Close lib
   dlclose(dlHandle_);
-
+  
+  // Cleanup
   libFilenameWP_ = "";
   dlHandle_      = NULL;
   getDataFunc_   = NULL;
   data_          = NULL;
+  loaded_        = false;
 }
 
+void ecmcPluginLib::report() {
+  
+  if(!loaded_){
+    printf("Plugin not loaded.\n");
+  }
+
+  if(!data_)
+  {
+    printf("Plugin data NULL\n");
+  }
+
+  printf("Plugin info: \n");
+  printf("  Name           = %s\n",data_->name);
+  printf("  Version        = %d\n",data_->version);
+  printf("  If version     = %d (ecmc = %d)\n",
+        data_->ifVersion, ECMC_PLUG_VERSION_MAGIC);
+  printf("  Construct func = @%p\n",data_->constructFnc);
+  printf("  Destruct func  = @%p\n",data_->destructFnc);
+  printf("  Realtime func  = @%p\n",data_->realtimeFnc);
+  printf("  dlhandle       = @%p\n",dlHandle_);
+  printf("  Plc functions:\n");
+  // Loop funcs[]
+  for(int i=0;i<ECMC_PLUGIN_MAX_PLC_FUNC_COUNT;++i){
+ 
+    if(!data_->funcs[i].funcName || 
+        strlen(data_->funcs[i].funcName) == 0 ||
+        data_->funcs[i].argCount < 0 || 
+        data_->funcs[i].argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+      break;
+    }
+    
+    printf("    funcs[%d]:\n",i);
+    printf("      Name       = %s\n",data_->funcs[i].funcName);
+    printf("      Arg count  = %d\n",data_->funcs[i].argCount);
+    switch(data_->funcs[i].argCount) {
+      case 0:
+        printf("      func       = @%p\n",data_->funcs[i].funcArg0);
+        break;
+      case 1:
+        printf("      func       = @%p\n",data_->funcs[i].funcArg1);
+        break;
+      case 2:
+        printf("      func       = @%p\n",data_->funcs[i].funcArg2);
+        break;
+      case 3:
+        printf("      func       = @%p\n",data_->funcs[i].funcArg3);
+        break;
+      case 4:
+        printf("      func       = @%p\n",data_->funcs[i].funcArg4);
+        break;
+      case 5:
+        printf("      func       = @%p\n",data_->funcs[i].funcArg5);
+        break;
+      case 6:
+        printf("      func       = @%p\n",data_->funcs[i].funcArg6);
+        break;
+      default:
+        break;
+    }
+  }
+  printf("\n");
+}

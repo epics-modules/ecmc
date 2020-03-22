@@ -26,14 +26,16 @@ class ecmcPluginLib : public ecmcError {
  public:
   explicit ecmcPluginLib();
   ~ecmcPluginLib();
-  int   loadLib(const char* libFilenameWP);
-  void  unloadLib();
+  int  load(const char* libFilenameWP);
+  void unload();
+  void report();
  private:
-  void   initVars();
+  void  initVars();
   const char* libFilenameWP_;
   void   *dlHandle_;
   struct ecmcPluginData *(*getDataFunc_)(void);
   struct ecmcPluginData *data_;
+  int loaded_;
 };
 
 #endif  /* ECMC_PLUGIN_LIB_H_ */

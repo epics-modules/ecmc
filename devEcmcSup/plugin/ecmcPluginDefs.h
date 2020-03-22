@@ -13,7 +13,7 @@
 #define ECMC_PLUGIN_DEFS_H_
 
 #define ECMC_PLUGIN_MAX_PLC_FUNC_COUNT 32
-
+#define ECMC_PLUGIN_MAX_PLC_ARG_COUNT 6
 #define ECMC_PLUG_VER_MAJOR 0
 #define ECMC_PLUG_VER_MINOR 1
 #define ECMC_PLUG_VER_PATCH 0
@@ -41,16 +41,18 @@ struct ecmcOnePlcFunc {
 };
 
 struct ecmcPluginData {
+  // Name 
+  const char *name;
+  // Plugin version
+  int version;
   // ECMC_PLUG_VERSION_MAGIC
-  int ifVer;
-  // Lib name 
-  const char *libName;
+  int ifVersion;
   // Optional construct func, called once at load
   int (*constructFnc)(void*);
   // Optional destruct func, called once at unload
   void (*destructFnc)(void);
   // Optional func that will be called each realtime cycle.
-  void (*realtimeFnc)(void);
+  int (*realtimeFnc)(int);
   // Allow max ECMC_PLUGIN_MAX_FUNC_COUNT custom funcs
   struct ecmcOnePlcFunc funcs[ECMC_PLUGIN_MAX_PLC_FUNC_COUNT];
 };

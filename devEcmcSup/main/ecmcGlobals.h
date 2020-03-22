@@ -22,6 +22,7 @@
 #include "../motion/ecmcMotion.h"
 #include "../com/ecmcAsynDataItem.h"
 #include "../motor/ecmcMotorRecordController.h"
+#include "../plugin/ecmcPluginLib.h"
 #include "epicsMutex.h"
 
 ecmcAxisBase *axes[ECMC_MAX_AXES];
@@ -36,6 +37,8 @@ ecmcAsynDataItem          *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];
 ecmcMainThreadDiag         threadDiag={0};
 app_mode_type              appModeCmd, appModeCmdOld, appModeStat;
 ecmcMotorRecordController *asynPortMotorRecord;
+ecmcPluginLib             *plugins[ECMC_MAX_PLUGINS];
+
 // Mutex for motor record access
 epicsMutexId               ecmcRTMutex;
 int                        axisDiagIndex;
