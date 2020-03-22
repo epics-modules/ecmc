@@ -57,36 +57,10 @@ int moveAbsolutePosition(int    axisIndex,
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  int errorCode = axes[axisIndex]->getErrorID();
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEABS);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCmdData(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  axes[axisIndex]->getSeq()->setTargetPos(positionSet);
-  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
-  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
-  axes[axisIndex]->getTraj()->setDec(decelerationSet);
-  errorCode = axes[axisIndex]->setExecute(1);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  return 0;
+  return axes[axisIndex]->moveAbsolutePosition(positionSet,
+                                               velocitySet,
+                                               accelerationSet,
+                                               decelerationSet);
 }
 
 int moveRelativePosition(int    axisIndex,
@@ -109,36 +83,10 @@ int moveRelativePosition(int    axisIndex,
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  int errorCode = axes[axisIndex]->getErrorID();
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEREL);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCmdData(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  axes[axisIndex]->getSeq()->setTargetPos(positionSet);
-  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
-  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
-  axes[axisIndex]->getTraj()->setDec(decelerationSet);
-  errorCode = axes[axisIndex]->setExecute(1);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  return 0;
+  return axes[axisIndex]->moveRelativePosition(positionSet,
+                                               velocitySet,
+                                               accelerationSet,
+                                               decelerationSet);
 }
 
 int moveVelocity(int    axisIndex,
@@ -159,36 +107,44 @@ int moveVelocity(int    axisIndex,
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
 
-  int errorCode = axes[axisIndex]->getErrorID();
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCommand(ECMC_CMD_MOVEVEL);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  errorCode = axes[axisIndex]->setCmdData(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  axes[axisIndex]->getSeq()->setTargetVel(velocitySet);
-  axes[axisIndex]->getTraj()->setAcc(accelerationSet);
-  axes[axisIndex]->getTraj()->setAcc(decelerationSet);
-  errorCode = axes[axisIndex]->setExecute(1);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  return 0;
+  return axes[axisIndex]->moveVelocity(velocitySet,
+                                       accelerationSet,
+                                       decelerationSet);
 }
+
+int moveHome(int    axisIndex,
+             int    nCmdData,
+             double homePositionSet,
+             double velocityTwordsCamSet,
+             double velocityOffCamSet,                            
+             double accelerationSet,
+             double decelerationSet) {
+LOGINFO4(
+    "%s/%s:%d axisIndex=%d, nCmdData=%d, homePositionSet=%lf, velocityTwordsCamSet=%lf, "
+    "velocityOffCamSet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,
+    nCmdData,
+    homePositionSet,
+    velocityTwordsCamSet,
+    velocityOffCamSet,
+    accelerationSet,
+    decelerationSet);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->moveHome(nCmdData,
+                                   homePositionSet,
+                                   velocityTwordsCamSet,
+                                   velocityOffCamSet,                            
+                                   accelerationSet,
+                                   decelerationSet);
+}
+
 
 int stopMotion(int axisIndex, int killAmplifier) {
   LOGINFO4("%s/%s:%d axisIndex=%d, killAmplifier=%d\n",
@@ -200,21 +156,7 @@ int stopMotion(int axisIndex, int killAmplifier) {
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
-  if (killAmplifier) {
-    int errorCode = axes[axisIndex]->setEnable(0);
-
-    if (errorCode) {
-      return errorCode;
-    }
-  }
-
-  int errorCode = axes[axisIndex]->setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-
-  return 0;
+  return axes[axisIndex]->stopMotion(killAmplifier);
 }
 
 int getAxisError(int axisIndex) {
@@ -312,7 +254,7 @@ int setAxisSeqTimeout(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setSequenceTimeout(value * MCU_FREQUENCY);
+  axes[axisIndex]->getSeq()->setSequenceTimeout(value * mcuFrequency);
   return 0;
 }
 
@@ -392,20 +334,20 @@ int getAxisStatusStructV2(int axisIndex, char *buffer, int bufferByteSize) {
                      // EtherCAT time low32 not available yet
                      0,
                      // EtherCAT time high32 not available yet
-                     data.onChangeData.enable,
-                     data.onChangeData.enabled,
-                     data.onChangeData.execute,
+                     data.onChangeData.statusWd.enable,
+                     data.onChangeData.statusWd.enabled,
+                     data.onChangeData.statusWd.execute,
                      data.onChangeData.command,
                      data.onChangeData.cmdData,
-                     data.onChangeData.limitBwd,
-                     data.onChangeData.limitFwd,
-                     data.onChangeData.homeSwitch,
+                     data.onChangeData.statusWd.limitbwd,
+                     data.onChangeData.statusWd.limitfwd,
+                     data.onChangeData.statusWd.homeswitch,
                      data.onChangeData.error > 0,
                      data.onChangeData.error,
                      data.reset,
-                     data.onChangeData.homed,
-                     data.onChangeData.busy,
-                     data.onChangeData.atTarget,
+                     data.onChangeData.statusWd.homed,
+                     data.onChangeData.statusWd.busy,
+                     data.onChangeData.statusWd.attarget,
                      data.moving,
                      data.stall);
 
@@ -2227,6 +2169,14 @@ int getAxisMonEnableMaxVel(int axisIndex, int *value) {
   return 0;
 }
 
+int getAxisMonLatchLimit(int     axisIndex,
+                           int    *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getLatchAtLimit();
+  return 0;
+}
+
 int setAxisMonMaxVelDriveILDelay(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -2254,6 +2204,22 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex, int value) {
 
   return axes[axisIndex]->getMon()->setMaxVelTrajTime(value);
 }
+
+int setAxisMonLatchLimit(int     axisIndex,
+                           int     value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setLatchAtLimit(value);                             
+}
+
 
 int setAxisMonEnableExternalInterlock(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
@@ -2391,16 +2357,19 @@ int createAxis(int index, int type, int drvType) {
       if (axes[index] != NULL) {
         delete axes[index];
       }
-
-      axes[index] = new ecmcAxisReal(asynPort, index, 1 / MCU_FREQUENCY, (ecmcDriveTypes)drvType);
+      // Sample rate fixed
+      sampleRateChangeAllowed = 0;
+      axes[index] = new ecmcAxisReal(asynPort, index, 1 / mcuFrequency, (ecmcDriveTypes)drvType);
       break;
 
-    case ECMC_AXIS_TYPE_VIRTUAL:
+    case ECMC_AXIS_TYPE_VIRTUAL:    
       //Drive type ignored (Virtual axis have no drive)      
       if (axes[index] != NULL) {
         delete axes[index];
       }
-      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / MCU_FREQUENCY);      
+      // Sample rate fixed
+      sampleRateChangeAllowed = 0;
+      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / mcuFrequency);      
       break;
 
     default:
@@ -2420,7 +2389,7 @@ int createAxis(int index, int type, int drvType) {
 
   axisDiagIndex = index;  // Always printout last axis added
   
-  int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index),1,1);
+  int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index),mcuPeriod/1e6,1);
   if (error) {
     return error;
   }
@@ -2465,7 +2434,7 @@ int linkEcEntryToAxisEnc(int   slaveIndex,
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  if ((encoderEntryIndex >= MaxEcEntryLinks) ||
+  if ((encoderEntryIndex >= ECMC_EC_ENTRY_LINKS_MAX) ||
       (encoderEntryIndex <
        0)) return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
 
@@ -2523,7 +2492,7 @@ int linkEcEntryToAxisDrv(int   slaveIndex,
 
   if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
-  if ((driveEntryIndex >= MaxEcEntryLinks) || (driveEntryIndex < 0)) {
+  if ((driveEntryIndex >= ECMC_EC_ENTRY_LINKS_MAX) || (driveEntryIndex < 0)) {
     return ERROR_MAIN_DRIVE_ENTRY_INDEX_OUT_OF_RANGE;
   }
 
@@ -2595,7 +2564,7 @@ int linkEcEntryToAxisMon(int   slaveIndex,
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
-  if ((monitorEntryIndex >= MaxEcEntryLinks) ||
+  if ((monitorEntryIndex >= ECMC_EC_ENTRY_LINKS_MAX) ||
       (monitorEntryIndex <
        0)) return ERROR_MAIN_MONITOR_ENTRY_INDEX_OUT_OF_RANGE;
 
@@ -2735,4 +2704,3 @@ int setAxisModType(int axisIndex,
 
   return axes[axisIndex]->setModType(type);
 }
-

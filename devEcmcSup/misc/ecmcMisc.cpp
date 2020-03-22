@@ -25,9 +25,11 @@ int createEvent(int indexEvent) {
   if ((indexEvent >= ECMC_MAX_EVENT_OBJECTS) || (indexEvent < 0)) {
     return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;
   }
+  // Sample rate fixed
+  sampleRateChangeAllowed = 0;
 
   delete events[indexEvent];
-  events[indexEvent] = new ecmcEvent(1 / MCU_FREQUENCY, indexEvent);
+  events[indexEvent] = new ecmcEvent(1 / mcuFrequency, indexEvent);
 
   if (!events[indexEvent]) {
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR EVENT OBJECT.\n",
@@ -55,6 +57,9 @@ int createDataStorage(int index, int elements, int bufferType) {
   if (elements <= 0) {
     return ERROR_MAIN_DATA_STORAGE_INVALID_SIZE;
   }
+
+  // Sample rate fixed
+  sampleRateChangeAllowed = 0;
 
   delete dataStorages[index];
   dataStorages[index] = new ecmcDataStorage(asynPort, index,
@@ -353,6 +358,9 @@ int createRecorder(int indexRecorder) {
     return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;
   }
 
+  // Sample rate fixed
+  sampleRateChangeAllowed = 0;
+
   delete dataRecorders[indexRecorder];
   dataRecorders[indexRecorder] = new ecmcDataRecorder(indexRecorder);
 
@@ -519,6 +527,9 @@ int createCommandList(int indexCommandList) {
       (indexCommandList < 0)) {
     return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;
   }
+
+  // Sample rate fixed
+  sampleRateChangeAllowed = 0;
 
   delete commandLists[indexCommandList];
   commandLists[indexCommandList] = new ecmcCommandList(indexCommandList);

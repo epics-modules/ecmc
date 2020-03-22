@@ -54,7 +54,6 @@ class ecmcPIDController : public ecmcError {
   void   setIOutMax(double outMax);
   void   setIOutMin(double outMin);
   int    validate();
-  void   printCurrentState();
 
  private:
   double kp_, ki_, kd_, kff_;

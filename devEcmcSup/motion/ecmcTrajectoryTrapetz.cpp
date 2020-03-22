@@ -16,7 +16,6 @@
 ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
                                              double        sampleTime) :
   ecmcError() {
-  PRINT_ERROR_PATH("axis[%d].trajectory.error", axisData->axisId_);
   data_ = axisData;
   initVars();
 
@@ -26,12 +25,6 @@ ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
   }
   sampleTime_ = sampleTime;
   initTraj();
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory=new;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_);
-  printCurrentState();
 }
 
 ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
@@ -41,7 +34,6 @@ ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
                                              double        jerk,
                                              double        sampleTime) :
   ecmcError() {
-  PRINT_ERROR_PATH("axis[%d].trajectory.error", axisData->axisId_);
   data_ = axisData;
   initVars();
   velocityTarget_        = velocityTarget;
@@ -51,85 +43,10 @@ ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
   jerk_                  = jerk;
   sampleTime_            = sampleTime;
   initTraj();
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory=new;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_);
-  printCurrentState();
 }
 
 ecmcTrajectoryTrapetz::~ecmcTrajectoryTrapetz()
 {}
-
-void ecmcTrajectoryTrapetz::printCurrentState() {
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetVelocity=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            velocityTarget_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetPosition=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            targetPosition_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.acceleration=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            acceleration_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.deceleration=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            deceleration_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.emergencyDeceleration=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            decelerationEmergency_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.jerk=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            jerk_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepACC=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            stepACC_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepDEC=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            stepDEC_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepNOM=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            stepNOM_);
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.motionMode=%s;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            "ECMC_MOVE_MODE_POS");
-  LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            currentPositionSetpoint_);
-}
 
 void ecmcTrajectoryTrapetz::initVars() {
   errorReset();
@@ -163,51 +80,10 @@ void ecmcTrajectoryTrapetz::initVars() {
 }
 
 void ecmcTrajectoryTrapetz::initTraj() {
-  double old = stepNOM_;
-
-  stepNOM_ = std::abs(velocityTarget_) * sampleTime_;
-
-  if (old != stepNOM_) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepNOM=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              stepNOM_);
-  }
-  old      = stepACC_;
-  // TODO check equiation
-  stepACC_ =  /*0.5**/ acceleration_ * sampleTime_ * sampleTime_  /**2*/;
-
-  if (old != stepACC_) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepACC=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              stepACC_);
-  }
-  old      = stepDEC_;
-  stepDEC_ =  /*0.5**/ deceleration_ * sampleTime_ * sampleTime_  /**2*/;
-
-  if (old != stepDEC_) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepDEC=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              stepDEC_);
-  }
-  old = stepDECEmerg_;
-
-  if (old != stepDEC_) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.stepDECEmerg=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              stepDECEmerg_);
-  }
+  stepNOM_      = std::abs(velocityTarget_) * sampleTime_;
+  // TODO check eq.
+  stepACC_      =  /*0.5**/ acceleration_ * sampleTime_ * sampleTime_  /**2*/;
+  stepDEC_      =  /*0.5**/ deceleration_ * sampleTime_ * sampleTime_  /**2*/;
   stepDECEmerg_ =  /*0.5**/ decelerationEmergency_ * sampleTime_ *
                   sampleTime_  /**2*/;
 }
@@ -217,14 +93,6 @@ double ecmcTrajectoryTrapetz::getCurrentPosSet() {
 }
 
 void ecmcTrajectoryTrapetz::setCurrentPosSet(double posSet) {
-  if (currentPositionSetpoint_ != posSet) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              posSet);
-  }
   currentPositionSetpoint_ = posSet;
   posSetMinus1_            = currentPositionSetpoint_;
   prevStepSize_            = 0;
@@ -285,17 +153,8 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
     if (stopped) {
       setDirection_ = ECMC_DIR_STANDSTILL;
       actDirection_ = ECMC_DIR_STANDSTILL;
-
-      if (busy_) {
-        LOGINFO15("%s/%s:%d: axis[%d].trajectory.busy=%d;\n",
-                  __FILE__,
-                  __FUNCTION__,
-                  __LINE__,
-                  data_->axisId_,
-                  0);
-      }
-      busy_        = false;
-      nextVelocity = 0;
+      busy_         = false;
+      nextVelocity  = 0;
     }
   }
   actDirection_ = checkDirection(currentPositionSetpoint_,
@@ -482,15 +341,6 @@ double ecmcTrajectoryTrapetz::distToStop(double vel) {
 }
 
 void ecmcTrajectoryTrapetz::setTargetPos(double pos) {
-  if (targetPosition_ != pos) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetPosition=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              pos);
-  }
-
   targetPosition_ = pos;
   index_          = 0;
 }
@@ -518,15 +368,6 @@ double ecmcTrajectoryTrapetz::getVel() {
 }
 
 void ecmcTrajectoryTrapetz::setTargetVel(double velTarget) {
-  if (velocityTarget_ != velTarget) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.targetVelocity=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              velTarget);
-  }
-
   velocityTarget_ = velTarget;
   initTraj();
 }
@@ -536,68 +377,26 @@ double ecmcTrajectoryTrapetz::getTargetVel() {
 }
 
 void ecmcTrajectoryTrapetz::setAcc(double acc) {
-  if (acceleration_ != acc) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.acceleration=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              acc);
-  }
-
   acceleration_ = acc;
   initTraj();
 }
 
 void ecmcTrajectoryTrapetz::setEmergDec(double dec) {
-  if (decelerationEmergency_ != dec) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.emergencyDeceleration=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              dec);
-  }
-
   decelerationEmergency_ = dec;
   initTraj();
 }
 
 void ecmcTrajectoryTrapetz::setDec(double dec) {
-  if (deceleration_ != dec) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.deceleration=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              dec);
-  }
-
   deceleration_ = dec;
 
   if (decelerationEmergency_ == 0) {
     decelerationEmergency_ = deceleration_ * 3;
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.emergencyDeceleration=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              decelerationEmergency_);
   }
   initTraj();
 }
 
 // Not used
 void ecmcTrajectoryTrapetz::setJerk(double jerk) {
-  if (jerk_ != jerk) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.jerk=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              jerk);
-  }
-
   jerk_ = jerk;
   initTraj();
 }
@@ -623,15 +422,6 @@ bool ecmcTrajectoryTrapetz::getExecute() {
 }
 
 void ecmcTrajectoryTrapetz::setEnable(bool enable) {
-  if (enable_ != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.enable=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              enable);
-  }
-
   enableOld_ = enable_;
   enable_    = enable;
   velocity_  = 0;
@@ -650,25 +440,8 @@ bool ecmcTrajectoryTrapetz::getEnable() {
 }
 
 int ecmcTrajectoryTrapetz::setExecute(bool execute) {
-
   double distFWD = 0;
   double distBWD = 0;
-
-  LOGINFO6("%s/%s:%d: INFO: setExecute=%d.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           execute);
-
-  if (execute_ != execute) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.execute=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              execute);
-  }
-
   executeOld_ = execute_;
   execute_    = execute;
 
@@ -769,19 +542,8 @@ int ecmcTrajectoryTrapetz::setExecute(bool execute) {
     initTraj();
     currentPositionSetpoint_ = startPosition_;
     busy_                    = true;  // Trigger new trajectory
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.busy=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              busy_);
     data_->interlocks_.noExecuteInterlock = false;
     data_->refreshInterlocks();
-
-    LOGINFO7("%s/%s:%d: INFO: New trajectory triggered.\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__);
   }
   return 0;
 }
@@ -791,37 +553,6 @@ void ecmcTrajectoryTrapetz::setStartPos(double pos) {
 }
 
 void ecmcTrajectoryTrapetz::setMotionMode(motionMode mode) {
-  if (motionMode_ != mode) {
-    switch (mode) {
-    case ECMC_MOVE_MODE_POS:
-      LOGINFO15("%s/%s:%d: axis[%d].trajectory.motionMode=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_MOVE_MODE_POS");
-      break;
-
-    case ECMC_MOVE_MODE_VEL:
-      LOGINFO15("%s/%s:%d: axis[%d].trajectory.motionMode=%s;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                "ECMC_MOVE_MODE_VEL");
-      break;
-
-    default:
-      LOGINFO15("%s/%s:%d: axis[%d].trajectory.motionMode=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                mode);
-      break;
-    }
-  }
-
   motionMode_ = mode;
 }
 
@@ -872,15 +603,6 @@ int ecmcTrajectoryTrapetz::initStopRamp(double currentPos,
                                         double currentVel,
                                         double currentAcc) {
   enable_ = 1;
-
-  if (!busy_) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.busy=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              1);
-  }
   busy_                    = true;
   currentPositionSetpoint_ = currentPos;
   velocity_                = currentVel;

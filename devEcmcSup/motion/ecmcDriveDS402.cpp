@@ -15,7 +15,6 @@
 ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver, 
                                ecmcAxisData *axisData) : 
                                ecmcDriveBase(asynPortDriver,axisData) {
-  PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);
   data_ = axisData;
 
   initVars();
@@ -24,20 +23,12 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
   }
-
-  LOGINFO15("%s/%s:%d: axis[%d].drive=new;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_);
-  printCurrentState();
 }
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver, 
                               ecmcAxisData *axisData,
                                double        scale) : 
                                ecmcDriveBase(asynPortDriver,axisData) {
-  PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);
   data_ = axisData;
   initVars();
 
@@ -47,104 +38,14 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
   }
 
   scale_ = scale;
-  LOGINFO15("%s/%s:%d: axis[%d].drive=new;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_);
-  printCurrentState();
 }
 
 ecmcDriveDS402::~ecmcDriveDS402()
 {}
 
-void ecmcDriveDS402::printCurrentState() {
-  ecmcDriveBase::printCurrentState();
-  LOGINFO15("%s/%s:%d: axis[%d].drive.type=ECMC_DS402;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.scale=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            scale_);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.enabled=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            data_->status_.enabled > 0);
-
-  switch (enableStateMachine_) {
-  case ECMC_DS402_RESET_STATE:
-    LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DS402_RESET_STATE");
-    break;
-
-  case ECMC_DS402_SWITCH_ON_DISABLED_STATE:
-    LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DS402_SWITCH_ON_DISABLED_STATE");
-    break;
-
-  case ECMC_DS402_READY_TO_SWITCH_ON_STATE:
-    LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DS402_READY_TO_SWITCH_ON_STATE");
-    break;
-
-  case ECMC_DS402_SWITCHED_ON_STATE:
-    LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DS402_SWITCHED_ON_STATE");
-    break;
-
-  case ECMC_DS402_OPERATION_ENABLED_STATE:
-    LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              "ECMC_DS402_OPERATION_ENABLED_STATE");
-    break;
-
-  default:
-    LOGINFO15("%s/%s:%d: axis[%d].drive.state=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              enableStateMachine_);
-    break;
-  }
-}
-
 void ecmcDriveDS402::initVars() {  
-  LOGINFO15("%s/%s:%d: axis[%d].drive.state=%s;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            "ECMC_DS402_INVALID_STATE_STATUS");
-
   enableStateMachine_ = ECMC_DS402_RESET_STATE;
-  ds402WarningOld_ = false;
+  ds402WarningOld_    = false;
 }
 
 int ecmcDriveDS402::validate() {

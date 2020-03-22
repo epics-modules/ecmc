@@ -20,7 +20,7 @@ LIBRARY_IOC += ecmc
 
 # Ubuntu needs the following ldflags
 USR_LDFLAGS += -Wl,--no-as-needed
-
+USR_LDFLAGS += -lstdc++
 
 ifeq ($(T_A),linux-x86_64)
 # Assume that the etherlab user library is done via
@@ -101,6 +101,11 @@ ecmc_SRCS += ecmcPIDController.cpp
 ecmc_SRCS += ecmcAxisSequencer.cpp
 ecmc_SRCS += ecmcTrajectoryTrapetz.cpp 
 ecmc_SRCS += ecmcAxisData.cpp
+
+SRC_DIRS  += $(ECMC)/motor
+DBD       += ecmcMotorRecordSupport.dbd
+ecmc_SRCS += ecmcMotorRecordController.cpp
+ecmc_SRCS += ecmcMotorRecordAxis.cpp
 
 
 ecmc_LIBS += exprtkSupport

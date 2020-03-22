@@ -13,7 +13,6 @@
 #include "ecmcFilter.h"
 
 ecmcFilter::ecmcFilter(double sampleTime) {
-  LOGINFO15("%s/%s:%d: filter[x]=new;\n", __FILE__, __FUNCTION__, __LINE__);
   initVars();
   sampleTime_ = sampleTime;
   filterSize_ = FILTER_BUFFER_SIZE_VEL;
@@ -75,7 +74,7 @@ int ecmcFilter::setFilterSize(size_t size) {
     tempBuffer = new double[size];  
   } catch(std::bad_alloc& ex) {
       LOGERR(
-        "%s/%s:%d: ERROR: Filter Mem Alloc Error. Old filter settings still valid (size=%lu)\n",
+        "%s/%s:%d: ERROR: Filter Mem Alloc Error. Old filter settings still valid (size=%zu)\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,

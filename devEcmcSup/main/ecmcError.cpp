@@ -1046,6 +1046,15 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x23004:
+    return "ERROR_EC_SDO_DATA_SIZE_ERROR";
+
+    break;
+  case 0x23005:
+    return "ERROR_EC_SDO_BUFFER_ALLOC_FAIL";
+
+    break;
+    
   case 0x24000:  // ECSLAVE
     return "ERROR_EC_SLAVE_CONFIG_FAILED";
 
@@ -1370,8 +1379,12 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_NO_VALID_CONFIG";
 
     break;
+  case 0x26028:
+    return "ERROR_EC_DATATYPE_NOT_VALID";
 
-  case 0x20000:  // HW_MOTOR
+    break;
+
+  case 0x20000:
     return "ERROR_MAIN_DEMO_EC_ACITVATE_FAILED";
 
     break;
@@ -1705,6 +1718,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_PARSER_INVALID_ADS_TYPE";
 
     break;
+
   case 0x20044:
     return "ERROR_MAIN_ASYN_CREATE_PARAM_FAIL";
 
@@ -1731,8 +1745,29 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_FILTER_INVALID_SIZE";
 
     break;
+    
   case 0x2004A:
     return "ERROR_MAIN_EC_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x2004B:
+    return "ERROR_MAIN_RT_MUTEX_NULL";
+
+    break;
+
+  case 0x2004C:
+    return "ERROR_MAIN_EC_TIMEOUT_OUT_OF_RANGE";
+
+    break;
+
+ case 0x2004D:
+    return "ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE";
+
+    break;
+
+  case 0x2004E:
+    return "ERROR_MAIN_SAMPLE_RATE_CHANGE_NOT_ALLOWED";
 
     break;
 
@@ -1946,6 +1981,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2050E:
+    return "ERROR_PLC_VARIABLE_NAME_TO_LONG";
+
+    break;
+
   case 0x20600:   // ecmcPLCDataIF
     return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
 
@@ -2073,6 +2113,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     break;
   case 0x211001:
     return "ERROR_MEM_ASYN_VAR_BUFFER_OUT_OF_RANGE";
+
+    break;
+
+  case 0x211002:
+    return "ERROR_MEM_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x211003:
+    return "ERROR_MEM_INVALID_DATA_TYPE";
 
     break;
 

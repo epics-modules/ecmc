@@ -76,12 +76,12 @@ ecmcEcPdo::~ecmcEcPdo() {
   }
 }
 
-ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t    entryIndex,
-                                  uint8_t     entrySubIndex,
-                                  uint8_t     bits,
-                                  std::string id,
-                                  int         signedValue,
-                                  int        *errorCode) {
+ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t       entryIndex,
+                                  uint8_t        entrySubIndex,
+                                  ecmcEcDataType dt,
+                                  std::string    id,
+                                  int useInRealTime,
+                                  int           *errorCode) {
   if (entryCounter_ >= (EC_MAX_ENTRIES)) {
     LOGERR("%s/%s:%d: ERROR: Entries array full (0x%x).\n",
            __FILE__,
@@ -101,10 +101,10 @@ ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t    entryIndex,
                                        pdoIndex_,
                                        entryIndex,
                                        entrySubIndex,
-                                       bits,
                                        direction_,
+                                       dt,
                                        id,
-                                       signedValue);
+                                       useInRealTime);
   entryArray_[entryCounter_] = entry;
   entryCounter_++;
   *errorCode = 0;

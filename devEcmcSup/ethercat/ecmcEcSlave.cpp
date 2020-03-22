@@ -18,7 +18,7 @@ ecmcEcSlave::ecmcEcSlave(
   ec_master_t *master,  /**< EtherCAT master */
   ec_domain_t *domain,  /** <Domain> */
   uint16_t     alias, /**< Slave alias. */
-  int32_t     position, /**< Slave position. */
+  int32_t      position, /**< Slave position. */
   uint32_t     vendorId, /**< Expected vendor ID. */
   uint32_t     productCode  /**< Expected product code. */) {
 
@@ -35,14 +35,14 @@ ecmcEcSlave::ecmcEcSlave(
   simEntries_[0] = new ecmcEcEntry(asynPortDriver_,
                                    masterId_,
                                    slavePosition_,
-                                   (uint8_t)32,
                                    &simBuffer_[0],
+                                    ECMC_EC_U32,
                                     "ZERO");
   simEntries_[1] = new ecmcEcEntry(asynPortDriver_,
                                    masterId_,
                                    slavePosition_,
-                                   (uint8_t)32,
                                    &simBuffer_[8],
+                                   ECMC_EC_U32,
                                    "ONE");
   simEntries_[0]->writeValue(0);  // Default 0
   simEntries_[1]->writeValue(0xFFFFFFFF);  // Default 1 (32 bits)
@@ -54,10 +54,8 @@ ecmcEcSlave::ecmcEcSlave(
   }
 
   // Add simulation entries as first two entries
-  entryList_[entryCounter_] = simEntries_[0];
-  entryCounter_++;
-  entryList_[entryCounter_] = simEntries_[1];
-  entryCounter_++;
+  appendEntryToList(simEntries_[0],1);
+  appendEntryToList(simEntries_[1],1);
 
   domain_ = domain;
 
@@ -100,6 +98,7 @@ void ecmcEcSlave::initVars() {
   slaveConfig_       = NULL;
   syncManCounter_    = 0;
   entryCounter_      = 0;
+  entryCounterInUse_ = 0;
   pdosArrayIndex_    = 0;
   syncManArrayIndex_ = 0;
   statusWord_        = 0;
@@ -119,6 +118,7 @@ void ecmcEcSlave::initVars() {
 
   for (int i = 0; i < EC_MAX_ENTRIES; i++) {
     entryList_[i] = NULL;
+    entryListInUse_[i] = NULL;
   }
 
   for (int i = 0; i < ECMC_ASYN_EC_SLAVE_PAR_COUNT; i++) {
@@ -150,6 +150,7 @@ ecmcEcSlave::~ecmcEcSlave() {
   //Clear pointers
   for (int i = 0; i < EC_MAX_ENTRIES; i++) {
     entryList_[i] = NULL; //deleted in ecmcEcPdo()
+    entryListInUse_[i] = NULL; //deleted in ecmcEcPdo()
   }
 
   for (int i = 0; i < ECMC_ASYN_EC_SLAVE_PAR_COUNT; i++) {
@@ -526,9 +527,9 @@ ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
 }
 
 int ecmcEcSlave::updateInputProcessImage() {
-  for (uint i = 0; i < entryCounter_; i++) {
-    if (entryList_[i] != NULL) {
-      entryList_[i]->updateInputProcessImage();
+  for (uint i = 0; i < entryCounterInUse_; i++) {
+    if (entryListInUse_[i] != NULL) {
+      entryListInUse_[i]->updateInputProcessImage();
     }
   }
 
@@ -536,9 +537,9 @@ int ecmcEcSlave::updateInputProcessImage() {
 }
 
 int ecmcEcSlave::updateOutProcessImage() {
-  for (uint i = 0; i < entryCounter_; i++) {
-    if (entryList_[i] != NULL) {
-      entryList_[i]->updateOutProcessImage();
+  for (uint i = 0; i < entryCounterInUse_; i++) {
+    if (entryListInUse_[i] != NULL) {
+      entryListInUse_[i]->updateOutProcessImage();
     }
   }
 
@@ -555,10 +556,14 @@ int ecmcEcSlave::addEntry(
   uint16_t       pdoIndex,
   uint16_t       entryIndex,
   uint8_t        entrySubIndex,
-  uint8_t        bits,
+  ecmcEcDataType dt,
   std::string    id,
-  int            signedValue
-  ) {
+  int            useInRealTime) {
+
+  if(entryCounter_>=EC_MAX_ENTRIES) {
+    return ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE;
+  }
+
   int err                        = 0;
   ecmcEcSyncManager *syncManager = findSyncMan(syncMangerIndex);
 
@@ -583,9 +588,9 @@ int ecmcEcSlave::addEntry(
   ecmcEcEntry *entry = syncManager->addEntry(pdoIndex,
                                              entryIndex,
                                              entrySubIndex,
-                                             bits,
+                                             dt,
                                              id,
-                                             signedValue,
+                                             useInRealTime,
                                              &err);
 
   if (!entry) {
@@ -604,9 +609,7 @@ int ecmcEcSlave::addEntry(
     return entry->getErrorID();
   }
 
-  entryList_[entryCounter_] = entry;
-  entryCounter_++;
-  return 0;
+  return appendEntryToList(entry,useInRealTime);
 }
 
 ecmcEcSyncManager * ecmcEcSlave::findSyncMan(uint8_t syncMangerIndex) {
@@ -792,6 +795,7 @@ int ecmcEcSlave::initAsyn() {
                                          asynParamUInt32Digital,
                                          (uint8_t *)&(statusWord_),
                                          sizeof(statusWord_),
+                                         ECMC_EC_U32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -807,7 +811,7 @@ int ecmcEcSlave::initAsyn() {
   paramTemp->addSupportedAsynType(asynParamInt32);
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);  
   slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID] = paramTemp;
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
 }
 
@@ -822,4 +826,71 @@ int ecmcEcSlave::validate() {
     }
   }
   return 0;
+}
+
+int ecmcEcSlave::appendEntryToList(ecmcEcEntry *entry, bool useInRealTime) {
+  if(entryCounter_>=EC_MAX_ENTRIES) {
+    return ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE;
+  }
+  entryList_[entryCounter_] = entry;
+  entryCounter_++;
+
+  //Only update if in realtime
+  if(useInRealTime){
+    entryListInUse_[entryCounterInUse_] = entry;
+    entryCounterInUse_++;
+  }
+  return 0;
+}
+
+int ecmcEcSlave::addSDOWriteComplete(uint16_t    sdoIndex,
+                                     const char* dataBuffer,
+                                     int         byteSize) {
+  if (!slaveConfig_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      vendorId_,
+      productCode_,
+      ERROR_EC_SLAVE_CONFIG_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_SLAVE_CONFIG_NULL);
+  }
+
+  return ecmcEcSDO::addWriteComplete(slaveConfig_,
+                                    sdoIndex,
+                                    dataBuffer,
+                                    (size_t)byteSize);
+}
+
+int ecmcEcSlave::addSDOWriteBuffer(uint16_t    sdoIndex,
+                                   uint8_t     sdoSubIndex,
+                                   const char* dataBuffer,
+                                   int         byteSize) {
+  if (!slaveConfig_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      vendorId_,
+      productCode_,
+      ERROR_EC_SLAVE_CONFIG_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_SLAVE_CONFIG_NULL);
+  }
+
+  return ecmcEcSDO::addSdoConfigBuffer(slaveConfig_,
+                                       sdoIndex,
+                                       sdoSubIndex,
+                                       dataBuffer,
+                                       (size_t)byteSize);
 }

@@ -19,6 +19,7 @@
 #include "exprtkWrap.h"
 #include "../main/ecmcDefinitions.h"
 #include "../motion/ecmcAxisBase.h"
+#include "../ethercat/ecmcEc.h"
 #include "../ethercat/ecmcEcEntry.h"  // Bit macros
 #include "ecmcPLCDataIF.h"
 
@@ -39,10 +40,14 @@
 #define ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH 0x2050B
 #define ERROR_PLC_VARIABLE_NOT_FOUND 0x2050C
 #define ERROR_PLC_ADD_VARIABLE_FAIL 0x2050D
+#define ERROR_PLC_VARIABLE_NAME_TO_LONG 0x2050E
 
 class ecmcPLCTask : public ecmcError {
  public:
-  explicit ecmcPLCTask(int plcIndex,int skipCycles, ecmcAsynPortDriver *asynPortDriver_);
+  explicit ecmcPLCTask(int plcIndex,
+                       int skipCycles,
+                       double mcuFreq,
+                       ecmcAsynPortDriver *asynPortDriver_);
   ~ecmcPLCTask();
   bool         getCompiled();
   int          validate();
@@ -60,21 +65,25 @@ class ecmcPLCTask : public ecmcError {
                                    int           index);
   int          setDataStoragePointer(ecmcDataStorage *ds,
                                      int              index);
+  int          setEcPointer(ecmcEc *ec);
   int          parseFunctions(const char *exprStr);
   int          getFirstScanDone();
-  int          readStaticPLCVar(const char *varName,
-                                double     *data);
+  int          readStaticPLCVar(const char  *varName,
+                                double      *data);
   int          writeStaticPLCVar(const char *varName,
                                  double      data);
-  int          findLocalVar(const char     *varName,
-                            ecmcPLCDataIF **outDataIF);
+  int          findLocalVar(const char      *varName,
+                            ecmcPLCDataIF  **outDataIF);
   double       getSampleTime();
   int          getNewExpr();
-  static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
+  static ecmcAxisBase    *statAxes_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
+  static ecmcEc          *statEc_;
 
  private:
   void initVars();
+  int  initAsyn(int plcIndex);
+  void updateAsyn();
   int  varExist(char *varName);
   int  globalVarExist(const char *varName);
   int  localVarExist(const char *varName);
@@ -107,6 +116,8 @@ class ecmcPLCTask : public ecmcError {
   int libFileIOLoaded_;
   ecmcAsynPortDriver *asynPortDriver_;
   int newExpr_;
+  ecmcAsynDataItem   *asynParamExpr_;
+  double mcuFreq_;
 };
 
 #endif  /* ECMC_PLC_TASK_H_ */

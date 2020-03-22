@@ -106,7 +106,6 @@ class ecmcAxisSequencer : public ecmcError {
   int    setExternalExecute(bool execute);
   //int    setExtTrajIF(ecmcMasterSlaveIF *extIf);
   int    setAxisDataRef(ecmcAxisData *data);
-  void   printCurrentState();
 
  private:
   void   initVars();

@@ -18,45 +18,15 @@ ecmcAxisVirt::ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
               ecmcAxisBase(asynPortDriver,
                           axisID,
                           sampleTime) {
-  PRINT_ERROR_PATH("axis[%d].error", axisID);
   initVars();
   data_.axisId_   = axisID;
   data_.axisType_ = ECMC_AXIS_TYPE_VIRTUAL;
   seq_.setCntrl(NULL);
   data_.sampleTime_ = sampleTime;
-
-  LOGINFO15("%s/%s:%d: axis[%d]=new;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            axisID);
-  printCurrentState();
 }
 
 ecmcAxisVirt::~ecmcAxisVirt()
 {}
-
-void ecmcAxisVirt::printCurrentState() {
-  ecmcAxisBase::printCurrentState();
-  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            "ECMC_AXIS_TYPE_VIRTUAL");
-  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.sampleTime_);
-  LOGINFO15("%s/%s:%d: axis[%d].temporaryLocalTrajSource_=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            temporaryLocalTrajSource_ > 0);
-}
 
 void ecmcAxisVirt::initVars() {
   initDone_                 = false;
@@ -113,7 +83,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
                             data_.status_.currentVelocityActual,
                             0);
       }
-      statusData_.onChangeData.trajSource   = ECMC_DATA_SOURCE_INTERNAL;
+      statusData_.onChangeData.statusWd.trajsource   = ECMC_DATA_SOURCE_INTERNAL;
       data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint = traj_->getVel();
     } else {

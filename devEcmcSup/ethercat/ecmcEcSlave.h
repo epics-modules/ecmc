@@ -82,14 +82,14 @@ class ecmcEcSlave : public ecmcError {
   int                updateOutProcessImage();
   int                getSlaveBusPosition();
   int                addEntry(
-    ec_direction_t direction,
-    uint8_t        syncMangerIndex,
-    uint16_t       pdoIndex,
-    uint16_t       entryIndex,
-    uint8_t        entrySubIndex,
-    uint8_t        bits,
-    std::string    id,
-    int            signedValue);
+                       ec_direction_t direction,
+                       uint8_t        syncMangerIndex,
+                       uint16_t       pdoIndex,
+                       uint16_t       entryIndex,
+                       uint8_t        entrySubIndex,
+                       ecmcEcDataType dt,
+                       std::string    id,
+                       int            useInRealTime);
   int configDC(
     // AssignActivate word.
     uint16_t assignActivate,
@@ -115,12 +115,21 @@ class ecmcEcSlave : public ecmcError {
                   uint8_t  sdoSubIndex,
                   uint32_t writeValue,
                   int      byteSize);
+  int addSDOWriteComplete(uint16_t    sdoIndex,
+                         const char* dataBuffer,
+                         int         byteSize);
+
+  int addSDOWriteBuffer(uint16_t    sdoIndex,
+                        uint8_t     sdoSubIndex,
+                        const char* dataBuffer,
+                        int         byteSize);
   int getSlaveState(ec_slave_config_state_t *state);
   int validate();
 
  private:
   void  initVars();
   int   initAsyn();
+  int   appendEntryToList(ecmcEcEntry *entry, bool useInRealTime);
   ecmcEcSyncManager* findSyncMan(uint8_t syncMangerIndex);
   ec_master_t *master_;     // EtherCAT master
   uint16_t alias_;          // Slave alias.
@@ -130,7 +139,9 @@ class ecmcEcSlave : public ecmcError {
   ec_slave_config_t *slaveConfig_;
   ecmcEcSyncManager *syncManagerArray_[EC_MAX_SYNC_MANAGERS];
   ecmcEcEntry *entryList_[EC_MAX_ENTRIES];
+  ecmcEcEntry *entryListInUse_[EC_MAX_ENTRIES];
   uint32_t entryCounter_;
+  uint32_t entryCounterInUse_;
   int pdosArrayIndex_;
   int syncManArrayIndex_;
   int syncManCounter_;
@@ -145,7 +156,6 @@ class ecmcEcSlave : public ecmcError {
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
   int masterId_;
-
   // bit 0 online          : The slave is online.
   // bit 1 int operational : The slave was brought into  OP state
   // bit 2..5  al_state    :  The application-layer state of the slave.

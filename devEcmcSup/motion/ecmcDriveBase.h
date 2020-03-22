@@ -63,7 +63,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   virtual int  validate();
   virtual void readEntries();
   virtual void writeEntries();
-  virtual void printCurrentState();
   virtual void errorReset();
   int          setEnable(bool enable);
   bool         getEnable();

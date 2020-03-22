@@ -13,6 +13,7 @@
 #ifndef ECMC_ASYN_DATA_ITEM_H_
 #define ECMC_ASYN_DATA_ITEM_H_
 
+#include <bits/stdc++.h> 
 #include "inttypes.h"
 #include "../main/ecmcDefinitions.h"
 #include "ecmcAsynPortDriverUtils.h"
@@ -32,6 +33,8 @@
 
 #define ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT 10
 #define ERROR_ASYN_NOT_REFRESHED_RETURN -1
+
+typedef asynStatus(*ecmcExeCmdFcn)(void*,size_t,asynParamType,void*);
 
 class ecmcAsynPortDriver;  //Include in cpp
 
@@ -71,7 +74,8 @@ class ecmcAsynDataItem
 public:
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                     const char *paramName,
-                    asynParamType asynParType);
+                    asynParamType asynParType,
+                    ecmcEcDataType dt);
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver);
   ~ecmcAsynDataItem ();
   int setEcmcDataPointer(uint8_t *data,size_t bytes);  
@@ -118,6 +122,7 @@ public:
   size_t getEcmcBitCount();
   void setArrayCheckSize(bool check);
   bool getArrayCheckSize();
+  void setType(ecmcEcDataType dt);
     
   asynStatus setDrvInfo(const char *drvInfo);
 
@@ -154,6 +159,10 @@ public:
                               size_t *nIn);
   asynStatus writeFloat64Array(epicsFloat64 *value,
                                size_t nElements);
+  
+  ecmcEcDataType getEcDataType();
+
+  asynStatus setExeCmdFunctPtr(ecmcExeCmdFcn func, void* userObj);
 
 private:
   asynStatus validateDrvInfo(const char *drvInfo);
@@ -181,6 +190,12 @@ private:
   int64_t intMax_;
   int64_t intMin_;
   size_t intBits_;
+  ecmcEcDataType dataType_;
+
+  // Add function to allow action on writes
+  asynStatus (*fctPtrExeCmd_)(void* data, size_t bytes, asynParamType asynParType,void *userObj);
+  bool useExeCmdFunc_;
+  void* exeCmdUserObj_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

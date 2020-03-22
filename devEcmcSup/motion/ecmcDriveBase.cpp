@@ -14,7 +14,6 @@
 
 ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver, 
                              ecmcAxisData *axisData) {
-  PRINT_ERROR_PATH("axis[%d].drive.error", axisData->axisId_);  
   initVars();
   data_ = axisData;
   asynPortDriver_ = asynPortDriver;
@@ -25,59 +24,6 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
   }
 
   initAsyn();
-
-  printCurrentState();
-}
-
-void ecmcDriveBase::printCurrentState() {
-  LOGINFO15("%s/%s:%d: axis[%d].drive.scaleNum=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            scaleNum_);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.scaleDenom=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            scaleDenom_);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.brakeEnable=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            enableBrake_ > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOpenDelayTime=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            brakeOpenDelayTime_);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.brakeCloseAheadTime=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            brakeCloseAheadTime_);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.enableAmpCmd=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            enableAmpCmd_ > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOutputCmd=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            brakeOutputCmd_ > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].drive.reduceTorqueOutputCmd=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_->axisId_,
-            reduceTorqueOutputCmd_ > 0);
 }
 
 void ecmcDriveBase::initVars() {
@@ -127,14 +73,6 @@ double ecmcDriveBase::getScaleNum(void) {
 }
 
 void ecmcDriveBase::setScaleNum(double scaleNum) {
-  if (scaleNum_ != scaleNum) {
-    LOGINFO15("%s/%s:%d: axis[%d].drive.scaleNum=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              scaleNum);
-  }
   scaleNum_ = scaleNum;
 
   if (std::abs(scaleDenom_) > 0) {
@@ -143,14 +81,6 @@ void ecmcDriveBase::setScaleNum(double scaleNum) {
 }
 
 int ecmcDriveBase::setScaleDenom(double scaleDenom) {
-  if (scaleDenom_ != scaleDenom) {
-    LOGINFO15("%s/%s:%d: axis[%d].drive.scaleDenom=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              scaleDenom);
-  }
   scaleDenom_ = scaleDenom;
 
   if (scaleDenom_ == 0) {
@@ -185,14 +115,6 @@ int ecmcDriveBase::setEnable(bool enable) {
                       ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE);
   }
 
-  if (manualModeEnableAmpCmd_ != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].drive.manualModeEnable=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              enable);
-  }
   manualModeEnableAmpCmdOld_ = manualModeEnableAmpCmd_;
   manualModeEnableAmpCmd_    = enable;
 
@@ -217,15 +139,6 @@ int ecmcDriveBase::setEnableBrake(bool enable) {
     }
   }
 
-  if (enableBrake_ != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].drive.brakeEnable=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              enable);
-  }
-
   enableBrake_ = enable;
   return 0;
 }
@@ -241,15 +154,6 @@ int ecmcDriveBase::setEnableReduceTorque(bool enable) {
                         __LINE__,
                         ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL);
     }
-  }
-
-  if (enableReduceTorque_ != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].drive.reduceTorqueEnable=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              enable);
   }
 
   enableReduceTorque_ = enable;
@@ -299,16 +203,7 @@ void ecmcDriveBase::writeEntries() {
   }
 
   if (enableReduceTorque_) {
-    reduceTorqueOutputCmd_ = data_->status_.atTarget;
-
-    if (reduceTorqueOutputCmd_ != reduceTorqueOutputCmdOld_) {
-      LOGINFO15("%s/%s:%d: axis[%d].drive.reduceTorqueOutputCmd=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                reduceTorqueOutputCmd_ > 0);
-    }
+    reduceTorqueOutputCmd_    = data_->status_.atTarget;
     reduceTorqueOutputCmdOld_ = reduceTorqueOutputCmd_;
     errorCode                 = writeEcEntryValue(
       ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,
@@ -319,14 +214,6 @@ void ecmcDriveBase::writeEntries() {
     }
   }
 
-  if (enableAmpCmdOld_ != enableAmpCmd_) {
-    LOGINFO15("%s/%s:%d: axis[%d].drive.enableAmpCmd=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              enableAmpCmd_ > 0);
-  }
   // Enable command sent to amplfier
   // (if break is not used then enableAmpCmdOld_==enableCmdOld_)
   enableAmpCmdOld_ = enableAmpCmd_;
@@ -431,15 +318,6 @@ int ecmcDriveBase::setBrakeOpenDelayTime(int delayTime) {
                       ERROR_DRV_BRAKE_OPEN_DELAY_TIME_INVALID);
   }
 
-  if (delayTime != brakeOpenDelayTime_) {
-    LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOpenDelayTime=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              brakeOpenDelayTime_);
-  }
-
   brakeOpenDelayTime_ = delayTime;
   return 0;
 }
@@ -450,15 +328,6 @@ int ecmcDriveBase::setBrakeCloseAheadTime(int aheadTime) {
                       __FUNCTION__,
                       __LINE__,
                       ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID);
-  }
-
-  if (aheadTime != brakeCloseAheadTime_) {
-    LOGINFO15("%s/%s:%d: axis[%d].drive.brakeCloseAheadTime=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->axisId_,
-              brakeCloseAheadTime_);
   }
 
   brakeCloseAheadTime_ = aheadTime;
@@ -473,21 +342,11 @@ int ecmcDriveBase::updateBrakeState() {
     if (data_->command_.enable && !enableCmdOld_) {
       brakeState_   = ECMC_BRAKE_OPENING;
       brakeCounter_ = 0;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_OPENING;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_);
     }
 
     if (!data_->command_.enable && enableCmdOld_) {
       brakeState_   = ECMC_BRAKE_CLOSING;
       brakeCounter_ = 0;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_CLOSING;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_);
     }
     break;
 
@@ -496,21 +355,11 @@ int ecmcDriveBase::updateBrakeState() {
     if (manualModeEnableAmpCmd_ && !manualModeEnableAmpCmdOld_) {
       brakeState_   = ECMC_BRAKE_OPENING;
       brakeCounter_ = 0;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_OPENING;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_);
     }
 
     if (!manualModeEnableAmpCmd_ && manualModeEnableAmpCmdOld_) {
       brakeState_   = ECMC_BRAKE_CLOSING;
       brakeCounter_ = 0;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_CLOSING;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_);
     }
     break;
   }
@@ -530,17 +379,6 @@ int ecmcDriveBase::updateBrakeState() {
     if (brakeCounter_ >= brakeOpenDelayTime_) {
       brakeState_     = ECMC_BRAKE_OPEN;
       brakeOutputCmd_ = 1;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOutputCmd=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                brakeOutputCmd_ > 0);
-      LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_OPEN;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_);
     }
     brakeCounter_++;
     break;
@@ -561,17 +399,6 @@ int ecmcDriveBase::updateBrakeState() {
       brakeState_     = ECMC_BRAKE_CLOSED;
       enableAmpCmd_   = 0;
       brakeOutputCmd_ = 0;
-      LOGINFO15("%s/%s:%d: axis[%d].drive.brakeOutputCmd=%d;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_,
-                brakeOutputCmd_ > 0);
-      LOGINFO15("%s/%s:%d: axis[%d].drive.brakeState=ECMC_BRAKE_CLOSED;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->axisId_);
     }
     brakeCounter_++;
     break;
@@ -602,7 +429,7 @@ int ecmcDriveBase::initAsyn() {
   // Control word "ax<id>.drv.control"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_AX_STR"%d."ECMC_DRV_STR"."ECMC_DRV_ENABLE_STR,
+                       ECMC_AX_STR "%d." ECMC_DRV_STR "." ECMC_DRV_ENABLE_STR,
                        data_->axisId_);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -619,6 +446,7 @@ int ecmcDriveBase::initAsyn() {
                                          asynParamUInt32Digital,
                                          (uint8_t *)&(controlWord_),
                                          sizeof(controlWord_),
+                                         ECMC_EC_U32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -640,7 +468,7 @@ int ecmcDriveBase::initAsyn() {
   // Status word "ax<id>.drv.status"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_AX_STR"%d."ECMC_DRV_STR"."ECMC_ASYN_AX_STATUS_NAME,
+                       ECMC_AX_STR "%d." ECMC_DRV_STR "." ECMC_ASYN_AX_STATUS_NAME,
                        data_->axisId_);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -657,6 +485,7 @@ int ecmcDriveBase::initAsyn() {
                                          asynParamUInt32Digital,
                                          (uint8_t *)&(statusWord_),
                                          sizeof(statusWord_),
+                                         ECMC_EC_U32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -673,7 +502,7 @@ int ecmcDriveBase::initAsyn() {
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   asynStatusWd_ = paramTemp;
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }

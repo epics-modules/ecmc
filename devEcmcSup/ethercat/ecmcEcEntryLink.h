@@ -15,7 +15,7 @@
 
 #include "ecmcEcEntry.h"
 
-#define MaxEcEntryLinks 20
+#define ECMC_EC_ENTRY_LINKS_MAX 20
 
 struct entryInfo{
   ecmcEcEntry *entry;
@@ -32,8 +32,14 @@ class ecmcEcEntryLink : public ecmcError {
   int  validateEntry(int index);
   int  readEcEntryValue(int       entryIndex,
                         uint64_t *value);
+  int  readEcEntryValueDouble(int     entryIndex,
+                              double *value);
   int  writeEcEntryValue(int      entryIndex,
                          uint64_t value);
+
+  int  writeEcEntryValueDouble(int    entryIndex,
+                               double value);
+
   bool checkEntryExist(int entryIndex);
 
  protected:
@@ -44,7 +50,7 @@ class ecmcEcEntryLink : public ecmcError {
                         int *startBit);
 
  private:
-  entryInfo entryInfoArray_[MaxEcEntryLinks];
+  entryInfo entryInfoArray_[ECMC_EC_ENTRY_LINKS_MAX];
 };
 
 #endif  /* ECMCECENTRYLINK_H_ */

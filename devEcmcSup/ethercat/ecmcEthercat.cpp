@@ -27,9 +27,10 @@ int ecSetMaster(int masterIndex) {
            masterIndex);
   int errorCode = ec->setAsynPortDriver(asynPort);
   if(errorCode) {
-    return errorCode;
+    return errorCode;  
   }
-
+  // Sample rate fixed
+  sampleRateChangeAllowed = 0;
   errorCode = ec->init(masterIndex);
   if(errorCode) {
     return errorCode;
@@ -127,6 +128,7 @@ int ecSelectReferenceDC(int masterIndex, int slaveBusPosition) {
   return slave->selectAsReferenceDC();
 }
 
+// Old syntax still supported
 int ecAddEntryComplete(
   uint16_t position,
   uint32_t vendorId,
@@ -143,7 +145,7 @@ int ecAddEntryComplete(
   std::string id = entryIDString;
 
   LOGINFO4(
-    "%s/%s:%d slave=%d vendor=%d productcode=%d direction=%d sm=%d pdoindex=%d entry_index=%d entry_subindex=%d bits=%d id=%s\n",
+    "%s/%s:%d slave=%d vendor=%d productcode=%d direction=%d sm=%d pdoindex=%d entry_index=%d entry_subindex=%d bits=%d id=%s,signed=%d\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -156,9 +158,13 @@ int ecAddEntryComplete(
     entryIndex,
     entrySubIndex,
     bits,
-    entryIDString);
+    entryIDString,
+    signedValue);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  // Old syntax only vaid for integers use "Cfg.EcAddEntry()" for double, real
+  ecmcEcDataType dataType = getEcDataType(bits,signedValue);
 
   return ec->addEntry(position,
                      vendorId,
@@ -168,9 +174,59 @@ int ecAddEntryComplete(
                      pdoIndex,
                      entryIndex,
                      entrySubIndex,
-                     bits,
+                     dataType,
                      id,
-                     signedValue);
+                     1); //Update in realtime as default
+}
+
+// New syntax
+int ecAddEntry(
+  uint16_t position,
+  uint32_t vendorId,
+  uint32_t productCode,
+  int      direction,
+  uint8_t  syncMangerIndex,
+  uint16_t pdoIndex,
+  uint16_t entryIndex,
+  uint8_t  entrySubIndex,
+  char    *datatype,  
+  char    *entryIDString,
+  int      updateInRealtime  
+  ) {
+  std::string id = entryIDString;
+
+  LOGINFO4(
+    "%s/%s:%d slave=%d vendor=%d productcode=%d direction=%d sm=%d pdoindex=%d entry_index=%d entry_subindex=%d datatype=%s id=%s rt=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    position,
+    vendorId,
+    productCode,
+    direction,
+    syncMangerIndex,
+    pdoIndex,
+    entryIndex,
+    entrySubIndex,    
+    entryIDString,
+    datatype,
+    updateInRealtime);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcDataType dt = getEcDataTypeFromStr(datatype);
+
+  return ec->addEntry(position,
+                     vendorId,
+                     productCode,
+                     (ec_direction_t)direction,
+                     syncMangerIndex,
+                     pdoIndex,
+                     entryIndex,
+                     entrySubIndex,
+                     dt,
+                     id,
+                     updateInRealtime);
 }
 
 int ecSetEntryUpdateInRealtime(
@@ -207,6 +263,48 @@ int ecSetEntryUpdateInRealtime(
   return entry->setUpdateInRealtime(updateInRealtime);
 }
 
+// New syntax with datatype
+int ecAddMemMapDT(  
+  char    *ecPath,
+  size_t   byteSize,
+  int      direction,
+  char    *dataType, 
+  char    *memMapIDString
+  ) {
+
+  LOGINFO4(
+    "%s/%s:%d startEntryID=%s byteSize=%zu, direction=%d dataType=%s entryId=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    ecPath,
+    byteSize,
+    direction,
+    dataType,
+    memMapIDString);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  int  masterId   = -1;
+  int  slaveIndex = -1;
+  char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  bitIndex = -1;
+
+  int errorCode = parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  
+  std::string memMapId     = memMapIDString;
+  std::string startEntryId = alias;
+  ecmcEcDataType dt = getEcDataTypeFromStr(dataType);
+
+  return ec->addMemMap(slaveIndex, startEntryId, byteSize,
+                      (ec_direction_t)direction, dt, memMapId);
+}
+
+//Legacy syntax support
 int ecAddMemMap(
   uint16_t startEntryBusPosition,
   char    *startEntryIDString,
@@ -214,24 +312,25 @@ int ecAddMemMap(
   int      direction,
   char    *memMapIDString
   ) {
+
   std::string memMapId     = memMapIDString;
   std::string startEntryId = startEntryIDString;
 
   LOGINFO4(
-    "%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%lu, direction=%d entryId=%s\n",
+    "%s/%s:%d startEntryBusPosition=%d, startEntryID=%s byteSize=%zu, direction=%d entryId=%s\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
     startEntryBusPosition,
     startEntryIDString,
     byteSize,
-    direction,
+    direction,    
     memMapIDString);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-
-  return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize, 0,
-                      (ec_direction_t)direction, memMapId);
+  
+    return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize,
+                      (ec_direction_t)direction, ECMC_EC_NONE, memMapId);
 }
 
 int ecAddPdo(int slaveIndex, int syncManager, uint16_t pdoIndex) {
@@ -295,6 +394,54 @@ int ecAddSdo(uint16_t slavePosition,
                          byteSize);
 }
 
+
+int ecAddSdoComplete(uint16_t    slavePosition,
+                     uint16_t    sdoIndex,                     
+                     const char* valueBuffer,
+                     int         byteSize) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d value=%s bytesize=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,    
+    valueBuffer,
+    byteSize);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return  ec->addSDOWriteComplete(slavePosition,
+                                  sdoIndex,
+                                  valueBuffer,
+                                  byteSize);
+}
+
+int ecAddSdoBuffer(uint16_t    slavePosition,
+                   uint16_t    sdoIndex,
+                   uint8_t     sdoSubIndex,
+                   const char* valueBuffer,
+                   int         byteSize) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d sdo_sub_index=%d value=%s bytesize=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,
+    sdoSubIndex,
+    valueBuffer,
+    byteSize);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return  ec->addSDOWriteBuffer(slavePosition,
+                                sdoIndex,
+                                sdoSubIndex,
+                                valueBuffer,
+                                byteSize);
+}
+
 int ecWriteSdo(uint16_t slavePosition,
                uint16_t sdoIndex,
                uint8_t  sdoSubIndex,
@@ -316,7 +463,7 @@ int ecWriteSdo(uint16_t slavePosition,
   return ec->writeSDO(slavePosition, sdoIndex, sdoSubIndex, value, byteSize);
 }
 
-int ecWriteSdoComplete(uint16_t slavePosition,
+/*int ecWriteSdoComplete(uint16_t slavePosition,
                        uint16_t sdoIndex,
                        uint32_t value,
                        int      byteSize) {
@@ -332,7 +479,7 @@ int ecWriteSdoComplete(uint16_t slavePosition,
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   return ec->writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
-}
+}*/
 
 int ecReadSdo(uint16_t  slavePosition,
                    uint16_t  sdoIndex,
@@ -400,7 +547,7 @@ int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
                    uint8_t  *value /**< Pointer to data to write. */
                    ){
   LOGINFO4(
-    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%lu\n",
+    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%zu\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -421,7 +568,7 @@ int ecWriteSoE(uint16_t  slavePosition, /**< Slave position. */
                    uint8_t  *value /**< Pointer to data to write. */
                    ){
   LOGINFO4(
-    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%lu\n",
+    "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%zu\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -460,7 +607,7 @@ int readEcMemMap(const char *memMapIDString,
                  uint8_t    *data,
                  size_t      bytesToRead,
                  size_t     *bytesRead) {
-  LOGINFO4("%s/%s:%d alias=%s bytesToRead=%lu\n",
+  LOGINFO4("%s/%s:%d alias=%s bytesToRead=%zu\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

@@ -47,13 +47,13 @@ class ecmcEcSyncManager : public ecmcError {
   ec_direction_t getDirection();
   uint8_t        getSyncMangerIndex();
   ecmcEcEntry  * addEntry(
-  uint16_t    pdoIndex,
-  uint16_t    entryIndex,
-  uint8_t     entrySubIndex,
-  uint8_t     bits,
-  std::string id,
-  int         signedValue,
-  int        *errorCode);
+    uint16_t       pdoIndex,
+    uint16_t       entryIndex,
+    uint8_t        entrySubIndex,
+    ecmcEcDataType dt,
+    std::string    id,
+    int            useInRealTime,
+    int            *errorCode);
   ecmcEcEntry* findEntry(std::string id);
 
  private:

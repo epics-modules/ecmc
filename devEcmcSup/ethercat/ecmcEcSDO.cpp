@@ -10,6 +10,8 @@
 *
 \*************************************************************************/
 
+#include<vector>
+#include<exception>
 #include "ecmcEcSDO.h"
 
 ecmcEcSDO::ecmcEcSDO()
@@ -66,49 +68,160 @@ int ecmcEcSDO::write(ec_master_t *master,
   return errorCode;
 }
 
-int ecmcEcSDO::writeComplete(ec_master_t *master,
-                             uint16_t     slavePosition,
-                             uint16_t     sdoIndex,
-                             uint32_t     value,
-                             size_t       byteSize) {
+int ecmcEcSDO::addWriteComplete(ec_slave_config_t *sc,
+                                uint16_t     sdoIndex,
+                                const char*  dataString,
+                                size_t       byteSize) {
   uint32_t abortCode = 0;
+  std::vector<uint8_t> buffer;
 
-  if (byteSize > 4) {
-    LOGERR(
-      "%s/%s:%d: ERROR: SDO object 0x%x at slave position %d: Write failed, byte size to large (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      sdoIndex,
-      slavePosition,
-      ERROR_EC_SDO_SIZE_TO_LARGE);
-    return ERROR_EC_SDO_SIZE_TO_LARGE;
+  // Convert dataString to binary:
+  char* dataPtr     = (char*)dataString;
+  unsigned int data = 0;
+  int nvals         = 0;
+  size_t addedBytes = 0;
+
+  while (dataPtr) {
+    if(strlen(dataPtr) == 0) {
+      break;
+    }
+    nvals = sscanf(dataPtr,"%x",&data);
+    if(nvals == 1) {
+      try{
+        buffer.push_back((uint8_t)data);
+      }
+      catch(...){        
+        LOGERR(
+           "%s/%s:%d: ERROR: SDO data size error at sdo index 0x%x (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,           
+            sdoIndex,
+           ERROR_EC_SDO_BUFFER_ALLOC_FAIL);
+        return ERROR_EC_SDO_BUFFER_ALLOC_FAIL;
+      }
+      dataPtr = strchr(++dataPtr,' ');
+      addedBytes++;
+    }
+    else{      
+      dataPtr = NULL;
+    }
   }
-  uint8_t buffer[4];
-  memset(&buffer[0], 0, 4);
-  memcpy(&buffer[0], &value, 4);  // TODO ENDIANS
 
-  int errorCode = ecrt_master_sdo_download_complete(master,
-                                                    slavePosition,
-                                                    sdoIndex,
-                                                    &buffer[0],
-                                                    byteSize,
-                                                    &abortCode);
-
-  if (errorCode || abortCode) {
+  if(addedBytes == 0 || addedBytes != byteSize) {      
     LOGERR(
-      "%s/%s:%d: ERROR: SDO object 0x%x at slave position %d: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",
+      "%s/%s:%d: ERROR: SDO data size error at sdo index 0x%x (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,      
+      sdoIndex,
+      ERROR_EC_SDO_DATA_SIZE_ERROR);
+
+    return ERROR_EC_SDO_DATA_SIZE_ERROR;
+  }
+
+  int errorCode = ecrt_slave_config_complete_sdo(
+        sc, /**< Slave configuration. */
+        sdoIndex, /**< Index of the SDO to configure. */
+        &buffer[0], /**< Pointer to the data. */
+        byteSize /**< Size of the \a data. */
+        );
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: ERROR: SDO object 0x%x: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
       sdoIndex,
-      slavePosition,
       errorCode,
       abortCode,
       ERROR_EC_SDO_WRITE_FAILED);
+    return errorCode;
   }
-  return errorCode;
+
+  return 0;
 }
+
+int ecmcEcSDO::addSdoConfigBuffer(ec_slave_config_t *sc,
+                                  uint16_t     sdoIndex,
+                                  uint8_t      sdoSubIndex,
+                                  const char*  dataString,
+                                  size_t       byteSize) {
+
+  uint32_t abortCode = 0;
+  std::vector<uint8_t> buffer;
+
+  // Convert dataString to binary:
+  char* dataPtr     = (char*)dataString;
+  unsigned int data = 0;
+  int nvals         = 0;
+  size_t addedBytes = 0;
+
+  while (dataPtr) {
+    if(strlen(dataPtr) == 0) {
+      break;
+    }
+    nvals = sscanf(dataPtr,"%x",&data);
+    if(nvals == 1) {
+      try{
+        buffer.push_back((uint8_t)data);
+      }
+      catch(...){        
+        LOGERR(
+           "%s/%s:%d: ERROR: SDO data size error at sdo index 0x%x (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,           
+            sdoIndex,
+           ERROR_EC_SDO_BUFFER_ALLOC_FAIL);
+        return ERROR_EC_SDO_BUFFER_ALLOC_FAIL;
+      }
+      dataPtr = strchr(++dataPtr,' ');
+      addedBytes++;
+    }
+    else{      
+      dataPtr = NULL;
+    }
+  }
+
+  if(addedBytes == 0 || addedBytes != byteSize) {      
+    LOGERR(
+      "%s/%s:%d: ERROR: SDO data size error at sdo index 0x%x (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,      
+      sdoIndex,
+      ERROR_EC_SDO_DATA_SIZE_ERROR);
+
+    return ERROR_EC_SDO_DATA_SIZE_ERROR;
+  }
+
+  int errorCode = ecrt_slave_config_sdo(
+        sc, /**< Slave configuration. */
+        sdoIndex, /**< Index of the SDO to configure. */
+        sdoSubIndex,
+        &buffer[0], /**< Pointer to the data. */
+        byteSize /**< Size of the \a data. */
+        );
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: ERROR: SDO object 0x%x: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      sdoIndex,
+      errorCode,
+      abortCode,
+      ERROR_EC_SDO_WRITE_FAILED);
+    return errorCode;
+  }
+
+  return 0;
+}
+
+
 
 int ecmcEcSDO::addSdoConfig(ec_slave_config_t *slave,
                             uint16_t           slavePosition,

@@ -20,7 +20,12 @@ int ecmcInit(void *asynPortObject) {
   
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
-  //ecmcInitThread();
+  ecmcRTMutex = epicsMutexCreate();
+  if(!ecmcRTMutex) {
+    LOGERR("ERROR: Failed to create Mutex (epicsMutexCreate())  (0x%x)",
+            ERROR_MAIN_RT_MUTEX_NULL);
+    return ERROR_MAIN_RT_MUTEX_NULL;
+  }
 
   asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);  
   ec = new ecmcEc();
@@ -76,6 +81,7 @@ int ecmcAddTestParams() {
                                          asynParamInt32,
                                          (uint8_t *)&(testInt32),
                                          sizeof(testInt32),
+                                         ECMC_EC_S32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -97,6 +103,7 @@ int ecmcAddTestParams() {
                                            asynParamFloat64,
                                            (uint8_t *)&(testDouble),
                                            sizeof(testDouble),
+                                           ECMC_EC_F64,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -118,6 +125,7 @@ int ecmcAddTestParams() {
                                            asynParamInt8Array,
                                            (uint8_t *)testInt8Array,
                                            sizeof(testInt8Array),
+                                           ECMC_EC_S8,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -139,6 +147,7 @@ int ecmcAddTestParams() {
                                            asynParamInt16Array,
                                            (uint8_t *)testInt16Array,
                                            sizeof(testInt16Array),
+                                           ECMC_EC_S16,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -160,6 +169,7 @@ int ecmcAddTestParams() {
                                            asynParamInt32Array,
                                            (uint8_t *)testInt32Array,
                                            sizeof(testInt32Array),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -181,6 +191,7 @@ int ecmcAddTestParams() {
                                            asynParamFloat32Array,
                                            (uint8_t *)testFloatArray,
                                            sizeof(testFloatArray),
+                                           ECMC_EC_F32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -202,6 +213,7 @@ int ecmcAddTestParams() {
                                            asynParamFloat64Array,
                                            (uint8_t *)testDoubleArray,
                                            sizeof(testDoubleArray),
+                                           ECMC_EC_F64,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -257,9 +269,28 @@ void ecmcCleanup() {
   ec = NULL;
 }
 
+/**
+ * 
+ * Callback function for asynWrites (commands): ecmc.error.reset
+ * userObj = NULL
+ *  Will controllerErrorReset()   
+ * 
+ */ 
+asynStatus asynWriteReset(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  // userobj = NULL
+  if(asynParType!=asynParamInt32 || bytes != sizeof(asynParamInt32)) {
+    return asynError;
+  }
+  int reset = *(int32_t*)data;
+  if(reset){
+    return (asynStatus)controllerErrorReset();
+  }
+  return asynSuccess;
+}
+
 int ecmcAddDefaultAsynParams() {
 
-  // Add test params.. Uncomment to get a few parameters use full for testing
+  // Add test params.. Uncomment to get a few parameters usefull for testing
   //ecmcAddTestParams();
 
   LOGINFO4("%s/%s:%d\n",
@@ -284,6 +315,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.latency_min_ns),
                                            sizeof(threadDiag.latency_min_ns),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -304,6 +336,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.latency_max_ns),
                                            sizeof(threadDiag.latency_max_ns),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -324,6 +357,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.period_min_ns),
                                            sizeof(threadDiag.period_min_ns),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -344,6 +378,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.period_max_ns),
                                            sizeof(threadDiag.period_max_ns),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -364,6 +399,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.exec_min_ns),
                                            sizeof(threadDiag.exec_min_ns),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -384,6 +420,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.exec_max_ns),
                                            sizeof(threadDiag.exec_max_ns),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -404,6 +441,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.send_min_ns),
                                            sizeof(threadDiag.send_min_ns),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -424,6 +462,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(threadDiag.send_max_ns),
                                            sizeof(threadDiag.send_max_ns),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -444,6 +483,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(appModeCmd),
                                            sizeof(appModeCmd),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -464,6 +504,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(controllerError),
                                            sizeof(controllerError),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -484,6 +525,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt32,
                                            (uint8_t *)&(controllerReset),
                                            sizeof(controllerReset),
+                                           ECMC_EC_S32,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -494,7 +536,9 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+
   paramTemp->allowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteReset,NULL); // Nu object defined
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_RESET_ID] = paramTemp;  
 
@@ -505,6 +549,7 @@ int ecmcAddDefaultAsynParams() {
                                            asynParamInt8Array,
                                            (uint8_t *)(controllerErrorMsg),
                                            strlen(controllerErrorMsg),
+                                           ECMC_EC_S8,
                                            0);
   if(!paramTemp) {
     LOGERR(
@@ -526,6 +571,7 @@ int ecmcAddDefaultAsynParams() {
                                          asynParamInt32Array,
                                          (uint8_t *)(&ecmcUpdatedCounter),
                                          4,
+                                         ECMC_EC_S32,
                                          0);
   if(!paramTemp) {
     LOGERR(

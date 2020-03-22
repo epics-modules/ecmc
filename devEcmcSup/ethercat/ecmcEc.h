@@ -66,6 +66,7 @@
 #define ERROR_EC_MASTER_NULL 0x26025
 #define ERROR_EC_SLAVE_VERIFICATION_FAIL 0x26026
 #define ERROR_EC_NO_VALID_CONFIG 0x26027
+#define ERROR_EC_DATATYPE_NOT_VALID 0x26028
 
 class ecmcEc : public ecmcError {
  public:
@@ -110,10 +111,15 @@ class ecmcEc : public ecmcError {
                uint8_t  sdoSubIndex,
                uint32_t value,
                int      byteSize);
-  int writeSDOComplete(uint16_t slavePosition,
-                       uint16_t sdoIndex,
-                       uint32_t value,
-                       int      byteSize);
+  int addSDOWriteComplete(uint16_t    slavePosition,
+                          uint16_t    sdoIndex,                       
+                          const char *valueString,
+                          int         byteSize); 
+  int addSDOWriteBuffer(uint16_t    slavePosition,
+                        uint16_t    sdoIndex,
+                        uint8_t     sdoSubIndex,
+                        const char* dataBuffer,
+                        int         byteSize);
   int readSoE(uint16_t  slavePosition, /**< Slave position. */
               uint8_t   driveNo, /**< Drive number. */
               uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
@@ -126,27 +132,28 @@ class ecmcEc : public ecmcError {
                size_t    byteSize, /**< Size of data to write. */
                uint8_t  *value /**< Pointer to data to write. */
               );
-
   int addEntry(
-    uint16_t       position,     // Slave position.
-    uint32_t       vendorId,     // Expected vendor ID.
-    uint32_t       productCode,  // Expected product code.
-    ec_direction_t direction,
-    uint8_t        syncMangerIndex,
-    uint16_t       pdoIndex,
-    uint16_t       entryIndex,
-    uint8_t        entrySubIndex,
-    uint8_t        bits,
-    std::string    id,
-    int            signedValue);
+               uint16_t       position,     // Slave position.
+               uint32_t       vendorId,     // Expected vendor ID.
+               uint32_t       productCode,  // Expected product code.
+               ec_direction_t direction,
+               uint8_t        syncMangerIndex,
+               uint16_t       pdoIndex,
+               uint16_t       entryIndex,
+               uint8_t        entrySubIndex,
+               ecmcEcDataType dt,
+               std::string    id,
+              int            useInRealTime);
   int addMemMap(uint16_t       startEntryBusPosition,
                 std::string    startEntryIDString,
                 int            byteSize,
-                int            type,
                 ec_direction_t direction,
+                ecmcEcDataType dt,
                 std::string    memMapIDString);
   ecmcEcMemMap* findMemMap(std::string id);
+  ecmcEcMemMap* getMemMap(int index);
   ecmcEcSlave * findSlave(int busPosition);
+
   int           findSlaveIndex(int  busPosition,
                                int *slaveIndex);
   int           updateTime();
@@ -165,13 +172,16 @@ class ecmcEc : public ecmcError {
                         uint16_t slavePos,   /**< Slave position. */
                         uint32_t vendorId,   /**< Expected vendor ID. */
                         uint32_t productCode  /**< Exp)*/);
-  int           checkReadyForRuntime();                   
- private:
+  int           checkReadyForRuntime();
+  uint64_t      getTimeNs();
+
+private:
   void     initVars();
   int      updateInputProcessImage();
   int      updateOutProcessImage();
   timespec timespecAdd(timespec time1,
                        timespec time2);
+  bool     validEntryType(ecmcEcDataType dt);
   ec_master_t *master_;
   ec_domain_t *domain_;
   ec_domain_state_t domainStateOld_;
@@ -209,5 +219,6 @@ class ecmcEc : public ecmcError {
 
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];
+  timespec timeOffset_;
 };
 #endif  /* ECMCEC_H_ */

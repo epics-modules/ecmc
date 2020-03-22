@@ -79,6 +79,7 @@ void ecmcEc::initVars() {
   for (int i = 0; i < ECMC_ASYN_EC_PAR_COUNT; i++) {
     ecAsynParams_[i]=NULL;
   }
+  memset(&timeOffset_,0,sizeof(timeOffset_)); 
 }
 
 int ecmcEc::init(int nMasterIndex) {
@@ -182,7 +183,7 @@ int ecmcEc::addSlave(
     slaveCounter_++;
 
     ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID]->refreshParam(1);
-    asynPortDriver_->callParamCallbacks();
+    asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
     return slaveCounter_ - 1;
   } else {
@@ -586,10 +587,10 @@ void ecmcEc::receive() {
 
 void ecmcEc::send(timespec timeOffset) {
   struct timespec timeRel, timeAbs;
-
+  timeOffset_=timeOffset;
   // Write status hardware status to output
   if (statusOutputEntry_) {
-    statusOutputEntry_->writeValue(getErrorID() == 0);
+    statusOutputEntry_->writeValue((uint64_t)(getErrorID() == 0));
   }
 
   updateOutProcessImage();
@@ -644,13 +645,51 @@ int ecmcEc::writeSDO(uint16_t slavePosition,
                           sdoSubIndex,
                           value,
                           (size_t)byteSize);
+}                    
+
+int ecmcEc::addSDOWriteComplete(uint16_t    slavePosition,
+                                uint16_t    sdoIndex,
+                                const char* dataBuffer,
+                                int         byteSize) {
+ecmcEcSlave *slave = findSlave(slavePosition);
+
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+  return slave->addSDOWriteComplete(sdoIndex,
+                                    dataBuffer,
+                                    (size_t)byteSize);
 }
 
-int ecmcEc::writeSDOComplete(uint16_t slavePosition,
-                             uint16_t sdoIndex,
-                             uint32_t value,
-                             int      byteSize) {
-  return ecmcEcSDO::writeComplete(master_, slavePosition, sdoIndex, value,
+int ecmcEc::addSDOWriteBuffer(uint16_t    slavePosition,
+                              uint16_t    sdoIndex,
+                              uint8_t     sdoSubIndex,
+                              const char* dataBuffer,
+                              int         byteSize) {
+ecmcEcSlave *slave = findSlave(slavePosition);
+
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+  return slave->addSDOWriteBuffer(sdoIndex,
+                                  sdoSubIndex,
+                                  dataBuffer,
                                   (size_t)byteSize);
 }
 
@@ -782,18 +821,30 @@ int ecmcEc::updateOutProcessImage() {
 }
 
 int ecmcEc::addEntry(
-  uint16_t       position,   /**< Slave position. */
-  uint32_t       vendorId,   /**< Expected vendor ID. */
-  uint32_t       productCode,   /**< Expected product code. */
+  uint16_t       position,     // Slave position.
+  uint32_t       vendorId,     // Expected vendor ID.
+  uint32_t       productCode,  // Expected product code.
   ec_direction_t direction,
   uint8_t        syncMangerIndex,
   uint16_t       pdoIndex,
   uint16_t       entryIndex,
-  uint8_t        entrySubIndex,
-  uint8_t        bits,
+  uint8_t        entrySubIndex, 
+  ecmcEcDataType dt,
   std::string    id,
-  int            signedValue
-  ) {
+  int            useInRealTime) 
+  {
+
+   // Ensure master can support datatype
+   if(!validEntryType(dt)){
+    LOGERR("%s/%s:%d: ERROR: Data type is not supported for current installed master. Please upgrade to newer ethercat master version (0x%x).\n",
+         __FILE__,
+         __FUNCTION__,
+         __LINE__,
+         ERROR_EC_DATATYPE_NOT_VALID);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                    ERROR_EC_DATATYPE_NOT_VALID);
+  }
+
   ecmcEcSlave *slave = findSlave(position);
 
   if (slave == NULL) {
@@ -810,9 +861,9 @@ int ecmcEc::addEntry(
                                   pdoIndex,
                                   entryIndex,
                                   entrySubIndex,
-                                  bits,
+                                  dt,
                                   id,
-                                  signedValue);
+                                  useInRealTime);
 
   if (errorCode) {
     return errorCode;
@@ -820,8 +871,96 @@ int ecmcEc::addEntry(
   entryCounter_++;
   
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
+  return 0;
+}
+
+/*
+* Check if valid entry type for the installed master
+*
+*/
+bool ecmcEc::validEntryType(ecmcEcDataType dt) {
+ switch(dt) {
+    case ECMC_EC_NONE:
+      return 1;
+      break;
+
+    case ECMC_EC_B1:
+      return 1;
+      break;
+
+    case ECMC_EC_B2:
+      return 1;
+      break;
+
+    case ECMC_EC_B3:
+      return 1;
+      break;
+
+    case ECMC_EC_B4:
+      return 1;
+      break;
+
+    case ECMC_EC_U8:
+      return 1;
+      break;
+
+    case ECMC_EC_S8:
+      return 1;
+      break;
+
+    case ECMC_EC_U16:
+      return 1;
+      break;
+
+    case ECMC_EC_S16:
+      return 1;
+      break;
+
+    case ECMC_EC_U32:
+      return 1;
+      break;
+
+    case ECMC_EC_S32:
+      return 1;
+      break;
+    case ECMC_EC_U64:
+#ifdef EC_READ_U64
+      return 1;
+#else
+      return 0;
+#endif
+      break;
+
+    case ECMC_EC_S64:
+#ifdef EC_READ_S64
+      return 1;
+#else
+      return 0;
+#endif
+      break;
+
+    case ECMC_EC_F32:
+#ifdef EC_READ_F32
+      return 1;
+#else
+      return 0;
+#endif
+      break;
+
+    case ECMC_EC_F64:
+#ifdef EC_READ_F64
+      return 1;
+#else
+      return 0;
+#endif
+      break;
+
+    default:
+      return 0; 
+      break;
+  }
   return 0;
 }
 
@@ -919,9 +1058,9 @@ timespec ecmcEc::timespecAdd(timespec time1, timespec time2) {
 
 int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
                       std::string    startEntryIDString,
-                      int            byteSize,
-                      int            type,
+                      int            byteSize,                      
                       ec_direction_t direction,
+                      ecmcEcDataType dt,
                       std::string    memMapIDString) {
   ecmcEcSlave *slave = findSlave(startEntryBusPosition);
 
@@ -968,12 +1107,14 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   char alias[1024];
   std::string aliasString;
   int masterIndex = 0;
+  int dummySlaveIndex = 0;
   int nvals       = sscanf(memMapIDString.c_str(),
-                           "ec%d.mm.%s",
+                           "ec%d.s%d.mm.%s",
                            &masterIndex,
+                           &dummySlaveIndex,
                            alias);
 
-  if (nvals != 2) {
+  if (nvals != 3) {
     LOGERR("%s/%s:%d: ERROR: Alias not found in idString %s (0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -987,11 +1128,12 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   }
   aliasString                           = alias;
   ecMemMapArray_[ecMemMapArrayCounter_] = new ecmcEcMemMap(asynPortDriver_,
-                                                           masterIndex_,                                                           
+                                                           masterIndex_,
+                                                           startEntryBusPosition,                                                        
                                                            entry,
                                                            byteSize,
-                                                           type,
                                                            direction,
+                                                           dt,
                                                            aliasString);
 
   if (!ecMemMapArray_[ecMemMapArrayCounter_]) {
@@ -1006,7 +1148,7 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
 
   ecMemMapArrayCounter_++;
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParam(1);
-  asynPortDriver_->callParamCallbacks();  // also for memmap and ecEntry
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);  // also for memmap and ecEntry
 
   return ecMemMapArray_[ecMemMapArrayCounter_-1]->getErrorID();
 }
@@ -1022,6 +1164,15 @@ ecmcEcMemMap * ecmcEc::findMemMap(std::string id) {
     }
   }
   return temp;
+}
+
+ecmcEcMemMap * ecmcEc::getMemMap(int index) {
+
+  if(index<0 || index >= ecMemMapArrayCounter_) {
+    return NULL;
+  }
+  
+  return ecMemMapArray_[index];
 }
 
 int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry) {
@@ -1059,6 +1210,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
                                          asynParamInt32,
                                          (uint8_t *)&(statusWordMaster_),
                                          sizeof(statusWordMaster_),
+                                         ECMC_EC_S32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1094,6 +1246,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
                                          asynParamInt32,
                                          (uint8_t *)&(statusWordDomain_),
                                          sizeof(statusWordDomain_),
+                                         ECMC_EC_U32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1129,6 +1282,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
                                          asynParamInt32,
                                          (uint8_t *)&(slaveCounter_),
                                          sizeof(slaveCounter_),
+                                         ECMC_EC_S32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1162,6 +1316,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
                                          asynParamInt32,
                                          (uint8_t *)&(ecMemMapArrayCounter_),
                                          sizeof(ecMemMapArrayCounter_),
+                                         ECMC_EC_S32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1196,6 +1351,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
                                          asynParamInt32,
                                          (uint8_t *)&(domainNotOKCounterTotal_),
                                          sizeof(domainNotOKCounterTotal_),
+                                         ECMC_EC_S32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1230,6 +1386,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
                                          asynParamInt32,
                                          (uint8_t *)&(entryCounter_),
                                          sizeof(entryCounter_),
+                                         ECMC_EC_S32,
                                          0);
   if(!paramTemp) {
     LOGERR(
@@ -1244,7 +1401,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID] = paramTemp;
 
-  asynPortDriver_->callParamCallbacks();
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }
@@ -1763,4 +1920,11 @@ int ecmcEc::checkReadyForRuntime() {
   }
   
   return 0;
+}
+
+uint64_t ecmcEc::getTimeNs() {
+  struct timespec timeRel, timeAbs; 
+  clock_gettime(CLOCK_MONOTONIC, &timeRel);
+  timeAbs = timespecAdd(timeRel, timeOffset_);
+  return TIMESPEC2NS(timeAbs);
 }

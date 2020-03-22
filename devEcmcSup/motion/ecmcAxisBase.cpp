@@ -17,10 +17,24 @@
 #include <new>
 #include <iostream>
 
+
+/**
+ * 
+ * Callback function for asynWrites (commands)
+ * userObj = axis object
+ * Keep code as example how to link functions to a param
+ * 
+ * */ 
+/*asynStatus asynWriteCmd(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase*)userObj)->axisAsynWriteCmd(data, bytes, asynParType);
+}*/
+
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int axisID, 
                            double sampleTime) {
-  PRINT_ERROR_PATH("axis[%d].error", axisID);
   initVars();
 
   asynPortDriver_                 = asynPortDriver;
@@ -103,7 +117,6 @@ void ecmcAxisBase::initVars() {
   }
   statusOutputEntry_          = 0;
   blockExtCom_                = 0;
-  statusWord_                 = 0;
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_ = NULL;
   extEncVeloFilter_ = NULL;
@@ -111,103 +124,13 @@ void ecmcAxisBase::initVars() {
   enableExtEncVeloFilter_ = false;
 }
 
-void ecmcAxisBase::printAxisState() {
-  switch (axisState_) {
-  case ECMC_AXIS_STATE_STARTUP:
-    LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_STARTUP;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_);
-    break;
-
-  case ECMC_AXIS_STATE_DISABLED:
-    LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_);
-    break;
-
-  case ECMC_AXIS_STATE_ENABLED:
-    LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_ENABLED;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_);
-    break;
-
-  default:
-    LOGINFO15("%s/%s:%d: axis[%d].state=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              axisState_);
-    break;
-  }
-}
-
-void ecmcAxisBase::printCurrentState() {
-  // called by derived classes
-  printAxisState();
-  LOGINFO15("%s/%s:%d: axis[%d].reset=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.command_.reset > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].allowCmdFromOtherPLC=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            allowCmdFromOtherPLC_ > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].plcEnable=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            plcEnable_ > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.status_.inStartupPhase > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].inRealtime=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.status_.inRealtime > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].enable=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.command_.enable > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.status_.enabled > 0);
-  LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.status_.moving > 0);
-}
-
 void ecmcAxisBase::preExecute(bool masterOK) {
 
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
   data_.refreshInterlocks();
 
-  statusData_.onChangeData.trajSource = data_.command_.trajSource;    
-  statusData_.onChangeData.encSource = data_.command_.encSource;
+  statusData_.onChangeData.statusWd.trajsource = data_.command_.trajSource;
+  statusData_.onChangeData.statusWd.encsource = data_.command_.encSource;
   data_.status_.moving = std::abs(
     data_.status_.currentVelocityActual) > 0;
 
@@ -230,11 +153,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
         setInStartupPhase(false);
         enc_->setToZeroIfRelative();
       }
-      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
     break;
@@ -244,11 +162,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.distToStop = 0;
 
     if (data_.status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_ENABLED;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_ENABLED;
     }
 
@@ -275,11 +188,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     }
 
     if (!data_.status_.enabled) {
-      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_DISABLED;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
 
@@ -290,11 +198,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
         __FUNCTION__,
         __LINE__,
         data_.axisId_);
-      LOGINFO15("%s/%s:%d: axis[%d].state=ECMC_AXIS_STATE_STARTUP;\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.axisId_);
       axisState_ = ECMC_AXIS_STATE_STARTUP;
     }
 
@@ -334,66 +237,22 @@ void ecmcAxisBase::postExecute(bool masterOK) {
 
   // Write encoder entries
   enc_->writeEntries();
-
-  if (data_.status_.busyOld != data_.status_.busy) {
-    LOGINFO15("%s/%s:%d: axis[%d].busy=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.busy > 0);
-  }
-  data_.status_.busyOld = data_.status_.busy;
-
-  if (data_.status_.enabledOld != data_.status_.enabled) {
-    LOGINFO15("%s/%s:%d: axis[%d].enabled=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.enabled > 0);
-  }
-  data_.status_.enabledOld = data_.status_.enabled;
-
+  data_.status_.busyOld                    = data_.status_.busy;
+  data_.status_.enabledOld                 = data_.status_.enabled;
   data_.status_.executeOld                 = getExecute();
   data_.status_.currentPositionSetpointOld =
     data_.status_.currentPositionSetpoint;
-  data_.status_.cntrlOutputOld = data_.status_.cntrlOutput;
+  data_.status_.cntrlOutputOld             = data_.status_.cntrlOutput;
 
   cycleCounter_++;
   refreshDebugInfoStruct();
-
-  statusWord_ = 0;
-  // bit 0 enabled
-  statusWord_ = statusWord_ + (getEnabled()>0);
-  // bit 1 execute  
-  statusWord_ = statusWord_ + ((seq_.getExecute()>0) << 1);
-  // bit 2 busy
-  statusWord_ = statusWord_ + ((data_.status_.busy>0) << 2);
-  // bit 3 at target
-  statusWord_ = statusWord_ + ((data_.status_.atTarget>0) << 3);
-  // bit 4 moving
-  statusWord_ = statusWord_ + ((data_.status_.moving>0) << 4);
-  // bit 5 limit fwd
-  statusWord_ = statusWord_ + ((data_.status_.limitFwd>0) << 5);
-  // bit 6 limit bwd
-  statusWord_ = statusWord_ + ((data_.status_.limitBwd>0) << 6);
-  // bit 7 homeswitch
-  statusWord_ = statusWord_ + ((data_.status_.homeSwitch>0) << 7);
-  // bit 8 inStartupPhase
-  statusWord_ = statusWord_ + ((data_.status_.inStartupPhase>0) << 8);
-  // bit 9 inRealtime
-  statusWord_ = statusWord_ + ((data_.status_.inRealtime>0) << 9);
-  // bit 16..23 seq state
-  statusWord_ = statusWord_ + (((uint8_t)data_.status_.seqState) << 16);
-  // bit 24..31 lastActiveInterlock type
-  statusWord_ = statusWord_ + (((uint8_t)data_.interlocks_.lastActiveInterlock) << 24);
-
+  
   // Update asyn parameters  
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID]->refreshParamRT(0);
   
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
     int  bytesUsed = 0;
@@ -432,15 +291,6 @@ int ecmcAxisBase::getAxisID() {
 }
 
 void ecmcAxisBase::setReset(bool reset) {
-  if (data_.command_.reset != reset) {
-    LOGINFO15("%s/%s:%d: axis[%d].reset=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              reset);
-  }
-
   data_.command_.reset = reset;
 
   if (reset) {
@@ -477,14 +327,6 @@ bool ecmcAxisBase::getReset() {
 }
 
 int ecmcAxisBase::setAllowCmdFromPLC(bool enable) {
-  if (allowCmdFromOtherPLC_ != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].enableCascadedCommands=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              enable);
-  }
   allowCmdFromOtherPLC_ = enable;
   return 0;
 }
@@ -494,14 +336,6 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
 }
 
 void ecmcAxisBase::setInStartupPhase(bool startup) {
-  if (data_.status_.inStartupPhase != startup) {
-    LOGINFO15("%s/%s:%d: axis[%d].inStartupPhase=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              startup);
-  }
   data_.status_.inStartupPhase = startup;
 }
 
@@ -527,14 +361,6 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
     data_.status_.busy = true;
   }
 
-  if (data_.command_.trajSource != refSource) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajDataSourceType=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              refSource);
-  }
   data_.command_.trajSource = refSource;
   return 0;
 }
@@ -559,30 +385,17 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
     }
   }
   
-  if (data_.command_.encSource != refSource) {
-    LOGINFO15("%s/%s:%d: axis[%d].encDataSourceType=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              refSource);
-  }
-
   data_.command_.encSource = refSource;
   return 0;
 }
 
 int ecmcAxisBase::setRealTimeStarted(bool realtime) {
-  if (data_.status_.inRealtime != realtime) {
-    LOGINFO15("%s/%s:%d: axis[%d].inRealtime=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              realtime);
-  }
   data_.status_.inRealtime = realtime;
   return 0;
+}
+
+int ecmcAxisBase::getRealTimeStarted() {
+  return data_.status_.inRealtime;
 }
 
 bool ecmcAxisBase::getError() {
@@ -665,15 +478,6 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
     data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
   }
   traj_->setEnable(enable);
-
-  if (data_.command_.enable != enable) {
-    LOGINFO15("%s/%s:%d: axis[%d].enable=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              enable);
-  }
 
   data_.status_.enableOld = data_.command_.enable;
   data_.command_.enable   = enable;
@@ -822,36 +626,9 @@ int ecmcAxisBase::getCmdData() {
 }
 
 int ecmcAxisBase::slowExecute() {
-  if (oldPositionAct_ != data_.status_.currentPositionActual) {
-    LOGINFO15("%s/%s:%d: axis[%d].encoder.actPos=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.currentPositionActual);
-  }
   oldPositionAct_ = data_.status_.currentPositionActual;
-
-  if (oldPositionSet_ != data_.status_.currentPositionSetpoint) {
-    LOGINFO15("%s/%s:%d: axis[%d].trajectory.currentPositionSetpoint=%lf;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.currentPositionSetpoint);
-  }
   oldPositionSet_ = data_.status_.currentPositionSetpoint;
-
-  if (data_.status_.movingOld != data_.status_.moving) {
-    LOGINFO15("%s/%s:%d: axis[%d].moving=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.status_.moving > 0);
-  }
   data_.status_.movingOld = data_.status_.moving;
-
   return 0;
 }
 
@@ -889,18 +666,18 @@ void ecmcAxisBase::printAxisStatus() {
     statusData_.onChangeData.cmdData,
     statusData_.onChangeData.seqState,
     statusData_.onChangeData.trajInterlock,
-    statusData_.onChangeData.lastActiveInterlock,
-    statusData_.onChangeData.trajSource,
-    statusData_.onChangeData.encSource,
-    statusData_.onChangeData.enable,
-    statusData_.onChangeData.enabled,
-    statusData_.onChangeData.execute,
-    statusData_.onChangeData.busy,
-    statusData_.onChangeData.atTarget,
-    statusData_.onChangeData.homed,
-    statusData_.onChangeData.limitBwd,
-    statusData_.onChangeData.limitFwd,
-    statusData_.onChangeData.homeSwitch);
+    statusData_.onChangeData.statusWd.lastilock,
+    statusData_.onChangeData.statusWd.trajsource,
+    statusData_.onChangeData.statusWd.encsource,
+    statusData_.onChangeData.statusWd.enable,
+    statusData_.onChangeData.statusWd.enabled,
+    statusData_.onChangeData.statusWd.execute,
+    statusData_.onChangeData.statusWd.busy,
+    statusData_.onChangeData.statusWd.attarget,
+    statusData_.onChangeData.statusWd.homed,
+    statusData_.onChangeData.statusWd.limitbwd,
+    statusData_.onChangeData.statusWd.limitfwd,
+    statusData_.onChangeData.statusWd.homeswitch);
 }
 
 int ecmcAxisBase::setExecute(bool execute) {
@@ -908,7 +685,7 @@ int ecmcAxisBase::setExecute(bool execute) {
   if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     // Allow direct homing without enable
     if (execute && !getEnable() &&
-        !((data_.command_.cmdData == 15) && (data_.command_.command == 10))) {
+        !((data_.command_.cmdData == ECMC_SEQ_HOME_SET_POS) && (data_.command_.command == ECMC_CMD_HOMING))) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -950,7 +727,7 @@ int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusType *data) {
   return 0;
 }
 
-ecmcAxisStatusType * ecmcAxisBase::getDebugInfoDataPointer() {
+ecmcAxisStatusType *ecmcAxisBase::getDebugInfoDataPointer() {
   return &statusData_;
 }
 
@@ -978,189 +755,112 @@ int ecmcAxisBase::initAsyn() {
     return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
   }
 
-  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  char *name = NULL;
-  unsigned int charCount = 0;
   ecmcAsynDataItem *paramTemp = NULL;
+  int errorCode = 0;
+ 
   // Act pos
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_POS_NAME,
-                       getAxisID());
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
-    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamFloat64,
-                                         (uint8_t *)&(statusData_.onChangeData.positionActual),
-                                         sizeof(statusData_.onChangeData.positionActual),
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_POS_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t *)&(statusData_.onChangeData.positionActual),
+                              sizeof(statusData_.onChangeData.positionActual),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
   }
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
 
   // Set pos
-  charCount = snprintf(buffer,
-                      sizeof(buffer),
-                      ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
-                      getAxisID());
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
-    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamFloat64,
-                                         (uint8_t *)&(statusData_.onChangeData.positionSetpoint),
-                                         sizeof(statusData_.onChangeData.positionSetpoint),
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t *)&(statusData_.onChangeData.positionSetpoint),
+                              sizeof(statusData_.onChangeData.positionSetpoint),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
   }
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID] = paramTemp;
 
-  // Pos error (following error)
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_AX_STR "%d." ECMC_ASYN_AX_POS_ERR_NAME,
-                       getAxisID());
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
-    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamFloat64,
-                                         (uint8_t *)&(statusData_.onChangeData.cntrlError),
-                                         sizeof(statusData_.onChangeData.cntrlError),
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  // Pos Error
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_POS_ERR_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t *)&(statusData_.onChangeData.cntrlError),
+                              sizeof(statusData_.onChangeData.cntrlError),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
   }
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID] = paramTemp;
 
   // Diagnostic string (array)
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_AX_STR "%d." ECMC_ASYN_AX_DIAG_NAME,
-                       getAxisID());
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
-    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
-  }
-  name = buffer;  
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt8Array,
-                                         (uint8_t *)diagBuffer_,
-                                         AX_MAX_DIAG_STRING_CHAR_LENGTH,
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_DIAG_NAME,
+                              asynParamInt8Array,
+                              ECMC_EC_S8,
+                              (uint8_t *)diagBuffer_,
+                              AX_MAX_DIAG_STRING_CHAR_LENGTH,
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
   }
 
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
 
+  // Status binary struct (for motor record)
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_BIN_NAME,
+                              asynParamInt8Array,
+                              ECMC_EC_S8,
+                              (uint8_t *)&(statusData_),
+                              sizeof(ecmcAxisStatusType),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID] = paramTemp;
+ 
   // Status word
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_NAME,
-                       getAxisID());
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
-    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_NAME,
+                              asynParamInt32,
+                              ECMC_EC_U32,
+                              (uint8_t*)&(statusData_.onChangeData.statusWd),
+                              sizeof(statusData_.onChangeData.statusWd),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
   }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamUInt32Digital,
-                                         (uint8_t *)&(statusWord_),
-                                         sizeof(statusWord_),
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  paramTemp->addSupportedAsynType(asynParamInt32);
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
   paramTemp->allowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
 
-  asynPortDriver_->callParamCallbacks();
+  // Control structure binary (for motor record)
+  /*errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
+                              asynParamInt8Array,
+                              ECMC_EC_S8,
+                              (uint8_t*)&(controlData_),
+                              sizeof(controlData_),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteCmd,this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID] = paramTemp;
+*/
+
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
 }
 
@@ -1194,20 +894,20 @@ int ecmcAxisBase::getAxisDebugInfoData(char *buffer,
                      data.onChangeData.error,
                      data.onChangeData.command,
                      data.onChangeData.cmdData,
-                     data.onChangeData.seqState,
+                     data.onChangeData.statusWd.seqstate,
                      data.onChangeData.trajInterlock,
-                     data.onChangeData.lastActiveInterlock,
-                     data.onChangeData.trajSource,
-                     data.onChangeData.encSource,
-                     data.onChangeData.enable,
-                     data.onChangeData.enabled,
-                     data.onChangeData.execute,
-                     data.onChangeData.busy,
-                     data.onChangeData.atTarget,
-                     data.onChangeData.homed,
-                     data.onChangeData.limitBwd,
-                     data.onChangeData.limitFwd,
-                     data.onChangeData.homeSwitch);
+                     data.onChangeData.statusWd.lastilock,
+                     data.onChangeData.statusWd.trajsource,
+                     data.onChangeData.statusWd.encsource,
+                     data.onChangeData.statusWd.enable,
+                     data.onChangeData.statusWd.enabled,
+                     data.onChangeData.statusWd.execute,
+                     data.onChangeData.statusWd.busy,
+                     data.onChangeData.statusWd.attarget,
+                     data.onChangeData.statusWd.homed,
+                     data.onChangeData.statusWd.limitbwd,
+                     data.onChangeData.statusWd.limitfwd,
+                     data.onChangeData.statusWd.homeswitch);
 
   if ((ret >= bufferByteSize) || (ret <= 0)) {
     *bytesUsed = 0;
@@ -1347,34 +1047,68 @@ int ecmcAxisBase::getCntrlError(double *error) {
 }
 
 void ecmcAxisBase::refreshDebugInfoStruct() {
-  statusData_.onChangeData.atTarget       = data_.status_.atTarget;
-  statusData_.axisID                      = data_.axisId_;
-  statusData_.cycleCounter                = cycleCounter_;
-  statusData_.onChangeData.busy           = data_.status_.busy;
-  statusData_.onChangeData.cntrlError     = data_.status_.cntrlError;
-  statusData_.onChangeData.cntrlOutput    = data_.status_.cntrlOutput;
-  statusData_.onChangeData.enable         = data_.command_.enable;
-  statusData_.onChangeData.enabled        = getEnabled();
-  statusData_.onChangeData.error          = getErrorID();
-  statusData_.onChangeData.execute        = getExecute();
-  statusData_.onChangeData.homeSwitch     = data_.status_.homeSwitch;
-  statusData_.onChangeData.limitBwd       = data_.status_.limitBwd;
-  statusData_.onChangeData.limitFwd       = data_.status_.limitFwd;  
-  statusData_.onChangeData.positionActual =
+
+  // bit 0 enable
+  statusData_.onChangeData.statusWd.enable = getEnable() > 0;
+  // bit 1 enabled 
+  statusData_.onChangeData.statusWd.enabled = getEnabled() > 0;
+  // bit 2 execute  
+  statusData_.onChangeData.statusWd.execute = seq_.getExecute() > 0;
+  // bit 3 busy
+  statusData_.onChangeData.statusWd.busy = data_.status_.busy > 0;
+  // bit 4 at target
+  statusData_.onChangeData.statusWd.attarget = data_.status_.atTarget > 0;
+  // bit 5 moving
+  statusData_.onChangeData.statusWd.moving = data_.status_.moving > 0;
+  // bit 6 limit fwd
+  statusData_.onChangeData.statusWd.limitfwd = data_.status_.limitFwd > 0;
+  // bit 7 limit bwd
+  statusData_.onChangeData.statusWd.limitbwd = data_.status_.limitBwd > 0;
+  // bit 8 homeswitch
+  statusData_.onChangeData.statusWd.homeswitch = data_.status_.homeSwitch > 0;
+  // bit 9 inStartupPhase
+  statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase > 0;
+  // bit 10 inRealtime  
+  statusData_.onChangeData.statusWd.inrealtime = data_.status_.inRealtime > 0;
+  // bit 11 traj source  
+  statusData_.onChangeData.statusWd.trajsource = data_.command_.trajSource > 0;
+  // bit 12 enc source  
+  statusData_.onChangeData.statusWd.encsource = data_.command_.encSource > 0;
+  // bit 13 Allow plc commands  
+  statusData_.onChangeData.statusWd.plccmdallowed = allowCmdFromOtherPLC_ > 0;
+  // bit 14 softlimfwdena
+  statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitFwd > 0;
+  // bit 15 softlimbwdena  
+  statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitBwd > 0;
+  // bit 16 homed
+  bool homedtemp = 0;
+  getAxisHomed(&homedtemp);
+  statusData_.onChangeData.statusWd.homed = homedtemp > 0;
+  // bit 17..19 unused
+  // bit 20..23 seq state
+  statusData_.onChangeData.statusWd.seqstate = (unsigned char)data_.status_.seqState;
+  // bit 24..31 lastActiveInterlock type
+  statusData_.onChangeData.statusWd.lastilock = (unsigned char)data_.interlocks_.lastActiveInterlock;
+
+  statusData_.axisID                          = data_.axisId_;
+  statusData_.cycleCounter                    = cycleCounter_;
+  statusData_.onChangeData.cntrlError         = data_.status_.cntrlError;
+  statusData_.onChangeData.cntrlOutput        = data_.status_.cntrlOutput;
+
+  statusData_.onChangeData.error              = getErrorID(); 
+  statusData_.onChangeData.positionActual     =
     data_.status_.currentPositionActual;
-  statusData_.onChangeData.positionError = getPosErrorMod();    
-  statusData_.onChangeData.positionSetpoint =
+  statusData_.onChangeData.positionError      = getPosErrorMod();    
+  statusData_.onChangeData.positionSetpoint   =
     data_.status_.currentPositionSetpoint;
-  statusData_.onChangeData.positionTarget =
+  statusData_.onChangeData.positionTarget     =
     data_.status_.currentTargetPosition;
-  statusData_.onChangeData.seqState      = seq_.getSeqState();
-  statusData_.onChangeData.trajInterlock =
+  statusData_.onChangeData.seqState           = seq_.getSeqState();
+  statusData_.onChangeData.trajInterlock      =
     data_.interlocks_.interlockStatus;
-  statusData_.onChangeData.lastActiveInterlock =
-    data_.interlocks_.lastActiveInterlock;
-  statusData_.onChangeData.sumIlockBwd = 
+  statusData_.onChangeData.statusWd.sumilockbwd = 
     data_.interlocks_.trajSummaryInterlockBWD;
-  statusData_.onChangeData.sumIlockFwd = 
+  statusData_.onChangeData.statusWd.sumilockfwd = 
     data_.interlocks_.trajSummaryInterlockFWD;
   statusData_.onChangeData.velocityActual =
     data_.status_.currentVelocityActual;
@@ -1384,15 +1118,15 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
     data_.status_.currentVelocitySetpointRaw;
   statusData_.onChangeData.velocityFFRaw =
     data_.status_.currentvelocityFFRaw;
-  statusData_.onChangeData.cmdData     = data_.command_.cmdData;
-  statusData_.onChangeData.command     = data_.command_.command;
-  statusData_.onChangeData.positionRaw = enc_->getRawPosRegister();
-  statusData_.onChangeData.homed       = enc_->getHomed();
-  statusData_.acceleration             = traj_->getAcc();
-  statusData_.deceleration             = traj_->getDec();
-  statusData_.reset                    = data_.command_.reset;
-  statusData_.moving                   = data_.status_.moving;
-  statusData_.stall                    =
+  statusData_.onChangeData.cmdData        = data_.command_.cmdData;
+  statusData_.onChangeData.command        = data_.command_.command;
+  statusData_.onChangeData.positionRaw    = enc_->getRawPosRegister();
+  statusData_.onChangeData.homeposition   = seq_.getHomePosition();
+  statusData_.acceleration                = traj_->getAcc();
+  statusData_.deceleration                = traj_->getDec();
+  statusData_.reset                       = data_.command_.reset;
+  statusData_.moving                      = data_.status_.moving;
+  statusData_.stall                       =
     data_.interlocks_.lagTrajInterlock
     || data_.interlocks_.
     lagDriveInterlock
@@ -1496,3 +1230,445 @@ int ecmcAxisBase::setExtEncVeloFiltSize(size_t size) {
 int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
   return enc_->setVeloFilterSize(size);
 }
+
+int ecmcAxisBase::createAsynParam(const char       *nameFormat,
+                                  asynParamType     asynType, 
+                                  ecmcEcDataType    ecmcType,
+                                  uint8_t*          data, 
+                                  size_t            bytes,                                  
+                                  ecmcAsynDataItem **asynParamOut) {
+  if (asynPortDriver_ == NULL) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (%s) (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_.axisId_,
+           nameFormat,
+           ERROR_AXIS_ASYN_PORT_OBJ_NULL);
+    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
+  }
+  *asynParamOut = NULL;
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name = NULL;
+  unsigned int charCount = 0;
+  ecmcAsynDataItem *paramTemp = NULL;
+  
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       nameFormat,
+                       getAxisID());
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      nameFormat,
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                                asynType,
+                                                data,
+                                                bytes,
+                                                ecmcType,
+                                                0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->allowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  *asynParamOut = paramTemp;
+  return 0;
+}
+
+int ecmcAxisBase::moveAbsolutePosition(                            
+                            double positionSet,
+                            double velocitySet,
+                            double accelerationSet,
+                            double decelerationSet) {
+ 
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_MOVEABS);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCmdData(0);
+  if (errorCode) {
+    return errorCode;
+  }
+  getSeq()->setTargetPos(positionSet);
+  getSeq()->setTargetVel(velocitySet);
+  getTraj()->setAcc(accelerationSet);
+  getTraj()->setDec(decelerationSet);
+  errorCode = setExecute(1);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
+}
+
+int ecmcAxisBase::moveRelativePosition(
+                            double positionSet,
+                            double velocitySet,
+                            double accelerationSet,
+                            double decelerationSet) {
+
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_MOVEREL);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCmdData(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  getSeq()->setTargetPos(positionSet);
+  getSeq()->setTargetVel(velocitySet);
+  getTraj()->setAcc(accelerationSet);
+  getTraj()->setDec(decelerationSet);
+
+  errorCode = setExecute(1);
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;                              
+ }
+
+int ecmcAxisBase::moveVelocity(
+                            double velocitySet,
+                            double accelerationSet,
+                            double decelerationSet) {
+
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_MOVEVEL);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCmdData(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  getSeq()->setTargetVel(velocitySet);
+  getTraj()->setAcc(accelerationSet);
+  getTraj()->setAcc(decelerationSet);
+  
+  errorCode = setExecute(1);
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
+}
+
+int ecmcAxisBase::moveHome(int    nCmdData,
+                           double homePositionSet,
+                           double velocityTwordsCamSet,
+                           double velocityOffCamSet,                            
+                           double accelerationSet,
+                           double decelerationSet
+                           ) {
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_HOMING);
+  if (errorCode) {
+    return errorCode;
+  }
+  errorCode = setCmdData(nCmdData);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  getSeq()->setHomePosition(homePositionSet);
+  getSeq()->setHomeVelOffCam(velocityOffCamSet);
+  getSeq()->setHomeVelTwordsCam(velocityTwordsCamSet);
+  getTraj()->setAcc(accelerationSet);
+  getTraj()->setDec(decelerationSet);
+  errorCode = setExecute(1);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
+}
+
+int ecmcAxisBase::stopMotion(int killAmplifier) {
+
+  int errorCode = setExecute(0);
+  
+  if (killAmplifier) {
+    errorCode = setEnable(0);    
+    if (errorCode) {
+      return errorCode;
+    }
+  }
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  return 0;
+}
+
+/**
+ * Function to link to ecmcDataItem. Execute function instead of copoy data.
+ * This function implements commands execution of commands from motor record
+ * or other (binary) asyn source.
+*/
+/*asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType) 
+{
+  if(bytes != sizeof(ecmcAsynClinetCmdType)){
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Asyn command data size mssmatch.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_);
+    return asynError;
+  }
+
+  memcpy(&controlData_,data,bytes);
+  //printf("axisAsynWriteCmd CMD = %d!!!\n", (int)controlData_.cmd);
+  int errorCode = 0;
+  int cmddata   = 0;
+  switch(controlData_.cmd) {
+    case ECMC_CMD_NOCMD:
+      return asynError;
+      break;
+
+    case ECMC_CMD_JOG:
+      return asynError;
+      break;
+
+    case ECMC_CMD_MOVEVEL:      
+      // cmd, vel,acc
+      if (getBusy() || getErrorID()) {
+        return asynError;
+      }
+      errorCode = setExecute(0);
+      if (errorCode) {
+        return asynError;
+      }
+      errorCode = setCommand(ECMC_CMD_MOVEVEL);
+      if (errorCode) {
+        return asynError;
+      }
+      errorCode = setCmdData(0);
+      if (errorCode) {
+        return asynError;
+      }
+      seq_.setTargetVel(controlData_.val0);
+      traj_->setAcc(controlData_.val1);
+      traj_->setDec(controlData_.val1); //same as acc
+      errorCode = setExecute(1);
+      if (errorCode) {
+        return asynError;
+      }      
+      break;
+
+    case ECMC_CMD_MOVEREL:
+      // cmd, pos,vel,acc
+      if (getBusy() || getErrorID()) {
+        return asynError;
+      }
+      errorCode = setExecute(0);
+      if (errorCode) {
+        return asynError;
+      }
+      errorCode = setCommand(ECMC_CMD_MOVEREL);
+      if (errorCode) {
+        return asynError;
+      }
+      errorCode = setCmdData(0);
+      if (errorCode) {
+        return asynError;
+      }
+      seq_.setTargetPos(controlData_.val0);
+      seq_.setTargetVel(controlData_.val1);
+      traj_->setAcc(controlData_.val2);
+      traj_->setDec(controlData_.val2); //same as acc
+      errorCode = setExecute(1);
+      if (errorCode) {
+        return asynError;
+      }
+      break;
+
+    case ECMC_CMD_MOVEABS:
+      // cmd, pos,vel,acc
+      if (getBusy() || getErrorID()) {
+        return asynError;
+      }
+      errorCode = setExecute(0);
+      if (errorCode) {
+        return asynError;
+      }
+      errorCode = setCommand(ECMC_CMD_MOVEABS);
+      if (errorCode) {
+        return asynError;
+      }
+      errorCode = setCmdData(0);
+      if (errorCode) {
+        return asynError;
+      }
+      seq_.setTargetPos(controlData_.val0);
+      seq_.setTargetVel(controlData_.val1);
+      traj_->setAcc(controlData_.val2);
+      traj_->setDec(controlData_.val2); //same as acc
+      errorCode = setExecute(1);
+      if (errorCode) {
+        return asynError;
+      }
+      break;
+
+    case ECMC_CMD_MOVEMODULO:
+      return asynError;
+      break;
+
+    case ECMC_CMD_HOMING:
+
+      // cmd, seqnbr,homepos,velhigh,vellow,acc
+      if (getBusy() || getErrorID()) {
+        return asynError;
+      }
+      errorCode = setExecute(0);
+      if (errorCode) {
+        return asynError;
+      }
+      errorCode = setCommand(ECMC_CMD_HOMING);
+      if (errorCode) {
+        return asynError;
+      }
+      cmddata = (int)controlData_.val0;
+      errorCode = setCmdData(cmddata);
+      if (errorCode) {
+        return asynError;
+      }
+      seq_.setHomePosition(controlData_.val1);
+
+      // Velo and acc not needed for set position
+      if(cmddata != ECMC_SEQ_HOME_SET_POS) {
+        seq_.setHomeVelTwordsCam(controlData_.val2);
+        seq_.setHomeVelOffCam(controlData_.val3);
+        traj_->setAcc(controlData_.val4);
+        traj_->setDec(controlData_.val4); //same as acc
+      }
+      errorCode = setExecute(1);
+      if (errorCode) {
+        return asynError;
+      }
+      break;
+
+    case ECMC_CMD_SUPERIMP:
+      return asynError;
+      break;
+
+    case ECMC_CMD_GEAR:
+      return asynError;
+      break;
+
+    case ECMC_CMD_STOP:
+      errorCode = setExecute(0);
+      if(errorCode) {
+        return asynError;
+      }
+      break;
+
+    case ECMC_CMD_SET_ENABLE:
+      // cmd,  enable
+      errorCode = setEnable(controlData_.val0>0);
+      if(errorCode) {
+        return asynError;
+      }= 15
+      break;
+
+    case ECMC_CMD_SET_SOFTLIMBWD:
+      errorCode = mon_->setSoftLimitBwd(controlData_.val0);
+      if(errorCode) {
+        return asynError;
+      }
+      break;
+
+    case ECMC_CMD_SET_SOFTLIMFWD:
+      errorCode = mon_->setSoftLimitFwd(controlData_.val0);
+      if(errorCode) {
+        return asynError;
+      }
+
+      break;
+
+    case ECMC_CMD_SET_SOFTLIMBWD_ENA:
+      errorCode = mon_->setEnableSoftLimitBwd(controlData_.val0>0);
+      if(errorCode) {
+        return asynError;
+      }
+      break;
+
+    case ECMC_CMD_SET_SOFTLIMFWD_ENA:
+      errorCode = mon_->setEnableSoftLimitFwd(controlData_.val0>0);
+      if(errorCode) {
+        return asynError;
+      }
+      break;
+    
+    case ECMC_CMD_SET_RESET:
+      setReset(1);
+      setReset(0);
+      break;
+
+    default:
+      return asynError;
+      break;
+
+  }
+
+  return asynSuccess;
+}*/

@@ -24,29 +24,34 @@
 #include "../plc/ecmcPLCMain.h"
 #include "../motion/ecmcMotion.h"
 #include "../ethercat/ecmcEthercat.h"
+#include "../motor/ecmcMotorRecordController.h"
+#include "epicsMutex.h"
 
-
-extern ecmcAxisBase *axes[ECMC_MAX_AXES];
-extern int axisDiagIndex;
-extern int axisDiagFreq;
-extern ecmcEc *ec;
-
-extern ecmcEvent          *events[ECMC_MAX_EVENT_OBJECTS];
-extern ecmcDataRecorder   *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
-extern ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
-extern ecmcCommandList    *commandLists[ECMC_MAX_COMMANDS_LISTS];
-extern ecmcPLCMain        *plcs;
-extern ecmcAsynPortDriver *asynPort;
-extern ecmcAsynDataItem   *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];
-extern ecmcMainThreadDiag threadDiag;
-extern app_mode_type appModeCmd, appModeCmdOld, appModeStat;
-extern int controllerError;
-extern int controllerErrorOld;
-extern int controllerReset;
-extern const char   *controllerErrorMsg;
-extern int32_t ecmcUpdatedCounter;
-
-extern int asynSkipCyclesFastest;
-extern int asynSkipUpdateCounterFastest;
-
+extern ecmcAxisBase              *axes[ECMC_MAX_AXES];
+extern ecmcEc                    *ec;
+extern ecmcEvent                 *events[ECMC_MAX_EVENT_OBJECTS];
+extern ecmcDataRecorder          *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
+extern ecmcDataStorage           *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
+extern ecmcCommandList           *commandLists[ECMC_MAX_COMMANDS_LISTS];
+extern ecmcPLCMain               *plcs;
+extern ecmcAsynPortDriver        *asynPort;
+extern ecmcAsynDataItem          *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];
+extern ecmcMainThreadDiag         threadDiag;
+extern app_mode_type              appModeCmd, appModeCmdOld, appModeStat;
+extern ecmcMotorRecordController *asynPortMotorRecord;
+// Mutex for motor record access
+extern epicsMutexId               ecmcRTMutex;
+extern int                        axisDiagIndex;
+extern int                        axisDiagFreq;
+extern int                        controllerError;
+extern int                        controllerErrorOld;
+extern int                        controllerReset;
+extern const char                *controllerErrorMsg;
+extern int32_t                    ecmcUpdatedCounter;
+extern int                        asynSkipCyclesFastest;
+extern int                        asynSkipUpdateCounterFastest;
+extern int                        ecTimeoutSeconds;
+extern double                     mcuFrequency;
+extern double                     mcuPeriod;
+extern int                        sampleRateChangeAllowed;
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */

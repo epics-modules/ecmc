@@ -21,3 +21,7 @@ tools/setenv*
 *.local
 include/
 lib/
+
+*linux-x86_64/
+.vscode/
+

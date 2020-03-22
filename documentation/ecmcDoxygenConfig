@@ -733,7 +733,7 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../ecmcApp/src/ ../ecmcApp/src/com/ ../ecmcApp/src/misc/ ../ecmcApp/src/motion/ ../ecmcApp/src/main/ ../ecmcApp/src/ethercat/ ../ecmcApp/src/plc/
+INPUT                  = ../devEcmcSup/ ../devEcmcSup/com/ ../devEcmcSup/misc/ ../devEcmcSup/motion/ ../devEcmcSup/main/ ../devEcmcSup/ethercat/ ../devEcmcSup/plc/
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

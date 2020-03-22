@@ -12,9 +12,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <stdio.h>
 #include <errno.h>
 #include <math.h>
+#include <unistd.h>
 #include <iocsh.h>
 
 #include <epicsTypes.h>
@@ -25,6 +27,7 @@
 #include <epicsMutex.h>
 #include <epicsExport.h>
 #include <epicsEvent.h>
+#include <envDefs.h>
 #include <dbCommon.h>
 #include <dbBase.h>
 #include <dbStaticLib.h>
@@ -41,9 +44,11 @@
 #include "../ethercat/ecmcEthercat.h"
 #include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"
+#include "exprtkWrap.h"
 
 static const char *driverName = "ecmcAsynPortDriver";
 
+extern double mcuFrequency;
 
 static int allowCallbackEpicsState=0;
 static initHookState currentEpicsState=initHookAtIocBuild;
@@ -106,7 +111,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   int         autoConnect,
   int         priority,
   double      defaultSampleRateMS)
-  : asynPortDriver(portName,
+   : asynPortDriver(portName,
                    1,
                    /* maxAddr */
                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask |
@@ -124,8 +129,10 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
                    /* Autoconnect */
                    priority,
                    /* Default priority */
-                   0) { /* Default stack size*/
+                   ECMC_STACK_SIZE)
+                   {
   initVars();
+
   const char* functionName = "ecmcAsynPortDriver";
   allowRtThreadCom_ = 1;  // Allow at startup (RT thread not started)
   pEcmcParamInUseArray_  = new ecmcAsynDataItem*[paramTableSize];  
@@ -138,7 +145,7 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   autoConnect_      = autoConnect;
   priority_         = priority;
   defaultSampleTimeMS_ = defaultSampleRateMS;
-  fastestParamUpdateCycles_=(int32_t)(defaultSampleRateMS/1000.0*(double)MCU_FREQUENCY);
+  fastestParamUpdateCycles_=(int32_t)(defaultSampleRateMS/1000.0*mcuFrequency);
   /* If paramTableSize_==1 then only stream device or motor record
   can use the driver through the "default access" param below.
   */
@@ -156,7 +163,8 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
   // Add first param for other access (like motor record or stream device).
   ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,
                                                      ECMC_ASYN_PAR_OCTET_NAME,
-                                                     asynParamNotDefined);
+                                                     asynParamNotDefined,
+                                                     ECMC_EC_NONE);
   if(paramTemp->createParam()){
     asynPrint(pasynUserSelf,
               ASYN_TRACE_ERROR,
@@ -326,7 +334,8 @@ ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
 
 /** Create and add new parameter to list of available parameters\n
   * \param[in] name Parameter name\n
-  * \param[in] type Parameter type\n
+  * \param[in] type Asyn parameter type\n
+  * \param[in] dt   Data type\n
   * \param[in] data Pointer to data\n
   * \param[in] bytes size of data\n
   * \param[in] dieIfFail Exit if method fails\n
@@ -337,11 +346,12 @@ ecmcAsynDataItem *ecmcAsynPortDriver::addNewAvailParam(const char * name,
                                                        asynParamType type,
                                                        uint8_t *data,
                                                        size_t bytes,
+                                                       ecmcEcDataType dt,
                                                        bool dieIfFail) {
 
   const char* functionName = "addNewAvailParam";
 
-  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,name,type);
+  ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,name,type,dt);
   
   int errorCode=paramTemp->setEcmcDataPointer(data, bytes);
   if(errorCode) {
@@ -749,7 +759,6 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   const char* functionName = "drvUserCreate";
   asynPrint(pasynUser, ASYN_TRACE_FLOW, "%s:%s: drvInfo: %s\n", driverName, functionName,drvInfo);
 
-  
   int addr=0;
   asynStatus status = getAddress(pasynUser, &addr);
   if (status != asynSuccess){
@@ -765,7 +774,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   }
 
   int index=0;
-  status=findParam(newParam->getName(),&index);  
+  status=findParam(ECMC_ASYN_DEFAULT_LIST,newParam->getName(),&index);  
   
   if(status!=asynSuccess) {
     
@@ -839,7 +848,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     delete newParam;
     return asynError;
   }
-
+  
   ecmcParamInfo *existentParInfo = pEcmcParamInUseArray_[index]->getParamInfo();
  
   if(!existentParInfo->initialized) {
@@ -848,22 +857,23 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
     existentParInfo->recordType=strdup(newParam->getRecordType());
     existentParInfo->dtyp=strdup(newParam->getDtyp());
     existentParInfo->drvInfo=strdup(newParam->getDrvInfo());
-    
+
     if(existentParInfo->cmdInt64ToFloat64 && pEcmcParamInUseArray_[index]->getEcmcBitCount() !=64) {      
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_INT_TO_FLOAT64" is only valid for 8 byte parameters (drvInfo = %s).\n",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command " ECMC_OPTION_CMD_INT_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName, functionName,drvInfo);
       delete newParam;
       return asynError;
     }
+    
     if(existentParInfo->cmdUint64ToFloat64 && pEcmcParamInUseArray_[index]->getEcmcBitCount() !=64) {      
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_UINT_TO_FLOAT64" is only valid for 8 byte parameters (drvInfo = %s).\n",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command " ECMC_OPTION_CMD_UINT_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName, functionName,drvInfo);
       delete newParam;
       return asynError;
     }
 
     if(existentParInfo->cmdFloat64ToInt32 && pEcmcParamInUseArray_[index]->getParamInfo()->ecmcSize !=8) {      
-      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command "ECMC_OPTION_CMD_FLOAT64_INT" is only valid for 8 byte parameters (drvInfo = %s).\n",
+      asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command " ECMC_OPTION_CMD_FLOAT64_INT " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName, functionName,drvInfo);
       delete newParam;
       return asynError;
@@ -880,12 +890,12 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   if(pasynUser->timeout < newParam->getSampleTimeMs()*2/1000.0) {
     pasynUser->timeout = (newParam->getSampleTimeMs()*2)/1000;
   }
-  
+
   delete newParam;
 
   existentParInfo->initialized=1;
   pEcmcParamInUseArray_[index]->refreshParam(1);
-  callParamCallbacks();
+  callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 
   return asynPortDriver::drvUserCreate(pasynUser,existentParInfo->name,pptypeName,psize);
 }
@@ -896,7 +906,7 @@ int32_t ecmcAsynPortDriver::getFastestUpdateRate() {
 
 int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
 
-  fastestParamUpdateCycles_=(int32_t)(defaultSampleTimeMS_/1000.0*(double)MCU_FREQUENCY);
+  fastestParamUpdateCycles_=(int32_t)(defaultSampleTimeMS_/1000.0*mcuFrequency);
   for(int i=0;i<ecmcParamInUseCount_;i++) {
     if(pEcmcParamInUseArray_[i]) {
       if(!pEcmcParamInUseArray_[i]->initialized()) {        
@@ -946,9 +956,10 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param linked to record:    %s\n",paramInfo->initialized ? "true" : "false");
   if(!paramInfo->initialized) {  //No record linked to record (no more valid data)
     fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false"); 
-    fprintf(fp,"    ECMC size [bytes]:         %lu\n",paramInfo->ecmcSize); 
+    fprintf(fp,"    ECMC size [bytes]:         %zu\n",paramInfo->ecmcSize); 
     fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
     fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");      
+    fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
     fprintf(fp,"\n");
     return;
   }
@@ -960,12 +971,15 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param alarm:               %d\n",paramInfo->alarmStatus);
   fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
   fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");
-  fprintf(fp,"    ECMC size [bits]:          %lu\n",param->getEcmcBitCount());
+  fprintf(fp,"    ECMC size [bits]:          %zu\n",param->getEcmcBitCount());
+  fprintf(fp,"    ECMC max size [bytes]:     %zu\n",paramInfo->ecmcMaxSize);
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
+  fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
+  
   // Value range only applicable for ints
   if(param->getEcmcMinValueInt() != param->getEcmcMaxValueInt()) {
-    fprintf(fp,"    ECMC Value Range:          %ld..%ld, %ld bit(s)\n",
+    fprintf(fp,"    ECMC Value Range:          %" PRId64 "..%" PRIu64 ", %zu bit(s)\n",
             param->getEcmcMinValueInt(),
             param->getEcmcMaxValueInt(),
             param->getEcmcBitCount());    
@@ -992,7 +1006,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
   asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
 
   if(!fp){
-    fprintf(fp,"%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    printf("%s:%s: ERROR: File NULL.\n", driverName, functionName);
     return;
   }
 
@@ -1036,6 +1050,65 @@ void ecmcAsynPortDriver::report(FILE *fp, int details)
   }
   if (details >= 0) {
     fprintf(fp,"####################################################################:\n");
+  }
+  
+  if( details >= 3){
+    fprintf(fp,"Report from base class (asynPortDriver):\n");
+    asynPortDriver::report(fp,details);
+    fprintf(fp,"####################################################################:\n");
+  }
+}
+
+void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern) {
+  
+  const char* functionName = "grepParam";
+  asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+
+  if(!fp){
+    printf("%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    return;
+  }
+
+  //print all parameters that fit pattern
+  fprintf(fp,"####################################################################:\n");
+  fprintf(fp,"ecmc parameters that fit pattern %s:\n",pattern);
+  for(int i=0; i<ecmcParamAvailCount_;i++){
+    if(pEcmcParamAvailArray_[i]){
+      ecmcParamInfo *paramInfo=pEcmcParamAvailArray_[i]->getParamInfo();
+      if(paramInfo) {
+        if(epicsStrGlobMatch(paramInfo->name,pattern)) {
+          reportParamInfo(fp, pEcmcParamAvailArray_[i],i);
+        }
+      }
+    }         
+  }
+}
+
+void ecmcAsynPortDriver::grepRecord(FILE *fp, const char *pattern) {
+  
+  const char* functionName = "grepRecord";
+  asynPrint(pasynUserSelf,ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+
+  if(!fp){
+    printf("%s:%s: ERROR: File NULL.\n", driverName, functionName);
+    return;
+  }
+
+  //print all parameters that fit pattern
+  fprintf(fp,"####################################################################:\n");
+  fprintf(fp,"ecmc records that fit pattern %s:\n",pattern);
+  for(int i=0; i<ecmcParamAvailCount_;i++){
+    if(pEcmcParamAvailArray_[i]){
+      ecmcParamInfo *paramInfo=pEcmcParamAvailArray_[i]->getParamInfo();
+      if(paramInfo) {
+        // Match param-name or record-name
+        if(paramInfo->initialized) {
+          if(epicsStrGlobMatch(paramInfo->recordName,pattern)) {           
+            reportParamInfo(fp, pEcmcParamAvailArray_[i],i);
+          }
+        }
+      }
+    }         
   }
 }
 
@@ -1155,7 +1228,7 @@ static void initCallFunc(const iocshArgBuf *args) {
                               args[4].dval);
 }
 
-/** \breif Obsolete EPICS iocsh command for adding asyn-parameter(s)
+/** \brief Obsolete EPICS iocsh command for adding asyn-parameter(s)
  */
 int ecmcAsynPortDriverAddParameter(const char *portName,
                                    const char *idString,
@@ -1236,7 +1309,9 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
     exit(EXIT_FAILURE);
   }
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
-
+  // Set return variable
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
+  
   return 0;
 }
 
@@ -1278,6 +1353,9 @@ int ecmcConfig(const char *ecmcCommand) {
   }
 
   LOGINFO("%s\n", ecmcConfigBuffer.buffer);
+  // Set return variable
+  epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
+  
   return 0;
 }
 
@@ -1289,8 +1367,7 @@ static void initCallFunc_4(const iocshArgBuf *args) {
   ecmcConfig(args[0].sval);
 }
 
-
-/* EPICS iocsh shell command:  ecmcReport (same as asynReport but only ECMC)*/
+/* EPICS iocsh shell command: ecmcReport (same as asynReport but only ECMC)*/
 int ecmcReport(int level) {
   
   if(!ecmcAsynPortObj) {
@@ -1312,12 +1389,588 @@ static void initCallFunc_5(const iocshArgBuf *args) {
   ecmcReport(args[0].ival);
 }
 
+/* EPICS iocsh shell command: ecmcGrepParam*/
+int ecmcGrepParam(const char *pattern) {
+  
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;  
+  }
+  
+  if(!pattern) {
+    printf("Error: Pattern missing.\n");
+    printf("       Use \"ecmcGrepParam <pattern>\" to list ecmc params/records.\n");
+    return asynError;  
+  }
+
+  ecmcAsynPortObj->grepParam(stdout,pattern);
+
+  return 0;
+}
+
+static const iocshArg initArg0_6 =
+{ "Pattern", iocshArgString };
+static const iocshArg *const initArgs_6[]  = { &initArg0_6 };
+static const iocshFuncDef    initFuncDef_6 = { "ecmcGrepParam", 1, initArgs_6 };
+static void initCallFunc_6(const iocshArgBuf *args) {
+  ecmcGrepParam(args[0].sval);
+}
+
+/* EPICS iocsh shell command: ecmcGrepRecord*/
+int ecmcGrepRecord(const char *pattern) {
+  
+  if(!ecmcAsynPortObj) {
+    printf("Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;  
+  }
+  
+  if(!pattern) {
+    printf("Error: Pattern missing.\n");
+    printf("       Use \"ecmcGrepRecord <pattern>\" to list ecmc params/records.\n");
+    return asynError;  
+  }
+
+  ecmcAsynPortObj->grepRecord(stdout,pattern);
+
+  return 0;
+}
+
+static const iocshArg initArg0_7 =
+{ "Pattern", iocshArgString };
+static const iocshArg *const initArgs_7[]  = { &initArg0_7 };
+static const iocshFuncDef    initFuncDef_7 = { "ecmcGrepRecord", 1, initArgs_7 };
+static void initCallFunc_7(const iocshArgBuf *args) {
+  ecmcGrepRecord(args[0].sval);
+}
+
+static const char * allowedSpecInt[] = {
+  "d", "i", "o", "u", "x", "l", "\0"
+};
+
+static const char * allowedSpecFloat[] = {
+  "a","A", "e", "E", "f", "F", "g" ,"G", "\0"
+};
+
+int formatIsDouble(const char* format) {
+
+  if(!format) {
+    printf("Invalid or empty format string.\n");
+    return -1;
+  } 
+  
+  if(strlen(format)>= (ECMC_CMD_MAX_SINGLE_CMD_LENGTH -1)){
+    printf("Format string to long (max length %d).\n",ECMC_CMD_MAX_SINGLE_CMD_LENGTH);
+    return -1;
+  }
+
+  const char *firstProcent = strchr(format,'%');
+  if(!firstProcent) {
+    return -1;
+  }
+
+  char flags[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  memset(flags,0,sizeof(flags));
+  int nvals = sscanf(firstProcent,"%%%[0-9 | +-.#hl]",flags);
+
+  char specifiers[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  memset(specifiers,0,sizeof(specifiers));
+  char *formatStart = (char*)firstProcent+strlen(flags)+1;
+  nvals = sscanf(formatStart,"%s",specifiers);
+  
+  if (nvals != 1) {
+    printf("Format string error. Could not determine specifier in string %s.\n",specifiers);
+    return -1;
+  }
+
+  //Check specifiers for int
+  size_t i=0;
+  const char* element=allowedSpecInt[i];
+  while(element[0] != 0) {  
+    if(strstr(specifiers,element)) {
+      return 0;
+    }
+    i++;
+    element=allowedSpecInt[i];
+  }
+
+  //Check specifiers for double
+  i=0;
+  element=allowedSpecFloat[i];
+  while(element[0] != 0) {  
+    if(strstr(specifiers,element)) {
+      return 1;
+    }
+    i++;
+    element=allowedSpecFloat[i];
+  }
+  
+  return -1; //invalid
+}
+
+asynStatus evalExprTK(const char* expression, double *result) {
+
+  // Evaluate expression
+  exprtkWrap *exprtk = new exprtkWrap();
+  if(!exprtk) {
+     printf ("Failed allocation of exprtk expression parser.\n");
+    return asynError;
+  }
+  double resultDouble = 0;
+
+  exprtk->addVariable(ECMC_ENVSETCALC_RESULT_VAR, resultDouble);
+
+  std::string exprStr="";
+
+  // Check if "RESULT" variable in str. If not then simple expression.. Add in beginning
+  if(strstr(expression,ECMC_ENVSETCALC_RESULT_VAR)) {
+    exprStr = expression;   
+  }
+  else {
+    exprStr = ECMC_ENVSETCALC_RESULT_VAR;   
+    exprStr += ":=";
+    exprStr += expression;       
+  }
+
+  //Check if need to add ";" last
+  if(exprStr.c_str()[strlen(exprStr.c_str())-1] != ';') {
+    exprStr += ";";
+  }
+  
+  if(exprtk->compile(exprStr)) {
+    printf ("Failed compile of expression with error message: %s.\n", exprtk->getParserError().c_str());
+    return asynError;
+  }
+  exprtk->refresh();
+  delete exprtk;  // not needed anymore (result in "resultDouble")
+
+  *result = resultDouble;
+  return asynSuccess;
+}
+
+void ecmcEpicsEnvSetCalcPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcEpicsEnvSetCalc(<envVarName>,  <expression>, <format>)\" to evaluate the expression and assign the variable.\n");
+  printf("          <envVarName> : EPICS environment variable name.\n");
+  printf("          <expression> : Calculation expression (see exprTK for available functionality). Examples:\n");
+  printf("                         Simple expression:\"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)\".\n");
+  printf("                         Use of \"RESULT\" variable: \"if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};\".\n");
+  printf("          <format>     : Optional format string. Example \"%%lf\", \"%%8.3lf\", \"%%x\", \"%%04d\" or \"%%d\", defaults to \"%%d\".\n");
+  printf("                         Can contain text like \"0x%%x\" or \"Hex value is 0x60%%x\".\n");
+  printf("                         Must contain one numeric value where result of expression will be written.\n");
+  printf("\n");
+  printf("       Restrictions:\n");
+  printf("         - Some flags and/or width/precision combinations might not be supported.\n");
+  printf("         - Hex numbers in the expression is not allowed (but hex as output by formating is OK).\n");
+  printf("         - Non floatingpoint values will be rounded to nearest int.\n");
+  printf("\n");
+}
+
+/** EPICS iocsh shell command: ecmcEpicsEnvSetCalc
+ *  Evaluates an expression and sets an EPICS environment variable
+*/
+int ecmcEpicsEnvSetCalc(const char *envVarName, const char *expression, const char *format) {
+
+  const char *localFormat=format;
+  if (!localFormat) {
+    localFormat=ECMC_ENVSETCALC_DEF_FORMAT;
+  }
+
+  if(!envVarName) {
+    printf("Error: Environment variable name  missing.\n");
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(envVarName,"-h") == 0 || strcmp(envVarName,"--help") == 0 ) {
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynSuccess;
+  }
+
+  if(!expression) {
+    printf("Error: Expression missing.\n");
+    ecmcEpicsEnvSetCalcPrintHelp();
+    return asynError;
+  }
+
+  double resultDouble = 0;
+  if(evalExprTK(expression, &resultDouble) != asynSuccess) {
+    return asynError;
+  }
+
+  // Convert if int in format string
+  int resultInt=round(resultDouble);
+  char buffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  unsigned int charCount = 0;
+  memset(buffer,0,sizeof(buffer));
+  
+  int isDouble = formatIsDouble(localFormat);
+  if(isDouble < 0) {
+    printf ("Error: Failed to determine datatype from format. Invalid format string \"%s\".\n", localFormat);
+    return asynError;
+  }
+
+  if(isDouble){
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         localFormat,
+                         resultDouble);
+  }else{
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         localFormat,
+                         resultInt);
+  }
+  if (charCount >= sizeof(buffer) - 1) {
+    printf ("Write buffer size exceeded, format results in a to long string.\n");
+    return asynError;
+  }
+
+  epicsEnvSet(envVarName,buffer);
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_8 =
+{ "Variable name", iocshArgString };
+static const iocshArg initArg1_8 =
+{ "Expression", iocshArgString };
+static const iocshArg initArg2_8 =
+{ "Format", iocshArgString };
+static const iocshArg *const initArgs_8[]  = { &initArg0_8, &initArg1_8, &initArg2_8};
+static const iocshFuncDef    initFuncDef_8 = { "ecmcEpicsEnvSetCalc", 3, initArgs_8 };
+static void initCallFunc_8(const iocshArgBuf *args) {
+  ecmcEpicsEnvSetCalc(args[0].sval,args[1].sval,args[2].sval);
+}
+
+void ecmcEpicsEnvSetCalcTenaryPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcEpicsEnvSetCalcTenary(<envVarName>,  <expression>, <trueString>, <falseString>)\" to evaluate the expression and assign the variable.\n");
+  printf("          <envVarName>  : EPICS environment variable name.\n");
+  printf("          <expression>  : Calculation expression (see exprTK for available functionality). Examples:\n");
+  printf("                          Simple expression:\"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)\".\n");
+  printf("                          Use of \"RESULT\" variable: \"if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};\".\n");
+  printf("          <trueString>  : String to set <envVarName> if expression (or \"RESULT\") evaluates to true.\n");
+  printf("          <falseString> : String to set <envVarName> if expression (or \"RESULT\") evaluates to false.\n");
+  printf("\n");
+}
+
+/** EPICS iocsh shell command: ecmcEpicsEnvSetCalcTenary
+ *  Evaluates an expression and sets an EPICS environment variable to:
+ *   expression>0 : trueString
+ *   expression<=0: falseString
+*/
+int ecmcEpicsEnvSetCalcTenary(const char *envVarName, const char *expression, const char *trueString, const char *falseString) {
+
+  if(!envVarName) {
+    printf("Error: Environment variable name  missing.\n");
+    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(envVarName,"-h") == 0 || strcmp(envVarName,"--help") == 0 ) {
+    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    return asynSuccess;
+  }
+
+  if(!expression || ! trueString || ! falseString) {
+    printf("Error: \"expression\", \"trueString\" and/or \"falseString\" missing.\n");
+    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    return asynError;
+  }
+
+  double resultDouble = 0;
+  if(evalExprTK(expression, &resultDouble) != asynSuccess) {
+    return asynError;
+  }
+
+  if(resultDouble) {
+    epicsEnvSet(envVarName,trueString);
+  }
+  else{
+    epicsEnvSet(envVarName,falseString);
+  }
+
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_9 =
+{ "Variable name", iocshArgString };
+static const iocshArg initArg1_9 =
+{ "Expression", iocshArgString };
+static const iocshArg initArg2_9=
+{ "True string", iocshArgString };
+static const iocshArg initArg3_9 =
+{ "False string", iocshArgString };
+
+static const iocshArg *const initArgs_9[]  = { &initArg0_9, &initArg1_9, &initArg2_9, &initArg3_9 };
+static const iocshFuncDef    initFuncDef_9 = { "ecmcEpicsEnvSetCalcTenary", 4, initArgs_9 };
+static void initCallFunc_9(const iocshArgBuf *args) {
+  ecmcEpicsEnvSetCalcTenary(args[0].sval,args[1].sval,args[2].sval,args[3].sval);
+}
+
+void ecmcFileExistPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcFileExist(<filename>, <die>, <dirs>)\" to check if a file exists.\n");
+  printf("          <filename>         : Filename to check.\n");
+  printf("          <die>              : Exit EPICS if file not exist. Optional, defaults to 0.\n");
+  printf("          <check EPICS dirs> : Look for files in EPICS_DB_INCLUDE_PATH dirs. Optional, defaults to 0.\n");
+  printf("          <dirs>             : List of dirs to search for file in (separated with ':'). Optional, defaults to \"\".\n");
+  printf("\n");
+}
+
+#define ECMC_IS_FILE_BUFFER_SIZE 4096
+
+int isFile(const char* filename, const char * dirs) {
+
+  int fileExist = 0;
+  char buffer[ECMC_IS_FILE_BUFFER_SIZE];  
+  char* pdirs = (char*)dirs; 
+  char *pdirs_old = pdirs;
+  if(dirs){
+    bool stop = false;
+    while((pdirs=strchr(pdirs,':')) && !stop){
+      memset(buffer,0,ECMC_IS_FILE_BUFFER_SIZE);
+      int chars=(int)(pdirs-pdirs_old);
+      memcpy(buffer,  pdirs_old, chars);
+      //strncpy(buffer, pdirs_old, chars);
+      buffer[chars]='/';
+      chars++;
+      memcpy(&buffer[chars], filename, strlen(filename));
+      //strncpy(&buffer[chars], filename, strlen(filename));
+      fileExist = access( buffer, 0 ) == 0;
+      if(fileExist) {
+        break;
+      }
+      if(strlen(pdirs)>0){
+        pdirs++;
+      }else{
+        stop = true;
+      }
+      pdirs_old = pdirs;
+    }
+
+    //take the last also (if not already found)
+    if(strlen(pdirs_old)>0 && !fileExist){
+      memset(buffer,0,ECMC_IS_FILE_BUFFER_SIZE);
+      int chars=strlen(pdirs_old);
+      memcpy(buffer,  pdirs_old, chars);
+      //strncpy(buffer, pdirs_old, chars);
+      buffer[chars]='/';
+      chars++;
+      memcpy(&buffer[chars], filename, strlen(filename));
+      //strncpy(&buffer[chars], filename, strlen(filename));
+      fileExist = access( buffer, 0 ) == 0;
+    }
+  }
+
+  return fileExist;
+}
+
+
+/** EPICS iocsh shell command: ecmcFileExist
+ * Return if file exists otherwise "die"
+*/
+int ecmcFileExist(const char *filename, int die, int checkEpicsDirs, const char *dirs) {
+  if(!filename) {
+    printf("Error: filename missing.\n");
+    ecmcFileExistPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(filename,"-h") == 0 || strcmp(filename,"--help") == 0 ) {
+    ecmcFileExistPrintHelp();
+    return asynSuccess;
+  }
+  
+  // Check filename directlly
+  int fileExist  = access( filename, 0 ) == 0;
+  
+  if(!fileExist && checkEpicsDirs){
+    fileExist = isFile(filename,getenv("EPICS_DB_INCLUDE_PATH"));
+  }
+
+  if(!fileExist && dirs){
+    fileExist = isFile(filename,dirs);
+  }
+
+  if(die && !fileExist) {
+    printf("Error: File \"%s\" does not exist. ECMC shuts down.\n",filename);
+    char * workdirname = get_current_dir_name();
+    printf("       Current working directory           = %s\n",workdirname);
+    free(workdirname);
+
+    if(checkEpicsDirs){      
+      printf("       Search path \"EPICS_DB_INCLUDE_PATH\" = %s.\n",getenv("EPICS_DB_INCLUDE_PATH"));
+    }
+    if(dirs) {
+      printf("       Search path \"dirs\"                  = %s\n",dirs);
+    }
+    exit(EXIT_FAILURE);
+  }
+  epicsEnvSet(ECMC_IOCSH_FILE_EXIST_RETURN_VAR_NAME,fileExist ? "1":"0");
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_10 =
+{ "Filename", iocshArgString };
+static const iocshArg initArg1_10 =
+{ "DieIfNoFile", iocshArgInt };
+static const iocshArg initArg2_10 =
+{ "Check EPICS dirs", iocshArgInt};
+static const iocshArg initArg3_10 =
+{ "List of dirs", iocshArgString };
+static const iocshArg *const initArgs_10[]  = { &initArg0_10, &initArg1_10, &initArg2_10, &initArg3_10 };
+static const iocshFuncDef    initFuncDef_10 = { "ecmcFileExist", 4, initArgs_10 };
+static void initCallFunc_10(const iocshArgBuf *args) {
+  ecmcFileExist(args[0].sval, args[1].ival, args[2].ival, args[3].sval);
+}
+
+void ecmcForLoopPrintHelp() {
+  printf("\n");
+  printf("       Use \"ecmcForLoop(<filename>, <macros>, <loopvar>, <from>, <to>, <step>)\" to loop execution of file with a changing loop variable.\n");
+  printf("          <filename> : Filename to execute in for loop.\n");
+  printf("          <macros>   : Macros to feed to execution of file.\n");
+  printf("          <loopvar   : Environment variable to use as index in for loop.\n");
+  printf("          <from>     : <loopvar> start value.\n");
+  printf("          <to>       : <loopvar> end value.\n");
+  printf("          <step>     : Step to increase <loopvar> each loop cycle.\n");
+  printf("\n");
+}
+
+int forLoopStep(const char* filename, const char* macros, const char *loopvar, int i) {
+  char buffer[256];
+  memset(buffer,0,sizeof(buffer));
+  // Set loop variable
+  snprintf(buffer,sizeof(buffer),"%d",i);  
+  epicsEnvSet(loopvar,buffer);
+  //Execute file in iocsh
+  iocshLoad(filename,macros);
+  return 0;
+}
+
+/** 
+ * EPICS iocsh shell command: ecmcForLoop
+*/
+int ecmcForLoop(const char *filename, const char* macros, const char *loopvar, int from, int to, int step) {
+  if(!filename) {
+    printf("Error: Filename missing.\n");
+    ecmcForLoopPrintHelp();
+    return asynError;
+  }
+
+  if(strcmp(filename,"-h") == 0 || strcmp(filename,"--help") == 0 ) {
+    ecmcForLoopPrintHelp();
+    return asynSuccess;
+  }
+
+  if(!macros) {
+    printf("Error: Macros missing.\n");
+    ecmcForLoopPrintHelp();
+    return asynError;
+  }
+
+  if(!loopvar) {
+    printf("Error: Loop variable missing.\n");
+    ecmcForLoopPrintHelp();
+    return asynError;
+  }
+
+  // Check filename
+  int fileExist  = access( filename, 0 ) == 0;
+
+  if(!fileExist){
+    printf("Error: File \"%s\" not found.\n",filename);
+    return asynError;
+  }
+  
+  if(from > to && step > 0 ){
+    printf("Error: from > to and step > 0.\n");
+    return asynError;
+  }
+
+  if(from < to && step < 0 ){
+    printf("Error: from < to and step < 0.\n");
+    return asynError;    
+  }
+
+  // Start loop
+  if(from<to){
+    for(int i= from; i <= to; i+=step){
+      forLoopStep(filename, macros, loopvar, i);
+    }
+  }else {
+    for(int i= from; i >= to; i+=step){
+      forLoopStep(filename, macros, loopvar, i);
+    }
+  }
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_11 =
+{ "Filename", iocshArgString };
+static const iocshArg initArg1_11 =
+{ "Macros", iocshArgString };
+static const iocshArg initArg2_11 =
+{ "Loop variable", iocshArgString};
+static const iocshArg initArg3_11 =
+{ "From", iocshArgInt };
+static const iocshArg initArg4_11 =
+{ "To", iocshArgInt };
+static const iocshArg initArg5_11 =
+{ "Step", iocshArgInt };
+
+
+static const iocshArg *const initArgs_11[]  = { &initArg0_11, 
+                                                &initArg1_11,
+                                                &initArg2_11,
+                                                &initArg3_11,
+                                                &initArg4_11,
+                                                &initArg5_11};
+static const iocshFuncDef    initFuncDef_11 = { "ecmcForLoop", 6, initArgs_11 };
+static void initCallFunc_11(const iocshArgBuf *args) {
+  ecmcForLoop(args[0].sval, args[1].sval, args[2].sval, args[3].ival, args[4].ival, args[5].ival);
+}
+
+/** 
+ * EPICS iocsh shell command: ecmcExit
+*/
+int ecmcExit(const char *help) {
+  
+  if(strcmp(help,"-h") == 0 || strcmp(help,"--help") == 0 ) {
+    printf("\n");
+    printf("       Use \"ecmcExit\" to exit ecmc/EPICS.\n");
+    printf("       Use \"ecmcExit -h | --help\" to get this help message.\n");
+    printf("\n");
+    return asynSuccess;
+  }
+
+  exit(EXIT_SUCCESS);    
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_12 =
+{ "help", iocshArgString };
+
+static const iocshArg *const initArgs_12[]  = { &initArg0_12};
+static const iocshFuncDef    initFuncDef_12 = { "ecmcExit", 1, initArgs_12 };
+static void initCallFunc_12(const iocshArgBuf *args) {
+  ecmcExit(args[0].sval);
+}
+
 void ecmcAsynPortDriverRegister(void) {
-  iocshRegister(&initFuncDef,   initCallFunc);
-  iocshRegister(&initFuncDef_2, initCallFunc_2);
-  iocshRegister(&initFuncDef_3, initCallFunc_3);
-  iocshRegister(&initFuncDef_4, initCallFunc_4);
-  iocshRegister(&initFuncDef_5, initCallFunc_5);
+  iocshRegister(&initFuncDef,    initCallFunc);
+  iocshRegister(&initFuncDef_2,  initCallFunc_2);
+  iocshRegister(&initFuncDef_3,  initCallFunc_3);
+  iocshRegister(&initFuncDef_4,  initCallFunc_4);
+  iocshRegister(&initFuncDef_5,  initCallFunc_5);
+  iocshRegister(&initFuncDef_6,  initCallFunc_6);
+  iocshRegister(&initFuncDef_7,  initCallFunc_7);
+  iocshRegister(&initFuncDef_8,  initCallFunc_8);
+  iocshRegister(&initFuncDef_9,  initCallFunc_9);
+  iocshRegister(&initFuncDef_10, initCallFunc_10);
+  iocshRegister(&initFuncDef_11, initCallFunc_11);
+  iocshRegister(&initFuncDef_12, initCallFunc_12);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);

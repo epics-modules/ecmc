@@ -18,18 +18,10 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
               ecmcAxisBase(asynPortDriver,
                            axisID,
                            sampleTime) {
-
-  PRINT_ERROR_PATH("axis[%d].error", axisID);
   initVars();
   data_.axisId_     = axisID;
   data_.axisType_   = ECMC_AXIS_TYPE_REAL;
   data_.sampleTime_ = sampleTime;  
-
-  LOGINFO15("%s/%s:%d: axis[%d]=new;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            axisID);
 
   // Create drive
   switch (drvType) {
@@ -53,13 +45,11 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
 
     break;
   }
-  printDriveType();
 
   // Create PID
   cntrl_ = new ecmcPIDController(&data_, data_.sampleTime_);
 
   seq_.setCntrl(cntrl_);
-  printCurrentState();
 }
 
 ecmcAxisReal::~ecmcAxisReal() {
@@ -67,86 +57,6 @@ ecmcAxisReal::~ecmcAxisReal() {
   cntrl_ = NULL;
   delete drv_;
   drv_ = NULL;
-}
-
-void ecmcAxisReal::printCurrentState() {
-  ecmcAxisBase::printCurrentState();
-  LOGINFO15("%s/%s:%d: axis[%d].type=%s;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            "ECMC_AXIS_TYPE_REAL");
-  LOGINFO15("%s/%s:%d: axis[%d].sampleTime=%lf;\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            data_.axisId_,
-            data_.sampleTime_);
-  printDriveType();
-  printOpModeState();
-}
-
-void ecmcAxisReal::printOpModeState() {
-  switch (data_.command_.operationModeCmd) {
-  case ECMC_MODE_OP_AUTO:
-    LOGINFO15("%s/%s:%d: axis[%d].operationMode=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              "ECMC_MODE_OP_AUTO");
-    break;
-
-  case ECMC_MODE_OP_MAN:
-    LOGINFO15("%s/%s:%d: axis[%d].operationMode=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              "ECMC_MODE_OP_MAN");
-    break;
-
-  default:
-    LOGINFO15("%s/%s:%d: axis[%d].operationMode=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              data_.command_.operationModeCmd);
-    break;
-  }
-}
-
-void ecmcAxisReal::printDriveType() {
-  switch (currentDriveType_) {
-  case ECMC_STEPPER:
-    LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              "ECMC_STEPPER");
-    break;
-
-  case ECMC_DS402:
-    LOGINFO15("%s/%s:%d: axis[%d].driveType=%s;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              "ECMC_DS402");
-    break;
-
-  default:
-    LOGINFO15("%s/%s:%d: axis[%d].driveType=%d;\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.axisId_,
-              currentDriveType_);
-    break;
-  }
 }
 
 void ecmcAxisReal::initVars() {
@@ -210,7 +120,7 @@ void ecmcAxisReal::execute(bool masterOK) {
                             data_.status_.currentVelocityActual,
                             0);
       }
-      statusData_.onChangeData.trajSource   = ECMC_DATA_SOURCE_INTERNAL;  // Temporary
+      statusData_.onChangeData.statusWd.trajsource = ECMC_DATA_SOURCE_INTERNAL;  // Temporary
       data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint = traj_->getVel();
     } else {
@@ -304,7 +214,6 @@ int ecmcAxisReal::setOpMode(operationMode mode) {
   }
 
   data_.command_.operationModeCmd = mode;
-  printOpModeState();
   return 0;
 }
 

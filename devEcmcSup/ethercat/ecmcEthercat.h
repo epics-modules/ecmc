@@ -21,7 +21,7 @@
 extern "C" {
 # endif  // ifdef __cplusplus
 
-/** \breif Selects EtherCAT master to use.\n
+/** \brief Selects EtherCAT master to use.\n
  *
  *  \param[in] masterIndex EtherCAT master index.\n
  *
@@ -32,7 +32,7 @@ extern "C" {
  */
 int ecSetMaster(int masterIndex);
 
-/** \breif  Retry configuring slaves for an selected EtherCAT master.\n
+/** \brief  Retry configuring slaves for an selected EtherCAT master.\n
  *
  * Via this method, the application can tell the master to bring all slaves to
  * OP state. In general, this is not necessary, because it is automatically
@@ -51,7 +51,7 @@ int ecSetMaster(int masterIndex);
  */
 int ecResetMaster(int masterIndex);
 
-/** \breif Adds an EtherCAT slave to the hardware configuration.\n
+/** \brief Adds an EtherCAT slave to the hardware configuration.\n
  *
  * Each added slave will be assigned an additional index which will be zero for
  * the first successfully added slave and then incremented for each successful
@@ -158,8 +158,131 @@ int ecAddEntryComplete(
   char    *entryIDString,
   int      signedValue);
 
-/** \breif Adds a memory map object to access data directly from EtherCAT
- *   domain.\n
+/** \brief Adds an EtherCAT slave to the hardware configuration.\n
+ *
+ * Each added slave will be assigned an additional index which will be zero for
+ * the first successfully added slave and then incremented for each successful
+ * call to "Cfg.EcAddSlave()".\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] vendorId Identification value for slave vendor.\n
+ *    vendorId = 0x2: Beckhoff.\n
+ *    vendorId = 0x48554B: Kendrion Kuhnke Automation GmbH.\n
+ *  \param[in] productCode Product identification code.\n
+ *    productCode=0x13ed3052: EL5101 incremental encoder input.\n
+ *  \param[in] direction Data transfer direction..\n
+ *    direction  = 1:  Output (from master).\n
+ *    direction  = 2:  Input (to master).\n
+ *  \param[in] syncMangerIndex Index of sync manager.
+ *  \param[in] pdoIndex Index of process data object. Needs to be entered
+ *                           in hex format.\n
+ *  \param[in] entryIndex Index of process data object entry. Needs to be
+ *                           entered in hex format.\n
+ *  \param[in] entrySubIndex Index of process data object sub entry.
+ *                           Needs to be entered in hex format.\n
+ *  \param[in] dataType DataType of ethercat data:\n
+ *                      B1:  1-bit\n
+ *                      B2:  2-bits (lsb)\n
+ *                      B3:  3-bits (lsb)\n
+ *                      B4:  3-bits (lsb)\n
+ *                      U8:  Unsigned 8-bit\n
+ *                      S8:  Signed 8-bit\n
+ *                      U16: Unsigned 16-bit\n
+ *                      S16: Signed 16-bit\n
+ *                      U32: Unsigned 32-bit\n
+ *                      S32: Signed 32-bit\n
+ *                      U64: Unsigned 64-bit\n
+ *                      S64: Signed 64-bit\n
+ *                      F32: Real 32-bit\n 
+ *                      F64: Double 64-bit\n
+ * 
+ *  \param[in] entryIDString Identification string used for addressing the
+ *                           entry.\n
+ *  \param[in] updateInRT    1 if value should be updated in realtime 0\n
+ *                           normally set to zero for entries that are\n
+ *                           covered in memmaps.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave, in the ESI slave description file or by using the etherlab
+ * (www.etherlab.org) ethercat tool.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add an EtherCAT entry for the actual position of an EL5101
+ * incremental encoder card.\n
+ * "Cfg.EcAddEntry(2,0x2,0x13ed3052,2,3,0x1a03,0x6010,0x10,U16,POSITION,1)"
+ * //Command string to ecmcCmdParser.c\n
+ *
+ * \note Example: Add an EtherCAT entry for the velocity setpoint of an EL7037
+ * stepper drive card.\n
+ * "Cfg.EcAddEntry(7,0x2,0x1b7d3052,1,2,0x1604,0x7010,0x21,S16,
+ * VELOCITY_SETPOINT,1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddEntry(
+  uint16_t slaveBusPosition,
+  uint32_t vendorId,
+  uint32_t productCode,
+  int      direction,
+  uint8_t  syncMangerIndex,
+  uint16_t pdoIndex,
+  uint16_t entryIndex,
+  uint8_t  entrySubIndex,
+  char    *datatype,  
+  char    *entryIDString,
+  int      updateInRealTime);
+
+/** \brief Adds a memory map object to access data directly from EtherCAT
+ *   domain. This is the preferred syntax.\n
+ *
+ *  The start of the memory map is addressed by a previously configured
+ *  EtherCAT entry and a size.
+ *
+ *  \param[in] ecPath   Identification string of the start EtherCAT
+ *   *                  entry (example "ec0.s1.AI_1").\n
+ *  \param[in] byteSize Size of memory map objects (size to access).\n
+ *  \param[in] direction Data transfer direction..\n
+ *    direction  = 1:  Output (from master).\n
+ *    direction  = 2:  Input (to master).\n
+ *  \param[in] dataType DataType of ethercat data:\n
+ *                      B1:  1-bit\n
+ *                      B2:  2-bits (lsb)\n
+ *                      B3:  3-bits (lsb)\n
+ *                      B4:  3-bits (lsb)\n
+ *                      U8:  Unsigned 8-bit\n
+ *                      S8:  Signed 8-bit\n
+ *                      U16: Unsigned 16-bit\n
+ *                      S16: Signed 16-bit\n
+ *                      U32: Unsigned 32-bit\n
+ *                      S32: Signed 32-bit\n
+ *                      U64: Unsigned 64-bit\n
+ *                      S64: Signed 64-bit\n
+ *                      F32: Real 32-bit\n 
+ *                      F64: Double 64-bit\n
+ * 
+ *  \param[in] memMapIdString Identification string used for addressing the
+ object.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
+ * entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
+ * argument is excluded in\n
+ * "Cfg.EcAddMemMapDT(10,AI1,200,2,ec0.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddMemMapDT(
+  char    *ecPath,  
+  size_t   byteSize,
+  int      direction,
+  char    *dataType,
+  char    *memMapIDString);
+
+/** \brief Adds a memory map object to access data directly from EtherCAT\n
+ *   domain. Support for this syntax might be dropped in newer releases.\n 
+ *   Please use new syntax.\n
  *
  *  The start of the memory map is addressed by a previously configured
  *  EtherCAT entry and a size.
@@ -173,6 +296,7 @@ int ecAddEntryComplete(
  *  \param[in] direction Data transfer direction..\n
  *    direction  = 1:  Output (from master).\n
  *    direction  = 2:  Input (to master).\n
+ * 
  *  \param[in] entryIDString Identification string used for addressing the
  object.\n
  *
@@ -190,7 +314,7 @@ int ecAddMemMap(
   int      direction,
   char    *memMapIDString);
 
-/** \breif Configure slave DC clock.\n
+/** \brief Configure slave DC clock.\n
  *
  *
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
@@ -222,7 +346,7 @@ int ecSlaveConfigDC(
   uint32_t sync1Cycle,   /**< SYNC1 cycle time [ns]. */
   int32_t  sync1Shift  /**< SYNC1 shift time [ns]. */);
 
-/** \breif Select EtherCAT reference clock.\n
+/** \brief Select EtherCAT reference clock.\n
  *
  *  \param[in] masterIndex Index of master, see command ecSetMaster().\n
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.
@@ -238,7 +362,7 @@ int ecSlaveConfigDC(
 int ecSelectReferenceDC(int masterIndex,
                         int slaveBusPosition);
 
-/** \breif Adds a Service Data Object for writing.
+/** \brief Adds a Service Data Object for writing.
  *
  * Adds a Service Data Object for writing to the sdo registers of EtherCAT
  * slaves. An sdo object will be added to the hardware configuration.
@@ -271,7 +395,68 @@ int ecAddSdo(uint16_t slaveBusPosition,
              uint32_t value,
              int      byteSize);
 
-/** \breif Write to a Service Data Object.
+/** \brief Adds a Service Data Object for writing.
+ *
+ * Adds a Service Data Object for writing to the sdo registers of EtherCAT
+ * slaves. An sdo object will be added to the hardware configuration.
+ * The writing will occur when the hardware configuration is applied.\n
+ *
+ * \note This command can only be used in configuration mode.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in] sdoIndex Index of service data object. Needs to be
+ *                           entered in hex format.\n
+ *  \param[in] valueBuffer Values to be written as hex string, each byte separted with space.\n
+ *  \param[in] byteSize Byte count to write.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave, in the ESI slave description file or by using the etherlab
+ * (www.etherlab.org) ethercat tool.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Write a hex string of data to slave position 2.\n
+ * "Cfg.EcAddSdoComplete(2,0x8010,0A FF CA 01 25 F1,6)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddSdoComplete(uint16_t    slaveBusPosition,
+                     uint16_t    sdoIndex,                     
+                     const char* valueBuffer,
+                     int         byteSize);
+
+/** \brief Adds a Service Data Object for writing.
+ *
+ * Adds a Service Data Object for writing to the sdo registers of EtherCAT
+ * slaves. An sdo object will be added to the hardware configuration.
+ * The writing will occur when the hardware configuration is applied.\n
+ *
+ * \note This command can only be used in configuration mode.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in] sdoIndex Index of service data object. Needs to be
+ *                           entered in hex format.\n
+ *  \param[in] sdoSubIndex Sub index of service data object. Needs to be
+ *                         entered in hex format.\n
+ *  \param[in] valueBuffer Values to be written as hex string, each byte separted with space.\n
+ *  \param[in] byteSize Byte count to write.\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave, in the ESI slave description file or by using the etherlab
+ * (www.etherlab.org) ethercat tool.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Write a hex string of data to slave position 2.\n
+ * "Cfg.EcAddSdoBuffer(2,0x8010,0x1,0A FF CA 01 25 F1,6)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddSdoBuffer(uint16_t    slavePosition,
+                   uint16_t    sdoIndex,
+                   uint8_t     sdoSubIndex,
+                   const char* valueBuffer,
+                   int         byteSize);
+
+/** \brief Write to a Service Data Object.
  *
  * Writing will occur directly when the command is issued.\n
  *
@@ -302,18 +487,18 @@ int ecWriteSdo(uint16_t slavePosition,
                uint32_t value,
                int      byteSize);
 
-/** \breif Write to a Service Data Object.
+/** \brief Write to a Service Data Object.
  *
  * Note: same  as "ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,
  * uint32_t value,int byteSize)" but without subindex. Complete SDO access will be used.
  *
  */
-int ecWriteSdoComplete(uint16_t slavePosition,
+/*int ecWriteSdoComplete(uint16_t slavePosition,
                        uint16_t sdoIndex,
                        uint32_t value,
-                       int      byteSize);
+                       int      byteSize);*/
 
-/** \breif Read a Service Data Object.
+/** \brief Read a Service Data Object.
  *
  * Read will occur directly when the command is issued.\n
  *
@@ -344,7 +529,7 @@ int ecReadSdo(uint16_t  slavePosition,
               int       byteSize,
               uint32_t *value);
 
-/** \breif Verify a Service Data Object.
+/** \brief Verify a Service Data Object.
  *
  * Read will occur directly when the command is issued.\n
  *
@@ -375,7 +560,7 @@ int ecVerifySdo(uint16_t  slavePosition,
                 uint32_t  verValue,
                 int       byteSize);
 
-/** \breif Read SoE \n
+/** \brief Read SoE \n
  *
  * \note This command can only be used in configuration mode.\n
  *
@@ -401,7 +586,7 @@ int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
               size_t    byteSize, /**< Size of data to write. */
               uint8_t  *value /**< Pointer to data to write. */
              );
-/** \breif Write SoE \n
+/** \brief Write SoE \n
  *
  * \note This command can only be used in configuration mode.\n
  *
@@ -428,7 +613,7 @@ int ecWriteSoE(uint16_t  slavePosition, /**< Slave position. */
                uint8_t  *value /**< Pointer to data to write. */
               );
 
-/** \breif Configure Slave watch dog.\n
+/** \brief Configure Slave watch dog.\n
  *
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.
  *                              Note: the slave needs to be equipped
@@ -451,7 +636,7 @@ int ecSlaveConfigWatchDog(int slaveBusPosition,
                           int watchdogDivider,
                           int watchdogIntervals);
 
-/** \breif Apply hardware configuration to master.\n
+/** \brief Apply hardware configuration to master.\n
  *
  * This command needs to be executed before entering runtime.\n
  *
@@ -466,7 +651,7 @@ int ecSlaveConfigWatchDog(int slaveBusPosition,
  */
 int ecApplyConfig(int masterIndex);
 
-/** \breif Writes a value to an EtherCAT entry.\n
+/** \brief Writes a value to an EtherCAT entry.\n
   *
   *  \param[in] slaveIndex Index of order of added slave (not bus position),
   *                        see command EcAddSlave()).\n
@@ -486,7 +671,7 @@ int writeEcEntry(int      slaveIndex,
                  int      entryIndex,
                  uint64_t value);
 
-/** \breif Writes a value to an EtherCAT entry addressed by slaveBusPosition
+/** \brief Writes a value to an EtherCAT entry addressed by slaveBusPosition
  * and entryIdString.\n
   *
   *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
@@ -510,7 +695,7 @@ int writeEcEntryIDString(int      slaveBusPosition,
                          char    *entryIdString,
                          uint64_t value);
 
-/** \breif Read a value from an EtherCAT entry.\n
+/** \brief Read a value from an EtherCAT entry.\n
   *
   *  \param[in] slaveIndex Index of order of added slave (not bus position),
   *                        see command EcAddSlave()).\n
@@ -530,7 +715,7 @@ int readEcEntry(int       slaveIndex,
                 int       entryIndex,
                 uint64_t *value);
 
-/** \breif Read a value from an EtherCAT entry addressed by slaveBusPosition
+/** \brief Read a value from an EtherCAT entry addressed by slaveBusPosition
  *   and entryIdString.\n
   *
   *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
@@ -554,7 +739,7 @@ int readEcEntryIDString(int       slavePosition,
                         char     *entryIDString,
                         uint64_t *value);
 
-/** \breif Read the object Index of an entry addressed by slaveBusPosition
+/** \brief Read the object Index of an entry addressed by slaveBusPosition
  *   and entryIdString.\n
   *
   * The first entry added in a slave will receive index 0, then for each added
@@ -586,7 +771,7 @@ int readEcEntryIndexIDString(int   slavePosition,
                              char *entryIDString,
                              int  *value);
 
-/** \breif Read the object Index of an slave addressed by slaveBusPosition.\n
+/** \brief Read the object Index of an slave addressed by slaveBusPosition.\n
   *
   * The first slave added in will receive index 0, then for each added
   * slave, its index will be incremented by one. This index will be returned by
@@ -611,7 +796,7 @@ int readEcSlaveIndex(int  slavePosition,
                      int *value);
 
 
-/** \breif Read EtherCAT memory map object.
+/** \brief Read EtherCAT memory map object.
  *
  * Fast access of EtherCAT data from EPICS records is possible by linking an
  * EtherCAT memory map to an ASYN parameter. The memory map objects is most
@@ -637,7 +822,7 @@ int readEcMemMap(const char *memMapIDString,
                  size_t      bytesToRead,
                  size_t     *bytesRead);
 
-/** \breif Set update in realtime bit for an entry
+/** \brief Set update in realtime bit for an entry
  *
  * If set to zero the entry will not be updated during realtime operation.\n
  * Useful when accessing data with memory maps instead covering many entries
@@ -662,7 +847,7 @@ int ecSetEntryUpdateInRealtime(
   char    *entryIDString,
   int      updateInRealtime);
 
-/** \breif Enable EtherCAT bus diagnostics.\n
+/** \brief Enable EtherCAT bus diagnostics.\n
   *
   * Diagnostics are made at three different levels:\n
   * 1. Slave level.\n
@@ -682,7 +867,7 @@ int ecSetEntryUpdateInRealtime(
   */
 int ecSetDiagnostics(int enable);
 
-/** \breif Set allowed bus cycles in row of none complete domain
+/** \brief Set allowed bus cycles in row of none complete domain
  * data transfer.\n
  *
  * Allows a certain number of bus cycles of non-complete domain data
@@ -702,7 +887,7 @@ int ecSetDiagnostics(int enable);
   */
 int ecSetDomainFailedCyclesLimit(int cycles);
 
-/** \breif Reset error on all EtherCat objects.\n
+/** \brief Reset error on all EtherCat objects.\n
  *
  * Resets error on the following object types:\n
  * 1. ecmcEc().\n
@@ -719,7 +904,7 @@ int ecSetDomainFailedCyclesLimit(int cycles);
   */
 int ecResetError();
 
-/** \breif Enable diagnostic printouts from EtherCAT objects.\n
+/** \brief Enable diagnostic printouts from EtherCAT objects.\n
  *
  * Enables/Disables diagnostic printouts from:
  * 1. ecmcEc().\n
@@ -738,7 +923,7 @@ int ecResetError();
  */
 int ecEnablePrintouts(int value);
 
-/** \breif Prints all hardware connected to selected master.\n
+/** \brief Prints all hardware connected to selected master.\n
  *
  *
  * \return 0 if success or otherwise an error code.\n
@@ -748,7 +933,7 @@ int ecEnablePrintouts(int value);
  */
 int ecPrintAllHardware();
 
-/** \breif Prints hardware configuration for a selected slave.\n
+/** \brief Prints hardware configuration for a selected slave.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -757,7 +942,7 @@ int ecPrintAllHardware();
  */
 int ecPrintSlaveConfig(int slaveIndex);
 
-/** \breif Links an EtherCAT entry to the ethecat master object for hardware
+/** \brief Links an EtherCAT entry to the ethecat master object for hardware
  *   status output\n
  *
  *  The output will be high when the EtherCAT master is without error code and
@@ -780,7 +965,7 @@ int ecPrintSlaveConfig(int slaveIndex);
 int linkEcEntryToEcStatusOutput(int   slaveIndex,
                                 char *entryIDString);
 
-/** \breif Verfy slave at position
+/** \brief Verfy slave at position
  *
  *  The command verifys that the actual slave at a certain position\
  *  have the correct alias, position, vendor id and product code.\n
