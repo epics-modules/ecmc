@@ -13,6 +13,7 @@
 #define ECMC_PLUGIN_LIB_H_
 
 #include "../main/ecmcError.h"
+#include "ecmcPluginDefs.h"
 
 #define ERROR_PLUGIN_FLIE_NOT_FOUND 0x231000
 #define ERROR_PLUGIN_OPEN_FAIL 0x231001
@@ -26,6 +27,7 @@ class ecmcPluginLib : public ecmcError {
   explicit ecmcPluginLib();
   ~ecmcPluginLib();
   int   loadLib(const char* libFilenameWP);
+  void  unloadLib();
  private:
   void   initVars();
   const char* libFilenameWP_;

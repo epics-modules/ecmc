@@ -36,7 +36,7 @@ void ecmcPluginLib::initVars() {
 int ecmcPluginLib::loadLib(const char* libFilenameWP) {
   libFilenameWP_ = libFilenameWP;
   //Ensure that file exist
-  if(access( Filename.c_str(), 0 ) != 0){
+  if(access( libFilenameWP, 0 ) != 0){
     LOGERR("%s/%s:%d: Error: Plugin %s: File not found (0x%x) .\n",
            __FILE__, __FUNCTION__, __LINE__,
            libFilenameWP_,ERROR_PLUGIN_FLIE_NOT_FOUND);
@@ -47,14 +47,14 @@ int ecmcPluginLib::loadLib(const char* libFilenameWP) {
   
   if ((dlHandle_ = dlopen(libFilenameWP_, RTLD_NOW)) == NULL) {
     LOGERR("%s/%s:%d: Error: Plugin %s: Open failed with error: %s (0x%x).\n",
-           __FILE__, __FUNCTION__, __LINE_, libFilenameWP_, dlerror(),
+           __FILE__, __FUNCTION__, __LINE__, libFilenameWP_, dlerror(),
            ERROR_PLUGIN_OPEN_FAIL);
     return setErrorID(ERROR_PLUGIN_OPEN_FAIL);
   }
 
-  if ( (getDataFunc_ = dlsym(dlHandle_, "_plugin_get_data")) == NULL) {
+  if ( (getDataFunc_ = (ecmcPluginData*)dlsym(dlHandle_, "_plugin_get_data")) == NULL) {
     LOGERR("%s/%s:%d: Error: Plugin %s: GetDataFunc failed with error: %s (0x%x).\n",
-           __FILE__, __FUNCTION__, __LINE_, libFilenameWP_, dlerror(),
+           __FILE__, __FUNCTION__, __LINE__, libFilenameWP_, dlerror(),
            ERROR_PLUGIN_GET_DATA_FUNC_FAIL);
     dlclose(dlHandle_);
     return setErrorID(ERROR_PLUGIN_GET_DATA_FUNC_FAIL);
@@ -62,7 +62,7 @@ int ecmcPluginLib::loadLib(const char* libFilenameWP) {
 
   if ( (data_ = getDataFunc_()) == NULL) {
      LOGERR("%s/%s:%d: Error: Plugin %s: Get data failed with error (0x%x).\n",
-           __FILE__, __FUNCTION__, __LINE_, libFilenameWP_,
+           __FILE__, __FUNCTION__, __LINE__, libFilenameWP_,
            ERROR_PLUGIN_GET_DATA_FAIL);
     dlclose(dlHandle_);
     return setErrorID(ERROR_PLUGIN_GET_DATA_FAIL);
@@ -70,7 +70,7 @@ int ecmcPluginLib::loadLib(const char* libFilenameWP) {
 
   if (data_->ifVer != ECMC_PLUG_VERSION_MAGIC) {
     LOGERR("%s/%s:%d: Error: Plugin %s: Interface version missmatch (%d!=%d) (0x%x).\n",
-           __FILE__, __FUNCTION__, __LINE_, libFilenameWP_, ECMC_PLUG_VERSION_MAGIC,
+           __FILE__, __FUNCTION__, __LINE__, libFilenameWP_, ECMC_PLUG_VERSION_MAGIC,
            data->ifVer,ERROR_PLUGIN_VERSION_MISSMATCH);
     dlclose(dlHandle_);
     return setErrorID(ERROR_PLUGIN_VERSION_MISSMATCH);
@@ -78,12 +78,12 @@ int ecmcPluginLib::loadLib(const char* libFilenameWP) {
  
   if (data_->libName == NULL || strlen(data_->libName) == 0) {
     LOGERR("%s/%s:%d: Error: Plugin %s: Name undefinded in data (0x%x).\n",
-           __FILE__, __FUNCTION__, __LINE_, libFilenameWP_,
+           __FILE__, __FUNCTION__, __LINE__, libFilenameWP_,
            ERROR_PLUGIN_LIB_NAME_UNDEFINED);
     dlclose(dlHandle_);
     return setErrorID(ERROR_PLUGIN_LIB_NAME_UNDEFINED);
   }
-  
+
   // Module loaded
   return 0;
 }
