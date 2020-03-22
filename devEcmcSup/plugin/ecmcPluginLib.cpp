@@ -97,11 +97,13 @@ int ecmcPluginLib::load(const char* libFilenameWP) {
   LOGINFO4("%s/%s:%d: Info: Plugin %s: Loaded.\n",
            __FILE__, __FUNCTION__, __LINE__, libFilenameWP_);
  
-  // call funcs
+  // call constructor with dummy sofar
   int dummy=1;
-  data_->constructFnc((void*)&dummy);
-  data_->realtimeFnc(dummy);
-  data_->destructFnc();
+  if(data_->constructFnc) {
+    data_->constructFnc((void*)&dummy);
+  }
+  //data_->realtimeFnc(dummy);
+  //data_->destructFnc();
   report();
   return 0;
 }
