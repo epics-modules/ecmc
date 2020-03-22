@@ -188,3 +188,7 @@ void ecmcPluginLib::report() {
   }
   printf("\n");
 }
+
+ecmcPluginData *ecmcPluginLib::getData() {
+  return data_;
+}

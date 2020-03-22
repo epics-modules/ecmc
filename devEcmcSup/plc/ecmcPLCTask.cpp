@@ -61,6 +61,10 @@ void ecmcPLCTask::initVars() {
     globalArray_[i]      = NULL;
     localArray_[i]       = NULL;
   }
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
+    plugins_[i] = 0;
+    libPluginsLoaded_[i] = 0;
+  }
   firstScanDone_       = 0;
   libMcLoaded_         = 0;
   libEcLoaded_         = 0;
@@ -516,9 +520,20 @@ int ecmcPLCTask::parseFunctions(const char *exprStr) {
   if (!libFileIOLoaded_) {
     if (findFileIOFunction(exprStr)) {
       errorCode = loadFileIOLib();
-
       if (errorCode) {
         return errorCode;
+      }
+    }
+  }
+
+  for(int i = 0; i < ECMC_MAX_PLUGINS; ++i) {
+    if(!libPluginsLoaded_[i]) {
+      if (findPluginFunction(plugins_[i] ,exprStr)) {
+        errorCode = loadPluginLib(plugins_[i]);
+        if (errorCode) {
+          return errorCode;
+        }
+        libPluginsLoaded_[i]=1;
       }
     }
   }
@@ -560,6 +575,82 @@ bool ecmcPLCTask::findFileIOFunction(const char *exprStr) {
     }
   }
   return false;
+}
+
+bool ecmcPLCTask::findPluginFunction(ecmcPluginLib* plugin, const char *exprStr){
+
+ if(!plugin){
+    return 0;
+  }
+  ecmcPluginData *data = plugin->getData(); 
+  if(data == NULL){
+    return 0;
+  }
+  // Loop funcs[]
+  for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
+
+    if(!data->funcs[i].funcName || 
+        strlen(data->funcs[i].funcName) == 0 ||
+        data->funcs[i].argCount < 0 || 
+        data->funcs[i].argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+      break;
+    }
+
+    if (strstr(exprStr, data->funcs[i].funcName)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+int ecmcPLCTask::loadPluginLib(ecmcPluginLib* plugin){
+  int errorCode = 0;
+  int cmdCounter = 0;
+
+  if(!plugin){
+    return 0;
+  }
+  ecmcPluginData *data = plugin->getData(); 
+  if(data == NULL){
+    return 0;
+  }
+
+  for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
+    if(!data->funcs[i].funcName || 
+        strlen(data->funcs[i].funcName) == 0 ||
+        data->funcs[i].argCount < 0 || 
+        data->funcs[i].argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+      break;
+    }
+    switch(data->funcs[i].argCount) {
+      case 0:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg0);
+        break;
+      case 1:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg1);
+        break;
+      case 2:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg2);
+        break;
+      case 3:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg3);
+        break;
+      case 4:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg4);
+        break;
+      case 5:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg5);
+        break;
+      case 6:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg6);
+        break;
+      default:
+        break;
+    }
+  }
+
+  return 0;
 }
 
 int ecmcPLCTask::loadEcLib() {
@@ -788,4 +879,14 @@ int ecmcPLCTask::initAsyn(int plcIndex) {
 
 void ecmcPLCTask::updateAsyn() {
   asynParamExpr_->refreshParam(1,(uint8_t*)exprStr_.c_str(),strlen(exprStr_.c_str()));
+}
+
+int ecmcPLCTask::setPluginPointer(ecmcPluginLib *plugin, int index) {
+  
+  if(index < 0 && index >= ECMC_MAX_PLUGINS) {
+    return ERROR_PLC_PLUGIN_INDEX_OUT_OF_RANGE;
+  }
+
+  plugins_[index] = plugin;
+  return 0;
 }

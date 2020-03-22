@@ -29,6 +29,7 @@ class ecmcPluginLib : public ecmcError {
   int  load(const char* libFilenameWP);
   void unload();
   void report();
+  ecmcPluginData *getData();
  private:
   void  initVars();
   const char* libFilenameWP_;

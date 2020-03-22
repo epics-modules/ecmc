@@ -49,6 +49,11 @@ void ecmcPLCMain::initVars() {
   for (int i = 0; i < ECMC_MAX_PLC_VARIABLES; i++) {
     globalDataArray_[i] = 0;
   }
+
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
+    plugins_[i] = 0;
+  }
+
   asynPortDriver_ = NULL;
   ec_ = NULL;
   ecStatus_ = NULL;
@@ -86,6 +91,11 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
   // Set data storage pointers
   for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
     plcs_[plcIndex]->setDataStoragePointer(ds_[i], i);
+  }
+
+  // Set plugin pointers
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
+    plcs_[plcIndex]->setPluginPointer(plugins_[i], i);
   }
 
   // Set ec pointer
@@ -1291,5 +1301,15 @@ int ecmcPLCMain::addPLCDefaultVariable(int plcIndex, const char *suffix, ecmcPLC
                       __LINE__,
                       ERROR_PLC_DATA_IF_ALLOCATION_FAILED);
   }
+  return 0;
+}
+
+int ecmcPLCMain::setPluginPointer(ecmcPluginLib *plugin, int index) {
+  
+  if(index < 0 && index >= ECMC_MAX_PLUGINS) {
+    return ERROR_PLCS_PLUGIN_INDEX_OUT_OF_RANGE;
+  }
+
+  plugins_[index] = plugin;
   return 0;
 }

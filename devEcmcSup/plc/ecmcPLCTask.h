@@ -21,6 +21,7 @@
 #include "../motion/ecmcAxisBase.h"
 #include "../ethercat/ecmcEc.h"
 #include "../ethercat/ecmcEcEntry.h"  // Bit macros
+#include "../plugin/ecmcPluginLib.h"
 #include "ecmcPLCDataIF.h"
 
 #define ECMC_MAX_PLC_VARIABLES 1024
@@ -41,6 +42,8 @@
 #define ERROR_PLC_VARIABLE_NOT_FOUND 0x2050C
 #define ERROR_PLC_ADD_VARIABLE_FAIL 0x2050D
 #define ERROR_PLC_VARIABLE_NAME_TO_LONG 0x2050E
+#define ERROR_PLC_PLUGIN_INDEX_OUT_OF_RANGE 0x2050F
+
 
 class ecmcPLCTask : public ecmcError {
  public:
@@ -65,6 +68,8 @@ class ecmcPLCTask : public ecmcError {
                                    int           index);
   int          setDataStoragePointer(ecmcDataStorage *ds,
                                      int              index);
+  int          setPluginPointer(ecmcPluginLib *plugin, 
+                                int            index);
   int          setEcPointer(ecmcEc *ec);
   int          parseFunctions(const char *exprStr);
   int          getFirstScanDone();
@@ -92,10 +97,12 @@ class ecmcPLCTask : public ecmcError {
   bool findEcFunction(const char *exprStr);
   bool findDsFunction(const char *exprStr);
   bool findFileIOFunction(const char *exprStr);
+  bool findPluginFunction(ecmcPluginLib* plugin, const char *exprStr);
   int  loadMcLib();
   int  loadEcLib();
   int  loadDsLib();
   int  loadFileIOLib();
+  int  loadPluginLib(ecmcPluginLib* plugin);
   std::string exprStr_;
   std::string exprStrRaw_; //Before compile and preprocess
   bool compiled_;
@@ -114,10 +121,13 @@ class ecmcPLCTask : public ecmcError {
   int libEcLoaded_;
   int libDsLoaded_;
   int libFileIOLoaded_;
+  int libPluginsLoaded_[ECMC_MAX_PLUGINS];
+  
   ecmcAsynPortDriver *asynPortDriver_;
   int newExpr_;
   ecmcAsynDataItem   *asynParamExpr_;
   double mcuFreq_;
+  ecmcPluginLib      *plugins_[ECMC_MAX_PLUGINS];
 };
 
 #endif  /* ECMC_PLC_TASK_H_ */

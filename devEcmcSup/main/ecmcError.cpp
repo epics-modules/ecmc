@@ -1994,6 +1994,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2050F:
+    return "ERROR_PLC_PLUGIN_INDEX_OUT_OF_RANGE";
+
+    break;
+
   case 0x20600:   // ecmcPLCDataIF
     return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
 
@@ -2096,6 +2101,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x20708:
     return "ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED";
+
+    break;
+  case 0x20709:
+    return "ERROR_PLCS_PLUGIN_INDEX_OUT_OF_RANGE";
 
     break;
 
