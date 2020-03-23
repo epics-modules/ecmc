@@ -551,9 +551,8 @@ int setAppModeRun(int mode) {
 
   // Plugins
   // populate pluginDataRefs
-  pluginDataRefs.ec = ec;
+  pluginDataRefs.ecmcAsynPort = asynPort;
   pluginDataRefs.sampleTimeMS = 1 / mcuFrequency;
-
   for(int i=0; i < ECMC_MAX_PLUGINS; ++i) {
     if(plugins[i]) {
       errorCode = plugins[i]->exeEnterRTFunc(&pluginDataRefs);

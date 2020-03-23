@@ -39,6 +39,7 @@
 #include "../main/gitversion.h"
 #include "ecmcOctetIF.h"
 #include "ecmcCmdParser.h"
+#include "../com/ecmcAsynPortDriverUtils.h"
 
 #include "../main/ecmcMainThread.h"
 #include "../ethercat/ecmcEthercat.h"

@@ -13,6 +13,8 @@
 
 #include "../com/ecmcAsynDataItem.h"
 #include "../com/ecmcAsynPortDriver.h"
+#include "../main/ecmcDefinitions.h"
+#include "ecmcOctetIF.h"  //LOG macros
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 

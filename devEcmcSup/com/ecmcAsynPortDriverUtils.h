@@ -12,15 +12,13 @@
 
 #ifndef ECMC_ASYN_PORT_DRIVER_UTILS_H_
 #define ECMC_ASYN_PORT_DRIVER_UTILS_H_
-
+#include "ecmcDefinitions.h"
+#include "ecmcErrorsList.h"
 #include "asynPortDriver.h"  //data types
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <limits>
 #include <cmath>
-
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcErrorsList.h"
 
 #define ECMC_MAX_FIELD_CHAR_LENGTH 128
 

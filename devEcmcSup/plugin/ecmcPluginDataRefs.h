@@ -13,12 +13,12 @@
 #ifndef ECMC_PLUGIN_DATA_REFS_H_
 #define ECMC_PLUGIN_DATA_REFS_H_
 
-#include "../ethercat/ecmcEc.h"
+#include "ecmcAsynPortDriver.h"
 
 // Structure for making ecmc objects available in plugins
 struct ecmcPluginDataRefs {
   double sampleTimeMS;
-  ecmcEc *ec;
+  ecmcAsynPortDriver *ecmcAsynPort;
 };
 
 #endif  /* ECMC_PLUGIN_DATA_REFS_H_ */

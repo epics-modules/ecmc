@@ -15,10 +15,8 @@
 
 #include <bits/stdc++.h> 
 #include "inttypes.h"
-#include "../main/ecmcDefinitions.h"
 #include "ecmcAsynPortDriverUtils.h"
 #include "asynPortDriver.h"
-#include "ecmcOctetIF.h"  //LOG macros
 
 #define ERROR_ASYN_PORT_NULL 0x220000
 #define ERROR_ASYN_DATA_NULL 0x220001
