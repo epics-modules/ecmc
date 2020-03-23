@@ -218,8 +218,8 @@ void ecmcPluginLib::exeEnterRTFunc() {
     return;
   }
 
-  if(data_->enterRealTimeFnc) {
-    data_->enterRealTimeFnc((void*)&dummyDataForRTFunc_);
+  if(data_->realtimeEnterFnc) {
+    data_->realtimeEnterFnc((void*)&dummyDataForRTFunc_);
   }
 }
 
@@ -228,7 +228,7 @@ void ecmcPluginLib::exeExitRTFunc() {
     return;
   }
 
-  if(data_->exitRealTimeFnc) {
-    data_->exitRealTimeFnc();
+  if(data_->realtimeExitFnc) {
+    data_->realtimeExitFnc();
   }
 }
