@@ -97,13 +97,11 @@ int ecmcPluginLib::load(const char* libFilenameWP) {
   LOGINFO4("%s/%s:%d: Info: Plugin %s: Loaded.\n",
            __FILE__, __FUNCTION__, __LINE__, libFilenameWP_);
  
-  // call constructor with dummy sofar
-  int dummy=1;
+  // Call constructor
   if(data_->constructFnc) {
-    data_->constructFnc((void*)&dummy);
+    data_->constructFnc();
   }
-  //data_->realtimeFnc(dummy);
-  //data_->destructFnc();
+
   report();
   return 0;
 }
@@ -191,4 +189,46 @@ void ecmcPluginLib::report() {
 
 ecmcPluginData *ecmcPluginLib::getData() {
   return data_;
+}
+
+int ecmcPluginLib::exeRTFunc(int ecmcErrorCode) {
+  if(!loaded_ || !data_) {
+    return 0;
+  }
+
+  if(data_->realtimeFnc) {
+    return data_->realtimeFnc(ecmcErrorCode);
+  }
+
+  return 0;
+}
+
+void ecmcPluginLib::exeDestructFunc() {
+  if(!loaded_ || !data_) {
+    return;
+  }
+
+  if(data_->destructFnc) {
+    data_->destructFnc();
+  }
+}
+
+void ecmcPluginLib::exeEnterRTFunc() {
+  if(!loaded_ || !data_) {
+    return;
+  }
+
+  if(data_->enterRealTimeFnc) {
+    data_->enterRealTimeFnc((void*)&dummyDataForRTFunc_);
+  }
+}
+
+void ecmcPluginLib::exeExitRTFunc() {
+  if(!loaded_ || !data_) {
+    return;
+  }
+
+  if(data_->exitRealTimeFnc) {
+    data_->exitRealTimeFnc();
+  }
 }

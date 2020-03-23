@@ -48,10 +48,14 @@ struct ecmcPluginData {
   // ECMC_PLUG_VERSION_MAGIC
   int ifVersion;
   // Optional construct func, called once at load
-  int (*constructFnc)(void*);
+  int (*constructFnc)(void);
   // Optional destruct func, called once at unload
   void (*destructFnc)(void);
-  // Optional func that will be called each realtime cycle.
+  // Optional func that will be called once just before enter realtime mode
+  int (*enterRealTimeFnc)(void*);
+  // Optional func that will be called once just before exit realtime mode
+  int (*exitRealTimeFnc)(void);
+  // Optional func that will be called each realtime cycle
   int (*realtimeFnc)(int);
   // Allow max ECMC_PLUGIN_MAX_FUNC_COUNT custom funcs
   struct ecmcOnePlcFunc funcs[ECMC_PLUGIN_MAX_PLC_FUNC_COUNT];

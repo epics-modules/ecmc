@@ -76,6 +76,20 @@ int getControllerError() {
     }
   }
 
+  // Plugin objects
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
+    if (plugins[i]) {
+      if (plugins[i]->getError()) {
+        return plugins[i]->getErrorID();
+      }
+    }
+  }
+
+  // Plugin RTfunc retrun errors
+  if(pluginsError) {
+    return pluginsError;
+  }
+
   return 0;
 }
 
@@ -119,6 +133,16 @@ int controllerErrorReset() {
       axes[i]->errorReset();
     }
   }
+
+  // Plugin objects
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
+    if (plugins[i]) {
+      plugins[i]->errorReset();
+    }
+  }
+
+  // Plugin RTfunc retrun errors
+  pluginsError = 0;
 
   // PLCs
   if (plcs) {

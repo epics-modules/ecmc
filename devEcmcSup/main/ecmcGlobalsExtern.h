@@ -57,4 +57,5 @@ extern int                        ecTimeoutSeconds;
 extern double                     mcuFrequency;
 extern double                     mcuPeriod;
 extern int                        sampleRateChangeAllowed;
+extern int                        pluginsError;
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */

@@ -324,6 +324,13 @@ void cyclic_task(void *usr) {
       }
     }
 
+    // Plugins
+    for (i = 0; i < ECMC_MAX_PLUGINS; i++) {
+      if (plugins[i] != NULL) {
+        pluginsError=plugins[i]->exeRTFunc(controllerError);
+      }
+    }
+
     // PLCs
     if (plcs) {
       plcs->execute(ecStat);
@@ -484,8 +491,18 @@ int startRTthread() {
 
 int setAppModeCfg(int mode) {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
+
+  
   appModeCmdOld = appModeCmd;
   appModeCmd    = (app_mode_type)mode;
+  
+  if(appModeCmd == ECMC_MODE_CONFIG && appModeCmdOld==ECMC_MODE_RUNTIME) {
+    for(int i=0; i < ECMC_MAX_PLUGINS; ++i) {
+      if(plugins[i]) {
+        plugins[i]->exeExitRTFunc();
+      }
+    }
+  }
 
   if (asynPort) {
     asynPort->setAllowRtThreadCom(false);
@@ -527,9 +544,15 @@ int setAppModeRun(int mode) {
   }
 
   int errorCode = validateConfig();
-
   if (errorCode) {
     return errorCode;
+  }
+
+  // Plugins
+  for(int i=0; i < ECMC_MAX_PLUGINS; ++i) {
+    if(plugins[i]) {
+      plugins[i]->exeEnterRTFunc();
+    }
   }
 
   clock_gettime(CLOCK_MONOTONIC, &masterActivationTimeMonotonic);

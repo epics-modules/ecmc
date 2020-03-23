@@ -263,6 +263,14 @@ void ecmcCleanup() {
     commandLists[i] = NULL;
   }
 
+  for(int i = 0;i < ECMC_MAX_PLUGINS; i++) {
+    if(plugins[i]) {
+      plugins[i]->exeDestructFunc();      
+    }
+    delete plugins[i];
+    plugins[i] = NULL;
+  }
+
   delete ec;
   ec = NULL;
 }

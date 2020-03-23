@@ -30,6 +30,10 @@ class ecmcPluginLib : public ecmcError {
   void unload();
   void report();
   ecmcPluginData *getData();
+  int  exeRTFunc(int ecmcErrorCode);
+  void exeDestructFunc();
+  void exeEnterRTFunc();
+  void exeExitRTFunc();
  private:
   void  initVars();
   const char* libFilenameWP_;
@@ -37,6 +41,7 @@ class ecmcPluginLib : public ecmcError {
   struct ecmcPluginData *(*getDataFunc_)(void);
   struct ecmcPluginData *data_;
   int loaded_;
+  int dummyDataForRTFunc_;
 };
 
 #endif  /* ECMC_PLUGIN_LIB_H_ */
