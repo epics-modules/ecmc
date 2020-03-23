@@ -50,7 +50,7 @@ struct ecmcPluginData {
   // Optional construct func, called once at load
   int (*constructFnc)(void);
   // Optional destruct func, called once at unload
-  void (*destructFnc)(void);
+  int (*destructFnc)(void);
   // Optional func that will be called once just before enter realtime mode
   int (*realtimeEnterFnc)(void*);
   // Optional func that will be called once just before exit realtime mode

@@ -20,8 +20,10 @@
 int getControllerError() {
 
   // EtherCAT errors
-  if (ec->getError()) {
-    return ec->getErrorID();
+  if(ec->getInitDone()) {
+    if (ec->getError()) {
+     return ec->getErrorID();
+    }
   }
 
   // Event errors

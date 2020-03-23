@@ -26,6 +26,7 @@
 #include "../ethercat/ecmcEthercat.h"
 #include "../motor/ecmcMotorRecordController.h"
 #include "../plugin/ecmcPluginLib.h"
+#include "../plugin/ecmcPluginDataRefs.h"
 #include "epicsMutex.h"
 
 extern ecmcAxisBase              *axes[ECMC_MAX_AXES];
@@ -41,6 +42,7 @@ extern ecmcMainThreadDiag         threadDiag;
 extern app_mode_type              appModeCmd, appModeCmdOld, appModeStat;
 extern ecmcMotorRecordController *asynPortMotorRecord;
 extern ecmcPluginLib             *plugins[ECMC_MAX_PLUGINS];
+extern ecmcPluginDataRefs         pluginDataRefs;
 
 // Mutex for motor record access
 extern epicsMutexId               ecmcRTMutex;

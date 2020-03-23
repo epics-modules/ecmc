@@ -474,13 +474,11 @@ int startRTthread() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   int prio = ECMC_PRIO_HIGH;
 
-  //if (rtThreadCreate(ECMC_RT_THREAD_NAME, prio, ECMC_STACK_SIZE, cyclic_task, NULL) == NULL) {
   if(epicsThreadCreate(ECMC_RT_THREAD_NAME, prio, ECMC_STACK_SIZE, cyclic_task, NULL) == NULL) {
   
     LOGERR(
       "ERROR: Can't create high priority thread, fallback to low priority\n");
     prio = ECMC_PRIO_LOW;
-    //assert(rtThreadCreate(ECMC_RT_THREAD_NAME, prio, ECMC_STACK_SIZE, cyclic_task, NULL) != NULL);
     assert(epicsThreadCreate(ECMC_RT_THREAD_NAME, prio, ECMC_STACK_SIZE, cyclic_task, NULL) != NULL);    
   } else {
     LOGINFO4("INFO:\t\tCreated high priority thread for cyclic task\n");
@@ -499,7 +497,10 @@ int setAppModeCfg(int mode) {
   if(appModeCmd == ECMC_MODE_CONFIG && appModeCmdOld==ECMC_MODE_RUNTIME) {
     for(int i=0; i < ECMC_MAX_PLUGINS; ++i) {
       if(plugins[i]) {
-        plugins[i]->exeExitRTFunc();
+        int errorCode = plugins[i]->exeExitRTFunc();
+        if(errorCode) {
+          return errorCode;
+        }
       }
     }
   }
@@ -549,9 +550,16 @@ int setAppModeRun(int mode) {
   }
 
   // Plugins
+  // populate pluginDataRefs
+  pluginDataRefs.ec = ec;
+  pluginDataRefs.sampleTimeMS = 1 / mcuFrequency;
+
   for(int i=0; i < ECMC_MAX_PLUGINS; ++i) {
     if(plugins[i]) {
-      plugins[i]->exeEnterRTFunc();
+      errorCode = plugins[i]->exeEnterRTFunc(&pluginDataRefs);
+      if(errorCode){
+        return errorCode;
+      }
     }
   }
 
