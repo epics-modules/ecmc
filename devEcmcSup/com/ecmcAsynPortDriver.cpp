@@ -36,16 +36,17 @@
 #include <alarm.h>
 
 #include "ecmcAsynPortDriver.h"
-#include "../main/gitversion.h"
 #include "ecmcOctetIF.h"
 #include "ecmcCmdParser.h"
-#include "../com/ecmcAsynPortDriverUtils.h"
+#include "../main/gitversion.h"
+#include "ecmcAsynPortDriverUtils.h"
 
 #include "../main/ecmcMainThread.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../main/ecmcGeneral.h"
-#include "../com/ecmcCom.h"
-#include "exprtkWrap.h"
+#include "ecmcCom.h"
+
+#include "exprtkWrap.h"  //Other module
 
 static const char *driverName = "ecmcAsynPortDriver";
 

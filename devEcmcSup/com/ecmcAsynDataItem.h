@@ -15,7 +15,12 @@
 
 #include <bits/stdc++.h> 
 #include "inttypes.h"
+
+#ifndef ECMC_IS_PLUGIN
+#include "../com/ecmcAsynPortDriverUtils.h"
+#else
 #include "ecmcAsynPortDriverUtils.h"
+#endif
 #include "asynPortDriver.h"
 
 #define ERROR_ASYN_PORT_NULL 0x220000

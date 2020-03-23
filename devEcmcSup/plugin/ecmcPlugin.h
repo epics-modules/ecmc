@@ -14,9 +14,7 @@
 #define ECMC_PLUGIN_H_
 
 #include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
 #include "../main/ecmcDefinitions.h"
-
 
 # ifdef __cplusplus
 extern "C" {
@@ -31,7 +29,6 @@ extern "C" {
  *
  * \note Example: Create PLC at index 0 (executing every 10th cycle).\n
  *  "Cfg.LoadPlugin(./ecmcExampleLip.so)" //Command string to ecmcCmdParser.c\n
- *
  */
 int loadPlugin(const char* filenameWP);
 

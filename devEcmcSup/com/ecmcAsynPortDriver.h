@@ -16,7 +16,12 @@
 #include "asynPortDriver.h"
 #include <epicsEvent.h>
 #include <epicsTime.h>
+
+#ifndef ECMC_IS_PLUGIN
+#include "../com/ecmcAsynDataItem.h"
+#else
 #include "ecmcAsynDataItem.h"
+#endif
 
 class ecmcAsynPortDriver : public asynPortDriver {
  public:
