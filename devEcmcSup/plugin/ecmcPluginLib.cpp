@@ -165,7 +165,9 @@ void ecmcPluginLib::report() {
     }
     
     printf("    funcs[%d]:\n",i);
-    printf("      Name       = %s\n",data_->funcs[i].funcName);
+    printf("      Name       = %s, (%s)\n",
+           data_->funcs[i].funcName,
+           data_->funcs[i].funcDesc);
     printf("      Arg count  = %d\n",data_->funcs[i].argCount);
     switch(data_->funcs[i].argCount) {
       case 0:
@@ -192,6 +194,17 @@ void ecmcPluginLib::report() {
       default:
         break;
     }
+  }
+  printf("  Plc constants:\n");
+  for(int i=0;i<ECMC_PLUGIN_MAX_PLC_CONST_COUNT;++i){
+    if(!data_->consts[i].constName || 
+        strlen(data_->consts[i].constName) == 0){
+      break;
+    }
+    printf("      const[%d] \"%s\" = %lf, (%s)\n",i,
+          data_->consts[i].constName,
+          data_->consts[i].constValue,
+          data_->consts[i].constDesc);    
   }
   printf("\n");
 }

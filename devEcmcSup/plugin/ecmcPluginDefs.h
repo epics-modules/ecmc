@@ -13,9 +13,10 @@
 #define ECMC_PLUGIN_DEFS_H_
 
 #define ECMC_PLUGIN_MAX_PLC_FUNC_COUNT 32
+#define ECMC_PLUGIN_MAX_PLC_CONST_COUNT 64
 #define ECMC_PLUGIN_MAX_PLC_ARG_COUNT 6
 #define ECMC_PLUG_VER_MAJOR 0
-#define ECMC_PLUG_VER_MINOR 1
+#define ECMC_PLUG_VER_MINOR 2
 #define ECMC_PLUG_VER_PATCH 0
 #define ECMC_PLUG_VERSION(a, b, c) (((a) << 16) + ((b) << 8) + (c))
 #define ECMC_PLUG_VERSION_MAGIC ECMC_PLUG_VERSION(ECMC_PLUG_VER_MAJOR, ECMC_PLUG_VER_MINOR, ECMC_PLUG_VER_PATCH)
@@ -24,6 +25,8 @@
 struct ecmcOnePlcFunc {
   // Function name (this is the name you use in ecmc plc-code)
   const char *funcName;
+  // Function description
+  const char *funcDesc;
   // Number of arguments in the function prototytpe
   int argCount;
   /**
@@ -38,6 +41,13 @@ struct ecmcOnePlcFunc {
   double (*funcArg4)(double,double,double,double);
   double (*funcArg5)(double,double,double,double,double);
   double (*funcArg6)(double,double,double,double,double,double);
+};
+
+// Structure for defining one custom plc constant
+struct ecmcOnePlcConst{
+  const char *constName;
+  const char *constDesc;
+  double      constValue;
 };
 
 struct ecmcPluginData {
@@ -57,8 +67,10 @@ struct ecmcPluginData {
   int (*realtimeExitFnc)(void);
   // Optional func that will be called each realtime cycle
   int (*realtimeFnc)(int);
-  // Allow max ECMC_PLUGIN_MAX_FUNC_COUNT custom funcs
-  struct ecmcOnePlcFunc funcs[ECMC_PLUGIN_MAX_PLC_FUNC_COUNT];
+  // Allow max ECMC_PLUGIN_MAX_FUNC_COUNT custom functions
+  struct ecmcOnePlcFunc  funcs[ECMC_PLUGIN_MAX_PLC_FUNC_COUNT];
+  // Allow max ECMC_PLUGIN_MAX_PLC_CONST_COUNT custom constants
+  struct ecmcOnePlcConst consts[ECMC_PLUGIN_MAX_PLC_CONST_COUNT];
 };
 
 #define ecmc_plugin_register(pluginData)             \
