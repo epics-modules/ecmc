@@ -145,14 +145,16 @@ void ecmcPluginLib::report() {
   }
 
   printf("Plugin info: \n");
-  printf("  Name           = %s\n",data_->name);
-  printf("  Version        = %d\n",data_->version);
-  printf("  If version     = %d (ecmc = %d)\n",
+  printf("  Name                 = %s\n",data_->name);
+  printf("  Version              = %d\n",data_->version);
+  printf("  Interface version    = %d (ecmc = %d)\n",
         data_->ifVersion, ECMC_PLUG_VERSION_MAGIC);
-  printf("  Construct func = @%p\n",data_->constructFnc);
-  printf("  Destruct func  = @%p\n",data_->destructFnc);
-  printf("  Realtime func  = @%p\n",data_->realtimeFnc);
-  printf("  dlhandle       = @%p\n",dlHandle_);
+  printf("  Construct func       = @%p\n",data_->constructFnc);
+  printf("  Enter realtime func  = @%p\n",data_->realtimeEnterFnc);
+  printf("  Exit realtime func   = @%p\n",data_->realtimeExitFnc);
+  printf("  Realtime func        = @%p\n",data_->realtimeFnc);
+  printf("  Destruct func        = @%p\n",data_->destructFnc);
+  printf("  dlhandle             = @%p\n",dlHandle_);
   printf("  Plc functions:\n");
   // Loop funcs[]
   for(int i=0;i<ECMC_PLUGIN_MAX_PLC_FUNC_COUNT;++i){
@@ -164,8 +166,8 @@ void ecmcPluginLib::report() {
       break;
     }
     
-    printf("    funcs[%d]:\n",i);
-    printf("      Name       = %s, (%s)\n",
+    printf("    funcs[%02d]:\n",i);
+    printf("      Name       = %s : %s\n",
            data_->funcs[i].funcName,
            data_->funcs[i].funcDesc);
     printf("      Arg count  = %d\n",data_->funcs[i].argCount);
@@ -201,7 +203,7 @@ void ecmcPluginLib::report() {
         strlen(data_->consts[i].constName) == 0){
       break;
     }
-    printf("      const[%d] \"%s\" = %lf, (%s)\n",i,
+    printf("      const[%02d] \"%s\" = %3.3lf : %s\n",i,
           data_->consts[i].constName,
           data_->consts[i].constValue,
           data_->consts[i].constDesc);    

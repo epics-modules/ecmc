@@ -98,6 +98,7 @@ class ecmcPLCTask : public ecmcError {
   bool findDsFunction(const char *exprStr);
   bool findFileIOFunction(const char *exprStr);
   bool findPluginFunction(ecmcPluginLib* plugin, const char *exprStr);
+  bool findPluginConstant(ecmcPluginLib* plugin, const char *exprStr);
   int  loadMcLib();
   int  loadEcLib();
   int  loadDsLib();

@@ -528,7 +528,8 @@ int ecmcPLCTask::parseFunctions(const char *exprStr) {
 
   for(int i = 0; i < ECMC_MAX_PLUGINS; ++i) {
     if(!libPluginsLoaded_[i]) {
-      if (findPluginFunction(plugins_[i] ,exprStr)) {
+      if (findPluginFunction(plugins_[i] ,exprStr) || 
+          findPluginConstant(plugins_[i] ,exprStr) ) {
         errorCode = loadPluginLib(plugins_[i]);
         if (errorCode) {
           return errorCode;
@@ -604,6 +605,31 @@ bool ecmcPLCTask::findPluginFunction(ecmcPluginLib* plugin, const char *exprStr)
   return false;
 }
 
+bool ecmcPLCTask::findPluginConstant(ecmcPluginLib* plugin, const char *exprStr){
+
+ if(!plugin){
+    return 0;
+  }
+  ecmcPluginData *data = plugin->getData(); 
+  if(data == NULL){
+    return 0;
+  }
+  // Loop consts[]
+  for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
+
+    if(!data->consts[i].constName || 
+        strlen(data->consts[i].constName) == 0){
+      break;
+    }
+
+    if (strstr(exprStr, data->consts[i].constName)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 int ecmcPLCTask::loadPluginLib(ecmcPluginLib* plugin){
   int errorCode = 0;
   int cmdCounter = 0;
@@ -647,6 +673,18 @@ int ecmcPLCTask::loadPluginLib(ecmcPluginLib* plugin){
         break;
       default:
         break;
+    }
+  }
+
+  // Load constants
+  for(int i=0;i<ECMC_PLUGIN_MAX_PLC_CONST_COUNT;++i){
+    if(!data->consts[i].constName || 
+        strlen(data->consts[i].constName) == 0){
+      break;
+    }
+    errorCode = exprtk_->addConstant(data->consts[i].constName,data->consts[i].constValue);
+    if (errorCode) {
+      return errorCode;
     }
   }
 
