@@ -256,7 +256,7 @@ int ecmcPluginLib::exeEnterRTFunc(ecmcPluginDataRefs *dataToPlugin) {
 }
 
 int ecmcPluginLib::exeExitRTFunc() {
-  if(!loaded_ || !data_) {
+  if(!loaded_ printf("Plugin not loaded.\n");|| !data_) {
     return 0;
   }
 
@@ -271,3 +271,82 @@ int ecmcPluginLib::exeExitRTFunc() {
   }
   return 0;
 }
+
+// int ecmcPluginLib::validate() {
+  
+//   if(!loaded_){
+//     return 0;
+//   }
+
+//   if(!data_)
+//   {
+//     printf("Plugin data NULL\n");
+//   }
+
+//   printf("Plugin info: \n");
+//   printf("  Name                 = %s\n",data_->name);
+//   printf("  Description          = %s\n",data_->desc);
+//   printf("  Version              = %d\n",data_->version);
+//   printf("  Interface version    = %d (ecmc = %d)\n",
+//         data_->ifVersion, ECMC_PLUG_VERSION_MAGIC);
+//   printf("  Construct func       = @%p\n",data_->constructFnc);
+//   printf("  Enter realtime func  = @%p\n",data_->realtimeEnterFnc);
+//   printf("  Exit realtime func   = @%p\n",data_->realtimeExitFnc);
+//   printf("  Realtime func        = @%p\n",data_->realtimeFnc);
+//   printf("  Destruct func        = @%p\n",data_->destructFnc);
+//   printf("  dlhandle             = @%p\n",dlHandle_);
+//   printf("  Plc functions:\n");
+//   // Loop funcs[]
+//   for(int i=0;i<ECMC_PLUGIN_MAX_PLC_FUNC_COUNT;++i){
+ 
+//     if(!data_->funcs[i].funcName || 
+//         strlen(data_->funcs[i].funcName) == 0 ||
+//         data_->funcs[i].argCount < 0 || 
+//         data_->funcs[i].argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+//       break;
+//     }
+    
+//     printf("    funcs[%02d]:\n",i);
+//     printf("      Name       = %s : %s\n",
+//            data_->funcs[i].funcName,
+//            data_->funcs[i].funcDesc);
+//     printf("      Arg count  = %d\n",data_->funcs[i].argCount);
+//     switch(data_->funcs[i].argCount) {
+//       case 0:
+//         printf("      func       = @%p\n",data_->funcs[i].funcArg0);
+//         break;
+//       case 1:
+//         printf("      func       = @%p\n",data_->funcs[i].funcArg1);
+//         break;
+//       case 2:
+//         printf("      func       = @%p\n",data_->funcs[i].funcArg2);
+//         break;
+//       case 3:
+//         printf("      func       = @%p\n",data_->funcs[i].funcArg3);
+//         break;
+//       case 4:
+//         printf("      func       = @%p\n",data_->funcs[i].funcArg4);
+//         break;
+//       case 5:
+//         printf("      func       = @%p\n",data_->funcs[i].funcArg5);
+//         break;
+//       case 6:
+//         printf("      func       = @%p\n",data_->funcs[i].funcArg6);
+//         break;
+//       default:
+//         break;
+//     }
+//   }
+//   printf("  Plc constants:\n");
+//   for(int i=0;i<ECMC_PLUGIN_MAX_PLC_CONST_COUNT;++i){
+//     if(!data_->consts[i].constName || 
+//         strlen(data_->consts[i].constName) == 0){
+//       break;
+//     }
+//     printf("      const[%02d] \"%s\" = %3.3lf : %s\n",i,
+//           data_->consts[i].constName,
+//           data_->consts[i].constValue,
+//           data_->consts[i].constDesc);    
+//   }
+//   printf("\n");
+// }
