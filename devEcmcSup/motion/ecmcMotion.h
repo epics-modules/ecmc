@@ -353,7 +353,7 @@ int getAxisReset(int  axisIndex,
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEnabled(int  cntrl_no,
+int getAxisEnabled(int  axisIndex,
                    int *value);
 
 /** \brief Get axis amplifier command bit.\n
