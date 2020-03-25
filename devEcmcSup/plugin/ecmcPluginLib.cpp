@@ -166,11 +166,22 @@ void ecmcPluginLib::report() {
         data_->funcs[i].argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
       break;
     }
-    
+    //build prototype
+    char prototype[32];
+    char *pProto=&prototype[0];
+    memset(prototype,0,sizeof(prototype));
+    for(int j = 0;j<data_->funcs[i].argCount;++j){
+      snprintf(pProto,sizeof(prototype)-strlen(pProto)-1,"arg%d, ",j);
+      pProto+=strlen(pProto);
+    }
+    //remove last ", " (two chars)
+    prototype[strlen(prototype)-1] = 0;
+    prototype[strlen(prototype)-1] = 0;
     printf("    funcs[%02d]:\n",i);
-    printf("      Name       = %s : %s\n",
+    printf("      Name       = \"%s(%s);\"\n",
            data_->funcs[i].funcName,
-           data_->funcs[i].funcDesc);
+           prototype);
+    printf("      Desc       = %s\n",data_->funcs[i].funcDesc);
     printf("      Arg count  = %d\n",data_->funcs[i].argCount);
     switch(data_->funcs[i].argCount) {
       case 0:
@@ -198,16 +209,19 @@ void ecmcPluginLib::report() {
         break;
     }
   }
+
   printf("  Plc constants:\n");
   for(int i=0;i<ECMC_PLUGIN_MAX_PLC_CONST_COUNT;++i){
     if(!data_->consts[i].constName || 
         strlen(data_->consts[i].constName) == 0){
       break;
     }
-    printf("      const[%02d] \"%s\" = %3.3lf : %s\n",i,
+    printf("      const[%02d]:\n",i);
+    printf("        Name     = \"%s\" = %3.3lf\n",
           data_->consts[i].constName,
-          data_->consts[i].constValue,
-          data_->consts[i].constDesc);    
+          data_->consts[i].constValue);
+    printf("        Desc     = %s\n",data_->consts[i].constDesc);
+    
   }
   printf("\n");
 }
@@ -256,7 +270,7 @@ int ecmcPluginLib::exeEnterRTFunc(ecmcPluginDataRefs *dataToPlugin) {
 }
 
 int ecmcPluginLib::exeExitRTFunc() {
-  if(!loaded_ printf("Plugin not loaded.\n");|| !data_) {
+  if(!loaded_ || !data_) {
     return 0;
   }
 
