@@ -2222,6 +2222,15 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x231006:
+    return "ERROR_PLUGIN_DATA_NULL";
+
+    break;
+  
+  case 0x231007:
+    return "ERROR_PLUGIN_DATA_ARG_VS_FUNC_MISSMATCH";
+
+    break;
   }
 
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
