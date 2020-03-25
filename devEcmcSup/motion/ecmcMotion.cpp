@@ -18,7 +18,9 @@
 #include <string>
 
 #include "ecmcMotion.h"
-
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../plc/ecmcPLC.h"
 #include "ecmcAxisBase.h"      // Abstract class for all axis types

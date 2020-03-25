@@ -12,6 +12,10 @@
 
 #include "ecmcMisc.h"
 
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
+
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
 

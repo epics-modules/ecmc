@@ -13,9 +13,6 @@
 #ifndef ECMC_PLUGIN_H_
 #define ECMC_PLUGIN_H_
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcDefinitions.h"
-
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus

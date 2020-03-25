@@ -16,6 +16,9 @@
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
 #include "../com/ecmcAsynPortDriverUtils.h"
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
 
 int getControllerError() {
 

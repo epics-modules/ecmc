@@ -11,7 +11,9 @@
 \*************************************************************************/
 
 #include "ecmcPLC.h"
-
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
 #include "../motion/ecmcMotion.h"
 #include "../motion/ecmcAxisBase.h"
 #include "../ethercat/ecmcEc.h"
