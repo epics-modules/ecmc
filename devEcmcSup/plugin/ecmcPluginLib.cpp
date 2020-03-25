@@ -146,6 +146,7 @@ void ecmcPluginLib::report() {
 
   printf("Plugin info: \n");
   printf("  Name                 = %s\n",data_->name);
+  printf("  Description          = %s\n",data_->desc);
   printf("  Version              = %d\n",data_->version);
   printf("  Interface version    = %d (ecmc = %d)\n",
         data_->ifVersion, ECMC_PLUG_VERSION_MAGIC);

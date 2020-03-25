@@ -53,6 +53,8 @@ struct ecmcOnePlcConst{
 struct ecmcPluginData {
   // Name 
   const char *name;
+  // Description
+  const char *desc;
   // Plugin version
   int version;
   // ECMC_PLUG_VERSION_MAGIC
