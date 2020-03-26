@@ -150,6 +150,8 @@ void ecmcPluginLib::report() {
   printf("  Version              = %d\n",data_->version);
   printf("  Interface version    = %d (ecmc = %d)\n",
         data_->ifVersion, ECMC_PLUG_VERSION_MAGIC);
+  printf("      max plc funcs    = %d\n",ECMC_PLUGIN_MAX_PLC_FUNC_COUNT);
+  printf("      max plc consts   = %d\n",ECMC_PLUGIN_MAX_PLC_CONST_COUNT);
   printf("  Construct func       = @%p\n",data_->constructFnc);
   printf("  Enter realtime func  = @%p\n",data_->realtimeEnterFnc);
   printf("  Exit realtime func   = @%p\n",data_->realtimeExitFnc);
@@ -167,16 +169,18 @@ void ecmcPluginLib::report() {
       break;
     }
     //build prototype
-    char prototype[32];
+    char prototype[ECMC_PLUGIN_MAX_PLC_ARG_COUNT*(strlen("argX, ")+1)];
     char *pProto=&prototype[0];
     memset(prototype,0,sizeof(prototype));
     for(int j = 0;j<data_->funcs[i].argCount;++j){
       snprintf(pProto,sizeof(prototype)-strlen(pProto)-1,"arg%d, ",j);
       pProto+=strlen(pProto);
     }
-    //remove last ", " (two chars)
-    prototype[strlen(prototype)-1] = 0;
-    prototype[strlen(prototype)-1] = 0;
+    //remove last ", " (two chars) if any args
+    if(strlen(prototype)>2 && data_->funcs[i].argCount > 0) {
+      prototype[strlen(prototype)-1] = 0;
+      prototype[strlen(prototype)-1] = 0;
+    }
     printf("    funcs[%02d]:\n",i);
     printf("      Name       = \"%s(%s);\"\n",
            data_->funcs[i].funcName,
@@ -216,11 +220,11 @@ void ecmcPluginLib::report() {
         strlen(data_->consts[i].constName) == 0){
       break;
     }
-    printf("      const[%02d]:\n",i);
-    printf("        Name     = \"%s\" = %3.3lf\n",
+    printf("    consts[%02d]:\n",i);
+    printf("      Name     = \"%s\" = %3.3lf\n",
           data_->consts[i].constName,
           data_->consts[i].constValue);
-    printf("        Desc     = %s\n",data_->consts[i].constDesc);
+    printf("      Desc     = %s\n",data_->consts[i].constDesc);
     
   }
   printf("\n");
