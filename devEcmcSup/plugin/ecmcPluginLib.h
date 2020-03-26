@@ -39,6 +39,7 @@ class ecmcPluginLib : public ecmcError {
    *  the calls of exeEnterRTFunc and exeExitRTFunc */
   int exeEnterRTFunc(ecmcPluginDataRefs* dataToPlugin);
   int exeExitRTFunc();
+  int   findArgCount(ecmcOnePlcFunc &func);
  private:
   void  initVars();
   char* libFilenameWP_;

@@ -589,11 +589,11 @@ bool ecmcPLCTask::findPluginFunction(ecmcPluginLib* plugin, const char *exprStr)
   }
   // Loop funcs[]
   for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
-
+    int argCount = plugin->findArgCount(data->funcs[i]);
     if(!data->funcs[i].funcName || 
         strlen(data->funcs[i].funcName) == 0 ||
-        data->funcs[i].argCount < 0 || 
-        data->funcs[i].argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+        argCount < 0 || 
+        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
       break;
     }
 
@@ -643,13 +643,15 @@ int ecmcPLCTask::loadPluginLib(ecmcPluginLib* plugin){
   }
 
   for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
+    
+    int argCount = plugin->findArgCount(data->funcs[i]);
     if(!data->funcs[i].funcName || 
         strlen(data->funcs[i].funcName) == 0 ||
-        data->funcs[i].argCount < 0 || 
-        data->funcs[i].argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+        argCount < 0 || 
+        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
       break;
     }
-    switch(data->funcs[i].argCount) {
+    switch(argCount) {
       case 0:
         ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg0);
         break;

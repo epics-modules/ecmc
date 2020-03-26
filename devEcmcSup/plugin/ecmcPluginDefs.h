@@ -27,8 +27,6 @@ struct ecmcOnePlcFunc {
   const char *funcName;
   // Function description
   const char *funcDesc;
-  // Number of arguments in the function prototytpe
-  int argCount;
   /**
    * 7 different prototypes allowed (only doubles since reg in plc).
    * Only funcArg${argCount} func shall be assigned the rest set to NULL

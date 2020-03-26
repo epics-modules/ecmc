@@ -107,8 +107,7 @@ int ecmcPluginLib::load(const char* libFilenameWP) {
            errorCode);
     unload();
     return errorCode;
-  }
-
+  } 
   report();
   return 0;
 }
@@ -161,33 +160,35 @@ void ecmcPluginLib::report() {
   printf("  Plc functions:\n");
   // Loop funcs[]
   for(int i=0;i<ECMC_PLUGIN_MAX_PLC_FUNC_COUNT;++i){
- 
+
+    int argCount = findArgCount(data_->funcs[i]);
     if(!data_->funcs[i].funcName || 
         strlen(data_->funcs[i].funcName) == 0 ||
-        data_->funcs[i].argCount < 0 || 
-        data_->funcs[i].argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ||
+        argCount < 0){
       break;
     }
+
     //build prototype
-    char prototype[ECMC_PLUGIN_MAX_PLC_ARG_COUNT*(strlen("argX, ")+1)];
-    char *pProto=&prototype[0];
-    memset(prototype,0,sizeof(prototype));
-    for(int j = 0;j<data_->funcs[i].argCount;++j){
-      snprintf(pProto,sizeof(prototype)-strlen(pProto)-1,"arg%d, ",j);
+    char protoBuffer[ECMC_PLUGIN_MAX_PLC_ARG_COUNT*(strlen("argX, ")+1)];
+    char *pProto=&protoBuffer[0];
+    memset(protoBuffer,0,sizeof(protoBuffer));
+    for(int j = 0;j < argCount; ++j){
+      snprintf(pProto,sizeof(protoBuffer)-strlen(pProto)-1,"arg%d, ",j);
       pProto+=strlen(pProto);
     }
     //remove last ", " (two chars) if any args
-    if(strlen(prototype)>2 && data_->funcs[i].argCount > 0) {
-      prototype[strlen(prototype)-1] = 0;
-      prototype[strlen(prototype)-1] = 0;
+    if(strlen(protoBuffer)>2 && argCount > 0) {
+      protoBuffer[strlen(protoBuffer)-1] = 0;
+      protoBuffer[strlen(protoBuffer)-1] = 0;
     }
     printf("    funcs[%02d]:\n",i);
     printf("      Name       = \"%s(%s);\"\n",
            data_->funcs[i].funcName,
-           prototype);
+           protoBuffer);
     printf("      Desc       = %s\n",data_->funcs[i].funcDesc);
-    printf("      Arg count  = %d\n",data_->funcs[i].argCount);
-    switch(data_->funcs[i].argCount) {
+    printf("      Arg count  = %d\n",argCount);
+    switch(argCount) {
       case 0:
         printf("      func       = @%p\n",data_->funcs[i].funcArg0);
         break;
@@ -288,6 +289,32 @@ int ecmcPluginLib::exeExitRTFunc() {
     }
   }
   return 0;
+}
+
+int ecmcPluginLib::findArgCount(ecmcOnePlcFunc &func){
+  
+  if(func.funcArg0) {
+    return 0;
+  }
+  if(func.funcArg1) {
+    return 1;
+  }
+  if(func.funcArg2) {
+    return 2;
+  }
+  if(func.funcArg3) {
+    return 3;
+  }
+  if(func.funcArg4) {
+    return 4;
+  }
+  if(func.funcArg5) {
+    return 5;
+  }
+  if(func.funcArg6) {
+    return 6;
+  }
+  return -1;
 }
 
 // int ecmcPluginLib::validate() {
