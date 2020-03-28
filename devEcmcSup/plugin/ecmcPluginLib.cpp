@@ -30,13 +30,14 @@ ecmcPluginLib::~ecmcPluginLib() {
 void ecmcPluginLib::initVars() {
   errorReset();
   libFilenameWP_ = NULL;
+  libConfigStr_  = NULL;
   dlHandle_      = NULL;
   getDataFunc_   = NULL;
   data_          = NULL;
   loaded_        = 0;
 }
 
-int ecmcPluginLib::load(const char* libFilenameWP) {
+int ecmcPluginLib::load(const char* libFilenameWP, const char* libConfigStr) {
   
   // Unload old lib if loaded
   if(loaded_){
@@ -95,11 +96,12 @@ int ecmcPluginLib::load(const char* libFilenameWP) {
   // Module loaded
   loaded_ = 1;
   libFilenameWP_ = strdup(libFilenameWP);
+  libConfigStr_  = strdup(libConfigStr);
   LOGINFO4("%s/%s:%d: Info: Plugin %s: Loaded.\n",
            __FILE__, __FUNCTION__, __LINE__, libFilenameWP_);
    
   // Call constructor
-  int errorCode = data_->constructFnc();
+  int errorCode = data_->constructFnc(libConfigStr_);
   if(errorCode) {
     LOGERR("%s/%s:%d: Error: Plugin %s returned error @ constructFnc() (0x%x)."
            " Plugin unloads....\n",
@@ -122,7 +124,8 @@ void ecmcPluginLib::unload() {
   // Close lib
   if(loaded_) {
     dlclose(dlHandle_);
-    free(libFilenameWP_);  
+    free(libFilenameWP_);
+    free(libConfigStr_);
   }
   // Cleanup
   libFilenameWP_ = NULL;
@@ -146,11 +149,14 @@ void ecmcPluginLib::report() {
   printf("Plugin info: \n");
   printf("  Name                 = %s\n",data_->name);
   printf("  Description          = %s\n",data_->desc);
+  printf("  Filename             = %s\n",libFilenameWP_);
+  printf("  Config string        = %s\n",libConfigStr_);
   printf("  Version              = %d\n",data_->version);
   printf("  Interface version    = %d (ecmc = %d)\n",
         data_->ifVersion, ECMC_PLUG_VERSION_MAGIC);
-  printf("      max plc funcs    = %d\n",ECMC_PLUGIN_MAX_PLC_FUNC_COUNT);
-  printf("      max plc consts   = %d\n",ECMC_PLUGIN_MAX_PLC_CONST_COUNT);
+  printf("     max plc funcs     = %d\n",ECMC_PLUGIN_MAX_PLC_FUNC_COUNT);
+  printf("     max plc func args = %d\n",ECMC_PLUGIN_MAX_PLC_ARG_COUNT);
+  printf("     max plc consts    = %d\n",ECMC_PLUGIN_MAX_PLC_CONST_COUNT);
   printf("  Construct func       = @%p\n",data_->constructFnc);
   printf("  Enter realtime func  = @%p\n",data_->realtimeEnterFnc);
   printf("  Exit realtime func   = @%p\n",data_->realtimeExitFnc);

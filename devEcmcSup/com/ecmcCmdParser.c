@@ -2252,11 +2252,18 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisPLCEnable(iValue, iValue2);
   }
 
-  /*int Cfg.LoadPlugin(char *cExpr); */
-  nvals = sscanf(myarg_1, "LoadPlugin(%[^)])", cExprBuffer);
+  /*int Cfg.LoadPlugin(int pluginId, char *cFilename, char *configString); */
+  nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^,],%[^)])", &iValue, cIdBuffer,cIdBuffer2);
 
-  if (nvals == 1) {
-    return loadPlugin(cExprBuffer);
+  if (nvals == 3) {
+    return loadPlugin(iValue,cIdBuffer,cIdBuffer2);
+  }
+
+  /*int Cfg.LoadPlugin(int pluginId, char *cFilename); */
+  nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^)])",&iValue, cIdBuffer);
+
+  if (nvals == 2) {
+    return loadPlugin(iValue,cIdBuffer,"");
   }
 
   /*int Cfg.SetAxisSeqTimeout(int axis_no, int value);  IN seconds!!*/

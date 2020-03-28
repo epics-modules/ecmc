@@ -20,14 +20,14 @@ extern "C" {
 /** \brief Load a ecmc plugin.\n
  *
  * \param[in] filenameWP Filename of sharded lib with path.
- 
+ * \param[in] Configuration string sent to plugin on load.
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create PLC at index 0 (executing every 10th cycle).\n
  *  "Cfg.LoadPlugin(./ecmcExampleLip.so)" //Command string to ecmcCmdParser.c\n
  */
-int loadPlugin(const char* filenameWP);
+int loadPlugin(int pluginId, const char* filenameWP, const char *config);
 
 # ifdef __cplusplus
 }

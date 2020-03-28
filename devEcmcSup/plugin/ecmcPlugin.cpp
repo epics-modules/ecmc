@@ -17,35 +17,31 @@
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
 
-int loadPlugin(const char* filenameWP) {
-  LOGINFO4("%s/%s:%d filenameWP=%s\n",
+int loadPlugin(int pluginId, const char* filenameWP, const char* configStr) {
+  LOGINFO4("%s/%s:%d pluginId = %d, filenameWP=%s, configStr=%s\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           filenameWP);
-  
-  //find first free pluginindex
-  int validId =  -1;
-  for(int i = 0; i < ECMC_MAX_PLUGINS; ++i) {
-    if(!plugins[i]){
-      validId = i;
-      break;
-    }
+           pluginId,
+           filenameWP,
+           configStr);
+
+  if(pluginId < 0 || pluginId >= ECMC_MAX_PLUGINS){
+    return ERROR_MAIN_PLUGIN_INDEX_OUT_OF_RANGE;
+  }
+  if(plugins[pluginId]){
+    delete plugins[pluginId];
   }
 
-  if(validId<0){
-    return ERROR_MAIN_PLUGIN_LIST_FULL;
-  }
-
-  plugins[validId] = new ecmcPluginLib();
-  if(!plugins[validId]) {
+  plugins[pluginId] = new ecmcPluginLib();
+  if(!plugins[pluginId]) {
     return ERROR_MAIN_PLUGIN_OBJECT_NULL;
   }
 
-  int errorCode = plugins[validId]->load(filenameWP);
+  int errorCode = plugins[pluginId]->load(filenameWP,configStr);
   if(errorCode) {
-    delete plugins[validId];
-    plugins[validId] = NULL;
+    delete plugins[pluginId];
+    plugins[pluginId] = NULL;
     return errorCode;
   }
 

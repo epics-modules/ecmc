@@ -14,7 +14,7 @@
 
 #define ECMC_PLUGIN_MAX_PLC_FUNC_COUNT 64
 #define ECMC_PLUGIN_MAX_PLC_CONST_COUNT 64
-#define ECMC_PLUGIN_MAX_PLC_ARG_COUNT 6
+#define ECMC_PLUGIN_MAX_PLC_ARG_COUNT 10
 #define ECMC_PLUG_VER_MAJOR 0
 #define ECMC_PLUG_VER_MINOR 2
 #define ECMC_PLUG_VER_PATCH 0
@@ -29,8 +29,7 @@ struct ecmcOnePlcFunc {
   const char *funcDesc;
   /**
    * 7 different prototypes allowed (only doubles since reg in plc).
-   * Only funcArg${argCount} func shall be assigned the rest set to NULL
-   * funcArg${argCount}. These need to match. 
+   * Only one funcArg<argCount> func shall be assigned the rest set to NULL.
    **/
   double (*funcArg0)();
   double (*funcArg1)(double);
@@ -39,6 +38,10 @@ struct ecmcOnePlcFunc {
   double (*funcArg4)(double,double,double,double);
   double (*funcArg5)(double,double,double,double,double);
   double (*funcArg6)(double,double,double,double,double,double);
+  double (*funcArg7)(double,double,double,double,double,double,double);
+  double (*funcArg8)(double,double,double,double,double,double,double,double);
+  double (*funcArg9)(double,double,double,double,double,double,double,double,double);
+  double (*funcArg10)(double,double,double,double,double,double,double,double,double,double);
 };
 
 // Structure for defining one custom plc constant
@@ -57,8 +60,8 @@ struct ecmcPluginData {
   int version;
   // ECMC_PLUG_VERSION_MAGIC
   int ifVersion;
-  // Optional construct func, called once at load
-  int (*constructFnc)(void);
+  // Optional construct func, called once at load (with config string)
+  int (*constructFnc)(char *config);
   // Optional destruct func, called once at unload
   void (*destructFnc)(void);
   // Optional func that will be called once just before enter realtime mode
@@ -67,7 +70,7 @@ struct ecmcPluginData {
   int (*realtimeExitFnc)(void);
   // Optional func that will be called each realtime cycle
   int (*realtimeFnc)(int);
-  // Allow max ECMC_PLUGIN_MAX_FUNC_COUNT custom functions
+  // Allow max ECMC_PLUGIN_MAX_PLC_FUNC_COUNT custom functions
   struct ecmcOnePlcFunc  funcs[ECMC_PLUGIN_MAX_PLC_FUNC_COUNT];
   // Allow max ECMC_PLUGIN_MAX_PLC_CONST_COUNT custom constants
   struct ecmcOnePlcConst consts[ECMC_PLUGIN_MAX_PLC_CONST_COUNT];

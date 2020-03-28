@@ -1778,6 +1778,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_PLUGIN_OBJECT_NULL";
 
     break;
+  case 0x20051:
+    return "ERROR_MAIN_PLUGIN_INDEX_OUT_OF_RANGE";
+
+    break;
 
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
