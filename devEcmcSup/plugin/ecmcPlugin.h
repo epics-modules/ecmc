@@ -19,15 +19,27 @@ extern "C" {
 
 /** \brief Load a ecmc plugin.\n
  *
+ * \param[in] pluginId index of plugin.
  * \param[in] filenameWP Filename of sharded lib with path.
- * \param[in] Configuration string sent to plugin on load.
+ * \param[in] config configuration string sent to plugin on load.
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Create PLC at index 0 (executing every 10th cycle).\n
- *  "Cfg.LoadPlugin(./ecmcExampleLip.so)" //Command string to ecmcCmdParser.c\n
+ * \note Example: Create and load a plugin at index 0.\n
+ *  "Cfg.LoadPlugin(0,./ecmcExampleLip.so,"TEST=10")" //Command string to ecmcCmdParser.c\n
  */
 int loadPlugin(int pluginId, const char* filenameWP, const char *config);
+
+/** \brief Printout details of plugin.\n
+ *
+ * \param[in] pluginId index of plugin.
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Printout information about plug in at index 1.\n
+ *  "Cfg.ReportPlugin(1)" //Command string to ecmcCmdParser.c\n
+ */
+int reportPlugin(int pluginId);
 
 # ifdef __cplusplus
 }

@@ -27,7 +27,7 @@
 
 class ecmcPluginLib : public ecmcError {
  public:
-  explicit ecmcPluginLib();
+  explicit ecmcPluginLib(int index);
   ~ecmcPluginLib();
   int  load(const char* libFilenameWP, const char* configStr);
   void unload();
@@ -48,6 +48,7 @@ class ecmcPluginLib : public ecmcError {
   struct ecmcPluginData *(*getDataFunc_)(void);
   struct ecmcPluginData *data_;
   int loaded_;
+  int index_;
 };
 
 #endif  /* ECMC_PLUGIN_LIB_H_ */

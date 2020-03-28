@@ -2266,6 +2266,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return loadPlugin(iValue,cIdBuffer,"");
   }
 
+  /*int Cfg.ReportPlugin(int pluginId); */
+  nvals = sscanf(myarg_1, "ReportPlugin(%d)",&iValue);
+
+  if (nvals == 1) {
+    return reportPlugin(iValue);
+  }
+
   /*int Cfg.SetAxisSeqTimeout(int axis_no, int value);  IN seconds!!*/
   nvals = sscanf(myarg_1, "SetAxisSeqTimeout(%d,%d)", &iValue, &iValue2);
 

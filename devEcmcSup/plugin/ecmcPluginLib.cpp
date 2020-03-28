@@ -17,8 +17,9 @@
 #include <dlfcn.h>
 #include <unistd.h>
 
-ecmcPluginLib::ecmcPluginLib() {
+ecmcPluginLib::ecmcPluginLib(int index) {
   initVars();
+  index_ = index;
 }
 
 ecmcPluginLib::~ecmcPluginLib() {
@@ -35,6 +36,7 @@ void ecmcPluginLib::initVars() {
   getDataFunc_   = NULL;
   data_          = NULL;
   loaded_        = 0;
+  index_         = 0;
 }
 
 int ecmcPluginLib::load(const char* libFilenameWP, const char* libConfigStr) {
@@ -110,7 +112,7 @@ int ecmcPluginLib::load(const char* libFilenameWP, const char* libConfigStr) {
     unload();
     return errorCode;
   } 
-  report();
+
   return 0;
 }
 
@@ -147,8 +149,10 @@ void ecmcPluginLib::report() {
   }
 
   printf("Plugin info: \n");
+  printf("  Index                = %d\n",index_);
   printf("  Name                 = %s\n",data_->name);
   printf("  Description          = %s\n",data_->desc);
+  printf("  Option description   = %s\n",data_->optionDesc);
   printf("  Filename             = %s\n",libFilenameWP_);
   printf("  Config string        = %s\n",libConfigStr_);
   printf("  Version              = %d\n",data_->version);

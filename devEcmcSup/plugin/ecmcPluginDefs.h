@@ -28,7 +28,7 @@ struct ecmcOnePlcFunc {
   // Function description
   const char *funcDesc;
   /**
-   * 7 different prototypes allowed (only doubles since reg in plc).
+   * 11 different prototypes allowed (only doubles since reg in plc).
    * Only one funcArg<argCount> func shall be assigned the rest set to NULL.
    **/
   double (*funcArg0)();
@@ -56,11 +56,13 @@ struct ecmcPluginData {
   const char *name;
   // Description
   const char *desc;
+  // Option description
+  const char *optionDesc;
   // Plugin version
   int version;
   // ECMC_PLUG_VERSION_MAGIC
   int ifVersion;
-  // Optional construct func, called once at load (with config string)
+  // Optional construct func, called once at load (with config string (with options if needed))
   int (*constructFnc)(char *config);
   // Optional destruct func, called once at unload
   void (*destructFnc)(void);

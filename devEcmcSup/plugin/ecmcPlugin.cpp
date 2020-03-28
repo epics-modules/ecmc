@@ -33,7 +33,7 @@ int loadPlugin(int pluginId, const char* filenameWP, const char* configStr) {
     delete plugins[pluginId];
   }
 
-  plugins[pluginId] = new ecmcPluginLib();
+  plugins[pluginId] = new ecmcPluginLib(pluginId);
   if(!plugins[pluginId]) {
     return ERROR_MAIN_PLUGIN_OBJECT_NULL;
   }
@@ -45,5 +45,24 @@ int loadPlugin(int pluginId, const char* filenameWP, const char* configStr) {
     return errorCode;
   }
 
+  return 0;
+}
+
+int reportPlugin(int pluginId) {
+  LOGINFO4("%s/%s:%d pluginId = %d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           pluginId);
+  
+  if(pluginId < 0 || pluginId >= ECMC_MAX_PLUGINS){
+    return ERROR_MAIN_PLUGIN_INDEX_OUT_OF_RANGE;
+  }
+
+  if(!plugins[pluginId]) {
+    return ERROR_MAIN_PLUGIN_OBJECT_NULL;
+  }
+
+  plugins[pluginId]->report();
   return 0;
 }
