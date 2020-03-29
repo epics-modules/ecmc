@@ -13,6 +13,8 @@
 
 #include "../com/ecmcAsynDataItem.h"
 #include "../com/ecmcAsynPortDriver.h"
+#include "../main/ecmcDefinitions.h"
+#include "../com/ecmcOctetIF.h"  //LOG macros
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 
@@ -32,12 +34,16 @@
 static const char *driverName = "ecmcAsynPortDriver";
 
 extern double mcuFrequency;
-
+extern double mcuPeriod;
 static int compar (const void* pkey, const void* pelem) {
   return ( *(int*)pkey - *(int*)pelem );
 };
 
-ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const char *paramName,asynParamType asynParType,ecmcEcDataType dt)
+ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
+                                    const char *paramName,
+                                    asynParamType asynParType,
+                                    ecmcEcDataType dt,
+                                    double updateRateMs)
 {
   checkIntRange_          = 0;
   intMax_                 = 0;
@@ -52,7 +58,8 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   fctPtrExeCmd_           = NULL;
   useExeCmdFunc_          = false;
   exeCmdUserObj_          = NULL;
-  
+  updateRateMs_           = updateRateMs;
+
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
@@ -63,6 +70,35 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver, const ch
   addSupportedAsynType(asynParType);
 }
 
+ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
+                                    const char *paramName,
+                                    asynParamType asynParType,
+                                    ecmcEcDataType dt)
+{
+  checkIntRange_          = 0;
+  intMax_                 = 0;
+  intMin_                 = 0;
+  intBits_                = 0;
+  asynPortDriver_         = asynPortDriver;  
+  data_                   = 0;  
+  asynUpdateCycleCounter_ = 0;
+  supportedTypesCounter_  = 0;
+  allowWriteToEcmc_       = false;
+  dataType_               = dt;
+  fctPtrExeCmd_           = NULL;
+  useExeCmdFunc_          = false;
+  exeCmdUserObj_          = NULL;
+  updateRateMs_           = -1; //default to real time loop sample time (-1)
+  
+  for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
+    supportedTypes_[i]=asynParamNotDefined;
+  }
+  memset(&paramInfo_,0,sizeof(ecmcParamInfo));
+  paramInfo_.name=strdup(paramName);
+  paramInfo_.asynType=asynParType;
+  paramInfo_.ecmcDataIsArray = asynTypeIsArray(asynParType);
+  addSupportedAsynType(asynParType);
+}
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
 {
   checkIntRange_          = 0;
@@ -78,6 +114,7 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
   fctPtrExeCmd_           = NULL;
   useExeCmdFunc_          = false;
   exeCmdUserObj_          = NULL;
+  updateRateMs_           = -1; //default to real time loop sample time (-1)
 
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
@@ -172,7 +209,7 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     asynUpdateCycleCounter_++;
     return ERROR_ASYN_NOT_REFRESHED_RETURN;  //Not refreshed
   }
-
+  
   if(data==0 || bytes<0){
     return ERROR_ASYN_DATA_NULL;
   }
@@ -1198,21 +1235,27 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
       return asynError;
     }
   }
-  // emsure that sample rate is not faster than ethercat realtime loop
-  double ethercatRateMs=1/mcuFrequency*1000;
-  if(paramInfo_.sampleTimeMS < ethercatRateMs) {
+
+  // ensure that sample rate is not faster than realtime loop or plc scan rates
+  double dataUpdateRateMs = updateRateMs_;
+  if(dataUpdateRateMs<0) { // updated at realtime loop rate
+    dataUpdateRateMs = mcuPeriod/1E6;
+  }
+  
+  if(paramInfo_.sampleTimeMS < dataUpdateRateMs && paramInfo_.sampleTimeMS > 0) {
     asynPrint(asynPortDriver_->getTraceAsynUser(), ASYN_TRACE_ERROR,
-              "%s:%s: WARNING: Sample rate faster than EtherCAT realtime loop (%3.1lfms<%3.1lfms),"
+              "%s:%s: WARNING: Record sample rate faster than parameter update rate (%3.1lfms<%3.1lfms),"
               " %3.1lfms will be used. (drvInfo = %s).\n",
               driverName,
               functionName,
               paramInfo_.sampleTimeMS,
-              ethercatRateMs,
-              ethercatRateMs,
+              dataUpdateRateMs,
+              dataUpdateRateMs,
               drvInfo);
-    paramInfo_.sampleTimeMS = ethercatRateMs;
-  }      
-  paramInfo_.sampleTimeCycles = (int32_t)paramInfo_.sampleTimeMS / 1000.0 * mcuFrequency;
+    paramInfo_.sampleTimeMS = dataUpdateRateMs;
+  }
+  
+  paramInfo_.sampleTimeCycles = (int32_t)(paramInfo_.sampleTimeMS / dataUpdateRateMs);
   
   //Check if TYPE option
   option=ECMC_OPTION_TYPE;

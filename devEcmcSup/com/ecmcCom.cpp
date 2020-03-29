@@ -12,6 +12,10 @@
 
 #include "ecmcCom.h"
 #include "ecmcGeneral.h"
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcMainThread.h"
 
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
@@ -28,14 +32,12 @@ int ecmcInit(void *asynPortObject) {
   }
 
   asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);  
-  ec = new ecmcEc();
+  ec = new ecmcEc(asynPort);
 
   if(!ec) {
     LOGERR("ERROR: Fail allocate ec master (0x%x)",ERROR_MAIN_EC_NULL);
     return ERROR_MAIN_EC_NULL;
   }
-
-  ec->setAsynPortDriver(asynPort);
 
   //Main asyn params
   int errorCode=ecmcAddDefaultAsynParams();
@@ -263,6 +265,14 @@ void ecmcCleanup() {
   for(int i = 0;i < ECMC_MAX_COMMANDS_LISTS; i++) {
     delete commandLists[i];
     commandLists[i] = NULL;
+  }
+
+  for(int i = 0;i < ECMC_MAX_PLUGINS; i++) {
+    if(plugins[i]) {
+      plugins[i]->exeDestructFunc();      
+    }
+    delete plugins[i];
+    plugins[i] = NULL;
   }
 
   delete ec;

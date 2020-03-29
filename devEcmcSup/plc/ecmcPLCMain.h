@@ -22,6 +22,7 @@
 #include "../motion/ecmcAxisBase.h"
 #include "../misc/ecmcDataStorage.h"
 #include "../ethercat/ecmcEc.h"
+#include "../plugin/ecmcPluginLib.h"
 #include "ecmcPLCTask.h"
 #include "ecmcPLCDataIF.h"
 
@@ -34,6 +35,8 @@
 #define ERROR_PLCS_INVALID_VAR_NAME 0x20706
 #define ERROR_PLCS_PLC_NULL 0x20707
 #define ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED 0x20708
+#define ERROR_PLCS_PLUGIN_INDEX_OUT_OF_RANGE 0x20709
+
 
 #define CHECK_PLC_RETURN_IF_ERROR(index) {                        \
     if (index >= ECMC_MAX_PLCS + ECMC_MAX_AXES || index < 0) {    \
@@ -59,6 +62,8 @@ class ecmcPLCMain : public ecmcError {
                            int           index);
   int  setDataStoragePointer(ecmcDataStorage *ds,
                              int              index);
+  int  setPluginPointer(ecmcPluginLib *plugin, 
+                        int            index);
   int  execute(bool ecOK);
   int  execute(int   plcIndex, bool ecOK);
   int  setExpr(int   plcIndex,
@@ -145,6 +150,7 @@ class ecmcPLCMain : public ecmcError {
   ecmcPLCDataIF      *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
   ecmcPLCDataIF      *ecStatus_;
   double              mcuFreq_;
+  ecmcPluginLib      *plugins_[ECMC_MAX_PLUGINS];
 };
 
 #endif  /* ECMC_PLC_MAIN_H_ */

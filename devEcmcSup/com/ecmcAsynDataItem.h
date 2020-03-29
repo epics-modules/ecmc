@@ -15,10 +15,13 @@
 
 #include <bits/stdc++.h> 
 #include "inttypes.h"
-#include "../main/ecmcDefinitions.h"
+
+#ifndef ECMC_IS_PLUGIN
+#include "../com/ecmcAsynPortDriverUtils.h"
+#else
 #include "ecmcAsynPortDriverUtils.h"
+#endif
 #include "asynPortDriver.h"
-#include "ecmcOctetIF.h"  //LOG macros
 
 #define ERROR_ASYN_PORT_NULL 0x220000
 #define ERROR_ASYN_DATA_NULL 0x220001
@@ -75,7 +78,12 @@ public:
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                     const char *paramName,
                     asynParamType asynParType,
-                    ecmcEcDataType dt);
+                    ecmcEcDataType dt,
+                    double updateRateMs); //if "-1" then realtime loop
+  ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
+                    const char *paramName,
+                    asynParamType asynParType,
+                    ecmcEcDataType dt); //sample time -1 update rate
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver);
   ~ecmcAsynDataItem ();
   int setEcmcDataPointer(uint8_t *data,size_t bytes);  
@@ -196,6 +204,7 @@ private:
   asynStatus (*fctPtrExeCmd_)(void* data, size_t bytes, asynParamType asynParType,void *userObj);
   bool useExeCmdFunc_;
   void* exeCmdUserObj_;
+  double updateRateMs_;
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

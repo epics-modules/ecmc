@@ -25,6 +25,8 @@
 #include "../motion/ecmcMotion.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../motor/ecmcMotorRecordController.h"
+#include "../plugin/ecmcPluginLib.h"
+#include "../plugin/ecmcPluginDataRefs.h"
 #include "epicsMutex.h"
 
 extern ecmcAxisBase              *axes[ECMC_MAX_AXES];
@@ -39,6 +41,9 @@ extern ecmcAsynDataItem          *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];
 extern ecmcMainThreadDiag         threadDiag;
 extern app_mode_type              appModeCmd, appModeCmdOld, appModeStat;
 extern ecmcMotorRecordController *asynPortMotorRecord;
+extern ecmcPluginLib             *plugins[ECMC_MAX_PLUGINS];
+extern ecmcPluginDataRefs         pluginDataRefs;
+
 // Mutex for motor record access
 extern epicsMutexId               ecmcRTMutex;
 extern int                        axisDiagIndex;
@@ -54,4 +59,5 @@ extern int                        ecTimeoutSeconds;
 extern double                     mcuFrequency;
 extern double                     mcuPeriod;
 extern int                        sampleRateChangeAllowed;
+extern int                        pluginsError;
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */

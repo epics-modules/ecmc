@@ -16,8 +16,12 @@
 #include "asynPortDriver.h"
 #include <epicsEvent.h>
 #include <epicsTime.h>
-#include "../com/ecmcAsynPortDriverUtils.h"
+
+#ifndef ECMC_IS_PLUGIN
 #include "../com/ecmcAsynDataItem.h"
+#else
+#include "ecmcAsynDataItem.h"
+#endif
 
 class ecmcAsynPortDriver : public asynPortDriver {
  public:
@@ -95,11 +99,20 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                      uint8_t *data,
                                      size_t bytes,
                                      ecmcEcDataType dt,
+                                     double sampleTimeMs,
+                                     bool dieIfFail);
+  ecmcAsynDataItem *addNewAvailParam(const char * name,
+                                     asynParamType type,                                     
+                                     uint8_t *data,
+                                     size_t bytes,
+                                     ecmcEcDataType dt,
                                      bool dieIfFail);
    int32_t getFastestUpdateRate();   
    int32_t calcFastestUpdateRate();
-   int getDefaultSampleTimeMs();
+   int     getDefaultSampleTimeMs();
    void    refreshAllInUseParamsRT();
+   int     getEpicsState();
+   void    setEpicsState(int state);
 
  private:
   void initVars();
@@ -124,6 +137,7 @@ class ecmcAsynPortDriver : public asynPortDriver {
   unsigned int priority_;
   int32_t fastestParamUpdateCycles_;
   friend class paramList;
+  int epicsState_;
 };
 
 #endif  /* ECMC_ASYN_PORT_DRIVER_H_ */

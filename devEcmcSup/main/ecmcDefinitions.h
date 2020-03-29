@@ -27,8 +27,7 @@
                        (B).tv_nsec - (A).tv_nsec)
 
 #define MCU_MIN_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MAX_FREQUENCY)
-#define MCU_MAX_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MIN_FREQUENCY)
-
+#define MCU_MAX_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MIN_FREQUENCY) 
 
 #define ECMC_MAX_AXES 64
 #define ECMC_MAX_PLCS 8
@@ -99,11 +98,13 @@
 #define ECMC_MAX_COMMANDS_LISTS 10
 #define ECMC_MAX_COMMANDS_IN_COMMANDS_LISTS 100
 
+// Plugins
+#define ECMC_MAX_PLUGINS 16
+
 // ECMC iocsh config command
 #define ECMC_IOCSH_CFG_CMD "ecmcConfigOrDie"
 #define ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME "ECMC_CONFIG_RETURN_VAL"
 #define ECMC_IOCSH_FILE_EXIST_RETURN_VAR_NAME "ECMC_FILE_EXIST_RETURN_VAL"
-
 
 // ECMC ecmcEpicsEnvSetCalc
 #define ECMC_ENVSETCALC_DEF_FORMAT "%d"
@@ -174,15 +175,6 @@
 #define ECMC_ASYN_AX_SOFTLIM_BWD_ID 6
 #define ECMC_ASYN_AX_STATUS_BIN_ID 7
 #define ECMC_ASYN_AX_STATUS_BIN_NAME "statusbin"
-// #define ECMC_ASYN_AX_SOFTLIM_BWD_NAME "softlimbwd"
-// #define ECMC_ASYN_AX_SOFTLIM_FWD_ID 7
-// #define ECMC_ASYN_AX_SOFTLIM_FWD_NAME "softlimfwd"
-// #define ECMC_ASYN_AX_TARGET_POS_ID 8
-// #define ECMC_ASYN_AX_TARGET_POS_NAME "targetpos"
-// #define ECMC_ASYN_AX_TARGET_VEL_ID 9
-// #define ECMC_ASYN_AX_TARGET_VEL_NAME "targetvel"
-// #define ECMC_ASYN_AX_TARGET_ACC_ID 10
-// #define ECMC_ASYN_AX_TARGET_ACC_NAME "targetacc"
 #define ECMC_ASYN_AX_PAR_COUNT 8
 
 
@@ -211,23 +203,16 @@ enum operationMode {
   ECMC_MODE_OP_MAN  = 1,
 };
 
-enum motionCommandTypes {             // Data order for motor record communications
+enum motionCommandTypes {
   ECMC_CMD_NOCMD              = -1,   
   ECMC_CMD_JOG                = 0,    
-  ECMC_CMD_MOVEVEL            = 1,    // cmd, vel, acc
-  ECMC_CMD_MOVEREL            = 2,    // cmd, pos, vel, acc
-  ECMC_CMD_MOVEABS            = 3,    // cmd, pos, vel, acc
-  ECMC_CMD_MOVEMODULO         = 4,    
-  ECMC_CMD_HOMING             = 10,   // cmd, seqnbr,homepos,velhigh,vellow,acc
+  ECMC_CMD_MOVEVEL            = 1,
+  ECMC_CMD_MOVEREL            = 2,
+  ECMC_CMD_MOVEABS            = 3,
+  ECMC_CMD_MOVEMODULO         = 4,    // not used
+  ECMC_CMD_HOMING             = 10,
   ECMC_CMD_SUPERIMP           = 20,   
-  ECMC_CMD_GEAR               = 30,   
-  ECMC_CMD_STOP               = 100,  // cmd, (Should have been 0 instead of 100)
-  ECMC_CMD_SET_ENABLE         = 101,  // cmd, enable
-  ECMC_CMD_SET_SOFTLIMBWD     = 102,  // cmd, soflimbwd
-  ECMC_CMD_SET_SOFTLIMFWD     = 103,  // cmd, soflimfwd
-  ECMC_CMD_SET_SOFTLIMBWD_ENA = 104,  // cmd, soflimbwdena
-  ECMC_CMD_SET_SOFTLIMFWD_ENA = 105,  // cmd, soflimfwdena
-  ECMC_CMD_SET_RESET          = 106,  // cmd
+  ECMC_CMD_GEAR               = 30,   // not used 
 };
 
 enum motionDirection {
@@ -297,14 +282,6 @@ enum commandType {
   ECMC_CMD_TYPE_ENABLE  = 1,
 };
 
-enum transformVariableType {
-  ECMC_TRANSFORM_VAR_TYPE_TRAJ = 0,
-  ECMC_TRANSFORM_VAR_TYPE_ENC  = 1,
-  ECMC_TRANSFORM_VAR_TYPE_IL   = 2,
-  ECMC_TRANSFORM_VAR_TYPE_IL_BWD  = 3,
-  ECMC_TRANSFORM_VAR_TYPE_IL_FWD  = 4,
-};
-
 enum eventType {
   ECMC_SAMPLED        = 0,
   ECMC_EDGE_TRIGGERED = 1,
@@ -340,7 +317,6 @@ enum axisSubObjectType {
 
 #define AXIS_PLC_ID_TO_PLC_ID(axisId) (axisId) + ECMC_MAX_PLCS
                                    
-
 #define ECMC_MAIN_STR "main"
 #define ECMC_THREAD_STR "thread"
 
