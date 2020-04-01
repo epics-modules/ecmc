@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcEcSlave.h"
+#include "../main/ecmcErrorsList.h"
 
 ecmcEcSlave::ecmcEcSlave(
   ecmcAsynPortDriver* asynPortDriver,  /** Asyn port driver*/

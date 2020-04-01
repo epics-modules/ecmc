@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcDriveBase.h"
+#include "../main/ecmcErrorsList.h"
 
 ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver, 
                              ecmcAxisData *axisData) {

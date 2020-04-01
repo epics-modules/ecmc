@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAsynPortDriverUtils.h"
+#include "../main/ecmcErrorsList.h"
 
 #include <string.h>
 #include <stdlib.h>

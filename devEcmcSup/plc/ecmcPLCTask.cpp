@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcPLCTask.h"
+#include "../main/ecmcErrorsList.h"
 #include "ecmcPLCTask_libEc.inc"
 #include "ecmcPLCTask_libMc.inc"
 #include "ecmcPLCTask_libDs.inc"

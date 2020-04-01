@@ -11,7 +11,8 @@
 \*************************************************************************/
 
 #include "ecmcEcMemMap.h"
-#include <stdlib.h> 
+#include <stdlib.h>
+#include "../main/ecmcErrorsList.h"
 
 ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                            int masterId,

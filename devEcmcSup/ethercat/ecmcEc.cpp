@@ -14,6 +14,7 @@
 #include <cmath>
 #include <time.h>
 #include <string>
+#include "../main/ecmcErrorsList.h"
 
 ecmcEc::ecmcEc(ecmcAsynPortDriver *asynPortDriver) {
   initVars();

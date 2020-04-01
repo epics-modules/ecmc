@@ -12,6 +12,7 @@
 
 #include "ecmcEcEntry.h"
 #include <stdlib.h> 
+#include "../main/ecmcErrorsList.h"
 
 #define EC_MASK_B2 0x03
 #define EC_MASK_B3 0x07
