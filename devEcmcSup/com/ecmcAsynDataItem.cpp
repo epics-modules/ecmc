@@ -95,14 +95,17 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver) :
   asynPortDriver_         = asynPortDriver;  
   asynUpdateCycleCounter_ = 0;
   supportedTypesCounter_  = 0;
+  dataItem_.dataType      = ECMC_EC_NONE;
+  memset(&paramInfo_,0,sizeof(ecmcParamInfo));
+  paramInfo_.name         = strdup("empty");
+  paramInfo_.asynType     = asynParamNotDefined;
+  paramInfo_.dataIsArray  = 0;
   fctPtrExeCmd_           = NULL;
   useExeCmdFunc_          = false;
   exeCmdUserObj_          = NULL;
-
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
-  memset(&paramInfo_,0,sizeof(ecmcParamInfo));
 }
 
 ecmcAsynDataItem::~ecmcAsynDataItem ()
@@ -331,7 +334,7 @@ ecmcParamInfo *ecmcAsynDataItem::getParamInfo()
   return &paramInfo_;
 }
 
-bool ecmcAsynDataItem::initialized() {
+bool ecmcAsynDataItem::linkedToAsynClient() {
   return paramInfo_.initialized;
 }
 
@@ -537,7 +540,8 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
     }
   }
   
-  memcpy(dataItem_.data, data, bytes);
+  // Write function in  ecmcDataItem
+  write(data, bytes);
   *writtenBytes = bytes; 
 
   //refresh params
@@ -593,10 +597,11 @@ asynStatus ecmcAsynDataItem::readGeneric(uint8_t *data, size_t bytesToRead, asyn
       return asynError;
     }
   }
+  
+  // Read function in  ecmcDataItem
+  read(data,bytes);
+  *readBytes = bytes;
 
-  memcpy(data, dataItem_.data, bytes);
-
-  *readBytes = bytes; 
   return asynSuccess;
 }
 
@@ -1332,17 +1337,4 @@ asynStatus ecmcAsynDataItem::setExeCmdFunctPtr(ecmcExeCmdFcn func, void* userObj
   exeCmdUserObj_ = userObj;
   useExeCmdFunc_ = true;
   return asynSuccess;
-}
-
-/**
- * Extensions from ecmcDataItem class.
- * For generic access of data from all registered asyn param.
- * return information structure if name is correct
-*/
-ecmcDataItemInfo* ecmcAsynDataItem::getDataItemDataIfMe(char* idStringWP) {
-  if(strcmp(idStringWP,dataItem_.name) != 0) {
-    return NULL;
-  }
-
-  return &dataItem_;
 }

@@ -329,10 +329,10 @@ asynStatus ecmcAsynPortDriver::appendAvailParam(ecmcAsynDataItem *dataItem, bool
   return asynSuccess;
 }
 
-/** Find parameter in list of available paremeters by name\n
+/** Find parameter in list of available parameters by name\n
   * \param[in] name Parameter name\n
   * 
-  * returns parameter if found otherwise NULL\n
+  * returns parameter of type ecmcAsynDataItem if found otherwise NULL\n
   * */
 ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
   //const char* functionName = "findAvailParam";
@@ -340,6 +340,24 @@ ecmcAsynDataItem *ecmcAsynPortDriver::findAvailParam(const char * name) {
     if(pEcmcParamAvailArray_[i]) {      
       if(strcmp(pEcmcParamAvailArray_[i]->getParamName(),name)==0) {
         return pEcmcParamAvailArray_[i];
+      }
+    }
+  }
+  return NULL;
+}
+
+/** Find emcDataItem in list by name\n
+  * \param[in] name Parameter name\n
+  * 
+  * returns ecmcDataItem if found otherwise NULL\n
+  * \Note: Very similar to findAvailParam but returns baseclass instead 
+  **/
+ecmcDataItem* ecmcAsynPortDriver::findAvailDataItem(const char * name) {
+  //const char* functionName = "findAvailParam";
+  for(int i=0;i<ecmcParamAvailCount_;i++) {
+    if(pEcmcParamAvailArray_[i]) {      
+      if(strcmp(pEcmcParamAvailArray_[i]->getName(),name)==0) {
+        return (ecmcDataItem*)pEcmcParamAvailArray_[i];
       }
     }
   }
@@ -946,7 +964,7 @@ int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
   fastestParamUpdateCycles_=(int32_t)(defaultSampleTimeMS_/1000.0*mcuFrequency);
   for(int i=0;i<ecmcParamInUseCount_;i++) {
     if(pEcmcParamInUseArray_[i]) {
-      if(!pEcmcParamInUseArray_[i]->initialized()) {        
+      if(!pEcmcParamInUseArray_[i]->linkedToAsynClient()) {        
         continue;
       }
       if(pEcmcParamInUseArray_[i]->getSampleTimeCycles()<fastestParamUpdateCycles_ && 
@@ -961,23 +979,12 @@ void ecmcAsynPortDriver::refreshAllInUseParamsRT() {
 
   for(int i=0;i<ecmcParamInUseCount_;i++) {
     if(pEcmcParamInUseArray_[i]) {
-      if(!pEcmcParamInUseArray_[i]->initialized()) {        
+      if(!pEcmcParamInUseArray_[i]->linkedToAsynClient()) {        
         continue;
       }      
       pEcmcParamInUseArray_[i]->refreshParamRT(1);
     }
   }
-}
-
-ecmcDataItem *ecmcAsynPortDriver::getEcmcDataItem(char* idStringWP) { 
-  for(int i=0;i<ecmcParamAvailCount_;i++) {
-    if(pEcmcParamAvailArray_[i]) {      
-      if(strcmp(pEcmcParamAvailArray_[i]->getParamName(),idStringWP)==0) {
-        return (ecmcDataItem*) pEcmcParamAvailArray_[i];
-      }
-    }
-  }
-  return NULL;
 }
 
 void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int listIndex) {

@@ -254,7 +254,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID]->refreshParamRT(0);
   
-  if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
+  if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->linkedToAsynClient() ) {    
     int  bytesUsed = 0;
     int  error = getAxisDebugInfoData(&diagBuffer_[0],
                                       AX_MAX_DIAG_STRING_CHAR_LENGTH,

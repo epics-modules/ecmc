@@ -15,12 +15,16 @@
 
 ecmcDataItem::ecmcDataItem(const char *name) {
   memset(&dataItem_,0,sizeof(dataItem_));
-  checkIntRange_  = 0;
-  intMax_         = 0;
-  intMin_         = 0;
-  arrayCheckSize_ = 0;
-  ecmcMaxSize_    = 0;
-  dataItem_.name  = strdup(name);
+  for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
+    callbackFuncs[i] = NULL;
+  }
+  callbackFuncsMaxIndex_ = 0;
+  checkIntRange_         = 0;
+  intMax_                = 0;
+  intMin_                = 0;
+  arrayCheckSize_        = 0;
+  ecmcMaxSize_           = 0;
+  dataItem_.name         = strdup(name);
   dataItem_.dataUpdateRateMs = -1;
 }
 
@@ -91,7 +95,7 @@ int ecmcDataItem::getEcmcDataPointerValid() {
   return dataItem_.dataPointerValid;
 }
 
-ecmcDataItemInfo *ecmcDataItem::getDataItemData() {
+ecmcDataItemInfo *ecmcDataItem::getDataItemInfo() {
   return &dataItem_;
 }
 
@@ -112,9 +116,66 @@ size_t ecmcDataItem::getEcmcDataMaxSize() {
 }
 
 void ecmcDataItem::refresh() {
-   //handle callbacks to subscribers here
+   //call callbacks to subscribers here
+  for(int i = 0; i <= callbackFuncsMaxIndex_; ++i) {
+    if(callbackFuncs[i]) {
+      callbackFuncs[i](dataItem_.data,
+                       dataItem_.dataSize,
+                       dataItem_.dataType,
+                       this);
+    }
+  }
 }
 
 char *ecmcDataItem::getName() {  
   return dataItem_.name;
+}
+
+int ecmcDataItem::write(uint8_t *data,
+                        size_t   bytes) {
+  memcpy(dataItem_.data, data, bytes);
+  return 0;
+}
+
+int ecmcDataItem::read(uint8_t *data,
+                       size_t   bytes) {
+  memcpy(data, dataItem_.data, bytes);  
+  return 0;
+}
+
+/**
+* Register data updated callback
+* Return handle if success (to be used if deregister) otherwise -1
+*/
+int ecmcDataItem::regDataUpdatedCallback(ecmcDataUpdatedCallback func) {
+  // Add to first avilable element
+  for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
+    if(!callbackFuncs[i]) {
+      callbackFuncs[i] = func;
+      if(i > callbackFuncsMaxIndex_) {
+        callbackFuncsMaxIndex_ = i;
+      }
+      return i;
+    }    
+  } 
+
+  return -1;
+}
+
+/**
+* Deregister data updated callback by handle 
+* (retuned by regDataUpdatedCallback())
+*/
+void ecmcDataItem::deregDataUpdatedCallback(int handle) {
+
+  if(callbackFuncs[handle]) {
+    callbackFuncs[handle] = NULL;
+  }
+
+  // find highest assigned index (update callbackFuncsMaxIndex_)
+  for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
+    if(callbackFuncs[i]) {
+      callbackFuncsMaxIndex_ = i;
+    }    
+  }
 }

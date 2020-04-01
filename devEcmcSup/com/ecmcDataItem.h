@@ -19,6 +19,7 @@
 #include "inttypes.h"
 #include "ecmcDefinitions.h"
 
+#define ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS 8
 typedef enum {
     ECMC_DIR_INVALID, /**< Invalid direction. Do not use this value. */
     ECMC_DIR_WRITE,   /**< Values written to ecmc. */
@@ -27,18 +28,24 @@ typedef enum {
 } ecmcDataDir;
 
 struct ecmcDataItemInfo{
+  char          *name;
   uint8_t       *data;  
   size_t         dataSize;
   size_t         dataBitCount;
   ecmcEcDataType dataType;
   ecmcDataDir    dataDirection;
   double         dataUpdateRateMs;
-  int            dataPointerValid;
-  char          *name;
+  int            dataPointerValid;  
 };
 
+/**  
+*  Callback prototype to clients that subscribe to data (non asyn clients)
+*  (last arg void* should be this ecmcDataItem object)
+*/
+typedef void(*ecmcDataUpdatedCallback)(uint8_t*,size_t,ecmcEcDataType,void*);
+
 /**
-*  Class for generic access to all registered data items in ecmc (extension to asynDataItem).
+*  Class for generic access to all registered data items in ecmc (base class to asynDataItem).
 *  All ecmc related information is handled in tgis class. All asyn related 
 *  is handled in class ecmcAsynDataItem
 */
@@ -66,18 +73,36 @@ class ecmcDataItem {
   size_t  getEcmcDataMaxSize();
   char *  getName();
 
-  ecmcDataItemInfo *getDataItemData();
-  virtual ecmcDataItemInfo* getDataItemDataIfMe(char* idStringWP) = 0;
+  ecmcDataItemInfo *getDataItemInfo();
 
-  virtual void refresh();
+  /** general write function 
+     asyn param callback will not be made if this function is used */
+  int     write(uint8_t *data,
+                size_t   bytes);
+  /** general read function */
+  int     read(uint8_t *data,
+               size_t   bytes);
+
+  /** Register data updated callback
+  *   Return handle if success (to be used if deregister) otherwise -1 */
+  int  regDataUpdatedCallback(ecmcDataUpdatedCallback func);
+  
+  /** Deregister data updated callback by handle 
+  *   (retuned by regDataUpdatedCallback()) */
+  void deregDataUpdatedCallback(int handle);
 
  protected:
+  virtual void refresh();
+
   ecmcDataItemInfo dataItem_;
   int      checkIntRange_;
   int      arrayCheckSize_;
   int64_t  intMax_;
   int64_t  intMin_;
   size_t   ecmcMaxSize_;
+  
+  ecmcDataUpdatedCallback callbackFuncs[ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS];
+  int callbackFuncsMaxIndex_;
 };
 
 #endif  /* ECMCDATAITEM_H_ */

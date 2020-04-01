@@ -13,6 +13,8 @@
 #ifndef ECMC_MISC_H_
 #define ECMC_MISC_H_
 
+#include "ecmcDataItem.h"
+
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus
@@ -40,6 +42,28 @@ int ecmcAddDefaultAsynParams();
  */
 
 void ecmcCleanup();
+
+/** \brief Get an ecmcDataItem obj by idStringWP
+ *
+ *  \param[in] idStringWP Identification string "with path".\n
+ *                        examples: ec0.s1.AI_1\n
+ *                                  ec0.s5.mm.CH1_ARRAY\n
+ *                                  plcs.plc1.static.test\n
+ *                                  ax1.enc.actpos\n
+ *
+ * \return ecmcDataItem object if success or otherwise NULL.\n
+ *
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
+ */
+ecmcDataItem* getEcmcDataItem(char *idStringWP);
+
+/** \brief Get ecmcAsynPortObject
+ *
+ * \return ecmcAsynPortObject object if success or otherwise NULL.\n
+ *
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
+ */
+void* getEcmcAsynPortDriver();
 
 # ifdef __cplusplus
 }

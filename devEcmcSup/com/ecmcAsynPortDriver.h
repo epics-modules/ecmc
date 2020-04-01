@@ -114,7 +114,7 @@ class ecmcAsynPortDriver : public asynPortDriver {
    int     getEpicsState();
    void    setEpicsState(int state);
 
-   ecmcDataItem *getEcmcDataItem(char* idStringWP);
+   ecmcDataItem *findAvailDataItem(const char * name);
 
  private:
   void initVars();

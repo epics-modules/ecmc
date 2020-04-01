@@ -88,22 +88,25 @@ public:
                     ecmcEcDataType dt); //sample time -1 update rate
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver);
   ~ecmcAsynDataItem ();
+
   int refreshParam(int force);
   int refreshParam(int force, size_t bytes);
   int refreshParam(int force, uint8_t *data, size_t bytes);
   int refreshParamRT(int force);
   int refreshParamRT(int force, size_t bytes);
   int refreshParamRT(int force, uint8_t *data, size_t bytes);
+
   int createParam();
   int createParam(const char *paramName, asynParamType asynParType);
   int createParam(const char *paramName, asynParamType asynParType, 
                   uint8_t *data, size_t bytes);
+
   int setAsynParSampleTimeMS(double sampleTime);
   int getAsynParameterIndex();
   int setAsynParameterType(asynParamType parType);
   asynParamType getAsynParameterType();
   int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);  
-  bool initialized();
+  bool linkedToAsynClient();  // Param linked to record or other client
   char *getParamName();
   char *getDrvInfo();
   char *getDtyp();
@@ -191,7 +194,6 @@ private:
 
   // Baseclass virtuals from ecmcDataItem class
   void refresh();
-  ecmcDataItemInfo* getDataItemDataIfMe(char* idStringWP);
 
 };
 

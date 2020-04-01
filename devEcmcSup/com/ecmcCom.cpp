@@ -599,3 +599,18 @@ int ecmcAddDefaultAsynParams() {
 
   return 0;
 }
+
+ecmcDataItem* getEcmcDataItem(char *idStringWP) {
+  LOGINFO4("%s/%s:%d: idStringWP =%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           idStringWP);
+  if(!asynPort) return NULL;
+
+  return asynPort->findAvailDataItem(idStringWP);
+}
+
+void* getEcmcAsynPortDriver() {
+  return (void*)asynPort;
+}
