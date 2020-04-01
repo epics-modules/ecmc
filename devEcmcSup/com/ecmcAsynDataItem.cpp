@@ -43,52 +43,41 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                                     const char *paramName,
                                     asynParamType asynParType,
                                     ecmcEcDataType dt,
-                                    double updateRateMs)
+                                    double updateRateMs) :
+                  ecmcDataItem(paramName)
 {
-/*  checkIntRange_          = 0;
-  intMax_                 = 0;
-  intMin_                 = 0;
-  dataItem_.dataBitCount                = 0;*/
   asynPortDriver_         = asynPortDriver;  
-  //dataItem_.data                   = 0;  
   asynUpdateCycleCounter_ = 0;
   supportedTypesCounter_  = 0;
-  //dataItem_.dataDirection = ECMC_DIR_INVALID
-  dataItem_.dataType               = dt;
+  dataItem_.dataType      = dt;
   fctPtrExeCmd_           = NULL;
   useExeCmdFunc_          = false;
   exeCmdUserObj_          = NULL;
-  dataItem_.dataUpdateRateMs           = updateRateMs;
+  dataItem_.dataUpdateRateMs = updateRateMs;
 
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
   memset(&paramInfo_,0,sizeof(ecmcParamInfo));
-  paramInfo_.name=strdup(paramName);
+  paramInfo_.name = strdup(paramName);
   paramInfo_.asynType=asynParType;
-  paramInfo_.ecmcDataIsArray = asynTypeIsArray(asynParType);
+  paramInfo_.dataIsArray = asynTypeIsArray(asynParType);
   addSupportedAsynType(asynParType);
 }
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                                     const char *paramName,
                                     asynParamType asynParType,
-                                    ecmcEcDataType dt)
+                                    ecmcEcDataType dt) :
+                  ecmcDataItem(paramName)
 {
-  // checkIntRange_          = 0;
-  // intMax_                 = 0;
-  // intMin_                 = 0;
-  // dataItem_.dataBitCount                = 0;
   asynPortDriver_         = asynPortDriver;  
-  //dataItem_.data                   = 0;  
   asynUpdateCycleCounter_ = 0;
   supportedTypesCounter_  = 0;
-  //dataItem_.dataDirection = ECMC_DIR_INVALID;
-  dataItem_.dataType               = dt;
+  dataItem_.dataType      = dt;
   fctPtrExeCmd_           = NULL;
   useExeCmdFunc_          = false;
   exeCmdUserObj_          = NULL;
-  //dataItem_.dataUpdateRateMs           = -1; //default to real time loop sample time (-1)
   
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
@@ -96,26 +85,19 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
   memset(&paramInfo_,0,sizeof(ecmcParamInfo));
   paramInfo_.name=strdup(paramName);
   paramInfo_.asynType=asynParType;
-  paramInfo_.ecmcDataIsArray = asynTypeIsArray(asynParType);
+  paramInfo_.dataIsArray = asynTypeIsArray(asynParType);
   addSupportedAsynType(asynParType);
 }
 
-ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
+ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver) :
+                  ecmcDataItem("empty")
 {
-  // checkIntRange_          = 0;
-  // intMax_                 = 0;
-  // intMin_                 = 0;
-  // dataItem_.dataBitCount                = 0;
   asynPortDriver_         = asynPortDriver;  
-  //dataItem_.data                   = 0;    
   asynUpdateCycleCounter_ = 0;
   supportedTypesCounter_  = 0;
-  //dataItem_.dataDirection = ECMC_DIR_INVALID;
-  //dataItem_.dataType               = ECMC_EC_NONE;
   fctPtrExeCmd_           = NULL;
   useExeCmdFunc_          = false;
   exeCmdUserObj_          = NULL;
-  // dataItem_.dataUpdateRateMs           = -1; //default to real time loop sample time (-1)
 
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
@@ -144,14 +126,6 @@ ecmcAsynDataItem::~ecmcAsynDataItem ()
   free(paramInfo_.name);
   paramInfo_.name = NULL;
 }
-
-// int ecmcAsynDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)
-// {
-//   dataItem_.data = data;
-//   dataItem_.dataSize=bytes;
-//   ecmcMaxSize_=bytes;
-//   return 0;
-// }
 
 int ecmcAsynDataItem::refreshParamRT(int force)
 {
@@ -187,6 +161,11 @@ int ecmcAsynDataItem::refreshParamRT(int force,uint8_t *data, size_t bytes)
   return refreshParam(force,data,bytes);
 }
 
+void ecmcAsynDataItem::refresh() {
+  // Call base class refresh
+  ecmcDataItem::refresh();
+}
+
 /*
 * Returns 0 if refreshed.
 * Retrun -1 or error code if not refreshed. 
@@ -196,7 +175,13 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
   // set data pointer and size if param is not initialized (linked to record)
   dataItem_.data=data;
   dataItem_.dataSize=bytes;
-
+ 
+  /** Just asyn related below so call refresh() here 
+  * (which calls baseclass::refresh) to update other data subscribers!
+  */
+  refresh();
+   
+  // Do not update if not linked to epics-record
   if(!paramInfo_.initialized) {
     return 0;
   }
@@ -285,7 +270,7 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 
 int ecmcAsynDataItem::createParam()
 { 
-  return createParam(paramInfo_.name,paramInfo_.asynType);
+  return createParam(dataItem_.name,paramInfo_.asynType);
 }
 
 int ecmcAsynDataItem::createParam(const char *paramName,asynParamType asynParType,uint8_t *data,size_t bytes)
@@ -358,7 +343,7 @@ double ecmcAsynDataItem::getSampleTimeMs(){
   return paramInfo_.sampleTimeCycles*1000.0 / mcuFrequency;
 }
 
-char *ecmcAsynDataItem::getName() {  
+char *ecmcAsynDataItem::getParamName() {  
   return paramInfo_.name;
 }
 
@@ -474,7 +459,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
   }
   
   //Alarm status or severity changed=>Do callbacks with old buffered data (if nElemnts==0 then no data in record...)
-  if(paramInfo_.ecmcDataIsArray && dataItem_.dataSize>0){
+  if(paramInfo_.dataIsArray && dataItem_.dataSize>0){
     refreshParamRT(1);
   }
   else{
@@ -1337,10 +1322,6 @@ asynStatus ecmcAsynDataItem::setDrvInfo(const char *drvInfo) {
   return asynSuccess;
 }
 
-// ecmcEcDataType ecmcAsynDataItem::getEcDataType() {
-//   return dataItem_.dataType;
-// }
-
 /**
  * Function to be executed when asyn write occurs.
  * This function needs to handle everything that should happen.
@@ -1358,8 +1339,8 @@ asynStatus ecmcAsynDataItem::setExeCmdFunctPtr(ecmcExeCmdFcn func, void* userObj
  * For generic access of data from all registered asyn param.
  * return information structure if name is correct
 */
-ecmcDataItemData* ecmcAsynDataItem::getDataItemDataIfMe(char* idStringWP) {
-  if(strcmp(idStringWP,paramInfo_.name) != 0) {
+ecmcDataItemInfo* ecmcAsynDataItem::getDataItemDataIfMe(char* idStringWP) {
+  if(strcmp(idStringWP,dataItem_.name) != 0) {
     return NULL;
   }
 

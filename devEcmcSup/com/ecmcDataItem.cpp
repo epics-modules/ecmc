@@ -13,17 +13,20 @@
 #include "ecmcDataItem.h"
 #include "string.h"
 
-ecmcDataItem::ecmcDataItem() {
+ecmcDataItem::ecmcDataItem(const char *name) {
   memset(&dataItem_,0,sizeof(dataItem_));
   checkIntRange_  = 0;
   intMax_         = 0;
   intMin_         = 0;
   arrayCheckSize_ = 0;
   ecmcMaxSize_    = 0;
+  dataItem_.name  = strdup(name);
   dataItem_.dataUpdateRateMs = -1;
 }
 
-ecmcDataItem::~ecmcDataItem() {}
+ecmcDataItem::~ecmcDataItem() {
+  free(dataItem_.name);
+}
 
 void ecmcDataItem::setEcmcMaxValueInt(int64_t intMax) {
   checkIntRange_ = 1;
@@ -88,7 +91,7 @@ int ecmcDataItem::getEcmcDataPointerValid() {
   return dataItem_.dataPointerValid;
 }
 
-ecmcDataItemData *ecmcDataItem::getDataItemData() {
+ecmcDataItemInfo *ecmcDataItem::getDataItemData() {
   return &dataItem_;
 }
 
@@ -106,4 +109,12 @@ void ecmcDataItem::setEcmcDataMaxSize(size_t bytes) {
 
 size_t ecmcDataItem::getEcmcDataMaxSize() {
   return ecmcMaxSize_;
+}
+
+void ecmcDataItem::refresh() {
+   //handle callbacks to subscribers here
+}
+
+char *ecmcDataItem::getName() {  
+  return dataItem_.name;
 }

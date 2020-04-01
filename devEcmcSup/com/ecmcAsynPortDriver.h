@@ -114,6 +114,8 @@ class ecmcAsynPortDriver : public asynPortDriver {
    int     getEpicsState();
    void    setEpicsState(int state);
 
+   ecmcDataItem *getEcmcDataItem(char* idStringWP);
+
  private:
   void initVars();
   asynStatus checkParamNameAndId(int paramIndex,const char *functionName);

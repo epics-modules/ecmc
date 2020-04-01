@@ -26,7 +26,7 @@ typedef enum {
     ECMC_DIR_COUNT    /**< Number of directions. For internal use only. */
 } ecmcDataDir;
 
-struct ecmcDataItemData{
+struct ecmcDataItemInfo{
   uint8_t       *data;  
   size_t         dataSize;
   size_t         dataBitCount;
@@ -34,14 +34,17 @@ struct ecmcDataItemData{
   ecmcDataDir    dataDirection;
   double         dataUpdateRateMs;
   int            dataPointerValid;
+  char          *name;
 };
 
 /**
 *  Class for generic access to all registered data items in ecmc (extension to asynDataItem).
+*  All ecmc related information is handled in tgis class. All asyn related 
+*  is handled in class ecmcAsynDataItem
 */
 class ecmcDataItem {
  public:
-  ecmcDataItem();
+  ecmcDataItem(const char *name);
   virtual ~ecmcDataItem();
   void    setEcmcMaxValueInt(int64_t intMax);
   int64_t getEcmcMinValueInt();
@@ -61,12 +64,15 @@ class ecmcDataItem {
   size_t  getEcmcDataSize();
   void    setEcmcDataMaxSize(size_t bytes);
   size_t  getEcmcDataMaxSize();
+  char *  getName();
 
-  ecmcDataItemData *getDataItemData();
-  virtual ecmcDataItemData* getDataItemDataIfMe(char* idStringWP) = 0;
+  ecmcDataItemInfo *getDataItemData();
+  virtual ecmcDataItemInfo* getDataItemDataIfMe(char* idStringWP) = 0;
+
+  virtual void refresh();
 
  protected:
-  ecmcDataItemData dataItem_;
+  ecmcDataItemInfo dataItem_;
   int      checkIntRange_;
   int      arrayCheckSize_;
   int64_t  intMax_;

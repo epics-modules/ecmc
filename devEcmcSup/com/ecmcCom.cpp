@@ -575,7 +575,7 @@ int ecmcAddDefaultAsynParams() {
   paramTemp->refreshParam(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
   mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID] = paramTemp;
 
-// ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME  
+  // ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME  
   name = ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME;
   paramTemp = asynPort->addNewAvailParam(name,
                                          asynParamInt32Array,
