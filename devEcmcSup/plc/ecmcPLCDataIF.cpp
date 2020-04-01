@@ -1423,7 +1423,7 @@ int ecmcPLCDataIF::initAsyn() {
         return setErrorID(ERROR_ASYN_CREATE_PARAM_FAIL);
     }
 
-  asynDataItem_->allowWriteToEcmc(asynWriteAllow_);    
+  asynDataItem_->setAllowWriteToEcmc(asynWriteAllow_);    
   updateAsyn(1);
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;

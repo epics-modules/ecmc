@@ -11,34 +11,99 @@
 \*************************************************************************/
 
 #include "ecmcDataItem.h"
+#include "string.h"
 
-ecmcDataItem::ecmcDataItem(char*          idStringWP, // Unique id string    
-                           uint8_t        *data,      // Pointer to data
-                           ecmcEcDataType dataType,   // Element data type
-                           size_t         dataSize,   // Total bytes
-                           size_t         elements,   // Number elements
-                           int            dataDir) {  // Read,Write or both
-
+ecmcDataItem::ecmcDataItem() {
+  memset(&dataItem_,0,sizeof(dataItem_));
+  checkIntRange_  = 0;
+  intMax_         = 0;
+  intMin_         = 0;
+  arrayCheckSize_ = 0;
+  ecmcMaxSize_    = 0;
+  dataItem_.dataUpdateRateMs = -1;
 }
 
-ecmcDataItem::~ecmcDataItem() {
+ecmcDataItem::~ecmcDataItem() {}
 
+void ecmcDataItem::setEcmcMaxValueInt(int64_t intMax) {
+  checkIntRange_ = 1;
+  intMax_        = intMax;  
 }
 
+void ecmcDataItem::setEcmcMinValueInt(int64_t intMin) {
+  checkIntRange_ = 1;
+  intMin_        = intMin;
+}
 
+void ecmcDataItem::setEcmcBitCount(size_t bits) {
+   dataItem_.dataBitCount = bits;
+}
 
+int64_t ecmcDataItem::getEcmcMaxValueInt() {  
+  return intMax_;
+}
 
-  ecmcDataItem(char*          idStringWP, // Unique id string    
-               uint8_t        *data,      // Pointer to data
-               ecmcEcDataType dataType,   // Element data type
-               size_t         dataSize,   // Total bytes
-               size_t         elements,   // Number elements
-               int            dataDir)    // Input or output
-);
-  ~ecmcDataItem();
-  char*          ecmcIdStringWP_;   // Unique id string    
-  uint8_t        *ecmcData_;        // Pointer to data
-  ecmcEcDataType emcmDataType_;     // Element data type
-  size_t         ecmcDataSize_;     // Total bytes
-  size_t         ecmcElements_;     // Number elements
-  int            ecmcDataDir_;      // Input or output
+int64_t ecmcDataItem::getEcmcMinValueInt() {
+  return intMin_;
+}
+
+size_t ecmcDataItem::getEcmcBitCount() {
+  return dataItem_.dataBitCount;
+}
+
+void ecmcDataItem::setAllowWriteToEcmc(bool allowWrite) {
+  dataItem_.dataDirection = allowWrite ? ECMC_DIR_WRITE : ECMC_DIR_READ;
+}
+
+bool ecmcDataItem::getAllowWriteToEcmc() {
+  return dataItem_.dataDirection == ECMC_DIR_WRITE;
+}
+
+void ecmcDataItem::setArrayCheckSize(bool check) {
+  arrayCheckSize_ = check;
+}
+
+bool ecmcDataItem::getArrayCheckSize() {
+  return arrayCheckSize_;
+}  
+
+void ecmcDataItem::setEcmcDataType(ecmcEcDataType dt) {
+  dataItem_.dataType = dt;
+}
+
+ecmcEcDataType ecmcDataItem::getEcmcDataType() {
+  return dataItem_.dataType;
+}
+
+int ecmcDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)
+{
+  dataItem_.data     = data;
+  dataItem_.dataSize = bytes;
+  ecmcMaxSize_       = bytes;
+  dataItem_.dataPointerValid = 1;
+  return 0;
+}
+
+int ecmcDataItem::getEcmcDataPointerValid() {
+  return dataItem_.dataPointerValid;
+}
+
+ecmcDataItemData *ecmcDataItem::getDataItemData() {
+  return &dataItem_;
+}
+
+void ecmcDataItem::setEcmcDataSize(size_t bytes) {
+  dataItem_.dataSize = bytes;
+}
+  
+size_t ecmcDataItem::getEcmcDataSize() {
+  return dataItem_.dataSize;
+}
+
+void ecmcDataItem::setEcmcDataMaxSize(size_t bytes) {
+  ecmcMaxSize_ = bytes;
+}
+
+size_t ecmcDataItem::getEcmcDataMaxSize() {
+  return ecmcMaxSize_;
+}

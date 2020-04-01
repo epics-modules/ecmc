@@ -757,7 +757,7 @@ int ecmcEcEntry::initAsyn() {
       break;
   }
 
-  entryAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT || sim_);
+  entryAsynParam_->setAllowWriteToEcmc(direction_ == EC_DIR_OUTPUT || sim_);
   entryAsynParam_->setEcmcBitCount(bitLength_);
   entryAsynParam_->setEcmcMinValueInt(getEcDataTypeMinVal(dataType_));
   entryAsynParam_->setEcmcMaxValueInt(getEcDataTypeMaxVal(dataType_));

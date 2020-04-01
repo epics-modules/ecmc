@@ -806,7 +806,7 @@ int ecmcEcSlave::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   paramTemp->addSupportedAsynType(asynParamInt32);
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);  

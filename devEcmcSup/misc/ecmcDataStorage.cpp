@@ -428,7 +428,7 @@ int ecmcDataStorage::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  dataAsynDataItem_->allowWriteToEcmc(true);
+  dataAsynDataItem_->setAllowWriteToEcmc(true);
   dataAsynDataItem_->refreshParam(1);
   
   // "ds%d.index"
@@ -462,7 +462,7 @@ int ecmcDataStorage::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  indexAsynDataItem_->allowWriteToEcmc(true);
+  indexAsynDataItem_->setAllowWriteToEcmc(true);
   indexAsynDataItem_->refreshParam(1);  
 
   // "ds%d.status"
@@ -498,7 +498,7 @@ int ecmcDataStorage::initAsyn() {
   }
   statusAsynDataItem_->addSupportedAsynType(asynParamInt32);
   statusAsynDataItem_->addSupportedAsynType(asynParamUInt32Digital);    
-  statusAsynDataItem_->allowWriteToEcmc(false);
+  statusAsynDataItem_->setAllowWriteToEcmc(false);
   statusAsynDataItem_->refreshParam(1);
 
   // "ds%d.size"
@@ -532,7 +532,7 @@ int ecmcDataStorage::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  sizeAsynDataItem_->allowWriteToEcmc(false);
+  sizeAsynDataItem_->setAllowWriteToEcmc(false);
   sizeAsynDataItem_->refreshParam(1);
   
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);

@@ -909,7 +909,7 @@ int ecmcPLCTask::initAsyn(int plcIndex) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }  
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->setArrayCheckSize(false);
   paramTemp->refreshParam(1,(uint8_t*)exprStr_.c_str(),strlen(exprStr_.c_str()));
   

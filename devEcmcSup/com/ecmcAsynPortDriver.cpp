@@ -909,7 +909,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
       return asynError;
     }
 
-    if(existentParInfo->cmdFloat64ToInt32 && pEcmcParamInUseArray_[index]->getParamInfo()->ecmcSize !=8) {      
+    if(existentParInfo->cmdFloat64ToInt32 && pEcmcParamInUseArray_[index]->getEcmcDataSize() !=8) {      
       asynPrint(pasynUser, ASYN_TRACE_ERROR, "%s:%s: Command " ECMC_OPTION_CMD_FLOAT64_INT " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName, functionName,drvInfo);
       delete newParam;
@@ -992,11 +992,11 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   }
   fprintf(fp,"    Param linked to record:    %s\n",paramInfo->initialized ? "true" : "false");
   if(!paramInfo->initialized) {  //No record linked to record (no more valid data)
-    fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false"); 
-    fprintf(fp,"    ECMC size [bytes]:         %zu\n",paramInfo->ecmcSize); 
+    fprintf(fp,"    ECMC data pointer valid:   %s\n",param->getEcmcDataPointerValid() ? "true" : "false"); 
+    fprintf(fp,"    ECMC size [bytes]:         %zu\n",param->getEcmcDataSize()); 
     fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");      
-    fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");      
-    fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
+    fprintf(fp,"    ECMC write allowed:        %s\n",param->getAllowWriteToEcmc() ? "true" : "false");      
+    fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcmcDataType()));
     fprintf(fp,"\n");
     return;
   }
@@ -1007,12 +1007,12 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    Param asyn addr:           %d\n",paramInfo->asynAddr);
   fprintf(fp,"    Param alarm:               %d\n",paramInfo->alarmStatus);
   fprintf(fp,"    Param severity:            %d\n",paramInfo->alarmSeverity);
-  fprintf(fp,"    ECMC data pointer valid:   %s\n",paramInfo->ecmcDataPointerValid ? "true" : "false");
+  fprintf(fp,"    ECMC data pointer valid:   %s\n",param->getEcmcDataPointerValid() ? "true" : "false");
   fprintf(fp,"    ECMC size [bits]:          %zu\n",param->getEcmcBitCount());
-  fprintf(fp,"    ECMC max size [bytes]:     %zu\n",paramInfo->ecmcMaxSize);
+  fprintf(fp,"    ECMC max size [bytes]:     %zu\n",param->getEcmcDataMaxSize());
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->ecmcDataIsArray ? "true" : "false");
-  fprintf(fp,"    ECMC write allowed:        %s\n",param->writeToEcmcAllowed() ? "true" : "false");
-  fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcDataType()));
+  fprintf(fp,"    ECMC write allowed:        %s\n",param->getAllowWriteToEcmc() ? "true" : "false");
+  fprintf(fp,"    ECMC Data type:            %s\n",getEcDataTypeStr(param->getEcmcDataType()));
   
   // Value range only applicable for ints
   if(param->getEcmcMinValueInt() != param->getEcmcMaxValueInt()) {

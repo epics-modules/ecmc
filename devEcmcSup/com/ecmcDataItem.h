@@ -16,32 +16,62 @@
 #define ECMCDATAITEM_H_
 
 #include "stdlib.h"
+#include "inttypes.h"
 #include "ecmcDefinitions.h"
 
 typedef enum {
-    ECMC_DATA_DIR_INVALID, /**< Invalid direction. Do not use this value. */
-    ECMC_DATA_DIR_WRITE,   /**< Values written to ecmc (example: ao,bo,.. records). */
-    ECMC_DATA_DIR_READ,    /**< Values read by from ecmc (example:  ai,bi,.. records) */
-    ECMC_DATA_DIR_RW,      /**< RW. */
-    ECMC_DATA_DIR_COUNT    /**< Number of directions. For internal use only. */
+    ECMC_DIR_INVALID, /**< Invalid direction. Do not use this value. */
+    ECMC_DIR_WRITE,   /**< Values written to ecmc. */
+    ECMC_DIR_READ,    /**< Values read from ecmc. */    
+    ECMC_DIR_COUNT    /**< Number of directions. For internal use only. */
 } ecmcDataDir;
 
+struct ecmcDataItemData{
+  uint8_t       *data;  
+  size_t         dataSize;
+  size_t         dataBitCount;
+  ecmcEcDataType dataType;
+  ecmcDataDir    dataDirection;
+  double         dataUpdateRateMs;
+  int            dataPointerValid;
+};
+
+/**
+*  Class for generic access to all registered data items in ecmc (extension to asynDataItem).
+*/
 class ecmcDataItem {
  public:
-  ecmcDataItem(char*          idStringWP, // Unique id string    
-               uint8_t        *data,      // Pointer to data
-               ecmcEcDataType dataType,   // Element data type
-               size_t         dataSize,   // Total bytes
-               size_t         elements,   // Number elements
-               ecmcDataDir    dataDir)    // Input or output
-);
-  ~ecmcDataItem();
-  char*          ecmcIdStringWP_;   // Unique id string    
-  uint8_t        *ecmcData_;        // Pointer to data
-  ecmcEcDataType emcmDataType_;     // Element data type
-  size_t         ecmcDataSize_;     // Total bytes
-  size_t         ecmcElements_;     // Number elements
-  ecmcDataDir    ecmcDataDir_;      // Input or output
+  ecmcDataItem();
+  virtual ~ecmcDataItem();
+  void    setEcmcMaxValueInt(int64_t intMax);
+  int64_t getEcmcMinValueInt();
+  void    setEcmcMinValueInt(int64_t intMin);
+  int64_t getEcmcMaxValueInt();
+  void    setEcmcBitCount(size_t bits);
+  size_t  getEcmcBitCount();
+  void    setAllowWriteToEcmc(bool allowWrite);
+  bool    getAllowWriteToEcmc();
+  void    setArrayCheckSize(bool check);
+  bool    getArrayCheckSize();
+  void    setEcmcDataType(ecmcEcDataType dt);
+  ecmcEcDataType getEcmcDataType();
+  int     setEcmcDataPointer(uint8_t *data,size_t bytes);
+  int     getEcmcDataPointerValid();
+  void    setEcmcDataSize(size_t bytes);
+  size_t  getEcmcDataSize();
+  void    setEcmcDataMaxSize(size_t bytes);
+  size_t  getEcmcDataMaxSize();
+
+  ecmcDataItemData *getDataItemData();
+  virtual ecmcDataItemData* getDataItemDataIfMe(char* idStringWP) = 0;
+
+ protected:
+  ecmcDataItemData dataItem_;
+  int      checkIntRange_;
+  int      arrayCheckSize_;
+  int64_t  intMax_;
+  int64_t  intMin_;
+  size_t   ecmcMaxSize_;
 };
 
 #endif  /* ECMCDATAITEM_H_ */
