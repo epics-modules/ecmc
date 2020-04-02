@@ -115,7 +115,8 @@ class ecmcAsynPortDriver : public asynPortDriver {
    void    setEpicsState(int state);
 
    ecmcDataItem *findAvailDataItem(const char * name);
-
+   ecmcAsynDataItem *findAvailParam(const char * name);
+   
  private:
   void initVars();
   asynStatus checkParamNameAndId(int paramIndex,const char *functionName);
@@ -124,7 +125,7 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                    bool dieIfFail);
   asynStatus appendInUseParam(ecmcAsynDataItem *dataItem,bool dieIfFail);
   asynStatus appendAvailParam(ecmcAsynDataItem *dataItem, bool dieIfFail);
-  ecmcAsynDataItem *findAvailParam(const char * name);
+
   void reportParamInfo(FILE *fp,ecmcAsynDataItem *param, int listIndex);
   bool allowRtThreadCom_;
   ecmcAsynDataItem  **pEcmcParamAvailArray_;

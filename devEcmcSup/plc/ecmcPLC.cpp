@@ -30,7 +30,7 @@ extern ecmcPLCMain        *plcs;
 extern ecmcAsynPortDriver *asynPort;
 extern double              mcuFrequency;
 extern int                 sampleRateChangeAllowed;
-extern ecmcPluginLib             *plugins[ECMC_MAX_PLUGINS];
+extern ecmcPluginLib      *plugins[ECMC_MAX_PLUGINS];
 
 
 int createPLC(int index,  double cycleTimeMs, int axisPLC) {

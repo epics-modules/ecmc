@@ -11,7 +11,6 @@
 \*************************************************************************/
 
 #include "ecmcPlugin.h"
-#include "ecmcPluginClient.h"
 #include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcErrorsList.h"

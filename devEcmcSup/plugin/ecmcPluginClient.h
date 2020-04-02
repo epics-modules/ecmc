@@ -15,8 +15,6 @@
 #ifndef ECMC_PLUGIN_H_
 #define ECMC_PLUGIN_H_
 
-#include "ecmcDataItem.h"
-
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus
@@ -24,6 +22,25 @@ extern "C" {
 /** \brief Get an ecmcDataItem obj by idStringWP
  * 
  *  Allows access to all regsistered ecmcDataItems in ecmc.\n
+ *  \param[in] idStringWP Identification string "with path".\n
+ *                        examples: ec0.s1.AI_1\n
+ *                                  ec0.s5.mm.CH1_ARRAY\n
+ *                                  plcs.plc1.static.test\n
+ *                                  ax1.enc.actpos\n
+ *
+ * \return ecmcDataItem (void*) object if success or otherwise NULL.\n
+ *
+ * \note Object returns a (void*) so that plugins can be compiled without\n
+ *  asyn classes if they are not used.\n
+ *
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
+ */
+void* getEcmcDataItem(char *idStringWP);
+
+/** \brief Get an ecmcAsynDataItem obj by idStringWP
+ * 
+ *  Allows access to all regsistered ecmcAsynDataItems in ecmc.\n
+ *  The ecmcAsynDataItems class is dervied of ecmcDataItem class.\n
  *
  *  \param[in] idStringWP Identification string "with path".\n
  *                        examples: ec0.s1.AI_1\n
@@ -31,15 +48,21 @@ extern "C" {
  *                                  plcs.plc1.static.test\n
  *                                  ax1.enc.actpos\n
  *
- * \return ecmcDataItem object if success or otherwise NULL.\n
+ * \return ecmcAsynDataItem (void*) object if success or otherwise NULL.\n
+ *
+ * \note Object returns a (void*) so that plugins can be compiled without\n
+ *  asyn classes if they are not used.\n
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-ecmcDataItem* getEcmcDataItem(char *idStringWP);
+void* getEcmcAsynDataItem(char *idStringWP);
 
 /** \brief Get ecmcAsynPortObject (as void*)
  *
- * \return ecmcAsynPortObject object if success or otherwise NULL.\n
+ * \return ecmcAsynPortObject (void*) object if success or otherwise NULL.\n
+*
+ * \note Object returns a (void*) so that plugins can be compiled without\n
+ *  asyn classes if they are not used.\n
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
