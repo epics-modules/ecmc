@@ -52,6 +52,8 @@ struct ecmcOnePlcConst{
 };
 
 struct ecmcPluginData {
+  // ECMC_PLUG_VERSION_MAGIC
+  int ifVersion;
   // Name 
   const char *name;
   // Description
@@ -60,8 +62,6 @@ struct ecmcPluginData {
   const char *optionDesc;
   // Plugin version
   int version;
-  // ECMC_PLUG_VERSION_MAGIC
-  int ifVersion;
   // Optional construct func, called once at load (with config string (with options if needed))
   int (*constructFnc)(char *config);
   // Optional destruct func, called once at unload
