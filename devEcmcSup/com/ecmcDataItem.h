@@ -31,6 +31,7 @@ struct ecmcDataItemInfo{
   char          *name;
   uint8_t       *data;  
   size_t         dataSize;
+  size_t         dataElementSize;
   size_t         dataBitCount;
   ecmcEcDataType dataType;
   ecmcDataDir    dataDirection;
@@ -69,6 +70,8 @@ class ecmcDataItem {
   int     getEcmcDataPointerValid();
   void    setEcmcDataSize(size_t bytes);
   size_t  getEcmcDataSize();
+  void    setEcmcDataElementSize(size_t bytes);
+  size_t  getEcmcDataElementSize();
   void    setEcmcDataMaxSize(size_t bytes);
   size_t  getEcmcDataMaxSize();
   char *  getName();

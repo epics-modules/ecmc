@@ -46,13 +46,14 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                                     double updateRateMs) :
                   ecmcDataItem(paramName)
 {
-  asynPortDriver_         = asynPortDriver;  
-  asynUpdateCycleCounter_ = 0;
-  supportedTypesCounter_  = 0;
-  dataItem_.dataType      = dt;
-  fctPtrExeCmd_           = NULL;
-  useExeCmdFunc_          = false;
-  exeCmdUserObj_          = NULL;
+  asynPortDriver_            = asynPortDriver;  
+  asynUpdateCycleCounter_    = 0;
+  supportedTypesCounter_     = 0;
+  fctPtrExeCmd_              = NULL;
+  useExeCmdFunc_             = false;
+  exeCmdUserObj_             = NULL;
+  dataItem_.dataType         = dt;
+  dataItem_.dataElementSize  = getEcDataTypeByteSize(dt);
   dataItem_.dataUpdateRateMs = updateRateMs;
 
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
@@ -71,13 +72,14 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                                     ecmcEcDataType dt) :
                   ecmcDataItem(paramName)
 {
-  asynPortDriver_         = asynPortDriver;  
-  asynUpdateCycleCounter_ = 0;
-  supportedTypesCounter_  = 0;
-  dataItem_.dataType      = dt;
-  fctPtrExeCmd_           = NULL;
-  useExeCmdFunc_          = false;
-  exeCmdUserObj_          = NULL;
+  asynPortDriver_           = asynPortDriver;  
+  asynUpdateCycleCounter_   = 0;
+  supportedTypesCounter_    = 0;
+  fctPtrExeCmd_             = NULL;
+  useExeCmdFunc_            = false;
+  exeCmdUserObj_            = NULL;
+  dataItem_.dataType        = dt;
+  dataItem_.dataElementSize = getEcDataTypeByteSize(dt);
   
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
@@ -92,14 +94,14 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver) :
                   ecmcDataItem("empty")
 {
+  memset(&paramInfo_,0,sizeof(ecmcParamInfo));
   asynPortDriver_         = asynPortDriver;  
   asynUpdateCycleCounter_ = 0;
   supportedTypesCounter_  = 0;
-  dataItem_.dataType      = ECMC_EC_NONE;
-  memset(&paramInfo_,0,sizeof(ecmcParamInfo));
+  dataItem_.dataType      = ECMC_EC_NONE;  
   paramInfo_.name         = strdup("empty");
   paramInfo_.asynType     = asynParamNotDefined;
-  paramInfo_.dataIsArray  = 0;
+  paramInfo_.dataIsArray  = 0;  
   fctPtrExeCmd_           = NULL;
   useExeCmdFunc_          = false;
   exeCmdUserObj_          = NULL;

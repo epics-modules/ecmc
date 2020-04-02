@@ -108,6 +108,14 @@ size_t ecmcDataItem::getEcmcDataSize() {
   return dataItem_.dataSize;
 }
 
+void ecmcDataItem::setEcmcDataElementSize(size_t bytes) {
+  dataItem_.dataElementSize = bytes;
+}
+  
+size_t ecmcDataItem::getEcmcDataElementSize() {
+  return dataItem_.dataElementSize;
+}
+
 void ecmcDataItem::setEcmcDataMaxSize(size_t bytes) {
   ecmcMaxSize_ = bytes;
 }
