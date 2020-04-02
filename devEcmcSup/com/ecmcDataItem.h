@@ -40,7 +40,7 @@ struct ecmcDataItemInfo{
 
 /**  
 *  Callback prototype to clients that subscribe to data (non asyn clients)
-*  (last arg void* should be this ecmcDataItem object)
+*  (last arg void* should the object supplied when registered)
 */
 typedef void(*ecmcDataUpdatedCallback)(uint8_t*,size_t,ecmcEcDataType,void*);
 
@@ -85,7 +85,7 @@ class ecmcDataItem {
 
   /** Register data updated callback
   *   Return handle if success (to be used if deregister) otherwise -1 */
-  int  regDataUpdatedCallback(ecmcDataUpdatedCallback func);
+  int  regDataUpdatedCallback(ecmcDataUpdatedCallback func, void* callingObj);
   
   /** Deregister data updated callback by handle 
   *   (retuned by regDataUpdatedCallback()) */
@@ -101,7 +101,8 @@ class ecmcDataItem {
   int64_t  intMin_;
   size_t   ecmcMaxSize_;
   
-  ecmcDataUpdatedCallback callbackFuncs[ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS];
+  ecmcDataUpdatedCallback callbackFuncs_[ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS];
+  void* callbackObjs_[ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS];
   int callbackFuncsMaxIndex_;
 };
 

@@ -16,8 +16,9 @@
 ecmcDataItem::ecmcDataItem(const char *name) {
   memset(&dataItem_,0,sizeof(dataItem_));
   for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
-    callbackFuncs[i] = NULL;
-  }
+    callbackFuncs_[i] = NULL;
+    callbackObjs_[i]  = NULL;
+  }  
   callbackFuncsMaxIndex_ = 0;
   checkIntRange_         = 0;
   intMax_                = 0;
@@ -118,11 +119,11 @@ size_t ecmcDataItem::getEcmcDataMaxSize() {
 void ecmcDataItem::refresh() {
    //call callbacks to subscribers here
   for(int i = 0; i <= callbackFuncsMaxIndex_; ++i) {
-    if(callbackFuncs[i]) {
-      callbackFuncs[i](dataItem_.data,
+    if(callbackFuncs_[i]) {
+      callbackFuncs_[i](dataItem_.data,
                        dataItem_.dataSize,
                        dataItem_.dataType,
-                       this);
+                       callbackObjs_[i]);
     }
   }
 }
@@ -147,11 +148,12 @@ int ecmcDataItem::read(uint8_t *data,
 * Register data updated callback
 * Return handle if success (to be used if deregister) otherwise -1
 */
-int ecmcDataItem::regDataUpdatedCallback(ecmcDataUpdatedCallback func) {
+int ecmcDataItem::regDataUpdatedCallback(ecmcDataUpdatedCallback func, void* callingObj) {
   // Add to first avilable element
   for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
-    if(!callbackFuncs[i]) {
-      callbackFuncs[i] = func;
+    if(!callbackFuncs_[i]) {
+      callbackFuncs_[i] = func;
+      callbackObjs_[i] = callingObj;
       if(i > callbackFuncsMaxIndex_) {
         callbackFuncsMaxIndex_ = i;
       }
@@ -168,13 +170,14 @@ int ecmcDataItem::regDataUpdatedCallback(ecmcDataUpdatedCallback func) {
 */
 void ecmcDataItem::deregDataUpdatedCallback(int handle) {
 
-  if(callbackFuncs[handle]) {
-    callbackFuncs[handle] = NULL;
+  if(callbackFuncs_[handle]) {
+    callbackFuncs_[handle] = NULL;
+    callbackObjs_[handle] = NULL;
   }
 
   // find highest assigned index (update callbackFuncsMaxIndex_)
   for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
-    if(callbackFuncs[i]) {
+    if(callbackFuncs_[i]) {
       callbackFuncsMaxIndex_ = i;
     }    
   }
