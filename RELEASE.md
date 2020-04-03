@@ -11,7 +11,7 @@ ecmc plugins (shared libs) can be loaded into ecmc. Plugins can:
   * subscribe to data by callbacks
   * Add/register new asyn parameters for direct access over asyn
 * Get callbacks:  
-  * Ecah realtime loop  
+  * Each realtime loop  
   * When ecmc data updates
   * At plugin load
   * At plugin unload
