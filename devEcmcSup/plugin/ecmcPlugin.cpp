@@ -13,6 +13,7 @@
 #include "ecmcPlugin.h"
 #include "../com/ecmcOctetIF.h"        // Log Macros
 #include "../main/ecmcDefinitions.h"
+#include "../main/ecmcErrorsList.h"
 
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
@@ -65,4 +66,28 @@ int reportPlugin(int pluginId) {
 
   plugins[pluginId]->report();
   return 0;
+}
+
+ecmcDataItem* getEcmcDataItem(char *idStringWP) {
+  LOGINFO4("%s/%s:%d: idStringWP =%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           idStringWP);
+  if(!asynPort) return NULL;
+
+  return asynPort->findAvailDataItem(idStringWP);
+}
+
+void* getEcmcAsynPortDriver() {
+  return (void*)asynPort;
+}
+
+double getEcmcSampleRate() {
+  return mcuFrequency;
+}
+
+double getEcmcSampleTimeMS() {
+  //mcuPeriod is in nano seconds
+  return mcuPeriod/1000;
 }

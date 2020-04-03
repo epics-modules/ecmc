@@ -43,52 +43,43 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                                     const char *paramName,
                                     asynParamType asynParType,
                                     ecmcEcDataType dt,
-                                    double updateRateMs)
+                                    double updateRateMs) :
+                  ecmcDataItem(paramName)
 {
-  checkIntRange_          = 0;
-  intMax_                 = 0;
-  intMin_                 = 0;
-  intBits_                = 0;
-  asynPortDriver_         = asynPortDriver;  
-  data_                   = 0;  
-  asynUpdateCycleCounter_ = 0;
-  supportedTypesCounter_  = 0;
-  allowWriteToEcmc_       = false;
-  dataType_               = dt;
-  fctPtrExeCmd_           = NULL;
-  useExeCmdFunc_          = false;
-  exeCmdUserObj_          = NULL;
-  updateRateMs_           = updateRateMs;
+  asynPortDriver_            = asynPortDriver;  
+  asynUpdateCycleCounter_    = 0;
+  supportedTypesCounter_     = 0;
+  fctPtrExeCmd_              = NULL;
+  useExeCmdFunc_             = false;
+  exeCmdUserObj_             = NULL;
+  dataItem_.dataType         = dt;
+  dataItem_.dataElementSize  = getEcDataTypeByteSize(dt);
+  dataItem_.dataUpdateRateMs = updateRateMs;
 
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
   memset(&paramInfo_,0,sizeof(ecmcParamInfo));
-  paramInfo_.name=strdup(paramName);
+  paramInfo_.name = strdup(paramName);
   paramInfo_.asynType=asynParType;
-  paramInfo_.ecmcDataIsArray = asynTypeIsArray(asynParType);
+  paramInfo_.dataIsArray = asynTypeIsArray(asynParType);
   addSupportedAsynType(asynParType);
 }
 
 ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
                                     const char *paramName,
                                     asynParamType asynParType,
-                                    ecmcEcDataType dt)
+                                    ecmcEcDataType dt) :
+                  ecmcDataItem(paramName)
 {
-  checkIntRange_          = 0;
-  intMax_                 = 0;
-  intMin_                 = 0;
-  intBits_                = 0;
-  asynPortDriver_         = asynPortDriver;  
-  data_                   = 0;  
-  asynUpdateCycleCounter_ = 0;
-  supportedTypesCounter_  = 0;
-  allowWriteToEcmc_       = false;
-  dataType_               = dt;
-  fctPtrExeCmd_           = NULL;
-  useExeCmdFunc_          = false;
-  exeCmdUserObj_          = NULL;
-  updateRateMs_           = -1; //default to real time loop sample time (-1)
+  asynPortDriver_           = asynPortDriver;  
+  asynUpdateCycleCounter_   = 0;
+  supportedTypesCounter_    = 0;
+  fctPtrExeCmd_             = NULL;
+  useExeCmdFunc_            = false;
+  exeCmdUserObj_            = NULL;
+  dataItem_.dataType        = dt;
+  dataItem_.dataElementSize = getEcDataTypeByteSize(dt);
   
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
@@ -96,30 +87,27 @@ ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
   memset(&paramInfo_,0,sizeof(ecmcParamInfo));
   paramInfo_.name=strdup(paramName);
   paramInfo_.asynType=asynParType;
-  paramInfo_.ecmcDataIsArray = asynTypeIsArray(asynParType);
+  paramInfo_.dataIsArray = asynTypeIsArray(asynParType);
   addSupportedAsynType(asynParType);
 }
-ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver)
+
+ecmcAsynDataItem::ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver) :
+                  ecmcDataItem("empty")
 {
-  checkIntRange_          = 0;
-  intMax_                 = 0;
-  intMin_                 = 0;
-  intBits_                = 0;
+  memset(&paramInfo_,0,sizeof(ecmcParamInfo));
   asynPortDriver_         = asynPortDriver;  
-  data_                   = 0;    
   asynUpdateCycleCounter_ = 0;
   supportedTypesCounter_  = 0;
-  allowWriteToEcmc_       = false;
-  dataType_               = ECMC_EC_NONE;
+  dataItem_.dataType      = ECMC_EC_NONE;  
+  paramInfo_.name         = strdup("empty");
+  paramInfo_.asynType     = asynParamNotDefined;
+  paramInfo_.dataIsArray  = 0;  
   fctPtrExeCmd_           = NULL;
   useExeCmdFunc_          = false;
   exeCmdUserObj_          = NULL;
-  updateRateMs_           = -1; //default to real time loop sample time (-1)
-
   for(int i=0;i<ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT;i++) {
     supportedTypes_[i]=asynParamNotDefined;
   }
-  memset(&paramInfo_,0,sizeof(ecmcParamInfo));
 }
 
 ecmcAsynDataItem::~ecmcAsynDataItem ()
@@ -144,26 +132,17 @@ ecmcAsynDataItem::~ecmcAsynDataItem ()
   paramInfo_.name = NULL;
 }
 
-int ecmcAsynDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)
-{
-  data_ = data;
-  paramInfo_.ecmcSize=bytes;
-  paramInfo_.ecmcMaxSize=bytes;
-  paramInfo_.ecmcDataPointerValid =  data && bytes>0;
-  return 0;
-}
-
 int ecmcAsynDataItem::refreshParamRT(int force)
 {
   if(!asynPortDriver_->getAllowRtThreadCom()){
     return ERROR_ASYN_NOT_REFRESHED_RETURN;
   }
-  return refreshParam(force,data_,paramInfo_.ecmcSize);
+  return refreshParam(force,dataItem_.data,dataItem_.dataSize);
 }
 
 int ecmcAsynDataItem::refreshParam(int force)
 {
-  return refreshParam(force,data_,paramInfo_.ecmcSize);
+  return refreshParam(force,dataItem_.data,dataItem_.dataSize);
 }
 
 int ecmcAsynDataItem::refreshParamRT(int force, size_t bytes)
@@ -171,12 +150,12 @@ int ecmcAsynDataItem::refreshParamRT(int force, size_t bytes)
   if(!asynPortDriver_->getAllowRtThreadCom()){
     return ERROR_ASYN_NOT_REFRESHED_RETURN;
   }
-  return refreshParam(force,data_,bytes);
+  return refreshParam(force,dataItem_.data,bytes);
 }
 
 int ecmcAsynDataItem::refreshParam(int force, size_t bytes)
 {
-  return refreshParam(force,data_,bytes);
+  return refreshParam(force,dataItem_.data,bytes);
 }
 
 int ecmcAsynDataItem::refreshParamRT(int force,uint8_t *data, size_t bytes)
@@ -187,6 +166,11 @@ int ecmcAsynDataItem::refreshParamRT(int force,uint8_t *data, size_t bytes)
   return refreshParam(force,data,bytes);
 }
 
+void ecmcAsynDataItem::refresh() {
+  // Call base class refresh
+  ecmcDataItem::refresh();
+}
+
 /*
 * Returns 0 if refreshed.
 * Retrun -1 or error code if not refreshed. 
@@ -194,9 +178,15 @@ int ecmcAsynDataItem::refreshParamRT(int force,uint8_t *data, size_t bytes)
 int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 {
   // set data pointer and size if param is not initialized (linked to record)
-  data_=data;
-  paramInfo_.ecmcSize=bytes;
-
+  dataItem_.data=data;
+  dataItem_.dataSize=bytes;
+ 
+  /** Just asyn related below so call refresh() here 
+  * (which calls baseclass::refresh) to update other data subscribers!
+  */
+  refresh();
+   
+  // Do not update if not linked to epics-record
   if(!paramInfo_.initialized) {
     return 0;
   }
@@ -214,11 +204,11 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     return ERROR_ASYN_DATA_NULL;
   }
 
-  if(bytes > paramInfo_.ecmcMaxSize && paramInfo_.arrayCheckSize) {
-    bytes = paramInfo_.ecmcMaxSize;
+  if(bytes > ecmcMaxSize_ && arrayCheckSize_) {
+    bytes = ecmcMaxSize_;
   }
 
-  paramInfo_.ecmcSize = bytes;
+  dataItem_.dataSize = bytes;
 
   asynStatus stat=asynError;
   switch(paramInfo_.asynType){
@@ -230,24 +220,24 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
       break;
     case asynParamFloat64:            
       if(paramInfo_.cmdInt64ToFloat64) {        
-        if(paramInfo_.ecmcSize == sizeof(int64_t)) {
+        if(dataItem_.dataSize == sizeof(int64_t)) {
           stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsFloat64>(*(int64_t*)data));         
           break;
         }
       }
       if(paramInfo_.cmdUint64ToFloat64) {        
-        if(paramInfo_.ecmcSize == sizeof(uint64_t)) {          
+        if(dataItem_.dataSize == sizeof(uint64_t)) {          
           stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsFloat64>(*(uint64_t*)data));         
           break;
         }
       }
       if(paramInfo_.cmdFloat64ToInt32) {        
-        if(paramInfo_.ecmcSize == sizeof(double)) {          
+        if(dataItem_.dataSize == sizeof(double)) {          
           stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsInt32>(*(double*)data));         
           break;
         }
       }
-      if(dataType_ == ECMC_EC_F32) {
+      if(dataItem_.dataType == ECMC_EC_F32) {
         stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsFloat64>(*(float*)data));                 
         break;
       }
@@ -285,7 +275,7 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
 
 int ecmcAsynDataItem::createParam()
 { 
-  return createParam(paramInfo_.name,paramInfo_.asynType);
+  return createParam(dataItem_.name,paramInfo_.asynType);
 }
 
 int ecmcAsynDataItem::createParam(const char *paramName,asynParamType asynParType,uint8_t *data,size_t bytes)
@@ -303,7 +293,7 @@ int ecmcAsynDataItem::createParam(const char *paramName,asynParamType asynParTyp
   paramInfo_.asynType=asynParType;
 
   // ECMC double, epics record int32
-  if(paramInfo_.cmdFloat64ToInt32 && paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(epicsFloat64) ) {
+  if(paramInfo_.cmdFloat64ToInt32 && paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize == sizeof(epicsFloat64) ) {
     asynStatus status= asynPortDriver_->createParam(ECMC_ASYN_DEFAULT_LIST,paramName,asynParamInt32,&paramInfo_.index);
     return  (status==asynSuccess) ? 0 : ERROR_ASYN_CREATE_PARAM_FAIL;
   }
@@ -346,7 +336,7 @@ ecmcParamInfo *ecmcAsynDataItem::getParamInfo()
   return &paramInfo_;
 }
 
-bool ecmcAsynDataItem::initialized() {
+bool ecmcAsynDataItem::linkedToAsynClient() {
   return paramInfo_.initialized;
 }
 
@@ -358,7 +348,7 @@ double ecmcAsynDataItem::getSampleTimeMs(){
   return paramInfo_.sampleTimeCycles*1000.0 / mcuFrequency;
 }
 
-char *ecmcAsynDataItem::getName() {  
+char *ecmcAsynDataItem::getParamName() {  
   return paramInfo_.name;
 }
 
@@ -422,14 +412,6 @@ asynParamType ecmcAsynDataItem::getSupportedAsynType(int index) {
   return asynParamNotDefined;
 }
 
-void ecmcAsynDataItem::allowWriteToEcmc(bool allowWrite) {
-  allowWriteToEcmc_ = allowWrite;
-}
-
-bool ecmcAsynDataItem::writeToEcmcAllowed() {
-  return allowWriteToEcmc_;
-}
-
 bool ecmcAsynDataItem::willRefreshNext() {
   return asynUpdateCycleCounter_>= paramInfo_.sampleTimeCycles-1;
 }
@@ -482,7 +464,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm,int severity)
   }
   
   //Alarm status or severity changed=>Do callbacks with old buffered data (if nElemnts==0 then no data in record...)
-  if(paramInfo_.ecmcDataIsArray && paramInfo_.ecmcSize>0){
+  if(paramInfo_.dataIsArray && dataItem_.dataSize>0){
     refreshParamRT(1);
   }
   else{
@@ -544,11 +526,11 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
 
   size_t bytes = bytesToWrite;
   if (asynTypeIsArray(type)) {
-    if (bytes > paramInfo_.ecmcMaxSize) {
-      bytes = paramInfo_.ecmcMaxSize;
+    if (bytes > ecmcMaxSize_) {
+      bytes = ecmcMaxSize_;
     }
   } else {
-    if ( bytes > paramInfo_.ecmcMaxSize ) {
+    if ( bytes > ecmcMaxSize_ ) {
     LOGERR(
       "%s/%s:%d: ERROR: %s write error. Data buffer to small (0x%x).\n",
       __FILE__,
@@ -560,7 +542,8 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t *data, size_t bytesToWrite, as
     }
   }
   
-  memcpy(data_, data, bytes);
+  // Write function in  ecmcDataItem
+  write(data, bytes);
   *writtenBytes = bytes; 
 
   //refresh params
@@ -601,11 +584,11 @@ asynStatus ecmcAsynDataItem::readGeneric(uint8_t *data, size_t bytesToRead, asyn
   *readBytes = 0;
 
   if (asynTypeIsArray(type)) {
-    if (bytes > paramInfo_.ecmcMaxSize && paramInfo_.arrayCheckSize) {
-      bytes = paramInfo_.ecmcMaxSize;
+    if (bytes > ecmcMaxSize_ && arrayCheckSize_) {
+      bytes = ecmcMaxSize_;
     }
   } else {
-    if ( bytes > paramInfo_.ecmcMaxSize) {
+    if ( bytes > ecmcMaxSize_) {
     LOGERR(
       "%s/%s:%d: ERROR: %s read error. Data buffer to small (0x%x).\n",
       __FILE__,
@@ -616,10 +599,11 @@ asynStatus ecmcAsynDataItem::readGeneric(uint8_t *data, size_t bytesToRead, asyn
       return asynError;
     }
   }
+  
+  // Read function in  ecmcDataItem
+  read(data,bytes);
+  *readBytes = bytes;
 
-  memcpy(data, data_, bytes);
-
-  *readBytes = bytes; 
   return asynSuccess;
 }
 
@@ -627,8 +611,8 @@ asynStatus ecmcAsynDataItem::readInt32(epicsInt32 *value) {
 
   // Check if cmd. ECMC double, epics record int32
   if(paramInfo_.cmdFloat64ToInt32) {
-    if(paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(epicsFloat64)){
-      *value = static_cast<epicsInt32>(*(epicsFloat64*)data_);      
+    if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize == sizeof(epicsFloat64)){
+      *value = static_cast<epicsInt32>(*(epicsFloat64*)dataItem_.data);      
       return asynSuccess;
     }
     else {
@@ -652,9 +636,9 @@ asynStatus ecmcAsynDataItem::writeInt32(epicsInt32 value) {
 
   // Check if cmd. ECMC double, epics record int32
   if(paramInfo_.cmdFloat64ToInt32) { 
-    if(paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(epicsFloat64)){
+    if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize == sizeof(epicsFloat64)){
       epicsFloat64 temp = static_cast<epicsFloat64>(value);
-      memcpy(data_,&temp,sizeof(epicsFloat64));
+      memcpy(dataItem_.data,&temp,sizeof(epicsFloat64));
       return asynSuccess;
     }
     else {
@@ -736,8 +720,8 @@ asynStatus  ecmcAsynDataItem::readFloat64(epicsFloat64 *value) {
 
   // Check if cmd. ECMC int64, epics record double
   if(paramInfo_.cmdInt64ToFloat64) {
-    if(paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(int64_t)){
-      *value = static_cast<epicsFloat64>(*(int64_t*)data_);
+    if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize == sizeof(int64_t)){
+      *value = static_cast<epicsFloat64>(*(int64_t*)dataItem_.data);
       return asynSuccess;
     }
     else {
@@ -754,8 +738,8 @@ asynStatus  ecmcAsynDataItem::readFloat64(epicsFloat64 *value) {
   
   // Check if cmd. ECMC uint64, epics record double
   if(paramInfo_.cmdUint64ToFloat64) {
-    if(paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(uint64_t)){
-      *value = static_cast<epicsFloat64>(*(uint64_t*)data_);  
+    if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize == sizeof(uint64_t)){
+      *value = static_cast<epicsFloat64>(*(uint64_t*)dataItem_.data);  
       return asynSuccess;
     }
     else {
@@ -771,9 +755,9 @@ asynStatus  ecmcAsynDataItem::readFloat64(epicsFloat64 *value) {
   }
 
   //Special case F32
-  if(dataType_ == ECMC_EC_F32) {
-    if(paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize >= sizeof(float)){
-      *value = static_cast<epicsFloat64>(*(float*)data_);  
+  if(dataItem_.dataType == ECMC_EC_F32) {
+    if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize >= sizeof(float)){
+      *value = static_cast<epicsFloat64>(*(float*)dataItem_.data);  
       return asynSuccess;
     }
     else {
@@ -796,9 +780,9 @@ asynStatus  ecmcAsynDataItem::readFloat64(epicsFloat64 *value) {
 asynStatus  ecmcAsynDataItem::writeFloat64(epicsFloat64 value) {
   // Check if cmd. ECMC int64, epics record double
   if(paramInfo_.cmdInt64ToFloat64) {
-    if(paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(int64_t)){
+    if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize == sizeof(int64_t)){
       int64_t temp = static_cast<int64_t>(value);
-      memcpy(data_,&temp,sizeof(int64_t));
+      memcpy(dataItem_.data,&temp,sizeof(int64_t));
       return asynSuccess;
     }
     else {
@@ -815,9 +799,9 @@ asynStatus  ecmcAsynDataItem::writeFloat64(epicsFloat64 value) {
   
   // Check if cmd. ECMC uint64, epics record double
   if(paramInfo_.cmdUint64ToFloat64) {
-    if(paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize == sizeof(uint64_t)){
+    if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize == sizeof(uint64_t)){
       uint64_t temp = static_cast<uint64_t>(value);
-      memcpy(data_,&temp,sizeof(uint64_t));
+      memcpy(dataItem_.data,&temp,sizeof(uint64_t));
       return asynSuccess;
     }
     else {
@@ -833,10 +817,10 @@ asynStatus  ecmcAsynDataItem::writeFloat64(epicsFloat64 value) {
   }
 
   //Special case F32
-  if(dataType_ == ECMC_EC_F32) {
-    if(paramInfo_.asynType == asynParamFloat64 && paramInfo_.ecmcSize >= sizeof(float)){
+  if(dataItem_.dataType == ECMC_EC_F32) {
+    if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize >= sizeof(float)){
       float temp = static_cast<float>(value);
-      memcpy(data_,&temp,sizeof(float));
+      memcpy(dataItem_.data,&temp,sizeof(float));
       return asynSuccess;
     }
     else {
@@ -933,40 +917,6 @@ asynStatus ecmcAsynDataItem::writeFloat64Array(epicsFloat64 *value,
   return writeGeneric((uint8_t*)value, nElements * sizeof(epicsFloat64),
                       asynParamFloat64Array, &bytesWritten);
 }
-
-void ecmcAsynDataItem::setEcmcMaxValueInt(int64_t intMax) {
-  checkIntRange_ = 1;
-  intMax_ = intMax;  
-}
-
-void ecmcAsynDataItem::setEcmcMinValueInt(int64_t intMin) {
-  checkIntRange_ = 1;
-  intMin_ = intMin;
-}
-
-void ecmcAsynDataItem::setEcmcBitCount(size_t bits) {
-   intBits_ = bits;
-}
-
-int64_t ecmcAsynDataItem::getEcmcMaxValueInt() {  
-  return intMax_;
-}
-
-int64_t ecmcAsynDataItem::getEcmcMinValueInt() {
-  return intMin_;
-}
-
-size_t ecmcAsynDataItem::getEcmcBitCount() {
-  return intBits_;
-}
-
-void ecmcAsynDataItem:: setArrayCheckSize(bool check) {
-  paramInfo_.arrayCheckSize=check;
-}
-
-bool ecmcAsynDataItem:: getArrayCheckSize() {
-  return paramInfo_.arrayCheckSize;
-}  
 
 /** Validates drvInfo string
  * \param[in] drvInfo String containing information about the parameter.
@@ -1237,7 +1187,7 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
   }
 
   // ensure that sample rate is not faster than realtime loop or plc scan rates
-  double dataUpdateRateMs = updateRateMs_;
+  double dataUpdateRateMs = dataItem_.dataUpdateRateMs;
   if(dataUpdateRateMs<0) { // updated at realtime loop rate
     dataUpdateRateMs = mcuPeriod/1E6;
   }
@@ -1377,10 +1327,6 @@ asynStatus ecmcAsynDataItem::setDrvInfo(const char *drvInfo) {
   }
 
   return asynSuccess;
-}
-
-ecmcEcDataType ecmcAsynDataItem::getEcDataType() {
-  return dataType_;
 }
 
 /**

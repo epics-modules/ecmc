@@ -22,6 +22,7 @@
 #include "ecmcAsynPortDriverUtils.h"
 #endif
 #include "asynPortDriver.h"
+#include "ecmcDataItem.h"
 
 #define ERROR_ASYN_PORT_NULL 0x220000
 #define ERROR_ASYN_DATA_NULL 0x220001
@@ -41,6 +42,7 @@ typedef asynStatus(*ecmcExeCmdFcn)(void*,size_t,asynParamType,void*);
 
 class ecmcAsynPortDriver;  //Include in cpp
 
+// Asyn Parameter informtaion
 typedef struct ecmcParamInfo{
   char           *recordName;
   char           *recordType;
@@ -59,20 +61,20 @@ typedef struct ecmcParamInfo{
   int32_t        sampleTimeCycles;  // milli seconds
   int            index;             // also used as hUser for ads callback
   char           *name;
-  size_t         ecmcSize;          // Last refresh
-  size_t         ecmcMaxSize;       // Max buffer size
-  bool           ecmcDataIsArray;
-  int            ecmcDataPointerValid;
+  bool           dataIsArray;
   int            alarmStatus;
   int            alarmSeverity;
   bool           refreshNeeded;
-  bool           arrayCheckSize;
   bool           cmdUint64ToFloat64;
   bool           cmdInt64ToFloat64;
   bool           cmdFloat64ToInt32;
 }ecmcParamInfo;
 
-class ecmcAsynDataItem
+/**
+*  This class handles all asyn related information.
+*  All ecmc related information is handled in the class ecmcDataItem.
+*/
+class ecmcAsynDataItem : public ecmcDataItem
 {
 public:
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver,
@@ -86,27 +88,30 @@ public:
                     ecmcEcDataType dt); //sample time -1 update rate
   ecmcAsynDataItem (ecmcAsynPortDriver *asynPortDriver);
   ~ecmcAsynDataItem ();
-  int setEcmcDataPointer(uint8_t *data,size_t bytes);  
+
   int refreshParam(int force);
   int refreshParam(int force, size_t bytes);
   int refreshParam(int force, uint8_t *data, size_t bytes);
   int refreshParamRT(int force);
   int refreshParamRT(int force, size_t bytes);
   int refreshParamRT(int force, uint8_t *data, size_t bytes);
+
   int createParam();
-  int createParam(const char *paramName,asynParamType asynParType);
-  int createParam(const char *paramName,asynParamType asynParType, uint8_t *data,size_t bytes);
+  int createParam(const char *paramName, asynParamType asynParType);
+  int createParam(const char *paramName, asynParamType asynParType, 
+                  uint8_t *data, size_t bytes);
+
   int setAsynParSampleTimeMS(double sampleTime);
   int getAsynParameterIndex();
   int setAsynParameterType(asynParamType parType);
   asynParamType getAsynParameterType();
   int setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);  
-  bool initialized();
-  char * getName();
-  char * getDrvInfo();
-  char * getDtyp();
-  char * getRecordType();
-  char * getRecordName();
+  bool linkedToAsynClient();  // Param linked to record or other client
+  char *getParamName();
+  char *getDrvInfo();
+  char *getDtyp();
+  char *getRecordType();
+  char *getRecordName();
   int32_t getSampleTimeCycles();
   double getSampleTimeMs();
   ecmcParamInfo *getParamInfo();
@@ -116,21 +121,10 @@ public:
   asynParamType getAsynType();
   char * getAsynTypeName();
   asynParamType getSupportedAsynType(int index);
-  void allowWriteToEcmc(bool allowWrite);
-  bool writeToEcmcAllowed();
   bool willRefreshNext();
   asynStatus setAlarmParam(int alarm,int severity);
   int getAlarmStatus();
   int getAlarmSeverity();
-  void setEcmcMaxValueInt(int64_t intMax);
-  void setEcmcMinValueInt(int64_t intMin);
-  void setEcmcBitCount(size_t bits);
-  int64_t getEcmcMinValueInt();
-  int64_t getEcmcMaxValueInt();
-  size_t getEcmcBitCount();
-  void setArrayCheckSize(bool check);
-  bool getArrayCheckSize();
-  void setType(ecmcEcDataType dt);
     
   asynStatus setDrvInfo(const char *drvInfo);
 
@@ -167,8 +161,6 @@ public:
                               size_t *nIn);
   asynStatus writeFloat64Array(epicsFloat64 *value,
                                size_t nElements);
-  
-  ecmcEcDataType getEcDataType();
 
   asynStatus setExeCmdFunctPtr(ecmcExeCmdFcn func, void* userObj);
 
@@ -176,8 +168,8 @@ private:
   asynStatus validateDrvInfo(const char *drvInfo);
   asynStatus getRecordInfoFromDrvInfo(const char *drvInfo);
   asynStatus parseInfofromDrvInfo(const char* drvInfo);
-
   int asynTypeIsArray(asynParamType asynParType);
+
   asynStatus readGeneric(uint8_t *data,
                          size_t bytesToRead,
                          asynParamType type,
@@ -186,25 +178,23 @@ private:
                           size_t bytes,
                           asynParamType type,
                           size_t *writtenBytes);
+
+  // variables
   ecmcAsynPortDriver *asynPortDriver_;
-  int asynUpdateCycleCounter_;
-  uint8_t *data_;
-  ecmcParamInfo paramInfo_;
-  bool allowWriteToEcmc_;
+  
+  ecmcParamInfo       paramInfo_;
   asynParamType supportedTypes_[ERROR_ASYN_MAX_SUPPORTED_TYPES_COUNT];
+  int asynUpdateCycleCounter_;  
   int supportedTypesCounter_;  
-  int checkIntRange_;
-  //value limits for writes
-  int64_t intMax_;
-  int64_t intMin_;
-  size_t intBits_;
-  ecmcEcDataType dataType_;
 
   // Add function to allow action on writes
   asynStatus (*fctPtrExeCmd_)(void* data, size_t bytes, asynParamType asynParType,void *userObj);
   bool useExeCmdFunc_;
   void* exeCmdUserObj_;
-  double updateRateMs_;
+
+  // Baseclass virtuals from ecmcDataItem class
+  void refresh();
+
 };
 
 #endif /* ECMC_ASYN_DATA_ITEM_H_ */

@@ -14,10 +14,8 @@
 #define ECMC_ASYN_PORT_DRIVER_UTILS_H_
 #ifndef ECMC_IS_PLUGIN
 #include "../main/ecmcDefinitions.h"
-#include "../main/ecmcErrorsList.h"
 #else
 #include "ecmcDefinitions.h"
-#include "ecmcErrorsList.h"
 #endif
 #include "asynPortDriver.h"  //data types
 #define __STDC_FORMAT_MACROS

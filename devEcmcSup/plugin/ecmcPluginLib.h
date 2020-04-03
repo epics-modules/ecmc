@@ -14,7 +14,6 @@
 
 #include "../main/ecmcError.h"
 #include "ecmcPluginDefs.h"
-#include "ecmcPluginDataRefs.h"
 
 #define ERROR_PLUGIN_FLIE_NOT_FOUND 0x231000
 #define ERROR_PLUGIN_OPEN_FAIL 0x231001
@@ -35,11 +34,10 @@ class ecmcPluginLib : public ecmcError {
   ecmcPluginData *getData();
   int  exeRTFunc(int ecmcErrorCode);
   void exeDestructFunc();
-  /** Note dataToPlugin only valid in plugin between 
-   *  the calls of exeEnterRTFunc and exeExitRTFunc */
-  int exeEnterRTFunc(ecmcPluginDataRefs* dataToPlugin);
-  int exeExitRTFunc();
-  int   findArgCount(ecmcOnePlcFunc &func);
+  int  exeEnterRTFunc();
+  int  exeExitRTFunc();
+  int  findArgCount(ecmcOnePlcFunc &func);
+  
  private:
   void  initVars();
   char* libFilenameWP_;
