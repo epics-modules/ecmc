@@ -18,7 +18,9 @@
 #include <string>
 
 #include "ecmcMotion.h"
-
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
 #include "../ethercat/ecmcEthercat.h"
 #include "../plc/ecmcPLC.h"
 #include "ecmcAxisBase.h"      // Abstract class for all axis types
@@ -2413,7 +2415,7 @@ int linkEcEntryToAxisEnc(int   slaveIndex,
     encoderEntryIndex,
     bitIndex);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
@@ -2474,7 +2476,7 @@ int linkEcEntryToAxisDrv(int   slaveIndex,
     return axes[axisIndex]->getDrv()->setEnableReduceTorque(0);
   }
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
@@ -2541,7 +2543,7 @@ int linkEcEntryToAxisMon(int   slaveIndex,
     monitorEntryIndex,
     bitIndex);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
@@ -2594,7 +2596,7 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
            entryIDString,
            axisIndex);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 

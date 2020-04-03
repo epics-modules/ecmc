@@ -12,6 +12,10 @@
 
 #include "ecmcMisc.h"
 
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
+
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
 
@@ -110,7 +114,7 @@ int linkEcEntryToEvent(int   indexEvent,
 
   CHECK_EVENT_RETURN_IF_ERROR(indexEvent);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 
@@ -393,7 +397,7 @@ int linkEcEntryToRecorder(int   indexRecorder,
 
   CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcSlave *slave = NULL;
 

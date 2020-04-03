@@ -25,3 +25,7 @@ lib/
 *linux-x86_64/
 .vscode/
 
+.cvsignore
+*linux-arm/
+ecmc.Makefile
+

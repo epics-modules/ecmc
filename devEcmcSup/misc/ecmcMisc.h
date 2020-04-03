@@ -13,11 +13,6 @@
 #ifndef ECMC_MISC_H_
 #define ECMC_MISC_H_
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
-
-
 #define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex)                  \
 {                                                                             \
   if (indexCommandList >= ECMC_MAX_COMMANDS_LISTS || indexCommandList < 0) {  \

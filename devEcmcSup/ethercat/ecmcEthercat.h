@@ -13,10 +13,6 @@
 #ifndef ECMC_ETHERCAT_H_
 #define ECMC_ETHERCAT_H_
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
-
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus

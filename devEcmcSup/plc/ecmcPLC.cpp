@@ -11,12 +11,15 @@
 \*************************************************************************/
 
 #include "ecmcPLC.h"
-
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
 #include "../motion/ecmcMotion.h"
 #include "../motion/ecmcAxisBase.h"
 #include "../ethercat/ecmcEc.h"
 #include "../misc/ecmcDataStorage.h"
 #include "../com/ecmcAsynPortDriver.h"
+#include "../plugin/ecmcPluginLib.h"
 #include "ecmcPLCMain.h"
 #include "ecmcPLCTask.h"
 
@@ -27,6 +30,8 @@ extern ecmcPLCMain        *plcs;
 extern ecmcAsynPortDriver *asynPort;
 extern double              mcuFrequency;
 extern int                 sampleRateChangeAllowed;
+extern ecmcPluginLib      *plugins[ECMC_MAX_PLUGINS];
+
 
 int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   LOGINFO4("%s/%s:%d index=%d, cycleTimeMs=%lf, axisPLC?=%d\n",
@@ -67,7 +72,7 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
     }
   }
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   // Set axes pointers (for the already configuered axes)
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
@@ -79,6 +84,10 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
     plcs->setDataStoragePointer(dataStorages[i], i);
   }
 
+  // Set plugin pointers
+  for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
+    plcs->setPluginPointer(plugins[i], i);
+  }
   int skipCycles = cycleTimeMs * mcuFrequency / 1000-1;
   if (skipCycles < 0) {
     return ERROR_MAIN_PLCS_SKIPCYCLES_INVALID;

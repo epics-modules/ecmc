@@ -70,11 +70,9 @@
 
 class ecmcEc : public ecmcError {
  public:
-  ecmcEc();
+  ecmcEc(ecmcAsynPortDriver *asynPortDriver);
   ~ecmcEc();
   int init(int nMasterIndex);
-
-  // void setMaster(ec_master_t *master);
   int addSlave(
     uint16_t alias,   /**< Slave alias. */
     uint16_t position,   /**< Slave position. */
@@ -164,7 +162,7 @@ class ecmcEc : public ecmcError {
   int           reset();
   int           setEcStatusOutputEntry(ecmcEcEntry *entry);
   int           initAsyn(ecmcAsynPortDriver *asynPortDriver);
-  int           setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
+  //int           setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
   int           printAllConfig();
   int           printSlaveConfig(int slaveIndex);
   int           validate();

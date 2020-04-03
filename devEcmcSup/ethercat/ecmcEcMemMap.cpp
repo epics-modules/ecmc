@@ -11,7 +11,8 @@
 \*************************************************************************/
 
 #include "ecmcEcMemMap.h"
-#include <stdlib.h> 
+#include <stdlib.h>
+#include "../main/ecmcErrorsList.h"
 
 ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                            int masterId,
@@ -232,7 +233,7 @@ int ecmcEcMemMap::initAsyn() {
   memMapAsynParam_->addSupportedAsynType(asynParamInt32Array);
   memMapAsynParam_->addSupportedAsynType(asynParamFloat32Array);
   memMapAsynParam_->addSupportedAsynType(asynParamFloat64Array);
-  memMapAsynParam_->allowWriteToEcmc(direction_ == EC_DIR_OUTPUT);
+  memMapAsynParam_->setAllowWriteToEcmc(direction_ == EC_DIR_OUTPUT);
   memMapAsynParam_->refreshParam(1);
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
 

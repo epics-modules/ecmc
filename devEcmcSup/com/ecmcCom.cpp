@@ -12,6 +12,10 @@
 
 #include "ecmcCom.h"
 #include "ecmcGeneral.h"
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
+#include "../main/ecmcMainThread.h"
 
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
@@ -28,14 +32,12 @@ int ecmcInit(void *asynPortObject) {
   }
 
   asynPort = reinterpret_cast<ecmcAsynPortDriver *>(asynPortObject);  
-  ec = new ecmcEc();
+  ec = new ecmcEc(asynPort);
 
   if(!ec) {
     LOGERR("ERROR: Fail allocate ec master (0x%x)",ERROR_MAIN_EC_NULL);
     return ERROR_MAIN_EC_NULL;
   }
-
-  ec->setAsynPortDriver(asynPort);
 
   //Main asyn params
   int errorCode=ecmcAddDefaultAsynParams();
@@ -92,7 +94,7 @@ int ecmcAddTestParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   testAsynParams[0] = paramTemp;
 
@@ -114,7 +116,7 @@ int ecmcAddTestParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   testAsynParams[1] = paramTemp;
 
@@ -136,7 +138,7 @@ int ecmcAddTestParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   testAsynParams[2] = paramTemp;
 
@@ -158,7 +160,7 @@ int ecmcAddTestParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   testAsynParams[3] = paramTemp;
 
@@ -180,7 +182,7 @@ int ecmcAddTestParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   testAsynParams[4] = paramTemp;
 
@@ -202,7 +204,7 @@ int ecmcAddTestParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   testAsynParams[5] = paramTemp;
 
@@ -224,7 +226,7 @@ int ecmcAddTestParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   testAsynParams[6] = paramTemp;
 
@@ -263,6 +265,14 @@ void ecmcCleanup() {
   for(int i = 0;i < ECMC_MAX_COMMANDS_LISTS; i++) {
     delete commandLists[i];
     commandLists[i] = NULL;
+  }
+
+  for(int i = 0;i < ECMC_MAX_PLUGINS; i++) {
+    if(plugins[i]) {
+      plugins[i]->exeDestructFunc();      
+    }
+    delete plugins[i];
+    plugins[i] = NULL;
   }
 
   delete ec;
@@ -326,7 +336,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID] = paramTemp;
 
@@ -347,7 +357,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MAX_ID] = paramTemp;
 
@@ -368,7 +378,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MIN_ID] = paramTemp;
 
@@ -389,7 +399,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_PERIOD_MAX_ID] = paramTemp;
 
@@ -410,7 +420,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MIN_ID] = paramTemp;
 
@@ -431,7 +441,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_EXECUTE_MAX_ID] = paramTemp;
 
@@ -452,7 +462,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MIN_ID] = paramTemp;
 
@@ -473,7 +483,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_SEND_MAX_ID] = paramTemp;
 
@@ -494,7 +504,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_APP_MODE_ID] = paramTemp;  
 
@@ -515,7 +525,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID] = paramTemp;
 
@@ -537,7 +547,7 @@ int ecmcAddDefaultAsynParams() {
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
 
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteReset,NULL); // Nu object defined
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_RESET_ID] = paramTemp;  
@@ -560,12 +570,12 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }  
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->setArrayCheckSize(false);
   paramTemp->refreshParam(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
   mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID] = paramTemp;
 
-// ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME  
+  // ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME  
   name = ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME;
   paramTemp = asynPort->addNewAvailParam(name,
                                          asynParamInt32Array,
@@ -582,7 +592,7 @@ int ecmcAddDefaultAsynParams() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }  
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->setArrayCheckSize(false);
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID] = paramTemp;

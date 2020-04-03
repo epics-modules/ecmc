@@ -1,6 +1,43 @@
 Release Notes
 ===
 # Master
+### Add plugin support
+ecmc plugins (shared libs) can be loaded into ecmc. Plugins can:
+* Access ecmc data:
+  * ethercat data
+  * motion data
+  * plc data
+  * data storages
+  * subscribe to data by callbacks
+  * Add/register new asyn parameters for direct access over asyn
+* Get callbacks:  
+  * Each realtime loop  
+  * When ecmc data updates
+  * At plugin load
+  * At plugin unload
+  * At enter realtime
+  * At exit realtine
+* Implement custom ecmc plc functions
+* Implement custom ecmc plc constants
+
+A plugin can also access the ecmc api headers for direct access to most parts of ecmc.
+
+Some plugin examples:
+1. Demo plugin: https://github.com/anderssandstrom/e3-ecmcPlugin_Advanced
+2. WiringPi ecmc wrapper: https://github.com/anderssandstrom/e3-ecmcPlugin_RasPi
+
+Plugins can be loaded by the ecmccfg command loadPlugin.cmd. Plugin configurations can be added in a configurations string.
+Example:
+```
+#- Load plugin 0: Advanced
+epicsEnvSet(ECMC_PLUGIN_FILNAME,"/epics/base-7.0.3.1/require/3.1.2/siteMods/ecmcPlugin_Advanced/master/lib/linux-arm/libecmcPlugin_Advanced.so")
+epicsEnvSet(ECMC_PLUGIN_CONFIG,"DBG_PRINT=0;") # Only one option implemented in this plugin
+${SCRIPTEXEC} ${ecmccfg_DIR}loadPlugin.cmd, "PLUGIN_ID=0,FILE=${ECMC_PLUGIN_FILNAME},CONFIG='${ECMC_PLUGIN_CONFIG}', REPORT=1"
+epicsEnvUnset(ECMC_PLUGIN_FILNAME)
+epicsEnvUnset(ECMC_PLUGIN_CONFIG)
+
+```
+
 ### Add iocsh command to exit
 Add ecmcExit() to exit EPICS/ECMC (needed since the iocsh command "exit" just stops reading current "file"). 
 Can be used for stopping execution when a configuration error occurs.

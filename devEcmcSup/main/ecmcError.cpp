@@ -1770,6 +1770,18 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_SAMPLE_RATE_CHANGE_NOT_ALLOWED";
 
     break;
+  case 0x2004F:
+    return "ERROR_MAIN_PLUGIN_LIST_FULL";
+
+    break;
+  case 0x20050:
+    return "ERROR_MAIN_PLUGIN_OBJECT_NULL";
+
+    break;
+  case 0x20051:
+    return "ERROR_MAIN_PLUGIN_INDEX_OUT_OF_RANGE";
+
+    break;
 
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
@@ -1986,6 +1998,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2050F:
+    return "ERROR_PLC_PLUGIN_INDEX_OUT_OF_RANGE";
+
+    break;
+
   case 0x20600:   // ecmcPLCDataIF
     return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
 
@@ -2090,6 +2107,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED";
 
     break;
+  case 0x20709:
+    return "ERROR_PLCS_PLUGIN_INDEX_OUT_OF_RANGE";
+
+    break;
 
   case 0x20800:
     return "ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE";
@@ -2173,7 +2194,48 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
   case 0x230000:
     return "ERROR_AXIS_FILTER_ALLOC_FAIL";
 
+  break;
+  
+  case 0x231000:
+    return "ERROR_PLUGIN_FLIE_NOT_FOUND";
+
+    break;
+
+  case 0x231001:
+    return "ERROR_PLUGIN_OPEN_FAIL";
+
+    break;
+
+  case 0x231002:
+    return "ERROR_PLUGIN_GET_DATA_FUNC_FAIL";
+
+    break;
+
+  case 0x231003:
+    return "ERROR_PLUGIN_GET_DATA_FAIL";
+
+    break;
+
+  case 0x231004:
+    return "ERROR_PLUGIN_VERSION_MISSMATCH";
+
+    break;
+
+  case 0x231005:
+    return "ERROR_PLUGIN_LIB_NAME_UNDEFINED";
+
+    break;
+
+  case 0x231006:
+    return "ERROR_PLUGIN_DATA_NULL";
+
+    break;
+  
+  case 0x231007:
+    return "ERROR_PLUGIN_DATA_ARG_VS_FUNC_MISSMATCH";
+
     break;
   }
+
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
 }
