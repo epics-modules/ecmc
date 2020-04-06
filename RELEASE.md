@@ -170,7 +170,7 @@ epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
 ECMC_CONFIG_RETURN_VAL=1024
 ```
 
-### Add "ecmcEpicsEnvSetCalcTenary()" 
+### Add "ecmcEpicsEnvSetCalcTernary()" 
 Used for evaluating expressions and set EPCIS environment variables to different strings.
 depending on if the expression evaluates to "true" or "false". Can be usefull for:
 * Choose different files to load like plc-files, axis configurations, db-files or..
@@ -178,11 +178,11 @@ depending on if the expression evaluates to "true" or "false". Can be usefull fo
 * ...
   
 ``` 
-ecmcEpicsEnvSetCalcTenary -h
+ecmcEpicsEnvSetCalcTernary -h
 
- Test iocsh function "ecmcEpicsEnvSetCalcTenary()" t
+ Test iocsh function "ecmcEpicsEnvSetCalcTernary()" t
 
-        Use "ecmcEpicsEnvSetCalcTenary(<envVarName>,  <expression>, <trueString>, <falseString>)" to evaluate the expression and        assign the variable.
+        Use "ecmcEpicsEnvSetCalcTernary(<envVarName>,  <expression>, <trueString>, <falseString>)" to evaluate the expression and        assign the variable.
           <envVarName>  : EPICS environment variable name.
           <expression>  : Calculation expression (see exprTK for available functionality). Examples:
                           Simple expression:"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)".                          
@@ -197,26 +197,26 @@ Examples:
 ```
 #### Simple true false
 epicsEnvSet("VALUE",10)
-# ecmcEpicsEnvSetCalcTenary("test_var", "${VALUE}+2+5/10","True","False")
-ecmcEpicsEnvSetCalcTenary("test_var", "10+2+5/10","True","False")
+# ecmcEpicsEnvSetCalcTernary("test_var", "${VALUE}+2+5/10","True","False")
+ecmcEpicsEnvSetCalcTernary("test_var", "10+2+5/10","True","False")
 epicsEnvShow("test_var")
 test_var=True
 
 ### Can be used for choosing different files
-# ecmcEpicsEnvSetCalcTenary("filename", "${VALUE}>20","./plc_fast.cfg","./plc_slow.cfg")
-ecmcEpicsEnvSetCalcTenary("filename", "10>20","./plc_fast.cfg","./plc_slow.cfg")
+# ecmcEpicsEnvSetCalcTernary("filename", "${VALUE}>20","./plc_fast.cfg","./plc_slow.cfg")
+ecmcEpicsEnvSetCalcTernary("filename", "10>20","./plc_fast.cfg","./plc_slow.cfg")
 epicsEnvShow("filename")
 filename=./plc_slow.cfg
 
 ### Comparing strings 1 (simple):
-# ecmcEpicsEnvSetCalcTenary("result", "'$(filename)'='./plc_slow.cfg'","equal","not_equal")
-ecmcEpicsEnvSetCalcTenary("result", "'./plc_slow.cfg'='./plc_slow.cfg'","equal","not_equal")
+# ecmcEpicsEnvSetCalcTernary("result", "'$(filename)'='./plc_slow.cfg'","equal","not_equal")
+ecmcEpicsEnvSetCalcTernary("result", "'./plc_slow.cfg'='./plc_slow.cfg'","equal","not_equal")
 epicsEnvShow("result")
 result=equal
 
 ### Comparing strings 2 (with if-else):
-# ecmcEpicsEnvSetCalcTenary("result", "if('$(filename)'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
-ecmcEpicsEnvSetCalcTenary("result", "if('./plc_slow.cfg'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
+# ecmcEpicsEnvSetCalcTernary("result", "if('$(filename)'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
+ecmcEpicsEnvSetCalcTernary("result", "if('./plc_slow.cfg'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
 epicsEnvShow("result")
 result=no_use_this_file.cfg
 

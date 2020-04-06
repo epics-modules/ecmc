@@ -1702,9 +1702,9 @@ static void initCallFunc_8(const iocshArgBuf *args) {
   ecmcEpicsEnvSetCalc(args[0].sval,args[1].sval,args[2].sval);
 }
 
-void ecmcEpicsEnvSetCalcTenaryPrintHelp() {
+void ecmcEpicsEnvSetCalcTernaryPrintHelp() {
   printf("\n");
-  printf("       Use \"ecmcEpicsEnvSetCalcTenary(<envVarName>,  <expression>, <trueString>, <falseString>)\" to evaluate the expression and assign the variable.\n");
+  printf("       Use \"ecmcEpicsEnvSetCalcTernary(<envVarName>,  <expression>, <trueString>, <falseString>)\" to evaluate the expression and assign the variable.\n");
   printf("          <envVarName>  : EPICS environment variable name.\n");
   printf("          <expression>  : Calculation expression (see exprTK for available functionality). Examples:\n");
   printf("                          Simple expression:\"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)\".\n");
@@ -1714,27 +1714,27 @@ void ecmcEpicsEnvSetCalcTenaryPrintHelp() {
   printf("\n");
 }
 
-/** EPICS iocsh shell command: ecmcEpicsEnvSetCalcTenary
+/** EPICS iocsh shell command: ecmcEpicsEnvSetCalcTernary
  *  Evaluates an expression and sets an EPICS environment variable to:
  *   expression>0 : trueString
  *   expression<=0: falseString
 */
-int ecmcEpicsEnvSetCalcTenary(const char *envVarName, const char *expression, const char *trueString, const char *falseString) {
+int ecmcEpicsEnvSetCalcTernary(const char *envVarName, const char *expression, const char *trueString, const char *falseString) {
 
   if(!envVarName) {
     printf("Error: Environment variable name  missing.\n");
-    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    ecmcEpicsEnvSetCalcTernaryPrintHelp();
     return asynError;
   }
 
   if(strcmp(envVarName,"-h") == 0 || strcmp(envVarName,"--help") == 0 ) {
-    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    ecmcEpicsEnvSetCalcTernaryPrintHelp();
     return asynSuccess;
   }
 
   if(!expression || ! trueString || ! falseString) {
     printf("Error: \"expression\", \"trueString\" and/or \"falseString\" missing.\n");
-    ecmcEpicsEnvSetCalcTenaryPrintHelp();
+    ecmcEpicsEnvSetCalcTernaryPrintHelp();
     return asynError;
   }
 
@@ -1763,9 +1763,9 @@ static const iocshArg initArg3_9 =
 { "False string", iocshArgString };
 
 static const iocshArg *const initArgs_9[]  = { &initArg0_9, &initArg1_9, &initArg2_9, &initArg3_9 };
-static const iocshFuncDef    initFuncDef_9 = { "ecmcEpicsEnvSetCalcTenary", 4, initArgs_9 };
+static const iocshFuncDef    initFuncDef_9 = { "ecmcEpicsEnvSetCalcTernary", 4, initArgs_9 };
 static void initCallFunc_9(const iocshArgBuf *args) {
-  ecmcEpicsEnvSetCalcTenary(args[0].sval,args[1].sval,args[2].sval,args[3].sval);
+  ecmcEpicsEnvSetCalcTernary(args[0].sval,args[1].sval,args[2].sval,args[3].sval);
 }
 
 void ecmcFileExistPrintHelp() {
