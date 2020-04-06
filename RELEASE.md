@@ -37,8 +37,8 @@ epicsEnvUnset(ECMC_PLUGIN_FILNAME)
 epicsEnvUnset(ECMC_PLUGIN_CONFIG)
 
 ```
-### Allow running witout EtherCAT hardware
-Add possibility to run without attached ethercat hardware. Without ethercat hardware most functionalities are still available:
+### Allow running without EtherCAT hardware
+Add possibility to run without attached ethercat hardware. Most functionalities are still available:
 * PLC:s
 * motion (most likely to use virtual axes, but also normal axis can be used).
 * ..
