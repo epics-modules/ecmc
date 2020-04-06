@@ -12,15 +12,16 @@
 
 #ifndef ECMC_ASYN_PORT_DRIVER_UTILS_H_
 #define ECMC_ASYN_PORT_DRIVER_UTILS_H_
-
+#ifndef ECMC_IS_PLUGIN
+#include "../main/ecmcDefinitions.h"
+#else
+#include "ecmcDefinitions.h"
+#endif
 #include "asynPortDriver.h"  //data types
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <limits>
 #include <cmath>
-
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcErrorsList.h"
 
 #define ECMC_MAX_FIELD_CHAR_LENGTH 128
 
@@ -161,8 +162,8 @@ ecmcEcDataType getEcDataTypeFromStr(const char* dt);
 size_t         getEcDataTypeBits(ecmcEcDataType dt);
 ecmcEcDataType getEcDataType(size_t bitLength,bool signedVal);
 int            getEcDataTypeSigned(ecmcEcDataType dt);
-size_t         getEcDataTypeMinVal(ecmcEcDataType dt);
-size_t         getEcDataTypeMaxVal(ecmcEcDataType dt);
+int64_t        getEcDataTypeMinVal(ecmcEcDataType dt);
+uint64_t       getEcDataTypeMaxVal(ecmcEcDataType dt);
 const char*    getEcDataTypeStr(ecmcEcDataType dt);
 size_t         getEcDataTypeByteSize(ecmcEcDataType dt);
 

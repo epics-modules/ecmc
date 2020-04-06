@@ -12,16 +12,21 @@
 
 #include "ecmcPLCDataIF.h"
 
-ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex, ecmcAxisBase *axis, char *axisVarName, ecmcAsynPortDriver *asynPortDriver) {
+ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
+                             double plcSampleRateMs,
+                             ecmcAxisBase *axis,
+                             char *axisVarName,
+                             ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
-  plcIndex_       = plcIndex;
-  axis_           = axis;
-  varName_        = axisVarName;
-  exprTkVarName_  = axisVarName;
-  asynPortDriver_ =asynPortDriver;
-  source_         = ECMC_RECORDER_SOURCE_AXIS;
-  dataSourceAxis_ = parseAxisDataSource(axisVarName);
+  plcIndex_        = plcIndex;
+  sampleRateMs_    = plcSampleRateMs; 
+  axis_            = axis;
+  varName_         = axisVarName;
+  exprTkVarName_   = axisVarName;
+  asynPortDriver_  = asynPortDriver;
+  source_          = ECMC_RECORDER_SOURCE_AXIS;
+  dataSourceAxis_  = parseAxisDataSource(axisVarName);
 
   if (dataSourceAxis_ == ECMC_AXIS_DATA_NONE) {
     LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",
@@ -35,18 +40,20 @@ ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex, ecmcAxisBase *axis, char *axisVarName
 }
 
 ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
+                             double plcSampleRateMs,
                              ecmcDataStorage *ds,
                              char *dsVarName,
                              ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
-  plcIndex_      = plcIndex;
-  ds_            = ds;
-  varName_       = dsVarName;
-  exprTkVarName_ = dsVarName;
-  asynPortDriver_ =asynPortDriver;
-  source_        = ECMC_RECORDER_SOURCE_DATA_STORAGE;
-  dataSourceDs_  = parseDataStorageDataSource(dsVarName);
+  plcIndex_        = plcIndex;
+  sampleRateMs_    = plcSampleRateMs; 
+  ds_              = ds;
+  varName_         = dsVarName;
+  exprTkVarName_   = dsVarName;
+  asynPortDriver_  = asynPortDriver;
+  source_          = ECMC_RECORDER_SOURCE_DATA_STORAGE;
+  dataSourceDs_    = parseDataStorageDataSource(dsVarName);
 
   if (dataSourceDs_ == ECMC_DATA_STORAGE_DATA_NONE) {
     LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",
@@ -60,34 +67,38 @@ ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
 }
 
 ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
+                             double plcSampleRateMs,
                              ecmcEc *ec,
                              char *ecVarName,
                              ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
-  plcIndex_      = plcIndex;
-  ec_            = ec;
-  varName_       = ecVarName;
-  exprTkVarName_ = ecVarName;
-  asynPortDriver_ =asynPortDriver;
-  source_        = ECMC_RECORDER_SOURCE_ETHERCAT;
+  plcIndex_        = plcIndex;
+  sampleRateMs_    = plcSampleRateMs; 
+  ec_              = ec;
+  varName_         = ecVarName;
+  exprTkVarName_   = ecVarName;
+  asynPortDriver_  = asynPortDriver;
+  source_          = ECMC_RECORDER_SOURCE_ETHERCAT;
   parseAndLinkEcDataSource(ecVarName);
-  asynWriteAllow_ = 0; 
+  asynWriteAllow_  = 0; 
   initAsyn();
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex, 
+ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
+                             double plcSampleRateMs,
                              char *varName,
                              ecmcDataSourceType dataSource,
                              ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();  
-  plcIndex_      = plcIndex;  
-  varName_       = varName;
-  exprTkVarName_ = varName;
-  asynPortDriver_ =asynPortDriver;
-  source_        = dataSource;
-  asynWriteAllow_ = 1; 
+  plcIndex_        = plcIndex; 
+  sampleRateMs_    = plcSampleRateMs; 
+  varName_         = varName;
+  exprTkVarName_   = varName;
+  asynPortDriver_  = asynPortDriver;
+  source_          = dataSource;
+  asynWriteAllow_  = 1; 
   initAsyn();  // Only static and global variables accessible from PLC
 }
 
@@ -110,6 +121,7 @@ void ecmcPLCDataIF::initVars() {
   asynDataItem_   = 0;
   asynWriteAllow_ = 0; 
   isBool_         = 0;
+  sampleRateMs_   = 0;
 }
 
 double& ecmcPLCDataIF::getDataRef() {
@@ -152,8 +164,6 @@ int ecmcPLCDataIF::read() {
 }
 
 int ecmcPLCDataIF::write() {  
-
-  updateAsyn(0);
   
   // Only write if data changed between read and write
   if ((data_ == dataRead_) || readOnly_ || (isBool_ && ((data_>0) == (dataRead_>0)))) {
@@ -1393,13 +1403,14 @@ int ecmcPLCDataIF::initAsyn() {
       ERROR_ASYN_DATA_BUFFER_TO_SMALL);
       return setErrorID(ERROR_ASYN_DATA_BUFFER_TO_SMALL);
   }
-  
+
   name = buffer;
   asynDataItem_ = asynPortDriver_->addNewAvailParam(name,
                                                     asynParamFloat64,
                                                     (uint8_t *)&data_,
                                                     sizeof(data_),
                                                     ECMC_EC_F64,
+                                                    sampleRateMs_,
                                                     0);
     if(!asynDataItem_) {
       LOGERR(
@@ -1412,7 +1423,7 @@ int ecmcPLCDataIF::initAsyn() {
         return setErrorID(ERROR_ASYN_CREATE_PARAM_FAIL);
     }
 
-  asynDataItem_->allowWriteToEcmc(asynWriteAllow_);    
+  asynDataItem_->setAllowWriteToEcmc(asynWriteAllow_);    
   updateAsyn(1);
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;

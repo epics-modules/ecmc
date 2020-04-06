@@ -1,6 +1,52 @@
 Release Notes
 ===
 # Master
+### Add plugin support
+ecmc plugins (shared libs) can be loaded into ecmc. Plugins can:
+* Access ecmc data:
+  * ethercat data
+  * motion data
+  * plc data
+  * data storages
+  * subscribe to data by callbacks
+  * Add/register new asyn parameters for direct access over asyn
+* Get callbacks:  
+  * Each realtime loop  
+  * When ecmc data updates
+  * At plugin load
+  * At plugin unload
+  * At enter realtime
+  * At exit realtine
+* Implement custom ecmc plc functions
+* Implement custom ecmc plc constants
+
+A plugin can also access the ecmc api headers for direct access to most parts of ecmc.
+
+Some plugin examples:
+1. Demo plugin: https://github.com/anderssandstrom/e3-ecmcPlugin_Advanced
+2. WiringPi ecmc wrapper: https://github.com/anderssandstrom/e3-ecmcPlugin_RasPi
+
+Plugins can be loaded by the ecmccfg command loadPlugin.cmd. Plugin configurations can be added in a configurations string.
+Example:
+```
+#- Load plugin 0: Advanced
+epicsEnvSet(ECMC_PLUGIN_FILNAME,"/epics/base-7.0.3.1/require/3.1.2/siteMods/ecmcPlugin_Advanced/master/lib/linux-arm/libecmcPlugin_Advanced.so")
+epicsEnvSet(ECMC_PLUGIN_CONFIG,"DBG_PRINT=0;") # Only one option implemented in this plugin
+${SCRIPTEXEC} ${ecmccfg_DIR}loadPlugin.cmd, "PLUGIN_ID=0,FILE=${ECMC_PLUGIN_FILNAME},CONFIG='${ECMC_PLUGIN_CONFIG}', REPORT=1"
+epicsEnvUnset(ECMC_PLUGIN_FILNAME)
+epicsEnvUnset(ECMC_PLUGIN_CONFIG)
+
+```
+### Allow running without EtherCAT hardware
+Add possibility to run without attached ethercat hardware. Most functionalities are still available:
+* PLC:s
+* motion (most likely to use virtual axes, but also normal axis can be used).
+* ..
+
+See examples in ecmccfg.
+
+Note: When running without ethercat hardware you should not execute the "Cfg.EcSetMaster()" command.
+
 ### Add iocsh command to exit
 Add ecmcExit() to exit EPICS/ECMC (needed since the iocsh command "exit" just stops reading current "file"). 
 Can be used for stopping execution when a configuration error occurs.
@@ -133,7 +179,7 @@ epicsEnvShow(ECMC_CONFIG_RETURN_VAL)
 ECMC_CONFIG_RETURN_VAL=1024
 ```
 
-### Add "ecmcEpicsEnvSetCalcTenary()" 
+### Add "ecmcEpicsEnvSetCalcTernary()" 
 Used for evaluating expressions and set EPCIS environment variables to different strings.
 depending on if the expression evaluates to "true" or "false". Can be usefull for:
 * Choose different files to load like plc-files, axis configurations, db-files or..
@@ -141,11 +187,11 @@ depending on if the expression evaluates to "true" or "false". Can be usefull fo
 * ...
   
 ``` 
-ecmcEpicsEnvSetCalcTenary -h
+ecmcEpicsEnvSetCalcTernary -h
 
- Test iocsh function "ecmcEpicsEnvSetCalcTenary()" t
+ Test iocsh function "ecmcEpicsEnvSetCalcTernary()" t
 
-        Use "ecmcEpicsEnvSetCalcTenary(<envVarName>,  <expression>, <trueString>, <falseString>)" to evaluate the expression and        assign the variable.
+        Use "ecmcEpicsEnvSetCalcTernary(<envVarName>,  <expression>, <trueString>, <falseString>)" to evaluate the expression and        assign the variable.
           <envVarName>  : EPICS environment variable name.
           <expression>  : Calculation expression (see exprTK for available functionality). Examples:
                           Simple expression:"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)".                          
@@ -160,26 +206,26 @@ Examples:
 ```
 #### Simple true false
 epicsEnvSet("VALUE",10)
-# ecmcEpicsEnvSetCalcTenary("test_var", "${VALUE}+2+5/10","True","False")
-ecmcEpicsEnvSetCalcTenary("test_var", "10+2+5/10","True","False")
+# ecmcEpicsEnvSetCalcTernary("test_var", "${VALUE}+2+5/10","True","False")
+ecmcEpicsEnvSetCalcTernary("test_var", "10+2+5/10","True","False")
 epicsEnvShow("test_var")
 test_var=True
 
 ### Can be used for choosing different files
-# ecmcEpicsEnvSetCalcTenary("filename", "${VALUE}>20","./plc_fast.cfg","./plc_slow.cfg")
-ecmcEpicsEnvSetCalcTenary("filename", "10>20","./plc_fast.cfg","./plc_slow.cfg")
+# ecmcEpicsEnvSetCalcTernary("filename", "${VALUE}>20","./plc_fast.cfg","./plc_slow.cfg")
+ecmcEpicsEnvSetCalcTernary("filename", "10>20","./plc_fast.cfg","./plc_slow.cfg")
 epicsEnvShow("filename")
 filename=./plc_slow.cfg
 
 ### Comparing strings 1 (simple):
-# ecmcEpicsEnvSetCalcTenary("result", "'$(filename)'='./plc_slow.cfg'","equal","not_equal")
-ecmcEpicsEnvSetCalcTenary("result", "'./plc_slow.cfg'='./plc_slow.cfg'","equal","not_equal")
+# ecmcEpicsEnvSetCalcTernary("result", "'$(filename)'='./plc_slow.cfg'","equal","not_equal")
+ecmcEpicsEnvSetCalcTernary("result", "'./plc_slow.cfg'='./plc_slow.cfg'","equal","not_equal")
 epicsEnvShow("result")
 result=equal
 
 ### Comparing strings 2 (with if-else):
-# ecmcEpicsEnvSetCalcTenary("result", "if('$(filename)'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
-ecmcEpicsEnvSetCalcTenary("result", "if('./plc_slow.cfg'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
+# ecmcEpicsEnvSetCalcTernary("result", "if('$(filename)'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
+ecmcEpicsEnvSetCalcTernary("result", "if('./plc_slow.cfg'='test') {RESULT:=1;}else{RESULT:=0;};","use_this_file.cfg","no_use_this_file.cfg")
 epicsEnvShow("result")
 result=no_use_this_file.cfg
 

@@ -13,10 +13,6 @@
 #ifndef ECMC_PLC_H_
 #define ECMC_PLC_H_
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
-
 #define CHECK_PLCS_RETURN_IF_ERROR()                                          \
 {                                                                             \
   if (!plcs) {                                                                \

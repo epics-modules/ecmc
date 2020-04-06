@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcDriveBase.h"
+#include "../main/ecmcErrorsList.h"
 
 ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver, 
                              ecmcAxisData *axisData) {
@@ -460,7 +461,7 @@ int ecmcDriveBase::initAsyn() {
   }
   paramTemp->addSupportedAsynType(asynParamInt32);
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   asynControlWd_ = paramTemp;
 
@@ -499,7 +500,7 @@ int ecmcDriveBase::initAsyn() {
   }
   paramTemp->addSupportedAsynType(asynParamInt32);
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   asynStatusWd_ = paramTemp;
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);

@@ -44,20 +44,24 @@
 class ecmcPLCDataIF : public ecmcEcEntryLink {
  public:
   ecmcPLCDataIF(int          plcIndex,
+                double       plcSampleRateMs,
                 ecmcAxisBase *axis,
                 char         *axisVarName,
                 ecmcAsynPortDriver *asynPortDriver);
   ecmcPLCDataIF(int             plcIndex,
+                double          plcSampleRateMs,
                 ecmcDataStorage *ds,
                 char            *dsVarName,
                 ecmcAsynPortDriver *asynPortDriver);
-  ecmcPLCDataIF(int    plcIndex,
+  ecmcPLCDataIF(int     plcIndex,
+                double  plcSampleRateMs,
                 ecmcEc *ec,
                 char   *ecVarName,
                 ecmcAsynPortDriver *asynPortDriver);
-  ecmcPLCDataIF(int                plcIndex,
+  ecmcPLCDataIF(int                 plcIndex,
+                double              plcSampleRateMs,
                 char               *varName,
-                ecmcDataSourceType dataSource,
+                ecmcDataSourceType  dataSource,
                 ecmcAsynPortDriver *asynPortDriver);
   ~ecmcPLCDataIF();
   int                 read();
@@ -69,7 +73,7 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
   const char        * getExprTkVarName();
   int                 validate();
   int                 setReadOnly(int readOnly);
-  int  updateAsyn(int force);
+  int                 updateAsyn(int force);
   
  private:
   int                 readAxis();
@@ -104,5 +108,6 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
   ecmcAsynDataItem *asynDataItem_;
   int asynWriteAllow_;
   int isBool_;
+  double sampleRateMs_;
 };
 #endif  /* ecmcPLCDataIF_H_ */

@@ -14,10 +14,13 @@
 #include <cmath>
 #include <time.h>
 #include <string>
+#include "../main/ecmcErrorsList.h"
 
-ecmcEc::ecmcEc() {
-  initVars();  
+ecmcEc::ecmcEc(ecmcAsynPortDriver *asynPortDriver) {
+  initVars();
   setErrorID(ERROR_EC_STATUS_NOT_OK);
+  asynPortDriver_ = asynPortDriver;
+  simSlave_ = new ecmcEcSlave(asynPortDriver_,0 ,NULL, NULL,0, -1, 0, 0);  
 }
 
 void ecmcEc::initVars() {
@@ -1180,12 +1183,6 @@ int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry) {
   return 0;
 }
 
-int ecmcEc::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver) {
-  asynPortDriver_ = asynPortDriver;
-  simSlave_ = new ecmcEcSlave(asynPortDriver_,0 ,NULL, NULL,0, -1, 0, 0);  
-  return 0;
-}
-
 int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
@@ -1223,7 +1220,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   }
   paramTemp->addSupportedAsynType(asynParamInt32);
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_MASTER_STAT_ID] = paramTemp;
 
@@ -1259,7 +1256,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   }
   paramTemp->addSupportedAsynType(asynParamInt32);
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
-  paramTemp->allowWriteToEcmc(false);  
+  paramTemp->setAllowWriteToEcmc(false);  
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID] = paramTemp;
 
@@ -1327,7 +1324,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID] = paramTemp;
 
@@ -1362,7 +1359,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_ID] = paramTemp;
 
@@ -1397,7 +1394,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID] = paramTemp;
 

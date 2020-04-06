@@ -17,6 +17,7 @@
 #include <new>
 #include <iostream>
 
+#include "../main/ecmcErrorsList.h"
 
 /**
  * 
@@ -254,7 +255,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID]->refreshParamRT(0);
   
-  if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->initialized() ) {    
+  if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->linkedToAsynClient() ) {    
     int  bytesUsed = 0;
     int  error = getAxisDebugInfoData(&diagBuffer_[0],
                                       AX_MAX_DIAG_STRING_CHAR_LENGTH,
@@ -768,7 +769,7 @@ int ecmcAxisBase::initAsyn() {
   if(errorCode) {
     return errorCode;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
 
@@ -782,7 +783,7 @@ int ecmcAxisBase::initAsyn() {
   if(errorCode) {
     return errorCode;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID] = paramTemp;
 
@@ -796,7 +797,7 @@ int ecmcAxisBase::initAsyn() {
   if(errorCode) {
     return errorCode;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID] = paramTemp;
 
@@ -811,7 +812,7 @@ int ecmcAxisBase::initAsyn() {
     return errorCode;
   }
 
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
 
@@ -825,7 +826,7 @@ int ecmcAxisBase::initAsyn() {
   if(errorCode) {
     return errorCode;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID] = paramTemp;
  
@@ -840,7 +841,7 @@ int ecmcAxisBase::initAsyn() {
     return errorCode;
   }
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
 
@@ -854,7 +855,7 @@ int ecmcAxisBase::initAsyn() {
   if(errorCode) {
     return errorCode;
   }
-  paramTemp->allowWriteToEcmc(true);
+  paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteCmd,this); // Access to this axis
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID] = paramTemp;
@@ -1285,7 +1286,7 @@ int ecmcAxisBase::createAsynParam(const char       *nameFormat,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->allowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   *asynParamOut = paramTemp;
   return 0;

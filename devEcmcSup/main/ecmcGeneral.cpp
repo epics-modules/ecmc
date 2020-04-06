@@ -16,12 +16,17 @@
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
 #include "../com/ecmcAsynPortDriverUtils.h"
+#include "../com/ecmcOctetIF.h"        // Log Macros
+#include "../main/ecmcErrorsList.h"
+#include "../main/ecmcDefinitions.h"
 
 int getControllerError() {
 
   // EtherCAT errors
-  if (ec->getError()) {
-    return ec->getErrorID();
+  if(ec->getInitDone()) {
+    if (ec->getError()) {
+     return ec->getErrorID();
+    }
   }
 
   // Event errors
@@ -76,6 +81,20 @@ int getControllerError() {
     }
   }
 
+  // Plugin objects
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
+    if (plugins[i]) {
+      if (plugins[i]->getError()) {
+        return plugins[i]->getErrorID();
+      }
+    }
+  }
+
+  // Plugin RTfunc retrun errors
+  if(pluginsError) {
+    return pluginsError;
+  }
+
   return 0;
 }
 
@@ -119,6 +138,16 @@ int controllerErrorReset() {
       axes[i]->errorReset();
     }
   }
+
+  // Plugin objects
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
+    if (plugins[i]) {
+      plugins[i]->errorReset();
+    }
+  }
+
+  // Plugin RTfunc retrun errors
+  pluginsError = 0;
 
   // PLCs
   if (plcs) {

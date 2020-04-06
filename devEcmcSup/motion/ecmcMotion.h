@@ -13,10 +13,6 @@
 #ifndef ECMC_MOTION_H_
 #define ECMC_MOTION_H_
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
-
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus
@@ -357,7 +353,7 @@ int getAxisReset(int  axisIndex,
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisEnabled(int  cntrl_no,
+int getAxisEnabled(int  axisIndex,
                    int *value);
 
 /** \brief Get axis amplifier command bit.\n

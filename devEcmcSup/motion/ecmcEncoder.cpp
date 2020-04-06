@@ -175,7 +175,7 @@ int ecmcEncoder::setType(encoderType encType) {
 
     break;
   }
-  validate();
+  
   return 0;
 }
 

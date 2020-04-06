@@ -13,11 +13,6 @@
 #ifndef ECMC_MISC_H_
 #define ECMC_MISC_H_
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcMainThread.h"
-
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus

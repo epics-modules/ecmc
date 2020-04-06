@@ -33,6 +33,7 @@
 #include "../main/ecmcGeneral.h"
 #include "../com/ecmcCom.h"
 #include "../plc/ecmcPLC.h"
+#include "../plugin/ecmcPlugin.h"
 #include <iocsh.h>
 
 typedef struct
@@ -1370,7 +1371,7 @@ static int handleCfgCommand(const char *myarg_1) {
               size_t    byteSize,
               uint64_t  value)*/
   nvals = sscanf(myarg_1,
-                 "EcWriteSoE(%d,%d,%d,%d,%lu)",
+                 "EcWriteSoE(%d,%d,%d,%d,%" SCNu64 ")",
                  &iValue2,
                  &iValue3,
                  &iValue4,
@@ -2249,6 +2250,27 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisPLCEnable(iValue, iValue2);
+  }
+
+  /*int Cfg.LoadPlugin(int pluginId, char *cFilename, char *configString); */
+  nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^,],%[^)])", &iValue, cIdBuffer,cIdBuffer2);
+
+  if (nvals == 3) {
+    return loadPlugin(iValue,cIdBuffer,cIdBuffer2);
+  }
+
+  /*int Cfg.LoadPlugin(int pluginId, char *cFilename); */
+  nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^)])",&iValue, cIdBuffer);
+
+  if (nvals == 2) {
+    return loadPlugin(iValue,cIdBuffer,"");
+  }
+
+  /*int Cfg.ReportPlugin(int pluginId); */
+  nvals = sscanf(myarg_1, "ReportPlugin(%d)",&iValue);
+
+  if (nvals == 1) {
+    return reportPlugin(iValue);
   }
 
   /*int Cfg.SetAxisSeqTimeout(int axis_no, int value);  IN seconds!!*/

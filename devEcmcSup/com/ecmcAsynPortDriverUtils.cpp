@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAsynPortDriverUtils.h"
+#include "../main/ecmcErrorsList.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -788,7 +789,7 @@ ecmcEcDataType getEcDataType(size_t bitLength,bool signedVal) {
   return ECMC_EC_NONE;
 }
 
-size_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
+uint64_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
   switch(dt) {
   case ECMC_EC_NONE:
     return 0;
@@ -857,7 +858,7 @@ size_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
   return 0;
 }
 
-size_t getEcDataTypeMinVal(ecmcEcDataType dt) {
+int64_t getEcDataTypeMinVal(ecmcEcDataType dt) {
   switch(dt) {
   case ECMC_EC_NONE:
     return 0;
