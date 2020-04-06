@@ -37,6 +37,15 @@ epicsEnvUnset(ECMC_PLUGIN_FILNAME)
 epicsEnvUnset(ECMC_PLUGIN_CONFIG)
 
 ```
+### Allow running witout EtherCAT hardware
+Add possibility to run without attached ethercat hardware. Without ethercat hardware most functionalities are still available:
+* PLC:s
+* motion (most likely to use virtual axes, but also normal axis can be used).
+* ..
+
+See examples in ecmccfg.
+
+Note: When running without ethercat hardware you should not execute the "Cfg.EcSetMaster()" command.
 
 ### Add iocsh command to exit
 Add ecmcExit() to exit EPICS/ECMC (needed since the iocsh command "exit" just stops reading current "file"). 
