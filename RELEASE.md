@@ -1,6 +1,7 @@
 Release Notes
 ===
-# Master
+# ECMC 6.2
+
 ### Add plugin support
 ecmc plugins (shared libs) can be loaded into ecmc. Plugins can:
 * Access ecmc data:
@@ -23,8 +24,9 @@ ecmc plugins (shared libs) can be loaded into ecmc. Plugins can:
 A plugin can also access the ecmc api headers for direct access to most parts of ecmc.
 
 Some plugin examples:
-1. Demo plugin: https://github.com/anderssandstrom/e3-ecmcPlugin_Advanced
-2. WiringPi ecmc wrapper: https://github.com/anderssandstrom/e3-ecmcPlugin_RasPi
+1. FFT plugin: https://github.com/anderssandstrom/e3-ecmcPlugin_FFT
+2. Demo plugin: https://github.com/anderssandstrom/e3-ecmcPlugin_Advanced
+3. WiringPi ecmc wrapper: https://github.com/anderssandstrom/e3-ecmcPlugin_RasPi
 
 Plugins can be loaded by the ecmccfg command loadPlugin.cmd. Plugin configurations can be added in a configurations string.
 Example:
