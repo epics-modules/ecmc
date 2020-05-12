@@ -42,6 +42,7 @@ struct ecmcOnePlcFunc {
   double (*funcArg8)(double,double,double,double,double,double,double,double);
   double (*funcArg9)(double,double,double,double,double,double,double,double,double);
   double (*funcArg10)(double,double,double,double,double,double,double,double,double,double);
+  void*  funcGenericObj; // generic_function_t  generic Func object (allow strings)
 };
 
 // Structure for defining one custom plc constant
