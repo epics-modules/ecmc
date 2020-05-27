@@ -64,3 +64,11 @@ double getEcmcSampleTimeMS() {
   //mcuPeriod is in nano seconds
   return mcuPeriod/1000;
 }
+
+int getEcmcEpicsIOCState() {
+  if(!asynPort) {
+    return -1;
+  }
+  return asynPort->getEpicsState();
+}
+ 
