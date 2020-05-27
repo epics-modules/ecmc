@@ -84,6 +84,14 @@ double getEcmcSampleRate();
  */
 double getEcmcSampleTimeMS();
 
+/** \brief Get ecmc IOC state (hook)
+ *
+ * \return IOC state as int \n
+ *
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
+ */
+int getEcmcEpicsIOCState();
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

@@ -49,7 +49,7 @@ int ecmcPluginLib::load(const char* libFilenameWP, const char* libConfigStr) {
   
   // Ensure that file exist
   if(access( libFilenameWP, 0 )!= 0){
-    LOGERR("%s/%s:%d: Error: PllibFilenameWP_gin %s: File not found (0x%x) .\n",
+    LOGERR("%s/%s:%d: Error: Plugin %s: File not found (0x%x) .\n",
            __FILE__, __FUNCTION__, __LINE__,
            libFilenameWP,ERROR_PLUGIN_FLIE_NOT_FOUND);
     return setErrorID(ERROR_PLUGIN_FLIE_NOT_FOUND);
@@ -175,8 +175,8 @@ void ecmcPluginLib::report() {
     int argCount = findArgCount(data_->funcs[i]);
     if(!data_->funcs[i].funcName || 
         strlen(data_->funcs[i].funcName) == 0 ||
-        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ||
-        argCount < 0){
+        ((argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ||
+        argCount < 0) && data_->funcs[i].funcGenericObj==NULL)){
       break;
     }
 
@@ -198,31 +198,49 @@ void ecmcPluginLib::report() {
            data_->funcs[i].funcName,
            protoBuffer);
     printf("      Desc       = %s\n",data_->funcs[i].funcDesc);
-    printf("      Arg count  = %d\n",argCount);
-    switch(argCount) {
-      case 0:
-        printf("      func       = @%p\n",data_->funcs[i].funcArg0);
-        break;
-      case 1:
-        printf("      func       = @%p\n",data_->funcs[i].funcArg1);
-        break;
-      case 2:
-        printf("      func       = @%p\n",data_->funcs[i].funcArg2);
-        break;
-      case 3:
-        printf("      func       = @%p\n",data_->funcs[i].funcArg3);
-        break;
-      case 4:
-        printf("      func       = @%p\n",data_->funcs[i].funcArg4);
-        break;
-      case 5:
-        printf("      func       = @%p\n",data_->funcs[i].funcArg5);
-        break;
-      case 6:
-        printf("      func       = @%p\n",data_->funcs[i].funcArg6);
-        break;
-      default:
-        break;
+    // generic_function_t generic func object (allow strings)
+    if(data_->funcs[i].funcGenericObj) {
+      printf("      func       = @%p\n",data_->funcs[i].funcGenericObj);
+    }
+    else {
+      printf("      Arg count  = %d\n",argCount);
+      switch(argCount) {
+        case 0:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg0);
+          break;
+        case 1:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg1);
+          break;
+        case 2:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg2);
+          break;
+        case 3:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg3);
+          break;
+        case 4:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg4);
+          break;
+        case 5:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg5);
+          break;
+        case 6:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg6);
+          break;
+        case 7:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg7);
+          break;
+        case 8:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg8);
+          break;
+        case 9:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg9);
+          break;
+        case 10:
+          printf("      func       = @%p\n",data_->funcs[i].funcArg10);
+          break;
+        default:      
+          break;
+      }
     }
   }
 

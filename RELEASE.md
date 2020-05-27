@@ -1,5 +1,11 @@
 Release Notes
 ===
+# ECMC 6.2.1
+* Add exprtk support for plc functions with stings as args  (need ess-exprtk 1.2.1)
+* Add possabilty ti use plc-functions with strings a sarguments in plugins
+* Expose ecmc epics ioc state to plugins
+* Add plugin for pvAccess in ecmc plc:s: https://github.com/anderssandstrom/e3-ecmcPlugin_Utils
+
 # ECMC 6.2
 
 ### Add plugin support
