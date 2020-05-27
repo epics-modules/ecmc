@@ -15,8 +15,8 @@
 #define ECMC_PLUGIN_MAX_PLC_FUNC_COUNT 64
 #define ECMC_PLUGIN_MAX_PLC_CONST_COUNT 64
 #define ECMC_PLUGIN_MAX_PLC_ARG_COUNT 10
-#define ECMC_PLUG_VER_MAJOR 0
-#define ECMC_PLUG_VER_MINOR 2
+#define ECMC_PLUG_VER_MAJOR 1
+#define ECMC_PLUG_VER_MINOR 0
 #define ECMC_PLUG_VER_PATCH 0
 #define ECMC_PLUG_VERSION(a, b, c) (((a) << 16) + ((b) << 8) + (c))
 #define ECMC_PLUG_VERSION_MAGIC ECMC_PLUG_VERSION(ECMC_PLUG_VER_MAJOR, ECMC_PLUG_VER_MINOR, ECMC_PLUG_VER_PATCH)
@@ -42,6 +42,7 @@ struct ecmcOnePlcFunc {
   double (*funcArg8)(double,double,double,double,double,double,double,double);
   double (*funcArg9)(double,double,double,double,double,double,double,double,double);
   double (*funcArg10)(double,double,double,double,double,double,double,double,double,double);
+  void*  funcGenericObj; // generic_function_t  generic Func object (allow strings)
 };
 
 // Structure for defining one custom plc constant

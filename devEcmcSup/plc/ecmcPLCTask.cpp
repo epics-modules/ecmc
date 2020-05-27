@@ -593,8 +593,9 @@ bool ecmcPLCTask::findPluginFunction(ecmcPluginLib* plugin, const char *exprStr)
     int argCount = plugin->findArgCount(data->funcs[i]);
     if(!data->funcs[i].funcName || 
         strlen(data->funcs[i].funcName) == 0 ||
-        argCount < 0 || 
-        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+        ((argCount < 0 || 
+        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT) &&
+        data->funcs[i].funcGenericObj==NULL)){
       break;
     }
 
@@ -644,39 +645,58 @@ int ecmcPLCTask::loadPluginLib(ecmcPluginLib* plugin){
   }
 
   for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
-    
     int argCount = plugin->findArgCount(data->funcs[i]);
     if(!data->funcs[i].funcName || 
         strlen(data->funcs[i].funcName) == 0 ||
-        argCount < 0 || 
-        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT ){
+        ((argCount < 0 || 
+        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT) &&
+        data->funcs[i].funcGenericObj==NULL)){
       break;
     }
-    switch(argCount) {
-      case 0:
-        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg0);
-        break;
-      case 1:
-        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg1);
-        break;
-      case 2:
-        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg2);
-        break;
-      case 3:
-        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg3);
-        break;
-      case 4:
-        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg4);
-        break;
-      case 5:
-        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg5);
-        break;
-      case 6:
-        ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg6);
-        break;
-      default:
-        break;
+
+    if(data->funcs[i].funcGenericObj && strlen(data->funcs[i].funcName) > 0) {      
+      // load generic_function_t generic func object (allow strings)    
+      ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcGenericObj);
     }
+    else {
+      switch(argCount) {
+        case 0:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg0);
+          break;
+        case 1:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg1);
+          break;
+        case 2:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg2);
+          break;
+        case 3:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg3);
+          break;
+        case 4:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg4);
+          break;
+        case 5:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg5);
+          break;
+        case 6:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg6);
+          break;
+        case 7:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg7);
+          break;
+        case 8:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg8);
+          break;
+        case 9:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg9);
+          break;
+        case 10:
+          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg10);
+          break;
+        default:
+          break;
+      }
+    } 
   }
 
   // Load constants
