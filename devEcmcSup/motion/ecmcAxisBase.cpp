@@ -1394,7 +1394,7 @@ int ecmcAxisBase::moveVelocity(
 
   getSeq()->setTargetVel(velocitySet);
   getTraj()->setAcc(accelerationSet);
-  getTraj()->setAcc(decelerationSet);
+  getTraj()->setDec(decelerationSet);
   
   errorCode = setExecute(1);
   if (errorCode) {
