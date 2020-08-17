@@ -147,6 +147,22 @@ LOGINFO4(
                                    decelerationSet);
 }
 
+int setPosition(int    axisIndex,
+                double homePositionSet) {
+LOGINFO4(
+    "%s/%s:%d axisIndex=%d,homePositionSet=%lf\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,    
+    homePositionSet);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->setPosition(homePositionSet);
+}
 
 int stopMotion(int axisIndex, int killAmplifier) {
   LOGINFO4("%s/%s:%d axisIndex=%d, killAmplifier=%d\n",

@@ -1442,6 +1442,37 @@ int ecmcAxisBase::moveHome(int    nCmdData,
   return 0;
 }
 
+int ecmcAxisBase::setPosition(double homePositionSet) {
+  
+  int errorCode = getErrorID();
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_HOMING);
+  if (errorCode) {
+    return errorCode;
+  }
+  errorCode = setCmdData(ECMC_SEQ_HOME_SET_POS);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  getSeq()->setHomePosition(homePositionSet);
+  errorCode = setExecute(1);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
+}
+
+
 int ecmcAxisBase::stopMotion(int killAmplifier) {
 
   int errorCode = setExecute(0);
