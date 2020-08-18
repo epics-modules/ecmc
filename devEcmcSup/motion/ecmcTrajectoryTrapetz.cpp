@@ -255,8 +255,8 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   
   double distToTargetOld = dist(currSetpoint,targetSetpoint,setDirection_);
   
-  stopping = stopDistance > std::abs(distToTargetOld); /*||
-               changeDir;*/
+  stopping = stopDistance  >= std::abs(distToTargetOld) - std::abs(prevStepSize_); // compesate for this motion step
+               /*changeDir;*/
 
   if (!stopping) {
     if (std::abs(currVelo) < std::abs(targetVelo)) {
