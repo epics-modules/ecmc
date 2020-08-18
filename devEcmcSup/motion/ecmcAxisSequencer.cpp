@@ -241,6 +241,7 @@ void ecmcAxisSequencer::execute() {
 }
 
 int ecmcAxisSequencer::setExecute(bool execute) {
+
   int errorCode=0;
   if (traj_ == NULL) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
@@ -521,6 +522,7 @@ double ecmcAxisSequencer::getTargetPos() {
 
 void ecmcAxisSequencer::setTargetVel(double velTarget) {
   data_->command_.velocityTarget = velTarget;
+  traj_->setTargetVel(velTarget);
 }
 
 double ecmcAxisSequencer::getTargetVel() {
