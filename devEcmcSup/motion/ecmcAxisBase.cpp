@@ -1377,6 +1377,14 @@ int ecmcAxisBase::moveVelocity(
     return errorCode;
   }
 
+  // check if already moveVelo then just update vel and acc
+  if(getExecute() && getCommand() == ECMC_CMD_MOVEVEL) {
+    getSeq()->setTargetVel(velocitySet);
+    getTraj()->setAcc(accelerationSet);
+    getTraj()->setDec(decelerationSet);
+    return 0;
+  }
+
   errorCode = setExecute(0);
   if (errorCode) {
     return errorCode;
