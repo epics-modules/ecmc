@@ -212,14 +212,21 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
 
   *trajBusy = true;
 
-  if (std::abs(currVelo) < std::abs(targetVelo)) {
-    positionStep = std::abs(prevStepSize_) + stepACC_;    
+  if(std::abs(prevStepSize_) > stepNOM_) {
+    positionStep = std::abs(prevStepSize_) - stepDEC_;
+    if(positionStep < stepNOM_) {      
+      positionStep = stepNOM_;
+    }
   } else {
-    positionStep = stepNOM_;
-  }
-
-  if(positionStep > stepNOM_) {
-    positionStep = stepNOM_;
+    if(std::abs(prevStepSize_) < stepNOM_) {
+      positionStep = std::abs(prevStepSize_) + stepACC_;
+      if(positionStep > stepNOM_) {        
+        positionStep = stepNOM_;
+      }
+    }
+    else {
+      positionStep = stepNOM_;
+    }
   }
 
   if (setDirection_ == ECMC_DIR_FORWARD) {
@@ -257,7 +264,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
     } else {
       positionStep = stepNOM_;
     }
-  } else {
+  } else {  //Stopping
     positionStep = std::abs(prevStepSize_) - stepDEC_;
   }
   
