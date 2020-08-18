@@ -247,16 +247,12 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   double positionStep = 0;
   double posSetTemp   = 0;
   bool   stopping   = false;
-  //bool   changeDir    = false;
 
   *trajBusy = true;
-  /*changeDir =
-    ((targetSetpoint - currSetpoint) * currVelo < 0 && std::abs(currVelo)) > 0;*/
   
   double distToTargetOld = dist(currSetpoint,targetSetpoint,setDirection_);
   
-  stopping = stopDistance  >= std::abs(distToTargetOld) - std::abs(prevStepSize_); // compesate for this motion step
-               /*changeDir;*/
+  stopping = stopDistance  >= std::abs(distToTargetOld) - std::abs(prevStepSize_); // compensate for this motion step
 
   if (!stopping) {
     if (std::abs(currVelo) < std::abs(targetVelo)) {
