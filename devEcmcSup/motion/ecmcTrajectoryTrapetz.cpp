@@ -361,16 +361,6 @@ int ecmcTrajectoryTrapetz::getIndex() {
 }
 
 double ecmcTrajectoryTrapetz::getVel() {
-  double absVelTarget = std::abs(velocityTarget_);
-
-  if ((velocity_ >= absVelTarget) && (setDirection_ == ECMC_DIR_FORWARD)) {
-    return absVelTarget;
-  }
-
-  if ((velocity_ <= -absVelTarget) && (setDirection_ == ECMC_DIR_BACKWARD)) {
-    return -absVelTarget;
-  }
-
   return velocity_;
 }
 
