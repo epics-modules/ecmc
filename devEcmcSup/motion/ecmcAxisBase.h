@@ -234,6 +234,7 @@ class ecmcAxisBase : public ecmcError {
                                  double velocityOffCamSet,                            
                                  double accelerationSet,
                                  double decelerationSet);
+  int                   setPosition(double homePositionSet);  // Autosave
   int                   stopMotion(int killAmplifier);
 
  protected:

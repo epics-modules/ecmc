@@ -675,25 +675,10 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
   
-  // Read from records / params
-  double homPos    = 0.0; /* The homPos may be undefined, then use 0.0 */
-  
-  // Home proc should always be 15 for this function (just set value)
-  //int    cmdData   = -1; 
-  // nCmdData (sequence number) Must be "manual cmddata (=15)"
-  // asynStatus status = pC_->getIntegerParam(axisNo_, pC_->ecmcMotorRecordHomProc_,&cmdData);
-  // if (cmdData != ECMC_SEQ_HOME_SET_POS || status != asynSuccess) {
-  //   return asynError;
-  // }
-
-  // Home position
-  (void)pC_->getDoubleParam(axisNo_, pC_->ecmcMotorRecordHomPos_, &homPos);
-  
-  // always use home sequence 15 for setPosition
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
-  int errorCode =  drvlocal.ecmcAxis->moveHome(ECMC_SEQ_HOME_SET_POS,
-                                               homPos,0,0,0,0);
+  int errorCode =  drvlocal.ecmcAxis->setPosition(value);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+  
   return errorCode == 0 ? asynSuccess:asynError;
 }
 

@@ -212,14 +212,21 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
 
   *trajBusy = true;
 
-  if (std::abs(currVelo) < std::abs(targetVelo)) {
-    positionStep = std::abs(prevStepSize_) + stepACC_;    
+  if(std::abs(prevStepSize_) > stepNOM_) {
+    positionStep = std::abs(prevStepSize_) - stepDEC_;
+    if(positionStep < stepNOM_) {      
+      positionStep = stepNOM_;
+    }
   } else {
-    positionStep = stepNOM_;
-  }
-
-  if(positionStep > stepNOM_) {
-    positionStep = stepNOM_;
+    if(std::abs(prevStepSize_) < stepNOM_) {
+      positionStep = std::abs(prevStepSize_) + stepACC_;
+      if(positionStep > stepNOM_) {        
+        positionStep = stepNOM_;
+      }
+    }
+    else {
+      positionStep = stepNOM_;
+    }
   }
 
   if (setDirection_ == ECMC_DIR_FORWARD) {
@@ -240,16 +247,12 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   double positionStep = 0;
   double posSetTemp   = 0;
   bool   stopping   = false;
-  //bool   changeDir    = false;
 
   *trajBusy = true;
-  /*changeDir =
-    ((targetSetpoint - currSetpoint) * currVelo < 0 && std::abs(currVelo)) > 0;*/
   
   double distToTargetOld = dist(currSetpoint,targetSetpoint,setDirection_);
   
-  stopping = stopDistance > std::abs(distToTargetOld); /*||
-               changeDir;*/
+  stopping = stopDistance  >= std::abs(distToTargetOld) - std::abs(prevStepSize_); // compensate for this motion step
 
   if (!stopping) {
     if (std::abs(currVelo) < std::abs(targetVelo)) {
@@ -257,7 +260,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
     } else {
       positionStep = stepNOM_;
     }
-  } else {
+  } else {  //Stopping
     positionStep = std::abs(prevStepSize_) - stepDEC_;
   }
   
@@ -354,16 +357,6 @@ int ecmcTrajectoryTrapetz::getIndex() {
 }
 
 double ecmcTrajectoryTrapetz::getVel() {
-  double absVelTarget = std::abs(velocityTarget_);
-
-  if ((velocity_ >= absVelTarget) && (setDirection_ == ECMC_DIR_FORWARD)) {
-    return absVelTarget;
-  }
-
-  if ((velocity_ <= -absVelTarget) && (setDirection_ == ECMC_DIR_BACKWARD)) {
-    return -absVelTarget;
-  }
-
   return velocity_;
 }
 
