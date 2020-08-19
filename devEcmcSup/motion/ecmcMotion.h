@@ -186,6 +186,18 @@ int moveHome(int    axisIndex,
              double accelerationSet,
              double decelerationSet);
 
+/** \brief set position.\n
+ *  used by epics autosave to restore axis value after ioc reboot.
+ * 
+ * \param[in] axisIndex Axis index.\n
+ * \param[in] homePositionSet Position to set at homing.\n
+
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int setPosition(int    axisIndex,
+                double homePositionSet);
+
 /** \brief Get axis error state.\n
  *
  * \param[in] axisIndex Axis index.\n
