@@ -241,6 +241,7 @@ void ecmcAxisSequencer::execute() {
 }
 
 int ecmcAxisSequencer::setExecute(bool execute) {
+
   int errorCode=0;
   if (traj_ == NULL) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
@@ -521,6 +522,7 @@ double ecmcAxisSequencer::getTargetPos() {
 
 void ecmcAxisSequencer::setTargetVel(double velTarget) {
   data_->command_.velocityTarget = velTarget;
+  traj_->setTargetVel(velTarget);
 }
 
 double ecmcAxisSequencer::getTargetVel() {
@@ -2100,7 +2102,7 @@ int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData *data) {
 }
 
 int ecmcAxisSequencer::checkVelAccDec() {
-  if (data_->command_.command == ECMC_CMD_HOMING) {
+  if (data_->command_.command == ECMC_CMD_HOMING && data_->command_.cmdData != ECMC_SEQ_HOME_SET_POS) {
     if ((std::abs(homeVelTwordsCam_) == 0) ||
         (std::abs(homeVelOffCam_) == 0)) {
       return setErrorID(__FILE__,
@@ -2123,7 +2125,7 @@ int ecmcAxisSequencer::checkVelAccDec() {
   }
 
   // Sanity check of acceleration
-  if (traj_->getAcc() <= 0) {
+  if (traj_->getAcc() <= 0 && data_->command_.cmdData != ECMC_SEQ_HOME_SET_POS) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -2131,7 +2133,7 @@ int ecmcAxisSequencer::checkVelAccDec() {
   }
 
   // Sanity check of deceleration
-  if (traj_->getDec() <= 0) {
+  if (traj_->getDec() <= 0 && data_->command_.cmdData != ECMC_SEQ_HOME_SET_POS) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,

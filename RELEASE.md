@@ -1,5 +1,11 @@
 Release Notes
 ===
+
+# ECMC 6.2.2
+* Allow JVEL change while jogging
+* Smoother trajectory at stopping (start stop seq. one cycle earlier than before to avoid small jerk at stop)
+* Update to support autosave of motor position
+
 # ECMC 6.2.1
 * Add exprtk support for plc functions with stings as args  (need ess-exprtk 1.2.1)
 * Add possabilty ti use plc-functions with strings a sarguments in plugins
