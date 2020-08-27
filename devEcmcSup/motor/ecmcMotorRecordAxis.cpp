@@ -992,8 +992,11 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
   if (drvlocal.waitNumPollsBeforeReady) {
     *moving = true;
   }
+  else
 #endif
-  
+{
+  *moving = drvlocal.moveNotReadyNext ? true : false;
+}
   if (drvlocal.moveNotReadyNext){
     drvlocal.nCommandActive = drvlocal.statusBinData.onChangeData.command;
   }
