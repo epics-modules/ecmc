@@ -1954,12 +1954,12 @@ int ecmcForLoop(const char *filename, const char* macros, const char *loopvar, i
   }
 
   // Start loop
-  if(from<to){
+  if(from<=to){
     for(int i= from; i <= to; i+=step){
       forLoopStep(filename, macros, loopvar, i);
     }
   }else {
-    for(int i= from; i >= to; i+=step){
+    for(int i= from; i >= to; i-=step){
       forLoopStep(filename, macros, loopvar, i);
     }
   }
