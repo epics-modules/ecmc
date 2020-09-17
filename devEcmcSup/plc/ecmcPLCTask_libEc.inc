@@ -41,14 +41,16 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_wrt_bits(",
                                "ec_chk_bits(",
                                "ec_get_time(",
-                               "ec_get_mm_type("
-                               "ec_get_mm_data("
-                               "ec_set_mm_data("
-                               "ec_get_mm_size("
+                               "ec_get_mm_type(",
+                               "ec_get_mm_data(",
+                               "ec_set_mm_data(",
+                               "ec_get_mm_size(",
+                               "ec_get_time_l32(",
+                               "ec_get_time_u32("
                               };
 
 static int ec_errorCode = 0;
-static int ec_cmd_count = 17;
+static int ec_cmd_count = 19;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
@@ -108,6 +110,24 @@ inline double ec_get_time() {
   }
 
   return (double)ecmcPLCTask::statEc_->getTimeNs();
+}
+
+inline double ec_get_time_l32() {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return -(double)ec_errorCode;
+  }  
+  return (double)((uint32_t)ecmcPLCTask::statEc_->getTimeNs());
+}
+
+inline double ec_get_time_u32() {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return -(double)ec_errorCode;
+  }  
+  return (double)((uint32_t) (ecmcPLCTask::statEc_->getTimeNs() >> 32));
 }
 
 inline double ec_clr_bit(double value, double bitIndex)

@@ -735,6 +735,8 @@ int ecmcPLCTask::loadEcLib() {
   ecmcPLCTaskAddFunction("ec_get_mm_data", ec_get_mm_data);
   ecmcPLCTaskAddFunction("ec_set_mm_data", ec_set_mm_data);
   ecmcPLCTaskAddFunction("ec_get_mm_size", ec_get_mm_size);
+  ecmcPLCTaskAddFunction("ec_get_time_l32", ec_get_time_l32);
+  ecmcPLCTaskAddFunction("ec_get_time_u32", ec_get_time_u32);
 
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
