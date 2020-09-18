@@ -198,6 +198,17 @@ int ecmcDataStorage::getDataElement(double *data) {
   return getDataElement(currentBufferIndex_, data);
 }
 
+int ecmcDataStorage::getDataElementPtr(int index, double **data) {
+  if ((index < 0) || (index >= bufferSize_)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE);
+  }
+  *data = &buffer_[index];
+  return 0;
+}
+
 int ecmcDataStorage::setDataElement(int index, double data) {
   if ((index < 0) || (index >= bufferSize_)) {
     return setErrorID(__FILE__,
