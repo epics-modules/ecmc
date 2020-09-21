@@ -786,3 +786,7 @@ int ecmcEcEntry::setComAlarm(bool alarm) {
 
   return 0;
 }
+
+ecmcEcDataType ecmcEcEntry::getDataType() {
+  return dataType_;
+}

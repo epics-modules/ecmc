@@ -69,6 +69,7 @@ class ecmcEcEntry : public ecmcError {
   int         getBits();
   int         getEntryInfo(ec_pdo_entry_info_t *info);
   int         getByteOffset();
+  ecmcEcDataType getDataType();
   // After activate
   void        setDomainAdr(uint8_t *domainAdr);  
   uint8_t     *getDomainAdr();

@@ -1254,6 +1254,17 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
+  // Print warning if data type is "NONE" , "U64" or "S64"
+  ecmcEcDataType dt=getEntryDataType(ECMC_PLC_EC_ENTRY_INDEX);
+
+  if(dt==ECMC_EC_NONE || dt==ECMC_EC_U64 || dt==ECMC_EC_S64 ) {
+    LOGERR("%s/%s:%d: WARNING: Entry %s is of type S64, U64 or undefined. PLC values are doubles and might not be able to represent the ethercat value correct.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ecDataSource);
+  }
+  
   return 0;
 }
 
