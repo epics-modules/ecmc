@@ -15,7 +15,17 @@
 ecmcFilter::ecmcFilter(double sampleTime) {
   initVars();
   sampleTime_ = sampleTime;
-  filterSize_ = FILTER_BUFFER_SIZE_VEL;
+  filterSize_ = FILTER_BUFFER_SIZE_DEF;
+  bufferVel_ = new double[filterSize_];
+  for (int i = 0; i < (int)filterSize_; i++) {
+    bufferVel_[i] = 0;
+  }
+}
+
+ecmcFilter::ecmcFilter(double sampleTime, size_t size) {
+  initVars();
+  sampleTime_ = sampleTime;
+  filterSize_ = size;
   bufferVel_ = new double[filterSize_];
   for (int i = 0; i < (int)filterSize_; i++) {
     bufferVel_[i] = 0;
@@ -26,7 +36,7 @@ ecmcFilter::~ecmcFilter() {}
 
 void ecmcFilter::initVars() {
   errorReset();
-  indexVel_ = 0;
+  indexVel_    = 0;
 }
 
 double ecmcFilter::getFiltVelo(double distSinceLastScan) {
@@ -45,6 +55,46 @@ double ecmcFilter::getFiltVelo(double distSinceLastScan) {
 
   lastOutput_ = sum / (static_cast<double>(filterSize_))/sampleTime_;
 
+  return lastOutput_;
+}
+
+double ecmcFilter::getFiltPos(double pos, double modRange) {
+  double sum = 0;
+
+  bufferVel_[indexVel_] = pos;
+  indexVel_++;
+
+  if (indexVel_ >= filterSize_) {
+    indexVel_ = 0;
+  }
+
+  double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT * modRange;
+
+  for (int i = 0; i < (int)filterSize_; i++) {
+    // check if value over/under flow mod range compared to latest value
+    if((pos-bufferVel_[i]) > modThreshold) {
+      sum = sum + bufferVel_[i] + modRange;
+    }
+    else if ((pos-bufferVel_[i]) < -modThreshold){
+      sum = sum + bufferVel_[i] - modRange;
+    }
+    else {
+      sum = sum + bufferVel_[i];
+    }
+  }
+  
+  lastOutput_ = sum / (static_cast<double>(filterSize_));
+  
+  // Ensure result is within modrange
+  if(modRange > 0) {
+    if(lastOutput_ >= modRange) {
+      lastOutput_ = lastOutput_ - modRange;
+    }
+    else if(lastOutput_ < 0){
+      lastOutput_ = lastOutput_ + modRange;
+    }    
+  }
+  
   return lastOutput_;
 }
 

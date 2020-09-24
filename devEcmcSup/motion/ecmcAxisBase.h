@@ -217,6 +217,8 @@ class ecmcAxisBase : public ecmcError {
   int                   setExtTrajVeloFiltSize(size_t size);
   int                   setExtEncVeloFiltSize(size_t size);
   int                   setEncVeloFiltSize(size_t size);
+  int                   setEncPosFiltSize(size_t size);
+  int                   setEncPosFiltEnable(bool enable);
   int                   moveAbsolutePosition(double positionSet,
                                              double velocitySet,
                                              double accelerationSet,

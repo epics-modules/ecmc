@@ -1667,6 +1667,37 @@ int setAxisPLCEncVelFilterSize(int axisIndex,
 int setAxisEncVelFilterSize(int axisIndex,
                             int size);
 
+
+/** \brief Set size of encoder position filter.\n
+ *
+ *  Sets the size of the low pass filter for the encoder value.\n
+ *  Needed when resolution of encoder is low compared to\n
+ *  sample rate and speed.\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] size       Size of filter (default 10), filter disables if size<=1.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set filter size to 10 for for axis 7.\n
+ * "Cfg.SetAxisEncPosFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncPosFilterSize(int axisIndex,
+                            int size);
+
+/** \brief Enables/disables encoder position filter.\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable     Enable/disable (default disabled).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable filter for axis 7.\n
+ * "Cfg.SetAxisEncPosFilterEnable(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncPosFilterEnable(int axisIndex,
+                              int enable);
+
 /** \brief Set axis trajectory data source.\n
  *
  * An axis trajectory generator can get position setpoints from different
