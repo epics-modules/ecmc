@@ -62,7 +62,7 @@ double getEcmcSampleRate() {
 
 double getEcmcSampleTimeMS() {
   //mcuPeriod is in nano seconds
-  return mcuPeriod/1000;
+  return mcuPeriod/1E6;
 }
 
 int getEcmcEpicsIOCState() {
