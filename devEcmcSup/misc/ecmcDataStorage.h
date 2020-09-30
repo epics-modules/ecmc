@@ -55,6 +55,7 @@ class ecmcDataStorage : public ecmcError {
   int  getDataElement(int     index,
                       double *data);
   int  getDataElement(double *data);
+  int  getDataElementPtr(int index, double **data);
   int  setData(double *data,
                int     size);
   int  setDataElement(int    index,

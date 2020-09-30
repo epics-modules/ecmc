@@ -48,6 +48,7 @@ class ecmcEcEntryLink : public ecmcError {
                         int *bitCount);
   int  getEntryStartBit(int  index,
                         int *startBit);
+  ecmcEcDataType getEntryDataType(int index);
 
  private:
   entryInfo entryInfoArray_[ECMC_EC_ENTRY_LINKS_MAX];
