@@ -22,7 +22,9 @@ ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
   }
-  velocityFilter_ = new ecmcFilter(sampleTime);
+  
+  velocityFilter_ = new ecmcFilter(sampleTime,ECMC_FILTER_VELO_DEF_SIZE);
+  positionFilter_ = new ecmcFilter(sampleTime,ECMC_FILTER_POS_DEF_SIZE);
 
   if (!velocityFilter_) {
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VELOCITY-FILTER OBJECT.\n",
@@ -38,6 +40,9 @@ ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,
 ecmcEncoder::~ecmcEncoder() {
   delete velocityFilter_;
   velocityFilter_ = NULL;
+
+  delete positionFilter_;
+  positionFilter_ = NULL;
 }
 
 void ecmcEncoder::initVars() {
@@ -57,6 +62,7 @@ void ecmcEncoder::initVars() {
   sampleTime_           = 1;
   actVel_               = 0;
   homed_                = false;
+  enablePositionFilter_ = false;
   scaleNum_             = 0;
   scaleDenom_           = 1;
   absBits_              = 0;
@@ -133,6 +139,7 @@ void ecmcEncoder::setActPos(double pos) {
 
   // Must clear velocity filter
   velocityFilter_->initFilter(pos);
+  positionFilter_->initFilter(pos);
 }
 
 int ecmcEncoder::setOffset(double offset) {
@@ -338,16 +345,13 @@ double ecmcEncoder::readEntries() {
   } else {
     rawAbsPosUintOld_ = 0;
     rawAbsPosUint_    = 0;
-  }
-  actPosOld_ = actPos_;
-  actPos_    = scale_ * rawPosMultiTurn_ + engOffset_;
-  //Not affected by modulo
-  actVel_    = velocityFilter_->getFiltVelo(actPos_ - actPosOld_);
-
+  }  
+  
+  actPos_    = scale_ * rawPosMultiTurn_ + engOffset_;  
   // Check modulo
   if(data_->command_.moduloRange != 0) {    
-    if(actPos_ >= data_->command_.moduloRange){
-      actPos_ = actPos_-data_->command_.moduloRange;
+    if(actPos_ >= data_->command_.moduloRange){      
+      actPos_ = actPos_-data_->command_.moduloRange;      
       // Reset stuff to be able to run forever
       engOffset_       = 0;
       rawTurnsOld_     = 0;
@@ -365,6 +369,25 @@ double ecmcEncoder::readEntries() {
       rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
     }
   }
+
+
+  if(enablePositionFilter_)  {
+    actPos_ = positionFilter_->getFiltPos(actPos_, data_->command_.moduloRange);
+  }
+
+  double distTraveled =  actPos_ - actPosOld_;
+  if(data_->command_.moduloRange != 0) {    
+    double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT * data_->command_.moduloRange;
+    if(actPos_ - actPosOld_ > modThreshold) {
+      distTraveled = actPos_ - actPosOld_ - data_->command_.moduloRange;
+    }
+    else if (actPos_ - actPosOld_ < -modThreshold){
+      distTraveled = actPos_ - actPosOld_ + data_->command_.moduloRange;
+    }
+  }
+
+  actVel_    = velocityFilter_->getFiltVelo(distTraveled);
+  
 
   // Encoder latch entries (status and position)
   if (encLatchFunctEnabled_) {
@@ -555,9 +578,37 @@ int64_t ecmcEncoder::getAbsRangeRaw() {
 }
 
 /*
-* Set volocity filter size (to get stable velocity 
-  if resolution is poor compared to sample rate)
+* Set velocity filter size (to get stable velocity 
+  if resolution is poor compared to sample rate) 
 */
 int ecmcEncoder::setVeloFilterSize(size_t size) {
+  if(size<1) {
+    size=1;
+  }
   return velocityFilter_->setFilterSize(size);
+}
+
+/*
+* Set position filter size (to get stable position
+  if resolution is poor compared to sample rate)
+*/
+int ecmcEncoder::setPosFilterSize(size_t size) {
+  
+  if(size<=1) {
+    enablePositionFilter_ = false;
+  }
+  else {
+    enablePositionFilter_ = true;
+  }
+
+  return positionFilter_->setFilterSize(size);
+}
+
+/*
+* Set position filter enable (to get stable position
+  if resolution is poor compared to sample rate)
+*/
+int ecmcEncoder::setPosFilterEnable(bool enable) {
+  enablePositionFilter_ = enable;
+  return 0;
 }

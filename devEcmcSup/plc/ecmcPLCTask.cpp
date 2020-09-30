@@ -12,9 +12,9 @@
 
 #include "ecmcPLCTask.h"
 #include "../main/ecmcErrorsList.h"
+#include "ecmcPLCTask_libDs.inc"
 #include "ecmcPLCTask_libEc.inc"
 #include "ecmcPLCTask_libMc.inc"
-#include "ecmcPLCTask_libDs.inc"
 #include "ecmcPLCTask_libFileIO.inc"
 
 #define ecmcPLCTaskAddFunction(cmd, func) {          \
@@ -737,7 +737,8 @@ int ecmcPLCTask::loadEcLib() {
   ecmcPLCTaskAddFunction("ec_get_mm_size", ec_get_mm_size);
   ecmcPLCTaskAddFunction("ec_get_time_l32", ec_get_time_l32);
   ecmcPLCTaskAddFunction("ec_get_time_u32", ec_get_time_u32);
-
+  ecmcPLCTaskAddFunction("ec_mm_append_to_ds", ec_mm_append_to_ds);
+  
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
            __FILE__,
@@ -802,6 +803,8 @@ int ecmcPLCTask::loadDsLib() {
   ecmcPLCTaskAddFunction("ds_get_min",     ds_get_min);
   ecmcPLCTaskAddFunction("ds_get_max",     ds_get_max);
   ecmcPLCTaskAddFunction("ds_err_rst",     ds_err_rst);
+  ecmcPLCTaskAddFunction("ds_append_to_ds",ds_append_to_ds);
+  
   
   if (ds_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",

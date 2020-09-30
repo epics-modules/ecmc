@@ -1,5 +1,20 @@
 Release Notes
 ===
+# ECMC master
+* Add encoder position averaging lp-filter:
+  * Cfg.SetAxisEncPosFilterSize(<axis_id>,<filter_size>)
+  * Cfg.SetAxisEncPosFilterEnable(<axis_id>,<enable>)
+* Plugin interface: Fix sampeltime unit to ms
+* Add warnings for 64bit ethercat plc variables (might not be represented properly since all plc variables are doubles)
+* Add plc- functions
+  * ds_append_to_ds()
+  * ec_mm_append_ds()
+
+# ECMC 6.2.3
+* Add support for motor auto enable/disable
+* Add plc functions ec_get_time_u32(), ec_get_time_l32().
+* ecmcForLoop: iocsh command: Support decreasing iterations
+* Fix moving bit in ecmcMotorRecordAxis::poll()
 
 # ECMC 6.2.2
 * Allow JVEL change while jogging

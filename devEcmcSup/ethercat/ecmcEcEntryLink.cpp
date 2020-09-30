@@ -199,3 +199,11 @@ bool ecmcEcEntryLink::checkEntryExist(int entryIndex) {
   }
   return false;
 }
+
+ecmcEcDataType ecmcEcEntryLink::getEntryDataType(int index) {
+  if (entryInfoArray_[index].entry == NULL) {
+    return ECMC_EC_NONE;
+  }
+
+  return entryInfoArray_[index].entry->getDataType();
+}

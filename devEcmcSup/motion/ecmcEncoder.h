@@ -46,6 +46,10 @@
 #define ERROR_ENC_ABS_MASK_INVALID 0x1440E
 #define ERROR_ENC_ABS_BIT_COUNT_INVALID 0x1440F
 
+
+#define ECMC_FILTER_VELO_DEF_SIZE 100
+#define ECMC_FILTER_POS_DEF_SIZE 10
+
 // Constants
 #define ECMC_ENCODER_MAX_VALUE_64_BIT ((uint64_t)(0xFFFFFFFFFFFFFFFFULL))
 
@@ -100,6 +104,8 @@ class ecmcEncoder : public ecmcEcEntryLink {
   double                getLatchPosEng();
   ecmcOverUnderFlowType getOverUnderflow();
   int                   setVeloFilterSize(size_t size);
+  int                   setPosFilterSize(size_t size);
+  int                   setPosFilterEnable(bool enable);
   
  protected:
   void                  initVars();
@@ -113,6 +119,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
                                             int      bits);
   encoderType encType_;
   ecmcFilter *velocityFilter_;
+  ecmcFilter *positionFilter_;
   ecmcAxisData *data_;
   int64_t turns_;
   uint64_t rawPosUint_;          // Raw position register (masked and shifted)
@@ -147,6 +154,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int64_t rawEncLatchPosMultiTurn_;
   bool encLatchControl_;
   double actEncLatchPos_;
+  bool enablePositionFilter_;
 };
 
 #endif  /* ECMCENCODER_H_ */

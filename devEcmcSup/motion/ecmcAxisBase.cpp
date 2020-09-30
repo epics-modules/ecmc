@@ -1232,6 +1232,14 @@ int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
   return enc_->setVeloFilterSize(size);
 }
 
+int ecmcAxisBase::setEncPosFiltSize(size_t size) {
+  return enc_->setPosFilterSize(size);
+}
+
+int ecmcAxisBase::setEncPosFiltEnable(bool enable) {
+  return enc_->setPosFilterEnable(enable);
+}
+
 int ecmcAxisBase::createAsynParam(const char       *nameFormat,
                                   asynParamType     asynType, 
                                   ecmcEcDataType    ecmcType,

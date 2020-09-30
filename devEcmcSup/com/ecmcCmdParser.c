@@ -2103,6 +2103,26 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncVelFilterSize(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEncPosFilterSize(int axis_no, int size);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncPosFilterSize(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncPosFilterSize(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisEncPosFilterEnable(int axis_no, int size);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncPosFilterEnable(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncPosFilterEnable(iValue, iValue2);
+  }
+
   /*int Cfg.AppendAxisPLCExpr(int axis_no,char *cExpr); */
   nvals = sscanf(myarg_1,
                  "AppendAxisPLCExpr(%d)=%[^\n]",
