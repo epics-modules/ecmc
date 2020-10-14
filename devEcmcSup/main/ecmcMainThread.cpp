@@ -240,6 +240,8 @@ void cyclic_task(void *usr) {
   // start 100ms + 1 period after  master activate (in setAppMode())
   wakeupTime = timespec_add(masterActivationTimeMonotonic, offsetStartTime);
 
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
+  
   while (appModeCmd == ECMC_MODE_RUNTIME) {
     wakeupTime = timespec_add(wakeupTime, cycletime);
 
