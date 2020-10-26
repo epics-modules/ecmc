@@ -1798,7 +1798,8 @@ int ecmcEc::validate() {
 int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
                         uint16_t slavePos,   /**< Slave position. */
                         uint32_t vendorId,   /**< Expected vendor ID. */
-                        uint32_t productCode  /**< Exp)*/) {
+                        uint32_t productCode,  /**< Expected product code. */
+                        uint32_t revisionNum  /**< Revision number*/){
 
   ec_master_info_t masterInfo;
   ec_slave_info_t  slaveInfo;
@@ -1888,6 +1889,7 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }
 
+
   if(slaveInfo.product_code != productCode) {
     LOGERR(
       "%s/%s:%d: Error: Slave verification for busposition %d failed. Product Code 0x%x != 0x%x (0x%x).\n",
@@ -1897,6 +1899,20 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       slavePos,
       productCode,
       slaveInfo.product_code,
+      ERROR_EC_SLAVE_VERIFICATION_FAIL);
+      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+  }
+
+  // Only check revision if revisionNum is set (> 0)
+  if( revisionNum > 0 && slaveInfo.revision_number < revisionNum ) {
+    LOGERR(
+      "%s/%s:%d: Error: Slave verification for busposition %d failed. Revision of actual slave (0x%x) must be >= revision of config (0x%x) (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePos,
+      slaveInfo.revision_number,
+      revisionNum,
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
       return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }

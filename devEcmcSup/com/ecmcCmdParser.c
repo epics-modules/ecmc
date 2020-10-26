@@ -913,7 +913,21 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecSlaveConfigWatchDog(iValue, iValue2, iValue3);
   }
 
-/// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,productCode)"
+  /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,productCode,revisionNum)"
+  nvals = sscanf(myarg_1,
+                 "EcSlaveVerify(%d,%d,0x%x,0x%x,0x%x)",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 &iValue4,
+                 &iValue5);
+
+  if (nvals == 5) {
+    // Also check revsionNum
+    return ecVerifySlave(iValue, iValue2, iValue3, iValue4, iValue5);
+  }
+
+  /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,productCode)"
   nvals = sscanf(myarg_1,
                  "EcSlaveVerify(%d,%d,0x%x,0x%x)",
                  &iValue,
@@ -922,7 +936,8 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue4);
 
   if (nvals == 4) {
-    return ecVerifySlave(iValue, iValue2, iValue3, iValue4);
+    // Do not check revsion number (use revsionNum=0)
+    return ecVerifySlave(iValue, iValue2, iValue3, iValue4,0);
   }
 
   /*Cfg.EcAddPdo(int nSlave,int nSyncManager,uint16_t nPdoIndex) wrong*/
