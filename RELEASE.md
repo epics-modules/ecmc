@@ -1,6 +1,10 @@
 Release Notes
 ===
 # ECMC master
+* Add possabilty to verify actual ec slave revision vs config revsion with "Cfg.EcSlaveVerify()" command.
+  The slave revision number must be higher or equal (>=) comapred to the config revsion number in order to be approved.
+  Note: Comparsion is only made if the supplied config revsion number >= 0.
+  Note: "Cfg.EcSlaveVerify()" can still be used without revsion number and then the revsion chesk will not be performed.
 * Add encoder position averaging lp-filter:
   * Cfg.SetAxisEncPosFilterSize(<axis_id>,<filter_size>)
   * Cfg.SetAxisEncPosFilterEnable(<axis_id>,<enable>)
