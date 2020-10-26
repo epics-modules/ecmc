@@ -165,11 +165,13 @@ class ecmcEc : public ecmcError {
   //int           setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
   int           printAllConfig();
   int           printSlaveConfig(int slaveIndex);
-  int           validate();
+  int           validate();                        
   int           verifySlave(uint16_t alias,  /**< Slave alias. */
-                        uint16_t slavePos,   /**< Slave position. */
-                        uint32_t vendorId,   /**< Expected vendor ID. */
-                        uint32_t productCode  /**< Exp)*/);
+                            uint16_t slavePos,   /**< Slave position. */
+                            uint32_t vendorId,   /**< Expected vendor ID. */
+                            uint32_t productCode,  /**< Expected product code. */
+                            uint32_t revisionNum  /**< Revision number*/);
+
   int           checkReadyForRuntime();
   uint64_t      getTimeNs();
 

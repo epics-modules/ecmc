@@ -843,21 +843,23 @@ int linkEcEntryToEcStatusOutput(int slaveIndex, char *entryIDString) {
   return ec->setEcStatusOutputEntry(entry);
 }
 
-int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
+int ecVerifySlave(uint16_t alias,  /**< Slave alias. */                                 
                   uint16_t slavePos,   /**< Slave position. */
                   uint32_t vendorId,   /**< Expected vendor ID. */
-                  uint32_t productCode  /**< Exp)*/) {
-  LOGINFO4("%s/%s:%d alias=%d slavePos=%d, vendorId=0x%x, productCode=0x%x\n",
+                  uint32_t productCode,  /**< Expected product code. */
+                  uint32_t revisionNum  /**< Revision number*/) {
+
+  LOGINFO4("%s/%s:%d alias=%d slavePos=%d, vendorId=0x%x, productCode=0x%x, revisionNum=0x%x\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            alias,
            slavePos,
            vendorId,
-           productCode
-           );
+           productCode,
+           revisionNum);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec->verifySlave(alias,slavePos,vendorId,productCode);
+  return ec->verifySlave(alias,slavePos,vendorId,productCode, revisionNum);
 }
