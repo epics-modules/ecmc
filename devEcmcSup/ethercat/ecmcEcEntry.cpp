@@ -790,3 +790,7 @@ int ecmcEcEntry::setComAlarm(bool alarm) {
 ecmcEcDataType ecmcEcEntry::getDataType() {
   return dataType_;
 }
+
+int ecmcEcEntry::getSlaveId() {
+  return slaveId_;
+}

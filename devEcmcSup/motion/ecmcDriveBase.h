@@ -83,7 +83,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int          setAxisDataRef(ecmcAxisData *data);
   int          setBrakeOpenDelayTime(int delayTime);
   int          setBrakeCloseAheadTime(int aheadTime);
-
+  
  protected:
   int          updateBrakeState();
   bool         driveInterlocksOK();
@@ -117,6 +117,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   bool enableCmdOld_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *asynControlWd_;
-  ecmcAsynDataItem  *asynStatusWd_;
+  ecmcAsynDataItem  *asynStatusWd_;  
 };
 #endif  // ifndef ECMCDRIVEBASE_H_

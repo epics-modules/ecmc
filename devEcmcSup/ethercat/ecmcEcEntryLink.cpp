@@ -214,3 +214,12 @@ ecmcEcDataType ecmcEcEntryLink::getEntryDataType(int index) {
 
   return entryInfoArray_[index].entry->getDataType();
 }
+
+int ecmcEcEntryLink::getSlaveId(int index) {
+  if (entryInfoArray_[index].entry == NULL) {
+    return -1000;
+  }
+
+  return entryInfoArray_[index].entry->getSlaveId();
+}
+
