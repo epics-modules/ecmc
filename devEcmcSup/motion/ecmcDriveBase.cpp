@@ -185,12 +185,24 @@ void ecmcDriveBase::writeEntries() {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
-  errorCode =
-    writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
+  if(data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
+    errorCode =
+      writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
                       (uint64_t)data_->status_.currentVelocitySetpointRaw);
 
-  if (errorCode) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+  } 
+  else {
+    // CSP
+    errorCode =
+      writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT,
+                      (uint64_t)data_->status_.currentPositionSetpointRaw);
+
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
   }
 
   if (enableBrake_) {
@@ -260,10 +272,21 @@ int ecmcDriveBase::validate() {
 
   // Velocity Setpoint entry output
   errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
-  if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  if (errorCode) {    
+    // Position Setpoint entry output
+    errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    else {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    data_->command_.drvMode = ECMC_DRV_MODE_CSP;
+  } 
+  else {
+    data_->command_.drvMode = ECMC_DRV_MODE_CSV;
   }
-
+  
   // Enabled entry input OR statusword
   errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD);
 
@@ -288,6 +311,7 @@ int ecmcDriveBase::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
   }
+
 
   if (scaleDenom_ == 0) {
     return setErrorID(__FILE__,
