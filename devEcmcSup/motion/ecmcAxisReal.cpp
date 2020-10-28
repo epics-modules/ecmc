@@ -131,19 +131,27 @@ void ecmcAxisReal::execute(bool masterOK) {
       cntrl_->reset();
     }
 
-    if (getEnabled() && masterOK) {
+    if (getEnabled() && masterOK) {          
       double cntrOutput = 0;
-
-      if (mon_->getEnableAtTargetMon() && !data_.status_.busy &&
-          mon_->getAtTarget()) {  // Controller deadband
-        cntrl_->reset();
-        cntrOutput = 0;
-      } else {
-        cntrOutput = cntrl_->control(getPosErrorMod(),
-                                     data_.status_.currentVelocitySetpoint);
+      
+      if(data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
+        // ***************** CSV *****************
+        if (mon_->getEnableAtTargetMon() && !data_.status_.busy &&
+            mon_->getAtTarget()) {  // Controller deadband
+          cntrl_->reset();
+          cntrOutput = 0;
+        } else {
+          cntrOutput = cntrl_->control(getPosErrorMod(),
+                                  data_.status_.currentVelocitySetpoint);
+        }
+        mon_->setEnable(true);
+        drv_->setVelSet(cntrOutput);  // Actual control
       }
-      mon_->setEnable(true);
-      drv_->setVelSet(cntrOutput);  // Actual control
+      else {
+        // ***************** CSP *****************
+        mon_->setEnable(true);
+        drv_->setPosSet(data_.status_.currentPositionSetpoint);  // Actual control
+      }
     } else {
       mon_->setEnable(false);
 
@@ -166,7 +174,10 @@ void ecmcAxisReal::execute(bool masterOK) {
                    __LINE__,
                    ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
       }
+      // CSV
       drv_->setVelSet(0);
+      // CSP
+      drv_->setPosSet(data_.status_.currentPositionActual);
       cntrl_->reset();
     }
 

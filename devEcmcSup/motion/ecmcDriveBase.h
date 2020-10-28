@@ -73,6 +73,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   double       getScale();
   int          setVelSet(double vel);
   double       getVelSet();
+  int          setPosSet(double pos);
   int          setVelSetRaw(int rawVel);
   int          getVelSetRaw();
   int          setEnableBrake(bool enable);
@@ -94,6 +95,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   double scaleNum_;
   double scaleDenom_;
   double velSet_;
+  double posSet_;
   uint64_t controlWord_;
   uint64_t statusWord_;
   ecmcAxisData *data_;

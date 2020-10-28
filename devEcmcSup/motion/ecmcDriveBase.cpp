@@ -53,6 +53,7 @@ void ecmcDriveBase::initVars() {
   asynPortDriver_            = NULL;
   asynControlWd_             = NULL;
   asynStatusWd_              = NULL;
+  posSet_                    = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -68,6 +69,17 @@ int ecmcDriveBase::setVelSet(double vel) {
   data_->status_.currentVelocitySetpointRaw = velSet_ / scale_;
   return 0;
 }
+
+int ecmcDriveBase::setPosSet(double pos) {
+  if (!driveInterlocksOK()) {    
+    data_->status_.currentPositionSetpointRaw = posSet_;
+    return 0;
+  }
+  posSet_ = pos;
+  data_->status_.currentPositionSetpointRaw = pos / scale_;
+  return 0;
+}
+
 
 double ecmcDriveBase::getScaleNum(void) {
   return scaleNum_;
