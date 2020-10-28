@@ -134,7 +134,7 @@ void ecmcAxisReal::execute(bool masterOK) {
     if (getEnabled() && masterOK) {          
       double cntrOutput = 0;
       
-      if(data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
+      if(data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
         // ***************** CSV *****************
         if (mon_->getEnableAtTargetMon() && !data_.status_.busy &&
             mon_->getAtTarget()) {  // Controller deadband
