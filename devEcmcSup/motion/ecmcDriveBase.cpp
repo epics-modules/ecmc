@@ -282,21 +282,22 @@ int ecmcDriveBase::validate() {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
-  // Velocity Setpoint entry output
-  errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
-  if (errorCode) {    
-    // Position Setpoint entry output
-    errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
-    if (errorCode) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+
+  if(!isEntryNull(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT)){
+    // CSV
+    int errorCodeVel = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
+    if (errorCodeVel) {    
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodeVel);
     }
-    else {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-    }
-    data_->command_.drvMode = ECMC_DRV_MODE_CSP;
+    data_->command_.drvMode = ECMC_DRV_MODE_CSV;
   } 
   else {
-    data_->command_.drvMode = ECMC_DRV_MODE_CSV;
+    // Must be CSP
+    int errorCodePos = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+    if (errorCodePos) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodePos);
+    }
+    data_->command_.drvMode = ECMC_DRV_MODE_CSP;
   }
   
   // Enabled entry input OR statusword
