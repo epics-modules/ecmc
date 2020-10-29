@@ -131,6 +131,9 @@ void ecmcAxisReal::execute(bool masterOK) {
       cntrl_->reset();
     }
 
+    //CSP Write raw actpos  and actpos to drv obj
+    drv_->setCspActPos(enc_->getRawPosRegister(), data_.status_.currentPositionActual);
+
     if (getEnabled() && masterOK) {          
       double cntrOutput = 0;
       
@@ -150,7 +153,7 @@ void ecmcAxisReal::execute(bool masterOK) {
       else {
         // ***************** CSP *****************
         mon_->setEnable(true);
-        drv_->setPosSet(data_.status_.currentPositionSetpoint);  // Actual control
+        drv_->setCspPosSet(data_.status_.currentPositionSetpoint);  // Actual control
       }
     } else {
       mon_->setEnable(false);
@@ -176,8 +179,8 @@ void ecmcAxisReal::execute(bool masterOK) {
       }
       // CSV
       drv_->setVelSet(0);
-      // CSP
-      drv_->setPosSet(data_.status_.currentPositionActual);
+      // CSP      
+      drv_->setCspPosSet(data_.status_.currentPositionActual);
       cntrl_->reset();
     }
 

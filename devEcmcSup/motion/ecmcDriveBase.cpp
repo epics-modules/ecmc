@@ -53,7 +53,10 @@ void ecmcDriveBase::initVars() {
   asynPortDriver_            = NULL;
   asynControlWd_             = NULL;
   asynStatusWd_              = NULL;
-  posSet_                    = 0;
+  cspPosSet_                 = 0;
+  cspRawActPos_              = 0;
+  cspActPos_                 = 0;
+  cspRawPosOffset_           = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -70,16 +73,26 @@ int ecmcDriveBase::setVelSet(double vel) {
   return 0;
 }
 
-int ecmcDriveBase::setPosSet(double pos) {
+int ecmcDriveBase::setCspPosSet(double pos) {
   if (!driveInterlocksOK()) {    
-    data_->status_.currentPositionSetpointRaw = posSet_;
+    data_->status_.currentPositionSetpointRaw = cspRawActPos_;
     return 0;
   }
-  posSet_ = pos;
-  data_->status_.currentPositionSetpointRaw = pos / scale_;
+
+  // Calculate new offset
+  if(data_->command_.enable && !enableCmdOld_) {
+    cspRawPosOffset_ = cspActPos_ / scale_ - cspRawActPos_;  // Raw
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ - cspRawPosOffset_;
+    printf("NEW OFFSET!!!! posRaw = %" PRId64 ", posAct=%lf, offsetRaw= %" PRId64 ".\n",cspRawActPos_,cspActPos_,cspRawPosOffset_);
+  }
+  
+  cspPosSet_ = pos; // Engineering unit
+  data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ - cspRawPosOffset_;
+  
+  printf("RawSet= %" PRId64 "\n",data_->status_.currentPositionSetpointRaw);
+  
   return 0;
 }
-
 
 double ecmcDriveBase::getScaleNum(void) {
   return scaleNum_;
@@ -548,4 +561,9 @@ int ecmcDriveBase::initAsyn() {
 void ecmcDriveBase::refreshAsyn(){
   asynStatusWd_->refreshParamRT(0);
   asynControlWd_->refreshParamRT(0);
+}
+
+void ecmcDriveBase::setCspActPos(int64_t posRaw, double posAct){
+  cspRawActPos_ = posRaw;
+  cspActPos_    = posAct;
 }

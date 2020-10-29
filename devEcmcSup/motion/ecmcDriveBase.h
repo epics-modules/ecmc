@@ -73,7 +73,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   double       getScale();
   int          setVelSet(double vel);
   double       getVelSet();
-  int          setPosSet(double pos);
+  int          setCspPosSet(double pos);
   int          setVelSetRaw(int rawVel);
   int          getVelSetRaw();
   int          setEnableBrake(bool enable);
@@ -83,6 +83,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int          setAxisDataRef(ecmcAxisData *data);
   int          setBrakeOpenDelayTime(int delayTime);
   int          setBrakeCloseAheadTime(int aheadTime);
+  void         setCspActPos(int64_t posRaw, double posAct);
   
  protected:
   int          updateBrakeState();
@@ -95,7 +96,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   double scaleNum_;
   double scaleDenom_;
   double velSet_;
-  double posSet_;
+  double cspPosSet_;
   uint64_t controlWord_;
   uint64_t statusWord_;
   ecmcAxisData *data_;
@@ -117,6 +118,9 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   bool enableCmdOld_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *asynControlWd_;
-  ecmcAsynDataItem  *asynStatusWd_;  
+  ecmcAsynDataItem  *asynStatusWd_;
+  int64_t cspRawActPos_;
+  double cspActPos_;
+  int64_t cspRawPosOffset_;
 };
 #endif  // ifndef ECMCDRIVEBASE_H_
