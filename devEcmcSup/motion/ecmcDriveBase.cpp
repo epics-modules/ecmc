@@ -74,9 +74,15 @@ int ecmcDriveBase::setVelSet(double vel) {
 }
 
 int ecmcDriveBase::setCspPosSet(double pos) {
+
+  data_->status_.currentPositionSetpointRaw = cspRawActPos_;
   if (!driveInterlocksOK()) {    
-    data_->status_.currentPositionSetpointRaw = cspRawActPos_;
+    
     return 0;
+  }
+
+  if (data_->status_.enabled && data_->command_.enable) {
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ - cspRawPosOffset_;
   }
 
   // Calculate new offset
@@ -87,9 +93,9 @@ int ecmcDriveBase::setCspPosSet(double pos) {
   }
   
   cspPosSet_ = pos; // Engineering unit
-  data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ - cspRawPosOffset_;
   
-  printf("RawSet= %" PRId64 "\n",data_->status_.currentPositionSetpointRaw);
+  
+  //printf("RawSet= %" PRId64 "\n",data_->status_.currentPositionSetpointRaw);
   
   return 0;
 }
