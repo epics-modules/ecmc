@@ -57,6 +57,8 @@ void ecmcDriveBase::initVars() {
   cspRawActPos_              = 0;
   cspActPos_                 = 0;
   cspRawPosOffset_           = 0;
+  counter_ = 0;
+  cspRawActPosAtEnableCmd_   = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -75,28 +77,34 @@ int ecmcDriveBase::setVelSet(double vel) {
 
 int ecmcDriveBase::setCspPosSet(double pos) {
 
-  data_->status_.currentPositionSetpointRaw = cspRawActPos_;
-  if (!driveInterlocksOK()) {    
-    
+  cspPosSet_ = pos; // Engineering unit
+  
+  if (!driveInterlocksOK()) {        
     return 0;
   }
 
   if (data_->status_.enabled && data_->command_.enable) {
-    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ - cspRawPosOffset_;
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
+  }
+  else if(data_->command_.enable) {
+    data_->status_.currentPositionSetpointRaw = cspRawActPosAtEnableCmd_;
+  } else {
+    data_->status_.currentPositionSetpointRaw = cspRawActPos_;
   }
 
   // Calculate new offset
   if(data_->command_.enable && !enableCmdOld_) {
-    cspRawPosOffset_ = cspActPos_ / scale_ - cspRawActPos_;  // Raw
-    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ - cspRawPosOffset_;
+    cspRawPosOffset_ = cspRawActPos_- cspActPos_ / scale_;  // Raw
+    cspRawActPosAtEnableCmd_ = cspRawActPos_;
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
     printf("NEW OFFSET!!!! posRaw = %" PRId64 ", posAct=%lf, offsetRaw= %" PRId64 ".\n",cspRawActPos_,cspActPos_,cspRawPosOffset_);
   }
   
-  cspPosSet_ = pos; // Engineering unit
-  
-  
-  //printf("RawSet= %" PRId64 "\n",data_->status_.currentPositionSetpointRaw);
-  
+  if(counter_ >=30) {
+    printf("%d%d, posRaw = %" PRId64 ", posAct=%lf, posSet=%lf,offsetRaw= %" PRId64 ", RawSetOut= %" PRId64 ".\n",data_->command_.enable, data_->status_.enabled,cspRawActPos_,cspActPos_,cspPosSet_,cspRawPosOffset_,data_->status_.currentPositionSetpointRaw);
+    counter_=0;
+  }
+  counter_++;
   return 0;
 }
 
