@@ -44,13 +44,6 @@ int ecmcEcEntryLink::setEntryAtIndex(ecmcEcEntry *entry,
   }
 }
 
-int ecmcEcEntryLink::isEntryNull(int index) {
-  if ((index >= ECMC_EC_ENTRY_LINKS_MAX) || (index < 0)) {
-    return 1;    
-  }
-  return entryInfoArray_[index].entry == NULL;
-}
-
 int ecmcEcEntryLink::validateEntry(int index) {
   if ((index >= ECMC_EC_ENTRY_LINKS_MAX) || (index < 0)) {
     LOGERR("%s/%s:%d: ERROR: Entry list index %d out of range.(0x%x).\n",

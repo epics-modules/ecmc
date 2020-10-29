@@ -283,7 +283,7 @@ int ecmcDriveBase::validate() {
   }
 
 
-  if(!isEntryNull(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT)){
+  if(checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT)){
     // CSV
     int errorCodeVel = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
     if (errorCodeVel) {    

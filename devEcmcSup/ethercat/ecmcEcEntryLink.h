@@ -30,7 +30,6 @@ class ecmcEcEntryLink : public ecmcError {
                        int          index,
                        int          bitIndex);
   int  validateEntry(int index);
-  int  isEntryNull(int index);
   int  readEcEntryValue(int       entryIndex,
                         uint64_t *value);
   int  readEcEntryValueDouble(int     entryIndex,
