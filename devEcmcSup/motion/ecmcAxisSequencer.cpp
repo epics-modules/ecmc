@@ -29,6 +29,7 @@ void ecmcAxisSequencer::initVars() {
   enc_                  = NULL;
   mon_                  = NULL;
   cntrl_                = NULL;
+  drv_                  = NULL;
   jogVel_               = 0;
   homeVelTwordsCam_     = 0;
   homeVelOffCam_        = 0;
@@ -463,6 +464,10 @@ void ecmcAxisSequencer::setMon(ecmcMonitor *mon) {
 
 void ecmcAxisSequencer::setCntrl(ecmcPIDController *cntrl) {
   cntrl_ = cntrl;
+}
+
+void ecmcAxisSequencer::setDrv(ecmcDriveBase *drv) {
+  drv_ = drv;
 }
 
 bool ecmcAxisSequencer::getBusy() {
@@ -2153,6 +2158,9 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   traj_->setCurrentPosSet(newPosition);
   traj_->setTargetPos(newPosition);
   enc_->setActPos(newPosition);
+  if(drv_) {
+    drv_->setCspRecalcOffset(newPosition);
+  }
   enc_->setHomed(true);
   enc_->setArmLatch(false);
   cntrl_->reset();

@@ -285,6 +285,9 @@ int ecmcAxisReal::validate() {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
   }
 
+  // Set drv ref to sequencer (used for CSP)
+  seq_.setDrv(drv_);
+
   if (mon_ == NULL) {
     return setErrorID(__FILE__,
                       __FUNCTION__,

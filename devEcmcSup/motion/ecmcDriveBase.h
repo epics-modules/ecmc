@@ -73,7 +73,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   double       getScale();
   int          setVelSet(double vel);
   double       getVelSet();
-  int          setCspPosSet(double pos);
   int          setVelSetRaw(int rawVel);
   int          getVelSetRaw();
   int          setEnableBrake(bool enable);
@@ -83,6 +82,9 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int          setAxisDataRef(ecmcAxisData *data);
   int          setBrakeOpenDelayTime(int delayTime);
   int          setBrakeCloseAheadTime(int aheadTime);
+  // CSP
+  int          setCspPosSet(double posEng);
+  int          setCspRecalcOffset(double posEng);
   void         setCspActPos(int64_t posRaw, double posAct);
   
  protected:

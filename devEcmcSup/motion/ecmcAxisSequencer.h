@@ -19,6 +19,7 @@
 #include "ecmcPIDController.h"
 #include "ecmcTrajectoryTrapetz.h"
 #include "ecmcAxisData.h"
+#include "ecmcDriveBase.h"
 
 // SEQUENCER ERRORS
 #define ERROR_SEQ_TRAJ_NULL 0x14D00
@@ -75,6 +76,7 @@ class ecmcAxisSequencer : public ecmcError {
   ecmcTrajectoryTrapetz* getTraj();
   void                   setEnc(ecmcEncoder *enc);
   void                   setMon(ecmcMonitor *mon);
+  void                   setDrv(ecmcDriveBase *drv);
   void                   setCntrl(ecmcPIDController *con);
   bool                   getBusy();
   void                   setJogVel(double velTarget);
@@ -155,6 +157,7 @@ class ecmcAxisSequencer : public ecmcError {
   ecmcEncoder *enc_;
   ecmcMonitor *mon_;
   ecmcPIDController *cntrl_;
+  ecmcDriveBase *drv_;
   //ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcAxisData *data_;
   uint64_t oldencRawAbsPosReg_;
