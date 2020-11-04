@@ -115,7 +115,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
 // Recalculate offset
 int ecmcDriveBase::setCspRecalcOffset(double posEng) {
   //printf("setCspRecalcOffset()\n");
-  cspRawPosOffset_ = cspRawActPos_- cspActPos_ / scale_;  // Raw
+  cspRawPosOffset_ = cspRawActPos_- posEng / scale_;  // Raw
   return 0;
 }
 

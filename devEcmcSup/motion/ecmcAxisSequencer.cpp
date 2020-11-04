@@ -2158,8 +2158,10 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   traj_->setCurrentPosSet(newPosition);
   traj_->setTargetPos(newPosition);
   enc_->setActPos(newPosition);
-  if(drv_) {
+  if(drv_) {    
+    drv_->setCspActPos(enc_->getRawPosRegister(), newPosition);
     drv_->setCspRecalcOffset(newPosition);
+    drv_->setCspPosSet(newPosition);
   }
   enc_->setHomed(true);
   enc_->setArmLatch(false);
