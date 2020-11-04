@@ -57,8 +57,7 @@ void ecmcDriveBase::initVars() {
   cspRawActPos_              = 0;
   cspActPos_                 = 0;
   cspRawPosOffset_           = 0;
-  counter_ = 0;
-  cspRawActPosAtEnableCmd_   = 0;
+  //counter_ = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -86,9 +85,6 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   if (data_->status_.enabled && data_->command_.enable) {
     data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
   }
-/*  else if(data_->command_.enable) {
-    data_->status_.currentPositionSetpointRaw = cspRawActPosAtEnableCmd_;
-  } */
   else {
     data_->status_.currentPositionSetpointRaw = cspRawActPos_;
   }
@@ -97,31 +93,29 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   if(data_->command_.enable && !enableCmdOld_) {
     setCspRecalcOffset(cspPosSet_);
     data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
-    printf("NEW OFFSET!!!! posRaw = %" PRId64 ", posAct=%lf, offsetRaw= %" PRId64 ".\n",cspRawActPos_,cspActPos_,cspRawPosOffset_);
-    counter_=0;
+    //printf("NEW OFFSET: posRaw = %" PRId64 ", posAct=%lf, offsetRaw= %" PRId64 ".\n",cspRawActPos_,cspActPos_,cspRawPosOffset_);
+    //counter_=0;
   }
 
-  if(counter_ >= 0 && counter_<500) {
-     printf("%d%d, posRaw = %" PRId64 ", RawSetOut= %" PRId64 ", posAct=%lf, posSet=%lf,offsetRaw= %" PRId64 ".\n",
-        data_->command_.enable,
-        data_->status_.enabled,
-        cspRawActPos_,
-        data_->status_.currentPositionSetpointRaw,
-        cspActPos_,
-        cspPosSet_,
-        cspRawPosOffset_);
-
-    counter_++;
-  }
+  // if(counter_ >= 0 && counter_<500) {
+  //    printf("%d%d, posRaw = %" PRId64 ", RawSetOut= %" PRId64 ", posAct=%lf, posSet=%lf,offsetRaw= %" PRId64 ".\n",
+  //       data_->command_.enable,
+  //       data_->status_.enabled,
+  //       cspRawActPos_,
+  //       data_->status_.currentPositionSetpointRaw,
+  //       cspActPos_,
+  //       cspPosSet_,
+  //       cspRawPosOffset_);
+  //   counter_++;
+  // }
   
   return 0;
 }
 
 // Recalculate offset
 int ecmcDriveBase::setCspRecalcOffset(double posEng) {
-  printf("setCspRecalcOffset()!!!!!!!!!!!\n");
+  //printf("setCspRecalcOffset()\n");
   cspRawPosOffset_ = cspRawActPos_- cspActPos_ / scale_;  // Raw
-  //cspRawActPosAtEnableCmd_ = cspRawActPos_;
   return 0;
 }
 

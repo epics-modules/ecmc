@@ -124,8 +124,8 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int64_t cspRawActPos_;
   double cspActPos_;
   int64_t cspRawPosOffset_;
-  int64_t cspRawActPosAtEnableCmd_;
-
-  int counter_;
+  
+  //int64_t cspRawActPosAtEnableCmd_;
+  //int counter_;
 };
 #endif  // ifndef ECMCDRIVEBASE_H_
