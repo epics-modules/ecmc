@@ -86,6 +86,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int          setCspPosSet(double posEng);
   int          setCspRecalcOffset(double posEng);
   void         setCspActPos(int64_t posRaw, double posAct);
+  void         setCspRef(int64_t posRaw, double posAct,  double posSet);
   
  protected:
   int          updateBrakeState();
