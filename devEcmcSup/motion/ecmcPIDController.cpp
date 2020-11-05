@@ -66,6 +66,7 @@ void ecmcPIDController::initVars() {
   kd_                 = 0;
   kff_                = 0;
   sampleTime_         = 0;
+  settingMade_       = false;
 }
 
 ecmcPIDController::~ecmcPIDController()
@@ -80,6 +81,7 @@ void ecmcPIDController::reset() {
 }
 
 void ecmcPIDController::setIRange(double iMax, double iMin) {
+  if(iMax != 0 || iMin != 0 ) settingMade_ = true;
   outputIMax_ = iMax;
   outputIMin_ = iMin;
 }
@@ -105,34 +107,42 @@ double ecmcPIDController::getOutTot() {
 }
 
 void ecmcPIDController::setKp(double kp) {
+  if(kp != 0) settingMade_ = true;
   kp_ = kp;
 }
 
 void ecmcPIDController::setKi(double ki) {
+  if(ki != 0) settingMade_ = true;
   ki_ = ki;
 }
 
 void ecmcPIDController::setKd(double kd) {
+  if(kd != 0) settingMade_ = true;
   kd_ = kd;
 }
 
 void ecmcPIDController::setKff(double kff) {
+  if(kff != 0) settingMade_ = true;
   kff_ = kff;
 }
 
 void ecmcPIDController::setOutMax(double outMax) {
+  if(outMax != 0) settingMade_ = true;
   outputMax_ = outMax;
 }
 
 void ecmcPIDController::setOutMin(double outMin) {
+  if(outMin != 0) if(outMin!=0) settingMade_ = true;
   outputMin_ = outMin;
 }
 
 void ecmcPIDController::setIOutMax(double outMax) {
+  if(outMax != 0) settingMade_ = true;
   outputIMax_ = outMax;
 }
 
 void ecmcPIDController::setIOutMin(double outMin) {
+  if(outMin != 0) settingMade_ = true;
   outputIMin_ = outMin;
 }
 
@@ -185,6 +195,12 @@ int ecmcPIDController::validate() {
                       __FUNCTION__,
                       __LINE__,
                       ERROR_CNTRL_INVALID_SAMPLE_TIME);
+  }
+
+  // Output warning if CSP and any of the position control parameters have been set.
+  if(data_->command_.drvMode == ECMC_DRV_MODE_CSP && settingMade_) {
+    LOGERR("%s/%s:%d: WARNING: Axis %d in CSP-mode (ecmc position control loop disabled). Settings of ecmc position control loop params will be discarded."
+    " Position control loop params needs to be set directlly in drive (where the position loop is executed).\n", __FILE__, __FUNCTION__, __LINE__, data_->axisId_);
   }
   return 0;
 }

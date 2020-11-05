@@ -29,6 +29,7 @@ void ecmcAxisSequencer::initVars() {
   enc_                  = NULL;
   mon_                  = NULL;
   cntrl_                = NULL;
+  drv_                  = NULL;
   jogVel_               = 0;
   homeVelTwordsCam_     = 0;
   homeVelOffCam_        = 0;
@@ -463,6 +464,10 @@ void ecmcAxisSequencer::setMon(ecmcMonitor *mon) {
 
 void ecmcAxisSequencer::setCntrl(ecmcPIDController *cntrl) {
   cntrl_ = cntrl;
+}
+
+void ecmcAxisSequencer::setDrv(ecmcDriveBase *drv) {
+  drv_ = drv;
 }
 
 bool ecmcAxisSequencer::getBusy() {
@@ -2153,6 +2158,15 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   traj_->setCurrentPosSet(newPosition);
   traj_->setTargetPos(newPosition);
   enc_->setActPos(newPosition);
+  // Not nice but otherwise one cycle will have wrong values du to exe order.  
+  data_->status_.currentPositionActual = newPosition;
+  data_->status_.currentPositionSetpoint = newPosition;
+  if(drv_) {    
+    // drv_->setCspActPos(enc_->getRawPosRegister(), newPosition);
+    // drv_->setCspRecalcOffset(newPosition);
+    // drv_->setCspPosSet(newPosition);
+    drv_->setCspRef(enc_->getRawPosRegister(),newPosition,newPosition);
+  }
   enc_->setHomed(true);
   enc_->setArmLatch(false);
   cntrl_->reset();

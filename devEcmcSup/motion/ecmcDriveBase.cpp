@@ -53,6 +53,11 @@ void ecmcDriveBase::initVars() {
   asynPortDriver_            = NULL;
   asynControlWd_             = NULL;
   asynStatusWd_              = NULL;
+  cspPosSet_                 = 0;
+  cspRawActPos_              = 0;
+  cspActPos_                 = 0;
+  cspRawPosOffset_           = 0;
+  //counter_ = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -66,6 +71,64 @@ int ecmcDriveBase::setVelSet(double vel) {
   }
   velSet_                                   = vel;
   data_->status_.currentVelocitySetpointRaw = velSet_ / scale_;
+  return 0;
+}
+
+int ecmcDriveBase::setCspPosSet(double posEng) {
+
+  cspPosSet_ = posEng; // Engineering unit
+  
+  if (!driveInterlocksOK()) {        
+    return 0;
+  }
+
+  if (data_->status_.enabled && data_->command_.enable) {
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
+  }
+  else {
+    data_->status_.currentPositionSetpointRaw = cspRawActPos_;
+  }
+
+  // Calculate new offset
+  if(data_->command_.enable && !enableCmdOld_) {
+    setCspRecalcOffset(cspPosSet_);
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
+    //printf("NEW OFFSET: posRaw = %" PRId64 ", posAct=%lf, offsetRaw= %" PRId64 ".\n",cspRawActPos_,cspActPos_,cspRawPosOffset_);
+    //counter_=0;
+  }
+
+  // if(counter_ >= 0 && counter_<500) {
+  //    printf("%d%d, posRaw = %" PRId64 ", RawSetOut= %" PRId64 ", posAct=%lf, posSet=%lf,offsetRaw= %" PRId64 ".\n",
+  //       data_->command_.enable,
+  //       data_->status_.enabled,
+  //       cspRawActPos_,
+  //       data_->status_.currentPositionSetpointRaw,
+  //       cspActPos_,
+  //       cspPosSet_,
+  //       cspRawPosOffset_);
+  //   counter_++;
+  // }
+  
+  return 0;
+}
+
+void ecmcDriveBase::setCspActPos(int64_t posRaw, double posAct){
+  cspRawActPos_ = posRaw;
+  cspActPos_    = posAct;
+}
+
+// For drv at homing
+void ecmcDriveBase::setCspRef(int64_t posRaw, double posAct,  double posSet) {
+  cspRawActPos_ = posRaw;
+  cspActPos_    = posAct;
+  cspRawPosOffset_ = cspRawActPos_- posSet / scale_;  // Raw
+  setCspPosSet(posSet);
+}
+
+// Recalculate offset
+int ecmcDriveBase::setCspRecalcOffset(double posEng) {
+  //printf("setCspRecalcOffset()\n");
+  cspRawPosOffset_ = cspRawActPos_- posEng / scale_;  // Raw
   return 0;
 }
 
@@ -185,12 +248,24 @@ void ecmcDriveBase::writeEntries() {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
-  errorCode =
-    writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
+  if(data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
+    errorCode =
+      writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
                       (uint64_t)data_->status_.currentVelocitySetpointRaw);
 
-  if (errorCode) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+  } 
+  else {
+    // CSP
+    errorCode =
+      writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT,
+                      (uint64_t)data_->status_.currentPositionSetpointRaw);
+
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
   }
 
   if (enableBrake_) {
@@ -258,12 +333,24 @@ int ecmcDriveBase::validate() {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
-  // Velocity Setpoint entry output
-  errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
-  if (errorCode) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-  }
 
+  if(checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT)){
+    // CSV
+    int errorCodeVel = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
+    if (errorCodeVel) {    
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodeVel);
+    }
+    data_->command_.drvMode = ECMC_DRV_MODE_CSV;
+  } 
+  else {
+    // Must be CSP
+    int errorCodePos = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+    if (errorCodePos) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodePos);
+    }
+    data_->command_.drvMode = ECMC_DRV_MODE_CSP;
+  }
+  
   // Enabled entry input OR statusword
   errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD);
 
@@ -288,6 +375,7 @@ int ecmcDriveBase::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
   }
+
 
   if (scaleDenom_ == 0) {
     return setErrorID(__FILE__,

@@ -68,5 +68,7 @@ class ecmcPIDController : public ecmcError {
   double controllerErrorOld_;
   double sampleTime_;
   ecmcAxisData *data_;
+
+  bool   settingMade_;
 };
 #endif  // ifndef ECMCPIDCONTROLLER_H

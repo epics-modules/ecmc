@@ -33,7 +33,8 @@ typedef struct {
   bool               enableSoftLimitFwd : 1;
   dataSource         trajSource;
   dataSource         encSource;
-  operationMode      operationModeCmd;  
+  operationMode      operationModeCmd;
+  driveMode          drvMode;
 } ecmcAxisDataCommand;
 
 typedef struct {
@@ -49,7 +50,8 @@ typedef struct {
   double currentPositionSetpointOld;
   double currentVelocityActual;
   double currentVelocitySetpoint;
-  int    currentVelocitySetpointRaw;
+  int64_t currentVelocitySetpointRaw;
+  int64_t currentPositionSetpointRaw;
   double currentvelocityFFRaw;
   double cntrlError;
   double cntrlOutput;

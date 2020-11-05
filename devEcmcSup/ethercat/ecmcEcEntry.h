@@ -92,6 +92,7 @@ class ecmcEcEntry : public ecmcError {
   bool        getSimEntry();
   int         validate();
   int         setComAlarm(bool alarm);
+  int         getSlaveId();
   
  private:
   int                 initAsyn();

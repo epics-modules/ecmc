@@ -76,6 +76,7 @@
 #define ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD 2
 #define ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT 3
 #define ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT 4
+#define ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT 5
 
 // Encoder drive entries
 #define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
@@ -243,6 +244,11 @@ enum stopMode {
   ECMC_STOP_MODE_RUN       = 2,
 };
 
+enum driveMode {
+  ECMC_DRV_MODE_CSV = 0,
+  ECMC_DRV_MODE_CSP = 1,
+};
+
 enum interlockTypes {
   ECMC_INTERLOCK_NONE                              = 0,
   ECMC_INTERLOCK_SOFT_BWD                          = 1,
@@ -356,6 +362,7 @@ enum axisSubObjectType {
 #define ECMC_DRV_STR "drv"
 #define ECMC_DRV_ENABLE_STR "control"
 #define ECMC_DRV_VELOCITY_STR "velocity"
+#define ECMC_DRV_POSITION_STR "position"
 #define ECMC_DRV_ENABLED_STR "status"
 #define ECMC_DRV_BREAK_STR "brake"
 #define ECMC_DRV_REDUCETORQUE_STR "reducetorque"
