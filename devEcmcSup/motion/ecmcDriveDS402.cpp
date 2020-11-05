@@ -112,8 +112,8 @@ void ecmcDriveDS402::writeEntries() {
 
 void ecmcDriveDS402::readEntries() {
   ecmcDriveBase::readEntries();
-
-  if (cycleCounter_ > ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME) {
+  
+  if (data_->sampleTime_ * cycleCounter_ > ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME) {
     enableStateMachine_ = ECMC_DS402_FAULT_STATE;
     setErrorID(__FILE__,
                __FUNCTION__,
@@ -239,6 +239,7 @@ void ecmcDriveDS402::errorReset() {
   // Reset error in drive (controlword=128)
   if (enableStateMachine_ == ECMC_DS402_FAULT_STATE) {
     enableStateMachine_ = ECMC_DS402_RESET_STATE;
+    cycleCounter_ = 0;
   }
   ecmcDriveBase::errorReset();
 }

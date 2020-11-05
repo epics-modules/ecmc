@@ -342,6 +342,14 @@ int getAxDriveFuncType(char *objPath,
         *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT;
         return 0;
       }
+
+      // Position
+      nvals = strcmp(objectFunctionStr,ECMC_DRV_POSITION_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT;
+        return 0;
+      }
     }
   }
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
