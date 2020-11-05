@@ -112,10 +112,23 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   return 0;
 }
 
+void ecmcDriveBase::setCspActPos(int64_t posRaw, double posAct){
+  cspRawActPos_ = posRaw;
+  cspActPos_    = posAct;
+}
+
+// For drv at homing
+void ecmcDriveBase::setCspRef(int64_t posRaw, double posAct,  double posSet) {
+  cspRawActPos_ = posRaw;
+  cspActPos_    = posAct;
+  cspRawPosOffset_ = cspRawActPos_- posSet / scale_;  // Raw
+  setCspPosSet(posSet);
+}
+
 // Recalculate offset
 int ecmcDriveBase::setCspRecalcOffset(double posEng) {
   //printf("setCspRecalcOffset()\n");
-  cspRawPosOffset_ = cspRawActPos_- cspActPos_ / scale_;  // Raw
+  cspRawPosOffset_ = cspRawActPos_- posEng / scale_;  // Raw
   return 0;
 }
 
@@ -586,9 +599,4 @@ int ecmcDriveBase::initAsyn() {
 void ecmcDriveBase::refreshAsyn(){
   asynStatusWd_->refreshParamRT(0);
   asynControlWd_->refreshParamRT(0);
-}
-
-void ecmcDriveBase::setCspActPos(int64_t posRaw, double posAct){
-  cspRawActPos_ = posRaw;
-  cspActPos_    = posAct;
 }
