@@ -681,80 +681,94 @@ int ecmcEcEntry::initAsyn() {
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(1);
       break;
 
     case ECMC_EC_B2:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(1);
       break;
 
     case ECMC_EC_B3:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(1);
       break;
 
     case ECMC_EC_B4:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(1);
       break;
 
     case ECMC_EC_U8:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(1);
       break;
 
     case ECMC_EC_S8:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);      
+      entryAsynParam_->setEcmcDataSize(1);
       break;
 
     case ECMC_EC_U16:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(2);
       break;
 
     case ECMC_EC_S16:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(2);
       break;
 
     case ECMC_EC_U32:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(4);
       break;
 
     case ECMC_EC_S32:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(4);
       break;
 
     case ECMC_EC_U64:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(8);
       break;
 
     case ECMC_EC_S64:
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);      
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(8);
       break;
 
     case ECMC_EC_F32:
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(4);
       break;
 
     case ECMC_EC_F64:
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+      entryAsynParam_->setEcmcDataSize(8);
       break;
   }
 
