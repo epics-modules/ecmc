@@ -945,7 +945,7 @@ bool ecmcEc::validEntryType(ecmcEcDataType dt) {
       break;
 
     case ECMC_EC_F32:
-#ifdef EC_READ_F32
+#ifdef EC_READ_REAL
       return 1;
 #else
       return 0;
@@ -953,7 +953,7 @@ bool ecmcEc::validEntryType(ecmcEcDataType dt) {
       break;
 
     case ECMC_EC_F64:
-#ifdef EC_READ_F64
+#ifdef EC_READ_LREAL
       return 1;
 #else
       return 0;
