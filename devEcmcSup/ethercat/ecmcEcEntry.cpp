@@ -376,13 +376,13 @@ int ecmcEcEntry::updateInputProcessImage() {
 
 #ifdef EC_READ_REAL
     case ECMC_EC_F32:
-      buffer_ = (uint64_t)EC_READ_REAL(adr_);
+      *float32Ptr_ = EC_READ_REAL(adr_);      
       break;
 #endif
 
 #ifdef EC_READ_LREAL
     case ECMC_EC_F64:
-      buffer_ = (uint64_t)EC_READ_LREAL(adr_);
+      *float64Ptr_ = EC_READ_LREAL(adr_);
       break;
 #endif      
     default:
