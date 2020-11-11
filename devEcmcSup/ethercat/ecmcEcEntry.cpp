@@ -462,13 +462,13 @@ int ecmcEcEntry::updateOutProcessImage() {
 
 #ifdef EC_WRITE_REAL
     case ECMC_EC_F32:
-      EC_WRITE_REAL(adr_, buffer_);
+      EC_WRITE_REAL(adr_, *float32Ptr_);
       break;
 #endif
 
 #ifdef EC_WRITE_LREAL
     case ECMC_EC_F64:
-      EC_WRITE_LREAL(adr_, buffer_);
+      EC_WRITE_LREAL(adr_, *float64Ptr_);
       break;
 #endif
 
