@@ -578,7 +578,33 @@ asynStatus ecmcAsynPortDriver::readInt32(asynUser *pasynUser,
     return asynError;
   }
 
-  return pEcmcParamInUseArray_[function]->readInt32(value);;
+  return pEcmcParamInUseArray_[function]->readInt32(value);
+}
+
+asynStatus ecmcAsynPortDriver::writeUInt32Digital(asynUser *pasynUser,
+                                                  epicsUInt32 value,
+                                                  epicsUInt32 mask) {
+  int function = pasynUser->reason;
+  const char *functionName = "writeUInt32Digital";
+
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->writeUInt32Digital(value, mask);
+}
+
+asynStatus ecmcAsynPortDriver::readUInt32Digital(asynUser *pasynUser,
+                                                 epicsUInt32 *value,
+                                                 epicsUInt32 mask) {
+  int function = pasynUser->reason;
+  const char *functionName = "readUInt32Digital";
+
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->readUInt32Digital(value, mask);
 }
 
 asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser,
