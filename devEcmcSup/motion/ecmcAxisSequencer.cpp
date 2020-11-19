@@ -288,8 +288,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);
-      traj_->setTargetPos(traj_->getCurrentPosSet() +
-                          data_->command_.positionTarget);
+      traj_->setTargetPos(data_->command_.positionTarget);
     }
     errorCode = traj_->setExecute(data_->command_.execute);
     if (errorCode) {
@@ -509,6 +508,10 @@ double ecmcAxisSequencer::getHomePosition() {
 }
 
 void ecmcAxisSequencer::setTargetPos(double pos) {
+
+  if(data_->command_.command == ECMC_CMD_MOVEREL) {
+    pos = traj_->getCurrentPosSet() + pos;
+  }
   pos = checkSoftLimits(pos);
   data_->command_.positionTarget = pos;
 }
