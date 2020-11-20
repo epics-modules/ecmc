@@ -1055,6 +1055,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    ECMC name:                 %s\n",param->getName()); 
   fprintf(fp,"    ECMC data pointer valid:   %s\n",param->getEcmcDataPointerValid() ? "true" : "false");
   fprintf(fp,"    ECMC size [bits]:          %zu\n",param->getEcmcBitCount());
+  fprintf(fp,"    ECMC size [bytes]:         %zu\n",param->getEcmcDataSize());
   fprintf(fp,"    ECMC max size [bytes]:     %zu\n",param->getEcmcDataMaxSize());
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->dataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->getAllowWriteToEcmc() ? "true" : "false");
