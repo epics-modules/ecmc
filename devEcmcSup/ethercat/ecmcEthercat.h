@@ -992,6 +992,70 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
                   uint32_t productCode,  /**< Expected product code. */
                   uint32_t revisionNum  /**< Revision number*/);
 
+/** \brief Read vendor id of selected ethercat slave
+ *
+ *  \param[in] alias Alias of slave. Set to zero to disable.\n
+ *  \param[in] slaveIn Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[out] result Vendor id.\n
+ *
+ * \return 0 if success or otherwise an error code.\n *
+ *
+ * \note Example: Read vendor id of slave 3:\n
+ *   "EcGetSlaveVendorId(0,3)" //Command string to ecmcCmdParser.c\n
+ */
+int ecGetSlaveVendorId(uint16_t alias,  /**< Slave alias. */
+                       uint16_t slavePos,   /**< Slave position. */
+                       uint32_t *result);
+
+/** \brief Read product code of selected ethercat slave
+ *
+ *  \param[in] alias Alias of slave. Set to zero to disable.\n
+ *  \param[in] slaveIn Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[out] result Product code.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Product Code of slave 3:\n
+ *   "EcGetSlaveProductCode(0,3)" //Command string to ecmcCmdParser.c\n
+ */
+int ecGetSlaveProductCode(uint16_t alias,  /**< Slave alias. */
+                          uint16_t slavePos,   /**< Slave position. */
+                          uint32_t *result);
+
+/** \brief revision number id of selected ethercat slave
+ *
+ *  \param[in] alias Alias of slave. Set to zero to disable.\n
+ *  \param[in] slaveIn Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[out] result Revision number.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Read revision number of slave 3:\n
+ *   "EcGetSlaveRevisionNum(0,3)" //Command string to ecmcCmdParser.c\n
+ */
+int ecGetSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
+                          uint16_t slavePos,   /**< Slave position. */
+                          uint32_t *result);
+
+/** \brief Read serial number of selected ethercat slave
+ *
+ *  \param[in] alias Alias of slave. Set to zero to disable.\n
+ *  \param[in] slaveIn Position of the EtherCAT slave on the bus.\n 
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[out] result Serial number.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Read serial number of slave 3:\n
+ *   "EcGetSlaveSerialNum(0,3)" //Command string to ecmcCmdParser.c\n
+ */
+int ecGetSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
+                        uint16_t slavePos,   /**< Slave position. */
+                        uint32_t *result);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

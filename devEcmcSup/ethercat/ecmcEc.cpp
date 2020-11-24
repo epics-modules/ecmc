@@ -1941,3 +1941,219 @@ uint64_t ecmcEc::getTimeNs() {
   timeAbs = timespecAdd(timeRel, timeOffset_);
   return TIMESPEC2NS(timeAbs);
 }
+
+uint32_t ecmcEc::getSlaveVendorId(uint16_t alias,  /**< Slave alias. */
+                                  uint16_t slavePos   /**< Slave position. */){
+
+  ec_master_info_t masterInfo;
+  ec_slave_info_t  slaveInfo;
+  int slaveCount       = 0;
+
+  if (!master_) {
+    LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MASTER_NULL);
+    return 0;
+  }
+
+  int errorCode = ecrt_master(master_, &masterInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode);
+    return 0;
+  }  
+
+  slaveCount = masterInfo.slave_count;
+  if (slavePos >= slaveCount) {
+    LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+    return 0;
+  }
+
+  errorCode = ecrt_master_get_slave(master_, slavePos, &slaveInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x (ecmc error 0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode,
+      ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
+    return 0;
+  }
+  
+  return slaveInfo.vendor_id;
+}
+
+uint32_t ecmcEc::getSlaveProductCode(uint16_t alias,  /**< Slave alias. */
+                                     uint16_t slavePos   /**< Slave position. */){
+
+  ec_master_info_t masterInfo;
+  ec_slave_info_t  slaveInfo;
+  int slaveCount       = 0;
+
+  if (!master_) {
+    LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MASTER_NULL);
+    return 0;
+  }
+
+  int errorCode = ecrt_master(master_, &masterInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode);
+    return 0;
+  }  
+
+  slaveCount = masterInfo.slave_count;
+  if (slavePos >= slaveCount) {
+    LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+    return 0;
+  }
+
+  errorCode = ecrt_master_get_slave(master_, slavePos, &slaveInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x (ecmc error 0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode,
+      ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
+    return 0;
+  }
+     
+   return slaveInfo.product_code;
+}
+
+uint32_t ecmcEc::getSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
+                                    uint16_t slavePos   /**< Slave position. */){
+
+  ec_master_info_t masterInfo;
+  ec_slave_info_t  slaveInfo;
+  int slaveCount       = 0;
+
+  if (!master_) {
+    LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MASTER_NULL);
+    return 0;
+  }
+
+  int errorCode = ecrt_master(master_, &masterInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode);
+    return 0;
+  }  
+
+  slaveCount = masterInfo.slave_count;
+  if (slavePos >= slaveCount) {
+    LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+    return 0;
+  }
+
+  errorCode = ecrt_master_get_slave(master_, slavePos, &slaveInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x (ecmc error 0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode,
+      ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
+    return 0;
+  }
+     
+   return slaveInfo.revision_number;
+}
+
+uint32_t ecmcEc::getSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
+                                   uint16_t slavePos   /**< Slave position. */){
+
+  ec_master_info_t masterInfo;
+  ec_slave_info_t  slaveInfo;
+  int slaveCount       = 0;
+
+  if (!master_) {
+    LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MASTER_NULL);
+    return 0;
+  }
+
+  int errorCode = ecrt_master(master_, &masterInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master() failed with error code 0x%x.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode);
+    return 0;
+  }  
+
+  slaveCount = masterInfo.slave_count;
+  if (slavePos >= slaveCount) {
+    LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+    return 0;
+  }
+
+  errorCode = ecrt_master_get_slave(master_, slavePos, &slaveInfo);
+
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: Error: Function ecrt_master_get_slave() failed with error code 0x%x (ecmc error 0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      errorCode,
+      ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
+    return 0;
+  }
+     
+   return slaveInfo.serial_number;
+}

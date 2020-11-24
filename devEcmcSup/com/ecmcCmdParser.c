@@ -3132,6 +3132,34 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                       iValue5, (uint8_t*)(&u64Value)));
   }
 
+  /*EcGetSlaveVendorId(int nSlavePosition,int *nValue)*/
+  nvals = sscanf(myarg_1, "EcGetSlaveVendorId(%d)", &iValue2);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveVendorId(0, iValue2, &u32Value));
+  }
+
+  /*EcGetSlaveProductCode(int nSlavePosition,int *nValue)*/
+  nvals = sscanf(myarg_1, "EcGetSlaveProductCode(%d)", &iValue2);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveProductCode(0, iValue2, &u32Value));
+  }
+  
+  /*EcGetSlaveRevisionNum(int nSlavePosition,int *nValue)*/
+  nvals = sscanf(myarg_1, "EcGetSlaveRevisionNum(%d)", &iValue2);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveRevisionNum(0, iValue2, &u32Value));
+  }
+ 
+  /*Cfg.EcGetSlaveSerialNum(int nSlavePosition,int *nValue)*/
+  nvals = sscanf(myarg_1, "EcGetSlaveSerialNum(%d)", &iValue2);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveSerialNum(0, iValue2, &u32Value));
+  }
+ 
   /*GetAxisOpMode(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisOpMode(%d)", &motor_axis_no);
 
