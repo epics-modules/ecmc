@@ -396,6 +396,20 @@ void ecmcEc::checkDomainState(void) {
     domainNotOKCounter_ = 0;
   }
   domainOK_ = domainNotOKCounter_ <= domainNotOKCyclesLimit_;
+
+  //Build domain status word
+  statusWordDomain_ = 0;
+  // bit 0
+  statusWordDomain_ = statusWordDomain_ + (domainState_.redundancy_active > 0);
+  // bit 1
+  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_ZERO) << 1);
+  // bit 2
+  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_INCOMPLETE) << 2);
+  // bit 3
+  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_COMPLETE) << 3);
+  // bit 16..31
+  statusWordDomain_ = statusWordDomain_ + ((uint16_t)(domainState_.working_counter) << 16);
+
 }
 
 bool ecmcEc::checkSlavesConfState() {
@@ -486,21 +500,7 @@ bool ecmcEc::checkState(void) {
   statusWordMaster_ = statusWordMaster_ + (masterState_.al_states << 1);
   // 16..31 
   statusWordMaster_ = statusWordMaster_ + ((uint16_t)(masterState_.slaves_responding) << 16);
-  
-
-  //Build domain status word
-  statusWordDomain_ = 0;
-  // bit 0
-  statusWordDomain_ = statusWordDomain_ + (domainState_.redundancy_active > 0);
-  // bit 1
-  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_ZERO) << 1);
-  // bit 2
-  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_INCOMPLETE) << 2);
-  // bit 3
-  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_COMPLETE) << 3);
-  // bit 16..31
-  statusWordDomain_ = statusWordDomain_ + ((uint16_t)(domainState_.working_counter) << 16);
-    
+      
   if (masterState_.slaves_responding != masterStateOld_.slaves_responding) {
     LOGINFO5("%s/%s:%d: INFO: %u slave(s) responding.\n",
              __FILE__,
