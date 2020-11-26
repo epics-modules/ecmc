@@ -228,8 +228,8 @@ extern "C" int ecmcMotorRecordCreateController(const char *portName,
     printf("    MotorPortName    : Obsolete. Not used. Kept to keep syntax same as EthercatMC module.  : \"NOT_USED\"\n");
     printf("    numAxes          : Obsolete. Not used. Kept to keep syntax same as EthercatMC module.  : \"0\"\n");
     printf("                       numAxes already defined in ecmc to %d\n",ECMC_MAX_AXES);
-    printf("    movingPollPeriod : Scan period rate of motor record status update when axis is moving. : \"0.2\" (unit [s])\n");
-    printf("    idlePollPeriod   : Scan rate of motor record status update when moving.                : \"1.0\" (unit [s])\n");
+    printf("    movingPollPeriod : Scan period rate of motor record status update when axis is moving. : \"200\" (unit [ms])\n");
+    printf("    idlePollPeriod   : Scan rate of motor record status update when moving.                : \"1000\" (unit [ms])\n");
     printf("    optionStr        : Currently Not used. Optional options string.                        : \"\" \n");
     printf(")\n");    
     printf("Example:\n");

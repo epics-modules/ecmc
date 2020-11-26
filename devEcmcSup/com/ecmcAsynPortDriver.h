@@ -44,10 +44,16 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                 epicsInt32 value);
   virtual asynStatus readInt32(asynUser *pasynUser,
                                epicsInt32 *value);
+  virtual asynStatus writeUInt32Digital(asynUser *pasynUser,
+                                        epicsUInt32 value,
+                                        epicsUInt32 mask);
+  virtual asynStatus readUInt32Digital(asynUser *pasynUser,
+                                       epicsUInt32 *value,
+                                       epicsUInt32 mask);
   virtual asynStatus writeFloat64(asynUser    *pasynUser,
                                   epicsFloat64 value);
   virtual asynStatus readFloat64(asynUser *pasynUser,
-                                 epicsFloat64 *value);                                 
+                                 epicsFloat64 *value);
   virtual asynStatus writeInt8Array(asynUser *pasynUser,
                                     epicsInt8 *value,
                                     size_t nElements);

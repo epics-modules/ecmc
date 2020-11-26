@@ -619,6 +619,9 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
  */
 asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity, double maxVelocity, double acceleration)
 {
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
+            "%smoveVelocity(%d) minVelocity=%lf, maxVelocity=%lf, acceleration=%lf\n",
+            modNamEMC, axisNo_, minVelocity, maxVelocity, acceleration);
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
   /* Do range check */
@@ -684,6 +687,10 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value)
 
 asynStatus ecmcMotorRecordAxis::resetAxis(void)
 {
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
+            "%sresetAxis(%d)\n",
+            modNamEMC, axisNo_);
+
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
   drvlocal.cmdErrorMessage[0] = 0;
 
@@ -698,7 +705,10 @@ asynStatus ecmcMotorRecordAxis::resetAxis(void)
 }
 
 asynStatus ecmcMotorRecordAxis::setEnable(int on) {
-  
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
+            "%ssetEnable(%d) enable=%d\n",
+            modNamEMC, axisNo_,on);
+
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->setEnable(on);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
@@ -725,6 +735,10 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
  */
 bool ecmcMotorRecordAxis::pollPowerIsOn(void)
 {
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
+            "%spollPowerIsOn(%d)\n",
+            modNamEMC, axisNo_);
+
   int enabled = 0;
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   enabled = drvlocal.ecmcAxis->getEnabled();
@@ -737,6 +751,10 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void)
  */
 asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
 {
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
+            "%senableAmplifier(%d) enable=%d\n",
+            modNamEMC, axisNo_,on);
+
   asynStatus status = asynSuccess;
   unsigned counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME / 
                            ECMC_AXIS_ENABLE_SLEEP_PERIOD);                       
@@ -803,6 +821,9 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
  */
 asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name, double acceleration)
 { 
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
+            "%sstopAxisInternal(%d) function_name= %s, acceleration=%lf\n",
+            modNamEMC, axisNo_,function_name,acceleration);
 
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->setExecute(0);
@@ -826,6 +847,10 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name, doub
  */
 asynStatus ecmcMotorRecordAxis::stop(double acceleration )
 {
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
+            "%sstop(%d) acceleration=%lf\n",
+            modNamEMC, axisNo_,acceleration);
+
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
   return stopAxisInternal(__FUNCTION__, acceleration);
 }
@@ -963,7 +988,7 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
  * and then calls callParamCallbacks() at the end.
  * \param[out] moving A flag that is set indicating that the axis is moving (true) or done (false). */
 asynStatus ecmcMotorRecordAxis::poll(bool *moving)
-{
+{  
   double timeBefore = ecmcMotorRecordgetNowTimeSecs();
 #ifndef motorWaitPollsBeforeReadyString
   int waitNumPollsBeforeReady_ = drvlocal.waitNumPollsBeforeReady;
@@ -1132,7 +1157,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
 asynStatus ecmcMotorRecordAxis::setClosedLoop(bool closedLoop)
 {
   int value = closedLoop ? 1 : 0;
-  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
             "%ssetClosedLoop(%d)=%d\n",  modNamEMC, axisNo_, value);
   if (drvlocal.axisFlags & AMPLIFIER_ON_FLAG_USING_CNEN) {
     return enableAmplifier(value);

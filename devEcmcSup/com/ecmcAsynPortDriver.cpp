@@ -578,7 +578,33 @@ asynStatus ecmcAsynPortDriver::readInt32(asynUser *pasynUser,
     return asynError;
   }
 
-  return pEcmcParamInUseArray_[function]->readInt32(value);;
+  return pEcmcParamInUseArray_[function]->readInt32(value);
+}
+
+asynStatus ecmcAsynPortDriver::writeUInt32Digital(asynUser *pasynUser,
+                                                  epicsUInt32 value,
+                                                  epicsUInt32 mask) {
+  int function = pasynUser->reason;
+  const char *functionName = "writeUInt32Digital";
+
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->writeUInt32Digital(value, mask);
+}
+
+asynStatus ecmcAsynPortDriver::readUInt32Digital(asynUser *pasynUser,
+                                                 epicsUInt32 *value,
+                                                 epicsUInt32 mask) {
+  int function = pasynUser->reason;
+  const char *functionName = "readUInt32Digital";
+
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->readUInt32Digital(value, mask);
 }
 
 asynStatus ecmcAsynPortDriver::writeFloat64(asynUser *pasynUser,
@@ -1029,6 +1055,7 @@ void ecmcAsynPortDriver::reportParamInfo(FILE *fp, ecmcAsynDataItem *param,int l
   fprintf(fp,"    ECMC name:                 %s\n",param->getName()); 
   fprintf(fp,"    ECMC data pointer valid:   %s\n",param->getEcmcDataPointerValid() ? "true" : "false");
   fprintf(fp,"    ECMC size [bits]:          %zu\n",param->getEcmcBitCount());
+  fprintf(fp,"    ECMC size [bytes]:         %zu\n",param->getEcmcDataSize());
   fprintf(fp,"    ECMC max size [bytes]:     %zu\n",param->getEcmcDataMaxSize());
   fprintf(fp,"    ECMC data is array:        %s\n",paramInfo->dataIsArray ? "true" : "false");
   fprintf(fp,"    ECMC write allowed:        %s\n",param->getAllowWriteToEcmc() ? "true" : "false");

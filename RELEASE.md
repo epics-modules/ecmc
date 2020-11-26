@@ -1,19 +1,20 @@
 Release Notes
 ===
-# ECMC master
+# ECMC 6.2.4
 * Add support for drive CSP mode (Cyclic Sync. Position interface). CSP can be used by linking a ethercat entry to "ax<id>.drv.position" (and not linking an entry to "ax1.drv.velocity"):
 ```
 # Setup CSP on axis 1:
 ecmcConfigOrDie "Cfg.LinkEcEntryToObject(ec1.s3.SET_POSITION,"ax1.drv.position")"
 ecmcConfigOrDie "Cfg.LinkEcEntryToObject("","ax1.drv.velocity")"
 ```
-NOTE: The ecmc position control loop parameters will not have any effect in CSP mode (since position loop is distributed to the drive). Control paarmeters need to be set directlly in the drive (by SDO):
+NOTE: The ecmc position control loop parameters will not have any effect in CSP mode (since position loop is distributed to the drive). Control parameters need to be set directlly in the drive (by SDO):
 ```
 # These commands will not have any effect in CSP mode (set to 0, or you will get a warning meassage):
 ecmcConfigOrDie "Cfg.SetAxisCntrlKp(${ECMC_AXIS_NO},${ECMC_CNTRL_KP})"
 ecmcConfigOrDie "Cfg.SetAxisCntrlKi(${ECMC_AXIS_NO},${ECMC_CNTRL_KI})"
 ecmcConfigOrDie "Cfg.SetAxisCntrlKd(${ECMC_AXIS_NO},${ECMC_CNTRL_KD})"
 ecmcConfigOrDie "Cfg.SetAxisCntrlKff(${ECMC_AXIS_NO},${ECMC_CNTRL_KFF})"
+...
 ```
 * Update to DS402 timeout unit to seconds (before it was cycles).
 * Add possabilty to verify actual ec slave revision vs config revsion with "Cfg.EcSlaveVerify()" command.
@@ -24,10 +25,12 @@ ecmcConfigOrDie "Cfg.SetAxisCntrlKff(${ECMC_AXIS_NO},${ECMC_CNTRL_KFF})"
   * Cfg.SetAxisEncPosFilterSize(<axis_id>,<filter_size>)
   * Cfg.SetAxisEncPosFilterEnable(<axis_id>,<enable>)
 * Plugin interface: Fix sampeltime unit to ms
-* Add warnings for 64bit ethercat plc variables (might not be represented properly since all plc variables are doubles)
+* Add warnings for 64bit ethercat plc variables (might not be represented properly since all plc variables are doubles). A typical example would be a 64bit dc-timestamp.
 * Add plc- functions
   * ds_append_to_ds()
   * ec_mm_append_ds()
+* Minor fix of float and double ec entries
+* Minor fix asynUint32Digital interface
 
 # ECMC 6.2.3
 * Add support for motor auto enable/disable

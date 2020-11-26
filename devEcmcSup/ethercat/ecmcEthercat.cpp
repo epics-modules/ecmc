@@ -863,3 +863,39 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
 
   return ec->verifySlave(alias,slavePos,vendorId,productCode, revisionNum);
 }
+
+int ecGetSlaveVendorId(uint16_t alias,  /**< Slave alias. */
+                            uint16_t slavePos,   /**< Slave position. */
+                            uint32_t *result) {
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  
+  *result = ec->getSlaveVendorId(alias, slavePos);
+  return 0;
+}
+
+int ecGetSlaveProductCode(uint16_t alias,  /**< Slave alias. */
+                               uint16_t slavePos,   /**< Slave position. */
+                               uint32_t *result) {
+  if (!ec->getInitDone()) return 0;
+  
+  *result = ec->getSlaveProductCode(alias, slavePos);
+  return 0;
+}
+
+int ecGetSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
+                               uint16_t slavePos,   /**< Slave position. */
+                               uint32_t *result) {
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  
+  *result = ec->getSlaveRevisionNum(alias, slavePos);
+  return 0;
+}
+
+int ecGetSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
+                             uint16_t slavePos,   /**< Slave position. */
+                             uint32_t *result) {
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  
+  *result = ec->getSlaveSerialNum(alias, slavePos);
+  return 0;
+}
