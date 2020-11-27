@@ -16,7 +16,7 @@
 #include <string>
 #include <new>
 #include <iostream>
-
+#include "ecmcMotion.h"
 #include "../main/ecmcErrorsList.h"
 
 /**
@@ -26,12 +26,12 @@
  * Keep code as example how to link functions to a param
  * 
  * */ 
-/*asynStatus asynWriteCmd(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+asynStatus asynWriteCmd(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
   if (!userObj) {
     return asynError;
   }
   return ((ecmcAxisBase*)userObj)->axisAsynWriteCmd(data, bytes, asynParType);
-}*/
+}
 
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int axisID, 
@@ -90,7 +90,6 @@ void ecmcAxisBase::initVars() {
   data_.axisType_              = ECMC_AXIS_TYPE_BASE;
   data_.command_.reset         = false;
   allowCmdFromOtherPLC_        = false;
-  plcEnable_                   = false;
   data_.status_.inStartupPhase = false;
   data_.status_.inRealtime = false;
   data_.status_.externalTrajectoryPosition  = 0;
@@ -104,6 +103,7 @@ void ecmcAxisBase::initVars() {
   data_.sampleTime_ = 1 / 1000;
   memset(&statusData_,    0, sizeof(statusData_));
   memset(&statusDataOld_, 0, sizeof(statusDataOld_));
+  memset(&controlWord_, 0, sizeof(controlWord_));
   printHeaderCounter_      = 0;
   data_.status_.enabledOld = false;
   data_.status_.enableOld  = false;
@@ -123,6 +123,7 @@ void ecmcAxisBase::initVars() {
   extEncVeloFilter_ = NULL;
   enableExtTrajVeloFilter_ = false;
   enableExtEncVeloFilter_ = false;
+  //plcs_ = NULL;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -321,6 +322,7 @@ void ecmcAxisBase::setReset(bool reset) {
       getCntrl()->errorReset();
     }
   }
+  controlWord_.resetCmd = reset;
 }
 
 bool ecmcAxisBase::getReset() {
@@ -329,6 +331,7 @@ bool ecmcAxisBase::getReset() {
 
 int ecmcAxisBase::setAllowCmdFromPLC(bool enable) {
   allowCmdFromOtherPLC_ = enable;
+  controlWord_.plcCmdsAllowCmd = enable;
   return 0;
 }
 
@@ -349,6 +352,8 @@ int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType) {
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   
+  if(refSource == data_.command_.trajSource ) return 0;
+
   if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -363,10 +368,13 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   }
 
   data_.command_.trajSource = refSource;
+  controlWord_.trajSourceCmd =  data_.command_.trajSource==ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
 
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
+
+  if(refSource == data_.command_.encSource ) return 0;
 
   if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
     return setErrorID(__FILE__,
@@ -387,10 +395,14 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   }
   
   data_.command_.encSource = refSource;
+  controlWord_.encSourceCmd =  data_.command_.encSource==ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
 
 int ecmcAxisBase::setRealTimeStarted(bool realtime) {
+  if(realtime) {
+    initControlWord();
+  }
   data_.status_.inRealtime = realtime;
   return 0;
 }
@@ -532,7 +544,6 @@ void ecmcAxisBase::errorReset() {
 }
 
 int ecmcAxisBase::validateBase() {
-
   return 0;
 }
 
@@ -704,6 +715,8 @@ int ecmcAxisBase::setExecute(bool execute) {
     }
   }
 
+  controlWord_.executeCmd = execute;
+
   return 0;
 }
 
@@ -845,21 +858,21 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
 
-  // Control structure binary (for motor record)
-  /*errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
-                              asynParamInt8Array,
-                              ECMC_EC_S8,
-                              (uint8_t*)&(controlData_),
-                              sizeof(controlData_),
+  // Control structure binary
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
+                              asynParamInt32,
+                              ECMC_EC_S32,
+                              (uint8_t*)&(controlWord_),
+                              sizeof(controlWord_),
                               &paramTemp);
   if(errorCode) {
     return errorCode;
   }
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteCmd,this); // Access to this axis
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID] = paramTemp;
-*/
 
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
@@ -1138,6 +1151,9 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
 }
 
 int ecmcAxisBase::setEnable(bool enable) {
+  
+  if(data_.command_.enable == enable) return 0;
+
   if (!enable) {  // Remove execute if enable is going down
     setExecute(false);
   }
@@ -1153,6 +1169,7 @@ int ecmcAxisBase::setEnable(bool enable) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
   }
 
+  controlWord_.enableCmd = enable;
   // Cascade commands via command transformation
   return 0;
 }
@@ -1512,211 +1529,75 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
 */
-/*asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType) 
+asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType) 
 {
-  if(bytes != sizeof(ecmcAsynClinetCmdType)){
+  if(sizeof(controlWord_) != bytes) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Asyn command data size mssmatch.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_);
+        "%s/%s:%d: ERROR (axis %d): Control word size missmatch.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+
     return asynError;
   }
 
-  memcpy(&controlData_,data,bytes);
-  //printf("axisAsynWriteCmd CMD = %d!!!\n", (int)controlData_.cmd);
-  int errorCode = 0;
-  int cmddata   = 0;
-  switch(controlData_.cmd) {
-    case ECMC_CMD_NOCMD:
-      return asynError;
-      break;
+  memcpy(&controlWord_,data,sizeof(controlWord_));
 
-    case ECMC_CMD_JOG:
-      return asynError;
-      break;
+  int errorCode=0;
 
-    case ECMC_CMD_MOVEVEL:      
-      // cmd, vel,acc
-      if (getBusy() || getErrorID()) {
-        return asynError;
-      }
-      errorCode = setExecute(0);
-      if (errorCode) {
-        return asynError;
-      }
-      errorCode = setCommand(ECMC_CMD_MOVEVEL);
-      if (errorCode) {
-        return asynError;
-      }
-      errorCode = setCmdData(0);
-      if (errorCode) {
-        return asynError;
-      }
-      seq_.setTargetVel(controlData_.val0);
-      traj_->setAcc(controlData_.val1);
-      traj_->setDec(controlData_.val1); //same as acc
-      errorCode = setExecute(1);
-      if (errorCode) {
-        return asynError;
-      }      
-      break;
+  // printf("controlWord_.enableCmd       %d\n",controlWord_.enableCmd);
+  // printf("controlWord_.executeCmd      %d\n",controlWord_.executeCmd);
+  // printf("controlWord_.resetCmd        %d\n",controlWord_.resetCmd);
+  // printf("controlWord_.encSourceCmd    %d\n",controlWord_.encSourceCmd);
+  // printf("controlWord_.trajSourceCmd   %d\n",controlWord_.trajSourceCmd);
+  // printf("controlWord_.plcCmdsAllowCmd %d\n",controlWord_.plcCmdsAllowCmd);
+  // printf("controlWord_.plcEnableCmd %d\n",controlWord_.plcEnableCmd);
+  
+  errorCode = setEnable(controlWord_.enableCmd);
+  if(errorCode) {
+    return asynError;
+  }
+  errorCode = setExecute(controlWord_.executeCmd);
+  if(errorCode) {
+    return asynError;
+  }
 
-    case ECMC_CMD_MOVEREL:
-      // cmd, pos,vel,acc
-      if (getBusy() || getErrorID()) {
-        return asynError;
-      }
-      errorCode = setExecute(0);
-      if (errorCode) {
-        return asynError;
-      }
-      errorCode = setCommand(ECMC_CMD_MOVEREL);
-      if (errorCode) {
-        return asynError;
-      }
-      errorCode = setCmdData(0);
-      if (errorCode) {
-        return asynError;
-      }
-      seq_.setTargetPos(controlData_.val0);
-      seq_.setTargetVel(controlData_.val1);
-      traj_->setAcc(controlData_.val2);
-      traj_->setDec(controlData_.val2); //same as acc
-      errorCode = setExecute(1);
-      if (errorCode) {
-        return asynError;
-      }
-      break;
+  setReset(controlWord_.resetCmd);
+  
+  errorCode = setEncDataSourceType((controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_INTERNAL:ECMC_DATA_SOURCE_EXTERNAL));
+  if(errorCode) {
+    return asynError;
+  }
 
-    case ECMC_CMD_MOVEABS:
-      // cmd, pos,vel,acc
-      if (getBusy() || getErrorID()) {
-        return asynError;
-      }
-      errorCode = setExecute(0);
-      if (errorCode) {
-        return asynError;
-      }
-      errorCode = setCommand(ECMC_CMD_MOVEABS);
-      if (errorCode) {
-        return asynError;
-      }
-      errorCode = setCmdData(0);
-      if (errorCode) {
-        return asynError;
-      }
-      seq_.setTargetPos(controlData_.val0);
-      seq_.setTargetVel(controlData_.val1);
-      traj_->setAcc(controlData_.val2);
-      traj_->setDec(controlData_.val2); //same as acc
-      errorCode = setExecute(1);
-      if (errorCode) {
-        return asynError;
-      }
-      break;
+  errorCode = setTrajDataSourceType((controlWord_.trajSourceCmd ? ECMC_DATA_SOURCE_INTERNAL:ECMC_DATA_SOURCE_EXTERNAL));
+  if(errorCode) {
+    return asynError;
+  }
 
-    case ECMC_CMD_MOVEMODULO:
-      return asynError;
-      break;
+  errorCode = setAllowCmdFromPLC(controlWord_.plcCmdsAllowCmd);
+  if(errorCode) {
+    return asynError;
+  }
 
-    case ECMC_CMD_HOMING:
+  errorCode = setAxisPLCEnable(data_.axisId_, controlWord_.plcEnableCmd);
 
-      // cmd, seqnbr,homepos,velhigh,vellow,acc
-      if (getBusy() || getErrorID()) {
-        return asynError;
-      }
-      errorCode = setExecute(0);
-      if (errorCode) {
-        return asynError;
-      }
-      errorCode = setCommand(ECMC_CMD_HOMING);
-      if (errorCode) {
-        return asynError;
-      }
-      cmddata = (int)controlData_.val0;
-      errorCode = setCmdData(cmddata);
-      if (errorCode) {
-        return asynError;
-      }
-      seq_.setHomePosition(controlData_.val1);
-
-      // Velo and acc not needed for set position
-      if(cmddata != ECMC_SEQ_HOME_SET_POS) {
-        seq_.setHomeVelTwordsCam(controlData_.val2);
-        seq_.setHomeVelOffCam(controlData_.val3);
-        traj_->setAcc(controlData_.val4);
-        traj_->setDec(controlData_.val4); //same as acc
-      }
-      errorCode = setExecute(1);
-      if (errorCode) {
-        return asynError;
-      }
-      break;
-
-    case ECMC_CMD_SUPERIMP:
-      return asynError;
-      break;
-
-    case ECMC_CMD_GEAR:
-      return asynError;
-      break;
-
-    case ECMC_CMD_STOP:
-      errorCode = setExecute(0);
-      if(errorCode) {
-        return asynError;
-      }
-      break;
-
-    case ECMC_CMD_SET_ENABLE:
-      // cmd,  enable
-      errorCode = setEnable(controlData_.val0>0);
-      if(errorCode) {
-        return asynError;
-      }= 15
-      break;
-
-    case ECMC_CMD_SET_SOFTLIMBWD:
-      errorCode = mon_->setSoftLimitBwd(controlData_.val0);
-      if(errorCode) {
-        return asynError;
-      }
-      break;
-
-    case ECMC_CMD_SET_SOFTLIMFWD:
-      errorCode = mon_->setSoftLimitFwd(controlData_.val0);
-      if(errorCode) {
-        return asynError;
-      }
-
-      break;
-
-    case ECMC_CMD_SET_SOFTLIMBWD_ENA:
-      errorCode = mon_->setEnableSoftLimitBwd(controlData_.val0>0);
-      if(errorCode) {
-        return asynError;
-      }
-      break;
-
-    case ECMC_CMD_SET_SOFTLIMFWD_ENA:
-      errorCode = mon_->setEnableSoftLimitFwd(controlData_.val0>0);
-      if(errorCode) {
-        return asynError;
-      }
-      break;
-    
-    case ECMC_CMD_SET_RESET:
-      setReset(1);
-      setReset(0);
-      break;
-
-    default:
-      return asynError;
-      break;
-
+  if(errorCode) {
+    return asynError;
   }
 
   return asynSuccess;
-}*/
+}
+
+void ecmcAxisBase::initControlWord() {
+  // Fill all controlWord with actual data before rt
+  int plcEnable = 0;
+  getAxisPLCEnable(data_.axisId_,&plcEnable);
+  controlWord_.plcEnableCmd = plcEnable;
+  controlWord_.enableCmd = getEnable();
+  controlWord_.executeCmd = getExecute();
+  controlWord_.resetCmd = getReset();
+  controlWord_.encSourceCmd = getEncDataSourceType() == ECMC_DATA_SOURCE_EXTERNAL;
+  controlWord_.trajSourceCmd = getTrajDataSourceType() == ECMC_DATA_SOURCE_EXTERNAL;
+  controlWord_.plcCmdsAllowCmd = getAllowCmdFromPLC();
+}

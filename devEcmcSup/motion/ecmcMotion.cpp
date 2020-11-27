@@ -2436,6 +2436,8 @@ int createAxis(int index, int type, int drvType) {
     return error;
   }
 
+  //axes[index]->setAxisMainPLCs(plcs);
+
   return axes[index]->getErrorID();
 }
 

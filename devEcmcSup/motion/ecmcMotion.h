@@ -1081,7 +1081,7 @@ int getAxisAllowCommandsFromPLC(int  axisIndex,
  * "getAxisPLCEnable(5)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisPLCEnable(int  axisIndex,
-                                   int *value);
+                          int *value);
 
 /** \brief Set axis execute bit.\n
  *

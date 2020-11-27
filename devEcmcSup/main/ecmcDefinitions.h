@@ -231,8 +231,7 @@ enum motionMode {
 
 enum dataSource {
   ECMC_DATA_SOURCE_INTERNAL           = 0,
-  ECMC_DATA_SOURCE_EXTERNALENCODER    = 1,
-  ECMC_DATA_SOURCE_EXTERNALTRAJECTORY = 2
+  ECMC_DATA_SOURCE_EXTERNAL           = 1
 };
 
 enum coordSystMode {

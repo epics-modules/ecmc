@@ -678,7 +678,7 @@ int ecmcPLCDataIF::writeAxis() {
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
     if (data_>=1) {
-      return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_EXTERNALENCODER);
+      return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_EXTERNAL);
     }
     else {
       return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
@@ -688,7 +688,7 @@ int ecmcPLCDataIF::writeAxis() {
 
   case ECMC_AXIS_DATA_ENC_SOURCE:
     if (data_>=1) {
-      return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_EXTERNALENCODER);
+      return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_EXTERNAL);
     }
     else {
       return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_INTERNAL);

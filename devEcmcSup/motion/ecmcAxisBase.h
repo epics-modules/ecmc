@@ -133,6 +133,17 @@ typedef struct {
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
 
+typedef struct {
+  bool                       enableCmd        : 1;
+  bool                       executeCmd       : 1;
+  bool                       resetCmd         : 1;
+  bool                       encSourceCmd     : 1;  // 0 = internal, 1 = plc
+  bool                       trajSourceCmd    : 1;  // 0 = internal, 1 = plc
+  bool                       plcEnableCmd     : 1;  // 0 = disable, 1 = enable
+  bool                       plcCmdsAllowCmd  : 1;  // 0 = not allow, 1 = allow
+  int                        spareBitsCmd     : 25;  // 0 = not allow, 1 = allow
+ } ecmcAsynAxisControlType;
+
 class ecmcAxisBase : public ecmcError {
  public:
   ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
@@ -238,19 +249,21 @@ class ecmcAxisBase : public ecmcError {
                                  double decelerationSet);
   int                   setPosition(double homePositionSet);  // Autosave
   int                   stopMotion(int killAmplifier);
+  asynStatus            axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType);
 
  protected:
   void         initVars();
   void         refreshDebugInfoStruct();
   double       getPosErrorMod();
   int          createAsynParam(const char        *nameFormat,
-                               asynParamType      asynType, 
+                               asynParamType      asynType,
                                ecmcEcDataType     ecmcType,
-                               uint8_t*           data, 
-                               size_t             bytes,                                  
+                               uint8_t*           data,
+                               size_t             bytes,                   
                                ecmcAsynDataItem **asynParamOut);
-  bool allowCmdFromOtherPLC_;                                
-  bool plcEnable_;
+  void         initControlWord();
+  ecmcAsynAxisControlType      controlWord_;
+  bool allowCmdFromOtherPLC_;                                  
   ecmcTrajectoryTrapetz *traj_;
   ecmcMonitor *mon_;
   ecmcEncoder *enc_;
