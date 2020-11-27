@@ -891,7 +891,7 @@ int ecmcPLCTask::initAsyn(int plcIndex) {
   ecmcAsynDataItem *paramTemp=NULL;
   int chars = 0;
 
-  // ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME  
+  // ECMC_PLC_EXPR_STR  
    if(plcIndex < ECMC_MAX_PLCS){
     chars = snprintf(name,
                      EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
