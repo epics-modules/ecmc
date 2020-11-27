@@ -225,6 +225,7 @@ private:
   int masterLinkUp_;
   uint32_t statusWordMaster_;
   uint32_t statusWordDomain_;
+  int ecStatOk_; 
 
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];

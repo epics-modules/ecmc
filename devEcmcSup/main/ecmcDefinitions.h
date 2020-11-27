@@ -153,7 +153,9 @@
 #define ECMC_ASYN_EC_PAR_ENTRY_COUNT_NAME "entrycounter"
 #define ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID 5
 #define ECMC_ASYN_EC_PAR_SLAVE_COUNT_NAME "slavecounter"
-#define ECMC_ASYN_EC_PAR_COUNT 6
+#define ECMC_ASYN_EC_STAT_OK_ID 6
+#define ECMC_ASYN_EC_STAT_OK_NAME "ok"
+#define ECMC_ASYN_EC_PAR_COUNT 7
 
 // Asyn  parameters in ec slave
 #define ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID 0
