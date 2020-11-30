@@ -1565,12 +1565,12 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
 
   setReset(controlWord_.resetCmd);
   
-  errorCode = setEncDataSourceType((controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_INTERNAL:ECMC_DATA_SOURCE_EXTERNAL));
+  errorCode = setEncDataSourceType((controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL:ECMC_DATA_SOURCE_INTERNAL));
   if(errorCode) {
     return asynError;
   }
 
-  errorCode = setTrajDataSourceType((controlWord_.trajSourceCmd ? ECMC_DATA_SOURCE_INTERNAL:ECMC_DATA_SOURCE_EXTERNAL));
+  errorCode = setTrajDataSourceType((controlWord_.trajSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL:ECMC_DATA_SOURCE_INTERNAL));
   if(errorCode) {
     return asynError;
   }
