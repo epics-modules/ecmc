@@ -351,7 +351,6 @@ int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType) {
 }
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
-  
   if(refSource == data_.command_.trajSource ) return 0;
 
   if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
@@ -368,7 +367,7 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   }
 
   data_.command_.trajSource = refSource;
-  controlWord_.trajSourceCmd =  data_.command_.trajSource==ECMC_DATA_SOURCE_EXTERNAL;
+  controlWord_.trajSourceCmd =  data_.command_.trajSource == ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
 
@@ -395,7 +394,7 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   }
   
   data_.command_.encSource = refSource;
-  controlWord_.encSourceCmd =  data_.command_.encSource==ECMC_DATA_SOURCE_EXTERNAL;
+  controlWord_.encSourceCmd =  data_.command_.encSource == ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
 
@@ -1080,8 +1079,10 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
   statusData_.onChangeData.statusWd.limitbwd = data_.status_.limitBwd > 0;
   // bit 8 homeswitch
   statusData_.onChangeData.statusWd.homeswitch = data_.status_.homeSwitch > 0;
-  // bit 9 inStartupPhase
-  statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase > 0;
+  // bit 9 homed
+  bool homedtemp = 0;
+  getAxisHomed(&homedtemp);
+  statusData_.onChangeData.statusWd.homed = homedtemp > 0;
   // bit 10 inRealtime  
   statusData_.onChangeData.statusWd.inrealtime = data_.status_.inRealtime > 0;
   // bit 11 traj source  
@@ -1094,10 +1095,8 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
   statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitFwd > 0;
   // bit 15 softlimbwdena  
   statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitBwd > 0;
-  // bit 16 homed
-  bool homedtemp = 0;
-  getAxisHomed(&homedtemp);
-  statusData_.onChangeData.statusWd.homed = homedtemp > 0;
+  // bit 16 inStartupPhase
+  statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase > 0;
   // bit 17..19 unused
   // bit 20..23 seq state
   statusData_.onChangeData.statusWd.seqstate = (unsigned char)data_.status_.seqState;
@@ -1505,7 +1504,6 @@ int ecmcAxisBase::setPosition(double homePositionSet) {
   return 0;
 }
 
-
 int ecmcAxisBase::stopMotion(int killAmplifier) {
 
   int errorCode = setExecute(0);
@@ -1545,15 +1543,15 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
   memcpy(&controlWord_,data,sizeof(controlWord_));
 
   int errorCode=0;
-
-  // printf("controlWord_.enableCmd       %d\n",controlWord_.enableCmd);
-  // printf("controlWord_.executeCmd      %d\n",controlWord_.executeCmd);
-  // printf("controlWord_.resetCmd        %d\n",controlWord_.resetCmd);
-  // printf("controlWord_.encSourceCmd    %d\n",controlWord_.encSourceCmd);
-  // printf("controlWord_.trajSourceCmd   %d\n",controlWord_.trajSourceCmd);
-  // printf("controlWord_.plcCmdsAllowCmd %d\n",controlWord_.plcCmdsAllowCmd);
-  // printf("controlWord_.plcEnableCmd %d\n",controlWord_.plcEnableCmd);
-  
+//
+//  printf("controlWord_.enableCmd       %d\n",controlWord_.enableCmd);
+//  printf("controlWord_.executeCmd      %d\n",controlWord_.executeCmd);
+//  printf("controlWord_.resetCmd        %d\n",controlWord_.resetCmd);
+//  printf("controlWord_.encSourceCmd    %d\n",controlWord_.encSourceCmd);
+//  printf("controlWord_.trajSourceCmd   %d\n",controlWord_.trajSourceCmd);
+//  printf("controlWord_.plcCmdsAllowCmd %d\n",controlWord_.plcCmdsAllowCmd);
+//  printf("controlWord_.plcEnableCmd    %d\n",controlWord_.plcEnableCmd);
+//  
   errorCode = setEnable(controlWord_.enableCmd);
   if(errorCode) {
     return asynError;

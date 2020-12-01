@@ -84,7 +84,6 @@ typedef struct {
   unsigned char              limitfwd      : 1;
   unsigned char              limitbwd      : 1;
   unsigned char              homeswitch    : 1;
-  unsigned char              instartup     : 1;
   unsigned char              inrealtime    : 1;
   unsigned char              trajsource    : 1;
   unsigned char              encsource     : 1;
@@ -92,6 +91,7 @@ typedef struct {
   unsigned char              softlimfwdena : 1;
   unsigned char              softlimbwdena : 1;
   unsigned char              homed         : 1;
+  unsigned char              instartup     : 1;
   unsigned char              sumilockfwd   : 1;
   unsigned char              sumilockbwd   : 1;
   unsigned char              unused        : 1;
