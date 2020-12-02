@@ -1,5 +1,13 @@
 Release Notes
 ===
+# ECMC 6.3.0
+* Add axis control word and update axis status word (phasing out stream)
+* Add ethercat summary status bit (asyn param ec<m-id>.ok). Forced update each cycle.
+* Update domain status each cycle
+* Use new motor record release (dependency on motor 7.0.4)
+* Support for motor record RDBL
+* Bug fix in relative motion (when using RDBL)
+
 # ECMC 6.2.4
 * Add support for drive CSP mode (Cyclic Sync. Position interface). CSP can be used by linking a ethercat entry to "ax<id>.drv.position" (and not linking an entry to "ax1.drv.velocity"):
 ```
