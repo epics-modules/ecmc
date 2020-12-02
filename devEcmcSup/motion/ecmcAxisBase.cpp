@@ -131,8 +131,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
   data_.refreshInterlocks();
 
-  statusData_.onChangeData.statusWd.trajsource = data_.command_.trajSource;
-  statusData_.onChangeData.statusWd.encsource = data_.command_.encSource;
   data_.status_.moving = std::abs(
     data_.status_.currentVelocityActual) > 0;
 
@@ -384,7 +382,6 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
 
   // If realtime: Ensure that ethercat enty for actual position is linked
   if ((refSource == ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime) {
-    
     int errorCode = getEnc()->validateEntry(
       ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
 
@@ -1059,8 +1056,7 @@ int ecmcAxisBase::getCntrlError(double *error) {
   return 0;
 }
 
-void ecmcAxisBase::refreshDebugInfoStruct() {
-
+void ecmcAxisBase::refreshStatusWd() {
   // bit 0 enable
   statusData_.onChangeData.statusWd.enable = getEnable() > 0;
   // bit 1 enabled 
@@ -1097,11 +1093,20 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
   statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitBwd > 0;
   // bit 16 inStartupPhase
   statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase > 0;
-  // bit 17..19 unused
+  // bit 17 sumilockfwd
+  statusData_.onChangeData.statusWd.sumilockfwd = data_.interlocks_.trajSummaryInterlockFWD;
+  // bit 17 sumilockbwd
+  statusData_.onChangeData.statusWd.sumilockbwd = data_.interlocks_.trajSummaryInterlockBWD;
+  // bit 19 unused
   // bit 20..23 seq state
   statusData_.onChangeData.statusWd.seqstate = (unsigned char)data_.status_.seqState;
   // bit 24..31 lastActiveInterlock type
   statusData_.onChangeData.statusWd.lastilock = (unsigned char)data_.interlocks_.lastActiveInterlock;
+}
+
+void ecmcAxisBase::refreshDebugInfoStruct() {
+  
+  refreshStatusWd();
 
   statusData_.axisID                          = data_.axisId_;
   statusData_.cycleCounter                    = cycleCounter_;
@@ -1529,6 +1534,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType) 
 {
+  asynStatus returnVal = asynSuccess;
   if(sizeof(controlWord_) != bytes) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): Control word size missmatch.\n",
@@ -1543,7 +1549,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
   memcpy(&controlWord_,data,sizeof(controlWord_));
 
   int errorCode=0;
-//
+//  printf("###############################\n");
 //  printf("controlWord_.enableCmd       %d\n",controlWord_.enableCmd);
 //  printf("controlWord_.executeCmd      %d\n",controlWord_.executeCmd);
 //  printf("controlWord_.resetCmd        %d\n",controlWord_.resetCmd);
@@ -1551,40 +1557,52 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
 //  printf("controlWord_.trajSourceCmd   %d\n",controlWord_.trajSourceCmd);
 //  printf("controlWord_.plcCmdsAllowCmd %d\n",controlWord_.plcCmdsAllowCmd);
 //  printf("controlWord_.plcEnableCmd    %d\n",controlWord_.plcEnableCmd);
-//  
+ 
   errorCode = setEnable(controlWord_.enableCmd);
   if(errorCode) {
-    return asynError;
+    returnVal = asynError;
   }
+
   errorCode = setExecute(controlWord_.executeCmd);
   if(errorCode) {
-    return asynError;
+    returnVal = asynError;
   }
 
   setReset(controlWord_.resetCmd);
   
   errorCode = setEncDataSourceType((controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL:ECMC_DATA_SOURCE_INTERNAL));
   if(errorCode) {
-    return asynError;
+    returnVal = asynError;
   }
 
   errorCode = setTrajDataSourceType((controlWord_.trajSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL:ECMC_DATA_SOURCE_INTERNAL));
   if(errorCode) {
-    return asynError;
+    returnVal = asynError;
   }
 
   errorCode = setAllowCmdFromPLC(controlWord_.plcCmdsAllowCmd);
   if(errorCode) {
-    return asynError;
+    returnVal = asynError;
   }
 
   errorCode = setAxisPLCEnable(data_.axisId_, controlWord_.plcEnableCmd);
-
   if(errorCode) {
-    return asynError;
+    returnVal = asynError;
   }
 
-  return asynSuccess;
+  errorCode =  getMon()->setEnableSoftLimitBwd(controlWord_.enableSoftLimitBwd);
+  if(errorCode) {
+    returnVal = asynError;
+  }
+
+  errorCode =  getMon()->setEnableSoftLimitFwd(controlWord_.enableSoftLimitFwd);
+  if(errorCode) {
+    returnVal = asynError;
+  }
+
+  refreshStatusWd();
+  axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
+  return returnVal;
 }
 
 void ecmcAxisBase::initControlWord() {
@@ -1598,4 +1616,6 @@ void ecmcAxisBase::initControlWord() {
   controlWord_.encSourceCmd = getEncDataSourceType() == ECMC_DATA_SOURCE_EXTERNAL;
   controlWord_.trajSourceCmd = getTrajDataSourceType() == ECMC_DATA_SOURCE_EXTERNAL;
   controlWord_.plcCmdsAllowCmd = getAllowCmdFromPLC();
+  controlWord_.enableSoftLimitBwd = data_.command_.enableSoftLimitBwd;
+  controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;
 }

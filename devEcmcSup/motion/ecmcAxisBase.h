@@ -84,13 +84,13 @@ typedef struct {
   unsigned char              limitfwd      : 1;
   unsigned char              limitbwd      : 1;
   unsigned char              homeswitch    : 1;
+  unsigned char              homed         : 1;
   unsigned char              inrealtime    : 1;
   unsigned char              trajsource    : 1;
   unsigned char              encsource     : 1;
   unsigned char              plccmdallowed : 1;
   unsigned char              softlimfwdena : 1;
   unsigned char              softlimbwdena : 1;
-  unsigned char              homed         : 1;
   unsigned char              instartup     : 1;
   unsigned char              sumilockfwd   : 1;
   unsigned char              sumilockbwd   : 1;
@@ -134,14 +134,16 @@ typedef struct {
 } ecmcAxisStatusType;
 
 typedef struct {
-  bool                       enableCmd        : 1;
-  bool                       executeCmd       : 1;
-  bool                       resetCmd         : 1;
-  bool                       encSourceCmd     : 1;  // 0 = internal, 1 = plc
-  bool                       trajSourceCmd    : 1;  // 0 = internal, 1 = plc
-  bool                       plcEnableCmd     : 1;  // 0 = disable, 1 = enable
-  bool                       plcCmdsAllowCmd  : 1;  // 0 = not allow, 1 = allow
-  int                        spareBitsCmd     : 25;  // 0 = not allow, 1 = allow
+  bool                       enableCmd          : 1;
+  bool                       executeCmd         : 1;
+  bool                       resetCmd           : 1;
+  bool                       encSourceCmd       : 1;  // 0 = internal, 1 = plc
+  bool                       trajSourceCmd      : 1;  // 0 = internal, 1 = plc
+  bool                       plcEnableCmd       : 1;  // 0 = disable, 1 = enable
+  bool                       plcCmdsAllowCmd    : 1;  // 0 = not allow, 1 = allow
+  bool                       enableSoftLimitBwd : 1;     
+  bool                       enableSoftLimitFwd : 1;
+  int                        spareBitsCmd       : 23;
  } ecmcAsynAxisControlType;
 
 class ecmcAxisBase : public ecmcError {
@@ -261,6 +263,7 @@ class ecmcAxisBase : public ecmcError {
                                uint8_t*           data,
                                size_t             bytes,                   
                                ecmcAsynDataItem **asynParamOut);
+  void         refreshStatusWd();
   void         initControlWord();
   ecmcAsynAxisControlType      controlWord_;
   bool allowCmdFromOtherPLC_;                                  
