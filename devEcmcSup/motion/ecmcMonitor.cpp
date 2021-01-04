@@ -3,7 +3,7 @@
 * ecmc is distributed subject to a Software License Agreement found
 * in file LICENSE that is included with this distribution. 
 *
-*  ecmcFilter.cpp
+*  ecmcMonitor.cpp
 *
 *  Created on: Jan 12, 2016
 *      Author: anderssandstrom
