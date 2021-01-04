@@ -131,10 +131,14 @@ void ecmcAxisReal::execute(bool masterOK) {
       cntrl_->reset();
     }
 
-    //CSP Write raw actpos  and actpos to drv obj
+    // CSP Write raw actpos  and actpos to drv obj
     drv_->setCspActPos(enc_->getRawPosRegister(), data_.status_.currentPositionActual);
 
-    if (getEnabled() && masterOK) {          
+    if (getEnabled() && masterOK) {         
+
+      // Calc position error
+      data_.status_.cntrlError = getPosErrorMod();
+
       double cntrOutput = 0;
       
       if(data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
