@@ -1915,6 +1915,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisModType(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisDisableAtErrorReset(int axis_no, int disable);*/
+  nvals = sscanf(myarg_1, "SetAxisDisableAtErrorReset(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisDisableAtErrorReset(iValue, iValue2);
+  }
+
   /*int Cfg.SetDiagAxisIndex(int axis_no);*/
   nvals = sscanf(myarg_1, "SetDiagAxisIndex(%d)", &iValue);
 

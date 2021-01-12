@@ -2748,3 +2748,18 @@ int setAxisModType(int axisIndex,
 
   return axes[axisIndex]->setModType(type);
 }
+
+int setAxisDisableAtErrorReset(int axisIndex,
+                               int disable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, disable=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           disable);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->setDisableAxisAtErrorReset(disable);
+}
+
