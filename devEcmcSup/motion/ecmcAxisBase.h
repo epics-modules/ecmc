@@ -232,6 +232,7 @@ class ecmcAxisBase : public ecmcError {
   int                   setEncVeloFiltSize(size_t size);
   int                   setEncPosFiltSize(size_t size);
   int                   setEncPosFiltEnable(bool enable);
+  int                   setDisableAxisAtErrorReset(bool disable);
   int                   moveAbsolutePosition(double positionSet,
                                              double velocitySet,
                                              double accelerationSet,
@@ -291,6 +292,7 @@ class ecmcAxisBase : public ecmcError {
   ecmcFilter  *extEncVeloFilter_;
   bool enableExtTrajVeloFilter_;
   bool enableExtEncVeloFilter_;
+  bool disableAxisAtErrorReset_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

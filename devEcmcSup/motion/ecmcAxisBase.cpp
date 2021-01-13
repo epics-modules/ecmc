@@ -123,7 +123,7 @@ void ecmcAxisBase::initVars() {
   extEncVeloFilter_ = NULL;
   enableExtTrajVeloFilter_ = false;
   enableExtEncVeloFilter_ = false;
-  //plcs_ = NULL;
+  disableAxisAtErrorReset_ = false;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -494,6 +494,11 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
 }
 
 void ecmcAxisBase::errorReset() {
+  
+  if(disableAxisAtErrorReset_ && getError()) {
+    setEnable(0);
+  }
+
   // Monitor
   ecmcMonitor *mon = getMon();
 
@@ -1618,4 +1623,9 @@ void ecmcAxisBase::initControlWord() {
   controlWord_.plcCmdsAllowCmd = getAllowCmdFromPLC();
   controlWord_.enableSoftLimitBwd = data_.command_.enableSoftLimitBwd;
   controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;
+}
+
+int ecmcAxisBase::setDisableAxisAtErrorReset(bool disable){
+  disableAxisAtErrorReset_ = disable;
+  return 0;
 }

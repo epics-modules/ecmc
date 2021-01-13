@@ -3059,10 +3059,10 @@ int setAxisModType(int axisIndex,
  * \param[in] axisIndex  Axis index.\n
  * \param[out] type Modulo type.\n
  *    type = 0 : ECMC_MOD_MOTION_NORMAL\n
-             1:  ECMC_MOD_MOTION_FWD (Always forward)\n
-             2:  ECMC_MOD_MOTION_BWD (always backward)\n
-             3:  ECMC_MOD_MOTION_CLOSEST (closest path)\n
-
+ *           1:  ECMC_MOD_MOTION_FWD (Always forward)\n
+ *           2:  ECMC_MOD_MOTION_BWD (always backward)\n
+ *           3:  ECMC_MOD_MOTION_CLOSEST (closest path)\n
+ *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get modulo type for axis 3.\n
@@ -3070,6 +3070,22 @@ int setAxisModType(int axisIndex,
  */
 int getAxisModType(int  axisIndex,
                    int *value);
+
+/** \brief Disable axis at error reset\n
+ * 
+ * If axis is in error state and a reset command is issued,\n
+ * then the axis will be disabled.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] disable disable at error reset.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Disable axis at error reset for axis 3.\n
+ * "Cfg.SetAxisDisableAtErrorReset(3,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisDisableAtErrorReset(int axisIndex,
+                               int disable);
 
 # ifdef __cplusplus
 }
