@@ -38,7 +38,7 @@ class ecmcPIDController : public ecmcError {
   void   reset();
   void   setIRange(double iMax,
                    double iMin);
-  double control(double error,                
+  double control(double posError,                
                  double ff);
   double getOutPPart();
   double getOutIPart();

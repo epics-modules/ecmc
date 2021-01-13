@@ -146,7 +146,7 @@ void ecmcPIDController::setIOutMin(double outMin) {
   outputIMin_ = outMin;
 }
 
-double ecmcPIDController::control(double error, double ff) {
+double ecmcPIDController::control(double posError, double ff) {
   // Simple PID loop with FF.
   // Consider to make base class to derive other controller types
 
@@ -155,11 +155,9 @@ double ecmcPIDController::control(double error, double ff) {
     return 0;
   }
 
-  ff_                       = ff * kff_;
-  
-  data_->status_.cntrlError = error;                              
-  outputP_ = data_->status_.cntrlError * kp_;
-  outputI_ = outputI_ + data_->status_.cntrlError * ki_;
+  ff_                       = ff * kff_;                     
+  outputP_ = posError * kp_;
+  outputI_ = outputI_ + posError * ki_;
 
   // Enabled only when limits differ and max>min
   if ((outputIMax_ != outputIMin_) && (outputIMax_ > outputIMin_)) {
@@ -172,7 +170,7 @@ double ecmcPIDController::control(double error, double ff) {
     }
   }
   outputD_ =
-    (data_->status_.cntrlError - controllerErrorOld_) * kd_;
+    (posError - controllerErrorOld_) * kd_;
   data_->status_.cntrlOutput = outputP_ + outputI_ + outputD_ + ff_;
 
   // Enabled only when limits differ and max>min
@@ -185,7 +183,7 @@ double ecmcPIDController::control(double error, double ff) {
       data_->status_.cntrlOutput = outputMin_;
     }
   }
-  controllerErrorOld_ = data_->status_.cntrlError;
+  controllerErrorOld_ = posError;
   return data_->status_.cntrlOutput;
 }
 
