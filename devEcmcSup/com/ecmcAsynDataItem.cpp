@@ -329,7 +329,6 @@ int ecmcAsynDataItem::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
 
 int ecmcAsynDataItem::setAsynParSampleTimeMS(double sampleTime)
 {
-  printf("setAsynParSampleTimeMS %s %lf\n",getName(),sampleTime);
   paramInfo_.sampleTimeMS = sampleTime;
   paramInfo_.sampleTimeCycles=(int32_t)(sampleTime / 1000.0 * mcuFrequency);
 
