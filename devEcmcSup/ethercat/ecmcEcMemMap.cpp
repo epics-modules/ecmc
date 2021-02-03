@@ -194,13 +194,11 @@ int ecmcEcMemMap::initAsyn() {
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
   char *name = buffer;
 
-  // "ec%d.mm.alias"
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),
-                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_MEMMAP_STR ".%s",
-                                    masterId_,
-                                    slaveId_,
+                                    "%s",
                                     idStringChar_);
+
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(

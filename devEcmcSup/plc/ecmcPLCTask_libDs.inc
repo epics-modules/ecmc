@@ -148,7 +148,7 @@ inline double ds_push_asyn(double dsIndex) {
   int index = (int)dsIndex;
 
   CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(index);
-  ds_errorCode = 0;
+  ds_errorCode = 0;  
   return (double)ecmcPLCTask::statDs_[index]->updateAsyn(1);
 }
 

@@ -1115,29 +1115,6 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
                       ERROR_EC_MEM_MAP_START_ENTRY_NULL);
   }
 
-  char alias[1024];
-  std::string aliasString;
-  int masterIndex = 0;
-  int dummySlaveIndex = 0;
-  int nvals       = sscanf(memMapIDString.c_str(),
-                           "ec%d.s%d.mm.%s",
-                           &masterIndex,
-                           &dummySlaveIndex,
-                           alias);
-
-  if (nvals != 3) {
-    LOGERR("%s/%s:%d: ERROR: Alias not found in idString %s (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           memMapIDString.c_str(),
-           ERROR_EC_ASYN_ALIAS_NOT_VALID);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ASYN_ALIAS_NOT_VALID);
-  }
-  aliasString                           = alias;
   ecMemMapArray_[ecMemMapArrayCounter_] = new ecmcEcMemMap(asynPortDriver_,
                                                            masterIndex_,
                                                            startEntryBusPosition,                                                        
@@ -1145,7 +1122,7 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
                                                            byteSize,
                                                            direction,
                                                            dt,
-                                                           aliasString);
+                                                           memMapIDString);
 
   if (!ecMemMapArray_[ecMemMapArrayCounter_]) {
     LOGERR(
@@ -1164,13 +1141,27 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   return ecMemMapArray_[ecMemMapArrayCounter_-1]->getErrorID();
 }
 
-ecmcEcMemMap * ecmcEc::findMemMap(std::string id) {
+ecmcEcMemMap * ecmcEc::findMemMap(std::string name) {
   
   ecmcEcMemMap *temp = NULL;
   for (int i = 0; i < ecMemMapArrayCounter_; i++) {
     if (ecMemMapArray_[i]) {
-      if (ecMemMapArray_[i]->getIdentificationName().compare(id) == 0) {
+      if (ecMemMapArray_[i]->getIdentificationName().compare(name) == 0) {
         temp = ecMemMapArray_[i];
+        break;        
+      }
+    }
+  }
+  return temp;
+}
+
+int ecmcEc::findMemMapId(std::string name){
+  int temp = -1;
+  for (int i = 0; i < ecMemMapArrayCounter_; i++) {
+    if (ecMemMapArray_[i]) {
+      if (ecMemMapArray_[i]->getIdentificationName().compare(name) == 0) {
+        temp = i;
+        break;
       }
     }
   }

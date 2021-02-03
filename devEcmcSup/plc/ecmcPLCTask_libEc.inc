@@ -46,12 +46,13 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_set_mm_data(",
                                "ec_get_mm_size(",
                                "ec_get_time_l32(",
-                               "ec_get_time_u32(",                               
-                               "ec_mm_append_to_ds("                               
+                               "ec_get_time_u32(",
+                               "ec_mm_append_to_ds(",
+                               "ec_mm_append_to_ds_scale_offset"
                               };
 
 static int ec_errorCode = 0;
-static int ec_cmd_count = 20;
+static int ec_cmd_count = 21;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
@@ -315,12 +316,46 @@ inline double ec_mm_append_to_ds(double mmId,double dsId) {
   //TODO: This is slow... Better solution needed. Better to make a plugin
   for(int i=0;i<mmSize;i++) {
 
-    ec_errorCode = src->getDoubleDataAtIndex((int)index,&dataTemp);
+    ec_errorCode = src->getDoubleDataAtIndex((int)i,&dataTemp);
     if(ec_errorCode) {
       return (double)ec_errorCode;
     }
-    ec_errorCode = ecmcPLCTask::statDs_[index]->appendData(dataTemp);
+    ec_errorCode = ecmcPLCTask::statDs_[index]->appendData(dataTemp, i==mmSize-1);
 
+  }
+
+  return (double)ec_errorCode;
+}
+
+// Append mm data to ds and scale and offset
+inline double ec_mm_append_to_ds_scale_offset(double mmId,double dsId,double dScale,double dOffset) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return 0;
+  }
+  
+  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)mmId);
+  
+  if(!src) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return (double)ec_errorCode;
+  }
+  
+  int index = (int)dsId;
+  CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);
+  
+  int mmSize = src->getElementCount();
+  double dataTemp = 0;
+  //TODO: This is slow... Better solution needed. Better to make a plugin
+  for(int i=0;i<mmSize;i++) {
+
+    ec_errorCode = src->getDoubleDataAtIndex((int)i,&dataTemp);
+    if(ec_errorCode) {
+      return (double)ec_errorCode;
+    }
+    // update asyn only on last element
+    ec_errorCode = ecmcPLCTask::statDs_[index]->appendData(dataTemp * dScale + dOffset, i==mmSize-1);
   }
 
   return (double)ec_errorCode;

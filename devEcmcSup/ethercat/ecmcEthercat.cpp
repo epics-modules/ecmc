@@ -334,6 +334,19 @@ int ecAddMemMap(
                       (ec_direction_t)direction, ECMC_EC_NONE, memMapId);
 }
 
+int  ecGetMemMapId(char* memMapIDString, int *id) {
+  
+  std::string memMapId = memMapIDString;
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  
+  int idLocal = ec->findMemMapId(memMapId);
+  
+  *id =  idLocal;
+
+  return 0;
+}
+
 int ecAddPdo(int slaveIndex, int syncManager, uint16_t pdoIndex) {
   LOGINFO4("%s/%s:%d slave=%d sm=%d pdo_index=%d\n",
            __FILE__,

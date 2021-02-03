@@ -331,6 +331,11 @@ int ecmcDataStorage::appendDataFifo(double *data, int size) {
 }
 
 int ecmcDataStorage::appendData(double *data, int size) {
+  return appendData(data, size, true);
+
+}
+
+int ecmcDataStorage::appendData(double *data, int size, bool refreshAsyn) {
   if (buffer_ == NULL) {
     LOGINFO9(
       "%s/%s:%d: ERROR: Data storage %d. Append data failed. Buffer NULL (0x%x).\n",
@@ -374,11 +379,19 @@ int ecmcDataStorage::appendData(double *data, int size) {
     return errorCode;
   }
   
-  return updateAsyn(0);  
+  if (refreshAsyn) {
+    errorCode=updateAsyn(0);
+  }
+
+  return errorCode;
 }
 
 int ecmcDataStorage::appendData(double data) {
-  return appendData(&data, 1);
+  return appendData(&data, 1, true);
+}
+
+int ecmcDataStorage::appendData(double data, bool refreshAsyn) {
+  return appendData(&data, 1, refreshAsyn);
 }
 
 int ecmcDataStorage::setCurrentPosition(int position) {
@@ -558,11 +571,10 @@ int ecmcDataStorage::updateAsyn(bool force) {
   statusWord_ = statusWord_ + isFull_ > 0;
   //bit 16..19
   statusWord_ = statusWord_ + (((uint32_t)bufferType_) << 16);
-
   dataAsynDataItem_->refreshParamRT(force);
   statusAsynDataItem_->refreshParamRT(force);
   indexAsynDataItem_->refreshParamRT(force);
-  sizeAsynDataItem_-> refreshParamRT(force);  
+  sizeAsynDataItem_->refreshParamRT(force);  
   return 0;
 }
 

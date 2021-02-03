@@ -58,7 +58,7 @@
 // EtherCAT
 #define EC_MAX_PDOS 1024
 #define EC_MAX_ENTRIES 8192
-#define EC_MAX_MEM_MAPS 16
+#define EC_MAX_MEM_MAPS 32
 #define EC_MAX_SLAVES 512
 #define EC_START_TIMEOUT_S 30
 
