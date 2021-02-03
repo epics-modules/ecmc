@@ -141,14 +141,15 @@ class ecmcEc : public ecmcError {
                uint8_t        entrySubIndex,
                ecmcEcDataType dt,
                std::string    id,
-              int            useInRealTime);
+               int            useInRealTime);
   int addMemMap(uint16_t       startEntryBusPosition,
                 std::string    startEntryIDString,
                 int            byteSize,
                 ec_direction_t direction,
                 ecmcEcDataType dt,
                 std::string    memMapIDString);
-  ecmcEcMemMap* findMemMap(std::string id);
+  ecmcEcMemMap* findMemMap(std::string name);
+  int           findMemMapId(std::string name);
   ecmcEcMemMap* getMemMap(int index);
   ecmcEcSlave * findSlave(int busPosition);
 
@@ -162,7 +163,6 @@ class ecmcEc : public ecmcError {
   int           reset();
   int           setEcStatusOutputEntry(ecmcEcEntry *entry);
   int           initAsyn(ecmcAsynPortDriver *asynPortDriver);
-  //int           setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver);
   int           printAllConfig();
   int           printSlaveConfig(int slaveIndex);
   int           validate();                        

@@ -965,7 +965,9 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser *pasynUser,const char *drv
   // Ensure that sample time is the shortest (if several records 
   // on the same parameter)
   if(newParam->getSampleTimeMs() <  existentParInfo->sampleTimeMS ) {
-    pEcmcParamInUseArray_[index]->setAsynParSampleTimeMS(newParam->getSampleTimeMs());      
+    if (newParam->getSampleTimeMs()>=0) {
+      pEcmcParamInUseArray_[index]->setAsynParSampleTimeMS(newParam->getSampleTimeMs());
+    }
   }
 
   if(pasynUser->timeout < newParam->getSampleTimeMs()*2/1000.0) {

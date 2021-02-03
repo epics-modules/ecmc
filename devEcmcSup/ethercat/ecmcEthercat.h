@@ -294,14 +294,14 @@ int ecAddMemMapDT(
  *    direction  = 2:  Input (to master).\n
  * 
  *  \param[in] entryIDString Identification string used for addressing the
- object.\n
+ *   object.\n
  *
- * \return 0 if success or otherwise an error code.\n
+ *  \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
- * entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
- * argument is excluded in\n
- * "Cfg.EcAddMemMap(10,AI1,200,2,ec0.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
+ *  \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
+ *  entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
+ *  argument is excluded in\n
+ *  "Cfg.EcAddMemMap(10,AI1,200,2,ec0.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddMemMap(
   uint16_t startEntryBusPosition,
@@ -310,15 +310,26 @@ int ecAddMemMap(
   int      direction,
   char    *memMapIDString);
 
-/** \brief Configure slave DC clock.\n
+/** \brief Get index of a memmap object based on its name id string
  *
+ *  \param[in] memMapIDString memmap name
+ *  \param[out] index index of memmap corresponding to memMapIDString
+ *
+ *  \return 0 if success or otherwise an error code.\n
+ *
+ *  \note Example: Get memmap id.\n
+ *  "EcGetMemMapId("ec0.s2.mm.CH1_ARRAY")" //Command string to ecmcCmdParser.c\n
+ */
+int  ecGetMemMapId(char* memMapIDString, int *id);
+
+/** \brief Configure slave DC clock.\n
  *
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
  *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n*
  *  \param[in] assignActivate A* Each added slave will be assigned an additional index which will be zero for
- * the first successfully added slave and then incremented for each successful
- * call to "Cfg.EcAddSlave()".\n
- ssign active word. This information can be found
+ *    the first successfully added slave and then incremented for each successful
+ *    call to "Cfg.EcAddSlave()".\n
+ *    assign active word. This information can be found
  *                           in the ESI slave description file. Needs to be
  *                           entered in hex format.\n
  *  \param[in] sync0Cycle Cycle time in ns.\n
@@ -337,10 +348,10 @@ int ecAddMemMap(
 int ecSlaveConfigDC(
   int      slaveBusPosition,
   uint16_t assignActivate,   /**< AssignActivate word. */
-  uint32_t sync0Cycle,   /**< SYNC0 cycle time [ns]. */
-  int32_t  sync0Shift,  /**< SYNC0 shift time [ns]. */
-  uint32_t sync1Cycle,   /**< SYNC1 cycle time [ns]. */
-  int32_t  sync1Shift  /**< SYNC1 shift time [ns]. */);
+  uint32_t sync0Cycle,       /**< SYNC0 cycle time [ns]. */
+  int32_t  sync0Shift,       /**< SYNC0 shift time [ns]. */
+  uint32_t sync1Cycle,       /**< SYNC1 cycle time [ns]. */
+  int32_t  sync1Shift        /**< SYNC1 shift time [ns]. */);
 
 /** \brief Select EtherCAT reference clock.\n
  *
