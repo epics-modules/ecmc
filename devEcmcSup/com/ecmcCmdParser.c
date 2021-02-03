@@ -3160,11 +3160,18 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveRevisionNum(0, iValue2, &u32Value));
   }
  
-  /*Cfg.EcGetSlaveSerialNum(int nSlavePosition,int *nValue)*/
+  /*EcGetSlaveSerialNum(int nSlavePosition,int *nValue)*/
   nvals = sscanf(myarg_1, "EcGetSlaveSerialNum(%d)", &iValue2);
 
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveSerialNum(0, iValue2, &u32Value));
+  }
+ 
+  /*EcGetMemMapId(char *strName)*/
+  nvals = sscanf(myarg_1, "EcGetMemMapId(%[^)])", cIdBuffer);
+  
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(ecGetMemMapId(cIdBuffer , &iValue));
   }
  
   /*GetAxisOpMode(int nAxis)*/

@@ -63,6 +63,11 @@ class ecmcDataStorage : public ecmcError {
   int  setDataElement(double data);
   int  appendData(double *data,
                   int     size);
+  int  appendData(double *data,
+                  int size,
+                  bool refreshAsyn);
+  int  appendData(double data,
+                  bool refreshAsyn);
   int  setCurrentPosition(int position);
   void printCurrentState();
   int  updateAsyn(bool force);

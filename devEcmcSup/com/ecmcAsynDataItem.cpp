@@ -191,13 +191,16 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     return 0;
   }
 
-  if(paramInfo_.sampleTimeCycles < 0 && !force) {
-    return ERROR_ASYN_NOT_REFRESHED_RETURN;
-  }
 
-  if(paramInfo_.sampleTimeCycles >= 0 && asynUpdateCycleCounter_< paramInfo_.sampleTimeCycles-1 && !force){
-    asynUpdateCycleCounter_++;
-    return ERROR_ASYN_NOT_REFRESHED_RETURN;  //Not refreshed
+  if (!force) {
+    if(paramInfo_.sampleTimeCycles < 0) {
+      return ERROR_ASYN_NOT_REFRESHED_RETURN;
+    }
+
+    if(paramInfo_.sampleTimeCycles >= 0 && asynUpdateCycleCounter_< paramInfo_.sampleTimeCycles-1){
+      asynUpdateCycleCounter_++;
+      return ERROR_ASYN_NOT_REFRESHED_RETURN;  //Not refreshed
+    }
   }
   
   if(data==0 || bytes<0){
@@ -326,8 +329,13 @@ int ecmcAsynDataItem::setAsynPortDriver(ecmcAsynPortDriver *asynPortDriver)
 
 int ecmcAsynDataItem::setAsynParSampleTimeMS(double sampleTime)
 {
-  paramInfo_.sampleTimeMS=sampleTime;
+  printf("setAsynParSampleTimeMS %s %lf\n",getName(),sampleTime);
+  paramInfo_.sampleTimeMS = sampleTime;
   paramInfo_.sampleTimeCycles=(int32_t)(sampleTime / 1000.0 * mcuFrequency);
+
+  if(paramInfo_.sampleTimeMS == -1) {
+    paramInfo_.sampleTimeCycles =-1;
+  }
   return 0;
 }
 
@@ -1188,7 +1196,7 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
 
   // ensure that sample rate is not faster than realtime loop or plc scan rates
   double dataUpdateRateMs = dataItem_.dataUpdateRateMs;
-  if(dataUpdateRateMs<0) { // updated at realtime loop rate
+  if(dataUpdateRateMs < 0) { // updated at realtime loop rate
     dataUpdateRateMs = mcuPeriod/1E6;
   }
   
@@ -1204,9 +1212,12 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char* drvInfo)
               drvInfo);
     paramInfo_.sampleTimeMS = dataUpdateRateMs;
   }
-  
+
   paramInfo_.sampleTimeCycles = (int32_t)(paramInfo_.sampleTimeMS / dataUpdateRateMs);
-  
+  if(paramInfo_.sampleTimeMS == -1) {
+    paramInfo_.sampleTimeCycles = -1;
+  }
+    
   //Check if TYPE option
   option=ECMC_OPTION_TYPE;
   paramInfo_.asynTypeStr=NULL;

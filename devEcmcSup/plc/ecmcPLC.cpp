@@ -41,6 +41,10 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
            index,
            cycleTimeMs,
            axisPLC);
+  // Set sample rate to realtime thread sample rate if -1
+  if (cycleTimeMs==-1) {
+    cycleTimeMs = 1 / mcuFrequency *1000;
+  }
 
   if(cycleTimeMs / 1000 < (1 / mcuFrequency)) {
     LOGERR(
@@ -89,6 +93,7 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
     plcs->setPluginPointer(plugins[i], i);
   }
   int skipCycles = cycleTimeMs * mcuFrequency / 1000-1;
+  
   if (skipCycles < 0) {
     return ERROR_MAIN_PLCS_SKIPCYCLES_INVALID;
   }
