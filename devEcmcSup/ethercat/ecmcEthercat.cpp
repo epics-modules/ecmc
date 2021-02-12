@@ -912,3 +912,14 @@ int ecGetSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
   *result = ec->getSlaveSerialNum(alias, slavePos);
   return 0;
 }
+
+int ecUseClockRealtime(int useClkRT) {
+  LOGINFO4("%s/%s:%d useClkRT=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           useClkRT);
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  
+  return ec->useClockRealtime(useClkRT);
+}
