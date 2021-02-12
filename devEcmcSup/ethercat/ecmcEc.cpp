@@ -589,6 +589,19 @@ bool ecmcEc::checkState(void) {
 void ecmcEc::receive() {
   ecrt_master_receive(master_);
   ecrt_domain_process(domain_);
+  
+  struct timespec timeRel, timeAbs;
+  epicsTimeStamp epicsTime;
+  if (useClockRealtime_) {    
+    clock_gettime(CLOCK_REALTIME, &timeAbs);
+  } else {
+    clock_gettime(CLOCK_MONOTONIC, &timeRel);
+    timeAbs = timespecAdd(timeRel, timeOffset_);
+  }
+
+  epicsTimeFromTimespec (&epicsTime,&timeAbs);
+  asynPortDriver_->setTimeStamp(&epicsTime);
+  
   updateInputProcessImage();
 }
 
