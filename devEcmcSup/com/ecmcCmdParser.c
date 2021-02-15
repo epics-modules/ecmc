@@ -1235,6 +1235,12 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecSelectReferenceDC(iValue, iValue2);
   }
 
+  /*Cfg.EcUseClockRealtime(int useClcRT)*/  
+  nvals = sscanf(myarg_1, "EcUseClockRealtime(%d)", &iValue);
+
+  if (nvals == 1) {
+    return ecUseClockRealtime(iValue);
+  }
 
   /*Cfg.EcSetEntryUpdateInRealtime(
       uint16_t slavePosition,
