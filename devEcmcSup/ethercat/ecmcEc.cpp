@@ -28,6 +28,7 @@ void ecmcEc::initVars() {
   slaveCounter_                     = 0;
   initDone_                         = false;
   diag_                             = true;
+  useClockRealtime_                 = false;
   simSlave_                         = NULL;
   master_                           = NULL;
   domain_                           = NULL;
@@ -588,6 +589,19 @@ bool ecmcEc::checkState(void) {
 void ecmcEc::receive() {
   ecrt_master_receive(master_);
   ecrt_domain_process(domain_);
+  
+  struct timespec timeRel, timeAbs;
+  epicsTimeStamp epicsTime;
+  if (useClockRealtime_) {    
+    clock_gettime(CLOCK_REALTIME, &timeAbs);
+  } else {
+    clock_gettime(CLOCK_MONOTONIC, &timeRel);
+    timeAbs = timespecAdd(timeRel, timeOffset_);
+  }
+
+  epicsTimeFromTimespec (&epicsTime,&timeAbs);
+  asynPortDriver_->setTimeStamp(&epicsTime);
+  
   updateInputProcessImage();
 }
 
@@ -601,10 +615,13 @@ void ecmcEc::send(timespec timeOffset) {
 
   updateOutProcessImage();
 
-
-  clock_gettime(CLOCK_MONOTONIC, &timeRel);
-  timeAbs = timespecAdd(timeRel, timeOffset);
-
+  if (useClockRealtime_) {
+    clock_gettime(CLOCK_REALTIME, &timeAbs);
+  } else {
+    clock_gettime(CLOCK_MONOTONIC, &timeRel);
+    timeAbs = timespecAdd(timeRel, timeOffset);
+  }
+  
   ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
@@ -1971,9 +1988,15 @@ int ecmcEc::checkReadyForRuntime() {
 }
 
 uint64_t ecmcEc::getTimeNs() {
-  struct timespec timeRel, timeAbs; 
-  clock_gettime(CLOCK_MONOTONIC, &timeRel);
-  timeAbs = timespecAdd(timeRel, timeOffset_);
+  struct timespec timeRel, timeAbs;
+
+  if (useClockRealtime_) {
+    clock_gettime(CLOCK_REALTIME, &timeAbs);
+  } else {
+    clock_gettime(CLOCK_MONOTONIC, &timeRel);
+    timeAbs = timespecAdd(timeRel, timeOffset_);
+  }
+  
   return TIMESPEC2NS(timeAbs);
 }
 
@@ -2191,4 +2214,9 @@ uint32_t ecmcEc::getSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
   }
      
    return slaveInfo.serial_number;
+}
+
+int ecmcEc::useClockRealtime(bool useClkRT) {
+   useClockRealtime_ = useClkRT;
+   return 0;
 }

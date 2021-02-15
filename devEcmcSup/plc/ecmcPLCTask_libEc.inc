@@ -48,11 +48,12 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_get_time_l32(",
                                "ec_get_time_u32(",
                                "ec_mm_append_to_ds(",
-                               "ec_mm_append_to_ds_scale_offset"
+                               "ec_mm_append_to_ds_scale_offset(",
+                               "ec_mm_push_asyn("
                               };
 
 static int ec_errorCode = 0;
-static int ec_cmd_count = 21;
+static int ec_cmd_count = 22;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
@@ -361,10 +362,24 @@ inline double ec_mm_append_to_ds_scale_offset(double mmId,double dsId,double dSc
   return (double)ec_errorCode;
 }
 
+inline double ec_mm_push_asyn(double mmIndex) {
+  int index = (int)mmIndex;
+
+  ecmcEcMemMap *mm = ecmcPLCTask::statEc_->getMemMap(index);
+  
+  if(!mm) {
+    ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
+    return (double)ec_errorCode;
+  }
+  
+  return (double)mm->updateAsyn(1);
+}
+
 // Reset error
 inline double ec_err_rst() {
   ec_errorCode = 0;
   return 0;
 }
+
 
 #endif /* ecmcPLC_libEc_inc_ */

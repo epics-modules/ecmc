@@ -1067,6 +1067,22 @@ int ecGetSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
                         uint16_t slavePos,   /**< Slave position. */
                         uint32_t *result);
 
+/** \brief Use CLOCK_REALTIME
+ *
+ *  Ecmc will as default use CLOCK_MONOTONIC as clock source both for\n
+ *  the RT loop and the ethercat bus.
+ *
+ *  \param[in]  useClkRT Select clock
+ *    useClkRT = 0: Use CLOCK_MONOTONIC.\n
+ *    useClkRT = 1: Use CLOCK_REALTIME.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Use CLOCK_REALTIME:\n
+ *   "Cfg.EcUseClockRealtime(1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecUseClockRealtime(int useClkRT);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

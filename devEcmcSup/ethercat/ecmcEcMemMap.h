@@ -59,10 +59,10 @@ class ecmcEcMemMap : public ecmcError {
                                    double data);
   size_t      getElementCount();
   size_t      getBytesPerElement();
+  int         updateAsyn(bool force);
 
  private:
   int                initAsyn();
-  int                updateAsyn(bool force);  
   size_t             byteSize_;
   size_t             elements_;
   size_t             bytesPerElement_;

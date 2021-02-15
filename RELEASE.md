@@ -1,5 +1,30 @@
 Release Notes
 ===
+# master
+
+* Add plc function to push memmaps to epics on demand (used when T_SMP_MS=-1):
+  ```
+  ec_mm_push_asyn(<memmap id>)
+  ```
+* Add command to get memmap id from name: EcGetMemMapId(<memmap name>).
+  Can be used to feed memmap ids into PLCs.
+  ```
+  ecmcConfig "EcGetMemMapId(ec0.s11.mm.CH1_ARRAY_IN)"
+  epicsEnvSet(MM_CH_1_IN,${ECMC_CONFIG_RETURN_VAL})
+  ```
+* Add command to use CLOCK_REALTIME (instead of CLOCK_MONOTONIC which is default in ecmc):
+```
+Use CLOCK_REALTIME:
+ecmcConfigOrDie "Cfg.EcUseClockRealtime(1)"
+Use CLOCK_MONOTONIC:
+ecmcConfigOrDie "Cfg.EcUseClockRealtime(0)"
+```
+* Allow up to 32 memmaps (before max 16)
+* Add command to diable axis at reset:
+```
+Cfg.SetAxisDisableAtErrorReset(<axis id>, disable)
+```
+
 # ECMC 6.3.0
 * Add axis control word and update axis status word (phasing out stream)
 * Add ethercat summary status bit (asyn param ec<m-id>.ok). Forced update each cycle.

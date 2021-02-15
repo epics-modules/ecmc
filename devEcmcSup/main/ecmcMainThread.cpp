@@ -259,8 +259,7 @@ void cyclic_task(void *usr) {
 
     if (appModeStat == ECMC_MODE_RUNTIME) {      
       if (asynPort) {
-        asynPort->lock();
-        asynPort->updateTimeStamp();
+        asynPort->lock();        
       }
     }
     // Mutex for motor record access

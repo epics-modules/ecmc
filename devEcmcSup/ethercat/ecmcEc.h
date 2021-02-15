@@ -155,8 +155,6 @@ class ecmcEc : public ecmcError {
 
   int           findSlaveIndex(int  busPosition,
                                int *slaveIndex);
-  int           updateTime();
-  int           printTimingInformation();
   int           statusOK();
   int           setDomainFailedCyclesLimitInterlock(int cycles);
   void          slowExecute();
@@ -183,6 +181,7 @@ class ecmcEc : public ecmcError {
                                     uint16_t slavePos   /**< Slave position. */);
   uint32_t      getSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
                                   uint16_t slavePos   /**< Slave position. */);
+  int           useClockRealtime(bool useClkRT);
 
 private:
   void     initVars();
@@ -206,6 +205,7 @@ private:
   unsigned int pdoBitOffsetArray_[EC_MAX_ENTRIES];
   bool initDone_;
   bool diag_;
+  bool useClockRealtime_;
   ecmcEcSlave *simSlave_;
   int slavesOK_;
   int masterOK_;
