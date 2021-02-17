@@ -46,6 +46,10 @@ void ecmcEc::initVars() {
   statusWordDomain_                 = 0;
   ecStatOk_                         = 0;
 
+  epicsTimeGetCurrent(&epicsTime_);
+  clock_gettime(CLOCK_REALTIME, &timeRel_);
+  clock_gettime(CLOCK_REALTIME, &timeAbs_);
+
   for (int i = 0; i < EC_MAX_SLAVES; i++) {
     slaveArray_[i] = NULL;
   }
@@ -590,23 +594,22 @@ void ecmcEc::receive() {
   ecrt_master_receive(master_);
   ecrt_domain_process(domain_);
   
-  struct timespec timeRel, timeAbs;
-  epicsTimeStamp epicsTime;
-  if (useClockRealtime_) {    
-    clock_gettime(CLOCK_REALTIME, &timeAbs);
-  } else {
-    clock_gettime(CLOCK_MONOTONIC, &timeRel);
-    timeAbs = timespecAdd(timeRel, timeOffset_);
-  }
+  // struct timespec timeRel, timeAbs;
+  // epicsTimeStamp epicsTime;
+  // if (useClockRealtime_) {    
+    // clock_gettime(CLOCK_REALTIME, &timeAbs);
+  // } else {
+    // clock_gettime(CLOCK_MONOTONIC, &timeRel);
+    // timeAbs = timespecAdd(timeRel, timeOffset_);
+  // }
 
-  epicsTimeFromTimespec (&epicsTime,&timeAbs);
-  asynPortDriver_->setTimeStamp(&epicsTime);
+  //epicsTimeFromTimespec (&epicsTime,&timeAbs);
+  //asynPortDriver_->setTimeStamp(&epicsTime);
   
   updateInputProcessImage();
 }
 
 void ecmcEc::send(timespec timeOffset) {
-  struct timespec timeRel, timeAbs;
   timeOffset_=timeOffset;
   // Write status hardware status to output
   if (statusOutputEntry_) {
@@ -616,18 +619,22 @@ void ecmcEc::send(timespec timeOffset) {
   updateOutProcessImage();
 
   if (useClockRealtime_) {
-    clock_gettime(CLOCK_REALTIME, &timeAbs);
+    clock_gettime(CLOCK_REALTIME, &timeAbs_);
   } else {
-    clock_gettime(CLOCK_MONOTONIC, &timeRel);
-    timeAbs = timespecAdd(timeRel, timeOffset);
+    clock_gettime(CLOCK_MONOTONIC, &timeRel_);
+    timeAbs_= timespecAdd(timeRel_, timeOffset_);
   }
   
-  ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs));
+  ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs_));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
   
   ecrt_domain_queue(domain_);
   ecrt_master_send(master_);
+
+  //Update asyn time
+  epicsTimeFromTimespec (&epicsTime_,&timeAbs_);
+  asynPortDriver_->setTimeStamp(&epicsTime_);
 }
 
 int ecmcEc::setDiagnostics(bool bDiag) {

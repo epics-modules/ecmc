@@ -230,5 +230,8 @@ private:
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];
   timespec timeOffset_;
+  epicsTimeStamp epicsTime_;
+  struct timespec timeRel_;
+  struct timespec timeAbs_;
 };
 #endif  /* ECMCEC_H_ */
