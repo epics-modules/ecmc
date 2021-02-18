@@ -18,7 +18,6 @@
 #include <initHooks.h>
 #include "epicsTime.h"
 
-
 /** Convert asyn type enum to string.
  *
  * \param[in] type Asyn type (from asynDriver https://github.com/epics-modules/asyn)
@@ -48,6 +47,13 @@ const char *asynTypeToString(long type)
       return "asynParamFloat64Array";
     case asynParamGenericPointer:
       return "asynParamGenericPointer";
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+    case asynParamInt64:          
+      return "asynParamInt64";
+    case asynParamInt64Array:
+      return "asynParamInt64Array";
+#endif // ECMC_ASYN_ASYNPARAMINT64
+
     default:
       return "asynUnknownType";
   }
@@ -86,6 +92,16 @@ asynParamType stringToAsynType(char *typeStr)
   if(strcmp("asynFloat64ArrayIn",typeStr)==0 || strcmp("asynFloat64ArrayOut",typeStr)==0){
     return asynParamFloat64Array;
   }
+
+ #ifdef ECMC_ASYN_ASYNPARAMINT64
+  if(strcmp("asynInt64ArrayIn",typeStr)==0 || strcmp("asynInt64ArrayOut",typeStr)==0){
+    return asynParamInt64Array;
+  }
+  if(strcmp("asynInt64",typeStr) == 0 ){
+    return asynParamInt64;
+  }
+#endif // ECMC_ASYN_ASYNPARAMINT64
+
 
   //  asynParamOctet,
   //  asynParamGenericPointer
