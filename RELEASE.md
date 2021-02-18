@@ -1,7 +1,7 @@
 Release Notes
 ===
 # master
-
+* Add support for 64 bit integers (if ASYN version >= 4.37)
 * Add plc function to push memmaps to epics on demand (used when T_SMP_MS=-1):
   ```
   ec_mm_push_asyn(<memmap id>)

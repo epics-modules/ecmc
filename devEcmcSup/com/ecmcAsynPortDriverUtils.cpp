@@ -55,7 +55,6 @@ const char *asynTypeToString(long type)
 #endif // ECMC_ASYN_ASYNPARAMINT64
 
     default:
-      printf("type %d, (asynParamInt64)=%d\n",type,asynParamInt64);
       return "asynUnknownType";
   }
 }

@@ -951,23 +951,7 @@ asynStatus ecmcAsynDataItem::readInt64(epicsInt64 *value) {
 
 asynStatus ecmcAsynDataItem::writeInt64(epicsInt64 value) {
 
-   size_t bytesWritten = 0;
-  // if(checkIntRange_) {
-  //   if(value > intMax_ || value < intMin_) {
-  //     LOGERR(
-  //       "%s/%s:%d: Error: %s value Out Of Range %d (allowed Range %" PRId64 "..%" PRId64 ") (0x%x).\n",
-  //       __FILE__,
-  //       __FUNCTION__,
-  //       __LINE__,
-  //       getName(),
-  //       value,      
-  //       intMin_,
-  //       intMax_,
-  //       ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE);
-  //     return asynError;
-  //   }
-  // }
-
+  size_t bytesWritten = 0;
   return writeGeneric((uint8_t*)&value, sizeof(epicsInt64),
                       asynParamInt64, &bytesWritten);
 }
