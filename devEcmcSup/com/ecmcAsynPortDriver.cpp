@@ -120,13 +120,21 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
                    /* maxAddr */
                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask |
                    asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask |
-                   asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask |
-                   asynInt32ArrayMask | asynUInt32DigitalMask,
+                   asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask |                   
+                   asynInt32ArrayMask | asynUInt32DigitalMask 
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+                   | asynInt64Mask | asynInt64ArrayMask
+#endif //ECMC_ASYN_ASYNPARAMINT64
+                   ,
                    /* Interface mask */
                    asynInt32Mask | asynFloat64Mask | asynFloat32ArrayMask |
                    asynFloat64ArrayMask | asynEnumMask | asynDrvUserMask |
                    asynOctetMask | asynInt8ArrayMask | asynInt16ArrayMask |
-                   asynInt32ArrayMask | asynUInt32DigitalMask,
+                   asynInt32ArrayMask | asynUInt32DigitalMask 
+#ifdef ECMC_ASYN_ASYNPARAMINT64                   
+                   | asynInt64Mask | asynInt64ArrayMask
+#endif //ECMC_ASYN_ASYNPARAMINT64                   
+                   ,
                    /* Interrupt mask */
                    ASYN_CANBLOCK , /*NOT ASYN_MULTI_DEVICE*/
                    autoConnect,
@@ -810,6 +818,62 @@ asynStatus ecmcAsynPortDriver::readFloat64Array(asynUser     *pasynUser,
 
   return pEcmcParamInUseArray_[function]->readFloat64Array(value,nElements,nIn);
 }
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+
+asynStatus ecmcAsynPortDriver::readInt64(asynUser *pasynUser, 
+                                         epicsInt64 *value) {
+
+int function = pasynUser->reason;
+  const char *functionName = "readInt64";
+
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->readInt64(value);
+}
+
+asynStatus ecmcAsynPortDriver::writeInt64(asynUser *pasynUser,
+                                          epicsInt64 value) {
+  int function = pasynUser->reason;  
+  const char *functionName = "writeInt64";
+  
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->writeInt64(value);
+}
+
+asynStatus ecmcAsynPortDriver::writeInt64Array(asynUser *pasynUser,
+                                               epicsInt64 *value,
+                                               size_t nElements) {
+  int function = pasynUser->reason;
+  const char *functionName = "writeInt64Array";
+
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->writeInt64Array(value,nElements);
+}
+
+asynStatus ecmcAsynPortDriver::readInt64Array(asynUser   *pasynUser,
+                                              epicsInt64 *value,
+                                              size_t      nElements,
+                                              size_t     *nIn) {
+  int function = pasynUser->reason;
+  const char *functionName = "readInt64Array";
+
+  if(checkParamNameAndId(function,functionName) != asynSuccess) {
+    return asynError;
+  }
+
+  return pEcmcParamInUseArray_[function]->readInt64Array(value,nElements,nIn);
+}
+
+#endif //ECMC_ASYN_ASYNPARAMINT64
 
 void ecmcAsynPortDriver::setAllowRtThreadCom(bool allowRtCom) {
   allowRtThreadCom_ = allowRtCom;

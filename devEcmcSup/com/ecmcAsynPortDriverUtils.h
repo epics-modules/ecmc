@@ -23,6 +23,17 @@
 #include <limits>
 #include <cmath>
 
+#ifndef VERSION_INT
+#  define VERSION_INT(V,R,M,P) ( ((V)<<24) | ((R)<<16) | ((M)<<8) | (P))
+#endif
+
+#define VERSION_INT_4_37            VERSION_INT(4,37,0,0)
+#define ECMC_ASYN_VERSION_INT VERSION_INT(ASYN_VERSION,ASYN_REVISION,ASYN_MODIFICATION,0)
+
+#if ECMC_ASYN_VERSION_INT >= VERSION_INT_4_37
+#define ECMC_ASYN_ASYNPARAMINT64
+#endif
+
 #define ECMC_MAX_FIELD_CHAR_LENGTH 128
 
 #define ECMC_OPTION_T_MAX_DLY_MS "T_DLY_MS"

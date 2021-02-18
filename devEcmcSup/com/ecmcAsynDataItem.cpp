@@ -12,9 +12,8 @@
 \*************************************************************************/
 
 #include "../com/ecmcAsynDataItem.h"
-#include "../com/ecmcAsynPortDriver.h"
-#include "../main/ecmcDefinitions.h"
 #include "../com/ecmcOctetIF.h"  //LOG macros
+#include "../com/ecmcAsynPortDriver.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 
@@ -262,6 +261,16 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     case asynParamFloat64Array:
       stat = asynPortDriver_->doCallbacksFloat64Array((epicsFloat64*)data,bytes/sizeof(epicsFloat64), paramInfo_.index, 0);
       break;
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+    case asynParamInt64:
+      stat = asynPortDriver_->setInteger64Param(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,*((epicsInt64*)data));      
+      break;
+    case asynParamInt64Array:
+      stat = asynPortDriver_->doCallbacksInt64Array((epicsInt64*)data,bytes/sizeof(epicsInt64), paramInfo_.index, 0);
+      break;
+#endif // ECMC_ASYN_ASYNPARAMINT64
+
     default:
       return ERROR_ASYN_DATA_TYPE_NOT_SUPPORTED;
       break;
@@ -507,6 +516,12 @@ int ecmcAsynDataItem::asynTypeIsArray(asynParamType asynParType) {
     case asynParamFloat64Array:
       return 1;
       break;
+      
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+    case asynParamInt64Array:
+      return 1;
+#endif // ECMC_ASYN_ASYNPARAMINT64
+
     default:
       return 0;
       break;
@@ -924,6 +939,38 @@ asynStatus ecmcAsynDataItem::writeFloat64Array(epicsFloat64 *value,
   return writeGeneric((uint8_t*)value, nElements * sizeof(epicsFloat64),
                       asynParamFloat64Array, &bytesWritten);
 }
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+
+asynStatus ecmcAsynDataItem::readInt64(epicsInt64 *value) {
+
+  size_t bytesRead = 0;
+  return readGeneric((uint8_t*)value, sizeof(epicsInt64),
+                     asynParamInt64, &bytesRead);
+}
+
+asynStatus ecmcAsynDataItem::writeInt64(epicsInt64 value) {
+
+  size_t bytesWritten = 0;
+  return writeGeneric((uint8_t*)&value, sizeof(epicsInt64),
+                      asynParamInt64, &bytesWritten);
+}
+
+asynStatus ecmcAsynDataItem::writeInt64Array(epicsInt64 *value,
+                                             size_t nElements) {  
+  size_t bytesWritten = 0;
+  return writeGeneric((uint8_t*)value, nElements * sizeof(epicsInt64),
+                      asynParamInt64Array, &bytesWritten);
+}
+
+asynStatus ecmcAsynDataItem::readInt64Array(epicsInt64 *value,
+                                            size_t nElements,
+                                            size_t *nIn) {
+
+ return readGeneric((uint8_t*)value, nElements * sizeof(epicsInt64),
+                    asynParamInt64Array, nIn);
+}
+#endif //ECMC_ASYN_ASYNPARAMINT64
 
 /** Validates drvInfo string
  * \param[in] drvInfo String containing information about the parameter.

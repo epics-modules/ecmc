@@ -17,12 +17,25 @@
 #include "inttypes.h"
 
 #ifndef ECMC_IS_PLUGIN
+#include "../main/ecmcDefinitions.h"
 #include "../com/ecmcAsynPortDriverUtils.h"
 #else
+#include "ecmcDefinitions.h"
 #include "ecmcAsynPortDriverUtils.h"
 #endif
 #include "asynPortDriver.h"
 #include "ecmcDataItem.h"
+
+#ifndef VERSION_INT
+#  define VERSION_INT(V,R,M,P) ( ((V)<<24) | ((R)<<16) | ((M)<<8) | (P))
+#endif
+
+#define VERSION_INT_4_37            VERSION_INT(4,37,0,0)
+#define ECMC_ASYN_VERSION_INT VERSION_INT(ASYN_VERSION,ASYN_REVISION,ASYN_MODIFICATION,0)
+
+#if ECMC_ASYN_VERSION_INT >= VERSION_INT_4_37
+#define ECMC_ASYN_ASYNPARAMINT64
+#endif
 
 #define ERROR_ASYN_PORT_NULL 0x220000
 #define ERROR_ASYN_DATA_NULL 0x220001
@@ -161,6 +174,17 @@ public:
                               size_t *nIn);
   asynStatus writeFloat64Array(epicsFloat64 *value,
                                size_t nElements);
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+  asynStatus readInt64(epicsInt64 *value);
+  asynStatus writeInt64(epicsInt64 value);
+
+  asynStatus writeInt64Array(epicsInt64 *value,
+                             size_t nElements);
+  asynStatus readInt64Array(epicsInt64 *value,
+                            size_t nElements,
+                            size_t *nIn);
+#endif //ECMC_ASYN_ASYNPARAMINT64
 
   asynStatus setExeCmdFunctPtr(ecmcExeCmdFcn func, void* userObj);
 
