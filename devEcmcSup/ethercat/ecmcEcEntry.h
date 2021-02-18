@@ -24,6 +24,18 @@
 #include "../com/ecmcAsynPortDriver.h"
 #include "alarm.h"  //EPICS alarms
 
+#include "asynPortDriver.h"
+#ifndef VERSION_INT
+#  define VERSION_INT(V,R,M,P) ( ((V)<<24) | ((R)<<16) | ((M)<<8) | (P))
+#endif
+
+#define VERSION_INT_4_37            VERSION_INT(4,37,0,0)
+#define ECMC_ASYN_VERSION_INT VERSION_INT(ASYN_VERSION,ASYN_REVISION,ASYN_MODIFICATION,0)
+
+#if ECMC_ASYN_VERSION_INT >= VERSION_INT_4_37
+#define ECMC_ASYN_ASYNPARAMINT64
+#endif
+
 // ECENTRY ERRORS
 #define ERROR_EC_ENTRY_DATA_POINTER_NULL 0x21000
 #define ERROR_EC_ENTRY_INVALID_OFFSET 0x21001

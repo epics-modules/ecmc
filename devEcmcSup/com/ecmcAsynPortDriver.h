@@ -13,14 +13,28 @@
 #ifndef ECMC_ASYN_PORT_DRIVER_H_
 #define ECMC_ASYN_PORT_DRIVER_H_
 
-#include "asynPortDriver.h"
+
 #include <epicsEvent.h>
 #include <epicsTime.h>
 
+#include "asynPortDriver.h"
+#ifndef VERSION_INT
+#  define VERSION_INT(V,R,M,P) ( ((V)<<24) | ((R)<<16) | ((M)<<8) | (P))
+#endif
+
+#define VERSION_INT_4_37            VERSION_INT(4,37,0,0)
+#define ECMC_ASYN_VERSION_INT VERSION_INT(ASYN_VERSION,ASYN_REVISION,ASYN_MODIFICATION,0)
+
+#if ECMC_ASYN_VERSION_INT >= VERSION_INT_4_37
+#define ECMC_ASYN_ASYNPARAMINT64
+#endif
+
 #ifndef ECMC_IS_PLUGIN
 #include "../com/ecmcAsynDataItem.h"
+#include "../main/ecmcDefinitions.h"
 #else
 #include "ecmcAsynDataItem.h"
+#include "ecmcDefinitions.h"
 #endif
 
 class ecmcAsynPortDriver : public asynPortDriver {
@@ -89,6 +103,22 @@ class ecmcAsynPortDriver : public asynPortDriver {
                                       epicsFloat64 *value,
                                       size_t        nElements,
                                       size_t       *nIn);
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+  virtual asynStatus readInt64(asynUser *pasynUser, 
+                              epicsInt64 *value);
+  virtual asynStatus writeInt64(asynUser *pasynUser,
+                                epicsInt64 value);
+
+  virtual asynStatus writeInt64Array(asynUser *pasynUser,
+                                     epicsInt64 *value,
+                                     size_t nElements);
+  virtual asynStatus readInt64Array(asynUser *pasynUser,
+                                    epicsInt64 *value,
+                                    size_t nElements,
+                                    size_t *nIn);
+#endif //ECMC_ASYN_ASYNPARAMINT64
+
   virtual asynStatus drvUserCreate(asynUser *pasynUser,
                                    const char *drvInfo,
                                    const char **pptypeName,

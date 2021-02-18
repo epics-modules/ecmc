@@ -507,6 +507,11 @@ int ecmcEcEntry::updateAsyn(bool force) {
       entryAsynParam_->refreshParamRT(force, (uint8_t *)&buffer_, usedSizeBytes_);            
       break;
 
+    case asynParamInt64:
+
+      entryAsynParam_->refreshParamRT(force, (uint8_t *)&buffer_, usedSizeBytes_);            
+      break;
+
     default:
       return setErrorID(__FILE__,
                         __FUNCTION__,
@@ -752,6 +757,11 @@ int ecmcEcEntry::initAsyn() {
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+      entryAsynParam_->addSupportedAsynType(asynParamInt64);
+#endif //ECMC_ASYN_ASYNPARAMINT64
+
       usedSizeBytes_ = 8;
       break;
 
@@ -759,6 +769,11 @@ int ecmcEcEntry::initAsyn() {
       entryAsynParam_->addSupportedAsynType(asynParamInt32);
       entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);      
       entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+      entryAsynParam_->addSupportedAsynType(asynParamInt64);
+#endif //ECMC_ASYN_ASYNPARAMINT64
+
       usedSizeBytes_ = 8;
       break;
 
