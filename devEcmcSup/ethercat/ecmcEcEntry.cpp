@@ -507,10 +507,13 @@ int ecmcEcEntry::updateAsyn(bool force) {
       entryAsynParam_->refreshParamRT(force, (uint8_t *)&buffer_, usedSizeBytes_);            
       break;
 
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+
     case asynParamInt64:
 
       entryAsynParam_->refreshParamRT(force, (uint8_t *)&buffer_, usedSizeBytes_);            
       break;
+#endif //ECMC_ASYN_ASYNPARAMINT64
 
     default:
       return setErrorID(__FILE__,
