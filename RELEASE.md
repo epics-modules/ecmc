@@ -1,6 +1,6 @@
 Release Notes
 ===
-# master
+# ECMC 6.3.1
 * Add support for 64 bit integers (if ASYN version >= 4.37)
 * Add plc function to push memmaps to epics on demand (used when T_SMP_MS=-1):
   ```
@@ -19,7 +19,7 @@ ecmcConfigOrDie "Cfg.EcUseClockRealtime(1)"
 Use CLOCK_MONOTONIC:
 ecmcConfigOrDie "Cfg.EcUseClockRealtime(0)"
 ```
-* Allow up to 32 memmaps (before max 16)
+* Allow up to 64 memmaps (before max 16)
 * Add command to diable axis at reset:
 ```
 Cfg.SetAxisDisableAtErrorReset(<axis id>, disable)
