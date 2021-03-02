@@ -1,5 +1,8 @@
 Release Notes
 ===
+# ECMC master
+* Fix printout of plugin plc functions info for funcs with more than 6 args.
+
 # ECMC 6.3.1
 * Add support for 64 bit integers (if ASYN version >= 4.37)
 * Add plc function to push memmaps to epics on demand (used when T_SMP_MS=-1):

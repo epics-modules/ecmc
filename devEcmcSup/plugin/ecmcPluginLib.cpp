@@ -343,5 +343,18 @@ int ecmcPluginLib::findArgCount(ecmcOnePlcFunc &func){
   if(func.funcArg6) {
     return 6;
   }
+  if(func.funcArg7) {
+    return 7;
+  }
+  if(func.funcArg8) {
+    return 8;
+  }
+  if(func.funcArg9) {
+    return 9;
+  }
+  if(func.funcArg10) {
+    return 10;
+  }
+
   return -1;
 }
