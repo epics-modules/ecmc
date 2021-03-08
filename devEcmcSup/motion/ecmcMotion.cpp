@@ -406,6 +406,18 @@ int getAxisEnable(int axisIndex, int *value) {
   return 0;
 }
 
+int setAxisEnableMotionFunctions(int axisIndex,
+                                 int enablePos,
+                                 int enableConstVel,
+                                 int enableHome) {
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  return axes[axisIndex]->setAllowMotionFunctions(enablePos,
+                                                  enableConstVel,
+                                                  enableHome);
+}
+
 int setAxisEnableAlarmAtHardLimits(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,

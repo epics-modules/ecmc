@@ -1634,6 +1634,18 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEnableSoftLimitFwd(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEnableMotionFunctions(int axis_no, 
+                                         int enablePos,
+                                         int enableConstVelo,
+                                         int enableHome);*/
+  nvals =
+    sscanf(myarg_1, "SetAxisEnableMotionFunctions(%d,%d,%d,%d)",
+           &iValue, &iValue2, &iValue3, &iValue4);
+
+  if (nvals == 4) {
+    return setAxisEnableMotionFunctions(iValue, iValue2, iValue3, iValue4);
+  }
+
   /*int Cfg.SetAxisMonAtTargetTol(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisMonAtTargetTol(%d,%lf)", &iValue, &dValue);
 
