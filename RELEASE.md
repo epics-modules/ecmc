@@ -1,6 +1,7 @@
 Release Notes
 ===
 # ECMC master
+* ecmc-updated param changed to uint64 if asyn version >=4.37
 * Fix printout of plugin plc functions info for funcs with more than 6 args.
 
 # ECMC 6.3.1

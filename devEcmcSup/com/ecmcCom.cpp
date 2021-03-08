@@ -17,6 +17,20 @@
 #include "../main/ecmcDefinitions.h"
 #include "../main/ecmcMainThread.h"
 
+//Below for asyn version and 64 bit ints
+#include "asynPortDriver.h"
+#ifndef VERSION_INT
+#  define VERSION_INT(V,R,M,P) ( ((V)<<24) | ((R)<<16) | ((M)<<8) | (P))
+#endif
+
+#define VERSION_INT_4_37            VERSION_INT(4,37,0,0)
+#define ECMC_ASYN_VERSION_INT VERSION_INT(ASYN_VERSION,ASYN_REVISION,ASYN_MODIFICATION,0)
+
+#if ECMC_ASYN_VERSION_INT >= VERSION_INT_4_37
+#define ECMC_ASYN_ASYNPARAMINT64
+#endif
+
+
 // TODO: REMOVE GLOBALS
 #include "../main/ecmcGlobalsExtern.h"
 
@@ -577,12 +591,22 @@ int ecmcAddDefaultAsynParams() {
 
   // ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME  
   name = ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME;
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+  paramTemp = asynPort->addNewAvailParam(name,
+                                         asynParamInt64Array,
+                                         (uint8_t *)(&ecmcUpdatedCounter),
+                                         8,
+                                         ECMC_EC_U64,
+                                         0);
+#else
   paramTemp = asynPort->addNewAvailParam(name,
                                          asynParamInt32Array,
                                          (uint8_t *)(&ecmcUpdatedCounter),
                                          4,
-                                         ECMC_EC_S32,
+                                         ECMC_EC_U32,
                                          0);
+#endif //ECMC_ASYN_ASYNPARAMINT64
+
   if(!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
@@ -591,7 +615,7 @@ int ecmcAddDefaultAsynParams() {
       __LINE__,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }  
+  }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->setArrayCheckSize(false);
   paramTemp->refreshParam(1);
