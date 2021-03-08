@@ -518,21 +518,41 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
   int errorCode = 0;
 
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
-  if(relative) {
-    errorCode = drvlocal.ecmcAxis->moveRelativePosition(position,
-                                                        maxVelocity,
-                                                        acceleration,
-                                                        acceleration);
-  }
-  else
-  {
-    errorCode = drvlocal.ecmcAxis->moveAbsolutePosition(position,
-                                                        maxVelocity,
-                                                        acceleration,
-                                                        acceleration);
-    
-  }
+
+    if(drvlocal.ecmcAxis->getBlockExtCom()) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__);
+      return asynError;
+    }
+
+    //if(drvlocal.ecmcAxis->getAllowPos()) {
+
+    if(relative) {
+      errorCode = drvlocal.ecmcAxis->moveRelativePosition(position,
+                                                          maxVelocity,
+                                                          acceleration,
+                                                          acceleration);
+    }
+    else
+    {
+      errorCode = drvlocal.ecmcAxis->moveAbsolutePosition(position,
+                                                          maxVelocity,
+                                                          acceleration,
+                                                          acceleration);        
+    }    
+    //} else {
+    //  LOGERR(
+    //    "%s/%s:%d: ERROR: Constant velo disabled and therefore not allowed.\n",
+    //    __FILE__,
+    //    __FUNCTION__,
+    //    __LINE__);
+    //}
+
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
 #ifndef motorWaitPollsBeforeReadyString
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
 #endif
@@ -601,8 +621,29 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
     return asynError;
   }
 
+  int errorCode = 0;
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
-  int errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,homPos,velToCam,velOffCam,accHom,accHom);
+
+    if(drvlocal.ecmcAxis->getBlockExtCom()) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__);
+      return asynError;
+    }
+
+    //if(drvlocal.ecmcAxis->getAllowHome()) {
+    errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,homPos,velToCam,velOffCam,accHom,accHom);
+    //} else
+    //{
+    //  LOGERR(
+    //    "%s/%s:%d: ERROR: Homing disabled and therefore not allowed.\n",
+    //    __FILE__,
+    //    __FUNCTION__,
+    //    __LINE__);    
+    //}
+
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
 #ifndef motorWaitPollsBeforeReadyString
@@ -655,10 +696,31 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity, double maxVeloc
     acc = -acc;
   }
 
+  int errorCode = 0;
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
-  int errorCode = drvlocal.ecmcAxis->moveVelocity(velo,
-                                                  acc,
-                                                  acc);
+
+    if(drvlocal.ecmcAxis->getBlockExtCom()) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__);
+      return asynError;
+    }
+
+    //if(drvlocal.ecmcAxis->getAllowConstVelo()) {
+    errorCode = drvlocal.ecmcAxis->moveVelocity(velo,
+                                                acc,
+                                                acc);
+    //} else
+    //{
+    //  LOGERR(
+    //    "%s/%s:%d: ERROR: Constant velo disabled and therefore not allowed.\n",
+    //    __FILE__,
+    //    __FUNCTION__,
+    //    __LINE__);
+    //}
+
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
 #ifndef motorWaitPollsBeforeReadyString

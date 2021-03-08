@@ -51,6 +51,9 @@ void ecmcAxisSequencer::initVars() {
   homeLatchCountOffset_ = 0;
   homeLatchCountAct_    = 0;
   overUnderFlowLatch_   = ECMC_ENC_NORMAL;
+  enablePos_            = true;
+  enableConstVel_       = true;
+  enableHome_           = true;
 }
 
 // Cyclic execution
@@ -270,6 +273,10 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   case ECMC_CMD_MOVEVEL:
 
     if (data_->command_.execute  && !executeOld_) {
+      if(!enableConstVel_) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
+      }
+
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setTargetVel(data_->command_.velocityTarget);                  
@@ -285,6 +292,10 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   case ECMC_CMD_MOVEREL:
 
     if (data_->command_.execute && !executeOld_) {
+      if(!enablePos_) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
+      }
+
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);
@@ -300,6 +311,10 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   case ECMC_CMD_MOVEABS:
 
     if (data_->command_.execute && !executeOld_) {
+      if(!enablePos_) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
+      }
+
       if(data_->command_.moduloRange>0) {
         if(data_->command_.positionTarget<0 || data_->command_.positionTarget>= data_->command_.moduloRange) {
           LOGERR(
@@ -354,7 +369,11 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   case ECMC_CMD_HOMING:
 
     if (data_->command_.execute && !executeOld_) {
+
       stopSeq();
+      if(!enableHome_) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
+      }
 
       if ((traj_ != NULL) && (enc_ != NULL) && (mon_ != NULL) &&
           (cntrl_ != NULL)) {
@@ -2182,4 +2201,25 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
 
 void ecmcAxisSequencer::setHomeLatchCountOffset(int count) {
   homeLatchCountOffset_ = count;
+}
+
+int ecmcAxisSequencer::setAllowMotionFunctions(bool enablePos,
+                                               bool enableConstVel,
+                                               bool enableHome) {
+  enablePos_ = enablePos;
+  enableConstVel_ = enableConstVel;
+  enableHome_ = enableHome;
+  return 0;
+}
+
+int ecmcAxisSequencer::getAllowPos() {
+  return enablePos_;
+}
+
+int ecmcAxisSequencer::getAllowConstVelo(){
+  return enableConstVel_;
+}
+
+int ecmcAxisSequencer::getAllowHome(){
+  return enableHome_;
 }

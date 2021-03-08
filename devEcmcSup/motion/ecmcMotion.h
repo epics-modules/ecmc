@@ -1189,6 +1189,23 @@ int setAxisCmdData(int axisIndex,
 int setAxisEnable(int axisIndex,
                   int value);
 
+/** \brief Set enable of motion functions.\n
+ *
+ * \param[in] axisIndex       Axis index.\n
+ * \param[in] enablePos       Allow positioning (default = true).\n
+ * \param[in] enableConstVel  Allow constant velocity (default = true).\n
+ * \param[in] enableHome      Allow homing (default = true).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Only allow positioning for axis 3.\n
+ * "Cfg.setAxisEnableMotionFunctions(3,1,0,0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEnableMotionFunctions(int axisIndex,
+                                 int enablePos,
+                                 int enableConstVel,
+                                 int enableHome);
+
 /** \brief Set enable alarms at limits bit.\n
  *
  * \param[in] axisIndex  Axis index.\n

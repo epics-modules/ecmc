@@ -720,6 +720,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_SEQ_TARGET_POS_OUT_OF_RANGE";
 
     break;
+  case 0x14D16:
+    return "ERROR_SEQ_MOTION_CMD_NOT_ENABLED";
+
+    break;
 
   case 0x14E00:    // TRAJECTORY
     return "ERROR_TRAJ_EXT_ENC_NULL";

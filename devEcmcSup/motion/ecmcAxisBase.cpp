@@ -1629,3 +1629,35 @@ int ecmcAxisBase::setDisableAxisAtErrorReset(bool disable){
   disableAxisAtErrorReset_ = disable;
   return 0;
 }
+
+int ecmcAxisBase::setAllowMotionFunctions(bool enablePos, 
+                                          bool enableConstVel,
+                                          bool enableHome) {
+    
+
+  if (getSeq() != NULL) {      
+    return getSeq()->setAllowMotionFunctions(enablePos,enableConstVel,enableHome);
+  }
+  return ERROR_AXIS_SEQ_OBJECT_NULL;
+}
+
+int ecmcAxisBase::getAllowPos() {
+  if (getSeq() != NULL) {      
+    return getSeq()->getAllowPos();
+  }
+  return -ERROR_AXIS_SEQ_OBJECT_NULL;
+}
+
+int ecmcAxisBase::getAllowConstVelo(){
+    if (getSeq() != NULL) {      
+    return getSeq()->getAllowConstVelo();
+  }
+  return -ERROR_AXIS_SEQ_OBJECT_NULL;
+}
+
+int ecmcAxisBase::getAllowHome(){
+  if (getSeq() != NULL) {      
+    return getSeq()->getAllowHome();
+  }
+  return -ERROR_AXIS_SEQ_OBJECT_NULL;
+}
