@@ -35,6 +35,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_get_busy(",
                                "mc_get_homed(",
                                "mc_get_axis_err(",
+                               "mc_set_enable_motion_funcs(",
                               };
 
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
@@ -45,8 +46,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 11;
-
+static int mc_cmd_count = 12;
 
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
 {
@@ -274,6 +274,18 @@ inline double mc_get_axis_err(double axIndex)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
   return (double) ecmcPLCTask::statAxes_[index]->getErrorID();
 }
+
+inline double mc_set_enable_motion_funcs(double axIndex, 
+                                  double enablePos,
+                                  double enableVel,
+                                  double enableHome)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  return (double) ecmcPLCTask::statAxes_[index]->setAllowMotionFunctions(
+                    (int)enablePos,(int)enableVel,(int)enableHome);
+}
+
 
 inline double mc_get_err()
 {

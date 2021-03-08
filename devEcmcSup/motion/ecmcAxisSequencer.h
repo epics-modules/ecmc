@@ -44,6 +44,7 @@
 #define ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR 0x14D13
 #define ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE 0x14D14
 #define ERROR_SEQ_TARGET_POS_OUT_OF_RANGE 0x14D15
+#define ERROR_SEQ_MOTION_CMD_NOT_ENABLED 0x14D16
 
 // Homing
 enum ecmcHomingType {
@@ -106,8 +107,13 @@ class ecmcAxisSequencer : public ecmcError {
   int    validate();
   int    setSequenceTimeout(int timeout);
   int    setExternalExecute(bool execute);
-  //int    setExtTrajIF(ecmcMasterSlaveIF *extIf);
   int    setAxisDataRef(ecmcAxisData *data);
+  int    setAllowMotionFunctions(bool enablePos,
+                                 bool enableConstVel,
+                                 bool enableHome);
+  int    getAllowPos();
+  int    getAllowConstVelo();
+  int    getAllowHome();
 
  private:
   void   initVars();
@@ -165,6 +171,9 @@ class ecmcAxisSequencer : public ecmcError {
   ecmcOverUnderFlowType overUnderFlowLatch_;
   int homeLatchCountOffset_;
   int homeLatchCountAct_;
+  bool enablePos_;
+  bool enableConstVel_;
+  bool enableHome_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */

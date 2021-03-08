@@ -1,6 +1,13 @@
 Release Notes
 ===
 # ECMC master
+* Add command to enable/disable motion functions (all are by default enabled):
+```
+ecmcConfigOrDie "Cfg.SetAxisEnableMotionFunctions(<axisid>,
+                                                  <enable pos>,
+                                                  <enable const velo>,
+                                                  <enable home>)"
+```
 * ecmc-updated param changed to uint64 if asyn version >=4.37
 * Fix printout of plugin plc functions info for funcs with more than 6 args.
 
