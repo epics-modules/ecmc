@@ -101,9 +101,9 @@ void ecmcAxisVirt::execute(bool masterOK) {
       if (getExecute()) {
         setExecute(false);
       }
-      data_.status_.currentPositionSetpoint =
+      /*data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
-      traj_->setStartPos(data_.status_.currentPositionSetpoint);
+      traj_->setStartPos(data_.status_.currentPositionSetpoint);*/
     }
 
     if (!masterOK) {

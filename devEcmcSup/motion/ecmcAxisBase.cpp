@@ -481,10 +481,15 @@ int ecmcAxisBase::getErrorID() {
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
   if (enable && !data_.command_.enable) {
+    extEncVeloFilter_->initFilter(0);  // init to 0 vel
+    extTrajVeloFilter_->initFilter(0);  // init to 0 vel
     traj_->setStartPos(data_.status_.currentPositionActual);
     traj_->setCurrentPosSet(data_.status_.currentPositionActual);
     traj_->setTargetPos(data_.status_.currentPositionActual);
     data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
+    data_.status_.currentPositionSetpoint = data_.status_.currentPositionActual;
+    data_.status_.currentPositionSetpointOld = data_.status_.currentPositionSetpoint;
+    data_.status_.currentVelocitySetpoint = 0;
   }
   traj_->setEnable(enable);
 
@@ -1204,6 +1209,7 @@ int ecmcAxisBase::setEnableExtTrajVeloFilter(bool enable) {
   }
 
   if (enable && !enableExtTrajVeloFilter_) {
+    extTrajVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->reset();
   }
 
@@ -1222,6 +1228,7 @@ int ecmcAxisBase::setEnableExtEncVeloFilter(bool enable) {
   }
 
   if (enable && !enableExtEncVeloFilter_) {
+    extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extEncVeloFilter_->reset();
   }
 
