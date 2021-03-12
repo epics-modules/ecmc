@@ -1,6 +1,9 @@
 Release Notes
 ===
 # ECMC master
+* Position setpoint is not overwritten with actual position when axis is disabled. Setpoint is updated with actual position during enabling sequence instead of always in disable.
+
+# ECMC 6.3.2
 * Add command to enable/disable motion functions (all are by default enabled):
 ```
 ecmcConfigOrDie "Cfg.SetAxisEnableMotionFunctions(<axisid>,
