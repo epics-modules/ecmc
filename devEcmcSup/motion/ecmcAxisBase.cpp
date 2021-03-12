@@ -1338,7 +1338,19 @@ int ecmcAxisBase::moveAbsolutePosition(
                             double velocitySet,
                             double accelerationSet,
                             double decelerationSet) {
- 
+
+  if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int errorCode = getErrorID();
   if (errorCode) {
     return errorCode;
@@ -1376,6 +1388,18 @@ int ecmcAxisBase::moveRelativePosition(
                             double accelerationSet,
                             double decelerationSet) {
 
+  if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int errorCode = getErrorID();
   if (errorCode) {
     return errorCode;
@@ -1412,6 +1436,18 @@ int ecmcAxisBase::moveVelocity(
                             double velocitySet,
                             double accelerationSet,
                             double decelerationSet) {
+
+  if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
 
   int errorCode = getErrorID();
   if (errorCode) {
@@ -1459,6 +1495,19 @@ int ecmcAxisBase::moveHome(int    nCmdData,
                            double accelerationSet,
                            double decelerationSet
                            ) {
+
+  if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int errorCode = getErrorID();
   if (errorCode) {
     return errorCode;

@@ -1787,6 +1787,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x20052:
+    return "ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL";
+
+    break;
+
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 
