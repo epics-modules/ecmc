@@ -34,7 +34,6 @@ class ecmcAxisReal : public ecmcAxisBase {
 
  private:
   void               initVars(); 
-  bool initDone_;
   bool temporaryLocalTrajSource_;
   ecmcDriveBase *drv_;
   ecmcPIDController *cntrl_;

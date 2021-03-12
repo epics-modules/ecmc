@@ -38,7 +38,6 @@ public:
 
 private:
   void initVars();
-  bool initDone_;
   bool temporaryLocalTrajSource_;  
 };
 

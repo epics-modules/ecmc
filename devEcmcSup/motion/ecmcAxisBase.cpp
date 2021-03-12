@@ -87,6 +87,7 @@ ecmcAxisBase::~ecmcAxisBase() {
 
 void ecmcAxisBase::initVars() {
   // errorReset();  //THIS IS NONO..
+  initDone_                    = 0;
   data_.axisType_              = ECMC_AXIS_TYPE_BASE;
   data_.command_.reset         = false;
   allowCmdFromOtherPLC_        = false;
@@ -490,6 +491,7 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
     data_.status_.currentPositionSetpoint = data_.status_.currentPositionActual;
     data_.status_.currentPositionSetpointOld = data_.status_.currentPositionSetpoint;
     data_.status_.currentVelocitySetpoint = 0;
+    initDone_ = true;
   }
   traj_->setEnable(enable);
 
@@ -1188,10 +1190,18 @@ int ecmcAxisBase::setEnable(bool enable) {
   return 0;
 }
 
+double ecmcAxisBase::getExtSetPos() {
+  return data_.status_.externalTrajectoryPosition;
+}
+
 
 int ecmcAxisBase::setExtSetPos(double pos) {
   data_.status_.externalTrajectoryPosition = pos;
   return 0;
+}
+
+double ecmcAxisBase::getExtActPos() {
+  return data_.status_.externalEncoderPosition;
 }
 
 int ecmcAxisBase::setExtActPos(double pos) {

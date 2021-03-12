@@ -352,7 +352,8 @@ inline double mc_move_gear_in(double axIndex,double execute, double vel, double 
     if(mc_errorCode){
       return mc_errorCode;
     }
-    
+    double pos = ecmcPLCTask::statAxes_[index]->getExtSetPos();
+    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
     ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
     ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
     ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);

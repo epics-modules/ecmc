@@ -60,7 +60,6 @@ ecmcAxisReal::~ecmcAxisReal() {
 }
 
 void ecmcAxisReal::initVars() {
-  initDone_                       = false;
   data_.command_.operationModeCmd = ECMC_MODE_OP_AUTO;
   currentDriveType_               = ECMC_NO_DRIVE;
   temporaryLocalTrajSource_       = false;
@@ -167,11 +166,11 @@ void ecmcAxisReal::execute(bool masterOK) {
       }
       // Only update if enable cmd is low to avoid change of setpoint 
       // during between enable and enabled
-      /*if (!getEnable()) {
+      if (!getEnable() && !initDone_ && masterOK) {
         data_.status_.currentPositionSetpoint =
           data_.status_.currentPositionActual;
-        traj_->setStartPos(data_.status_.currentPositionSetpoint);
-      }*/
+        traj_->setStartPos(data_.status_.currentPositionSetpoint);        
+      }
 
       if (data_.status_.enabledOld && !data_.status_.enabled &&
           data_.status_.enableOld && data_.command_.enable) {

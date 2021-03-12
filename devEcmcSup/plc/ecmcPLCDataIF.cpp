@@ -546,6 +546,14 @@ int ecmcPLCDataIF::readAxis() {
     data_ = static_cast<double>(axis_->getAllowCmdFromPLC());
     break;
 
+  case ECMC_AXIS_DATA_POS_SET_EXTERNAL:
+    data_ = axis_->getExtSetPos();
+    break;
+
+  case ECMC_AXIS_DATA_POS_ACT_EXTERNAL:
+    data_ = axis_->getExtActPos();
+    break;
+
   default:
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -802,6 +810,14 @@ int ecmcPLCDataIF::writeAxis() {
 
   case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:
     return axis_->setAllowCmdFromPLC(data_>=1);
+    break;
+
+  case ECMC_AXIS_DATA_POS_SET_EXTERNAL:
+    return axis_->setExtSetPos(data_);
+    break;
+
+  case ECMC_AXIS_DATA_POS_ACT_EXTERNAL:
+    return axis_->setExtActPos(data_);
     break;
 
   default:
@@ -1161,6 +1177,18 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
   if (npos == 0) {
     isBool_ = 1;
     return ECMC_AXIS_DATA_ALLOW_PLC_WRITE;
+  }
+
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_POS_SET_EXTERNAL);
+
+  if (npos == 0) {    
+    return ECMC_AXIS_DATA_POS_SET_EXTERNAL;
+  }
+
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_POS_ACT_EXTERNAL);
+
+  if (npos == 0) {    
+    return ECMC_AXIS_DATA_POS_ACT_EXTERNAL;
   }
 
   return ECMC_AXIS_DATA_NONE;
