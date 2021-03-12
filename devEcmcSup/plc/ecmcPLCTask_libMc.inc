@@ -13,6 +13,8 @@
 #ifndef ecmcPLC_libMc_inc_
 #define ecmcPLC_libMc_inc_
 
+#include "../main/ecmcErrorsList.h"
+
 #define CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndex) {             \
   if(axIndex>=ECMC_MAX_AXES || axIndex<=0){                   \
     mc_errorCode=0;                                           \
@@ -36,6 +38,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_get_homed(",
                                "mc_get_axis_err(",
                                "mc_set_enable_motion_funcs(",
+                               "mc_move_gear_in(",
                               };
 
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
@@ -46,13 +49,20 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 12;
+static int mc_cmd_count = 13;
 
+// Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-    
+  
+  // check traj source, must be internal
+  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int trigg=!statLastAxesExecuteAbs_[index] && (bool)execute;
   statLastAxesExecuteAbs_[index]=execute;
 
@@ -88,11 +98,18 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
   return 0.0;
 }
 
+// Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_rel(double axIndex,double execute,double pos, double vel, double acc,double dec)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
   
+  // check traj source, must be internal
+  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int trigg=!statLastAxesExecuteRel_[index] && (bool)execute;
   statLastAxesExecuteRel_[index]=execute;
   
@@ -128,10 +145,17 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
   return 0.0;
 }
 
+// Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_vel(double axIndex,double execute, double vel, double acc,double dec)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+
+  // check traj source, must be internal
+  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
 
   int trigg=!statLastAxesExecuteVel_[index] && (bool)execute;
   statLastAxesExecuteVel_[index]=execute;
@@ -167,11 +191,18 @@ inline double mc_move_vel(double axIndex,double execute, double vel, double acc,
   return 0.0;
 }
 
+// Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_home(double axIndex,double execute,double seqId, double velTwoardsCam,double velOffCam)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
   
+  // check traj source, must be internal
+  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int trigg=!statLastAxesExecuteHome_[index] && (bool)execute;
   statLastAxesExecuteHome_[index]=execute;
   
@@ -215,6 +246,12 @@ inline double mc_halt(double axIndex,double execute)
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
   
+  // check traj source, must be internal
+  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   if (!(bool)execute){
     mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
     return mc_errorCode;
@@ -286,11 +323,54 @@ inline double mc_set_enable_motion_funcs(double axIndex,
                     (int)enablePos,(int)enableVel,(int)enableHome);
 }
 
-
 inline double mc_get_err()
 {
   return (double)mc_errorCode;
 }
 
-#endif /* ecmcPLC_libMc_inc_ */
+inline double mc_move_gear_in(double axIndex,double execute, double vel, double acc, double dec)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
 
+  // check traj source, must be internal
+  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
+  int trigg=!statLastAxesExecuteAbs_[index] && (bool)execute;
+  statLastAxesExecuteAbs_[index]=execute;
+
+  if (!(bool)execute){
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    return mc_errorCode;
+  }
+  
+  if(trigg){    
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+    
+    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
+    ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
+    ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);
+
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData(1);
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+  }
+  return 0.0;
+}
+
+#endif /* ecmcPLC_libMc_inc_ */
