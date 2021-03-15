@@ -87,6 +87,7 @@ ecmcAxisBase::~ecmcAxisBase() {
 
 void ecmcAxisBase::initVars() {
   // errorReset();  //THIS IS NONO..
+  beforeFirstEnable_                    = 0;
   data_.axisType_              = ECMC_AXIS_TYPE_BASE;
   data_.command_.reset         = false;
   allowCmdFromOtherPLC_        = false;
@@ -490,6 +491,7 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
     data_.status_.currentPositionSetpoint = data_.status_.currentPositionActual;
     data_.status_.currentPositionSetpointOld = data_.status_.currentPositionSetpoint;
     data_.status_.currentVelocitySetpoint = 0;
+    beforeFirstEnable_ = true;
   }
   traj_->setEnable(enable);
 
@@ -1188,10 +1190,18 @@ int ecmcAxisBase::setEnable(bool enable) {
   return 0;
 }
 
+double ecmcAxisBase::getExtSetPos() {
+  return data_.status_.externalTrajectoryPosition;
+}
+
 
 int ecmcAxisBase::setExtSetPos(double pos) {
   data_.status_.externalTrajectoryPosition = pos;
   return 0;
+}
+
+double ecmcAxisBase::getExtActPos() {
+  return data_.status_.externalEncoderPosition;
 }
 
 int ecmcAxisBase::setExtActPos(double pos) {
@@ -1338,7 +1348,19 @@ int ecmcAxisBase::moveAbsolutePosition(
                             double velocitySet,
                             double accelerationSet,
                             double decelerationSet) {
- 
+
+  if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int errorCode = getErrorID();
   if (errorCode) {
     return errorCode;
@@ -1376,6 +1398,18 @@ int ecmcAxisBase::moveRelativePosition(
                             double accelerationSet,
                             double decelerationSet) {
 
+  if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int errorCode = getErrorID();
   if (errorCode) {
     return errorCode;
@@ -1412,6 +1446,18 @@ int ecmcAxisBase::moveVelocity(
                             double velocitySet,
                             double accelerationSet,
                             double decelerationSet) {
+
+  if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
 
   int errorCode = getErrorID();
   if (errorCode) {
@@ -1459,6 +1505,19 @@ int ecmcAxisBase::moveHome(int    nCmdData,
                            double accelerationSet,
                            double decelerationSet
                            ) {
+
+  if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
   int errorCode = getErrorID();
   if (errorCode) {
     return errorCode;

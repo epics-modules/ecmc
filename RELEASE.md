@@ -1,7 +1,16 @@
 Release Notes
 ===
 # ECMC master
-* Position setpoint is not overwritten with actual position when axis is disabled. Setpoint is updated with actual position during enabling sequence instead of always in disable.
+* Add plc function mc_move_ext_pos():
+  Plc function will move axis to the current external plc setpoint. Inteded to be used to move a slave axis to it's start position before allowing external setpoints.
+
+* Add variables:
+
+  - ax<id>.enc.extactpos  (ro): Current external plc calculated actual position (ax<id>.enc.actpos can be used for writing).
+
+  - ax<id>.traj.extsetpos (ro):  Current external plc calculated setpoint position(ax<id>.enc.setpos can be used for writing).
+
+* Position setpoint is syncronized with actual position when axis is disabled. Setpoint is updated once at positive edge of enable command. Note: The position setpoint is synced with actual position before first enable.
 
 # ECMC 6.3.2
 * Add command to enable/disable motion functions (all are by default enabled):

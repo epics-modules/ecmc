@@ -29,7 +29,6 @@ ecmcAxisVirt::~ecmcAxisVirt()
 {}
 
 void ecmcAxisVirt::initVars() {
-  initDone_                 = false;
   temporaryLocalTrajSource_ = false;
 }
 
@@ -101,9 +100,12 @@ void ecmcAxisVirt::execute(bool masterOK) {
       if (getExecute()) {
         setExecute(false);
       }
-      /*data_.status_.currentPositionSetpoint =
-        data_.status_.currentPositionActual;
-      traj_->setStartPos(data_.status_.currentPositionSetpoint);*/
+
+      if(!beforeFirstEnable_ && masterOK){
+        data_.status_.currentPositionSetpoint =
+          data_.status_.currentPositionActual;
+        traj_->setStartPos(data_.status_.currentPositionSetpoint);        
+      }
     }
 
     if (!masterOK) {
