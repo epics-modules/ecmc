@@ -299,7 +299,7 @@ class ecmcAxisBase : public ecmcError {
   bool enableExtTrajVeloFilter_;
   bool enableExtEncVeloFilter_;
   bool disableAxisAtErrorReset_;
-  bool initDone_;
+  bool beforeFirstEnable_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

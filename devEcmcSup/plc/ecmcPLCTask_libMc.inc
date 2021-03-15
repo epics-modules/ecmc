@@ -38,7 +38,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_get_homed(",
                                "mc_get_axis_err(",
                                "mc_set_enable_motion_funcs(",
-                               "mc_move_gear_in(",
+                               "mc_move_ext_pos(",
                               };
 
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
@@ -328,7 +328,7 @@ inline double mc_get_err()
   return (double)mc_errorCode;
 }
 
-inline double mc_move_gear_in(double axIndex,double execute, double vel, double acc, double dec)
+inline double mc_move_ext_pos(double axIndex,double execute, double vel, double acc, double dec)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  

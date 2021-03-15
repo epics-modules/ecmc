@@ -813,11 +813,11 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_POS_SET_EXTERNAL:
-    return axis_->setExtSetPos(data_);
+    return 0; //axis_->setExtSetPos(data_);
     break;
 
   case ECMC_AXIS_DATA_POS_ACT_EXTERNAL:
-    return axis_->setExtActPos(data_);
+    return 0; //axis_->setExtActPos(data_);
     break;
 
   default:

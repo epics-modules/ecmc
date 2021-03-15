@@ -166,7 +166,7 @@ void ecmcAxisReal::execute(bool masterOK) {
       }
       // Only update if enable cmd is low to avoid change of setpoint 
       // during between enable and enabled
-      if (!getEnable() && !initDone_ && masterOK) {
+      if (!getEnable() && !beforeFirstEnable_ && masterOK) {
         data_.status_.currentPositionSetpoint =
           data_.status_.currentPositionActual;
         traj_->setStartPos(data_.status_.currentPositionSetpoint);        
