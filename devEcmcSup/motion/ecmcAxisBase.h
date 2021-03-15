@@ -257,6 +257,8 @@ class ecmcAxisBase : public ecmcError {
   int                   getAllowPos();
   int                   getAllowConstVelo();
   int                   getAllowHome();
+  double                getExtSetPos();
+  double                getExtActPos();
 
  protected:
   void         initVars();
@@ -297,6 +299,7 @@ class ecmcAxisBase : public ecmcError {
   bool enableExtTrajVeloFilter_;
   bool enableExtEncVeloFilter_;
   bool disableAxisAtErrorReset_;
+  bool beforeFirstEnable_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

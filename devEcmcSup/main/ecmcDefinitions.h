@@ -387,7 +387,9 @@ enum axisSubObjectType {
 
 #define ECMC_AXIS_DATA_STR_AXIS_ID "id"
 #define ECMC_AXIS_DATA_STR_POS_SET "traj.setpos"
+#define ECMC_AXIS_DATA_STR_POS_SET_EXTERNAL "traj.extsetpos"
 #define ECMC_AXIS_DATA_STR_POS_ACT "enc.actpos"
+#define ECMC_AXIS_DATA_STR_POS_ACT_EXTERNAL "enc.extactpos"
 #define ECMC_AXIS_DATA_STR_CNTRL_ERROR "cntrl.error"
 #define ECMC_AXIS_DATA_STR_POS_TARGET "traj.targetpos"
 #define ECMC_AXIS_DATA_STR_POS_ERROR "cntrl.poserror"
@@ -474,6 +476,8 @@ enum ecmcAxisDataType {
   ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE    = 41,
   ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE    = 42,
   ECMC_AXIS_DATA_ALLOW_PLC_WRITE       = 43,
+  ECMC_AXIS_DATA_POS_SET_EXTERNAL      = 44,
+  ECMC_AXIS_DATA_POS_ACT_EXTERNAL      = 45,
 };
 
 enum ecmcDataStorageType {
