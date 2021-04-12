@@ -52,6 +52,9 @@ public:
                   double acceleration,
                   int forwards);
   asynStatus setPosition(double value);
+  asynStatus setHighLimit(double highLimit);
+  asynStatus setLowLimit(double lowLimit);
+
   asynStatus poll(bool *moving);
 
 private:

@@ -1316,9 +1316,9 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value)
  */
 asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value)
 {
+
   asynStatus status;
   int errorCode = 0;
-  //unsigned indexGroup5000 = 0x5000;
 
   if (function == pC_->motorMoveRel_) {
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
@@ -1467,6 +1467,29 @@ void ecmcMotorRecordAxis::updateMsgTxtFromDriver(const char *value)
   }
 }
 #endif
+
+/** Set the high limit position of the motor.
+  * \param[in] highLimit The new high limit position that should be set in the hardware. Units=steps.*/
+asynStatus ecmcMotorRecordAxis::setHighLimit(double highLimit)
+{
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
+  int errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitFwd(highLimit);
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+  printf("highLimithighLimithighLimit %lf\n", highLimit);
+  return asynMotorAxis::setHighLimit(highLimit);
+}
+
+/** Set the low limit position of the motor.
+  * \param[in] lowLimit The new low limit position that should be set in the hardware. Units=steps.*/
+asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit)
+{
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
+  int errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitBwd(lowLimit);
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
+  printf("lowLimitlowLimitlowLimitlowLimit %lf\n", lowLimit);
+  return asynMotorAxis::setLowLimit(lowLimit);
+}
 
 /**
  * Printout entire drvlocal.statusBinData. Just for debug purpose..
