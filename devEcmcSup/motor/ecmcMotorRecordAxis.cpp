@@ -588,7 +588,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
   asynStatus status = pC_->getIntegerParam(axisNo_,
                                            pC_->ecmcMotorRecordHomProc_,
                                            &cmdData);
-  if (cmdData ==  ECMC_SEQ_HOME_SET_POS || status != asynSuccess) {
+  if ( status != asynSuccess) {
     return asynError;
   }
   
