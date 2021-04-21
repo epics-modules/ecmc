@@ -223,7 +223,7 @@ int ecmcAsynDataItem::refreshParam(int force,uint8_t *data, size_t bytes)
     case asynParamFloat64:            
       if(paramInfo_.cmdInt64ToFloat64) {        
         if(dataItem_.dataSize == sizeof(int64_t)) {
-          stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsFloat64>(*(int64_t*)data));         
+          stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,paramInfo_.index,static_cast<epicsFloat64>(*(int64_t*)data));
           break;
         }
       }
@@ -661,7 +661,8 @@ asynStatus ecmcAsynDataItem::writeInt32(epicsInt32 value) {
     if(paramInfo_.asynType == asynParamFloat64 && dataItem_.dataSize == sizeof(epicsFloat64)){
       epicsFloat64 temp = static_cast<epicsFloat64>(value);
       memcpy(dataItem_.data,&temp,sizeof(epicsFloat64));
-      return asynSuccess;
+      
+      return refreshParamRT(1) ? asynError : asynSuccess;
     }
     else {
       LOGERR(
