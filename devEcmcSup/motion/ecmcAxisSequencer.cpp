@@ -376,7 +376,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       if ((traj_ != NULL) && (enc_ != NULL) && (mon_ != NULL) &&
-          (cntrl_ != NULL)) {
+          (cntrl_ != NULL || data_->axisType_ == ECMC_AXIS_TYPE_VIRTUAL)) {
         seqInProgress_      = true;
         localSeqBusy_       = true;
         data_->status_.busy = true;
@@ -404,7 +404,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                             ERROR_SEQ_MON_NULL);
         }
 
-        if (cntrl_ == NULL) {
+        if (cntrl_ == NULL && data_->axisType_ != ECMC_AXIS_TYPE_VIRTUAL) {
           return setErrorID(__FILE__,
                             __FUNCTION__,
                             __LINE__,
@@ -636,11 +636,14 @@ ecmcTrajectoryTrapetz * ecmcAxisSequencer::getTraj() {
 int ecmcAxisSequencer::seqHoming15() {  // nCmdData==15
   // Return = 0 ready
   // State 0 set encoder position to same as fHomePosition
+  printf("seqHoming15");
   traj_->setCurrentPosSet(homePosition_);
   traj_->setTargetPos(homePosition_);
   enc_->setActPos(homePosition_);
   enc_->setHomed(true);
-  cntrl_->reset();
+  if(cntrl_) {
+    cntrl_->reset();
+  }
   stopSeq();
 
   return 0;
@@ -2191,7 +2194,9 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   }
   enc_->setHomed(true);
   enc_->setArmLatch(false);
-  cntrl_->reset();
+  if(cntrl_) {
+    cntrl_->reset();
+  }
   homePosLatch1_      = 0;
   homePosLatch2_      = 0;
   homeLatchCountAct_  = 0;
