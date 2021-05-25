@@ -39,6 +39,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_get_axis_err(",
                                "mc_set_enable_motion_funcs(",
                                "mc_move_ext_pos(",
+                               "mc_home_pos(",
                               };
 
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
@@ -49,7 +50,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 13;
+static int mc_cmd_count = 14;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -212,6 +213,57 @@ inline double mc_home(double axIndex,double execute,double seqId, double velTwoa
   }
 
   if(trigg){    
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    if(mc_errorCode){
+      return mc_errorCode;
+    }    
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelTwordsCam(velTwoardsCam);
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelOffCam(velOffCam);
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_HOMING);    
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData((int)seqId);
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    if(mc_errorCode){
+      return mc_errorCode;
+    }
+  }
+
+  return 0.0;
+}
+
+inline double mc_home_pos(double axIndex,double execute,double seqId, double velTwoardsCam,double velOffCam, double homePos)
+{
+  int index=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  
+  // check traj source, must be internal
+  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
+  int trigg=!statLastAxesExecuteHome_[index] && (bool)execute;
+  statLastAxesExecuteHome_[index]=execute;
+  
+  if (!(bool)execute){
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    return mc_errorCode;
+  }
+
+  if(trigg){    
+    ecmcPLCTask::statAxes_[index]->getSeq()->setHomePosition(homePos);
+    
     mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
