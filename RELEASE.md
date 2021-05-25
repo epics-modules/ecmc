@@ -1,6 +1,10 @@
 Release Notes
 ===
 # ECMC master
+
+* Add plc function mc_move_pos():
+  Reference encoder to a postion (same as mc_home but with an extra argument for position, so no need to set home position with ax<id>.enc.homepos). 
+
 * Add plc function mc_move_ext_pos():
   Plc function will move axis to the current external plc setpoint. Inteded to be used to move a slave axis to it's start position before allowing external setpoints.
 
