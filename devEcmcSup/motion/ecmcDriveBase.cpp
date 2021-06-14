@@ -57,7 +57,20 @@ void ecmcDriveBase::initVars() {
   cspRawActPos_              = 0;
   cspActPos_                 = 0;
   cspRawPosOffset_           = 0;
-  //counter_ = 0;
+  hwReset_                   = 0;
+  hwErrorAlarm0_             = 0;
+  hwErrorAlarm0Old_          = 0;
+  hwErrorAlarm1_             = 0;
+  hwErrorAlarm1Old_          = 0;
+  hwErrorAlarm2_             = 0;
+  hwErrorAlarm2Old_          = 0;
+  hwWarning_                 = 0;
+  hwWarningOld_              = false;
+  hwResetDefined_            = false;
+  hwErrorAlarm0Defined_      = false;
+  hwErrorAlarm1Defined_      = false;
+  hwErrorAlarm2Defined_      = false;
+  hwWarningDefined_          = false;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -290,6 +303,17 @@ void ecmcDriveBase::writeEntries() {
     }
   }
 
+  // write reset
+  if (hwResetDefined_) {
+    errorCode =
+      writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_RESET,
+                        (uint64_t)hwReset_);
+    hwReset_ = 0;
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+  }
+  
   // Enable command sent to amplfier
   // (if break is not used then enableAmpCmdOld_==enableCmdOld_)
   enableAmpCmdOld_ = enableAmpCmd_;
@@ -322,6 +346,107 @@ void ecmcDriveBase::readEntries() {
                ERROR_DRV_ENABLED_READ_ENTRY_FAIL);
     statusWord_ = 0;
     return;
+  }
+
+  // Check warning link. Think about forwarding warning info to motor record somehow
+  if (hwWarningDefined_) {
+    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING, &hwWarning_)) {
+      hwWarning_ = 0;
+      hwWarningOld_ = 0;
+      setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_DRV_WARNING_READ_ENTRY_FAIL);
+
+      return;
+    }
+
+    if(hwWarning_ > 0 && hwWarningOld_ == 0) {
+      LOGERR("%s/%s:%d: WARNING (axis %d): Drive hardware in warning state.\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          data_->axisId_);
+
+    }
+    if(hwWarning_ == 0 && hwWarningOld_ > 0) {
+      LOGERR("%s/%s:%d: INFO (axis %d): Drive hardware warning state cleared.\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          data_->axisId_);
+    }
+
+    hwWarningOld_ = hwWarning_;
+  }
+
+  // check alarm 0
+  if (hwErrorAlarm0_) {
+    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_)) {
+      hwErrorAlarm0_ = 0;
+      hwErrorAlarm0Old_ = 0;
+      setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
+
+      return;
+    }
+    
+    // Set Alarm
+    if(hwErrorAlarm0_) {
+        setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_DRV_HW_ALARM_0);
+    }
+    hwErrorAlarm0Old_ = hwErrorAlarm0_;
+  }
+
+  // check alarm 1
+  if (hwErrorAlarm1_) {
+    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1, &hwErrorAlarm1_)) {
+      hwErrorAlarm1_ = 0;
+      hwErrorAlarm1Old_ = 0;
+      setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
+
+      return;
+    }
+    
+    // Set Alarm
+    if(hwErrorAlarm1_) {
+        setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_DRV_HW_ALARM_1);
+    }
+    hwErrorAlarm1Old_ = hwErrorAlarm1_;
+  }
+
+  // check alarm 2
+  if (hwErrorAlarm2_) {
+    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2, &hwErrorAlarm2_)) {
+      hwErrorAlarm2_ = 0;
+      hwErrorAlarm2Old_ = 0;
+      setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
+
+      return;
+    }
+    
+    // Set Alarm
+    if(hwErrorAlarm2_) {
+        setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_DRV_HW_ALARM_2);
+    }
+    hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
 }
 
@@ -375,7 +500,51 @@ int ecmcDriveBase::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
   }
+  
+  // Check reset link
+  if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_RESET)) {
+    errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_RESET);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwResetDefined_ = true;
+  }
 
+  // Check warning link
+  if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING)) {
+    errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwWarningDefined_ = true;
+  }
+
+  // Check alarm link 0
+  if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0)) {
+    errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwErrorAlarm0Defined_ = true;
+  }
+
+  // Check alarm link 1
+  if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1)) {
+    errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwErrorAlarm1Defined_ = true;
+  }
+
+  // Check alarm link 2
+  if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2)) {
+    errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwErrorAlarm2Defined_ = true;
+  }
 
   if (scaleDenom_ == 0) {
     return setErrorID(__FILE__,
@@ -383,6 +552,8 @@ int ecmcDriveBase::validate() {
                       __LINE__,
                       ERROR_DRV_SCALE_DENOM_ZERO);
   }
+
+
   return 0;
 }
 
@@ -497,6 +668,12 @@ int ecmcDriveBase::updateBrakeState() {
 }
 
 void ecmcDriveBase::errorReset() {
+  
+  // Reset hardware if needed
+  if(hwResetDefined_) {
+    hwReset_ = 1;
+  }
+
   ecmcError::errorReset();
 }
 

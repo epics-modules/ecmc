@@ -38,6 +38,12 @@
 #define ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID 0x1460B
 #define ERROR_DRV_ASYN_PORT_OBJ_NULL 0x1460C
 #define ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL 0x1460D
+#define ERROR_DRV_HW_ALARM_0 0x1460E
+#define ERROR_DRV_HW_ALARM_1 0x1460F
+#define ERROR_DRV_HW_ALARM_2 0x14610
+#define ERROR_DRV_WARNING_READ_ENTRY_FAIL 0x14611
+#define ERROR_DRV_ALARM_READ_ENTRY_FAIL 0x14612
+
 
 enum ecmcDriveTypes {
   ECMC_STEPPER  = 0,
@@ -125,8 +131,21 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int64_t cspRawActPos_;
   double cspActPos_;
   int64_t cspRawPosOffset_;
-  
-  //int64_t cspRawActPosAtEnableCmd_;
-  //int counter_;
+  uint64_t hwReset_;
+  uint64_t hwErrorAlarm0_;
+  uint64_t hwErrorAlarm0Old_;
+  uint64_t hwErrorAlarm1_;
+  uint64_t hwErrorAlarm1Old_;
+  uint64_t hwErrorAlarm2_;
+  uint64_t hwErrorAlarm2Old_;
+  uint64_t hwWarning_;
+  uint64_t hwWarningOld_;
+  bool hwResetDefined_;
+  bool hwErrorAlarm0Defined_;
+  bool hwErrorAlarm1Defined_;
+  bool hwErrorAlarm2Defined_;
+  bool hwWarningDefined_;
+
 };
+
 #endif  // ifndef ECMCDRIVEBASE_H_
