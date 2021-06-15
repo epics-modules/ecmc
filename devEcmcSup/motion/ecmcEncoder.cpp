@@ -79,6 +79,20 @@ void ecmcEncoder::initVars() {
   actEncLatchPos_       = 0;
   rawAbsPosUint_        = 0;
   rawAbsPosUintOld_     = 0;
+  hwReset_                   = 0;
+  hwErrorAlarm0_             = 0;
+  hwErrorAlarm0Old_          = 0;
+  hwErrorAlarm1_             = 0;
+  hwErrorAlarm1Old_          = 0;
+  hwErrorAlarm2_             = 0;
+  hwErrorAlarm2Old_          = 0;
+  hwWarning_                 = 0;
+  hwWarningOld_              = false;
+  hwResetDefined_            = false;
+  hwErrorAlarm0Defined_      = false;
+  hwErrorAlarm1Defined_      = false;
+  hwErrorAlarm2Defined_      = false;
+  hwWarningDefined_          = false;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -421,6 +435,106 @@ double ecmcEncoder::readEntries() {
     }
   }
 
+  // Check warning link. Think about forwarding warning info to motor record somehow
+  if (hwWarningDefined_) {
+    if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_WARNING, &hwWarning_)) {
+      hwWarning_ = 0;
+      hwWarningOld_ = 0;
+      setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_ENC_WARNING_READ_ENTRY_FAIL);
+
+    }
+
+    if(hwWarning_ > 0 && hwWarningOld_ == 0) {
+      LOGERR("%s/%s:%d: WARNING (axis %d): Encoder hardware in warning state.\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          data_->axisId_);
+
+    }
+    if(hwWarning_ == 0 && hwWarningOld_ > 0) {
+      LOGERR("%s/%s:%d: INFO (axis %d): Encoder hardware warning state cleared.\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          data_->axisId_);
+    }
+
+    hwWarningOld_ = hwWarning_;
+  }
+
+  // check alarm 0
+  if (hwErrorAlarm0Defined_) {
+    if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_)) {
+      hwErrorAlarm0_ = 0;
+      hwErrorAlarm0Old_ = 0;
+      setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_ENC_ALARM_READ_ENTRY_FAIL);
+
+    }
+    
+    // Set Alarm
+    if(hwErrorAlarm0_) {
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_ENC_HW_ALARM_0);
+    }    
+    hwErrorAlarm0Old_ = hwErrorAlarm0_;
+  }
+
+  // check alarm 1
+  if (hwErrorAlarm1Defined_) {
+    if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ALARM_1, &hwErrorAlarm1_)) {
+      hwErrorAlarm1_ = 0;
+      hwErrorAlarm1Old_ = 0;
+      setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_ENC_ALARM_READ_ENTRY_FAIL);
+
+    }
+    
+    // Set Alarm
+    if(hwErrorAlarm1_) {
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_ENC_HW_ALARM_1);
+    }    
+    hwErrorAlarm1Old_ = hwErrorAlarm1_;
+  }
+
+  // check alarm 2
+  if (hwErrorAlarm2Defined_) {
+    if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ALARM_2, &hwErrorAlarm2_)) {
+      hwErrorAlarm2_ = 0;
+      hwErrorAlarm2Old_ = 0;
+      setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_ENC_ALARM_READ_ENTRY_FAIL);
+
+    }
+    
+    // Set Alarm
+    if(hwErrorAlarm2_) {
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_ENC_HW_ALARM_2);
+    }    
+    hwErrorAlarm2Old_ = hwErrorAlarm2_;
+  }
+
   return actPos_;
 }
 
@@ -431,6 +545,19 @@ int ecmcEncoder::writeEntries() {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_READ_FAIL);
     }
   }
+  
+  int errorCode = 0;
+  // write reset
+  if (hwResetDefined_) {
+    errorCode =
+      writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_RESET,
+                        (uint64_t)hwReset_);
+    hwReset_ = 0;
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+  }
+ 
   return 0;
 }
 
@@ -469,6 +596,51 @@ int ecmcEncoder::validate() {
       ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL);
   } else {
     encLatchFunctEnabled_ = false;
+  }
+
+  // Check reset link
+  if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_RESET)) {
+    errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_RESET);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwResetDefined_ = true;
+  }
+
+  // Check warning link
+  if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_WARNING)) {
+    errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_WARNING);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwWarningDefined_ = true;
+  }
+
+  // Check alarm link 0
+  if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_ALARM_0)) {
+    errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ALARM_0);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwErrorAlarm0Defined_ = true;
+  }
+
+  // Check alarm link 1
+  if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_ALARM_1)) {
+    errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ALARM_1);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwErrorAlarm1Defined_ = true;
+  }
+
+  // Check alarm link 2
+  if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_ALARM_2)) {
+    errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ALARM_2);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwErrorAlarm2Defined_ = true;
   }
 
   return 0;
@@ -612,3 +784,14 @@ int ecmcEncoder::setPosFilterEnable(bool enable) {
   enablePositionFilter_ = enable;
   return 0;
 }
+
+void ecmcEncoder::errorReset() {
+  
+  // Reset hardware if needed
+  if(hwResetDefined_) {
+    hwReset_ = 1;
+  }
+
+  ecmcError::errorReset();
+}
+

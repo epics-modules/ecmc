@@ -188,31 +188,6 @@ const char* epicsStateToString(int state)
   return "Unknown state";
 }
 
-#define WINDOWS_TICK_PER_SEC 10000000
-#define SEC_TO_UNIX_EPOCH 11644473600LL
-
-/** Convert Windows timestamp to EPICS timestamp
- *
- * \param[in] plcTime Timestamp from ams router (Windows format, epoch start jan
- * 1 1601).
- * \param[out] ts Epics timestamp (Epoch start jan 1 1990).
- *
- * \return 0 or error code.
- */
-int windowsToEpicsTimeStamp(uint64_t plcTime, epicsTimeStamp *ts)
-{
-  if(!ts){
-    return 1;
-  }
-  //move from WindowsTime to Epics time 1601 jan 1 to 1990 jan 1 (POSIX_TIME_AT_EPICS_EPOCH defined in epicsTime.h)
-  plcTime=plcTime-(POSIX_TIME_AT_EPICS_EPOCH + SEC_TO_UNIX_EPOCH)*WINDOWS_TICK_PER_SEC;
-
-  ts->secPastEpoch=(uint32_t)(plcTime/WINDOWS_TICK_PER_SEC);
-  ts->nsec=(uint32_t)((plcTime-(ts->secPastEpoch*WINDOWS_TICK_PER_SEC))*100);
-
-  return 0;
-}
-
 /*Available strings:
  *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
  *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
@@ -366,6 +341,46 @@ int getAxDriveFuncType(char *objPath,
         *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT;
         return 0;
       }
+
+      // Reset alarm
+      nvals = strcmp(objectFunctionStr,ECMC_DRV_RESET_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_RESET;
+        return 0;
+      }
+
+      // Warning
+      nvals = strcmp(objectFunctionStr,ECMC_DRV_WARNING_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_WARNING;
+        return 0;
+      }
+
+      // Alarm 0
+      nvals = strcmp(objectFunctionStr,ECMC_DRV_ALARM_0_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0;
+        return 0;
+      }
+
+      // Alarm 1
+      nvals = strcmp(objectFunctionStr,ECMC_DRV_ALARM_1_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1;
+        return 0;
+      }
+
+      // Alarm 2
+      nvals = strcmp(objectFunctionStr,ECMC_DRV_ALARM_2_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2;
+        return 0;
+      }
     }
   }
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
@@ -422,6 +437,46 @@ int getAxEncFuncType(char *objPath,
 
       if (nvals == 0) {
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL;
+        return 0;
+      }
+
+      // Reset alarm
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_RESET_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_RESET;
+        return 0;
+      }
+
+      // Warning
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_WARNING_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_WARNING;
+        return 0;
+      }
+
+      // Alarm 0
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_0_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_0;
+        return 0;
+      }
+
+      // Alarm 1
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_1_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_1;
+        return 0;
+      }
+
+      // Alarm 2
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_2_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_2;
         return 0;
       }
     }

@@ -1475,7 +1475,6 @@ asynStatus ecmcMotorRecordAxis::setHighLimit(double highLimit)
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitFwd(highLimit);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
-  printf("highLimithighLimithighLimit %lf\n", highLimit);
   return asynMotorAxis::setHighLimit(highLimit);
 }
 
@@ -1486,8 +1485,6 @@ asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit)
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitBwd(lowLimit);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
-
-  printf("lowLimitlowLimitlowLimitlowLimit %lf\n", lowLimit);
   return asynMotorAxis::setLowLimit(lowLimit);
 }
 

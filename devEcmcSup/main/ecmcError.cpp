@@ -383,6 +383,31 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x1460E:
+    return "ERROR_DRV_HW_ALARM_0";
+
+    break;
+
+  case 0x1460F:
+    return "ERROR_DRV_HW_ALARM_1";
+
+    break;
+
+  case 0x14610:
+    return "ERROR_DRV_HW_ALARM_2";
+
+    break;
+
+  case 0x14611:
+    return "ERROR_DRV_WARNING_READ_ENTRY_FAIL";
+
+    break;
+
+  case 0x14612:
+    return "ERROR_DRV_ALARM_READ_ENTRY_FAIL";
+
+    break;
+
   case 0x14650:
     return "ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR";
 
@@ -492,6 +517,31 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14410:
+    return "ERROR_ENC_HW_ALARM_0";
+
+    break;
+
+  case 0x14411:
+    return "ERROR_ENC_HW_ALARM_1";
+
+    break;
+
+  case 0x14412:
+    return "ERROR_ENC_HW_ALARM_2";
+
+    break;
+
+  case 0x14413:
+    return "ERROR_ENC_WARNING_READ_ENTRY_FAIL";
+
+    break;
+
+  case 0x14414:
+    return "ERROR_ENC_ALARM_READ_ENTRY_FAIL";
+
+    break;
+    
   case 0x14C00:  // MONITOR
     return "ERROR_MON_ASSIGN_ENTRY_FAILED";
 

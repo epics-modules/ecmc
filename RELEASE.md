@@ -1,8 +1,27 @@
 Release Notes
 ===
 # ECMC master
+* Add alarm and reset links to axis encoder and drive object (that can be assigned with the "Cfg.LinkEcEntryToObject()"-command):
+  - ax<id>.enc.reset
+  - ax<id>.enc.alarm0
+  - ax<id>.enc.alarm1
+  - ax<id>.enc.alarm2
+  - ax<id>.enc.warning
+  - ax<id>.drv.reset
+  - ax<id>.drv.alarm0
+  - ax<id>.drv.alarm1
+  - ax<id>.drv.alarm2
+  - ax<id>.drv.warning
+  The intention with these links is to link drive and encoder related errors and reset commads to interlock motion and display alarms in axis error field. For an EL7037 the following bits could be mapped:
+  -ax<id>.drv.reset   to  ec<id>.s<id>.STM_CONTROL.1   // Reset bit in drive control word.
+  -ax<id>.drv.alarm0  to  ec<id>.s<id>.STM_STATUS.3    // Error bit in drive status word.
+  -ax<id>.drv.alarm1  to  ec<id>.s<id>.STM_CONTROL.1   // Stall bit drive status word.
+  -ax<id>.drv.alarm2  to  ec<id>.s<id>.STM_CONTROL.1   // Sync error bit drive status word.
+  -ax<id>.drv.warning to  ec<id>.s<id>.STM_CONTROL.1   // Warning bit drive status word.
+  If the reset link is defined then this bit will be set for one cycle when issueing an error reset command.
+  Note: Any of these new links can be left unused/blank.
 
-* Add plc function mc_move_pos():
+* Add plc function mc_home_pos():
   Reference encoder to a postion (same as mc_home but with an extra argument for position, so no need to set home position with ax<id>.enc.homepos). 
 
 * Add plc function mc_move_ext_pos():
