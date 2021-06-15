@@ -45,7 +45,11 @@
 #define ERROR_ENC_RAW_MASK_INVALID 0x1440D
 #define ERROR_ENC_ABS_MASK_INVALID 0x1440E
 #define ERROR_ENC_ABS_BIT_COUNT_INVALID 0x1440F
-
+#define ERROR_ENC_HW_ALARM_0 0x14410
+#define ERROR_ENC_HW_ALARM_1 0x14411
+#define ERROR_ENC_HW_ALARM_2 0x14412
+#define ERROR_ENC_WARNING_READ_ENTRY_FAIL 0x14413
+#define ERROR_ENC_ALARM_READ_ENTRY_FAIL 0x14414
 
 #define ECMC_FILTER_VELO_DEF_SIZE 100
 #define ECMC_FILTER_POS_DEF_SIZE 10
@@ -67,7 +71,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   ecmcEncoder(ecmcAxisData *axisData,
               double        sampleTime);
   ~ecmcEncoder();
-
+  virtual void          errorReset();
   int                   setBits(int bits);
   int                   getBits();
   // Used for homing of partly absolute encoders (applied after raw mask)
@@ -155,6 +159,21 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool encLatchControl_;
   double actEncLatchPos_;
   bool enablePositionFilter_;
+  uint64_t hwReset_;
+  uint64_t hwErrorAlarm0_;
+  uint64_t hwErrorAlarm0Old_;
+  uint64_t hwErrorAlarm1_;
+  uint64_t hwErrorAlarm1Old_;
+  uint64_t hwErrorAlarm2_;
+  uint64_t hwErrorAlarm2Old_;
+  uint64_t hwWarning_;
+  uint64_t hwWarningOld_;
+  bool hwResetDefined_;
+  bool hwErrorAlarm0Defined_;
+  bool hwErrorAlarm1Defined_;
+  bool hwErrorAlarm2Defined_;
+  bool hwWarningDefined_;
+
 };
 
 #endif  /* ECMCENCODER_H_ */

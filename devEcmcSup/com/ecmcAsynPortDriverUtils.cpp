@@ -439,6 +439,46 @@ int getAxEncFuncType(char *objPath,
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL;
         return 0;
       }
+
+      // Reset alarm
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_RESET_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_RESET;
+        return 0;
+      }
+
+      // Warning
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_WARNING_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_WARNING;
+        return 0;
+      }
+
+      // Alarm 0
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_0_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_0;
+        return 0;
+      }
+
+      // Alarm 1
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_1_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_1;
+        return 0;
+      }
+
+      // Alarm 2
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_2_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_2;
+        return 0;
+      }
     }
   }
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
