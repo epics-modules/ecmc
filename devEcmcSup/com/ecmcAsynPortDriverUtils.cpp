@@ -188,31 +188,6 @@ const char* epicsStateToString(int state)
   return "Unknown state";
 }
 
-#define WINDOWS_TICK_PER_SEC 10000000
-#define SEC_TO_UNIX_EPOCH 11644473600LL
-
-/** Convert Windows timestamp to EPICS timestamp
- *
- * \param[in] plcTime Timestamp from ams router (Windows format, epoch start jan
- * 1 1601).
- * \param[out] ts Epics timestamp (Epoch start jan 1 1990).
- *
- * \return 0 or error code.
- */
-int windowsToEpicsTimeStamp(uint64_t plcTime, epicsTimeStamp *ts)
-{
-  if(!ts){
-    return 1;
-  }
-  //move from WindowsTime to Epics time 1601 jan 1 to 1990 jan 1 (POSIX_TIME_AT_EPICS_EPOCH defined in epicsTime.h)
-  plcTime=plcTime-(POSIX_TIME_AT_EPICS_EPOCH + SEC_TO_UNIX_EPOCH)*WINDOWS_TICK_PER_SEC;
-
-  ts->secPastEpoch=(uint32_t)(plcTime/WINDOWS_TICK_PER_SEC);
-  ts->nsec=(uint32_t)((plcTime-(ts->secPastEpoch*WINDOWS_TICK_PER_SEC))*100);
-
-  return 0;
-}
-
 /*Available strings:
  *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
  *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
