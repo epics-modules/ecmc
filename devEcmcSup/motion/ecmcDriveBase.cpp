@@ -381,7 +381,7 @@ void ecmcDriveBase::readEntries() {
   }
 
   // check alarm 0
-  if (hwErrorAlarm0_) {
+  if (hwErrorAlarm0Defined_) {
     if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_)) {
       hwErrorAlarm0_ = 0;
       hwErrorAlarm0Old_ = 0;
@@ -395,16 +395,17 @@ void ecmcDriveBase::readEntries() {
     
     // Set Alarm
     if(hwErrorAlarm0_) {
-        setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_DRV_HW_ALARM_0);
-    }
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_HW_ALARM_0);
+    }    
     hwErrorAlarm0Old_ = hwErrorAlarm0_;
   }
 
   // check alarm 1
-  if (hwErrorAlarm1_) {
+  if (hwErrorAlarm1Defined_) {
     if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1, &hwErrorAlarm1_)) {
       hwErrorAlarm1_ = 0;
       hwErrorAlarm1Old_ = 0;
@@ -418,16 +419,17 @@ void ecmcDriveBase::readEntries() {
     
     // Set Alarm
     if(hwErrorAlarm1_) {
-        setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_DRV_HW_ALARM_1);
-    }
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_HW_ALARM_1);
+    }    
     hwErrorAlarm1Old_ = hwErrorAlarm1_;
   }
 
   // check alarm 2
-  if (hwErrorAlarm2_) {
+  if (hwErrorAlarm2Defined_) {
     if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2, &hwErrorAlarm2_)) {
       hwErrorAlarm2_ = 0;
       hwErrorAlarm2Old_ = 0;
@@ -441,11 +443,12 @@ void ecmcDriveBase::readEntries() {
     
     // Set Alarm
     if(hwErrorAlarm2_) {
-        setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_DRV_HW_ALARM_2);
-    }
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_HW_ALARM_2);
+    }    
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
 }
