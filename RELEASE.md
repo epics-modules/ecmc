@@ -1,6 +1,8 @@
 Release Notes
 ===
 # ECMC master
+* Increase max allowed datastorage count to 32
+* Increase max allowed plc count to 16
 * Add alarm and reset links to axis encoder and drive object (that can be assigned with the "Cfg.LinkEcEntryToObject()"-command):
   - ax<id>.enc.reset
   - ax<id>.enc.alarm0
