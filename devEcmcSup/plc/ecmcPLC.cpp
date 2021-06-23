@@ -89,7 +89,7 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   }
 
   // Set plugin pointers
-  for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
+  for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
     plcs->setPluginPointer(plugins[i], i);
   }
   int skipCycles = cycleTimeMs * mcuFrequency / 1000-1;
