@@ -90,7 +90,7 @@ void ecmcAxisBase::initVars() {
   beforeFirstEnable_                    = 0;
   data_.axisType_              = ECMC_AXIS_TYPE_BASE;
   data_.command_.reset         = false;
-  allowCmdFromOtherPLC_        = false;
+  allowCmdFromOtherPLC_        = true;
   data_.status_.inStartupPhase = false;
   data_.status_.inRealtime = false;
   data_.status_.externalTrajectoryPosition  = 0;

@@ -1,6 +1,7 @@
 Release Notes
 ===
 # ECMC master
+* Allow plc:s to write to axis as default.
 * Increase max allowed datastorage count to 32
 * Increase max allowed plc count to 16
 * Add alarm and reset links to axis encoder and drive object (that can be assigned with the "Cfg.LinkEcEntryToObject()"-command):
