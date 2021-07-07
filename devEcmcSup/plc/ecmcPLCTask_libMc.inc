@@ -26,6 +26,13 @@
     }                                                         \
   }                                                           \
 
+#define CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(axIndex) { \
+  if(!ecmcPLCTask::statAxes_[index]->getAllowCmdFromPLC()) {  \
+    mc_errorCode=ERROR_MAIN_AXIS_COM_BLOCKED;                 \
+    return ERROR_MAIN_AXIS_COM_BLOCKED;                       \
+  }                                                           \
+}                                                             \
+
 const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_move_rel(",
                                "mc_move_vel(",
@@ -56,8 +63,9 @@ static int mc_cmd_count = 14;
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+
   // check traj source, must be internal
   if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -103,8 +111,9 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
 inline double mc_move_rel(double axIndex,double execute,double pos, double vel, double acc,double dec)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+
   // check traj source, must be internal
   if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -150,7 +159,8 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
 inline double mc_move_vel(double axIndex,double execute, double vel, double acc,double dec)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
   if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
@@ -196,8 +206,9 @@ inline double mc_move_vel(double axIndex,double execute, double vel, double acc,
 inline double mc_home(double axIndex,double execute,double seqId, double velTwoardsCam,double velOffCam)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+
   // check traj source, must be internal
   if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -245,8 +256,9 @@ inline double mc_home(double axIndex,double execute,double seqId, double velTwoa
 inline double mc_home_pos(double axIndex,double execute,double seqId, double velTwoardsCam,double velOffCam, double homePos)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);  
+
   // check traj source, must be internal
   if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -296,8 +308,9 @@ inline double mc_home_pos(double axIndex,double execute,double seqId, double vel
 inline double mc_halt(double axIndex,double execute)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
-  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+
   // check traj source, must be internal
   if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -324,7 +337,9 @@ inline double mc_halt(double axIndex,double execute)
 inline double mc_power(double axIndex,double enable)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+
   if(ecmcPLCTask::statAxes_[index]->getEnable() != (bool)enable){
     mc_errorCode=ecmcPLCTask::statAxes_[index]->setEnable((bool)enable);    
     return (double)mc_errorCode;
@@ -335,7 +350,9 @@ inline double mc_power(double axIndex,double enable)
 inline double mc_reset(double axIndex)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+
   ecmcPLCTask::statAxes_[index]->setReset(1);
   mc_errorCode = 0;
   return 0;
@@ -344,7 +361,7 @@ inline double mc_reset(double axIndex)
 inline double mc_get_busy(double axIndex)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   return (double) ecmcPLCTask::statAxes_[index]->getBusy();
 }
 
@@ -360,17 +377,18 @@ inline double mc_get_homed(double axIndex)
 inline double mc_get_axis_err(double axIndex)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   return (double) ecmcPLCTask::statAxes_[index]->getErrorID();
 }
 
 inline double mc_set_enable_motion_funcs(double axIndex, 
-                                  double enablePos,
-                                  double enableVel,
-                                  double enableHome)
+                                         double enablePos,
+                                         double enableVel,
+                                         double enableHome)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
   return (double) ecmcPLCTask::statAxes_[index]->setAllowMotionFunctions(
                     (int)enablePos,(int)enableVel,(int)enableHome);
 }
@@ -383,7 +401,8 @@ inline double mc_get_err()
 inline double mc_move_ext_pos(double axIndex,double execute, double vel, double acc, double dec)
 {
   int index=(int)axIndex;
-  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);  
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
   if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {

@@ -1,6 +1,8 @@
 Release Notes
 ===
 # ECMC master
+* Block setEnable from motor record if ax<id>.blockcom==1
+* Block mc_* plc functions if ax<id>.allowplccmd==0
 * Allow plc:s to write to axis as default.
 * Increase max allowed datastorage count to 32
 * Increase max allowed plc count to 16

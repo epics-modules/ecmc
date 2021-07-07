@@ -1841,6 +1841,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL";
 
     break;
+    
+  case 0x20053:
+    return "ERROR_MAIN_AXIS_COM_BLOCKED";
+
+    break;
 
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";

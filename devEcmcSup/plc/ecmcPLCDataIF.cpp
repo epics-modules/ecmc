@@ -796,8 +796,8 @@ int ecmcPLCDataIF::writeAxis() {
     axis_->getSeq()->setHomePosition(data_);
     break;
 
-  case ECMC_AXIS_DATA_BLOCK_COM:
-    axis_->setBlockExtCom(data_);
+  case ECMC_AXIS_DATA_BLOCK_COM:    
+    axis_->setBlockExtCom(data_>=1);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
