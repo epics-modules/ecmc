@@ -1,6 +1,6 @@
 Release Notes
 ===
-# ECMC master
+# ECMC 6.3.3
 * Block setEnable from motor record if ax<id>.blockcom==1
 * Block mc_* plc functions if ax<id>.allowplccmd==0
 * Allow plc:s to write to axis as default.
