@@ -1220,6 +1220,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     /* The poller will update the MsgTxt field */
     //updateMsgTxtFromDriver(drvlocal.sErrorMessage);
   }
+  #ifdef motorFlagsHomeOnLsString
+    setIntegerParam(pC_->motorFlagsHomeOnLs_, 1);
+  #endif
 
   callParamCallbacksUpdateError();
 
