@@ -1,5 +1,10 @@
 Release Notes
 ===
+# ECMC master
+* Add homing seq 7 and 8:
+  - seq 7: Search for home sensor in fwd dir. Ref at rising edge of home sensor.
+  - seq 8: Search for home sensor in bwd dir. Ref at rising edge of home sensor.
+
 # ECMC 6.3.3
 * Block setEnable from motor record if ax<id>.blockcom==1
 * Block mc_* plc functions if ax<id>.allowplccmd==0
@@ -7,6 +12,7 @@ Release Notes
 * Increase max allowed datastorage count to 32
 * Increase max allowed plc count to 16
 * Add alarm and reset links to axis encoder and drive object (that can be assigned with the "Cfg.LinkEcEntryToObject()"-command):
+  
   - ax<id>.enc.reset
   - ax<id>.enc.alarm0
   - ax<id>.enc.alarm1
@@ -17,12 +23,15 @@ Release Notes
   - ax<id>.drv.alarm1
   - ax<id>.drv.alarm2
   - ax<id>.drv.warning
+
   The intention with these links is to link drive and encoder related errors and reset commads to interlock motion and display alarms in axis error field. For an EL7037 the following bits could be mapped:
+  
   -ax<id>.drv.reset   to  ec<id>.s<id>.STM_CONTROL.1   // Reset bit in drive control word.
   -ax<id>.drv.alarm0  to  ec<id>.s<id>.STM_STATUS.3    // Error bit in drive status word.
   -ax<id>.drv.alarm1  to  ec<id>.s<id>.STM_CONTROL.1   // Stall bit drive status word.
   -ax<id>.drv.alarm2  to  ec<id>.s<id>.STM_CONTROL.1   // Sync error bit drive status word.
   -ax<id>.drv.warning to  ec<id>.s<id>.STM_CONTROL.1   // Warning bit drive status word.
+  
   If the reset link is defined then this bit will be set for one cycle when issueing an error reset command.
   Note: Any of these new links can be left unused/blank.
 
