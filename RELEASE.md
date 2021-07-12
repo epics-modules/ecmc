@@ -4,19 +4,26 @@ Release Notes
 * Add homing seq 7..10:
   - seq 7 : Ref at first rising edge of home sensor moving in backward direction. 
   - seq 8 : Ref at first rising edge of home sensor moving in forward direction.
-  - seq 9 : Ref at center of home sensor edges: 
+  - seq 9 : Ref at center of home sensor rising edges:
     1. Move backward 
-    2. latch encoder position when homsensor change.
-    3. contiue move backward untill second homsensor change, then stop
-    4. Move forward and latch encoder position at home sensor change, then stop
-    5. Reference centerpoint between the two latched positions to vale of homeposition.
-  - seq 10: Search for home sensor in fwd dir. Ref at rising edge of home sensor.
+    2. latch encoder position at rising edge of homesensor
+    3. continue move backward until falling edge of homsensor, then stop
+    4. Move forward and latch encoder position at rising edge of home sensor, then stop
+    5. Reference at centerpoint between the two latched positions to homeposition value.
+  - seq 10: Ref at center of home sensor rising edges:
     1. Move forward 
-    2. latch encoder position when homsensor change.
-    3. contiue move forward untill second homsensor change, then stop
-    4. Move backward and latch encoder position at home sensor change, then stop
-    5. Reference centerpoint between the two latched positions to vale of homeposition.
-
+    2. latch encoder position at rising edge of homesensor
+    3. continue move forward until falling edge of homsensor, then stop
+    4. Move backward and latch encoder position at rising edge of home sensor, then stop
+    5. Reference at centerpoint between the two latched positions to homeposition value.
+  
+  Note: Polarity of home sensor can be changed with the following command:
+  ```
+  "Cfg.SetAxisMonHomeSwitchPolarity(int axisIndex, int polarity)";
+  # polarity==0 is NC (default)
+  # polarity==1 is NO
+  ```
+  
 # ECMC 6.3.3
 * Block setEnable from motor record if ax<id>.blockcom==1
 * Block mc_* plc functions if ax<id>.allowplccmd==0
@@ -38,11 +45,11 @@ Release Notes
 
   The intention with these links is to link drive and encoder related errors and reset commads to interlock motion and display alarms in axis error field. For an EL7037 the following bits could be mapped:
   
-  -ax<id>.drv.reset   to  ec<id>.s<id>.STM_CONTROL.1   // Reset bit in drive control word.
-  -ax<id>.drv.alarm0  to  ec<id>.s<id>.STM_STATUS.3    // Error bit in drive status word.
-  -ax<id>.drv.alarm1  to  ec<id>.s<id>.STM_CONTROL.1   // Stall bit drive status word.
-  -ax<id>.drv.alarm2  to  ec<id>.s<id>.STM_CONTROL.1   // Sync error bit drive status word.
-  -ax<id>.drv.warning to  ec<id>.s<id>.STM_CONTROL.1   // Warning bit drive status word.
+  - ax<id>.drv.reset   to  ec<id>.s<id>.STM_CONTROL.1   // Reset bit in drive control word.
+  - ax<id>.drv.alarm0  to  ec<id>.s<id>.STM_STATUS.3    // Error bit in drive status word.
+  - ax<id>.drv.alarm1  to  ec<id>.s<id>.STM_CONTROL.1   // Stall bit drive status word.
+  - ax<id>.drv.alarm2  to  ec<id>.s<id>.STM_CONTROL.1   // Sync error bit drive status word.  
+  - ax<id>.drv.warning to  ec<id>.s<id>.STM_CONTROL.1   // Warning bit drive status word.
   
   If the reset link is defined then this bit will be set for one cycle when issueing an error reset command.
   Note: Any of these new links can be left unused/blank.
@@ -56,7 +63,6 @@ Release Notes
 * Add variables:
 
   - ax<id>.enc.extactpos  (ro): Current external plc calculated actual position (ax<id>.enc.actpos can be used for writing).
-
   - ax<id>.traj.extsetpos (ro):  Current external plc calculated setpoint position(ax<id>.enc.setpos can be used for writing).
 
 * Position setpoint is syncronized with actual position when axis is disabled. Setpoint is updated once at positive edge of enable command. Note: The position setpoint is synced with actual position before first enable.
