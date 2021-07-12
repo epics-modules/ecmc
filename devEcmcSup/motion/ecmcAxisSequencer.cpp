@@ -176,7 +176,7 @@ void ecmcAxisSequencer::execute() {
       }
       break;
 
-    case ECMC_SEQ_HOME_HOME_BWD:
+    case ECMC_SEQ_HOME_BWD_HOME:
       seqReturnVal = seqHoming7();
 
       if (seqReturnVal > 0) {  // Error
@@ -187,8 +187,30 @@ void ecmcAxisSequencer::execute() {
       }
       break;
 
-    case ECMC_SEQ_HOME_HOME_FWD:
+    case ECMC_SEQ_HOME_FWD_HOME:
       seqReturnVal = seqHoming8();
+
+      if (seqReturnVal > 0) {  // Error
+        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
+        stopSeq();
+      } else if (seqReturnVal == 0) {  // Homing ready
+        stopSeq();
+      }
+      break;
+
+    case ECMC_SEQ_HOME_BWD_HOME_HOME:
+      seqReturnVal = seqHoming9();
+
+      if (seqReturnVal > 0) {  // Error
+        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
+        stopSeq();
+      } else if (seqReturnVal == 0) {  // Homing ready
+        stopSeq();
+      }
+      break;
+    
+    case ECMC_SEQ_HOME_FWD_HOME_HOME:
+      seqReturnVal = seqHoming10();      
 
       if (seqReturnVal > 0) {  // Error
         setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
@@ -1489,7 +1511,7 @@ int ecmcAxisSequencer::seqHoming7() {  // nCmdData==7
     }
     currSeqDirection_ = ECMC_DIR_BACKWARD;  // StartDirection
     if (!traj_->getBusy()) {
-      traj_->setTargetVel(-homeVelTwordsCam_);   // low speed
+      traj_->setTargetVel(-homeVelOffCam_);   // low speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);  // Trigg new movement
       seqState_ = 1;
@@ -1514,12 +1536,6 @@ int ecmcAxisSequencer::seqHoming7() {  // nCmdData==7
   // Wait for standstill before rescale of encoder.
   // Calculate encoder offset and set encoder homed bit.
   case 2:
-    // should never go to backward limit switch
-    retValue = checkHWLimitsAndStop(1, 0);
-
-    if (retValue) {
-      return retValue;
-    }
     traj_->setExecute(0);
 
     if (!traj_->getBusy()) {  // Wait for stop ramp ready
@@ -1563,7 +1579,7 @@ int ecmcAxisSequencer::seqHoming8() {  // nCmdData==8
     }
     currSeqDirection_ = ECMC_DIR_FORWARD;  // StartDirection
     if (!traj_->getBusy()) {
-      traj_->setTargetVel(homeVelTwordsCam_);   // low speed
+      traj_->setTargetVel(homeVelOffCam_);   // low speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);  // Trigg new movement
       seqState_ = 1;
@@ -1588,12 +1604,6 @@ int ecmcAxisSequencer::seqHoming8() {  // nCmdData==8
   // Wait for standstill before rescale of encoder.
   // Calculate encoder offset and set encoder homed bit.
   case 2:
-    // should never go to backward limit switch
-    retValue = checkHWLimitsAndStop(0,1);
-
-    if (retValue) {
-      return retValue;
-    }
     traj_->setExecute(0);
 
     if (!traj_->getBusy()) {  // Wait for stop ramp ready
@@ -1606,6 +1616,287 @@ int ecmcAxisSequencer::seqHoming8() {  // nCmdData==8
     }
     break;
   }
+  return -seqState_;
+}
+
+int ecmcAxisSequencer::seqHoming9() {  // nCmdData==9
+  // Return > 0 error
+  // Return < 0 progress (negation of current seq state returned)
+  // Return = 0 ready
+
+  // State 0 set parameters and trigger motion in backward, speed =_dHomeVelTwordsCam
+  // State 1 Latch encoder value on falling or rising edge of home sensor. Continue movement
+  // State 2 Wait for second falling or rising edge of home sensor then stop
+  // State 3 Wait for standstill and the trigger move
+  // State 4 Latch value on falling or rising edge of home sensor. Stop motion
+  // State 5 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
+
+  int retValue = traj_->getErrorID();  // Abort if error from trajectory
+
+  if (retValue) {
+    return retValue;
+  }
+
+  // Sequence code
+  switch (seqState_) {
+  // Set parameters and start initial motion
+  case 0:
+    initHomingSeq();
+    // should never go to backward limit switch
+    retValue = checkHWLimitsAndStop(1,0);
+
+    if (retValue) {
+      return retValue;
+    }
+    currSeqDirection_ = ECMC_DIR_BACKWARD;  // StartDirection
+    if (!traj_->getBusy()) {
+      traj_->setTargetVel(-homeVelOffCam_);   // low speed
+      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+      traj_->setExecute(1);  // Trigg new movement
+      seqState_ = 1;
+    }    
+    break;
+
+  // Latch encoder value on falling or rising edge of home sensor
+  case 1:
+    // should never go to backward limit switch
+    retValue = checkHWLimitsAndStop(1, 0);
+    if (retValue) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+    }
+
+    if (homeSensor_ != homeSensorOld_) {
+      homePosLatch1_ = enc_->getActPos();    
+      seqState_      = 2;
+    }
+    break;
+
+  // Wait for falling or rising edge of home sensor then stop
+  case 2:
+    // should never go to backward limit switch
+    retValue = checkHWLimitsAndStop(1, 0);
+    if (retValue) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Failed to find second flank on home sensor before limit switch (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
+    }
+
+    if (homeSensor_ != homeSensorOld_) {
+      traj_->setExecute(0);
+      seqState_ = 3;
+    }
+    break;
+
+  // Wait for standstill and the trigger move
+  case 3:
+    // should never go to backward limit switch
+    retValue = checkHWLimitsAndStop(1, 0);
+
+    if (retValue) {
+      return retValue;
+    }
+
+    if (!traj_->getBusy()) {  // Trigg new movement
+      traj_->setTargetVel(homeVelOffCam_);   // low speed
+      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+      traj_->setExecute(1);
+      seqState_ = 4;
+    } else {
+      traj_->setExecute(0);
+    }
+    break;
+
+  // Latch value on falling or rising edge of home sensor. Stop motion
+  case 4:
+    // should never go to forward limit switch
+    retValue = checkHWLimitsAndStop(0, 1);
+
+    if (retValue) {
+      return retValue;
+    }
+
+    if (homeSensor_ != homeSensorOld_) {
+      homePosLatch2_ = enc_->getActPos();
+      traj_->setExecute(0);
+      seqState_ = 5;
+    }
+    break;
+
+  // Wait for standstill before rescale of encoder.
+  // Calculate encoder offset and set encoder homed bit
+  case 5:
+    traj_->setExecute(0);
+
+    if (!traj_->getBusy()) {  // Wait for stop ramp ready
+      data_->command_.positionTarget = traj_->getCurrentPosSet();
+      // Wait for controller to settle in order to minimize bump
+      if (mon_->getAtTarget()) {
+        double currPos = enc_->getActPos() -
+                         ((homePosLatch2_ + homePosLatch1_) / 2) +
+                         homePosition_;
+        finalizeHomingSeq(currPos);
+      }
+    }
+    break;
+  }
+
+  return -seqState_;
+}
+
+int ecmcAxisSequencer::seqHoming10() {  // nCmdData==10
+  // Return > 0 error
+  // Return < 0 progress (negation of current seq state returned)
+  // Return = 0 ready
+  
+  // State 0 set parameters and trigger motion in backward, speed =_dHomeVelTwordsCam
+  // State 1 Latch encoder value on falling or rising edge of home sensor. Continue movement
+  // State 2 Wait for second falling or rising edge of home sensor then stop
+  // State 3 Wait for standstill and the trigger move
+  // State 4 Latch value on falling or rising edge of home sensor. Stop motion
+  // State 5 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
+
+  int retValue = traj_->getErrorID();  // Abort if error from trajectory
+
+  if (retValue) {
+    return retValue;
+  }
+
+  // Sequence code
+  switch (seqState_) {
+  // Set parameters and start initial motion
+  case 0:
+    initHomingSeq();
+    // should never go to forward limit switch
+    retValue = checkHWLimitsAndStop(0,1);
+
+    if (retValue) {
+      return retValue;
+    }
+    currSeqDirection_ = ECMC_DIR_FORWARD;  // StartDirection
+    if (!traj_->getBusy()) {
+      traj_->setTargetVel(homeVelOffCam_);   // low speed
+      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+      traj_->setExecute(1);  // Trigg new movement
+      seqState_ = 1;
+      printf("############## seqHoming10:state1!!");
+    }    
+    break;
+
+  // Latch encoder value on falling or rising edge of home sensor
+  case 1:
+    // should never go to forward limit switch
+    retValue = checkHWLimitsAndStop(0,1);
+    if (retValue) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Failed to find first flank on home sensor before limit switch (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_SEQ_NO_HOME_SWITCH_FLANK);
+    }
+
+    if (homeSensor_ != homeSensorOld_) {
+      homePosLatch1_ = enc_->getActPos();    
+      seqState_      = 2;
+    }
+    break;
+
+  // Wait for falling or rising edge of home sensor then stop
+  case 2:
+    // should never go to forward limit switch
+    retValue = checkHWLimitsAndStop(0,1);
+    if (retValue) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Failed to find second flank on home sensor before limit switch (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK);
+    }
+
+    if (homeSensor_ != homeSensorOld_) {
+      traj_->setExecute(0);
+      seqState_ = 3;
+    }
+    break;
+
+  // Wait for standstill and the trigger move
+  case 3:
+    // should never go to forward limit switch
+    retValue = checkHWLimitsAndStop(0,1);
+
+    if (retValue) {
+      return retValue;
+    }
+
+    if (!traj_->getBusy()) {  // Trigg new movement
+      traj_->setTargetVel(-homeVelOffCam_);   // low speed
+      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+      traj_->setExecute(1);
+      seqState_ = 4;
+    } else {
+      traj_->setExecute(0);
+    }
+    break;
+
+  // Latch value on falling or rising edge of home sensor. Stop motion
+  case 4:
+    // should never go to backward limit switch
+    retValue = checkHWLimitsAndStop(1, 0);
+
+    if (retValue) {
+      return retValue;
+    }
+
+    if (homeSensor_ != homeSensorOld_) {
+      homePosLatch2_ = enc_->getActPos();
+      traj_->setExecute(0);
+      seqState_ = 5;
+    }
+    break;
+
+  // Wait for standstill before rescale of encoder.
+  // Calculate encoder offset and set encoder homed bit
+  case 5:
+    traj_->setExecute(0);
+
+    if (!traj_->getBusy()) {  // Wait for stop ramp ready
+      data_->command_.positionTarget = traj_->getCurrentPosSet();
+      // Wait for controller to settle in order to minimize bump
+      if (mon_->getAtTarget()) {
+        double currPos = enc_->getActPos() -
+                         ((homePosLatch2_ + homePosLatch1_) / 2) +
+                         homePosition_;
+        finalizeHomingSeq(currPos);
+      }
+    }
+    break;
+  }
+
   return -seqState_;
 }
 

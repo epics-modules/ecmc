@@ -1,9 +1,21 @@
 Release Notes
 ===
 # ECMC master
-* Add homing seq 7 and 8:
-  - seq 7: Search for home sensor in fwd dir. Ref at rising edge of home sensor.
-  - seq 8: Search for home sensor in bwd dir. Ref at rising edge of home sensor.
+* Add homing seq 7..10:
+  - seq 7 : Ref at first rising edge of home sensor moving in backward direction. 
+  - seq 8 : Ref at first rising edge of home sensor moving in forward direction.
+  - seq 9 : Ref at center of home sensor edges: 
+    1. Move backward 
+    2. latch encoder position when homsensor change.
+    3. contiue move backward untill second homsensor change, then stop
+    4. Move forward and latch encoder position at home sensor change, then stop
+    5. Reference centerpoint between the two latched positions to vale of homeposition.
+  - seq 10: Search for home sensor in fwd dir. Ref at rising edge of home sensor.
+    1. Move forward 
+    2. latch encoder position when homsensor change.
+    3. contiue move forward untill second homsensor change, then stop
+    4. Move backward and latch encoder position at home sensor change, then stop
+    5. Reference centerpoint between the two latched positions to vale of homeposition.
 
 # ECMC 6.3.3
 * Block setEnable from motor record if ax<id>.blockcom==1

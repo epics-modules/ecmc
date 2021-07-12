@@ -55,8 +55,10 @@ enum ecmcHomingType {
   ECMC_SEQ_HOME_HIGH_LIM_HOME            = 4,
   ECMC_SEQ_HOME_LOW_LIM_HOME_HOME        = 5,
   ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME       = 6,
-  ECMC_SEQ_HOME_HOME_BWD                 = 7,
-  ECMC_SEQ_HOME_HOME_FWD                 = 8,
+  ECMC_SEQ_HOME_BWD_HOME                 = 7,
+  ECMC_SEQ_HOME_FWD_HOME                 = 8,
+  ECMC_SEQ_HOME_BWD_HOME_HOME            = 9,
+  ECMC_SEQ_HOME_FWD_HOME_HOME            = 10,
   ECMC_SEQ_HOME_LOW_LIM_INDEX            = 11,
   ECMC_SEQ_HOME_HIGH_LIM_INDEX           = 12,
   ECMC_SEQ_HOME_SET_POS                  = 15,
@@ -128,6 +130,8 @@ class ecmcAxisSequencer : public ecmcError {
   int    seqHoming6();   // nCmdData==6
   int    seqHoming7();   // nCmdData==7
   int    seqHoming8();   // nCmdData==8
+  int    seqHoming9();   // nCmdData==9
+  int    seqHoming10();  // nCmdData==10
   int    seqHoming11();  // nCmdData==11
   int    seqHoming12();  // nCmdData==12
   int    seqHoming15();  // nCmdData==15
