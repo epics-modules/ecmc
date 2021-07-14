@@ -1,6 +1,13 @@
 Release Notes
 ===
 # ECMC master
+* Add functionality to move to a position after success full homing procedure.
+  The functionality is configuerd by the follwing two commands:
+  ```
+  1. ecmcConfigOrDie "Cfg.SetAxisHomePostMoveEnable(<axis_id>, <enable>)"                 # default disabled
+  2. ecmcConfigOrDie "Cfg.SetAxisHomePostMoveTargetPosition(<axis_id>,<target position>)" # default 0.0
+  ```
+  
 * Add homing seq 7..10:
   - seq 7 : Ref at first rising edge of home sensor moving in backward direction. 
   - seq 8 : Ref at first rising edge of home sensor moving in forward direction.

@@ -20,40 +20,43 @@ ecmcAxisSequencer::~ecmcAxisSequencer()
 {}
 
 void ecmcAxisSequencer::initVars() {
-  homeSensorOld_        = false;
-  executeOld_           = false;
-  seqInProgress_        = false;
-  currSeqDirection_     = ECMC_DIR_FORWARD;
-  seqState_             = 0;
-  traj_                 = NULL;
-  enc_                  = NULL;
-  mon_                  = NULL;
-  cntrl_                = NULL;
-  drv_                  = NULL;
-  jogVel_               = 0;
-  homeVelTwordsCam_     = 0;
-  homeVelOffCam_        = 0;
-  homePosition_         = 0;
-  jogFwd_               = false;
-  jogBwd_               = false;
-  hwLimitSwitchBwdOld_  = false;
-  hwLimitSwitchFwdOld_  = false;
-  homePosLatch1_        = 0;
-  homePosLatch2_        = 0;
-  seqTimeout_           = 0;
-  seqTimeCounter_       = 0;
-  seqStateOld_          = 0;
-  seqInProgressOld_     = 0;
-  localSeqBusy_         = false;
-  data_                 = NULL;
-  oldencRawAbsPosReg_   = 0;
-  encRawAbsPosReg_      = 0;
-  homeLatchCountOffset_ = 0;
-  homeLatchCountAct_    = 0;
-  overUnderFlowLatch_   = ECMC_ENC_NORMAL;
-  enablePos_            = true;
-  enableConstVel_       = true;
-  enableHome_           = true;
+  homeSensorOld_         = false;
+  executeOld_            = false;
+  seqInProgress_         = false;
+  currSeqDirection_      = ECMC_DIR_FORWARD;
+  seqState_              = 0;
+  traj_                  = NULL;
+  enc_                   = NULL;
+  mon_                   = NULL;
+  cntrl_                 = NULL;
+  drv_                   = NULL;
+  jogVel_                = 0;
+  homeVelTwordsCam_      = 0;
+  homeVelOffCam_         = 0;
+  homePosition_          = 0;
+  jogFwd_                = false;
+  jogBwd_                = false;
+  hwLimitSwitchBwdOld_   = false;
+  hwLimitSwitchFwdOld_   = false;
+  homePosLatch1_         = 0;
+  homePosLatch2_         = 0;
+  seqTimeout_            = 0;
+  seqTimeCounter_        = 0;
+  seqStateOld_           = 0;
+  seqInProgressOld_      = 0;
+  localSeqBusy_          = false;
+  data_                  = NULL;
+  oldencRawAbsPosReg_    = 0;
+  encRawAbsPosReg_       = 0;
+  homeLatchCountOffset_  = 0;
+  homeLatchCountAct_     = 0;
+  overUnderFlowLatch_    = ECMC_ENC_NORMAL;
+  enablePos_             = true;
+  enableConstVel_        = true;
+  enableHome_            = true;
+  homeEnablePostMove_    = false;
+  homePostMoveTargetPos_ = 0;
+  seqPosHomeState_       = 0;
 }
 
 // Cyclic execution
@@ -680,16 +683,35 @@ ecmcTrajectoryTrapetz * ecmcAxisSequencer::getTraj() {
 int ecmcAxisSequencer::seqHoming15() {  // nCmdData==15
   // Return = 0 ready
   // State 0 set encoder position to same as fHomePosition
-  traj_->setCurrentPosSet(homePosition_);
-  traj_->setTargetPos(homePosition_);
-  enc_->setActPos(homePosition_);
-  enc_->setHomed(true);
-  if(cntrl_) {
-    cntrl_->reset();
+  // Sequence code
+  switch (seqState_) {
+    case 0:    // Set parameters and start initial motion
+      traj_->setCurrentPosSet(homePosition_);
+      traj_->setTargetPos(homePosition_);
+      enc_->setActPos(homePosition_);
+      enc_->setHomed(true);
+      data_->status_.currentPositionActual = homePosition_;
+      data_->status_.currentPositionSetpoint = homePosition_;
+    
+      if(cntrl_) {
+        cntrl_->reset();
+      }
+      
+      // trigg post home motion if enabled and not alreday triggered
+      if(homeEnablePostMove_) {
+        if(seqState_ < 1000) {
+          seqState_ = 1000;
+        }
+      } 
+      else {
+        stopSeq();
+      }
+      break;
   }
-  stopSeq();
 
-  return 0;
+  postHomeMove();
+
+  return -seqState_;
 }
 
 int ecmcAxisSequencer::seqHoming1() {  // nCmdData==1
@@ -793,6 +815,9 @@ int ecmcAxisSequencer::seqHoming1() {  // nCmdData==1
     }
     break;
   }
+  
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -896,6 +921,9 @@ int ecmcAxisSequencer::seqHoming2() {  // nCmdData==2
     }
     break;
   }
+
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -1009,6 +1037,9 @@ int ecmcAxisSequencer::seqHoming3() {  // nCmdData==3
     }
     break;
   }
+
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -1123,6 +1154,9 @@ int ecmcAxisSequencer::seqHoming4() {  // nCmdData==4
     }
     break;
   }
+  
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -1299,6 +1333,8 @@ int ecmcAxisSequencer::seqHoming5() {  // nCmdData==5
     }
     break;
   }
+
+  postHomeMove();
 
   return -seqState_;
 }
@@ -1479,6 +1515,8 @@ int ecmcAxisSequencer::seqHoming6() {  // nCmdData==6
     break;
   }
 
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -1547,6 +1585,9 @@ int ecmcAxisSequencer::seqHoming7() {  // nCmdData==7
     }
     break;
   }
+
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -1615,6 +1656,9 @@ int ecmcAxisSequencer::seqHoming8() {  // nCmdData==8
     }
     break;
   }
+  
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -1755,6 +1799,8 @@ int ecmcAxisSequencer::seqHoming9() {  // nCmdData==9
     break;
   }
 
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -1894,6 +1940,8 @@ int ecmcAxisSequencer::seqHoming10() {  // nCmdData==10
     }
     break;
   }
+
+  postHomeMove();
 
   return -seqState_;
 }
@@ -2044,6 +2092,9 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
     }
     break;
   }
+  
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -2193,6 +2244,9 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
     }
     break;
   }
+
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -2346,6 +2400,9 @@ int ecmcAxisSequencer::seqHoming21() {  // nCmdData==21 Resolver homing (keep ab
     }
     break;
   }
+
+  postHomeMove();
+
   return -seqState_;
 }
 
@@ -2503,7 +2560,58 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
     }
     break;
   }
+  
+  postHomeMove();
+
   return -seqState_;
+}
+
+// Issue post move after successful finalized homing
+int ecmcAxisSequencer::postHomeMove() {
+  
+  
+  switch (seqState_) {
+    
+    // Wait one cycle
+    case 1000:
+      // If already there then do not move
+      if(data_->status_.currentPositionSetpoint==homePostMoveTargetPos_ && seqState_) {
+        stopSeq();
+        return 0;
+      }
+      traj_->setExecute(0);
+      seqState_ = 1001;
+      break;
+    
+    // Trigg motion
+    case 1001:
+      if (!traj_->getBusy()){
+        traj_->setMotionMode(ECMC_MOVE_MODE_POS);
+        traj_->setTargetVel(homeVelTwordsCam_);
+        traj_->setTargetPos(homePostMoveTargetPos_);
+        traj_->setExecute(1);
+        seqState_ = 1002;
+      }
+      break;
+    
+    // wait for stop and stop sequence
+    case 1002:
+      if (!traj_->getBusy()){
+        if(traj_->getCurrentPosSet()!=homePostMoveTargetPos_) {          
+          LOGERR("%s/%s:%d: ERROR: Post home move failed (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_SEQ_HOME_POST_MOVE_FAILED);
+          setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_HOME_POST_MOVE_FAILED);        
+        }        
+        stopSeq();
+      }
+      
+      break;
+  }
+
+  return 0;
 }
 
 int ecmcAxisSequencer::checkHWLimitsAndStop(bool checkBWD, bool checkFWD) {
@@ -2570,6 +2678,7 @@ int ecmcAxisSequencer::stopSeq() {
   seqTimeCounter_ = 0;
   return 0;
 }
+
 
 int ecmcAxisSequencer::validate() {
   return 0;
@@ -2660,7 +2769,14 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   homePosLatch2_      = 0;
   homeLatchCountAct_  = 0;
   overUnderFlowLatch_ = ECMC_ENC_NORMAL;
-  stopSeq();
+
+  // See if trigg post home motion
+  if(homeEnablePostMove_) {
+    seqState_ = 1000;
+  } 
+  else {
+    stopSeq();
+  }
 }
 
 void ecmcAxisSequencer::setHomeLatchCountOffset(int count) {
@@ -2686,4 +2802,12 @@ int ecmcAxisSequencer::getAllowConstVelo(){
 
 int ecmcAxisSequencer::getAllowHome(){
   return enableHome_;
+}
+
+void ecmcAxisSequencer::setHomePostMoveTargetPosition(double targetPos) {
+  homePostMoveTargetPos_ = targetPos;
+}
+
+void ecmcAxisSequencer::setHomePostMoveEnable(double enable) {
+  homeEnablePostMove_ = enable;
 }

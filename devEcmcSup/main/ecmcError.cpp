@@ -775,6 +775,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14D17:
+    return "ERROR_SEQ_HOME_POST_MOVE_FAILED";
+
+    break;
+
   case 0x14E00:    // TRAJECTORY
     return "ERROR_TRAJ_EXT_ENC_NULL";
 

@@ -2494,6 +2494,38 @@ int setAxisMonLatchLimit(int     axisIndex,
 int setAxisSeqTimeout(int axisIndex,
                       int value);
 
+/** \brief Set homing post movement enable
+ *
+ * After successfull homing sequence an absolute positioning command can be executed.\n
+ * If enabled the axis will issue an motion command to the target position defined by\n
+ * setAxisHomePostMoveTargetPosition() 
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable enable functionality.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable post home movement for axis 2\n
+ * "Cfg.SetAxisHomePostMoveEnable(2,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisHomePostMoveEnable(int axisIndex, int enable);
+
+/** \brief Set homing post movement target position
+ *
+ * After successfull homing sequence an absolute positioning command can be executed.\n
+ * If enabled the axis will issue an motion command to the target position defined by\n
+ * by this function
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] targetPosition Target position for post home seq movement.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set a post home movement target position of 100 for axis 2\n
+ * "Cfg.SetAxisHomePostMoveTargetPosition(2,100)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisHomePostMoveTargetPosition(int axisIndex, double targetPosition);
+
 /** \brief Enable controller output high limit monitoring.\n
  *
  *  The controller output high limit monitoring functionality monitors

@@ -45,6 +45,7 @@
 #define ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE 0x14D14
 #define ERROR_SEQ_TARGET_POS_OUT_OF_RANGE 0x14D15
 #define ERROR_SEQ_MOTION_CMD_NOT_ENABLED 0x14D16
+#define ERROR_SEQ_HOME_POST_MOVE_FAILED 0x14D17
 
 // Homing
 enum ecmcHomingType {
@@ -115,6 +116,10 @@ class ecmcAxisSequencer : public ecmcError {
   int    setAllowMotionFunctions(bool enablePos,
                                  bool enableConstVel,
                                  bool enableHome);
+  void   setHomePostMoveTargetPosition(double targetPos);
+  void   setHomePostMoveEnable(double enable);
+
+
   int    getAllowPos();
   int    getAllowConstVelo();
   int    getAllowHome();
@@ -144,10 +149,13 @@ class ecmcAxisSequencer : public ecmcError {
   int    checkVelAccDec();
   void   initHomingSeq();
   void   finalizeHomingSeq(double newPosition);
+  int    postHomeMove();
+
   int seqState_;
   int seqStateOld_;
   int seqTimeout_;
   int seqTimeCounter_;
+  int seqPosHomeState_;
   bool hwLimitSwitchFwd_;
   bool hwLimitSwitchFwdOld_;
   bool hwLimitSwitchBwd_;
@@ -160,6 +168,8 @@ class ecmcAxisSequencer : public ecmcError {
   bool jogBwd_;
   bool executeOld_;
   bool localSeqBusy_;
+  bool homeEnablePostMove_;
+  double homePostMoveTargetPos_;
   double jogVel_;
   double homeVelTwordsCam_;
   double homeVelOffCam_;

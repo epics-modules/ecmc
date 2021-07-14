@@ -2340,6 +2340,20 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisSeqTimeout(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisHomePostMoveEnable(int axis_no, int value); */
+  nvals = sscanf(myarg_1, "SetAxisHomePostMoveEnable(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisHomePostMoveEnable(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisHomePostMoveTargetPosition(int axis_no, int value); */
+  nvals = sscanf(myarg_1, "SetAxisHomePostMoveTargetPosition(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisHomePostMoveTargetPosition(iValue, dValue);
+  }
+
   /*int Cfg.CreateEvent(int indexEvent);*/
   nvals = sscanf(myarg_1, "CreateEvent(%d)", &iValue);
 

@@ -276,6 +276,36 @@ int setAxisSeqTimeout(int axisIndex, int value) {
   return 0;
 }
 
+int setAxisHomePostMoveEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  axes[axisIndex]->getSeq()->setHomePostMoveEnable(enable);
+  return 0;
+}
+
+int setAxisHomePostMoveTargetPosition(int axisIndex, double targetPosition) {
+  LOGINFO4("%s/%s:%d axisIndex=%d targetPosition=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           targetPosition);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  axes[axisIndex]->getSeq()->setHomePostMoveTargetPosition(targetPosition);
+  return 0;
+}
+
 int getAxisCommand(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
