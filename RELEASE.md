@@ -1,6 +1,7 @@
 Release Notes
 ===
-# ECMC master
+# ECMC 7.0.0
+* New release to match ecmccfg 7.0.0
 * Add functionality to move to a position after success full homing procedure.
   The functionality is configuerd by the follwing two commands:
   ```
