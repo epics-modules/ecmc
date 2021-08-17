@@ -1,5 +1,6 @@
 Release Notes
 ===
+
 # ECMC 7.0.0
 * New release to match ecmccfg 7.0.0
 * Add functionality to move to a position after success full homing procedure.
@@ -31,7 +32,117 @@ Release Notes
   # polarity==0 is NC (default)
   # polarity==1 is NO
   ```
-  
+
+## Migration  guide (6.x.x to 7.0.0)
+
+Version 7 of ecmc and ecmccfg is intended to be more flexible in PV naming making it possible to follow for instance the ESS naming standard. At the same time a more systematic/genric approach to naming have been implemneted making use of macros easier. Because of these changes v7 is not compatible with v6. The last version of ecmc and ecmccfg with the old naming is v6.3.3.
+
+### What have changed
+The changes are described in detail in this file: [Naming Convention](https://github.com/icshwi/ecmccfg/blob/master/namingConvention.md)
+
+These changes will mainly affect:
+1. Default ecmc PV names
+2. ecmc parameter names
+
+#### 1. PV names
+Updated PV names affects:
+1. Local databases accesing data from ecmc PV:s
+2. OPIs accessing data from ecmc PVs
+3. Archiving configuration 
+
+Example of updated PV name:
+```
+Old:
+IOC_TEST:ec0-s6-EL5101-Enc-PosAct
+
+New:
+IOC_TEST:m0s006-Enc01-PosAct
+```
+
+#### 2. ecmc parameter names
+Updated ecmc paramter names affects:
+1. Local databases accesing data directlly from ecmc parameters
+2. EtherCAT variables in ecmc PLC:s
+3. Motion configuration links to hardware (in both normal *.ax files and sync files. *.sax)
+
+Example of updated ecmc parameter name:
+```
+Old:
+ec0.s5.BI_7
+
+New:
+ec0.s5.binaryInput07
+```
+
+Example of needed update in PLC code and sync files:
+```
+Old:
+ec0.s5.BO_7:=ec0.s1.CH1_VALUE > 500;
+
+New:
+ec0.s5.binaryOutput07:=ec0.s1.analogInput01 > 500;
+```
+
+Example of needed update of hardware links in motion configuration file:
+```
+Old:
+epicsEnvSet("ECMC_EC_DRV_CONTROL",        "ec0.s8.STM_CONTROL.0")        # Ethercat entry for control 
+
+New:
+epicsEnvSet("ECMC_EC_DRV_CONTROL",        "ec0.s8.driveControl01.0")     # Ethercat entry for control 
+```
+
+### New Functionalities 6.3.3
+
+Also update the motion copnfiguration files with the new functionalities in ecmc 6.3.3.
+
+#### Drive and Encoder Alarms, Warning and reset linked to motor record
+
+Since ecmc 6.3.3 the follwing can be linked to the motion axis:
+* 3 drive hardware alarms
+* 1 drive reset error bit
+* 1 drive warning bit
+* 3 encoder hardware alarms
+* 1 encoder reset error bit
+* 1 encoder warning bit
+ 
+Alarms:
+
+If any of the alarm bits is going high the axis will stop and and an alarm meassage will be propagated to motor record (if used).
+
+Reset:
+
+The reset bit is linked to the motor record reset PV (a reset from motor reset pv will result in reset toggle for 1 scan).
+
+Warning:
+
+The warning bit will at the moment just result in a printout in the iocsh log. Several drives, like el7037, are in warning state when not enabled.
+
+Variables:
+
+In order to use the new alarm and reset functionality some new varaibles need to be set in the motion configuration files.
+
+Example EL7037 and EL5002:
+```
+# Add to drive section (example of EL7037 drive):
+epicsEnvSet("ECMC_EC_DRV_RESET",          "ec0.s8.driveControl01.1")      # Reset
+epicsEnvSet("ECMC_EC_DRV_ALARM_0",        "ec0.s8.driveStatus01.3")       # Error
+epicsEnvSet("ECMC_EC_DRV_ALARM_1",        "ec0.s8.driveStatus01.7")       # Stall
+epicsEnvSet("ECMC_EC_DRV_ALARM_2",        "ec0.s8.driveStatus01.14")      # Sync error
+epicsEnvSet("ECMC_EC_DRV_WARNING",        "ec0.s8.driveStatus01.2")       
+
+# Add to encoder section (example of EWL5002 SSI encoder):
+epicsEnvSet("ECMC_EC_ENC_RESET",          "")                             # Reset (no reset bit)
+epicsEnvSet("ECMC_EC_ENC_ALARM_0",        "ec0.s3.encoderStatus01.0")     # Error 0: SSI input error
+epicsEnvSet("ECMC_EC_ENC_ALARM_1",        "ec0.s3.encoderStatus01.1")     # Error 1: SSI frame error
+epicsEnvSet("ECMC_EC_ENC_ALARM_2",        "ec0.s3.encoderStatus01.2")     # Error 2: Encoder power fail
+epicsEnvSet("ECMC_EC_ENC_WARNING",        "")                             # Warning (no warning bit)
+```
+Note: that the above examples are for EL7037 and EL5002. For other drives and encoders other hardware links need to be added.
+
+The bits can be linked to any ethercat entries.
+
+
 # ECMC 6.3.3
 * Block setEnable from motor record if ax<id>.blockcom==1
 * Block mc_* plc functions if ax<id>.allowplccmd==0
@@ -55,9 +166,9 @@ Release Notes
   
   - ax<id>.drv.reset   to  ec<id>.s<id>.STM_CONTROL.1   // Reset bit in drive control word.
   - ax<id>.drv.alarm0  to  ec<id>.s<id>.STM_STATUS.3    // Error bit in drive status word.
-  - ax<id>.drv.alarm1  to  ec<id>.s<id>.STM_CONTROL.1   // Stall bit drive status word.
-  - ax<id>.drv.alarm2  to  ec<id>.s<id>.STM_CONTROL.1   // Sync error bit drive status word.  
-  - ax<id>.drv.warning to  ec<id>.s<id>.STM_CONTROL.1   // Warning bit drive status word.
+  - ax<id>.drv.alarm1  to  ec<id>.s<id>.STM_STATUS.7   // Stall bit drive status word.
+  - ax<id>.drv.alarm2  to  ec<id>.s<id>.STM_STATUS.14   // Sync error bit drive status word.  
+  - ax<id>.drv.warning to  ec<id>.s<id>.STM_STATUS.2   // Warning bit drive status word.
   
   If the reset link is defined then this bit will be set for one cycle when issueing an error reset command.
   Note: Any of these new links can be left unused/blank.
