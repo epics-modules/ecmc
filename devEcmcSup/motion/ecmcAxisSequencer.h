@@ -65,6 +65,7 @@ enum ecmcHomingType {
   ECMC_SEQ_HOME_SET_POS                  = 15,
   ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS  = 21,
   ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS = 22,
+  ECMC_SEQ_HOME_SET_POS_2                = 25,   // Same as ECMC_SEQ_HOME_SET_POS but not blocked by motor. Code handled in ecmcMotorRecordAxis
 };
 
 class ecmcAxisSequencer : public ecmcError {

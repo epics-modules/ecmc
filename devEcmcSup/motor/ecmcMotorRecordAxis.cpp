@@ -592,6 +592,15 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity, double maxVelocity, dou
   if ( status != asynSuccess) {
     return asynError;
   }
+
+  /* ECMC_SEQ_HOME_SET_POS is blocked by motor record. 
+   * The new sequence ECMC_SEQ_HOME_SET_POS_2 (25) is the same but not blocked.
+   * by motor record.
+   */
+  if(cmdData == ECMC_SEQ_HOME_SET_POS_2) {
+    // Use ECMC_SEQ_HOME_SET_POS internally in ecmc
+    cmdData=ECMC_SEQ_HOME_SET_POS;
+  }
   
   // Home position
   (void)pC_->getDoubleParam(axisNo_,
@@ -1492,6 +1501,12 @@ asynStatus ecmcMotorRecordAxis::setHighLimit(double highLimit)
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitFwd(highLimit);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+  if(errorCode) {
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+             "%ssetHighLimit(%d)=%lf\n", modNamEMC, axisNo_, highLimit);
+
+    return asynError;
+  }
   return asynMotorAxis::setHighLimit(highLimit);
 }
 
@@ -1502,6 +1517,12 @@ asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit)
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitBwd(lowLimit);
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+  if(errorCode) {
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+             "%ssetLowLimit(%d)=%lf\n", modNamEMC, axisNo_, lowLimit);
+
+    return asynError;
+  }
   return asynMotorAxis::setLowLimit(lowLimit);
 }
 
