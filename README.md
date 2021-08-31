@@ -122,7 +122,7 @@ ECMC runs best under certain conditions:
 
 # Issues/bug report
 
-  https://jira.esss.lu.se/projects/ECMC/issues/
+https://github.com/epics-modules/ecmc/issues
 
 # Support
 
