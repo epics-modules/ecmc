@@ -1073,7 +1073,7 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
  * and then calls callParamCallbacks() at the end.
  * \param[out] moving A flag that is set indicating that the axis is moving (true) or done (false). */
 asynStatus ecmcMotorRecordAxis::poll(bool *moving)
-{  
+{
   double timeBefore = ecmcMotorRecordgetNowTimeSecs();
 #ifndef motorWaitPollsBeforeReadyString
   int waitNumPollsBeforeReady_ = drvlocal.waitNumPollsBeforeReady;
@@ -1084,10 +1084,13 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     return status;
   }
 
-  drvlocal.moveNotReadyNextOld = drvlocal.moveNotReadyNext;
-  drvlocal.moveNotReadyNext = ((drvlocal.statusBinData.onChangeData.statusWd.busy > 0) || 
-                             !(drvlocal.statusBinData.onChangeData.statusWd.attarget > 0)) > 0;
-
+  if(drvlocal.ecmcAxis) {
+    drvlocal.moveNotReadyNext= drvlocal.ecmcAxis->getBusy() || !drvlocal.statusBinData.onChangeData.statusWd.attarget;
+  }
+  else {
+    drvlocal.moveNotReadyNext= false;
+  }
+  
   setIntegerParam(pC_->motorStatusHomed_, (drvlocal.statusBinData.onChangeData.statusWd.homed > 0));
   drvlocal.homed = drvlocal.statusBinData.onChangeData.statusWd.homed > 0;
   setIntegerParam(pC_->motorStatusCommsError_, 0);
