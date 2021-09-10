@@ -222,7 +222,7 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
     if(targetVelo > currVelo) {
       // Acc
       positionStep = prevStepSize_ + stepACC_;
-    } else {
+    } else if (targetVelo < currVelo) {
       // Dec
       positionStep = prevStepSize_ - stepDEC_;
     }
@@ -230,12 +230,13 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
     if(targetVelo > currVelo) {
       // Dec
       positionStep = prevStepSize_ + stepDEC_;
-    } else {
+    } else if(targetVelo < currVelo) {
       // Acc
       positionStep = prevStepSize_ - stepACC_;
     }
   }
 
+  // Need to add check so that setpoint is not rippeling.. If stepNom and
 
   posSetTemp = currSetpoint + positionStep;
 
