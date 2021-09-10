@@ -212,28 +212,32 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
 
   *trajBusy = true;
 
-  if(std::abs(prevStepSize_) > stepNOM_) {
-    positionStep = std::abs(prevStepSize_) - stepDEC_;
-    if(positionStep < stepNOM_) {      
-      positionStep = stepNOM_;
+  /* 
+  * targetVelo and currVelo can be negative. 
+  * - If decreasing abs(velo) then use decelerartion  (approaching zero velocity)
+  * - If increasing abs(velo) velo then use acceleration
+  */
+  
+  if( currVelo >= 0 ) {
+    if(targetVelo > currVelo) {
+      // Acc
+      positionStep = prevStepSize_ + stepACC_;
+    } else {
+      // Dec
+      positionStep = prevStepSize_ - stepDEC_;
     }
-  } else {
-    if(std::abs(prevStepSize_) < stepNOM_) {
-      positionStep = std::abs(prevStepSize_) + stepACC_;
-      if(positionStep > stepNOM_) {        
-        positionStep = stepNOM_;
-      }
-    }
-    else {
-      positionStep = stepNOM_;
+  } else if ( currVelo < 0 ) {
+    if(targetVelo > currVelo) {
+      // Dec
+      positionStep = prevStepSize_ + stepDEC_;
+    } else {
+      // Acc
+      positionStep = prevStepSize_ - stepACC_;
     }
   }
 
-  if (setDirection_ == ECMC_DIR_FORWARD) {
-    posSetTemp = currSetpoint + positionStep;
-  } else {
-    posSetTemp = currSetpoint - positionStep;
-  }
+
+  posSetTemp = currSetpoint + positionStep;
 
   return posSetTemp;
 }
@@ -253,6 +257,12 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   double distToTargetOld = dist(currSetpoint,targetSetpoint,setDirection_);
   
   stopping = stopDistance  >= std::abs(distToTargetOld) - std::abs(prevStepSize_); // compensate for this motion step
+
+  
+  /*distTotargetOld-stopDistance
+  positionStep = stepNOM_;
+  positionStep = std::abs(prevStepSize_) + stepACC_;
+  positionStep = std::abs(prevStepSize_) - stepDEC_;*/
 
   if (!stopping) {
     if (std::abs(currVelo) < std::abs(targetVelo)) {
