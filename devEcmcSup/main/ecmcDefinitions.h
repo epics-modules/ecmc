@@ -185,11 +185,13 @@
 #define ECMC_ASYN_AX_STATUS_NAME "status"
 #define ECMC_ASYN_AX_CONTROL_BIN_ID 5
 #define ECMC_ASYN_AX_CONTROL_BIN_NAME "control"
-#define ECMC_ASYN_AX_SOFTLIM_BWD_ID 6
-#define ECMC_ASYN_AX_STATUS_BIN_ID 7
-#define ECMC_ASYN_AX_STATUS_BIN_NAME "statusbin"
+//#define ECMC_ASYN_AX_STATUS_BIN_ID 6
+//#define ECMC_ASYN_AX_STATUS_BIN_NAME "statusbin"
+#define ECMC_ASYN_AX_TARG_VELO_ID 6
+#define ECMC_ASYN_AX_TARG_VELO_NAME "targvelo"
+#define ECMC_ASYN_AX_TARG_POS_ID 7
+#define ECMC_ASYN_AX_TARG_POS_NAME "targpos"
 #define ECMC_ASYN_AX_PAR_COUNT 8
-
 
 // Motion
 enum app_mode_type {

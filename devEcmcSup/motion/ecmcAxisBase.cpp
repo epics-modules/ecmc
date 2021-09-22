@@ -20,10 +20,8 @@
 #include "../main/ecmcErrorsList.h"
 
 /**
- * 
- * Callback function for asynWrites (commands)
+ * Callback function for asynWrites (control word)
  * userObj = axis object
- * Keep code as example how to link functions to a param
  * 
  * */ 
 asynStatus asynWriteCmd(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
@@ -31,6 +29,30 @@ asynStatus asynWriteCmd(void* data, size_t bytes, asynParamType asynParType,void
     return asynError;
   }
   return ((ecmcAxisBase*)userObj)->axisAsynWriteCmd(data, bytes, asynParType);
+}
+
+/**
+ * Callback function for asynWrites (Target Velo)
+ * userObj = axis object
+ * 
+ * */ 
+asynStatus asynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase*)userObj)->axisAsynWriteTargetVelo(data, bytes, asynParType);
+}
+
+/**
+ * Callback function for asynWrites (Target Pos)
+ * userObj = axis object
+ * 
+ * */ 
+asynStatus asynWriteTargetPos(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase*)userObj)->axisAsynWriteTargetPos(data, bytes, asynParType);
 }
 
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
@@ -253,7 +275,12 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
+  
+  // Try to remove.. Not used anymore
+  //axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID]->refreshParamRT(0);
   
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->linkedToAsynClient() ) {    
     int  bytesUsed = 0;
@@ -837,19 +864,19 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
 
-  // Status binary struct (for motor record)
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_BIN_NAME,
-                              asynParamInt8Array,
-                              ECMC_EC_S8,
-                              (uint8_t *)&(statusData_),
-                              sizeof(ecmcAxisStatusType),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
-  paramTemp->setAllowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID] = paramTemp;
+//  // Status binary struct (for motor record)
+//  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_BIN_NAME,
+//                              asynParamInt8Array,
+//                              ECMC_EC_S8,
+//                              (uint8_t *)&(statusData_),
+//                              sizeof(ecmcAxisStatusType),
+//                              &paramTemp);
+//  if(errorCode) {
+//    return errorCode;
+//  }
+//  paramTemp->setAllowWriteToEcmc(false);
+//  paramTemp->refreshParam(1);
+//  axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID] = paramTemp;
  
   // Status word
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_NAME,
@@ -881,6 +908,36 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setExeCmdFunctPtr(asynWriteCmd,this); // Access to this axis
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID] = paramTemp;
+
+  // Target Velo
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARG_VELO_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t*)&(data_.command_.velocityTarget),
+                              sizeof(data_.command_.velocityTarget),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteTargetVelo,this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID] = paramTemp;
+
+  // Target Pos
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARG_POS_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t*)&(data_.command_.positionTarget),
+                              sizeof(data_.command_.positionTarget),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteTargetPos,this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID] = paramTemp;
 
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
@@ -1689,6 +1746,54 @@ void ecmcAxisBase::initControlWord() {
   controlWord_.plcCmdsAllowCmd = getAllowCmdFromPLC();
   controlWord_.enableSoftLimitBwd = data_.command_.enableSoftLimitBwd;
   controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;
+}
+
+asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType) {
+
+  if(sizeof(double) != bytes) {
+    LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Target Velo Size Missmatch.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+
+    return asynError;
+  }
+  double velo = 0;
+  memcpy(&velo,data,bytes);
+
+  if (getSeq() == NULL) {
+    return asynError;
+  }
+    
+  getSeq()->setTargetVel(velo);
+
+  return asynSuccess;
+}
+
+asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynParamType asynParType) {
+
+  if(sizeof(double) != bytes) {
+    LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Target Pos Size Missmatch.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+
+    return asynError;
+  }
+  double pos = 0;
+  memcpy(&pos,data,bytes);
+
+  if (getSeq() == NULL) {
+    return asynError;
+  }
+    
+  getSeq()->setTargetVel(pos);
+  
+  return asynSuccess;
 }
 
 int ecmcAxisBase::setDisableAxisAtErrorReset(bool disable){

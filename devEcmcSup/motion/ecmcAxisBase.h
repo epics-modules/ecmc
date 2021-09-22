@@ -253,6 +253,8 @@ class ecmcAxisBase : public ecmcError {
   int                   setPosition(double homePositionSet);  // Autosave
   int                   stopMotion(int killAmplifier);
   asynStatus            axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType);
+  asynStatus            axisAsynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType);
+  asynStatus            axisAsynWriteTargetPos(void* data, size_t bytes, asynParamType asynParType);
   int                   setAllowMotionFunctions(bool enablePos, bool enableConstVel, bool enableHome);
   int                   getAllowPos();
   int                   getAllowConstVelo();
