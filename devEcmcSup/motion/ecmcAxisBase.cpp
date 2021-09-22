@@ -55,6 +55,30 @@ asynStatus asynWriteTargetPos(void* data, size_t bytes, asynParamType asynParTyp
   return ((ecmcAxisBase*)userObj)->axisAsynWriteTargetPos(data, bytes, asynParType);
 }
 
+/**
+ * Callback function for asynWrites (Command)
+ * userObj = axis object
+ * 
+ * */ 
+asynStatus asynWriteCommand(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase*)userObj)->axisAsynWriteCommand(data, bytes, asynParType);
+}
+
+/**
+ * Callback function for asynWrites (Cmddata)
+ * userObj = axis object
+ * 
+ * */ 
+asynStatus asynWriteCmdData(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase*)userObj)->axisAsynWriteCmdData(data, bytes, asynParType);
+}
+
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int axisID, 
                            double sampleTime) {
@@ -278,6 +302,10 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(0);
+
+  
   
   // Try to remove.. Not used anymore
   //axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID]->refreshParamRT(0);
@@ -655,7 +683,6 @@ int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
 
 int ecmcAxisBase::setCommand(motionCommandTypes command) {
   seq_.setCommand(command);
-
   return 0;
 }
 
@@ -938,6 +965,38 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setExeCmdFunctPtr(asynWriteTargetPos,this); // Access to this axis
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID] = paramTemp;
+
+  // Command
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_COMMAND_NAME,
+                              asynParamInt32,
+                              ECMC_EC_S32,
+                              (uint8_t*)&(data_.command_.command),
+                              sizeof(data_.command_.command),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteCommand,this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_COMMAND_ID] = paramTemp;
+
+  // CmdData
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CMDDATA_NAME,
+                              asynParamInt32,
+                              ECMC_EC_S32,
+                              (uint8_t*)&(data_.command_.cmdData),
+                              sizeof(data_.command_.cmdData),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteCmdData,this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID] = paramTemp;
 
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
@@ -1685,7 +1744,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
 //  printf("controlWord_.trajSourceCmd   %d\n",controlWord_.trajSourceCmd);
 //  printf("controlWord_.plcCmdsAllowCmd %d\n",controlWord_.plcCmdsAllowCmd);
 //  printf("controlWord_.plcEnableCmd    %d\n",controlWord_.plcEnableCmd);
- 
+//  printf("controlWord_.spareBitsCmd    %d\n",controlWord_.spareBitsCmd);
+
   errorCode = setEnable(controlWord_.enableCmd);
   if(errorCode) {
     returnVal = asynError;
@@ -1695,7 +1755,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
   if(errorCode) {
     returnVal = asynError;
   }
-
+  
   setReset(controlWord_.resetCmd);
   
   errorCode = setEncDataSourceType((controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL:ECMC_DATA_SOURCE_INTERNAL));
@@ -1745,14 +1805,14 @@ void ecmcAxisBase::initControlWord() {
   controlWord_.trajSourceCmd = getTrajDataSourceType() == ECMC_DATA_SOURCE_EXTERNAL;
   controlWord_.plcCmdsAllowCmd = getAllowCmdFromPLC();
   controlWord_.enableSoftLimitBwd = data_.command_.enableSoftLimitBwd;
-  controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;
+  controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;  
 }
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(double) != bytes) {
+  if(sizeof(double) != bytes && asynParType == asynParamFloat64) {
     LOGERR(
-        "%s/%s:%d: ERROR (axis %d): Target Velo Size Missmatch.\n",
+        "%s/%s:%d: ERROR (axis %d): Target Velo size or datatype missmatch.\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
@@ -1774,9 +1834,9 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynP
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(double) != bytes) {
+  if(sizeof(double) != bytes && asynParType == asynParamFloat64) {
     LOGERR(
-        "%s/%s:%d: ERROR (axis %d): Target Pos Size Missmatch.\n",
+        "%s/%s:%d: ERROR (axis %d): Target Pos size or datatype missmatch.\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
@@ -1792,6 +1852,46 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynPa
   }
     
   getSeq()->setTargetVel(pos);
+  
+  return asynSuccess;
+}
+
+asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynParamType asynParType) {
+
+  if(sizeof(int) != bytes && asynParType == asynParamInt32) {
+    LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Command size or datatype missmatch.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+
+    return asynError;
+  }
+  int  command = 0;
+  memcpy(&command,data,bytes);
+    
+  setCommand((motionCommandTypes)command);
+  
+  return asynSuccess;
+}
+
+asynStatus ecmcAxisBase::axisAsynWriteCmdData(void* data, size_t bytes, asynParamType asynParType) {
+
+  if(sizeof(int) != bytes && asynParType == asynParamInt32) {
+    LOGERR(
+        "%s/%s:%d: ERROR (axis %d): CmdData size or datatype missmatch.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+
+    return asynError;
+  }
+  int  cmddata = 0;
+  memcpy(&cmddata,data,bytes);
+
+  setCmdData(cmddata);
   
   return asynSuccess;
 }

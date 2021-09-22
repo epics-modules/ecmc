@@ -191,7 +191,11 @@
 #define ECMC_ASYN_AX_TARG_VELO_NAME "targvelo"
 #define ECMC_ASYN_AX_TARG_POS_ID 7
 #define ECMC_ASYN_AX_TARG_POS_NAME "targpos"
-#define ECMC_ASYN_AX_PAR_COUNT 8
+#define ECMC_ASYN_AX_COMMAND_ID 8
+#define ECMC_ASYN_AX_COMMAND_NAME "command"
+#define ECMC_ASYN_AX_CMDDATA_ID 9
+#define ECMC_ASYN_AX_CMDDATA_NAME "cmddata"
+#define ECMC_ASYN_AX_PAR_COUNT 10
 
 // Motion
 enum app_mode_type {
