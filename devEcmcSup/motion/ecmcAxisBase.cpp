@@ -1851,7 +1851,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynPa
     return asynError;
   }
     
-  getSeq()->setTargetVel(pos);
+  getSeq()->setTargetPos(pos);
   
   return asynSuccess;
 }
@@ -1868,9 +1868,9 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynPara
 
     return asynError;
   }
-  int  command = 0;
+  int command = 0;
   memcpy(&command,data,bytes);
-    
+  printf("command=%d\n",command);
   setCommand((motionCommandTypes)command);
   
   return asynSuccess;
@@ -1890,7 +1890,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void* data, size_t bytes, asynPara
   }
   int  cmddata = 0;
   memcpy(&cmddata,data,bytes);
-
+  printf("cmddata=%d\n",cmddata);
   setCmdData(cmddata);
   
   return asynSuccess;
