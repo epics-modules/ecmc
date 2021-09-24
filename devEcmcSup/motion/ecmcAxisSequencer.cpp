@@ -580,6 +580,7 @@ void ecmcAxisSequencer::setTargetPos(double pos) {
   }
   pos = checkSoftLimits(pos);
   data_->command_.positionTarget = pos;
+  traj_->setTargetPos(data_->command_.positionTarget);
 }
 
 void ecmcAxisSequencer::setTargetPos(double pos, bool force) {

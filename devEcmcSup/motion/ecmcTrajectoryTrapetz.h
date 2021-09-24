@@ -218,11 +218,12 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   bool internalStopCmd_;
   double distToStop_;
   double prevStepSize_;
-  motionDirection actDirection_;
-  motionDirection setDirection_;
+  //motionDirection actDirection_;
+  //motionDirection setDirection_;
   motionMode motionMode_;
   interlockTypes interlockStatus_;
   ecmcAxisData *data_;
-  stopMode latchedStopMode_;  
+  stopMode latchedStopMode_;
+  bool switchTargetOnTheFly_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_
