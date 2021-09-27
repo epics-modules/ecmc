@@ -225,5 +225,6 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   ecmcAxisData *data_;
   stopMode latchedStopMode_;
   bool switchTargetOnTheFly_;
+  double stepStableTol_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_
