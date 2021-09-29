@@ -321,7 +321,9 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                                       bool  *trajBusy) {
   double positionStep = 0;
   double posSetTemp   = 0;
-  bool   stopping   = false;
+  double nextVelocity = 0;
+  bool   stopping     = false;
+  bool   stopped      = false;
 
   *trajBusy = true;
   
@@ -336,63 +338,50 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
     printf("2: distToTargetOld=%lf,stopDistance=%lf,stopping=%d,velocityTarget_=%lf\n",distToTargetOld,stopDistance,stopping,velocityTarget_);
   }
 
-  /*distTotargetOld-stopDistance
-  positionStep = stepNOM_;
-  positionStep = std::abs(prevStepSize_) + stepACC_;
-  positionStep = std::abs(prevStepSize_) - stepDEC_;*/
+  if (stopping) {  // Stopping
+    posSetTemp = moveStop(ECMC_STOP_MODE_NORMAL,
+                          currSetpoint,
+                          currVelo,
+                          targetVelo,
+                          &stopped,
+                          &nextVelocity);
 
-  if (!stopping) {
-    if( currVelo >= 0 ) {
-      if(targetVelo > currVelo) {
-        // Acc
-        positionStep = prevStepSize_ + stepACC_;
-      } else if (targetVelo < currVelo) {
-        // Dec
-        positionStep = prevStepSize_ - stepDEC_;
-      }
-    } else if ( currVelo < 0 ) {
-      if(targetVelo > currVelo) {
-        // Dec
-        positionStep = prevStepSize_ + stepDEC_;
-      } else if(targetVelo < currVelo) {
-        // Acc
-        positionStep = prevStepSize_ - stepACC_;
-      }
-    }
-  } else {  //Stopping
-    positionStep = std::abs(prevStepSize_) - stepDEC_;
+//    positionStep = std::abs(prevStepSize_) - stepDEC_;    
+//
+//    if (targetVelo > 0) {
+//      if (currVelo >= 0) {
+//        posSetTemp = currSetpoint + positionStep;
+//      } else {
+//        posSetTemp = currSetpoint - positionStep;
+//      }
+//       } else {    
+//      // Negative Direction setpoint
+//      if (currVelo <= 0) {
+//        posSetTemp = currSetpoint - positionStep;
+//      } else {
+//        posSetTemp = currSetpoint + positionStep;
+//      }
+//    }
+//    
+//    thisStepSize_ = positionStep;
+
+  } else {  // Not stopping
+    // Run moveVel aslong as not stopping
+    posSetTemp = moveVel(currSetpoint,
+                         currVelo,
+                         targetVelo,
+                         trajBusy);
+
   }
   
-  thisStepSize_ = positionStep;
-
-  if (targetVelo > 0) {
-    if (currVelo >= 0) {
-      posSetTemp = currSetpoint + positionStep;
-    } else {
-      posSetTemp = currSetpoint - positionStep;
-    }
-
-  } else {    
-    // Negative Direction setpoint
-    if (currVelo <= 0) {
-      posSetTemp = currSetpoint - positionStep;
-    } else {
-      posSetTemp = currSetpoint + positionStep;
-    }
-  }
-
   posSetTemp = checkModuloPos(posSetTemp,velocityTarget_ > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
   double distToTargetnNew = dist(posSetTemp,targetSetpoint,velocityTarget_ > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
-  printf("distToTargetnNew=%lf,stepDEC_=%lf,distToTargetOld=%lf\n",distToTargetnNew,stepDEC_,distToTargetOld);
-  // Tarjectory finished if at target position
-  //if(std::abs(distToTargetOld) <= std::abs(distToTargetnNew) || 
-  //    distToTargetnNew == 0 || distToTargetOld == 0) {
   
-  //if(std::abs(distToTargetnNew) <= std::abs(stepDEC_)){
+  printf("distToTargetnNew=%lf,stepDEC_=%lf,distToTargetOld=%lf, stopping %d\n",distToTargetnNew,stepDEC_,distToTargetOld,stopping);
+
   if(velocityTarget_ >= 0 && distToTargetnNew <= 0 && distToTargetOld >= 0 || 
      velocityTarget_ <= 0 && distToTargetnNew >= 0 && distToTargetOld <= 0) {
     posSetTemp      = targetSetpoint;
-    // To allow for at target monitoring to go high (and then also bBusy)
     targetPosition_ = posSetTemp;
     *trajBusy       = false;
   }
