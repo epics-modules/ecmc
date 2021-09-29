@@ -219,8 +219,6 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   double distToStop_;
   double prevStepSize_;
   double thisStepSize_;
-  //motionDirection actDirection_;
-  //motionDirection setDirection_;
   motionMode motionMode_;
   interlockTypes interlockStatus_;
   ecmcAxisData *data_;

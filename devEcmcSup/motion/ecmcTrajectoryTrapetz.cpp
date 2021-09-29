@@ -74,8 +74,6 @@ void ecmcTrajectoryTrapetz::initVars() {
   enableOld_               = false;
   motionMode_              = ECMC_MOVE_MODE_POS;
   prevStepSize_            = 0;
-  //setDirection_            = ECMC_DIR_FORWARD;
-  //actDirection_            = ECMC_DIR_FORWARD;
   latchedStopMode_         = ECMC_STOP_MODE_RUN;
   switchTargetOnTheFly_    = false;
   stepStableTol_           = 0;
@@ -131,8 +129,6 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
     posSetMinus1_ = currentPositionSetpoint_;
     prevStepSize_ = 0;
     velocity_     = 0;
-    //setDirection_ = ECMC_DIR_STANDSTILL;
-    //actDirection_ = ECMC_DIR_STANDSTILL;
     return currentPositionSetpoint_;
   }
   index_++;
@@ -162,8 +158,6 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
                             &nextVelocity);
 
     if (stopped) {
-      //setDirection_ = ECMC_DIR_STANDSTILL;
-      //actDirection_ = ECMC_DIR_STANDSTILL;
       velocity_ = 0;
       busy_         = false;
       nextVelocity  = 0;
@@ -171,8 +165,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
   } else {
 
   }
-  //actDirection_ = checkDirection(currentPositionSetpoint_,
-  //                               nextSetpoint);
+
   currentPositionSetpoint_ = updateSetpoint(nextSetpoint, nextVelocity);
 
   return currentPositionSetpoint_;
@@ -271,47 +264,6 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
 
   return currSetpoint + thisStepSize_;
 }
-
-//double ecmcTrajectoryTrapetz::movePos2(double currSetpoint,
-//                                       double targetSetpoint,
-//                                       double currVelo,
-//                                       double targetVelo,
-//                                       bool  *trajBusy) {
-//  double positionStep = 0;
-//  double posSetTemp   = 0;
-//
-//  *trajBusy = true;
-//
-//  /* 
-//  * targetVelo and currVelo can be negative. 
-//  * - If decreasing abs(velo) then use decelerartion  (approaching zero velocity)
-//  * - If increasing abs(velo) velo then use acceleration
-//  */
-//  
-//  if( currVelo >= 0 ) {
-//    if(targetVelo > currVelo) {
-//      // Acc
-//      positionStep = prevStepSize_ + stepACC_;
-//    } else if (targetVelo < currVelo) {
-//      // Dec
-//      positionStep = prevStepSize_ - stepDEC_;
-//    }
-//  } else if ( currVelo < 0 ) {
-//    if(targetVelo > currVelo) {
-//      // Dec
-//      positionStep = prevStepSize_ + stepDEC_;
-//    } else if(targetVelo < currVelo) {
-//      // Acc
-//      positionStep = prevStepSize_ - stepACC_;
-//    }
-//  }
-//
-//  // Need to add check so that setpoint is not rippeling.. If stepNom and
-//
-//  posSetTemp = currSetpoint + positionStep;
-//
-//  return posSetTemp;
-//}
 
 double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                                       double targetSetpoint,
@@ -416,8 +368,6 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
 }
 
 double ecmcTrajectoryTrapetz::distToStop(double vel) {  
-  //return std::abs(0.5 * vel * vel / deceleration_)  /*+*/ - std::abs(
-  //  vel * sampleTime_)  /*-4*stepDEC_*/;  // TODO check this equation
 
   return std::abs(0.5 * vel * vel / deceleration_) + std::abs(vel * sampleTime_); // /*-4*stepDEC_*/;  // TODO check this equation
 }
@@ -547,11 +497,6 @@ int ecmcTrajectoryTrapetz::setExecute(bool execute) {
     switch (motionMode_) {
     case ECMC_MOVE_MODE_VEL:
 
-      //if (velocityTarget_ < 0) {
-      //  setDirection_ = ECMC_DIR_BACKWARD;
-      //} else {
-      //  setDirection_ = ECMC_DIR_FORWARD;
-      //}
       break;
 
     case ECMC_MOVE_MODE_POS:
