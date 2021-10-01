@@ -171,21 +171,20 @@ class ecmcTrajectoryTrapetz : public ecmcError {
   void            initTraj();
   double          internalTraj(double *velocity);
   double          moveVel(double currSetpoint,
-                          double currVelo,
-                          double targetVelo,
+                          double prevStepSize,
+                          double stepNom,
                           bool  *trajBusy);
-  double movePos(double currSetpoint,
-                 double targetSetpoint,
-                 double stopDistance,
-                 double currVelo,
-                 double targetVelo,
-                 bool  *trajBusy);
-  double moveStop(stopMode stopMode,
-                  double   currSetpoint,
-                  double   currVelo,
-                  double   targetVelo,
-                  bool    *stopped,
-                  double  *velocity);
+  double          movePos(double currSetpoint,
+                          double targetSetpoint,
+                          double stopDistance,
+                          double prevStepSize, // currVelo
+                          double stepNom,   //targetVelo
+                          bool  *trajBusy);
+  double          moveStop(stopMode stopMode,
+                           double   currSetpoint,
+                           double   prevStepSize,
+                           bool    *stopped,
+                           double  *velocity);
   stopMode        checkInterlocks();
   double          updateSetpoint(double nextSetpoint,
                                  double nextVelocity);

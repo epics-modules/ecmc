@@ -179,7 +179,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   data_.refreshInterlocks();
 
   data_.status_.moving = std::abs(
-    data_.status_.currentVelocityActual) > 0;
+    data_.status_.currentVelocityActual) > 0 || getTraj()->getBusy();
 
   if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
     enc_->readEntries();

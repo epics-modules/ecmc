@@ -106,8 +106,6 @@ void ecmcTrajectoryTrapetz::setCurrentPosSet(double posSet) {
   posSetMinus1_            = currentPositionSetpoint_;
   prevStepSize_            = 0;
   velocity_                = 0;
-  //setDirection_            = ECMC_DIR_STANDSTILL;
-  //actDirection_            = ECMC_DIR_STANDSTILL;
 }
 
 double ecmcTrajectoryTrapetz::getNextPosSet() {
@@ -150,10 +148,10 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
        data_->interlocks_.trajSummaryInterlockBWD) ||
       ((nextDir == ECMC_DIR_FORWARD) &&
        data_->interlocks_.trajSummaryInterlockFWD)) {
+
     nextSetpoint = moveStop(data_->interlocks_.currStopMode,
                             currentPositionSetpoint_,
-                            velocity_,
-                            velocityTarget_,
+                            prevStepSize_,
                             &stopped,
                             &nextVelocity);
 
@@ -162,8 +160,6 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
       busy_         = false;
       nextVelocity  = 0;
     }
-  } else {
-
   }
 
   currentPositionSetpoint_ = updateSetpoint(nextSetpoint, nextVelocity);
@@ -189,15 +185,15 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
     posSetTemp = movePos(currentPositionSetpoint_,
                           targetPosition_,
                           distToStop_,
-                          velocity_,
-                          velocityTarget_,
+                          prevStepSize_,
+                          stepNOM_,
                           &busy_);
     break;
   
   case ECMC_MOVE_MODE_VEL:
     posSetTemp = moveVel(currentPositionSetpoint_,
-                         velocity_,
-                         velocityTarget_,
+                         prevStepSize_,
+                         stepNOM_,
                          &busy_);
     break;
   }
@@ -211,8 +207,8 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
 }
 
 double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
-                                      double currVelo,
-                                      double targetVelo,
+                                      double prevStepSize,
+                                      double stepNOM,
                                       bool  *trajBusy) {
   double positionStep = 0;
 
@@ -224,40 +220,40 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
   * - If increasing abs(velo) velo then use acceleration
   */
   
-   if( prevStepSize_ > 0) {
-    if(stepNOM_ > prevStepSize_) {
+   if( prevStepSize > 0) {
+    if(stepNOM > prevStepSize) {
       // Acc
-      positionStep = prevStepSize_ + stepACC_;
-    } else if (stepNOM_ < prevStepSize_) {
+      positionStep = prevStepSize + stepACC_;
+    } else if (stepNOM < prevStepSize) {
       // Dec      
-      positionStep = prevStepSize_ - stepDEC_;
+      positionStep = prevStepSize - stepDEC_;
     }  else {
-      positionStep = prevStepSize_;
+      positionStep = prevStepSize;
     }
-  } else if ( prevStepSize_ < 0 ) {
-    if(stepNOM_ > prevStepSize_) {
+  } else if ( prevStepSize < 0 ) {
+    if(stepNOM > prevStepSize) {
       // Dec
-      positionStep = prevStepSize_ + stepDEC_;
-    } else if(stepNOM_ < prevStepSize_) {
+      positionStep = prevStepSize + stepDEC_;
+    } else if(stepNOM < prevStepSize) {
       // Acc
-      positionStep = prevStepSize_ - stepACC_;
+      positionStep = prevStepSize - stepACC_;
     } else {
-      positionStep = prevStepSize_;
+      positionStep = prevStepSize;
     }
   } else {  // currvelo == 0
-    if(stepNOM_ > prevStepSize_) {
+    if(stepNOM > prevStepSize) {
       // Acc
-      positionStep = prevStepSize_ + stepACC_;
-    } else if (stepNOM_ < prevStepSize_) {
+      positionStep = prevStepSize + stepACC_;
+    } else if (stepNOM < prevStepSize) {
       // Acc
-      positionStep = prevStepSize_ - stepACC_;
+      positionStep = prevStepSize - stepACC_;
     }
   }
 
   // Avoid ripple due to rounding errors
-  double diff=std::abs(stepNOM_ - positionStep);
+  double diff = std::abs(stepNOM - positionStep);
   if( diff < stepStableTol_ ) {
-    positionStep = stepNOM_;
+    positionStep = stepNOM;
   }
   
   thisStepSize_ = positionStep;
@@ -268,8 +264,8 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
 double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                                       double targetSetpoint,
                                       double stopDistance,  // Always positive
-                                      double currVelo,
-                                      double targetVelo,
+                                      double prevStepSize,
+                                      double stepNom,
                                       bool  *trajBusy) {
   double posSetTemp   = 0;
   double nextVelocity = 0;
@@ -278,41 +274,33 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
 
   *trajBusy = true;
 
-  double distToTargetOld = dist(currSetpoint,targetSetpoint, targetVelo > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
+  double distToTargetOld = dist(currSetpoint,targetSetpoint, stepNom > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);  
   double distToTargetOldComp = 0;
-  if(targetVelo > 0) {
-    distToTargetOldComp = distToTargetOld - prevStepSize_ - stepDEC_;
+  
+  if(stepNom > 0) {
+    distToTargetOldComp = distToTargetOld - prevStepSize - stepDEC_;
   }
   else {
-    distToTargetOldComp = -(distToTargetOld - prevStepSize_ - stepDEC_);
+    distToTargetOldComp = -(distToTargetOld - prevStepSize + stepDEC_);
   }
-
+  
   stopping = stopDistance >= distToTargetOldComp;
 
-  printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,stopping=%d,currVelo=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,stopping,currVelo);
+  //printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,stopping=%d,prevStepSize=%lf,deceleration=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,stopping,prevStepSize,deceleration_);
 
-  if (stopping) {  // Stopping
-    posSetTemp = moveStop(ECMC_STOP_MODE_NORMAL,
-                          currSetpoint,
-                          currVelo,
-                          targetVelo,
-                          &stopped,
-                          &nextVelocity);
-
-  } else {         // Not stopping
-    // Run moveVel aslong as not stopping
-    posSetTemp = moveVel(currSetpoint,
-                         currVelo,
-                         targetVelo,
-                         trajBusy);
-
+  double stepNomTemp = stepNom;
+  if(stopping) {
+    stepNomTemp = 0;  // targetVelo=0
   }
+  posSetTemp = moveVel(currSetpoint,
+                       prevStepSize,
+                       stepNomTemp,
+                       trajBusy);
+
+  posSetTemp = checkModuloPos(posSetTemp,prevStepSize >= 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
+  double distToTargetnNew = dist(posSetTemp,targetSetpoint,prevStepSize >= 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
   
-  posSetTemp = checkModuloPos(posSetTemp,currVelo > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
-  double distToTargetnNew = dist(posSetTemp,targetSetpoint,currVelo > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
-  
-  if( ((velocityTarget_ >= 0) && (distToTargetnNew <= 0) && (distToTargetOld >= 0)) || 
-      ((velocityTarget_ <= 0) && (distToTargetnNew >= 0) && (distToTargetOld <= 0))) {
+  if(prevStepSize == 0 && stopDistance == 0 && std::abs(distToTargetnNew) <= std::abs(stepDEC_)) {
     posSetTemp      = targetSetpoint;
     targetPosition_ = posSetTemp;
     *trajBusy       = false;
@@ -323,8 +311,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
 
 double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
                                        double   currSetpoint,
-                                       double   currVelo,
-                                       double   targetVelo,
+                                       double   prevStepSize,                                       
                                        bool    *stopped,
                                        double  *velocity) {
   double positionStep;
@@ -333,16 +320,16 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
   *stopped = false;
   motionDirection nDir = ECMC_DIR_STANDSTILL;
 
-  if (currVelo > 0) {
+  if (prevStepSize > 0) {
     nDir = ECMC_DIR_FORWARD;
-  } else if (currVelo < 0) {
+  } else if (prevStepSize < 0) {
     nDir = ECMC_DIR_BACKWARD;
   }
 
   if (stopMode == ECMC_STOP_MODE_EMERGENCY) {
-    positionStep = std::abs(prevStepSize_) - stepDECEmerg_;
+    positionStep = std::abs(prevStepSize) - stepDECEmerg_;
   } else {
-    positionStep = std::abs(prevStepSize_) - stepDEC_;
+    positionStep = std::abs(prevStepSize) - stepDEC_;
   }
 
   if (nDir == ECMC_DIR_FORWARD) {
