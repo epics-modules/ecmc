@@ -206,6 +206,18 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
   return posSetTemp;
 }
 
+/*
+  *  Method for moving att constant velocity (including ramps)
+  * 
+  * Supports on the fly changes of velocitry target setpoint by update of stepNOM.
+  * targetVelo and currVelo can be negative. 
+  * - If decreasing abs(velo) then use decelerartion  (approaching zero velocity)
+  * - If increasing abs(velo) velo then use acceleration
+  * 
+  * Note: 
+  *   prevStepSize: correspons to current velocity
+  *   stepNOM:      position step at velocityTarget 
+  */
 double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
                                       double prevStepSize,
                                       double stepNOM,
@@ -213,14 +225,8 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
   double positionStep = 0;
 
   *trajBusy = true;
-
-  /* 
-  * targetVelo and currVelo can be negative. 
-  * - If decreasing abs(velo) then use decelerartion  (approaching zero velocity)
-  * - If increasing abs(velo) velo then use acceleration
-  */
   
-   if( prevStepSize > 0) {
+   if( prevStepSize > 0) {  // currvelo
     if(stepNOM > prevStepSize) {
       // Acc
       positionStep = prevStepSize + stepACC_;
@@ -268,45 +274,73 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                                       double stepNom,
                                       bool  *trajBusy) {
   double posSetTemp   = 0;
-  double nextVelocity = 0;
   bool   stopping     = false;
-  bool   stopped      = false;
 
   *trajBusy = true;
 
-  double distToTargetOld = dist(currSetpoint,targetSetpoint, stepNom > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);  
+  // How long to target
+  double distToTargetOld = 0;
   double distToTargetOldComp = 0;
-  
-  if(stepNom > 0) {
+  if (prevStepSize > 0) {
+    distToTargetOld = dist(currSetpoint,targetSetpoint, ECMC_DIR_FORWARD);
     distToTargetOldComp = distToTargetOld - prevStepSize - stepDEC_;
+  } else if (prevStepSize < 0) {
+    distToTargetOld = dist(currSetpoint,targetSetpoint, ECMC_DIR_BACKWARD);
+    distToTargetOldComp = distToTargetOld - prevStepSize + stepDEC_;
+  } else {  // 0 velo, use target
+    distToTargetOld = dist(currSetpoint,targetSetpoint, stepNom > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);  
+    distToTargetOldComp = distToTargetOld;
   }
-  else {
-    distToTargetOldComp = -(distToTargetOld - prevStepSize + stepDEC_);
-  }
+
   
-  stopping = stopDistance >= distToTargetOldComp;
+  double distToInitStop = distToTargetOldComp - stopDistance;
 
-  //printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,stopping=%d,prevStepSize=%lf,deceleration=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,stopping,prevStepSize,deceleration_);
+  //if(stepNom > 0) {
+  //  distToTargetOldComp = distToTargetOld - prevStepSize - stepDEC_;
+  //} else 
+  //  distToTargetOldComp = -(distToTargetOld - prevStepSize + stepDEC_);
+  //} 
 
+  //stopping = stopDistance >= distToTargetOldComp;
   double stepNomTemp = stepNom;
-  if(stopping) {
-    stepNomTemp = 0;  // targetVelo=0
+  if (std::abs(distToInitStop) <= std::abs(prevStepSize_)) {
+    stepNomTemp = 0;  // targetVelo = 0
+  } else if(distToInitStop > 0) {
+    stepNomTemp = std::abs(stepNom);
+  } else {
+    stepNomTemp = -std::abs(stepNom);
   }
+
+  //if(stopping) {
+  //  stepNomTemp = 0;  // targetVelo = 0
+  //}
   posSetTemp = moveVel(currSetpoint,
                        prevStepSize,
                        stepNomTemp,
                        trajBusy);
 
-  posSetTemp = checkModuloPos(posSetTemp,prevStepSize >= 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
-  double distToTargetnNew = dist(posSetTemp,targetSetpoint,prevStepSize >= 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
-  
-  if(prevStepSize == 0 && stopDistance == 0 && std::abs(distToTargetnNew) <= std::abs(stepDEC_)) {
+  double distToTargetNew = dist(posSetTemp,targetSetpoint,prevStepSize >= 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
+  //printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,stopping=%d,distToTargetNew=%lf,distToInitStop=%lf,NOM=%lf,DEC=%lf,PREV=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,stopping,distToTargetNew,distToInitStop, stepNOM_,stepDEC_,prevStepSize);
+
+// 1 : distToTargetOldComp=0.000003,distToTargetOld=0.000000,stopDistance=-0.000000,stopping=0,distToTargetNew=-0.000003,distToInitStop=0.000003,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
+// 1 : distToTargetOldComp=-0.000010,distToTargetOld=-0.000003,stopDistance=0.000005,stopping=0,distToTargetNew=-0.000003,distToInitStop=-0.000015,NOM=-0.010000,DEC=0.000003,PREV=0.000003
+// 1 : distToTargetOldComp=-0.000000,distToTargetOld=-0.000003,stopDistance=-0.000000,stopping=0,distToTargetNew=0.000000,distToInitStop=-0.000000,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
+// 1 : distToTargetOldComp=0.000007,distToTargetOld=0.000000,stopDistance=-0.000005,stopping=0,distToTargetNew=0.000000,distToInitStop=0.000012,NOM=-0.010000,DEC=0.000003,PREV=-0.000003
+// 1 : distToTargetOldComp=0.000003,distToTargetOld=0.000000,stopDistance=-0.000000,stopping=0,distToTargetNew=-0.000003,distToInitStop=0.000003,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
+// 1 : distToTargetOldComp=-0.000010,distToTargetOld=-0.000003,stopDistance=0.000005,stopping=0,distToTargetNew=-0.000003,distToInitStop=-0.000015,NOM=-0.010000,DEC=0.000003,PREV=0.000003
+// 1 : distToTargetOldComp=-0.000000,distToTargetOld=-0.000003,stopDistance=-0.000000,stopping=0,distToTargetNew=0.000000,distToInitStop=-0.000000,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
+// 1 : distToTargetOldComp=0.000007,distToTargetOld=0.000000,stopDistance=-0.000005,stopping=0,distToTargetNew=0.000000,distToInitStop=0.000012,NOM=-0.010000,DEC=0.000003,PREV=-0.000003
+// 1 : distToTargetOldComp=0.000003,distToTargetOld=0.000000,stopDistance=-0.000000,stopping=0,distToTargetNew=-0.000003,distToInitStop=0.000003,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
+
+  if( (std::abs(prevStepSize) <= std::abs(stepDEC_)) && 
+      (std::abs(stopDistance) <= std::abs(stepDEC_)) && 
+      (std::abs(distToTargetNew) <= std::abs(stepDEC_))) {
     posSetTemp      = targetSetpoint;
     targetPosition_ = posSetTemp;
     *trajBusy       = false;
   }
 
-  return posSetTemp; //checkModuloPos(posSetTemp);
+  return posSetTemp;
 }
 
 double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
@@ -350,12 +384,12 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
     return currSetpoint;
   }
 
-  return posSetTemp; //checkModuloPos(posSetTemp);
+  return posSetTemp;
 }
 
-double ecmcTrajectoryTrapetz::distToStop(double vel) {  
-  //return std::abs(0.5 * vel * vel / deceleration_) + std::abs(vel * sampleTime_); // /*-4*stepDEC_*/;  // TODO check this equation
-  return 0.5 * vel * vel / deceleration_ + std::abs(vel * sampleTime_);
+double ecmcTrajectoryTrapetz::distToStop(double vel) {
+  double d = 0.5 * vel * vel / deceleration_ + std::abs(vel * sampleTime_);
+  return vel > 0 ? d : -d ;
 }
 
 void ecmcTrajectoryTrapetz::setTargetPos(double pos) {
