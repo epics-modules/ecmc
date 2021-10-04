@@ -207,9 +207,9 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
 }
 
 /*
-  *  Method for moving att constant velocity (including ramps)
+  *  Method for moving at constant velocity (including ramps)
   * 
-  * Supports on the fly changes of velocitry target setpoint by update of stepNOM.
+  * Supports on the fly changes of velocity target setpoint by update of stepNOM.
   * targetVelo and currVelo can be negative. 
   * - If decreasing abs(velo) then use decelerartion  (approaching zero velocity)
   * - If increasing abs(velo) velo then use acceleration
@@ -267,9 +267,23 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
   return currSetpoint + thisStepSize_;
 }
 
+/*
+  *  Method for moving to a abs position (including ramps)
+  * 
+  * Supports on the fly changes of velocity target setpoint by update of stepNOM.
+  * Supports on the fly changes of position target setpoint by update of targetSetpoint.
+
+  * targetVelo and currVelo can be negative. 
+  * - If decreasing abs(velo) then use decelerartion  (approaching zero velocity)
+  * - If increasing abs(velo) velo then use acceleration
+  * 
+  * Note: 
+  *   prevStepSize: correspons to current velocity
+  *   stepNOM:      position step at velocityTarget 
+  */ 
 double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                                       double targetSetpoint,
-                                      double stopDistance,  // Always positive
+                                      double stopDistance,
                                       double prevStepSize,
                                       double stepNom,
                                       bool  *trajBusy) {
