@@ -126,7 +126,7 @@ https://github.com/epics-modules/ecmc/issues
 
 # Support
 
-* ECMC                     : Anders Sandström, anders.sandstrom@esss.se
-* Motor Record             : Torsten Bögershausen, torsten.bogershausen@esss.se
-  * EthercatMC driver      : Torsten Bögershausen, torsten.bogershausen@esss.se
-  * ecmcMotorRecord driver : Anders Sandström, anders.sandstrom@esss.se
+* ECMC                                 : Anders Sandström, anders.sandstrom@esss.se
+* Motor Record                         : Torsten Bögershausen, torsten.bogershausen@esss.se
+  * ecmcMotorRecord driver (preferred) : Anders Sandström, anders.sandstrom@esss.se
+  * (EthercatMC driver                 : Torsten Bögershausen, torsten.bogershausen@esss.se)
