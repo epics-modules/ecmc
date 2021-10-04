@@ -274,7 +274,6 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                                       double stepNom,
                                       bool  *trajBusy) {
   double posSetTemp   = 0;
-  bool   stopping     = false;
 
   *trajBusy = true;
 
@@ -294,15 +293,8 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
 
   
   double distToInitStop = distToTargetOldComp - stopDistance;
-
-  //if(stepNom > 0) {
-  //  distToTargetOldComp = distToTargetOld - prevStepSize - stepDEC_;
-  //} else 
-  //  distToTargetOldComp = -(distToTargetOld - prevStepSize + stepDEC_);
-  //} 
-
-  //stopping = stopDistance >= distToTargetOldComp;
   double stepNomTemp = stepNom;
+
   if (std::abs(distToInitStop) <= std::abs(prevStepSize_)) {
     stepNomTemp = 0;  // targetVelo = 0
   } else if(distToInitStop > 0) {
@@ -311,9 +303,6 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
     stepNomTemp = -std::abs(stepNom);
   }
 
-  //if(stopping) {
-  //  stepNomTemp = 0;  // targetVelo = 0
-  //}
   posSetTemp = moveVel(currSetpoint,
                        prevStepSize,
                        stepNomTemp,
@@ -321,16 +310,6 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
 
   double distToTargetNew = dist(posSetTemp,targetSetpoint,prevStepSize >= 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
   //printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,stopping=%d,distToTargetNew=%lf,distToInitStop=%lf,NOM=%lf,DEC=%lf,PREV=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,stopping,distToTargetNew,distToInitStop, stepNOM_,stepDEC_,prevStepSize);
-
-// 1 : distToTargetOldComp=0.000003,distToTargetOld=0.000000,stopDistance=-0.000000,stopping=0,distToTargetNew=-0.000003,distToInitStop=0.000003,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
-// 1 : distToTargetOldComp=-0.000010,distToTargetOld=-0.000003,stopDistance=0.000005,stopping=0,distToTargetNew=-0.000003,distToInitStop=-0.000015,NOM=-0.010000,DEC=0.000003,PREV=0.000003
-// 1 : distToTargetOldComp=-0.000000,distToTargetOld=-0.000003,stopDistance=-0.000000,stopping=0,distToTargetNew=0.000000,distToInitStop=-0.000000,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
-// 1 : distToTargetOldComp=0.000007,distToTargetOld=0.000000,stopDistance=-0.000005,stopping=0,distToTargetNew=0.000000,distToInitStop=0.000012,NOM=-0.010000,DEC=0.000003,PREV=-0.000003
-// 1 : distToTargetOldComp=0.000003,distToTargetOld=0.000000,stopDistance=-0.000000,stopping=0,distToTargetNew=-0.000003,distToInitStop=0.000003,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
-// 1 : distToTargetOldComp=-0.000010,distToTargetOld=-0.000003,stopDistance=0.000005,stopping=0,distToTargetNew=-0.000003,distToInitStop=-0.000015,NOM=-0.010000,DEC=0.000003,PREV=0.000003
-// 1 : distToTargetOldComp=-0.000000,distToTargetOld=-0.000003,stopDistance=-0.000000,stopping=0,distToTargetNew=0.000000,distToInitStop=-0.000000,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
-// 1 : distToTargetOldComp=0.000007,distToTargetOld=0.000000,stopDistance=-0.000005,stopping=0,distToTargetNew=0.000000,distToInitStop=0.000012,NOM=-0.010000,DEC=0.000003,PREV=-0.000003
-// 1 : distToTargetOldComp=0.000003,distToTargetOld=0.000000,stopDistance=-0.000000,stopping=0,distToTargetNew=-0.000003,distToInitStop=0.000003,NOM=-0.010000,DEC=0.000003,PREV=-0.000000
 
   if( (std::abs(prevStepSize) <= std::abs(stepDEC_)) && 
       (std::abs(stopDistance) <= std::abs(stepDEC_)) && 
