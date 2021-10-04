@@ -1734,6 +1734,15 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * Function to link to ecmcDataItem. Execute function instead of copoy data.
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
+ * 
+ * controlWord_.enableCmd       
+ * controlWord_.executeCmd      
+ * controlWord_.resetCmd        
+ * controlWord_.encSourceCmd    
+ * controlWord_.trajSourceCmd   
+ * controlWord_.plcCmdsAllowCmd 
+ * controlWord_.plcEnableCmd    
+ * controlWord_.spareBitsCmd    
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType) 
 {
@@ -1752,15 +1761,6 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
   memcpy(&controlWord_,data,sizeof(controlWord_));
 
   int errorCode=0;
-//  printf("###############################\n");
-//  printf("controlWord_.enableCmd       %d\n",controlWord_.enableCmd);
-//  printf("controlWord_.executeCmd      %d\n",controlWord_.executeCmd);
-//  printf("controlWord_.resetCmd        %d\n",controlWord_.resetCmd);
-//  printf("controlWord_.encSourceCmd    %d\n",controlWord_.encSourceCmd);
-//  printf("controlWord_.trajSourceCmd   %d\n",controlWord_.trajSourceCmd);
-//  printf("controlWord_.plcCmdsAllowCmd %d\n",controlWord_.plcCmdsAllowCmd);
-//  printf("controlWord_.plcEnableCmd    %d\n",controlWord_.plcEnableCmd);
-//  printf("controlWord_.spareBitsCmd    %d\n",controlWord_.spareBitsCmd);
 
   errorCode = setEnable(controlWord_.enableCmd);
   if(errorCode) {
