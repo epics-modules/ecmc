@@ -1,6 +1,30 @@
 Release Notes
 ===
 # ECMC master
+
+* Add possibility to run motion without motor record.
+
+Control params:
+```
+ax<id>.control
+ax<id>.command
+ax<id>.cmddata
+ax<id>.targpos
+ax<id>.targvelo
+```
+
+Status params:
+```
+ax<id>.status
+ax<id>.actpos
+ax<id>.setpos
+ax<id>.poserr
+ax<id>.diagnostic
+```
+Examples and more info are available in:
+ecmccfg/examples/test/motionWithoutMotorRecord/
+
+* Update of trajectory generator to allow "on the fly" update of target postion and target velocity.
 * Add homing seq 25 (same as 15 but not blocked by motor record and reserved for save/restore). The sequence will just set a new position.
 
 # ECMC 7.0.0
@@ -967,10 +991,7 @@ Changes:
 * Make possible to add ethercat hardware on the fly (hard, seems EPICS do not support dynamic load of records)
 * Only stop motion when the slaves used by axis are in error state or not reachable.
 * Test EtherCAT redundancy
-* Move to ecmccfg instead of ecmctraining. This work is in progress and ecmccfg repo is more or less complete and can be used.
-* Add command to set sm watchdog (ecrt_slave_config_sync_manager())
 * Add possibility to link axis functionality to plcs (right now for instance a limit needs to be an EtherCAT entry).
-* Add oscilloscope functionality in data storage (oversampling):
-    * Add possibility to write memmaps to data storage
+* Add oscilloscope functionality in data storage (oversampling):    
     * Add possibility to change data type of data storage (so memcpy can be used)
     * Add possibility to link a trigger memmap, pretrigger sample count a window=> osc function 
