@@ -1477,6 +1477,14 @@ int ecmcAxisBase::moveAbsolutePosition(
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
 
+  if(getExecute() && getCommand() == ECMC_CMD_MOVEABS && getBusy()) {
+    getSeq()->setTargetVel(velocitySet);
+    getTraj()->setAcc(accelerationSet);
+    getTraj()->setDec(decelerationSet);
+    getSeq()->setTargetPos(positionSet);
+    return 0;
+  }
+
   int errorCode = getErrorID();
   if (errorCode) {
     return errorCode;
@@ -1496,10 +1504,11 @@ int ecmcAxisBase::moveAbsolutePosition(
   if (errorCode) {
     return errorCode;
   }
-  getSeq()->setTargetPos(positionSet);
   getSeq()->setTargetVel(velocitySet);
   getTraj()->setAcc(accelerationSet);
   getTraj()->setDec(decelerationSet);
+  getSeq()->setTargetPos(positionSet);
+
   errorCode = setExecute(1);
 
   if (errorCode) {
@@ -1513,7 +1522,6 @@ int ecmcAxisBase::moveRelativePosition(
                             double velocitySet,
                             double accelerationSet,
                             double decelerationSet) {
-
   if(getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
@@ -1524,6 +1532,14 @@ int ecmcAxisBase::moveRelativePosition(
       ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
 
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
+  if(getExecute() && getCommand() == ECMC_CMD_MOVEREL && getBusy()) {
+    getSeq()->setTargetVel(velocitySet);
+    getTraj()->setAcc(accelerationSet);
+    getTraj()->setDec(decelerationSet);
+    getSeq()->setTargetPos(positionSet);
+    return 0;
   }
 
   int errorCode = getErrorID();
@@ -1546,10 +1562,10 @@ int ecmcAxisBase::moveRelativePosition(
     return errorCode;
   }
 
-  getSeq()->setTargetPos(positionSet);
   getSeq()->setTargetVel(velocitySet);
   getTraj()->setAcc(accelerationSet);
   getTraj()->setDec(decelerationSet);
+  getSeq()->setTargetPos(positionSet);
 
   errorCode = setExecute(1);
   if (errorCode) {

@@ -529,8 +529,6 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
       return asynError;
     }
 
-    //if(drvlocal.ecmcAxis->getAllowPos()) {
-
     if(relative) {
       errorCode = drvlocal.ecmcAxis->moveRelativePosition(position,
                                                           maxVelocity,
@@ -544,20 +542,13 @@ asynStatus ecmcMotorRecordAxis::move(double position, int relative, double minVe
                                                           acceleration,
                                                           acceleration);        
     }    
-    //} else {
-    //  LOGERR(
-    //    "%s/%s:%d: ERROR: Constant velo disabled and therefore not allowed.\n",
-    //    __FILE__,
-    //    __FUNCTION__,
-    //    __LINE__);
-    //}
 
   if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
 #ifndef motorWaitPollsBeforeReadyString
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
 #endif
-  return errorCode == 0 ? asynSuccess:asynError;
+  return errorCode == 0 ? asynSuccess : asynError;
 }
 
 
