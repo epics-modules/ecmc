@@ -106,21 +106,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   if(data_->command_.enable && !enableCmdOld_) {
     setCspRecalcOffset(cspPosSet_);
     data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
-    //printf("NEW OFFSET: posRaw = %" PRId64 ", posAct=%lf, offsetRaw= %" PRId64 ".\n",cspRawActPos_,cspActPos_,cspRawPosOffset_);
-    //counter_=0;
   }
-
-  // if(counter_ >= 0 && counter_<500) {
-  //    printf("%d%d, posRaw = %" PRId64 ", RawSetOut= %" PRId64 ", posAct=%lf, posSet=%lf,offsetRaw= %" PRId64 ".\n",
-  //       data_->command_.enable,
-  //       data_->status_.enabled,
-  //       cspRawActPos_,
-  //       data_->status_.currentPositionSetpointRaw,
-  //       cspActPos_,
-  //       cspPosSet_,
-  //       cspRawPosOffset_);
-  //   counter_++;
-  // }
   
   return 0;
 }
@@ -140,7 +126,6 @@ void ecmcDriveBase::setCspRef(int64_t posRaw, double posAct,  double posSet) {
 
 // Recalculate offset
 int ecmcDriveBase::setCspRecalcOffset(double posEng) {
-  //printf("setCspRecalcOffset()\n");
   cspRawPosOffset_ = cspRawActPos_- posEng / scale_;  // Raw
   return 0;
 }
