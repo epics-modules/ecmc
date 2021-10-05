@@ -661,17 +661,17 @@ double ecmcTrajectoryTrapetz::dist(double from, double to, motionDirection direc
   if(data_->command_.moduloRange==0){
     return to-from;
   }
-  printf("from %lf, to %lf, dir =%d\n",from,to,direction);
+  
   //modulo
   switch(direction){
     case ECMC_DIR_BACKWARD:
-      if(from > to){
+      if(from >= to){
         return to-from;
       }
       return -from-(data_->command_.moduloRange-to);
     break;
     case ECMC_DIR_FORWARD:
-      if(from < to){
+      if(from <= to){
         return to-from;
       }
       return to + (data_->command_.moduloRange-from);
