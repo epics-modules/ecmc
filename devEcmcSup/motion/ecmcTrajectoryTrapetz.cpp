@@ -201,7 +201,7 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
 
   if (busy_) { 
 
-    *actVelocity = dist(currentPositionSetpoint_,posSetTemp,velocityTarget_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD) / sampleTime_;
+    *actVelocity = thisStepSize_ / sampleTime_; //dist(currentPositionSetpoint_,posSetTemp,velocityTarget_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD) / sampleTime_;
   }
   return posSetTemp;
 }
@@ -323,7 +323,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                        trajBusy);
 
   double distToTargetNew = dist(posSetTemp,targetSetpoint,prevStepSize >= 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
-  //printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,stopping=%d,distToTargetNew=%lf,distToInitStop=%lf,NOM=%lf,DEC=%lf,PREV=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,stopping,distToTargetNew,distToInitStop, stepNOM_,stepDEC_,prevStepSize);
+  printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,distToTargetNew=%lf,distToInitStop=%lf,NOM=%lf,DEC=%lf,PREV=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,distToTargetNew,distToInitStop, stepNOM_,stepDEC_,prevStepSize);
 
   if( (std::abs(prevStepSize) <= std::abs(stepDEC_)) && 
       (std::abs(stopDistance) <= std::abs(stepDEC_)) && 
@@ -661,7 +661,7 @@ double ecmcTrajectoryTrapetz::dist(double from, double to, motionDirection direc
   if(data_->command_.moduloRange==0){
     return to-from;
   }
-  
+  printf("from %lf, to %lf, dir =%d\n",from,to,direction);
   //modulo
   switch(direction){
     case ECMC_DIR_BACKWARD:
