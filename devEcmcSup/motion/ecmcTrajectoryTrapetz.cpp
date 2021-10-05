@@ -324,7 +324,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
 
   double distToTargetNew = dist(posSetTemp,targetSetpoint,prevStepSize >= 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
 
-  printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,distToTargetNew=%lf,distToInitStop=%lf,NOM=%lf,DEC=%lf,PREV=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,distToTargetNew,distToInitStop, stepNOM_,stepDEC_,prevStepSize);
+  //printf("1 : distToTargetOldComp=%lf,distToTargetOld=%lf,stopDistance=%lf,distToTargetNew=%lf,distToInitStop=%lf,NOM=%lf,DEC=%lf,PREV=%lf\n",distToTargetOldComp,distToTargetOld,stopDistance,distToTargetNew,distToInitStop, stepNOM_,stepDEC_,prevStepSize);
 
   if( (std::abs(prevStepSize) <= std::abs(stepDEC_)) &&   // The most important!
       (std::abs(stopDistance) <= 3*std::abs(stepDEC_)) && 
