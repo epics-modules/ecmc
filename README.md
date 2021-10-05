@@ -110,15 +110,16 @@ ECMC runs best under certain conditions:
 # Needed EPICS modules
 
 * Open source ethercat master:      https://etherlab.org/, https://github.com/icshwi/etherlabmaster 
-* ExprTK:                           https://github.com/ArashPartow/exprtk,https://github.com/icshwi/e3-exprtk
+* ExprTK:                           https://github.com/icshwi/e3-exprtk (https://github.com/ArashPartow/exprtk)
 * E3 (ESS EPICS Environment):       https://github.com/icshwi/e3
 * Real-time configuration:          https://github.com/icshwi/realtime-config
-* Motor:                            https://github.com/icshwi/e3-motor
-* EthercatMC (motor record driver): https://github.com/icshwi/e3-ethercatmc
+* Motor:                            https://github.com/icshwi/e3-motor (https://github.com/EuropeanSpallationSource/motor)
 * Asyn driver:                      https://github.com/icshwi/e3-asyn
-* Stream Device:                    https://github.com/icshwi/e3-StreamDevice
 * ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg or
                                     https://github.com/icshwi/ecmccfg
+Optional modules:
+* EthercatMC (motor record driver): https://github.com/icshwi/e3-ethercatmc
+* Stream Device:                    https://github.com/icshwi/e3-StreamDevice
 
 # Issues/bug report
 
