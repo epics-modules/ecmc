@@ -171,6 +171,10 @@ void ecmcAxisBase::initVars() {
   enableExtTrajVeloFilter_ = false;
   enableExtEncVeloFilter_ = false;
   disableAxisAtErrorReset_ = false;
+  positionTarget_ = 0;
+  velocityTarget_ = 0;
+  command_ = ECMC_CMD_MOVEABS;
+  cmdData_ = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -891,20 +895,6 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
 
-//  // Status binary struct (for motor record)
-//  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_BIN_NAME,
-//                              asynParamInt8Array,
-//                              ECMC_EC_S8,
-//                              (uint8_t *)&(statusData_),
-//                              sizeof(ecmcAxisStatusType),
-//                              &paramTemp);
-//  if(errorCode) {
-//    return errorCode;
-//  }
-//  paramTemp->setAllowWriteToEcmc(false);
-//  paramTemp->refreshParam(1);
-//  axAsynParams_[ECMC_ASYN_AX_STATUS_BIN_ID] = paramTemp;
- 
   // Status word
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_NAME,
                               asynParamInt32,
@@ -940,8 +930,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARG_VELO_NAME,
                               asynParamFloat64,
                               ECMC_EC_F64,
-                              (uint8_t*)&(data_.command_.velocityTarget),
-                              sizeof(data_.command_.velocityTarget),
+                              (uint8_t*)&(velocityTarget_),
+                              sizeof(velocityTarget_),
                               &paramTemp);
   if(errorCode) {
     return errorCode;
@@ -955,8 +945,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARG_POS_NAME,
                               asynParamFloat64,
                               ECMC_EC_F64,
-                              (uint8_t*)&(data_.command_.positionTarget),
-                              sizeof(data_.command_.positionTarget),
+                              (uint8_t*)&(positionTarget_),
+                              sizeof(positionTarget_),
                               &paramTemp);
   if(errorCode) {
     return errorCode;
@@ -970,8 +960,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_COMMAND_NAME,
                               asynParamInt32,
                               ECMC_EC_S32,
-                              (uint8_t*)&(data_.command_.command),
-                              sizeof(data_.command_.command),
+                              (uint8_t*)&(command_),
+                              sizeof(command_),
                               &paramTemp);
   if(errorCode) {
     return errorCode;
@@ -986,8 +976,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CMDDATA_NAME,
                               asynParamInt32,
                               ECMC_EC_S32,
-                              (uint8_t*)&(data_.command_.cmdData),
-                              sizeof(data_.command_.cmdData),
+                              (uint8_t*)&(cmdData_),
+                              sizeof(cmdData_),
                               &paramTemp);
   if(errorCode) {
     return errorCode;
@@ -1758,6 +1748,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
     return asynError;
   }
 
+  oldControlWord_ = controlWord_;
   memcpy(&controlWord_,data,sizeof(controlWord_));
 
   int errorCode=0;
@@ -1767,11 +1758,37 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
     returnVal = asynError;
   }
 
-  errorCode = setExecute(controlWord_.executeCmd);
-  if(errorCode) {
-    returnVal = asynError;
+  if(controlWord_.stopCmd) {
+    errorCode = setExecute(0);
+    if(errorCode) {
+      returnVal = asynError;
+    }
   }
-  
+
+  // trigg new motion.
+  if (!controlWord_.stopCmd && controlWord_.executeCmd && !oldControlWord_.executeCmd) {
+    if (getSeq() == NULL) {
+      return asynError;
+    }
+    // allow on the fly updates of target velo and targte pos
+    getSeq()->setTargetVel(velocityTarget_);
+    getSeq()->setTargetPos(positionTarget_);
+    
+    // if not already moving then trigg new motion cmd
+    if(!getBusy()) {
+      setCommand(command_);
+      setCmdData(cmdData_);
+      errorCode = setExecute(0);
+      if(errorCode) {
+        returnVal = asynError;
+      }
+      errorCode = setExecute(1);
+      if(errorCode) {
+        returnVal = asynError;
+      }
+    }
+  }
+
   setReset(controlWord_.resetCmd);
   
   errorCode = setEncDataSourceType((controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL:ECMC_DATA_SOURCE_INTERNAL));
@@ -1821,7 +1838,8 @@ void ecmcAxisBase::initControlWord() {
   controlWord_.trajSourceCmd = getTrajDataSourceType() == ECMC_DATA_SOURCE_EXTERNAL;
   controlWord_.plcCmdsAllowCmd = getAllowCmdFromPLC();
   controlWord_.enableSoftLimitBwd = data_.command_.enableSoftLimitBwd;
-  controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;  
+  controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;
+  oldControlWord_ = controlWord_;
 }
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType) {
@@ -1838,12 +1856,13 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynP
   }
   double velo = 0;
   memcpy(&velo,data,bytes);
+  velocityTarget_ = velo;   
 
-  if (getSeq() == NULL) {
-    return asynError;
-  }
-    
-  getSeq()->setTargetVel(velo);
+//  if (getSeq() == NULL) {
+//    return asynError;
+//  }
+//
+//  getSeq()->setTargetVel(velo);
 
   return asynSuccess;
 }
@@ -1862,12 +1881,12 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynPa
   }
   double pos = 0;
   memcpy(&pos,data,bytes);
-
-  if (getSeq() == NULL) {
-    return asynError;
-  }
-    
-  getSeq()->setTargetPos(pos);
+  positionTarget_ = pos;
+//  if (getSeq() == NULL) {
+//    return asynError;
+//  }
+//    
+//  getSeq()->setTargetPos(pos);
   
   return asynSuccess;
 }
@@ -1886,9 +1905,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynPara
   }
   int command = 0;
   memcpy(&command,data,bytes);
-  printf("command=%d\n",command);
-  setCommand((motionCommandTypes)command);
-  
+  command_=(motionCommandTypes)command;
   return asynSuccess;
 }
 
@@ -1906,8 +1923,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void* data, size_t bytes, asynPara
   }
   int  cmddata = 0;
   memcpy(&cmddata,data,bytes);
-  printf("cmddata=%d\n",cmddata);
-  setCmdData(cmddata);
+  cmdData_= cmddata;
   
   return asynSuccess;
 }
