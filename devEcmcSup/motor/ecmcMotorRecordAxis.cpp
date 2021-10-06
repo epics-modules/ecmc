@@ -66,6 +66,9 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #ifdef motorWaitPollsBeforeReadyString
   setIntegerParam(pC_->motorWaitPollsBeforeReady_ , WAITNUMPOLLSBEFOREREADY);
 #endif
+#ifdef motorFlagsNtmUpdateString
+  setIntegerParam(pC_->motorFlagsNtmUpdate_ , 1);
+#endif
 
   // initialize 
   memset(&drvlocal, 0, sizeof(drvlocal));
