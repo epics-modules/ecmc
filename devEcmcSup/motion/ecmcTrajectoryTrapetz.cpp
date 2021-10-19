@@ -381,9 +381,15 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
   return posSetTemp;
 }
 
+/* dist to stop is the triangular area under 
+ *  y = prevStepSize_
+ *  x = std::abs(prevStepSize_/stepDEC_), the number of steps until
+ *      zero speed (if deceleration)
+ */
 double ecmcTrajectoryTrapetz::distToStop(double vel) {
-  double d = 0.5 * vel * vel / deceleration_ + std::abs(vel * sampleTime_);
-  return vel > 0 ? d : -d ;
+  //double d = 0.5 * vel * vel / deceleration_ + std::abs(vel * sampleTime_);
+  //return vel > 0 ? d : -d ;
+  return prevStepSize_* std::abs(prevStepSize_/stepDEC_) / 2;
 }
 
 void ecmcTrajectoryTrapetz::setTargetPos(double pos) {
