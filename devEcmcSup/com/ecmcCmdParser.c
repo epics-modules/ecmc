@@ -1961,6 +1961,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setDiagAxisEnable(iValue);
   }
 
+  /*int Cfg.SetAxisHomePosition(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisHomePosition(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisHomePos(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisHomeVelTwordsCam(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisHomeVelTwordsCam(%d,%lf)", &iValue, &dValue);
 

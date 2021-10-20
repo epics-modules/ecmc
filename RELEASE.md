@@ -2,6 +2,8 @@ Release Notes
 ===
 # ECMC master
 
+* Add command "Cfg.SetAxisHomePosition()", same as Main.Mx.fHomePosition (try to phase out this old syntax)
+
 * Add possibility to run motion without motor record.
 
 Control params:
@@ -21,6 +23,7 @@ ax<id>.setpos
 ax<id>.poserr
 ax<id>.diagnostic
 ```
+
 Examples and more info are available in:
 ecmccfg/examples/test/motionWithoutMotorRecord/
 
