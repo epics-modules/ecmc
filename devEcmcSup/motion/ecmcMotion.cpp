@@ -597,32 +597,6 @@ int getAxisType(int axisIndex, int *value) {
   return 0;
 }
 
-int setAxisOpMode(int axisIndex, int value) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           value);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-
-  return axes[axisIndex]->setOpMode((operationMode)value);
-}
-
-int getAxisOpMode(int axisIndex, int *value) {
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  * value = axes[axisIndex]->getOpMode();
-  return 0;
-}
-
 int setAxisEnableSoftLimitBwd(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -1845,48 +1819,6 @@ int setAxisDrvScaleDenom(int axisIndex, double value) {
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getDrv()->setScaleDenom(value);
-}
-
-int setAxisDrvEnable(int axisIndex, int value) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           value);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  return axes[axisIndex]->getDrv()->setEnable(value);
-}
-
-int setAxisDrvVelSet(int axisIndex, double value) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           value);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  return axes[axisIndex]->getDrv()->setVelSet(value);
-}
-
-int setAxisDrvVelSetRaw(int axisIndex, int value) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           value);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
-
-  return axes[axisIndex]->getDrv()->setVelSetRaw(value);
 }
 
 int setAxisDrvBrakeEnable(int axisIndex, int enable) {

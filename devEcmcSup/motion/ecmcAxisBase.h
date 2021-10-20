@@ -153,8 +153,6 @@ class ecmcAxisBase : public ecmcError {
                int    axisID,
                double sampleTime);
   virtual ~ecmcAxisBase();
-  virtual int                setOpMode(operationMode nMode) = 0;
-  virtual operationMode      getOpMode()                    = 0;  
   virtual int                setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase    * getDrv()               = 0;
   virtual ecmcPIDController* getCntrl()             = 0;

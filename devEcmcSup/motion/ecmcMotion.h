@@ -508,23 +508,6 @@ int getAxisEnableSoftLimitBwd(int  axisIndex,
 int getAxisEnableSoftLimitFwd(int  axisIndex,
                               int *value);
 
-/** \brief Get axis operation mode.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[out] value current operation mode of axis.\n
- * value = 0 Axis is in automatic mode (controller enabled).\n
- * value = 1 Axis is in manual mode (controller and some "safety features
- * disabled). A direct output to the drive can be set in this mode.
- * Only useful in commissioning.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Get current operation mode of axis 3.\n
- * "GetAxisOpMode(3)"  //Command string to ecmcCmdParser.c.\n
- */
-int getAxisOpMode(int  axisIndex,
-                  int *value);
-
 /** \brief Get axis acceleration setpoint.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -1420,26 +1403,6 @@ int setAxisTargetVel(int    axisIndex,
 int setAxisJogVel(int    axisIndex,
                   double value);
 
-/** \brief Set axis operation mode.\n
- *
- * \note This command can disable certain safety functionality and
- * should only be used with high caution and only during commissioning.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[in] value Current operation mode of axis.\n
- * value = 0 Axis is in automatic mode (controller enabled).\n
- * value = 1 Axis is in manual mode (controller and some "safety features
- * disabled). A direct output to the drive can be set in this mode.
- * Only useful in commissioning.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Set current operation mode of axis 3 to manual.\n
- * "Cfg.SetAxisOpMode(3,1)"  //Command string to ecmcCmdParser.c.\n
- */
-int setAxisOpMode(int axisIndex,
-                  int value);
-
 /** \brief Set the denominator part of the encoder scale.\n
  *
  * The encoder scale factor is divided into one numerator and one denominator
@@ -1993,58 +1956,6 @@ int setAxisDrvScaleNum(int    axisIndex,
  */
 int setAxisDrvScaleDenom(int    axisIndex,
                          double value);
-
-/** \brief Set drive amplifier enable. NOTE: Only used in manual mode!!!\n
- *
- * \note This function is only used in manual mode otherwise use
- * setAxisEnable() instead.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[in] value Enable amplifier.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Enable amplifier for axis 3.\n
- * "Cfg.SetAxisDrvEnable(3,1)" //Command string to ecmcCmdParser.c.\n
- */
-int setAxisDrvEnable(int axisIndex,
-                     int value);
-
-/** \brief Set drive velocity setpoint. NOTE: Only used in manual mode!!!\n
- *
- * \note This function is only used in manual mode otherwise use.\n
- *
- * If in manual mode and amplifier enabled the velocity setpoint will be
- * rescaled and output to the drive.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[in] value Drive velocity setpoint.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Set drive velocity setpoint to 10 for axis 3.\n
- * "Cfg.SetAxisDrvVelSet(3,10)" //Command string to ecmcCmdParser.c.\n
- */
-int setAxisDrvVelSet(int    axisIndex,
-                     double value);
-
-/** \brief Set drive raw velocity setpoint. NOTE: Only used in manual mode!!!\n
- *
- * \note This function is only used in manual mode otherwise use.\n
- *
- * If in manual mode and amplifier enabled the raw velocity setpoint will be
- * directly output to the drive (without being rescaled).\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[in] value Raw drive velocity setpoint.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Set raw drive velocity setpoint to 1000 for axis 3.\n
- * "Cfg.SetAxisDrvVelSetRaw(3,1000)" //Command string to ecmcCmdParser.c.\n
- */
-int setAxisDrvVelSetRaw(int axisIndex,
-                        int value);
 
 /** \brief Set enable of brake.\n
  *

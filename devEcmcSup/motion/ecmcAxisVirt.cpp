@@ -129,19 +129,6 @@ void ecmcAxisVirt::execute(bool masterOK) {
   ecmcAxisBase::postExecute(masterOK);
 }
 
-int ecmcAxisVirt::setOpMode(operationMode mode) {
-  // NO DRIVE
-  return setErrorID(__FILE__,
-                    __FUNCTION__,
-                    __LINE__,
-                    ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
-}
-
-operationMode ecmcAxisVirt::getOpMode() {
-  // NO DRIVE
-  return ECMC_MODE_OP_AUTO;
-}
-
 ecmcPIDController * ecmcAxisVirt::getCntrl() {
   return NULL;
 }

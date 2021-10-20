@@ -26,8 +26,6 @@ class ecmcAxisReal : public ecmcAxisBase {
                ecmcDriveTypes drvType);
   ~ecmcAxisReal();
   void               execute(bool masterOK);
-  int                setOpMode(operationMode mode);
-  operationMode      getOpMode();
   ecmcDriveBase    * getDrv();
   ecmcPIDController* getCntrl();
   int                validate();

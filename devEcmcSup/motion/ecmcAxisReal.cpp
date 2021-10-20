@@ -60,7 +60,6 @@ ecmcAxisReal::~ecmcAxisReal() {
 }
 
 void ecmcAxisReal::initVars() {
-  data_.command_.operationModeCmd = ECMC_MODE_OP_AUTO;
   currentDriveType_               = ECMC_NO_DRIVE;
   temporaryLocalTrajSource_       = false;
 }
@@ -69,150 +68,123 @@ void ecmcAxisReal::execute(bool masterOK) {
 
   ecmcAxisBase::preExecute(masterOK);
 
-  if (data_.command_.operationModeCmd == ECMC_MODE_OP_AUTO) {
-    drv_->readEntries();
-
-    // Trajectory (External or internal)
-    if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
-      data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
-      data_.status_.currentVelocitySetpoint = traj_->getVel();
-    } else {    // External source (PLC)
+  drv_->readEntries();
+  // Trajectory (External or internal)
+  if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+    data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
+    data_.status_.currentVelocitySetpoint = traj_->getVel();
+  } else {    // External source (PLC)
+    data_.status_.currentPositionSetpoint =
+      data_.status_.externalTrajectoryPosition;
+    data_.status_.currentVelocitySetpoint =
+      data_.status_.externalTrajectoryVelocity;
+    data_.interlocks_.noExecuteInterlock = false;  // Only valid in local mode
+    data_.refreshInterlocks();
+  }
+  // Encoder (External or internal)
+  if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    data_.status_.currentPositionActual = enc_->getActPos();
+    data_.status_.currentVelocityActual = enc_->getActVel();
+  } else {  // External source (PLC)
+    data_.status_.currentPositionActual =
+      data_.status_.externalEncoderPosition;
+    data_.status_.currentVelocityActual =
+      data_.status_.externalEncoderVelocity;
+  }
+  traj_->setStartPos(data_.status_.currentPositionSetpoint);
+  seq_.execute();
+  mon_->execute();
+  // Switch to internal trajectory temporary if interlock
+  bool trajLock =
+    ((data_.interlocks_.trajSummaryInterlockFWD &&
+      data_.status_.currentPositionSetpoint >
+      data_.status_.currentPositionSetpointOld) ||
+     (data_.interlocks_.trajSummaryInterlockBWD &&
+      data_.status_.currentPositionSetpoint <
+      data_.status_.currentPositionSetpointOld));
+  if (trajLock &&
+      (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL)) {
+    if (!temporaryLocalTrajSource_) {  // Initiate rampdown
+      temporaryLocalTrajSource_ = true;
+      traj_->setStartPos(data_.status_.currentPositionActual);
+      traj_->initStopRamp(data_.status_.currentPositionActual,
+                          data_.status_.currentVelocityActual,
+                          0);
+    }
+    statusData_.onChangeData.statusWd.trajsource = ECMC_DATA_SOURCE_INTERNAL;  // Temporary
+    data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
+    data_.status_.currentVelocitySetpoint = traj_->getVel();
+  } else {
+    temporaryLocalTrajSource_ = false;
+  }
+  if (data_.interlocks_.driveSummaryInterlock && !traj_->getBusy()) {
+    cntrl_->reset();
+  }
+  // CSP Write raw actpos  and actpos to drv obj
+  drv_->setCspActPos(enc_->getRawPosRegister(), data_.status_.currentPositionActual);
+  if (getEnabled() && masterOK) {         
+    // Calc position error
+    data_.status_.cntrlError = getPosErrorMod();
+    double cntrOutput = 0;
+    
+    if(data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
+      // ***************** CSV *****************
+      if (mon_->getEnableAtTargetMon() && !data_.status_.busy &&
+          mon_->getAtTarget()) {  // Controller deadband
+        cntrl_->reset();
+        cntrOutput = 0;
+      } else {
+        cntrOutput = cntrl_->control(getPosErrorMod(),
+                                data_.status_.currentVelocitySetpoint);
+      }
+      mon_->setEnable(true);
+      drv_->setVelSet(cntrOutput);  // Actual control
+    }
+    else {
+      // ***************** CSP *****************
+      mon_->setEnable(true);
+      drv_->setCspPosSet(data_.status_.currentPositionSetpoint);  // Actual control
+    }
+  } else {
+    mon_->setEnable(false);
+    if (getExecute()) {
+      setExecute(false);
+    }
+    // Only update if enable cmd is low to avoid change of setpoint 
+    // during between enable and enabled
+    if (!getEnable() && !beforeFirstEnable_ && masterOK) {
       data_.status_.currentPositionSetpoint =
-        data_.status_.externalTrajectoryPosition;
-      data_.status_.currentVelocitySetpoint =
-        data_.status_.externalTrajectoryVelocity;
-      data_.interlocks_.noExecuteInterlock = false;  // Only valid in local mode
-      data_.refreshInterlocks();
+        data_.status_.currentPositionActual;
+      traj_->setStartPos(data_.status_.currentPositionSetpoint);        
     }
-
-    // Encoder (External or internal)
-    if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-      data_.status_.currentPositionActual = enc_->getActPos();
-      data_.status_.currentVelocityActual = enc_->getActVel();
-    } else {  // External source (PLC)
-      data_.status_.currentPositionActual =
-        data_.status_.externalEncoderPosition;
-      data_.status_.currentVelocityActual =
-        data_.status_.externalEncoderVelocity;
-    }
-
-    traj_->setStartPos(data_.status_.currentPositionSetpoint);
-
-    seq_.execute();
-    mon_->execute();
-
-    // Switch to internal trajectory temporary if interlock
-    bool trajLock =
-      ((data_.interlocks_.trajSummaryInterlockFWD &&
-        data_.status_.currentPositionSetpoint >
-        data_.status_.currentPositionSetpointOld) ||
-       (data_.interlocks_.trajSummaryInterlockBWD &&
-        data_.status_.currentPositionSetpoint <
-        data_.status_.currentPositionSetpointOld));
-
-    if (trajLock &&
-        (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL)) {
-      if (!temporaryLocalTrajSource_) {  // Initiate rampdown
-        temporaryLocalTrajSource_ = true;
-        traj_->setStartPos(data_.status_.currentPositionActual);
-        traj_->initStopRamp(data_.status_.currentPositionActual,
-                            data_.status_.currentVelocityActual,
-                            0);
-      }
-      statusData_.onChangeData.statusWd.trajsource = ECMC_DATA_SOURCE_INTERNAL;  // Temporary
-      data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
-      data_.status_.currentVelocitySetpoint = traj_->getVel();
-    } else {
-      temporaryLocalTrajSource_ = false;
-    }
-
-    if (data_.interlocks_.driveSummaryInterlock && !traj_->getBusy()) {
-      cntrl_->reset();
-    }
-
-    // CSP Write raw actpos  and actpos to drv obj
-    drv_->setCspActPos(enc_->getRawPosRegister(), data_.status_.currentPositionActual);
-
-    if (getEnabled() && masterOK) {         
-
-      // Calc position error
-      data_.status_.cntrlError = getPosErrorMod();
-
-      double cntrOutput = 0;
-      
-      if(data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
-        // ***************** CSV *****************
-        if (mon_->getEnableAtTargetMon() && !data_.status_.busy &&
-            mon_->getAtTarget()) {  // Controller deadband
-          cntrl_->reset();
-          cntrOutput = 0;
-        } else {
-          cntrOutput = cntrl_->control(getPosErrorMod(),
-                                  data_.status_.currentVelocitySetpoint);
-        }
-        mon_->setEnable(true);
-        drv_->setVelSet(cntrOutput);  // Actual control
-      }
-      else {
-        // ***************** CSP *****************
-        mon_->setEnable(true);
-        drv_->setCspPosSet(data_.status_.currentPositionSetpoint);  // Actual control
-      }
-    } else {
-      mon_->setEnable(false);
-
-      if (getExecute()) {
-        setExecute(false);
-      }
-      // Only update if enable cmd is low to avoid change of setpoint 
-      // during between enable and enabled
-      if (!getEnable() && !beforeFirstEnable_ && masterOK) {
-        data_.status_.currentPositionSetpoint =
-          data_.status_.currentPositionActual;
-        traj_->setStartPos(data_.status_.currentPositionSetpoint);        
-      }
-
-      if (data_.status_.enabledOld && !data_.status_.enabled &&
-          data_.status_.enableOld && data_.command_.enable) {
-        setEnable(false);
-        setErrorID(__FILE__,
-                   __FUNCTION__,
-                   __LINE__,
-                   ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
-      }
-      // CSV
-      drv_->setVelSet(0);
-      // CSP      
-      drv_->setCspPosSet(data_.status_.currentPositionActual);
-      cntrl_->reset();
-    }
-
-    if (!masterOK) {
-      if (getEnabled() || getEnable()) {
-        setEnable(false);
-      }
-      cntrl_->reset();
-      drv_->setVelSet(0);
+    if (data_.status_.enabledOld && !data_.status_.enabled &&
+        data_.status_.enableOld && data_.command_.enable) {
+      setEnable(false);
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+                 ERROR_AXIS_AMPLIFIER_ENABLED_LOST);
     }
-
-    // Write to hardware
-    //refreshExternalOutputSources();
-    drv_->writeEntries();
-    // MANUAL MODE: Raw Output..
-  } else if (data_.command_.operationModeCmd == ECMC_MODE_OP_MAN) {
-    mon_->readEntries();
-    enc_->readEntries();
-    
-    // PRIMITIVE CHECK FOR LIMIT SWITCHES
-    if (!data_.status_.limitBwd || !data_.status_.limitFwd) {
-      drv_->setVelSet(0);
-    }
-    drv_->writeEntries();
+    // CSV
+    drv_->setVelSet(0);
+    // CSP      
+    drv_->setCspPosSet(data_.status_.currentPositionActual);
+    cntrl_->reset();
   }
+  if (!masterOK) {
+    if (getEnabled() || getEnable()) {
+      setEnable(false);
+    }
+    cntrl_->reset();
+    drv_->setVelSet(0);
+    setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+  }
+  // Write to hardware
+  //refreshExternalOutputSources();
+  drv_->writeEntries();
 
   if (std::abs(drv_->getScale()) > 0) {
     data_.status_.currentvelocityFFRaw = cntrl_->getOutFFPart() /
@@ -222,20 +194,6 @@ void ecmcAxisReal::execute(bool masterOK) {
   }
 
   ecmcAxisBase::postExecute(masterOK);
-}
-
-int ecmcAxisReal::setOpMode(operationMode mode) {
-  if (mode == ECMC_MODE_OP_MAN) {
-    data_.command_.enable = false;
-    drv_->setVelSet(0);
-  }
-
-  data_.command_.operationModeCmd = mode;
-  return 0;
-}
-
-operationMode ecmcAxisReal::getOpMode() {
-  return data_.command_.operationModeCmd;
 }
 
 ecmcPIDController * ecmcAxisReal::getCntrl() {

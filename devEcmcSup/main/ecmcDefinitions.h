@@ -217,11 +217,6 @@ enum axisType {
   ECMC_AXIS_TYPE_ENCODER    = 4,
 };
 
-enum operationMode {
-  ECMC_MODE_OP_AUTO = 0,
-  ECMC_MODE_OP_MAN  = 1,
-};
-
 enum motionCommandTypes {
   ECMC_CMD_NOCMD              = -1,   
   ECMC_CMD_JOG                = 0,    

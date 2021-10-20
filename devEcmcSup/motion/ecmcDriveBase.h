@@ -70,7 +70,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   virtual void readEntries();
   virtual void writeEntries();
   virtual void errorReset();
-  int          setEnable(bool enable);
   bool         getEnable();
   bool         getEnabled();
   double       getScaleNum(void);
@@ -110,9 +109,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   uint64_t statusWord_;
   ecmcAxisData *data_;
 
- private:
-  bool manualModeEnableAmpCmd_;
-  bool manualModeEnableAmpCmdOld_;
+ private:  
   int brakeOpenDelayTime_;
   int brakeCloseAheadTime_;
   bool brakeOutputCmdOld_;
@@ -123,7 +120,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   bool reduceTorqueOutputCmd_;
   ecmcBrakeStates brakeState_;
   int brakeCounter_;
-  operationMode opeationMode_;
   bool enableCmdOld_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *asynControlWd_;

@@ -37,8 +37,6 @@ void ecmcDriveBase::initVars() {
   enableReduceTorque_        = 0;
   controlWord_               = 0;
   statusWord_                = 0;
-  manualModeEnableAmpCmd_    = false;
-  manualModeEnableAmpCmdOld_ = false;
   brakeOpenDelayTime_        = 0;
   brakeCloseAheadTime_       = 0;
   brakeOutputCmd_            = 0;
@@ -165,22 +163,6 @@ double ecmcDriveBase::getVelSet() {
 
 int ecmcDriveBase::getVelSetRaw() {
   return data_->status_.currentVelocitySetpointRaw;
-}
-
-int ecmcDriveBase::setEnable(bool enable) {
-  // Only allowed in manual mode !!
-  if (data_->command_.operationModeCmd != ECMC_MODE_OP_MAN) {
-    manualModeEnableAmpCmd_ = false;
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE);
-  }
-
-  manualModeEnableAmpCmdOld_ = manualModeEnableAmpCmd_;
-  manualModeEnableAmpCmd_    = enable;
-
-  return 0;
 }
 
 int ecmcDriveBase::setVelSetRaw(int vel) {
@@ -313,15 +295,7 @@ void ecmcDriveBase::readEntries() {
     updateBrakeState();
   } else {
     // No brake
-    switch (data_->command_.operationModeCmd) {
-    case ECMC_MODE_OP_AUTO:
-      enableAmpCmd_ = data_->command_.enable;
-      break;
-
-    case ECMC_MODE_OP_MAN:
-      enableAmpCmd_ = manualModeEnableAmpCmd_;
-      break;
-    }
+      enableAmpCmd_ = data_->command_.enable;      
   }
 
   if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD, &statusWord_)) {
@@ -584,32 +558,14 @@ int ecmcDriveBase::setBrakeCloseAheadTime(int aheadTime) {
 
 int ecmcDriveBase::updateBrakeState() {
   // General state transitions
-  switch (data_->command_.operationModeCmd) {
-  case ECMC_MODE_OP_AUTO:
 
-    if (data_->command_.enable && !enableCmdOld_) {
-      brakeState_   = ECMC_BRAKE_OPENING;
-      brakeCounter_ = 0;
-    }
-
-    if (!data_->command_.enable && enableCmdOld_) {
-      brakeState_   = ECMC_BRAKE_CLOSING;
-      brakeCounter_ = 0;
-    }
-    break;
-
-  case ECMC_MODE_OP_MAN:
-
-    if (manualModeEnableAmpCmd_ && !manualModeEnableAmpCmdOld_) {
-      brakeState_   = ECMC_BRAKE_OPENING;
-      brakeCounter_ = 0;
-    }
-
-    if (!manualModeEnableAmpCmd_ && manualModeEnableAmpCmdOld_) {
-      brakeState_   = ECMC_BRAKE_CLOSING;
-      brakeCounter_ = 0;
-    }
-    break;
+  if (data_->command_.enable && !enableCmdOld_) {
+    brakeState_   = ECMC_BRAKE_OPENING;
+    brakeCounter_ = 0;
+  }
+  if (!data_->command_.enable && enableCmdOld_) {
+    brakeState_   = ECMC_BRAKE_CLOSING;
+    brakeCounter_ = 0;
   }
 
   switch (brakeState_) {

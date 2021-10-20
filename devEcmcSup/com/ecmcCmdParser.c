@@ -1849,27 +1849,6 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisDrvScaleDenom(iValue, dValue);
   }
 
-  /*int Cfg.SetAxisDrvVelSet(int axis_no, double value);*/
-  nvals = sscanf(myarg_1, "SetAxisDrvVelSet(%d,%lf)", &iValue, &dValue);
-
-  if (nvals == 2) {
-    return setAxisDrvVelSet(iValue, dValue);
-  }
-
-  /*int Cfg.SetAxisDrvVelSetRaw(int axis_no, double value);*/
-  nvals = sscanf(myarg_1, "SetAxisDrvVelSetRaw(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setAxisDrvVelSetRaw(iValue, iValue2);
-  }
-
-  /*int Cfg.SetAxisDrvEnable(int axis_no, int value);*/
-  nvals = sscanf(myarg_1, "SetAxisDrvEnable(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setAxisDrvEnable(iValue, iValue2);
-  }
-
   /*int Cfg.SetAxisDrvBrakeEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1, "SetAxisDrvBrakeEnable(%d,%d)", &iValue, &iValue2);
 
@@ -1990,13 +1969,6 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisHomeLatchCountOffset(iValue, iValue2);
-  }
-
-  /*int Cfg.SetAxisOpMode(int axis_no, int nMode);*/
-  nvals = sscanf(myarg_1, "SetAxisOpMode(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setAxisOpMode(iValue, iValue2);
   }
 
   /*int Cfg.SetEnableFuncCallDiag(int nEnable);*/
@@ -3213,14 +3185,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(ecGetMemMapId(cIdBuffer , &iValue));
   }
  
-  /*GetAxisOpMode(int nAxis)*/
-  nvals = sscanf(myarg_1, "GetAxisOpMode(%d)", &motor_axis_no);
-
-  if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisOpMode(motor_axis_no, &iValue));
-  }
-
-  /*GetAxisBlockCom(int nAxis)*/
+    /*GetAxisBlockCom(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisBlockCom(%d)", &motor_axis_no);
 
   if (nvals == 1) {

@@ -87,7 +87,6 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_                 = asynPortDriver;
   data_.axisId_                   = axisID;
   data_.sampleTime_               = sampleTime;
-  data_.command_.operationModeCmd = ECMC_MODE_OP_AUTO;
 
   try {
     enc_  = new ecmcEncoder(&data_, data_.sampleTime_);

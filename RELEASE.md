@@ -1,6 +1,7 @@
 Release Notes
 ===
 # ECMC master
+* Remove commands Cfg.SetOpMode() and GetOpMode(). Obsolete and not used.
 
 * Add command "Cfg.SetAxisHomePosition()", same as Main.Mx.fHomePosition (try to phase out this old syntax)
 
