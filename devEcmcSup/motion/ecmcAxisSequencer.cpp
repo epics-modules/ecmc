@@ -600,6 +600,20 @@ double ecmcAxisSequencer::getTargetPos() {
 }
 
 void ecmcAxisSequencer::setTargetVel(double velTarget) {
+  // silent restriction to max velocity
+  if(mon_->getEnableMaxVelMon()) {
+    double maxVelo = std::abs(mon_->getMaxVel());
+    if(velTarget >= 0) { // positive velo
+      if(velTarget > maxVelo){
+        velTarget = maxVelo;
+      }
+    } else {  // negative velo
+      if(velTarget < -maxVelo){
+        velTarget = -maxVelo;
+      }
+    }
+  }
+
   data_->command_.velocityTarget = velTarget;
   traj_->setTargetVel(velTarget);
 }
