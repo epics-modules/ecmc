@@ -14,7 +14,7 @@
 #define SRC_ECMCTRAJECTORYS_H_
 
 #include "ecmcTrajectoryBase.h"
-#include <ruckig>
+#include <ruckig.hpp>
 
 /**
  * \class ecmcTrajectoryS
