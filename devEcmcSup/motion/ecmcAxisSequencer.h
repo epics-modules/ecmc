@@ -17,7 +17,7 @@
 #include "ecmcEncoder.h"
 #include "ecmcMonitor.h"
 #include "ecmcPIDController.h"
-#include "ecmcTrajectoryTrapetz.h"
+#include "ecmcTrajectoryBase.h"
 #include "ecmcAxisData.h"
 #include "ecmcDriveBase.h"
 

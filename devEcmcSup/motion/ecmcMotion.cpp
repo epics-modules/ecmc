@@ -27,7 +27,7 @@
 #include "ecmcAxisReal.h"      // Normal axis (cntr,drv, enc, traj, mon, seq)
 #include "ecmcAxisVirt.h"      // Axis without drive and controller
 #include "ecmcDriveBase.h"     // Abstract drive base class
-#include "ecmcTrajectoryTrapetz.h"
+#include "ecmcTrajectoryBase.h"
 #include "ecmcPIDController.h"
 #include "ecmcEncoder.h"
 #include "ecmcMonitor.h"
