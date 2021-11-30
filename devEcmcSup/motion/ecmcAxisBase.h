@@ -24,7 +24,7 @@
 #include "ecmcMonitor.h"
 #include "ecmcPIDController.h"
 #include "ecmcAxisSequencer.h"
-#include "ecmcTrajectoryTrapetz.h"
+#include "ecmcTrajectoryBase.h"
 #include "ecmcAxisData.h"
 #include "ecmcFilter.h"
 
@@ -151,9 +151,9 @@ class ecmcAxisBase : public ecmcError {
  public:
   ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                int    axisID,
-               double sampleTime);
+               double sampleTime,
+               ecmcTrajTypes  trajType);
   virtual ~ecmcAxisBase();
-  virtual int                setDriveType(ecmcDriveTypes driveType);
   virtual ecmcDriveBase    * getDrv()               = 0;
   virtual ecmcPIDController* getCntrl()             = 0;
   virtual int                validate()             = 0;
@@ -276,7 +276,7 @@ class ecmcAxisBase : public ecmcError {
   void                       refreshStatusWd();
   void                       initControlWord();
 
-  ecmcTrajectoryTrapetz  *traj_;
+  ecmcTrajectoryBase     *traj_;
   ecmcMonitor            *mon_;
   ecmcEncoder            *enc_;
   ecmcAxisSequencer       seq_;
@@ -310,6 +310,7 @@ class ecmcAxisBase : public ecmcError {
   double                  velocityTarget_;
   motionCommandTypes      command_;
   int                     cmdData_;
+  ecmcTrajTypes           currentTrajType_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

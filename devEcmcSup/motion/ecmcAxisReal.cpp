@@ -14,10 +14,13 @@
 
 ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
                            int axisID,
-                           double sampleTime, ecmcDriveTypes drvType) :  
+                           double sampleTime, 
+                           ecmcDriveTypes drvType,
+                           ecmcTrajTypes  trajType) :  
               ecmcAxisBase(asynPortDriver,
                            axisID,
-                           sampleTime) {
+                           sampleTime, 
+                           trajType) {
   initVars();
   data_.axisId_     = axisID;
   data_.axisType_   = ECMC_AXIS_TYPE_REAL;

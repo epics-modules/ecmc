@@ -14,10 +14,12 @@
 
 ecmcAxisVirt::ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
                            int axisID,
-                           double sampleTime) :  
+                           double sampleTime,
+                           ecmcTrajTypes  trajType) :  
               ecmcAxisBase(asynPortDriver,
                           axisID,
-                          sampleTime) {
+                          sampleTime,
+                          trajType) {
   initVars();
   data_.axisId_   = axisID;
   data_.axisType_ = ECMC_AXIS_TYPE_VIRTUAL;

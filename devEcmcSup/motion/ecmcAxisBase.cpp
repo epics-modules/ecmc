@@ -81,7 +81,8 @@ asynStatus asynWriteCmdData(void* data, size_t bytes, asynParamType asynParType,
 
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int axisID, 
-                           double sampleTime) {
+                           double sampleTime,
+                           ecmcTrajTypes  trajType) {
   initVars();
 
   asynPortDriver_                 = asynPortDriver;
@@ -90,12 +91,20 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
 
   try {
     enc_  = new ecmcEncoder(&data_, data_.sampleTime_);
-    traj_ = new ecmcTrajectoryTrapetz(&data_,
-                                    data_.sampleTime_);
+    if(trajType == ECMC_S_CURVE) {
+      traj_ = new ecmcTrajectoryS(&data_,
+                                   data_.sampleTime_);
+      currentTrajType_ = ECMC_S_CURVE;    
+    } else {
+      traj_ = new ecmcTrajectoryTrapetz(&data_,
+                                         data_.sampleTime_);        
+      currentTrajType_ = ECMC_TRAPETZ;        
+    }
+
     mon_ = new ecmcMonitor(&data_);
 
     extTrajVeloFilter_ = new ecmcFilter(data_.sampleTime_);    
-    extEncVeloFilter_ = new ecmcFilter(data_.sampleTime_);    
+    extEncVeloFilter_  = new ecmcFilter(data_.sampleTime_);    
 
   } catch(std::bad_alloc& ex) {
       LOGERR(
@@ -394,13 +403,6 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
 
 void ecmcAxisBase::setInStartupPhase(bool startup) {
   data_.status_.inStartupPhase = startup;
-}
-
-int ecmcAxisBase::setDriveType(ecmcDriveTypes driveType) {
-  return setErrorID(__FILE__,
-                    __FUNCTION__,
-                    __LINE__,
-                    ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
 }
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {

@@ -27,7 +27,8 @@ class ecmcAxisVirt: public ecmcAxisBase
 public:
   ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
                int axisID,
-               double sampleTime);
+               double sampleTime,
+               ecmcTrajTypes  trajType);
   ~ecmcAxisVirt();
   void execute(bool masterOK);
   ecmcDriveBase *getDrv();

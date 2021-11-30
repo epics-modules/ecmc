@@ -46,6 +46,12 @@
 #define ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE 0x14E16
 #define ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE 0x14E17
 
+enum ecmcTrajTypes {
+  ECMC_TRAPETZ = 0,
+  ECMC_S_CURVE = 1,
+  ECMC_NO_TRAJ = 2,
+};
+
 /**
  * \class ecmcTrajectoryBase
  *

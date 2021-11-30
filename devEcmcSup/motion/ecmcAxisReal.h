@@ -23,7 +23,8 @@ class ecmcAxisReal : public ecmcAxisBase {
   ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
                int    axisID,
                double sampleTime,
-               ecmcDriveTypes drvType);
+               ecmcDriveTypes drvType,
+               ecmcTrajTypes  trajType);
   ~ecmcAxisReal();
   void               execute(bool masterOK);
   ecmcDriveBase    * getDrv();
