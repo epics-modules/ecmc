@@ -16,6 +16,7 @@
 ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
                                              double        sampleTime) : 
                        ecmcTrajectoryBase(axisData, sampleTime) {
+  initVars();              
   initTraj();
 }
 
@@ -30,19 +31,17 @@ void ecmcTrajectoryTrapetz::initVars() {
   prevStepSize_            = 0;
   switchTargetOnTheFly_    = false;
   stepStableTol_           = 0;
-  thisStepSize_            = 0;
-
-  ecmcTrajectoryBase::initVars();
+  thisStepSize_            = 0;  
 }
 
 void ecmcTrajectoryTrapetz::initTraj() {
   printf("ecmcTrajectoryTrapetz::initTraj()\n");
-  stepNOM_      = velocityTarget_ * sampleTime_;
+  stepNOM_      = targetVelocity_ * sampleTime_;
   
   // TODO check eq.
-  stepACC_      =  acceleration_ * sampleTime_ * sampleTime_  /**2*/;
-  stepDEC_      =  deceleration_ * sampleTime_ * sampleTime_  /**2*/;
-  stepDECEmerg_ =  decelerationEmergency_ * sampleTime_ *
+  stepACC_      =  targetAcceleration_ * sampleTime_ * sampleTime_  /**2*/;
+  stepDEC_      =  targetDeceleration_ * sampleTime_ * sampleTime_  /**2*/;
+  stepDECEmerg_ =  targetDecelerationEmerg_ * sampleTime_ *
                   sampleTime_  /**2*/;
 
   // Avoid rounding errors when comparing doubles
@@ -58,7 +57,7 @@ void ecmcTrajectoryTrapetz::setCurrentPosSet(double posSet) {
   currentPositionSetpoint_ = posSet;
   posSetMinus1_            = currentPositionSetpoint_;
   prevStepSize_            = 0;
-  velocity_                = 0;
+  currentVelocitySetpoint_                = 0;
 }
 
 double ecmcTrajectoryTrapetz::getNextPosSet() {
@@ -66,7 +65,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
   // Updates trajectory setpoint
 
   double nextSetpoint = currentPositionSetpoint_;
-  double nextVelocity = velocity_;
+  double nextVelocity = currentVelocitySetpoint_;
 
   bool stopped = false;
 
@@ -79,7 +78,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
     }
     posSetMinus1_ = currentPositionSetpoint_;
     prevStepSize_ = 0;
-    velocity_     = 0;
+    currentVelocitySetpoint_     = 0;
     return currentPositionSetpoint_;
   }
   index_++;
@@ -109,7 +108,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
                             &nextVelocity);
 
     if (stopped) {
-      velocity_ = 0;
+      currentVelocitySetpoint_ = 0;
       busy_         = false;
       nextVelocity  = 0;
     }
@@ -122,11 +121,12 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
 
 double ecmcTrajectoryTrapetz::updateSetpoint(double nextSetpoint,
                                              double nextVelocity) {
-  posSetMinus1_            = currentPositionSetpoint_;
-  currentPositionSetpoint_ = checkModuloPos(nextSetpoint,velocityTarget_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD); //=nextSetpoint;
-  prevStepSize_            = thisStepSize_;
-  velocity_                = nextVelocity;
-  distToStop_              = distToStop(velocity_);
+  posSetMinus1_                = currentPositionSetpoint_;
+  currentPositionSetpoint_     = checkModuloPos(nextSetpoint,targetVelocity_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD); //=nextSetpoint;
+  prevStepSize_                = thisStepSize_;
+  currentVelocitySetpoint_     = nextVelocity;
+  currentAccelerationSetpoint_ = (currentPositionSetpoint_ - posSetMinus1_) / sampleTime_;
+  distToStop_                  = distToStop(currentVelocitySetpoint_);
   return currentPositionSetpoint_;
 }
 
@@ -154,7 +154,7 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
 
   if (busy_) { 
 
-    *actVelocity = thisStepSize_ / sampleTime_; //dist(currentPositionSetpoint_,posSetTemp,velocityTarget_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD) / sampleTime_;
+    *actVelocity = thisStepSize_ / sampleTime_; //dist(currentPositionSetpoint_,posSetTemp,targetVelocity_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD) / sampleTime_;
   }
   return posSetTemp;
 }
@@ -340,7 +340,7 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
  *      zero speed (if deceleration)
  */
 double ecmcTrajectoryTrapetz::distToStop(double vel) {
-  //double d = 0.5 * vel * vel / deceleration_ + std::abs(vel * sampleTime_);
+  //double d = 0.5 * vel * vel / targetDeceleration_ + std::abs(vel * sampleTime_);
   //return vel > 0 ? d : -d ;
   return prevStepSize_* std::abs(prevStepSize_/stepDEC_) / 2;
 }
@@ -351,43 +351,43 @@ void ecmcTrajectoryTrapetz::setTargetPos(double pos) {
 
   // Check if updated on the fly (copied from setExecute().. not so nice)
   if(busy_ && motionMode_ == ECMC_MOVE_MODE_POS){
-    double dist2Stop=distToStop(velocity_);
+    double dist2Stop=distToStop(currentVelocitySetpoint_);
     if(currentPositionSetpoint_ + dist2Stop > targetPosition_) {
-      velocityTarget_= -std::abs(velocityTarget_);
+      targetVelocity_= -std::abs(targetVelocity_);
     }
     else {
-      velocityTarget_= std::abs(velocityTarget_);
+      targetVelocity_= std::abs(targetVelocity_);
     }
   }
 }
 
 void ecmcTrajectoryTrapetz::setTargetVel(double velTarget) {
-  velocityTarget_ = velTarget;
+  targetVelocity_ = velTarget;
   initTraj();
 }
 
 void ecmcTrajectoryTrapetz::setAcc(double acc) {
-  acceleration_ = acc;
+  targetAcceleration_ = acc;
   initTraj();
 }
 
 void ecmcTrajectoryTrapetz::setEmergDec(double dec) {
-  decelerationEmergency_ = dec;
+  targetDecelerationEmerg_ = dec;
   initTraj();
 }
 
 void ecmcTrajectoryTrapetz::setDec(double dec) {
-  deceleration_ = dec;
+  targetDeceleration_ = dec;
 
-  if (decelerationEmergency_ == 0) {
-    decelerationEmergency_ = deceleration_ * 3;
+  if (targetDecelerationEmerg_ == 0) {
+    targetDecelerationEmerg_ = targetDeceleration_ * 3;
   }
   initTraj();
 }
 
 // Not used
 void ecmcTrajectoryTrapetz::setJerk(double jerk) {
-  jerk_ = jerk;
+  targetJerk_ = jerk;
   initTraj();
 }
 
@@ -404,7 +404,7 @@ int ecmcTrajectoryTrapetz::initStopRamp(double currentPos,
   enable_ = 1;
   busy_                    = true;
   currentPositionSetpoint_ = currentPos;
-  velocity_                = currentVel;
-  prevStepSize_            = velocity_ * sampleTime_;
+  currentVelocitySetpoint_                = currentVel;
+  prevStepSize_            = currentVelocitySetpoint_ * sampleTime_;
   return 0;
 }

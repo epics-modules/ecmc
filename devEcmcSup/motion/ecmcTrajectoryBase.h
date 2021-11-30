@@ -75,12 +75,6 @@ class ecmcTrajectoryBase : public ecmcError {
  public:
   explicit ecmcTrajectoryBase(ecmcAxisData *axisData,
                               double        sampleTime);
-  explicit ecmcTrajectoryBase(ecmcAxisData *axisData,
-                              double        velocityTarget,
-                              double        acceleration,
-                              double        deceleration,
-                              double        jerk,
-                              double        sampleTime);
   virtual ~ecmcTrajectoryBase();
 
   /** \brief Calculates and returns next position setpoint.
@@ -180,16 +174,17 @@ class ecmcTrajectoryBase : public ecmcError {
                        motionDirection direction);
   double          checkModuloPos(double pos,
                        motionDirection direction);
-  double acceleration_;
-  double deceleration_;
-  double decelerationEmergency_;
-  double velocityTarget_;
+  double targetAcceleration_;
+  double targetDeceleration_;
+  double targetDecelerationEmerg_;
+  double targetVelocity_;
   double targetPosition_;
-  double jerk_;
+  double targetJerk_;
   double sampleTime_;
   double posSetMinus1_;
   double currentPositionSetpoint_;
-  double velocity_;
+  double currentVelocitySetpoint_;
+  double currentAccelerationSetpoint_;
   bool busy_;
   int index_;
   bool execute_;

@@ -26,48 +26,32 @@ ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData *axisData,
   sampleTime_ = sampleTime;
 }
 
-ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData *axisData,
-                                       double        velocityTarget,
-                                       double        acceleration,
-                                       double        deceleration,
-                                       double        jerk,
-                                       double        sampleTime) :
-  ecmcError() {
-  data_ = axisData;
-  initVars();
-  velocityTarget_        = velocityTarget;
-  acceleration_          = acceleration;
-  deceleration_          = deceleration;
-  decelerationEmergency_ = deceleration;
-  jerk_                  = jerk;
-  sampleTime_            = sampleTime;  
-}
-
 ecmcTrajectoryBase::~ecmcTrajectoryBase()
 {}
 
 void ecmcTrajectoryBase::initVars() {
   errorReset();
-  distToStop_              = 0;
-  velocityTarget_          = 0;
-  acceleration_            = 0;
-  deceleration_            = 0;
-  decelerationEmergency_   = 0;
-  jerk_                    = 0;
-  sampleTime_              = 1;
-  posSetMinus1_            = 0;
-  targetPosition_          = 0;
-  currentPositionSetpoint_ = 0;
-  velocity_                = 0;
-  busy_                    = false;
-  index_                   = 0;
-  execute_                 = 0;
-  executeOld_              = 0;
-  startPosition_           = 0;
-  enable_                  = false;
-  enableOld_               = false;
-  motionMode_              = ECMC_MOVE_MODE_POS;
-  latchedStopMode_         = ECMC_STOP_MODE_RUN;
+  distToStop_                  = 0;
+  targetVelocity_              = 0;
+  targetAcceleration_                = 0;
+  targetDeceleration_                = 0;
+  targetDecelerationEmerg_       = 0;
+  targetJerk_                        = 0;
+  sampleTime_                  = 1;
+  posSetMinus1_                = 0;
+  targetPosition_              = 0;
+  currentPositionSetpoint_     = 0;
+  currentVelocitySetpoint_     = 0;
+  currentAccelerationSetpoint_ = 0;
+  busy_                        = false;
+  index_                       = 0;
+  execute_                     = 0;
+  executeOld_                  = 0;
+  startPosition_               = 0;
+  enable_                      = false;
+  enableOld_                   = false;
+  motionMode_                  = ECMC_MOVE_MODE_POS;
+  latchedStopMode_             = ECMC_STOP_MODE_RUN;
 }
 
 double ecmcTrajectoryBase::getCurrentPosSet() {
@@ -83,23 +67,23 @@ int ecmcTrajectoryBase::getIndex() {
 }
 
 double ecmcTrajectoryBase::getVel() {
-  return velocity_;
+  return currentVelocitySetpoint_;
 }
 
 double ecmcTrajectoryBase::getTargetVel() {
-  return velocityTarget_;
+  return targetVelocity_;
 }
 
 double ecmcTrajectoryBase::getAcc() {
-  return acceleration_;
+  return targetAcceleration_;
 }
 
 double ecmcTrajectoryBase::getDec() {
-  return deceleration_;
+  return targetDeceleration_;
 }
 
 double ecmcTrajectoryBase::getJerk() {
-  return jerk_;
+  return targetJerk_;
 }
 
 double ecmcTrajectoryBase::getTargetPos() {
@@ -113,12 +97,12 @@ bool ecmcTrajectoryBase::getExecute() {
 void ecmcTrajectoryBase::setEnable(bool enable) {
   enableOld_ = enable_;
   enable_    = enable;
-  velocity_  = 0;
+  currentVelocitySetpoint_  = 0;
 
   if (!enableOld_ && enable_) {
     posSetMinus1_            = startPosition_;
     currentPositionSetpoint_ = startPosition_;   
-    velocity_                = 0;
+    currentVelocitySetpoint_                = 0;
     distToStop_              = 0;
   }
 }
@@ -140,7 +124,7 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
            __LINE__,
            ERROR_TRAJ_NOT_ENABLED);    
     execute_  = false;
-    velocity_ = 0;
+    currentVelocitySetpoint_ = 0;
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_NOT_ENABLED);;
   }
 
@@ -157,9 +141,9 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
       // Normal motion
       if(data_->command_.moduloRange==0) {
         if (targetPosition_ < currentPositionSetpoint_) {
-          velocityTarget_= -std::abs(velocityTarget_);
+          targetVelocity_= -std::abs(targetVelocity_);
         } else {
-          velocityTarget_= std::abs(velocityTarget_);
+          targetVelocity_= std::abs(targetVelocity_);
         }
         break;
       } else { 
@@ -178,20 +162,20 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
         {
         case ECMC_MOD_MOTION_BWD:
 
-          velocityTarget_=-std::abs(velocityTarget_);
+          targetVelocity_=-std::abs(targetVelocity_);
           break;
 
         case ECMC_MOD_MOTION_FWD:
 
-          velocityTarget_= std::abs(velocityTarget_);
+          targetVelocity_= std::abs(targetVelocity_);
           break;
 
         case ECMC_MOD_MOTION_NORMAL:
 
           if (targetPosition_ < currentPositionSetpoint_) {
-            velocityTarget_=-std::abs(velocityTarget_);
+            targetVelocity_=-std::abs(targetVelocity_);
           } else {
-            velocityTarget_= std::abs(velocityTarget_);
+            targetVelocity_= std::abs(targetVelocity_);
           }
           break;
         case ECMC_MOD_MOTION_CLOSEST:        
@@ -199,9 +183,9 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
           distFWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_FORWARD));
           distBWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_BACKWARD));
           if(distBWD < distFWD) {
-            velocityTarget_=-std::abs(velocityTarget_);
+            targetVelocity_=-std::abs(targetVelocity_);
           } else {
-            velocityTarget_= std::abs(velocityTarget_);
+            targetVelocity_= std::abs(targetVelocity_);
           }
 
           break;
@@ -220,7 +204,7 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
 
     if (!busy_) {
       posSetMinus1_ = currentPositionSetpoint_;
-      velocity_     = 0;
+      currentVelocitySetpoint_     = 0;
     }
     initTraj();
     currentPositionSetpoint_ = startPosition_;
@@ -283,7 +267,7 @@ motionDirection ecmcTrajectoryBase::checkDirection(double oldPos,
 }
 
 motionDirection ecmcTrajectoryBase::getCurrSetDir() {
-  return velocityTarget_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD;
+  return targetVelocity_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD;
 }
 
 /* Calculates distance between two points*/

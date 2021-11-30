@@ -35,6 +35,9 @@
  * Created on: 2021-11-26
  *
  */
+
+using namespace ruckig;
+
 class ecmcTrajectoryS : public ecmcTrajectoryBase {
  public:
   ecmcTrajectoryS(ecmcAxisData *axisData,
@@ -76,40 +79,37 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   /// Sets position setpoint.
   void            setCurrentPosSet(double posSet);
 
-  double          distToStop(double vel);
-  int             initStopRamp(double currentPos,
-                               double currentVel,
-                               double currentAcc);
+  //double          distToStop(double vel);
+  int             initStopRamp(double   currentPos,
+                               double   currentVel,
+                               double   currentAcc);
 
  private:
+  void            initRuckig();
+  bool            updateRuckig();
+  double          internalTraj(double  *actVelocity,
+                               double  *actAcceleration,
+                               bool    *trajBusy);
+  double          moveVel(double       *actVelocity,
+                          double       *actAcceleration,
+                          bool         *trajBusy);
+  double          movePos(double       *actVelocity,
+                          double       *actAcceleration,
+                          bool         *trajBusy);
+  double          moveStop(stopMode     stopMode,
+                           double      *actVelocity,
+                           double      *actAcceleration,
+                           bool        *stopped);
+  double          updateSetpoint(double nextSetpoint,
+                                 double nextVelocity,
+                                 double nextAcceleration);
+  // Ruckig
   void            initVars();
   void            initTraj();
-  double          internalTraj(double *velocity);
-  double          moveVel(double currSetpoint,
-                          double prevStepSize,
-                          double stepNom,
-                          bool  *trajBusy);
-  double          movePos(double currSetpoint,
-                          double targetSetpoint,
-                          double stopDistance,
-                          double prevStepSize, // currVelo
-                          double stepNom,   //targetVelo
-                          bool  *trajBusy);
-  double          moveStop(stopMode stopMode,
-                           double   currSetpoint,
-                           double   prevStepSize,
-                           bool    *stopped,
-                           double  *velocity);
-  double          updateSetpoint(double nextSetpoint,
-                                 double nextVelocity);
-
-  double stepACC_;
-  double stepDEC_;
-  double stepNOM_;
-  double stepDECEmerg_;
-  double prevStepSize_;
-  double thisStepSize_;
-  bool switchTargetOnTheFly_;
-  double stepStableTol_;
+  Ruckig<DynamicDOFs>          *otg_;
+  InputParameter<DynamicDOFs>  *input_;
+  OutputParameter<DynamicDOFs> *output_;
+  bool                          otgbusy_;
+  double                        stepNOM_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYS_H_
