@@ -167,7 +167,7 @@ class ecmcTrajectoryBase : public ecmcError {
                                  double newPos);
 
  protected:
-  virtual void    initTraj() = 0;
+  virtual void    initTraj();
   void            initVars();
   double          dist(double from,
                        double to,

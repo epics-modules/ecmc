@@ -105,7 +105,6 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
                                  double nextAcceleration);
   // Ruckig
   void            initVars();
-  void            initTraj();
   Ruckig<DynamicDOFs>          *otg_;
   InputParameter<DynamicDOFs>  *input_;
   OutputParameter<DynamicDOFs> *output_;

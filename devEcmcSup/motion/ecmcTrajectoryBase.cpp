@@ -215,6 +215,10 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
   return 0;
 }
 
+void ecmcTrajectoryBase::initTraj() {
+  // Default empty..
+}
+
 void ecmcTrajectoryBase::setStartPos(double pos) {
   startPosition_ = pos;
 }
