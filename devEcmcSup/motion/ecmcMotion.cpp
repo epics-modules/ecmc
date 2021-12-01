@@ -2353,7 +2353,7 @@ int getAxisMonAtTarget(int axisIndex, int *value) {
 
 // Configuration procedures
 
-int createAxis(int index, int type, int drvType) {
+int createAxis(int index, int type, int drvType, int trajType) {
   LOGINFO4("%s/%s:%d axisIndex=%d axisType=%d drvType=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -2375,7 +2375,9 @@ int createAxis(int index, int type, int drvType) {
       }
       // Sample rate fixed
       sampleRateChangeAllowed = 0;
-      axes[index] = new ecmcAxisReal(asynPort, index, 1 / mcuFrequency, (ecmcDriveTypes)drvType);
+      axes[index] = new ecmcAxisReal(asynPort, index, 1 / mcuFrequency,
+                                    (ecmcDriveTypes)drvType,
+                                    (ecmcTrajTypes)trajType);
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:    
@@ -2385,7 +2387,8 @@ int createAxis(int index, int type, int drvType) {
       }
       // Sample rate fixed
       sampleRateChangeAllowed = 0;
-      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / mcuFrequency);      
+      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / mcuFrequency,
+                                    (ecmcTrajTypes)trajType);      
       break;
 
     default:

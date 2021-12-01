@@ -515,7 +515,7 @@ int ecmcAxisSequencer::getCmdData() {
   return data_->command_.cmdData;
 }
 
-void ecmcAxisSequencer::setTraj(ecmcTrajectoryTrapetz *traj) {
+void ecmcAxisSequencer::setTraj(ecmcTrajectoryBase *traj) {
   traj_ = traj;
 }
 
@@ -695,7 +695,7 @@ double ecmcAxisSequencer::checkSoftLimits(double posSetpoint) {
   return dSet;
 }
 
-ecmcTrajectoryTrapetz * ecmcAxisSequencer::getTraj() {
+ecmcTrajectoryBase * ecmcAxisSequencer::getTraj() {
   return traj_;
 }
 

@@ -41,7 +41,7 @@ using namespace ruckig;
 class ecmcTrajectoryS : public ecmcTrajectoryBase {
  public:
   ecmcTrajectoryS(ecmcAxisData *axisData,
-                        double        sampleTime);
+                  double        sampleTime);
   ~ecmcTrajectoryS();
 
   /** \brief Calculates and returns next position setpoint.
@@ -79,7 +79,7 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   /// Sets position setpoint.
   void            setCurrentPosSet(double posSet);
 
-  //double          distToStop(double vel);
+  double          distToStop(double vel);
   int             initStopRamp(double   currentPos,
                                double   currentVel,
                                double   currentAcc);

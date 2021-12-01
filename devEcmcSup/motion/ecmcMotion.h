@@ -2771,7 +2771,10 @@ int compileAxisPLCExpr(int   axisIndex);
  * \param[in] drvType Type of axis.\n
  *   type = 0 : Simple drive (stepper).\n
  *   type = 1 : DS402 drive.\n 
- *
+ * \param[in] trajType Type of trajectory generator.\n
+ *   type = 0 : Trapetzoidal.\n
+ *   type = 1 : Jerk limited (s-curve, ruckig).\n 
+  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create a normal axis with stepper drive at axisIndex 1.\n
@@ -2782,10 +2785,13 @@ int compileAxisPLCExpr(int   axisIndex);
  * 
  * \note Example: Create a normal axis with DS402 drive at axisIndex 1.\n
  *  "Cfg.CreateAxis(1,2,1)" //Command string to ecmcCmdParser.c\n
+ * \note Example: Create a normal axis with DS402 drive and S-curve traj.\n
+ *  "Cfg.CreateAxis(1,2,1,1)" //Command string to ecmcCmdParser.c\n
  */
 int createAxis(int axisIndex,
                int axisType,
-               int drvType);
+               int drvType,
+               int trajType);
 
 /** \brief Links an EtherCAT entry to the encoder object of the axis at axisIndex.
    *

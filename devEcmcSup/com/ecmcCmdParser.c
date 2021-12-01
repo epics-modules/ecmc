@@ -693,11 +693,19 @@ static int handleCfgCommand(const char *myarg_1) {
     return setSamplePeriodMs(dValue);
   }
 
+  /// "Cfg.CreateAxis(axisIndex, axisType, drvType,trajType)"
+  nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2,&iValue3, &iValue4);
+
+  if (nvals == 4) {
+    return createAxis(iValue, iValue2, iValue3, iValue4);
+  }
+
+
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType)"
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2,&iValue3);
 
   if (nvals == 3) {
-    return createAxis(iValue, iValue2, iValue3);
+    return createAxis(iValue, iValue2, iValue3,0);
   }
 
   /// "Cfg.CreateAxis(axisIndex, axisType)"
@@ -705,7 +713,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
-    return createAxis(iValue, iValue2,0);
+    return createAxis(iValue, iValue2,0,0);
   }
 
   /// "Cfg.CreateAxis(axisIndex)"
@@ -713,15 +721,15 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateAxis(%d)", &iValue);
 
   if (nvals == 1) {
-    return createAxis(iValue, 1,0);
+    return createAxis(iValue, 1,0,0);
   }
 
   /// "Cfg.CreateDefaultAxis(axisIndex)"
-  // Defaults as real axis with stepper drive
+  // Defaults as real axis with stepper drive and trapetzoidal traj generator
   nvals = sscanf(myarg_1, "CreateDefaultAxis(%d)", &iValue);
 
   if (nvals == 1) {
-    return createAxis(iValue, 1,0);
+    return createAxis(iValue, 1,0,0);
   }
 
   /// "Cfg.CreatePLC(int index, double cycleTimeMs)"

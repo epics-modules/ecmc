@@ -91,14 +91,13 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
 
   try {
     enc_  = new ecmcEncoder(&data_, data_.sampleTime_);
-    if(trajType == ECMC_S_CURVE) {
+    currentTrajType_ = trajType;
+    if(currentTrajType_ == ECMC_S_CURVE) {
       traj_ = new ecmcTrajectoryS(&data_,
                                    data_.sampleTime_);
-      currentTrajType_ = ECMC_S_CURVE;    
     } else {
       traj_ = new ecmcTrajectoryTrapetz(&data_,
                                          data_.sampleTime_);        
-      currentTrajType_ = ECMC_TRAPETZ;        
     }
 
     mon_ = new ecmcMonitor(&data_);
@@ -507,7 +506,7 @@ int ecmcAxisBase::getErrorID() {
   }
 
   // Trajectory
-  ecmcTrajectoryTrapetz *traj = getTraj();
+  ecmcTrajectoryBase *traj = getTraj();
 
   if (traj) {
     if (traj->getError()) {
@@ -584,7 +583,7 @@ void ecmcAxisBase::errorReset() {
   }
 
   // Trajectory
-  ecmcTrajectoryTrapetz *traj = getTraj();
+  ecmcTrajectoryBase *traj = getTraj();
 
   if (traj) {
     traj->errorReset();
@@ -635,7 +634,7 @@ ecmcEncoder * ecmcAxisBase::getEnc() {
   return enc_;
 }
 
-ecmcTrajectoryTrapetz * ecmcAxisBase::getTraj() {
+ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
   return traj_;
 }
 

@@ -211,9 +211,9 @@ double ecmcTrajectoryS::moveStop(stopMode stopMode,
   return output_->new_position[0];
 }
 
-//double ecmcTrajectoryS::distToStop(double vel) {
-//  return 0
-//}
+double ecmcTrajectoryS::distToStop(double vel) {
+  return 0;
+}
 
 void ecmcTrajectoryS::setTargetPos(double pos) {
   targetPosition_ = pos;

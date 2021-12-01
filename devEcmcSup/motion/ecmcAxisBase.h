@@ -25,6 +25,8 @@
 #include "ecmcPIDController.h"
 #include "ecmcAxisSequencer.h"
 #include "ecmcTrajectoryBase.h"
+#include "ecmcTrajectoryS.h"
+#include "ecmcTrajectoryTrapetz.h"
 #include "ecmcAxisData.h"
 #include "ecmcFilter.h"
 
@@ -178,7 +180,7 @@ class ecmcAxisBase : public ecmcError {
   motionCommandTypes         getCommand();
   int                        getCmdData();
   int                        slowExecute();
-  ecmcTrajectoryTrapetz    * getTraj();
+  ecmcTrajectoryBase       * getTraj();
   ecmcMonitor              * getMon();
   ecmcEncoder              * getEnc();
   ecmcAxisSequencer        * getSeq();
