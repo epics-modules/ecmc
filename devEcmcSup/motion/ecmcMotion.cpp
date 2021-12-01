@@ -2354,13 +2354,14 @@ int getAxisMonAtTarget(int axisIndex, int *value) {
 // Configuration procedures
 
 int createAxis(int index, int type, int drvType, int trajType) {
-  LOGINFO4("%s/%s:%d axisIndex=%d axisType=%d drvType=%d\n",
+  LOGINFO4("%s/%s:%d axisIndex=%d axisType=%d drvType=%d, trajType=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            index,
            type,
-           drvType);
+           drvType,
+           trajType);
 
   if ((index < 0) || (index >= ECMC_MAX_AXES)) {
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
@@ -2375,7 +2376,8 @@ int createAxis(int index, int type, int drvType, int trajType) {
       }
       // Sample rate fixed
       sampleRateChangeAllowed = 0;
-      axes[index] = new ecmcAxisReal(asynPort, index, 1 / mcuFrequency,
+      axes[index] = new ecmcAxisReal(asynPort, index,
+                                    1 / mcuFrequency,
                                     (ecmcDriveTypes)drvType,
                                     (ecmcTrajTypes)trajType);
       break;
@@ -2387,7 +2389,8 @@ int createAxis(int index, int type, int drvType, int trajType) {
       }
       // Sample rate fixed
       sampleRateChangeAllowed = 0;
-      axes[index] = new ecmcAxisVirt(asynPort, index, 1 / mcuFrequency,
+      axes[index] = new ecmcAxisVirt(asynPort, index,
+                                    1 / mcuFrequency,
                                     (ecmcTrajTypes)trajType);      
       break;
 

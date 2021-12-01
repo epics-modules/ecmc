@@ -694,7 +694,7 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType,trajType)"
-  nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2,&iValue3, &iValue4);
+  nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d,%d)", &iValue, &iValue2,&iValue3, &iValue4);
 
   if (nvals == 4) {
     return createAxis(iValue, iValue2, iValue3, iValue4);
