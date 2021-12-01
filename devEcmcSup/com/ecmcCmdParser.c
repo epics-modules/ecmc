@@ -2023,6 +2023,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisTrajStartPos(iValue, dValue);
   }
 
+  /*int Cfg.SetAxisJerk(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisJerk(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisJerk(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisAcc(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisAcc(%d,%lf)", &iValue, &dValue);
 

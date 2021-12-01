@@ -173,7 +173,7 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
 double ecmcTrajectoryS::movePos(double *actVelocity,
                                 double *actAcceleration,
                                 bool   *trajBusy){
-
+  
   input_->control_interface      = ControlInterface::Position;
   input_->target_position[0]     = targetPosition_;
   input_->target_velocity[0]     = targetVelocity_;
@@ -184,6 +184,8 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
   *trajBusy                      = updateRuckig();
   *actVelocity                   = output_->new_velocity[0];
   *actAcceleration               = output_->new_acceleration[0];  
+  printf("target: pos %lf, vel %lf,acc %lf,jerk %lf\n",targetPosition_,targetVelocity_,targetAcceleration_,targetJerk_);
+  printf("output_->new_position[0] %lf\n",output_->new_position[0]);
   return output_->new_position[0];
 }
 
