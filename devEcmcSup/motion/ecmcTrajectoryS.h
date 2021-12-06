@@ -83,6 +83,7 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   int             initStopRamp(double   currentPos,
                                double   currentVel,
                                double   currentAcc);
+  int             setExecute(bool execute);
 
  private:
   void            initRuckig();

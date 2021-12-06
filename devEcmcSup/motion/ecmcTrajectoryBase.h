@@ -160,7 +160,7 @@ class ecmcTrajectoryBase : public ecmcError {
    * Normally encoder position at amplifier enable
    */
   void            setStartPos(double pos);
-  int             setExecute(bool execute);
+  virtual int     setExecute(bool execute);
   bool            getExecute();
   bool            getEnable();
   void            setMotionMode(motionMode mode);
