@@ -147,10 +147,14 @@ void ecmcTrajectoryS::initRuckig() {
 }
 
 bool ecmcTrajectoryS::updateRuckig() {
-  otgbusy_ = otg_->update(*input_, *output_) == Result::Working;
-  if(otgbusy_) {
+
+  Result res = otg_->update(*input_, *output_);
+  printf("Result %d\n",(int)res);
+  //otgbusy_ = otg_->update(*input_, *output_) == ;
+  if(otgbusy_== Result::Working) {    
     output_->pass_to_input(*input_);
   }
+  
   return otgbusy_;
 }
 
@@ -184,8 +188,8 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
   *trajBusy                      = updateRuckig();
   *actVelocity                   = output_->new_velocity[0];
   *actAcceleration               = output_->new_acceleration[0];  
-  printf("target: pos %lf, vel %lf,acc %lf,jerk %lf\n",targetPosition_,targetVelocity_,targetAcceleration_,targetJerk_);
-  printf("output_->new_position[0] %lf\n",output_->new_position[0]);
+  printf("target: pos %lf, vel %lf, acc %lf, jerk %lf\n",targetPosition_,targetVelocity_,targetAcceleration_,targetJerk_);
+  printf("Actual: pos %lf, vel %lf, acc %lf, busy %d\n",output_->new_position[0],actVelocity,actAcceleration, trajBusy);  
   return output_->new_position[0];
 }
 
