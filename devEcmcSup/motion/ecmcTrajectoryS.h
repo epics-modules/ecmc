@@ -109,7 +109,6 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   Ruckig<DynamicDOFs>          *otg_;
   InputParameter<DynamicDOFs>  *input_;
   OutputParameter<DynamicDOFs> *output_;
-  bool                          otgbusy_;
   double                        stepNOM_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYS_H_

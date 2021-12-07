@@ -25,10 +25,10 @@ ecmcTrajectoryS::~ecmcTrajectoryS()
 
 void ecmcTrajectoryS::initVars() {
   // Create ruckig params
-  otg_    = new Ruckig<DynamicDOFs>(1,sampleTime_);
-  input_  = new InputParameter<DynamicDOFs>(1);
-  output_ = new OutputParameter<DynamicDOFs>(1);
-  otgbusy_ = false;
+  otg_     = new Ruckig<DynamicDOFs>(1,sampleTime_);
+  input_   = new InputParameter<DynamicDOFs>(1);
+  output_  = new OutputParameter<DynamicDOFs>(1);
+  stepNOM_ = 0;
 }
 
 void ecmcTrajectoryS::setCurrentPosSet(double posSet) {
@@ -85,32 +85,31 @@ double ecmcTrajectoryS::getNextPosSet() {
                             &nextVelocity,
                             &nextAcceleration,
                             &stopped);
-
+    trajBusy = !stopped;
     if (stopped) {
       currentVelocitySetpoint_     = 0;
       currentAccelerationSetpoint_ = 0;
-      busy_                        = false;
+      trajBusy                     = false;
       nextVelocity                 = 0;
-    }    
+    }
   }
-  else {
-    busy_ = trajBusy;
-  }
-
-  // use the new setpoints!
-  currentPositionSetpoint_ = updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration);
   
-  return currentPositionSetpoint_;
+  busy_ = trajBusy;
+  // printf("1 %lf, %lf, %lf\n",nextSetpoint, nextVelocity, nextAcceleration);
+  return updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration);;
 }
 
 double ecmcTrajectoryS::updateSetpoint(double nextSetpoint,
                                        double nextVelocity,
                                        double nextAcceleration) {
   posSetMinus1_            = currentPositionSetpoint_;
-  currentPositionSetpoint_ = checkModuloPos(nextSetpoint,targetVelocity_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD);
+  currentPositionSetpoint_ = checkModuloPos(nextSetpoint,
+                                            targetVelocity_ > 0 ? 
+                                            ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);
   currentVelocitySetpoint_ = nextVelocity;
   currentAccelerationSetpoint_ = nextAcceleration;
   distToStop_              = distToStop(currentVelocitySetpoint_);
+  //printf("2 %lf, %lf, %lf\n",currentPositionSetpoint_, currentVelocitySetpoint_, currentAccelerationSetpoint_);
   return currentPositionSetpoint_;
 }
 
@@ -142,50 +141,75 @@ void ecmcTrajectoryS::initRuckig() {
   input_->current_position[0]     = currentPositionSetpoint_;
   input_->current_velocity[0]     = currentVelocitySetpoint_;
   input_->current_acceleration[0] = currentAccelerationSetpoint_;
+  stepNOM_                        = std::abs(targetVelocity_ * sampleTime_);
   //printf("ecmcTrajectoryS::initRuckig(),%lf , %lf , %lf \n", input_->current_position[0],input_->current_velocity[0],input_->current_acceleration[0]);
 }
 
 bool ecmcTrajectoryS::updateRuckig() {
 
   Result res = otg_->update(*input_, *output_);
-  //printf("Result %d\n",(int)res);
-  //otgbusy_ = otg_->update(*input_, *output_) == ;
   if(res == Result::Working) {    
     output_->pass_to_input(*input_);
   }
-  otgbusy_ = res == Result::Working;
-  return otgbusy_;
+  if(res<0) {
+    printf("error %d\n",res);
+  }
+
+  return res == Result::Working;
 }
 
 double ecmcTrajectoryS::moveVel(double *actVelocity,
                                 double *actAcceleration,
                                 bool   *trajBusy){
-
+  //printf("ecmcTrajectoryS::moveVel() ");
+  double positionSetpoint        = currentPositionSetpoint_;
+  bool ruckigBusy                = false;
   input_->control_interface      = ControlInterface::Velocity;
-  input_->target_velocity[0]     = targetVelocity_;
+
+  if(execute_) {
+    input_->target_velocity[0]   = targetVelocity_;
+  } else {    
+    input_->target_velocity[0]   = 0;    
+  }
+
   input_->target_acceleration[0] = 0;
-  input_->max_velocity[0]        = targetVelocity_;
-  input_->max_acceleration[0]    = targetAcceleration_;
-  input_->max_jerk[0]            = targetJerk_;
-  *trajBusy                      = updateRuckig();
+  input_->max_velocity[0]        = std::abs(targetVelocity_);
+  input_->max_acceleration[0]    = std::abs(targetAcceleration_);
+  input_->max_jerk[0]            = std::abs(targetJerk_);
+  ruckigBusy                     = updateRuckig();
   *actVelocity                   = output_->new_velocity[0];
   *actAcceleration               = output_->new_acceleration[0];
-  //printf("ecmcTrajectoryS::moveVel(),%lf , %lf , %lf \n", output_->new_position[0],output_->new_velocity[0],output_->new_acceleration[0]);
+  positionSetpoint               = output_->new_position[0];
+  
+  if(!ruckigBusy && *actVelocity != 0) {
+    //printf(", const velo ");
+    // ramp up by ruckig is complete. Just continue in that velo
+    *actVelocity                 = targetVelocity_;
+    *actAcceleration             = 0;
+    if(targetVelocity_ >= 0) {
+      positionSetpoint = currentPositionSetpoint_ + stepNOM_;
+    } else {
+      positionSetpoint = currentPositionSetpoint_ - stepNOM_;
+    }
+  } 
 
-  return output_->new_position[0];
+  targetPosition_ = positionSetpoint;
+  *trajBusy = *actVelocity !=0; 
+  //printf(", busy %d, pos %lf\n", *trajBusy,positionSetpoint);
+  return positionSetpoint;
 }
 
 double ecmcTrajectoryS::movePos(double *actVelocity,
                                 double *actAcceleration,
                                 bool   *trajBusy){
-  
+  //printf("ecmcTrajectoryS::movePos()\n");
   input_->control_interface      = ControlInterface::Position;
   input_->target_position[0]     = targetPosition_;
   input_->target_velocity[0]     = 0;
   input_->target_acceleration[0] = 0;
-  input_->max_velocity[0]        = targetVelocity_;
-  input_->max_acceleration[0]    = targetAcceleration_;
-  input_->max_jerk[0]            = targetJerk_;
+  input_->max_velocity[0]        = std::abs(targetVelocity_);
+  input_->max_acceleration[0]    = std::abs(targetAcceleration_);
+  input_->max_jerk[0]            = std::abs(targetJerk_);
   *trajBusy                      = updateRuckig();
   *actVelocity                   = output_->new_velocity[0];
   *actAcceleration               = output_->new_acceleration[0];  
@@ -198,23 +222,22 @@ double ecmcTrajectoryS::moveStop(stopMode stopMode,
                                  double *actVelocity, 
                                  double *actAcceleration,                                 
                                  bool   *stopped){
-
+  //printf("ecmcTrajectoryS::moveStop()\n");
   input_->control_interface       = ControlInterface::Velocity;
   input_->target_velocity[0]      = 0;  // stop
-  
+  input_->target_acceleration[0]  = 0;
+  input_->max_velocity[0]         = targetVelocity_;  
   if (stopMode == ECMC_STOP_MODE_EMERGENCY) {
-    input_->target_acceleration[0]  = targetDecelerationEmerg_;
+    input_->max_acceleration[0]  = targetDecelerationEmerg_;
   } else {
-    input_->target_acceleration[0]  = targetDeceleration_;
+    input_->max_acceleration[0]  = targetDeceleration_;
   }
-  
-  input_->max_velocity[0]         = targetVelocity_;
-  input_->max_acceleration[0]     = targetAcceleration_;
   input_->max_jerk[0]             = targetJerk_;
-  *stopped                        = updateRuckig();
+  *stopped                        = !updateRuckig();
   *actVelocity                    = output_->new_velocity[0];
   *actAcceleration                = output_->new_acceleration[0];
   //*stopped = output->new_velocity[0] == 0;
+  targetPosition_ = output_->new_position[0];
   return output_->new_position[0];
 }
 
@@ -223,20 +246,21 @@ double ecmcTrajectoryS::distToStop(double vel) {
 }
 
 void ecmcTrajectoryS::setTargetPos(double pos) {
-  targetPosition_ = pos;
-  input_->target_position      = {targetPosition_};
+  targetPosition_            = pos;
+  input_->target_position[0] = targetPosition_;
 }
 
 void ecmcTrajectoryS::setTargetVel(double velTarget) {
-  targetVelocity_ = velTarget;
-  input_->target_velocity      = {targetVelocity_};
-  input_->max_velocity         = {targetVelocity_};
+  targetVelocity_            = velTarget;
+  input_->target_velocity[0] = targetVelocity_;
+  input_->max_velocity[0]    = targetVelocity_;
+  stepNOM_                   = std::abs(targetVelocity_ * sampleTime_);
 }
 
 void ecmcTrajectoryS::setAcc(double acc) {
-  targetAcceleration_ = acc;
-  input_->target_acceleration  = {targetAcceleration_};
-  input_->max_acceleration     = {targetAcceleration_};
+  targetAcceleration_            = acc;
+  input_->target_acceleration[0] = targetAcceleration_;
+  input_->max_acceleration[0]    = targetAcceleration_;
 }
 
 void ecmcTrajectoryS::setEmergDec(double dec) {
@@ -251,8 +275,8 @@ void ecmcTrajectoryS::setDec(double dec) {
 }
 
 void ecmcTrajectoryS::setJerk(double jerk) {
-  targetJerk_ = jerk;
-  input_->max_jerk             = {targetJerk_};
+  targetJerk_      = jerk;
+  input_->max_jerk[0] = targetJerk_;
 }
 
 void ecmcTrajectoryS::setEnable(bool enable) {
@@ -262,10 +286,10 @@ void ecmcTrajectoryS::setEnable(bool enable) {
 int ecmcTrajectoryS::initStopRamp(double currentPos,
                                   double currentVel,
                                   double currentAcc) {
-  enable_                  = 1;
-  busy_                    = true;
-  currentPositionSetpoint_ = currentPos;
-  currentVelocitySetpoint_ = currentVel;
+  enable_                      = 1;
+  busy_                        = true;
+  currentPositionSetpoint_     = currentPos;
+  currentVelocitySetpoint_     = currentVel;
   currentAccelerationSetpoint_ = currentAcc;
   initRuckig();
   return 0;
@@ -275,5 +299,10 @@ int ecmcTrajectoryS::setExecute(bool execute) {
    if(execute && !executeOld_) {
      initRuckig();
    }
+
+   if(!execute) {    
+     initRuckig();
+   }
+
    return ecmcTrajectoryBase::setExecute(execute);
 }
