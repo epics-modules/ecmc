@@ -95,7 +95,6 @@ double ecmcTrajectoryS::getNextPosSet() {
   }
   
   busy_ = trajBusy;
-  // printf("1 %lf, %lf, %lf\n",nextSetpoint, nextVelocity, nextAcceleration);
   return updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration);;
 }
 
@@ -109,7 +108,13 @@ double ecmcTrajectoryS::updateSetpoint(double nextSetpoint,
   currentVelocitySetpoint_ = nextVelocity;
   currentAccelerationSetpoint_ = nextAcceleration;
   distToStop_              = distToStop(currentVelocitySetpoint_);
-  //printf("2 %lf, %lf, %lf\n",currentPositionSetpoint_, currentVelocitySetpoint_, currentAccelerationSetpoint_);
+
+  //refresh ruckig once
+  input_->current_position[0]     = currentPositionSetpoint_;
+  input_->current_velocity[0]     = currentVelocitySetpoint_;
+  input_->current_acceleration[0] = currentAccelerationSetpoint_;
+  output_->pass_to_input(*input_);
+
   return currentPositionSetpoint_;
 }
 
@@ -142,17 +147,45 @@ void ecmcTrajectoryS::initRuckig() {
   input_->current_velocity[0]     = currentVelocitySetpoint_;
   input_->current_acceleration[0] = currentAccelerationSetpoint_;
   stepNOM_                        = std::abs(targetVelocity_ * sampleTime_);
-  //printf("ecmcTrajectoryS::initRuckig(),%lf , %lf , %lf \n", input_->current_position[0],input_->current_velocity[0],input_->current_acceleration[0]);
 }
 
 bool ecmcTrajectoryS::updateRuckig() {
 
   Result res = otg_->update(*input_, *output_);
-  if(res == Result::Working) {    
-    output_->pass_to_input(*input_);
-  }
+  
   if(res<0) {
-    printf("error %d\n",res);
+    switch(res) {
+      case Result::Error:
+        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_ERROR);
+        break;
+      case Result::ErrorInvalidInput:
+        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_INVALID_INPUT);
+        break;
+      case Result::ErrorTrajectoryDuration:
+        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_TRAJ_DURATION);
+        break;
+      case Result::ErrorPositionalLimits:
+        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_POS_LIMITS);
+        break;
+//      case Result::ErrorNoPhaseSynchronization:
+//        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_NO_PHASE_SYNC);
+//        break;
+      case Result::ErrorExecutionTimeCalculation:
+        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_EXE_TIME_CALC);
+        break;
+      case Result::ErrorSynchronizationCalculation:
+        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_SYNC_CALC);
+        break;
+      default:
+        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_ERROR);
+        break;        
+    }
+    LOGERR("%s/%s:%d: ERROR: Ruckig error  %d (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        res,
+        getErrorID());
   }
 
   return res == Result::Working;
@@ -161,7 +194,6 @@ bool ecmcTrajectoryS::updateRuckig() {
 double ecmcTrajectoryS::moveVel(double *actVelocity,
                                 double *actAcceleration,
                                 bool   *trajBusy){
-  //printf("ecmcTrajectoryS::moveVel() ");
   double positionSetpoint        = currentPositionSetpoint_;
   bool ruckigBusy                = false;
   input_->control_interface      = ControlInterface::Velocity;
@@ -181,8 +213,7 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
   *actAcceleration               = output_->new_acceleration[0];
   positionSetpoint               = output_->new_position[0];
   
-  if(!ruckigBusy && *actVelocity != 0) {
-    //printf(", const velo ");
+  if(!ruckigBusy && *actVelocity != 0) {    
     // ramp up by ruckig is complete. Just continue in that velo
     *actVelocity                 = targetVelocity_;
     *actAcceleration             = 0;
@@ -195,14 +226,12 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
 
   targetPosition_ = positionSetpoint;
   *trajBusy = *actVelocity !=0; 
-  //printf(", busy %d, pos %lf\n", *trajBusy,positionSetpoint);
   return positionSetpoint;
 }
 
 double ecmcTrajectoryS::movePos(double *actVelocity,
                                 double *actAcceleration,
                                 bool   *trajBusy){
-  //printf("ecmcTrajectoryS::movePos()\n");
   input_->control_interface      = ControlInterface::Position;
   input_->target_position[0]     = targetPosition_;
   input_->target_velocity[0]     = 0;
@@ -213,8 +242,6 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
   *trajBusy                      = updateRuckig();
   *actVelocity                   = output_->new_velocity[0];
   *actAcceleration               = output_->new_acceleration[0];  
-  //printf("target: pos %lf, vel %lf, acc %lf, jerk %lf\n",targetPosition_,targetVelocity_,targetAcceleration_,targetJerk_);
-  //printf("Actual: pos %lf, vel %lf, acc %lf, busy %d\n",output_->new_position[0],actVelocity,actAcceleration, trajBusy);  
   return output_->new_position[0];
 }
 
@@ -222,21 +249,20 @@ double ecmcTrajectoryS::moveStop(stopMode stopMode,
                                  double *actVelocity, 
                                  double *actAcceleration,                                 
                                  bool   *stopped){
-  //printf("ecmcTrajectoryS::moveStop()\n");
   input_->control_interface       = ControlInterface::Velocity;
   input_->target_velocity[0]      = 0;  // stop
   input_->target_acceleration[0]  = 0;
   input_->max_velocity[0]         = targetVelocity_;  
-  if (stopMode == ECMC_STOP_MODE_EMERGENCY) {
+  if (stopMode == ECMC_STOP_MODE_EMERGENCY) {    
     input_->max_acceleration[0]  = targetDecelerationEmerg_;
   } else {
     input_->max_acceleration[0]  = targetDeceleration_;
   }
+
   input_->max_jerk[0]             = targetJerk_;
   *stopped                        = !updateRuckig();
   *actVelocity                    = output_->new_velocity[0];
   *actAcceleration                = output_->new_acceleration[0];
-  //*stopped = output->new_velocity[0] == 0;
   targetPosition_ = output_->new_position[0];
   return output_->new_position[0];
 }
@@ -299,7 +325,6 @@ int ecmcTrajectoryS::setExecute(bool execute) {
    if(execute && !executeOld_) {
      initRuckig();
    }
-
    if(!execute) {    
      initRuckig();
    }

@@ -900,6 +900,41 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14E80:    // TRAJ-S (ruckig)
+    return "ERROR_TRAJ_RUCKIG_ERROR";
+
+    break;
+
+  case 0x14E81:
+    return "ERROR_TRAJ_RUCKIG_INVALID_INPUT";
+
+    break;
+
+  case 0x14E82:
+    return "ERROR_TRAJ_RUCKIG_TRAJ_DURATION";
+
+    break;
+
+  case 0x14E83:
+    return "ERROR_TRAJ_RUCKIG_POS_LIMITS";
+
+    break;
+
+  case 0x14E84:
+    return "ERROR_TRAJ_RUCKIG_NO_PHASE_SYNC";
+
+    break;
+
+  case 0x14E85:
+    return "ERROR_TRAJ_RUCKIG_EXE_TIME_CALC";
+
+    break;
+
+  case 0x14E86:
+    return "ERROR_TRAJ_RUCKIG_SYNC_CALC";
+
+    break;
+
   case 0x14F00:    // VIRTUAL AXIS
     return "ERROR_VIRT_AXIS_TRAJ_NULL";
 

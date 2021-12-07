@@ -24,6 +24,7 @@
  * \brief Implements a S-curve motion setpoint trajectory
  *
  * This class implements S-curve trajectory nased on based on ruckig sources
+ * 
  * Supports:
  * 1. Constant velocity
  * 2. Relative positioning
@@ -35,6 +36,14 @@
  * Created on: 2021-11-26
  *
  */
+
+#define ERROR_TRAJ_RUCKIG_ERROR 0x14E80
+#define ERROR_TRAJ_RUCKIG_INVALID_INPUT 0x14E81
+#define ERROR_TRAJ_RUCKIG_TRAJ_DURATION 0x14E82
+#define ERROR_TRAJ_RUCKIG_POS_LIMITS 0x14E83
+#define ERROR_TRAJ_RUCKIG_NO_PHASE_SYNC 0x14E84
+#define ERROR_TRAJ_RUCKIG_EXE_TIME_CALC 0x14E85
+#define ERROR_TRAJ_RUCKIG_SYNC_CALC 0x14E86
 
 using namespace ruckig;
 
