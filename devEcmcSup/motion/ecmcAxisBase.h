@@ -94,7 +94,7 @@ typedef struct {
   unsigned char              instartup     : 1;
   unsigned char              sumilockfwd   : 1;
   unsigned char              sumilockbwd   : 1;
-  unsigned char              unused        : 1;
+  unsigned char              axisType      : 1;
   unsigned char              seqstate      : 4;
   unsigned char              lastilock     : 8;
 } ecmcAxisStatusWordType;
