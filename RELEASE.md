@@ -30,6 +30,7 @@ ecmccfg/examples/test/motionWithoutMotorRecord/
 
 * Update of trajectory generator to allow "on the fly" update of target postion and target velocity.
 * Add homing seq 25 (same as 15 but not blocked by motor record and reserved for save/restore). The sequence will just set a new position.
+* Add axisType in status word
 
 # ECMC 7.0.0
 * New release to match ecmccfg 7.0.0
