@@ -122,7 +122,7 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
 double ecmcTrajectoryTrapetz::updateSetpoint(double nextSetpoint,
                                              double nextVelocity) {
   posSetMinus1_                = currentPositionSetpoint_;
-  currentPositionSetpoint_     = checkModuloPos(nextSetpoint,targetVelocity_>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD); //=nextSetpoint;
+  currentPositionSetpoint_     = checkModuloPos(nextSetpoint,nextVelocity>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD); //=nextSetpoint;
   prevStepSize_                = thisStepSize_;
   currentVelocitySetpoint_     = nextVelocity;
   currentAccelerationSetpoint_ = (currentPositionSetpoint_ - posSetMinus1_) / sampleTime_;
