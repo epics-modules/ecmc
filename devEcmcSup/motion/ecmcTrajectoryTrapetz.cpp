@@ -117,12 +117,6 @@ double ecmcTrajectoryTrapetz::getNextPosSet() {
   prevStepSize_                 = thisStepSize_;
   localCurrentPositionSetpoint_ = nextSetpoint;
   nextAcceleration              = (currentVelocitySetpoint_ - nextVelocity) / sampleTime_;
-  // Handle modulo and more in base class.
-  //double tempPos = ecmcTrajectoryBase::updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration, localBusy_);
-  //if(!busy) {
-  //  localCurrentPositionSetpoint_ = currentPositionSetpoint_;
-  //}
-  // return tempPos;
   return ecmcTrajectoryBase::updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration, localBusy_);
 }
 

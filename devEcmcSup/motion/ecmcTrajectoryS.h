@@ -110,9 +110,9 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
                            double      *actVelocity,
                            double      *actAcceleration,
                            bool        *stopped);
-  double          updateSetpoint(double nextSetpoint,
-                                 double nextVelocity,
-                                 double nextAcceleration);
+//  double          updateSetpoint(double nextSetpoint,
+//                                 double nextVelocity,
+//                                 double nextAcceleration);
   // Ruckig
   void            initVars();
   Ruckig<DynamicDOFs>          *otg_;
@@ -120,5 +120,6 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   OutputParameter<DynamicDOFs> *output_;
   double                        stepNOM_;
   double localCurrentPositionSetpoint_;
+  bool   localBusy_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYS_H_

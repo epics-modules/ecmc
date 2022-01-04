@@ -111,9 +111,9 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
   double stepDECEmerg_;
   double prevStepSize_;
   double thisStepSize_;
-  bool switchTargetOnTheFly_;
-  bool localBusy_;
   double stepStableTol_;
   double localCurrentPositionSetpoint_;
+  bool   switchTargetOnTheFly_;
+  bool   localBusy_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_
