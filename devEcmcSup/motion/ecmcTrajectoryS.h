@@ -85,9 +85,6 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   /// Enable traj
   void            setEnable(bool enable);
 
-  /// Sets position setpoint.
-  void            setCurrentPosSet(double posSet);
-
   double          distToStop(double vel);
   int             initStopRamp(double   currentPos,
                                double   currentVel,

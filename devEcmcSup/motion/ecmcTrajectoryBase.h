@@ -91,25 +91,25 @@ class ecmcTrajectoryBase : public ecmcError {
 /** \brief Sets target velocity of trajectory (max velocity).
    * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
    */
-  virtual  void   setTargetVel(double velTarget) = 0;
+  virtual  void   setTargetVel(double velTarget);
 
   /// Sets acceleration.
-  virtual void    setAcc(double acc) = 0;
+  virtual void    setAcc(double acc);
 
   /// Sets deceleration.
-  virtual void    setDec(double dec) = 0;
+  virtual void    setDec(double dec);
 
   /** \brief Sets emergency deceleration.
    * Used for ramp down at hard limits.
    */
-  virtual void    setEmergDec(double dec) = 0;
+  virtual void    setEmergDec(double dec);
 
   /** Only used for s-shaped trajectory.
    */
-  virtual void    setJerk(double jerk) = 0;
+  virtual void    setJerk(double jerk);
 
   /// Sets target position (end position of trajectory).
-  virtual void    setTargetPos(double pos)  = 0;
+  virtual void    setTargetPos(double pos);
 
   /// How long diatnce until stop
   virtual double  distToStop(double vel) = 0;
@@ -117,10 +117,10 @@ class ecmcTrajectoryBase : public ecmcError {
   /// init stop ramp for when in external traj and need to stop
   virtual int     initStopRamp(double currentPos,
                                double currentVel,
-                               double currentAcc) = 0;
+                               double currentAcc);
 
   /// Sets position setpoint.
-  virtual void    setCurrentPosSet(double posSet) = 0;
+  virtual void    setCurrentPosSet(double posSet);
   
   /// Enable traj
   virtual void    setEnable(bool enable);
@@ -179,7 +179,10 @@ class ecmcTrajectoryBase : public ecmcError {
                        double to,
                        motionDirection direction);
   double          checkModuloPos(double pos,
-                       motionDirection direction);
+                                 motionDirection direction);
+  virtual double  updateSetpoint(double nextSetpoint,
+                                 double nextVelocity);
+
   double targetAcceleration_;
   double targetDeceleration_;
   double targetDecelerationEmerg_;
@@ -188,9 +191,10 @@ class ecmcTrajectoryBase : public ecmcError {
   double targetJerk_;
   double sampleTime_;
   double posSetMinus1_;
+  double velSetMinus1_;
   double currentPositionSetpoint_;
   double currentVelocitySetpoint_;
-  double currentAccelerationSetpoint_;
+  double currentAccelerationSetpoint_;  
   bool busy_;
   int index_;
   bool execute_;

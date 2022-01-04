@@ -39,6 +39,7 @@ void ecmcTrajectoryBase::initVars() {
   targetJerk_                        = 0;
   sampleTime_                  = 1;
   posSetMinus1_                = 0;
+  velSetMinus1_                = 0;
   targetPosition_              = 0;
   currentPositionSetpoint_     = 0;
   currentVelocitySetpoint_     = 0;
@@ -246,7 +247,7 @@ int ecmcTrajectoryBase::validate() {
 }
 
 motionDirection ecmcTrajectoryBase::checkDirection(double oldPos,
-                                                      double newPos) {
+                                                   double newPos) {
   double diff = newPos-oldPos;
   //No modulo or no overflow in modulo
   if(data_->command_.moduloRange==0 || (std::abs(diff) < data_->command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR)) {
@@ -319,4 +320,67 @@ double ecmcTrajectoryBase::checkModuloPos(double pos,
   }
   
   return posSetTemp;
+}
+
+void ecmcTrajectoryBase::setCurrentPosSet(double posSet) {
+  currentPositionSetpoint_     = posSet;
+  posSetMinus1_                = posSet;  
+  currentVelocitySetpoint_     = 0;
+  currentAccelerationSetpoint_ = 0;
+}
+
+void ecmcTrajectoryBase::setTargetPos(double pos) {
+  targetPosition_ = pos;
+  index_          = 0;
+}
+
+void ecmcTrajectoryBase::setTargetVel(double velTarget) {
+  targetVelocity_ = velTarget;
+  initTraj();
+}
+
+void ecmcTrajectoryBase::setAcc(double acc) {
+  targetAcceleration_ = acc;
+  initTraj();
+}
+
+void ecmcTrajectoryBase::setEmergDec(double dec) {
+  targetDecelerationEmerg_ = dec;
+  initTraj();
+}
+
+void ecmcTrajectoryBase::setDec(double dec) {
+  targetDeceleration_ = dec;
+
+  if (targetDecelerationEmerg_ == 0) {
+    targetDecelerationEmerg_ = targetDeceleration_ * 3;
+  }
+  initTraj();
+}
+
+// Not used
+void ecmcTrajectoryBase::setJerk(double jerk) {
+  targetJerk_ = jerk;
+  initTraj();
+}
+
+int ecmcTrajectoryBase::initStopRamp(double currentPos,
+                                        double currentVel,
+                                        double currentAcc) {
+  enable_                  = 1;
+  busy_                    = true;
+  currentPositionSetpoint_ = currentPos;
+  currentVelocitySetpoint_ = currentVel;
+  return 0;
+}
+
+double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
+                                          double nextVelocity) {
+  posSetMinus1_                = currentPositionSetpoint_;
+  currentPositionSetpoint_     = checkModuloPos(nextSetpoint,nextVelocity>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD); //=nextSetpoint;  
+  velSetMinus1_                = currentVelocitySetpoint_;
+  currentVelocitySetpoint_     = nextVelocity;
+  currentAccelerationSetpoint_ = (currentVelocitySetpoint_ - velSetMinus1_) / sampleTime_;
+  distToStop_                  = distToStop(currentVelocitySetpoint_);
+  return currentPositionSetpoint_;
 }

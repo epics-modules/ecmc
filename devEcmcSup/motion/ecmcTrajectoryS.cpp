@@ -31,13 +31,6 @@ void ecmcTrajectoryS::initVars() {
   stepNOM_ = 0;
 }
 
-void ecmcTrajectoryS::setCurrentPosSet(double posSet) {
-  currentPositionSetpoint_     = posSet;
-  posSetMinus1_                = posSet;  
-  currentVelocitySetpoint_     = 0;
-  currentAccelerationSetpoint_ = 0;
-}
-
 // "Main" of trajectory generator. Needs to be called exactly once per cycle.
 // Updates trajectory setpoint
 double ecmcTrajectoryS::getNextPosSet() {
