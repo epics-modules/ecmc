@@ -95,21 +95,9 @@ double ecmcTrajectoryS::getNextPosSet() {
   }
   
   localCurrentPositionSetpoint_ = nextSetpoint;
+  output_->pass_to_input(*input_);
   return ecmcTrajectoryBase::updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration, localBusy_);
 }
-
-//double ecmcTrajectoryS::updateSetpoint(double nextSetpoint,
-//                                       double nextVelocity,
-//                                       double nextAcceleration,
-//                                       bool   busy) {
-//  
-//  //prepare ruckig for next (check if next 3 lines are really needed)
-////  input_->current_position[0]     = localCurrentPositionSetpoint_;
-////  input_->current_velocity[0]     = currentVelocitySetpoint_;
-////  input_->current_acceleration[0] = currentAccelerationSetpoint_;
-//
-//  return ecmcTrajectoryBase::updateSetpoint(nextSetpoint,nextVelocity,nextAcceleration,busy);
-//}
 
 double ecmcTrajectoryS::internalTraj(double *actVelocity, 
                                      double *actAcceleration, 
@@ -179,8 +167,6 @@ bool ecmcTrajectoryS::updateRuckig() {
         __LINE__,
         res,
         getErrorID());
-  } else {
-    output_->pass_to_input(*input_);
   }
   
   return res == Result::Working;
@@ -273,15 +259,11 @@ void ecmcTrajectoryS::setTargetPos(double pos) {
 
 void ecmcTrajectoryS::setTargetVel(double velTarget) {
   ecmcTrajectoryBase::setTargetVel(velTarget);
-  //input_->target_velocity[0] = velTarget;
-  //input_->max_velocity[0]    = velTarget;
-  stepNOM_                   = std::abs(velTarget * sampleTime_);
+  stepNOM_ = std::abs(velTarget * sampleTime_);
 }
 
 void ecmcTrajectoryS::setAcc(double acc) {
   ecmcTrajectoryBase::setAcc(acc);
-  //input_->target_acceleration[0] = acc;
-  //input_->max_acceleration[0]    = acc;
 }
 
 void ecmcTrajectoryS::setDec(double dec) {
@@ -295,7 +277,6 @@ void ecmcTrajectoryS::setEmergDec(double dec) {
 
 void ecmcTrajectoryS::setJerk(double jerk) {
   ecmcTrajectoryBase::setJerk(jerk);
-  //input_->max_jerk[0] = jerk;
 }
 
 void ecmcTrajectoryS::setEnable(bool enable) {
