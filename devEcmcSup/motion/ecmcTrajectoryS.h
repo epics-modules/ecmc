@@ -85,6 +85,9 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   /// Enable traj
   void            setEnable(bool enable);
 
+  /// Sets position setpoint.
+  void            setCurrentPosSet(double posSet);
+
   double          distToStop(double vel);
   int             initStopRamp(double   currentPos,
                                double   currentVel,
@@ -116,5 +119,6 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   InputParameter<DynamicDOFs>  *input_;
   OutputParameter<DynamicDOFs> *output_;
   double                        stepNOM_;
+  double localCurrentPositionSetpoint_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYS_H_

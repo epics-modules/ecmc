@@ -85,6 +85,7 @@ class ecmcTrajectoryBase : public ecmcError {
 
   /** \brief Calculates and returns next position setpoint.
    * This function should only be executed once for each sample period.
+   * Needs to call updateSetpoint() in order to use the newly calculated setpoints
    */
   virtual double  getNextPosSet()  = 0;
 
@@ -181,7 +182,9 @@ class ecmcTrajectoryBase : public ecmcError {
   double          checkModuloPos(double pos,
                                  motionDirection direction);
   virtual double  updateSetpoint(double nextSetpoint,
-                                 double nextVelocity);
+                                 double nextVelocity,
+                                 double nextAcceleration,
+                                 bool   busy);
 
   double targetAcceleration_;
   double targetDeceleration_;
@@ -191,7 +194,6 @@ class ecmcTrajectoryBase : public ecmcError {
   double targetJerk_;
   double sampleTime_;
   double posSetMinus1_;
-  double velSetMinus1_;
   double currentPositionSetpoint_;
   double currentVelocitySetpoint_;
   double currentAccelerationSetpoint_;  

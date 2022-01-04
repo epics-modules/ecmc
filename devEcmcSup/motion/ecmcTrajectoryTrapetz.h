@@ -85,9 +85,6 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
   int             initStopRamp(double currentPos,
                                double currentVel,
                                double currentAcc);
-  double          updateSetpoint(double nextSetpoint,
-                                 double nextVelocity);                               
-
  private:
   void            initVars();
   void            initTraj();
@@ -115,6 +112,7 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
   double prevStepSize_;
   double thisStepSize_;
   bool switchTargetOnTheFly_;
+  bool localBusy_;
   double stepStableTol_;
   double localCurrentPositionSetpoint_;
 };

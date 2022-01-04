@@ -25,20 +25,26 @@ ecmcTrajectoryS::~ecmcTrajectoryS()
 
 void ecmcTrajectoryS::initVars() {
   // Create ruckig params
-  otg_     = new Ruckig<DynamicDOFs>(1,sampleTime_);
-  input_   = new InputParameter<DynamicDOFs>(1);
-  output_  = new OutputParameter<DynamicDOFs>(1);
-  stepNOM_ = 0;
+  otg_                          = new Ruckig<DynamicDOFs>(1,sampleTime_);
+  input_                        = new InputParameter<DynamicDOFs>(1);
+  output_                       = new OutputParameter<DynamicDOFs>(1);
+  stepNOM_                      = 0;
+  localCurrentPositionSetpoint_ = 0;
+}
+
+void ecmcTrajectoryS::setCurrentPosSet(double posSet) {
+  localCurrentPositionSetpoint_ = posSet;  
+  ecmcTrajectoryBase::setCurrentPosSet(posSet);
 }
 
 // "Main" of trajectory generator. Needs to be called exactly once per cycle.
 // Updates trajectory setpoint
 double ecmcTrajectoryS::getNextPosSet() {
 
-  double nextSetpoint     = currentPositionSetpoint_;
+  double nextSetpoint     = localCurrentPositionSetpoint_;
   double nextVelocity     = currentVelocitySetpoint_;
   double nextAcceleration = currentAccelerationSetpoint_;
-  bool   trajBusy         = 0;
+  bool   trajBusy         = false;
 
   bool stopped = false;
 
@@ -49,9 +55,8 @@ double ecmcTrajectoryS::getNextPosSet() {
                  __LINE__,
                  ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
     }
-    posSetMinus1_ = currentPositionSetpoint_;
-    currentVelocitySetpoint_     = 0;
-    return currentPositionSetpoint_;
+    setCurrentPosSet(localCurrentPositionSetpoint_);
+    return localCurrentPositionSetpoint_;  
   }
   index_++;
 
@@ -62,7 +67,7 @@ double ecmcTrajectoryS::getNextPosSet() {
 
   nextSetpoint = internalTraj(&nextVelocity,&nextAcceleration,&trajBusy);
 
-  motionDirection nextDir = checkDirection(currentPositionSetpoint_,
+  motionDirection nextDir = checkDirection(localCurrentPositionSetpoint_,
                                            nextSetpoint);
   // Stop ramp when running external
   bool externalSourceStopTraj = data_->command_.trajSource !=
@@ -88,7 +93,7 @@ double ecmcTrajectoryS::getNextPosSet() {
   }
   
   busy_ = trajBusy;
-  return updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration);;
+  return updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration);
 }
 
 double ecmcTrajectoryS::updateSetpoint(double nextSetpoint,

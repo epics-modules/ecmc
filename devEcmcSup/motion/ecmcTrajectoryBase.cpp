@@ -33,24 +33,23 @@ void ecmcTrajectoryBase::initVars() {
   errorReset();
   distToStop_                  = 0;
   targetVelocity_              = 0;
-  targetAcceleration_                = 0;
-  targetDeceleration_                = 0;
-  targetDecelerationEmerg_       = 0;
-  targetJerk_                        = 0;
+  targetAcceleration_          = 0;
+  targetDeceleration_          = 0;
+  targetDecelerationEmerg_     = 0;
+  targetJerk_                  = 0;
   sampleTime_                  = 1;
   posSetMinus1_                = 0;
-  velSetMinus1_                = 0;
   targetPosition_              = 0;
   currentPositionSetpoint_     = 0;
   currentVelocitySetpoint_     = 0;
   currentAccelerationSetpoint_ = 0;
-  busy_                        = false;
   index_                       = 0;
   execute_                     = 0;
   executeOld_                  = 0;
   startPosition_               = 0;
   enable_                      = false;
   enableOld_                   = false;
+  busy_                        = false;
   motionMode_                  = ECMC_MOVE_MODE_POS;
   latchedStopMode_             = ECMC_STOP_MODE_RUN;
 }
@@ -125,7 +124,8 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
            __LINE__,
            ERROR_TRAJ_NOT_ENABLED);    
     execute_  = false;
-    currentVelocitySetpoint_ = 0;
+    currentVelocitySetpoint_     = 0;
+    currentAccelerationSetpoint_ = 0;
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_NOT_ENABLED);;
   }
 
@@ -367,7 +367,7 @@ void ecmcTrajectoryBase::setJerk(double jerk) {
 int ecmcTrajectoryBase::initStopRamp(double currentPos,
                                         double currentVel,
                                         double currentAcc) {
-  enable_                  = 1;
+  enable_                  = true;
   busy_                    = true;
   currentPositionSetpoint_ = currentPos;
   currentVelocitySetpoint_ = currentVel;
@@ -375,12 +375,14 @@ int ecmcTrajectoryBase::initStopRamp(double currentPos,
 }
 
 double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
-                                          double nextVelocity) {
+                                          double nextVelocity,
+                                          double nextAcceleration,
+                                          bool   busy) {
   posSetMinus1_                = currentPositionSetpoint_;
   currentPositionSetpoint_     = checkModuloPos(nextSetpoint,nextVelocity>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD); //=nextSetpoint;  
-  velSetMinus1_                = currentVelocitySetpoint_;
   currentVelocitySetpoint_     = nextVelocity;
-  currentAccelerationSetpoint_ = (currentVelocitySetpoint_ - velSetMinus1_) / sampleTime_;
+  currentAccelerationSetpoint_ = nextAcceleration;
+  busy_                        = busy;
   distToStop_                  = distToStop(currentVelocitySetpoint_);
   return currentPositionSetpoint_;
 }
