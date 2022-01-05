@@ -108,10 +108,10 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
        data_->interlocks_.trajSummaryInterlockFWD)) {
 
     posSetTemp = moveStop(data_->interlocks_.currStopMode,
-                            localCurrentPositionSetpoint_,
-                            prevStepSize_,
-                            &stopped,
-                            actVelocity);
+                          localCurrentPositionSetpoint_,
+                          prevStepSize_,
+                          &stopped,
+                          actVelocity);
     localBusy_ = !stopped;
     if (stopped) {
       *actVelocity     = 0;
