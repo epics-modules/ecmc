@@ -157,50 +157,51 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
             ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
           return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
         }
-
-        // Modulo motion
-        switch (data_->command_.moduloType)
-        {
-        case ECMC_MOD_MOTION_BWD:
-
-          targetVelocity_=-std::abs(targetVelocity_);
-          break;
-
-        case ECMC_MOD_MOTION_FWD:
-
-          targetVelocity_= std::abs(targetVelocity_);
-          break;
-
-        case ECMC_MOD_MOTION_NORMAL:
-
-          if (targetPosition_ < currentPositionSetpoint_) {
-            targetVelocity_=-std::abs(targetVelocity_);
-          } else {
-            targetVelocity_= std::abs(targetVelocity_);
-          }
-          break;
-        case ECMC_MOD_MOTION_CLOSEST:        
-
-          distFWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_FORWARD));
-          distBWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_BACKWARD));
-          if(distBWD < distFWD) {
-            targetVelocity_=-std::abs(targetVelocity_);
-          } else {
-            targetVelocity_= std::abs(targetVelocity_);
-          }
-
-          break;
-
-        default:
-          LOGERR("%s/%s:%d: ERROR: Modulo type out of range (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE);
-          return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE);
-          break;
-        }
       }
+
+      //   // Modulo motion
+      //   switch (data_->command_.moduloType)
+      //   {
+      //   case ECMC_MOD_MOTION_BWD:
+
+      //     targetVelocity_=-std::abs(targetVelocity_);
+      //     break;
+
+      //   case ECMC_MOD_MOTION_FWD:
+
+      //     targetVelocity_= std::abs(targetVelocity_);
+      //     break;
+
+      //   case ECMC_MOD_MOTION_NORMAL:
+
+      //     if (targetPosition_ < currentPositionSetpoint_) {
+      //       targetVelocity_=-std::abs(targetVelocity_);
+      //     } else {
+      //       targetVelocity_= std::abs(targetVelocity_);
+      //     }
+      //     break;
+      //   case ECMC_MOD_MOTION_CLOSEST:        
+
+      //     distFWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_FORWARD));
+      //     distBWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_BACKWARD));
+      //     if(distBWD < distFWD) {
+      //       targetVelocity_=-std::abs(targetVelocity_);
+      //     } else {
+      //       targetVelocity_= std::abs(targetVelocity_);
+      //     }
+
+      //     break;
+
+      //   default:
+      //     LOGERR("%s/%s:%d: ERROR: Modulo type out of range (0x%x).\n",
+      //       __FILE__,
+      //       __FUNCTION__,
+      //       __LINE__,
+      //       ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE);
+      //     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE);
+      //     break;
+      //   }
+      // }
     }
 
     if (!busy_) {
@@ -320,7 +321,7 @@ double ecmcTrajectoryBase::checkModuloPos(double pos,
   }
   
   return posSetTemp;
-}
+}§
 
 void ecmcTrajectoryBase::setCurrentPosSet(double posSet) {
   currentPositionSetpoint_     = posSet;
@@ -332,8 +333,47 @@ void ecmcTrajectoryBase::setCurrentPosSet(double posSet) {
 void ecmcTrajectoryBase::setTargetPos(double pos) {
   targetPosition_ = pos;
   index_          = 0;
-  // Add modulo config here!
   setTargetPosLocal(pos);
+  
+  //// Modulo motion
+  //if(data_->command_.moduloRange==0) {
+//
+  //} else {
+//
+  //  switch (data_->command_.moduloType)
+  //  {
+  //  case ECMC_MOD_MOTION_BWD:
+  //    targetVelocity_=-std::abs(targetVelocity_);
+  //    break;
+  //  case ECMC_MOD_MOTION_FWD:
+  //    targetVelocity_= std::abs(targetVelocity_);
+  //    break;
+  //  case ECMC_MOD_MOTION_NORMAL:
+  //    if (targetPosition_ < currentPositionSetpoint_) {
+  //      targetVelocity_=-std::abs(targetVelocity_);
+  //    } else {
+  //      targetVelocity_= std::abs(targetVelocity_);
+  //    }
+  //    break;
+  //  case ECMC_MOD_MOTION_CLOSEST:        
+  //    distFWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_FORWARD));
+  //    distBWD = std::abs(dist(currentPositionSetpoint_,targetPosition_,ECMC_DIR_BACKWARD));
+  //    if(distBWD < distFWD) {
+  //      targetVelocity_=-std::abs(targetVelocity_);
+  //    } else {
+  //      targetVelocity_= std::abs(targetVelocity_);
+  //    }
+  //    break;
+  //  default:
+  //    LOGERR("%s/%s:%d: ERROR: Modulo type out of range (0x%x).\n",
+  //      __FILE__,
+  //      __FUNCTION__,
+  //      __LINE__,
+  //      ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE);
+  //    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_TYPE_OUT_OF_RANGE);
+  //    break;
+  //  }
+  //}
 }
 
 void ecmcTrajectoryBase::setTargetVel(double velTarget) {
