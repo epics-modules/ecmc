@@ -68,7 +68,7 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
   switch (motionMode_) {
   case ECMC_MOVE_MODE_POS:
     posSetTemp = movePos(localCurrentPositionSetpoint_,
-                         targetPosition_,
+                         targetPositionLocal_,
                          distToStop_,
                          prevStepSize_,
                          stepNOM_,
@@ -227,7 +227,6 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
     distToTargetOldComp = distToTargetOld;
   }
 
-  
   double distToInitStop = distToTargetOldComp - stopDistance;
   double stepNomTemp = stepNom;
 
@@ -247,9 +246,10 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   if( (std::abs(prevStepSize) <= std::abs(stepDEC_)) &&   // The most important!
       (std::abs(stopDistance) <= 3*std::abs(stepDEC_)) && 
       (std::abs(distToTargetOld) <= 3*std::abs(stepDEC_))) {
-    posSetTemp      = targetSetpoint;
-    targetPosition_ = posSetTemp;
-    *trajBusy       = false;
+    posSetTemp           = targetSetpoint;
+    targetPositionLocal_ = posSetTemp;
+    targetPosition_      = posSetTemp;
+    *trajBusy            = false;
   }
 
   return posSetTemp;
@@ -292,7 +292,8 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
     *stopped        = true;
     *velocity       = 0;
     // To allow for at target monitoring to go high (and then also bBusy)
-    targetPosition_ = currSetpoint;
+    targetPosition_      = currSetpoint;
+    targetPositionLocal_ = currSetpoint;
     return currSetpoint;
   }
 
@@ -310,14 +311,12 @@ double ecmcTrajectoryTrapetz::distToStop(double vel) {
   return prevStepSize_* std::abs(prevStepSize_/stepDEC_) / 2;
 }
 
-void ecmcTrajectoryTrapetz::setTargetPos(double pos) {
-  
-  ecmcTrajectoryBase::setTargetPos(pos);
-
+void ecmcTrajectoryTrapetz::setTargetPosLocal(double pos) {  
+  targetPositionLocal_ = pos;
   // Check if updated on the fly (copied from setExecute().. not so nice)
   if(localBusy_ && motionMode_ == ECMC_MOVE_MODE_POS){
     double dist2Stop=distToStop(currentVelocitySetpoint_);
-    if(localCurrentPositionSetpoint_ + dist2Stop > targetPosition_) {
+    if(localCurrentPositionSetpoint_ + dist2Stop > targetPositionLocal_) {
       targetVelocity_= -std::abs(targetVelocity_);
     }
     else {

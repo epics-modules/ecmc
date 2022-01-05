@@ -332,6 +332,8 @@ void ecmcTrajectoryBase::setCurrentPosSet(double posSet) {
 void ecmcTrajectoryBase::setTargetPos(double pos) {
   targetPosition_ = pos;
   index_          = 0;
+  // Add modulo config here!
+  setTargetPosLocal(pos);
 }
 
 void ecmcTrajectoryBase::setTargetVel(double velTarget) {

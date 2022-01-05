@@ -59,7 +59,7 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   void            setTargetVel(double velTarget);
   
   /// Sets target position (end position of trajectory).
-  void            setTargetPos(double pos);
+  void            setTargetPosLocal(double pos);
 
   /// Sets position setpoint.
   void            setCurrentPosSet(double posSet);
@@ -93,7 +93,8 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   InputParameter<DynamicDOFs>  *input_;
   OutputParameter<DynamicDOFs> *output_;
   double                        stepNOM_;
-  double localCurrentPositionSetpoint_;
-  bool   localBusy_;
+  double                        localCurrentPositionSetpoint_;
+  double                        targetPositionLocal_;
+  bool                          localBusy_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYS_H_

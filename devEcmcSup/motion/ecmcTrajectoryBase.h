@@ -118,7 +118,15 @@ class ecmcTrajectoryBase : public ecmcError {
   virtual void    setJerk(double jerk);
 
   /// Sets target position (end position of trajectory).
-  virtual void    setTargetPos(double pos);
+  void            setTargetPos(double pos);
+
+  /** Sets target position in derived classses (end position of trajectory).
+  *   
+  *   Needed because of modulo handling (possible to have different target in derived 
+  *   class and base class)
+  *   Must be implemnted..
+  */
+  virtual void    setTargetPosLocal(double pos) = 0;
 
   /// How long diatnce until stop
   virtual double  distToStop(double vel) = 0;

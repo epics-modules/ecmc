@@ -30,6 +30,7 @@ void ecmcTrajectoryS::initVars() {
   output_                       = new OutputParameter<DynamicDOFs>(1);
   stepNOM_                      = 0;
   localCurrentPositionSetpoint_ = 0;
+  targetPositionLocal_          = 0;
   localBusy_                    = false;
 }
 
@@ -173,7 +174,8 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
     }
   } 
 
-  targetPosition_ = positionSetpoint;
+  targetPosition_      = positionSetpoint;
+  targetPositionLocal_ = positionSetpoint;
   *trajBusy = *actVelocity !=0; 
   return positionSetpoint;
 }
@@ -182,7 +184,7 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
                                 double *actAcceleration,
                                 bool   *trajBusy){
   input_->control_interface      = ControlInterface::Position;
-  input_->target_position[0]     = targetPosition_;
+  input_->target_position[0]     = targetPositionLocal_;
   input_->target_velocity[0]     = 0;
   input_->target_acceleration[0] = 0;
   input_->max_velocity[0]        = std::abs(targetVelocity_);
@@ -212,7 +214,8 @@ double ecmcTrajectoryS::moveStop(stopMode stopMode,
   *stopped                        = !updateRuckig();
   *actVelocity                    = output_->new_velocity[0];
   *actAcceleration                = output_->new_acceleration[0];
-  targetPosition_ = output_->new_position[0];
+  targetPosition_                 = output_->new_position[0];
+  targetPositionLocal_            = output_->new_position[0];
   return output_->new_position[0];
 }
 
@@ -220,8 +223,8 @@ double ecmcTrajectoryS::distToStop(double vel) {
   return 0;  // No nice way to calculate with ruckig
 }
 
-void ecmcTrajectoryS::setTargetPos(double pos) {
-  ecmcTrajectoryBase::setTargetPos(pos);  
+void ecmcTrajectoryS::setTargetPosLocal(double pos) {
+  targetPositionLocal_ = pos;
   input_->target_position[0] = pos;
 }
 

@@ -68,7 +68,7 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
   void            setJerk(double jerk);
 
   /// Sets target position (end position of trajectory).
-  void            setTargetPos(double pos);
+  void            setTargetPosLocal(double pos);
 
   /// Enable traj
   void            setEnable(bool enable);
@@ -110,6 +110,7 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
   double thisStepSize_;
   double stepStableTol_;
   double localCurrentPositionSetpoint_;
+  double targetPositionLocal_;
   bool   switchTargetOnTheFly_;
   bool   localBusy_;
 };
