@@ -59,82 +59,11 @@ void ecmcTrajectoryTrapetz::setCurrentPosSet(double posSet) {
   ecmcTrajectoryBase::setCurrentPosSet(posSet);
 }
 
-double ecmcTrajectoryTrapetz::getNextPosSet() {
-  // "Main" of trajectory generator. Needs to be called exactly once per cycle.
-  // Updates trajectory setpoint
-
-  if (!busy_ || !enable_) {
-    if (execute_ && !enable_) {
-      setErrorID(__FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
-    }
-    double tempPos = getCurrentPosSet();
-    updateSetpoint(tempPos , 0, 0, localBusy_);
-    setCurrentPosSet(tempPos);
-    return tempPos;
-  }
-
-  index_++;
-
-  if (!execute_ && (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL)) {
-    data_->interlocks_.noExecuteInterlock = true;
-    data_->refreshInterlocks();
-  }
-
-  double nextSetpoint     = localCurrentPositionSetpoint_;
-  double nextVelocity     = currentVelocitySetpoint_;
-  double nextAcceleration = currentAccelerationSetpoint_;  
-  bool   stopped          = false;
-
-  nextSetpoint = internalTraj(&nextVelocity);
-  motionDirection nextDir = checkDirection(localCurrentPositionSetpoint_,
-                                           nextSetpoint);
-  // Stop ramp when running external
-  bool externalSourceStopTraj = data_->command_.trajSource !=
-                                ECMC_DATA_SOURCE_INTERNAL;
-
-  if (externalSourceStopTraj ||
-      ((nextDir == ECMC_DIR_BACKWARD) &&
-       data_->interlocks_.trajSummaryInterlockBWD) ||
-      ((nextDir == ECMC_DIR_FORWARD) &&
-       data_->interlocks_.trajSummaryInterlockFWD)) {
-
-    nextSetpoint = moveStop(data_->interlocks_.currStopMode,
-                            localCurrentPositionSetpoint_,
-                            prevStepSize_,
-                            &stopped,
-                            &nextVelocity);
-    localBusy_ = !stopped;
-    if (stopped) {
-      currentVelocitySetpoint_ = 0;
-      localBusy_               = false;
-      nextVelocity             = 0;
-    }
-  }
-
-  prevStepSize_                 = thisStepSize_;
-  localCurrentPositionSetpoint_ = nextSetpoint;
-  nextAcceleration              = (currentVelocitySetpoint_ - nextVelocity) / sampleTime_;
-  return ecmcTrajectoryBase::updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration, localBusy_);
-}
-
-//double ecmcTrajectoryTrapetz::updateSetpoint(double nextSetpoint,
-//                                             double nextVelocity,
-//                                             double nextAcceleration,
-//                                             bool busy) {  
-//
-//  // Handle modulo and more in base class.
-//  double tempPos = ecmcTrajectoryBase::updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration, busy);
-//  if(!busy) {
-//    localCurrentPositionSetpoint_ = currentPositionSetpoint_;
-//  }
-//  return tempPos;
-//}
-
-double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
+double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity, 
+                                           double* actAcceleration,
+                                           bool* trajBusy) {
   double posSetTemp = localCurrentPositionSetpoint_;
+  bool   stopped    = false;
 
   switch (motionMode_) {
   case ECMC_MOVE_MODE_POS:
@@ -152,13 +81,50 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity) {
                          stepNOM_,
                          &localBusy_);
     break;
+  default: 
+    *actVelocity     = 0;
+    *actAcceleration = 0;
+    localBusy_       = false;
+    break;
   }
+
   *actVelocity = 0;
 
   if (localBusy_) { 
 
     *actVelocity = thisStepSize_ / sampleTime_;
   }
+
+  motionDirection nextDir = checkDirection(localCurrentPositionSetpoint_,
+                                           posSetTemp);
+  // Stop ramp when running external
+  bool externalSourceStopTraj = data_->command_.trajSource !=
+                                ECMC_DATA_SOURCE_INTERNAL;
+
+  if (externalSourceStopTraj ||
+      ((nextDir == ECMC_DIR_BACKWARD) &&
+       data_->interlocks_.trajSummaryInterlockBWD) ||
+      ((nextDir == ECMC_DIR_FORWARD) &&
+       data_->interlocks_.trajSummaryInterlockFWD)) {
+
+    posSetTemp = moveStop(data_->interlocks_.currStopMode,
+                            localCurrentPositionSetpoint_,
+                            prevStepSize_,
+                            &stopped,
+                            actVelocity);
+    localBusy_ = !stopped;
+    if (stopped) {
+      *actVelocity     = 0;
+      *actAcceleration = 0;
+      localBusy_       = false;
+    }
+  }
+  
+  *trajBusy = localBusy_;
+  prevStepSize_                 = thisStepSize_;
+  localCurrentPositionSetpoint_ = posSetTemp;
+  *actAcceleration              = (currentVelocitySetpoint_ - *actVelocity) / sampleTime_;
+  
   return posSetTemp;
 }
 

@@ -87,7 +87,15 @@ class ecmcTrajectoryBase : public ecmcError {
    * This function should only be executed once for each sample period.
    * Needs to call updateSetpoint() in order to use the newly calculated setpoints
    */
-  virtual double  getNextPosSet()  = 0;
+  double  getNextPosSet();
+
+  /** \brief Calculation of position , velocoity and acceleration setpoints.
+   * Must be implemented in derived class
+   * returns position setpoint
+   */
+  virtual double  internalTraj(double  *actVelocity,
+                               double  *actAcceleration,
+                               bool    *trajBusy) = 0;
 
 /** \brief Sets target velocity of trajectory (max velocity).
    * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.

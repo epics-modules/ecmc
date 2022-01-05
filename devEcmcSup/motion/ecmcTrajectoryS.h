@@ -53,37 +53,13 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
                   double        sampleTime);
   ~ecmcTrajectoryS();
 
-  /** \brief Calculates and returns next position setpoint.
-   * This function should only be executed once for each sample period.
-   */
-  double          getNextPosSet();
-
    /** \brief Sets target velocity of trajectory (max velocity).
    * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
    */
   void            setTargetVel(double velTarget);
   
-  /// Sets acceleration.
-  void            setAcc(double acc);
-
-  /// Sets deceleration.
-  void            setDec(double dec);
-
-  /** \brief Sets emergency deceleration.
-   * Used for ramp down at hard limits.
-   */
-  void            setEmergDec(double dec);
-
-  /** Currently not implemented (will be used when 
-   * s-shaped trajectory is implemented).
-   */
-  void            setJerk(double jerk);
-
   /// Sets target position (end position of trajectory).
   void            setTargetPos(double pos);
-
-  /// Enable traj
-  void            setEnable(bool enable);
 
   /// Sets position setpoint.
   void            setCurrentPosSet(double posSet);

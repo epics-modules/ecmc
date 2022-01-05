@@ -46,11 +46,6 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
                         double        sampleTime);
   ~ecmcTrajectoryTrapetz();
 
-  /** \brief Calculates and returns next position setpoint.
-   * This function should only be executed once for each sample period.
-   */
-  double          getNextPosSet();
-
    /** \brief Sets target velocity of trajectory (max velocity).
    * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
    */
@@ -88,7 +83,9 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
  private:
   void            initVars();
   void            initTraj();
-  double          internalTraj(double *velocity);
+  double          internalTraj(double  *actVelocity,
+                               double  *actAcceleration,
+                               bool    *trajBusy);
   double          moveVel(double currSetpoint,
                           double prevStepSize,
                           double stepNom,

@@ -38,39 +38,30 @@ void ecmcTrajectoryS::setCurrentPosSet(double posSet) {
   ecmcTrajectoryBase::setCurrentPosSet(posSet);
 }
 
-// "Main" of trajectory generator. Needs to be called exactly once per cycle.
-// Updates trajectory setpoint
-double ecmcTrajectoryS::getNextPosSet() {
-
-  if (!busy_ || !enable_) {
-    if (execute_ && !enable_) {
-      setErrorID(__FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
-    }
-    double tempPos = getCurrentPosSet();
-    updateSetpoint(tempPos , 0, 0, localBusy_);
-    setCurrentPosSet(tempPos);
-    return tempPos;
-  }
-
-  index_++;
-
-  if (!execute_ && (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL)) {
-    data_->interlocks_.noExecuteInterlock = true;
-    data_->refreshInterlocks();
-  }
-
-  double nextSetpoint     = localCurrentPositionSetpoint_;
-  double nextVelocity     = currentVelocitySetpoint_;
-  double nextAcceleration = currentAccelerationSetpoint_;  
-  bool   stopped          = false;
+double ecmcTrajectoryS::internalTraj(double *actVelocity, 
+                                     double *actAcceleration, 
+                                     bool   *trajBusy) {
+  double posSetTemp = localCurrentPositionSetpoint_;
+  bool   stopped    = false;
   
-  nextSetpoint = internalTraj(&nextVelocity,&nextAcceleration,&localBusy_);
+  switch (motionMode_) {
+  case ECMC_MOVE_MODE_POS:
+    posSetTemp = movePos(actVelocity, actAcceleration, &localBusy_);
+    break;
+  
+  case ECMC_MOVE_MODE_VEL:
+    posSetTemp = moveVel(actVelocity, actAcceleration, &localBusy_);
+    break;
 
+  default: 
+    *actVelocity     = 0;
+    *actAcceleration = 0;
+    localBusy_       = false;
+    break;
+  }
+  
   motionDirection nextDir = checkDirection(localCurrentPositionSetpoint_,
-                                           nextSetpoint);
+                                           posSetTemp);
   // Stop ramp when running external
   bool externalSourceStopTraj = data_->command_.trajSource !=
                                 ECMC_DATA_SOURCE_INTERNAL;
@@ -81,44 +72,21 @@ double ecmcTrajectoryS::getNextPosSet() {
       ((nextDir == ECMC_DIR_FORWARD) &&
        data_->interlocks_.trajSummaryInterlockFWD)) {
 
-    nextSetpoint = moveStop(data_->interlocks_.currStopMode,
-                            &nextVelocity,
-                            &nextAcceleration,
+    posSetTemp = moveStop(data_->interlocks_.currStopMode,
+                            actVelocity,
+                            actAcceleration,
                             &stopped);
     localBusy_ = !stopped;
     if (stopped) {
-      currentVelocitySetpoint_     = 0;
-      currentAccelerationSetpoint_ = 0;
-      localBusy_                   = false;
-      nextVelocity                 = 0;
+      *actVelocity     = 0;
+      *actAcceleration = 0;
+      localBusy_       = false;      
     }
   }
-  
-  localCurrentPositionSetpoint_ = nextSetpoint;
+
+  *trajBusy = localBusy_;
+  localCurrentPositionSetpoint_ = posSetTemp;
   output_->pass_to_input(*input_);
-  return ecmcTrajectoryBase::updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration, localBusy_);
-}
-
-double ecmcTrajectoryS::internalTraj(double *actVelocity, 
-                                     double *actAcceleration, 
-                                     bool   *trajBusy) {
-  double posSetTemp = localCurrentPositionSetpoint_;
-  
-  switch (motionMode_) {
-  case ECMC_MOVE_MODE_POS:
-    posSetTemp = movePos(actVelocity, actAcceleration, trajBusy);
-    break;
-  
-  case ECMC_MOVE_MODE_VEL:
-    posSetTemp = moveVel(actVelocity, actAcceleration, trajBusy);
-    break;
-
-  default: 
-    *actVelocity     = 0;
-    *actAcceleration = 0;
-    *trajBusy        = false;
-    break;
-  }
 
   return posSetTemp;
 }
@@ -260,27 +228,6 @@ void ecmcTrajectoryS::setTargetPos(double pos) {
 void ecmcTrajectoryS::setTargetVel(double velTarget) {
   ecmcTrajectoryBase::setTargetVel(velTarget);
   stepNOM_ = std::abs(velTarget * sampleTime_);
-}
-
-void ecmcTrajectoryS::setAcc(double acc) {
-  ecmcTrajectoryBase::setAcc(acc);
-}
-
-void ecmcTrajectoryS::setDec(double dec) {
-  ecmcTrajectoryBase::setDec(dec);
-}
-
-void ecmcTrajectoryS::setEmergDec(double dec) {
-  ecmcTrajectoryBase::setEmergDec(dec);       
-}
-
-
-void ecmcTrajectoryS::setJerk(double jerk) {
-  ecmcTrajectoryBase::setJerk(jerk);
-}
-
-void ecmcTrajectoryS::setEnable(bool enable) {
-  ecmcTrajectoryBase::setEnable(enable);
 }
 
 int ecmcTrajectoryS::initStopRamp(double currentPos,

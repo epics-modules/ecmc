@@ -374,6 +374,40 @@ int ecmcTrajectoryBase::initStopRamp(double currentPos,
   return 0;
 }
 
+double ecmcTrajectoryBase::getNextPosSet() {
+  // "Main" of trajectory generator. Needs to be called exactly once per cycle.
+  // Updates trajectory setpoint
+
+  if (!busy_ || !enable_) {
+    if (execute_ && !enable_) {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_TRAJ_EXECUTE_BUT_NO_ENABLE);
+    }
+    double tempPos = getCurrentPosSet();
+    updateSetpoint(tempPos , 0, 0, busy_);
+    setCurrentPosSet(tempPos);    
+    return tempPos;
+  }
+
+  index_++;
+
+  if (!execute_ && (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL)) {
+    data_->interlocks_.noExecuteInterlock = true;
+    data_->refreshInterlocks();
+  }
+
+  double nextSetpoint     = currentPositionSetpoint_;
+  double nextVelocity     = currentVelocitySetpoint_;
+  double nextAcceleration = currentAccelerationSetpoint_;  
+
+  // Execute derived class traj generator
+  nextSetpoint = internalTraj(&nextVelocity, &nextAcceleration, &busy_);
+
+  return updateSetpoint(nextSetpoint, nextVelocity, nextAcceleration, busy_);
+}
+
 double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
                                           double nextVelocity,
                                           double nextAcceleration,
