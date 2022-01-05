@@ -1782,7 +1782,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
     if (getSeq() == NULL) {
       return asynError;
     }
-    // allow on the fly updates of target velo and targte pos
+    // allow on the fly updates of target velo and target pos
     getSeq()->setTargetVel(velocityTarget_);
     getSeq()->setTargetPos(positionTarget_);
     
