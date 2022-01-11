@@ -102,9 +102,14 @@ void ecmcTrajectoryBase::setEnable(bool enable) {
   if (!enableOld_ && enable_) {
     posSetMinus1_            = startPosition_;
     currentPositionSetpoint_ = startPosition_;   
-    currentVelocitySetpoint_                = 0;
+    currentVelocitySetpoint_ = 0;
     distToStop_              = 0;
   }
+
+  if(!enable_) {
+    busy_ = false;
+  }
+
 }
 
 bool ecmcTrajectoryBase::getEnable() {
@@ -130,33 +135,23 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
   if (!executeOld_ && execute_) {
     currentPositionSetpoint_ = startPosition_;
 
-    switch (motionMode_) {
-    case ECMC_MOVE_MODE_VEL:
-
-      break;
-
-    case ECMC_MOVE_MODE_POS:
-
-      // Normal motion
-      if(data_->command_.moduloRange==0) {
-        if (targetPosition_ < currentPositionSetpoint_) {
-          targetVelocity_= -std::abs(targetVelocity_);
-        } else {
-          targetVelocity_= std::abs(targetVelocity_);
-        }
-        break;
-      } else { 
-     
-        if(data_->command_.moduloRange < 0) {
-          LOGERR("%s/%s:%d: ERROR: Modulo factor out of range (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
-          return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
-        }
-      }
-    }
+//    switch (motionMode_) {
+//    case ECMC_MOVE_MODE_VEL:
+//
+//      break;
+//
+//    case ECMC_MOVE_MODE_POS:
+//    
+//      // Normal motion
+//      if(data_->command_.moduloRange==0) {
+//        if (targetPosition_ < currentPositionSetpoint_) {
+//          targetVelocity_= -std::abs(targetVelocity_);
+//        } else {
+//          targetVelocity_= std::abs(targetVelocity_);
+//        }
+//        break;
+//      } else {      
+//    }
 
     if (!busy_) {
       posSetMinus1_ = currentPositionSetpoint_;
@@ -176,7 +171,8 @@ void ecmcTrajectoryBase::initTraj() {
 }
 
 void ecmcTrajectoryBase::setStartPos(double pos) {
-  startPosition_ = pos;
+  startPosition_ = checkModuloPos(pos);
+  //setCurrentPosSet(startPosition_);
 }
 
 void ecmcTrajectoryBase::setMotionMode(motionMode mode) {
@@ -193,11 +189,26 @@ double ecmcTrajectoryBase::getSampleTime() {
 
 int ecmcTrajectoryBase::validate() {
   if (sampleTime_ <= 0) {
+    LOGERR("%s/%s:%d: ERROR: Sample time out of range (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_TRAJ_INVALID_SAMPLE_TIME);
   }
+
+  if(data_->command_.moduloRange < 0) {
+    LOGERR("%s/%s:%d: ERROR: Modulo factor out of range (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
+  }
+
   return 0;
 }
 

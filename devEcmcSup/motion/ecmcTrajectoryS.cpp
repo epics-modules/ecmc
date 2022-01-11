@@ -39,7 +39,7 @@ void ecmcTrajectoryS::initVars() {
 }
 
 void ecmcTrajectoryS::setCurrentPosSet(double posSet) {
-  //localCurrentPositionSetpoint_ = posSet;  
+  localCurrentPositionSetpoint_ = posSet;
   ecmcTrajectoryBase::setCurrentPosSet(posSet);
 }
 
@@ -259,9 +259,9 @@ int ecmcTrajectoryS::setExecute(bool execute) {
    if(execute && !executeOld_) {
      initRuckig();
    }
-   if(!execute) {    
-     initRuckig();
-   }
+//   if(!execute) {    
+//     initRuckig();
+//   }
 
    return ecmcTrajectoryBase::setExecute(execute);
 }

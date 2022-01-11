@@ -32,8 +32,8 @@ void ecmcTrajectoryTrapetz::initVars() {
   stepStableTol_                  = 0;
   thisStepSize_                   = 0;
   localCurrentPositionSetpoint_   = 0;
-  switchTargetOnTheFly_           = false;
   localBusy_                      = false;
+  targetPositionLocal_            = 0;
 }
 
 void ecmcTrajectoryTrapetz::initTraj() {  
@@ -55,7 +55,7 @@ void ecmcTrajectoryTrapetz::initTraj() {
 
 void ecmcTrajectoryTrapetz::setCurrentPosSet(double posSet) {
   prevStepSize_          = 0;
-  localCurrentPositionSetpoint_ = posSet;  
+  localCurrentPositionSetpoint_ = posSet;
   ecmcTrajectoryBase::setCurrentPosSet(posSet);
 }
 
@@ -253,8 +253,8 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
       (std::abs(stopDistance) <= 3*std::abs(stepDEC_)) && 
       (std::abs(distToTargetOld) <= 3*std::abs(stepDEC_))) {
     posSetTemp           = targetSetpoint;
-    targetPositionLocal_ = posSetTemp;
-    targetPosition_      = posSetTemp;
+    //targetPositionLocal_ = posSetTemp;
+    //targetPosition_      = posSetTemp;
     *trajBusy            = false;
   }
 
