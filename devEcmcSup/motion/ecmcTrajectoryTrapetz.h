@@ -80,6 +80,7 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
   int             initStopRamp(double currentPos,
                                double currentVel,
                                double currentAcc);
+ int             validate();
  private:
   void            initVars();
   void            initTraj();

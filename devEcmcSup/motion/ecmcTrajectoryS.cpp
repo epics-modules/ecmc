@@ -265,3 +265,17 @@ int ecmcTrajectoryS::setExecute(bool execute) {
 
    return ecmcTrajectoryBase::setExecute(execute);
 }
+
+int ecmcTrajectoryS::validate() {
+
+  if(targetJerk_ == 0) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_JERK_ZERO);
+    LOGERR("%s/%s:%d: ERROR: Jerk zero (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        getErrorID());
+    return ERROR_TRAJ_RUCKIG_JERK_ZERO;
+  }
+  return ecmcTrajectoryBase::validate();
+}

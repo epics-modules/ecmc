@@ -44,6 +44,7 @@
 #define ERROR_TRAJ_RUCKIG_NO_PHASE_SYNC 0x14E84
 #define ERROR_TRAJ_RUCKIG_EXE_TIME_CALC 0x14E85
 #define ERROR_TRAJ_RUCKIG_SYNC_CALC 0x14E86
+#define ERROR_TRAJ_RUCKIG_JERK_ZERO 0x14E87
 
 using namespace ruckig;
 
@@ -69,7 +70,7 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
                                double   currentVel,
                                double   currentAcc);
   int             setExecute(bool execute);
-
+  int             validate();
  private:
   void            initRuckig();
   bool            updateRuckig();

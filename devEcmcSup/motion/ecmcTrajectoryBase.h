@@ -183,7 +183,7 @@ class ecmcTrajectoryBase : public ecmcError {
   void            setMotionMode(motionMode mode);
   interlockTypes  getInterlockStatus();
   double          getSampleTime();
-  int             validate();
+  virtual int     validate();
   
   motionDirection getCurrSetDir();
   motionDirection checkDirection(double oldPos,
