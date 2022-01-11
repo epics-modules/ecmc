@@ -304,17 +304,16 @@ double ecmcTrajectoryBase::dist(double from, double to, motionDirection directio
   return 0;
 }
 
-double ecmcTrajectoryBase::checkModuloPos(double pos,
-                                          motionDirection direction) {
+double ecmcTrajectoryBase::checkModuloPos(double pos) {
   //check modulo (allowed range 0..data_->command_.moduloRange)
   double posSetTemp = pos;
 
-
   if(data_->command_.moduloRange!=0) {
     if(posSetTemp >= 0) {
-      posSetTemp = std::fmod(posSetTemp,data_->command_.moduloRange);
+      posSetTemp = std::fmod(posSetTemp, data_->command_.moduloRange);
     } else {
-      posSetTemp = std::fmod(posSetTemp,data_->command_.moduloRange) + data_->command_.moduloRange;
+      posSetTemp = std::fmod(posSetTemp, data_->command_.moduloRange) +
+                   data_->command_.moduloRange;
     }
 //    if (direction == ECMC_DIR_FORWARD) {
 //      if(posSetTemp >= data_->command_.moduloRange) {
@@ -462,12 +461,15 @@ double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
                                           double nextAcceleration,
                                           bool   busy) {
   posSetMinus1_                = currentPositionSetpoint_;
-  currentPositionSetpoint_     = checkModuloPos(nextSetpoint,nextVelocity>0 ? 
-                                                ECMC_DIR_FORWARD : 
-                                                ECMC_DIR_BACKWARD);
+  currentPositionSetpoint_     = checkModuloPos(nextSetpoint);
   currentVelocitySetpoint_     = nextVelocity;
   currentAccelerationSetpoint_ = nextAcceleration;
   busy_                        = busy;
   distToStop_                  = distToStop(currentVelocitySetpoint_);
+  
+  // In velocity mode, update taregetposition
+  if(motionMode_ == ECMC_MOVE_MODE_VEL) {
+    targetPosition_ = currentPositionSetpoint_;
+  }
   return currentPositionSetpoint_;
 }

@@ -80,6 +80,8 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
                          prevStepSize_,
                          stepNOM_,
                          &localBusy_);
+    // in velo mode ensure local setpoint is not to high
+    posSetTemp = checkModuloPos(posSetTemp);
     break;
   default: 
     *actVelocity     = 0;
