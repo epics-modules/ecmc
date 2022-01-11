@@ -314,15 +314,15 @@ double ecmcTrajectoryTrapetz::distToStop(double vel) {
 void ecmcTrajectoryTrapetz::setTargetPosLocal(double pos) {  
   targetPositionLocal_ = pos;
   // Check if updated on the fly (copied from setExecute().. not so nice)
-  if(localBusy_ && motionMode_ == ECMC_MOVE_MODE_POS){
-    double dist2Stop=distToStop(currentVelocitySetpoint_);
-    if(localCurrentPositionSetpoint_ + dist2Stop > targetPositionLocal_) {
-      targetVelocity_= -std::abs(targetVelocity_);
-    }
-    else {
-      targetVelocity_= std::abs(targetVelocity_);
-    }
-  }
+//  if(localBusy_ && motionMode_ == ECMC_MOVE_MODE_POS){
+//    double dist2Stop=distToStop(currentVelocitySetpoint_);
+//    if(localCurrentPositionSetpoint_ + dist2Stop > targetPositionLocal_) {
+//      targetVelocity_= -std::abs(targetVelocity_);
+//    }
+//    else {
+//      targetVelocity_= std::abs(targetVelocity_);
+//    }
+//  }
 }
 
 void ecmcTrajectoryTrapetz::setTargetVel(double velTarget) {
