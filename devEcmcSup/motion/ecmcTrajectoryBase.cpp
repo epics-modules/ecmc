@@ -305,23 +305,30 @@ double ecmcTrajectoryBase::dist(double from, double to, motionDirection directio
 }
 
 double ecmcTrajectoryBase::checkModuloPos(double pos,
-                                             motionDirection direction) {
+                                          motionDirection direction) {
   //check modulo (allowed range 0..data_->command_.moduloRange)
   double posSetTemp = pos;
+
+
   if(data_->command_.moduloRange!=0) {
-    if (direction == ECMC_DIR_FORWARD) {
-      if(posSetTemp >= data_->command_.moduloRange) {
-        posSetTemp = posSetTemp - data_->command_.moduloRange;
-      }
+    if(posSetTemp >= 0) {
+      posSetTemp = std::fmod(posSetTemp,data_->command_.moduloRange);
     } else {
-      if(posSetTemp < 0) {
-        posSetTemp = data_->command_.moduloRange + posSetTemp;
-      }
+      posSetTemp = std::fmod(posSetTemp,data_->command_.moduloRange) + data_->command_.moduloRange;
     }
+//    if (direction == ECMC_DIR_FORWARD) {
+//      if(posSetTemp >= data_->command_.moduloRange) {
+//        posSetTemp = posSetTemp - data_->command_.moduloRange;
+//      }
+//    } else {
+//      if(posSetTemp < 0) {
+//        posSetTemp = data_->command_.moduloRange + posSetTemp;
+//      }
+//    }
   }
   
   return posSetTemp;
-}§
+}
 
 void ecmcTrajectoryBase::setCurrentPosSet(double posSet) {
   currentPositionSetpoint_     = posSet;
@@ -455,7 +462,9 @@ double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
                                           double nextAcceleration,
                                           bool   busy) {
   posSetMinus1_                = currentPositionSetpoint_;
-  currentPositionSetpoint_     = checkModuloPos(nextSetpoint,nextVelocity>0 ? ECMC_DIR_FORWARD:ECMC_DIR_BACKWARD); //=nextSetpoint;  
+  currentPositionSetpoint_     = checkModuloPos(nextSetpoint,nextVelocity>0 ? 
+                                                ECMC_DIR_FORWARD : 
+                                                ECMC_DIR_BACKWARD);
   currentVelocitySetpoint_     = nextVelocity;
   currentAccelerationSetpoint_ = nextAcceleration;
   busy_                        = busy;
