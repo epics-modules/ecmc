@@ -428,3 +428,7 @@ double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
   }
   return currentPositionSetpoint_;
 }
+
+double ecmcTrajectoryBase::getTargetPosMod() {
+  return checkModuloPos(targetPosition_);  
+}

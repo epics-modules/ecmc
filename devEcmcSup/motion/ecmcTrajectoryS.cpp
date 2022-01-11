@@ -39,7 +39,7 @@ void ecmcTrajectoryS::initVars() {
 }
 
 void ecmcTrajectoryS::setCurrentPosSet(double posSet) {
-  localCurrentPositionSetpoint_ = posSet;  
+  //localCurrentPositionSetpoint_ = posSet;  
   ecmcTrajectoryBase::setCurrentPosSet(posSet);
 }
 
@@ -53,9 +53,9 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
   case ECMC_MOVE_MODE_POS:
     posSetTemp = movePos(actVelocity, actAcceleration, &localBusy_);
     // reset target position when done
-    if(!localBusy_) {
-      targetPosition_ = checkModuloPos(posSetTemp);
-    }
+    //if(!localBusy_) {
+    //  targetPosition_ = checkModuloPos(posSetTemp);
+    //}
     break;
   
   case ECMC_MOVE_MODE_VEL:
@@ -103,7 +103,7 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
 }
 
 void ecmcTrajectoryS::initRuckig() {
-  input_->current_position[0]     = currentPositionSetpoint_;
+  input_->current_position[0]     = localCurrentPositionSetpoint_;
   input_->current_velocity[0]     = currentVelocitySetpoint_;
   input_->current_acceleration[0] = currentAccelerationSetpoint_;
   // Position step for const velo

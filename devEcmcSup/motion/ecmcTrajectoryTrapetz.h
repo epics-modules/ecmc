@@ -69,6 +69,7 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
 
   /// Sets target position (end position of trajectory).
   void            setTargetPosLocal(double pos);
+  double          getCurrentPosSet();
 
   /// Enable traj
   void            setEnable(bool enable);

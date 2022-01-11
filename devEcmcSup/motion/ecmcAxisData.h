@@ -46,6 +46,7 @@ typedef struct {
   double currentPositionActual;
   double currentPositionSetpoint;
   double currentTargetPosition;
+  double currentTargetPositionModulo;
   double currentPositionSetpointOld;
   double currentVelocityActual;
   double currentVelocitySetpoint;

@@ -173,6 +173,9 @@ class ecmcTrajectoryBase : public ecmcError {
   /// returns target position (end position of trajectory).
   double          getTargetPos();
 
+  /// returns modulo target position (end position of trajectory).
+  double         getTargetPosMod();
+
   /** \brief Sets start position of trajectory.
    * Normally encoder position at amplifier enable
    */

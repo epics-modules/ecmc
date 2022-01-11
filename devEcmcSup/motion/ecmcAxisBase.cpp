@@ -240,8 +240,11 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
     if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
       data_.status_.currentTargetPosition = traj_->getTargetPos();
+      data_.status_.currentTargetPositionModulo = traj_->getTargetPosMod();
     } else {  // Synchronized to other axis
       data_.status_.currentTargetPosition =
+        data_.status_.currentPositionSetpoint;
+        data_.status_.currentTargetPositionModulo = 
         data_.status_.currentPositionSetpoint;
     }
 
