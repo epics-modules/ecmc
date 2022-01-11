@@ -21,7 +21,11 @@ ecmcTrajectoryS::ecmcTrajectoryS(ecmcAxisData *axisData,
 }
 
 ecmcTrajectoryS::~ecmcTrajectoryS()
-{}
+{ 
+  delete otg_;
+  delete input_;
+  delete output_;
+}
 
 void ecmcTrajectoryS::initVars() {
   // Create ruckig params
@@ -48,10 +52,16 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
   switch (motionMode_) {
   case ECMC_MOVE_MODE_POS:
     posSetTemp = movePos(actVelocity, actAcceleration, &localBusy_);
+    // reset target position when done
+    if(!localBusy_) {
+      targetPosition_ = checkModuloPos(posSetTemp);
+    }
     break;
   
   case ECMC_MOVE_MODE_VEL:
     posSetTemp = moveVel(actVelocity, actAcceleration, &localBusy_);
+    // in velo mode ensure local setpoint is not to high
+    posSetTemp = checkModuloPos(posSetTemp);
     break;
 
   default: 
@@ -96,6 +106,7 @@ void ecmcTrajectoryS::initRuckig() {
   input_->current_position[0]     = currentPositionSetpoint_;
   input_->current_velocity[0]     = currentVelocitySetpoint_;
   input_->current_acceleration[0] = currentAccelerationSetpoint_;
+  // Position step for const velo
   stepNOM_                        = std::abs(targetVelocity_ * sampleTime_);
 }
 
@@ -110,6 +121,9 @@ bool ecmcTrajectoryS::updateRuckig() {
         break;
       case Result::ErrorInvalidInput:
         setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_INVALID_INPUT);
+//        printf("Input pos %lf, vel %lf, acc %lf\n",input_->current_position[0],input_->current_velocity[0],input_->current_acceleration[0]);
+//        printf("Target pos %lf, vel %lf, acc %lf\n",input_->target_position[0],input_->target_velocity[0],input_->target_acceleration[0]);
+//        printf("Max vel %lf, acc %lf, jerk %lf\n",input_->max_velocity[0],input_->max_acceleration[0],input_->max_jerk[0]);
         break;
       case Result::ErrorTrajectoryDuration:
         setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_TRAJ_DURATION);

@@ -73,6 +73,10 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
                          prevStepSize_,
                          stepNOM_,
                          &localBusy_);
+    // reset target position when done
+    if(!localBusy_) {
+      targetPosition_ = checkModuloPos(posSetTemp);
+    }
     break;
   
   case ECMC_MOVE_MODE_VEL:

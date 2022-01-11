@@ -467,7 +467,7 @@ double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
   busy_                        = busy;
   distToStop_                  = distToStop(currentVelocitySetpoint_);
   
-  // In velocity mode, update taregetposition
+  // In velocity mode always update taregetposition
   if(motionMode_ == ECMC_MOVE_MODE_VEL) {
     targetPosition_ = currentPositionSetpoint_;
   }
