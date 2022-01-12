@@ -80,9 +80,9 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
        data_->interlocks_.trajSummaryInterlockFWD)) {
 
     posSetTemp = moveStop(data_->interlocks_.currStopMode,
-                            actVelocity,
-                            actAcceleration,
-                            &stopped);
+                          actVelocity,
+                          actAcceleration,
+                          &stopped);
     localBusy_ = !stopped;
     if (stopped) {
       *actVelocity     = 0;
@@ -91,7 +91,7 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
     }
   }
 
-  *trajBusy = localBusy_;
+  *trajBusy                     = localBusy_;
   localCurrentPositionSetpoint_ = posSetTemp;
   output_->pass_to_input(*input_);
 
