@@ -73,10 +73,6 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
                          prevStepSize_,
                          stepNOM_,
                          &localBusy_);
-    // reset target position when done
-    //if(!localBusy_) {
-    //  targetPosition_ = checkModuloPos(posSetTemp);
-    //}
     break;
   
   case ECMC_MOVE_MODE_VEL:
@@ -126,7 +122,7 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
     }
   }
   
-  *trajBusy = localBusy_;
+  *trajBusy                     = localBusy_;
   prevStepSize_                 = thisStepSize_;
   localCurrentPositionSetpoint_ = posSetTemp;
   *actAcceleration              = (currentVelocitySetpoint_ - *actVelocity) / sampleTime_;
@@ -222,14 +218,13 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   // How long to target
   double distToTargetOld = 0;
   double distToTargetOldComp = 0;
-  if (prevStepSize > 0) {
-    distToTargetOld = dist(currSetpoint,targetSetpoint, ECMC_DIR_FORWARD);
+
+  distToTargetOld = dist(currSetpoint,targetSetpoint);
+  if (prevStepSize > 0) {  
     distToTargetOldComp = distToTargetOld - prevStepSize - stepDEC_;
   } else if (prevStepSize < 0) {
-    distToTargetOld = dist(currSetpoint,targetSetpoint, ECMC_DIR_BACKWARD);
     distToTargetOldComp = distToTargetOld - prevStepSize + stepDEC_;
   } else {  // 0 velo, use target
-    distToTargetOld = dist(currSetpoint,targetSetpoint, stepNom > 0 ? ECMC_DIR_FORWARD : ECMC_DIR_BACKWARD);  
     distToTargetOldComp = distToTargetOld;
   }
 
@@ -253,8 +248,8 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
       (std::abs(stopDistance) <= 3*std::abs(stepDEC_)) && 
       (std::abs(distToTargetOld) <= 3*std::abs(stepDEC_))) {
     posSetTemp           = targetSetpoint;
-    //targetPositionLocal_ = posSetTemp;
-    //targetPosition_      = posSetTemp;
+    targetPositionLocal_ = posSetTemp;
+    targetPosition_      = posSetTemp;    
     *trajBusy            = false;
   }
 
@@ -317,8 +312,8 @@ double ecmcTrajectoryTrapetz::distToStop(double vel) {
   return prevStepSize_* std::abs(prevStepSize_/stepDEC_) / 2;
 }
 
-void ecmcTrajectoryTrapetz::setTargetPosLocal(double pos) {
-
+void ecmcTrajectoryTrapetz::setTargetPosLocal(double pos) { 
+  localCurrentPositionSetpoint_ = currentPositionSetpoint_;  
   targetPositionLocal_ = pos;
 }
 
