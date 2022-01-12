@@ -443,5 +443,5 @@ double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
 }
 
 double ecmcTrajectoryBase::getTargetPosMod() {
-  return checkModuloPos(targetPosition_);  
+  return checkModuloPos(targetPosition_);
 }
