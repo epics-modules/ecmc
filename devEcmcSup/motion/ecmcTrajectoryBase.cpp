@@ -280,13 +280,27 @@ void ecmcTrajectoryBase::setCurrentPosSet(double posSet) {
 }
 
 void ecmcTrajectoryBase::setTargetPos(double pos) {
+
+
   double distFWD  = 0;
   double distBWD  = 0;  
   index_          = 0;
   
   
   // Modulo motion
-  if(data_->command_.moduloRange > 0) {    
+  if(data_->command_.moduloRange > 0) {
+
+    // Do not allow on the fly change for modulo motion
+    if(busy_) {
+      LOGERR("%s/%s:%d: ERROR: Setpoint change while busy not allowed in modulo mode (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_TRAJ_MOD_POS_CHANGE_WHILE_BUSY_NOT_ALLOWED);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_MOD_POS_CHANGE_WHILE_BUSY_NOT_ALLOWED);
+      return;
+    }
+
     pos = checkModuloPos(pos);
     switch (data_->command_.moduloType)
     {

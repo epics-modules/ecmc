@@ -900,6 +900,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14E18:
+    return "ERROR_TRAJ_MOD_POS_CHANGE_WHILE_BUSY_NOT_ALLOWED";
+
+    break;
+
   case 0x14E80:    // TRAJ-S (ruckig)
     return "ERROR_TRAJ_RUCKIG_ERROR";
 
