@@ -133,29 +133,11 @@ int ecmcTrajectoryBase::setExecute(bool execute) {
   }
 
   if (!executeOld_ && execute_) {
+    posSetMinus1_ = startPosition_;
     currentPositionSetpoint_ = startPosition_;
-
-//    switch (motionMode_) {
-//    case ECMC_MOVE_MODE_VEL:
-//
-//      break;
-//
-//    case ECMC_MOVE_MODE_POS:
-//    
-//      // Normal motion
-//      if(data_->command_.moduloRange==0) {
-//        if (targetPosition_ < currentPositionSetpoint_) {
-//          targetVelocity_= -std::abs(targetVelocity_);
-//        } else {
-//          targetVelocity_= std::abs(targetVelocity_);
-//        }
-//        break;
-//      } else {      
-//    }
-
     if (!busy_) {
       posSetMinus1_ = currentPositionSetpoint_;
-      currentVelocitySetpoint_     = 0;
+      currentVelocitySetpoint_  = 0;
     }
     initTraj();
     currentPositionSetpoint_ = startPosition_;
@@ -172,7 +154,6 @@ void ecmcTrajectoryBase::initTraj() {
 
 void ecmcTrajectoryBase::setStartPos(double pos) {
   startPosition_ = checkModuloPos(pos);
-  //setCurrentPosSet(startPosition_);
 }
 
 void ecmcTrajectoryBase::setMotionMode(motionMode mode) {
@@ -294,13 +275,12 @@ void ecmcTrajectoryBase::setCurrentPosSet(double posSet) {
 
 void ecmcTrajectoryBase::setTargetPos(double pos) {
   double distFWD  = 0;
-  double distBWD  = 0;
-  targetPosition_ = pos;
+  double distBWD  = 0;  
   index_          = 0;
   
   
   // Modulo motion
-  if(data_->command_.moduloRange!=0) {      
+  if(data_->command_.moduloRange > 0) {      
     switch (data_->command_.moduloType)
     {
     case ECMC_MOD_MOTION_BWD:
@@ -318,7 +298,7 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
 
       break;
     case ECMC_MOD_MOTION_NORMAL:
-
+      pos = checkModuloPos(pos);
       break;
     case ECMC_MOD_MOTION_CLOSEST:
       pos = checkModuloPos(pos);
@@ -345,6 +325,7 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
       break;
     }
   }
+  targetPosition_ = pos;  
   setTargetPosLocal(pos);
 }
 
@@ -401,7 +382,7 @@ double ecmcTrajectoryBase::getNextPosSet() {
     }
     double tempPos = getCurrentPosSet();
     updateSetpoint(tempPos , 0, 0, busy_);
-    setCurrentPosSet(tempPos);    
+    //setCurrentPosSet(tempPos);    
     return tempPos;
   }
 
@@ -427,7 +408,7 @@ double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
                                           double nextAcceleration,
                                           bool   busy) {
   posSetMinus1_                = currentPositionSetpoint_;
-  currentPositionSetpoint_     = checkModuloPos(nextSetpoint);
+  currentPositionSetpoint_     = checkModuloPos(nextSetpoint); 
   currentVelocitySetpoint_     = nextVelocity;
   currentAccelerationSetpoint_ = nextAcceleration;
   busy_                        = busy;

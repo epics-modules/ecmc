@@ -52,10 +52,6 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
   switch (motionMode_) {
   case ECMC_MOVE_MODE_POS:
     posSetTemp = movePos(actVelocity, actAcceleration, &localBusy_);
-    // reset target position when done
-    //if(!localBusy_) {
-    //  targetPosition_ = checkModuloPos(posSetTemp);
-    //}
     break;
   
   case ECMC_MOVE_MODE_VEL:
@@ -238,6 +234,7 @@ double ecmcTrajectoryS::distToStop(double vel) {
 }
 
 void ecmcTrajectoryS::setTargetPosLocal(double pos) {
+  localCurrentPositionSetpoint_ = currentPositionSetpoint_;
   targetPositionLocal_ = pos;
   input_->target_position[0] = pos;
 }
@@ -256,12 +253,9 @@ int ecmcTrajectoryS::initStopRamp(double currentPos,
 }
 
 int ecmcTrajectoryS::setExecute(bool execute) {
-   if(execute && !executeOld_) {
+   if(execute && !execute_) {
      initRuckig();
    }
-//   if(!execute) {    
-//     initRuckig();
-//   }
 
    return ecmcTrajectoryBase::setExecute(execute);
 }
