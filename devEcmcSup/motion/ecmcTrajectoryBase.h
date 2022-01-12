@@ -196,8 +196,11 @@ class ecmcTrajectoryBase : public ecmcError {
   virtual void    initTraj();
   void            initVars();
   double          dist(double from,
-                       double to,
-                       motionDirection direction);
+                       double to);
+  double          distModulo(double from,
+                             double to,
+                             motionDirection direction);
+
   double          checkModuloPos(double pos);
   virtual double  updateSetpoint(double nextSetpoint,
                                  double nextVelocity,

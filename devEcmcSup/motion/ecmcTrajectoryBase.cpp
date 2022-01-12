@@ -223,10 +223,16 @@ motionDirection ecmcTrajectoryBase::getCurrSetDir() {
 }
 
 /* Calculates distance between two points*/
-double ecmcTrajectoryBase::dist(double from, double to, motionDirection direction) {
+double ecmcTrajectoryBase::dist(double from, double to) {  
+   return to-from;
+}
+
+/* Calculates distance between two points, takes modulo into account*/
+double ecmcTrajectoryBase::distModulo(double from, double to, motionDirection direction) {  
+  
   //check if modulo enabled
   if(data_->command_.moduloRange==0){
-    return to-from;
+    return dist(from,to);
   }
   
   //modulo
@@ -280,30 +286,31 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
   
   
   // Modulo motion
-  if(data_->command_.moduloRange > 0) {      
+  if(data_->command_.moduloRange > 0) {    
+    pos = checkModuloPos(pos);
     switch (data_->command_.moduloType)
     {
     case ECMC_MOD_MOTION_BWD:
-      pos = checkModuloPos(pos);
+      
       if(currentPositionSetpoint_ < pos ) {
         pos = pos - data_->command_.moduloRange;
       }
 
       break;
     case ECMC_MOD_MOTION_FWD:
-      pos = checkModuloPos(pos);
+
       if(currentPositionSetpoint_ > pos ) {
         pos = pos + data_->command_.moduloRange;
       }
 
       break;
     case ECMC_MOD_MOTION_NORMAL:
-      pos = checkModuloPos(pos);
+
       break;
     case ECMC_MOD_MOTION_CLOSEST:
-      pos = checkModuloPos(pos);
-      distFWD = std::abs(dist(currentPositionSetpoint_,pos,ECMC_DIR_FORWARD));
-      distBWD = std::abs(dist(currentPositionSetpoint_,pos,ECMC_DIR_BACKWARD));
+
+      distFWD = std::abs(distModulo(currentPositionSetpoint_,pos,ECMC_DIR_FORWARD));
+      distBWD = std::abs(distModulo(currentPositionSetpoint_,pos,ECMC_DIR_BACKWARD));
       if(distBWD < distFWD) {
         if(currentPositionSetpoint_ < pos ) {
           pos = pos - data_->command_.moduloRange;
@@ -325,7 +332,7 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
       break;
     }
   }
-  targetPosition_ = pos;  
+  targetPosition_ = pos;
   setTargetPosLocal(pos);
 }
 
