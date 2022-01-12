@@ -61,6 +61,7 @@ void ecmcAxisSequencer::initVars() {
 
 // Cyclic execution
 void ecmcAxisSequencer::execute() {
+  data_->status_.seqState = seqState_;
   if (traj_ == NULL) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
     return;
