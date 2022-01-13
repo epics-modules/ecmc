@@ -27,9 +27,10 @@ git submodule update --init --reference ./
             * Ref. sensor center via high limit (refId = 6)
             * Encoder index via low limit (refId = 11)
             * Encoder index via high limit (refId = 12)
-            * Set position (refId = 15)
+            * Set position dedicated for auto restore (refId = 15)
             * Single turn abs encoder (resolver) ref via low limit (refId = 21)
-            * Single turn abs encoder (resolver) ref via high limit (refId = 22)        
+            * Single turn abs encoder (resolver) ref via high limit (refId = 22)
+            * Set position (refId = 25)
         * Interlocks
             * Following error
             * Max speed

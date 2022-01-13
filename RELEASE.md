@@ -1,6 +1,6 @@
 Release Notes
 ===
-# ECMC master
+# ECMC xxx
 * Remove commands Cfg.SetOpMode() and GetOpMode(). Obsolete and not used.
 
 * Add command "Cfg.SetAxisHomePosition()", same as Main.Mx.fHomePosition (try to phase out this old syntax)
@@ -29,8 +29,11 @@ Examples and more info are available in:
 ecmccfg/examples/test/motionWithoutMotorRecord/
 
 * Update of trajectory generator to allow "on the fly" update of target postion and target velocity.
+
+# ECMC 7.0.1
 * Add homing seq 25 (same as 15 but not blocked by motor record and reserved for save/restore). The sequence will just set a new position.
 * Add axisType in status word
+* Fix moving bit in motor record poll
 
 # ECMC 7.0.0
 * New release to match ecmccfg 7.0.0
@@ -985,7 +988,6 @@ Changes:
     * Allow load of new expression while "old" compiled are executing at runtime. Switch to new expression with Cfg.CompilePLC() or Cfg.CompileAxisPLC().
 
 # Todo
-* Remove manual motion mode (not needed.. motors can be run manually directly from ethercat entries)
 * Add PID controller in PLC lib
 * Consider change error handling system to exception based (try catch)
 * Clean up in axis sub objects:
@@ -997,6 +999,9 @@ Changes:
 * Only stop motion when the slaves used by axis are in error state or not reachable.
 * Test EtherCAT redundancy
 * Add possibility to link axis functionality to plcs (right now for instance a limit needs to be an EtherCAT entry).
+<<<<<<< HEAD
 * Add oscilloscope functionality in data storage (oversampling):    
     * Add possibility to change data type of data storage (so memcpy can be used)
     * Add possibility to link a trigger memmap, pretrigger sample count a window=> osc function 
+=======
+>>>>>>> master
