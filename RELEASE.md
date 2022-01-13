@@ -1,8 +1,9 @@
 Release Notes
 ===
-# ECMC master
-* Add homing seq 25 (same as 15 but not blocked by motor record and reserved for save/restore). The sequence will just set a new position.
+# ECMC 7.0.1
+* Add homing seq 25 (same as 15 but not  reserved for save/restore). The sequence will just set a new position.
 * Add axisType in status word
+* Fix moving bit in motor record poll
 
 # ECMC 7.0.0
 * New release to match ecmccfg 7.0.0
@@ -957,7 +958,6 @@ Changes:
     * Allow load of new expression while "old" compiled are executing at runtime. Switch to new expression with Cfg.CompilePLC() or Cfg.CompileAxisPLC().
 
 # Todo
-* Remove manual motion mode (not needed.. motors can be run manually directly from ethercat entries)
 * Add PID controller in PLC lib
 * Consider change error handling system to exception based (try catch)
 * Clean up in axis sub objects:
@@ -968,10 +968,4 @@ Changes:
 * Make possible to add ethercat hardware on the fly (hard, seems EPICS do not support dynamic load of records)
 * Only stop motion when the slaves used by axis are in error state or not reachable.
 * Test EtherCAT redundancy
-* Move to ecmccfg instead of ecmctraining. This work is in progress and ecmccfg repo is more or less complete and can be used.
-* Add command to set sm watchdog (ecrt_slave_config_sync_manager())
 * Add possibility to link axis functionality to plcs (right now for instance a limit needs to be an EtherCAT entry).
-* Add oscilloscope functionality in data storage (oversampling):
-    * Add possibility to write memmaps to data storage
-    * Add possibility to change data type of data storage (so memcpy can be used)
-    * Add possibility to link a trigger memmap, pretrigger sample count a window=> osc function 
