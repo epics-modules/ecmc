@@ -91,6 +91,16 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
     }
   }
 
+  //if(std::abs(output_->new_position[0]-localCurrentPositionSetpoint_) > stepNOM_*10) {
+  //  printf("!!!!! SEVERE RUCKIG ERROR !!!!!\n");
+  //  printf("Input pos:       %lf, vel  %lf, acc  %lf\n",input_->current_position[0],input_->current_velocity[0],input_->current_acceleration[0]);
+  //  printf("Target pos:      %lf, vel  %lf, acc  %lf\n",input_->target_position[0],input_->target_velocity[0],input_->target_acceleration[0]);
+  //  printf("Max vel:         %lf, acc  %lf, jerk %lf\n",input_->max_velocity[0],input_->max_acceleration[0],input_->max_jerk[0]);
+  //  printf("Output pos:      %lf, vel  %lf, acc  %lf\n",output_->new_position[0],output_->new_velocity[0], output_->new_acceleration[0]);
+  //  printf("Output prev pos: %lf, targ %lf\n",localCurrentPositionSetpoint_, targetPositionLocal_);
+  //  printf("error:           0x%x, busy_ %d, localBusy %d\n",getErrorID(),busy_,*trajBusy);
+  //}
+
   *trajBusy                     = localBusy_;
   localCurrentPositionSetpoint_ = posSetTemp;
   output_->pass_to_input(*input_);
@@ -202,7 +212,8 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
   input_->max_jerk[0]            = std::abs(targetJerk_);
   *trajBusy                      = updateRuckig();
   *actVelocity                   = output_->new_velocity[0];
-  *actAcceleration               = output_->new_acceleration[0];  
+  *actAcceleration               = output_->new_acceleration[0];
+
   return output_->new_position[0];
 }
 
