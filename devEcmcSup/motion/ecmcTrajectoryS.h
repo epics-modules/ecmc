@@ -96,6 +96,7 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   double                        stepNOM_;
   double                        localCurrentPositionSetpoint_;
   double                        targetPositionLocal_;
+  double                        targetVelocityLocal_;
   bool                          localBusy_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYS_H_
