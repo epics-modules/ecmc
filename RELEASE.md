@@ -1,6 +1,11 @@
 Release Notes
 ===
 # ECMC xxx
+* Add support for jerk limited trajectories based on ruckig (https://github.com/pantor/ruckig).
+  Trapetzoidal trajectories still supported and default in ecmccfg.
+
+  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when posiitoning (blocked).
+
 * Remove commands Cfg.SetOpMode() and GetOpMode(). Obsolete and not used.
 
 * Add command "Cfg.SetAxisHomePosition()", same as Main.Mx.fHomePosition (try to phase out this old syntax)

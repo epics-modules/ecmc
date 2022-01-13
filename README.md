@@ -118,6 +118,7 @@ ECMC runs best under certain conditions:
 * Asyn driver:                      https://github.com/icshwi/e3-asyn
 * ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg or
                                     https://github.com/icshwi/ecmccfg
+* ruckig                            https://github.com/anderssandstrom/e3-ruckig, https://github.com/anderssandstrom/ruckig
 Optional modules:
 * EthercatMC (motor record driver): https://github.com/icshwi/e3-ethercatmc
 * Stream Device:                    https://github.com/icshwi/e3-StreamDevice
