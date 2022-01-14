@@ -2684,13 +2684,17 @@ int ecmcAxisSequencer::stopSeq() {
   return 0;
 }
 
-
 int ecmcAxisSequencer::validate() {
   return 0;
 }
 
-int ecmcAxisSequencer::setSequenceTimeout(int timeout) {
-  seqTimeout_ = timeout;
+int ecmcAxisSequencer::setSequenceTimeout(int timeout) {  
+  if(data_->sampleTime_ > 0) {
+    // Seconds
+    seqTimeout_ = timeout / data_->sampleTime_;
+  } else {
+    seqTimeout_ = timeout;
+  }
   return 0;
 }
 
