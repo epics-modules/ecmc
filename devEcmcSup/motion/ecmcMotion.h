@@ -1403,6 +1403,20 @@ int setAxisTargetVel(int    axisIndex,
 int setAxisJogVel(int    axisIndex,
                   double value);
 
+
+/** \brief Set axis external position setpoint.\n
+ *
+ * Set the external sync/plc setpoint for an axis
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value external position setpoint.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int setAxisExtSetPos(int    axisIndex,
+                     double value);
+
 /** \brief Set the denominator part of the encoder scale.\n
  *
  * The encoder scale factor is divided into one numerator and one denominator
