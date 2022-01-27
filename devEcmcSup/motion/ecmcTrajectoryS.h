@@ -98,5 +98,6 @@ class ecmcTrajectoryS : public ecmcTrajectoryBase {
   double                        targetPositionLocal_;
   double                        targetVelocityLocal_;
   bool                          localBusy_;
+  double                        trajMaxVelo_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYS_H_

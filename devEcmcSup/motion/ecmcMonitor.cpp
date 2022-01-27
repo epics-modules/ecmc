@@ -48,7 +48,7 @@ void ecmcMonitor::initVars() {
   atTargetCounter_           = 0;
   lagMonCounter_             = 0;
   maxVel_                    = 0;
-  enableMaxVelMon_           = true;
+  enableMaxVelMon_           = 0;
   maxVelCounterDrive_        = 0;
   maxVelCounterTraj_         = 0;
   maxVelDriveILDelay_        = 0;
