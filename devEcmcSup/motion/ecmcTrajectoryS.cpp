@@ -206,6 +206,7 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
                                 double *actAcceleration,
                                 bool   *trajBusy){
   input_->control_interface      = ControlInterface::Position;
+  input_->current_position[0]    = localCurrentPositionSetpoint_;
   input_->target_position[0]     = targetPositionLocal_;
   input_->target_velocity[0]     = 0;
   input_->target_acceleration[0] = 0;
@@ -222,7 +223,8 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
 double ecmcTrajectoryS::moveStop(stopMode stopMode,
                                  double *actVelocity, 
                                  double *actAcceleration,                                 
-                                 bool   *stopped){
+                                 bool   *stopped) {
+  input_->current_position[0]     = localCurrentPositionSetpoint_;
   input_->control_interface       = ControlInterface::Velocity;
   input_->target_velocity[0]      = 0;  // stop
   input_->target_acceleration[0]  = 0;
