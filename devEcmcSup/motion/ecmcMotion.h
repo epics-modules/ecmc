@@ -591,21 +591,6 @@ int getAxisTargetVel(int     axisIndex,
 int getAxisDone(int axisIndex,
                 int *value);
 
-/** \brief Get gear ration setting.\n
- *
- * Note: The gear ratio is only valid during synchronized motions.\n
- *
- * \param[in] axisIndex  Axis index.\n
- * \param[out] value  gear ratio.\n
- *
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Get gear ratio setting for axis 3.\n
- * "ReadAxisGearRatio(3)" //Command string to ecmcCmdParser.c.\n
- */
-/*int getAxisGearRatio(int     axisIndex,
-                     double *value);*/
-
 /** \brief Get state of forward hard limit.\n
  *
  * Checks state of forward hard limit switch.\n
@@ -623,6 +608,13 @@ int getAxisDone(int axisIndex,
 int getAxisAtHardFwd(int  axisIndex,
                      int *value);
 
+/** \brief Same as getAxisAtHardFwd() but better name.\n
+ * 
+ * getAxisAtHardFwd() is kept for backward compatibility
+ */
+int getAxisLimitSwitchFwd(int  axisIndex,
+                          int *value);
+
 /** \brief Get state of backward hard limit.\n
  *
  * Checks state of backward hard limit switch.\n
@@ -639,6 +631,13 @@ int getAxisAtHardFwd(int  axisIndex,
  */
 int getAxisAtHardBwd(int  axisIndex,
                      int *value);
+
+/** \brief Same as getAxisAtHardBwd() but better name.\n
+ * 
+ * getAxisAtHardBwd() is kept for backward compatibility
+ */
+int getAxisLimitSwitchBwd(int  axisIndex,
+                          int *value);
 
 /** \brief Get encoder homed bit.\n
  *

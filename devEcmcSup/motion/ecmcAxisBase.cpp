@@ -421,6 +421,11 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
     data_.interlocks_.noExecuteInterlock = false;
     data_.refreshInterlocks();
     data_.status_.busy = true;
+  } else {
+    traj_->setStartPos(data_.status_.currentPositionActual);
+    traj_->initStopRamp(data_.status_.currentPositionActual,
+                        data_.status_.currentVelocityActual,
+                        0);
   }
 
   data_.command_.trajSource = refSource;

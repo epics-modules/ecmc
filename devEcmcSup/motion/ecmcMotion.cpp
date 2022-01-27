@@ -1344,18 +1344,6 @@ int getAxisID(int axisIndex, int *value) {
   return 0;
 }
 
-/*int getAxisGearRatio(int axisIndex, double *value) {
-  LOGINFO4("%s/%s:%d axisIndex=%i\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
-
-  return axes[axisIndex]->getExternalTrajIF()->getGearRatio(value);
-}*/
-
 int getAxisAtHardFwd(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
@@ -1369,6 +1357,11 @@ int getAxisAtHardFwd(int axisIndex, int *value) {
   return 0;
 }
 
+// Just better name
+int getAxisLimitSwitchFwd(int axisIndex, int *value) {
+  return getAxisAtHardFwd(axisIndex,value);
+}
+
 int getAxisAtHardBwd(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
@@ -1380,6 +1373,11 @@ int getAxisAtHardBwd(int axisIndex, int *value) {
   * value = 0;
   *value  = axes[axisIndex]->getMon()->getHardLimitBwd() > 0;
   return 0;
+}
+
+// Just better name
+int getAxisLimitSwitchBwd(int axisIndex, int *value) {
+  return getAxisAtHardBwd(axisIndex,value);
 }
 
 int getAxisEncHomed(int axisIndex, int *value) {
