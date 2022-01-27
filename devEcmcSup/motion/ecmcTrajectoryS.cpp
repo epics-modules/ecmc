@@ -99,7 +99,7 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
   //  printf("Max vel:         %lf, acc  %lf, jerk %lf\n",input_->max_velocity[0],input_->max_acceleration[0],input_->max_jerk[0]);
   //  printf("Output pos:      %lf, vel  %lf, acc  %lf\n",output_->new_position[0],output_->new_velocity[0], output_->new_acceleration[0]);
   //  printf("Output prev pos: %lf, targ %lf\n",localCurrentPositionSetpoint_, targetPositionLocal_);
-  //  printf("error:           0x%x, busy_ %d, localBusy %d\n",getErrorID(),busy_,*trajBusy);
+  //  printf("error:           0x%x, busy_ %d, localBusy %d\n",getErrorID(),busy_,localBusy_);
   //}
 
   *trajBusy                     = localBusy_;
@@ -128,9 +128,9 @@ bool ecmcTrajectoryS::updateRuckig() {
         break;
       case Result::ErrorInvalidInput:
         setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_INVALID_INPUT);
-//        printf("Input pos %lf, vel %lf, acc %lf\n",input_->current_position[0],input_->current_velocity[0],input_->current_acceleration[0]);
-//        printf("Target pos %lf, vel %lf, acc %lf\n",input_->target_position[0],input_->target_velocity[0],input_->target_acceleration[0]);
-//        printf("Max vel %lf, acc %lf, jerk %lf\n",input_->max_velocity[0],input_->max_acceleration[0],input_->max_jerk[0]);
+        printf("Input pos %lf, vel %lf, acc %lf\n",input_->current_position[0],input_->current_velocity[0],input_->current_acceleration[0]);
+        printf("Target pos %lf, vel %lf, acc %lf\n",input_->target_position[0],input_->target_velocity[0],input_->target_acceleration[0]);
+        printf("Max vel %lf, acc %lf, jerk %lf\n",input_->max_velocity[0],input_->max_acceleration[0],input_->max_jerk[0]);
         break;
       case Result::ErrorTrajectoryDuration:
         setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_TRAJ_DURATION);
@@ -151,12 +151,12 @@ bool ecmcTrajectoryS::updateRuckig() {
         setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_ERROR);
         break;        
     }
-    LOGERR("%s/%s:%d: ERROR: Ruckig error  %d (0x%x).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        res,
-        getErrorID());
+    //LOGERR("%s/%s:%d: ERROR: Ruckig error  %d (0x%x).\n",
+    //    __FILE__,
+    //    __FUNCTION__,
+    //    __LINE__,
+    //    res,
+    //    getErrorID());
   }
   
   return res == Result::Working;
@@ -238,6 +238,14 @@ double ecmcTrajectoryS::moveStop(stopMode stopMode,
   *actAcceleration                = output_->new_acceleration[0];
   targetPosition_                 = output_->new_position[0];
   targetPositionLocal_            = output_->new_position[0];
+
+  //printf("Input pos:       %lf, vel  %lf, acc  %lf\n",input_->current_position[0],input_->current_velocity[0],input_->current_acceleration[0]);
+  //printf("Target pos:      %lf, vel  %lf, acc  %lf\n",input_->target_position[0],input_->target_velocity[0],input_->target_acceleration[0]);
+  //printf("Max vel:         %lf, acc  %lf, jerk %lf\n",input_->max_velocity[0],input_->max_acceleration[0],input_->max_jerk[0]);
+  //printf("Output pos:      %lf, vel  %lf, acc  %lf\n",output_->new_position[0],output_->new_velocity[0], output_->new_acceleration[0]);
+  //printf("Output prev pos: %lf, targ %lf\n",localCurrentPositionSetpoint_, targetPositionLocal_);
+  //printf("error:           0x%x, busy_ %d, stopped %d\n",getErrorID(),busy_,*stopped);
+  
   return output_->new_position[0];
 }
 
@@ -260,6 +268,9 @@ int ecmcTrajectoryS::initStopRamp(double currentPos,
                                   double currentVel,
                                   double currentAcc) {
   ecmcTrajectoryBase::initStopRamp(currentPos,currentVel,currentAcc);
+
+  localCurrentPositionSetpoint_ = currentPos;
+  targetVelocityLocal_ = currentVel;
   initRuckig();
   return 0;
 }
