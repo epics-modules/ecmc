@@ -275,7 +275,7 @@ int ecmcTrajectoryS::initStopRamp(double currentPos,
   localCurrentPositionSetpoint_ = currentPos;
 
   // Comming from external source to internal so velo might be high, max velo needs to be higher
-  if(trajMaxVelo_ > currentVel) {
+  if( currentVel > trajMaxVelo_) {
     trajMaxVelo_ = currentVel *1.1;
   }
 
