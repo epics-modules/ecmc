@@ -381,8 +381,8 @@ void ecmcTrajectoryBase::setJerk(double jerk) {
 }
 
 int ecmcTrajectoryBase::initStopRamp(double currentPos,
-                                        double currentVel,
-                                        double currentAcc) {
+                                     double currentVel,
+                                     double currentAcc) {
   enable_                  = true;
   busy_                    = true;
   currentPositionSetpoint_ = currentPos;

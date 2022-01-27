@@ -353,8 +353,12 @@ void ecmcTrajectoryTrapetz::setEnable(bool enable) {
 int ecmcTrajectoryTrapetz::initStopRamp(double currentPos,
                                         double currentVel,
                                         double currentAcc) {
+  
+  initTraj();
   ecmcTrajectoryBase::initStopRamp(currentPos,currentVel,currentAcc);
+  localCurrentPositionSetpoint_= currentPos;
   prevStepSize_ = currentVel * sampleTime_;  
+  stepNOM_ = std::abs(currentVel) * sampleTime_;
   return 0;
 }
 
