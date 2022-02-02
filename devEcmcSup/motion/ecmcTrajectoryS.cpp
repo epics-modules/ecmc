@@ -265,8 +265,12 @@ void ecmcTrajectoryS::setTargetPosLocal(double pos) {
 void ecmcTrajectoryS::setTargetVel(double velTarget) {
   ecmcTrajectoryBase::setTargetVel(velTarget);
   stepNOM_ = std::abs(velTarget * sampleTime_);
-  // needed for s-traj
-  trajMaxVelo_ = 1.1 * velTarget;
+  // needed for s-traj (check if already at a higher velo)
+  trajMaxVelo_ = std::abs(1.1 * velTarget);
+  if(currentVelocitySetpoint_ > velTarget) {
+    trajMaxVelo_= std::abs(currentVelocitySetpoint_ * 1.1);
+  }
+  
   targetVelocityLocal_ = velTarget;
 }
 
