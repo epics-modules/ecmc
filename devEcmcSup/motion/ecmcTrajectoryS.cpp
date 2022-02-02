@@ -267,6 +267,7 @@ void ecmcTrajectoryS::setTargetVel(double velTarget) {
   stepNOM_ = std::abs(velTarget * sampleTime_);
   // needed for s-traj
   trajMaxVelo_ = 1.1 * velTarget;
+  targetVelocityLocal_ = velTarget;
 }
 
 int ecmcTrajectoryS::initStopRamp(double currentPos,
