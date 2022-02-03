@@ -265,10 +265,10 @@ void ecmcTrajectoryS::setTargetPosLocal(double pos) {
 void ecmcTrajectoryS::setTargetVel(double velTarget) {
   ecmcTrajectoryBase::setTargetVel(velTarget);
   stepNOM_ = std::abs(velTarget * sampleTime_);
-  // needed for s-traj (check if already at a higher velo)
-  trajMaxVelo_ = std::abs(1.1 * velTarget);
-  if(currentVelocitySetpoint_ > velTarget) {
-    trajMaxVelo_= std::abs(currentVelocitySetpoint_ * 1.1);
+  // needed for s-traj (Max Velo always need to be higher than any velo)
+  // otherwise strange jumps in traj can occur..  
+  if( velTarget > trajMaxVelo_) {
+    trajMaxVelo_= std::abs(velTarget * 2);
   }
   
   targetVelocityLocal_ = velTarget;
@@ -282,8 +282,9 @@ int ecmcTrajectoryS::initStopRamp(double currentPos,
   localCurrentPositionSetpoint_ = currentPos;
 
   // Comming from external source to internal so velo might be high, max velo needs to be higher
+  //Max velo must be higher otherwise jumps in traj might occur
   if( currentVel > trajMaxVelo_) {
-    trajMaxVelo_ = currentVel *1.1;
+    trajMaxVelo_= std::abs(currentVel * 2);
   }
 
   targetVelocityLocal_ = targetVelocity_;  
