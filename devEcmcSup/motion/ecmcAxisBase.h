@@ -306,8 +306,7 @@ class ecmcAxisBase : public ecmcError {
   double                  oldPositionSet_;
 
   // For direct PV access (need extra paramteres to buffer since other execute behaviour)
-  ecmcAsynAxisControlType controlWord_;
-  ecmcAsynAxisControlType oldControlWord_;
+  ecmcAsynAxisControlType controlWord_;  
   double                  positionTarget_;
   double                  velocityTarget_;
   motionCommandTypes      command_;
