@@ -375,7 +375,7 @@ void ecmcAxisBase::setReset(bool reset) {
       getCntrl()->errorReset();
     }
   }
-  controlWord_.resetCmd = reset;
+  controlWord_.resetCmd = 0;
 }
 
 bool ecmcAxisBase::getReset() {
@@ -1759,7 +1759,6 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
     return asynError;
   }
 
-  oldControlWord_ = controlWord_;
   memcpy(&controlWord_,data,sizeof(controlWord_));
 
   int errorCode=0;
@@ -1769,16 +1768,19 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
     returnVal = asynError;
   }
 
-  if(controlWord_.stopCmd) {
+  if(controlWord_.stopCmd) {    
     errorCode = setExecute(0);
+    controlWord_.stopCmd = 0;  // auto reset
     if(errorCode) {
       returnVal = asynError;
     }
   }
 
   // trigg new motion.
-  if (!controlWord_.stopCmd && controlWord_.executeCmd && !oldControlWord_.executeCmd) {
+  if (!controlWord_.stopCmd && controlWord_.executeCmd) {
+    
     if (getSeq() == NULL) {
+      controlWord_.executeCmd = 0; // auto reset
       return asynError;
     }
     // allow on the fly updates of target velo and targte pos
@@ -1799,8 +1801,10 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
       }
     }
   }
+  controlWord_.executeCmd = 0; // auto reset
 
-  setReset(controlWord_.resetCmd);
+  setReset(controlWord_.resetCmd);  //resetCmd is reset in setReset()
+  
   
   errorCode = setEncDataSourceType((controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL:ECMC_DATA_SOURCE_INTERNAL));
   if(errorCode) {
@@ -1849,8 +1853,7 @@ void ecmcAxisBase::initControlWord() {
   controlWord_.trajSourceCmd = getTrajDataSourceType() == ECMC_DATA_SOURCE_EXTERNAL;
   controlWord_.plcCmdsAllowCmd = getAllowCmdFromPLC();
   controlWord_.enableSoftLimitBwd = data_.command_.enableSoftLimitBwd;
-  controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;
-  oldControlWord_ = controlWord_;
+  controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd; 
 }
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType) {
