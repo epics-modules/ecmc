@@ -1745,14 +1745,17 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
  * 
- * controlWord_.enableCmd       
- * controlWord_.executeCmd      
- * controlWord_.resetCmd        
- * controlWord_.encSourceCmd    
- * controlWord_.trajSourceCmd   
- * controlWord_.plcCmdsAllowCmd 
- * controlWord_.plcEnableCmd    
- * controlWord_.spareBitsCmd    
+ * controlWord_.enableCmd
+ * controlWord_.executeCmd
+ * controlWord_.stopCmd
+ * controlWord_.resetCmd
+ * controlWord_.encSourceCmd
+ * controlWord_.trajSourceCmd
+ * controlWord_.plcEnableCmd
+ * controlWord_.plcCmdsAllowCmd
+ * controlWord_.enableSoftLimitBwd
+ * controlWord_.enableSoftLimitFwd
+ * 
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType) 
 {
@@ -1771,7 +1774,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
   oldControlWord_ = controlWord_;
   memcpy(&controlWord_,data,sizeof(controlWord_));
 
-  int errorCode=0;
+  int errorCode = 0;
 
   errorCode = setEnable(controlWord_.enableCmd);
   if(errorCode) {
