@@ -1850,6 +1850,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
 
   refreshStatusWd();
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
+  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_NAME]->refreshParamRT(1);
   return returnVal;
 }
 
