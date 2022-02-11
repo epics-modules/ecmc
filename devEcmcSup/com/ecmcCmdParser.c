@@ -311,7 +311,7 @@ static int motorHandleADS_ADR_getFloat(ecmcOutputBufferType *buffer,
       case 0x6:
 
         // ADSPORT=501/.ADR.16#4001,16#6,8,5?; #Homing velocity towards cam
-        return getAxisHomeVelTwordsCam(motor_axis_no, fValue);
+        return getAxisHomeVelTowardsCam(motor_axis_no, fValue);
 
       case 0x7:
 
@@ -440,7 +440,7 @@ static int motorHandleADS_ADR_putFloat(ecmcOutputBufferType *buffer,
       // ADSPORT=501/.ADR.16#4001,16#6,8,5=200; #Homing velocity towards cam
       switch (offset_in_group) {
       case 0x6:
-        return setAxisHomeVelTwordsCam(motor_axis_no, fValue);
+        return setAxisHomeVelTowardsCam(motor_axis_no, fValue);
 
       // ADSPORT=501/.ADR.16#4001,16#7,8,5=100; #Homing velocity off cam
       case 0x7:
@@ -1955,11 +1955,11 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisHomePos(iValue, dValue);
   }
 
-  /*int Cfg.SetAxisHomeVelTwordsCam(int axis_no, double value);*/
-  nvals = sscanf(myarg_1, "SetAxisHomeVelTwordsCam(%d,%lf)", &iValue, &dValue);
+  /*int Cfg.SetAxisHomeVelTowardsCam(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisHomeVelTowardsCam(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
-    return setAxisHomeVelTwordsCam(iValue, dValue);
+    return setAxisHomeVelTowardsCam(iValue, dValue);
   }
 
   /*int Cfg.SetAxisHomeVelOffCam(int axis_no, double value);*/

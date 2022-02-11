@@ -247,7 +247,7 @@ class ecmcAxisBase : public ecmcError {
                                           double decelerationSet);
   int                        moveHome(int    nCmdData,
                                       double homePositionSet,
-                                      double velocityTwordsCamSet,
+                                      double velocityTowardsCamSet,
                                       double velocityOffCamSet,                            
                                       double accelerationSet,
                                       double decelerationSet);

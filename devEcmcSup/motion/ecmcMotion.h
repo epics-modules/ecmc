@@ -171,7 +171,7 @@ int stopMotion(int axisIndex,
  * \param[in] axisIndex Axis index.\n
  * \param[in] nCmdData Homing sequence number.\n
  * \param[in] homePositionSet Position to set at homing.\n
- * \param[in] velocityTwordsCamSet Velocity setpoint twords cam.\n
+ * \param[in] velocityTowardsCamSet Velocity setpoint Towards cam.\n
  * \param[in] velocityOffCamSet Velocity setpoint off cam.\n
  * \param[in] accelerationSet Acceleration setpoint.\n
  * \param[in] decelerationSet Deceleration setpoint.\n
@@ -181,7 +181,7 @@ int stopMotion(int axisIndex,
 int moveHome(int    axisIndex,
              int    nCmdData,
              double homePositionSet,
-             double velocityTwordsCamSet,
+             double velocityTowardsCamSet,
              double velocityOffCamSet,                            
              double accelerationSet,
              double decelerationSet);
@@ -724,7 +724,7 @@ int getAxisCntrlError(int     axisIndex,
  *
  * This velocity setpoint is only used during homing sequence when the
  * reference switch already have been found. See command
- * "getAxisHomeVelTwordsCam()" for more information.\n
+ * "getAxisHomeVelTowardsCam()" for more information.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] value Velocity setpoint.\n
@@ -739,10 +739,10 @@ int getAxisCntrlError(int     axisIndex,
 int getAxisHomeVelOffCam(int     axisIndex,
                          double *value);
 
-/** \brief Get twords cam referencing/homing velocity setpoint.\n
+/** \brief Get Towards cam referencing/homing velocity setpoint.\n
  *
  * This velocity setpoint is only used during homing sequence when finding
- * the reference switch. See command "getAxisHomeVelTwordsCam()" for more
+ * the reference switch. See command "getAxisHomeVelTowardsCam()" for more
  * information.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -750,12 +750,12 @@ int getAxisHomeVelOffCam(int     axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Get twords cam referencing/homing velocity setpoint for axes 3.\n
+ * \note Example: Get Towards cam referencing/homing velocity setpoint for axes 3.\n
  * "ADSPORT=501/.ADR.16#4003,16#6,8,5?" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisHomeVelTwordsCam(int     axisIndex,
+int getAxisHomeVelTowardsCam(int     axisIndex,
                             double *value);
 
 /** \brief Get the numerator part of the encoder scale.\n
@@ -1489,12 +1489,12 @@ int setAxisHomePos(int    axisIndex,
 int setAxisHomeLatchCountOffset(int axisIndex,
                                 int count);
 
-/** \brief Set twords cam referencing/homing velocity setpoint.\n
+/** \brief Set Towards cam referencing/homing velocity setpoint.\n
  *
  * This velocity setpoint is only used during homing sequence when finding
- * the reference switch. See command "getAxisHomeVelTwordsCam()" for more
+ * the reference switch. See command "getAxisHomeVelTowardsCam()" for more
  * information.\n
- * Normally the off cam velocity setpoint is lower than the twords cam setpoint
+ * Normally the off cam velocity setpoint is lower than the towards cam setpoint
  * since the accuracy of homing is depending on how accurate the signal edge
  * of the reference switch can be identified.\n
  *
@@ -1503,21 +1503,21 @@ int setAxisHomeLatchCountOffset(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set twords cam referencing/homing velocity setpoint for axes
+ * \note Example: Set towards cam referencing/homing velocity setpoint for axes
  * 3 to 10.\n
  * "ADSPORT=501/.ADR.16#4003,16#6,8,5=10" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int setAxisHomeVelTwordsCam(int    axisIndex,
+int setAxisHomeVelTowardsCam(int    axisIndex,
                             double dVel);
 
 /** \brief Set off cam referencing/homing velocity setpoint.\n
  *
  * This velocity setpoint is only used during homing sequence when the
  * reference switch already have been found. See command
- * "getAxisHomeVelTwordsCam()" for more information.\n
- * Normally the off cam velocity setpoint is lower than the twords cam setpoint
+ * "getAxisHomeVelTowardsCam()" for more information.\n
+ * Normally the off cam velocity setpoint is lower than the Towards cam setpoint
  * since the accuracy of homing is depending on how accurate the signal edge
  * of the reference switch can be identified.\n
  *

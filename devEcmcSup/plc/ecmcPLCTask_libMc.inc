@@ -228,7 +228,7 @@ inline double mc_home(double axIndex,double execute,double seqId, double velTwoa
     if(mc_errorCode){
       return mc_errorCode;
     }    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelTwordsCam(velTwoardsCam);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelTowardsCam(velTwoardsCam);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -280,7 +280,7 @@ inline double mc_home_pos(double axIndex,double execute,double seqId, double vel
     if(mc_errorCode){
       return mc_errorCode;
     }    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelTwordsCam(velTwoardsCam);
+    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelTowardsCam(velTwoardsCam);
     if(mc_errorCode){
       return mc_errorCode;
     }

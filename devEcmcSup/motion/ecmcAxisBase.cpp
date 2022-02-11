@@ -1642,7 +1642,7 @@ int ecmcAxisBase::moveVelocity(
 
 int ecmcAxisBase::moveHome(int    nCmdData,
                            double homePositionSet,
-                           double velocityTwordsCamSet,
+                           double velocityTowardsCamSet,
                            double velocityOffCamSet,                            
                            double accelerationSet,
                            double decelerationSet
@@ -1681,7 +1681,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
   }
   getSeq()->setHomePosition(homePositionSet);
   getSeq()->setHomeVelOffCam(velocityOffCamSet);
-  getSeq()->setHomeVelTwordsCam(velocityTwordsCamSet);
+  getSeq()->setHomeVelTowardsCam(velocityTowardsCamSet);
   getTraj()->setAcc(accelerationSet);
   getTraj()->setDec(decelerationSet);
   errorCode = setExecute(1);

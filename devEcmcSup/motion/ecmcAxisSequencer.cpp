@@ -31,7 +31,7 @@ void ecmcAxisSequencer::initVars() {
   cntrl_                 = NULL;
   drv_                   = NULL;
   jogVel_                = 0;
-  homeVelTwordsCam_      = 0;
+  homeVelTowardsCam_      = 0;
   homeVelOffCam_         = 0;
   homePosition_          = 0;
   jogFwd_                = false;
@@ -533,8 +533,8 @@ double ecmcAxisSequencer::getJogVel() {
   return jogVel_;
 }
 
-int ecmcAxisSequencer::setHomeVelTwordsCam(double vel) {
-  homeVelTwordsCam_ = vel;
+int ecmcAxisSequencer::setHomeVelTowardsCam(double vel) {
+  homeVelTowardsCam_ = vel;
   return 0;
 }
 
@@ -543,8 +543,8 @@ int ecmcAxisSequencer::setHomeVelOffCam(double vel) {
   return 0;
 }
 
-double ecmcAxisSequencer::getHomeVelTwordsCam() {
-  return homeVelTwordsCam_;
+double ecmcAxisSequencer::getHomeVelTowardsCam() {
+  return homeVelTowardsCam_;
 }
 
 double ecmcAxisSequencer::getHomeVelOffCam() {
@@ -724,8 +724,8 @@ int ecmcAxisSequencer::seqHoming1() {  // nCmdData==1
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed = HomeVelTowardsCam
+  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in positive direction
   // State 3 Latch encoder value on falling or rising edge of bwd limit switch sensor.
   // State 4 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
@@ -744,7 +744,7 @@ int ecmcAxisSequencer::seqHoming1() {  // nCmdData==1
 
     if (hwLimitSwitchBwd_) {
       currSeqDirection_ = ECMC_DIR_BACKWARD;  // StartDirection
-      traj_->setTargetVel(-homeVelTwordsCam_);   // high speed
+      traj_->setTargetVel(-homeVelTowardsCam_);   // high speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -831,8 +831,8 @@ int ecmcAxisSequencer::seqHoming2() {  // nCmdData==2
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in negative direction
   // State 3 Latch encoder value on falling or rising edge of fwd limit switch sensor.
   // State 4 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
@@ -851,7 +851,7 @@ int ecmcAxisSequencer::seqHoming2() {  // nCmdData==2
 
     if (hwLimitSwitchFwd_) {
       currSeqDirection_ = ECMC_DIR_FORWARD;  // StartDirection
-      traj_->setTargetVel(homeVelTwordsCam_);  // High speed
+      traj_->setTargetVel(homeVelTowardsCam_);  // High speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -937,8 +937,8 @@ int ecmcAxisSequencer::seqHoming3() {  // nCmdData==3
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in positive direction
   // State 3 Latch encoder value on falling or rising edge of home sensor.
   // State 4 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
@@ -957,7 +957,7 @@ int ecmcAxisSequencer::seqHoming3() {  // nCmdData==3
 
     if (hwLimitSwitchBwd_) {
       currSeqDirection_ = ECMC_DIR_BACKWARD;  // StartDirection
-      traj_->setTargetVel(-homeVelTwordsCam_);   // high speed
+      traj_->setTargetVel(-homeVelTowardsCam_);   // high speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -1053,8 +1053,8 @@ int ecmcAxisSequencer::seqHoming4() {  // nCmdData==4
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in negative direction
   // State 3 Latch encoder value on falling or rising edge of home sensor.
   // State 4 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
@@ -1073,7 +1073,7 @@ int ecmcAxisSequencer::seqHoming4() {  // nCmdData==4
 
     if (hwLimitSwitchFwd_) {
       currSeqDirection_ = ECMC_DIR_FORWARD;  // StartDirection
-      traj_->setTargetVel(homeVelTwordsCam_);   // high speed
+      traj_->setTargetVel(homeVelTowardsCam_);   // high speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -1170,8 +1170,8 @@ int ecmcAxisSequencer::seqHoming5() {  // nCmdData==5
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in positive direction
   // State 3 Latch encoder value on falling or rising edge of home sensor. Continue movement
   // State 4 Wait for falling or rising edge of home sensor then stop
@@ -1194,7 +1194,7 @@ int ecmcAxisSequencer::seqHoming5() {  // nCmdData==5
 
     if (hwLimitSwitchBwd_) {
       currSeqDirection_ = ECMC_DIR_BACKWARD;  // StartDirection
-      traj_->setTargetVel(-homeVelTwordsCam_);  // High speed
+      traj_->setTargetVel(-homeVelTowardsCam_);  // High speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -1349,8 +1349,8 @@ int ecmcAxisSequencer::seqHoming6() {  // nCmdData==6
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for negative edge of fwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for negative edge of fwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in negative direction
   // State 3 Latch encoder value on falling or rising edge of home sensor. Continue movement
   // State 4 Wait for falling or rising edge of home sensor then stop
@@ -1372,7 +1372,7 @@ int ecmcAxisSequencer::seqHoming6() {  // nCmdData==6
     initHomingSeq();
     if (hwLimitSwitchFwd_) {
       currSeqDirection_ = ECMC_DIR_FORWARD;   // StartDirection
-      traj_->setTargetVel(homeVelTwordsCam_);  // High speed
+      traj_->setTargetVel(homeVelTowardsCam_);  // High speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -1672,7 +1672,7 @@ int ecmcAxisSequencer::seqHoming9() {  // nCmdData==9
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in backward, speed =_dHomeVelTwordsCam
+  // State 0 set parameters and trigger motion in backward, speed =HomeVelTowardsCam
   // State 1 Latch encoder value rising edge of home sensor. Continue movement
   // State 2 Wait for falling edge of home sensor then stop
   // State 3 Wait for standstill and the trigger move
@@ -1814,7 +1814,7 @@ int ecmcAxisSequencer::seqHoming10() {  // nCmdData==10
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
   
-  // State 0 set parameters and trigger motion in forward, speed =_dHomeVelTwordsCam
+  // State 0 set parameters and trigger motion in forward, speed =HomeVelTowardsCam
   // State 1 Latch encoder value rising edge of home sensor. Continue movement
   // State 2 Wait for falling edge of home sensor then stop
   // State 3 Wait for standstill and the trigger move
@@ -1956,13 +1956,12 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in positive direction
   // State 3 Wait for leaving limit switch.
   // State 4 Arm hw latch and wait for the deifned counts of latches (rearm for each latch)
   // State 5 Wait for standstill before rescale of encoder. Calculate encoder offset and set encoder homed bit
-
 
   int retValue = traj_->getErrorID();  // Abort if error from trajectory
 
@@ -1992,7 +1991,7 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
 
     if (hwLimitSwitchBwd_) {
       currSeqDirection_ = ECMC_DIR_BACKWARD;  // StartDirection
-      traj_->setTargetVel(-homeVelTwordsCam_);   // high speed
+      traj_->setTargetVel(-homeVelTowardsCam_);   // high speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -2108,8 +2107,8 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in negative direction
   // State 3 Wait for leaving limit switch.
   // State 4 Arm hw latch and wait for the deifned counts of latches (rearm for each latch)
@@ -2142,7 +2141,7 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
     initHomingSeq();
     if (hwLimitSwitchFwd_) {
       currSeqDirection_ = ECMC_DIR_FORWARD;  // StartDirection
-      traj_->setTargetVel(homeVelTwordsCam_);   // high speed
+      traj_->setTargetVel(homeVelTowardsCam_);   // high speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -2260,8 +2259,8 @@ int ecmcAxisSequencer::seqHoming21() {  // nCmdData==21 Resolver homing (keep ab
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
 
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for negative edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in positive direction
   // State 3 Wait for leaving limit switch.
   // State 4 Wait for over/underflow of absolute encoder bits.
@@ -2314,7 +2313,7 @@ int ecmcAxisSequencer::seqHoming21() {  // nCmdData==21 Resolver homing (keep ab
     initHomingSeq();
     if (hwLimitSwitchBwd_) {
       currSeqDirection_ = ECMC_DIR_BACKWARD;  // StartDirection
-      traj_->setTargetVel(-homeVelTwordsCam_);   // high speed
+      traj_->setTargetVel(-homeVelTowardsCam_);   // high speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -2415,8 +2414,8 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
   // Return > 0 error
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
-  // State 0 set parameters and trigger motion in nHomeDirection, speed =_dHomeVelTwordsCam
-  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to _dHomeVelOffCam
+  // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
+  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in negative direction
   // State 3 Wait for leaving limit switch.
   // State 4 Wait for over/underflow of absolute encoder bits.
@@ -2469,7 +2468,7 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
     initHomingSeq();
     if (hwLimitSwitchFwd_) {
       currSeqDirection_ = ECMC_DIR_FORWARD;  // StartDirection
-      traj_->setTargetVel(homeVelTwordsCam_);   // high speed
+      traj_->setTargetVel(homeVelTowardsCam_);   // high speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);
       seqState_ = 1;
@@ -2592,7 +2591,7 @@ int ecmcAxisSequencer::postHomeMove() {
     case 1001:
       if (!traj_->getBusy()){
         traj_->setMotionMode(ECMC_MOVE_MODE_POS);
-        traj_->setTargetVel(homeVelTwordsCam_);
+        traj_->setTargetVel(homeVelTowardsCam_);
         traj_->setTargetPos(homePostMoveTargetPos_);
         traj_->setExecute(1);
         seqState_ = 1002;
@@ -2710,7 +2709,7 @@ int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData *data) {
 
 int ecmcAxisSequencer::checkVelAccDec() {
   if (data_->command_.command == ECMC_CMD_HOMING && data_->command_.cmdData != ECMC_SEQ_HOME_SET_POS) {
-    if ((std::abs(homeVelTwordsCam_) == 0) ||
+    if ((std::abs(homeVelTowardsCam_) == 0) ||
         (std::abs(homeVelOffCam_) == 0)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,

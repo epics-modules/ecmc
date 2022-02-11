@@ -117,12 +117,12 @@ int moveVelocity(int    axisIndex,
 int moveHome(int    axisIndex,
              int    nCmdData,
              double homePositionSet,
-             double velocityTwordsCamSet,
+             double velocityTowardsCamSet,
              double velocityOffCamSet,                            
              double accelerationSet,
              double decelerationSet) {
 LOGINFO4(
-    "%s/%s:%d axisIndex=%d, nCmdData=%d, homePositionSet=%lf, velocityTwordsCamSet=%lf, "
+    "%s/%s:%d axisIndex=%d, nCmdData=%d, homePositionSet=%lf, velocityTowardsCamSet=%lf, "
     "velocityOffCamSet=%lf, accelerationSet=%lf, decelerationSet=%lf\n",
     __FILE__,
     __FUNCTION__,
@@ -130,7 +130,7 @@ LOGINFO4(
     axisIndex,
     nCmdData,
     homePositionSet,
-    velocityTwordsCamSet,
+    velocityTowardsCamSet,
     velocityOffCamSet,
     accelerationSet,
     decelerationSet);
@@ -141,7 +141,7 @@ LOGINFO4(
 
   return axes[axisIndex]->moveHome(nCmdData,
                                    homePositionSet,
-                                   velocityTwordsCamSet,
+                                   velocityTowardsCamSet,
                                    velocityOffCamSet,                            
                                    accelerationSet,
                                    decelerationSet);
@@ -845,7 +845,7 @@ int setAxisExtSetPos(int    axisIndex,
 
 }
 
-int setAxisHomeVelTwordsCam(int axisIndex, double dVel) {
+int setAxisHomeVelTowardsCam(int axisIndex, double dVel) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,
            __FUNCTION__,
@@ -856,7 +856,7 @@ int setAxisHomeVelTwordsCam(int axisIndex, double dVel) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->setHomeVelTwordsCam(dVel);
+  return axes[axisIndex]->getSeq()->setHomeVelTowardsCam(dVel);
 }
 
 int setAxisHomeVelOffCam(int axisIndex, double dVel) {
@@ -1479,7 +1479,7 @@ int getAxisHomeVelOffCam(int axisIndex, double *value) {
   return 0;
 }
 
-int getAxisHomeVelTwordsCam(int axisIndex, double *value) {
+int getAxisHomeVelTowardsCam(int axisIndex, double *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -1488,7 +1488,7 @@ int getAxisHomeVelTwordsCam(int axisIndex, double *value) {
   
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex);
 
-  *value = axes[axisIndex]->getSeq()->getHomeVelTwordsCam();
+  *value = axes[axisIndex]->getSeq()->getHomeVelTowardsCam();
   return 0;
 }
 

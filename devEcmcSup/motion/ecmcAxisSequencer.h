@@ -88,9 +88,9 @@ class ecmcAxisSequencer : public ecmcError {
   bool                   getBusy();
   void                   setJogVel(double velTarget);
   double                 getJogVel();
-  int                    setHomeVelTwordsCam(double vel);
+  int                    setHomeVelTowardsCam(double vel);
   int                    setHomeVelOffCam(double vel);
-  double                 getHomeVelTwordsCam();
+  double                 getHomeVelTowardsCam();
   double                 getHomeVelOffCam();
   void                   setHomePosition(double pos);
   double                 getHomePosition();
@@ -172,7 +172,7 @@ class ecmcAxisSequencer : public ecmcError {
   bool homeEnablePostMove_;
   double homePostMoveTargetPos_;
   double jogVel_;
-  double homeVelTwordsCam_;
+  double homeVelTowardsCam_;
   double homeVelOffCam_;
   double homePosition_;
   double homePosLatch1_;
