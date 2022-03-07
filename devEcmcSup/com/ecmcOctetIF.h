@@ -16,13 +16,12 @@
 # define __STDC_FORMAT_MACROS // To have PRIx64
 # include <inttypes.h>
 
+/* asynPrintf() */
+# include "asynDriver.h"
+
 # ifdef __cplusplus
 extern "C" {
 # endif /* ifdef __cplusplus */
-
-
-/* asynPrintf() */
-# include "asynDriver.h"
 
 # ifndef ASYN_TRACE_INFO
 #  define ASYN_TRACE_INFO      0x0040
