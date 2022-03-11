@@ -310,6 +310,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   
   // Update asyn parameters  
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
@@ -855,6 +856,20 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
+
+  // Act vel
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_VEL_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t *)&(statusData_.onChangeData.velocityActual),
+                              sizeof(statusData_.onChangeData.velocityActual),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID] = paramTemp;
 
   // Set pos
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
