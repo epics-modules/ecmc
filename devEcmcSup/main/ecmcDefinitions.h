@@ -195,7 +195,9 @@
 #define ECMC_ASYN_AX_CMDDATA_NAME "cmddata"
 #define ECMC_ASYN_AX_ERROR_ID 10
 #define ECMC_ASYN_AX_ERROR_NAME "errorid"
-#define ECMC_ASYN_AX_PAR_COUNT 11
+#define ECMC_ASYN_AX_ACT_VEL_ID 11
+#define ECMC_ASYN_AX_ACT_VEL_NAME "actvel"
+#define ECMC_ASYN_AX_PAR_COUNT 12
 
 // Motion
 enum app_mode_type {
