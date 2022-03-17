@@ -1242,7 +1242,7 @@ void ecmcAxisBase::refreshStatusWd() {
   // bit 14 softlimfwdena
   statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitFwd > 0;
   // bit 15 softlimbwdena  
-  statusData_.onChangeData.statusWd.softlimfwdena = data_.command_.enableSoftLimitBwd > 0;
+  statusData_.onChangeData.statusWd.softlimbwdena = data_.command_.enableSoftLimitBwd > 0;
   // bit 16 inStartupPhase
   statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase > 0;
   // bit 17 sumilockfwd
