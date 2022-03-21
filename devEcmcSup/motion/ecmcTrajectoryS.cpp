@@ -115,7 +115,7 @@ void ecmcTrajectoryS::initRuckig() {
   input_->current_velocity[0]     = currentVelocitySetpoint_;
   input_->current_acceleration[0] = currentAccelerationSetpoint_;
   // Position step for const velo
-  stepNOM_                        = std::abs(targetVelocityLocal_ * sampleTime_);
+  stepNOM_                        = std::abs(targetVelocity_ * sampleTime_);
 }
 
 bool ecmcTrajectoryS::updateRuckig() {
@@ -171,7 +171,7 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
   input_->control_interface      = ControlInterface::Velocity;
 
   if(execute_) {
-    input_->target_velocity[0]   = targetVelocityLocal_;
+    input_->target_velocity[0]   = targetVelocity_;
   } else {    
     input_->target_velocity[0]   = 0;    
   }
@@ -187,9 +187,9 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
   
   if(!ruckigBusy && *actVelocity != 0) {    
     // ramp up by ruckig is complete. Just continue in that velo
-    *actVelocity                 = targetVelocityLocal_;
+    *actVelocity                 = targetVelocity_;
     *actAcceleration             = 0;
-    if(targetVelocityLocal_ >= 0) {
+    if(targetVelocity_ >= 0) {
       positionSetpoint = localCurrentPositionSetpoint_ + stepNOM_;
     } else {
       positionSetpoint = localCurrentPositionSetpoint_ - stepNOM_;
@@ -210,7 +210,7 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
   input_->target_position[0]     = targetPositionLocal_;
   input_->target_velocity[0]     = 0;
   input_->target_acceleration[0] = 0;
-  input_->max_velocity[0]        = std::abs(trajMaxVelo_);
+  input_->max_velocity[0]        = std::abs(targetVelocityLocal_);
   input_->max_acceleration[0]    = std::abs(targetAcceleration_);
   input_->max_jerk[0]            = std::abs(targetJerk_);
   *trajBusy                      = updateRuckig();
@@ -228,7 +228,7 @@ double ecmcTrajectoryS::moveStop(stopMode stopMode,
   input_->control_interface       = ControlInterface::Velocity;
   input_->target_velocity[0]      = 0;  // stop
   input_->target_acceleration[0]  = 0;
-  input_->max_velocity[0]         = std::abs(trajMaxVelo_);
+  input_->max_velocity[0]         = std::abs(targetVelocityLocal_);
   if (stopMode == ECMC_STOP_MODE_EMERGENCY) {    
     input_->max_acceleration[0]  = std::abs(targetDecelerationEmerg_);
   } else {
@@ -267,11 +267,11 @@ void ecmcTrajectoryS::setTargetVel(double velTarget) {
   stepNOM_ = std::abs(velTarget * sampleTime_);
   // needed for s-traj (Max Velo always need to be higher than any velo)
   // otherwise strange jumps in traj can occur..  
-  if( velTarget > trajMaxVelo_) {
+  if( std::abs(velTarget) > std::abs(trajMaxVelo_)) {
     trajMaxVelo_= std::abs(velTarget * 2);
   }
   
-  targetVelocityLocal_ = velTarget;
+  //targetVelocityLocal_ = velTarget;
 }
 
 int ecmcTrajectoryS::initStopRamp(double currentPos,
@@ -283,7 +283,7 @@ int ecmcTrajectoryS::initStopRamp(double currentPos,
 
   // Comming from external source to internal so velo might be high, max velo needs to be higher
   //Max velo must be higher otherwise jumps in traj might occur
-  if( currentVel > trajMaxVelo_) {
+  if( std::abs(currentVel) > std::abs(trajMaxVelo_)) {
     trajMaxVelo_= std::abs(currentVel * 2);
   }
 
@@ -293,9 +293,9 @@ int ecmcTrajectoryS::initStopRamp(double currentPos,
 }
 
 int ecmcTrajectoryS::setExecute(bool execute) {
-   if(execute && !execute_) {
-     initRuckig();
+   if(execute && !execute_) {     
      targetVelocityLocal_ = targetVelocity_;
+     initRuckig();
    }
 
    return ecmcTrajectoryBase::setExecute(execute);
