@@ -1788,6 +1788,34 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
 
   memcpy(&controlWord_,data,sizeof(controlWord_));
 
+  // Check if com is blocked but allow stop cmd
+  if(blockExtCom_) {
+    bool refreshNeeded=false;
+    // allow to stop and disable but still go to error state
+    if(!controlWord_.enableCmd) {
+      setEnable(controlWord_.enableCmd);
+      refreshNeeded = true;
+    }
+    if(controlWord_.stopCmd) {
+      setExecute(0);
+      controlWord_.stopCmd = 0;  // auto reset
+      refreshNeeded = true;
+    }
+
+    if(refreshNeeded){
+      refreshStatusWd();
+    }
+    
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Communication blocked (stopCmd==1 and enableCmd==0 still can be used) (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED);
+    return asynError;
+  }
+
   int errorCode = 0;
 
   errorCode = setEnable(controlWord_.enableCmd);
