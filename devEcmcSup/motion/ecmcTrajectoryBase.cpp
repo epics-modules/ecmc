@@ -174,7 +174,7 @@ int ecmcTrajectoryBase::validate() {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           ERROR_TRAJ_MOD_FACTOR_OUT_OF_RANGE);
+           ERROR_TRAJ_INVALID_SAMPLE_TIME);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
