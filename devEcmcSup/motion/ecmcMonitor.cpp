@@ -600,7 +600,8 @@ int ecmcMonitor::checkAtTarget() {
       if (atTargetCounter_ > atTargetTime_) {
         atTarget = true;
       }
-    } else {
+    } else {      
+      printf("cntrlError %lf, currentTargetPositionModulo %lf, currentPositionSetpoint %lf\n", data_->status_.cntrlError, data_->status_.currentTargetPositionModulo,data_->status_.currentPositionSetpoint);
       atTargetCounter_ = 0;
     }
   } else {
