@@ -217,7 +217,11 @@ double ecmcTrajectoryS::movePos(double *actVelocity,
   *actVelocity                   = output_->new_velocity[0];
   *actAcceleration               = output_->new_acceleration[0];
 
-  return output_->new_position[0];
+  if(*trajBusy) {
+    return output_->new_position[0];
+  } else {
+    return targetPositionLocal_;
+  }
 }
 
 double ecmcTrajectoryS::moveStop(stopMode stopMode,
