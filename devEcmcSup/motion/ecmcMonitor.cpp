@@ -601,7 +601,13 @@ int ecmcMonitor::checkAtTarget() {
         atTarget = true;
       }
     } else {      
-      printf("cntrlError %lf, currentTargetPositionModulo %lf, currentPositionSetpoint %lf\n", data_->status_.cntrlError, data_->status_.currentTargetPositionModulo,data_->status_.currentPositionSetpoint);
+      printf("cntrlError %lf, currentTargetPositionModulo %lf, currentPositionSetpoint %lf, equal %d, tol %lf, counter %d \n", 
+              data_->status_.cntrlError, 
+              data_->status_.currentTargetPositionModulo,
+              data_->status_.currentPositionSetpoint,
+              data_->status_.currentTargetPositionModulo == data_->status_.currentPositionSetpoint,
+              atTargetTol_, 
+              atTargetCounter_);
       atTargetCounter_ = 0;
     }
   } else {
