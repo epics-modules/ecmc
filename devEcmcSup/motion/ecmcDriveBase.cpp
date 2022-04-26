@@ -247,6 +247,7 @@ int ecmcDriveBase::getEnableReduceTorque() {
 }
 
 void ecmcDriveBase::writeEntries() {
+
   if (!driveInterlocksOK() && data_->command_.enable) {
     data_->command_.enable = false;
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
@@ -638,18 +639,42 @@ int ecmcDriveBase::updateBrakeState() {
 
     // Purpose: Postpone opening of brake
     enableAmpCmd_ = 1;
-
     if (brakeCounter_ >= brakeOpenDelayTime_) {
-      brakeState_     = ECMC_BRAKE_OPEN;
-      brakeOutputCmd_ = 1;
+      
+      if(!data_->status_.enabled) {
+        data_->command_.enable = 0;
+        brakeOutputCmd_ = 0;
+        brakeCounter_   = 0;
+        enableAmpCmd_   = 0;
+        enableCmdOld_   = 0;  // to not trigger ECMC_BRAKE_CLOSING
+        brakeState_     = ECMC_BRAKE_CLOSED;
+      } else {
+        brakeState_     = ECMC_BRAKE_OPEN;      
+        brakeOutputCmd_ = 1;
+      }
     }
-    brakeCounter_++;
+
+    // only start countinmg if enabled
+    if(data_->status_.enabled) {
+      brakeCounter_++;
+    }
+
     break;
 
   case ECMC_BRAKE_OPEN:
-    brakeOutputCmd_ = 1;
-    brakeCounter_   = 0;
-    enableAmpCmd_   = 1;
+    // enabled lost
+    if(!data_->status_.enabled) {
+      data_->command_.enable = 0;
+      brakeOutputCmd_ = 0;
+      brakeCounter_   = 0;
+      enableAmpCmd_   = 0;
+      enableCmdOld_   = 0;  // to not trigger ECMC_BRAKE_CLOSING
+      brakeState_     = ECMC_BRAKE_CLOSED;
+    } else {
+      brakeOutputCmd_ = 1;
+      brakeCounter_   = 0;
+      enableAmpCmd_   = 1;
+    }
     break;
 
   case ECMC_BRAKE_CLOSING:
