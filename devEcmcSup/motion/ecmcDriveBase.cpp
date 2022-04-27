@@ -74,7 +74,8 @@ void ecmcDriveBase::initVars() {
   hwErrorAlarm2Defined_      = false;
   hwWarningDefined_          = false;
   stateMachineTimeoutCycles_ = 0;
-  cycleCounter_              = 0;
+  cycleCounterBase_          = 0;
+  localEnabledOld_           = 0;  
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -198,7 +199,7 @@ int ecmcDriveBase::setEnable(bool enable) {
 
   manualModeEnableAmpCmdOld_ = manualModeEnableAmpCmd_;
   manualModeEnableAmpCmd_    = enable;
-  cycleCounter_ = 0;
+  cycleCounterBase_ = 0;
   return 0;
 }
 
@@ -337,6 +338,34 @@ void ecmcDriveBase::writeEntries() {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
   }
+
+  // Timeout?  
+  if(!getEnabledLocal() && data_->command_.enable) {
+    cycleCounterBase_++;
+    if(cycleCounterBase_ > stateMachineTimeoutCycles_) {
+      // Enable cmd timeout (not recived enable within time period)
+      cycleCounterBase_ = 0;
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_STATE_MACHINE_TIME_OUT);
+    }
+  }  else {
+    cycleCounterBase_ = 0;
+  }
+
+  // Enabled lost?
+  if(!getEnabledLocal() && localEnabledOld_ && data_->command_.enable) {
+      data_->command_.enable = 0;
+      LOGERR("%s/%s:%d: WARNING (axis %d): Drive enabled lost while enable cmd is high.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_);
+  }
+
+  localEnabledOld_ = getEnabledLocal();
   
   // Enable command sent to amplfier
   // (if break is not used then enableAmpCmdOld_==enableCmdOld_)
@@ -459,19 +488,6 @@ void ecmcDriveBase::readEntries() {
                  ERROR_DRV_HW_ALARM_2);
     }    
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
-  }
-
-  if(!getEnabledLocal() && data_->command_.enable) {
-    cycleCounter_++;
-    if(cycleCounter_ > stateMachineTimeoutCycles_) {
-      // Enable cmd timeout (not recived enable within time period)
-      cycleCounter_ = 0;
-      data_->command_.enable = 0;
-      setErrorID(__FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ERROR_DRV_STATE_MACHINE_TIME_OUT);
-    }
   }
 }
 
@@ -686,7 +702,7 @@ int ecmcDriveBase::updateBrakeState() {
     
     // enabled lost: apply brake directly without delay, goto stae BRAKE_CLOSED 
     if(!getEnabledLocal()) {
-      data_->command_.enable = 0;
+      //data_->command_.enable = 0;  this is controlled separatelly
       brakeOutputCmd_ = 0;
       brakeCounter_   = 0;
       enableAmpCmd_   = 0;

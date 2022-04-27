@@ -120,6 +120,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
  private:
   bool manualModeEnableAmpCmd_;
   bool manualModeEnableAmpCmdOld_;
+  bool localEnabledOld_;
   int brakeOpenDelayTime_;
   int brakeCloseAheadTime_;
   bool brakeOutputCmdOld_;
@@ -152,7 +153,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   bool hwErrorAlarm1Defined_;
   bool hwErrorAlarm2Defined_;
   bool hwWarningDefined_;
-  int cycleCounter_;
+  int cycleCounterBase_;
 };
 
 #endif  // ifndef ECMCDRIVEBASE_H_
