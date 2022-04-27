@@ -119,6 +119,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   bool brakeOutputCmdOld_;
   bool reduceTorqueOutputCmdOld_;
   bool enableReduceTorque_;
+  bool enableBrake_;
   bool brakeOutputCmd_;
   bool reduceTorqueOutputCmd_;
   ecmcBrakeStates brakeState_;

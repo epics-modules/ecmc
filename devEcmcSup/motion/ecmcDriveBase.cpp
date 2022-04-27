@@ -248,9 +248,6 @@ int ecmcDriveBase::getEnableReduceTorque() {
 
 void ecmcDriveBase::writeEntries() {
 
-  
-  
-
   // Update enable command
   if (enableBrake_) {
     // also wait for brakeOutputCmd_
@@ -648,7 +645,7 @@ int ecmcDriveBase::updateBrakeState() {
     enableAmpCmd_ = 1;
     if (brakeCounter_ >= brakeOpenDelayTime_) {
       
-      if(!data_->status_.enabled) {
+      if(!getEnabledLocal()) {
         data_->command_.enable = 0;
         brakeOutputCmd_ = 0;
         brakeCounter_   = 0;
@@ -661,21 +658,22 @@ int ecmcDriveBase::updateBrakeState() {
       }
     }
 
-    // only start countinmg if enabled
-    if(data_->status_.enabled) {
+    // only start counting if enabled
+    if(getEnabledLocal()) {
       brakeCounter_++;
     }
 
     break;
 
   case ECMC_BRAKE_OPEN:
-    // enabled lost
-    if(!data_->status_.enabled) {
+    
+    // enabled lost: apply brake directly without delay, goto stae BRAKE_CLOSED 
+    if(!getEnabledLocal()) {
       data_->command_.enable = 0;
       brakeOutputCmd_ = 0;
       brakeCounter_   = 0;
       enableAmpCmd_   = 0;
-      enableCmdOld_   = 0;  // to not trigger ECMC_BRAKE_CLOSING
+      enableCmdOld_   = 0;  // to avoid to trigger ECMC_BRAKE_CLOSING state (see beginning of this function)
       brakeState_     = ECMC_BRAKE_CLOSED;
     } else {
       brakeOutputCmd_ = 1;
@@ -685,7 +683,6 @@ int ecmcDriveBase::updateBrakeState() {
     break;
 
   case ECMC_BRAKE_CLOSING:
-
     // Purpose: Postpone disable of amplifier
     brakeOutputCmd_ = 0;
     enableAmpCmd_   = 1;

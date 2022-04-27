@@ -37,5 +37,6 @@ class ecmcDriveStepper : public ecmcDriveBase {
 
  private:
   void initVars();
+  bool localEnabled_;
 };
 #endif  // ifndef ECMCDRIVESTEPPER_H_
