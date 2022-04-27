@@ -70,6 +70,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   virtual void readEntries();
   virtual void writeEntries();
   virtual void errorReset();
+  virtual bool getEnabledLocal()=0;
   int          setEnable(bool enable);
   bool         getEnable();
   bool         getEnabled();
@@ -117,7 +118,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int brakeCloseAheadTime_;
   bool brakeOutputCmdOld_;
   bool reduceTorqueOutputCmdOld_;
-  bool enableBrake_;
   bool enableReduceTorque_;
   bool brakeOutputCmd_;
   bool reduceTorqueOutputCmd_;

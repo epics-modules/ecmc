@@ -248,6 +248,28 @@ int ecmcDriveBase::getEnableReduceTorque() {
 
 void ecmcDriveBase::writeEntries() {
 
+  
+  
+
+  // Update enable command
+  if (enableBrake_) {
+    // also wait for brakeOutputCmd_
+    data_->status_.enabled = getEnabledLocal() && brakeOutputCmd_;
+    updateBrakeState();
+  } else {    
+    // No brake
+    data_->status_.enabled = getEnabledLocal();
+    switch (data_->command_.operationModeCmd) {
+    case ECMC_MODE_OP_AUTO:
+      enableAmpCmd_ = data_->command_.enable;
+      break;
+
+    case ECMC_MODE_OP_MAN:
+      enableAmpCmd_ = manualModeEnableAmpCmd_;
+      break;
+    }
+  }
+
   if (!driveInterlocksOK() && data_->command_.enable) {
     data_->command_.enable = false;
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
@@ -324,21 +346,6 @@ void ecmcDriveBase::writeEntries() {
 }
 
 void ecmcDriveBase::readEntries() {
-  // Update enable command
-  if (enableBrake_) {
-    updateBrakeState();
-  } else {
-    // No brake
-    switch (data_->command_.operationModeCmd) {
-    case ECMC_MODE_OP_AUTO:
-      enableAmpCmd_ = data_->command_.enable;
-      break;
-
-    case ECMC_MODE_OP_MAN:
-      enableAmpCmd_ = manualModeEnableAmpCmd_;
-      break;
-    }
-  }
 
   if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD, &statusWord_)) {
     setErrorID(__FILE__,

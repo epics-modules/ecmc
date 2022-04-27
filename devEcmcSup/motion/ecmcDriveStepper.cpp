@@ -43,7 +43,9 @@ ecmcDriveStepper::~ecmcDriveStepper()
 {}
 
 void ecmcDriveStepper::initVars()
-{}
+{
+  localEnabled_ = 0;
+}
 
 int  ecmcDriveStepper::validate() {
   int errorCode = ecmcDriveBase::validate();
@@ -67,5 +69,9 @@ void ecmcDriveStepper::writeEntries() {
 
 void ecmcDriveStepper::readEntries() {
   ecmcDriveBase::readEntries();
-  data_->status_.enabled = statusWord_ > 0;
+  localEnabled_ = statusWord_ > 0;
+}
+
+bool ecmcDriveStepper::getEnabledLocal() {
+  return localEnabled_;
 }

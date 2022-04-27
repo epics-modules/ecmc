@@ -33,6 +33,7 @@ class ecmcDriveStepper : public ecmcDriveBase {
   int  validate();
   void writeEntries();
   void readEntries();
+  bool getEnabledLocal();
 
  private:
   void initVars();
