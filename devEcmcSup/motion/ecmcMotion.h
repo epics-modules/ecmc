@@ -2107,6 +2107,22 @@ int setAxisDrvBrakeOpenDelayTime(int axisIndex,
 int setAxisDrvBrakeCloseAheadTime(int axisIndex,
                                   int aheadTime);
 
+/** \brief Set drive timeout .\n
+ *
+ *  Timeout for transition between disabled->enabled when enable command is sent.
+ *  For DS402 drives this time is used as timeout between the DS402 states.
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] timeout Ahead time in cycles.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set drive timeout for axis 3 to 10 seconds.\n
+ * "Cfg.SetAxisDrvStateMachineTimout(3,10.0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisDrvStateMachineTimeout(int axisIndex,
+                                 double seconds);
+
 /** \brief Set enable of reduce torque functionality.\n
  *
  *  The reduce torque output will go high when the axis is atTarget. The

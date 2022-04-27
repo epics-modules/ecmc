@@ -43,7 +43,10 @@
 #define ERROR_DRV_HW_ALARM_2 0x14610
 #define ERROR_DRV_WARNING_READ_ENTRY_FAIL 0x14611
 #define ERROR_DRV_ALARM_READ_ENTRY_FAIL 0x14612
+#define ERROR_DRV_STATE_MACHINE_TIME_OUT 0x14613
 
+// Timeout in seconds (mostly for startup)
+#define ERROR_DRV_STATE_MACHINE_TIME_OUT_TIME 15
 
 enum ecmcDriveTypes {
   ECMC_STEPPER  = 0,
@@ -89,6 +92,8 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int          setAxisDataRef(ecmcAxisData *data);
   int          setBrakeOpenDelayTime(int delayTime);
   int          setBrakeCloseAheadTime(int aheadTime);
+  int          setStateMachineTimeout(double seconds);
+
   // CSP
   int          setCspPosSet(double posEng);
   int          setCspRecalcOffset(double posEng);
@@ -102,6 +107,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   void         refreshAsyn();
   bool enableAmpCmd_;
   bool enableAmpCmdOld_;
+  int stateMachineTimeoutCycles_;
   double scale_;
   double scaleNum_;
   double scaleDenom_;
@@ -146,7 +152,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   bool hwErrorAlarm1Defined_;
   bool hwErrorAlarm2Defined_;
   bool hwWarningDefined_;
-
+  int cycleCounter_;
 };
 
 #endif  // ifndef ECMCDRIVEBASE_H_

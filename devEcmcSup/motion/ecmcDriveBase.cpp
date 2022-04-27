@@ -25,6 +25,8 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
   }
 
   initAsyn();
+
+  stateMachineTimeoutCycles_ = ERROR_DRV_STATE_MACHINE_TIME_OUT_TIME / data_->sampleTime_;
 }
 
 void ecmcDriveBase::initVars() {
@@ -71,6 +73,8 @@ void ecmcDriveBase::initVars() {
   hwErrorAlarm1Defined_      = false;
   hwErrorAlarm2Defined_      = false;
   hwWarningDefined_          = false;
+  stateMachineTimeoutCycles_ = 0;
+  cycleCounter_              = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -194,7 +198,7 @@ int ecmcDriveBase::setEnable(bool enable) {
 
   manualModeEnableAmpCmdOld_ = manualModeEnableAmpCmd_;
   manualModeEnableAmpCmd_    = enable;
-
+  cycleCounter_ = 0;
   return 0;
 }
 
@@ -455,6 +459,19 @@ void ecmcDriveBase::readEntries() {
                  ERROR_DRV_HW_ALARM_2);
     }    
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
+  }
+
+  if(!getEnabledLocal() && data_->command_.enable) {
+    cycleCounter_++;
+    if(cycleCounter_ > stateMachineTimeoutCycles_) {
+      // Enable cmd timeout (not recived enable within time period)
+      cycleCounter_ = 0;
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_STATE_MACHINE_TIME_OUT);
+    }
   }
 }
 
@@ -808,4 +825,9 @@ int ecmcDriveBase::initAsyn() {
 void ecmcDriveBase::refreshAsyn(){
   asynStatusWd_->refreshParamRT(0);
   asynControlWd_->refreshParamRT(0);
+}
+
+int ecmcDriveBase::setStateMachineTimeout(double seconds) {
+  stateMachineTimeoutCycles_ = seconds / data_->sampleTime_;
+  return 0;
 }

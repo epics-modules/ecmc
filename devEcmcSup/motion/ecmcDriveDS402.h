@@ -30,9 +30,6 @@
 #define ERROR_DRV_DS402_STATUS_WORD_START_BIT_ERROR 0x14654
 #define ERROR_DRV_DS402_FAULT_STATE 0x14655
 
-// Timeout in seconds (mostly for startup)
-#define ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME 15
-
 /** From EL7201 docs
  * bit 0: Ready to swtich on
  * bit 1: Switched on

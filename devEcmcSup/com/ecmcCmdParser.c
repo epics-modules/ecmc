@@ -1897,6 +1897,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisDrvBrakeCloseAheadTime(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisDrvStateMachineTimeout(int axis_no, double seconds);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisDrvStateMachineTimeout(%d,%lf)",
+                 &iValue,
+                 &dValue);
+
+  if (nvals == 2) {
+    return setAxisDrvStateMachineTimeout(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisDrvReduceTorqueEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1,
                  "SetAxisDrvReduceTorqueEnable(%d,%d)",

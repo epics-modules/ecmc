@@ -116,7 +116,7 @@ void ecmcDriveDS402::writeEntries() {
 void ecmcDriveDS402::readEntries() {
   ecmcDriveBase::readEntries();
   
-  if (data_->sampleTime_ * cycleCounter_ > ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME) {
+  if (cycleCounter_ > stateMachineTimeoutCycles_) {
     enableStateMachine_ = ECMC_DS402_FAULT_STATE;
     setErrorID(__FILE__,
                __FUNCTION__,
