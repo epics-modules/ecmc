@@ -130,6 +130,9 @@ void ecmcAxisBase::initVars() {
 void ecmcAxisBase::preExecute(bool masterOK) {
 
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
+  if(!masterOK){
+    setEnable(false);
+  }
   data_.refreshInterlocks();
 
   data_.status_.moving = std::abs(
