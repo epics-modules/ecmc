@@ -641,11 +641,14 @@ int ecmcDriveBase::updateBrakeState() {
   case ECMC_MODE_OP_AUTO:
 
     if (data_->command_.enable && !enableCmdOld_) {
+      //printf("ECMC_BRAKE_OPENING\n");
+
       brakeState_   = ECMC_BRAKE_OPENING;
       brakeCounter_ = 0;
     }
 
     if (!data_->command_.enable && enableCmdOld_) {
+      //printf("ECMC_BRAKE_CLOSING\n");
       brakeState_   = ECMC_BRAKE_CLOSING;
       brakeCounter_ = 0;
     }
@@ -676,7 +679,7 @@ int ecmcDriveBase::updateBrakeState() {
 
     // Purpose: Postpone opening of brake
     enableAmpCmd_ = 1;
-    if (brakeCounter_ >= brakeOpenDelayTime_) {
+    if (brakeCounter_ > brakeOpenDelayTime_) {
       
       if(!getEnabledLocal()) {
         data_->command_.enable = 0;
@@ -686,7 +689,8 @@ int ecmcDriveBase::updateBrakeState() {
         enableCmdOld_   = 0;  // to not trigger ECMC_BRAKE_CLOSING
         brakeState_     = ECMC_BRAKE_CLOSED;
       } else {
-        brakeState_     = ECMC_BRAKE_OPEN;      
+        brakeState_     = ECMC_BRAKE_OPEN;
+        //printf("ECMC_BRAKE_OPEN %d\n",brakeOpenDelayTime_);
         brakeOutputCmd_ = 1;
       }
     }
@@ -701,7 +705,7 @@ int ecmcDriveBase::updateBrakeState() {
   case ECMC_BRAKE_OPEN:
     
     // enabled lost: apply brake directly without delay, goto stae BRAKE_CLOSED 
-    if(!getEnabledLocal()) {
+    if(!getEnabledLocal() && data_->command_.enable) {
       //data_->command_.enable = 0;  this is controlled separatelly
       brakeOutputCmd_ = 0;
       brakeCounter_   = 0;
@@ -720,8 +724,9 @@ int ecmcDriveBase::updateBrakeState() {
     brakeOutputCmd_ = 0;
     enableAmpCmd_   = 1;
 
-    if (brakeCounter_ >= brakeCloseAheadTime_) {
+    if (brakeCounter_ > brakeCloseAheadTime_) {
       brakeState_     = ECMC_BRAKE_CLOSED;
+      //printf("ECMC_BRAKE_CLOSED %d\n",brakeCloseAheadTime_);
       enableAmpCmd_   = 0;
       brakeOutputCmd_ = 0;
     }
