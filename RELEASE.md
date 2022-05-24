@@ -4,7 +4,8 @@ Release Notes
 # ECMC master
 * Brake handling: 
   - Engage brake if not enabled
-  - Start counting open delay when enabled goes high (instead of enable cmd).
+  - Start counting open delay when drive enabled goes high (instead of enable cmd).
+* Reset axis enable cmd if ethercat in error state (prevent re-enable when ethercat returns to OK)
 
 # ECMC 7.0.1
 * Add homing seq 25 (same as 15 but not  reserved for save/restore). The sequence will just set a new position.
