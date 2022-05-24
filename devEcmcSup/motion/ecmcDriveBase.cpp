@@ -111,21 +111,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   if(data_->command_.enable && !enableCmdOld_) {
     setCspRecalcOffset(cspPosSet_);
     data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
-    //printf("NEW OFFSET: posRaw = %" PRId64 ", posAct=%lf, offsetRaw= %" PRId64 ".\n",cspRawActPos_,cspActPos_,cspRawPosOffset_);
-    //counter_=0;
   }
-
-  // if(counter_ >= 0 && counter_<500) {
-  //    printf("%d%d, posRaw = %" PRId64 ", RawSetOut= %" PRId64 ", posAct=%lf, posSet=%lf,offsetRaw= %" PRId64 ".\n",
-  //       data_->command_.enable,
-  //       data_->status_.enabled,
-  //       cspRawActPos_,
-  //       data_->status_.currentPositionSetpointRaw,
-  //       cspActPos_,
-  //       cspPosSet_,
-  //       cspRawPosOffset_);
-  //   counter_++;
-  // }
   
   return 0;
 }
@@ -145,7 +131,6 @@ void ecmcDriveBase::setCspRef(int64_t posRaw, double posAct,  double posSet) {
 
 // Recalculate offset
 int ecmcDriveBase::setCspRecalcOffset(double posEng) {
-  //printf("setCspRecalcOffset()\n");
   cspRawPosOffset_ = cspRawActPos_- posEng / scale_;  // Raw
   return 0;
 }
@@ -641,14 +626,11 @@ int ecmcDriveBase::updateBrakeState() {
   case ECMC_MODE_OP_AUTO:
 
     if (data_->command_.enable && !enableCmdOld_) {
-      //printf("ECMC_BRAKE_OPENING\n");
-
       brakeState_   = ECMC_BRAKE_OPENING;
       brakeCounter_ = 0;
     }
 
     if (!data_->command_.enable && enableCmdOld_) {
-      //printf("ECMC_BRAKE_CLOSING\n");
       brakeState_   = ECMC_BRAKE_CLOSING;
       brakeCounter_ = 0;
     }
@@ -690,7 +672,6 @@ int ecmcDriveBase::updateBrakeState() {
         brakeState_     = ECMC_BRAKE_CLOSED;
       } else {
         brakeState_     = ECMC_BRAKE_OPEN;
-        //printf("ECMC_BRAKE_OPEN %d\n",brakeOpenDelayTime_);
         brakeOutputCmd_ = 1;
       }
     }
@@ -726,7 +707,6 @@ int ecmcDriveBase::updateBrakeState() {
 
     if (brakeCounter_ > brakeCloseAheadTime_) {
       brakeState_     = ECMC_BRAKE_CLOSED;
-      //printf("ECMC_BRAKE_CLOSED %d\n",brakeCloseAheadTime_);
       enableAmpCmd_   = 0;
       brakeOutputCmd_ = 0;
     }
