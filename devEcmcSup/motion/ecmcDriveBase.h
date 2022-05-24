@@ -74,7 +74,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   virtual void writeEntries();
   virtual void errorReset();
   virtual bool getEnabledLocal()=0;
-  int          setEnable(bool enable);
   bool         getEnable();
   bool         getEnabled();
   double       getScaleNum(void);
@@ -118,8 +117,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   ecmcAxisData *data_;
 
  private:
-  bool manualModeEnableAmpCmd_;
-  bool manualModeEnableAmpCmdOld_;
   bool localEnabledOld_;
   int brakeOpenDelayTime_;
   int brakeCloseAheadTime_;

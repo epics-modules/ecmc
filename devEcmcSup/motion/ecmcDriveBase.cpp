@@ -170,22 +170,6 @@ int ecmcDriveBase::getVelSetRaw() {
   return data_->status_.currentVelocitySetpointRaw;
 }
 
-int ecmcDriveBase::setEnable(bool enable) {
-  // Only allowed in manual mode !!
-  if (data_->command_.operationModeCmd != ECMC_MODE_OP_MAN) {
-    manualModeEnableAmpCmd_ = false;
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE);
-  }
-
-  manualModeEnableAmpCmdOld_ = manualModeEnableAmpCmd_;
-  manualModeEnableAmpCmd_    = enable;
-  cycleCounterBase_ = 0;
-  return 0;
-}
-
 int ecmcDriveBase::setVelSetRaw(int vel) {
   data_->status_.currentVelocitySetpointRaw = vel;
   return 0;
@@ -243,16 +227,8 @@ void ecmcDriveBase::writeEntries() {
     updateBrakeState();
   } else {    
     // No brake
-    data_->status_.enabled = getEnabledLocal();
-    switch (data_->command_.operationModeCmd) {
-    case ECMC_MODE_OP_AUTO:
-      enableAmpCmd_ = data_->command_.enable;
-      break;
-
-    case ECMC_MODE_OP_MAN:
-      enableAmpCmd_ = manualModeEnableAmpCmd_;
-      break;
-    }
+    data_->status_.enabled = getEnabledLocal();  
+    enableAmpCmd_ = data_->command_.enable;
   }
 
   if (!driveInterlocksOK() && data_->command_.enable) {
