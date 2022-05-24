@@ -1,3 +1,4 @@
+
 Release Notes
 ===
 # ECMC xxx
@@ -34,6 +35,11 @@ Examples and more info are available in:
 ecmccfg/examples/test/motionWithoutMotorRecord/
 
 * Update of trajectory generator to allow "on the fly" update of target postion and target velocity.
+* Brake handling: 
+  - Engage brake if not enabled
+  - Start counting open delay when drive enabled goes high (instead of enable cmd).
+* Reset axis enable cmd if ethercat in error state (prevent re-enable when ethercat returns to OK)
+* Add command to set drive timeout for enabled and DS402 state machine: "Cfg.SetAxisDrvStateMachineTimeout(int axis_no, double seconds)"
 
 # ECMC 7.0.1
 * Add homing seq 25 (same as 15 but not blocked by motor record and reserved for save/restore). The sequence will just set a new position.

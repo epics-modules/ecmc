@@ -46,6 +46,9 @@ ecmcDriveDS402::~ecmcDriveDS402()
 void ecmcDriveDS402::initVars() {  
   enableStateMachine_ = ECMC_DS402_RESET_STATE;
   ds402WarningOld_    = false;
+  enableStateMachineOld_ = enableStateMachine_;
+  cycleCounter_       = 0;
+  localEnabled_       = 0;
 }
 
 int ecmcDriveDS402::validate() {
@@ -113,7 +116,7 @@ void ecmcDriveDS402::writeEntries() {
 void ecmcDriveDS402::readEntries() {
   ecmcDriveBase::readEntries();
   
-  if (data_->sampleTime_ * cycleCounter_ > ERROR_DRV_DS402_STATE_MACHINE_TIME_OUT_TIME) {
+  if (cycleCounter_ > stateMachineTimeoutCycles_) {
     enableStateMachine_ = ECMC_DS402_FAULT_STATE;
     setErrorID(__FILE__,
                __FUNCTION__,
@@ -127,7 +130,7 @@ void ecmcDriveDS402::readEntries() {
   cycleCounter_++;
 
   bool ds402Fault = BIT_CHECK(statusWord_,ECMC_DS402_FAULT_BIT);
-  data_->status_.enabled = BIT_CHECK(statusWord_,ECMC_DS402_OPERATION_ENABLED_BIT);
+  localEnabled_ = BIT_CHECK(statusWord_,ECMC_DS402_OPERATION_ENABLED_BIT);
   bool ds402Warning =BIT_CHECK(statusWord_,ECMC_DS402_SWITCH_ON_WARNING_BIT);
   
   //Printout warning.. Do not stop
@@ -242,4 +245,8 @@ void ecmcDriveDS402::errorReset() {
     cycleCounter_ = 0;
   }
   ecmcDriveBase::errorReset();
+}
+
+bool ecmcDriveDS402::getEnabledLocal() {
+  return localEnabled_;
 }

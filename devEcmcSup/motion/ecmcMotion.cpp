@@ -1878,6 +1878,21 @@ int setAxisDrvBrakeCloseAheadTime(int axisIndex, int aheadTime) {
   return axes[axisIndex]->getDrv()->setBrakeCloseAheadTime(aheadTime);
 }
 
+int setAxisDrvStateMachineTimeout(int axisIndex,
+                                 double seconds) {
+  LOGINFO4("%s/%s:%d axisIndex=%d timeout=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           seconds);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getDrv()->setStateMachineTimeout(seconds);
+}
+
 int setAxisDrvReduceTorqueEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,

@@ -408,6 +408,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14613:
+    return "ERROR_DRV_STATE_MACHINE_TIME_OUT";
+
+    break;
+
   case 0x14650:
     return "ERROR_DRV_DS402_CONTROL_WORD_BIT_COUNT_ERROR";
 

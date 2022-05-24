@@ -33,8 +33,10 @@ class ecmcDriveStepper : public ecmcDriveBase {
   int  validate();
   void writeEntries();
   void readEntries();
+  bool getEnabledLocal();
 
  private:
   void initVars();
+  bool localEnabled_;
 };
 #endif  // ifndef ECMCDRIVESTEPPER_H_

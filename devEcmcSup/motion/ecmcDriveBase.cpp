@@ -25,6 +25,8 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
   }
 
   initAsyn();
+
+  stateMachineTimeoutCycles_ = ERROR_DRV_STATE_MACHINE_TIME_OUT_TIME / data_->sampleTime_;
 }
 
 void ecmcDriveBase::initVars() {
@@ -69,6 +71,9 @@ void ecmcDriveBase::initVars() {
   hwErrorAlarm1Defined_      = false;
   hwErrorAlarm2Defined_      = false;
   hwWarningDefined_          = false;
+  stateMachineTimeoutCycles_ = 0;
+  cycleCounterBase_          = 0;
+  localEnabledOld_           = 0;  
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -165,6 +170,22 @@ int ecmcDriveBase::getVelSetRaw() {
   return data_->status_.currentVelocitySetpointRaw;
 }
 
+int ecmcDriveBase::setEnable(bool enable) {
+  // Only allowed in manual mode !!
+  if (data_->command_.operationModeCmd != ECMC_MODE_OP_MAN) {
+    manualModeEnableAmpCmd_ = false;
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_DRV_COMMAND_NOT_ALLOWED_IN_AUTO_MODE);
+  }
+
+  manualModeEnableAmpCmdOld_ = manualModeEnableAmpCmd_;
+  manualModeEnableAmpCmd_    = enable;
+  cycleCounterBase_ = 0;
+  return 0;
+}
+
 int ecmcDriveBase::setVelSetRaw(int vel) {
   data_->status_.currentVelocitySetpointRaw = vel;
   return 0;
@@ -214,6 +235,26 @@ int ecmcDriveBase::getEnableReduceTorque() {
 }
 
 void ecmcDriveBase::writeEntries() {
+
+  // Update enable command
+  if (enableBrake_) {
+    // also wait for brakeOutputCmd_
+    data_->status_.enabled = getEnabledLocal() && brakeOutputCmd_;
+    updateBrakeState();
+  } else {    
+    // No brake
+    data_->status_.enabled = getEnabledLocal();
+    switch (data_->command_.operationModeCmd) {
+    case ECMC_MODE_OP_AUTO:
+      enableAmpCmd_ = data_->command_.enable;
+      break;
+
+    case ECMC_MODE_OP_MAN:
+      enableAmpCmd_ = manualModeEnableAmpCmd_;
+      break;
+    }
+  }
+
   if (!driveInterlocksOK() && data_->command_.enable) {
     data_->command_.enable = false;
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
@@ -280,6 +321,34 @@ void ecmcDriveBase::writeEntries() {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
   }
+
+  // Timeout?  
+  if(!getEnabledLocal() && data_->command_.enable) {
+    cycleCounterBase_++;
+    if(cycleCounterBase_ > stateMachineTimeoutCycles_) {
+      // Enable cmd timeout (not recived enable within time period)
+      cycleCounterBase_ = 0;
+      data_->command_.enable = 0;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_STATE_MACHINE_TIME_OUT);
+    }
+  }  else {
+    cycleCounterBase_ = 0;
+  }
+
+  // Enabled lost?
+  if(!getEnabledLocal() && localEnabledOld_ && data_->command_.enable) {
+      data_->command_.enable = 0;
+      LOGERR("%s/%s:%d: WARNING (axis %d): Drive enabled lost while enable cmd is high.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_);
+  }
+
+  localEnabledOld_ = getEnabledLocal();
   
   // Enable command sent to amplfier
   // (if break is not used then enableAmpCmdOld_==enableCmdOld_)
@@ -290,13 +359,6 @@ void ecmcDriveBase::writeEntries() {
 }
 
 void ecmcDriveBase::readEntries() {
-  // Update enable command
-  if (enableBrake_) {
-    updateBrakeState();
-  } else {
-    // No brake
-      enableAmpCmd_ = data_->command_.enable;      
-  }
 
   if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD, &statusWord_)) {
     setErrorID(__FILE__,
@@ -579,27 +641,51 @@ int ecmcDriveBase::updateBrakeState() {
 
     // Purpose: Postpone opening of brake
     enableAmpCmd_ = 1;
-
-    if (brakeCounter_ >= brakeOpenDelayTime_) {
-      brakeState_     = ECMC_BRAKE_OPEN;
-      brakeOutputCmd_ = 1;
+    if (brakeCounter_ > brakeOpenDelayTime_) {
+      
+      if(!getEnabledLocal()) {
+        data_->command_.enable = 0;
+        brakeOutputCmd_ = 0;
+        brakeCounter_   = 0;
+        enableAmpCmd_   = 0;
+        enableCmdOld_   = 0;  // to not trigger ECMC_BRAKE_CLOSING
+        brakeState_     = ECMC_BRAKE_CLOSED;
+      } else {
+        brakeState_     = ECMC_BRAKE_OPEN;
+        brakeOutputCmd_ = 1;
+      }
     }
-    brakeCounter_++;
+
+    // only start counting if enabled
+    if(getEnabledLocal()) {
+      brakeCounter_++;
+    }
+
     break;
 
   case ECMC_BRAKE_OPEN:
-    brakeOutputCmd_ = 1;
-    brakeCounter_   = 0;
-    enableAmpCmd_   = 1;
+    
+    // enabled lost: apply brake directly without delay, goto stae BRAKE_CLOSED 
+    if(!getEnabledLocal() && data_->command_.enable) {
+      //data_->command_.enable = 0;  this is controlled separatelly
+      brakeOutputCmd_ = 0;
+      brakeCounter_   = 0;
+      enableAmpCmd_   = 0;
+      enableCmdOld_   = 0;  // to avoid to trigger ECMC_BRAKE_CLOSING state (see beginning of this function)
+      brakeState_     = ECMC_BRAKE_CLOSED;
+    } else {
+      brakeOutputCmd_ = 1;
+      brakeCounter_   = 0;
+      enableAmpCmd_   = 1;
+    }
     break;
 
   case ECMC_BRAKE_CLOSING:
-
     // Purpose: Postpone disable of amplifier
     brakeOutputCmd_ = 0;
     enableAmpCmd_   = 1;
 
-    if (brakeCounter_ >= brakeCloseAheadTime_) {
+    if (brakeCounter_ > brakeCloseAheadTime_) {
       brakeState_     = ECMC_BRAKE_CLOSED;
       enableAmpCmd_   = 0;
       brakeOutputCmd_ = 0;
@@ -720,4 +806,9 @@ int ecmcDriveBase::initAsyn() {
 void ecmcDriveBase::refreshAsyn(){
   asynStatusWd_->refreshParamRT(0);
   asynControlWd_->refreshParamRT(0);
+}
+
+int ecmcDriveBase::setStateMachineTimeout(double seconds) {
+  stateMachineTimeoutCycles_ = seconds / data_->sampleTime_;
+  return 0;
 }
