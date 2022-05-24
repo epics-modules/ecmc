@@ -6,6 +6,7 @@ Release Notes
   - Engage brake if not enabled
   - Start counting open delay when drive enabled goes high (instead of enable cmd).
 * Reset axis enable cmd if ethercat in error state (prevent re-enable when ethercat returns to OK)
+* Add command to set drive timeout for enabled and DS402 state machine: "Cfg.SetAxisDrvStateMachineTimeout(int axis_no, double seconds)"
 
 # ECMC 7.0.1
 * Add homing seq 25 (same as 15 but not  reserved for save/restore). The sequence will just set a new position.
