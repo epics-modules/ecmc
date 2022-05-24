@@ -5,7 +5,7 @@
 builddir/
 ecmcApp/src/gitversion.c
 bin/
-db/
+/db/
 dbd/
 O.Common/
 O.linux-x86_64/
