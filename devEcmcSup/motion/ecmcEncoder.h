@@ -95,7 +95,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool                  getHomed();
   encoderType           getType();
   int                   setType(encoderType encType);
-  double                readEntries();
+  double                readEntries(bool masterOK);
   int                   writeEntries();
   int                   setOffset(double offset);
   int                   validate();
@@ -173,6 +173,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool hwErrorAlarm1Defined_;
   bool hwErrorAlarm2Defined_;
   bool hwWarningDefined_;
+  bool masterOKOld_;
 
 };
 

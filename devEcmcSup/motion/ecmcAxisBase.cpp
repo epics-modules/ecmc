@@ -196,7 +196,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.currentVelocityActual) > 0 || getTraj()->getBusy();
 
   if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    enc_->readEntries();
+    enc_->readEntries(masterOK);
   }
 
   // Axis state machine

@@ -93,6 +93,7 @@ void ecmcEncoder::initVars() {
   hwErrorAlarm1Defined_      = false;
   hwErrorAlarm2Defined_      = false;
   hwWarningDefined_          = false;
+  masterOKOld_               = false;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -313,22 +314,23 @@ double ecmcEncoder::getScaleDenom() {
   return scaleDenom_;
 }
 
-double ecmcEncoder::readEntries() {
+double ecmcEncoder::readEntries(bool masterOK) {
   actPosOld_ = actPos_;
 
-  if (getError()) {
+  if (getError() || !masterOK) {
+    masterOKOld_ = masterOK;
     rawPosMultiTurn_ = 0;
     actPos_          = scale_ * (rawPosMultiTurn_ + rawPosOffset_) +
                        engOffset_;
     return actPos_;
   }
 
-  int error = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
-
-  if (error) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_NULL);
-    return 0;
-  }
+  //int error = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
+  //
+  //if (error) {
+  //  setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_NULL);
+  //  return 0;
+  //}
 
   // Act position
   uint64_t tempRaw = 0;
@@ -337,11 +339,17 @@ double ecmcEncoder::readEntries() {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_READ_FAIL);
     return actPos_;
   }
-
-  // Filter value with mask
-  rawPosUintOld_ = rawPosUint_;
-  rawPosUint_    = (totalRawMask_ & tempRaw) - totalRawRegShift_;
   
+  rawPosUintOld_ = rawPosUint_;
+  // Filter value with mask
+  rawPosUint_    = (totalRawMask_ & tempRaw) - totalRawRegShift_;
+
+  // If first valid value (at first hw ok),
+  // then store the same position in last cycle value.
+  // This to avoid over/ubderflow since rawPosUintOld_ is initiated to 0.
+  if(!masterOKOld_ && masterOK) {
+    rawPosUintOld_ = rawPosUint_;
+  }
 
   // Check over/underflow (update turns counter)
   rawTurnsOld_ = rawTurns_;
@@ -535,6 +543,8 @@ double ecmcEncoder::readEntries() {
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
 
+  masterOKOld_ = masterOK;
+  
   return actPos_;
 }
 
