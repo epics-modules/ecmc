@@ -618,6 +618,8 @@ void ecmcEc::send(timespec timeOffset) {
 
   updateOutProcessImage();
 
+  ecrt_domain_queue(domain_);
+  
   if (useClockRealtime_) {
     clock_gettime(CLOCK_REALTIME, &timeAbs_);
   } else {
@@ -625,8 +627,6 @@ void ecmcEc::send(timespec timeOffset) {
     timeAbs_= timespecAdd(timeRel_, timeOffset_);
   }
   
-  ecrt_domain_queue(domain_);
-
   ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs_));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
