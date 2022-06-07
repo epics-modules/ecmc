@@ -625,11 +625,12 @@ void ecmcEc::send(timespec timeOffset) {
     timeAbs_= timespecAdd(timeRel_, timeOffset_);
   }
   
+  ecrt_domain_queue(domain_);
+
   ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs_));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
   
-  ecrt_domain_queue(domain_);
   ecrt_master_send(master_);
 
   //Update asyn time
