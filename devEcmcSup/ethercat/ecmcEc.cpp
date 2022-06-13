@@ -50,6 +50,8 @@ void ecmcEc::initVars() {
   clock_gettime(CLOCK_REALTIME, &timeRel_);
   clock_gettime(CLOCK_REALTIME, &timeAbs_);
 
+  timeAbsOld_=timeAbs_;
+
   for (int i = 0; i < EC_MAX_SLAVES; i++) {
     slaveArray_[i] = NULL;
   }
@@ -619,6 +621,7 @@ void ecmcEc::send(timespec timeOffset) {
   updateOutProcessImage();
   ecrt_domain_queue(domain_);
 
+  timeAbsOld_ = timeAbs_;
   if (useClockRealtime_) {
     clock_gettime(CLOCK_REALTIME, &timeAbs_);
   } else {
@@ -626,12 +629,21 @@ void ecmcEc::send(timespec timeOffset) {
     timeAbs_= timespecAdd(timeRel_, timeOffset_);
   }
   
- // ecrt_domain_queue(domain_);
+
+/*#ifdef EC_HAVE_REF_CLOCK_TIME
+  uint32_t ref_l32=0;
+  int test=ecrt_master_reference_clock_time(
+              master_,
+              &ref_l32);
+  uint32_t abs_l32 = TIMESPEC2NS(timeAbsOld_);
+  
+  printf("EC master time %09u, EC reference time %09u, diff %09d (error %d)\n",abs_l32,ref_l32,(int)((int64_t)abs_l32-(int64_t)ref_l32), test);
+
+#endif*/
 
   ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs_));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
-  
   ecrt_master_send(master_);
 
   //Update asyn time

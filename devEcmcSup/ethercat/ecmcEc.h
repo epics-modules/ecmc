@@ -233,5 +233,6 @@ private:
   epicsTimeStamp epicsTime_;
   struct timespec timeRel_;
   struct timespec timeAbs_;
+  struct timespec timeAbsOld_;
 };
 #endif  /* ECMCEC_H_ */
