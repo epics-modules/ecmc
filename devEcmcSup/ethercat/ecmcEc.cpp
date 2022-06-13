@@ -622,13 +622,6 @@ void ecmcEc::send(timespec timeOffset) {
   ecrt_domain_queue(domain_);
 
   timeAbsOld_ = timeAbs_;
-  if (useClockRealtime_) {
-    clock_gettime(CLOCK_REALTIME, &timeAbs_);
-  } else {
-    clock_gettime(CLOCK_MONOTONIC, &timeRel_);
-    timeAbs_= timespecAdd(timeRel_, timeOffset_);
-  }
-  
 
 /*#ifdef EC_HAVE_REF_CLOCK_TIME
   uint32_t ref_l32=0;
@@ -636,11 +629,18 @@ void ecmcEc::send(timespec timeOffset) {
               master_,
               &ref_l32);
   uint32_t abs_l32 = TIMESPEC2NS(timeAbsOld_);
-  
+
   printf("EC master time %09u, EC reference time %09u, diff %09d (error %d)\n",abs_l32,ref_l32,(int)((int64_t)abs_l32-(int64_t)ref_l32), test);
 
 #endif*/
-
+  
+  if (useClockRealtime_) {
+    clock_gettime(CLOCK_REALTIME, &timeAbs_);
+  } else {
+    clock_gettime(CLOCK_MONOTONIC, &timeRel_);
+    timeAbs_= timespecAdd(timeRel_, timeOffset_);
+  }
+  
   ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs_));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
