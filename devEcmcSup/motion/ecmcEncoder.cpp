@@ -346,7 +346,7 @@ double ecmcEncoder::readEntries(bool masterOK) {
 
   // If first valid value (at first hw ok),
   // then store the same position in last cycle value.
-  // This to avoid over/ubderflow since rawPosUintOld_ is initiated to 0.
+  // This to avoid over/underflow since rawPosUintOld_ is initiated to 0.
   if(!masterOKOld_ && masterOK) {
     rawPosUintOld_ = rawPosUint_;
   }
@@ -369,7 +369,16 @@ double ecmcEncoder::readEntries(bool masterOK) {
     rawAbsPosUint_    = 0;
   }  
   
-  actPos_    = scale_ * rawPosMultiTurn_ + engOffset_;  
+  actPos_    = scale_ * rawPosMultiTurn_ + engOffset_;
+
+  // If first valid value (at first hw ok),
+  // then store the same position in last cycle value.
+  // This to avoid over/underflow since actPosOld_ is initiated to 0.
+
+  if(!masterOKOld_ && masterOK) {
+    actPosOld_ = actPos_;
+  }
+
   // Check modulo
   if(data_->command_.moduloRange != 0) {    
     if(actPos_ >= data_->command_.moduloRange){      
