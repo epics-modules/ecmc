@@ -2,6 +2,7 @@
 Release Notes
 ===
 # ECMC xxx
+* Ensure that master is not scanning slaves at startup. If scanning then wait until scan is finished (with timeout).
 * Add support for jerk limited trajectories based on ruckig (https://github.com/pantor/ruckig).
   Trapetzoidal trajectories still supported and default in ecmccfg.
 
@@ -1004,15 +1005,8 @@ Changes:
 * Clean up in axis sub objects:
     * emcmMonitor:  Add verify setpoint function (mostly rename)
     * ecmcTrajectory: Make more independent of other code
-    * ecmcTrajectory: Make Spline Version
 * Implementation of robot and hexapod kinematics? How to do best possible?
 * Make possible to add ethercat hardware on the fly (hard, seems EPICS do not support dynamic load of records)
 * Only stop motion when the slaves used by axis are in error state or not reachable.
 * Test EtherCAT redundancy
 * Add possibility to link axis functionality to plcs (right now for instance a limit needs to be an EtherCAT entry).
-<<<<<<< HEAD
-* Add oscilloscope functionality in data storage (oversampling):    
-    * Add possibility to change data type of data storage (so memcpy can be used)
-    * Add possibility to link a trigger memmap, pretrigger sample count a window=> osc function 
-=======
->>>>>>> master
