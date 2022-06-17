@@ -2228,3 +2228,22 @@ int ecmcEc::useClockRealtime(bool useClkRT) {
    useClockRealtime_ = useClkRT;
    return 0;
 }
+
+bool ecmcEc::getScanBusyNotRT() {
+  
+  if(!master_) {
+    return false;
+  }
+
+// typedef struct {
+//   unsigned int slave_count; /**< Number of slaves in the bus. */
+//   unsigned int link_up : 1; /**< \a true, if the network link is up. */
+//   uint8_t scan_busy; /**< \a true, while the master is scanning the bus */
+//   uint64_t app_time; /**< Application time. */
+// } ec_master_info_t;
+
+  ec_master_info_t mInfo;
+  ecrt_master(master_, &mInfo);
+  
+  return mInfo.scan_busy;  
+}
