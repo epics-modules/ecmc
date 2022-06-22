@@ -10,6 +10,11 @@
 *
 \*************************************************************************/
 
+/**
+\file
+    @brief EtherCAT commands
+*/
+
 #ifndef ECMC_ETHERCAT_H_
 #define ECMC_ETHERCAT_H_
 

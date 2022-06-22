@@ -10,6 +10,11 @@
 *
 \*************************************************************************/
 
+/**
+\file
+    @brief Misc. commands
+*/
+
 #ifndef ECMC_MISC_H_
 #define ECMC_MISC_H_
 

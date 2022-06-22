@@ -10,6 +10,11 @@
 *
 \*************************************************************************/
 
+/**
+\file
+    @brief Plugin commands
+*/
+
 #ifndef ECMC_PLUGIN_H_
 #define ECMC_PLUGIN_H_
 

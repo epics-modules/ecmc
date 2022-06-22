@@ -10,6 +10,11 @@
 *
 \*************************************************************************/
 
+/**
+\file
+    @brief General commands
+*/
+
 #ifndef ECMC_GENERAL_H_
 #define ECMC_GENERAL_H_
 

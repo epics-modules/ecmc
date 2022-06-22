@@ -10,6 +10,11 @@
 *
 \*************************************************************************/
 
+/**
+\file
+    @brief Motion commands
+*/
+
 #ifndef ECMC_MOTION_H_
 #define ECMC_MOTION_H_
 
