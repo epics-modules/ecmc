@@ -417,6 +417,27 @@ int ecmcInitThread(void) {
   return 0;
 }
 
+int waitForEcMasterScan(int timeoutSeconds) {
+  struct timespec timeToPause;
+
+  timeToPause.tv_sec  = 1;
+  timeToPause.tv_nsec = 0;
+
+  for (int i = 0; i < timeoutSeconds; i++) {
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
+    if (!ec->getScanBusyNotRT()) {      
+      LOGINFO("EtherCAT bus ready (not scaning).\n");
+      return 0;
+    } else {
+      LOGINFO("Waiting for master to complete scan of slaves.\n");
+    }
+  }
+  LOGERR("Timeout error: EtherCAT bus not ready with scan in %d s.\n",
+         timeoutSeconds);
+  setAppMode(0);
+  return ERROR_MAIN_EC_SCAN_TIMEOUT;
+}
+
 int waitForThreadToStart(int timeoutSeconds) {
   struct timespec timeToPause;
 
@@ -521,10 +542,18 @@ int setAppModeCfg(int mode) {
 }
 
 int setAppModeRun(int mode) {
+  
   if (appModeStat == ECMC_MODE_RUNTIME) {
     return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;
   }
 
+  //wait for ethercat scan (if rescan is just done)  
+  int errorCode = waitForEcMasterScan(ecTimeoutSeconds > 0 ? ecTimeoutSeconds : EC_START_TIMEOUT_S);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  
   // Block rt communication during startup 
   // (since sleep in waitForThreadToStart())
   asynPort->setAllowRtThreadCom(false);
@@ -545,7 +574,7 @@ int setAppModeRun(int mode) {
     }
   }
 
-  int errorCode = validateConfig();
+  errorCode = validateConfig();
   if (errorCode) {
     return errorCode;
   }
