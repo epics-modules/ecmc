@@ -102,6 +102,12 @@ ECMC is configured via EPICS-iocsh:
         * ecmcConfigOrDie "Cfg.AppendPLCExpr(<plcid>)=ax1.enc.homepos:=25#"
         * ...
 
+# Documentation
+
+[Command reference](https://epics-modules.github.io/ecmc/)
+
+[Examples](https://github.com/paulscherrerinstitute/ecmccfg/tree/master/examples)
+
 # Environment
 ECMC runs best under certain conditions:
 
