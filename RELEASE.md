@@ -1,12 +1,12 @@
 
 Release Notes
 ===
-# ECMC xxx
-* Ensure that master is not scanning slaves at startup. If scanning then wait until scan is finished (with timeout).
-* Add support for jerk limited trajectories based on ruckig (https://github.com/pantor/ruckig).
-  Trapetzoidal trajectories still supported and default in ecmccfg.
+# ECMC 8.0.0
 
-  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when posiitoning (blocked).
+* Add support for jerk limited trajectories based on ruckig (https://github.com/pantor/ruckig).
+  Trapetzoidal trajectories still supported and default in ecmccfg. Ruckig module is now a dependency.
+  
+* Ensure that master is not scanning slaves at startup. If scanning then wait until scan is finished (with timeout).  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when posiitoning (blocked).
 
 * Remove commands Cfg.SetOpMode() and GetOpMode(). Obsolete and not used.
 
