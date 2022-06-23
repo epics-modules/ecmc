@@ -6,7 +6,11 @@ Release Notes
 * Add support for jerk limited trajectories based on ruckig (https://github.com/pantor/ruckig).
   Trapetzoidal trajectories still supported and default in ecmccfg. Ruckig module is now a dependency.
   
-* Ensure that master is not scanning slaves at startup. If scanning then wait until scan is finished (with timeout).  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when posiitoning (blocked).
+  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when posiitoning (blocked).
+  
+* Update of trajectory generator to allow "on the fly" update of target postion and target velocity (trapetz).
+  
+* Ensure that master is not scanning slaves at startup. If scanning then wait until scan is finished (with timeout).  
 
 * Remove commands Cfg.SetOpMode() and GetOpMode(). Obsolete and not used.
 
@@ -35,12 +39,12 @@ ax<id>.diagnostic
 Examples and more info are available in:
 ecmccfg/examples/test/motionWithoutMotorRecord/
 
-* Update of trajectory generator to allow "on the fly" update of target postion and target velocity.
 * Brake handling: 
   - Engage brake if not enabled
   - Start counting open delay when drive enabled goes high (instead of enable cmd).
 * Reset axis enable cmd if ethercat in error state (prevent re-enable when ethercat returns to OK)
-* Add command to set drive timeout for enabled and DS402 state machine: "Cfg.SetAxisDrvStateMachineTimeout(int axis_no, double seconds)"
+* Add command to set drive timeout for enabled and DS402 state machine: "Cfg.SetAxisDrvStateMachineTimeout(int axis_no, int seconds)"
+* Fix of absolute encoder reading at ioc startup
 
 # ECMC 7.0.1
 * Add homing seq 25 (same as 15 but not blocked by motor record and reserved for save/restore). The sequence will just set a new position.
