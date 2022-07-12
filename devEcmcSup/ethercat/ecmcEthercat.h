@@ -1088,6 +1088,14 @@ int ecGetSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
  */
 int ecUseClockRealtime(int useClkRT);
 
+/** \brief Get ethercat send time in ns
+ *
+ * \return ethercat send time in ns
+ *
+ */
+uint64_t ecGetSendTimeNanos();
+
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

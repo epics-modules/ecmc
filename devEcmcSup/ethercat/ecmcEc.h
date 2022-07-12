@@ -172,6 +172,8 @@ class ecmcEc : public ecmcError {
 
   int           checkReadyForRuntime();
   uint64_t      getTimeNs();
+
+  uint64_t      getSendTimeNs();
     
   uint32_t      getSlaveVendorId(uint16_t alias,  /**< Slave alias. */
                                  uint16_t slavePos   /**< Slave position. */);

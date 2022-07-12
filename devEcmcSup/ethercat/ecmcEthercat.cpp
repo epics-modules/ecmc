@@ -923,3 +923,8 @@ int ecUseClockRealtime(int useClkRT) {
   
   return ec->useClockRealtime(useClkRT);
 }
+
+uint64_t ecGetSendTimeNanos() {
+  if (!ec->getInitDone()) return 0;
+  return ec->getSendTimeNs();
+}

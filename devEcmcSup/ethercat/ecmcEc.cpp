@@ -632,7 +632,7 @@ void ecmcEc::send(timespec timeOffset) {
   ecrt_master_sync_slave_clocks(master_);
   
   ecrt_master_send(master_);
-
+  
   //Update asyn time
   epicsTimeFromTimespec (&epicsTime_,&timeAbs_);
   asynPortDriver_->setTimeStamp(&epicsTime_);
@@ -2006,6 +2006,10 @@ uint64_t ecmcEc::getTimeNs() {
   }
   
   return TIMESPEC2NS(timeAbs);
+}
+
+ uint64_t ecmcEc::getSendTimeNs(){
+  return TIMESPEC2NS(timeAbs_);
 }
 
 uint32_t ecmcEc::getSlaveVendorId(uint16_t alias,  /**< Slave alias. */
