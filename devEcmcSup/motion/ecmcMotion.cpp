@@ -1738,7 +1738,7 @@ int setAxisEncOffset(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getEnc()->setOffset(value);
+  return axes[axisIndex]->getConfigEnc()->setOffset(value);
 }
 
 int setAxisEncBits(int axisIndex, int value) {
@@ -1752,7 +1752,7 @@ int setAxisEncBits(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getEnc()->setBits(value);
+  return axes[axisIndex]->getConfigEnc()->setBits(value);
 }
 
 int setAxisEncAbsBits(int axisIndex, int value) {
@@ -1766,7 +1766,7 @@ int setAxisEncAbsBits(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getEnc()->setAbsBits(value);
+  return axes[axisIndex]->getConfigEnc()->setAbsBits(value);
 }
 
 int setAxisEncRawMask(int axisIndex, uint64_t rawMask) {
@@ -1780,7 +1780,7 @@ int setAxisEncRawMask(int axisIndex, uint64_t rawMask) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getEnc()->setRawMask(rawMask);
+  return axes[axisIndex]->getConfigEnc()->setRawMask(rawMask);
 }
 
 int setAxisEncType(int axisIndex, int value) {
@@ -1794,7 +1794,43 @@ int setAxisEncType(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getEnc()->setType((encoderType)value);
+  return axes[axisIndex]->getConfigEnc()->setType((encoderType)value);
+}
+
+int addAxisEnc(int axisIndex) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+
+  return axes[axisIndex]->addEncoder();
+}
+
+int selectAxisEncPrimary(int axisIndex, int index) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, primaryEncoder=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           index);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  return axes[axisIndex]->selectPrimaryEncoder(index);
+}
+
+int selectAxisEncConfig(int axisIndex, int index) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, primaryEncoder=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           index);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  return axes[axisIndex]->selectConfigEncoder(index);
 }
 
 /****************************************************************************/
@@ -2492,7 +2528,7 @@ int linkEcEntryToAxisEnc(int   slaveIndex,
       (encoderEntryIndex <
        0)) return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
 
-  return axes[axisIndex]->getEnc()->setEntryAtIndex(entry,
+  return axes[axisIndex]->getConfigEnc()->setEntryAtIndex(entry,
                                                     encoderEntryIndex,
                                                     bitIndex);
 }

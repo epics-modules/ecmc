@@ -1835,6 +1835,53 @@ int setAxisEncAbsBits(int axisIndex,
 int setAxisEncRawMask(int      axisIndex,
                       uint64_t rawMask);
 
+/** \brief Add encoder object to axis.\n
+ *
+ *  Adds another encoder to axis object(max is 8).\n
+ *  After this command have been executed, all following encoder configuration\n
+ *  commands will be applied to the newly created encoder object.\n
+ *
+ *  Note: An encoder object will be automatically created when the axis object is created, \n
+ *  this encoder will have index 0. The first "extra" encoder created with addAxisEnc \n
+ *  function will therefore have encoder index 1, the next 2....\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add encoder to axis object 3.\n
+ * "Cfg.AddAxisEnc(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int addAxisEnc(int axisIndex);
+
+/** \brief Select encoder to be used for control.\n
+ *
+ *  Select an encoder to use for closed loop control (default encoder index 0 is used).\n 
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encindex Encoder index (first index is 0).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Select to use teh third encoder object for closed loop control of axis 3.\n
+ * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
+ */
+int selectAxisEncPrimary(int axisIndex, int index);
+
+/** \brief Select encoder to configured.\n
+ *
+ *  Select an encoder to be configured (default encoder index 0 is used).\n 
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encindex Encoder index (first index is 0).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Select to use teh third encoder object for closed loop control of axis 3.\n
+ * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
+ */
+int selectAxisEncConfig(int axisIndex, int index);
+
 /** \brief Set PID-controller proportional gain.\n
  *
  * \param[in] axisIndex  Axis index.\n

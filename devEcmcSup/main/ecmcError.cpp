@@ -312,8 +312,14 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_AXIS_PLC_OBJECT_NULL";
 
     break;
+
   case 0x14326:
     return "ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE";
+
+    break;
+
+  case 0x14327:
+    return "ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE";
 
     break;
 

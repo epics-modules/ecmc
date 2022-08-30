@@ -1556,6 +1556,27 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncOffset(iValue, dValue);
   }
 
+  /*int Cfg.AddAxisEnc(int axis_no);*/
+  nvals = sscanf(myarg_1, "AddAxisEnc(%d)", &iValue);
+
+  if (nvals == 1) {
+    return addAxisEnc(iValue);
+  }
+
+  /*int Cfg.SelectAxisEncPrimary(int axis_no, int encIndex);*/
+  nvals = sscanf(myarg_1, "SelectAxisEncPrimary(%d,%d)", &iValue,&iValue2);
+
+  if (nvals == 2) {
+    return selectAxisEncPrimary(iValue, iValue2);
+  }
+
+  /*int Cfg.SelectAxisEncConfig(int axis_no, int encIndex);*/
+  nvals = sscanf(myarg_1, "SelectAxisEncConfig(%d,%d)", &iValue,&iValue2);
+
+  if (nvals == 2) {
+    return selectAxisEncConfig(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKp(%d,%lf)", &iValue, &dValue);
 
