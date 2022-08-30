@@ -69,6 +69,7 @@
 #define ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE 0x14323
 #define ERROR_AXIS_FILTER_OBJECT_NULL 0x14324
 #define ERROR_AXIS_PLC_OBJECT_NULL 0x14325
+#define ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE 0x14326
 
 enum axisState {
   ECMC_AXIS_STATE_STARTUP  = 0,
@@ -262,8 +263,10 @@ class ecmcAxisBase : public ecmcError {
   int                        getAllowPos();
   int                        getAllowConstVelo();
   int                        getAllowHome();
+  int                        addEncoder();
   double                     getExtSetPos();
   double                     getExtActPos();
+
 
  protected:
   void                       initVars();
@@ -280,7 +283,8 @@ class ecmcAxisBase : public ecmcError {
 
   ecmcTrajectoryBase     *traj_;
   ecmcMonitor            *mon_;
-  ecmcEncoder            *enc_;
+  ecmcEncoder            *enc_[ECMC_MAX_ENCODERS];
+  int                     encoderCount_;
   ecmcAxisSequencer       seq_;
   ecmcAxisStatusType      statusData_;
   ecmcAxisStatusType      statusDataOld_;

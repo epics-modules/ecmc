@@ -84,13 +84,13 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            double sampleTime,
                            ecmcTrajTypes  trajType) {
   initVars();
-
   asynPortDriver_                 = asynPortDriver;
   data_.axisId_                   = axisID;
   data_.sampleTime_               = sampleTime;
 
   try {
-    enc_  = new ecmcEncoder(&data_, data_.sampleTime_);
+    data_.command_.primaryEncIndex = 0;    
+    addEncoder();
     currentTrajType_ = trajType;
     if(currentTrajType_ == ECMC_S_CURVE) {
       traj_ = new ecmcTrajectoryS(&data_,
@@ -119,14 +119,15 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
-  seq_.setEnc(enc_);
+  seq_.setEnc(enc_); 
 
   initAsyn();
 }
 
 ecmcAxisBase::~ecmcAxisBase() {
-  delete enc_;
-  enc_ = NULL;
+  for(int i=0; i<ECMC_MAX_ENCODERS; i++) {
+    delete enc_[i];     
+  }
   delete traj_;
   traj_ = NULL;
   delete mon_;
@@ -182,6 +183,10 @@ void ecmcAxisBase::initVars() {
   velocityTarget_ = 0;
   command_ = ECMC_CMD_MOVEABS;
   cmdData_ = 0;
+  encoderCount_ = 0;
+  for(int i=0; i<ECMC_MAX_ENCODERS; i++) {
+    enc_[i]=NULL;     
+  }
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -195,8 +200,17 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   data_.status_.moving = std::abs(
     data_.status_.currentVelocityActual) > 0 || getTraj()->getBusy();
 
-  if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    enc_->readEntries(masterOK);
+  for(int i = 0; i < encoderCount_; i++) {
+    if(enc_[i] == NULL) {
+      break; 
+    }
+
+    // do n ot refresh primary encoder if external source
+    if (i == data_.command_.primaryEncIndex && data_.command_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
+      continue;
+    } 
+  
+    enc_[i]->readEntries(masterOK);
   }
 
   // Axis state machine
@@ -212,7 +226,9 @@ void ecmcAxisBase::preExecute(bool masterOK) {
           data_.status_.inStartupPhase) {
         errorReset();
         setInStartupPhase(false);
-        enc_->setToZeroIfRelative();
+        for(int i = 0; i < encoderCount_; i++) {
+          enc_[i]->setToZeroIfRelative();
+        }
       }
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
@@ -300,7 +316,9 @@ void ecmcAxisBase::postExecute(bool masterOK) {
             data_.status_.externalEncoderPosition;
 
   // Write encoder entries
-  enc_->writeEntries();
+  for(int i = 0; i < encoderCount_; i++) {
+    enc_[i]->writeEntries();
+  }
   data_.status_.busyOld                    = data_.status_.busy;
   data_.status_.enabledOld                 = data_.status_.enabled;
   data_.status_.executeOld                 = getExecute();
@@ -643,7 +661,7 @@ int ecmcAxisBase::getPosSet(double *pos) {
 }
 
 ecmcEncoder * ecmcAxisBase::getEnc() {
-  return enc_;
+  return enc_[data_.command_.primaryEncIndex];
 }
 
 ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
@@ -659,37 +677,37 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  *homed = enc_->getHomed();
+  *homed = enc_[data_.command_.primaryEncIndex]->getHomed();
   return 0;
 }
 
 int ecmcAxisBase::setAxisHomed(bool homed) {
-  enc_->setHomed(homed);
+  enc_[data_.command_.primaryEncIndex]->setHomed(homed);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleNum(double *scale) {
-  *scale = enc_->getScaleNum();
+  *scale = enc_[data_.command_.primaryEncIndex]->getScaleNum();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleNum(double scale) {
-  enc_->setScaleNum(scale);
+  enc_[data_.command_.primaryEncIndex]->setScaleNum(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleDenom(double *scale) {
-  *scale = enc_->getScaleDenom();
+  *scale = enc_[data_.command_.primaryEncIndex]->getScaleDenom();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleDenom(double scale) {
-  enc_->setScaleDenom(scale);
+  enc_[data_.command_.primaryEncIndex]->setScaleDenom(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
-  *rawPos = enc_->getRawPosMultiTurn();
+  *rawPos = enc_[data_.command_.primaryEncIndex]->getRawPosMultiTurn();
   return 0;
 }
 
@@ -1294,7 +1312,7 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
     data_.status_.currentvelocityFFRaw;
   statusData_.onChangeData.cmdData        = data_.command_.cmdData;
   statusData_.onChangeData.command        = data_.command_.command;
-  statusData_.onChangeData.positionRaw    = enc_->getRawPosRegister();
+  statusData_.onChangeData.positionRaw    = enc_[data_.command_.primaryEncIndex]->getRawPosRegister();
   statusData_.onChangeData.homeposition   = seq_.getHomePosition();
   statusData_.acceleration                = traj_->getAcc();
   statusData_.deceleration                = traj_->getDec();
@@ -1416,15 +1434,15 @@ int ecmcAxisBase::setExtEncVeloFiltSize(size_t size) {
 }
 
 int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
-  return enc_->setVeloFilterSize(size);
+  return enc_[data_.command_.primaryEncIndex]->setVeloFilterSize(size);
 }
 
 int ecmcAxisBase::setEncPosFiltSize(size_t size) {
-  return enc_->setPosFilterSize(size);
+  return enc_[data_.command_.primaryEncIndex]->setPosFilterSize(size);
 }
 
 int ecmcAxisBase::setEncPosFiltEnable(bool enable) {
-  return enc_->setPosFilterEnable(enable);
+  return enc_[data_.command_.primaryEncIndex]->setPosFilterEnable(enable);
 }
 
 int ecmcAxisBase::createAsynParam(const char       *nameFormat,
@@ -2036,4 +2054,16 @@ int ecmcAxisBase::getAllowHome(){
     return getSeq()->getAllowHome();
   }
   return -ERROR_AXIS_SEQ_OBJECT_NULL;
+}
+
+int ecmcAxisBase::addEncoder(){
+  if (encoderCount_ >= ECMC_MAX_ENCODERS) {
+    return setErrorID(__FILE__,
+                  __FUNCTION__,
+                  __LINE__,
+                  ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE);    
+  }
+  enc_[encoderCount_] = new ecmcEncoder(&data_, data_.sampleTime_);
+  encoderCount_++;
+  return 0;
 }

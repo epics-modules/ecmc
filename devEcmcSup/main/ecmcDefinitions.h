@@ -94,6 +94,10 @@
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_1 7
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_2 8
 
+// Encoders
+#define ECMC_MAX_ENCODERS 8
+
+
 // Monitor drive entries
 #define ECMC_MON_ENTRY_INDEX_LOWLIM 0
 #define ECMC_MON_ENTRY_INDEX_HIGHLIM 1

@@ -86,8 +86,8 @@ void ecmcAxisReal::execute(bool masterOK) {
   }
   // Encoder (External or internal)
   if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    data_.status_.currentPositionActual = enc_->getActPos();
-    data_.status_.currentVelocityActual = enc_->getActVel();
+    data_.status_.currentPositionActual = enc_[data_.command_.primaryEncIndex]->getActPos();
+    data_.status_.currentVelocityActual = enc_[data_.command_.primaryEncIndex]->getActVel();
   } else {  // External source (PLC)
     data_.status_.currentPositionActual =
       data_.status_.externalEncoderPosition;
@@ -124,7 +124,7 @@ void ecmcAxisReal::execute(bool masterOK) {
     cntrl_->reset();
   }
   // CSP Write raw actpos  and actpos to drv obj
-  drv_->setCspActPos(enc_->getRawPosRegister(), data_.status_.currentPositionActual);
+  drv_->setCspActPos(enc_[data_.command_.primaryEncIndex]->getRawPosRegister(), data_.status_.currentPositionActual);
   if (getEnabled() && masterOK) {         
     // Calc position error
     data_.status_.cntrlError = getPosErrorMod();
@@ -210,14 +210,14 @@ ecmcDriveBase * ecmcAxisReal::getDrv() {
 int ecmcAxisReal::validate() {
   int error = 0;
 
-  if (enc_ == NULL) {
+  if (enc_[data_.command_.primaryEncIndex] == NULL) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  error = enc_->validate();
+  error = enc_[data_.command_.primaryEncIndex]->validate();
 
   if (error) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);

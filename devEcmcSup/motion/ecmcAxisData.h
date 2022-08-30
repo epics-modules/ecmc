@@ -26,6 +26,7 @@ typedef struct {
   ecmcMotionModType  moduloType;
   motionCommandTypes command;
   int                cmdData;
+  int                primaryEncIndex;
   bool               enable             : 1;
   bool               execute            : 1;
   bool               reset              : 1;
@@ -33,7 +34,7 @@ typedef struct {
   bool               enableSoftLimitFwd : 1;
   dataSource         trajSource;
   dataSource         encSource;
-  driveMode          drvMode;
+  driveMode          drvMode;  
 } ecmcAxisDataCommand;
 
 typedef struct {

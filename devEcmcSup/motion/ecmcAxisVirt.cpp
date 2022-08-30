@@ -54,8 +54,8 @@ void ecmcAxisVirt::execute(bool masterOK) {
 
     // Encoder (External or internal)
     if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-      data_.status_.currentPositionActual = enc_->getActPos();
-      data_.status_.currentVelocityActual = enc_->getActVel();
+      data_.status_.currentPositionActual = enc_[data_.command_.primaryEncIndex]->getActPos();
+      data_.status_.currentVelocityActual = enc_[data_.command_.primaryEncIndex]->getActVel();
     } else {    // External source (Transform)
       data_.status_.currentPositionActual =
         data_.status_.externalEncoderPosition;
@@ -142,7 +142,7 @@ ecmcDriveBase * ecmcAxisVirt::getDrv() {
 int ecmcAxisVirt::validate() {
   int error = 0;
 
-  if (enc_ == NULL) {
+  if (enc_[data_.command_.primaryEncIndex] == NULL) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -150,7 +150,7 @@ int ecmcAxisVirt::validate() {
   }
 
   if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    error = enc_->validate();
+    error = enc_[data_.command_.primaryEncIndex]->validate();
 
     if (error) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);

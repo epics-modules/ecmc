@@ -81,7 +81,7 @@ class ecmcAxisSequencer : public ecmcError {
   int                    getCmdData();
   void                   setTraj(ecmcTrajectoryBase *traj);
   ecmcTrajectoryBase*    getTraj();
-  void                   setEnc(ecmcEncoder *enc);
+  void                   setEnc(ecmcEncoder **encArray);
   void                   setMon(ecmcMonitor *mon);
   void                   setDrv(ecmcDriveBase *drv);
   void                   setCntrl(ecmcPIDController *con);
@@ -179,7 +179,7 @@ class ecmcAxisSequencer : public ecmcError {
   double homePosLatch2_;
   motionDirection currSeqDirection_;
   ecmcTrajectoryBase *traj_;
-  ecmcEncoder *enc_;
+  ecmcEncoder **encArray_;
   ecmcMonitor *mon_;
   ecmcPIDController *cntrl_;
   ecmcDriveBase *drv_;
