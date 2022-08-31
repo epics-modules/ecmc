@@ -774,6 +774,7 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_set_enable_motion_funcs", mc_set_enable_motion_funcs);
   ecmcPLCTaskAddFunction("mc_move_ext_pos", mc_move_ext_pos);
   ecmcPLCTaskAddFunction("mc_home_pos",     mc_home_pos);
+  ecmcPLCTaskAddFunction("mc_get_act_pos",  mc_get_act_pos);
   
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

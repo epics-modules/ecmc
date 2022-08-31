@@ -427,6 +427,12 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
 }
 
 void ecmcAxisBase::setInStartupPhase(bool startup) {
+
+  // When configuration is ready then defult to primary encoder for all encoder related calls
+  if(!data_.status_.inStartupPhase && startup) {
+    encoderIndexConfig_ = data_.command_.primaryEncIndex;
+  }
+
   data_.status_.inStartupPhase = startup;
 }
 
@@ -665,6 +671,21 @@ ecmcEncoder * ecmcAxisBase::getEnc() {
   return enc_[data_.command_.primaryEncIndex];
 }
 
+ecmcEncoder * ecmcAxisBase::getEnc(int encIndex, int* error) {
+  *error = 0;
+  if(encIndex >= ECMC_MAX_ENCODERS) {     
+    *error=ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+    return NULL;
+  }
+  
+  if(enc_[encIndex] == NULL) {    
+    *error=ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+    return NULL;
+  }
+  
+  return enc_[encIndex];
+}
+
 ecmcEncoder * ecmcAxisBase::getConfigEnc() {
   return enc_[encoderIndexConfig_];
 }
@@ -682,7 +703,7 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  *homed = enc_[data_.command_.primaryEncIndex]->getHomed();
+  *homed = enc_[encoderIndexConfig_]->getHomed();
   return 0;
 }
 
@@ -692,27 +713,27 @@ int ecmcAxisBase::setAxisHomed(bool homed) {
 }
 
 int ecmcAxisBase::getEncScaleNum(double *scale) {
-  *scale = enc_[data_.command_.primaryEncIndex]->getScaleNum();
+  *scale = enc_[encoderIndexConfig_]->getScaleNum();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleNum(double scale) {
-  enc_[data_.command_.primaryEncIndex]->setScaleNum(scale);
+  enc_[encoderIndexConfig_]->setScaleNum(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleDenom(double *scale) {
-  *scale = enc_[data_.command_.primaryEncIndex]->getScaleDenom();
+  *scale = enc_[encoderIndexConfig_]->getScaleDenom();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleDenom(double scale) {
-  enc_[data_.command_.primaryEncIndex]->setScaleDenom(scale);
+  enc_[encoderIndexConfig_]->setScaleDenom(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
-  *rawPos = enc_[data_.command_.primaryEncIndex]->getRawPosMultiTurn();
+  *rawPos = enc_[encoderIndexConfig_]->getRawPosMultiTurn();
   return 0;
 }
 
