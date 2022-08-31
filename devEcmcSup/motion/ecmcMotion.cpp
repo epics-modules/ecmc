@@ -551,6 +551,19 @@ int getAxisEncSource(int axisIndex, int *value) {
   return 0;
 }
 
+int getAxisEncConfigIndex(int axisIndex, int *index) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+
+  *index =  axes[axisIndex]->getConfigEncoderIndex();
+  return 0;
+}
+
 int getAxisAllowCommandsFromPLC(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
@@ -1831,6 +1844,28 @@ int selectAxisEncConfig(int axisIndex, int index) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   return axes[axisIndex]->selectConfigEncoder(index);
+}
+
+int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encToRef, int encRef) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, encToRef=%d, encRef=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           encToRef,
+           encRef);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  
+  // Check if encoder exist
+  int error = 0;
+  ecmcEncoder* enc = axes[axisIndex]->getEnc(encToRef, &error);
+
+  if(!enc) {
+    return error;
+  }
+
+  return enc->setRefToOtherEncAtStartup(encRef);
 }
 
 /****************************************************************************/

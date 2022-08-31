@@ -270,6 +270,7 @@ class ecmcAxisBase : public ecmcError {
   int                        addEncoder();
   int                        selectPrimaryEncoder(int index);
   int                        selectConfigEncoder(int index);
+  int                        getConfigEncoderIndex();
   double                     getExtSetPos();
   double                     getExtActPos();
 
@@ -287,6 +288,7 @@ class ecmcAxisBase : public ecmcError {
                                              ecmcAsynDataItem **asynParamOut);
   void                       refreshStatusWd();
   void                       initControlWord();
+  void                       initEncoders();
 
   ecmcTrajectoryBase     *traj_;
   ecmcMonitor            *mon_;

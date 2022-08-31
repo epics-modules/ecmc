@@ -227,9 +227,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
           data_.status_.inStartupPhase) {
         errorReset();
         setInStartupPhase(false);
-        for(int i = 0; i < encoderCount_; i++) {
-          enc_[i]->setToZeroIfRelative();
-        }
+        initEncoders();
       }
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
@@ -2119,7 +2117,32 @@ int ecmcAxisBase::selectConfigEncoder(int index) {
   return 0;
 }
 
+int ecmcAxisBase::getConfigEncoderIndex() {
+  return encoderIndexConfig_;
+}
+
+
 int ecmcAxisBase::getConfigEncIndex() {
   return encoderIndexConfig_;
 }
 
+void ecmcAxisBase::initEncoders() {
+  // set all relative encoders to 0
+  for(int i = 0; i < encoderCount_; i++) {
+    enc_[i]->setToZeroIfRelative();
+  }
+  
+  // check if any encoders should be referenced to another encoder
+  for(int i = 0; i < encoderCount_; i++) {
+    int encRefIndex =  enc_[i]->getRefToOtherEncAtStartup();
+    if(encRefIndex < 0 || encRefIndex >= encoderCount_) {
+      continue;
+    }
+
+    if(enc_[encRefIndex] == NULL) {
+      continue;
+    }
+    enc_[i]->setActPos(enc_[encRefIndex]->getActPos());
+    enc_[i]->setHomed(1);
+  }
+}

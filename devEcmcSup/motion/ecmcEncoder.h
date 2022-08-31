@@ -110,7 +110,9 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int                   setVeloFilterSize(size_t size);
   int                   setPosFilterSize(size_t size);
   int                   setPosFilterEnable(bool enable);
-  
+  // Ref this encoder to other encoder at startup (i.e ref relative encoder to abs at startup)
+  int                   setRefToOtherEncAtStartup(int encIndex);
+  int                   getRefToOtherEncAtStartup();
  protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -174,7 +176,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool hwErrorAlarm2Defined_;
   bool hwWarningDefined_;
   bool masterOKOld_;
-
+  int refEncIndex_;
 };
 
 #endif  /* ECMCENCODER_H_ */

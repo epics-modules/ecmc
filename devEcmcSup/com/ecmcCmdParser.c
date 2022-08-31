@@ -1556,6 +1556,12 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncOffset(iValue, dValue);
   }
 
+  /*int Cfg.SetAxisEncRefToOtherEncAtStartup(int axis_no, int enc_to_ref, enc_ref);*/
+  nvals = sscanf(myarg_1, "SetAxisEncRefToOtherEncAtStartup(%d,%d,%d)", &iValue, &iValue2, &iValue3);
+  if (nvals == 3) {
+    return setAxisEncRefToOtherEncAtStartup(iValue, iValue2, iValue3);
+  }
+
   /*int Cfg.AddAxisEnc(int axis_no);*/
   nvals = sscanf(myarg_1, "AddAxisEnc(%d)", &iValue);
 
@@ -3318,6 +3324,14 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncSource(motor_axis_no,
                                                          &iValue));
+  }
+
+  /*int GetAxisEncConfigIndex(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEncConfigIndex(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncConfigIndex(motor_axis_no,
+                                                              &iValue));
   }
 
   /*int GetAxisTrajSourceType(int axis_no);*/

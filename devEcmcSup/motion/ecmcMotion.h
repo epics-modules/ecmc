@@ -1877,10 +1877,39 @@ int selectAxisEncPrimary(int axisIndex, int index);
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Select to use teh third encoder object for closed loop control of axis 3.\n
+ * \note Example: Select encoder 2 of axis 3 for configiuration.\n
  * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
  */
 int selectAxisEncConfig(int axisIndex, int index);
+
+/** \brief Get index of current encoder being configured.\n
+ *
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get index of current encoder being configured for axis 3.\n
+ * "Cfg.GetAxisEncConfigIndex(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisEncConfigIndex(int axisIndex, int *index);
+
+/** \brief Reference encoder to other encoder at startup.\n
+ *
+ *  For axes with multiple encoders an encoder can be referenced to other\n
+ *  encoder at startup. This is typically usefull for referencing a \n
+ *  relative encoder to an absolute encoder.\n
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encToRef Encoder index to be referenced (first index is 0).\n
+ * \param[in] encRef Encoder reference index (first index is 0).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Reference encoder 3 to encoder 0 of axis 4
+ * "Cfg.SetAxisEncRefToOtherEncAtStartup(4,3,0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encToRef, int encRef);
 
 /** \brief Set PID-controller proportional gain.\n
  *

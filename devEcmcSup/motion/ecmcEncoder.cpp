@@ -79,21 +79,22 @@ void ecmcEncoder::initVars() {
   actEncLatchPos_       = 0;
   rawAbsPosUint_        = 0;
   rawAbsPosUintOld_     = 0;
-  hwReset_                   = 0;
-  hwErrorAlarm0_             = 0;
-  hwErrorAlarm0Old_          = 0;
-  hwErrorAlarm1_             = 0;
-  hwErrorAlarm1Old_          = 0;
-  hwErrorAlarm2_             = 0;
-  hwErrorAlarm2Old_          = 0;
-  hwWarning_                 = 0;
-  hwWarningOld_              = false;
-  hwResetDefined_            = false;
-  hwErrorAlarm0Defined_      = false;
-  hwErrorAlarm1Defined_      = false;
-  hwErrorAlarm2Defined_      = false;
-  hwWarningDefined_          = false;
-  masterOKOld_               = false;
+  hwReset_              = 0;
+  hwErrorAlarm0_        = 0;
+  hwErrorAlarm0Old_     = 0;
+  hwErrorAlarm1_        = 0;
+  hwErrorAlarm1Old_     = 0;
+  hwErrorAlarm2_        = 0;
+  hwErrorAlarm2Old_     = 0;
+  hwWarning_            = 0;
+  hwWarningOld_         = false;
+  hwResetDefined_       = false;
+  hwErrorAlarm0Defined_ = false;
+  hwErrorAlarm1Defined_ = false;
+  hwErrorAlarm2Defined_ = false;
+  hwWarningDefined_     = false;
+  masterOKOld_          = false;
+  refEncIndex_          = -1;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -814,3 +815,11 @@ void ecmcEncoder::errorReset() {
   ecmcError::errorReset();
 }
 
+int ecmcEncoder::setRefToOtherEncAtStartup(int encIndex) {
+  refEncIndex_ = encIndex;
+  return 0;
+}
+
+int ecmcEncoder::getRefToOtherEncAtStartup() {
+  return refEncIndex_;
+}
