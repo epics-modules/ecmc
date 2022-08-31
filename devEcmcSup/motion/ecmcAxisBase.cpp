@@ -2090,6 +2090,7 @@ int ecmcAxisBase::addEncoder(){
                   ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE);
   }
   enc_[encoderCount_] = new ecmcEncoder(&data_, data_.sampleTime_);
+  encoderIndexConfig_= encoderCount_;
   encoderCount_++;
   return 0;
 }
@@ -2117,3 +2118,8 @@ int ecmcAxisBase::selectConfigEncoder(int index) {
   encoderIndexConfig_ = index;
   return 0;
 }
+
+int ecmcAxisBase::getConfigEncIndex() {
+  return encoderIndexConfig_;
+}
+

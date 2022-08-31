@@ -187,6 +187,7 @@ class ecmcAxisBase : public ecmcError {
   ecmcEncoder              * getEnc();
   ecmcEncoder              * getEnc(int encIndex, int* error);
   ecmcEncoder              * getConfigEnc();  // get current encoder being configured
+  int                        getConfigEncIndex();  // get current encoder being configured
   ecmcAxisSequencer        * getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);

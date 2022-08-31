@@ -210,7 +210,6 @@ ecmcDriveBase * ecmcAxisReal::getDrv() {
 int ecmcAxisReal::validate() {
   int error = 0;
 
-
   if(data_.command_.primaryEncIndex>=encoderCount_) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -220,7 +219,7 @@ int ecmcAxisReal::validate() {
 
   for(int i=0;i<encoderCount_;i++) {
     if (enc_[i] == NULL) {
-     LOGERR("%s/%s:%d: ax%d.enc%d NULL (%x).\n",
+     LOGERR("%s/%s:%d: ax%d.enc%d NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -236,7 +235,7 @@ int ecmcAxisReal::validate() {
 
     error = enc_[i]->validate();
     if (error) {
-      LOGERR("%s/%s:%d: ax%d.enc%d (%x).\n",
+      LOGERR("%s/%s:%d: ax%d.enc%d (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

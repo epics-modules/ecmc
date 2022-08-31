@@ -142,11 +142,41 @@ ecmcDriveBase * ecmcAxisVirt::getDrv() {
 int ecmcAxisVirt::validate() {
   int error = 0;
 
-  if (enc_[data_.command_.primaryEncIndex] == NULL) {
+  if(data_.command_.primaryEncIndex>=encoderCount_) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_ENC_OBJECT_NULL);
+  }
+
+  for(int i=0;i<encoderCount_;i++) {
+    if (enc_[i] == NULL) {
+     LOGERR("%s/%s:%d: ax%d.enc%d NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_.axisId_,
+           i,
+           ERROR_AXIS_ENC_OBJECT_NULL);
+
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_AXIS_ENC_OBJECT_NULL);
+    }
+
+    error = enc_[i]->validate();
+    if (error) {
+      LOGERR("%s/%s:%d: ax%d.enc%d (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_.axisId_,
+           i,
+           error);
+
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
+    }
   }
 
   if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
