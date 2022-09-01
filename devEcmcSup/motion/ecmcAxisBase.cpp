@@ -343,7 +343,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0); 
 
   //Encoders (actpos and actvel)
-  for(int i=0;i<encoderCount_*2;i++) {  
+  for(int i=0;i<encoderCount_*2;i++) {
     encAsynParams_[i]->refreshParamRT(0);
   }
   
@@ -648,6 +648,13 @@ void ecmcAxisBase::errorReset() {
 }
 
 int ecmcAxisBase::validateBase() {
+  // Check that all encoder asyn params
+  for(int i=0;i<encoderCount_*2;i++) {
+    if(encAsynParams_[i]==NULL) {
+      return ERROR_AXIS_ENC_OBJECT_NULL;
+    }     
+  }
+
   return 0;
 }
 
