@@ -56,6 +56,7 @@ void ecmcAxisSequencer::initVars() {
   homeEnablePostMove_    = false;
   homePostMoveTargetPos_ = 0;
   seqPosHomeState_       = 0;
+  oldPrimaryEnc_         = 0;
 }
 
 // Cyclic execution
@@ -111,6 +112,8 @@ void ecmcAxisSequencer::execute() {
     break;
 
   case ECMC_CMD_HOMING:
+
+    switchEncodersIfNeeded();
 
     switch (homingType) {
     case ECMC_SEQ_HOME_LOW_LIM:
@@ -442,6 +445,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                             __LINE__,
                             ERROR_SEQ_CNTRL_NULL);
         }
+        switchEncodersIfNeeded();
       }
     } else if (!data_->command_.execute) {
       stopSeq();
@@ -2674,6 +2678,8 @@ int ecmcAxisSequencer::stopSeq() {
   if (traj_ != NULL) {
     traj_->setExecute(false);
   }
+ 
+  switchBackEncodersIfNeeded();
 
   seqInProgress_  = false;
   localSeqBusy_   = false;
@@ -2772,10 +2778,12 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   if(cntrl_) {
     cntrl_->reset();
   }
+
   homePosLatch1_      = 0;
   homePosLatch2_      = 0;
   homeLatchCountAct_  = 0;
   overUnderFlowLatch_ = ECMC_ENC_NORMAL;
+
 
   // See if trigg post home motion
   if(homeEnablePostMove_) {
@@ -2817,4 +2825,41 @@ void ecmcAxisSequencer::setHomePostMoveTargetPosition(double targetPos) {
 
 void ecmcAxisSequencer::setHomePostMoveEnable(double enable) {
   homeEnablePostMove_ = enable;
+}
+
+void ecmcAxisSequencer::switchEncodersIfNeeded() {
+
+  if(data_->command_.homeEncIndex == data_->command_.primaryEncIndex) {  
+    return; // Already correct encoder
+  }
+
+  oldPrimaryEnc_ = data_->command_.primaryEncIndex;
+
+  // *************  Need to switch encoder
+  
+  // Ensure nu jump when switching.
+  encArray_[data_->command_.homeEncIndex]->setActPos(encArray_[data_->command_.primaryEncIndex]->getActPos());
+  
+  // now tempirarily switch encoder to home encoder
+  data_->command_.primaryEncIndex = data_->command_.homeEncIndex;
+
+  printf("SWITCHED ENCODER!!!\n");
+}
+
+void ecmcAxisSequencer::switchBackEncodersIfNeeded() {
+
+  if(oldPrimaryEnc_ == data_->command_.primaryEncIndex) {
+    printf("NOT SWITCHED ENCODER BACK!!!\n");
+    return; // Already correct encoder
+  }
+
+  // *************  Need to switch back encoder
+
+  // Ensure nu jump when switching  (so  primary encoder then must be synced with home encoder)
+  encArray_[oldPrimaryEnc_]->setActPos(encArray_[data_->command_.homeEncIndex]->getActPos());
+  
+  // now tempirarily switch encoder to home encoder
+  data_->command_.primaryEncIndex = oldPrimaryEnc_;
+
+  printf("SWITCHED ENCODER BACK!!!\n");
 }

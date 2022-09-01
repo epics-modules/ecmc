@@ -1583,6 +1583,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return selectAxisEncConfig(iValue, iValue2);
   }
 
+  /*int Cfg.SelectAxisEncHome(int axis_no, int encIndex);*/
+  nvals = sscanf(myarg_1, "SelectAxisEncHome(%d,%d)", &iValue,&iValue2);
+
+  if (nvals == 2) {
+    return selectAxisEncHome(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKp(%d,%lf)", &iValue, &dValue);
 

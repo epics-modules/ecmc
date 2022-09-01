@@ -151,6 +151,8 @@ class ecmcAxisSequencer : public ecmcError {
   void   initHomingSeq();
   void   finalizeHomingSeq(double newPosition);
   int    postHomeMove();
+  void   switchEncodersIfNeeded();
+  void   switchBackEncodersIfNeeded();
 
   int seqState_;
   int seqStateOld_;
@@ -193,6 +195,7 @@ class ecmcAxisSequencer : public ecmcError {
   bool enablePos_;
   bool enableConstVel_;
   bool enableHome_;
+  int oldPrimaryEnc_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */

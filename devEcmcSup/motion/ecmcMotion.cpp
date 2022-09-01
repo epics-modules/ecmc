@@ -1861,7 +1861,7 @@ int selectAxisEncPrimary(int axisIndex, int index) {
 }
 
 int selectAxisEncConfig(int axisIndex, int index) {
-  LOGINFO4("%s/%s:%d axisIndex=%d, primaryEncoder=%d\n",
+  LOGINFO4("%s/%s:%d axisIndex=%d, configEncoder=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1870,6 +1870,18 @@ int selectAxisEncConfig(int axisIndex, int index) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   return axes[axisIndex]->selectConfigEncoder(index);
+}
+
+int selectAxisEncHome(int axisIndex, int index) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, homeEncoder=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           index);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  return axes[axisIndex]->selectHomeEncoder(index);
 }
 
 int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encToRef, int encRef) {
