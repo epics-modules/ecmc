@@ -823,3 +823,11 @@ int ecmcEncoder::setRefToOtherEncAtStartup(int encIndex) {
 int ecmcEncoder::getRefToOtherEncAtStartup() {
   return refEncIndex_;
 }
+
+uint8_t* ecmcEncoder::getActPosPtr() {
+  return (uint8_t*)&actPos_;
+}
+
+uint8_t* ecmcEncoder::getActVelPtr() {
+  return (uint8_t*)&actVel_;
+}

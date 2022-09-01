@@ -304,6 +304,7 @@ class ecmcAxisBase : public ecmcError {
   // Axis default parameters over asyn I/O intr
   ecmcAsynPortDriver     *asynPortDriver_;
   ecmcAsynDataItem       *axAsynParams_[ECMC_ASYN_AX_PAR_COUNT];
+  ecmcAsynDataItem       *encAsynParams_[ECMC_ASYN_ENC_PAR_COUNT];
   ecmcEcEntry            *statusOutputEntry_;
   ecmcFilter             *extTrajVeloFilter_;
   ecmcFilter             *extEncVeloFilter_;

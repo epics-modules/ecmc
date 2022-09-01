@@ -2842,14 +2842,11 @@ void ecmcAxisSequencer::switchEncodersIfNeeded() {
   
   // now tempirarily switch encoder to home encoder
   data_->command_.primaryEncIndex = data_->command_.homeEncIndex;
-
-  printf("SWITCHED ENCODER!!!\n");
 }
 
 void ecmcAxisSequencer::switchBackEncodersIfNeeded() {
 
-  if(oldPrimaryEnc_ == data_->command_.primaryEncIndex) {
-    printf("NOT SWITCHED ENCODER BACK!!!\n");
+  if(oldPrimaryEnc_ == data_->command_.primaryEncIndex) {    
     return; // Already correct encoder
   }
 
@@ -2860,6 +2857,4 @@ void ecmcAxisSequencer::switchBackEncodersIfNeeded() {
   
   // now tempirarily switch encoder to home encoder
   data_->command_.primaryEncIndex = oldPrimaryEnc_;
-
-  printf("SWITCHED ENCODER BACK!!!\n");
 }

@@ -2881,4 +2881,3 @@ int setAxisDisableAtErrorReset(int axisIndex,
 
   return axes[axisIndex]->setDisableAxisAtErrorReset(disable);
 }
-

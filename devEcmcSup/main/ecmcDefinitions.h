@@ -177,31 +177,34 @@
 #define ECMC_ASYN_EC_SLAVE_PAR_COUNT 1
 
 // Asyn  parameters in axis
-#define ECMC_ASYN_AX_ACT_POS_ID 0
-#define ECMC_ASYN_AX_ACT_POS_NAME "actpos"
-#define ECMC_ASYN_AX_SET_POS_ID 1
+#define ECMC_ASYN_AX_SET_POS_ID 0
 #define ECMC_ASYN_AX_SET_POS_NAME "setpos"
-#define ECMC_ASYN_AX_POS_ERR_ID 2
+#define ECMC_ASYN_AX_POS_ERR_ID 1
 #define ECMC_ASYN_AX_POS_ERR_NAME "poserr"
-#define ECMC_ASYN_AX_DIAG_ID 3
+#define ECMC_ASYN_AX_DIAG_ID 2
 #define ECMC_ASYN_AX_DIAG_NAME "diagnostic"
-#define ECMC_ASYN_AX_STATUS_ID 4
+#define ECMC_ASYN_AX_STATUS_ID 3
 #define ECMC_ASYN_AX_STATUS_NAME "status"
-#define ECMC_ASYN_AX_CONTROL_BIN_ID 5
+#define ECMC_ASYN_AX_CONTROL_BIN_ID 4
 #define ECMC_ASYN_AX_CONTROL_BIN_NAME "control"
-#define ECMC_ASYN_AX_TARG_VELO_ID 6
+#define ECMC_ASYN_AX_TARG_VELO_ID 5
 #define ECMC_ASYN_AX_TARG_VELO_NAME "targvelo"
-#define ECMC_ASYN_AX_TARG_POS_ID 7
+#define ECMC_ASYN_AX_TARG_POS_ID 6
 #define ECMC_ASYN_AX_TARG_POS_NAME "targpos"
-#define ECMC_ASYN_AX_COMMAND_ID 8
+#define ECMC_ASYN_AX_COMMAND_ID 7
 #define ECMC_ASYN_AX_COMMAND_NAME "command"
-#define ECMC_ASYN_AX_CMDDATA_ID 9
+#define ECMC_ASYN_AX_CMDDATA_ID 8
 #define ECMC_ASYN_AX_CMDDATA_NAME "cmddata"
-#define ECMC_ASYN_AX_ERROR_ID 10
+#define ECMC_ASYN_AX_ERROR_ID 9
 #define ECMC_ASYN_AX_ERROR_NAME "errorid"
-#define ECMC_ASYN_AX_ACT_VEL_ID 11
-#define ECMC_ASYN_AX_ACT_VEL_NAME "actvel"
-#define ECMC_ASYN_AX_PAR_COUNT 12
+#define ECMC_ASYN_AX_PAR_COUNT 10
+
+// Asyn params for 
+#define ECMC_ASYN_ENC_ACT_POS_ID 0
+#define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"
+#define ECMC_ASYN_ENC_ACT_VEL_ID 1
+#define ECMC_ASYN_ENC_ACT_VEL_NAME "actvel"
+#define ECMC_ASYN_ENC_PAR_COUNT (ECMC_MAX_ENCODERS*2)
 
 // Motion
 enum app_mode_type {

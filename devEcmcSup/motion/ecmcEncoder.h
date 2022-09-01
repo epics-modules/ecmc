@@ -113,6 +113,9 @@ class ecmcEncoder : public ecmcEcEntryLink {
   // Ref this encoder to other encoder at startup (i.e ref relative encoder to abs at startup)
   int                   setRefToOtherEncAtStartup(int encIndex);
   int                   getRefToOtherEncAtStartup();
+  uint8_t              *getActPosPtr();
+  uint8_t              *getActVelPtr();
+
  protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
