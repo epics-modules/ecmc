@@ -3326,6 +3326,14 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                          &iValue));
   }
 
+  /*int GetAxisEncPrimaryIndex(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEncPrimaryIndex(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncPrimaryIndex(motor_axis_no,
+                                                              &iValue));
+  }
+
   /*int GetAxisEncConfigIndex(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisEncConfigIndex(%d)", &motor_axis_no);
 
@@ -3334,6 +3342,13 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                               &iValue));
   }
 
+  /*int GetAxisEncHomeIndex(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEncHomeIndex(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomeIndex(motor_axis_no,
+                                                              &iValue));
+  }
   /*int GetAxisTrajSourceType(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisTrajSourceType(%d)", &motor_axis_no);
 

@@ -26,7 +26,9 @@ typedef struct {
   ecmcMotionModType  moduloType;
   motionCommandTypes command;
   int                cmdData;
-  int                primaryEncIndex;
+  int                primaryEncIndex;  // used for control
+  int                cfgEncIndex;      // Encoder currrently configured
+  int                homeEncIndex;     // used for homing
   bool               enable             : 1;
   bool               execute            : 1;
   bool               reset              : 1;

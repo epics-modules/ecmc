@@ -551,6 +551,19 @@ int getAxisEncSource(int axisIndex, int *value) {
   return 0;
 }
 
+int getAxisEncPrimaryIndex(int axisIndex, int *index) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+
+  *index =  axes[axisIndex]->getPrimaryEncoderIndex();
+  return 0;
+}
+
 int getAxisEncConfigIndex(int axisIndex, int *index) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
@@ -561,6 +574,19 @@ int getAxisEncConfigIndex(int axisIndex, int *index) {
   CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
 
   *index =  axes[axisIndex]->getConfigEncoderIndex();
+  return 0;
+}
+
+int getAxisEncHomeIndex(int axisIndex, int *index) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+
+  *index =  axes[axisIndex]->getHomeEncoderIndex();
   return 0;
 }
 

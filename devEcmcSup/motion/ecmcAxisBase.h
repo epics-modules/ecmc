@@ -187,7 +187,6 @@ class ecmcAxisBase : public ecmcError {
   ecmcEncoder              * getEnc();
   ecmcEncoder              * getEnc(int encIndex, int* error);
   ecmcEncoder              * getConfigEnc();  // get current encoder being configured
-  int                        getConfigEncIndex();  // get current encoder being configured
   ecmcAxisSequencer        * getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);
@@ -270,7 +269,10 @@ class ecmcAxisBase : public ecmcError {
   int                        addEncoder();
   int                        selectPrimaryEncoder(int index);
   int                        selectConfigEncoder(int index);
-  int                        getConfigEncoderIndex();
+  int                        selectHomeEncoder(int index);
+  int                        getPrimaryEncoderIndex();  // Control (PID)
+  int                        getConfigEncoderIndex();   // Config
+  int                        getHomeEncoderIndex();     // Homing
   double                     getExtSetPos();
   double                     getExtActPos();
 
@@ -315,7 +317,6 @@ class ecmcAxisBase : public ecmcError {
   int                     printHeaderCounter_;
   int                     cycleCounter_;
   int                     blockExtCom_;
-  int                     encoderIndexConfig_;
   double                  oldPositionAct_;
   double                  oldPositionSet_;
 

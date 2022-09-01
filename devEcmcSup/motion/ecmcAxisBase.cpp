@@ -187,7 +187,7 @@ void ecmcAxisBase::initVars() {
   for(int i=0; i<ECMC_MAX_ENCODERS; i++) {
     enc_[i]=NULL;     
   }
-  encoderIndexConfig_ = 0;
+  data_.command_.cfgEncIndex = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -428,7 +428,7 @@ void ecmcAxisBase::setInStartupPhase(bool startup) {
 
   // When configuration is ready then defult to primary encoder for all encoder related calls
   if(!data_.status_.inStartupPhase && startup) {
-    encoderIndexConfig_ = data_.command_.primaryEncIndex;
+    data_.command_.cfgEncIndex = data_.command_.primaryEncIndex;
   }
 
   data_.status_.inStartupPhase = startup;
@@ -685,7 +685,7 @@ ecmcEncoder * ecmcAxisBase::getEnc(int encIndex, int* error) {
 }
 
 ecmcEncoder * ecmcAxisBase::getConfigEnc() {
-  return enc_[encoderIndexConfig_];
+  return enc_[data_.command_.cfgEncIndex];
 }
 
 ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
@@ -701,7 +701,7 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  *homed = enc_[encoderIndexConfig_]->getHomed();
+  *homed = enc_[data_.command_.cfgEncIndex]->getHomed();
   return 0;
 }
 
@@ -711,27 +711,27 @@ int ecmcAxisBase::setAxisHomed(bool homed) {
 }
 
 int ecmcAxisBase::getEncScaleNum(double *scale) {
-  *scale = enc_[encoderIndexConfig_]->getScaleNum();
+  *scale = enc_[data_.command_.cfgEncIndex]->getScaleNum();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleNum(double scale) {
-  enc_[encoderIndexConfig_]->setScaleNum(scale);
+  enc_[data_.command_.cfgEncIndex]->setScaleNum(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleDenom(double *scale) {
-  *scale = enc_[encoderIndexConfig_]->getScaleDenom();
+  *scale = enc_[data_.command_.cfgEncIndex]->getScaleDenom();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleDenom(double scale) {
-  enc_[encoderIndexConfig_]->setScaleDenom(scale);
+  enc_[data_.command_.cfgEncIndex]->setScaleDenom(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
-  *rawPos = enc_[encoderIndexConfig_]->getRawPosMultiTurn();
+  *rawPos = enc_[data_.command_.cfgEncIndex]->getRawPosMultiTurn();
   return 0;
 }
 
@@ -2088,13 +2088,13 @@ int ecmcAxisBase::addEncoder(){
                   ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE);
   }
   enc_[encoderCount_] = new ecmcEncoder(&data_, data_.sampleTime_);
-  encoderIndexConfig_= encoderCount_;
+  data_.command_.cfgEncIndex = encoderCount_; // Use current encoder index for cfg
   encoderCount_++;
   return 0;
 }
 
 int ecmcAxisBase::selectPrimaryEncoder(int index) {
-  if (index>=ECMC_MAX_ENCODERS || index>=encoderCount_) {
+  if (index >= ECMC_MAX_ENCODERS || index >= encoderCount_) {
     return setErrorID(__FILE__,
                   __FUNCTION__,
                   __LINE__,
@@ -2106,24 +2106,39 @@ int ecmcAxisBase::selectPrimaryEncoder(int index) {
 }
 
 int ecmcAxisBase::selectConfigEncoder(int index) {
-  if (index>=ECMC_MAX_ENCODERS || index>=encoderCount_) {
+  if (index >= ECMC_MAX_ENCODERS || index >= encoderCount_) {
     return setErrorID(__FILE__,
                   __FUNCTION__,
                   __LINE__,
                   ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
   }
 
-  encoderIndexConfig_ = index;
+  data_.command_.cfgEncIndex = index;
+  return 0;
+}
+
+int ecmcAxisBase::selectHomeEncoder(int index) {
+  if (index >= ECMC_MAX_ENCODERS || index >= encoderCount_) {
+    return setErrorID(__FILE__,
+                  __FUNCTION__,
+                  __LINE__,
+                  ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+  }
+
+  data_.command_.homeEncIndex = index;
   return 0;
 }
 
 int ecmcAxisBase::getConfigEncoderIndex() {
-  return encoderIndexConfig_;
+  return data_.command_.cfgEncIndex;
 }
 
+int ecmcAxisBase::getPrimaryEncoderIndex() {
+  return data_.command_.primaryEncIndex;
+}
 
-int ecmcAxisBase::getConfigEncIndex() {
-  return encoderIndexConfig_;
+int ecmcAxisBase::getHomeEncoderIndex() {
+  return data_.command_.homeEncIndex;
 }
 
 void ecmcAxisBase::initEncoders() {

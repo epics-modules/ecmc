@@ -1882,6 +1882,18 @@ int selectAxisEncPrimary(int axisIndex, int index);
  */
 int selectAxisEncConfig(int axisIndex, int index);
 
+/** \brief Get index of current encoder being used for control (PID).\n
+ *
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get index of current encoder being used for control for axis 3.\n
+ * "Cfg.GetAxisEncPrimaryIndex(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisEncPrimaryIndex(int axisIndex, int *index);
+
 /** \brief Get index of current encoder being configured.\n
  *
  *  
@@ -1893,6 +1905,18 @@ int selectAxisEncConfig(int axisIndex, int index);
  * "Cfg.GetAxisEncConfigIndex(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisEncConfigIndex(int axisIndex, int *index);
+
+/** \brief Get index of current encoder being used for homing (referencing).\n
+ *
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get index of current encoder being used for homing for axis 3.\n
+ * "Cfg.GetAxisEncHomeIndex(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisEncHomeIndex(int axisIndex, int *index);
 
 /** \brief Reference encoder to other encoder at startup.\n
  *
