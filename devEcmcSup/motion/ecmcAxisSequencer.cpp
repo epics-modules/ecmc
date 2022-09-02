@@ -2763,18 +2763,27 @@ void ecmcAxisSequencer::initHomingSeq() {
 void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   traj_->setCurrentPosSet(newPosition);
   traj_->setTargetPos(newPosition);
-  encArray_[data_->command_.primaryEncIndex]->setActPos(newPosition);
+  
+  for(int i = 0; i< data_->status_.encoderCount; i++) {    
+    // Ref all encoders that are configured to be homed. Always ref primary encoder.
+    if( i == oldPrimaryEnc_ || encArray_[i]->getRefAtHoming()){
+      encArray_[i]->setActPos(newPosition);
+      encArray_[i]->setHomed(true);
+      encArray_[i]->setArmLatch(false);
+    }
+  }
+
   // Not nice but otherwise one cycle will have wrong values du to exe order.  
   data_->status_.currentPositionActual = newPosition;
   data_->status_.currentPositionSetpoint = newPosition;
+
   if(drv_) {    
     // drv_->setCspActPos(encArray_->getRawPosRegister(), newPosition);
     // drv_->setCspRecalcOffset(newPosition);
     // drv_->setCspPosSet(newPosition);
     drv_->setCspRef(encArray_[data_->command_.primaryEncIndex]->getRawPosRegister(),newPosition,newPosition);
   }
-  encArray_[data_->command_.primaryEncIndex]->setHomed(true);
-  encArray_[data_->command_.primaryEncIndex]->setArmLatch(false);
+
   if(cntrl_) {
     cntrl_->reset();
   }

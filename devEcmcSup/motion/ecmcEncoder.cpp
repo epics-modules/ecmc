@@ -95,6 +95,7 @@ void ecmcEncoder::initVars() {
   hwWarningDefined_     = false;
   masterOKOld_          = false;
   refEncIndex_          = -1;
+  refDuringHoming_      = true;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -830,4 +831,19 @@ uint8_t* ecmcEncoder::getActPosPtr() {
 
 uint8_t* ecmcEncoder::getActVelPtr() {
   return (uint8_t*)&actVel_;
+}
+
+int ecmcEncoder::setRefAtHoming(int refEnable) {
+  
+  // do not change if -1. Allow ecmccfg to set default value
+  if(refEnable < 0) {
+    return 0;
+  }
+
+  refDuringHoming_ = refEnable;
+  return 0;
+}
+
+bool ecmcEncoder::getRefAtHoming() {
+  return refDuringHoming_;
 }

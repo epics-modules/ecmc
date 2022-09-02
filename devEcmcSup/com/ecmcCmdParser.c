@@ -1556,10 +1556,18 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncOffset(iValue, dValue);
   }
 
-  /*int Cfg.SetAxisEncRefToOtherEncAtStartup(int axis_no, int enc_to_ref, enc_ref);*/
-  nvals = sscanf(myarg_1, "SetAxisEncRefToOtherEncAtStartup(%d,%d,%d)", &iValue, &iValue2, &iValue3);
-  if (nvals == 3) {
-    return setAxisEncRefToOtherEncAtStartup(iValue, iValue2, iValue3);
+  /*int Cfg.SetAxisEncRefToOtherEncAtStartup(int axis_no, enc_ref);*/
+  nvals = sscanf(myarg_1, "SetAxisEncRefToOtherEncAtStartup(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncRefToOtherEncAtStartup(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisEncEnableRefAtHome(int axis_no, int enbale);*/
+  nvals = sscanf(myarg_1, "SetAxisEncEnableRefAtHome(%d,%d)", &iValue, &iValue2);
+  
+  if (nvals == 2) {
+    return setAxisEncEnableRefAtHome(iValue, iValue2);
   }
 
   /*int Cfg.AddAxisEnc(int axis_no);*/

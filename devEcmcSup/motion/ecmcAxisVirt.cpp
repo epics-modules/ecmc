@@ -142,14 +142,14 @@ ecmcDriveBase * ecmcAxisVirt::getDrv() {
 int ecmcAxisVirt::validate() {
   int error = 0;
 
-  if(data_.command_.primaryEncIndex>=encoderCount_) {
+  if(data_.command_.primaryEncIndex >= data_.status_.encoderCount) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  for(int i=0;i<encoderCount_;i++) {
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
     if (enc_[i] == NULL) {
      LOGERR("%s/%s:%d: ax%d.enc%d NULL (0x%x).\n",
            __FILE__,

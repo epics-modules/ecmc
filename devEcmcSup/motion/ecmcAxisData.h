@@ -68,6 +68,7 @@ typedef struct {
   bool   moving;
   bool   movingOld;
   int    seqState;
+  int    encoderCount;  
   bool   atTarget;
   bool   limitFwd;
   bool   limitBwd;

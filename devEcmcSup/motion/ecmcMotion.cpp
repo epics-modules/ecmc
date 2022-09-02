@@ -1884,26 +1884,31 @@ int selectAxisEncHome(int axisIndex, int index) {
   return axes[axisIndex]->selectHomeEncoder(index);
 }
 
-int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encToRef, int encRef) {
-  LOGINFO4("%s/%s:%d axisIndex=%d, encToRef=%d, encRef=%d\n",
+int setAxisEncEnableRefAtHome(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            axisIndex,
-           encToRef,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getConfigEnc()->setRefAtHoming(enable);
+}
+
+int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, encRef=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,           
            encRef);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   
-  // Check if encoder exist
-  int error = 0;
-  ecmcEncoder* enc = axes[axisIndex]->getEnc(encToRef, &error);
-
-  if(!enc) {
-    return error;
-  }
-
-  return enc->setRefToOtherEncAtStartup(encRef);
+  return axes[axisIndex]->getConfigEnc()->setRefToOtherEncAtStartup(encRef);
 }
 
 /****************************************************************************/

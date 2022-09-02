@@ -186,7 +186,7 @@ void ecmcAxisBase::initVars() {
   velocityTarget_ = 0;
   command_ = ECMC_CMD_MOVEABS;
   cmdData_ = 0;
-  encoderCount_ = 0;
+  data_.status_.encoderCount = 0;
   for(int i=0; i<ECMC_MAX_ENCODERS; i++) {
     enc_[i]=NULL;     
   }
@@ -204,7 +204,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   data_.status_.moving = std::abs(
     data_.status_.currentVelocityActual) > 0 || getTraj()->getBusy();
 
-  for(int i = 0; i < encoderCount_; i++) {
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
     if(enc_[i] == NULL) {
       break; 
     }
@@ -318,7 +318,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
             data_.status_.externalEncoderPosition;
 
   // Write encoder entries
-  for(int i = 0; i < encoderCount_; i++) {
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
     enc_[i]->writeEntries();
   }
   data_.status_.busyOld                    = data_.status_.busy;
@@ -343,7 +343,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0); 
 
   //Encoders (actpos and actvel)
-  for(int i=0;i<encoderCount_*2;i++) {
+  for(int i=0;i<data_.status_.encoderCount*2;i++) {
     encAsynParams_[i]->refreshParamRT(0);
   }
   
@@ -649,7 +649,7 @@ void ecmcAxisBase::errorReset() {
 
 int ecmcAxisBase::validateBase() {
   // Check that all encoder asyn params
-  for(int i=0;i<encoderCount_*2;i++) {
+  for(int i=0;i<data_.status_.encoderCount*2;i++) {
     if(encAsynParams_[i]==NULL) {
       return ERROR_AXIS_ENC_OBJECT_NULL;
     }     
@@ -2094,15 +2094,15 @@ int ecmcAxisBase::getAllowHome(){
 }
 
 int ecmcAxisBase::addEncoder(){
-  if (encoderCount_ >= ECMC_MAX_ENCODERS) {
+  if (data_.status_.encoderCount >= ECMC_MAX_ENCODERS) {
     return setErrorID(__FILE__,
                   __FUNCTION__,
                   __LINE__,
                   ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE);
   }
-  enc_[encoderCount_] = new ecmcEncoder(&data_, data_.sampleTime_);
-  data_.command_.cfgEncIndex = encoderCount_; // Use current encoder index for cfg
-  encoderCount_++;
+  enc_[data_.status_.encoderCount] = new ecmcEncoder(&data_, data_.sampleTime_);
+  data_.command_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
+  data_.status_.encoderCount++;
 
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
@@ -2125,7 +2125,7 @@ int ecmcAxisBase::addEncoder(){
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
                        getAxisID(),
-                       encoderCount_-1);
+                       data_.status_.encoderCount-1);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
@@ -2140,7 +2140,7 @@ int ecmcAxisBase::addEncoder(){
   name = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                                 asynParamFloat64,
-                                                enc_[encoderCount_-1]->getActPosPtr(),
+                                                enc_[data_.status_.encoderCount-1]->getActPosPtr(),
                                                 8,
                                                 ECMC_EC_F64,
                                                 0);
@@ -2156,14 +2156,14 @@ int ecmcAxisBase::addEncoder(){
   }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  encAsynParams_[(encoderCount_-1)*2] = paramTemp;
+  encAsynParams_[(data_.status_.encoderCount-1)*2] = paramTemp;
 
   // Actvel
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME"%d",
                        getAxisID(),
-                       encoderCount_-1);
+                       data_.status_.encoderCount-1);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
@@ -2178,7 +2178,7 @@ int ecmcAxisBase::addEncoder(){
   name = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                                 asynParamFloat64,
-                                                enc_[encoderCount_-1]->getActVelPtr(),
+                                                enc_[data_.status_.encoderCount-1]->getActVelPtr(),
                                                 8,
                                                 ECMC_EC_F64,
                                                 0);
@@ -2194,13 +2194,19 @@ int ecmcAxisBase::addEncoder(){
   }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  encAsynParams_[(encoderCount_-1)*2+1] = paramTemp;
+  encAsynParams_[(data_.status_.encoderCount-1)*2+1] = paramTemp;
 
   return 0;
 }
 
 int ecmcAxisBase::selectPrimaryEncoder(int index) {
-  if (index >= ECMC_MAX_ENCODERS || index >= encoderCount_) {
+
+  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
+  if(index < 0) {
+    return 0;
+  }
+
+  if (index >= ECMC_MAX_ENCODERS || index >= data_.status_.encoderCount) {
     return setErrorID(__FILE__,
                   __FUNCTION__,
                   __LINE__,
@@ -2212,7 +2218,13 @@ int ecmcAxisBase::selectPrimaryEncoder(int index) {
 }
 
 int ecmcAxisBase::selectConfigEncoder(int index) {
-  if (index >= ECMC_MAX_ENCODERS || index >= encoderCount_) {
+
+  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
+  if(index < 0) {
+    return 0;
+  }
+
+  if (index >= ECMC_MAX_ENCODERS || index >= data_.status_.encoderCount) {
     return setErrorID(__FILE__,
                   __FUNCTION__,
                   __LINE__,
@@ -2224,7 +2236,13 @@ int ecmcAxisBase::selectConfigEncoder(int index) {
 }
 
 int ecmcAxisBase::selectHomeEncoder(int index) {
-  if (index >= ECMC_MAX_ENCODERS || index >= encoderCount_) {
+
+  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
+  if(index < 0) {
+    return 0;
+  }
+
+  if (index >= ECMC_MAX_ENCODERS || index >= data_.status_.encoderCount) {
     return setErrorID(__FILE__,
                   __FUNCTION__,
                   __LINE__,
@@ -2249,14 +2267,14 @@ int ecmcAxisBase::getHomeEncoderIndex() {
 
 void ecmcAxisBase::initEncoders() {
   // set all relative encoders to 0
-  for(int i = 0; i < encoderCount_; i++) {
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
     enc_[i]->setToZeroIfRelative();
   }
   
   // check if any encoders should be referenced to another encoder
-  for(int i = 0; i < encoderCount_; i++) {
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
     int encRefIndex =  enc_[i]->getRefToOtherEncAtStartup();
-    if(encRefIndex < 0 || encRefIndex >= encoderCount_) {
+    if(encRefIndex < 0 || encRefIndex >= data_.status_.encoderCount) {
       continue;
     }
 

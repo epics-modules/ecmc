@@ -294,8 +294,7 @@ class ecmcAxisBase : public ecmcError {
 
   ecmcTrajectoryBase     *traj_;
   ecmcMonitor            *mon_;
-  ecmcEncoder            *enc_[ECMC_MAX_ENCODERS];
-  int                     encoderCount_;
+  ecmcEncoder            *enc_[ECMC_MAX_ENCODERS];  
   ecmcAxisSequencer       seq_;
   ecmcAxisStatusType      statusData_;
   ecmcAxisStatusType      statusDataOld_;

@@ -1899,6 +1899,21 @@ int selectAxisEncConfig(int axisIndex, int index);
  */
 int selectAxisEncHome(int axisIndex, int index);
 
+/** \brief Set referance this encoder at homing
+ *
+ *  Referance this encoder during homing. If true, this encoder will be\n
+ *  set to the resulting value of a hoing sequence (based on any encoder). 
+ *  
+ * \param[in] axisIndex Axis index.\n
+ * \param[in] enable Enable referencing.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Ref this encoder at homing of axis 3.\n
+ * "Cfg.SetAxisEncEnableRefAtHome(3,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncEnableRefAtHome(int axisIndex, int enable);
+
 /** \brief Get index of current encoder being used for control (PID).\n
  *
  *  
@@ -1935,22 +1950,21 @@ int getAxisEncConfigIndex(int axisIndex, int *index);
  */
 int getAxisEncHomeIndex(int axisIndex, int *index);
 
-/** \brief Reference encoder to other encoder at startup.\n
+/** \brief Reference this encoder to other encoder at startup.\n
  *
  *  For axes with multiple encoders an encoder can be referenced to other\n
  *  encoder at startup. This is typically usefull for referencing a \n
  *  relative encoder to an absolute encoder.\n
  *  
  * \param[in] axisIndex  Axis index.\n
- * \param[in] encToRef Encoder index to be referenced (first index is 0).\n
  * \param[in] encRef Encoder reference index (first index is 0).\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Reference encoder 3 to encoder 0 of axis 4
- * "Cfg.SetAxisEncRefToOtherEncAtStartup(4,3,0)" //Command string to ecmcCmdParser.c.\n
+ * \note Example: Reference this encoder to encoder 0 of axis 4
+ * "Cfg.SetAxisEncRefToOtherEncAtStartup(4,0)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encToRef, int encRef);
+int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef);
 
 /** \brief Set PID-controller proportional gain.\n
  *
