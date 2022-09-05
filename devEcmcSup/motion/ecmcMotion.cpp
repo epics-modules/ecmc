@@ -982,22 +982,6 @@ int axisErrorReset(int axisIndex, int value) {
   return 0;
 }
 
-/*
-int setAxisGearRatio(int axisIndex, double ratioNum, double ratioDenom) {
-  LOGINFO4("%s/%s:%d axisIndex=%d num=%lf denom=%lf\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           ratioNum,
-           ratioDenom);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-
-  return axes[axisIndex]->getExternalTrajIF()->setGearRatio(ratioNum,
-                                                            ratioDenom);
-}*/
-
 int setAxisEncScaleNum(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,
@@ -1834,6 +1818,21 @@ int setAxisEncType(int axisIndex, int value) {
   CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setType((encoderType)value);
+}
+
+int setAxisEncMaxDiffToPrimEnc(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getConfigEnc()->setMaxPosDiffToPrimEnc(value);
+  return 0;
 }
 
 int addAxisEnc(int axisIndex) {

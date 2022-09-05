@@ -656,16 +656,26 @@ int ecmcMonitor::checkPositionLag() {
 
 int ecmcMonitor::checkEncoderDiff() {
 
-  if(data_->status_.encoderCount == 0) {
-    data_->interlocks_.encDiffInterlock = false;
+  data_->interlocks_.encDiffInterlock = false;
+  
+  // Only one encoder configured
+  if(data_->status_.encoderCount == 0) {  
+    return 0;
+  }
+
+  //Do not check if prim enc not homed
+  if(!encArray_[data_->command_.primaryEncIndex]->getHomed()) {
     return 0;
   }
 
   // Multiple encoders configured so check pos diff vs primary
   double maxDiff = 0;
   bool encDiffILock = false;
-  for(int i = 0; i< data_->status_.encoderCount;i++) {
-    if(i==data_->command_.primaryEncIndex) {
+  double primEncActPos = encArray_[data_->command_.primaryEncIndex]->getActPos();
+  for(int i = 0; i < data_->status_.encoderCount; i++) {
+    
+    // Do not check prim encoder vs itself or if this encoder is not homed
+    if(i==data_->command_.primaryEncIndex || !encArray_[i]->getHomed() ) {
       continue;
     }
     
@@ -674,12 +684,12 @@ int ecmcMonitor::checkEncoderDiff() {
     if (maxDiff == 0) {
       continue;
     }
-        
-    double diff = ecmcMotionUtils::getPosErrorModAbs(data_->status_.currentPositionActual,
+    
+    double diff = ecmcMotionUtils::getPosErrorModAbs(primEncActPos,
                                                      encArray_[i]->getActPos(),
                                                      data_->command_.moduloRange);
     
-    encDiffILock = diff > maxDiff;
+    encDiffILock = diff > maxDiff || encDiffILock;    
   }
 
   data_->interlocks_.encDiffInterlock = encDiffILock;

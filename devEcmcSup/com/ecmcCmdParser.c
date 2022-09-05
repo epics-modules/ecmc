@@ -1598,6 +1598,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return selectAxisEncHome(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEncMaxDiffToPrimEnc(int axis_no, double  max_diff);*/
+  nvals = sscanf(myarg_1, "SetAxisEncMaxDiffToPrimEnc(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisEncMaxDiffToPrimEnc(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKp(%d,%lf)", &iValue, &dValue);
 

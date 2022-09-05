@@ -1977,6 +1977,19 @@ int getAxisEncHomeIndex(int axisIndex, int *index);
  */
 int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef);
 
+/** \brief Set maximum position deviation between current encoder and primary encoder.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Maximum allowed position deviation.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set maximum allowed devaition between this encoder and \n
+ * the primary encoder to 0.1 for axis 3.\n
+ * "Cfg.SetAxisEncMaxDiffToPrimEnc(3,0.1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncMaxDiffToPrimEnc(int axisIndex, double value);
+
 /** \brief Set PID-controller proportional gain.\n
  *
  * \param[in] axisIndex  Axis index.\n

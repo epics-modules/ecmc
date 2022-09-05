@@ -201,7 +201,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.
                                         velocityDiffTrajInterlock
                                         || interlocks_.plcInterlock
-                                        || interlocks_.plcInterlockBWD;
+                                        || interlocks_.plcInterlockBWD
+                                        || interlocks_.encDiffInterlock;
 
   interlocks_.trajSummaryInterlockFWD = interlocks_.driveSummaryInterlock
                                         || interlocks_.axisErrorStateInterlock
@@ -219,7 +220,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.
                                         velocityDiffTrajInterlock
                                         || interlocks_.plcInterlock
-                                        || interlocks_.plcInterlockFWD;
+                                        || interlocks_.plcInterlockFWD
+                                        || interlocks_.encDiffInterlock;
 
   return 0;
 }
