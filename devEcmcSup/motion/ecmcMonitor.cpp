@@ -659,12 +659,12 @@ int ecmcMonitor::checkEncoderDiff() {
   data_->interlocks_.encDiffInterlock = false;
   
   // Only one encoder configured
-  if(data_->status_.encoderCount == 0) {  
+  if(data_->status_.encoderCount <= 1) {  
     return 0;
   }
 
   //Do not check if prim enc not homed
-  if(!encArray_[data_->command_.primaryEncIndex]->getHomed()) {
+  if(!encArray_[data_->command_.primaryEncIndex]->getHomed()) {    
     return 0;
   }
 
@@ -675,7 +675,7 @@ int ecmcMonitor::checkEncoderDiff() {
   for(int i = 0; i < data_->status_.encoderCount; i++) {
     
     // Do not check prim encoder vs itself or if this encoder is not homed
-    if(i==data_->command_.primaryEncIndex || !encArray_[i]->getHomed() ) {
+    if(i==data_->command_.primaryEncIndex || !encArray_[i]->getHomed() ) {      
       continue;
     }
     
@@ -689,7 +689,7 @@ int ecmcMonitor::checkEncoderDiff() {
                                                      encArray_[i]->getActPos(),
                                                      data_->command_.moduloRange);
     
-    encDiffILock = diff > maxDiff || encDiffILock;    
+    encDiffILock = diff > maxDiff || encDiffILock;
   }
 
   data_->interlocks_.encDiffInterlock = encDiffILock;

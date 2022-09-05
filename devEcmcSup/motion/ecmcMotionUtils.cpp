@@ -47,7 +47,7 @@ double ecmcMotionUtils::getPosErrorModAbs(double set, double act, double modRang
 
   double normalCaseError = set - act;
   if(modRange == 0) {
-    return normalCaseError;
+    return std::abs(normalCaseError);
   }
   
   // Modulo
