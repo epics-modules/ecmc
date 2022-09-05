@@ -171,9 +171,6 @@ void ecmcAxisBase::initVars() {
   for (int i = 0; i < ECMC_ASYN_AX_PAR_COUNT; i++) {
     axAsynParams_[i] = NULL;
   }
-  for (int i = 0; i < ECMC_ASYN_ENC_PAR_COUNT; i++) {
-    encAsynParams_[i] = NULL;
-  }
   statusOutputEntry_          = 0;
   blockExtCom_                = 0;
   memset(diagBuffer_,0,AX_MAX_DIAG_STRING_CHAR_LENGTH);
@@ -342,11 +339,6 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0); 
 
-  //Encoders (actpos and actvel)
-  for(int i=0;i<data_.status_.encoderCount*2;i++) {
-    encAsynParams_[i]->refreshParamRT(0);
-  }
-  
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->linkedToAsynClient() ) {    
     int  bytesUsed = 0;
     int  error = getAxisDebugInfoData(&diagBuffer_[0],
@@ -648,13 +640,6 @@ void ecmcAxisBase::errorReset() {
 }
 
 int ecmcAxisBase::validateBase() {
-  // Check that all encoder asyn params
-  for(int i=0;i<data_.status_.encoderCount*2;i++) {
-    if(encAsynParams_[i]==NULL) {
-      return ERROR_AXIS_ENC_OBJECT_NULL;
-    }     
-  }
-
   return 0;
 }
 
@@ -901,33 +886,8 @@ int ecmcAxisBase::initAsyn() {
   ecmcAsynDataItem *paramTemp = NULL;
   int errorCode = 0;
  
-  //// Act pos
-  //errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_POS_NAME,
-  //                            asynParamFloat64,
-  //                            ECMC_EC_F64,
-  //                            (uint8_t *)&(statusData_.onChangeData.positionActual),
-  //                            sizeof(statusData_.onChangeData.positionActual),
-  //                            &paramTemp);
-  //if(errorCode) {
-  //  return errorCode;
-  //}
-  //paramTemp->setAllowWriteToEcmc(false);
-  //paramTemp->refreshParam(1);
-  //axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
-//
-  //// Act vel
-  //errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_VEL_NAME,
-  //                            asynParamFloat64,
-  //                            ECMC_EC_F64,
-  //                            (uint8_t *)&(statusData_.onChangeData.velocityActual),
-  //                            sizeof(statusData_.onChangeData.velocityActual),
-  //                            &paramTemp);
-  //if(errorCode) {
-  //  return errorCode;
-  //}
-  //paramTemp->setAllowWriteToEcmc(false);
-  //paramTemp->refreshParam(1);
-  //axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID] = paramTemp;
+
+  // Asyn params for encoder is moved to encoder class
 
   // Set pos
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
@@ -2100,101 +2060,9 @@ int ecmcAxisBase::addEncoder(){
                   __LINE__,
                   ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE);
   }
-  enc_[data_.status_.encoderCount] = new ecmcEncoder(&data_, data_.sampleTime_);
+  enc_[data_.status_.encoderCount] = new ecmcEncoder(asynPortDriver_, &data_, data_.sampleTime_, data_.status_.encoderCount);
   data_.command_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
   data_.status_.encoderCount++;
-
-  // Add Asynparms for new encoder
-  if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           data_.axisId_,
-           ERROR_AXIS_ASYN_PORT_OBJ_NULL);
-    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
-  }
-
-  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  char *name = NULL;
-  unsigned int charCount = 0;
-  ecmcAsynDataItem *paramTemp = NULL;
-  
-  // Actpos
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
-                       getAxisID(),
-                       data_.status_.encoderCount-1);
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
-      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
-    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                                asynParamFloat64,
-                                                enc_[data_.status_.encoderCount-1]->getActPosPtr(),
-                                                8,
-                                                ECMC_EC_F64,
-                                                0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  paramTemp->setAllowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  encAsynParams_[(data_.status_.encoderCount-1)*2] = paramTemp;
-
-  // Actvel
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME"%d",
-                       getAxisID(),
-                       data_.status_.encoderCount-1);
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
-      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
-    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                                asynParamFloat64,
-                                                enc_[data_.status_.encoderCount-1]->getActVelPtr(),
-                                                8,
-                                                ECMC_EC_F64,
-                                                0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  paramTemp->setAllowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  encAsynParams_[(data_.status_.encoderCount-1)*2+1] = paramTemp;
 
   return 0;
 }

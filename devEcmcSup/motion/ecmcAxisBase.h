@@ -62,8 +62,9 @@
 #define ERROR_AXIS_BUSY 0x1431C
 #define ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL 0x1431D
 #define ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL 0x1431E
-#define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
-#define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
+// Moved to ecmcDefinitions.h
+//#define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
+//#define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
 #define ERROR_AXIS_PRINT_TO_BUFFER_FAIL 0x14321
 #define ERROR_AXIS_MODULO_OUT_OF_RANGE 0x14322
 #define ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE 0x14323
@@ -303,7 +304,6 @@ class ecmcAxisBase : public ecmcError {
   // Axis default parameters over asyn I/O intr
   ecmcAsynPortDriver     *asynPortDriver_;
   ecmcAsynDataItem       *axAsynParams_[ECMC_ASYN_AX_PAR_COUNT];
-  ecmcAsynDataItem       *encAsynParams_[ECMC_ASYN_ENC_PAR_COUNT];
   ecmcEcEntry            *statusOutputEntry_;
   ecmcFilter             *extTrajVeloFilter_;
   ecmcFilter             *extEncVeloFilter_;

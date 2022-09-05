@@ -21,6 +21,7 @@
 #include <string.h>
 #include <cmath>
 #include "../main/ecmcDefinitions.h"
+#include "../main/ecmcErrorsList.h"
 #include "../main/ecmcError.h"
 #include "../ethercat/ecmcEcEntry.h"
 #include "../ethercat/ecmcEcEntryLink.h"
@@ -50,6 +51,7 @@
 #define ERROR_ENC_HW_ALARM_2 0x14412
 #define ERROR_ENC_WARNING_READ_ENTRY_FAIL 0x14413
 #define ERROR_ENC_ALARM_READ_ENTRY_FAIL 0x14414
+#define ERROR_ENC_ASYN_PARAM_NULL 0x14415
 
 #define ECMC_FILTER_VELO_DEF_SIZE 100
 #define ECMC_FILTER_POS_DEF_SIZE 10
@@ -68,8 +70,10 @@ enum ecmcOverUnderFlowType {
 
 class ecmcEncoder : public ecmcEcEntryLink {
  public:
-  ecmcEncoder(ecmcAxisData *axisData,
-              double        sampleTime);
+  ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
+              ecmcAxisData *axisData,
+              double        sampleTime,
+              int index);
   ~ecmcEncoder();
   virtual void          errorReset();
   int                   setBits(int bits);
@@ -115,9 +119,6 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int                   getRefToOtherEncAtStartup();
   int                   setRefAtHoming(int refEnable);
   bool                  getRefAtHoming();
-  uint8_t              *getActPosPtr();
-  uint8_t              *getActVelPtr();
-
   void                  setHomeLatchCountOffset(int count);
   int                   getHomeLatchCountOffset();
 
@@ -131,6 +132,9 @@ class ecmcEncoder : public ecmcEcEntryLink {
                                             int64_t  rawTurns,
                                             uint64_t rawLimit,
                                             int      bits);
+  uint8_t              *getActPosPtr();
+  uint8_t              *getActVelPtr();
+  int                  initAsyn();
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -187,6 +191,13 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int refEncIndex_;
   bool refDuringHoming_;
   int homeLatchCountOffset_;
+
+  // Asyn
+  ecmcAsynPortDriver     *asynPortDriver_;
+  ecmcAsynDataItem       *encPosAct_;
+  ecmcAsynDataItem       *encVelAct_;
+
+  int index_; //Index of this encoder (im axis object)
 };
 
 #endif  /* ECMCENCODER_H_ */

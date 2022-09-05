@@ -12,12 +12,19 @@
 
 #include "ecmcEncoder.h"
 
-ecmcEncoder::ecmcEncoder(ecmcAxisData *axisData,
-                         double        sampleTime) : ecmcEcEntryLink() {
-  data_       = axisData;
-  sampleTime_ = sampleTime;
+ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
+                         ecmcAxisData *axisData,
+                         double        sampleTime,
+                         int index) : ecmcEcEntryLink() {
   initVars();
 
+  asynPortDriver_ = asynPortDriver;
+  data_           = axisData;
+  sampleTime_     = sampleTime;
+  index_          = index;
+
+  initAsyn();
+  
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
@@ -47,6 +54,7 @@ ecmcEncoder::~ecmcEncoder() {
 
 void ecmcEncoder::initVars() {
   errorReset();
+  index_                = 0;
   encType_              = ECMC_ENCODER_TYPE_INCREMENTAL;
   rawPosMultiTurn_      = 0;
   rawRange_             = 0;
@@ -97,6 +105,9 @@ void ecmcEncoder::initVars() {
   refEncIndex_          = -1;
   refDuringHoming_      = true;
   homeLatchCountOffset_ = 0;
+  encPosAct_            = NULL;
+  encVelAct_            = NULL;
+  asynPortDriver_       = NULL;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -556,7 +567,11 @@ double ecmcEncoder::readEntries(bool masterOK) {
   }
 
   masterOKOld_ = masterOK;
-  
+
+  // Update Asyn
+  encPosAct_->refreshParamRT(0);
+  encVelAct_->refreshParamRT(0);
+
   return actPos_;
 }
 
@@ -663,6 +678,30 @@ int ecmcEncoder::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
     hwErrorAlarm2Defined_ = true;
+  }
+
+  if(encPosAct_ == NULL) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): Encoder asyn param object NULL (encPosAct_) for encoder %d (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_->axisId_,
+           index_,
+           ERROR_ENC_ASYN_PARAM_NULL);
+
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ASYN_PARAM_NULL );
+  }
+
+  if(encVelAct_ == NULL) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): Encoder asyn param object NULL (encVelAct_) for encoder %d (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_->axisId_,
+           index_,
+           ERROR_ENC_ASYN_PARAM_NULL);
+
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ASYN_PARAM_NULL);
   }
 
   return 0;
@@ -855,4 +894,100 @@ void ecmcEncoder::setHomeLatchCountOffset(int count) {
 
 int ecmcEncoder::getHomeLatchCountOffset() {
   return homeLatchCountOffset_;
+}
+
+int ecmcEncoder::initAsyn() {
+
+  // Add Asynparms for new encoder
+  if (asynPortDriver_ == NULL) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_->axisId_,
+           ERROR_AXIS_ASYN_PORT_OBJ_NULL);
+    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
+  }
+
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name = NULL;
+  unsigned int charCount = 0;
+  ecmcAsynDataItem *paramTemp = NULL;
+  
+  // Actpos
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
+                       data_->axisId_,
+                       index_);
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                                asynParamFloat64,
+                                                getActPosPtr(),
+                                                8,
+                                                ECMC_EC_F64,
+                                                0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  encPosAct_ = paramTemp;
+
+  // Actvel
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME"%d",
+                       data_->axisId_,
+                       index_);
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                                asynParamFloat64,
+                                                getActVelPtr(),
+                                                8,
+                                                ECMC_EC_F64,
+                                                0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  encVelAct_ = paramTemp;
+  return 0;
 }

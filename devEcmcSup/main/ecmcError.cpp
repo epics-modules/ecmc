@@ -556,6 +556,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_ENC_ALARM_READ_ENTRY_FAIL";
 
     break;
+
+  case 0x14415:
+    return "ERROR_ENC_ASYN_PARAM_NULL";
+
+    break;
     
   case 0x14C00:  // MONITOR
     return "ERROR_MON_ASSIGN_ENTRY_FAILED";
