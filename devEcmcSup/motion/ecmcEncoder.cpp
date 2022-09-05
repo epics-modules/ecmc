@@ -96,6 +96,7 @@ void ecmcEncoder::initVars() {
   masterOKOld_          = false;
   refEncIndex_          = -1;
   refDuringHoming_      = true;
+  homeLatchCountOffset_ = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -846,4 +847,12 @@ int ecmcEncoder::setRefAtHoming(int refEnable) {
 
 bool ecmcEncoder::getRefAtHoming() {
   return refDuringHoming_;
+}
+
+void ecmcEncoder::setHomeLatchCountOffset(int count) {
+  homeLatchCountOffset_ = count;
+}
+
+int ecmcEncoder::getHomeLatchCountOffset() {
+  return homeLatchCountOffset_;
 }

@@ -927,7 +927,7 @@ int setAxisHomePos(int axisIndex, double value) {
   return 0;
 }
 
-int setAxisHomeLatchCountOffset(int axisIndex, int count) {
+int setAxisEncHomeLatchCountOffset(int axisIndex, int count) {
   LOGINFO4("%s/%s:%d axisIndex=%d count=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -936,9 +936,9 @@ int setAxisHomeLatchCountOffset(int axisIndex, int count) {
            count);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setHomeLatchCountOffset(count);
+  axes[axisIndex]->getConfigEnc()->setHomeLatchCountOffset(count);
   return 0;
 }
 
@@ -1775,7 +1775,7 @@ int setAxisEncOffset(int axisIndex, double value) {
            value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setOffset(value);
 }
@@ -1789,7 +1789,7 @@ int setAxisEncBits(int axisIndex, int value) {
            value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setBits(value);
 }
@@ -1803,7 +1803,7 @@ int setAxisEncAbsBits(int axisIndex, int value) {
            value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setAbsBits(value);
 }
@@ -1817,7 +1817,7 @@ int setAxisEncRawMask(int axisIndex, uint64_t rawMask) {
            (uint)rawMask);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setRawMask(rawMask);
 }
@@ -1831,7 +1831,7 @@ int setAxisEncType(int axisIndex, int value) {
            value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setType((encoderType)value);
 }
@@ -1893,7 +1893,7 @@ int setAxisEncEnableRefAtHome(int axisIndex, int enable) {
            enable);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setRefAtHoming(enable);
 }
@@ -1907,6 +1907,7 @@ int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef) {
            encRef);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
   
   return axes[axisIndex]->getConfigEnc()->setRefToOtherEncAtStartup(encRef);
 }
@@ -2600,7 +2601,7 @@ int linkEcEntryToAxisEnc(int   slaveIndex,
   if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   if ((encoderEntryIndex >= ECMC_EC_ENTRY_LINKS_MAX) ||
       (encoderEntryIndex <

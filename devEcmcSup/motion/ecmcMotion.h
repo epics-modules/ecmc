@@ -54,6 +54,16 @@ extern "C" {
   }                                                                           \
 }                                                                             \
 
+#define CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)                         \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->                                                       \
+    getConfigEnc() == NULL) {                                                       \
+    LOGERR("ERROR: Encoder object NULL.\n");                                  \
+    return ERROR_MAIN_ENCODER_OBJECT_NULL;                                    \
+  }                                                                           \
+}                                                                             \
+
 #define CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex)                      \
 {                                                                             \
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
@@ -1478,7 +1488,8 @@ int setAxisHomePos(int    axisIndex,
 
 /** \brief Set home index pulse count offset.\n
  *
- * Sets number of latches before homing is made.\n
+ * Sets number of latches before homing is made for the current\n
+ * encoder beeing configured.\n
  *
  *  \note Only valid for some homing sequences when\
  *  homing on hardware latched position (encoder index or external hw latch).\n
@@ -1489,9 +1500,9 @@ int setAxisHomePos(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set home latch count to 1 for axis 10.\n
- * "Cfg.SetAxisHomeLatchCountOffset(10,1)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisEncHomeLatchCountOffset(10,1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisHomeLatchCountOffset(int axisIndex,
+int setAxisEncHomeLatchCountOffset(int axisIndex,
                                 int count);
 
 /** \brief Set Towards cam referencing/homing velocity setpoint.\n

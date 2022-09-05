@@ -111,8 +111,8 @@ void ecmcAxisSequencer::execute() {
     ;
     break;
 
-  case ECMC_CMD_HOMING:
-
+  case ECMC_CMD_HOMING:    
+    setHomeLatchCountOffset(encArray_[data_->command_.homeEncIndex]->getHomeLatchCountOffset());
     switchEncodersIfNeeded();
 
     switch (homingType) {

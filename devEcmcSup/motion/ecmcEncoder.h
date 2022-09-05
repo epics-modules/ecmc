@@ -118,6 +118,9 @@ class ecmcEncoder : public ecmcEcEntryLink {
   uint8_t              *getActPosPtr();
   uint8_t              *getActVelPtr();
 
+  void                  setHomeLatchCountOffset(int count);
+  int                   getHomeLatchCountOffset();
+
  protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -183,6 +186,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool masterOKOld_;
   int refEncIndex_;
   bool refDuringHoming_;
+  int homeLatchCountOffset_;
 };
 
 #endif  /* ECMCENCODER_H_ */

@@ -2028,7 +2028,20 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue2);
 
   if (nvals == 2) {
-    return setAxisHomeLatchCountOffset(iValue, iValue2);
+    printf("WARNING: The command Cfg.SetAxisHomeLatchCountOffset() will be obsolete in newer versions."
+           "Please use Cfg.SetAxisEncHomeLatchCountOffset() instead.\n");
+    return setAxisEncHomeLatchCountOffset(iValue, iValue2);
+  }
+
+  // new better name.. still support old name.
+  /*int Cfg.SetAxisEncHomeLatchCountOffset(int axis_no, int count);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncHomeLatchCountOffset(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncHomeLatchCountOffset(iValue, iValue2);
   }
 
   /*int Cfg.SetEnableFuncCallDiag(int nEnable);*/
