@@ -2761,31 +2761,24 @@ void ecmcAxisSequencer::initHomingSeq() {
 }
 
 void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
-  traj_->setCurrentPosSet(newPosition);
-  traj_->setTargetPos(newPosition);
+
+  // Should primary encoder be homed?! If not then go back to primary encoder pos for control
+  double newControlPosition = newPosition;
+  if(!encArray_[oldPrimaryEnc_]->getRefAtHoming()) {
+    newControlPosition = encArray_[oldPrimaryEnc_]->getActPos();
+  }
+
+  // Prep all objects for setpoint step (except encoders)
+  setNewPositionCtrlDrvTrajBumpless(newControlPosition);
   
+  // home all encoders to the new position
   for(int i = 0; i< data_->status_.encoderCount; i++) {    
     // Ref all encoders that are configured to be homed. Always ref primary encoder.
-    if( i == oldPrimaryEnc_ || encArray_[i]->getRefAtHoming()){
+    if( encArray_[i]->getRefAtHoming() ){
       encArray_[i]->setActPos(newPosition);
       encArray_[i]->setHomed(true);
       encArray_[i]->setArmLatch(false);
     }
-  }
-
-  // Not nice but otherwise one cycle will have wrong values du to exe order.  
-  data_->status_.currentPositionActual = newPosition;
-  data_->status_.currentPositionSetpoint = newPosition;
-
-  if(drv_) {    
-    // drv_->setCspActPos(encArray_->getRawPosRegister(), newPosition);
-    // drv_->setCspRecalcOffset(newPosition);
-    // drv_->setCspPosSet(newPosition);
-    drv_->setCspRef(encArray_[data_->command_.primaryEncIndex]->getRawPosRegister(),newPosition,newPosition);
-  }
-
-  if(cntrl_) {
-    cntrl_->reset();
   }
 
   homePosLatch1_      = 0;
@@ -2846,8 +2839,8 @@ void ecmcAxisSequencer::switchEncodersIfNeeded() {
 
   // *************  Need to switch encoder
   
-  // Ensure nu jump when switching.
-  encArray_[data_->command_.homeEncIndex]->setActPos(encArray_[data_->command_.primaryEncIndex]->getActPos());
+  // Ensure no jump when switching.
+  setNewPositionCtrlDrvTrajBumpless(encArray_[data_->command_.homeEncIndex]->getActPos());
   
   // now tempirarily switch encoder to home encoder
   data_->command_.primaryEncIndex = data_->command_.homeEncIndex;
@@ -2861,9 +2854,31 @@ void ecmcAxisSequencer::switchBackEncodersIfNeeded() {
 
   // *************  Need to switch back encoder
 
-  // Ensure nu jump when switching  (so  primary encoder then must be synced with home encoder)
-  encArray_[oldPrimaryEnc_]->setActPos(encArray_[data_->command_.homeEncIndex]->getActPos());
+  // Ensure no jump when switching
+
+  // Prep all objects for setpoint step (except encoders)
+  setNewPositionCtrlDrvTrajBumpless(encArray_[oldPrimaryEnc_]->getActPos());
+
+  //encArray_[oldPrimaryEnc_]->setActPos(newControlPosition);
   
   // now tempirarily switch encoder to home encoder
   data_->command_.primaryEncIndex = oldPrimaryEnc_;
+}
+
+void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
+
+  traj_->setCurrentPosSet(newPosition);
+  traj_->setTargetPos(newPosition);
+  
+  // Not nice but otherwise one cycle will have wrong values du to exe order.  
+  data_->status_.currentPositionActual = newPosition;
+  data_->status_.currentPositionSetpoint = newPosition;
+
+  if(drv_) {    
+    drv_->setCspRef(encArray_[data_->command_.primaryEncIndex]->getRawPosRegister(),newPosition,newPosition);
+  }
+
+  if(cntrl_) {
+    cntrl_->reset();
+  }
 }

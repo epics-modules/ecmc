@@ -153,6 +153,7 @@ class ecmcAxisSequencer : public ecmcError {
   int    postHomeMove();
   void   switchEncodersIfNeeded();
   void   switchBackEncodersIfNeeded();
+  void   setNewPositionCtrlDrvTrajBumpless(double newPosition);
 
   int seqState_;
   int seqStateOld_;
