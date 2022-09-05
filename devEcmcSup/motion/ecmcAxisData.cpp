@@ -161,6 +161,12 @@ stopMode ecmcAxisData::refreshInterlocks() {
     return interlocks_.currStopMode;
   }
 
+  if (interlocks_.encDiffInterlock) {
+    interlocks_.interlockStatus = ECMC_INTERLOCK_ENC_DIFF;
+    interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
+    return interlocks_.currStopMode;
+  }
+
   interlocks_.interlockStatus = ECMC_INTERLOCK_NONE;
 
   interlocks_.currStopMode = ECMC_STOP_MODE_RUN;

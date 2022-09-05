@@ -29,6 +29,7 @@
 #include "ecmcTrajectoryTrapetz.h"
 #include "ecmcAxisData.h"
 #include "ecmcFilter.h"
+#include "ecmcMotionUtils.h"
 
 // AXIS ERRORS
 #define ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL 0x14300
@@ -282,7 +283,7 @@ class ecmcAxisBase : public ecmcError {
  protected:
   void                       initVars();
   void                       refreshDebugInfoStruct();
-  double                     getPosErrorMod();
+  //double                     getPosErrorMod();
   int                        createAsynParam(const char        *nameFormat,
                                              asynParamType      asynType,
                                              ecmcEcDataType     ecmcType,

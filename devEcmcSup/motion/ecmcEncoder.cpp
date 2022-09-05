@@ -108,6 +108,7 @@ void ecmcEncoder::initVars() {
   encPosAct_            = NULL;
   encVelAct_            = NULL;
   asynPortDriver_       = NULL;
+  maxPosDiffToPrimEnc_  = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -990,4 +991,12 @@ int ecmcEncoder::initAsyn() {
   paramTemp->refreshParam(1);
   encVelAct_ = paramTemp;
   return 0;
+}
+
+void   ecmcEncoder::setMaxPosDiffToPrimEnc(double distance) {
+  maxPosDiffToPrimEnc_ = std::abs(distance);
+}
+
+double ecmcEncoder::getMaxPosDiffToPrimEnc() {
+  return maxPosDiffToPrimEnc_;
 }

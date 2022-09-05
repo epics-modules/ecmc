@@ -127,7 +127,10 @@ void ecmcAxisReal::execute(bool masterOK) {
   drv_->setCspActPos(enc_[data_.command_.primaryEncIndex]->getRawPosRegister(), data_.status_.currentPositionActual);
   if (getEnabled() && masterOK) {         
     // Calc position error
-    data_.status_.cntrlError = getPosErrorMod();
+    data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(data_.status_.currentPositionSetpoint,
+                                                                       data_.status_.currentPositionSetpointOld,
+                                                                       data_.status_.currentPositionActual,
+                                                                       data_.command_.moduloRange);
     double cntrOutput = 0;
     
     if(data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
@@ -136,8 +139,8 @@ void ecmcAxisReal::execute(bool masterOK) {
           mon_->getAtTarget()) {  // Controller deadband
         cntrl_->reset();
         cntrOutput = 0;
-      } else {
-        cntrOutput = cntrl_->control(getPosErrorMod(),
+      } else {        
+        cntrOutput = cntrl_->control(data_.status_.cntrlError,
                                 data_.status_.currentVelocitySetpoint);
       }
       mon_->setEnable(true);

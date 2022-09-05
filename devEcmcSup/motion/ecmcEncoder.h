@@ -28,6 +28,7 @@
 #include "../ethercat/ecmcEcPdo.h"
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"
+#include "ecmcMotionUtils.h"
 
 // ENCODER ERRORS
 #define ERROR_ENC_ASSIGN_ENTRY_FAILED 0x14400
@@ -122,6 +123,9 @@ class ecmcEncoder : public ecmcEcEntryLink {
   void                  setHomeLatchCountOffset(int count);
   int                   getHomeLatchCountOffset();
 
+  void                  setMaxPosDiffToPrimEnc(double distance);
+  double                getMaxPosDiffToPrimEnc();
+
  protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -191,6 +195,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int refEncIndex_;
   bool refDuringHoming_;
   int homeLatchCountOffset_;
+  double maxPosDiffToPrimEnc_;
 
   // Asyn
   ecmcAsynPortDriver     *asynPortDriver_;

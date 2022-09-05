@@ -13,9 +13,11 @@
 #include "ecmcMonitor.h"
 #include <stdio.h>
 
-ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData) {
-  data_ = axisData;
+ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
+                         ecmcEncoder **encArray) {
   initVars();
+  data_ = axisData;
+  encArray_= encArray;
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
@@ -23,19 +25,19 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData) {
   errorReset();
 }
 
-ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
-                         bool          enableAtTargetMon,
-                         bool          enableLagMon) {
-  data_ = axisData;
-  initVars();
-
-  if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
-  enableAtTargetMon_ = enableAtTargetMon;
-  enableLagMon_      = enableLagMon;
-}
+//ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
+//                         bool          enableAtTargetMon,
+//                         bool          enableLagMon) {
+//  initVars();
+//  data_ = axisData;
+//
+//  if (!data_) {
+//    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+//    exit(EXIT_FAILURE);
+//  }
+//  enableAtTargetMon_ = enableAtTargetMon;
+//  enableLagMon_      = enableLagMon;
+//}
 
 void ecmcMonitor::initVars() {
   enable_                    = false;
@@ -78,6 +80,7 @@ void ecmcMonitor::initVars() {
   lowLimPolarity_            = ECMC_POLARITY_NC;
   highLimPolarity_           = ECMC_POLARITY_NC;
   homePolarity_              = ECMC_POLARITY_NC;
+  encArray_                  = NULL;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -101,6 +104,9 @@ void ecmcMonitor::execute() {
 
   // Lag error
   checkPositionLag();
+
+  // Encoder diff
+  checkEncoderDiff();
 
   // Max Vel
   checkMaxVelocity();
@@ -645,6 +651,39 @@ int ecmcMonitor::checkPositionLag() {
                       __LINE__,
                       ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
   }
+  return 0;
+}
+
+int ecmcMonitor::checkEncoderDiff() {
+
+  if(data_->status_.encoderCount == 0) {
+    data_->interlocks_.encDiffInterlock = false;
+    return 0;
+  }
+
+  // Multiple encoders configured so check pos diff vs primary
+  double maxDiff = 0;
+  bool encDiffILock = false;
+  for(int i = 0; i< data_->status_.encoderCount;i++) {
+    if(i==data_->command_.primaryEncIndex) {
+      continue;
+    }
+    
+    maxDiff = encArray_[i]->getMaxPosDiffToPrimEnc();
+    // disable functionality if getMaxPosDiffToPrimEnc() == 0
+    if (maxDiff == 0) {
+      continue;
+    }
+        
+    double diff = ecmcMotionUtils::getPosErrorModAbs(data_->status_.currentPositionActual,
+                                                     encArray_[i]->getActPos(),
+                                                     data_->command_.moduloRange);
+    
+    encDiffILock = diff > maxDiff;
+  }
+
+  data_->interlocks_.encDiffInterlock = encDiffILock;
+  
   return 0;
 }
 

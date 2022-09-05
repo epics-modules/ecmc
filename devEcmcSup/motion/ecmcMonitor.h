@@ -53,10 +53,12 @@ enum ecmcSwitchPolarity {
 
 class ecmcMonitor : public ecmcEcEntryLink {
  public:
-  explicit ecmcMonitor(ecmcAxisData *axisData);
-  ecmcMonitor(ecmcAxisData *axisData,
-              bool          enableAtTargetMon,
-              bool          enableLagMon);
+  explicit ecmcMonitor(ecmcAxisData *axisData, 
+                       ecmcEncoder **encArray);
+  //ecmcMonitor(ecmcAxisData *axisData,
+  //            bool          enableAtTargetMon,
+  //            bool          enableLagMon,
+  //            ecmcEncoder **encArray);
   void   initVars();
   ~ecmcMonitor();
   bool   getHardLimitFwd();
@@ -127,6 +129,7 @@ class ecmcMonitor : public ecmcEcEntryLink {
   int    checkLimits();
   int    checkAtTarget();
   int    checkPositionLag();
+  int    checkEncoderDiff();
   int    checkMaxVelocity();
   int    checkVelocityDiff();
   int    checkCntrlMaxOutput();
@@ -178,5 +181,6 @@ class ecmcMonitor : public ecmcEcEntryLink {
   ecmcSwitchPolarity lowLimPolarity_;
   ecmcSwitchPolarity highLimPolarity_;
   ecmcSwitchPolarity homePolarity_;
+  ecmcEncoder **encArray_;
 };
 #endif  // ifndef MOTIONMONITOR_H

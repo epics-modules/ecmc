@@ -294,6 +294,7 @@ enum interlockTypes {
   ECMC_INTERLOCK_PLC_NORMAL                        = 17,
   ECMC_INTERLOCK_PLC_BWD                           = 18,
   ECMC_INTERLOCK_PLC_FWD                           = 19,
+  ECMC_INTERLOCK_ENC_DIFF                          = 20,
 };
 
 enum plcInterlockTypes {

@@ -100,7 +100,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                                          data_.sampleTime_);        
     }
 
-    mon_ = new ecmcMonitor(&data_);
+    mon_ = new ecmcMonitor(&data_, enc_);
 
     extTrajVeloFilter_ = new ecmcFilter(data_.sampleTime_);    
     extEncVeloFilter_  = new ecmcFilter(data_.sampleTime_);    
@@ -1174,53 +1174,53 @@ int ecmcAxisBase::setModType(int type) {
 int ecmcAxisBase::getModType() {
   return (int)data_.command_.moduloType;
 }
-
-double ecmcAxisBase::getPosErrorMod() {
-
-  double normalCaseError = data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
-  if(data_.command_.moduloRange==0) {
-    return normalCaseError;
-  }
-  
-  // Modulo
-  if(std::abs(normalCaseError)<data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
-    // No overflows 
-    return normalCaseError;
-  } else {
-    //Overflow has happended in either encoder or setpoint
-    double overUnderFlowError = data_.command_.moduloRange-std::abs(normalCaseError);
-    double  setDiff = data_.status_.currentPositionSetpoint - data_.status_.currentPositionSetpointOld;
-    //Moving forward (overflow)
-    if(setDiff>0 || setDiff < -data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
-      //Actual lagging setpoint  ACT SET
-      if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
-        return overUnderFlowError;
-      } 
-      else { //Actual before setpoint SET ACT
-        return -overUnderFlowError;
-      }
-    }
-    else {
-      //Moving backward (underflow)    
-      //Actual lagging setpoint SET ACT
-      if(data_.status_.currentPositionActual<data_.status_.currentPositionSetpoint) {             
-        return -overUnderFlowError;
-      } 
-      else { //Actual before setpoint ACT SET
-        return overUnderFlowError;
-      }       
-    }         
-  }
-  LOGERR(
-        "%s/%s:%d: WARNING (axis %d): Modulo controller error calc failed...\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        data_.axisId_);
-
-  return 0;
-}
-
+//
+//double ecmcAxisBase::getPosErrorMod() {
+//
+//  double normalCaseError = data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
+//  if(data_.command_.moduloRange==0) {
+//    return normalCaseError;
+//  }
+//  
+//  // Modulo
+//  if(std::abs(normalCaseError)<data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
+//    // No overflows 
+//    return normalCaseError;
+//  } else {
+//    //Overflow has happended in either encoder or setpoint
+//    double overUnderFlowError = data_.command_.moduloRange-std::abs(normalCaseError);
+//    double  setDiff = data_.status_.currentPositionSetpoint - data_.status_.currentPositionSetpointOld;
+//    //Moving forward (overflow)
+//    if(setDiff>0 || setDiff < -data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
+//      //Actual lagging setpoint  ACT SET
+//      if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
+//        return overUnderFlowError;
+//      } 
+//      else { //Actual before setpoint SET ACT
+//        return -overUnderFlowError;
+//      }
+//    }
+//    else {
+//      //Moving backward (underflow)    
+//      //Actual lagging setpoint SET ACT
+//      if(data_.status_.currentPositionActual<data_.status_.currentPositionSetpoint) {             
+//        return -overUnderFlowError;
+//      } 
+//      else { //Actual before setpoint ACT SET
+//        return overUnderFlowError;
+//      }       
+//    }         
+//  }
+//  LOGERR(
+//        "%s/%s:%d: WARNING (axis %d): Modulo controller error calc failed...\n",
+//        __FILE__,
+//        __FUNCTION__,
+//        __LINE__,
+//        data_.axisId_);
+//
+//  return 0;
+//}
+//
 int ecmcAxisBase::getCntrlError(double *error) {
   *error = data_.status_.cntrlError;
   return 0;
@@ -1287,7 +1287,10 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
   statusData_.onChangeData.error              = getErrorID(); 
   statusData_.onChangeData.positionActual     =
     data_.status_.currentPositionActual;
-  statusData_.onChangeData.positionError      = getPosErrorMod();    
+  statusData_.onChangeData.positionError      = ecmcMotionUtils::getPosErrorModWithSign(data_.status_.currentPositionSetpoint,
+                                                               data_.status_.currentPositionSetpointOld,
+                                                               data_.status_.currentPositionActual,
+                                                               data_.command_.moduloRange);
   statusData_.onChangeData.positionSetpoint   =
     data_.status_.currentPositionSetpoint;
   statusData_.onChangeData.positionTarget     =

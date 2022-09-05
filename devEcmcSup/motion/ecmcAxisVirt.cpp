@@ -94,7 +94,10 @@ void ecmcAxisVirt::execute(bool masterOK) {
     if (getEnabled() && masterOK && !getError()) {
 
       mon_->setEnable(true);
-      data_.status_.cntrlError = getPosErrorMod();
+      data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(data_.status_.currentPositionSetpoint,
+                                                                         data_.status_.currentPositionSetpointOld,
+                                                                         data_.status_.currentPositionActual,
+                                                                         data_.command_.moduloRange);
     } else {
       
       mon_->setEnable(false);
