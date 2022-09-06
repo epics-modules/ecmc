@@ -54,8 +54,8 @@ void ecmcAxisVirt::execute(bool masterOK) {
 
     // Encoder (External or internal)
     if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-      data_.status_.currentPositionActual = enc_[data_.command_.primaryEncIndex]->getActPos();
-      data_.status_.currentVelocityActual = enc_[data_.command_.primaryEncIndex]->getActVel();
+      data_.status_.currentPositionActual = encArray_[data_.command_.primaryEncIndex]->getActPos();
+      data_.status_.currentVelocityActual = encArray_[data_.command_.primaryEncIndex]->getActVel();
     } else {    // External source (Transform)
       data_.status_.currentPositionActual =
         data_.status_.externalEncoderPosition;
@@ -153,7 +153,7 @@ int ecmcAxisVirt::validate() {
   }
 
   for(int i = 0; i < data_.status_.encoderCount; i++) {
-    if (enc_[i] == NULL) {
+    if (encArray_[i] == NULL) {
      LOGERR("%s/%s:%d: ax%d.enc%d NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -168,7 +168,7 @@ int ecmcAxisVirt::validate() {
                         ERROR_AXIS_ENC_OBJECT_NULL);
     }
 
-    error = enc_[i]->validate();
+    error = encArray_[i]->validate();
     if (error) {
       LOGERR("%s/%s:%d: ax%d.enc%d (0x%x).\n",
            __FILE__,
@@ -183,7 +183,7 @@ int ecmcAxisVirt::validate() {
   }
 
   if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    error = enc_[data_.command_.primaryEncIndex]->validate();
+    error = encArray_[data_.command_.primaryEncIndex]->validate();
 
     if (error) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);

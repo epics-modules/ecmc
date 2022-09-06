@@ -73,6 +73,7 @@
 #define ERROR_AXIS_PLC_OBJECT_NULL 0x14325
 #define ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE 0x14326
 #define ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE 0x14327
+#define ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY 0x14328
 
 enum axisState {
   ECMC_AXIS_STATE_STARTUP  = 0,
@@ -296,7 +297,7 @@ class ecmcAxisBase : public ecmcError {
 
   ecmcTrajectoryBase     *traj_;
   ecmcMonitor            *mon_;
-  ecmcEncoder            *enc_[ECMC_MAX_ENCODERS];  
+  ecmcEncoder            *encArray_[ECMC_MAX_ENCODERS];  
   ecmcAxisSequencer       seq_;
   ecmcAxisStatusType      statusData_;
   ecmcAxisStatusType      statusDataOld_;

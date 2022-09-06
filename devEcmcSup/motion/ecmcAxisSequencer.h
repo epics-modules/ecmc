@@ -119,8 +119,7 @@ class ecmcAxisSequencer : public ecmcError {
                                  bool enableHome);
   void   setHomePostMoveTargetPosition(double targetPos);
   void   setHomePostMoveEnable(double enable);
-
-
+  void   setNewPositionCtrlDrvTrajBumpless(double newPosition);
   int    getAllowPos();
   int    getAllowConstVelo();
   int    getAllowHome();
@@ -153,7 +152,6 @@ class ecmcAxisSequencer : public ecmcError {
   int    postHomeMove();
   void   switchEncodersIfNeeded();
   void   switchBackEncodersIfNeeded();
-  void   setNewPositionCtrlDrvTrajBumpless(double newPosition);
 
   int seqState_;
   int seqStateOld_;

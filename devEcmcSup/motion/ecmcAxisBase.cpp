@@ -100,7 +100,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                                          data_.sampleTime_);        
     }
 
-    mon_ = new ecmcMonitor(&data_, enc_);
+    mon_ = new ecmcMonitor(&data_, encArray_);
 
     extTrajVeloFilter_ = new ecmcFilter(data_.sampleTime_);    
     extEncVeloFilter_  = new ecmcFilter(data_.sampleTime_);    
@@ -119,14 +119,14 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
-  seq_.setEnc(enc_); 
+  seq_.setEnc(encArray_);
 
   initAsyn();
 }
 
 ecmcAxisBase::~ecmcAxisBase() {
   for(int i=0; i<ECMC_MAX_ENCODERS; i++) {
-    delete enc_[i];     
+    delete encArray_[i];
   }
   delete traj_;
   traj_ = NULL;
@@ -185,7 +185,7 @@ void ecmcAxisBase::initVars() {
   cmdData_ = 0;
   data_.status_.encoderCount = 0;
   for(int i=0; i<ECMC_MAX_ENCODERS; i++) {
-    enc_[i]=NULL;     
+    encArray_[i]=NULL;
   }
   data_.command_.cfgEncIndex = 0;
 }
@@ -202,7 +202,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.currentVelocityActual) > 0 || getTraj()->getBusy();
 
   for(int i = 0; i < data_.status_.encoderCount; i++) {
-    if(enc_[i] == NULL) {
+    if(encArray_[i] == NULL) {
       break; 
     }
 
@@ -211,7 +211,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
       continue;
     } 
   
-    enc_[i]->readEntries(masterOK);
+    encArray_[i]->readEntries(masterOK);
   }
 
   // Axis state machine
@@ -316,7 +316,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
 
   // Write encoder entries
   for(int i = 0; i < data_.status_.encoderCount; i++) {
-    enc_[i]->writeEntries();
+    encArray_[i]->writeEntries();
   }
   data_.status_.busyOld                    = data_.status_.busy;
   data_.status_.enabledOld                 = data_.status_.enabled;
@@ -664,26 +664,26 @@ int ecmcAxisBase::getPosSet(double *pos) {
 }
 
 ecmcEncoder * ecmcAxisBase::getEnc() {
-  return enc_[data_.command_.primaryEncIndex];
+  return encArray_[data_.command_.primaryEncIndex];
 }
 
 ecmcEncoder * ecmcAxisBase::getEnc(int encIndex, int* error) {
   *error = 0;
-  if(encIndex >= ECMC_MAX_ENCODERS) {     
+  if(encIndex >= ECMC_MAX_ENCODERS) {
     *error=ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
     return NULL;
   }
   
-  if(enc_[encIndex] == NULL) {    
+  if(encArray_[encIndex] == NULL) {    
     *error=ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
     return NULL;
   }
   
-  return enc_[encIndex];
+  return encArray_[encIndex];
 }
 
 ecmcEncoder * ecmcAxisBase::getConfigEnc() {
-  return enc_[data_.command_.cfgEncIndex];
+  return encArray_[data_.command_.cfgEncIndex];
 }
 
 ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
@@ -699,37 +699,37 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  *homed = enc_[data_.command_.cfgEncIndex]->getHomed();
+  *homed = encArray_[data_.command_.cfgEncIndex]->getHomed();
   return 0;
 }
 
 int ecmcAxisBase::setAxisHomed(bool homed) {
-  enc_[data_.command_.primaryEncIndex]->setHomed(homed);
+  encArray_[data_.command_.primaryEncIndex]->setHomed(homed);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleNum(double *scale) {
-  *scale = enc_[data_.command_.cfgEncIndex]->getScaleNum();
+  *scale = encArray_[data_.command_.cfgEncIndex]->getScaleNum();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleNum(double scale) {
-  enc_[data_.command_.cfgEncIndex]->setScaleNum(scale);
+  encArray_[data_.command_.cfgEncIndex]->setScaleNum(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleDenom(double *scale) {
-  *scale = enc_[data_.command_.cfgEncIndex]->getScaleDenom();
+  *scale = encArray_[data_.command_.cfgEncIndex]->getScaleDenom();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleDenom(double scale) {
-  enc_[data_.command_.cfgEncIndex]->setScaleDenom(scale);
+  encArray_[data_.command_.cfgEncIndex]->setScaleDenom(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
-  *rawPos = enc_[data_.command_.cfgEncIndex]->getRawPosMultiTurn();
+  *rawPos = encArray_[data_.command_.cfgEncIndex]->getRawPosMultiTurn();
   return 0;
 }
 
@@ -1312,7 +1312,7 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
     data_.status_.currentvelocityFFRaw;
   statusData_.onChangeData.cmdData        = data_.command_.cmdData;
   statusData_.onChangeData.command        = data_.command_.command;
-  statusData_.onChangeData.positionRaw    = enc_[data_.command_.primaryEncIndex]->getRawPosRegister();
+  statusData_.onChangeData.positionRaw    = encArray_[data_.command_.primaryEncIndex]->getRawPosRegister();
   statusData_.onChangeData.homeposition   = seq_.getHomePosition();
   statusData_.acceleration                = traj_->getAcc();
   statusData_.deceleration                = traj_->getDec();
@@ -1434,15 +1434,15 @@ int ecmcAxisBase::setExtEncVeloFiltSize(size_t size) {
 }
 
 int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
-  return enc_[data_.command_.primaryEncIndex]->setVeloFilterSize(size);
+  return encArray_[data_.command_.primaryEncIndex]->setVeloFilterSize(size);
 }
 
 int ecmcAxisBase::setEncPosFiltSize(size_t size) {
-  return enc_[data_.command_.primaryEncIndex]->setPosFilterSize(size);
+  return encArray_[data_.command_.primaryEncIndex]->setPosFilterSize(size);
 }
 
 int ecmcAxisBase::setEncPosFiltEnable(bool enable) {
-  return enc_[data_.command_.primaryEncIndex]->setPosFilterEnable(enable);
+  return encArray_[data_.command_.primaryEncIndex]->setPosFilterEnable(enable);
 }
 
 int ecmcAxisBase::createAsynParam(const char       *nameFormat,
@@ -2063,7 +2063,7 @@ int ecmcAxisBase::addEncoder(){
                   __LINE__,
                   ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE);
   }
-  enc_[data_.status_.encoderCount] = new ecmcEncoder(asynPortDriver_, &data_, data_.sampleTime_, data_.status_.encoderCount);
+  encArray_[data_.status_.encoderCount] = new ecmcEncoder(asynPortDriver_, &data_, data_.sampleTime_, data_.status_.encoderCount);
   data_.command_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
   data_.status_.encoderCount++;
 
@@ -2082,6 +2082,18 @@ int ecmcAxisBase::selectPrimaryEncoder(int index) {
                   __FUNCTION__,
                   __LINE__,
                   ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+  }
+
+  if(getBusy()) {
+    return setErrorID(__FILE__,
+                  __FUNCTION__,
+                  __LINE__,
+                  ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY);
+  }
+
+  // Make sure the switch is bumpless
+  if(index !=data_.command_.primaryEncIndex) {
+    seq_.setNewPositionCtrlDrvTrajBumpless(encArray_[index]->getActPos());
   }
 
   data_.command_.primaryEncIndex = index;
@@ -2139,20 +2151,20 @@ int ecmcAxisBase::getHomeEncoderIndex() {
 void ecmcAxisBase::initEncoders() {
   // set all relative encoders to 0
   for(int i = 0; i < data_.status_.encoderCount; i++) {
-    enc_[i]->setToZeroIfRelative();
+    encArray_[i]->setToZeroIfRelative();
   }
   
   // check if any encoders should be referenced to another encoder
   for(int i = 0; i < data_.status_.encoderCount; i++) {
-    int encRefIndex =  enc_[i]->getRefToOtherEncAtStartup();
+    int encRefIndex =  encArray_[i]->getRefToOtherEncAtStartup();
     if(encRefIndex < 0 || encRefIndex >= data_.status_.encoderCount) {
       continue;
     }
 
-    if(enc_[encRefIndex] == NULL) {
+    if(encArray_[encRefIndex] == NULL) {
       continue;
     }
-    enc_[i]->setActPos(enc_[encRefIndex]->getActPos());
-    enc_[i]->setHomed(1);
+    encArray_[i]->setActPos(encArray_[encRefIndex]->getActPos());
+    encArray_[i]->setHomed(1);
   }
 }
