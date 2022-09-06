@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAxisData.h"
+#include "../com/ecmcOctetIF.h"
 
 ecmcAxisData::ecmcAxisData() {
   axisId_     = 0;
@@ -24,14 +25,8 @@ ecmcAxisData::ecmcAxisData() {
 ecmcAxisData::~ecmcAxisData()
 {}
 
-stopMode ecmcAxisData::refreshInterlocks() {
+stopMode ecmcAxisData::refreshInterlocksInternal() {
   setSummaryInterlocks();
-
-  // Latch latest active interlock
-  if ((interlocks_.interlockStatus != ECMC_INTERLOCK_NONE) &&
-      (interlocks_.interlockStatus != interlocks_.lastActiveInterlock)) {
-    interlocks_.lastActiveInterlock = interlocks_.interlockStatus;
-  }
 
   // If no summary interlocks then no interlocks
   if (!interlocks_.driveSummaryInterlock &&
@@ -174,7 +169,29 @@ stopMode ecmcAxisData::refreshInterlocks() {
   return interlocks_.currStopMode;
 }
 
+stopMode ecmcAxisData::refreshInterlocks() {
+  interlockTypes oldInterlock = interlocks_.interlockStatus;
+  
+  stopMode stop = refreshInterlocksInternal();
+
+  // Latch latest active interlock
+  if ((interlocks_.interlockStatus != ECMC_INTERLOCK_NONE) &&
+      (interlocks_.interlockStatus != interlocks_.lastActiveInterlock)) {
+    interlocks_.lastActiveInterlock = interlocks_.interlockStatus;
+  }
+  
+  if(oldInterlock != interlocks_.interlockStatus) {
+    if(interlocks_.interlockStatus) {
+      LOGERR("%s/%s:%d: INFO: Motion interlocked (type %d).\n", __FILE__, __FUNCTION__, __LINE__,interlocks_.interlockStatus);
+    } else {
+      LOGERR("%s/%s:%d: INFO: Motion interlock cleared.\n", __FILE__, __FUNCTION__, __LINE__);
+    }
+  }
+  return stop;
+}
+
 int ecmcAxisData::setSummaryInterlocks() {
+
   interlocks_.driveSummaryInterlock = interlocks_.bothLimitsLowInterlock
                                       || interlocks_.bothLimitsLowInterlock
                                       || interlocks_.

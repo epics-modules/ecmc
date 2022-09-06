@@ -129,6 +129,7 @@ class ecmcAxisData {
 
  private:
   int setSummaryInterlocks();
+  stopMode refreshInterlocksInternal();
 };
 
 #endif  /* SRC_ECMCAXISDATA_H_ */
