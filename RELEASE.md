@@ -6,7 +6,7 @@ Release Notes
 ## Multi encoder support
 
 ### General
-Support for multiple encoders for each axis added, max 8. The follwing commands added to ecmc:
+Support for multiple encoders for axis objects added, max 8 encoders/axis. The follwing commands added to ecmc:
 ```
 * "Cfg.AddAxisEnc(${ECMC_AXIS_NO})"
 * "Cfg.SelectAxisEncPrimary($(ECMC_AXIS_NO),${ECMC_ENC_PRIMARY_ID=-1})"
@@ -34,11 +34,11 @@ If the primary and homing encoder are not the same, then during homing a tempoer
 
 Example: Use encoder with index 3 for homing of axis 1
 ```
-ecmcConfigOrDie "Cfg.SelectAxisEncHome(1,2)"
+ecmcConfigOrDie "Cfg.SelectAxisEncHome(1,3)"
 ```
 Encoders can be referenced to the value of antother encoder at startup. Could be usefull if one encoder is absolute and one is incremental, to refernce the incremnetal to the value of the absolute encoder. This nfeature is configured by the "Cfg.SetAxisEncRefToOtherEncAtStartup()" command.
 
-Example: Refernce encoder 2 to the value of encoder 1 for axis 3
+Example: Reference encoder 2 to the value of encoder 1 for axis 3
 ```
 # Select encoder to configure
 ecmcConfigOrDie "Cfg.SelectAxisEncConfig(3,2)"
@@ -51,7 +51,7 @@ Example: Allow referencing of encoder 1 after successfull homing axis 3
 ```
 # Select encoder to configure
 ecmcConfigOrDie "Cfg.SelectAxisEncConfig(3,1)"
-# Encoder 1 selected, enable to refernce it:
+# Encoder 1 selected, enable to reference it:
 ecmcConfigOrDie "Cfg.SetAxisEncEnableRefAtHome(3,1)"
 ```
 
