@@ -25,20 +25,6 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
   errorReset();
 }
 
-//ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
-//                         bool          enableAtTargetMon,
-//                         bool          enableLagMon) {
-//  initVars();
-//  data_ = axisData;
-//
-//  if (!data_) {
-//    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
-//    exit(EXIT_FAILURE);
-//  }
-//  enableAtTargetMon_ = enableAtTargetMon;
-//  enableLagMon_      = enableLagMon;
-//}
-
 void ecmcMonitor::initVars() {
   enable_                    = false;
   atTargetTol_               = 0;
