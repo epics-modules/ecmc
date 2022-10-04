@@ -3242,6 +3242,19 @@ int getAxisModType(int  axisIndex,
 int setAxisDisableAtErrorReset(int axisIndex,
                                int disable);
 
+/** \brief Allow change of encoder and trajectory source when axis is enabled
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] allow allow source change (default false).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Allow change of traj and enc source when enabled for axis 3.\n
+ * "Cfg.SetAxisAllowSourceChangeWhenEnabled(3,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
+                                        int allow);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

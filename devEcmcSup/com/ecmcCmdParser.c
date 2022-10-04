@@ -1986,6 +1986,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisDisableAtErrorReset(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisAllowSourceChangeWhenEnabled(int axis_no, int allow);*/
+  nvals = sscanf(myarg_1, "SetAxisAllowSourceChangeWhenEnabled(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisAllowSourceChangeWhenEnabled(iValue, iValue2);
+  }
+
   /*int Cfg.SetDiagAxisIndex(int axis_no);*/
   nvals = sscanf(myarg_1, "SetDiagAxisIndex(%d)", &iValue);
 

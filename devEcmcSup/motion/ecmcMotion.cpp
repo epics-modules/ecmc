@@ -2886,3 +2886,17 @@ int setAxisDisableAtErrorReset(int axisIndex,
 
   return axes[axisIndex]->setDisableAxisAtErrorReset(disable);
 }
+
+int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
+                                        int allow) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, allow=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           allow);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->setAllowSourceChangeWhenEnabled(allow);
+}

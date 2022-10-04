@@ -188,6 +188,7 @@ void ecmcAxisBase::initVars() {
     encArray_[i]=NULL;
   }
   data_.command_.cfgEncIndex = 0;
+  allowSourceChangeWhenEnbaled_ = false;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -434,12 +435,14 @@ void ecmcAxisBase::setInStartupPhase(bool startup) {
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   if(refSource == data_.command_.trajSource ) return 0;
-
-  if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
+  
+  if(!allowSourceChangeWhenEnbaled_) {
+    if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
+    }
   }
   
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
@@ -461,12 +464,14 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
 
   if(refSource == data_.command_.encSource ) return 0;
-
-  if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
+  
+  if(!allowSourceChangeWhenEnbaled_) {
+    if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
+    }
   }
 
   // If realtime: Ensure that ethercat enty for actual position is linked
@@ -2168,3 +2173,11 @@ void ecmcAxisBase::initEncoders() {
     encArray_[i]->setHomed(1);
   }
 }
+
+int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
+  allowSourceChangeWhenEnbaled_ = allow;
+  return 0;
+}
+
+
+

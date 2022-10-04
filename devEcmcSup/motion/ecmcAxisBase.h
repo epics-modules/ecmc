@@ -278,6 +278,7 @@ class ecmcAxisBase : public ecmcError {
   int                        getHomeEncoderIndex();     // Homing
   double                     getExtSetPos();
   double                     getExtActPos();
+  int                        setAllowSourceChangeWhenEnabled(bool allow);
 
 
 
@@ -329,6 +330,7 @@ class ecmcAxisBase : public ecmcError {
   motionCommandTypes      command_;
   int                     cmdData_;
   ecmcTrajTypes           currentTrajType_;
+  bool                    allowSourceChangeWhenEnbaled_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

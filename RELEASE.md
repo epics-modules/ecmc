@@ -3,6 +3,11 @@ Release Notes
 ===
 # master
 
+* Add command to allow change of encoder and trajectory source when axis is enabled:
+```
+Cfg.SetAxisAllowSourceChangeWhenEnabled(int axis_no, int allow)
+```
+
 ## Multi encoder support
 
 ### General
