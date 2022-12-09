@@ -52,16 +52,8 @@ void ecmcAxisVirt::execute(bool masterOK) {
       data_.refreshInterlocks();
     }
 
-    // Encoder (External or internal)
-    if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-      data_.status_.currentPositionActual = encArray_[data_.command_.primaryEncIndex]->getActPos();
-      data_.status_.currentVelocityActual = encArray_[data_.command_.primaryEncIndex]->getActVel();
-    } else {    // External source (Transform)
-      data_.status_.currentPositionActual =
-        data_.status_.externalEncoderPosition;
-      data_.status_.currentVelocityActual =
-        data_.status_.externalEncoderVelocity;
-    }
+    data_.status_.currentPositionActual = encArray_[data_.command_.primaryEncIndex]->getActPos();
+    data_.status_.currentVelocityActual = encArray_[data_.command_.primaryEncIndex]->getActVel();
 
     traj_->setStartPos(data_.status_.currentPositionSetpoint);
     seq_.execute();

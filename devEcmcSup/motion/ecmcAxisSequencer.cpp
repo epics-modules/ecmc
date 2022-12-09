@@ -404,6 +404,11 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   case ECMC_CMD_HOMING:
 
     if (data_->command_.execute && !executeOld_) {
+      
+      // encoder data source must be internal for homing
+      if(data_->command_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL);
+      }
 
       stopSeq();
       if(!enableHome_) {

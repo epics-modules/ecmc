@@ -569,6 +569,13 @@ double ecmcEncoder::readEntries(bool masterOK) {
 
   masterOKOld_ = masterOK;
 
+  // Encoder (if primary encoder and external source)
+  if (data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL && 
+      data_->command_.primaryEncIndex == index_) {
+    actPos_ = data_->status_.externalEncoderPosition;
+    actVel_ = data_->status_.externalEncoderVelocity;
+  }
+
   // Update Asyn
   encPosAct_->refreshParamRT(0);
   encVelAct_->refreshParamRT(0);
