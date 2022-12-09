@@ -923,11 +923,20 @@ int ecmcEncoder::initAsyn() {
   ecmcAsynDataItem *paramTemp = NULL;
   
   // Actpos
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
-                       data_->axisId_,
-                       index_);
+  if(index_==0) {  // first encoder will be called actpos
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME,
+                         data_->axisId_);
+   
+  } else { // encoder 1..7 will be called actpos1 actpos7
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME"%d",
+                         data_->axisId_,
+                         index_);
+  }
+  
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
@@ -939,6 +948,7 @@ int ecmcEncoder::initAsyn() {
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
+
   name = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                                 asynParamFloat64,
@@ -961,11 +971,19 @@ int ecmcEncoder::initAsyn() {
   encPosAct_ = paramTemp;
 
   // Actvel
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME"%d",
-                       data_->axisId_,
-                       index_);
+  if(index_ == 0) {  // first encoder will be called actvel
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME,
+                         data_->axisId_);
+  } else { // encoder 1..7 will be called actvel1 actvel7
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME"%d",
+                         data_->axisId_,
+                         index_);
+  }
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
@@ -977,6 +995,7 @@ int ecmcEncoder::initAsyn() {
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
+  
   name = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                                 asynParamFloat64,
