@@ -206,11 +206,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     if(encArray_[i] == NULL) {
       break; 
     }
-
-    // do n ot refresh primary encoder if external source
-    if (i == data_.command_.primaryEncIndex && data_.command_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
-      continue;
-    } 
   
     encArray_[i]->readEntries(masterOK);
   }

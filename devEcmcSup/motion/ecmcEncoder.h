@@ -139,6 +139,10 @@ class ecmcEncoder : public ecmcEcEntryLink {
   uint8_t              *getActPosPtr();
   uint8_t              *getActVelPtr();
   int                  initAsyn();
+  int                  readHwActPos(bool masterOK);
+  int                  readHwWarningError();
+  int                  readHwLatch();
+  
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -165,9 +169,11 @@ class ecmcEncoder : public ecmcEcEntryLink {
   double scale_;
   double engOffset_;
   double actPos_;
+  double actPosLocal_;
   double actPosOld_;
   double sampleTime_;
   double actVel_;
+  double actVelLocal_;
   bool homed_;
   bool encLatchFunctEnabled_;
   bool encLatchStatus_;
@@ -186,6 +192,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   uint64_t hwErrorAlarm2Old_;
   uint64_t hwWarning_;
   uint64_t hwWarningOld_;
+  bool hwActPosDefined_;
   bool hwResetDefined_;
   bool hwErrorAlarm0Defined_;
   bool hwErrorAlarm1Defined_;

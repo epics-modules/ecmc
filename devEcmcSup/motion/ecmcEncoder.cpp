@@ -69,6 +69,8 @@ void ecmcEncoder::initVars() {
   actPosOld_            = 0;
   sampleTime_           = 1;
   actVel_               = 0;
+  actPosLocal_          = 0;
+  actVelLocal_          = 0;
   homed_                = false;
   enablePositionFilter_ = false;
   scaleNum_             = 0;
@@ -102,6 +104,7 @@ void ecmcEncoder::initVars() {
   hwErrorAlarm2Defined_ = false;
   hwWarningDefined_     = false;
   masterOKOld_          = false;
+  hwActPosDefined_      = false;
   refEncIndex_          = -1;
   refDuringHoming_      = true;
   homeLatchCountOffset_ = 0;
@@ -165,7 +168,7 @@ void ecmcEncoder::setActPos(double pos) {
   rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
 
   actPosOld_ = pos;
-  actPos_    = pos;
+  actPosLocal_    = pos;
 
   // Must clear velocity filter
   velocityFilter_->initFilter(pos);
@@ -329,43 +332,31 @@ double ecmcEncoder::getScaleDenom() {
   return scaleDenom_;
 }
 
-double ecmcEncoder::readEntries(bool masterOK) {
-  actPosOld_ = actPos_;
 
-  if (getError() || !masterOK) {
-    masterOKOld_ = masterOK;
-    rawPosMultiTurn_ = 0;
-    actPos_          = scale_ * (rawPosMultiTurn_ + rawPosOffset_) +
-                       engOffset_;
-    return actPos_;
+int  ecmcEncoder::readHwActPos(bool masterOK) {
+
+  if(!hwActPosDefined_) {
+    return 0;
   }
 
-  //int error = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
-  //
-  //if (error) {
-  //  setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_NULL);
-  //  return 0;
-  //}
-
-  // Act position
   uint64_t tempRaw = 0;
-
-  if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION, &tempRaw)) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_READ_FAIL);
-    return actPos_;
-  }
+  
+  // Actual position entry
+  // Act position
+  if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION, &tempRaw)!=0) {
+    return ERROR_ENC_ENTRY_READ_FAIL;
+  }  
   
   rawPosUintOld_ = rawPosUint_;
   // Filter value with mask
   rawPosUint_    = (totalRawMask_ & tempRaw) - totalRawRegShift_;
-
+  
   // If first valid value (at first hw ok),
   // then store the same position in last cycle value.
   // This to avoid over/underflow since rawPosUintOld_ is initiated to 0.
   if(!masterOKOld_ && masterOK) {
     rawPosUintOld_ = rawPosUint_;
   }
-
   // Check over/underflow (update turns counter)
   rawTurnsOld_ = rawTurns_;
   rawTurns_    = handleOverUnderFlow(rawPosUintOld_,
@@ -374,8 +365,7 @@ double ecmcEncoder::readEntries(bool masterOK) {
                                      rawLimit_,
                                      bits_);
   rawPosMultiTurn_ = rawTurns_ * rawRange_ + rawPosUint_ + rawPosOffset_;
-
-  // Calculate absolute encoder data
+   // Calculate absolute encoder data
   if (absBits_ > 0) {
     rawAbsPosUintOld_ = rawAbsPosUint_;
     rawAbsPosUint_    = (rawAbsRange_ - 1) & rawPosUint_;  // filter abs bits
@@ -384,109 +374,104 @@ double ecmcEncoder::readEntries(bool masterOK) {
     rawAbsPosUint_    = 0;
   }  
   
-  actPos_    = scale_ * rawPosMultiTurn_ + engOffset_;
-
-  // If first valid value (at first hw ok),
+  actPosLocal_    = scale_ * rawPosMultiTurn_ + engOffset_;
+   // If first valid value (at first hw ok),
   // then store the same position in last cycle value.
   // This to avoid over/underflow since actPosOld_ is initiated to 0.
-
-  if(!masterOKOld_ && masterOK) {
-    actPosOld_ = actPos_;
+   if(!masterOKOld_ && masterOK) {
+    actPosOld_ = actPosLocal_;
   }
-
-  // Check modulo
+   // Check modulo
   if(data_->command_.moduloRange != 0) {    
-    if(actPos_ >= data_->command_.moduloRange){      
-      actPos_ = actPos_-data_->command_.moduloRange;      
+    if(actPosLocal_ >= data_->command_.moduloRange){      
+      actPosLocal_ = actPosLocal_-data_->command_.moduloRange;      
       // Reset stuff to be able to run forever
       engOffset_       = 0;
       rawTurnsOld_     = 0;
       rawTurns_        = 0;
-      rawPosOffset_    = actPos_ / scale_ - rawPosUint_;
+      rawPosOffset_    = actPosLocal_ / scale_ - rawPosUint_;
       rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
     }
-    if(actPos_ < 0){
-      actPos_ = data_->command_.moduloRange + actPos_;
+    if(actPosLocal_ < 0){
+      actPosLocal_ = data_->command_.moduloRange + actPosLocal_;
       // Reset stuff to be able to run forever
       engOffset_       = 0;
       rawTurnsOld_     = 0;
       rawTurns_        = 0;
-      rawPosOffset_    = actPos_ / scale_ - rawPosUint_;
+      rawPosOffset_    = actPosLocal_ / scale_ - rawPosUint_;
       rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
     }
   }
-
-
-  if(enablePositionFilter_)  {
-    actPos_ = positionFilter_->getFiltPos(actPos_, data_->command_.moduloRange);
+   if(enablePositionFilter_)  {
+    actPosLocal_ = positionFilter_->getFiltPos(actPosLocal_, data_->command_.moduloRange);
   }
-
-  double distTraveled =  actPos_ - actPosOld_;
+   double distTraveled =  actPosLocal_ - actPosOld_;
   if(data_->command_.moduloRange != 0) {    
     double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT * data_->command_.moduloRange;
-    if(actPos_ - actPosOld_ > modThreshold) {
-      distTraveled = actPos_ - actPosOld_ - data_->command_.moduloRange;
+    if(actPosLocal_ - actPosOld_ > modThreshold) {
+      distTraveled = actPosLocal_ - actPosOld_ - data_->command_.moduloRange;
     }
-    else if (actPos_ - actPosOld_ < -modThreshold){
-      distTraveled = actPos_ - actPosOld_ + data_->command_.moduloRange;
+    else if (actPosLocal_ - actPosOld_ < -modThreshold){
+      distTraveled = actPosLocal_ - actPosOld_ + data_->command_.moduloRange;
     }
   }
+  actVelLocal_    = velocityFilter_->getFiltVelo(distTraveled);
+  return 0;
+}
 
-  actVel_    = velocityFilter_->getFiltVelo(distTraveled);
-  
-
+int ecmcEncoder::readHwLatch() {
   // Encoder latch entries (status and position)
-  if (encLatchFunctEnabled_) {
-    if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS, &tempRaw)) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_READ_FAIL);
-    }
-    encLatchStatusOld_ = encLatchStatus_;
-    encLatchStatus_    = tempRaw > 0;
-
-    if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE, &tempRaw)) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_READ_FAIL);
-    }
-
-    // Also treat latched position as actual position (same mask and shift)
-    rawEncLatchPos_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
-
-    // if new latched value then calculate latched value in engineering units
-    if (encLatchStatus_ > encLatchStatusOld_) {
-      // Calculate multiturn latch value position (raw)
-      // Use rawTurnsOld_ since over/under flow might have occured after
-      // value was latched in hardware
-      int64_t turns = handleOverUnderFlow(rawPosUintOld_,
-                                          rawEncLatchPos_,
-                                          rawTurnsOld_,
-                                          rawLimit_,
-                                          bits_);
-      rawEncLatchPosMultiTurn_ = turns * rawRange_ + rawEncLatchPos_ +
-                                 rawPosOffset_;
-      actEncLatchPos_ = scale_ * rawEncLatchPosMultiTurn_ +
-                        engOffset_;
-    }
+  if (!encLatchFunctEnabled_) {
+    return 0;
   }
 
+  uint64_t tempRaw = 0;
+
+  if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS, &tempRaw)) {
+    return ERROR_ENC_ENTRY_READ_FAIL;
+  }
+  encLatchStatusOld_ = encLatchStatus_;
+  encLatchStatus_    = tempRaw > 0;
+   if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE, &tempRaw)) {
+    return ERROR_ENC_ENTRY_READ_FAIL;
+  }
+   // Also treat latched position as actual position (same mask and shift)
+  rawEncLatchPos_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
+   // if new latched value then calculate latched value in engineering units
+  if (encLatchStatus_ > encLatchStatusOld_) {
+    // Calculate multiturn latch value position (raw)
+    // Use rawTurnsOld_ since over/under flow might have occured after
+    // value was latched in hardware
+    int64_t turns = handleOverUnderFlow(rawPosUintOld_,
+                                        rawEncLatchPos_,
+                                        rawTurnsOld_,
+                                        rawLimit_,
+                                        bits_);
+    rawEncLatchPosMultiTurn_ = turns * rawRange_ + rawEncLatchPos_ +
+                               rawPosOffset_;
+    actEncLatchPos_ = scale_ * rawEncLatchPosMultiTurn_ +
+                      engOffset_;
+  }
+
+  return 0;
+}
+
+int ecmcEncoder::readHwWarningError() {
+  int errorLocal = 0;
   // Check warning link. Think about forwarding warning info to motor record somehow
   if (hwWarningDefined_) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_WARNING, &hwWarning_)) {
       hwWarning_ = 0;
       hwWarningOld_ = 0;
-      setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_ENC_WARNING_READ_ENTRY_FAIL);
-
-    }
-
-    if(hwWarning_ > 0 && hwWarningOld_ == 0) {
+      errorLocal = ERROR_ENC_WARNING_READ_ENTRY_FAIL;
+     }
+     if(hwWarning_ > 0 && hwWarningOld_ == 0) {
       LOGERR("%s/%s:%d: WARNING (axis %d): Encoder hardware in warning state.\n",
           __FILE__,
           __FUNCTION__,
           __LINE__,
           data_->axisId_);
-
-    }
+     }
     if(hwWarning_ == 0 && hwWarningOld_ > 0) {
       LOGERR("%s/%s:%d: INFO (axis %d): Encoder hardware warning state cleared.\n",
           __FILE__,
@@ -494,84 +479,98 @@ double ecmcEncoder::readEntries(bool masterOK) {
           __LINE__,
           data_->axisId_);
     }
-
-    hwWarningOld_ = hwWarning_;
+     hwWarningOld_ = hwWarning_;
   }
-
+  
   // check alarm 0
   if (hwErrorAlarm0Defined_) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_)) {
       hwErrorAlarm0_ = 0;
       hwErrorAlarm0Old_ = 0;
-      setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_ENC_ALARM_READ_ENTRY_FAIL);
-
-    }
+      errorLocal = ERROR_ENC_ALARM_READ_ENTRY_FAIL;
+     }
     
     // Set Alarm
     if(hwErrorAlarm0_) {
       data_->command_.enable = 0;
-      setErrorID(__FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ERROR_ENC_HW_ALARM_0);
+      errorLocal = ERROR_ENC_HW_ALARM_0;
     }    
     hwErrorAlarm0Old_ = hwErrorAlarm0_;
   }
-
+  
   // check alarm 1
   if (hwErrorAlarm1Defined_) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ALARM_1, &hwErrorAlarm1_)) {
       hwErrorAlarm1_ = 0;
-      hwErrorAlarm1Old_ = 0;
-      setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_ENC_ALARM_READ_ENTRY_FAIL);
-
+      hwErrorAlarm1Old_ = 0;        
+      errorLocal = ERROR_ENC_ALARM_READ_ENTRY_FAIL;
     }
     
     // Set Alarm
     if(hwErrorAlarm1_) {
       data_->command_.enable = 0;
-      setErrorID(__FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ERROR_ENC_HW_ALARM_1);
+      errorLocal = ERROR_ENC_HW_ALARM_1;
     }    
     hwErrorAlarm1Old_ = hwErrorAlarm1_;
   }
-
+  
   // check alarm 2
   if (hwErrorAlarm2Defined_) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ALARM_2, &hwErrorAlarm2_)) {
       hwErrorAlarm2_ = 0;
       hwErrorAlarm2Old_ = 0;
-      setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_ENC_ALARM_READ_ENTRY_FAIL);
+      errorLocal = ERROR_ENC_ALARM_READ_ENTRY_FAIL;
 
     }
     
     // Set Alarm
     if(hwErrorAlarm2_) {
       data_->command_.enable = 0;
-      setErrorID(__FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ERROR_ENC_HW_ALARM_2);
+      errorLocal = ERROR_ENC_HW_ALARM_2;
     }    
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
+  return errorLocal;
+}
 
-  masterOKOld_ = masterOK;
+double ecmcEncoder::readEntries(bool masterOK) {
+  int errorLocal = 0;
+  actPosOld_ = actPos_;
 
-  // Encoder (if primary encoder and external source)
-  if (data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL && 
-      data_->command_.primaryEncIndex == index_) {
+  if (getError() || !masterOK) {
+    masterOKOld_     = masterOK;
+    rawPosMultiTurn_ = 0;
+    if(data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+      actPos_          = scale_ * (rawPosMultiTurn_ + rawPosOffset_) +
+                         engOffset_;
+    } else {
+      actPos_ = data_->status_.externalEncoderPosition;      
+    }
+
+    return actPos_;
+  }
+    
+  errorLocal = readHwActPos(masterOK);
+  if(errorLocal) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  }
+
+  errorLocal = readHwLatch();
+  if(errorLocal) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  }
+
+  errorLocal = readHwWarningError();
+  if(errorLocal) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  }
+
+  // Local source
+  if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    actPos_ = actPosLocal_;
+    actVel_ = actVelLocal_;
+  } else if (data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL && 
+      data_->command_.primaryEncIndex == index_) { // External source
     actPos_ = data_->status_.externalEncoderPosition;
     actVel_ = data_->status_.externalEncoderVelocity;
   }
@@ -580,6 +579,7 @@ double ecmcEncoder::readEntries(bool masterOK) {
   encPosAct_->refreshParamRT(0);
   encVelAct_->refreshParamRT(0);
 
+  masterOKOld_ = masterOK;
   return actPos_;
 }
 
@@ -607,6 +607,8 @@ int ecmcEncoder::writeEntries() {
 }
 
 int ecmcEncoder::validate() {
+  
+  int errorCode = 0;
   if (sampleTime_ <= 0) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_ENC_INVALID_SAMPLE_TIME);
@@ -623,10 +625,16 @@ int ecmcEncoder::validate() {
                       ERROR_ENC_TYPE_NOT_SUPPORTED);
   }
 
-  int errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
-
-  if (errorCode) {  // Act position
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_NULL);
+  hwActPosDefined_ = false;
+  if(data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    if(checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION)) {
+      errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
+  
+      if (errorCode) {  // Act position
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_NULL);
+      }
+      hwActPosDefined_ = true;
+    }
   }
 
   // Check if latch entries are linked then "enable" latch funct
