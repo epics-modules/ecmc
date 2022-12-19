@@ -3,6 +3,7 @@ Release Notes
 ===
 # master
 
+* Return error if cmddata is not valid for the current motion command (at execution).
 * Add command to allow change of encoder and trajectory source when axis is enabled:
 ```
 Cfg.SetAxisAllowSourceChangeWhenEnabled(int axis_no, int allow)
