@@ -326,6 +326,14 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       if(!enableConstVel_) {
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
       }
+      
+      // Only allow cmdData 0 (no different modes implemented)
+      if(data_->command_.cmdData!=0){        
+        return setErrorID(__FILE__,
+                          __FUNCTION__,
+                          __LINE__,
+                          ERROR_SEQ_CMD_DATA_UNDEFINED);
+      }
 
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
@@ -344,6 +352,14 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     if (data_->command_.execute && !executeOld_) {
       if(!enablePos_) {
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
+      }
+
+      // Only allow cmdData 0 (no different modes implemented)
+      if(data_->command_.cmdData!=0){        
+        return setErrorID(__FILE__,
+                          __FUNCTION__,
+                          __LINE__,
+                          ERROR_SEQ_CMD_DATA_UNDEFINED);
       }
 
       data_->status_.busy = true;
@@ -368,7 +384,9 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);
-
+      
+      double targPos   = 0;
+      int    errorCode = 0;
       switch (data_->command_.cmdData) {
       case 0:     // Normal positioning
         traj_->setTargetPos(data_->command_.positionTarget);
@@ -376,14 +394,20 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       // Go to external transform curr value (as targetPosition)
       case 1:
-        double targPos   = 0;
-        int    errorCode = getExtTrajSetpoint(&targPos);
 
+        errorCode = getExtTrajSetpoint(&targPos);
         if (errorCode) {
           return errorCode;
         }
         traj_->setTargetPos(data_->command_.positionTarget);
         break;
+
+      default:
+        // Not valid cmddata
+        return setErrorID(__FILE__,
+                          __FUNCTION__,
+                          __LINE__,
+                          ERROR_SEQ_CMD_DATA_UNDEFINED);
       }
     }
     errorCode = traj_->setExecute(data_->command_.execute);
