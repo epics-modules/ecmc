@@ -2,7 +2,7 @@
 Release Notes
 ===
 # master
-
+* Add command "Cfg.EcApplyConfig()" without master index as parameter. ecmc only allows one master per ioc.
 * Return error if cmddata is not valid for the current motion command (at execution).
 * Add command to allow change of encoder and trajectory source when axis is enabled:
 ```

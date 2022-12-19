@@ -1444,6 +1444,11 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecApplyConfig(iValue);
   }
 
+  /*Cfg.EcApplyConfig()*/
+  if (0 == strcmp(myarg_1, "EcApplyConfig()")) {
+    return ecApplyConfig(-1);
+  }
+
   /*Cfg.EcSetDiagnostics(int nDiagnostics)*/
   nvals = sscanf(myarg_1, "EcSetDiagnostics(%d)", &iValue);
 
