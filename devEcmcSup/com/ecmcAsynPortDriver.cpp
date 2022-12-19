@@ -1437,7 +1437,7 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
   ecmcAsynPortObj->unlock();
   
   if (errorCode) {
-    LOGINFO("ERROR: Command %s resulted in buffer overflow error: %s.\n",
+    printf("ERROR: Command %s resulted in buffer overflow error: %s.\n",
             ecmcCommand,
             ecmcConfigBuffer.buffer);
     exit(EXIT_FAILURE);
@@ -1451,16 +1451,16 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
                            &ecmcError);
 
     if (nvals == 1) {
-      LOGINFO("ECMC command \"%s\" returned error: %s (0x%x)\n",
+      printf("ECMC command \"%s\" returned error: %s (0x%x)\n",
               ecmcCommand,
               getErrorString(ecmcError),
               ecmcError);
     } else {
-      LOGINFO("ECMC did not return \"OK\": %s\n", ecmcConfigBuffer.buffer);
+      printf("ECMC did not return \"OK\": %s\n", ecmcConfigBuffer.buffer);
     }
     exit(EXIT_FAILURE);
   }
-  LOGINFO("%s\n", ecmcConfigBuffer.buffer);
+  printf("%s\n", ecmcConfigBuffer.buffer);
   // Set return variable
   epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
   
@@ -1499,12 +1499,12 @@ int ecmcConfig(const char *ecmcCommand) {
   ecmcAsynPortObj->unlock();
 
   if (errorCode) {
-    LOGINFO("ERROR: Command \"%s\" resulted in error code: %s.\n",
+    printf("ERROR: Command \"%s\" resulted in error code: %s.\n",
             ecmcCommand,
             ecmcConfigBuffer.buffer);
   }
 
-  LOGINFO("%s\n", ecmcConfigBuffer.buffer);
+  printf("%s\n", ecmcConfigBuffer.buffer);
   // Set return variable
   epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME,ecmcConfigBuffer.buffer);
   
