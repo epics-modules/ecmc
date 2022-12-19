@@ -173,6 +173,7 @@ void ecmcEncoder::setActPos(double pos) {
   // Must clear velocity filter
   velocityFilter_->initFilter(pos);
   positionFilter_->initFilter(pos);
+  actPos_ = pos;
 }
 
 int ecmcEncoder::setOffset(double offset) {
