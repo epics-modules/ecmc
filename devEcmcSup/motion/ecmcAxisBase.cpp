@@ -1859,14 +1859,19 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
       controlWord_.executeCmd = 0; // auto reset
       return asynError;
     }
+
+    // Only allow cmd change if not busy
+    if(!getBusy()) {
+      setCommand(command_);
+      setCmdData(cmdData_);
+    }
+    
     // allow on the fly updates of target velo and target pos
     getSeq()->setTargetVel(velocityTarget_);
     getSeq()->setTargetPos(positionTarget_);
     
     // if not already moving then trigg new motion cmd
-    if(!getBusy()) {
-      setCommand(command_);
-      setCmdData(cmdData_);
+    if(!getBusy()) {    
       errorCode = setExecute(0);
       if(errorCode) {
         returnVal = asynError;
@@ -1973,11 +1978,6 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynPa
   double pos = 0;
   memcpy(&pos,data,bytes);
   positionTarget_ = pos;
-//  if (getSeq() == NULL) {
-//    return asynError;
-//  }
-//    
-//  getSeq()->setTargetPos(pos);
   
   return asynSuccess;
 }
