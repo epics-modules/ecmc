@@ -399,7 +399,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         if (errorCode) {
           return errorCode;
         }
-        traj_->setTargetPos(data_->command_.positionTarget);
+        traj_->setTargetPos(targPos);
         break;
 
       default:
