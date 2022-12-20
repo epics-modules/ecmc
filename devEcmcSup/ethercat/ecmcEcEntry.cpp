@@ -595,7 +595,7 @@ int ecmcEcEntry::validate() {
                       ERROR_EC_ENTRY_INVALID_OFFSET);
   }
 
-  if ((domainAdr_ < 0) || (domainAdr_ == NULL)) {
+  if (domainAdr_ == NULL) {
     LOGERR(
       "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid domain address (0x%x).\n",
       __FILE__,

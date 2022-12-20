@@ -155,7 +155,7 @@ int ecmcEcMemMap::validate() {
                       ERROR_EC_ENTRY_INVALID_OFFSET);
   }
 
-  if ((domainAdr_ < 0) || (domainAdr_ == NULL)) {
+  if (domainAdr_ == NULL) {
     if (getErrorID() != ERROR_EC_ENTRY_INVALID_DOMAIN_ADR) {
       LOGERR("%s/%s:%d: ERROR: MemMap %s: Invalid domain address (0x%x).\n",
              __FILE__,
