@@ -54,11 +54,11 @@ extern "C" {
   }                                                                           \
 }                                                                             \
 
-#define CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)                         \
+#define CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)                     \
 {                                                                             \
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
   if (axes[axisIndex]->                                                       \
-    getConfigEnc() == NULL) {                                                       \
+    getConfigEnc() == NULL) {                                                 \
     LOGERR("ERROR: Encoder object NULL.\n");                                  \
     return ERROR_MAIN_ENCODER_OBJECT_NULL;                                    \
   }                                                                           \
@@ -1339,16 +1339,17 @@ int setAxisDeceleration(int    axisIndex,
 int setAxisEmergDeceleration(int    axisIndex,
                              double value);
 
-/** \brief Set axis maximum jerk setpoint. NOT USED!\n
+/** \brief Set axis maximum jerk setpoint.\n
  *
- * \note Currently not used!!!!!.\n
+ * \note Only used for ruckig trajectories (traj type 1).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Jerk setpoint.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: No command string implemented in the ecmcCmdParser.c parser.\n
+ * \note Example: Set jerk to 23.2 for axis 3.\n
+ * "Cfg.SetAxisJerk(3,23.2)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisJerk(int    axisIndex,
                 double value);
