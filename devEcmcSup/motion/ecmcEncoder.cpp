@@ -539,12 +539,8 @@ double ecmcEncoder::readEntries(bool masterOK) {
   actPosOld_ = actPos_;
 
   if (getError() || !masterOK) {
-    masterOKOld_     = masterOK;
-    rawPosMultiTurn_ = 0;
-    if(data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-      actPos_          = scale_ * (rawPosMultiTurn_ + rawPosOffset_) +
-                         engOffset_;
-    } else {
+
+    if(data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
       actPos_ = data_->status_.externalEncoderPosition;      
     }
 
