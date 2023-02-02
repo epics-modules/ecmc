@@ -1688,12 +1688,20 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisSoftLimitPosFwd(iValue, dValue);
   }
 
-  /*int Cfg.SetAxisEnableSoftLimitFwd(int axis_no, double value);*/
+  /*int Cfg.SetAxisEnableSoftLimitFwd(int axis_no, int value);*/
   nvals =
     sscanf(myarg_1, "SetAxisEnableSoftLimitFwd(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return setAxisEnableSoftLimitFwd(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisEnableAlarmAtSoftLimit(int axis_no, int value);*/
+  nvals =
+    sscanf(myarg_1, "SetAxisEnableAlarmAtSoftLimit(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEnableAlarmAtSoftLimit(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisEnableMotionFunctions(int axis_no, 

@@ -67,6 +67,7 @@ void ecmcMonitor::initVars() {
   highLimPolarity_           = ECMC_POLARITY_NC;
   homePolarity_              = ECMC_POLARITY_NC;
   encArray_                  = NULL;
+  enableAlarmOnSofLimits_    = 1;
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -546,11 +547,13 @@ int ecmcMonitor::checkLimits() {
   if (virtSoftlimitBwd && data_->status_.busy &&
       data_->command_.enableSoftLimitBwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
-    data_->interlocks_.bwdSoftLimitInterlock = true;    
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
+    data_->interlocks_.bwdSoftLimitInterlock = true; 
+    if(enableAlarmOnSofLimits_) {   
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
+    }
   } else {
     data_->interlocks_.bwdSoftLimitInterlock = false;
   }
@@ -566,10 +569,12 @@ int ecmcMonitor::checkLimits() {
       data_->command_.enableSoftLimitFwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
     data_->interlocks_.fwdSoftLimitInterlock = true;
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
+    if(enableAlarmOnSofLimits_) {   
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
+    }
   } else {
     data_->interlocks_.fwdSoftLimitInterlock = false;
   }
@@ -951,4 +956,8 @@ int ecmcMonitor::setLatchAtLimit(bool latchOnLimit) {
 int ecmcMonitor::getLatchAtLimit() {
   return latchOnLimit_;
 }
-  
+
+int ecmcMonitor::setEnableSoftLimitAlarm(bool enable) {
+  enableAlarmOnSofLimits_ = enable;
+  return 0;
+}

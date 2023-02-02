@@ -1289,6 +1289,20 @@ int setAxisSoftLimitPosBwd(int    axisIndex,
 int setAxisSoftLimitPosFwd(int    axisIndex,
                            double value);
 
+/** \brief Enable alarm when at softlimit
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value alarm enable command.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable alarm for soft-limits for axis 3.\n
+ * "Cfg.SetAxisEnableAlarmAtSoftLimit(3,1)" //Command string to ecmcCmdParser.c.\n
+ *
+ */
+int setAxisEnableAlarmAtSoftLimit(int axisIndex,
+                                  int value);
+
 /** \brief Set axis acceleration setpoint.\n
  *
  * \param[in] axisIndex  Axis index.\n
