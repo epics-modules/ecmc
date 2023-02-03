@@ -182,9 +182,9 @@ stopMode ecmcAxisData::refreshInterlocks() {
   
   if(oldInterlock != interlocks_.interlockStatus) {
     if(interlocks_.interlockStatus) {
-      LOGERR("%s/%s:%d: INFO: Motion interlocked (type %d).\n", __FILE__, __FUNCTION__, __LINE__,interlocks_.interlockStatus);
+      LOGERR("%s/%s:%d: INFO (axis %d): Motion interlocked (type %d).\n", __FILE__, __FUNCTION__, __LINE__,axisId_,interlocks_.interlockStatus);
     } else {
-      LOGERR("%s/%s:%d: INFO: Motion interlock cleared.\n", __FILE__, __FUNCTION__, __LINE__);
+      LOGERR("%s/%s:%d: INFO (axis %d): Motion interlock cleared.\n", __FILE__, __FUNCTION__, __LINE__,axisId_);
     }
   }
   return stop;
