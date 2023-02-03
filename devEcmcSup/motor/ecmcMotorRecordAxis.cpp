@@ -1074,7 +1074,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
 #endif
 
   asynStatus status = readEcmcAxisStatusData();
-  if(status) {
+  if(status) {    
     return status;
   }
 
@@ -1120,7 +1120,6 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
                    drvlocal.statusBinData.onChangeData.positionActual);
     setDoubleParam(pC_->motorEncoderPosition_,
                    drvlocal.statusBinData.onChangeData.positionActual);
-    drvlocal.statusBinDataOld.onChangeData.positionActual = drvlocal.statusBinData.onChangeData.positionActual;
     setDoubleParam(pC_->ecmcMotorRecordVel_RB_, drvlocal.statusBinData.onChangeData.velocitySetpoint);
   }
   setDoubleParam(pC_->ecmcMotorRecordEncAct_, (double)drvlocal.statusBinData.onChangeData.positionRaw);
@@ -1129,19 +1128,16 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
               "%spoll(%d) homed=%d\n",
               modNamEMC, axisNo_, drvlocal.statusBinData.onChangeData.statusWd.homed);
-    drvlocal.statusBinDataOld.onChangeData.statusWd.homed =  drvlocal.statusBinData.onChangeData.statusWd.homed;
   }
   if (drvlocal.statusBinDataOld.onChangeData.statusWd.limitbwd != drvlocal.statusBinData.onChangeData.statusWd.limitbwd) {    
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
               "%spoll(%d) LLS=%d\n",
               modNamEMC, axisNo_, !drvlocal.statusBinData.onChangeData.statusWd.limitbwd);
-    drvlocal.statusBinDataOld.onChangeData.statusWd.limitbwd =  drvlocal.statusBinData.onChangeData.statusWd.limitbwd;
   }
   if (drvlocal.statusBinDataOld.onChangeData.statusWd.limitfwd != drvlocal.statusBinData.onChangeData.statusWd.limitfwd) {    
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
               "%spoll(%d) HLS=%d\n",
               modNamEMC, axisNo_,!drvlocal.statusBinData.onChangeData.statusWd.limitfwd);
-    drvlocal.statusBinDataOld.onChangeData.statusWd.limitfwd = drvlocal.statusBinData.onChangeData.statusWd.limitfwd;
   }
 
 #ifndef motorWaitPollsBeforeReadyString
@@ -1232,6 +1228,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
 
   callParamCallbacksUpdateError();
 
+  drvlocal.moveNotReadyNextOld = drvlocal.moveNotReadyNext;
   memcpy(&drvlocal.statusBinDataOld, &drvlocal.statusBinData,
          sizeof(drvlocal.statusBinDataOld));
   return asynSuccess;
