@@ -14,7 +14,7 @@
 #include "../main/ecmcErrorsList.h"
 
 ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver, 
-                             ecmcAxisData *axisData) {
+                             ecmcAxisData *axisData) : ecmcEcEntryLink(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   initVars();
   data_ = axisData;
   asynPortDriver_ = asynPortDriver;

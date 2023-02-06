@@ -15,7 +15,8 @@
 ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
                          ecmcAxisData *axisData,
                          double        sampleTime,
-                         int index) : ecmcEcEntryLink() {
+                         int index)
+                         : ecmcEcEntryLink(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   initVars();
 
   asynPortDriver_ = asynPortDriver;

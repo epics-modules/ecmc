@@ -14,8 +14,8 @@
 #include <stdio.h>
 
 ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData *axisData,
-                                             double        sampleTime) :
-  ecmcError() {
+                                             double        sampleTime)
+  : ecmcError(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   data_ = axisData;
   initVars();
 

@@ -16,15 +16,25 @@ ecmcError::ecmcError() {
   initVars();
 }
 
+ecmcError::ecmcError(int* errorPtr,int* warningPtr) {
+  initVars();
+  errorPtr_ = errorPtr;
+  warningPtr_ = warningPtr;
+}
+
 ecmcError::~ecmcError()
 {}
 
 void ecmcError::initVars() {
   errorId_        = 0;
   error_          = 0;
+  warningId_      = 0;
+  warning_        = 0;
   errorPathValid_ = false;
   currSeverity_   = ECMC_SEVERITY_NONE;
   memset(&errorPath_, 0, sizeof(errorPath_));
+  warningPtr_ = NULL;
+  errorPtr_ = NULL;
 }
 
 int ecmcError::setErrorID(const char *fileName,
@@ -76,6 +86,14 @@ int ecmcError::setErrorID(int errorID) {
     error_ = false;
   }
   errorId_ = errorID;
+
+  // Also write to "external" pointer
+  if(errorPtr_) {
+    if(*errorPtr_ == 0) {
+      *errorPtr_ = errorID;
+    }
+  }
+  
   return errorId_;
 }
 
@@ -102,6 +120,13 @@ void ecmcError::errorReset() {
   error_ = false;
   setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);
   currSeverity_ = ECMC_SEVERITY_NONE;
+  setWarningID(0);
+  if(warningPtr_) {
+    *warningPtr_ = 0;
+  }
+  if(errorPtr_) {
+    *errorPtr_ = 0;
+  }
 }
 
 bool ecmcError::getError() {
@@ -114,6 +139,30 @@ int ecmcError::getErrorID() {
 
 ecmcAlarmSeverity ecmcError::getSeverity() {
   return currSeverity_;
+}
+
+int ecmcError::setWarningID(int warningId) {
+    
+  if (warningId) {
+    warning_ = true;
+  } else {
+    warning_ = false;
+  }
+  warningId_ = warningId;
+
+  // Also write to "external" pointer
+  
+  if(warningPtr_) {
+    if(*warningPtr_ == 0) {
+      *warningPtr_ = warningId;
+    }
+  }
+
+  return warningId_;  
+}
+
+int ecmcError::getWarningID() {
+  return warningId_;
 }
 
 const char * ecmcError::convertErrorIdToString(int errorId) {
