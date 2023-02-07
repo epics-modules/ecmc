@@ -333,7 +333,8 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0); 
+  axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(0);
 
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->linkedToAsynClient() ) {    
     int  bytesUsed = 0;
@@ -1045,6 +1046,22 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID] = paramTemp;
+
+  // Error
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_WARNING_NAME,
+                              asynParamInt32,
+                              ECMC_EC_S32,
+                              (uint8_t*)&(data_.status_.warningCode),
+                              sizeof(data_.status_.warningCode),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_WARNING_ID] = paramTemp;
+
 
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;

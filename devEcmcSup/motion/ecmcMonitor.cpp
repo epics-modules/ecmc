@@ -505,7 +505,7 @@ int ecmcMonitor::checkLimits() {
                         __LINE__,
                         ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
     }
-    setWarningID(ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
+    setWarningID(WARNING_MON_HARD_LIMIT_BWD_INTERLOCK);
   } else {
     if(latchOnLimit_){
       if(!data_->status_.moving || data_->status_.currentVelocityActual > 0){
@@ -513,6 +513,10 @@ int ecmcMonitor::checkLimits() {
       }
     }
     else{
+      // Auto reset warning
+      if (getWarningID() == WARNING_MON_HARD_LIMIT_BWD_INTERLOCK) {
+        setWarningID(0);
+      }
       data_->interlocks_.bwdLimitInterlock = false;
     }    
   }
@@ -527,7 +531,7 @@ int ecmcMonitor::checkLimits() {
                         __LINE__,
                         ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
     }
-    setWarningID(ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
+    setWarningID(WARNING_MON_HARD_LIMIT_FWD_INTERLOCK);
   } else {
     if(latchOnLimit_){
       if(!data_->status_.moving || data_->status_.currentVelocityActual < 0){
@@ -535,6 +539,10 @@ int ecmcMonitor::checkLimits() {
       }
     }
     else{
+      // Auto reset warning
+      if (getWarningID() == WARNING_MON_HARD_LIMIT_FWD_INTERLOCK) {
+        setWarningID(0);
+      }
       data_->interlocks_.fwdLimitInterlock = false;
     }    
   }
@@ -550,7 +558,7 @@ int ecmcMonitor::checkLimits() {
       data_->command_.enableSoftLimitBwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
     data_->interlocks_.bwdSoftLimitInterlock = true;
-    setWarningID(ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
+    setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
     //if(enableAlarmOnSofLimits_) {   
     //  return setErrorID(__FILE__,
     //                    __FUNCTION__,
@@ -558,6 +566,10 @@ int ecmcMonitor::checkLimits() {
     //                    ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
     //}
   } else {
+    // Auto reset this warning
+    if (getWarningID() == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
+       setWarningID(0);
+    }
     data_->interlocks_.bwdSoftLimitInterlock = false;
   }
 
@@ -572,7 +584,7 @@ int ecmcMonitor::checkLimits() {
       data_->command_.enableSoftLimitFwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
     data_->interlocks_.fwdSoftLimitInterlock = true;
-    setWarningID(ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
+    setWarningID(WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK);
     //if(enableAlarmOnSofLimits_) {   
     //  return setErrorID(__FILE__,
     //                    __FUNCTION__,
@@ -580,6 +592,10 @@ int ecmcMonitor::checkLimits() {
     //                    ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
     //}
   } else {
+    // Auto reset this warning
+    if (getWarningID() == WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
+       setWarningID(0);
+    }
     data_->interlocks_.fwdSoftLimitInterlock = false;
   }
   return 0;

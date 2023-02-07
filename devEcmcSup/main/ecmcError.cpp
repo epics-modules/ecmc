@@ -140,7 +140,12 @@ ecmcAlarmSeverity ecmcError::getSeverity() {
 }
 
 int ecmcError::setWarningID(int warningId) {
-    
+  if (warningId != warningId_) {
+    LOGINFO12("%s (0x%x).\n",
+           convertWarningIdToString(warningId),
+           warningId);
+  }
+  
   if (warningId) {
     warning_ = true;
   } else {
@@ -164,6 +169,43 @@ int ecmcError::getWarningID() {
 void ecmcError::setExternalPtrs(int* errorPtr,int* warningPtr) {
   warningPtr_ = warningPtr;
   errorPtr_   = errorPtr;
+}
+
+const char * ecmcError::convertWarningIdToString(int warningId) {
+ switch (warningId) {
+  case 0:   // GENERAL
+    return "NO_WARNING";
+
+    break;
+  case 0x14D00: // Monitor
+    return "WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK";
+
+    break;
+  case 0x14D01: // Monitor
+    return "WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK";
+
+    break;
+  case 0x14D02: // Monitor
+    return "WARNING_MON_HARD_LIMIT_FWD_INTERLOCK";
+
+    break;
+  case 0x14D03: // Monitor
+    return "WARNING_MON_HARD_LIMIT_BWD_INTERLOCK";
+
+    break;
+
+  case 0x14700: // Drive
+    return "WARNING_DRV_WARNING_BIT_HIGH";
+
+    break;
+
+  case 0x14701: // Drive
+    return "WARNING_DRV_ENABLED_LOST";
+
+    break;
+ }
+
+  return "NO_WARNING";
 }
 
 const char * ecmcError::convertErrorIdToString(int errorId) {

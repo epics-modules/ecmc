@@ -57,6 +57,7 @@ class ecmcError {
   virtual int               getWarningID();
   virtual ecmcAlarmSeverity getSeverity();
   static const char       * convertErrorIdToString(int errorId);
+  static const char       * convertWarningIdToString(int warningId);
 
   void setExternalPtrs(int* errorPtr,int* warningPtr);
 
