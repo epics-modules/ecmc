@@ -58,6 +58,8 @@ class ecmcError {
   virtual ecmcAlarmSeverity getSeverity();
   static const char       * convertErrorIdToString(int errorId);
 
+  void setExternalPtrs(int* errorPtr,int* warningPtr);
+
  protected:
   char errorPath_[128];
   bool errorPathValid_;

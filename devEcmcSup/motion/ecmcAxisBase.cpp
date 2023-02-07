@@ -507,10 +507,15 @@ bool ecmcAxisBase::getError() {
 }
 
 int ecmcAxisBase::getErrorID() {
+  
+
   // GeneralsetErrorID
   if (ecmcError::getError()) {
     return ecmcError::getErrorID();
   }
+  
+  // The below contains all errors from the "sub objects"
+  return data_.status_.errorCode;
 
   // Monitor
   ecmcMonitor *mon = getMon();

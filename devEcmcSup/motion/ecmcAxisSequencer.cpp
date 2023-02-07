@@ -2738,6 +2738,9 @@ int ecmcAxisSequencer::getExtTrajSetpoint(double *pos) {
 
 int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData *data) {
   data_ = data;
+  // Set external error code ints (to be collected in axis base class)
+  setExternalPtrs(&(data_->status_.errorCode),&(data_->status_.warningCode));
+
   return 0;
 }
 

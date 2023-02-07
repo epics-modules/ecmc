@@ -89,9 +89,7 @@ int ecmcError::setErrorID(int errorID) {
 
   // Also write to "external" pointer
   if(errorPtr_) {
-    if(*errorPtr_ == 0) {
       *errorPtr_ = errorID;
-    }
   }
   
   return errorId_;
@@ -153,9 +151,7 @@ int ecmcError::setWarningID(int warningId) {
   // Also write to "external" pointer
   
   if(warningPtr_) {
-    if(*warningPtr_ == 0) {
-      *warningPtr_ = warningId;
-    }
+    *warningPtr_ = warningId;
   }
 
   return warningId_;  
@@ -163,6 +159,11 @@ int ecmcError::setWarningID(int warningId) {
 
 int ecmcError::getWarningID() {
   return warningId_;
+}
+
+void ecmcError::setExternalPtrs(int* errorPtr,int* warningPtr) {
+  warningPtr_ = warningPtr;
+  errorPtr_   = errorPtr;
 }
 
 const char * ecmcError::convertErrorIdToString(int errorId) {
