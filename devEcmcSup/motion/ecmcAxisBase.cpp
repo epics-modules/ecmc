@@ -516,63 +516,7 @@ int ecmcAxisBase::getErrorID() {
   }
   
   // The below contains all errors from the "sub objects"
-  return data_.status_.errorCode;
-
-  // Monitor
-  ecmcMonitor *mon = getMon();
-
-  if (mon) {
-    if (mon->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, mon->getErrorID());
-    }
-  }
-
-  // Encoder
-  ecmcEncoder *enc = getEnc();
-
-  if (enc) {
-    if (enc->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, enc->getErrorID());
-    }
-  }
-
-  // Drive
-  ecmcDriveBase *drv = getDrv();
-
-  if (drv) {
-    if (drv->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, drv->getErrorID());
-    }
-  }
-
-  // Trajectory
-  ecmcTrajectoryBase *traj = getTraj();
-
-  if (traj) {
-    if (traj->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, traj->getErrorID());
-    }
-  }
-
-  // Controller
-  ecmcPIDController *cntrl = getCntrl();
-
-  if (cntrl) {
-    if (cntrl->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, cntrl->getErrorID());
-    }
-  }
-
-  // Sequencer
-  ecmcAxisSequencer *seq = getSeq();
-
-  if (seq) {
-    if (seq->getErrorID()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, seq->getErrorID());
-    }
-  }
-
-  return ecmcError::getErrorID();
+  return setErrorID(data_.status_.errorCode);
 }
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
