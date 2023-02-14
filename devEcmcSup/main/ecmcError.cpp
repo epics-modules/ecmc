@@ -177,30 +177,36 @@ const char * ecmcError::convertWarningIdToString(int warningId) {
     return "NO_WARNING";
 
     break;
-  case 0x14D00: // Monitor
+  case 0x114C00: // Monitor
     return "WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK";
 
     break;
-  case 0x14D01: // Monitor
+  case 0x114C01: // Monitor
     return "WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK";
 
     break;
-  case 0x14D02: // Monitor
+  case 0x114C02: // Monitor
     return "WARNING_MON_HARD_LIMIT_FWD_INTERLOCK";
 
     break;
-  case 0x14D03: // Monitor
+  case 0x114C03: // Monitor
     return "WARNING_MON_HARD_LIMIT_BWD_INTERLOCK";
 
     break;
-
-  case 0x14700: // Drive
+  case 0x114600: // Drive
     return "WARNING_DRV_WARNING_BIT_HIGH";
 
     break;
-
-  case 0x14701: // Drive
+  case 0x114601: // Drive
     return "WARNING_DRV_ENABLED_LOST";
+
+    break;
+  case 0x114D00: // Seq
+    return "WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION";
+
+    break;
+  case 0x114D01: // Seq
+    return "WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION";
 
     break;
  }

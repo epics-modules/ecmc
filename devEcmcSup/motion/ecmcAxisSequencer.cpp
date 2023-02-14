@@ -703,13 +703,16 @@ double ecmcAxisSequencer::checkSoftLimits(double posSetpoint) {
   if ((posSetpoint > data_->command_.softLimitFwd) &&
       data_->command_.enableSoftLimitFwd && dSet > dAct) {
     dSet = dAct;
+    setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION);
   }
 
   // soft limit BWD
   if ((posSetpoint < data_->command_.softLimitBwd) &&
       data_->command_.enableSoftLimitBwd && dSet < dAct) {
     dSet = dAct;
+    setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION);
   }
+
   return dSet;
 }
 
