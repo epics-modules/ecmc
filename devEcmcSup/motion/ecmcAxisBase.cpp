@@ -444,13 +444,17 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
     data_.interlocks_.noExecuteInterlock = false;
     data_.refreshInterlocks();
-    data_.status_.busy = true;
+    data_.status_.busy = true;    
     data_.command_.execute = true;
   } else {
     traj_->setStartPos(data_.status_.currentPositionActual);
-    traj_->initStopRamp(data_.status_.currentPositionActual,
-                        data_.status_.currentVelocityActual,
-                        0);
+    //traj_->initStopRamp(data_.status_.currentPositionActual,
+    //                    data_.status_.currentVelocityActual,
+    //                    0);
+    if(!getEnable()) {
+      data_.status_.busy = false;
+      data_.command_.execute = false;
+    }
   }
 
   data_.command_.trajSource = refSource;
