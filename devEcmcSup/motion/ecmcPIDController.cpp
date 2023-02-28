@@ -16,7 +16,8 @@
 #include <stdlib.h>
 
 ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,
-                                     double        sampleTime) {
+                                     double        sampleTime)
+                                     : ecmcError(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   data_ = axisData;
   initVars();
 
@@ -33,7 +34,8 @@ ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,
                                      double        kff,
                                      double        sampleTime,
                                      double        outMax,
-                                     double        outMin) {
+                                     double        outMin)
+                                     : ecmcError(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   data_ = axisData;
   initVars();
 

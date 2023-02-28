@@ -32,8 +32,10 @@ enum ecmcAlarmSeverity {
   }
 
 class ecmcError {
- public:
+ public:  
   ecmcError();
+  // allow also write error and warnings to external ints
+  ecmcError(int* errorPtr,int* warningPtr);
   virtual ~ecmcError();
   virtual int setErrorID(int errorID);
   virtual int setErrorID(int               errorID,
@@ -47,12 +49,17 @@ class ecmcError {
                          int               lineNumber,
                          int               errorID,
                          ecmcAlarmSeverity severity);
+  virtual int setWarningID(int warningID);
   virtual void              setError(bool error);
   virtual void              errorReset();
   virtual bool              getError();
   virtual int               getErrorID();
+  virtual int               getWarningID();
   virtual ecmcAlarmSeverity getSeverity();
   static const char       * convertErrorIdToString(int errorId);
+  static const char       * convertWarningIdToString(int warningId);
+
+  void setExternalPtrs(int* errorPtr,int* warningPtr);
 
  protected:
   char errorPath_[128];
@@ -62,7 +69,11 @@ class ecmcError {
   void initVars();
   bool error_;
   int errorId_;
+  int warningId_;
+  int warning_;
   ecmcAlarmSeverity currSeverity_;
+  int *warningPtr_;
+  int *errorPtr_;  
 };
 
 #endif  /* ECMCERROR_H_ */

@@ -2,7 +2,12 @@
 Release Notes
 ===
 # master
-
+* Add command for enabling/disabling alarm when at softlimit:
+```
+Cfg.SetAxisEnableAlarmAtSoftLimit(int axis_no, int enable)
+```
+* Add command "Cfg.EcApplyConfig()" without master index as parameter. ecmc only allows one master per ioc.
+* Return error if cmddata is not valid for the current motion command (at execution).
 * Add command to allow change of encoder and trajectory source when axis is enabled:
 ```
 Cfg.SetAxisAllowSourceChangeWhenEnabled(int axis_no, int allow)

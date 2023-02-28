@@ -205,7 +205,10 @@
 #define ECMC_ASYN_AX_CMDDATA_NAME "cmddata"
 #define ECMC_ASYN_AX_ERROR_ID 9
 #define ECMC_ASYN_AX_ERROR_NAME "errorid"
-#define ECMC_ASYN_AX_PAR_COUNT 10
+#define ECMC_ASYN_AX_WARNING_ID 10
+#define ECMC_ASYN_AX_WARNING_NAME "warningid"
+#define ECMC_ASYN_AX_PAR_COUNT 11
+
 
 // Asyn params for 
 #define ECMC_ASYN_ENC_ACT_POS_ID 0

@@ -14,7 +14,7 @@
 #include "../main/ecmcErrorsList.h"
 
 ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver, 
-                             ecmcAxisData *axisData) {
+                             ecmcAxisData *axisData) : ecmcEcEntryLink(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   initVars();
   data_ = axisData;
   asynPortDriver_ = asynPortDriver;
@@ -322,6 +322,12 @@ void ecmcDriveBase::writeEntries() {
       __FUNCTION__,
       __LINE__,
       data_->axisId_);
+      setWarningID(WARNING_DRV_ENABLED_LOST);
+  }
+  else {
+    if(getWarningID() == WARNING_DRV_ENABLED_LOST) {
+      setWarningID(0);
+    }
   }
 
   localEnabledOld_ = getEnabledLocal();
@@ -359,19 +365,12 @@ void ecmcDriveBase::readEntries() {
     }
 
     if(hwWarning_ > 0 && hwWarningOld_ == 0) {
-      LOGERR("%s/%s:%d: WARNING (axis %d): Drive hardware in warning state.\n",
-          __FILE__,
-          __FUNCTION__,
-          __LINE__,
-          data_->axisId_);
-
+      setWarningID(WARNING_DRV_WARNING_BIT_HIGH);      
     }
     if(hwWarning_ == 0 && hwWarningOld_ > 0) {
-      LOGERR("%s/%s:%d: INFO (axis %d): Drive hardware warning state cleared.\n",
-          __FILE__,
-          __FUNCTION__,
-          __LINE__,
-          data_->axisId_);
+      if(getWarningID() == WARNING_DRV_WARNING_BIT_HIGH) {
+        setWarningID(0);
+      }
     }
 
     hwWarningOld_ = hwWarning_;

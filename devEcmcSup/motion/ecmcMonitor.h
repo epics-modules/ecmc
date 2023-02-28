@@ -44,6 +44,12 @@
 #define ERROR_MON_TIME_OUT_OF_RANGE 0x14C16
 #define ERROR_MON_POLARITY_OUT_OF_RANGE 0x14C17
 
+// MONITOR WARNINGS
+#define WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK 0x114C00
+#define WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK 0x114C01
+#define WARNING_MON_HARD_LIMIT_FWD_INTERLOCK 0x114C02
+#define WARNING_MON_HARD_LIMIT_BWD_INTERLOCK 0x114C03
+
 #define ECMC_MON_SWITCHES_FILTER_CYCLES 5
 
 enum ecmcSwitchPolarity {
@@ -124,7 +130,8 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool   getEnableSoftLimitFwd();
   bool   getAtSoftLimitBwd();
   bool   getAtSoftLimitFwd();
-  
+  int    setEnableSoftLimitAlarm(bool enable);
+
  private:
   int    checkLimits();
   int    checkAtTarget();
@@ -176,6 +183,7 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool latchOnLimit_;  //stop even if just bounce
+  bool enableAlarmOnSofLimits_;
   interlockTypes interlockStatusOld_;
   ecmcSwitchPolarity hardwareInterlockPolarity_;
   ecmcSwitchPolarity lowLimPolarity_;

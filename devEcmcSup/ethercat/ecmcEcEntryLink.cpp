@@ -12,7 +12,15 @@
 
 #include "ecmcEcEntryLink.h"
 
+ecmcEcEntryLink::ecmcEcEntryLink(int* errorPtr,int* warningPtr) : ecmcError( errorPtr, warningPtr) {
+  initVars();
+}
+
 ecmcEcEntryLink::ecmcEcEntryLink() {
+  initVars();
+}
+
+void ecmcEcEntryLink::initVars() { 
   for (int i = 0; i < ECMC_EC_ENTRY_LINKS_MAX; i++) {
     entryInfoArray_[i].entry     = NULL;
     entryInfoArray_[i].bitNumber = -1;

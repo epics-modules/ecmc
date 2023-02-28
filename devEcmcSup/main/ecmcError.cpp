@@ -16,15 +16,25 @@ ecmcError::ecmcError() {
   initVars();
 }
 
+ecmcError::ecmcError(int* errorPtr,int* warningPtr) {
+  initVars();
+  errorPtr_ = errorPtr;
+  warningPtr_ = warningPtr;
+}
+
 ecmcError::~ecmcError()
 {}
 
 void ecmcError::initVars() {
   errorId_        = 0;
   error_          = 0;
+  warningId_      = 0;
+  warning_        = 0;
   errorPathValid_ = false;
   currSeverity_   = ECMC_SEVERITY_NONE;
   memset(&errorPath_, 0, sizeof(errorPath_));
+  warningPtr_ = NULL;
+  errorPtr_ = NULL;
 }
 
 int ecmcError::setErrorID(const char *fileName,
@@ -76,6 +86,12 @@ int ecmcError::setErrorID(int errorID) {
     error_ = false;
   }
   errorId_ = errorID;
+
+  // Also write to "external" pointer
+  if(errorPtr_) {
+      *errorPtr_ = errorID;
+  }
+  
   return errorId_;
 }
 
@@ -102,6 +118,13 @@ void ecmcError::errorReset() {
   error_ = false;
   setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);
   currSeverity_ = ECMC_SEVERITY_NONE;
+  setWarningID(0);
+  if(warningPtr_) {
+    *warningPtr_ = 0;
+  }
+  if(errorPtr_) {
+    *errorPtr_ = 0;
+  }
 }
 
 bool ecmcError::getError() {
@@ -114,6 +137,81 @@ int ecmcError::getErrorID() {
 
 ecmcAlarmSeverity ecmcError::getSeverity() {
   return currSeverity_;
+}
+
+int ecmcError::setWarningID(int warningId) {
+  if (warningId != warningId_) {
+    LOGINFO12("%s (0x%x).\n",
+           convertWarningIdToString(warningId),
+           warningId);
+  }
+  
+  if (warningId) {
+    warning_ = true;
+  } else {
+    warning_ = false;
+  }
+  warningId_ = warningId;
+
+  // Also write to "external" pointer
+  
+  if(warningPtr_) {
+    *warningPtr_ = warningId;
+  }
+
+  return warningId_;  
+}
+
+int ecmcError::getWarningID() {
+  return warningId_;
+}
+
+void ecmcError::setExternalPtrs(int* errorPtr,int* warningPtr) {
+  warningPtr_ = warningPtr;
+  errorPtr_   = errorPtr;
+}
+
+const char * ecmcError::convertWarningIdToString(int warningId) {
+ switch (warningId) {
+  case 0:   // GENERAL
+    return "NO_WARNING";
+
+    break;
+  case 0x114C00: // Monitor
+    return "WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK";
+
+    break;
+  case 0x114C01: // Monitor
+    return "WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK";
+
+    break;
+  case 0x114C02: // Monitor
+    return "WARNING_MON_HARD_LIMIT_FWD_INTERLOCK";
+
+    break;
+  case 0x114C03: // Monitor
+    return "WARNING_MON_HARD_LIMIT_BWD_INTERLOCK";
+
+    break;
+  case 0x114600: // Drive
+    return "WARNING_DRV_WARNING_BIT_HIGH";
+
+    break;
+  case 0x114601: // Drive
+    return "WARNING_DRV_ENABLED_LOST";
+
+    break;
+  case 0x114D00: // Seq
+    return "WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION";
+
+    break;
+  case 0x114D01: // Seq
+    return "WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION";
+
+    break;
+ }
+
+  return "NO_WARNING";
 }
 
 const char * ecmcError::convertErrorIdToString(int errorId) {
@@ -802,6 +900,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x14D17:
     return "ERROR_SEQ_HOME_POST_MOVE_FAILED";
+
+    break;
+
+  case 0x14D18:
+    return "ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL";
 
     break;
 

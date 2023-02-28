@@ -79,6 +79,8 @@ typedef struct {
   bool   inStartupPhase;
   bool   inRealtime;
   double distToStop;
+  int errorCode;
+  int warningCode;
 } ecmcAxisDataStatus;  
 
 typedef struct {
