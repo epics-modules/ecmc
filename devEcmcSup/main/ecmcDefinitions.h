@@ -38,6 +38,11 @@
 #define TIMESPEC2NS(T) ((uint64_t)(((T).tv_sec - 946684800ULL) * \
                                    1000000000ULL) + (T).tv_nsec)
 
+#define NS2TIMESPEC(NS,T){                    \
+  (T).tv_sec=(NS)/1000000000ULL+946684800ULL; \
+  (T).tv_nsec=(NS)-(T).tv_sec*1000000000ULL;  \
+}                                             \
+
 // #define MSG_TICK 0
 #define MAX_MESSAGE 10000
 
