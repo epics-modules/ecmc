@@ -1114,14 +1114,14 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving)
     }
   }
   
-  if (drvlocal.nCommandActive != ECMC_CMD_HOMING) {
+  //if (drvlocal.nCommandActive != ECMC_CMD_HOMING) {
   
     setDoubleParam(pC_->motorPosition_,
                    drvlocal.statusBinData.onChangeData.positionActual);
     setDoubleParam(pC_->motorEncoderPosition_,
                    drvlocal.statusBinData.onChangeData.positionActual);
     setDoubleParam(pC_->ecmcMotorRecordVel_RB_, drvlocal.statusBinData.onChangeData.velocitySetpoint);
-  }
+  //}
   setDoubleParam(pC_->ecmcMotorRecordEncAct_, (double)drvlocal.statusBinData.onChangeData.positionRaw);
 
   if (drvlocal.statusBinDataOld.onChangeData.statusWd.homed != drvlocal.statusBinData.onChangeData.statusWd.homed) {
