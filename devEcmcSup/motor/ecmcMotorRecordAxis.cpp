@@ -772,7 +772,30 @@ asynStatus ecmcMotorRecordAxis::resetAxis(void)
   return asynSuccess;
 }
 
-asynStatus ecmcMotorRecordAxis::setEnable(int on) {
+/** 
+ *  Used by auto power on functionality 
+ *  (used  if POWERAUTOONOFFMODE2, motorPowerAutoOnOff_ = 2);
+ *  Method returns enabled state of axis.
+ *  Method is called cyclic from asynMotorController::autoPowerOn() 
+ */
+bool ecmcMotorRecordAxis::pollPowerIsOn(void)
+{
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
+            "%spollPowerIsOn(%d)\n",
+            modNamEMC, axisNo_);
+
+  int enabled = 0;
+  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
+  enabled = drvlocal.ecmcAxis->getEnabled();
+  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+  return enabled > 0;
+}
+
+/** 
+ *  Enable the amplifier on an axis
+ */
+asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
+{
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
             "%ssetEnable(%d) enable=%d\n",
             modNamEMC, axisNo_,on);
@@ -804,95 +827,6 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
   }
 
   return asynSuccess;
-}
-
-/** 
- *  Used by auto power on functionality 
- *  (used  if POWERAUTOONOFFMODE2, motorPowerAutoOnOff_ = 2);
- *  Method returns enabled state of axis.
- *  Method is called cyclic from asynMotorController::autoPowerOn() 
- */
-bool ecmcMotorRecordAxis::pollPowerIsOn(void)
-{
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
-            "%spollPowerIsOn(%d)\n",
-            modNamEMC, axisNo_);
-
-  int enabled = 0;
-  if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
-  enabled = drvlocal.ecmcAxis->getEnabled();
-  if(ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
-  return enabled > 0;
-}
-
-/** 
- *  Enable the amplifier on an axis
- */
-asynStatus ecmcMotorRecordAxis::enableAmplifier(int on)
-{
-  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
-            "%senableAmplifier(%d) enable=%d\n",
-            modNamEMC, axisNo_,on);
-
-  asynStatus status = asynSuccess;
-  unsigned counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME / 
-                           ECMC_AXIS_ENABLE_SLEEP_PERIOD);                       
-  int justCheckForEnable = 0;
-  bool moving = 0;
-
-  #ifdef POWERAUTOONOFFMODE2
-     {
-       int autoPower;
-       pC_->getIntegerParam(axisNo_, pC_->motorPowerAutoOnOff_, &autoPower);
-       if (autoPower) {
-         /* The record/driver will check for enabled (pollOwerIsOn)- only check enable */
-         justCheckForEnable = 1;
-       }
-     }
-   #endif
-  
-  on = on ? 1 : 0; /* either 0 or 1 */
-  
-  if(drvlocal.statusBinData.onChangeData.statusWd.enabled == on &&
-     drvlocal.statusBinData.onChangeData.statusWd.enable == on) {
-    return status;  // status OK
-  }
-
-  if (!on) {
-    /* Amplifier is on and should be turned off.*/
-    status = stopAxisInternal(__FUNCTION__, 0);
-    if (status) return status;
-  }
-
-  status = setEnable(on);
-  if (status) return status;
-
-  while (counter) {
-
-    epicsThreadSleep(ECMC_AXIS_ENABLE_SLEEP_PERIOD);
-    asynStatus status = readEcmcAxisStatusData();
-    if(status) {      
-      return status;
-    }
-
-    if ((drvlocal.statusBinData.onChangeData.statusWd.enabled == on || justCheckForEnable) && 
-        drvlocal.statusBinData.onChangeData.statusWd.enable == on &&
-       !drvlocal.statusBinData.onChangeData.statusWd.busy) {
-      /* The poller co-ordinates the writing into the parameter library */      
-      poll(&moving);      
-      return asynSuccess;
-    }
-    counter = counter -1;
-  }
-
-  /* if we come here, it went wrong */
-  if (!drvlocal.cmdErrorMessage[0]) {
-    snprintf(drvlocal.cmdErrorMessage, sizeof(drvlocal.cmdErrorMessage)-1,
-             "E: enableAmplifier(%d) failed.",
-             axisNo_);
-  }
-
-  return asynError;
 }
 
 /** 

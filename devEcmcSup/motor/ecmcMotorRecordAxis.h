@@ -137,7 +137,6 @@ private:
   asynStatus stopAxisInternal(const char *function_name, double acceleration);
   asynStatus resetAxis(void);
   asynStatus printDiagBinData();
-  asynStatus setEnable(int on);
   asynStatus readEcmcAxisStatusData();
   bool       pollPowerIsOn(void);
 #ifndef motorMessageTextString
