@@ -88,6 +88,7 @@ class ecmcDriveDS402 : public ecmcDriveBase {
   int cycleCounter_;
   bool ds402WarningOld_;
   bool localEnabled_;
+  bool localEnableAmpCmdOld_;
 };
 #endif  // ifndef ECMCDRIVEDS402_H_
 

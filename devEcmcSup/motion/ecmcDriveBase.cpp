@@ -331,7 +331,7 @@ void ecmcDriveBase::writeEntries() {
   }
 
   localEnabledOld_ = getEnabledLocal();
-  
+
   // Enable command sent to amplfier
   // (if break is not used then enableAmpCmdOld_==enableCmdOld_)
   enableAmpCmdOld_ = enableAmpCmd_;
