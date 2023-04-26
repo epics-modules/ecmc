@@ -209,13 +209,15 @@
 #define ECMC_ASYN_AX_WARNING_NAME "warningid"
 #define ECMC_ASYN_AX_PAR_COUNT 11
 
-
-// Asyn params for 
-#define ECMC_ASYN_ENC_ACT_POS_ID 0
+// Asyn params for encoder
 #define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"
-#define ECMC_ASYN_ENC_ACT_VEL_ID 1
 #define ECMC_ASYN_ENC_ACT_VEL_NAME "actvel"
-#define ECMC_ASYN_ENC_PAR_COUNT (ECMC_MAX_ENCODERS*2)
+
+// Asyn params for controller
+#define ECMC_ASYN_CNTRL_KP_NAME "ctrl.kp"
+#define ECMC_ASYN_CNTRL_KI_NAME "ctrl.ki"
+#define ECMC_ASYN_CNTRL_KD_NAME "ctrl.kd"
+#define ECMC_ASYN_CNTRL_KFF_NAME "ctrl.kff"
 
 // Motion
 enum app_mode_type {
@@ -472,6 +474,10 @@ enum axisSubObjectType {
 #define ECMC_AXIS_DATA_STR_INTERLOCK_FWD_TYPE "mon.ilockfwd"
 #define ECMC_AXIS_DATA_STR_INTERLOCK_BWD_TYPE "mon.ilockbwd"
 #define ECMC_AXIS_DATA_STR_ALLOW_PLC_CMD "allowplccmd"
+#define ECMC_AXIS_DATA_STR_CTRL_KP_CMD "ctrl.kp"
+#define ECMC_AXIS_DATA_STR_CTRL_KI_CMD "ctrl.ki"
+#define ECMC_AXIS_DATA_STR_CTRL_KD_CMD "ctrl.kd"
+#define ECMC_AXIS_DATA_STR_CTRL_KFF_CMD "ctrl.kff"
 
 enum ecmcAxisDataType {
   ECMC_AXIS_DATA_NONE                  = 0,
@@ -520,6 +526,10 @@ enum ecmcAxisDataType {
   ECMC_AXIS_DATA_ALLOW_PLC_WRITE       = 43,
   ECMC_AXIS_DATA_POS_SET_EXTERNAL      = 44,
   ECMC_AXIS_DATA_POS_ACT_EXTERNAL      = 45,
+  ECMC_AXIS_DATA_CTRL_KP               = 46,
+  ECMC_AXIS_DATA_CTRL_KI               = 47,
+  ECMC_AXIS_DATA_CTRL_KD               = 48,
+  ECMC_AXIS_DATA_CTRL_KFF              = 49,
 };
 
 enum ecmcDataStorageType {

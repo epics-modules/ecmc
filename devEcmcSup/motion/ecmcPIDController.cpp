@@ -15,19 +15,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,
+ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
+                                     ecmcAxisData *axisData,
                                      double        sampleTime)
                                      : ecmcError(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   data_ = axisData;
   initVars();
-
+  asynPortDriver_ = asynPortDriver;
+  initAsyn();
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
-  }
+  }  
 }
 
-ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,
+ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
+                                     ecmcAxisData *axisData,
                                      double        kp,
                                      double        ki,
                                      double        kd,
@@ -38,6 +41,8 @@ ecmcPIDController::ecmcPIDController(ecmcAxisData *axisData,
                                      : ecmcError(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   data_ = axisData;
   initVars();
+  asynPortDriver_ = asynPortDriver;
+  initAsyn();
 
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
@@ -68,7 +73,12 @@ void ecmcPIDController::initVars() {
   kd_                 = 0;
   kff_                = 0;
   sampleTime_         = 0;
-  settingMade_       = false;
+  settingMade_        = false;
+  asynPortDriver_     = NULL;
+  asynKp_             = NULL;
+  asynKi_             = NULL;
+  asynKd_             = NULL;
+  asynKff_            = NULL;
 }
 
 ecmcPIDController::~ecmcPIDController()
@@ -111,21 +121,25 @@ double ecmcPIDController::getOutTot() {
 void ecmcPIDController::setKp(double kp) {
   if(kp != 0) settingMade_ = true;
   kp_ = kp;
+  asynKp_->refreshParam(1);
 }
 
 void ecmcPIDController::setKi(double ki) {
   if(ki != 0) settingMade_ = true;
   ki_ = ki;
+  asynKi_->refreshParam(1);
 }
 
 void ecmcPIDController::setKd(double kd) {
   if(kd != 0) settingMade_ = true;
   kd_ = kd;
+  asynKd_->refreshParam(1);
 }
 
 void ecmcPIDController::setKff(double kff) {
   if(kff != 0) settingMade_ = true;
   kff_ = kff;
+  asynKff_->refreshParam(1);
 }
 
 void ecmcPIDController::setOutMax(double outMax) {
@@ -202,5 +216,210 @@ int ecmcPIDController::validate() {
     LOGERR("%s/%s:%d: WARNING: Axis %d in CSP-mode (ecmc position control loop disabled). Settings of ecmc position control loop params will be discarded."
     " Position control loop params needs to be set directlly in drive (where the position loop is executed).\n", __FILE__, __FUNCTION__, __LINE__, data_->axisId_);
   }
+
+  if(asynKp_==NULL || asynKi_==NULL || asynKd_==NULL || asynKff_==NULL) {
+    LOGERR("%s/%s:%d: Error: Axis %d: Kp,ki, kd or kff asyn param NULL .\n", __FILE__, __FUNCTION__, __LINE__, data_->axisId_);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MAIN_ASYN_PORT_DRIVER_NULL);
+  }
+  return 0;
+}
+
+double ecmcPIDController::getKp(){
+  return kp_;
+};
+
+double ecmcPIDController::getKi(){
+  return ki_;
+};
+
+double ecmcPIDController::getKd(){
+  return kd_;
+};
+
+double ecmcPIDController::getKff(){
+  return kff_;
+};
+
+int ecmcPIDController::initAsyn() {
+
+  // Add Asynparms for new encoder
+  if (asynPortDriver_ == NULL) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_->axisId_,
+           ERROR_AXIS_ASYN_PORT_OBJ_NULL);
+    return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
+  }
+
+  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name = NULL;
+  unsigned int charCount = 0;
+  ecmcAsynDataItem *paramTemp = NULL;
+  
+  // Kp
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME,
+                       data_->axisId_);
+  
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME"%d",
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                                asynParamFloat64,
+                                                (uint8_t *)&kp_,
+                                                8,
+                                                ECMC_EC_F64,
+                                                0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  asynKp_ = paramTemp;
+
+  // Ki
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KI_NAME,
+                       data_->axisId_);
+  
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME"%d",
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                                asynParamFloat64,
+                                                (uint8_t *)&ki_,
+                                                8,
+                                                ECMC_EC_F64,
+                                                0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  asynKi_ = paramTemp;
+
+  // Kd
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KD_NAME,
+                       data_->axisId_);
+  
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME"%d",
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                                asynParamFloat64,
+                                                (uint8_t *)&kd_,
+                                                8,
+                                                ECMC_EC_F64,
+                                                0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  asynKd_ = paramTemp;
+
+  // Kff
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KFF_NAME,
+                       data_->axisId_);
+  
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME"%d",
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  name = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                                asynParamFloat64,
+                                                (uint8_t *)&kff_,
+                                                8,
+                                                ECMC_EC_F64,
+                                                0); 
+
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->refreshParam(1);
+  asynKff_ = paramTemp;
+
   return 0;
 }

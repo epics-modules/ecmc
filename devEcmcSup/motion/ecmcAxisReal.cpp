@@ -50,7 +50,7 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
   }
 
   // Create PID
-  cntrl_ = new ecmcPIDController(&data_, data_.sampleTime_);
+  cntrl_ = new ecmcPIDController(asynPortDriver_,&data_, data_.sampleTime_);
 
   seq_.setCntrl(cntrl_);
 }

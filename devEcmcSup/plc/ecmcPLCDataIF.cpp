@@ -122,6 +122,7 @@ void ecmcPLCDataIF::initVars() {
   asynWriteAllow_ = 0; 
   isBool_         = 0;
   sampleRateMs_   = 0;
+  axisHasController_ = 0;
 }
 
 double& ecmcPLCDataIF::getDataRef() {
@@ -554,6 +555,38 @@ int ecmcPLCDataIF::readAxis() {
     data_ = axis_->getExtActPos();
     break;
 
+  case ECMC_AXIS_DATA_CTRL_KP:
+    if(axisHasController_) {
+      data_ = axis_->getCntrl()->getKp();
+    } else {
+      data_ = 0;
+    }
+    break;
+
+  case ECMC_AXIS_DATA_CTRL_KI:
+    if(axisHasController_) {
+      data_ = axis_->getCntrl()->getKi();
+    } else {
+      data_ = 0;
+    }
+    break;
+
+  case ECMC_AXIS_DATA_CTRL_KD:
+    if(axisHasController_) {
+      data_ = axis_->getCntrl()->getKd();
+    } else {
+      data_ = 0;
+    }
+    break;
+
+  case ECMC_AXIS_DATA_CTRL_KFF:
+    if(axisHasController_) {
+      data_ = axis_->getCntrl()->getKff();
+    } else {
+      data_ = 0;
+    }
+    break;
+
   default:
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -818,6 +851,34 @@ int ecmcPLCDataIF::writeAxis() {
 
   case ECMC_AXIS_DATA_POS_ACT_EXTERNAL:
     return 0; //axis_->setExtActPos(data_);
+    break;
+
+  case ECMC_AXIS_DATA_CTRL_KP:
+    if(axisHasController_) {
+      axis_->getCntrl()->setKp(data_);
+    }
+    return 0;
+    break;
+
+  case ECMC_AXIS_DATA_CTRL_KI:
+    if(axisHasController_) {
+      axis_->getCntrl()->setKi(data_);
+    }
+    return 0;
+    break;
+
+  case ECMC_AXIS_DATA_CTRL_KD:
+    if(axisHasController_) {
+      axis_->getCntrl()->setKd(data_);      
+    }
+    return 0;
+    break;
+
+  case ECMC_AXIS_DATA_CTRL_KFF:
+    if(axisHasController_) {
+      axis_->getCntrl()->setKff(data_);      
+    }
+    return 0;
     break;
 
   default:
@@ -1191,6 +1252,30 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
     return ECMC_AXIS_DATA_POS_ACT_EXTERNAL;
   }
 
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_CTRL_KP_CMD);
+
+  if (npos == 0) {    
+    return ECMC_AXIS_DATA_CTRL_KP;
+  }
+
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_CTRL_KI_CMD);
+
+  if (npos == 0) {    
+    return ECMC_AXIS_DATA_CTRL_KI;
+  }
+
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_CTRL_KD_CMD);
+
+  if (npos == 0) {    
+    return ECMC_AXIS_DATA_CTRL_KD;
+  }
+
+  npos = strcmp(varName, ECMC_AXIS_DATA_STR_CTRL_KFF_CMD);
+
+  if (npos == 0) {    
+    return ECMC_AXIS_DATA_CTRL_KFF;
+  }
+
   return ECMC_AXIS_DATA_NONE;
 }
 
@@ -1371,8 +1456,9 @@ int ecmcPLCDataIF::validate() {
     if (!axis_) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_PLC_AXIS_NULL);
     } else {
-      return 0;
+      axisHasController_ = axis_->getCntrl() != NULL;   
     }
+    return 0;
     break;
 
   case ECMC_RECORDER_SOURCE_STATIC_VAR:

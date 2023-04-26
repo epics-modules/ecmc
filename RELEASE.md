@@ -2,6 +2,14 @@
 Release Notes
 ===
 # master
+* Add rw asyn and plc access to controller PID parameters:
+```
+ax<id>.ctrl.kp
+ax<id>.ctrl.ki
+ax<id>.ctrl.kd
+ax<id>.ctrl.kff
+```
+
 * Add command for enabling/disabling alarm when at softlimit:
 ```
 Cfg.SetAxisEnableAlarmAtSoftLimit(int axis_no, int enable)
