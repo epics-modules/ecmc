@@ -329,10 +329,10 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(0);
+  //axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(0);
+  //axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
+  //axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(0);
+  //axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(0);
 
