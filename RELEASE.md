@@ -2,6 +2,10 @@
 Release Notes
 ===
 # master
+* Add asyn param for thread status:
+  * memlockOK 
+  * prioOK
+* Assign velo to ecmc target velo asyn param (non motor record interface)
 * Add rw asyn and plc access to controller PID parameters:
 ```
 ax<id>.ctrl.kp
