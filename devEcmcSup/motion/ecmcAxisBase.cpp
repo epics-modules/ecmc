@@ -2145,5 +2145,8 @@ int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
   return 0;
 }
 
-
-
+void ecmcAxisBase::setTargetVel(double velTarget) {
+  getSeq()->setTargetVel(velTarget);
+  // also set for ecmc interface
+  velocityTarget_ = velTarget;
+}

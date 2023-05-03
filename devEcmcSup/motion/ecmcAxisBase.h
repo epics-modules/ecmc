@@ -279,8 +279,7 @@ class ecmcAxisBase : public ecmcError {
   double                     getExtSetPos();
   double                     getExtActPos();
   int                        setAllowSourceChangeWhenEnabled(bool allow);
-
-
+  void                       setTargetVel(double velTarget);
 
  protected:
   void                       initVars();
