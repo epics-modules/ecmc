@@ -621,5 +621,27 @@ int ecmcAddDefaultAsynParams() {
   paramTemp->refreshParam(1);
   mainAsynParams[ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID] = paramTemp;
 
+  // ECMC_ASYN_MAIN_PAR_STATUS_NAME
+  name = ECMC_ASYN_MAIN_PAR_STATUS_NAME;
+  paramTemp = asynPort->addNewAvailParam(name,
+                                         asynParamInt32,
+                                         (uint8_t *)&(threadDiag.status),
+                                         sizeof(threadDiag.status),
+                                         ECMC_EC_S32,
+                                         0);
+  if(!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
+  paramTemp->refreshParam(1);
+  mainAsynParams[ECMC_ASYN_MAIN_PAR_STATUS_ID] = paramTemp;
+
   return 0;
 }
