@@ -935,6 +935,21 @@ int ecResetError();
  */
 int ecEnablePrintouts(int value);
 
+/** \brief Delay ethercat OK status for a time
+ *
+ * This can be usefull to allow extra time foir DC clocks to syncronize or\n
+ * for slave that do not report correct data directlly when enter OP.\n
+ * 
+ *
+ * \param[in] milliseconds Delay time for ecOK status at startup (after slaves in OP).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Delay ethercat OK for 2000ms at startup
+ *  "Cfg.ecSetDelayECOkAtStartup(2000)" //Command string to ecmcCmdParser.c\n
+ */
+int ecSetDelayECOkAtStartup(int milliseconds);
+
 /** \brief Prints all hardware connected to selected master.\n
  *
  *

@@ -183,6 +183,8 @@ class ecmcEc : public ecmcError {
                                   uint16_t slavePos   /**< Slave position. */);
   int           useClockRealtime(bool useClkRT);
   bool          getScanBusyNotRT();
+  // Some slaves report OP but still not returning valid data for some seconds then use this command.
+  int           setEcOkDelayCycles(int cycles);
 
 private:
   void     initVars();
@@ -234,5 +236,7 @@ private:
   epicsTimeStamp epicsTime_;
   struct timespec timeRel_;
   struct timespec timeAbs_;
+  int delayEcOKCycles_;
+  int startupCounter_;
 };
 #endif  /* ECMCEC_H_ */

@@ -814,6 +814,11 @@ int ecEnablePrintouts(int value) {
   return 0;
 }
 
+int ecSetDelayECOkAtStartup(int milliseconds) {
+  LOGINFO4("%s/%s:%d milliseconds=%d\n", __FILE__, __FUNCTION__, __LINE__, milliseconds);
+  return ec->setEcOkDelayCycles(milliseconds/((int)(mcuPeriod/1E6)));
+}
+
 int ecPrintAllHardware() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
   return ec->printAllConfig();

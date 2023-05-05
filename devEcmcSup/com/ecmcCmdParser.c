@@ -1470,6 +1470,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecSetDomainFailedCyclesLimit(iValue);
   }
 
+  /*Cfg.EcSetDelayECOkAtStartup(int nCycles)*/
+  nvals = sscanf(myarg_1, "EcSetDelayECOkAtStartup(%d)", &iValue);
+
+  if (nvals == 1) {
+    return ecSetDelayECOkAtStartup(iValue);
+  }
+
   /*int Cfg.SetAxisJogVel(int traj_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisJogVel(%d,%lf)", &iValue, &dValue);
 
