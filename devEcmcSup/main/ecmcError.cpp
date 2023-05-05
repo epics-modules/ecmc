@@ -177,6 +177,14 @@ const char * ecmcError::convertWarningIdToString(int warningId) {
     return "NO_WARNING";
 
     break;
+  case 0x114300: // Axis
+    return "WARNING_AXIS_ASYN_CMD_WHILE_BUSY";
+
+    break;
+  case 0x114301: // Axis
+    return "WARNING_AXIS_ASYN_CMD_DATA_ERROR";
+
+    break;
   case 0x114C00: // Monitor
     return "WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK";
 
@@ -209,6 +217,7 @@ const char * ecmcError::convertWarningIdToString(int warningId) {
     return "WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION";
 
     break;
+
  }
 
   return "NO_WARNING";

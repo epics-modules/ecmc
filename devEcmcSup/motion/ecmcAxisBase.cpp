@@ -1804,6 +1804,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
         __LINE__,
         data_.axisId_);
 
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
 
@@ -1947,7 +1948,8 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynP
         __FUNCTION__,
         __LINE__,
         data_.axisId_);
-
+    
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
   double velo = 0;
@@ -1972,7 +1974,8 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynPa
         __FUNCTION__,
         __LINE__,
         data_.axisId_);
-
+    
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
   double pos = 0;
@@ -1992,6 +1995,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void* data, size_t bytes, asynPa
         __LINE__,
         data_.axisId_);
 
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
 
@@ -2005,6 +2009,8 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void* data, size_t bytes, asynPa
         __FUNCTION__,
         __LINE__,
         data_.axisId_);
+          
+    setWarningID(WARNING_AXIS_ASYN_CMD_WHILE_BUSY);
     return asynError;
   }
 
@@ -2022,6 +2028,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynPara
         __LINE__,
         data_.axisId_);
 
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
   int command = 0;
@@ -2040,6 +2047,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void* data, size_t bytes, asynPara
         __LINE__,
         data_.axisId_);
 
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
   int  cmddata = 0;
