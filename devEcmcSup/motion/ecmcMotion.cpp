@@ -2527,6 +2527,11 @@ int createAxis(int index, int type, int drvType, int trajType) {
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
   }
 
+  // Do not allow create already created axis (must be deleted first)
+  if (axes[index]!=NULL) {
+    return ERROR_MAIN_AXIS_ALREADY_CREATED;
+  }
+
   try {
     switch ((axisType)type) {
     case ECMC_AXIS_TYPE_REAL:

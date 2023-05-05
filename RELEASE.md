@@ -2,7 +2,7 @@
 Release Notes
 ===
 # master
-*
+* Block "Cfg.CreateAxis()" for already created axis 
 * Add command for delaying the OK status for the ethercat bus at startup. Could be usefull to allow dc clocks to stabilize or for slaves that not report correct data even though reporting OP:
 ```
 "Cfg.EcSetDelayECOkAtStartup(<milliseconds>)"
