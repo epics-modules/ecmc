@@ -209,7 +209,10 @@
 #define ECMC_ASYN_AX_ERROR_NAME "errorid"
 #define ECMC_ASYN_AX_WARNING_ID 10
 #define ECMC_ASYN_AX_WARNING_NAME "warningid"
-#define ECMC_ASYN_AX_PAR_COUNT 11
+#define ECMC_ASYN_AX_SET_ENC_POS_ID 11
+#define ECMC_ASYN_AX_SET_ENC_POS_NAME "setencpos"
+#define ECMC_ASYN_AX_PAR_COUNT 12
+
 
 // Asyn params for encoder
 #define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"

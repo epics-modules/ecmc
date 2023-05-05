@@ -56,6 +56,18 @@ asynStatus asynWriteTargetPos(void* data, size_t bytes, asynParamType asynParTyp
 }
 
 /**
+ * Callback function for asynWrites (Set Encoder Position)
+ * userObj = axis object
+ * 
+ * */ 
+asynStatus asynWriteSetEncPos(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase*)userObj)->axisAsynWriteSetEncPos(data, bytes, asynParType);
+}
+
+/**
  * Callback function for asynWrites (Command)
  * userObj = axis object
  * 
@@ -189,6 +201,7 @@ void ecmcAxisBase::initVars() {
   }
   data_.command_.cfgEncIndex = 0;
   allowSourceChangeWhenEnbaled_ = false;
+  setEncoderPos_ = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -947,6 +960,22 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setExeCmdFunctPtr(asynWriteTargetPos,this); // Access to this axis
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID] = paramTemp;
+
+  // Set/reference encoder
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_ENC_POS_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t*)&(setEncoderPos_),
+                              sizeof(setEncoderPos_),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteSetEncPos,this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_SET_ENC_POS_ID] = paramTemp;
 
   // Command
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_COMMAND_NAME,
@@ -1951,6 +1980,36 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynPa
   positionTarget_ = pos;
   
   return asynSuccess;
+}
+
+asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void* data, size_t bytes, asynParamType asynParType) {
+
+  if(sizeof(double) != bytes && asynParType == asynParamFloat64) {
+    LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Encoder Pos size or datatype missmatch.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+
+    return asynError;
+  }
+
+  double pos = 0;
+  memcpy(&pos,data,bytes);
+
+  if(getBusy()) {
+    LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Axis Busy, homing not possible.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+    return asynError;
+  }
+
+  // Set position
+  return moveHome(ECMC_SEQ_HOME_SET_POS,pos,0,0,0,0) ? asynError: asynSuccess;
 }
 
 asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynParamType asynParType) {
