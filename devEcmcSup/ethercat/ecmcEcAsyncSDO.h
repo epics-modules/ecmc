@@ -15,28 +15,32 @@
 #include <string.h>
 #include "stdio.h"
 #include "ecrt.h"
+#include "../main/ecmcDefinitions.h"
 #include "../main/ecmcError.h"
 #include "../com/ecmcAsynPortDriver.h"
+#include "../main/ecmcErrorsList.h"
+
 
 #define ERROR_EC_SDO_ASYNC_BUSY 0x23500
 #define ERROR_EC_SDO_ASYNC_ERROR 0x23501
 #define ERROR_EC_SDO_ASYNC_OBJ_NULL 0x23502
+#define ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL 0x23503
 
 
 #define DEFAULT_SDO_ASYNC_TIMOUT_MS 2000
 
 class ecmcEcAsyncSDO : public ecmcError {
  public:
-  ecmcEcAsyncSDO(int objIndex,
+  ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
+                 int objIndex,
                  int masterId,
                  int slaveId,
-                 ecmcAsynPortDriver *asynPortDriver,
                  ec_slave_config_t *sc, /**< Slave configuration. */
                  uint16_t sdoIndex, /**< SDO index. */
                  uint8_t sdoSubIndex, /**< SDO subindex. */
                  size_t size, /**< Data size to reserve. */
                  ecmcEcDataType dt,
-                 std::string id);
+                 std::string alias);
   ~ecmcEcAsyncSDO();
 
   asynStatus asynWriteSDO(void* data,
@@ -46,7 +50,7 @@ class ecmcEcAsyncSDO : public ecmcError {
                           size_t bytes,
                           asynParamType asynParType);
 
-  int ecmcEcAsyncSDO::execute();
+  int        execute();
 
 private:
   int                 initAsyn();
@@ -58,15 +62,16 @@ private:
   uint16_t            index_; /**< SDO index. */
   uint8_t             subindex_; /**< SDO subindex. */
   size_t              size_; /**< Data size to reserve. */
-  asynPortDriver      asynPortDriver_;
+  ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem   *asynParamWrite_;
   ecmcAsynDataItem   *asynParamRead_;
   ecmcAsynDataItem   *asynParamValue_;
   ecmcAsynDataItem   *asynParamError_;
   ecmcAsynDataItem   *asynParamBusy_;
+  ecmcEcDataType      dt_;
   int                 objIndex_;
-  std::string         idString_;
-  char               *idStringChar_;
+  int                 masterId_;
+  int                 slaveId_;
   uint64_t            buffer_;
   int                 usedSizeBytes_;
   int                 bitLength_;
@@ -74,5 +79,19 @@ private:
   int                 dummyReadCmd_;
   int                 dummyWriteCmd_;
   int                 busy_;
+  int8_t             *int8Ptr_;
+  uint8_t            *uint8Ptr_;
+  int16_t            *int16Ptr_;
+  uint16_t           *uint16Ptr_;
+  int32_t            *int32Ptr_;
+  uint32_t           *uint32Ptr_;
+  int64_t            *int64Ptr_;
+  uint64_t           *uint64Ptr_;
+  float              *float32Ptr_;
+  double             *float64Ptr_;
+  int                 writeCmdInProcess_;
+  int                 readCmdInProcess_;
+  std::string         idString_;
+  char               *idStringChar_;
 };
 #endif  /* ECMCECASYNCSDO_H_ */

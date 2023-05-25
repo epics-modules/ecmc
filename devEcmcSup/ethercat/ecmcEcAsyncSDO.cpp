@@ -34,29 +34,26 @@ asynStatus asynReadSDOCmd(void* data, size_t bytes, asynParamType asynParType,vo
   return ((ecmcEcAsyncSDO*)userObj)->asynReadSDO(data, bytes, asynParType);
 }
 
-ecmcEcAsyncSDO::ecmcEcAsyncSDO(int objIndex,
+ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
+                               int objIndex,
                                int masterId,
-                               int slaveId,
-                               ecmcAsynPortDriver *asynPortDriver,
+                               int slaveId,                               
                                ec_slave_config_t *sc, /**< Slave configuration. */
                                uint16_t sdoIndex, /**< SDO index. */
                                uint8_t sdoSubindex, /**< SDO subindex. */
-                               size_t size /**< Data size to reserve. */
+                               size_t size, /**< Data size to reserve. */
                                ecmcEcDataType dt,
-                               std::string id)
-
+                               std::string alias)
 {
   objIndex_       = objIndex;
   masterId_       = masterId;
   slaveId_        = slaveId;
-  asynPortDriver_ = asynPortDriver;
+  asynPortDriver_ = asynDriver;
   sc_             = sc;
   sdoIndex        = sdoIndex;
   sdoSubindex     = sdoSubindex;
   size_           = size;
   dt_             = dt;
-  idString_       = id;
-  idStringChar_   = strdup(idString_.c_str());
   buffer_         = 0;
   asynParamWrite_ = NULL;
   asynParamRead_  = NULL;
@@ -69,9 +66,14 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(int objIndex,
   usedSizeBytes_  = 0;
   bitLength_      = getEcDataTypeBits(dt);
   busy_           = 0;
+  writeCmdInProcess_ = 0;
+  readCmdInProcess_ = 0;
+  idString_       = alias;
+  idStringChar_   = strdup(idString_.c_str());
+
 
   // create object
-  sdoreq_= *ecrt_slave_config_create_sdo_request(
+  sdoreq_= ecrt_slave_config_create_sdo_request(
                          sc_, /**< Slave configuration. */
                          index_, /**< SDO index. */
                          subindex_, /**< SDO subindex. */
@@ -84,7 +86,7 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(int objIndex,
       __FUNCTION__,
       __LINE__);
 
-     throw std::bad_alloc( "Failed to create SDO object" );  
+     throw std::bad_alloc();  
   }
 
   ecrt_sdo_request_timeout(sdoreq_,DEFAULT_SDO_ASYNC_TIMOUT_MS);
@@ -96,7 +98,7 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(int objIndex,
       __FUNCTION__,
       __LINE__);
 
-    throw std::bad_alloc( "Failed to create Asyn parameters" );  
+    throw std::bad_alloc();  
   }
 }
 
@@ -108,8 +110,6 @@ ecmcEcAsyncSDO::~ecmcEcAsyncSDO()
 asynStatus ecmcEcAsyncSDO::asynWriteSDO(void* data,
                                         size_t bytes,
                                         asynParamType asynParType) {
-
-  
   if (!sdoreq_) {
     LOGERR(
       "%s/%s:%d: Error: SDO write failed. SDO async object NULL (0x%x).\n",
@@ -117,7 +117,7 @@ asynStatus ecmcEcAsyncSDO::asynWriteSDO(void* data,
       __FUNCTION__,
       __LINE__,ERROR_EC_SDO_ASYNC_OBJ_NULL);
     sdoError_ = ERROR_EC_SDO_ASYNC_OBJ_NULL;
-    asynParamError_->callParamCallbacks(1);
+    asynParamError_->refreshParam(1);
     return asynError;
   }
 
@@ -132,12 +132,12 @@ asynStatus ecmcEcAsyncSDO::asynWriteSDO(void* data,
       __LINE__,
       ERROR_EC_SDO_ASYNC_BUSY);
      sdoError_ = ERROR_EC_SDO_ASYNC_BUSY;
-     asynParamError_->callParamCallbacks(1);
+     asynParamError_->refreshParam(1);
     return asynError;
   }
 
   busy_ = 1;
-  asynParamBusy_->callParamCallbacks(1);
+  asynParamBusy_->refreshParam(1);
   writeCmdInProcess_ = true;
   //write data to sdo req obj (buffer_ data should already be updated by asyn)
   writeValue();
@@ -159,7 +159,7 @@ asynStatus ecmcEcAsyncSDO::asynReadSDO(void* data,
       __FUNCTION__,
       __LINE__,ERROR_EC_SDO_ASYNC_OBJ_NULL);
     sdoError_ = ERROR_EC_SDO_ASYNC_OBJ_NULL;
-    asynParamError_->callParamCallbacks(1);
+    asynParamError_->refreshParam(1);
     return asynError;
   }
 
@@ -172,12 +172,12 @@ asynStatus ecmcEcAsyncSDO::asynReadSDO(void* data,
       __LINE__,
       ERROR_EC_SDO_ASYNC_BUSY);
      sdoError_ = ERROR_EC_SDO_ASYNC_BUSY;
-     asynParamError_->callParamCallbacks(1);
+     asynParamError_->refreshParam(1);
     return asynError;
   }
 
   busy_ = 1;
-  asynParamBusy_->callParamCallbacks(1);
+  asynParamBusy_->refreshParam(1);
   
   ecrt_sdo_request_read(sdoreq_);
   readCmdInProcess_ = true;
@@ -185,37 +185,38 @@ asynStatus ecmcEcAsyncSDO::asynReadSDO(void* data,
 }
 
 int ecmcEcAsyncSDO::execute() { 
-  if(!readCmdInProcess_ && !writeCmdInProcess ) {
+  if(!readCmdInProcess_ && !writeCmdInProcess_ ) {
     return 0;
   }
 
   ec_request_state_t state = ecrt_sdo_request_state(sdoreq_);
 
   switch(state) {
-    EC_REQUEST_UNUSED:
+    case EC_REQUEST_UNUSED:
+
       break;
 
-    EC_REQUEST_BUSY:
+    case EC_REQUEST_BUSY:
       return 0; // keep waiting for finalizing request      
       break;
 
-    EC_REQUEST_SUCCESS
+    case EC_REQUEST_SUCCESS:
       if(readCmdInProcess_) {
         readValue();
-        asynParamValue_->callParamCallbacks(1);        
+        asynParamValue_->refreshParamRT(1);        
       } 
       readCmdInProcess_ = 0;
       writeCmdInProcess_ = 0;
       busy_ = 0;
-      asynParamBusy_->callParamCallbacks(1);
+      asynParamBusy_->refreshParamRT(1);
       break;
-    EC_REQUEST_ERROR:
+    case EC_REQUEST_ERROR:
       sdoError_= ERROR_EC_SDO_ASYNC_ERROR;
-      asynParamError_->callParamCallbacks(1);
+      asynParamError_->refreshParamRT(1);
       readCmdInProcess_ = 0;
       writeCmdInProcess_ = 0;
       busy_ = 0;
-      asynParamBusy_->callParamCallbacks(1);
+      asynParamBusy_->refreshParamRT(1);
       break;
   }
   return 0;        
@@ -239,11 +240,11 @@ int ecmcEcAsyncSDO::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      ERROR_EC_ENTRY_REGISTER_FAIL);
+      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_EC_ENTRY_REGISTER_FAIL);
+                      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
   }
   name = buffer;
   asynParamValue_ = asynPortDriver_->addNewAvailParam(name,
@@ -266,7 +267,7 @@ int ecmcEcAsyncSDO::initAsyn() {
   }
 
   //Add supported types
-  switch(dataType_) {
+  switch(dt_) {
     case ECMC_EC_NONE:
       return 0;
       break;
@@ -379,17 +380,17 @@ int ecmcEcAsyncSDO::initAsyn() {
 
   asynParamValue_->setAllowWriteToEcmc(true);
   asynParamValue_->setEcmcBitCount(bitLength_);
-  asynParamValue_->setEcmcMinValueInt(getEcDataTypeMinVal(dataType_));
-  asynParamValue_->setEcmcMaxValueInt(getEcDataTypeMaxVal(dataType_));
+  asynParamValue_->setEcmcMinValueInt(getEcDataTypeMinVal(dt_));
+  asynParamValue_->setEcmcMaxValueInt(getEcDataTypeMaxVal(dt_));
   
   asynParamValue_->refreshParam(1);
 
   // "ec%d.s%d.sdo.error"
-  unsigned int charCount = snprintf(buffer,
-                                    sizeof(buffer),
-                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_ERROR_STR,
-                                    masterId_,
-                                    slaveId_);
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_ERROR_STR,
+                       masterId_,
+                       slaveId_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -397,11 +398,11 @@ int ecmcEcAsyncSDO::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      ERROR_EC_ENTRY_REGISTER_FAIL);
+      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_EC_ENTRY_REGISTER_FAIL);
+                      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
   }
   name = buffer;
   asynParamError_ = asynPortDriver_->addNewAvailParam(name,
@@ -425,11 +426,11 @@ int ecmcEcAsyncSDO::initAsyn() {
   asynParamError_->refreshParam(1);
 
   // "ec%d.s%d.sdo.readcmd"
-  unsigned int charCount = snprintf(buffer,
-                                    sizeof(buffer),
-                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_READCMD_STR,
-                                    masterId_,
-                                    slaveId_);
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_READCMD_STR,
+                       masterId_,
+                       slaveId_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -437,11 +438,11 @@ int ecmcEcAsyncSDO::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      ERROR_EC_ENTRY_REGISTER_FAIL);
+      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_EC_ENTRY_REGISTER_FAIL);
+                      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
   }
   name = buffer;
   asynParamRead_ = asynPortDriver_->addNewAvailParam(name,
@@ -462,16 +463,16 @@ int ecmcEcAsyncSDO::initAsyn() {
                       __LINE__,
                       ERROR_MAIN_ASYN_CREATE_PARAM_FAIL);
   }
-  asynParamRead_->sasynParamRead_etAllowWriteToEcmc(true);
+  asynParamRead_->setAllowWriteToEcmc(true);
   asynParamRead_->setExeCmdFunctPtr(asynReadSDOCmd,this); // Access to this axis 
   asynParamRead_->refreshParam(1);
 
   // "ec%d.s%d.sdo.writecmd"
-  unsigned int charCount = snprintf(buffer,
-                                    sizeof(buffer),
-                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_WRITECMD_STR,
-                                    masterId_,
-                                    slaveId_);
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_WRITECMD_STR,
+                       masterId_,
+                       slaveId_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -479,11 +480,11 @@ int ecmcEcAsyncSDO::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      ERROR_EC_ENTRY_REGISTER_FAIL);
+      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_EC_ENTRY_REGISTER_FAIL);
+                      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
   }
   name = buffer;
   asynParamWrite_ = asynPortDriver_->addNewAvailParam(name,
@@ -509,11 +510,11 @@ int ecmcEcAsyncSDO::initAsyn() {
   asynParamWrite_->refreshParam(1);
 
   // "ec%d.s%d.sdo.busy"
-  unsigned int charCount = snprintf(buffer,
-                                    sizeof(buffer),
-                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_BUSY_STR,
-                                    masterId_,
-                                    slaveId_);
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_BUSY_STR,
+                       masterId_,
+                       slaveId_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -521,11 +522,11 @@ int ecmcEcAsyncSDO::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      ERROR_EC_ENTRY_REGISTER_FAIL);
+      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_EC_ENTRY_REGISTER_FAIL);
+                      ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL);
   }
   name = buffer;
   asynParamBusy_ = asynPortDriver_->addNewAvailParam(name,
