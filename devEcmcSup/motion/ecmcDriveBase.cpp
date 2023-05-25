@@ -631,6 +631,13 @@ int ecmcDriveBase::updateBrakeState() {
       }
     }
 
+    // loose enabled while opening, go directlly to closed
+    if(localEnabledOld_ && !getEnabledLocal()) {
+      brakeState_     = ECMC_BRAKE_CLOSED;      
+      enableAmpCmd_   = 0;
+      brakeOutputCmd_ = 0;
+    }
+
     // only start counting if enabled
     if(getEnabledLocal()) {
       brakeCounter_++;
@@ -657,14 +664,16 @@ int ecmcDriveBase::updateBrakeState() {
 
   case ECMC_BRAKE_CLOSING:
     // Purpose: Postpone disable of amplifier
+
     brakeOutputCmd_ = 0;
     enableAmpCmd_   = 1;
 
-    if (brakeCounter_ > brakeCloseAheadTime_) {
+    if (brakeCounter_ > brakeCloseAheadTime_ || !getEnabledLocal()) {
       brakeState_     = ECMC_BRAKE_CLOSED;
       enableAmpCmd_   = 0;
       brakeOutputCmd_ = 0;
     }
+
     brakeCounter_++;
     break;
   }
