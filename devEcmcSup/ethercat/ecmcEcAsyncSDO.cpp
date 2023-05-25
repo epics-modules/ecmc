@@ -34,8 +34,7 @@ asynStatus asynReadSDOCmd(void* data, size_t bytes, asynParamType asynParType,vo
   return ((ecmcEcAsyncSDO*)userObj)->asynReadSDO(data, bytes, asynParType);
 }
 
-ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
-                               int objIndex,
+ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,                               
                                int masterId,
                                int slaveId,                               
                                ec_slave_config_t *sc, /**< Slave configuration. */
@@ -45,7 +44,6 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
                                ecmcEcDataType dt,
                                std::string alias)
 {
-  objIndex_       = objIndex;
   masterId_       = masterId;
   slaveId_        = slaveId;
   asynPortDriver_ = asynDriver;
@@ -230,9 +228,10 @@ int ecmcEcAsyncSDO::initAsyn() {
   // "ec%d.s%d.sdo.value"
   unsigned int charCount = snprintf(buffer,
                                     sizeof(buffer),
-                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_VALUE_STR,
+                                    ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR ".%s." ECMC_VALUE_STR,
                                     masterId_,
-                                    slaveId_);
+                                    slaveId_,
+                                    idStringChar_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -388,9 +387,10 @@ int ecmcEcAsyncSDO::initAsyn() {
   // "ec%d.s%d.sdo.error"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_ERROR_STR,
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR ".%s." ECMC_ERROR_STR,
                        masterId_,
-                       slaveId_);
+                       slaveId_,
+                       idStringChar_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -428,9 +428,10 @@ int ecmcEcAsyncSDO::initAsyn() {
   // "ec%d.s%d.sdo.readcmd"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_READCMD_STR,
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR ".%s." ECMC_READCMD_STR,
                        masterId_,
-                       slaveId_);
+                       slaveId_,
+                       idStringChar_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -470,9 +471,10 @@ int ecmcEcAsyncSDO::initAsyn() {
   // "ec%d.s%d.sdo.writecmd"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_WRITECMD_STR,
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR ".%s." ECMC_WRITECMD_STR,
                        masterId_,
-                       slaveId_);
+                       slaveId_,
+                       idStringChar_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -512,9 +514,10 @@ int ecmcEcAsyncSDO::initAsyn() {
   // "ec%d.s%d.sdo.busy"
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR "." ECMC_BUSY_STR,
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_SDO_STR ".%s." ECMC_BUSY_STR,
                        masterId_,
-                       slaveId_);
+                       slaveId_,
+                       idStringChar_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(

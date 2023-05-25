@@ -1396,6 +1396,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x24014:
+    return "ERROR_EC_SLAVE_SDO_ASYN_CREATE_FAIL";
+
+    break;
+
   case 0x25000:  // ECSYNCMANAGER
     return "ERROR_EC_SM_PDO_ARRAY_FULL";
 

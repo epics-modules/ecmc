@@ -31,8 +31,7 @@
 
 class ecmcEcAsyncSDO : public ecmcError {
  public:
-  ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
-                 int objIndex,
+  ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,                 
                  int masterId,
                  int slaveId,
                  ec_slave_config_t *sc, /**< Slave configuration. */
@@ -69,7 +68,6 @@ private:
   ecmcAsynDataItem   *asynParamError_;
   ecmcAsynDataItem   *asynParamBusy_;
   ecmcEcDataType      dt_;
-  int                 objIndex_;
   int                 masterId_;
   int                 slaveId_;
   uint64_t            buffer_;
