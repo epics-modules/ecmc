@@ -159,6 +159,10 @@ ecmcEcSlave::~ecmcEcSlave() {
     delete slaveAsynParams_[i]; 
     slaveAsynParams_[i] = NULL; 
   }
+
+  for(int i=0;i<asyncSDOCounter_;i++) {
+    delete asyncSDOvector_[i];
+  }
 }
 
 int ecmcEcSlave::getEntryCount() {
@@ -534,6 +538,11 @@ int ecmcEcSlave::updateInputProcessImage() {
       entryListInUse_[i]->updateInputProcessImage();
     }
   }
+  
+  // Execute async SDOs
+  for(int i=0;i<asyncSDOCounter_;i++) {
+    asyncSDOvector_[i]->execute();
+  }
 
   return 0;
 }
@@ -897,16 +906,19 @@ int ecmcEcSlave::addSDOWriteBuffer(uint16_t    sdoIndex,
                                        (size_t)byteSize);
 }
 
-int ecmcEcSlave::addAsynSDO(uint16_t sdoIndex, /**< SDO index. */
+int ecmcEcSlave::addSDOAsync(uint16_t sdoIndex, /**< SDO index. */
                             uint8_t sdoSubIndex, /**< SDO subindex. */
-                            size_t size, /**< Data size to reserve. */
                             ecmcEcDataType dt,
                             std::string alias) {
   try { 
     ecmcEcAsyncSDO* temp = new ecmcEcAsyncSDO(asynPortDriver_,
                                               masterId_,
                                               slavePosition_,
-                                              slaveConfig_,sdoIndex,sdoSubIndex,size,dt,alias);
+                                              slaveConfig_,
+                                              sdoIndex,
+                                              sdoSubIndex,
+                                              dt,
+                                              alias);
     asyncSDOvector_.push_back(temp);
   } 
   catch (std::exception& e) {
@@ -916,16 +928,9 @@ int ecmcEcSlave::addAsynSDO(uint16_t sdoIndex, /**< SDO index. */
       __FUNCTION__,
       __LINE__,
       slavePosition_,
-      ERROR_EC_SLAVE_SDO_ASYN_CREATE_FAIL);
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_SLAVE_SDO_ASYN_CREATE_FAIL);
+      ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL);
   }
   asyncSDOCounter_++;
-  return 0;
-}
-
-int ecmcEcSlave::execute() {
-  for(int i=0;i<asyncSDOCounter_;i++) {
-    asyncSDOvector_[i].execute();
-  }
   return 0;
 }

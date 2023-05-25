@@ -2260,3 +2260,28 @@ int ecmcEc::setEcOkDelayCycles(int cycles) {
   delayEcOKCycles_ = cycles;
   return 0;
 }
+
+int ecmcEc::addSDOAsync(uint16_t slaveBusPosition,
+                        uint16_t index,
+                        uint8_t  subIndex,
+                        ecmcEcDataType dt,
+                        std::string idString) {
+
+  ecmcEcSlave *slave = findSlave(slaveBusPosition);
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+
+  return slave->addSDOAsync(index, /**< SDO index. */
+                            subIndex, /**< SDO subindex. */                            
+                            dt,
+                            idString);
+}

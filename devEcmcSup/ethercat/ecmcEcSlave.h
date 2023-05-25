@@ -52,7 +52,7 @@
 #define ERROR_EC_SLAVE_NOT_OPERATIONAL 0x24011
 #define ERROR_EC_SLAVE_NOT_ONLINE 0x24012
 #define ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW 0x24013
-#define ERROR_EC_SLAVE_SDO_ASYN_CREATE_FAIL 0x24014
+#define ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL 0x24014
 
 typedef struct {
   uint16_t position;   /**< Offset of the slave in the ring. */
@@ -128,12 +128,11 @@ class ecmcEcSlave : public ecmcError {
                         int         byteSize);
   int getSlaveState(ec_slave_config_state_t *state);
   int validate();
-  int addAsynSDO(uint16_t sdoIndex, /**< SDO index. */
+  int addSDOAsync(uint16_t sdoIndex, /**< SDO index. */
                  uint8_t sdoSubIndex, /**< SDO subindex. */
-                 size_t size, /**< Data size to reserve. */
                  ecmcEcDataType dt,
-                 std::string alias) {
-  int execute();
+                 std::string alias);
+
  private:
   void  initVars();
   int   initAsyn();

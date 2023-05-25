@@ -305,6 +305,39 @@ int ecAddMemMapDT(
                       (ec_direction_t)direction, dt, memMapId);
 }
 
+
+int ecAddSdoAsync(
+  uint16_t slaveBusPosition,
+  uint16_t index,
+  uint8_t  subIndex,
+  char    *datatype,
+  char    *idString) {
+
+  std::string id = idString;
+
+  LOGINFO4(
+    "%s/%s:%d slave=%d index=%d subindex=%d datatype=%s id=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slaveBusPosition,
+    index,
+    subIndex,
+    datatype,    
+    idString);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcDataType dt = getEcDataTypeFromStr(datatype);
+
+  return ec->addSDOAsync(slaveBusPosition,
+                         index,
+                         subIndex,
+                         dt,
+                         id);
+}
+
+
 //Legacy syntax support
 int ecAddMemMap(
   uint16_t startEntryBusPosition,

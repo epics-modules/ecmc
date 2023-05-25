@@ -40,7 +40,6 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
                                ec_slave_config_t *sc, /**< Slave configuration. */
                                uint16_t sdoIndex, /**< SDO index. */
                                uint8_t sdoSubindex, /**< SDO subindex. */
-                               size_t size, /**< Data size to reserve. */
                                ecmcEcDataType dt,
                                std::string alias)
 {
@@ -50,7 +49,6 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
   sc_             = sc;
   sdoIndex        = sdoIndex;
   sdoSubindex     = sdoSubindex;
-  size_           = size;
   dt_             = dt;
   buffer_         = 0;
   asynParamWrite_ = NULL;
@@ -63,6 +61,7 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
   dummyWriteCmd_  = 0;
   usedSizeBytes_  = 0;
   bitLength_      = getEcDataTypeBits(dt);
+  size_           = getEcDataTypeByteSize(dt);
   busy_           = 0;
   writeCmdInProcess_ = 0;
   readCmdInProcess_ = 0;
