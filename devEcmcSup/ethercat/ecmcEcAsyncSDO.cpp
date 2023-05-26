@@ -24,6 +24,7 @@ asynStatus asynWriteSDOCmd(void* data, size_t bytes, asynParamType asynParType,v
   if (!userObj) {
     return asynError;
   }
+  printf("######################asynWriteSDOCmd\n");
   return ((ecmcEcAsyncSDO*)userObj)->asynWriteSDO(data, bytes, asynParType);
 }
 
@@ -31,6 +32,7 @@ asynStatus asynReadSDOCmd(void* data, size_t bytes, asynParamType asynParType,vo
   if (!userObj) {
     return asynError;
   }
+  printf("######################asynReadSDOCmd\n");
   return ((ecmcEcAsyncSDO*)userObj)->asynReadSDO(data, bytes, asynParType);
 }
 
@@ -43,6 +45,7 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
                                ecmcEcDataType dt,
                                std::string alias)
 {
+  printf("m%ds%d, 0x%x, 0x%x, %d, %s\n",masterId, slaveId,sdoIndex,sdoSubindex,getEcDataTypeByteSize(dt),alias.c_str());
   masterId_       = masterId;
   slaveId_        = slaveId;
   asynPortDriver_ = asynDriver;
