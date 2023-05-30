@@ -1941,7 +1941,7 @@ void ecmcAxisBase::initControlWord() {
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(double) != bytes && asynParType == asynParamFloat64) {
+  if( bytes != 8 || asynParType != asynParamFloat64) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): Target Velo size or datatype missmatch.\n",
         __FILE__,
@@ -1967,7 +1967,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynP
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(double) != bytes && asynParType == asynParamFloat64) {
+  if( bytes != 8 || asynParType != asynParamFloat64) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): Target Pos size or datatype missmatch.\n",
         __FILE__,
@@ -1987,7 +1987,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynPa
 
 asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(double) != bytes && asynParType == asynParamFloat64) {
+  if(sizeof(double) != bytes || asynParType != asynParamFloat64) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): Encoder Pos size or datatype missmatch.\n",
         __FILE__,
@@ -2020,7 +2020,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void* data, size_t bytes, asynPa
 
 asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(int) != bytes && asynParType == asynParamInt32) {
+  if( bytes != 4 || asynParType != asynParamInt32) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): Command size or datatype missmatch.\n",
         __FILE__,
@@ -2039,7 +2039,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynPara
 
 asynStatus ecmcAxisBase::axisAsynWriteCmdData(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(int) != bytes && asynParType == asynParamInt32) {
+  if( bytes != 4 || asynParType != asynParamInt32) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): CmdData size or datatype missmatch.\n",
         __FILE__,
