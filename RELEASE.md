@@ -31,6 +31,47 @@ Cfg.SetAxisEnableAlarmAtSoftLimit(int axis_no, int enable)
 ```
 Cfg.SetAxisAllowSourceChangeWhenEnabled(int axis_no, int allow)
 ```
+## Add support for reading and writing SDO:s in runtime
+
+The "Cfg.EcAddSdoAsync()" can be used to add a SDO to be read or written dunring runtime:
+```
+ecmcConfigOrDie "Cfg.EcAddSdoAsync(<slave>,<index>,<subindex>,<datatype>,<alias>)"
+```
+The command generates 5 asyn parameters:
+```
+ec<masterid>.s<slaveid>.sdo.<alias>.writecmd
+ec<masterid>.s<slaveid>.sdo.<alias>.readcmd
+ec<masterid>.s<slaveid>.sdo.<alias>.value
+ec<masterid>.s<slaveid>.sdo.<alias>.error
+ec<masterid>.s<slaveid>.sdo.<alias>.busy
+```
+
+### Process to write data
+1. Write data to PV linked to "ec<masterid>.s<slaveid>.sdo.<alias>.value"
+2. Ensure there is a positive edge on the PV linked to "ec<masterid>.s<slaveid>.sdo.<alias>.writecmd"
+3. Check for errors in PV linked to ec<masterid>.s<slaveid>.sdo.<alias>.error
+
+### Process to read data
+1. Ensure there is a positive edge on the PV linked to "ec<masterid>.s<slaveid>.sdo.<alias>.readcmd"
+2. Check for errors in PV linked to ec<masterid>.s<slaveid>.sdo.<alias>.error
+3. Read data from PV linked to "ec<masterid>.s<slaveid>.sdo.<alias>.value"
+
+### ecmccfg command addEcSdoRT.cmd 
+
+The "addEcSdoRT.cmd" ecmccfg comand can be used to register a async SDO and generate PVs. Example for drive voltage setting if an EL7031 drive:
+```
+# Add RT SDO for reading writing voltage seting in terminal
+${SCRIPTEXEC} ${ecmccfg_DIR}addEcSdoRT.cmd, "SLAVE_ID=${DRV},INDEX=0x8010,SUBINDEX=0x3,DT=U16,NAME=DrvVlt"
+```
+
+This call will generate the following PVs (corresponding to the above asyn params):
+```
+c6025a:m0s004-SDO-DrvVlt-WrtCmd
+c6025a:m0s004-SDO-DrvVlt-RdCmd
+c6025a:m0s004-SDO-DrvVlt-Val
+c6025a:m0s004-SDO-DrvVlt-ErrId
+c6025a:m0s004-SDO-DrvVlt-Bsy
+```
 
 ## Multi encoder support
 
