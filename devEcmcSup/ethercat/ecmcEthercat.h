@@ -236,6 +236,46 @@ int ecAddEntry(
   char    *entryIDString,
   int      updateInRealTime);
 
+  /** \brief Adds an async SDO object.\n
+ *
+ * Adds a SDO object for SDO read and write during realtime.
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] index Index of process data object entry. Needs to be
+ *                           entered in hex format.\n
+ *  \param[in] subIndex Index of process data object sub entry.
+ *                           Needs to be entered in hex format.\n
+ *  \param[in] dataType DataType of ethercat data:\n
+ *                      U8:  Unsigned 8-bit\n
+ *                      S8:  Signed 8-bit\n
+ *                      U16: Unsigned 16-bit\n
+ *                      S16: Signed 16-bit\n
+ *                      U32: Unsigned 32-bit\n
+ *                      S32: Signed 32-bit\n
+ *                      U64: Unsigned 64-bit\n
+ *                      S64: Signed 64-bit\n
+ *                      F32: Real 32-bit\n 
+ *                      F64: Double 64-bit\n
+ * 
+ *  \param[in] idString Identification string used for addressing the
+ *                           entry.\n
+
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add an SDO for async reads and writes in runtime.\n
+ *  Setting the input 1 as HWE enable for an EL70xx stepper drive:\n
+ *  "Cfg.EcAddSdoAsync(3,0x8012,0x32,U8,"hwenable")" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddSdoAsync(
+  uint16_t slaveBusPosition,
+  uint16_t entryIndex,
+  uint8_t  entrySubIndex,
+  char    *datatype,
+  char    *idString);
+
 /** \brief Adds a memory map object to access data directly from EtherCAT
  *   domain. This is the preferred syntax.\n
  *

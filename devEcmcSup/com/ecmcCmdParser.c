@@ -1165,6 +1165,30 @@ static int handleCfgCommand(const char *myarg_1) {
                       1);
   }
 
+  /*Cfg.EcAddSdoAsync(
+    uint16_t position,
+    uint16_t nIndex,
+    uint8_t  nSubIndex,
+    char    *dataType,
+    char    *cID)*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';  
+  nvals = sscanf(myarg_1,
+                 "EcAddSdoAsync(%d,0x%x,0x%x,%[^,],%[^)])",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 cIdBuffer,
+                 cIdBuffer2);
+
+  if (nvals == 5) {
+    return ecAddSdoAsync(iValue,
+                        iValue2,
+                        iValue3,
+                        cIdBuffer,
+                        cIdBuffer2);
+  }
+
   /*Cfg.EcAddMemMapDT(
       char *startEntryIDString,  (ec0.s1.AI1)
       size_t byteSize,

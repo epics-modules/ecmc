@@ -1295,6 +1295,26 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_SDO_BUFFER_ALLOC_FAIL";
 
     break;
+
+  case 0x23500: // ECSDOASYNC
+    return "ERROR_EC_SDO_ASYNC_BUSY";
+
+    break;
+
+  case 0x23501: // ECSDOASYNC
+    return "ERROR_EC_SDO_ASYNC_ERROR";
+
+    break;
+
+  case 0x23502: // ECSDOASYNC
+    return "ERROR_EC_SDO_ASYNC_OBJ_NULL";
+
+    break;
+
+  case 0x23503: // ECSDOASYNC
+    return "ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL";
+
+    break;
     
   case 0x24000:  // ECSLAVE
     return "ERROR_EC_SLAVE_CONFIG_FAILED";
@@ -1393,6 +1413,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x24013:
     return "ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW";
+
+    break;
+
+  case 0x24014:
+    return "ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL";
 
     break;
 

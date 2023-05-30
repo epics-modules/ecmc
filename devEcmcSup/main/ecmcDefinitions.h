@@ -411,6 +411,12 @@ enum axisSubObjectType {
 #define ECMC_DRV_ALARM_1_STR "alarm1"
 #define ECMC_DRV_ALARM_2_STR "alarm2"
 #define ECMC_DRV_WARNING_STR "warning"
+#define ECMC_SDO_STR "sdo"
+#define ECMC_VALUE_STR "value"
+#define ECMC_ERROR_STR "error"
+#define ECMC_READCMD_STR "readcmd"
+#define ECMC_WRITECMD_STR "writecmd"
+#define ECMC_BUSY_STR "busy"
 
 #define ECMC_PLC_VAR_FORMAT "%[0-9a-zA-Z._]"
 #define ECMC_PLC_EC_ALIAS_FORMAT "%[0-9a-zA-Z_]"
