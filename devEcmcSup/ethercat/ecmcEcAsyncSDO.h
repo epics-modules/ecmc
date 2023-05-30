@@ -88,5 +88,8 @@ private:
   int                 readCmdInProcess_;
   std::string         idString_;
   char               *idStringChar_;
+  ec_request_state_t  stateOld_;
+  int                 readTrigg_;
+  int                 writeTrigg_;
 };
 #endif  /* ECMCECASYNCSDO_H_ */

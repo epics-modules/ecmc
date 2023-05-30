@@ -24,7 +24,6 @@ asynStatus asynWriteSDOCmd(void* data, size_t bytes, asynParamType asynParType,v
   if (!userObj) {
     return asynError;
   }
-  printf("######################asynWriteSDOCmd\n");
   return ((ecmcEcAsyncSDO*)userObj)->asynWriteSDO(data, bytes, asynParType);
 }
 
@@ -32,7 +31,6 @@ asynStatus asynReadSDOCmd(void* data, size_t bytes, asynParamType asynParType,vo
   if (!userObj) {
     return asynError;
   }
-  printf("######################asynReadSDOCmd\n");
   return ((ecmcEcAsyncSDO*)userObj)->asynReadSDO(data, bytes, asynParType);
 }
 
@@ -45,13 +43,12 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
                                ecmcEcDataType dt,
                                std::string alias)
 {
-  printf("m%ds%d, 0x%x, 0x%x, %d, %s\n",masterId, slaveId,sdoIndex,sdoSubindex,getEcDataTypeByteSize(dt),alias.c_str());
   masterId_       = masterId;
   slaveId_        = slaveId;
   asynPortDriver_ = asynDriver;
   sc_             = sc;
-  sdoIndex        = sdoIndex;
-  sdoSubindex     = sdoSubindex;
+  index_          = sdoIndex;
+  subindex_       = sdoSubindex;
   dt_             = dt;
   buffer_         = 0;
   asynParamWrite_ = NULL;
@@ -63,6 +60,8 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
   dummyReadCmd_   = 0;
   dummyWriteCmd_  = 0;
   usedSizeBytes_  = 0;
+  readTrigg_      = 0;
+  writeTrigg_     = 0;
   bitLength_      = getEcDataTypeBits(dt);
   size_           = getEcDataTypeByteSize(dt);
   busy_           = 0;
@@ -70,8 +69,18 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
   readCmdInProcess_ = 0;
   idString_       = alias;
   idStringChar_   = strdup(idString_.c_str());
-
-
+  stateOld_       = EC_REQUEST_UNUSED;
+  int8Ptr_        = (int8_t*)&buffer_;
+  uint8Ptr_       = (uint8_t*)&buffer_;
+  int16Ptr_       = (int16_t*)&buffer_;
+  uint16Ptr_      = (uint16_t*)&buffer_;
+  int32Ptr_       = (int32_t*)&buffer_;
+  uint32Ptr_      = (uint32_t*)&buffer_;
+  int64Ptr_       = (int64_t*)&buffer_;
+  uint64Ptr_      = (uint64_t*)&buffer_;
+  float32Ptr_     = (float*)&buffer_;
+  float64Ptr_     = (double*)&buffer_;
+  
   // create object
   sdoreq_= ecrt_slave_config_create_sdo_request(
                          sc_, /**< Slave configuration. */
@@ -110,6 +119,27 @@ ecmcEcAsyncSDO::~ecmcEcAsyncSDO()
 asynStatus ecmcEcAsyncSDO::asynWriteSDO(void* data,
                                         size_t bytes,
                                         asynParamType asynParType) {
+
+  if( bytes != 4 || asynParType != asynParamInt32) {
+    LOGERR(
+      "%s/%s:%d: Error: SDO read failed. Write cmd trigg data size or datatype missmatch.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__); 
+    return asynError;
+  }
+
+  int trigg = 0;
+  memcpy(&trigg,data,bytes);
+
+  // Check if positive edge
+  if(!(trigg && !writeTrigg_)) {
+    writeTrigg_= trigg;
+    return asynSuccess;
+  }
+
+  writeTrigg_= trigg;
+
   if (!sdoreq_) {
     LOGERR(
       "%s/%s:%d: Error: SDO write failed. SDO async object NULL (0x%x).\n",
@@ -152,9 +182,29 @@ asynStatus ecmcEcAsyncSDO::asynReadSDO(void* data,
                                        size_t bytes,
                                        asynParamType asynParType) {
 
+  if( bytes != 4 || asynParType != asynParamInt32) {
+    LOGERR(
+      "%s/%s:%d: Error: SDO read failed. Read cmd trigg data size or datatype missmatch..\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+
+  int trigg = 0;
+  memcpy(&trigg,data,bytes);
+
+  // Check if positive edge
+  if(!(trigg && !readTrigg_)) {
+    readTrigg_= trigg;
+    return asynSuccess;
+  }
+
+  readTrigg_= trigg;
+
   if (!sdoreq_) {
     LOGERR(
-      "%s/%s:%d: Error: SDO write failed. SDO async object NULL (0x%x).\n",
+      "%s/%s:%d: Error: SDO read failed. SDO async object NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,ERROR_EC_SDO_ASYNC_OBJ_NULL);
@@ -166,7 +216,7 @@ asynStatus ecmcEcAsyncSDO::asynReadSDO(void* data,
   ec_request_state_t state = ecrt_sdo_request_state(sdoreq_);
   if(state == EC_REQUEST_BUSY) {
     LOGERR(
-      "%s/%s:%d: Error: SDO write failed. SDO object busy (0x%x).\n",
+      "%s/%s:%d: Error: SDO read failed. SDO object busy (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -190,10 +240,10 @@ int ecmcEcAsyncSDO::execute() {
   }
 
   ec_request_state_t state = ecrt_sdo_request_state(sdoreq_);
-
+  
+  stateOld_ = state;
   switch(state) {
     case EC_REQUEST_UNUSED:
-
       break;
 
     case EC_REQUEST_BUSY:
@@ -583,37 +633,37 @@ int ecmcEcAsyncSDO::readValue() {
       break;
 
     case ECMC_EC_U8:
-      buffer_ = (uint64_t)EC_READ_U8(ecrt_sdo_request_data(sdoreq_));
+      *uint8Ptr_ = EC_READ_U8(ecrt_sdo_request_data(sdoreq_));
       break;
 
     case ECMC_EC_S8:
-      buffer_ = (uint64_t)EC_READ_S8(ecrt_sdo_request_data(sdoreq_));;
+      *int8Ptr_ = EC_READ_S8(ecrt_sdo_request_data(sdoreq_));;
       break;
 
     case ECMC_EC_U16:
-      buffer_ = (uint64_t)EC_READ_U16(ecrt_sdo_request_data(sdoreq_));
+      *uint16Ptr_ = EC_READ_U16(ecrt_sdo_request_data(sdoreq_));
       break;
 
     case ECMC_EC_S16:
-      buffer_ = (uint64_t)EC_READ_S16(ecrt_sdo_request_data(sdoreq_));
+      *int16Ptr_ = EC_READ_S16(ecrt_sdo_request_data(sdoreq_));
       break;
 
     case ECMC_EC_U32:
-      buffer_ = (uint64_t)EC_READ_U32(ecrt_sdo_request_data(sdoreq_));
+      *uint32Ptr_ = EC_READ_U32(ecrt_sdo_request_data(sdoreq_));
       break;
 
     case ECMC_EC_S32:
-      buffer_ = (uint64_t)EC_READ_S32(ecrt_sdo_request_data(sdoreq_));
+      *int32Ptr_ = EC_READ_S32(ecrt_sdo_request_data(sdoreq_));
       break;
 #ifdef EC_READ_U64
     case ECMC_EC_U64:
-      buffer_ = (uint64_t)EC_READ_U64(ecrt_sdo_request_data(sdoreq_));
+      *uint64Ptr_ = EC_READ_U64(ecrt_sdo_request_data(sdoreq_));
       break;
 #endif
 
 #ifdef EC_READ_S64
     case ECMC_EC_S64:
-      buffer_ = (uint64_t)EC_READ_S64(ecrt_sdo_request_data(sdoreq_));
+      *int64Ptr_ = EC_READ_S64(ecrt_sdo_request_data(sdoreq_));
       break;
 #endif
 
@@ -660,38 +710,38 @@ int ecmcEcAsyncSDO::writeValue() {
       break;
 
     case ECMC_EC_U8:
-      EC_WRITE_U8(ecrt_sdo_request_data(sdoreq_), buffer_);
+      EC_WRITE_U8(ecrt_sdo_request_data(sdoreq_), *uint8Ptr_);
       break;
 
     case ECMC_EC_S8:
-      EC_WRITE_S8(ecrt_sdo_request_data(sdoreq_), buffer_);
+      EC_WRITE_S8(ecrt_sdo_request_data(sdoreq_), *int8Ptr_);
       break;
 
     case ECMC_EC_U16:
-      EC_WRITE_U16(ecrt_sdo_request_data(sdoreq_), buffer_);
+      EC_WRITE_U16(ecrt_sdo_request_data(sdoreq_), *uint16Ptr_);
       break;
 
     case ECMC_EC_S16:
-      EC_WRITE_S16(ecrt_sdo_request_data(sdoreq_), buffer_);
+      EC_WRITE_S16(ecrt_sdo_request_data(sdoreq_), *int16Ptr_);
       break;
 
     case ECMC_EC_U32:
-      EC_WRITE_U32(ecrt_sdo_request_data(sdoreq_), buffer_);
+      EC_WRITE_U32(ecrt_sdo_request_data(sdoreq_), *uint32Ptr_);
       break;
 
     case ECMC_EC_S32:
-      EC_WRITE_S32(ecrt_sdo_request_data(sdoreq_), buffer_);
+      EC_WRITE_S32(ecrt_sdo_request_data(sdoreq_), *int32Ptr_);
       break;
 
 #ifdef EC_WRITE_U64
     case ECMC_EC_U64:
-      EC_WRITE_U64(ecrt_sdo_request_data(sdoreq_), buffer_);
+      EC_WRITE_U64(ecrt_sdo_request_data(sdoreq_), *uint64Ptr_);
       break;
 #endif
 
 #ifdef EC_WRITE_S64
     case ECMC_EC_S64:
-      EC_WRITE_S64(ecrt_sdo_request_data(sdoreq_), buffer_);
+      EC_WRITE_S64(ecrt_sdo_request_data(sdoreq_), *int64Ptr_);
       break;
 #endif
 
@@ -714,3 +764,4 @@ int ecmcEcAsyncSDO::writeValue() {
 
   return 0;
 }
+
