@@ -131,6 +131,7 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool   getAtSoftLimitBwd();
   bool   getAtSoftLimitFwd();
   int    setEnableSoftLimitAlarm(bool enable);
+  int    setEnableCheckEncsDiff(bool enable);
 
  private:
   int    checkLimits();
@@ -190,5 +191,6 @@ class ecmcMonitor : public ecmcEcEntryLink {
   ecmcSwitchPolarity highLimPolarity_;
   ecmcSwitchPolarity homePolarity_;
   ecmcEncoder **encArray_;
+  int enableDiffEncsMon_;
 };
 #endif  // ifndef MOTIONMONITOR_H

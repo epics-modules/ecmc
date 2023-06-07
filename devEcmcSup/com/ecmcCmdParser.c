@@ -1747,6 +1747,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEnableMotionFunctions(iValue, iValue2, iValue3, iValue4);
   }
 
+  /*int Cfg.SetAxisMonEnableEncsDiff(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1, "SetAxisMonEnableEncsDiff(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEnableCheckEncsDiff(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisMonAtTargetTol(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisMonAtTargetTol(%d,%lf)", &iValue, &dValue);
 

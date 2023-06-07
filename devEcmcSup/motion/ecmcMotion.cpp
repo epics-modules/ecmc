@@ -2087,6 +2087,20 @@ int setAxisMonAtTargetTol(int axisIndex, double value) {
   return axes[axisIndex]->getMon()->setAtTargetTol(value);
 }
 
+int setAxisEnableCheckEncsDiff(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setEnableCheckEncsDiff(enable);
+}
+
 int getAxisMonAtTargetTime(int axisIndex, int *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 

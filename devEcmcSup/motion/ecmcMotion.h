@@ -2291,6 +2291,22 @@ int getAxisMonAtTargetTol(int     axisIndex,
 int setAxisMonAtTargetTol(int    axisIndex,
                           double value);
 
+/** \brief Set "at target" monitoring tolerance.\n
+ *
+ *   Enable check of difference between encoders \n
+ *   (if more than one encoder is configutred for teh axis)\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable Enable monitoring of encoder diffs \n
+                     (if more than one enc per axis is configured).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable funtionallity for axis 7.\n
+ * "Cfg.SetAxisMonEnableEncsDiff(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEnableCheckEncsDiff(int axisIndex, int enable);
+
 /** \brief Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n
  * \param[out] pointer to return value At target time (cycles) .\n

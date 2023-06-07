@@ -68,6 +68,7 @@ void ecmcMonitor::initVars() {
   homePolarity_              = ECMC_POLARITY_NC;
   encArray_                  = NULL;
   enableAlarmOnSofLimits_    = 1;
+  enableDiffEncsMon_         = 1;  // If a tolerance is set then default check
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -670,7 +671,7 @@ int ecmcMonitor::checkEncoderDiff() {
   data_->interlocks_.encDiffInterlock = false;
   
   // Only one encoder configured
-  if(data_->status_.encoderCount <= 1) {  
+  if(data_->status_.encoderCount <= 1 || !enableDiffEncsMon_) {  
     return 0;
   }
 
@@ -981,3 +982,9 @@ int ecmcMonitor::setEnableSoftLimitAlarm(bool enable) {
   enableAlarmOnSofLimits_ = enable;
   return 0;
 }
+
+int ecmcMonitor::setEnableCheckEncsDiff(bool enable) {
+  enableDiffEncsMon_ = enable;
+  return 0;
+}
+
