@@ -1,6 +1,9 @@
 
 Release Notes
 ===
+# ECMC 8.0.1
+* Fixes to brake control
+
 # ECMC 8.0.0
 
 * Add support for jerk limited trajectories based on ruckig (https://github.com/pantor/ruckig).
