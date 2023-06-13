@@ -13,28 +13,16 @@
 #include "ecmcMonitor.h"
 #include <stdio.h>
 
-ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData) {
-  data_ = axisData;
+ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
+                         ecmcEncoder **encArray) : ecmcEcEntryLink(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
   initVars();
+  data_ = axisData;
+  encArray_= encArray;
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
   }
   errorReset();
-}
-
-ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
-                         bool          enableAtTargetMon,
-                         bool          enableLagMon) {
-  data_ = axisData;
-  initVars();
-
-  if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
-  enableAtTargetMon_ = enableAtTargetMon;
-  enableLagMon_      = enableLagMon;
 }
 
 void ecmcMonitor::initVars() {
@@ -78,6 +66,9 @@ void ecmcMonitor::initVars() {
   lowLimPolarity_            = ECMC_POLARITY_NC;
   highLimPolarity_           = ECMC_POLARITY_NC;
   homePolarity_              = ECMC_POLARITY_NC;
+  encArray_                  = NULL;
+  enableAlarmOnSofLimits_    = 1;
+  enableDiffEncsMon_         = 1;  // If a tolerance is set then default check
 }
 
 ecmcMonitor::~ecmcMonitor()
@@ -101,6 +92,9 @@ void ecmcMonitor::execute() {
 
   // Lag error
   checkPositionLag();
+
+  // Encoder diff
+  checkEncoderDiff();
 
   // Max Vel
   checkMaxVelocity();
@@ -512,6 +506,7 @@ int ecmcMonitor::checkLimits() {
                         __LINE__,
                         ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
     }
+    setWarningID(WARNING_MON_HARD_LIMIT_BWD_INTERLOCK);
   } else {
     if(latchOnLimit_){
       if(!data_->status_.moving || data_->status_.currentVelocityActual > 0){
@@ -519,6 +514,10 @@ int ecmcMonitor::checkLimits() {
       }
     }
     else{
+      // Auto reset warning
+      if (getWarningID() == WARNING_MON_HARD_LIMIT_BWD_INTERLOCK) {
+        setWarningID(0);
+      }
       data_->interlocks_.bwdLimitInterlock = false;
     }    
   }
@@ -533,6 +532,7 @@ int ecmcMonitor::checkLimits() {
                         __LINE__,
                         ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
     }
+    setWarningID(WARNING_MON_HARD_LIMIT_FWD_INTERLOCK);
   } else {
     if(latchOnLimit_){
       if(!data_->status_.moving || data_->status_.currentVelocityActual < 0){
@@ -540,6 +540,10 @@ int ecmcMonitor::checkLimits() {
       }
     }
     else{
+      // Auto reset warning
+      if (getWarningID() == WARNING_MON_HARD_LIMIT_FWD_INTERLOCK) {
+        setWarningID(0);
+      }
       data_->interlocks_.fwdLimitInterlock = false;
     }    
   }
@@ -547,38 +551,52 @@ int ecmcMonitor::checkLimits() {
   // Bwd soft limit switch
   bool virtSoftlimitBwd =
     (data_->status_.currentPositionSetpoint < data_->command_.softLimitBwd) &&
-    data_->status_.enabled && data_->status_.enabledOld &&
+    data_->status_.enabled && data_->status_.enabledOld; /*&&
     (data_->status_.currentPositionSetpoint <
-    data_->status_.currentPositionSetpointOld) && data_->command_.execute;
+    data_->status_.currentPositionSetpointOld); */ // data_->command_.execute;
 
-  if (virtSoftlimitBwd && data_->status_.busy &&
+  if (virtSoftlimitBwd /*&& data_->status_.busy*/ &&
       data_->command_.enableSoftLimitBwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
-    data_->interlocks_.bwdSoftLimitInterlock = true;    
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
+    data_->interlocks_.bwdSoftLimitInterlock = true;
+    setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
+    //if(enableAlarmOnSofLimits_) {   
+    //  return setErrorID(__FILE__,
+    //                    __FUNCTION__,
+    //                    __LINE__,
+    //                    ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
+    //}
   } else {
+    // Auto reset this warning
+    if (getWarningID() == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
+       setWarningID(0);
+    }
     data_->interlocks_.bwdSoftLimitInterlock = false;
   }
 
   bool virtSoftlimitFwd =
     (data_->status_.currentPositionSetpoint > data_->command_.softLimitFwd) &&
-    data_->status_.enabled && data_->status_.enabledOld &&
+    data_->status_.enabled && data_->status_.enabledOld; /*&&
     (data_->status_.currentPositionSetpoint >
-      data_->status_.currentPositionSetpointOld) && data_->command_.execute;
+      data_->status_.currentPositionSetpointOld);*/ // && data_->command_.execute;
 
   // Fwd soft limit switch
-  if (virtSoftlimitFwd && data_->status_.busy &&
+  if (virtSoftlimitFwd /*&& data_->status_.busy*/ &&
       data_->command_.enableSoftLimitFwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
     data_->interlocks_.fwdSoftLimitInterlock = true;
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
+    setWarningID(WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK);
+    //if(enableAlarmOnSofLimits_) {   
+    //  return setErrorID(__FILE__,
+    //                    __FUNCTION__,
+    //                    __LINE__,
+    //                    ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
+    //}
   } else {
+    // Auto reset this warning
+    if (getWarningID() == WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
+       setWarningID(0);
+    }
     data_->interlocks_.fwdSoftLimitInterlock = false;
   }
   return 0;
@@ -645,6 +663,49 @@ int ecmcMonitor::checkPositionLag() {
                       __LINE__,
                       ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
   }
+  return 0;
+}
+
+int ecmcMonitor::checkEncoderDiff() {
+
+  data_->interlocks_.encDiffInterlock = false;
+  
+  // Only one encoder configured
+  if(data_->status_.encoderCount <= 1 || !enableDiffEncsMon_) {  
+    return 0;
+  }
+
+  //Do not check if prim enc not homed
+  if(!encArray_[data_->command_.primaryEncIndex]->getHomed()) {    
+    return 0;
+  }
+
+  // Multiple encoders configured so check pos diff vs primary
+  double maxDiff = 0;
+  bool encDiffILock = false;
+  double primEncActPos = encArray_[data_->command_.primaryEncIndex]->getActPos();
+  for(int i = 0; i < data_->status_.encoderCount; i++) {
+    
+    // Do not check prim encoder vs itself or if this encoder is not homed
+    if(i==data_->command_.primaryEncIndex || !encArray_[i]->getHomed() ) {      
+      continue;
+    }
+    
+    maxDiff = encArray_[i]->getMaxPosDiffToPrimEnc();
+    // disable functionality if getMaxPosDiffToPrimEnc() == 0
+    if (maxDiff == 0) {
+      continue;
+    }
+    
+    double diff = ecmcMotionUtils::getPosErrorModAbs(primEncActPos,
+                                                     encArray_[i]->getActPos(),
+                                                     data_->command_.moduloRange);
+    
+    encDiffILock = diff > maxDiff || encDiffILock;
+  }
+
+  data_->interlocks_.encDiffInterlock = encDiffILock;
+  
   return 0;
 }
 
@@ -916,4 +977,14 @@ int ecmcMonitor::setLatchAtLimit(bool latchOnLimit) {
 int ecmcMonitor::getLatchAtLimit() {
   return latchOnLimit_;
 }
-  
+
+int ecmcMonitor::setEnableSoftLimitAlarm(bool enable) {
+  enableAlarmOnSofLimits_ = enable;
+  return 0;
+}
+
+int ecmcMonitor::setEnableCheckEncsDiff(bool enable) {
+  enableDiffEncsMon_ = enable;
+  return 0;
+}
+

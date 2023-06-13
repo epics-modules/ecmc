@@ -45,7 +45,8 @@ void ecmcEc::initVars() {
   statusWordMaster_                 = 0;
   statusWordDomain_                 = 0;
   ecStatOk_                         = 0;
-
+  delayEcOKCycles_                  = 0;
+  startupCounter_                   = 0;
   epicsTimeGetCurrent(&epicsTime_);
   clock_gettime(CLOCK_REALTIME, &timeRel_);
   clock_gettime(CLOCK_REALTIME, &timeAbs_);
@@ -636,6 +637,13 @@ void ecmcEc::send(timespec timeOffset) {
   //Update asyn time
   epicsTimeFromTimespec (&epicsTime_,&timeAbs_);
   asynPortDriver_->setTimeStamp(&epicsTime_);
+
+  // Delay ecOK at startup for delayEcOKCycles_ after ecOK
+  if(inStartupPhase_) {
+    if(slavesOK_ && domainOK_ && masterOK_) {
+      startupCounter_++;
+    }
+  }
 }
 
 int ecmcEc::setDiagnostics(bool bDiag) {
@@ -1044,11 +1052,11 @@ int ecmcEc::statusOK() {
   }
 
   // Auto reset error at startup
-  if (inStartupPhase_ && slavesOK_ && domainOK_ && masterOK_) {
+  if (inStartupPhase_ && slavesOK_ && domainOK_ && masterOK_ && startupCounter_ > delayEcOKCycles_) {
     inStartupPhase_ = false;
     errorReset();
   }
-  return slavesOK_ && domainOK_ && masterOK_;
+  return slavesOK_ && domainOK_ && masterOK_ && !inStartupPhase_;
 }
 
 int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles) {
@@ -2246,4 +2254,34 @@ bool ecmcEc::getScanBusyNotRT() {
   ecrt_master(master_, &mInfo);
   
   return mInfo.scan_busy;  
+}
+
+int ecmcEc::setEcOkDelayCycles(int cycles) {
+  delayEcOKCycles_ = cycles;
+  return 0;
+}
+
+int ecmcEc::addSDOAsync(uint16_t slaveBusPosition,
+                        uint16_t index,
+                        uint8_t  subIndex,
+                        ecmcEcDataType dt,
+                        std::string idString) {
+
+  ecmcEcSlave *slave = findSlave(slaveBusPosition);
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+
+  return slave->addSDOAsync(index, /**< SDO index. */
+                            subIndex, /**< SDO subindex. */                            
+                            dt,
+                            idString);
 }

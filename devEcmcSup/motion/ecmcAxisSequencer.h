@@ -46,7 +46,11 @@
 #define ERROR_SEQ_TARGET_POS_OUT_OF_RANGE 0x14D15
 #define ERROR_SEQ_MOTION_CMD_NOT_ENABLED 0x14D16
 #define ERROR_SEQ_HOME_POST_MOVE_FAILED 0x14D17
+#define ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL 0x14D18
 
+// SEQUENCER WARNINGS
+#define WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION 0x114D00
+#define WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION 0x114D01
 // Homing
 enum ecmcHomingType {
   ECMC_SEQ_HOME_NOT_VALID                = 0,
@@ -81,7 +85,7 @@ class ecmcAxisSequencer : public ecmcError {
   int                    getCmdData();
   void                   setTraj(ecmcTrajectoryBase *traj);
   ecmcTrajectoryBase*    getTraj();
-  void                   setEnc(ecmcEncoder *enc);
+  void                   setEnc(ecmcEncoder **encArray);
   void                   setMon(ecmcMonitor *mon);
   void                   setDrv(ecmcDriveBase *drv);
   void                   setCntrl(ecmcPIDController *con);
@@ -119,8 +123,7 @@ class ecmcAxisSequencer : public ecmcError {
                                  bool enableHome);
   void   setHomePostMoveTargetPosition(double targetPos);
   void   setHomePostMoveEnable(double enable);
-
-
+  void   setNewPositionCtrlDrvTrajBumpless(double newPosition);
   int    getAllowPos();
   int    getAllowConstVelo();
   int    getAllowHome();
@@ -151,6 +154,8 @@ class ecmcAxisSequencer : public ecmcError {
   void   initHomingSeq();
   void   finalizeHomingSeq(double newPosition);
   int    postHomeMove();
+  void   switchEncodersIfNeeded();
+  void   switchBackEncodersIfNeeded();
 
   int seqState_;
   int seqStateOld_;
@@ -179,7 +184,7 @@ class ecmcAxisSequencer : public ecmcError {
   double homePosLatch2_;
   motionDirection currSeqDirection_;
   ecmcTrajectoryBase *traj_;
-  ecmcEncoder *enc_;
+  ecmcEncoder **encArray_;
   ecmcMonitor *mon_;
   ecmcPIDController *cntrl_;
   ecmcDriveBase *drv_;
@@ -193,6 +198,7 @@ class ecmcAxisSequencer : public ecmcError {
   bool enablePos_;
   bool enableConstVel_;
   bool enableHome_;
+  int oldPrimaryEnc_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */

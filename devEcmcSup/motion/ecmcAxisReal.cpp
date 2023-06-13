@@ -50,7 +50,7 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
   }
 
   // Create PID
-  cntrl_ = new ecmcPIDController(&data_, data_.sampleTime_);
+  cntrl_ = new ecmcPIDController(asynPortDriver_,&data_, data_.sampleTime_);
 
   seq_.setCntrl(cntrl_);
 }
@@ -84,16 +84,10 @@ void ecmcAxisReal::execute(bool masterOK) {
     data_.interlocks_.noExecuteInterlock = false;  // Only valid in local mode
     data_.refreshInterlocks();
   }
-  // Encoder (External or internal)
-  if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    data_.status_.currentPositionActual = enc_->getActPos();
-    data_.status_.currentVelocityActual = enc_->getActVel();
-  } else {  // External source (PLC)
-    data_.status_.currentPositionActual =
-      data_.status_.externalEncoderPosition;
-    data_.status_.currentVelocityActual =
-      data_.status_.externalEncoderVelocity;
-  }
+
+  data_.status_.currentPositionActual = encArray_[data_.command_.primaryEncIndex]->getActPos();
+  data_.status_.currentVelocityActual = encArray_[data_.command_.primaryEncIndex]->getActVel();
+
   traj_->setStartPos(data_.status_.currentPositionSetpoint);
   seq_.execute();
   mon_->execute();
@@ -124,10 +118,13 @@ void ecmcAxisReal::execute(bool masterOK) {
     cntrl_->reset();
   }
   // CSP Write raw actpos  and actpos to drv obj
-  drv_->setCspActPos(enc_->getRawPosRegister(), data_.status_.currentPositionActual);
+  drv_->setCspActPos(encArray_[data_.command_.primaryEncIndex]->getRawPosRegister(), data_.status_.currentPositionActual);
   if (getEnabled() && masterOK) {         
     // Calc position error
-    data_.status_.cntrlError = getPosErrorMod();
+    data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(data_.status_.currentPositionSetpoint,
+                                                                       data_.status_.currentPositionSetpointOld,
+                                                                       data_.status_.currentPositionActual,
+                                                                       data_.command_.moduloRange);
     double cntrOutput = 0;
     
     if(data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
@@ -136,8 +133,8 @@ void ecmcAxisReal::execute(bool masterOK) {
           mon_->getAtTarget()) {  // Controller deadband
         cntrl_->reset();
         cntrOutput = 0;
-      } else {
-        cntrOutput = cntrl_->control(getPosErrorMod(),
+      } else {        
+        cntrOutput = cntrl_->control(data_.status_.cntrlError,
                                 data_.status_.currentVelocitySetpoint);
       }
       mon_->setEnable(true);
@@ -210,17 +207,41 @@ ecmcDriveBase * ecmcAxisReal::getDrv() {
 int ecmcAxisReal::validate() {
   int error = 0;
 
-  if (enc_ == NULL) {
+  if(data_.command_.primaryEncIndex >= data_.status_.encoderCount) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  error = enc_->validate();
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
+    if (encArray_[i] == NULL) {
+     LOGERR("%s/%s:%d: ax%d.enc%d NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_.axisId_,
+           i,
+           ERROR_AXIS_ENC_OBJECT_NULL);
 
-  if (error) {
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_AXIS_ENC_OBJECT_NULL);
+    }
+
+    error = encArray_[i]->validate();
+    if (error) {
+      LOGERR("%s/%s:%d: ax%d.enc%d (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_.axisId_,
+           i,
+           error);
+
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
+    }
   }
 
   if (traj_ == NULL) {

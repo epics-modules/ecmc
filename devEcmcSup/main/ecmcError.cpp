@@ -16,15 +16,25 @@ ecmcError::ecmcError() {
   initVars();
 }
 
+ecmcError::ecmcError(int* errorPtr,int* warningPtr) {
+  initVars();
+  errorPtr_ = errorPtr;
+  warningPtr_ = warningPtr;
+}
+
 ecmcError::~ecmcError()
 {}
 
 void ecmcError::initVars() {
   errorId_        = 0;
   error_          = 0;
+  warningId_      = 0;
+  warning_        = 0;
   errorPathValid_ = false;
   currSeverity_   = ECMC_SEVERITY_NONE;
   memset(&errorPath_, 0, sizeof(errorPath_));
+  warningPtr_ = NULL;
+  errorPtr_ = NULL;
 }
 
 int ecmcError::setErrorID(const char *fileName,
@@ -76,6 +86,12 @@ int ecmcError::setErrorID(int errorID) {
     error_ = false;
   }
   errorId_ = errorID;
+
+  // Also write to "external" pointer
+  if(errorPtr_) {
+      *errorPtr_ = errorID;
+  }
+  
   return errorId_;
 }
 
@@ -102,6 +118,13 @@ void ecmcError::errorReset() {
   error_ = false;
   setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);
   currSeverity_ = ECMC_SEVERITY_NONE;
+  setWarningID(0);
+  if(warningPtr_) {
+    *warningPtr_ = 0;
+  }
+  if(errorPtr_) {
+    *errorPtr_ = 0;
+  }
 }
 
 bool ecmcError::getError() {
@@ -114,6 +137,90 @@ int ecmcError::getErrorID() {
 
 ecmcAlarmSeverity ecmcError::getSeverity() {
   return currSeverity_;
+}
+
+int ecmcError::setWarningID(int warningId) {
+  if (warningId != warningId_) {
+    LOGINFO12("%s (0x%x).\n",
+           convertWarningIdToString(warningId),
+           warningId);
+  }
+  
+  if (warningId) {
+    warning_ = true;
+  } else {
+    warning_ = false;
+  }
+  warningId_ = warningId;
+
+  // Also write to "external" pointer
+  
+  if(warningPtr_) {
+    *warningPtr_ = warningId;
+  }
+
+  return warningId_;  
+}
+
+int ecmcError::getWarningID() {
+  return warningId_;
+}
+
+void ecmcError::setExternalPtrs(int* errorPtr,int* warningPtr) {
+  warningPtr_ = warningPtr;
+  errorPtr_   = errorPtr;
+}
+
+const char * ecmcError::convertWarningIdToString(int warningId) {
+ switch (warningId) {
+  case 0:   // GENERAL
+    return "NO_WARNING";
+
+    break;
+  case 0x114300: // Axis
+    return "WARNING_AXIS_ASYN_CMD_WHILE_BUSY";
+
+    break;
+  case 0x114301: // Axis
+    return "WARNING_AXIS_ASYN_CMD_DATA_ERROR";
+
+    break;
+  case 0x114C00: // Monitor
+    return "WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK";
+
+    break;
+  case 0x114C01: // Monitor
+    return "WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK";
+
+    break;
+  case 0x114C02: // Monitor
+    return "WARNING_MON_HARD_LIMIT_FWD_INTERLOCK";
+
+    break;
+  case 0x114C03: // Monitor
+    return "WARNING_MON_HARD_LIMIT_BWD_INTERLOCK";
+
+    break;
+  case 0x114600: // Drive
+    return "WARNING_DRV_WARNING_BIT_HIGH";
+
+    break;
+  case 0x114601: // Drive
+    return "WARNING_DRV_ENABLED_LOST";
+
+    break;
+  case 0x114D00: // Seq
+    return "WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION";
+
+    break;
+  case 0x114D01: // Seq
+    return "WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION";
+
+    break;
+
+ }
+
+  return "NO_WARNING";
 }
 
 const char * ecmcError::convertErrorIdToString(int errorId) {
@@ -313,6 +420,21 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14326:
+    return "ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE";
+
+    break;
+
+  case 0x14327:
+    return "ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE";
+
+    break;
+
+  case 0x14328:
+    return "ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY";
+
+    break;
+    
   case 0x14600:   // DRIVE
     return "ERROR_DRV_DRIVE_INTERLOCKED";
 
@@ -544,6 +666,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x14414:
     return "ERROR_ENC_ALARM_READ_ENTRY_FAIL";
+
+    break;
+
+  case 0x14415:
+    return "ERROR_ENC_ASYN_PARAM_NULL";
 
     break;
     
@@ -782,6 +909,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x14D17:
     return "ERROR_SEQ_HOME_POST_MOVE_FAILED";
+
+    break;
+
+  case 0x14D18:
+    return "ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL";
 
     break;
 
@@ -1163,6 +1295,26 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_SDO_BUFFER_ALLOC_FAIL";
 
     break;
+
+  case 0x23500: // ECSDOASYNC
+    return "ERROR_EC_SDO_ASYNC_BUSY";
+
+    break;
+
+  case 0x23501: // ECSDOASYNC
+    return "ERROR_EC_SDO_ASYNC_ERROR";
+
+    break;
+
+  case 0x23502: // ECSDOASYNC
+    return "ERROR_EC_SDO_ASYNC_OBJ_NULL";
+
+    break;
+
+  case 0x23503: // ECSDOASYNC
+    return "ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL";
+
+    break;
     
   case 0x24000:  // ECSLAVE
     return "ERROR_EC_SLAVE_CONFIG_FAILED";
@@ -1261,6 +1413,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x24013:
     return "ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW";
+
+    break;
+
+  case 0x24014:
+    return "ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL";
 
     break;
 
@@ -1904,6 +2061,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x20054:
     return "ERROR_MAIN_EC_SCAN_TIMEOUT";
+
+    break;
+
+  case 0x20055:
+    return "ERROR_MAIN_AXIS_ALREADY_CREATED";
 
     break;
 

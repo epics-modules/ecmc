@@ -26,6 +26,9 @@ typedef struct {
   ecmcMotionModType  moduloType;
   motionCommandTypes command;
   int                cmdData;
+  int                primaryEncIndex;  // used for control
+  int                cfgEncIndex;      // Encoder currrently configured
+  int                homeEncIndex;     // used for homing
   bool               enable             : 1;
   bool               execute            : 1;
   bool               reset              : 1;
@@ -33,7 +36,7 @@ typedef struct {
   bool               enableSoftLimitFwd : 1;
   dataSource         trajSource;
   dataSource         encSource;
-  driveMode          drvMode;
+  driveMode          drvMode;  
 } ecmcAxisDataCommand;
 
 typedef struct {
@@ -65,6 +68,7 @@ typedef struct {
   bool   moving;
   bool   movingOld;
   int    seqState;
+  int    encoderCount;  
   bool   atTarget;
   bool   limitFwd;
   bool   limitBwd;
@@ -75,6 +79,8 @@ typedef struct {
   bool   inStartupPhase;
   bool   inRealtime;
   double distToStop;
+  int errorCode;
+  int warningCode;
 } ecmcAxisDataStatus;  
 
 typedef struct {
@@ -104,6 +110,7 @@ typedef struct {
   bool           plcInterlock;
   bool           plcInterlockFWD;
   bool           plcInterlockBWD;
+  bool           encDiffInterlock; 
   interlockTypes lastActiveInterlock;
   interlockTypes interlockStatus;
   stopMode       currStopMode;
@@ -124,6 +131,7 @@ class ecmcAxisData {
 
  private:
   int setSummaryInterlocks();
+  stopMode refreshInterlocksInternal();
 };
 
 #endif  /* SRC_ECMCAXISDATA_H_ */

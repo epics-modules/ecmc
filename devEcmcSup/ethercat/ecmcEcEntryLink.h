@@ -24,8 +24,12 @@ struct entryInfo{
 
 class ecmcEcEntryLink : public ecmcError {
  public:
+ 
   ecmcEcEntryLink();
+  ecmcEcEntryLink(int* errorPtr,int* warningPtr);  
   ~ecmcEcEntryLink();
+  void initVars();
+
   int  setEntryAtIndex(ecmcEcEntry *entry,
                        int          index,
                        int          bitIndex);

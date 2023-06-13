@@ -38,6 +38,11 @@
 #define TIMESPEC2NS(T) ((uint64_t)(((T).tv_sec - 946684800ULL) * \
                                    1000000000ULL) + (T).tv_nsec)
 
+#define NS2TIMESPEC(NS,T){                    \
+  (T).tv_sec=(NS)/1000000000ULL+946684800ULL; \
+  (T).tv_nsec=(NS)-(T).tv_sec*1000000000ULL;  \
+}                                             \
+
 // #define MSG_TICK 0
 #define MAX_MESSAGE 10000
 
@@ -94,6 +99,10 @@
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_1 7
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_2 8
 
+// Encoders
+#define ECMC_MAX_ENCODERS 8
+
+
 // Monitor drive entries
 #define ECMC_MON_ENTRY_INDEX_LOWLIM 0
 #define ECMC_MON_ENTRY_INDEX_HIGHLIM 1
@@ -146,9 +155,11 @@
 #define ECMC_ASYN_MAIN_PAR_ERROR_MSG_NAME "ecmc.error.msg"
 #define ECMC_ASYN_MAIN_PAR_RESET_ID 11
 #define ECMC_ASYN_MAIN_PAR_RESET_NAME "ecmc.error.reset"
-#define ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID 11
+#define ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID 12
 #define ECMC_ASYN_MAIN_PAR_UPDATE_READY_NAME "ecmc.updated"
-#define ECMC_ASYN_MAIN_PAR_COUNT 13
+#define ECMC_ASYN_MAIN_PAR_STATUS_ID 13
+#define ECMC_ASYN_MAIN_PAR_STATUS_NAME "ecmc.thread.status"
+#define ECMC_ASYN_MAIN_PAR_COUNT 14
 
 // Asyn  parameters in ec
 #define ECMC_ASYN_EC_PAR_MASTER_STAT_ID 0
@@ -173,31 +184,45 @@
 #define ECMC_ASYN_EC_SLAVE_PAR_COUNT 1
 
 // Asyn  parameters in axis
-#define ECMC_ASYN_AX_ACT_POS_ID 0
-#define ECMC_ASYN_AX_ACT_POS_NAME "actpos"
-#define ECMC_ASYN_AX_SET_POS_ID 1
+#define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
+#define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
+
+#define ECMC_ASYN_AX_SET_POS_ID 0
 #define ECMC_ASYN_AX_SET_POS_NAME "setpos"
-#define ECMC_ASYN_AX_POS_ERR_ID 2
+#define ECMC_ASYN_AX_POS_ERR_ID 1
 #define ECMC_ASYN_AX_POS_ERR_NAME "poserr"
-#define ECMC_ASYN_AX_DIAG_ID 3
+#define ECMC_ASYN_AX_DIAG_ID 2
 #define ECMC_ASYN_AX_DIAG_NAME "diagnostic"
-#define ECMC_ASYN_AX_STATUS_ID 4
+#define ECMC_ASYN_AX_STATUS_ID 3
 #define ECMC_ASYN_AX_STATUS_NAME "status"
-#define ECMC_ASYN_AX_CONTROL_BIN_ID 5
+#define ECMC_ASYN_AX_CONTROL_BIN_ID 4
 #define ECMC_ASYN_AX_CONTROL_BIN_NAME "control"
-#define ECMC_ASYN_AX_TARG_VELO_ID 6
+#define ECMC_ASYN_AX_TARG_VELO_ID 5
 #define ECMC_ASYN_AX_TARG_VELO_NAME "targvelo"
-#define ECMC_ASYN_AX_TARG_POS_ID 7
+#define ECMC_ASYN_AX_TARG_POS_ID 6
 #define ECMC_ASYN_AX_TARG_POS_NAME "targpos"
-#define ECMC_ASYN_AX_COMMAND_ID 8
+#define ECMC_ASYN_AX_COMMAND_ID 7
 #define ECMC_ASYN_AX_COMMAND_NAME "command"
-#define ECMC_ASYN_AX_CMDDATA_ID 9
+#define ECMC_ASYN_AX_CMDDATA_ID 8
 #define ECMC_ASYN_AX_CMDDATA_NAME "cmddata"
-#define ECMC_ASYN_AX_ERROR_ID 10
+#define ECMC_ASYN_AX_ERROR_ID 9
 #define ECMC_ASYN_AX_ERROR_NAME "errorid"
-#define ECMC_ASYN_AX_ACT_VEL_ID 11
-#define ECMC_ASYN_AX_ACT_VEL_NAME "actvel"
+#define ECMC_ASYN_AX_WARNING_ID 10
+#define ECMC_ASYN_AX_WARNING_NAME "warningid"
+#define ECMC_ASYN_AX_SET_ENC_POS_ID 11
+#define ECMC_ASYN_AX_SET_ENC_POS_NAME "setencpos"
 #define ECMC_ASYN_AX_PAR_COUNT 12
+
+
+// Asyn params for encoder
+#define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"
+#define ECMC_ASYN_ENC_ACT_VEL_NAME "actvel"
+
+// Asyn params for controller
+#define ECMC_ASYN_CNTRL_KP_NAME "ctrl.kp"
+#define ECMC_ASYN_CNTRL_KI_NAME "ctrl.ki"
+#define ECMC_ASYN_CNTRL_KD_NAME "ctrl.kd"
+#define ECMC_ASYN_CNTRL_KFF_NAME "ctrl.kff"
 
 // Motion
 enum app_mode_type {
@@ -284,6 +309,7 @@ enum interlockTypes {
   ECMC_INTERLOCK_PLC_NORMAL                        = 17,
   ECMC_INTERLOCK_PLC_BWD                           = 18,
   ECMC_INTERLOCK_PLC_FWD                           = 19,
+  ECMC_INTERLOCK_ENC_DIFF                          = 20,
 };
 
 enum plcInterlockTypes {
@@ -385,6 +411,12 @@ enum axisSubObjectType {
 #define ECMC_DRV_ALARM_1_STR "alarm1"
 #define ECMC_DRV_ALARM_2_STR "alarm2"
 #define ECMC_DRV_WARNING_STR "warning"
+#define ECMC_SDO_STR "sdo"
+#define ECMC_VALUE_STR "value"
+#define ECMC_ERROR_STR "error"
+#define ECMC_READCMD_STR "readcmd"
+#define ECMC_WRITECMD_STR "writecmd"
+#define ECMC_BUSY_STR "busy"
 
 #define ECMC_PLC_VAR_FORMAT "%[0-9a-zA-Z._]"
 #define ECMC_PLC_EC_ALIAS_FORMAT "%[0-9a-zA-Z_]"
@@ -453,6 +485,10 @@ enum axisSubObjectType {
 #define ECMC_AXIS_DATA_STR_INTERLOCK_FWD_TYPE "mon.ilockfwd"
 #define ECMC_AXIS_DATA_STR_INTERLOCK_BWD_TYPE "mon.ilockbwd"
 #define ECMC_AXIS_DATA_STR_ALLOW_PLC_CMD "allowplccmd"
+#define ECMC_AXIS_DATA_STR_CTRL_KP_CMD "ctrl.kp"
+#define ECMC_AXIS_DATA_STR_CTRL_KI_CMD "ctrl.ki"
+#define ECMC_AXIS_DATA_STR_CTRL_KD_CMD "ctrl.kd"
+#define ECMC_AXIS_DATA_STR_CTRL_KFF_CMD "ctrl.kff"
 
 enum ecmcAxisDataType {
   ECMC_AXIS_DATA_NONE                  = 0,
@@ -501,6 +537,10 @@ enum ecmcAxisDataType {
   ECMC_AXIS_DATA_ALLOW_PLC_WRITE       = 43,
   ECMC_AXIS_DATA_POS_SET_EXTERNAL      = 44,
   ECMC_AXIS_DATA_POS_ACT_EXTERNAL      = 45,
+  ECMC_AXIS_DATA_CTRL_KP               = 46,
+  ECMC_AXIS_DATA_CTRL_KI               = 47,
+  ECMC_AXIS_DATA_CTRL_KD               = 48,
+  ECMC_AXIS_DATA_CTRL_KFF              = 49,
 };
 
 enum ecmcDataStorageType {
@@ -544,6 +584,7 @@ typedef struct ecmcMainThreadDiag{
   uint32_t exec_max_ns;
   uint32_t send_min_ns;
   uint32_t send_max_ns;
+  int32_t  status;
 }ecmcMainThreadDiag;
 
 #define BIT_SET(a, b) ((a) |= (1 << (b)))

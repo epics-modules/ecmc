@@ -109,5 +109,6 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
   int asynWriteAllow_;
   int isBool_;
   double sampleRateMs_;
+  bool axisHasController_;
 };
 #endif  /* ecmcPLCDataIF_H_ */

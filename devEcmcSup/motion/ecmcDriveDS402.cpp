@@ -49,6 +49,7 @@ void ecmcDriveDS402::initVars() {
   enableStateMachineOld_ = enableStateMachine_;
   cycleCounter_       = 0;
   localEnabled_       = 0;
+  localEnableAmpCmdOld_ = 0;
 }
 
 int ecmcDriveDS402::validate() {
@@ -144,7 +145,7 @@ void ecmcDriveDS402::readEntries() {
     controlWord_  = 0;
     cycleCounter_ = 0;
 
-    if (enableAmpCmd_ && !enableAmpCmdOld_) {
+    if (enableAmpCmd_ && !localEnableAmpCmdOld_) {
       enableStateMachine_ = ECMC_DS402_STARTUP_RESET;
     }
     break;
@@ -236,6 +237,7 @@ void ecmcDriveDS402::readEntries() {
     }
     break;
   }
+  localEnableAmpCmdOld_ = enableAmpCmd_; 
 }
 
 void ecmcDriveDS402::errorReset() {

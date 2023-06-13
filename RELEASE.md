@@ -1,6 +1,184 @@
 
 Release Notes
 ===
+
+# master
+* Fixes to brake control
+* Add asynparameter command to set encoder position (ax.setencpos). Usefull for save restore
+* Block "Cfg.CreateAxis()" for already created axis 
+* Add command for delaying the OK status for the ethercat bus at startup. Could be usefull to allow dc clocks to stabilize or for slaves that not report correct data even though reporting OP:
+```
+"Cfg.EcSetDelayECOkAtStartup(<milliseconds>)"
+```
+* Add asyn param for thread status:
+  * memlockOK 
+  * prioOK
+* Assign velo to ecmc target velo asyn param (non motor record interface)
+* Add rw asyn and plc access to controller PID parameters:
+```
+ax<id>.ctrl.kp
+ax<id>.ctrl.ki
+ax<id>.ctrl.kd
+ax<id>.ctrl.kff
+```
+
+* Add command for enabling/disabling alarm when at softlimit:
+```
+Cfg.SetAxisEnableAlarmAtSoftLimit(int axis_no, int enable)
+```
+* Add command "Cfg.EcApplyConfig()" without master index as parameter. ecmc only allows one master per ioc.
+* Return error if cmddata is not valid for the current motion command (at execution).
+* Add command to allow change of encoder and trajectory source when axis is enabled:
+```
+Cfg.SetAxisAllowSourceChangeWhenEnabled(int axis_no, int allow)
+```
+## Add support for reading and writing SDO:s in runtime
+
+The "Cfg.EcAddSdoAsync()" can be used to add a SDO to be read or written dunring runtime:
+```
+ecmcConfigOrDie "Cfg.EcAddSdoAsync(<slave>,<index>,<subindex>,<datatype>,<alias>)"
+```
+The command generates 5 asyn parameters:
+```
+ec<masterid>.s<slaveid>.sdo.<alias>.writecmd
+ec<masterid>.s<slaveid>.sdo.<alias>.readcmd
+ec<masterid>.s<slaveid>.sdo.<alias>.value
+ec<masterid>.s<slaveid>.sdo.<alias>.error
+ec<masterid>.s<slaveid>.sdo.<alias>.busy
+```
+
+### Process to write data
+1. Write data to PV linked to "ec<masterid>.s<slaveid>.sdo.<alias>.value"
+2. Ensure there is a positive edge on the PV linked to "ec<masterid>.s<slaveid>.sdo.<alias>.writecmd"
+3. Check for errors in PV linked to ec<masterid>.s<slaveid>.sdo.<alias>.error
+
+### Process to read data
+1. Ensure there is a positive edge on the PV linked to "ec<masterid>.s<slaveid>.sdo.<alias>.readcmd"
+2. Check for errors in PV linked to ec<masterid>.s<slaveid>.sdo.<alias>.error
+3. Read data from PV linked to "ec<masterid>.s<slaveid>.sdo.<alias>.value"
+
+### ecmccfg command addEcSdoRT.cmd 
+
+The "addEcSdoRT.cmd" ecmccfg comand can be used to register a async SDO and generate PVs. Example for drive voltage setting if an EL7031 drive:
+```
+# Add RT SDO for reading writing voltage seting in terminal
+${SCRIPTEXEC} ${ecmccfg_DIR}addEcSdoRT.cmd, "SLAVE_ID=${DRV},INDEX=0x8010,SUBINDEX=0x3,DT=U16,NAME=DrvVlt"
+```
+
+This call will generate the following PVs (corresponding to the above asyn params):
+```
+c6025a:m0s004-SDO-DrvVlt-WrtCmd
+c6025a:m0s004-SDO-DrvVlt-RdCmd
+c6025a:m0s004-SDO-DrvVlt-Val
+c6025a:m0s004-SDO-DrvVlt-ErrId
+c6025a:m0s004-SDO-DrvVlt-Bsy
+```
+
+## Multi encoder support
+
+### General
+Support for multiple encoders for axis objects added, max 8 encoders/axis. The follwing commands added to ecmc:
+```
+* "Cfg.AddAxisEnc(${ECMC_AXIS_NO})"
+* "Cfg.SelectAxisEncPrimary($(ECMC_AXIS_NO),${ECMC_ENC_PRIMARY_ID=-1})"
+* "Cfg.SelectAxisEncHome($(ECMC_AXIS_NO),${ECMC_ENC_HOME_ID=-1})"
+* "Cfg.SelectAxisEncConfig($(ECMC_AXIS_NO),${ECMC_ENC_CFG_ID=-1})"
+* "GetAxisEncConfigIndex($(ECMC_AXIS_NO))"
+* "Cfg.SetAxisEncRefToOtherEncAtStartup($(ECMC_AXIS_NO),${ECMC_ENC_REF_TO_ENC_AT_STARTUP_ID=-1})"
+* "Cfg.SetAxisEncEnableRefAtHome($(ECMC_AXIS_NO),${ECMC_ENC_REF_AT_HOME=-1})"
+* "Cfg.SetAxisEncMaxDiffToPrimEnc($(ECMC_AXIS_NO),${ECMC_ENC_MAX_DIFF_TO_PRIM_ENC=0})"
+```
+The Cfg.CreateAxis() command will create one encoder with index 0, backwards compatible. This encoder is the default the encoder used for control (primary encoder) and also the encoder used during the defined homing sequence, if any. If an extra encoder is needed the Cfg.AddAxisEnc() can be executed. After an execution of Cfg.AddAxisEnc() all following encoder confguration commands will be applied to the newest encoder. If configuration of another encoder is needed then the "Cfg.SelectAxisEncConfig()" command can be used to switch the encoder being configured.
+
+### Control
+The primary encoder,used for control can be changed with the command "Cfg.SelectAxisEncPrimary()", defaults to encoder index 0:
+
+Example: Set encoder with index 2 (the third encoder) to primary encoder for axis 1
+```
+ecmcConfigOrDie "Cfg.SelectAxisEncPrimary(1,2)"
+```
+
+### Homing / referencing
+The encoder used for homing can be defined with the command "Cfg.SelectAxisEncHome()", defaults to encoder index 0.
+
+If the primary and homing encoder are not the same, then during homing a tempoerarty swicth of encoder will occur. This can result in a step in actual position value. After homing control will be switched back to the primnary encoder.
+
+Example: Use encoder with index 3 for homing of axis 1
+```
+ecmcConfigOrDie "Cfg.SelectAxisEncHome(1,3)"
+```
+Encoders can be referenced to the value of antother encoder at startup. Could be usefull if one encoder is absolute and one is incremental, to refernce the incremnetal to the value of the absolute encoder. This nfeature is configured by the "Cfg.SetAxisEncRefToOtherEncAtStartup()" command.
+
+Example: Reference encoder 2 to the value of encoder 1 for axis 3
+```
+# Select encoder to configure
+ecmcConfigOrDie "Cfg.SelectAxisEncConfig(3,2)"
+# Encoder 2 selected, reference it to encoder 1 at startup
+ecmcConfigOrDie "Cfg.SetAxisEncRefToOtherEncAtStartup(3,1)"
+```
+Encoders can also be referenced to the value of other encoders after a successful homing sequence (of any encoder). This feature can be enabled by the "Cfg.SetAxisEncEnableRefAtHome()" command:
+
+Example: Allow referencing of encoder 1 after successfull homing axis 3
+```
+# Select encoder to configure
+ecmcConfigOrDie "Cfg.SelectAxisEncConfig(3,1)"
+# Encoder 1 selected, enable to reference it:
+ecmcConfigOrDie "Cfg.SetAxisEncEnableRefAtHome(3,1)"
+```
+
+### Monitoring
+The difference between each encoder and the primary encoder can be monitored by setting the maximum allowd difference with the "Cfg.SetAxisEncMaxDiffToPrimEnc()" command. Monitoring will only be executed between encoders being homed. If the deviation is higher than defined, the axis will be interlocked and thereby stopped.
+
+Example: Allow a maximum difference of 0.1 between encoder 2 and the primary encoder for axis 4:
+```
+# Select encoder to configure
+ecmcConfigOrDie "Cfg.SelectAxisEncConfig(4,2)"
+# Encoder 2 selected, set maximum position difference:
+ecmcConfigOrDie "Cfg.SetAxisEncMaxDiffToPrimEnc(4,0.1)"
+```
+### Example
+
+For complete example see: "ecmccfg/examples/test/multi_encoder/"
+
+The simplest way to create an additional encoder is to use the ecmccfg command addEncoder.cmd directlly after configuration of the axis:
+```
+epicsEnvSet("DEV",      "$(IOC)")
+$(SCRIPTEXEC) ($(ecmccfg_DIR)configureAxis.cmd, CONFIG=./cfg/linear_1.ax)
+
+# Add extra encoder to axis 1 (open loop counter)
+$(SCRIPTEXEC) ($(ecmccfg_DIR)addEncoder.cmd, CONFIG=./cfg/axis_1_enc_1.enc)
+```
+The encoder configuration file supplied to addEncoder.cmd should look like this:
+```
+epicsEnvSet("ECMC_ENC_SCALE_NUM"               "60")
+epicsEnvSet("ECMC_ENC_SCALE_DENOM"             "12800")
+epicsEnvSet("ECMC_ENC_TYPE"                    "0")                        # Type: 0=Incremental, 1=Absolute
+epicsEnvSet("ECMC_ENC_BITS"                    "16")                       # Total bit count of encoder raw data
+epicsEnvSet("ECMC_ENC_ABS_BITS",               "0")                        # Absolute bit count (for absolute encoders) always least significant part of ECMC_ENC_BITS
+epicsEnvSet("ECMC_ENC_ABS_OFFSET"              "0")                        # Encoder offset in eng units (for absolute encoders)
+epicsEnvSet("ECMC_EC_ENC_ACTPOS",              "ec0.s7.positionActual01")  # Ethercat entry for actual position input (encoder)
+epicsEnvSet("ECMC_EC_ENC_RESET",               "")                         # Reset   (if no encoder reset bit then leave empty)
+epicsEnvSet("ECMC_EC_ENC_ALARM_0",             "")                         # Error 0 (if no encoder error bit then leave empty)
+epicsEnvSet("ECMC_EC_ENC_ALARM_1",             "")                         # Error 1 (if no encoder error bit then leave empty)
+epicsEnvSet("ECMC_EC_ENC_ALARM_2",             "")                         # Error 2 (if no encoder error bit then leave empty)
+epicsEnvSet("ECMC_EC_ENC_WARNING",             "")                         # Warning (if no encoder warning bit then leave empty)
+
+# This encoder (enc 1) will be refenced to encoder 0 at startup (set to -1 to not change setting)
+epicsEnvSet("ECMC_ENC_REF_TO_ENC_AT_STARTUP_ID",  "-1")
+
+# Encoder index for closed loop control (set to -1 to not change setting)
+epicsEnvSet("ECMC_ENC_PRIMARY_ID",  "-1")
+
+# Encoder index for homing, the specified homing seq will be executed based on this enc. (set to -1 to not change setting)
+epicsEnvSet("ECMC_ENC_HOME_ID",  "1")
+
+# Reference this encoder ar homing (set to -1 to not change setting)
+epicsEnvSet("ECMC_ENC_REF_AT_HOME",  "1")
+
+# Maximum position diff between this encoder and primary (set to 0 to disable)
+epicsEnvSet("ECMC_ENC_MAX_DIFF_TO_PRIM_ENC",  "0.05")
+```
+
 # ECMC 8.0.1
 * Fixes to brake control
 
@@ -9,7 +187,11 @@ Release Notes
 * Add support for jerk limited trajectories based on ruckig (https://github.com/pantor/ruckig).
   Trapetzoidal trajectories still supported and default in ecmccfg. Ruckig module is now a dependency.
   
-* Ensure that master is not scanning slaves at startup. If scanning then wait until scan is finished (with timeout).  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when posiitoning (blocked).
+  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when posiitoning (blocked).
+  
+* Update of trajectory generator to allow "on the fly" update of target postion and target velocity (trapetz).
+  
+* Ensure that master is not scanning slaves at startup. If scanning then wait until scan is finished (with timeout).  
 
 * Remove commands Cfg.SetOpMode() and GetOpMode(). Obsolete and not used.
 
@@ -38,12 +220,12 @@ ax<id>.diagnostic
 Examples and more info are available in:
 ecmccfg/examples/test/motionWithoutMotorRecord/
 
-* Update of trajectory generator to allow "on the fly" update of target postion and target velocity.
 * Brake handling: 
   - Engage brake if not enabled
   - Start counting open delay when drive enabled goes high (instead of enable cmd).
 * Reset axis enable cmd if ethercat in error state (prevent re-enable when ethercat returns to OK)
-* Add command to set drive timeout for enabled and DS402 state machine: "Cfg.SetAxisDrvStateMachineTimeout(int axis_no, double seconds)"
+* Add command to set drive timeout for enabled and DS402 state machine: "Cfg.SetAxisDrvStateMachineTimeout(int axis_no, int seconds)"
+* Fix of absolute encoder reading at ioc startup
 
 # ECMC 7.0.1
 * Add homing seq 25 (same as 15 but not blocked by motor record and reserved for save/restore). The sequence will just set a new position.

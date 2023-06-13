@@ -17,15 +17,20 @@
 
 #include "../main/ecmcError.h"
 #include "ecmcAxisData.h"
+#include "../main/ecmcDefinitions.h"
+#include "../com/ecmcAsynPortDriver.h"
+#include "../main/ecmcErrorsList.h"
 
 // CONTROLLER ERRORS
 #define ERROR_CNTRL_INVALID_SAMPLE_TIME 0x15000
 
 class ecmcPIDController : public ecmcError {
  public:
-  ecmcPIDController(ecmcAxisData *axisData,
+  ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
+                    ecmcAxisData *axisData,
                     double        sampleTime);
-  ecmcPIDController(ecmcAxisData *axisData,
+  ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
+                    ecmcAxisData *axisData,
                     double        kp,
                     double        ki,
                     double        kd,
@@ -49,6 +54,10 @@ class ecmcPIDController : public ecmcError {
   void   setKi(double ki);
   void   setKd(double kd);
   void   setKff(double kff);
+  double   getKp();
+  double   getKi();
+  double   getKd();
+  double   getKff();
   void   setOutMax(double outMax);
   void   setOutMin(double outMin);
   void   setIOutMax(double outMax);
@@ -56,6 +65,7 @@ class ecmcPIDController : public ecmcError {
   int    validate();
 
  private:
+  int    initAsyn();
   double kp_, ki_, kd_, kff_;
   double outputP_;
   double outputI_;
@@ -68,7 +78,13 @@ class ecmcPIDController : public ecmcError {
   double controllerErrorOld_;
   double sampleTime_;
   ecmcAxisData *data_;
-
   bool   settingMade_;
+
+  // Asyn
+  ecmcAsynPortDriver     *asynPortDriver_;
+  ecmcAsynDataItem       *asynKp_;
+  ecmcAsynDataItem       *asynKi_;
+  ecmcAsynDataItem       *asynKd_;
+  ecmcAsynDataItem       *asynKff_;
 };
 #endif  // ifndef ECMCPIDCONTROLLER_H

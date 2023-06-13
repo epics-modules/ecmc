@@ -49,11 +49,15 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_get_time_u32(",
                                "ec_mm_append_to_ds(",
                                "ec_mm_append_to_ds_scale_offset(",
-                               "ec_mm_push_asyn("
+                               "ec_mm_push_asyn(",
+                               "ec_get_time_local_nsec(",
+                               "ec_get_time_local_sec(",
+                               "ec_get_time_local_min(",
+                               "ec_get_time_local_hour("
                               };
 
 static int ec_errorCode = 0;
-static int ec_cmd_count = 22;
+static int ec_cmd_count = 26;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
@@ -131,6 +135,43 @@ inline double ec_get_time_u32() {
     return -(double)ec_errorCode;
   }  
   return (double)((uint32_t) (ecmcPLCTask::statEc_->getTimeNs() >> 32));
+}
+
+inline double ec_get_time_local_nsec(double nanos) {
+  ec_errorCode = 0;
+  uint64_t nanoseconds=(uint64_t) nanos;
+  uint64_t seconds=nanoseconds/1000000000ULL;
+  return (double)(nanos-seconds*1000000000ULL);
+}
+
+inline double ec_get_time_local_sec(double nanos) {
+  ec_errorCode = 0;
+  uint64_t nanoseconds=(uint64_t) nanos;
+  timespec ts;
+  struct tm buf;
+  NS2TIMESPEC(nanoseconds,ts)
+  localtime_r(&ts.tv_sec,&buf);
+  return (double) buf.tm_sec;
+}
+
+inline double ec_get_time_local_min(double nanos) {
+  ec_errorCode = 0;
+  uint64_t nanoseconds=(uint64_t) nanos;
+  timespec ts;
+  struct tm buf;
+  NS2TIMESPEC(nanoseconds,ts)
+  localtime_r(&ts.tv_sec,&buf);
+  return (double) buf.tm_min;
+}
+
+inline double ec_get_time_local_hour(double nanos) {
+  ec_errorCode = 0;
+  uint64_t nanoseconds=(uint64_t) nanos;
+  timespec ts;
+  struct tm buf;
+  NS2TIMESPEC(nanoseconds,ts)
+  localtime_r(&ts.tv_sec,&buf);
+  return (double) buf.tm_hour;
 }
 
 inline double ec_clr_bit(double value, double bitIndex)

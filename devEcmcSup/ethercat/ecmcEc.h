@@ -13,6 +13,7 @@
 #ifndef ECMCEC_H_
 #define ECMCEC_H_
 
+#include <string>
 #include "stdio.h"
 #include "ecrt.h"
 #include "../main/ecmcDefinitions.h"
@@ -118,6 +119,11 @@ class ecmcEc : public ecmcError {
                         uint8_t     sdoSubIndex,
                         const char* dataBuffer,
                         int         byteSize);
+  int addSDOAsync( uint16_t slaveBusPosition,
+                   uint16_t index,
+                   uint8_t  subIndex,
+                   ecmcEcDataType dt,
+                   std::string idString);
   int readSoE(uint16_t  slavePosition, /**< Slave position. */
               uint8_t   driveNo, /**< Drive number. */
               uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
@@ -183,6 +189,8 @@ class ecmcEc : public ecmcError {
                                   uint16_t slavePos   /**< Slave position. */);
   int           useClockRealtime(bool useClkRT);
   bool          getScanBusyNotRT();
+  // Some slaves report OP but still not returning valid data for some seconds then use this command.
+  int           setEcOkDelayCycles(int cycles);
 
 private:
   void     initVars();
@@ -234,5 +242,7 @@ private:
   epicsTimeStamp epicsTime_;
   struct timespec timeRel_;
   struct timespec timeAbs_;
+  int delayEcOKCycles_;
+  int startupCounter_;
 };
 #endif  /* ECMCEC_H_ */

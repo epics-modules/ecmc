@@ -740,7 +740,11 @@ int ecmcPLCTask::loadEcLib() {
   ecmcPLCTaskAddFunction("ec_mm_append_to_ds", ec_mm_append_to_ds);
   ecmcPLCTaskAddFunction("ec_mm_append_to_ds_scale_offset", ec_mm_append_to_ds_scale_offset);
   ecmcPLCTaskAddFunction("ec_mm_push_asyn", ec_mm_push_asyn);
-  
+  ecmcPLCTaskAddFunction("ec_get_time_local_nsec", ec_get_time_local_nsec);
+  ecmcPLCTaskAddFunction("ec_get_time_local_sec", ec_get_time_local_sec);
+  ecmcPLCTaskAddFunction("ec_get_time_local_min", ec_get_time_local_min);
+  ecmcPLCTaskAddFunction("ec_get_time_local_hour", ec_get_time_local_hour);
+ 
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
            __FILE__,
@@ -774,6 +778,11 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_set_enable_motion_funcs", mc_set_enable_motion_funcs);
   ecmcPLCTaskAddFunction("mc_move_ext_pos", mc_move_ext_pos);
   ecmcPLCTaskAddFunction("mc_home_pos",     mc_home_pos);
+  ecmcPLCTaskAddFunction("mc_get_act_pos",  mc_get_act_pos);
+  ecmcPLCTaskAddFunction("mc_set_prim_enc", mc_set_prim_enc);
+  ecmcPLCTaskAddFunction("mc_get_prim_enc", mc_get_prim_enc);
+  ecmcPLCTaskAddFunction("mc_set_home_enc", mc_set_home_enc);
+  ecmcPLCTaskAddFunction("mc_get_home_enc", mc_get_home_enc);
   
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

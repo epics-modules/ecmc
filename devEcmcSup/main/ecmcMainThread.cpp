@@ -473,8 +473,11 @@ int lockMem(int size) {
     {
       LOGERR("WARNING: mlockall() failed (0x%x).\n",ERROR_MAIN_MLOCKALL_FAIL);
       //return ERROR_MAIN_MLOCKALL_FAIL;
+    } else {
+      // Memlock OK
+      threadDiag.status = threadDiag.status || 0x2;
     }
-   	
+    mainAsynParams[ECMC_ASYN_MAIN_PAR_STATUS_ID]->refreshParamRT(1);   	
    	/* Touch each page in this piece of memory to get it mapped into RAM 
        to avoid swapping*/
     int i;
@@ -501,8 +504,12 @@ int startRTthread() {
     LOGERR(
       "ERROR: Can't create high priority thread, fallback to low priority\n");
     prio = ECMC_PRIO_LOW;
+    threadDiag.status = 0;
+    mainAsynParams[ECMC_ASYN_MAIN_PAR_STATUS_ID]->refreshParamRT(1);
     assert(epicsThreadCreate(ECMC_RT_THREAD_NAME, prio, ECMC_STACK_SIZE, cyclic_task, NULL) != NULL);    
   } else {
+    threadDiag.status = 1;
+    mainAsynParams[ECMC_ASYN_MAIN_PAR_STATUS_ID]->refreshParamRT(1);
     LOGINFO4("INFO:\t\tCreated high priority thread for cyclic task\n");
   }
 

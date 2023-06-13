@@ -21,12 +21,14 @@
 #include <string.h>
 #include <cmath>
 #include "../main/ecmcDefinitions.h"
+#include "../main/ecmcErrorsList.h"
 #include "../main/ecmcError.h"
 #include "../ethercat/ecmcEcEntry.h"
 #include "../ethercat/ecmcEcEntryLink.h"
 #include "../ethercat/ecmcEcPdo.h"
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"
+#include "ecmcMotionUtils.h"
 
 // ENCODER ERRORS
 #define ERROR_ENC_ASSIGN_ENTRY_FAILED 0x14400
@@ -50,6 +52,7 @@
 #define ERROR_ENC_HW_ALARM_2 0x14412
 #define ERROR_ENC_WARNING_READ_ENTRY_FAIL 0x14413
 #define ERROR_ENC_ALARM_READ_ENTRY_FAIL 0x14414
+#define ERROR_ENC_ASYN_PARAM_NULL 0x14415
 
 #define ECMC_FILTER_VELO_DEF_SIZE 100
 #define ECMC_FILTER_POS_DEF_SIZE 10
@@ -68,8 +71,10 @@ enum ecmcOverUnderFlowType {
 
 class ecmcEncoder : public ecmcEcEntryLink {
  public:
-  ecmcEncoder(ecmcAxisData *axisData,
-              double        sampleTime);
+  ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
+              ecmcAxisData *axisData,
+              double        sampleTime,
+              int index);
   ~ecmcEncoder();
   virtual void          errorReset();
   int                   setBits(int bits);
@@ -110,7 +115,17 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int                   setVeloFilterSize(size_t size);
   int                   setPosFilterSize(size_t size);
   int                   setPosFilterEnable(bool enable);
-  
+  // Ref this encoder to other encoder at startup (i.e ref relative encoder to abs at startup)
+  int                   setRefToOtherEncAtStartup(int encIndex);
+  int                   getRefToOtherEncAtStartup();
+  int                   setRefAtHoming(int refEnable);
+  bool                  getRefAtHoming();
+  void                  setHomeLatchCountOffset(int count);
+  int                   getHomeLatchCountOffset();
+
+  void                  setMaxPosDiffToPrimEnc(double distance);
+  double                getMaxPosDiffToPrimEnc();
+
  protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -121,6 +136,13 @@ class ecmcEncoder : public ecmcEcEntryLink {
                                             int64_t  rawTurns,
                                             uint64_t rawLimit,
                                             int      bits);
+  uint8_t              *getActPosPtr();
+  uint8_t              *getActVelPtr();
+  int                  initAsyn();
+  int                  readHwActPos(bool masterOK);
+  int                  readHwWarningError();
+  int                  readHwLatch();
+  
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -147,9 +169,11 @@ class ecmcEncoder : public ecmcEcEntryLink {
   double scale_;
   double engOffset_;
   double actPos_;
+  double actPosLocal_;
   double actPosOld_;
   double sampleTime_;
   double actVel_;
+  double actVelLocal_;
   bool homed_;
   bool encLatchFunctEnabled_;
   bool encLatchStatus_;
@@ -168,13 +192,24 @@ class ecmcEncoder : public ecmcEcEntryLink {
   uint64_t hwErrorAlarm2Old_;
   uint64_t hwWarning_;
   uint64_t hwWarningOld_;
+  bool hwActPosDefined_;
   bool hwResetDefined_;
   bool hwErrorAlarm0Defined_;
   bool hwErrorAlarm1Defined_;
   bool hwErrorAlarm2Defined_;
   bool hwWarningDefined_;
   bool masterOKOld_;
+  int refEncIndex_;
+  bool refDuringHoming_;
+  int homeLatchCountOffset_;
+  double maxPosDiffToPrimEnc_;
 
+  // Asyn
+  ecmcAsynPortDriver     *asynPortDriver_;
+  ecmcAsynDataItem       *encPosAct_;
+  ecmcAsynDataItem       *encVelAct_;
+
+  int index_; //Index of this encoder (im axis object)
 };
 
 #endif  /* ECMCENCODER_H_ */

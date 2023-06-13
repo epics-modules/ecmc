@@ -15,6 +15,7 @@
 #define ECMCECSLAVE_H_
 
 #include <string>
+#include <vector>
 #include "stdio.h"
 #include "ecrt.h"
 #include "../main/ecmcDefinitions.h"
@@ -26,6 +27,7 @@
 #include "ecmcEcMemMap.h"
 #include "ecmcEcSyncManager.h"
 #include "ecmcEcSDO.h"
+#include "ecmcEcAsyncSDO.h"
 
 #define SIMULATION_ENTRIES 2
 
@@ -50,6 +52,7 @@
 #define ERROR_EC_SLAVE_NOT_OPERATIONAL 0x24011
 #define ERROR_EC_SLAVE_NOT_ONLINE 0x24012
 #define ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW 0x24013
+#define ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL 0x24014
 
 typedef struct {
   uint16_t position;   /**< Offset of the slave in the ring. */
@@ -125,6 +128,10 @@ class ecmcEcSlave : public ecmcError {
                         int         byteSize);
   int getSlaveState(ec_slave_config_state_t *state);
   int validate();
+  int addSDOAsync(uint16_t sdoIndex, /**< SDO index. */
+                 uint8_t sdoSubIndex, /**< SDO subindex. */
+                 ecmcEcDataType dt,
+                 std::string alias);
 
  private:
   void  initVars();
@@ -166,5 +173,8 @@ class ecmcEcSlave : public ecmcError {
   // bit 16..31            : entry counter
   uint32_t statusWord_;
   uint32_t statusWordOld_;
+
+  std::vector<ecmcEcAsyncSDO*> asyncSDOvector_;
+  int                          asyncSDOCounter_;
 };
 #endif  /* ECMCECSLAVE_H_ */

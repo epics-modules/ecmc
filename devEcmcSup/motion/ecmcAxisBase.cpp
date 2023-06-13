@@ -56,6 +56,18 @@ asynStatus asynWriteTargetPos(void* data, size_t bytes, asynParamType asynParTyp
 }
 
 /**
+ * Callback function for asynWrites (Set Encoder Position)
+ * userObj = axis object
+ * 
+ * */ 
+asynStatus asynWriteSetEncPos(void* data, size_t bytes, asynParamType asynParType,void *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase*)userObj)->axisAsynWriteSetEncPos(data, bytes, asynParType);
+}
+
+/**
  * Callback function for asynWrites (Command)
  * userObj = axis object
  * 
@@ -84,13 +96,13 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            double sampleTime,
                            ecmcTrajTypes  trajType) {
   initVars();
-
   asynPortDriver_                 = asynPortDriver;
   data_.axisId_                   = axisID;
   data_.sampleTime_               = sampleTime;
 
   try {
-    enc_  = new ecmcEncoder(&data_, data_.sampleTime_);
+    data_.command_.primaryEncIndex = 0;    
+    addEncoder();
     currentTrajType_ = trajType;
     if(currentTrajType_ == ECMC_S_CURVE) {
       traj_ = new ecmcTrajectoryS(&data_,
@@ -100,7 +112,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                                          data_.sampleTime_);        
     }
 
-    mon_ = new ecmcMonitor(&data_);
+    mon_ = new ecmcMonitor(&data_, encArray_);
 
     extTrajVeloFilter_ = new ecmcFilter(data_.sampleTime_);    
     extEncVeloFilter_  = new ecmcFilter(data_.sampleTime_);    
@@ -119,14 +131,15 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
-  seq_.setEnc(enc_);
+  seq_.setEnc(encArray_);
 
   initAsyn();
 }
 
 ecmcAxisBase::~ecmcAxisBase() {
-  delete enc_;
-  enc_ = NULL;
+  for(int i=0; i<ECMC_MAX_ENCODERS; i++) {
+    delete encArray_[i];
+  }
   delete traj_;
   traj_ = NULL;
   delete mon_;
@@ -182,6 +195,13 @@ void ecmcAxisBase::initVars() {
   velocityTarget_ = 0;
   command_ = ECMC_CMD_MOVEABS;
   cmdData_ = 0;
+  data_.status_.encoderCount = 0;
+  for(int i=0; i<ECMC_MAX_ENCODERS; i++) {
+    encArray_[i]=NULL;
+  }
+  data_.command_.cfgEncIndex = 0;
+  allowSourceChangeWhenEnbaled_ = false;
+  setEncoderPos_ = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -195,8 +215,12 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   data_.status_.moving = std::abs(
     data_.status_.currentVelocityActual) > 0 || getTraj()->getBusy();
 
-  if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    enc_->readEntries(masterOK);
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
+    if(encArray_[i] == NULL) {
+      break; 
+    }
+  
+    encArray_[i]->readEntries(masterOK);
   }
 
   // Axis state machine
@@ -212,7 +236,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
           data_.status_.inStartupPhase) {
         errorReset();
         setInStartupPhase(false);
-        enc_->setToZeroIfRelative();
+        initEncoders();
       }
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
@@ -300,7 +324,9 @@ void ecmcAxisBase::postExecute(bool masterOK) {
             data_.status_.externalEncoderPosition;
 
   // Write encoder entries
-  enc_->writeEntries();
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
+    encArray_[i]->writeEntries();
+  }
   data_.status_.busyOld                    = data_.status_.busy;
   data_.status_.enabledOld                 = data_.status_.enabled;
   data_.status_.executeOld                 = getExecute();
@@ -312,18 +338,17 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   refreshDebugInfoStruct();
   
   // Update asyn parameters  
-  axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(0);
+  //axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(0);
+  //axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
+  //axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(0);
+  //axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0);
-  
+  axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(0);
+
   if(axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() && axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->linkedToAsynClient() ) {    
     int  bytesUsed = 0;
     int  error = getAxisDebugInfoData(&diagBuffer_[0],
@@ -408,28 +433,41 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
 }
 
 void ecmcAxisBase::setInStartupPhase(bool startup) {
+
+  // When configuration is ready then defult to primary encoder for all encoder related calls
+  if(!data_.status_.inStartupPhase && startup) {
+    data_.command_.cfgEncIndex = data_.command_.primaryEncIndex;
+  }
+
   data_.status_.inStartupPhase = startup;
 }
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   if(refSource == data_.command_.trajSource ) return 0;
-
-  if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
+  
+  if(!allowSourceChangeWhenEnbaled_) {
+    if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
+    }
   }
   
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
     data_.interlocks_.noExecuteInterlock = false;
     data_.refreshInterlocks();
-    data_.status_.busy = true;
+    data_.status_.busy = true;    
+    data_.command_.execute = true;
   } else {
     traj_->setStartPos(data_.status_.currentPositionActual);
-    traj_->initStopRamp(data_.status_.currentPositionActual,
-                        data_.status_.currentVelocityActual,
-                        0);
+    //traj_->initStopRamp(data_.status_.currentPositionActual,
+    //                    data_.status_.currentVelocityActual,
+    //                    0);
+    if(!getEnable()) {
+      data_.status_.busy = false;
+      data_.command_.execute = false;
+    }
   }
 
   data_.command_.trajSource = refSource;
@@ -440,12 +478,14 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
 
   if(refSource == data_.command_.encSource ) return 0;
-
-  if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
+  
+  if(!allowSourceChangeWhenEnbaled_) {
+    if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
+    }
   }
 
   // If realtime: Ensure that ethercat enty for actual position is linked
@@ -485,66 +525,15 @@ bool ecmcAxisBase::getError() {
 }
 
 int ecmcAxisBase::getErrorID() {
+  
+
   // GeneralsetErrorID
   if (ecmcError::getError()) {
     return ecmcError::getErrorID();
   }
-
-  // Monitor
-  ecmcMonitor *mon = getMon();
-
-  if (mon) {
-    if (mon->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, mon->getErrorID());
-    }
-  }
-
-  // Encoder
-  ecmcEncoder *enc = getEnc();
-
-  if (enc) {
-    if (enc->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, enc->getErrorID());
-    }
-  }
-
-  // Drive
-  ecmcDriveBase *drv = getDrv();
-
-  if (drv) {
-    if (drv->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, drv->getErrorID());
-    }
-  }
-
-  // Trajectory
-  ecmcTrajectoryBase *traj = getTraj();
-
-  if (traj) {
-    if (traj->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, traj->getErrorID());
-    }
-  }
-
-  // Controller
-  ecmcPIDController *cntrl = getCntrl();
-
-  if (cntrl) {
-    if (cntrl->getError()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, cntrl->getErrorID());
-    }
-  }
-
-  // Sequencer
-  ecmcAxisSequencer *seq = getSeq();
-
-  if (seq) {
-    if (seq->getErrorID()) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, seq->getErrorID());
-    }
-  }
-
-  return ecmcError::getErrorID();
+  
+  // The below contains all errors from the "sub objects"
+  return setErrorID(data_.status_.errorCode);
 }
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
@@ -643,7 +632,26 @@ int ecmcAxisBase::getPosSet(double *pos) {
 }
 
 ecmcEncoder * ecmcAxisBase::getEnc() {
-  return enc_;
+  return encArray_[data_.command_.primaryEncIndex];
+}
+
+ecmcEncoder * ecmcAxisBase::getEnc(int encIndex, int* error) {
+  *error = 0;
+  if(encIndex >= ECMC_MAX_ENCODERS) {
+    *error=ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+    return NULL;
+  }
+  
+  if(encArray_[encIndex] == NULL) {    
+    *error=ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+    return NULL;
+  }
+  
+  return encArray_[encIndex];
+}
+
+ecmcEncoder * ecmcAxisBase::getConfigEnc() {
+  return encArray_[data_.command_.cfgEncIndex];
 }
 
 ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
@@ -659,37 +667,37 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  *homed = enc_->getHomed();
+  *homed = encArray_[data_.command_.cfgEncIndex]->getHomed();
   return 0;
 }
 
 int ecmcAxisBase::setAxisHomed(bool homed) {
-  enc_->setHomed(homed);
+  encArray_[data_.command_.primaryEncIndex]->setHomed(homed);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleNum(double *scale) {
-  *scale = enc_->getScaleNum();
+  *scale = encArray_[data_.command_.cfgEncIndex]->getScaleNum();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleNum(double scale) {
-  enc_->setScaleNum(scale);
+  encArray_[data_.command_.cfgEncIndex]->setScaleNum(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleDenom(double *scale) {
-  *scale = enc_->getScaleDenom();
+  *scale = encArray_[data_.command_.cfgEncIndex]->getScaleDenom();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleDenom(double scale) {
-  enc_->setScaleDenom(scale);
+  encArray_[data_.command_.cfgEncIndex]->setScaleDenom(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
-  *rawPos = enc_->getRawPosMultiTurn();
+  *rawPos = encArray_[data_.command_.cfgEncIndex]->getRawPosMultiTurn();
   return 0;
 }
 
@@ -846,33 +854,8 @@ int ecmcAxisBase::initAsyn() {
   ecmcAsynDataItem *paramTemp = NULL;
   int errorCode = 0;
  
-  // Act pos
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_POS_NAME,
-                              asynParamFloat64,
-                              ECMC_EC_F64,
-                              (uint8_t *)&(statusData_.onChangeData.positionActual),
-                              sizeof(statusData_.onChangeData.positionActual),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
-  paramTemp->setAllowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
 
-  // Act vel
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_VEL_NAME,
-                              asynParamFloat64,
-                              ECMC_EC_F64,
-                              (uint8_t *)&(statusData_.onChangeData.velocityActual),
-                              sizeof(statusData_.onChangeData.velocityActual),
-                              &paramTemp);
-  if(errorCode) {
-    return errorCode;
-  }
-  paramTemp->setAllowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID] = paramTemp;
+  // Asyn params for encoder is moved to encoder class
 
   // Set pos
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
@@ -978,6 +961,22 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID] = paramTemp;
 
+  // Set/reference encoder
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_ENC_POS_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t*)&(setEncoderPos_),
+                              sizeof(setEncoderPos_),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteSetEncPos,this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_SET_ENC_POS_ID] = paramTemp;
+
   // Command
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_COMMAND_NAME,
                               asynParamInt32,
@@ -1024,6 +1023,22 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID] = paramTemp;
+
+  // Error
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_WARNING_NAME,
+                              asynParamInt32,
+                              ECMC_EC_S32,
+                              (uint8_t*)&(data_.status_.warningCode),
+                              sizeof(data_.status_.warningCode),
+                              &paramTemp);
+  if(errorCode) {
+    return errorCode;
+  }
+  
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_WARNING_ID] = paramTemp;
+
 
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
   return 0;
@@ -1159,53 +1174,53 @@ int ecmcAxisBase::setModType(int type) {
 int ecmcAxisBase::getModType() {
   return (int)data_.command_.moduloType;
 }
-
-double ecmcAxisBase::getPosErrorMod() {
-
-  double normalCaseError = data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
-  if(data_.command_.moduloRange==0) {
-    return normalCaseError;
-  }
-  
-  // Modulo
-  if(std::abs(normalCaseError)<data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
-    // No overflows 
-    return normalCaseError;
-  } else {
-    //Overflow has happended in either encoder or setpoint
-    double overUnderFlowError = data_.command_.moduloRange-std::abs(normalCaseError);
-    double  setDiff = data_.status_.currentPositionSetpoint - data_.status_.currentPositionSetpointOld;
-    //Moving forward (overflow)
-    if(setDiff>0 || setDiff < -data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
-      //Actual lagging setpoint  ACT SET
-      if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
-        return overUnderFlowError;
-      } 
-      else { //Actual before setpoint SET ACT
-        return -overUnderFlowError;
-      }
-    }
-    else {
-      //Moving backward (underflow)    
-      //Actual lagging setpoint SET ACT
-      if(data_.status_.currentPositionActual<data_.status_.currentPositionSetpoint) {             
-        return -overUnderFlowError;
-      } 
-      else { //Actual before setpoint ACT SET
-        return overUnderFlowError;
-      }       
-    }         
-  }
-  LOGERR(
-        "%s/%s:%d: WARNING (axis %d): Modulo controller error calc failed...\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        data_.axisId_);
-
-  return 0;
-}
-
+//
+//double ecmcAxisBase::getPosErrorMod() {
+//
+//  double normalCaseError = data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
+//  if(data_.command_.moduloRange==0) {
+//    return normalCaseError;
+//  }
+//  
+//  // Modulo
+//  if(std::abs(normalCaseError)<data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
+//    // No overflows 
+//    return normalCaseError;
+//  } else {
+//    //Overflow has happended in either encoder or setpoint
+//    double overUnderFlowError = data_.command_.moduloRange-std::abs(normalCaseError);
+//    double  setDiff = data_.status_.currentPositionSetpoint - data_.status_.currentPositionSetpointOld;
+//    //Moving forward (overflow)
+//    if(setDiff>0 || setDiff < -data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
+//      //Actual lagging setpoint  ACT SET
+//      if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {         
+//        return overUnderFlowError;
+//      } 
+//      else { //Actual before setpoint SET ACT
+//        return -overUnderFlowError;
+//      }
+//    }
+//    else {
+//      //Moving backward (underflow)    
+//      //Actual lagging setpoint SET ACT
+//      if(data_.status_.currentPositionActual<data_.status_.currentPositionSetpoint) {             
+//        return -overUnderFlowError;
+//      } 
+//      else { //Actual before setpoint ACT SET
+//        return overUnderFlowError;
+//      }       
+//    }         
+//  }
+//  LOGERR(
+//        "%s/%s:%d: WARNING (axis %d): Modulo controller error calc failed...\n",
+//        __FILE__,
+//        __FUNCTION__,
+//        __LINE__,
+//        data_.axisId_);
+//
+//  return 0;
+//}
+//
 int ecmcAxisBase::getCntrlError(double *error) {
   *error = data_.status_.cntrlError;
   return 0;
@@ -1272,7 +1287,10 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
   statusData_.onChangeData.error              = getErrorID(); 
   statusData_.onChangeData.positionActual     =
     data_.status_.currentPositionActual;
-  statusData_.onChangeData.positionError      = getPosErrorMod();    
+  statusData_.onChangeData.positionError      = ecmcMotionUtils::getPosErrorModWithSign(data_.status_.currentPositionSetpoint,
+                                                               data_.status_.currentPositionSetpointOld,
+                                                               data_.status_.currentPositionActual,
+                                                               data_.command_.moduloRange);
   statusData_.onChangeData.positionSetpoint   =
     data_.status_.currentPositionSetpoint;
   statusData_.onChangeData.positionTarget     =
@@ -1294,7 +1312,7 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
     data_.status_.currentvelocityFFRaw;
   statusData_.onChangeData.cmdData        = data_.command_.cmdData;
   statusData_.onChangeData.command        = data_.command_.command;
-  statusData_.onChangeData.positionRaw    = enc_->getRawPosRegister();
+  statusData_.onChangeData.positionRaw    = encArray_[data_.command_.primaryEncIndex]->getRawPosRegister();
   statusData_.onChangeData.homeposition   = seq_.getHomePosition();
   statusData_.acceleration                = traj_->getAcc();
   statusData_.deceleration                = traj_->getDec();
@@ -1416,15 +1434,15 @@ int ecmcAxisBase::setExtEncVeloFiltSize(size_t size) {
 }
 
 int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
-  return enc_->setVeloFilterSize(size);
+  return encArray_[data_.command_.primaryEncIndex]->setVeloFilterSize(size);
 }
 
 int ecmcAxisBase::setEncPosFiltSize(size_t size) {
-  return enc_->setPosFilterSize(size);
+  return encArray_[data_.command_.primaryEncIndex]->setPosFilterSize(size);
 }
 
 int ecmcAxisBase::setEncPosFiltEnable(bool enable) {
-  return enc_->setPosFilterEnable(enable);
+  return encArray_[data_.command_.primaryEncIndex]->setPosFilterEnable(enable);
 }
 
 int ecmcAxisBase::createAsynParam(const char       *nameFormat,
@@ -1786,6 +1804,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
         __LINE__,
         data_.axisId_);
 
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
 
@@ -1841,14 +1860,19 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void* data, size_t bytes, asynParamTyp
       controlWord_.executeCmd = 0; // auto reset
       return asynError;
     }
+
+    // Only allow cmd change if not busy
+    if(!getBusy()) {
+      setCommand(command_);
+      setCmdData(cmdData_);
+    }
+    
     // allow on the fly updates of target velo and target pos
     getSeq()->setTargetVel(velocityTarget_);
     getSeq()->setTargetPos(positionTarget_);
     
     // if not already moving then trigg new motion cmd
-    if(!getBusy()) {
-      setCommand(command_);
-      setCmdData(cmdData_);
+    if(!getBusy()) {    
       errorCode = setExecute(0);
       if(errorCode) {
         returnVal = asynError;
@@ -1917,14 +1941,15 @@ void ecmcAxisBase::initControlWord() {
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(double) != bytes && asynParType == asynParamFloat64) {
+  if( bytes != 8 || asynParType != asynParamFloat64) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): Target Velo size or datatype missmatch.\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
         data_.axisId_);
-
+    
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
   double velo = 0;
@@ -1942,31 +1967,60 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void* data, size_t bytes, asynP
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(double) != bytes && asynParType == asynParamFloat64) {
+  if( bytes != 8 || asynParType != asynParamFloat64) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): Target Pos size or datatype missmatch.\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
         data_.axisId_);
-
+    
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
   double pos = 0;
   memcpy(&pos,data,bytes);
   positionTarget_ = pos;
-//  if (getSeq() == NULL) {
-//    return asynError;
-//  }
-//    
-//  getSeq()->setTargetPos(pos);
   
   return asynSuccess;
 }
 
+asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void* data, size_t bytes, asynParamType asynParType) {
+
+  if(sizeof(double) != bytes || asynParType != asynParamFloat64) {
+    LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Encoder Pos size or datatype missmatch.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
+    return asynError;
+  }
+
+  double pos = 0;
+  memcpy(&pos,data,bytes);
+
+  if(getBusy()) {
+    LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Axis Busy, homing not possible.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.axisId_);
+          
+    setWarningID(WARNING_AXIS_ASYN_CMD_WHILE_BUSY);
+    return asynError;
+  }
+
+  // Set position
+  return moveHome(ECMC_SEQ_HOME_SET_POS,pos,0,0,0,0) ? asynError: asynSuccess;
+}
+
 asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(int) != bytes && asynParType == asynParamInt32) {
+  if( bytes != 4 || asynParType != asynParamInt32) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): Command size or datatype missmatch.\n",
         __FILE__,
@@ -1974,6 +2028,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynPara
         __LINE__,
         data_.axisId_);
 
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
   int command = 0;
@@ -1984,7 +2039,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void* data, size_t bytes, asynPara
 
 asynStatus ecmcAxisBase::axisAsynWriteCmdData(void* data, size_t bytes, asynParamType asynParType) {
 
-  if(sizeof(int) != bytes && asynParType == asynParamInt32) {
+  if( bytes != 4 || asynParType != asynParamInt32) {
     LOGERR(
         "%s/%s:%d: ERROR (axis %d): CmdData size or datatype missmatch.\n",
         __FILE__,
@@ -1992,6 +2047,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void* data, size_t bytes, asynPara
         __LINE__,
         data_.axisId_);
 
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
   }
   int  cmddata = 0;
@@ -2036,4 +2092,128 @@ int ecmcAxisBase::getAllowHome(){
     return getSeq()->getAllowHome();
   }
   return -ERROR_AXIS_SEQ_OBJECT_NULL;
+}
+
+int ecmcAxisBase::addEncoder(){
+  if (data_.status_.encoderCount >= ECMC_MAX_ENCODERS) {
+    return setErrorID(__FILE__,
+                  __FUNCTION__,
+                  __LINE__,
+                  ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE);
+  }
+  encArray_[data_.status_.encoderCount] = new ecmcEncoder(asynPortDriver_, &data_, data_.sampleTime_, data_.status_.encoderCount);
+  data_.command_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
+  data_.status_.encoderCount++;
+
+  return 0;
+}
+
+int ecmcAxisBase::selectPrimaryEncoder(int index) {
+
+  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
+  if(index < 0) {
+    return 0;
+  }
+
+  if (index >= ECMC_MAX_ENCODERS || index >= data_.status_.encoderCount) {
+    return setErrorID(__FILE__,
+                  __FUNCTION__,
+                  __LINE__,
+                  ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+  }
+
+  if(getBusy()) {
+    return setErrorID(__FILE__,
+                  __FUNCTION__,
+                  __LINE__,
+                  ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY);
+  }
+
+  // Make sure the switch is bumpless
+  if(index !=data_.command_.primaryEncIndex) {
+    seq_.setNewPositionCtrlDrvTrajBumpless(encArray_[index]->getActPos());
+  }
+
+  data_.command_.primaryEncIndex = index;
+  return 0;
+}
+
+int ecmcAxisBase::selectConfigEncoder(int index) {
+
+  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
+  if(index < 0) {
+    return 0;
+  }
+
+  if (index >= ECMC_MAX_ENCODERS || index >= data_.status_.encoderCount) {
+    return setErrorID(__FILE__,
+                  __FUNCTION__,
+                  __LINE__,
+                  ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+  }
+
+  data_.command_.cfgEncIndex = index;
+  return 0;
+}
+
+int ecmcAxisBase::selectHomeEncoder(int index) {
+
+  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
+  if(index < 0) {
+    return 0;
+  }
+
+  if (index >= ECMC_MAX_ENCODERS || index >= data_.status_.encoderCount) {
+    return setErrorID(__FILE__,
+                  __FUNCTION__,
+                  __LINE__,
+                  ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+  }
+
+  data_.command_.homeEncIndex = index;
+  return 0;
+}
+
+int ecmcAxisBase::getConfigEncoderIndex() {
+  return data_.command_.cfgEncIndex;
+}
+
+int ecmcAxisBase::getPrimaryEncoderIndex() {
+  return data_.command_.primaryEncIndex;
+}
+
+int ecmcAxisBase::getHomeEncoderIndex() {
+  return data_.command_.homeEncIndex;
+}
+
+void ecmcAxisBase::initEncoders() {
+  // set all relative encoders to 0
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
+    encArray_[i]->setToZeroIfRelative();
+  }
+  
+  // check if any encoders should be referenced to another encoder
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
+    int encRefIndex =  encArray_[i]->getRefToOtherEncAtStartup();
+    if(encRefIndex < 0 || encRefIndex >= data_.status_.encoderCount) {
+      continue;
+    }
+
+    if(encArray_[encRefIndex] == NULL) {
+      continue;
+    }
+    encArray_[i]->setActPos(encArray_[encRefIndex]->getActPos());
+    encArray_[i]->setHomed(1);
+  }
+}
+
+int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
+  allowSourceChangeWhenEnbaled_ = allow;
+  return 0;
+}
+
+void ecmcAxisBase::setTargetVel(double velTarget) {
+  getSeq()->setTargetVel(velTarget);
+  // also set for ecmc interface
+  velocityTarget_ = velTarget;
 }

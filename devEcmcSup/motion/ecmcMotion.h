@@ -54,6 +54,16 @@ extern "C" {
   }                                                                           \
 }                                                                             \
 
+#define CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)                     \
+{                                                                             \
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
+  if (axes[axisIndex]->                                                       \
+    getConfigEnc() == NULL) {                                                 \
+    LOGERR("ERROR: Encoder object NULL.\n");                                  \
+    return ERROR_MAIN_ENCODER_OBJECT_NULL;                                    \
+  }                                                                           \
+}                                                                             \
+
 #define CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex)                      \
 {                                                                             \
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
@@ -1279,6 +1289,20 @@ int setAxisSoftLimitPosBwd(int    axisIndex,
 int setAxisSoftLimitPosFwd(int    axisIndex,
                            double value);
 
+/** \brief Enable alarm when at softlimit
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value alarm enable command.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable alarm for soft-limits for axis 3.\n
+ * "Cfg.SetAxisEnableAlarmAtSoftLimit(3,1)" //Command string to ecmcCmdParser.c.\n
+ *
+ */
+int setAxisEnableAlarmAtSoftLimit(int axisIndex,
+                                  int value);
+
 /** \brief Set axis acceleration setpoint.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -1329,16 +1353,17 @@ int setAxisDeceleration(int    axisIndex,
 int setAxisEmergDeceleration(int    axisIndex,
                              double value);
 
-/** \brief Set axis maximum jerk setpoint. NOT USED!\n
+/** \brief Set axis maximum jerk setpoint.\n
  *
- * \note Currently not used!!!!!.\n
+ * \note Only used for ruckig trajectories (traj type 1).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] value Jerk setpoint.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: No command string implemented in the ecmcCmdParser.c parser.\n
+ * \note Example: Set jerk to 23.2 for axis 3.\n
+ * "Cfg.SetAxisJerk(3,23.2)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisJerk(int    axisIndex,
                 double value);
@@ -1478,7 +1503,8 @@ int setAxisHomePos(int    axisIndex,
 
 /** \brief Set home index pulse count offset.\n
  *
- * Sets number of latches before homing is made.\n
+ * Sets number of latches before homing is made for the current\n
+ * encoder beeing configured.\n
  *
  *  \note Only valid for some homing sequences when\
  *  homing on hardware latched position (encoder index or external hw latch).\n
@@ -1489,9 +1515,9 @@ int setAxisHomePos(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set home latch count to 1 for axis 10.\n
- * "Cfg.SetAxisHomeLatchCountOffset(10,1)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisEncHomeLatchCountOffset(10,1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisHomeLatchCountOffset(int axisIndex,
+int setAxisEncHomeLatchCountOffset(int axisIndex,
                                 int count);
 
 /** \brief Set Towards cam referencing/homing velocity setpoint.\n
@@ -1835,6 +1861,150 @@ int setAxisEncAbsBits(int axisIndex,
 int setAxisEncRawMask(int      axisIndex,
                       uint64_t rawMask);
 
+/** \brief Add encoder object to axis.\n
+ *
+ *  Adds another encoder to axis object(max is 8).\n
+ *  After this command have been executed, all following encoder configuration\n
+ *  commands will be applied to the newly created encoder object.\n
+ *
+ *  Note: An encoder object will be automatically created when the axis object is created, \n
+ *  this encoder will have index 0. The first "extra" encoder created with addAxisEnc \n
+ *  function will therefore have encoder index 1, the next 2....\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add encoder to axis object 3.\n
+ * "Cfg.AddAxisEnc(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int addAxisEnc(int axisIndex);
+
+/** \brief Select encoder to be used for control.\n
+ *
+ *  Select an encoder to use for closed loop control (default encoder index 0 is used).\n 
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encindex Encoder index (first index is 0).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Select to use teh third encoder object for closed loop control of axis 3.\n
+ * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
+ */
+int selectAxisEncPrimary(int axisIndex, int index);
+
+/** \brief Select encoder to configured.\n
+ *
+ *  Select an encoder to be configured (default encoder index 0 is used).\n 
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encindex Encoder index (first index is 0).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Select encoder 2 of axis 3 for configiuration.\n
+ * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
+ */
+int selectAxisEncConfig(int axisIndex, int index);
+
+/** \brief Select encoder to be used for homing.\n
+ *
+ *  Select an encoder to be used for homing (default encoder index 0 is used).\n 
+ *  If the homing encoders differes from primary encoder, a encoder switch will \n 
+ *  occur during homing. When homing is ready, the primary encoder will be refernced\n
+ *  to the encoder used for homing, and then the primary encoder will be used again.\n 
+ *  
+ * \param[in] axisIndex Axis index.\n
+ * \param[in] encindex Encoder index (first index is 0).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Select encoder 2 of axis 3 for homing.\n
+ * "Cfg.SelectAxisHomeEnc(3,2)" //Command string to ecmcCmdParser.c.\n
+ */
+int selectAxisEncHome(int axisIndex, int index);
+
+/** \brief Set referance this encoder at homing
+ *
+ *  Referance this encoder during homing. If true, this encoder will be\n
+ *  set to the resulting value of a hoing sequence (based on any encoder). 
+ *  
+ * \param[in] axisIndex Axis index.\n
+ * \param[in] enable Enable referencing.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Ref this encoder at homing of axis 3.\n
+ * "Cfg.SetAxisEncEnableRefAtHome(3,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncEnableRefAtHome(int axisIndex, int enable);
+
+/** \brief Get index of current encoder being used for control (PID).\n
+ *
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get index of current encoder being used for control for axis 3.\n
+ * "Cfg.GetAxisEncPrimaryIndex(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisEncPrimaryIndex(int axisIndex, int *index);
+
+/** \brief Get index of current encoder being configured.\n
+ *
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get index of current encoder being configured for axis 3.\n
+ * "Cfg.GetAxisEncConfigIndex(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisEncConfigIndex(int axisIndex, int *index);
+
+/** \brief Get index of current encoder being used for homing (referencing).\n
+ *
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Get index of current encoder being used for homing for axis 3.\n
+ * "Cfg.GetAxisEncHomeIndex(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisEncHomeIndex(int axisIndex, int *index);
+
+/** \brief Reference this encoder to other encoder at startup.\n
+ *
+ *  For axes with multiple encoders an encoder can be referenced to other\n
+ *  encoder at startup. This is typically usefull for referencing a \n
+ *  relative encoder to an absolute encoder.\n
+ *  
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encRef Encoder reference index (first index is 0).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Reference this encoder to encoder 0 of axis 4
+ * "Cfg.SetAxisEncRefToOtherEncAtStartup(4,0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef);
+
+/** \brief Set maximum position deviation between current encoder and primary encoder.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Maximum allowed position deviation.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set maximum allowed devaition between this encoder and \n
+ * the primary encoder to 0.1 for axis 3.\n
+ * "Cfg.SetAxisEncMaxDiffToPrimEnc(3,0.1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncMaxDiffToPrimEnc(int axisIndex, double value);
+
 /** \brief Set PID-controller proportional gain.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2120,6 +2290,22 @@ int getAxisMonAtTargetTol(int     axisIndex,
  */
 int setAxisMonAtTargetTol(int    axisIndex,
                           double value);
+
+/** \brief Set "at target" monitoring tolerance.\n
+ *
+ *   Enable check of difference between encoders \n
+ *   (if more than one encoder is configutred for teh axis)\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable Enable monitoring of encoder diffs \n
+                     (if more than one enc per axis is configured).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable funtionallity for axis 7.\n
+ * "Cfg.SetAxisMonEnableEncsDiff(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEnableCheckEncsDiff(int axisIndex, int enable);
 
 /** \brief Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n
@@ -3086,6 +3272,19 @@ int getAxisModType(int  axisIndex,
  */
 int setAxisDisableAtErrorReset(int axisIndex,
                                int disable);
+
+/** \brief Allow change of encoder and trajectory source when axis is enabled
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] allow allow source change (default false).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Allow change of traj and enc source when enabled for axis 3.\n
+ * "Cfg.SetAxisAllowSourceChangeWhenEnabled(3,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
+                                        int allow);
 
 # ifdef __cplusplus
 }

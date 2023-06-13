@@ -29,6 +29,7 @@
 #include "ecmcTrajectoryTrapetz.h"
 #include "ecmcAxisData.h"
 #include "ecmcFilter.h"
+#include "ecmcMotionUtils.h"
 
 // AXIS ERRORS
 #define ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL 0x14300
@@ -62,13 +63,21 @@
 #define ERROR_AXIS_BUSY 0x1431C
 #define ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL 0x1431D
 #define ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL 0x1431E
-#define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
-#define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
+// Moved to ecmcDefinitions.h
+//#define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
+//#define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
 #define ERROR_AXIS_PRINT_TO_BUFFER_FAIL 0x14321
 #define ERROR_AXIS_MODULO_OUT_OF_RANGE 0x14322
 #define ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE 0x14323
 #define ERROR_AXIS_FILTER_OBJECT_NULL 0x14324
 #define ERROR_AXIS_PLC_OBJECT_NULL 0x14325
+#define ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE 0x14326
+#define ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE 0x14327
+#define ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY 0x14328
+
+// AXIS WARNINGS
+#define WARNING_AXIS_ASYN_CMD_WHILE_BUSY 0x114300
+#define WARNING_AXIS_ASYN_CMD_DATA_ERROR 0x114301
 
 enum axisState {
   ECMC_AXIS_STATE_STARTUP  = 0,
@@ -183,6 +192,8 @@ class ecmcAxisBase : public ecmcError {
   ecmcTrajectoryBase       * getTraj();
   ecmcMonitor              * getMon();
   ecmcEncoder              * getEnc();
+  ecmcEncoder              * getEnc(int encIndex, int* error);
+  ecmcEncoder              * getConfigEnc();  // get current encoder being configured
   ecmcAxisSequencer        * getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);
@@ -258,17 +269,28 @@ class ecmcAxisBase : public ecmcError {
   asynStatus                 axisAsynWriteTargetPos(void* data, size_t bytes, asynParamType asynParType);
   asynStatus                 axisAsynWriteCommand(void* data, size_t bytes, asynParamType asynParType);
   asynStatus                 axisAsynWriteCmdData(void* data, size_t bytes, asynParamType asynParType);
+  asynStatus                 axisAsynWriteSetEncPos(void* data, size_t bytes, asynParamType asynParType);
+
   int                        setAllowMotionFunctions(bool enablePos, bool enableConstVel, bool enableHome);
   int                        getAllowPos();
   int                        getAllowConstVelo();
   int                        getAllowHome();
+  int                        addEncoder();
+  int                        selectPrimaryEncoder(int index);
+  int                        selectConfigEncoder(int index);
+  int                        selectHomeEncoder(int index);
+  int                        getPrimaryEncoderIndex();  // Control (PID)
+  int                        getConfigEncoderIndex();   // Config
+  int                        getHomeEncoderIndex();     // Homing
   double                     getExtSetPos();
   double                     getExtActPos();
+  int                        setAllowSourceChangeWhenEnabled(bool allow);
+  void                       setTargetVel(double velTarget);
 
  protected:
   void                       initVars();
   void                       refreshDebugInfoStruct();
-  double                     getPosErrorMod();
+  //double                     getPosErrorMod();
   int                        createAsynParam(const char        *nameFormat,
                                              asynParamType      asynType,
                                              ecmcEcDataType     ecmcType,
@@ -277,10 +299,11 @@ class ecmcAxisBase : public ecmcError {
                                              ecmcAsynDataItem **asynParamOut);
   void                       refreshStatusWd();
   void                       initControlWord();
+  void                       initEncoders();
 
   ecmcTrajectoryBase     *traj_;
   ecmcMonitor            *mon_;
-  ecmcEncoder            *enc_;
+  ecmcEncoder            *encArray_[ECMC_MAX_ENCODERS];  
   ecmcAxisSequencer       seq_;
   ecmcAxisStatusType      statusData_;
   ecmcAxisStatusType      statusDataOld_;
@@ -309,9 +332,11 @@ class ecmcAxisBase : public ecmcError {
   ecmcAsynAxisControlType controlWord_;  
   double                  positionTarget_;
   double                  velocityTarget_;
+  double                  setEncoderPos_;
   motionCommandTypes      command_;
   int                     cmdData_;
   ecmcTrajTypes           currentTrajType_;
+  bool                    allowSourceChangeWhenEnbaled_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAxisData.h"
+#include "../com/ecmcOctetIF.h"
 
 ecmcAxisData::ecmcAxisData() {
   axisId_     = 0;
@@ -24,14 +25,8 @@ ecmcAxisData::ecmcAxisData() {
 ecmcAxisData::~ecmcAxisData()
 {}
 
-stopMode ecmcAxisData::refreshInterlocks() {
+stopMode ecmcAxisData::refreshInterlocksInternal() {
   setSummaryInterlocks();
-
-  // Latch latest active interlock
-  if ((interlocks_.interlockStatus != ECMC_INTERLOCK_NONE) &&
-      (interlocks_.interlockStatus != interlocks_.lastActiveInterlock)) {
-    interlocks_.lastActiveInterlock = interlocks_.interlockStatus;
-  }
 
   // If no summary interlocks then no interlocks
   if (!interlocks_.driveSummaryInterlock &&
@@ -161,6 +156,12 @@ stopMode ecmcAxisData::refreshInterlocks() {
     return interlocks_.currStopMode;
   }
 
+  if (interlocks_.encDiffInterlock) {
+    interlocks_.interlockStatus = ECMC_INTERLOCK_ENC_DIFF;
+    interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
+    return interlocks_.currStopMode;
+  }
+
   interlocks_.interlockStatus = ECMC_INTERLOCK_NONE;
 
   interlocks_.currStopMode = ECMC_STOP_MODE_RUN;
@@ -168,7 +169,29 @@ stopMode ecmcAxisData::refreshInterlocks() {
   return interlocks_.currStopMode;
 }
 
+stopMode ecmcAxisData::refreshInterlocks() {
+  interlockTypes oldInterlock = interlocks_.interlockStatus;
+  
+  stopMode stop = refreshInterlocksInternal();
+
+  // Latch latest active interlock
+  if ((interlocks_.interlockStatus != ECMC_INTERLOCK_NONE) &&
+      (interlocks_.interlockStatus != interlocks_.lastActiveInterlock)) {
+    interlocks_.lastActiveInterlock = interlocks_.interlockStatus;
+  }
+  
+  if(oldInterlock != interlocks_.interlockStatus) {
+    if(interlocks_.interlockStatus) {
+      LOGERR("%s/%s:%d: INFO (axis %d): Motion interlocked (type %d).\n", __FILE__, __FUNCTION__, __LINE__,axisId_,interlocks_.interlockStatus);
+    } else {
+      LOGERR("%s/%s:%d: INFO (axis %d): Motion interlock cleared.\n", __FILE__, __FUNCTION__, __LINE__,axisId_);
+    }
+  }
+  return stop;
+}
+
 int ecmcAxisData::setSummaryInterlocks() {
+
   interlocks_.driveSummaryInterlock = interlocks_.bothLimitsLowInterlock
                                       || interlocks_.bothLimitsLowInterlock
                                       || interlocks_.
@@ -195,7 +218,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.
                                         velocityDiffTrajInterlock
                                         || interlocks_.plcInterlock
-                                        || interlocks_.plcInterlockBWD;
+                                        || interlocks_.plcInterlockBWD
+                                        || interlocks_.encDiffInterlock;
 
   interlocks_.trajSummaryInterlockFWD = interlocks_.driveSummaryInterlock
                                         || interlocks_.axisErrorStateInterlock
@@ -213,7 +237,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.
                                         velocityDiffTrajInterlock
                                         || interlocks_.plcInterlock
-                                        || interlocks_.plcInterlockFWD;
+                                        || interlocks_.plcInterlockFWD
+                                        || interlocks_.encDiffInterlock;
 
   return 0;
 }

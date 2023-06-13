@@ -104,6 +104,7 @@ void ecmcEcSlave::initVars() {
   syncManArrayIndex_ = 0;
   statusWord_        = 0;
   statusWordOld_     = 0;
+  asyncSDOCounter_   = 0;
 
   for (int i = 0; i < EC_MAX_SYNC_MANAGERS; i++) {
     syncManagerArray_[i] = NULL;
@@ -157,6 +158,10 @@ ecmcEcSlave::~ecmcEcSlave() {
   for (int i = 0; i < ECMC_ASYN_EC_SLAVE_PAR_COUNT; i++) {
     delete slaveAsynParams_[i]; 
     slaveAsynParams_[i] = NULL; 
+  }
+
+  for(int i=0;i<asyncSDOCounter_;i++) {
+    delete asyncSDOvector_[i];
   }
 }
 
@@ -533,6 +538,11 @@ int ecmcEcSlave::updateInputProcessImage() {
       entryListInUse_[i]->updateInputProcessImage();
     }
   }
+  
+  // Execute async SDOs
+  for(int i=0;i<asyncSDOCounter_;i++) {
+    asyncSDOvector_[i]->execute();
+  }
 
   return 0;
 }
@@ -894,4 +904,33 @@ int ecmcEcSlave::addSDOWriteBuffer(uint16_t    sdoIndex,
                                        sdoSubIndex,
                                        dataBuffer,
                                        (size_t)byteSize);
+}
+
+int ecmcEcSlave::addSDOAsync(uint16_t sdoIndex, /**< SDO index. */
+                            uint8_t sdoSubIndex, /**< SDO subindex. */
+                            ecmcEcDataType dt,
+                            std::string alias) {
+  try { 
+    ecmcEcAsyncSDO* temp = new ecmcEcAsyncSDO(asynPortDriver_,
+                                              masterId_,
+                                              slavePosition_,
+                                              slaveConfig_,
+                                              sdoIndex,
+                                              sdoSubIndex,
+                                              dt,
+                                              alias);
+    asyncSDOvector_.push_back(temp);
+  } 
+  catch (std::exception& e) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Slave %d: Failed to create async SDO object (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL);
+  }
+  asyncSDOCounter_++;
+  return 0;
 }
