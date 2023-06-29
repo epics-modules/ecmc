@@ -2,7 +2,7 @@
 Release Notes
 ===
 
-# master
+# ECMC 9.0.0
 * Fixes to brake control
 * Add asynparameter command to set encoder position (ax.setencpos). Usefull for save restore
 * Block "Cfg.CreateAxis()" for already created axis 
