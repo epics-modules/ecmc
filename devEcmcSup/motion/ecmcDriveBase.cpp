@@ -220,6 +220,11 @@ int ecmcDriveBase::getEnableReduceTorque() {
 
 void ecmcDriveBase::writeEntries() {
 
+  if (!driveInterlocksOK() && data_->command_.enable) {
+    data_->command_.enable = false;
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
+  }
+
   // Update enable command
   if (enableBrake_) {
     // also wait for brakeOutputCmd_
@@ -229,11 +234,6 @@ void ecmcDriveBase::writeEntries() {
     // No brake
     data_->status_.enabled = getEnabledLocal();  
     enableAmpCmd_ = data_->command_.enable;
-  }
-
-  if (!driveInterlocksOK() && data_->command_.enable) {
-    data_->command_.enable = false;
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
   }
 
   int errorCode = 0;
