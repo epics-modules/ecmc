@@ -223,6 +223,7 @@ void ecmcDriveBase::writeEntries() {
   // Check if drive status OK
   if (!driveInterlocksOK() && data_->command_.enable) {
     data_->command_.enable = false;
+    enableAmpCmd_ = false;
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
   }
 
@@ -305,7 +306,8 @@ void ecmcDriveBase::writeEntries() {
     if(cycleCounterBase_ > stateMachineTimeoutCycles_) {
       // Enable cmd timeout (not recived enable within time period)
       cycleCounterBase_ = 0;
-      data_->command_.enable = 0;
+      data_->command_.enable = false;
+      enableAmpCmd_ = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -317,7 +319,8 @@ void ecmcDriveBase::writeEntries() {
 
   // Enabled lost?
   if(!getEnabledLocal() && localEnabledOld_ && data_->command_.enable) {
-      data_->command_.enable = 0;
+      data_->command_.enable = false;
+      enableAmpCmd_ = false;
       LOGERR("%s/%s:%d: WARNING (axis %d): Drive enabled lost while enable cmd is high.\n",
       __FILE__,
       __FUNCTION__,
@@ -393,7 +396,8 @@ void ecmcDriveBase::readEntries() {
     
     // Set Alarm
     if(hwErrorAlarm0_) {
-      data_->command_.enable = 0;
+      data_->command_.enable = false;
+      enableAmpCmd_ = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -417,7 +421,8 @@ void ecmcDriveBase::readEntries() {
     
     // Set Alarm
     if(hwErrorAlarm1_) {
-      data_->command_.enable = 0;
+      data_->command_.enable = false;
+      enableAmpCmd_ = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -441,7 +446,8 @@ void ecmcDriveBase::readEntries() {
     
     // Set Alarm
     if(hwErrorAlarm2_) {
-      data_->command_.enable = 0;
+      data_->command_.enable = false;
+      enableAmpCmd_ = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
