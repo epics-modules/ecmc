@@ -396,8 +396,8 @@ int ecmcMonitor::setMaxVelTrajTime(int time) {
 }
 
 int ecmcMonitor::reset() {
-  data_->status_.atTarget = false;
-  atTargetCounter_        = 0;
+  //data_->status_.atTarget = false;
+  //atTargetCounter_        = 0;
   lagMonCounter_          = 0;
   maxVelCounterDrive_     = 0;
   maxVelCounterTraj_      = 0;

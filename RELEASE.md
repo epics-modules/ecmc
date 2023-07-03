@@ -1,6 +1,9 @@
 
 Release Notes
 ===
+# 9.0.1_RC1
+* Remove reset of attarget bit when error reset is executed
+* Fix of brake not engaging when drive interlock
 
 # ECMC 9.0.0
 * Fixes to brake control
