@@ -2894,6 +2894,19 @@ int getAxisModType(int  axisIndex,
   return 0;
 }
 
+void* getAxisPointer(int  axisIndex) {
+  LOGINFO4("%s/%s:%d axisIndex=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  if (axisIndex >= ECMC_MAX_AXES || axisIndex <= 0) {
+    LOGERR("ERROR: Axis index out of range.\n");
+    return NULL;
+  }
+  return (void*)axes[axisIndex];  
+}
+
 int setAxisModType(int axisIndex,
                    int type) {
   LOGINFO4("%s/%s:%d axisIndex=%d, mod type=%d \n",

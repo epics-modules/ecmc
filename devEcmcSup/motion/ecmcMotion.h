@@ -3286,6 +3286,15 @@ int setAxisDisableAtErrorReset(int axisIndex,
 int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
                                         int allow);
 
+/** \brief Get pointer to axis object.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return pointer to axis object if success or otherwise an error code.\n
+ *
+ */
+void* getAxisPointer(int  axisIndex);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus
