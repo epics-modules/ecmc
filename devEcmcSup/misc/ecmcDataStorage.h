@@ -15,9 +15,9 @@
 
 #include <stdlib.h>
 #include "stdio.h"
-#include "../main/ecmcError.h"
-#include "../main/ecmcDefinitions.h"
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcError.h"
+#include "ecmcDefinitions.h"
+#include "ecmcAsynPortDriver.h"
 
 // Data storage
 #define ERROR_DATA_STORAGE_FULL 0x20200

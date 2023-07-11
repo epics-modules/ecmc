@@ -14,10 +14,10 @@
 #define ECMCEVENT_H_
 
 #include "stdio.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../ethercat/ecmcEcEntryLink.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcEcEntry.h"
+#include "ecmcEcEntryLink.h"
 #include "ecmcDataStorage.h"
 #include "ecmcEventConsumer.h"
 

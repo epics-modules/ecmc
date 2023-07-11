@@ -15,7 +15,7 @@
 #include <string.h>
 #include "stdio.h"
 #include "ecrt.h"
-#include "../main/ecmcError.h"
+#include "ecmcError.h"
 
 // ECSDO
 #define ERROR_EC_SDO_SIZE_TO_LARGE 0x23000

@@ -15,15 +15,15 @@
 
 #include <string>
 #include <sstream>
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../motion/ecmcAxisBase.h"
-#include "../misc/ecmcDataStorage.h"
-#include "../ethercat/ecmcEc.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../ethercat/ecmcEcEntryLink.h"
-#include "../ethercat/ecmcEcSlave.h"
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcAxisBase.h"
+#include "ecmcDataStorage.h"
+#include "ecmcEc.h"
+#include "ecmcEcEntry.h"
+#include "ecmcEcEntryLink.h"
+#include "ecmcEcSlave.h"
+#include "ecmcAsynPortDriver.h"
 
 #define ECMC_PLC_EC_ENTRY_INDEX 0
 

@@ -11,15 +11,15 @@
 \*************************************************************************/
 
 #include "ecmcPLC.h"
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
-#include "../motion/ecmcMotion.h"
-#include "../motion/ecmcAxisBase.h"
-#include "../ethercat/ecmcEc.h"
-#include "../misc/ecmcDataStorage.h"
-#include "../com/ecmcAsynPortDriver.h"
-#include "../plugin/ecmcPluginLib.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
+#include "ecmcMotion.h"
+#include "ecmcAxisBase.h"
+#include "ecmcEc.h"
+#include "ecmcDataStorage.h"
+#include "ecmcAsynPortDriver.h"
+#include "ecmcPluginLib.h"
 #include "ecmcPLCMain.h"
 #include "ecmcPLCTask.h"
 

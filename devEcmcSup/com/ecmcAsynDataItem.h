@@ -15,14 +15,8 @@
 
 #include <bits/stdc++.h> 
 #include "inttypes.h"
-
-#ifndef ECMC_IS_PLUGIN
-#include "../main/ecmcDefinitions.h"
-#include "../com/ecmcAsynPortDriverUtils.h"
-#else
 #include "ecmcDefinitions.h"
 #include "ecmcAsynPortDriverUtils.h"
-#endif
 #include "asynPortDriver.h"
 #include "ecmcDataItem.h"
 

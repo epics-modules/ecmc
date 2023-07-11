@@ -18,7 +18,7 @@
 
 #include "ecmcOctetIF.h"
 #include "ecmcCmdParser.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcErrorsList.h"
 
 unsigned int debug_print_flags      = 0; // 65535;
 unsigned int die_on_error_flags     = 1;

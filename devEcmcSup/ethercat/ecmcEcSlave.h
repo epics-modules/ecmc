@@ -18,11 +18,11 @@
 #include <vector>
 #include "stdio.h"
 #include "ecrt.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../com/ecmcOctetIF.h"  // Logging macros
-#include "../com/ecmcAsynPortDriver.h"
-#include "../com/ecmcAsynDataItem.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcOctetIF.h"  // Logging macros
+#include "ecmcAsynPortDriver.h"
+#include "ecmcAsynDataItem.h"
 #include "ecmcEcEntry.h"
 #include "ecmcEcMemMap.h"
 #include "ecmcEcSyncManager.h"

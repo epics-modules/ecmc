@@ -12,12 +12,12 @@
 
 #include "ecmcMisc.h"
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
 
 // TODO: REMOVE GLOBALS
-#include "../main/ecmcGlobalsExtern.h"
+#include "ecmcGlobalsExtern.h"
 
 int createEvent(int indexEvent) {
   LOGINFO4("%s/%s:%d indexEvent=%d \n",

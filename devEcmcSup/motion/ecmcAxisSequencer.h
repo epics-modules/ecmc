@@ -13,7 +13,7 @@
 #ifndef ecmcAxisSequencer_H_
 #define ecmcAxisSequencer_H_
 
-#include "../main/ecmcError.h"
+#include "ecmcError.h"
 #include "ecmcEncoder.h"
 #include "ecmcMonitor.h"
 #include "ecmcPIDController.h"

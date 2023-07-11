@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 #include "string.h"
-#include "../main/ecmcDefinitions.h"
+#include "ecmcDefinitions.h"
 
 typedef struct {
   double             positionTarget;

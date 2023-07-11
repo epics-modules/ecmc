@@ -11,9 +11,9 @@
 *
 \*************************************************************************/
 
-#include "../com/ecmcAsynDataItem.h"
-#include "../com/ecmcOctetIF.h"  //LOG macros
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcAsynDataItem.h"
+#include "ecmcOctetIF.h"  //LOG macros
+#include "ecmcAsynPortDriver.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 

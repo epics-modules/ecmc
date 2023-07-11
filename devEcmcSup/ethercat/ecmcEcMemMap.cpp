@@ -12,7 +12,7 @@
 
 #include "ecmcEcMemMap.h"
 #include <stdlib.h>
-#include "../main/ecmcErrorsList.h"
+#include "ecmcErrorsList.h"
 
 ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                            int masterId,

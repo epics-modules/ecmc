@@ -15,11 +15,11 @@
 
 #define ERROR_BASE_PID 0x14500
 
-#include "../main/ecmcError.h"
+#include "ecmcError.h"
 #include "ecmcAxisData.h"
-#include "../main/ecmcDefinitions.h"
-#include "../com/ecmcAsynPortDriver.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
+#include "ecmcAsynPortDriver.h"
+#include "ecmcErrorsList.h"
 
 // CONTROLLER ERRORS
 #define ERROR_CNTRL_INVALID_SAMPLE_TIME 0x15000

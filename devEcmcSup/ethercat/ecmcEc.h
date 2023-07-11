@@ -16,10 +16,10 @@
 #include <string>
 #include "stdio.h"
 #include "ecrt.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../com/ecmcOctetIF.h"  // Logging macros
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcOctetIF.h"  // Logging macros
+#include "ecmcAsynPortDriver.h"
 #include "ecmcEcEntry.h"
 #include "ecmcEcSDO.h"
 #include "ecmcEcSlave.h"

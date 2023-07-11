@@ -12,11 +12,7 @@
 
 #ifndef ECMC_ASYN_PORT_DRIVER_UTILS_H_
 #define ECMC_ASYN_PORT_DRIVER_UTILS_H_
-#ifndef ECMC_IS_PLUGIN
-#include "../main/ecmcDefinitions.h"
-#else
 #include "ecmcDefinitions.h"
-#endif
 #include "asynPortDriver.h"  //data types
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>

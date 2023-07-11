@@ -11,7 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAxisData.h"
-#include "../com/ecmcOctetIF.h"
+#include "ecmcOctetIF.h"
 
 ecmcAxisData::ecmcAxisData() {
   axisId_     = 0;

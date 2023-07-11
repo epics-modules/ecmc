@@ -18,11 +18,11 @@
 #include <string>
 
 #include "ecmcMotion.h"
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
-#include "../ethercat/ecmcEthercat.h"
-#include "../plc/ecmcPLC.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
+#include "ecmcEthercat.h"
+#include "ecmcPLC.h"
 #include "ecmcAxisBase.h"      // Abstract class for all axis types
 #include "ecmcAxisReal.h"      // Normal axis (cntr,drv, enc, traj, mon, seq)
 #include "ecmcAxisVirt.h"      // Axis without drive and controller
@@ -36,7 +36,7 @@
 #include "ecmcEcEntry.h"
 
 // TODO: REMOVE GLOBALS
-#include "../main/ecmcGlobalsExtern.h"
+#include "ecmcGlobalsExtern.h"
 
 
 int moveAbsolutePosition(int    axisIndex,

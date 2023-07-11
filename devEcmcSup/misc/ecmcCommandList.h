@@ -17,10 +17,10 @@
 #include <vector>
 #include "stdio.h"
 
-#include "../main/ecmcError.h"
-#include "../main/ecmcDefinitions.h"
-#include "../com/ecmcCmdParser.h"
-#include "../com/ecmcOctetIF.h"
+#include "ecmcError.h"
+#include "ecmcDefinitions.h"
+#include "ecmcCmdParser.h"
+#include "ecmcOctetIF.h"
 #include "ecmcEventConsumer.h"
 
 // Command List

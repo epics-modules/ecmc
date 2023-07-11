@@ -37,13 +37,13 @@
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 #include "ecmcGlobals.h"
-#include "../com/ecmcOctetIF.h" 
-#include "../ethercat/ecmcEthercat.h"
-#include "../motion/ecmcMotion.h"
-#include "../plc/ecmcPLC.h"
-#include "../misc/ecmcMisc.h"
-#include "../com/ecmcAsynPortDriver.h"
-#include "../motor/ecmcMotorRecordController.h"
+#include "ecmcOctetIF.h" 
+#include "ecmcEthercat.h"
+#include "ecmcMotion.h"
+#include "ecmcPLC.h"
+#include "ecmcMisc.h"
+#include "ecmcAsynPortDriver.h"
+#include "ecmcMotorRecordController.h"
 
 /****************************************************************************/
 static unsigned int    counter = 0;

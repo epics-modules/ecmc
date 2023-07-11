@@ -12,7 +12,7 @@
 #ifndef ECMC_PLUGIN_LIB_H_
 #define ECMC_PLUGIN_LIB_H_
 
-#include "../main/ecmcError.h"
+#include "ecmcError.h"
 #include "ecmcPluginDefs.h"
 
 #define ERROR_PLUGIN_FLIE_NOT_FOUND 0x231000

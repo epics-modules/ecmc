@@ -15,8 +15,8 @@
 
 #include <string.h>
 #include <cmath>
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
 #include "ecmcEncoder.h"
 #include "ecmcAxisData.h"
 

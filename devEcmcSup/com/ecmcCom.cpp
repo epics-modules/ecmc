@@ -12,10 +12,10 @@
 
 #include "ecmcCom.h"
 #include "ecmcGeneral.h"
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcMainThread.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
+#include "ecmcMainThread.h"
 
 //Below for asyn version and 64 bit ints
 #include "asynPortDriver.h"
@@ -32,7 +32,7 @@
 
 
 // TODO: REMOVE GLOBALS
-#include "../main/ecmcGlobalsExtern.h"
+#include "ecmcGlobalsExtern.h"
 
 int ecmcInit(void *asynPortObject) {
   

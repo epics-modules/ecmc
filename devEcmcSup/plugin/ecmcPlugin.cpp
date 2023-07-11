@@ -11,12 +11,12 @@
 \*************************************************************************/
 
 #include "ecmcPlugin.h"
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcDefinitions.h"
+#include "ecmcErrorsList.h"
 
 // TODO: REMOVE GLOBALS
-#include "../main/ecmcGlobalsExtern.h"
+#include "ecmcGlobalsExtern.h"
 
 int loadPlugin(int pluginId, const char* filenameWP, const char* configStr) {
   LOGINFO4("%s/%s:%d pluginId = %d, filenameWP=%s, configStr=%s\n",

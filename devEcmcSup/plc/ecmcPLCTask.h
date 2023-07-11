@@ -15,13 +15,13 @@
 
 #include <string>
 #include <vector>
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcAsynPortDriver.h"
 #include "exprtkWrap.h"
-#include "../main/ecmcDefinitions.h"
-#include "../motion/ecmcAxisBase.h"
-#include "../ethercat/ecmcEc.h"
-#include "../ethercat/ecmcEcEntry.h"  // Bit macros
-#include "../plugin/ecmcPluginLib.h"
+#include "ecmcDefinitions.h"
+#include "ecmcAxisBase.h"
+#include "ecmcEc.h"
+#include "ecmcEcEntry.h"  // Bit macros
+#include "ecmcPluginLib.h"
 #include "ecmcPLCDataIF.h"
 
 #define ECMC_MAX_PLC_VARIABLES 1024

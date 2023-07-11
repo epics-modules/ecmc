@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <string>
 #include "ecrt.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../com/ecmcOctetIF.h"  // Logging macros
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcOctetIF.h"  // Logging macros
 #include "ecmcEcEntry.h"
 
 // Errors

@@ -7,7 +7,7 @@ FILENAME...   ecmcMotorRecordAxis.h
 
 #include "asynMotorAxis.h"
 #include <stdint.h>
-#include "../motion/ecmcAxisBase.h"
+#include "ecmcAxisBase.h"
 
 
 #define AMPLIFIER_ON_FLAG_CREATE_AXIS  (1)

@@ -11,12 +11,12 @@
 \*************************************************************************/
 
 #include "ecmcPluginClient.h"
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcDefinitions.h"
+#include "ecmcErrorsList.h"
 
 // TODO: REMOVE GLOBALS
-#include "../main/ecmcGlobalsExtern.h"
+#include "ecmcGlobalsExtern.h"
 
 void* getEcmcDataItem(char *idStringWP) {
   LOGINFO4("%s/%s:%d: idStringWP =%s\n",

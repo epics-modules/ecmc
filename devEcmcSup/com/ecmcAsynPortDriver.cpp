@@ -38,12 +38,12 @@
 #include "ecmcAsynPortDriver.h"
 #include "ecmcOctetIF.h"
 #include "ecmcCmdParser.h"
-#include "../main/gitversion.h"
+#include "gitversion.h"
 #include "ecmcAsynPortDriverUtils.h"
 
-#include "../main/ecmcMainThread.h"
-#include "../ethercat/ecmcEthercat.h"
-#include "../main/ecmcGeneral.h"
+#include "ecmcMainThread.h"
+#include "ecmcEthercat.h"
+#include "ecmcGeneral.h"
 #include "ecmcCom.h"
 
 #include "exprtkWrap.h"  //Other module

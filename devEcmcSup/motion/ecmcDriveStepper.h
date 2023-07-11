@@ -15,11 +15,11 @@
 
 #include <stdio.h>
 #include <cmath>
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../ethercat/ecmcEcEntryLink.h"
-#include "../ethercat/ecmcEcPdo.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcEcEntry.h"
+#include "ecmcEcEntryLink.h"
+#include "ecmcEcPdo.h"
 #include "ecmcDriveBase.h"
 
 class ecmcDriveStepper : public ecmcDriveBase {

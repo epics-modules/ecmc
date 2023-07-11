@@ -1,7 +1,7 @@
 
 #include "ecmcMotionUtils.h"
 #include <cmath>
-#include "../main/ecmcDefinitions.h"
+#include "ecmcDefinitions.h"
 
 double ecmcMotionUtils::getPosErrorModWithSign(double set, double setOld, double act, double modRange) {
 

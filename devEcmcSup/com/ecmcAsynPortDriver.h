@@ -29,13 +29,9 @@
 #define ECMC_ASYN_ASYNPARAMINT64
 #endif
 
-#ifndef ECMC_IS_PLUGIN
-#include "../com/ecmcAsynDataItem.h"
-#include "../main/ecmcDefinitions.h"
-#else
 #include "ecmcAsynDataItem.h"
 #include "ecmcDefinitions.h"
-#endif
+
 
 class ecmcAsynPortDriver : public asynPortDriver {
  public:

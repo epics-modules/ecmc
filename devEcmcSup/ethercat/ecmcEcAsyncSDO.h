@@ -15,10 +15,10 @@
 #include <string.h>
 #include "stdio.h"
 #include "ecrt.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../com/ecmcAsynPortDriver.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcAsynPortDriver.h"
+#include "ecmcErrorsList.h"
 
 #define ERROR_EC_SDO_ASYNC_BUSY 0x23500
 #define ERROR_EC_SDO_ASYNC_ERROR 0x23501

@@ -15,17 +15,17 @@
 #ifndef ECMC_GLOBALS_EXTERN_H_
 #define ECMC_GLOBALS_EXTERN_H_
 
-#include "../ethercat/ecmcEc.h"
-#include "../motion/ecmcAxisBase.h"
-#include "../misc/ecmcEvent.h"
-#include "../misc/ecmcDataRecorder.h"
-#include "../misc/ecmcDataStorage.h"
-#include "../misc/ecmcCommandList.h"
-#include "../plc/ecmcPLCMain.h"
-#include "../motion/ecmcMotion.h"
-#include "../ethercat/ecmcEthercat.h"
-#include "../motor/ecmcMotorRecordController.h"
-#include "../plugin/ecmcPluginLib.h"
+#include "ecmcEc.h"
+#include "ecmcAxisBase.h"
+#include "ecmcEvent.h"
+#include "ecmcDataRecorder.h"
+#include "ecmcDataStorage.h"
+#include "ecmcCommandList.h"
+#include "ecmcPLCMain.h"
+#include "ecmcMotion.h"
+#include "ecmcEthercat.h"
+#include "ecmcMotorRecordController.h"
+#include "ecmcPluginLib.h"
 #include "epicsMutex.h"
 
 extern ecmcAxisBase              *axes[ECMC_MAX_AXES];

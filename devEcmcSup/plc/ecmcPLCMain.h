@@ -17,12 +17,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "../com/ecmcAsynPortDriver.h"
-#include "../main/ecmcDefinitions.h"
-#include "../motion/ecmcAxisBase.h"
-#include "../misc/ecmcDataStorage.h"
-#include "../ethercat/ecmcEc.h"
-#include "../plugin/ecmcPluginLib.h"
+#include "ecmcAsynPortDriver.h"
+#include "ecmcDefinitions.h"
+#include "ecmcAxisBase.h"
+#include "ecmcDataStorage.h"
+#include "ecmcEc.h"
+#include "ecmcPluginLib.h"
 #include "ecmcPLCTask.h"
 #include "ecmcPLCDataIF.h"
 

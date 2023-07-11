@@ -15,8 +15,8 @@
 #include <iomanip>
 #include <iostream>
 #include <cstring>
-#include "../main/ecmcError.h"
-#include "../com/ecmcOctetIF.h"
+#include "ecmcError.h"
+#include "ecmcOctetIF.h"
 
 #define ERROR_AXIS_FILTER_ALLOC_FAIL 0x230000
 

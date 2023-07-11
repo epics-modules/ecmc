@@ -15,7 +15,7 @@ FILENAME... ecmcMotorRecordController.cpp
 #include <epicsExport.h>
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcMotorRecordController.h"
-#include "../main/ecmcGlobalsExtern.h"
+#include "ecmcGlobalsExtern.h"
 
 #ifndef ASYN_TRACE_INFO
 #define ASYN_TRACE_INFO      0x0040

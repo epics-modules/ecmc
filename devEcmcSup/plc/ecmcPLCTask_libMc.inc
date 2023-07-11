@@ -13,7 +13,7 @@
 #ifndef ecmcPLC_libMc_inc_
 #define ecmcPLC_libMc_inc_
 
-#include "../main/ecmcErrorsList.h"
+#include "ecmcErrorsList.h"
 
 #define CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndex) {             \
   if(axIndex>=ECMC_MAX_AXES || axIndex<=0){                   \

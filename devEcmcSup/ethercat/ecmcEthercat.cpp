@@ -10,9 +10,9 @@
 *
 \*************************************************************************/
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
 
 #include "ecmcEthercat.h"
 #include "ecmcEc.h"

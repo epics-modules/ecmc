@@ -11,7 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcDataStorage.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcErrorsList.h"
 
 ecmcDataStorage::ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
                                  int index,

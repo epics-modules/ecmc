@@ -25,15 +25,15 @@
 #include <math.h>
 #include "ecmcCmdParser.h"
 #include "ecmcOctetIF.h"
-#include "../main/ecmcMainThread.h"
-#include "../main/ecmcErrorsList.h"
-#include "../motion/ecmcMotion.h"
-#include "../ethercat/ecmcEthercat.h"
-#include "../misc/ecmcMisc.h"
-#include "../main/ecmcGeneral.h"
-#include "../com/ecmcCom.h"
-#include "../plc/ecmcPLC.h"
-#include "../plugin/ecmcPlugin.h"
+#include "ecmcMainThread.h"
+#include "ecmcErrorsList.h"
+#include "ecmcMotion.h"
+#include "ecmcEthercat.h"
+#include "ecmcMisc.h"
+#include "ecmcGeneral.h"
+#include "ecmcCom.h"
+#include "ecmcPLC.h"
+#include "ecmcPlugin.h"
 #include <iocsh.h>
 
 typedef struct

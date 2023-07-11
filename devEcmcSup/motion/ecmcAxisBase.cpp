@@ -17,7 +17,7 @@
 #include <new>
 #include <iostream>
 #include "ecmcMotion.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcErrorsList.h"
 
 /**
  * Callback function for asynWrites (control word)

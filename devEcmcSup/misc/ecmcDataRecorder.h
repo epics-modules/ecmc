@@ -15,10 +15,10 @@
 
 #include "stdio.h"
 
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../motion/ecmcAxisBase.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcEcEntry.h"
+#include "ecmcAxisBase.h"
 #include "ecmcDataStorage.h"
 #include "ecmcEvent.h"
 #include "ecmcEventConsumer.h"

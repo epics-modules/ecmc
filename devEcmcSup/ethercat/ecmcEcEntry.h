@@ -18,10 +18,10 @@
 #include "stdio.h"
 #include "limits.h"
 #include "ecrt.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../com/ecmcOctetIF.h"
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcOctetIF.h"
+#include "ecmcAsynPortDriver.h"
 #include "alarm.h"  //EPICS alarms
 
 #include "asynPortDriver.h"
