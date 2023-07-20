@@ -394,6 +394,13 @@ double ecmcTrajectoryBase::getNextPosSet() {
   // "Main" of trajectory generator. Needs to be called exactly once per cycle.
   // Updates trajectory setpoint
 
+  // Some error occured. Axis lost enable.. abort
+  if(busy_ && !data_->status_.enabled) {
+    double tempPos = getCurrentPosSet();
+    busy_ = false;
+    updateSetpoint(tempPos , 0, 0, busy_);    
+  }
+
   if (!busy_ || !enable_) {
     if (execute_ && !enable_) {
       setErrorID(__FILE__,
@@ -403,7 +410,7 @@ double ecmcTrajectoryBase::getNextPosSet() {
     }
     double tempPos = getCurrentPosSet();
     updateSetpoint(tempPos , 0, 0, busy_);
-    //setCurrentPosSet(tempPos);    
+    //setCurrentPosSet(tempPos);
     return tempPos;
   }
 
