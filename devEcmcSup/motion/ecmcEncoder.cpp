@@ -385,6 +385,11 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
       }
     }
   }
+
+  if(!encInitilized_) {
+    return 0;
+  }
+  
   // Check over/underflow (update turns counter)
   rawTurnsOld_ = rawTurns_;
   rawTurns_    = handleOverUnderFlow(rawPosUintOld_,
