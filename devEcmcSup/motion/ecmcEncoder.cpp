@@ -547,8 +547,9 @@ int ecmcEncoder::readHwReady() {
     }
 
     if( !hwReady_) {      
-      if(data_->status.enabled) {
-        // Error when enabled
+      if(data_->status_.enabled) {
+        // Error when enabled, this is serious, remove power
+        data_->command_.enable = 0;
         return ERROR_ENC_NOT_READY;
       } else {
         // just set warning when not enabled

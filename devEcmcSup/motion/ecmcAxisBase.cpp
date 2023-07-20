@@ -608,10 +608,6 @@ void ecmcAxisBase::errorReset() {
 }
 
 int ecmcAxisBase::validateBase() {
-  if (getEnc()->readyForEnable()) {
-    return setErrorID(ERROR_ENC_NOT_READY);
-  }
-
   return 0;
 }
 
@@ -1340,9 +1336,14 @@ int ecmcAxisBase::setEnable(bool enable) {
     setExecute(false);
   }
   
-  if (enable && validate()) {
+  if (enable && validate()) {    
     setExecute(false);
     return getErrorID();
+  }
+
+  if (getEnc()->readyForEnable()) {
+    data_.command_.enable = false;
+    return setErrorID(ERROR_ENC_NOT_READY);
   }
 
   int error = setEnableLocal(enable);
