@@ -300,6 +300,7 @@ class ecmcAxisBase : public ecmcError {
   void                       refreshStatusWd();
   void                       initControlWord();
   void                       initEncoders();
+  bool                       getHwReady();
 
   ecmcTrajectoryBase     *traj_;
   ecmcMonitor            *mon_;

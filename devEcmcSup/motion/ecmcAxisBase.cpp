@@ -205,7 +205,7 @@ void ecmcAxisBase::initVars() {
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
-
+  bool hwReady = false;
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
   if(!masterOK){
     setEnable(false);
@@ -227,17 +227,32 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   switch (axisState_) {
   case ECMC_AXIS_STATE_STARTUP:
     setEnable(false);
-    data_.status_.busy       = false;
+    data_.status_.busy       = true;
     data_.status_.distToStop = 0;
 
-    if (masterOK) {
+    if(masterOK) {
+      hwReady = getHwReady();
+      if(!hwReady) {
+        setErrorID(ERROR_ENC_NOT_READY);
+      } else {  // auto reset error if ok
+        if (getErrorID() == ERROR_ENC_NOT_READY) {
+          errorReset();  
+        }
+      }
+    }
+
+    if (masterOK && hwReady) {
       // Auto reset hardware error if starting up
       if ((getErrorID() == ERROR_AXIS_HARDWARE_STATUS_NOT_OK) &&
           data_.status_.inStartupPhase) {
         errorReset();
-        setInStartupPhase(false);
-        initEncoders();
       }
+      
+      // bus ok and hw ok, startup finished
+      setInStartupPhase(false);
+      data_.status_.startupFinsished = true;
+      initEncoders();
+
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
     break;
@@ -1341,7 +1356,7 @@ int ecmcAxisBase::setEnable(bool enable) {
     return getErrorID();
   }
 
-  if (getEnc()->readyForEnable()) {
+  if (!getEnc()->hwReady()) {
     data_.command_.enable = false;
     return setErrorID(ERROR_ENC_NOT_READY);
   }
@@ -2176,6 +2191,7 @@ int ecmcAxisBase::selectHomeEncoder(int index) {
   }
 
   data_.command_.homeEncIndex = index;
+
   return 0;
 }
 
@@ -2189,6 +2205,19 @@ int ecmcAxisBase::getPrimaryEncoderIndex() {
 
 int ecmcAxisBase::getHomeEncoderIndex() {
   return data_.command_.homeEncIndex;
+}
+
+bool ecmcAxisBase::getHwReady() {
+  bool ready=true;
+
+  // Check encoders
+  for(int i = 0; i < data_.status_.encoderCount; i++) {
+    ready = encArray_[i]->hwReady() && ready;
+  }
+
+  // Check drives TODO
+
+  return ready;
 }
 
 void ecmcAxisBase::initEncoders() {

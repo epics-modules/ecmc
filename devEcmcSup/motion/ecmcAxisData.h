@@ -77,6 +77,7 @@ typedef struct {
   bool   homeSwitch;
   bool   homeSwitchFiltered;
   bool   inStartupPhase;
+  bool   startupFinsished;
   bool   inRealtime;
   double distToStop;
   int errorCode;

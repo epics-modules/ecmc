@@ -77,7 +77,7 @@ void ecmcAxisSequencer::execute() {
     if (data_->command_.command == ECMC_CMD_HOMING) {
       data_->status_.busy = localSeqBusy_ || traj_->getBusy();
     } else {
-      data_->status_.busy = traj_->getBusy();
+      data_->status_.busy = traj_->getBusy() || !data_->status_.startupFinsished;
     }
   } else {    // Sync to other axis
     data_->status_.busy = true;

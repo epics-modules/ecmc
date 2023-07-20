@@ -130,7 +130,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
 
   void                  setMaxPosDiffToPrimEnc(double distance);
   double                getMaxPosDiffToPrimEnc();
-  int                   readyForEnable();
+  int                   hwReady();
   
  protected:
   void                  initVars();
@@ -211,7 +211,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool refDuringHoming_;
   int homeLatchCountOffset_;
   double maxPosDiffToPrimEnc_;
-
+  bool encInitilized_;
   // Asyn
   ecmcAsynPortDriver     *asynPortDriver_;
   ecmcAsynDataItem       *encPosAct_;

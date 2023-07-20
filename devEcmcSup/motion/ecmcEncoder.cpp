@@ -114,6 +114,8 @@ void ecmcEncoder::initVars() {
   encVelAct_            = NULL;
   asynPortDriver_       = NULL;
   maxPosDiffToPrimEnc_  = 0;  
+  encInitilized_        = 0;
+  hwReady_              = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -354,11 +356,34 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
   // Filter value with mask
   rawPosUint_    = (totalRawMask_ & tempRaw) - totalRawRegShift_;
   
-  // If first valid value (at first hw ok),
-  // then store the same position in last cycle value.
-  // This to avoid over/underflow since rawPosUintOld_ is initiated to 0.
-  if(!masterOKOld_ && masterOK) {
-    rawPosUintOld_ = rawPosUint_;
+  if(!encInitilized_ && masterOK) {
+    // if ready bit defined
+    if(hwReadyBitDefined_) {
+      if(hwReady_ > 0) {
+        rawPosUintOld_ = rawPosUint_;
+        encInitilized_ = 1;
+
+        LOGERR("%s/%s:%d: INFO (axis %d): Encoder initialized (readybit==OK).\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          data_->axisId_);
+
+      }
+    } else {  // else latch value at positive edge of masterOK
+      // If first valid value (at first hw ok),
+      // then store the same position in last cycle value.
+      // This to avoid over/underflow since rawPosUintOld_ is initiated to 0.
+      if(!masterOKOld_) {
+        rawPosUintOld_ = rawPosUint_;
+        encInitilized_ = 1;
+        LOGERR("%s/%s:%d: INFO (axis %d): Encoder initialized (masterOK==true ).\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          data_->axisId_);
+      }
+    }
   }
   // Check over/underflow (update turns counter)
   rawTurnsOld_ = rawTurns_;
@@ -537,16 +562,15 @@ int ecmcEncoder::readHwWarningError() {
 }
 
 // Check that encoder is ready during runtime (and enabled)
-int ecmcEncoder::readHwReady() {
-  int errorLocal = 0;
+int ecmcEncoder::readHwReady() {  
   // Check warning link. Think about forwarding warning info to motor record somehow
   if (hwReadyBitDefined_) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_READY, &hwReady_)) {
-      hwReady_ = 0;      
+      hwReady_ = 0;
       return ERROR_ENC_READY_READ_ENTRY_FAIL;
     }
 
-    if( !hwReady_) {      
+    if( hwReady_ == 0) {      
       if(data_->status_.enabled) {
         // Error when enabled, this is serious, remove power
         data_->command_.enable = 0;
@@ -561,14 +585,15 @@ int ecmcEncoder::readHwReady() {
   return 0;
 }
 
-int ecmcEncoder::readyForEnable() {
+int ecmcEncoder::hwReady() {
   if(getErrorID()) {
     return 0;
   }
-  if (hwReadyBitDefined_ && !hwReady_ && 
-      data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    return 0;    
-  } 
+  if(data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    if (!encInitilized_ || (hwReadyBitDefined_ && hwReady_ == 0)) {
+      return 0;    
+    } 
+  }
   // Ok 
   return 1;
 }
