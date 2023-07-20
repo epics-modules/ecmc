@@ -98,6 +98,7 @@
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_0 6
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_1 7
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_2 8
+#define ECMC_ENCODER_ENTRY_INDEX_READY 9
 
 // Encoders
 #define ECMC_MAX_ENCODERS 8
@@ -431,6 +432,7 @@ enum axisSubObjectType {
 #define ECMC_ENC_ALARM_1_STR "alarm1"
 #define ECMC_ENC_ALARM_2_STR "alarm2"
 #define ECMC_ENC_WARNING_STR "warning"
+#define ECMC_ENC_READY_STR "ready"
 
 #define ECMC_MON_STR "mon"
 #define ECMC_MON_LOWLIM_STR "lowlim"

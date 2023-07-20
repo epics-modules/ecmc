@@ -104,6 +104,7 @@ void ecmcEncoder::initVars() {
   hwErrorAlarm1Defined_ = false;
   hwErrorAlarm2Defined_ = false;
   hwWarningDefined_     = false;
+  hwReadyBitDefined_    = false;
   masterOKOld_          = false;
   hwActPosDefined_      = false;
   refEncIndex_          = -1;
@@ -112,7 +113,7 @@ void ecmcEncoder::initVars() {
   encPosAct_            = NULL;
   encVelAct_            = NULL;
   asynPortDriver_       = NULL;
-  maxPosDiffToPrimEnc_  = 0;
+  maxPosDiffToPrimEnc_  = 0;  
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -466,14 +467,14 @@ int ecmcEncoder::readHwWarningError() {
       hwWarning_ = 0;
       hwWarningOld_ = 0;
       errorLocal = ERROR_ENC_WARNING_READ_ENTRY_FAIL;
-     }
-     if(hwWarning_ > 0 && hwWarningOld_ == 0) {
+    }
+    if(hwWarning_ > 0 && hwWarningOld_ == 0) {
       LOGERR("%s/%s:%d: WARNING (axis %d): Encoder hardware in warning state.\n",
           __FILE__,
           __FUNCTION__,
           __LINE__,
           data_->axisId_);
-     }
+    }
     if(hwWarning_ == 0 && hwWarningOld_ > 0) {
       LOGERR("%s/%s:%d: INFO (axis %d): Encoder hardware warning state cleared.\n",
           __FILE__,
@@ -535,6 +536,42 @@ int ecmcEncoder::readHwWarningError() {
   return errorLocal;
 }
 
+// Check that encoder is ready during runtime (and enabled)
+int ecmcEncoder::readHwReady() {
+  int errorLocal = 0;
+  // Check warning link. Think about forwarding warning info to motor record somehow
+  if (hwReadyBitDefined_) {
+    if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_READY, &hwReady_)) {
+      hwReady_ = 0;      
+      return ERROR_ENC_READY_READ_ENTRY_FAIL;
+    }
+
+    if( !hwReady_) {      
+      if(data_->status.enabled) {
+        // Error when enabled
+        return ERROR_ENC_NOT_READY;
+      } else {
+        // just set warning when not enabled
+        setWarningID(WARNING_ENC_NOT_READY);
+      }
+    }
+  }
+
+  return 0;
+}
+
+int ecmcEncoder::readyForEnable() {
+  if(getErrorID()) {
+    return 0;
+  }
+  if (hwReadyBitDefined_ && !hwReady_ && 
+      data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    return 0;    
+  } 
+  // Ok 
+  return 1;
+}
+
 double ecmcEncoder::readEntries(bool masterOK) {
   int errorLocal = 0;
   actPosOld_ = actPos_;
@@ -559,6 +596,11 @@ double ecmcEncoder::readEntries(bool masterOK) {
   }
 
   errorLocal = readHwWarningError();
+  if(errorLocal) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  }
+
+  errorLocal = readHwReady();
   if(errorLocal) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
@@ -692,6 +734,15 @@ int ecmcEncoder::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
     hwErrorAlarm2Defined_ = true;
+  }
+
+  // Check ready link
+  if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_READY)) {
+    errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_READY);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+    hwReadyBitDefined_ = true;
   }
 
   if(encPosAct_ == NULL) {

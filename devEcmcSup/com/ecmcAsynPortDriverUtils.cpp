@@ -479,8 +479,17 @@ int getAxEncFuncType(char *objPath,
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_2;
         return 0;
       }
+      
+      // Ready
+      nvals = strcmp(objectFunctionStr,ECMC_ENC_READY_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_READY;
+        return 0;
+      }
     }
   }
+  
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 

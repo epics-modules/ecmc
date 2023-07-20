@@ -53,6 +53,11 @@
 #define ERROR_ENC_WARNING_READ_ENTRY_FAIL 0x14413
 #define ERROR_ENC_ALARM_READ_ENTRY_FAIL 0x14414
 #define ERROR_ENC_ASYN_PARAM_NULL 0x14415
+#define ERROR_ENC_READY_READ_ENTRY_FAIL 0x14416
+#define ERROR_ENC_NOT_READY 0x14417
+
+// ENCODER WARNINGS
+#define WARNING_ENC_NOT_READY 0x114417
 
 #define ECMC_FILTER_VELO_DEF_SIZE 100
 #define ECMC_FILTER_POS_DEF_SIZE 10
@@ -125,7 +130,8 @@ class ecmcEncoder : public ecmcEcEntryLink {
 
   void                  setMaxPosDiffToPrimEnc(double distance);
   double                getMaxPosDiffToPrimEnc();
-
+  int                   readyForEnable();
+  
  protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -142,7 +148,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int                  readHwActPos(bool masterOK);
   int                  readHwWarningError();
   int                  readHwLatch();
-  
+  int                  readHwReady();
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -192,12 +198,14 @@ class ecmcEncoder : public ecmcEcEntryLink {
   uint64_t hwErrorAlarm2Old_;
   uint64_t hwWarning_;
   uint64_t hwWarningOld_;
+  uint64_t hwReady_;
   bool hwActPosDefined_;
   bool hwResetDefined_;
   bool hwErrorAlarm0Defined_;
   bool hwErrorAlarm1Defined_;
   bool hwErrorAlarm2Defined_;
   bool hwWarningDefined_;
+  bool hwReadyBitDefined_;
   bool masterOKOld_;
   int refEncIndex_;
   bool refDuringHoming_;
@@ -208,7 +216,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   ecmcAsynPortDriver     *asynPortDriver_;
   ecmcAsynDataItem       *encPosAct_;
   ecmcAsynDataItem       *encVelAct_;
-
+  
   int index_; //Index of this encoder (im axis object)
 };
 

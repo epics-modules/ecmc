@@ -185,6 +185,10 @@ const char * ecmcError::convertWarningIdToString(int warningId) {
     return "WARNING_AXIS_ASYN_CMD_DATA_ERROR";
 
     break;
+  case 0x114417: // Encoder
+    return "WARNING_ENC_NOT_READY";
+
+    break;
   case 0x114C00: // Monitor
     return "WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK";
 
@@ -674,6 +678,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
     
+  case 0x14416:
+    return "ERROR_ENC_READY_READ_ENTRY_FAIL";
+
+    break;
+
+  case 0x14417:
+    return "ERROR_ENC_NOT_READY";
+
+    break;
+
   case 0x14C00:  // MONITOR
     return "ERROR_MON_ASSIGN_ENTRY_FAILED";
 
