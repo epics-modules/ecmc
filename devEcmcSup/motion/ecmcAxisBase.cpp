@@ -479,7 +479,7 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
     traj_->initStopRamp(data_.status_.currentPositionActual,
                         data_.status_.currentVelocityActual,
                         0);
-    getSeq()->setTargetPos(data_.status_.currentPositionActual);
+    getSeq()->setTargetPos(data_.status_.currentPositionSetpoint);
     if(!getEnable()) {
       data_.status_.busy = false;
       data_.command_.execute = false;

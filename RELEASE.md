@@ -4,7 +4,7 @@ Release Notes
 # 9.0.1_RC1
 * Remove reset of attarget bit when error reset is executed
 * Fix of brake not engaging when drive interlock
-* At traj source change then set target pos to actpos 
+* At traj source change then set target pos to setpos
 
 # ECMC 9.0.0
 * Fixes to brake control
