@@ -657,6 +657,9 @@ static int handleCfgCommand(const char *myarg_1) {
   int nvals      = 0;
   double dValue  = 0;
   double dValue2 = 0;
+  double dValue3 = 0;
+  double dValue4 = 0;
+  double dValue5 = 0;
   
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
@@ -1667,6 +1670,18 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisCntrlKff(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisCntrlInnerParams(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisCntrlInnerParams(%d,%lf,%lf,%lf,%lf)", 
+                &iValue,
+                &dValue,
+                &dValue2,
+                &dValue3,
+                &dValue4);
+
+  if (nvals == 5) {
+    return setAxisCntrlInnerParams(iValue, dValue, dValue2, dValue3, dValue4);
   }
 
   /*int Cfg.SetAxisCntrlOutHL(int axis_no, double value);*/

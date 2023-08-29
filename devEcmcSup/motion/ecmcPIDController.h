@@ -54,10 +54,12 @@ class ecmcPIDController : public ecmcError {
   void   setKi(double ki);
   void   setKd(double kd);
   void   setKff(double kff);
-  double   getKp();
-  double   getKi();
-  double   getKd();
-  double   getKff();
+  //  pid parameters for when within abs(actpos-targetpos)<innerTol_
+  void   setInnerCtrlParams(double kp,double ki, double kd, double tol);
+  double getKp();
+  double getKi();
+  double getKd();
+  double getKff();
   void   setOutMax(double outMax);
   void   setOutMin(double outMin);
   void   setIOutMax(double outMax);
@@ -67,6 +69,11 @@ class ecmcPIDController : public ecmcError {
  private:
   int    initAsyn();
   double kp_, ki_, kd_, kff_;
+  // pid parameters for when within abs(actpos-targetpos)<innerTol_
+  double kp_inner_, ki_inner_, kd_inner_;
+  double innerTol_;
+  // the control paarms in use
+  double kp_use_, ki_use_, kd_use_;
   double outputP_;
   double outputI_;
   double outputD_;

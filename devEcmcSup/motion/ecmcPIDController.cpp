@@ -79,6 +79,10 @@ void ecmcPIDController::initVars() {
   asynKi_             = NULL;
   asynKd_             = NULL;
   asynKff_            = NULL;
+  kp_inner_           = 0;
+  ki_inner_           = 0;
+  kd_inner_           = 0;
+  innerTol_           = 0;
 }
 
 ecmcPIDController::~ecmcPIDController()
@@ -170,10 +174,24 @@ double ecmcPIDController::control(double posError, double ff) {
     reset();
     return 0;
   }
+  
+  // Default control params
+  kp_use_ = kp_;
+  ki_use_ = ki_;
+  kd_use_ = kd_;
+  
+  // Use other control params if distance to target is less than innerTol_  
+  if(innerTol_ > 0) { // tolerance must be higher than 0
+    if(std::abs(data_->status_.currentTargetPosition-data_->status_.currentPositionActual) < innerTol_){
+      kp_use_ = kp_inner_;
+      ki_use_ = ki_inner_;
+      kd_use_ = kd_inner_;
+    }
+  }
 
   ff_                       = ff * kff_;                     
-  outputP_ = posError * kp_;
-  outputI_ = outputI_ + posError * ki_;
+  outputP_ = posError * kp_use_;
+  outputI_ = outputI_ + posError * ki_use_;
 
   // Enabled only when limits differ and max>min
   if ((outputIMax_ != outputIMin_) && (outputIMax_ > outputIMin_)) {
@@ -186,7 +204,7 @@ double ecmcPIDController::control(double posError, double ff) {
     }
   }
   outputD_ =
-    (posError - controllerErrorOld_) * kd_;
+    (posError - controllerErrorOld_) * kd_use_;
   data_->status_.cntrlOutput = outputP_ + outputI_ + outputD_ + ff_;
 
   // Enabled only when limits differ and max>min
@@ -422,4 +440,11 @@ int ecmcPIDController::initAsyn() {
   asynKff_ = paramTemp;
 
   return 0;
+}
+
+void   ecmcPIDController::setInnerCtrlParams(double kp,double ki, double kd, double tol) {
+  kp_inner_ =  kp;
+  ki_inner_ =  ki;
+  kd_inner_ =  kd;
+  innerTol_ = tol;
 }

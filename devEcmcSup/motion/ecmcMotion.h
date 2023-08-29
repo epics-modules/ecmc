@@ -2057,6 +2057,27 @@ int setAxisCntrlKd(int    axisIndex,
 int setAxisCntrlKff(int    axisIndex,
                     double value);
 
+/** \brief Use a differnt set of pid parameters if within a certain distance of target
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] kp         Prop gain.\n
+ * \param[in] ki         Integarl gain.\n
+ * \param[in] kd         Derivative gain.\n
+ * \param[in] tol        Tolerance from target.\n
+ *
+ * \note tolerance needs to bigger than 0 for functionality to be enabled
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set PID-controller params for use  abs(actpos - targpos)<tol
+ * "Cfg.setAxisCntrlInnerParams(3,4.1,2,5,0.1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisCntrlInnerParams(int axisIndex,
+                            double kp,
+                            double ki,
+                            double kd,
+                            double tol);
+
 /** \brief Set PID-controller maximum output value.\n
  *
  * \param[in] axisIndex  Axis index.\n

@@ -1641,6 +1641,25 @@ int setAxisCntrlKff(int axisIndex, double value) {
   return 0;
 }
 
+int setAxisCntrlInnerParams(int axisIndex,
+                            double kp,
+                            double ki,
+                            double kd,
+                            double tol) {
+  LOGINFO4("%s/%s:%d axisIndex=%d kp=%f,ki=%f,kd=%f,tol=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           kp,ki,kd,tol);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getCntrl()->setInnerCtrlParams(kp,ki,kd,tol);
+  return 0;
+}
+
 int setAxisCntrlOutHL(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,
