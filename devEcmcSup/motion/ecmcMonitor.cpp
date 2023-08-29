@@ -633,7 +633,7 @@ int ecmcMonitor::checkPositionLag() {
   bool lagErrorTraj  = false;
   bool lagErrorDrive = false;
 
-  if (enableLagMon_ && !lagErrorDrive) {
+  if (enableLagMon_ && !lagErrorDrive && data_->command_.enable) {
 
     if ((std::abs(data_->status_.cntrlError) > posLagTol_) && data_->status_.enabled &&
         data_->status_.enabledOld) {
@@ -669,6 +669,10 @@ int ecmcMonitor::checkPositionLag() {
 int ecmcMonitor::checkEncoderDiff() {
 
   data_->interlocks_.encDiffInterlock = false;
+
+  if(!data_->command_.enable) {
+    return 0;     
+  }
   
   // Only one encoder configured
   if(data_->status_.encoderCount <= 1 || !enableDiffEncsMon_) {  
@@ -749,7 +753,8 @@ int ecmcMonitor::checkVelocityDiff() {
 }
 
 int ecmcMonitor::checkMaxVelocity() {
-  if (!data_->status_.enabled || !data_->status_.enabledOld) {
+
+  if (!data_->command_.enable || !data_->status_.enabled || !data_->status_.enabledOld) {
     data_->interlocks_.maxVelocityTrajInterlock  = false;
     data_->interlocks_.maxVelocityDriveInterlock = false;
     maxVelCounterTraj_                           = 0;

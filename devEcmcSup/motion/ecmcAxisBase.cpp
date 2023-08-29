@@ -2250,5 +2250,6 @@ int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
 void ecmcAxisBase::setTargetVel(double velTarget) {
   getSeq()->setTargetVel(velTarget);
   // also set for ecmc interface
-  velocityTarget_ = velTarget;
+  velocityTarget_ = velTarget;  
+  axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(1);
 }
