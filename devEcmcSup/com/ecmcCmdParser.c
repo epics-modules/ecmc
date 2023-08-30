@@ -1672,7 +1672,7 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisCntrlKff(iValue, dValue);
   }
 
-  /*int Cfg.SetAxisCntrlInnerParams(int axis_no, double value);*/
+  /*int Cfg.SetAxisCntrlInnerParams(axis_no, kp, ki, kd, tol);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlInnerParams(%d,%lf,%lf,%lf,%lf)", 
                 &iValue,
                 &dValue,

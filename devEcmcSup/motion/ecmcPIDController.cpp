@@ -189,7 +189,7 @@ double ecmcPIDController::control(double posError, double ff) {
     }
   }
 
-  ff_                       = ff * kff_;                     
+  ff_= ff * kff_;
   outputP_ = posError * kp_use_;
   outputI_ = outputI_ + posError * ki_use_;
 
