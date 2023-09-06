@@ -77,29 +77,29 @@ ECMC is configured via EPICS-iocsh:
 
 * iocsh commands:
     * Create an ECMC application:
-        * ecmcAsynPortDriverConfigure <portName>,<paramTableSize>, <prio>, <disableAutoConnect>, <defaultSampleRateMS>
+        * ecmcAsynPortDriverConfigure \<portName>,\<paramTableSize>, \<prio>, \<disableAutoConnect>, \<defaultSampleRateMS>
     * Configure ECMC application. Exit ECMC if returns error: 
-        * ecmcConfigOrDie <ecmc ASCII command>
+        * ecmcConfigOrDie \<ecmc ASCII command>
     * Configure ECMC application.
-        * ecmcConfig <ecmc ASCII command> 
+        * ecmcConfig \<ecmc ASCII command> 
     * Print availabe asyn parameters and other info:
-        * ecmcReport <detail> 
-        * asynReport <detail>. Same as ecmcReport but also calls asynReport in other modules.
+        * ecmcReport \<detail> 
+        * asynReport \<detail>. Same as ecmcReport but also calls asynReport in other modules.
 
 * ASCII-cmds (see doxygen documentation for more information):
     * Motion configs. Example:
-        * ecmcConfigOrDie "Cfg.CreateAxis(<axisid>,1,<type>)"
-        * ecmcConfigOrDie "Cfg.SetAxisCntrlKp(<axisid>,<kp>)"    
+        * ecmcConfigOrDie "Cfg.CreateAxis(\<axisid>,1,\<type>)"
+        * ecmcConfigOrDie "Cfg.SetAxisCntrlKp(\<axisid>,\<kp>)"    
         * ...
     * Ethercat bus configs. Example:
-        * ecmcConfigOrDie "Cfg.EcAddEntryComplete(<slaveid>,<vendorid>,<productid>,<dir>,<smid>,<pdoid>,<entryid>,<entrysubid>,<bits>,<name>)"  
+        * ecmcConfigOrDie "Cfg.EcAddEntryComplete(\<slaveid>,\<vendorid>,\<productid>,\<dir>,\<smid>,\<pdoid>,\<entryid>,\<entrysubid>,\<bits>,\<name>)"  
         * ...
     * Ethercat slave configs (SDO,SoE). Example set max motor current for EL7037 to 1500mA:
-        * ecmcConfigOrDie "Cfg.EcAddSdo(<slaveid>,0x8010,0x1,1500,2)"
+        * ecmcConfigOrDie "Cfg.EcAddSdo(\<slaveid>,0x8010,0x1,1500,2)"
     * PLC configuration:
-        * ecmcConfigOrDie "Cfg.CreatePLC(<plcid>,<sample rate ms>)"
-        * ecmcConfigOrDie "Cfg.LoadPLCFile(<plcid>,<filename>)"
-        * ecmcConfigOrDie "Cfg.AppendPLCExpr(<plcid>)=ax1.enc.homepos:=25#"
+        * ecmcConfigOrDie "Cfg.CreatePLC(\<plcid>,\<sample rate ms>)"
+        * ecmcConfigOrDie "Cfg.LoadPLCFile(\<plcid>,\<filename>)"
+        * ecmcConfigOrDie "Cfg.AppendPLCExpr(\<plcid>)=ax1.enc.homepos:=25#"
         * ...
 
 # Documentation
