@@ -6,6 +6,44 @@ Release Notes
 * Fix of brake not engaging when drive interlock
 * At traj source change then set target pos to setpos
 
+## Add extra set of controller parameters
+Use different controller parameters depending on distance to target. This can be usefull in for instance systemes with backlash.
+
+The command to configure this is:
+```
+"Cfg.SetAxisCntrlInnerParams(axis_no, kp, ki, kd, tol);
+```
+If distance to target is within +-tol then these controlelr parameters will be used. 
+
+In ecmccfg-jinja, the configuration looks like below (the inner section):
+```
+controller:
+  Kp: 10
+  Ki: 0.1
+  Kd: 0.25
+  inner:
+    tol: 1.0
+    Kp: 10
+    Ki: 0.1
+    Kd: 0.25
+```
+## Add jinja script for adding extra encoder (in ecmccfg)
+
+```
+${SCRIPTEXEC} ${ECMC_CONFIG_ROOT}loadYamlEnc.cmd, "FILE=./cfg/enc1.yaml"
+```
+enc1.yal:
+```
+encoder:
+  numerator: 360
+  denominator: 12800
+  type: 1         # Type: 0=Incremental, 1=Absolute
+  bits: 16        # Total bit count of encoder raw data
+  absOffset: 82.801    # Encoder offset in eng units (for absolute encoders)
+  position: ec0.s4.positionActual01  # Ethercat entry for act-pos (encoder)
+```
+For more info on extra encoders read futher down in this file.
+
 # ECMC 9.0.0
 * Fixes to brake control
 * Add asynparameter command to set encoder position (ax.setencpos). Usefull for save restore
