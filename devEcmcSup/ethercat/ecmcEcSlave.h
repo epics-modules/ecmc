@@ -28,7 +28,7 @@
 #include "ecmcEcSyncManager.h"
 #include "ecmcEcSDO.h"
 #include "ecmcEcAsyncSDO.h"
-
+#include "ecmcEcDomain.h"
 #define SIMULATION_ENTRIES 2
 
 // ECSLAVE ERRORS
@@ -67,7 +67,7 @@ class ecmcEcSlave : public ecmcError {
     ecmcAsynPortDriver* asynPortDriver,  /** Asyn port driver*/
     int masterId,
     ec_master_t *master,  /**< EtherCAT master */    
-    ec_domain_t *domain,
+    ecmcEcDomain *domain,
     uint16_t     alias, /**< Slave alias. */
     int32_t     position, /**< Slave position. */
     uint32_t     vendorId, /**< Expected vendor ID. */
@@ -127,6 +127,8 @@ class ecmcEcSlave : public ecmcError {
                         const char* dataBuffer,
                         int         byteSize);
   int getSlaveState(ec_slave_config_state_t *state);
+  int activate();
+  int compileRegInfo();
   int validate();
   int addSDOAsync(uint16_t sdoIndex, /**< SDO index. */
                  uint8_t sdoSubIndex, /**< SDO subindex. */
@@ -159,7 +161,7 @@ class ecmcEcSlave : public ecmcError {
   bool simSlave_;
   uint8_t simBuffer_[8 * SIMULATION_ENTRIES];    // Simulate endswitches
   ecmcEcEntry *simEntries_[SIMULATION_ENTRIES];  // Simulate endswitches
-  ec_domain_t *domain_;
+  ecmcEcDomain *domain_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
   int masterId_;

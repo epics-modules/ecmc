@@ -539,6 +539,17 @@ int ecWriteSdo(uint16_t slavePosition,
                uint32_t value,
                int      byteSize);
 
+/** \brief Allow domain to be offline
+ *
+ *  \param[in] allow 0 ==dont't allow (default), 1 == allow
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Allow current domain to be offline. 
+ * "Cfg.EcSetDomAllowOffline(2,1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecSetDomAllowOffline(int      allow);
+
 /** \brief Write to a Service Data Object.
  *
  * Note: same  as "ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,

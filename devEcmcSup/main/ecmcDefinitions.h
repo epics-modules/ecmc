@@ -165,19 +165,20 @@
 // Asyn  parameters in ec
 #define ECMC_ASYN_EC_PAR_MASTER_STAT_ID 0
 #define ECMC_ASYN_EC_PAR_MASTER_STAT_NAME "masterstatus"
-#define ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID 1
-#define ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME "domainstatus"
-#define ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID 2
+#define ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID 1
 #define ECMC_ASYN_EC_PAR_MEMMAP_COUNT_NAME "memmapcounter"
-#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_ID 3
-#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME "domainfailcountertotal"
-#define ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID 4
+#define ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID 2
 #define ECMC_ASYN_EC_PAR_ENTRY_COUNT_NAME "entrycounter"
-#define ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID 5
+#define ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID 3
 #define ECMC_ASYN_EC_PAR_SLAVE_COUNT_NAME "slavecounter"
-#define ECMC_ASYN_EC_STAT_OK_ID 6
+#define ECMC_ASYN_EC_STAT_OK_ID 4
 #define ECMC_ASYN_EC_STAT_OK_NAME "ok"
-#define ECMC_ASYN_EC_PAR_COUNT 7
+#define ECMC_ASYN_EC_PAR_COUNT 5
+
+// Asyn  parameters in dom
+#define ECMC_ASYN_EC_PAR_DOMAIN "dom"
+#define ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME "domainstatus"
+#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME "domainfailcountertotal"
 
 // Asyn  parameters in ec slave
 #define ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID 0

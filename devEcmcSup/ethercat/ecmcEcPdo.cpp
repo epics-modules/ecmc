@@ -15,7 +15,7 @@
 ecmcEcPdo::ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
                      int masterId,
                      int slaveId,
-                     ec_domain_t       *domain,
+                     ecmcEcDomain      *domain,
                      ec_slave_config_t *slave,
                      uint8_t            syncMangerIndex,
                      uint16_t           pdoIndex,

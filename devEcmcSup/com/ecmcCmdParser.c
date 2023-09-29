@@ -1378,6 +1378,14 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecWriteSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
+  /*Cfg.EcSetDomAllowOffline(int allow)*/
+  nvals = sscanf(myarg_1,
+                 "EcSetDomAllowOffline(%d)",
+                 &iValue);
+  if (nvals == 1) {
+    return ecSetDomAllowOffline(iValue);
+  }
+
   /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,

@@ -307,7 +307,7 @@ void cyclic_task(void *usr) {
     }
     if(ec->getInitDone()) {
       ec->receive();
-      ec->checkDomainState();
+      ec->checkDomainsState();
     }
     ecStat = ec->statusOK() || !ec->getInitDone();
     // Motion

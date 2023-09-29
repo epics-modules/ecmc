@@ -31,7 +31,7 @@ class ecmcEcPdo : public ecmcError {
   ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
             int masterId,
             int slaveId,
-            ec_domain_t       *domain,
+            ecmcEcDomain      *domain,
             ec_slave_config_t *slave,
             uint8_t            syncMangerIndex,
             uint16_t           pdoIndex,
@@ -54,7 +54,7 @@ class ecmcEcPdo : public ecmcError {
   ecmcEcEntry *entryArray_[EC_MAX_ENTRIES];
   int entryCounter_;
   ec_direction_t direction_;
-  ec_domain_t *domain_;
+  ecmcEcDomain *domain_;
   ec_slave_config_t *slave_;
   int masterId_;
   int slaveId_;

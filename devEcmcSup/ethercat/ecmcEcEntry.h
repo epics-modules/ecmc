@@ -20,6 +20,7 @@
 #include "ecrt.h"
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
+#include "ecmcEcDomain.h"
 #include "ecmcOctetIF.h"
 #include "ecmcAsynPortDriver.h"
 #include "alarm.h"  //EPICS alarms
@@ -57,7 +58,7 @@ class ecmcEcEntry : public ecmcError {
   ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
               int masterId,
               int slaveId,
-              ec_domain_t       *domain,
+              ecmcEcDomain      *domain,
               ec_slave_config_t *slave,
               uint16_t           pdoIndex,
               uint16_t           entryIndex,
@@ -82,8 +83,10 @@ class ecmcEcEntry : public ecmcError {
   int         getEntryInfo(ec_pdo_entry_info_t *info);
   int         getByteOffset();
   ecmcEcDataType getDataType();
+
   // After activate
-  void        setDomainAdr(uint8_t *domainAdr);  
+  int         activate();
+
   uint8_t     *getDomainAdr();
   int         writeValue(uint64_t value);
   int         writeDouble(double   value);
@@ -99,7 +102,7 @@ class ecmcEcEntry : public ecmcError {
   int         setUpdateInRealtime(int update);
   int         getUpdateInRealtime();
   std::string getIdentificationName();
-  int         registerInDomain();
+  int         compileRegInfo();
   int         updateAsyn(bool force);
   bool        getSimEntry();
   int         validate();
@@ -107,6 +110,7 @@ class ecmcEcEntry : public ecmcError {
   int         getSlaveId();
   
  private:
+  void                setDomainAdr();  
   int                 initAsyn();
   uint8_t            *domainAdr_;
   uint8_t            *adr_;
@@ -126,7 +130,7 @@ class ecmcEcEntry : public ecmcError {
   ecmcAsynDataItem   *entryAsynParam_;
   ecmcEcDataType      dataType_;
   ec_slave_config_t  *slave_;
-  ec_domain_t        *domain_;
+  ecmcEcDomain       *domain_;
   ec_direction_t      direction_;
   uint64_t            buffer_;
   int8_t             *int8Ptr_;

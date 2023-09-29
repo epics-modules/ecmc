@@ -528,6 +528,18 @@ int ecWriteSdo(uint16_t slavePosition,
   return ec->writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
 }*/
 
+int ecSetDomAllowOffline(int      allow) {
+  LOGINFO4("%s/%s:%d allow=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           allow);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec->setDomAllowOffline(allow);
+}
+
 int ecReadSdo(uint16_t  slavePosition,
                    uint16_t  sdoIndex,
                    uint8_t   sdoSubIndex,
