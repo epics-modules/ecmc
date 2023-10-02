@@ -833,3 +833,11 @@ int ecmcEcEntry::activate() {
   setDomainAdr();
   return 0;
 }
+
+int ecmcEcEntry::getDomainOK() {
+  // Simulation entries
+  if(!domain_) {
+    return 1;
+  }
+  return domain_->getOK();
+}

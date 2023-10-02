@@ -540,6 +540,19 @@ int ecSetDomAllowOffline(int      allow) {
   return ec->setDomAllowOffline(allow);
 }
 
+int ecAddDomain(int rateCycles, int offsetCycles) {
+  LOGINFO4("%s/%s:%d rateCycles=%d, offsetCycles=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           rateCycles, 
+           offsetCycles);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec->addDomain(rateCycles, offsetCycles);
+}
+
 int ecReadSdo(uint16_t  slavePosition,
                    uint16_t  sdoIndex,
                    uint8_t   sdoSubIndex,

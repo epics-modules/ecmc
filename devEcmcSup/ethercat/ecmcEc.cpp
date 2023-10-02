@@ -119,8 +119,6 @@ int ecmcEc::init(int nMasterIndex) {
     domains_.clear();  
   }
 
-  // Create default domain
-  addDomain();
 
 //  domain_ = ecrt_master_create_domain(master_);
 //
@@ -137,6 +135,9 @@ int ecmcEc::init(int nMasterIndex) {
 //  }
   initDone_    = true;
   masterIndex_ = nMasterIndex;
+
+  // Create default domain at ec-rate
+  addDomain(0,0);
 
   return initAsyn(asynPortDriver_);
 }
@@ -1096,7 +1097,7 @@ int ecmcEc::statusOK() {
     inStartupPhase_ = false;
     errorReset();
   }
-  printf("slavesOK_ %d domainOK_ %d masterOK_ %d inStartupPhase_%d\n",slavesOK_,domainOK_,masterOK_,inStartupPhase_);
+  //printf("slavesOK_ %d domainOK_ %d masterOK_ %d inStartupPhase_%d\n",slavesOK_,domainOK_,masterOK_,inStartupPhase_);
   return slavesOK_ && domainOK_ && masterOK_ && !inStartupPhase_;
 }
 
@@ -1106,9 +1107,10 @@ int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles) {
     return 0;
   }
 
-  for(int i = 0 ; i< domainCounter_ ; i++) {
+  for(int i = 0 ; i < domainCounter_ ; i++) {
     domains_[i]->setFailedCyclesLimitInterlock(cycles);
   }
+  return 0;
 }
 
 void ecmcEc::slowExecute() {
@@ -1127,7 +1129,6 @@ void ecmcEc::slowExecute() {
   for(int i =0 ; i < domainCounter_; i++ ) {
     domains_[i]->slowExecute();
   }
-  //domainNotOKCounterMax_ = 0;
 }
 
 int ecmcEc::reset() {
@@ -2264,9 +2265,14 @@ int ecmcEc::addSDOAsync(uint16_t slaveBusPosition,
                             idString);
 }
 
-int ecmcEc::addDomain() {
+int ecmcEc::addDomain(int exeCycles, int offsetCycles) {
   try {
-    ecmcEcDomain * domain = new ecmcEcDomain(asynPortDriver_,master_,masterIndex_,domainCounter_);
+    ecmcEcDomain * domain = new ecmcEcDomain(asynPortDriver_,
+                                             master_,
+                                             masterIndex_,
+                                             domainCounter_,
+                                             exeCycles,
+                                             offsetCycles);
     domains_.push_back(domain);
     domainCounter_++;
     // Always use the latest domain for cfgs

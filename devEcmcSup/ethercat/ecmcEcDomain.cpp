@@ -13,12 +13,24 @@
 #include <exception>
 #include "ecmcEcDomain.h"
 
-ecmcEcDomain::ecmcEcDomain(ecmcAsynPortDriver *asynPortDriver,ec_master_t *master,int masterIndex,int objIndex) {
+ecmcEcDomain::ecmcEcDomain(ecmcAsynPortDriver *asynPortDriver,
+                           ec_master_t *master,
+                           int masterIndex,
+                           int objIndex,
+                           int exeCycles,
+                           int offsetCycles) {
   initVars();
   master_         = master;
   asynPortDriver_ = asynPortDriver;
   objIndex_       = objIndex;
   masterIndex_    = masterIndex;
+  exeCycles_      = exeCycles_;
+  offsetCycles_   = offsetCycles_;
+  
+  if(offsetCycles_ > exeCycles_) {
+    offsetCycles_ = 0;
+  }
+
   domain_ = ecrt_master_create_domain(master);
   
   if (!domain_) {
@@ -48,9 +60,10 @@ void ecmcEcDomain::initVars() {
   notOKCounterMax_   = 0;
   size_              = 0;
   statusWord_        = 0;
-  allowOffLine_            = 0;
-  memset(&state_, 0, sizeof(state_));
-  //memset(&stateOld_,0,sizeof(stateOld_));
+  allowOffLine_      = 0;
+  exeCycles_         = 0;
+  offsetCycles_      = 0;
+  cycleCounter_      = 0;
 }
 
 ecmcEcDomain::~ecmcEcDomain()
@@ -109,12 +122,28 @@ int ecmcEcDomain::checkState() {
   
 }
 
+// For objects using data from teh domain (axes, plcs...)
+int ecmcEcDomain::getOK() {
+  return statusOk_;
+}
+
 void ecmcEcDomain::process() { 
-  ecrt_domain_process(domain_);
+  // recivie data
+  if(cycleCounter_== offsetCycles_) {
+    ecrt_domain_process(domain_);
+  }
+  cycleCounter_++;
+
+  if(cycleCounter_ >= exeCycles_) {
+    cycleCounter_ = 0;
+  }
 }
 
 void ecmcEcDomain::queue() { 
-  ecrt_domain_queue(domain_);
+  // send data
+  if(cycleCounter_== offsetCycles_) {
+      ecrt_domain_queue(domain_);
+  }
 }
 
 void ecmcEcDomain::updateAsyn() {
@@ -125,7 +154,7 @@ void ecmcEcDomain::updateAsyn() {
 uint8_t *ecmcEcDomain::getDataPtr() {
   
   domainPd_ = ecrt_domain_data(domain_);
-  
+
   if (!domainPd_) {
     LOGERR("%s/%s:%d: ERROR: ecrt_domain_data() failed (0x%x).\n",
          __FILE__,
@@ -145,9 +174,9 @@ int ecmcEcDomain::initAsyn(){
   ecmcAsynDataItem *paramTemp = NULL;
 
   // Status word domain
-  int charCount = snprintf(buffer,
+  size_t charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_DOMAIN "%d" ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME,
+                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_DOMAIN "%d." ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME,
                        masterIndex_, objIndex_);
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -183,7 +212,7 @@ int ecmcEcDomain::initAsyn(){
   // Domain fail counter total
   charCount = snprintf(buffer,
                        sizeof(buffer),
-                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_DOMAIN "%d" ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME,
+                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_DOMAIN "%d." ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME,
                        masterIndex_,objIndex_);
 
   if (charCount >= sizeof(buffer) - 1) {

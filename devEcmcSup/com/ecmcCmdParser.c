@@ -1378,14 +1378,6 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecWriteSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
-  /*Cfg.EcSetDomAllowOffline(int allow)*/
-  nvals = sscanf(myarg_1,
-                 "EcSetDomAllowOffline(%d)",
-                 &iValue);
-  if (nvals == 1) {
-    return ecSetDomAllowOffline(iValue);
-  }
-
   /*Cfg.EcWriteSdo(uint16_t slave_position,uint16_t sdo_index,
   uint8_t sdo_subindex,uint32_t value,int byteSize)*/
   nvals = sscanf(myarg_1,
@@ -1503,6 +1495,21 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 1) {
     return ecSetDomainFailedCyclesLimit(iValue);
+  }
+
+  /*Cfg.EcAddDomain(int nCycles,int offset)*/
+  nvals = sscanf(myarg_1, "EcAddDomain(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return ecAddDomain(iValue,iValue2);
+  }
+
+  /*Cfg.EcSetDomainAllowOffline(int allow)*/
+  nvals = sscanf(myarg_1,
+                 "EcSetDomainAllowOffline(%d)",
+                 &iValue);
+  if (nvals == 1) {
+    return ecSetDomAllowOffline(iValue);
   }
 
   /*Cfg.EcSetDelayECOkAtStartup(int nCycles)*/

@@ -45,6 +45,7 @@ class ecmcEcEntryLink : public ecmcError {
                                double value);
 
   bool checkEntryExist(int entryIndex);
+  bool checkDomainOK(int entryIndex);
 
  protected:
   int  validateEntryBit(int index);

@@ -73,7 +73,7 @@ class ecmcEc : public ecmcError {
   ecmcEc(ecmcAsynPortDriver *asynPortDriver);
   ~ecmcEc();
   int init(int nMasterIndex);
-  int addDomain();
+  int addDomain(int exeCycles, int offsetCycles);
   int addSlave(
     uint16_t alias,   /**< Slave alias. */
     uint16_t position,   /**< Slave position. */

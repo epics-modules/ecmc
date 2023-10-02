@@ -550,6 +550,18 @@ int ecWriteSdo(uint16_t slavePosition,
  */
 int ecSetDomAllowOffline(int      allow);
 
+/** \brief Add domain
+ *
+ *  \param[in] rate execute domain in this rate (cycles) 
+ *  \param[in] offset offset cycles
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add a domain that executes every 10:th cycles with an offset off 1 cycle:
+ * "Cfg.EcAddDomain(10,1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddDomain(int rateCycles, int offsetCycles);
+
 /** \brief Write to a Service Data Object.
  *
  * Note: same  as "ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,

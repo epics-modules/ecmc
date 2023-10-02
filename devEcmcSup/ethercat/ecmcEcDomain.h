@@ -21,7 +21,12 @@
 
 class ecmcEcDomain : public ecmcError {
  public:
-  ecmcEcDomain(ecmcAsynPortDriver *asynPortDriver,ec_master_t *master, int masterIndex, int objIndex);
+  ecmcEcDomain(ecmcAsynPortDriver *asynPortDriver,
+               ec_master_t *master,
+               int masterIndex,
+               int objIndex,
+               int exeCycles,
+               int offsetCycles);
   ~ecmcEcDomain();
   ec_domain_t * getDomain();
   int setAllowOffline(int allow);
@@ -35,6 +40,7 @@ class ecmcEcDomain : public ecmcError {
   int setFailedCyclesLimitInterlock(int cycles);
   void slowExecute();
   uint8_t *getDataPtr();
+  int getOK();
 
 private:
   void initVars();
@@ -57,5 +63,8 @@ private:
   ecmcAsynDataItem  *asynParStat_;
   ecmcAsynDataItem  *asynParFailCount_;
   uint8_t *domainPd_;
+  int exeCycles_;
+  int offsetCycles_;
+  int cycleCounter_;
 };
 #endif  /* ECMCECDOMAIN_H_ */

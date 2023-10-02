@@ -52,6 +52,7 @@
 #define ERROR_EC_ENTRY_REGISTER_FAIL 0x2100B
 #define ERROR_EC_ENTRY_VALUE_OUT_OF_RANGE 0x2100C
 #define ERROR_EC_ENTRY_SET_ALARM_STATE_FAIL 0x2100D
+#define ERROR_EC_ENTRY_EC_DOMAIN_ERROR 0x2100E
 
 class ecmcEcEntry : public ecmcError {
  public:
@@ -108,6 +109,7 @@ class ecmcEcEntry : public ecmcError {
   int         validate();
   int         setComAlarm(bool alarm);
   int         getSlaveId();
+  int         getDomainOK();
   
  private:
   void                setDomainAdr();  
