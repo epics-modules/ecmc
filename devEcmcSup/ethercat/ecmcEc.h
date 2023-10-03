@@ -80,7 +80,6 @@ class ecmcEc : public ecmcError {
     uint32_t vendorId,   /**< Expected vendor ID. */
     uint32_t productCode  /**< Expected product code. */);
   ecmcEcSlave* getSlave(int slave);  // NOTE: index not bus position
-  //ec_domain_t* getDomain();
   ec_master_t* getMaster();
   int          getMasterIndex();
   bool         getInitDone();
@@ -192,6 +191,7 @@ class ecmcEc : public ecmcError {
   // Some slaves report OP but still not returning valid data for some seconds then use this command.
   int           setEcOkDelayCycles(int cycles);
   int           setDomAllowOffline(int allow);
+  int           getDomState(int domId);
  
 private:
   void     initVars();
@@ -201,12 +201,8 @@ private:
                        timespec time2);
   bool     validEntryType(ecmcEcDataType dt);
   ec_master_t *master_;
-//  ec_domain_t *domain_;
-//  ec_domain_state_t domainStateOld_;
-//  ec_domain_state_t domainState_;
   ec_master_state_t masterStateOld_;
   ec_master_state_t masterState_;
-//  uint8_t *domainPd_;
   int slaveCounter_;
   int entryCounter_;
   ecmcEcSlave *slaveArray_[EC_MAX_SLAVES];

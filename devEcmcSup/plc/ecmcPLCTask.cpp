@@ -744,7 +744,8 @@ int ecmcPLCTask::loadEcLib() {
   ecmcPLCTaskAddFunction("ec_get_time_local_sec", ec_get_time_local_sec);
   ecmcPLCTaskAddFunction("ec_get_time_local_min", ec_get_time_local_min);
   ecmcPLCTaskAddFunction("ec_get_time_local_hour", ec_get_time_local_hour);
- 
+  ecmcPLCTaskAddFunction("ec_get_dom_state", ec_get_dom_state);
+  
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
            __FILE__,

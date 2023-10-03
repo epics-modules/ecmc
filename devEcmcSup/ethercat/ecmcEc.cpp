@@ -32,19 +32,13 @@ void ecmcEc::initVars() {
   simSlave_                         = NULL;
   master_                           = NULL;
   currentDomain_                    = NULL;
-  //domainPd_                         = 0;
   slavesOK_                         = 0;
   masterOK_                         = 0;
   domainsOK_                         = 0;
-  //domainNotOKCounter_               = 0;
-  //domainNotOKCounterTotal_          = 0;
-  //domainNotOKCyclesLimit_           = 0;
-  //domainNotOKCounterMax_            = 0;
   domainFailCyclesLimit_            = 0;
   masterAlStates_                   = 0;
   masterLinkUp_                     = 0;
   statusWordMaster_                 = 0;
-  //statusWordDomain_                 = 0;
   ecStatOk_                         = 0;
   delayEcOKCycles_                  = 0;
   startupCounter_                   = 0;
@@ -70,9 +64,7 @@ void ecmcEc::initVars() {
     slaveEntriesReg_[i].vendor_id    = 0;
   }
   
-  //memset(&domainState_, 0, sizeof(domainState_));
   memset(&masterState_, 0, sizeof(masterState_));
-  //memset(&domainStateOld_,0,sizeof(domainStateOld_));
   memset(&masterStateOld_,0,sizeof(masterStateOld_));
   
   inStartupPhase_ = true;
@@ -119,20 +111,6 @@ int ecmcEc::init(int nMasterIndex) {
     domains_.clear();  
   }
 
-
-//  domain_ = ecrt_master_create_domain(master_);
-//
-//  if (!domain_) {
-//    LOGERR("%s/%s:%d: ERROR: EtherCAT create domain failed (0x%x).\n",
-//           __FILE__,
-//           __FUNCTION__,
-//           __LINE__,
-//           ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
-//    return setErrorID(__FILE__,
-//                      __FUNCTION__,
-//                      __LINE__,
-//                      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
-//  }
   initDone_    = true;
   masterIndex_ = nMasterIndex;
 
@@ -170,10 +148,6 @@ bool ecmcEc::getInitDone() {
   return initDone_;
 }
 
-//ec_domain_t * ecmcEc::getDomain() {
-//  return domain_;
-//}
-
 ec_master_t * ecmcEc::getMaster() {
   return master_;
 }
@@ -201,7 +175,7 @@ int ecmcEc::addSlave(
     slaveArray_[slaveCounter_] = new ecmcEcSlave(asynPortDriver_,
                                                  masterIndex_,
                                                  master_,
-                                                 domains_[domainCounter_-1],
+                                                 currentDomain_,
                                                  alias,
                                                  position,
                                                  vendorId,
@@ -275,18 +249,6 @@ int ecmcEc::activate() {
                       ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED);
   }
 
-  //if (!(domainPd_ = ecrt_domain_data(domain_))) {
-  //  LOGERR("%s/%s:%d: ERROR: ecrt_domain_data() failed (0x%x).\n",
-  //         __FILE__,
-  //         __FUNCTION__,
-  //         __LINE__,
-  //         ERROR_EC_MAIN_DOMAIN_DATA_FAILED);
-  //  return setErrorID(__FILE__,
-  //                    __FUNCTION__,
-  //                    __LINE__,
-  //                    ERROR_EC_MAIN_DOMAIN_DATA_FAILED);
-  //}
-
   LOGINFO5("%s/%s:%d: INFO: Writing process data offsets to entries.\n",
            __FILE__,
            __FUNCTION__,
@@ -308,27 +270,6 @@ int ecmcEc::activate() {
     // Activate all slaves and entries
     slaveArray_[slaveIndex]->activate();
 
-    //int nEntryCount = slaveArray_[slaveIndex]->getEntryCount();
-
-//    for (int entryIndex = 0; entryIndex < nEntryCount; entryIndex++) {
-//      ecmcEcEntry *tempEntry = slaveArray_[slaveIndex]->getEntry(entryIndex);
-//
-//      if (tempEntry == NULL) {
-//        LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
-//               __FILE__,
-//               __FUNCTION__,
-//               __LINE__,
-//               ERROR_EC_MAIN_ENTRY_NULL);
-//        return setErrorID(__FILE__,
-//                          __FUNCTION__,
-//                          __LINE__,
-//                          ERROR_EC_MAIN_ENTRY_NULL);
-//      }
-//
-//      if (!tempEntry->getSimEntry()) {
-//        tempEntry->setDomainAdr();
-//      }
-//    }
   }
 
   return validate();
@@ -355,43 +296,7 @@ int ecmcEc::compileRegInfo() {
     if(ret) {
       return ret;
     }
-
-//    int entryCountInSlave = slaveArray_[slaveIndex]->getEntryCount();
-//
-//    for (int entryIndex = 0; entryIndex < entryCountInSlave; entryIndex++) {
-//      ecmcEcEntry *tempEntry = slaveArray_[slaveIndex]->getEntry(entryIndex);
-//
-//      if (tempEntry == NULL) {
-//        LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
-//               __FILE__,
-//               __FUNCTION__,
-//               __LINE__,
-//               ERROR_EC_MAIN_ENTRY_NULL);
-//        return setErrorID(__FILE__,
-//                          __FUNCTION__,
-//                          __LINE__,
-//                          ERROR_EC_MAIN_ENTRY_NULL);
-//      }
-//
-//      if (!tempEntry->getSimEntry()) {
-//        int ret = tempEntry->registerInDomain();
-//
-//        if (ret) {
-//          LOGERR("%s/%s:%d: ERROR: register entry in domain failed (0x%x).\n",
-//                 __FILE__,
-//                 __FUNCTION__,
-//                 __LINE__,
-//                 ret);
-//          return setErrorID(__FILE__, __FUNCTION__, __LINE__, ret);
-//        }
-//      }
-//      entryCounter++;
-//    }
   }
-
-  // Set domain size to MemMap objects to avoid write outside memarea
-  //domainSize_ = ecrt_domain_size(domain_);
-  
 
   for (int i = 0; i < ecMemMapArrayCounter_; i++) {
     if (ecMemMapArray_[i]) {
@@ -421,36 +326,6 @@ void ecmcEc::checkDomainsState() {
     domainsOK_ = domainsOK_ && tempStateOk;
   }
 
-//  ecrt_domain_state(domain_, &domainState_);
-//
-//  // filter domainsOK_ for some cycles
-//  if (domainState_.wc_state != EC_WC_COMPLETE) {
-//    if (domainNotOKCounter_ <= domainNotOKCyclesLimit_) {
-//      domainNotOKCounter_++;
-//    }
-//
-//    if (domainNotOKCounter_ > domainNotOKCounterMax_) {
-//      domainNotOKCounterMax_ = domainNotOKCounter_;
-//    }
-//    domainNotOKCounterTotal_++;
-//  } else {
-//    domainNotOKCounter_ = 0;
-//  }
-//  domainsOK_ = domainNotOKCounter_ <= domainNotOKCyclesLimit_;
-//
-//  //Build domain status word
-//  statusWordDomain_ = 0;
-//  // bit 0
-//  statusWordDomain_ = statusWordDomain_ + (domainState_.redundancy_active > 0);
-//  // bit 1
-//  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_ZERO) << 1);
-//  // bit 2
-//  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_INCOMPLETE) << 2);
-//  // bit 3
-//  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_COMPLETE) << 3);
-//  // bit 16..31
-//  statusWordDomain_ = statusWordDomain_ + ((uint16_t)(domainState_.working_counter) << 16);
-//
 // Set summary alarm for ethercat
   ecStatOk_ = domainsOK_;
 }
@@ -639,20 +514,6 @@ void ecmcEc::receive() {
     domains_[i]->process();
   }
 
-  //ecrt_domain_process(domain_);
-  
-  // struct timespec timeRel, timeAbs;
-  // epicsTimeStamp epicsTime;
-  // if (useClockRealtime_) {    
-    // clock_gettime(CLOCK_REALTIME, &timeAbs);
-  // } else {
-    // clock_gettime(CLOCK_MONOTONIC, &timeRel);
-    // timeAbs = timespecAdd(timeRel, timeOffset_);
-  // }
-
-  //epicsTimeFromTimespec (&epicsTime,&timeAbs);
-  //asynPortDriver_->setTimeStamp(&epicsTime);
-  
   updateInputProcessImage();
 }
 
@@ -668,8 +529,6 @@ void ecmcEc::send(timespec timeOffset) {
   for(int i=0 ; i < domainCounter_ ; i++) {
     domains_[i]->queue();
   }
-
-//  ecrt_domain_queue(domain_);
   
   if (useClockRealtime_) {
     clock_gettime(CLOCK_REALTIME, &timeAbs_);
@@ -787,7 +646,6 @@ int ecmcEc::readSDO(uint16_t  slavePosition,
                     uint8_t   sdoSubIndex,
                     int       byteSize,
                     uint32_t *value) {
-  // uint32_t value=0;
   size_t bytesRead = 0;
   int    errorCode = ecmcEcSDO::read(master_,
                                      slavePosition,
@@ -901,14 +759,8 @@ int ecmcEc::updateOutProcessImage() {
   if (asynPortDriver_) {    
     
     ecAsynParams_[ECMC_ASYN_EC_PAR_MASTER_STAT_ID]->refreshParamRT(0);
-    //ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID]->refreshParamRT(0);
-    //ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_ID]->refreshParamRT(0);
     // Always update ec ok param
     ecAsynParams_[ECMC_ASYN_EC_STAT_OK_ID]->refreshParamRT(1);
-    // No need to update below since in rt now.
-    //ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID]->refreshParamRT(0);
-    //ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParamRT(0);    
-    //ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParamRT(0);
     
     for(int i=0; i < domainCounter_; i ++) {
       domains_[i]->updateAsyn();
@@ -2317,5 +2169,19 @@ int ecmcEc::setDomAllowOffline(int allow) {
   
 
   return currentDomain_->setAllowOffline(allow);
+}
+
+int ecmcEc::getDomState(int domId) {
+
+  if(domId >= domainCounter_) {
+    return -ERROR_EC_MAIN_DOMAIN_NULL;
+  }
+
+  if(!domains_[domId]) {
+    return -ERROR_EC_MAIN_DOMAIN_NULL;
+  }
+  
+  // just use getOK, because state is checke cyclically with other function
+  return domains_[domId]->getOK();
 }
 
