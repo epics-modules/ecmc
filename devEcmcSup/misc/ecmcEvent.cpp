@@ -535,3 +535,8 @@ int ecmcEvent::arm() {
   armSequence();
   return 0;
 }
+
+void ecmcEvent::errorReset() {
+  ecmcEcEntryLink::errorReset();
+  ecmcError::errorReset();
+}

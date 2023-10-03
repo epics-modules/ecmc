@@ -408,6 +408,7 @@ int ecmcMonitor::reset() {
 
 void ecmcMonitor::errorReset() {
   reset();
+  ecmcEcEntryLink::errorReset();
   ecmcError::errorReset();
 }
 

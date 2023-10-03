@@ -259,3 +259,17 @@ int ecmcEcEntryLink::getSlaveId(int index) {
 bool ecmcEcEntryLink::checkDomainOK(int entryIndex) {
   return entryInfoArray_[entryIndex].entry->getDomainOK();
 }
+
+bool ecmcEcEntryLink::checkDomainOKAllEntries() {
+  bool ok = true;
+  
+  for (int i = 0; i < ECMC_EC_ENTRY_LINKS_MAX; i++) {
+    if(entryInfoArray_[i].entry) {
+      ok= ok && entryInfoArray_[i].entry->getDomainOK();
+    } else {  // no more entries
+      break;
+    }
+  }
+
+  return ok;
+}

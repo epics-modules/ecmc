@@ -51,6 +51,7 @@ private:
   //ec_domain_state_t stateOld_;
   ec_domain_state_t state_;
   int statusOk_;
+  int statusWordOld_;
   int notOKCounter_;
   int notOKCounterTotal_;
   int notOKCounterMax_;

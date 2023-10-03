@@ -1561,3 +1561,7 @@ int ecmcPLCDataIF::updateAsyn(int force) {
   return 0;
 }
   
+void ecmcPLCDataIF::errorReset() {
+  ecmcEcEntryLink::errorReset();
+  ecmcError::errorReset();
+}

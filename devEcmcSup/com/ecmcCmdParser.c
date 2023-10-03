@@ -652,14 +652,12 @@ static int handleCfgCommand(const char *myarg_1) {
   int iValue8       = 0;
   int iValue9       = 0;
   int iValue10      = 0;
+  int nvals         = 0;
   uint64_t u64Value = 0;
-
-  int nvals      = 0;
-  double dValue  = 0;
-  double dValue2 = 0;
-  double dValue3 = 0;
-  double dValue4 = 0;
-  double dValue5 = 0;
+  double dValue     = 0;
+  double dValue2    = 0;
+  double dValue3    = 0;
+  double dValue4    = 0;
   
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);

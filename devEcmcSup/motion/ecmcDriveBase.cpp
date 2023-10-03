@@ -344,26 +344,26 @@ void ecmcDriveBase::writeEntries() {
 }
 
 void ecmcDriveBase::readEntries() {
-
-  if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD, &statusWord_)) {
+  int errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD, &statusWord_);
+  if (errorCode) {
     setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               ERROR_DRV_ENABLED_READ_ENTRY_FAIL);
+               errorCode);
     statusWord_ = 0;
     return;
   }
 
   // Check warning link. Think about forwarding warning info to motor record somehow
   if (hwWarningDefined_) {
-    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING, &hwWarning_)) {
+    errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING, &hwWarning_);
+    if (errorCode) {
       hwWarning_ = 0;
       hwWarningOld_ = 0;
       setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               ERROR_DRV_WARNING_READ_ENTRY_FAIL);
-
+               errorCode);
       return;
     }
 
@@ -381,14 +381,14 @@ void ecmcDriveBase::readEntries() {
 
   // check alarm 0
   if (hwErrorAlarm0Defined_) {
-    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_)) {
+    errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_);
+    if (errorCode) {
       hwErrorAlarm0_ = 0;
       hwErrorAlarm0Old_ = 0;
       setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
-
+               errorCode);
       return;
     }
     
@@ -406,14 +406,14 @@ void ecmcDriveBase::readEntries() {
 
   // check alarm 1
   if (hwErrorAlarm1Defined_) {
-    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1, &hwErrorAlarm1_)) {
+    errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1, &hwErrorAlarm1_);
+    if (errorCode) {
       hwErrorAlarm1_ = 0;
       hwErrorAlarm1Old_ = 0;
       setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
-
+               errorCode);
       return;
     }
     
@@ -431,14 +431,14 @@ void ecmcDriveBase::readEntries() {
 
   // check alarm 2
   if (hwErrorAlarm2Defined_) {
-    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2, &hwErrorAlarm2_)) {
+    errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2, &hwErrorAlarm2_);
+    if (errorCode) {
       hwErrorAlarm2_ = 0;
       hwErrorAlarm2Old_ = 0;
       setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
-
+               errorCode);
       return;
     }
     
@@ -693,7 +693,7 @@ void ecmcDriveBase::errorReset() {
   if(hwResetDefined_) {
     hwReset_ = 1;
   }
-
+  ecmcEcEntryLink::errorReset();
   ecmcError::errorReset();
 }
 

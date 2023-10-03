@@ -219,7 +219,7 @@ private:
   ecmcEcSlave *simSlave_;
   int slavesOK_;
   int masterOK_;
-  int domainOK_;
+  int domainsOK_;
   bool inStartupPhase_;
 
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];

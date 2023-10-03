@@ -936,7 +936,7 @@ int ecmcEcSlave::addSDOAsync(uint16_t sdoIndex, /**< SDO index. */
 
 int ecmcEcSlave::activate() {
   int ret = 0;
-  for (int entryIndex = 0; entryIndex < entryCounter_; entryIndex++) {
+  for (uint entryIndex = 0; entryIndex < entryCounter_; entryIndex++) {
     ecmcEcEntry *tempEntry = getEntry(entryIndex);
     if (tempEntry == NULL) {
       LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
@@ -962,7 +962,7 @@ int ecmcEcSlave::activate() {
 
 int ecmcEcSlave::compileRegInfo() {
   int ret = 0;
-  for (int entryIndex = 0; entryIndex < entryCounter_; entryIndex++) {
+  for (uint entryIndex = 0; entryIndex < entryCounter_; entryIndex++) {
     ecmcEcEntry *tempEntry = getEntry(entryIndex);
     if (tempEntry == NULL) {
       LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
@@ -986,3 +986,10 @@ int ecmcEcSlave::compileRegInfo() {
   return 0;
 }
 
+int ecmcEcSlave::getAllowOffline() {
+  if(domain_) {
+    return domain_->getAllowOffline();
+  }
+  // No domain attached the simulation slave
+  return 1;
+}

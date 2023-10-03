@@ -35,7 +35,7 @@ void ecmcEc::initVars() {
   //domainPd_                         = 0;
   slavesOK_                         = 0;
   masterOK_                         = 0;
-  domainOK_                         = 0;
+  domainsOK_                         = 0;
   //domainNotOKCounter_               = 0;
   //domainNotOKCounterTotal_          = 0;
   //domainNotOKCyclesLimit_           = 0;
@@ -405,18 +405,25 @@ int ecmcEc::compileRegInfo() {
 void ecmcEc::checkDomainsState() {
 
   if (!diag_) {
-    domainOK_ = true;
+    domainsOK_ = true;
   }
 
-  domainOK_ = true;
-
+  domainsOK_ = true;
+  
+  int tempStateOk = 0;
   for(int i = 0; i < domainCounter_; i++) {
-    domainOK_ = domainOK_ && domains_[i]->checkState();
+
+    tempStateOk = domains_[i]->checkState();
+    if(domains_[i]->getAllowOffline()) {      
+      // ignore state if allowed offline
+      continue;
+    }
+    domainsOK_ = domainsOK_ && tempStateOk;
   }
 
 //  ecrt_domain_state(domain_, &domainState_);
 //
-//  // filter domainOK_ for some cycles
+//  // filter domainsOK_ for some cycles
 //  if (domainState_.wc_state != EC_WC_COMPLETE) {
 //    if (domainNotOKCounter_ <= domainNotOKCyclesLimit_) {
 //      domainNotOKCounter_++;
@@ -429,7 +436,7 @@ void ecmcEc::checkDomainsState() {
 //  } else {
 //    domainNotOKCounter_ = 0;
 //  }
-//  domainOK_ = domainNotOKCounter_ <= domainNotOKCyclesLimit_;
+//  domainsOK_ = domainNotOKCounter_ <= domainNotOKCyclesLimit_;
 //
 //  //Build domain status word
 //  statusWordDomain_ = 0;
@@ -445,7 +452,7 @@ void ecmcEc::checkDomainsState() {
 //  statusWordDomain_ = statusWordDomain_ + ((uint16_t)(domainState_.working_counter) << 16);
 //
 // Set summary alarm for ethercat
-  ecStatOk_ = domainOK_;
+  ecStatOk_ = domainsOK_;
 }
 
 bool ecmcEc::checkSlavesConfState() {
@@ -512,6 +519,11 @@ int ecmcEc::checkSlaveConfState(int slaveIndex) {
   }
 
   int error = slaveArray_[slaveIndex]->checkConfigState();
+
+  // If domain is allowed to be offline then slave also
+  if(slaveArray_[slaveIndex]->getAllowOffline()) {
+    return 0;
+  }
 
   return error;
 }
@@ -678,7 +690,7 @@ void ecmcEc::send(timespec timeOffset) {
 
   // Delay ecOK at startup for delayEcOKCycles_ after ecOK
   if(inStartupPhase_) {
-    if(slavesOK_ && domainOK_ && masterOK_) {
+    if(slavesOK_ && domainsOK_ && masterOK_) {
       startupCounter_++;
     }
   }
@@ -1093,12 +1105,12 @@ int ecmcEc::statusOK() {
   }
 
   // Auto reset error at startup
-  if (inStartupPhase_ && slavesOK_ && domainOK_ && masterOK_ && startupCounter_ > delayEcOKCycles_) {
+  if (inStartupPhase_ && slavesOK_ && domainsOK_ && masterOK_ && startupCounter_ > delayEcOKCycles_) {
     inStartupPhase_ = false;
     errorReset();
   }
-  //printf("slavesOK_ %d domainOK_ %d masterOK_ %d inStartupPhase_%d\n",slavesOK_,domainOK_,masterOK_,inStartupPhase_);
-  return slavesOK_ && domainOK_ && masterOK_ && !inStartupPhase_;
+  //printf("slavesOK_ %d domainsOK_ %d masterOK_ %d inStartupPhase_%d\n",slavesOK_,domainsOK_,masterOK_,inStartupPhase_);
+  return slavesOK_ && domainsOK_ && masterOK_ && !inStartupPhase_;
 }
 
 int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles) {
@@ -1121,7 +1133,7 @@ void ecmcEc::slowExecute() {
     __LINE__,
     masterOK_,
     slavesOK_,
-    domainOK_,
+    domainsOK_,
     getErrorID());
 
   checkState();

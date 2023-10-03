@@ -134,6 +134,7 @@ class ecmcEcSlave : public ecmcError {
                  uint8_t sdoSubIndex, /**< SDO subindex. */
                  ecmcEcDataType dt,
                  std::string alias);
+  int getAllowOffline();
 
  private:
   void  initVars();

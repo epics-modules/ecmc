@@ -54,6 +54,7 @@ void ecmcEcDomain::initVars() {
   asynParFailCount_  = NULL;
   domainPd_          = 0;
   statusOk_          = 0;
+  statusWordOld_       = 0;
   notOKCounter_      = 0;
   notOKCounterTotal_ = 0;
   notOKCyclesLimit_  = 0;
@@ -101,7 +102,7 @@ int ecmcEcDomain::checkState() {
   } else {
     notOKCounter_ = 0;
   }
-  //statusOK_ = notOKCounter_ <= notOKCyclesLimit_;
+  statusOk_ = notOKCounter_ <= notOKCyclesLimit_;
 
   //Build domain status word
   statusWord_ = 0;
@@ -117,9 +118,20 @@ int ecmcEcDomain::checkState() {
   statusWord_ = statusWord_ + ((uint16_t)(state_.working_counter) << 16);
 
   // Set summary alarm for ethercat
-  statusOk_= state_.wc_state ==  EC_WC_COMPLETE;
-  return statusOk_;
+  //statusOk_= state_.wc_state ==  EC_WC_COMPLETE;
+
+  if(statusWord_ != statusWordOld_) {
+    LOGERR("%s/%s:%d: INFO: Domain[%d] status changed: %d.\n",
+         __FILE__,
+         __FUNCTION__,
+         __LINE__,
+         objIndex_,
+         statusWord_);
+  }
   
+  statusWordOld_= statusWord_;
+
+  return statusOk_;
 }
 
 // For objects using data from teh domain (axes, plcs...)
@@ -255,6 +267,8 @@ size_t ecmcEcDomain::getSize() {
 
 int ecmcEcDomain::setFailedCyclesLimitInterlock(int cycles) {
   notOKCyclesLimit_ = cycles;
+  // do not allow to be ok at startup
+  notOKCounter_ = cycles;
   return 0;
 }
 
