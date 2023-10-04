@@ -12,15 +12,42 @@
 
 #include "ecmcMaster2Master.h"
 
-ecmcMaster2Master::ecmcMaster2Master() {
-  int val = 50;
-  ecmcShm<0x1234, int>::create(); 
-  ecmcShm<0x1234, int> shm;
-  shm.SetValue(&val);
+ecmcMaster2Master::ecmcMaster2Master(size_t count, int key) {
+  key_ = (key_t) key;
+  count_ = count;
+  // Create a new memory area with a defined key
+  ecmcShm<double>::create(key, count);
+  shmObj_ = new ecmcShm<double>(key, count);
+
+  //shmObj_->SetValue(&val);
 }
 
 ecmcMaster2Master::~ecmcMaster2Master(){
+  delete shmObj_;
+}
 
+int ecmcMaster2Master::setValue(double value,size_t index){
+  try{
+    
+    shmObj_->SetValue(value,index);    
+
+  } catch(...){ 
+    printf("ERROR\n");
+    return -1;
+  }
+  return 0;
+}
+
+int ecmcMaster2Master::getValue(double *value, size_t index){
+  try{
+    
+    *value=shmObj_->GetValue(index);    
+
+  } catch(...){ 
+    printf("ERROR\n");
+    return -1;
+  }
+  return 0;   
 }
 
 //template <key_t KEY, typename T, int COUNT> 

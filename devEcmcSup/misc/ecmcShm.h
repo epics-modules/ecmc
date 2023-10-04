@@ -22,14 +22,18 @@
 #include <string.h>
 
 /* For master to master communication */
-template <key_t KEY, typename T, int COUNT = 1>
+template <typename T>
 class ecmcShm
 {
 
 public:
-  ecmcShm():shm_(0)
+  ecmcShm(key_t key, size_t count)
   {
-    get();
+
+  count_ = count;
+  key_   = key;
+
+    get(key,count);
     attach();
   }
 
@@ -43,33 +47,46 @@ public:
   }
 
   //Set one element 
-  void SetValue(const T* data, int count = 1)
+  //void SetValue(const T* data, int count = 1)
+  void SetValue(T data, int index)
   {
-    if(sizeof(T)*count > sizeof(T) * COUNT)
+    if(sizeof(T)*index > sizeof(T) * count_)
     {
-      throw std::runtime_error("Data size greater than shm size");
+      throw std::runtime_error("Index pointing outside shm size");
     }
-    memcpy(shm_, data, sizeof(T)*count);
+
+    T* dataPtr = (T*)shm_;
+    dataPtr[index] = data;
+
+    //memcpy(shm_, data, sizeof(T)*count);
   }
 
   //Get pointer to element
-  const T* GetValue()
+  T GetValue(size_t index)
   {
+   if(sizeof(T)*index > sizeof(T) * count_)
+    {
+      throw std::runtime_error("Index pointing outside shm size");
+    }
+
     T* ptr = new(shm_) T;
-    return ptr;
+    return ptr[index];
   }
 
-
-  static void create()
+  static void create(key_t key, size_t count)
   {
-    if ((shmid_ = shmget(KEY, COUNT*sizeof(T), IPC_CREAT | 0666)) < 0) 
+    printf("CREATE shm\n");
+    //count_ = count;
+    //key_ = key;
+    if ((shmid_ = shmget(key, count*sizeof(T), IPC_CREAT | 0666)) < 0) 
     {
       throw std::runtime_error("Failed create shm");
     }
   }
-  static void destroy()
+
+  static void destroy(key_t key, size_t count)
   {
-    get();
+    get(key,count);
     if(shmctl(shmid_, IPC_RMID, NULL)<0)
     {
     perror("shctl");
@@ -79,11 +96,11 @@ public:
   }
 
 private:
-  static void get()
+  static void get(key_t key, size_t count)
   {
     if(shmid_ == -1)
     {
-      if((shmid_ = shmget(KEY, COUNT*sizeof(T), 0666)) < 0)
+      if((shmid_ = shmget(key, count*sizeof(T), 0666)) < 0)
       {
     perror("shmget");
     throw std::runtime_error("Shared memory not created");
@@ -92,15 +109,18 @@ private:
 
   }
 
-  void attach()
+  static void attach()
   {
     if ((shm_ = shmat(shmid_, NULL, 0)) == (char *) -1) 
     {
     throw std::runtime_error("Failed attach shm");
     }
   }
-  void* shm_;
+
+  static void* shm_;
   static int shmid_;
+  size_t count_;
+  key_t key_;
 };
 
 #endif  /* ECMCSHM_H_ */

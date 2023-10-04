@@ -17,8 +17,15 @@
 
 class ecmcMaster2Master {
  public:
-  ecmcMaster2Master();
+  ecmcMaster2Master(size_t count, int key);
   ~ecmcMaster2Master();
+  int setValue(double value,  size_t index);
+  int getValue(double *value, size_t index);
+
+ private:
+  key_t key_;
+  size_t count_;
+  ecmcShm<double> *shmObj_;
 };
 
 #endif  /* ECMCMASTER2MASTER_H_ */

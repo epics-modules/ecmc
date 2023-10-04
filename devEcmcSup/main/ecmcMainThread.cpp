@@ -412,6 +412,9 @@ int ecmcInitThread(void) {
     plugins[i] = NULL;
   }
   
+  m2m = NULL;
+
+  //m2m = new ecmcMaster2Master(100,9876);
   plcs = NULL;
 
   return 0;

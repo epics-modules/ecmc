@@ -289,6 +289,10 @@ void ecmcCleanup() {
     plugins[i] = NULL;
   }
 
+  if(m2m) {
+    delete m2m;
+  }
+  
   delete ec;
   ec = NULL;
 }
