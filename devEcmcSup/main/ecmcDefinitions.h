@@ -215,7 +215,6 @@
 #define ECMC_ASYN_AX_SET_ENC_POS_NAME "setencpos"
 #define ECMC_ASYN_AX_PAR_COUNT 12
 
-
 // Asyn params for encoder
 #define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"
 #define ECMC_ASYN_ENC_ACT_VEL_NAME "actvel"
@@ -629,5 +628,18 @@ enum ecmcEcDataType {
   ECMC_EC_F64   = 14  
 };
 
+// SHM
+#define ECMC_SHM_FILENAME "ecmc_shm"
+#define ECMC_SHM_TYPE double
+#define ECMC_SHM_ELEMENTS 128
+#define ECMC_SHM_KEY 1976
+
+typedef struct ecmcShm{
+  int valid;
+  int key;
+  int shmid;
+  double* dataPtr;
+  int size;
+} ecmcShm;
 
 #endif  /* ECMC_DEFINITIONS_H_ */

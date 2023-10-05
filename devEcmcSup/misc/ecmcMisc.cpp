@@ -15,6 +15,10 @@
 #include "ecmcOctetIF.h"        // Log Macros
 #include "ecmcErrorsList.h"
 #include "ecmcDefinitions.h"
+#include <iostream>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
 
 // TODO: REMOVE GLOBALS
 #include "ecmcGlobalsExtern.h"
@@ -619,4 +623,38 @@ int triggerCommandList(int indexCommandList) {
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
   // No need for state of ethercat master
   return commandLists[indexCommandList]->executeEvent(1);
+}
+
+int createShm() {
+  LOGINFO4("%s/%s:%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
+  // ftok to generate unique key
+  shmObj.key = (int)ftok(ECMC_SHM_FILENAME,ECMC_SHM_KEY);
+
+  // shmget returns an identifier in shmid
+  shmObj.shmid = shmget((key_t)shmObj.key,ECMC_SHM_ELEMENTS*sizeof(ECMC_SHM_TYPE),0666|IPC_CREAT);
+
+  if(shmObj.shmid<0) {
+    LOGERR("%s/%s:%d: ERROR: Failed create SHM (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,ERROR_SHMGET_ERROR);
+    return ERROR_SHMGET_ERROR;
+  }
+
+  // shmat to attach to shared memory
+  shmObj.dataPtr = (ECMC_SHM_TYPE *) shmat(shmObj.shmid,(void*)0,0);
+  if(shmObj.dataPtr==(ECMC_SHM_TYPE *)-1) {
+    LOGERR("%s/%s:%d: ERROR: Failed attach SHM (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,ERROR_SHMMAT_ERROR);
+    return ERROR_SHMMAT_ERROR;
+  }
+
+  shmObj.size = ECMC_SHM_ELEMENTS * sizeof(ECMC_SHM_TYPE);
+  shmObj.valid = 1;
+  return 0;
 }

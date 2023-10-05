@@ -2091,6 +2091,22 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_MAIN_DOMAIN_NULL";
 
     break;
+  case 0x20057:
+    return "ERROR_SHMGET_ERROR";
+
+    break;
+  case 0x20058:
+    return "ERROR_SHMMAT_ERROR";
+
+    break;
+  case 0x20059:
+    return "ERROR_SHM_INDEX_OUT_OF_RANGE";
+
+    break;
+  case 0x2005A:
+    return "ERROR_SHM_NULL";
+
+    break;
 
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";

@@ -64,6 +64,7 @@ class ecmcPLCMain : public ecmcError {
                              int              index);
   int  setPluginPointer(ecmcPluginLib *plugin, 
                         int            index);
+  int  setShm(ecmcShm shm);
   int  execute(bool ecOK);
   int  execute(int   plcIndex, bool ecOK);
   int  setExpr(int   plcIndex,
@@ -151,6 +152,7 @@ class ecmcPLCMain : public ecmcError {
   ecmcPLCDataIF      *ecStatus_;
   double              mcuFreq_;
   ecmcPluginLib      *plugins_[ECMC_MAX_PLUGINS];
+  ecmcShm            shm_;
 };
 
 #endif  /* ECMC_PLC_MAIN_H_ */

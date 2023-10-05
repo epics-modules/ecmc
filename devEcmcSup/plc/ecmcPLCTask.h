@@ -70,6 +70,7 @@ class ecmcPLCTask : public ecmcError {
                                      int              index);
   int          setPluginPointer(ecmcPluginLib *plugin, 
                                 int            index);
+  int          setShm(ecmcShm shm);
   int          setEcPointer(ecmcEc *ec);
   int          parseFunctions(const char *exprStr);
   int          getFirstScanDone();
@@ -84,6 +85,7 @@ class ecmcPLCTask : public ecmcError {
   static ecmcAxisBase    *statAxes_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   static ecmcEc          *statEc_;
+  static ecmcShm         statShm_;
 
  private:
   void initVars();
@@ -99,11 +101,14 @@ class ecmcPLCTask : public ecmcError {
   bool findFileIOFunction(const char *exprStr);
   bool findPluginFunction(ecmcPluginLib* plugin, const char *exprStr);
   bool findPluginConstant(ecmcPluginLib* plugin, const char *exprStr);
+  bool findMiscFunction(const char *exprStr);
   int  loadMcLib();
   int  loadEcLib();
   int  loadDsLib();
   int  loadFileIOLib();
   int  loadPluginLib(ecmcPluginLib* plugin);
+  int  loadMiscLib();
+
   std::string exprStr_;
   std::string exprStrRaw_; //Before compile and preprocess
   bool compiled_;
@@ -122,6 +127,7 @@ class ecmcPLCTask : public ecmcError {
   int libEcLoaded_;
   int libDsLoaded_;
   int libFileIOLoaded_;
+  int libMiscLoaded_;
   int libPluginsLoaded_[ECMC_MAX_PLUGINS];
   
   ecmcAsynPortDriver *asynPortDriver_;

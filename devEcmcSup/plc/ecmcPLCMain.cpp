@@ -56,6 +56,7 @@ void ecmcPLCMain::initVars() {
 
   asynPortDriver_ = NULL;
   ec_ = NULL;
+  memset(&shm_,0,sizeof(ecmcShm));
   ecStatus_ = NULL;
   mcuFreq_ = MCU_FREQUENCY;
 }
@@ -100,6 +101,9 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
 
   // Set ec pointer
   plcs_[plcIndex]->setEcPointer(ec_);
+
+  // Set shm
+  plcs_[plcIndex]->setShm(shm_);
 
   errorCode = addPLCDefaultVariables(plcIndex, skipCycles);
 
@@ -1311,5 +1315,10 @@ int ecmcPLCMain::setPluginPointer(ecmcPluginLib *plugin, int index) {
   }
 
   plugins_[index] = plugin;
+  return 0;
+}
+
+int ecmcPLCMain::setShm(ecmcShm shm) {
+  shm_ = shm;
   return 0;
 }

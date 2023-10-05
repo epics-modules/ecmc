@@ -693,6 +693,15 @@ int addCommandListCommand(int   indexCommandList,
  */
 int triggerCommandList(int indexCommandList);
 
+/** \brief Create SHM Object.\n
+ *
+ * Creates a shared memory object for master 2 master communication
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int createShm();
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

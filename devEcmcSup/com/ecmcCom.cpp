@@ -16,6 +16,8 @@
 #include "ecmcErrorsList.h"
 #include "ecmcDefinitions.h"
 #include "ecmcMainThread.h"
+#include <sys/ipc.h>
+#include <sys/shm.h>
 
 //Below for asyn version and 64 bit ints
 #include "asynPortDriver.h"
@@ -287,12 +289,13 @@ void ecmcCleanup() {
     }
     delete plugins[i];
     plugins[i] = NULL;
+  } 
+
+  if(shmObj.valid) {
+    //detach from shared memory 
+    shmdt(shmObj.dataPtr);
   }
 
-  if(m2m) {
-    delete m2m;
-  }
-  
   delete ec;
   ec = NULL;
 }

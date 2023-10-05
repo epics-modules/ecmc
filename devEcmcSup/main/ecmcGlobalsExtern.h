@@ -27,7 +27,6 @@
 #include "ecmcMotorRecordController.h"
 #include "ecmcPluginLib.h"
 #include "epicsMutex.h"
-#include "ecmcMaster2Master.h"
 
 extern ecmcAxisBase              *axes[ECMC_MAX_AXES];
 extern ecmcEc                    *ec;
@@ -42,7 +41,7 @@ extern ecmcMainThreadDiag         threadDiag;
 extern app_mode_type              appModeCmd, appModeCmdOld, appModeStat;
 extern ecmcMotorRecordController *asynPortMotorRecord;
 extern ecmcPluginLib             *plugins[ECMC_MAX_PLUGINS];
-extern ecmcMaster2Master         *m2m;
+extern ecmcShm                   shmObj;
 
 // Mutex for motor record access
 extern epicsMutexId               ecmcRTMutex;

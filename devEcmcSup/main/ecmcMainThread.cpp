@@ -412,9 +412,10 @@ int ecmcInitThread(void) {
     plugins[i] = NULL;
   }
   
-  m2m = NULL;
+  // Create SHM for master 2 master communication
+  memset(&shmObj,0, sizeof(ecmcShm));
+  createShm();
 
-  //m2m = new ecmcMaster2Master(100,9876);
   plcs = NULL;
 
   return 0;
