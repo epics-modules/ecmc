@@ -40,6 +40,8 @@ m2m_read(<index>)            : read a value at an index in the buffer
 m2m_stat()                   : check that connection to memory is ok.
 m2m_err_rst()                : reset any error
 m2m_get_err()                : get error code
+m2m_mstr_op()                : master operational. 1==op, 0==not op, -1==error
+
 ```
 ## Add extra set of controller parameters
 Use different controller parameters depending on distance to target. This can be usefull in for instance systemes with backlash.
