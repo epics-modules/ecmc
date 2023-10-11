@@ -141,7 +141,10 @@ ecmcEc::~ecmcEc() {
   for (int i = 0; i < ECMC_ASYN_EC_PAR_COUNT; i++) {
     delete ecAsynParams_[i];
     ecAsynParams_[i] = NULL;
-  }  
+  }
+  if(master_){
+    ecrt_release_master(master_);
+  }
 }
 
 bool ecmcEc::getInitDone() {

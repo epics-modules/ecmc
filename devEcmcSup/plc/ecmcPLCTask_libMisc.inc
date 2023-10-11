@@ -45,8 +45,9 @@ inline double m2m_write(double shmIndex, double data) {
     return (double)m2m_errorCode;
   }
 
+  sem_wait(ecmcPLCTask::statShm_.sem);
   ecmcPLCTask::statShm_.dataPtr[index] = data;
-
+  sem_post(ecmcPLCTask::statShm_.sem);
   return (double)m2m_errorCode;
 }
 
@@ -57,8 +58,11 @@ inline double m2m_read(double shmIndex) {
   if(m2m_errorCode) {
     return 0;
   }
-
-  return ecmcPLCTask::statShm_.dataPtr[index];
+  
+  sem_wait(ecmcPLCTask::statShm_.sem);
+  double data = ecmcPLCTask::statShm_.dataPtr[index];
+  sem_post(ecmcPLCTask::statShm_.sem);
+  return data;
 }
 
 inline double m2m_stat() {

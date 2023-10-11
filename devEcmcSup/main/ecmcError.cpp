@@ -2108,6 +2108,12 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+    break;
+  case 0x2005B:
+    return "ERROR_SEM_NULL";
+
+    break;
+
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 

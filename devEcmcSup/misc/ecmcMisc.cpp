@@ -19,6 +19,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <stdio.h>
+#include <semaphore.h>
+#include <fcntl.h>
 
 // TODO: REMOVE GLOBALS
 #include "ecmcGlobalsExtern.h"
@@ -630,6 +632,18 @@ int createShm() {
            __FILE__,
            __FUNCTION__,
            __LINE__);
+
+  // first create or link to semaphore
+  shmObj.sem = sem_open(ECMC_SEM_FILENAME, O_CREAT, 0666, 1);
+  if( shmObj.sem == SEM_FAILED ) {
+    LOGERR("%s/%s:%d: ERROR: Failed create SEM (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,ERROR_SEM_NULL);
+     return ERROR_SEM_NULL;
+  }
+
+  printf("SEM object created: %p.\n",shmObj.sem);
   // ftok to generate unique key
   shmObj.key = (int)ftok(ECMC_SHM_FILENAME,ECMC_SHM_KEY);
 

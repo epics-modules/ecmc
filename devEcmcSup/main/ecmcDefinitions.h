@@ -12,6 +12,7 @@
 
 #define __STDC_FORMAT_MACROS  // for printf uint_64_t
 #include <stdint.h>
+#include <semaphore.h>
 
 #ifndef ECMC_DEFINITIONS_H_
 #define ECMC_DEFINITIONS_H_
@@ -630,6 +631,7 @@ enum ecmcEcDataType {
 
 // SHM
 #define ECMC_SHM_FILENAME "ecmc_shm"
+#define ECMC_SEM_FILENAME "ecmc_sem"
 #define ECMC_SHM_TYPE double
 #define ECMC_SHM_ELEMENTS 128
 #define ECMC_SHM_KEY 1976
@@ -640,6 +642,7 @@ typedef struct ecmcShm{
   int shmid;
   double* dataPtr;
   int size;
+  sem_t* sem;
 } ecmcShm;
 
 #endif  /* ECMC_DEFINITIONS_H_ */

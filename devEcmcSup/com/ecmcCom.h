@@ -38,8 +38,7 @@ int ecmcAddDefaultAsynParams();
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-
-void ecmcCleanup();
+void ecmcCleanup(int signum);
 
 # ifdef __cplusplus
 }

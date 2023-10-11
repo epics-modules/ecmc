@@ -104,6 +104,7 @@
 #define ERROR_SHMMAT_ERROR 0x20058
 #define ERROR_SHM_INDEX_OUT_OF_RANGE 0x20059
 #define ERROR_SHM_NULL 0x2005A
+#define ERROR_SEM_NULL 0x2005B
 
 // Other errors moved heer since used in many objects
 #define ERROR_EC_MAIN_ENTRY_NULL 0x26006
