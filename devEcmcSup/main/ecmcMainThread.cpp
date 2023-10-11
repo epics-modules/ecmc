@@ -523,7 +523,12 @@ int startRTthread() {
 int setAppModeCfg(int mode) {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
 
-  
+  if(ec->getInitDone()) {
+    if( 0 <= ec->getMasterIndex() and ec->getMasterIndex() <= ECMC_SHM_MAX_MASTERS) {
+      shmObj.ctrlPtr[ec->getMasterIndex()]=0;
+    }
+  }
+
   appModeCmdOld = appModeCmd;
   appModeCmd    = (app_mode_type)mode;
   
@@ -547,7 +552,6 @@ int setAppModeCfg(int mode) {
       axes[i]->setRealTimeStarted(false);
     }
   }
-
   munlockall();
   return 0;
 }
@@ -640,7 +644,11 @@ int setAppModeRun(int mode) {
   if (asynPort) {
     asynPort->setAllowRtThreadCom(true);  // Set by epics state hooks
   }
-
+  if(ec->getInitDone()) {
+    if( 0 <= ec->getMasterIndex() and ec->getMasterIndex() <= ECMC_SHM_MAX_MASTERS) {
+      shmObj.ctrlPtr[ec->getMasterIndex()]=1;
+    }
+  }
   return 0;
 }
 

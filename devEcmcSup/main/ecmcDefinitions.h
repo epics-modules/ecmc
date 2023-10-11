@@ -633,14 +633,18 @@ enum ecmcEcDataType {
 #define ECMC_SHM_FILENAME "ecmc_shm"
 #define ECMC_SEM_FILENAME "ecmc_sem"
 #define ECMC_SHM_TYPE double
-#define ECMC_SHM_ELEMENTS 128
+#define ECMC_SHM_ELEMENTS 120
 #define ECMC_SHM_KEY 1976
+#define ECMC_SHM_CONTROL_BYTES 64
+#define ECMC_SHM_MAX_MASTERS 16
 
 typedef struct ecmcShm{
   int valid;
   int key;
   int shmid;
   double* dataPtr;
+  char  * ctrlPtr;
+  void  * memPtr;
   int size;
   sem_t* sem;
 } ecmcShm;

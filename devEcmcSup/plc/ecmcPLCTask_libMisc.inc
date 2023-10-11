@@ -32,10 +32,11 @@ const char *miscLibCmdList[] = { "m2m_write(",
                                  "m2m_stat(",
                                  "m2m_err_rst(",
                                  "m2m_get_err(",
+                                 "m2m_mstr_op(",
 };
 
 static int m2m_errorCode = 0;
-static int misc_cmd_count = 5;
+static int misc_cmd_count = 6;
 
 inline double m2m_write(double shmIndex, double data) {
   int index = (int)shmIndex;
@@ -50,6 +51,17 @@ inline double m2m_write(double shmIndex, double data) {
   sem_post(ecmcPLCTask::statShm_.sem);
   return (double)m2m_errorCode;
 }
+
+
+inline double m2m_mstr_op(double mstIdx) {
+  
+int index= (int) mstIdx;
+  if(ecmcPLCTask::statShm_.valid == 0 || index >= ECMC_SHM_MAX_MASTERS || index < 0) {
+    return -1;
+  }  
+  return (double) ecmcPLCTask::statShm_.ctrlPtr[index];
+}
+
 
 inline double m2m_read(double shmIndex) {
   int index = (int)shmIndex;

@@ -647,8 +647,8 @@ int createShm() {
   // ftok to generate unique key
   shmObj.key = (int)ftok(ECMC_SHM_FILENAME,ECMC_SHM_KEY);
 
-  // shmget returns an identifier in shmid
-  shmObj.shmid = shmget((key_t)shmObj.key,ECMC_SHM_ELEMENTS*sizeof(ECMC_SHM_TYPE),0666|IPC_CREAT);
+  // shmget returns an identifier in shmid (add some extra bytes for ioc to ioc communication, not accessible via PLC)
+  shmObj.shmid = shmget((key_t)shmObj.key,ECMC_SHM_ELEMENTS*sizeof(ECMC_SHM_TYPE)+ECMC_SHM_CONTROL_BYTES,0666|IPC_CREAT);
 
   if(shmObj.shmid<0) {
     LOGERR("%s/%s:%d: ERROR: Failed create SHM (0x%x).\n",
@@ -659,15 +659,16 @@ int createShm() {
   }
 
   // shmat to attach to shared memory
-  shmObj.dataPtr = (ECMC_SHM_TYPE *) shmat(shmObj.shmid,(void*)0,0);
-  if(shmObj.dataPtr==(ECMC_SHM_TYPE *)-1) {
+  shmObj.memPtr  = shmat(shmObj.shmid,(void*)0,0);
+  if(shmObj.memPtr==(ECMC_SHM_TYPE *)-1) {
     LOGERR("%s/%s:%d: ERROR: Failed attach SHM (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,ERROR_SHMMAT_ERROR);
     return ERROR_SHMMAT_ERROR;
   }
-
+  shmObj.dataPtr = (ECMC_SHM_TYPE *) shmObj.memPtr;
+  shmObj.ctrlPtr = (char *) shmObj.memPtr + ECMC_SHM_ELEMENTS*sizeof(ECMC_SHM_TYPE);
   shmObj.size = ECMC_SHM_ELEMENTS * sizeof(ECMC_SHM_TYPE);
   shmObj.valid = 1;
   return 0;
