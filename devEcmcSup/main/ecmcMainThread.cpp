@@ -233,11 +233,7 @@ void cyclic_task(void *usr) {
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
   const struct timespec  cycletime = {0, (long int)mcuPeriod};
-  int masterId = -1;
-
-  if(ec->getInitDone()) {
-    masterId = ec->getMasterIndex();
-  }
+  int masterId = ec->getMasterIndex();
 
   int writeToShm = shmObj.valid && 
                    masterId <= ECMC_SHM_MAX_MASTERS &&
@@ -321,11 +317,8 @@ void cyclic_task(void *usr) {
     ecStat = ec->statusOK() || !ec->getInitDone();
 
     if(writeToShm) {
-        if (ecStat && masterId >= 0) {
-          shmObj.mstPtr[masterId] = 2;  // ec OK
-        } else {
-          shmObj.mstPtr[masterId] = 1;  // ioc running
-        } 
+      if ( masterId >= 0) {
+        shmObj.mstPtr[masterId] = 1 + ecStat;  // ec OK
       } else  {  // NO ec master
         shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 1;
       }
