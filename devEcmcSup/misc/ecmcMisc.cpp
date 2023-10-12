@@ -667,8 +667,12 @@ int createShm() {
            __LINE__,ERROR_SHMMAT_ERROR);
     return ERROR_SHMMAT_ERROR;
   }
+  //Global data
   shmObj.dataPtr = (ECMC_SHM_TYPE *) shmObj.memPtr;
-  shmObj.ctrlPtr = (char *) shmObj.memPtr + ECMC_SHM_ELEMENTS*sizeof(ECMC_SHM_TYPE);
+  //Info for iocs with ethercat master
+  shmObj.mstPtr = (char *) shmObj.memPtr + ECMC_SHM_ELEMENTS * sizeof(ECMC_SHM_TYPE);
+  //Info for iocs without ethercat master
+  shmObj.simMstPtr = (char *) shmObj.memPtr + ECMC_SHM_ELEMENTS * sizeof(ECMC_SHM_TYPE) + ECMC_SHM_MAX_MASTERS;
   shmObj.size = ECMC_SHM_ELEMENTS * sizeof(ECMC_SHM_TYPE);
   shmObj.valid = 1;
   return 0;

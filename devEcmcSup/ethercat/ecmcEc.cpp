@@ -88,7 +88,11 @@ void ecmcEc::initVars() {
 
 int ecmcEc::init(int nMasterIndex) {  
   
-
+  if (nMasterIndex < 0) { // Start without ethercat
+    masterIndex_ = nMasterIndex;
+    return 0;
+  }
+  
   master_ = ecrt_request_master(nMasterIndex);
   if (!master_) {
     LOGERR("%s/%s:%d: ERROR: EtherCAT master request failed (0x%x).\n",

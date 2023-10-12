@@ -233,13 +233,22 @@ void cyclic_task(void *usr) {
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
   const struct timespec  cycletime = {0, (long int)mcuPeriod};
+  int masterId = -1;
+
+  if(ec->getInitDone()) {
+    masterId = ec->getMasterIndex();
+  }
+
+  int writeToShm = shmObj.valid && 
+                   masterId <= ECMC_SHM_MAX_MASTERS &&
+                   masterId >= -ECMC_SHM_MAX_MASTERS;
 
   offsetStartTime.tv_nsec = MCU_NSEC_PER_SEC / 10;
   offsetStartTime.tv_sec  = 0;
 
   // start 100ms + 1 period after  master activate (in setAppMode())
   wakeupTime = timespec_add(masterActivationTimeMonotonic, offsetStartTime);
-
+  
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   
   while (appModeCmd == ECMC_MODE_RUNTIME) {
@@ -310,6 +319,18 @@ void cyclic_task(void *usr) {
       ec->checkDomainsState();
     }
     ecStat = ec->statusOK() || !ec->getInitDone();
+
+    if(writeToShm) {
+        if (ecStat && masterId >= 0) {
+          shmObj.mstPtr[masterId] = 2;  // ec OK
+        } else {
+          shmObj.mstPtr[masterId] = 1;  // ioc running
+        } 
+      } else  {  // NO ec master
+        shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 1;
+      }
+    }
+
     // Motion
     for (i = 0; i < ECMC_MAX_AXES; i++) {
       if (axes[i] != NULL) {
@@ -524,8 +545,8 @@ int setAppModeCfg(int mode) {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
 
   if(ec->getInitDone()) {
-    if( 0 <= ec->getMasterIndex() and ec->getMasterIndex() <= ECMC_SHM_MAX_MASTERS) {
-      shmObj.ctrlPtr[ec->getMasterIndex()]=0;
+    if( 0 <= ec->getMasterIndex() && ec->getMasterIndex() <= ECMC_SHM_MAX_MASTERS) {
+      shmObj.mstPtr[ec->getMasterIndex()]=0;
     }
   }
 
@@ -646,7 +667,7 @@ int setAppModeRun(int mode) {
   }
   if(ec->getInitDone()) {
     if( 0 <= ec->getMasterIndex() and ec->getMasterIndex() <= ECMC_SHM_MAX_MASTERS) {
-      shmObj.ctrlPtr[ec->getMasterIndex()]=1;
+      shmObj.mstPtr[ec->getMasterIndex()]=1;
     }
   }
   return 0;

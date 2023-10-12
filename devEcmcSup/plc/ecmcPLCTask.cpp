@@ -866,7 +866,8 @@ int ecmcPLCTask::loadMiscLib() {
   ecmcPLCTaskAddFunction("m2m_stat",    m2m_stat);
   ecmcPLCTaskAddFunction("m2m_err_rst", m2m_err_rst);
   ecmcPLCTaskAddFunction("m2m_get_err", m2m_get_err);
-  ecmcPLCTaskAddFunction("m2m_mstr_op", m2m_mstr_op);
+  ecmcPLCTaskAddFunction("m2m_ioc_run", m2m_ioc_run);
+  ecmcPLCTaskAddFunction("m2m_ioc_ec_ok", m2m_ioc_ec_ok);
 
   if (misc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",

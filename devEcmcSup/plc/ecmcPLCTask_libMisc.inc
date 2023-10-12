@@ -1,5 +1,5 @@
 /*************************************************************************\
-* Copyright (c) 2019 Paul Sherrer Institute
+* Copyright (c) 2023 Paul Sherrer Institute
 * ecmc is distributed subject to a Software License Agreement found
 * in file LICENSE that is included with this distribution. 
 *
@@ -32,11 +32,12 @@ const char *miscLibCmdList[] = { "m2m_write(",
                                  "m2m_stat(",
                                  "m2m_err_rst(",
                                  "m2m_get_err(",
-                                 "m2m_mstr_op(",
+                                 "m2m_ioc_run("
+                                 "m2m_ioc_ec_ok(",
 };
 
 static int m2m_errorCode = 0;
-static int misc_cmd_count = 6;
+static int misc_cmd_count = 7;
 
 inline double m2m_write(double shmIndex, double data) {
   int index = (int)shmIndex;
@@ -52,16 +53,37 @@ inline double m2m_write(double shmIndex, double data) {
   return (double)m2m_errorCode;
 }
 
-
-inline double m2m_mstr_op(double mstIdx) {
-  
-int index= (int) mstIdx;
-  if(ecmcPLCTask::statShm_.valid == 0 || index >= ECMC_SHM_MAX_MASTERS || index < 0) {
+inline double m2m_ioc_run(double mstIdx) {
+  int index= (int) mstIdx;
+  // allow master index -ECMC_SHM_MAX_MASTERS..+ECMC_SHM_MAX_MASTERS
+  // negative master id: ioc without ethercat
+  if(ecmcPLCTask::statShm_.valid == 0 || index >= ECMC_SHM_MAX_MASTERS || index <= -ECMC_SHM_MAX_MASTERS) {
     return -1;
-  }  
-  return (double) ecmcPLCTask::statShm_.ctrlPtr[index];
+  }
+
+  if( index >= 0) { // ioc with ec master
+    return (double) ecmcPLCTask::statShm_.mstPtr[index] > 0;
+  } else { // ioc without ec master
+    return (double) ecmcPLCTask::statShm_.simMstPtr[-index + ECMC_SHM_MAX_MASTERS] > 0;
+  } 
+  return -1.0; 
 }
 
+inline double m2m_ioc_ec_ok(double mstIdx) {
+  int index= (int) mstIdx;
+  // allow master index -ECMC_SHM_MAX_MASTERS..+ECMC_SHM_MAX_MASTERS
+  // negative master id: ioc without ethercat
+  if(ecmcPLCTask::statShm_.valid == 0 || index >= ECMC_SHM_MAX_MASTERS || index <= -ECMC_SHM_MAX_MASTERS) {
+    return -1;
+  }
+
+  if( index >= 0) { // ioc with ec master
+    return (double) ecmcPLCTask::statShm_.mstPtr[index] > 1;
+  } else { // ioc without ec master
+    return 0.0; // ioc:s without ec master cannot be ec.op
+  } 
+  return -1.0; 
+}
 
 inline double m2m_read(double shmIndex) {
   int index = (int)shmIndex;

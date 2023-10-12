@@ -642,8 +642,12 @@ typedef struct ecmcShm{
   int valid;
   int key;
   int shmid;
-  double* dataPtr;
-  char  * ctrlPtr;
+  double* dataPtr;  // 120*8=960bytes
+  // ioc/master status ECMC_SHM_MAX_MASTERS bytes (max comunication between ECMC_SHM_MAX_MASTERS masters)
+  char  * mstPtr;
+  // ioc status ECMC_SHM_MAX_MASTERS bytes (max ECMC_SHM_MAX_MASTERS iocs without master, adressed with negative master id)
+  char  * simMstPtr;
+  // pointer to start of mem
   void  * memPtr;
   int size;
   sem_t* sem;

@@ -35,13 +35,13 @@ ec_get_dom_state(<dom_index>)
 ## master 2 master communication:
 By default a buffer of 128 doubles can be used for communication between different masters by plc functions:
 ```
-m2m_write(<index>,<value>)   : write a value to a index in the buffer (index must be 01..127)
-m2m_read(<index>)            : read a value at an index in the buffer
-m2m_stat()                   : check that connection to memory is ok.
-m2m_err_rst()                : reset any error
-m2m_get_err()                : get error code
-m2m_mstr_op()                : master operational. 1==op, 0==not op, -1==error
-
+m2m_write(<index>,<value>)     : write a value to an index in the buffer (index must be 0..119)
+m2m_read(<index>)              : read a value at an index in the buffer (index must be 0..119)
+m2m_stat()                     : check that connection to memory is ok.
+m2m_err_rst()                  : reset any error
+m2m_get_err()                  : get error code
+m2m_ioc_ec_ok(<master_index>)  : ioc/master ethercat status ok/operational. 1==op, 0==not op, -1==error
+m2m_ioc_run(<master_index>)    : ioc/master running (negative master id is ioc:s without ec master)
 ```
 ## Add extra set of controller parameters
 Use different controller parameters depending on distance to target. This can be usefull in for instance systemes with backlash.
