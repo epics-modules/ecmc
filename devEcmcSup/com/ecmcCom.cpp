@@ -277,6 +277,8 @@ void ecmcCleanup(int signum) {
     count++;
   }
   printf("ecmc rt-thread closed....\n");
+  delete ec;
+  ec = NULL;
 
   delete plcs;
   plcs = NULL;
@@ -315,8 +317,6 @@ void ecmcCleanup(int signum) {
   }
   //delete asynPort;
   //delete asynPortMotorRecord;
-  delete ec;
-  ec = NULL;
   //epicsMutexDestroy(ecmcRTMutex);
   
   printf("ecmc cloeses...\n");

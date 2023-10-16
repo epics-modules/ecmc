@@ -1510,6 +1510,14 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecSetDomAllowOffline(iValue);
   }
 
+  /*Cfg.EcSetAllowOffline(int allow)*/
+  nvals = sscanf(myarg_1,
+                 "EcSetAllowOffline(%d)",
+                 &iValue);
+  if (nvals == 1) {
+    return ecSetEcAllowOffline(iValue);
+  }
+
   /*Cfg.EcSetDelayECOkAtStartup(int nCycles)*/
   nvals = sscanf(myarg_1, "EcSetDelayECOkAtStartup(%d)", &iValue);
 

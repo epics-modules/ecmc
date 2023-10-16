@@ -546,9 +546,20 @@ int ecWriteSdo(uint16_t slavePosition,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Allow current domain to be offline. 
- * "Cfg.EcSetDomAllowOffline(2,1)" //Command string to ecmcCmdParser.c\n
+ * "Cfg.EcSetDomAllowOffline(1)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetDomAllowOffline(int      allow);
+
+/** \brief Allow master to be offline
+ *
+ *  \param[in] allow 0 ==dont't allow (default), 1 == allow
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Allow master to be offline. 
+ * "Cfg.EcSetEcAllowOffline(1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecSetEcAllowOffline(int      allow);
 
 /** \brief Add domain
  *

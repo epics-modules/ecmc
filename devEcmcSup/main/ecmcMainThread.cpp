@@ -381,8 +381,17 @@ void cyclic_task(void *usr) {
       ec->send(masterActivationTimeOffset);
     }
     clock_gettime(CLOCK_MONOTONIC, &endTime);
-  }
+  }  // enc of RT-loop
+
   appModeStat = ECMC_MODE_CONFIG;
+  
+  // Write to SHM the this ioc closes down
+  if ( masterId >= 0) {
+    shmObj.mstPtr[masterId] = 0;
+  } else  {  // NO ec master
+    shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 0;
+  }
+
 }
 
 /****************************************************************************/
@@ -537,12 +546,6 @@ int startRTthread() {
 int setAppModeCfg(int mode) {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
 
-  if(ec->getInitDone()) {
-    if( 0 <= ec->getMasterIndex() && ec->getMasterIndex() <= ECMC_SHM_MAX_MASTERS) {
-      shmObj.mstPtr[ec->getMasterIndex()]=0;
-    }
-  }
-
   appModeCmdOld = appModeCmd;
   appModeCmd    = (app_mode_type)mode;
   
@@ -658,11 +661,14 @@ int setAppModeRun(int mode) {
   if (asynPort) {
     asynPort->setAllowRtThreadCom(true);  // Set by epics state hooks
   }
-  if(ec->getInitDone()) {
-    if( 0 <= ec->getMasterIndex() and ec->getMasterIndex() <= ECMC_SHM_MAX_MASTERS) {
-      shmObj.mstPtr[ec->getMasterIndex()]=1;
-    }
+
+  int masterId = ec->getMasterIndex();
+  if ( masterId >= 0) {
+    shmObj.mstPtr[masterId] = 1;
+  } else  {  // NO ec master
+    shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 1;
   }
+
   return 0;
 }
 

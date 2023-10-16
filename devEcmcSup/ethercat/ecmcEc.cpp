@@ -34,7 +34,7 @@ void ecmcEc::initVars() {
   currentDomain_                    = NULL;
   slavesOK_                         = 0;
   masterOK_                         = 0;
-  domainsOK_                         = 0;
+  domainsOK_                        = 0;
   domainFailCyclesLimit_            = 0;
   masterAlStates_                   = 0;
   masterLinkUp_                     = 0;
@@ -43,6 +43,7 @@ void ecmcEc::initVars() {
   delayEcOKCycles_                  = 0;
   startupCounter_                   = 0;
   domainCounter_                    = 0;
+  allowOffline_                     = 0;
   epicsTimeGetCurrent(&epicsTime_);
   clock_gettime(CLOCK_REALTIME, &timeRel_);
   clock_gettime(CLOCK_REALTIME, &timeAbs_);
@@ -146,6 +147,7 @@ ecmcEc::~ecmcEc() {
     delete ecAsynParams_[i];
     ecAsynParams_[i] = NULL;
   }
+  
   if(master_){
     ecrt_release_master(master_);
   }
@@ -959,7 +961,7 @@ int ecmcEc::findSlaveIndex(int busPosition, int *slaveIndex) {
 }
 
 int ecmcEc::statusOK() {
-  if (!diag_) {
+  if (!diag_ || allowOffline_) {
     return 1;
   }
 
@@ -2176,6 +2178,30 @@ int ecmcEc::setDomAllowOffline(int allow) {
   
 
   return currentDomain_->setAllowOffline(allow);
+}
+
+int ecmcEc::getDomAllowOffline(int *allow) {
+  if(!currentDomain_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Failed to create domain object (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,      
+      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+  }
+
+  *allow = currentDomain_->getAllowOffline();
+  return 0;
+}
+
+int ecmcEc::setEcAllowOffline(int allow) {
+  allowOffline_ = allow;
+  return 0;
+}
+
+int ecmcEc::getEcAllowOffline() { 
+  return allowOffline_;
 }
 
 int ecmcEc::getDomState(int domId) {

@@ -191,8 +191,11 @@ class ecmcEc : public ecmcError {
   // Some slaves report OP but still not returning valid data for some seconds then use this command.
   int           setEcOkDelayCycles(int cycles);
   int           setDomAllowOffline(int allow);
+  int           setEcAllowOffline(int allow);
   int           getDomState(int domId);
- 
+  int           getDomAllowOffline(int *allow);
+  int           getEcAllowOffline();
+
 private:
   void     initVars();
   int      updateInputProcessImage();
@@ -241,5 +244,6 @@ private:
   int delayEcOKCycles_;
   int startupCounter_;
   ecmcEcDomain *currentDomain_;
+  int allowOffline_;
 };
 #endif  /* ECMCEC_H_ */
