@@ -264,9 +264,8 @@ void ecmcDelDefaultAsynParams() {
 }
 
 void ecmcCleanup(int signum) {
-
-  ecmcDelDefaultAsynParams();
-  setAppMode(ECMC_MODE_CONFIG);
+  
+  setAppMode(ECMC_MODE_CONFIG);  
 
   // Wait for thread to stop
   printf("Wait for ecmc rt-thread to close....\n");
@@ -276,6 +275,7 @@ void ecmcCleanup(int signum) {
     sleep(1);
     count++;
   }
+
   printf("ecmc rt-thread closed....\n");
   delete ec;
   ec = NULL;
@@ -315,6 +315,8 @@ void ecmcCleanup(int signum) {
     //detach from shared memory 
     shmdt(shmObj.dataPtr);
   }
+
+  ecmcDelDefaultAsynParams();
   //delete asynPort;
   //delete asynPortMotorRecord;
   //epicsMutexDestroy(ecmcRTMutex);

@@ -545,7 +545,6 @@ int startRTthread() {
 
 int setAppModeCfg(int mode) {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
-
   appModeCmdOld = appModeCmd;
   appModeCmd    = (app_mode_type)mode;
   
@@ -564,12 +563,16 @@ int setAppModeCfg(int mode) {
     asynPort->setAllowRtThreadCom(false);
   }
 
+
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     if (axes[i] != NULL) {
       axes[i]->setRealTimeStarted(false);
     }
   }
-  munlockall();
+
+  // For some reason the "munlockall" results in several missed frames of other masters.
+  //munlockall();
+
   return 0;
 }
 
