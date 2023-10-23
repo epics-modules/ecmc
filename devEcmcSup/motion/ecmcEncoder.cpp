@@ -344,7 +344,7 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
       actPos_ = data_->status_.externalEncoderPosition;      
     }
 
-    return actPos_;
+    return 0;
   }
 
   if(!hwActPosDefined_) {
@@ -352,7 +352,7 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
   }
   
   //Do not do anything if error..
-  if(hwErrorAlarm0_ || hwErrorAlarm1_ || hwErrorAlarm2_) {    
+  if(hwErrorAlarm0_ || hwErrorAlarm1_ || hwErrorAlarm2_ || (!hwReady_ && hwReadyBitDefined_)) {
     return 0;
   }
   
