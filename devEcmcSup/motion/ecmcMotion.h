@@ -1482,6 +1482,24 @@ int setAxisEncScaleDenom(int    axisIndex,
 int setAxisEncScaleNum(int    axisIndex,
                        double value);
 
+/** \brief Invert Encoder Ready bit.
+ *
+ * Some hardwares, i.e. EL72XX have a inverted encoder ready bit.
+ * part. This function reads the numerator part.
+ *
+ * Note: Encoder error bit can also be used for this purpose.
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] invert Invert encoder ready bit.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set invert encoder ready  numerator for axes 3 \n
+ * "Cfg.SetAxisEncInvHwReady(3,1)"  //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncInvHwReady(int axisIndex,
+                         int invert);
+
 /** \brief Set axis home reference position setpoint.\n
  *
  * The home reference position setpoint is only used during referencing/homing

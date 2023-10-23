@@ -116,6 +116,7 @@ void ecmcEncoder::initVars() {
   maxPosDiffToPrimEnc_  = 0;  
   encInitilized_        = 0;
   hwReady_              = 0;
+  hwReadyInvert_        = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -337,13 +338,24 @@ double ecmcEncoder::getScaleDenom() {
   return scaleDenom_;
 }
 
-
 int  ecmcEncoder::readHwActPos(bool masterOK) {
+  if (getError() || !masterOK) {
+    if(data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
+      actPos_ = data_->status_.externalEncoderPosition;      
+    }
+
+    return actPos_;
+  }
 
   if(!hwActPosDefined_) {
     return 0;
   }
-
+  
+  //Do not do anything if error..
+  if(hwErrorAlarm0_ || hwErrorAlarm1_ || hwErrorAlarm2_) {    
+    return 0;
+  }
+  
   uint64_t tempRaw = 0;
   
   // Actual position entry
@@ -369,12 +381,11 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
           __LINE__,
           data_->axisId_);
 
-      }
+      } 
     } else {  // else latch value at positive edge of masterOK
       // If first valid value (at first hw ok),
       // then store the same position in last cycle value.
       // This to avoid over/underflow since rawPosUintOld_ is initiated to 0.
-      if(!masterOKOld_) {
         rawPosUintOld_ = rawPosUint_;
         encInitilized_ = 1;
         LOGERR("%s/%s:%d: INFO (axis %d): Encoder initialized (masterOK==true ).\n",
@@ -382,7 +393,6 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
           __FUNCTION__,
           __LINE__,
           data_->axisId_);
-      }
     }
   }
 
@@ -567,12 +577,17 @@ int ecmcEncoder::readHwWarningError() {
 }
 
 // Check that encoder is ready during runtime (and enabled)
-int ecmcEncoder::readHwReady() {  
-  // Check warning link. Think about forwarding warning info to motor record somehow
+int ecmcEncoder::readHwReady() { 
+  
   if (hwReadyBitDefined_) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_READY, &hwReady_)) {
       hwReady_ = 0;
       return ERROR_ENC_READY_READ_ENTRY_FAIL;
+    }
+    
+    // invert if needed
+    if(hwReadyInvert_) {
+      hwReady_ = !hwReady_ ;
     }
 
     if( hwReady_ == 0) {      
@@ -607,25 +622,7 @@ double ecmcEncoder::readEntries(bool masterOK) {
   int errorLocal = 0;
   actPosOld_ = actPos_;
 
-  if (getError() || !masterOK) {
-
-    if(data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
-      actPos_ = data_->status_.externalEncoderPosition;      
-    }
-
-    return actPos_;
-  }
-    
-  errorLocal = readHwActPos(masterOK);
-  if(errorLocal) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
-  }
-
-  errorLocal = readHwLatch();
-  if(errorLocal) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
-  }
-
+// Ensure that no errors
   errorLocal = readHwWarningError();
   if(errorLocal) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
@@ -635,7 +632,17 @@ double ecmcEncoder::readEntries(bool masterOK) {
   if(errorLocal) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
+  
+  errorLocal = readHwActPos(masterOK);
+  if(errorLocal) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  }
 
+  errorLocal = readHwLatch();
+  if(errorLocal) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  }
+  
   // Local source
   if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
     actPos_ = actPosLocal_;
@@ -943,7 +950,6 @@ int ecmcEncoder::setPosFilterEnable(bool enable) {
 }
 
 void ecmcEncoder::errorReset() {
-  
   // Reset hardware if needed
   if(hwResetDefined_) {
     hwReset_ = 1;
@@ -1113,4 +1119,9 @@ void   ecmcEncoder::setMaxPosDiffToPrimEnc(double distance) {
 
 double ecmcEncoder::getMaxPosDiffToPrimEnc() {
   return maxPosDiffToPrimEnc_;
+}
+
+int ecmcEncoder::setInvHwReady(int invert) {
+  hwReadyInvert_ = invert > 0;
+  return 0;
 }

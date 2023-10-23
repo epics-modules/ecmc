@@ -2124,6 +2124,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncHomeLatchCountOffset(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEncInvHwReady(int axis_no, int count);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncInvHwReady(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncInvHwReady(iValue, iValue2);
+  }
+
   /*int Cfg.SetEnableFuncCallDiag(int nEnable);*/
   nvals = sscanf(myarg_1, "SetEnableFuncCallDiag(%d)", &iValue);
 

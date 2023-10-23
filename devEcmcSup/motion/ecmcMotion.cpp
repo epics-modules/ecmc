@@ -1058,6 +1058,18 @@ int setAxisEncScaleDenom(int axisIndex, double value) {
   return 0;
 }
 
+int setAxisEncInvHwReady(int axisIndex, int invert) {
+  LOGINFO4("%s/%s:%d axisIndex=%d invert=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           invert);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  return axes[axisIndex]->setEncInvHwReady(invert);
+}
+
 int appendAxisPLCExpr(int axisIndex, char *expr) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
            __FILE__,

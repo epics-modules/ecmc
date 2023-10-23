@@ -131,7 +131,8 @@ class ecmcEncoder : public ecmcEcEntryLink {
   void                  setMaxPosDiffToPrimEnc(double distance);
   double                getMaxPosDiffToPrimEnc();
   int                   hwReady();
-  
+  int                   setInvHwReady(int invert);
+
  protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -216,7 +217,8 @@ class ecmcEncoder : public ecmcEcEntryLink {
   ecmcAsynPortDriver     *asynPortDriver_;
   ecmcAsynDataItem       *encPosAct_;
   ecmcAsynDataItem       *encVelAct_;
-  
+
+  int hwReadyInvert_;
   int index_; //Index of this encoder (im axis object)
 };
 

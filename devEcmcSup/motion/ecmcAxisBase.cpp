@@ -584,12 +584,10 @@ void ecmcAxisBase::errorReset() {
   if (mon) {
     mon->errorReset();
   }
-
-  // Encoder
-  ecmcEncoder *enc = getEnc();
-
-  if (enc) {
-    enc->errorReset();
+  
+  // Encoders
+  for(int i;i<data_.status_.encoderCount;i++) {
+    encArray_[i]->errorReset();
   }
 
   // Drive
@@ -1466,6 +1464,10 @@ int ecmcAxisBase::setEncPosFiltEnable(bool enable) {
   return encArray_[data_.command_.primaryEncIndex]->setPosFilterEnable(enable);
 }
 
+int ecmcAxisBase::setEncInvHwReady(int invert) {
+  return encArray_[data_.command_.cfgEncIndex]->setInvHwReady(invert);
+}
+
 int ecmcAxisBase::createAsynParam(const char       *nameFormat,
                                   asynParamType     asynType, 
                                   ecmcEcDataType    ecmcType,
@@ -2209,11 +2211,11 @@ int ecmcAxisBase::getHomeEncoderIndex() {
 }
 
 bool ecmcAxisBase::getHwReady() {
-  bool ready=true;
+  bool ready = true;
 
   // Check encoders
   for(int i = 0; i < data_.status_.encoderCount; i++) {
-    ready = encArray_[i]->hwReady() && ready;
+    ready = encArray_[i]->hwReady() && ready;    
   }
 
   // Check drives TODO
