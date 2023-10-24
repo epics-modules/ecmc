@@ -586,7 +586,7 @@ void ecmcAxisBase::errorReset() {
   }
   
   // Encoders
-  for(int i;i<data_.status_.encoderCount;i++) {
+  for(int i = 0;i < data_.status_.encoderCount;i++) {
     encArray_[i]->errorReset();
   }
 

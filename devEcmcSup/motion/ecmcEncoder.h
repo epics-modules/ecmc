@@ -146,10 +146,10 @@ class ecmcEncoder : public ecmcEcEntryLink {
   uint8_t              *getActPosPtr();
   uint8_t              *getActVelPtr();
   int                  initAsyn();
-  int                  readHwActPos(bool masterOK);
-  int                  readHwWarningError();
-  int                  readHwLatch();
-  int                  readHwReady();
+  int                  readHwActPos(bool masterOK, bool domainOK);
+  int                  readHwWarningError(bool domainOK);
+  int                  readHwLatch(bool domainOK);
+  int                  readHwReady(bool domainOK);
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;

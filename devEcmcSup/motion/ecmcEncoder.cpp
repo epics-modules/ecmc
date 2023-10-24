@@ -339,15 +339,13 @@ double ecmcEncoder::getScaleDenom() {
   return scaleDenom_;
 }
 
-int  ecmcEncoder::readHwActPos(bool masterOK) {
+int  ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
 
   if (!masterOK || !hwActPosDefined_ || 
        hwErrorAlarm0_ || hwErrorAlarm1_ || 
-       hwErrorAlarm2_ || 
+       hwErrorAlarm2_ || !domainOK ||
        (!hwReady_ && hwReadyBitDefined_)) {
-    if(data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
-      actPos_ = data_->status_.externalEncoderPosition;      
-    }
+    // do not update if issues
 
     return 0;
   }
@@ -366,7 +364,7 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
   // Filter value with mask
   rawPosUint_    = (totalRawMask_ & tempRaw) - totalRawRegShift_;
   
-  int domainOK = checkDomainOKAllEntries();
+  
   //if(!encInitilized_ && masterOk_) {
   if(!encInitilized_ && domainOK) {
     // if ready bit defined
@@ -381,7 +379,7 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
           __LINE__,
           data_->axisId_);
 
-      } 
+      }
     } else {  // else latch value at positive edge of masterOK
       // If first valid value (at first hw ok),
       // then store the same position in last cycle value.
@@ -395,9 +393,9 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
           __FUNCTION__,
           __LINE__,
           data_->axisId_);
+      }
     }
   }
-  domainOKOld_ = domainOK;
   
   if(!encInitilized_) {
     return 0;
@@ -465,9 +463,9 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
   return 0;
 }
 
-int ecmcEncoder::readHwLatch() {
+int ecmcEncoder::readHwLatch( bool domainOK) {
   // Encoder latch entries (status and position)
-  if (!encLatchFunctEnabled_) {
+  if (!encLatchFunctEnabled_ || ! domainOK) {
     return 0;
   }
 
@@ -502,7 +500,12 @@ int ecmcEncoder::readHwLatch() {
   return 0;
 }
 
-int ecmcEncoder::readHwWarningError() {
+int ecmcEncoder::readHwWarningError( bool domainOK) {
+
+  if (!domainOK) {
+    return 0;
+  }
+
   int errorLocal = 0;
   // Check warning link. Think about forwarding warning info to motor record somehow
   if (hwWarningDefined_) {
@@ -580,8 +583,11 @@ int ecmcEncoder::readHwWarningError() {
 }
 
 // Check that encoder is ready during runtime (and enabled)
-int ecmcEncoder::readHwReady() { 
-  
+int ecmcEncoder::readHwReady( bool domainOK) { 
+  if (!domainOK) {
+    return 0;
+  }
+
   if (hwReadyBitDefined_) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_READY, &hwReady_)) {
       hwReady_ = 0;
@@ -625,23 +631,25 @@ double ecmcEncoder::readEntries(bool masterOK) {
   int errorLocal = 0;
   actPosOld_ = actPos_;
 
+  int domainOK = checkDomainOKAllEntries();
+
 // Ensure that no errors
-  errorLocal = readHwWarningError();
+  errorLocal = readHwWarningError(domainOK);
   if(errorLocal) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
-  errorLocal = readHwReady();
+  errorLocal = readHwReady(domainOK);
   if(errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
   
-  errorLocal = readHwActPos(masterOK);
+  errorLocal = readHwActPos(masterOK,domainOK);
   if(errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
-  errorLocal = readHwLatch();
+  errorLocal = readHwLatch(domainOK);
   if(errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
@@ -660,6 +668,7 @@ double ecmcEncoder::readEntries(bool masterOK) {
   encPosAct_->refreshParamRT(0);
   encVelAct_->refreshParamRT(0);
 
+  domainOKOld_ = domainOK;
   masterOKOld_ = masterOK;
   return actPos_;
 }

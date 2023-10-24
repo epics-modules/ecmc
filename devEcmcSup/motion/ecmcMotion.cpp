@@ -1029,7 +1029,7 @@ int setAxisEncScaleNum(int axisIndex, double value) {
 }
 
 int setAxisEncScaleDenom(int axisIndex, double value) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1059,7 +1059,7 @@ int setAxisEncScaleDenom(int axisIndex, double value) {
 }
 
 int setAxisEncInvHwReady(int axisIndex, int invert) {
-  LOGINFO4("%s/%s:%d axisIndex=%d invert=%f\n",
+  LOGINFO4("%s/%s:%d axisIndex=%d invert=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
