@@ -15,7 +15,7 @@
 ecmcEcSyncManager::ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
                                      int masterId,
                                      int slaveId,
-                                     ec_domain_t       *domain,
+                                     ecmcEcDomain       *domain,
                                      ec_slave_config_t *slave,
                                      ec_direction_t     direction,
                                      uint8_t            syncMangerIndex) {

@@ -17,6 +17,7 @@
 ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                            int masterId,
                            int slaveId,
+                           ecmcEcDomain  *domain,
                            ecmcEcEntry   *startEntry,
                            size_t         byteSize,
                            ec_direction_t nDirection,
@@ -26,6 +27,7 @@ ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_  = asynPortDriver;
   masterId_        = masterId;
   startEntry_      = startEntry;
+  domain_          = domain;
   byteSize_        = byteSize;
   direction_       = nDirection;
   idString_        = id;
@@ -43,6 +45,7 @@ ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
 void ecmcEcMemMap::initVars() {
   errorReset();
   asynPortDriver_  = NULL;
+  domain_          = NULL;
   masterId_        = -1;
   direction_       = EC_DIR_INVALID;
   idString_        = "";
@@ -126,8 +129,8 @@ std::string ecmcEcMemMap::getIdentificationName() {
   return idString_;
 }
 
-int ecmcEcMemMap::setDomainSize(size_t size) {
-  domainSize_ = size;
+int ecmcEcMemMap::setDomainSize() {
+  domainSize_ = domain_->getSize();
   return 0;
 }
 

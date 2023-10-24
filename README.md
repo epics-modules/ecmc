@@ -116,7 +116,6 @@ ECMC runs best under certain conditions:
 * Settings found in https://github.com/icshwi/realtime-config
 * configuration by ecmccfg:
   * https://github.com/paulscherrerinstitute/ecmccfg
-  * https://github.com/icshwi/ecmccfg (ESS fork)
 
 
 # Needed EPICS modules
@@ -130,8 +129,6 @@ ECMC runs best under certain conditions:
 * ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg or
                                     https://gitlab.esss.lu.se/epics-modules/ecmccfg
 * ruckig                            https://github.com/anderssandstrom/e3-ruckig, https://github.com/anderssandstrom/ruckig
-Optional modules:
-* EthercatMC (motor record driver): https://github.com/icshwi/e3-ethercatmc
 
 # Plugins
 Plugins with extra functionality that can be loaded during startup:
@@ -148,7 +145,7 @@ https://github.com/epics-modules/ecmc/issues
 
 # Support
 
-* ECMC                                 : Anders Sandström, anders.sandstrom@esss.se
+* ECMC                                 : Anders Sandström, anders.sandstroem@psi.ch
 * Motor Record                         : Torsten Bögershausen, torsten.bogershausen@esss.se
-  * ecmcMotorRecord driver (preferred) : Anders Sandström, anders.sandstrom@esss.se
+  * ecmcMotorRecord driver (preferred) : Anders Sandström, anders.sandstroem@psi.ch
   * (EthercatMC driver                 : Torsten Bögershausen, torsten.bogershausen@esss.se)

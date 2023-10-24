@@ -74,7 +74,7 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
   int                 validate();
   int                 setReadOnly(int readOnly);
   int                 updateAsyn(int force);
-  
+  void                errorReset();
  private:
   int                 readAxis();
   int                 writeAxis();

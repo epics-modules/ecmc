@@ -233,13 +233,18 @@ void cyclic_task(void *usr) {
   struct timespec startTime, endTime, lastStartTime = {};
   struct timespec offsetStartTime = {};
   const struct timespec  cycletime = {0, (long int)mcuPeriod};
+  int masterId = ec->getMasterIndex();
+
+  int writeToShm = shmObj.valid && 
+                   masterId <= ECMC_SHM_MAX_MASTERS &&
+                   masterId >= -ECMC_SHM_MAX_MASTERS;
 
   offsetStartTime.tv_nsec = MCU_NSEC_PER_SEC / 10;
   offsetStartTime.tv_sec  = 0;
 
   // start 100ms + 1 period after  master activate (in setAppMode())
   wakeupTime = timespec_add(masterActivationTimeMonotonic, offsetStartTime);
-
+  
   if(ecmcRTMutex) epicsMutexLock(ecmcRTMutex);
   
   while (appModeCmd == ECMC_MODE_RUNTIME) {
@@ -307,9 +312,18 @@ void cyclic_task(void *usr) {
     }
     if(ec->getInitDone()) {
       ec->receive();
-      ec->checkDomainState();
+      ec->checkDomainsState();
     }
     ecStat = ec->statusOK() || !ec->getInitDone();
+
+    if(writeToShm) {
+      if ( masterId >= 0) {
+        shmObj.mstPtr[masterId] = 1 + ecStat;  // ec OK
+      } else  {  // NO ec master
+        shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 1;
+      }
+    }
+
     // Motion
     for (i = 0; i < ECMC_MAX_AXES; i++) {
       if (axes[i] != NULL) {
@@ -367,8 +381,17 @@ void cyclic_task(void *usr) {
       ec->send(masterActivationTimeOffset);
     }
     clock_gettime(CLOCK_MONOTONIC, &endTime);
-  }
+  }  // enc of RT-loop
+
   appModeStat = ECMC_MODE_CONFIG;
+  
+  // Write to SHM the this ioc closes down
+  if ( masterId >= 0) {
+    shmObj.mstPtr[masterId] = 0;
+  } else  {  // NO ec master
+    shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 0;
+  }
+
 }
 
 /****************************************************************************/
@@ -412,6 +435,10 @@ int ecmcInitThread(void) {
     plugins[i] = NULL;
   }
   
+  // Create SHM for master 2 master communication
+  memset(&shmObj,0, sizeof(ecmcShm));
+  createShm();
+
   plcs = NULL;
 
   return 0;
@@ -518,8 +545,6 @@ int startRTthread() {
 
 int setAppModeCfg(int mode) {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
-
-  
   appModeCmdOld = appModeCmd;
   appModeCmd    = (app_mode_type)mode;
   
@@ -538,13 +563,16 @@ int setAppModeCfg(int mode) {
     asynPort->setAllowRtThreadCom(false);
   }
 
+
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     if (axes[i] != NULL) {
       axes[i]->setRealTimeStarted(false);
     }
   }
 
-  munlockall();
+  // For some reason the "munlockall" results in several missed frames of other masters.
+  //munlockall();
+
   return 0;
 }
 
@@ -635,6 +663,13 @@ int setAppModeRun(int mode) {
 
   if (asynPort) {
     asynPort->setAllowRtThreadCom(true);  // Set by epics state hooks
+  }
+
+  int masterId = ec->getMasterIndex();
+  if ( masterId >= 0) {
+    shmObj.mstPtr[masterId] = 1;
+  } else  {  // NO ec master
+    shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 1;
   }
 
   return 0;

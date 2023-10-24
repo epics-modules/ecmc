@@ -20,6 +20,7 @@
 #include "ecrt.h"
 #include "ecmcDefinitions.h"
 #include "ecmcError.h"
+#include "ecmcEcDomain.h"
 #include "ecmcOctetIF.h"
 #include "ecmcAsynPortDriver.h"
 #include "alarm.h"  //EPICS alarms
@@ -51,13 +52,14 @@
 #define ERROR_EC_ENTRY_REGISTER_FAIL 0x2100B
 #define ERROR_EC_ENTRY_VALUE_OUT_OF_RANGE 0x2100C
 #define ERROR_EC_ENTRY_SET_ALARM_STATE_FAIL 0x2100D
+#define ERROR_EC_ENTRY_EC_DOMAIN_ERROR 0x2100E
 
 class ecmcEcEntry : public ecmcError {
  public:
   ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
               int masterId,
               int slaveId,
-              ec_domain_t       *domain,
+              ecmcEcDomain      *domain,
               ec_slave_config_t *slave,
               uint16_t           pdoIndex,
               uint16_t           entryIndex,
@@ -82,8 +84,10 @@ class ecmcEcEntry : public ecmcError {
   int         getEntryInfo(ec_pdo_entry_info_t *info);
   int         getByteOffset();
   ecmcEcDataType getDataType();
+
   // After activate
-  void        setDomainAdr(uint8_t *domainAdr);  
+  int         activate();
+
   uint8_t     *getDomainAdr();
   int         writeValue(uint64_t value);
   int         writeDouble(double   value);
@@ -99,14 +103,16 @@ class ecmcEcEntry : public ecmcError {
   int         setUpdateInRealtime(int update);
   int         getUpdateInRealtime();
   std::string getIdentificationName();
-  int         registerInDomain();
+  int         compileRegInfo();
   int         updateAsyn(bool force);
   bool        getSimEntry();
   int         validate();
   int         setComAlarm(bool alarm);
   int         getSlaveId();
+  int         getDomainOK();
   
  private:
+  void                setDomainAdr();  
   int                 initAsyn();
   uint8_t            *domainAdr_;
   uint8_t            *adr_;
@@ -126,7 +132,7 @@ class ecmcEcEntry : public ecmcError {
   ecmcAsynDataItem   *entryAsynParam_;
   ecmcEcDataType      dataType_;
   ec_slave_config_t  *slave_;
-  ec_domain_t        *domain_;
+  ecmcEcDomain       *domain_;
   ec_direction_t      direction_;
   uint64_t            buffer_;
   int8_t             *int8Ptr_;

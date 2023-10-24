@@ -229,7 +229,7 @@ ecmcAsynPortDriver::~ecmcAsynPortDriver(){
   pEcmcParamInUseArray_ = NULL;
   delete pEcmcParamAvailArray_; 
   pEcmcParamAvailArray_ = NULL;
-  ecmcCleanup();
+  //ecmcCleanup(1);
 }
 
 /** 

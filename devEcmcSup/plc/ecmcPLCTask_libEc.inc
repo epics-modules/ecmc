@@ -53,11 +53,12 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_get_time_local_nsec(",
                                "ec_get_time_local_sec(",
                                "ec_get_time_local_min(",
-                               "ec_get_time_local_hour("
+                               "ec_get_time_local_hour(",
+                               "ec_get_dom_state("
                               };
 
 static int ec_errorCode = 0;
-static int ec_cmd_count = 26;
+static int ec_cmd_count = 27;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
@@ -422,5 +423,15 @@ inline double ec_err_rst() {
   return 0;
 }
 
+// Get domain state (if negative then error code)
+inline double ec_get_dom_state(double domainId) {
+  ec_errorCode = 0;
+  if(!ecmcPLCTask::statEc_) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
+    return -(double)ec_errorCode;
+  }
+  
+  return (double)ecmcPLCTask::statEc_->getDomState((int)domainId);
+}
 
 #endif /* ecmcPLC_libEc_inc_ */

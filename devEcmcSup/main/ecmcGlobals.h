@@ -38,6 +38,7 @@ ecmcMainThreadDiag         threadDiag={0};
 app_mode_type              appModeCmd, appModeCmdOld, appModeStat;
 ecmcMotorRecordController *asynPortMotorRecord;
 ecmcPluginLib             *plugins[ECMC_MAX_PLUGINS];
+ecmcShm                   shmObj;
 
 // Mutex for motor record access
 epicsMutexId               ecmcRTMutex;

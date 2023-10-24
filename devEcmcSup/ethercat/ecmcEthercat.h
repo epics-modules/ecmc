@@ -539,6 +539,40 @@ int ecWriteSdo(uint16_t slavePosition,
                uint32_t value,
                int      byteSize);
 
+/** \brief Allow domain to be offline
+ *
+ *  \param[in] allow 0 ==dont't allow (default), 1 == allow
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Allow current domain to be offline. 
+ * "Cfg.EcSetDomAllowOffline(1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecSetDomAllowOffline(int      allow);
+
+/** \brief Allow master to be offline
+ *
+ *  \param[in] allow 0 ==dont't allow (default), 1 == allow
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Allow master to be offline. 
+ * "Cfg.EcSetEcAllowOffline(1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecSetEcAllowOffline(int      allow);
+
+/** \brief Add domain
+ *
+ *  \param[in] rate execute domain in this rate (cycles) 
+ *  \param[in] offset offset cycles
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add a domain that executes every 10:th cycles with an offset off 1 cycle:
+ * "Cfg.EcAddDomain(10,1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddDomain(int rateCycles, int offsetCycles);
+
 /** \brief Write to a Service Data Object.
  *
  * Note: same  as "ecWriteSdo(uint16_t slavePposition,uint16_t sdoIndex,uint8_t sdoSubIndex,

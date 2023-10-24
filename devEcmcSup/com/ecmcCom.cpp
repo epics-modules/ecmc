@@ -16,6 +16,11 @@
 #include "ecmcErrorsList.h"
 #include "ecmcDefinitions.h"
 #include "ecmcMainThread.h"
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
+#include <epicsExit.h>
+
 
 //Below for asyn version and 64 bit ints
 #include "asynPortDriver.h"
@@ -33,10 +38,14 @@
 
 // TODO: REMOVE GLOBALS
 #include "ecmcGlobalsExtern.h"
+#include <signal.h>
 
 int ecmcInit(void *asynPortObject) {
   
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+
+  signal(SIGINT, ecmcCleanup);
+
 
   ecmcRTMutex = epicsMutexCreate();
   if(!ecmcRTMutex) {
@@ -254,9 +263,22 @@ void ecmcDelDefaultAsynParams() {
   }
 }
 
-void ecmcCleanup() {
+void ecmcCleanup(int signum) {
+  
+  setAppMode(ECMC_MODE_CONFIG);  
 
-  ecmcDelDefaultAsynParams();
+  // Wait for thread to stop
+  printf("Wait for ecmc rt-thread to close....\n");
+  int count = 0;
+  while(appModeStat != ECMC_MODE_CONFIG && 5 > count)  {
+    printf("...");
+    sleep(1);
+    count++;
+  }
+
+  printf("ecmc rt-thread closed....\n");
+  delete ec;
+  ec = NULL;
 
   delete plcs;
   plcs = NULL;
@@ -287,10 +309,21 @@ void ecmcCleanup() {
     }
     delete plugins[i];
     plugins[i] = NULL;
+  } 
+
+  if(shmObj.valid) {
+    //detach from shared memory 
+    shmdt(shmObj.dataPtr);
   }
 
-  delete ec;
-  ec = NULL;
+  ecmcDelDefaultAsynParams();
+  //delete asynPort;
+  //delete asynPortMotorRecord;
+  //epicsMutexDestroy(ecmcRTMutex);
+  
+  printf("ecmc cloeses...\n");
+  epicsExit(0);
+  exit(signum);
 }
 
 /**

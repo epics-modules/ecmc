@@ -41,6 +41,7 @@ extern ecmcMainThreadDiag         threadDiag;
 extern app_mode_type              appModeCmd, appModeCmdOld, appModeStat;
 extern ecmcMotorRecordController *asynPortMotorRecord;
 extern ecmcPluginLib             *plugins[ECMC_MAX_PLUGINS];
+extern ecmcShm                   shmObj;
 
 // Mutex for motor record access
 extern epicsMutexId               ecmcRTMutex;

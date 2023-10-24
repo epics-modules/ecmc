@@ -1,11 +1,48 @@
 
 Release Notes
 ===
-# 9.0.1_RC1
+# flyscan
 * Remove reset of attarget bit when error reset is executed
 * Fix of brake not engaging when drive interlock
 * At traj source change then set target pos to setpos
 
+## Allow several domains:
+
+Add domain: All entries configured after this call will belong to th new domain:
+```
+ecmcConfigOrDie "Cfg.EcAddDomain(<exe_cycles>,<exe_offset>)"
+```
+The domain can be configured to execute at slower rates than teh default ec rate and with offsets.
+
+The domain can be configured to be allowd to be offline:
+```
+ecmcConfigOrDie "Cfg.EcSetDomainAllowOffline(1)"
+```
+Note: If the domain is offline, ecmc will start even if the slaves in the domain are not connected to the bus.
+
+Note: Axes which are using data from a domain will be interlocked if the domain status is not OK.
+
+The ecmccfg commands addDomain.cmd wraps this functionality:
+```
+addDomain.cmd "ALLOW_OFFLINE=<allow>, EXE_RATE=<rate>,EXE_OFFSET=<offset>"
+```
+All parameters are optional.
+
+A new plc function is added to allow supervision of the domain states:
+```
+ec_get_dom_state(<dom_index>)
+```
+## master 2 master communication:
+By default a buffer of 128 doubles can be used for communication between different masters by plc functions:
+```
+m2m_write(<index>,<value>)     : write a value to an index in the buffer (index must be 0..119)
+m2m_read(<index>)              : read a value at an index in the buffer (index must be 0..119)
+m2m_stat()                     : check that connection to memory is ok.
+m2m_err_rst()                  : reset any error
+m2m_get_err()                  : get error code
+m2m_ioc_ec_ok(<master_index>)  : ioc/master ethercat status ok/operational. 1==op, 0==not op, -1==error
+m2m_ioc_run(<master_index>)    : ioc/master running (negative master id is ioc:s without ec master)
+```
 ## Add extra set of controller parameters
 Use different controller parameters depending on distance to target. This can be usefull in for instance systemes with backlash.
 

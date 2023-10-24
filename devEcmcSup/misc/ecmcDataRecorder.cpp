@@ -721,3 +721,8 @@ int ecmcDataRecorder::getAxisData(double *data) {
   }
   return 0;
 }
+
+void ecmcDataRecorder::errorReset() {
+  ecmcEcEntryLink::errorReset();
+  ecmcError::errorReset();
+}

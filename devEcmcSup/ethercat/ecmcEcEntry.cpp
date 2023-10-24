@@ -45,7 +45,7 @@
 ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
                          int masterId,
                          int slaveId,                         
-                         ec_domain_t       *domain,
+                         ecmcEcDomain      *domain,
                          ec_slave_config_t *slave,
                          uint16_t           pdoIndex,
                          uint16_t           entryIndex,
@@ -168,8 +168,8 @@ ecmcEcEntry::~ecmcEcEntry()
   entryAsynParam_ = NULL;
 }
 
-void ecmcEcEntry::setDomainAdr(uint8_t *domainAdr) {
-  domainAdr_ = domainAdr;
+void ecmcEcEntry::setDomainAdr() {
+  domainAdr_ = domain_->getDataPtr();
 }
 
 uint16_t ecmcEcEntry::getEntryIndex() {
@@ -543,11 +543,11 @@ int ecmcEcEntry::getUpdateInRealtime() {
   return updateInRealTime_;
 }
 
-int ecmcEcEntry::registerInDomain() {
+int ecmcEcEntry::compileRegInfo() {
   byteOffset_ = ecrt_slave_config_reg_pdo_entry(slave_,
                                                 entryIndex_,
                                                 entrySubIndex_,
-                                                domain_,
+                                                domain_->getDomain(),
                                                 &bitOffset_);
 
   if (byteOffset_ < 0) {
@@ -827,4 +827,17 @@ ecmcEcDataType ecmcEcEntry::getDataType() {
 
 int ecmcEcEntry::getSlaveId() {
   return slaveId_;
+}
+
+int ecmcEcEntry::activate() {
+  setDomainAdr();
+  return 0;
+}
+
+int ecmcEcEntry::getDomainOK() {
+  // Simulation entries
+  if(!domain_) {
+    return 1;
+  }
+  return domain_->getOK();
 }

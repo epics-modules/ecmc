@@ -1265,6 +1265,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_ENTRY_SET_ALARM_STATE_FAIL";
 
     break;
+  case 0x2100E:
+    return "ERROR_EC_ENTRY_EC_DOMAIN_ERROR";
+
+    break;
 
   case 0x22000:    // ECPDO
     return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
@@ -2080,6 +2084,33 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x20055:
     return "ERROR_MAIN_AXIS_ALREADY_CREATED";
+
+    break;
+
+  case 0x20056:
+    return "ERROR_EC_MAIN_DOMAIN_NULL";
+
+    break;
+  case 0x20057:
+    return "ERROR_SHMGET_ERROR";
+
+    break;
+  case 0x20058:
+    return "ERROR_SHMMAT_ERROR";
+
+    break;
+  case 0x20059:
+    return "ERROR_SHM_INDEX_OUT_OF_RANGE";
+
+    break;
+  case 0x2005A:
+    return "ERROR_SHM_NULL";
+
+    break;
+
+    break;
+  case 0x2005B:
+    return "ERROR_SEM_NULL";
 
     break;
 

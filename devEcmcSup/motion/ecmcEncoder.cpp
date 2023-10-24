@@ -117,6 +117,7 @@ void ecmcEncoder::initVars() {
   encInitilized_        = 0;
   hwReady_              = 0;
   hwReadyInvert_        = 0;
+  domainOKOld_          = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -352,18 +353,22 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
   }
   
   uint64_t tempRaw = 0;
-  
+  int errorCode = 0;
+
   // Actual position entry
   // Act position
-  if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION, &tempRaw)!=0) {
-    return ERROR_ENC_ENTRY_READ_FAIL;
-  }  
+  errorCode = readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION, &tempRaw);
+  if (errorCode!=0) {
+    return errorCode;
+  }
   
   rawPosUintOld_ = rawPosUint_;
   // Filter value with mask
   rawPosUint_    = (totalRawMask_ & tempRaw) - totalRawRegShift_;
   
-  if(!encInitilized_ && masterOK) {
+  int domainOK = checkDomainOKAllEntries();
+  //if(!encInitilized_ && masterOk_) {
+  if(!encInitilized_ && domainOK) {
     // if ready bit defined
     if(hwReadyBitDefined_) {
       if(hwReady_ > 0) {
@@ -381,16 +386,19 @@ int  ecmcEncoder::readHwActPos(bool masterOK) {
       // If first valid value (at first hw ok),
       // then store the same position in last cycle value.
       // This to avoid over/underflow since rawPosUintOld_ is initiated to 0.
+      //if(!masterOKOld_) {
+      if(!domainOKOld_) {
         rawPosUintOld_ = rawPosUint_;
         encInitilized_ = 1;
-        LOGERR("%s/%s:%d: INFO (axis %d): Encoder initialized (masterOK==true ).\n",
+        LOGERR("%s/%s:%d: INFO (axis %d): Encoder initialized (domain==true ).\n",
           __FILE__,
           __FUNCTION__,
           __LINE__,
           data_->axisId_);
     }
   }
-
+  domainOKOld_ = domainOK;
+  
   if(!encInitilized_) {
     return 0;
   }
@@ -949,7 +957,7 @@ void ecmcEncoder::errorReset() {
   if(hwResetDefined_) {
     hwReset_ = 1;
   }
-
+  ecmcEcEntryLink::errorReset();
   ecmcError::errorReset();
 }
 

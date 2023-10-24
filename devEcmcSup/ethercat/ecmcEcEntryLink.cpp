@@ -119,8 +119,14 @@ int ecmcEcEntryLink::validateEntryBit(int index) {
 }
 
 int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
-  uint64_t tempRaw = 0;
+  if(!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
 
+  uint64_t tempRaw = 0;
   if (entryInfoArray_[entryIndex].bitNumber < 0) {
     if (entryInfoArray_[entryIndex].entry->readValue(&tempRaw)) {
       return setErrorID(__FILE__,
@@ -142,6 +148,13 @@ int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
 }
 
 int ecmcEcEntryLink::readEcEntryValueDouble(int entryIndex, double *value) {
+  if(!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+
   double tempDouble = 0;
   if (entryInfoArray_[entryIndex].entry->readDouble(&tempDouble)) {
     return setErrorID(__FILE__,
@@ -170,16 +183,35 @@ int ecmcEcEntryLink::writeEcEntryValue(int entryIndex, uint64_t value) {
                         ERROR_EC_ENTRY_WRITE_FAIL);
     }
   }
+
+  // Still write value to entry (above) even if domain error to keep value up to date
+  if(!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+
   return 0;
 }
 
 int ecmcEcEntryLink::writeEcEntryValueDouble(int entryIndex, double value) {
+   
   if (entryInfoArray_[entryIndex].entry->writeDouble(value)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_EC_ENTRY_WRITE_FAIL);
   }
+  
+  // Still write value to entry (above) even if domain error to keep value up to date
+  if(!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+
   return 0;
 }
 
@@ -224,3 +256,20 @@ int ecmcEcEntryLink::getSlaveId(int index) {
   return entryInfoArray_[index].entry->getSlaveId();
 }
 
+bool ecmcEcEntryLink::checkDomainOK(int entryIndex) {
+  return entryInfoArray_[entryIndex].entry->getDomainOK();
+}
+
+bool ecmcEcEntryLink::checkDomainOKAllEntries() {
+  bool ok = true;
+  
+  for (int i = 0; i < ECMC_EC_ENTRY_LINKS_MAX; i++) {
+    if(entryInfoArray_[i].entry) {
+      ok= ok && entryInfoArray_[i].entry->getDomainOK();
+    } else {  // no more entries
+      break;
+    }
+  }
+
+  return ok;
+}

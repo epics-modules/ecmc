@@ -16,6 +16,7 @@
 #include "ecmcPLCTask_libEc.inc"
 #include "ecmcPLCTask_libMc.inc"
 #include "ecmcPLCTask_libFileIO.inc"
+#include "ecmcPLCTask_libMisc.inc"
 
 #define ecmcPLCTaskAddFunction(cmd, func) {          \
     errorCode = exprtk_->addFunction(cmd, func); \
@@ -71,6 +72,7 @@ void ecmcPLCTask::initVars() {
   libEcLoaded_         = 0;
   libDsLoaded_         = 0;
   libFileIOLoaded_     = 0;
+  libMiscLoaded_       = 0;
   asynPortDriver_      = 0;
   newExpr_             = 0;
   mcuFreq_             = MCU_FREQUENCY;
@@ -527,6 +529,16 @@ int ecmcPLCTask::parseFunctions(const char *exprStr) {
     }
   }
 
+  // look for Misc function
+  if (!libMiscLoaded_) {
+    if (findMiscFunction(exprStr)) {
+      errorCode = loadMiscLib();
+      if (errorCode) {
+        return errorCode;
+      }
+    }
+  }
+
   for(int i = 0; i < ECMC_MAX_PLUGINS; ++i) {
     if(!libPluginsLoaded_[i]) {
       if (findPluginFunction(plugins_[i] ,exprStr) || 
@@ -573,6 +585,15 @@ bool ecmcPLCTask::findDsFunction(const char *exprStr) {
 bool ecmcPLCTask::findFileIOFunction(const char *exprStr) {
   for (int i = 0; i < fileIO_cmd_count; i++) {
     if (strstr(exprStr, fileIOLibCmdList[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ecmcPLCTask::findMiscFunction(const char *exprStr) {
+  for (int i = 0; i < misc_cmd_count; i++) {
+    if (strstr(exprStr, miscLibCmdList[i])) {
       return true;
     }
   }
@@ -744,7 +765,8 @@ int ecmcPLCTask::loadEcLib() {
   ecmcPLCTaskAddFunction("ec_get_time_local_sec", ec_get_time_local_sec);
   ecmcPLCTaskAddFunction("ec_get_time_local_min", ec_get_time_local_min);
   ecmcPLCTaskAddFunction("ec_get_time_local_hour", ec_get_time_local_hour);
- 
+  ecmcPLCTaskAddFunction("ec_get_dom_state", ec_get_dom_state);
+  
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
            __FILE__,
@@ -832,6 +854,33 @@ int ecmcPLCTask::loadDsLib() {
                       ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
   }
   libDsLoaded_ = 1;
+  return 0;
+}
+
+int ecmcPLCTask::loadMiscLib() {
+  int errorCode  = 0;
+  int cmdCounter = 0;
+
+  ecmcPLCTaskAddFunction("m2m_write",   m2m_write);
+  ecmcPLCTaskAddFunction("m2m_read",    m2m_read);
+  ecmcPLCTaskAddFunction("m2m_stat",    m2m_stat);
+  ecmcPLCTaskAddFunction("m2m_err_rst", m2m_err_rst);
+  ecmcPLCTaskAddFunction("m2m_get_err", m2m_get_err);
+  ecmcPLCTaskAddFunction("m2m_ioc_run", m2m_ioc_run);
+  ecmcPLCTaskAddFunction("m2m_ioc_ec_ok", m2m_ioc_ec_ok);
+
+  if (misc_cmd_count != cmdCounter) {
+    LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLC_LIB_CMD_COUNT_MISS_MATCH);
+  }
+  libMiscLoaded_ = 1;
   return 0;
 }
 
@@ -968,5 +1017,10 @@ int ecmcPLCTask::setPluginPointer(ecmcPluginLib *plugin, int index) {
   }
 
   plugins_[index] = plugin;
+  return 0;
+}
+
+int ecmcPLCTask::setShm(ecmcShm shm) {
+  statShm_ = shm;
   return 0;
 }

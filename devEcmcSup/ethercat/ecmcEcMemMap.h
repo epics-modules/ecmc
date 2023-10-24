@@ -32,6 +32,7 @@ class ecmcEcMemMap : public ecmcError {
   ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                int masterId,
                int slaveId,
+               ecmcEcDomain  *domain,
                ecmcEcEntry   *startEntry,
                size_t         byteSize,
                ec_direction_t nDirection,
@@ -48,7 +49,7 @@ class ecmcEcMemMap : public ecmcError {
   int         updateInputProcessImage();
   int         updateOutProcessImage();
   std::string getIdentificationName();
-  int         setDomainSize(size_t size);
+  int         setDomainSize();
   int         validate();
   int         getByteSize();
   uint8_t*    getBufferPointer();
@@ -90,5 +91,6 @@ class ecmcEcMemMap : public ecmcError {
   uint64_t           *uint64Ptr_;
   float              *float32Ptr_;
   double             *float64Ptr_;
+  ecmcEcDomain       *domain_;
 };
 #endif  /* ECMCECMEMMAP_H_ */

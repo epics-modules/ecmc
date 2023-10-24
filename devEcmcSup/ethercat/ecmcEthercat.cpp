@@ -507,7 +507,23 @@ int ecWriteSdo(uint16_t slavePosition,
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return ec->writeSDO(slavePosition, sdoIndex, sdoSubIndex, value, byteSize);
+  int allowOffline = 0;
+  int errorCode = ec->getDomAllowOffline(&allowOffline);
+  if(errorCode) {
+    return errorCode;
+  }
+
+  errorCode = ec->writeSDO(slavePosition, sdoIndex, sdoSubIndex, value, byteSize);
+
+  if(allowOffline && errorCode) {
+    LOGERR("%s/%s:%d: WARNING: SDO write failed. Slave allowed to be offline.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
+    return 0;  // allowed to be offline
+  }
+
+  return errorCode;
 }
 
 /*int ecWriteSdoComplete(uint16_t slavePosition,
@@ -527,6 +543,43 @@ int ecWriteSdo(uint16_t slavePosition,
 
   return ec->writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
 }*/
+
+int ecSetDomAllowOffline(int      allow) {
+  LOGINFO4("%s/%s:%d allow=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           allow);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec->setDomAllowOffline(allow);
+}
+
+int ecSetEcAllowOffline(int      allow) {
+   LOGINFO4("%s/%s:%d allow=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           allow);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec->setEcAllowOffline(allow);
+}
+
+int ecAddDomain(int rateCycles, int offsetCycles) {
+  LOGINFO4("%s/%s:%d rateCycles=%d, offsetCycles=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           rateCycles, 
+           offsetCycles);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec->addDomain(rateCycles, offsetCycles);
+}
 
 int ecReadSdo(uint16_t  slavePosition,
                    uint16_t  sdoIndex,
@@ -911,8 +964,25 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
            revisionNum);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  
+  int allowOffline = 0;
 
-  return ec->verifySlave(alias,slavePos,vendorId,productCode, revisionNum);
+  int errorCode = ec->getDomAllowOffline(&allowOffline);
+  if(errorCode) {
+    return errorCode;
+  }
+
+  errorCode = ec->verifySlave(alias,slavePos,vendorId,productCode, revisionNum);
+
+  if(allowOffline && errorCode) {
+    LOGERR("%s/%s:%d: WARNING: Slave offline. Domain allowed to be offline.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
+    return 0;  // allowed to be offline
+  }
+  
+  return errorCode;
 }
 
 int ecGetSlaveVendorId(uint16_t alias,  /**< Slave alias. */

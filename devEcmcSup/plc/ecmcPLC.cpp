@@ -31,7 +31,7 @@ extern ecmcAsynPortDriver *asynPort;
 extern double              mcuFrequency;
 extern int                 sampleRateChangeAllowed;
 extern ecmcPluginLib      *plugins[ECMC_MAX_PLUGINS];
-
+extern ecmcShm             shmObj;
 
 int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   LOGINFO4("%s/%s:%d index=%d, cycleTimeMs=%lf, axisPLC?=%d\n",
@@ -92,6 +92,10 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
     plcs->setPluginPointer(plugins[i], i);
   }
+
+  // Set Shm pointer
+  plcs->setShm(shmObj);
+
   int skipCycles = cycleTimeMs * mcuFrequency / 1000-1;
   
   if (skipCycles < 0) {

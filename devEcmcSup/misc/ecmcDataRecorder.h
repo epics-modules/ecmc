@@ -46,6 +46,7 @@ class ecmcDataRecorder : public ecmcEventConsumer, public ecmcEcEntryLink {
                          ecmcAxisDataType    dataTypeToRecord);
   int  setDataSourceType(ecmcDataSourceType type);
   void printCurrentState();
+  void errorReset();
 
  private:
   void initVars();

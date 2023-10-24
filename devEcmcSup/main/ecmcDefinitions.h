@@ -12,6 +12,7 @@
 
 #define __STDC_FORMAT_MACROS  // for printf uint_64_t
 #include <stdint.h>
+#include <semaphore.h>
 
 #ifndef ECMC_DEFINITIONS_H_
 #define ECMC_DEFINITIONS_H_
@@ -165,19 +166,20 @@
 // Asyn  parameters in ec
 #define ECMC_ASYN_EC_PAR_MASTER_STAT_ID 0
 #define ECMC_ASYN_EC_PAR_MASTER_STAT_NAME "masterstatus"
-#define ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID 1
-#define ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME "domainstatus"
-#define ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID 2
+#define ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID 1
 #define ECMC_ASYN_EC_PAR_MEMMAP_COUNT_NAME "memmapcounter"
-#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_ID 3
-#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME "domainfailcountertotal"
-#define ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID 4
+#define ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID 2
 #define ECMC_ASYN_EC_PAR_ENTRY_COUNT_NAME "entrycounter"
-#define ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID 5
+#define ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID 3
 #define ECMC_ASYN_EC_PAR_SLAVE_COUNT_NAME "slavecounter"
-#define ECMC_ASYN_EC_STAT_OK_ID 6
+#define ECMC_ASYN_EC_STAT_OK_ID 4
 #define ECMC_ASYN_EC_STAT_OK_NAME "ok"
-#define ECMC_ASYN_EC_PAR_COUNT 7
+#define ECMC_ASYN_EC_PAR_COUNT 5
+
+// Asyn  parameters in dom
+#define ECMC_ASYN_EC_PAR_DOMAIN "dom"
+#define ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME "domainstatus"
+#define ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME "domainfailcountertotal"
 
 // Asyn  parameters in ec slave
 #define ECMC_ASYN_EC_SLAVE_PAR_STATUS_ID 0
@@ -213,7 +215,6 @@
 #define ECMC_ASYN_AX_SET_ENC_POS_ID 11
 #define ECMC_ASYN_AX_SET_ENC_POS_NAME "setencpos"
 #define ECMC_ASYN_AX_PAR_COUNT 12
-
 
 // Asyn params for encoder
 #define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"
@@ -628,5 +629,28 @@ enum ecmcEcDataType {
   ECMC_EC_F64   = 14  
 };
 
+// SHM
+#define ECMC_SHM_FILENAME "ecmc_shm"
+#define ECMC_SEM_FILENAME "ecmc_sem"
+#define ECMC_SHM_TYPE double
+#define ECMC_SHM_ELEMENTS 120
+#define ECMC_SHM_KEY 1976
+#define ECMC_SHM_CONTROL_BYTES 64
+#define ECMC_SHM_MAX_MASTERS 16
+
+typedef struct ecmcShm{
+  int valid;
+  int key;
+  int shmid;
+  double* dataPtr;  // 120*8=960bytes
+  // ioc/master status ECMC_SHM_MAX_MASTERS bytes (max comunication between ECMC_SHM_MAX_MASTERS masters)
+  char  * mstPtr;
+  // ioc status ECMC_SHM_MAX_MASTERS bytes (max ECMC_SHM_MAX_MASTERS iocs without master, adressed with negative master id)
+  char  * simMstPtr;
+  // pointer to start of mem
+  void  * memPtr;
+  int size;
+  sem_t* sem;
+} ecmcShm;
 
 #endif  /* ECMC_DEFINITIONS_H_ */

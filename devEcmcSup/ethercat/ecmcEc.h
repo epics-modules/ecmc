@@ -24,6 +24,7 @@
 #include "ecmcEcSDO.h"
 #include "ecmcEcSlave.h"
 #include "ecmcEcMemMap.h"
+#include <vector>
 
 // EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
@@ -32,13 +33,11 @@
 #define ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED 0x26003
 #define ERROR_EC_MAIN_SLAVE_NULL 0x26004
 #define ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED 0x26005
-#define ERROR_EC_MAIN_ENTRY_NULL 0x26006
 #define ERROR_EC_MAIN_GET_ENTRY_INFO_FAILED 0x26007
 #define ERROR_EC_MAIN_DOM_REG_PDO_ENTRY_LIST_FAILED 0x26008
 #define ERROR_EC_MAIN_SDO_ARRAY_FULL 0x26009
 #define ERROR_EC_MAIN_SDO_ENTRY_NULL 0x2600A
 #define ERROR_EC_MAIN_SDO_READ_FAILED 0x2600B
-#define ERROR_EC_MAIN_DOMAIN_DATA_FAILED 0x2600C
 #define ERROR_EC_MAIN_SLAVE_ARRAY_FULL 0x2600D
 #define ERROR_EC_AL_STATE_INIT 0x2600E
 #define ERROR_EC_AL_STATE_PREOP 0x2600F
@@ -74,20 +73,20 @@ class ecmcEc : public ecmcError {
   ecmcEc(ecmcAsynPortDriver *asynPortDriver);
   ~ecmcEc();
   int init(int nMasterIndex);
+  int addDomain(int exeCycles, int offsetCycles);
   int addSlave(
     uint16_t alias,   /**< Slave alias. */
     uint16_t position,   /**< Slave position. */
     uint32_t vendorId,   /**< Expected vendor ID. */
     uint32_t productCode  /**< Expected product code. */);
   ecmcEcSlave* getSlave(int slave);  // NOTE: index not bus position
-  ec_domain_t* getDomain();
   ec_master_t* getMaster();
   int          getMasterIndex();
   bool         getInitDone();
   void         receive();
   void         send(timespec timeOffset);
   int          compileRegInfo();
-  void         checkDomainState();
+  void         checkDomainsState();
   int          checkSlaveConfState(int slave);
   bool         checkSlavesConfState();
   bool         checkState();
@@ -191,6 +190,11 @@ class ecmcEc : public ecmcError {
   bool          getScanBusyNotRT();
   // Some slaves report OP but still not returning valid data for some seconds then use this command.
   int           setEcOkDelayCycles(int cycles);
+  int           setDomAllowOffline(int allow);
+  int           setEcAllowOffline(int allow);
+  int           getDomState(int domId);
+  int           getDomAllowOffline(int *allow);
+  int           getEcAllowOffline();
 
 private:
   void     initVars();
@@ -200,12 +204,8 @@ private:
                        timespec time2);
   bool     validEntryType(ecmcEcDataType dt);
   ec_master_t *master_;
-  ec_domain_t *domain_;
-  ec_domain_state_t domainStateOld_;
-  ec_domain_state_t domainState_;
   ec_master_state_t masterStateOld_;
   ec_master_state_t masterState_;
-  uint8_t *domainPd_;
   int slaveCounter_;
   int entryCounter_;
   ecmcEcSlave *slaveArray_[EC_MAX_SLAVES];
@@ -218,11 +218,7 @@ private:
   ecmcEcSlave *simSlave_;
   int slavesOK_;
   int masterOK_;
-  int domainOK_;
-  int domainNotOKCounter_;
-  int domainNotOKCounterTotal_;
-  int domainNotOKCounterMax_;
-  int domainNotOKCyclesLimit_;
+  int domainsOK_;
   bool inStartupPhase_;
 
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
@@ -235,7 +231,10 @@ private:
   uint32_t statusWordMaster_;
   uint32_t statusWordDomain_;
   int ecStatOk_; 
+  int domainFailCyclesLimit_;
 
+  std::vector<ecmcEcDomain *> domains_;
+  int domainCounter_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem  *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];
   timespec timeOffset_;
@@ -244,5 +243,7 @@ private:
   struct timespec timeAbs_;
   int delayEcOKCycles_;
   int startupCounter_;
+  ecmcEcDomain *currentDomain_;
+  int allowOffline_;
 };
 #endif  /* ECMCEC_H_ */

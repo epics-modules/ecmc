@@ -17,7 +17,7 @@ ecmcEcSlave::ecmcEcSlave(
   ecmcAsynPortDriver* asynPortDriver,  /** Asyn port driver*/
   int masterId,
   ec_master_t *master,  /**< EtherCAT master */
-  ec_domain_t *domain,  /** <Domain> */
+  ecmcEcDomain *domain,  /** <Domain> */
   uint16_t     alias, /**< Slave alias. */
   int32_t      position, /**< Slave position. */
   uint32_t     vendorId, /**< Expected vendor ID. */
@@ -130,7 +130,6 @@ void ecmcEcSlave::initVars() {
   domain_ = NULL;
   memset(&slaveState_,    0, sizeof(slaveState_));
   memset(&slaveStateOld_, 0, sizeof(slaveStateOld_));
-
   asynPortDriver_  = NULL;
 }
 
@@ -933,4 +932,64 @@ int ecmcEcSlave::addSDOAsync(uint16_t sdoIndex, /**< SDO index. */
   }
   asyncSDOCounter_++;
   return 0;
+}
+
+int ecmcEcSlave::activate() {
+  int ret = 0;
+  for (uint entryIndex = 0; entryIndex < entryCounter_; entryIndex++) {
+    ecmcEcEntry *tempEntry = getEntry(entryIndex);
+    if (tempEntry == NULL) {
+      LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             ERROR_EC_MAIN_ENTRY_NULL);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_EC_MAIN_ENTRY_NULL);
+    }
+    if (!tempEntry->getSimEntry()) {
+      ret = tempEntry->activate();
+      if(ret) {
+        return ret;
+      }
+    }
+  }
+
+  return 0;
+}
+
+int ecmcEcSlave::compileRegInfo() {
+  int ret = 0;
+  for (uint entryIndex = 0; entryIndex < entryCounter_; entryIndex++) {
+    ecmcEcEntry *tempEntry = getEntry(entryIndex);
+    if (tempEntry == NULL) {
+      LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             ERROR_EC_MAIN_ENTRY_NULL);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_EC_MAIN_ENTRY_NULL);
+    }
+    if (!tempEntry->getSimEntry()) {
+      ret = tempEntry->compileRegInfo();
+      if(ret) {
+        return ret;
+      }
+    }
+  }
+
+  return 0;
+}
+
+int ecmcEcSlave::getAllowOffline() {
+  if(domain_) {
+    return domain_->getAllowOffline();
+  }
+  // No domain attached the simulation slave
+  return 1;
 }

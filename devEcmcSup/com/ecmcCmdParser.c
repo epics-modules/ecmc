@@ -652,14 +652,12 @@ static int handleCfgCommand(const char *myarg_1) {
   int iValue8       = 0;
   int iValue9       = 0;
   int iValue10      = 0;
+  int nvals         = 0;
   uint64_t u64Value = 0;
-
-  int nvals      = 0;
-  double dValue  = 0;
-  double dValue2 = 0;
-  double dValue3 = 0;
-  double dValue4 = 0;
-  double dValue5 = 0;
+  double dValue     = 0;
+  double dValue2    = 0;
+  double dValue3    = 0;
+  double dValue4    = 0;
   
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
@@ -1495,6 +1493,29 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 1) {
     return ecSetDomainFailedCyclesLimit(iValue);
+  }
+
+  /*Cfg.EcAddDomain(int nCycles,int offset)*/
+  nvals = sscanf(myarg_1, "EcAddDomain(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return ecAddDomain(iValue,iValue2);
+  }
+
+  /*Cfg.EcSetDomainAllowOffline(int allow)*/
+  nvals = sscanf(myarg_1,
+                 "EcSetDomainAllowOffline(%d)",
+                 &iValue);
+  if (nvals == 1) {
+    return ecSetDomAllowOffline(iValue);
+  }
+
+  /*Cfg.EcSetAllowOffline(int allow)*/
+  nvals = sscanf(myarg_1,
+                 "EcSetAllowOffline(%d)",
+                 &iValue);
+  if (nvals == 1) {
+    return ecSetEcAllowOffline(iValue);
   }
 
   /*Cfg.EcSetDelayECOkAtStartup(int nCycles)*/

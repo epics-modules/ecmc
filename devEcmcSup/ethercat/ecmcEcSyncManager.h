@@ -35,7 +35,7 @@ class ecmcEcSyncManager : public ecmcError {
   ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
                     int masterId,
                     int slaveId,
-                    ec_domain_t       *domain,
+                    ecmcEcDomain       *domain,
                     ec_slave_config_t *slave,
                     ec_direction_t     direction,
                     uint8_t            syncMangerIndex);
@@ -64,7 +64,7 @@ class ecmcEcSyncManager : public ecmcError {
   uint8_t syncMangerIndex_;
   int pdoCounter_;
   ec_slave_config_t *slaveConfig_;
-  ec_domain_t *domain_;
+  ecmcEcDomain *domain_;
   int masterId_;
   int slaveId_;
   ecmcAsynPortDriver *asynPortDriver_;

@@ -51,6 +51,7 @@ class ecmcEvent : public ecmcEcEntryLink {
   int  triggerEvent(int masterOK);
   int  arm();
   void printCurrentState();
+  void errorReset();
 
  private:
   void initVars();
