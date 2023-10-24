@@ -339,20 +339,15 @@ double ecmcEncoder::getScaleDenom() {
 }
 
 int  ecmcEncoder::readHwActPos(bool masterOK) {
-  if (getError() || !masterOK) {
+
+  if (!masterOK || !hwActPosDefined_ || 
+       hwErrorAlarm0_ || hwErrorAlarm1_ || 
+       hwErrorAlarm2_ || 
+       (!hwReady_ && hwReadyBitDefined_)) {
     if(data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
       actPos_ = data_->status_.externalEncoderPosition;      
     }
 
-    return 0;
-  }
-
-  if(!hwActPosDefined_) {
-    return 0;
-  }
-  
-  //Do not do anything if error..
-  if(hwErrorAlarm0_ || hwErrorAlarm1_ || hwErrorAlarm2_ || (!hwReady_ && hwReadyBitDefined_)) {
     return 0;
   }
   
@@ -629,17 +624,17 @@ double ecmcEncoder::readEntries(bool masterOK) {
   }
 
   errorLocal = readHwReady();
-  if(errorLocal) {
+  if(errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
   
   errorLocal = readHwActPos(masterOK);
-  if(errorLocal) {
+  if(errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
   errorLocal = readHwLatch();
-  if(errorLocal) {
+  if(errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
   
