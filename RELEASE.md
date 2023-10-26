@@ -7,7 +7,7 @@ Example: Write sign 64bit int
 ```
 ecmcConfigOrDie "Cfg.EcAddSdoDT(<slave index>,<sdoindex>,<sdosubindex>,<valuestring>,<datatypestring>)" 
 #  0x8030:08, rwrwrw, int64, 64 bit, "Calibration position" for EP7211-0034
-ecmcConfigOrDie "Cfg.EcAddSdoDT(11,0x8030,0x8,-1234,8,S64)"
+ecmcConfigOrDie "Cfg.EcAddSdoDT(11,0x8030,0x8,-1234,S64)"
 
 # Verification
 ethercat upload -p11 -m0 0x8030 0x8
