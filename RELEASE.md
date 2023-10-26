@@ -24,7 +24,7 @@ Add domain: All entries configured after this call will belong to th new domain:
 ```
 ecmcConfigOrDie "Cfg.EcAddDomain(<exe_cycles>,<exe_offset>)"
 ```
-The domain can be configured to execute at slower rates than teh default ec rate and with offsets.
+The domain can be configured to execute at slower rates than the default ec rate and with offsets.
 
 The domain can be configured to be allowd to be offline:
 ```
