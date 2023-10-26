@@ -441,6 +441,45 @@ int ecAddSdo(uint16_t slavePosition,
                          byteSize);
 }
 
+int ecAddSdoDT(uint16_t slavePosition,
+               uint16_t sdoIndex,
+               uint8_t  sdoSubIndex,
+               char    *valueString,
+               char    *datatype) {
+  LOGINFO4(
+    "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d value=%s datatype=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slavePosition,
+    sdoIndex,
+    sdoSubIndex,
+    valueString,
+    datatype);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcDataType dt = getEcDataTypeFromStr(datatype);
+  
+  if(dt == ECMC_EC_NONE) {
+    LOGERR(
+      "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, data type invalid (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      sdoIndex,
+      sdoSubIndex,
+      slavePosition,
+      ERROR_EC_SDO_DATATYPE_ERROR);
+    return ERROR_EC_SDO_DATATYPE_ERROR;
+  }
+  
+  return  ec->addSDOWriteDT(slavePosition,
+                            sdoIndex,
+                            sdoSubIndex,
+                            valueString,
+                            dt);
+}
 
 int ecAddSdoComplete(uint16_t    slavePosition,
                      uint16_t    sdoIndex,                     

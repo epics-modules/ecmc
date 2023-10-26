@@ -591,6 +591,29 @@ int ecmcEc::addSDOWrite(uint16_t slavePosition,
   return slave->addSDOWrite(sdoIndex, sdoSubIndex, writeValue, byteSize);
 }
 
+int ecmcEc::addSDOWriteDT(uint16_t slavePosition,
+                        uint16_t sdoIndex,
+                        uint8_t  sdoSubIndex,
+                        const char* value,
+                        ecmcEcDataType dt) {
+  ecmcEcSlave *slave = findSlave(slavePosition);
+
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+
+  return slave->addSDOWriteDT(sdoIndex, sdoSubIndex, value, dt);
+}
+
+
 int ecmcEc::writeSDO(uint16_t slavePosition,
                      uint16_t sdoIndex,
                      uint8_t  sdoSubIndex,

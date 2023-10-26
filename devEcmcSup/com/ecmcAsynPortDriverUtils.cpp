@@ -809,6 +809,72 @@ size_t getEcDataTypeBits(ecmcEcDataType dt) {
   return 0;
 }
 
+int getEcDataTypeIsInt(ecmcEcDataType dt) {
+  
+  switch(dt) {
+  case ECMC_EC_U8:
+    return 1;
+    break;
+
+  case ECMC_EC_S8:
+    return 1;
+    break;
+
+  case ECMC_EC_U16:
+    return 1;
+    break;
+
+  case ECMC_EC_S16:
+    return 1;
+    break;
+
+  case ECMC_EC_U32:
+    return 1;
+    break;
+
+  case ECMC_EC_S32:
+    return 1;
+    break;
+
+  case ECMC_EC_U64:
+    return 1;
+    break;
+
+  case ECMC_EC_S64:
+    return 1;
+    break;
+
+  default:
+    return 0;
+    break;
+  }
+  // Not a valid type
+  return 0;
+}
+
+int getEcDataTypeIsFloat(ecmcEcDataType dt) {
+  
+  switch(dt) {
+  case ECMC_EC_NONE:
+    return 0;
+    break;
+
+  case ECMC_EC_F32:
+    return 1;
+    break;
+
+  case ECMC_EC_F64:
+    return 1;
+    break;
+
+  default:
+    return 0;
+    break;
+  }
+  // Not a valid type
+  return 0;
+}
+
 /*
 * For legacy support of old Cfg.EcAddEntryComplete() syntax
 * \note Will not work for data of types double or real

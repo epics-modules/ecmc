@@ -1313,6 +1313,15 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_SDO_BUFFER_ALLOC_FAIL";
 
     break;
+  case 0x23006:
+    return "ERROR_EC_SDO_DATATYPE_ERROR";
+
+    break;
+
+  case 0x23007:
+    return "ERROR_EC_SDO_VALUE_CONV_ERROR";
+
+    break;
 
   case 0x23500: // ECSDOASYNC
     return "ERROR_EC_SDO_ASYNC_BUSY";

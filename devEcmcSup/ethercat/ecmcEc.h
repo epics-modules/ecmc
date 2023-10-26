@@ -97,6 +97,11 @@ class ecmcEc : public ecmcError {
                            uint8_t  sdoSubIndex,
                            uint32_t value,
                            int      byteSize);
+  int          addSDOWriteDT(uint16_t slavePosition,
+                             uint16_t sdoIndex,
+                             uint8_t  sdoSubIndex,
+                             const char* value,
+                             ecmcEcDataType dt);
   int writeAndVerifySDOs();
   int readSDO(uint16_t  slavePosition,
               uint16_t  sdoIndex,

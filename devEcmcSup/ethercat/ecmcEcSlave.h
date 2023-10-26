@@ -114,10 +114,16 @@ class ecmcEcSlave : public ecmcError {
     // Number of base intervals for process  data watchdog.
     // If set to zero, the value is not written, so the default is used.
     uint16_t watchdogIntervals);
+  // accepts up to 4 bytes ints
   int addSDOWrite(uint16_t sdoIndex,
                   uint8_t  sdoSubIndex,
                   uint32_t writeValue,
                   int      byteSize);
+  // accepts up to 8 bytes
+  int addSDOWriteDT(uint16_t sdoIndex,
+                    uint8_t  sdoSubIndex,
+                    const char* value,                    
+                    ecmcEcDataType dt);                 
   int addSDOWriteComplete(uint16_t    sdoIndex,
                          const char* dataBuffer,
                          int         byteSize);

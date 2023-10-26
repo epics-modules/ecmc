@@ -1336,6 +1336,21 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecAddSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  /*Cfg.EcAddSdoDT(uint16_t slave_position,uint16_t sdo_index,
+  uint8_t sdo_subindex,char* value, char* datatype)*/
+  nvals = sscanf(myarg_1,
+                 "EcAddSdoDT(%d,0x%x,0x%x,%[^,],%[^)])",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 cIdBuffer,
+                 cIdBuffer2);
+  if (nvals == 5) {
+    return ecAddSdoDT(iValue, iValue2, iValue3,cIdBuffer, cIdBuffer2);
+  }
+
   /*Cfg.EcAddSdoComplete(uint16_t slave_position,uint16_t sdo_index,
   ,const char* values,int byteSize)*/
   nvals = sscanf(myarg_1,

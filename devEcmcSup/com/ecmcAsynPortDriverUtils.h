@@ -173,5 +173,7 @@ int64_t        getEcDataTypeMinVal(ecmcEcDataType dt);
 uint64_t       getEcDataTypeMaxVal(ecmcEcDataType dt);
 const char*    getEcDataTypeStr(ecmcEcDataType dt);
 size_t         getEcDataTypeByteSize(ecmcEcDataType dt);
+int            getEcDataTypeIsFloat(ecmcEcDataType dt);
+int            getEcDataTypeIsInt(ecmcEcDataType dt);
 
 #endif  /* ECMC_ASYN_PORT_DRIVER_UTILS_H_ */

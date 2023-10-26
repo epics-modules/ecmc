@@ -773,6 +773,33 @@ int ecmcEcSlave::addSDOWrite(uint16_t sdoIndex,
                                  byteSize);
 }
 
+int ecmcEcSlave::addSDOWriteDT(uint16_t sdoIndex,
+                               uint8_t  sdoSubIndex,
+                               const char* value,                               
+                               ecmcEcDataType dt) {
+  if (!slaveConfig_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      vendorId_,
+      productCode_,
+      ERROR_EC_SLAVE_CONFIG_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_SLAVE_CONFIG_NULL);
+  }
+
+  return ecmcEcSDO::addSdoConfigDT(slaveConfig_,
+                                   slavePosition_,
+                                   sdoIndex,
+                                   sdoSubIndex,
+                                   value,
+                                   dt);
+}
 int ecmcEcSlave::getSlaveState(ec_slave_config_state_t *state) {
   state = &slaveState_;
   return 0;

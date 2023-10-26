@@ -459,6 +459,49 @@ int ecAddSdo(uint16_t slaveBusPosition,
  *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
  *  \param[in] sdoIndex Index of service data object. Needs to be
  *                           entered in hex format.\n
+ *  \param[in] sdoSubIndex Sub index of service data object .
+ *                           Needs to be entered in hex format.\n
+ *  \param[in] valueString Value to write.\n
+ *  \param[in] dataType ecmc data type string.\n
+ *                      U8:  Unsigned 8-bit\n
+ *                      S8:  Signed 8-bit\n
+ *                      U16: Unsigned 16-bit\n
+ *                      S16: Signed 16-bit\n
+ *                      U32: Unsigned 32-bit\n
+ *                      S32: Signed 32-bit\n
+ *                      U64: Unsigned 64-bit\n
+ *                      S64: Signed 64-bit\n
+ *                      F32: Real 32-bit\n 
+ *                      F64: Double 64-bit\n
+ *
+ * \note All configuration data can be found in the documentation of
+ * the slave, in the ESI slave description file or by using the etherlab
+ * (www.etherlab.org) ethercat tool.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Write 1A (1000mA) to maximum current of the EL7037 stepper drive card
+ * on slave position 2.\n
+ * "Cfg.EcAddSdoDT(2,0x8010,0x1,1000.0,2,F64)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddSdoDT(uint16_t slavePosition,
+               uint16_t sdoIndex,
+               uint8_t  sdoSubIndex,
+               char    *valueString,
+               char    *datatype);
+
+/** \brief Adds a Service Data Object for writing.
+ *
+ * Adds a Service Data Object for writing to the sdo registers of EtherCAT
+ * slaves. An sdo object will be added to the hardware configuration.
+ * The writing will occur when the hardware configuration is applied.\n
+ *
+ * \note This command can only be used in configuration mode.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = 0..65535: Addressing of EtherCAT slaves.\n
+ *  \param[in] sdoIndex Index of service data object. Needs to be
+ *                           entered in hex format.\n
  *  \param[in] valueBuffer Values to be written as hex string, each byte separted with space.\n
  *  \param[in] byteSize Byte count to write.\n
  *
