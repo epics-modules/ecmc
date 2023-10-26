@@ -3,7 +3,7 @@ Release Notes
 ===
 
 * Add command that adds an SDO object with a predefined type, up to 8 bytes:
-* 
+
 Example: Write sign 64bit int 
 ```
 ecmcConfigOrDie "Cfg.EcAddSdoDT(<slave index>,<sdoindex>,<sdosubindex>,<valuestring>,<datatypestring>)" 
