@@ -2487,6 +2487,26 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x212000:
+    return "ERROR_ECDATAITEM_MAP_SIZE_OUT_OF_RANGE";
+
+    break;
+
+  case 0x212001:
+    return "ERROR_ECDATAITEM_ASYN_VAR_BUFFER_OUT_OF_RANGE";
+
+    break;
+
+  case 0x212002:
+    return "ERROR_ECDATAITEM_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x212003:
+    return "ERROR_ECDATAITEM_INVALID_DATA_TYPE";
+
+    break;
+
   // asynDataItem  
   case 0x220000:
     return "ERROR_ASYN_PORT_NULL";
