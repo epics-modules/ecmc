@@ -20,12 +20,12 @@
 ecmcEcData::ecmcEcData(ecmcAsynPortDriver *asynPortDriver,
                        int masterId,
                        int slaveId,
-                       ecmcEcEntry   *startEntry,
+                       ecmcEcEntry *startEntry,
                        size_t entryByteOffset,
                        size_t entryBitOffset,
                        ec_direction_t nDirection,
                        ecmcEcDataType dt,
-                       std::string    id) : 
+                       std::string id) : 
             ecmcEcEntry(asynPortDriver,
                         masterId,
                         slaveId,                                                  
@@ -57,16 +57,6 @@ void ecmcEcData::initVars() {
 }
 
 ecmcEcData::~ecmcEcData() {
-}
-
-int ecmcEcData::compileRegInfo(){
-  // Don't do anything, override ecmcEcEntry::compileRegInfo()
-  return 0;
-}
-
-int ecmcEcData::activte(){
-  // Don't do anything, override ecmcEcEntry::activte()
-  return 0;
 }
 
 int ecmcEcData::updateInputProcessImage() {

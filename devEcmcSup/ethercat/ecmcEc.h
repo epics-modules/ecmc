@@ -158,6 +158,13 @@ class ecmcEc : public ecmcError {
                 ec_direction_t direction,
                 ecmcEcDataType dt,
                 std::string    memMapIDString);
+  int addDatItem(uint16_t      startEntryBusPosition,
+                std::string    startEntryIDString,
+                int            entryByteOffset,
+                int            entryBitOffset,
+                ec_direction_t direction,
+                ecmcEcDataType dt,
+                std::string    id);
   ecmcEcMemMap* findMemMap(std::string name);
   int           findMemMapId(std::string name);
   ecmcEcMemMap* getMemMap(int index);

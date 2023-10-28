@@ -86,7 +86,7 @@ class ecmcEcEntry : public ecmcError {
   ecmcEcDataType getDataType();
 
   // After activate
-  virtual int  activate();
+  int          activate();
 
   uint8_t     *getDomainAdr();
   int         writeValue(uint64_t value);
@@ -103,7 +103,7 @@ class ecmcEcEntry : public ecmcError {
   int         setUpdateInRealtime(int update);
   int         getUpdateInRealtime();
   std::string getIdentificationName();
-  virtual int compileRegInfo();
+  int         compileRegInfo();
   int         updateAsyn(bool force);
   bool        getSimEntry();
   virtual int validate();

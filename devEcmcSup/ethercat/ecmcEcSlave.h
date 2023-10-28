@@ -29,6 +29,8 @@
 #include "ecmcEcSDO.h"
 #include "ecmcEcAsyncSDO.h"
 #include "ecmcEcDomain.h"
+#include "ecmcEcData.h"
+
 #define SIMULATION_ENTRIES 2
 
 // ECSLAVE ERRORS
@@ -93,6 +95,13 @@ class ecmcEcSlave : public ecmcError {
                        ecmcEcDataType dt,
                        std::string    id,
                        int            useInRealTime);
+  int                addDataItem(
+                       ecmcEcEntry startEntry,
+                       size_t entryByteOffset,
+                       size_t entryBitOffset,
+                       ec_direction_t direction,
+                       ecmcEcDataType dt,
+                       std::string id);
   int configDC(
     // AssignActivate word.
     uint16_t assignActivate,

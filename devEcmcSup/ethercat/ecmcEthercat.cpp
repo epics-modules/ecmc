@@ -305,6 +305,52 @@ int ecAddMemMapDT(
                       (ec_direction_t)direction, dt, memMapId);
 }
 
+// New syntax with datatype
+int ecAddDatItemDT(  
+  char    *ecPath,
+  size_t   entryByteOffset,
+  size_t   entryBitOffset,
+  int      direction,
+  char    *dataType, 
+  char    *idString
+  ) {
+
+  LOGINFO4(
+    "%s/%s:%d startEntryID=%s entryByteOffset=%zu, entryBitOffset=%zu, direction=%d dataType=%s entryId=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    ecPath,
+    entryByteOffset,
+    entryBitOffset,
+    direction,
+    dataType,
+    idString);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  int  masterId   = -1;
+  int  slaveIndex = -1;
+  char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  bitIndex = -1;
+
+  int errorCode = parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  
+  std::string Id     = idString;
+  std::string startEntryId = alias;
+  ecmcEcDataType dt = getEcDataTypeFromStr(dataType);
+
+  return ec->addDataItem(slaveIndex, 
+                         startEntryId,
+                         entryByteOffset,
+                         entryBitOffset,
+                         (ec_direction_t)direction,
+                         dt, Id);
+}
 
 int ecAddSdoAsync(
   uint16_t slaveBusPosition,
