@@ -76,7 +76,7 @@ class ecmcEcEntry : public ecmcError {
               uint8_t           *domainAdr,
               ecmcEcDataType     dt,
               std::string        id);
-  ~ecmcEcEntry();
+  virtual ~ecmcEcEntry();
   void        initVars();
   uint16_t    getEntryIndex();
   uint8_t     getEntrySubIndex();
@@ -86,7 +86,7 @@ class ecmcEcEntry : public ecmcError {
   ecmcEcDataType getDataType();
 
   // After activate
-  int         activate();
+  virtual int  activate();
 
   uint8_t     *getDomainAdr();
   int         writeValue(uint64_t value);
@@ -98,15 +98,15 @@ class ecmcEcEntry : public ecmcError {
   int         readDouble(double *value);
   int         readBit(int       bitNumber,
                       uint64_t *value);
-  int         updateInputProcessImage();
-  int         updateOutProcessImage();
+  virtual int updateInputProcessImage();
+  virtual int updateOutProcessImage();
   int         setUpdateInRealtime(int update);
   int         getUpdateInRealtime();
   std::string getIdentificationName();
-  int         compileRegInfo();
+  virtual int compileRegInfo();
   int         updateAsyn(bool force);
   bool        getSimEntry();
-  int         validate();
+  virtual int validate();
   int         setComAlarm(bool alarm);
   int         getSlaveId();
   int         getDomainOK();
