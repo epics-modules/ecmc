@@ -355,6 +355,53 @@ int ecAddMemMap(
   int      direction,
   char    *memMapIDString);
 
+/** \brief Adds a data item object to access data directly from EtherCAT
+ *   domain. This object type only support scalars (not arrays). For arrays 
+ *   see memmaps.\n
+ *
+ *  The start of the data item is addressed by a previously configured
+ *  EtherCAT entry, byte-, bit-offset and data type.
+ *
+ *  \param[in] ecPath   Identification string of the start EtherCAT
+ *   *                  entry (example "ec0.s1.AI_1").\n
+ *  \param[in] entryByteOffset offset in bytes.\n
+ *  \param[in] entryBitOffset  additional offset in bits
+ *  \param[in] direction Data transfer direction..\n
+ *    direction  = 1:  Output (from master).\n
+ *    direction  = 2:  Input (to master).\n
+ *  \param[in] dataType DataType of ethercat data:\n
+ *                      B1:  1-bit\n
+ *                      B2:  2-bits (lsb)\n
+ *                      B3:  3-bits (lsb)\n
+ *                      B4:  3-bits (lsb)\n
+ *                      U8:  Unsigned 8-bit\n
+ *                      S8:  Signed 8-bit\n
+ *                      U16: Unsigned 16-bit\n
+ *                      S16: Signed 16-bit\n
+ *                      U32: Unsigned 32-bit\n
+ *                      S32: Signed 32-bit\n
+ *                      U64: Unsigned 64-bit\n
+ *                      S64: Signed 64-bit\n
+ *                      F32: Real 32-bit\n
+ *                      F64: Double 64-bit\n
+ *  \param[in] idString Identification string used for addressing the
+ object.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Add an EtherCAT input data item of type B1 with 0 bytes offset and 2 bits offset, starting at
+ * entry "ec0.s2.byte09"\n
+ * "Cfg.EcAddDataDT(ec0.s2.byte09,0,2,B1,ec0.s2.a_bit)" //Command string to ecmcCmdParser.c\n
+ */
+int ecAddDataDT(
+  char    *ecPath,
+  size_t   entryByteOffset,
+  size_t   entryBitOffset,
+  int      direction,
+  char    *dataType, 
+  char    *idString
+  );
+
 /** \brief Get index of a memmap object based on its name id string
  *
  *  \param[in] memMapIDString memmap name

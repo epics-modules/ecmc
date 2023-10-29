@@ -306,7 +306,7 @@ int ecAddMemMapDT(
 }
 
 // New syntax with datatype
-int ecAddDatItemDT(  
+int ecAddDataDT(  
   char    *ecPath,
   size_t   entryByteOffset,
   size_t   entryBitOffset,

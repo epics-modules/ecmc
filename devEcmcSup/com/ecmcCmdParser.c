@@ -1195,7 +1195,7 @@ static int handleCfgCommand(const char *myarg_1) {
       size_t byteSize,
       int direction,
       char *dataType,            (S32)
-      char *memMapIDString       (ec0.S1.CH1_ARRAY)
+      char *memMapIDString       (ec0.s1.CH1_ARRAY)
       )*/
 
   cIdBuffer[0]  = '\0';
@@ -1235,6 +1235,32 @@ static int handleCfgCommand(const char *myarg_1) {
   if (nvals == 5) {
     return ecAddMemMap(iValue, cIdBuffer, (size_t)iValue2, iValue3,
                              cIdBuffer2);
+  }
+
+/*Cfg.EcAddDataDT(
+      char *startEntryIDString,  (ec0.s1.AI1)
+      size_t   entryByteOffset,   byte offset from startEntry
+      size_t   entryBitOffset,    bit offset
+      int direction,
+      char *dataType,            (S32)
+      char *memMapIDString       (ec0.s1.CH1_ARRAY)
+      )*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  cIdBuffer3[0] = '\0';
+  nvals = sscanf(myarg_1,
+                 "EcAddDataDT(%[^,],%d,%d,%d%[^,],%[^)])",
+                 cIdBuffer,
+                 &iValue2,
+                 &iValue3,
+                 &iValue4,
+                 cIdBuffer2,
+                 cIdBuffer3);
+
+  if (nvals == 6) {    
+    return ecAddDataDT(cIdBuffer, (size_t)iValue2,
+                       (size_t)iValue3,iValue4,
+                       cIdBuffer2,cIdBuffer3);                       
   }
 
   /*Cfg.EcSlaveConfigDC(
