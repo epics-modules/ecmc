@@ -1249,7 +1249,7 @@ static int handleCfgCommand(const char *myarg_1) {
   cIdBuffer2[0] = '\0';
   cIdBuffer3[0] = '\0';
   nvals = sscanf(myarg_1,
-                 "EcAddDataDT(%[^,],%d,%d,%d%[^,],%[^)])",
+                 "EcAddDataDT(%[^,],%d,%d,%d,%[^,],%[^)])",
                  cIdBuffer,
                  &iValue2,
                  &iValue3,

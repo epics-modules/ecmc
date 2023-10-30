@@ -37,8 +37,8 @@ ecmcEcData::ecmcEcData(ecmcAsynPortDriver *asynPortDriver,
   domain_          = startEntry_->getDomain();
   direction_       = nDirection;
   dataType_        = dt;
-  entryByteOffset_ = 0;
-  entryBitOffset_  = 0;
+  entryByteOffset_ = entryByteOffset;
+  entryBitOffset_  = entryBitOffset;
   byteSize_ = getEcDataTypeByteSize(dataType_);
 }
 
@@ -71,59 +71,59 @@ int ecmcEcData::updateInputProcessImage() {
   // Read data from ethercat memory area
   switch(dataType_) {
     case ECMC_EC_B1:
-      *uint8Ptr_ = ecmcEcData::Read1Bit(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::Read1Bit(adr_, 0,entryBitOffset_);
       break;
 
     case ECMC_EC_B2:
-      *uint8Ptr_ = ecmcEcData::Read2Bits(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::Read2Bits(adr_, 0,entryBitOffset_);
       break;
 
     case ECMC_EC_B3:
-      *uint8Ptr_ = ecmcEcData::Read3Bits(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::Read3Bits(adr_, 0,entryBitOffset_);
       break;
 
     case ECMC_EC_B4:
-      *uint8Ptr_ = ecmcEcData::Read4Bits(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::Read4Bits(adr_, 0,entryBitOffset_);
       break;
 
     case ECMC_EC_U8:
-      *uint8Ptr_ = ecmcEcData::ReadUInt8(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::ReadUInt8(adr_, 0,entryBitOffset_);
       break;
 
     case ECMC_EC_S8:
-      *int8Ptr_ = ecmcEcData::ReadInt8(adr_, 0, bitOffset_);
+      *int8Ptr_ = ecmcEcData::ReadInt8(adr_, 0,entryBitOffset_);
       break;
 
     case ECMC_EC_U16:
-      *uint16Ptr_ = ecmcEcData::ReadUInt16(adr_, 0, bitOffset_);
+      *uint16Ptr_ = ecmcEcData::ReadUInt16(adr_, 0,entryBitOffset_);
       break;
   
     case ECMC_EC_S16:
-      *int16Ptr_ = ecmcEcData::ReadInt16(adr_, 0, bitOffset_);
+      *int16Ptr_ = ecmcEcData::ReadInt16(adr_, 0,entryBitOffset_);
       break;
   
     case ECMC_EC_U32:
-      *uint32Ptr_ = ecmcEcData::ReadUInt32(adr_, 0, bitOffset_);
+      *uint32Ptr_ = ecmcEcData::ReadUInt32(adr_, 0,entryBitOffset_);
       break;
   
     case ECMC_EC_S32:
-      *int32Ptr_ = ecmcEcData::ReadInt32(adr_, 0, bitOffset_);
+      *int32Ptr_ = ecmcEcData::ReadInt32(adr_, 0,entryBitOffset_);
       break;
   
     case ECMC_EC_U64:
-      *uint64Ptr_ = ecmcEcData::ReadUInt64(adr_, 0, bitOffset_);
+      *uint64Ptr_ = ecmcEcData::ReadUInt64(adr_, 0,entryBitOffset_);
       break;
   
     case ECMC_EC_S64:
-      *int64Ptr_ = ecmcEcData::ReadInt64(adr_, 0, bitOffset_);
+      *int64Ptr_ = ecmcEcData::ReadInt64(adr_, 0,entryBitOffset_);
       break;
   
     case ECMC_EC_F32:
-      *float32Ptr_ = ecmcEcData::ReadFloat(adr_, 0, bitOffset_);
+      *float32Ptr_ = ecmcEcData::ReadFloat(adr_, 0,entryBitOffset_);
       break;
   
     case ECMC_EC_F64:
-      *float64Ptr_ = ecmcEcData::ReadDouble(adr_, 0, bitOffset_);
+      *float64Ptr_ = ecmcEcData::ReadDouble(adr_, 0,entryBitOffset_);
       break;
     default:
       return ERROR_EC_ENTRY_DATATYPE_INVALID;
@@ -142,59 +142,59 @@ int ecmcEcData::updateOutProcessImage() {
   // No endians check...
   switch(dataType_) {
     case ECMC_EC_B1:
-      ecmcEcData::Write1Bit(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::Write1Bit(adr_, 0,entryBitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_B2:
-      ecmcEcData::Write2Bits(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::Write2Bits(adr_, 0,entryBitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_B3:
-      ecmcEcData::Write3Bits(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::Write3Bits(adr_, 0,entryBitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_B4:
-      ecmcEcData::Write4Bits(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::Write4Bits(adr_, 0,entryBitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_U8:
-      ecmcEcData::WriteUInt8(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::WriteUInt8(adr_, 0,entryBitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_S8:
-      ecmcEcData::WriteInt8(adr_, 0, bitOffset_,*int8Ptr_);
+      ecmcEcData::WriteInt8(adr_, 0,entryBitOffset_,*int8Ptr_);
       break;
 
     case ECMC_EC_U16:
-      ecmcEcData::WriteUInt16(adr_, 0, bitOffset_,*uint16Ptr_);
+      ecmcEcData::WriteUInt16(adr_, 0,entryBitOffset_,*uint16Ptr_);
       break;
   
     case ECMC_EC_S16:
-      ecmcEcData::WriteInt16(adr_, 0, bitOffset_,*int16Ptr_);
+      ecmcEcData::WriteInt16(adr_, 0,entryBitOffset_,*int16Ptr_);
       break;
   
     case ECMC_EC_U32:
-      ecmcEcData::WriteUInt32(adr_, 0, bitOffset_,*uint32Ptr_);
+      ecmcEcData::WriteUInt32(adr_, 0,entryBitOffset_,*uint32Ptr_);
       break;
   
     case ECMC_EC_S32:
-      ecmcEcData::WriteInt32(adr_, 0, bitOffset_,*int32Ptr_);
+      ecmcEcData::WriteInt32(adr_, 0,entryBitOffset_,*int32Ptr_);
       break;
   
     case ECMC_EC_U64:
-      ecmcEcData::WriteUInt64(adr_, 0, bitOffset_,*uint64Ptr_);
+      ecmcEcData::WriteUInt64(adr_, 0,entryBitOffset_,*uint64Ptr_);
       break;
   
     case ECMC_EC_S64:
-      ecmcEcData::WriteInt64(adr_, 0, bitOffset_,*int64Ptr_);
+      ecmcEcData::WriteInt64(adr_, 0,entryBitOffset_,*int64Ptr_);
       break;
   
     case ECMC_EC_F32:
-      ecmcEcData::WriteFloat(adr_, 0, bitOffset_,*float32Ptr_);
+      ecmcEcData::WriteFloat(adr_, 0,entryBitOffset_,*float32Ptr_);
       break;
   
     case ECMC_EC_F64:
-      ecmcEcData::WriteDouble(adr_, 0, bitOffset_,*float64Ptr_);
+      ecmcEcData::WriteDouble(adr_, 0,entryBitOffset_,*float64Ptr_);
       break;
     default:
       return ERROR_EC_ENTRY_DATATYPE_INVALID;

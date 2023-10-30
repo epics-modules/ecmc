@@ -120,14 +120,14 @@ int ecmcEcDomain::checkState() {
   // Set summary alarm for ethercat
   //statusOk_= state_.wc_state ==  EC_WC_COMPLETE;
 
-  if(statusWord_ != statusWordOld_) {
-    LOGERR("%s/%s:%d: INFO: Domain[%d] status changed: %d.\n",
-         __FILE__,
-         __FUNCTION__,
-         __LINE__,
-         objIndex_,
-         statusWord_);
-  }
+  //if(statusWord_ != statusWordOld_) {
+  //  LOGERR("%s/%s:%d: INFO: Domain[%d] status changed: %d.\n",
+  //       __FILE__,
+  //       __FUNCTION__,
+  //       __LINE__,
+  //       objIndex_,
+  //       statusWord_);
+  //}
   
   statusWordOld_= statusWord_;
 
