@@ -117,7 +117,8 @@ void ecmcEncoder::initVars() {
   encInitilized_        = 0;
   hwReady_              = 0;
   hwReadyInvert_        = 0;
-  domainOKOld_          = 0;
+  hwSumAlarmOld_        = false;
+  hwSumAlarm_           = false;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -341,12 +342,13 @@ double ecmcEncoder::getScaleDenom() {
 
 int  ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
 
-  if (!masterOK || !hwActPosDefined_ || 
-       hwErrorAlarm0_ || hwErrorAlarm1_ || 
-       hwErrorAlarm2_ || !domainOK ||
-       (!hwReady_ && hwReadyBitDefined_)) {
+  hwSumAlarmOld_ = hwSumAlarm_;
+  hwSumAlarm_=(!masterOK || !hwActPosDefined_ || 
+              hwErrorAlarm0_ || hwErrorAlarm1_ || 
+              hwErrorAlarm2_ || !domainOK ||
+             (!hwReady_ && hwReadyBitDefined_));
+  if (hwSumAlarm_) {
     // do not update if issues
-
     return 0;
   }
   
@@ -366,7 +368,7 @@ int  ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   
   
   //if(!encInitilized_ && masterOk_) {
-  if(!encInitilized_ && domainOK) {
+  if(!encInitilized_) {
     // if ready bit defined
     if(hwReadyBitDefined_) {
       if(hwReady_ > 0) {
@@ -380,12 +382,13 @@ int  ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
           data_->axisId_);
 
       }
-    } else {  // else latch value at positive edge of masterOK
+    } else { 
+      // else latch value at positive edge of masterOK
       // If first valid value (at first hw ok),
       // then store the same position in last cycle value.
       // This to avoid over/underflow since rawPosUintOld_ is initiated to 0.
       //if(!masterOKOld_) {
-      if(!domainOKOld_) {
+      if(!hwSumAlarmOld_) {
         rawPosUintOld_ = rawPosUint_;
         encInitilized_ = 1;
         LOGERR("%s/%s:%d: INFO (axis %d): Encoder initialized (domain==true ).\n",
@@ -668,7 +671,6 @@ double ecmcEncoder::readEntries(bool masterOK) {
   encPosAct_->refreshParamRT(0);
   encVelAct_->refreshParamRT(0);
 
-  domainOKOld_ = domainOK;
   masterOKOld_ = masterOK;
   return actPos_;
 }

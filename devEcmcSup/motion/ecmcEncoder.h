@@ -213,7 +213,8 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int homeLatchCountOffset_;
   double maxPosDiffToPrimEnc_;
   bool encInitilized_;
-  int domainOKOld_;
+  bool hwSumAlarm_;
+  bool hwSumAlarmOld_;
   // Asyn
   ecmcAsynPortDriver     *asynPortDriver_;
   ecmcAsynDataItem       *encPosAct_;
