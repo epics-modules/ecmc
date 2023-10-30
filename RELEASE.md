@@ -2,7 +2,8 @@
 Release Notes
 ===
 
-* Add command that adds an SDO object with a predefined type, up to 8 bytes with:
+* Add command that adds an SDO object with a predefined type, up to 8 bytes:
+
 Example: Write sign 64bit int 
 ```
 ecmcConfigOrDie "Cfg.EcAddSdoDT(<slave index>,<sdoindex>,<sdosubindex>,<valuestring>,<datatypestring>)" 
@@ -13,10 +14,8 @@ ecmcConfigOrDie "Cfg.EcAddSdoDT(11,0x8030,0x8,-1234,S64)"
 ethercat upload -p11 -m0 0x8030 0x8
 0xfffffffffffffb2e -1234
 ```
-
-# flyscan
 * Remove reset of attarget bit when error reset is executed
-* Fix of brake not engaging when drive interlock
+* Fix of brake not engaging when drive loose power
 * At traj source change then set target pos to setpos
 
 ## Allow several domains:
@@ -25,7 +24,7 @@ Add domain: All entries configured after this call will belong to th new domain:
 ```
 ecmcConfigOrDie "Cfg.EcAddDomain(<exe_cycles>,<exe_offset>)"
 ```
-The domain can be configured to execute at slower rates than teh default ec rate and with offsets.
+The domain can be configured to execute at slower rates than the default ec rate and with offsets.
 
 The domain can be configured to be allowd to be offline:
 ```
