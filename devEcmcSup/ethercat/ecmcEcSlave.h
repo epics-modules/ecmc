@@ -55,6 +55,7 @@
 #define ERROR_EC_SLAVE_NOT_ONLINE 0x24012
 #define ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW 0x24013
 #define ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL 0x24014
+#define ERROR_EC_SLAVE_ADD_DATA_ITEM_FAIL 0x24015
 
 typedef struct {
   uint16_t position;   /**< Offset of the slave in the ring. */
@@ -96,7 +97,7 @@ class ecmcEcSlave : public ecmcError {
                        std::string    id,
                        int            useInRealTime);
   int                addDataItem(
-                       ecmcEcEntry startEntry,
+                       ecmcEcEntry *startEntry,
                        size_t entryByteOffset,
                        size_t entryBitOffset,
                        ec_direction_t direction,

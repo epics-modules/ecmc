@@ -1269,6 +1269,14 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_ENTRY_EC_DOMAIN_ERROR";
 
     break;
+  case 0x2100F:
+    return "ERROR_EC_ENTRY_DATATYPE_INVALID";
+
+    break;
+  case 0x21010:
+    return "ERROR_EC_ENTRY_SIZE_OUT_OF_RANGE";
+
+    break;
 
   case 0x22000:    // ECPDO
     return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
@@ -1445,6 +1453,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x24014:
     return "ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL";
+
+    break;
+
+  case 0x24015:
+    return "ERROR_EC_SLAVE_ADD_DATA_ITEM_FAIL";
 
     break;
 

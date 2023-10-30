@@ -37,15 +37,21 @@ class ecmcEcData :public ecmcEcEntry {
              ecmcEcDataType dt,
              std::string    id);
   ~ecmcEcData();
+
+  // Overridden ecmcEcEntry functions
   int             updateInputProcessImage();
   int             updateOutProcessImage();
-
+  int             validate();
+  
  private:
   void            initVars();
   
   //byte and bit offset from entry
   size_t          entryByteOffset_;
   size_t          entryBitOffset_;
+  size_t          byteSize_;
+  ecmcEcEntry    *startEntry_;
+
   int8_t         *int8Ptr_;
   uint8_t        *uint8Ptr_;
   int16_t        *int16Ptr_;

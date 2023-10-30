@@ -841,3 +841,8 @@ int ecmcEcEntry::getDomainOK() {
   }
   return domain_->getOK();
 }
+
+ecmcEcDomain *ecmcEcEntry::getDomain() { 
+  return domain_;
+}
+

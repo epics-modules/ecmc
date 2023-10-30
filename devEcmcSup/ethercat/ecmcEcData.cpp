@@ -34,15 +34,19 @@ ecmcEcData::ecmcEcData(ecmcAsynPortDriver *asynPortDriver,
                         id) {
   initVars();
   startEntry_      = startEntry;
+  domain_          = startEntry_->getDomain();
   direction_       = nDirection;
+  dataType_        = dt;
   entryByteOffset_ = 0;
   entryBitOffset_  = 0;
+  byteSize_ = getEcDataTypeByteSize(dataType_);
 }
 
 void ecmcEcData::initVars() {
   startEntry_      = NULL;
   entryByteOffset_ = 0;
   entryBitOffset_  = 0;
+  byteSize_        = 0;
   direction_       = EC_DIR_INVALID;
   int8Ptr_         = (int8_t*)&buffer_;
   uint8Ptr_        = (uint8_t*)&buffer_;
@@ -67,60 +71,62 @@ int ecmcEcData::updateInputProcessImage() {
   // Read data from ethercat memory area
   switch(dataType_) {
     case ECMC_EC_B1:
-      *uint8Ptr_ = Read1Bit(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::Read1Bit(adr_, 0, bitOffset_);
       break;
 
     case ECMC_EC_B2:
-      *uint8Ptr_ = Read2Bit(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::Read2Bits(adr_, 0, bitOffset_);
       break;
 
     case ECMC_EC_B3:
-      *uint8Ptr_ = Read3Bit(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::Read3Bits(adr_, 0, bitOffset_);
       break;
 
     case ECMC_EC_B4:
-      *uint8Ptr_ = Read4Bit(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::Read4Bits(adr_, 0, bitOffset_);
       break;
 
     case ECMC_EC_U8:
-      *uint8Ptr_ = ReadUInt8(adr_, 0, bitOffset_);
+      *uint8Ptr_ = ecmcEcData::ReadUInt8(adr_, 0, bitOffset_);
       break;
 
     case ECMC_EC_S8:
-      *int8Ptr_ = ReadInt8(adr_, 0, bitOffset_);
+      *int8Ptr_ = ecmcEcData::ReadInt8(adr_, 0, bitOffset_);
       break;
 
     case ECMC_EC_U16:
-      *uint16Ptr_ = ReadUInt16(adr_, 0, bitOffset_);
+      *uint16Ptr_ = ecmcEcData::ReadUInt16(adr_, 0, bitOffset_);
       break;
   
     case ECMC_EC_S16:
-      *int16Ptr_ = ReadInt16(adr_, 0, bitOffset_);
+      *int16Ptr_ = ecmcEcData::ReadInt16(adr_, 0, bitOffset_);
       break;
   
     case ECMC_EC_U32:
-      *uint32Ptr_ = ReadUInt32(adr_, 0, bitOffset_);
+      *uint32Ptr_ = ecmcEcData::ReadUInt32(adr_, 0, bitOffset_);
       break;
   
     case ECMC_EC_S32:
-      *int32Ptr_ = ReadInt32(adr_, 0, bitOffset_);
+      *int32Ptr_ = ecmcEcData::ReadInt32(adr_, 0, bitOffset_);
       break;
   
     case ECMC_EC_U64:
-      *uint64Ptr_ = ReadUInt64(adr_, 0, bitOffset_);
+      *uint64Ptr_ = ecmcEcData::ReadUInt64(adr_, 0, bitOffset_);
       break;
   
     case ECMC_EC_S64:
-      *int64Ptr_ = ReadInt64(adr_, 0, bitOffset_);
+      *int64Ptr_ = ecmcEcData::ReadInt64(adr_, 0, bitOffset_);
       break;
   
     case ECMC_EC_F32:
-      *float32Ptr_ = ReadFloat(adr_, 0, bitOffset_);
+      *float32Ptr_ = ecmcEcData::ReadFloat(adr_, 0, bitOffset_);
       break;
   
     case ECMC_EC_F64:
-      *float64Ptr_ = ReadDouble(adr_, 0, bitOffset_);
-      break;  
+      *float64Ptr_ = ecmcEcData::ReadDouble(adr_, 0, bitOffset_);
+      break;
+    default:
+      return ERROR_EC_ENTRY_DATATYPE_INVALID;
   }
 
   updateAsyn(0);
@@ -136,60 +142,62 @@ int ecmcEcData::updateOutProcessImage() {
   // No endians check...
   switch(dataType_) {
     case ECMC_EC_B1:
-      Write1Bit(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::Write1Bit(adr_, 0, bitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_B2:
-      Write2Bit(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::Write2Bits(adr_, 0, bitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_B3:
-      Write3Bit(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::Write3Bits(adr_, 0, bitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_B4:
-      Write4Bit(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::Write4Bits(adr_, 0, bitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_U8:
-      WriteUInt8(adr_, 0, bitOffset_,*uint8Ptr_);
+      ecmcEcData::WriteUInt8(adr_, 0, bitOffset_,*uint8Ptr_);
       break;
 
     case ECMC_EC_S8:
-      WriteInt8(adr_, 0, bitOffset_,*int8Ptr_);
+      ecmcEcData::WriteInt8(adr_, 0, bitOffset_,*int8Ptr_);
       break;
 
     case ECMC_EC_U16:
-      WriteUInt16(adr_, 0, bitOffset_,*uint16Ptr_);
+      ecmcEcData::WriteUInt16(adr_, 0, bitOffset_,*uint16Ptr_);
       break;
   
     case ECMC_EC_S16:
-      WriteInt16(adr_, 0, bitOffset_,*int16Ptr_);
+      ecmcEcData::WriteInt16(adr_, 0, bitOffset_,*int16Ptr_);
       break;
   
     case ECMC_EC_U32:
-      WriteUInt32(adr_, 0, bitOffset_,*uint32Ptr_);
+      ecmcEcData::WriteUInt32(adr_, 0, bitOffset_,*uint32Ptr_);
       break;
   
     case ECMC_EC_S32:
-      WriteInt32(adr_, 0, bitOffset_,*int32Ptr_);
+      ecmcEcData::WriteInt32(adr_, 0, bitOffset_,*int32Ptr_);
       break;
   
     case ECMC_EC_U64:
-      WriteUInt64(adr_, 0, bitOffset_,*uint64Ptr_);
+      ecmcEcData::WriteUInt64(adr_, 0, bitOffset_,*uint64Ptr_);
       break;
   
     case ECMC_EC_S64:
-      WriteInt64(adr_, 0, bitOffset_,*int64Ptr_);
+      ecmcEcData::WriteInt64(adr_, 0, bitOffset_,*int64Ptr_);
       break;
   
     case ECMC_EC_F32:
-      WriteFloat(adr_, 0, bitOffset_,*float32Ptr_);
+      ecmcEcData::WriteFloat(adr_, 0, bitOffset_,*float32Ptr_);
       break;
   
     case ECMC_EC_F64:
-      WriteDouble(adr_, 0, bitOffset_,*float64Ptr_);
-      break;  
+      ecmcEcData::WriteDouble(adr_, 0, bitOffset_,*float64Ptr_);
+      break;
+    default:
+      return ERROR_EC_ENTRY_DATATYPE_INVALID;
   }
 
   return 0;
@@ -197,25 +205,44 @@ int ecmcEcData::updateOutProcessImage() {
 
 int ecmcEcData::validate() {
   // offset to data from start of domain
-  byteOffset_ = startEntry_->getByteOffset() + entryByteOffset_;
-  domainAdr_  = startEntry_->getDomainAdr();
- 
-  if (byteOffset_ < 0) {
-    if (getErrorID() != ERROR_EC_ENTRY_INVALID_OFFSET) {
-      LOGERR("%s/%s:%d: ERROR: EcDataItem %s: Invalid data byte offset (0x%x).\n",
+  if (startEntry_ == NULL) {
+    if (getErrorID() != ERROR_EC_ENTRY_INVALID_DOMAIN_ADR) {
+      LOGERR("%s/%s:%d: ERROR: EcDataItem %s: Start entry invalid (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
              idString_.c_str(),
-             ERROR_EC_ENTRY_INVALID_OFFSET);
+             ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
     }
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_EC_ENTRY_INVALID_OFFSET);
+                      ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
- if (entryBitOffset_ < 0 || entryBitOffset_  > 7) {
+  domainAdr_  = startEntry_->getDomainAdr();
+
+  
+  if (domainAdr_ == NULL) {
+    if (getErrorID() != ERROR_EC_ENTRY_INVALID_DOMAIN_ADR) {
+      LOGERR("%s/%s:%d: ERROR: EcDataItem %s: Invalid domain address (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             idString_.c_str(),
+             ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
+    }
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
+  }
+
+  size_t domainSize  = startEntry_->getDomain()->getSize();
+  byteOffset_ = startEntry_->getByteOffset() + entryByteOffset_;
+  
+
+  if (entryBitOffset_  > 7) {
     if (getErrorID() != ERROR_EC_ENTRY_INVALID_OFFSET) {
       LOGERR("%s/%s:%d: ERROR: EcDataItem %s: Invalid data bit offset (0x%x).\n",
              __FILE__,
@@ -229,7 +256,6 @@ int ecmcEcData::validate() {
                       __LINE__,
                       ERROR_EC_ENTRY_INVALID_OFFSET);
   }
-
 
   if (domainAdr_ == NULL) {
     if (getErrorID() != ERROR_EC_ENTRY_INVALID_DOMAIN_ADR) {
@@ -246,20 +272,22 @@ int ecmcEcData::validate() {
                       ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
-  if (byteOffset_ + byteSize_ + entryBitOffset_ / 8 > domainSize_) {
-    if (getErrorID() != ERROR_MEM_MAP_SIZE_OUT_OF_RANGE) {
+  // if bit-offset > 0 then one extra byte is needed
+  int extraByteNeeded = entryBitOffset_ > 0;
+  if (byteOffset_ + byteSize_ +  extraByteNeeded > domainSize) {
+    if (getErrorID() != ERROR_EC_ENTRY_SIZE_OUT_OF_RANGE) {
       LOGERR(
         "%s/%s:%d: ERROR: EcDataItem %s: Byte size, including byte and bit offsets, exceeds domain size (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
         idString_.c_str(),
-        ERROR_MEM_MAP_SIZE_OUT_OF_RANGE);
+        ERROR_EC_ENTRY_SIZE_OUT_OF_RANGE);
     }
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MEM_MAP_SIZE_OUT_OF_RANGE);
+                      ERROR_EC_ENTRY_SIZE_OUT_OF_RANGE);
   }
   adr_ = domainAdr_ + byteOffset_;
   return 0;

@@ -1120,7 +1120,7 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   return ecMemMapArray_[ecMemMapArrayCounter_-1]->getErrorID();
 }
 
-int ecmcEc::addDatItem(uint16_t       startEntryBusPosition,
+int ecmcEc::addDataItem(uint16_t       startEntryBusPosition,
                        std::string    startEntryIDString,
                        int            entryByteOffset,
                        int            entryBitOffset,
@@ -1158,33 +1158,23 @@ int ecmcEc::addDatItem(uint16_t       startEntryBusPosition,
                       ERROR_EC_MEM_MAP_START_ENTRY_NULL);
   }
 
-  slave addDataItem
-//
-  //ecMemMapArray_[ecMemMapArrayCounter_] = new ecmcEcMemMap(asynPortDriver_,
-  //                                                         masterIndex_,
-  //                                                         startEntryBusPosition,
-  //                                                         currentDomain_,
-  //                                                         entry,
-  //                                                         byteSize,
-  //                                                         direction,
-  //                                                         dt,
-  //                                                         memMapIDString);
-//
-  //if (!ecMemMapArray_[ecMemMapArrayCounter_]) {
-  //  LOGERR(
-  //    "%s/%s:%d: ERROR: Adding ecMemMap failed. New ecmcEcMemMap fail (0x%x).\n",
-  //    __FILE__,
-  //    __FUNCTION__,
-  //    __LINE__,
-  //    ERROR_EC_MEM_MAP_NULL);
-  //  return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_MEM_MAP_NULL);
-  //}
+  int errorCode = slave->addDataItem(entry,
+                                     entryByteOffset,
+                                     entryBitOffset,
+                                     direction,
+                                     dt,
+                                     id);
 
-  //ecMemMapArrayCounter_++;
-  //ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParam(1);
-  //asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);  // also for memmap and ecEntry
+  if (errorCode) {
+    return errorCode;
+  }
 
-  //return ecMemMapArray_[ecMemMapArrayCounter_-1]->getErrorID();
+  entryCounter_++;
+
+  ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
+  
+  return 0;
 }
 
 ecmcEcMemMap * ecmcEc::findMemMap(std::string name) {

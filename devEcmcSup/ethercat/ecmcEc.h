@@ -158,7 +158,7 @@ class ecmcEc : public ecmcError {
                 ec_direction_t direction,
                 ecmcEcDataType dt,
                 std::string    memMapIDString);
-  int addDatItem(uint16_t      startEntryBusPosition,
+  int addDataItem(uint16_t      startEntryBusPosition,
                 std::string    startEntryIDString,
                 int            entryByteOffset,
                 int            entryBitOffset,

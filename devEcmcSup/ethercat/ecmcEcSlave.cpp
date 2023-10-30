@@ -622,7 +622,7 @@ int ecmcEcSlave::addEntry(
   return appendEntryToList(entry,useInRealTime);
 }
 
-int ecmcEcSlave::addDataItem(ecmcEcEntry startEntry,
+int ecmcEcSlave::addDataItem(ecmcEcEntry *startEntry,
                             size_t entryByteOffset,
                             size_t entryBitOffset,
                             ec_direction_t direction,
@@ -637,24 +637,24 @@ int ecmcEcSlave::addDataItem(ecmcEcEntry startEntry,
   // This is just pure mem access of alreday configured entry/processimage
   ecmcEcEntry *entry = new ecmcEcData(asynPortDriver_,
                                       masterId_,
-                                      slaveId_,
+                                      slavePosition_,
                                       startEntry,
                                       entryByteOffset,
                                       entryBitOffset,
-                                      direction_,
+                                      direction,
                                       dt,
                                       id);
 
   if (!entry) {
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add entry failed (0x%x).\n",
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add data item failed (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            slavePosition_,
            vendorId_,
            productCode_,
-           err);
-    return setErrorID(__FILE__, __FUNCTION__, __LINE__, err);
+           ERROR_EC_SLAVE_ADD_DATA_ITEM_FAIL);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_SLAVE_ADD_DATA_ITEM_FAIL);
   }
   
   if(entry->getError()) {
