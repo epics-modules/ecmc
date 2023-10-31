@@ -220,6 +220,20 @@ int ecmcEcData::validate() {
                       ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
+
+  if(startEntry_->getDirection()!=direction_) {
+      LOGERR("%s/%s:%d: WARNING: EcDataItem %s: Data item direction is not same as for start ec-entry (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             idString_.c_str(),
+             WARNING_DATA_ITEM_EC_ENTRY_DIR_MISSMATCH);
+    setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      WARNING_DATA_ITEM_EC_ENTRY_DIR_MISSMATCH);
+  }
+
   domainAdr_  = startEntry_->getDomainAdr();
 
   

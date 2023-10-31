@@ -846,3 +846,6 @@ ecmcEcDomain *ecmcEcEntry::getDomain() {
   return domain_;
 }
 
+ec_direction_t ecmcEcEntry::getDirection() { 
+  return direction_;
+}

@@ -22,6 +22,10 @@
 #include "ecmcAsynPortDriver.h"
 #include "ecmcEcEntry.h"
 
+
+#define WARNING_DATA_ITEM_EC_ENTRY_DIR_MISSMATCH 0x21150
+
+
 // Access to arbitraty data of up to 64 bit size in the ethercat process image.
 // A start entry, byte and bit offset needs to be defined.
 

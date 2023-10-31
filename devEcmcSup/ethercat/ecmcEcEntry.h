@@ -114,6 +114,7 @@ class ecmcEcEntry : public ecmcError {
   int         getSlaveId();
   virtual int            getDomainOK();
   virtual ecmcEcDomain * getDomain();
+  ec_direction_t      getDirection();
   
  protected:
   void                setDomainAdr();  
