@@ -154,6 +154,10 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   bool hwErrorAlarm2Defined_;
   bool hwWarningDefined_;
   int cycleCounterBase_;
+  int64_t minVeloPosOutput_;
+  int64_t maxVeloPosOutput_;
+  int64_t veloPosOutput_;
+  
 };
 
 #endif  // ifndef ECMCDRIVEBASE_H_

@@ -73,7 +73,10 @@ void ecmcDriveBase::initVars() {
   hwWarningDefined_          = false;
   stateMachineTimeoutCycles_ = 0;
   cycleCounterBase_          = 0;
-  localEnabledOld_           = 0;  
+  localEnabledOld_           = 0;
+  minVeloPosOutput_          = 0;
+  maxVeloPosOutput_          = 0;
+  veloPosOutput_             = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase()
@@ -247,19 +250,34 @@ void ecmcDriveBase::writeEntries() {
   }
 
   if(data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
+    //CSV:    Check so not outside allowable range
+    veloPosOutput_ = data_->status_.currentVelocitySetpointRaw;
+    if( veloPosOutput_ > maxVeloPosOutput_) {
+      veloPosOutput_ = maxVeloPosOutput_;
+    } else if(veloPosOutput_ < minVeloPosOutput_) {
+      veloPosOutput_ = minVeloPosOutput_;
+    }
+
     errorCode =
       writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
-                      (uint64_t)data_->status_.currentVelocitySetpointRaw);
+                      (uint64_t)veloPosOutput_);
 
     if (errorCode) {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
   } 
   else {
-    // CSP
+    //CSP:    Check so not outside allowable range
+    veloPosOutput_ = data_->status_.currentPositionSetpointRaw;
+    if(veloPosOutput_ > maxVeloPosOutput_) {
+      veloPosOutput_ = maxVeloPosOutput_;
+    } else if(veloPosOutput_ < minVeloPosOutput_) {
+      veloPosOutput_ = minVeloPosOutput_;
+    }
+
     errorCode =
       writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT,
-                      (uint64_t)data_->status_.currentPositionSetpointRaw);
+                      (uint64_t)veloPosOutput_);
 
     if (errorCode) {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
@@ -470,7 +488,11 @@ int ecmcDriveBase::validate() {
     if (errorCodeVel) {    
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodeVel);
     }
-    data_->command_.drvMode = ECMC_DRV_MODE_CSV;
+    data_->command_.drvMode = ECMC_DRV_MODE_CSV;    
+    ecmcEcDataType dt = getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
+    minVeloPosOutput_ = getEcDataTypeMinVal(dt); 
+    maxVeloPosOutput_ = getEcDataTypeMaxVal(dt);
+    
   } 
   else {
     // Must be CSP
@@ -479,8 +501,12 @@ int ecmcDriveBase::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodePos);
     }
     data_->command_.drvMode = ECMC_DRV_MODE_CSP;
+    ecmcEcDataType dt = getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+    minVeloPosOutput_ = getEcDataTypeMinVal(dt); 
+    maxVeloPosOutput_ = getEcDataTypeMaxVal(dt);
   }
-  
+  printf("DRV OUTPUT RANGE %lf..%lf\n",(double)minVeloPosOutput_,(double)maxVeloPosOutput_);
+
   // Enabled entry input OR statusword
   errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD);
 
