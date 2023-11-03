@@ -24,8 +24,8 @@ ecmcEcDomain::ecmcEcDomain(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_ = asynPortDriver;
   objIndex_       = objIndex;
   masterIndex_    = masterIndex;
-  exeCycles_      = exeCycles_;
-  offsetCycles_   = offsetCycles_;
+  exeCycles_      = exeCycles;
+  offsetCycles_   = offsetCycles;
   
   if(offsetCycles_ > exeCycles_) {
     offsetCycles_ = 0;
