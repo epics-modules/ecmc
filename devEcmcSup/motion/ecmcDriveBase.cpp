@@ -74,8 +74,8 @@ void ecmcDriveBase::initVars() {
   stateMachineTimeoutCycles_ = 0;
   cycleCounterBase_          = 0;
   localEnabledOld_           = 0;
-  minVeloPosOutput_          = 0;
-  maxVeloPosOutput_          = 0;
+  minVeloOutput_             = 0;
+  maxVeloOutput_             = 0;
   veloPosOutput_             = 0;
 }
 
@@ -252,10 +252,10 @@ void ecmcDriveBase::writeEntries() {
   if(data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
     //CSV:    Check so not outside allowable range
     veloPosOutput_ = data_->status_.currentVelocitySetpointRaw;
-    if( veloPosOutput_ > maxVeloPosOutput_) {
-      veloPosOutput_ = maxVeloPosOutput_;
-    } else if(veloPosOutput_ < minVeloPosOutput_) {
-      veloPosOutput_ = minVeloPosOutput_;
+    if( veloPosOutput_ > maxVeloOutput_) {
+      veloPosOutput_ = maxVeloOutput_;
+    } else if(veloPosOutput_ < minVeloOutput_) {
+      veloPosOutput_ = minVeloOutput_;
     }
 
     errorCode =
@@ -269,11 +269,13 @@ void ecmcDriveBase::writeEntries() {
   else {
     //CSP:    Check so not outside allowable range
     veloPosOutput_ = data_->status_.currentPositionSetpointRaw;
-    if(veloPosOutput_ > maxVeloPosOutput_) {
-      veloPosOutput_ = maxVeloPosOutput_;
-    } else if(veloPosOutput_ < minVeloPosOutput_) {
-      veloPosOutput_ = minVeloPosOutput_;
-    }
+    
+    //Allow position to wrap around
+    //if(veloPosOutput_ > maxVeloOutput_) {
+    //  veloPosOutput_ = maxVeloOutput_;
+    //} else if(veloPosOutput_ < minVeloOutput_) {
+    //  veloPosOutput_ = minVeloOutput_;
+    //}
 
     errorCode =
       writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT,
@@ -490,8 +492,8 @@ int ecmcDriveBase::validate() {
     }
     data_->command_.drvMode = ECMC_DRV_MODE_CSV;    
     ecmcEcDataType dt = getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
-    minVeloPosOutput_ = getEcDataTypeMinVal(dt); 
-    maxVeloPosOutput_ = getEcDataTypeMaxVal(dt);
+    minVeloOutput_ = getEcDataTypeMinVal(dt); 
+    maxVeloOutput_ = getEcDataTypeMaxVal(dt);
     
   } 
   else {
@@ -501,11 +503,12 @@ int ecmcDriveBase::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodePos);
     }
     data_->command_.drvMode = ECMC_DRV_MODE_CSP;
-    ecmcEcDataType dt = getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
-    minVeloPosOutput_ = getEcDataTypeMinVal(dt); 
-    maxVeloPosOutput_ = getEcDataTypeMaxVal(dt);
+    // Allow wrap around for position
+    //ecmcEcDataType dt = getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+    //minVeloOutput_ = getEcDataTypeMinVal(dt); 
+    //maxVeloOutput_ = getEcDataTypeMaxVal(dt);
   }
-  printf("DRV OUTPUT RANGE %lf..%lf\n",(double)minVeloPosOutput_,(double)maxVeloPosOutput_);
+  printf("DRV OUTPUT RANGE %lf..%lf\n",(double)minVeloOutput_,(double)maxVeloOutput_);
 
   // Enabled entry input OR statusword
   errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD);
