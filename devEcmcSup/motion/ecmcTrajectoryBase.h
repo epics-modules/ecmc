@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcTrajectoryBase.h
 *
@@ -79,7 +79,7 @@ enum ecmcTrajTypes {
  *
  */
 class ecmcTrajectoryBase : public ecmcError {
- public:
+public:
   explicit ecmcTrajectoryBase(ecmcAxisData *axisData,
                               double        sampleTime);
   virtual ~ecmcTrajectoryBase();
@@ -88,58 +88,58 @@ class ecmcTrajectoryBase : public ecmcError {
    * This function should only be executed once for each sample period.
    * Needs to call updateSetpoint() in order to use the newly calculated setpoints
    */
-  double  getNextPosSet();
+  double         getNextPosSet();
 
   /** \brief Calculation of position , velocoity and acceleration setpoints.
    * Must be implemented in derived class
    * returns position setpoint
    */
-  virtual double  internalTraj(double  *actVelocity,
-                               double  *actAcceleration,
-                               bool    *trajBusy) = 0;
+  virtual double internalTraj(double *actVelocity,
+                              double *actAcceleration,
+                              bool   *trajBusy) = 0;
 
-/** \brief Sets target velocity of trajectory (max velocity).
-   * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
-   */
-  virtual  void   setTargetVel(double velTarget);
+  /** \brief Sets target velocity of trajectory (max velocity).
+     * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
+     */
+  virtual  void  setTargetVel(double velTarget);
 
   /// Sets acceleration.
-  virtual void    setAcc(double acc);
+  virtual void   setAcc(double acc);
 
   /// Sets deceleration.
-  virtual void    setDec(double dec);
+  virtual void   setDec(double dec);
 
   /** \brief Sets emergency deceleration.
    * Used for ramp down at hard limits.
    */
-  virtual void    setEmergDec(double dec);
+  virtual void   setEmergDec(double dec);
 
   /** Only used for s-shaped trajectory.
    */
-  virtual void    setJerk(double jerk);
+  virtual void   setJerk(double jerk);
 
   /// Sets target position (end position of trajectory).
-  void            setTargetPos(double pos);
+  void           setTargetPos(double pos);
 
   /** Sets target position in derived classses (end position of trajectory).
-  *   
-  *   Needed because of modulo handling (possible to have different target in derived 
+  *
+  *   Needed because of modulo handling (possible to have different target in derived
   *   class and base class)
   *   Must be implemnted..
   */
-  virtual void    setTargetPosLocal(double pos) = 0;
+  virtual void   setTargetPosLocal(double pos) = 0;
 
   /// How long diatnce until stop
-  virtual double  distToStop(double vel) = 0;
-  
+  virtual double distToStop(double vel) = 0;
+
   /// init stop ramp for when in external traj and need to stop
-  virtual int     initStopRamp(double currentPos,
-                               double currentVel,
-                               double currentAcc);
+  virtual int    initStopRamp(double currentPos,
+                              double currentVel,
+                              double currentAcc);
 
   /// Sets position setpoint.
   virtual void    setCurrentPosSet(double posSet);
-  
+
   /// Enable traj
   virtual void    setEnable(bool enable);
 
@@ -175,7 +175,7 @@ class ecmcTrajectoryBase : public ecmcError {
   double          getTargetPos();
 
   /// returns modulo target position (end position of trajectory).
-  double         getTargetPosMod();
+  double          getTargetPosMod();
 
   /** \brief Sets start position of trajectory.
    * Normally encoder position at amplifier enable
@@ -188,25 +188,25 @@ class ecmcTrajectoryBase : public ecmcError {
   interlockTypes  getInterlockStatus();
   double          getSampleTime();
   virtual int     validate();
-  
+
   motionDirection getCurrSetDir();
   motionDirection checkDirection(double oldPos,
                                  double newPos);
 
- protected:
-  virtual void    initTraj();
-  void            initVars();
-  double          dist(double from,
-                       double to);
-  double          distModulo(double from,
-                             double to,
-                             motionDirection direction);
+protected:
+  virtual void initTraj();
+  void         initVars();
+  double       dist(double from,
+                    double to);
+  double       distModulo(double          from,
+                          double          to,
+                          motionDirection direction);
 
-  double          checkModuloPos(double pos);
-  virtual double  updateSetpoint(double nextSetpoint,
-                                 double nextVelocity,
-                                 double nextAcceleration,
-                                 bool   busy);
+  double         checkModuloPos(double pos);
+  virtual double updateSetpoint(double nextSetpoint,
+                                double nextVelocity,
+                                double nextAcceleration,
+                                bool   busy);
 
   double targetAcceleration_;
   double targetDeceleration_;
@@ -218,7 +218,7 @@ class ecmcTrajectoryBase : public ecmcError {
   double posSetMinus1_;
   double currentPositionSetpoint_;
   double currentVelocitySetpoint_;
-  double currentAccelerationSetpoint_;  
+  double currentAccelerationSetpoint_;
   bool busy_;
   int index_;
   bool execute_;

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcMotion.h
 *
@@ -23,91 +23,92 @@ extern "C" {
 # endif  // ifdef __cplusplus
 
 
-#define CHECK_AXIS_RETURN_IF_ERROR(axisIndex)                                 \
-  {                                                                           \
-    if (axisIndex >= ECMC_MAX_AXES || axisIndex <= 0) {                       \
-      LOGERR("ERROR: Axis index out of range.\n");                            \
-      return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;                              \
-    }                                                                         \
-    if (axes[axisIndex] == NULL) {                                            \
-      LOGERR("ERROR: Axis object NULL\n");                                    \
-      return ERROR_MAIN_AXIS_OBJECT_NULL;                                     \
-    }                                                                         \
-  }                                                                           \
+#define CHECK_AXIS_RETURN_IF_ERROR(axisIndex)\
+        {\
+          if (axisIndex >= ECMC_MAX_AXES || axisIndex <= 0) {\
+            LOGERR("ERROR: Axis index out of range.\n");\
+            return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;\
+          }\
+          if (axes[axisIndex] == NULL) {\
+            LOGERR("ERROR: Axis object NULL\n");\
+            return ERROR_MAIN_AXIS_OBJECT_NULL;\
+          }\
+        }\
 
-#define CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)                   \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->getBlockExtCom()) {                                    \
-    LOGERR("ERROR: External Commands Disabled\n");                            \
-    return ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED;                             \
-  }                                                                           \
-}                                                                             \
+#define CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)\
+        {\
+          CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
+          if (axes[axisIndex]->getBlockExtCom()) {\
+            LOGERR("ERROR: External Commands Disabled\n");\
+            return ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED;\
+          }\
+        }\
 
-#define CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)                         \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->                                                       \
-    getEnc() == NULL) {                                                       \
-    LOGERR("ERROR: Encoder object NULL.\n");                                  \
-    return ERROR_MAIN_ENCODER_OBJECT_NULL;                                    \
-  }                                                                           \
-}                                                                             \
+#define CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex)\
+        {\
+          CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
+          if (axes[axisIndex]->\
+              getEnc() == NULL) {\
+            LOGERR("ERROR: Encoder object NULL.\n");\
+            return ERROR_MAIN_ENCODER_OBJECT_NULL;\
+          }\
+        }\
 
-#define CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)                     \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->                                                       \
-    getConfigEnc() == NULL) {                                                 \
-    LOGERR("ERROR: Encoder object NULL.\n");                                  \
-    return ERROR_MAIN_ENCODER_OBJECT_NULL;                                    \
-  }                                                                           \
-}                                                                             \
+#define CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)\
+        {\
+          CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
+          if (axes[axisIndex]->\
+              getConfigEnc() == NULL) {\
+            LOGERR("ERROR: Encoder object NULL.\n");\
+            return ERROR_MAIN_ENCODER_OBJECT_NULL;\
+          }\
+        }\
 
-#define CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex)                      \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->getCntrl() ==NULL) {                                   \
-    LOGERR("ERROR: Controller object NULL.\n");                               \
-    return ERROR_MAIN_CONTROLLER_OBJECT_NULL;                                 \
-  }                                                                           \
-}                                                                             \
+#define CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex)\
+        {\
+          CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
+          if (axes[axisIndex]->getCntrl() == NULL) {\
+            LOGERR("ERROR: Controller object NULL.\n");\
+            return ERROR_MAIN_CONTROLLER_OBJECT_NULL;\
+          }\
+        }\
 
-#define CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex)                           \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->getDrv() == NULL) {                                    \
-    LOGERR("ERROR: Drive object NULL.\n");                                    \
-    return ERROR_MAIN_DRIVE_OBJECT_NULL;                                      \
-  }                                                                           \
-}                                                                             \
+#define CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex)\
+        {\
+          CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
+          if (axes[axisIndex]->getDrv() == NULL) {\
+            LOGERR("ERROR: Drive object NULL.\n");\
+            return ERROR_MAIN_DRIVE_OBJECT_NULL;\
+          }\
+        }\
 
-#define CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)                            \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->getTraj() == NULL) {                                   \
-    LOGERR("ERROR: Trajectory object NULL.\n");                               \
-    return ERROR_MAIN_TRAJECTORY_OBJECT_NULL;                                 \
-  }                                                                           \
-}                                                                             \
+#define CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)\
+        {\
+          CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
+          if (axes[axisIndex]->getTraj() == NULL) {\
+            LOGERR("ERROR: Trajectory object NULL.\n");\
+            return ERROR_MAIN_TRAJECTORY_OBJECT_NULL;\
+          }\
+        }\
 
-#define CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)                             \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->getSeq()== NULL) {                                     \
-    LOGERR("ERROR: Sequence object NULL.\n");                                 \
-    return ERROR_MAIN_SEQUENCE_OBJECT_NULL;                                   \
-  }                                                                           \
-}                                                                             \
+#define CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)\
+        {\
+          CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
+          if (axes[axisIndex]->getSeq() == NULL) {\
+            LOGERR("ERROR: Sequence object NULL.\n");\
+            return ERROR_MAIN_SEQUENCE_OBJECT_NULL;\
+          }\
+        }\
 
-#define CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)                             \
-{                                                                             \
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);                                      \
-  if (axes[axisIndex]->getMon() == NULL) {                                    \
-    LOGERR("ERROR: Monitor object NULL.\n");                                  \
-    return ERROR_MAIN_MONITOR_OBJECT_NULL;                                    \
-  }                                                                           \
-}                                                                             \
+#define CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)\
+        {\
+          CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
+          if (axes[axisIndex]->getMon() == NULL) {\
+            LOGERR("ERROR: Monitor object NULL.\n");\
+            return ERROR_MAIN_MONITOR_OBJECT_NULL;\
+          }\
+        }\
+
 
 /** \brief Move axis to an absolute position.\n
  *
@@ -197,13 +198,13 @@ int moveHome(int    axisIndex,
              int    nCmdData,
              double homePositionSet,
              double velocityTowardsCamSet,
-             double velocityOffCamSet,                            
+             double velocityOffCamSet,
              double accelerationSet,
              double decelerationSet);
 
 /** \brief set position.\n
  *  used by epics autosave to restore axis value after ioc reboot.
- * 
+ *
  * \param[in] axisIndex Axis index.\n
  * \param[in] homePositionSet Position to set at homing.\n
 
@@ -224,7 +225,7 @@ int setPosition(int    axisIndex,
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int         getAxisError(int axisIndex);
+int getAxisError(int axisIndex);
 
 /** \brief Get axis error code.\n
  *
@@ -237,7 +238,7 @@ int         getAxisError(int axisIndex);
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int         getAxisErrorID(int axisIndex);
+int getAxisErrorID(int axisIndex);
 
 /** \brief Get axis execution cycle counter.\n
  * Can be used for checking that logic for an axis object is
@@ -251,8 +252,8 @@ int         getAxisErrorID(int axisIndex);
  * \note Example: Get cycle counter of axis 3.\n
  * "GetAxisCycleCounter(3)" //Command string to ecmcCmdParser.c.\n
   */
-int         getAxisCycleCounter(int  axisIndex,
-                                int *counter);
+int getAxisCycleCounter(int  axisIndex,
+                        int *counter);
 
 /** \brief Get axis debug information string.\n
  *
@@ -603,7 +604,7 @@ int getAxisTargetVel(int     axisIndex,
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisDone(int axisIndex,
+int getAxisDone(int  axisIndex,
                 int *value);
 
 /** \brief Get state of forward hard limit.\n
@@ -624,7 +625,7 @@ int getAxisAtHardFwd(int  axisIndex,
                      int *value);
 
 /** \brief Same as getAxisAtHardFwd() but better name.\n
- * 
+ *
  * getAxisAtHardFwd() is kept for backward compatibility
  */
 int getAxisLimitSwitchFwd(int  axisIndex,
@@ -648,7 +649,7 @@ int getAxisAtHardBwd(int  axisIndex,
                      int *value);
 
 /** \brief Same as getAxisAtHardBwd() but better name.\n
- * 
+ *
  * getAxisAtHardBwd() is kept for backward compatibility
  */
 int getAxisLimitSwitchBwd(int  axisIndex,
@@ -771,7 +772,7 @@ int getAxisHomeVelOffCam(int     axisIndex,
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
 int getAxisHomeVelTowardsCam(int     axisIndex,
-                            double *value);
+                             double *value);
 
 /** \brief Get the numerator part of the encoder scale.\n
  *
@@ -997,7 +998,7 @@ const char* getAxisEncTransExpr(int  axisIndex,
  * The axis sync PLC expression is used for enabling and executing of\n
  * axes based on mathematical expressions. This is useful when synchronizing\n
  * axes i.e. a slave axis could recive an custom trajatory, other enabled based\
- * on other axes or ethercat data in the form of mathematical expressions.\n 
+ * on other axes or ethercat data in the form of mathematical expressions.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[out] error Error code.\n
@@ -1062,7 +1063,7 @@ int getAxisEncSource(int  axisIndex,
  * "getAxisAllowCommandsFromPLC(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisAllowCommandsFromPLC(int  axisIndex,
-                                 int *value);
+                                int *value);
 
 /** \brief Get axis enable for axis sync. PLC.\n
  *
@@ -1078,7 +1079,7 @@ int getAxisAllowCommandsFromPLC(int  axisIndex,
  * "getAxisPLCEnable(5)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisPLCEnable(int  axisIndex,
-                          int *value);
+                     int *value);
 
 /** \brief Set axis execute bit.\n
  *
@@ -1536,7 +1537,7 @@ int setAxisHomePos(int    axisIndex,
  * "Cfg.SetAxisEncHomeLatchCountOffset(10,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncHomeLatchCountOffset(int axisIndex,
-                                int count);
+                                   int count);
 
 /** \brief Set Towards cam referencing/homing velocity setpoint.\n
  *
@@ -1559,7 +1560,7 @@ int setAxisEncHomeLatchCountOffset(int axisIndex,
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
 int setAxisHomeVelTowardsCam(int    axisIndex,
-                            double dVel);
+                             double dVel);
 
 /** \brief Set off cam referencing/homing velocity setpoint.\n
  *
@@ -1619,14 +1620,14 @@ int axisErrorReset(int axisIndex,
 /** \brief Enables/disables velocity filter of external setpoint.\n
  *
  *  This filter is needed in order to have a smoth feedforward value when\n
- *  reciving setpoints form an PLC. If filter is disabled the velocity will\n 
+ *  reciving setpoints form an PLC. If filter is disabled the velocity will\n
  *  be calculated based on the last two postion values recived from PLC. In many\n
  *  cases this will result in a "unstable signal" depending onresoltions of the\n
- *  values involved in the calculation. Using a filter will smoth the velocity\n 
+ *  values involved in the calculation. Using a filter will smoth the velocity\n
  *  feed forward value and will thereby result in a smoother motion.\n
- * 
+ *
  * \note: This filter is only enabled when the axis recives setpoin ts from an PLC.\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable enable filter.\n
  *
@@ -1642,14 +1643,14 @@ int setAxisPLCTrajVelFilterEnable(int axisIndex,
  *
  *  Sets the size of the filter for velocity from "external" PLC code.\n
  *  This filter is needed in order to have a smoth feedforward value when\n
- *  reciving setpoints form an PLC. If filter is disabled the velocity will\n 
+ *  reciving setpoints form an PLC. If filter is disabled the velocity will\n
  *  be calculated based on the last two postion values recived from PLC. In many\n
  *  cases this will result in a "unstable signal" depending onresoltions of the\n
- *  values involved in the calculation. Using a filter will smoth the velocity\n 
+ *  values involved in the calculation. Using a filter will smoth the velocity\n
  *  feed forward value and will thereby rresult in a smoother motion.\n
- * 
+ *
  * \note: This filter is only enabled when the axis recives setpoin ts from an PLC.\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] size       Size of filter (default 100).\n
  *
@@ -1664,7 +1665,7 @@ int setAxisPLCTrajVelFilterSize(int axisIndex,
 /** \brief Enables/disables velocity filter of external actual value.\n
  *
  * NOTE: This filter is currentlly not used.\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable enable filter.\n
  *
@@ -1679,7 +1680,7 @@ int setAxisPLCEncVelFilterEnable(int axisIndex,
 /** \brief Set size of external encoder velocity filter.\n
  *
  * NOTE: This filter is currentlly not used.\n
- * 
+ *
  *  Sets the size of the filter for velocity from "external" PLC code.\n
  * \param[in] axisIndex  Axis index.\n
  * \param[in] size       Size of filter (default 100).\n
@@ -1697,7 +1698,7 @@ int setAxisPLCEncVelFilterSize(int axisIndex,
  *  Sets the size of the low pass filter for velocity.\n
  *  Needed when resolution of encoder is low compared to\n
  *  sample rate and speed.\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] size       Size of filter (default 100), needs to be >0.\n
  *
@@ -1715,7 +1716,7 @@ int setAxisEncVelFilterSize(int axisIndex,
  *  Sets the size of the low pass filter for the encoder value.\n
  *  Needed when resolution of encoder is low compared to\n
  *  sample rate and speed.\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] size       Size of filter (default 10), filter disables if size<=1.\n
  *
@@ -1728,7 +1729,7 @@ int setAxisEncPosFilterSize(int axisIndex,
                             int size);
 
 /** \brief Enables/disables encoder position filter.\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable     Enable/disable (default disabled).\n
  *
@@ -1900,7 +1901,7 @@ int addAxisEnc(int axisIndex);
 
 /** \brief Select encoder to be used for control.\n
  *
- *  Select an encoder to use for closed loop control (default encoder index 0 is used).\n 
+ *  Select an encoder to use for closed loop control (default encoder index 0 is used).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] encindex Encoder index (first index is 0).\n
@@ -1910,12 +1911,13 @@ int addAxisEnc(int axisIndex);
  * \note Example: Select to use teh third encoder object for closed loop control of axis 3.\n
  * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
  */
-int selectAxisEncPrimary(int axisIndex, int index);
+int selectAxisEncPrimary(int axisIndex,
+                         int index);
 
 /** \brief Select encoder to configured.\n
  *
- *  Select an encoder to be configured (default encoder index 0 is used).\n 
- *  
+ *  Select an encoder to be configured (default encoder index 0 is used).\n
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] encindex Encoder index (first index is 0).\n
  *
@@ -1924,15 +1926,16 @@ int selectAxisEncPrimary(int axisIndex, int index);
  * \note Example: Select encoder 2 of axis 3 for configiuration.\n
  * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
  */
-int selectAxisEncConfig(int axisIndex, int index);
+int selectAxisEncConfig(int axisIndex,
+                        int index);
 
 /** \brief Select encoder to be used for homing.\n
  *
- *  Select an encoder to be used for homing (default encoder index 0 is used).\n 
- *  If the homing encoders differes from primary encoder, a encoder switch will \n 
+ *  Select an encoder to be used for homing (default encoder index 0 is used).\n
+ *  If the homing encoders differes from primary encoder, a encoder switch will \n
  *  occur during homing. When homing is ready, the primary encoder will be refernced\n
- *  to the encoder used for homing, and then the primary encoder will be used again.\n 
- *  
+ *  to the encoder used for homing, and then the primary encoder will be used again.\n
+ *
  * \param[in] axisIndex Axis index.\n
  * \param[in] encindex Encoder index (first index is 0).\n
  *
@@ -1941,13 +1944,14 @@ int selectAxisEncConfig(int axisIndex, int index);
  * \note Example: Select encoder 2 of axis 3 for homing.\n
  * "Cfg.SelectAxisHomeEnc(3,2)" //Command string to ecmcCmdParser.c.\n
  */
-int selectAxisEncHome(int axisIndex, int index);
+int selectAxisEncHome(int axisIndex,
+                      int index);
 
 /** \brief Set referance this encoder at homing
  *
  *  Referance this encoder during homing. If true, this encoder will be\n
- *  set to the resulting value of a hoing sequence (based on any encoder). 
- *  
+ *  set to the resulting value of a hoing sequence (based on any encoder).
+ *
  * \param[in] axisIndex Axis index.\n
  * \param[in] enable Enable referencing.\n
  *
@@ -1956,11 +1960,12 @@ int selectAxisEncHome(int axisIndex, int index);
  * \note Example: Ref this encoder at homing of axis 3.\n
  * "Cfg.SetAxisEncEnableRefAtHome(3,1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEncEnableRefAtHome(int axisIndex, int enable);
+int setAxisEncEnableRefAtHome(int axisIndex,
+                              int enable);
 
 /** \brief Get index of current encoder being used for control (PID).\n
  *
- *  
+ *
  * \param[in] axisIndex  Axis index.\n
  *
  * \return 0 if success or otherwise an error code.\n
@@ -1968,11 +1973,12 @@ int setAxisEncEnableRefAtHome(int axisIndex, int enable);
  * \note Example: Get index of current encoder being used for control for axis 3.\n
  * "Cfg.GetAxisEncPrimaryIndex(3)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisEncPrimaryIndex(int axisIndex, int *index);
+int getAxisEncPrimaryIndex(int  axisIndex,
+                           int *index);
 
 /** \brief Get index of current encoder being configured.\n
  *
- *  
+ *
  * \param[in] axisIndex  Axis index.\n
  *
  * \return 0 if success or otherwise an error code.\n
@@ -1980,11 +1986,12 @@ int getAxisEncPrimaryIndex(int axisIndex, int *index);
  * \note Example: Get index of current encoder being configured for axis 3.\n
  * "Cfg.GetAxisEncConfigIndex(3)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisEncConfigIndex(int axisIndex, int *index);
+int getAxisEncConfigIndex(int  axisIndex,
+                          int *index);
 
 /** \brief Get index of current encoder being used for homing (referencing).\n
  *
- *  
+ *
  * \param[in] axisIndex  Axis index.\n
  *
  * \return 0 if success or otherwise an error code.\n
@@ -1992,14 +1999,15 @@ int getAxisEncConfigIndex(int axisIndex, int *index);
  * \note Example: Get index of current encoder being used for homing for axis 3.\n
  * "Cfg.GetAxisEncHomeIndex(3)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisEncHomeIndex(int axisIndex, int *index);
+int getAxisEncHomeIndex(int  axisIndex,
+                        int *index);
 
 /** \brief Reference this encoder to other encoder at startup.\n
  *
  *  For axes with multiple encoders an encoder can be referenced to other\n
  *  encoder at startup. This is typically usefull for referencing a \n
  *  relative encoder to an absolute encoder.\n
- *  
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] encRef Encoder reference index (first index is 0).\n
  *
@@ -2008,7 +2016,8 @@ int getAxisEncHomeIndex(int axisIndex, int *index);
  * \note Example: Reference this encoder to encoder 0 of axis 4
  * "Cfg.SetAxisEncRefToOtherEncAtStartup(4,0)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef);
+int setAxisEncRefToOtherEncAtStartup(int axisIndex,
+                                     int encRef);
 
 /** \brief Set maximum position deviation between current encoder and primary encoder.\n
  *
@@ -2021,7 +2030,8 @@ int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef);
  * the primary encoder to 0.1 for axis 3.\n
  * "Cfg.SetAxisEncMaxDiffToPrimEnc(3,0.1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEncMaxDiffToPrimEnc(int axisIndex, double value);
+int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
+                               double value);
 
 /** \brief Set PID-controller proportional gain.\n
  *
@@ -2090,7 +2100,7 @@ int setAxisCntrlKff(int    axisIndex,
  * \note Example: Set PID-controller params for use  abs(actpos - targpos)<tol
  * "Cfg.setAxisCntrlInnerParams(3,4.1,2,5,0.1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisCntrlInnerParams(int axisIndex,
+int setAxisCntrlInnerParams(int    axisIndex,
                             double kp,
                             double ki,
                             double kd,
@@ -2258,8 +2268,8 @@ int setAxisDrvBrakeCloseAheadTime(int axisIndex,
  * \note Example: Set drive timeout for axis 3 to 10 seconds.\n
  * "Cfg.SetAxisDrvStateMachineTimout(3,10.0)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisDrvStateMachineTimeout(int axisIndex,
-                                 double seconds);
+int setAxisDrvStateMachineTimeout(int    axisIndex,
+                                  double seconds);
 
 /** \brief Set enable of reduce torque functionality.\n
  *
@@ -2283,7 +2293,7 @@ int setAxisDrvReduceTorqueEnable(int axisIndex,
 
 /** \brief Set drive type.\n
  *  OBSOLETE COMMAND. USE CREATEAXIS(id,type,drvtype).
- * 
+ *
  * \note  ALL SETTINGS MADE TO THE DRIVE WILL BE OVERWRITTEN.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2344,7 +2354,8 @@ int setAxisMonAtTargetTol(int    axisIndex,
  * \note Example: Enable funtionallity for axis 7.\n
  * "Cfg.SetAxisMonEnableEncsDiff(7,1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisEnableCheckEncsDiff(int axisIndex, int enable);
+int setAxisEnableCheckEncsDiff(int axisIndex,
+                               int enable);
 
 /** \brief Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n
@@ -2624,8 +2635,8 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  */
-int getAxisMonLatchLimit(int     axisIndex,
-                           int    *value);
+int getAxisMonLatchLimit(int  axisIndex,
+                         int *value);
 
 /** \brief Set latch limit settings.\n
  *
@@ -2637,14 +2648,14 @@ int getAxisMonLatchLimit(int     axisIndex,
  * \param[in] value  latch on limit setting value.\n
  *    0: disable
  *    1: enable (default)
- *                   
+ *
  * \note Example: Disable latch limit for for axis 4.\n
  * "Cfg.SetAxisMonLatchLimit(4,0)" //Command string to ecmcCmdParser.c.\n
- 
+
  * \return 0 if success or otherwise an error code.\n
  */
-int setAxisMonLatchLimit(int     axisIndex,
-                           int     value);
+int setAxisMonLatchLimit(int axisIndex,
+                         int value);
 
 /** \brief Set sequence timeout time in seconds.\n
  *
@@ -2668,7 +2679,7 @@ int setAxisSeqTimeout(int axisIndex,
  *
  * After successfull homing sequence an absolute positioning command can be executed.\n
  * If enabled the axis will issue an motion command to the target position defined by\n
- * setAxisHomePostMoveTargetPosition() 
+ * setAxisHomePostMoveTargetPosition()
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable enable functionality.\n
@@ -2678,7 +2689,8 @@ int setAxisSeqTimeout(int axisIndex,
  * \note Example: Enable post home movement for axis 2\n
  * "Cfg.SetAxisHomePostMoveEnable(2,1)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisHomePostMoveEnable(int axisIndex, int enable);
+int setAxisHomePostMoveEnable(int axisIndex,
+                              int enable);
 
 /** \brief Set homing post movement target position
  *
@@ -2694,7 +2706,8 @@ int setAxisHomePostMoveEnable(int axisIndex, int enable);
  * \note Example: Set a post home movement target position of 100 for axis 2\n
  * "Cfg.SetAxisHomePostMoveTargetPosition(2,100)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisHomePostMoveTargetPosition(int axisIndex, double targetPosition);
+int setAxisHomePostMoveTargetPosition(int    axisIndex,
+                                      double targetPosition);
 
 /** \brief Enable controller output high limit monitoring.\n
  *
@@ -2861,7 +2874,8 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex,
  * \note Example: Get external interlock polarity for axis 7.\n
  * "GetAxisMonExtHWInterlockPolarity(7)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisMonExtHWInterlockPolarity(int axisIndex, int *pol);
+int getAxisMonExtHWInterlockPolarity(int  axisIndex,
+                                     int *pol);
 
 /** \brief Set polarity of hard low limit switch.\n
  *
@@ -2875,7 +2889,8 @@ int getAxisMonExtHWInterlockPolarity(int axisIndex, int *pol);
  * \note Example: Set low limit polarity to NC for axis 7.\n
  * "Cfg.SetAxisMonLimitBwdPolarity(7,0)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisMonLimitBwdPolarity(int axisIndex, int value);
+int setAxisMonLimitBwdPolarity(int axisIndex,
+                               int value);
 
 /** \brief Get polarity of hard low limit switch.\n
  *
@@ -2889,7 +2904,8 @@ int setAxisMonLimitBwdPolarity(int axisIndex, int value);
  * \note Example: Get low limit polarity for axis 7.\n
  * "GetAxisMonLimitBwdPolarity(7)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisMonLimitBwdPolarity(int axisIndex, int *pol);
+int getAxisMonLimitBwdPolarity(int  axisIndex,
+                               int *pol);
 
 /** \brief Set polarity of hard high limit switch.\n
  *
@@ -2903,7 +2919,8 @@ int getAxisMonLimitBwdPolarity(int axisIndex, int *pol);
  * \note Example: Set high limit polarity to NC for axis 7.\n
  * "Cfg.SetAxisMonLimitFwdPolarity(7,0)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisMonLimitFwdPolarity(int axisIndex, int value);
+int setAxisMonLimitFwdPolarity(int axisIndex,
+                               int value);
 
 /** \brief Get polarity of hard high limit switch.\n
  *
@@ -2917,7 +2934,8 @@ int setAxisMonLimitFwdPolarity(int axisIndex, int value);
  * \note Example: Get high limit polarity for axis 7.\n
  * "GetAxisMonLimitFwdPolarity(7)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisMonLimitFwdPolarity(int axisIndex, int *pol);
+int getAxisMonLimitFwdPolarity(int  axisIndex,
+                               int *pol);
 
 /** \brief Set polarity of home switch.\n
  *
@@ -2931,7 +2949,8 @@ int getAxisMonLimitFwdPolarity(int axisIndex, int *pol);
  * \note Example: Set home switch polarity to NC for axis 7.\n
  * "Cfg.SetAxisMonHomeSwitchPolarity(7,0)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisMonHomeSwitchPolarity(int axisIndex, int value);
+int setAxisMonHomeSwitchPolarity(int axisIndex,
+                                 int value);
 
 /** \brief Get polarity of home switch.\n
  *
@@ -2945,7 +2964,8 @@ int setAxisMonHomeSwitchPolarity(int axisIndex, int value);
  * \note Example: Get home switch polarity for axis 7.\n
  * "GetAxisMonHomeSwitchPolarity(7)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisMonHomeSwitchPolarity(int axisIndex, int *pol);
+int getAxisMonHomeSwitchPolarity(int  axisIndex,
+                                 int *pol);
 
 /** \brief Allow commands from PLCs.\n
  *
@@ -2962,7 +2982,7 @@ int getAxisMonHomeSwitchPolarity(int axisIndex, int *pol);
  * "Cfg.setAxisAllowCommandsFromPLC(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisAllowCommandsFromPLC(int axisIndex,
-                                       int value);
+                                int value);
 
 /** \brief Enable axis sync PLC expression.\n
  *
@@ -2994,7 +3014,7 @@ int setAxisPLCEnable(int axisIndex,
  * "ax2.drv.enable:=ax1.drv.enable or ax5.drv.enable|".\n
  *
  * For more syntax help plese view PLC syntax (setPLCExpr()).\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] expr PLC expression.\n
  *
@@ -3011,7 +3031,7 @@ int appendAxisPLCExpr(int   axisIndex,
 /** \brief Compile Axis PLC code\n
  *
  * For more syntax help plese view PLC syntax (setPLCExpr()).\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  *
  * \return 0 if success or otherwise an error code.\n
@@ -3019,7 +3039,7 @@ int appendAxisPLCExpr(int   axisIndex,
  * \note Example: Compile code for the PLC of axis 5.\n
  * "Cfg.CompileAxisPLC(5)" //Command string to ecmcCmdParser.c.\n
  */
-int compileAxisPLCExpr(int   axisIndex);
+int compileAxisPLCExpr(int axisIndex);
 
 /** \brief Creates an axis object at index axisIndex.
  *
@@ -3029,10 +3049,10 @@ int compileAxisPLCExpr(int   axisIndex);
  *   type = 2 : Virtual axis (encoder, monitor, trajectory).\n
  * \param[in] drvType Type of axis.\n
  *   type = 0 : Simple drive (stepper).\n
- *   type = 1 : DS402 drive.\n 
+ *   type = 1 : DS402 drive.\n
  * \param[in] trajType Type of trajectory generator.\n
  *   type = 0 : Trapetzoidal.\n
- *   type = 1 : Jerk limited (s-curve, ruckig).\n 
+ *   type = 1 : Jerk limited (s-curve, ruckig).\n
   *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -3041,7 +3061,7 @@ int compileAxisPLCExpr(int   axisIndex);
  *
  * \note Example: Create a virtual axis at axisIndex 1 (no drive).\n
  *  "Cfg.CreateAxis(1,2)" //Command string to ecmcCmdParser.c\n
- * 
+ *
  * \note Example: Create a normal axis with DS402 drive at axisIndex 1.\n
  *  "Cfg.CreateAxis(1,2,1)" //Command string to ecmcCmdParser.c\n
  * \note Example: Create a normal axis with DS402 drive and S-curve traj.\n
@@ -3194,7 +3214,6 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
                                   int   axisIndex);
 
 
-
 /** \brief Set axis index for detailed motion diagnostics.\n
  *
  * \param[in] axisIndex Index of axis.\n
@@ -3242,7 +3261,7 @@ int setDiagAxisEnable(int enable);
  * \note Example: Get modulo range for axis 3.\n
  * "GetAxisModRange(3)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisModRange(int  axisIndex,
+int getAxisModRange(int     axisIndex,
                     double *range);
 
 /** \brief Set axis modulo range.\n
@@ -3255,14 +3274,14 @@ int getAxisModRange(int  axisIndex,
  * \note Example: Set modulo range for axis 3 to 360.\n
  * "Cfg.SetAxisModRange(3,360)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisModRange(int  axisIndex,
+int setAxisModRange(int    axisIndex,
                     double range);
 
 /** \brief Set axis modulo motion type.\n
- * 
+ *
  * Used for positioning if modulo range is set (setAxisModRange())\n
  * to a value greater than 0.\n
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] type Modulo type.\n
  *    type = 0 : ECMC_MOD_MOTION_NORMAL\n
@@ -3297,7 +3316,7 @@ int getAxisModType(int  axisIndex,
                    int *value);
 
 /** \brief Disable axis at error reset\n
- * 
+ *
  * If axis is in error state and a reset command is issued,\n
  * then the axis will be disabled.\n
  *
@@ -3313,7 +3332,7 @@ int setAxisDisableAtErrorReset(int axisIndex,
                                int disable);
 
 /** \brief Allow change of encoder and trajectory source when axis is enabled
- * 
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] allow allow source change (default false).\n
  *
@@ -3332,7 +3351,7 @@ int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
  * \return pointer to axis object if success or otherwise an error code.\n
  *
  */
-void* getAxisPointer(int  axisIndex);
+void* getAxisPointer(int axisIndex);
 
 # ifdef __cplusplus
 }

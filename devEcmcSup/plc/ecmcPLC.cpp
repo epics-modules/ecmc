@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPLC.cpp
 *
@@ -23,15 +23,15 @@
 #include "ecmcPLCMain.h"
 #include "ecmcPLCTask.h"
 
-extern ecmcAxisBase       *axes[ECMC_MAX_AXES];
-extern ecmcEc             *ec;
-extern ecmcDataStorage    *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
-extern ecmcPLCMain        *plcs;
+extern ecmcAxisBase *axes[ECMC_MAX_AXES];
+extern ecmcEc *ec;
+extern ecmcDataStorage *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
+extern ecmcPLCMain     *plcs;
 extern ecmcAsynPortDriver *asynPort;
-extern double              mcuFrequency;
-extern int                 sampleRateChangeAllowed;
-extern ecmcPluginLib      *plugins[ECMC_MAX_PLUGINS];
-extern ecmcShm             shmObj;
+extern double mcuFrequency;
+extern int    sampleRateChangeAllowed;
+extern ecmcPluginLib *plugins[ECMC_MAX_PLUGINS];
+extern ecmcShm shmObj;
 
 int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   LOGINFO4("%s/%s:%d index=%d, cycleTimeMs=%lf, axisPLC?=%d\n",
@@ -41,12 +41,13 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
            index,
            cycleTimeMs,
            axisPLC);
+
   // Set sample rate to realtime thread sample rate if -1
-  if (cycleTimeMs==-1) {
-    cycleTimeMs = 1 / mcuFrequency *1000;
+  if (cycleTimeMs == -1) {
+    cycleTimeMs = 1 / mcuFrequency * 1000;
   }
 
-  if(cycleTimeMs / 1000 < (1 / mcuFrequency)) {
+  if (cycleTimeMs / 1000 < (1 / mcuFrequency)) {
     LOGERR(
       "%s/%s:%d: PLC cycletime out of range."
       " Cycle time must be higher than realtime thread (time >= %lf ms)."
@@ -63,7 +64,7 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   sampleRateChangeAllowed = 0;
 
   if (!plcs) {
-    plcs = new ecmcPLCMain(ec,mcuFrequency,asynPort);
+    plcs = new ecmcPLCMain(ec, mcuFrequency, asynPort);
   }
 
   if (axisPLC) {
@@ -96,8 +97,8 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   // Set Shm pointer
   plcs->setShm(shmObj);
 
-  int skipCycles = cycleTimeMs * mcuFrequency / 1000-1;
-  
+  int skipCycles = cycleTimeMs * mcuFrequency / 1000 - 1;
+
   if (skipCycles < 0) {
     return ERROR_MAIN_PLCS_SKIPCYCLES_INVALID;
   }
@@ -198,15 +199,16 @@ const char* getPLCExpr(int plcIndex, int *error) {
            __LINE__,
            plcIndex);
 
-  if (plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES || plcIndex < 0) {
+  if ((plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES) || (plcIndex < 0)) {
     LOGERR("ERROR: PLC index out of range.\n");
-    *error=ERROR_PLCS_INDEX_OUT_OF_RANGE;
+    *error = ERROR_PLCS_INDEX_OUT_OF_RANGE;
     return "";
   }
-    
-  int errorLocal = 0;
-  std::string *expr = plcs->getExpr(plcIndex,&errorLocal);
-  if(errorLocal) {
+
+  int errorLocal    = 0;
+  std::string *expr = plcs->getExpr(plcIndex, &errorLocal);
+
+  if (errorLocal) {
     *error = errorLocal;
     return "";
   }

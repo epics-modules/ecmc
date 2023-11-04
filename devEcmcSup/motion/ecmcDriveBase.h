@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDriveBase.h
 *
@@ -66,9 +66,10 @@ enum ecmcBrakeStates {
 };
 
 class ecmcDriveBase : public ecmcEcEntryLink {
- public:
+public:
   explicit ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
-                         ecmcAxisData *axisData);
+                         ecmcAxisData       *axisData);
+
   /*ecmcDriveBase(ecmcAxisData *axisData,
                 double        scale);*/
   virtual ~ecmcDriveBase();
@@ -77,7 +78,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   virtual void readEntries();
   virtual void writeEntries();
   virtual void errorReset();
-  virtual bool getEnabledLocal()=0;
+  virtual bool getEnabledLocal() = 0;
   bool         getEnable();
   bool         getEnabled();
   double       getScaleNum(void);
@@ -100,14 +101,17 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   // CSP
   int          setCspPosSet(double posEng);
   int          setCspRecalcOffset(double posEng);
-  void         setCspActPos(int64_t posRaw, double posAct);
-  void         setCspRef(int64_t posRaw, double posAct,  double posSet);
-  
- protected:
-  int          updateBrakeState();
-  bool         driveInterlocksOK();
-  int          initAsyn();
-  void         refreshAsyn();
+  void         setCspActPos(int64_t posRaw,
+                            double  posAct);
+  void         setCspRef(int64_t posRaw,
+                         double  posAct,
+                         double  posSet);
+
+protected:
+  int  updateBrakeState();
+  bool driveInterlocksOK();
+  int  initAsyn();
+  void refreshAsyn();
   bool enableAmpCmd_;
   bool enableAmpCmdOld_;
   int stateMachineTimeoutCycles_;
@@ -120,7 +124,7 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   uint64_t statusWord_;
   ecmcAxisData *data_;
 
- private:
+private:
   bool localEnabledOld_;
   int brakeOpenDelayTime_;
   int brakeCloseAheadTime_;
@@ -134,8 +138,8 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int brakeCounter_;
   bool enableCmdOld_;
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcAsynDataItem  *asynControlWd_;
-  ecmcAsynDataItem  *asynStatusWd_;
+  ecmcAsynDataItem *asynControlWd_;
+  ecmcAsynDataItem *asynStatusWd_;
   int64_t cspRawActPos_;
   double cspActPos_;
   int64_t cspRawPosOffset_;
@@ -157,7 +161,6 @@ class ecmcDriveBase : public ecmcEcEntryLink {
   int64_t minVeloOutput_;
   int64_t maxVeloOutput_;
   int64_t veloPosOutput_;
-  
 };
 
 #endif  // ifndef ECMCDRIVEBASE_H_

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPIDController.cpp
 *
@@ -16,29 +16,32 @@
 #include <stdlib.h>
 
 ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
-                                     ecmcAxisData *axisData,
-                                     double        sampleTime)
-                                     : ecmcError(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
+                                     ecmcAxisData       *axisData,
+                                     double              sampleTime)
+  : ecmcError(&(axisData->status_.errorCode),
+              &(axisData->status_.warningCode)) {
   data_ = axisData;
   initVars();
   asynPortDriver_ = asynPortDriver;
   initAsyn();
+
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
-  }  
+  }
 }
 
 ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
-                                     ecmcAxisData *axisData,
-                                     double        kp,
-                                     double        ki,
-                                     double        kd,
-                                     double        kff,
-                                     double        sampleTime,
-                                     double        outMax,
-                                     double        outMin)
-                                     : ecmcError(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
+                                     ecmcAxisData       *axisData,
+                                     double              kp,
+                                     double              ki,
+                                     double              kd,
+                                     double              kff,
+                                     double              sampleTime,
+                                     double              outMax,
+                                     double              outMin)
+  : ecmcError(&(axisData->status_.errorCode),
+              &(axisData->status_.warningCode)) {
   data_ = axisData;
   initVars();
   asynPortDriver_ = asynPortDriver;
@@ -85,8 +88,7 @@ void ecmcPIDController::initVars() {
   innerTol_           = 0;
 }
 
-ecmcPIDController::~ecmcPIDController()
-{}
+ecmcPIDController::~ecmcPIDController() {}
 
 void ecmcPIDController::reset() {
   outputP_            = 0;
@@ -97,7 +99,7 @@ void ecmcPIDController::reset() {
 }
 
 void ecmcPIDController::setIRange(double iMax, double iMin) {
-  if(iMax != 0 || iMin != 0 ) settingMade_ = true;
+  if ((iMax != 0) || (iMin != 0))settingMade_ = true;
   outputIMax_ = iMax;
   outputIMin_ = iMin;
 }
@@ -123,46 +125,46 @@ double ecmcPIDController::getOutTot() {
 }
 
 void ecmcPIDController::setKp(double kp) {
-  if(kp != 0) settingMade_ = true;
+  if (kp != 0)settingMade_ = true;
   kp_ = kp;
   asynKp_->refreshParam(1);
 }
 
 void ecmcPIDController::setKi(double ki) {
-  if(ki != 0) settingMade_ = true;
+  if (ki != 0)settingMade_ = true;
   ki_ = ki;
   asynKi_->refreshParam(1);
 }
 
 void ecmcPIDController::setKd(double kd) {
-  if(kd != 0) settingMade_ = true;
+  if (kd != 0)settingMade_ = true;
   kd_ = kd;
   asynKd_->refreshParam(1);
 }
 
 void ecmcPIDController::setKff(double kff) {
-  if(kff != 0) settingMade_ = true;
+  if (kff != 0)settingMade_ = true;
   kff_ = kff;
   asynKff_->refreshParam(1);
 }
 
 void ecmcPIDController::setOutMax(double outMax) {
-  if(outMax != 0) settingMade_ = true;
+  if (outMax != 0)settingMade_ = true;
   outputMax_ = outMax;
 }
 
 void ecmcPIDController::setOutMin(double outMin) {
-  if(outMin != 0) if(outMin!=0) settingMade_ = true;
+  if (outMin != 0)if (outMin != 0)settingMade_ = true;
   outputMin_ = outMin;
 }
 
 void ecmcPIDController::setIOutMax(double outMax) {
-  if(outMax != 0) settingMade_ = true;
+  if (outMax != 0)settingMade_ = true;
   outputIMax_ = outMax;
 }
 
 void ecmcPIDController::setIOutMin(double outMin) {
-  if(outMin != 0) settingMade_ = true;
+  if (outMin != 0)settingMade_ = true;
   outputIMin_ = outMin;
 }
 
@@ -174,22 +176,23 @@ double ecmcPIDController::control(double posError, double ff) {
     reset();
     return 0;
   }
-  
+
   // Default control params
   kp_use_ = kp_;
   ki_use_ = ki_;
   kd_use_ = kd_;
-  
-  // Use other control params if distance to target is less than innerTol_  
-  if(innerTol_ > 0) { // tolerance must be higher than 0
-    if(std::abs(data_->status_.currentTargetPosition-data_->status_.currentPositionActual) < innerTol_){
+
+  // Use other control params if distance to target is less than innerTol_
+  if (innerTol_ > 0) { // tolerance must be higher than 0
+    if (std::abs(data_->status_.currentTargetPosition -
+                 data_->status_.currentPositionActual) < innerTol_) {
       kp_use_ = kp_inner_;
       ki_use_ = ki_inner_;
       kd_use_ = kd_inner_;
     }
   }
 
-  ff_= ff * kff_;
+  ff_      = ff * kff_;
   outputP_ = posError * kp_use_;
   outputI_ = outputI_ + posError * ki_use_;
 
@@ -230,13 +233,22 @@ int ecmcPIDController::validate() {
   }
 
   // Output warning if CSP and any of the position control parameters have been set.
-  if(data_->command_.drvMode == ECMC_DRV_MODE_CSP && settingMade_) {
+  if ((data_->command_.drvMode == ECMC_DRV_MODE_CSP) && settingMade_) {
     LOGERR("%s/%s:%d: WARNING: Axis %d in CSP-mode (ecmc position control loop disabled). Settings of ecmc position control loop params will be discarded."
-    " Position control loop params needs to be set directlly in drive (where the position loop is executed).\n", __FILE__, __FUNCTION__, __LINE__, data_->axisId_);
+           " Position control loop params needs to be set directlly in drive (where the position loop is executed).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_->axisId_);
   }
 
-  if(asynKp_==NULL || asynKi_==NULL || asynKd_==NULL || asynKff_==NULL) {
-    LOGERR("%s/%s:%d: Error: Axis %d: Kp,ki, kd or kff asyn param NULL .\n", __FILE__, __FUNCTION__, __LINE__, data_->axisId_);
+  if ((asynKp_ == NULL) || (asynKi_ == NULL) || (asynKd_ == NULL) ||
+      (asynKff_ == NULL)) {
+    LOGERR("%s/%s:%d: Error: Axis %d: Kp,ki, kd or kff asyn param NULL .\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_->axisId_);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -245,24 +257,23 @@ int ecmcPIDController::validate() {
   return 0;
 }
 
-double ecmcPIDController::getKp(){
+double ecmcPIDController::getKp() {
   return kp_;
-};
+}
 
-double ecmcPIDController::getKi(){
+double ecmcPIDController::getKi() {
   return ki_;
-};
+}
 
-double ecmcPIDController::getKd(){
+double ecmcPIDController::getKd() {
   return kd_;
-};
+}
 
-double ecmcPIDController::getKff(){
+double ecmcPIDController::getKff() {
   return kff_;
-};
+}
 
 int ecmcPIDController::initAsyn() {
-
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
     LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
@@ -274,17 +285,17 @@ int ecmcPIDController::initAsyn() {
     return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
   }
 
-  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  char *name = NULL;
-  unsigned int charCount = 0;
+  char  buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name                  = NULL;
+  unsigned int charCount      = 0;
   ecmcAsynDataItem *paramTemp = NULL;
-  
+
   // Kp
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME,
                        data_->axisId_);
-  
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
@@ -292,19 +303,20 @@ int ecmcPIDController::initAsyn() {
       __FUNCTION__,
       __LINE__,
       data_->axisId_,
-      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME"%d",
+      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
 
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                                 asynParamFloat64,
                                                 (uint8_t *)&kp_,
                                                 8,
                                                 ECMC_EC_F64,
                                                 0);
-  if(!paramTemp) {
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
@@ -323,7 +335,7 @@ int ecmcPIDController::initAsyn() {
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KI_NAME,
                        data_->axisId_);
-  
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
@@ -331,19 +343,20 @@ int ecmcPIDController::initAsyn() {
       __FUNCTION__,
       __LINE__,
       data_->axisId_,
-      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME"%d",
+      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
 
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                                 asynParamFloat64,
                                                 (uint8_t *)&ki_,
                                                 8,
                                                 ECMC_EC_F64,
                                                 0);
-  if(!paramTemp) {
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
@@ -363,7 +376,7 @@ int ecmcPIDController::initAsyn() {
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KD_NAME,
                        data_->axisId_);
-  
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
@@ -371,19 +384,20 @@ int ecmcPIDController::initAsyn() {
       __FUNCTION__,
       __LINE__,
       data_->axisId_,
-      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME"%d",
+      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
 
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                                 asynParamFloat64,
                                                 (uint8_t *)&kd_,
                                                 8,
                                                 ECMC_EC_F64,
                                                 0);
-  if(!paramTemp) {
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
@@ -393,7 +407,7 @@ int ecmcPIDController::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  
+
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   asynKd_ = paramTemp;
@@ -403,7 +417,7 @@ int ecmcPIDController::initAsyn() {
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KFF_NAME,
                        data_->axisId_);
-  
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
@@ -411,20 +425,20 @@ int ecmcPIDController::initAsyn() {
       __FUNCTION__,
       __LINE__,
       data_->axisId_,
-      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME"%d",
+      ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
 
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
                                                 asynParamFloat64,
                                                 (uint8_t *)&kff_,
                                                 8,
                                                 ECMC_EC_F64,
-                                                0); 
+                                                0);
 
-  if(!paramTemp) {
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
@@ -434,7 +448,7 @@ int ecmcPIDController::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  
+
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->refreshParam(1);
   asynKff_ = paramTemp;
@@ -442,7 +456,10 @@ int ecmcPIDController::initAsyn() {
   return 0;
 }
 
-void   ecmcPIDController::setInnerCtrlParams(double kp,double ki, double kd, double tol) {
+void ecmcPIDController::setInnerCtrlParams(double kp,
+                                           double ki,
+                                           double kd,
+                                           double tol) {
   kp_inner_ =  kp;
   ki_inner_ =  ki;
   kd_inner_ =  kd;

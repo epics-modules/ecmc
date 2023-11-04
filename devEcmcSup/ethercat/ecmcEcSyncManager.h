@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEcSyncManager.h
 *
@@ -31,34 +31,34 @@
 
 
 class ecmcEcSyncManager : public ecmcError {
- public:
+public:
   ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
-                    int masterId,
-                    int slaveId,
+                    int                 masterId,
+                    int                 slaveId,
                     ecmcEcDomain       *domain,
-                    ec_slave_config_t *slave,
-                    ec_direction_t     direction,
-                    uint8_t            syncMangerIndex);
+                    ec_slave_config_t  *slave,
+                    ec_direction_t      direction,
+                    uint8_t             syncMangerIndex);
   ~ecmcEcSyncManager();
   int            addPdo(uint16_t pdoIndex);
-  ecmcEcPdo    * getPdo(int index);
+  ecmcEcPdo*     getPdo(int index);
   int            getPdoCount();
   int            getInfo(ec_sync_info_t *info);
   ec_direction_t getDirection();
   uint8_t        getSyncMangerIndex();
-  ecmcEcEntry  * addEntry(
+  ecmcEcEntry*   addEntry(
     uint16_t       pdoIndex,
     uint16_t       entryIndex,
     uint8_t        entrySubIndex,
     ecmcEcDataType dt,
     std::string    id,
     int            useInRealTime,
-    int            *errorCode);
+    int           *errorCode);
   ecmcEcEntry* findEntry(std::string id);
 
- private:
+private:
   void         initVars();
-  ecmcEcPdo  * findPdo(uint16_t pdoIndex);
+  ecmcEcPdo*   findPdo(uint16_t pdoIndex);
   ecmcEcPdo *pdoArray_[EC_MAX_PDOS];
   ec_direction_t direction_;
   uint8_t syncMangerIndex_;

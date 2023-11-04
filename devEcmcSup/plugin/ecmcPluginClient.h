@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPlugin.h
 *
@@ -20,7 +20,7 @@ extern "C" {
 # endif  // ifdef __cplusplus
 
 /** \brief Get an ecmcDataItem obj by idStringWP
- * 
+ *
  *  Allows access to all regsistered ecmcDataItems in ecmc.\n
  *  \param[in] idStringWP Identification string "with path".\n
  *                        examples: ec0.s1.AI_1\n
@@ -35,10 +35,10 @@ extern "C" {
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-void* getEcmcDataItem(char *idStringWP);
+void*  getEcmcDataItem(char *idStringWP);
 
 /** \brief Get an ecmcAsynDataItem obj by idStringWP
- * 
+ *
  *  Allows access to all regsistered ecmcAsynDataItems in ecmc.\n
  *  The ecmcAsynDataItems class is dervied of ecmcDataItem class.\n
  *
@@ -55,7 +55,7 @@ void* getEcmcDataItem(char *idStringWP);
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-void* getEcmcAsynDataItem(char *idStringWP);
+void*  getEcmcAsynDataItem(char *idStringWP);
 
 /** \brief Get ecmcAsynPortObject (as void*)
  *
@@ -66,7 +66,7 @@ void* getEcmcAsynDataItem(char *idStringWP);
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-void* getEcmcAsynPortDriver();
+void*  getEcmcAsynPortDriver();
 
 /** \brief Get ecmc sample rate [Hz]
  *
@@ -90,7 +90,7 @@ double getEcmcSampleTimeMS();
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int getEcmcEpicsIOCState();
+int    getEcmcEpicsIOCState();
 
 # ifdef __cplusplus
 }

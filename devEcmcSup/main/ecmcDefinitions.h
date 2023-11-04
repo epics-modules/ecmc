@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDefinitions.h
 *
@@ -24,11 +24,11 @@
 #define MCU_MAX_FREQUENCY 20000.0
 #define MCU_NSEC_PER_SEC 1000000000
 #define MCU_PERIOD_NS (int)(MCU_NSEC_PER_SEC / MCU_FREQUENCY)
-#define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC + \
+#define DIFF_NS(A, B) (((B).tv_sec - (A).tv_sec) * MCU_NSEC_PER_SEC +\
                        (B).tv_nsec - (A).tv_nsec)
 
 #define MCU_MIN_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MAX_FREQUENCY)
-#define MCU_MAX_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MIN_FREQUENCY) 
+#define MCU_MAX_PERIOD_NS (MCU_NSEC_PER_SEC / MCU_MIN_FREQUENCY)
 
 #define ECMC_MAX_AXES 64
 #define ECMC_MAX_PLCS 16
@@ -36,22 +36,23 @@
 #define ECMC_ASYN_DEFAULT_LIST 0
 #define ECMC_ASYN_DEFAULT_ADDR 0
 
-#define TIMESPEC2NS(T) ((uint64_t)(((T).tv_sec - 946684800ULL) * \
+#define TIMESPEC2NS(T) ((uint64_t)(((T).tv_sec - 946684800ULL) *\
                                    1000000000ULL) + (T).tv_nsec)
 
-#define NS2TIMESPEC(NS,T){                    \
-  (T).tv_sec=(NS)/1000000000ULL+946684800ULL; \
-  (T).tv_nsec=(NS)-(T).tv_sec*1000000000ULL;  \
-}                                             \
+#define NS2TIMESPEC(NS, T) {\
+          (T).tv_sec  = (NS) / 1000000000ULL + 946684800ULL;\
+          (T).tv_nsec = (NS)-(T).tv_sec * 1000000000ULL;\
+}\
+
 
 // #define MSG_TICK 0
 #define MAX_MESSAGE 10000
 
 // Memory allocation
-#define ECMC_STACK_SIZE (100*1024)  /*RT thread stack size*/
-#define ECMC_PRE_ALLOCATION_SIZE (10*1024*1024) /* 1MB pagefault free buffer */
+#define ECMC_STACK_SIZE (100 * 1024)  /*RT thread stack size*/
+#define ECMC_PRE_ALLOCATION_SIZE (10 * 1024 * 1024) /* 1MB pagefault free buffer */
 
-#define ECMC_RT_THREAD_NAME "ecmc_rt" 
+#define ECMC_RT_THREAD_NAME "ecmc_rt"
 
 // Buffer size
 #define EC_MAX_OBJECT_PATH_CHAR_LENGTH 256
@@ -247,15 +248,15 @@ enum axisType {
 };
 
 enum motionCommandTypes {
-  ECMC_CMD_NOCMD              = -1,   
-  ECMC_CMD_JOG                = 0,    
-  ECMC_CMD_MOVEVEL            = 1,
-  ECMC_CMD_MOVEREL            = 2,
-  ECMC_CMD_MOVEABS            = 3,
-  ECMC_CMD_MOVEMODULO         = 4,    // not used
-  ECMC_CMD_HOMING             = 10,
-  ECMC_CMD_SUPERIMP           = 20,   
-  ECMC_CMD_GEAR               = 30,   // not used 
+  ECMC_CMD_NOCMD      = -1,
+  ECMC_CMD_JOG        = 0,
+  ECMC_CMD_MOVEVEL    = 1,
+  ECMC_CMD_MOVEREL    = 2,
+  ECMC_CMD_MOVEABS    = 3,
+  ECMC_CMD_MOVEMODULO = 4,            // not used
+  ECMC_CMD_HOMING     = 10,
+  ECMC_CMD_SUPERIMP   = 20,
+  ECMC_CMD_GEAR       = 30,           // not used
 };
 
 enum motionDirection {
@@ -270,8 +271,8 @@ enum motionMode {
 };
 
 enum dataSource {
-  ECMC_DATA_SOURCE_INTERNAL           = 0,
-  ECMC_DATA_SOURCE_EXTERNAL           = 1
+  ECMC_DATA_SOURCE_INTERNAL = 0,
+  ECMC_DATA_SOURCE_EXTERNAL = 1
 };
 
 enum coordSystMode {
@@ -315,9 +316,9 @@ enum interlockTypes {
 };
 
 enum plcInterlockTypes {
-  ECMC_PLC_INTERLOCK_DIR_BOTH                      = 0,
-  ECMC_PLC_INTERLOCK_DIR_FWD                       = 1,
-  ECMC_PLC_INTERLOCK_DIR_BWD                       = 2,
+  ECMC_PLC_INTERLOCK_DIR_BOTH = 0,
+  ECMC_PLC_INTERLOCK_DIR_FWD  = 1,
+  ECMC_PLC_INTERLOCK_DIR_BWD  = 2,
 };
 
 enum encoderType {
@@ -343,12 +344,12 @@ enum triggerEdgeType {
 
 // Object types
 enum mainObjectType {
-  ECMC_OBJ_INVALID    = 0,
-  ECMC_OBJ_AXIS       = 1,
-  ECMC_OBJ_EC         = 2,
-  ECMC_OBJ_DS         = 3,
-  ECMC_OBJ_MAIN       = 4,
-  ECMC_OBJ_THREAD     = 5
+  ECMC_OBJ_INVALID = 0,
+  ECMC_OBJ_AXIS    = 1,
+  ECMC_OBJ_EC      = 2,
+  ECMC_OBJ_DS      = 3,
+  ECMC_OBJ_MAIN    = 4,
+  ECMC_OBJ_THREAD  = 5
 };
 
 // Object types
@@ -364,7 +365,7 @@ enum axisSubObjectType {
 
 
 #define AXIS_PLC_ID_TO_PLC_ID(axisId) (axisId) + ECMC_MAX_PLCS
-                                   
+
 #define ECMC_MAIN_STR "main"
 #define ECMC_THREAD_STR "thread"
 
@@ -558,23 +559,23 @@ enum ecmcDataStorageType {
 };
 
 enum ecmcDataSourceType {
-  ECMC_RECORDER_SOURCE_NONE            = 0,
-  ECMC_RECORDER_SOURCE_ETHERCAT        = 1,
-  ECMC_RECORDER_SOURCE_AXIS            = 2,
-  ECMC_RECORDER_SOURCE_STATIC_VAR      = 3,
-  ECMC_RECORDER_SOURCE_GLOBAL_VAR      = 4,
-  ECMC_RECORDER_SOURCE_DATA_STORAGE    = 5
+  ECMC_RECORDER_SOURCE_NONE         = 0,
+  ECMC_RECORDER_SOURCE_ETHERCAT     = 1,
+  ECMC_RECORDER_SOURCE_AXIS         = 2,
+  ECMC_RECORDER_SOURCE_STATIC_VAR   = 3,
+  ECMC_RECORDER_SOURCE_GLOBAL_VAR   = 4,
+  ECMC_RECORDER_SOURCE_DATA_STORAGE = 5
 };
 
 enum ecmcMotionModType {
-  ECMC_MOD_MOTION_NORMAL = 0,
-  ECMC_MOD_MOTION_FWD    = 1,
-  ECMC_MOD_MOTION_BWD    = 2,
-  ECMC_MOD_MOTION_CLOSEST= 3,
-  ECMC_MOD_MOTION_MAX    = 4
+  ECMC_MOD_MOTION_NORMAL  = 0,
+  ECMC_MOD_MOTION_FWD     = 1,
+  ECMC_MOD_MOTION_BWD     = 2,
+  ECMC_MOD_MOTION_CLOSEST = 3,
+  ECMC_MOD_MOTION_MAX     = 4
 };
 
-typedef struct ecmcMainThreadDiag{
+typedef struct ecmcMainThreadDiag {
   uint32_t period_ns;
   uint32_t exec_ns;
   uint32_t latency_ns;
@@ -588,7 +589,7 @@ typedef struct ecmcMainThreadDiag{
   uint32_t send_min_ns;
   uint32_t send_max_ns;
   int32_t  status;
-}ecmcMainThreadDiag;
+} ecmcMainThreadDiag;
 
 #define BIT_SET(a, b) ((a) |= (1 << (b)))
 #define BIT_CLEAR(a, b) ((a) &= ~(1 << (b)))
@@ -612,21 +613,21 @@ typedef struct ecmcMainThreadDiag{
 #define EC_DT_F64  "F64"
 
 enum ecmcEcDataType {
-  ECMC_EC_NONE  = 0,
-  ECMC_EC_B1    = 1,
-  ECMC_EC_B2    = 2,
-  ECMC_EC_B3    = 3,
-  ECMC_EC_B4    = 4,  
-  ECMC_EC_U8    = 5,
-  ECMC_EC_S8    = 6,
-  ECMC_EC_U16   = 7,
-  ECMC_EC_S16   = 8,
-  ECMC_EC_U32   = 9,
-  ECMC_EC_S32   = 10,
-  ECMC_EC_U64   = 11,
-  ECMC_EC_S64   = 12,
-  ECMC_EC_F32   = 13,
-  ECMC_EC_F64   = 14  
+  ECMC_EC_NONE = 0,
+  ECMC_EC_B1   = 1,
+  ECMC_EC_B2   = 2,
+  ECMC_EC_B3   = 3,
+  ECMC_EC_B4   = 4,
+  ECMC_EC_U8   = 5,
+  ECMC_EC_S8   = 6,
+  ECMC_EC_U16  = 7,
+  ECMC_EC_S16  = 8,
+  ECMC_EC_U32  = 9,
+  ECMC_EC_S32  = 10,
+  ECMC_EC_U64  = 11,
+  ECMC_EC_S64  = 12,
+  ECMC_EC_F32  = 13,
+  ECMC_EC_F64  = 14
 };
 
 // SHM
@@ -638,19 +639,21 @@ enum ecmcEcDataType {
 #define ECMC_SHM_CONTROL_BYTES 64
 #define ECMC_SHM_MAX_MASTERS 16
 
-typedef struct ecmcShm{
-  int valid;
-  int key;
-  int shmid;
-  double* dataPtr;  // 120*8=960bytes
+typedef struct ecmcShm {
+  int     valid;
+  int     key;
+  int     shmid;
+  double *dataPtr;  // 120*8=960bytes
   // ioc/master status ECMC_SHM_MAX_MASTERS bytes (max comunication between ECMC_SHM_MAX_MASTERS masters)
-  char  * mstPtr;
+  char *mstPtr;
+
   // ioc status ECMC_SHM_MAX_MASTERS bytes (max ECMC_SHM_MAX_MASTERS iocs without master, adressed with negative master id)
-  char  * simMstPtr;
+  char *simMstPtr;
+
   // pointer to start of mem
-  void  * memPtr;
-  int size;
-  sem_t* sem;
+  void  *memPtr;
+  int    size;
+  sem_t *sem;
 } ecmcShm;
 
 #endif  /* ECMC_DEFINITIONS_H_ */

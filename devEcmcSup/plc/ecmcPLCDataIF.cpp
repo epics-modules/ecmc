@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPLCDataIF.cpp
 *
@@ -12,21 +12,21 @@
 
 #include "ecmcPLCDataIF.h"
 
-ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
-                             double plcSampleRateMs,
-                             ecmcAxisBase *axis,
-                             char *axisVarName,
+ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
+                             double              plcSampleRateMs,
+                             ecmcAxisBase       *axis,
+                             char               *axisVarName,
                              ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
-  plcIndex_        = plcIndex;
-  sampleRateMs_    = plcSampleRateMs; 
-  axis_            = axis;
-  varName_         = axisVarName;
-  exprTkVarName_   = axisVarName;
-  asynPortDriver_  = asynPortDriver;
-  source_          = ECMC_RECORDER_SOURCE_AXIS;
-  dataSourceAxis_  = parseAxisDataSource(axisVarName);
+  plcIndex_       = plcIndex;
+  sampleRateMs_   = plcSampleRateMs;
+  axis_           = axis;
+  varName_        = axisVarName;
+  exprTkVarName_  = axisVarName;
+  asynPortDriver_ = asynPortDriver;
+  source_         = ECMC_RECORDER_SOURCE_AXIS;
+  dataSourceAxis_ = parseAxisDataSource(axisVarName);
 
   if (dataSourceAxis_ == ECMC_AXIS_DATA_NONE) {
     LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",
@@ -35,25 +35,25 @@ ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
            __LINE__,
            ERROR_PLC_AXIS_DATA_TYPE_ERROR);
   }
-  asynWriteAllow_ = 0; 
+  asynWriteAllow_ = 0;
   initAsyn();
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
-                             double plcSampleRateMs,
-                             ecmcDataStorage *ds,
-                             char *dsVarName,
+ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
+                             double              plcSampleRateMs,
+                             ecmcDataStorage    *ds,
+                             char               *dsVarName,
                              ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
-  plcIndex_        = plcIndex;
-  sampleRateMs_    = plcSampleRateMs; 
-  ds_              = ds;
-  varName_         = dsVarName;
-  exprTkVarName_   = dsVarName;
-  asynPortDriver_  = asynPortDriver;
-  source_          = ECMC_RECORDER_SOURCE_DATA_STORAGE;
-  dataSourceDs_    = parseDataStorageDataSource(dsVarName);
+  plcIndex_       = plcIndex;
+  sampleRateMs_   = plcSampleRateMs;
+  ds_             = ds;
+  varName_        = dsVarName;
+  exprTkVarName_  = dsVarName;
+  asynPortDriver_ = asynPortDriver;
+  source_         = ECMC_RECORDER_SOURCE_DATA_STORAGE;
+  dataSourceDs_   = parseDataStorageDataSource(dsVarName);
 
   if (dataSourceDs_ == ECMC_DATA_STORAGE_DATA_NONE) {
     LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",
@@ -62,66 +62,65 @@ ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
            __LINE__,
            ERROR_PLC_AXIS_DATA_TYPE_ERROR);
   }
-  asynWriteAllow_ = 0; 
+  asynWriteAllow_ = 0;
   initAsyn();
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
-                             double plcSampleRateMs,
-                             ecmcEc *ec,
-                             char *ecVarName,
+ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
+                             double              plcSampleRateMs,
+                             ecmcEc             *ec,
+                             char               *ecVarName,
                              ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
   initVars();
-  plcIndex_        = plcIndex;
-  sampleRateMs_    = plcSampleRateMs; 
-  ec_              = ec;
-  varName_         = ecVarName;
-  exprTkVarName_   = ecVarName;
-  asynPortDriver_  = asynPortDriver;
-  source_          = ECMC_RECORDER_SOURCE_ETHERCAT;
+  plcIndex_       = plcIndex;
+  sampleRateMs_   = plcSampleRateMs;
+  ec_             = ec;
+  varName_        = ecVarName;
+  exprTkVarName_  = ecVarName;
+  asynPortDriver_ = asynPortDriver;
+  source_         = ECMC_RECORDER_SOURCE_ETHERCAT;
   parseAndLinkEcDataSource(ecVarName);
-  asynWriteAllow_  = 0; 
+  asynWriteAllow_ = 0;
   initAsyn();
 }
 
-ecmcPLCDataIF::ecmcPLCDataIF(int plcIndex,
-                             double plcSampleRateMs,
-                             char *varName,
-                             ecmcDataSourceType dataSource,
+ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
+                             double              plcSampleRateMs,
+                             char               *varName,
+                             ecmcDataSourceType  dataSource,
                              ecmcAsynPortDriver *asynPortDriver) {
   errorReset();
-  initVars();  
-  plcIndex_        = plcIndex; 
-  sampleRateMs_    = plcSampleRateMs; 
-  varName_         = varName;
-  exprTkVarName_   = varName;
-  asynPortDriver_  = asynPortDriver;
-  source_          = dataSource;
-  asynWriteAllow_  = 1; 
+  initVars();
+  plcIndex_       = plcIndex;
+  sampleRateMs_   = plcSampleRateMs;
+  varName_        = varName;
+  exprTkVarName_  = varName;
+  asynPortDriver_ = asynPortDriver;
+  source_         = dataSource;
+  asynWriteAllow_ = 1;
   initAsyn();  // Only static and global variables accessible from PLC
 }
 
-ecmcPLCDataIF::~ecmcPLCDataIF()
-{}
+ecmcPLCDataIF::~ecmcPLCDataIF() {}
 
 void ecmcPLCDataIF::initVars() {
-  plcIndex_       = 0;
-  axis_           = 0;
-  ds_             = 0;
-  ec_             = 0;
-  data_           = 0;
-  varName_        = "";
-  exprTkVarName_  = "";
-  dataSourceAxis_ = ECMC_AXIS_DATA_NONE;
-  dataSourceDs_   = ECMC_DATA_STORAGE_DATA_NONE;
-  source_         = ECMC_RECORDER_SOURCE_NONE;
-  readOnly_       = 0;
-  asynPortDriver_ = 0;
-  asynDataItem_   = 0;
-  asynWriteAllow_ = 0; 
-  isBool_         = 0;
-  sampleRateMs_   = 0;
+  plcIndex_          = 0;
+  axis_              = 0;
+  ds_                = 0;
+  ec_                = 0;
+  data_              = 0;
+  varName_           = "";
+  exprTkVarName_     = "";
+  dataSourceAxis_    = ECMC_AXIS_DATA_NONE;
+  dataSourceDs_      = ECMC_DATA_STORAGE_DATA_NONE;
+  source_            = ECMC_RECORDER_SOURCE_NONE;
+  readOnly_          = 0;
+  asynPortDriver_    = 0;
+  asynDataItem_      = 0;
+  asynWriteAllow_    = 0;
+  isBool_            = 0;
+  sampleRateMs_      = 0;
   axisHasController_ = 0;
 }
 
@@ -164,10 +163,10 @@ int ecmcPLCDataIF::read() {
   return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
 }
 
-int ecmcPLCDataIF::write() {  
-  
+int ecmcPLCDataIF::write() {
   // Only write if data changed between read and write
-  if ((data_ == dataRead_) || readOnly_ || (isBool_ && ((data_>0) == (dataRead_>0)))) {
+  if ((data_ == dataRead_) || readOnly_ ||
+      (isBool_ && ((data_ > 0) == (dataRead_ > 0)))) {
     return 0;
   }
 
@@ -210,8 +209,9 @@ int ecmcPLCDataIF::write() {
 }
 
 int ecmcPLCDataIF::readEc() {
-  double tempData = 0;
-  int errorCode = readEcEntryValueDouble(ECMC_PLC_EC_ENTRY_INDEX, &tempData);
+  double tempData  = 0;
+  int    errorCode =
+    readEcEntryValueDouble(ECMC_PLC_EC_ENTRY_INDEX, &tempData);
 
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
@@ -223,7 +223,6 @@ int ecmcPLCDataIF::readEc() {
 }
 
 int ecmcPLCDataIF::writeEc() {
-  
   int errorCode = writeEcEntryValueDouble(ECMC_PLC_EC_ENTRY_INDEX, data_);
 
   if (errorCode) {
@@ -300,6 +299,7 @@ int ecmcPLCDataIF::writeDs() {
     break;
 
   case ECMC_DATA_STORAGE_DATA_APPEND:
+
     // Check for NAN (only append new value)
     if (data_ == data_) {
       ds_->appendData(data_);
@@ -323,6 +323,7 @@ int ecmcPLCDataIF::writeDs() {
     break;
 
   case ECMC_DATA_STORAGE_DATA_CLEAR:
+
     // Check for NAN (only append new value)
     if ((data_ == data_) && (data_ > 0)) {
       ds_->clearBuffer();
@@ -536,11 +537,13 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.sumilockbwd == 0);
+    data_ =
+      static_cast<double>(axisData->onChangeData.statusWd.sumilockbwd == 0);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.sumilockfwd == 0);
+    data_ =
+      static_cast<double>(axisData->onChangeData.statusWd.sumilockfwd == 0);
     break;
 
   case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:
@@ -556,7 +559,8 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_CTRL_KP:
-    if(axisHasController_) {
+
+    if (axisHasController_) {
       data_ = axis_->getCntrl()->getKp();
     } else {
       data_ = 0;
@@ -564,7 +568,8 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_CTRL_KI:
-    if(axisHasController_) {
+
+    if (axisHasController_) {
       data_ = axis_->getCntrl()->getKi();
     } else {
       data_ = 0;
@@ -572,7 +577,8 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_CTRL_KD:
-    if(axisHasController_) {
+
+    if (axisHasController_) {
       data_ = axis_->getCntrl()->getKd();
     } else {
       data_ = 0;
@@ -580,7 +586,8 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_CTRL_KFF:
-    if(axisHasController_) {
+
+    if (axisHasController_) {
       data_ = axis_->getCntrl()->getKff();
     } else {
       data_ = 0;
@@ -600,16 +607,15 @@ int ecmcPLCDataIF::readAxis() {
 }
 
 int ecmcPLCDataIF::writeAxis() {
-  
   if (axis_ == NULL) {
     return ERROR_PLC_AXIS_NULL;
   }
 
   // Write from PLC to Axis allowed?
-  if(!axis_->getAllowCmdFromPLC() && 
-     (dataSourceAxis_ != ECMC_AXIS_DATA_ALLOW_PLC_WRITE)) {
+  if (!axis_->getAllowCmdFromPLC() &&
+      (dataSourceAxis_ != ECMC_AXIS_DATA_ALLOW_PLC_WRITE)) {
     return 0;
-  } 
+  }
 
   if (axis_->getTraj() == NULL) {
     return ERROR_PLC_TRAJ_NULL;
@@ -631,8 +637,8 @@ int ecmcPLCDataIF::writeAxis() {
 
     break;
 
-  case ECMC_AXIS_DATA_POS_SET:    
-    return axis_->setExtSetPos(data_);;
+  case ECMC_AXIS_DATA_POS_SET:
+    return axis_->setExtSetPos(data_);
 
     break;
 
@@ -713,25 +719,26 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-    return axis_->getMon()->setPLCInterlock(data_ == 0,ECMC_PLC_INTERLOCK_DIR_BOTH);
+    return axis_->getMon()->setPLCInterlock(data_ == 0,
+                                            ECMC_PLC_INTERLOCK_DIR_BOTH);
 
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
-    if (data_>=1) {
+
+    if (data_ >= 1) {
       return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_EXTERNAL);
-    }
-    else {
+    } else {
       return axis_->setTrajDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
     }
 
     break;
 
   case ECMC_AXIS_DATA_ENC_SOURCE:
-    if (data_>=1) {
+
+    if (data_ >= 1) {
       return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_EXTERNAL);
-    }
-    else {
+    } else {
       return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
     }
 
@@ -829,56 +836,71 @@ int ecmcPLCDataIF::writeAxis() {
     axis_->getSeq()->setHomePosition(data_);
     break;
 
-  case ECMC_AXIS_DATA_BLOCK_COM:    
-    axis_->setBlockExtCom(data_>=1);
+  case ECMC_AXIS_DATA_BLOCK_COM:
+    axis_->setBlockExtCom(data_ >= 1);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
-    return axis_->getMon()->setPLCInterlock(data_ == 0,ECMC_PLC_INTERLOCK_DIR_BWD);
+    return axis_->getMon()->setPLCInterlock(data_ == 0,
+                                            ECMC_PLC_INTERLOCK_DIR_BWD);
+
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
-    return axis_->getMon()->setPLCInterlock(data_ == 0,ECMC_PLC_INTERLOCK_DIR_FWD);
+    return axis_->getMon()->setPLCInterlock(data_ == 0,
+                                            ECMC_PLC_INTERLOCK_DIR_FWD);
+
     break;
 
   case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:
-    return axis_->setAllowCmdFromPLC(data_>=1);
+    return axis_->setAllowCmdFromPLC(data_ >= 1);
+
     break;
 
   case ECMC_AXIS_DATA_POS_SET_EXTERNAL:
-    return 0; //axis_->setExtSetPos(data_);
+    return 0; // axis_->setExtSetPos(data_);
+
     break;
 
   case ECMC_AXIS_DATA_POS_ACT_EXTERNAL:
-    return 0; //axis_->setExtActPos(data_);
+    return 0; // axis_->setExtActPos(data_);
+
     break;
 
   case ECMC_AXIS_DATA_CTRL_KP:
-    if(axisHasController_) {
+
+    if (axisHasController_) {
       axis_->getCntrl()->setKp(data_);
     }
     return 0;
+
     break;
 
   case ECMC_AXIS_DATA_CTRL_KI:
-    if(axisHasController_) {
+
+    if (axisHasController_) {
       axis_->getCntrl()->setKi(data_);
     }
     return 0;
+
     break;
 
   case ECMC_AXIS_DATA_CTRL_KD:
-    if(axisHasController_) {
-      axis_->getCntrl()->setKd(data_);      
+
+    if (axisHasController_) {
+      axis_->getCntrl()->setKd(data_);
     }
     return 0;
+
     break;
 
   case ECMC_AXIS_DATA_CTRL_KFF:
-    if(axisHasController_) {
-      axis_->getCntrl()->setKff(data_);      
+
+    if (axisHasController_) {
+      axis_->getCntrl()->setKff(data_);
     }
     return 0;
+
     break;
 
   default:
@@ -1158,7 +1180,7 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_VEL_TARGET_SET);
 
-  if (npos == 0) {    
+  if (npos == 0) {
     return ECMC_AXIS_DATA_VEL_TARGET_SET;
   }
 
@@ -1242,37 +1264,37 @@ ecmcAxisDataType ecmcPLCDataIF::parseAxisDataSource(char *axisDataSource) {
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_POS_SET_EXTERNAL);
 
-  if (npos == 0) {    
+  if (npos == 0) {
     return ECMC_AXIS_DATA_POS_SET_EXTERNAL;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_POS_ACT_EXTERNAL);
 
-  if (npos == 0) {    
+  if (npos == 0) {
     return ECMC_AXIS_DATA_POS_ACT_EXTERNAL;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_CTRL_KP_CMD);
 
-  if (npos == 0) {    
+  if (npos == 0) {
     return ECMC_AXIS_DATA_CTRL_KP;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_CTRL_KI_CMD);
 
-  if (npos == 0) {    
+  if (npos == 0) {
     return ECMC_AXIS_DATA_CTRL_KI;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_CTRL_KD_CMD);
 
-  if (npos == 0) {    
+  if (npos == 0) {
     return ECMC_AXIS_DATA_CTRL_KD;
   }
 
   npos = strcmp(varName, ECMC_AXIS_DATA_STR_CTRL_KFF_CMD);
 
-  if (npos == 0) {    
+  if (npos == 0) {
     return ECMC_AXIS_DATA_CTRL_KFF;
   }
 
@@ -1320,10 +1342,10 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
 
     if (bitId >= 0) {
       ss << ECMC_EC_STR << masterId << "." ECMC_DUMMY_SLAVE_STR << -slaveId <<
-      "." << alias << "." << bitId;
+        "." << alias << "." << bitId;
     } else {
       ss << ECMC_EC_STR << masterId << "." ECMC_DUMMY_SLAVE_STR << -slaveId <<
-      "." << alias;
+        "." << alias;
     }
     exprTkVarName_ = ss.str();
     slave          = ec_->getSlave(slaveId);
@@ -1368,16 +1390,17 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
   }
 
   // Print warning if data type is "NONE" , "U64" or "S64"
-  ecmcEcDataType dt=getEntryDataType(ECMC_PLC_EC_ENTRY_INDEX);
+  ecmcEcDataType dt = getEntryDataType(ECMC_PLC_EC_ENTRY_INDEX);
 
-  if(dt==ECMC_EC_NONE || dt==ECMC_EC_U64 || dt==ECMC_EC_S64 ) {
-    LOGERR("%s/%s:%d: WARNING: Entry %s is of type S64, U64 or undefined. PLC values are doubles and might not be able to represent the ethercat value correct.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           ecDataSource);
+  if ((dt == ECMC_EC_NONE) || (dt == ECMC_EC_U64) || (dt == ECMC_EC_S64)) {
+    LOGERR(
+      "%s/%s:%d: WARNING: Entry %s is of type S64, U64 or undefined. PLC values are doubles and might not be able to represent the ethercat value correct.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ecDataSource);
   }
-  
+
   return 0;
 }
 
@@ -1456,9 +1479,10 @@ int ecmcPLCDataIF::validate() {
     if (!axis_) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_PLC_AXIS_NULL);
     } else {
-      axisHasController_ = axis_->getCntrl() != NULL;   
+      axisHasController_ = axis_->getCntrl() != NULL;
     }
     return 0;
+
     break;
 
   case ECMC_RECORDER_SOURCE_STATIC_VAR:
@@ -1491,7 +1515,7 @@ double ecmcPLCDataIF::getData() {
 }
 
 void ecmcPLCDataIF::setData(double data) {
-  data_ = data;  
+  data_ = data;
 }
 
 int ecmcPLCDataIF::setReadOnly(int readOnly) {
@@ -1500,25 +1524,25 @@ int ecmcPLCDataIF::setReadOnly(int readOnly) {
 }
 
 int ecmcPLCDataIF::initAsyn() {
-  
-  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
-  char *name = buffer;
+  char  buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name             = buffer;
   unsigned int charCount = 0;
-  if(plcIndex_>=0) { //local variable (plc index)
+
+  if (plcIndex_ >= 0) { // local variable (plc index)
     // "plc%d.%s"
     charCount = snprintf(buffer,
                          sizeof(buffer),
                          ECMC_PLCS_DATA_STR "." ECMC_PLC_DATA_STR "%d.%s",
                          plcIndex_,
                          varName_.c_str());
-  } else { //global variable (no plc index)
+  } else { // global variable (no plc index)
     // "%s"
     charCount = snprintf(buffer,
                          sizeof(buffer),
                          ECMC_PLCS_DATA_STR ".%s",
                          varName_.c_str());
   }
- 
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
@@ -1526,10 +1550,10 @@ int ecmcPLCDataIF::initAsyn() {
       __FUNCTION__,
       __LINE__,
       ERROR_ASYN_DATA_BUFFER_TO_SMALL);
-      return setErrorID(ERROR_ASYN_DATA_BUFFER_TO_SMALL);
+    return setErrorID(ERROR_ASYN_DATA_BUFFER_TO_SMALL);
   }
 
-  name = buffer;
+  name          = buffer;
   asynDataItem_ = asynPortDriver_->addNewAvailParam(name,
                                                     asynParamFloat64,
                                                     (uint8_t *)&data_,
@@ -1537,30 +1561,32 @@ int ecmcPLCDataIF::initAsyn() {
                                                     ECMC_EC_F64,
                                                     sampleRateMs_,
                                                     0);
-    if(!asynDataItem_) {
-      LOGERR(
-        "%s/%s:%d: ERROR: Add create default parameter for %s failed (0x%x).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        name,
-        ERROR_ASYN_CREATE_PARAM_FAIL);
-        return setErrorID(ERROR_ASYN_CREATE_PARAM_FAIL);
-    }
 
-  asynDataItem_->setAllowWriteToEcmc(asynWriteAllow_);    
+  if (!asynDataItem_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Add create default parameter for %s failed (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      name,
+      ERROR_ASYN_CREATE_PARAM_FAIL);
+    return setErrorID(ERROR_ASYN_CREATE_PARAM_FAIL);
+  }
+
+  asynDataItem_->setAllowWriteToEcmc(asynWriteAllow_);
   updateAsyn(1);
-  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                      ECMC_ASYN_DEFAULT_ADDR);
   return 0;
 }
 
-int ecmcPLCDataIF::updateAsyn(int force) {  
-  if(asynDataItem_) {
-    asynDataItem_->refreshParamRT(force);    
+int ecmcPLCDataIF::updateAsyn(int force) {
+  if (asynDataItem_) {
+    asynDataItem_->refreshParamRT(force);
   }
   return 0;
 }
-  
+
 void ecmcPLCDataIF::errorReset() {
   ecmcEcEntryLink::errorReset();
   ecmcError::errorReset();

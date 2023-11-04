@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcMisc.h
 *
@@ -18,53 +18,56 @@
 #ifndef ECMC_MISC_H_
 #define ECMC_MISC_H_
 
-#define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex)                  \
-{                                                                             \
-  if (indexCommandList >= ECMC_MAX_COMMANDS_LISTS || indexCommandList < 0) {  \
-    LOGERR("ERROR: Command list index out of range.\n");                      \
-    return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;                             \
-  }                                                                           \
-  if (commandLists[indexCommandList] == NULL) {                               \
-    LOGERR("ERROR: Command list object NULL.\n");                             \
-    return ERROR_COMMAND_LIST_NULL;                                           \
-  }                                                                           \
-}                                                                             \
+#define CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex)\
+        {\
+          if (indexCommandList >= ECMC_MAX_COMMANDS_LISTS ||\
+              indexCommandList < 0) {\
+            LOGERR("ERROR: Command list index out of range.\n");\
+            return ERROR_COMMAND_LIST_INDEX_OUT_OF_RANGE;\
+          }\
+          if (commandLists[indexCommandList] == NULL) {\
+            LOGERR("ERROR: Command list object NULL.\n");\
+            return ERROR_COMMAND_LIST_NULL;\
+          }\
+        }\
 
-#define CHECK_EVENT_RETURN_IF_ERROR(indexEvent)                               \
-{                                                                             \
-  if (indexEvent >= ECMC_MAX_EVENT_OBJECTS || indexEvent < 0) {               \
-    LOGERR("ERROR: Event index out of range.\n");                             \
-    return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;                               \
-  }                                                                           \
-  if (events[indexEvent] == NULL) {                                           \
-    LOGERR("ERROR: Event object NULL.\n");                                    \
-    return ERROR_MAIN_EVENT_NULL;                                             \
-  }                                                                           \
-}                                                                             \
+#define CHECK_EVENT_RETURN_IF_ERROR(indexEvent)\
+        {\
+          if (indexEvent >= ECMC_MAX_EVENT_OBJECTS || indexEvent < 0) {\
+            LOGERR("ERROR: Event index out of range.\n");\
+            return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;\
+          }\
+          if (events[indexEvent] == NULL) {\
+            LOGERR("ERROR: Event object NULL.\n");\
+            return ERROR_MAIN_EVENT_NULL;\
+          }\
+        }\
 
-#define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage)                           \
-{                                                                             \
-  if (indexStorage >= ECMC_MAX_DATA_STORAGE_OBJECTS || indexStorage < 0) {    \
-    LOGERR("ERROR: Data storage index out of range.\n");                      \
-    return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;                        \
-  }                                                                           \
-  if (dataStorages[indexStorage] == NULL) {                                   \
-    LOGERR("ERROR: Data storage object NULL.\n");                             \
-    return ERROR_MAIN_DATA_STORAGE_NULL;                                      \
-  }                                                                           \
-}                                                                             \
+#define CHECK_STORAGE_RETURN_IF_ERROR(indexStorage)\
+        {\
+          if (indexStorage >= ECMC_MAX_DATA_STORAGE_OBJECTS ||\
+              indexStorage < 0) {\
+            LOGERR("ERROR: Data storage index out of range.\n");\
+            return ERROR_MAIN_DATA_STORAGE_INDEX_OUT_OF_RANGE;\
+          }\
+          if (dataStorages[indexStorage] == NULL) {\
+            LOGERR("ERROR: Data storage object NULL.\n");\
+            return ERROR_MAIN_DATA_STORAGE_NULL;\
+          }\
+        }\
 
-#define CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder)                         \
-{                                                                             \
-  if (indexRecorder >= ECMC_MAX_DATA_RECORDERS_OBJECTS || indexRecorder < 0) {\
-    LOGERR("ERROR: Data recorder index out of range.\n");                     \
-    return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;                       \
-  }                                                                           \
-  if (dataRecorders[indexRecorder] == NULL) {                                 \
-    LOGERR("ERROR: Data recorder object NULL.\n");                            \
-    return ERROR_MAIN_DATA_RECORDER_NULL;                                     \
-  }                                                                           \
-}                                                                             \
+#define CHECK_RECORDER_RETURN_IF_ERROR(indexRecorder)\
+        {\
+          if (indexRecorder >= ECMC_MAX_DATA_RECORDERS_OBJECTS ||\
+              indexRecorder < 0) {\
+            LOGERR("ERROR: Data recorder index out of range.\n");\
+            return ERROR_MAIN_DATA_RECORDER_INDEX_OUT_OF_RANGE;\
+          }\
+          if (dataRecorders[indexRecorder] == NULL) {\
+            LOGERR("ERROR: Data recorder object NULL.\n");\
+            return ERROR_MAIN_DATA_RECORDER_NULL;\
+          }\
+        }\
 
 # ifdef __cplusplus
 extern "C" {

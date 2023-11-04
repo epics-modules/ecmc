@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcAxisVirt.cpp
 *
@@ -13,13 +13,13 @@
 #include "ecmcAxisVirt.h"
 
 ecmcAxisVirt::ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
-                           int axisID,
-                           double sampleTime,
-                           ecmcTrajTypes  trajType) :  
-              ecmcAxisBase(asynPortDriver,
-                          axisID,
-                          sampleTime,
-                          trajType) {
+                           int                 axisID,
+                           double              sampleTime,
+                           ecmcTrajTypes       trajType) :
+  ecmcAxisBase(asynPortDriver,
+               axisID,
+               sampleTime,
+               trajType) {
   initVars();
   data_.axisId_   = axisID;
   data_.axisType_ = ECMC_AXIS_TYPE_VIRTUAL;
@@ -27,20 +27,18 @@ ecmcAxisVirt::ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
   data_.sampleTime_ = sampleTime;
 }
 
-ecmcAxisVirt::~ecmcAxisVirt()
-{}
+ecmcAxisVirt::~ecmcAxisVirt() {}
 
 void ecmcAxisVirt::initVars() {
   temporaryLocalTrajSource_ = false;
 }
 
 void ecmcAxisVirt::execute(bool masterOK) {
-
   ecmcAxisBase::preExecute(masterOK);
 
   if (masterOK) {
     // Trajectory (External or internal)
-    if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {         
+    if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
       data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
       data_.status_.currentVelocitySetpoint = traj_->getVel();
     } else {    // External source (Transform)
@@ -52,8 +50,10 @@ void ecmcAxisVirt::execute(bool masterOK) {
       data_.refreshInterlocks();
     }
 
-    data_.status_.currentPositionActual = encArray_[data_.command_.primaryEncIndex]->getActPos();
-    data_.status_.currentVelocityActual = encArray_[data_.command_.primaryEncIndex]->getActVel();
+    data_.status_.currentPositionActual =
+      encArray_[data_.command_.primaryEncIndex]->getActPos();
+    data_.status_.currentVelocityActual =
+      encArray_[data_.command_.primaryEncIndex]->getActVel();
 
     traj_->setStartPos(data_.status_.currentPositionSetpoint);
     seq_.execute();
@@ -76,32 +76,31 @@ void ecmcAxisVirt::execute(bool masterOK) {
                             data_.status_.currentVelocityActual,
                             0);
       }
-      statusData_.onChangeData.statusWd.trajsource   = ECMC_DATA_SOURCE_INTERNAL;
-      data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
-      data_.status_.currentVelocitySetpoint = traj_->getVel();
+      statusData_.onChangeData.statusWd.trajsource = ECMC_DATA_SOURCE_INTERNAL;
+      data_.status_.currentPositionSetpoint        = traj_->getNextPosSet();
+      data_.status_.currentVelocitySetpoint        = traj_->getVel();
     } else {
       temporaryLocalTrajSource_ = false;
     }
 
     if (getEnabled() && masterOK && !getError()) {
-
       mon_->setEnable(true);
-      data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(data_.status_.currentPositionSetpoint,
-                                                                         data_.status_.currentPositionSetpointOld,
-                                                                         data_.status_.currentPositionActual,
-                                                                         data_.command_.moduloRange);
+      data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
+        data_.status_.currentPositionSetpoint,
+        data_.status_.currentPositionSetpointOld,
+        data_.status_.currentPositionActual,
+        data_.command_.moduloRange);
     } else {
-      
       mon_->setEnable(false);
 
       if (getExecute()) {
         setExecute(false);
       }
 
-      if(!beforeFirstEnable_ && masterOK){
+      if (!beforeFirstEnable_ && masterOK) {
         data_.status_.currentPositionSetpoint =
           data_.status_.currentPositionActual;
-        traj_->setStartPos(data_.status_.currentPositionSetpoint);        
+        traj_->setStartPos(data_.status_.currentPositionSetpoint);
       }
     }
 
@@ -116,7 +115,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
     }
 
     // Write to hardware
-    //refreshExternalOutputSources();
+    // refreshExternalOutputSources();
   }
 
   // No drive object so update needed variables
@@ -137,22 +136,22 @@ ecmcDriveBase * ecmcAxisVirt::getDrv() {
 int ecmcAxisVirt::validate() {
   int error = 0;
 
-  if(data_.command_.primaryEncIndex >= data_.status_.encoderCount) {
+  if (data_.command_.primaryEncIndex >= data_.status_.encoderCount) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_ENC_OBJECT_NULL);
   }
 
-  for(int i = 0; i < data_.status_.encoderCount; i++) {
+  for (int i = 0; i < data_.status_.encoderCount; i++) {
     if (encArray_[i] == NULL) {
-     LOGERR("%s/%s:%d: ax%d.enc%d NULL (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           data_.axisId_,
-           i,
-           ERROR_AXIS_ENC_OBJECT_NULL);
+      LOGERR("%s/%s:%d: ax%d.enc%d NULL (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             data_.axisId_,
+             i,
+             ERROR_AXIS_ENC_OBJECT_NULL);
 
       return setErrorID(__FILE__,
                         __FUNCTION__,
@@ -161,14 +160,15 @@ int ecmcAxisVirt::validate() {
     }
 
     error = encArray_[i]->validate();
+
     if (error) {
       LOGERR("%s/%s:%d: ax%d.enc%d (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           data_.axisId_,
-           i,
-           error);
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             data_.axisId_,
+             i,
+             error);
 
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
     }

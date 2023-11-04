@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPlugin.cpp
 *
@@ -18,7 +18,7 @@
 // TODO: REMOVE GLOBALS
 #include "ecmcGlobalsExtern.h"
 
-int loadPlugin(int pluginId, const char* filenameWP, const char* configStr) {
+int loadPlugin(int pluginId, const char *filenameWP, const char *configStr) {
   LOGINFO4("%s/%s:%d pluginId = %d, filenameWP=%s, configStr=%s\n",
            __FILE__,
            __FUNCTION__,
@@ -27,20 +27,23 @@ int loadPlugin(int pluginId, const char* filenameWP, const char* configStr) {
            filenameWP,
            configStr);
 
-  if(pluginId < 0 || pluginId >= ECMC_MAX_PLUGINS){
+  if ((pluginId < 0) || (pluginId >= ECMC_MAX_PLUGINS)) {
     return ERROR_MAIN_PLUGIN_INDEX_OUT_OF_RANGE;
   }
-  if(plugins[pluginId]){
+
+  if (plugins[pluginId]) {
     delete plugins[pluginId];
   }
 
   plugins[pluginId] = new ecmcPluginLib(pluginId);
-  if(!plugins[pluginId]) {
+
+  if (!plugins[pluginId]) {
     return ERROR_MAIN_PLUGIN_OBJECT_NULL;
   }
 
-  int errorCode = plugins[pluginId]->load(filenameWP,configStr);
-  if(errorCode) {
+  int errorCode = plugins[pluginId]->load(filenameWP, configStr);
+
+  if (errorCode) {
     delete plugins[pluginId];
     plugins[pluginId] = NULL;
     return errorCode;
@@ -55,12 +58,12 @@ int reportPlugin(int pluginId) {
            __FUNCTION__,
            __LINE__,
            pluginId);
-  
-  if(pluginId < 0 || pluginId >= ECMC_MAX_PLUGINS){
+
+  if ((pluginId < 0) || (pluginId >= ECMC_MAX_PLUGINS)) {
     return ERROR_MAIN_PLUGIN_INDEX_OUT_OF_RANGE;
   }
 
-  if(!plugins[pluginId]) {
+  if (!plugins[pluginId]) {
     return ERROR_MAIN_PLUGIN_OBJECT_NULL;
   }
 
@@ -74,13 +77,14 @@ ecmcDataItem* getEcmcDataItem(char *idStringWP) {
            __FUNCTION__,
            __LINE__,
            idStringWP);
-  if(!asynPort) return NULL;
+
+  if (!asynPort)return NULL;
 
   return asynPort->findAvailDataItem(idStringWP);
 }
 
 void* getEcmcAsynPortDriver() {
-  return (void*)asynPort;
+  return (void *)asynPort;
 }
 
 double getEcmcSampleRate() {
@@ -88,6 +92,6 @@ double getEcmcSampleRate() {
 }
 
 double getEcmcSampleTimeMS() {
-  //mcuPeriod is in nano seconds
-  return mcuPeriod/1000;
+  // mcuPeriod is in nano seconds
+  return mcuPeriod / 1000;
 }

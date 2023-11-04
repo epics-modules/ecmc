@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcTrajectoryTrapetz.h
 *
@@ -41,68 +41,69 @@
  *
  */
 class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
- public:
+public:
   ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
                         double        sampleTime);
   ~ecmcTrajectoryTrapetz();
 
-   /** \brief Sets target velocity of trajectory (max velocity).
-   * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
-   */
-  void            setTargetVel(double velTarget);
-  
+  /** \brief Sets target velocity of trajectory (max velocity).
+  * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
+  */
+  void   setTargetVel(double velTarget);
+
   /// Sets acceleration.
-  void            setAcc(double acc);
+  void   setAcc(double acc);
 
   /// Sets deceleration.
-  void            setDec(double dec);
+  void   setDec(double dec);
 
   /** \brief Sets emergency deceleration.
    * Used for ramp down at hard limits.
    */
-  void            setEmergDec(double dec);
+  void   setEmergDec(double dec);
 
-  /** Currently not implemented (will be used when 
+  /** Currently not implemented (will be used when
    * s-shaped trajectory is implemented).
    */
-  void            setJerk(double jerk);
+  void   setJerk(double jerk);
 
   /// Sets target position (end position of trajectory).
-  void            setTargetPosLocal(double pos);
-  double          getCurrentPosSet();
+  void   setTargetPosLocal(double pos);
+  double getCurrentPosSet();
 
   /// Enable traj
-  void            setEnable(bool enable);
+  void   setEnable(bool enable);
 
   /// Sets position setpoint.
-  void            setCurrentPosSet(double posSet);
+  void   setCurrentPosSet(double posSet);
 
-  double          distToStop(double vel);
-  int             initStopRamp(double currentPos,
-                               double currentVel,
-                               double currentAcc);
- int             validate();
- private:
-  void            initVars();
-  void            initTraj();
-  double          internalTraj(double  *actVelocity,
-                               double  *actAcceleration,
-                               bool    *trajBusy);
-  double          moveVel(double currSetpoint,
-                          double prevStepSize,
-                          double stepNom,
-                          bool  *trajBusy);
-  double          movePos(double currSetpoint,
-                          double targetSetpoint,
-                          double stopDistance,
-                          double prevStepSize, // currVelo
-                          double stepNom,   //targetVelo
-                          bool  *trajBusy);
-  double          moveStop(stopMode stopMode,
-                           double   currSetpoint,
-                           double   prevStepSize,
-                           bool    *stopped,
-                           double  *velocity);
+  double distToStop(double vel);
+  int    initStopRamp(double currentPos,
+                      double currentVel,
+                      double currentAcc);
+  int    validate();
+
+private:
+  void   initVars();
+  void   initTraj();
+  double internalTraj(double *actVelocity,
+                      double *actAcceleration,
+                      bool   *trajBusy);
+  double moveVel(double currSetpoint,
+                 double prevStepSize,
+                 double stepNom,
+                 bool  *trajBusy);
+  double movePos(double currSetpoint,
+                 double targetSetpoint,
+                 double stopDistance,
+                 double prevStepSize,          // currVelo
+                 double stepNom,            // targetVelo
+                 bool  *trajBusy);
+  double moveStop(stopMode stopMode,
+                  double   currSetpoint,
+                  double   prevStepSize,
+                  bool    *stopped,
+                  double  *velocity);
 
   double stepACC_;
   double stepDEC_;
@@ -113,6 +114,6 @@ class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
   double stepStableTol_;
   double localCurrentPositionSetpoint_;
   double targetPositionLocal_;
-  bool   localBusy_;
+  bool localBusy_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYTRAPETZ_H_

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEncoder.h
 *
@@ -75,15 +75,16 @@ enum ecmcOverUnderFlowType {
 };
 
 class ecmcEncoder : public ecmcEcEntryLink {
- public:
+public:
   ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
-              ecmcAxisData *axisData,
-              double        sampleTime,
-              int index);
+              ecmcAxisData       *axisData,
+              double              sampleTime,
+              int                 index);
   ~ecmcEncoder();
   virtual void          errorReset();
   int                   setBits(int bits);
   int                   getBits();
+
   // Used for homing of partly absolute encoders (applied after raw mask)
   int                   setAbsBits(int absBits);
   int                   getAbsBits();
@@ -120,6 +121,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int                   setVeloFilterSize(size_t size);
   int                   setPosFilterSize(size_t size);
   int                   setPosFilterEnable(bool enable);
+
   // Ref this encoder to other encoder at startup (i.e ref relative encoder to abs at startup)
   int                   setRefToOtherEncAtStartup(int encIndex);
   int                   getRefToOtherEncAtStartup();
@@ -133,7 +135,7 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int                   hwReady();
   int                   setInvHwReady(int invert);
 
- protected:
+protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
   int                   countBitWidthOfMask(uint64_t mask,
@@ -143,13 +145,14 @@ class ecmcEncoder : public ecmcEcEntryLink {
                                             int64_t  rawTurns,
                                             uint64_t rawLimit,
                                             int      bits);
-  uint8_t              *getActPosPtr();
-  uint8_t              *getActVelPtr();
-  int                  initAsyn();
-  int                  readHwActPos(bool masterOK, bool domainOK);
-  int                  readHwWarningError(bool domainOK);
-  int                  readHwLatch(bool domainOK);
-  int                  readHwReady(bool domainOK);
+  uint8_t* getActPosPtr();
+  uint8_t* getActVelPtr();
+  int      initAsyn();
+  int      readHwActPos(bool masterOK,
+                        bool domainOK);
+  int      readHwWarningError(bool domainOK);
+  int      readHwLatch(bool domainOK);
+  int      readHwReady(bool domainOK);
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -215,13 +218,14 @@ class ecmcEncoder : public ecmcEcEntryLink {
   bool encInitilized_;
   bool hwSumAlarm_;
   bool hwSumAlarmOld_;
+
   // Asyn
-  ecmcAsynPortDriver     *asynPortDriver_;
-  ecmcAsynDataItem       *encPosAct_;
-  ecmcAsynDataItem       *encVelAct_;
+  ecmcAsynPortDriver *asynPortDriver_;
+  ecmcAsynDataItem *encPosAct_;
+  ecmcAsynDataItem *encVelAct_;
 
   int hwReadyInvert_;
-  int index_; //Index of this encoder (im axis object)
+  int index_; // Index of this encoder (im axis object)
 };
 
 #endif  /* ECMCENCODER_H_ */

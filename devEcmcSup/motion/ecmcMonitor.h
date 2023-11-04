@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcMonitor.h
 *
@@ -58,104 +58,112 @@ enum ecmcSwitchPolarity {
 };
 
 class ecmcMonitor : public ecmcEcEntryLink {
- public:
-  explicit ecmcMonitor(ecmcAxisData *axisData, 
+public:
+  explicit ecmcMonitor(ecmcAxisData *axisData,
                        ecmcEncoder **encArray);
-  //ecmcMonitor(ecmcAxisData *axisData,
+
+  // ecmcMonitor(ecmcAxisData *axisData,
   //            bool          enableAtTargetMon,
   //            bool          enableLagMon,
   //            ecmcEncoder **encArray);
-  void   initVars();
+  void               initVars();
   ~ecmcMonitor();
-  bool   getHardLimitFwd();
-  bool   getHardLimitBwd();
-  int    setAtTargetTol(double tol);
-  double getAtTargetTol();
-  int    setAtTargetTime(int time);
-  int    getAtTargetTime();
-  bool   getAtTarget();
-  void   setEnableAtTargetMon(bool enable);
-  bool   getEnableAtTargetMon();
-  int    setPosLagTol(double tol);
-  double getPosLagTol();
-  int    setPosLagTime(int time);
-  int    getPosLagTime();
-  void   setEnableLagMon(bool enable);
-  bool   getEnableLagMon();
-  bool   getHomeSwitch();
-  int    setMaxVel(double vel);
-  double getMaxVel(void);
-  int    setEnableMaxVelMon(bool enable);
-  bool   getEnableMaxVelMon();
-  int    setMaxVelDriveTime(int time);
-  int    setMaxVelTrajTime(int time);
-  int    setLatchAtLimit(bool latchOnLimit);
-  int    getLatchAtLimit();
-  double getCurrentPosSet();
-  void   execute();
-  void   readEntries();
-  void   setEnable(bool enable);
-  bool   getEnable();
-  int    validate();
-  int    reset();
-  void   errorReset();
-  int    setPLCInterlock(bool ilock,plcInterlockTypes type);
-  int    setEnableHardwareInterlock(bool enable);
-  int    setHardwareInterlockPolarity(ecmcSwitchPolarity pol);
-  int    setHardLimitBwdPolarity(ecmcSwitchPolarity pol);
-  int    setHardLimitFwdPolarity(ecmcSwitchPolarity pol);
-  int    setHomePolarity(ecmcSwitchPolarity pol);
+  bool               getHardLimitFwd();
+  bool               getHardLimitBwd();
+  int                setAtTargetTol(double tol);
+  double             getAtTargetTol();
+  int                setAtTargetTime(int time);
+  int                getAtTargetTime();
+  bool               getAtTarget();
+  void               setEnableAtTargetMon(bool enable);
+  bool               getEnableAtTargetMon();
+  int                setPosLagTol(double tol);
+  double             getPosLagTol();
+  int                setPosLagTime(int time);
+  int                getPosLagTime();
+  void               setEnableLagMon(bool enable);
+  bool               getEnableLagMon();
+  bool               getHomeSwitch();
+  int                setMaxVel(double vel);
+  double             getMaxVel(void);
+  int                setEnableMaxVelMon(bool enable);
+  bool               getEnableMaxVelMon();
+  int                setMaxVelDriveTime(int time);
+  int                setMaxVelTrajTime(int time);
+  int                setLatchAtLimit(bool latchOnLimit);
+  int                getLatchAtLimit();
+  double             getCurrentPosSet();
+  void               execute();
+  void               readEntries();
+  void               setEnable(bool enable);
+  bool               getEnable();
+  int                validate();
+  int                reset();
+  void               errorReset();
+  int                setPLCInterlock(bool              ilock,
+                                     plcInterlockTypes type);
+  int                setEnableHardwareInterlock(bool enable);
+  int                setHardwareInterlockPolarity(ecmcSwitchPolarity pol);
+  int                setHardLimitBwdPolarity(ecmcSwitchPolarity pol);
+  int                setHardLimitFwdPolarity(ecmcSwitchPolarity pol);
+  int                setHomePolarity(ecmcSwitchPolarity pol);
   ecmcSwitchPolarity getHardLimitBwdPolarity();
   ecmcSwitchPolarity getHardLimitFwdPolarity();
   ecmcSwitchPolarity getHomePolarity();
   ecmcSwitchPolarity getHardwareInterlockPolarity();
-  int    setCntrlOutputHL(double outputHL);
-  int    setEnableCntrlHLMon(bool enable);
-  bool   getEnableCntrlHLMon();
-  int    setEnableVelocityDiffMon(bool enable);
-  bool   getEnableVelocityDiffMon();
-  int    setVelDiffTimeTraj(int time);
-  int    setVelDiffTimeDrive(int time);
-  int    setVelDiffMaxDifference(double velo);
-  int    setEnableSoftLimitBwd(bool enable);
-  int    setEnableSoftLimitFwd(bool enable);
-  int    setEnableHardLimitBWDAlarm(bool enable);
-  int    setEnableHardLimitFWDAlarm(bool enable);
-  int    setSoftLimitBwd(double limit);
-  int    setSoftLimitFwd(double limit);
-  int    getEnableAlarmAtHardLimit();
-  double getSoftLimitBwd();
-  double getSoftLimitFwd();
-  bool   getEnableSoftLimitBwd();
-  bool   getEnableSoftLimitFwd();
-  bool   getAtSoftLimitBwd();
-  bool   getAtSoftLimitFwd();
-  int    setEnableSoftLimitAlarm(bool enable);
-  int    setEnableCheckEncsDiff(bool enable);
+  int                setCntrlOutputHL(double outputHL);
+  int                setEnableCntrlHLMon(bool enable);
+  bool               getEnableCntrlHLMon();
+  int                setEnableVelocityDiffMon(bool enable);
+  bool               getEnableVelocityDiffMon();
+  int                setVelDiffTimeTraj(int time);
+  int                setVelDiffTimeDrive(int time);
+  int                setVelDiffMaxDifference(double velo);
+  int                setEnableSoftLimitBwd(bool enable);
+  int                setEnableSoftLimitFwd(bool enable);
+  int                setEnableHardLimitBWDAlarm(bool enable);
+  int                setEnableHardLimitFWDAlarm(bool enable);
+  int                setSoftLimitBwd(double limit);
+  int                setSoftLimitFwd(double limit);
+  int                getEnableAlarmAtHardLimit();
+  double             getSoftLimitBwd();
+  double             getSoftLimitFwd();
+  bool               getEnableSoftLimitBwd();
+  bool               getEnableSoftLimitFwd();
+  bool               getAtSoftLimitBwd();
+  bool               getAtSoftLimitFwd();
+  int                setEnableSoftLimitAlarm(bool enable);
+  int                setEnableCheckEncsDiff(bool enable);
 
- private:
-  int    checkLimits();
-  int    checkAtTarget();
-  int    checkPositionLag();
-  int    checkEncoderDiff();
-  int    checkMaxVelocity();
-  int    checkVelocityDiff();
-  int    checkCntrlMaxOutput();
-  int    filterSwitches();
-  int    checkPolarity(ecmcSwitchPolarity pol);
+private:
+  int                checkLimits();
+  int                checkAtTarget();
+  int                checkPositionLag();
+  int                checkEncoderDiff();
+  int                checkMaxVelocity();
+  int                checkVelocityDiff();
+  int                checkCntrlMaxOutput();
+  int                filterSwitches();
+  int                checkPolarity(ecmcSwitchPolarity pol);
   bool enable_;
+
   // Tolnoerance for reached target. Example 0.1 deg
   double atTargetTol_;
+
   // Number of cycles the position error needs to be below dInTargetTol before
   // the bAtTarget bit goes high.
   int atTargetTime_;
+
   // Enable At target monitoring
   int enableAtTargetMon_;
+
   // Tolerance used during trajectory to monitor position lag. Example 0.1 deg
   double posLagTol_;
+
   // Number of cycles the position error needs to be above dPosLagTol
   // before the following error bit goes high.
   int posLagTime_;
+
   // Enable lag monitoring
   int enableLagMon_;
   int atTargetCounter_;
@@ -183,7 +191,7 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool limitFwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
-  bool latchOnLimit_;  //stop even if just bounce
+  bool latchOnLimit_;  // stop even if just bounce
   bool enableAlarmOnSofLimits_;
   interlockTypes interlockStatusOld_;
   ecmcSwitchPolarity hardwareInterlockPolarity_;

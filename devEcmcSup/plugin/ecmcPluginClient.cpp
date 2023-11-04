@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPlugin.cpp
 *
@@ -24,10 +24,10 @@ void* getEcmcDataItem(char *idStringWP) {
            __FUNCTION__,
            __LINE__,
            idStringWP);
-           
-  if(!asynPort) return NULL;
 
-  return (void*)asynPort->findAvailDataItem(idStringWP);
+  if (!asynPort)return NULL;
+
+  return (void *)asynPort->findAvailDataItem(idStringWP);
 }
 
 void* getEcmcAsynDataItem(char *idStringWP) {
@@ -37,9 +37,9 @@ void* getEcmcAsynDataItem(char *idStringWP) {
            __LINE__,
            idStringWP);
 
-  if(!asynPort) return NULL;
+  if (!asynPort)return NULL;
 
-  return (void*)asynPort->findAvailDataItem(idStringWP);
+  return (void *)asynPort->findAvailDataItem(idStringWP);
 }
 
 void* getEcmcAsynPortDriver() {
@@ -48,7 +48,7 @@ void* getEcmcAsynPortDriver() {
            __FUNCTION__,
            __LINE__);
 
-  return (void*)asynPort;
+  return (void *)asynPort;
 }
 
 double getEcmcSampleRate() {
@@ -61,14 +61,13 @@ double getEcmcSampleRate() {
 }
 
 double getEcmcSampleTimeMS() {
-  //mcuPeriod is in nano seconds
-  return mcuPeriod/1E6;
+  // mcuPeriod is in nano seconds
+  return mcuPeriod / 1E6;
 }
 
 int getEcmcEpicsIOCState() {
-  if(!asynPort) {
+  if (!asynPort) {
     return -1;
   }
   return asynPort->getEpicsState();
 }
- 

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPLCTask.cpp
 *
@@ -18,17 +18,17 @@
 #include "ecmcPLCTask_libFileIO.inc"
 #include "ecmcPLCTask_libMisc.inc"
 
-#define ecmcPLCTaskAddFunction(cmd, func) {          \
-    errorCode = exprtk_->addFunction(cmd, func); \
-    cmdCounter++;                                \
-    if (errorCode) {                             \
-      return errorCode;                          \
-    }                                            \
-}                                                \
+#define ecmcPLCTaskAddFunction(cmd, func) {\
+          errorCode = exprtk_->addFunction(cmd, func);\
+          cmdCounter++;\
+          if (errorCode) {\
+            return errorCode;\
+          }\
+}\
 
-ecmcPLCTask::ecmcPLCTask(int plcIndex, 
-                         int skipCycles,
-                         double mcuFreq,
+ecmcPLCTask::ecmcPLCTask(int                 plcIndex,
+                         int                 skipCycles,
+                         double              mcuFreq,
                          ecmcAsynPortDriver *asynPortDriver) {
   initVars();
   plcIndex_          = plcIndex;
@@ -58,25 +58,27 @@ void ecmcPLCTask::initVars() {
   inStartup_           = 1;
   skipCycles_          = 0;
   skipCyclesCounter_   = 0;
-  plcScanTimeInSecs_   = 0;  
+  plcScanTimeInSecs_   = 0;
+
   for (int i = 0; i < ECMC_MAX_PLC_VARIABLES; i++) {
-    globalArray_[i]      = NULL;
-    localArray_[i]       = NULL;
+    globalArray_[i] = NULL;
+    localArray_[i]  = NULL;
   }
+
   for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
-    plugins_[i] = 0;
+    plugins_[i]          = 0;
     libPluginsLoaded_[i] = 0;
   }
-  firstScanDone_       = 0;
-  libMcLoaded_         = 0;
-  libEcLoaded_         = 0;
-  libDsLoaded_         = 0;
-  libFileIOLoaded_     = 0;
-  libMiscLoaded_       = 0;
-  asynPortDriver_      = 0;
-  newExpr_             = 0;
-  mcuFreq_             = MCU_FREQUENCY;
-  asynParamExpr_       = NULL;
+  firstScanDone_   = 0;
+  libMcLoaded_     = 0;
+  libEcLoaded_     = 0;
+  libDsLoaded_     = 0;
+  libFileIOLoaded_ = 0;
+  libMiscLoaded_   = 0;
+  asynPortDriver_  = 0;
+  newExpr_         = 0;
+  mcuFreq_         = MCU_FREQUENCY;
+  asynParamExpr_   = NULL;
 }
 
 int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
@@ -101,7 +103,7 @@ int ecmcPLCTask::addAndRegisterLocalVar(char *localVarStr) {
   }
 
   localArray_[localVariableCount_] = new ecmcPLCDataIF(plcIndex_,
-                                                       plcScanTimeInSecs_*1000,
+                                                       plcScanTimeInSecs_ * 1000,
                                                        localVarStr,
                                                        ECMC_RECORDER_SOURCE_STATIC_VAR,
                                                        asynPortDriver_);
@@ -156,8 +158,8 @@ int ecmcPLCTask::compile() {
                       ERROR_PLC_COMPILE_ERROR);
   }
 
-  compiled_ = true;
-  newExpr_  = false;
+  compiled_   = true;
+  newExpr_    = false;
   exprStrRaw_ = "";
   return 0;
 }
@@ -211,6 +213,7 @@ int ecmcPLCTask::execute(bool ecOK) {
   for (int i = 0; i < globalVariableCount_; i++) {
     if (globalArray_[i]) {
       globalArray_[i]->write();
+
       // Update globals "centrally2 in ecmcPLCMain
       // to get asyn sample rate correct.
     }
@@ -229,10 +232,10 @@ std::string * ecmcPLCTask::getRawExpr() {
   return &exprStrRaw_;
 }
 
-int ecmcPLCTask::appendRawExpr(const char *exprStr) {  
+int ecmcPLCTask::appendRawExpr(const char *exprStr) {
   try {
     exprStrRaw_ += exprStr;
-    exprStrRaw_ += "\n";  //Add Enter
+    exprStrRaw_ += "\n";  // Add Enter
   }
   catch (const std::exception& e) {
     LOGERR("%s/%s:%d: Append of expression line failed: %s (0x%x).\n",
@@ -273,12 +276,12 @@ int ecmcPLCTask::addExprLine(const char *exprStr) {
 }
 
 int ecmcPLCTask::clearRawExpr() {
-  exprStrRaw_  = "";
+  exprStrRaw_ = "";
   return 0;
 }
 
 int ecmcPLCTask::clearExpr() {
-  exprStr_  = "";
+  exprStr_ = "";
   updateAsyn();
   compiled_ = false;
 
@@ -319,7 +322,7 @@ int ecmcPLCTask::globalVarExist(const char *varName) {
 }
 
 int ecmcPLCTask::validate() {
-  if(exprStr_.length()==0) {
+  if (exprStr_.length() == 0) {
     return 0;  // Not used.. return OK
   }
 
@@ -523,6 +526,7 @@ int ecmcPLCTask::parseFunctions(const char *exprStr) {
   if (!libFileIOLoaded_) {
     if (findFileIOFunction(exprStr)) {
       errorCode = loadFileIOLib();
+
       if (errorCode) {
         return errorCode;
       }
@@ -533,21 +537,23 @@ int ecmcPLCTask::parseFunctions(const char *exprStr) {
   if (!libMiscLoaded_) {
     if (findMiscFunction(exprStr)) {
       errorCode = loadMiscLib();
+
       if (errorCode) {
         return errorCode;
       }
     }
   }
 
-  for(int i = 0; i < ECMC_MAX_PLUGINS; ++i) {
-    if(!libPluginsLoaded_[i]) {
-      if (findPluginFunction(plugins_[i] ,exprStr) || 
-          findPluginConstant(plugins_[i] ,exprStr) ) {
+  for (int i = 0; i < ECMC_MAX_PLUGINS; ++i) {
+    if (!libPluginsLoaded_[i]) {
+      if (findPluginFunction(plugins_[i], exprStr) ||
+          findPluginConstant(plugins_[i], exprStr)) {
         errorCode = loadPluginLib(plugins_[i]);
+
         if (errorCode) {
           return errorCode;
         }
-        libPluginsLoaded_[i]=1;
+        libPluginsLoaded_[i] = 1;
       }
     }
   }
@@ -600,23 +606,26 @@ bool ecmcPLCTask::findMiscFunction(const char *exprStr) {
   return false;
 }
 
-bool ecmcPLCTask::findPluginFunction(ecmcPluginLib* plugin, const char *exprStr){
+bool ecmcPLCTask::findPluginFunction(ecmcPluginLib *plugin,
+                                     const char    *exprStr) {
+  if (!plugin) {
+    return 0;
+  }
+  ecmcPluginData *data = plugin->getData();
 
- if(!plugin){
+  if (data == NULL) {
     return 0;
   }
-  ecmcPluginData *data = plugin->getData(); 
-  if(data == NULL){
-    return 0;
-  }
+
   // Loop funcs[]
-  for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
+  for (int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i) {
     int argCount = plugin->findArgCount(data->funcs[i]);
-    if(!data->funcs[i].funcName || 
-        strlen(data->funcs[i].funcName) == 0 ||
-        ((argCount < 0 || 
-        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT) &&
-        data->funcs[i].funcGenericObj==NULL)){
+
+    if (!data->funcs[i].funcName ||
+        (strlen(data->funcs[i].funcName) == 0) ||
+        ((argCount<0 ||
+                   argCount>ECMC_PLUGIN_MAX_PLC_ARG_COUNT) &&
+         (data->funcs[i].funcGenericObj == NULL))) {
       break;
     }
 
@@ -628,20 +637,21 @@ bool ecmcPLCTask::findPluginFunction(ecmcPluginLib* plugin, const char *exprStr)
   return false;
 }
 
-bool ecmcPLCTask::findPluginConstant(ecmcPluginLib* plugin, const char *exprStr){
+bool ecmcPLCTask::findPluginConstant(ecmcPluginLib *plugin,
+                                     const char    *exprStr) {
+  if (!plugin) {
+    return 0;
+  }
+  ecmcPluginData *data = plugin->getData();
 
- if(!plugin){
+  if (data == NULL) {
     return 0;
   }
-  ecmcPluginData *data = plugin->getData(); 
-  if(data == NULL){
-    return 0;
-  }
+
   // Loop consts[]
-  for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
-
-    if(!data->consts[i].constName || 
-        strlen(data->consts[i].constName) == 0){
+  for (int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i) {
+    if (!data->consts[i].constName ||
+        (strlen(data->consts[i].constName) == 0)) {
       break;
     }
 
@@ -653,80 +663,107 @@ bool ecmcPLCTask::findPluginConstant(ecmcPluginLib* plugin, const char *exprStr)
   return false;
 }
 
-int ecmcPLCTask::loadPluginLib(ecmcPluginLib* plugin){
-  int errorCode = 0;
+int ecmcPLCTask::loadPluginLib(ecmcPluginLib *plugin) {
+  int errorCode  = 0;
   int cmdCounter = 0;
 
-  if(!plugin){
+  if (!plugin) {
     return 0;
   }
-  ecmcPluginData *data = plugin->getData(); 
-  if(data == NULL){
+  ecmcPluginData *data = plugin->getData();
+
+  if (data == NULL) {
     return 0;
   }
 
-  for(int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i){
+  for (int i = 0; i < ECMC_PLUGIN_MAX_PLC_FUNC_COUNT; ++i) {
     int argCount = plugin->findArgCount(data->funcs[i]);
-    if(!data->funcs[i].funcName || 
-        strlen(data->funcs[i].funcName) == 0 ||
-        ((argCount < 0 || 
-        argCount > ECMC_PLUGIN_MAX_PLC_ARG_COUNT) &&
-        data->funcs[i].funcGenericObj==NULL)){
+
+    if (!data->funcs[i].funcName ||
+        (strlen(data->funcs[i].funcName) == 0) ||
+        ((argCount<0 ||
+                   argCount>ECMC_PLUGIN_MAX_PLC_ARG_COUNT) &&
+         (data->funcs[i].funcGenericObj == NULL))) {
       break;
     }
 
-    if(data->funcs[i].funcGenericObj && strlen(data->funcs[i].funcName) > 0) {      
-      // load generic_function_t generic func object (allow strings)    
-      ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcGenericObj);
-    }
-    else {
-      switch(argCount) {
-        case 0:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg0);
-          break;
-        case 1:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg1);
-          break;
-        case 2:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg2);
-          break;
-        case 3:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg3);
-          break;
-        case 4:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg4);
-          break;
-        case 5:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg5);
-          break;
-        case 6:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg6);
-          break;
-        case 7:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg7);
-          break;
-        case 8:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg8);
-          break;
-        case 9:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg9);
-          break;
-        case 10:
-          ecmcPLCTaskAddFunction(data->funcs[i].funcName,data->funcs[i].funcArg10);
-          break;
-        default:
-          break;
+    if (data->funcs[i].funcGenericObj &&
+        (strlen(data->funcs[i].funcName) > 0)) {
+      // load generic_function_t generic func object (allow strings)
+      ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                             data->funcs[i].funcGenericObj);
+    } else {
+      switch (argCount) {
+      case 0:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg0);
+        break;
+
+      case 1:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg1);
+        break;
+
+      case 2:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg2);
+        break;
+
+      case 3:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg3);
+        break;
+
+      case 4:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg4);
+        break;
+
+      case 5:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg5);
+        break;
+
+      case 6:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg6);
+        break;
+
+      case 7:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg7);
+        break;
+
+      case 8:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg8);
+        break;
+
+      case 9:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg9);
+        break;
+
+      case 10:
+        ecmcPLCTaskAddFunction(data->funcs[i].funcName,
+                               data->funcs[i].funcArg10);
+        break;
+
+      default:
+        break;
       }
-    } 
+    }
   }
 
   // Load constants
-  for(int i=0;i<ECMC_PLUGIN_MAX_PLC_CONST_COUNT;++i){
-    if(!data->consts[i].constName || 
-        strlen(data->consts[i].constName) == 0){
+  for (int i = 0; i < ECMC_PLUGIN_MAX_PLC_CONST_COUNT; ++i) {
+    if (!data->consts[i].constName ||
+        (strlen(data->consts[i].constName) == 0)) {
       break;
     }
-    errorCode = exprtk_->addConstant(data->consts[i].constName,data->consts[i].constValue);
+    errorCode = exprtk_->addConstant(data->consts[i].constName,
+                                     data->consts[i].constValue);
+
     if (errorCode) {
       return errorCode;
     }
@@ -739,34 +776,40 @@ int ecmcPLCTask::loadEcLib() {
   int errorCode  = 0;
   int cmdCounter = 0;
 
-  ecmcPLCTaskAddFunction("ec_set_bit",     ec_set_bit);
-  ecmcPLCTaskAddFunction("ec_clr_bit",     ec_clr_bit);
-  ecmcPLCTaskAddFunction("ec_flp_bit",     ec_flp_bit);
-  ecmcPLCTaskAddFunction("ec_chk_bit",     ec_chk_bit);
-  ecmcPLCTaskAddFunction("ec_print_hex",   ec_print_hex);
-  ecmcPLCTaskAddFunction("ec_print_bin",   ec_print_bin);
-  ecmcPLCTaskAddFunction("ec_get_err",     ec_get_err);
-  ecmcPLCTaskAddFunction("ec_wrt_bit",     ec_wrt_bit);
-  ecmcPLCTaskAddFunction("ec_mm_cp",       ec_mm_cp);
-  ecmcPLCTaskAddFunction("ec_err_rst",     ec_err_rst);
-  ecmcPLCTaskAddFunction("ec_wrt_bits",    ec_wrt_bits);
-  ecmcPLCTaskAddFunction("ec_chk_bits",    ec_chk_bits);
-  ecmcPLCTaskAddFunction("ec_get_time",    ec_get_time);
-  ecmcPLCTaskAddFunction("ec_get_mm_type", ec_get_mm_type);
-  ecmcPLCTaskAddFunction("ec_get_mm_data", ec_get_mm_data);
-  ecmcPLCTaskAddFunction("ec_set_mm_data", ec_set_mm_data);
-  ecmcPLCTaskAddFunction("ec_get_mm_size", ec_get_mm_size);
+  ecmcPLCTaskAddFunction("ec_set_bit",      ec_set_bit);
+  ecmcPLCTaskAddFunction("ec_clr_bit",      ec_clr_bit);
+  ecmcPLCTaskAddFunction("ec_flp_bit",      ec_flp_bit);
+  ecmcPLCTaskAddFunction("ec_chk_bit",      ec_chk_bit);
+  ecmcPLCTaskAddFunction("ec_print_hex",    ec_print_hex);
+  ecmcPLCTaskAddFunction("ec_print_bin",    ec_print_bin);
+  ecmcPLCTaskAddFunction("ec_get_err",      ec_get_err);
+  ecmcPLCTaskAddFunction("ec_wrt_bit",      ec_wrt_bit);
+  ecmcPLCTaskAddFunction("ec_mm_cp",        ec_mm_cp);
+  ecmcPLCTaskAddFunction("ec_err_rst",      ec_err_rst);
+  ecmcPLCTaskAddFunction("ec_wrt_bits",     ec_wrt_bits);
+  ecmcPLCTaskAddFunction("ec_chk_bits",     ec_chk_bits);
+  ecmcPLCTaskAddFunction("ec_get_time",     ec_get_time);
+  ecmcPLCTaskAddFunction("ec_get_mm_type",  ec_get_mm_type);
+  ecmcPLCTaskAddFunction("ec_get_mm_data",  ec_get_mm_data);
+  ecmcPLCTaskAddFunction("ec_set_mm_data",  ec_set_mm_data);
+  ecmcPLCTaskAddFunction("ec_get_mm_size",  ec_get_mm_size);
   ecmcPLCTaskAddFunction("ec_get_time_l32", ec_get_time_l32);
   ecmcPLCTaskAddFunction("ec_get_time_u32", ec_get_time_u32);
-  ecmcPLCTaskAddFunction("ec_mm_append_to_ds", ec_mm_append_to_ds);
-  ecmcPLCTaskAddFunction("ec_mm_append_to_ds_scale_offset", ec_mm_append_to_ds_scale_offset);
+  ecmcPLCTaskAddFunction("ec_mm_append_to_ds",
+                         ec_mm_append_to_ds);
+  ecmcPLCTaskAddFunction("ec_mm_append_to_ds_scale_offset",
+                         ec_mm_append_to_ds_scale_offset);
   ecmcPLCTaskAddFunction("ec_mm_push_asyn", ec_mm_push_asyn);
-  ecmcPLCTaskAddFunction("ec_get_time_local_nsec", ec_get_time_local_nsec);
-  ecmcPLCTaskAddFunction("ec_get_time_local_sec", ec_get_time_local_sec);
-  ecmcPLCTaskAddFunction("ec_get_time_local_min", ec_get_time_local_min);
-  ecmcPLCTaskAddFunction("ec_get_time_local_hour", ec_get_time_local_hour);
+  ecmcPLCTaskAddFunction("ec_get_time_local_nsec",
+                         ec_get_time_local_nsec);
+  ecmcPLCTaskAddFunction("ec_get_time_local_sec",
+                         ec_get_time_local_sec);
+  ecmcPLCTaskAddFunction("ec_get_time_local_min",
+                         ec_get_time_local_min);
+  ecmcPLCTaskAddFunction("ec_get_time_local_hour",
+                         ec_get_time_local_hour);
   ecmcPLCTaskAddFunction("ec_get_dom_state", ec_get_dom_state);
-  
+
   if (ec_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib EC command count missmatch (0x%x).\n",
            __FILE__,
@@ -797,7 +840,8 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_get_busy",     mc_get_busy);
   ecmcPLCTaskAddFunction("mc_get_homed",    mc_get_homed);
   ecmcPLCTaskAddFunction("mc_get_axis_err", mc_get_axis_err);
-  ecmcPLCTaskAddFunction("mc_set_enable_motion_funcs", mc_set_enable_motion_funcs);
+  ecmcPLCTaskAddFunction("mc_set_enable_motion_funcs",
+                         mc_set_enable_motion_funcs);
   ecmcPLCTaskAddFunction("mc_move_ext_pos", mc_move_ext_pos);
   ecmcPLCTaskAddFunction("mc_home_pos",     mc_home_pos);
   ecmcPLCTaskAddFunction("mc_get_act_pos",  mc_get_act_pos);
@@ -805,7 +849,7 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_get_prim_enc", mc_get_prim_enc);
   ecmcPLCTaskAddFunction("mc_set_home_enc", mc_set_home_enc);
   ecmcPLCTaskAddFunction("mc_get_home_enc", mc_get_home_enc);
-  
+
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",
            __FILE__,
@@ -825,23 +869,23 @@ int ecmcPLCTask::loadDsLib() {
   int errorCode  = 0;
   int cmdCounter = 0;
 
-  ecmcPLCTaskAddFunction("ds_append_data", ds_append_data);
-  ecmcPLCTaskAddFunction("ds_clear_data",  ds_clear_data);
-  ecmcPLCTaskAddFunction("ds_get_data",    ds_get_data);
-  ecmcPLCTaskAddFunction("ds_set_data",    ds_set_data);
-  ecmcPLCTaskAddFunction("ds_get_buff_id", ds_get_buff_id);
-  ecmcPLCTaskAddFunction("ds_set_buff_id", ds_set_buff_id);
-  ecmcPLCTaskAddFunction("ds_get_err",     ds_get_err);
-  ecmcPLCTaskAddFunction("ds_is_full",     ds_is_full);
-  ecmcPLCTaskAddFunction("ds_get_size",    ds_get_size);
-  ecmcPLCTaskAddFunction("ds_push_asyn",   ds_push_asyn);
-  ecmcPLCTaskAddFunction("ds_get_avg",     ds_get_avg);
-  ecmcPLCTaskAddFunction("ds_get_min",     ds_get_min);
-  ecmcPLCTaskAddFunction("ds_get_max",     ds_get_max);
-  ecmcPLCTaskAddFunction("ds_err_rst",     ds_err_rst);
-  ecmcPLCTaskAddFunction("ds_append_to_ds",ds_append_to_ds);
-  
-  
+  ecmcPLCTaskAddFunction("ds_append_data",  ds_append_data);
+  ecmcPLCTaskAddFunction("ds_clear_data",   ds_clear_data);
+  ecmcPLCTaskAddFunction("ds_get_data",     ds_get_data);
+  ecmcPLCTaskAddFunction("ds_set_data",     ds_set_data);
+  ecmcPLCTaskAddFunction("ds_get_buff_id",  ds_get_buff_id);
+  ecmcPLCTaskAddFunction("ds_set_buff_id",  ds_set_buff_id);
+  ecmcPLCTaskAddFunction("ds_get_err",      ds_get_err);
+  ecmcPLCTaskAddFunction("ds_is_full",      ds_is_full);
+  ecmcPLCTaskAddFunction("ds_get_size",     ds_get_size);
+  ecmcPLCTaskAddFunction("ds_push_asyn",    ds_push_asyn);
+  ecmcPLCTaskAddFunction("ds_get_avg",      ds_get_avg);
+  ecmcPLCTaskAddFunction("ds_get_min",      ds_get_min);
+  ecmcPLCTaskAddFunction("ds_get_max",      ds_get_max);
+  ecmcPLCTaskAddFunction("ds_err_rst",      ds_err_rst);
+  ecmcPLCTaskAddFunction("ds_append_to_ds", ds_append_to_ds);
+
+
   if (ds_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",
            __FILE__,
@@ -861,12 +905,12 @@ int ecmcPLCTask::loadMiscLib() {
   int errorCode  = 0;
   int cmdCounter = 0;
 
-  ecmcPLCTaskAddFunction("m2m_write",   m2m_write);
-  ecmcPLCTaskAddFunction("m2m_read",    m2m_read);
-  ecmcPLCTaskAddFunction("m2m_stat",    m2m_stat);
-  ecmcPLCTaskAddFunction("m2m_err_rst", m2m_err_rst);
-  ecmcPLCTaskAddFunction("m2m_get_err", m2m_get_err);
-  ecmcPLCTaskAddFunction("m2m_ioc_run", m2m_ioc_run);
+  ecmcPLCTaskAddFunction("m2m_write",     m2m_write);
+  ecmcPLCTaskAddFunction("m2m_read",      m2m_read);
+  ecmcPLCTaskAddFunction("m2m_stat",      m2m_stat);
+  ecmcPLCTaskAddFunction("m2m_err_rst",   m2m_err_rst);
+  ecmcPLCTaskAddFunction("m2m_get_err",   m2m_get_err);
+  ecmcPLCTaskAddFunction("m2m_ioc_run",   m2m_ioc_run);
   ecmcPLCTaskAddFunction("m2m_ioc_ec_ok", m2m_ioc_ec_ok);
 
   if (misc_cmd_count != cmdCounter) {
@@ -942,20 +986,19 @@ int ecmcPLCTask::findLocalVar(const char *varName, ecmcPLCDataIF **outDataIF) {
   return ERROR_PLC_VARIABLE_NOT_FOUND;
 }
 
-//Check if new expression is loaded after compile
+// Check if new expression is loaded after compile
 int ecmcPLCTask::getNewExpr() {
   return newExpr_;
 }
 
 int ecmcPLCTask::initAsyn(int plcIndex) {
-  
-  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];  
-  char *name = buffer;
-  ecmcAsynDataItem *paramTemp=NULL;
-  int chars = 0;
+  char  buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name                  = buffer;
+  ecmcAsynDataItem *paramTemp = NULL;
+  int chars                   = 0;
 
-  // ECMC_PLC_EXPR_STR  
-   if(plcIndex < ECMC_MAX_PLCS){
+  // ECMC_PLC_EXPR_STR
+  if (plcIndex < ECMC_MAX_PLCS) {
     chars = snprintf(name,
                      EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
                      ECMC_PLC_DATA_STR "%d." ECMC_PLC_EXPR_STR,
@@ -967,12 +1010,11 @@ int ecmcPLCTask::initAsyn(int plcIndex) {
                         __LINE__,
                         ERROR_PLC_VARIABLE_NAME_TO_LONG);
     }
-  }
-  else {  // Axis PLC
+  } else {   // Axis PLC
     chars = snprintf(name,
                      EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
                      ECMC_AX_STR "%d." ECMC_PLC_DATA_STR "." ECMC_PLC_EXPR_STR,
-                     plcIndex-ECMC_MAX_PLCS);
+                     plcIndex - ECMC_MAX_PLCS);
 
     if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
       return setErrorID(__FILE__,
@@ -983,13 +1025,14 @@ int ecmcPLCTask::initAsyn(int plcIndex) {
   }
 
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt8Array,
-                                         (uint8_t *)exprStr_.c_str(),
-                                         strlen(exprStr_.c_str()),
-                                         ECMC_EC_S8,
-                                         plcScanTimeInSecs_*1000, //milliseconds
-                                         0);
-  if(!paramTemp) {
+                                                asynParamInt8Array,
+                                                (uint8_t *)exprStr_.c_str(),
+                                                strlen(exprStr_.c_str()),
+                                                ECMC_EC_S8,
+                                                plcScanTimeInSecs_ * 1000, // milliseconds
+                                                0);
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
@@ -997,22 +1040,23 @@ int ecmcPLCTask::initAsyn(int plcIndex) {
       __LINE__,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }  
+  }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->setArrayCheckSize(false);
-  paramTemp->refreshParam(1,(uint8_t*)exprStr_.c_str(),strlen(exprStr_.c_str()));
-  
-  asynParamExpr_ = paramTemp;  
+  paramTemp->refreshParam(1, (uint8_t *)exprStr_.c_str(),
+                          strlen(exprStr_.c_str()));
+
+  asynParamExpr_ = paramTemp;
   return 0;
 }
 
 void ecmcPLCTask::updateAsyn() {
-  asynParamExpr_->refreshParam(1,(uint8_t*)exprStr_.c_str(),strlen(exprStr_.c_str()));
+  asynParamExpr_->refreshParam(1, (uint8_t *)exprStr_.c_str(),
+                               strlen(exprStr_.c_str()));
 }
 
 int ecmcPLCTask::setPluginPointer(ecmcPluginLib *plugin, int index) {
-  
-  if(index < 0 && index >= ECMC_MAX_PLUGINS) {
+  if ((index < 0) && (index >= ECMC_MAX_PLUGINS)) {
     return ERROR_PLC_PLUGIN_INDEX_OUT_OF_RANGE;
   }
 

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDataItem.cpp
 *
@@ -14,18 +14,19 @@
 #include "string.h"
 
 ecmcDataItem::ecmcDataItem(const char *name) {
-  memset(&dataItem_,0,sizeof(dataItem_));
-  for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
+  memset(&dataItem_, 0, sizeof(dataItem_));
+
+  for (int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
     callbackFuncs_[i] = NULL;
     callbackObjs_[i]  = NULL;
-  }  
-  callbackFuncsMaxIndex_ = 0;
-  checkIntRange_         = 0;
-  intMax_                = 0;
-  intMin_                = 0;
-  arrayCheckSize_        = 0;
-  ecmcMaxSize_           = 0;
-  dataItem_.name         = strdup(name);
+  }
+  callbackFuncsMaxIndex_     = 0;
+  checkIntRange_             = 0;
+  intMax_                    = 0;
+  intMin_                    = 0;
+  arrayCheckSize_            = 0;
+  ecmcMaxSize_               = 0;
+  dataItem_.name             = strdup(name);
   dataItem_.dataUpdateRateMs = -1;
 }
 
@@ -35,7 +36,7 @@ ecmcDataItem::~ecmcDataItem() {
 
 void ecmcDataItem::setEcmcMaxValueInt(int64_t intMax) {
   checkIntRange_ = 1;
-  intMax_        = intMax;  
+  intMax_        = intMax;
 }
 
 void ecmcDataItem::setEcmcMinValueInt(int64_t intMin) {
@@ -44,10 +45,10 @@ void ecmcDataItem::setEcmcMinValueInt(int64_t intMin) {
 }
 
 void ecmcDataItem::setEcmcBitCount(size_t bits) {
-   dataItem_.dataBitCount = bits;
+  dataItem_.dataBitCount = bits;
 }
 
-int64_t ecmcDataItem::getEcmcMaxValueInt() {  
+int64_t ecmcDataItem::getEcmcMaxValueInt() {
   return intMax_;
 }
 
@@ -73,7 +74,7 @@ void ecmcDataItem::setArrayCheckSize(bool check) {
 
 bool ecmcDataItem::getArrayCheckSize() {
   return arrayCheckSize_;
-}  
+}
 
 void ecmcDataItem::setEcmcDataType(ecmcEcDataType dt) {
   dataItem_.dataType = dt;
@@ -83,11 +84,10 @@ ecmcEcDataType ecmcDataItem::getEcmcDataType() {
   return dataItem_.dataType;
 }
 
-int ecmcDataItem::setEcmcDataPointer(uint8_t *data,size_t bytes)
-{
-  dataItem_.data     = data;
-  dataItem_.dataSize = bytes;
-  ecmcMaxSize_       = bytes;
+int ecmcDataItem::setEcmcDataPointer(uint8_t *data, size_t bytes) {
+  dataItem_.data             = data;
+  dataItem_.dataSize         = bytes;
+  ecmcMaxSize_               = bytes;
   dataItem_.dataPointerValid = 1;
   return 0;
 }
@@ -96,14 +96,14 @@ int ecmcDataItem::getEcmcDataPointerValid() {
   return dataItem_.dataPointerValid;
 }
 
-ecmcDataItemInfo *ecmcDataItem::getDataItemInfo() {
+ecmcDataItemInfo * ecmcDataItem::getDataItemInfo() {
   return &dataItem_;
 }
 
 void ecmcDataItem::setEcmcDataSize(size_t bytes) {
   dataItem_.dataSize = bytes;
 }
-  
+
 size_t ecmcDataItem::getEcmcDataSize() {
   return dataItem_.dataSize;
 }
@@ -111,7 +111,7 @@ size_t ecmcDataItem::getEcmcDataSize() {
 void ecmcDataItem::setEcmcDataElementSize(size_t bytes) {
   dataItem_.dataElementSize = bytes;
 }
-  
+
 size_t ecmcDataItem::getEcmcDataElementSize() {
   return dataItem_.dataElementSize;
 }
@@ -125,18 +125,18 @@ size_t ecmcDataItem::getEcmcDataMaxSize() {
 }
 
 void ecmcDataItem::refresh() {
-   //call callbacks to subscribers here
-  for(int i = 0; i <= callbackFuncsMaxIndex_; ++i) {
-    if(callbackFuncs_[i]) {
+  // call callbacks to subscribers here
+  for (int i = 0; i <= callbackFuncsMaxIndex_; ++i) {
+    if (callbackFuncs_[i]) {
       callbackFuncs_[i](dataItem_.data,
-                       dataItem_.dataSize,
-                       dataItem_.dataType,
-                       callbackObjs_[i]);
+                        dataItem_.dataSize,
+                        dataItem_.dataType,
+                        callbackObjs_[i]);
     }
   }
 }
 
-char *ecmcDataItem::getName() {  
+char * ecmcDataItem::getName() {
   return dataItem_.name;
 }
 
@@ -148,7 +148,7 @@ int ecmcDataItem::write(uint8_t *data,
 
 int ecmcDataItem::read(uint8_t *data,
                        size_t   bytes) {
-  memcpy(data, dataItem_.data, bytes);  
+  memcpy(data, dataItem_.data, bytes);
   return 0;
 }
 
@@ -156,37 +156,38 @@ int ecmcDataItem::read(uint8_t *data,
 * Register data updated callback
 * Return handle if success (to be used if deregister) otherwise -1
 */
-int ecmcDataItem::regDataUpdatedCallback(ecmcDataUpdatedCallback func, void* callingObj) {
+int ecmcDataItem::regDataUpdatedCallback(ecmcDataUpdatedCallback func,
+                                         void                   *callingObj) {
   // Add to first avilable element
-  for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
-    if(!callbackFuncs_[i]) {
+  for (int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
+    if (!callbackFuncs_[i]) {
       callbackFuncs_[i] = func;
-      callbackObjs_[i] = callingObj;
-      if(i > callbackFuncsMaxIndex_) {
+      callbackObjs_[i]  = callingObj;
+
+      if (i > callbackFuncsMaxIndex_) {
         callbackFuncsMaxIndex_ = i;
       }
       return i;
-    }    
-  } 
+    }
+  }
 
   return -1;
 }
 
 /**
-* Deregister data updated callback by handle 
+* Deregister data updated callback by handle
 * (retuned by regDataUpdatedCallback())
 */
 void ecmcDataItem::deregDataUpdatedCallback(int handle) {
-
-  if(callbackFuncs_[handle]) {
+  if (callbackFuncs_[handle]) {
     callbackFuncs_[handle] = NULL;
-    callbackObjs_[handle] = NULL;
+    callbackObjs_[handle]  = NULL;
   }
 
   // find highest assigned index (update callbackFuncsMaxIndex_)
-  for(int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
-    if(callbackFuncs_[i]) {
+  for (int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
+    if (callbackFuncs_[i]) {
       callbackFuncsMaxIndex_ = i;
-    }    
+    }
   }
 }

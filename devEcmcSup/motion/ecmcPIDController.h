@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPIDController.h
 *
@@ -25,25 +25,25 @@
 #define ERROR_CNTRL_INVALID_SAMPLE_TIME 0x15000
 
 class ecmcPIDController : public ecmcError {
- public:
+public:
   ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
-                    ecmcAxisData *axisData,
-                    double        sampleTime);
+                    ecmcAxisData       *axisData,
+                    double              sampleTime);
   ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
-                    ecmcAxisData *axisData,
-                    double        kp,
-                    double        ki,
-                    double        kd,
-                    double        kff,
-                    double        sampleTime,
-                    double        outMax,
-                    double        outMin);
+                    ecmcAxisData       *axisData,
+                    double              kp,
+                    double              ki,
+                    double              kd,
+                    double              kff,
+                    double              sampleTime,
+                    double              outMax,
+                    double              outMin);
   ~ecmcPIDController();
   void   initVars();
   void   reset();
   void   setIRange(double iMax,
                    double iMin);
-  double control(double posError,                
+  double control(double posError,
                  double ff);
   double getOutPPart();
   double getOutIPart();
@@ -54,8 +54,12 @@ class ecmcPIDController : public ecmcError {
   void   setKi(double ki);
   void   setKd(double kd);
   void   setKff(double kff);
+
   //  pid parameters for when within abs(actpos-targetpos)<innerTol_
-  void   setInnerCtrlParams(double kp,double ki, double kd, double tol);
+  void   setInnerCtrlParams(double kp,
+                            double ki,
+                            double kd,
+                            double tol);
   double getKp();
   double getKi();
   double getKd();
@@ -66,12 +70,14 @@ class ecmcPIDController : public ecmcError {
   void   setIOutMin(double outMin);
   int    validate();
 
- private:
+private:
   int    initAsyn();
   double kp_, ki_, kd_, kff_;
+
   // pid parameters for when within abs(actpos-targetpos)<innerTol_
   double kp_inner_, ki_inner_, kd_inner_;
   double innerTol_;
+
   // the control paarms in use
   double kp_use_, ki_use_, kd_use_;
   double outputP_;
@@ -85,13 +91,13 @@ class ecmcPIDController : public ecmcError {
   double controllerErrorOld_;
   double sampleTime_;
   ecmcAxisData *data_;
-  bool   settingMade_;
+  bool settingMade_;
 
   // Asyn
-  ecmcAsynPortDriver     *asynPortDriver_;
-  ecmcAsynDataItem       *asynKp_;
-  ecmcAsynDataItem       *asynKi_;
-  ecmcAsynDataItem       *asynKd_;
-  ecmcAsynDataItem       *asynKff_;
+  ecmcAsynPortDriver *asynPortDriver_;
+  ecmcAsynDataItem *asynKp_;
+  ecmcAsynDataItem *asynKi_;
+  ecmcAsynDataItem *asynKd_;
+  ecmcAsynDataItem *asynKff_;
 };
 #endif  // ifndef ECMCPIDCONTROLLER_H

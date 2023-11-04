@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEcSyncManager.cpp
 *
@@ -13,16 +13,16 @@
 #include "ecmcEcSyncManager.h"
 
 ecmcEcSyncManager::ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
-                                     int masterId,
-                                     int slaveId,
+                                     int                 masterId,
+                                     int                 slaveId,
                                      ecmcEcDomain       *domain,
-                                     ec_slave_config_t *slave,
-                                     ec_direction_t     direction,
-                                     uint8_t            syncMangerIndex) {
+                                     ec_slave_config_t  *slave,
+                                     ec_direction_t      direction,
+                                     uint8_t             syncMangerIndex) {
   initVars();
-  asynPortDriver_ = asynPortDriver;
-  masterId_=masterId;
-  slaveId_=slaveId;
+  asynPortDriver_  = asynPortDriver;
+  masterId_        = masterId;
+  slaveId_         = slaveId;
   syncMangerIndex_ = syncMangerIndex;
   direction_       = direction;
   slaveConfig_     = slave;
@@ -154,7 +154,7 @@ uint8_t ecmcEcSyncManager::getSyncMangerIndex() {
 ecmcEcEntry * ecmcEcSyncManager::addEntry(
   uint16_t       pdoIndex,
   uint16_t       entryIndex,
-  uint8_t        entrySubIndex,  
+  uint8_t        entrySubIndex,
   ecmcEcDataType dt,
   std::string    id,
   int            useInRealTime,

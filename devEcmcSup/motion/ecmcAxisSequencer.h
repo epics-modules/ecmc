@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcAxisSequencer.h
 *
@@ -51,6 +51,7 @@
 // SEQUENCER WARNINGS
 #define WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION 0x114D00
 #define WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION 0x114D01
+
 // Homing
 enum ecmcHomingType {
   ECMC_SEQ_HOME_NOT_VALID                = 0,
@@ -73,31 +74,31 @@ enum ecmcHomingType {
 };
 
 class ecmcAxisSequencer : public ecmcError {
- public:
+public:
   ecmcAxisSequencer();
   ~ecmcAxisSequencer();
-  int                    setExecute(bool execute);
-  bool                   getExecute();
-  void                   execute();
-  void                   setCommand(motionCommandTypes command);
-  motionCommandTypes     getCommand();
-  void                   setCmdData(int cmdData);
-  int                    getCmdData();
-  void                   setTraj(ecmcTrajectoryBase *traj);
-  ecmcTrajectoryBase*    getTraj();
-  void                   setEnc(ecmcEncoder **encArray);
-  void                   setMon(ecmcMonitor *mon);
-  void                   setDrv(ecmcDriveBase *drv);
-  void                   setCntrl(ecmcPIDController *con);
-  bool                   getBusy();
-  void                   setJogVel(double velTarget);
-  double                 getJogVel();
-  int                    setHomeVelTowardsCam(double vel);
-  int                    setHomeVelOffCam(double vel);
-  double                 getHomeVelTowardsCam();
-  double                 getHomeVelOffCam();
-  void                   setHomePosition(double pos);
-  double                 getHomePosition();
+  int                 setExecute(bool execute);
+  bool                getExecute();
+  void                execute();
+  void                setCommand(motionCommandTypes command);
+  motionCommandTypes  getCommand();
+  void                setCmdData(int cmdData);
+  int                 getCmdData();
+  void                setTraj(ecmcTrajectoryBase *traj);
+  ecmcTrajectoryBase* getTraj();
+  void                setEnc(ecmcEncoder **encArray);
+  void                setMon(ecmcMonitor *mon);
+  void                setDrv(ecmcDriveBase *drv);
+  void                setCntrl(ecmcPIDController *con);
+  bool                getBusy();
+  void                setJogVel(double velTarget);
+  double              getJogVel();
+  int                 setHomeVelTowardsCam(double vel);
+  int                 setHomeVelOffCam(double vel);
+  double              getHomeVelTowardsCam();
+  double              getHomeVelOffCam();
+  void                setHomePosition(double pos);
+  double              getHomePosition();
 
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
@@ -128,7 +129,7 @@ class ecmcAxisSequencer : public ecmcError {
   int    getAllowConstVelo();
   int    getAllowHome();
 
- private:
+private:
   void   initVars();
   double checkSoftLimits(double posSetpoint);
   int    seqHoming1();   // nCmdData==1
@@ -188,7 +189,8 @@ class ecmcAxisSequencer : public ecmcError {
   ecmcMonitor *mon_;
   ecmcPIDController *cntrl_;
   ecmcDriveBase *drv_;
-  //ecmcMasterSlaveIF *externalInputTrajectoryIF_;
+
+  // ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcAxisData *data_;
   uint64_t oldencRawAbsPosReg_;
   uint64_t encRawAbsPosReg_;

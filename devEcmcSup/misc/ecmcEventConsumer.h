@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEventConsumer.h
 *
@@ -15,7 +15,7 @@
 #define ECMCEVENTCONSUMER_H_
 
 class ecmcEventConsumer {
- public:
+public:
   ecmcEventConsumer();
   virtual ~ecmcEventConsumer();
   virtual int executeEvent(int masterOK) = 0;

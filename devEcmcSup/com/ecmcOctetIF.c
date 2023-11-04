@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcOctetIF.c
 *
@@ -24,10 +24,11 @@ unsigned int debug_print_flags      = 0; // 65535;
 unsigned int die_on_error_flags     = 1;
 unsigned int argv0_semicolon_is_sep = 0;
 
-static ecmcOutputBufferType outputBuffer = { .bufferSize = ECMC_CMD_BUFFER_SIZE, .bytesUsed = 0};
+static ecmcOutputBufferType outputBuffer =
+{ .bufferSize = ECMC_CMD_BUFFER_SIZE, .bytesUsed = 0 };
 static int initDone = 0;
 
-static char inputBuffer[ECMC_CMD_BUFFER_SIZE] = {0};
+static char inputBuffer[ECMC_CMD_BUFFER_SIZE] = { 0 };
 
 /*****************************************************************************/
 
@@ -37,10 +38,14 @@ int cmd_buf_printf(ecmcOutputBufferType *buffer, const char *format, ...) {
   }
   va_list ap;
   va_start(ap, format);
-  char *buff = &buffer->buffer[buffer->bytesUsed];    
-  int   res = vsnprintf(buff, buffer->bufferSize-buffer->bytesUsed, format, ap);
-  buffer->bytesUsed                += res;
+  char *buff = &buffer->buffer[buffer->bytesUsed];
+  int   res  = vsnprintf(buff,
+                         buffer->bufferSize - buffer->bytesUsed,
+                         format,
+                         ap);
+  buffer->bytesUsed += res;
   va_end(ap);
+
   if (res < 0) {
     return res;
   }
@@ -72,8 +77,8 @@ int clearBuffer(ecmcOutputBufferType *buffer) {
   if (buffer == NULL) {
     return __LINE__;
   }
-  buffer->bytesUsed = 0;
-  buffer->buffer[0] = '\0';
+  buffer->bytesUsed  = 0;
+  buffer->buffer[0]  = '\0';
   buffer->bufferSize = ECMC_CMD_BUFFER_SIZE;
   return 0;
 }
@@ -125,14 +130,14 @@ void cmd_dump_to_std(const char *buf, unsigned len) {
 
 /* from EPICS into MCU */
 int CMDwriteIt(const char *inbuf, size_t inlen) {
-  int   had_cr  = 0;
-  int   had_lf  = 0;
+  int had_cr = 0;
+  int had_lf = 0;
 
-  if(!initDone) {
+  if (!initDone) {
     init();
   }
 
-  if (!inbuf || !inlen) return -1;  
+  if (!inbuf || !inlen) return -1;
 
   if (PRINT_STDOUT_BIT1() && stdout) {
     fprintf(stdout, "%s/%s:%d IN=\"", __FILE__, __FUNCTION__, __LINE__);
@@ -140,34 +145,34 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
     fprintf(stdout, "\"\n");
   }
 
-  if (inlen>=ECMC_CMD_BUFFER_SIZE) {
+  if (inlen >= ECMC_CMD_BUFFER_SIZE) {
     LOGERR(
       "%s/%s:%d: ERROR: asynOctet command to long and will be discarded.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__      
-    );    
-    return -1;    
+      __LINE__
+      );
+    return -1;
   }
 
-  int copyLength = inlen+1;
+  int copyLength = inlen + 1;
 
   // Work with local input buffer
   memcpy(inputBuffer, inbuf, copyLength);
-  
+
   // Check LF and or CR
   if ((inlen > 1) && (inputBuffer[inlen - 1] == '\n')) {
-    had_lf             = 1;
+    had_lf                 = 1;
     inputBuffer[inlen - 1] = '\0';
     inlen--;
 
     if ((inlen > 1) && (inputBuffer[inlen - 1] == '\r')) {
-      had_cr             = 1;
+      had_cr                 = 1;
       inputBuffer[inlen - 1] = '\0';
       inlen--;
     }
   }
-  
+
   int errorCode = ecmcCmdParser(inputBuffer, inlen, getEpicsBuffer());
 
   if (errorCode) {
@@ -180,8 +185,8 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
                         errorCode);
   }
 
-  // clear buffer 
-  memset(inputBuffer,0,copyLength);
+  // clear buffer
+  memset(inputBuffer, 0, copyLength);
 
   errorCode = cmd_buf_printf(getEpicsBuffer(),
                              "%s%s",
@@ -202,8 +207,9 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
 }
 
 /* from MCU into EPICS */
-int CMDreadIt(char *outbuf, size_t outlen) {  
-  int ret;  
+int CMDreadIt(char *outbuf, size_t outlen) {
+  int ret;
+
   if (!outbuf || !outlen) return -1;
 
   ret = snprintf(outbuf, outlen + 1, "%s", getEpicsBuffer()->buffer);

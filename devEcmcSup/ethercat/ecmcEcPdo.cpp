@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEcPdo.cpp
 *
@@ -13,21 +13,21 @@
 #include "ecmcEcPdo.h"
 
 ecmcEcPdo::ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
-                     int masterId,
-                     int slaveId,
-                     ecmcEcDomain      *domain,
-                     ec_slave_config_t *slave,
-                     uint8_t            syncMangerIndex,
-                     uint16_t           pdoIndex,
-                     ec_direction_t     direction) {
+                     int                 masterId,
+                     int                 slaveId,
+                     ecmcEcDomain       *domain,
+                     ec_slave_config_t  *slave,
+                     uint8_t             syncMangerIndex,
+                     uint16_t            pdoIndex,
+                     ec_direction_t      direction) {
   initVars();
   asynPortDriver_ = asynPortDriver;
-  masterId_  = masterId;
-  slaveId_   = slaveId;
-  pdoIndex_  = pdoIndex;
-  direction_ = direction;
-  domain_    = domain;
-  slave_     = slave;
+  masterId_       = masterId;
+  slaveId_        = slaveId;
+  pdoIndex_       = pdoIndex;
+  direction_      = direction;
+  domain_         = domain;
+  slave_          = slave;
   int errorCode = ecrt_slave_config_pdo_assign_add(slave_,
                                                    syncMangerIndex,
                                                    pdoIndex_);
@@ -58,13 +58,13 @@ void ecmcEcPdo::initVars() {
   }
   errorReset();
   asynPortDriver_ = NULL;
-  masterId_     = -1;
-  slaveId_      = -1;
-  entryCounter_ = 0;
-  pdoIndex_     = 0;
-  direction_    = EC_DIR_INVALID;
-  domain_       = NULL;
-  slave_        = NULL;
+  masterId_       = -1;
+  slaveId_        = -1;
+  entryCounter_   = 0;
+  pdoIndex_       = 0;
+  direction_      = EC_DIR_INVALID;
+  domain_         = NULL;
+  slave_          = NULL;
 }
 
 ecmcEcPdo::~ecmcEcPdo() {
@@ -80,7 +80,7 @@ ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t       entryIndex,
                                   uint8_t        entrySubIndex,
                                   ecmcEcDataType dt,
                                   std::string    id,
-                                  int useInRealTime,
+                                  int            useInRealTime,
                                   int           *errorCode) {
   if (entryCounter_ >= (EC_MAX_ENTRIES)) {
     LOGERR("%s/%s:%d: ERROR: Entries array full (0x%x).\n",

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEcSDO.h
 *
@@ -29,7 +29,7 @@
 #define ERROR_EC_SDO_VALUE_CONV_ERROR 0x23007
 
 class ecmcEcSDO : public ecmcError {
- public:
+public:
   ecmcEcSDO();
   ~ecmcEcSDO();
   static int write(ec_master_t *master,
@@ -39,9 +39,9 @@ class ecmcEcSDO : public ecmcError {
                    uint32_t     value,
                    size_t       byteSize);
   static int addWriteComplete(ec_slave_config_t *sc,
-                           uint16_t           sdoIndex,
-                           const char*        dataString,
-                           size_t             byteSize);
+                              uint16_t           sdoIndex,
+                              const char        *dataString,
+                              size_t             byteSize);
   static int read(ec_master_t *master,
                   uint16_t     slavePosition,
                   uint16_t     sdoIndex,
@@ -68,13 +68,13 @@ class ecmcEcSDO : public ecmcError {
                             uint16_t           slavePosition,
                             uint16_t           sdoIndex,
                             uint8_t            sdoSubIndex,
-                            const char*        value,                            
+                            const char        *value,
                             ecmcEcDataType     dt);
 
   static int addSdoConfigBuffer(ec_slave_config_t *sc,
                                 uint16_t           sdoIndex,
                                 uint8_t            sdoSubIndex,
-                                const char*        dataString,
-                                size_t             byteSize);                          
+                                const char        *dataString,
+                                size_t             byteSize);
 };
 #endif  /* ECMCECSDO_H_ */

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEcSlave.h
 *
@@ -65,101 +65,111 @@ typedef struct {
 } mcu_ec_slave_info_light;
 
 class ecmcEcSlave : public ecmcError {
- public:
+public:
   ecmcEcSlave(
-    ecmcAsynPortDriver* asynPortDriver,  /** Asyn port driver*/
-    int masterId,
-    ec_master_t *master,  /**< EtherCAT master */    
-    ecmcEcDomain *domain,
-    uint16_t     alias, /**< Slave alias. */
-    int32_t     position, /**< Slave position. */
-    uint32_t     vendorId, /**< Expected vendor ID. */
-    uint32_t     productCode  /**< Expected product code. */);
+    ecmcAsynPortDriver *asynPortDriver,  /** Asyn port driver*/
+    int                 masterId,
+    ec_master_t        *master, /**< EtherCAT master */
+    ecmcEcDomain       *domain,
+    uint16_t            alias, /**< Slave alias. */
+    int32_t             position, /**< Slave position. */
+    uint32_t            vendorId, /**< Expected vendor ID. */
+    uint32_t            productCode /**< Expected product code. */);
   ~ecmcEcSlave();
   int                addSyncManager(ec_direction_t direction,
                                     uint8_t        syncMangerIndex);
   ecmcEcSyncManager* getSyncManager(int syncManagerIndex);
   int                getSlaveInfo(mcu_ec_slave_info_light *info);
   int                getEntryCount();
-  ecmcEcEntry      * getEntry(int entryIndex);
+  ecmcEcEntry*       getEntry(int entryIndex);
   int                checkConfigState(void);
   void               setDomainBaseAdr(uint8_t *domainAdr);
   int                updateInputProcessImage();
   int                updateOutProcessImage();
   int                getSlaveBusPosition();
   int                addEntry(
-                       ec_direction_t direction,
-                       uint8_t        syncMangerIndex,
-                       uint16_t       pdoIndex,
-                       uint16_t       entryIndex,
-                       uint8_t        entrySubIndex,
-                       ecmcEcDataType dt,
-                       std::string    id,
-                       int            useInRealTime);
-  int                addDataItem(
-                       ecmcEcEntry *startEntry,
-                       size_t entryByteOffset,
-                       size_t entryBitOffset,
-                       ec_direction_t direction,
-                       ecmcEcDataType dt,
-                       std::string id);
+    ec_direction_t direction,
+    uint8_t        syncMangerIndex,
+    uint16_t       pdoIndex,
+    uint16_t       entryIndex,
+    uint8_t        entrySubIndex,
+    ecmcEcDataType dt,
+    std::string    id,
+    int            useInRealTime);
+  int addDataItem(
+    ecmcEcEntry   *startEntry,
+    size_t         entryByteOffset,
+    size_t         entryBitOffset,
+    ec_direction_t direction,
+    ecmcEcDataType dt,
+    std::string    id);
   int configDC(
+
     // AssignActivate word.
     uint16_t assignActivate,
+
     // SYNC0 cycle time [ns].
     uint32_t sync0Cycle,
+
     // SYNC0 shift time [ns].
-    int32_t  sync0Shift,
+    int32_t sync0Shift,
+
     // SYNC1 cycle time [ns].
     uint32_t sync1Ccycle,
+
     // SYNC1 shift time [ns].
-    int32_t  sync1Shift);
+    int32_t sync1Shift);
   ecmcEcEntry* findEntry(std::string id);
   int          findEntryIndex(std::string id);
   int          selectAsReferenceDC();
   int          setWatchDogConfig(
+
     // Number of 40 ns intervals. Used as a base unit for all slave watchdogs.
     // If set to zero, the value is not written, so the default is used.
     uint16_t watchdogDivider,
+
     // Number of base intervals for process  data watchdog.
     // If set to zero, the value is not written, so the default is used.
     uint16_t watchdogIntervals);
+
   // accepts up to 4 bytes ints
   int addSDOWrite(uint16_t sdoIndex,
                   uint8_t  sdoSubIndex,
                   uint32_t writeValue,
                   int      byteSize);
+
   // accepts up to 8 bytes
-  int addSDOWriteDT(uint16_t sdoIndex,
-                    uint8_t  sdoSubIndex,
-                    const char* value,                    
-                    ecmcEcDataType dt);                 
+  int addSDOWriteDT(uint16_t       sdoIndex,
+                    uint8_t        sdoSubIndex,
+                    const char    *value,
+                    ecmcEcDataType dt);
   int addSDOWriteComplete(uint16_t    sdoIndex,
-                         const char* dataBuffer,
-                         int         byteSize);
+                          const char *dataBuffer,
+                          int         byteSize);
 
   int addSDOWriteBuffer(uint16_t    sdoIndex,
                         uint8_t     sdoSubIndex,
-                        const char* dataBuffer,
+                        const char *dataBuffer,
                         int         byteSize);
   int getSlaveState(ec_slave_config_state_t *state);
   int activate();
   int compileRegInfo();
   int validate();
-  int addSDOAsync(uint16_t sdoIndex, /**< SDO index. */
-                 uint8_t sdoSubIndex, /**< SDO subindex. */
-                 ecmcEcDataType dt,
-                 std::string alias);
-  int getAllowOffline();
+  int addSDOAsync(uint16_t       sdoIndex, /**< SDO index. */
+                  uint8_t        sdoSubIndex, /**< SDO subindex. */
+                  ecmcEcDataType dt,
+                  std::string    alias);
+  int                getAllowOffline();
 
- private:
-  void  initVars();
-  int   initAsyn();
-  int   appendEntryToList(ecmcEcEntry *entry, bool useInRealTime);
+private:
+  void               initVars();
+  int                initAsyn();
+  int                appendEntryToList(ecmcEcEntry *entry,
+                                       bool         useInRealTime);
   ecmcEcSyncManager* findSyncMan(uint8_t syncMangerIndex);
   ec_master_t *master_;     // EtherCAT master
   uint16_t alias_;          // Slave alias.
-  int32_t  slavePosition_;  // Slave position.
+  int32_t slavePosition_;   // Slave position.
   uint32_t vendorId_;       // Expected vendor ID.
   uint32_t productCode_;    // Expected product code.
   ec_slave_config_t *slaveConfig_;
@@ -174,14 +184,16 @@ class ecmcEcSlave : public ecmcError {
   int pdosInSMCount_;
   ec_slave_config_state_t slaveState_;
   ec_slave_config_state_t slaveStateOld_;
+
   // used to simulate endswitches
   bool simSlave_;
   uint8_t simBuffer_[8 * SIMULATION_ENTRIES];    // Simulate endswitches
   ecmcEcEntry *simEntries_[SIMULATION_ENTRIES];  // Simulate endswitches
   ecmcEcDomain *domain_;
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcAsynDataItem  *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
+  ecmcAsynDataItem *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
   int masterId_;
+
   // bit 0 online          : The slave is online.
   // bit 1 int operational : The slave was brought into  OP state
   // bit 2..5  al_state    :  The application-layer state of the slave.
@@ -193,7 +205,7 @@ class ecmcEcSlave : public ecmcError {
   uint32_t statusWord_;
   uint32_t statusWordOld_;
 
-  std::vector<ecmcEcAsyncSDO*> asyncSDOvector_;
-  int                          asyncSDOCounter_;
+  std::vector<ecmcEcAsyncSDO *>asyncSDOvector_;
+  int asyncSDOCounter_;
 };
 #endif  /* ECMCECSLAVE_H_ */

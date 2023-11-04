@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDriveDS402.cpp
 *
@@ -12,9 +12,9 @@
 
 #include "ecmcDriveDS402.h"
 
-ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver, 
-                               ecmcAxisData *axisData) : 
-                               ecmcDriveBase(asynPortDriver,axisData) {
+ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
+                               ecmcAxisData       *axisData) :
+  ecmcDriveBase(asynPortDriver, axisData) {
   data_ = axisData;
 
   initVars();
@@ -25,10 +25,10 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
   }
 }
 
-ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver, 
-                              ecmcAxisData *axisData,
-                               double        scale) : 
-                               ecmcDriveBase(asynPortDriver,axisData) {
+ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
+                               ecmcAxisData       *axisData,
+                               double              scale) :
+  ecmcDriveBase(asynPortDriver, axisData) {
   data_ = axisData;
   initVars();
 
@@ -40,16 +40,15 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
   scale_ = scale;
 }
 
-ecmcDriveDS402::~ecmcDriveDS402()
-{}
+ecmcDriveDS402::~ecmcDriveDS402() {}
 
-void ecmcDriveDS402::initVars() {  
-  enableStateMachine_ = ECMC_DS402_RESET_STATE;
-  ds402WarningOld_    = false;
+void ecmcDriveDS402::initVars() {
+  enableStateMachine_    = ECMC_DS402_RESET_STATE;
+  ds402WarningOld_       = false;
   enableStateMachineOld_ = enableStateMachine_;
-  cycleCounter_       = 0;
-  localEnabled_       = 0;
-  localEnableAmpCmdOld_ = 0;
+  cycleCounter_          = 0;
+  localEnabled_          = 0;
+  localEnableAmpCmdOld_  = 0;
 }
 
 int ecmcDriveDS402::validate() {
@@ -106,17 +105,16 @@ void ecmcDriveDS402::writeEntries() {
   ecmcDriveBase::writeEntries();  // All not drive specific I/O
 }
 
- /*ECMC_DS402_READY_TO_SWITCH_ON_BIT 0
- ECMC_DS402_SWITCHED_ON_BIT 1
- ECMC_DS402_OPERATION_ENABLED_BIT 2
- ECMC_DS402_FAULT_BIT 3
- ECMC_DS402_SWITCH_ON_DISABLED_BIT 6
- ECMC_DS402_SWITCH_ON_WARNING_BIT 7
- ECMC_DS402_SWITCH_ON_INT_LIM 11*/
-
+/*ECMC_DS402_READY_TO_SWITCH_ON_BIT 0
+ECMC_DS402_SWITCHED_ON_BIT 1
+ECMC_DS402_OPERATION_ENABLED_BIT 2
+ECMC_DS402_FAULT_BIT 3
+ECMC_DS402_SWITCH_ON_DISABLED_BIT 6
+ECMC_DS402_SWITCH_ON_WARNING_BIT 7
+ECMC_DS402_SWITCH_ON_INT_LIM 11*/
 void ecmcDriveDS402::readEntries() {
   ecmcDriveBase::readEntries();
-  
+
   if (cycleCounter_ > stateMachineTimeoutCycles_) {
     enableStateMachine_ = ECMC_DS402_FAULT_STATE;
     setErrorID(__FILE__,
@@ -130,13 +128,16 @@ void ecmcDriveDS402::readEntries() {
 
   cycleCounter_++;
 
-  bool ds402Fault = BIT_CHECK(statusWord_,ECMC_DS402_FAULT_BIT);
-  localEnabled_ = BIT_CHECK(statusWord_,ECMC_DS402_OPERATION_ENABLED_BIT);
-  bool ds402Warning =BIT_CHECK(statusWord_,ECMC_DS402_SWITCH_ON_WARNING_BIT);
-  
-  //Printout warning.. Do not stop
-  if(ds402Warning && ! ds402WarningOld_) {
-    LOGERR("%s/%s:%d: DS402 Warning bit high.\n", __FILE__, __FUNCTION__, __LINE__);
+  bool ds402Fault = BIT_CHECK(statusWord_, ECMC_DS402_FAULT_BIT);
+  localEnabled_ = BIT_CHECK(statusWord_, ECMC_DS402_OPERATION_ENABLED_BIT);
+  bool ds402Warning = BIT_CHECK(statusWord_, ECMC_DS402_SWITCH_ON_WARNING_BIT);
+
+  // Printout warning.. Do not stop
+  if (ds402Warning && !ds402WarningOld_) {
+    LOGERR("%s/%s:%d: DS402 Warning bit high.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
   }
   ds402WarningOld_ = ds402Warning;
 
@@ -159,7 +160,7 @@ void ecmcDriveDS402::readEntries() {
   case ECMC_DS402_SWITCH_ON_DISABLED_STATE:
     controlWord_ = 6;
 
-    if (BIT_CHECK(statusWord_,ECMC_DS402_READY_TO_SWITCH_ON_BIT)) {
+    if (BIT_CHECK(statusWord_, ECMC_DS402_READY_TO_SWITCH_ON_BIT)) {
       cycleCounter_       = 0;
       enableStateMachine_ = ECMC_DS402_READY_TO_SWITCH_ON_STATE;
     }
@@ -172,12 +173,12 @@ void ecmcDriveDS402::readEntries() {
   case ECMC_DS402_READY_TO_SWITCH_ON_STATE:
     controlWord_ = 7;
 
-    if(ds402Fault) {
+    if (ds402Fault) {
       cycleCounter_       = 0;
-      enableStateMachine_ = ECMC_DS402_FAULT_STATE;      
+      enableStateMachine_ = ECMC_DS402_FAULT_STATE;
     }
 
-    if (BIT_CHECK(statusWord_,ECMC_DS402_SWITCHED_ON_BIT)) {
+    if (BIT_CHECK(statusWord_, ECMC_DS402_SWITCHED_ON_BIT)) {
       cycleCounter_       = 0;
       enableStateMachine_ = ECMC_DS402_SWITCHED_ON_STATE;
     }
@@ -190,12 +191,12 @@ void ecmcDriveDS402::readEntries() {
   case ECMC_DS402_SWITCHED_ON_STATE:
     controlWord_ = 15;
 
-    if(ds402Fault) {
+    if (ds402Fault) {
       cycleCounter_       = 0;
-      enableStateMachine_ = ECMC_DS402_FAULT_STATE;      
+      enableStateMachine_ = ECMC_DS402_FAULT_STATE;
     }
 
-    if (BIT_CHECK(statusWord_,ECMC_DS402_OPERATION_ENABLED_BIT)) {
+    if (BIT_CHECK(statusWord_, ECMC_DS402_OPERATION_ENABLED_BIT)) {
       cycleCounter_       = 0;
       enableStateMachine_ = ECMC_DS402_OPERATION_ENABLED_STATE;
     }
@@ -207,9 +208,9 @@ void ecmcDriveDS402::readEntries() {
 
   case ECMC_DS402_OPERATION_ENABLED_STATE:
 
-    if(ds402Fault) {
+    if (ds402Fault) {
       cycleCounter_       = 0;
-      enableStateMachine_ = ECMC_DS402_FAULT_STATE;      
+      enableStateMachine_ = ECMC_DS402_FAULT_STATE;
     }
 
     cycleCounter_ = 0;
@@ -223,7 +224,7 @@ void ecmcDriveDS402::readEntries() {
     controlWord_           = 0;
     cycleCounter_          = 0;
     enableAmpCmd_          = false;
-    data_->command_.enable = false;    
+    data_->command_.enable = false;
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DS402_FAULT_STATE);
     break;
 
@@ -231,20 +232,20 @@ void ecmcDriveDS402::readEntries() {
     controlWord_  = 128;
     cycleCounter_ = 0;
 
-    if (!BIT_CHECK(statusWord_,ECMC_DS402_FAULT_BIT)) {
+    if (!BIT_CHECK(statusWord_, ECMC_DS402_FAULT_BIT)) {
       enableStateMachine_    = ECMC_DS402_IDLE_STATE;
       data_->command_.enable = false;
     }
     break;
   }
-  localEnableAmpCmdOld_ = enableAmpCmd_; 
+  localEnableAmpCmdOld_ = enableAmpCmd_;
 }
 
 void ecmcDriveDS402::errorReset() {
   // Reset error in drive (controlword=128)
   if (enableStateMachine_ == ECMC_DS402_FAULT_STATE) {
     enableStateMachine_ = ECMC_DS402_RESET_STATE;
-    cycleCounter_ = 0;
+    cycleCounter_       = 0;
   }
   ecmcDriveBase::errorReset();
 }

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDataStorage.h
 *
@@ -29,62 +29,65 @@
 enum ecmcDSBufferType {
   // Fill from beginning. Stop when full.
   ECMC_STORAGE_NORMAL_BUFFER = 0,
+
   // Fill from beginning. Start over in beginning
-  ECMC_STORAGE_RING_BUFFER   = 1,
+  ECMC_STORAGE_RING_BUFFER = 1,
+
   // Fill from end (newwst value in the end). Old values shifted out.
-  ECMC_STORAGE_FIFO_BUFFER   = 2,
+  ECMC_STORAGE_FIFO_BUFFER = 2,
 };
 
 class ecmcDataStorage : public ecmcError {
- public:
+public:
   ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
-                  int         index,
-                  int         size,
-                  ecmcDSBufferType bufferType);
+                  int                 index,
+                  int                 size,
+                  ecmcDSBufferType    bufferType);
   ~ecmcDataStorage();
-  int  setBufferSize(int elements);
-  int  clearBuffer();
-  int  appendData(double data);
-  int  isStorageFull();
-  int  printBuffer();
-  int  getSize();
-  int  getCurrentIndex();
-  int  getIndex();
-  int  getData(double **data,
-               int     *size);
-  int  getDataElement(int     index,
-                      double *data);
-  int  getDataElement(double *data);
-  int  getDataElementPtr(int index, double **data);
-  int  setData(double *data,
-               int     size);
-  int  setDataElement(int    index,
-                      double data);
-  int  setDataElement(double data);
-  int  appendData(double *data,
-                  int     size);
-  int  appendData(double *data,
-                  int size,
-                  bool refreshAsyn);
-  int  appendData(double data,
-                  bool refreshAsyn);
-  int  setCurrentPosition(int position);
-  void printCurrentState();
-  int  updateAsyn(bool force);
+  int    setBufferSize(int elements);
+  int    clearBuffer();
+  int    appendData(double data);
+  int    isStorageFull();
+  int    printBuffer();
+  int    getSize();
+  int    getCurrentIndex();
+  int    getIndex();
+  int    getData(double **data,
+                 int     *size);
+  int    getDataElement(int     index,
+                        double *data);
+  int    getDataElement(double *data);
+  int    getDataElementPtr(int      index,
+                           double **data);
+  int    setData(double *data,
+                 int     size);
+  int    setDataElement(int    index,
+                        double data);
+  int    setDataElement(double data);
+  int    appendData(double *data,
+                    int     size);
+  int    appendData(double *data,
+                    int     size,
+                    bool    refreshAsyn);
+  int    appendData(double data,
+                    bool   refreshAsyn);
+  int    setCurrentPosition(int position);
+  void   printCurrentState();
+  int    updateAsyn(bool force);
   double getAvg();
   double getStd();
   double getMin();
   double getMax();
 
- private:
-  int  appendDataFifo(double *data,
-                      int     size);
-  int  appendDataRing(double *data,
-                      int     size);
-  int  appendDataNormal(double *data,
+private:
+  int    appendDataFifo(double *data,
                         int     size);
-  void initVars();
-  int  initAsyn();
+  int    appendDataRing(double *data,
+                        int     size);
+  int    appendDataNormal(double *data,
+                          int     size);
+  void   initVars();
+  int    initAsyn();
   int currentBufferIndex_;
   double *buffer_;
   int bufferSize_;
@@ -92,10 +95,10 @@ class ecmcDataStorage : public ecmcError {
   int index_;
   int dataCountInBuffer_;
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcAsynDataItem  *dataAsynDataItem_;
-  ecmcAsynDataItem  *statusAsynDataItem_;
-  ecmcAsynDataItem  *indexAsynDataItem_;
-  ecmcAsynDataItem  *sizeAsynDataItem_;
+  ecmcAsynDataItem *dataAsynDataItem_;
+  ecmcAsynDataItem *statusAsynDataItem_;
+  ecmcAsynDataItem *indexAsynDataItem_;
+  ecmcAsynDataItem *sizeAsynDataItem_;
   int isFull_;
   uint32_t statusWord_;
 };

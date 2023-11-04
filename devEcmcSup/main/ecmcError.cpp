@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcError.cpp
 *
@@ -16,14 +16,13 @@ ecmcError::ecmcError() {
   initVars();
 }
 
-ecmcError::ecmcError(int* errorPtr,int* warningPtr) {
+ecmcError::ecmcError(int *errorPtr, int *warningPtr) {
   initVars();
-  errorPtr_ = errorPtr;
+  errorPtr_   = errorPtr;
   warningPtr_ = warningPtr;
 }
 
-ecmcError::~ecmcError()
-{}
+ecmcError::~ecmcError() {}
 
 void ecmcError::initVars() {
   errorId_        = 0;
@@ -34,7 +33,7 @@ void ecmcError::initVars() {
   currSeverity_   = ECMC_SEVERITY_NONE;
   memset(&errorPath_, 0, sizeof(errorPath_));
   warningPtr_ = NULL;
-  errorPtr_ = NULL;
+  errorPtr_   = NULL;
 }
 
 int ecmcError::setErrorID(const char *fileName,
@@ -88,10 +87,10 @@ int ecmcError::setErrorID(int errorID) {
   errorId_ = errorID;
 
   // Also write to "external" pointer
-  if(errorPtr_) {
-      *errorPtr_ = errorID;
+  if (errorPtr_) {
+    *errorPtr_ = errorID;
   }
-  
+
   return errorId_;
 }
 
@@ -119,10 +118,12 @@ void ecmcError::errorReset() {
   setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);
   currSeverity_ = ECMC_SEVERITY_NONE;
   setWarningID(0);
-  if(warningPtr_) {
+
+  if (warningPtr_) {
     *warningPtr_ = 0;
   }
-  if(errorPtr_) {
+
+  if (errorPtr_) {
     *errorPtr_ = 0;
   }
 }
@@ -142,10 +143,10 @@ ecmcAlarmSeverity ecmcError::getSeverity() {
 int ecmcError::setWarningID(int warningId) {
   if (warningId != warningId_) {
     LOGINFO12("%s (0x%x).\n",
-           convertWarningIdToString(warningId),
-           warningId);
+              convertWarningIdToString(warningId),
+              warningId);
   }
-  
+
   if (warningId) {
     warning_ = true;
   } else {
@@ -154,75 +155,85 @@ int ecmcError::setWarningID(int warningId) {
   warningId_ = warningId;
 
   // Also write to "external" pointer
-  
-  if(warningPtr_) {
+
+  if (warningPtr_) {
     *warningPtr_ = warningId;
   }
 
-  return warningId_;  
+  return warningId_;
 }
 
 int ecmcError::getWarningID() {
   return warningId_;
 }
 
-void ecmcError::setExternalPtrs(int* errorPtr,int* warningPtr) {
+void ecmcError::setExternalPtrs(int *errorPtr, int *warningPtr) {
   warningPtr_ = warningPtr;
   errorPtr_   = errorPtr;
 }
 
 const char * ecmcError::convertWarningIdToString(int warningId) {
- switch (warningId) {
+  switch (warningId) {
   case 0:   // GENERAL
     return "NO_WARNING";
 
     break;
+
   case 0x114300: // Axis
     return "WARNING_AXIS_ASYN_CMD_WHILE_BUSY";
 
     break;
+
   case 0x114301: // Axis
     return "WARNING_AXIS_ASYN_CMD_DATA_ERROR";
 
     break;
+
   case 0x114417: // Encoder
     return "WARNING_ENC_NOT_READY";
 
     break;
+
   case 0x114C00: // Monitor
     return "WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK";
 
     break;
+
   case 0x114C01: // Monitor
     return "WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK";
 
     break;
+
   case 0x114C02: // Monitor
     return "WARNING_MON_HARD_LIMIT_FWD_INTERLOCK";
 
     break;
+
   case 0x114C03: // Monitor
     return "WARNING_MON_HARD_LIMIT_BWD_INTERLOCK";
 
     break;
+
   case 0x114600: // Drive
     return "WARNING_DRV_WARNING_BIT_HIGH";
 
     break;
+
   case 0x114601: // Drive
     return "WARNING_DRV_ENABLED_LOST";
 
     break;
+
   case 0x114D00: // Seq
     return "WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION";
 
     break;
+
   case 0x114D01: // Seq
     return "WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION";
 
     break;
-
- }
+  }
 
   return "NO_WARNING";
 }
@@ -438,7 +449,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY";
 
     break;
-    
+
   case 0x14600:   // DRIVE
     return "ERROR_DRV_DRIVE_INTERLOCKED";
 
@@ -643,6 +654,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_ENC_ABS_MASK_INVALID";
 
     break;
+
   case 0x1440F:
     return "ERROR_ENC_ABS_BIT_COUNT_INVALID";
 
@@ -677,7 +689,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_ENC_ASYN_PARAM_NULL";
 
     break;
-    
+
   case 0x14416:
     return "ERROR_ENC_READY_READ_ENTRY_FAIL";
 
@@ -912,10 +924,12 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE";
 
     break;
+
   case 0x14D15:
     return "ERROR_SEQ_TARGET_POS_OUT_OF_RANGE";
 
     break;
+
   case 0x14D16:
     return "ERROR_SEQ_MOTION_CMD_NOT_ENABLED";
 
@@ -1095,7 +1109,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_TRAJ_RUCKIG_JERK_ZERO";
 
     break;
-    
+
   case 0x14F00:    // VIRTUAL AXIS
     return "ERROR_VIRT_AXIS_TRAJ_NULL";
 
@@ -1265,14 +1279,17 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_ENTRY_SET_ALARM_STATE_FAIL";
 
     break;
+
   case 0x2100E:
     return "ERROR_EC_ENTRY_EC_DOMAIN_ERROR";
 
     break;
+
   case 0x2100F:
     return "ERROR_EC_ENTRY_DATATYPE_INVALID";
 
     break;
+
   case 0x21010:
     return "ERROR_EC_ENTRY_SIZE_OUT_OF_RANGE";
 
@@ -1317,10 +1334,12 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_SDO_DATA_SIZE_ERROR";
 
     break;
+
   case 0x23005:
     return "ERROR_EC_SDO_BUFFER_ALLOC_FAIL";
 
     break;
+
   case 0x23006:
     return "ERROR_EC_SDO_DATATYPE_ERROR";
 
@@ -1350,7 +1369,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL";
 
     break;
-    
+
   case 0x24000:  // ECSLAVE
     return "ERROR_EC_SLAVE_CONFIG_FAILED";
 
@@ -1670,7 +1689,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW";
 
     break;
- 
+
   case 0x26025:
     return "ERROR_EC_MASTER_NULL";
 
@@ -1685,6 +1704,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_NO_VALID_CONFIG";
 
     break;
+
   case 0x26028:
     return "ERROR_EC_DATATYPE_NOT_VALID";
 
@@ -2029,14 +2049,17 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_ASYN_CREATE_PARAM_FAIL";
 
     break;
+
   case 0x20045:
     return "ERROR_MAIN_MLOCKALL_FAIL";
 
     break;
+
   case 0x20046:
     return "ERROR_MAIN_EC_NULL";
 
     break;
+
   case 0x20047:
     return "ERROR_MAIN_EC_SDO_VERIFICATION_FAIL";
 
@@ -2051,7 +2074,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_FILTER_INVALID_SIZE";
 
     break;
-    
+
   case 0x2004A:
     return "ERROR_MAIN_EC_INDEX_OUT_OF_RANGE";
 
@@ -2067,7 +2090,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
- case 0x2004D:
+  case 0x2004D:
     return "ERROR_MAIN_SAMPLE_RATE_OUT_OF_RANGE";
 
     break;
@@ -2076,14 +2099,17 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_SAMPLE_RATE_CHANGE_NOT_ALLOWED";
 
     break;
+
   case 0x2004F:
     return "ERROR_MAIN_PLUGIN_LIST_FULL";
 
     break;
+
   case 0x20050:
     return "ERROR_MAIN_PLUGIN_OBJECT_NULL";
 
     break;
+
   case 0x20051:
     return "ERROR_MAIN_PLUGIN_INDEX_OUT_OF_RANGE";
 
@@ -2093,7 +2119,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL";
 
     break;
-    
+
   case 0x20053:
     return "ERROR_MAIN_AXIS_COM_BLOCKED";
 
@@ -2113,24 +2139,29 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_EC_MAIN_DOMAIN_NULL";
 
     break;
+
   case 0x20057:
     return "ERROR_SHMGET_ERROR";
 
     break;
+
   case 0x20058:
     return "ERROR_SHMMAT_ERROR";
 
     break;
+
   case 0x20059:
     return "ERROR_SHM_INDEX_OUT_OF_RANGE";
 
     break;
+
   case 0x2005A:
     return "ERROR_SHM_NULL";
 
     break;
 
     break;
+
   case 0x2005B:
     return "ERROR_SEM_NULL";
 
@@ -2460,6 +2491,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED";
 
     break;
+
   case 0x20709:
     return "ERROR_PLCS_PLUGIN_INDEX_OUT_OF_RANGE";
 
@@ -2485,6 +2517,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MEM_MAP_SIZE_OUT_OF_RANGE";
 
     break;
+
   case 0x211001:
     return "ERROR_MEM_ASYN_VAR_BUFFER_OUT_OF_RANGE";
 
@@ -2520,11 +2553,12 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
-  // asynDataItem  
+  // asynDataItem
   case 0x220000:
     return "ERROR_ASYN_PORT_NULL";
 
     break;
+
   case 0x220001:
     return "ERROR_ASYN_DATA_NULL";
 
@@ -2539,26 +2573,32 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_ASYN_CREATE_PARAM_FAIL";
 
     break;
+
   case 0x220004:
     return "ERROR_ASYN_PARAM_NOT_VALIDATED";
 
     break;
+
   case 0x220005:
     return "ERROR_ASYN_SUPPORTED_TYPES_ARRAY_FULL";
 
     break;
+
   case 0x220006:
     return "ERROR_ASYN_DATA_BUFFER_TO_SMALL";
 
     break;
+
   case 0x220007:
     return "ERROR_ASYN_WRITE_VALUE_OUT_OF_RANGE";
 
     break;
+
   case 0x220008:
     return "ERROR_ASYN_REFRESH_FAIL";
 
     break;
+
   case 0x220009:
     return "ERROR_ASYN_CMD_FAIL";
 
@@ -2567,8 +2607,8 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
   case 0x230000:
     return "ERROR_AXIS_FILTER_ALLOC_FAIL";
 
-  break;
-  
+    break;
+
   case 0x231000:
     return "ERROR_PLUGIN_FLIE_NOT_FOUND";
 
@@ -2603,7 +2643,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_PLUGIN_DATA_NULL";
 
     break;
-  
+
   case 0x231007:
     return "ERROR_PLUGIN_DATA_ARG_VS_FUNC_MISSMATCH";
 

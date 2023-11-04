@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEthercat.h
 *
@@ -198,9 +198,9 @@ int ecAddEntryComplete(
  *                      S32: Signed 32-bit\n
  *                      U64: Unsigned 64-bit\n
  *                      S64: Signed 64-bit\n
- *                      F32: Real 32-bit\n 
+ *                      F32: Real 32-bit\n
  *                      F64: Double 64-bit\n
- * 
+ *
  *  \param[in] entryIDString Identification string used for addressing the
  *                           entry.\n
  *  \param[in] updateInRT    1 if value should be updated in realtime 0\n
@@ -232,43 +232,43 @@ int ecAddEntry(
   uint16_t pdoIndex,
   uint16_t entryIndex,
   uint8_t  entrySubIndex,
-  char    *datatype,  
+  char    *datatype,
   char    *entryIDString,
   int      updateInRealTime);
 
-  /** \brief Adds an async SDO object.\n
- *
- * Adds a SDO object for SDO read and write during realtime.
- *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
- *    slaveBusPosition = -1: Used to address the simulation slave. Only two
- *                           entries are configured, "ZERO" with default
- *                           value 0 and "ONE" with default value 1.\n
- *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
- *  \param[in] index Index of process data object entry. Needs to be
- *                           entered in hex format.\n
- *  \param[in] subIndex Index of process data object sub entry.
- *                           Needs to be entered in hex format.\n
- *  \param[in] dataType DataType of ethercat data:\n
- *                      U8:  Unsigned 8-bit\n
- *                      S8:  Signed 8-bit\n
- *                      U16: Unsigned 16-bit\n
- *                      S16: Signed 16-bit\n
- *                      U32: Unsigned 32-bit\n
- *                      S32: Signed 32-bit\n
- *                      U64: Unsigned 64-bit\n
- *                      S64: Signed 64-bit\n
- *                      F32: Real 32-bit\n 
- *                      F64: Double 64-bit\n
- * 
- *  \param[in] idString Identification string used for addressing the
- *                           entry.\n
+/** \brief Adds an async SDO object.\n
+*
+* Adds a SDO object for SDO read and write during realtime.
+*  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+*    slaveBusPosition = -1: Used to address the simulation slave. Only two
+*                           entries are configured, "ZERO" with default
+*                           value 0 and "ONE" with default value 1.\n
+*    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+*  \param[in] index Index of process data object entry. Needs to be
+*                           entered in hex format.\n
+*  \param[in] subIndex Index of process data object sub entry.
+*                           Needs to be entered in hex format.\n
+*  \param[in] dataType DataType of ethercat data:\n
+*                      U8:  Unsigned 8-bit\n
+*                      S8:  Signed 8-bit\n
+*                      U16: Unsigned 16-bit\n
+*                      S16: Signed 16-bit\n
+*                      U32: Unsigned 32-bit\n
+*                      S32: Signed 32-bit\n
+*                      U64: Unsigned 64-bit\n
+*                      S64: Signed 64-bit\n
+*                      F32: Real 32-bit\n
+*                      F64: Double 64-bit\n
+*
+*  \param[in] idString Identification string used for addressing the
+*                           entry.\n
 
- * \return 0 if success or otherwise an error code.\n
- *
- * \note Example: Add an SDO for async reads and writes in runtime.\n
- *  Setting the input 1 as HWE enable for an EL70xx stepper drive:\n
- *  "Cfg.EcAddSdoAsync(3,0x8012,0x32,U8,"hwenable")" //Command string to ecmcCmdParser.c\n
- */
+* \return 0 if success or otherwise an error code.\n
+*
+* \note Example: Add an SDO for async reads and writes in runtime.\n
+*  Setting the input 1 as HWE enable for an EL70xx stepper drive:\n
+*  "Cfg.EcAddSdoAsync(3,0x8012,0x32,U8,"hwenable")" //Command string to ecmcCmdParser.c\n
+*/
 int ecAddSdoAsync(
   uint16_t slaveBusPosition,
   uint16_t entryIndex,
@@ -301,9 +301,9 @@ int ecAddSdoAsync(
  *                      S32: Signed 32-bit\n
  *                      U64: Unsigned 64-bit\n
  *                      S64: Signed 64-bit\n
- *                      F32: Real 32-bit\n 
+ *                      F32: Real 32-bit\n
  *                      F64: Double 64-bit\n
- * 
+ *
  *  \param[in] memMapIdString Identification string used for addressing the
  object.\n
  *
@@ -315,14 +315,14 @@ int ecAddSdoAsync(
  * "Cfg.EcAddMemMapDT(10,AI1,200,2,ec0.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddMemMapDT(
-  char    *ecPath,  
-  size_t   byteSize,
-  int      direction,
-  char    *dataType,
-  char    *memMapIDString);
+  char  *ecPath,
+  size_t byteSize,
+  int    direction,
+  char  *dataType,
+  char  *memMapIDString);
 
 /** \brief Adds a memory map object to access data directly from EtherCAT\n
- *   domain. Support for this syntax might be dropped in newer releases.\n 
+ *   domain. Support for this syntax might be dropped in newer releases.\n
  *   Please use new syntax.\n
  *
  *  The start of the memory map is addressed by a previously configured
@@ -337,7 +337,7 @@ int ecAddMemMapDT(
  *  \param[in] direction Data transfer direction..\n
  *    direction  = 1:  Output (from master).\n
  *    direction  = 2:  Input (to master).\n
- * 
+ *
  *  \param[in] entryIDString Identification string used for addressing the
  *   object.\n
  *
@@ -356,7 +356,7 @@ int ecAddMemMap(
   char    *memMapIDString);
 
 /** \brief Adds a data item object to access data directly from EtherCAT
- *   domain. This object type only support scalars (not arrays). For arrays 
+ *   domain. This object type only support scalars (not arrays). For arrays
  *   see memmaps.\n
  *
  *  The start of the data item is addressed by a previously configured
@@ -394,12 +394,12 @@ int ecAddMemMap(
  * "Cfg.EcAddDataDT(ec0.s2.byte09,0,2,B1,ec0.s2.a_bit)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddDataDT(
-  char    *ecPath,
-  size_t   entryByteOffset,
-  size_t   entryBitOffset,
-  int      direction,
-  char    *dataType, 
-  char    *idString
+  char  *ecPath,
+  size_t entryByteOffset,
+  size_t entryBitOffset,
+  int    direction,
+  char  *dataType,
+  char  *idString
   );
 
 /** \brief Get index of a memmap object based on its name id string
@@ -412,7 +412,8 @@ int ecAddDataDT(
  *  \note Example: Get memmap id.\n
  *  "EcGetMemMapId("ec0.s2.mm.CH1_ARRAY")" //Command string to ecmcCmdParser.c\n
  */
-int  ecGetMemMapId(char* memMapIDString, int *id);
+int ecGetMemMapId(char *memMapIDString,
+                  int  *id);
 
 /** \brief Configure slave DC clock.\n
  *
@@ -443,7 +444,7 @@ int ecSlaveConfigDC(
   uint32_t sync0Cycle,       /**< SYNC0 cycle time [ns]. */
   int32_t  sync0Shift,       /**< SYNC0 shift time [ns]. */
   uint32_t sync1Cycle,       /**< SYNC1 cycle time [ns]. */
-  int32_t  sync1Shift        /**< SYNC1 shift time [ns]. */);
+  int32_t  sync1Shift /**< SYNC1 shift time [ns]. */);
 
 /** \brief Select EtherCAT reference clock.\n
  *
@@ -518,7 +519,7 @@ int ecAddSdo(uint16_t slaveBusPosition,
  *                      S32: Signed 32-bit\n
  *                      U64: Unsigned 64-bit\n
  *                      S64: Signed 64-bit\n
- *                      F32: Real 32-bit\n 
+ *                      F32: Real 32-bit\n
  *                      F64: Double 64-bit\n
  *
  * \note All configuration data can be found in the documentation of
@@ -562,8 +563,8 @@ int ecAddSdoDT(uint16_t slavePosition,
  * "Cfg.EcAddSdoComplete(2,0x8010,0A FF CA 01 25 F1,6)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddSdoComplete(uint16_t    slaveBusPosition,
-                     uint16_t    sdoIndex,                     
-                     const char* valueBuffer,
+                     uint16_t    sdoIndex,
+                     const char *valueBuffer,
                      int         byteSize);
 
 /** \brief Adds a Service Data Object for writing.
@@ -595,7 +596,7 @@ int ecAddSdoComplete(uint16_t    slaveBusPosition,
 int ecAddSdoBuffer(uint16_t    slavePosition,
                    uint16_t    sdoIndex,
                    uint8_t     sdoSubIndex,
-                   const char* valueBuffer,
+                   const char *valueBuffer,
                    int         byteSize);
 
 /** \brief Write to a Service Data Object.
@@ -635,10 +636,10 @@ int ecWriteSdo(uint16_t slavePosition,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Allow current domain to be offline. 
+ * \note Example: Allow current domain to be offline.
  * "Cfg.EcSetDomAllowOffline(1)" //Command string to ecmcCmdParser.c\n
  */
-int ecSetDomAllowOffline(int      allow);
+int ecSetDomAllowOffline(int allow);
 
 /** \brief Allow master to be offline
  *
@@ -646,14 +647,14 @@ int ecSetDomAllowOffline(int      allow);
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Allow master to be offline. 
+ * \note Example: Allow master to be offline.
  * "Cfg.EcSetEcAllowOffline(1)" //Command string to ecmcCmdParser.c\n
  */
-int ecSetEcAllowOffline(int      allow);
+int ecSetEcAllowOffline(int allow);
 
 /** \brief Add domain
  *
- *  \param[in] rate execute domain in this rate (cycles) 
+ *  \param[in] rate execute domain in this rate (cycles)
  *  \param[in] offset offset cycles
  *
  * \return 0 if success or otherwise an error code.\n
@@ -661,7 +662,8 @@ int ecSetEcAllowOffline(int      allow);
  * \note Example: Add a domain that executes every 10:th cycles with an offset off 1 cycle:
  * "Cfg.EcAddDomain(10,1)" //Command string to ecmcCmdParser.c\n
  */
-int ecAddDomain(int rateCycles, int offsetCycles);
+int ecAddDomain(int rateCycles,
+                int offsetCycles);
 
 /** \brief Write to a Service Data Object.
  *
@@ -730,11 +732,11 @@ int ecReadSdo(uint16_t  slavePosition,
  * on slave position 2 is set to 1000mA.\n
  * "Cfg.EcVerifySdo(2,0x8010,0x1,1000,2)" //Command string to ecmcCmdParser.c\n
  */
-int ecVerifySdo(uint16_t  slavePosition,
-                uint16_t  sdoIndex,
-                uint8_t   sdoSubIndex,
-                uint32_t  verValue,
-                int       byteSize);
+int ecVerifySdo(uint16_t slavePosition,
+                uint16_t sdoIndex,
+                uint8_t  sdoSubIndex,
+                uint32_t verValue,
+                int      byteSize);
 
 /** \brief Read SoE \n
  *
@@ -756,12 +758,13 @@ int ecVerifySdo(uint16_t  slavePosition,
  * on slave position 2.\n
  * "Cfg.EcReadSoE(2,0,0x1000,2)" //Command string to ecmcCmdParser.c\n
  */
-int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
-              uint8_t   driveNo, /**< Drive number. */
-              uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-              size_t    byteSize, /**< Size of data to write. */
-              uint8_t  *value /**< Pointer to data to write. */
-             );
+int ecReadSoE(uint16_t slavePosition,  /**< Slave position. */
+              uint8_t  driveNo,  /**< Drive number. */
+              uint16_t idn,  /**< SoE IDN (see ecrt_slave_config_idn()). */
+              size_t   byteSize,  /**< Size of data to write. */
+              uint8_t *value  /**< Pointer to data to write. */
+              );
+
 /** \brief Write SoE \n
  *
  * \note This command can only be used in configuration mode.\n
@@ -782,12 +785,12 @@ int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
  * on slave position 2.\n
  * "Cfg.EcWriteSoE(2,0,0x1000,2)" //Command string to ecmcCmdParser.c\n
  */
-int ecWriteSoE(uint16_t  slavePosition, /**< Slave position. */
-               uint8_t   driveNo, /**< Drive number. */
-               uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-               size_t    byteSize, /**< Size of data to write. */
-               uint8_t  *value /**< Pointer to data to write. */
-              );
+int ecWriteSoE(uint16_t slavePosition,  /**< Slave position. */
+               uint8_t  driveNo,  /**< Drive number. */
+               uint16_t idn,  /**< SoE IDN (see ecrt_slave_config_idn()). */
+               size_t   byteSize,  /**< Size of data to write. */
+               uint8_t *value  /**< Pointer to data to write. */
+               );
 
 /** \brief Configure Slave watch dog.\n
  *
@@ -1103,7 +1106,7 @@ int ecEnablePrintouts(int value);
  *
  * This can be usefull to allow extra time foir DC clocks to syncronize or\n
  * for slave that do not report correct data directlly when enter OP.\n
- * 
+ *
  *
  * \param[in] milliseconds Delay time for ecOK status at startup (after slaves in OP).\n
  *
@@ -1183,9 +1186,9 @@ int linkEcEntryToEcStatusOutput(int   slaveIndex,
  */
 int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
                   uint16_t slavePos,   /**< Slave position. */
-                  uint32_t vendorId,   /**< Expected vendor ID. */                  
+                  uint32_t vendorId,   /**< Expected vendor ID. */
                   uint32_t productCode,  /**< Expected product code. */
-                  uint32_t revisionNum  /**< Revision number*/);
+                  uint32_t revisionNum /**< Revision number*/);
 
 /** \brief Read vendor id of selected ethercat slave
  *
@@ -1199,8 +1202,8 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
  * \note Example: Read vendor id of slave 3:\n
  *   "EcGetSlaveVendorId(0,3)" //Command string to ecmcCmdParser.c\n
  */
-int ecGetSlaveVendorId(uint16_t alias,  /**< Slave alias. */
-                       uint16_t slavePos,   /**< Slave position. */
+int ecGetSlaveVendorId(uint16_t  alias, /**< Slave alias. */
+                       uint16_t  slavePos,  /**< Slave position. */
                        uint32_t *result);
 
 /** \brief Read product code of selected ethercat slave
@@ -1215,8 +1218,8 @@ int ecGetSlaveVendorId(uint16_t alias,  /**< Slave alias. */
  * \note Example: Product Code of slave 3:\n
  *   "EcGetSlaveProductCode(0,3)" //Command string to ecmcCmdParser.c\n
  */
-int ecGetSlaveProductCode(uint16_t alias,  /**< Slave alias. */
-                          uint16_t slavePos,   /**< Slave position. */
+int ecGetSlaveProductCode(uint16_t  alias, /**< Slave alias. */
+                          uint16_t  slavePos,  /**< Slave position. */
                           uint32_t *result);
 
 /** \brief revision number id of selected ethercat slave
@@ -1231,14 +1234,14 @@ int ecGetSlaveProductCode(uint16_t alias,  /**< Slave alias. */
  * \note Example: Read revision number of slave 3:\n
  *   "EcGetSlaveRevisionNum(0,3)" //Command string to ecmcCmdParser.c\n
  */
-int ecGetSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
-                          uint16_t slavePos,   /**< Slave position. */
+int ecGetSlaveRevisionNum(uint16_t  alias, /**< Slave alias. */
+                          uint16_t  slavePos,  /**< Slave position. */
                           uint32_t *result);
 
 /** \brief Read serial number of selected ethercat slave
  *
  *  \param[in] alias Alias of slave. Set to zero to disable.\n
- *  \param[in] slaveIn Position of the EtherCAT slave on the bus.\n 
+ *  \param[in] slaveIn Position of the EtherCAT slave on the bus.\n
  *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
  *  \param[out] result Serial number.\n
  *
@@ -1247,8 +1250,8 @@ int ecGetSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
  * \note Example: Read serial number of slave 3:\n
  *   "EcGetSlaveSerialNum(0,3)" //Command string to ecmcCmdParser.c\n
  */
-int ecGetSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
-                        uint16_t slavePos,   /**< Slave position. */
+int ecGetSlaveSerialNum(uint16_t  alias, /**< Slave alias. */
+                        uint16_t  slavePos,  /**< Slave position. */
                         uint32_t *result);
 
 /** \brief Use CLOCK_REALTIME

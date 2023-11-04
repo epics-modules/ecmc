@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcCmdParser.h
 *
@@ -23,8 +23,8 @@ extern "C" {
                   const char           *argv[],
                   const char           *seperator[],
                 ecmcOutputBufferType *buffer);*/
-int ecmcCmdParser(const char           *cmdline, 
-                  int                   inLen,            
+int ecmcCmdParser(const char           *cmdline,
+                  int                   inLen,
                   ecmcOutputBufferType *buffer);
 
 int motorHandleOneArg(const char           *myarg_1,

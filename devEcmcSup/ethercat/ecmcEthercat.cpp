@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEthercat.cpp
 *
@@ -29,11 +29,12 @@ int ecSetMaster(int masterIndex) {
            __FUNCTION__,
            __LINE__,
            masterIndex);
-  
+
   // Sample rate fixed
   sampleRateChangeAllowed = 0;
   int errorCode = ec->init(masterIndex);
-  if(errorCode) {
+
+  if (errorCode) {
     return errorCode;
   }
   return 0;
@@ -47,7 +48,7 @@ int ecResetMaster(int masterIndex) {
            masterIndex);
 
   /// todo  master index not used. Only there for future use.
-  if(ec->getMasterIndex() != masterIndex) {
+  if (ec->getMasterIndex() != masterIndex) {
     return ERROR_MAIN_EC_INDEX_OUT_OF_RANGE;
   }
 
@@ -75,7 +76,7 @@ int ecAddSlave(uint16_t alias,
            productCode);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
+
   ec->addSlave(alias, position, vendorId, productCode);
   return 0;
 }
@@ -86,7 +87,7 @@ int ecSlaveConfigDC(
   uint32_t sync0Cycle,   /**< SYNC0 cycle time [ns]. */
   int32_t  sync0Shift,  /**< SYNC0 shift time [ns]. */
   uint32_t sync1Cycle,   /**< SYNC1 cycle time [ns]. */
-  int32_t  sync1Shift  /**< SYNC1 shift time [ns]. */) {
+  int32_t  sync1Shift /**< SYNC1 shift time [ns]. */) {
   LOGINFO4(
     "%s/%s:%d position=%d assign_active=%x sync0_cycle=%d sync0_shift=%d sync1_cycle=%d sync1_shift=%d\n",
     __FILE__,
@@ -165,19 +166,19 @@ int ecAddEntryComplete(
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   // Old syntax only vaid for integers use "Cfg.EcAddEntry()" for double, real
-  ecmcEcDataType dataType = getEcDataType(bits,signedValue);
+  ecmcEcDataType dataType = getEcDataType(bits, signedValue);
 
   return ec->addEntry(position,
-                     vendorId,
-                     productCode,
-                     (ec_direction_t)direction,
-                     syncMangerIndex,
-                     pdoIndex,
-                     entryIndex,
-                     entrySubIndex,
-                     dataType,
-                     id,
-                     1); //Update in realtime as default
+                      vendorId,
+                      productCode,
+                      (ec_direction_t)direction,
+                      syncMangerIndex,
+                      pdoIndex,
+                      entryIndex,
+                      entrySubIndex,
+                      dataType,
+                      id,
+                      1); // Update in realtime as default
 }
 
 // New syntax
@@ -190,9 +191,9 @@ int ecAddEntry(
   uint16_t pdoIndex,
   uint16_t entryIndex,
   uint8_t  entrySubIndex,
-  char    *datatype,  
+  char    *datatype,
   char    *entryIDString,
-  int      updateInRealtime  
+  int      updateInRealtime
   ) {
   std::string id = entryIDString;
 
@@ -208,7 +209,7 @@ int ecAddEntry(
     syncMangerIndex,
     pdoIndex,
     entryIndex,
-    entrySubIndex,    
+    entrySubIndex,
     entryIDString,
     datatype,
     updateInRealtime);
@@ -218,16 +219,16 @@ int ecAddEntry(
   ecmcEcDataType dt = getEcDataTypeFromStr(datatype);
 
   return ec->addEntry(position,
-                     vendorId,
-                     productCode,
-                     (ec_direction_t)direction,
-                     syncMangerIndex,
-                     pdoIndex,
-                     entryIndex,
-                     entrySubIndex,
-                     dt,
-                     id,
-                     updateInRealtime);
+                      vendorId,
+                      productCode,
+                      (ec_direction_t)direction,
+                      syncMangerIndex,
+                      pdoIndex,
+                      entryIndex,
+                      entrySubIndex,
+                      dt,
+                      id,
+                      updateInRealtime);
 }
 
 int ecSetEntryUpdateInRealtime(
@@ -265,14 +266,13 @@ int ecSetEntryUpdateInRealtime(
 }
 
 // New syntax with datatype
-int ecAddMemMapDT(  
-  char    *ecPath,
-  size_t   byteSize,
-  int      direction,
-  char    *dataType, 
-  char    *memMapIDString
+int ecAddMemMapDT(
+  char  *ecPath,
+  size_t byteSize,
+  int    direction,
+  char  *dataType,
+  char  *memMapIDString
   ) {
-
   LOGINFO4(
     "%s/%s:%d startEntryID=%s byteSize=%zu, direction=%d dataType=%s entryId=%s\n",
     __FILE__,
@@ -291,30 +291,30 @@ int ecAddMemMapDT(
   char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  bitIndex = -1;
 
-  int errorCode = parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+  int errorCode =
+    parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
 
   if (errorCode) {
     return errorCode;
   }
-  
+
   std::string memMapId     = memMapIDString;
   std::string startEntryId = alias;
-  ecmcEcDataType dt = getEcDataTypeFromStr(dataType);
+  ecmcEcDataType dt        = getEcDataTypeFromStr(dataType);
 
   return ec->addMemMap(slaveIndex, startEntryId, byteSize,
-                      (ec_direction_t)direction, dt, memMapId);
+                       (ec_direction_t)direction, dt, memMapId);
 }
 
 // New syntax with datatype
-int ecAddDataDT(  
-  char    *ecPath,
-  size_t   entryByteOffset,
-  size_t   entryBitOffset,
-  int      direction,
-  char    *dataType, 
-  char    *idString
+int ecAddDataDT(
+  char  *ecPath,
+  size_t entryByteOffset,
+  size_t entryBitOffset,
+  int    direction,
+  char  *dataType,
+  char  *idString
   ) {
-
   LOGINFO4(
     "%s/%s:%d startEntryID=%s entryByteOffset=%zu, entryBitOffset=%zu, direction=%d dataType=%s entryId=%s\n",
     __FILE__,
@@ -334,17 +334,18 @@ int ecAddDataDT(
   char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  bitIndex = -1;
 
-  int errorCode = parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+  int errorCode =
+    parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
 
   if (errorCode) {
     return errorCode;
   }
-  
-  std::string Id     = idString;
-  std::string startEntryId = alias;
-  ecmcEcDataType dt = getEcDataTypeFromStr(dataType);
 
-  return ec->addDataItem(slaveIndex, 
+  std::string Id           = idString;
+  std::string startEntryId = alias;
+  ecmcEcDataType dt        = getEcDataTypeFromStr(dataType);
+
+  return ec->addDataItem(slaveIndex,
                          startEntryId,
                          entryByteOffset,
                          entryBitOffset,
@@ -358,7 +359,6 @@ int ecAddSdoAsync(
   uint8_t  subIndex,
   char    *datatype,
   char    *idString) {
-
   std::string id = idString;
 
   LOGINFO4(
@@ -369,7 +369,7 @@ int ecAddSdoAsync(
     slaveBusPosition,
     index,
     subIndex,
-    datatype,    
+    datatype,
     idString);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
@@ -383,8 +383,7 @@ int ecAddSdoAsync(
                          id);
 }
 
-
-//Legacy syntax support
+// Legacy syntax support
 int ecAddMemMap(
   uint16_t startEntryBusPosition,
   char    *startEntryIDString,
@@ -392,7 +391,6 @@ int ecAddMemMap(
   int      direction,
   char    *memMapIDString
   ) {
-
   std::string memMapId     = memMapIDString;
   std::string startEntryId = startEntryIDString;
 
@@ -404,23 +402,22 @@ int ecAddMemMap(
     startEntryBusPosition,
     startEntryIDString,
     byteSize,
-    direction,    
+    direction,
     memMapIDString);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
-    return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize,
-                      (ec_direction_t)direction, ECMC_EC_NONE, memMapId);
+
+  return ec->addMemMap(startEntryBusPosition, startEntryId, byteSize,
+                       (ec_direction_t)direction, ECMC_EC_NONE, memMapId);
 }
 
-int  ecGetMemMapId(char* memMapIDString, int *id) {
-  
+int ecGetMemMapId(char *memMapIDString, int *id) {
   std::string memMapId = memMapIDString;
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
+
   int idLocal = ec->findMemMapId(memMapId);
-  
+
   *id =  idLocal;
 
   return 0;
@@ -459,7 +456,7 @@ int ecAddSyncManager(int slaveIndex, int direction, uint8_t syncMangerIndex) {
   if (ec->getSlave(slaveIndex) == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
 
   return ec->getSlave(slaveIndex)->addSyncManager((ec_direction_t)direction,
-                                                 syncMangerIndex);
+                                                  syncMangerIndex);
 }
 
 int ecAddSdo(uint16_t slavePosition,
@@ -480,7 +477,7 @@ int ecAddSdo(uint16_t slavePosition,
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return  ec->addSDOWrite(slavePosition,
+  return ec->addSDOWrite(slavePosition,
                          sdoIndex,
                          sdoSubIndex,
                          value,
@@ -506,8 +503,8 @@ int ecAddSdoDT(uint16_t slavePosition,
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   ecmcEcDataType dt = getEcDataTypeFromStr(datatype);
-  
-  if(dt == ECMC_EC_NONE) {
+
+  if (dt == ECMC_EC_NONE) {
     LOGERR(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, data type invalid (0x%x).\n",
       __FILE__,
@@ -519,17 +516,17 @@ int ecAddSdoDT(uint16_t slavePosition,
       ERROR_EC_SDO_DATATYPE_ERROR);
     return ERROR_EC_SDO_DATATYPE_ERROR;
   }
-  
-  return  ec->addSDOWriteDT(slavePosition,
-                            sdoIndex,
-                            sdoSubIndex,
-                            valueString,
-                            dt);
+
+  return ec->addSDOWriteDT(slavePosition,
+                           sdoIndex,
+                           sdoSubIndex,
+                           valueString,
+                           dt);
 }
 
 int ecAddSdoComplete(uint16_t    slavePosition,
-                     uint16_t    sdoIndex,                     
-                     const char* valueBuffer,
+                     uint16_t    sdoIndex,
+                     const char *valueBuffer,
                      int         byteSize) {
   LOGINFO4(
     "%s/%s:%d slave_position=%d sdo_index=%d value=%s bytesize=%d\n",
@@ -537,22 +534,22 @@ int ecAddSdoComplete(uint16_t    slavePosition,
     __FUNCTION__,
     __LINE__,
     slavePosition,
-    sdoIndex,    
+    sdoIndex,
     valueBuffer,
     byteSize);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return  ec->addSDOWriteComplete(slavePosition,
-                                  sdoIndex,
-                                  valueBuffer,
-                                  byteSize);
+  return ec->addSDOWriteComplete(slavePosition,
+                                 sdoIndex,
+                                 valueBuffer,
+                                 byteSize);
 }
 
 int ecAddSdoBuffer(uint16_t    slavePosition,
                    uint16_t    sdoIndex,
                    uint8_t     sdoSubIndex,
-                   const char* valueBuffer,
+                   const char *valueBuffer,
                    int         byteSize) {
   LOGINFO4(
     "%s/%s:%d slave_position=%d sdo_index=%d sdo_sub_index=%d value=%s bytesize=%d\n",
@@ -567,11 +564,11 @@ int ecAddSdoBuffer(uint16_t    slavePosition,
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  return  ec->addSDOWriteBuffer(slavePosition,
-                                sdoIndex,
-                                sdoSubIndex,
-                                valueBuffer,
-                                byteSize);
+  return ec->addSDOWriteBuffer(slavePosition,
+                               sdoIndex,
+                               sdoSubIndex,
+                               valueBuffer,
+                               byteSize);
 }
 
 int ecWriteSdo(uint16_t slavePosition,
@@ -593,18 +590,24 @@ int ecWriteSdo(uint16_t slavePosition,
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   int allowOffline = 0;
-  int errorCode = ec->getDomAllowOffline(&allowOffline);
-  if(errorCode) {
+  int errorCode    = ec->getDomAllowOffline(&allowOffline);
+
+  if (errorCode) {
     return errorCode;
   }
 
-  errorCode = ec->writeSDO(slavePosition, sdoIndex, sdoSubIndex, value, byteSize);
+  errorCode = ec->writeSDO(slavePosition,
+                           sdoIndex,
+                           sdoSubIndex,
+                           value,
+                           byteSize);
 
-  if(allowOffline && errorCode) {
-    LOGERR("%s/%s:%d: WARNING: SDO write failed. Slave allowed to be offline.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
+  if (allowOffline && errorCode) {
+    LOGERR(
+      "%s/%s:%d: WARNING: SDO write failed. Slave allowed to be offline.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return 0;  // allowed to be offline
   }
 
@@ -628,8 +631,7 @@ int ecWriteSdo(uint16_t slavePosition,
 
   return ec->writeSDOComplete(slavePosition, sdoIndex, value, byteSize);
 }*/
-
-int ecSetDomAllowOffline(int      allow) {
+int ecSetDomAllowOffline(int allow) {
   LOGINFO4("%s/%s:%d allow=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -641,8 +643,8 @@ int ecSetDomAllowOffline(int      allow) {
   return ec->setDomAllowOffline(allow);
 }
 
-int ecSetEcAllowOffline(int      allow) {
-   LOGINFO4("%s/%s:%d allow=%d\n",
+int ecSetEcAllowOffline(int allow) {
+  LOGINFO4("%s/%s:%d allow=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -658,7 +660,7 @@ int ecAddDomain(int rateCycles, int offsetCycles) {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           rateCycles, 
+           rateCycles,
            offsetCycles);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
@@ -667,10 +669,10 @@ int ecAddDomain(int rateCycles, int offsetCycles) {
 }
 
 int ecReadSdo(uint16_t  slavePosition,
-                   uint16_t  sdoIndex,
-                   uint8_t   sdoSubIndex,
-                   int       byteSize,
-                   uint32_t *value) {
+              uint16_t  sdoIndex,
+              uint8_t   sdoSubIndex,
+              int       byteSize,
+              uint32_t *value) {
   LOGINFO4(
     "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d bytesize=%d\n",
     __FILE__,
@@ -686,11 +688,11 @@ int ecReadSdo(uint16_t  slavePosition,
   return ec->readSDO(slavePosition, sdoIndex, sdoSubIndex, byteSize, value);
 }
 
-int ecVerifySdo(uint16_t  slavePosition,
-                uint16_t  sdoIndex,
-                uint8_t   sdoSubIndex,
-                uint32_t  verValue,
-                int       byteSize
+int ecVerifySdo(uint16_t slavePosition,
+                uint16_t sdoIndex,
+                uint8_t  sdoSubIndex,
+                uint32_t verValue,
+                int      byteSize
                 ) {
   LOGINFO4(
     "%s/%s:%d slave_position=%d sdo_index=%d sdo_subindex=%d bytesize=%d verValue=0x%x\n",
@@ -704,14 +706,19 @@ int ecVerifySdo(uint16_t  slavePosition,
     verValue);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
+
   uint32_t readValue = 0;
-  int errorCode=ec->readSDO(slavePosition, sdoIndex, sdoSubIndex, byteSize, &readValue);
-  if(errorCode) {
+  int errorCode      = ec->readSDO(slavePosition,
+                                   sdoIndex,
+                                   sdoSubIndex,
+                                   byteSize,
+                                   &readValue);
+
+  if (errorCode) {
     return errorCode;
   }
 
-  if(readValue != verValue) {
+  if (readValue != verValue) {
     LOGERR("%s/%s:%d: ERROR: Verification of SDO failed (%u != %u) (0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -721,16 +728,16 @@ int ecVerifySdo(uint16_t  slavePosition,
            ERROR_MAIN_EC_SDO_VERIFICATION_FAIL);
     return ERROR_MAIN_EC_SDO_VERIFICATION_FAIL;
   }
-  
+
   return 0;
 }
 
-int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
-                   uint8_t   driveNo, /**< Drive number. */
-                   uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-                   size_t    byteSize, /**< Size of data to write. */
-                   uint8_t  *value /**< Pointer to data to write. */
-                   ){
+int ecReadSoE(uint16_t slavePosition,  /**< Slave position. */
+              uint8_t  driveNo,       /**< Drive number. */
+              uint16_t idn,       /**< SoE IDN (see ecrt_slave_config_idn()). */
+              size_t   byteSize,       /**< Size of data to write. */
+              uint8_t *value       /**< Pointer to data to write. */
+              ) {
   LOGINFO4(
     "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%zu\n",
     __FILE__,
@@ -746,12 +753,12 @@ int ecReadSoE(uint16_t  slavePosition, /**< Slave position. */
   return ec->readSoE(slavePosition, driveNo, idn, byteSize, value);
 }
 
-int ecWriteSoE(uint16_t  slavePosition, /**< Slave position. */
-                   uint8_t   driveNo, /**< Drive number. */
-                   uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-                   size_t    byteSize, /**< Size of data to write. */
-                   uint8_t  *value /**< Pointer to data to write. */
-                   ){
+int ecWriteSoE(uint16_t slavePosition,  /**< Slave position. */
+               uint8_t  driveNo,      /**< Drive number. */
+               uint16_t idn,      /**< SoE IDN (see ecrt_slave_config_idn()). */
+               size_t   byteSize,      /**< Size of data to write. */
+               uint8_t *value      /**< Pointer to data to write. */
+               ) {
   LOGINFO4(
     "%s/%s:%d slave_position=%d drive no=%d idn=%u bytesize=%zu\n",
     __FILE__,
@@ -786,7 +793,6 @@ int ecSlaveConfigWatchDog(int slaveBusPosition,
 
   return slave->setWatchDogConfig(watchdogDivider, watchdogIntervals);
 }
-
 
 int readEcMemMap(const char *memMapIDString,
                  uint8_t    *data,
@@ -986,8 +992,12 @@ int ecEnablePrintouts(int value) {
 }
 
 int ecSetDelayECOkAtStartup(int milliseconds) {
-  LOGINFO4("%s/%s:%d milliseconds=%d\n", __FILE__, __FUNCTION__, __LINE__, milliseconds);
-  return ec->setEcOkDelayCycles((int)(milliseconds/((mcuPeriod/1E6))));
+  LOGINFO4("%s/%s:%d milliseconds=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           milliseconds);
+  return ec->setEcOkDelayCycles((int)(milliseconds / ((mcuPeriod / 1E6))));
 }
 
 int ecPrintAllHardware() {
@@ -1032,76 +1042,81 @@ int linkEcEntryToEcStatusOutput(int slaveIndex, char *entryIDString) {
   return ec->setEcStatusOutputEntry(entry);
 }
 
-int ecVerifySlave(uint16_t alias,  /**< Slave alias. */                                 
+int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
                   uint16_t slavePos,   /**< Slave position. */
                   uint32_t vendorId,   /**< Expected vendor ID. */
                   uint32_t productCode,  /**< Expected product code. */
-                  uint32_t revisionNum  /**< Revision number*/) {
-
-  LOGINFO4("%s/%s:%d alias=%d slavePos=%d, vendorId=0x%x, productCode=0x%x, revisionNum=0x%x\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           alias,
-           slavePos,
-           vendorId,
-           productCode,
-           revisionNum);
+                  uint32_t revisionNum /**< Revision number*/) {
+  LOGINFO4(
+    "%s/%s:%d alias=%d slavePos=%d, vendorId=0x%x, productCode=0x%x, revisionNum=0x%x\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    alias,
+    slavePos,
+    vendorId,
+    productCode,
+    revisionNum);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
+
   int allowOffline = 0;
 
   int errorCode = ec->getDomAllowOffline(&allowOffline);
-  if(errorCode) {
+
+  if (errorCode) {
     return errorCode;
   }
 
-  errorCode = ec->verifySlave(alias,slavePos,vendorId,productCode, revisionNum);
+  errorCode = ec->verifySlave(alias,
+                              slavePos,
+                              vendorId,
+                              productCode,
+                              revisionNum);
 
-  if(allowOffline && errorCode) {
+  if (allowOffline && errorCode) {
     LOGERR("%s/%s:%d: WARNING: Slave offline. Domain allowed to be offline.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
     return 0;  // allowed to be offline
   }
-  
+
   return errorCode;
 }
 
-int ecGetSlaveVendorId(uint16_t alias,  /**< Slave alias. */
-                            uint16_t slavePos,   /**< Slave position. */
-                            uint32_t *result) {
+int ecGetSlaveVendorId(uint16_t  alias, /**< Slave alias. */
+                       uint16_t  slavePos,       /**< Slave position. */
+                       uint32_t *result) {
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
+
   *result = ec->getSlaveVendorId(alias, slavePos);
   return 0;
 }
 
-int ecGetSlaveProductCode(uint16_t alias,  /**< Slave alias. */
-                               uint16_t slavePos,   /**< Slave position. */
-                               uint32_t *result) {
+int ecGetSlaveProductCode(uint16_t  alias, /**< Slave alias. */
+                          uint16_t  slavePos,       /**< Slave position. */
+                          uint32_t *result) {
   if (!ec->getInitDone()) return 0;
-  
+
   *result = ec->getSlaveProductCode(alias, slavePos);
   return 0;
 }
 
-int ecGetSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
-                               uint16_t slavePos,   /**< Slave position. */
-                               uint32_t *result) {
+int ecGetSlaveRevisionNum(uint16_t  alias, /**< Slave alias. */
+                          uint16_t  slavePos,       /**< Slave position. */
+                          uint32_t *result) {
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
+
   *result = ec->getSlaveRevisionNum(alias, slavePos);
   return 0;
 }
 
-int ecGetSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
-                             uint16_t slavePos,   /**< Slave position. */
-                             uint32_t *result) {
+int ecGetSlaveSerialNum(uint16_t  alias, /**< Slave alias. */
+                        uint16_t  slavePos,       /**< Slave position. */
+                        uint32_t *result) {
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
+
   *result = ec->getSlaveSerialNum(alias, slavePos);
   return 0;
 }
@@ -1112,7 +1127,8 @@ int ecUseClockRealtime(int useClkRT) {
            __FUNCTION__,
            __LINE__,
            useClkRT);
+
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
-  
+
   return ec->useClockRealtime(useClkRT);
 }
