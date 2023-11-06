@@ -334,7 +334,7 @@ void ecmcCleanup(int signum) {
   // delete asynPortMotorRecord;
   // epicsMutexDestroy(ecmcRTMutex);
 
-  printf("ecmc cloeses...\n");
+  printf("ecmc closes...\n");
   epicsExit(0);
   exit(signum);
 }
