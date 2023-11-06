@@ -56,17 +56,6 @@ private:
   size_t byteSize_;
   ecmcEcEntry *startEntry_;
 
-  int8_t *int8Ptr_;
-  uint8_t *uint8Ptr_;
-  int16_t *int16Ptr_;
-  uint16_t *uint16Ptr_;
-  int32_t *int32Ptr_;
-  uint32_t *uint32Ptr_;
-  int64_t *int64Ptr_;
-  uint64_t *uint64Ptr_;
-  float *float32Ptr_;
-  double *float64Ptr_;
-
   // Utiliy functions
   static uint8_t Read1Bit(uint8_t *buffer,
                           size_t   byteOffset,

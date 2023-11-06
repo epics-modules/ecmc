@@ -48,16 +48,6 @@ void ecmcEcData::initVars() {
   entryBitOffset_  = 0;
   byteSize_        = 0;
   direction_       = EC_DIR_INVALID;
-  int8Ptr_         = (int8_t *)&buffer_;
-  uint8Ptr_        = (uint8_t *)&buffer_;
-  int16Ptr_        = (int16_t *)&buffer_;
-  uint16Ptr_       = (uint16_t *)&buffer_;
-  int32Ptr_        = (int32_t *)&buffer_;
-  uint32Ptr_       = (uint32_t *)&buffer_;
-  int64Ptr_        = (int64_t *)&buffer_;
-  uint64Ptr_       = (uint64_t *)&buffer_;
-  float32Ptr_      = (float *)&buffer_;
-  float64Ptr_      = (double *)&buffer_;
 }
 
 ecmcEcData::~ecmcEcData() {}
@@ -66,6 +56,8 @@ int ecmcEcData::updateInputProcessImage() {
   if (direction_ != EC_DIR_INPUT) {
     return 0;
   }
+
+  buffer_ = 0;
 
   // Read data from ethercat memory area
   switch (dataType_) {
@@ -161,7 +153,7 @@ int ecmcEcData::updateOutProcessImage() {
     ecmcEcData::WriteUInt8(adr_, 0, entryBitOffset_, *uint8Ptr_);
     break;
 
-  case ECMC_EC_S8:
+  case ECMC_EC_S8:    
     ecmcEcData::WriteInt8(adr_, 0, entryBitOffset_, *int8Ptr_);
     break;
 
@@ -201,6 +193,8 @@ int ecmcEcData::updateOutProcessImage() {
     return ERROR_EC_ENTRY_DATATYPE_INVALID;
   }
 
+  updateAsyn(0);
+
   return 0;
 }
 
@@ -221,7 +215,6 @@ int ecmcEcData::validate() {
                       ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
-
   if (startEntry_->getDirection() != direction_) {
     LOGERR(
       "%s/%s:%d: WARNING: EcDataItem %s: Data item direction is not same as for start ec-entry (0x%x).\n",
@@ -237,7 +230,6 @@ int ecmcEcData::validate() {
   }
 
   domainAdr_ = startEntry_->getDomainAdr();
-
 
   if (domainAdr_ == NULL) {
     if (getErrorID() != ERROR_EC_ENTRY_INVALID_DOMAIN_ADR) {
@@ -255,9 +247,13 @@ int ecmcEcData::validate() {
                       ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
-  size_t domainSize = startEntry_->getDomain()->getSize();
+  // Set default to sim entry size
+  size_t domainSize = 8;
+  if(!startEntry_->getSimEntry()) {
+    // never use getDomain for sim entry (NULL)
+    domainSize = startEntry_->getDomain()->getSize();
+  }
   byteOffset_ = startEntry_->getByteOffset() + entryByteOffset_;
-
 
   if (entryBitOffset_  > 7) {
     if (getErrorID() != ERROR_EC_ENTRY_INVALID_OFFSET) {
@@ -309,6 +305,7 @@ int ecmcEcData::validate() {
                       __LINE__,
                       ERROR_EC_ENTRY_SIZE_OUT_OF_RANGE);
   }
+
   adr_ = domainAdr_ + byteOffset_;
   return 0;
 }
