@@ -56,104 +56,34 @@ private:
   size_t byteSize_;
   ecmcEcEntry *startEntry_;
 
-  // Utiliy functions
-  static uint8_t Read1Bit(uint8_t *buffer,
-                          size_t   byteOffset,
-                          int      bitOffset);
-  static void    Write1Bit(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset,
-                           uint8_t  value);
-  static uint8_t Read2Bits(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset);
-  static void    Write2Bits(uint8_t *buffer,
-                            size_t   byteOffset,
-                            int      bitOffset,
-                            uint8_t  value);
-  static uint8_t Read3Bits(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset);
-  static void    Write3Bits(uint8_t *buffer,
-                            size_t   byteOffset,
-                            int      bitOffset,
-                            uint8_t  value);
-  static uint8_t Read4Bits(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset);
-  static void    Write4Bits(uint8_t *buffer,
-                            size_t   byteOffset,
-                            int      bitOffset,
-                            uint8_t  value);
-  static uint8_t ReadUInt8(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset);
-  static void    WriteUInt8(uint8_t *buffer,
-                            size_t   byteOffset,
-                            int      bitOffset,
-                            uint8_t  value);
-  static int8_t ReadInt8(uint8_t *buffer,
-                         size_t   byteOffset,
-                         int      bitOffset);
-  static void   WriteInt8(uint8_t *buffer,
-                          size_t   byteOffset,
-                          int      bitOffset,
-                          int8_t   value);
-  static uint16_t ReadUInt16(uint8_t *buffer,
-                             size_t   byteOffset,
-                             int      bitOffset);
-  static void     WriteUInt16(uint8_t *buffer,
-                              size_t   byteOffset,
-                              int      bitOffset,
-                              uint16_t value);
-  static int16_t ReadInt16(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset);
-  static void    WriteInt16(uint8_t *buffer,
-                            size_t   byteOffset,
-                            int      bitOffset,
-                            int16_t  value);
-  static uint32_t ReadUInt32(uint8_t *buffer,
-                             size_t   byteOffset,
-                             int      bitOffset);
-  static void     WriteUInt32(uint8_t *buffer,
-                              size_t   byteOffset,
-                              int      bitOffset,
-                              uint32_t value);
-  static int32_t ReadInt32(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset);
-  static void    WriteInt32(uint8_t *buffer,
-                            size_t   byteOffset,
-                            int      bitOffset,
-                            int32_t  value);
-  static uint64_t ReadUInt64(uint8_t *buffer,
-                             size_t   byteOffset,
-                             int      bitOffset);
-  static void     WriteUInt64(uint8_t *buffer,
-                              size_t   byteOffset,
-                              int      bitOffset,
-                              uint64_t value);
-  static int64_t ReadInt64(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset);
-  static void    WriteInt64(uint8_t *buffer,
-                            size_t   byteOffset,
-                            int      bitOffset,
-                            int64_t  value);
-  static float ReadFloat(uint8_t *buffer,
-                         size_t   byteOffset,
-                         int      bitOffset);
-  static void  WriteFloat(uint8_t *buffer,
-                          size_t   byteOffset,
-                          int      bitOffset,
-                          float    value);
-  static double ReadDouble(uint8_t *buffer,
-                           size_t   byteOffset,
-                           int      bitOffset);
-  static void   WriteDouble(uint8_t *buffer,
-                            size_t   byteOffset,
-                            int      bitOffset,
-                            double   value);
+  static uint8_t read_1_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_1_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value);
+  static uint8_t read_2_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_2_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value);
+  static uint8_t read_3_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_3_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value);
+  static uint8_t read_4_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_4_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value);
+  static uint8_t read_uint8_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_uint8_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value);
+  static int8_t read_int8_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_int8_offset(uint8_t *buffer, int byteOffset, int bitOffset, int8_t value);
+  static uint16_t read_uint16_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_uint16_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint16_t value);
+  static int16_t read_int16_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_int16_offset(uint8_t *buffer, int byteOffset, int bitOffset, int16_t value);
+  static uint32_t read_uint32_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_uint32_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint32_t value);
+  static int32_t read_int32_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_int32_offset(uint8_t *buffer, int byteOffset, int bitOffset, int32_t value);
+  static uint64_t read_uint64_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_uint64_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint64_t value);
+  static int64_t read_int64_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_int64_offset(uint8_t *buffer, int byteOffset, int bitOffset, int64_t value);
+  static float read_float_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_float_offset(uint8_t *buffer, int byteOffset, int bitOffset, float value);
+  static double read_double_offset(uint8_t *buffer, int byteOffset, int bitOffset);
+  static void write_double_offset(uint8_t *buffer, int byteOffset, int bitOffset, double value);
+
 };
 #endif  /* ecmcEcData_H_ */
