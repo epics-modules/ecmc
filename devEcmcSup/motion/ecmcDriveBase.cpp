@@ -538,9 +538,6 @@ int ecmcDriveBase::validate() {
     // minVeloOutput_ = getEcDataTypeMinVal(dt);
     // maxVeloOutput_ = getEcDataTypeMaxVal(dt);
   }
-  printf("DRV OUTPUT RANGE %lf..%lf\n",
-         (double)minVeloOutput_,
-         (double)maxVeloOutput_);
 
   // Enabled entry input OR statusword
   errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD);
