@@ -90,6 +90,7 @@ void ecmcDriveBase::initVars() {
   minVeloOutput_             = 0;
   maxVeloOutput_             = 0;
   veloPosOutput_             = 0;
+  veloRawOffset_             = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase() {}
@@ -264,7 +265,7 @@ void ecmcDriveBase::writeEntries() {
 
   if (data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
     // CSV:    Check so not outside allowable range
-    veloPosOutput_ = data_->status_.currentVelocitySetpointRaw;
+    veloPosOutput_ = data_->status_.currentVelocitySetpointRaw + veloRawOffset_;
 
     if (veloPosOutput_ > maxVeloOutput_) {
       veloPosOutput_ = maxVeloOutput_;
@@ -872,3 +873,9 @@ int ecmcDriveBase::setStateMachineTimeout(double seconds) {
   stateMachineTimeoutCycles_ = seconds / data_->sampleTime_;
   return 0;
 }
+
+int ecmcDriveBase::setVelSetOffsetRaw(double offset) {
+  veloRawOffset_ = (int64_t) offset;
+  return 0;
+}
+

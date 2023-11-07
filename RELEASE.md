@@ -1,7 +1,11 @@
 
 Release Notes
 ===
+* Add command to offset raw velocity setpoints (for axes). One usecase can be to offset the zero velocity setpoint output of analog outputs:
+```
+ecmcConfigOrDie "Cfg.SetAxisDrvVelSetOffsetRaw(<Axis_id>,<offset>)"
 
+```
 * Add command that adds an SDO object with a predefined type, up to 8 bytes:
 
 Example: Write sign 64bit int 

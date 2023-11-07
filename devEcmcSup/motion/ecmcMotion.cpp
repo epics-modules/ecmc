@@ -2001,6 +2001,20 @@ int setAxisDrvScaleDenom(int axisIndex, double value) {
   return axes[axisIndex]->getDrv()->setScaleDenom(value);
 }
 
+int setAxisDrvVelSetOffsetRaw(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getDrv()->setVelSetOffsetRaw(value);
+}
+
 int setAxisDrvBrakeEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,

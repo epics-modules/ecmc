@@ -2057,6 +2057,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisDrvScaleDenom(iValue, dValue);
   }
 
+  /*int Cfg.SetAxisDrvVelSetOffsetRaw(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisDrvVelSetOffsetRaw(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisDrvVelSetOffsetRaw(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisDrvBrakeEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1, "SetAxisDrvBrakeEnable(%d,%d)", &iValue, &iValue2);
 

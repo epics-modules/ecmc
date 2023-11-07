@@ -2194,6 +2194,24 @@ int setAxisDrvScaleNum(int    axisIndex,
 int setAxisDrvScaleDenom(int    axisIndex,
                          double value);
 
+
+/** \brief Set drive raw velocity offset.\n
+ * 
+ *  Can be used to offset the velocity drive range. can be usefull\n
+ *  if "0" doeas not correspont to 0 speed. basically this value is\n
+ *  added to the raw velocity setpoint just before sent to the slave.\n
+ *  The value should be specified in raw units.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value velocity offset.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set drive raw velo offset to 700 for axis 3.\n
+ * "Cfg.SetAxisDrvVelSetOffsetRaw(3,700)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisDrvVelSetOffsetRaw(int axisIndex, double value);
+
 /** \brief Set enable of brake.\n
  *
  *  The brake output will follow the amplifier enable state of the drive. The

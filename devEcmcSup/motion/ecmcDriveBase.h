@@ -97,6 +97,7 @@ public:
   int          setBrakeOpenDelayTime(int delayTime);
   int          setBrakeCloseAheadTime(int aheadTime);
   int          setStateMachineTimeout(double seconds);
+  int          setVelSetOffsetRaw(double offset);
 
   // CSP
   int          setCspPosSet(double posEng);
@@ -161,6 +162,7 @@ private:
   int64_t minVeloOutput_;
   int64_t maxVeloOutput_;
   int64_t veloPosOutput_;
+  int64_t veloRawOffset_; 
 };
 
 #endif  // ifndef ECMCDRIVEBASE_H_
