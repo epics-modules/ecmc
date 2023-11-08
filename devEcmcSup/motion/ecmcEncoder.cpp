@@ -691,15 +691,15 @@ double ecmcEncoder::readEntries(bool masterOK) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
-  // Local source
-  if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+  // Expose external encoder in ecmcAxisBase instead, treat this object like a pure encoder
+  //if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
     actPos_ = actPosLocal_;
     actVel_ = actVelLocal_;
-  } else if ((data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) &&
-             (data_->command_.primaryEncIndex == index_)) { // External source
-    actPos_ = data_->status_.externalEncoderPosition;
-    actVel_ = data_->status_.externalEncoderVelocity;
-  }
+  //} else if ((data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) &&
+  //           (data_->command_.primaryEncIndex == index_)) { // External source
+  //  actPos_ = data_->status_.externalEncoderPosition;
+  //  actVel_ = data_->status_.externalEncoderVelocity;
+  //}
 
   // Update Asyn
   encPosAct_->refreshParamRT(0);
