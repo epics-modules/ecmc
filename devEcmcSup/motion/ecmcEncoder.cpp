@@ -1080,19 +1080,11 @@ int ecmcEncoder::initAsyn() {
   unsigned int charCount      = 0;
   ecmcAsynDataItem *paramTemp = NULL;
 
-  // Actpos
-  if (index_ == 0) {  // first encoder will be called actpos
-    charCount = snprintf(buffer,
-                         sizeof(buffer),
-                         ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME,
-                         data_->axisId_);
-  } else { // encoder 1..7 will be called actpos1 actpos7
-    charCount = snprintf(buffer,
-                         sizeof(buffer),
-                         ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME "%d",
-                         data_->axisId_,
-                         index_);
-  }
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME "%d",
+                       data_->axisId_,
+                       index_);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(

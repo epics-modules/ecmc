@@ -52,6 +52,22 @@ asynStatus asynWriteTargetVelo(void         *data,
 }
 
 /**
+ * Callback function for asynWrites (set primary encoder)
+ * userObj = axis object
+ *
+ * */
+asynStatus asynWritePrimEncCtrlId(void         *data,
+                                  size_t        bytes,
+                                  asynParamType asynParType,
+                                  void         *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase *)userObj)->axisAsynWritePrimEncCtrlId(data,
+                                                       bytes,
+                                                       asynParType);
+}
+/**
  * Callback function for asynWrites (Target Pos)
  * userObj = axis object
  *
@@ -389,6 +405,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
 
   // Update asyn parameters
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
@@ -909,8 +926,37 @@ int ecmcAxisBase::initAsyn() {
   ecmcAsynDataItem *paramTemp = NULL;
   int errorCode               = 0;
 
+  // Act pos
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACT_POS_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t *)&(statusData_.onChangeData.
+                                           positionSetpoint),
+                              sizeof(statusData_.onChangeData.positionActual),
+                              &paramTemp);
 
-  // Asyn params for encoder is moved to encoder class
+  if (errorCode) {
+    return errorCode;
+  }
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
+  
+  // Set encoder primary index for control
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ENC_ID_CMD_NAME,
+                              asynParamInt32,
+                              ECMC_EC_S32,
+                              (uint8_t *)&(data_.command_.primaryEncIndex),
+                              sizeof(data_.command_.primaryEncIndex),
+                              &paramTemp);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWritePrimEncCtrlId, this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID] = paramTemp;
 
   // Set pos
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
@@ -2086,6 +2132,40 @@ void ecmcAxisBase::initControlWord() {
   controlWord_.plcCmdsAllowCmd    = getAllowCmdFromPLC();
   controlWord_.enableSoftLimitBwd = data_.command_.enableSoftLimitBwd;
   controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;
+}
+
+asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
+                                                size_t        bytes,
+                                                asynParamType asynParType) {
+  if ((bytes != 8) || (asynParType != asynParamInt32)) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Primary encoder index datatype missmatch.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_);
+
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
+    return asynError;
+  }
+  int index = 0;
+  memcpy(&index, data, bytes);
+  
+  int errorCode = selectAxisEncPrimary(index);
+  
+  if(errorCode) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Set Primary encoder index failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_);
+
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
+    return asynError;
+  }
+
+  return asynSuccess;
 }
 
 asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,

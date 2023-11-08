@@ -285,6 +285,9 @@ public:
   asynStatus axisAsynWriteSetEncPos(void         *data,
                                     size_t        bytes,
                                     asynParamType asynParType);
+  asynStatus axisAsynWritePrimEncCtrlId(void         *data,
+                                        size_t        bytes,
+                                        asynParamType asynParType);
 
   int    setAllowMotionFunctions(bool enablePos,
                                  bool enableConstVel,
