@@ -329,7 +329,16 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.distToStop = traj_->distToStop(
       data_.status_.currentVelocitySetpoint);
 
-    if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+    if (data_.command_.trajSource == if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    data_.status_.currentPositionActual =
+      encArray_[data_.command_.primaryEncIndex]->getActPos();
+    data_.status_.currentVelocityActual =
+      encArray_[data_.command_.primaryEncIndex]->getActVel();
+  } else if ((data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) &&
+             (data_->command_.primaryEncIndex == index_)) { // External source
+    data_.status_.currentPositionActual = data_->status_.externalEncoderPosition;
+    data_.status_.currentVelocityActual = data_->status_.externalEncoderVelocity;
+  }) {
       data_.status_.currentTargetPosition       = traj_->getTargetPos();
       data_.status_.currentTargetPositionModulo = traj_->getTargetPosMod();
     } else {  // Synchronized to other axis
@@ -2359,7 +2368,9 @@ int ecmcAxisBase::selectPrimaryEncoder(int index) {
                       ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
   }
 
-  if (getBusy()) {
+  // Do not allow to switch encoder if busy and INTERNAL source
+  if (getBusy() && data_.command_.encSource ==
+                               ECMC_DATA_SOURCE_INTERNAL ) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
