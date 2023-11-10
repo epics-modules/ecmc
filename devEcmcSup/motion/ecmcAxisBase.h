@@ -266,6 +266,7 @@ public:
                double velocityOffCamSet,
                double accelerationSet,
                double decelerationSet);
+  int moveHome();  // Use configs from encoder object
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);
   asynStatus axisAsynWriteCmd(void         *data,

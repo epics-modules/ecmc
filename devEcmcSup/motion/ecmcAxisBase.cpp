@@ -1878,7 +1878,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
                            ) {
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
+      "%s/%s:%d: ERROR (axis %d): Homing failed since traj source is set to PLC (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1938,9 +1938,60 @@ int ecmcAxisBase::moveHome(int    nCmdData,
   if(decelerationSet < 0) {
     decelerationSet = getHomeEnc()->getHomeDec();
   }
-  getTraj()->setDec(accelerationSet);
+  getTraj()->setDec(decelerationSet);
 
   getSeq()->setHomePosition(homePositionSet);
+
+  errorCode = setExecute(1);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  return 0;
+}
+
+// Homing with configs from encoder object
+int ecmcAxisBase::moveHome() {
+  if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Homing failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
+  int errorCode = getErrorID();
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_HOMING);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  
+  errorCode = setCmdData(getHomeEnc()->getHomeSeqId());
+  if (errorCode) {
+    return errorCode;
+  }
+
+  getSeq()->setHomeVelOffCam(getHomeEnc()->getHomeVelOffCam());
+  getSeq()->setHomeVelTowardsCam(getHomeEnc()->getHomeVelOffCam());
+  getTraj()->setAcc(getHomeEnc()->getHomeAcc());
+  getTraj()->setDec(getHomeEnc()->getHomeDec());
+  getSeq()->setHomePosition(getHomeEnc()->getHomePosition());
 
   errorCode = setExecute(1);
 

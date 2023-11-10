@@ -644,61 +644,87 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
   // Read from records / params
-  double homPos    = 0.0; /* The homPos may be undefined, then use 0.0 */
-  int    cmdData   = -1;
-  double velToCam  = 0;
-  double velOffCam = 0;
-  double accHom    = 0;
+  // double homPos    = 0.0; /* The homPos may be undefined, then use 0.0 */
+  // int    cmdData   = -1;
+  // double velToCam  = 0;
+  // double velOffCam = 0;
+  // double accHom    = 0;
 
   // nCmdData (sequence number)
-  asynStatus status = pC_->getIntegerParam(axisNo_,
-                                           pC_->ecmcMotorRecordHomProc_,
-                                           &cmdData);
-
-  if (status != asynSuccess) {
-    return asynError;
-  }
+  //asynStatus status = pC_->getIntegerParam(axisNo_,
+  //                                         pC_->ecmcMotorRecordHomProc_,
+  //                                         &cmdData);
+  //if (status != asynSuccess) {
+  ///  return asynError;
+  //}
 
   /* ECMC_SEQ_HOME_SET_POS is blocked by motor record.
    * The new sequence ECMC_SEQ_HOME_SET_POS_2 (25) is the same but not blocked.
    * by motor record.
+   * 
+   * Handle auto restore and set position in the same way
    */
-  if (cmdData == ECMC_SEQ_HOME_SET_POS_2) {
+  if (cmdData == ECMC_SEQ_HOME_SET_POS_2  ||  cmdData == ECMC_SEQ_HOME_SET_POS) {
     // Use ECMC_SEQ_HOME_SET_POS internally in ecmc
     cmdData = ECMC_SEQ_HOME_SET_POS;
-  }
 
-  // Home position
-  (void)pC_->getDoubleParam(axisNo_,
+    // Home position
+    (void)pC_->getDoubleParam(axisNo_,
                             pC_->ecmcMotorRecordHomPos_,
                             &homPos);
+    
+    if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
-  // Velocity to cam (high velo)
-  status = pC_->getDoubleParam(axisNo_,
-                               pC_->ecmcMotorRecordVelToHom_,
-                               &velToCam);
+    if (drvlocal.ecmcAxis->getBlockExtCom()) {
+      if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    
+      LOGERR(
+          "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__);
+        return asynError;
+      }
 
-  if (status != asynSuccess) {
-    return asynError;
-  }
+      // "-1" will lead to not overwriting anything that is set in ecmc
+      errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,
+                                               homPos,
+                                               -1,
+                                               -1,
+                                               -1,
+                                               -1);
+      
+      if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+      
+      return asynSuccess;
+    }
 
-  // Velocity off cam (low velo)
-  status = pC_->getDoubleParam(axisNo_,
-                               pC_->ecmcMotorRecordVelFrmHom_,
-                               &velOffCam);
-
-  if (status != asynSuccess) {
-    return asynError;
-  }
-
-  // Acceleration
-  status = pC_->getDoubleParam(axisNo_,
-                               pC_->ecmcMotorRecordAccHom_,
-                               &accHom);
-
-  if (status != asynSuccess) {
-    return asynError;
-  }
+  //// Velocity to cam (high velo)
+  //status = pC_->getDoubleParam(axisNo_,
+  //                             pC_->ecmcMotorRecordVelToHom_,
+  //                             &velToCam);
+  //
+  //if (status != asynSuccess) {
+  //  return asynError;
+  //}
+  //
+  //// Velocity off cam (low velo)
+  //status = pC_->getDoubleParam(axisNo_,
+  //                             pC_->ecmcMotorRecordVelFrmHom_,
+  //                             &velOffCam);
+  //
+  //if (status != asynSuccess) {
+  //  return asynError;
+  //}
+  //
+  //// Acceleration
+  //status = pC_->getDoubleParam(axisNo_,
+  //                             pC_->ecmcMotorRecordAccHom_,
+  //                             &accHom);
+  //
+  //if (status != asynSuccess) {
+  //  return asynError;
+  //}
 
   int errorCode = 0;
 
@@ -715,12 +741,9 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   }
 
   // if(drvlocal.ecmcAxis->getAllowHome()) {
-  errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,
-                                           homPos,
-                                           velToCam,
-                                           velOffCam,
-                                           accHom,
-                                           accHom);
+
+  // Use configs from encoder objects
+  errorCode =  drvlocal.ecmcAxis->moveHome();
 
   // } else
   // {
