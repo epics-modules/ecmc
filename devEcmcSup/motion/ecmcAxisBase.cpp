@@ -727,6 +727,10 @@ ecmcEncoder * ecmcAxisBase::getConfigEnc() {
   return encArray_[data_.command_.cfgEncIndex];
 }
 
+ecmcEncoder * ecmcAxisBase::getHomeEnc() {
+  return encArray_[data_.command_.homeEncIndex];
+}
+
 ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
   return traj_;
 }
@@ -1897,16 +1901,43 @@ int ecmcAxisBase::moveHome(int    nCmdData,
   if (errorCode) {
     return errorCode;
   }
+  
+  // if not valid the fallback on whats defined in encoder
+  if(nCmdData <= 0) {
+    nCmdData = getHomeEnc()->getHomeSeqId();
+  }
   errorCode = setCmdData(nCmdData);
-
+  
   if (errorCode) {
     return errorCode;
   }
-  getSeq()->setHomePosition(homePositionSet);
+
+  // if not valid the fallback on whats defined in encoder
+  if(velocityOffCamSet < 0) {
+    velocityOffCamSet = getHomeEnc()->getHomeVelOffCam();
+  }
   getSeq()->setHomeVelOffCam(velocityOffCamSet);
+
+  // if not valid the fallback on whats defined in encoder
+  if(velocityTowardsCamSet < 0) {
+    velocityTowardsCamSet = getHomeEnc()->getHomeVelOffCam();
+  }
   getSeq()->setHomeVelTowardsCam(velocityTowardsCamSet);
+
+  // if not valid the fallback on whats defined in encoder
+  if(accelerationSet < 0) {
+    accelerationSet = getHomeEnc()->getHomeAcc();
+  }
   getTraj()->setAcc(accelerationSet);
-  getTraj()->setDec(decelerationSet);
+
+  // if not valid the fallback on whats defined in encoder
+  if(decelerationSet < 0) {
+    decelerationSet = getHomeEnc()->getHomeDec();
+  }
+  getTraj()->setDec(accelerationSet);
+
+  getSeq()->setHomePosition(homePositionSet);
+
   errorCode = setExecute(1);
 
   if (errorCode) {
@@ -2058,7 +2089,30 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     // Only allow cmd change if not busy
     if (!getBusy()) {
       setCommand(command_);
-      setCmdData(cmdData_);
+
+      if(command_ == ECMC_CMD_HOMING ) {
+        // fallback on config encoder  
+        if(cmdData_ <= 0) {
+          setCmdData(getHomeEnc()->getHomeSeqId());
+        } else {
+          setCmdData(cmdData_);
+        }
+        
+        // For homing velos, check if special homing velos, otherwise fallback on velocityTarget_
+        double temp = getHomeEnc()->getHomeVelOffCam();
+        if(temp <= 0) {
+          temp = velocityTarget_;
+        }
+        getSeq()->setHomeVelOffCam(temp);
+        temp = getHomeEnc()->getHomeVelTowardsCam();
+        if(temp <= 0) {
+          temp = velocityTarget_;
+        }
+        getSeq()->setHomeVelTowardsCam(temp);
+
+        // Homing pos from encoder
+        getSeq()->setHomePosition(getHomeEnc()->getHomePosition());
+      }
     }
 
     // allow on the fly updates of target velo and target pos

@@ -285,9 +285,54 @@ int setAxisHomePostMoveEnable(int axisIndex, int enable) {
            enable);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setHomePostMoveEnable(enable);
+  axes[axisIndex]->getConfigEnc()->setHomePostMoveEnable(enable);
+  return 0;
+}
+
+int setAxisHomeSeqId(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%i\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+
+  axes[axisIndex]->getConfigEnc()->setHomeSeqId(value);
+  return 0;
+}
+
+int setAxisHomeAcc(int axisIndex, double acc) {
+  LOGINFO4("%s/%s:%d axisIndex=%d acc=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           acc);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+
+  axes[axisIndex]->getConfigEnc()->setHomeAcc(acc);
+  return 0;
+}
+
+int setAxisHomeDec(int axisIndex, double dec) {
+  LOGINFO4("%s/%s:%d axisIndex=%d acc=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           dec);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+
+  axes[axisIndex]->getConfigEnc()->setHomeDec(dec);
   return 0;
 }
 
@@ -300,9 +345,9 @@ int setAxisHomePostMoveTargetPosition(int axisIndex, double targetPosition) {
            targetPosition);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setHomePostMoveTargetPosition(targetPosition);
+  axes[axisIndex]->getConfigEnc()->setHomePostMoveTargetPosition(targetPosition);
   return 0;
 }
 
@@ -911,9 +956,10 @@ int setAxisHomeVelTowardsCam(int axisIndex, double dVel) {
            dVel);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->setHomeVelTowardsCam(dVel);
+  axes[axisIndex]->getConfigEnc()->setHomeVelTowardsCam(dVel);
+  return 0;
 }
 
 int setAxisHomeVelOffCam(int axisIndex, double dVel) {
@@ -925,9 +971,9 @@ int setAxisHomeVelOffCam(int axisIndex, double dVel) {
            dVel);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->getSeq()->setHomeVelOffCam(dVel);
+  return axes[axisIndex]->getConfigEnc()->setHomeVelOffCam(dVel);
 }
 
 int setAxisHomePos(int axisIndex, double value) {
@@ -939,9 +985,9 @@ int setAxisHomePos(int axisIndex, double value) {
            value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setHomePosition(value);
+  axes[axisIndex]->getConfigEnc()->setHomePosition(value);
   return 0;
 }
 

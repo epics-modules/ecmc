@@ -99,7 +99,7 @@ public:
   double              getHomeVelOffCam();
   void                setHomePosition(double pos);
   double              getHomePosition();
-
+  
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
   // only valid for certain home sequences

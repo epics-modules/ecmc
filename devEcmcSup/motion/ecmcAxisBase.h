@@ -197,6 +197,7 @@ public:
   ecmcEncoder*               getEnc(int  encIndex,
                                     int *error);
   ecmcEncoder*               getConfigEnc();  // get current encoder being configured
+  ecmcEncoder*               getHomeEnc(); 
   ecmcAxisSequencer*         getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);

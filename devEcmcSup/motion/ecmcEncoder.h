@@ -127,13 +127,31 @@ public:
   int                   getRefToOtherEncAtStartup();
   int                   setRefAtHoming(int refEnable);
   bool                  getRefAtHoming();
-  void                  setHomeLatchCountOffset(int count);
-  int                   getHomeLatchCountOffset();
-
   void                  setMaxPosDiffToPrimEnc(double distance);
   double                getMaxPosDiffToPrimEnc();
   int                   hwReady();
   int                   setInvHwReady(int invert);
+
+  // For homing (just storing data)
+  int                   getHomeParamsValid();
+  void                  setHomeVelTowardsCam(double vel);
+  double                getHomeVelTowardsCam();
+  int                   setHomeVelOffCam(double vel);
+  double                getHomeVelOffCam();
+  void                  setHomePosition(double pos);
+  double                getHomePosition();
+  void                  setHomePostMoveTargetPosition(double targetPos);
+  double                getHomePostMoveTargetPosition();
+  void                  setHomePostMoveEnable(int enable);
+  int                   getHomePostMoveEnable();
+  void                  setHomeLatchCountOffset(int count);
+  int                   getHomeLatchCountOffset();
+  void                  setHomeSeqId(int seqid);
+  int                   getHomeSeqId();
+  void                  setHomeAcc(double acc);
+  double                getHomeAcc();
+  void                  setHomeDec(double dec);
+  double                getHomeDec();
 
 protected:
   void                  initVars();
@@ -226,6 +244,17 @@ protected:
 
   int hwReadyInvert_;
   int index_; // Index of this encoder (im axis object)
+
+  // Homing
+  int homeParamsValid_;
+  double homeVelTowardsCam_;
+  double homeVelOffCam_;
+  double homePosition_;
+  int homeSeqId_;
+  bool homeEnablePostMove_;
+  double homePostMoveTargetPos_;
+  double homeAcc_;
+  double homeDec_;
 };
 
 #endif  /* ECMCENCODER_H_ */

@@ -2702,6 +2702,42 @@ int setAxisMonLatchLimit(int axisIndex,
 int setAxisSeqTimeout(int axisIndex,
                       int value);
 
+/** \brief Set homing sequence id for current encoder beeing configured.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value seq id time.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set sequence id to 15 for axis 2.\n
+ * "Cfg.SetAxisHomeSeqId(2,15)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisHomeSeqId(int axisIndex, int value);
+
+/** \brief Set homing acceleration for current encoder beeing configured.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value acceleration.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set homing acceleration to 15 for axis 2.\n
+ * "Cfg.SetAxisHomeAcc(2,15)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisHomeAcc(int axisIndex, double acc);
+
+/** \brief Set homing deceleration for current encoder beeing configured.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value deceleration.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set homing deceleration to 15 for axis 2.\n
+ * "Cfg.SetAxisHomeDec(2,15)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisHomeDec(int axisIndex, double acc);
+
 /** \brief Set homing post movement enable
  *
  * After successfull homing sequence an absolute positioning command can be executed.\n

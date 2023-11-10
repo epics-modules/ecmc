@@ -121,6 +121,15 @@ void ecmcEncoder::initVars() {
   hwReadyInvert_        = 0;
   hwSumAlarmOld_        = false;
   hwSumAlarm_           = false;
+  homeParamsValid_      = 0;
+  homeVelTowardsCam_    = 0;
+  homeVelOffCam_        = 0;
+  homePosition_         = 0;
+  homeSeqId_            = 0;
+  homeEnablePostMove_   = 0;
+  homePostMoveTargetPos_= 0;
+  homeAcc_              = 0;
+  homeDec_              = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -1183,4 +1192,74 @@ double ecmcEncoder::getMaxPosDiffToPrimEnc() {
 int ecmcEncoder::setInvHwReady(int invert) {
   hwReadyInvert_ = invert > 0;
   return 0;
+}
+
+// Cfgs for homing for thsi type of encoder
+int ecmcEncoder::getHomeParamsValid() {
+  return homeParamsValid_;
+}
+
+void ecmcEncoder::setHomeVelTowardsCam(double vel) {
+  homeVelTowardsCam_ = vel;
+}
+
+double ecmcEncoder::getHomeVelTowardsCam() {
+  return homeVelTowardsCam_;
+}
+
+int    ecmcEncoder::setHomeVelOffCam(double vel) {
+  homeVelOffCam_ = vel;
+}
+
+double ecmcEncoder::getHomeVelOffCam() {
+  return homeVelOffCam_;
+}
+
+void   ecmcEncoder::setHomePosition(double pos) {
+  homePosition_ = pos;
+}
+
+double ecmcEncoder::getHomePosition() {
+  return homePosition_;
+}
+
+void ecmcEncoder::setHomePostMoveTargetPosition(double targetPos) {
+  homePostMoveTargetPos_ = targetPos;
+}
+
+double ecmcEncoder::getHomePostMoveTargetPosition() {
+  return homePostMoveTargetPos_;
+}
+
+void ecmcEncoder::setHomePostMoveEnable(int enable) {
+  homeEnablePostMove_ = enable;
+}
+
+int ecmcEncoder::getHomePostMoveEnable() {
+  return homeEnablePostMove_;
+}
+
+void ecmcEncoder::setHomeSeqId(int seqid) {
+  homeSeqId_ = seqid;
+  homeParamsValid_ = 1;  // must set a sequence to be valid
+}
+
+int ecmcEncoder::getHomeSeqId() {
+  return homeSeqId_;
+}
+
+void ecmcEncoder::setHomeAcc(double acc) {
+  homeAcc_ = acc;
+}
+
+double ecmcEncoder::getHomeAcc() {
+  return homeAcc_;
+}
+
+void ecmcEncoder::setHomeDec(double dec) {
+  homeDec_ = dec;
+}
+
+double ecmcEncoder::getHomeDec() {
+  return homeDec_;
 }

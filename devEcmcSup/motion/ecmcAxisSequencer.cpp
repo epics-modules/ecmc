@@ -104,8 +104,8 @@ void ecmcAxisSequencer::execute() {
     stopSeq();
     return;
   }
-  int seqReturnVal          = 0;
-  ecmcHomingType homingType = (ecmcHomingType)data_->command_.cmdData;
+  int seqReturnVal         = 0;
+  ecmcHomingType homeSeqId = (ecmcHomingType)data_->command_.cmdData;
 
   switch (data_->command_.command) {
   case ECMC_CMD_JOG:
@@ -113,11 +113,10 @@ void ecmcAxisSequencer::execute() {
     break;
 
   case ECMC_CMD_HOMING:
-    setHomeLatchCountOffset(
-      encArray_[data_->command_.homeEncIndex]->getHomeLatchCountOffset());
+
     switchEncodersIfNeeded();
 
-    switch (homingType) {
+    switch (homeSeqId) {
     case ECMC_SEQ_HOME_LOW_LIM:
       seqReturnVal = seqHoming1();
 
@@ -588,32 +587,6 @@ void ecmcAxisSequencer::setJogVel(double vel) {
 
 double ecmcAxisSequencer::getJogVel() {
   return jogVel_;
-}
-
-int ecmcAxisSequencer::setHomeVelTowardsCam(double vel) {
-  homeVelTowardsCam_ = vel;
-  return 0;
-}
-
-int ecmcAxisSequencer::setHomeVelOffCam(double vel) {
-  homeVelOffCam_ = vel;
-  return 0;
-}
-
-double ecmcAxisSequencer::getHomeVelTowardsCam() {
-  return homeVelTowardsCam_;
-}
-
-double ecmcAxisSequencer::getHomeVelOffCam() {
-  return homeVelOffCam_;
-}
-
-void ecmcAxisSequencer::setHomePosition(double pos) {
-  homePosition_ = pos;
-}
-
-double ecmcAxisSequencer::getHomePosition() {
-  return homePosition_;
 }
 
 void ecmcAxisSequencer::setTargetPos(double pos) {
@@ -3027,4 +3000,58 @@ void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
   if (cntrl_) {
     cntrl_->reset();
   }
+}
+
+//void  ecmcAxisSequencer::readHomingParamsFromEnc() {
+//  // This param is only accessibel in encoder object, so always read
+//  setHomeLatchCountOffset(
+//    encArray_[data_->command_.homeEncIndex]->getHomeLatchCountOffset());
+//
+//  homeSeqId_ = (ecmcHomingType)data_->command_.cmdData;
+//
+//  // Check if encoder has parameters then overwrite existing parameters if any
+//  if(!encArray_[data_->command_.homeEncIndex]->getHomeParamsValid()) {
+//    LOGERR(
+//        "%s/%s:%d: WARNING: No valid homing info stored for encoder, falling back to axis params.\n",
+//        __FILE__,
+//        __FUNCTION__,
+//        __LINE__);
+//    return;
+//  }
+//  
+//  // Encoder has parameters stored so read those..
+//  homeVelTowardsCam_     = encArray_[data_->command_.homeEncIndex]->getHomeVelTowardsCam();
+//  homeVelOffCam_         = encArray_[data_->command_.homeEncIndex]->getHomeVelOffCam();
+//  homePosition_          = encArray_[data_->command_.homeEncIndex]->getHomePosition();
+//  homeSeqId_             = (ecmcHomingType)encArray_[data_->command_.homeEncIndex]->getHomeSeqId();
+//  homeEnablePostMove_    = encArray_[data_->command_.homeEncIndex]->getHomePostMoveEnable();
+//  homePostMoveTargetPos_ = encArray_[data_->command_.homeEncIndex]->getHomePostMoveTargetPosition();
+//  setAcc(encArray_[data_->command_.homeEncIndex]->getHomeAcc());
+//  setDec(encArray_[data_->command_.homeEncIndex]->getHomeDec());
+//}
+
+int ecmcAxisSequencer::setHomeVelTowardsCam(double vel) {  
+  homeVelTowardsCam_ = vel;
+  return 0;
+}
+
+int ecmcAxisSequencer::setHomeVelOffCam(double vel) {
+  homeVelOffCam_ = vel;
+  return 0;
+}
+
+double ecmcAxisSequencer::getHomeVelTowardsCam() {
+  return homeVelTowardsCam_;
+}
+
+double ecmcAxisSequencer::getHomeVelOffCam() {
+  return homeVelOffCam_;
+}
+
+void ecmcAxisSequencer::setHomePosition(double pos) {
+  homePosition_ = pos;
+}
+
+double ecmcAxisSequencer::getHomePosition() {
+  return homePosition_;
 }
