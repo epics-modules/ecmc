@@ -1,6 +1,7 @@
 
 Release Notes
 ===
+
 * Add command to offset raw velocity setpoints (for axes). One usecase can be to offset the zero velocity setpoint output of analog outputs:
 ```
 ecmcConfigOrDie "Cfg.SetAxisDrvVelSetOffsetRaw(<Axis_id>,<offset>)"
@@ -21,6 +22,16 @@ ethercat upload -p11 -m0 0x8030 0x8
 * Remove reset of attarget bit when error reset is executed
 * Fix of brake not engaging when drive loose power
 * At traj source change then set target pos to setpos
+
+## Update of encoder handling
+* Add asyn parameter to select primary encoder (for control). This parameter will also set the index of homing encoder. 
+```
+ax<id>.primencid
+```
+* The axis actpos and actvel always shows values based on the primary encoder.
+* The axis actpos01..08, actvel01..08 shows the individual encoder values.
+
+The update is done in order to make it simpler to for instance switch between open loop and closed loop for steppers.
 
 ## Allow several domains:
 

@@ -1901,12 +1901,14 @@ int addAxisEnc(int axisIndex);
 
 /** \brief Select encoder to be used for control.\n
  *
- *  Select an encoder to use for closed loop control (default encoder index 0 is used).\n
+ *  Select an encoder to use for closed loop control (default encoder index 1 is used).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] encindex Encoder index (first index is 0).\n
  *
  * \return 0 if success or otherwise an error code.\n
+ *
+ * \note: The encoder index starts at 1 (first encoder for axis has index 1).\n
  *
  * \note Example: Select to use teh third encoder object for closed loop control of axis 3.\n
  * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
@@ -1916,12 +1918,14 @@ int selectAxisEncPrimary(int axisIndex,
 
 /** \brief Select encoder to configured.\n
  *
- *  Select an encoder to be configured (default encoder index 0 is used).\n
+ *  Select an encoder to be configured (default encoder index 1 is used).\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] encindex Encoder index (first index is 0).\n
  *
  * \return 0 if success or otherwise an error code.\n
+ *
+ * \note: The encoder index starts at 1 (first encoder for axis has index 1).\n
  *
  * \note Example: Select encoder 2 of axis 3 for configiuration.\n
  * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
@@ -1931,7 +1935,7 @@ int selectAxisEncConfig(int axisIndex,
 
 /** \brief Select encoder to be used for homing.\n
  *
- *  Select an encoder to be used for homing (default encoder index 0 is used).\n
+ *  Select an encoder to be used for homing (default encoder index 1 is used).\n
  *  If the homing encoders differes from primary encoder, a encoder switch will \n
  *  occur during homing. When homing is ready, the primary encoder will be refernced\n
  *  to the encoder used for homing, and then the primary encoder will be used again.\n
@@ -1940,6 +1944,8 @@ int selectAxisEncConfig(int axisIndex,
  * \param[in] encindex Encoder index (first index is 0).\n
  *
  * \return 0 if success or otherwise an error code.\n
+ *
+ * \note: The encoder index starts at 1 (first encoder for axis has index 1).\n
  *
  * \note Example: Select encoder 2 of axis 3 for homing.\n
  * "Cfg.SelectAxisHomeEnc(3,2)" //Command string to ecmcCmdParser.c.\n
@@ -1964,7 +1970,8 @@ int setAxisEncEnableRefAtHome(int axisIndex,
                               int enable);
 
 /** \brief Get index of current encoder being used for control (PID).\n
- *
+ *  
+ * \note: The returned index starts at 1 (first encoder for axis has index 1).\n
  *
  * \param[in] axisIndex  Axis index.\n
  *
@@ -1978,6 +1985,7 @@ int getAxisEncPrimaryIndex(int  axisIndex,
 
 /** \brief Get index of current encoder being configured.\n
  *
+ * \note: The returned index starts at 1 (first encoder for axis has index 1).\n
  *
  * \param[in] axisIndex  Axis index.\n
  *
@@ -1991,6 +1999,7 @@ int getAxisEncConfigIndex(int  axisIndex,
 
 /** \brief Get index of current encoder being used for homing (referencing).\n
  *
+ * \note: The returned index starts at 1 (first encoder for axis has index 1).\n
  *
  * \param[in] axisIndex  Axis index.\n
  *

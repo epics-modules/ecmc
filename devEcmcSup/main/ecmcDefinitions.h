@@ -217,9 +217,11 @@
 #define ECMC_ASYN_AX_SET_ENC_POS_NAME "setencpos"
 #define ECMC_ASYN_AX_ACT_POS_ID 12
 #define ECMC_ASYN_AX_ACT_POS_NAME "actpos"
-#define ECMC_ASYN_AX_ENC_ID_CMD_ID 13
+#define ECMC_ASYN_AX_ACT_VEL_ID 13
+#define ECMC_ASYN_AX_ACT_VEL_NAME "actvel"
+#define ECMC_ASYN_AX_ENC_ID_CMD_ID 14
 #define ECMC_ASYN_AX_ENC_ID_CMD_NAME "primencid"
-#define ECMC_ASYN_AX_PAR_COUNT 14
+#define ECMC_ASYN_AX_PAR_COUNT 15
 
 // Asyn params for encoder
 #define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"

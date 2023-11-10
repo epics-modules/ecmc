@@ -23,7 +23,8 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_ = asynPortDriver;
   data_           = axisData;
   sampleTime_     = sampleTime;
-  index_          = index;
+  // Encoder index start from 1 here, to get asyn param naming correct
+  index_          = index + 1;
 
   initAsyn();
 
@@ -1024,11 +1025,14 @@ void ecmcEncoder::errorReset() {
   ecmcError::errorReset();
 }
 
+// encIndex starts from 1
 int ecmcEncoder::setRefToOtherEncAtStartup(int encIndex) {
-  refEncIndex_ = encIndex;
+  // refEncIndex_ starts from 0
+  refEncIndex_ = encIndex - 1;
   return 0;
 }
 
+// refEncIndex_ starts from 0
 int ecmcEncoder::getRefToOtherEncAtStartup() {
   return refEncIndex_;
 }
@@ -1064,6 +1068,7 @@ int ecmcEncoder::getHomeLatchCountOffset() {
 }
 
 int ecmcEncoder::initAsyn() {
+
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
     LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
@@ -1080,6 +1085,7 @@ int ecmcEncoder::initAsyn() {
   unsigned int charCount      = 0;
   ecmcAsynDataItem *paramTemp = NULL;
 
+  // Actpos
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME "%d",
@@ -1121,18 +1127,12 @@ int ecmcEncoder::initAsyn() {
   encPosAct_ = paramTemp;
 
   // Actvel
-  if (index_ == 0) {  // first encoder will be called actvel
-    charCount = snprintf(buffer,
-                         sizeof(buffer),
-                         ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME,
-                         data_->axisId_);
-  } else { // encoder 1..7 will be called actvel1 actvel7
-    charCount = snprintf(buffer,
-                         sizeof(buffer),
-                         ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME "%d",
-                         data_->axisId_,
-                         index_);
-  }
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME "%d",
+                       data_->axisId_,
+                       index_);
+
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1164,9 +1164,11 @@ int ecmcEncoder::initAsyn() {
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
+
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   encVelAct_ = paramTemp;
+
   return 0;
 }
 

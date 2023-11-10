@@ -360,6 +360,7 @@ protected:
   int cmdData_;
   ecmcTrajTypes currentTrajType_;
   bool allowSourceChangeWhenEnbaled_;
+  int encPrimIndexAsyn_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

@@ -248,6 +248,7 @@ void ecmcAxisBase::initVars() {
   data_.command_.cfgEncIndex    = 0;
   allowSourceChangeWhenEnbaled_ = false;
   setEncoderPos_                = 0;
+  encPrimIndexAsyn_             = 1;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -406,6 +407,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   // Update asyn parameters
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
+  axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
@@ -931,7 +933,7 @@ int ecmcAxisBase::initAsyn() {
                               asynParamFloat64,
                               ECMC_EC_F64,
                               (uint8_t *)&(statusData_.onChangeData.
-                                           positionSetpoint),
+                                           positionActual),
                               sizeof(statusData_.onChangeData.positionActual),
                               &paramTemp);
 
@@ -941,13 +943,29 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
-  
+
+  // Act vel
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t *)&(statusData_.onChangeData.
+                                           velocityActual),
+                              sizeof(statusData_.onChangeData.velocityActual),
+                              &paramTemp);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID] = paramTemp;
+
   // Set encoder primary index for control
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ENC_ID_CMD_NAME,
                               asynParamInt32,
                               ECMC_EC_S32,
-                              (uint8_t *)&(data_.command_.primaryEncIndex),
-                              sizeof(data_.command_.primaryEncIndex),
+                              (uint8_t *)&(encPrimIndexAsyn_),
+                              sizeof(encPrimIndexAsyn_),
                               &paramTemp);
 
   if (errorCode) {
@@ -2137,7 +2155,7 @@ void ecmcAxisBase::initControlWord() {
 asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
                                                     size_t        bytes,
                                                     asynParamType asynParType) {
-  if ((bytes != 8) || (asynParType != asynParamInt32)) {
+  if ((bytes != 4) || (asynParType != asynParamInt32)) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Primary encoder index datatype missmatch.\n",
       __FILE__,
@@ -2156,6 +2174,20 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
   if(errorCode) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Set Primary encoder index failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_);
+
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
+    return asynError;
+  }
+
+  errorCode = selectHomeEncoder(index);
+  
+  if(errorCode) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Set Homing encoder index failed.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2346,13 +2378,15 @@ int ecmcAxisBase::addEncoder() {
   return 0;
 }
 
+// Index 1 is the first encoder
 int ecmcAxisBase::selectPrimaryEncoder(int index) {
   // Do not change if less than 0 (allow ecmccfg to set -1 as default)
-  if (index < 0) {
+  int localIndex = index - 1;
+  if (localIndex < 0) {
     return 0;
   }
 
-  if ((index >= ECMC_MAX_ENCODERS) || (index >= data_.status_.encoderCount)) {
+  if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -2369,59 +2403,71 @@ int ecmcAxisBase::selectPrimaryEncoder(int index) {
   }
 
   // Make sure the switch is bumpless
-  if (index != data_.command_.primaryEncIndex) {
-    seq_.setNewPositionCtrlDrvTrajBumpless(encArray_[index]->getActPos());
+  if (localIndex != data_.command_.primaryEncIndex) {
+    seq_.setNewPositionCtrlDrvTrajBumpless(encArray_[localIndex]->getActPos());
   }
 
-  data_.command_.primaryEncIndex = index;
+  // This index is starting from 0
+  data_.command_.primaryEncIndex = localIndex;
+  
+  // This index is starting from 1 (for asyn and external interface)
+  encPrimIndexAsyn_ = index;
+  axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID]->refreshParamRT(1);
+
   return 0;
 }
 
+// Index 1 is the first encoder
 int ecmcAxisBase::selectConfigEncoder(int index) {
   // Do not change if less than 0 (allow ecmccfg to set -1 as default)
-  if (index < 0) {
+  int localIndex = index - 1;
+  if (localIndex < 0) {
     return 0;
   }
 
-  if ((index >= ECMC_MAX_ENCODERS) || (index >= data_.status_.encoderCount)) {
+  if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
   }
-
-  data_.command_.cfgEncIndex = index;
+  
+  // This index is starting from 0
+  data_.command_.cfgEncIndex = localIndex;
   return 0;
 }
 
+// Index 1 is the first encoder
 int ecmcAxisBase::selectHomeEncoder(int index) {
   // Do not change if less than 0 (allow ecmccfg to set -1 as default)
-  if (index < 0) {
+  int localIndex = index - 1;
+  if (localIndex < 0) {
     return 0;
   }
 
-  if ((index >= ECMC_MAX_ENCODERS) || (index >= data_.status_.encoderCount)) {
+  if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
   }
 
-  data_.command_.homeEncIndex = index;
+  // This index is starting from 0
+  data_.command_.homeEncIndex = localIndex;
 
   return 0;
 }
 
 int ecmcAxisBase::getConfigEncoderIndex() {
-  return data_.command_.cfgEncIndex;
+  return data_.command_.cfgEncIndex + 1;
 }
 
 int ecmcAxisBase::getPrimaryEncoderIndex() {
-  return data_.command_.primaryEncIndex;
+  return data_.command_.primaryEncIndex + 1;
 }
 
 int ecmcAxisBase::getHomeEncoderIndex() {
-  return data_.command_.homeEncIndex;
+  return data_.command_.homeEncIndex + 1;
 }
 
 bool ecmcAxisBase::getHwReady() {
