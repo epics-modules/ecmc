@@ -744,7 +744,11 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  *homed = encArray_[data_.command_.cfgEncIndex]->getHomed();
+  if(data_.command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
+    *homed = 1;
+  } else {
+    *homed = encArray_[data_.command_.primaryEncIndex]->getHomed();
+  }
   return 0;
 }
 
