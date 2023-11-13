@@ -2295,7 +2295,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
   int index = 0;
   memcpy(&index, data, sizeof(index));
   
-  int errorCode = selectPrimaryEncoder(index);
+  int errorCode = selectPrimaryEncoder(index,1);
   
   if(errorCode) {
     LOGERR(
@@ -2504,8 +2504,12 @@ int ecmcAxisBase::addEncoder() {
   return 0;
 }
 
-// Index 1 is the first encoder
 int ecmcAxisBase::selectPrimaryEncoder(int index) {
+  return selectPrimaryEncoder(index,0);
+}
+
+// Index 1 is the first encoder
+int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
   // Do not change if less than 0 (allow ecmccfg to set -1 as default)
   int localIndex = index - 1;
   if (localIndex < 0) {
@@ -2513,19 +2517,27 @@ int ecmcAxisBase::selectPrimaryEncoder(int index) {
   }
 
   if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+    // Override error message to not stop axis if in motion
+    if(!overrideError) {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+    }
+    return ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE;
   }
 
   // Do not allow to switch encoder if busy and INTERNAL source
   if (getBusy() && data_.command_.encSource ==
                                ECMC_DATA_SOURCE_INTERNAL ) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY);
+    // Override error message to not stop axis if in motion
+    if(!overrideError) {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY);
+    }
+    return ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY;
   }
 
   // Make sure the switch is bumpless

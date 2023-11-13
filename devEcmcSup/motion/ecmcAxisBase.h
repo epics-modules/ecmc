@@ -298,6 +298,7 @@ public:
   int    getAllowConstVelo();
   int    getAllowHome();
   int    addEncoder();
+  int    selectPrimaryEncoder(int index, int overrideError);
   int    selectPrimaryEncoder(int index);
   int    selectConfigEncoder(int index);
   int    selectHomeEncoder(int index);
