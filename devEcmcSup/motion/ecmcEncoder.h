@@ -136,7 +136,7 @@ public:
   int                   getHomeParamsValid();
   void                  setHomeVelTowardsCam(double vel);
   double                getHomeVelTowardsCam();
-  int                   setHomeVelOffCam(double vel);
+  void                   setHomeVelOffCam(double vel);
   double                getHomeVelOffCam();
   void                  setHomePosition(double pos);
   double                getHomePosition();

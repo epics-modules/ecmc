@@ -1910,8 +1910,8 @@ int addAxisEnc(int axisIndex);
  *
  * \note: The encoder index starts at 1 (first encoder for axis has index 1).\n
  *
- * \note Example: Select to use teh third encoder object for closed loop control of axis 3.\n
- * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
+ * \note Example: Select to use the third encoder object for closed loop control of axis 3.\n
+ * "Cfg.SelectAxisEncPrimary(3,2)" //Command string to ecmcCmdParser.c.\n
  */
 int selectAxisEncPrimary(int axisIndex,
                          int index);
@@ -1928,7 +1928,7 @@ int selectAxisEncPrimary(int axisIndex,
  * \note: The encoder index starts at 1 (first encoder for axis has index 1).\n
  *
  * \note Example: Select encoder 2 of axis 3 for configiuration.\n
- * "Cfg.SelectAxisPrimaryEnc(3,2)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SelectAxisEncConfig(3,2)" //Command string to ecmcCmdParser.c.\n
  */
 int selectAxisEncConfig(int axisIndex,
                         int index);
@@ -1948,7 +1948,7 @@ int selectAxisEncConfig(int axisIndex,
  * \note: The encoder index starts at 1 (first encoder for axis has index 1).\n
  *
  * \note Example: Select encoder 2 of axis 3 for homing.\n
- * "Cfg.SelectAxisHomeEnc(3,2)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SelectAxisEncHome(3,2)" //Command string to ecmcCmdParser.c.\n
  */
 int selectAxisEncHome(int axisIndex,
                       int index);

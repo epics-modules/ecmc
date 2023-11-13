@@ -2612,6 +2612,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisHomeDec(iValue, dValue);
   }
 
+  /*int Cfg.SetAxisHomeSeqId(int axis_no, int value);  IN seconds!!*/
+  nvals = sscanf(myarg_1, "SetAxisHomeSeqId(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisHomeSeqId(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisHomePostMoveEnable(int axis_no, int value); */
   nvals =
     sscanf(myarg_1, "SetAxisHomePostMoveEnable(%d,%d)", &iValue, &iValue2);

@@ -1888,6 +1888,17 @@ int ecmcAxisBase::moveHome(int    nCmdData,
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
 
+  if (getBusy()) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Axis Busy, homing not possible (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_, ERROR_AXIS_BUSY);
+
+    return setErrorID(ERROR_AXIS_BUSY);
+  }
+
   int errorCode = getErrorID();
 
   if (errorCode) {
@@ -1964,6 +1975,17 @@ int ecmcAxisBase::moveHome() {
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
 
+  if (getBusy()) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Axis Busy, homing not possible (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_, ERROR_AXIS_BUSY);
+
+    return setErrorID(ERROR_AXIS_BUSY);
+  }
+
   int errorCode = getErrorID();
 
   if (errorCode) {
@@ -1982,16 +2004,11 @@ int ecmcAxisBase::moveHome() {
     return errorCode;
   }
   
-  errorCode = setCmdData(getHomeEnc()->getHomeSeqId());
+  // Use cfgs in current home encoder
+  errorCode = setCmdData(ECMC_SEQ_HOME_USE_ENC_CFGS);
   if (errorCode) {
     return errorCode;
   }
-
-  getSeq()->setHomeVelOffCam(getHomeEnc()->getHomeVelOffCam());
-  getSeq()->setHomeVelTowardsCam(getHomeEnc()->getHomeVelOffCam());
-  getTraj()->setAcc(getHomeEnc()->getHomeAcc());
-  getTraj()->setDec(getHomeEnc()->getHomeDec());
-  getSeq()->setHomePosition(getHomeEnc()->getHomePosition());
 
   errorCode = setExecute(1);
 

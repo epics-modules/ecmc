@@ -972,8 +972,8 @@ int setAxisHomeVelOffCam(int axisIndex, double dVel) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
-
-  return axes[axisIndex]->getConfigEnc()->setHomeVelOffCam(dVel);
+  axes[axisIndex]->getConfigEnc()->setHomeVelOffCam(dVel);
+  return 0;
 }
 
 int setAxisHomePos(int axisIndex, double value) {

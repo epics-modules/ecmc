@@ -1207,7 +1207,7 @@ double ecmcEncoder::getHomeVelTowardsCam() {
   return homeVelTowardsCam_;
 }
 
-int    ecmcEncoder::setHomeVelOffCam(double vel) {
+void ecmcEncoder::setHomeVelOffCam(double vel) {    
   homeVelOffCam_ = vel;
 }
 
@@ -1215,8 +1215,8 @@ double ecmcEncoder::getHomeVelOffCam() {
   return homeVelOffCam_;
 }
 
-void   ecmcEncoder::setHomePosition(double pos) {
-  homePosition_ = pos;
+void ecmcEncoder::setHomePosition(double pos) {
+  homePosition_ = pos;  
 }
 
 double ecmcEncoder::getHomePosition() {

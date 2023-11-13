@@ -67,6 +67,7 @@ enum ecmcHomingType {
   ECMC_SEQ_HOME_FWD_HOME_HOME            = 10,
   ECMC_SEQ_HOME_LOW_LIM_INDEX            = 11,
   ECMC_SEQ_HOME_HIGH_LIM_INDEX           = 12,
+  ECMC_SEQ_HOME_USE_ENC_CFGS             = 14,
   ECMC_SEQ_HOME_SET_POS                  = 15,
   ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS  = 21,
   ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS = 22,
@@ -130,8 +131,10 @@ public:
   int    getAllowHome();
 
 private:
+  ecmcEncoder *getHomeEnc();
   void   initVars();
   double checkSoftLimits(double posSetpoint);
+  void   readHomingParamsFromEnc();
   int    seqHoming1();   // nCmdData==1
   int    seqHoming2();   // nCmdData==2
   int    seqHoming3();   // nCmdData==3
@@ -144,6 +147,7 @@ private:
   int    seqHoming10();  // nCmdData==10
   int    seqHoming11();  // nCmdData==11
   int    seqHoming12();  // nCmdData==12
+  //int    seqHoming14();  Is used but no method needed!!
   int    seqHoming15();  // nCmdData==15
   int    seqHoming21();  // nCmdData==21
   int    seqHoming22();  // nCmdData==22
