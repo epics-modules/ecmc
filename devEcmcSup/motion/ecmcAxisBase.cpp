@@ -2189,11 +2189,13 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
         // cmddata for all other states
         setCmdData(cmdData_);
       }
+    } 
+    
+    if ( command_ != ECMC_CMD_HOMING ){  // Not homing!
+      // allow on the fly updates of target velo and target pos
+      getSeq()->setTargetVel(velocityTarget_);
+      getSeq()->setTargetPos(positionTarget_);
     }
-
-    // allow on the fly updates of target velo and target pos
-    getSeq()->setTargetVel(velocityTarget_);
-    getSeq()->setTargetPos(positionTarget_);
 
     // if not already moving then trigg new motion cmd
     if (!getBusy()) {
