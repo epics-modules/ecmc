@@ -1935,7 +1935,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
 
   // if not valid the fallback on whats defined in encoder
   if(velocityTowardsCamSet < 0) {
-    velocityTowardsCamSet = getHomeEnc()->getHomeVelOffCam();
+    velocityTowardsCamSet = getHomeEnc()->getHomeVelTowardsCam();
   }
   getSeq()->setHomeVelTowardsCam(velocityTowardsCamSet);
 
@@ -2162,15 +2162,16 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     if (!getBusy()) {
       setCommand(command_);
 
-      if(command_ == ECMC_CMD_HOMING ) {
-        // fallback on config encoder  
-        if(cmdData_ <= 0) {
+      if( command_ == ECMC_CMD_HOMING ) {
+        // fallback on config encoder
+        if(cmdData_ <= 0 || cmdData_ == ECMC_SEQ_HOME_USE_ENC_CFGS ) {
           setCmdData(getHomeEnc()->getHomeSeqId());
         } else {
           setCmdData(cmdData_);
         }
         
-        // For homing velos, check if special homing velos, otherwise fallback on velocityTarget_
+        // For homing velos, check if special homing velos, 
+        // otherwise fallback on velocityTarget_
         double temp = getHomeEnc()->getHomeVelOffCam();
         if(temp <= 0) {
           temp = velocityTarget_;
@@ -2184,6 +2185,9 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
         // Homing pos from encoder
         getSeq()->setHomePosition(getHomeEnc()->getHomePosition());
+      } else {
+        // cmddata for all other states
+        setCmdData(cmdData_);
       }
     }
 
@@ -2300,20 +2304,6 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
   if(errorCode) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Set Primary encoder index failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_);
-
-    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
-    return asynError;
-  }
-
-  errorCode = selectHomeEncoder(index);
-  
-  if(errorCode) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Set Homing encoder index failed.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2551,6 +2541,22 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
   // This index is starting from 1 (for asyn and external interface)
   encPrimIndexAsyn_ = index;
   axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID]->refreshParamRT(1);
+
+  int errorCode = selectHomeEncoder(index);
+  
+  if(errorCode) {    
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Set Homing encoder index failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_);
+
+    if(!overrideError) {
+      setErrorID(ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+    }
+    return ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE;
+  }
 
   return 0;
 }

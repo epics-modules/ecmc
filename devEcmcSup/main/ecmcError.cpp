@@ -871,7 +871,7 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     break;
 
   case 0x14D0A:
-    return "ERROR_SEQ_CMD_DATA_OUT_OF_RANGE";
+    return "ERROR_SEQ_CMD_DATA_UNDEFINED";
 
     break;
 

@@ -1903,6 +1903,9 @@ int addAxisEnc(int axisIndex);
  *
  *  Select an encoder to use for closed loop control (default encoder index 1 is used).\n
  *
+ *  \note IMPROTANT: The homing encoder will also be set to the selected encoder,\n
+ *  see selectAxisEncHome().\n
+ *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] encindex Encoder index (first index is 0).\n
  *

@@ -469,7 +469,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       if ((traj_ != NULL) &&
-          (encArray_[data_->command_.primaryEncIndex] != NULL) &&
+          (getPrimEnc() != NULL) &&
           (mon_ != NULL) &&
           ((cntrl_ != NULL) || (data_->axisType_ == ECMC_AXIS_TYPE_VIRTUAL))) {
         seqInProgress_      = true;
@@ -485,7 +485,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
           traj_->setExecute(false);
         }
 
-        if (encArray_[data_->command_.primaryEncIndex] == NULL) {
+        if (getPrimEnc() == NULL) {
           return setErrorID(__FILE__,
                             __FUNCTION__,
                             __LINE__,
@@ -740,8 +740,8 @@ int ecmcAxisSequencer::seqHoming15() {  // nCmdData==15
   case 0:      // Set parameters and start initial motion
     traj_->setCurrentPosSet(homePosition_);
     traj_->setTargetPos(homePosition_);
-    encArray_[data_->command_.primaryEncIndex]->setActPos(homePosition_);
-    encArray_[data_->command_.primaryEncIndex]->setHomed(true);
+    getPrimEnc()->setActPos(homePosition_);
+    getPrimEnc()->setHomed(true);
     data_->status_.currentPositionActual   = homePosition_;
     data_->status_.currentPositionSetpoint = homePosition_;
 
@@ -841,7 +841,7 @@ int ecmcAxisSequencer::seqHoming1() {  // nCmdData==1
     }
 
     if (hwLimitSwitchBwd_ != hwLimitSwitchBwdOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 4;
     }
     break;
@@ -862,7 +862,7 @@ int ecmcAxisSequencer::seqHoming1() {  // nCmdData==1
 
       if (mon_->getAtTarget()) {  // Wait for controller to settle in order to minimize bump
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -951,7 +951,7 @@ int ecmcAxisSequencer::seqHoming2() {  // nCmdData==2
     }
 
     if (hwLimitSwitchFwd_ != hwLimitSwitchFwdOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 4;
     }
     break;
@@ -972,7 +972,7 @@ int ecmcAxisSequencer::seqHoming2() {  // nCmdData==2
 
       if (mon_->getAtTarget()) {  // Wait for controller to settle in order to minimize bump
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -1070,7 +1070,7 @@ int ecmcAxisSequencer::seqHoming3() {  // nCmdData==3
     }
 
     if (homeSensor_ != homeSensorOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 4;
     }
     break;
@@ -1092,7 +1092,7 @@ int ecmcAxisSequencer::seqHoming3() {  // nCmdData==3
       if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
           !mon_->getEnableAtTargetMon()) {
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -1190,7 +1190,7 @@ int ecmcAxisSequencer::seqHoming4() {  // nCmdData==4
     }
 
     if (homeSensor_ != homeSensorOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 4;
     }
     break;
@@ -1213,7 +1213,7 @@ int ecmcAxisSequencer::seqHoming4() {  // nCmdData==4
       if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
           !mon_->getEnableAtTargetMon()) {
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -1315,7 +1315,7 @@ int ecmcAxisSequencer::seqHoming5() {  // nCmdData==5
     }
 
     if (homeSensor_ != homeSensorOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 4;
     }
     break;
@@ -1373,7 +1373,7 @@ int ecmcAxisSequencer::seqHoming5() {  // nCmdData==5
     }
 
     if (homeSensor_ != homeSensorOld_) {
-      homePosLatch2_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch2_ = getPrimEnc()->getActPos();
       traj_->setExecute(0);
       seqState_ = 7;
     }
@@ -1396,7 +1396,7 @@ int ecmcAxisSequencer::seqHoming5() {  // nCmdData==5
       // Wait for controller to settle in order to minimize bump
       if (mon_->getAtTarget()) {
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           ((homePosLatch2_ + homePosLatch1_) / 2) +
           homePosition_;
         finalizeHomingSeq(currPos);
@@ -1499,7 +1499,7 @@ int ecmcAxisSequencer::seqHoming6() {  // nCmdData==6
     }
 
     if (homeSensor_ != homeSensorOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 4;
     }
     break;
@@ -1557,7 +1557,7 @@ int ecmcAxisSequencer::seqHoming6() {  // nCmdData==6
     }
 
     if (homeSensor_ != homeSensorOld_) {
-      homePosLatch2_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch2_ = getPrimEnc()->getActPos();
       traj_->setExecute(0);
       seqState_ = 7;
     }
@@ -1580,7 +1580,7 @@ int ecmcAxisSequencer::seqHoming6() {  // nCmdData==6
       // Wait for controller to settle in order to minimize bump
       if (mon_->getAtTarget()) {
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           ((homePosLatch2_ + homePosLatch1_) / 2) +
           homePosition_;
         finalizeHomingSeq(currPos);
@@ -1641,7 +1641,7 @@ int ecmcAxisSequencer::seqHoming7() {  // nCmdData==7
     }
 
     if (homeSensor_  && !homeSensorOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 2;
     }
     break;
@@ -1656,7 +1656,7 @@ int ecmcAxisSequencer::seqHoming7() {  // nCmdData==7
 
       if (mon_->getAtTarget()) {  // Wait for controller to settle in order to minimize bump
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -1716,7 +1716,7 @@ int ecmcAxisSequencer::seqHoming8() {  // nCmdData==8
     }
 
     if (homeSensor_  && !homeSensorOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 2;
     }
     break;
@@ -1731,7 +1731,7 @@ int ecmcAxisSequencer::seqHoming8() {  // nCmdData==8
 
       if (mon_->getAtTarget()) {  // Wait for controller to settle in order to minimize bump
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -1803,7 +1803,7 @@ int ecmcAxisSequencer::seqHoming9() {  // nCmdData==9
     }
 
     if (homeSensor_  && !homeSensorOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 2;
     }
     break;
@@ -1861,7 +1861,7 @@ int ecmcAxisSequencer::seqHoming9() {  // nCmdData==9
     }
 
     if (homeSensor_ && !homeSensorOld_) {
-      homePosLatch2_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch2_ = getPrimEnc()->getActPos();
       traj_->setExecute(0);
       seqState_ = 5;
     }
@@ -1878,7 +1878,7 @@ int ecmcAxisSequencer::seqHoming9() {  // nCmdData==9
       // Wait for controller to settle in order to minimize bump
       if (mon_->getAtTarget()) {
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           ((homePosLatch2_ + homePosLatch1_) / 2) +
           homePosition_;
         finalizeHomingSeq(currPos);
@@ -1951,7 +1951,7 @@ int ecmcAxisSequencer::seqHoming10() {  // nCmdData==10
     }
 
     if (homeSensor_ && !homeSensorOld_) {
-      homePosLatch1_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch1_ = getPrimEnc()->getActPos();
       seqState_      = 2;
     }
     break;
@@ -2009,7 +2009,7 @@ int ecmcAxisSequencer::seqHoming10() {  // nCmdData==10
     }
 
     if (homeSensor_ && !homeSensorOld_) {
-      homePosLatch2_ = encArray_[data_->command_.primaryEncIndex]->getActPos();
+      homePosLatch2_ = getPrimEnc()->getActPos();
       traj_->setExecute(0);
       seqState_ = 5;
     }
@@ -2026,7 +2026,7 @@ int ecmcAxisSequencer::seqHoming10() {  // nCmdData==10
       // Wait for controller to settle in order to minimize bump
       if (mon_->getAtTarget()) {
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           ((homePosLatch2_ + homePosLatch1_) / 2) +
           homePosition_;
         finalizeHomingSeq(currPos);
@@ -2098,7 +2098,7 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
 
       // Switch direction
       currSeqDirection_ = ECMC_DIR_FORWARD;
-      encArray_[data_->command_.primaryEncIndex]->setArmLatch(false);   // ensure latch is not armed
+      getPrimEnc()->setArmLatch(false);   // ensure latch is not armed
       seqState_ = 2;
     }
     break;
@@ -2114,7 +2114,7 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
       traj_->setTargetVel(homeVelOffCam_);   // low speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);  // Trigg new movement
-      encArray_[data_->command_.primaryEncIndex]->setArmLatch(true);   // ensure latch is armed
+      getPrimEnc()->setArmLatch(true);   // ensure latch is armed
       seqState_ = 3;
     } else {
       traj_->setExecute(0);
@@ -2153,17 +2153,17 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
                         ERROR_SEQ_NO_HOME_SWITCH_FLANK);
     }
 
-    if (encArray_[data_->command_.primaryEncIndex]->getNewValueLatched()) {
+    if (getPrimEnc()->getNewValueLatched()) {
       homeLatchCountAct_++;
 
       if (homeLatchCountAct_ >= homeLatchCountOffset_) {
         homePosLatch1_ =
-          encArray_[data_->command_.primaryEncIndex]->getLatchPosEng();
+          getPrimEnc()->getLatchPosEng();
         seqState_ = 5;
       }
-      encArray_[data_->command_.primaryEncIndex]->setArmLatch(false);
+      getPrimEnc()->setArmLatch(false);
     } else {
-      encArray_[data_->command_.primaryEncIndex]->setArmLatch(true);
+      getPrimEnc()->setArmLatch(true);
     }
     break;
 
@@ -2185,7 +2185,7 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
       if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
           !mon_->getEnableAtTargetMon()) {
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -2256,7 +2256,7 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
 
       // Switch direction
       currSeqDirection_ = ECMC_DIR_BACKWARD;
-      encArray_[data_->command_.primaryEncIndex]->setArmLatch(false);   // ensure latch is not armed
+      getPrimEnc()->setArmLatch(false);   // ensure latch is not armed
       seqState_ = 2;
     }
     break;
@@ -2274,7 +2274,7 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
       traj_->setTargetVel(-homeVelOffCam_);  // Low speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);  // Trigg new movement
-      encArray_[data_->command_.primaryEncIndex]->setArmLatch(true);  // ensure latch is armed
+      getPrimEnc()->setArmLatch(true);  // ensure latch is armed
       seqState_ = 3;
     } else {
       traj_->setExecute(0);
@@ -2313,17 +2313,17 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
                         ERROR_SEQ_NO_HOME_SWITCH_FLANK);
     }
 
-    if (encArray_[data_->command_.primaryEncIndex]->getNewValueLatched()) {
+    if (getPrimEnc()->getNewValueLatched()) {
       homeLatchCountAct_++;
 
       if (homeLatchCountAct_ >= homeLatchCountOffset_) {
         homePosLatch1_ =
-          encArray_[data_->command_.primaryEncIndex]->getLatchPosEng();
+          getPrimEnc()->getLatchPosEng();
         seqState_ = 5;
       }
-      encArray_[data_->command_.primaryEncIndex]->setArmLatch(false);
+      getPrimEnc()->setArmLatch(false);
     } else {
-      encArray_[data_->command_.primaryEncIndex]->setArmLatch(true);
+      getPrimEnc()->setArmLatch(true);
     }
     break;
 
@@ -2345,7 +2345,7 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
       if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
           !mon_->getEnableAtTargetMon()) {
         double currPos =
-          encArray_[data_->command_.primaryEncIndex]->getActPos() -
+          getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -2376,18 +2376,18 @@ int ecmcAxisSequencer::seqHoming21() {  // nCmdData==21 Resolver homing (keep ab
     return retValue;
   }
 
-  if ((encArray_[data_->command_.primaryEncIndex]->getAbsBits() <
+  if ((getPrimEnc()->getAbsBits() <
        ECMC_ENCODER_ABS_BIT_MIN) ||
-      (encArray_[data_->command_.primaryEncIndex]->getAbsBits() >
-       encArray_[data_->command_.primaryEncIndex]->getBits())) {
+      (getPrimEnc()->getAbsBits() >
+       getPrimEnc()->getBits())) {
     LOGERR(
       "%s/%s:%d: ERROR: Sequence aborted. Encoder absolute bit count out of range (%d). Allowed range: %d:%d. (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      encArray_[data_->command_.primaryEncIndex]->getAbsBits(),
-      encArray_[data_->command_.primaryEncIndex]->getAbsBits(),
-      encArray_[data_->command_.primaryEncIndex]->getBits(),
+      getPrimEnc()->getAbsBits(),
+      getPrimEnc()->getAbsBits(),
+      getPrimEnc()->getBits(),
       ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE);
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -2498,19 +2498,19 @@ int ecmcAxisSequencer::seqHoming21() {  // nCmdData==21 Resolver homing (keep ab
       if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
           !mon_->getEnableAtTargetMon()) {
         // now stopped just at limit switch
-        if (encArray_[data_->command_.primaryEncIndex]->getScale() < 0) {
+        if (getPrimEnc()->getScale() < 0) {
           distToAbsBitsUnderOverFlow = std::abs(
-            encArray_[data_->command_.primaryEncIndex]->getRawAbsPosRegister() *
-            encArray_[data_->command_.primaryEncIndex]->getScale());
+            getPrimEnc()->getRawAbsPosRegister() *
+            getPrimEnc()->getScale());
         } else {
           distToAbsBitsUnderOverFlow =
-            encArray_[data_->command_.primaryEncIndex]->getAbsRangeEng() -
+            getPrimEnc()->getAbsRangeEng() -
             std::abs(
-              encArray_[data_->command_.primaryEncIndex]->getRawAbsPosRegister() *
-              encArray_[data_->command_.primaryEncIndex]->getScale());
+              getPrimEnc()->getRawAbsPosRegister() *
+              getPrimEnc()->getScale());
         }
         currPos = homePosition_ - (homeLatchCountOffset_ - 1) *
-                  encArray_[data_->command_.primaryEncIndex]->getAbsRangeEng()
+                  getPrimEnc()->getAbsRangeEng()
                   - distToAbsBitsUnderOverFlow;
         finalizeHomingSeq(currPos);
       }
@@ -2540,18 +2540,18 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
     return retValue;
   }
 
-  if ((encArray_[data_->command_.primaryEncIndex]->getAbsBits() <
+  if ((getPrimEnc()->getAbsBits() <
        ECMC_ENCODER_ABS_BIT_MIN) ||
-      (encArray_[data_->command_.primaryEncIndex]->getAbsBits() >
-       encArray_[data_->command_.primaryEncIndex]->getBits())) {
+      (getPrimEnc()->getAbsBits() >
+       getPrimEnc()->getBits())) {
     LOGERR(
       "%s/%s:%d: ERROR: Sequence aborted. Encoder absolute bit count out of range (%d). Allowed range: %d:%d. (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      encArray_[data_->command_.primaryEncIndex]->getAbsBits(),
-      encArray_[data_->command_.primaryEncIndex]->getAbsBits(),
-      encArray_[data_->command_.primaryEncIndex]->getBits(),
+      getPrimEnc()->getAbsBits(),
+      getPrimEnc()->getAbsBits(),
+      getPrimEnc()->getBits(),
       ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE);
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -2670,19 +2670,19 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
       if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
           !mon_->getEnableAtTargetMon()) {
         // now stopped just at limit switch
-        if (encArray_[data_->command_.primaryEncIndex]->getScale() < 0) {
+        if (getPrimEnc()->getScale() < 0) {
           distToAbsBitsUnderOverFlow =
-            encArray_[data_->command_.primaryEncIndex]->getAbsRangeEng() -
+            getPrimEnc()->getAbsRangeEng() -
             std::abs(
-              encArray_[data_->command_.primaryEncIndex]->getRawAbsPosRegister() *
-              encArray_[data_->command_.primaryEncIndex]->getScale());
+              getPrimEnc()->getRawAbsPosRegister() *
+              getPrimEnc()->getScale());
         } else {
           distToAbsBitsUnderOverFlow = std::abs(
-            encArray_[data_->command_.primaryEncIndex]->getRawAbsPosRegister() *
-            encArray_[data_->command_.primaryEncIndex]->getScale());
+            getPrimEnc()->getRawAbsPosRegister() *
+            getPrimEnc()->getScale());
         }
         currPos = homePosition_ + (homeLatchCountOffset_ - 1) *
-                  encArray_[data_->command_.primaryEncIndex]->getAbsRangeEng()
+                  getPrimEnc()->getAbsRangeEng()
                   + distToAbsBitsUnderOverFlow;
         finalizeHomingSeq(currPos);
       }
@@ -2888,7 +2888,7 @@ int ecmcAxisSequencer::checkVelAccDec() {
 }
 
 void ecmcAxisSequencer::initHomingSeq() {
-  encArray_[data_->command_.primaryEncIndex]->setHomed(false);
+  getPrimEnc()->setHomed(false);
   traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
   traj_->setExecute(0);
 }
@@ -3006,7 +3006,7 @@ void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
 
   if (drv_) {
     drv_->setCspRef(
-      encArray_[data_->command_.primaryEncIndex]->getRawPosRegister(),
+      getPrimEnc()->getRawPosRegister(),
       newPosition,
       newPosition);
   }
@@ -3071,5 +3071,9 @@ double ecmcAxisSequencer::getHomePosition() {
 }
 
 ecmcEncoder *ecmcAxisSequencer::getHomeEnc() {
-  return getHomeEnc();
+  return encArray_[data_->command_.homeEncIndex];
+}
+
+ecmcEncoder *ecmcAxisSequencer::getPrimEnc() {
+  return encArray_[data_->command_.primaryEncIndex];
 }

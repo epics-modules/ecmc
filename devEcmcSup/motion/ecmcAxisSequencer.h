@@ -132,6 +132,7 @@ public:
 
 private:
   ecmcEncoder *getHomeEnc();
+  ecmcEncoder *getPrimEnc();
   void   initVars();
   double checkSoftLimits(double posSetpoint);
   void   readHomingParamsFromEnc();
