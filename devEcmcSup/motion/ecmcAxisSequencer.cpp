@@ -645,7 +645,10 @@ void ecmcAxisSequencer::setTargetVel(double velTarget) {
   }
 
   data_->command_.velocityTarget = velTarget;
-  traj_->setTargetVel(velTarget);
+  // Do not write to traj if homing
+  if (data_->command_.command != ECMC_CMD_HOMING) {
+    traj_->setTargetVel(velTarget);
+  }
 }
 
 double ecmcAxisSequencer::getTargetVel() {
@@ -2962,11 +2965,12 @@ void ecmcAxisSequencer::setHomePostMoveEnable(double enable) {
 }
 
 void ecmcAxisSequencer::switchEncodersIfNeeded() {
+
+  oldPrimaryEnc_ = data_->command_.primaryEncIndex;
+  
   if (data_->command_.homeEncIndex == data_->command_.primaryEncIndex) {
     return; // Already correct encoder
   }
-
-  oldPrimaryEnc_ = data_->command_.primaryEncIndex;
 
   // *************  Need to switch encoder
 
