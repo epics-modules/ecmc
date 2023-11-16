@@ -2658,22 +2658,6 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
   encPrimIndexAsyn_ = index;
   axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID]->refreshParamRT(1);
 
-  //int errorCode = selectHomeEncoder(index);
-  //
-  //if(errorCode) {    
-  //  LOGERR(
-  //    "%s/%s:%d: ERROR (axis %d): Set Homing encoder index failed.\n",
-  //    __FILE__,
-  //    __FUNCTION__,
-  //    __LINE__,
-  //    data_.axisId_);
-//
-  //  if(!overrideError) {
-  //    setErrorID(ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
-  //  }
-  //  return ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE;
-  //}
-
   return 0;
 }
 
@@ -2697,27 +2681,6 @@ int ecmcAxisBase::selectConfigEncoder(int index) {
   return 0;
 }
 
-// Index 1 is the first encoder
-//int ecmcAxisBase::selectHomeEncoder(int index) {
-//  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
-//  int localIndex = index - 1;
-//  if (localIndex < 0) {
-//    return 0;
-//  }
-//
-//  if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
-//    return setErrorID(__FILE__,
-//                      __FUNCTION__,
-//                      __LINE__,
-//                      ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
-//  }
-//
-//  // This index is starting from 0
-//  data_.command_.homeEncIndex = localIndex;
-//
-//  return 0;
-//}
-
 int ecmcAxisBase::getConfigEncoderIndex() {
   return data_.command_.cfgEncIndex + 1;
 }
@@ -2725,10 +2688,6 @@ int ecmcAxisBase::getConfigEncoderIndex() {
 int ecmcAxisBase::getPrimaryEncoderIndex() {
   return data_.command_.primaryEncIndex + 1;
 }
-
-//int ecmcAxisBase::getHomeEncoderIndex() {
-//  return data_.command_.homeEncIndex + 1;
-//}
 
 bool ecmcAxisBase::getHwReady() {
   bool ready = true;

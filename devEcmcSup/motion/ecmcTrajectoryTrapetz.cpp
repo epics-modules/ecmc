@@ -314,7 +314,7 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
 double ecmcTrajectoryTrapetz::distToStop(double vel) {
   // double d = 0.5 * vel * vel / targetDeceleration_ + std::abs(vel * sampleTime_);
   // return vel > 0 ? d : -d ;
-  return prevStepSize_ * std::abs(prevStepSize_ / stepDEC_) / 2;
+  return prevStepSize_ * std::abs(prevStepSize_ / stepDEC_) / 2 + stepDEC_;
 }
 
 void ecmcTrajectoryTrapetz::setTargetPosLocal(double pos) {

@@ -55,7 +55,6 @@ void ecmcAxisSequencer::initVars() {
   homeEnablePostMove_    = false;
   homePostMoveTargetPos_ = 0;
   seqPosHomeState_       = 0;
-  //oldPrimaryEnc_         = 0;
   defaultAcc_            = 0;
   defaultDec_            = 0;
   acc_                   = 0;
@@ -2972,43 +2971,6 @@ void ecmcAxisSequencer::setHomePostMoveTargetPosition(double targetPos) {
 void ecmcAxisSequencer::setHomePostMoveEnable(double enable) {
   homeEnablePostMove_ = enable;
 }
-
-//void ecmcAxisSequencer::switchEncodersIfNeeded() {
-//
-//  oldPrimaryEnc_ = data_->command_.primaryEncIndex;
-//  
-//  if (data_->command_.homeEncIndex == data_->command_.primaryEncIndex) {
-//    return; // Already correct encoder
-//  }
-//
-//  // *************  Need to switch encoder
-//
-//  // Ensure no jump when switching.
-//  setNewPositionCtrlDrvTrajBumpless(
-//    getPrimEnc()->getActPos());
-//
-//  // now tempirarily switch encoder to home encoder
-//  data_->command_.primaryEncIndex = data_->command_.homeEncIndex;
-//
-//}
-
-//void ecmcAxisSequencer::switchBackEncodersIfNeeded() {
-//
-//  if (oldPrimaryEnc_ == data_->command_.primaryEncIndex) {
-//    return; // Already correct encoder
-//  }
-//
-//  // *************  Need to switch back encoder
-//
-//  // Ensure no jump when switching
-//
-//  // Prep all objects for setpoint step (except encoders)
-//  setNewPositionCtrlDrvTrajBumpless(encArray_[oldPrimaryEnc_]->getActPos());
-//
-//  // now tempirarily switch encoder to home encoder
-//  data_->command_.primaryEncIndex = oldPrimaryEnc_;
-//
-//}
 
 void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
   traj_->setCurrentPosSet(newPosition);

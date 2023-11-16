@@ -15,12 +15,12 @@
 
 #define CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(dsIndex) {           \
     ds_errorCode = 0;                                               \
-    if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) { \
+    if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) {  \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
       LOGERR("ERROR: Data Storage index out of range.\n");          \
       return (double)ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
     }                                                               \
-    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                        \
+    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
       LOGERR("ERROR: Data Storage object NULL\n");                  \
       return (double)ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
@@ -29,12 +29,12 @@
 
 #define CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(dsIndex) {      \
     ds_errorCode = 0;                                               \
-    if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) { \
+    if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) {  \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
       LOGERR("ERROR: Data Storage index out of range.\n");          \
       return 0;                                                     \
     }                                                               \
-    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                        \
+    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
       LOGERR("ERROR: Data Storage object NULL\n");                  \
       return 0;                                                     \
@@ -43,12 +43,12 @@
 
 #define CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(dsIndex) { \
     ds_errorCode = 0;                                               \
-    if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) { \
+    if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) {  \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
       LOGERR("ERROR: Data Storage index out of range.\n");          \
       return -1;                                                    \
     }                                                               \
-    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                        \
+    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
       LOGERR("ERROR: Data Storage object NULL\n");                  \
       return -1;                                                    \

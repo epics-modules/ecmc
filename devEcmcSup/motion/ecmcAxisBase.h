@@ -198,7 +198,6 @@ public:
                                     int *error);
   ecmcEncoder*               getConfigEnc();  // get current encoder being configured
   ecmcEncoder*               getPrimEnc();
-  //ecmcEncoder*               getHomeEnc();
   ecmcAxisSequencer*         getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);
@@ -307,10 +306,8 @@ public:
   int    selectPrimaryEncoder(int index, int overrideError);
   int    selectPrimaryEncoder(int index);
   int    selectConfigEncoder(int index);
-  //int    selectHomeEncoder(int index);
   int    getPrimaryEncoderIndex();                      // Control (PID)
   int    getConfigEncoderIndex();                       // Config
-  //int    getHomeEncoderIndex();                         // Homing
   double getExtSetPos();
   double getExtActPos();
   int    setAllowSourceChangeWhenEnabled(bool allow);
@@ -322,7 +319,6 @@ protected:
   void   initVars();
   void   refreshDebugInfoStruct();
 
-  // double                     getPosErrorMod();
   int    createAsynParam(const char        *nameFormat,
                          asynParamType      asynType,
                          ecmcEcDataType     ecmcType,

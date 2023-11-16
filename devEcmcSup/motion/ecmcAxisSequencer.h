@@ -134,7 +134,6 @@ public:
   int    getAllowHome();
 
 private:
-  //ecmcEncoder *getHomeEnc();
   ecmcEncoder *getPrimEnc();
   void   initVars();
   double checkSoftLimits(double posSetpoint);
@@ -163,8 +162,6 @@ private:
   void   initHomingSeq();
   void   finalizeHomingSeq(double newPosition);
   int    postHomeMove();
-  // void   switchEncodersIfNeeded();
-  // void   switchBackEncodersIfNeeded();
   void   setTrajAccAndDec();
 
   int seqState_;
@@ -198,8 +195,6 @@ private:
   ecmcMonitor *mon_;
   ecmcPIDController *cntrl_;
   ecmcDriveBase *drv_;
-
-  // ecmcMasterSlaveIF *externalInputTrajectoryIF_;
   ecmcAxisData *data_;
   uint64_t oldencRawAbsPosReg_;
   uint64_t encRawAbsPosReg_;
@@ -209,7 +204,6 @@ private:
   bool enablePos_;
   bool enableConstVel_;
   bool enableHome_;
-  //int oldPrimaryEnc_;
   double defaultAcc_;
   double defaultDec_;
   double acc_;

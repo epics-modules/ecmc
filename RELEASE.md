@@ -1,7 +1,7 @@
 
 Release Notes
 ===
-* Remove concept with homing encoder. The homing encoder is always teh primary encoder.
+* Remove concept with homing encoder. The homing encoder is always the primary encoder.
 * Add asyn params to control acceleration and deceleration
 * Add asyn param to switch encoder
 * The asyn parmeter ax.enc.posact always refers to the primary encoder
