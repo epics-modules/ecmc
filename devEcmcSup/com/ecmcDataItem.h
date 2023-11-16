@@ -79,6 +79,7 @@ public:
   void              setEcmcDataMaxSize(size_t bytes);
   size_t            getEcmcDataMaxSize();
   char*             getName();
+  char*             getDataPtr();
 
   ecmcDataItemInfo* getDataItemInfo();
 

@@ -191,3 +191,7 @@ void ecmcDataItem::deregDataUpdatedCallback(int handle) {
     }
   }
 }
+
+char* ecmcDataItem::getDataPtr(){
+  return (char*)dataItem_.data;
+}

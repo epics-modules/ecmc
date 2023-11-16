@@ -1,6 +1,8 @@
 
 Release Notes
 ===
+
+* Add printout of data rawvalue (8byte) for ecmcGrepParam and ecmcReport.
 * Remove concept with homing encoder. The homing encoder is always the primary encoder.
 * Add asyn params to control acceleration and deceleration
 * Add asyn param to switch encoder

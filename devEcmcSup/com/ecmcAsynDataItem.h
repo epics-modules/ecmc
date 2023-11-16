@@ -147,7 +147,7 @@ public:
   asynStatus     setAlarmParam(int alarm,
                                int severity);
   int            getAlarmStatus();
-  int            getAlarmSeverity();
+  int            getAlarmSeverity(); 
 
   asynStatus     setDrvInfo(const char *drvInfo);
 

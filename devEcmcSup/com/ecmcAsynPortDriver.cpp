@@ -1248,6 +1248,10 @@ void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
             param->getAllowWriteToEcmc() ? "true" : "false");
     fprintf(fp, "    ECMC Data type:            %s\n",
             getEcDataTypeStr(param->getEcmcDataType()));
+    if( param->getEcmcDataMaxSize() == sizeof(uint64_t) ) {
+      fprintf(fp,
+              "    ECMC value:                0x%" PRIx64 "\n",*((uint64_t*)param->getDataPtr()));
+    }
     fprintf(fp, "\n");
     return;
   }
@@ -1287,7 +1291,10 @@ void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
           param->getAllowWriteToEcmc() ? "true" : "false");
   fprintf(fp, "    ECMC Data type:            %s\n",
           getEcDataTypeStr(param->getEcmcDataType()));
-
+  if( param->getEcmcDataMaxSize() == sizeof(uint64_t) ) {
+    fprintf(fp,
+            "    ECMC value:                0x%" PRIx64 "\n",*((uint64_t*)param->getDataPtr()));
+  }
   // Value range only applicable for ints
   if (param->getEcmcMinValueInt() != param->getEcmcMaxValueInt()) {
     fprintf(fp,
