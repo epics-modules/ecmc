@@ -804,11 +804,11 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_ACC_TARGET_SET:
-    axis_->getTraj()->setAcc(data_);
+    axis_->getSeq()->setAcc(data_);
     break;
 
   case ECMC_AXIS_DATA_DEC_TARGET_SET:
-    axis_->getTraj()->setDec(data_);
+    axis_->getSeq()->setDec(data_);
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_BWD:

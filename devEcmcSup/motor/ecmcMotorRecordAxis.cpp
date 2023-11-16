@@ -1725,7 +1725,7 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value) {
               value);
 
     if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-    drvlocal.ecmcAxis->getTraj()->setAcc(value);
+    drvlocal.ecmcAxis->getSeq()->setAcc(value);
 
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 

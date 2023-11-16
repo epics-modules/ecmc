@@ -100,7 +100,10 @@ public:
   double              getHomeVelOffCam();
   void                setHomePosition(double pos);
   double              getHomePosition();
-  
+  void                setDefaultAcc(double acc);
+  void                setDefaultDec(double dec);
+  void                setAcc(double acc);
+  void                setDec(double dec);
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
   // only valid for certain home sequences
@@ -162,6 +165,7 @@ private:
   int    postHomeMove();
   void   switchEncodersIfNeeded();
   void   switchBackEncodersIfNeeded();
+  void   setTrajAccAndDec();
 
   int seqState_;
   int seqStateOld_;
@@ -206,6 +210,10 @@ private:
   bool enableConstVel_;
   bool enableHome_;
   int oldPrimaryEnc_;
+  double defaultAcc_;
+  double defaultDec_;
+  double acc_;
+  double dec_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */

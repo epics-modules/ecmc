@@ -833,9 +833,10 @@ int setAxisAcceleration(int axisIndex, double value) {
            value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getTraj()->setAcc(value);
+  axes[axisIndex]->getSeq()->setDefaultAcc(value);
+  axes[axisIndex]->setAcc(value);
   return 0;
 }
 
@@ -848,9 +849,10 @@ int setAxisDeceleration(int axisIndex, double value) {
            value);
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getTraj()->setDec(value);
+  axes[axisIndex]->getSeq()->setDefaultDec(value);
+  axes[axisIndex]->setDec(value);
   return 0;
 }
 
@@ -880,7 +882,6 @@ int setAxisJerk(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  // TODO not implemented in trajectory generator
   axes[axisIndex]->getTraj()->setJerk(value);
   return 0;
 }

@@ -290,7 +290,12 @@ public:
   asynStatus axisAsynWritePrimEncCtrlId(void         *data,
                                         size_t        bytes,
                                         asynParamType asynParType);
-
+  asynStatus axisAsynWriteAcc(void         *data,
+                              size_t        bytes,
+                              asynParamType asynParType);
+  asynStatus axisAsynWriteDec(void         *data,
+                              size_t        bytes,
+                              asynParamType asynParType);
   int    setAllowMotionFunctions(bool enablePos,
                                  bool enableConstVel,
                                  bool enableHome);
@@ -309,6 +314,8 @@ public:
   double getExtActPos();
   int    setAllowSourceChangeWhenEnabled(bool allow);
   void   setTargetVel(double velTarget);
+  void   setAcc(double acc);
+  void   setDec(double dec);
 
 protected:
   void   initVars();
@@ -359,6 +366,8 @@ protected:
   double positionTarget_;
   double velocityTarget_;
   double setEncoderPos_;
+  double acceleration_;
+  double deceleration_;
   motionCommandTypes command_;
   int cmdData_;
   ecmcTrajTypes currentTrajType_;

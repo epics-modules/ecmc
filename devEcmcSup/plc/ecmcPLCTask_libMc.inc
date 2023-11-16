@@ -92,8 +92,8 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
     }
     ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
     ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
-    ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setDec(dec);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setAcc(acc);
 
     mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
     if(mc_errorCode){
@@ -140,8 +140,8 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
     }
     ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
     ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
-    ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setDec(dec);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setAcc(acc);
 
     mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEREL);    
     if(mc_errorCode){
@@ -187,8 +187,8 @@ inline double mc_move_vel(double axIndex,double execute, double vel, double acc,
       return mc_errorCode;
     }    
     ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
-    ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setDec(dec);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setAcc(acc);
 
     mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEVEL);    
     if(mc_errorCode){
@@ -492,8 +492,8 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
     double pos = ecmcPLCTask::statAxes_[index]->getExtSetPos();
     ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
     ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLCTask::statAxes_[index]->getTraj()->setDec(dec);
-    ecmcPLCTask::statAxes_[index]->getTraj()->setAcc(acc);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setDec(dec);
+    ecmcPLCTask::statAxes_[index]->getSeq()->setAcc(acc);
 
     mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
     if(mc_errorCode){
