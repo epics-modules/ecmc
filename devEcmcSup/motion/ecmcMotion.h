@@ -1953,8 +1953,8 @@ int selectAxisEncConfig(int axisIndex,
  * \note Example: Select encoder 2 of axis 3 for homing.\n
  * "Cfg.SelectAxisEncHome(3,2)" //Command string to ecmcCmdParser.c.\n
  */
-int selectAxisEncHome(int axisIndex,
-                      int index);
+//int selectAxisEncHome(int axisIndex,
+//                      int index);
 
 /** \brief Set referance this encoder at homing
  *
@@ -2011,8 +2011,8 @@ int getAxisEncConfigIndex(int  axisIndex,
  * \note Example: Get index of current encoder being used for homing for axis 3.\n
  * "Cfg.GetAxisEncHomeIndex(3)" //Command string to ecmcCmdParser.c.\n
  */
-int getAxisEncHomeIndex(int  axisIndex,
-                        int *index);
+//int getAxisEncHomeIndex(int  axisIndex,
+//                        int *index);
 
 /** \brief Reference this encoder to other encoder at startup.\n
  *

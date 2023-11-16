@@ -1,7 +1,10 @@
 
 Release Notes
 ===
-
+* Remove concept with homing encoder. The homing encoder is always teh primary encoder.
+* Add asyn params to control acceleration and deceleration
+* Add asyn param to switch encoder
+* The asyn parmeter ax.enc.posact always refers to the primary encoder
 * Add command to offset raw velocity setpoints (for axes). One usecase can be to offset the zero velocity setpoint output of analog outputs:
 ```
 ecmcConfigOrDie "Cfg.SetAxisDrvVelSetOffsetRaw(<Axis_id>,<offset>)"

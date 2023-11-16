@@ -624,18 +624,18 @@ int getAxisEncConfigIndex(int axisIndex, int *index) {
   return 0;
 }
 
-int getAxisEncHomeIndex(int axisIndex, int *index) {
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex);
-
-  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
-
-  *index =  axes[axisIndex]->getHomeEncoderIndex();
-  return 0;
-}
+//int getAxisEncHomeIndex(int axisIndex, int *index) {
+//  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+//           __FILE__,
+//           __FUNCTION__,
+//           __LINE__,
+//           axisIndex);
+//
+//  CHECK_AXIS_ENCODER_RETURN_IF_ERROR(axisIndex);
+//
+//  *index =  axes[axisIndex]->getHomeEncoderIndex();
+//  return 0;
+//}
 
 int getAxisAllowCommandsFromPLC(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
@@ -1969,17 +1969,17 @@ int selectAxisEncConfig(int axisIndex, int index) {
   return axes[axisIndex]->selectConfigEncoder(index);
 }
 
-int selectAxisEncHome(int axisIndex, int index) {
-  LOGINFO4("%s/%s:%d axisIndex=%d, homeEncoder=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           index);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
-  return axes[axisIndex]->selectHomeEncoder(index);
-}
+//int selectAxisEncHome(int axisIndex, int index) {
+//  LOGINFO4("%s/%s:%d axisIndex=%d, homeEncoder=%d\n",
+//           __FILE__,
+//           __FUNCTION__,
+//           __LINE__,
+//           axisIndex,
+//           index);
+//
+//  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+//  return axes[axisIndex]->selectHomeEncoder(index);
+//}
 
 int setAxisEncEnableRefAtHome(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",

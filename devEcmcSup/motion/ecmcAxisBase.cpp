@@ -763,8 +763,12 @@ ecmcEncoder * ecmcAxisBase::getConfigEnc() {
   return encArray_[data_.command_.cfgEncIndex];
 }
 
-ecmcEncoder * ecmcAxisBase::getHomeEnc() {
-  return encArray_[data_.command_.homeEncIndex];
+//ecmcEncoder * ecmcAxisBase::getHomeEnc() {
+//  return encArray_[data_.command_.homeEncIndex];
+//}
+
+ecmcEncoder * ecmcAxisBase::getPrimEnc() {
+  return encArray_[data_.command_.primaryEncIndex];
 }
 
 ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
@@ -1983,7 +1987,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
   
   // if not valid the fallback on whats defined in encoder
   if(nCmdData <= 0) {
-    nCmdData = getHomeEnc()->getHomeSeqId();
+    nCmdData = getPrimEnc()->getHomeSeqId();
   }
   errorCode = setCmdData(nCmdData);
   
@@ -1993,25 +1997,25 @@ int ecmcAxisBase::moveHome(int    nCmdData,
 
   // if not valid the fallback on whats defined in encoder
   if(velocityOffCamSet < 0) {
-    velocityOffCamSet = getHomeEnc()->getHomeVelOffCam();
+    velocityOffCamSet = getPrimEnc()->getHomeVelOffCam();
   }
   getSeq()->setHomeVelOffCam(velocityOffCamSet);
 
   // if not valid the fallback on whats defined in encoder
   if(velocityTowardsCamSet < 0) {
-    velocityTowardsCamSet = getHomeEnc()->getHomeVelTowardsCam();
+    velocityTowardsCamSet = getPrimEnc()->getHomeVelTowardsCam();
   }
   getSeq()->setHomeVelTowardsCam(velocityTowardsCamSet);
 
   // if not valid the fallback on whats defined in encoder
   if(accelerationSet < 0) {
-    accelerationSet = getHomeEnc()->getHomeAcc();
+    accelerationSet = getPrimEnc()->getHomeAcc();
   }
   setAcc(accelerationSet);
 
   // if not valid the fallback on whats defined in encoder
   if(decelerationSet < 0) {
-    decelerationSet = getHomeEnc()->getHomeDec();
+    decelerationSet = getPrimEnc()->getHomeDec();
   }
 
   setDec(decelerationSet);
@@ -2231,26 +2235,26 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       if( command_ == ECMC_CMD_HOMING ) {
         // fallback on config encoder
         if(cmdData_ <= 0 || cmdData_ == ECMC_SEQ_HOME_USE_ENC_CFGS ) {
-          setCmdData(getHomeEnc()->getHomeSeqId());
+          setCmdData(getPrimEnc()->getHomeSeqId());
         } else {
           setCmdData(cmdData_);
         }
         
         // For homing velos, check if special homing velos, 
         // otherwise fallback on velocityTarget_
-        double temp = getHomeEnc()->getHomeVelOffCam();
+        double temp = getPrimEnc()->getHomeVelOffCam();
         if(temp <= 0) {
           temp = velocityTarget_;
         }
         getSeq()->setHomeVelOffCam(temp);
-        temp = getHomeEnc()->getHomeVelTowardsCam();
+        temp = getPrimEnc()->getHomeVelTowardsCam();
         if(temp <= 0) {
           temp = velocityTarget_;
         }
         getSeq()->setHomeVelTowardsCam(temp);
 
         // Homing pos from encoder
-        getSeq()->setHomePosition(getHomeEnc()->getHomePosition());
+        getSeq()->setHomePosition(getPrimEnc()->getHomePosition());
       } else {
         // cmddata for all other states
         setCmdData(cmdData_);
@@ -2654,21 +2658,21 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
   encPrimIndexAsyn_ = index;
   axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID]->refreshParamRT(1);
 
-  int errorCode = selectHomeEncoder(index);
-  
-  if(errorCode) {    
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Set Homing encoder index failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_);
-
-    if(!overrideError) {
-      setErrorID(ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
-    }
-    return ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE;
-  }
+  //int errorCode = selectHomeEncoder(index);
+  //
+  //if(errorCode) {    
+  //  LOGERR(
+  //    "%s/%s:%d: ERROR (axis %d): Set Homing encoder index failed.\n",
+  //    __FILE__,
+  //    __FUNCTION__,
+  //    __LINE__,
+  //    data_.axisId_);
+//
+  //  if(!overrideError) {
+  //    setErrorID(ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+  //  }
+  //  return ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE;
+  //}
 
   return 0;
 }
@@ -2694,25 +2698,25 @@ int ecmcAxisBase::selectConfigEncoder(int index) {
 }
 
 // Index 1 is the first encoder
-int ecmcAxisBase::selectHomeEncoder(int index) {
-  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
-  int localIndex = index - 1;
-  if (localIndex < 0) {
-    return 0;
-  }
-
-  if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
-  }
-
-  // This index is starting from 0
-  data_.command_.homeEncIndex = localIndex;
-
-  return 0;
-}
+//int ecmcAxisBase::selectHomeEncoder(int index) {
+//  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
+//  int localIndex = index - 1;
+//  if (localIndex < 0) {
+//    return 0;
+//  }
+//
+//  if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
+//    return setErrorID(__FILE__,
+//                      __FUNCTION__,
+//                      __LINE__,
+//                      ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+//  }
+//
+//  // This index is starting from 0
+//  data_.command_.homeEncIndex = localIndex;
+//
+//  return 0;
+//}
 
 int ecmcAxisBase::getConfigEncoderIndex() {
   return data_.command_.cfgEncIndex + 1;
@@ -2722,9 +2726,9 @@ int ecmcAxisBase::getPrimaryEncoderIndex() {
   return data_.command_.primaryEncIndex + 1;
 }
 
-int ecmcAxisBase::getHomeEncoderIndex() {
-  return data_.command_.homeEncIndex + 1;
-}
+//int ecmcAxisBase::getHomeEncoderIndex() {
+//  return data_.command_.homeEncIndex + 1;
+//}
 
 bool ecmcAxisBase::getHwReady() {
   bool ready = true;

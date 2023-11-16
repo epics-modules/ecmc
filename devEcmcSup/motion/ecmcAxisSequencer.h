@@ -134,7 +134,7 @@ public:
   int    getAllowHome();
 
 private:
-  ecmcEncoder *getHomeEnc();
+  //ecmcEncoder *getHomeEnc();
   ecmcEncoder *getPrimEnc();
   void   initVars();
   double checkSoftLimits(double posSetpoint);
@@ -163,8 +163,8 @@ private:
   void   initHomingSeq();
   void   finalizeHomingSeq(double newPosition);
   int    postHomeMove();
-  void   switchEncodersIfNeeded();
-  void   switchBackEncodersIfNeeded();
+  // void   switchEncodersIfNeeded();
+  // void   switchBackEncodersIfNeeded();
   void   setTrajAccAndDec();
 
   int seqState_;
@@ -209,7 +209,7 @@ private:
   bool enablePos_;
   bool enableConstVel_;
   bool enableHome_;
-  int oldPrimaryEnc_;
+  //int oldPrimaryEnc_;
   double defaultAcc_;
   double defaultDec_;
   double acc_;

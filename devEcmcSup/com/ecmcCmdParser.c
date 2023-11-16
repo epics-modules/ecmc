@@ -1711,11 +1711,11 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SelectAxisEncHome(int axis_no, int encIndex);*/
-  nvals = sscanf(myarg_1, "SelectAxisEncHome(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return selectAxisEncHome(iValue, iValue2);
-  }
+  //nvals = sscanf(myarg_1, "SelectAxisEncHome(%d,%d)", &iValue, &iValue2);
+//
+  //if (nvals == 2) {
+  //  return selectAxisEncHome(iValue, iValue2);
+  //}
 
   /*int Cfg.SetAxisEncMaxDiffToPrimEnc(int axis_no, double  max_diff);*/
   nvals = sscanf(myarg_1,
@@ -3610,13 +3610,13 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                               &iValue));
   }
 
-  /*int GetAxisEncHomeIndex(int axis_no);*/
-  nvals = sscanf(myarg_1, "GetAxisEncHomeIndex(%d)", &motor_axis_no);
-
-  if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomeIndex(motor_axis_no,
-                                                            &iValue));
-  }
+  ///*int GetAxisEncHomeIndex(int axis_no);*/
+  //nvals = sscanf(myarg_1, "GetAxisEncHomeIndex(%d)", &motor_axis_no);
+//
+  //if (nvals == 1) {
+  //  SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomeIndex(motor_axis_no,
+  //                                                          &iValue));
+  //}
 
   /*int GetAxisTrajSourceType(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisTrajSourceType(%d)", &motor_axis_no);

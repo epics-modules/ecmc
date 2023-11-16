@@ -847,8 +847,6 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_get_act_pos",  mc_get_act_pos);
   ecmcPLCTaskAddFunction("mc_set_prim_enc", mc_set_prim_enc);
   ecmcPLCTaskAddFunction("mc_get_prim_enc", mc_get_prim_enc);
-  ecmcPLCTaskAddFunction("mc_set_home_enc", mc_set_home_enc);
-  ecmcPLCTaskAddFunction("mc_get_home_enc", mc_get_home_enc);
 
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

@@ -55,7 +55,7 @@ void ecmcAxisSequencer::initVars() {
   homeEnablePostMove_    = false;
   homePostMoveTargetPos_ = 0;
   seqPosHomeState_       = 0;
-  oldPrimaryEnc_         = 0;
+  //oldPrimaryEnc_         = 0;
   defaultAcc_            = 0;
   defaultDec_            = 0;
   acc_                   = 0;
@@ -118,7 +118,7 @@ void ecmcAxisSequencer::execute() {
 
   case ECMC_CMD_HOMING:
     
-    switchEncodersIfNeeded();
+    //switchEncodersIfNeeded();
 
     switch (homeSeqId) {
     case ECMC_SEQ_HOME_LOW_LIM:
@@ -320,8 +320,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   seqState_               = 0;
 
   if (data_->command_.execute  && !executeOld_) {
-    
-    oldPrimaryEnc_ = data_->command_.primaryEncIndex;
+
     setTrajAccAndDec();
     errorCode = checkVelAccDec();
 
@@ -458,6 +457,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   case ECMC_CMD_HOMING:
 
     if (data_->command_.execute && !executeOld_) {
+      //oldPrimaryEnc_ = data_->command_.primaryEncIndex;
       // encoder data source must be internal for homing
       if (data_->command_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
         return setErrorID(__FILE__,
@@ -518,7 +518,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
           readHomingParamsFromEnc();
         }
 
-        switchEncodersIfNeeded();
+        //switchEncodersIfNeeded();
       }
     } else if (!data_->command_.execute) {
       stopSeq();
@@ -2816,7 +2816,7 @@ int ecmcAxisSequencer::stopSeq() {
     traj_->setExecute(false);
   }
 
-  switchBackEncodersIfNeeded();
+  //switchBackEncodersIfNeeded();
 
   seqInProgress_  = false;
   localSeqBusy_   = false;
@@ -2906,14 +2906,15 @@ void ecmcAxisSequencer::initHomingSeq() {
 
 void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   // Should primary encoder be homed?! If not then go back to primary encoder pos for control
-  double newControlPosition = newPosition;
+  //double newControlPosition = newPosition;
 
-  if (!encArray_[oldPrimaryEnc_]->getRefAtHoming()) {
-    newControlPosition = encArray_[oldPrimaryEnc_]->getActPos();
-  }
+  //if (!encArray_[oldPrimaryEnc_]->getRefAtHoming()) {
+  //  newControlPosition = encArray_[oldPrimaryEnc_]->getActPos();
+  //}
 
   // Prep all objects for setpoint step (except encoders)
-  setNewPositionCtrlDrvTrajBumpless(newControlPosition);
+  // setNewPositionCtrlDrvTrajBumpless(newControlPosition);
+  //setNewPositionCtrlDrvTrajBumpless(newPosition);
 
   // home all encoders to the new position
   for (int i = 0; i < data_->status_.encoderCount; i++) {
@@ -2972,42 +2973,42 @@ void ecmcAxisSequencer::setHomePostMoveEnable(double enable) {
   homeEnablePostMove_ = enable;
 }
 
-void ecmcAxisSequencer::switchEncodersIfNeeded() {
+//void ecmcAxisSequencer::switchEncodersIfNeeded() {
+//
+//  oldPrimaryEnc_ = data_->command_.primaryEncIndex;
+//  
+//  if (data_->command_.homeEncIndex == data_->command_.primaryEncIndex) {
+//    return; // Already correct encoder
+//  }
+//
+//  // *************  Need to switch encoder
+//
+//  // Ensure no jump when switching.
+//  setNewPositionCtrlDrvTrajBumpless(
+//    getPrimEnc()->getActPos());
+//
+//  // now tempirarily switch encoder to home encoder
+//  data_->command_.primaryEncIndex = data_->command_.homeEncIndex;
+//
+//}
 
-  oldPrimaryEnc_ = data_->command_.primaryEncIndex;
-  
-  if (data_->command_.homeEncIndex == data_->command_.primaryEncIndex) {
-    return; // Already correct encoder
-  }
-
-  // *************  Need to switch encoder
-
-  // Ensure no jump when switching.
-  setNewPositionCtrlDrvTrajBumpless(
-    getHomeEnc()->getActPos());
-
-  // now tempirarily switch encoder to home encoder
-  data_->command_.primaryEncIndex = data_->command_.homeEncIndex;
-
-}
-
-void ecmcAxisSequencer::switchBackEncodersIfNeeded() {
-
-  if (oldPrimaryEnc_ == data_->command_.primaryEncIndex) {
-    return; // Already correct encoder
-  }
-
-  // *************  Need to switch back encoder
-
-  // Ensure no jump when switching
-
-  // Prep all objects for setpoint step (except encoders)
-  setNewPositionCtrlDrvTrajBumpless(encArray_[oldPrimaryEnc_]->getActPos());
-
-  // now tempirarily switch encoder to home encoder
-  data_->command_.primaryEncIndex = oldPrimaryEnc_;
-
-}
+//void ecmcAxisSequencer::switchBackEncodersIfNeeded() {
+//
+//  if (oldPrimaryEnc_ == data_->command_.primaryEncIndex) {
+//    return; // Already correct encoder
+//  }
+//
+//  // *************  Need to switch back encoder
+//
+//  // Ensure no jump when switching
+//
+//  // Prep all objects for setpoint step (except encoders)
+//  setNewPositionCtrlDrvTrajBumpless(encArray_[oldPrimaryEnc_]->getActPos());
+//
+//  // now tempirarily switch encoder to home encoder
+//  data_->command_.primaryEncIndex = oldPrimaryEnc_;
+//
+//}
 
 void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
   traj_->setCurrentPosSet(newPosition);
@@ -3032,10 +3033,10 @@ void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
 void  ecmcAxisSequencer::readHomingParamsFromEnc() {
   // This param is only accessibele in encoder object, so always read
   setHomeLatchCountOffset(
-    getHomeEnc()->getHomeLatchCountOffset());
+    getPrimEnc()->getHomeLatchCountOffset());
 
   // Check if encoder has parameters then overwrite existing parameters if any
-  if(!getHomeEnc()->getHomeParamsValid()) {
+  if(!getPrimEnc()->getHomeParamsValid()) {
     LOGERR(
         "%s/%s:%d: WARNING: No valid homing info stored for encoder, falling back to axis params.\n",
         __FILE__,
@@ -3045,21 +3046,21 @@ void  ecmcAxisSequencer::readHomingParamsFromEnc() {
   }
   
   // Overwrite homing seqence id with what is stored in encoder object
-  setCmdData((ecmcHomingType)getHomeEnc()->getHomeSeqId());
+  setCmdData((ecmcHomingType)getPrimEnc()->getHomeSeqId());
   
   // Encoder has parameters stored so read those..
-  homeVelTowardsCam_     = getHomeEnc()->getHomeVelTowardsCam();
-  homeVelOffCam_         = getHomeEnc()->getHomeVelOffCam();
-  homePosition_          = getHomeEnc()->getHomePosition();
-  homeEnablePostMove_    = getHomeEnc()->getHomePostMoveEnable();
-  homePostMoveTargetPos_ = getHomeEnc()->getHomePostMoveTargetPosition();
+  homeVelTowardsCam_     = getPrimEnc()->getHomeVelTowardsCam();
+  homeVelOffCam_         = getPrimEnc()->getHomeVelOffCam();
+  homePosition_          = getPrimEnc()->getHomePosition();
+  homeEnablePostMove_    = getPrimEnc()->getHomePostMoveEnable();
+  homePostMoveTargetPos_ = getPrimEnc()->getHomePostMoveTargetPosition();
   
-  double temp = getHomeEnc()->getHomeAcc();
+  double temp = getPrimEnc()->getHomeAcc();
   if( temp > 0 ) {
     traj_->setAcc( temp );
   }
 
-  temp = getHomeEnc()->getHomeDec();
+  temp = getPrimEnc()->getHomeDec();
   if( temp > 0 ) {
     traj_->setDec( temp );
   }
@@ -3091,9 +3092,9 @@ double ecmcAxisSequencer::getHomePosition() {
   return homePosition_;
 }
 
-ecmcEncoder *ecmcAxisSequencer::getHomeEnc() {
-  return encArray_[data_->command_.homeEncIndex];
-}
+//ecmcEncoder *ecmcAxisSequencer::getHomeEnc() {
+//  return encArray_[data_->command_.homeEncIndex];
+//}
 
 ecmcEncoder *ecmcAxisSequencer::getPrimEnc() {
   return encArray_[data_->command_.primaryEncIndex];
