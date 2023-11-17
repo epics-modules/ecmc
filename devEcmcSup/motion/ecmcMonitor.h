@@ -76,6 +76,9 @@ class ecmcMonitor : public ecmcEcEntryLink {
   bool   getAtTarget();
   void   setEnableAtTargetMon(bool enable);
   bool   getEnableAtTargetMon();
+  int    setCtrlDeadband(double tol);
+  int    setCtrlDeadbandTime(int time);
+  bool   getCtrlInDeadband();
   int    setPosLagTol(double tol);
   double getPosLagTol();
   int    setPosLagTime(int time);
@@ -192,5 +195,8 @@ class ecmcMonitor : public ecmcEcEntryLink {
   ecmcSwitchPolarity homePolarity_;
   ecmcEncoder **encArray_;
   int enableDiffEncsMon_;
+  double ctrlDeadbandTol_; //controller deadband
+  int ctrlDeadbandCounter_;
+  int ctrlDeadbandTime_;
 };
 #endif  // ifndef MOTIONMONITOR_H

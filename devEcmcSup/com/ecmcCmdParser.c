@@ -659,7 +659,6 @@ static int handleCfgCommand(const char *myarg_1) {
   double dValue2 = 0;
   double dValue3 = 0;
   double dValue4 = 0;
-  double dValue5 = 0;
   
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
@@ -1670,6 +1669,20 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisCntrlKff(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisCntrlDeadband(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisCntrlDeadband(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisCntrlDeadband(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisCntrlDeadbandTime(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisCntrlDeadbandTime(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisCntrlDeadbandTime(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisCntrlInnerParams(axis_no, kp, ki, kd, tol);*/
