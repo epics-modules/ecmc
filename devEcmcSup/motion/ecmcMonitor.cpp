@@ -78,9 +78,9 @@ void ecmcMonitor::initVars() {
   encArray_                  = NULL;
   enableAlarmOnSofLimits_    = 1;
   enableDiffEncsMon_         = 1;  // If a tolerance is set then default check
-  ctrlDeadbandTol_              = 0;
+  ctrlDeadbandTol_           = -1;
   ctrlDeadbandCounter_       = 0;
-  ctrlDeadbandTime_          = 0;
+  ctrlDeadbandTime_          = -1;
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -147,7 +147,7 @@ int ecmcMonitor::setAtTargetTol(double tol) {
   atTargetTol_ = tol;
   
   // Default also for ctrl deadband
-  if(ctrlDeadbandTol_ == 0) {
+  if(ctrlDeadbandTol_ < 0 ) {
     ctrlDeadbandTol_ = tol;
   }
 
@@ -169,7 +169,7 @@ int ecmcMonitor::setAtTargetTime(int time) {
   atTargetTime_ = time;
   
   // Default also for ctrl deadband time
-  if(ctrlDeadbandTime_ == 0) {
+  if(ctrlDeadbandTime_< 0) {
     ctrlDeadbandTime_ = time;
   }
   
@@ -649,7 +649,7 @@ int ecmcMonitor::checkAtTarget() {
       } else {
         atTargetCounter_ = 0;
       }  
-      
+
       // controller deadband
       if (std::abs(data_->status_.cntrlError) < ctrlDeadbandTol_) {
         if (ctrlDeadbandCounter_ <= ctrlDeadbandTime_) {

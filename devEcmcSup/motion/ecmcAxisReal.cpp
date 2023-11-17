@@ -147,7 +147,7 @@ void ecmcAxisReal::execute(bool masterOK) {
       // Controller deadband
       if (!data_.status_.busy && mon_->getCtrlInDeadband()) {
         cntrl_->reset();  // Keep now for leagcy reasons...
-        cntrOutput = 0;
+        cntrOutput = 0;                
       } else {
         cntrOutput = cntrl_->control(data_.status_.cntrlError,
                                      data_.status_.currentVelocitySetpoint);

@@ -96,6 +96,7 @@ void ecmcPIDController::reset() {
   outputD_            = 0;
   ff_                 = 0;
   controllerErrorOld_ = 0;
+  data_->status_.cntrlOutput = 0;
 }
 
 void ecmcPIDController::setIRange(double iMax, double iMin) {
