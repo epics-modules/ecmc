@@ -2,14 +2,18 @@
 Release Notes
 ===
 
+# v9.0.1_RC3
+* Add commands for setting controller deadband (defaults to atTargetTol and atTargetTime):
+```
+    ecmcConfigOrDie "Cfg.SetAxisCntrlDeadband(<axis_id>,<tol>)"
+    ecmcConfigOrDie "Cfg.SetAxisCntrlDeadbandTime(<axis_id>,<time>)" 
+```
+  the function allows to have 0 deadband for control and at the same time have a atTarget tolerance (for motor record)
 * Add printout of data rawvalue (8byte) for ecmcGrepParam and ecmcReport.
-* Remove concept with homing encoder. The homing encoder is always the primary encoder.
 * Add asyn params to control acceleration and deceleration
-* Add asyn param to switch encoder
-* The asyn parmeter ax.enc.posact always refers to the primary encoder
 * Add command to offset raw velocity setpoints (for axes). One usecase can be to offset the zero velocity setpoint output of analog outputs:
 ```
-ecmcConfigOrDie "Cfg.SetAxisDrvVelSetOffsetRaw(<Axis_id>,<offset>)"
+ecmcConfigOrDie "Cfg.SetAxisDrvVelSetOffsetRaw(<axis_id>,<offset>)"
 
 ```
 * Add command that adds an SDO object with a predefined type, up to 8 bytes:
@@ -35,6 +39,8 @@ ax<id>.primencid
 ```
 * The axis actpos and actvel always shows values based on the primary encoder.
 * The axis actpos01..08, actvel01..08 shows the individual encoder values.
+* Remove concept with homing encoder. The homing encoder is always the primary encoder.
+* Add asyn param to switch encoder
 
 The update is done in order to make it simpler to for instance switch between open loop and closed loop for steppers.
 

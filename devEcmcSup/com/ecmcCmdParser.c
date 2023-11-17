@@ -1710,13 +1710,6 @@ static int handleCfgCommand(const char *myarg_1) {
     return selectAxisEncConfig(iValue, iValue2);
   }
 
-  /*int Cfg.SelectAxisEncHome(int axis_no, int encIndex);*/
-  //nvals = sscanf(myarg_1, "SelectAxisEncHome(%d,%d)", &iValue, &iValue2);
-//
-  //if (nvals == 2) {
-  //  return selectAxisEncHome(iValue, iValue2);
-  //}
-
   /*int Cfg.SetAxisEncMaxDiffToPrimEnc(int axis_no, double  max_diff);*/
   nvals = sscanf(myarg_1,
                  "SetAxisEncMaxDiffToPrimEnc(%d,%lf)",
@@ -1753,6 +1746,20 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisCntrlKff(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisCntrlDeadband(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisCntrlDeadband(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisCntrlDeadband(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisCntrlDeadbandTime(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisCntrlDeadbandTime(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisCntrlDeadbandTime(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisCntrlInnerParams(axis_no, kp, ki, kd, tol);*/

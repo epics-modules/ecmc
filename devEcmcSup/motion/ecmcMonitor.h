@@ -62,10 +62,6 @@ public:
   explicit ecmcMonitor(ecmcAxisData *axisData,
                        ecmcEncoder **encArray);
 
-  // ecmcMonitor(ecmcAxisData *axisData,
-  //            bool          enableAtTargetMon,
-  //            bool          enableLagMon,
-  //            ecmcEncoder **encArray);
   void               initVars();
   ~ecmcMonitor();
   bool               getHardLimitFwd();
@@ -77,6 +73,9 @@ public:
   bool               getAtTarget();
   void               setEnableAtTargetMon(bool enable);
   bool               getEnableAtTargetMon();
+  int                setCtrlDeadband(double tol);
+  int                setCtrlDeadbandTime(int time);
+  bool               getCtrlInDeadband();
   int                setPosLagTol(double tol);
   double             getPosLagTol();
   int                setPosLagTime(int time);
@@ -200,5 +199,8 @@ private:
   ecmcSwitchPolarity homePolarity_;
   ecmcEncoder **encArray_;
   int enableDiffEncsMon_;
+  double ctrlDeadbandTol_; //controller deadband
+  int ctrlDeadbandCounter_;
+  int ctrlDeadbandTime_;
 };
 #endif  // ifndef MOTIONMONITOR_H

@@ -1691,7 +1691,39 @@ int setAxisCntrlKff(int axisIndex, double value) {
   return 0;
 }
 
-int setAxisCntrlInnerParams(int    axisIndex,
+int setAxisCntrlDeadband(int    axisIndex,
+                         double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getMon()->setCtrlDeadband(value);
+  return 0;
+}
+
+int setAxisCntrlDeadbandTime(int    axisIndex,
+                             int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getMon()->setCtrlDeadbandTime(value);
+  return 0;
+}
+
+int setAxisCntrlInnerParams(int axisIndex,
                             double kp,
                             double ki,
                             double kd,

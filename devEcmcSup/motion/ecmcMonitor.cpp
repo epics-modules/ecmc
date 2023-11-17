@@ -78,6 +78,9 @@ void ecmcMonitor::initVars() {
   encArray_                  = NULL;
   enableAlarmOnSofLimits_    = 1;
   enableDiffEncsMon_         = 1;  // If a tolerance is set then default check
+  ctrlDeadbandTol_              = 0;
+  ctrlDeadbandCounter_       = 0;
+  ctrlDeadbandTime_          = 0;
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -121,6 +124,10 @@ bool ecmcMonitor::getAtTarget() {
   return data_->status_.atTarget;
 }
 
+bool ecmcMonitor::getCtrlInDeadband() {
+  return data_->status_.ctrlWinthinDeadband;
+}
+
 bool ecmcMonitor::getHardLimitFwd() {
   return data_->status_.limitFwd;
 }
@@ -138,6 +145,12 @@ int ecmcMonitor::setAtTargetTol(double tol) {
   }
 
   atTargetTol_ = tol;
+  
+  // Default also for ctrl deadband
+  if(ctrlDeadbandTol_ == 0) {
+    ctrlDeadbandTol_ = tol;
+  }
+
   return 0;
 }
 
@@ -154,6 +167,12 @@ int ecmcMonitor::setAtTargetTime(int time) {
   }
 
   atTargetTime_ = time;
+  
+  // Default also for ctrl deadband time
+  if(ctrlDeadbandTime_ == 0) {
+    ctrlDeadbandTime_ = time;
+  }
+  
   return 0;
 }
 
@@ -611,28 +630,44 @@ int ecmcMonitor::checkLimits() {
 
 int ecmcMonitor::checkAtTarget() {
   bool atTarget = false;
+  bool ctrlWithinTol = false;
 
   if (enableAtTargetMon_ && data_->status_.enabled) {
     /*if (std::abs(data_->status_.currentTargetPosition -
-                 data_->status_.currentPositionActual) < atTargetTol_) {*/
-    if ((std::abs(data_->status_.cntrlError) < atTargetTol_) &&
-        (data_->status_.currentTargetPositionModulo ==
-         data_->status_.currentPositionSetpoint)) {
-      if (atTargetCounter_ <= atTargetTime_) {
-        atTargetCounter_++;
-      }
+                 data_->status_.currentPositionActual) < atTargetTol_) {*/ 
 
-      if (atTargetCounter_ > atTargetTime_) {
-        atTarget = true;
+    if(  data_->status_.currentTargetPositionModulo == 
+        data_->status_.currentPositionSetpoint) {
+      
+      if (std::abs(data_->status_.cntrlError) < atTargetTol_) {
+        if (atTargetCounter_ <= atTargetTime_) {
+          atTargetCounter_++;
+        }
+        if (atTargetCounter_ > atTargetTime_) {
+          atTarget = true;
+        }
+      } else {
+        atTargetCounter_ = 0;
+      }  
+      
+      // controller deadband
+      if (std::abs(data_->status_.cntrlError) < ctrlDeadbandTol_) {
+        if (ctrlDeadbandCounter_ <= ctrlDeadbandTime_) {
+          ctrlDeadbandCounter_++;
+        }
+        if (ctrlDeadbandCounter_ > ctrlDeadbandTime_) {
+          ctrlWithinTol = true;
+        }
+      } else {
+        ctrlDeadbandCounter_ = 0;
       }
-    } else {
-      atTargetCounter_ = 0;
     }
-  } else {
+  } else {    
     atTarget = true;
   }
 
   data_->status_.atTarget = atTarget;
+  data_->status_.ctrlWinthinDeadband = ctrlWithinTol;
   return 0;
 }
 
@@ -1013,5 +1048,15 @@ int ecmcMonitor::setEnableSoftLimitAlarm(bool enable) {
 
 int ecmcMonitor::setEnableCheckEncsDiff(bool enable) {
   enableDiffEncsMon_ = enable;
+  return 0;
+}
+
+int ecmcMonitor::setCtrlDeadband(double tol) {
+  ctrlDeadbandTol_ = std::abs(tol);
+  return 0;
+}
+
+int ecmcMonitor::setCtrlDeadbandTime(int cycles) {
+  ctrlDeadbandTime_ = cycles;
   return 0;
 }

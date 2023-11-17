@@ -2063,6 +2063,32 @@ int setAxisCntrlKd(int    axisIndex,
 int setAxisCntrlKff(int    axisIndex,
                     double value);
 
+/** \brief Set PID-controller deadband.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value deadband tolerance.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set PID-controller deadband to 4.1 for axis 3.\n
+ * "Cfg.SetAxisCntrlDeadband(3,4.1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisCntrlDeadband(int    axisIndex,
+                         double value);
+
+/** \brief Set PID-controller deadband time filter.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value deadband cycles to be withing tolerance.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set PID-controller deadband time to 100 cycles for axis 3.\n
+ * "Cfg.SetAxisCntrlDeadbandTime(3,100)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisCntrlDeadbandTime(int    axisIndex,
+                             int    value);
+
 /** \brief Use a differnt set of pid parameters if within a certain distance of target
  *
  * \param[in] axisIndex  Axis index.\n
