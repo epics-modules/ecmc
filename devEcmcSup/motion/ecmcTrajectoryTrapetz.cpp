@@ -221,13 +221,14 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   // How long to target
   double distToTargetOld     = 0;
   double distToTargetOldComp = 0;
-
-  distToTargetOld = dist(currSetpoint, targetSetpoint);
+  
+  // Why do I need this compensation?
+  distToTargetOld = dist(currSetpoint, targetSetpoint) - 10 * prevStepSize;
 
   if (prevStepSize > 0) {
-    distToTargetOldComp = distToTargetOld - prevStepSize - stepDEC_;
+    distToTargetOldComp = distToTargetOld - stepDEC_;    
   } else if (prevStepSize < 0) {
-    distToTargetOldComp = distToTargetOld - prevStepSize + stepDEC_;
+    distToTargetOldComp = distToTargetOld + stepDEC_;
   } else {  // 0 velo, use target
     distToTargetOldComp = distToTargetOld;
   }
@@ -235,7 +236,7 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   double distToInitStop = distToTargetOldComp - stopDistance;
   double stepNomTemp    = stepNom;
 
-  if (std::abs(distToInitStop) <= std::abs(prevStepSize_)) {
+  if (std::abs(distToInitStop) <= std::abs(2 * prevStepSize_)) {
     stepNomTemp = 0;  // targetVelo = 0
   } else if (distToInitStop > 0) {
     stepNomTemp = std::abs(stepNom);
@@ -248,9 +249,9 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                        stepNomTemp,
                        trajBusy);
 
-  if ((std::abs(prevStepSize) <= std::abs(stepDEC_)) &&   // The most important!
-      (std::abs(stopDistance) <= 3 * std::abs(stepDEC_)) &&
-      (std::abs(distToTargetOld) <= 3 * std::abs(stepDEC_))) {
+  if ((std::abs(prevStepSize) <= 2 * std::abs(stepDEC_)) &&   // The most important!
+    (std::abs(stopDistance) <= 3 * std::abs(stepDEC_)) &&
+    (std::abs(distToTargetOld) <= 3 * std::abs(stepDEC_))) {
     posSetTemp           = targetSetpoint;
     targetPositionLocal_ = posSetTemp;
     targetPosition_      = posSetTemp;
@@ -314,7 +315,7 @@ double ecmcTrajectoryTrapetz::moveStop(stopMode stopMode,
 double ecmcTrajectoryTrapetz::distToStop(double vel) {
   // double d = 0.5 * vel * vel / targetDeceleration_ + std::abs(vel * sampleTime_);
   // return vel > 0 ? d : -d ;
-  return prevStepSize_ * std::abs(prevStepSize_ / stepDEC_) / 2 + stepDEC_;
+  return prevStepSize_ * std::abs(prevStepSize_ / stepDEC_ / 2);
 }
 
 void ecmcTrajectoryTrapetz::setTargetPosLocal(double pos) {
