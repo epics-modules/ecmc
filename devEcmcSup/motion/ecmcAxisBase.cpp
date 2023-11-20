@@ -2174,6 +2174,14 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
   memcpy(&controlWord_, data, sizeof(controlWord_));
 
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write : Control Word = 0x%x.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,controlWord_);
+
+
   // Check if com is blocked but allow stop cmd
   if (blockExtCom_) {
     bool refreshNeeded = false;
@@ -2255,7 +2263,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
         // Homing pos from encoder
         getSeq()->setHomePosition(getPrimEnc()->getHomePosition());
-      } else {
+      } else {  // Not homing
         // cmddata for all other states
         setCmdData(cmdData_);
       }
@@ -2387,6 +2395,13 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
     return asynError;
   }
 
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Prim encoder = %d.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,index);
+
   return asynSuccess;
 }
 
@@ -2407,6 +2422,13 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
   double velo = 0;
   memcpy(&velo, data, bytes);
   velocityTarget_ = velo;
+
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Target Velo = %lf.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,velocityTarget_);
 
   // Write at next execute command
 
@@ -2429,6 +2451,14 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
   }
   double acc = 0;
   memcpy(&acc, data, bytes);
+  
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Acceleration = %lf.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,acceleration_);
+  
   acceleration_ = acc;
   
   // Write at next execute command
@@ -2441,7 +2471,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
                                           asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Target Velo size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR (axis %d): Write deceleration size or datatype missmatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2453,6 +2483,13 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
   double dec = 0;
   memcpy(&dec, data, bytes);
   deceleration_ = dec;
+
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Deceleration = %lf.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,deceleration_);
 
   // Write at next execute command
 
@@ -2476,6 +2513,13 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
   double pos = 0;
   memcpy(&pos, data, bytes);
   positionTarget_ = pos;
+
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Target Pos = %lf.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,positionTarget_);
 
   return asynSuccess;
 }
@@ -2511,6 +2555,13 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
     return asynError;
   }
 
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Encoder position = %lf.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,pos);
+
   // Set position
   return setPosition(pos) ? asynError : asynSuccess;
 }
@@ -2532,6 +2583,14 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   int command = 0;
   memcpy(&command, data, bytes);
   command_ = (motionCommandTypes)command;
+
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Command = 0x%x.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,command_);
+
   return asynSuccess;
 }
 
@@ -2552,6 +2611,13 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
   int cmddata = 0;
   memcpy(&cmddata, data, bytes);
   cmdData_ = cmddata;
+
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Command Data = 0x%x.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_,cmdData_);
 
   return asynSuccess;
 }
