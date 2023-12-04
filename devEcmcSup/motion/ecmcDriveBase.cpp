@@ -168,7 +168,8 @@ int ecmcDriveBase::setScaleDenom(double scaleDenom) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_DRV_SCALE_DENOM_ZERO);
+                      ERROR_DRV_SCALE_DENOM_ZERO,
+                      ECMC_SEVERITY_EMERGENCY);
   }
   scale_ = scaleNum_ / scaleDenom_;
   return 0;
@@ -200,7 +201,8 @@ int ecmcDriveBase::setEnableBrake(bool enable) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_DRV_BRAKE_ENTRY_NULL);
+                        ERROR_DRV_BRAKE_ENTRY_NULL,
+                        ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -217,7 +219,8 @@ int ecmcDriveBase::setEnableReduceTorque(bool enable) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL);
+                        ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL,
+                        ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -238,7 +241,9 @@ void ecmcDriveBase::writeEntries() {
   if (!driveInterlocksOK() && data_->command_.enable) {
     data_->command_.enable = false;
     enableAmpCmd_          = false;
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__,
+               ERROR_DRV_DRIVE_INTERLOCKED,
+               ECMC_SEVERITY_EMERGENCY);
   }
 
   // Update enable command
@@ -260,7 +265,8 @@ void ecmcDriveBase::writeEntries() {
                       (uint64_t)controlWord_);
 
   if (errorCode) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+               ECMC_SEVERITY_EMERGENCY);
   }
 
   if (data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
@@ -278,7 +284,8 @@ void ecmcDriveBase::writeEntries() {
                         (uint64_t)veloPosOutput_);
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   } else {
     // CSP:    Check so not outside allowable range
@@ -296,7 +303,8 @@ void ecmcDriveBase::writeEntries() {
                         (uint64_t)veloPosOutput_);
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -306,7 +314,8 @@ void ecmcDriveBase::writeEntries() {
                         (uint64_t)brakeOutputCmd_);
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -318,7 +327,8 @@ void ecmcDriveBase::writeEntries() {
       (uint64_t)reduceTorqueOutputCmd_);
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -330,7 +340,8 @@ void ecmcDriveBase::writeEntries() {
     hwReset_ = 0;
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -387,7 +398,8 @@ void ecmcDriveBase::readEntries() {
     setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               errorCode);
+               errorCode,
+               ECMC_SEVERITY_EMERGENCY);
     statusWord_ = 0;
     return;
   }
@@ -403,7 +415,8 @@ void ecmcDriveBase::readEntries() {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 errorCode);
+                 errorCode,
+                 ECMC_SEVERITY_WARNING);
       return;
     }
 
@@ -431,7 +444,8 @@ void ecmcDriveBase::readEntries() {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 errorCode);
+                 errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
       return;
     }
 
@@ -442,7 +456,8 @@ void ecmcDriveBase::readEntries() {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 ERROR_DRV_HW_ALARM_0);
+                 ERROR_DRV_HW_ALARM_0,
+                 ECMC_SEVERITY_EMERGENCY);
     }
     hwErrorAlarm0Old_ = hwErrorAlarm0_;
   }
@@ -458,7 +473,8 @@ void ecmcDriveBase::readEntries() {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 errorCode);
+                 errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
       return;
     }
 
@@ -469,7 +485,8 @@ void ecmcDriveBase::readEntries() {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 ERROR_DRV_HW_ALARM_1);
+                 ERROR_DRV_HW_ALARM_1,
+                 ECMC_SEVERITY_EMERGENCY);
     }
     hwErrorAlarm1Old_ = hwErrorAlarm1_;
   }
@@ -485,7 +502,8 @@ void ecmcDriveBase::readEntries() {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 errorCode);
+                 errorCode, 
+                 ECMC_SEVERITY_EMERGENCY);
       return;
     }
 
@@ -496,7 +514,8 @@ void ecmcDriveBase::readEntries() {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 ERROR_DRV_HW_ALARM_2);
+                 ERROR_DRV_HW_ALARM_2,
+                 ECMC_SEVERITY_EMERGENCY);
     }
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
@@ -644,7 +663,8 @@ int ecmcDriveBase::setBrakeOpenDelayTime(int delayTime) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_DRV_BRAKE_OPEN_DELAY_TIME_INVALID);
+                      ERROR_DRV_BRAKE_OPEN_DELAY_TIME_INVALID,
+                      ECMC_SEVERITY_EMERGENCY);
   }
 
   brakeOpenDelayTime_ = delayTime;
@@ -656,7 +676,8 @@ int ecmcDriveBase::setBrakeCloseAheadTime(int aheadTime) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID);
+                      ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID,
+                      ECMC_SEVERITY_EMERGENCY);
   }
 
   brakeCloseAheadTime_ = aheadTime;

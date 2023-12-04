@@ -2173,13 +2173,13 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   memcpy(&controlWord_, data, sizeof(controlWord_));
-
+  uint32_t *tmpcontrolWordPtr = (uint32_t*)&controlWord_;
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write : Control Word = 0x%x.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,controlWord_);
+    data_.axisId_,*tmpcontrolWordPtr);
 
 
   // Check if com is blocked but allow stop cmd

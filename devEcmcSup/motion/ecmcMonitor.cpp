@@ -98,7 +98,8 @@ void ecmcMonitor::execute() {
     setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK);
+               ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK,
+               ECMC_SEVERITY_NORMAL);
   }
 
   // Lag error
@@ -262,7 +263,7 @@ void ecmcMonitor::readEntries() {
   // Hard limit BWD
   int errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM, &tempRaw);
   if ( errorCode ) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_EMERGENCY);
     return;
   }
 
@@ -278,7 +279,7 @@ void ecmcMonitor::readEntries() {
   
   errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HIGHLIM, &tempRaw);
   if ( errorCode ) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
     return;
   }
 
@@ -293,7 +294,7 @@ void ecmcMonitor::readEntries() {
 
   errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR, &tempRaw);
   if ( errorCode ) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
     return;
   }
 
@@ -310,7 +311,7 @@ void ecmcMonitor::readEntries() {
     tempRaw = 0;
     errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK, &tempRaw);
     if (errorCode ) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
       return;
     }
 
@@ -517,7 +518,8 @@ int ecmcMonitor::checkLimits() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_BOTH_LIMIT_INTERLOCK);
+                      ERROR_MON_BOTH_LIMIT_INTERLOCK,
+                      ECMC_SEVERITY_EMERGENCY);
   }
 
   // Bwd limit switch
@@ -528,7 +530,8 @@ int ecmcMonitor::checkLimits() {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
+                        ERROR_MON_HARD_LIMIT_BWD_INTERLOCK,
+                        ECMC_SEVERITY_NORMAL);
     }
     setWarningID(WARNING_MON_HARD_LIMIT_BWD_INTERLOCK);
   } else {
@@ -554,7 +557,8 @@ int ecmcMonitor::checkLimits() {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
+                        ERROR_MON_HARD_LIMIT_FWD_INTERLOCK,
+                        ECMC_SEVERITY_NORMAL);
     }
     setWarningID(WARNING_MON_HARD_LIMIT_FWD_INTERLOCK);
   } else {
@@ -703,7 +707,8 @@ int ecmcMonitor::checkPositionLag() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
+                      ERROR_MON_MAX_POSITION_LAG_EXCEEDED,
+                      ECMC_SEVERITY_NORMAL);
   }
   return 0;
 }
@@ -789,7 +794,8 @@ int ecmcMonitor::checkVelocityDiff() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED);
+                      ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED,
+                      ECMC_SEVERITY_NORMAL);
   }
 
   return 0;
@@ -836,7 +842,8 @@ int ecmcMonitor::checkMaxVelocity() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_MAX_VELOCITY_EXCEEDED);
+                      ERROR_MON_MAX_VELOCITY_EXCEEDED,
+                      ECMC_SEVERITY_NORMAL);
   }
   return 0;
 }
@@ -855,7 +862,8 @@ int ecmcMonitor::checkCntrlMaxOutput() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT);
+                      ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT,
+                      ECMC_SEVERITY_NORMAL);
   }
   return 0;
 }
