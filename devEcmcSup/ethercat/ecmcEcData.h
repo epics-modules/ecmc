@@ -55,7 +55,6 @@ private:
   size_t entryBitOffset_;
   size_t byteSize_;
   ecmcEcEntry *startEntry_;
-
   static uint8_t read_1_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset);
   static void write_1_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value);
   static uint8_t read_2_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset);

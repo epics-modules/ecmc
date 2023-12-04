@@ -711,15 +711,22 @@ int ecmcEcSlave::configDC(
 }
 
 ecmcEcEntry * ecmcEcSlave::findEntry(std::string id) {
-  ecmcEcEntry *temp = NULL;
 
-  for (int i = 0; i < syncManCounter_; i++) {
-    temp = syncManagerArray_[i]->findEntry(id);
-
-    if (temp) {
-      return temp;
+  for (uint i = 0; i < entryCounter_; i++) {
+    if (entryList_[i]) {
+      if (entryList_[i]->getIdentificationName().compare(id) == 0) {        
+        return entryList_[i];
+      }
     }
   }
+
+  //for (int i = 0; i < syncManCounter_; i++) {
+  //  temp = syncManagerArray_[i]->findEntry(id);
+  //
+  //  if (temp) {
+  //    return temp;
+  //  }
+  //}
 
   // Simulation entries
   for (int i = 0; i < SIMULATION_ENTRIES; i++) {

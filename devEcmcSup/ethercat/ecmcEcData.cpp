@@ -48,6 +48,7 @@ void ecmcEcData::initVars() {
   entryBitOffset_  = 0;
   byteSize_        = 0;
   direction_       = EC_DIR_INVALID;
+  old_             = 0;
 }
 
 ecmcEcData::~ecmcEcData() {}
@@ -129,7 +130,7 @@ int ecmcEcData::updateOutProcessImage() {
   if (direction_ != EC_DIR_OUTPUT) {
     return 0;
   }
-
+   
   // Write data to ethercat memory area
   // No endians check...
   switch (dataType_) {
@@ -153,7 +154,7 @@ int ecmcEcData::updateOutProcessImage() {
     ecmcEcData::write_uint8_offset(adr_, 0, entryBitOffset_, *uint8Ptr_);
     break;
 
-  case ECMC_EC_S8:    
+  case ECMC_EC_S8:
     ecmcEcData::write_int8_offset(adr_, 0, entryBitOffset_, *int8Ptr_);
     break;
 
@@ -192,7 +193,6 @@ int ecmcEcData::updateOutProcessImage() {
   default:
     return ERROR_EC_ENTRY_DATATYPE_INVALID;
   }
-
   updateAsyn(0);
 
   return 0;
