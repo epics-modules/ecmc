@@ -14,7 +14,7 @@ FILENAME...   ecmcMotorRecordController.h
 #define motorRecDirectionString         "MOTOR_REC_DIRECTION"
 #define motorRecOffsetString            "MOTOR_REC_OFFSET"
 #define motorRecResolutionString        "MOTOR_REC_RESOLUTION"
-#endif
+#endif // ifndef motorRecResolutionString
 
 #define ecmcMotorRecordErrString                  "MCUErr"
 #define ecmcMotorRecordErrIdString                "ErrId"
@@ -76,37 +76,44 @@ FILENAME...   ecmcMotorRecordController.h
 extern const char *modNamEMC;
 
 extern "C" {
-  int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName, int axisNo,
-                           int axisFlags, const char *axisOptionsStr);
-  const char *ecmcMotorRecordstrStatus(asynStatus status);
-  const char *errStringFromErrId(int nErrorId);
+int ecmcMotorRecordCreateAxis(const char *ecmcMotorRecordName,
+                              int         axisNo,
+                              int         axisFlags,
+                              const char *axisOptionsStr);
+const char* ecmcMotorRecordstrStatus(asynStatus status);
+const char* errStringFromErrId(int nErrorId);
 }
 
 class epicsShareClass ecmcMotorRecordController : public asynMotorController {
 public:
+#define FEATURE_BITS_V2               (1 << 1)
+#define FEATURE_BITS_ECMC             (1 << 5)
 
-#define FEATURE_BITS_V2               (1<<1)
-#define FEATURE_BITS_ECMC             (1<<5)
-
-  ecmcMotorRecordController(const char *portName, const char *ecmcMotorRecordPortName,
-                            int numAxes, double movingPollPeriod,
-                            double idlePollPeriod,
+  ecmcMotorRecordController(const char *portName,
+                            const char *ecmcMotorRecordPortName,
+                            int         numAxes,
+                            double      movingPollPeriod,
+                            double      idlePollPeriod,
                             const char *optionStr);
 
   ~ecmcMotorRecordController();
-  void report(FILE *fp, int level);
-  asynStatus setMCUErrMsg(const char *value);
-  //asynStatus configController(int needOk, const char *value);
+  void                 report(FILE *fp,
+                              int   level);
+  asynStatus           setMCUErrMsg(const char *value);
+
+  // asynStatus configController(int needOk, const char *value);
   ecmcMotorRecordAxis* getAxis(asynUser *pasynUser);
   ecmcMotorRecordAxis* getAxis(int axisNo);
   int features_;
 
-  protected:
+protected:
   void udateMotorLimitsRO(int axisNo);
-  void udateMotorLimitsRO(int axisNo, int enabledHighAndLow,
-                          double fValueHigh, double fValueLow);
-  void handleStatusChange(asynStatus status);
-  int getFeatures(void);
+  void udateMotorLimitsRO(int    axisNo,
+                          int    enabledHighAndLow,
+                          double fValueHigh,
+                          double fValueLow);
+  void       handleStatusChange(asynStatus status);
+  int        getFeatures(void);
   asynStatus poll();
 
   struct {
@@ -145,7 +152,7 @@ public:
   int motorRecResolution_;
   int motorRecDirection_;
   int motorRecOffset_;
-#endif
+#endif // ifdef CREATE_MOTOR_REC_RESOLUTION
 
   /* Add parameters here */
   int ecmcMotorRecordErrRst_;
@@ -178,12 +185,14 @@ public:
   int ecmcMotorRecordCfgEGU_RB_;
 
   int ecmcMotorRecordErrId_;
+
   /* Last parameter */
 
   #define FIRST_VIRTUAL_PARAM ecmcMotorRecordErr_
   #define LAST_VIRTUAL_PARAM ecmcMotorRecordErrId_
-  #define NUM_VIRTUAL_MOTOR_PARAMS ((int) (&LAST_VIRTUAL_PARAM - &FIRST_VIRTUAL_PARAM + 1))
-  friend class ecmcMotorRecordAxis;  
+  #define NUM_VIRTUAL_MOTOR_PARAMS ((int)(&LAST_VIRTUAL_PARAM -\
+                                          &FIRST_VIRTUAL_PARAM + 1))
+  friend class ecmcMotorRecordAxis;
 };
 
-#endif
+#endif // ifndef ECMC_MOTOR_RECORD_CONTROLLER_H

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcAxisReal.h
 *
@@ -19,20 +19,20 @@
 #include "ecmcEncoder.h"
 
 class ecmcAxisReal : public ecmcAxisBase {
- public:
+public:
   ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
-               int    axisID,
-               double sampleTime,
-               ecmcDriveTypes drvType,
-               ecmcTrajTypes  trajType);
+               int                 axisID,
+               double              sampleTime,
+               ecmcDriveTypes      drvType,
+               ecmcTrajTypes       trajType);
   ~ecmcAxisReal();
   void               execute(bool masterOK);
-  ecmcDriveBase    * getDrv();
+  ecmcDriveBase*     getDrv();
   ecmcPIDController* getCntrl();
   int                validate();
 
- private:
-  void               initVars(); 
+private:
+  void               initVars();
   bool temporaryLocalTrajSource_;
   ecmcDriveBase *drv_;
   ecmcPIDController *cntrl_;

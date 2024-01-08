@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPluginLib.h
 *
@@ -12,7 +12,7 @@
 #ifndef ECMC_PLUGIN_LIB_H_
 #define ECMC_PLUGIN_LIB_H_
 
-#include "../main/ecmcError.h"
+#include "ecmcError.h"
 #include "ecmcPluginDefs.h"
 
 #define ERROR_PLUGIN_FLIE_NOT_FOUND 0x231000
@@ -25,24 +25,25 @@
 #define ERROR_PLUGIN_DATA_ARG_VS_FUNC_MISSMATCH 0x231007
 
 class ecmcPluginLib : public ecmcError {
- public:
+public:
   explicit ecmcPluginLib(int index);
   ~ecmcPluginLib();
-  int  load(const char* libFilenameWP, const char* configStr);
-  void unload();
-  void report();
-  ecmcPluginData *getData();
-  int  exeRTFunc(int ecmcErrorCode);
-  void exeDestructFunc();
-  int  exeEnterRTFunc();
-  int  exeExitRTFunc();
-  int  findArgCount(ecmcOnePlcFunc &func);
-  
- private:
-  void  initVars();
-  char* libFilenameWP_;
-  char* libConfigStr_;
-  void   *dlHandle_;
+  int             load(const char *libFilenameWP,
+                       const char *configStr);
+  void            unload();
+  void            report();
+  ecmcPluginData* getData();
+  int             exeRTFunc(int ecmcErrorCode);
+  void            exeDestructFunc();
+  int             exeEnterRTFunc();
+  int             exeExitRTFunc();
+  int             findArgCount(ecmcOnePlcFunc& func);
+
+private:
+  void            initVars();
+  char *libFilenameWP_;
+  char *libConfigStr_;
+  void *dlHandle_;
   struct ecmcPluginData *(*getDataFunc_)(void);
   struct ecmcPluginData *data_;
   int loaded_;

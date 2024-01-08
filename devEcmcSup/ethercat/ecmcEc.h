@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEc.h
 *
@@ -16,14 +16,15 @@
 #include <string>
 #include "stdio.h"
 #include "ecrt.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../com/ecmcOctetIF.h"  // Logging macros
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcOctetIF.h"  // Logging macros
+#include "ecmcAsynPortDriver.h"
 #include "ecmcEcEntry.h"
 #include "ecmcEcSDO.h"
 #include "ecmcEcSlave.h"
 #include "ecmcEcMemMap.h"
+#include <vector>
 
 // EC ERRORS
 #define ERROR_EC_MAIN_REQUEST_FAILED 0x26000
@@ -32,13 +33,11 @@
 #define ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED 0x26003
 #define ERROR_EC_MAIN_SLAVE_NULL 0x26004
 #define ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED 0x26005
-#define ERROR_EC_MAIN_ENTRY_NULL 0x26006
 #define ERROR_EC_MAIN_GET_ENTRY_INFO_FAILED 0x26007
 #define ERROR_EC_MAIN_DOM_REG_PDO_ENTRY_LIST_FAILED 0x26008
 #define ERROR_EC_MAIN_SDO_ARRAY_FULL 0x26009
 #define ERROR_EC_MAIN_SDO_ENTRY_NULL 0x2600A
 #define ERROR_EC_MAIN_SDO_READ_FAILED 0x2600B
-#define ERROR_EC_MAIN_DOMAIN_DATA_FAILED 0x2600C
 #define ERROR_EC_MAIN_SLAVE_ARRAY_FULL 0x2600D
 #define ERROR_EC_AL_STATE_INIT 0x2600E
 #define ERROR_EC_AL_STATE_PREOP 0x2600F
@@ -70,24 +69,25 @@
 #define ERROR_EC_DATATYPE_NOT_VALID 0x26028
 
 class ecmcEc : public ecmcError {
- public:
+public:
   ecmcEc(ecmcAsynPortDriver *asynPortDriver);
   ~ecmcEc();
   int init(int nMasterIndex);
+  int addDomain(int exeCycles,
+                int offsetCycles);
   int addSlave(
     uint16_t alias,   /**< Slave alias. */
     uint16_t position,   /**< Slave position. */
     uint32_t vendorId,   /**< Expected vendor ID. */
-    uint32_t productCode  /**< Expected product code. */);
+    uint32_t productCode /**< Expected product code. */);
   ecmcEcSlave* getSlave(int slave);  // NOTE: index not bus position
-  ec_domain_t* getDomain();
   ec_master_t* getMaster();
   int          getMasterIndex();
   bool         getInitDone();
   void         receive();
   void         send(timespec timeOffset);
   int          compileRegInfo();
-  void         checkDomainState();
+  void         checkDomainsState();
   int          checkSlaveConfState(int slave);
   bool         checkSlavesConfState();
   bool         checkState();
@@ -98,6 +98,11 @@ class ecmcEc : public ecmcError {
                            uint8_t  sdoSubIndex,
                            uint32_t value,
                            int      byteSize);
+  int addSDOWriteDT(uint16_t       slavePosition,
+                    uint16_t       sdoIndex,
+                    uint8_t        sdoSubIndex,
+                    const char    *value,
+                    ecmcEcDataType dt);
   int writeAndVerifySDOs();
   int readSDO(uint16_t  slavePosition,
               uint16_t  sdoIndex,
@@ -111,53 +116,60 @@ class ecmcEc : public ecmcError {
                uint32_t value,
                int      byteSize);
   int addSDOWriteComplete(uint16_t    slavePosition,
-                          uint16_t    sdoIndex,                       
+                          uint16_t    sdoIndex,
                           const char *valueString,
-                          int         byteSize); 
+                          int         byteSize);
   int addSDOWriteBuffer(uint16_t    slavePosition,
                         uint16_t    sdoIndex,
                         uint8_t     sdoSubIndex,
-                        const char* dataBuffer,
+                        const char *dataBuffer,
                         int         byteSize);
-  int addSDOAsync( uint16_t slaveBusPosition,
-                   uint16_t index,
-                   uint8_t  subIndex,
-                   ecmcEcDataType dt,
-                   std::string idString);
-  int readSoE(uint16_t  slavePosition, /**< Slave position. */
-              uint8_t   driveNo, /**< Drive number. */
-              uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-              size_t    byteSize, /**< Size of data to read. */
-              uint8_t  *value /**< Pointer to data to read. */
+  int addSDOAsync(uint16_t       slaveBusPosition,
+                  uint16_t       index,
+                  uint8_t        subIndex,
+                  ecmcEcDataType dt,
+                  std::string    idString);
+  int readSoE(uint16_t slavePosition,  /**< Slave position. */
+              uint8_t  driveNo,  /**< Drive number. */
+              uint16_t idn,  /**< SoE IDN (see ecrt_slave_config_idn()). */
+              size_t   byteSize,  /**< Size of data to read. */
+              uint8_t *value  /**< Pointer to data to read. */
               );
-  int writeSoE(uint16_t  slavePosition, /**< Slave position. */
-               uint8_t   driveNo, /**< Drive number. */
-               uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-               size_t    byteSize, /**< Size of data to write. */
-               uint8_t  *value /**< Pointer to data to write. */
-              );
+  int writeSoE(uint16_t slavePosition,  /**< Slave position. */
+               uint8_t  driveNo,  /**< Drive number. */
+               uint16_t idn,  /**< SoE IDN (see ecrt_slave_config_idn()). */
+               size_t   byteSize,  /**< Size of data to write. */
+               uint8_t *value  /**< Pointer to data to write. */
+               );
   int addEntry(
-               uint16_t       position,     // Slave position.
-               uint32_t       vendorId,     // Expected vendor ID.
-               uint32_t       productCode,  // Expected product code.
-               ec_direction_t direction,
-               uint8_t        syncMangerIndex,
-               uint16_t       pdoIndex,
-               uint16_t       entryIndex,
-               uint8_t        entrySubIndex,
-               ecmcEcDataType dt,
-               std::string    id,
-               int            useInRealTime);
+    uint16_t       position,                // Slave position.
+    uint32_t       vendorId,                // Expected vendor ID.
+    uint32_t       productCode,             // Expected product code.
+    ec_direction_t direction,
+    uint8_t        syncMangerIndex,
+    uint16_t       pdoIndex,
+    uint16_t       entryIndex,
+    uint8_t        entrySubIndex,
+    ecmcEcDataType dt,
+    std::string    id,
+    int            useInRealTime);
   int addMemMap(uint16_t       startEntryBusPosition,
                 std::string    startEntryIDString,
                 int            byteSize,
                 ec_direction_t direction,
                 ecmcEcDataType dt,
                 std::string    memMapIDString);
+  int addDataItem(uint16_t       startEntryBusPosition,
+                  std::string    startEntryIDString,
+                  int            entryByteOffset,
+                  int            entryBitOffset,
+                  ec_direction_t direction,
+                  ecmcEcDataType dt,
+                  std::string    id);
   ecmcEcMemMap* findMemMap(std::string name);
   int           findMemMapId(std::string name);
   ecmcEcMemMap* getMemMap(int index);
-  ecmcEcSlave * findSlave(int busPosition);
+  ecmcEcSlave*  findSlave(int busPosition);
 
   int           findSlaveIndex(int  busPosition,
                                int *slaveIndex);
@@ -169,28 +181,34 @@ class ecmcEc : public ecmcError {
   int           initAsyn(ecmcAsynPortDriver *asynPortDriver);
   int           printAllConfig();
   int           printSlaveConfig(int slaveIndex);
-  int           validate();                        
+  int           validate();
   int           verifySlave(uint16_t alias,  /**< Slave alias. */
                             uint16_t slavePos,   /**< Slave position. */
                             uint32_t vendorId,   /**< Expected vendor ID. */
                             uint32_t productCode,  /**< Expected product code. */
-                            uint32_t revisionNum  /**< Revision number*/);
+                            uint32_t revisionNum /**< Revision number*/);
 
-  int           checkReadyForRuntime();
-  uint64_t      getTimeNs();
-    
-  uint32_t      getSlaveVendorId(uint16_t alias,  /**< Slave alias. */
-                                 uint16_t slavePos   /**< Slave position. */);
-  uint32_t      getSlaveProductCode(uint16_t alias,  /**< Slave alias. */
-                                    uint16_t slavePos   /**< Slave position. */);
-  uint32_t      getSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
-                                    uint16_t slavePos   /**< Slave position. */);
-  uint32_t      getSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
-                                  uint16_t slavePos   /**< Slave position. */);
-  int           useClockRealtime(bool useClkRT);
-  bool          getScanBusyNotRT();
+  int      checkReadyForRuntime();
+  uint64_t getTimeNs();
+
+  uint32_t getSlaveVendorId(uint16_t alias,       /**< Slave alias. */
+                            uint16_t slavePos /**< Slave position. */);
+  uint32_t getSlaveProductCode(uint16_t alias,       /**< Slave alias. */
+                               uint16_t slavePos /**< Slave position. */);
+  uint32_t getSlaveRevisionNum(uint16_t alias,       /**< Slave alias. */
+                               uint16_t slavePos /**< Slave position. */);
+  uint32_t getSlaveSerialNum(uint16_t alias,       /**< Slave alias. */
+                             uint16_t slavePos /**< Slave position. */);
+  int      useClockRealtime(bool useClkRT);
+  bool     getScanBusyNotRT();
+
   // Some slaves report OP but still not returning valid data for some seconds then use this command.
-  int           setEcOkDelayCycles(int cycles);
+  int      setEcOkDelayCycles(int cycles);
+  int      setDomAllowOffline(int allow);
+  int      setEcAllowOffline(int allow);
+  int      getDomState(int domId);
+  int      getDomAllowOffline(int *allow);
+  int      getEcAllowOffline();
 
 private:
   void     initVars();
@@ -200,12 +218,8 @@ private:
                        timespec time2);
   bool     validEntryType(ecmcEcDataType dt);
   ec_master_t *master_;
-  ec_domain_t *domain_;
-  ec_domain_state_t domainStateOld_;
-  ec_domain_state_t domainState_;
   ec_master_state_t masterStateOld_;
   ec_master_state_t masterState_;
-  uint8_t *domainPd_;
   int slaveCounter_;
   int entryCounter_;
   ecmcEcSlave *slaveArray_[EC_MAX_SLAVES];
@@ -218,11 +232,7 @@ private:
   ecmcEcSlave *simSlave_;
   int slavesOK_;
   int masterOK_;
-  int domainOK_;
-  int domainNotOKCounter_;
-  int domainNotOKCounterTotal_;
-  int domainNotOKCounterMax_;
-  int domainNotOKCyclesLimit_;
+  int domainsOK_;
   bool inStartupPhase_;
 
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
@@ -234,15 +244,20 @@ private:
   int masterLinkUp_;
   uint32_t statusWordMaster_;
   uint32_t statusWordDomain_;
-  int ecStatOk_; 
+  int ecStatOk_;
+  int domainFailCyclesLimit_;
 
+  std::vector<ecmcEcDomain *>domains_;
+  int domainCounter_;
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcAsynDataItem  *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];
+  ecmcAsynDataItem *ecAsynParams_[ECMC_ASYN_EC_PAR_COUNT];
   timespec timeOffset_;
   epicsTimeStamp epicsTime_;
   struct timespec timeRel_;
   struct timespec timeAbs_;
   int delayEcOKCycles_;
   int startupCounter_;
+  ecmcEcDomain *currentDomain_;
+  int allowOffline_;
 };
 #endif  /* ECMCEC_H_ */

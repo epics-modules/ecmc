@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPLCTask.cpp
 *
@@ -15,13 +15,13 @@
 
 #include <string>
 #include <vector>
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcAsynPortDriver.h"
 #include "exprtkWrap.h"
-#include "../main/ecmcDefinitions.h"
-#include "../motion/ecmcAxisBase.h"
-#include "../ethercat/ecmcEc.h"
-#include "../ethercat/ecmcEcEntry.h"  // Bit macros
-#include "../plugin/ecmcPluginLib.h"
+#include "ecmcDefinitions.h"
+#include "ecmcAxisBase.h"
+#include "ecmcEc.h"
+#include "ecmcEcEntry.h"  // Bit macros
+#include "ecmcPluginLib.h"
 #include "ecmcPLCDataIF.h"
 
 #define ECMC_MAX_PLC_VARIABLES 1024
@@ -46,10 +46,10 @@
 
 
 class ecmcPLCTask : public ecmcError {
- public:
-  explicit ecmcPLCTask(int plcIndex,
-                       int skipCycles,
-                       double mcuFreq,
+public:
+  explicit ecmcPLCTask(int                 plcIndex,
+                       int                 skipCycles,
+                       double              mcuFreq,
                        ecmcAsynPortDriver *asynPortDriver_);
   ~ecmcPLCTask();
   bool         getCompiled();
@@ -68,24 +68,26 @@ class ecmcPLCTask : public ecmcError {
                                    int           index);
   int          setDataStoragePointer(ecmcDataStorage *ds,
                                      int              index);
-  int          setPluginPointer(ecmcPluginLib *plugin, 
+  int          setPluginPointer(ecmcPluginLib *plugin,
                                 int            index);
+  int          setShm(ecmcShm shm);
   int          setEcPointer(ecmcEc *ec);
   int          parseFunctions(const char *exprStr);
   int          getFirstScanDone();
-  int          readStaticPLCVar(const char  *varName,
-                                double      *data);
+  int          readStaticPLCVar(const char *varName,
+                                double     *data);
   int          writeStaticPLCVar(const char *varName,
                                  double      data);
-  int          findLocalVar(const char      *varName,
-                            ecmcPLCDataIF  **outDataIF);
+  int          findLocalVar(const char     *varName,
+                            ecmcPLCDataIF **outDataIF);
   double       getSampleTime();
   int          getNewExpr();
-  static ecmcAxisBase    *statAxes_[ECMC_MAX_AXES];
+  static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
-  static ecmcEc          *statEc_;
+  static ecmcEc *statEc_;
+  static ecmcShm statShm_;
 
- private:
+private:
   void initVars();
   int  initAsyn(int plcIndex);
   void updateAsyn();
@@ -97,15 +99,20 @@ class ecmcPLCTask : public ecmcError {
   bool findEcFunction(const char *exprStr);
   bool findDsFunction(const char *exprStr);
   bool findFileIOFunction(const char *exprStr);
-  bool findPluginFunction(ecmcPluginLib* plugin, const char *exprStr);
-  bool findPluginConstant(ecmcPluginLib* plugin, const char *exprStr);
+  bool findPluginFunction(ecmcPluginLib *plugin,
+                          const char    *exprStr);
+  bool findPluginConstant(ecmcPluginLib *plugin,
+                          const char    *exprStr);
+  bool findMiscFunction(const char *exprStr);
   int  loadMcLib();
   int  loadEcLib();
   int  loadDsLib();
   int  loadFileIOLib();
-  int  loadPluginLib(ecmcPluginLib* plugin);
+  int  loadPluginLib(ecmcPluginLib *plugin);
+  int  loadMiscLib();
+
   std::string exprStr_;
-  std::string exprStrRaw_; //Before compile and preprocess
+  std::string exprStrRaw_; // Before compile and preprocess
   bool compiled_;
   exprtkWrap *exprtk_;
   ecmcPLCDataIF *globalArray_[ECMC_MAX_PLC_VARIABLES];
@@ -122,13 +129,14 @@ class ecmcPLCTask : public ecmcError {
   int libEcLoaded_;
   int libDsLoaded_;
   int libFileIOLoaded_;
+  int libMiscLoaded_;
   int libPluginsLoaded_[ECMC_MAX_PLUGINS];
-  
+
   ecmcAsynPortDriver *asynPortDriver_;
   int newExpr_;
-  ecmcAsynDataItem   *asynParamExpr_;
+  ecmcAsynDataItem *asynParamExpr_;
   double mcuFreq_;
-  ecmcPluginLib      *plugins_[ECMC_MAX_PLUGINS];
+  ecmcPluginLib *plugins_[ECMC_MAX_PLUGINS];
 };
 
 #endif  /* ECMC_PLC_TASK_H_ */

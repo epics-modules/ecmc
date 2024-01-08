@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcCom.h
 *
@@ -24,7 +24,7 @@ extern "C" {
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int ecmcInit(void *asynPortObject);
+int  ecmcInit(void *asynPortObject);
 
 /** \brief Add default asyn parameters for ecmc
  *
@@ -32,14 +32,13 @@ int ecmcInit(void *asynPortObject);
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-int ecmcAddDefaultAsynParams();
+int  ecmcAddDefaultAsynParams();
 
 /** \brief Cleanup (for exit)
  *
  * \note There's no ascii command in ecmcCmdParser.c for this method.\n
  */
-
-void ecmcCleanup();
+void ecmcCleanup(int signum);
 
 # ifdef __cplusplus
 }

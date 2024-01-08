@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDriveStepper.h
 *
@@ -15,27 +15,26 @@
 
 #include <stdio.h>
 #include <cmath>
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../ethercat/ecmcEcEntryLink.h"
-#include "../ethercat/ecmcEcPdo.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcEcEntry.h"
+#include "ecmcEcPdo.h"
 #include "ecmcDriveBase.h"
 
 class ecmcDriveStepper : public ecmcDriveBase {
- public:
+public:
   explicit ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
-                            ecmcAxisData *axisData);
+                            ecmcAxisData       *axisData);
   ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
-                   ecmcAxisData *axisData,
-                   double        scale);
+                   ecmcAxisData       *axisData,
+                   double              scale);
   ~ecmcDriveStepper();
   int  validate();
   void writeEntries();
   void readEntries();
   bool getEnabledLocal();
 
- private:
+private:
   void initVars();
   bool localEnabled_;
 };

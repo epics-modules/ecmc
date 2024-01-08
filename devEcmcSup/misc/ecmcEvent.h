@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEvent.h
 *
@@ -14,10 +14,10 @@
 #define ECMCEVENT_H_
 
 #include "stdio.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../ethercat/ecmcEcEntryLink.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcEcEntry.h"
+#include "ecmcEcEntryLink.h"
 #include "ecmcDataStorage.h"
 #include "ecmcEventConsumer.h"
 
@@ -31,7 +31,7 @@
 #define ERROR_EVENT_ARM_NOT_ENABLED 0x20307
 
 class ecmcEvent : public ecmcEcEntryLink {
- public:
+public:
   ecmcEvent(double sampleTime,
             int    index);
   ~ecmcEvent();
@@ -51,8 +51,9 @@ class ecmcEvent : public ecmcEcEntryLink {
   int  triggerEvent(int masterOK);
   int  arm();
   void printCurrentState();
+  void errorReset();
 
- private:
+private:
   void initVars();
   int  armSequence();
   double sampleTime_;

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEventConsumer.cpp
 *
@@ -12,8 +12,6 @@
 
 #include "ecmcEventConsumer.h"
 
-ecmcEventConsumer::ecmcEventConsumer()
-{}
+ecmcEventConsumer::ecmcEventConsumer() {}
 
-ecmcEventConsumer::~ecmcEventConsumer()
-{}
+ecmcEventConsumer::~ecmcEventConsumer() {}

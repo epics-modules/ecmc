@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcMonitor.cpp
 *
@@ -14,10 +14,17 @@
 #include <stdio.h>
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
-                         ecmcEncoder **encArray) : ecmcEcEntryLink(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
+                         ecmcEncoder **encArray) : ecmcEcEntryLink(&(axisData->
+                                                                     status_.
+                                                                     errorCode),
+                                                                   &(axisData->
+                                                                     status_.
+                                                                     warningCode))
+{
   initVars();
-  data_ = axisData;
-  encArray_= encArray;
+  data_     = axisData;
+  encArray_ = encArray;
+
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
@@ -26,22 +33,24 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
 }
 
 void ecmcMonitor::initVars() {
-  enable_                    = false;
-  atTargetTol_               = 0;
-  atTargetTime_              = 0;
-  enableAtTargetMon_         = true;
-  posLagTol_                 = 0;
-  posLagTime_                = 0;
-  enableLagMon_              = true;
-  atTargetCounter_           = 0;
-  lagMonCounter_             = 0;
-  maxVel_                    = 0;
-  enableMaxVelMon_           = 0;
-  maxVelCounterDrive_        = 0;
-  maxVelCounterTraj_         = 0;
-  maxVelDriveILDelay_        = 0;
+  enable_             = false;
+  atTargetTol_        = 0;
+  atTargetTime_       = 0;
+  enableAtTargetMon_  = true;
+  posLagTol_          = 0;
+  posLagTime_         = 0;
+  enableLagMon_       = true;
+  atTargetCounter_    = 0;
+  lagMonCounter_      = 0;
+  maxVel_             = 0;
+  enableMaxVelMon_    = 0;
+  maxVelCounterDrive_ = 0;
+  maxVelCounterTraj_  = 0;
+  maxVelDriveILDelay_ = 0;
+
   // 200 cycles
-  maxVelTrajILDelay_         = 200;
+  maxVelTrajILDelay_ = 200;
+
   // 400 cycles default
   maxVelDriveILDelay_        = maxVelTrajILDelay_ * 2;
   enableHardwareInterlock_   = false;
@@ -56,8 +65,8 @@ void ecmcMonitor::initVars() {
   velDiffTimeTraj_           = 100;
   velDiffTimeDrive_          = 100;
   velDiffMaxDiff_            = 0;
-  latchOnLimit_               = 1;
-  switchFilterCounter_ = 0;
+  latchOnLimit_              = 1;
+  switchFilterCounter_       = 0;
   memset(&limitFwdFilterBuffer_, 0, sizeof(limitFwdFilterBuffer_));
   memset(&limitBwdFilterBuffer_, 0, sizeof(limitBwdFilterBuffer_));
   memset(&homeFilterBuffer_,     0, sizeof(homeFilterBuffer_));
@@ -69,10 +78,12 @@ void ecmcMonitor::initVars() {
   encArray_                  = NULL;
   enableAlarmOnSofLimits_    = 1;
   enableDiffEncsMon_         = 1;  // If a tolerance is set then default check
+  ctrlDeadbandTol_           = -1;
+  ctrlDeadbandCounter_       = 0;
+  ctrlDeadbandTime_          = -1;
 }
 
-ecmcMonitor::~ecmcMonitor()
-{}
+ecmcMonitor::~ecmcMonitor() {}
 
 void ecmcMonitor::execute() {
   // Limits
@@ -87,7 +98,8 @@ void ecmcMonitor::execute() {
     setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK);
+               ERROR_MON_EXTERNAL_HARDWARE_INTERLOCK,
+               ECMC_SEVERITY_NORMAL);
   }
 
   // Lag error
@@ -113,6 +125,10 @@ bool ecmcMonitor::getAtTarget() {
   return data_->status_.atTarget;
 }
 
+bool ecmcMonitor::getCtrlInDeadband() {
+  return data_->status_.ctrlWinthinDeadband;
+}
+
 bool ecmcMonitor::getHardLimitFwd() {
   return data_->status_.limitFwd;
 }
@@ -122,8 +138,7 @@ bool ecmcMonitor::getHardLimitBwd() {
 }
 
 int ecmcMonitor::setAtTargetTol(double tol) {
-  
-  if(tol<0) {
+  if (tol < 0) {
     LOGERR("%s/%s:%d: At target tolerance invalid (tol. < 0) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TOL_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -131,6 +146,12 @@ int ecmcMonitor::setAtTargetTol(double tol) {
   }
 
   atTargetTol_ = tol;
+  
+  // Default also for ctrl deadband
+  if(ctrlDeadbandTol_ < 0 ) {
+    ctrlDeadbandTol_ = tol;
+  }
+
   return 0;
 }
 
@@ -139,8 +160,7 @@ double ecmcMonitor::getAtTargetTol() {
 }
 
 int ecmcMonitor::setAtTargetTime(int time) {
-  
-  if(time<0) {
+  if (time < 0) {
     LOGERR("%s/%s:%d: At target time invalid (time < 0) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -148,6 +168,12 @@ int ecmcMonitor::setAtTargetTime(int time) {
   }
 
   atTargetTime_ = time;
+  
+  // Default also for ctrl deadband time
+  if(ctrlDeadbandTime_< 0) {
+    ctrlDeadbandTime_ = time;
+  }
+  
   return 0;
 }
 
@@ -164,7 +190,7 @@ bool ecmcMonitor::getEnableAtTargetMon() {
 }
 
 int ecmcMonitor::setPosLagTol(double tol) {
-  if(tol<0) {
+  if (tol < 0) {
     LOGERR("%s/%s:%d: Position lag tolerance invalid (tol. < 0) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TOL_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -180,8 +206,7 @@ double ecmcMonitor::getPosLagTol() {
 }
 
 int ecmcMonitor::setVelDiffTimeTraj(int time) {
-
-  if(time<0) {
+  if (time < 0) {
     LOGERR("%s/%s:%d: Velocity diff traj time invalid (time < 0) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -193,8 +218,7 @@ int ecmcMonitor::setVelDiffTimeTraj(int time) {
 }
 
 int ecmcMonitor::setVelDiffTimeDrive(int time) {
-
-  if(time<0) {
+  if (time < 0) {
     LOGERR("%s/%s:%d: Velocity diff drive time invalid (time < 0) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -206,8 +230,7 @@ int ecmcMonitor::setVelDiffTimeDrive(int time) {
 }
 
 int ecmcMonitor::setPosLagTime(int time) {
-
-  if(time<0) {
+  if (time < 0) {
     LOGERR("%s/%s:%d: Position lag time invalid (time < 0) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -238,28 +261,30 @@ void ecmcMonitor::readEntries() {
   uint64_t tempRaw = 0;
 
   // Hard limit BWD
-  if (readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM, &tempRaw)) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MON_ENTRY_READ_FAIL);
+  int errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM, &tempRaw);
+  if ( errorCode ) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_EMERGENCY);
     return;
   }
-  
-  if(lowLimPolarity_==ECMC_POLARITY_NO) {
-    tempRaw = tempRaw==0;
+
+  if (lowLimPolarity_ == ECMC_POLARITY_NO) {
+    tempRaw = tempRaw == 0;
   }
-  
+
   data_->status_.limitBwd = tempRaw > 0;
 
 
   // Hard limit FWD
   tempRaw = 0;
-
-  if (readEcEntryValue(ECMC_MON_ENTRY_INDEX_HIGHLIM, &tempRaw)) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MON_ENTRY_READ_FAIL);
+  
+  errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HIGHLIM, &tempRaw);
+  if ( errorCode ) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
     return;
   }
 
-  if(highLimPolarity_==ECMC_POLARITY_NO) {
-    tempRaw = tempRaw==0;
+  if (highLimPolarity_ == ECMC_POLARITY_NO) {
+    tempRaw = tempRaw == 0;
   }
 
   data_->status_.limitFwd = tempRaw > 0;
@@ -267,13 +292,14 @@ void ecmcMonitor::readEntries() {
   // Home
   tempRaw = 0;
 
-  if (readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR, &tempRaw)) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MON_ENTRY_READ_FAIL);
+  errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR, &tempRaw);
+  if ( errorCode ) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
     return;
   }
 
-  if(homePolarity_==ECMC_POLARITY_NO) {
-    tempRaw = tempRaw==0;
+  if (homePolarity_ == ECMC_POLARITY_NO) {
+    tempRaw = tempRaw == 0;
   }
 
   data_->status_.homeSwitch = tempRaw > 0;
@@ -283,9 +309,9 @@ void ecmcMonitor::readEntries() {
 
   if (enableHardwareInterlock_) {
     tempRaw = 0;
-
-    if (readEcEntryValue(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK, &tempRaw)) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MON_ENTRY_READ_FAIL);
+    errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK, &tempRaw);
+    if (errorCode ) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
       return;
     }
 
@@ -370,8 +396,7 @@ bool ecmcMonitor::getEnableMaxVelMon() {
 }
 
 int ecmcMonitor::setMaxVelDriveTime(int time) {
-
-  if(time<0) {
+  if (time < 0) {
     LOGERR("%s/%s:%d: Max velocity drive time invalid (time < 0) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -383,8 +408,7 @@ int ecmcMonitor::setMaxVelDriveTime(int time) {
 }
 
 int ecmcMonitor::setMaxVelTrajTime(int time) {
-
-  if(time<0) {
+  if (time < 0) {
     LOGERR("%s/%s:%d: Max velocity traj time invalid (time < 0) (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_MON_TIME_OUT_OF_RANGE);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -396,18 +420,19 @@ int ecmcMonitor::setMaxVelTrajTime(int time) {
 }
 
 int ecmcMonitor::reset() {
-  data_->status_.atTarget = false;
-  atTargetCounter_        = 0;
-  lagMonCounter_          = 0;
-  maxVelCounterDrive_     = 0;
-  maxVelCounterTraj_      = 0;
-  velocityDiffCounter_    = 0;
+  // data_->status_.atTarget = false;
+  // atTargetCounter_        = 0;
+  lagMonCounter_       = 0;
+  maxVelCounterDrive_  = 0;
+  maxVelCounterTraj_   = 0;
+  velocityDiffCounter_ = 0;
   data_->clearInterlocks();
   return 0;
 }
 
 void ecmcMonitor::errorReset() {
   reset();
+  ecmcEcEntryLink::errorReset();
   ecmcError::errorReset();
 }
 
@@ -493,7 +518,8 @@ int ecmcMonitor::checkLimits() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_BOTH_LIMIT_INTERLOCK);
+                      ERROR_MON_BOTH_LIMIT_INTERLOCK,
+                      ECMC_SEVERITY_EMERGENCY);
   }
 
   // Bwd limit switch
@@ -504,22 +530,23 @@ int ecmcMonitor::checkLimits() {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_MON_HARD_LIMIT_BWD_INTERLOCK);
+                        ERROR_MON_HARD_LIMIT_BWD_INTERLOCK,
+                        ECMC_SEVERITY_NORMAL);
     }
     setWarningID(WARNING_MON_HARD_LIMIT_BWD_INTERLOCK);
   } else {
-    if(latchOnLimit_){
-      if(!data_->status_.moving || data_->status_.currentVelocityActual > 0){
+    if (latchOnLimit_) {
+      if (!data_->status_.moving ||
+          (data_->status_.currentVelocityActual > 0)) {
         data_->interlocks_.bwdLimitInterlock = false;
       }
-    }
-    else{
+    } else {
       // Auto reset warning
       if (getWarningID() == WARNING_MON_HARD_LIMIT_BWD_INTERLOCK) {
         setWarningID(0);
       }
       data_->interlocks_.bwdLimitInterlock = false;
-    }    
+    }
   }
 
   // Fwd limit switch
@@ -530,22 +557,23 @@ int ecmcMonitor::checkLimits() {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_MON_HARD_LIMIT_FWD_INTERLOCK);
+                        ERROR_MON_HARD_LIMIT_FWD_INTERLOCK,
+                        ECMC_SEVERITY_NORMAL);
     }
     setWarningID(WARNING_MON_HARD_LIMIT_FWD_INTERLOCK);
   } else {
-    if(latchOnLimit_){
-      if(!data_->status_.moving || data_->status_.currentVelocityActual < 0){
+    if (latchOnLimit_) {
+      if (!data_->status_.moving ||
+          (data_->status_.currentVelocityActual < 0)) {
         data_->interlocks_.fwdLimitInterlock = false;
       }
-    }
-    else{
+    } else {
       // Auto reset warning
       if (getWarningID() == WARNING_MON_HARD_LIMIT_FWD_INTERLOCK) {
         setWarningID(0);
       }
       data_->interlocks_.fwdLimitInterlock = false;
-    }    
+    }
   }
 
   // Bwd soft limit switch
@@ -553,23 +581,24 @@ int ecmcMonitor::checkLimits() {
     (data_->status_.currentPositionSetpoint < data_->command_.softLimitBwd) &&
     data_->status_.enabled && data_->status_.enabledOld; /*&&
     (data_->status_.currentPositionSetpoint <
-    data_->status_.currentPositionSetpointOld); */ // data_->command_.execute;
+    data_->status_.currentPositionSetpointOld); */// data_->command_.execute;
 
   if (virtSoftlimitBwd /*&& data_->status_.busy*/ &&
       data_->command_.enableSoftLimitBwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
     data_->interlocks_.bwdSoftLimitInterlock = true;
     setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
-    //if(enableAlarmOnSofLimits_) {   
+
+    // if(enableAlarmOnSofLimits_) {
     //  return setErrorID(__FILE__,
     //                    __FUNCTION__,
     //                    __LINE__,
     //                    ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
-    //}
+    // }
   } else {
     // Auto reset this warning
     if (getWarningID() == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
-       setWarningID(0);
+      setWarningID(0);
     }
     data_->interlocks_.bwdSoftLimitInterlock = false;
   }
@@ -578,7 +607,7 @@ int ecmcMonitor::checkLimits() {
     (data_->status_.currentPositionSetpoint > data_->command_.softLimitFwd) &&
     data_->status_.enabled && data_->status_.enabledOld; /*&&
     (data_->status_.currentPositionSetpoint >
-      data_->status_.currentPositionSetpointOld);*/ // && data_->command_.execute;
+      data_->status_.currentPositionSetpointOld);*/// && data_->command_.execute;
 
   // Fwd soft limit switch
   if (virtSoftlimitFwd /*&& data_->status_.busy*/ &&
@@ -586,16 +615,17 @@ int ecmcMonitor::checkLimits() {
       (data_->command_.command != ECMC_CMD_HOMING)) {
     data_->interlocks_.fwdSoftLimitInterlock = true;
     setWarningID(WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK);
-    //if(enableAlarmOnSofLimits_) {   
+
+    // if(enableAlarmOnSofLimits_) {
     //  return setErrorID(__FILE__,
     //                    __FUNCTION__,
     //                    __LINE__,
     //                    ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
-    //}
+    // }
   } else {
     // Auto reset this warning
     if (getWarningID() == WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
-       setWarningID(0);
+      setWarningID(0);
     }
     data_->interlocks_.fwdSoftLimitInterlock = false;
   }
@@ -604,28 +634,44 @@ int ecmcMonitor::checkLimits() {
 
 int ecmcMonitor::checkAtTarget() {
   bool atTarget = false;
+  bool ctrlWithinTol = false;
 
   if (enableAtTargetMon_ && data_->status_.enabled) {
     /*if (std::abs(data_->status_.currentTargetPosition -
-                 data_->status_.currentPositionActual) < atTargetTol_) {*/    
-    if (std::abs(data_->status_.cntrlError) < atTargetTol_ && 
-        data_->status_.currentTargetPositionModulo == 
-        data_->status_.currentPositionSetpoint) {
-      if (atTargetCounter_ <= atTargetTime_) {
-        atTargetCounter_++;
-      }
+                 data_->status_.currentPositionActual) < atTargetTol_) {*/ 
 
-      if (atTargetCounter_ > atTargetTime_) {
-        atTarget = true;
+    if(  data_->status_.currentTargetPositionModulo == 
+        data_->status_.currentPositionSetpoint) {
+      
+      if (std::abs(data_->status_.cntrlError) < atTargetTol_) {
+        if (atTargetCounter_ <= atTargetTime_) {
+          atTargetCounter_++;
+        }
+        if (atTargetCounter_ > atTargetTime_) {
+          atTarget = true;
+        }
+      } else {
+        atTargetCounter_ = 0;
+      }  
+
+      // controller deadband
+      if (std::abs(data_->status_.cntrlError) < ctrlDeadbandTol_) {
+        if (ctrlDeadbandCounter_ <= ctrlDeadbandTime_) {
+          ctrlDeadbandCounter_++;
+        }
+        if (ctrlDeadbandCounter_ > ctrlDeadbandTime_) {
+          ctrlWithinTol = true;
+        }
+      } else {
+        ctrlDeadbandCounter_ = 0;
       }
-    } else {
-      atTargetCounter_ = 0;
     }
-  } else {
+  } else {    
     atTarget = true;
   }
 
   data_->status_.atTarget = atTarget;
+  data_->status_.ctrlWinthinDeadband = ctrlWithinTol;
   return 0;
 }
 
@@ -633,9 +679,9 @@ int ecmcMonitor::checkPositionLag() {
   bool lagErrorTraj  = false;
   bool lagErrorDrive = false;
 
-  if (enableLagMon_ && !lagErrorDrive) {
-
-    if ((std::abs(data_->status_.cntrlError) > posLagTol_) && data_->status_.enabled &&
+  if (enableLagMon_ && !lagErrorDrive && data_->command_.enable) {
+    if ((std::abs(data_->status_.cntrlError) > posLagTol_) &&
+        data_->status_.enabled &&
         data_->status_.enabledOld) {
       if (lagMonCounter_ <= posLagTime_ * 2) {
         lagMonCounter_++;
@@ -644,7 +690,7 @@ int ecmcMonitor::checkPositionLag() {
       if (lagMonCounter_ > posLagTime_) {
         lagErrorTraj = true;
       }
-      
+
       // interlock the drive in twice the time..
       if (lagMonCounter_ >= posLagTime_ * 2) {
         lagErrorDrive = true;
@@ -661,51 +707,57 @@ int ecmcMonitor::checkPositionLag() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
+                      ERROR_MON_MAX_POSITION_LAG_EXCEEDED,
+                      ECMC_SEVERITY_NORMAL);
   }
   return 0;
 }
 
 int ecmcMonitor::checkEncoderDiff() {
-
   data_->interlocks_.encDiffInterlock = false;
-  
-  // Only one encoder configured
-  if(data_->status_.encoderCount <= 1 || !enableDiffEncsMon_) {  
+
+  if (!data_->command_.enable) {
     return 0;
   }
 
-  //Do not check if prim enc not homed
-  if(!encArray_[data_->command_.primaryEncIndex]->getHomed()) {    
+  // Only one encoder configured
+  if ((data_->status_.encoderCount <= 1) || !enableDiffEncsMon_) {
+    return 0;
+  }
+
+  // Do not check if prim enc not homed
+  if (!encArray_[data_->command_.primaryEncIndex]->getHomed()) {
     return 0;
   }
 
   // Multiple encoders configured so check pos diff vs primary
-  double maxDiff = 0;
-  bool encDiffILock = false;
-  double primEncActPos = encArray_[data_->command_.primaryEncIndex]->getActPos();
-  for(int i = 0; i < data_->status_.encoderCount; i++) {
-    
+  double maxDiff       = 0;
+  bool   encDiffILock  = false;
+  double primEncActPos =
+    encArray_[data_->command_.primaryEncIndex]->getActPos();
+
+  for (int i = 0; i < data_->status_.encoderCount; i++) {
     // Do not check prim encoder vs itself or if this encoder is not homed
-    if(i==data_->command_.primaryEncIndex || !encArray_[i]->getHomed() ) {      
+    if ((i == data_->command_.primaryEncIndex) || !encArray_[i]->getHomed()) {
       continue;
     }
-    
+
     maxDiff = encArray_[i]->getMaxPosDiffToPrimEnc();
+
     // disable functionality if getMaxPosDiffToPrimEnc() == 0
     if (maxDiff == 0) {
       continue;
     }
-    
+
     double diff = ecmcMotionUtils::getPosErrorModAbs(primEncActPos,
                                                      encArray_[i]->getActPos(),
                                                      data_->command_.moduloRange);
-    
+
     encDiffILock = diff > maxDiff || encDiffILock;
   }
 
   data_->interlocks_.encDiffInterlock = encDiffILock;
-  
+
   return 0;
 }
 
@@ -742,14 +794,16 @@ int ecmcMonitor::checkVelocityDiff() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED);
+                      ERROR_MON_VELOCITY_DIFFERENCE_EXCEEDED,
+                      ECMC_SEVERITY_NORMAL);
   }
 
   return 0;
 }
 
 int ecmcMonitor::checkMaxVelocity() {
-  if (!data_->status_.enabled || !data_->status_.enabledOld) {
+  if (!data_->command_.enable || !data_->status_.enabled ||
+      !data_->status_.enabledOld) {
     data_->interlocks_.maxVelocityTrajInterlock  = false;
     data_->interlocks_.maxVelocityDriveInterlock = false;
     maxVelCounterTraj_                           = 0;
@@ -788,7 +842,8 @@ int ecmcMonitor::checkMaxVelocity() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_MAX_VELOCITY_EXCEEDED);
+                      ERROR_MON_MAX_VELOCITY_EXCEEDED,
+                      ECMC_SEVERITY_NORMAL);
   }
   return 0;
 }
@@ -807,7 +862,8 @@ int ecmcMonitor::checkCntrlMaxOutput() {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT);
+                      ERROR_MON_CNTRL_OUTPUT_EXCEED_LIMIT,
+                      ECMC_SEVERITY_NORMAL);
   }
   return 0;
 }
@@ -879,10 +935,14 @@ int ecmcMonitor::filterSwitches() {
 }
 
 int ecmcMonitor::setHardwareInterlockPolarity(ecmcSwitchPolarity pol) {
-
   int errorCode = checkPolarity(pol);
-  if(errorCode) {
-    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n", __FILE__, __FUNCTION__, __LINE__,errorCode);
+
+  if (errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           errorCode);
     return errorCode;
   }
 
@@ -892,29 +952,32 @@ int ecmcMonitor::setHardwareInterlockPolarity(ecmcSwitchPolarity pol) {
   return 0;
 }
 
-int ecmcMonitor::setPLCInterlock(bool ilock,plcInterlockTypes type) {
-  
-  switch(type) {
-    case ECMC_PLC_INTERLOCK_DIR_BOTH:
-      data_->interlocks_.plcInterlock = ilock;
-      break;
+int ecmcMonitor::setPLCInterlock(bool ilock, plcInterlockTypes type) {
+  switch (type) {
+  case ECMC_PLC_INTERLOCK_DIR_BOTH:
+    data_->interlocks_.plcInterlock = ilock;
+    break;
 
-    case ECMC_PLC_INTERLOCK_DIR_BWD:
-      data_->interlocks_.plcInterlockBWD = ilock;
-      break;
+  case ECMC_PLC_INTERLOCK_DIR_BWD:
+    data_->interlocks_.plcInterlockBWD = ilock;
+    break;
 
-    case ECMC_PLC_INTERLOCK_DIR_FWD:      
-      data_->interlocks_.plcInterlockFWD = ilock;
-      break;
+  case ECMC_PLC_INTERLOCK_DIR_FWD:
+    data_->interlocks_.plcInterlockFWD = ilock;
+    break;
   }
   return 0;
 }
 
-int ecmcMonitor::setHardLimitBwdPolarity(ecmcSwitchPolarity pol){
-  
+int ecmcMonitor::setHardLimitBwdPolarity(ecmcSwitchPolarity pol) {
   int errorCode = checkPolarity(pol);
-  if(errorCode) {
-    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n", __FILE__, __FUNCTION__, __LINE__,errorCode);
+
+  if (errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           errorCode);
     return errorCode;
   }
 
@@ -922,11 +985,15 @@ int ecmcMonitor::setHardLimitBwdPolarity(ecmcSwitchPolarity pol){
   return 0;
 }
 
-int ecmcMonitor::setHardLimitFwdPolarity(ecmcSwitchPolarity pol){
-  
+int ecmcMonitor::setHardLimitFwdPolarity(ecmcSwitchPolarity pol) {
   int errorCode = checkPolarity(pol);
-  if(errorCode) {
-    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n", __FILE__, __FUNCTION__, __LINE__,errorCode);
+
+  if (errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           errorCode);
     return errorCode;
   }
 
@@ -935,10 +1002,14 @@ int ecmcMonitor::setHardLimitFwdPolarity(ecmcSwitchPolarity pol){
 }
 
 int ecmcMonitor::setHomePolarity(ecmcSwitchPolarity pol) {
-
   int errorCode = checkPolarity(pol);
-  if(errorCode) {
-    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n", __FILE__, __FUNCTION__, __LINE__,errorCode);
+
+  if (errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           errorCode);
     return errorCode;
   }
 
@@ -946,12 +1017,12 @@ int ecmcMonitor::setHomePolarity(ecmcSwitchPolarity pol) {
   return 0;
 }
 
-ecmcSwitchPolarity ecmcMonitor::getHardLimitBwdPolarity(){
+ecmcSwitchPolarity ecmcMonitor::getHardLimitBwdPolarity() {
   return lowLimPolarity_;
 }
 
-ecmcSwitchPolarity ecmcMonitor::getHardLimitFwdPolarity(){
- return highLimPolarity_;
+ecmcSwitchPolarity ecmcMonitor::getHardLimitFwdPolarity() {
+  return highLimPolarity_;
 }
 
 ecmcSwitchPolarity ecmcMonitor::getHomePolarity() {
@@ -963,7 +1034,7 @@ ecmcSwitchPolarity ecmcMonitor::getHardwareInterlockPolarity() {
 }
 
 int ecmcMonitor::checkPolarity(ecmcSwitchPolarity pol) {
-  if( pol <  ECMC_POLARITY_NC || pol >  ECMC_POLARITY_NO) {
+  if ((pol <  ECMC_POLARITY_NC) || (pol >  ECMC_POLARITY_NO)) {
     return ERROR_MON_POLARITY_OUT_OF_RANGE;
   }
   return 0;
@@ -988,3 +1059,12 @@ int ecmcMonitor::setEnableCheckEncsDiff(bool enable) {
   return 0;
 }
 
+int ecmcMonitor::setCtrlDeadband(double tol) {
+  ctrlDeadbandTol_ = std::abs(tol);
+  return 0;
+}
+
+int ecmcMonitor::setCtrlDeadbandTime(int cycles) {
+  ctrlDeadbandTime_ = cycles;
+  return 0;
+}

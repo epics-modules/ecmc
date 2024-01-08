@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEvent.cpp
 *
@@ -25,8 +25,7 @@ ecmcEvent::ecmcEvent(double sampleTime, int index) : ecmcEcEntryLink() {
   printCurrentState();
 }
 
-ecmcEvent::~ecmcEvent()
-{}
+ecmcEvent::~ecmcEvent() {}
 
 void ecmcEvent::printCurrentState() {
   LOGINFO10("%s/%s:%d: event[%d].sampleTime=%lf;\n",
@@ -534,4 +533,9 @@ int ecmcEvent::arm() {
             index_);
   armSequence();
   return 0;
+}
+
+void ecmcEvent::errorReset() {
+  ecmcEcEntryLink::errorReset();
+  ecmcError::errorReset();
 }

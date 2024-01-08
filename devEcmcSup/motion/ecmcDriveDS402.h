@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDriveDS402.h
 *
@@ -15,11 +15,10 @@
 #include <stdio.h>
 #include <cmath>
 
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../ethercat/ecmcEcEntryLink.h"
-#include "../ethercat/ecmcEcPdo.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcEcEntry.h"
+#include "ecmcEcPdo.h"
 #include "ecmcDriveBase.h"
 
 // Error codes
@@ -39,7 +38,7 @@
  * bit 5:
  * bit 6: Switch on disabled
  * bit 7: Warning
- * bit 8: 
+ * bit 8:
  * bit 9:
  * bit A: TxPDOToggle
  * bit B: Internal limit active
@@ -68,12 +67,12 @@ enum stateMachine_DS402 {
 };
 
 class ecmcDriveDS402 : public ecmcDriveBase {
- public:
+public:
   explicit ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
-                          ecmcAxisData *axisData);
+                          ecmcAxisData       *axisData);
   ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
-                 ecmcAxisData *axisData,
-                 double        scale);
+                 ecmcAxisData       *axisData,
+                 double              scale);
   ~ecmcDriveDS402();
   int  validate();
   void readEntries();
@@ -81,9 +80,9 @@ class ecmcDriveDS402 : public ecmcDriveBase {
   void errorReset();
   bool getEnabledLocal();
 
- private:
+private:
   void initVars();
-  stateMachine_DS402 enableStateMachine_;  
+  stateMachine_DS402 enableStateMachine_;
   stateMachine_DS402 enableStateMachineOld_;
   int cycleCounter_;
   bool ds402WarningOld_;
@@ -91,4 +90,3 @@ class ecmcDriveDS402 : public ecmcDriveBase {
   bool localEnableAmpCmdOld_;
 };
 #endif  // ifndef ECMCDRIVEDS402_H_
-

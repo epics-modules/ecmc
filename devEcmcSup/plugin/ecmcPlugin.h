@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPlugin.h
 *
@@ -33,12 +33,14 @@ extern "C" {
  * \note Example: Create and load a plugin at index 0.\n
  *  "Cfg.LoadPlugin(0,./ecmcExampleLip.so,"TEST=10")" //Command string to ecmcCmdParser.c\n
  */
-int loadPlugin(int pluginId, const char* filenameWP, const char *config);
+int loadPlugin(int         pluginId,
+               const char *filenameWP,
+               const char *config);
 
 /** \brief Printout details of plugin.\n
  *
  * \param[in] pluginId index of plugin.
- * 
+ *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Printout information about plug in at index 1.\n

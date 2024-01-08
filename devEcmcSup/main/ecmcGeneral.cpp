@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcGeneral.cpp
 *
@@ -14,18 +14,17 @@
 
 
 // TODO: REMOVE GLOBALS
-#include "../main/ecmcGlobalsExtern.h"
-#include "../com/ecmcAsynPortDriverUtils.h"
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
+#include "ecmcGlobalsExtern.h"
+#include "ecmcAsynPortDriverUtils.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
 
 int getControllerError() {
-
   // EtherCAT errors
-  if(ec->getInitDone()) {
+  if (ec->getInitDone()) {
     if (ec->getError()) {
-     return ec->getErrorID();
+      return ec->getErrorID();
     }
   }
 
@@ -91,7 +90,7 @@ int getControllerError() {
   }
 
   // Plugin RTfunc retrun errors
-  if(pluginsError) {
+  if (pluginsError) {
     return pluginsError;
   }
 
@@ -100,7 +99,8 @@ int getControllerError() {
 
 int controllerErrorReset() {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
-  int errorCodeBackup=getControllerError();
+  int errorCodeBackup = getControllerError();
+
   // EtherCAT errors
   ec->errorReset();
 
@@ -153,13 +153,16 @@ int controllerErrorReset() {
   if (plcs) {
     plcs->errorReset();
   }
-  
-  if(errorCodeBackup!=getControllerError()) {
-    controllerErrorMsg=getErrorString(controllerError);
+
+  if (errorCodeBackup != getControllerError()) {
+    controllerErrorMsg = getErrorString(controllerError);
     mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_ID_ID]->refreshParamRT(1);
-    mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID]->refreshParamRT(1,(uint8_t*)controllerErrorMsg,strlen(controllerErrorMsg));
+    mainAsynParams[ECMC_ASYN_MAIN_PAR_ERROR_MSG_ID]->refreshParamRT(1,
+                                                                    (uint8_t *)controllerErrorMsg,
+                                                                    strlen(
+                                                                      controllerErrorMsg));
   }
-  
+
   return 0;
 }
 
@@ -172,7 +175,6 @@ const char* getErrorString(int error_number) {
 
   return ecmcError::convertErrorIdToString(error_number);
 }
-
 
 int setEnableTimeDiag(int value) {
   LOGINFO4("%s/%s:%d enable=%d \n", __FILE__, __FUNCTION__, __LINE__, value);
@@ -203,106 +205,139 @@ int linkEcEntryToObject(char *ecPath, char *objPath) {
   char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  bitIndex = -1;
 
-  int errorCode = parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+  int errorCode =
+    parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
 
   if (errorCode) {
     return errorCode;
   }
 
   // Get object type
-  mainObjectType objType;  
-  int objIndex=-1;
-  int objFunctionId=0;
-  errorCode = getMainObjectType(objPath,&objIndex,&objType);
-  if(errorCode) {
+  mainObjectType objType;
+  int objIndex      = -1;
+  int objFunctionId = 0;
+  errorCode = getMainObjectType(objPath, &objIndex, &objType);
+
+  if (errorCode) {
     return errorCode;
   }
-  switch(objType){
-    case ECMC_OBJ_INVALID:
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
-    case ECMC_OBJ_AXIS:
-      axisSubObjectType axSubObjType;
-      errorCode = getAxSubObjectType(objPath,&axSubObjType);
-      if(errorCode) {
-        return errorCode;
-      }
-      switch(axSubObjType){
-        case ECMC_AX_SUB_OBJ_INVALID:
-          return ERROR_MAIN_ECMC_LINK_INVALID;
-          break;
-        case ECMC_AX_SUB_OBJ_DRIVE:
-          errorCode = getAxDriveFuncType(objPath,&objFunctionId);
-          if(errorCode) {
-            return errorCode;
-          }
-          return linkEcEntryToAxisDrv(slaveIndex,
-                                      alias,
-                                      objIndex,
-                                      objFunctionId,
-                                      bitIndex);
-          break;
-        case ECMC_AX_SUB_OBJ_ENCODER:
-          errorCode = getAxEncFuncType(objPath,&objFunctionId);
-          if(errorCode) {
-            return errorCode;
-          }
-          return linkEcEntryToAxisEnc(slaveIndex,
-                                      alias,
-                                      objIndex,
-                                      objFunctionId,
-                                      bitIndex);
 
-          break;
-        case ECMC_AX_SUB_OBJ_MONITOR:
-          errorCode = getAxMonFuncType(objPath,&objFunctionId);
-          if(errorCode) {
-            return errorCode;
-          }
-          return linkEcEntryToAxisMon(slaveIndex,
-                                      alias,
-                                      objIndex,
-                                      objFunctionId,
-                                      bitIndex);
-       
-          break;
-        case ECMC_AX_SUB_OBJ_CONTROLLER:
-          return ERROR_MAIN_ECMC_LINK_INVALID;
-          break;
-        case ECMC_AX_SUB_OBJ_TRAJECTORY:
-          return ERROR_MAIN_ECMC_LINK_INVALID;
-          break;
-        case ECMC_AX_SUB_OBJ_MAIN:
-          errorCode = getAxMainFuncType(objPath,&objFunctionId);
-          if(errorCode) {
-            return errorCode;
-          }
-          if (objFunctionId == ECMC_AXIS_ENTRY_INDEX_HEALTH) {
-            return linkEcEntryToAxisStatusOutput(slaveIndex, alias, objIndex);
-          }
-          return ERROR_MAIN_ECMC_LINK_INVALID;
-          break;
-      }
+  switch (objType) {
+  case ECMC_OBJ_INVALID:
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
+
+  case ECMC_OBJ_AXIS:
+    axisSubObjectType axSubObjType;
+    errorCode = getAxSubObjectType(objPath, &axSubObjType);
+
+    if (errorCode) {
+      return errorCode;
+    }
+
+    switch (axSubObjType) {
+    case ECMC_AX_SUB_OBJ_INVALID:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+
       break;
-    case ECMC_OBJ_EC:
-      errorCode=getEcMainFuncType(objPath,&objFunctionId);
-      if(errorCode) {
+
+    case ECMC_AX_SUB_OBJ_DRIVE:
+      errorCode = getAxDriveFuncType(objPath, &objFunctionId);
+
+      if (errorCode) {
         return errorCode;
       }
-      if (objFunctionId == ECMC_EC_ENTRY_INDEX_HEALTH) {
-        return linkEcEntryToEcStatusOutput(slaveIndex, alias);
+      return linkEcEntryToAxisDrv(slaveIndex,
+                                  alias,
+                                  objIndex,
+                                  objFunctionId,
+                                  bitIndex);
+
+      break;
+
+    case ECMC_AX_SUB_OBJ_ENCODER:
+      errorCode = getAxEncFuncType(objPath, &objFunctionId);
+
+      if (errorCode) {
+        return errorCode;
+      }
+      return linkEcEntryToAxisEnc(slaveIndex,
+                                  alias,
+                                  objIndex,
+                                  objFunctionId,
+                                  bitIndex);
+
+      break;
+
+    case ECMC_AX_SUB_OBJ_MONITOR:
+      errorCode = getAxMonFuncType(objPath, &objFunctionId);
+
+      if (errorCode) {
+        return errorCode;
+      }
+      return linkEcEntryToAxisMon(slaveIndex,
+                                  alias,
+                                  objIndex,
+                                  objFunctionId,
+                                  bitIndex);
+
+      break;
+
+    case ECMC_AX_SUB_OBJ_CONTROLLER:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+
+      break;
+
+    case ECMC_AX_SUB_OBJ_TRAJECTORY:
+      return ERROR_MAIN_ECMC_LINK_INVALID;
+
+      break;
+
+    case ECMC_AX_SUB_OBJ_MAIN:
+      errorCode = getAxMainFuncType(objPath, &objFunctionId);
+
+      if (errorCode) {
+        return errorCode;
+      }
+
+      if (objFunctionId == ECMC_AXIS_ENTRY_INDEX_HEALTH) {
+        return linkEcEntryToAxisStatusOutput(slaveIndex, alias, objIndex);
       }
       return ERROR_MAIN_ECMC_LINK_INVALID;
+
       break;
-    case ECMC_OBJ_DS:
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
-    case ECMC_OBJ_MAIN:
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
-    case ECMC_OBJ_THREAD:
-      return ERROR_MAIN_ECMC_LINK_INVALID;
-      break;
+    }
+    break;
+
+  case ECMC_OBJ_EC:
+    errorCode = getEcMainFuncType(objPath, &objFunctionId);
+
+    if (errorCode) {
+      return errorCode;
+    }
+
+    if (objFunctionId == ECMC_EC_ENTRY_INDEX_HEALTH) {
+      return linkEcEntryToEcStatusOutput(slaveIndex, alias);
+    }
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
+
+  case ECMC_OBJ_DS:
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
+
+  case ECMC_OBJ_MAIN:
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
+
+  case ECMC_OBJ_THREAD:
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+    break;
   }
 
   return ERROR_MAIN_ECMC_LINK_INVALID;

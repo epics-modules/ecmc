@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcAsynPortDriverUtils.cpp
 *
@@ -11,7 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAsynPortDriverUtils.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcErrorsList.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -24,38 +24,49 @@
  *
  * \return Asyn type string.
  */
-const char *asynTypeToString(long type)
-{
+const char* asynTypeToString(long type) {
   switch (type) {
-    case asynParamInt32:
-      return "asynParamInt32";
-    case asynParamFloat64:
-      return "asynParamFloat64";
-    case asynParamUInt32Digital:
-      return "asynParamUInt32Digital";
-    case asynParamOctet:
-      return "asynParamOctet";
-    case asynParamInt8Array:
-      return "asynParamInt8Array";
-    case asynParamInt16Array:
-      return "asynParamInt16Array";
-    case asynParamInt32Array:
-      return "asynParamInt32Array";
-    case asynParamFloat32Array:
-      return "asynParamFloat32Array";
-    case asynParamFloat64Array:
-      return "asynParamFloat64Array";
-    case asynParamGenericPointer:
-      return "asynParamGenericPointer";
+  case asynParamInt32:
+    return "asynParamInt32";
+
+  case asynParamFloat64:
+    return "asynParamFloat64";
+
+  case asynParamUInt32Digital:
+    return "asynParamUInt32Digital";
+
+  case asynParamOctet:
+    return "asynParamOctet";
+
+  case asynParamInt8Array:
+    return "asynParamInt8Array";
+
+  case asynParamInt16Array:
+    return "asynParamInt16Array";
+
+  case asynParamInt32Array:
+    return "asynParamInt32Array";
+
+  case asynParamFloat32Array:
+    return "asynParamFloat32Array";
+
+  case asynParamFloat64Array:
+    return "asynParamFloat64Array";
+
+  case asynParamGenericPointer:
+    return "asynParamGenericPointer";
+
 #ifdef ECMC_ASYN_ASYNPARAMINT64
-    case asynParamInt64:          
-      return "asynParamInt64";
-    case asynParamInt64Array:
-      return "asynParamInt64Array";
+  case asynParamInt64:
+    return "asynParamInt64";
+
+  case asynParamInt64Array:
+    return "asynParamInt64Array";
+
 #endif // ECMC_ASYN_ASYNPARAMINT64
 
-    default:
-      return "asynUnknownType";
+  default:
+    return "asynUnknownType";
   }
 }
 
@@ -65,39 +76,54 @@ const char *asynTypeToString(long type)
  *
  * \return asyn param type enum.
  */
-
-asynParamType stringToAsynType(char *typeStr)
-{
-  if(strcmp("asynFloat64",typeStr)==0){
+asynParamType stringToAsynType(char *typeStr) {
+  if (strcmp("asynFloat64", typeStr) == 0) {
     return asynParamFloat64;
   }
-  if(strcmp("asynInt32",typeStr)==0){
+
+  if (strcmp("asynInt32", typeStr) == 0) {
     return asynParamInt32;
   }
-  if(strcmp("asynUInt32Digital",typeStr)==0){
+
+  if (strcmp("asynUInt32Digital", typeStr) == 0) {
     return asynParamUInt32Digital;
   }
-  if(strcmp("asynInt8ArrayIn",typeStr)==0 || strcmp("asynInt8ArrayOut",typeStr)==0){
+
+  if ((strcmp("asynInt8ArrayIn",
+              typeStr) == 0) || (strcmp("asynInt8ArrayOut", typeStr) == 0)) {
     return asynParamInt8Array;
   }
-  if(strcmp("asynInt16ArrayIn",typeStr)==0 || strcmp("asynInt16ArrayOut",typeStr)==0){
+
+  if ((strcmp("asynInt16ArrayIn",
+              typeStr) == 0) || (strcmp("asynInt16ArrayOut", typeStr) == 0)) {
     return asynParamInt16Array;
   }
-  if(strcmp("asynInt32ArrayIn",typeStr)==0 || strcmp("asynInt32ArrayOut",typeStr)==0){
+
+  if ((strcmp("asynInt32ArrayIn",
+              typeStr) == 0) || (strcmp("asynInt32ArrayOut", typeStr) == 0)) {
     return asynParamInt32Array;
   }
-  if(strcmp("asynFloat32ArrayIn",typeStr)==0 || strcmp("asynFloat32ArrayOut",typeStr)==0){
+
+  if ((strcmp("asynFloat32ArrayIn",
+              typeStr) == 0) ||
+      (strcmp("asynFloat32ArrayOut", typeStr) == 0)) {
     return asynParamFloat32Array;
   }
-  if(strcmp("asynFloat64ArrayIn",typeStr)==0 || strcmp("asynFloat64ArrayOut",typeStr)==0){
+
+  if ((strcmp("asynFloat64ArrayIn",
+              typeStr) == 0) ||
+      (strcmp("asynFloat64ArrayOut", typeStr) == 0)) {
     return asynParamFloat64Array;
   }
 
  #ifdef ECMC_ASYN_ASYNPARAMINT64
-  if(strcmp("asynInt64ArrayIn",typeStr)==0 || strcmp("asynInt64ArrayOut",typeStr)==0){
+
+  if ((strcmp("asynInt64ArrayIn",
+              typeStr) == 0) || (strcmp("asynInt64ArrayOut", typeStr) == 0)) {
     return asynParamInt64Array;
   }
-  if(strcmp("asynInt64",typeStr) == 0 ){
+
+  if (strcmp("asynInt64", typeStr) == 0) {
     return asynParamInt64;
   }
 #endif // ECMC_ASYN_ASYNPARAMINT64
@@ -115,75 +141,117 @@ asynParamType stringToAsynType(char *typeStr)
  *
  * \return EPICS state string.
  */
-const char* epicsStateToString(int state)
-{
-  switch(state) {
-    case initHookAtIocBuild:
-      return "initHookAtIocBuild";
-      break;
-    case initHookAtBeginning:
-      return "initHookAtBeginning";
-      break;
-    case initHookAfterCallbackInit:
-      return "initHookAfterCallbackInit";
-      break;
-    case initHookAfterCaLinkInit:
-      return "initHookAfterCaLinkInit";
-      break;
-    case initHookAfterInitDrvSup:
-      return "initHookAfterInitDrvSup";
-      break;
-    case initHookAfterInitRecSup:
-      return "initHookAfterInitRecSup";
-      break;
-    case initHookAfterInitDevSup:
-      return "initHookAfterInitDevSup";
-      break;
-    case initHookAfterInitDatabase:
-      return "initHookAfterInitDatabase";
-      break;
-    case initHookAfterFinishDevSup:
-      return "initHookAfterFinishDevSup";
-      break;
-    case initHookAfterScanInit:
-      return "initHookAfterScanInit";
-      break;
-    case initHookAfterInitialProcess:
-      return "initHookAfterInitialProcess";
-      break;
-    case initHookAfterIocBuilt:
-      return "initHookAfterIocBuilt";
-      break;
-    case initHookAtIocRun:
-      return "initHookAtIocRun";
-      break;
-    case initHookAfterDatabaseRunning:
-      return "initHookAfterDatabaseRunning";
-      break;
-    case initHookAfterCaServerRunning:
-      return "initHookAfterCaServerRunning";
-      break;
-    case initHookAfterIocRunning:
-      return "initHookAfterIocRunning";
-      break;
-    case initHookAtIocPause:
-      return "initHookAtIocPause";
-      break;
-    case initHookAfterCaServerPaused:
-      return "initHookAfterCaServerPaused";
-      break;
-    case initHookAfterDatabasePaused:
-      return "initHookAfterDatabasePaused";
-      break;
-    case initHookAfterIocPaused:
-      return "initHookAfterIocPaused";
-      break;
-     case initHookAfterInterruptAccept:
-      return "initHookAfterInterruptAccept";
-      break;
-    default:
-      return "Unknown state";
-      break;
+const char* epicsStateToString(int state) {
+  switch (state) {
+  case initHookAtIocBuild:
+    return "initHookAtIocBuild";
+
+    break;
+
+  case initHookAtBeginning:
+    return "initHookAtBeginning";
+
+    break;
+
+  case initHookAfterCallbackInit:
+    return "initHookAfterCallbackInit";
+
+    break;
+
+  case initHookAfterCaLinkInit:
+    return "initHookAfterCaLinkInit";
+
+    break;
+
+  case initHookAfterInitDrvSup:
+    return "initHookAfterInitDrvSup";
+
+    break;
+
+  case initHookAfterInitRecSup:
+    return "initHookAfterInitRecSup";
+
+    break;
+
+  case initHookAfterInitDevSup:
+    return "initHookAfterInitDevSup";
+
+    break;
+
+  case initHookAfterInitDatabase:
+    return "initHookAfterInitDatabase";
+
+    break;
+
+  case initHookAfterFinishDevSup:
+    return "initHookAfterFinishDevSup";
+
+    break;
+
+  case initHookAfterScanInit:
+    return "initHookAfterScanInit";
+
+    break;
+
+  case initHookAfterInitialProcess:
+    return "initHookAfterInitialProcess";
+
+    break;
+
+  case initHookAfterIocBuilt:
+    return "initHookAfterIocBuilt";
+
+    break;
+
+  case initHookAtIocRun:
+    return "initHookAtIocRun";
+
+    break;
+
+  case initHookAfterDatabaseRunning:
+    return "initHookAfterDatabaseRunning";
+
+    break;
+
+  case initHookAfterCaServerRunning:
+    return "initHookAfterCaServerRunning";
+
+    break;
+
+  case initHookAfterIocRunning:
+    return "initHookAfterIocRunning";
+
+    break;
+
+  case initHookAtIocPause:
+    return "initHookAtIocPause";
+
+    break;
+
+  case initHookAfterCaServerPaused:
+    return "initHookAfterCaServerPaused";
+
+    break;
+
+  case initHookAfterDatabasePaused:
+    return "initHookAfterDatabasePaused";
+
+    break;
+
+  case initHookAfterIocPaused:
+    return "initHookAfterIocPaused";
+
+    break;
+
+  case initHookAfterInterruptAccept:
+    return "initHookAfterInterruptAccept";
+
+    break;
+
+  default:
+    return "Unknown state";
+
+    break;
   }
   return "Unknown state";
 }
@@ -227,15 +295,14 @@ int parseEcPath(char *ecPath,
 }
 
 int getEcMainFuncType(char *objPath,
-                      int *objectFunction) {
-
+                      int  *objectFunction) {
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int  nvals = 0;
+  int  nvals    = 0;
   int  masterId = 0;
-  
-  nvals = sscanf(objPath, ECMC_EC_STR "%d.%s", &masterId, objectFunctionStr);
-  if (nvals == 2) {
 
+  nvals = sscanf(objPath, ECMC_EC_STR "%d.%s", &masterId, objectFunctionStr);
+
+  if (nvals == 2) {
     // Health
     nvals = strcmp(objectFunctionStr, ECMC_EC_HEALTH_STR);
 
@@ -248,12 +315,11 @@ int getEcMainFuncType(char *objPath,
 }
 
 int getAxMainFuncType(char *objPath,
-                              int *objectFunction) {
-
+                      int  *objectFunction) {
   int  axisId = 0;
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  nvals = 0;
-  
+
   // Axis sub objects
   nvals = sscanf(objPath,
                  ECMC_AX_STR "%d.%s",
@@ -272,14 +338,13 @@ int getAxMainFuncType(char *objPath,
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 
-int getAxDriveFuncType(char *objPath,                              
-                              int *objectFunction) {
-
+int getAxDriveFuncType(char *objPath,
+                       int  *objectFunction) {
   int  axisId = 0;
   char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  nvals = 0;
-  
+
   // Axis sub objects
   nvals = sscanf(objPath,
                  ECMC_AX_STR "%d.%[^.].%s",
@@ -288,12 +353,10 @@ int getAxDriveFuncType(char *objPath,
                  objectFunctionStr);
 
   if (nvals == 3) {
-
     // Drive
     nvals = strcmp(objectTypeStr, ECMC_DRV_STR);
 
     if (nvals == 0) {
-
       // Enable
       nvals = strcmp(objectFunctionStr, ECMC_DRV_ENABLE_STR);
 
@@ -335,7 +398,7 @@ int getAxDriveFuncType(char *objPath,
       }
 
       // Position
-      nvals = strcmp(objectFunctionStr,ECMC_DRV_POSITION_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_POSITION_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT;
@@ -343,7 +406,7 @@ int getAxDriveFuncType(char *objPath,
       }
 
       // Reset alarm
-      nvals = strcmp(objectFunctionStr,ECMC_DRV_RESET_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_RESET_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_RESET;
@@ -351,7 +414,7 @@ int getAxDriveFuncType(char *objPath,
       }
 
       // Warning
-      nvals = strcmp(objectFunctionStr,ECMC_DRV_WARNING_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_WARNING_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_WARNING;
@@ -359,7 +422,7 @@ int getAxDriveFuncType(char *objPath,
       }
 
       // Alarm 0
-      nvals = strcmp(objectFunctionStr,ECMC_DRV_ALARM_0_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_ALARM_0_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0;
@@ -367,7 +430,7 @@ int getAxDriveFuncType(char *objPath,
       }
 
       // Alarm 1
-      nvals = strcmp(objectFunctionStr,ECMC_DRV_ALARM_1_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_ALARM_1_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1;
@@ -375,7 +438,7 @@ int getAxDriveFuncType(char *objPath,
       }
 
       // Alarm 2
-      nvals = strcmp(objectFunctionStr,ECMC_DRV_ALARM_2_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_DRV_ALARM_2_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2;
@@ -386,9 +449,8 @@ int getAxDriveFuncType(char *objPath,
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 
-int getAxEncFuncType(char *objPath,                              
-                              int *objectFunction) {
-
+int getAxEncFuncType(char *objPath,
+                     int  *objectFunction) {
   int  axisId = 0;
   char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
@@ -401,13 +463,11 @@ int getAxEncFuncType(char *objPath,
                  objectTypeStr,
                  objectFunctionStr);
 
-  if (nvals == 3) {  
-
+  if (nvals == 3) {
     // Encoder
     nvals = strcmp(objectTypeStr, ECMC_ENC_STR);
 
-    if (nvals == 0) {      
-
+    if (nvals == 0) {
       // Actpos
       nvals = strcmp(objectFunctionStr, ECMC_ENC_ACTPOS_STR);
 
@@ -441,7 +501,7 @@ int getAxEncFuncType(char *objPath,
       }
 
       // Reset alarm
-      nvals = strcmp(objectFunctionStr,ECMC_ENC_RESET_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_RESET_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_RESET;
@@ -449,7 +509,7 @@ int getAxEncFuncType(char *objPath,
       }
 
       // Warning
-      nvals = strcmp(objectFunctionStr,ECMC_ENC_WARNING_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_WARNING_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_WARNING;
@@ -457,7 +517,7 @@ int getAxEncFuncType(char *objPath,
       }
 
       // Alarm 0
-      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_0_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_ALARM_0_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_0;
@@ -465,7 +525,7 @@ int getAxEncFuncType(char *objPath,
       }
 
       // Alarm 1
-      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_1_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_ALARM_1_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_1;
@@ -473,37 +533,45 @@ int getAxEncFuncType(char *objPath,
       }
 
       // Alarm 2
-      nvals = strcmp(objectFunctionStr,ECMC_ENC_ALARM_2_STR);
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_ALARM_2_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_ALARM_2;
         return 0;
       }
+
+      // Ready
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_READY_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_READY;
+        return 0;
+      }
     }
   }
+
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 
-int getAxMonFuncType(char *objPath,                              
-                            int *objectFunction) {
-
+int getAxMonFuncType(char *objPath,
+                     int  *objectFunction) {
   int  axisId = 0;
   char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  nvals = 0;
-  
+
   // Axis sub objects
   nvals = sscanf(objPath,
                  ECMC_AX_STR "%d.%[^.].%s",
                  &axisId,
                  objectTypeStr,
                  objectFunctionStr);
-  if (nvals == 3) {  
-  // Monitor
+
+  if (nvals == 3) {
+    // Monitor
     nvals = strcmp(objectTypeStr, ECMC_MON_STR);
 
     if (nvals == 0) {
-
       // Lowlim
       nvals = strcmp(objectFunctionStr, ECMC_MON_LOWLIM_STR);
 
@@ -534,16 +602,15 @@ int getAxMonFuncType(char *objPath,
       if (nvals == 0) {
         *objectFunction = ECMC_MON_ENTRY_INDEX_EXTINTERLOCK;
         return 0;
-      }      
+      }
     }
   }
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 
-int getAxSubObjectType(char *objPath,
-                              axisSubObjectType *objectType) {
-
-  *objectType=ECMC_AX_SUB_OBJ_INVALID;
+int getAxSubObjectType(char              *objPath,
+                       axisSubObjectType *objectType) {
+  *objectType = ECMC_AX_SUB_OBJ_INVALID;
   int  axisId = 0;
   char objectTypeStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
@@ -557,7 +624,6 @@ int getAxSubObjectType(char *objPath,
                  objectFunctionStr);
 
   if (nvals == 3) {
-
     // Drive
     nvals = strcmp(objectTypeStr, ECMC_DRV_STR);
 
@@ -583,7 +649,7 @@ int getAxSubObjectType(char *objPath,
     }
   }
 
- // Axis object only
+  // Axis object only
   nvals = sscanf(objPath, ECMC_AX_STR "%d.%s", &axisId, objectFunctionStr);
 
   if (nvals == 2) {
@@ -595,16 +661,17 @@ int getAxSubObjectType(char *objPath,
 }
 
 int getMainObjectType(char           *objPath,
-                             int            *objIndex,
-                             mainObjectType *objectType) {
-
+                      int            *objIndex,
+                      mainObjectType *objectType) {
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  int  nvals = 0;
-  int objectIndex=0;
+  int  nvals       = 0;
+  int  objectIndex = 0;
+
   *objectType = ECMC_OBJ_INVALID;
-   
+
   // Axis object only
-  nvals = sscanf(objPath, ECMC_AX_STR "%d.%s", &objectIndex, objectFunctionStr);
+  nvals =
+    sscanf(objPath, ECMC_AX_STR "%d.%s", &objectIndex, objectFunctionStr);
 
   if (nvals == 2) {
     *objectType = ECMC_OBJ_AXIS;
@@ -613,20 +680,24 @@ int getMainObjectType(char           *objPath,
   }
 
   // Ec object
-  nvals = sscanf(objPath, ECMC_EC_STR "%d.%s", &objectIndex, objectFunctionStr);
+  nvals =
+    sscanf(objPath, ECMC_EC_STR "%d.%s", &objectIndex, objectFunctionStr);
 
   if (nvals == 2) {
     *objectType = ECMC_OBJ_EC;
-    *objIndex=objectIndex;
+    *objIndex   = objectIndex;
     return 0;
   }
 
   // Ds object
-  nvals = sscanf(objPath, ECMC_PLC_DATA_STORAGE_STR "%d.%s", &objectIndex, objectFunctionStr);
+  nvals = sscanf(objPath,
+                 ECMC_PLC_DATA_STORAGE_STR "%d.%s",
+                 &objectIndex,
+                 objectFunctionStr);
 
   if (nvals == 2) {
     *objectType = ECMC_OBJ_DS;
-    *objIndex=objectIndex;
+    *objIndex   = objectIndex;
     return 0;
   }
 
@@ -635,7 +706,7 @@ int getMainObjectType(char           *objPath,
 
   if (nvals == 1) {
     *objectType = ECMC_OBJ_MAIN;
-    *objIndex=0;  // Not used
+    *objIndex   = 0; // Not used
     return 0;
   }
 
@@ -644,82 +715,97 @@ int getMainObjectType(char           *objPath,
 
   if (nvals == 1) {
     *objectType = ECMC_OBJ_THREAD;
-    *objIndex=0; // Not used
+    *objIndex   = 0; // Not used
     return 0;
   }
 
-  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;             
+  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 
 // Convert string to datatype
-ecmcEcDataType getEcDataTypeFromStr(const char* dt) {
-  int n=0; 
-  n = strcmp(dt,EC_DT_BIT1);
+ecmcEcDataType getEcDataTypeFromStr(const char *dt) {
+  int n = 0;
+
+  n = strcmp(dt, EC_DT_BIT1);
+
   if (n == 0) {
     return ECMC_EC_B1;
   }
 
-  n = strcmp(dt,EC_DT_BIT2);
+  n = strcmp(dt, EC_DT_BIT2);
+
   if (n == 0) {
     return ECMC_EC_B2;
   }
 
-  n = strcmp(dt,EC_DT_BIT3);
+  n = strcmp(dt, EC_DT_BIT3);
+
   if (n == 0) {
     return ECMC_EC_B3;
   }
 
-  n = strcmp(dt,EC_DT_BIT4);
+  n = strcmp(dt, EC_DT_BIT4);
+
   if (n == 0) {
     return ECMC_EC_B4;
   }
 
-  n = strcmp(dt,EC_DT_U8);
+  n = strcmp(dt, EC_DT_U8);
+
   if (n == 0) {
     return ECMC_EC_U8;
   }
 
-  n = strcmp(dt,EC_DT_S8);
+  n = strcmp(dt, EC_DT_S8);
+
   if (n == 0) {
     return ECMC_EC_S8;
   }
 
-  n = strcmp(dt,EC_DT_U16);
+  n = strcmp(dt, EC_DT_U16);
+
   if (n == 0) {
     return ECMC_EC_U16;
   }
 
-  n = strcmp(dt,EC_DT_S16);
+  n = strcmp(dt, EC_DT_S16);
+
   if (n == 0) {
     return ECMC_EC_S16;
   }
 
-  n = strcmp(dt,EC_DT_U32);
+  n = strcmp(dt, EC_DT_U32);
+
   if (n == 0) {
     return ECMC_EC_U32;
   }
 
-  n = strcmp(dt,EC_DT_S32);
+  n = strcmp(dt, EC_DT_S32);
+
   if (n == 0) {
     return ECMC_EC_S32;
   }
 
-  n = strcmp(dt,EC_DT_U64);
+  n = strcmp(dt, EC_DT_U64);
+
   if (n == 0) {
     return ECMC_EC_U64;
   }
 
-  n = strcmp(dt,EC_DT_S64);
+  n = strcmp(dt, EC_DT_S64);
+
   if (n == 0) {
     return ECMC_EC_S64;
   }
 
-  n = strcmp(dt,EC_DT_F32);
+  n = strcmp(dt, EC_DT_F32);
+
   if (n == 0) {
     return ECMC_EC_F32;
   }
 
-  n = strcmp(dt,EC_DT_F64);
+  n = strcmp(dt, EC_DT_F64);
+
   if (n == 0) {
     return ECMC_EC_F64;
   }
@@ -730,72 +816,167 @@ ecmcEcDataType getEcDataTypeFromStr(const char* dt) {
 
 // Convert string to datatype
 size_t getEcDataTypeBits(ecmcEcDataType dt) {
-  
-  switch(dt) {
+  switch (dt) {
   case ECMC_EC_NONE:
     return 0;
+
     break;
 
   case ECMC_EC_B1:
     return 1;
+
     break;
 
   case ECMC_EC_B2:
     return 2;
+
     break;
 
   case ECMC_EC_B3:
     return 3;
+
     break;
 
   case ECMC_EC_B4:
     return 4;
+
     break;
 
   case ECMC_EC_U8:
     return 8;
+
     break;
 
   case ECMC_EC_S8:
     return 8;
+
     break;
 
   case ECMC_EC_U16:
     return 16;
+
     break;
 
   case ECMC_EC_S16:
     return 16;
+
     break;
 
   case ECMC_EC_U32:
     return 32;
+
     break;
 
   case ECMC_EC_S32:
     return 32;
+
     break;
 
   case ECMC_EC_U64:
     return 64;
+
     break;
 
   case ECMC_EC_S64:
     return 64;
+
     break;
 
   case ECMC_EC_F32:
     return 32;
+
     break;
 
   case ECMC_EC_F64:
     return 64;
+
     break;
 
   default:
     return 0;
+
     break;
   }
+
+  // Not a valid type
+  return 0;
+}
+
+int getEcDataTypeIsInt(ecmcEcDataType dt) {
+  switch (dt) {
+  case ECMC_EC_U8:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S8:
+    return 1;
+
+    break;
+
+  case ECMC_EC_U16:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S16:
+    return 1;
+
+    break;
+
+  case ECMC_EC_U32:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S32:
+    return 1;
+
+    break;
+
+  case ECMC_EC_U64:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S64:
+    return 1;
+
+    break;
+
+  default:
+    return 0;
+
+    break;
+  }
+
+  // Not a valid type
+  return 0;
+}
+
+int getEcDataTypeIsFloat(ecmcEcDataType dt) {
+  switch (dt) {
+  case ECMC_EC_NONE:
+    return 0;
+
+    break;
+
+  case ECMC_EC_F32:
+    return 1;
+
+    break;
+
+  case ECMC_EC_F64:
+    return 1;
+
+    break;
+
+  default:
+    return 0;
+
+    break;
+  }
+
   // Not a valid type
   return 0;
 }
@@ -804,412 +985,497 @@ size_t getEcDataTypeBits(ecmcEcDataType dt) {
 * For legacy support of old Cfg.EcAddEntryComplete() syntax
 * \note Will not work for data of types double or real
 */
-ecmcEcDataType getEcDataType(size_t bitLength,bool signedVal) {
-  switch(bitLength)
-  {
-    case 1:
-      return ECMC_EC_B1;
-      break;
+ecmcEcDataType getEcDataType(size_t bitLength, bool signedVal) {
+  switch (bitLength) {
+  case 1:
+    return ECMC_EC_B1;
 
-    case 2:
-      return ECMC_EC_B2;
-      break;
+    break;
 
-    case 3:
-      return ECMC_EC_B3;
-      break;
+  case 2:
+    return ECMC_EC_B2;
 
-    case 4:
-      return ECMC_EC_B4;
-      break;
+    break;
 
-    case 8:
-      if(signedVal){
-        return ECMC_EC_S8;
-      }
-      else {
-        return ECMC_EC_U8;
-      }
-      break;
+  case 3:
+    return ECMC_EC_B3;
 
-    case 16:
-      if(signedVal){
-        return ECMC_EC_S16;
-      }
-      else {
-        return ECMC_EC_U16;
-      }    
-      break;
+    break;
 
-    case 32:
-      if(signedVal){
-        return ECMC_EC_S32;
-      }
-      else {
-        return ECMC_EC_U32;
-      }    
-    
-      break;
-    case 64:
-      if(signedVal){
-        return ECMC_EC_S64;
-      }
-      else {
-        return ECMC_EC_U64;
-      }    
-    
-      break;
-    
-    default:    
-      return ECMC_EC_NONE;
-      break;
+  case 4:
+    return ECMC_EC_B4;
+
+    break;
+
+  case 8:
+
+    if (signedVal) {
+      return ECMC_EC_S8;
+    } else {
+      return ECMC_EC_U8;
+    }
+    break;
+
+  case 16:
+
+    if (signedVal) {
+      return ECMC_EC_S16;
+    } else {
+      return ECMC_EC_U16;
+    }
+    break;
+
+  case 32:
+
+    if (signedVal) {
+      return ECMC_EC_S32;
+    } else {
+      return ECMC_EC_U32;
+    }
+
+    break;
+
+  case 64:
+
+    if (signedVal) {
+      return ECMC_EC_S64;
+    } else {
+      return ECMC_EC_U64;
+    }
+
+    break;
+
+  default:
+    return ECMC_EC_NONE;
+
+    break;
   }
 
   return ECMC_EC_NONE;
 }
 
 uint64_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
-  switch(dt) {
+  switch (dt) {
   case ECMC_EC_NONE:
     return 0;
+
     break;
 
   case ECMC_EC_B1:
     return 1;
+
     break;
 
   case ECMC_EC_B2:
     return 3;
+
     break;
 
   case ECMC_EC_B3:
     return 7;
+
     break;
 
   case ECMC_EC_B4:
     return 15;
+
     break;
 
   case ECMC_EC_U8:
     return std::numeric_limits<uint8_t>::max();
+
     break;
 
   case ECMC_EC_S8:
     return std::numeric_limits<int8_t>::max();
+
     break;
 
   case ECMC_EC_U16:
     return std::numeric_limits<uint16_t>::max();
+
     break;
 
   case ECMC_EC_S16:
     return std::numeric_limits<int16_t>::max();
+
     break;
 
   case ECMC_EC_U32:
     return std::numeric_limits<uint32_t>::max();
+
     break;
 
   case ECMC_EC_S32:
     return std::numeric_limits<int32_t>::max();
+
     break;
 
   case ECMC_EC_U64:
     return std::numeric_limits<uint64_t>::max();
+
     break;
 
   case ECMC_EC_S64:
     return std::numeric_limits<int64_t>::max();
+
     break;
 
   case ECMC_EC_F32:
-    return -1; //Not used of F32
+    return -1; // Not used of F32
+
     break;
 
   case ECMC_EC_F64:
-    return -1; //Not used of F64
+    return -1; // Not used of F64
+
     break;
 
   default:
     return 0;
+
     break;
   }
   return 0;
 }
 
 int64_t getEcDataTypeMinVal(ecmcEcDataType dt) {
-  switch(dt) {
+  switch (dt) {
   case ECMC_EC_NONE:
     return 0;
+
     break;
 
   case ECMC_EC_B1:
     return 0;
+
     break;
 
   case ECMC_EC_B2:
     return 0;
+
     break;
 
   case ECMC_EC_B3:
     return 0;
+
     break;
 
   case ECMC_EC_B4:
     return 0;
+
     break;
 
   case ECMC_EC_U8:
     return 0;
+
     break;
 
   case ECMC_EC_S8:
     return std::numeric_limits<int8_t>::min();
+
     break;
 
   case ECMC_EC_U16:
     return 0;
+
     break;
 
   case ECMC_EC_S16:
     return std::numeric_limits<int16_t>::min();
+
     break;
 
   case ECMC_EC_U32:
     return 0;
+
     break;
 
   case ECMC_EC_S32:
     return std::numeric_limits<int32_t>::min();
+
     break;
 
   case ECMC_EC_U64:
     return 0;
+
     break;
 
   case ECMC_EC_S64:
     return std::numeric_limits<int64_t>::min();
+
     break;
 
   case ECMC_EC_F32:
-    return 1; //Not used of F32
+    return 1; // Not used of F32
+
     break;
 
   case ECMC_EC_F64:
-    return 1; //Not used of F64
+    return 1; // Not used of F64
+
     break;
 
   default:
     return 0;
+
     break;
   }
   return 0;
 }
 
 int getEcDataTypeSigned(ecmcEcDataType dt) {
-  switch(dt) {
+  switch (dt) {
   case ECMC_EC_NONE:
     return 0;
+
     break;
 
   case ECMC_EC_B1:
     return 0;
+
     break;
 
   case ECMC_EC_B2:
     return 0;
+
     break;
 
   case ECMC_EC_B3:
     return 0;
+
     break;
 
   case ECMC_EC_B4:
     return 0;
+
     break;
 
   case ECMC_EC_U8:
     return 0;
+
     break;
 
   case ECMC_EC_S8:
     return 1;
+
     break;
 
   case ECMC_EC_U16:
     return 0;
+
     break;
 
   case ECMC_EC_S16:
     return 1;
+
     break;
 
   case ECMC_EC_U32:
     return 0;
+
     break;
 
   case ECMC_EC_S32:
     return 1;
+
     break;
 
   case ECMC_EC_U64:
     return 0;
+
     break;
 
   case ECMC_EC_S64:
     return 1;
+
     break;
 
   case ECMC_EC_F32:
     return 0;
+
     break;
 
   case ECMC_EC_F64:
     return 0;
+
     break;
 
   default:
     return 0;
+
     break;
   }
 
   return 0;
 }
 
-const char*getEcDataTypeStr(ecmcEcDataType dt) {
-  switch(dt) {
+const char* getEcDataTypeStr(ecmcEcDataType dt) {
+  switch (dt) {
   case ECMC_EC_NONE:
     return EC_DT_NONE;
+
     break;
 
   case ECMC_EC_B1:
     return EC_DT_BIT1;
+
     break;
 
   case ECMC_EC_B2:
     return EC_DT_BIT2;
+
     break;
 
   case ECMC_EC_B3:
     return EC_DT_BIT3;
+
     break;
 
   case ECMC_EC_B4:
     return EC_DT_BIT4;
+
     break;
 
   case ECMC_EC_U8:
     return EC_DT_U8;
+
     break;
 
   case ECMC_EC_S8:
     return EC_DT_S8;
+
     break;
 
   case ECMC_EC_U16:
     return EC_DT_U16;
+
     break;
 
   case ECMC_EC_S16:
     return EC_DT_S16;
+
     break;
 
   case ECMC_EC_U32:
     return EC_DT_U32;
+
     break;
 
   case ECMC_EC_S32:
     return EC_DT_S32;
+
     break;
 
   case ECMC_EC_U64:
     return EC_DT_U64;
+
     break;
 
   case ECMC_EC_S64:
     return EC_DT_S64;
+
     break;
 
   case ECMC_EC_F32:
     return EC_DT_F32;
+
     break;
 
   case ECMC_EC_F64:
     return EC_DT_F64;
+
     break;
 
   default:
     return EC_DT_NONE;
+
     break;
   }
 
   return EC_DT_NONE;
 }
 
-size_t getEcDataTypeByteSize(ecmcEcDataType dt){
-  switch(dt) {
+size_t getEcDataTypeByteSize(ecmcEcDataType dt) {
+  switch (dt) {
   case ECMC_EC_NONE:
     return 0;
+
     break;
 
   case ECMC_EC_B1:
     return 1;
+
     break;
 
   case ECMC_EC_B2:
     return 1;
+
     break;
 
   case ECMC_EC_B3:
     return 1;
+
     break;
 
   case ECMC_EC_B4:
     return 1;
+
     break;
 
   case ECMC_EC_U8:
     return 1;
+
     break;
 
   case ECMC_EC_S8:
     return 1;
+
     break;
 
   case ECMC_EC_U16:
     return 2;
+
     break;
 
   case ECMC_EC_S16:
     return 2;
+
     break;
 
   case ECMC_EC_U32:
     return 4;
+
     break;
 
   case ECMC_EC_S32:
     return 4;
+
     break;
 
   case ECMC_EC_U64:
     return 8;
+
     break;
 
   case ECMC_EC_S64:
     return 8;
+
     break;
 
   case ECMC_EC_F32:
     return 4;
+
     break;
 
   case ECMC_EC_F64:
     return 8;
+
     break;
 
   default:
     return 0;
+
     break;
   }
 

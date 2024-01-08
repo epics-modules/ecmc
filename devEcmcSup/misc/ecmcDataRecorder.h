@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDataRecorder.h
 *
@@ -15,10 +15,10 @@
 
 #include "stdio.h"
 
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../motion/ecmcAxisBase.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcEcEntry.h"
+#include "ecmcAxisBase.h"
 #include "ecmcDataStorage.h"
 #include "ecmcEvent.h"
 #include "ecmcEventConsumer.h"
@@ -34,7 +34,7 @@
 #define ERROR_DATA_RECORDER_AXIS_DATA_TYPE_NOT_CHOOSEN 0x20107
 
 class ecmcDataRecorder : public ecmcEventConsumer, public ecmcEcEntryLink {
- public:
+public:
   explicit ecmcDataRecorder(int index);
   ~ecmcDataRecorder();
   int  setEnable(int enable);
@@ -46,8 +46,9 @@ class ecmcDataRecorder : public ecmcEventConsumer, public ecmcEcEntryLink {
                          ecmcAxisDataType    dataTypeToRecord);
   int  setDataSourceType(ecmcDataSourceType type);
   void printCurrentState();
+  void errorReset();
 
- private:
+private:
   void initVars();
   void printStatus();
   void setInStartupPhase(bool startup);

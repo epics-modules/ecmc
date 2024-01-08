@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcMisc.cpp
 *
@@ -12,12 +12,18 @@
 
 #include "ecmcMisc.h"
 
-#include "../com/ecmcOctetIF.h"        // Log Macros
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcDefinitions.h"
+#include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcErrorsList.h"
+#include "ecmcDefinitions.h"
+#include <iostream>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+#include <semaphore.h>
+#include <fcntl.h>
 
 // TODO: REMOVE GLOBALS
-#include "../main/ecmcGlobalsExtern.h"
+#include "ecmcGlobalsExtern.h"
 
 int createEvent(int indexEvent) {
   LOGINFO4("%s/%s:%d indexEvent=%d \n",
@@ -29,6 +35,7 @@ int createEvent(int indexEvent) {
   if ((indexEvent >= ECMC_MAX_EVENT_OBJECTS) || (indexEvent < 0)) {
     return ERROR_MAIN_EVENT_INDEX_OUT_OF_RANGE;
   }
+
   // Sample rate fixed
   sampleRateChangeAllowed = 0;
 
@@ -46,7 +53,6 @@ int createEvent(int indexEvent) {
 }
 
 int createDataStorage(int index, int elements, int bufferType) {
-  
   LOGINFO4("%s/%s:%d index=%d elements=%d \n",
            __FILE__,
            __FUNCTION__,
@@ -519,7 +525,6 @@ int triggerRecorder(int indexRecorder) {
   return dataRecorders[indexRecorder]->executeEvent(ec->statusOK());
 }
 
-
 int createCommandList(int indexCommandList) {
   LOGINFO4("%s/%s:%d indexCommandList=%d \n",
            __FILE__,
@@ -617,6 +622,69 @@ int triggerCommandList(int indexCommandList) {
            indexCommandList);
 
   CHECK_COMMAND_LIST_RETURN_IF_ERROR(commandListIndex);
+
   // No need for state of ethercat master
   return commandLists[indexCommandList]->executeEvent(1);
+}
+
+int createShm() {
+  LOGINFO4("%s/%s:%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
+
+  // first create or link to semaphore
+  shmObj.sem = sem_open(ECMC_SEM_FILENAME, O_CREAT, 0666, 1);
+
+  if (shmObj.sem == SEM_FAILED) {
+    LOGERR("%s/%s:%d: ERROR: Failed create SEM (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__, ERROR_SEM_NULL);
+    return ERROR_SEM_NULL;
+  }
+
+  printf("SEM object created: %p.\n", shmObj.sem);
+
+  // ftok to generate unique key
+  shmObj.key = (int)ftok(ECMC_SHM_FILENAME, ECMC_SHM_KEY);
+
+  // shmget returns an identifier in shmid (add some extra bytes for ioc to ioc communication, not accessible via PLC)
+  shmObj.shmid =
+    shmget((key_t)shmObj.key,
+           ECMC_SHM_ELEMENTS * sizeof(ECMC_SHM_TYPE) + ECMC_SHM_CONTROL_BYTES,
+           0666 | IPC_CREAT);
+
+  if (shmObj.shmid < 0) {
+    LOGERR("%s/%s:%d: ERROR: Failed create SHM (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__, ERROR_SHMGET_ERROR);
+    return ERROR_SHMGET_ERROR;
+  }
+
+  // shmat to attach to shared memory
+  shmObj.memPtr = shmat(shmObj.shmid, (void *)0, 0);
+
+  if (shmObj.memPtr == (ECMC_SHM_TYPE *)-1) {
+    LOGERR("%s/%s:%d: ERROR: Failed attach SHM (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__, ERROR_SHMMAT_ERROR);
+    return ERROR_SHMMAT_ERROR;
+  }
+
+  // Global data
+  shmObj.dataPtr = (ECMC_SHM_TYPE *)shmObj.memPtr;
+
+  // Info for iocs with ethercat master
+  shmObj.mstPtr = (char *)shmObj.memPtr + ECMC_SHM_ELEMENTS *
+                  sizeof(ECMC_SHM_TYPE);
+
+  // Info for iocs without ethercat master
+  shmObj.simMstPtr = (char *)shmObj.memPtr + ECMC_SHM_ELEMENTS *
+                     sizeof(ECMC_SHM_TYPE) + ECMC_SHM_MAX_MASTERS;
+  shmObj.size  = ECMC_SHM_ELEMENTS * sizeof(ECMC_SHM_TYPE);
+  shmObj.valid = 1;
+  return 0;
 }

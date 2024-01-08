@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEncoder.h
 *
@@ -20,12 +20,12 @@
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcErrorsList.h"
-#include "../main/ecmcError.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../ethercat/ecmcEcEntryLink.h"
-#include "../ethercat/ecmcEcPdo.h"
+#include "ecmcDefinitions.h"
+#include "ecmcErrorsList.h"
+#include "ecmcError.h"
+#include "ecmcEcEntry.h"
+#include "ecmcEcEntryLink.h"
+#include "ecmcEcPdo.h"
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"
 #include "ecmcMotionUtils.h"
@@ -53,6 +53,11 @@
 #define ERROR_ENC_WARNING_READ_ENTRY_FAIL 0x14413
 #define ERROR_ENC_ALARM_READ_ENTRY_FAIL 0x14414
 #define ERROR_ENC_ASYN_PARAM_NULL 0x14415
+#define ERROR_ENC_READY_READ_ENTRY_FAIL 0x14416
+#define ERROR_ENC_NOT_READY 0x14417
+
+// ENCODER WARNINGS
+#define WARNING_ENC_NOT_READY 0x114417
 
 #define ECMC_FILTER_VELO_DEF_SIZE 100
 #define ECMC_FILTER_POS_DEF_SIZE 10
@@ -70,15 +75,16 @@ enum ecmcOverUnderFlowType {
 };
 
 class ecmcEncoder : public ecmcEcEntryLink {
- public:
+public:
   ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
-              ecmcAxisData *axisData,
-              double        sampleTime,
-              int index);
+              ecmcAxisData       *axisData,
+              double              sampleTime,
+              int                 index);
   ~ecmcEncoder();
   virtual void          errorReset();
   int                   setBits(int bits);
   int                   getBits();
+
   // Used for homing of partly absolute encoders (applied after raw mask)
   int                   setAbsBits(int absBits);
   int                   getAbsBits();
@@ -115,18 +121,39 @@ class ecmcEncoder : public ecmcEcEntryLink {
   int                   setVeloFilterSize(size_t size);
   int                   setPosFilterSize(size_t size);
   int                   setPosFilterEnable(bool enable);
+
   // Ref this encoder to other encoder at startup (i.e ref relative encoder to abs at startup)
   int                   setRefToOtherEncAtStartup(int encIndex);
   int                   getRefToOtherEncAtStartup();
   int                   setRefAtHoming(int refEnable);
   bool                  getRefAtHoming();
-  void                  setHomeLatchCountOffset(int count);
-  int                   getHomeLatchCountOffset();
-
   void                  setMaxPosDiffToPrimEnc(double distance);
   double                getMaxPosDiffToPrimEnc();
+  int                   hwReady();
+  int                   setInvHwReady(int invert);
 
- protected:
+  // For homing (just storing data)
+  int                   getHomeParamsValid();
+  void                  setHomeVelTowardsCam(double vel);
+  double                getHomeVelTowardsCam();
+  void                  setHomeVelOffCam(double vel);
+  double                getHomeVelOffCam();
+  void                  setHomePosition(double pos);
+  double                getHomePosition();
+  void                  setHomePostMoveTargetPosition(double targetPos);
+  double                getHomePostMoveTargetPosition();
+  void                  setHomePostMoveEnable(int enable);
+  int                   getHomePostMoveEnable();
+  void                  setHomeLatchCountOffset(int count);
+  int                   getHomeLatchCountOffset();
+  void                  setHomeSeqId(int seqid);
+  int                   getHomeSeqId();
+  void                  setHomeAcc(double acc);
+  double                getHomeAcc();
+  void                  setHomeDec(double dec);
+  double                getHomeDec();
+
+protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
   int                   countBitWidthOfMask(uint64_t mask,
@@ -136,13 +163,14 @@ class ecmcEncoder : public ecmcEcEntryLink {
                                             int64_t  rawTurns,
                                             uint64_t rawLimit,
                                             int      bits);
-  uint8_t              *getActPosPtr();
-  uint8_t              *getActVelPtr();
-  int                  initAsyn();
-  int                  readHwActPos(bool masterOK);
-  int                  readHwWarningError();
-  int                  readHwLatch();
-  
+  uint8_t* getActPosPtr();
+  uint8_t* getActVelPtr();
+  int      initAsyn();
+  int      readHwActPos(bool masterOK,
+                        bool domainOK);
+  int      readHwWarningError(bool domainOK);
+  int      readHwLatch(bool domainOK);
+  int      readHwReady(bool domainOK);
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -192,24 +220,41 @@ class ecmcEncoder : public ecmcEcEntryLink {
   uint64_t hwErrorAlarm2Old_;
   uint64_t hwWarning_;
   uint64_t hwWarningOld_;
+  uint64_t hwReady_;
   bool hwActPosDefined_;
   bool hwResetDefined_;
   bool hwErrorAlarm0Defined_;
   bool hwErrorAlarm1Defined_;
   bool hwErrorAlarm2Defined_;
   bool hwWarningDefined_;
+  bool hwReadyBitDefined_;
   bool masterOKOld_;
   int refEncIndex_;
   bool refDuringHoming_;
   int homeLatchCountOffset_;
   double maxPosDiffToPrimEnc_;
+  bool encInitilized_;
+  bool hwSumAlarm_;
+  bool hwSumAlarmOld_;
 
   // Asyn
-  ecmcAsynPortDriver     *asynPortDriver_;
-  ecmcAsynDataItem       *encPosAct_;
-  ecmcAsynDataItem       *encVelAct_;
+  ecmcAsynPortDriver *asynPortDriver_;
+  ecmcAsynDataItem *encPosAct_;
+  ecmcAsynDataItem *encVelAct_;
 
-  int index_; //Index of this encoder (im axis object)
+  int hwReadyInvert_;
+  int index_; // Index of this encoder (im axis object)
+
+  // Homing
+  int homeParamsValid_;
+  double homeVelTowardsCam_;
+  double homeVelOffCam_;
+  double homePosition_;
+  int homeSeqId_;
+  bool homeEnablePostMove_;
+  double homePostMoveTargetPos_;
+  double homeAcc_;
+  double homeDec_;
 };
 
 #endif  /* ECMCENCODER_H_ */

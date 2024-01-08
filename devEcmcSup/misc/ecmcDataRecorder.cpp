@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDataRecorder.cpp
 *
@@ -20,8 +20,7 @@ ecmcDataRecorder::ecmcDataRecorder(int index) : ecmcEcEntryLink() {
   printCurrentState();
 }
 
-ecmcDataRecorder::~ecmcDataRecorder()
-{}
+ecmcDataRecorder::~ecmcDataRecorder() {}
 
 void ecmcDataRecorder::printCurrentState() {
   LOGINFO11("%s/%s:%d: dataRecorder[%d]=new;\n",
@@ -720,4 +719,9 @@ int ecmcDataRecorder::getAxisData(double *data) {
     break;
   }
   return 0;
+}
+
+void ecmcDataRecorder::errorReset() {
+  ecmcEcEntryLink::errorReset();
+  ecmcError::errorReset();
 }

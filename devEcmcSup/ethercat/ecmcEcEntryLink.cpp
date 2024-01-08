@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEcEntryLink.cpp
 *
@@ -12,7 +12,9 @@
 
 #include "ecmcEcEntryLink.h"
 
-ecmcEcEntryLink::ecmcEcEntryLink(int* errorPtr,int* warningPtr) : ecmcError( errorPtr, warningPtr) {
+ecmcEcEntryLink::ecmcEcEntryLink(int *errorPtr, int *warningPtr) : ecmcError(
+    errorPtr,
+    warningPtr) {
   initVars();
 }
 
@@ -20,15 +22,14 @@ ecmcEcEntryLink::ecmcEcEntryLink() {
   initVars();
 }
 
-void ecmcEcEntryLink::initVars() { 
+void ecmcEcEntryLink::initVars() {
   for (int i = 0; i < ECMC_EC_ENTRY_LINKS_MAX; i++) {
     entryInfoArray_[i].entry     = NULL;
     entryInfoArray_[i].bitNumber = -1;
   }
 }
 
-ecmcEcEntryLink::~ecmcEcEntryLink()
-{}
+ecmcEcEntryLink::~ecmcEcEntryLink() {}
 
 int ecmcEcEntryLink::setEntryAtIndex(ecmcEcEntry *entry,
                                      int          index,
@@ -119,6 +120,13 @@ int ecmcEcEntryLink::validateEntryBit(int index) {
 }
 
 int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
+  if (!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+
   uint64_t tempRaw = 0;
 
   if (entryInfoArray_[entryIndex].bitNumber < 0) {
@@ -142,14 +150,22 @@ int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
 }
 
 int ecmcEcEntryLink::readEcEntryValueDouble(int entryIndex, double *value) {
+  if (!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+
   double tempDouble = 0;
+
   if (entryInfoArray_[entryIndex].entry->readDouble(&tempDouble)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_EC_ENTRY_READ_FAIL);
   }
-  *value  = tempDouble;
+  *value = tempDouble;
   return 0;
 }
 
@@ -170,6 +186,15 @@ int ecmcEcEntryLink::writeEcEntryValue(int entryIndex, uint64_t value) {
                         ERROR_EC_ENTRY_WRITE_FAIL);
     }
   }
+
+  // Still write value to entry (above) even if domain error to keep value up to date
+  if (!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+
   return 0;
 }
 
@@ -180,6 +205,15 @@ int ecmcEcEntryLink::writeEcEntryValueDouble(int entryIndex, double value) {
                       __LINE__,
                       ERROR_EC_ENTRY_WRITE_FAIL);
   }
+
+  // Still write value to entry (above) even if domain error to keep value up to date
+  if (!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+
   return 0;
 }
 
@@ -224,3 +258,20 @@ int ecmcEcEntryLink::getSlaveId(int index) {
   return entryInfoArray_[index].entry->getSlaveId();
 }
 
+bool ecmcEcEntryLink::checkDomainOK(int entryIndex) {
+  return entryInfoArray_[entryIndex].entry->getDomainOK();
+}
+
+bool ecmcEcEntryLink::checkDomainOKAllEntries() {
+  bool ok = true;
+
+  for (int i = 0; i < ECMC_EC_ENTRY_LINKS_MAX; i++) {
+    if (entryInfoArray_[i].entry) {
+      ok = ok && entryInfoArray_[i].entry->getDomainOK();
+    } else {  // no more entries
+      break;
+    }
+  }
+
+  return ok;
+}

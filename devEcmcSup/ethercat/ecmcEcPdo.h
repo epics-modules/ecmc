@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEcPdo.h
 *
@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <string>
 #include "ecrt.h"
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../com/ecmcOctetIF.h"  // Logging macros
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcOctetIF.h"  // Logging macros
 #include "ecmcEcEntry.h"
 
 // Errors
@@ -27,34 +27,34 @@
 #define ERROR_EC_PDO_CLEAR_ENTRIES_FAIL 0x22002
 
 class ecmcEcPdo : public ecmcError {
- public:
+public:
   ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
-            int masterId,
-            int slaveId,
-            ec_domain_t       *domain,
-            ec_slave_config_t *slave,
-            uint8_t            syncMangerIndex,
-            uint16_t           pdoIndex,
-            ec_direction_t     direction);
+            int                 masterId,
+            int                 slaveId,
+            ecmcEcDomain       *domain,
+            ec_slave_config_t  *slave,
+            uint8_t             syncMangerIndex,
+            uint16_t            pdoIndex,
+            ec_direction_t      direction);
   ~ecmcEcPdo();
-  ecmcEcEntry* addEntry(uint16_t     entryIndex,
-                        uint8_t      entrySubIndex,
+  ecmcEcEntry* addEntry(uint16_t       entryIndex,
+                        uint8_t        entrySubIndex,
                         ecmcEcDataType dt,
-                        std::string  id,
-                        int          useInRealTime,
-                        int         *errorCode);
+                        std::string    id,
+                        int            useInRealTime,
+                        int           *errorCode);
   ecmcEcEntry* getEntry(int index);
   ecmcEcEntry* findEntry(std::string id);
   int          getEntryCount();
   uint16_t     getPdoIndex();
 
- private:
+private:
   void         initVars();
   uint16_t pdoIndex_;
   ecmcEcEntry *entryArray_[EC_MAX_ENTRIES];
   int entryCounter_;
   ec_direction_t direction_;
-  ec_domain_t *domain_;
+  ecmcEcDomain *domain_;
   ec_slave_config_t *slave_;
   int masterId_;
   int slaveId_;

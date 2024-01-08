@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDriveBase.cpp
 *
@@ -11,12 +11,24 @@
 \*************************************************************************/
 
 #include "ecmcDriveBase.h"
-#include "../main/ecmcErrorsList.h"
+#include "ecmcErrorsList.h"
 
-ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver, 
-                             ecmcAxisData *axisData) : ecmcEcEntryLink(&(axisData->status_.errorCode),&(axisData->status_.warningCode)) {
+ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
+                             ecmcAxisData       *axisData) : ecmcEcEntryLink(&(
+                                                                               axisData
+                                                                               ->
+                                                                               status_
+                                                                               .
+                                                                               errorCode),
+                                                                             &(
+                                                                               axisData
+                                                                               ->
+                                                                               status_
+                                                                               .
+                                                                               warningCode))
+{
   initVars();
-  data_ = axisData;
+  data_           = axisData;
   asynPortDriver_ = asynPortDriver;
 
   if (!data_) {
@@ -26,7 +38,8 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
 
   initAsyn();
 
-  stateMachineTimeoutCycles_ = ERROR_DRV_STATE_MACHINE_TIME_OUT_TIME / data_->sampleTime_;
+  stateMachineTimeoutCycles_ = ERROR_DRV_STATE_MACHINE_TIME_OUT_TIME /
+                               data_->sampleTime_;
 }
 
 void ecmcDriveBase::initVars() {
@@ -73,11 +86,14 @@ void ecmcDriveBase::initVars() {
   hwWarningDefined_          = false;
   stateMachineTimeoutCycles_ = 0;
   cycleCounterBase_          = 0;
-  localEnabledOld_           = 0;  
+  localEnabledOld_           = 0;
+  minVeloOutput_             = 0;
+  maxVeloOutput_             = 0;
+  veloPosOutput_             = 0;
+  veloRawOffset_             = 0;
 }
 
-ecmcDriveBase::~ecmcDriveBase()
-{}
+ecmcDriveBase::~ecmcDriveBase() {}
 
 int ecmcDriveBase::setVelSet(double vel) {
   if (!driveInterlocksOK()) {
@@ -91,45 +107,45 @@ int ecmcDriveBase::setVelSet(double vel) {
 }
 
 int ecmcDriveBase::setCspPosSet(double posEng) {
-
   cspPosSet_ = posEng; // Engineering unit
-  
-  if (!driveInterlocksOK()) {        
+
+  if (!driveInterlocksOK()) {
     return 0;
   }
 
   if (data_->status_.enabled && data_->command_.enable) {
-    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
-  }
-  else {
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ +
+                                                cspRawPosOffset_;
+  } else {
     data_->status_.currentPositionSetpointRaw = cspRawActPos_;
   }
 
   // Calculate new offset
-  if(data_->command_.enable && !enableCmdOld_) {
+  if (data_->command_.enable && !enableCmdOld_) {
     setCspRecalcOffset(cspPosSet_);
-    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ + cspRawPosOffset_;
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ +
+                                                cspRawPosOffset_;
   }
-  
+
   return 0;
 }
 
-void ecmcDriveBase::setCspActPos(int64_t posRaw, double posAct){
+void ecmcDriveBase::setCspActPos(int64_t posRaw, double posAct) {
   cspRawActPos_ = posRaw;
   cspActPos_    = posAct;
 }
 
 // For drv at homing
 void ecmcDriveBase::setCspRef(int64_t posRaw, double posAct,  double posSet) {
-  cspRawActPos_ = posRaw;
-  cspActPos_    = posAct;
-  cspRawPosOffset_ = cspRawActPos_- posSet / scale_;  // Raw
+  cspRawActPos_    = posRaw;
+  cspActPos_       = posAct;
+  cspRawPosOffset_ = cspRawActPos_ - posSet / scale_;  // Raw
   setCspPosSet(posSet);
 }
 
 // Recalculate offset
 int ecmcDriveBase::setCspRecalcOffset(double posEng) {
-  cspRawPosOffset_ = cspRawActPos_- posEng / scale_;  // Raw
+  cspRawPosOffset_ = cspRawActPos_ - posEng / scale_;  // Raw
   return 0;
 }
 
@@ -152,7 +168,8 @@ int ecmcDriveBase::setScaleDenom(double scaleDenom) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_DRV_SCALE_DENOM_ZERO);
+                      ERROR_DRV_SCALE_DENOM_ZERO,
+                      ECMC_SEVERITY_EMERGENCY);
   }
   scale_ = scaleNum_ / scaleDenom_;
   return 0;
@@ -184,7 +201,8 @@ int ecmcDriveBase::setEnableBrake(bool enable) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_DRV_BRAKE_ENTRY_NULL);
+                        ERROR_DRV_BRAKE_ENTRY_NULL,
+                        ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -201,7 +219,8 @@ int ecmcDriveBase::setEnableReduceTorque(bool enable) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
-                        ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL);
+                        ERROR_DRV_REDUCE_TORQUE_ENTRY_NULL,
+                        ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -219,6 +238,13 @@ int ecmcDriveBase::getEnableReduceTorque() {
 }
 
 void ecmcDriveBase::writeEntries() {
+  if (!driveInterlocksOK() && data_->command_.enable) {
+    data_->command_.enable = false;
+    enableAmpCmd_          = false;
+    setErrorID(__FILE__, __FUNCTION__, __LINE__,
+               ERROR_DRV_DRIVE_INTERLOCKED,
+               ECMC_SEVERITY_EMERGENCY);
+  }
 
   // Check if drive status OK
   if (!driveInterlocksOK() && data_->command_.enable) {
@@ -232,38 +258,60 @@ void ecmcDriveBase::writeEntries() {
     // also wait for brakeOutputCmd_
     data_->status_.enabled = getEnabledLocal() && brakeOutputCmd_;
     updateBrakeState();
-  } else {    
+  } else {
     // No brake
     data_->status_.enabled = getEnabledLocal();  
     enableAmpCmd_ = data_->command_.enable;
   }
 
   int errorCode = 0;
+
   // will only write the number of bits configured
   errorCode =
     writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD,
                       (uint64_t)controlWord_);
+
   if (errorCode) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+               ECMC_SEVERITY_EMERGENCY);
   }
 
-  if(data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
+  if (data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
+    // CSV:    Check so not outside allowable range
+    veloPosOutput_ = data_->status_.currentVelocitySetpointRaw + veloRawOffset_;
+
+    if (veloPosOutput_ > maxVeloOutput_) {
+      veloPosOutput_ = maxVeloOutput_;
+    } else if (veloPosOutput_ < minVeloOutput_) {
+      veloPosOutput_ = minVeloOutput_;
+    }
+
     errorCode =
       writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
-                      (uint64_t)data_->status_.currentVelocitySetpointRaw);
+                        (uint64_t)veloPosOutput_);
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
-  } 
-  else {
-    // CSP
+  } else {
+    // CSP:    Check so not outside allowable range
+    veloPosOutput_ = data_->status_.currentPositionSetpointRaw;
+
+    // Allow position to wrap around
+    // if(veloPosOutput_ > maxVeloOutput_) {
+    //  veloPosOutput_ = maxVeloOutput_;
+    // } else if(veloPosOutput_ < minVeloOutput_) {
+    //  veloPosOutput_ = minVeloOutput_;
+    // }
+
     errorCode =
       writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT,
-                      (uint64_t)data_->status_.currentPositionSetpointRaw);
+                        (uint64_t)veloPosOutput_);
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -273,7 +321,8 @@ void ecmcDriveBase::writeEntries() {
                         (uint64_t)brakeOutputCmd_);
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -285,7 +334,8 @@ void ecmcDriveBase::writeEntries() {
       (uint64_t)reduceTorqueOutputCmd_);
 
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   }
 
@@ -295,41 +345,44 @@ void ecmcDriveBase::writeEntries() {
       writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_RESET,
                         (uint64_t)hwReset_);
     hwReset_ = 0;
+
     if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
     }
   }
 
-  // Timeout?  
-  if(!getEnabledLocal() && data_->command_.enable) {
+  // Timeout?
+  if (!getEnabledLocal() && data_->command_.enable) {
     cycleCounterBase_++;
-    if(cycleCounterBase_ > stateMachineTimeoutCycles_) {
+
+    if (cycleCounterBase_ > stateMachineTimeoutCycles_) {
       // Enable cmd timeout (not recived enable within time period)
-      cycleCounterBase_ = 0;
+      cycleCounterBase_      = 0;
       data_->command_.enable = false;
-      enableAmpCmd_ = false;
+      enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
                  ERROR_DRV_STATE_MACHINE_TIME_OUT);
     }
-  }  else {
+  } else {
     cycleCounterBase_ = 0;
   }
 
   // Enabled lost?
-  if(!getEnabledLocal() && localEnabledOld_ && data_->command_.enable) {
-      data_->command_.enable = false;
-      enableAmpCmd_ = false;
-      LOGERR("%s/%s:%d: WARNING (axis %d): Drive enabled lost while enable cmd is high.\n",
+  if (!getEnabledLocal() && localEnabledOld_ && data_->command_.enable) {
+    data_->command_.enable = false;
+    enableAmpCmd_          = false;
+    LOGERR(
+      "%s/%s:%d: WARNING (axis %d): Drive enabled lost while enable cmd is high.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
       data_->axisId_);
-      setWarningID(WARNING_DRV_ENABLED_LOST);
-  }
-  else {
-    if(getWarningID() == WARNING_DRV_ENABLED_LOST) {
+    setWarningID(WARNING_DRV_ENABLED_LOST);
+  } else {
+    if (getWarningID() == WARNING_DRV_ENABLED_LOST) {
       setWarningID(0);
     }
   }
@@ -345,34 +398,41 @@ void ecmcDriveBase::writeEntries() {
 }
 
 void ecmcDriveBase::readEntries() {
+  int errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,
+                                   &statusWord_);
 
-  if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD, &statusWord_)) {
+  if (errorCode) {
     setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
-               ERROR_DRV_ENABLED_READ_ENTRY_FAIL);
+               errorCode,
+               ECMC_SEVERITY_EMERGENCY);
     statusWord_ = 0;
     return;
   }
 
   // Check warning link. Think about forwarding warning info to motor record somehow
   if (hwWarningDefined_) {
-    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING, &hwWarning_)) {
-      hwWarning_ = 0;
+    errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING,
+                                 &hwWarning_);
+
+    if (errorCode) {
+      hwWarning_    = 0;
       hwWarningOld_ = 0;
       setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_DRV_WARNING_READ_ENTRY_FAIL);
-
+                 __FUNCTION__,
+                 __LINE__,
+                 errorCode,
+                 ECMC_SEVERITY_WARNING);
       return;
     }
 
-    if(hwWarning_ > 0 && hwWarningOld_ == 0) {
-      setWarningID(WARNING_DRV_WARNING_BIT_HIGH);      
+    if ((hwWarning_ > 0) && (hwWarningOld_ == 0)) {
+      setWarningID(WARNING_DRV_WARNING_BIT_HIGH);
     }
-    if(hwWarning_ == 0 && hwWarningOld_ > 0) {
-      if(getWarningID() == WARNING_DRV_WARNING_BIT_HIGH) {
+
+    if ((hwWarning_ == 0) && (hwWarningOld_ > 0)) {
+      if (getWarningID() == WARNING_DRV_WARNING_BIT_HIGH) {
         setWarningID(0);
       }
     }
@@ -382,76 +442,88 @@ void ecmcDriveBase::readEntries() {
 
   // check alarm 0
   if (hwErrorAlarm0Defined_) {
-    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_)) {
-      hwErrorAlarm0_ = 0;
-      hwErrorAlarm0Old_ = 0;
-      setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
+    errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0,
+                                 &hwErrorAlarm0_);
 
-      return;
-    }
-    
-    // Set Alarm
-    if(hwErrorAlarm0_) {
-      data_->command_.enable = false;
-      enableAmpCmd_ = false;
+    if (errorCode) {
+      hwErrorAlarm0_    = 0;
+      hwErrorAlarm0Old_ = 0;
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 ERROR_DRV_HW_ALARM_0);
-    }    
+                 errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
+      return;
+    }
+
+    // Set Alarm
+    if (hwErrorAlarm0_) {
+      data_->command_.enable = false;
+      enableAmpCmd_          = false;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_HW_ALARM_0,
+                 ECMC_SEVERITY_EMERGENCY);
+    }
     hwErrorAlarm0Old_ = hwErrorAlarm0_;
   }
 
   // check alarm 1
   if (hwErrorAlarm1Defined_) {
-    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1, &hwErrorAlarm1_)) {
-      hwErrorAlarm1_ = 0;
-      hwErrorAlarm1Old_ = 0;
-      setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
+    errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1,
+                                 &hwErrorAlarm1_);
 
-      return;
-    }
-    
-    // Set Alarm
-    if(hwErrorAlarm1_) {
-      data_->command_.enable = false;
-      enableAmpCmd_ = false;
+    if (errorCode) {
+      hwErrorAlarm1_    = 0;
+      hwErrorAlarm1Old_ = 0;
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 ERROR_DRV_HW_ALARM_1);
-    }    
+                 errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
+      return;
+    }
+
+    // Set Alarm
+    if (hwErrorAlarm1_) {
+      data_->command_.enable = false;
+      enableAmpCmd_          = false;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_HW_ALARM_1,
+                 ECMC_SEVERITY_EMERGENCY);
+    }
     hwErrorAlarm1Old_ = hwErrorAlarm1_;
   }
 
   // check alarm 2
   if (hwErrorAlarm2Defined_) {
-    if (readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2, &hwErrorAlarm2_)) {
-      hwErrorAlarm2_ = 0;
-      hwErrorAlarm2Old_ = 0;
-      setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_DRV_ALARM_READ_ENTRY_FAIL);
+    errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2,
+                                 &hwErrorAlarm2_);
 
-      return;
-    }
-    
-    // Set Alarm
-    if(hwErrorAlarm2_) {
-      data_->command_.enable = false;
-      enableAmpCmd_ = false;
+    if (errorCode) {
+      hwErrorAlarm2_    = 0;
+      hwErrorAlarm2Old_ = 0;
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 ERROR_DRV_HW_ALARM_2);
-    }    
+                 errorCode, 
+                 ECMC_SEVERITY_EMERGENCY);
+      return;
+    }
+
+    // Set Alarm
+    if (hwErrorAlarm2_) {
+      data_->command_.enable = false;
+      enableAmpCmd_          = false;
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_DRV_HW_ALARM_2,
+                 ECMC_SEVERITY_EMERGENCY);
+    }
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
 }
@@ -465,23 +537,35 @@ int ecmcDriveBase::validate() {
   }
 
 
-  if(checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT)){
+  if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT)) {
     // CSV
-    int errorCodeVel = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
-    if (errorCodeVel) {    
+    int errorCodeVel = validateEntry(
+      ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
+
+    if (errorCodeVel) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodeVel);
     }
     data_->command_.drvMode = ECMC_DRV_MODE_CSV;
-  } 
-  else {
+    ecmcEcDataType dt = getEntryDataType(
+      ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
+    minVeloOutput_ = getEcDataTypeMinVal(dt);
+    maxVeloOutput_ = getEcDataTypeMaxVal(dt);
+  } else {
     // Must be CSP
-    int errorCodePos = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+    int errorCodePos = validateEntry(
+      ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+
     if (errorCodePos) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodePos);
     }
     data_->command_.drvMode = ECMC_DRV_MODE_CSP;
+
+    // Allow wrap around for position
+    // ecmcEcDataType dt = getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+    // minVeloOutput_ = getEcDataTypeMinVal(dt);
+    // maxVeloOutput_ = getEcDataTypeMaxVal(dt);
   }
-  
+
   // Enabled entry input OR statusword
   errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD);
 
@@ -506,10 +590,11 @@ int ecmcDriveBase::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
   }
-  
+
   // Check reset link
   if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_RESET)) {
     errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_RESET);
+
     if (errorCode) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
@@ -519,6 +604,7 @@ int ecmcDriveBase::validate() {
   // Check warning link
   if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING)) {
     errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_WARNING);
+
     if (errorCode) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
@@ -528,6 +614,7 @@ int ecmcDriveBase::validate() {
   // Check alarm link 0
   if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0)) {
     errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_0);
+
     if (errorCode) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
@@ -537,6 +624,7 @@ int ecmcDriveBase::validate() {
   // Check alarm link 1
   if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1)) {
     errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1);
+
     if (errorCode) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
@@ -546,6 +634,7 @@ int ecmcDriveBase::validate() {
   // Check alarm link 2
   if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2)) {
     errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2);
+
     if (errorCode) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
@@ -581,7 +670,8 @@ int ecmcDriveBase::setBrakeOpenDelayTime(int delayTime) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_DRV_BRAKE_OPEN_DELAY_TIME_INVALID);
+                      ERROR_DRV_BRAKE_OPEN_DELAY_TIME_INVALID,
+                      ECMC_SEVERITY_EMERGENCY);
   }
 
   brakeOpenDelayTime_ = delayTime;
@@ -593,7 +683,8 @@ int ecmcDriveBase::setBrakeCloseAheadTime(int aheadTime) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID);
+                      ERROR_DRV_BRAKE_CLOSE_AHEAD_TIME_INVALID,
+                      ECMC_SEVERITY_EMERGENCY);
   }
 
   brakeCloseAheadTime_ = aheadTime;
@@ -607,6 +698,7 @@ int ecmcDriveBase::updateBrakeState() {
     brakeState_   = ECMC_BRAKE_OPENING;
     brakeCounter_ = 0;
   }
+
   if (!data_->command_.enable && enableCmdOld_) {
     brakeState_   = ECMC_BRAKE_CLOSING;
     brakeCounter_ = 0;
@@ -623,15 +715,15 @@ int ecmcDriveBase::updateBrakeState() {
 
     // Purpose: Postpone opening of brake
     enableAmpCmd_ = 1;
+
     if (brakeCounter_ > brakeOpenDelayTime_) {
-      
-      if(!getEnabledLocal()) {
+      if (!getEnabledLocal()) {
         data_->command_.enable = 0;
-        brakeOutputCmd_ = 0;
-        brakeCounter_   = 0;
-        enableAmpCmd_   = 0;
-        enableCmdOld_   = 0;  // to not trigger ECMC_BRAKE_CLOSING
-        brakeState_     = ECMC_BRAKE_CLOSED;
+        brakeOutputCmd_        = 0;
+        brakeCounter_          = 0;
+        enableAmpCmd_          = 0;
+        enableCmdOld_          = 0; // to not trigger ECMC_BRAKE_CLOSING
+        brakeState_            = ECMC_BRAKE_CLOSED;
       } else {
         brakeState_     = ECMC_BRAKE_OPEN;
         brakeOutputCmd_ = 1;
@@ -639,24 +731,24 @@ int ecmcDriveBase::updateBrakeState() {
     }
 
     // loose enabled while opening, go directlly to closed
-    if(localEnabledOld_ && !getEnabledLocal()) {
-      brakeState_     = ECMC_BRAKE_CLOSED;      
+    if (localEnabledOld_ && !getEnabledLocal()) {
+      brakeState_     = ECMC_BRAKE_CLOSED;
       enableAmpCmd_   = 0;
       brakeOutputCmd_ = 0;
     }
 
     // only start counting if enabled
-    if(getEnabledLocal()) {
+    if (getEnabledLocal()) {
       brakeCounter_++;
     }
 
     break;
 
   case ECMC_BRAKE_OPEN:
-    
-    // enabled lost: apply brake directly without delay, goto stae BRAKE_CLOSED 
-    if(!getEnabledLocal() && data_->command_.enable) {
-      //data_->command_.enable = 0;  this is controlled separatelly
+
+    // enabled lost: apply brake directly without delay, goto stae BRAKE_CLOSED
+    if (!getEnabledLocal() && data_->command_.enable) {
+      // data_->command_.enable = 0;  this is controlled separatelly
       brakeOutputCmd_ = 0;
       brakeCounter_   = 0;
       enableAmpCmd_   = 0;
@@ -675,7 +767,7 @@ int ecmcDriveBase::updateBrakeState() {
     brakeOutputCmd_ = 0;
     enableAmpCmd_   = 1;
 
-    if (brakeCounter_ > brakeCloseAheadTime_ || !getEnabledLocal()) {
+    if ((brakeCounter_ > brakeCloseAheadTime_) || !getEnabledLocal()) {
       brakeState_     = ECMC_BRAKE_CLOSED;
       enableAmpCmd_   = 0;
       brakeOutputCmd_ = 0;
@@ -689,35 +781,37 @@ int ecmcDriveBase::updateBrakeState() {
 }
 
 void ecmcDriveBase::errorReset() {
-  
   // Reset hardware if needed
-  if(hwResetDefined_) {
+  if (hwResetDefined_) {
     hwReset_ = 1;
   }
-
+  ecmcEcEntryLink::errorReset();
   ecmcError::errorReset();
 }
 
 int ecmcDriveBase::initAsyn() {
   if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR (axis %d): Drive AsynPortDriver object NULL (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           data_->axisId_,
-           ERROR_DRV_ASYN_PORT_OBJ_NULL);
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Drive AsynPortDriver object NULL (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ERROR_DRV_ASYN_PORT_OBJ_NULL);
     return ERROR_DRV_ASYN_PORT_OBJ_NULL;
   }
 
-  char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
-  char *name = NULL;
-  unsigned int charCount = 0;
+  char  buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  char *name                  = NULL;
+  unsigned int charCount      = 0;
   ecmcAsynDataItem *paramTemp = NULL;
+
   // Control word "ax<id>.drv.control"
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_DRV_STR "." ECMC_DRV_ENABLE_STR,
                        data_->axisId_);
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
@@ -728,14 +822,15 @@ int ecmcDriveBase::initAsyn() {
       ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL;
   }
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamUInt32Digital,
-                                         (uint8_t *)&(controlWord_),
-                                         sizeof(controlWord_),
-                                         ECMC_EC_U32,
-                                         0);
-  if(!paramTemp) {
+                                                asynParamUInt32Digital,
+                                                (uint8_t *)&(controlWord_),
+                                                sizeof(controlWord_),
+                                                ECMC_EC_U32,
+                                                0);
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
@@ -757,6 +852,7 @@ int ecmcDriveBase::initAsyn() {
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_DRV_STR "." ECMC_ASYN_AX_STATUS_NAME,
                        data_->axisId_);
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
@@ -767,14 +863,15 @@ int ecmcDriveBase::initAsyn() {
       ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL;
   }
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamUInt32Digital,
-                                         (uint8_t *)&(statusWord_),
-                                         sizeof(statusWord_),
-                                         ECMC_EC_U32,
-                                         0);
-  if(!paramTemp) {
+                                                asynParamUInt32Digital,
+                                                (uint8_t *)&(statusWord_),
+                                                sizeof(statusWord_),
+                                                ECMC_EC_U32,
+                                                0);
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
       __FILE__,
@@ -785,16 +882,17 @@ int ecmcDriveBase::initAsyn() {
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
   paramTemp->addSupportedAsynType(asynParamInt32);
-  paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   asynStatusWd_ = paramTemp;
-  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                      ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }
 
-void ecmcDriveBase::refreshAsyn(){
+void ecmcDriveBase::refreshAsyn() {
   asynStatusWd_->refreshParamRT(0);
   asynControlWd_->refreshParamRT(0);
 }
@@ -803,3 +901,9 @@ int ecmcDriveBase::setStateMachineTimeout(double seconds) {
   stateMachineTimeoutCycles_ = seconds / data_->sampleTime_;
   return 0;
 }
+
+int ecmcDriveBase::setVelSetOffsetRaw(double offset) {
+  veloRawOffset_ = (int64_t) offset;
+  return 0;
+}
+

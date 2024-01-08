@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEc.cpp
 *
@@ -14,39 +14,37 @@
 #include <cmath>
 #include <time.h>
 #include <string>
-#include "../main/ecmcErrorsList.h"
+#include "ecmcErrorsList.h"
 
 ecmcEc::ecmcEc(ecmcAsynPortDriver *asynPortDriver) {
   initVars();
   setErrorID(ERROR_EC_STATUS_NOT_OK);
   asynPortDriver_ = asynPortDriver;
-  simSlave_ = new ecmcEcSlave(asynPortDriver_,0 ,NULL, NULL,0, -1, 0, 0);  
+  simSlave_       =
+    new ecmcEcSlave(asynPortDriver_, 0, NULL, NULL, 0, -1, 0, 0);
 }
 
 void ecmcEc::initVars() {
   errorReset();
-  slaveCounter_                     = 0;
-  initDone_                         = false;
-  diag_                             = true;
-  useClockRealtime_                 = false;
-  simSlave_                         = NULL;
-  master_                           = NULL;
-  domain_                           = NULL;
-  domainPd_                         = 0;
-  slavesOK_                         = 0;
-  masterOK_                         = 0;
-  domainOK_                         = 0;
-  domainNotOKCounter_               = 0;
-  domainNotOKCounterTotal_          = 0;
-  domainNotOKCyclesLimit_           = 0;
-  domainNotOKCounterMax_            = 0;
-  masterAlStates_                   = 0;
-  masterLinkUp_                     = 0;
-  statusWordMaster_                 = 0;
-  statusWordDomain_                 = 0;
-  ecStatOk_                         = 0;
-  delayEcOKCycles_                  = 0;
-  startupCounter_                   = 0;
+  slaveCounter_          = 0;
+  initDone_              = false;
+  diag_                  = true;
+  useClockRealtime_      = false;
+  simSlave_              = NULL;
+  master_                = NULL;
+  currentDomain_         = NULL;
+  slavesOK_              = 0;
+  masterOK_              = 0;
+  domainsOK_             = 0;
+  domainFailCyclesLimit_ = 0;
+  masterAlStates_        = 0;
+  masterLinkUp_          = 0;
+  statusWordMaster_      = 0;
+  ecStatOk_              = 0;
+  delayEcOKCycles_       = 0;
+  startupCounter_        = 0;
+  domainCounter_         = 0;
+  allowOffline_          = 0;
   epicsTimeGetCurrent(&epicsTime_);
   clock_gettime(CLOCK_REALTIME, &timeRel_);
   clock_gettime(CLOCK_REALTIME, &timeAbs_);
@@ -67,12 +65,10 @@ void ecmcEc::initVars() {
     slaveEntriesReg_[i].subindex     = 0;
     slaveEntriesReg_[i].vendor_id    = 0;
   }
-  
-  memset(&domainState_, 0, sizeof(domainState_));
-  memset(&masterState_, 0, sizeof(masterState_));
-  memset(&domainStateOld_,0,sizeof(domainStateOld_));
-  memset(&masterStateOld_,0,sizeof(masterStateOld_));
-  
+
+  memset(&masterState_,    0, sizeof(masterState_));
+  memset(&masterStateOld_, 0, sizeof(masterStateOld_));
+
   inStartupPhase_ = true;
   asynPortDriver_ = NULL;
 
@@ -87,12 +83,17 @@ void ecmcEc::initVars() {
   entryCounter_      = 0;
 
   for (int i = 0; i < ECMC_ASYN_EC_PAR_COUNT; i++) {
-    ecAsynParams_[i]=NULL;
+    ecAsynParams_[i] = NULL;
   }
-  memset(&timeOffset_,0,sizeof(timeOffset_)); 
+  memset(&timeOffset_, 0, sizeof(timeOffset_));
 }
 
 int ecmcEc::init(int nMasterIndex) {
+  if (nMasterIndex < 0) { // Start without ethercat
+    masterIndex_ = nMasterIndex;
+    return 0;
+  }
+
   master_ = ecrt_request_master(nMasterIndex);
 
   if (!master_) {
@@ -107,21 +108,20 @@ int ecmcEc::init(int nMasterIndex) {
                       ERROR_EC_MAIN_REQUEST_FAILED);
   }
 
-  domain_ = ecrt_master_create_domain(master_);
-
-  if (!domain_) {
-    LOGERR("%s/%s:%d: ERROR: EtherCAT create domain failed (0x%x).\n",
+  // If this fucntion is called several times then the domains needs to be readded
+  if (initDone_) {
+    LOGERR("%s/%s:%d: WARNINF: EtherCAT master alreday initialized once\n",
            __FILE__,
            __FUNCTION__,
-           __LINE__,
-           ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+           __LINE__);
+    domains_.clear();
   }
+
   initDone_    = true;
   masterIndex_ = nMasterIndex;
+
+  // Create default domain at ec-rate
+  addDomain(0, 0);
 
   return initAsyn(asynPortDriver_);
 }
@@ -147,15 +147,15 @@ ecmcEc::~ecmcEc() {
   for (int i = 0; i < ECMC_ASYN_EC_PAR_COUNT; i++) {
     delete ecAsynParams_[i];
     ecAsynParams_[i] = NULL;
-  }  
+  }
+
+  if (master_) {
+    ecrt_release_master(master_);
+  }
 }
 
 bool ecmcEc::getInitDone() {
   return initDone_;
-}
-
-ec_domain_t * ecmcEc::getDomain() {
-  return domain_;
 }
 
 ec_master_t * ecmcEc::getMaster() {
@@ -170,7 +170,7 @@ int ecmcEc::addSlave(
   uint16_t alias,  /**< Slave alias. */
   uint16_t position,  /**< Slave position. */
   uint32_t vendorId,  /**< Expected vendor ID. */
-  uint32_t productCode  /**< Expected product code. */) {
+  uint32_t productCode /**< Expected product code. */) {
   LOGINFO5(
     "%s/%s:%d: INFO: Adding EtherCAT slave (alias=%d, position=%d, vendorId=%x, productCode=%x).\n",
     __FILE__,
@@ -185,7 +185,7 @@ int ecmcEc::addSlave(
     slaveArray_[slaveCounter_] = new ecmcEcSlave(asynPortDriver_,
                                                  masterIndex_,
                                                  master_,
-                                                 domain_,
+                                                 currentDomain_,
                                                  alias,
                                                  position,
                                                  vendorId,
@@ -193,7 +193,8 @@ int ecmcEc::addSlave(
     slaveCounter_++;
 
     ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID]->refreshParam(1);
-    asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
+    asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                        ECMC_ASYN_DEFAULT_ADDR);
 
     return slaveCounter_ - 1;
   } else {
@@ -259,18 +260,6 @@ int ecmcEc::activate() {
                       ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED);
   }
 
-  if (!(domainPd_ = ecrt_domain_data(domain_))) {
-    LOGERR("%s/%s:%d: ERROR: ecrt_domain_data() failed (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           ERROR_EC_MAIN_DOMAIN_DATA_FAILED);
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_MAIN_DOMAIN_DATA_FAILED);
-  }
-
   LOGINFO5("%s/%s:%d: INFO: Writing process data offsets to entries.\n",
            __FILE__,
            __FUNCTION__,
@@ -288,41 +277,17 @@ int ecmcEc::activate() {
                         __LINE__,
                         ERROR_EC_MAIN_SLAVE_NULL);
     }
-    int nEntryCount = slaveArray_[slaveIndex]->getEntryCount();
 
-    for (int entryIndex = 0; entryIndex < nEntryCount; entryIndex++) {
-      ecmcEcEntry *tempEntry = slaveArray_[slaveIndex]->getEntry(entryIndex);
-
-      if (tempEntry == NULL) {
-        LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
-               __FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_EC_MAIN_ENTRY_NULL);
-        return setErrorID(__FILE__,
-                          __FUNCTION__,
-                          __LINE__,
-                          ERROR_EC_MAIN_ENTRY_NULL);
-      }
-
-      if (!tempEntry->getSimEntry()) {
-        tempEntry->setDomainAdr(domainPd_);
-        LOGINFO5("%s/%s:%d: INFO: Entry %s (index = %d): domainAdr: %p.\n",
-                 __FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 tempEntry->getIdentificationName().c_str(),
-                 entryIndex,
-                 domainPd_);
-      }
-    }
+    // Activate all slaves and entries
+    slaveArray_[slaveIndex]->activate();
   }
 
   return validate();
 }
 
 int ecmcEc::compileRegInfo() {
-  int entryCounter = 0;
+  // int entryCounter = 0;
+  int ret = 0;
 
   // Write offstes to entries
   for (int slaveIndex = 0; slaveIndex < slaveCounter_; slaveIndex++) {
@@ -337,102 +302,58 @@ int ecmcEc::compileRegInfo() {
                         __LINE__,
                         ERROR_EC_MAIN_SLAVE_NULL);
     }
-    int entryCountInSlave = slaveArray_[slaveIndex]->getEntryCount();
 
-    for (int entryIndex = 0; entryIndex < entryCountInSlave; entryIndex++) {
-      ecmcEcEntry *tempEntry = slaveArray_[slaveIndex]->getEntry(entryIndex);
+    ret = slaveArray_[slaveIndex]->compileRegInfo();
 
-      if (tempEntry == NULL) {
-        LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
-               __FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_EC_MAIN_ENTRY_NULL);
-        return setErrorID(__FILE__,
-                          __FUNCTION__,
-                          __LINE__,
-                          ERROR_EC_MAIN_ENTRY_NULL);
-      }
-
-      if (!tempEntry->getSimEntry()) {
-        int ret = tempEntry->registerInDomain();
-
-        if (ret) {
-          LOGERR("%s/%s:%d: ERROR: register entry in domain failed (0x%x).\n",
-                 __FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ret);
-          return setErrorID(__FILE__, __FUNCTION__, __LINE__, ret);
-        }
-      }
-      entryCounter++;
+    if (ret) {
+      return ret;
     }
   }
 
-  // Set domain size to MemMap objects to avoid write outside memarea
-  domainSize_ = ecrt_domain_size(domain_);
-
   for (int i = 0; i < ecMemMapArrayCounter_; i++) {
     if (ecMemMapArray_[i]) {
-      ecMemMapArray_[i]->setDomainSize(domainSize_);
+      ecMemMapArray_[i]->setDomainSize();
     }
   }
 
   return 0;
 }
 
-void ecmcEc::checkDomainState(void) {
+void ecmcEc::checkDomainsState() {
   if (!diag_) {
-    domainOK_ = true;
+    domainsOK_ = true;
   }
 
-  ecrt_domain_state(domain_, &domainState_);
+  domainsOK_ = true;
 
-  // filter domainOK_ for some cycles
-  if (domainState_.wc_state != EC_WC_COMPLETE) {
-    if (domainNotOKCounter_ <= domainNotOKCyclesLimit_) {
-      domainNotOKCounter_++;
-    }
+  int tempStateOk = 0;
 
-    if (domainNotOKCounter_ > domainNotOKCounterMax_) {
-      domainNotOKCounterMax_ = domainNotOKCounter_;
+  for (int i = 0; i < domainCounter_; i++) {
+    tempStateOk = domains_[i]->checkState();
+
+    if (domains_[i]->getAllowOffline()) {
+      // ignore state if allowed offline
+      continue;
     }
-    domainNotOKCounterTotal_++;
-  } else {
-    domainNotOKCounter_ = 0;
+    domainsOK_ = domainsOK_ && tempStateOk;
   }
-  domainOK_ = domainNotOKCounter_ <= domainNotOKCyclesLimit_;
-
-  //Build domain status word
-  statusWordDomain_ = 0;
-  // bit 0
-  statusWordDomain_ = statusWordDomain_ + (domainState_.redundancy_active > 0);
-  // bit 1
-  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_ZERO) << 1);
-  // bit 2
-  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_INCOMPLETE) << 2);
-  // bit 3
-  statusWordDomain_ = statusWordDomain_ + ((domainState_.wc_state ==  EC_WC_COMPLETE) << 3);
-  // bit 16..31
-  statusWordDomain_ = statusWordDomain_ + ((uint16_t)(domainState_.working_counter) << 16);
 
   // Set summary alarm for ethercat
-  ecStatOk_= domainState_.wc_state ==  EC_WC_COMPLETE;
+  ecStatOk_ = domainsOK_;
 }
 
 bool ecmcEc::checkSlavesConfState() {
-
   if (!diag_) {
     slavesOK_ = true;
     return slavesOK_;
   }
-  
+
   bool localSlavesOK = true;
-  int retVal = 0;
+  int  retVal        = 0;
 
   for (int i = 0; i < slaveCounter_; i++) {
     retVal = checkSlaveConfState(i);
+
     if (retVal && !getErrorID()) {
       LOGERR(
         "%s/%s:%d: ERROR: Slave with bus position %d reports error (0x%x).\n",
@@ -440,15 +361,16 @@ bool ecmcEc::checkSlavesConfState() {
         __FUNCTION__,
         __LINE__,
         slaveArray_[i]->getSlaveBusPosition(),
-        retVal);      
+        retVal);
       setErrorID(__FILE__, __FUNCTION__, __LINE__, retVal);
     }
-    if(retVal){
+
+    if (retVal) {
       localSlavesOK = false;
     }
   }
 
-  if(localSlavesOK) {
+  if (localSlavesOK) {
     slavesOK_ = true;
   }
 
@@ -484,7 +406,14 @@ int ecmcEc::checkSlaveConfState(int slaveIndex) {
                       ERROR_EC_MAIN_SLAVE_NULL);
   }
 
-  return slaveArray_[slaveIndex]->checkConfigState();
+  int error = slaveArray_[slaveIndex]->checkConfigState();
+
+  // If domain is allowed to be offline then slave also
+  if (slaveArray_[slaveIndex]->getAllowOffline()) {
+    return 0;
+  }
+
+  return error;
 }
 
 bool ecmcEc::checkState(void) {
@@ -500,16 +429,20 @@ bool ecmcEc::checkState(void) {
   }
 
   ecrt_master_state(master_, &masterState_);
- 
-  //Build master status word
+
+  // Build master status word
   statusWordMaster_ = 0;
+
   // bit 0
   statusWordMaster_ = statusWordMaster_ + masterState_.link_up;
+
   // bit 1..4
   statusWordMaster_ = statusWordMaster_ + (masterState_.al_states << 1);
-  // 16..31 
-  statusWordMaster_ = statusWordMaster_ + ((uint16_t)(masterState_.slaves_responding) << 16);
-      
+
+  // 16..31
+  statusWordMaster_ = statusWordMaster_ +
+                      ((uint16_t)(masterState_.slaves_responding) << 16);
+
   if (masterState_.slaves_responding != masterStateOld_.slaves_responding) {
     LOGINFO5("%s/%s:%d: INFO: %u slave(s) responding.\n",
              __FILE__,
@@ -525,7 +458,7 @@ bool ecmcEc::checkState(void) {
              __LINE__,
              masterState_.link_up ? "up" : "down");
   }
-  masterLinkUp_=masterState_.link_up;
+  masterLinkUp_ = masterState_.link_up;
 
   if (masterState_.al_states != masterStateOld_.al_states) {
     LOGINFO5("%s/%s:%d: INFO: Application Layer state: 0x%x.\n",
@@ -534,8 +467,8 @@ bool ecmcEc::checkState(void) {
              __LINE__,
              masterState_.al_states);
   }
-  masterAlStates_=masterState_.al_states;
-  
+  masterAlStates_ = masterState_.al_states;
+
   masterStateOld_ = masterState_;
 
   if (!masterState_.link_up) {
@@ -545,7 +478,7 @@ bool ecmcEc::checkState(void) {
   }
 
   if (static_cast<int>(masterState_.slaves_responding) < slaveCounter_) {
-    if(getErrorID() != ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH) {
+    if (getErrorID() != ERROR_EC_RESPOND_VS_CONFIG_SLAVES_MISSMATCH) {
       LOGERR(
         "%s/%s:%d: ERROR: Respondig slave count VS configures slave count missmatch (0x%x).\n",
         __FILE__,
@@ -593,25 +526,17 @@ bool ecmcEc::checkState(void) {
 
 void ecmcEc::receive() {
   ecrt_master_receive(master_);
-  ecrt_domain_process(domain_);
-  
-  // struct timespec timeRel, timeAbs;
-  // epicsTimeStamp epicsTime;
-  // if (useClockRealtime_) {    
-    // clock_gettime(CLOCK_REALTIME, &timeAbs);
-  // } else {
-    // clock_gettime(CLOCK_MONOTONIC, &timeRel);
-    // timeAbs = timespecAdd(timeRel, timeOffset_);
-  // }
 
-  //epicsTimeFromTimespec (&epicsTime,&timeAbs);
-  //asynPortDriver_->setTimeStamp(&epicsTime);
-  
+  for (int i = 0; i < domainCounter_; i++) {
+    domains_[i]->process();
+  }
+
   updateInputProcessImage();
 }
 
 void ecmcEc::send(timespec timeOffset) {
-  timeOffset_=timeOffset;
+  timeOffset_ = timeOffset;
+
   // Write status hardware status to output
   if (statusOutputEntry_) {
     statusOutputEntry_->writeValue((uint64_t)(getErrorID() == 0));
@@ -619,28 +544,30 @@ void ecmcEc::send(timespec timeOffset) {
 
   updateOutProcessImage();
 
-  ecrt_domain_queue(domain_);
-  
+  for (int i = 0; i < domainCounter_; i++) {
+    domains_[i]->queue();
+  }
+
   if (useClockRealtime_) {
     clock_gettime(CLOCK_REALTIME, &timeAbs_);
   } else {
     clock_gettime(CLOCK_MONOTONIC, &timeRel_);
-    timeAbs_= timespecAdd(timeRel_, timeOffset_);
+    timeAbs_ = timespecAdd(timeRel_, timeOffset_);
   }
-  
+
   ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs_));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
-  
+
   ecrt_master_send(master_);
 
-  //Update asyn time
-  epicsTimeFromTimespec (&epicsTime_,&timeAbs_);
+  // Update asyn time
+  epicsTimeFromTimespec(&epicsTime_, &timeAbs_);
   asynPortDriver_->setTimeStamp(&epicsTime_);
 
   // Delay ecOK at startup for delayEcOKCycles_ after ecOK
-  if(inStartupPhase_) {
-    if(slavesOK_ && domainOK_ && masterOK_) {
+  if (inStartupPhase_) {
+    if (slavesOK_ && domainsOK_ && masterOK_) {
       startupCounter_++;
     }
   }
@@ -673,6 +600,28 @@ int ecmcEc::addSDOWrite(uint16_t slavePosition,
   return slave->addSDOWrite(sdoIndex, sdoSubIndex, writeValue, byteSize);
 }
 
+int ecmcEc::addSDOWriteDT(uint16_t       slavePosition,
+                          uint16_t       sdoIndex,
+                          uint8_t        sdoSubIndex,
+                          const char    *value,
+                          ecmcEcDataType dt) {
+  ecmcEcSlave *slave = findSlave(slavePosition);
+
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+
+  return slave->addSDOWriteDT(sdoIndex, sdoSubIndex, value, dt);
+}
+
 int ecmcEc::writeSDO(uint16_t slavePosition,
                      uint16_t sdoIndex,
                      uint8_t  sdoSubIndex,
@@ -684,13 +633,13 @@ int ecmcEc::writeSDO(uint16_t slavePosition,
                           sdoSubIndex,
                           value,
                           (size_t)byteSize);
-}                    
+}
 
 int ecmcEc::addSDOWriteComplete(uint16_t    slavePosition,
                                 uint16_t    sdoIndex,
-                                const char* dataBuffer,
+                                const char *dataBuffer,
                                 int         byteSize) {
-ecmcEcSlave *slave = findSlave(slavePosition);
+  ecmcEcSlave *slave = findSlave(slavePosition);
 
   if (!slave) {
     LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
@@ -711,9 +660,9 @@ ecmcEcSlave *slave = findSlave(slavePosition);
 int ecmcEc::addSDOWriteBuffer(uint16_t    slavePosition,
                               uint16_t    sdoIndex,
                               uint8_t     sdoSubIndex,
-                              const char* dataBuffer,
+                              const char *dataBuffer,
                               int         byteSize) {
-ecmcEcSlave *slave = findSlave(slavePosition);
+  ecmcEcSlave *slave = findSlave(slavePosition);
 
   if (!slave) {
     LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
@@ -737,7 +686,6 @@ int ecmcEc::readSDO(uint16_t  slavePosition,
                     uint8_t   sdoSubIndex,
                     int       byteSize,
                     uint32_t *value) {
-  // uint32_t value=0;
   size_t bytesRead = 0;
   int    errorCode = ecmcEcSDO::read(master_,
                                      slavePosition,
@@ -752,70 +700,70 @@ int ecmcEc::readSDO(uint16_t  slavePosition,
   return 0;
 }
 
-int ecmcEc::readSoE(uint16_t  slavePosition, /**< Slave position. */
-                    uint8_t   driveNo, /**< Drive number. */
-                    uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-                    size_t    byteSize, /**< Size of data to write. */
-                    uint8_t  *value /**< Pointer to data to write. */
-                   ){
-    
-  size_t bytesRead = 0;
-  uint16_t soeError = 0;
+int ecmcEc::readSoE(uint16_t slavePosition,  /**< Slave position. */
+                    uint8_t  driveNo,  /**< Drive number. */
+                    uint16_t idn,  /**< SoE IDN (see ecrt_slave_config_idn()). */
+                    size_t   byteSize,  /**< Size of data to write. */
+                    uint8_t *value  /**< Pointer to data to write. */
+                    ) {
+  size_t   bytesRead = 0;
+  uint16_t soeError  = 0;
 
   int errorCode = ecrt_master_read_idn(
-        master_, /**< EtherCAT master. */
-        slavePosition, /**< Slave position. */
-        driveNo, /**< Drive number. */
-        idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-        value, /**< Pointer to memory where the read data can be stored. */
-        byteSize, /**< Size of the memory \a target points to. */
-        &bytesRead, /**< Actual size of the received data. */
-        &soeError /**< Pointer to variable, where an SoE error code
+    master_,     /**< EtherCAT master. */
+    slavePosition,     /**< Slave position. */
+    driveNo,     /**< Drive number. */
+    idn,     /**< SoE IDN (see ecrt_slave_config_idn()). */
+    value,     /**< Pointer to memory where the read data can be stored. */
+    byteSize,     /**< Size of the memory \a target points to. */
+    &bytesRead,     /**< Actual size of the received data. */
+    &soeError     /**< Pointer to variable, where an SoE error code
                                can be stored. */
-        );
+    );
 
-  if(errorCode) {
-    LOGERR("%s/%s:%d: ERROR: SoE read failed with SoE error code 0x%x (0x%x).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        soeError,
-        errorCode);
-   }
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: ERROR: SoE read failed with SoE error code 0x%x (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      soeError,
+      errorCode);
+  }
 
-   return errorCode;
+  return errorCode;
 }
 
-int ecmcEc::writeSoE(uint16_t  slavePosition, /**< Slave position. */
-                     uint8_t   driveNo, /**< Drive number. */
-                     uint16_t  idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-                     size_t    byteSize, /**< Size of data to write. */
-                     uint8_t  *value /**< Pointer to data to write. */
-                     ){
-
+int ecmcEc::writeSoE(uint16_t slavePosition,  /**< Slave position. */
+                     uint8_t  driveNo,  /**< Drive number. */
+                     uint16_t idn,  /**< SoE IDN (see ecrt_slave_config_idn()). */
+                     size_t   byteSize,  /**< Size of data to write. */
+                     uint8_t *value  /**< Pointer to data to write. */
+                     ) {
   uint16_t soeError = 0;
 
   int errorCode = ecrt_master_write_idn(
-        master_, /**< EtherCAT master. */
-        slavePosition, /**< Slave position. */
-        driveNo, /**< Drive number. */
-        idn, /**< SoE IDN (see ecrt_slave_config_idn()). */
-        value, /**< Pointer to memory where the read data can be read. */
-        byteSize, /**< Size of the memory \a target points to. */        
-        &soeError /**< Pointer to variable, where an SoE error code
+    master_,     /**< EtherCAT master. */
+    slavePosition,     /**< Slave position. */
+    driveNo,     /**< Drive number. */
+    idn,     /**< SoE IDN (see ecrt_slave_config_idn()). */
+    value,     /**< Pointer to memory where the read data can be read. */
+    byteSize,     /**< Size of the memory \a target points to. */
+    &soeError     /**< Pointer to variable, where an SoE error code
                                can be stored. */
-        );
+    );
 
-  if(errorCode) {
-    LOGERR("%s/%s:%d: ERROR: SoE write failed with SoE error code 0x%x (0x%x).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        soeError,
-        errorCode);
-   }
+  if (errorCode) {
+    LOGERR(
+      "%s/%s:%d: ERROR: SoE write failed with SoE error code 0x%x (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      soeError,
+      errorCode);
+  }
 
-   return errorCode;
+  return errorCode;
 }
 
 int ecmcEc::updateInputProcessImage() {
@@ -848,18 +796,15 @@ int ecmcEc::updateOutProcessImage() {
   }
 
   // I/O intr to EPCIS.
-  if (asynPortDriver_) {    
-    
+  if (asynPortDriver_) {
     ecAsynParams_[ECMC_ASYN_EC_PAR_MASTER_STAT_ID]->refreshParamRT(0);
-    ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID]->refreshParamRT(0);
-    ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_ID]->refreshParamRT(0);
+
     // Always update ec ok param
     ecAsynParams_[ECMC_ASYN_EC_STAT_OK_ID]->refreshParamRT(1);
-    // No need to update below since in rt now.
-    //ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID]->refreshParamRT(0);
-    //ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParamRT(0);    
-    //ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParamRT(0);
-    
+
+    for (int i = 0; i < domainCounter_; i++) {
+      domains_[i]->updateAsyn();
+    }
   }
   return 0;
 }
@@ -872,21 +817,20 @@ int ecmcEc::addEntry(
   uint8_t        syncMangerIndex,
   uint16_t       pdoIndex,
   uint16_t       entryIndex,
-  uint8_t        entrySubIndex, 
+  uint8_t        entrySubIndex,
   ecmcEcDataType dt,
   std::string    id,
-  int            useInRealTime) 
-  {
-
-   // Ensure master can support datatype
-   if(!validEntryType(dt)){
-    LOGERR("%s/%s:%d: ERROR: Data type is not supported for current installed master. Please upgrade to newer ethercat master version (0x%x).\n",
-         __FILE__,
-         __FUNCTION__,
-         __LINE__,
-         ERROR_EC_DATATYPE_NOT_VALID);
+  int            useInRealTime) {
+  // Ensure master can support datatype
+  if (!validEntryType(dt)) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Data type is not supported for current installed master. Please upgrade to newer ethercat master version (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_EC_DATATYPE_NOT_VALID);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
-                    ERROR_EC_DATATYPE_NOT_VALID);
+                      ERROR_EC_DATATYPE_NOT_VALID);
   }
 
   ecmcEcSlave *slave = findSlave(position);
@@ -913,9 +857,10 @@ int ecmcEc::addEntry(
     return errorCode;
   }
   entryCounter_++;
-  
+
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
-  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                      ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }
@@ -925,85 +870,106 @@ int ecmcEc::addEntry(
 *
 */
 bool ecmcEc::validEntryType(ecmcEcDataType dt) {
- switch(dt) {
-    case ECMC_EC_NONE:
-      return 1;
-      break;
+  switch (dt) {
+  case ECMC_EC_NONE:
+    return 1;
 
-    case ECMC_EC_B1:
-      return 1;
-      break;
+    break;
 
-    case ECMC_EC_B2:
-      return 1;
-      break;
+  case ECMC_EC_B1:
+    return 1;
 
-    case ECMC_EC_B3:
-      return 1;
-      break;
+    break;
 
-    case ECMC_EC_B4:
-      return 1;
-      break;
+  case ECMC_EC_B2:
+    return 1;
 
-    case ECMC_EC_U8:
-      return 1;
-      break;
+    break;
 
-    case ECMC_EC_S8:
-      return 1;
-      break;
+  case ECMC_EC_B3:
+    return 1;
 
-    case ECMC_EC_U16:
-      return 1;
-      break;
+    break;
 
-    case ECMC_EC_S16:
-      return 1;
-      break;
+  case ECMC_EC_B4:
+    return 1;
 
-    case ECMC_EC_U32:
-      return 1;
-      break;
+    break;
 
-    case ECMC_EC_S32:
-      return 1;
-      break;
-    case ECMC_EC_U64:
+  case ECMC_EC_U8:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S8:
+    return 1;
+
+    break;
+
+  case ECMC_EC_U16:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S16:
+    return 1;
+
+    break;
+
+  case ECMC_EC_U32:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S32:
+    return 1;
+
+    break;
+
+  case ECMC_EC_U64:
 #ifdef EC_READ_U64
-      return 1;
-#else
-      return 0;
-#endif
-      break;
+    return 1;
 
-    case ECMC_EC_S64:
+#else // ifdef EC_READ_U64
+    return 0;
+
+#endif // ifdef EC_READ_U64
+    break;
+
+  case ECMC_EC_S64:
 #ifdef EC_READ_S64
-      return 1;
-#else
-      return 0;
-#endif
-      break;
+    return 1;
 
-    case ECMC_EC_F32:
+#else // ifdef EC_READ_S64
+    return 0;
+
+#endif // ifdef EC_READ_S64
+    break;
+
+  case ECMC_EC_F32:
 #ifdef EC_READ_REAL
-      return 1;
-#else
-      return 0;
-#endif
-      break;
+    return 1;
 
-    case ECMC_EC_F64:
+#else // ifdef EC_READ_REAL
+    return 0;
+
+#endif // ifdef EC_READ_REAL
+    break;
+
+  case ECMC_EC_F64:
 #ifdef EC_READ_LREAL
-      return 1;
-#else
-      return 0;
-#endif
-      break;
+    return 1;
 
-    default:
-      return 0; 
-      break;
+#else // ifdef EC_READ_LREAL
+    return 0;
+
+#endif // ifdef EC_READ_LREAL
+    break;
+
+  default:
+    return 0;
+
+    break;
   }
   return 0;
 }
@@ -1047,39 +1013,50 @@ int ecmcEc::findSlaveIndex(int busPosition, int *slaveIndex) {
 }
 
 int ecmcEc::statusOK() {
-  if (!diag_) {
+  if (!diag_ || allowOffline_) {
     return 1;
   }
 
   // Auto reset error at startup
-  if (inStartupPhase_ && slavesOK_ && domainOK_ && masterOK_ && startupCounter_ > delayEcOKCycles_) {
+  if (inStartupPhase_ && slavesOK_ && domainsOK_ && masterOK_ &&
+      (startupCounter_ > delayEcOKCycles_)) {
     inStartupPhase_ = false;
     errorReset();
   }
-  return slavesOK_ && domainOK_ && masterOK_ && !inStartupPhase_;
+
+  // printf("slavesOK_ %d domainsOK_ %d masterOK_ %d inStartupPhase_%d\n",slavesOK_,domainsOK_,masterOK_,inStartupPhase_);
+  return slavesOK_ && domainsOK_ && masterOK_ && !inStartupPhase_;
 }
 
 int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles) {
-  domainNotOKCyclesLimit_ = cycles;
+  domainFailCyclesLimit_ = cycles;
+
+  if (domainCounter_ == 0) {
+    return 0;
+  }
+
+  for (int i = 0; i < domainCounter_; i++) {
+    domains_[i]->setFailedCyclesLimitInterlock(cycles);
+  }
   return 0;
 }
 
 void ecmcEc::slowExecute() {
   LOGINFO5(
-    "%s/%s:%d: INFO: MasterOK: %d, SlavesOK: %d, DomainOK: %d, DomainNotOKCounter: %d, DomainNotOKLimit: %d, Error Code:0x%x .\n",
+    "%s/%s:%d: INFO: MasterOK: %d, SlavesOK: %d, DomainOK: %d, Error Code:0x%x .\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
     masterOK_,
     slavesOK_,
-    domainOK_,
-    domainNotOKCounterMax_,
-    domainNotOKCyclesLimit_,
+    domainsOK_,
     getErrorID());
 
   checkState();
 
-  domainNotOKCounterMax_ = 0;
+  for (int i = 0; i < domainCounter_; i++ ) {
+    domains_[i]->slowExecute();
+  }
 }
 
 int ecmcEc::reset() {
@@ -1102,7 +1079,7 @@ timespec ecmcEc::timespecAdd(timespec time1, timespec time2) {
 
 int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
                       std::string    startEntryIDString,
-                      int            byteSize,                      
+                      int            byteSize,
                       ec_direction_t direction,
                       ecmcEcDataType dt,
                       std::string    memMapIDString) {
@@ -1150,7 +1127,8 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
 
   ecMemMapArray_[ecMemMapArrayCounter_] = new ecmcEcMemMap(asynPortDriver_,
                                                            masterIndex_,
-                                                           startEntryBusPosition,                                                        
+                                                           startEntryBusPosition,
+                                                           currentDomain_,
                                                            entry,
                                                            byteSize,
                                                            direction,
@@ -1169,27 +1147,86 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
 
   ecMemMapArrayCounter_++;
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParam(1);
-  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);  // also for memmap and ecEntry
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                      ECMC_ASYN_DEFAULT_ADDR);                          // also for memmap and ecEntry
 
-  return ecMemMapArray_[ecMemMapArrayCounter_-1]->getErrorID();
+  return ecMemMapArray_[ecMemMapArrayCounter_ - 1]->getErrorID();
+}
+
+int ecmcEc::addDataItem(uint16_t       startEntryBusPosition,
+                        std::string    startEntryIDString,
+                        int            entryByteOffset,
+                        int            entryBitOffset,
+                        ec_direction_t direction,
+                        ecmcEcDataType dt,
+                        std::string    id) {
+  ecmcEcSlave *slave = findSlave(startEntryBusPosition);
+
+  if (!slave) {
+    LOGERR("%s/%s:%d: ERROR: Slave with busposition %d not found (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           startEntryBusPosition,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+
+  ecmcEcEntry *entry = slave->findEntry(startEntryIDString);
+
+  if (!entry) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Adding ecDataItem failed. Start entry not found (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_EC_MEM_MAP_START_ENTRY_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MEM_MAP_START_ENTRY_NULL);
+  }
+
+  int errorCode = slave->addDataItem(entry,
+                                     entryByteOffset,
+                                     entryBitOffset,
+                                     direction,
+                                     dt,
+                                     id);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  entryCounter_++;
+
+  ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                      ECMC_ASYN_DEFAULT_ADDR);
+
+  return 0;
 }
 
 ecmcEcMemMap * ecmcEc::findMemMap(std::string name) {
-  
   ecmcEcMemMap *temp = NULL;
+
   for (int i = 0; i < ecMemMapArrayCounter_; i++) {
     if (ecMemMapArray_[i]) {
       if (ecMemMapArray_[i]->getIdentificationName().compare(name) == 0) {
         temp = ecMemMapArray_[i];
-        break;        
+        break;
       }
     }
   }
   return temp;
 }
 
-int ecmcEc::findMemMapId(std::string name){
+int ecmcEc::findMemMapId(std::string name) {
   int temp = -1;
+
   for (int i = 0; i < ecMemMapArrayCounter_; i++) {
     if (ecMemMapArray_[i]) {
       if (ecMemMapArray_[i]->getIdentificationName().compare(name) == 0) {
@@ -1202,11 +1239,10 @@ int ecmcEc::findMemMapId(std::string name){
 }
 
 ecmcEcMemMap * ecmcEc::getMemMap(int index) {
-
-  if(index<0 || index >= ecMemMapArrayCounter_) {
+  if ((index < 0) || (index >= ecMemMapArrayCounter_)) {
     return NULL;
   }
-  
+
   return ecMemMapArray_[index];
 }
 
@@ -1216,7 +1252,6 @@ int ecmcEc::setEcStatusOutputEntry(ecmcEcEntry *entry) {
 }
 
 int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
-  
   char buffer[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
 
   // Master status
@@ -1224,6 +1259,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
                                     sizeof(buffer),
                                     ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_MASTER_STAT_NAME,
                                     masterIndex_);
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
@@ -1233,15 +1269,16 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
     return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
-  char *name = buffer;
-  ecmcAsynDataItem *paramTemp=NULL;
+  char *name                  = buffer;
+  ecmcAsynDataItem *paramTemp = NULL;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(statusWordMaster_),
-                                         sizeof(statusWordMaster_),
-                                         ECMC_EC_S32,
-                                         0);
-  if(!paramTemp) {
+                                                asynParamInt32,
+                                                (uint8_t *)&(statusWordMaster_),
+                                                sizeof(statusWordMaster_),
+                                                ECMC_EC_S32,
+                                                0);
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
@@ -1251,52 +1288,17 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
   paramTemp->addSupportedAsynType(asynParamInt32);
-  paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_MASTER_STAT_ID] = paramTemp;
-
-  // Status word domain
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_DOMAIN_STAT_NAME,
-                       masterIndex_);
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
-    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(statusWordDomain_),
-                                         sizeof(statusWordDomain_),
-                                         ECMC_EC_U32,
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  paramTemp->addSupportedAsynType(asynParamInt32);
-  paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
-  paramTemp->setAllowWriteToEcmc(false);  
-  paramTemp->refreshParam(1);
-  ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_STAT_ID] = paramTemp;
 
   // Slave Counter
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_SLAVE_COUNT_NAME,
                        masterIndex_);
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
@@ -1306,14 +1308,15 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
     return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(slaveCounter_),
-                                         sizeof(slaveCounter_),
-                                         ECMC_EC_S32,
-                                         0);
-  if(!paramTemp) {
+                                                asynParamInt32,
+                                                (uint8_t *)&(slaveCounter_),
+                                                sizeof(slaveCounter_),
+                                                ECMC_EC_S32,
+                                                0);
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
@@ -1340,14 +1343,16 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
     return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(ecMemMapArrayCounter_),
-                                         sizeof(ecMemMapArrayCounter_),
-                                         ECMC_EC_S32,
-                                         0);
-  if(!paramTemp) {
+                                                asynParamInt32,
+                                                (uint8_t *)&(
+                                                  ecMemMapArrayCounter_),
+                                                sizeof(ecMemMapArrayCounter_),
+                                                ECMC_EC_S32,
+                                                0);
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
@@ -1359,41 +1364,6 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID] = paramTemp;
-
-  // Domain fail counter total
-  charCount = snprintf(buffer,
-                       sizeof(buffer),
-                       ECMC_EC_STR "%d." ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_NAME,
-                       masterIndex_);
-
-  if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
-    return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
-  }
-  name = buffer;
-  paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(domainNotOKCounterTotal_),
-                                         sizeof(domainNotOKCounterTotal_),
-                                         ECMC_EC_S32,
-                                         0);
-  if(!paramTemp) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
-  }
-  paramTemp->setAllowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  ecAsynParams_[ECMC_ASYN_EC_PAR_DOMAIN_FAIL_COUNTER_TOT_ID] = paramTemp;
 
   // Entry counter
   charCount = snprintf(buffer,
@@ -1410,14 +1380,15 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
     return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(entryCounter_),
-                                         sizeof(entryCounter_),
-                                         ECMC_EC_S32,
-                                         0);
-  if(!paramTemp) {
+                                                asynParamInt32,
+                                                (uint8_t *)&(entryCounter_),
+                                                sizeof(entryCounter_),
+                                                ECMC_EC_S32,
+                                                0);
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
@@ -1435,6 +1406,7 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
                        sizeof(buffer),
                        ECMC_EC_STR "%d." ECMC_ASYN_EC_STAT_OK_NAME,
                        masterIndex_);
+
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
       "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
@@ -1444,14 +1416,15 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
       ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW);
     return ERROR_EC_REG_ASYN_PAR_BUFFER_OVERFLOW;
   }
-  name = buffer;
+  name      = buffer;
   paramTemp = asynPortDriver_->addNewAvailParam(name,
-                                         asynParamInt32,
-                                         (uint8_t *)&(ecStatOk_),
-                                         sizeof(ecStatOk_),
-                                         ECMC_EC_S32,
-                                         0);
-  if(!paramTemp) {
+                                                asynParamInt32,
+                                                (uint8_t *)&(ecStatOk_),
+                                                sizeof(ecStatOk_),
+                                                ECMC_EC_S32,
+                                                0);
+
+  if (!paramTemp) {
     LOGERR(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
@@ -1461,12 +1434,13 @@ int ecmcEc::initAsyn(ecmcAsynPortDriver *asynPortDriver) {
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
   paramTemp->addSupportedAsynType(asynParamInt32);
-  paramTemp->addSupportedAsynType(asynParamUInt32Digital);    
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   ecAsynParams_[ECMC_ASYN_EC_STAT_OK_ID] = paramTemp;
 
-  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST, ECMC_ASYN_DEFAULT_ADDR);
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                      ECMC_ASYN_DEFAULT_ADDR);
 
   return 0;
 }
@@ -1807,7 +1781,7 @@ int ecmcEc::printSlaveConfig(int slaveIndex) {
           return 0;
         }
 
-        printf(ECMC_IOCSH_CFG_CMD" ");
+        printf(ECMC_IOCSH_CFG_CMD " ");
         printf(
           "\"Cfg.EcAddEntryComplete(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%d,sm%d.p%d.e%d)\"\n",
           slaveIndex,
@@ -1831,11 +1805,12 @@ int ecmcEc::printSlaveConfig(int slaveIndex) {
 
 int ecmcEc::validate() {
   int errorCode = 0;
-  
+
   // All real slaves
   for (int i = 0; i < slaveCounter_; i++) {
-    if(slaveArray_[i]) {
+    if (slaveArray_[i]) {
       errorCode = slaveArray_[i]->validate();
+
       if (errorCode) {
         return errorCode;
       }
@@ -1845,6 +1820,7 @@ int ecmcEc::validate() {
   // Simulation slave
   if (simSlave_) {
     errorCode = simSlave_->validate();
+
     if (errorCode) {
       return errorCode;
     }
@@ -1852,8 +1828,9 @@ int ecmcEc::validate() {
 
   // Mem maps
   for (int i = 0; i < ecMemMapArrayCounter_; i++) {
-    if(ecMemMapArray_[i]) {
+    if (ecMemMapArray_[i]) {
       errorCode = ecMemMapArray_[i]->validate();
+
       if (errorCode) {
         return errorCode;
       }
@@ -1867,18 +1844,17 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
                         uint16_t slavePos,   /**< Slave position. */
                         uint32_t vendorId,   /**< Expected vendor ID. */
                         uint32_t productCode,  /**< Expected product code. */
-                        uint32_t revisionNum  /**< Revision number*/){
-
+                        uint32_t revisionNum /**< Revision number*/) {
   ec_master_info_t masterInfo;
   ec_slave_info_t  slaveInfo;
-  int slaveCount       = 0;
+  int slaveCount = 0;
 
   if (!master_) {
     LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MASTER_NULL);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MASTER_NULL);
     return setErrorID(ERROR_EC_MASTER_NULL);
   }
 
@@ -1892,16 +1868,17 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       __LINE__,
       errorCode);
     return setErrorID(ERROR_EC_MASTER_NULL);
-  }  
+  }
 
   // Slave loop
   slaveCount = masterInfo.slave_count;
+
   if (slavePos >= slaveCount) {
     LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
     return setErrorID(ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
   }
 
@@ -1918,7 +1895,7 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
     return setErrorID(ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
   }
 
-  if(slaveInfo.position != slavePos) {
+  if (slaveInfo.position != slavePos) {
     LOGERR(
       "%s/%s:%d: Error: Slave verification for busposition %d failed. Bus position %d != %d (0x%x).\n",
       __FILE__,
@@ -1928,10 +1905,10 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       slavePos,
       slaveInfo.position,
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
-      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+    return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }
 
-  if(slaveInfo.alias != alias) {
+  if (slaveInfo.alias != alias) {
     LOGERR(
       "%s/%s:%d: Error: Slave verification for busposition %d failed. Alias %d != %d (0x%x).\n",
       __FILE__,
@@ -1941,10 +1918,10 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       alias,
       slaveInfo.alias,
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
-      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+    return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }
 
-  if(slaveInfo.vendor_id != vendorId) {
+  if (slaveInfo.vendor_id != vendorId) {
     LOGERR(
       "%s/%s:%d: Error: Slave verification for busposition %d failed. Vendor Id 0x%x != 0x%x (0x%x).\n",
       __FILE__,
@@ -1954,11 +1931,11 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       vendorId,
       slaveInfo.vendor_id,
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
-      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+    return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }
 
 
-  if(slaveInfo.product_code != productCode) {
+  if (slaveInfo.product_code != productCode) {
     LOGERR(
       "%s/%s:%d: Error: Slave verification for busposition %d failed. Product Code 0x%x != 0x%x (0x%x).\n",
       __FILE__,
@@ -1968,11 +1945,11 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       productCode,
       slaveInfo.product_code,
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
-      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+    return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }
 
   // Only check revision if revisionNum is set (> 0)
-  if( revisionNum > 0 && slaveInfo.revision_number < revisionNum ) {
+  if ((revisionNum > 0) && (slaveInfo.revision_number < revisionNum)) {
     LOGERR(
       "%s/%s:%d: Error: Slave verification for busposition %d failed. Revision of actual slave (0x%x) must be >= revision of config (0x%x) (0x%x).\n",
       __FILE__,
@@ -1982,15 +1959,14 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       slaveInfo.revision_number,
       revisionNum,
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
-      return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+    return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }
 
   return 0;
 }
 
 int ecmcEc::checkReadyForRuntime() {
-  
-  if(slaveCounter_ == 0 || entryCounter_ == 0){
+  if ((slaveCounter_ == 0) || (entryCounter_ == 0)) {
     LOGERR(
       "%s/%s:%d: Error: No valid EtherCAT configuration (0x%x).\n",
       __FILE__,
@@ -1999,7 +1975,7 @@ int ecmcEc::checkReadyForRuntime() {
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
     return setErrorID(ERROR_EC_NO_VALID_CONFIG);
   }
-  
+
   return 0;
 }
 
@@ -2012,23 +1988,22 @@ uint64_t ecmcEc::getTimeNs() {
     clock_gettime(CLOCK_MONOTONIC, &timeRel);
     timeAbs = timespecAdd(timeRel, timeOffset_);
   }
-  
+
   return TIMESPEC2NS(timeAbs);
 }
 
 uint32_t ecmcEc::getSlaveVendorId(uint16_t alias,  /**< Slave alias. */
-                                  uint16_t slavePos   /**< Slave position. */){
-
+                                  uint16_t slavePos /**< Slave position. */) {
   ec_master_info_t masterInfo;
   ec_slave_info_t  slaveInfo;
-  int slaveCount       = 0;
+  int slaveCount = 0;
 
   if (!master_) {
     LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MASTER_NULL);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MASTER_NULL);
     return 0;
   }
 
@@ -2042,15 +2017,16 @@ uint32_t ecmcEc::getSlaveVendorId(uint16_t alias,  /**< Slave alias. */
       __LINE__,
       errorCode);
     return 0;
-  }  
+  }
 
   slaveCount = masterInfo.slave_count;
+
   if (slavePos >= slaveCount) {
     LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
     return 0;
   }
 
@@ -2066,23 +2042,23 @@ uint32_t ecmcEc::getSlaveVendorId(uint16_t alias,  /**< Slave alias. */
       ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
     return 0;
   }
-  
+
   return slaveInfo.vendor_id;
 }
 
 uint32_t ecmcEc::getSlaveProductCode(uint16_t alias,  /**< Slave alias. */
-                                     uint16_t slavePos   /**< Slave position. */){
-
+                                     uint16_t slavePos /**< Slave position. */)
+{
   ec_master_info_t masterInfo;
   ec_slave_info_t  slaveInfo;
-  int slaveCount       = 0;
+  int slaveCount = 0;
 
   if (!master_) {
     LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MASTER_NULL);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MASTER_NULL);
     return 0;
   }
 
@@ -2096,15 +2072,16 @@ uint32_t ecmcEc::getSlaveProductCode(uint16_t alias,  /**< Slave alias. */
       __LINE__,
       errorCode);
     return 0;
-  }  
+  }
 
   slaveCount = masterInfo.slave_count;
+
   if (slavePos >= slaveCount) {
     LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
     return 0;
   }
 
@@ -2120,23 +2097,23 @@ uint32_t ecmcEc::getSlaveProductCode(uint16_t alias,  /**< Slave alias. */
       ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
     return 0;
   }
-     
-   return slaveInfo.product_code;
+
+  return slaveInfo.product_code;
 }
 
 uint32_t ecmcEc::getSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
-                                    uint16_t slavePos   /**< Slave position. */){
-
+                                     uint16_t slavePos /**< Slave position. */)
+{
   ec_master_info_t masterInfo;
   ec_slave_info_t  slaveInfo;
-  int slaveCount       = 0;
+  int slaveCount = 0;
 
   if (!master_) {
     LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MASTER_NULL);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MASTER_NULL);
     return 0;
   }
 
@@ -2150,15 +2127,16 @@ uint32_t ecmcEc::getSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
       __LINE__,
       errorCode);
     return 0;
-  }  
+  }
 
   slaveCount = masterInfo.slave_count;
+
   if (slavePos >= slaveCount) {
     LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
     return 0;
   }
 
@@ -2174,23 +2152,22 @@ uint32_t ecmcEc::getSlaveRevisionNum(uint16_t alias,  /**< Slave alias. */
       ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
     return 0;
   }
-     
-   return slaveInfo.revision_number;
+
+  return slaveInfo.revision_number;
 }
 
 uint32_t ecmcEc::getSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
-                                   uint16_t slavePos   /**< Slave position. */){
-
+                                   uint16_t slavePos /**< Slave position. */) {
   ec_master_info_t masterInfo;
   ec_slave_info_t  slaveInfo;
-  int slaveCount       = 0;
+  int slaveCount = 0;
 
   if (!master_) {
     LOGERR("%s/%s:%d: INFO: No EtherCAT master selected (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MASTER_NULL);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MASTER_NULL);
     return 0;
   }
 
@@ -2204,15 +2181,16 @@ uint32_t ecmcEc::getSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
       __LINE__,
       errorCode);
     return 0;
-  }  
+  }
 
   slaveCount = masterInfo.slave_count;
+
   if (slavePos >= slaveCount) {
     LOGERR("%s/%s:%d: INFO: Slave index out of range (0x%x).\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
     return 0;
   }
 
@@ -2228,32 +2206,31 @@ uint32_t ecmcEc::getSlaveSerialNum(uint16_t alias,  /**< Slave alias. */
       ERROR_EC_MAIN_GET_SLAVE_INFO_FAILED);
     return 0;
   }
-     
-   return slaveInfo.serial_number;
+
+  return slaveInfo.serial_number;
 }
 
 int ecmcEc::useClockRealtime(bool useClkRT) {
-   useClockRealtime_ = useClkRT;
-   return 0;
+  useClockRealtime_ = useClkRT;
+  return 0;
 }
 
 bool ecmcEc::getScanBusyNotRT() {
-  
-  if(!master_) {
+  if (!master_) {
     return false;
   }
 
-// typedef struct {
-//   unsigned int slave_count; /**< Number of slaves in the bus. */
-//   unsigned int link_up : 1; /**< \a true, if the network link is up. */
-//   uint8_t scan_busy; /**< \a true, while the master is scanning the bus */
-//   uint64_t app_time; /**< Application time. */
-// } ec_master_info_t;
+  // typedef struct {
+  //   unsigned int slave_count; /**< Number of slaves in the bus. */
+  //   unsigned int link_up : 1; /**< \a true, if the network link is up. */
+  //   uint8_t scan_busy; /**< \a true, while the master is scanning the bus */
+  //   uint64_t app_time; /**< Application time. */
+  // } ec_master_info_t;
 
   ec_master_info_t mInfo;
   ecrt_master(master_, &mInfo);
-  
-  return mInfo.scan_busy;  
+
+  return mInfo.scan_busy;
 }
 
 int ecmcEc::setEcOkDelayCycles(int cycles) {
@@ -2261,13 +2238,13 @@ int ecmcEc::setEcOkDelayCycles(int cycles) {
   return 0;
 }
 
-int ecmcEc::addSDOAsync(uint16_t slaveBusPosition,
-                        uint16_t index,
-                        uint8_t  subIndex,
+int ecmcEc::addSDOAsync(uint16_t       slaveBusPosition,
+                        uint16_t       index,
+                        uint8_t        subIndex,
                         ecmcEcDataType dt,
-                        std::string idString) {
-
+                        std::string    idString) {
   ecmcEcSlave *slave = findSlave(slaveBusPosition);
+
   if (!slave) {
     LOGERR("%s/%s:%d: ERROR: Slave object NULL (0x%x).\n",
            __FILE__,
@@ -2281,7 +2258,95 @@ int ecmcEc::addSDOAsync(uint16_t slaveBusPosition,
   }
 
   return slave->addSDOAsync(index, /**< SDO index. */
-                            subIndex, /**< SDO subindex. */                            
+                            subIndex, /**< SDO subindex. */
                             dt,
                             idString);
+}
+
+int ecmcEc::addDomain(int exeCycles, int offsetCycles) {
+  try {
+    ecmcEcDomain *domain = new ecmcEcDomain(asynPortDriver_,
+                                            master_,
+                                            masterIndex_,
+                                            domainCounter_,
+                                            exeCycles,
+                                            offsetCycles);
+    domains_.push_back(domain);
+    domainCounter_++;
+
+    // Always use the latest domain for cfgs
+    currentDomain_ = domain;
+    currentDomain_->setFailedCyclesLimitInterlock(domainFailCyclesLimit_);
+  }
+  catch (std::exception& e) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Failed to create domain object (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+  }
+  return 0;
+}
+
+int ecmcEc::setDomAllowOffline(int allow) {
+  if (!currentDomain_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Failed to create domain object (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+  }
+
+
+  return currentDomain_->setAllowOffline(allow);
+}
+
+int ecmcEc::getDomAllowOffline(int *allow) {
+  if (!currentDomain_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Failed to create domain object (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_CREATE_DOMAIN_FAILED);
+  }
+
+  *allow = currentDomain_->getAllowOffline();
+  return 0;
+}
+
+int ecmcEc::setEcAllowOffline(int allow) {
+  allowOffline_ = allow;
+  return 0;
+}
+
+int ecmcEc::getEcAllowOffline() {
+  return allowOffline_;
+}
+
+int ecmcEc::getDomState(int domId) {
+  if (domId >= domainCounter_) {
+    return -ERROR_EC_MAIN_DOMAIN_NULL;
+  }
+
+  if (!domains_[domId]) {
+    return -ERROR_EC_MAIN_DOMAIN_NULL;
+  }
+
+  // just use getOK, because state is checke cyclically with other function
+  return domains_[domId]->getOK();
 }

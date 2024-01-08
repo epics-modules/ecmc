@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcMainThread.cpp
 *
@@ -15,12 +15,12 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // ifdef __cplusplus
 
 extern const char *git_version_str;
 
 #ifdef __cplusplus
 }
-#endif
+#endif // ifdef __cplusplus
 
 #endif /* GITVESION_H */

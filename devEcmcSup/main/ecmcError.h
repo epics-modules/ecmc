@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcError.h
 *
@@ -15,7 +15,7 @@
 #include <string.h>
 #include <time.h>
 #include "stdio.h"
-#include "../com/ecmcOctetIF.h"
+#include "ecmcOctetIF.h"
 
 enum ecmcAlarmSeverity {
   ECMC_SEVERITY_NONE      = 0,
@@ -24,18 +24,20 @@ enum ecmcAlarmSeverity {
   ECMC_SEVERITY_EMERGENCY = 3
 };
 
-#define PRINT_ERROR_PATH(fmt, ...)                                 \
-  {                                                                \
-    snprintf(errorPath_, sizeof(errorPath_), fmt, ## __VA_ARGS__); \
-    errorPathValid_ = true;                                        \
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);               \
-  }
+#define PRINT_ERROR_PATH(fmt, ...)\
+        {\
+          snprintf(errorPath_, sizeof(errorPath_), fmt, ## __VA_ARGS__);\
+          errorPathValid_ = true;\
+          setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);\
+        }
 
 class ecmcError {
- public:  
+public:
   ecmcError();
+
   // allow also write error and warnings to external ints
-  ecmcError(int* errorPtr,int* warningPtr);
+  ecmcError(int *errorPtr,
+            int *warningPtr);
   virtual ~ecmcError();
   virtual int setErrorID(int errorID);
   virtual int setErrorID(int               errorID,
@@ -49,23 +51,24 @@ class ecmcError {
                          int               lineNumber,
                          int               errorID,
                          ecmcAlarmSeverity severity);
-  virtual int setWarningID(int warningID);
+  virtual int               setWarningID(int warningID);
   virtual void              setError(bool error);
   virtual void              errorReset();
   virtual bool              getError();
   virtual int               getErrorID();
   virtual int               getWarningID();
   virtual ecmcAlarmSeverity getSeverity();
-  static const char       * convertErrorIdToString(int errorId);
-  static const char       * convertWarningIdToString(int warningId);
+  static const char*        convertErrorIdToString(int errorId);
+  static const char*        convertWarningIdToString(int warningId);
 
-  void setExternalPtrs(int* errorPtr,int* warningPtr);
+  void                      setExternalPtrs(int *errorPtr,
+                                            int *warningPtr);
 
- protected:
+protected:
   char errorPath_[128];
   bool errorPathValid_;
 
- private:
+private:
   void initVars();
   bool error_;
   int errorId_;
@@ -73,7 +76,7 @@ class ecmcError {
   int warning_;
   ecmcAlarmSeverity currSeverity_;
   int *warningPtr_;
-  int *errorPtr_;  
+  int *errorPtr_;
 };
 
 #endif  /* ECMCERROR_H_ */

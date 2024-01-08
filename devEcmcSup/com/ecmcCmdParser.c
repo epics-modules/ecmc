@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcCmdParser.c
 *
@@ -25,15 +25,15 @@
 #include <math.h>
 #include "ecmcCmdParser.h"
 #include "ecmcOctetIF.h"
-#include "../main/ecmcMainThread.h"
-#include "../main/ecmcErrorsList.h"
-#include "../motion/ecmcMotion.h"
-#include "../ethercat/ecmcEthercat.h"
-#include "../misc/ecmcMisc.h"
-#include "../main/ecmcGeneral.h"
-#include "../com/ecmcCom.h"
-#include "../plc/ecmcPLC.h"
-#include "../plugin/ecmcPlugin.h"
+#include "ecmcMainThread.h"
+#include "ecmcErrorsList.h"
+#include "ecmcMotion.h"
+#include "ecmcEthercat.h"
+#include "ecmcMisc.h"
+#include "ecmcGeneral.h"
+#include "ecmcCom.h"
+#include "ecmcPLC.h"
+#include "ecmcPlugin.h"
 #include <iocsh.h>
 
 typedef struct
@@ -55,7 +55,7 @@ static int ecmcInitDone = 0;
 
 extern double mcuFrequency;
 
-//Buffers
+// Buffers
 static char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cIdBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cIdBuffer2[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
@@ -64,92 +64,92 @@ static char cPlcExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cOneCommand[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 
 // TODO: Cleanup macros.. should not need different for different types
-#define SEND_OK_OR_ERROR_AND_RETURN(function)            \
-  do {                                                   \
-    int iRet = function;                                 \
-    if (iRet) {                                          \
-      cmd_buf_printf(buffer, "Error: %d", iRet);         \
-      return 0;                                          \
-    }                                                    \
-    cmd_buf_printf(buffer, "OK");                        \
-    return 0;                                            \
-  }                                                      \
-  while (0)
+#define SEND_OK_OR_ERROR_AND_RETURN(function)\
+        do {\
+          int iRet = function;\
+          if (iRet) {\
+            cmd_buf_printf(buffer, "Error: %d", iRet);\
+            return 0;\
+          }\
+          cmd_buf_printf(buffer, "OK");\
+          return 0;\
+        }\
+        while (0)
 
-#define SEND_RESULT_OR_ERROR_AND_RETURN_INT(function)    \
-  do {                                                   \
-    int iRet = function;                                 \
-    if (iRet) {                                          \
-      cmd_buf_printf(buffer, "Error: %d", iRet);         \
-      return 0;                                          \
-    }                                                    \
-    cmd_buf_printf(buffer, "%d", iValue);                \
-    return 0;                                            \
-  }                                                      \
-  while (0)
+#define SEND_RESULT_OR_ERROR_AND_RETURN_INT(function)\
+        do {\
+          int iRet = function;\
+          if (iRet) {\
+            cmd_buf_printf(buffer, "Error: %d", iRet);\
+            return 0;\
+          }\
+          cmd_buf_printf(buffer, "%d", iValue);\
+          return 0;\
+        }\
+        while (0)
 
-#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT(function)   \
-  do {                                                   \
-    int iRet = function;                                 \
-    if (iRet) {                                          \
-      cmd_buf_printf(buffer, "Error: %d", iRet);         \
-      return 0;                                          \
-    }                                                    \
-    cmd_buf_printf(buffer, "%u", u32Value);              \
-    return 0;                                            \
-  }                                                      \
-  while (0)
+#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT(function)\
+        do {\
+          int iRet = function;\
+          if (iRet) {\
+            cmd_buf_printf(buffer, "Error: %d", iRet);\
+            return 0;\
+          }\
+          cmd_buf_printf(buffer, "%u", u32Value);\
+          return 0;\
+        }\
+        while (0)
 
-#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(function)   \
-  do {                                                   \
-    int iRet = function;                                 \
-    if (iRet) {                                          \
-      cmd_buf_printf(buffer, "Error: %d", iRet);         \
-      return 0;                                          \
-    }                                                    \
-    cmd_buf_printf(buffer, "%u", u64Value);              \
-    return 0;                                            \
-  }                                                      \
-  while (0)
+#define SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(function)\
+        do {\
+          int iRet = function;\
+          if (iRet) {\
+            cmd_buf_printf(buffer, "Error: %d", iRet);\
+            return 0;\
+          }\
+          cmd_buf_printf(buffer, "%u", u64Value);\
+          return 0;\
+        }\
+        while (0)
 
-#define SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(function) \
-  do {                                                   \
-    int iRet = function;                                 \
-    if (iRet) {                                          \
-      cmd_buf_printf(buffer, "Error: %d", iRet);         \
-      return 0;                                          \
-    }                                                    \
-    cmd_buf_printf(buffer, "%lf", fValue);               \
-    return 0;                                            \
-  }                                                      \
-  while (0)
+#define SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(function)\
+        do {\
+          int iRet = function;\
+          if (iRet) {\
+            cmd_buf_printf(buffer, "Error: %d", iRet);\
+            return 0;\
+          }\
+          cmd_buf_printf(buffer, "%lf", fValue);\
+          return 0;\
+        }\
+        while (0)
 
-#define SEND_RESULT_OR_ERROR_AND_RETURN_INT64(function) \
-  do {                                                   \
-    int iRet = function;                                 \
-    if (iRet) {                                          \
-      cmd_buf_printf(buffer, "Error: %d", iRet);         \
-      return 0;                                          \
-    }                                                    \
-    cmd_buf_printf(buffer, "%" PRIu64 "", i64Value);     \
-    return 0;                                            \
-  }                                                      \
-  while (0)
+#define SEND_RESULT_OR_ERROR_AND_RETURN_INT64(function)\
+        do {\
+          int iRet = function;\
+          if (iRet) {\
+            cmd_buf_printf(buffer, "Error: %d", iRet);\
+            return 0;\
+          }\
+          cmd_buf_printf(buffer, "%" PRIu64 "", i64Value);\
+          return 0;\
+        }\
+        while (0)
 
-#define IF_ERROR_SEND_ERROR_AND_RETURN(function)         \
-  do {                                                   \
-    int iRet = function;                                 \
-    if (iRet) {                                          \
-      cmd_buf_printf(buffer, "Error: %d", iRet);         \
-      return 0;                                          \
-    }                                                    \
-  }                                                      \
-  while (0)
+#define IF_ERROR_SEND_ERROR_AND_RETURN(function)\
+        do {\
+          int iRet = function;\
+          if (iRet) {\
+            cmd_buf_printf(buffer, "Error: %d", iRet);\
+            return 0;\
+          }\
+        }\
+        while (0)
 
 #define ECMC_COMMAND_FORMAT_ERROR 0x210000;
 
-void       init_axis(int axis_no)
-{}
+void       init_axis(int axis_no) {
+}
 
 static int appendAsciiDataToStorageBuffer(int         storageIndex,
                                           const char *asciiData) {
@@ -190,13 +190,12 @@ static int motorHandleADS_ADR_getInt(ecmcOutputBufferType *buffer,
                                      unsigned              group_no,
                                      unsigned              offset_in_group,
                                      int                  *iValue) {
-  
   if ((group_no >= 0x4000) && (group_no < 0x5000)) {
     int motor_axis_no = (int)group_no - 0x4000;
 
     switch (offset_in_group)
-    case 0x15:
-      return getAxisMonEnableAtTargetMon(motor_axis_no, iValue);
+      case 0x15:
+        return getAxisMonEnableAtTargetMon(motor_axis_no, iValue);
   } else if ((group_no >= 0x5000) && (group_no < 0x6000)) {
     double tmpValue;
     int    motor_axis_no = (int)group_no - 0x5000;
@@ -652,12 +651,13 @@ static int handleCfgCommand(const char *myarg_1) {
   int iValue8       = 0;
   int iValue9       = 0;
   int iValue10      = 0;
+  int nvals         = 0;
   uint64_t u64Value = 0;
+  double   dValue   = 0;
+  double   dValue2  = 0;
+  double   dValue3  = 0;
+  double   dValue4  = 0;
 
-  int nvals      = 0;
-  double dValue  = 0;
-  double dValue2 = 0;
-  
   /// "Cfg.SetAppMode(mode)"
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
 
@@ -694,7 +694,12 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType,trajType)"
-  nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d,%d)", &iValue, &iValue2,&iValue3, &iValue4);
+  nvals = sscanf(myarg_1,
+                 "CreateAxis(%d,%d,%d,%d)",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 &iValue4);
 
   if (nvals == 4) {
     return createAxis(iValue, iValue2, iValue3, iValue4);
@@ -702,10 +707,10 @@ static int handleCfgCommand(const char *myarg_1) {
 
 
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType)"
-  nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2,&iValue3);
+  nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2, &iValue3);
 
   if (nvals == 3) {
-    return createAxis(iValue, iValue2, iValue3,0);
+    return createAxis(iValue, iValue2, iValue3, 0);
   }
 
   /// "Cfg.CreateAxis(axisIndex, axisType)"
@@ -713,7 +718,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
-    return createAxis(iValue, iValue2,0,0);
+    return createAxis(iValue, iValue2, 0, 0);
   }
 
   /// "Cfg.CreateAxis(axisIndex)"
@@ -721,7 +726,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateAxis(%d)", &iValue);
 
   if (nvals == 1) {
-    return createAxis(iValue, 1,0,0);
+    return createAxis(iValue, 1, 0, 0);
   }
 
   /// "Cfg.CreateDefaultAxis(axisIndex)"
@@ -729,7 +734,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateDefaultAxis(%d)", &iValue);
 
   if (nvals == 1) {
-    return createAxis(iValue, 1,0,0);
+    return createAxis(iValue, 1, 0, 0);
   }
 
   /// "Cfg.CreatePLC(int index, double cycleTimeMs)"
@@ -945,7 +950,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 4) {
     // Do not check revsion number (use revsionNum=0)
-    return ecVerifySlave(iValue, iValue2, iValue3, iValue4,0);
+    return ecVerifySlave(iValue, iValue2, iValue3, iValue4, 0);
   }
 
   /*Cfg.EcAddPdo(int nSlave,int nSyncManager,uint16_t nPdoIndex) wrong*/
@@ -1080,6 +1085,7 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   // New syntax
+
   /*Cfg.EcAddEntryDT(
     uint16_t position,
     uint32_t vendor_id,
@@ -1095,19 +1101,19 @@ static int handleCfgCommand(const char *myarg_1) {
   cIdBuffer[0]  = '\0';
   cIdBuffer2[0] = '\0';
   cIdBuffer3[0] = '\0';
-  nvals = sscanf(myarg_1,
-                 "EcAddEntryDT(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%[^,],%[^,],%d)",
-                 &iValue,
-                 &iValue2,
-                 &iValue3,
-                 &iValue4,
-                 &iValue5,
-                 &iValue6,
-                 &iValue7,
-                 &iValue8,                 
-                 cIdBuffer,
-                 cIdBuffer2,
-                 &iValue9);
+  nvals         = sscanf(myarg_1,
+                         "EcAddEntryDT(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%[^,],%[^,],%d)",
+                         &iValue,
+                         &iValue2,
+                         &iValue3,
+                         &iValue4,
+                         &iValue5,
+                         &iValue6,
+                         &iValue7,
+                         &iValue8,
+                         cIdBuffer,
+                         cIdBuffer2,
+                         &iValue9);
 
   if (nvals == 11) {
     return ecAddEntry(iValue,
@@ -1123,7 +1129,8 @@ static int handleCfgCommand(const char *myarg_1) {
                       iValue9);
   }
 
- // New syntax (default update in Real time)
+  // New syntax (default update in Real time)
+
   /*Cfg.EcAddEntryDT(
     uint16_t position,
     uint32_t vendor_id,
@@ -1138,18 +1145,18 @@ static int handleCfgCommand(const char *myarg_1) {
   cIdBuffer[0]  = '\0';
   cIdBuffer2[0] = '\0';
   cIdBuffer3[0] = '\0';
-  nvals = sscanf(myarg_1,
-                 "EcAddEntryDT(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%[^,],%[^)])",
-                 &iValue,
-                 &iValue2,
-                 &iValue3,
-                 &iValue4,
-                 &iValue5,
-                 &iValue6,
-                 &iValue7,
-                 &iValue8,                 
-                 cIdBuffer,
-                 cIdBuffer2);
+  nvals         = sscanf(myarg_1,
+                         "EcAddEntryDT(%d,0x%x,0x%x,%d,%d,0x%x,0x%x,0x%x,%[^,],%[^)])",
+                         &iValue,
+                         &iValue2,
+                         &iValue3,
+                         &iValue4,
+                         &iValue5,
+                         &iValue6,
+                         &iValue7,
+                         &iValue8,
+                         cIdBuffer,
+                         cIdBuffer2);
 
   if (nvals == 10) {
     return ecAddEntry(iValue,
@@ -1172,21 +1179,21 @@ static int handleCfgCommand(const char *myarg_1) {
     char    *dataType,
     char    *cID)*/
   cIdBuffer[0]  = '\0';
-  cIdBuffer2[0] = '\0';  
-  nvals = sscanf(myarg_1,
-                 "EcAddSdoAsync(%d,0x%x,0x%x,%[^,],%[^)])",
-                 &iValue,
-                 &iValue2,
-                 &iValue3,
-                 cIdBuffer,
-                 cIdBuffer2);
+  cIdBuffer2[0] = '\0';
+  nvals         = sscanf(myarg_1,
+                         "EcAddSdoAsync(%d,0x%x,0x%x,%[^,],%[^)])",
+                         &iValue,
+                         &iValue2,
+                         &iValue3,
+                         cIdBuffer,
+                         cIdBuffer2);
 
   if (nvals == 5) {
     return ecAddSdoAsync(iValue,
-                        iValue2,
-                        iValue3,
-                        cIdBuffer,
-                        cIdBuffer2);
+                         iValue2,
+                         iValue3,
+                         cIdBuffer,
+                         cIdBuffer2);
   }
 
   /*Cfg.EcAddMemMapDT(
@@ -1194,23 +1201,23 @@ static int handleCfgCommand(const char *myarg_1) {
       size_t byteSize,
       int direction,
       char *dataType,            (S32)
-      char *memMapIDString       (ec0.S1.CH1_ARRAY)
+      char *memMapIDString       (ec0.s1.CH1_ARRAY)
       )*/
 
   cIdBuffer[0]  = '\0';
   cIdBuffer2[0] = '\0';
   cIdBuffer3[0] = '\0';
-  nvals = sscanf(myarg_1,
-                 "EcAddMemMapDT(%[^,],%d,%d,%[^,],%[^)])",
-                 cIdBuffer,
-                 &iValue2,
-                 &iValue3,
-                 cIdBuffer2,
-                 cIdBuffer3);
+  nvals         = sscanf(myarg_1,
+                         "EcAddMemMapDT(%[^,],%d,%d,%[^,],%[^)])",
+                         cIdBuffer,
+                         &iValue2,
+                         &iValue3,
+                         cIdBuffer2,
+                         cIdBuffer3);
 
-  if (nvals == 5) {    
+  if (nvals == 5) {
     return ecAddMemMapDT(cIdBuffer, (size_t)iValue2, iValue3,
-                       cIdBuffer2,cIdBuffer3);                       
+                         cIdBuffer2, cIdBuffer3);
   }
 
   /*Cfg.EcAddMemMap(
@@ -1222,18 +1229,44 @@ static int handleCfgCommand(const char *myarg_1) {
       )*/
   cIdBuffer[0]  = '\0';
   cIdBuffer2[0] = '\0';
-  cIdBuffer3[0] = '\0';      
-  nvals = sscanf(myarg_1,
-                 "EcAddMemMap(%d,%[^,],%d,%d,%[^)])",
-                 &iValue,
-                 cIdBuffer,
-                 &iValue2,
-                 &iValue3,
-                 cIdBuffer2);
+  cIdBuffer3[0] = '\0';
+  nvals         = sscanf(myarg_1,
+                         "EcAddMemMap(%d,%[^,],%d,%d,%[^)])",
+                         &iValue,
+                         cIdBuffer,
+                         &iValue2,
+                         &iValue3,
+                         cIdBuffer2);
 
   if (nvals == 5) {
     return ecAddMemMap(iValue, cIdBuffer, (size_t)iValue2, iValue3,
-                             cIdBuffer2);
+                       cIdBuffer2);
+  }
+
+  /*Cfg.EcAddDataDT(
+        char *startEntryIDString,  (ec0.s1.AI1)
+        size_t   entryByteOffset,   byte offset from startEntry
+        size_t   entryBitOffset,    bit offset
+        int direction,
+        char *dataType,            (S32)
+        char *memMapIDString       (ec0.s1.CH1_ARRAY)
+        )*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  cIdBuffer3[0] = '\0';
+  nvals         = sscanf(myarg_1,
+                         "EcAddDataDT(%[^,],%d,%d,%d,%[^,],%[^)])",
+                         cIdBuffer,
+                         &iValue2,
+                         &iValue3,
+                         &iValue4,
+                         cIdBuffer2,
+                         cIdBuffer3);
+
+  if (nvals == 6) {
+    return ecAddDataDT(cIdBuffer, (size_t)iValue2,
+                       (size_t)iValue3, iValue4,
+                       cIdBuffer2, cIdBuffer3);
   }
 
   /*Cfg.EcSlaveConfigDC(
@@ -1267,7 +1300,7 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecSelectReferenceDC(iValue, iValue2);
   }
 
-  /*Cfg.EcUseClockRealtime(int useClcRT)*/  
+  /*Cfg.EcUseClockRealtime(int useClcRT)*/
   nvals = sscanf(myarg_1, "EcUseClockRealtime(%d)", &iValue);
 
   if (nvals == 1) {
@@ -1335,6 +1368,23 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecAddSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+
+  /*Cfg.EcAddSdoDT(uint16_t slave_position,uint16_t sdo_index,
+  uint8_t sdo_subindex,char* value, char* datatype)*/
+  nvals = sscanf(myarg_1,
+                 "EcAddSdoDT(%d,0x%x,0x%x,%[^,],%[^)])",
+                 &iValue,
+                 &iValue2,
+                 &iValue3,
+                 cIdBuffer,
+                 cIdBuffer2);
+
+  if (nvals == 5) {
+    return ecAddSdoDT(iValue, iValue2, iValue3, cIdBuffer, cIdBuffer2);
+  }
+
   /*Cfg.EcAddSdoComplete(uint16_t slave_position,uint16_t sdo_index,
   ,const char* values,int byteSize)*/
   nvals = sscanf(myarg_1,
@@ -1343,6 +1393,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue2,
                  &cIdBuffer[0],
                  &iValue3);
+
   if (nvals == 4) {
     return ecAddSdoComplete(iValue, iValue2, cIdBuffer, iValue3);
   }
@@ -1357,6 +1408,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue3,
                  &cIdBuffer[0],
                  &iValue4);
+
   if (nvals == 5) {
     return ecAddSdoBuffer(iValue, iValue2, iValue3, cIdBuffer, iValue4);
   }
@@ -1418,9 +1470,10 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   uint64_t uint64Value = 0;
+
   /*EcWriteSoE(uint16_t  slavePosition,
               uint8_t   driveNo,
-              uint16_t  idn, 
+              uint16_t  idn,
               size_t    byteSize,
               uint64_t  value)*/
   nvals = sscanf(myarg_1,
@@ -1430,9 +1483,10 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue4,
                  &iValue5,
                  &uint64Value);
-  
+
   if (nvals == 5) {
-    return ecWriteSoE(iValue2, iValue3, iValue4,iValue5,(uint8_t*)(&uint64Value));
+    return ecWriteSoE(iValue2, iValue3, iValue4, iValue5,
+                      (uint8_t *)(&uint64Value));
   }
 
   /*Cfg.EcWriteSdoComplete(uint16_t slave_position,uint16_t sdo_index,
@@ -1492,6 +1546,31 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 1) {
     return ecSetDomainFailedCyclesLimit(iValue);
+  }
+
+  /*Cfg.EcAddDomain(int nCycles,int offset)*/
+  nvals = sscanf(myarg_1, "EcAddDomain(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return ecAddDomain(iValue, iValue2);
+  }
+
+  /*Cfg.EcSetDomainAllowOffline(int allow)*/
+  nvals = sscanf(myarg_1,
+                 "EcSetDomainAllowOffline(%d)",
+                 &iValue);
+
+  if (nvals == 1) {
+    return ecSetDomAllowOffline(iValue);
+  }
+
+  /*Cfg.EcSetAllowOffline(int allow)*/
+  nvals = sscanf(myarg_1,
+                 "EcSetAllowOffline(%d)",
+                 &iValue);
+
+  if (nvals == 1) {
+    return ecSetEcAllowOffline(iValue);
   }
 
   /*Cfg.EcSetDelayECOkAtStartup(int nCycles)*/
@@ -1593,15 +1672,19 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisEncRefToOtherEncAtStartup(int axis_no, enc_ref);*/
-  nvals = sscanf(myarg_1, "SetAxisEncRefToOtherEncAtStartup(%d,%d)", &iValue, &iValue2);
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncRefToOtherEncAtStartup(%d,%d)",
+                 &iValue,
+                 &iValue2);
 
   if (nvals == 2) {
     return setAxisEncRefToOtherEncAtStartup(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisEncEnableRefAtHome(int axis_no, int enbale);*/
-  nvals = sscanf(myarg_1, "SetAxisEncEnableRefAtHome(%d,%d)", &iValue, &iValue2);
-  
+  nvals =
+    sscanf(myarg_1, "SetAxisEncEnableRefAtHome(%d,%d)", &iValue, &iValue2);
+
   if (nvals == 2) {
     return setAxisEncEnableRefAtHome(iValue, iValue2);
   }
@@ -1614,28 +1697,24 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SelectAxisEncPrimary(int axis_no, int encIndex);*/
-  nvals = sscanf(myarg_1, "SelectAxisEncPrimary(%d,%d)", &iValue,&iValue2);
+  nvals = sscanf(myarg_1, "SelectAxisEncPrimary(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return selectAxisEncPrimary(iValue, iValue2);
   }
 
   /*int Cfg.SelectAxisEncConfig(int axis_no, int encIndex);*/
-  nvals = sscanf(myarg_1, "SelectAxisEncConfig(%d,%d)", &iValue,&iValue2);
+  nvals = sscanf(myarg_1, "SelectAxisEncConfig(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return selectAxisEncConfig(iValue, iValue2);
   }
 
-  /*int Cfg.SelectAxisEncHome(int axis_no, int encIndex);*/
-  nvals = sscanf(myarg_1, "SelectAxisEncHome(%d,%d)", &iValue,&iValue2);
-
-  if (nvals == 2) {
-    return selectAxisEncHome(iValue, iValue2);
-  }
-
   /*int Cfg.SetAxisEncMaxDiffToPrimEnc(int axis_no, double  max_diff);*/
-  nvals = sscanf(myarg_1, "SetAxisEncMaxDiffToPrimEnc(%d,%lf)", &iValue, &dValue);
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncMaxDiffToPrimEnc(%d,%lf)",
+                 &iValue,
+                 &dValue);
 
   if (nvals == 2) {
     return setAxisEncMaxDiffToPrimEnc(iValue, dValue);
@@ -1667,6 +1746,32 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisCntrlKff(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisCntrlDeadband(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisCntrlDeadband(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisCntrlDeadband(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisCntrlDeadbandTime(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisCntrlDeadbandTime(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisCntrlDeadbandTime(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisCntrlInnerParams(axis_no, kp, ki, kd, tol);*/
+  nvals = sscanf(myarg_1, "SetAxisCntrlInnerParams(%d,%lf,%lf,%lf,%lf)",
+                 &iValue,
+                 &dValue,
+                 &dValue2,
+                 &dValue3,
+                 &dValue4);
+
+  if (nvals == 5) {
+    return setAxisCntrlInnerParams(iValue, dValue, dValue2, dValue3, dValue4);
   }
 
   /*int Cfg.SetAxisCntrlOutHL(int axis_no, double value);*/
@@ -1735,7 +1840,7 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEnableAlarmAtSoftLimit(iValue, iValue2);
   }
 
-  /*int Cfg.SetAxisEnableMotionFunctions(int axis_no, 
+  /*int Cfg.SetAxisEnableMotionFunctions(int axis_no,
                                          int enablePos,
                                          int enableConstVelo,
                                          int enableHome);*/
@@ -1748,7 +1853,8 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisMonEnableEncsDiff(int axis_no, int enable);*/
-  nvals = sscanf(myarg_1, "SetAxisMonEnableEncsDiff(%d,%d)", &iValue, &iValue2);
+  nvals =
+    sscanf(myarg_1, "SetAxisMonEnableEncsDiff(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return setAxisEnableCheckEncsDiff(iValue, iValue2);
@@ -1939,6 +2045,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   /*int Cfg.SetAxisMonLatchLimit(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisMonLatchLimit(%d,%d)", &iValue, &iValue2);
+
   if (nvals == 2) {
     return setAxisMonLatchLimit(iValue, iValue2);
   }
@@ -1955,6 +2062,13 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisDrvScaleDenom(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisDrvVelSetOffsetRaw(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisDrvVelSetOffsetRaw(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisDrvVelSetOffsetRaw(iValue, dValue);
   }
 
   /*int Cfg.SetAxisDrvBrakeEnable(int axis_no, int enable);*/
@@ -2008,12 +2122,14 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetAxisDrvType(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
-    LOGERR("%s/%s:%d: Command obsolete. Use Cfg.CreateAxis(<id>,<type>,<drvType>) instead  (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           ERROR_MAIN_OBSOLETE_COMMAND);           
-    //return setAxisDrvType(iValue, iValue2);
+    LOGERR(
+      "%s/%s:%d: Command obsolete. Use Cfg.CreateAxis(<id>,<type>,<drvType>) instead  (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_MAIN_OBSOLETE_COMMAND);
+
+    // return setAxisDrvType(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisModRange(int axis_no, double range);*/
@@ -2031,14 +2147,20 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisDisableAtErrorReset(int axis_no, int disable);*/
-  nvals = sscanf(myarg_1, "SetAxisDisableAtErrorReset(%d,%d)", &iValue, &iValue2);
+  nvals = sscanf(myarg_1,
+                 "SetAxisDisableAtErrorReset(%d,%d)",
+                 &iValue,
+                 &iValue2);
 
   if (nvals == 2) {
     return setAxisDisableAtErrorReset(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisAllowSourceChangeWhenEnabled(int axis_no, int allow);*/
-  nvals = sscanf(myarg_1, "SetAxisAllowSourceChangeWhenEnabled(%d,%d)", &iValue, &iValue2);
+  nvals = sscanf(myarg_1,
+                 "SetAxisAllowSourceChangeWhenEnabled(%d,%d)",
+                 &iValue,
+                 &iValue2);
 
   if (nvals == 2) {
     return setAxisAllowSourceChangeWhenEnabled(iValue, iValue2);
@@ -2073,7 +2195,8 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisHomeVelTowardsCam(int axis_no, double value);*/
-  nvals = sscanf(myarg_1, "SetAxisHomeVelTowardsCam(%d,%lf)", &iValue, &dValue);
+  nvals =
+    sscanf(myarg_1, "SetAxisHomeVelTowardsCam(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
     return setAxisHomeVelTowardsCam(iValue, dValue);
@@ -2099,6 +2222,7 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   // new better name.. still support old name.
+
   /*int Cfg.SetAxisEncHomeLatchCountOffset(int axis_no, int count);*/
   nvals = sscanf(myarg_1,
                  "SetAxisEncHomeLatchCountOffset(%d,%d)",
@@ -2109,6 +2233,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncHomeLatchCountOffset(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEncInvHwReady(int axis_no, int count);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncInvHwReady(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncInvHwReady(iValue, iValue2);
+  }
+
   /*int Cfg.SetEnableFuncCallDiag(int nEnable);*/
   nvals = sscanf(myarg_1, "SetEnableFuncCallDiag(%d)", &iValue);
 
@@ -2116,7 +2250,7 @@ static int handleCfgCommand(const char *myarg_1) {
     return setEnableFunctionCallDiag(iValue);
   }
 
-  /*int Cfg.SetTraceMask(int mask);*/  
+  /*int Cfg.SetTraceMask(int mask);*/
   nvals = sscanf(myarg_1, "SetTraceMask(%d)", &iValue);
 
   if (nvals == 1) {
@@ -2182,6 +2316,7 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisVelAccDecTime(int axis_no, double vel,double timeToVel);*/
+
   /* Set Velcoity acceleration and deceleration
    * Acceleration and deceleration is defined by time to reach velocity.
    * (because motor record uses this concept)
@@ -2357,7 +2492,8 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.AppendAxisPLCExpr(int index,char *cExpr); */
-  nvals = sscanf(myarg_1, "AppendAxisPLCExpr(%d)=%[^\n]", &iValue, cExprBuffer);
+  nvals =
+    sscanf(myarg_1, "AppendAxisPLCExpr(%d)=%[^\n]", &iValue, cExprBuffer);
 
   if (nvals == 1) {
     cExprBuffer[0] = '\0';
@@ -2375,6 +2511,7 @@ static int handleCfgCommand(const char *myarg_1) {
         cExprBuffer[i] = ';';
       }
     }
+
     // Axis plcs is indexed "above" normal PLCs in the PLC array
     return appendPLCExpr(iValue + ECMC_MAX_PLCS, cExprBuffer);
   }
@@ -2437,21 +2574,25 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.LoadPlugin(int pluginId, char *cFilename, char *configString); */
-  nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^,],%[^)])", &iValue, cIdBuffer,cIdBuffer2);
+  nvals = sscanf(myarg_1,
+                 "LoadPlugin(%d,%[^,],%[^)])",
+                 &iValue,
+                 cIdBuffer,
+                 cIdBuffer2);
 
   if (nvals == 3) {
-    return loadPlugin(iValue,cIdBuffer,cIdBuffer2);
+    return loadPlugin(iValue, cIdBuffer, cIdBuffer2);
   }
 
   /*int Cfg.LoadPlugin(int pluginId, char *cFilename); */
-  nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^)])",&iValue, cIdBuffer);
+  nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^)])", &iValue, cIdBuffer);
 
   if (nvals == 2) {
-    return loadPlugin(iValue,cIdBuffer,"");
+    return loadPlugin(iValue, cIdBuffer, "");
   }
 
   /*int Cfg.ReportPlugin(int pluginId); */
-  nvals = sscanf(myarg_1, "ReportPlugin(%d)",&iValue);
+  nvals = sscanf(myarg_1, "ReportPlugin(%d)", &iValue);
 
   if (nvals == 1) {
     return reportPlugin(iValue);
@@ -2464,15 +2605,40 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisSeqTimeout(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisHomeAcc(int axis_no, int value);  IN seconds!!*/
+  nvals = sscanf(myarg_1, "SetAxisHomeAcc(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisHomeAcc(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisHomeDec(int axis_no, int value);  IN seconds!!*/
+  nvals = sscanf(myarg_1, "SetAxisHomeDec(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisHomeDec(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisHomeSeqId(int axis_no, int value);  IN seconds!!*/
+  nvals = sscanf(myarg_1, "SetAxisHomeSeqId(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisHomeSeqId(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisHomePostMoveEnable(int axis_no, int value); */
-  nvals = sscanf(myarg_1, "SetAxisHomePostMoveEnable(%d,%d)", &iValue, &iValue2);
+  nvals =
+    sscanf(myarg_1, "SetAxisHomePostMoveEnable(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return setAxisHomePostMoveEnable(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisHomePostMoveTargetPosition(int axis_no, int value); */
-  nvals = sscanf(myarg_1, "SetAxisHomePostMoveTargetPosition(%d,%lf)", &iValue, &dValue);
+  nvals = sscanf(myarg_1,
+                 "SetAxisHomePostMoveTargetPosition(%d,%lf)",
+                 &iValue,
+                 &dValue);
 
   if (nvals == 2) {
     return setAxisHomePostMoveTargetPosition(iValue, dValue);
@@ -2729,7 +2895,8 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.IocshCmd=<command string>*/
-  nvals = sscanf(myarg_1, "IocshCmd=%[^\n]",cExprBuffer);
+  nvals = sscanf(myarg_1, "IocshCmd=%[^\n]", cExprBuffer);
+
   if (nvals == 1) {
     return iocshCmd(cExprBuffer);
   }
@@ -2737,7 +2904,8 @@ static int handleCfgCommand(const char *myarg_1) {
   return ERROR_MAIN_PARSER_UNKOWN_CMD;
 }
 
-static int handleTwincatSyntax(const char *myarg_1, ecmcOutputBufferType *buffer){
+static int handleTwincatSyntax(const char           *myarg_1,
+                               ecmcOutputBufferType *buffer) {
   int motor_axis_no = 0;
   int iValue        = 0;
   double fValue     = 0;
@@ -2745,6 +2913,7 @@ static int handleTwincatSyntax(const char *myarg_1, ecmcOutputBufferType *buffer
   /* From here on, only M1. commands */
   /* e.g. M1.nCommand=3 */
   int nvals = sscanf(myarg_1, "M%d.", &motor_axis_no);
+
   if (nvals != 1) {
     SEND_OK_OR_ERROR_AND_RETURN(ERROR_MAIN_PARSER_UNKOWN_CMD);
   }
@@ -2789,7 +2958,7 @@ static int handleTwincatSyntax(const char *myarg_1, ecmcOutputBufferType *buffer
 
   if (nvals == 1) {
     SEND_OK_OR_ERROR_AND_RETURN(setAxisCmdData(motor_axis_no, iValue));
-  }  
+  }
 
   /* bEnable= */
   nvals = sscanf(myarg_1, "bEnable=%d", &iValue);
@@ -3036,9 +3205,9 @@ static int handleTwincatSyntax(const char *myarg_1, ecmcOutputBufferType *buffer
   /* bDone? */
   if (0 == strcmp(myarg_1, "bDone?")) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisDone(motor_axis_no,
-                                                        &iValue));
+                                                    &iValue));
   }
-  
+
   /* fActPosition? */
   if (0 == strcmp(myarg_1, "fActPosition?")) {
     SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncPosAct(motor_axis_no,
@@ -3097,18 +3266,18 @@ static int handleTwincatSyntax(const char *myarg_1, ecmcOutputBufferType *buffer
 }
 
 int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
-  int iValue = 0;
-  int iValue2 = 0;
-  int iValue3 = 0;
-  int iValue4 = 0;
-  int iValue5 = 0;
+  int iValue        = 0;
+  int iValue2       = 0;
+  int iValue3       = 0;
+  int iValue4       = 0;
+  int iValue5       = 0;
   uint32_t u32Value = 0;
   uint64_t u64Value = 0;
   uint64_t i64Value = 0;
-  double   fValue = 0;
+  double   fValue   = 0;
   int motor_axis_no = 0;
-  int nvals = 0;
-  double dValue1, dValue2, dValue3, dValue4;  
+  int nvals         = 0;
+  double dValue1, dValue2, dValue3, dValue4;
 
   if (buffer->buffer == NULL) {
     return ERROR_MAIN_PARSER_BUFFER_NULL;
@@ -3117,7 +3286,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   if (!ecmcInitDone) {
     ecmcInitThread();
     ecmcInitDone = 1;
-  }  
+  }
 
   // Check Command length
   if (strlen(myarg_1) >= ECMC_CMD_MAX_SINGLE_CMD_LENGTH - 1) {
@@ -3133,7 +3302,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   /* Main.*/
   if (!strncmp(myarg_1, Main_dot_str, strlen(Main_dot_str))) {
     myarg_1 += strlen(Main_dot_str);
-    return handleTwincatSyntax(myarg_1,buffer);
+    return handleTwincatSyntax(myarg_1, buffer);
   }
 
   /* ADSPORT= */
@@ -3151,8 +3320,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
       /* .ADR commands are handled here */
       err_code = motorHandleADS_ADR(myarg_1, buffer);
 
-      if (err_code == -1) 
-        return 0;
+      if (err_code == -1)return 0;
 
       SEND_OK_OR_ERROR_AND_RETURN(err_code);
       return 0;
@@ -3206,7 +3374,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 2) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT64(readEcEntry(iValue, iValue2,
-                                                       &i64Value));
+                                                      &i64Value));
   }
 
   /*ReadEcEntryIDString(int nSlavePosition,char *cEntryID*/
@@ -3214,8 +3382,8 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 2) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT64(readEcEntryIDString(iValue,
-                                                               cIdBuffer,
-                                                               &i64Value));
+                                                              cIdBuffer,
+                                                              &i64Value));
   }
 
   /*ReadEcEntryIndexIDString(int nSlavePosition,char *cEntryID)*/
@@ -3281,7 +3449,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   /*EcReadSoE(uint16_t  slavePosition,
               uint8_t   driveNo,
-              uint16_t  idn, 
+              uint16_t  idn,
               size_t    byteSize)*/
   nvals = sscanf(myarg_1,
                  "EcReadSoE(%d,%d,%d,%d)",
@@ -3292,45 +3460,50 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 4) {
     SEND_RESULT_OR_ERROR_AND_RETURN_UINT64(ecReadSoE(iValue2, iValue3, iValue4,
-                                                      iValue5, (uint8_t*)(&u64Value)));
+                                                     iValue5,
+                                                     (uint8_t *)(&u64Value)));
   }
 
   /*EcGetSlaveVendorId(int nSlavePosition,int *nValue)*/
   nvals = sscanf(myarg_1, "EcGetSlaveVendorId(%d)", &iValue2);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveVendorId(0, iValue2, &u32Value));
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveVendorId(0, iValue2,
+                                                            &u32Value));
   }
 
   /*EcGetSlaveProductCode(int nSlavePosition,int *nValue)*/
   nvals = sscanf(myarg_1, "EcGetSlaveProductCode(%d)", &iValue2);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveProductCode(0, iValue2, &u32Value));
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveProductCode(0, iValue2,
+                                                               &u32Value));
   }
-  
+
   /*EcGetSlaveRevisionNum(int nSlavePosition,int *nValue)*/
   nvals = sscanf(myarg_1, "EcGetSlaveRevisionNum(%d)", &iValue2);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveRevisionNum(0, iValue2, &u32Value));
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveRevisionNum(0, iValue2,
+                                                               &u32Value));
   }
- 
+
   /*EcGetSlaveSerialNum(int nSlavePosition,int *nValue)*/
   nvals = sscanf(myarg_1, "EcGetSlaveSerialNum(%d)", &iValue2);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveSerialNum(0, iValue2, &u32Value));
+    SEND_RESULT_OR_ERROR_AND_RETURN_UINT(ecGetSlaveSerialNum(0, iValue2,
+                                                             &u32Value));
   }
- 
+
   /*EcGetMemMapId(char *strName)*/
   nvals = sscanf(myarg_1, "EcGetMemMapId(%[^)])", cIdBuffer);
-  
+
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(ecGetMemMapId(cIdBuffer , &iValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(ecGetMemMapId(cIdBuffer, &iValue));
   }
- 
-    /*GetAxisBlockCom(int nAxis)*/
+
+  /*GetAxisBlockCom(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisBlockCom(%d)", &motor_axis_no);
 
   if (nvals == 1) {
@@ -3357,49 +3530,58 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "GetAxisModRange(%d)", &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisModRange(motor_axis_no, &fValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisModRange(motor_axis_no,
+                                                           &fValue));
   }
 
   /*GetAxisModType(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisModType(%d)", &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisModType(motor_axis_no, &iValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisModType(motor_axis_no,
+                                                       &iValue));
   }
 
   /*GetAxisMonLimitFwdPolarity(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisMonLimitFwdPolarity(%d)", &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLimitFwdPolarity(motor_axis_no, &iValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLimitFwdPolarity(
+                                          motor_axis_no, &iValue));
   }
 
   /*GetAxisMonLimitBwdPolarity(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisMonLimitBwdPolarity(%d)", &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLimitBwdPolarity(motor_axis_no, &iValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLimitBwdPolarity(
+                                          motor_axis_no, &iValue));
   }
 
   /*GetAxisMonHomeSwitchPolarity(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisMonHomeSwitchPolarity(%d)", &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonHomeSwitchPolarity(motor_axis_no, &iValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonHomeSwitchPolarity(
+                                          motor_axis_no, &iValue));
   }
 
   /*GetAxisMonExtHWInterlockPolarity(int nAxis)*/
-  nvals = sscanf(myarg_1, "GetAxisMonExtHWInterlockPolarity(%d)", &motor_axis_no);
+  nvals = sscanf(myarg_1,
+                 "GetAxisMonExtHWInterlockPolarity(%d)",
+                 &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonExtHWInterlockPolarity(motor_axis_no, &iValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonExtHWInterlockPolarity(
+                                          motor_axis_no, &iValue));
   }
 
   /*GetAxisMonLatchLimit(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisMonLatchLimit(%d)", &motor_axis_no);
 
   if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLatchLimit(motor_axis_no, &iValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLatchLimit(motor_axis_no,
+                                                             &iValue));
   }
 
   /*int GetAxisEnableAlarmAtHardLimits(int axis_no);*/
@@ -3424,7 +3606,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncPrimaryIndex(motor_axis_no,
-                                                              &iValue));
+                                                               &iValue));
   }
 
   /*int GetAxisEncConfigIndex(int axis_no);*/
@@ -3435,13 +3617,14 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                               &iValue));
   }
 
-  /*int GetAxisEncHomeIndex(int axis_no);*/
-  nvals = sscanf(myarg_1, "GetAxisEncHomeIndex(%d)", &motor_axis_no);
+  ///*int GetAxisEncHomeIndex(int axis_no);*/
+  //nvals = sscanf(myarg_1, "GetAxisEncHomeIndex(%d)", &motor_axis_no);
+//
+  //if (nvals == 1) {
+  //  SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomeIndex(motor_axis_no,
+  //                                                          &iValue));
+  //}
 
-  if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomeIndex(motor_axis_no,
-                                                              &iValue));
-  }
   /*int GetAxisTrajSourceType(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisTrajSourceType(%d)", &motor_axis_no);
 
@@ -3481,22 +3664,23 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 1) {
     char *retBuf = cPlcExprBuffer;
-    int   error = 0;
-    char *expr = (char*)getAxisPLCExpr(iValue, &error);
-    
+    int   error  = 0;
+    char *expr   = (char *)getAxisPLCExpr(iValue, &error);
+
     if (error) {
       cmd_buf_printf(buffer, "Error: %d", error);
       return 0;
     }
-    
+
     int length = strlen(expr);
-    if(length >= ECMC_CMD_MAX_SINGLE_CMD_LENGTH) {
-      cmd_buf_printf(buffer, "Error: %d",ERROR_MAIN_PARSER_CMD_TO_LONG);
+
+    if (length >= ECMC_CMD_MAX_SINGLE_CMD_LENGTH) {
+      cmd_buf_printf(buffer, "Error: %d", ERROR_MAIN_PARSER_CMD_TO_LONG);
       return 0;
     }
-    
-    memcpy(retBuf,expr,length+1);
-    
+
+    memcpy(retBuf, expr, length + 1);
+
     // Change all | to ; (since ; is used as command
     // delimiter in communication)
     size_t strLen = strlen(retBuf);
@@ -3516,21 +3700,21 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "GetPLCExpr(%d)", &iValue);
 
   if (nvals == 1) {
-       char *retBuf = cPlcExprBuffer;
-    int   error = 0;
-    char *expr = (char*)getPLCExpr(iValue, &error);
-    
+    char *retBuf = cPlcExprBuffer;
+    int   error  = 0;
+    char *expr   = (char *)getPLCExpr(iValue, &error);
+
     if (error) {
       cmd_buf_printf(buffer, "Error: %d", error);
       return 0;
     }
-    
-    if(strlen(expr)>=ECMC_CMD_MAX_SINGLE_CMD_LENGTH) {
-      cmd_buf_printf(buffer, "Error: %d",ERROR_MAIN_PARSER_CMD_TO_LONG);
+
+    if (strlen(expr) >= ECMC_CMD_MAX_SINGLE_CMD_LENGTH) {
+      cmd_buf_printf(buffer, "Error: %d", ERROR_MAIN_PARSER_CMD_TO_LONG);
       return 0;
     }
 
-    strcpy(retBuf,expr);
+    strcpy(retBuf, expr);
 
     // Change all | to ; (since ; is used as command
     // delimiter in communication)
@@ -3546,14 +3730,14 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     cmd_buf_printf(buffer, "%s", retBuf);
     return 0;
   }
- 
+
   /* stAxisStatus? */  /* GetAxisDebugInfoData(in axisIndex) */
   nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
 
-  if (nvals == 1) {    
-    int  error = getAxisDebugInfoData(iValue,
-                                      &cIdBuffer[0],
-                                      sizeof(cIdBuffer));
+  if (nvals == 1) {
+    int error = getAxisDebugInfoData(iValue,
+                                     &cIdBuffer[0],
+                                     sizeof(cIdBuffer));
 
     if (error) {
       cmd_buf_printf(buffer, "Error: %d", error);
@@ -3582,9 +3766,9 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
 
   if (nvals == 1) {
-    int  error = getAxisDebugInfoData(iValue,
-                                      &cIdBuffer[0],
-                                      sizeof(cIdBuffer));
+    int error = getAxisDebugInfoData(iValue,
+                                     &cIdBuffer[0],
+                                     sizeof(cIdBuffer));
 
     if (error) {
       cmd_buf_printf(buffer, "Error: %d", error);
@@ -3745,35 +3929,33 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
             const char           *argv[],
             const char           *sepv[],
             ecmcOutputBufferType *buffer) {*/
-
-int ecmcCmdParser(const char           *cmdline, 
-                  int                   inLen,            
+int ecmcCmdParser(const char           *cmdline,
+                  int                   inLen,
                   ecmcOutputBufferType *buffer) {
+  int   cmdCounter = 0;
+  int   multiCmd   = 0;
+  int   done       = 0;
+  char *nextStart  = (char *)cmdline;
+  char *nextEnd    = strchr(nextStart, ';'); // check if multline
 
-  int cmdCounter=0;  
-  int multiCmd = 0;
-  int done = 0;
-  char* nextStart=(char*)cmdline;  
-  char* nextEnd =strchr(nextStart,';');  //check if multline
-  if(nextEnd) {
+  if (nextEnd) {
     multiCmd = 1;
   }
-  char *nextCmd = (char*)cmdline;
+  char *nextCmd = (char *)cmdline;
 
   while (!done) {
-    if(nextEnd) {            
-      memcpy(cOneCommand,nextStart,nextEnd-nextStart);
-      cOneCommand[nextEnd-nextStart] = '\0';
-      nextCmd = cOneCommand; // Use local buffer     
-    } 
-    else {  //Only one cmd
-      nextCmd = nextStart;
+    if (nextEnd) {
+      memcpy(cOneCommand, nextStart, nextEnd - nextStart);
+      cOneCommand[nextEnd - nextStart] = '\0';
+      nextCmd                          = cOneCommand; // Use local buffer
+    } else {   // Only one cmd
+      nextCmd  = nextStart;
       multiCmd = 0;
-      done = 1;
+      done     = 1;
     }
     int errorCode = motorHandleOneArg(nextCmd, buffer);
     cmdCounter++;
-    
+
     if (errorCode) {
       RETURN_ERROR_OR_DIE(buffer,
                           errorCode,
@@ -3783,18 +3965,17 @@ int ecmcCmdParser(const char           *cmdline,
                           __LINE__,
                           errorCode);
     }
-        
-    if(multiCmd) {      
-      cmd_buf_printf(buffer, "%s", ";");        
-      if (strlen(nextEnd)>1) {
-        nextStart=nextEnd+1;
-        nextEnd = strchr(nextStart,';');  //check if multline        
-      }
-      else{
+
+    if (multiCmd) {
+      cmd_buf_printf(buffer, "%s", ";");
+
+      if (strlen(nextEnd) > 1) {
+        nextStart = nextEnd + 1;
+        nextEnd   = strchr(nextStart, ';'); // check if multline
+      } else {
         done = 1;
       }
-    }
-    else {
+    } else {
       done = 1;
     }
   }

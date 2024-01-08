@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcAxisBase.h
 *
@@ -14,9 +14,9 @@
 #define ECMCAXISBASE_H_
 
 #define __STDC_FORMAT_MACROS  // To "reinclude" inttypes
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcAsynPortDriver.h"
 #include "ecmcDriveBase.h"
 #include "ecmcDriveStepper.h"
 #include "ecmcDriveDS402.h"
@@ -63,9 +63,10 @@
 #define ERROR_AXIS_BUSY 0x1431C
 #define ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL 0x1431D
 #define ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL 0x1431E
+
 // Moved to ecmcDefinitions.h
-//#define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
-//#define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
+// #define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
+// #define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
 #define ERROR_AXIS_PRINT_TO_BUFFER_FAIL 0x14321
 #define ERROR_AXIS_MODULO_OUT_OF_RANGE 0x14322
 #define ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE 0x14323
@@ -86,48 +87,48 @@ enum axisState {
 };
 
 typedef struct {
-  unsigned char              enable        : 1;
-  unsigned char              enabled       : 1;
-  unsigned char              execute       : 1;
-  unsigned char              busy          : 1;
-  unsigned char              attarget      : 1;
-  unsigned char              moving        : 1;
-  unsigned char              limitfwd      : 1;
-  unsigned char              limitbwd      : 1;
-  unsigned char              homeswitch    : 1;
-  unsigned char              homed         : 1;
-  unsigned char              inrealtime    : 1;
-  unsigned char              trajsource    : 1;
-  unsigned char              encsource     : 1;
-  unsigned char              plccmdallowed : 1;
-  unsigned char              softlimfwdena : 1;
-  unsigned char              softlimbwdena : 1;
-  unsigned char              instartup     : 1;
-  unsigned char              sumilockfwd   : 1;
-  unsigned char              sumilockbwd   : 1;
-  unsigned char              axisType      : 1;
-  unsigned char              seqstate      : 4;
-  unsigned char              lastilock     : 8;
+  unsigned char enable        : 1;
+  unsigned char enabled       : 1;
+  unsigned char execute       : 1;
+  unsigned char busy          : 1;
+  unsigned char attarget      : 1;
+  unsigned char moving        : 1;
+  unsigned char limitfwd      : 1;
+  unsigned char limitbwd      : 1;
+  unsigned char homeswitch    : 1;
+  unsigned char homed         : 1;
+  unsigned char inrealtime    : 1;
+  unsigned char trajsource    : 1;
+  unsigned char encsource     : 1;
+  unsigned char plccmdallowed : 1;
+  unsigned char softlimfwdena : 1;
+  unsigned char softlimbwdena : 1;
+  unsigned char instartup     : 1;
+  unsigned char sumilockfwd   : 1;
+  unsigned char sumilockbwd   : 1;
+  unsigned char axisType      : 1;
+  unsigned char seqstate      : 4;
+  unsigned char lastilock     : 8;
 } ecmcAxisStatusWordType;
 
 typedef struct {
-  double             positionSetpoint;
-  double             positionActual;
-  double             positionError;
-  double             positionTarget;
-  double             cntrlError;
-  double             cntrlOutput;
-  double             velocityActual;
-  double             velocitySetpoint;  
-  double             velocityFFRaw;
-  int64_t            positionRaw;
-  double             homeposition;
-  int                error;
-  int                velocitySetpointRaw;
-  int                seqState;
-  int                cmdData;
-  motionCommandTypes command;
-  interlockTypes     trajInterlock;
+  double                 positionSetpoint;
+  double                 positionActual;
+  double                 positionError;
+  double                 positionTarget;
+  double                 cntrlError;
+  double                 cntrlOutput;
+  double                 velocityActual;
+  double                 velocitySetpoint;
+  double                 velocityFFRaw;
+  int64_t                positionRaw;
+  double                 homeposition;
+  int                    error;
+  int                    velocitySetpointRaw;
+  int                    seqState;
+  int                    cmdData;
+  motionCommandTypes     command;
+  interlockTypes         trajInterlock;
   ecmcAxisStatusWordType statusWd;
 } ecmcAxisStatusOnChangeType;
 
@@ -137,7 +138,7 @@ typedef struct {
   double                     acceleration;
   double                     deceleration;
   double                     soflimFwd;
-  double                     soflimBwd;  
+  double                     soflimBwd;
   bool                       reset  : 1;
   bool                       moving : 1;
   bool                       stall  : 1;
@@ -145,27 +146,27 @@ typedef struct {
 } ecmcAxisStatusType;
 
 typedef struct {
-  bool                       enableCmd          : 1;
-  bool                       executeCmd         : 1;
-  bool                       stopCmd            : 1;
-  bool                       resetCmd           : 1;
-  bool                       encSourceCmd       : 1;  // 0 = internal, 1 = plc
-  bool                       trajSourceCmd      : 1;  // 0 = internal, 1 = plc
-  bool                       plcEnableCmd       : 1;  // 0 = disable, 1 = enable
-  bool                       plcCmdsAllowCmd    : 1;  // 0 = not allow, 1 = allow
-  bool                       enableSoftLimitBwd : 1;     
-  bool                       enableSoftLimitFwd : 1;
-  int                        spareBitsCmd       : 22;
- } ecmcAsynAxisControlType;
+  bool enableCmd          : 1;
+  bool executeCmd         : 1;
+  bool stopCmd            : 1;
+  bool resetCmd           : 1;
+  bool encSourceCmd       : 1;                        // 0 = internal, 1 = plc
+  bool trajSourceCmd      : 1;                        // 0 = internal, 1 = plc
+  bool plcEnableCmd       : 1;                        // 0 = disable, 1 = enable
+  bool plcCmdsAllowCmd    : 1;                        // 0 = not allow, 1 = allow
+  bool enableSoftLimitBwd : 1;
+  bool enableSoftLimitFwd : 1;
+  int  spareBitsCmd       : 22;
+} ecmcAsynAxisControlType;
 
 class ecmcAxisBase : public ecmcError {
- public:
+public:
   ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
-               int    axisID,
-               double sampleTime,
-               ecmcTrajTypes  trajType);
+               int                 axisID,
+               double              sampleTime,
+               ecmcTrajTypes       trajType);
   virtual ~ecmcAxisBase();
-  virtual ecmcDriveBase    * getDrv()               = 0;
+  virtual ecmcDriveBase*     getDrv()               = 0;
   virtual ecmcPIDController* getCntrl()             = 0;
   virtual int                validate()             = 0;
   virtual void               execute(bool masterOK) = 0;
@@ -184,17 +185,20 @@ class ecmcAxisBase : public ecmcError {
   int                        getEncScaleDenom(double *scale);
   int                        setEncScaleDenom(double scale);
   int                        getEncPosRaw(int64_t *rawPos);
+  int                        setEncInvHwReady(int invert);
   int                        setCommand(motionCommandTypes command);
   int                        setCmdData(int cmdData);
   motionCommandTypes         getCommand();
   int                        getCmdData();
   int                        slowExecute();
-  ecmcTrajectoryBase       * getTraj();
-  ecmcMonitor              * getMon();
-  ecmcEncoder              * getEnc();
-  ecmcEncoder              * getEnc(int encIndex, int* error);
-  ecmcEncoder              * getConfigEnc();  // get current encoder being configured
-  ecmcAxisSequencer        * getSeq();
+  ecmcTrajectoryBase*        getTraj();
+  ecmcMonitor*               getMon();
+  ecmcEncoder*               getEnc();
+  ecmcEncoder*               getEnc(int  encIndex,
+                                    int *error);
+  ecmcEncoder*               getConfigEnc();  // get current encoder being configured
+  ecmcEncoder*               getPrimEnc();
+  ecmcAxisSequencer*         getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);
   int                        getVelAct(double *vel);
@@ -221,9 +225,9 @@ class ecmcAxisBase : public ecmcError {
   int                        setBlockExtCom(int block);
   int                        getDebugInfoData(ecmcAxisStatusType *data);
   int                        getAxisDebugInfoData(char *buffer,
-                                             int   bufferByteSize,
-                                             int  *bytesUsed);
-  ecmcAxisStatusType        *getDebugInfoDataPointer();
+                                                  int   bufferByteSize,
+                                                  int  *bytesUsed);
+  ecmcAxisStatusType*        getDebugInfoDataPointer();
   int                        getCycleCounter();
   void                       printAxisStatus();
   int                        initAsyn();
@@ -234,7 +238,7 @@ class ecmcAxisBase : public ecmcError {
   int                        setModType(int type);
   int                        getModType();
   int                        setExtSetPos(double pos);
-  int                        setExtActPos(double pos);                        
+  int                        setExtActPos(double pos);
   int                        setEnableExtEncVeloFilter(bool enable);
   int                        setEnableExtTrajVeloFilter(bool enable);
   bool                       getEnableExtEncVeloFilter();
@@ -249,94 +253,123 @@ class ecmcAxisBase : public ecmcError {
                                                   double velocitySet,
                                                   double accelerationSet,
                                                   double decelerationSet);
-  int                        moveRelativePosition(double positionSet,
-                                                  double velocitySet,
-                                                  double accelerationSet,
-                                                  double decelerationSet);
-  int                        moveVelocity(double velocitySet,
-                                          double accelerationSet,
-                                          double decelerationSet);
-  int                        moveHome(int    nCmdData,
-                                      double homePositionSet,
-                                      double velocityTowardsCamSet,
-                                      double velocityOffCamSet,                            
-                                      double accelerationSet,
-                                      double decelerationSet);
-  int                        setPosition(double homePositionSet);  // Autosave
-  int                        stopMotion(int killAmplifier);
-  asynStatus                 axisAsynWriteCmd(void* data, size_t bytes, asynParamType asynParType);
-  asynStatus                 axisAsynWriteTargetVelo(void* data, size_t bytes, asynParamType asynParType);
-  asynStatus                 axisAsynWriteTargetPos(void* data, size_t bytes, asynParamType asynParType);
-  asynStatus                 axisAsynWriteCommand(void* data, size_t bytes, asynParamType asynParType);
-  asynStatus                 axisAsynWriteCmdData(void* data, size_t bytes, asynParamType asynParType);
-  asynStatus                 axisAsynWriteSetEncPos(void* data, size_t bytes, asynParamType asynParType);
+  int moveRelativePosition(double positionSet,
+                           double velocitySet,
+                           double accelerationSet,
+                           double decelerationSet);
+  int moveVelocity(double velocitySet,
+                   double accelerationSet,
+                   double decelerationSet);
+  int moveHome(int    nCmdData,
+               double homePositionSet,
+               double velocityTowardsCamSet,
+               double velocityOffCamSet,
+               double accelerationSet,
+               double decelerationSet);
+  int moveHome();  // Use configs from encoder object
+  int        setPosition(double homePositionSet);                  // Autosave
+  int        stopMotion(int killAmplifier);
+  asynStatus axisAsynWriteCmd(void         *data,
+                              size_t        bytes,
+                              asynParamType asynParType);
+  asynStatus axisAsynWriteTargetVelo(void         *data,
+                                     size_t        bytes,
+                                     asynParamType asynParType);
+  asynStatus axisAsynWriteTargetPos(void         *data,
+                                    size_t        bytes,
+                                    asynParamType asynParType);
+  asynStatus axisAsynWriteCommand(void         *data,
+                                  size_t        bytes,
+                                  asynParamType asynParType);
+  asynStatus axisAsynWriteCmdData(void         *data,
+                                  size_t        bytes,
+                                  asynParamType asynParType);
+  asynStatus axisAsynWriteSetEncPos(void         *data,
+                                    size_t        bytes,
+                                    asynParamType asynParType);
+  asynStatus axisAsynWritePrimEncCtrlId(void         *data,
+                                        size_t        bytes,
+                                        asynParamType asynParType);
+  asynStatus axisAsynWriteAcc(void         *data,
+                              size_t        bytes,
+                              asynParamType asynParType);
+  asynStatus axisAsynWriteDec(void         *data,
+                              size_t        bytes,
+                              asynParamType asynParType);
+  int    setAllowMotionFunctions(bool enablePos,
+                                 bool enableConstVel,
+                                 bool enableHome);
+  int    getAllowPos();
+  int    getAllowConstVelo();
+  int    getAllowHome();
+  int    addEncoder();
+  int    selectPrimaryEncoder(int index, int overrideError);
+  int    selectPrimaryEncoder(int index);
+  int    selectConfigEncoder(int index);
+  int    getPrimaryEncoderIndex();                      // Control (PID)
+  int    getConfigEncoderIndex();                       // Config
+  double getExtSetPos();
+  double getExtActPos();
+  int    setAllowSourceChangeWhenEnabled(bool allow);
+  void   setTargetVel(double velTarget);
+  void   setAcc(double acc);
+  void   setDec(double dec);
 
-  int                        setAllowMotionFunctions(bool enablePos, bool enableConstVel, bool enableHome);
-  int                        getAllowPos();
-  int                        getAllowConstVelo();
-  int                        getAllowHome();
-  int                        addEncoder();
-  int                        selectPrimaryEncoder(int index);
-  int                        selectConfigEncoder(int index);
-  int                        selectHomeEncoder(int index);
-  int                        getPrimaryEncoderIndex();  // Control (PID)
-  int                        getConfigEncoderIndex();   // Config
-  int                        getHomeEncoderIndex();     // Homing
-  double                     getExtSetPos();
-  double                     getExtActPos();
-  int                        setAllowSourceChangeWhenEnabled(bool allow);
-  void                       setTargetVel(double velTarget);
+protected:
+  void   initVars();
+  void   refreshDebugInfoStruct();
 
- protected:
-  void                       initVars();
-  void                       refreshDebugInfoStruct();
-  //double                     getPosErrorMod();
-  int                        createAsynParam(const char        *nameFormat,
-                                             asynParamType      asynType,
-                                             ecmcEcDataType     ecmcType,
-                                             uint8_t*           data,
-                                             size_t             bytes,                   
-                                             ecmcAsynDataItem **asynParamOut);
-  void                       refreshStatusWd();
-  void                       initControlWord();
-  void                       initEncoders();
+  int    createAsynParam(const char        *nameFormat,
+                         asynParamType      asynType,
+                         ecmcEcDataType     ecmcType,
+                         uint8_t           *data,
+                         size_t             bytes,
+                         ecmcAsynDataItem **asynParamOut);
+  void refreshStatusWd();
+  void initControlWord();
+  void initEncoders();
+  bool getHwReady();
 
-  ecmcTrajectoryBase     *traj_;
-  ecmcMonitor            *mon_;
-  ecmcEncoder            *encArray_[ECMC_MAX_ENCODERS];  
-  ecmcAxisSequencer       seq_;
-  ecmcAxisStatusType      statusData_;
-  ecmcAxisStatusType      statusDataOld_;
-  ecmcAxisData            data_;
+  ecmcTrajectoryBase *traj_;
+  ecmcMonitor *mon_;
+  ecmcEncoder *encArray_[ECMC_MAX_ENCODERS];
+  ecmcAxisSequencer seq_;
+  ecmcAxisStatusType statusData_;
+  ecmcAxisStatusType statusDataOld_;
+  ecmcAxisData data_;
   axisState axisState_;
+
   // Axis default parameters over asyn I/O intr
-  ecmcAsynPortDriver     *asynPortDriver_;
-  ecmcAsynDataItem       *axAsynParams_[ECMC_ASYN_AX_PAR_COUNT];
-  ecmcEcEntry            *statusOutputEntry_;
-  ecmcFilter             *extTrajVeloFilter_;
-  ecmcFilter             *extEncVeloFilter_;
-  bool                    allowCmdFromOtherPLC_;
-  bool                    executeCmdOld_;
-  bool                    enableExtTrajVeloFilter_;
-  bool                    enableExtEncVeloFilter_;
-  bool                    disableAxisAtErrorReset_;
-  bool                    beforeFirstEnable_;
-  char                    diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
-  int                     printHeaderCounter_;
-  int                     cycleCounter_;
-  int                     blockExtCom_;
-  double                  oldPositionAct_;
-  double                  oldPositionSet_;
+  ecmcAsynPortDriver *asynPortDriver_;
+  ecmcAsynDataItem *axAsynParams_[ECMC_ASYN_AX_PAR_COUNT];
+  ecmcEcEntry *statusOutputEntry_;
+  ecmcFilter *extTrajVeloFilter_;
+  ecmcFilter *extEncVeloFilter_;
+  bool allowCmdFromOtherPLC_;
+  bool executeCmdOld_;
+  bool enableExtTrajVeloFilter_;
+  bool enableExtEncVeloFilter_;
+  bool disableAxisAtErrorReset_;
+  bool beforeFirstEnable_;
+  char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
+  int printHeaderCounter_;
+  int cycleCounter_;
+  int blockExtCom_;
+  double oldPositionAct_;
+  double oldPositionSet_;
 
   // For direct PV access (need extra paramteres to buffer since other execute behaviour)
-  ecmcAsynAxisControlType controlWord_;  
-  double                  positionTarget_;
-  double                  velocityTarget_;
-  double                  setEncoderPos_;
-  motionCommandTypes      command_;
-  int                     cmdData_;
-  ecmcTrajTypes           currentTrajType_;
-  bool                    allowSourceChangeWhenEnbaled_;
+  ecmcAsynAxisControlType controlWord_;
+  double positionTarget_;
+  double velocityTarget_;
+  double setEncoderPos_;
+  double acceleration_;
+  double deceleration_;
+  motionCommandTypes command_;
+  int cmdData_;
+  ecmcTrajTypes currentTrajType_;
+  bool allowSourceChangeWhenEnbaled_;
+  int encPrimIndexAsyn_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

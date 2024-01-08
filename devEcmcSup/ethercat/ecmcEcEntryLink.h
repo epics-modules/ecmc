@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcEcEntryLink.h
 *
@@ -17,45 +17,47 @@
 
 #define ECMC_EC_ENTRY_LINKS_MAX 20
 
-struct entryInfo{
+struct entryInfo {
   ecmcEcEntry *entry;
   int          bitNumber;
 };
 
 class ecmcEcEntryLink : public ecmcError {
- public:
- 
+public:
   ecmcEcEntryLink();
-  ecmcEcEntryLink(int* errorPtr,int* warningPtr);  
+  ecmcEcEntryLink(int *errorPtr,
+                  int *warningPtr);
   ~ecmcEcEntryLink();
-  void initVars();
+  void           initVars();
 
-  int  setEntryAtIndex(ecmcEcEntry *entry,
-                       int          index,
-                       int          bitIndex);
-  int  validateEntry(int index);
-  int  readEcEntryValue(int       entryIndex,
-                        uint64_t *value);
-  int  readEcEntryValueDouble(int     entryIndex,
-                              double *value);
-  int  writeEcEntryValue(int      entryIndex,
-                         uint64_t value);
+  int            setEntryAtIndex(ecmcEcEntry *entry,
+                                 int          index,
+                                 int          bitIndex);
+  int            validateEntry(int index);
+  int            readEcEntryValue(int       entryIndex,
+                                  uint64_t *value);
+  int            readEcEntryValueDouble(int     entryIndex,
+                                        double *value);
+  int            writeEcEntryValue(int      entryIndex,
+                                   uint64_t value);
 
-  int  writeEcEntryValueDouble(int    entryIndex,
-                               double value);
+  int            writeEcEntryValueDouble(int    entryIndex,
+                                         double value);
 
-  bool checkEntryExist(int entryIndex);
+  bool           checkEntryExist(int entryIndex);
+  bool           checkDomainOK(int entryIndex);
+  bool           checkDomainOKAllEntries();
 
- protected:
-  int  validateEntryBit(int index);
-  int  getEntryBitCount(int  index,
-                        int *bitCount);
-  int  getEntryStartBit(int  index,
-                        int *startBit);
+protected:
+  int            validateEntryBit(int index);
+  int            getEntryBitCount(int  index,
+                                  int *bitCount);
+  int            getEntryStartBit(int  index,
+                                  int *startBit);
   ecmcEcDataType getEntryDataType(int index);
   int            getSlaveId(int index);
 
- private:
+private:
   entryInfo entryInfoArray_[ECMC_EC_ENTRY_LINKS_MAX];
 };
 

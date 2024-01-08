@@ -2,6 +2,123 @@
 Release Notes
 ===
 
+# ECMC 9.0.1
+* Add commands for setting controller deadband (defaults to atTargetTol and atTargetTime):
+```
+    ecmcConfigOrDie "Cfg.SetAxisCntrlDeadband(<axis_id>,<tol>)"
+    ecmcConfigOrDie "Cfg.SetAxisCntrlDeadbandTime(<axis_id>,<time>)" 
+```
+  the function allows to have 0 deadband for control and at the same time have a atTarget tolerance (for motor record)
+* Add printout of data rawvalue (8byte) for ecmcGrepParam and ecmcReport.
+* Add asyn params to control acceleration and deceleration
+* Add command to offset raw velocity setpoints (for axes). One usecase can be to offset the zero velocity setpoint output of analog outputs:
+```
+ecmcConfigOrDie "Cfg.SetAxisDrvVelSetOffsetRaw(<axis_id>,<offset>)"
+
+```
+* Add command that adds an SDO object with a predefined type, up to 8 bytes:
+
+Example: Write sign 64bit int 
+```
+ecmcConfigOrDie "Cfg.EcAddSdoDT(<slave index>,<sdoindex>,<sdosubindex>,<valuestring>,<datatypestring>)" 
+#  0x8030:08, rwrwrw, int64, 64 bit, "Calibration position" for EP7211-0034
+ecmcConfigOrDie "Cfg.EcAddSdoDT(11,0x8030,0x8,-1234,S64)"
+
+# Verification
+ethercat upload -p11 -m0 0x8030 0x8
+0xfffffffffffffb2e -1234
+```
+* Remove reset of attarget bit when error reset is executed
+* Fix of brake not engaging when drive loose power
+* At traj source change then set target pos to setpos
+
+## Update of encoder handling
+* Add asyn parameter to select primary encoder (for control). This parameter will also set the index of homing encoder. 
+```
+ax<id>.primencid
+```
+* The axis actpos and actvel always shows values based on the primary encoder.
+* The axis actpos01..08, actvel01..08 shows the individual encoder values.
+* Remove concept with homing encoder. The homing encoder is always the primary encoder.
+* Add asyn param to switch encoder
+
+The update is done in order to make it simpler to for instance switch between open loop and closed loop for steppers.
+
+## Allow several domains:
+
+Add domain: All entries configured after this call will belong to th new domain:
+```
+ecmcConfigOrDie "Cfg.EcAddDomain(<exe_cycles>,<exe_offset>)"
+```
+The domain can be configured to execute at slower rates than the default ec rate and with offsets.
+
+The domain can be configured to be allowd to be offline:
+```
+ecmcConfigOrDie "Cfg.EcSetDomainAllowOffline(1)"
+```
+Note: If the domain is offline, ecmc will start even if the slaves in the domain are not connected to the bus.
+
+Note: Axes which are using data from a domain will be interlocked if the domain status is not OK.
+
+The ecmccfg commands addDomain.cmd wraps this functionality:
+```
+addDomain.cmd "ALLOW_OFFLINE=<allow>, EXE_RATE=<rate>,EXE_OFFSET=<offset>"
+```
+All parameters are optional.
+
+A new plc function is added to allow supervision of the domain states:
+```
+ec_get_dom_state(<dom_index>)
+```
+## master 2 master communication:
+By default a buffer of 128 doubles can be used for communication between different masters by plc functions:
+```
+m2m_write(<index>,<value>)     : write a value to an index in the buffer (index must be 0..119)
+m2m_read(<index>)              : read a value at an index in the buffer (index must be 0..119)
+m2m_stat()                     : check that connection to memory is ok.
+m2m_err_rst()                  : reset any error
+m2m_get_err()                  : get error code
+m2m_ioc_ec_ok(<master_index>)  : ioc/master ethercat status ok/operational. 1==op, 0==not op, -1==error
+m2m_ioc_run(<master_index>)    : ioc/master running (negative master id is ioc:s without ec master)
+```
+## Add extra set of controller parameters
+Use different controller parameters depending on distance to target. This can be usefull in for instance systemes with backlash.
+
+The command to configure this is:
+```
+"Cfg.SetAxisCntrlInnerParams(axis_no, kp, ki, kd, tol);
+```
+If distance to target is within +-tol then these controlelr parameters will be used. 
+
+In ecmccfg-jinja, the configuration looks like below (the inner section):
+```
+controller:
+  Kp: 10
+  Ki: 0.1
+  Kd: 0.25
+  inner:
+    tol: 1.0
+    Kp: 10
+    Ki: 0.1
+    Kd: 0.25
+```
+## Add jinja script for adding extra encoder (in ecmccfg)
+
+```
+${SCRIPTEXEC} ${ECMC_CONFIG_ROOT}loadYamlEnc.cmd, "FILE=./cfg/enc1.yaml"
+```
+enc1.yal:
+```
+encoder:
+  numerator: 360
+  denominator: 12800
+  type: 1         # Type: 0=Incremental, 1=Absolute
+  bits: 16        # Total bit count of encoder raw data
+  absOffset: 82.801    # Encoder offset in eng units (for absolute encoders)
+  position: ec0.s4.positionActual01  # Ethercat entry for act-pos (encoder)
+```
+For more info on extra encoders read futher down in this file.
+
 # ECMC 9.0.0
 * Fixes to brake control
 * Add asynparameter command to set encoder position (ax.setencpos). Usefull for save restore

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcCommadList.h
 *
@@ -17,10 +17,10 @@
 #include <vector>
 #include "stdio.h"
 
-#include "../main/ecmcError.h"
-#include "../main/ecmcDefinitions.h"
-#include "../com/ecmcCmdParser.h"
-#include "../com/ecmcOctetIF.h"
+#include "ecmcError.h"
+#include "ecmcDefinitions.h"
+#include "ecmcCmdParser.h"
+#include "ecmcOctetIF.h"
 #include "ecmcEventConsumer.h"
 
 // Command List
@@ -34,7 +34,7 @@
 #define ERROR_COMMAND_LIST_RESULT_BUFFER_OVERFLOW 0x20407
 
 class ecmcCommandList : public ecmcEventConsumer, public ecmcError {
- public:
+public:
   ecmcCommandList(int index);
   ~ecmcCommandList();
   int  setEnable(int enable);
@@ -45,7 +45,7 @@ class ecmcCommandList : public ecmcEventConsumer, public ecmcError {
   int  getCommandCount();
   void printCurrentState();
 
- private:
+private:
   void initVars();
   void printStatus();
   std::vector<std::string>commandList_;

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPLC.h
 *
@@ -18,12 +18,12 @@
 #ifndef ECMC_PLC_H_
 #define ECMC_PLC_H_
 
-#define CHECK_PLCS_RETURN_IF_ERROR()                                          \
-{                                                                             \
-  if (!plcs) {                                                                \
-    return ERROR_MAIN_PLCS_NULL;                                              \
-  }                                                                           \
-}     
+#define CHECK_PLCS_RETURN_IF_ERROR()\
+        {\
+          if (!plcs) {\
+            return ERROR_MAIN_PLCS_NULL;\
+          }\
+        }
 
 # ifdef __cplusplus
 extern "C" {
@@ -44,9 +44,9 @@ extern "C" {
  * \note Example: Create PLC at index 0 (executing every cycle).\n
  *  "Cfg.CreatePLC(0)" //Command string to ecmcCmdParser.c\n
  */
-int createPLC(int index,
+int createPLC(int    index,
               double cycleTime,
-              int axisPLC);
+              int    axisPLC);
 
 /** \brief Delete PLC.\n
  *
@@ -72,10 +72,10 @@ int deletePLC(int index);
  * \param[in] expr Expression.\n
  *
  * \return 0 if success or otherwise an error code.\n
- 
- * \note Pipe sign "|" should be used instead of ";" This because asynOctet 
+
+ * \note Pipe sign "|" should be used instead of ";" This because asynOctet
  * interface uses ";" as command delimiter\n.
- * 
+ *
  * \note Example: Set expression for PLC 5 to
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
  * "Cfg.SetPLCExpr(5)=ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0|" //Command string to ecmcCmdParser.c.\n
@@ -87,7 +87,7 @@ int setPLCExpr(int   index,
  *
  * Append one line of PLC Code. Code syntax is defined on exprtk website.\n
  * Variables that can be used are described below.\n
- * 
+ *
  * Compile will be performed automatically just before going to runtime during\n
  * validation.\n
  *
@@ -374,7 +374,7 @@ int setPLCExpr(int   index,
  *
  *   9. retvalue = ds_get_err()
  *      Returns error code for last lib call.\n
- * 
+ *
  *   10. retvalue = ds_push_asyn(
  *                           <dsIndex>,       : Data storage index\n
  *                           );
@@ -396,14 +396,14 @@ int setPLCExpr(int   index,
  *                           );
  *      Returns maximum of the values in the data storage.\n
  *
- * \note Pipe sign "|" should be used instead of ";" This because asynOctet 
+ * \note Pipe sign "|" should be used instead of ";" This because asynOctet
  * interface uses ";" as command delimiter\n.
- * 
+ *
  * \note Example: Add one line of PLC code to PLC 5
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
  * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0|)" //Command string to ecmcCmdParser.c.\n
  *
- * \note Example: Add code by plc file to PLC 5 (prefered solution, the ";" can\n 
+ * \note Example: Add code by plc file to PLC 5 (prefered solution, the ";" can\n
  * be used):\n
  * "Cfg.LoadPLCFile(5,<filename with path>)" //Command string to ecmcCmdParser.c.\n
  */
@@ -529,7 +529,7 @@ int getPLCEnable(int  index,
  * "getPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
 const char* getPLCExpr(int  axisIndex,
-                           int *error);
+                       int *error);
 
 
 # ifdef __cplusplus

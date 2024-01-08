@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcAxisData.cpp
 *
@@ -11,7 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAxisData.h"
-#include "../com/ecmcOctetIF.h"
+#include "ecmcOctetIF.h"
 
 ecmcAxisData::ecmcAxisData() {
   axisId_     = 0;
@@ -22,8 +22,7 @@ ecmcAxisData::ecmcAxisData() {
   memset(&interlocks_, 0, sizeof(interlocks_));
 }
 
-ecmcAxisData::~ecmcAxisData()
-{}
+ecmcAxisData::~ecmcAxisData() {}
 
 stopMode ecmcAxisData::refreshInterlocksInternal() {
   setSummaryInterlocks();
@@ -171,7 +170,7 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
 
 stopMode ecmcAxisData::refreshInterlocks() {
   interlockTypes oldInterlock = interlocks_.interlockStatus;
-  
+
   stopMode stop = refreshInterlocksInternal();
 
   // Latch latest active interlock
@@ -179,19 +178,27 @@ stopMode ecmcAxisData::refreshInterlocks() {
       (interlocks_.interlockStatus != interlocks_.lastActiveInterlock)) {
     interlocks_.lastActiveInterlock = interlocks_.interlockStatus;
   }
-  
-  if(oldInterlock != interlocks_.interlockStatus) {
-    if(interlocks_.interlockStatus) {
-      LOGERR("%s/%s:%d: INFO (axis %d): Motion interlocked (type %d).\n", __FILE__, __FUNCTION__, __LINE__,axisId_,interlocks_.interlockStatus);
+
+  if (oldInterlock != interlocks_.interlockStatus) {
+    if (interlocks_.interlockStatus) {
+      LOGERR("%s/%s:%d: INFO (axis %d): Motion interlocked (type %d).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             axisId_,
+             interlocks_.interlockStatus);
     } else {
-      LOGERR("%s/%s:%d: INFO (axis %d): Motion interlock cleared.\n", __FILE__, __FUNCTION__, __LINE__,axisId_);
+      LOGERR("%s/%s:%d: INFO (axis %d): Motion interlock cleared.\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             axisId_);
     }
   }
   return stop;
 }
 
 int ecmcAxisData::setSummaryInterlocks() {
-
   interlocks_.driveSummaryInterlock = interlocks_.bothLimitsLowInterlock
                                       || interlocks_.bothLimitsLowInterlock
                                       || interlocks_.

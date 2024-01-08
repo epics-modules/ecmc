@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcDriveStepper.cpp
 *
@@ -13,8 +13,8 @@
 #include "ecmcDriveStepper.h"
 
 ecmcDriveStepper::ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
-                                   ecmcAxisData *axisData) : 
-                                   ecmcDriveBase(asynPortDriver,axisData) {
+                                   ecmcAxisData       *axisData) :
+  ecmcDriveBase(asynPortDriver, axisData) {
   initVars();
   data_ = axisData;
 
@@ -25,9 +25,9 @@ ecmcDriveStepper::ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
 }
 
 ecmcDriveStepper::ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
-                                   ecmcAxisData *axisData,
-                                   double        scale) : 
-                                   ecmcDriveBase(asynPortDriver,axisData) {
+                                   ecmcAxisData       *axisData,
+                                   double              scale) :
+  ecmcDriveBase(asynPortDriver, axisData) {
   initVars();
   data_ = axisData;
 
@@ -39,15 +39,13 @@ ecmcDriveStepper::ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
   scale_ = scale;
 }
 
-ecmcDriveStepper::~ecmcDriveStepper()
-{}
+ecmcDriveStepper::~ecmcDriveStepper() {}
 
-void ecmcDriveStepper::initVars()
-{
+void ecmcDriveStepper::initVars() {
   localEnabled_ = 0;
 }
 
-int  ecmcDriveStepper::validate() {
+int ecmcDriveStepper::validate() {
   int errorCode = ecmcDriveBase::validate();
 
   if (errorCode) {

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcTrajectoryS.h
 *
@@ -24,7 +24,7 @@
  * \brief Implements a S-curve motion setpoint trajectory
  *
  * This class implements S-curve trajectory nased on based on ruckig sources
- * 
+ *
  * Supports:
  * 1. Constant velocity
  * 2. Relative positioning
@@ -49,55 +49,56 @@
 using namespace ruckig;
 
 class ecmcTrajectoryS : public ecmcTrajectoryBase {
- public:
+public:
   ecmcTrajectoryS(ecmcAxisData *axisData,
                   double        sampleTime);
   ~ecmcTrajectoryS();
 
-   /** \brief Sets target velocity of trajectory (max velocity).
-   * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
-   */
-  void            setTargetVel(double velTarget);
-  
+  /** \brief Sets target velocity of trajectory (max velocity).
+  * Note: This is the max velocity of the trajectory generator. The actual velocity can be higher.
+  */
+  void   setTargetVel(double velTarget);
+
   /// Sets target position (end position of trajectory).
-  void            setTargetPosLocal(double pos);
+  void   setTargetPosLocal(double pos);
 
   /// Sets position setpoint.
-  void            setCurrentPosSet(double posSet);
+  void   setCurrentPosSet(double posSet);
 
-  double          distToStop(double vel);
-  int             initStopRamp(double   currentPos,
-                               double   currentVel,
-                               double   currentAcc);
-  int             setExecute(bool execute);
-  int             validate();
- private:
-  void            initRuckig();
-  bool            updateRuckig();
-  double          internalTraj(double  *actVelocity,
-                               double  *actAcceleration,
-                               bool    *trajBusy);
-  double          moveVel(double       *actVelocity,
-                          double       *actAcceleration,
-                          bool         *trajBusy);
-  double          movePos(double       *actVelocity,
-                          double       *actAcceleration,
-                          bool         *trajBusy);
-  double          moveStop(stopMode     stopMode,
-                           double      *actVelocity,
-                           double      *actAcceleration,
-                           bool        *stopped);
+  double distToStop(double vel);
+  int    initStopRamp(double currentPos,
+                      double currentVel,
+                      double currentAcc);
+  int    setExecute(bool execute);
+  int    validate();
+
+private:
+  void   initRuckig();
+  bool   updateRuckig();
+  double internalTraj(double *actVelocity,
+                      double *actAcceleration,
+                      bool   *trajBusy);
+  double moveVel(double *actVelocity,
+                 double *actAcceleration,
+                 bool   *trajBusy);
+  double movePos(double *actVelocity,
+                 double *actAcceleration,
+                 bool   *trajBusy);
+  double moveStop(stopMode stopMode,
+                  double  *actVelocity,
+                  double  *actAcceleration,
+                  bool    *stopped);
 
   // Ruckig
-  void            initVars();
-  Ruckig<DynamicDOFs>          *otg_;
-  InputParameter<DynamicDOFs>  *input_;
+  void initVars();
+  Ruckig<DynamicDOFs> *otg_;
+  InputParameter<DynamicDOFs> *input_;
   OutputParameter<DynamicDOFs> *output_;
-  double                        stepNOM_;
-  double                        localCurrentPositionSetpoint_;
-  double                        targetPositionLocal_;
-  double                        targetVelocityLocal_;
-  bool                          localBusy_;
-  double                        trajMaxVelo_;
+  double stepNOM_;
+  double localCurrentPositionSetpoint_;
+  double targetPositionLocal_;
+  double targetVelocityLocal_;
+  bool localBusy_;
+  double trajMaxVelo_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYS_H_

@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPLCMain.cpp
 *
@@ -12,14 +12,14 @@
 
 #include "ecmcPLCMain.h"
 
-ecmcPLCMain::ecmcPLCMain(ecmcEc *ec,
-                         double mcuFreq,
+ecmcPLCMain::ecmcPLCMain(ecmcEc             *ec,
+                         double              mcuFreq,
                          ecmcAsynPortDriver *asynPortDriver) {
   initVars();
   asynPortDriver_ = asynPortDriver;
-  ec_ = ec;
-  mcuFreq_ = mcuFreq;
-  addMainDefaultVariables();  
+  ec_             = ec;
+  mcuFreq_        = mcuFreq;
+  addMainDefaultVariables();
 }
 
 ecmcPLCMain::~ecmcPLCMain() {
@@ -30,7 +30,8 @@ ecmcPLCMain::~ecmcPLCMain() {
 }
 
 void ecmcPLCMain::initVars() {
-  globalVariableCount_ = 0;  
+  globalVariableCount_ = 0;
+
   for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
     plcs_[i]         = NULL;
     plcEnable_[i]    = NULL;
@@ -55,9 +56,10 @@ void ecmcPLCMain::initVars() {
   }
 
   asynPortDriver_ = NULL;
-  ec_ = NULL;
+  ec_             = NULL;
+  memset(&shm_, 0, sizeof(ecmcShm));
   ecStatus_ = NULL;
-  mcuFreq_ = MCU_FREQUENCY;
+  mcuFreq_  = MCU_FREQUENCY;
 }
 
 int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
@@ -101,6 +103,9 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
   // Set ec pointer
   plcs_[plcIndex]->setEcPointer(ec_);
 
+  // Set shm
+  plcs_[plcIndex]->setShm(shm_);
+
   errorCode = addPLCDefaultVariables(plcIndex, skipCycles);
 
   if (errorCode) {
@@ -133,7 +138,6 @@ int ecmcPLCMain::setDataStoragePointer(ecmcDataStorage *ds, int index) {
 }
 
 int ecmcPLCMain::validate(int plcIndex) {
-  
   if (plcs_[plcIndex] != NULL) {
     int errorCode = plcs_[plcIndex]->validate();
 
@@ -147,12 +151,14 @@ int ecmcPLCMain::validate(int plcIndex) {
 int ecmcPLCMain::validate() {
   // Parse and Compile all PLCs before runtime (all objects should be availabe)
   // Compile Axis PLC:S if needed
- 
+
   int errorCode = 0;
+
   for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
-    if(plcs_[i]) {
-      if(!getCompiled(i)) {      
-        errorCode = addExprLine(i,plcs_[i]->getRawExpr()->c_str());
+    if (plcs_[i]) {
+      if (!getCompiled(i)) {
+        errorCode = addExprLine(i, plcs_[i]->getRawExpr()->c_str());
+
         if (errorCode) {
           return errorCode;
         }
@@ -170,6 +176,7 @@ int ecmcPLCMain::validate() {
   // Validate
   for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
     int errorCode = validate(i);
+
     if (errorCode) {
       return errorCode;
     }
@@ -179,8 +186,8 @@ int ecmcPLCMain::validate() {
 }
 
 int ecmcPLCMain::execute(bool ecOK) {
-  //refresh ec<id>.masterstatus
-  if(ecStatus_){
+  // refresh ec<id>.masterstatus
+  if (ecStatus_) {
     ecStatus_->setData((double)ecOK);
   }
 
@@ -190,16 +197,18 @@ int ecmcPLCMain::execute(bool ecOK) {
       if (plcEnable_[plcIndex]) {
         if (plcEnable_[plcIndex]->getData()) {
           plcs_[plcIndex]->execute(ecOK);
+
           if (ecOK) {
             if (plcFirstScan_[plcIndex]) {
-              plcFirstScan_[plcIndex]->setData(plcs_[plcIndex]->getFirstScanDone()==0); // First scan
+              plcFirstScan_[plcIndex]->setData(
+                plcs_[plcIndex]->getFirstScanDone() == 0);                              // First scan
             }
           }
         }
       }
     }
   }
-  
+
   /** update asyn params here for all globals to get sample rate correct
       (if globals are used in many plcs) */
   for (int i = 0; i < globalVariableCount_; ++i) {
@@ -216,9 +225,11 @@ int ecmcPLCMain::execute(int plcIndex, bool ecOK) {
     if (plcEnable_[plcIndex]) {
       if (plcEnable_[plcIndex]->getData()) {
         plcs_[plcIndex]->execute(ecOK);
-         if (ecOK) {
+
+        if (ecOK) {
           if (plcFirstScan_[plcIndex]) {
-            plcFirstScan_[plcIndex]->setData(plcs_[plcIndex]->getFirstScanDone()==0); // First scan
+            plcFirstScan_[plcIndex]->setData(
+              plcs_[plcIndex]->getFirstScanDone() == 0);                              // First scan
           }
         }
       }
@@ -227,9 +238,8 @@ int ecmcPLCMain::execute(int plcIndex, bool ecOK) {
   return 0;
 }
 
-std::string *ecmcPLCMain::getExpr(int plcIndex, int *error) {
-  
-  if (plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES || plcIndex < 0) {
+std::string * ecmcPLCMain::getExpr(int plcIndex, int *error) {
+  if ((plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES) || (plcIndex < 0)) {
     LOGERR("ERROR: PLC index out of range.\n");
     *error =  ERROR_PLCS_INDEX_OUT_OF_RANGE;
     return NULL;
@@ -243,7 +253,7 @@ std::string *ecmcPLCMain::getExpr(int plcIndex, int *error) {
 
   return plcs_[plcIndex]->getExpr();
 }
-  
+
 int ecmcPLCMain::setExpr(int plcIndex, char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   plcs_[plcIndex]->clearExpr();
@@ -256,16 +266,15 @@ int ecmcPLCMain::setExpr(int plcIndex, char *expr) {
   return compileExpr(plcIndex);
 }
 
-
 int ecmcPLCMain::addExprLine(int plcIndex, const char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
 
   int errorCode = parseExpr(plcIndex, expr);
-  
+
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
-  
+
   /*
     Special case:
     Remove unsupported syntax for simulation slave (ec<id>.s-1.xxx to ec<id>.d1.xxx )
@@ -305,7 +314,7 @@ int ecmcPLCMain::addExprLine(int plcIndex, const char *expr) {
 
 int ecmcPLCMain::appendExprLine(int plcIndex, const char *expr) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
-  int errorCode = plcs_[plcIndex]->appendRawExpr(expr);  
+  int errorCode = plcs_[plcIndex]->appendRawExpr(expr);
   return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
 }
 
@@ -313,6 +322,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   std::ifstream plcFile;
   plcFile.open(fileName);
+
   if (!plcFile.good()) {
     LOGERR("%s/%s:%d: ERROR PLC%d: File not found: %s (0x%x).\n",
            __FILE__,
@@ -336,7 +346,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
     lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
 
     if (lineNoComments.length() > 0) {
-      lineNoComments.append("\n");      
+      lineNoComments.append("\n");
       errorCode = appendExprLine(plcIndex, lineNoComments.c_str());
 
       if (errorCode) {
@@ -368,7 +378,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
            errorCode);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
-  
+
   return 0;
 }
 
@@ -380,13 +390,14 @@ int ecmcPLCMain::clearExpr(int plcIndex) {
 int ecmcPLCMain::compileExpr(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
 
-  if(plcs_[plcIndex]->getNewExpr())
-    plcs_[plcIndex]->clearExpr();
+  if (plcs_[plcIndex]->getNewExpr())plcs_[plcIndex]->clearExpr();
   else {
     return 0;
   }
 
-  int errorCode = addExprLine(plcIndex,plcs_[plcIndex]->getRawExpr()->c_str());
+  int errorCode =
+    addExprLine(plcIndex, plcs_[plcIndex]->getRawExpr()->c_str());
+
   if (errorCode) {
     return errorCode;
   }
@@ -421,11 +432,11 @@ int ecmcPLCMain::getCompiled(int plcIndex, int *compiled) {
 }
 
 int ecmcPLCMain::getCompiled(int plcIndex) {
-  if (plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES || plcIndex < 0) {
+  if ((plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES) || (plcIndex < 0)) {
     LOGERR("ERROR: PLC index out of range.\n");
     return 0;
   }
-  return  plcs_[plcIndex]->getCompiled();
+  return plcs_[plcIndex]->getCompiled();
 }
 
 int ecmcPLCMain::parseExpr(int plcIndex, const char *exprStr) {
@@ -534,7 +545,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
                                                                ec_,
                                                                varName,
                                                                asynPortDriver_);
-    errorCode                              =
+    errorCode =
       globalDataArray_[globalVariableCount_]->getErrorID();
 
     if (errorCode) {
@@ -997,7 +1008,7 @@ int ecmcPLCMain::plcVarNameValid(const char *plcVar) {
  * Create new dataIF if needed and register in PLC
  */
 int ecmcPLCMain::createAndRegisterNewDataIF(int                plcIndex,
-                                            char               *varName,
+                                            char              *varName,
                                             ecmcDataSourceType dataSource) {
   ecmcPLCDataIF *dataIF = NULL;
   int errorCode         = findGlobalDataIF(varName, &dataIF);
@@ -1024,9 +1035,8 @@ int ecmcPLCMain::createAndRegisterNewDataIF(int                plcIndex,
   return 0;
 }
 
-int ecmcPLCMain::addMainDefaultVariables(){
-  
-  if(ec_->getInitDone()) {
+int ecmcPLCMain::addMainDefaultVariables() {
+  if (ec_->getInitDone()) {
     int masterId = ec_->getMasterIndex();
 
     // Add ec<index>.masterstatus
@@ -1042,7 +1052,7 @@ int ecmcPLCMain::addMainDefaultVariables(){
                         __LINE__,
                         ERROR_PLCS_VARIABLE_NAME_TO_LONG);
     }
-  
+
     globalDataArray_[globalVariableCount_] = new ecmcPLCDataIF(-1,
                                                                -1,
                                                                varName,
@@ -1065,10 +1075,10 @@ int ecmcPLCMain::addMainDefaultVariables(){
 }
 
 int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
-  
   int errorCode = 0;
-  if(ec_->getInitDone()) {
-    //Add ec<id>.masterstatus
+
+  if (ec_->getInitDone()) {
+    // Add ec<id>.masterstatus
     errorCode = plcs_[plcIndex]->addAndReisterGlobalVar(ecStatus_);
 
     if (errorCode) {
@@ -1076,24 +1086,31 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
     }
   }
 
-  ecmcPLCDataIF *dataIF = NULL;  
-  
+  ecmcPLCDataIF *dataIF = NULL;
+
   // Add plc<index>.enable
-  errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_ENABLE_DATA_STR, &dataIF);
+  errorCode =
+    addPLCDefaultVariable(plcIndex, ECMC_PLC_ENABLE_DATA_STR, &dataIF);
+
   if (errorCode) {
     return errorCode;
-  }  
+  }
   plcEnable_[plcIndex] = dataIF;
 
   // Add plc<index>.error
-  errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_ERROR_DATA_STR, &dataIF);
+  errorCode =
+    addPLCDefaultVariable(plcIndex, ECMC_PLC_ERROR_DATA_STR, &dataIF);
+
   if (errorCode) {
     return errorCode;
   }
   plcError_[plcIndex] = dataIF;
 
   // Add plc<index>.scantime
-  errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_SCAN_TIME_DATA_STR, &dataIF);
+  errorCode = addPLCDefaultVariable(plcIndex,
+                                    ECMC_PLC_SCAN_TIME_DATA_STR,
+                                    &dataIF);
+
   if (errorCode) {
     return errorCode;
   }
@@ -1101,7 +1118,9 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   dataIF->setData(1 / mcuFreq_ * (skipCycles + 1));
 
   // Add plc<index>.firstscan
-  errorCode = addPLCDefaultVariable(plcIndex, ECMC_PLC_FIRST_SCAN_STR, &dataIF);  
+  errorCode =
+    addPLCDefaultVariable(plcIndex, ECMC_PLC_FIRST_SCAN_STR, &dataIF);
+
   if (errorCode) {
     return errorCode;
   }
@@ -1147,8 +1166,8 @@ void ecmcPLCMain::errorReset() {
 }
 
 int ecmcPLCMain::updateAllScanTimeVars(int plcIndex) {
-
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+
   if (plcs_[plcIndex]) {
     int chars = snprintf(varName,
                          EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
@@ -1178,9 +1197,10 @@ int ecmcPLCMain::updateAllScanTimeVars(int plcIndex) {
 }
 
 int ecmcPLCMain::updateAllScanTimeVars() {
-  // Update all scantime variables for all axes)  
+  // Update all scantime variables for all axes)
   for (int i = 0; i < ECMC_MAX_PLCS + ECMC_MAX_AXES; i++) {
     int error = updateAllScanTimeVars(i);
+
     if (error) {
       return error;
     }
@@ -1189,66 +1209,70 @@ int ecmcPLCMain::updateAllScanTimeVars() {
 }
 
 int ecmcPLCMain::readStaticPLCVar(int plcIndex, const char  *varName,
-                               double *data) {
+                                  double *data) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   return plcs_[plcIndex]->readStaticPLCVar(varName, data);
 }
 
 int ecmcPLCMain::writeStaticPLCVar(int plcIndex, const char  *varName,
-                                double data) {
+                                   double data) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   return plcs_[plcIndex]->writeStaticPLCVar(varName, data);
 }
 
-ecmcPLCTask* ecmcPLCMain::getPLCTaskForAxis(int axisId) {
+ecmcPLCTask * ecmcPLCMain::getPLCTaskForAxis(int axisId) {
   /*
    PLCs in array:
    0             .. (ECMC_MAX_PLCS-1)                   : Normal PLCs (exe here)
-   ECMC_MAX_PLCS .. (ECMC_MAX_PLCS + ECMC_MAX_AXES-1)   : PLC objects for axis syncs 
+   ECMC_MAX_PLCS .. (ECMC_MAX_PLCS + ECMC_MAX_AXES-1)   : PLC objects for axis syncs
                                                           exe in axis objects
   */
   int error = 0;
   int index = ECMC_MAX_PLCS + axisId;
-  if (index >= ECMC_MAX_PLCS + ECMC_MAX_AXES || index < ECMC_MAX_PLCS) {
+
+  if ((index >= ECMC_MAX_PLCS + ECMC_MAX_AXES) || (index < ECMC_MAX_PLCS)) {
     LOGERR("%s/%s:%d: ERROR: Axis PLC index out of range.\n",
            __FILE__,
            __FUNCTION__,
-           __LINE__);    
+           __LINE__);
     return NULL;
   }
-  
-  if (!plcs_[index]) {
-      //Always run sync with axis
-      try {
-        error = createPLC(index,0);
-        LOGERR("%s/%s:%d: ERROR: Fail create PLC for axis %d (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisId,
-           error);
-        return NULL;
 
-      }
-      catch (std::exception& e) {
-        delete plcs_[index];    
-        LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS PLC OBJECT.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           e.what());
-        return NULL;
+  if (!plcs_[index]) {
+    // Always run sync with axis
+    try {
+      error = createPLC(index, 0);
+      LOGERR("%s/%s:%d: ERROR: Fail create PLC for axis %d (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             axisId,
+             error);
+      return NULL;
+    }
+    catch (std::exception& e) {
+      delete plcs_[index];
+      LOGERR(
+        "%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS PLC OBJECT.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        e.what());
+      return NULL;
     }
   }
 
   return plcs_[index];
 }
 
-int ecmcPLCMain::addPLCDefaultVariable(int plcIndex, const char *suffix, ecmcPLCDataIF **dataIFOut) {
+int ecmcPLCMain::addPLCDefaultVariable(int             plcIndex,
+                                       const char     *suffix,
+                                       ecmcPLCDataIF **dataIFOut) {
   char varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  chars = 0;
-  //Normal PLC
-  if(plcIndex < ECMC_MAX_PLCS){
+
+  // Normal PLC
+  if (plcIndex < ECMC_MAX_PLCS) {
     chars = snprintf(varName,
                      EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
                      ECMC_PLC_DATA_STR "%d.%s",
@@ -1260,12 +1284,11 @@ int ecmcPLCMain::addPLCDefaultVariable(int plcIndex, const char *suffix, ecmcPLC
                         __LINE__,
                         ERROR_PLCS_VARIABLE_NAME_TO_LONG);
     }
-  }
-  else {  // Axis PLC
+  } else {   // Axis PLC
     chars = snprintf(varName,
                      EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1,
                      ECMC_AX_STR "%d." ECMC_PLC_DATA_STR ".%s",
-                     plcIndex-ECMC_MAX_PLCS,suffix);
+                     plcIndex - ECMC_MAX_PLCS, suffix);
 
     if (chars >= EC_MAX_OBJECT_PATH_CHAR_LENGTH - 1) {
       return setErrorID(__FILE__,
@@ -1275,13 +1298,13 @@ int ecmcPLCMain::addPLCDefaultVariable(int plcIndex, const char *suffix, ecmcPLC
     }
   }
   int errorCode = createAndRegisterNewDataIF(plcIndex,
-                                         varName,                                             
-                                         ECMC_RECORDER_SOURCE_GLOBAL_VAR);
+                                             varName,
+                                             ECMC_RECORDER_SOURCE_GLOBAL_VAR);
 
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
-  
+
   errorCode = findGlobalDataIF(varName, dataIFOut);
 
   if (errorCode) {
@@ -1305,11 +1328,15 @@ int ecmcPLCMain::addPLCDefaultVariable(int plcIndex, const char *suffix, ecmcPLC
 }
 
 int ecmcPLCMain::setPluginPointer(ecmcPluginLib *plugin, int index) {
-  
-  if(index < 0 && index >= ECMC_MAX_PLUGINS) {
+  if ((index < 0) && (index >= ECMC_MAX_PLUGINS)) {
     return ERROR_PLCS_PLUGIN_INDEX_OUT_OF_RANGE;
   }
 
   plugins_[index] = plugin;
+  return 0;
+}
+
+int ecmcPLCMain::setShm(ecmcShm shm) {
+  shm_ = shm;
   return 0;
 }

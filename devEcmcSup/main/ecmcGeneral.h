@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcGeneral.h
 *
@@ -29,7 +29,7 @@ extern "C" {
  * \note Example: Get current controller error code.\n
  * "GetControllerError()" //Command string to ecmcCmdParser.c\n
  */
-int getControllerError();
+int         getControllerError();
 
 /** \brief Resets the controller error code.\n
  *
@@ -38,7 +38,7 @@ int getControllerError();
  * \note Example: Reset controller error.\n
  * "ControllerErrorReset()" //Command string to ecmcCmdParser.c\n
  */
-int controllerErrorReset();
+int         controllerErrorReset();
 
 /** \brief Get axis error code in string format.\n
  *
@@ -61,7 +61,7 @@ const char* getErrorString(int errorNumber);
  * \note Example: Validate configuration.\n
  * "Cfg.ValidateConfig()" //Command string to ecmcCmdParser.c\n
  */
-int validateConfig();
+int         validateConfig();
 
 /** \brief Links an EtherCAT entry to an object.
    *
@@ -91,8 +91,8 @@ int validateConfig();
    *  to ecmcCmdParser.c\n
    *     *
    */
-int linkEcEntryToObject(char *ecPath,
-                        char *objPath);
+int         linkEcEntryToObject(char *ecPath,
+                                char *objPath);
 
 /** \brief Enable printouts of timing information related to the realtime
  * thread.\n
@@ -117,7 +117,7 @@ int setEnableTimeDiag(int value);
  *  "Cfg.SetEnableFuncCallDiag(1)" //Command string to ecmcCmdParser.c\n
  */
 int setEnableFunctionCallDiag(int value);
-                       
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

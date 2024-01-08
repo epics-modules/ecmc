@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcPLCDataIF.h
 *
@@ -15,15 +15,15 @@
 
 #include <string>
 #include <sstream>
-#include "../main/ecmcDefinitions.h"
-#include "../main/ecmcError.h"
-#include "../motion/ecmcAxisBase.h"
-#include "../misc/ecmcDataStorage.h"
-#include "../ethercat/ecmcEc.h"
-#include "../ethercat/ecmcEcEntry.h"
-#include "../ethercat/ecmcEcEntryLink.h"
-#include "../ethercat/ecmcEcSlave.h"
-#include "../com/ecmcAsynPortDriver.h"
+#include "ecmcDefinitions.h"
+#include "ecmcError.h"
+#include "ecmcAxisBase.h"
+#include "ecmcDataStorage.h"
+#include "ecmcEc.h"
+#include "ecmcEcEntry.h"
+#include "ecmcEcEntryLink.h"
+#include "ecmcEcSlave.h"
+#include "ecmcAsynPortDriver.h"
 
 #define ECMC_PLC_EC_ENTRY_INDEX 0
 
@@ -42,21 +42,21 @@
 
 
 class ecmcPLCDataIF : public ecmcEcEntryLink {
- public:
-  ecmcPLCDataIF(int          plcIndex,
-                double       plcSampleRateMs,
-                ecmcAxisBase *axis,
-                char         *axisVarName,
+public:
+  ecmcPLCDataIF(int                 plcIndex,
+                double              plcSampleRateMs,
+                ecmcAxisBase       *axis,
+                char               *axisVarName,
                 ecmcAsynPortDriver *asynPortDriver);
-  ecmcPLCDataIF(int             plcIndex,
-                double          plcSampleRateMs,
-                ecmcDataStorage *ds,
-                char            *dsVarName,
+  ecmcPLCDataIF(int                 plcIndex,
+                double              plcSampleRateMs,
+                ecmcDataStorage    *ds,
+                char               *dsVarName,
                 ecmcAsynPortDriver *asynPortDriver);
-  ecmcPLCDataIF(int     plcIndex,
-                double  plcSampleRateMs,
-                ecmcEc *ec,
-                char   *ecVarName,
+  ecmcPLCDataIF(int                 plcIndex,
+                double              plcSampleRateMs,
+                ecmcEc             *ec,
+                char               *ecVarName,
                 ecmcAsynPortDriver *asynPortDriver);
   ecmcPLCDataIF(int                 plcIndex,
                 double              plcSampleRateMs,
@@ -66,16 +66,17 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
   ~ecmcPLCDataIF();
   int                 read();
   int                 write();
-  double            & getDataRef();
+  double&             getDataRef();
   double              getData();
   void                setData(double data);
-  const char        * getVarName();
-  const char        * getExprTkVarName();
+  const char*         getVarName();
+  const char*         getExprTkVarName();
   int                 validate();
   int                 setReadOnly(int readOnly);
   int                 updateAsyn(int force);
-  
- private:
+  void                errorReset();
+
+private:
   int                 readAxis();
   int                 writeAxis();
   int                 readDs();
@@ -91,7 +92,7 @@ class ecmcPLCDataIF : public ecmcEcEntryLink {
                                   char *alias,
                                   int  *bit);
   void initVars();
-  int  initAsyn();  
+  int  initAsyn();
   ecmcAxisBase *axis_;
   ecmcDataStorage *ds_;
   ecmcEc *ec_;

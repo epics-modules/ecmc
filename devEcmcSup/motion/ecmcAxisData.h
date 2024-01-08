@@ -1,7 +1,7 @@
 /*************************************************************************\
 * Copyright (c) 2019 European Spallation Source ERIC
 * ecmc is distributed subject to a Software License Agreement found
-* in file LICENSE that is included with this distribution. 
+* in file LICENSE that is included with this distribution.
 *
 *  ecmcAxisData.h
 *
@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 #include "string.h"
-#include "../main/ecmcDefinitions.h"
+#include "ecmcDefinitions.h"
 
 typedef struct {
   double             positionTarget;
@@ -28,7 +28,7 @@ typedef struct {
   int                cmdData;
   int                primaryEncIndex;  // used for control
   int                cfgEncIndex;      // Encoder currrently configured
-  int                homeEncIndex;     // used for homing
+  //int                homeEncIndex;     // used for homing
   bool               enable             : 1;
   bool               execute            : 1;
   bool               reset              : 1;
@@ -36,52 +36,54 @@ typedef struct {
   bool               enableSoftLimitFwd : 1;
   dataSource         trajSource;
   dataSource         encSource;
-  driveMode          drvMode;  
+  driveMode          drvMode;
 } ecmcAxisDataCommand;
 
 typedef struct {
-  double externalTrajectoryPosition;
-  double externalTrajectoryPositionOld;         
-  double externalTrajectoryVelocity;  
-  double externalEncoderPosition;
-  double externalEncoderPositionOld;
-  double externalEncoderVelocity;
-  double currentPositionActual;
-  double currentPositionSetpoint;
-  double currentTargetPosition;
-  double currentTargetPositionModulo;
-  double currentPositionSetpointOld;
-  double currentVelocityActual;
-  double currentVelocitySetpoint;
+  double  externalTrajectoryPosition;
+  double  externalTrajectoryPositionOld;
+  double  externalTrajectoryVelocity;
+  double  externalEncoderPosition;
+  double  externalEncoderPositionOld;
+  double  externalEncoderVelocity;
+  double  currentPositionActual;
+  double  currentPositionSetpoint;
+  double  currentTargetPosition;
+  double  currentTargetPositionModulo;
+  double  currentPositionSetpointOld;
+  double  currentVelocityActual;
+  double  currentVelocitySetpoint;
   int64_t currentVelocitySetpointRaw;
   int64_t currentPositionSetpointRaw;
-  double currentvelocityFFRaw;
-  double cntrlError;
-  double cntrlOutput;
-  double cntrlOutputOld;
-  bool   enabled;
-  bool   enabledOld;
-  bool   enableOld;
-  bool   executeOld;
-  bool   busy;
-  bool   busyOld;
-  bool   moving;
-  bool   movingOld;
-  int    seqState;
-  int    encoderCount;  
-  bool   atTarget;
-  bool   limitFwd;
-  bool   limitBwd;
-  bool   limitFwdFiltered;
-  bool   limitBwdFiltered;
-  bool   homeSwitch;
-  bool   homeSwitchFiltered;
-  bool   inStartupPhase;
-  bool   inRealtime;
-  double distToStop;
-  int errorCode;
-  int warningCode;
-} ecmcAxisDataStatus;  
+  double  currentvelocityFFRaw;
+  double  cntrlError;
+  double  cntrlOutput;
+  double  cntrlOutputOld;
+  bool    enabled;
+  bool    enabledOld;
+  bool    enableOld;
+  bool    executeOld;
+  bool    busy;
+  bool    busyOld;
+  bool    moving;
+  bool    movingOld;
+  int     seqState;
+  int     encoderCount;
+  bool    atTarget;
+  bool   ctrlWinthinDeadband;
+  bool    limitFwd;
+  bool    limitBwd;
+  bool    limitFwdFiltered;
+  bool    limitBwdFiltered;
+  bool    homeSwitch;
+  bool    homeSwitchFiltered;
+  bool    inStartupPhase;
+  bool    startupFinsished;
+  bool    inRealtime;
+  double  distToStop;
+  int     errorCode;
+  int     warningCode;
+} ecmcAxisDataStatus;
 
 typedef struct {
   bool           hardwareInterlock;  // Interlock on external I/O
@@ -110,14 +112,14 @@ typedef struct {
   bool           plcInterlock;
   bool           plcInterlockFWD;
   bool           plcInterlockBWD;
-  bool           encDiffInterlock; 
+  bool           encDiffInterlock;
   interlockTypes lastActiveInterlock;
   interlockTypes interlockStatus;
   stopMode       currStopMode;
 } ecmcAxisDataInterlocks;
 
 class ecmcAxisData {
- public:
+public:
   ecmcAxisData();
   ~ecmcAxisData();
   stopMode refreshInterlocks();
@@ -129,8 +131,8 @@ class ecmcAxisData {
   axisType axisType_;
   double sampleTime_;
 
- private:
-  int setSummaryInterlocks();
+private:
+  int      setSummaryInterlocks();
   stopMode refreshInterlocksInternal();
 };
 
