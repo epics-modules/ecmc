@@ -48,7 +48,6 @@ void ecmcEcData::initVars() {
   entryBitOffset_  = 0;
   byteSize_        = 0;
   direction_       = EC_DIR_INVALID;
-  old_             = 0;
 }
 
 ecmcEcData::~ecmcEcData() {}
