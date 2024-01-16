@@ -47,32 +47,11 @@
 #define ERROR_SEQ_MOTION_CMD_NOT_ENABLED 0x14D16
 #define ERROR_SEQ_HOME_POST_MOVE_FAILED 0x14D17
 #define ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL 0x14D18
+#define ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED 0x14D19
 
 // SEQUENCER WARNINGS
 #define WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION 0x114D00
 #define WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION 0x114D01
-
-// Homing
-enum ecmcHomingType {
-  ECMC_SEQ_HOME_NOT_VALID                = 0,
-  ECMC_SEQ_HOME_LOW_LIM                  = 1,
-  ECMC_SEQ_HOME_HIGH_LIM                 = 2,
-  ECMC_SEQ_HOME_LOW_LIM_HOME             = 3,
-  ECMC_SEQ_HOME_HIGH_LIM_HOME            = 4,
-  ECMC_SEQ_HOME_LOW_LIM_HOME_HOME        = 5,
-  ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME       = 6,
-  ECMC_SEQ_HOME_BWD_HOME                 = 7,
-  ECMC_SEQ_HOME_FWD_HOME                 = 8,
-  ECMC_SEQ_HOME_BWD_HOME_HOME            = 9,
-  ECMC_SEQ_HOME_FWD_HOME_HOME            = 10,
-  ECMC_SEQ_HOME_LOW_LIM_INDEX            = 11,
-  ECMC_SEQ_HOME_HIGH_LIM_INDEX           = 12,
-  ECMC_SEQ_HOME_USE_ENC_CFGS             = 14,
-  ECMC_SEQ_HOME_SET_POS                  = 15,
-  ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS  = 21,
-  ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS = 22,
-  ECMC_SEQ_HOME_SET_POS_2                = 25,   // Same as ECMC_SEQ_HOME_SET_POS but not blocked by motor. Code handled in ecmcMotorRecordAxis
-};
 
 class ecmcAxisSequencer : public ecmcError {
 public:
@@ -154,6 +133,7 @@ private:
   int    seqHoming15();  // nCmdData==15
   int    seqHoming21();  // nCmdData==21
   int    seqHoming22();  // nCmdData==22
+  int    seqHoming26();  // nCmdData==26
   int    checkHWLimitsAndStop(bool checkBWD,
                               bool checkFWD);
   int    stopSeq();

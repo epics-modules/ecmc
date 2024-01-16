@@ -130,6 +130,9 @@ void ecmcEncoder::initVars() {
   homePostMoveTargetPos_= 0;
   homeAcc_              = 0;
   homeDec_              = 0;
+  hwExtHomeTrigg_       = 0;
+  hwExtHomeStat_        = 0;
+  hwTriggedHomingEnabled_ = false;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -497,6 +500,29 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   return 0;
 }
 
+// Read homing status bit (if special homing seq)
+int ecmcEncoder::readHomeStatBit(bool domainOK) {
+  
+  if(!hwTriggedHomingEnabled_ || !domainOK) {
+    return 0;
+  }
+
+  uint64_t tempRaw = 0;
+  int errorCode    = 0;
+
+  // Actual position entry
+  // Act position
+  errorCode = readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_STAT_HOME,
+                               &tempRaw);
+
+  if (errorCode != 0) {
+    return errorCode;
+  }
+  hwExtHomeStat_  = tempRaw > 0;
+
+  return 0;
+}
+
 int ecmcEncoder::readHwLatch(bool domainOK) {
   // Encoder latch entries (status and position)
   if (!encLatchFunctEnabled_ || !domainOK) {
@@ -701,6 +727,12 @@ double ecmcEncoder::readEntries(bool masterOK) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
+  errorLocal = readHomeStatBit(domainOK);
+
+  if (errorLocal && !getErrorID()) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  }
+
   // Expose external encoder in ecmcAxisBase instead, treat this object like a pure encoder
   //if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
     actPos_ = actPosLocal_;
@@ -735,6 +767,17 @@ int ecmcEncoder::writeEntries() {
       writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_RESET,
                         (uint64_t)hwReset_);
     hwReset_ = 0;
+
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+  }
+
+  // write trigg external homing
+  if (hwTriggedHomingEnabled_) {
+    errorCode =
+      writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME,
+                        (uint64_t)hwExtHomeTrigg_ > 0);
 
     if (errorCode) {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
@@ -851,6 +894,38 @@ int ecmcEncoder::validate() {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
     hwReadyBitDefined_ = true;
+  }
+
+  // Check hw trigged homing
+  if(homeSeqId_ == ECMC_SEQ_HOME_TRIGG_EXTERN) {
+    if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_STAT_HOME) && checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME)) {
+      errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_STAT_HOME);
+
+      if (errorCode) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      }
+
+      errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME);
+
+      if (errorCode) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      }      
+      // Everything is fine..
+      hwTriggedHomingEnabled_ = true;
+
+    } else {
+      LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Encoder homing hw links invalid (homing set to ECMC_SEQ_HOME_TRIGG_EXTERN) (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_->axisId_,        
+        ERROR_ENC_HOME_TRIGG_LINKS_INVALID);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_ENC_HOME_TRIGG_LINKS_INVALID);
+    }
   }
 
   if (encPosAct_ == NULL) {
@@ -1263,3 +1338,17 @@ void ecmcEncoder::setHomeDec(double dec) {
 double ecmcEncoder::getHomeDec() {
   return homeDec_;
 }
+
+int ecmcEncoder::setHomeExtTrigg(bool val) {
+  hwExtHomeTrigg_ = val;
+  return 0;
+}
+
+int ecmcEncoder::getHomeExtTriggStat() {
+ return hwExtHomeStat_;
+}
+
+int ecmcEncoder::getHomeExtTriggEnabled() {
+ return hwTriggedHomingEnabled_;
+}
+

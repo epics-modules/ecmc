@@ -700,6 +700,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14418:
+    return "ERROR_ENC_HOME_TRIGG_LINKS_INVALID";
+
+    break;
+
   case 0x14C00:  // MONITOR
     return "ERROR_MON_ASSIGN_ENTRY_FAILED";
 
@@ -942,6 +947,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x14D18:
     return "ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL";
+
+    break;
+
+  case 0x14D19:
+    return "ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED";
 
     break;
 

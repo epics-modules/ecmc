@@ -547,6 +547,23 @@ int getAxEncFuncType(char *objPath,
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_READY;
         return 0;
       }
+
+      // home.trigg
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_TRIGG_HOME_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME;
+        return 0;
+      }
+
+      // home.status
+      nvals = strcmp(objectFunctionStr, ECMC_ENC_STAT_HOME_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_ENCODER_ENTRY_INDEX_STAT_HOME;
+        return 0;
+      }
+
     }
   }
 

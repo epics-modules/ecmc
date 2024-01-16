@@ -101,6 +101,8 @@
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_1 7
 #define ECMC_ENCODER_ENTRY_INDEX_ALARM_2 8
 #define ECMC_ENCODER_ENTRY_INDEX_READY 9
+#define ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME 10
+#define ECMC_ENCODER_ENTRY_INDEX_STAT_HOME 11
 
 // Encoders
 #define ECMC_MAX_ENCODERS 8
@@ -446,6 +448,8 @@ enum axisSubObjectType {
 #define ECMC_ENC_ALARM_2_STR "alarm2"
 #define ECMC_ENC_WARNING_STR "warning"
 #define ECMC_ENC_READY_STR "ready"
+#define ECMC_ENC_TRIGG_HOME_STR "homing_trigg"
+#define ECMC_ENC_STAT_HOME_STR "homing_stat"
 
 #define ECMC_MON_STR "mon"
 #define ECMC_MON_LOWLIM_STR "lowlim"
@@ -666,5 +670,28 @@ typedef struct ecmcShm {
   int    size;
   sem_t *sem;
 } ecmcShm;
+
+// Homing
+enum ecmcHomingType {
+  ECMC_SEQ_HOME_NOT_VALID                = 0,
+  ECMC_SEQ_HOME_LOW_LIM                  = 1,
+  ECMC_SEQ_HOME_HIGH_LIM                 = 2,
+  ECMC_SEQ_HOME_LOW_LIM_HOME             = 3,
+  ECMC_SEQ_HOME_HIGH_LIM_HOME            = 4,
+  ECMC_SEQ_HOME_LOW_LIM_HOME_HOME        = 5,
+  ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME       = 6,
+  ECMC_SEQ_HOME_BWD_HOME                 = 7,
+  ECMC_SEQ_HOME_FWD_HOME                 = 8,
+  ECMC_SEQ_HOME_BWD_HOME_HOME            = 9,
+  ECMC_SEQ_HOME_FWD_HOME_HOME            = 10,
+  ECMC_SEQ_HOME_LOW_LIM_INDEX            = 11,
+  ECMC_SEQ_HOME_HIGH_LIM_INDEX           = 12,
+  ECMC_SEQ_HOME_USE_ENC_CFGS             = 14,
+  ECMC_SEQ_HOME_SET_POS                  = 15,
+  ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS  = 21,
+  ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS = 22,
+  ECMC_SEQ_HOME_SET_POS_2                = 25,   // Same as ECMC_SEQ_HOME_SET_POS but not blocked by motor. Code handled in ecmcMotorRecordAxis
+  ECMC_SEQ_HOME_TRIGG_EXTERN             = 26,
+};
 
 #endif  /* ECMC_DEFINITIONS_H_ */

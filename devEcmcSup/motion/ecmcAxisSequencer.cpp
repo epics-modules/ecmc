@@ -276,14 +276,25 @@ void ecmcAxisSequencer::execute() {
 
     case ECMC_SEQ_HOME_USE_ENC_CFGS:
       // This number is only used to get the cmd data from encoder object
-      // that means that if thsi is executing, something is very wrong... 
-      // In otehr words, the encoder object needs to have a valid homeproc.
+      // that means that if this is executing, something is very wrong... 
+      // In other words, the encoder object needs to have a valid homeproc.
       setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_CMD_DATA_UNDEFINED);      
       stopSeq();
       break;
 
     case ECMC_SEQ_HOME_SET_POS:
       seqReturnVal = seqHoming15();
+
+      if (seqReturnVal > 0) {  // Error
+        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
+        stopSeq();
+      } else if (seqReturnVal == 0) {  // Homing ready
+        stopSeq();
+      }
+      break;
+
+    case ECMC_SEQ_HOME_TRIGG_EXTERN:
+      seqReturnVal = seqHoming26();
 
       if (seqReturnVal > 0) {  // Error
         setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
@@ -2705,12 +2716,52 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
   return -seqState_;
 }
 
-// Issue post move after successful finalized homing
+// External triggered homig (set trigg bit and then wait for status bit to be 1)
+int ecmcAxisSequencer::seqHoming26() {
+  
+  // Sequence code
+  switch (seqState_) {
+  
+  case 0:
+    if(!getPrimEnc()->getHomeExtTriggEnabled()) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Homing sequence not supported by encoder (hw links not set) (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED);
+    }
+
+    // Trigger motion (just set output bit)
+    initHomingSeq();
+    getPrimEnc()->setHomeExtTrigg(1);
+    seqState_ = 1;
+    break;
+    
+  case 1:  // Get status of homig seq (read bit)
+    if(getPrimEnc()->getHomeExtTriggStat()) {  // consider check for edge..
+      getPrimEnc()->setHomeExtTrigg(0);
+      finalizeHomingSeq(homePosition_);
+    }
+    break;
+  }
+
+  postHomeMove();
+
+  return -seqState_;
+
+}
+
+// Issue post move after successful finalized homing (seqState_ set to 1000 in finalizeHomingSeq )
 int ecmcAxisSequencer::postHomeMove() {
   switch (seqState_) {
   // Wait one cycle
   case 1000:
-
+  
     // If already there then do not move
     if ((data_->status_.currentPositionSetpoint == homePostMoveTargetPos_) &&
         seqState_) {
@@ -2815,6 +2866,10 @@ int ecmcAxisSequencer::stopSeq() {
     traj_->setExecute(false);
   }
 
+  if(getPrimEnc() != NULL) {
+    getPrimEnc()->setHomeExtTrigg(0);
+  }
+
   //switchBackEncodersIfNeeded();
 
   seqInProgress_  = false;
@@ -2913,7 +2968,7 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
 
   // Prep all objects for setpoint step (except encoders)
   // setNewPositionCtrlDrvTrajBumpless(newControlPosition);
-  //setNewPositionCtrlDrvTrajBumpless(newPosition);
+  setNewPositionCtrlDrvTrajBumpless(newPosition);
 
   // home all encoders to the new position
   for (int i = 0; i < data_->status_.encoderCount; i++) {

@@ -55,6 +55,7 @@
 #define ERROR_ENC_ASYN_PARAM_NULL 0x14415
 #define ERROR_ENC_READY_READ_ENTRY_FAIL 0x14416
 #define ERROR_ENC_NOT_READY 0x14417
+#define ERROR_ENC_HOME_TRIGG_LINKS_INVALID 0x14418
 
 // ENCODER WARNINGS
 #define WARNING_ENC_NOT_READY 0x114417
@@ -152,6 +153,9 @@ public:
   double                getHomeAcc();
   void                  setHomeDec(double dec);
   double                getHomeDec();
+  int                   setHomeExtTrigg(bool val);
+  int                   getHomeExtTriggStat();
+  int                   getHomeExtTriggEnabled();
 
 protected:
   void                  initVars();
@@ -171,6 +175,9 @@ protected:
   int      readHwWarningError(bool domainOK);
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
+
+  int      readHomeStatBit(bool domainOK);
+
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -236,7 +243,9 @@ protected:
   bool encInitilized_;
   bool hwSumAlarm_;
   bool hwSumAlarmOld_;
-
+  bool hwExtHomeTrigg_;
+  bool hwExtHomeStat_;
+  bool hwTriggedHomingEnabled_;
   // Asyn
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *encPosAct_;
