@@ -2242,11 +2242,11 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
       if( command_ == ECMC_CMD_HOMING ) {
         // fallback on config encoder
-        if(cmdData_ <= 0 || cmdData_ == ECMC_SEQ_HOME_USE_ENC_CFGS ) {
-          setCmdData(getPrimEnc()->getHomeSeqId());
-        } else {
-          setCmdData(cmdData_);
-        }
+        //if(cmdData_ <= 0 || cmdData_ == ECMC_SEQ_HOME_USE_ENC_CFGS ) {
+        //  setCmdData(getPrimEnc()->getHomeSeqId());          
+        //} else {
+        setCmdData(cmdData_);
+        //}
         
         // For homing velos, check if special homing velos, 
         // otherwise fallback on velocityTarget_

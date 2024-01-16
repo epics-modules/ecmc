@@ -465,7 +465,6 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
 
   case ECMC_CMD_HOMING:
-
     if (data_->command_.execute && !executeOld_) {
       //oldPrimaryEnc_ = data_->command_.primaryEncIndex;
       // encoder data source must be internal for homing
@@ -492,6 +491,12 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         seqInProgress_      = true;
         localSeqBusy_       = true;
         data_->status_.busy = true;
+        // Use the paarmeters defined in encoder object
+
+        if(data_->command_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
+          readHomingParamsFromEnc();
+        }
+
       } else {
         if (traj_ == NULL) {
           return setErrorID(__FILE__,
@@ -522,13 +527,6 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                             __LINE__,
                             ERROR_SEQ_CNTRL_NULL);
         }
-
-        // Use the paarmeters defined in encoder object
-        if(data_->command_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
-          readHomingParamsFromEnc();
-        }
-
-        //switchEncodersIfNeeded();
       }
     } else if (!data_->command_.execute) {
       stopSeq();
@@ -2761,7 +2759,6 @@ int ecmcAxisSequencer::postHomeMove() {
   switch (seqState_) {
   // Wait one cycle
   case 1000:
-  
     // If already there then do not move
     if ((data_->status_.currentPositionSetpoint == homePostMoveTargetPos_) &&
         seqState_) {
@@ -2984,7 +2981,6 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   homePosLatch2_      = 0;
   homeLatchCountAct_  = 0;
   overUnderFlowLatch_ = ECMC_ENC_NORMAL;
-
 
   // See if trigg post home motion
   if (homeEnablePostMove_) {
