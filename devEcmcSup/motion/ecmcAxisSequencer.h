@@ -121,7 +121,8 @@ private:
   void   initVars();
   double checkSoftLimits(double posSetpoint);
   void   readHomingParamsFromEnc();
-  bool   autoModeSet();
+  bool   autoModeSetHoming();
+  bool   autoModeSetMotion();
   int    seqHoming1();   // nCmdData==1
   int    seqHoming2();   // nCmdData==2
   int    seqHoming3();   // nCmdData==3
@@ -197,10 +198,11 @@ private:
   // Entries for drive modes
   ecmcEcEntry *modeSetEntry_;
   ecmcEcEntry *modeActEntry_;
-  int modeSet_;
   int modeAct_;
   int modeMotionCmd_;  // Mode to write when running normal motion (CSP or CSV depending on how axis cfg)
   int modeHomingCmd_;  // Mode for homing
+  int modeMotionCmdSet_;
+  int modeHomingCmdSet_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */

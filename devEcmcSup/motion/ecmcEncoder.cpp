@@ -130,8 +130,6 @@ void ecmcEncoder::initVars() {
   homePostMoveTargetPos_= 0;
   homeAcc_              = 0;
   homeDec_              = 0;
-  hwExtHomeTrigg_       = 0;
-  hwExtHomeStat_        = 0;
   hwTriggedHomingEnabled_ = false;
 }
 
@@ -500,29 +498,6 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   return 0;
 }
 
-// Read homing status bit (if special homing seq)
-int ecmcEncoder::readHomeStatBit(bool domainOK) {
-  
-  if(!hwTriggedHomingEnabled_ || !domainOK) {
-    return 0;
-  }
-
-  uint64_t tempRaw = 0;
-  int errorCode    = 0;
-
-  // Actual position entry
-  // Act position
-  errorCode = readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_STAT_HOME,
-                               &tempRaw);
-
-  if (errorCode != 0) {
-    return errorCode;
-  }
-  hwExtHomeStat_  = tempRaw > 0;
-
-  return 0;
-}
-
 int ecmcEncoder::readHwLatch(bool domainOK) {
   // Encoder latch entries (status and position)
   if (!encLatchFunctEnabled_ || !domainOK) {
@@ -727,21 +702,8 @@ double ecmcEncoder::readEntries(bool masterOK) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
-  errorLocal = readHomeStatBit(domainOK);
-
-  if (errorLocal && !getErrorID()) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
-  }
-
-  // Expose external encoder in ecmcAxisBase instead, treat this object like a pure encoder
-  //if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    actPos_ = actPosLocal_;
-    actVel_ = actVelLocal_;
-  //} else if ((data_->command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) &&
-  //           (data_->command_.primaryEncIndex == index_)) { // External source
-  //  actPos_ = data_->status_.externalEncoderPosition;
-  //  actVel_ = data_->status_.externalEncoderVelocity;
-  //}
+  actPos_ = actPosLocal_;
+  actVel_ = actVelLocal_;
 
   // Update Asyn
   encPosAct_->refreshParamRT(0);
@@ -767,17 +729,6 @@ int ecmcEncoder::writeEntries() {
       writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_RESET,
                         (uint64_t)hwReset_);
     hwReset_ = 0;
-
-    if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-    }
-  }
-
-  // write trigg external homing
-  if (hwTriggedHomingEnabled_) {
-    errorCode =
-      writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME,
-                        (uint64_t)hwExtHomeTrigg_ > 0);
 
     if (errorCode) {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
@@ -1340,12 +1291,37 @@ double ecmcEncoder::getHomeDec() {
 }
 
 int ecmcEncoder::setHomeExtTrigg(bool val) {
-  hwExtHomeTrigg_ = val;
+  // write trigg external homing
+  if (hwTriggedHomingEnabled_) {
+    int errorCode =
+      writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME,
+                        (uint64_t)val > 0);
+
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+  }
+
   return 0;
 }
 
 int ecmcEncoder::getHomeExtTriggStat() {
- return hwExtHomeStat_;
+  if(!hwTriggedHomingEnabled_) {
+    return 0;
+  }
+
+  uint64_t tempRaw = 0;
+  int errorCode    = 0;
+
+  // Actual position entry
+  // Act position
+  errorCode = readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_STAT_HOME,
+                               &tempRaw);
+
+  if (errorCode != 0) {
+    return -errorCode;
+  }
+  return tempRaw > 0;
 }
 
 int ecmcEncoder::getHomeExtTriggEnabled() {

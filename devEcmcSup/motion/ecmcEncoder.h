@@ -176,8 +176,6 @@ protected:
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
 
-  int      readHomeStatBit(bool domainOK);
-
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -243,8 +241,6 @@ protected:
   bool encInitilized_;
   bool hwSumAlarm_;
   bool hwSumAlarmOld_;
-  bool hwExtHomeTrigg_;
-  bool hwExtHomeStat_;
   bool hwTriggedHomingEnabled_;
   // Asyn
   ecmcAsynPortDriver *asynPortDriver_;
