@@ -2924,6 +2924,74 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
   return axes[axisIndex]->setEcStatusOutputEntry(entry);
 }
 
+int linkEcEntryToAxisSeqAutoModeSet(int   slaveIndex,
+                                char *entryIDString,
+                                int   axisIndex) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s, axisId=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           entryIDString,
+           axisIndex);
+
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec->findSlave(slaveIndex);
+  } else {
+    slave = ec->getSlave(slaveIndex);
+  }
+
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID = entryIDString;
+
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
+
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+
+  return axes[axisIndex]->getSeq()->setAutoModeSetEntry(entry);
+}
+
+int linkEcEntryToAxisSeqAutoModeAct(int   slaveIndex,
+                                char *entryIDString,
+                                int   axisIndex) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s, axisId=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           entryIDString,
+           axisIndex);
+
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec->findSlave(slaveIndex);
+  } else {
+    slave = ec->getSlave(slaveIndex);
+  }
+
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID = entryIDString;
+
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
+
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+
+  return axes[axisIndex]->getSeq()->setAutoModeActEntry(entry);
+}
+
 int setDiagAxisIndex(int axisIndex) {
   LOGINFO4("%s/%s:%d axisIndex=%d \n",
            __FILE__,
@@ -2968,6 +3036,34 @@ int getAxisModRange(int     axisIndex,
 
   *value = axes[axisIndex]->getModRange();
   return 0;
+}
+
+int setAxisAutoModeCmdMotion(int axisIndex,
+                             int cmd) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, Mode cmd=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           cmd);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getSeq()->setAutoModeMotionCmd(cmd);
+}
+
+int setAxisAutoModeCmdHoming(int axisIndex,
+                             int cmd) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, Mode cmd=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           cmd);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getSeq()->setAutoModeHomigCmd(cmd);
 }
 
 int setAxisModRange(int    axisIndex,

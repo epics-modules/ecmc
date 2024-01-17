@@ -76,6 +76,8 @@
 
 // Axis entry links
 #define ECMC_AXIS_ENTRY_INDEX_HEALTH 0
+#define ECMC_AXIS_ENTRY_MODE_SET 1
+#define ECMC_AXIS_ENTRY_MODE_ACT 2
 
 // Drive entry links
 #define ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD 0
@@ -90,7 +92,7 @@
 #define ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_1 9
 #define ECMC_DRIVEBASE_ENTRY_INDEX_ALARM_2 10
 
-// Encoder drive entries
+// Encoder entry links
 #define ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION 0
 #define ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS 1
 #define ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE 2
@@ -415,6 +417,8 @@ enum axisSubObjectType {
 #define ECMC_EC_HEALTH_STR "health"
 #define ECMC_AX_STR "ax"
 #define ECMC_AX_HEALTH_STR "health"
+#define ECMC_AX_MODE_SET_STR "automodeset"
+#define ECMC_AX_MODE_ACT_STR "automodeact"
 #define ECMC_DRV_STR "drv"
 #define ECMC_DRV_ENABLE_STR "control"
 #define ECMC_DRV_VELOCITY_STR "velocity"

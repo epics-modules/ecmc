@@ -2132,6 +2132,20 @@ static int handleCfgCommand(const char *myarg_1) {
     // return setAxisDrvType(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisAutoModeCmdHoming(int axis_no, int cmd);*/
+  nvals = sscanf(myarg_1, "SetAxisAutoModeCmdHoming(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisAutoModeCmdHoming(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisAutoModeCmdMotion(int axis_no, int cmd);*/
+  nvals = sscanf(myarg_1, "SetAxisAutoModeCmdMotion(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisAutoModeCmdMotion(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisModRange(int axis_no, double range);*/
   nvals = sscanf(myarg_1, "SetAxisModRange(%d,%lf)", &iValue, &dValue);
 

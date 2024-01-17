@@ -262,7 +262,9 @@ void ecmcAxisBase::initVars() {
   for (int i = 0; i < ECMC_ASYN_AX_PAR_COUNT; i++) {
     axAsynParams_[i] = NULL;
   }
+
   statusOutputEntry_ = 0;
+  
   blockExtCom_       = 0;
   memset(diagBuffer_, 0, AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_         = NULL;
@@ -483,6 +485,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   if (statusOutputEntry_) {
     statusOutputEntry_->writeValue(getErrorID() == 0);
   }
+
 }
 
 axisType ecmcAxisBase::getAxisType() {
