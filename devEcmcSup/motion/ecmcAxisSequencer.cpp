@@ -585,11 +585,14 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
     break;
   }
-  
-  // write mode if entry is linked
-  if (modeSetEntry_) {
-    modeSetEntry_->writeValue((uint64_t) modeSet);
+
+  if (data_->command_.execute  && !executeOld_) {
+    // write mode if entry is linked
+    if (modeSetEntry_) {
+      modeSetEntry_->writeValue((uint64_t) modeSet);
+    }
   }
+
   return 0;
 }
 
