@@ -59,10 +59,26 @@ void ecmcAxisSequencer::initVars() {
   defaultDec_            = 0;
   acc_                   = 0;
   dec_                   = 0;
+  modeSetEntry_          = NULL;
+  modeActEntry_          = NULL;
+  modeSet_               = 0;
+  modeAct_               = 0;
+  modeMotionCmd_         = 0;
+  modeHomingCmd_         = 0;
 }
 
 // Cyclic execution
 void ecmcAxisSequencer::execute() {
+
+  // read mode if entry is linked
+  uint64_t tempRaw = 0;
+  if (modeActEntry_) {
+    modeActEntry_->readValue(&tempRaw);
+    modeAct_ = (int) tempRaw;
+  } else {  // if not linked
+    modeAct_ = modeSet_;
+  }
+  
   data_->status_.seqState = seqState_;
 
   if (traj_ == NULL) {
@@ -96,6 +112,10 @@ void ecmcAxisSequencer::execute() {
   seqInProgressOld_    = seqInProgress_;
 
   if (!seqInProgress_) {
+      // write mode if entry is linked
+    if (modeSetEntry_) {
+      modeActEntry_->writeValue((uint64_t) modeSet_);    
+    }
     return;
   }
 
@@ -109,15 +129,12 @@ void ecmcAxisSequencer::execute() {
   }
   int seqReturnVal         = 0;
   ecmcHomingType homeSeqId = (ecmcHomingType)data_->command_.cmdData;
-
   switch (data_->command_.command) {
   case ECMC_CMD_JOG:
     ;
     break;
 
   case ECMC_CMD_HOMING:
-    
-    //switchEncodersIfNeeded();
 
     switch (homeSeqId) {
     case ECMC_SEQ_HOME_LOW_LIM:
@@ -315,6 +332,11 @@ void ecmcAxisSequencer::execute() {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_CMD_UNDEFINED);
     break;
   }
+
+  // write mode if entry is linked
+  if (modeSetEntry_) {
+    modeSetEntry_->writeValue((uint64_t) modeSet_);
+  }
 }
 
 int ecmcAxisSequencer::setExecute(bool execute) {
@@ -338,6 +360,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       return errorCode;
     }
   }
+  // default mode motion
+  modeSet_ = modeMotionCmd_;
 
   switch (data_->command_.command) {
   case ECMC_CMD_JOG:
@@ -465,6 +489,10 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
 
   case ECMC_CMD_HOMING:
+    
+    // set mode to homing
+    modeSet_ = modeHomingCmd_;
+
     if (data_->command_.execute && !executeOld_) {
       //oldPrimaryEnc_ = data_->command_.primaryEncIndex;
       // encoder data source must be internal for homing
@@ -2717,10 +2745,15 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
 // External triggered homig (set trigg bit and then wait for status bit to be 1)
 int ecmcAxisSequencer::seqHoming26() {
   
+  // wait for drive mode to be set
+  if(!autoModeSet()) {
+    return -2000;  // negative state that is not used
+  }
+  
   // Sequence code
   switch (seqState_) {
   
-  case 0:
+  case 0:    
     if(!getPrimEnc()->getHomeExtTriggEnabled()) {
       LOGERR(
         "%s/%s:%d: ERROR: Homing sequence not supported by encoder (hw links not set) (0x%x).\n",
@@ -2759,6 +2792,13 @@ int ecmcAxisSequencer::postHomeMove() {
   switch (seqState_) {
   // Wait one cycle
   case 1000:
+  modeSet_ = modeMotionCmd_;
+  // wait for drive mode to be set
+  if(autoModeSet()) {
+    seqState_ = 1001;
+  }
+  break;
+  case 1001:
     // If already there then do not move
     if ((data_->status_.currentPositionSetpoint == homePostMoveTargetPos_) &&
         seqState_) {
@@ -2766,23 +2806,23 @@ int ecmcAxisSequencer::postHomeMove() {
       return 0;
     }
     traj_->setExecute(0);
-    seqState_ = 1001;
+    seqState_ = 1002;
     break;
 
   // Trigg motion
-  case 1001:
+  case 1002:
 
     if (!traj_->getBusy()) {
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(homeVelTowardsCam_);
       traj_->setTargetPos(homePostMoveTargetPos_);
       traj_->setExecute(1);
-      seqState_ = 1002;
+      seqState_ = 1003;
     }
     break;
 
   // wait for stop and stop sequence
-  case 1002:
+  case 1003:
 
     if (!traj_->getBusy()) {
       if (traj_->getCurrentPosSet() != homePostMoveTargetPos_) {
@@ -3155,4 +3195,33 @@ void ecmcAxisSequencer::setTrajAccAndDec() {
     getTraj()->setDec(defaultDec_);
   }
 
+}
+
+int ecmcAxisSequencer::setAutoModeSetEntry(ecmcEcEntry *entry) {
+  modeSetEntry_ = entry;
+  return 0;
+}
+
+int ecmcAxisSequencer::setAutoModeActEntry(ecmcEcEntry *entry) {
+  modeActEntry_ = entry;
+  return 0;
+}
+
+int ecmcAxisSequencer::setAutoModeHomigCmd(int homing) {
+  modeHomingCmd_ = homing;
+  return 0;
+}
+
+int ecmcAxisSequencer::setAutoModeMotionCmd(int motion) {
+  modeMotionCmd_ = motion;
+  return 0;
+}
+
+// Wait until driv modeAct == modeSet
+bool ecmcAxisSequencer::autoModeSet() {
+  
+  if(modeSet_ == modeAct_) {
+    return 1;
+  }
+  return 0;  // use seq step that is not used by post move and other seqs
 }

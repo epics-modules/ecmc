@@ -304,6 +304,15 @@ int linkEcEntryToObject(char *ecPath, char *objPath) {
       if (objFunctionId == ECMC_AXIS_ENTRY_INDEX_HEALTH) {
         return linkEcEntryToAxisStatusOutput(slaveIndex, alias, objIndex);
       }
+
+      if (objFunctionId == ECMC_AXIS_ENTRY_MODE_SET) {
+        return linkEcEntryToAxisSeqAutoModeSet(slaveIndex, alias, objIndex);
+      }
+
+      if (objFunctionId == ECMC_AXIS_ENTRY_MODE_ACT) {
+        return linkEcEntryToAxisSeqAutoModeAct(slaveIndex, alias, objIndex);
+      }
+
       return ERROR_MAIN_ECMC_LINK_INVALID;
 
       break;

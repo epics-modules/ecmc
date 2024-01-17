@@ -3271,6 +3271,78 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
                                   char *entryIDString,
                                   int   axisIndex);
 
+/** \brief Links an EtherCAT entry to the an axis object for \n
+ *   setting drive mode\n
+ *
+ *  \param[in] slaveIndex Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] entryIdString String for addressing purpose (see command
+ *                      "Cfg.EcAddEntryComplete() for more information").\n
+ *  \param[in] axisIndex Index of axis.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+
+int linkEcEntryToAxisSeqAutoModeSet(int   slaveIndex,
+                                    char *entryIDString,
+                                    int   axisIndex);
+
+/** \brief Links an EtherCAT entry to the an axis object for \n
+ *   reading actual drive mode\n
+ *
+ *  \param[in] slaveIndex Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] entryIdString String for addressing purpose (see command
+ *                      "Cfg.EcAddEntryComplete() for more information").\n
+ *  \param[in] axisIndex Index of axis.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+
+int linkEcEntryToAxisSeqAutoModeAct(int   slaveIndex,
+                                    char *entryIDString,
+                                    int   axisIndex);
+
+/** \brief Set axis auto mode command for homing.\n
+ *
+ * Only relveant if an ethercat entry have been linked with
+ * "linkEcEntryToAxisSeqAutoModeSet()"
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] cmd  command mode value for drive homing.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set drive mode to 8 for when homing.
+ * "Cfg.setAxisAutoModeCmdHoming(3,8)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisAutoModeCmdHoming(int    axisIndex,
+                             int    cmd);
+
+
+/** \brief Set axis auto mode command for motion.\n
+ *
+ * Only relveant if an ethercat entry have been linked with
+ * "linkEcEntryToAxisSeqAutoModeSet()"
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] cmd  command mode value for drive homing.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set drive mode to 18 for when homing.
+ * "Cfg.setAxisAutoModeCmdMotion(3,18)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisAutoModeCmdMotion(int    axisIndex,
+                             int    cmd);
 
 /** \brief Set axis index for detailed motion diagnostics.\n
  *

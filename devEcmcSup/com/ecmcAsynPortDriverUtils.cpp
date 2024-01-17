@@ -334,7 +334,25 @@ int getAxMainFuncType(char *objPath,
       *objectFunction = ECMC_AXIS_ENTRY_INDEX_HEALTH;
       return 0;
     }
+
+    // Mode set
+    nvals = strcmp(objectFunctionStr, ECMC_AX_MODE_SET_STR);
+
+    if (nvals == 0) {
+      *objectFunction = ECMC_AXIS_ENTRY_MODE_SET;
+      return 0;
+    }
+
+    // Mode act
+    nvals = strcmp(objectFunctionStr, ECMC_AX_MODE_ACT_STR);
+
+    if (nvals == 0) {
+      *objectFunction = ECMC_AXIS_ENTRY_MODE_ACT;
+      return 0;
+    }
   }
+
+
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 

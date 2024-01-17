@@ -26,14 +26,15 @@ typedef struct {
   ecmcMotionModType  moduloType;
   motionCommandTypes command;
   int                cmdData;
-  int                primaryEncIndex;  // used for control
-  int                cfgEncIndex;      // Encoder currrently configured
-  //int                homeEncIndex;     // used for homing
+  int                primaryEncIndex;   // used for control
+  int                cfgEncIndex;       // Encoder currrently configured
+  int                drvModeSet;
   bool               enable             : 1;
   bool               execute            : 1;
   bool               reset              : 1;
   bool               enableSoftLimitBwd : 1;
   bool               enableSoftLimitFwd : 1;
+
   dataSource         trajSource;
   dataSource         encSource;
   driveMode          drvMode;
