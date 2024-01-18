@@ -338,8 +338,14 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
       // bus ok and hw ok, startup finished
       setInStartupPhase(false);
+      
+      // only init encoders after first startup
+      if(!data_.status_.startupFinsished) {
+        initEncoders();
+      }
+
       data_.status_.startupFinsished = true;
-      initEncoders();
+      
 
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
