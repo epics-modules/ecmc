@@ -2747,7 +2747,6 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
 // External triggered homig (set trigg bit and then wait for status bit to be 1)
 int ecmcAxisSequencer::seqHoming26() {
   
-  
   // Sequence code
   switch (seqState_) {
   
@@ -3107,7 +3106,14 @@ void  ecmcAxisSequencer::readHomingParamsFromEnc() {
   
   // Encoder has parameters stored so read those..
   homeVelTowardsCam_     = getPrimEnc()->getHomeVelTowardsCam();
+  if(std::abs(homeVelTowardsCam_)==0) {
+    homeVelTowardsCam_ = data_->command_.velocityTarget;
+  }
   homeVelOffCam_         = getPrimEnc()->getHomeVelOffCam();
+  if(std::abs(homeVelOffCam_)==0) {
+    homeVelOffCam_ = data_->command_.velocityTarget;
+  }
+
   homePosition_          = getPrimEnc()->getHomePosition();
   homeEnablePostMove_    = getPrimEnc()->getHomePostMoveEnable();
   homePostMoveTargetPos_ = getPrimEnc()->getHomePostMoveTargetPosition();
