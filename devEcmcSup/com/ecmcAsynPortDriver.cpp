@@ -2413,6 +2413,124 @@ static void initCallFunc_12(const iocshArgBuf *args) {
   ecmcExit(args[0].sval);
 }
 
+void ecmcIfPrintHelp() {
+  printf("\n");
+  printf(
+    "       Use \"ecmcIf(<expression>)\" to evaluate the expression and set env varibales accordingly.\n");
+  printf(
+    "          <expression>  : Calculation expression (see exprTK for available functionality). Examples:\n");
+  printf(
+    "                          Simple expression:\"5.5+${TEST_SCALE}*sin(${TEST_ANGLE}/10)\".\n");
+  printf(
+    "                          Use of \"RESULT\" variable: \"if(${TEST_VAL}>5){RESULT:=100;}else{RESULT:=200;};\".\n");
+  printf("\n");
+  printf("Example:\n");
+  printf("  ecmcIf(€{X}>${Y})\n");
+  printf("  ${IF_TRUE} epicsEnvSet(\"RESULT\", \"X>Y\")\n");
+  printf("  #-else\n");
+  printf("  ${IF_FALSE} epicsEnvSet(\"RESULT\", \"Y>=X\")\n");
+  printf("  ecmcEndIf()\n");
+}
+
+/** EPICS iocsh shell command: ecmcEpicsIf
+ *  Evaluates an expression and sets an EPICS environment variables:
+ *   IF_TRUE: to "" if expression is true otherwise "#-"
+ *   IF_FALSE: to "#-" if expression is true otherwise ""
+ * Inteded use (in iocsh):
+ * ecmcIf(€{X}>${Y})
+ * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")    
+ * ${IF_FALSE} epicsEnvSet("RESULT", "Y>=X")
+*/
+// the most current varaibles
+const char * env_if = "";
+const char * env_else = "";
+int ecmcIf(const char *expression, const char *env_if_str, const char *env_else_str) {
+  if (!expression) {
+    printf(
+      "Error: \"expression\" missing.\n");
+    ecmcIfPrintHelp();
+    return asynError;
+  }
+
+  if(env_if_str) {
+    env_if = env_if_str;
+  } else {
+    env_if = "IF_TRUE";
+  }
+  if(env_else_str) {
+    env_else = env_else_str;
+  } else {
+    env_else = "IF_FALSE";
+  }
+
+  double resultDouble = 0;
+
+  if (evalExprTK(expression, &resultDouble) != asynSuccess) {
+    return asynError;
+  }
+
+  if (resultDouble) {
+    epicsEnvSet(env_if, "");
+    epicsEnvSet(env_else, "#-");
+  } else {
+    epicsEnvSet(env_if, "#-");
+    epicsEnvSet(env_else, "");
+  }
+
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_13 =
+{ "Expression", iocshArgString };
+
+static const iocshArg initArg1_13 =
+{ "If env var name", iocshArgString };
+
+static const iocshArg initArg2_13 =
+{ "Else env var name", iocshArgString };
+
+static const iocshArg *const initArgs_13[] ={ &initArg0_13,
+                                              &initArg1_13,
+                                              &initArg2_13
+                                            };
+static const iocshFuncDef initFuncDef_13 =
+{ "ecmcIf", 3, initArgs_13 };
+static void initCallFunc_13(const iocshArgBuf *args) {
+  ecmcIf(args[0].sval,args[1].sval,args[2].sval);
+}
+
+/** EPICS iocsh shell command: ecmcEpicsIf
+ *  Evaluates an expression and sets an EPICS environment variables:
+ *   IF_TRUE: to "" if expression is true otherwise "#-"
+ *   IF_FALSE: to "#-" if expression is true otherwise ""
+ * Inteded use (in iocsh):
+ * ecmcIf(€{X}>${Y})
+ * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")    
+ * #-else
+ * ${IF_FALSE} epicsEnvSet("RESULT", "Y>=X")
+ * ecmcEndIf()
+*/
+
+int ecmcEndIf() {
+  if(env_if) {
+    epicsEnvUnset(env_if);
+  } else {
+    epicsEnvUnset("IF_TRUE");
+  }
+  if(env_else) {
+    epicsEnvUnset(env_else);
+  } else {
+    epicsEnvUnset("IF_FALSE");
+  }
+
+  return asynSuccess;
+}
+
+static const iocshFuncDef initFuncDef_14 =
+{ "ecmcEndIf", 0, NULL };
+static void initCallFunc_14(const iocshArgBuf *args) {
+  ecmcEndIf();
+}
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,    initCallFunc);
   iocshRegister(&initFuncDef_2,  initCallFunc_2);
@@ -2426,6 +2544,8 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_10, initCallFunc_10);
   iocshRegister(&initFuncDef_11, initCallFunc_11);
   iocshRegister(&initFuncDef_12, initCallFunc_12);
+  iocshRegister(&initFuncDef_13, initCallFunc_13);
+  iocshRegister(&initFuncDef_14, initCallFunc_14);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);

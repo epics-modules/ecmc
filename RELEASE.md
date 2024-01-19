@@ -2,7 +2,34 @@
 Release Notes
 ===
 
-# ECMC 9.0.1
+# ECMC v9.0.1_RC3
+* Add iocsh command for if statements:
+1. ecmcIf(\<expression\>,\<optional true macro\>,\<optional false macro\>)
+2. ecmcEndIf() 
+The optional macros set by ecmcIf() defaults to:
+1. IF_TRUE for true
+2. IF_FALSE for false
+
+If expression evaluates to true then the macros will be set:
+1. IF_TRUE=""        Allows execution of the line   
+2. IF_FALSE= "#-"    Block execution of the line
+If expresion evaluates to false:
+1. IF_TRUE="#-"      Block execution of the line
+2. IF_FALSE= ""       Allows execution of the line
+
+The ecmcEndIf() command unsets the last used macros (for true and false)
+
+Example:
+```
+ecmcIf("<expression>")
+${IF_TRUE} # Code to execute if expression eval true
+#- else
+${IF_FALSE} # Code to execute if expression eval false
+ecmcEndIf()
+```
+
+Note: For nested calls to ecmcIf() custom macros must be used.
+
 * Add commands for setting controller deadband (defaults to atTargetTol and atTargetTime):
 ```
     ecmcConfigOrDie "Cfg.SetAxisCntrlDeadband(<axis_id>,<tol>)"

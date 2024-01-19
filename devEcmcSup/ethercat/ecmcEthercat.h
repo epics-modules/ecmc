@@ -530,7 +530,7 @@ int ecAddSdo(uint16_t slaveBusPosition,
  *
  * \note Example: Write 1A (1000mA) to maximum current of the EL7037 stepper drive card
  * on slave position 2.\n
- * "Cfg.EcAddSdoDT(2,0x8010,0x1,1000.0,2,F64)" //Command string to ecmcCmdParser.c\n
+ * "Cfg.EcAddSdoDT(2,0x8010,0x1,1000.0,F64)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddSdoDT(uint16_t slavePosition,
                uint16_t sdoIndex,
