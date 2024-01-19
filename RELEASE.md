@@ -3,33 +3,6 @@ Release Notes
 ===
 
 # ECMC v9.0.1_RC3
-* Add iocsh command for if statements:
-1. ecmcIf(\<expression\>,\<optional true macro\>,\<optional false macro\>)
-2. ecmcEndIf() 
-The optional macros set by ecmcIf() defaults to:
-1. IF_TRUE for true
-2. IF_FALSE for false
-
-If expression evaluates to true then the macros will be set:
-1. IF_TRUE=""        Allows execution of the line   
-2. IF_FALSE= "#-"    Block execution of the line
-If expresion evaluates to false:
-1. IF_TRUE="#-"      Block execution of the line
-2. IF_FALSE= ""       Allows execution of the line
-
-The ecmcEndIf() command unsets the last used macros (for true and false)
-
-Example:
-```
-ecmcIf("<expression>")
-${IF_TRUE} # Code to execute if expression eval true
-#- else
-${IF_FALSE} # Code to execute if expression eval false
-ecmcEndIf()
-```
-
-Note: For nested calls to ecmcIf() custom macros must be used.
-
 * Add commands for setting controller deadband (defaults to atTargetTol and atTargetTime):
 ```
     ecmcConfigOrDie "Cfg.SetAxisCntrlDeadband(<axis_id>,<tol>)"
@@ -58,6 +31,45 @@ ethercat upload -p11 -m0 0x8030 0x8
 * Remove reset of attarget bit when error reset is executed
 * Fix of brake not engaging when drive loose power
 * At traj source change then set target pos to setpos
+
+## Add iocsh command for if statements:
+1. ecmcIf(\<expression\>,\<optional true macro\>,\<optional false macro\>)
+2. ecmcEndIf()
+
+### ecmcIf(\<expression\>,\<optional true macro\>,\<optional false macro\>)
+ecmcIf() set two macros depending on the value of the evaluated expression. If it evaluates to true:
+1. IF_TRUE=""        Allows execution of a line of code   
+2. IF_FALSE= "#-"    Block execution of a line of code
+
+If expression evaluates to false:
+1. IF_TRUE="#-"      Block execution of a line of code
+2. IF_FALSE= ""      Allows execution of a line of code
+
+Note: These macros is the default names for the macros (but can be changed by assignment of the 2 last params in call to ecmcIf()):
+1. IF_TRUE for true
+2. IF_FALSE for false
+
+### ecmcEndIf()
+The ecmcEndIf() command unsets the last used macros (for true and false), if differnt names are used then then these macros are unset.
+
+### Example of of syntax
+Example 1:
+```
+ecmcIf("<expression>")
+${IF_TRUE} # Code to execute if expression eval true
+#- else
+${IF_FALSE} # Code to execute if expression eval false
+ecmcEndIf()
+```
+Example 2:
+```
+ecmcIf("$(VAL1)=$(VAL2)")
+${IF_TRUE}epicsEnvSet(IS_EQUAL,"1")
+#- else
+${IF_FALSE}epicsEnvSet(IS_EQUAL,"0")
+ecmcEndIf()
+```
+Note: For nested calls to ecmcIf() optional macros must be used.
 
 ## Update of encoder handling
 * Add asyn parameter to select primary encoder (for control). This parameter will also set the index of homing encoder. 
