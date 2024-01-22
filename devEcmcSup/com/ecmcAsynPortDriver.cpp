@@ -70,7 +70,7 @@ static void getEpicsState(initHookState state) {
     return;
   }
 
-  asynUser *asynTraceUser = ecmcAsynPortObj->getTraceAsynUser();
+  //asynUser *asynTraceUser = ecmcAsynPortObj->getTraceAsynUser();
   ecmcAsynPortObj->setEpicsState(state);
 
   switch (state) {
@@ -91,14 +91,14 @@ static void getEpicsState(initHookState state) {
   }
 
   currentEpicsState = state;
-  asynPrint(asynTraceUser,
+  /*asynPrint(asynTraceUser,
             ASYN_TRACE_INFO,
             "%s:%s: EPICS state: %s (%d). Allow callbacks: %s.\n",
             driverName,
             functionName,
             epicsStateToString((int)state),
             (int)state,
-            ecmcAsynPortObj->getAllowRtThreadCom() ? "true" : "false");
+            ecmcAsynPortObj->getAllowRtThreadCom() ? "true" : "false");*/
 }
 
 /** Register EPICS hook function
@@ -1070,13 +1070,13 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser    *pasynUser,
     // Update index
     index = param->getAsynParameterIndex();
 
-    asynPrint(pasynUser,
+    /*asynPrint(pasynUser,
               ASYN_TRACE_INFO,
               "%s:%s: Parameter %s linked to record (asyn reason %d).\n",
               driverName,
               functionName,
               newParam->getParamName(),
-              index);
+              index);*/
 
     // Now we have linked a parameter from available list into the inUse list successfully
   }
