@@ -3,6 +3,7 @@ Release Notes
 ===
 
 # ECMC v9.0.1_RC3
+* Removed info printouts for epics state and linked parameters
 * Add commands for setting controller deadband (defaults to atTargetTol and atTargetTime):
 ```
     ecmcConfigOrDie "Cfg.SetAxisCntrlDeadband(<axis_id>,<tol>)"
