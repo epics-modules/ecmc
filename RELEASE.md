@@ -34,7 +34,7 @@ ethercat upload -p11 -m0 0x8030 0x8
 
 ## Add iocsh command for if statements:
 1. ecmcIf(\<expression\>,\<optional true macro\>,\<optional false macro\>)
-2. ecmcEndIf()
+2. ecmcEndIf(\<optional true macro\>,\<optional false macro\>)
 
 ### ecmcIf(\<expression\>,\<optional true macro\>,\<optional false macro\>)
 ecmcIf() set two macros depending on the value of the evaluated expression. If it evaluates to true:
@@ -49,8 +49,8 @@ Note: These macros is the default names for the macros (but can be changed by as
 1. IF_TRUE for true
 2. IF_FALSE for false
 
-### ecmcEndIf()
-The ecmcEndIf() command unsets the last used macros (for true and false), if differnt names are used then then these macros are unset.
+### ecmcEndIf(\<optional true macro\>,\<optional false macro\>)
+The ecmcEndIf() command unsets the last used macros (for true and false), if differnt names are passed as arguments then then these macros are unset (for nested if statements).
 
 ### Example of of syntax
 Example 1:
@@ -69,7 +69,7 @@ ${IF_TRUE}epicsEnvSet(IS_EQUAL,"1")
 ${IF_FALSE}epicsEnvSet(IS_EQUAL,"0")
 ecmcEndIf()
 ```
-Note: For nested calls to ecmcIf() optional macros must be used.
+Note: For nested calls to ecmcIf() and ecmcEndIf() optional macros must be used.
 
 ## Update of encoder handling
 * Add asyn parameter to select primary encoder (for control). This parameter will also set the index of homing encoder. 

@@ -2440,10 +2440,15 @@ void ecmcIfPrintHelp() {
  * ecmcIf(€{X}>${Y})
  * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")    
  * ${IF_FALSE} epicsEnvSet("RESULT", "Y>=X")
+ * ecmcEndIf()
 */
 // the most current varaibles
 const char * env_if = "";
 const char * env_else = "";
+
+#define IF_TRUE_ENV_VAR "IF_TRUE"
+#define IF_FALSE_ENV_VAR "IF_FALSE"
+
 int ecmcIf(const char *expression, const char *env_if_str, const char *env_else_str) {
   if (!expression) {
     printf(
@@ -2455,12 +2460,12 @@ int ecmcIf(const char *expression, const char *env_if_str, const char *env_else_
   if(env_if_str) {
     env_if = env_if_str;
   } else {
-    env_if = "IF_TRUE";
+    env_if = IF_TRUE_ENV_VAR;
   }
   if(env_else_str) {
     env_else = env_else_str;
   } else {
-    env_else = "IF_FALSE";
+    env_else = IF_FALSE_ENV_VAR;
   }
 
   double resultDouble = 0;
@@ -2499,8 +2504,8 @@ static void initCallFunc_13(const iocshArgBuf *args) {
   ecmcIf(args[0].sval,args[1].sval,args[2].sval);
 }
 
-/** EPICS iocsh shell command: ecmcEpicsIf
- *  Evaluates an expression and sets an EPICS environment variables:
+/** EPICS iocsh shell command: ecmcEndIf
+ *  Resets env macros used by ecmcIf
  *   IF_TRUE: to "" if expression is true otherwise "#-"
  *   IF_FALSE: to "#-" if expression is true otherwise ""
  * Inteded use (in iocsh):
@@ -2511,26 +2516,43 @@ static void initCallFunc_13(const iocshArgBuf *args) {
  * ecmcEndIf()
 */
 
-int ecmcEndIf() {
-  if(env_if) {
-    epicsEnvUnset(env_if);
+int ecmcEndIf(const char *env_if_str, const char *env_else_str) {
+
+  if(env_if_str) {
+    epicsEnvUnset(env_if_str); // args
+  } else if (env_if) {
+    epicsEnvUnset(env_if);     // last call to ecmcIf()
   } else {
-    epicsEnvUnset("IF_TRUE");
+    epicsEnvUnset(IF_TRUE_ENV_VAR);  // Default
   }
-  if(env_else) {
-    epicsEnvUnset(env_else);
+
+  if(env_else_str) {
+    epicsEnvUnset(env_else_str); // args
+  } else if (env_else) {
+    epicsEnvUnset(env_else);     // last call to ecmcIf()
   } else {
-    epicsEnvUnset("IF_FALSE");
+    epicsEnvUnset(IF_FALSE_ENV_VAR);  // Default
   }
 
   return asynSuccess;
 }
 
+static const iocshArg initArg0_14 =
+{ "If env var name", iocshArgString };
+
+static const iocshArg initArg1_14 =
+{ "Else env var name", iocshArgString };
+
+static const iocshArg *const initArgs_14[] ={ &initArg0_14,
+                                              &initArg1_14
+                                            };
+                                        
 static const iocshFuncDef initFuncDef_14 =
-{ "ecmcEndIf", 0, NULL };
+{ "ecmcEndIf", 2, initArgs_14 };
 static void initCallFunc_14(const iocshArgBuf *args) {
-  ecmcEndIf();
+  ecmcEndIf(args[0].sval,args[1].sval);
 }
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,    initCallFunc);
   iocshRegister(&initFuncDef_2,  initCallFunc_2);
