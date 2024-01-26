@@ -260,6 +260,7 @@ protected:
   double homePostMoveTargetPos_;
   double homeAcc_;
   double homeDec_;
+  int domainOK_;
 };
 
 #endif  /* ECMCENCODER_H_ */

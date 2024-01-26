@@ -131,6 +131,7 @@ void ecmcEncoder::initVars() {
   homeAcc_              = 0;
   homeDec_              = 0;
   hwTriggedHomingEnabled_ = false;
+  domainOK_             = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -675,28 +676,28 @@ double ecmcEncoder::readEntries(bool masterOK) {
 
   actPosOld_ = actPos_;
 
-  int domainOK = checkDomainOKAllEntries();
+  domainOK_ = checkDomainOKAllEntries();
 
   // Ensure that no errors
-  errorLocal = readHwWarningError(domainOK);
+  errorLocal = readHwWarningError(domainOK_);
 
   if (errorLocal) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
-  errorLocal = readHwReady(domainOK);
+  errorLocal = readHwReady(domainOK_);
 
   if (errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
-  errorLocal = readHwActPos(masterOK, domainOK);
+  errorLocal = readHwActPos(masterOK, domainOK_);
 
   if (errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
   }
 
-  errorLocal = readHwLatch(domainOK);
+  errorLocal = readHwLatch(domainOK_);
 
   if (errorLocal && !getErrorID()) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
@@ -714,6 +715,10 @@ double ecmcEncoder::readEntries(bool masterOK) {
 }
 
 int ecmcEncoder::writeEntries() {
+  if(!domainOK_) {
+    return 0;
+  }
+
   if (encLatchFunctEnabled_) {
     if (writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
                           (encLatchControl_ > 0))) {
