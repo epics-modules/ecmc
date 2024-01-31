@@ -2827,3 +2827,8 @@ void ecmcAxisBase::setDec(double dec) {
   deceleration_ = dec;
   axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
 }
+
+void ecmcAxisBase::initiateSafetyStop(double deceleration) {
+  printf("initiateSafetyStop()\n");
+  getMon()->setSafetyInterlock(1);
+}

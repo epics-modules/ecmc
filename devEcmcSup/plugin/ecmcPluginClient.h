@@ -57,6 +57,14 @@ void*  getEcmcDataItem(char *idStringWP);
  */
 void*  getEcmcAsynDataItem(char *idStringWP);
 
+/** \brief Get ecmc ec master
+ *
+ * \return ecmcEc (void*) object if success or otherwise NULL.\n
+ *
+ * \note There's no ascii command in ecmcCmdParser.c for this method.\n
+ */
+void*  getEcMaster();
+
 /** \brief Get ecmcAsynPortObject (as void*)
  *
  * \return ecmcAsynPortObject (void*) object if success or otherwise NULL.\n

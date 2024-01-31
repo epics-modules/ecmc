@@ -42,6 +42,11 @@ void* getEcmcAsynDataItem(char *idStringWP) {
   return (void *)asynPort->findAvailDataItem(idStringWP);
 }
 
+void*  getEcMaster() {
+
+  return (void *)ec_;
+}
+
 void* getEcmcAsynPortDriver() {
   LOGINFO4("%s/%s:%d:\n",
            __FILE__,

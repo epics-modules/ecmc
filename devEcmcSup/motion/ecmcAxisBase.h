@@ -314,6 +314,7 @@ public:
   void   setTargetVel(double velTarget);
   void   setAcc(double acc);
   void   setDec(double dec);
+  void   initiateSafetyStop(double deceleration);
 
 protected:
   void   initVars();
