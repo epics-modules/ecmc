@@ -979,6 +979,19 @@ int setAxisHomePos(int axisIndex, double value) {
   return 0;
 }
 
+int setAxisErrorId(int axisIndex, int errorid) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           errorid);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  axes[axisIndex]->setErrorID(errorid);
+  return 0;
+}
 int setAxisEncHomeLatchCountOffset(int axisIndex, int count) {
   LOGINFO4("%s/%s:%d axisIndex=%d count=%d\n",
            __FILE__,

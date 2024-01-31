@@ -1520,6 +1520,19 @@ int setAxisEncInvHwReady(int axisIndex,
 int setAxisHomePos(int    axisIndex,
                    double value);
 
+/** \brief Set axis error code.\n
+ *
+ * Set axis error, can be used to provoke an error in an axis.\n
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] errorId Error id.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set errorid of axis  10  to 111 (dec).\n
+ * "Cfg.SetAxisErrorId(10,111)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisErrorId(int axisIndex, int errorId);
+
 /** \brief Set home index pulse count offset.\n
  *
  * Sets number of latches before homing is made for the current\n

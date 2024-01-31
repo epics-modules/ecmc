@@ -2257,6 +2257,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncInvHwReady(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisErrorId(int axis_no, int errorid);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisErrorId(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisErrorId(iValue, iValue2);
+  }
+
   /*int Cfg.SetEnableFuncCallDiag(int nEnable);*/
   nvals = sscanf(myarg_1, "SetEnableFuncCallDiag(%d)", &iValue);
 
