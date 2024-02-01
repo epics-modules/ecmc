@@ -177,7 +177,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_   = asynPortDriver;
   data_.axisId_     = axisID;
   data_.sampleTime_ = sampleTime;
-
+  setExternalPtrs(&(data_.status_.errorCode), &(data_.status_.warningCode));
   try {
     data_.command_.primaryEncIndex = 0;
     addEncoder();
@@ -644,13 +644,16 @@ bool ecmcAxisBase::getError() {
 }
 
 int ecmcAxisBase::getErrorID() {
-  // GeneralsetErrorID
+
   if (ecmcError::getError()) {
     return ecmcError::getErrorID();
   }
 
   // The below contains all errors from the "sub objects"
-  return setErrorID(data_.status_.errorCode);
+  if(data_.status_.errorCode) {
+    return setErrorID(data_.status_.errorCode);
+  }
+  return 0;
 }
 
 int ecmcAxisBase::setEnableLocal(bool enable) {

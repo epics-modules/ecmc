@@ -18,10 +18,10 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
                          int                 index)
   : ecmcEcEntryLink(&(axisData->status_.errorCode),
                     &(axisData->status_.warningCode)) {
-  initVars();
-
+  initVars();  
   asynPortDriver_ = asynPortDriver;
   data_           = axisData;
+  setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   sampleTime_     = sampleTime;
   // Encoder index start from 1 here, to get asyn param naming correct
   index_          = index + 1;

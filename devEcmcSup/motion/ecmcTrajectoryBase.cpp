@@ -18,6 +18,7 @@ ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData *axisData,
   : ecmcError(&(axisData->status_.errorCode),
               &(axisData->status_.warningCode)) {
   data_ = axisData;
+  setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   initVars();
 
   if (!data_) {

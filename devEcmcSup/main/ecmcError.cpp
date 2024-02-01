@@ -85,7 +85,7 @@ int ecmcError::setErrorID(int errorID) {
     error_ = false;
   }
   errorId_ = errorID;
-
+  
   // Also write to "external" pointer
   if (errorPtr_) {
     *errorPtr_ = errorID;
@@ -106,6 +106,12 @@ int ecmcError::setErrorID(int errorID, ecmcAlarmSeverity severity) {
     error_ = false;
   }
   errorId_ = errorID;
+  
+  // Also write to "external" pointer
+  if (errorPtr_) {
+    *errorPtr_ = errorID;
+  }
+
   return errorId_;
 }
 
