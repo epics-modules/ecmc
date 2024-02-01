@@ -961,6 +961,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14D1A:
+    return "ERROR_SEQ_HOME_NOT_ALLOWED";
+
+    break;
+
   case 0x14E00:    // TRAJECTORY
     return "ERROR_TRAJ_EXT_ENC_NULL";
 
