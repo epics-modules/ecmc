@@ -43,8 +43,7 @@ void* getEcmcAsynDataItem(char *idStringWP) {
 }
 
 void*  getEcMaster() {
-
-  return (void *)ec_;
+  return (void *)ec;
 }
 
 void* getEcmcAsynPortDriver() {

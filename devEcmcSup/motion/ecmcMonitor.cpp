@@ -1070,7 +1070,7 @@ int ecmcMonitor::setCtrlDeadbandTime(int cycles) {
   return 0;
 }
 
-void ecmcMonitor::setSafetyInterlock(int interlock) {
+void ecmcMonitor::setSafetyInterlock(int interlock) {  
   data_->interlocks_.safetyInterlock = interlock > 0;
 }
 

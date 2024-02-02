@@ -2805,7 +2805,27 @@ void ecmcAxisBase::setDec(double dec) {
   axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
 }
 
-void ecmcAxisBase::initiateSafetyStop(double deceleration) {
-  printf("initiateSafetyStop()\n");
+void ecmcAxisBase::setEmergencyStopInterlock(double deceleration) {
+  printf("setEmergencyStopInterlock()\n");
+
   getMon()->setSafetyInterlock(1);
+}
+
+void ecmcAxisBase::clearEmergencyStopInterlock() {
+  printf("clearEmergencyStopInterlock()\n");
+  //if(!mon_) {
+  //  printf("WHY is mon_ NULL?!?!");
+  //}
+
+  //double test = traj_->getAcc();
+  //mon_->setSafetyInterlock(1);
+  //data_.interlocks_.safetyInterlock = true;
+}
+
+double ecmcAxisBase::getEncVelo(){
+  return data_.status_.currentVelocityActual;
+}
+
+double ecmcAxisBase::getTrajVelo() {
+  return data_.status_.currentVelocitySetpoint;
 }

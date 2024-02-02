@@ -3107,18 +3107,17 @@ int getAxisModType(int  axisIndex,
   return 0;
 }
 
-void* getAxisPointer(int axisIndex) {
+int getAxisValid(int axisIndex) {
   LOGINFO4("%s/%s:%d axisIndex=%d \n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            axisIndex);
 
-  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {
-    LOGERR("ERROR: Axis index out of range.\n");
-    return NULL;
+  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {    
+    return 0;
   }
-  return (void *)axes[axisIndex];
+  return axes[axisIndex] != NULL;
 }
 
 int setAxisModType(int axisIndex,
@@ -3161,4 +3160,62 @@ int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->setAllowSourceChangeWhenEnabled(allow);
+}
+
+int setAxisEmergencyStopInterlock(int axisIndex,
+                                  double deceleration) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, deceleration=%lf \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           deceleration);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  axes[axisIndex]->setEmergencyStopInterlock(deceleration);
+  return 0;
+}
+
+int setAxisClearEmergencyInterlock(int axisIndex) {
+  LOGINFO4("%s/%s:%d axisIndex=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  axes[axisIndex]->clearEmergencyStopInterlock();
+  return 0;
+}
+
+int getAxisEncVelo(int  axisIndex,
+                   double *velo) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  *velo = axes[axisIndex]->getEncVelo();
+  return 0;
+}
+
+/** \brief Get axis traj setpoint velo.\n
+ *
+ * The axis busy bit is high while an command is executed or while synchronizing to other axes.
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] velo Axis velocity.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int getAxisTrajVelo(int  axisIndex,
+                    double *velo) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  *velo = axes[axisIndex]->getTrajVelo();
 }
