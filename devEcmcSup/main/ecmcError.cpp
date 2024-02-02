@@ -85,7 +85,7 @@ int ecmcError::setErrorID(int errorID) {
     error_ = false;
   }
   errorId_ = errorID;
-
+  
   // Also write to "external" pointer
   if (errorPtr_) {
     *errorPtr_ = errorID;
@@ -106,6 +106,12 @@ int ecmcError::setErrorID(int errorID, ecmcAlarmSeverity severity) {
     error_ = false;
   }
   errorId_ = errorID;
+  
+  // Also write to "external" pointer
+  if (errorPtr_) {
+    *errorPtr_ = errorID;
+  }
+
   return errorId_;
 }
 
@@ -952,6 +958,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x14D19:
     return "ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED";
+
+    break;
+
+  case 0x14D1A:
+    return "ERROR_SEQ_HOME_NOT_ALLOWED";
 
     break;
 

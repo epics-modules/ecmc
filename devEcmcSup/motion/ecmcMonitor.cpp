@@ -23,6 +23,7 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
 {
   initVars();
   data_     = axisData;
+  setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   encArray_ = encArray;
 
   if (!data_) {

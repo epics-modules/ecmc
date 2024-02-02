@@ -342,12 +342,15 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   seqState_               = 0;
 
   if (data_->command_.execute  && !executeOld_) {
-
+    
     setTrajAccAndDec();
-    errorCode = checkVelAccDec();
 
-    if (errorCode) {
-      return errorCode;
+    //velo for homing is set in a different way
+    if(data_->command_.command != ECMC_CMD_HOMING) {
+      errorCode = checkVelAccDec();
+      if (errorCode) {
+        return errorCode;
+      }
     }
   }
   
@@ -519,7 +522,13 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         if(data_->command_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
           readHomingParamsFromEnc();
         }
-
+        if(data_->command_.cmdData != ECMC_SEQ_HOME_NOT_VALID) {
+          // Homing not allowed
+          return setErrorID(__FILE__,
+                            __FUNCTION__,
+                            __LINE__,
+                            ERROR_SEQ_HOME_NOT_ALLOWED);
+        }
       } else {
         if (traj_ == NULL) {
           return setErrorID(__FILE__,

@@ -385,13 +385,13 @@ int ecAddMemMap(
  *                      F32: Real 32-bit\n
  *                      F64: Double 64-bit\n
  *  \param[in] idString Identification string used for addressing the
- object.\n
+ object. (\"ec<masterid>.s<slaveid>\" will be used as prefix)\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Add an EtherCAT input data item of type B1 with 0 bytes offset and 2 bits offset, starting at
  * entry "ec0.s2.byte09"\n
- * "Cfg.EcAddDataDT(ec0.s2.byte09,0,2,B1,ec0.s2.a_bit)" //Command string to ecmcCmdParser.c\n
+ * "Cfg.EcAddDataDT(ec0.s2.byte09,0,2,B1,a_bit)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddDataDT(
   char  *ecPath,
