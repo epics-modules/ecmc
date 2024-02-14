@@ -744,7 +744,7 @@ int ecmcPLCMain::parseAxis(int plcIndex, const char *exprStr) {
  * find and register all ec variables in string
  */
 int ecmcPLCMain::parseEC(int plcIndex, const char *exprStr) {
-  int   ecId, ecSlave, bitIndex;
+  int   ecId, ecSlave;
   char *strLocal = strdup(exprStr);
   char *strEc    = strLocal;
   char  varName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
@@ -754,35 +754,15 @@ int ecmcPLCMain::parseEC(int plcIndex, const char *exprStr) {
   varNameTemp[0] = '\0';
 
   while ((strEc = strstr(strEc, ECMC_EC_STR)) && strlen(strEc) > 0) {
-    // Sanity check
+
     int nvals = sscanf(strEc,
-                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_VAR_FORMAT,
-                       &ecId,
-                       &ecSlave,
-                       varNameTemp);
+                   ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_VAR_FORMAT,
+                   &ecId,
+                   &ecSlave,
+                   varNameTemp);
 
     if (nvals == 3) {
       // Ensure not bit access
-      nvals = sscanf(strEc,
-                     ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_EC_ALIAS_FORMAT ".%d",
-                     &ecId,
-                     &ecSlave,
-                     varNameTemp,
-                     &bitIndex);
-
-      if (nvals == 4) {
-        free(strLocal);
-        LOGERR(
-          "%s/%s:%d:  Error: Variable bit access syntax not allowed (0x%x).\n",
-          __FILE__,
-          __FUNCTION__,
-          __LINE__,
-          ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED);
-        return setErrorID(__FILE__,
-                          __FUNCTION__,
-                          __LINE__,
-                          ERROR_PLCS_EC_VAR_BIT_ACCESS_NOT_ALLOWED);
-      }
       unsigned int charCount = snprintf(varName,
                                         sizeof(varName),
                                         ECMC_EC_STR "%d.%s%d.%s",
@@ -804,6 +784,7 @@ int ecmcPLCMain::parseEC(int plcIndex, const char *exprStr) {
                           __LINE__,
                           ERROR_PLCS_VARIABLE_NAME_TO_LONG);
       }
+
       int errorCode = createAndRegisterNewDataIF(plcIndex,
                                                  varName,
                                                  ECMC_RECORDER_SOURCE_ETHERCAT);
