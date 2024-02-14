@@ -43,6 +43,7 @@
 #define ERROR_MON_TOL_OUT_OF_RANGE 0x14C15
 #define ERROR_MON_TIME_OUT_OF_RANGE 0x14C16
 #define ERROR_MON_POLARITY_OUT_OF_RANGE 0x14C17
+#define ERROR_MON_ENTRY_ANALOG_INTERLOCK_NULL 0x14C18
 
 // MONITOR WARNINGS
 #define WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK 0x114C00
@@ -133,6 +134,9 @@ public:
   bool               getAtSoftLimitFwd();
   int                setEnableSoftLimitAlarm(bool enable);
   int                setEnableCheckEncsDiff(bool enable);
+  int                setAnalogInterlockPolarity(ecmcSwitchPolarity pol);
+  int                setAnalogRawLimit(double analogLimit);
+  int                setEnableAnalogInterlock(bool enable);
 
 private:
   int                checkLimits();
@@ -202,5 +206,10 @@ private:
   double ctrlDeadbandTol_; //controller deadband
   int ctrlDeadbandCounter_;
   int ctrlDeadbandTime_;
+
+  double analogRawLimit_;
+  int enableAnalogInterlock_;
+  ecmcSwitchPolarity analogPolarity_;
+
 };
 #endif  // ifndef MOTIONMONITOR_H

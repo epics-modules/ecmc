@@ -1959,6 +1959,36 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisMonExtHWInterlockPolarity(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisMonEnableAnalogInterlock(int axis_no, int value);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisMonEnableAnalogInterlock(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisMonEnableAnalogInterlock(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisMonAnalogInterlockPolarity(int axisIndex, int value);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisMonAnalogInterlockPolarity(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisMonAnalogInterlockPolarity(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisMonAnalogInterlockRawLimit(int axisIndex, int value);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisMonAnalogInterlockRawLimit(%d,%lf)",
+                 &iValue,
+                 &dValue);
+
+  if (nvals == 2) {
+    return setAxisMonAnalogInterlockRawLimit(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisMonLimitBwdPolarity(int axisIndex, int value);*/
   nvals = sscanf(myarg_1,
                  "SetAxisMonLimitBwdPolarity(%d,%d)",

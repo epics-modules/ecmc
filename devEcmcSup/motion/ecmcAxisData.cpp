@@ -88,6 +88,13 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
     return interlocks_.currStopMode;
   }
 
+  if (interlocks_.analogInterlock || interlocks_.analogInterlock) {
+    interlocks_.interlockStatus = ECMC_INTERLOCK_ANALOG;
+    interlocks_.currStopMode    = ECMC_STOP_MODE_EMERGENCY;
+    return interlocks_.currStopMode;
+  }
+
+
   if (interlocks_.bwdLimitInterlock) {
     interlocks_.interlockStatus = ECMC_INTERLOCK_HARD_BWD;
     interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
@@ -207,7 +214,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                       || interlocks_.maxVelocityDriveInterlock
                                       || interlocks_.velocityDiffDriveInterlock
                                       || interlocks_.hardwareInterlock
-                                      || interlocks_.etherCatMasterInterlock;
+                                      || interlocks_.etherCatMasterInterlock
+                                      || interlocks_.analogInterlock;
 
   interlocks_.trajSummaryInterlockBWD = interlocks_.driveSummaryInterlock
                                         || interlocks_.axisErrorStateInterlock

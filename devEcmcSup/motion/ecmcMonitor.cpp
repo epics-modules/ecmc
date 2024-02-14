@@ -82,6 +82,9 @@ void ecmcMonitor::initVars() {
   ctrlDeadbandTol_           = -1;
   ctrlDeadbandCounter_       = 0;
   ctrlDeadbandTime_          = -1;
+  analogRawLimit_            = 0;
+  enableAnalogInterlock_     = 0;
+  analogPolarity_            = ECMC_POLARITY_NC; //Higher value than analogRawLimit_ is bad
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -326,6 +329,25 @@ void ecmcMonitor::readEntries() {
       break;
     }
   }
+
+  if (enableAnalogInterlock_) {
+    tempRaw = 0;
+    errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_ANALOG, &tempRaw);
+    if (errorCode ) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
+      return;
+    }
+
+    switch (analogPolarity_) {
+    case ECMC_POLARITY_NC:
+      data_->interlocks_.analogInterlock = tempRaw > analogRawLimit_;
+      break;
+
+    case ECMC_POLARITY_NO:
+      data_->interlocks_.analogInterlock = tempRaw < analogRawLimit_;
+      break;
+    }
+  }
 }
 
 void ecmcMonitor::setEnable(bool enable) {
@@ -337,7 +359,7 @@ bool ecmcMonitor::getEnable() {
 }
 
 int ecmcMonitor::validate() {
-  int error = validateEntryBit(0);
+  int error = validateEntryBit(ECMC_MON_ENTRY_INDEX_LOWLIM);
 
   if (error) {  // Hard limit BWD
     return setErrorID(__FILE__,
@@ -346,7 +368,7 @@ int ecmcMonitor::validate() {
                       ERROR_MON_ENTRY_HARD_BWD_NULL);
   }
 
-  error = validateEntryBit(1);
+  error = validateEntryBit(ECMC_MON_ENTRY_INDEX_HIGHLIM);
 
   if (error) {  // Hard limit FWD
     return setErrorID(__FILE__,
@@ -355,7 +377,7 @@ int ecmcMonitor::validate() {
                       ERROR_MON_ENTRY_HARD_FWD_NULL);
   }
 
-  error = validateEntryBit(2);
+  error = validateEntryBit(ECMC_MON_ENTRY_INDEX_HOMESENSOR);
 
   if (error) {  // Home
     return setErrorID(__FILE__,
@@ -365,13 +387,24 @@ int ecmcMonitor::validate() {
   }
 
   if (enableHardwareInterlock_) {
-    error = validateEntryBit(3);
+    error = validateEntryBit(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK);
 
     if (error) {  // External interlock
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
                         ERROR_MON_ENTRY_EXT_INTERLOCK_NULL);
+    }
+  }
+
+  if (enableAnalogInterlock_) {
+    error = validateEntry(ECMC_MON_ENTRY_INDEX_ANALOG);
+
+    if (error) {  // Analog interlock
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_MON_ENTRY_ANALOG_INTERLOCK_NULL);
     }
   }
 
@@ -439,7 +472,7 @@ void ecmcMonitor::errorReset() {
 
 int ecmcMonitor::setEnableHardwareInterlock(bool enable) {
   if (enable) {
-    int error = validateEntryBit(3);
+    int error = validateEntryBit(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK);
 
     if (error) {
       return setErrorID(__FILE__,
@@ -450,6 +483,27 @@ int ecmcMonitor::setEnableHardwareInterlock(bool enable) {
   }
 
   enableHardwareInterlock_ = enable;
+  return 0;
+}
+
+int ecmcMonitor::setEnableAnalogInterlock(bool enable) {
+  if (enable) {
+    int error = validateEntry(ECMC_MON_ENTRY_INDEX_ANALOG);
+
+    if (error) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_MON_ENTRY_ANALOG_INTERLOCK_NULL);
+    }
+  }
+
+  enableAnalogInterlock_ = enable;
+  return 0;
+}
+
+int ecmcMonitor::setAnalogRawLimit(double analogLimit) {
+  analogRawLimit_ = analogLimit;  
   return 0;
 }
 
@@ -949,6 +1003,24 @@ int ecmcMonitor::setHardwareInterlockPolarity(ecmcSwitchPolarity pol) {
 
   if (hardwareInterlockPolarity_ != pol) {
     hardwareInterlockPolarity_ = pol;
+  }
+  return 0;
+}
+
+int ecmcMonitor::setAnalogInterlockPolarity(ecmcSwitchPolarity pol) {
+  int errorCode = checkPolarity(pol);
+
+  if (errorCode) {
+    LOGERR("%s/%s:%d: Invalid polarity (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           errorCode);
+    return errorCode;
+  }
+
+  if (analogPolarity_ != pol) {
+    analogPolarity_ = pol;
   }
   return 0;
 }

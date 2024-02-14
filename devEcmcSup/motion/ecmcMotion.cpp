@@ -2276,6 +2276,21 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex, int value) {
     (ecmcSwitchPolarity)value);
 }
 
+int setAxisMonAnalogInterlockPolarity(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setAnalogInterlockPolarity(
+    (ecmcSwitchPolarity)value);
+}
+
 int getAxisMonExtHWInterlockPolarity(int axisIndex, int *pol) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
@@ -2537,6 +2552,34 @@ int setAxisMonEnableExternalInterlock(int axisIndex, int value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setEnableHardwareInterlock(value);
+}
+
+int setAxisMonEnableAnalogInterlock(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setEnableAnalogInterlock(value);
+}
+
+int setAxisMonAnalogInterlockRawLimit(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setAnalogRawLimit(value);
 }
 
 int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value) {

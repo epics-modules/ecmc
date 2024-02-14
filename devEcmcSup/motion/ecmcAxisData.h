@@ -114,6 +114,7 @@ typedef struct {
   bool           plcInterlockFWD;
   bool           plcInterlockBWD;
   bool           encDiffInterlock;
+  bool           analogInterlock;
   interlockTypes lastActiveInterlock;
   interlockTypes interlockStatus;
   stopMode       currStopMode;

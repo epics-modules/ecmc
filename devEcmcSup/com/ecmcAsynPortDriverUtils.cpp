@@ -631,11 +631,19 @@ int getAxMonFuncType(char *objPath,
         return 0;
       }
 
-      // ExternalInterupt
+      // External interlock
       nvals = strcmp(objectFunctionStr, ECMC_MON_EXTINTERLOCK_STR);
 
       if (nvals == 0) {
         *objectFunction = ECMC_MON_ENTRY_INDEX_EXTINTERLOCK;
+        return 0;
+      }
+
+      // Analog interlock
+      nvals = strcmp(objectFunctionStr, ECMC_MON_ANALOG_INTERLOCK_STR);
+
+      if (nvals == 0) {
+        *objectFunction = ECMC_MON_ENTRY_INDEX_ANALOG;
         return 0;
       }
     }
