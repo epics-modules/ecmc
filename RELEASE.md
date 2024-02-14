@@ -2,7 +2,9 @@
 Release Notes
 ===
 
-# ECMC v9.0.1_RC3
+# ECMC v9.0.1_RC4
+* Allow asyn param names/aliases with dots '.' (mainly used for EcDataItems)
+* Ensure no duplication of asyn paarmeter names
 * Removed info printouts for epics state and linked parameters
 * Add commands for setting controller deadband (defaults to atTargetTol and atTargetTime):
 ```
