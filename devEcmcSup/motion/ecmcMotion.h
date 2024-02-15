@@ -3581,21 +3581,11 @@ int getAxisValid(int axisIndex);
  * The real safety must be handled in a safety PLC.\n
  *
  * \param[in] axisIndex  Axis index.\n
+ * \param[in] stop  stop axis.\n
  * \param[in] deceleration  deceleration to be used.\n
 */
-int setAxisEmergencyStopInterlock(int axisIndex,
-                             double deceleration);
-
-/** \brief Clear emergency stop ramp for an axis
- *
- * \note This is not related to safety.\n 
- * The system just tries to ramp down.\n 
- * The real safety must be handled in a safety PLC.\n
- *
- * \param[in] axisIndex  Axis index.\n
- 
-*/
-int setAxisClearEmergencyInterlock(int axisIndex);
+int setAxisEmergencyStopInterlock(int axisIndex,int stop,
+                                  double deceleration);
 
 # ifdef __cplusplus
 }

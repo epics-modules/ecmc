@@ -94,7 +94,6 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
     return interlocks_.currStopMode;
   }
 
-
   if (interlocks_.bwdLimitInterlock) {
     interlocks_.interlockStatus = ECMC_INTERLOCK_HARD_BWD;
     interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;

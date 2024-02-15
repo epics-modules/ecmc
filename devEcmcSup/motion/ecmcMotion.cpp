@@ -2981,8 +2981,8 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
 }
 
 int linkEcEntryToAxisSeqAutoModeSet(int   slaveIndex,
-                                char *entryIDString,
-                                int   axisIndex) {
+                                    char *entryIDString,
+                                    int   axisIndex) {
   LOGINFO4("%s/%s:%d slave_index=%d entry=%s, axisId=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -3205,29 +3205,18 @@ int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
   return axes[axisIndex]->setAllowSourceChangeWhenEnabled(allow);
 }
 
-int setAxisEmergencyStopInterlock(int axisIndex,
+int setAxisEmergencyStopInterlock(int axisIndex, int stop,
                                   double deceleration) {
-  LOGINFO4("%s/%s:%d axisIndex=%d, deceleration=%lf \n",
+  LOGINFO4("%s/%s:%d axisIndex=%d, stop=%d, deceleration=%lf \n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            axisIndex,
+           stop,
            deceleration);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  axes[axisIndex]->setEmergencyStopInterlock(deceleration);
-  return 0;
-}
-
-int setAxisClearEmergencyInterlock(int axisIndex) {
-  LOGINFO4("%s/%s:%d axisIndex=%d \n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  axes[axisIndex]->clearEmergencyStopInterlock();
+  axes[axisIndex]->setEmergencyStopInterlock(stop,deceleration);
   return 0;
 }
 
@@ -3259,6 +3248,7 @@ int getAxisTrajVelo(int  axisIndex,
            __FUNCTION__,
            __LINE__,
            axisIndex);
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);  
   *velo = axes[axisIndex]->getTrajVelo();
+  return 0;
 }

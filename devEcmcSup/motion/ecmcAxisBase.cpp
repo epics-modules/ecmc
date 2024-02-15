@@ -558,16 +558,27 @@ void ecmcAxisBase::setInStartupPhase(bool startup) {
   data_.status_.inStartupPhase = startup;
 }
 
-int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
+int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) { 
+  return setTrajDataSourceTypeInternal(refSource,allowSourceChangeWhenEnbaled_);
+}
+
+int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource, int force) {
   if (refSource == data_.command_.trajSource) return 0;
 
-  if (!allowSourceChangeWhenEnbaled_) {
+  if (!force) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
                         ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
     }
+  }
+
+  if (refSource != ECMC_DATA_SOURCE_INTERNAL && getMon()->getSafetyInterlock()) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL);
   }
 
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
@@ -2805,21 +2816,13 @@ void ecmcAxisBase::setDec(double dec) {
   axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
 }
 
-void ecmcAxisBase::setEmergencyStopInterlock(double deceleration) {
-  printf("setEmergencyStopInterlock()\n");
-
-  getMon()->setSafetyInterlock(1);
-}
-
-void ecmcAxisBase::clearEmergencyStopInterlock() {
-  printf("clearEmergencyStopInterlock()\n");
-  //if(!mon_) {
-  //  printf("WHY is mon_ NULL?!?!");
-  //}
-
-  //double test = traj_->getAcc();
-  //mon_->setSafetyInterlock(1);
-  //data_.interlocks_.safetyInterlock = true;
+void ecmcAxisBase::setEmergencyStopInterlock(int stop, double deceleration) {  
+  
+  getMon()->setSafetyInterlock(stop);
+  // Switch to internal source  
+  if (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) {
+    setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);    
+  }
 }
 
 double ecmcAxisBase::getEncVelo(){
