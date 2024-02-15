@@ -2907,7 +2907,6 @@ int setAxisMonVelDiffTol(int    axisIndex,
 
 /** \brief Enable motion axis interlock from EtherCAT entry.\n
  *
- *Enable
  * The motion can be interlocked based on an EtherCAT entry. See command
  * linkEcEntryToAxisMon() for more information.\n
  *
@@ -2925,6 +2924,27 @@ int setAxisMonVelDiffTol(int    axisIndex,
  */
 int setAxisMonEnableExternalInterlock(int axisIndex,
                                       int value);
+
+/** \brief Enable motion axis interlock from analog EtherCAT entry.\n
+ *  A typical usecase is temperature sensors.\n
+ *
+ * The motion can be interlocked based on an analog EtherCAT entry. See command
+ * linkEcEntryToAxisMon() for more information.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Enable external interlock.\n
+ *
+ * \note WARNING: If an error is detected, the enable (power) will be removed
+ *  from the axis. Please always ensure that the power less state is the
+ *  safe state.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable analog interlock for axis 7.\n
+ * "Cfg.SetAxisMonEnableAnalogInterlock(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonEnableAnalogInterlock(int axisIndex,
+                                    int value);
 
 /** \brief Set polarity of motion axis interlock from EtherCAT entry.\n
  *
@@ -2948,6 +2968,42 @@ int setAxisMonEnableExternalInterlock(int axisIndex,
  */
 int setAxisMonExtHWInterlockPolarity(int axisIndex,
                                      int value);
+
+/** \brief Set polarity of motion axis interlock from EtherCAT entry.\n
+ *
+ *
+ * The motion can be interlocked based on an EtherCAT entry. See command
+ * linkEcEntryToAxisMon() for more information.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value Polarity analog interlock (inversed from digital interlock).\n
+ *                0 = High value is bad.\n
+ *                1 = Low value is bad.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set analog interlock to 1 for axis 7.\n
+ * "Cfg.SetAxisMonAnalogInterlockPolarity(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonAnalogInterlockPolarity(int axisIndex,
+                                      int value);
+
+/** \brief Set analog interlock raw value limit .\n
+ *
+ *
+ * The motion can be interlocked based on an EtherCAT entry. See command
+ * linkEcEntryToAxisMon() for more information.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] value raw value limit.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set analog raw value limit to 3200 for axis 7.\n
+ * "Cfg.SetAxisMonAnalogInterlockRawLimit(7,3200)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonAnalogInterlockRawLimit(int axisIndex,
+                                      double value);
 
 /** \brief Get polarity of motion axis interlock from EtherCAT entry.\n
  *
@@ -3260,6 +3316,7 @@ int linkEcEntryToAxisDrv(int   slaveBusPosition,
  *    monitorEntryIndex = 1: Limit switch forward direction.\n
  *    monitorEntryIndex = 2: Reference switch (homing).\n
  *    monitorEntryIndex = 3: External interlock input (optional).\n
+ *    monitorEntryIndex = 4: External analog interlock input (optional).\n
  *  \param[in] entryBitIndex Bit index of EtherCAT entry to use.\n
  *    entryBitIndex = -1: All bits of the entry will be used.\n
  *    entryBitIndex = 0..64: Only the selected bit will be used.\n

@@ -408,6 +408,19 @@ ecmcAsynDataItem * ecmcAsynPortDriver::addNewAvailParam(const char    *name,
                           dieIfFail);
 }
 
+bool ecmcAsynPortDriver::checkParamExist(const char *name) {
+  for (int i = 0; i < ecmcParamAvailCount_; i++) {
+    if (!pEcmcParamAvailArray_[i]) {
+      return 0;
+    }
+    if((strstr(name,pEcmcParamAvailArray_[i]->getParamName()) != NULL) &&
+       (strlen(name) == strlen(pEcmcParamAvailArray_[i]->getParamName())) ) {
+       return true;
+    }
+  }  
+  return false;
+}
+
 /** Create and add new parameter to list of available parameters\n
   * \param[in] name Parameter name\n
   * \param[in] type Asyn parameter type\n
@@ -428,6 +441,18 @@ ecmcAsynDataItem * ecmcAsynPortDriver::addNewAvailParam(const char    *name,
                                                         bool           dieIfFail)
 {
   const char *functionName = "addNewAvailParam";
+  //make sure param name is unique
+  if(checkParamExist(name)){
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s: ERROR: Parameter name (%s) already exists, must be unique.\n",
+              driverName,
+              functionName,
+              name);
+    if (dieIfFail) {
+      exit(1);
+    }
+    return NULL;
+  }
 
   ecmcAsynDataItem *paramTemp = new ecmcAsynDataItem(this,
                                                      name,
@@ -445,6 +470,11 @@ ecmcAsynDataItem * ecmcAsynPortDriver::addNewAvailParam(const char    *name,
               name);
     delete paramTemp;
     paramTemp = NULL;
+
+    if (dieIfFail) {
+      exit(1);
+    }
+
     return NULL;
   }
   asynStatus status = appendAvailParam(paramTemp, 0);
@@ -457,6 +487,9 @@ ecmcAsynDataItem * ecmcAsynPortDriver::addNewAvailParam(const char    *name,
                name);*/
     delete paramTemp;
     paramTemp = NULL;
+    if (dieIfFail) {
+      exit(1);
+    }
     return NULL;
   }
 

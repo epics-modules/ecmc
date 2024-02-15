@@ -109,12 +109,12 @@
 // Encoders
 #define ECMC_MAX_ENCODERS 8
 
-
 // Monitor drive entries
 #define ECMC_MON_ENTRY_INDEX_LOWLIM 0
 #define ECMC_MON_ENTRY_INDEX_HIGHLIM 1
 #define ECMC_MON_ENTRY_INDEX_HOMESENSOR 2
 #define ECMC_MON_ENTRY_INDEX_EXTINTERLOCK 3
+#define ECMC_MON_ENTRY_INDEX_ANALOG 4
 
 // Data recording
 #define ECMC_MAX_DATA_RECORDERS_OBJECTS 10
@@ -328,6 +328,7 @@ enum interlockTypes {
   ECMC_INTERLOCK_PLC_BWD                           = 18,
   ECMC_INTERLOCK_PLC_FWD                           = 19,
   ECMC_INTERLOCK_ENC_DIFF                          = 20,
+  ECMC_INTERLOCK_ANALOG                            = 21,
 };
 
 enum plcInterlockTypes {
@@ -460,6 +461,7 @@ enum axisSubObjectType {
 #define ECMC_MON_HIGHLIM_STR "highlim"
 #define ECMC_MON_HOMESENSOR_STR "homesensor"
 #define ECMC_MON_EXTINTERLOCK_STR "extinterlock"
+#define ECMC_MON_ANALOG_INTERLOCK_STR "analoginterlock"
 #define ECMC_TRAJ_STR "traj"
 #define ECMC_CNTRL_STR "cntrl"
 

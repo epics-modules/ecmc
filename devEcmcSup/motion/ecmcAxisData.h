@@ -115,6 +115,7 @@ typedef struct {
   bool           plcInterlockBWD;
   bool           encDiffInterlock;
   bool           safetyInterlock;  // can only be set and reset by plugin
+  bool           analogInterlock;
   interlockTypes lastActiveInterlock;
   interlockTypes interlockStatus;
   stopMode       currStopMode;

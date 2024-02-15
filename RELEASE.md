@@ -2,7 +2,16 @@
 Release Notes
 ===
 
-# ECMC v9.0.1_RC3
+# ECMC v9.0.1_RC4
+* Add analog interlock to motion axes (intended for use with temperature sensors):
+```
+ecmcConfigOrDie "Cfg.LinkEcEntryToObject(<ethercat entry>,"ax<axis id>.mon.analoginterlock")"
+ecmcConfigOrDie "Cfg.SetAxisMonEnableAnalogInterlock(<axis id>,<1/0>)"
+ecmcConfigOrDie "Cfg.SetAxisMonAnalogInterlockPolarity(<axis id>,<0=low is ok (high bad), 1=high is ok (low bad)>)"
+ecmcConfigOrDie "Cfg.SetAxisMonAnalogInterlockRawLimit(<axis id>,<raw value limit for trip>)"        
+```
+* Allow asyn param names/aliases with dots '.' (mainly used for EcDataItems)
+* Ensure no duplication of asyn paarmeter names
 * Removed info printouts for epics state and linked parameters
 * Add commands for setting controller deadband (defaults to atTargetTol and atTargetTime):
 ```

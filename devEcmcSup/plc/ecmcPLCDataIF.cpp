@@ -1411,25 +1411,10 @@ int ecmcPLCDataIF::parseEcPath(char *ecPath,
                                int  *bit) {
   int masterId = 0;
   int slaveId  = 0;
-  int bitId    = 0;
   int nvals    = 0;
 
   nvals = sscanf(ecPath,
-                 ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_EC_ALIAS_FORMAT ".%d",
-                 &masterId,
-                 &slaveId,
-                 alias,
-                 &bitId);
-
-  if (nvals == 4) {
-    *master = masterId;
-    *slave  = slaveId;
-    *bit    = bitId;
-    return 0;
-  }
-
-  nvals = sscanf(ecPath,
-                 ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_EC_ALIAS_FORMAT,
+                 ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_VAR_FORMAT,
                  &masterId,
                  &slaveId,
                  alias);

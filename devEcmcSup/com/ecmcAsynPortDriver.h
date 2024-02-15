@@ -155,6 +155,7 @@ public:
 
   ecmcDataItem*     findAvailDataItem(const char *name);
   ecmcAsynDataItem* findAvailParam(const char *name);
+  bool              checkParamExist(const char *name);
 
 private:
   void              initVars();
