@@ -1608,6 +1608,11 @@ int ecmcAxisBase::setEnable(bool enable) {
     return setErrorID(ERROR_ENC_NOT_READY);
   }
 
+  if (getMon()->getSafetyInterlock()) {
+    data_.command_.enable = false;
+    return setErrorID(ERROR_AXIS_SAFETY_IL_ACTIVE);
+  }
+
   int error = setEnableLocal(enable);
 
   if (error) {
@@ -2822,7 +2827,7 @@ void ecmcAxisBase::setEmergencyStopInterlock(int stop, double deceleration) {
   // Switch to internal source  
   if (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) {
     setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);    
-  }
+  }  
 }
 
 double ecmcAxisBase::getEncVelo(){
