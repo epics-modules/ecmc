@@ -11,7 +11,7 @@ ecmcConfigOrDie "Cfg.SetAxisMonAnalogInterlockPolarity(<axis id>,<0=low is ok (h
 ecmcConfigOrDie "Cfg.SetAxisMonAnalogInterlockRawLimit(<axis id>,<raw value limit for trip>)"        
 ```
 * Allow asyn param names/aliases with dots '.' (mainly used for EcDataItems)
-* Ensure no duplication of asyn paarmeter names
+* Ensure no duplication of asyn parameter names
 * Removed info printouts for epics state and linked parameters
 * Add commands for setting controller deadband (defaults to atTargetTol and atTargetTime):
 ```
@@ -28,7 +28,7 @@ ecmcConfigOrDie "Cfg.SetAxisDrvVelSetOffsetRaw(<axis_id>,<offset>)"
 ```
 * Add command that adds an SDO object with a predefined type, up to 8 bytes:
 
-Example: Write sign 64bit int 
+Example: Write signed 64bit int 
 ```
 ecmcConfigOrDie "Cfg.EcAddSdoDT(<slave index>,<sdoindex>,<sdosubindex>,<valuestring>,<datatypestring>)" 
 #  0x8030:08, rwrwrw, int64, 64 bit, "Calibration position" for EP7211-0034
