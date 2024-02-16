@@ -41,6 +41,7 @@ extern ecmcMainThreadDiag  threadDiag;
 extern app_mode_type appModeCmd, appModeCmdOld, appModeStat;
 extern ecmcMotorRecordController *asynPortMotorRecord;
 extern ecmcPluginLib *plugins[ECMC_MAX_PLUGINS];
+extern ecmcPluginLib *safetyplugin;
 extern ecmcShm shmObj;
 
 // Mutex for motor record access
@@ -59,4 +60,6 @@ extern double mcuFrequency;
 extern double mcuPeriod;
 extern int    sampleRateChangeAllowed;
 extern int    pluginsError;
+extern int    safetypluginError;
+
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */

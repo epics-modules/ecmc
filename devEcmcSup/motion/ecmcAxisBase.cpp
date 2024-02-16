@@ -1608,7 +1608,7 @@ int ecmcAxisBase::setEnable(bool enable) {
     return setErrorID(ERROR_ENC_NOT_READY);
   }
 
-  if (getMon()->getSafetyInterlock()) {
+  if (getMon()->getSafetyInterlock() && enable) {
     data_.command_.enable = false;
     return setErrorID(ERROR_AXIS_SAFETY_IL_ACTIVE);
   }
@@ -2821,7 +2821,7 @@ void ecmcAxisBase::setDec(double dec) {
   axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
 }
 
-void ecmcAxisBase::setEmergencyStopInterlock(int stop, double deceleration) {  
+void ecmcAxisBase::setEmergencyStopInterlock(int stop) {  
   
   getMon()->setSafetyInterlock(stop);
   // Switch to internal source  

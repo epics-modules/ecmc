@@ -3582,10 +3582,8 @@ int getAxisValid(int axisIndex);
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] stop  stop axis.\n
- * \param[in] deceleration  deceleration to be used.\n
 */
-int setAxisEmergencyStopInterlock(int axisIndex,int stop,
-                                  double deceleration);
+int setAxisEmergencyStopInterlock(int axisIndex,int stop);
 
 # ifdef __cplusplus
 }

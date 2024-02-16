@@ -71,7 +71,7 @@ typedef struct {
   int     seqState;
   int     encoderCount;
   bool    atTarget;
-  bool   ctrlWinthinDeadband;
+  bool    ctrlWinthinDeadband;
   bool    limitFwd;
   bool    limitBwd;
   bool    limitFwdFiltered;

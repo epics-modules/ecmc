@@ -3205,18 +3205,16 @@ int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
   return axes[axisIndex]->setAllowSourceChangeWhenEnabled(allow);
 }
 
-int setAxisEmergencyStopInterlock(int axisIndex, int stop,
-                                  double deceleration) {
-  LOGINFO4("%s/%s:%d axisIndex=%d, stop=%d, deceleration=%lf \n",
+int setAxisEmergencyStopInterlock(int axisIndex, int stop) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, stop=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            axisIndex,
-           stop,
-           deceleration);
+           stop);
 
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-  axes[axisIndex]->setEmergencyStopInterlock(stop,deceleration);
+  axes[axisIndex]->setEmergencyStopInterlock(stop);
   return 0;
 }
 

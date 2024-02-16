@@ -48,6 +48,20 @@ int loadPlugin(int         pluginId,
  */
 int reportPlugin(int pluginId);
 
+/** \brief Load safety plugin to ecmc (executes just before data is sent to the bus).\n
+ *
+ * \param[in] filenameWP Filename of sharded lib with path.
+ * \param[in] config configuration string sent to plugin on load.
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note This plugin can only be loaded once.
+ *
+ * \note Example: Create and load a plugin at index 0.\n
+ *  "Cfg.LoadSafetyPlugin(./ecmcExampleLip.so,"TEST=10")" //Command string to ecmcCmdParser.c\n
+ */
+int loadSafetyPlugin(const char *filenameWP, const char *configStr);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus

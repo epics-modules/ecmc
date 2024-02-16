@@ -43,6 +43,13 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
     return interlocks_.currStopMode;
   }
 
+  // Emergency interlocks first
+  if (interlocks_.safetyInterlock) {
+    interlocks_.interlockStatus = ECMC_INTERLOCK_SAFETY;
+    interlocks_.currStopMode    = ECMC_STOP_MODE_EMERGENCY;
+    return interlocks_.currStopMode;
+  }
+
   if (interlocks_.bothLimitsLowInterlock) {
     interlocks_.interlockStatus = ECMC_INTERLOCK_BOTH_LIMITS;
     interlocks_.currStopMode    = ECMC_STOP_MODE_EMERGENCY;

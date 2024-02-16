@@ -317,7 +317,7 @@ public:
   void   setTargetVel(double velTarget);
   void   setAcc(double acc);
   void   setDec(double dec);
-  void   setEmergencyStopInterlock(int stop, double deceleration);
+  void   setEmergencyStopInterlock(int stop);
   double getTrajVelo();
   double getEncVelo();
 
