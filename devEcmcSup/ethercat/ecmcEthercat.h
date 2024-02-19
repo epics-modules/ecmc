@@ -289,10 +289,6 @@ int ecAddSdoAsync(
  *    direction  = 1:  Output (from master).\n
  *    direction  = 2:  Input (to master).\n
  *  \param[in] dataType DataType of ethercat data:\n
- *                      B1:  1-bit\n
- *                      B2:  2-bits (lsb)\n
- *                      B3:  3-bits (lsb)\n
- *                      B4:  4-bits (lsb)\n
  *                      U8:  Unsigned 8-bit\n
  *                      S8:  Signed 8-bit\n
  *                      U16: Unsigned 16-bit\n
