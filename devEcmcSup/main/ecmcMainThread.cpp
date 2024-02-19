@@ -684,7 +684,10 @@ int setAppModeRun(int mode) {
   }
 
   if(safetyplugin) {
-    safetyplugin->exeEnterRTFunc();
+    errorCode = safetyplugin->exeEnterRTFunc();
+    if (errorCode) {
+      return errorCode;
+    }
   }
 
   clock_gettime(CLOCK_MONOTONIC, &masterActivationTimeMonotonic);

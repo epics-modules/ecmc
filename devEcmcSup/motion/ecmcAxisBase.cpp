@@ -2824,10 +2824,10 @@ void ecmcAxisBase::setDec(double dec) {
 void ecmcAxisBase::setEmergencyStopInterlock(int stop) {  
   
   getMon()->setSafetyInterlock(stop);
-  // Switch to internal source  
-  if (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) {
-    setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);    
-  }  
+  // Switch to internal source
+  if (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL && stop) {
+    setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);
+  }
 }
 
 double ecmcAxisBase::getEncVelo(){
