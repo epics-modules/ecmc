@@ -2638,6 +2638,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return loadPlugin(iValue, cIdBuffer, cIdBuffer2);
   }
 
+  /*int Cfg.LoadSafetyPlugin(char *cFilename, char *configString); */
+  nvals = sscanf(myarg_1,
+                 "LoadSafetyPlugin(%[^,],%[^)])",
+                 cIdBuffer,
+                 cIdBuffer2);
+
+  if (nvals == 2) {
+    return loadSafetyPlugin(cIdBuffer, cIdBuffer2);
+  }
+
   /*int Cfg.LoadPlugin(int pluginId, char *cFilename); */
   nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^)])", &iValue, cIdBuffer);
 

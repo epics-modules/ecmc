@@ -405,6 +405,11 @@ void cyclic_task(void *usr) {
       }
     }
 
+    // Special safety plugin execute last
+    if (safetyplugin != NULL) {
+      safetypluginError = safetyplugin->exeRTFunc(controllerError);
+    }
+
     if (asynPort->getEpicsState() >= 14) {
       updateAsynParams(0);
     }
@@ -468,6 +473,8 @@ int ecmcInitThread(void) {
   for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
     plugins[i] = NULL;
   }
+
+  safetyplugin = NULL;
 
   // Create SHM for master 2 master communication
   memset(&shmObj, 0, sizeof(ecmcShm));
@@ -602,6 +609,10 @@ int setAppModeCfg(int mode) {
         }
       }
     }
+
+    if(safetyplugin) {
+      safetyplugin->exeExitRTFunc();
+    }
   }
 
   if (asynPort) {
@@ -669,6 +680,13 @@ int setAppModeRun(int mode) {
       if (errorCode) {
         return errorCode;
       }
+    }
+  }
+
+  if(safetyplugin) {
+    errorCode = safetyplugin->exeEnterRTFunc();
+    if (errorCode) {
+      return errorCode;
     }
   }
 

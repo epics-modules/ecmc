@@ -97,7 +97,7 @@ void ecmcMonitor::execute() {
   checkAtTarget();
 
   // External interlock (on ethercat I/O)
-  if (enableHardwareInterlock_ && data_->interlocks_.hardwareInterlock &&
+  if (enableHardwareInterlock_ &&  data_->interlocks_.hardwareInterlock &&
       enable_) {
     setErrorID(__FILE__,
                __FUNCTION__,
@@ -1140,4 +1140,12 @@ int ecmcMonitor::setCtrlDeadband(double tol) {
 int ecmcMonitor::setCtrlDeadbandTime(int cycles) {
   ctrlDeadbandTime_ = cycles;
   return 0;
+}
+
+void ecmcMonitor::setSafetyInterlock(int interlock) {
+  data_->interlocks_.safetyInterlock = interlock > 0;
+}
+
+int ecmcMonitor::getSafetyInterlock() {
+  return data_->interlocks_.safetyInterlock;
 }

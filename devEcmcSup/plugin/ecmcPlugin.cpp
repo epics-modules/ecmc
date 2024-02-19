@@ -52,6 +52,39 @@ int loadPlugin(int pluginId, const char *filenameWP, const char *configStr) {
   return 0;
 }
 
+int loadSafetyPlugin(const char *filenameWP, const char *configStr) {
+  LOGINFO4("%s/%s:%d filenameWP=%s, configStr=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           filenameWP,
+           configStr);
+
+  if (safetyplugin) {
+    // do not allow load of module twice
+    return ERROR_MAIN_SAFETY_PLUGIN_ALREADY_LOADED;    
+  }
+
+  safetyplugin = new ecmcPluginLib(-1);
+
+  if (!safetyplugin) {
+    return ERROR_MAIN_PLUGIN_OBJECT_NULL;
+  }
+
+  int errorCode = safetyplugin->load(filenameWP, configStr);
+
+  if (errorCode) {
+    delete safetyplugin;
+    safetyplugin = NULL;
+    return errorCode;
+  }
+
+  // Always report safety plugin
+  safetyplugin->report();
+  
+  return 0;
+}
+
 int reportPlugin(int pluginId) {
   LOGINFO4("%s/%s:%d pluginId = %d\n",
            __FILE__,

@@ -134,6 +134,10 @@ public:
   bool               getAtSoftLimitFwd();
   int                setEnableSoftLimitAlarm(bool enable);
   int                setEnableCheckEncsDiff(bool enable);
+  // Special interlock for ecmc_plugin_safety for interface with safety PLC
+  void               setSafetyInterlock(int interlock);  
+  int                getSafetyInterlock();
+  // Analog interlock for temperature sensors
   int                setAnalogInterlockPolarity(ecmcSwitchPolarity pol);
   int                setAnalogRawLimit(double analogLimit);
   int                setEnableAnalogInterlock(bool enable);

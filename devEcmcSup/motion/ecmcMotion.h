@@ -430,6 +430,30 @@ int getAxisBlockCom(int  axisIndex,
 int getAxisBusy(int  axisIndex,
                 int *value);
 
+/** \brief Get axis act velo.\n
+ *
+ * The axis busy bit is high while an command is executed or while synchronizing to other axes.
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] velo Axis velocity.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int getAxisEncVelo(int  axisIndex,
+                   double *velo);
+
+/** \brief Get axis traj velo.\n
+ *
+ * The axis busy bit is high while an command is executed or while synchronizing to other axes.
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] velo Axis velocity.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int getAxisTrajVelo(int  axisIndex,
+                   double *velo);
+
 /** \brief Get axis index.\n
  *
  * This function is only implemented for compatibility reasons with the
@@ -3544,14 +3568,22 @@ int setAxisDisableAtErrorReset(int axisIndex,
 int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
                                         int allow);
 
-/** \brief Get pointer to axis object.\n
+/** \brief Returns 1 if axis index is in use
  *
  * \param[in] axisIndex  Axis index.\n
+*/
+int getAxisValid(int axisIndex);
+
+/** \brief Init emergency stop ramp for an axis
  *
- * \return pointer to axis object if success or otherwise an error code.\n
+ * \note This is not related to safety.\n 
+ * The system just tries to ramp down.\n 
+ * The real safety must be handled in a safety PLC.\n
  *
- */
-void* getAxisPointer(int axisIndex);
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] stop  stop axis.\n
+*/
+int setAxisEmergencyStopInterlock(int axisIndex,int stop);
 
 # ifdef __cplusplus
 }

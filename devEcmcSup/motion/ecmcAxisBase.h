@@ -75,6 +75,8 @@
 #define ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE 0x14326
 #define ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE 0x14327
 #define ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY 0x14328
+#define ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL 0x14329
+#define ERROR_AXIS_SAFETY_IL_ACTIVE 0x1432A
 
 // AXIS WARNINGS
 #define WARNING_AXIS_ASYN_CMD_WHILE_BUSY 0x114300
@@ -210,6 +212,7 @@ public:
   bool                       getAllowCmdFromPLC();
   void                       setInStartupPhase(bool startup);
   int                        setTrajDataSourceType(dataSource refSource);
+  int                        setTrajDataSourceTypeInternal(dataSource refSource, int force);
   int                        setEncDataSourceType(dataSource refSource);
   dataSource                 getTrajDataSourceType();
   dataSource                 getEncDataSourceType();
@@ -314,6 +317,9 @@ public:
   void   setTargetVel(double velTarget);
   void   setAcc(double acc);
   void   setDec(double dec);
+  void   setEmergencyStopInterlock(int stop);
+  double getTrajVelo();
+  double getEncVelo();
 
 protected:
   void   initVars();

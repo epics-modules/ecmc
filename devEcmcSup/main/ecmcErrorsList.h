@@ -105,6 +105,7 @@
 #define ERROR_SHM_INDEX_OUT_OF_RANGE 0x20059
 #define ERROR_SHM_NULL 0x2005A
 #define ERROR_SEM_NULL 0x2005B
+#define ERROR_MAIN_SAFETY_PLUGIN_ALREADY_LOADED 0x2005C
 
 // Other errors moved heer since used in many objects
 #define ERROR_EC_MAIN_ENTRY_NULL 0x26006

@@ -558,16 +558,27 @@ void ecmcAxisBase::setInStartupPhase(bool startup) {
   data_.status_.inStartupPhase = startup;
 }
 
-int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
+int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) { 
+  return setTrajDataSourceTypeInternal(refSource,allowSourceChangeWhenEnbaled_);
+}
+
+int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource, int force) {
   if (refSource == data_.command_.trajSource) return 0;
 
-  if (!allowSourceChangeWhenEnbaled_) {
+  if (!force) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
                         ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
     }
+  }
+
+  if (refSource != ECMC_DATA_SOURCE_INTERNAL && getMon()->getSafetyInterlock()) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL);
   }
 
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
@@ -1504,13 +1515,15 @@ void ecmcAxisBase::refreshStatusWd() {
   statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase >
                                                 0;
 
-  // bit 17 sumilockfwd
+  // bit 17 sumilockfwd (filter away execute IL)
   statusData_.onChangeData.statusWd.sumilockfwd =
-    data_.interlocks_.trajSummaryInterlockFWD;
+    data_.interlocks_.trajSummaryInterlockFWD && 
+    data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE;
 
-  // bit 17 sumilockbwd
+  // bit 18 sumilockbwd (filter away execute IL)
   statusData_.onChangeData.statusWd.sumilockbwd =
-    data_.interlocks_.trajSummaryInterlockBWD;
+    data_.interlocks_.trajSummaryInterlockBWD && 
+    data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE;
 
   // bit 19 axis type
   statusData_.onChangeData.statusWd.axisType = data_.axisType_ ==
@@ -1549,10 +1562,6 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
   statusData_.onChangeData.seqState      = seq_.getSeqState();
   statusData_.onChangeData.trajInterlock =
     data_.interlocks_.interlockStatus;
-  statusData_.onChangeData.statusWd.sumilockbwd =
-    data_.interlocks_.trajSummaryInterlockBWD;
-  statusData_.onChangeData.statusWd.sumilockfwd =
-    data_.interlocks_.trajSummaryInterlockFWD;
   statusData_.onChangeData.velocityActual =
     data_.status_.currentVelocityActual;
   statusData_.onChangeData.velocitySetpoint =
@@ -1595,6 +1604,11 @@ int ecmcAxisBase::setEnable(bool enable) {
   if (!getEnc()->hwReady()) {
     data_.command_.enable = false;
     return setErrorID(ERROR_ENC_NOT_READY);
+  }
+
+  if (getMon()->getSafetyInterlock() && enable) {
+    data_.command_.enable = false;
+    return setErrorID(ERROR_AXIS_SAFETY_IL_ACTIVE);
   }
 
   int error = setEnableLocal(enable);
@@ -2803,4 +2817,21 @@ void ecmcAxisBase::setDec(double dec) {
   // also set for ecmc interface
   deceleration_ = dec;
   axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
+}
+
+void ecmcAxisBase::setEmergencyStopInterlock(int stop) {  
+  
+  getMon()->setSafetyInterlock(stop);
+  // Switch to internal source
+  if (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL && stop) {
+    setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);
+  }
+}
+
+double ecmcAxisBase::getEncVelo(){
+  return data_.status_.currentVelocityActual;
+}
+
+double ecmcAxisBase::getTrajVelo() {
+  return data_.status_.currentVelocitySetpoint;
 }

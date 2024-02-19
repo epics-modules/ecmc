@@ -71,7 +71,7 @@ typedef struct {
   int     seqState;
   int     encoderCount;
   bool    atTarget;
-  bool   ctrlWinthinDeadband;
+  bool    ctrlWinthinDeadband;
   bool    limitFwd;
   bool    limitBwd;
   bool    limitFwdFiltered;
@@ -114,6 +114,7 @@ typedef struct {
   bool           plcInterlockFWD;
   bool           plcInterlockBWD;
   bool           encDiffInterlock;
+  bool           safetyInterlock;  // can only be set and reset by plugin
   bool           analogInterlock;
   interlockTypes lastActiveInterlock;
   interlockTypes interlockStatus;
