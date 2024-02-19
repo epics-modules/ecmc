@@ -1515,13 +1515,15 @@ void ecmcAxisBase::refreshStatusWd() {
   statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase >
                                                 0;
 
-  // bit 17 sumilockfwd
+  // bit 17 sumilockfwd (filter away execute IL)
   statusData_.onChangeData.statusWd.sumilockfwd =
-    data_.interlocks_.trajSummaryInterlockFWD;
+    data_.interlocks_.trajSummaryInterlockFWD && 
+    data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE;
 
-  // bit 18 sumilockbwd
+  // bit 18 sumilockbwd (filter away execute IL)
   statusData_.onChangeData.statusWd.sumilockbwd =
-    data_.interlocks_.trajSummaryInterlockBWD;
+    data_.interlocks_.trajSummaryInterlockBWD && 
+    data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE;
 
   // bit 19 axis type
   statusData_.onChangeData.statusWd.axisType = data_.axisType_ ==
@@ -1560,10 +1562,6 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
   statusData_.onChangeData.seqState      = seq_.getSeqState();
   statusData_.onChangeData.trajInterlock =
     data_.interlocks_.interlockStatus;
-  statusData_.onChangeData.statusWd.sumilockbwd =
-    data_.interlocks_.trajSummaryInterlockBWD;
-  statusData_.onChangeData.statusWd.sumilockfwd =
-    data_.interlocks_.trajSummaryInterlockFWD;
   statusData_.onChangeData.velocityActual =
     data_.status_.currentVelocityActual;
   statusData_.onChangeData.velocitySetpoint =
