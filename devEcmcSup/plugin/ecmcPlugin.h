@@ -60,7 +60,8 @@ int reportPlugin(int pluginId);
  * \note Example: Create and load a plugin at index 0.\n
  *  "Cfg.LoadSafetyPlugin(./ecmcExampleLip.so,"TEST=10")" //Command string to ecmcCmdParser.c\n
  */
-int loadSafetyPlugin(const char *filenameWP, const char *configStr);
+int loadSafetyPlugin(const char *filenameWP,
+                     const char *configStr);
 
 # ifdef __cplusplus
 }

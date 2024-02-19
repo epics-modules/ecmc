@@ -84,72 +84,73 @@ public:
   void                setDefaultDec(double dec);
   void                setAcc(double acc);
   void                setDec(double dec);
+
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
   // only valid for certain home sequences
-  void   setHomeLatchCountOffset(int count);
-  void   setTargetPos(double pos);
-  void   setTargetPos(double pos,
-                      bool   force);
-  double getTargetPos();
-  void   setTargetVel(double velTarget);
-  double getTargetVel();
-  void   setJogFwd(bool jog);
-  bool   getJogFwd();
-  void   setJogBwd(bool jog);
-  bool   getJogBwd();
-  int    getSeqState();
-  int    validate();
-  int    setSequenceTimeout(int timeout);
-  int    setExternalExecute(bool execute);
-  int    setAxisDataRef(ecmcAxisData *data);
-  int    setAllowMotionFunctions(bool enablePos,
-                                 bool enableConstVel,
-                                 bool enableHome);
-  void   setHomePostMoveTargetPosition(double targetPos);
-  void   setHomePostMoveEnable(double enable);
-  void   setNewPositionCtrlDrvTrajBumpless(double newPosition);
-  int    getAllowPos();
-  int    getAllowConstVelo();
-  int    getAllowHome();
-  int    setAutoModeSetEntry(ecmcEcEntry *entry);
-  int    setAutoModeActEntry(ecmcEcEntry *entry);
-  int    setAutoModeHomigCmd(int homing);
-  int    setAutoModeMotionCmd(int motion);
+  void         setHomeLatchCountOffset(int count);
+  void         setTargetPos(double pos);
+  void         setTargetPos(double pos,
+                            bool   force);
+  double       getTargetPos();
+  void         setTargetVel(double velTarget);
+  double       getTargetVel();
+  void         setJogFwd(bool jog);
+  bool         getJogFwd();
+  void         setJogBwd(bool jog);
+  bool         getJogBwd();
+  int          getSeqState();
+  int          validate();
+  int          setSequenceTimeout(int timeout);
+  int          setExternalExecute(bool execute);
+  int          setAxisDataRef(ecmcAxisData *data);
+  int          setAllowMotionFunctions(bool enablePos,
+                                       bool enableConstVel,
+                                       bool enableHome);
+  void         setHomePostMoveTargetPosition(double targetPos);
+  void         setHomePostMoveEnable(double enable);
+  void         setNewPositionCtrlDrvTrajBumpless(double newPosition);
+  int          getAllowPos();
+  int          getAllowConstVelo();
+  int          getAllowHome();
+  int          setAutoModeSetEntry(ecmcEcEntry *entry);
+  int          setAutoModeActEntry(ecmcEcEntry *entry);
+  int          setAutoModeHomigCmd(int homing);
+  int          setAutoModeMotionCmd(int motion);
 
 private:
-  ecmcEncoder *getPrimEnc();
-  void   initVars();
-  double checkSoftLimits(double posSetpoint);
-  void   readHomingParamsFromEnc();
-  bool   autoModeSetHoming();
-  bool   autoModeSetMotion();
-  int    seqHoming1();   // nCmdData==1
-  int    seqHoming2();   // nCmdData==2
-  int    seqHoming3();   // nCmdData==3
-  int    seqHoming4();   // nCmdData==4
-  int    seqHoming5();   // nCmdData==5
-  int    seqHoming6();   // nCmdData==6
-  int    seqHoming7();   // nCmdData==7
-  int    seqHoming8();   // nCmdData==8
-  int    seqHoming9();   // nCmdData==9
-  int    seqHoming10();  // nCmdData==10
-  int    seqHoming11();  // nCmdData==11
-  int    seqHoming12();  // nCmdData==12
-  //int    seqHoming14();  Is used but no method needed!!
-  int    seqHoming15();  // nCmdData==15
-  int    seqHoming21();  // nCmdData==21
-  int    seqHoming22();  // nCmdData==22
-  int    seqHoming26();  // nCmdData==26
-  int    checkHWLimitsAndStop(bool checkBWD,
-                              bool checkFWD);
-  int    stopSeq();
-  int    getExtTrajSetpoint(double *pos);
-  int    checkVelAccDec();
-  void   initHomingSeq();
-  void   finalizeHomingSeq(double newPosition);
-  int    postHomeMove();
-  void   setTrajAccAndDec();
+  ecmcEncoder* getPrimEnc();
+  void         initVars();
+  double       checkSoftLimits(double posSetpoint);
+  void         readHomingParamsFromEnc();
+  bool         autoModeSetHoming();
+  bool         autoModeSetMotion();
+  int          seqHoming1(); // nCmdData==1
+  int          seqHoming2(); // nCmdData==2
+  int          seqHoming3(); // nCmdData==3
+  int          seqHoming4(); // nCmdData==4
+  int          seqHoming5(); // nCmdData==5
+  int          seqHoming6(); // nCmdData==6
+  int          seqHoming7(); // nCmdData==7
+  int          seqHoming8(); // nCmdData==8
+  int          seqHoming9(); // nCmdData==9
+  int          seqHoming10(); // nCmdData==10
+  int          seqHoming11(); // nCmdData==11
+  int          seqHoming12(); // nCmdData==12
+  // int    seqHoming14();  Is used but no method needed!!
+  int          seqHoming15(); // nCmdData==15
+  int          seqHoming21(); // nCmdData==21
+  int          seqHoming22(); // nCmdData==22
+  int          seqHoming26(); // nCmdData==26
+  int          checkHWLimitsAndStop(bool checkBWD,
+                                    bool checkFWD);
+  int          stopSeq();
+  int          getExtTrajSetpoint(double *pos);
+  int          checkVelAccDec();
+  void         initHomingSeq();
+  void         finalizeHomingSeq(double newPosition);
+  int          postHomeMove();
+  void         setTrajAccAndDec();
 
   int seqState_;
   int seqStateOld_;

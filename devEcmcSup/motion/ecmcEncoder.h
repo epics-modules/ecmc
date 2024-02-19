@@ -242,6 +242,7 @@ protected:
   bool hwSumAlarm_;
   bool hwSumAlarmOld_;
   bool hwTriggedHomingEnabled_;
+
   // Asyn
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *encPosAct_;

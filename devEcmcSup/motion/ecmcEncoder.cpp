@@ -18,13 +18,14 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
                          int                 index)
   : ecmcEcEntryLink(&(axisData->status_.errorCode),
                     &(axisData->status_.warningCode)) {
-  initVars();  
+  initVars();
   asynPortDriver_ = asynPortDriver;
   data_           = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
-  sampleTime_     = sampleTime;
+  sampleTime_ = sampleTime;
+
   // Encoder index start from 1 here, to get asyn param naming correct
-  index_          = index + 1;
+  index_ = index + 1;
 
   initAsyn();
 
@@ -57,81 +58,81 @@ ecmcEncoder::~ecmcEncoder() {
 
 void ecmcEncoder::initVars() {
   errorReset();
-  index_                = 0;
-  encType_              = ECMC_ENCODER_TYPE_INCREMENTAL;
-  rawPosMultiTurn_      = 0;
-  rawRange_             = 0;
-  rawLimit_             = 0;
-  rawAbsLimit_          = 0;
-  bits_                 = 0;
-  rawPosUintOld_        = 0;
-  rawPosUint_           = 0;
-  scale_                = 0;
-  engOffset_            = 0;
-  actPos_               = 0;
-  actPosOld_            = 0;
-  sampleTime_           = 1;
-  actVel_               = 0;
-  actPosLocal_          = 0;
-  actVelLocal_          = 0;
-  homed_                = false;
-  enablePositionFilter_ = false;
-  scaleNum_             = 0;
-  scaleDenom_           = 1;
-  absBits_              = 0;
-  totalRawMask_         = ECMC_ENCODER_MAX_VALUE_64_BIT;
-  totalRawRegShift_     = 0;
-  rawPosOffset_         = 0;
-  encLatchFunctEnabled_ = 0;
-  encLatchStatus_       = 0;
-  encLatchStatusOld_    = 0;
-  rawEncLatchPos_       = 0;
-  encLatchControl_      = 0;
-  rawTurns_             = 0;
-  rawTurnsOld_          = 0;
-  actEncLatchPos_       = 0;
-  rawAbsPosUint_        = 0;
-  rawAbsPosUintOld_     = 0;
-  hwReset_              = 0;
-  hwErrorAlarm0_        = 0;
-  hwErrorAlarm0Old_     = 0;
-  hwErrorAlarm1_        = 0;
-  hwErrorAlarm1Old_     = 0;
-  hwErrorAlarm2_        = 0;
-  hwErrorAlarm2Old_     = 0;
-  hwWarning_            = 0;
-  hwWarningOld_         = false;
-  hwResetDefined_       = false;
-  hwErrorAlarm0Defined_ = false;
-  hwErrorAlarm1Defined_ = false;
-  hwErrorAlarm2Defined_ = false;
-  hwWarningDefined_     = false;
-  hwReadyBitDefined_    = false;
-  masterOKOld_          = false;
-  hwActPosDefined_      = false;
-  refEncIndex_          = -1;
-  refDuringHoming_      = true;
-  homeLatchCountOffset_ = 0;
-  encPosAct_            = NULL;
-  encVelAct_            = NULL;
-  asynPortDriver_       = NULL;
-  maxPosDiffToPrimEnc_  = 0;
-  encInitilized_        = 0;
-  hwReady_              = 0;
-  hwReadyInvert_        = 0;
-  hwSumAlarmOld_        = false;
-  hwSumAlarm_           = false;
-  homeParamsValid_      = 0;
-  homeVelTowardsCam_    = 0;
-  homeVelOffCam_        = 0;
-  homePosition_         = 0;
-  homeSeqId_            = 0;
-  homeEnablePostMove_   = 0;
-  homePostMoveTargetPos_= 0;
-  homeAcc_              = 0;
-  homeDec_              = 0;
+  index_                  = 0;
+  encType_                = ECMC_ENCODER_TYPE_INCREMENTAL;
+  rawPosMultiTurn_        = 0;
+  rawRange_               = 0;
+  rawLimit_               = 0;
+  rawAbsLimit_            = 0;
+  bits_                   = 0;
+  rawPosUintOld_          = 0;
+  rawPosUint_             = 0;
+  scale_                  = 0;
+  engOffset_              = 0;
+  actPos_                 = 0;
+  actPosOld_              = 0;
+  sampleTime_             = 1;
+  actVel_                 = 0;
+  actPosLocal_            = 0;
+  actVelLocal_            = 0;
+  homed_                  = false;
+  enablePositionFilter_   = false;
+  scaleNum_               = 0;
+  scaleDenom_             = 1;
+  absBits_                = 0;
+  totalRawMask_           = ECMC_ENCODER_MAX_VALUE_64_BIT;
+  totalRawRegShift_       = 0;
+  rawPosOffset_           = 0;
+  encLatchFunctEnabled_   = 0;
+  encLatchStatus_         = 0;
+  encLatchStatusOld_      = 0;
+  rawEncLatchPos_         = 0;
+  encLatchControl_        = 0;
+  rawTurns_               = 0;
+  rawTurnsOld_            = 0;
+  actEncLatchPos_         = 0;
+  rawAbsPosUint_          = 0;
+  rawAbsPosUintOld_       = 0;
+  hwReset_                = 0;
+  hwErrorAlarm0_          = 0;
+  hwErrorAlarm0Old_       = 0;
+  hwErrorAlarm1_          = 0;
+  hwErrorAlarm1Old_       = 0;
+  hwErrorAlarm2_          = 0;
+  hwErrorAlarm2Old_       = 0;
+  hwWarning_              = 0;
+  hwWarningOld_           = false;
+  hwResetDefined_         = false;
+  hwErrorAlarm0Defined_   = false;
+  hwErrorAlarm1Defined_   = false;
+  hwErrorAlarm2Defined_   = false;
+  hwWarningDefined_       = false;
+  hwReadyBitDefined_      = false;
+  masterOKOld_            = false;
+  hwActPosDefined_        = false;
+  refEncIndex_            = -1;
+  refDuringHoming_        = true;
+  homeLatchCountOffset_   = 0;
+  encPosAct_              = NULL;
+  encVelAct_              = NULL;
+  asynPortDriver_         = NULL;
+  maxPosDiffToPrimEnc_    = 0;
+  encInitilized_          = 0;
+  hwReady_                = 0;
+  hwReadyInvert_          = 0;
+  hwSumAlarmOld_          = false;
+  hwSumAlarm_             = false;
+  homeParamsValid_        = 0;
+  homeVelTowardsCam_      = 0;
+  homeVelOffCam_          = 0;
+  homePosition_           = 0;
+  homeSeqId_              = 0;
+  homeEnablePostMove_     = 0;
+  homePostMoveTargetPos_  = 0;
+  homeAcc_                = 0;
+  homeDec_                = 0;
   hwTriggedHomingEnabled_ = false;
-  domainOK_             = 0;
+  domainOK_               = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -715,7 +716,7 @@ double ecmcEncoder::readEntries(bool masterOK) {
 }
 
 int ecmcEncoder::writeEntries() {
-  if(!domainOK_) {
+  if (!domainOK_) {
     return 0;
   }
 
@@ -853,8 +854,9 @@ int ecmcEncoder::validate() {
   }
 
   // Check hw trigged homing
-  if(homeSeqId_ == ECMC_SEQ_HOME_TRIGG_EXTERN) {
-    if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_STAT_HOME) && checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME)) {
+  if (homeSeqId_ == ECMC_SEQ_HOME_TRIGG_EXTERN) {
+    if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_STAT_HOME) &&
+        checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_TRIGG_HOME)) {
       errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_STAT_HOME);
 
       if (errorCode) {
@@ -865,17 +867,17 @@ int ecmcEncoder::validate() {
 
       if (errorCode) {
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
-      }      
+      }
+
       // Everything is fine..
       hwTriggedHomingEnabled_ = true;
-
     } else {
       LOGERR(
         "%s/%s:%d: ERROR (axis %d): Encoder homing hw links invalid (homing set to ECMC_SEQ_HOME_TRIGG_EXTERN) (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_->axisId_,        
+        data_->axisId_,
         ERROR_ENC_HOME_TRIGG_LINKS_INVALID);
       return setErrorID(__FILE__,
                         __FUNCTION__,
@@ -1108,7 +1110,6 @@ int ecmcEncoder::getHomeLatchCountOffset() {
 }
 
 int ecmcEncoder::initAsyn() {
-
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
     LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
@@ -1238,7 +1239,7 @@ double ecmcEncoder::getHomeVelTowardsCam() {
   return homeVelTowardsCam_;
 }
 
-void ecmcEncoder::setHomeVelOffCam(double vel) {    
+void ecmcEncoder::setHomeVelOffCam(double vel) {
   homeVelOffCam_ = vel;
 }
 
@@ -1247,7 +1248,7 @@ double ecmcEncoder::getHomeVelOffCam() {
 }
 
 void ecmcEncoder::setHomePosition(double pos) {
-  homePosition_ = pos;  
+  homePosition_ = pos;
 }
 
 double ecmcEncoder::getHomePosition() {
@@ -1271,7 +1272,7 @@ int ecmcEncoder::getHomePostMoveEnable() {
 }
 
 void ecmcEncoder::setHomeSeqId(int seqid) {
-  homeSeqId_ = seqid;
+  homeSeqId_       = seqid;
   homeParamsValid_ = 1;  // must set a sequence to be valid
 }
 
@@ -1311,7 +1312,7 @@ int ecmcEncoder::setHomeExtTrigg(bool val) {
 }
 
 int ecmcEncoder::getHomeExtTriggStat() {
-  if(!hwTriggedHomingEnabled_) {
+  if (!hwTriggedHomingEnabled_) {
     return 0;
   }
 
@@ -1330,6 +1331,5 @@ int ecmcEncoder::getHomeExtTriggStat() {
 }
 
 int ecmcEncoder::getHomeExtTriggEnabled() {
- return hwTriggedHomingEnabled_;
+  return hwTriggedHomingEnabled_;
 }
-

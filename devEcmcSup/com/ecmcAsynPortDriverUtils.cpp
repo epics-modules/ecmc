@@ -581,7 +581,6 @@ int getAxEncFuncType(char *objPath,
         *objectFunction = ECMC_ENCODER_ENTRY_INDEX_STAT_HOME;
         return 0;
       }
-
     }
   }
 

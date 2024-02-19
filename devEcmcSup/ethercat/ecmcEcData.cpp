@@ -129,7 +129,7 @@ int ecmcEcData::updateOutProcessImage() {
   if (direction_ != EC_DIR_OUTPUT) {
     return 0;
   }
-   
+
   // Write data to ethercat memory area
   // No endians check...
   switch (dataType_) {
@@ -248,7 +248,8 @@ int ecmcEcData::validate() {
 
   // Set default to sim entry size
   size_t domainSize = 8;
-  if(!startEntry_->getSimEntry()) {
+
+  if (!startEntry_->getSimEntry()) {
     // never use getDomain for sim entry (NULL)
     domainSize = startEntry_->getDomain()->getSize();
   }
@@ -310,237 +311,379 @@ int ecmcEcData::validate() {
 }
 
 // Read 1 bit from the buffer at a specific byte and bit offset
-uint8_t ecmcEcData::read_1_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    return (buffer[byteOffset] >> bitOffset) & 0x01;
+uint8_t ecmcEcData::read_1_bit_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  return (buffer[byteOffset] >> bitOffset) & 0x01;
 }
 
 // Write 1 bit to the buffer at a specific byte and bit offset
-void ecmcEcData::write_1_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value) {
-    value &= 0x01;
-    buffer[byteOffset] = (buffer[byteOffset] & ~(0x01 << bitOffset)) | (value << bitOffset);
+void ecmcEcData::write_1_bit_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    uint8_t  value) {
+  value             &= 0x01;
+  buffer[byteOffset] =
+    (buffer[byteOffset] & ~(0x01 << bitOffset)) | (value << bitOffset);
 }
 
 // Read 2 bits from the buffer at a specific byte and bit offset
-uint8_t ecmcEcData::read_2_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    uint8_t result = 0;
-    if (bitOffset <= 6) {
-        result = (buffer[byteOffset] >> bitOffset) & 0x03;
-    } else {
-        result = (buffer[byteOffset] >> bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
-        result &= 0x03;
-    }
-    return result;
+uint8_t ecmcEcData::read_2_bit_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  uint8_t result = 0;
+
+  if (bitOffset <= 6) {
+    result = (buffer[byteOffset] >> bitOffset) & 0x03;
+  } else {
+    result =
+      (buffer[byteOffset] >>
+       bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
+    result &= 0x03;
+  }
+  return result;
 }
 
 // Write 2 bits to the buffer at a specific byte and bit offset
-void ecmcEcData::write_2_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value) {
-    value &= 0x03;
-    if (bitOffset <= 6) {
-        buffer[byteOffset] = (buffer[byteOffset] & ~((0x03 << bitOffset) & 0xFF)) | (value << bitOffset);
-    } else {
-        buffer[byteOffset] = (buffer[byteOffset] & ~(0xFF << bitOffset)) | (value << bitOffset);
-        buffer[byteOffset + 1] = (buffer[byteOffset + 1] & (0xFF << (2 - (8 - bitOffset)))) | (value >> (8 - bitOffset));
-    }
+void ecmcEcData::write_2_bit_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    uint8_t  value) {
+  value &= 0x03;
+
+  if (bitOffset <= 6) {
+    buffer[byteOffset] =
+      (buffer[byteOffset] &
+       ~((0x03 << bitOffset) & 0xFF)) | (value << bitOffset);
+  } else {
+    buffer[byteOffset] =
+      (buffer[byteOffset] & ~(0xFF << bitOffset)) | (value << bitOffset);
+    buffer[byteOffset +
+           1] =
+      (buffer[byteOffset + 1] &
+       (0xFF << (2 - (8 - bitOffset)))) | (value >> (8 - bitOffset));
+  }
 }
 
 // Read 3 bits from the buffer at a specific byte and bit offset
-uint8_t ecmcEcData::read_3_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    uint8_t result = 0;
-    if (bitOffset <= 5) {
-        result = (buffer[byteOffset] >> bitOffset) & 0x07;
-    } else {
-        result = (buffer[byteOffset] >> bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
-        result &= 0x07;
-    }
-    return result;
+uint8_t ecmcEcData::read_3_bit_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  uint8_t result = 0;
+
+  if (bitOffset <= 5) {
+    result = (buffer[byteOffset] >> bitOffset) & 0x07;
+  } else {
+    result =
+      (buffer[byteOffset] >>
+       bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
+    result &= 0x07;
+  }
+  return result;
 }
 
 // Write 3 bits to the buffer at a specific byte and bit offset
-void ecmcEcData::write_3_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value) {
-    value &= 0x07;
-    if (bitOffset <= 5) {
-        buffer[byteOffset] = (buffer[byteOffset] & ~((0x07 << bitOffset) & 0xFF)) | (value << bitOffset);
-    } else {
-        buffer[byteOffset] = (buffer[byteOffset] & ~(0xFF << bitOffset)) | (value << bitOffset);
-        buffer[byteOffset + 1] = (buffer[byteOffset + 1] & (0xFF << (3 - (8 - bitOffset)))) | (value >> (8 - bitOffset));
-    }
+void ecmcEcData::write_3_bit_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    uint8_t  value) {
+  value &= 0x07;
+
+  if (bitOffset <= 5) {
+    buffer[byteOffset] =
+      (buffer[byteOffset] &
+       ~((0x07 << bitOffset) & 0xFF)) | (value << bitOffset);
+  } else {
+    buffer[byteOffset] =
+      (buffer[byteOffset] & ~(0xFF << bitOffset)) | (value << bitOffset);
+    buffer[byteOffset +
+           1] =
+      (buffer[byteOffset + 1] &
+       (0xFF << (3 - (8 - bitOffset)))) | (value >> (8 - bitOffset));
+  }
 }
 
 // Read 4 bits from the buffer at a specific byte and bit offset
-uint8_t ecmcEcData::read_4_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    uint8_t result = 0;
-    if (bitOffset <= 4) {
-        result = (buffer[byteOffset] >> bitOffset) & 0x0F;
-    } else {
-        result = (buffer[byteOffset] >> bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
-        result &= 0x0F;
-    }
-    return result;
+uint8_t ecmcEcData::read_4_bit_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  uint8_t result = 0;
+
+  if (bitOffset <= 4) {
+    result = (buffer[byteOffset] >> bitOffset) & 0x0F;
+  } else {
+    result =
+      (buffer[byteOffset] >>
+       bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
+    result &= 0x0F;
+  }
+  return result;
 }
 
 // Write 4 bits to the buffer at a specific byte and bit offset
-void ecmcEcData::write_4_bit_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value) {
-    value &= 0x0F;
-    if (bitOffset <= 4) {
-        buffer[byteOffset] = (buffer[byteOffset] & ~((0x0F << bitOffset) & 0xFF)) | (value << bitOffset);
-    } else {
-        buffer[byteOffset] = (buffer[byteOffset] & ~(0xFF << bitOffset)) | (value << bitOffset);
-        buffer[byteOffset + 1] = (buffer[byteOffset + 1] & (0xFF << (4 - (8 - bitOffset)))) | (value >> (8 - bitOffset));
-    }
+void ecmcEcData::write_4_bit_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    uint8_t  value) {
+  value &= 0x0F;
+
+  if (bitOffset <= 4) {
+    buffer[byteOffset] =
+      (buffer[byteOffset] &
+       ~((0x0F << bitOffset) & 0xFF)) | (value << bitOffset);
+  } else {
+    buffer[byteOffset] =
+      (buffer[byteOffset] & ~(0xFF << bitOffset)) | (value << bitOffset);
+    buffer[byteOffset +
+           1] =
+      (buffer[byteOffset + 1] &
+       (0xFF << (4 - (8 - bitOffset)))) | (value >> (8 - bitOffset));
+  }
 }
 
 // Read a uint8_t from the buffer at a specific byte and bit offset
-uint8_t ecmcEcData::read_uint8_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    if (bitOffset == 0) {
-        return buffer[byteOffset];
-    } else {
-        uint8_t result = (buffer[byteOffset] >> bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
-        return result;
-    }
+uint8_t ecmcEcData::read_uint8_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  if (bitOffset == 0) {
+    return buffer[byteOffset];
+  } else {
+    uint8_t result =
+      (buffer[byteOffset] >>
+       bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
+    return result;
+  }
 }
 
 // Write a uint8_t to the buffer at a specific byte and bit offset
-void ecmcEcData::write_uint8_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint8_t value) {    
-    if (bitOffset == 0) {
-        buffer[byteOffset] = value;
-    } else {
-        buffer[byteOffset] = (buffer[byteOffset] & (0xFF >> (8 - bitOffset))) | (value << bitOffset);
-        buffer[byteOffset + 1] = (buffer[byteOffset + 1] & (0xFF << bitOffset)) | (value >> (8 - bitOffset));
-    }
+void ecmcEcData::write_uint8_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    uint8_t  value) {
+  if (bitOffset == 0) {
+    buffer[byteOffset] = value;
+  } else {
+    buffer[byteOffset] =
+      (buffer[byteOffset] & (0xFF >> (8 - bitOffset))) | (value << bitOffset);
+    buffer[byteOffset +
+           1] =
+      (buffer[byteOffset + 1] &
+       (0xFF << bitOffset)) | (value >> (8 - bitOffset));
+  }
 }
 
 // Read an int8_t from the buffer at a specific byte and bit offset
-int8_t ecmcEcData::read_int8_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    int8_t value = (int8_t)read_uint8_offset(buffer, byteOffset, bitOffset);
-    return value;
+int8_t ecmcEcData::read_int8_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset) {
+  int8_t value = (int8_t)read_uint8_offset(buffer, byteOffset, bitOffset);
+
+  return value;
 }
 
 // Write an int8_t to the buffer at a specific byte and bit offset
-void ecmcEcData::write_int8_offset(uint8_t *buffer, int byteOffset, int bitOffset, int8_t value) {
-    write_uint8_offset(buffer, byteOffset, bitOffset, (uint8_t)value);
+void ecmcEcData::write_int8_offset(uint8_t *buffer,
+                                   int      byteOffset,
+                                   int      bitOffset,
+                                   int8_t   value) {
+  write_uint8_offset(buffer, byteOffset, bitOffset, (uint8_t)value);
 }
 
 // Read a uint16_t from the buffer at a specific byte and bit offset
-uint16_t ecmcEcData::read_uint16_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    if (bitOffset == 0) {
-        uint16_t result;
-        memcpy(&result, &buffer[byteOffset], 2);
-        return result;
-    } else {
-        uint16_t result = (buffer[byteOffset] >> bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
-        return result;
-    }
+uint16_t ecmcEcData::read_uint16_offset(uint8_t *buffer,
+                                        int      byteOffset,
+                                        int      bitOffset) {
+  if (bitOffset == 0) {
+    uint16_t result;
+    memcpy(&result, &buffer[byteOffset], 2);
+    return result;
+  } else {
+    uint16_t result =
+      (buffer[byteOffset] >>
+       bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
+    return result;
+  }
 }
 
 // Write a uint16_t to the buffer at a specific byte and bit offset
-void ecmcEcData::write_uint16_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint16_t value) {
-    if (bitOffset == 0) {
-        memcpy(&buffer[byteOffset], &value, 2);
-    } else {
-        buffer[byteOffset] = (buffer[byteOffset] & (0xFF >> (8 - bitOffset))) | (value << bitOffset);
-        buffer[byteOffset + 1] = (buffer[byteOffset + 1] & (0xFF << bitOffset)) | (value >> (8 - bitOffset));
-    }
+void ecmcEcData::write_uint16_offset(uint8_t *buffer,
+                                     int      byteOffset,
+                                     int      bitOffset,
+                                     uint16_t value) {
+  if (bitOffset == 0) {
+    memcpy(&buffer[byteOffset], &value, 2);
+  } else {
+    buffer[byteOffset] =
+      (buffer[byteOffset] & (0xFF >> (8 - bitOffset))) | (value << bitOffset);
+    buffer[byteOffset +
+           1] =
+      (buffer[byteOffset + 1] &
+       (0xFF << bitOffset)) | (value >> (8 - bitOffset));
+  }
 }
 
 // Read an int16_t from the buffer at a specific byte and bit offset
-int16_t ecmcEcData::read_int16_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    int16_t value = (int16_t)read_uint16_offset(buffer, byteOffset, bitOffset);
-    return value;
+int16_t ecmcEcData::read_int16_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  int16_t value = (int16_t)read_uint16_offset(buffer, byteOffset, bitOffset);
+
+  return value;
 }
 
 // Write an int16_t to the buffer at a specific byte and bit offset
-void ecmcEcData::write_int16_offset(uint8_t *buffer, int byteOffset, int bitOffset, int16_t value) {
-    write_uint16_offset(buffer, byteOffset, bitOffset, (uint16_t)value);
+void ecmcEcData::write_int16_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    int16_t  value) {
+  write_uint16_offset(buffer, byteOffset, bitOffset, (uint16_t)value);
 }
 
 // Read a uint32_t from the buffer at a specific byte and bit offset
-uint32_t ecmcEcData::read_uint32_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    if (bitOffset == 0) {
-        uint32_t result;
-        memcpy(&result, &buffer[byteOffset], 4);
-        return result;
-    } else {
-        uint32_t result = (buffer[byteOffset] >> bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset)) | (buffer[byteOffset + 2] << (16 - bitOffset)) | (buffer[byteOffset + 3] << (24 - bitOffset));
-        return result;
-    }
+uint32_t ecmcEcData::read_uint32_offset(uint8_t *buffer,
+                                        int      byteOffset,
+                                        int      bitOffset) {
+  if (bitOffset == 0) {
+    uint32_t result;
+    memcpy(&result, &buffer[byteOffset], 4);
+    return result;
+  } else {
+    uint32_t result =
+      (buffer[byteOffset] >>
+       bitOffset) |
+      (buffer[byteOffset + 1] <<
+        (8 - bitOffset)) |
+      (buffer[byteOffset + 2] <<
+        (16 - bitOffset)) | (buffer[byteOffset + 3] << (24 - bitOffset));
+    return result;
+  }
 }
 
 // Write a uint32_t to the buffer at a specific byte and bit offset
-void ecmcEcData::write_uint32_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint32_t value) {
-    if (bitOffset == 0) {
-        memcpy(&buffer[byteOffset], &value, 4);
-    } else {
-        buffer[byteOffset] = (buffer[byteOffset] & (0xFF >> (8 - bitOffset))) | (value << bitOffset);
-        buffer[byteOffset + 1] = (buffer[byteOffset + 1] & (0xFF << bitOffset)) | (value >> (8 - bitOffset));
-        buffer[byteOffset + 2] = (buffer[byteOffset + 2] & (0xFF << bitOffset)) | (value >> (16 - bitOffset));
-        buffer[byteOffset + 3] = (buffer[byteOffset + 3] & (0xFF << bitOffset)) | (value >> (24 - bitOffset));
-    }
+void ecmcEcData::write_uint32_offset(uint8_t *buffer,
+                                     int      byteOffset,
+                                     int      bitOffset,
+                                     uint32_t value) {
+  if (bitOffset == 0) {
+    memcpy(&buffer[byteOffset], &value, 4);
+  } else {
+    buffer[byteOffset] =
+      (buffer[byteOffset] & (0xFF >> (8 - bitOffset))) | (value << bitOffset);
+    buffer[byteOffset +
+           1] =
+      (buffer[byteOffset + 1] &
+       (0xFF << bitOffset)) | (value >> (8 - bitOffset));
+    buffer[byteOffset +
+           2] =
+      (buffer[byteOffset + 2] &
+       (0xFF << bitOffset)) | (value >> (16 - bitOffset));
+    buffer[byteOffset +
+           3] =
+      (buffer[byteOffset + 3] &
+       (0xFF << bitOffset)) | (value >> (24 - bitOffset));
+  }
 }
 
 // Read an int32_t from the buffer at a specific byte and bit offset
-int32_t ecmcEcData::read_int32_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    int32_t value = (int32_t)read_uint32_offset(buffer, byteOffset, bitOffset);
-    return value;
+int32_t ecmcEcData::read_int32_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  int32_t value = (int32_t)read_uint32_offset(buffer, byteOffset, bitOffset);
+
+  return value;
 }
 
 // Write an int32_t to the buffer at a specific byte and bit offset
-void ecmcEcData::write_int32_offset(uint8_t *buffer, int byteOffset, int bitOffset, int32_t value) {
-    write_uint32_offset(buffer, byteOffset, bitOffset, (uint32_t)value);
+void ecmcEcData::write_int32_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    int32_t  value) {
+  write_uint32_offset(buffer, byteOffset, bitOffset, (uint32_t)value);
 }
 
 // Read a uint64_t from the buffer at a specific byte and bit offset
-uint64_t ecmcEcData::read_uint64_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    if (bitOffset == 0) {
-        uint64_t result;
-        memcpy(&result, &buffer[byteOffset], 8);
-        return result;
-    } else {
-        uint64_t result = (uint64_t)read_uint32_offset(buffer, byteOffset, bitOffset) | ((uint64_t)read_uint32_offset(buffer, byteOffset + 4, bitOffset) << 32);
-        return result;
-    }
+uint64_t ecmcEcData::read_uint64_offset(uint8_t *buffer,
+                                        int      byteOffset,
+                                        int      bitOffset) {
+  if (bitOffset == 0) {
+    uint64_t result;
+    memcpy(&result, &buffer[byteOffset], 8);
+    return result;
+  } else {
+    uint64_t result = (uint64_t)read_uint32_offset(buffer,
+                                                   byteOffset,
+                                                   bitOffset) |
+                      ((uint64_t)read_uint32_offset(buffer, byteOffset + 4,
+                                                    bitOffset) << 32);
+    return result;
+  }
 }
 
 // Write a uint64_t to the buffer at a specific byte and bit offset
-void ecmcEcData::write_uint64_offset(uint8_t *buffer, int byteOffset, int bitOffset, uint64_t value) {
-    if (bitOffset == 0) {
-        memcpy(&buffer[byteOffset], &value, 8);
-    } else {
-        write_uint32_offset(buffer, byteOffset, bitOffset, (uint32_t)value);
-        write_uint32_offset(buffer, byteOffset + 4, bitOffset, (uint32_t)(value >> 32));
-    }
+void ecmcEcData::write_uint64_offset(uint8_t *buffer,
+                                     int      byteOffset,
+                                     int      bitOffset,
+                                     uint64_t value) {
+  if (bitOffset == 0) {
+    memcpy(&buffer[byteOffset], &value, 8);
+  } else {
+    write_uint32_offset(buffer, byteOffset,     bitOffset, (uint32_t)value);
+    write_uint32_offset(buffer, byteOffset + 4, bitOffset,
+                        (uint32_t)(value >> 32));
+  }
 }
 
 // Read an int64_t from the buffer at a specific byte and bit offset
-int64_t ecmcEcData::read_int64_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    int64_t value = (int64_t)read_uint64_offset(buffer, byteOffset, bitOffset);
-    return value;
+int64_t ecmcEcData::read_int64_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  int64_t value = (int64_t)read_uint64_offset(buffer, byteOffset, bitOffset);
+
+  return value;
 }
 
 // Write an int64_t to the buffer at a specific byte and bit offset
-void ecmcEcData::write_int64_offset(uint8_t *buffer, int byteOffset, int bitOffset, int64_t value) {
-    write_uint64_offset(buffer, byteOffset, bitOffset, (uint64_t)value);
+void ecmcEcData::write_int64_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    int64_t  value) {
+  write_uint64_offset(buffer, byteOffset, bitOffset, (uint64_t)value);
 }
 
 // Read a float from the buffer at a specific byte and bit offset
-float ecmcEcData::read_float_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    uint32_t value = read_uint32_offset(buffer, byteOffset, bitOffset);
-    return *((float*)&value);
+float ecmcEcData::read_float_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset) {
+  uint32_t value = read_uint32_offset(buffer, byteOffset, bitOffset);
+
+  return *((float *)&value);
 }
 
 // Write a float to the buffer at a specific byte and bit offset
-void ecmcEcData::write_float_offset(uint8_t *buffer, int byteOffset, int bitOffset, float value) {
-    uint32_t intValue = *((uint32_t*)&value);
-    write_uint32_offset(buffer, byteOffset, bitOffset, intValue);
+void ecmcEcData::write_float_offset(uint8_t *buffer,
+                                    int      byteOffset,
+                                    int      bitOffset,
+                                    float    value) {
+  uint32_t intValue = *((uint32_t *)&value);
+
+  write_uint32_offset(buffer, byteOffset, bitOffset, intValue);
 }
 
 // Read a double from the buffer at a specific byte and bit offset
-double ecmcEcData::read_double_offset(uint8_t *buffer, int byteOffset, int bitOffset) {
-    uint64_t value = read_uint64_offset(buffer, byteOffset, bitOffset);
-    return *((double*)&value);
+double ecmcEcData::read_double_offset(uint8_t *buffer,
+                                      int      byteOffset,
+                                      int      bitOffset) {
+  uint64_t value = read_uint64_offset(buffer, byteOffset, bitOffset);
+
+  return *((double *)&value);
 }
 
 // Write a double to the buffer at a specific byte and bit offset
-void ecmcEcData::write_double_offset(uint8_t *buffer, int byteOffset, int bitOffset, double value) {
-    uint64_t longValue = *((uint64_t*)&value);
-    write_uint64_offset(buffer, byteOffset, bitOffset, longValue);
+void ecmcEcData::write_double_offset(uint8_t *buffer,
+                                     int      byteOffset,
+                                     int      bitOffset,
+                                     double   value) {
+  uint64_t longValue = *((uint64_t *)&value);
+
+  write_uint64_offset(buffer, byteOffset, bitOffset, longValue);
 }

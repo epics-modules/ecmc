@@ -754,12 +754,11 @@ int ecmcPLCMain::parseEC(int plcIndex, const char *exprStr) {
   varNameTemp[0] = '\0';
 
   while ((strEc = strstr(strEc, ECMC_EC_STR)) && strlen(strEc) > 0) {
-
     int nvals = sscanf(strEc,
-                   ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_VAR_FORMAT,
-                   &ecId,
-                   &ecSlave,
-                   varNameTemp);
+                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d." ECMC_PLC_VAR_FORMAT,
+                       &ecId,
+                       &ecSlave,
+                       varNameTemp);
 
     if (nvals == 3) {
       // Ensure not bit access

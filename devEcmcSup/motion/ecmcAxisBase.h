@@ -212,7 +212,9 @@ public:
   bool                       getAllowCmdFromPLC();
   void                       setInStartupPhase(bool startup);
   int                        setTrajDataSourceType(dataSource refSource);
-  int                        setTrajDataSourceTypeInternal(dataSource refSource, int force);
+  int                        setTrajDataSourceTypeInternal(
+    dataSource refSource,
+    int        force);
   int                        setEncDataSourceType(dataSource refSource);
   dataSource                 getTrajDataSourceType();
   dataSource                 getEncDataSourceType();
@@ -269,7 +271,7 @@ public:
                double velocityOffCamSet,
                double accelerationSet,
                double decelerationSet);
-  int moveHome();  // Use configs from encoder object
+  int        moveHome(); // Use configs from encoder object
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);
   asynStatus axisAsynWriteCmd(void         *data,
@@ -299,38 +301,39 @@ public:
   asynStatus axisAsynWriteDec(void         *data,
                               size_t        bytes,
                               asynParamType asynParType);
-  int    setAllowMotionFunctions(bool enablePos,
-                                 bool enableConstVel,
-                                 bool enableHome);
-  int    getAllowPos();
-  int    getAllowConstVelo();
-  int    getAllowHome();
-  int    addEncoder();
-  int    selectPrimaryEncoder(int index, int overrideError);
-  int    selectPrimaryEncoder(int index);
-  int    selectConfigEncoder(int index);
-  int    getPrimaryEncoderIndex();                      // Control (PID)
-  int    getConfigEncoderIndex();                       // Config
-  double getExtSetPos();
-  double getExtActPos();
-  int    setAllowSourceChangeWhenEnabled(bool allow);
-  void   setTargetVel(double velTarget);
-  void   setAcc(double acc);
-  void   setDec(double dec);
-  void   setEmergencyStopInterlock(int stop);
-  double getTrajVelo();
-  double getEncVelo();
+  int        setAllowMotionFunctions(bool enablePos,
+                                     bool enableConstVel,
+                                     bool enableHome);
+  int        getAllowPos();
+  int        getAllowConstVelo();
+  int        getAllowHome();
+  int        addEncoder();
+  int        selectPrimaryEncoder(int index,
+                                  int overrideError);
+  int        selectPrimaryEncoder(int index);
+  int        selectConfigEncoder(int index);
+  int        getPrimaryEncoderIndex();                  // Control (PID)
+  int        getConfigEncoderIndex();                   // Config
+  double     getExtSetPos();
+  double     getExtActPos();
+  int        setAllowSourceChangeWhenEnabled(bool allow);
+  void       setTargetVel(double velTarget);
+  void       setAcc(double acc);
+  void       setDec(double dec);
+  void       setEmergencyStopInterlock(int stop);
+  double     getTrajVelo();
+  double     getEncVelo();
 
 protected:
-  void   initVars();
-  void   refreshDebugInfoStruct();
+  void       initVars();
+  void       refreshDebugInfoStruct();
 
-  int    createAsynParam(const char        *nameFormat,
-                         asynParamType      asynType,
-                         ecmcEcDataType     ecmcType,
-                         uint8_t           *data,
-                         size_t             bytes,
-                         ecmcAsynDataItem **asynParamOut);
+  int        createAsynParam(const char        *nameFormat,
+                             asynParamType      asynType,
+                             ecmcEcDataType     ecmcType,
+                             uint8_t           *data,
+                             size_t             bytes,
+                             ecmcAsynDataItem **asynParamOut);
   void refreshStatusWd();
   void initControlWord();
   void initEncoders();

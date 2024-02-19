@@ -162,7 +162,7 @@ private:
   int64_t minVeloOutput_;
   int64_t maxVeloOutput_;
   int64_t veloPosOutput_;
-  int64_t veloRawOffset_; 
+  int64_t veloRawOffset_;
 };
 
 #endif  // ifndef ECMCDRIVEBASE_H_

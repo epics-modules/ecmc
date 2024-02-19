@@ -281,14 +281,27 @@ asynStatus ecmcMotorRecordAxis::updateCfgValue(int         function,
        ECMC configures everything from the iocshell, no need to
        do a print here */
     if (!(pC_->features_ & FEATURE_BITS_ECMC)) {
-      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-                "%s/%s:%d: Axis[%d] Update cfg %s=%f\n",__FILE__,__FUNCTION__,__LINE__,
-                axisNo_, name, newValue);
+      asynPrint(pPrintOutAsynUser,
+                ASYN_TRACE_INFO,
+                "%s/%s:%d: Axis[%d] Update cfg %s=%f\n",
+                __FILE__,
+                __FUNCTION__,
+                __LINE__,
+                axisNo_,
+                name,
+                newValue);
     }
   } else if (newValue != oldValue) {
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-                "%s/%s:%d: Axis[%d] Update cfg %s=%f (old %f)\n",__FILE__,__FUNCTION__,__LINE__,
-                axisNo_, name, newValue, oldValue);
+    asynPrint(pPrintOutAsynUser,
+              ASYN_TRACE_INFO,
+              "%s/%s:%d: Axis[%d] Update cfg %s=%f (old %f)\n",
+              __FILE__,
+              __FUNCTION__,
+              __LINE__,
+              axisNo_,
+              name,
+              newValue,
+              oldValue);
   }
   return pC_->setDoubleParam(axisNo_, function, newValue);
 }
@@ -304,18 +317,37 @@ asynStatus ecmcMotorRecordAxis::updateCfgValue(int         function,
        ECMC configures everything from the iocshell, no need to
        do a print here */
     if (!((pC_->features_ & FEATURE_BITS_ECMC))) {
-
-      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-                "%s/%s:%d: Axis[%d] Update cfg %s=%d\n",__FILE__,__FUNCTION__,__LINE__,
-                axisNo_, name, newValue);
-  }
-      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-                "%s/%s:%d: Axis[%d] Update cfg %s=%d (old %d)\n",__FILE__,__FUNCTION__,__LINE__,
-                axisNo_, name, newValue, oldValue);
+      asynPrint(pPrintOutAsynUser,
+                ASYN_TRACE_INFO,
+                "%s/%s:%d: Axis[%d] Update cfg %s=%d\n",
+                __FILE__,
+                __FUNCTION__,
+                __LINE__,
+                axisNo_,
+                name,
+                newValue);
+    }
+    asynPrint(pPrintOutAsynUser,
+              ASYN_TRACE_INFO,
+              "%s/%s:%d: Axis[%d] Update cfg %s=%d (old %d)\n",
+              __FILE__,
+              __FUNCTION__,
+              __LINE__,
+              axisNo_,
+              name,
+              newValue,
+              oldValue);
   } else if (newValue != oldValue) {
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-              "%s/%s:%d: Axis[%d] Update cfg %s=%d (old %d)\n",__FILE__,__FUNCTION__,__LINE__,
-              axisNo_, name, newValue, oldValue);
+    asynPrint(pPrintOutAsynUser,
+              ASYN_TRACE_INFO,
+              "%s/%s:%d: Axis[%d] Update cfg %s=%d (old %d)\n",
+              __FILE__,
+              __FUNCTION__,
+              __LINE__,
+              axisNo_,
+              name,
+              newValue,
+              oldValue);
   }
   return pC_->setIntegerParam(axisNo_, function, newValue);
 }
@@ -543,10 +575,13 @@ asynStatus ecmcMotorRecordAxis::initialPollInternal(void) {
   if (status == asynSuccess) status = readBackAllConfig(drvlocal.axisId);
 
   if ((status == asynSuccess) && drvlocal.dirty.statusDisconnectedOld) {
-
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Connected\n",__FILE__,__FUNCTION__,__LINE__,
-          axisNo_);
+    asynPrint(pPrintOutAsynUser,
+              ASYN_TRACE_INFO,
+              "%s/%s:%d: Axis[%d] Connected\n",
+              __FILE__,
+              __FUNCTION__,
+              __LINE__,
+              axisNo_);
     drvlocal.dirty.statusDisconnectedOld = 0;
   }
   return status;
@@ -578,10 +613,18 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                      double minVelocity,
                                      double maxVelocity,
                                      double acceleration) {
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Move cmd: trgpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,position,relative,minVelocity,maxVelocity,acceleration);
+  asynPrint(pPrintOutAsynUser,
+            ASYN_TRACE_INFO,
+            "%s/%s:%d: Axis[%d] Move cmd: trgpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            axisNo_,
+            position,
+            relative,
+            minVelocity,
+            maxVelocity,
+            acceleration);
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
@@ -639,13 +682,13 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   // cmd, nCmddata,homepos,velhigh,vellow,acc
 
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Home cmd:  = %lf..%lf, acc=%lf, fwd=%d\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,minVelocity,maxVelocity,acceleration,forwards);
+            "%s/%s:%d: Axis[%d] Home cmd:  = %lf..%lf, acc=%lf, fwd=%d\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, minVelocity, maxVelocity, acceleration, forwards);
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
-  //Read from records / params
+  // Read from records / params
   double homPos    = 0.0; /* The homPos may be undefined, then use 0.0 */
   int    cmdData   = -1;
   double velToCam  = 0;
@@ -656,6 +699,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   asynStatus status = pC_->getIntegerParam(axisNo_,
                                            pC_->ecmcMotorRecordHomProc_,
                                            &cmdData);
+
   if (status != asynSuccess) {
     return asynError;
   }
@@ -663,42 +707,43 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   /* ECMC_SEQ_HOME_SET_POS is blocked by motor record.
    * The new sequence ECMC_SEQ_HOME_SET_POS_2 (25) is the same but not blocked.
    * by motor record.
-   * 
+   *
    * Handle auto restore and set position in the same way
    */
-  if (cmdData == ECMC_SEQ_HOME_SET_POS_2  ||  cmdData == ECMC_SEQ_HOME_SET_POS) {
+  if ((cmdData == ECMC_SEQ_HOME_SET_POS_2) ||
+      (cmdData == ECMC_SEQ_HOME_SET_POS)) {
     // Use ECMC_SEQ_HOME_SET_POS internally in ecmc
     cmdData = ECMC_SEQ_HOME_SET_POS;
   }
 
   // Home position
   (void)pC_->getDoubleParam(axisNo_,
-                          pC_->ecmcMotorRecordHomPos_,
-                          &homPos);
-    
+                            pC_->ecmcMotorRecordHomPos_,
+                            &homPos);
+
   // Velocity to cam (high velo)
   status = pC_->getDoubleParam(axisNo_,
                                pC_->ecmcMotorRecordVelToHom_,
                                &velToCam);
-  
+
   if (status != asynSuccess) {
     return asynError;
   }
-  
+
   // Velocity off cam (low velo)
   status = pC_->getDoubleParam(axisNo_,
                                pC_->ecmcMotorRecordVelFrmHom_,
                                &velOffCam);
-  
+
   if (status != asynSuccess) {
     return asynError;
   }
-  
+
   // Acceleration
   status = pC_->getDoubleParam(axisNo_,
                                pC_->ecmcMotorRecordAccHom_,
                                &accHom);
-  
+
   if (status != asynSuccess) {
     return asynError;
   }
@@ -706,17 +751,18 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   int errorCode = 0;
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-  
+
   if (drvlocal.ecmcAxis->getBlockExtCom()) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
-  
+
     LOGERR(
-        "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__);
-      return asynError;
+      "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
   }
+
   // "-1" will lead to not overwriting anything that is set in ecmc
   errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,
                                            homPos,
@@ -724,9 +770,9 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
                                            velOffCam,
                                            accHom,
                                            accHom);
-  
-  if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);    
-  
+
+  if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+
 #ifndef motorWaitPollsBeforeReadyString
   drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
 #endif // ifndef motorWaitPollsBeforeReadyString
@@ -743,9 +789,9 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
                                              double maxVelocity,
                                              double acceleration) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Move vel cmd:  = %lf..%lf, acc=%lf\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,minVelocity,maxVelocity,acceleration);
+            "%s/%s:%d: Axis[%d] Move vel cmd:  = %lf..%lf, acc=%lf\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, minVelocity, maxVelocity, acceleration);
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
@@ -820,11 +866,10 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
  * See asynMotorAxis::setPosition
  */
 asynStatus ecmcMotorRecordAxis::setPosition(double value) {
-
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Set pos cmd:  = %lf\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,value);
+            "%s/%s:%d: Axis[%d] Set pos cmd:  = %lf\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, value);
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
@@ -837,11 +882,10 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value) {
 }
 
 asynStatus ecmcMotorRecordAxis::resetAxis(void) {
-
-   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Reset cmd\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_);
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+            "%s/%s:%d: Axis[%d] Reset cmd\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_);
 
   drvlocal.eeAxisWarning      = eeAxisWarningNoWarning;
   drvlocal.cmdErrorMessage[0] = 0;
@@ -858,10 +902,10 @@ asynStatus ecmcMotorRecordAxis::resetAxis(void) {
 }
 
 asynStatus ecmcMotorRecordAxis::setEnable(int on) {
-     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Set enable cmd %d\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,on);
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+            "%s/%s:%d: Axis[%d] Set enable cmd %d\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, on);
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
@@ -901,7 +945,6 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
  *  Method is called cyclic from asynMotorController::autoPowerOn()
  */
 bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
-
   int enabled = 0;
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
@@ -909,9 +952,9 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Poll power is on %d\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,enabled > 0);
+            "%s/%s:%d: Axis[%d] Poll power is on %d\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, enabled > 0);
 
   return enabled > 0;
 }
@@ -920,10 +963,10 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
  *  Enable the amplifier on an axis
  */
 asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Enable amp cmd %d\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,on);
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+            "%s/%s:%d: Axis[%d] Enable amp cmd %d\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, on);
 
   asynStatus status  = asynSuccess;
   unsigned   counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME /
@@ -995,11 +1038,10 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
  */
 asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
                                                  double      acceleration) {
-
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Stop cmd:  name=%s, acc=%lf\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,function_name,acceleration);
+            "%s/%s:%d: Axis[%d] Stop cmd:  name=%s, acc=%lf\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, function_name, acceleration);
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->setExecute(0);
@@ -1025,11 +1067,11 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
  */
 asynStatus ecmcMotorRecordAxis::stop(double acceleration) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-          "%s/%s:%d: Axis[%d] Stop cmd:  acc=%lf\n",
-          __FILE__,__FUNCTION__,__LINE__,
-          axisNo_,acceleration);
+            "%s/%s:%d: Axis[%d] Stop cmd:  acc=%lf\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, acceleration);
 
-    drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
+  drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
   return stopAxisInternal(__FUNCTION__, acceleration);
 }
 
@@ -1210,7 +1252,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   setIntegerParam(pC_->motorStatusHomed_,
-                                               (drvlocal.statusBinData.
+                  (drvlocal.statusBinData.
                    onChangeData.statusWd.homed > 0));
   drvlocal.homed = drvlocal.statusBinData.onChangeData.statusWd.homed > 0;
   setIntegerParam(pC_->motorStatusCommsError_, 0);

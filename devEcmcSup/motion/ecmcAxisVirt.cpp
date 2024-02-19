@@ -55,8 +55,10 @@ void ecmcAxisVirt::execute(bool masterOK) {
     data_.status_.currentVelocityActual =
       encArray_[data_.command_.primaryEncIndex]->getActVel();
   } else { // External source
-    data_.status_.currentPositionActual = data_.status_.externalEncoderPosition;
-    data_.status_.currentVelocityActual = data_.status_.externalEncoderVelocity;
+    data_.status_.currentPositionActual =
+      data_.status_.externalEncoderPosition;
+    data_.status_.currentVelocityActual =
+      data_.status_.externalEncoderVelocity;
   }
 
   traj_->setStartPos(data_.status_.currentPositionSetpoint);

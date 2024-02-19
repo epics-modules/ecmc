@@ -439,7 +439,7 @@ int getAxisBusy(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  */
-int getAxisEncVelo(int  axisIndex,
+int getAxisEncVelo(int     axisIndex,
                    double *velo);
 
 /** \brief Get axis traj velo.\n
@@ -451,8 +451,8 @@ int getAxisEncVelo(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  */
-int getAxisTrajVelo(int  axisIndex,
-                   double *velo);
+int getAxisTrajVelo(int     axisIndex,
+                    double *velo);
 
 /** \brief Get axis index.\n
  *
@@ -1555,7 +1555,8 @@ int setAxisHomePos(int    axisIndex,
  * \note Example: Set errorid of axis  10  to 111 (dec).\n
  * "Cfg.SetAxisErrorId(10,111)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisErrorId(int axisIndex, int errorId);
+int setAxisErrorId(int axisIndex,
+                   int errorId);
 
 /** \brief Set home index pulse count offset.\n
  *
@@ -1990,7 +1991,7 @@ int setAxisEncEnableRefAtHome(int axisIndex,
                               int enable);
 
 /** \brief Get index of current encoder being used for control (PID).\n
- *  
+ *
  * \note: The returned index starts at 1 (first encoder for axis has index 1).\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2123,8 +2124,8 @@ int setAxisCntrlDeadband(int    axisIndex,
  * \note Example: Set PID-controller deadband time to 100 cycles for axis 3.\n
  * "Cfg.SetAxisCntrlDeadbandTime(3,100)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisCntrlDeadbandTime(int    axisIndex,
-                             int    value);
+int setAxisCntrlDeadbandTime(int axisIndex,
+                             int value);
 
 /** \brief Use a differnt set of pid parameters if within a certain distance of target
  *
@@ -2237,7 +2238,7 @@ int setAxisDrvScaleDenom(int    axisIndex,
 
 
 /** \brief Set drive raw velocity offset.\n
- * 
+ *
  *  Can be used to offset the velocity drive range. can be usefull\n
  *  if "0" doeas not correspont to 0 speed. basically this value is\n
  *  added to the raw velocity setpoint just before sent to the slave.\n
@@ -2251,7 +2252,8 @@ int setAxisDrvScaleDenom(int    axisIndex,
  * \note Example: Set drive raw velo offset to 700 for axis 3.\n
  * "Cfg.SetAxisDrvVelSetOffsetRaw(3,700)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisDrvVelSetOffsetRaw(int axisIndex, double value);
+int setAxisDrvVelSetOffsetRaw(int    axisIndex,
+                              double value);
 
 /** \brief Set enable of brake.\n
  *
@@ -2744,7 +2746,8 @@ int setAxisSeqTimeout(int axisIndex,
  * \note Example: Set sequence id to 15 for axis 2.\n
  * "Cfg.SetAxisHomeSeqId(2,15)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisHomeSeqId(int axisIndex, int value);
+int setAxisHomeSeqId(int axisIndex,
+                     int value);
 
 /** \brief Set homing acceleration for current encoder beeing configured.\n
  *
@@ -2756,7 +2759,8 @@ int setAxisHomeSeqId(int axisIndex, int value);
  * \note Example: Set homing acceleration to 15 for axis 2.\n
  * "Cfg.SetAxisHomeAcc(2,15)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisHomeAcc(int axisIndex, double acc);
+int setAxisHomeAcc(int    axisIndex,
+                   double acc);
 
 /** \brief Set homing deceleration for current encoder beeing configured.\n
  *
@@ -2768,7 +2772,8 @@ int setAxisHomeAcc(int axisIndex, double acc);
  * \note Example: Set homing deceleration to 15 for axis 2.\n
  * "Cfg.SetAxisHomeDec(2,15)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisHomeDec(int axisIndex, double acc);
+int setAxisHomeDec(int    axisIndex,
+                   double acc);
 
 /** \brief Set homing post movement enable
  *
@@ -3002,7 +3007,7 @@ int setAxisMonAnalogInterlockPolarity(int axisIndex,
  * \note Example: Set analog raw value limit to 3200 for axis 7.\n
  * "Cfg.SetAxisMonAnalogInterlockRawLimit(7,3200)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisMonAnalogInterlockRawLimit(int axisIndex,
+int setAxisMonAnalogInterlockRawLimit(int    axisIndex,
                                       double value);
 
 /** \brief Get polarity of motion axis interlock from EtherCAT entry.\n
@@ -3418,8 +3423,8 @@ int linkEcEntryToAxisSeqAutoModeAct(int   slaveIndex,
  * \note Example: Set drive mode to 8 for when homing.
  * "Cfg.setAxisAutoModeCmdHoming(3,8)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisAutoModeCmdHoming(int    axisIndex,
-                             int    cmd);
+int setAxisAutoModeCmdHoming(int axisIndex,
+                             int cmd);
 
 
 /** \brief Set axis auto mode command for motion.\n
@@ -3435,8 +3440,8 @@ int setAxisAutoModeCmdHoming(int    axisIndex,
  * \note Example: Set drive mode to 18 for when homing.
  * "Cfg.setAxisAutoModeCmdMotion(3,18)" //Command string to ecmcCmdParser.c.\n
  */
-int setAxisAutoModeCmdMotion(int    axisIndex,
-                             int    cmd);
+int setAxisAutoModeCmdMotion(int axisIndex,
+                             int cmd);
 
 /** \brief Set axis index for detailed motion diagnostics.\n
  *
@@ -3576,14 +3581,15 @@ int getAxisValid(int axisIndex);
 
 /** \brief Init emergency stop ramp for an axis
  *
- * \note This is not related to safety.\n 
- * The system just tries to ramp down.\n 
+ * \note This is not related to safety.\n
+ * The system just tries to ramp down.\n
  * The real safety must be handled in a safety PLC.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] stop  stop axis.\n
 */
-int setAxisEmergencyStopInterlock(int axisIndex,int stop);
+int setAxisEmergencyStopInterlock(int axisIndex,
+                                  int stop);
 
 # ifdef __cplusplus
 }

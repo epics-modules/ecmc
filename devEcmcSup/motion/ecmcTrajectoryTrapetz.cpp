@@ -221,12 +221,12 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   // How long to target
   double distToTargetOld     = 0;
   double distToTargetOldComp = 0;
-  
+
   // Why do I need this compensation?
   distToTargetOld = dist(currSetpoint, targetSetpoint) - 10 * prevStepSize;
 
   if (prevStepSize > 0) {
-    distToTargetOldComp = distToTargetOld - stepDEC_;    
+    distToTargetOldComp = distToTargetOld - stepDEC_;
   } else if (prevStepSize < 0) {
     distToTargetOldComp = distToTargetOld + stepDEC_;
   } else {  // 0 velo, use target
@@ -250,8 +250,8 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                        trajBusy);
 
   if ((std::abs(prevStepSize) <= 2 * std::abs(stepDEC_)) &&   // The most important!
-    (std::abs(stopDistance) <= 3 * std::abs(stepDEC_)) &&
-    (std::abs(distToTargetOld) <= 3 * std::abs(stepDEC_))) {
+      (std::abs(stopDistance) <= 3 * std::abs(stepDEC_)) &&
+      (std::abs(distToTargetOld) <= 3 * std::abs(stepDEC_))) {
     posSetTemp           = targetSetpoint;
     targetPositionLocal_ = posSetTemp;
     targetPosition_      = posSetTemp;

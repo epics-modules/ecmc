@@ -42,7 +42,7 @@ void* getEcmcAsynDataItem(char *idStringWP) {
   return (void *)asynPort->findAvailDataItem(idStringWP);
 }
 
-void*  getEcMaster() {
+void* getEcMaster() {
   return (void *)ec;
 }
 

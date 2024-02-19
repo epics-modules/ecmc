@@ -482,6 +482,7 @@ int ecmcDataStorage::initAsyn() {
   name               = buffer;
   indexAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
                                                          asynParamInt32,
+
                                                          // default type
                                                          (uint8_t *)&(
                                                            currentBufferIndex_),
@@ -520,6 +521,7 @@ int ecmcDataStorage::initAsyn() {
   name                = buffer;
   statusAsynDataItem_ = asynPortDriver_->addNewAvailParam(name,
                                                           asynParamUInt32Digital,
+
                                                           // default type
                                                           (uint8_t *)&(
                                                             statusWord_),

@@ -76,9 +76,9 @@ double ecmcFilter::getFiltPos(double pos, double modRange) {
     // check if value over/under flow mod range compared to latest value
     if ((pos - bufferVel_[i]) > modThreshold) {
       sum = sum + bufferVel_[i] + modRange;
-    } else if ((pos - bufferVel_[i]) < -modThreshold)     {
+    } else if ((pos - bufferVel_[i]) < -modThreshold) {
       sum = sum + bufferVel_[i] - modRange;
-    } else   {
+    } else {
       sum = sum + bufferVel_[i];
     }
   }
@@ -89,7 +89,7 @@ double ecmcFilter::getFiltPos(double pos, double modRange) {
   if (modRange > 0) {
     if (lastOutput_ >= modRange) {
       lastOutput_ = lastOutput_ - modRange;
-    } else if (lastOutput_ < 0)    {
+    } else if (lastOutput_ < 0) {
       lastOutput_ = lastOutput_ + modRange;
     }
   }

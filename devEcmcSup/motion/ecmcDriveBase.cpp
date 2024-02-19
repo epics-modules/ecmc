@@ -28,10 +28,10 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
                                                                                warningCode))
 {
   initVars();
-  data_           = axisData;
+  data_ = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   asynPortDriver_ = asynPortDriver;
-  
+
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
@@ -250,7 +250,7 @@ void ecmcDriveBase::writeEntries() {
   // Check if drive status OK
   if (!driveInterlocksOK() && data_->command_.enable) {
     data_->command_.enable = false;
-    enableAmpCmd_ = false;
+    enableAmpCmd_          = false;
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
   }
 
@@ -261,8 +261,8 @@ void ecmcDriveBase::writeEntries() {
     updateBrakeState();
   } else {
     // No brake
-    data_->status_.enabled = getEnabledLocal();  
-    enableAmpCmd_ = data_->command_.enable;
+    data_->status_.enabled = getEnabledLocal();
+    enableAmpCmd_          = data_->command_.enable;
   }
 
   int errorCode = 0;
@@ -279,7 +279,8 @@ void ecmcDriveBase::writeEntries() {
 
   if (data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
     // CSV:    Check so not outside allowable range
-    veloPosOutput_ = data_->status_.currentVelocitySetpointRaw + veloRawOffset_;
+    veloPosOutput_ = data_->status_.currentVelocitySetpointRaw +
+                     veloRawOffset_;
 
     if (veloPosOutput_ > maxVeloOutput_) {
       veloPosOutput_ = maxVeloOutput_;
@@ -510,7 +511,7 @@ void ecmcDriveBase::readEntries() {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
-                 errorCode, 
+                 errorCode,
                  ECMC_SEVERITY_EMERGENCY);
       return;
     }
@@ -904,7 +905,6 @@ int ecmcDriveBase::setStateMachineTimeout(double seconds) {
 }
 
 int ecmcDriveBase::setVelSetOffsetRaw(double offset) {
-  veloRawOffset_ = (int64_t) offset;
+  veloRawOffset_ = (int64_t)offset;
   return 0;
 }
-

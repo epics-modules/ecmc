@@ -101,6 +101,7 @@ asynStatus asynWritePrimEncCtrlId(void         *data,
                                                                bytes,
                                                                asynParType);
 }
+
 /**
  * Callback function for asynWrites (Target Pos)
  * userObj = axis object
@@ -264,8 +265,8 @@ void ecmcAxisBase::initVars() {
   }
 
   statusOutputEntry_ = 0;
-  
-  blockExtCom_       = 0;
+
+  blockExtCom_ = 0;
   memset(diagBuffer_, 0, AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_         = NULL;
   extEncVeloFilter_          = NULL;
@@ -338,14 +339,14 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
       // bus ok and hw ok, startup finished
       setInStartupPhase(false);
-      
+
       // only init encoders after first startup
-      if(!data_.status_.startupFinsished) {
+      if (!data_.status_.startupFinsished) {
         initEncoders();
       }
 
       data_.status_.startupFinsished = true;
-      
+
 
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
@@ -491,7 +492,6 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   if (statusOutputEntry_) {
     statusOutputEntry_->writeValue(getErrorID() == 0);
   }
-
 }
 
 axisType ecmcAxisBase::getAxisType() {
@@ -558,11 +558,13 @@ void ecmcAxisBase::setInStartupPhase(bool startup) {
   data_.status_.inStartupPhase = startup;
 }
 
-int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) { 
-  return setTrajDataSourceTypeInternal(refSource,allowSourceChangeWhenEnbaled_);
+int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
+  return setTrajDataSourceTypeInternal(refSource,
+                                       allowSourceChangeWhenEnbaled_);
 }
 
-int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource, int force) {
+int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
+                                                int        force) {
   if (refSource == data_.command_.trajSource) return 0;
 
   if (!force) {
@@ -574,11 +576,12 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource, int force)
     }
   }
 
-  if (refSource != ECMC_DATA_SOURCE_INTERNAL && getMon()->getSafetyInterlock()) {
-      return setErrorID(__FILE__,
-                        __FUNCTION__,
-                        __LINE__,
-                        ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL);
+  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) &&
+      getMon()->getSafetyInterlock()) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL);
   }
 
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
@@ -655,13 +658,12 @@ bool ecmcAxisBase::getError() {
 }
 
 int ecmcAxisBase::getErrorID() {
-
   if (ecmcError::getError()) {
     return ecmcError::getErrorID();
   }
 
   // The below contains all errors from the "sub objects"
-  if(data_.status_.errorCode) {
+  if (data_.status_.errorCode) {
     return setErrorID(data_.status_.errorCode);
   }
   return 0;
@@ -786,9 +788,9 @@ ecmcEncoder * ecmcAxisBase::getConfigEnc() {
   return encArray_[data_.command_.cfgEncIndex];
 }
 
-//ecmcEncoder * ecmcAxisBase::getHomeEnc() {
+// ecmcEncoder * ecmcAxisBase::getHomeEnc() {
 //  return encArray_[data_.command_.homeEncIndex];
-//}
+// }
 
 ecmcEncoder * ecmcAxisBase::getPrimEnc() {
   return encArray_[data_.command_.primaryEncIndex];
@@ -807,7 +809,7 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  if(data_.command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
+  if (data_.command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
     *homed = 1;
   } else {
     *homed = encArray_[data_.command_.primaryEncIndex]->getHomed();
@@ -1164,6 +1166,7 @@ int ecmcAxisBase::initAsyn() {
                               (uint8_t *)&(acceleration_),
                               sizeof(acceleration_),
                               &paramTemp);
+
   if (errorCode) {
     return errorCode;
   }
@@ -1179,6 +1182,7 @@ int ecmcAxisBase::initAsyn() {
                               (uint8_t *)&(deceleration_),
                               sizeof(deceleration_),
                               &paramTemp);
+
   if (errorCode) {
     return errorCode;
   }
@@ -1517,12 +1521,12 @@ void ecmcAxisBase::refreshStatusWd() {
 
   // bit 17 sumilockfwd (filter away execute IL)
   statusData_.onChangeData.statusWd.sumilockfwd =
-    data_.interlocks_.trajSummaryInterlockFWD && 
+    data_.interlocks_.trajSummaryInterlockFWD &&
     data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE;
 
   // bit 18 sumilockbwd (filter away execute IL)
   statusData_.onChangeData.statusWd.sumilockbwd =
-    data_.interlocks_.trajSummaryInterlockBWD && 
+    data_.interlocks_.trajSummaryInterlockBWD &&
     data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE;
 
   // bit 19 axis type
@@ -2010,37 +2014,37 @@ int ecmcAxisBase::moveHome(int    nCmdData,
   if (errorCode) {
     return errorCode;
   }
-  
+
   // if not valid the fallback on whats defined in encoder
-  if(nCmdData <= 0) {
+  if (nCmdData <= 0) {
     nCmdData = getPrimEnc()->getHomeSeqId();
   }
   errorCode = setCmdData(nCmdData);
-  
+
   if (errorCode) {
     return errorCode;
   }
 
   // if not valid the fallback on whats defined in encoder
-  if(velocityOffCamSet < 0) {
+  if (velocityOffCamSet < 0) {
     velocityOffCamSet = getPrimEnc()->getHomeVelOffCam();
   }
   getSeq()->setHomeVelOffCam(velocityOffCamSet);
 
   // if not valid the fallback on whats defined in encoder
-  if(velocityTowardsCamSet < 0) {
+  if (velocityTowardsCamSet < 0) {
     velocityTowardsCamSet = getPrimEnc()->getHomeVelTowardsCam();
   }
   getSeq()->setHomeVelTowardsCam(velocityTowardsCamSet);
 
   // if not valid the fallback on whats defined in encoder
-  if(accelerationSet < 0) {
+  if (accelerationSet < 0) {
     accelerationSet = getPrimEnc()->getHomeAcc();
   }
   setAcc(accelerationSet);
 
   // if not valid the fallback on whats defined in encoder
-  if(decelerationSet < 0) {
+  if (decelerationSet < 0) {
     decelerationSet = getPrimEnc()->getHomeDec();
   }
 
@@ -2098,9 +2102,10 @@ int ecmcAxisBase::moveHome() {
   if (errorCode) {
     return errorCode;
   }
-  
+
   // Use cfgs in current home encoder
   errorCode = setCmdData(ECMC_SEQ_HOME_USE_ENC_CFGS);
+
   if (errorCode) {
     return errorCode;
   }
@@ -2173,13 +2178,13 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   memcpy(&controlWord_, data, sizeof(controlWord_));
-  uint32_t *tmpcontrolWordPtr = (uint32_t*)&controlWord_;
+  uint32_t *tmpcontrolWordPtr = (uint32_t *)&controlWord_;
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write : Control Word = 0x%x.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,*tmpcontrolWordPtr);
+    data_.axisId_, *tmpcontrolWordPtr);
 
 
   // Check if com is blocked but allow stop cmd
@@ -2240,23 +2245,26 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     if (!getBusy()) {
       setCommand(command_);
 
-      if( command_ == ECMC_CMD_HOMING ) {
+      if (command_ == ECMC_CMD_HOMING) {
         // fallback on config encoder
-        //if(cmdData_ <= 0 || cmdData_ == ECMC_SEQ_HOME_USE_ENC_CFGS ) {
-        //  setCmdData(getPrimEnc()->getHomeSeqId());          
-        //} else {
+        // if(cmdData_ <= 0 || cmdData_ == ECMC_SEQ_HOME_USE_ENC_CFGS ) {
+        //  setCmdData(getPrimEnc()->getHomeSeqId());
+        // } else {
         setCmdData(cmdData_);
-        //}
-        
-        // For homing velos, check if special homing velos, 
+
+        // }
+
+        // For homing velos, check if special homing velos,
         // otherwise fallback on velocityTarget_
         double temp = getPrimEnc()->getHomeVelOffCam();
-        if(temp <= 0) {
+
+        if (temp <= 0) {
           temp = velocityTarget_;
         }
         getSeq()->setHomeVelOffCam(temp);
         temp = getPrimEnc()->getHomeVelTowardsCam();
-        if(temp <= 0) {
+
+        if (temp <= 0) {
           temp = velocityTarget_;
         }
         getSeq()->setHomeVelTowardsCam(temp);
@@ -2267,9 +2275,9 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
         // cmddata for all other states
         setCmdData(cmdData_);
       }
-    } 
-    
-    if ( command_ != ECMC_CMD_HOMING ){  // Not homing!
+    }
+
+    if (command_ != ECMC_CMD_HOMING) {   // Not homing!
       // allow on the fly updates of target velo and target pos
       getSeq()->setTargetVel(velocityTarget_);
       getSeq()->setTargetPos(positionTarget_);
@@ -2366,7 +2374,8 @@ void ecmcAxisBase::initControlWord() {
 
 asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
                                                     size_t        bytes,
-                                                    asynParamType asynParType) {
+                                                    asynParamType asynParType)
+{
   if ((bytes != 4) || (asynParType != asynParamInt32)) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Primary encoder index datatype missmatch.\n",
@@ -2380,10 +2389,10 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
   }
   int index = 0;
   memcpy(&index, data, sizeof(index));
-  
-  int errorCode = selectPrimaryEncoder(index,1);
-  
-  if(errorCode) {
+
+  int errorCode = selectPrimaryEncoder(index, 1);
+
+  if (errorCode) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Set Primary encoder index failed.\n",
       __FILE__,
@@ -2400,7 +2409,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,index);
+    data_.axisId_, index);
 
   return asynSuccess;
 }
@@ -2428,7 +2437,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,velocityTarget_);
+    data_.axisId_, velocityTarget_);
 
   // Write at next execute command
 
@@ -2451,16 +2460,16 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
   }
   double acc = 0;
   memcpy(&acc, data, bytes);
-  
+
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Acceleration = %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,acceleration_);
-  
+    data_.axisId_, acceleration_);
+
   acceleration_ = acc;
-  
+
   // Write at next execute command
 
   return asynSuccess;
@@ -2489,7 +2498,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,deceleration_);
+    data_.axisId_, deceleration_);
 
   // Write at next execute command
 
@@ -2519,7 +2528,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,positionTarget_);
+    data_.axisId_, positionTarget_);
 
   return asynSuccess;
 }
@@ -2527,7 +2536,6 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
 asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
                                                 size_t        bytes,
                                                 asynParamType asynParType) {
-
   if ((sizeof(double) != bytes) || (asynParType != asynParamFloat64)) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Encoder Pos size or datatype missmatch.\n",
@@ -2560,7 +2568,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,pos);
+    data_.axisId_, pos);
 
   // Set position
   return setPosition(pos) ? asynError : asynSuccess;
@@ -2589,7 +2597,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,command_);
+    data_.axisId_, command_);
 
   return asynSuccess;
 }
@@ -2617,7 +2625,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_,cmdData_);
+    data_.axisId_, cmdData_);
 
   return asynSuccess;
 }
@@ -2677,20 +2685,22 @@ int ecmcAxisBase::addEncoder() {
 }
 
 int ecmcAxisBase::selectPrimaryEncoder(int index) {
-  return selectPrimaryEncoder(index,0);
+  return selectPrimaryEncoder(index, 0);
 }
 
 // Index 1 is the first encoder
 int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
   // Do not change if less than 0 (allow ecmccfg to set -1 as default)
   int localIndex = index - 1;
+
   if (localIndex < 0) {
     return 0;
   }
 
-  if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
+  if ((localIndex >= ECMC_MAX_ENCODERS) ||
+      (localIndex >= data_.status_.encoderCount)) {
     // Override error message to not stop axis if in motion
-    if(!overrideError) {
+    if (!overrideError) {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -2700,10 +2710,10 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
   }
 
   // Do not allow to switch encoder if busy and INTERNAL source
-  if (getBusy() && data_.command_.encSource ==
-                               ECMC_DATA_SOURCE_INTERNAL ) {
+  if (getBusy() && (data_.command_.encSource ==
+                    ECMC_DATA_SOURCE_INTERNAL)) {
     // Override error message to not stop axis if in motion
-    if(!overrideError) {
+    if (!overrideError) {
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -2719,7 +2729,7 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
 
   // This index is starting from 0
   data_.command_.primaryEncIndex = localIndex;
-  
+
   // This index is starting from 1 (for asyn and external interface)
   encPrimIndexAsyn_ = index;
   axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID]->refreshParamRT(1);
@@ -2731,17 +2741,19 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
 int ecmcAxisBase::selectConfigEncoder(int index) {
   // Do not change if less than 0 (allow ecmccfg to set -1 as default)
   int localIndex = index - 1;
+
   if (localIndex < 0) {
     return 0;
   }
 
-  if ((localIndex >= ECMC_MAX_ENCODERS) || (localIndex >= data_.status_.encoderCount)) {
+  if ((localIndex >= ECMC_MAX_ENCODERS) ||
+      (localIndex >= data_.status_.encoderCount)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
                       ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
   }
-  
+
   // This index is starting from 0
   data_.command_.cfgEncIndex = localIndex;
   return 0;
@@ -2819,16 +2831,16 @@ void ecmcAxisBase::setDec(double dec) {
   axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
 }
 
-void ecmcAxisBase::setEmergencyStopInterlock(int stop) {  
-  
+void ecmcAxisBase::setEmergencyStopInterlock(int stop) {
   getMon()->setSafetyInterlock(stop);
+
   // Switch to internal source
-  if (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL && stop) {
+  if ((data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) && stop) {
     setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);
   }
 }
 
-double ecmcAxisBase::getEncVelo(){
+double ecmcAxisBase::getEncVelo() {
   return data_.status_.currentVelocityActual;
 }
 

@@ -992,6 +992,7 @@ int setAxisErrorId(int axisIndex, int errorid) {
   axes[axisIndex]->setErrorID(errorid);
   return 0;
 }
+
 int setAxisEncHomeLatchCountOffset(int axisIndex, int count) {
   LOGINFO4("%s/%s:%d axisIndex=%d count=%d\n",
            __FILE__,
@@ -1720,7 +1721,7 @@ int setAxisCntrlDeadband(int    axisIndex,
   return 0;
 }
 
-int setAxisCntrlDeadbandTime(int    axisIndex,
+int setAxisCntrlDeadbandTime(int axisIndex,
                              int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -1736,7 +1737,7 @@ int setAxisCntrlDeadbandTime(int    axisIndex,
   return 0;
 }
 
-int setAxisCntrlInnerParams(int axisIndex,
+int setAxisCntrlInnerParams(int    axisIndex,
                             double kp,
                             double ki,
                             double kd,
@@ -3015,8 +3016,8 @@ int linkEcEntryToAxisSeqAutoModeSet(int   slaveIndex,
 }
 
 int linkEcEntryToAxisSeqAutoModeAct(int   slaveIndex,
-                                char *entryIDString,
-                                int   axisIndex) {
+                                    char *entryIDString,
+                                    int   axisIndex) {
   LOGINFO4("%s/%s:%d slave_index=%d entry=%s, axisId=%d\n",
            __FILE__,
            __FUNCTION__,
@@ -3157,7 +3158,7 @@ int getAxisValid(int axisIndex) {
            __LINE__,
            axisIndex);
 
-  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {    
+  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {
     return 0;
   }
   return axes[axisIndex] != NULL;
@@ -3218,7 +3219,7 @@ int setAxisEmergencyStopInterlock(int axisIndex, int stop) {
   return 0;
 }
 
-int getAxisEncVelo(int  axisIndex,
+int getAxisEncVelo(int     axisIndex,
                    double *velo) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
@@ -3239,14 +3240,14 @@ int getAxisEncVelo(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  */
-int getAxisTrajVelo(int  axisIndex,
+int getAxisTrajVelo(int     axisIndex,
                     double *velo) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            axisIndex);
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);  
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   *velo = axes[axisIndex]->getTrajVelo();
   return 0;
 }

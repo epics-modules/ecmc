@@ -610,7 +610,7 @@ int setAppModeCfg(int mode) {
       }
     }
 
-    if(safetyplugin) {
+    if (safetyplugin) {
       safetyplugin->exeExitRTFunc();
     }
   }
@@ -683,8 +683,9 @@ int setAppModeRun(int mode) {
     }
   }
 
-  if(safetyplugin) {
+  if (safetyplugin) {
     errorCode = safetyplugin->exeEnterRTFunc();
+
     if (errorCode) {
       return errorCode;
     }

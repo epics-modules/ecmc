@@ -511,6 +511,7 @@ int ecmcEcAsyncSDO::initAsyn() {
   name           = buffer;
   asynParamRead_ = asynPortDriver_->addNewAvailParam(name,
                                                      asynParamInt32,
+
                                                      // default type
                                                      (uint8_t *)&(dummyReadCmd_),
                                                      sizeof(dummyReadCmd_),

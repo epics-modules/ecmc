@@ -207,7 +207,6 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
   asynStatus stat = asynError;
 
   switch (paramInfo_.asynType) {
-    
   case asynParamUInt32Digital:
     stat = asynPortDriver_->setUIntDigitalParam(ECMC_ASYN_DEFAULT_LIST,
                                                 paramInfo_.index,
@@ -216,24 +215,24 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
     break;
 
   case asynParamInt32:
-    
-    switch(dataItem_.dataType) {
-      case ECMC_EC_S8:
-        stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
-                                            paramInfo_.index,
-                                            *((epicsInt8 *)data));    
-      break;
 
-      case ECMC_EC_S16:
-        stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
-                                            paramInfo_.index,
-                                            *((epicsInt16 *)data));    
-      break;
-
-      default:
+    switch (dataItem_.dataType) {
+    case ECMC_EC_S8:
       stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
-                                            paramInfo_.index,
-                                            *((epicsInt32 *)data));
+                                              paramInfo_.index,
+                                              *((epicsInt8 *)data));
+      break;
+
+    case ECMC_EC_S16:
+      stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
+                                              paramInfo_.index,
+                                              *((epicsInt16 *)data));
+      break;
+
+    default:
+      stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
+                                              paramInfo_.index,
+                                              *((epicsInt32 *)data));
     }
     break;
 

@@ -70,14 +70,14 @@ void ecmcAxisSequencer::initVars() {
 
 // Cyclic execution
 void ecmcAxisSequencer::execute() {
-
   // read mode if entry is linked
   uint64_t tempRaw = 0;
+
   if (modeActEntry_) {
     modeActEntry_->readValue(&tempRaw);
-    modeAct_ = (int) tempRaw;
+    modeAct_ = (int)tempRaw;
   }
-  
+
   data_->status_.seqState = seqState_;
 
   if (traj_ == NULL) {
@@ -124,6 +124,7 @@ void ecmcAxisSequencer::execute() {
   }
   int seqReturnVal         = 0;
   ecmcHomingType homeSeqId = (ecmcHomingType)data_->command_.cmdData;
+
   switch (data_->command_.command) {
   case ECMC_CMD_JOG:
     ;
@@ -288,9 +289,10 @@ void ecmcAxisSequencer::execute() {
 
     case ECMC_SEQ_HOME_USE_ENC_CFGS:
       // This number is only used to get the cmd data from encoder object
-      // that means that if this is executing, something is very wrong... 
+      // that means that if this is executing, something is very wrong...
       // In other words, the encoder object needs to have a valid homeproc.
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_CMD_DATA_UNDEFINED);      
+      setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                 ERROR_SEQ_CMD_DATA_UNDEFINED);
       stopSeq();
       break;
 
@@ -331,7 +333,8 @@ void ecmcAxisSequencer::execute() {
 
 int ecmcAxisSequencer::setExecute(bool execute) {
   int errorCode = 0;
-  int modeSet = 0;
+  int modeSet   = 0;
+
   if (traj_ == NULL) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
   }
@@ -342,20 +345,20 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   seqState_               = 0;
 
   if (data_->command_.execute  && !executeOld_) {
-    
     setTrajAccAndDec();
 
-    //velo for homing is set in a different way
-    if(data_->command_.command != ECMC_CMD_HOMING) {
+    // velo for homing is set in a different way
+    if (data_->command_.command != ECMC_CMD_HOMING) {
       errorCode = checkVelAccDec();
+
       if (errorCode) {
         return errorCode;
       }
     }
   }
-  
+
   // default mode motion
-  if(modeMotionCmdSet_) {
+  if (modeMotionCmdSet_) {
     modeSet = modeMotionCmd_;
   }
 
@@ -485,14 +488,14 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
 
   case ECMC_CMD_HOMING:
-    
+
     // set mode to homing
-    if(modeHomingCmdSet_) {
+    if (modeHomingCmdSet_) {
       modeSet = modeHomingCmd_;
     }
 
     if (data_->command_.execute && !executeOld_) {
-      //oldPrimaryEnc_ = data_->command_.primaryEncIndex;
+      // oldPrimaryEnc_ = data_->command_.primaryEncIndex;
       // encoder data source must be internal for homing
       if (data_->command_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
         return setErrorID(__FILE__,
@@ -517,12 +520,14 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         seqInProgress_      = true;
         localSeqBusy_       = true;
         data_->status_.busy = true;
+
         // Use the paarmeters defined in encoder object
 
-        if(data_->command_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
+        if (data_->command_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
           readHomingParamsFromEnc();
         }
-        if(data_->command_.cmdData != ECMC_SEQ_HOME_NOT_VALID) {
+
+        if (data_->command_.cmdData != ECMC_SEQ_HOME_NOT_VALID) {
           // Homing not allowed
           return setErrorID(__FILE__,
                             __FUNCTION__,
@@ -598,7 +603,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   if (data_->command_.execute  && !executeOld_) {
     // write mode if entry is linked
     if (modeSetEntry_) {
-      modeSetEntry_->writeValue((uint64_t) modeSet);
+      modeSetEntry_->writeValue((uint64_t)modeSet);
     }
   }
 
@@ -699,6 +704,7 @@ void ecmcAxisSequencer::setTargetVel(double velTarget) {
   }
 
   data_->command_.velocityTarget = velTarget;
+
   // Do not write to traj if homing
   if (data_->command_.command != ECMC_CMD_HOMING) {
     traj_->setTargetVel(velTarget);
@@ -2755,18 +2761,16 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
 
 // External triggered homig (set trigg bit and then wait for status bit to be 1)
 int ecmcAxisSequencer::seqHoming26() {
-  
   // Sequence code
   switch (seqState_) {
-  
   case 0:
-     // wait for drive mode to be set
+    // wait for drive mode to be set
 
-     if(!autoModeSetHoming()) {
-       return -2000;  // negative state that is not used
-     }
+    if (!autoModeSetHoming()) {
+      return -2000;   // negative state that is not used
+    }
 
-    if(!getPrimEnc()->getHomeExtTriggEnabled()) {
+    if (!getPrimEnc()->getHomeExtTriggEnabled()) {
       LOGERR(
         "%s/%s:%d: ERROR: Homing sequence not supported by encoder (hw links not set) (0x%x).\n",
         __FILE__,
@@ -2784,9 +2788,10 @@ int ecmcAxisSequencer::seqHoming26() {
     getPrimEnc()->setHomeExtTrigg(1);
     seqState_ = 1;
     break;
-    
+
   case 1:  // Get status of homig seq (read bit)
-    if(getPrimEnc()->getHomeExtTriggStat()) {  // consider check for edge..
+
+    if (getPrimEnc()->getHomeExtTriggStat()) {  // consider check for edge..
       getPrimEnc()->setHomeExtTrigg(0);
       finalizeHomingSeq(homePosition_);
     }
@@ -2796,7 +2801,6 @@ int ecmcAxisSequencer::seqHoming26() {
   postHomeMove();
 
   return -seqState_;
-
 }
 
 // Issue post move after successful finalized homing (seqState_ set to 1000 in finalizeHomingSeq )
@@ -2805,12 +2809,14 @@ int ecmcAxisSequencer::postHomeMove() {
   // Wait one cycle
   case 1000:
 
-  // wait for drive mode to be set
-  if(autoModeSetMotion()) {
-    seqState_ = 1001;
-  }
-  break;
+    // wait for drive mode to be set
+    if (autoModeSetMotion()) {
+      seqState_ = 1001;
+    }
+    break;
+
   case 1001:
+
     // If already there then do not move
     if ((data_->status_.currentPositionSetpoint == homePostMoveTargetPos_) &&
         seqState_) {
@@ -2915,11 +2921,11 @@ int ecmcAxisSequencer::stopSeq() {
     traj_->setExecute(false);
   }
 
-  if(getPrimEnc() != NULL) {
+  if (getPrimEnc() != NULL) {
     getPrimEnc()->setHomeExtTrigg(0);
   }
 
-  //switchBackEncodersIfNeeded();
+  // switchBackEncodersIfNeeded();
 
   seqInProgress_  = false;
   localSeqBusy_   = false;
@@ -3009,11 +3015,11 @@ void ecmcAxisSequencer::initHomingSeq() {
 
 void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   // Should primary encoder be homed?! If not then go back to primary encoder pos for control
-  //double newControlPosition = newPosition;
+  // double newControlPosition = newPosition;
 
-  //if (!encArray_[oldPrimaryEnc_]->getRefAtHoming()) {
+  // if (!encArray_[oldPrimaryEnc_]->getRefAtHoming()) {
   //  newControlPosition = encArray_[oldPrimaryEnc_]->getActPos();
-  //}
+  // }
 
   // Prep all objects for setpoint step (except encoders)
   // setNewPositionCtrlDrvTrajBumpless(newControlPosition);
@@ -3095,46 +3101,50 @@ void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
   }
 }
 
-void  ecmcAxisSequencer::readHomingParamsFromEnc() {
+void ecmcAxisSequencer::readHomingParamsFromEnc() {
   // This param is only accessibele in encoder object, so always read
   setHomeLatchCountOffset(
     getPrimEnc()->getHomeLatchCountOffset());
 
   // Check if encoder has parameters then overwrite existing parameters if any
-  if(!getPrimEnc()->getHomeParamsValid()) {
+  if (!getPrimEnc()->getHomeParamsValid()) {
     LOGERR(
-        "%s/%s:%d: WARNING: No valid homing info stored for encoder, falling back to axis params.\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__);
+      "%s/%s:%d: WARNING: No valid homing info stored for encoder, falling back to axis params.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return;
   }
-  
+
   // Overwrite homing seqence id with what is stored in encoder object
   setCmdData((ecmcHomingType)getPrimEnc()->getHomeSeqId());
-  
+
   // Encoder has parameters stored so read those..
-  homeVelTowardsCam_     = getPrimEnc()->getHomeVelTowardsCam();
-  if(std::abs(homeVelTowardsCam_)==0) {
+  homeVelTowardsCam_ = getPrimEnc()->getHomeVelTowardsCam();
+
+  if (std::abs(homeVelTowardsCam_) == 0) {
     homeVelTowardsCam_ = data_->command_.velocityTarget;
   }
-  homeVelOffCam_         = getPrimEnc()->getHomeVelOffCam();
-  if(std::abs(homeVelOffCam_)==0) {
+  homeVelOffCam_ = getPrimEnc()->getHomeVelOffCam();
+
+  if (std::abs(homeVelOffCam_) == 0) {
     homeVelOffCam_ = data_->command_.velocityTarget;
   }
 
   homePosition_          = getPrimEnc()->getHomePosition();
   homeEnablePostMove_    = getPrimEnc()->getHomePostMoveEnable();
   homePostMoveTargetPos_ = getPrimEnc()->getHomePostMoveTargetPosition();
-  
+
   double temp = getPrimEnc()->getHomeAcc();
-  if( temp > 0 ) {
-    traj_->setAcc( temp );
+
+  if (temp > 0) {
+    traj_->setAcc(temp);
   }
 
   temp = getPrimEnc()->getHomeDec();
-  if( temp > 0 ) {
-    traj_->setDec( temp );
+
+  if (temp > 0) {
+    traj_->setDec(temp);
   }
 }
 
@@ -3164,30 +3174,33 @@ double ecmcAxisSequencer::getHomePosition() {
   return homePosition_;
 }
 
-//ecmcEncoder *ecmcAxisSequencer::getHomeEnc() {
+// ecmcEncoder *ecmcAxisSequencer::getHomeEnc() {
 //  return encArray_[data_->command_.homeEncIndex];
-//}
+// }
 
-ecmcEncoder *ecmcAxisSequencer::getPrimEnc() {
+ecmcEncoder * ecmcAxisSequencer::getPrimEnc() {
   return encArray_[data_->command_.primaryEncIndex];
 }
 
 void ecmcAxisSequencer::setDefaultAcc(double acc) {
   defaultAcc_ = acc;
-  if( defaultDec_ == 0 ) {
+
+  if (defaultDec_ == 0) {
     defaultDec_ = defaultAcc_;
   }
 }
 
 void ecmcAxisSequencer::setDefaultDec(double dec) {
   defaultDec_ = dec;
-  if( defaultAcc_ == 0 ) {
+
+  if (defaultAcc_ == 0) {
     defaultAcc_ = defaultDec_;
   }
 }
 
 void ecmcAxisSequencer::setAcc(double acc) {
   acc_ = acc;
+
   if (data_->command_.command != ECMC_CMD_HOMING) {
     getTraj()->setAcc(acc_);
   }
@@ -3195,25 +3208,25 @@ void ecmcAxisSequencer::setAcc(double acc) {
 
 void ecmcAxisSequencer::setDec(double dec) {
   dec_ = dec;
+
   if (data_->command_.command != ECMC_CMD_HOMING) {
     getTraj()->setDec(dec_);
   }
 }
 
 void ecmcAxisSequencer::setTrajAccAndDec() {
-
   // Revert to defaullt acc and dec if needed
-  if( acc_ > 0 ) {
+  if (acc_ > 0) {
     getTraj()->setAcc(acc_);
-  } else if( defaultAcc_ > 0 ) {
+  } else if (defaultAcc_ > 0) {
     getTraj()->setAcc(defaultAcc_);
   }
-  if( dec_ > 0 ) {
+
+  if (dec_ > 0) {
     getTraj()->setDec(dec_);
-  } else if( defaultDec_ > 0 ) {
+  } else if (defaultDec_ > 0) {
     getTraj()->setDec(defaultDec_);
   }
-
 }
 
 int ecmcAxisSequencer::setAutoModeSetEntry(ecmcEcEntry *entry) {
@@ -3228,26 +3241,25 @@ int ecmcAxisSequencer::setAutoModeActEntry(ecmcEcEntry *entry) {
 
 int ecmcAxisSequencer::setAutoModeHomigCmd(int homing) {
   modeHomingCmdSet_ = 1;
-  modeHomingCmd_ = homing;
+  modeHomingCmd_    = homing;
   return 0;
 }
 
 int ecmcAxisSequencer::setAutoModeMotionCmd(int motion) {
   modeMotionCmdSet_ = 1;
-  modeMotionCmd_ = motion;
+  modeMotionCmd_    = motion;
   return 0;
 }
 
 // Set motion mode
 bool ecmcAxisSequencer::autoModeSetMotion() {
-
-  if(modeSetEntry_ && modeMotionCmdSet_) {
+  if (modeSetEntry_ && modeMotionCmdSet_) {
     // write mode if entry is linked
-    modeSetEntry_->writeValue((uint64_t) modeMotionCmd_);
+    modeSetEntry_->writeValue((uint64_t)modeMotionCmd_);
   }
 
   // wait for drive mode to be set
-  if(modeMotionCmd_ == modeAct_ || !modeActEntry_) {
+  if ((modeMotionCmd_ == modeAct_) || !modeActEntry_) {
     return 1;
   }
   return 0;  // use seq step that is not used by post move and other seqs
@@ -3255,14 +3267,13 @@ bool ecmcAxisSequencer::autoModeSetMotion() {
 
 // Set homing mode
 bool ecmcAxisSequencer::autoModeSetHoming() {
-
-  if(modeSetEntry_ && modeHomingCmdSet_) {
+  if (modeSetEntry_ && modeHomingCmdSet_) {
     // write mode if entry is linked
-    modeSetEntry_->writeValue((uint64_t) modeHomingCmd_);
+    modeSetEntry_->writeValue((uint64_t)modeHomingCmd_);
   }
 
   // wait for drive mode to be set
-  if(modeHomingCmd_ == modeAct_ || !modeActEntry_) {
+  if ((modeHomingCmd_ == modeAct_) || !modeActEntry_) {
     return 1;
   }
   return 0;  // use seq step that is not used by post move and other seqs

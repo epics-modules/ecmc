@@ -1756,7 +1756,8 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisCntrlDeadbandTime(int axis_no, double value);*/
-  nvals = sscanf(myarg_1, "SetAxisCntrlDeadbandTime(%d,%d)", &iValue, &iValue2);
+  nvals =
+    sscanf(myarg_1, "SetAxisCntrlDeadbandTime(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return setAxisCntrlDeadbandTime(iValue, iValue2);
@@ -2095,7 +2096,8 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisDrvVelSetOffsetRaw(int axis_no, double value);*/
-  nvals = sscanf(myarg_1, "SetAxisDrvVelSetOffsetRaw(%d,%lf)", &iValue, &dValue);
+  nvals =
+    sscanf(myarg_1, "SetAxisDrvVelSetOffsetRaw(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
     return setAxisDrvVelSetOffsetRaw(iValue, dValue);
@@ -2163,14 +2165,16 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /*int Cfg.SetAxisAutoModeCmdHoming(int axis_no, int cmd);*/
-  nvals = sscanf(myarg_1, "SetAxisAutoModeCmdHoming(%d,%d)", &iValue, &iValue2);
+  nvals =
+    sscanf(myarg_1, "SetAxisAutoModeCmdHoming(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return setAxisAutoModeCmdHoming(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisAutoModeCmdMotion(int axis_no, int cmd);*/
-  nvals = sscanf(myarg_1, "SetAxisAutoModeCmdMotion(%d,%d)", &iValue, &iValue2);
+  nvals =
+    sscanf(myarg_1, "SetAxisAutoModeCmdMotion(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return setAxisAutoModeCmdMotion(iValue, iValue2);
@@ -3682,12 +3686,12 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   }
 
   ///*int GetAxisEncHomeIndex(int axis_no);*/
-  //nvals = sscanf(myarg_1, "GetAxisEncHomeIndex(%d)", &motor_axis_no);
-//
-  //if (nvals == 1) {
+  // nvals = sscanf(myarg_1, "GetAxisEncHomeIndex(%d)", &motor_axis_no);
+  //
+  // if (nvals == 1) {
   //  SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEncHomeIndex(motor_axis_no,
   //                                                          &iValue));
-  //}
+  // }
 
   /*int GetAxisTrajSourceType(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisTrajSourceType(%d)", &motor_axis_no);

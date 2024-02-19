@@ -92,11 +92,11 @@ void ecmcPIDController::initVars() {
 ecmcPIDController::~ecmcPIDController() {}
 
 void ecmcPIDController::reset() {
-  outputP_            = 0;
-  outputI_            = 0;
-  outputD_            = 0;
-  ff_                 = 0;
-  controllerErrorOld_ = 0;
+  outputP_                   = 0;
+  outputI_                   = 0;
+  outputD_                   = 0;
+  ff_                        = 0;
+  controllerErrorOld_        = 0;
   data_->status_.cntrlOutput = 0;
 }
 

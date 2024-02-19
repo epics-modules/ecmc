@@ -138,6 +138,7 @@ extern "C" const char* ecmcMotorRecordstrStatus(asynStatus status) {
   */
 ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
                                                      const char *MotorPortName,
+
                                                      // Not needed..
                                                      int         numAxes,
                                                      double      movingPollPeriod,
@@ -327,7 +328,7 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
 
   /* Latest asynMotorController does this, but not the version in 6.81 (or 6.9x) */
   createParam(motorRecResolutionString, asynParamFloat64,
-                                                          &motorRecResolution_);
+              &motorRecResolution_);
   createParam(motorRecDirectionString,  asynParamInt32,   &motorRecDirection_);
   createParam(motorRecOffsetString,     asynParamFloat64, &motorRecOffset_);
 #endif // ifdef CREATE_MOTOR_REC_RESOLUTION

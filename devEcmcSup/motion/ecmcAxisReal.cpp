@@ -91,8 +91,10 @@ void ecmcAxisReal::execute(bool masterOK) {
     data_.status_.currentVelocityActual =
       encArray_[data_.command_.primaryEncIndex]->getActVel();
   } else { // External source
-    data_.status_.currentPositionActual = data_.status_.externalEncoderPosition;
-    data_.status_.currentVelocityActual = data_.status_.externalEncoderVelocity;
+    data_.status_.currentPositionActual =
+      data_.status_.externalEncoderPosition;
+    data_.status_.currentVelocityActual =
+      data_.status_.externalEncoderVelocity;
   }
 
   traj_->setStartPos(data_.status_.currentPositionSetpoint);
@@ -147,7 +149,7 @@ void ecmcAxisReal::execute(bool masterOK) {
       // Controller deadband
       if (!data_.status_.busy && mon_->getCtrlInDeadband()) {
         cntrl_->reset();  // Keep now for leagcy reasons...
-        cntrOutput = 0;                
+        cntrOutput = 0;
       } else {
         cntrOutput = cntrl_->control(data_.status_.cntrlError,
                                      data_.status_.currentVelocitySetpoint);

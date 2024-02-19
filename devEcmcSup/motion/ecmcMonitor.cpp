@@ -22,7 +22,7 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
                                                                      warningCode))
 {
   initVars();
-  data_     = axisData;
+  data_ = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   encArray_ = encArray;
 
@@ -84,7 +84,7 @@ void ecmcMonitor::initVars() {
   ctrlDeadbandTime_          = -1;
   analogRawLimit_            = 0;
   enableAnalogInterlock_     = 0;
-  analogPolarity_            = ECMC_POLARITY_NC; //Higher value than analogRawLimit_ is bad
+  analogPolarity_            = ECMC_POLARITY_NC; // Higher value than analogRawLimit_ is bad
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -150,9 +150,9 @@ int ecmcMonitor::setAtTargetTol(double tol) {
   }
 
   atTargetTol_ = tol;
-  
+
   // Default also for ctrl deadband
-  if(ctrlDeadbandTol_ < 0 ) {
+  if (ctrlDeadbandTol_ < 0) {
     ctrlDeadbandTol_ = tol;
   }
 
@@ -172,12 +172,12 @@ int ecmcMonitor::setAtTargetTime(int time) {
   }
 
   atTargetTime_ = time;
-  
+
   // Default also for ctrl deadband time
-  if(ctrlDeadbandTime_< 0) {
+  if (ctrlDeadbandTime_ < 0) {
     ctrlDeadbandTime_ = time;
   }
-  
+
   return 0;
 }
 
@@ -266,8 +266,13 @@ void ecmcMonitor::readEntries() {
 
   // Hard limit BWD
   int errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM, &tempRaw);
-  if ( errorCode ) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_EMERGENCY);
+
+  if (errorCode) {
+    setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               errorCode,
+               ECMC_SEVERITY_EMERGENCY);
     return;
   }
 
@@ -280,10 +285,15 @@ void ecmcMonitor::readEntries() {
 
   // Hard limit FWD
   tempRaw = 0;
-  
+
   errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HIGHLIM, &tempRaw);
-  if ( errorCode ) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
+
+  if (errorCode) {
+    setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               errorCode,
+               ECMC_SEVERITY_NORMAL);
     return;
   }
 
@@ -297,8 +307,13 @@ void ecmcMonitor::readEntries() {
   tempRaw = 0;
 
   errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR, &tempRaw);
-  if ( errorCode ) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
+
+  if (errorCode) {
+    setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               errorCode,
+               ECMC_SEVERITY_NORMAL);
     return;
   }
 
@@ -312,10 +327,15 @@ void ecmcMonitor::readEntries() {
   filterSwitches();
 
   if (enableHardwareInterlock_) {
-    tempRaw = 0;
+    tempRaw   = 0;
     errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK, &tempRaw);
-    if (errorCode ) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
+
+    if (errorCode) {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 errorCode,
+                 ECMC_SEVERITY_NORMAL);
       return;
     }
 
@@ -331,10 +351,15 @@ void ecmcMonitor::readEntries() {
   }
 
   if (enableAnalogInterlock_) {
-    tempRaw = 0;
+    tempRaw   = 0;
     errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_ANALOG, &tempRaw);
-    if (errorCode ) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode, ECMC_SEVERITY_NORMAL);
+
+    if (errorCode) {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 errorCode,
+                 ECMC_SEVERITY_NORMAL);
       return;
     }
 
@@ -503,7 +528,7 @@ int ecmcMonitor::setEnableAnalogInterlock(bool enable) {
 }
 
 int ecmcMonitor::setAnalogRawLimit(double analogLimit) {
-  analogRawLimit_ = analogLimit;  
+  analogRawLimit_ = analogLimit;
   return 0;
 }
 
@@ -688,32 +713,33 @@ int ecmcMonitor::checkLimits() {
 }
 
 int ecmcMonitor::checkAtTarget() {
-  bool atTarget = false;
+  bool atTarget      = false;
   bool ctrlWithinTol = false;
 
   if (enableAtTargetMon_ && data_->status_.enabled) {
     /*if (std::abs(data_->status_.currentTargetPosition -
-                 data_->status_.currentPositionActual) < atTargetTol_) {*/ 
+                 data_->status_.currentPositionActual) < atTargetTol_) {*/
 
-    if(  data_->status_.currentTargetPositionModulo == 
+    if (data_->status_.currentTargetPositionModulo ==
         data_->status_.currentPositionSetpoint) {
-      
       if (std::abs(data_->status_.cntrlError) < atTargetTol_) {
         if (atTargetCounter_ <= atTargetTime_) {
           atTargetCounter_++;
         }
+
         if (atTargetCounter_ > atTargetTime_) {
           atTarget = true;
         }
       } else {
         atTargetCounter_ = 0;
-      }  
+      }
 
       // controller deadband
       if (std::abs(data_->status_.cntrlError) < ctrlDeadbandTol_) {
         if (ctrlDeadbandCounter_ <= ctrlDeadbandTime_) {
           ctrlDeadbandCounter_++;
         }
+
         if (ctrlDeadbandCounter_ > ctrlDeadbandTime_) {
           ctrlWithinTol = true;
         }
@@ -721,11 +747,11 @@ int ecmcMonitor::checkAtTarget() {
         ctrlDeadbandCounter_ = 0;
       }
     }
-  } else {    
+  } else {
     atTarget = true;
   }
 
-  data_->status_.atTarget = atTarget;
+  data_->status_.atTarget            = atTarget;
   data_->status_.ctrlWinthinDeadband = ctrlWithinTol;
   return 0;
 }

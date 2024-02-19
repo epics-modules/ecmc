@@ -134,9 +134,11 @@ public:
   bool               getAtSoftLimitFwd();
   int                setEnableSoftLimitAlarm(bool enable);
   int                setEnableCheckEncsDiff(bool enable);
+
   // Special interlock for ecmc_plugin_safety for interface with safety PLC
-  void               setSafetyInterlock(int interlock);  
+  void               setSafetyInterlock(int interlock);
   int                getSafetyInterlock();
+
   // Analog interlock for temperature sensors
   int                setAnalogInterlockPolarity(ecmcSwitchPolarity pol);
   int                setAnalogRawLimit(double analogLimit);
@@ -207,13 +209,12 @@ private:
   ecmcSwitchPolarity homePolarity_;
   ecmcEncoder **encArray_;
   int enableDiffEncsMon_;
-  double ctrlDeadbandTol_; //controller deadband
+  double ctrlDeadbandTol_; // controller deadband
   int ctrlDeadbandCounter_;
   int ctrlDeadbandTime_;
 
   double analogRawLimit_;
   int enableAnalogInterlock_;
   ecmcSwitchPolarity analogPolarity_;
-
 };
 #endif  // ifndef MOTIONMONITOR_H

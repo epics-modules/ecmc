@@ -70,7 +70,7 @@ static void getEpicsState(initHookState state) {
     return;
   }
 
-  //asynUser *asynTraceUser = ecmcAsynPortObj->getTraceAsynUser();
+  // asynUser *asynTraceUser = ecmcAsynPortObj->getTraceAsynUser();
   ecmcAsynPortObj->setEpicsState(state);
 
   switch (state) {
@@ -91,6 +91,7 @@ static void getEpicsState(initHookState state) {
   }
 
   currentEpicsState = state;
+
   /*asynPrint(asynTraceUser,
             ASYN_TRACE_INFO,
             "%s:%s: EPICS state: %s (%d). Allow callbacks: %s.\n",
@@ -413,11 +414,12 @@ bool ecmcAsynPortDriver::checkParamExist(const char *name) {
     if (!pEcmcParamAvailArray_[i]) {
       return 0;
     }
-    if((strstr(name,pEcmcParamAvailArray_[i]->getParamName()) != NULL) &&
-       (strlen(name) == strlen(pEcmcParamAvailArray_[i]->getParamName())) ) {
-       return true;
+
+    if ((strstr(name, pEcmcParamAvailArray_[i]->getParamName()) != NULL) &&
+        (strlen(name) == strlen(pEcmcParamAvailArray_[i]->getParamName()))) {
+      return true;
     }
-  }  
+  }
   return false;
 }
 
@@ -441,13 +443,16 @@ ecmcAsynDataItem * ecmcAsynPortDriver::addNewAvailParam(const char    *name,
                                                         bool           dieIfFail)
 {
   const char *functionName = "addNewAvailParam";
-  //make sure param name is unique
-  if(checkParamExist(name)){
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+
+  // make sure param name is unique
+  if (checkParamExist(name)) {
+    asynPrint(pasynUserSelf,
+              ASYN_TRACE_ERROR,
               "%s:%s: ERROR: Parameter name (%s) already exists, must be unique.\n",
               driverName,
               functionName,
               name);
+
     if (dieIfFail) {
       exit(1);
     }
@@ -487,6 +492,7 @@ ecmcAsynDataItem * ecmcAsynPortDriver::addNewAvailParam(const char    *name,
                name);*/
     delete paramTemp;
     paramTemp = NULL;
+
     if (dieIfFail) {
       exit(1);
     }
@@ -1281,9 +1287,11 @@ void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
             param->getAllowWriteToEcmc() ? "true" : "false");
     fprintf(fp, "    ECMC Data type:            %s\n",
             getEcDataTypeStr(param->getEcmcDataType()));
-    if( param->getEcmcDataMaxSize() == sizeof(uint64_t) ) {
+
+    if (param->getEcmcDataMaxSize() == sizeof(uint64_t)) {
       fprintf(fp,
-              "    ECMC value:                0x%" PRIx64 "\n",*((uint64_t*)param->getDataPtr()));
+              "    ECMC value:                0x%" PRIx64 "\n",
+              *((uint64_t *)param->getDataPtr()));
     }
     fprintf(fp, "\n");
     return;
@@ -1324,10 +1332,13 @@ void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
           param->getAllowWriteToEcmc() ? "true" : "false");
   fprintf(fp, "    ECMC Data type:            %s\n",
           getEcDataTypeStr(param->getEcmcDataType()));
-  if( param->getEcmcDataMaxSize() == sizeof(uint64_t) ) {
+
+  if (param->getEcmcDataMaxSize() == sizeof(uint64_t)) {
     fprintf(fp,
-            "    ECMC value:                0x%" PRIx64 "\n",*((uint64_t*)param->getDataPtr()));
+            "    ECMC value:                0x%" PRIx64 "\n",
+            *((uint64_t *)param->getDataPtr()));
   }
+
   // Value range only applicable for ints
   if (param->getEcmcMinValueInt() != param->getEcmcMaxValueInt()) {
     fprintf(fp,
@@ -1337,14 +1348,14 @@ void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
             param->getEcmcBitCount());
   }
   fprintf(fp,
-              "    ECMC Cmd: Uint2Float64:    %s\n",
-                                                     paramInfo->cmdUint64ToFloat64 ? "true" : "false");
+          "    ECMC Cmd: Uint2Float64:    %s\n",
+          paramInfo->cmdUint64ToFloat64 ? "true" : "false");
   fprintf(fp,
-              "    ECMC Cmd: Int2Float64:     %s\n",
-                                                     paramInfo->cmdInt64ToFloat64 ? "true" : "false");
+          "    ECMC Cmd: Int2Float64:     %s\n",
+          paramInfo->cmdInt64ToFloat64 ? "true" : "false");
   fprintf(fp,
-              "    ECMC Cmd: Float642Int:     %s\n",
-                                                     paramInfo->cmdFloat64ToInt32 ? "true" : "false");
+          "    ECMC Cmd: Float642Int:     %s\n",
+          paramInfo->cmdFloat64ToInt32 ? "true" : "false");
   fprintf(fp, "    Record name:               %s\n", paramInfo->recordName);
   fprintf(fp, "    Record type:               %s\n", paramInfo->recordType);
   fprintf(fp, "    Record dtyp:               %s\n", paramInfo->dtyp);
@@ -1374,7 +1385,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details) {
 
   if (details >= 0) {
     fprintf(fp,
-                "####################################################################:\n");
+            "####################################################################:\n");
     fprintf(fp, "General information:\n");
     fprintf(fp, "  Port:                           %s\n", portName);
     fprintf(fp,
@@ -1397,7 +1408,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details) {
   if (details >= 1) {
     // print all parameters in use
     fprintf(fp,
-                "####################################################################:\n");
+            "####################################################################:\n");
     fprintf(fp, "Parameters in use:\n");
 
     for (int i = 0; i < ecmcParamInUseCount_; i++) {
@@ -1416,7 +1427,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details) {
   if (details >= 2) {
     // print all available parameters
     fprintf(fp,
-                "####################################################################:\n");
+            "####################################################################:\n");
     fprintf(fp, "Available parameters:\n");
 
     for (int i = 0; i < ecmcParamAvailCount_; i++) {
@@ -1461,7 +1472,7 @@ void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern) {
 
   // print all parameters that fit pattern
   fprintf(fp,
-              "####################################################################:\n");
+          "####################################################################:\n");
   fprintf(fp, "ecmc parameters that fit pattern %s:\n", pattern);
 
   for (int i = 0; i < ecmcParamAvailCount_; i++) {
@@ -1493,7 +1504,7 @@ void ecmcAsynPortDriver::grepRecord(FILE *fp, const char *pattern) {
 
   // print all parameters that fit pattern
   fprintf(fp,
-              "####################################################################:\n");
+          "####################################################################:\n");
   fprintf(fp, "ecmc records that fit pattern %s:\n", pattern);
 
   for (int i = 0; i < ecmcParamAvailCount_; i++) {
@@ -1674,7 +1685,7 @@ static ecmcOutputBufferType ecmcConfigBuffer;
 int ecmcConfigOrDie(const char *ecmcCommand) {
   if (!ecmcAsynPortObj) {
     printf(
-           "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+      "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
     printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
     return asynError;
   }
@@ -1738,7 +1749,7 @@ static void initCallFunc_3(const iocshArgBuf *args) {
 int ecmcConfig(const char *ecmcCommand) {
   if (!ecmcAsynPortObj) {
     printf(
-           "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+      "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
     printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
     return asynError;
   }
@@ -1782,7 +1793,7 @@ static void initCallFunc_4(const iocshArgBuf *args) {
 int ecmcReport(int level) {
   if (!ecmcAsynPortObj) {
     printf(
-           "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+      "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
     printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
     return asynError;
   }
@@ -1804,7 +1815,7 @@ static void initCallFunc_5(const iocshArgBuf *args) {
 int ecmcGrepParam(const char *pattern) {
   if (!ecmcAsynPortObj) {
     printf(
-           "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+      "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
     printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
     return asynError;
   }
@@ -1834,7 +1845,7 @@ static void initCallFunc_6(const iocshArgBuf *args) {
 int ecmcGrepRecord(const char *pattern) {
   if (!ecmcAsynPortObj) {
     printf(
-           "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+      "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
     printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
     return asynError;
   }
@@ -2471,18 +2482,21 @@ void ecmcIfPrintHelp() {
  *   IF_FALSE: to "#-" if expression is true otherwise ""
  * Inteded use (in iocsh):
  * ecmcIf(€{X}>${Y})
- * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")    
+ * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")
  * ${IF_FALSE} epicsEnvSet("RESULT", "Y>=X")
  * ecmcEndIf()
 */
+
 // the most current varaibles
-const char * env_if = "";
-const char * env_else = "";
+const char *env_if   = "";
+const char *env_else = "";
 
 #define IF_TRUE_ENV_VAR "IF_TRUE"
 #define IF_FALSE_ENV_VAR "IF_FALSE"
 
-int ecmcIf(const char *expression, const char *env_if_str, const char *env_else_str) {
+int ecmcIf(const char *expression,
+           const char *env_if_str,
+           const char *env_else_str) {
   if (!expression) {
     printf(
       "Error: \"expression\" missing.\n");
@@ -2490,12 +2504,13 @@ int ecmcIf(const char *expression, const char *env_if_str, const char *env_else_
     return asynError;
   }
 
-  if(env_if_str) {
+  if (env_if_str) {
     env_if = env_if_str;
   } else {
     env_if = IF_TRUE_ENV_VAR;
   }
-  if(env_else_str) {
+
+  if (env_else_str) {
     env_else = env_else_str;
   } else {
     env_else = IF_FALSE_ENV_VAR;
@@ -2508,10 +2523,10 @@ int ecmcIf(const char *expression, const char *env_if_str, const char *env_else_
   }
 
   if (resultDouble) {
-    epicsEnvSet(env_if, "");
+    epicsEnvSet(env_if,   "");
     epicsEnvSet(env_else, "#-");
   } else {
-    epicsEnvSet(env_if, "#-");
+    epicsEnvSet(env_if,   "#-");
     epicsEnvSet(env_else, "");
   }
 
@@ -2527,14 +2542,14 @@ static const iocshArg initArg1_13 =
 static const iocshArg initArg2_13 =
 { "Else env var name", iocshArgString };
 
-static const iocshArg *const initArgs_13[] ={ &initArg0_13,
-                                              &initArg1_13,
-                                              &initArg2_13
-                                            };
-static const iocshFuncDef initFuncDef_13 =
+static const iocshArg *const initArgs_13[] = { &initArg0_13,
+                                               &initArg1_13,
+                                               &initArg2_13
+};
+static const iocshFuncDef    initFuncDef_13 =
 { "ecmcIf", 3, initArgs_13 };
 static void initCallFunc_13(const iocshArgBuf *args) {
-  ecmcIf(args[0].sval,args[1].sval,args[2].sval);
+  ecmcIf(args[0].sval, args[1].sval, args[2].sval);
 }
 
 /** EPICS iocsh shell command: ecmcEndIf
@@ -2543,15 +2558,13 @@ static void initCallFunc_13(const iocshArgBuf *args) {
  *   IF_FALSE: to "#-" if expression is true otherwise ""
  * Inteded use (in iocsh):
  * ecmcIf(€{X}>${Y})
- * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")    
+ * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")
  * #-else
  * ${IF_FALSE} epicsEnvSet("RESULT", "Y>=X")
  * ecmcEndIf()
 */
-
 int ecmcEndIf(const char *env_if_str, const char *env_else_str) {
-
-  if(env_if_str) {
+  if (env_if_str) {
     epicsEnvUnset(env_if_str); // args
   } else if (env_if) {
     epicsEnvUnset(env_if);     // last call to ecmcIf()
@@ -2559,7 +2572,7 @@ int ecmcEndIf(const char *env_if_str, const char *env_else_str) {
     epicsEnvUnset(IF_TRUE_ENV_VAR);  // Default
   }
 
-  if(env_else_str) {
+  if (env_else_str) {
     epicsEnvUnset(env_else_str); // args
   } else if (env_else) {
     epicsEnvUnset(env_else);     // last call to ecmcIf()
@@ -2576,14 +2589,14 @@ static const iocshArg initArg0_14 =
 static const iocshArg initArg1_14 =
 { "Else env var name", iocshArgString };
 
-static const iocshArg *const initArgs_14[] ={ &initArg0_14,
-                                              &initArg1_14
-                                            };
-                                        
+static const iocshArg *const initArgs_14[] = { &initArg0_14,
+                                               &initArg1_14
+};
+
 static const iocshFuncDef initFuncDef_14 =
 { "ecmcEndIf", 2, initArgs_14 };
 static void initCallFunc_14(const iocshArgBuf *args) {
-  ecmcEndIf(args[0].sval,args[1].sval);
+  ecmcEndIf(args[0].sval, args[1].sval);
 }
 
 void ecmcAsynPortDriverRegister(void) {

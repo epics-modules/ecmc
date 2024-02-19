@@ -100,7 +100,7 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
     entrySubIndex_,
     direction_,
     bitLength_);
-  
+
   if (useInRealtime) {
     initAsyn();
   }

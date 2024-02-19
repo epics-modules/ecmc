@@ -35,9 +35,9 @@ typedef struct {
   bool               enableSoftLimitBwd : 1;
   bool               enableSoftLimitFwd : 1;
 
-  dataSource         trajSource;
-  dataSource         encSource;
-  driveMode          drvMode;
+  dataSource trajSource;
+  dataSource encSource;
+  driveMode  drvMode;
 } ecmcAxisDataCommand;
 
 typedef struct {

@@ -333,7 +333,6 @@ enum interlockTypes {
 };
 
 
-
 enum plcInterlockTypes {
   ECMC_PLC_INTERLOCK_DIR_BOTH = 0,
   ECMC_PLC_INTERLOCK_DIR_FWD  = 1,

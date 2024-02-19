@@ -62,7 +62,7 @@ int loadSafetyPlugin(const char *filenameWP, const char *configStr) {
 
   if (safetyplugin) {
     // do not allow load of module twice
-    return ERROR_MAIN_SAFETY_PLUGIN_ALREADY_LOADED;    
+    return ERROR_MAIN_SAFETY_PLUGIN_ALREADY_LOADED;
   }
 
   safetyplugin = new ecmcPluginLib(-1);
@@ -81,7 +81,7 @@ int loadSafetyPlugin(const char *filenameWP, const char *configStr) {
 
   // Always report safety plugin
   safetyplugin->report();
-  
+
   return 0;
 }
 

@@ -101,7 +101,7 @@ int ecmcEcSDO::addWriteComplete(ec_slave_config_t *sc,
       }
       dataPtr = strchr(++dataPtr, ' ');
       addedBytes++;
-    } else   {
+    } else {
       dataPtr = NULL;
     }
   }
@@ -177,7 +177,7 @@ int ecmcEcSDO::addSdoConfigBuffer(ec_slave_config_t *sc,
       }
       dataPtr = strchr(++dataPtr, ' ');
       addedBytes++;
-    } else   {
+    } else {
       dataPtr = NULL;
     }
   }
