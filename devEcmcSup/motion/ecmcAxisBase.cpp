@@ -1519,7 +1519,7 @@ void ecmcAxisBase::refreshStatusWd() {
   statusData_.onChangeData.statusWd.sumilockfwd =
     data_.interlocks_.trajSummaryInterlockFWD;
 
-  // bit 17 sumilockbwd
+  // bit 18 sumilockbwd
   statusData_.onChangeData.statusWd.sumilockbwd =
     data_.interlocks_.trajSummaryInterlockBWD;
 
