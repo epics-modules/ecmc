@@ -309,10 +309,10 @@ int ecAddSdoAsync(
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
- * entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
- * argument is excluded in\n
- * "Cfg.EcAddMemMapDT(10,AI1,200,2,ec0.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
+ * \note Example: Add an EtherCAT input memory map of size 200 bytes of type S32 starting at
+ * entry "AI1" on slave 10 with name WAVEFORM.
+ *
+ * "Cfg.EcAddMemMapDT(ec0.s10.AI1,200,2,S32,ec0.s10.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddMemMapDT(
   char  *ecPath,
@@ -345,7 +345,7 @@ int ecAddMemMapDT(
  *
  *  \note Example: Add an EtherCAT input memory map of size 200 bytes starting at
  *  entry "AI1" on slave 10. Name the memory map WAVEFORM. Type
- *  argument is excluded in\n
+ *  argument is excluded.\n
  *  "Cfg.EcAddMemMap(10,AI1,200,2,ec0.mm.WAVEFORM)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddMemMap(
