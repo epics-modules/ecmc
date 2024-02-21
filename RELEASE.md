@@ -2,7 +2,7 @@
 Release Notes
 ===
 
-# ECMC v9.0.1_RC4
+# ECMC v9.1.0
 * Add analog interlock to motion axes (intended for use with temperature sensors):
 ```
 ecmcConfigOrDie "Cfg.LinkEcEntryToObject(<ethercat entry>,"ax<axis id>.mon.analoginterlock")"

@@ -114,9 +114,7 @@ ECMC runs best under certain conditions:
 * E3 (ESS EPICS Environment)
 * RT-patch
 * Settings found in https://github.com/icshwi/realtime-config
-* configuration by ecmccfg:
-  * https://github.com/paulscherrerinstitute/ecmccfg
-
+* configuration by ecmccfg: https://github.com/paulscherrerinstitute/ecmccfg
 
 # Needed EPICS modules
 
@@ -126,8 +124,7 @@ ECMC runs best under certain conditions:
 * Real-time configuration:          https://github.com/icshwi/realtime-config
 * Motor:                            https://github.com/icshwi/e3-motor (https://github.com/EuropeanSpallationSource/motor)
 * Asyn driver:                      https://github.com/icshwi/e3-asyn
-* ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg or
-                                    https://gitlab.esss.lu.se/epics-modules/ecmccfg
+* ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg
 * ruckig                            https://github.com/anderssandstrom/e3-ruckig, https://github.com/anderssandstrom/ruckig
 
 # Plugins
