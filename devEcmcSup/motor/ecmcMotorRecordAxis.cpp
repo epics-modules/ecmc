@@ -1091,9 +1091,6 @@ void ecmcMotorRecordAxis::callParamCallbacksUpdateError() {
   } else if (drvlocal.cmdErrorMessage[0]) {
     drvlocal.eeAxisError = eeAxisErrorCmdError;
     msgTxtFromDriver     = &drvlocal.cmdErrorMessage[0];
-  } else if (!drvlocal.homed &&
-             (drvlocal.nCommandActive != ECMC_CMD_HOMING)) {
-    drvlocal.eeAxisError = eeAxisErrorNotHomed;
   } else if (drvlocal.illegalInTargetWindow) {
     drvlocal.eeAxisError = eeAxisIllegalInTargetWindow;
     msgTxtFromDriver     = "E: InTargetPosWin";
