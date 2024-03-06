@@ -72,7 +72,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   // initialize
   memset(&drvlocal,       0,    sizeof(drvlocal));
   memset(&drvlocal.dirty, 0xFF, sizeof(drvlocal.dirty));
-
+  restorePowerOnOffNeeded_ = 0;
   drvlocal.ecmcAxis = ecmcAxisRef;
 
   if (!drvlocal.ecmcAxis) {
@@ -968,6 +968,15 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, on);
 
+  #ifdef POWERAUTOONOFFMODE2
+
+  if(!drvlocal.ecmcSafetyInterlock && restorePowerOnOffNeeded_) {
+      printf("Safety[%d]: Restoring auto power on/off state.\n",axisNo_);
+      setIntegerParam(pC_->motorPowerAutoOnOff_, 1);
+      restorePowerOnOffNeeded_ = 0;
+  }
+  #endif // ifdef POWERAUTOONOFFMODE2
+
   asynStatus status  = asynSuccess;
   unsigned   counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME /
                              ECMC_AXIS_ENABLE_SLEEP_PERIOD);
@@ -1203,6 +1212,9 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   ecmcAxisStatusType *tempAxisStat =
     drvlocal.ecmcAxis->getDebugInfoDataPointer();
 
+  drvlocal.ecmcSafetyInterlock = drvlocal.ecmcAxis->getMon()->getSafetyInterlock();
+  drvlocal.ecmcBusy = drvlocal.ecmcAxis->getBusy();
+
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (!tempAxisStat) {
@@ -1235,13 +1247,28 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 #endif // ifndef motorWaitPollsBeforeReadyString
 
   asynStatus status = readEcmcAxisStatusData();
+  
+  // Check if axis is in safety stop.. then disable auto power..
+  // One successfull manual re-powering is needed
+
+  #ifdef POWERAUTOONOFFMODE2
+  if(drvlocal.ecmcSafetyInterlock) {
+    int powerAutoOnOff = -1;
+    getIntegerParam(pC_->motorPowerAutoOnOff_,&powerAutoOnOff);
+    if(powerAutoOnOff) {
+      setIntegerParam(pC_->motorPowerAutoOnOff_, 0);
+      restorePowerOnOffNeeded_ = 1;
+      printf("Safety[%d]: Disabled auto power on/off state.\n",axisNo_);
+    }
+  }
+  #endif // ifdef POWERAUTOONOFFMODE2
 
   if (status) {
     return status;
   }
 
   if (drvlocal.ecmcAxis) {
-    drvlocal.moveNotReadyNext = drvlocal.ecmcAxis->getBusy() ||
+    drvlocal.moveNotReadyNext = drvlocal.ecmcBusy ||
                                 !drvlocal.statusBinData.onChangeData.statusWd.
                                 attarget;
   } else {

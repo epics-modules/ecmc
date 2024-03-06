@@ -120,7 +120,11 @@ private:
     int  moveNotReadyNextOld;
     char cmdErrorMessage[80];               /* From driver */
     char sErrorMessage[80];               /* From controller */
+    bool ecmcBusy;
+    bool ecmcSafetyInterlock;
   } drvlocal;
+
+  int       restorePowerOnOffNeeded_;
 
   asynStatus readBackAllConfig(int axisID);
   asynStatus updateCfgValue(int         function,

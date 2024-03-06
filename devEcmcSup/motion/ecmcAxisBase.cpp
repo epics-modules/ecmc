@@ -687,8 +687,10 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
   }
   traj_->setEnable(enable);
 
-  // reset axis error if ERROR_AXIS_NOT_ENABLED when try to enable
-  if(getErrorID() == ERROR_AXIS_NOT_ENABLED && enable) {
+  // reset axis error if ERROR_AXIS_NOT_ENABLED or ERROR_AXIS_SAFETY_IL_ACTIVE when try to enable
+  int errid = getErrorID();
+  if((errid == ERROR_AXIS_NOT_ENABLED  || 
+      errid == ERROR_AXIS_SAFETY_IL_ACTIVE) && enable) {
     errorReset();
   }
 
