@@ -687,8 +687,14 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
   }
   traj_->setEnable(enable);
 
+  // reset axis error if ERROR_AXIS_NOT_ENABLED when try to enable
+  if(getErrorID() == ERROR_AXIS_NOT_ENABLED && enable) {
+    errorReset();
+  }
+
   data_.status_.enableOld = data_.command_.enable;
   data_.command_.enable   = enable;
+  
   return 0;
 }
 

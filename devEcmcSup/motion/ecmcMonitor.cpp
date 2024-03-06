@@ -120,6 +120,15 @@ void ecmcMonitor::execute() {
 
   // Controller output increase at limit switches monitoring
   checkVelocityDiff();
+  
+  // refuse start when error code except axis disabled error (for backwards compatibility)
+  if( data_->status_.errorCode != 0 && 
+      data_->status_.enabled ) {
+    data_->interlocks_.axisErrorStateInterlock = 1;
+  }
+  else {
+    data_->interlocks_.axisErrorStateInterlock = 0;
+  }
 
   data_->refreshInterlocks();
   interlockStatusOld_ = data_->interlocks_.interlockStatus;

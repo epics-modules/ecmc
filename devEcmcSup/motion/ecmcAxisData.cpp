@@ -37,13 +37,6 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
   }
 
   // Emergency interlocks first
-  if (interlocks_.axisErrorStateInterlock) {
-    interlocks_.interlockStatus = ECMC_INTERLOCK_AXIS_ERROR_STATE;
-    interlocks_.currStopMode    = ECMC_STOP_MODE_EMERGENCY;
-    return interlocks_.currStopMode;
-  }
-
-  // Emergency interlocks first
   if (interlocks_.safetyInterlock) {
     interlocks_.interlockStatus = ECMC_INTERLOCK_SAFETY;
     interlocks_.currStopMode    = ECMC_STOP_MODE_EMERGENCY;
@@ -173,7 +166,14 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
     interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
     return interlocks_.currStopMode;
   }
-
+  
+  // General error
+  if (interlocks_.axisErrorStateInterlock) {
+    interlocks_.interlockStatus = ECMC_INTERLOCK_AXIS_ERROR_STATE;
+    interlocks_.currStopMode    = ECMC_STOP_MODE_EMERGENCY;
+    return interlocks_.currStopMode;
+  }
+  
   interlocks_.interlockStatus = ECMC_INTERLOCK_NONE;
 
   interlocks_.currStopMode = ECMC_STOP_MODE_RUN;
