@@ -1254,7 +1254,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   #ifdef POWERAUTOONOFFMODE2
   if(drvlocal.ecmcSafetyInterlock) {
     int powerAutoOnOff = -1;
-    getIntegerParam(pC_->motorPowerAutoOnOff_,&powerAutoOnOff);
+    pC_->getIntegerParam(axisNo_,pC_->motorPowerAutoOnOff_,&powerAutoOnOff);
     if(powerAutoOnOff) {
       setIntegerParam(pC_->motorPowerAutoOnOff_, 0);
       restorePowerOnOffNeeded_ = 1;
