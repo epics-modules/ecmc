@@ -1,6 +1,10 @@
 
 Release Notes
 ===
+# master
+* Auto reset ERROR_AXIS_NOT_ENABLED in setEnable function.
+* Set general error interlock bit
+* Remove not homed error in ecmcMotorRecord.cpp
 
 # ECMC v9.1.0
 * Add analog interlock to motion axes (intended for use with temperature sensors):
