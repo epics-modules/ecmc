@@ -968,6 +968,11 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, on);
 
+  if(drvlocal.ecmcSafetyInterlock && on) {
+    printf("Safety[%d]: enableAmplifier(%d) failed. Ecmc safety interlock active\n",axisNo_,on);
+    return asynError;
+  }
+
   #ifdef POWERAUTOONOFFMODE2
 
   if(!drvlocal.ecmcSafetyInterlock && restorePowerOnOffNeeded_) {
@@ -1249,16 +1254,19 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   asynStatus status = readEcmcAxisStatusData();
   
   // Check if axis is in safety stop.. then disable auto power..
-  // One successfull manual re-powering is needed
-
-  #ifdef POWERAUTOONOFFMODE2
   if(drvlocal.ecmcSafetyInterlock) {
+    setIntegerParam(pC_->motorStop_, 1);  // Stop also triggered in ecmc, try to sync motor record and ecmc
+    #ifdef POWERAUTOONOFFMODE2
     int powerAutoOnOff = -1;
     pC_->getIntegerParam(axisNo_,pC_->motorPowerAutoOnOff_,&powerAutoOnOff);
     if(powerAutoOnOff) {
       setIntegerParam(pC_->motorPowerAutoOnOff_, 0);
       restorePowerOnOffNeeded_ = 1;
       printf("Safety[%d]: Disabled auto power on/off state.\n",axisNo_);
+    }
+
+    if (!drvlocal.ecmcBusy && drvlocal.statusBinData.onChangeData.statusWd.enable) {
+      setIntegerParam(pC_->motorClosedLoop_, 0);
     }
   }
   #endif // ifdef POWERAUTOONOFFMODE2
