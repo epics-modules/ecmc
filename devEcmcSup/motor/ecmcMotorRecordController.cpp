@@ -324,6 +324,14 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
               asynParamOctet,
               &ecmcMotorRecordCfgEGU_RB_);
 
+  createParam(ecmcMotorRecordTRIGG_STOPString,
+              asynParamInt32,
+              &ecmcMotorRecordTRIGG_STOPP_);
+
+  createParam(ecmcMotorRecordTRIGGDISABLEString,
+              asynParamInt32,
+              &ecmcMotorRecordTRIGG_DISABLE_);
+
 #ifdef CREATE_MOTOR_REC_RESOLUTION
 
   /* Latest asynMotorController does this, but not the version in 6.81 (or 6.9x) */

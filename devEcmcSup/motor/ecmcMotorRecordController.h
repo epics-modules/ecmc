@@ -65,6 +65,8 @@ FILENAME...   ecmcMotorRecordController.h
 #define ecmcMotorRecordCfgPOSLAG_En_RBString      "CfgPOSLAG-En-RB"
 #define ecmcMotorRecordCfgDESC_RBString           "CfgDESC-RB"
 #define ecmcMotorRecordCfgEGU_RBString            "CfgEGU-RB"
+#define ecmcMotorRecordTRIGG_STOPString           "TRIGG_STOPP"
+#define ecmcMotorRecordTRIGGDISABLEString         "TRIGG_DISABLE"
 
 
 #define ecmcMotorRecordMCUErrMsgString            "MCUErrMsg"
@@ -183,6 +185,8 @@ protected:
   int ecmcMotorRecordCfgDLLM_En_;
   int ecmcMotorRecordCfgDESC_RB_;
   int ecmcMotorRecordCfgEGU_RB_;
+  int ecmcMotorRecordTRIGG_STOPP_;
+  int ecmcMotorRecordTRIGG_DISABLE_;
 
   int ecmcMotorRecordErrId_;
 

@@ -124,7 +124,7 @@ private:
     bool ecmcSafetyInterlock;
   } drvlocal;
 
-  int       restorePowerOnOffNeeded_;
+  //int       restorePowerOnOffNeeded_;
 
   asynStatus readBackAllConfig(int axisID);
   asynStatus updateCfgValue(int         function,
