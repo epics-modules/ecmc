@@ -1184,3 +1184,9 @@ void ecmcMonitor::setSafetyInterlock(int interlock) {
 int ecmcMonitor::getSafetyInterlock() {
   return data_->interlocks_.safetyInterlock;
 }
+
+int ecmcMonitor::getSumInterlock() {
+  return data_->interlocks_.driveSummaryInterlock ||
+         data_->interlocks_.trajSummaryInterlockFWD ||
+         data_->interlocks_.trajSummaryInterlockBWD;
+}

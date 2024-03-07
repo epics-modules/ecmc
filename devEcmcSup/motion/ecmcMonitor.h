@@ -143,7 +143,8 @@ public:
   int                setAnalogInterlockPolarity(ecmcSwitchPolarity pol);
   int                setAnalogRawLimit(double analogLimit);
   int                setEnableAnalogInterlock(bool enable);
-
+  int                getSumInterlock();
+  
 private:
   int                checkLimits();
   int                checkAtTarget();

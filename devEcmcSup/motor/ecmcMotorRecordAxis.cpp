@@ -88,6 +88,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   drvlocal.axisId          = axisNo;
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;
   drvlocal.axisFlags       = axisFlags;
+  triggstop_ = 1;
 
   /* We pretend to have an encoder (fActPosition) */
   setIntegerParam(pC_->motorStatusHasEncoder_,   1);
@@ -949,6 +950,16 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   enabled = drvlocal.ecmcAxis->getEnabled();
+  
+  if(drvlocal.ecmcAxis->getMon()->getSumInterlock()) {
+    triggstop_++;
+    if(triggstop_ == 0) {
+      triggstop_++;
+    }
+    asynMotorAxis::setIntegerParam(pC_->motorStop_, triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc    
+    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_STOPP_,triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc
+    callParamCallbacks();
+  }
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
@@ -1219,7 +1230,8 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
 
   drvlocal.ecmcSafetyInterlock = drvlocal.ecmcAxis->getMon()->getSafetyInterlock();
   drvlocal.ecmcBusy = drvlocal.ecmcAxis->getBusy();
-
+  drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
+  
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (!tempAxisStat) {
@@ -1252,13 +1264,17 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 #endif // ifndef motorWaitPollsBeforeReadyString
 
   asynStatus status = readEcmcAxisStatusData();
-  
-  // Check if axis is in safety stop.. then disable auto power..
-  if(drvlocal.ecmcSafetyInterlock) {
-    setIntegerParam(pC_->motorStop_, 1);  // Stop also triggered in ecmc, try to sync motor record and ecmc
-    int triggstop = -1;
-    pC_->getIntegerParam(axisNo_,pC_->ecmcMotorRecordTRIGG_STOPP_,&triggstop);
-    setIntegerParam(pC_->ecmcMotorRecordTRIGG_STOPP_, triggstop++);  // Stop also triggered in ecmc, try to sync motor record and ecmc    
+  //printf("Safety[%d]: drvlocal.ecmcSafetyInterlock= %d\n",axisNo_,drvlocal.ecmcSafetyInterlock);
+  // Check if axis is supposed to stop
+  if(drvlocal.ecmcSummaryInterlock) {
+
+    triggstop_++;
+    if(triggstop_ == 0) {
+      triggstop_++;
+    }
+    asynMotorAxis::setIntegerParam(pC_->motorStop_, triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc    
+    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_STOPP_,triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc
+    //printf("Safety[%d]: Writing motor stop %d\n",axisNo_,triggstop_);
     //#ifdef POWERAUTOONOFFMODE2
     //int powerAutoOnOff = -1;
     //pC_->getIntegerParam(axisNo_,pC_->motorPowerAutoOnOff_,&powerAutoOnOff);
@@ -1268,13 +1284,14 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     //  printf("Safety[%d]: Disabled auto power on/off state.\n",axisNo_);
     //}
 
-    if (!drvlocal.ecmcBusy) {
-      setIntegerParam(pC_->motorClosedLoop_, 0);
-      int disable = -1;
-      pC_->getIntegerParam(axisNo_,pC_->ecmcMotorRecordTRIGG_DISABLE_,&disable);
-      setIntegerParam(pC_->ecmcMotorRecordTRIGG_DISABLE_, disable++);
+    if (!drvlocal.ecmcBusy && drvlocal.ecmcSafetyInterlock) {
+      asynMotorAxis::setIntegerParam(pC_->motorClosedLoop_, 0);      
+      asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_DISABLE_, triggstop_++);
     }
+    //pC_->callParamCallbacks();
+    callParamCallbacks();
   }
+
   //#endif // ifdef POWERAUTOONOFFMODE2
 
   if (status) {
@@ -1282,9 +1299,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   if (drvlocal.ecmcAxis) {
-    drvlocal.moveNotReadyNext = drvlocal.ecmcBusy ||
+    drvlocal.moveNotReadyNext = (drvlocal.ecmcBusy ||
                                 !drvlocal.statusBinData.onChangeData.statusWd.
-                                attarget;
+                                attarget) && drvlocal.statusBinData.onChangeData.statusWd.enabled;
   } else {
     drvlocal.moveNotReadyNext = false;
   }

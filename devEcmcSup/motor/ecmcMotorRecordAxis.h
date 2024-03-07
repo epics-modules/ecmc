@@ -122,10 +122,11 @@ private:
     char sErrorMessage[80];               /* From controller */
     bool ecmcBusy;
     bool ecmcSafetyInterlock;
+    bool ecmcSummaryInterlock;
   } drvlocal;
 
   //int       restorePowerOnOffNeeded_;
-
+  int        triggstop_;
   asynStatus readBackAllConfig(int axisID);
   asynStatus updateCfgValue(int         function,
                             int         newValue,
