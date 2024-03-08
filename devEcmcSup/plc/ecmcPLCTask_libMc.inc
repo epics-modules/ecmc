@@ -51,7 +51,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_set_prim_enc(",
                                "mc_get_prim_enc(",
                                "mc_set_axis_error(",
-                               "mc_set_slave_axis_error(",
+                               "mc_set_slaved_axis_in_error(",
                               };
 
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
