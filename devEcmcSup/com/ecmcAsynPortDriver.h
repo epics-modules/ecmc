@@ -127,7 +127,8 @@ public:
   virtual void      report(FILE *fp,
                            int   details);
   void              grepParam(FILE       *fp,
-                              const char *pattern);
+                              const char *pattern,
+                              int details);
   void              grepRecord(FILE       *fp,
                                const char *pattern);
   void              setAllowRtThreadCom(bool allowRtCom);
@@ -171,7 +172,8 @@ private:
 
   void              reportParamInfo(FILE             *fp,
                                     ecmcAsynDataItem *param,
-                                    int               listIndex);
+                                    int               listIndex,
+                                    int               details);
   bool allowRtThreadCom_;
   ecmcAsynDataItem **pEcmcParamAvailArray_;
   ecmcAsynDataItem **pEcmcParamInUseArray_;

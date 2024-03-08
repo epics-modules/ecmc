@@ -82,6 +82,7 @@ typedef struct ecmcParamInfo {
   bool          cmdUint64ToFloat64;
   bool          cmdInt64ToFloat64;
   bool          cmdFloat64ToInt32;
+  bool          cmdUint32ToFloat64;
 } ecmcParamInfo;
 
 /**

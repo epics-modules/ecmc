@@ -262,6 +262,18 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
       }
     }
 
+    if (paramInfo_.cmdUint32ToFloat64) {
+      if (dataItem_.dataSize == sizeof(uint64_t)) {
+        stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,
+                                               paramInfo_.index,
+                                               static_cast<epicsFloat64>(*(
+                                                                           uint32_t
+                                                                           *)
+                                                                         data));
+        break;
+      }
+    }
+
     if (paramInfo_.cmdFloat64ToInt32) {
       if (dataItem_.dataSize == sizeof(double)) {
         stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
@@ -891,6 +903,22 @@ asynStatus ecmcAsynDataItem::readFloat64(epicsFloat64 *value) {
     }
   }
 
+  if (paramInfo_.cmdUint32ToFloat64) {
+    if ((paramInfo_.asynType == asynParamFloat64) &&
+        (dataItem_.dataSize == sizeof(uint32_t))) {
+      *value = static_cast<epicsFloat64>(*(uint32_t *)dataItem_.data);
+      return asynSuccess;
+    } else {
+      LOGERR(
+        "%s/%s:%d: ERROR: %s read error. cmdUint64ToFloat64 fail. Size or type error (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        getName(),
+        ERROR_ASYN_CMD_FAIL);
+      return asynError;
+    }
+  }
   // Special case F32
   if (dataItem_.dataType == ECMC_EC_F32) {
     if ((paramInfo_.asynType == asynParamFloat64) &&
@@ -1498,6 +1526,7 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char *drvInfo) {
   paramInfo_.cmdUint64ToFloat64 = false;
   paramInfo_.cmdInt64ToFloat64  = false;
   paramInfo_.cmdFloat64ToInt32  = false;
+  paramInfo_.cmdUint32ToFloat64 = false;
 
   isThere = strstr(drvInfo, option);
 
@@ -1529,12 +1558,22 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char *drvInfo) {
     }
     bool cmdOK = false;
 
-    // Check UINT2FLOAT64
-    isThere = strstr(buffer, ECMC_OPTION_CMD_UINT_TO_FLOAT64);
+    // Check UINT642FLOAT64
+    isThere = strstr(buffer, ECMC_OPTION_CMD_UINT64_TO_FLOAT64);
 
     if (isThere) {
       paramInfo_.cmdUint64ToFloat64 = true;
       cmdOK                         = true;
+    }
+
+    if (!cmdOK) {
+      // Check UINT322FLOAT64
+      isThere = strstr(buffer, ECMC_OPTION_CMD_UINT32_TO_FLOAT64);
+
+      if (isThere) {
+        paramInfo_.cmdUint32ToFloat64 = true;
+        cmdOK                         = true;
+      }
     }
 
     if (!cmdOK) {
