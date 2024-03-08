@@ -70,8 +70,7 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
   if (!ec_) return ERROR_PLCS_EC_NOT_INITIALIZED;
 
   if (plcs_[plcIndex]) {
-    delete plcs_[plcIndex];
-    plcs_[plcIndex] = NULL;
+    return ERROR_PLCS_PLC_INDEX_ALREADY_CREATED;
   }
 
   plcs_[plcIndex] = new ecmcPLCTask(plcIndex,
