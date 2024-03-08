@@ -1,7 +1,15 @@
 
 Release Notes
 ===
-# master
+# ECMC v9.2.0
+* Add plc functions to set an axis error code:
+```
+# Set general error
+mc_set_axis_error(<axis_id>,<error_code>);
+
+# Set axis error that indicates that a slaved axis is in error state.
+mc_set_slaved_axis_in_error(<axis_id>);
+```
 * Auto reset ERROR_AXIS_NOT_ENABLED in setEnable function.
 * Set general error interlock bit
 * Remove not homed error in ecmcMotorRecord.cpp

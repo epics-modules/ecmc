@@ -104,7 +104,7 @@ inline double m2m_stat() {
   if (ecmcPLCTask::statShm_.valid == 0) {
     m2m_errorCode = ERROR_SHM_NULL;
     LOGERR("ERROR: SHM object NULL.\n");
-    return ERROR_SHM_NULL;
+    return -ERROR_SHM_NULL;
   }                 
 
   return (double)ecmcPLCTask::statShm_.valid;
