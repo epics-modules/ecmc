@@ -921,7 +921,7 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
   }
 
   int errorCode = drvlocal.ecmcAxis->setEnable(on);
-
+  
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (errorCode) {
@@ -936,6 +936,7 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
     return asynError;
   }
 
+  
   return asynSuccess;
 }
 
@@ -958,6 +959,7 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
     }
     asynMotorAxis::setIntegerParam(pC_->motorStop_, triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc    
     asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_STOPP_,triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc
+    asynMotorAxis::setIntegerParam(pC_->motorStatusDone_, 1);    
     callParamCallbacks();
   }
 
@@ -981,17 +983,10 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
 
   if(drvlocal.ecmcSafetyInterlock && on) {
     printf("Safety[%d]: enableAmplifier(%d) failed. Ecmc safety interlock active\n",axisNo_,on);
+    asynMotorAxis::setIntegerParam(pC_->motorClosedLoop_, 0);
+    callParamCallbacks();
     return asynError;
   }
-//
-  //#ifdef POWERAUTOONOFFMODE2
-//
-  //if(!drvlocal.ecmcSafetyInterlock && restorePowerOnOffNeeded_) {
-  //    printf("Safety[%d]: Restoring auto power on/off state.\n",axisNo_);
-  //    setIntegerParam(pC_->motorPowerAutoOnOff_, 1);
-  //    restorePowerOnOffNeeded_ = 0;
-  //}
-  //#endif // ifdef POWERAUTOONOFFMODE2
 
   asynStatus status  = asynSuccess;
   unsigned   counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME /
@@ -1273,7 +1268,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
       triggstop_++;
     }
     asynMotorAxis::setIntegerParam(pC_->motorStop_, triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc    
-    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_STOPP_,triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc
+    
     //printf("Safety[%d]: Writing motor stop %d\n",axisNo_,triggstop_);
     //#ifdef POWERAUTOONOFFMODE2
     //int powerAutoOnOff = -1;
@@ -1285,8 +1280,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     //}
 
     if (!drvlocal.ecmcBusy && drvlocal.ecmcSafetyInterlock) {
-      asynMotorAxis::setIntegerParam(pC_->motorClosedLoop_, 0);      
-      asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_DISABLE_, triggstop_++);
+      asynMotorAxis::setIntegerParam(pC_->motorClosedLoop_, 0);
     }
     //pC_->callParamCallbacks();
     callParamCallbacks();
