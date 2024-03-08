@@ -847,6 +847,8 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_get_act_pos",  mc_get_act_pos);
   ecmcPLCTaskAddFunction("mc_set_prim_enc", mc_set_prim_enc);
   ecmcPLCTaskAddFunction("mc_get_prim_enc", mc_get_prim_enc);
+  ecmcPLCTaskAddFunction("mc_set_axis_error", mc_set_axis_error);
+  ecmcPLCTaskAddFunction("mc_set_slaved_axis_in_error", mc_set_slaved_axis_in_error);
 
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",
