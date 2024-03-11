@@ -2,6 +2,28 @@
 Release Notes
 ===
 # master
+* Add fucntion to list asyn parameters in a compact way by setting details to -1. Valid for ecmcReport and ecmcGrepParam iocsh commands.
+```
+c6025a> ecmcGrepParam *s2* -1
+####################################################################:
+ecmc parameters that fit pattern *s2*:
+p[38] = ec0.s2.encoderStatus01
+p[39] = ec0.s2.positionActual01
+p[40] = ec0.s2.encoderLatchPostion01
+...
+```
+* Add asyn conversion command to convert uint32 to doubles: UINT32TOFLOAT64:
+```
+field(INP,  "@asyn(${PORT},${ADDR=0},${TIMEOUT=1})CMD=UINT32TOFLOAT64/TYPE=asynFloat64/ec0.s1.timestamp01?")
+```
+* Add plc functions to set an axis error code:
+```
+# Set general error
+mc_set_axis_error(<axis_id>,<error_code>);
+
+# Set axis error that indicates that a slaved axis is in error state.
+mc_set_slaved_axis_in_error(<axis_id>);
+```
 * Auto reset ERROR_AXIS_NOT_ENABLED in setEnable function.
 * Set general error interlock bit
 * Remove not homed error in ecmcMotorRecord.cpp

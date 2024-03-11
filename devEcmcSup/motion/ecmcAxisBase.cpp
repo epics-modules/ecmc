@@ -2855,3 +2855,8 @@ double ecmcAxisBase::getEncVelo() {
 double ecmcAxisBase::getTrajVelo() {
   return data_.status_.currentVelocitySetpoint;
 }
+
+int ecmcAxisBase::setSlavedAxisInError() {
+  setErrorID(ERROR_AXIS_SLAVED_AXIS_IN_ERROR);
+  return 0;
+}

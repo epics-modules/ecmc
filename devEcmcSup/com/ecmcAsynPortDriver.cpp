@@ -1159,7 +1159,19 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser    *pasynUser,
         (pEcmcParamInUseArray_[index]->getEcmcBitCount() != 64)) {
       asynPrint(pasynUser,
                 ASYN_TRACE_ERROR,
-                "%s:%s: Command " ECMC_OPTION_CMD_UINT_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",
+                "%s:%s: Command " ECMC_OPTION_CMD_UINT64_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",
+                driverName,
+                functionName,
+                drvInfo);
+      delete newParam;
+      return asynError;
+    }
+
+    if (existentParInfo->cmdUint32ToFloat64 &&
+        (pEcmcParamInUseArray_[index]->getEcmcBitCount() != 32)) {
+      asynPrint(pasynUser,
+                ASYN_TRACE_ERROR,
+                "%s:%s: Command " ECMC_OPTION_CMD_UINT32_TO_FLOAT64 " is only valid for 4 byte parameters (drvInfo = %s).\n",
                 driverName,
                 functionName,
                 drvInfo);
@@ -1243,7 +1255,8 @@ void ecmcAsynPortDriver::refreshAllInUseParamsRT() {
 
 void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
                                          ecmcAsynDataItem *param,
-                                         int               listIndex) {
+                                         int               listIndex,
+                                         int               details) {
   if (!param) {
     return;
   }
@@ -1251,6 +1264,11 @@ void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
 
   if (!paramInfo) {
     return;
+  }
+
+  if( details < 0 ) {
+   fprintf(fp, "p[%d] = %s\n",listIndex, param->getName());
+   return;
   }
 
   fprintf(fp, "  Parameter %d:\n",                   listIndex);
@@ -1348,8 +1366,11 @@ void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
             param->getEcmcBitCount());
   }
   fprintf(fp,
-          "    ECMC Cmd: Uint2Float64:    %s\n",
+          "    ECMC Cmd: Uint642Float64:    %s\n",
           paramInfo->cmdUint64ToFloat64 ? "true" : "false");
+  fprintf(fp,
+          "    ECMC Cmd: Uint322Float64:    %s\n",
+          paramInfo->cmdUint32ToFloat64 ? "true" : "false");
   fprintf(fp,
           "    ECMC Cmd: Int2Float64:     %s\n",
           paramInfo->cmdInt64ToFloat64 ? "true" : "false");
@@ -1405,7 +1426,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details) {
     fprintf(fp, "\n");
   }
 
-  if (details >= 1) {
+  if (details >= 1 ) {
     // print all parameters in use
     fprintf(fp,
             "####################################################################:\n");
@@ -1420,11 +1441,11 @@ void ecmcAsynPortDriver::report(FILE *fp, int details) {
                 i);
         return;
       }
-      reportParamInfo(fp, pEcmcParamInUseArray_[i], i);
+      reportParamInfo(fp, pEcmcParamInUseArray_[i], i, details);
     }
   }
 
-  if (details >= 2) {
+  if (details >= 2 || details < 0) {
     // print all available parameters
     fprintf(fp,
             "####################################################################:\n");
@@ -1439,7 +1460,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details) {
                 i);
         return;
       }
-      reportParamInfo(fp, pEcmcParamAvailArray_[i], i);
+      reportParamInfo(fp, pEcmcParamAvailArray_[i], i, details);
     }
   }
 
@@ -1456,7 +1477,7 @@ void ecmcAsynPortDriver::report(FILE *fp, int details) {
   }
 }
 
-void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern) {
+void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern, int details) {
   const char *functionName = "grepParam";
 
   asynPrint(pasynUserSelf,
@@ -1481,7 +1502,7 @@ void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern) {
 
       if (paramInfo) {
         if (epicsStrGlobMatch(paramInfo->name, pattern)) {
-          reportParamInfo(fp, pEcmcParamAvailArray_[i], i);
+          reportParamInfo(fp, pEcmcParamAvailArray_[i], i,details);
         }
       }
     }
@@ -1515,7 +1536,7 @@ void ecmcAsynPortDriver::grepRecord(FILE *fp, const char *pattern) {
         // Match param-name or record-name
         if (paramInfo->initialized) {
           if (epicsStrGlobMatch(paramInfo->recordName, pattern)) {
-            reportParamInfo(fp, pEcmcParamAvailArray_[i], i);
+            reportParamInfo(fp, pEcmcParamAvailArray_[i], i, 2);
           }
         }
       }
@@ -1812,7 +1833,7 @@ static void initCallFunc_5(const iocshArgBuf *args) {
 }
 
 /* EPICS iocsh shell command: ecmcGrepParam*/
-int ecmcGrepParam(const char *pattern) {
+int ecmcGrepParam(const char *pattern, int details) {
   if (!ecmcAsynPortObj) {
     printf(
       "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
@@ -1827,18 +1848,21 @@ int ecmcGrepParam(const char *pattern) {
     return asynError;
   }
 
-  ecmcAsynPortObj->grepParam(stdout, pattern);
+  ecmcAsynPortObj->grepParam(stdout, pattern, details);
 
   return 0;
 }
 
 static const iocshArg initArg0_6 =
 { "Pattern", iocshArgString };
-static const iocshArg *const initArgs_6[]  = { &initArg0_6 };
+static const iocshArg initArg1_6 = 
+{ "Details", iocshArgString };
+
+static const iocshArg *const initArgs_6[]  = { &initArg0_6, &initArg1_6};
 static const iocshFuncDef    initFuncDef_6 =
-{ "ecmcGrepParam", 1, initArgs_6 };
+{ "ecmcGrepParam", 2, initArgs_6 };
 static void initCallFunc_6(const iocshArgBuf *args) {
-  ecmcGrepParam(args[0].sval);
+  ecmcGrepParam(args[0].sval, args[1].ival);
 }
 
 /* EPICS iocsh shell command: ecmcGrepRecord*/

@@ -466,6 +466,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x1432B:
+    return "ERROR_AXIS_SLAVED_AXIS_IN_ERROR";
+
+    break;
+
   case 0x14600:   // DRIVE
     return "ERROR_DRV_DRIVE_INTERLOCKED";
 
@@ -2535,6 +2540,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x20709:
     return "ERROR_PLCS_PLUGIN_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x2070A:
+    return "ERROR_PLCS_PLC_INDEX_ALREADY_CREATED";
 
     break;
 

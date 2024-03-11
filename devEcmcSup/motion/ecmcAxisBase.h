@@ -77,6 +77,7 @@
 #define ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY 0x14328
 #define ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL 0x14329
 #define ERROR_AXIS_SAFETY_IL_ACTIVE 0x1432A
+#define ERROR_AXIS_SLAVED_AXIS_IN_ERROR 0x1432B
 
 // AXIS WARNINGS
 #define WARNING_AXIS_ASYN_CMD_WHILE_BUSY 0x114300
@@ -223,6 +224,7 @@ public:
   bool                       getError();
   int                        getErrorID();
   void                       errorReset();
+  int                        setSlavedAxisInError();
   int                        setEnableLocal(bool enable);
   int                        validateBase();
   bool                       getBusy();
