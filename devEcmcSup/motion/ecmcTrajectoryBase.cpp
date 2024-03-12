@@ -48,6 +48,8 @@ void ecmcTrajectoryBase::initVars() {
   execute_                     = 0;
   executeOld_                  = 0;
   startPosition_               = 0;
+  externalVeloLimit_           = 0;
+  externalVeloLimitActive_     = 0;
   enable_                      = false;
   enableOld_                   = false;
   busy_                        = false;
@@ -374,7 +376,21 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
 }
 
 void ecmcTrajectoryBase::setTargetVel(double velTarget) {
+
   targetVelocity_ = velTarget;
+
+  if(externalVeloLimitActive_) {
+    if(std::abs(targetVelocity_)>std::abs(externalVeloLimit_)){
+      // Limit positive
+      if(targetVelocity_ > 0) {
+        targetVelocity_ = std::abs(externalVeloLimit_);
+      } else if(targetVelocity_ < 0) {
+        // Limit negative
+        targetVelocity_ = -std::abs(externalVeloLimit_);
+      }
+    }
+  }
+  
   initTraj();
 }
 
@@ -475,4 +491,10 @@ double ecmcTrajectoryBase::updateSetpoint(double nextSetpoint,
 
 double ecmcTrajectoryBase::getTargetPosMod() {
   return checkModuloPos(targetPosition_);
+}
+
+// Set velo limit from external source (like ecmc_plugin_safety)
+void ecmcTrajectoryBase::setExternalMaxVelo(double veloLimit,int active) {
+  externalVeloLimit_       = veloLimit;
+  externalVeloLimitActive_ = active;
 }

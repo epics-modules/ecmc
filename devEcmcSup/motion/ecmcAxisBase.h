@@ -323,6 +323,7 @@ public:
   void       setAcc(double acc);
   void       setDec(double dec);
   void       setEmergencyStopInterlock(int stop);
+  void       setExternalMaxVelo(double veloLimit,int active);
   double     getTrajVelo();
   double     getEncVelo();
 

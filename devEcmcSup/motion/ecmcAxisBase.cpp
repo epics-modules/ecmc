@@ -2848,6 +2848,10 @@ void ecmcAxisBase::setEmergencyStopInterlock(int stop) {
   }
 }
 
+void ecmcAxisBase::setExternalMaxVelo(double veloLimit,int active) {
+  getTraj()->setExternalMaxVelo(veloLimit, active);
+}
+
 double ecmcAxisBase::getEncVelo() {
   return data_.status_.currentVelocityActual;
 }

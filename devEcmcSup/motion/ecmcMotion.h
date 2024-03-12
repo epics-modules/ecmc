@@ -3580,16 +3580,30 @@ int setAxisAllowSourceChangeWhenEnabled(int axisIndex,
 int getAxisValid(int axisIndex);
 
 /** \brief Init emergency stop ramp for an axis
- *
+ * 
  * \note This is not related to safety.\n
  * The system just tries to ramp down.\n
  * The real safety must be handled in a safety PLC.\n
  *
+ * \note See ecmc_plugin_safety for more infoirmation
+ * 
  * \param[in] axisIndex  Axis index.\n
  * \param[in] stop  stop axis.\n
 */
 int setAxisEmergencyStopInterlock(int axisIndex,
                                   int stop);
+
+/** \brief Set external max velo limit for an axis
+ *
+ * \note See ecmc_plugin_safety for more infoirmation
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] veloLimit  Velocity limit.\n 
+ * \param[in] active     Max velo limit activate/deactivate.\n
+*/
+int setAxisExtMaxVelo(int axisIndex,                             
+                      double veloLimit,
+                      int active);
 
 # ifdef __cplusplus
 }

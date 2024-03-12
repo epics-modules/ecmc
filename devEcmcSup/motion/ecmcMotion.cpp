@@ -3219,6 +3219,23 @@ int setAxisEmergencyStopInterlock(int axisIndex, int stop) {
   return 0;
 }
 
+int setAxisExtMaxVelo(int axisIndex,                             
+                      double veloLimit,
+                      int active) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, veloLimit = %lf, active=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           veloLimit,
+           active);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  axes[axisIndex]->setExternalMaxVelo(veloLimit,
+                                      active);
+  return 0;
+}
+
 int getAxisEncVelo(int     axisIndex,
                    double *velo) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",

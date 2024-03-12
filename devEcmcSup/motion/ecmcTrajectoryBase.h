@@ -192,7 +192,9 @@ public:
   motionDirection getCurrSetDir();
   motionDirection checkDirection(double oldPos,
                                  double newPos);
-
+  // Possability to set a reduced velo from external ecmc_plugin_safety 
+  void setExternalMaxVelo(double veloLimit,
+                          int active);
 protected:
   virtual void initTraj();
   void         initVars();
@@ -232,5 +234,7 @@ protected:
   interlockTypes interlockStatus_;
   ecmcAxisData *data_;
   stopMode latchedStopMode_;
+  double externalVeloLimit_;
+  int externalVeloLimitActive_;
 };
 #endif  // ifndef SRC_ECMCTRAJECTORYBASE_H_
