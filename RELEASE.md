@@ -1,6 +1,9 @@
 
 Release Notes
 ===
+# master
+* Add support for limiting velocity. For use with plugin ecmc_plugin_safety.
+
 # ECMC v9.2.0
 * Add support for connection/interfacing to external safety system/PLC (also see plugin ecmc_plugin_safety)
 * Add function to list asyn parameters in a compact way by setting details to -1. Valid for ecmcReport and ecmcGrepParam iocsh commands.
