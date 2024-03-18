@@ -1,7 +1,7 @@
 
 Release Notes
 ===
-# master
+# ECMC v9.3.0
 * Add support for limiting velocity. For use with plugin ecmc_plugin_safety.
 
 # ECMC v9.2.0
