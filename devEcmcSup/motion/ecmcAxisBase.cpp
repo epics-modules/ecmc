@@ -671,6 +671,7 @@ int ecmcAxisBase::getErrorID() {
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
   if (enable && !data_.command_.enable) {
+    errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel
     traj_->setStartPos(data_.status_.currentPositionActual);

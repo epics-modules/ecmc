@@ -1,6 +1,9 @@
 
 Release Notes
 ===
+# ECMC v9.4.0
+* Add axis error reset at positive setEnable flank
+
 # ECMC v9.3.0
 * Add support for limiting velocity. For use with plugin ecmc_plugin_safety.
 
