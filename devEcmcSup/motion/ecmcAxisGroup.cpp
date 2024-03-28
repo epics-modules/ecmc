@@ -10,10 +10,11 @@
 *
 \*************************************************************************/
 
-ecmcAxisGroup::ecmcAxisGroup(const char *grpName){
+ecmcAxisGroup::ecmcAxisGroup(int index, const char *grpName){
   name_ = grpName;
   axesCounter_ = 0;
-  printf("ecmcAxisGroup: Created axis group %s.\n",name_.c_str());
+  index_ = index;
+  printf("ecmcAxisGroup: Created axis group[%d] %s.\n", index_, name_.c_str());
 };
 
 ecmcAxisGroup::~ecmcAxisGroup(){
@@ -28,7 +29,7 @@ void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
   axes_.push_back(axis);
   axesIds_.push_back(axis->getAxisID())
   axesCounter_++;
-  printf("ecmcAxisGroup::addAxis: Added axis %d to group %s.\n", axis->getAxisID(),name_.c_str());
+  printf("ecmcAxisGroup: Added axis %d to group[%d] %s.\n", axis->getAxisID(),index_,name_.c_str());
 };
 
 // Check if all axes in group are enable
@@ -214,3 +215,19 @@ void ecmcAxisGroup::stop(){
     }
   }
 };
+
+// Check if axis is in group
+bool ecmcAxisGroup::inGroup(int axisIndex){
+  for(const int& i : axesIds_) {
+    if(i == axisIndex)  {
+      return 1;
+    }   
+  }
+  return 0;
+}
+
+// Axis count in group
+size_t ecmcAxisGroup::size(){
+  return axesCounter_;
+}
+    

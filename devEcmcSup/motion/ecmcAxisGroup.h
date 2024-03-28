@@ -28,20 +28,14 @@ class ecmcAxisGroup : public ecmcError {
     void addAxis(ecmcAxisBase *axis);
     // Check if all axes in group are enable
     bool getEnable();
-    // Check if all axes in group are not enable
-    bool getDisable();
     // Check if at least one axis in group are enable
     bool getAnyEnable();
     // Check if all axes in group are enabled
     bool getEnabled();
     // Check if all axes in group are not not enabled
-    bool getDisabled();
-    // Check if at least one axis in group are enabled
     bool getAnyEnabled();
     // Check if all axes in group are busy
     bool getBusy();
-    // Check if all axes in group are not busy
-    bool getFree();
     // Check if at least one axis in group are busy
     bool getAnyBusy();
     // Check if at least one axis in group are in error state
@@ -60,6 +54,10 @@ class ecmcAxisGroup : public ecmcError {
     void setSlavedAxisInError();
     // Stop motion
     void stop();
+    // Check if axis is in group
+    bool inGroup(int axisIndex);
+    // Axis count in group
+    size_t size();
     
   private:
     std::string name_;    

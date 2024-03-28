@@ -52,6 +52,22 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_get_prim_enc(",
                                "mc_set_axis_error(",
                                "mc_set_slaved_axis_in_error(",
+                               "mc_grp_get_enable(",
+                               "mc_grp_get_any_enable(",
+                               "mc_grp_get_enabled(",
+                               "mc_grp_get_any_enabled(",
+                               "mc_grp_get_busy(",
+                               "mc_grp_get_any_busy(",
+                               "mc_grp_get_any_error_id(",
+                               "mc_grp_set_enable(",
+                               "mc_grp_set_traj_src(",
+                               "mc_grp_set_enc_src(",
+                               "mc_grp_set_error_reset(",
+                               "mc_grp_set_error(",
+                               "mc_grp_setSlavedAxisInError(",
+                               "mc_grp_stop(",
+                               "mc_grp_axis_in_grp(",
+                               "mc_grp_size(",
                               };
 
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
@@ -62,7 +78,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 19;
+static int mc_cmd_count = 35;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -504,5 +520,22 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
   }
   return 0.0;
 }
+
+  /*  bool getEnable();
+    bool getAnyEnable();
+    bool getEnabled();
+    bool getAnyEnabled();
+    bool getBusy();
+    bool getAnyBusy();
+    int getAnyErrorId();
+    int setEnable(bool enable);
+    int setTrajSrc(dataSource trajSource);
+    int setEncSrc(dataSource encSource);
+    void setErrorReset();
+    void setError(int error);
+    void setSlavedAxisInError();
+    void stop();
+    bool inGroup(int axisIndex);
+    size_t size();"*/
 
 #endif /* ecmcPLC_libMc_inc_ */
