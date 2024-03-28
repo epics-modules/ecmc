@@ -57,7 +57,7 @@ class ecmcAxisGroup : public ecmcError {
     // Set errors all axes
     void setError(int error);
     // Set slaved axis error all axes
-    void setSlaveAxisError();
+    void setSlavedAxisInError();
     // Stop motion
     void stop();
     

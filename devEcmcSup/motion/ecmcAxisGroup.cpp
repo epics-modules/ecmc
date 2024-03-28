@@ -13,6 +13,7 @@
 ecmcAxisGroup::ecmcAxisGroup(const char *grpName){
   name_ = grpName;
   axesCounter_ = 0;
+  printf("ecmcAxisGroup: Created axis group %s.\n",name_.c_str());
 };
 
 ecmcAxisGroup::~ecmcAxisGroup(){
@@ -25,8 +26,9 @@ void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
     throw std::runtime_error( "Axis NULL");
   }
   axes_.push_back(axis);
-  axesIds_.push_back(axis->getAxisID)
+  axesIds_.push_back(axis->getAxisID())
   axesCounter_++;
+  printf("ecmcAxisGroup::addAxis: Added axis %d to group %s.\n", axis->getAxisID(),name_.c_str());
 };
 
 // Check if all axes in group are enable
@@ -196,7 +198,7 @@ void ecmcAxisGroup::setError(int error){
 }
 
 // Set slaved axis error all axes
-void ecmcAxisGroup::setSlaveAxisError(){
+void ecmcAxisGroup::setSlavedAxisInError(){
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
       (*axis)->setSlavedAxisInError();
