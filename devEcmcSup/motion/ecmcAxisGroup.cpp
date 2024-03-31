@@ -21,6 +21,10 @@ ecmcAxisGroup::~ecmcAxisGroup(){
 
 };
 
+const char* ecmcAxisGroup::getName(){
+  return name_.c_str();
+};
+
 // Add axis to group
 void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
   if(!axis) {

@@ -2761,31 +2761,30 @@ int createAxis(int index, int type, int drvType, int trajType) {
   return axes[index]->getErrorID();
 }
 
-int createAxisGroup(int index, const char name) {
-  LOGINFO4("%s/%s:%d index=%d name=%s\n",
+int addAxisGroup(const char *name) {
+  LOGINFO4("%s/%s:%d name=%s\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           index,
            name);
 
+  int index = axisGroupCounter;
   if ((index < 0) || (index >= ECMC_MAX_AXES)) {
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
   }
 
   // Do not allow create already created axis (must be deleted first)
-  if (axisgrps[index] != NULL) {
+  if (axisGroups[index] != NULL) {
     return ERROR_MAIN_AXIS_ALREADY_CREATED;
   }
 
   try {
-    
-      axisgrps[index] = new ecmcAxisGroup(index, name);
-    
+    axisGroups[index] = new ecmcAxisGroup(index, name);
+    axisGroupCounter++;
   }
   catch (std::exception& e) {
-    delete axes[index];
-    axes[index] = NULL;
+    delete axisGroups[index];
+    axisGroups[index] = NULL;
     LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXISGROUP OBJECT.\n",
            __FILE__,
            __FUNCTION__,
@@ -2794,7 +2793,61 @@ int createAxisGroup(int index, const char name) {
     return ERROR_MAIN_EXCEPTION;
   }
   
-  return axisgrps[index]->getErrorID();
+  return axisGroups[index]->getErrorID();
+}
+
+int getAxisGroupIndexByName(const char* grpName, int *index) {
+  
+  for(size_t i = 0; i < axisGroupCounter; i++ ) {
+    if(!axisGroups[i]) {
+      *index = -1;
+      return ERROR_AXISGRP_NOT_FOUND;
+    }
+    if(strcmp(axisGroups[i].getName(), grpName) == 0) {
+      *index = i;
+      return 0;
+    }
+  }
+  *index = -1;
+  return ERROR_AXISGRP_NOT_FOUND;
+}
+
+int addAxisToGroupByName(int axIndex, const char *grpName) {
+
+  int index = -1;
+  int error = getAxisGroupIndexByName(grpName, &index);
+  if(error) {
+    return error;
+  }
+  return addAxisToGroupByIndex(axIndex, index);
+}
+
+int addAxisToGroupByIndex(int axIndex, int grpIndex) {
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axIndex);
+
+  if(grpIndex >= axisGroupCounter || grpIndex < 0 ) {
+    if(!axisGroups[grpIndex]) {
+      return ERROR_AXISGRP_NOT_FOUND;
+    }
+  }
+  
+  if ((axIndex < 0) || (axIndex >= ECMC_MAX_AXES)) {
+    return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
+  }
+
+  try {
+    axisGroups[grpIndex]->addAxis(axes[axIndex]);
+  }
+  catch (std::exception& e) {
+    LOGERR("%s/%s:%d: EXCEPTION %s WHEN ADDING AXIS to GROUP.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           e.what());
+    return ERROR_MAIN_EXCEPTION;
+  }
+  return 0;
 }
 
 int linkEcEntryToAxisEnc(int   slaveIndex,

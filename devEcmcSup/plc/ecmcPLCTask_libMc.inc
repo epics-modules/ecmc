@@ -27,6 +27,30 @@
     }                                                         \
   }                                                           \
 
+#define CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex) {         \
+  if(grpIndex>=ECMC_MAX_AXES || grpIndex<=0){                 \
+    mc_errorCode=0;                                           \
+    LOGERR("ERROR: Group index out of range.\n");             \
+    return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
+    if(ecmcPLCTask::statAxisGrp_[grpIndex]==NULL){            \
+      LOGERR("ERROR: Group object NULL\n");                   \
+      return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
+    }                                                         \
+  }                                                           \
+
+#define CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex) {       \
+ if(grpIndex >= ECMC_MAX_AXES || grpIndex <= 0){              \
+    mc_errorCode=ERROR_PLC_AXIS_ID_OUT_OF_RANGE;              \
+    LOGERR("ERROR: Group index out of range.\n");             \
+    return 0;                                                 \
+  }                                                           \
+  if(ecmcPLCTask::statAxisGrp_[grpIndex] == NULL){            \
+    mc_errorCode=ERROR_PLC_AXIS_OBJECT_NULL;                  \
+    LOGERR("ERROR: Group object NULL\n");                     \
+    return 0;                                                 \
+  }                                                           \
+}                                                             \
+
 #define CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(axIndex) { \
   if(!ecmcPLCTask::statAxes_[index]->getAllowCmdFromPLC()) {  \
     mc_errorCode=ERROR_MAIN_AXIS_COM_BLOCKED;                 \
@@ -63,7 +87,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_set_enable(",
                                "mc_grp_set_traj_src(",
                                "mc_grp_set_enc_src(",
-                               "mc_grp_set_error_reset(",
+                               "mc_grp_reset_error(",
                                "mc_grp_set_error(",
                                "mc_grp_set_slaved_axis_in_error(",
                                "mc_grp_halt(",
@@ -524,70 +548,85 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
   return 0.0;
 }
 
+// Group functions
 inline double mc_grp_get_enable(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->getEnable();
 }
 
 inline double mc_grp_get_any_enable(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->getAnyEnable();
 }
 
 inline double mc_grp_get_enabled(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->getEnabled();
 }
 
 inline double mc_grp_get_any_enabled(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->geAnytEnabled();
 }
 
 inline double mc_grp_get_busy(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->getBusy();
 }
 
 inline double mc_grp_get_any_busy(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->getAnyBusy();
 }
 
 inline double mc_grp_get_any_error_id(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->getAnyError();
 }
 
 inline double mc_grp_set_enable(double grpIndex, double enable){
-
+  CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->setEnable((int)enable);
 }
 
 inline double mc_grp_set_traj_src(double grpIndex, double source){
-
+  CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->setTrajSrc((dataSource)(int)source);
 }
 
 inline double mc_grp_set_enc_src(double grpIndex, double source){
-
+  CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->setEncSrc((dataSource)(int)source);
 }
 
-inline double mc_grp_set_error_reset(double grpIndex){
-
+inline double mc_grp_reset_error(double grpIndex){
+  CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->setErrorReset();
 }
 
 inline double mc_grp_set_error(double grpIndex, double errorId){
-
+  CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->setError((int)errorId);
 }
 
 inline double mc_grp_set_slaved_axis_in_error(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->setSlavedAxisInError();
 }
 
 inline double mc_grp_halt(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->halt();
 }
 
 inline double mc_grp_axis_in_grp(double grpIndex, double axisId){
-
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->inGroup(axisId);
 }
 
 inline double mc_grp_size(double grpIndex){
-
+  CHECK_PLC_AXISGRP_RETURN_IF_ERROR(grpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[grpIndex]->size();
 }
-
-  
 
 #endif /* ecmcPLC_libMc_inc_ */

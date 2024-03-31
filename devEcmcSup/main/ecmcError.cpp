@@ -1180,6 +1180,15 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_CNTRL_INVALID_SAMPLE_TIME";
 
     break;
+case 0x16000:    // Axis group
+    return "ERROR_AXISGRP_ADD_GROUP_FAIL";
+
+    break;
+
+case 0x16001:
+    return "ERROR_AXISGRP_NOT_FOUND";
+
+    break;
 
   case 0x30000:    // TRANSFORM
     return "ERROR_TRANSFORM_EXPR_NOT_COMPILED";

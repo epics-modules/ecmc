@@ -3236,7 +3236,37 @@ int createAxis(int axisIndex,
  * \note Example: Create an axis group called 'VirtAxes' at group index 1.\n
  *  "Cfg.CreateAxisGroup(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
  */
-int createAxisGroup(int index, const char name) {
+int createAxisGroup(int index, const char *name);
+
+/** \brief Adds an axis to an group
+ *
+ * \param[in] index index of axis to add.\n
+ * \param[in] name name of group.\n
+ *
+ * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
+ *  "Cfg.AddAxisToGroupByName(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
+ */
+int addAxisToGroupByName(int axIndex, const char *grpName);
+
+/** \brief Adds an axis to an group
+ *
+ * \param[in] index index of axis to add.\n
+ * \param[in] grpIndex index of group.\n
+ *
+ * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
+ *  "Cfg.AddAxisToGroupByName(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
+ */
+int addAxisToGroupByIndex(int axIndex, int grpIndex);
+
+/** \brief Get index of axis group by name
+ *
+ * \param[in] grpName name of group.\n
+ * \param[out] index index of group.\n
+ *
+ * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
+ *  "GetAxisGroupIndexByName('VirtAxes')" //Command string to ecmcCmdParser.c\n
+ */
+int getAxisGroupIndexByName(const char* grpName, int *index);
 
 /** \brief Links an EtherCAT entry to the encoder object of the axis at axisIndex.
    *

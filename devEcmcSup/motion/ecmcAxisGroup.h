@@ -13,6 +13,9 @@
 #ifndef ECMCAXISGROUP_H_
 #define ECMCAXISGROUP_H_
 
+#define ERROR_AXISGRP_ADD_GROUP_FAIL 0x16000
+#define ERROR_AXISGRP_NOT_FOUND 0x16001
+
 #include "ecmcError.h"
 #include "ecmcAxisBase.h"
 #include "ecmcDefinitions.h"
@@ -24,6 +27,8 @@ class ecmcAxisGroup : public ecmcError {
   public:
     ecmcAxisGroup(int index, const char *name);
     ~ecmcAxisGroup();
+    // Get fgroup name
+    const char* getName();
     // Add axis to group
     void addAxis(ecmcAxisBase *axis);
     // Check if all axes in group are enable
@@ -65,6 +70,5 @@ class ecmcAxisGroup : public ecmcError {
     std::vector<ecmcAxisBase*>  axes_;
     size_t axesCounter_;
     std::vector<int> axesIds_;
-
 }
 #endif  /* ECMCAXISGROUP_H_ */

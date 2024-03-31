@@ -872,7 +872,7 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_set_enable",mc_grp_set_enable);
   ecmcPLCTaskAddFunction("mc_grp_set_traj_src",mc_grp_set_traj_src);
   ecmcPLCTaskAddFunction("mc_grp_set_enc_src",mc_grp_set_enc_src);
-  ecmcPLCTaskAddFunction("mc_grp_set_error_reset",mc_grp_set_error_reset);
+  ecmcPLCTaskAddFunction("mc_grp_reset_error",mc_grp_reset_error);
   ecmcPLCTaskAddFunction("mc_grp_set_error",mc_grp_set_error);
   ecmcPLCTaskAddFunction("mc_grp_set_slaved_axis_in_error",
                          mc_grp_set_slaved_axis_in_error);

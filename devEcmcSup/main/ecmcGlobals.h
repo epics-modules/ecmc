@@ -27,7 +27,8 @@
 #include "epicsMutex.h"
 
 ecmcAxisBase *axes[ECMC_MAX_AXES];
-ecmcAxisGroup *axisgrps[ECMC_MAX_AXES];
+ecmcAxisGroup *axisGroups[ECMC_MAX_AXES];
+size_t axisGroupCounter = 0;
 ecmcEc *ec;
 ecmcEvent *events[ECMC_MAX_EVENT_OBJECTS];
 ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
