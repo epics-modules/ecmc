@@ -470,6 +470,17 @@ int ecmcPLCTask::setAxisArrayPointer(ecmcAxisBase *axis, int index) {
   return 0;
 }
 
+int ecmcPLCTask::setAxisGroupArrayPointer(ecmcAxisGroup *grp, int index) {
+  if ((index >= ECMC_MAX_AXES) || (index < 0)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
+  }
+  ecmcPLCTask::statAxisGrp_[index] = grp;
+  return 0;
+}
+
 int ecmcPLCTask::setDataStoragePointer(ecmcDataStorage *ds, int index) {
   if ((index >= ECMC_MAX_DATA_STORAGE_OBJECTS) || (index < 0)) {
     return setErrorID(__FILE__,
@@ -848,7 +859,27 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_set_prim_enc", mc_set_prim_enc);
   ecmcPLCTaskAddFunction("mc_get_prim_enc", mc_get_prim_enc);
   ecmcPLCTaskAddFunction("mc_set_axis_error", mc_set_axis_error);
-  ecmcPLCTaskAddFunction("mc_set_slaved_axis_in_error", mc_set_slaved_axis_in_error);
+  ecmcPLCTaskAddFunction("mc_set_slaved_axis_in_error", 
+                         mc_set_slaved_axis_in_error);
+  // axis Group
+  ecmcPLCTaskAddFunction("mc_grp_get_enable",mc_grp_get_enable);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_enable",mc_grp_get_any_enable);
+  ecmcPLCTaskAddFunction("mc_grp_get_enabled",mc_grp_get_enabled);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_enabled",mc_grp_get_any_enabled);
+  ecmcPLCTaskAddFunction("mc_grp_get_busy",mc_grp_get_busy);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_busy",mc_grp_get_any_busy);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_error_id",mc_grp_get_any_error_id);
+  ecmcPLCTaskAddFunction("mc_grp_set_enable",mc_grp_set_enable);
+  ecmcPLCTaskAddFunction("mc_grp_set_traj_src",mc_grp_set_traj_src);
+  ecmcPLCTaskAddFunction("mc_grp_set_enc_src",mc_grp_set_enc_src);
+  ecmcPLCTaskAddFunction("mc_grp_set_error_reset",mc_grp_set_error_reset);
+  ecmcPLCTaskAddFunction("mc_grp_set_error",mc_grp_set_error);
+  ecmcPLCTaskAddFunction("mc_grp_set_slaved_axis_in_error",
+                         mc_grp_set_slaved_axis_in_error);
+  ecmcPLCTaskAddFunction("mc_grp_halt",mc_grp_halt);
+  ecmcPLCTaskAddFunction("mc_grp_axis_in_grp",mc_grp_axis_in_grp);
+  ecmcPLCTaskAddFunction("mc_grp_size",mc_grp_size);
+  
 
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

@@ -84,6 +84,11 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
+  // Set axis group pointers (for the already configuered axes)
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    plcs_[plcIndex]->setAxisGroupArrayPointer(axisGrp_[i], i);
+  }
+
   // Set axes pointers (for the already configuered axes)
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     plcs_[plcIndex]->setAxisArrayPointer(axes_[i], i);
@@ -111,6 +116,17 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
+  return 0;
+}
+
+int ecmcPLCMain::setAxisGroupArrayPointer(ecmcAxisGroup *grp, int index) {
+  if ((index >= ECMC_MAX_AXES) || (index < 0)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE);
+  }
+  axisGrp_[index] = grp;
   return 0;
 }
 

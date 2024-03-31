@@ -22,7 +22,7 @@
 
 class ecmcAxisGroup : public ecmcError {
   public:
-    ecmcAxisGroup(const char *grpName);
+    ecmcAxisGroup(int index, const char *name);
     ~ecmcAxisGroup();
     // Add axis to group
     void addAxis(ecmcAxisBase *axis);
@@ -53,14 +53,15 @@ class ecmcAxisGroup : public ecmcError {
     // Set slaved axis error all axes
     void setSlavedAxisInError();
     // Stop motion
-    void stop();
+    void halt();
     // Check if axis is in group
     bool inGroup(int axisIndex);
     // Axis count in group
     size_t size();
     
   private:
-    std::string name_;    
+    std::string name_;  
+    int index_;  
     std::vector<ecmcAxisBase*>  axes_;
     size_t axesCounter_;
     std::vector<int> axesIds_;

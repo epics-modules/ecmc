@@ -19,6 +19,7 @@
 #include "exprtkWrap.h"
 #include "ecmcDefinitions.h"
 #include "ecmcAxisBase.h"
+#include "ecmcAxisGroup.h"
 #include "ecmcEc.h"
 #include "ecmcEcEntry.h"  // Bit macros
 #include "ecmcPluginLib.h"
@@ -66,6 +67,8 @@ public:
   int          addAndRegisterLocalVar(char *localVarStr);
   int          setAxisArrayPointer(ecmcAxisBase *axis,
                                    int           index);
+  int          setAxisGroupArrayPointer(ecmcAxisGroup *grp,
+                                        int            index);
   int          setDataStoragePointer(ecmcDataStorage *ds,
                                      int              index);
   int          setPluginPointer(ecmcPluginLib *plugin,
@@ -83,6 +86,7 @@ public:
   double       getSampleTime();
   int          getNewExpr();
   static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
+  static ecmcAxisGroup *statAxisGrp_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   static ecmcEc *statEc_;
   static ecmcShm statShm_;

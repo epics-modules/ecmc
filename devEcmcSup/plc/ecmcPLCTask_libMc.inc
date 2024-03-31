@@ -14,6 +14,7 @@
 #define ecmcPLC_libMc_inc_
 
 #include "ecmcErrorsList.h"
+#include "ecmcAxisGroup.h"
 
 #define CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndex) {             \
   if(axIndex>=ECMC_MAX_AXES || axIndex<=0){                   \
@@ -64,14 +65,16 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_set_enc_src(",
                                "mc_grp_set_error_reset(",
                                "mc_grp_set_error(",
-                               "mc_grp_setSlavedAxisInError(",
-                               "mc_grp_stop(",
+                               "mc_grp_set_slaved_axis_in_error(",
+                               "mc_grp_halt(",
                                "mc_grp_axis_in_grp(",
                                "mc_grp_size(",
                               };
 
+ecmcAxisGroup *ecmcPLCTask::statAxisGrp_[ECMC_MAX_AXES]={};
 ecmcAxisBase *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
 ecmcDataStorage *ecmcPLCTask::statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS]={};
+
 static int statLastAxesExecuteAbs_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteRel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
@@ -521,21 +524,70 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
   return 0.0;
 }
 
-  /*  bool getEnable();
-    bool getAnyEnable();
-    bool getEnabled();
-    bool getAnyEnabled();
-    bool getBusy();
-    bool getAnyBusy();
-    int getAnyErrorId();
-    int setEnable(bool enable);
-    int setTrajSrc(dataSource trajSource);
-    int setEncSrc(dataSource encSource);
-    void setErrorReset();
-    void setError(int error);
-    void setSlavedAxisInError();
-    void stop();
-    bool inGroup(int axisIndex);
-    size_t size();"*/
+inline double mc_grp_get_enable(double grpIndex){
+
+}
+
+inline double mc_grp_get_any_enable(double grpIndex){
+
+}
+
+inline double mc_grp_get_enabled(double grpIndex){
+
+}
+
+inline double mc_grp_get_any_enabled(double grpIndex){
+
+}
+
+inline double mc_grp_get_busy(double grpIndex){
+
+}
+
+inline double mc_grp_get_any_busy(double grpIndex){
+
+}
+
+inline double mc_grp_get_any_error_id(double grpIndex){
+
+}
+
+inline double mc_grp_set_enable(double grpIndex, double enable){
+
+}
+
+inline double mc_grp_set_traj_src(double grpIndex, double source){
+
+}
+
+inline double mc_grp_set_enc_src(double grpIndex, double source){
+
+}
+
+inline double mc_grp_set_error_reset(double grpIndex){
+
+}
+
+inline double mc_grp_set_error(double grpIndex, double errorId){
+
+}
+
+inline double mc_grp_set_slaved_axis_in_error(double grpIndex){
+
+}
+
+inline double mc_grp_halt(double grpIndex){
+
+}
+
+inline double mc_grp_axis_in_grp(double grpIndex, double axisId){
+
+}
+
+inline double mc_grp_size(double grpIndex){
+
+}
+
+  
 
 #endif /* ecmcPLC_libMc_inc_ */

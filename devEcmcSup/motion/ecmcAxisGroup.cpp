@@ -10,8 +10,8 @@
 *
 \*************************************************************************/
 
-ecmcAxisGroup::ecmcAxisGroup(int index, const char *grpName){
-  name_ = grpName;
+ecmcAxisGroup::ecmcAxisGroup(int index, const char *name){
+  name_ = name;
   axesCounter_ = 0;
   index_ = index;
   printf("ecmcAxisGroup: Created axis group[%d] %s.\n", index_, name_.c_str());
@@ -208,7 +208,7 @@ void ecmcAxisGroup::setSlavedAxisInError(){
 };
 
 // Set slaved axis error all axes
-void ecmcAxisGroup::stop(){
+void ecmcAxisGroup::halt(){
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
       (*axis)->stopMotion();

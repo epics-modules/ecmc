@@ -59,6 +59,8 @@ public:
   int          createPLC(int plcIndex,
                          int skipCycles);
   int          deletePLC(int plcIndex);
+  int          setAxisGroupArrayPointer(ecmcAxisGroup *grp,
+                                        int index);
   int          setAxisArrayPointer(ecmcAxisBase *axis,
                                    int           index);
   int          setDataStoragePointer(ecmcDataStorage *ds,
@@ -145,6 +147,7 @@ private:
   // Dedicateed plcs then one per axis
   ecmcPLCTask *plcs_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
+  ecmcAxisGroup *axisGrp_[ECMC_MAX_AXES];
   ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   ecmcEc *ec_;
   ecmcAsynPortDriver *asynPortDriver_;

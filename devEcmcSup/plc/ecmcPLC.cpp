@@ -79,6 +79,11 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
 
   if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
+  // Set axis grp pointers (for the already configuered axes)
+  for (int i = 0; i < ECMC_MAX_AXES; i++) {
+    plcs->setAxisGroupArrayPointer(axisgrps[i], i);
+  }
+
   // Set axes pointers (for the already configuered axes)
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     plcs->setAxisArrayPointer(axes[i], i);

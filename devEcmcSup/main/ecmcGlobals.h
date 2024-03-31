@@ -14,6 +14,7 @@
 #define ECMC_GLOBALS_H_
 #include "ecmcEc.h"
 #include "ecmcAxisBase.h"
+#include "ecmcAxisGroup.h"
 #include "ecmcEvent.h"
 #include "ecmcDataRecorder.h"
 #include "ecmcDataStorage.h"
@@ -26,6 +27,7 @@
 #include "epicsMutex.h"
 
 ecmcAxisBase *axes[ECMC_MAX_AXES];
+ecmcAxisGroup *axisgrps[ECMC_MAX_AXES];
 ecmcEc *ec;
 ecmcEvent *events[ECMC_MAX_EVENT_OBJECTS];
 ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];

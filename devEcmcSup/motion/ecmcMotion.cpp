@@ -2761,6 +2761,42 @@ int createAxis(int index, int type, int drvType, int trajType) {
   return axes[index]->getErrorID();
 }
 
+int createAxisGroup(int index, const char name) {
+  LOGINFO4("%s/%s:%d index=%d name=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           name);
+
+  if ((index < 0) || (index >= ECMC_MAX_AXES)) {
+    return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
+  }
+
+  // Do not allow create already created axis (must be deleted first)
+  if (axisgrps[index] != NULL) {
+    return ERROR_MAIN_AXIS_ALREADY_CREATED;
+  }
+
+  try {
+    
+      axisgrps[index] = new ecmcAxisGroup(index, name);
+    
+  }
+  catch (std::exception& e) {
+    delete axes[index];
+    axes[index] = NULL;
+    LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXISGROUP OBJECT.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           e.what());
+    return ERROR_MAIN_EXCEPTION;
+  }
+  
+  return axisgrps[index]->getErrorID();
+}
+
 int linkEcEntryToAxisEnc(int   slaveIndex,
                          char *entryIDString,
                          int   axisIndex,

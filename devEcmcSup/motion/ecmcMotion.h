@@ -3199,7 +3199,7 @@ int compileAxisPLCExpr(int axisIndex);
 
 /** \brief Creates an axis object at index axisIndex.
  *
- * \param[in] axisIndex Index of axis to address.\n
+ * \param[in] axisIndex Index of axis to create.\n
  * \param[in] axisType Type of axis.\n
  *   type = 1 : Normal axis (drive, encoder, monitor,pid-controller,trajectory).\n
  *   type = 2 : Virtual axis (encoder, monitor, trajectory).\n
@@ -3228,8 +3228,17 @@ int createAxis(int axisIndex,
                int drvType,
                int trajType);
 
+/** \brief Creates an axis group object.
+ *
+ * \param[in] index Index of group to create.\n
+ * \param[in] name name of group.\n
+ *
+ * \note Example: Create an axis group called 'VirtAxes' at group index 1.\n
+ *  "Cfg.CreateAxisGroup(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
+ */
+int createAxisGroup(int index, const char name) {
+
 /** \brief Links an EtherCAT entry to the encoder object of the axis at axisIndex.
-   *
    *
    *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
    *    slaveBusPosition = -1: Used to address the simulation slave. Only two
