@@ -3230,13 +3230,12 @@ int createAxis(int axisIndex,
 
 /** \brief Creates an axis group object.
  *
- * \param[in] index Index of group to create.\n
  * \param[in] name name of group.\n
  *
- * \note Example: Create an axis group called 'VirtAxes' at group index 1.\n
- *  "Cfg.CreateAxisGroup(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
+ * \note Example: Create an axis group called 'VirtAxes'.\n
+ *  "Cfg.AddAxisGroup('VirtAxes')" //Command string to ecmcCmdParser.c\n
  */
-int createAxisGroup(int index, const char *name);
+int addAxisGroup(const char *name);
 
 /** \brief Adds an axis to an group
  *

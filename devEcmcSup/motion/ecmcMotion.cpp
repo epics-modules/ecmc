@@ -2803,7 +2803,7 @@ int getAxisGroupIndexByName(const char* grpName, int *index) {
       *index = -1;
       return ERROR_AXISGRP_NOT_FOUND;
     }
-    if(strcmp(axisGroups[i].getName(), grpName) == 0) {
+    if(strcmp(axisGroups[i]->getName(), grpName) == 0) {
       *index = i;
       return 0;
     }
@@ -2826,7 +2826,7 @@ int addAxisToGroupByIndex(int axIndex, int grpIndex) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axIndex);
 
-  if(grpIndex >= axisGroupCounter || grpIndex < 0 ) {
+  if(grpIndex >= (int)axisGroupCounter || grpIndex < 0 ) {
     if(!axisGroups[grpIndex]) {
       return ERROR_AXISGRP_NOT_FOUND;
     }

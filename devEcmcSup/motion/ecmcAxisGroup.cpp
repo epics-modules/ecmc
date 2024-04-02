@@ -9,6 +9,7 @@
 *      Author: anderssandstrom
 *
 \*************************************************************************/
+#include "ecmcAxisGroup.h"
 
 ecmcAxisGroup::ecmcAxisGroup(int index, const char *name){
   name_ = name;
@@ -31,7 +32,7 @@ void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
     throw std::runtime_error( "Axis NULL");
   }
   axes_.push_back(axis);
-  axesIds_.push_back(axis->getAxisID())
+  axesIds_.push_back(axis->getAxisID());
   axesCounter_++;
   printf("ecmcAxisGroup: Added axis %d to group[%d] %s.\n", axis->getAxisID(),index_,name_.c_str());
 };
@@ -41,18 +42,6 @@ bool ecmcAxisGroup::getEnable(){
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
       if (!(*axis)->getEnable()) {
-        return 0;
-      }
-    }
-  }
-  return 1;
-};
-
-// Check if all axes in group are not enable
-bool ecmcAxisGroup::getDisable(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if ((*axis)->getEnable()) {
         return 0;
       }
     }
@@ -84,18 +73,6 @@ bool ecmcAxisGroup::getEnabled(){
   return 1;
 };
 
-// Check if all axes in group are not not enabled
-bool ecmcAxisGroup::getDisabled(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if ((*axis)->getEnabled()) {
-        return 0;
-      }
-    }
-  }
-  return 1;
-};
-
 // Check if at least one axis in group are enabled
 bool ecmcAxisGroup::getAnyEnabled(){
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
@@ -106,18 +83,6 @@ bool ecmcAxisGroup::getAnyEnabled(){
     }
   }
   return 0;
-};
-
-// Check if all axes in group are not busy
-bool ecmcAxisGroup::getFree(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if ((*axis)->getBusy()) {
-        return 0;
-      }
-    }
-  }
-  return 1;
 };
 
 // Check if all axes in group are busy
@@ -149,7 +114,7 @@ int ecmcAxisGroup::getAnyErrorId(){
   int errorId = 0;
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      errorId = (*axis)->getErrorId();
+      errorId = (*axis)->getErrorID();
       if (errorId) {
         return errorId;
       }
@@ -160,35 +125,50 @@ int ecmcAxisGroup::getAnyErrorId(){
 
 // Set enable of all axes in group
 int ecmcAxisGroup::setEnable(bool enable){
+  int error = 0;
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      (*axis)->setEnable(enable);
+      error = (*axis)->setEnable(enable);
+      if(error) {
+        return error;
+      }
     }
   }
+  return error;
 }
 
 // set traj source of all axes in group
 int ecmcAxisGroup::setTrajSrc(dataSource trajSource){
+  int error = 0;
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      (*axis)->setTrajDataSourceType(trajSource);
+      error = (*axis)->setTrajDataSourceType(trajSource);
+      if(error) {
+        return error;
+      }
     }
   }
+  return error;
 }
 
 // set enc source of all axes in group
 int ecmcAxisGroup::setEncSrc(dataSource encSource){
+  int error = 0;
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      (*axis)->setEncDataSourceType(encSource);
+      error = (*axis)->setEncDataSourceType(encSource);
+      if(error) {
+        return error;
+      }
     }
   }
+  return error;
 }
 
 void ecmcAxisGroup::setErrorReset(){
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      (*axis)->resetError();
+      (*axis)->errorReset();
     }
   }
 }
@@ -215,7 +195,7 @@ void ecmcAxisGroup::setSlavedAxisInError(){
 void ecmcAxisGroup::halt(){
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      (*axis)->stopMotion();
+      (*axis)->stopMotion(0);
     }
   }
 };

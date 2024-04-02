@@ -85,8 +85,8 @@ public:
                             ecmcPLCDataIF **outDataIF);
   double       getSampleTime();
   int          getNewExpr();
-  static ecmcAxisBase *statAxes_[ECMC_MAX_AXES];
-  static ecmcAxisGroup *statAxisGrp_[ECMC_MAX_AXES];
+  static ecmcAxisBase    *statAxes_[ECMC_MAX_AXES];
+  static ecmcAxisGroup   *statAxisGrp_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   static ecmcEc *statEc_;
   static ecmcShm statShm_;

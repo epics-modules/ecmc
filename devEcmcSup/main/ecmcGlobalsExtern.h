@@ -30,7 +30,7 @@
 
 extern ecmcAxisBase *axes[ECMC_MAX_AXES];
 extern ecmcAxisGroup *axisGroups[ECMC_MAX_AXES];
-extern size_t axisGroupCounter = 0;
+extern size_t axisGroupCounter;
 extern ecmcEc *ec;
 extern ecmcEvent *events[ECMC_MAX_EVENT_OBJECTS];
 extern ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];

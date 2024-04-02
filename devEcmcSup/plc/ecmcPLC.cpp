@@ -24,6 +24,7 @@
 #include "ecmcPLCTask.h"
 
 extern ecmcAxisBase *axes[ECMC_MAX_AXES];
+extern ecmcAxisGroup *axisGroups[ECMC_MAX_AXES];
 extern ecmcEc *ec;
 extern ecmcDataStorage *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
 extern ecmcPLCMain     *plcs;

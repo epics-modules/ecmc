@@ -737,6 +737,32 @@ static int handleCfgCommand(const char *myarg_1) {
     return createAxis(iValue, 1, 0, 0);
   }
 
+  /// "Cfg.AddAxisGroup(groupName)"
+  cIdBuffer[0]  = '\0';
+  nvals = sscanf(myarg_1, "AddAxisGroup(%[^)])",                
+                 cIdBuffer);
+  if (nvals == 1) {
+    return addAxisGroup(cIdBuffer);
+  }
+
+  /// "Cfg.AddAxisToGroupByName(axisIndex,groupName)"
+  cIdBuffer[0]  = '\0';
+  nvals = sscanf(myarg_1, "AddAxisToGroupByName(%d,%[^)])",
+                &iValue,
+                 cIdBuffer);
+  if (nvals == 2) {
+    return addAxisToGroupByName(iValue,cIdBuffer);
+  }
+
+  /// "Cfg.AddAxisToGroupByIndex(axisIndex,groupIndex)"
+  cIdBuffer[0]  = '\0';
+  nvals = sscanf(myarg_1, "AddAxisToGroupByIndex(%d,%d)",
+                &iValue,
+                &iValue2);
+  if (nvals == 2) {
+    return addAxisToGroupByIndex(iValue,iValue2);
+  }
+
   /// "Cfg.CreatePLC(int index, double cycleTimeMs)"
   nvals = sscanf(myarg_1, "CreatePLC(%d,%lf)", &iValue, &dValue);
 
@@ -3569,6 +3595,13 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(ecGetMemMapId(cIdBuffer, &iValue));
+  }
+
+  /*GetAxisGroupIndexByName(char *groupName)*/
+  nvals = sscanf(myarg_1, "GetAxisGroupIndexByName(%[^)])", cIdBuffer);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisGroupIndexByName(cIdBuffer, &iValue));
   }
 
   /*GetAxisBlockCom(int nAxis)*/
