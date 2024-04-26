@@ -12,7 +12,7 @@
 
 #include "ecmcAxisPVTSequence.h"
 
-ecmcAxisPVTSequence::ecmcPvtSequence(double sampleTime) {
+ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime) {
   segmentCount_ = 0;
   pointCount_   = 0;
   totalTime_    = 0;
@@ -71,7 +71,7 @@ bool ecmcAxisPVTSequence::validate() {
   return /*built_ && */ segmentCount_ > 0;
 }
 
-ecmcPvtSegment* getSeqmentAtTime(double time) {
+ecmcPvtSegment* ecmcAxisPVTSequence:::getSeqmentAtTime(double time) {
   if(segmentCount_ <= 0) {
     return NULL;
   };
