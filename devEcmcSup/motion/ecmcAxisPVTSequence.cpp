@@ -71,7 +71,7 @@ bool ecmcAxisPVTSequence::validate() {
   return /*built_ && */ segmentCount_ > 0;
 }
 
-ecmcPvtSegment* ecmcAxisPVTSequence:::getSeqmentAtTime(double time) {
+ecmcPvtSegment* ecmcAxisPVTSequence::getSeqmentAtTime(double time) {
   if(segmentCount_ <= 0) {
     return NULL;
   };
