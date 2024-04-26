@@ -26,7 +26,7 @@ class ecmcPvtPoint {
       velocity_ = velocity;
       time_ = timeS;
     }
-}
+};
 
 // Third order polynom between 2 ecmcPvtPoints
 class ecmcPvtSegment {
@@ -139,5 +139,5 @@ class ecmcAxisPVTSequence {
     size_t segmentCount_, pointCount_, currSegIndex_;
     double totalTime_, sampleTime_, currTime_;
     bool busy_;    
-}
+};
 #endif  /* ECMCAXISPVT_H_ */
