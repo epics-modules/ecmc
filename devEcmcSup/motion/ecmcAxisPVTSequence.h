@@ -109,11 +109,11 @@ class ecmcPvtSegment {
       }
       return 2 * k2_ + 6 * k3_ * (time - startPnt_->time_);
     }
-}
+};
 
-class ecmcPvtSequence {
+class ecmcAxisPVTSequence {
   public:
-    ecmcPvtSequence(double sampleTime);
+    ecmcAxisPVTSequence(double sampleTime);
     void   addPoint(ecmcPvtPoint *pnt);
     double startTime();
     double endTime();    

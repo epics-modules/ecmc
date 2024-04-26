@@ -10,9 +10,6 @@
 *
 \*************************************************************************/
 
-#ifndef ECMCAXISPVT_H_
-#define ECMCAXISPVT_H_
-
 #include "ecmcAxisPVTSequence.h"
 
 ecmcAxisPVTSequence::ecmcPvtSequence(double sampleTime) {
