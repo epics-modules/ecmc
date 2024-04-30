@@ -3643,6 +3643,15 @@ int setAxisExtMaxVelo(int axisIndex,
                       double veloLimit,
                       int active);
 
+/** \brief Get pointer to axis object.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return pointer to axis object if success or otherwise an error code.\n
+ *
+ */
+void* getAxisPointer(int  axisIndex);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus
