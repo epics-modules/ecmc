@@ -1,7 +1,8 @@
 
 Release Notes
 ===
-# master
+# ECMC v9.5.0
+* Add funcion to get an ecmcAxisBase object based on axis index
 
 ## Axis groups
 Added support for grouping axes
