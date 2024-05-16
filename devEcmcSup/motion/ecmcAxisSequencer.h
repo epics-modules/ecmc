@@ -20,6 +20,7 @@
 #include "ecmcTrajectoryBase.h"
 #include "ecmcAxisData.h"
 #include "ecmcDriveBase.h"
+#include "ecmcAxisPVTSequence.h"
 
 // SEQUENCER ERRORS
 #define ERROR_SEQ_TRAJ_NULL 0x14D00
@@ -49,6 +50,7 @@
 #define ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL 0x14D18
 #define ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED 0x14D19
 #define ERROR_SEQ_HOME_NOT_ALLOWED 0x14D1A
+#define ERROR_SEQ_PVT_OBJECT_BUSY 0x14D1B
 
 // SEQUENCER WARNINGS
 #define WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION 0x114D00
@@ -58,6 +60,7 @@ class ecmcAxisSequencer : public ecmcError {
 public:
   ecmcAxisSequencer();
   ~ecmcAxisSequencer();
+  void                init(double sampleTime);
   int                 setExecute(bool execute);
   bool                getExecute();
   void                execute();
@@ -84,6 +87,7 @@ public:
   void                setDefaultDec(double dec);
   void                setAcc(double acc);
   void                setDec(double dec);
+  int                 setPVTObject(ecmcAxisPVTSequence* pvt);
 
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
@@ -117,6 +121,8 @@ public:
   int          setAutoModeActEntry(ecmcEcEntry *entry);
   int          setAutoModeHomigCmd(int homing);
   int          setAutoModeMotionCmd(int motion);
+  double       getNextPosSet();
+  double       getNextVel();
 
 private:
   ecmcEncoder* getPrimEnc();
@@ -184,6 +190,7 @@ private:
   ecmcPIDController *cntrl_;
   ecmcDriveBase *drv_;
   ecmcAxisData *data_;
+  ecmcAxisPVTSequence * pvt_;
   uint64_t oldencRawAbsPosReg_;
   uint64_t encRawAbsPosReg_;
   ecmcOverUnderFlowType overUnderFlowLatch_;

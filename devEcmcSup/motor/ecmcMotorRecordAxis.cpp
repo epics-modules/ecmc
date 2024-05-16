@@ -55,7 +55,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
                                          int                        axisFlags,
                                          const char                *axisOptionsStr)
   : asynMotorAxis(pC, axisNo),
-  pC_(pC) {
+  pC_(pC) {  
+
   /* Some parameters are only defined in the ESS fork of the motor module.
      So they have the ifdef */
   setIntegerParam(pC_->motorFlagsDriverUsesEGU_,   1);
@@ -84,7 +85,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
     exit(EXIT_FAILURE);
   }
-
   drvlocal.axisId          = axisNo;
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;
   drvlocal.axisFlags       = axisFlags;
@@ -182,8 +182,25 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   /* Set the module name to "" if we have FILE/LINE enabled by asyn */
   if (pasynTrace->getTraceInfoMask(pPrintOutAsynUser) &
       ASYN_TRACEINFO_SOURCE) modNamEMC = "";
+  
 
   initialPoll();
+  
+  // Profile moves
+  profileNumPoints_ = 0;
+  pvtRunning_ = NULL;
+  pvtPrepare_ = NULL;
+  
+  //test PVT
+  double pos[20]; 
+  for(int i=0; i<20; i++) {
+    pos[i]=i;
+    pC->profileTimes_[i]=i;
+  }
+  LOGERR("HEPPPP################################################!! \n");
+  initializeProfile(50);
+  defineProfile(pos,20);
+  buildProfile();
 }
 
 extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
@@ -1883,48 +1900,74 @@ asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit) {
   return asynMotorAxis::setLowLimit(lowLimit);
 }
 
-/**
- * Printout entire drvlocal.statusBinData. Just for debug purpose..
- *
-*/
-/*asynStatus ecmcMotorRecordAxis::printDiagBinData() {
-  int asynLevel=ASYN_TRACE_ERROR;
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.axisID = %d\n",drvlocal.statusBinData.axisID);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.cycleCounter = %d\n",drvlocal.statusBinData.cycleCounter);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.acceleration = %lf\n",drvlocal.statusBinData.acceleration);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.deceleration = %lf\n",drvlocal.statusBinData.deceleration);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.reset = %d\n",drvlocal.statusBinData.reset);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.moving = %d\n",drvlocal.statusBinData.moving);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.stall = %d\n",drvlocal.statusBinData.stall);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionSetpoint = %lf\n",drvlocal.statusBinData.onChangeData.positionSetpoint);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionActual = %lf\n",drvlocal.statusBinData.onChangeData.positionActual);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionError = %lf\n",drvlocal.statusBinData.onChangeData.positionError);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionTarget = %lf\n",drvlocal.statusBinData.onChangeData.positionTarget);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.cntrlError = %lf\n",drvlocal.statusBinData.onChangeData.cntrlError);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.cntrlOutput = %lf\n",drvlocal.statusBinData.onChangeData.cntrlOutput);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.velocityActual = %lf\n",drvlocal.statusBinData.onChangeData.velocityActual);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.velocitySetpoint = %lf\n",drvlocal.statusBinData.onChangeData.velocitySetpoint);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.velocityFFRaw = %lf\n",drvlocal.statusBinData.onChangeData.velocityFFRaw);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionRaw = %ld\n",drvlocal.statusBinData.onChangeData.positionRaw);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.error = %d\n",drvlocal.statusBinData.onChangeData.error);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.velocitySetpointRaw = %d\n",drvlocal.statusBinData.onChangeData.velocitySetpointRaw);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.seqState = %d\n",drvlocal.statusBinData.onChangeData.statusWd.seqstate);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.cmdData = %d\n",drvlocal.statusBinData.onChangeData.cmdData);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.command = %d\n",(int)drvlocal.statusBinData.onChangeData.command);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.trajInterlock = %d\n",(int)drvlocal.statusBinData.onChangeData.trajInterlock);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.lastActiveInterlock = %d\n",(int)drvlocal.statusBinData.onChangeData.statusWd.lastilock);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.trajSource = %d\n",(int)drvlocal.statusBinData.onChangeData.statusWd.trajsource);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.encSource = %d\n",(int)drvlocal.statusBinData.onChangeData.statusWd.encsource);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.enable = %d\n",drvlocal.statusBinData.onChangeData.statusWd.enable);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.enabled = %d\n",drvlocal.statusBinData.onChangeData.statusWd.enabled);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.execute = %d\n",drvlocal.statusBinData.onChangeData.statusWd.execute);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.busy = %d\n",drvlocal.statusBinData.onChangeData.statusWd.busy);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.atTarget = %d\n",drvlocal.statusBinData.onChangeData.statusWd.attarget);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.homed = %d\n",drvlocal.statusBinData.onChangeData.statusWd.homed);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.limitFwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.limitfwd);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.limitBwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.limitbwd);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.homeSwitch = %d\n",drvlocal.statusBinData.onChangeData.statusWd.homeswitch);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.sumIlockFwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.sumilockfwd);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.sumIlockBwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.sumilockbwd);
+asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoints)
+{
+  size_t i;
+  asynStatus status;
+  //static const char *functionName = "defineProfile";
+  
+  // Call the base class function
+  //status = asynMotorAxis::defineProfile(positions, numPoints);
+  //if (status) return status;
+  
+  // Convert to XPS units from steps
+  for (i=0; i<numPoints; i++) {
+    //profilePositions_[i] = profilePositions_[i] + offsetxxx_;
+    profilePositions_[i] = positions[i];
+  }
+
+  profileNumPoints_ = numPoints;
   return asynSuccess;
-}*/
+}
+
+/** Function to build a coordinated move of multiple axes. */
+asynStatus ecmcMotorRecordAxis::buildProfile()
+{
+  // static const char *functionName = "buildProfile";
+  if(!pvtPrepare_) {
+    // TODO SAMPLE TIME!!
+    pvtPrepare_ = new ecmcAxisPVTSequence(0.001);
+  }
+  if(!pvtPrepare_ || profileNumPoints_<=0) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Allocation of PVT object failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+  
+  if(profileNumPoints_<1) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Defined profile position count invalid (<=1).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+  // Clear prepared pvt object
+  pvtPrepare_->clear();
+    
+  // Add first point. always zero velo
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0],0,0));
+
+  // start at second point
+  double preVelo  = 0;
+  double postVelo = 0;
+  double currTime = 0;
+  for (size_t i = 1; i < (profileNumPoints_-1); i++) {
+    preVelo  = (profilePositions_[i]-profilePositions_[i-1]) / pC->profileTimes_[i-1];
+    postVelo = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];
+    currTime += pC->profileTimes_[i];
+    // avg velo
+    pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i], (preVelo+postVelo)/2, currTime));
+  }
+  
+  // Add last point. always zero velo
+  currTime += pC->profileTimes_[profileNumPoints_-1];
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], 0, currTime));
+  
+  pvtPrepare_->print();
+
+  return asynSuccess;
+}

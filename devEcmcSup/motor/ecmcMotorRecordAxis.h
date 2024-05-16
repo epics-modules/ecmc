@@ -8,7 +8,7 @@ FILENAME...   ecmcMotorRecordAxis.h
 #include "asynMotorAxis.h"
 #include <stdint.h>
 #include "ecmcAxisBase.h"
-
+#include "ecmcAxisPVTSequence.h"
 
 #define AMPLIFIER_ON_FLAG_CREATE_AXIS  (1)
 #define AMPLIFIER_ON_FLAG_AUTO_ON      (1 << 1)
@@ -156,6 +156,17 @@ private:
 #ifndef motorMessageTextString
   void       updateMsgTxtFromDriver(const char *value);
 #endif // ifndef motorMessageTextString
+
+  //virtual asynStatus initializeProfile(size_t maxPoints);§
+  virtual asynStatus defineProfile(double *positions, size_t numPoints);
+  asynStatus buildProfile();
+  //virtual asynStatus executeProfile();
+  //virtual asynStatus abortProfile();
+  //virtual asynStatus readbackProfile();
+
+  ecmcAxisPVTSequence *pvtRunning_;
+  ecmcAxisPVTSequence *pvtPrepare_;
+  size_t profileNumPoints_;
 
   friend class ecmcMotorRecordController;
 };

@@ -1405,7 +1405,7 @@ int getAxisVelFF(int axisIndex, double *value) {
 
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  * value = axes[axisIndex]->getTraj()->getVel();
+  * value = axes[axisIndex]->getSeq()->getNextVel();
   return 0;
 }
 

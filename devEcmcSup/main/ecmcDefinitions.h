@@ -269,8 +269,9 @@ enum motionCommandTypes {
   ECMC_CMD_MOVEREL    = 2,
   ECMC_CMD_MOVEABS    = 3,
   ECMC_CMD_MOVEMODULO = 4,            // not used
+  ECMC_CMD_MOVEPVT    = 8,
   ECMC_CMD_HOMING     = 10,
-  ECMC_CMD_SUPERIMP   = 20,
+  ECMC_CMD_SUPERIMP   = 20,           // not used
   ECMC_CMD_GEAR       = 30,           // not used
 };
 

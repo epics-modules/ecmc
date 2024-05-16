@@ -38,8 +38,8 @@ void ecmcAxisVirt::execute(bool masterOK) {
 
   // Trajectory (External or internal)
   if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
-    data_.status_.currentPositionSetpoint = traj_->getNextPosSet();
-    data_.status_.currentVelocitySetpoint = traj_->getVel();
+    data_.status_.currentPositionSetpoint = seq_.getNextPosSet();
+    data_.status_.currentVelocitySetpoint = seq_.getNextVel();
   } else {    // External source (Transform)
     data_.status_.currentPositionSetpoint =
       data_.status_.externalTrajectoryPosition;
@@ -83,8 +83,8 @@ void ecmcAxisVirt::execute(bool masterOK) {
                           0);
     }
     statusData_.onChangeData.statusWd.trajsource = ECMC_DATA_SOURCE_INTERNAL;
-    data_.status_.currentPositionSetpoint        = traj_->getNextPosSet();
-    data_.status_.currentVelocitySetpoint        = traj_->getVel();
+    data_.status_.currentPositionSetpoint        = seq_.getNextPosSet();
+    data_.status_.currentVelocitySetpoint        = seq_.getNextVel();
   } else {
     temporaryLocalTrajSource_ = false;
   }

@@ -23,6 +23,10 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime) {
   //built_        = false;
 }
 
+void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
+  sampleTime_   = sampleTime;
+}
+
 void ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
   segments_.push_back(new ecmcPvtSegment(start, end));
   segmentCount_++;
@@ -180,4 +184,30 @@ double ecmcAxisPVTSequence::acceleration(double time, int *valid) {
   }
   *valid = 1;
   return temp->acceleration(time);
+}
+
+void   ecmcAxisPVTSequence::print() {
+  printf("time [s], pos[egu], vel[egu]\n");
+  for(size_t i=0; i < pointCount_; i++) {
+    points_[i]->print();
+  }
+}
+
+bool ecmcAxisPVTSequence::getBusy() { 
+  return busy_;
+}
+
+void ecmcAxisPVTSequence::setBusy(bool busy) { 
+  busy_ = busy;
+}
+
+void ecmcAxisPVTSequence::clear() { 
+  segments_.clear();
+  points_.clear();
+  segmentCount_ = 0;
+  pointCount_   = 0;
+  totalTime_    = 0;
+  currTime_     = 0;
+  busy_         = false;
+  currSegIndex_ = 0;  
 }

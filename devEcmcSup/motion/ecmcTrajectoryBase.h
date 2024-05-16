@@ -151,7 +151,7 @@ public:
   /** \brief Returns current velocity of trajectory.
    * Useful for feed-forward purpose of the velocity directly to the velocity control loop.
    */
-  double          getVel();
+  double          getNextVel();
 
   /// Returns sample period count since beginning of trajectory.
   int             getIndex();

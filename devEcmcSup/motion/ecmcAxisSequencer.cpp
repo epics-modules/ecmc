@@ -66,6 +66,33 @@ void ecmcAxisSequencer::initVars() {
   modeHomingCmd_         = 0;
   modeMotionCmdSet_      = 0;
   modeHomingCmdSet_      = 0;
+  pvt_                   = NULL;
+}
+
+void ecmcAxisSequencer::init(double sampleTime) {
+  pvt_ = new ecmcAxisPVTSequence(sampleTime);
+
+  // Test pvt
+  pvt_->addPoint(new ecmcPvtPoint(0,0,0));
+  pvt_->addPoint(new ecmcPvtPoint(10,11,1));
+  pvt_->addPoint(new ecmcPvtPoint(12,13,2));
+  pvt_->addPoint(new ecmcPvtPoint(14,15,4));
+  pvt_->addPoint(new ecmcPvtPoint(16,17,8));
+  pvt_->addPoint(new ecmcPvtPoint(18,19,10));
+  pvt_->addPoint(new ecmcPvtPoint(20,0,11));
+  pvt_->print();
+  pvt_->initSeq();
+
+  printf("RT traj:\n");
+  printf("time [s], pos[egu], vel[egu/s], acc [egu/s/s]\n");
+  do {
+    printf("%lf, %lf, %lf, %lf\n",pvt_->getCurrTime(),
+                                  pvt_->getCurrPosition(),
+                                  pvt_->getCurrVelocity(),
+                                  pvt_->getCurrAcceleration());
+    pvt_->nextSampleStep();
+  }
+  while(!pvt_-> isLastSample());  
 }
 
 // Cyclic execution
@@ -2957,8 +2984,7 @@ int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData *data) {
   data_ = data;
 
   // Set external error code ints (to be collected in axis base class)
-  setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
-
+  setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));  
   return 0;
 }
 
@@ -3277,4 +3303,28 @@ bool ecmcAxisSequencer::autoModeSetHoming() {
     return 1;
   }
   return 0;  // use seq step that is not used by post move and other seqs
+}
+
+double ecmcAxisSequencer::getNextPosSet() {
+ return traj_->getNextPosSet();
+}
+
+double ecmcAxisSequencer::getNextVel() {
+ return traj_->getNextVel();
+}
+
+int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
+  if(pvt_) {
+    if(pvt_->getBusy()) {
+      LOGERR(
+        "%s/%s:%d: ERROR: PVT object busy (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_SEQ_PVT_OBJECT_BUSY );
+      return ERROR_SEQ_PVT_OBJECT_BUSY; 
+    }
+  }
+  pvt_ = pvt;
+  return 0;
 }

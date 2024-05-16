@@ -206,6 +206,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
 
     exit(1);
   }
+  seq_.init(sampleTime);
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
