@@ -138,6 +138,7 @@ class ecmcAxisPVTSequence {
     bool   getBusy();
     void   setBusy(bool busy);
     void   print();
+    void   printRT();
     void   clear();
 
   private:

@@ -70,29 +70,29 @@ void ecmcAxisSequencer::initVars() {
 }
 
 void ecmcAxisSequencer::init(double sampleTime) {
-  pvt_ = new ecmcAxisPVTSequence(sampleTime);
+  //pvt_ = new ecmcAxisPVTSequence(sampleTime);
 
-  // Test pvt
-  pvt_->addPoint(new ecmcPvtPoint(0,0,0));
-  pvt_->addPoint(new ecmcPvtPoint(10,11,1));
-  pvt_->addPoint(new ecmcPvtPoint(12,13,2));
-  pvt_->addPoint(new ecmcPvtPoint(14,15,4));
-  pvt_->addPoint(new ecmcPvtPoint(16,17,8));
-  pvt_->addPoint(new ecmcPvtPoint(18,19,10));
-  pvt_->addPoint(new ecmcPvtPoint(20,0,11));
-  pvt_->print();
-  pvt_->initSeq();
+  //// Test pvt
+  //pvt_->addPoint(new ecmcPvtPoint(0,0,0));
+  //pvt_->addPoint(new ecmcPvtPoint(10,11,1));
+  //pvt_->addPoint(new ecmcPvtPoint(12,13,2));
+  //pvt_->addPoint(new ecmcPvtPoint(14,15,4));
+  //pvt_->addPoint(new ecmcPvtPoint(16,17,8));
+  //pvt_->addPoint(new ecmcPvtPoint(18,19,10));
+  //pvt_->addPoint(new ecmcPvtPoint(20,0,11));
+  //pvt_->print();
+  //pvt_->initSeq();
 
-  printf("RT traj:\n");
-  printf("time [s], pos[egu], vel[egu/s], acc [egu/s/s]\n");
-  do {
-    printf("%lf, %lf, %lf, %lf\n",pvt_->getCurrTime(),
-                                  pvt_->getCurrPosition(),
-                                  pvt_->getCurrVelocity(),
-                                  pvt_->getCurrAcceleration());
-    pvt_->nextSampleStep();
-  }
-  while(!pvt_-> isLastSample());  
+  //printf("RT traj:\n");
+  //printf("time [s], pos[egu], vel[egu/s], acc [egu/s/s]\n");
+  //do {
+  //  printf("%lf, %lf, %lf, %lf\n",pvt_->getCurrTime(),
+  //                                pvt_->getCurrPosition(),
+  //                                pvt_->getCurrVelocity(),
+  //                                pvt_->getCurrAcceleration());
+  //  pvt_->nextSampleStep();
+  //}
+  //while(!pvt_-> isLastSample());  
 }
 
 // Cyclic execution

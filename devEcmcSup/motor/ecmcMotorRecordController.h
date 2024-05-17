@@ -106,6 +106,7 @@ public:
   // asynStatus configController(int needOk, const char *value);
   ecmcMotorRecordAxis* getAxis(asynUser *pasynUser);
   ecmcMotorRecordAxis* getAxis(int axisNo);
+  
   int features_;
 
 protected:

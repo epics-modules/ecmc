@@ -187,20 +187,24 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   initialPoll();
   
   // Profile moves
-  profileNumPoints_ = 0;
-  pvtRunning_ = NULL;
-  pvtPrepare_ = NULL;
+  //profileNumPoints_ = 0;
+  //pvtRunning_ = NULL;
+  //pvtPrepare_ = NULL;
   
   //test PVT
-  double pos[20]; 
-  for(int i=0; i<20; i++) {
-    pos[i]=i;
-    pC->profileTimes_[i]=i;
-  }
-  LOGERR("HEPPPP################################################!! \n");
-  initializeProfile(50);
-  defineProfile(pos,20);
-  buildProfile();
+  //double pos[20]; 
+  //pC->initializeProfile(50);
+
+  //for(int i = 0; i < 6; i++) {
+  //  pos[i] = i;
+ //   pC->profileTimes_[i] = 1.0;// + ((double)i)/10;
+  //}
+  //LOGERR("HEPPPP################################################!! \n");
+  //defineProfile(pos,6);
+  //buildProfile();
+  //pvtPrepare_->print();
+  //printf("------------------------------\n");
+  //pvtPrepare_->printRT();
 }
 
 extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
@@ -1956,8 +1960,8 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   double postVelo = 0;
   double currTime = 0;
   for (size_t i = 1; i < (profileNumPoints_-1); i++) {
-    preVelo  = (profilePositions_[i]-profilePositions_[i-1]) / pC->profileTimes_[i-1];
-    postVelo = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];
+    preVelo   = (profilePositions_[i]-profilePositions_[i-1]) / pC->profileTimes_[i-1];
+    postVelo  = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];
     currTime += pC->profileTimes_[i];
     // avg velo
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i], (preVelo+postVelo)/2, currTime));
@@ -1966,8 +1970,5 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   // Add last point. always zero velo
   currTime += pC->profileTimes_[profileNumPoints_-1];
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], 0, currTime));
-  
-  pvtPrepare_->print();
-
   return asynSuccess;
 }

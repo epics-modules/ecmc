@@ -581,6 +581,7 @@ ecmcMotorRecordAxis * ecmcMotorRecordController::getAxis(asynUser *pasynUser) {
   * Returns NULL if the axis number encoded in pasynUser is invalid.
   * \param[in] axisNo Axis index number. */
 ecmcMotorRecordAxis * ecmcMotorRecordController::getAxis(int axisNo) {
+
   return static_cast<ecmcMotorRecordAxis *>(asynMotorController::getAxis(
                                               axisNo));
 }

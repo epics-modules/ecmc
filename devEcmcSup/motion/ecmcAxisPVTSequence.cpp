@@ -187,10 +187,32 @@ double ecmcAxisPVTSequence::acceleration(double time, int *valid) {
 }
 
 void   ecmcAxisPVTSequence::print() {
+  if(segmentCount_<=0) {
+    printf("PVT object empty\n");
+    return;
+  }
+
   printf("time [s], pos[egu], vel[egu]\n");
   for(size_t i=0; i < pointCount_; i++) {
     points_[i]->print();
   }
+}
+
+void   ecmcAxisPVTSequence::printRT() {
+  if(segmentCount_<=0) {
+    printf("PVT object empty\n");
+    return;
+  }
+  printf("RT traj:\n");
+  printf("time [s], pos[egu], vel[egu/s], acc [egu/s/s]\n");
+  do {
+    printf("%lf, %lf, %lf, %lf\n",getCurrTime(),
+                                  getCurrPosition(),
+                                  getCurrVelocity(),
+                                  getCurrAcceleration());
+    nextSampleStep();
+  }
+  while(!isLastSample());  
 }
 
 bool ecmcAxisPVTSequence::getBusy() { 
