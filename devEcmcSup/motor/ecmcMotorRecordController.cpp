@@ -21,6 +21,8 @@ FILENAME... ecmcMotorRecordController.cpp
 #define ASYN_TRACE_INFO      0x0040
 #endif // ifndef ASYN_TRACE_INFO
 
+#define ECMC_MR_CNTRL_ADDR 0
+
 extern asynUser *pPrintOutAsynUser;
 
 const char *modNamEMC = "ecmcMotorRecord:: ";
@@ -152,6 +154,7 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
                          0, 0) { // Default priority and stack size
   /* Controller */
   memset(&ctrlLocal, 0, sizeof(ctrlLocal));
+  pAxes_ = (ecmcMotorRecordAxis **)(asynMotorController::pAxes_);
   ctrlLocal.movingPollPeriod = movingPollPeriod;
   ctrlLocal.idlePollPeriod   = idlePollPeriod;
   ctrlLocal.oldStatus        = asynDisconnected;
@@ -341,7 +344,14 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
   createParam(motorRecOffsetString,     asynParamFloat64, &motorRecOffset_);
 #endif // ifdef CREATE_MOTOR_REC_RESOLUTION
 
+  setIntegerParam(profileCurrentPoint_, 0);
+  setIntegerParam(profileActualPulses_, 0);
+  setIntegerParam(profileNumReadbacks_, 0);
+
+  initializeProfile(1000);
+  callParamCallbacks();
   startPoller(movingPollPeriod, idlePollPeriod, 2);
+
 }
 
 ecmcMotorRecordController::~ecmcMotorRecordController() {}
@@ -534,7 +544,131 @@ asynStatus ecmcMotorRecordController::poll(void) {
 
     ctrlLocal.initialPollDone = 1;
   }
+
+  //status = setIntegerParam(1,profileCurrentPoint_, 0);
+  //printf("Setting profileCurrentPoint_ to 0 (status=%d)\n",(int)status );
+  //callParamCallbacks(1);
   return status;
+}
+
+// Handle all controller related writes here. All controller params are stored in address/axisNo 0
+// All controller related info is stored in axis no 0 and getAxis retruns NULL (axis[0] = NULL).
+// Not nice but probablbly mosty generic way todo it
+asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
+{
+  int function = pasynUser->reason;
+  asynMotorAxis *pAxis;
+  int axisNo = -1;
+  asynStatus status = asynError;
+  static const char *functionName = "writeFloat64";
+
+  pAxis = getAxis(pasynUser);
+
+  // If axis is defined then all can be handled in asynMotorController (both axes and controller related)
+  if (pAxis) {
+    printf("ecmcMotorRecordController::writeFloat64: pAxis is valid\n");
+    return asynMotorController::writeFloat64(pasynUser, value);
+  }
+
+  // can be controller related (axisNo == 0)
+  status = getAddress(pasynUser, &axisNo);
+  if(status != asynSuccess || axisNo!=ECMC_MR_CNTRL_ADDR) {
+    printf("ecmcMotorRecordController::writeFloat64: getAddress returned error\n");
+    return status;
+  }
+
+  printf("ecmcMotorRecordController::writeFloat64: Controller related parameter.\n");
+
+  // Must be controller related
+  // write to lib
+  status = setDoubleParam(ECMC_MR_CNTRL_ADDR,function, value);
+  callParamCallbacks();
+  return status;
+}
+
+
+// Handle all controller related writes here. All controller params are stored in address/axisNo 0
+// All controller related info is stored in axis no 0 and getAxis retruns NULL (axis[0] = NULL).
+// Not nice but probablbly mosty generic way todo it
+asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32 value) {
+
+  int function = pasynUser->reason;
+  asynStatus status = asynError;
+  asynMotorAxis *pAxis;
+  int axisNo = -1;
+  static const char *functionName = "writeInt32";
+
+  pAxis = getAxis(pasynUser);
+
+
+  // If axis is defined then all can be handled in asynMotorController (both axes and controller related)
+  if (pAxis) {
+    printf("ecmcMotorRecordController::writeInt32: pAxis is valid\n");
+    return asynMotorController::writeInt32(pasynUser, value);
+  }
+
+  // can be controller related (axisNo == 0)
+  status = getAddress(pasynUser, &axisNo);
+  if(status != asynSuccess || axisNo!=ECMC_MR_CNTRL_ADDR) {
+    printf("ecmcMotorRecordController::writeInt32: getAddress returned error\n");
+    return status;
+  }
+
+  printf("ecmcMotorRecordController::writeInt32: Controller related parameter.\n");
+
+  // Must be controller related
+  if (function == motorDeferMoves_) {
+    printf("setDeferredMoves\n");
+    status = asynMotorController::setDeferredMoves(value);     
+  } else if (function == profileBuild_) {
+    printf("buildProfile\n");
+    status = asynMotorController::buildProfile();
+  } else if (function == profileExecute_) {
+    printf("executeProfile\n");
+    status = asynMotorController::executeProfile();
+  } else if (function == profileAbort_) {
+    printf("abortProfile\n");
+    status = asynMotorController::abortProfile();
+  } else if (function == profileReadback_) {
+    printf("readbackProfile\n");
+    status = asynMotorController::readbackProfile();
+  }
+
+  if(status != asynSuccess) {
+    return status;  
+  }
+
+  // write to lib
+  status = setIntegerParam(ECMC_MR_CNTRL_ADDR,function, value);
+  callParamCallbacks();
+
+  return status;
+}
+
+asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
+{
+  printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  ecmcMotorRecordController::initializeProfile(%d)\n",maxProfilePoints);
+  return asynMotorController::initializeProfile(maxProfilePoints);
+}
+
+/** Returns a pointer to an ecmcMotorRecordAxis object.
+  * Returns NULL if the axis number encoded in pasynUser is invalid.
+  * \param[in] pasynUser asynUser structure that encodes the axis index number. */
+ecmcMotorRecordAxis* ecmcMotorRecordController::getAxis(asynUser *pasynUser)
+{
+    int axisNo;
+    
+    getAddress(pasynUser, &axisNo);
+    return getAxis(axisNo);
+}
+
+/** Returns a pointer to an ecmcMotorRecordAxis object.
+  * Returns NULL if the axis number is invalid.
+  * \param[in] axisNo Axis index number. */
+ecmcMotorRecordAxis* ecmcMotorRecordController::getAxis(int axisNo)
+{
+    if ((axisNo < 0) || (axisNo >= numAxes_)) return NULL;
+    return pAxes_[axisNo];
 }
 
 /** Reports on status of the driver
@@ -572,19 +706,19 @@ void ecmcMotorRecordController::report(FILE *fp, int level) {
 /** Returns a pointer to an ecmcMotorRecordAxis object.
   * Returns NULL if the axis number encoded in pasynUser is invalid.
   * \param[in] pasynUser asynUser structure that encodes the axis index number. */
-ecmcMotorRecordAxis * ecmcMotorRecordController::getAxis(asynUser *pasynUser) {
-  return static_cast<ecmcMotorRecordAxis *>(asynMotorController::getAxis(
-                                              pasynUser));
-}
+//ecmcMotorRecordAxis * ecmcMotorRecordController::getAxis(asynUser *pasynUser) {
+//  return static_cast<ecmcMotorRecordAxis *>(ecmcMotorRecordController::getAxis(
+//                                              pasynUser));
+//}
 
 /** Returns a pointer to an ecmcMotorRecordAxis object.
   * Returns NULL if the axis number encoded in pasynUser is invalid.
   * \param[in] axisNo Axis index number. */
-ecmcMotorRecordAxis * ecmcMotorRecordController::getAxis(int axisNo) {
+//ecmcMotorRecordAxis * ecmcMotorRecordController::getAxis(int axisNo) {
 
-  return static_cast<ecmcMotorRecordAxis *>(asynMotorController::getAxis(
-                                              axisNo));
-}
+//  return static_cast<ecmcMotorRecordAxis *>(asynMotorController::getAxis(
+//                                              axisNo));
+//}
 
 /** Code for iocsh registration */
 static const iocshArg ecmcMotorRecordCreateControllerArg0 =

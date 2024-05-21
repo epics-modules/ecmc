@@ -1904,15 +1904,27 @@ asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit) {
   return asynMotorAxis::setLowLimit(lowLimit);
 }
 
+asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
+{
+  printf("ecmcMotorRecordAxis::initializeProfile()\n");
+  asynMotorAxis::initializeProfile(maxProfilePoints);
+  return asynSuccess;
+}
+
 asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoints)
 {
+
+  printf("ecmcMotorRecordAxis::defineProfile()\n");
+
+  asynMotorAxis::defineProfile(positions,numPoints);
+
   size_t i;
   asynStatus status;
   //static const char *functionName = "defineProfile";
   
   // Call the base class function
-  //status = asynMotorAxis::defineProfile(positions, numPoints);
-  //if (status) return status;
+  status = asynMotorAxis::defineProfile(positions, numPoints);
+  if (status) return status;
   
   // Convert to XPS units from steps
   for (i=0; i<numPoints; i++) {
@@ -1927,6 +1939,9 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
 /** Function to build a coordinated move of multiple axes. */
 asynStatus ecmcMotorRecordAxis::buildProfile()
 {
+  printf("ecmcMotorRecordAxis::buildProfile()\n");
+  //asynMotorAxis::buildProfile();
+
   // static const char *functionName = "buildProfile";
   if(!pvtPrepare_) {
     // TODO SAMPLE TIME!!
@@ -1970,5 +1985,6 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   // Add last point. always zero velo
   currTime += pC->profileTimes_[profileNumPoints_-1];
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], 0, currTime));
+  pvtPrepare_->printRT();
   return asynSuccess;
 }

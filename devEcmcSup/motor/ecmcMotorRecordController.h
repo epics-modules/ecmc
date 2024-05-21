@@ -106,10 +106,15 @@ public:
   // asynStatus configController(int needOk, const char *value);
   ecmcMotorRecordAxis* getAxis(asynUser *pasynUser);
   ecmcMotorRecordAxis* getAxis(int axisNo);
-  
+  asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+  asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  asynStatus initializeProfile(size_t maxProfilePoints);
+
+
   int features_;
 
 protected:
+  ecmcMotorRecordAxis **pAxes_;       /**< Array of pointers to axis objects */
   void udateMotorLimitsRO(int axisNo);
   void udateMotorLimitsRO(int    axisNo,
                           int    enabledHighAndLow,

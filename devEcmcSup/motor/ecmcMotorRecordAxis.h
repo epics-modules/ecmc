@@ -159,7 +159,9 @@ private:
 
   //virtual asynStatus initializeProfile(size_t maxPoints);§
   virtual asynStatus defineProfile(double *positions, size_t numPoints);
-  asynStatus buildProfile();
+  virtual asynStatus buildProfile();
+  virtual asynStatus initializeProfile(size_t maxProfilePoints);
+
   //virtual asynStatus executeProfile();
   //virtual asynStatus abortProfile();
   //virtual asynStatus readbackProfile();
