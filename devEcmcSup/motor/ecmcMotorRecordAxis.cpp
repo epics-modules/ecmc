@@ -15,6 +15,7 @@
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcMotorRecordController.h"
 #include "ecmcGlobalsExtern.h"
+#include "ecmcPluginClient.h"
 
 #ifndef ASYN_TRACE_INFO
 #define ASYN_TRACE_INFO      0x0040
@@ -1943,9 +1944,8 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   //asynMotorAxis::buildProfile();
 
   // static const char *functionName = "buildProfile";
-  if(!pvtPrepare_) {
-    // TODO SAMPLE TIME!!
-    pvtPrepare_ = new ecmcAxisPVTSequence(0.001);
+  if(!pvtPrepare_) {    
+    pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
   }
   if(!pvtPrepare_ || profileNumPoints_<=0) {
      LOGERR(
@@ -1986,5 +1986,8 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   currTime += pC->profileTimes_[profileNumPoints_-1];
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], 0, currTime));
   pvtPrepare_->printRT();
+  
   return asynSuccess;
 }
+
+

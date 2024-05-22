@@ -17,6 +17,9 @@ FILENAME... ecmcMotorRecordController.cpp
 #include "ecmcMotorRecordController.h"
 #include "ecmcGlobalsExtern.h"
 
+
+static const char *driverName = "ecmcMotorController";
+
 #ifndef ASYN_TRACE_INFO
 #define ASYN_TRACE_INFO      0x0040
 #endif // ifndef ASYN_TRACE_INFO
@@ -159,6 +162,8 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
   ctrlLocal.idlePollPeriod   = idlePollPeriod;
   ctrlLocal.oldStatus        = asynDisconnected;
   features_                  = FEATURE_BITS_V2 | FEATURE_BITS_ECMC;
+  profileInitialized_        = 0;
+  profileBuilt_              = 0;
 #ifndef motorMessageTextString
   createParam("MOTOR_MESSAGE_TEXT",
               asynParamOctet,
@@ -347,8 +352,7 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
   setIntegerParam(profileCurrentPoint_, 0);
   setIntegerParam(profileActualPulses_, 0);
   setIntegerParam(profileNumReadbacks_, 0);
-
-  initializeProfile(1000);
+  
   callParamCallbacks();
   startPoller(movingPollPeriod, idlePollPeriod, 2);
 
@@ -586,7 +590,6 @@ asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFlo
   return status;
 }
 
-
 // Handle all controller related writes here. All controller params are stored in address/axisNo 0
 // All controller related info is stored in axis no 0 and getAxis retruns NULL (axis[0] = NULL).
 // Not nice but probablbly mosty generic way todo it
@@ -622,7 +625,7 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
     status = asynMotorController::setDeferredMoves(value);     
   } else if (function == profileBuild_) {
     printf("buildProfile\n");
-    status = asynMotorController::buildProfile();
+    status = buildProfile();
   } else if (function == profileExecute_) {
     printf("executeProfile\n");
     status = asynMotorController::executeProfile();
@@ -645,10 +648,36 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
   return status;
 }
 
+asynStatus ecmcMotorRecordController::buildProfile() {
+  printf("ecmcMotorRecordController::buildProfile()\n");  
+  if(!profileInitialized_) {
+    printf("ecmcMotorRecordController: Error: Profile not initialized...\n");
+    return asynError;
+  }
+  setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_BUSY);
+  
+  asynStatus status = asynMotorController::buildProfile();
+  
+  profileBuilt_ = status == asynSuccess; 
+
+  setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_DONE);
+
+  if(status != asynSuccess) {
+    setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildStatus_, PROFILE_STATUS_FAILURE);
+
+    return status;
+  }
+  setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildStatus_, PROFILE_STATUS_SUCCESS);
+  
+  return status;
+}
+
 asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
 {
-  printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  ecmcMotorRecordController::initializeProfile(%d)\n",maxProfilePoints);
-  return asynMotorController::initializeProfile(maxProfilePoints);
+  printf("ecmcMotorRecordController::initializeProfile(%d)\n",maxProfilePoints);
+  asynStatus status = asynMotorController::initializeProfile(maxProfilePoints);
+  profileInitialized_ = status == asynSuccess;
+  return status;
 }
 
 /** Returns a pointer to an ecmcMotorRecordAxis object.
@@ -702,23 +731,6 @@ void ecmcMotorRecordController::report(FILE *fp, int level) {
   asynMotorController::report(fp,
                               level);
 }
-
-/** Returns a pointer to an ecmcMotorRecordAxis object.
-  * Returns NULL if the axis number encoded in pasynUser is invalid.
-  * \param[in] pasynUser asynUser structure that encodes the axis index number. */
-//ecmcMotorRecordAxis * ecmcMotorRecordController::getAxis(asynUser *pasynUser) {
-//  return static_cast<ecmcMotorRecordAxis *>(ecmcMotorRecordController::getAxis(
-//                                              pasynUser));
-//}
-
-/** Returns a pointer to an ecmcMotorRecordAxis object.
-  * Returns NULL if the axis number encoded in pasynUser is invalid.
-  * \param[in] axisNo Axis index number. */
-//ecmcMotorRecordAxis * ecmcMotorRecordController::getAxis(int axisNo) {
-
-//  return static_cast<ecmcMotorRecordAxis *>(asynMotorController::getAxis(
-//                                              axisNo));
-//}
 
 /** Code for iocsh registration */
 static const iocshArg ecmcMotorRecordCreateControllerArg0 =
@@ -776,11 +788,43 @@ static void ecmcMotorRecordCreateAxisCallFunc(const iocshArgBuf *args) {
                             args[3].sval);
 }
 
+asynStatus ecmcCreateProfile(const char *asynPort,         /* specify which controller by port name */
+                            int maxPoints)               /* maximum number of profile points */
+{
+  ecmcMotorRecordController *pC;
+  static const char *functionName = "ecmcCreateProfile";
+
+  pC = (ecmcMotorRecordController*) findAsynPortDriver(asynPort);
+  if (!pC) {
+    printf("%s:%s: Error port %s not found\n",
+           driverName, functionName, asynPort);
+    return asynError;
+  }
+  pC->lock();
+  pC->initializeProfile(maxPoints);
+  pC->unlock();
+  return asynSuccess;
+}
+
+/* ecmcCreateProfile */
+static const iocshArg ecmcCreateProfileArg0 = {"Controller port name", iocshArgString};
+static const iocshArg ecmcCreateProfileArg1 = {"Max points", iocshArgInt};
+static const iocshArg * const ecmcCreateProfileArgs[] = {&ecmcCreateProfileArg0,
+                                                        &ecmcCreateProfileArg1};
+static const iocshFuncDef ecmcCreateProfileCallFuncDef = {"ecmcCreateProfile", 2, ecmcCreateProfileArgs};
+
+static void ecmcCreateProfileCallFunc(const iocshArgBuf *args)
+{
+  ecmcCreateProfile(args[0].sval, args[1].ival);
+}
+
 static void ecmcMotorRecordControllerRegister(void) {
   iocshRegister(&ecmcMotorRecordCreateControllerDef,
                 ecmcMotorRecordCreateContollerCallFunc);
   iocshRegister(&ecmcMotorRecordCreateAxisDef,
                 ecmcMotorRecordCreateAxisCallFunc);
+  iocshRegister(&ecmcCreateProfileCallFuncDef,
+                ecmcCreateProfileCallFunc);
 }
 
 extern "C" {

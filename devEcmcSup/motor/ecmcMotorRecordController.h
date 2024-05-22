@@ -109,6 +109,8 @@ public:
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   asynStatus initializeProfile(size_t maxProfilePoints);
+  asynStatus buildProfile();
+
 
 
   int features_;
@@ -195,7 +197,12 @@ protected:
   int ecmcMotorRecordTRIGG_DISABLE_;
 
   int ecmcMotorRecordErrId_;
+  
+  // Custom profile 
 
+  int profileInitialized_;
+  int profileBuilt_;
+  
   /* Last parameter */
 
   #define FIRST_VIRTUAL_PARAM ecmcMotorRecordErr_
