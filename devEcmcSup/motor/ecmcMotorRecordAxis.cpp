@@ -193,7 +193,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   // Profile moves
   //profileNumPoints_ = 0;
   //pvtRunning_ = NULL;
-  //pvtPrepare_ = NULL;
+  pvtPrepare_ = NULL;
   
   //test PVT
   //double pos[20]; 

@@ -34,18 +34,14 @@ void ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
 }
 
 void ecmcAxisPVTSequence::addPoint(ecmcPvtPoint *pnt) {
-  printf("ecmcAxisPVTSequence::addPoint() 1\n");
   try {
     points_.push_back(pnt);
-    printf("ecmcAxisPVTSequence::addPoint() 2\n");
     pointCount_++;
-    printf("ecmcAxisPVTSequence::addPoint() 3\n");
     if(pointCount_ > 1) {
       addSegment(points_[pointCount_-2], points_[pointCount_-1]);
     };
-    printf("ecmcAxisPVTSequence::addPoint() 4\n");
   } catch (std::bad_alloc& ex) {
-    printf("Exception\n");
+    printf("ecmcAxisPVTSequence::addPoint() : Exception\n");
   }
 }
 
