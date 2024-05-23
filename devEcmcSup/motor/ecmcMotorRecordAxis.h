@@ -56,6 +56,7 @@ public:
   asynStatus setLowLimit(double lowLimit);
 
   asynStatus poll(bool *moving);
+  bool getProfileLastBuildSuccess();
 
 private:
   typedef enum
@@ -169,7 +170,10 @@ private:
   ecmcAxisPVTSequence *pvtRunning_;
   ecmcAxisPVTSequence *pvtPrepare_;
   size_t profileNumPoints_;
-
+  bool profileLastBuildOk_;
+  bool profileLastInitOk_;
+  bool profileLastDefineOk_;
+  
   friend class ecmcMotorRecordController;
 };
 

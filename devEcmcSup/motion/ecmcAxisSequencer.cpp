@@ -3325,6 +3325,8 @@ int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
       return ERROR_SEQ_PVT_OBJECT_BUSY; 
     }
   }
+  
   pvt_ = pvt;
+  printf("ecmcAxisSequencer::setPVTObject(pvt): PVT object assigned\n");
   return 0;
 }

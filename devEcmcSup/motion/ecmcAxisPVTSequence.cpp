@@ -28,17 +28,25 @@ void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
 }
 
 void ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
+  printf("ecmcAxisPVTSequence::addSegment()\n");
   segments_.push_back(new ecmcPvtSegment(start, end));
   segmentCount_++;
 }
 
 void ecmcAxisPVTSequence::addPoint(ecmcPvtPoint *pnt) {
-  points_.push_back(pnt);
-  pointCount_++;
-  if(pointCount_ > 1) {
-     addSegment(points_[pointCount_-2], points_[pointCount_-1]);
-  };
-  //built_ = false;
+  printf("ecmcAxisPVTSequence::addPoint() 1\n");
+  try {
+    points_.push_back(pnt);
+    printf("ecmcAxisPVTSequence::addPoint() 2\n");
+    pointCount_++;
+    printf("ecmcAxisPVTSequence::addPoint() 3\n");
+    if(pointCount_ > 1) {
+      addSegment(points_[pointCount_-2], points_[pointCount_-1]);
+    };
+    printf("ecmcAxisPVTSequence::addPoint() 4\n");
+  } catch (std::bad_alloc& ex) {
+    printf("Exception\n");
+  }
 }
 
 double ecmcAxisPVTSequence::startTime(){
@@ -50,7 +58,7 @@ double ecmcAxisPVTSequence::startTime(){
 
 double ecmcAxisPVTSequence::endTime(){
   if(segmentCount_ <= 0) {
-      return -1;
+    return -1;
   }
   return segments_[segmentCount_-1]->getEndPoint()->time_;
 }

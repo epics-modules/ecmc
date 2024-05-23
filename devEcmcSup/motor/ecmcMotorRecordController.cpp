@@ -657,8 +657,17 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_BUSY);
   
   asynStatus status = asynMotorController::buildProfile();
-  
-  profileBuilt_ = status == asynSuccess; 
+
+  // Check for errors in all axes since base class is not checking return value.. annoying..
+  bool buildStatusOK = true;
+  ecmcMotorRecordAxis *pAxis;
+  for (size_t axis = 0; axis < numAxes_; axis++) {
+    pAxis = getAxis(axis);
+    if (!pAxis) continue;
+    buildStatusOK = buildStatusOK && pAxis->getProfileLastBuildSuccess();
+  }
+
+  profileBuilt_ = (status == asynSuccess) && buildStatusOK; 
 
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_DONE);
 
@@ -667,6 +676,8 @@ asynStatus ecmcMotorRecordController::buildProfile() {
 
     return status;
   }
+  
+
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildStatus_, PROFILE_STATUS_SUCCESS);
   
   return status;
