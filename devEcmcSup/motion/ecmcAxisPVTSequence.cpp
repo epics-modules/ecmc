@@ -260,4 +260,15 @@ int ecmcAxisPVTSequence::setPositionOffset(double offset) {
   return 0;
 }
 
+int ecmcAxisPVTSequence::setExecute(bool execute) {
+  execute_ = execute;
+  if (!executeOld_ && execute_) {
+    initSeq();
+    busy_ = true;
+  }
+  executeOld_ = execute_;
+  return 0;
+}
+
+
 

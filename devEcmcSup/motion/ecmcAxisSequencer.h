@@ -217,6 +217,7 @@ private:
   int modeMotionCmdSet_;
   int modeHomingCmdSet_;
   bool temporaryLocalTrajSource_;
+  bool pvtOk_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */

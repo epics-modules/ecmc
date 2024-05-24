@@ -67,6 +67,7 @@ void ecmcAxisSequencer::initVars() {
   modeMotionCmdSet_      = 0;
   modeHomingCmdSet_      = 0;
   pvt_                   = NULL;
+  pvtOk_                 = false;
   temporaryLocalTrajSource_ = false;
 }
 
@@ -142,8 +143,8 @@ void ecmcAxisSequencer::execute() {
   bool pvtmode = data_->command_.command == ECMC_CMD_MOVEPVTREL ||
        data_->command_.command == ECMC_CMD_MOVEPVTABS;
   if (trajLock &&
-      (data_->command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) || 
-      pvtmode) {
+      ((data_->command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) || 
+      pvtmode)) {
     if (!temporaryLocalTrajSource_) {  // Initiate rampdown
       temporaryLocalTrajSource_ = true;
       traj_->setStartPos(data_->status_.currentPositionActual);
@@ -151,8 +152,8 @@ void ecmcAxisSequencer::execute() {
                           data_->status_.currentVelocityActual,
                           0);
     }
-    if(pvtmode) {  // Leave PVT if issue
-      data_->command_.command == ECMC_CMD_MOVEVEL;
+    if(pvtmode) {  // Leave PVT if issue (stop ramp initiated above)
+      data_->command_.command = ECMC_CMD_MOVEVEL;
     }
     data_->status_.currentPositionSetpoint = getNextPosSet();
     data_->status_.currentVelocitySetpoint = getNextVel();
@@ -184,11 +185,21 @@ void ecmcAxisSequencer::executeInternal() {
 
   // Reset busy (set in setExecute)
   if (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+    // HOMING 
     if (data_->command_.command == ECMC_CMD_HOMING) {
       data_->status_.busy = localSeqBusy_ || traj_->getBusy();
     } else {
-      data_->status_.busy = (traj_->getBusy() && data_->status_.enabled) ||
-                            !data_->status_.startupFinsished;
+     // PVT 
+     if((data_->command_.command == ECMC_CMD_MOVEPVTREL || 
+         data_->command_.command == ECMC_CMD_MOVEPVTABS) && 
+         pvtOk_) {
+        data_->status_.busy = (pvt_->getBusy() && data_->status_.enabled) ||
+                              !data_->status_.startupFinsished;
+      } else {
+      // Normal motion
+        data_->status_.busy = (traj_->getBusy() && data_->status_.enabled) ||
+                              !data_->status_.startupFinsished;
+      }
     }
   } else {    // Sync to other axis
     data_->status_.busy = true;
@@ -589,6 +600,12 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       // Set offset since realtive mode
       pvt_->setPositionOffset(data_->status_.currentPositionSetpoint);
+      pvt_->setExecute(0)
+      pvt_->setExecute(1
+      errorCode = pvt_->setExecute(data_->command_.execute);
+      if (errorCode) {
+        return errorCode;
+      }
     }
     break;
 
@@ -602,8 +619,12 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       // Set offset 0 since pvt is absolute
       pvt_->setPositionOffset(0);
+      pvt_->initSeq();
+      errorCode = pvt_->setExecute(data_->command_.execute);
+      if (errorCode) {
+        return errorCode;
+      }
     }
-
     break;
 
   case ECMC_CMD_HOMING:
@@ -3398,29 +3419,34 @@ bool ecmcAxisSequencer::autoModeSetHoming() {
 }
 
 double ecmcAxisSequencer::getNextPosSet() {
-
- if(pvt_ != NULL && 
+  double pos = 0;
+  // PVT or external interlocks (and if needed stop ramp) handled above in execute(), will go to MOVE_VEL and stop if interlock 
+  if(pvtOk_ && 
     (data_->command_.command == ECMC_CMD_MOVEPVTREL ||
-     data_->command_.command == ECMC_CMD_MOVEPVTABS)) {   
-    // Interlocks handled above in execure(), will go to MOVE_VEL and stop if interlock
-    return pvt_->getCurrPosition();
-
+     data_->command_.command == ECMC_CMD_MOVEPVTABS)) {
+ 
+    pos = pvt_->getCurrPosition();
+    if(xxx)
+    pvt_->nextSampleStep();  // Go to next pvt time step, ONLY call this once per scan (so _NOT_ in getNextVel())
+    return pos;
  }
  
+ // Normal traj or stop ramp here
  return traj_->getNextPosSet();
 }
 
 double ecmcAxisSequencer::getNextVel() {
-
- if(pvt_ != NULL && 
+  // PVT or external interlocks handled above in execute(), will go to MOVE_VEL and stop if interlock 
+  if(pvtOk_ && 
     (data_->command_.command == ECMC_CMD_MOVEPVTREL ||
      data_->command_.command == ECMC_CMD_MOVEPVTABS)) {
-    // Interlocks handled above in execure(), will go to MOVE_VEL and stop if interlock
     return pvt_->getCurrVelocity();
- }
- return traj_->getNextVel();
+  }
+  // Normal traj or stop ramp here
+  return traj_->getNextVel();
 }
 
+// PVT object created somewhere else can be assigned here (normally from motorRecordAxis::buildProfile())
 int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
   if(pvt_) {
     if(pvt_->getBusy()) {
@@ -3433,13 +3459,14 @@ int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
       return ERROR_SEQ_PVT_OBJECT_BUSY; 
     }
   }
-
-  pvt_ = pvt;
+  pvtOk_ = false; // need new validation since new object
+  pvt_   = pvt;
   printf("ecmcAxisSequencer::setPVTObject(pvt): INFO: PVT object assigned\n");
   return 0;
 }
 
 int ecmcAxisSequencer::validatePVT() {
+  pvtOk_ = false;
   if(!pvt_) {
     LOGERR(
       "%s/%s:%d: ERROR: PVT object not assigned (PVT == NULL) (0x%x).\n",
@@ -3455,8 +3482,8 @@ int ecmcAxisSequencer::validatePVT() {
     return errorCode;
   }
 
-  //TODO
+  // TODO
   // Check softlimits, max velo and max acc
-
+  pvtOk_ = true;
   return 0;
 }
