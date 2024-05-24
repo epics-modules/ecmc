@@ -138,8 +138,12 @@ void ecmcAxisSequencer::execute() {
      (data_->interlocks_.trajSummaryInterlockBWD &&
       data_->status_.currentVelocitySetpoint < 0));
 
+
+  bool pvtmode = data_->command_.command == ECMC_CMD_MOVEPVTREL ||
+       data_->command_.command == ECMC_CMD_MOVEPVTABS;
   if (trajLock &&
-      (data_->command_.trajSource != ECMC_DATA_SOURCE_INTERNAL)) {
+      (data_->command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) || 
+      pvtmode) {
     if (!temporaryLocalTrajSource_) {  // Initiate rampdown
       temporaryLocalTrajSource_ = true;
       traj_->setStartPos(data_->status_.currentPositionActual);
@@ -147,7 +151,9 @@ void ecmcAxisSequencer::execute() {
                           data_->status_.currentVelocityActual,
                           0);
     }
-    
+    if(pvtmode) {  // Leave PVT if issue
+      data_->command_.command == ECMC_CMD_MOVEVEL;
+    }
     data_->status_.currentPositionSetpoint = getNextPosSet();
     data_->status_.currentVelocitySetpoint = getNextVel();
   } else {
@@ -3393,9 +3399,10 @@ bool ecmcAxisSequencer::autoModeSetHoming() {
 
 double ecmcAxisSequencer::getNextPosSet() {
 
- if(data_->command_.command == ECMC_CMD_MOVEPVTREL ||
-    data_->command_.command == ECMC_CMD_MOVEPVTABS) {   
-    // Need to check interlocks?
+ if(pvt_ != NULL && 
+    (data_->command_.command == ECMC_CMD_MOVEPVTREL ||
+     data_->command_.command == ECMC_CMD_MOVEPVTABS)) {   
+    // Interlocks handled above in execure(), will go to MOVE_VEL and stop if interlock
     return pvt_->getCurrPosition();
 
  }
@@ -3405,9 +3412,10 @@ double ecmcAxisSequencer::getNextPosSet() {
 
 double ecmcAxisSequencer::getNextVel() {
 
- if(data_->command_.command == ECMC_CMD_MOVEPVTREL ||
-    data_->command_.command == ECMC_CMD_MOVEPVTABS) {
-    // Need to check interlocks?
+ if(pvt_ != NULL && 
+    (data_->command_.command == ECMC_CMD_MOVEPVTREL ||
+     data_->command_.command == ECMC_CMD_MOVEPVTABS)) {
+    // Interlocks handled above in execure(), will go to MOVE_VEL and stop if interlock
     return pvt_->getCurrVelocity();
  }
  return traj_->getNextVel();
