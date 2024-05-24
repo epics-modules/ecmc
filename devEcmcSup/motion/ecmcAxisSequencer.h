@@ -51,6 +51,8 @@
 #define ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED 0x14D19
 #define ERROR_SEQ_HOME_NOT_ALLOWED 0x14D1A
 #define ERROR_SEQ_PVT_OBJECT_BUSY 0x14D1B
+#define ERROR_SEQ_PVT_OBJECT_NULL 0x14D1C
+
 
 // SEQUENCER WARNINGS
 #define WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION 0x114D00
@@ -88,6 +90,7 @@ public:
   void                setAcc(double acc);
   void                setDec(double dec);
   int                 setPVTObject(ecmcAxisPVTSequence* pvt);
+  int                 validatePVT();
 
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
@@ -125,6 +128,7 @@ public:
   double       getNextVel();
 
 private:
+  void         executeInternal();
   ecmcEncoder* getPrimEnc();
   void         initVars();
   double       checkSoftLimits(double posSetpoint);
@@ -212,6 +216,7 @@ private:
   int modeHomingCmd_;  // Mode for homing
   int modeMotionCmdSet_;
   int modeHomingCmdSet_;
+  bool temporaryLocalTrajSource_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */

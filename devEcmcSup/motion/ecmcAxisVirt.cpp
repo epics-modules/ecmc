@@ -30,65 +30,14 @@ ecmcAxisVirt::ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
 ecmcAxisVirt::~ecmcAxisVirt() {}
 
 void ecmcAxisVirt::initVars() {
-  temporaryLocalTrajSource_ = false;
 }
 
 void ecmcAxisVirt::execute(bool masterOK) {
   ecmcAxisBase::preExecute(masterOK);
 
-  // Trajectory (External or internal)
-  if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
-    data_.status_.currentPositionSetpoint = seq_.getNextPosSet();
-    data_.status_.currentVelocitySetpoint = seq_.getNextVel();
-  } else {    // External source (Transform)
-    data_.status_.currentPositionSetpoint =
-      data_.status_.externalTrajectoryPosition;
-    data_.status_.currentVelocitySetpoint =
-      data_.status_.externalTrajectoryVelocity;
-    data_.interlocks_.noExecuteInterlock = false;  // Only valid in local mode
-    data_.refreshInterlocks();
-  }
-
-  if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    data_.status_.currentPositionActual =
-      encArray_[data_.command_.primaryEncIndex]->getActPos();
-    data_.status_.currentVelocityActual =
-      encArray_[data_.command_.primaryEncIndex]->getActVel();
-  } else { // External source
-    data_.status_.currentPositionActual =
-      data_.status_.externalEncoderPosition;
-    data_.status_.currentVelocityActual =
-      data_.status_.externalEncoderVelocity;
-  }
-
-  traj_->setStartPos(data_.status_.currentPositionSetpoint);
+  // update setpoinmt and actual values
   seq_.execute();
-  data_.status_.cntrlOutput = 0;
-  mon_->execute();
-
-  // Switch to internal trajectory if interlock temporary
-  bool trajLock =
-    ((data_.interlocks_.trajSummaryInterlockFWD &&
-      data_.status_.currentVelocitySetpoint > 0) ||
-     (data_.interlocks_.trajSummaryInterlockBWD &&
-      data_.status_.currentVelocitySetpoint < 0));
-
-  if (trajLock &&
-      (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL)) {
-    if (!temporaryLocalTrajSource_) {  // Initiate rampdown
-      temporaryLocalTrajSource_ = true;
-      traj_->setStartPos(data_.status_.currentPositionActual);
-      traj_->initStopRamp(data_.status_.currentPositionActual,
-                          data_.status_.currentVelocityActual,
-                          0);
-    }
-    statusData_.onChangeData.statusWd.trajsource = ECMC_DATA_SOURCE_INTERNAL;
-    data_.status_.currentPositionSetpoint        = seq_.getNextPosSet();
-    data_.status_.currentVelocitySetpoint        = seq_.getNextVel();
-  } else {
-    temporaryLocalTrajSource_ = false;
-  }
-
+  
   if (getEnabled() && masterOK && !getError()) {
     mon_->setEnable(true);
     data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(

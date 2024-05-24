@@ -1958,7 +1958,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 {
   printf("ecmcMotorRecordAxis::buildProfile()\n");
   profileLastBuildOk_ = false;
-  //asynMotorAxis::buildProfile();
+  asynMotorAxis::buildProfile();
 
   if (!profileLastInitOk_ || !profileLastDefineOk_) {
     printf("ecmcMotorRecordAxis::buildProfile(): Error: Define or Init not perfromed successfully\n");    
@@ -1970,8 +1970,6 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
   }
 
-  printf("ecmcMotorRecordAxis::buildProfile() 2\n");
-
   if(!pvtPrepare_ || profileNumPoints_<=0) {
      LOGERR(
       "%s/%s:%d: ERROR: Allocation of PVT object failed.\n",
@@ -1981,8 +1979,6 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
   
-  printf("ecmcMotorRecordAxis::buildProfile() 3\n");
-
   if(profileNumPoints_<1) {
      LOGERR(
       "%s/%s:%d: ERROR: Defined profile position count invalid (<=1).\n",
@@ -1992,27 +1988,17 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
   
-  printf("ecmcMotorRecordAxis::buildProfile() 4\n");
-
   // Clear prepared pvt object
   pvtPrepare_->clear();
 
-  for (size_t i = 0; i < (profileNumPoints_); i++) {
-    printf("ecmcMotorRecordAxis::profilePositions_[%ld] = %lf\n",i,profilePositions_[i]);
-    printf("ecmcMotorRecordAxis::profileTimes_[%ld] = %lf\n",i,pC->profileTimes_[i]);
-    
-  }
-
   // Add first point. always zero velo  
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0],0,0));
-  printf("ecmcMotorRecordAxis::buildProfile() 5.1\n");
 
   // start at second point
   double preVelo  = 0;
   double postVelo = 0;
   double currTime = 0;
   for (size_t i = 1; i < (profileNumPoints_-1); i++) {
-    printf("ecmcMotorRecordAxis::buildProfile() 5.2 %ld\n",i);
     preVelo   = (profilePositions_[i]-profilePositions_[i-1]) / pC->profileTimes_[i-1];
     postVelo  = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];
     currTime += pC->profileTimes_[i];
@@ -2020,22 +2006,41 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i], (preVelo+postVelo)/2, currTime));
   }
   
-  printf("ecmcMotorRecordAxis::buildProfile() 6\n");  
   // Add last point. always zero velo
   currTime += pC->profileTimes_[profileNumPoints_-1];
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], 0, currTime));
-  //pvtPrepare_->printRT();
+  pvtPrepare_->printRT();
 
-  printf("ecmcMotorRecordAxis::buildProfile() 7\n");
   if(!drvlocal.ecmcAxis) {
-    printf("ecmcMotorRecordAxis::buildProfile(): Axis object NULL\n");
     return asynError;
   }
 
 
   drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtPrepare_);
   profileLastBuildOk_ = true;
-  printf("ecmcMotorRecordAxis::buildProfile() 8\n");
+  return asynSuccess;
+}
+
+asynStatus ecmcMotorRecordAxis::executeProfile() {
+  printf("ecmcMotorRecordAxis::executeProfile()\n");
+  asynStatus status = asynMotorAxis::executeProfile();  // empty right now..
+  if(status != asynSuccess) {
+    return status;
+  }
+  
+  int mode = 0;
+  status= pC_->getIntegerParam(axisNo_, pC_->profileMoveMode_, &mode);
+  int errorCode = 0;
+  if(mode == 0){
+    errorCode = drvlocal.ecmcAxis->movePVTAbs();
+  } else {
+    errorCode = drvlocal.ecmcAxis->movePVTRel();
+  }
+  
+  if(errorCode) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Error: ecmc error %d\n",errorCode);
+    return asynError;
+  }
   return asynSuccess;
 }
 

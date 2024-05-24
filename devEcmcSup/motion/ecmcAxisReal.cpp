@@ -64,7 +64,6 @@ ecmcAxisReal::~ecmcAxisReal() {
 
 void ecmcAxisReal::initVars() {
   currentDriveType_         = ECMC_NO_DRIVE;
-  temporaryLocalTrajSource_ = false;
 }
 
 void ecmcAxisReal::execute(bool masterOK) {
@@ -72,60 +71,9 @@ void ecmcAxisReal::execute(bool masterOK) {
 
   drv_->readEntries();
 
-  // Trajectory (External or internal)
-  if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
-    data_.status_.currentPositionSetpoint = seq_.getNextPosSet();
-    data_.status_.currentVelocitySetpoint = seq_.getNextVel();
-  } else {    // External source (PLC)
-    data_.status_.currentPositionSetpoint =
-      data_.status_.externalTrajectoryPosition;
-    data_.status_.currentVelocitySetpoint =
-      data_.status_.externalTrajectoryVelocity;
-    data_.interlocks_.noExecuteInterlock = false;  // Only valid in local mode
-    data_.refreshInterlocks();
-  }
-
-  if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    data_.status_.currentPositionActual =
-      encArray_[data_.command_.primaryEncIndex]->getActPos();
-    data_.status_.currentVelocityActual =
-      encArray_[data_.command_.primaryEncIndex]->getActVel();
-  } else { // External source
-    data_.status_.currentPositionActual =
-      data_.status_.externalEncoderPosition;
-    data_.status_.currentVelocityActual =
-      data_.status_.externalEncoderVelocity;
-  }
-
-  traj_->setStartPos(data_.status_.currentPositionSetpoint);
+  // Update setpoints and actual 
   seq_.execute();
-  mon_->execute();
-
-  // Switch to internal trajectory temporary if interlock
-  bool trajLock =
-    ((data_.interlocks_.trajSummaryInterlockFWD &&
-      data_.status_.currentPositionSetpoint >
-      data_.status_.currentPositionSetpointOld) ||
-     (data_.interlocks_.trajSummaryInterlockBWD &&
-      data_.status_.currentPositionSetpoint <
-      data_.status_.currentPositionSetpointOld));
-
-  if (trajLock &&
-      (data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL)) {
-    if (!temporaryLocalTrajSource_) {  // Initiate rampdown
-      temporaryLocalTrajSource_ = true;
-      traj_->setStartPos(data_.status_.currentPositionActual);
-      traj_->initStopRamp(data_.status_.currentPositionActual,
-                          data_.status_.currentVelocityActual,
-                          0);
-    }
-    statusData_.onChangeData.statusWd.trajsource = ECMC_DATA_SOURCE_INTERNAL;  // Temporary
-    data_.status_.currentPositionSetpoint        = seq_.getNextPosSet();
-    data_.status_.currentVelocitySetpoint        = seq_.getNextVel();
-  } else {
-    temporaryLocalTrajSource_ = false;
-  }
-
+ 
   if (data_.interlocks_.driveSummaryInterlock && !traj_->getBusy()) {
     cntrl_->reset();
   }

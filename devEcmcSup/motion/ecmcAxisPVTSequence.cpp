@@ -20,6 +20,7 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime) {
   currTime_     = 0;
   busy_         = false;
   currSegIndex_ = 0;
+  positionOffset_ = 0.0;
   //built_        = false;
 }
 
@@ -128,7 +129,7 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
   
   // Switch segment?
   if(currTime_ > segments_[currSegIndex_]->getEndPoint()->time_) {
-    if(currSegIndex_ < segmentCount_) {
+    if(currSegIndex_ < segmentCount_-1) {
       // the time must be in the next segment
       currSegIndex_++;
     } else {  // last segment and last sample, set to curr time to end-time
@@ -140,7 +141,7 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
 
 // For RT sequential access
 double ecmcAxisPVTSequence::getCurrPosition(){
-  return segments_[currSegIndex_]->position(currTime_);
+  return segments_[currSegIndex_]->position(currTime_) + positionOffset_;
 }
 
 // For RT sequential access
@@ -209,6 +210,7 @@ void   ecmcAxisPVTSequence::printRT() {
   }
   printf("RT traj:\n");
   printf("time [s], pos[egu], vel[egu/s], acc [egu/s/s]\n");
+
   do {
     printf("%lf, %lf, %lf, %lf\n",getCurrTime(),
                                   getCurrPosition(),
@@ -216,7 +218,13 @@ void   ecmcAxisPVTSequence::printRT() {
                                   getCurrAcceleration());
     nextSampleStep();
   }
-  while(!isLastSample());  
+
+  while(!isLastSample());
+  // also print last sample
+  printf("%lf, %lf, %lf, %lf\n",getCurrTime(),
+                                getCurrPosition(),
+                                getCurrVelocity(),
+                                getCurrAcceleration());
 }
 
 bool ecmcAxisPVTSequence::getBusy() { 
@@ -237,3 +245,19 @@ void ecmcAxisPVTSequence::clear() {
   busy_         = false;
   currSegIndex_ = 0;  
 }
+
+int ecmcAxisPVTSequence::validateRT() {
+  if(segmentCount_==0) {
+    printf(" ecmcAxisPVTSequence::validateRT(): Error: Segment count 0\n");
+    return ERROR_SEQ_PVT_CFG_INVALID;
+  }
+
+ return 0;
+}
+
+int ecmcAxisPVTSequence::setPositionOffset(double offset) {
+  positionOffset_ = offset;
+  return 0;
+}
+
+

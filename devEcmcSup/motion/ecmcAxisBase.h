@@ -273,6 +273,8 @@ public:
                double velocityOffCamSet,
                double accelerationSet,
                double decelerationSet);
+  int movePVTRel();
+  int movePVTAbs();
   int        moveHome(); // Use configs from encoder object
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);

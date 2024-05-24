@@ -13,6 +13,8 @@
 #ifndef ECMCAXISPVT_H_
 #define ECMCAXISPVT_H_
 
+#define ERROR_SEQ_PVT_CFG_INVALID 0x14D1D
+
 #include <vector>
 #include <cstdio>
 
@@ -140,6 +142,8 @@ class ecmcAxisPVTSequence {
     void   print();
     void   printRT();
     void   clear();
+    int    validateRT();
+    int    setPositionOffset(double offset);  // For running relative
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -148,6 +152,7 @@ class ecmcAxisPVTSequence {
     std::vector<ecmcPvtPoint*> points_;
     size_t segmentCount_, pointCount_, currSegIndex_;
     double totalTime_, sampleTime_, currTime_;
-    bool busy_;        
+    bool busy_;
+    double positionOffset_;  // For relative motion
 };
 #endif  /* ECMCAXISPVT_H_ */
