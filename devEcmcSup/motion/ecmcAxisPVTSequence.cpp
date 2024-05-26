@@ -124,6 +124,12 @@ bool ecmcAxisPVTSequence::isTimeValid(double time) {
 // Go to next sample in time
 // return true as long not exceeding endtime
 bool ecmcAxisPVTSequence::nextSampleStep(){
+
+  //Do not increase time if not executeing
+  if(!execute_) {
+    return currTime_ < endTime();
+  }
+
   // Increase time
   currTime_ = currTime_ + sampleTime_;
   
@@ -264,7 +270,6 @@ int ecmcAxisPVTSequence::setExecute(bool execute) {
   execute_ = execute;
   if (!executeOld_ && execute_) {
     initSeq();
-    busy_ = true;
   }
   executeOld_ = execute_;
   return 0;

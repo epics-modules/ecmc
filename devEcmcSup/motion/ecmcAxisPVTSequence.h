@@ -144,6 +144,7 @@ class ecmcAxisPVTSequence {
     void   clear();
     int    validateRT();
     int    setPositionOffset(double offset);  // For running relative
+    int    setExecute(bool execute);
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -154,5 +155,7 @@ class ecmcAxisPVTSequence {
     double totalTime_, sampleTime_, currTime_;
     bool busy_;
     double positionOffset_;  // For relative motion
+    bool execute_;
+    bool executeOld_;
 };
 #endif  /* ECMCAXISPVT_H_ */
