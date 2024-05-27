@@ -600,9 +600,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       // Set offset since realtive mode
       pvt_->setPositionOffset(data_->status_.currentPositionSetpoint);
-      pvt_->setExecute(0)
-      pvt_->setExecute(1
-      errorCode = pvt_->setExecute(data_->command_.execute);
+      pvt_->setExecute(0);
+      errorCode = pvt_->setExecute(1);      
       if (errorCode) {
         return errorCode;
       }
@@ -619,8 +618,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       // Set offset 0 since pvt is absolute
       pvt_->setPositionOffset(0);
-      pvt_->initSeq();
-      errorCode = pvt_->setExecute(data_->command_.execute);
+      pvt_->setExecute(0);
+      errorCode = pvt_->setExecute(1);
       if (errorCode) {
         return errorCode;
       }
@@ -3426,8 +3425,9 @@ double ecmcAxisSequencer::getNextPosSet() {
      data_->command_.command == ECMC_CMD_MOVEPVTABS)) {
  
     pos = pvt_->getCurrPosition();
-    if(xxx)
+    // will only update if execute is high
     pvt_->nextSampleStep();  // Go to next pvt time step, ONLY call this once per scan (so _NOT_ in getNextVel())
+
     return pos;
  }
  

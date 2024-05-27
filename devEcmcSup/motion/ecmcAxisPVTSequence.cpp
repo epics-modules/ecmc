@@ -127,6 +127,7 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
 
   //Do not increase time if not executeing
   if(!execute_) {
+    busy_ = false;
     return currTime_ < endTime();
   }
 
@@ -139,6 +140,7 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
       // the time must be in the next segment
       currSegIndex_++;
     } else {  // last segment and last sample, set to curr time to end-time
+      busy_ = false;
       currTime_ = endTime();
     }
   }

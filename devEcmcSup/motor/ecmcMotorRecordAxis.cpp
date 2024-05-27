@@ -1994,6 +1994,11 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   // Add first point. always zero velo  
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0],0,0));
 
+  for (size_t i = 0; i < profileNumPoints_; i++) {
+    printf("pC->profileTimes_[%ld] = %lf \n",i, pC->profileTimes_[i]);
+    printf("profilePositions_[%ld] = %lf \n",i, profilePositions_[i]);
+  }
+
   // start at second point
   double preVelo  = 0;
   double postVelo = 0;
@@ -2003,13 +2008,14 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     postVelo  = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];
     currTime += pC->profileTimes_[i];
     // avg velo
+    
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i], (preVelo+postVelo)/2, currTime));
   }
   
   // Add last point. always zero velo
   currTime += pC->profileTimes_[profileNumPoints_-1];
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], 0, currTime));
-  pvtPrepare_->printRT();
+  //pvtPrepare_->printRT();
 
   if(!drvlocal.ecmcAxis) {
     return asynError;
@@ -2032,13 +2038,15 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   status= pC_->getIntegerParam(axisNo_, pC_->profileMoveMode_, &mode);
   int errorCode = 0;
   if(mode == 0){
+    printf("ecmcMotorRecordAxis::executeProfile(): Executing Abs\n");
     errorCode = drvlocal.ecmcAxis->movePVTAbs();
   } else {
+    printf("ecmcMotorRecordAxis::executeProfile(): Executing Rel\n");
     errorCode = drvlocal.ecmcAxis->movePVTRel();
   }
   
   if(errorCode) {
-    printf("ecmcMotorRecordAxis::executeProfile(): Error: ecmc error %d\n",errorCode);
+    printf("ecmcMotorRecordAxis::executeProfile(): Error: ecmc error 0x%x\n",errorCode);
     return asynError;
   }
   return asynSuccess;
