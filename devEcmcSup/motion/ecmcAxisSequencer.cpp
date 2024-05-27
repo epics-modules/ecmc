@@ -129,31 +129,40 @@ void ecmcAxisSequencer::execute() {
 
   executeInternal();
 
-  data_->status_.cntrlOutput = 0;
   mon_->execute();
 
   // Switch to internal trajectory if interlock temporary
+  //bool trajLock =
+  //  ((data_->interlocks_.trajSummaryInterlockFWD &&
+  //    data_->status_.currentVelocitySetpoint > 0) ||
+  //   (data_->interlocks_.trajSummaryInterlockBWD &&
+  //    data_->status_.currentVelocitySetpoint < 0));
+
   bool trajLock =
     ((data_->interlocks_.trajSummaryInterlockFWD &&
-      data_->status_.currentVelocitySetpoint > 0) ||
+      data_->status_.currentPositionSetpoint >
+      data_->status_.currentPositionSetpointOld) ||
      (data_->interlocks_.trajSummaryInterlockBWD &&
-      data_->status_.currentVelocitySetpoint < 0));
-
-
+      data_->status_.currentPositionSetpoint <
+      data_->status_.currentPositionSetpointOld));
+  
   bool pvtmode = data_->command_.command == ECMC_CMD_MOVEPVTREL ||
        data_->command_.command == ECMC_CMD_MOVEPVTABS;
+  
   if (trajLock &&
       ((data_->command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) || 
       pvtmode)) {
     if (!temporaryLocalTrajSource_) {  // Initiate rampdown
+      printf("Initiate stopramp\n");
       temporaryLocalTrajSource_ = true;
       traj_->setStartPos(data_->status_.currentPositionActual);
       traj_->initStopRamp(data_->status_.currentPositionActual,
                           data_->status_.currentVelocityActual,
                           0);
-    }
-    if(pvtmode) {  // Leave PVT if issue (stop ramp initiated above)
-      data_->command_.command = ECMC_CMD_MOVEVEL;
+     if(pvtmode) {  // Leave PVT if issue (stop ramp initiated above)
+        printf("Switch from PVT to move vel mode\n");
+        data_->command_.command = ECMC_CMD_MOVEVEL;
+      }
     }
     data_->status_.currentPositionSetpoint = getNextPosSet();
     data_->status_.currentVelocitySetpoint = getNextVel();
@@ -490,6 +499,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       data_->status_.busy = true;
+      traj_->setStartPos(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setTargetVel(data_->command_.velocityTarget);
     }
@@ -522,6 +532,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
+      traj_->setStartPos(data_->status_.currentPositionSetpoint);
       traj_->setTargetVel(data_->command_.velocityTarget);
       traj_->setTargetPos(data_->command_.positionTarget);
     }
@@ -544,6 +555,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       data_->status_.busy = true;
+      traj_->setStartPos(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);
 
@@ -601,11 +613,28 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       // Set offset since realtive mode
       pvt_->setPositionOffset(data_->status_.currentPositionSetpoint);
       pvt_->setExecute(0);
-      errorCode = pvt_->setExecute(1);      
+      errorCode = pvt_->setExecute(1);
       if (errorCode) {
         return errorCode;
       }
+    } else if(!data_->command_.execute){
+      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+      traj_->setTargetVel(data_->command_.velocityTarget);
+      traj_->setStartPos(data_->status_.currentPositionActual);
+      traj_->initStopRamp(data_->status_.currentPositionActual,
+                          data_->status_.currentVelocityActual,
+                          0);      
+      printf("Switch from PVT to move vel mode\n");
+      data_->command_.command = ECMC_CMD_MOVEVEL;
+      errorCode = pvt_->setExecute(0);
+
     }
+    
+    errorCode = traj_->setExecute(data_->command_.execute);
+    if (errorCode) {
+      return errorCode;
+    }
+
     break;
 
   case ECMC_CMD_MOVEPVTABS:
@@ -623,7 +652,22 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       if (errorCode) {
         return errorCode;
       }
+    } else if(!data_->command_.execute){
+      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+      traj_->setTargetVel(data_->command_.velocityTarget);
+      traj_->setStartPos(data_->status_.currentPositionActual);
+      traj_->initStopRamp(data_->status_.currentPositionActual,
+                          data_->status_.currentVelocityActual,
+                          0);
+      printf("Switch from PVT to move vel mode\n");
+      errorCode = pvt_->setExecute(0);
     }
+
+    errorCode = traj_->setExecute(data_->command_.execute);
+    if (errorCode) {
+      return errorCode;
+    }
+
     break;
 
   case ECMC_CMD_HOMING:
@@ -636,6 +680,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     if (data_->command_.execute && !executeOld_) {
       // oldPrimaryEnc_ = data_->command_.primaryEncIndex;
       // encoder data source must be internal for homing
+      traj_->setStartPos(data_->status_.currentPositionSetpoint);
       if (data_->command_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -3419,15 +3464,17 @@ bool ecmcAxisSequencer::autoModeSetHoming() {
 
 double ecmcAxisSequencer::getNextPosSet() {
   double pos = 0;
+  
   // PVT or external interlocks (and if needed stop ramp) handled above in execute(), will go to MOVE_VEL and stop if interlock 
-  if(pvtOk_ && 
+  if(pvtOk_ &&
     (data_->command_.command == ECMC_CMD_MOVEPVTREL ||
      data_->command_.command == ECMC_CMD_MOVEPVTABS)) {
  
     pos = pvt_->getCurrPosition();
     // will only update if execute is high
     pvt_->nextSampleStep();  // Go to next pvt time step, ONLY call this once per scan (so _NOT_ in getNextVel())
-
+    // Update traj start pos
+    traj_->setStartPos(pos);    
     return pos;
  }
  

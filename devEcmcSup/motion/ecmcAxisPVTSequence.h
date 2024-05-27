@@ -145,7 +145,7 @@ class ecmcAxisPVTSequence {
     int    validateRT();
     int    setPositionOffset(double offset);  // For running relative
     int    setExecute(bool execute);
-
+  
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
     ecmcPvtSegment* getSeqmentAtTime(double time);

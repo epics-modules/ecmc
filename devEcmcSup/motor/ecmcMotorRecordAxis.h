@@ -159,12 +159,12 @@ private:
 #endif // ifndef motorMessageTextString
 
   //virtual asynStatus initializeProfile(size_t maxPoints);§
-  virtual asynStatus defineProfile(double *positions, size_t numPoints);
-  virtual asynStatus buildProfile();
-  virtual asynStatus initializeProfile(size_t maxProfilePoints);
+  asynStatus defineProfile(double *positions, size_t numPoints);
+  asynStatus buildProfile();
+  asynStatus initializeProfile(size_t maxProfilePoints);
 
-  virtual asynStatus executeProfile();
-  //virtual asynStatus abortProfile();
+  asynStatus executeProfile();
+  asynStatus abortProfile();
   //virtual asynStatus readbackProfile();
 
   ecmcAxisPVTSequence *pvtRunning_;

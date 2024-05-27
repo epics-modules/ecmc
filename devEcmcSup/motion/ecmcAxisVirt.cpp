@@ -34,6 +34,7 @@ void ecmcAxisVirt::initVars() {
 
 void ecmcAxisVirt::execute(bool masterOK) {
   ecmcAxisBase::preExecute(masterOK);
+  data_.status_.cntrlOutput = 0;
 
   // update setpoinmt and actual values
   seq_.execute();

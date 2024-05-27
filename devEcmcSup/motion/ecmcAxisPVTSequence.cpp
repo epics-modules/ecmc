@@ -21,7 +21,6 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime) {
   busy_         = false;
   currSegIndex_ = 0;
   positionOffset_ = 0.0;
-  //built_        = false;
 }
 
 void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
@@ -124,10 +123,9 @@ bool ecmcAxisPVTSequence::isTimeValid(double time) {
 // Go to next sample in time
 // return true as long not exceeding endtime
 bool ecmcAxisPVTSequence::nextSampleStep(){
-
+  // If  traj rampdown..
   //Do not increase time if not executeing
   if(!execute_) {
-    busy_ = false;
     return currTime_ < endTime();
   }
 
@@ -251,7 +249,7 @@ void ecmcAxisPVTSequence::clear() {
   totalTime_    = 0;
   currTime_     = 0;
   busy_         = false;
-  currSegIndex_ = 0;  
+  currSegIndex_ = 0;
 }
 
 int ecmcAxisPVTSequence::validateRT() {
@@ -260,7 +258,7 @@ int ecmcAxisPVTSequence::validateRT() {
     return ERROR_SEQ_PVT_CFG_INVALID;
   }
 
- return 0;
+  return 0;
 }
 
 int ecmcAxisPVTSequence::setPositionOffset(double offset) {
@@ -273,9 +271,7 @@ int ecmcAxisPVTSequence::setExecute(bool execute) {
   if (!executeOld_ && execute_) {
     initSeq();
   }
+  
   executeOld_ = execute_;
   return 0;
 }
-
-
-

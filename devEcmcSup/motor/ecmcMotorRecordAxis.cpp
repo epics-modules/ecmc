@@ -2028,26 +2028,58 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 }
 
 asynStatus ecmcMotorRecordAxis::executeProfile() {
+
   printf("ecmcMotorRecordAxis::executeProfile()\n");
-  asynStatus status = asynMotorAxis::executeProfile();  // empty right now..
+  asynStatus status = asynMotorAxis::executeProfile();
   if(status != asynSuccess) {
     return status;
   }
-  
+
+  if(!profileLastBuildOk_) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Last build did not complete successfully\n", axisNo_);
+    return asynError;
+  }
+
   int mode = 0;
-  status= pC_->getIntegerParam(axisNo_, pC_->profileMoveMode_, &mode);
+  status = pC_->getIntegerParam(pC_->profileMoveMode_, &mode);
+
+  int useAxis = 0;
+  status = pC_->getIntegerParam(axisNo_, pC_->profileUseAxis_, &useAxis);
+
+  if(useAxis == 0) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Axis not in use (ignoring execute command).\n", axisNo_);
+    return asynSuccess;
+  }
+
   int errorCode = 0;
   if(mode == 0){
-    printf("ecmcMotorRecordAxis::executeProfile(): Executing Abs\n");
+    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
     errorCode = drvlocal.ecmcAxis->movePVTAbs();
   } else {
-    printf("ecmcMotorRecordAxis::executeProfile(): Executing Rel\n");
+    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
     errorCode = drvlocal.ecmcAxis->movePVTRel();
   }
   
   if(errorCode) {
-    printf("ecmcMotorRecordAxis::executeProfile(): Error: ecmc error 0x%x\n",errorCode);
+    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: ecmc error (0x%x)\n",axisNo_,errorCode);
     return asynError;
+  }
+  return asynSuccess;
+}
+
+asynStatus ecmcMotorRecordAxis::abortProfile() {
+  printf("ecmcMotorRecordAxis::abortProfile()\n");
+  
+  // stop with controller rampdown: stopMotion(0):  Controller rampdown, stopMotion(1): Kill amplifier
+  int errorCode = drvlocal.ecmcAxis->stopMotion(0);
+  if(errorCode) {
+    printf("ecmcMotorRecordAxis::abortProfile(): Error axis[%d]: axis->stopMotion() returned error (0x%x)\n",axisNo_, errorCode);
+    return asynError;
+  }
+
+  asynStatus status = asynMotorAxis::abortProfile();
+  if(status != asynSuccess) {
+    return status;
   }
   return asynSuccess;
 }
@@ -2055,5 +2087,3 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
 bool ecmcMotorRecordAxis::getProfileLastBuildSuccess() {
   return profileLastBuildOk_;
 }
-
-

@@ -621,19 +621,19 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
 
   // Must be controller related
   if (function == motorDeferMoves_) {
-    printf("setDeferredMoves\n");
+    printf("writeInt32::setDeferredMoves\n");
     status = asynMotorController::setDeferredMoves(value);     
   } else if (function == profileBuild_) {
-    printf("buildProfile\n");
+    printf("writeInt32::buildProfile\n");
     status = buildProfile();
   } else if (function == profileExecute_) {
-    printf("executeProfile\n");
+    printf("writeInt32::executeProfile\n");
     status = asynMotorController::executeProfile();
   } else if (function == profileAbort_) {
-    printf("abortProfile\n");
+    printf("writeInt32:.abortProfile\n");
     status = asynMotorController::abortProfile();
   } else if (function == profileReadback_) {
-    printf("readbackProfile\n");
+    printf("writeInt32::readbackProfile\n");
     status = asynMotorController::readbackProfile();
   }
 
