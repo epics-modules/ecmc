@@ -138,6 +138,7 @@ void ecmcAxisSequencer::execute() {
   //   (data_->interlocks_.trajSummaryInterlockBWD &&
   //    data_->status_.currentVelocitySetpoint < 0));
 
+  // Below code moved from real axis.. Above similar from virt axis, sligth diff
   bool trajLock =
     ((data_->interlocks_.trajSummaryInterlockFWD &&
       data_->status_.currentPositionSetpoint >
@@ -145,7 +146,7 @@ void ecmcAxisSequencer::execute() {
      (data_->interlocks_.trajSummaryInterlockBWD &&
       data_->status_.currentPositionSetpoint <
       data_->status_.currentPositionSetpointOld));
-  
+
   bool pvtmode = data_->command_.command == ECMC_CMD_MOVEPVTREL ||
        data_->command_.command == ECMC_CMD_MOVEPVTABS;
   
@@ -447,6 +448,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   int errorCode = 0;
   int modeSet   = 0;
 
+  printf("ecmcAxisSequencer::setExecute(%d)\n",execute);
+
   if (traj_ == NULL) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
   }
@@ -500,6 +503,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       data_->status_.busy = true;
       traj_->setStartPos(data_->status_.currentPositionSetpoint);
+      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setTargetVel(data_->command_.velocityTarget);
     }
@@ -533,6 +537,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setStartPos(data_->status_.currentPositionSetpoint);
+      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setTargetVel(data_->command_.velocityTarget);
       traj_->setTargetPos(data_->command_.positionTarget);
     }
@@ -545,7 +550,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
 
   case ECMC_CMD_MOVEABS:
-
+    
     if (data_->command_.execute && !executeOld_) {
       if (!enablePos_) {
         return setErrorID(__FILE__,
@@ -553,9 +558,11 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                           __LINE__,
                           ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
       }
-
+      
+      printf("ecmcAxisSequencer::setExecute(%d): Startpos = %lf\n",execute,data_->status_.currentPositionSetpoint);
       data_->status_.busy = true;
       traj_->setStartPos(data_->status_.currentPositionSetpoint);
+      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);
 
@@ -621,6 +628,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setTargetVel(data_->command_.velocityTarget);
       traj_->setStartPos(data_->status_.currentPositionActual);
+      traj_->setCurrentPosSet(data_->status_.currentPositionActual);
       traj_->initStopRamp(data_->status_.currentPositionActual,
                           data_->status_.currentVelocityActual,
                           0);      
@@ -3470,16 +3478,19 @@ double ecmcAxisSequencer::getNextPosSet() {
     (data_->command_.command == ECMC_CMD_MOVEPVTREL ||
      data_->command_.command == ECMC_CMD_MOVEPVTABS)) {
  
-    pos = pvt_->getCurrPosition();
-    // will only update if execute is high
-    pvt_->nextSampleStep();  // Go to next pvt time step, ONLY call this once per scan (so _NOT_ in getNextVel())
-    // Update traj start pos
-    traj_->setStartPos(pos);    
-    return pos;
- }
- 
- // Normal traj or stop ramp here
- return traj_->getNextPosSet();
+    pos = pvt_->getCurrPosition();    
+    // Go to next pvt time step, ONLY call this once per scan (so _NOT_ in getNextVel())
+    pvt_->nextSampleStep();
+    
+    // Update traj
+    traj_->setStartPos(pos);
+    traj_->setCurrentPosSet(pos);
+
+  } else { // Normal traj or stop ramp here
+    pos = traj_->getNextPosSet();
+  }
+
+  return pos;
 }
 
 double ecmcAxisSequencer::getNextVel() {

@@ -64,16 +64,8 @@ void ecmcAxisPVTSequence::initSeq() {
   busy_ = true;
   currTime_ = startTime();
   currSegIndex_ = 0;
+  printf("ecmcAxisPVTSequence::initSeq()\n");
 }
-
-// void build() {
-//   for(size_t i = 0; i < segmentCount_; i++) {
-//     segments_[i]->build();
-//   };
-//   currTime_ = startTime();
-//   busy_ = false;
-//   built_ = true;
-// };
 
 bool ecmcAxisPVTSequence::validate() {
   return /*built_ && */ segmentCount_ > 0;
