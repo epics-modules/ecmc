@@ -218,6 +218,10 @@ private:
   int modeHomingCmdSet_;
   bool temporaryLocalTrajSource_;
   bool pvtOk_;
+  bool trajLock_;
+  bool trajLockOld_;
+  int counter_;
+  int posSource_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */
