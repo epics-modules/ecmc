@@ -142,6 +142,19 @@ void ecmcAxisSequencer::execute() {
   //   (data_->interlocks_.trajSummaryInterlockBWD &&
   //    data_->status_.currentVelocitySetpoint < 0));
 
+
+
+/**
+ * 
+ * 
+ * 
+ * TODO PVT: Switch traj permanetlly if interlock. Call getNextPos twice to get correct setpoint first time...
+ * Check velo setpoint in transsion between pvt and local traj
+ * 
+ * 
+ * 
+ * 
+*/
   // Below code moved from real axis.. Above similar from virt axis, sligth diff
   trajLockOld_ = trajLock_;
   trajLock_ =
