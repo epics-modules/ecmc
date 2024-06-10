@@ -765,12 +765,12 @@ int ecmcAxisBase::getVelAct(double *vel) {
 }
 
 int ecmcAxisBase::getPosSet(double *pos) {
-  if ((data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) && getSeq()) {
-    *pos = data_.command_.positionTarget;
-  } else {
-    *pos = data_.status_.currentPositionSetpoint;
-  }
+  *pos = data_.status_.currentPositionSetpoint;
+  return 0;
+}
 
+int ecmcAxisBase::getVelSet(double *vel) {  
+  *vel = data_.status_.currentVelocitySetpoint;
   return 0;
 }
 

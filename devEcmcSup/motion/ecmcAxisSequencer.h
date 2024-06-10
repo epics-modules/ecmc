@@ -58,6 +58,13 @@
 #define WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION 0x114D00
 #define WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION 0x114D01
 
+
+enum localTrajDataSource {
+  ECMC_TRAJ_SRC_TRAJ = 0,
+  ECMC_TRAJ_SRC_PLC  = 1,
+  ECMC_TRAJ_SRC_PVT  = 2  
+};
+
 class ecmcAxisSequencer : public ecmcError {
 public:
   ecmcAxisSequencer();
@@ -124,8 +131,8 @@ public:
   int          setAutoModeActEntry(ecmcEcEntry *entry);
   int          setAutoModeHomigCmd(int homing);
   int          setAutoModeMotionCmd(int motion);
-  double       getNextPosSet();
-  double       getNextVel();
+  //double       getNextPosSet();
+  //double       getNextVel();
 
 private:
   void         executeInternal();
@@ -220,6 +227,9 @@ private:
   bool pvtOk_;
   bool trajLock_;
   bool trajLockOld_;
+  bool newTrajLockEdge_;
+  bool pvtStopping_;
+  bool pvtmode_;
   int counter_;
   int posSource_;
 };

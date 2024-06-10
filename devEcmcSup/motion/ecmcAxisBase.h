@@ -204,6 +204,7 @@ public:
   ecmcAxisSequencer*         getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);
+  int                        getVelSet(double *vel);
   int                        getVelAct(double *vel);
   axisType                   getAxisType();
   int                        getAxisID();
