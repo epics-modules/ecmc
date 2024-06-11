@@ -148,8 +148,8 @@ void ecmcAxisSequencer::execute() {
     if(!pvtmode_ || !pvtStopping_) {
       traj_->setStartPos(data_->status_.currentPositionActual);
       traj_->setCurrentPosSet(data_->status_.currentPositionActual);
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setTargetVel(0);    
+      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);      
+      traj_->setTargetVel(data_->command_.velocityTarget);    
       traj_->initStopRamp(data_->status_.currentPositionSetpoint,
                           data_->status_.currentVelocitySetpoint,
                           0);
@@ -158,17 +158,20 @@ void ecmcAxisSequencer::execute() {
       //traj_->getNextPosSet();  // execute once to not end up returning the same setpoint twice
       printf("ecmcAxisSequencer::getNextPosSet(): Initiating new stopramp...\n");
       if(pvtmode_ && !pvtStopping_) {
+        data_->command_.command = ECMC_CMD_MOVEVEL;
         pvtStopping_ = true;  // Latch stop if in PVT
         pvt_->setExecute(0);  // stop PVT
       }
     }
   }
 
-  // get new setpoints if needed
-  if(trajLock_ || data_->command_.trajSource == !ECMC_DATA_SOURCE_INTERNAL && !pvtStopping_) {
-    data_->status_.currentPositionSetpoint = traj_->getNextPosSet(); // getNextPosSet();
-    data_->status_.currentVelocitySetpoint = traj_->getNextVel();    // getNextVel();    
+  // get new setpoints if needed (for PVT only once then the setpoint will be fetched above)
+  if(trajLock_&& (data_->command_.trajSource == !ECMC_DATA_SOURCE_INTERNAL && !pvtStopping_)) {
+    data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
+    data_->status_.currentVelocitySetpoint = traj_->getNextVel();
   }
+  
+  pvtStopping_ = traj_->getBusy();
 
   // PVT
   if(pvtOk_  && !pvtStopping_ && data_->command_.execute) {
@@ -190,7 +193,7 @@ void ecmcAxisSequencer::execute() {
       counter_ = 0;
     }
   }
-
+  traj_->setStartPos(data_->status_.currentPositionSetpoint);
 }
 
 void ecmcAxisSequencer::executeInternal() {
@@ -221,9 +224,7 @@ void ecmcAxisSequencer::executeInternal() {
       data_->status_.busy = localSeqBusy_ || traj_->getBusy();
     } else {
      // PVT 
-     if((data_->command_.command == ECMC_CMD_MOVEPVTREL || 
-         data_->command_.command == ECMC_CMD_MOVEPVTABS) && 
-         pvtOk_) {
+     if(pvtmode_) {
         data_->status_.busy = (pvt_->getBusy() && data_->status_.enabled) ||
                               !data_->status_.startupFinsished;
       } else {
@@ -232,7 +233,7 @@ void ecmcAxisSequencer::executeInternal() {
                               !data_->status_.startupFinsished;
       }
     }
-  } else {    // Sync to other axis
+  } else { // Sync to other axis
     data_->status_.busy = true;
   }
 
