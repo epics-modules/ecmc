@@ -527,7 +527,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
           readHomingParamsFromEnc();
         }
 
-        if (data_->command_.cmdData != ECMC_SEQ_HOME_NOT_VALID) {
+        if (data_->command_.cmdData == ECMC_SEQ_HOME_NOT_VALID) {
           // Homing not allowed
           return setErrorID(__FILE__,
                             __FUNCTION__,
