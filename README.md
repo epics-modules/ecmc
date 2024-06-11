@@ -13,7 +13,7 @@ git submodule update --init --reference ./
 # Features
 
 * Motion Control
-    * Motor record support
+    * Motor record
         * Absolute Positioning
         * Relative Positioning
         * Constant velocity
@@ -31,11 +31,11 @@ git submodule update --init --reference ./
             * Single turn abs encoder (resolver) ref via low limit (refId = 21)
             * Single turn abs encoder (resolver) ref via high limit (refId = 22)
             * Set position (refId = 25)
-        * Interlocks
-            * Following error
-            * Max speed
-            * Ethercat I/O
-            * Ethercat bus health
+    * Interlocks
+        * Following error
+        * Max speed
+        * Ethercat I/O
+        * Ethercat bus health
     * Trajectories:
         * Trapetzoidal
         * Jerk limited (ruckig, see below)
