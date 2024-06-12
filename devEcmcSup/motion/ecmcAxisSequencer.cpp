@@ -3028,7 +3028,8 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   // home all encoders to the new position
   for (int i = 0; i < data_->status_.encoderCount; i++) {
     // Ref all encoders that are configured to be homed. Always ref primary encoder.
-    if (encArray_[i]->getRefAtHoming()) {
+    if (encArray_[i]->getRefAtHoming() || i == data_->command_.primaryEncIndex ) {
+      printf("Setting new position to encoders: %lf\n",newPosition);
       encArray_[i]->setActPos(newPosition);
       encArray_[i]->setHomed(true);
       encArray_[i]->setArmLatch(false);

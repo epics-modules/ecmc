@@ -130,6 +130,7 @@ public:
   ecmcAxisDataCommand command_;
   ecmcAxisDataStatus status_;
   ecmcAxisDataInterlocks interlocks_;
+  ecmcAxisDataInterlocks interlocksOld_;
   int axisId_;
   axisType axisType_;
   double sampleTime_;
