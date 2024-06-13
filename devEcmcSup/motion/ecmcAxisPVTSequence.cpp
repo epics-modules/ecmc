@@ -260,12 +260,15 @@ int ecmcAxisPVTSequence::setPositionOffset(double offset) {
 
 int ecmcAxisPVTSequence::setExecute(bool execute) {
   execute_ = execute;
-  if (!executeOld_ && execute_) {
+  printf("ecmcAxisPVTSequence::setExecute(%d)\n",execute);
+  if (!executeOld_ && execute_) {    
     initSeq();
+    busy_ = true;
   }
 
   if(!execute) {
     busy_ = false;
+    //initSeq();
   }
 
   executeOld_ = execute_;

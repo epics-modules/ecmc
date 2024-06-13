@@ -168,6 +168,7 @@ private:
   void         finalizeHomingSeq(double newPosition);
   int          postHomeMove();
   void         setTrajAccAndDec();
+  void         initStop();
 
   int seqState_;
   int seqStateOld_;

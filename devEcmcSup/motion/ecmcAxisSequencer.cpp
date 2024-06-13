@@ -121,8 +121,6 @@ void ecmcAxisSequencer::execute() {
       data_->status_.externalEncoderVelocity;
   }
 
-  traj_->setStartPos(data_->status_.currentPositionSetpoint);
-
   executeInternal();
 
   mon_->execute();
@@ -145,33 +143,38 @@ void ecmcAxisSequencer::execute() {
   // Only init stopramp once if PVT
   if(newTrajLockEdge_ ) {
     // initiate stop
-    if(!pvtmode_ || !pvtStopping_) {
-      traj_->setStartPos(data_->status_.currentPositionActual);
-      traj_->setCurrentPosSet(data_->status_.currentPositionActual);
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);      
-      traj_->setTargetVel(data_->command_.velocityTarget);    
-      traj_->initStopRamp(data_->status_.currentPositionSetpoint,
-                          data_->status_.currentVelocitySetpoint,
-                          0);
-      traj_->setExecute(0);
-      traj_->setExecute(1);
-      //traj_->getNextPosSet();  // execute once to not end up returning the same setpoint twice
-      printf("ecmcAxisSequencer::getNextPosSet(): Initiating new stopramp...\n");
-      if(pvtmode_ && !pvtStopping_) {
-        data_->command_.command = ECMC_CMD_MOVEVEL;
-        pvtStopping_ = true;  // Latch stop if in PVT
-        pvt_->setExecute(0);  // stop PVT
-      }
-    }
+    printf("data_->interlocks_.trajSummaryInterlockBWD %d\n",data_->interlocks_.trajSummaryInterlockBWD);
+    printf("data_->interlocks_.trajSummaryInterlockFWD %d\n",data_->interlocks_.trajSummaryInterlockFWD);
+    printf("data_->status_.currentPositionSetpoint %lf\n",data_->status_.currentPositionSetpoint);
+    printf("data_->status_.currentPositionSetpointOld %lf\n",data_->status_.currentPositionSetpointOld);
+    initStop();
+    //if(!pvtmode_ || !pvtStopping_) {
+    //  traj_->setStartPos(data_->status_.currentPositionActual);
+    //  traj_->setCurrentPosSet(data_->status_.currentPositionActual);
+    //  traj_->setMotionMode(ECMC_MOVE_MODE_VEL);      
+    //  traj_->setTargetVel(data_->command_.velocityTarget);    
+    //  traj_->initStopRamp(data_->status_.currentPositionSetpoint,
+    //                      data_->status_.currentVelocitySetpoint,
+    //                      0);
+    //  traj_->setExecute(0);
+    //  traj_->setExecute(1);
+    //  //traj_->getNextPosSet();  // execute once to not end up returning the same setpoint twice
+    //  printf("ecmcAxisSequencer::getNextPosSet(): Initiating new stopramp...\n");
+    //  if(pvtmode_ && !pvtStopping_) {
+    //    data_->command_.command = ECMC_CMD_MOVEVEL;
+    //    pvtStopping_ = true;  // Latch stop if in PVT
+    //    pvt_->setExecute(0);  // stop PVT
+    //  }
+    //}
   }
 
   // get new setpoints if needed (for PVT only once then the setpoint will be fetched above)
-  if(trajLock_&& (data_->command_.trajSource == !ECMC_DATA_SOURCE_INTERNAL && !pvtStopping_)) {
+  if((trajLock_ && (data_->command_.trajSource == !ECMC_DATA_SOURCE_INTERNAL)) || (!pvtStopping_ && pvtmode_)) {
     data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
     data_->status_.currentVelocitySetpoint = traj_->getNextVel();
   }
   
-  pvtStopping_ = traj_->getBusy();
+  pvtStopping_ = traj_->getBusy() && pvtStopping_;
 
   // PVT
   if(pvtOk_  && !pvtStopping_ && data_->command_.execute) {
@@ -181,13 +184,22 @@ void ecmcAxisSequencer::execute() {
     }
   }
 
-    if(counter_ < 1000 && counter_>0) {
-    printf("setp %lf, oldsetp %lf, velosetp %lf, enc %lf, limit fwd %d, source %d, trjBusy = %d, pvtstopping %d\n",
+  if(counter_ < 1000 && counter_>0) {
+    int pvtBusy=-1;
+    if(pvtOk_ && pvtmode_) {
+      pvtBusy = pvt_->getBusy();
+    }
+    printf("setp %lf, oldsetp %lf, velosetp %lf, enc %lf, limit bwd %d, source %d, trjBusy = %d, pvtstopping %d, pvtBusy %d,  command %d, pvtmode %d, pvtOK %d\n",
                data_->status_.currentPositionSetpoint,
                data_->status_.currentPositionSetpointOld,
                data_->status_.currentVelocitySetpoint,
                data_->status_.currentPositionActual,               
-               data_->status_.limitFwd,posSource_, traj_->getBusy(),pvtStopping_);
+               data_->status_.limitBwd,
+               posSource_,
+               traj_->getBusy(),
+               pvtStopping_,
+               pvtBusy,
+               data_->command_.command, pvtmode_, pvtOk_);
     counter_++;
     if(counter_>1000) {
       counter_ = 0;
@@ -224,7 +236,7 @@ void ecmcAxisSequencer::executeInternal() {
       data_->status_.busy = localSeqBusy_ || traj_->getBusy();
     } else {
      // PVT 
-     if(pvtmode_) {
+     if(pvtmode_ && !pvtStopping_) {
         data_->status_.busy = (pvt_->getBusy() && data_->status_.enabled) ||
                               !data_->status_.startupFinsished;
       } else {
@@ -632,10 +644,13 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEPVTREL:
     if (data_->command_.execute && !executeOld_) {
+      
       errorCode = validatePVT();
       if(errorCode) {
         return errorCode;
       }
+
+      //pvtStopping_ = false;
       printf("RUNNING PVT REL\n");
       counter_ = 1;
 
@@ -647,20 +662,20 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         return errorCode;
       }
     } else if(!data_->command_.execute){
-      printf("Switch from PVT to move vel mode\n");
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setTargetVel(data_->command_.velocityTarget);
-      traj_->setStartPos(data_->status_.currentPositionActual);
-      traj_->setCurrentPosSet(data_->status_.currentPositionActual);
-      traj_->initStopRamp(data_->status_.currentPositionActual,
-                          data_->status_.currentVelocityActual,0);      
+      //printf("Switch from PVT to move vel mode\n");
+      //traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+      //traj_->setTargetVel(data_->command_.velocityTarget);
+      //traj_->setStartPos(data_->status_.currentPositionActual);
+      //traj_->setCurrentPosSet(data_->status_.currentPositionActual);
+      //traj_->initStopRamp(data_->status_.currentPositionActual,
+      //                    data_->status_.currentVelocityActual,0);      
       errorCode = pvt_->setExecute(0);
     }
     
-    errorCode = traj_->setExecute(data_->command_.execute);
-    if (errorCode) {
-      return errorCode;
-    }
+    //errorCode = traj_->setExecute(data_->command_.execute);
+    //if (errorCode) {
+    //  return errorCode;
+    //}
 
     break;
 
@@ -671,7 +686,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         return errorCode;
       }
       printf("RUNNING PVT ABS\n");
-
+      
+      //pvtStopping_ = false;
       // Set offset 0 since pvt is absolute
       pvt_->setPositionOffset(0);
       pvt_->setExecute(0);
@@ -680,19 +696,19 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         return errorCode;
       }
     } else if(!data_->command_.execute){
-      printf("Switch from PVT to move vel mode\n");
-      traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setTargetVel(data_->command_.velocityTarget);
-      traj_->setStartPos(data_->status_.currentPositionActual);
-      traj_->initStopRamp(data_->status_.currentPositionActual,
-                          data_->status_.currentVelocityActual,0);
+      //printf("Switch from PVT to move vel mode\n");
+      //traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+      //traj_->setTargetVel(data_->command_.velocityTarget);
+      //traj_->setStartPos(data_->status_.currentPositionActual);
+      //traj_->initStopRamp(data_->status_.currentPositionActual,
+      //                    data_->status_.currentVelocityActual,0);
       errorCode = pvt_->setExecute(0);
     }
 
-    errorCode = traj_->setExecute(data_->command_.execute);
-    if (errorCode) {
-      return errorCode;
-    }
+    //errorCode = traj_->setExecute(data_->command_.execute);
+    //if (errorCode) {
+    //  return errorCode;
+    //}
 
     break;
 
@@ -3549,4 +3565,26 @@ int ecmcAxisSequencer::validatePVT() {
   // Check softlimits, max velo and max acc
   pvtOk_ = true;
   return 0;
+}
+
+void ecmcAxisSequencer::initStop() {
+  printf("ecmcAxisSequencer::initStopPVT(): Initiating new stopramp...\n");
+  traj_->setStartPos(data_->status_.currentPositionActual);
+  traj_->setCurrentPosSet(data_->status_.currentPositionActual);
+  traj_->setMotionMode(ECMC_MOVE_MODE_VEL);      
+  traj_->setTargetVel(data_->command_.velocityTarget);    
+  traj_->initStopRamp(data_->status_.currentPositionSetpoint,
+                      data_->status_.currentVelocitySetpoint,
+                      0);
+  traj_->setExecute(0);
+  traj_->setExecute(1);
+  
+  if(pvtmode_ && !pvtStopping_) {
+    data_->command_.command = ECMC_CMD_MOVEVEL;
+    pvtStopping_ = true;  // Latch stop if in PVT
+    pvt_->setExecute(0);  // stop PVT
+  }
+  counter_ = 1;
+  //data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
+  //data_->status_.currentVelocitySetpoint = traj_->getNextVel();
 }
