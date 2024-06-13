@@ -674,20 +674,10 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
   if (enable && !data_.command_.enable) {
     errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
-    extTrajVeloFilter_->initFilter(0);  // init to 0 vel
-    traj_->setStartPos(data_.status_.currentPositionActual);
-    traj_->setCurrentPosSet(data_.status_.currentPositionActual);
-    traj_->setTargetPos(data_.status_.currentPositionActual);
-    data_.status_.currentTargetPosition =
-      data_.status_.currentPositionActual;
-    data_.status_.currentPositionSetpoint =
-      data_.status_.currentPositionActual;
-    data_.status_.currentPositionSetpointOld =
-      data_.status_.currentPositionSetpoint;
-    data_.status_.currentVelocitySetpoint = 0;
-    beforeFirstEnable_                    = true;
-  }
-  traj_->setEnable(enable);
+    extTrajVeloFilter_->initFilter(0);  // init to 0 vel        
+    seq_.setEnable(enable);
+    beforeFirstEnable_ = true;
+  }  
 
   // reset axis error if ERROR_AXIS_NOT_ENABLED or ERROR_AXIS_SAFETY_IL_ACTIVE when try to enable
   int errid = getErrorID();
@@ -698,7 +688,7 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
 
   data_.status_.enableOld = data_.command_.enable;
   data_.command_.enable   = enable;
-  
+
   return 0;
 }
 

@@ -133,6 +133,7 @@ public:
   int          setAutoModeMotionCmd(int motion);
   //double       getNextPosSet();
   //double       getNextVel();
+  void         setEnable(int enable);
 
 private:
   void         executeInternal();
@@ -232,6 +233,7 @@ private:
   bool pvtStopping_;
   bool pvtmode_;
   int counter_;
+  int counter2_;
   int posSource_;
 };
 

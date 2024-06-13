@@ -258,7 +258,7 @@ int ecmcAxisData::setSummaryInterlocks() {
   interlocks_.trajSummaryInterlockFWD = interlocks_.trajSummaryInterlockFWDEpics 
                                         || interlocks_.noExecuteInterlock;
 
- /* 
+  
   if(interlocksOld_.driveSummaryInterlock != interlocks_.driveSummaryInterlock) {
     printf("interlocks_.driveSummaryInterlock changed:\n");
     printf("interlocks_.bothLimitsLowInterlock= %d\n",interlocks_.bothLimitsLowInterlock);
@@ -313,7 +313,7 @@ int ecmcAxisData::setSummaryInterlocks() {
   interlocksOld_.driveSummaryInterlock   = interlocks_.driveSummaryInterlock;
   interlocksOld_.trajSummaryInterlockBWD = interlocks_.trajSummaryInterlockBWD;
   interlocksOld_.trajSummaryInterlockFWD = interlocks_.trajSummaryInterlockFWD;
-  */
+  
   return 0;
 }
 
