@@ -3014,22 +3014,15 @@ void ecmcAxisSequencer::initHomingSeq() {
 }
 
 void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
-  // Should primary encoder be homed?! If not then go back to primary encoder pos for control
-  // double newControlPosition = newPosition;
-
-  // if (!encArray_[oldPrimaryEnc_]->getRefAtHoming()) {
-  //  newControlPosition = encArray_[oldPrimaryEnc_]->getActPos();
-  // }
-
+  
   // Prep all objects for setpoint step (except encoders)
-  // setNewPositionCtrlDrvTrajBumpless(newControlPosition);
   setNewPositionCtrlDrvTrajBumpless(newPosition);
 
   // home all encoders to the new position
   for (int i = 0; i < data_->status_.encoderCount; i++) {
     // Ref all encoders that are configured to be homed. Always ref primary encoder.
     if (encArray_[i]->getRefAtHoming() || i == data_->command_.primaryEncIndex ) {
-      printf("Setting new position to encoders: %lf\n",newPosition);
+      printf("INFO: Axis [%d]: Setting new position to encoder[%d]: %lf\n",data_->axisId_,i,newPosition);
       encArray_[i]->setActPos(newPosition);
       encArray_[i]->setHomed(true);
       encArray_[i]->setArmLatch(false);

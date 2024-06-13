@@ -109,6 +109,8 @@ typedef struct {
   bool           driveSummaryInterlock;
   bool           trajSummaryInterlockFWD;
   bool           trajSummaryInterlockBWD;
+  bool           trajSummaryInterlockFWDEpics;
+  bool           trajSummaryInterlockBWDEpics;
   bool           etherCatMasterInterlock;
   bool           plcInterlock;
   bool           plcInterlockFWD;

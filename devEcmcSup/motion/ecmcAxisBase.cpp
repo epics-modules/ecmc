@@ -1530,13 +1530,11 @@ void ecmcAxisBase::refreshStatusWd() {
 
   // bit 17 sumilockfwd (filter away execute IL)
   statusData_.onChangeData.statusWd.sumilockfwd =
-    data_.interlocks_.trajSummaryInterlockFWD &&
-    data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE;
+    data_.interlocks_.trajSummaryInterlockFWDEpics;
 
   // bit 18 sumilockbwd (filter away execute IL)
   statusData_.onChangeData.statusWd.sumilockbwd =
-    data_.interlocks_.trajSummaryInterlockBWD &&
-    data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE;
+    data_.interlocks_.trajSummaryInterlockBWDEpics;
 
   // bit 19 axis type
   statusData_.onChangeData.statusWd.axisType = data_.axisType_ ==

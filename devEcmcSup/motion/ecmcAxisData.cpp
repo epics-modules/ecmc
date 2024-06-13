@@ -222,7 +222,7 @@ int ecmcAxisData::setSummaryInterlocks() {
                                       || interlocks_.etherCatMasterInterlock
                                       || interlocks_.analogInterlock;
 
-  interlocks_.trajSummaryInterlockBWD = interlocks_.driveSummaryInterlock
+  interlocks_.trajSummaryInterlockBWDEpics = interlocks_.driveSummaryInterlock
                                         || interlocks_.axisErrorStateInterlock
                                         || interlocks_.bwdLimitInterlock
                                         || interlocks_.bwdSoftLimitInterlock
@@ -230,7 +230,6 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.encTransformInterlock
                                         || interlocks_.lagTrajInterlock
                                         || interlocks_.maxVelocityTrajInterlock
-                                        || interlocks_.noExecuteInterlock
                                         || interlocks_.trajTransformInterlock
                                         || interlocks_.unexpectedLimitSwitchBehaviourInterlock
                                         || interlocks_.velocityDiffTrajInterlock
@@ -238,7 +237,10 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.plcInterlockBWD
                                         || interlocks_.encDiffInterlock
                                         || interlocks_.safetyInterlock;
-  interlocks_.trajSummaryInterlockFWD = interlocks_.driveSummaryInterlock
+  interlocks_.trajSummaryInterlockBWD = interlocks_.trajSummaryInterlockBWDEpics 
+                                        || interlocks_.noExecuteInterlock;
+
+  interlocks_.trajSummaryInterlockFWDEpics = interlocks_.driveSummaryInterlock
                                         || interlocks_.axisErrorStateInterlock
                                         || interlocks_.cntrlOutputHLTrajInterlock
                                         || interlocks_.encTransformInterlock
@@ -246,7 +248,6 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.fwdSoftLimitInterlock
                                         || interlocks_.lagTrajInterlock
                                         || interlocks_.maxVelocityTrajInterlock
-                                        || interlocks_.noExecuteInterlock
                                         || interlocks_.trajTransformInterlock
                                         || interlocks_.unexpectedLimitSwitchBehaviourInterlock
                                         || interlocks_.velocityDiffTrajInterlock
@@ -254,8 +255,10 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.plcInterlockFWD
                                         || interlocks_.encDiffInterlock
                                         || interlocks_.safetyInterlock;
-  
-  
+  interlocks_.trajSummaryInterlockFWD = interlocks_.trajSummaryInterlockFWDEpics 
+                                        || interlocks_.noExecuteInterlock;
+
+ /* 
   if(interlocksOld_.driveSummaryInterlock != interlocks_.driveSummaryInterlock) {
     printf("interlocks_.driveSummaryInterlock changed:\n");
     printf("interlocks_.bothLimitsLowInterlock= %d\n",interlocks_.bothLimitsLowInterlock);
@@ -309,7 +312,8 @@ int ecmcAxisData::setSummaryInterlocks() {
 
   interlocksOld_.driveSummaryInterlock   = interlocks_.driveSummaryInterlock;
   interlocksOld_.trajSummaryInterlockBWD = interlocks_.trajSummaryInterlockBWD;
-  interlocksOld_.trajSummaryInterlockFWD = interlocks_.trajSummaryInterlockFWD;  
+  interlocksOld_.trajSummaryInterlockFWD = interlocks_.trajSummaryInterlockFWD;
+  */
   return 0;
 }
 
