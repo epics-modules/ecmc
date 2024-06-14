@@ -159,7 +159,8 @@ typedef struct {
   bool plcCmdsAllowCmd    : 1;                        // 0 = not allow, 1 = allow
   bool enableSoftLimitBwd : 1;
   bool enableSoftLimitFwd : 1;
-  int  spareBitsCmd       : 22;
+  bool enableDbgPrintout  : 1;
+  int  spareBitsCmd       : 21;
 } ecmcAsynAxisControlType;
 
 class ecmcAxisBase : public ecmcError {

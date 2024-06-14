@@ -2248,6 +2248,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * controlWord_.plcCmdsAllowCmd
  * controlWord_.enableSoftLimitBwd
  * controlWord_.enableSoftLimitFwd
+ * controlWord_.enableILockChangePrintout
  *
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
@@ -2306,6 +2307,9 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED);
     return asynError;
   }
+
+  // make printouts when interlock state changes
+  data_.command_.enableDbgPrintout = controlWord_.enableDbgPrintout;
 
   int errorCode = 0;
 
