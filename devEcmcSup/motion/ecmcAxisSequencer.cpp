@@ -3487,7 +3487,7 @@ int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
   }
   pvtOk_ = false; // need new validation since new object
   pvt_   = pvt;
-  if(data_->command_).enableDbgPrintout) {
+  if(data_->command_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::setPVTObject(pvt): INFO: PVT object assigned\n");
   }
   return 0;

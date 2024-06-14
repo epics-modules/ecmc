@@ -79,7 +79,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   profileLastBuildOk_ = false;
   profileLastInitOk_  = false;
   profileLastDefineOk_ = false;
-
+  pvtPrepare_ = NULL;
+  
   if (!drvlocal.ecmcAxis) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis ref NULL. Application exits...\n",
@@ -190,25 +191,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
   initialPoll();
   
-  // Profile moves
-  //profileNumPoints_ = 0;
-  //pvtRunning_ = NULL;
-  pvtPrepare_ = NULL;
-  
-  //test PVT
-  //double pos[20]; 
-  //pC->initializeProfile(50);
-
-  //for(int i = 0; i < 6; i++) {
-  //  pos[i] = i;
- //   pC->profileTimes_[i] = 1.0;// + ((double)i)/10;
-  //}
-  //LOGERR("HEPPPP################################################!! \n");
-  //defineProfile(pos,6);
-  //buildProfile();
-  //pvtPrepare_->print();
-  //printf("------------------------------\n");
-  //pvtPrepare_->printRT();
 }
 
 extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
