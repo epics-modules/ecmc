@@ -1,6 +1,9 @@
 
 Release Notes
 ===
+# master
+* Fix issues with homing
+
 # ECMC v9.5.0
 * Add funcion to get an ecmcAxisBase object based on axis index
 
