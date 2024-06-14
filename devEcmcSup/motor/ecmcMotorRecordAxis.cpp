@@ -80,7 +80,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   profileLastInitOk_  = false;
   profileLastDefineOk_ = false;
   pvtPrepare_ = NULL;
-  
+
   if (!drvlocal.ecmcAxis) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis ref NULL. Application exits...\n",
@@ -1907,12 +1907,9 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
   printf("ecmcMotorRecordAxis::defineProfile()\n");
   profileLastDefineOk_= false;
 
-  asynMotorAxis::defineProfile(positions, numPoints);
-
   size_t i;
   asynStatus status;
-  //static const char *functionName = "defineProfile";
-  
+
   // Call the base class function
   status = asynMotorAxis::defineProfile(positions, numPoints);
   if (status) {
@@ -1974,30 +1971,55 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   pvtPrepare_->clear();
 
   // Add first point. always zero velo  
-  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0],0,0));
+  // Rampup time defined in parameter profileAcceleration_
+  double accTime = 0;
+  asynStatus status = pC_->getDoubleParam(pC_->profileAcceleration_, &accTime);
+  
+  if(status != asynSuccess) {
+    printf("ERROR axis[%d]: Read profileAcceleration_ failed\n",axisNo_);
+    return asynError;
+  }
+
+  // Must be atleast 2 points in array sicne velo is defined by time between 2 points
+  if(profileNumPoints_ < 2) {
+    printf("ERROR axis[%d]: Too few positions in array (must be atleast 2)\n",axisNo_);    
+    return asynError;
+  }
+
+  //Add acceleration point start dummy point and udate with correct position when triggered (executeProfile)
+  pvtPrepare_->addPoint(new ecmcPvtPoint(0,0,0));
 
   for (size_t i = 0; i < profileNumPoints_; i++) {
     printf("pC->profileTimes_[%ld] = %lf \n",i, pC->profileTimes_[i]);
     printf("profilePositions_[%ld] = %lf \n",i, profilePositions_[i]);
   }
-
-  // start at second point
-  double preVelo  = 0;
+  
+  double preVelo = 0;
   double postVelo = 0;
-  double currTime = 0;
+  double currTime = accTime;  // Start at this time since first seqment takes the acceleration
+
+  // Add first points
+  preVelo = (profilePositions_[1]-profilePositions_[0]) / pC->profileTimes_[0];   
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0], preVelo, currTime));
+  currTime += pC->profileTimes_[0];
+
+  //add center points
+  double velo = preVelo;
   for (size_t i = 1; i < (profileNumPoints_-1); i++) {
-    preVelo   = (profilePositions_[i]-profilePositions_[i-1]) / pC->profileTimes_[i-1];
-    postVelo  = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];
+    postVelo = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];   
+    velo = (preVelo + postVelo)/2;
+    pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i],velo, currTime));
     currTime += pC->profileTimes_[i];
-    // avg velo
-    
-    pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i], (preVelo+postVelo)/2, currTime));
+    preVelo   = postVelo;
   }
   
-  // Add last point. always zero velo
-  currTime += pC->profileTimes_[profileNumPoints_-1];
-  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], 0, currTime));
-  //pvtPrepare_->printRT();
+  // Add last point. same velo as prev point    
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], postVelo, currTime));  
+
+  // Add deceleration point. always zero velo after accTime
+  currTime +=accTime;    
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1] + velo * accTime / 2, 0, currTime));
+  pvtPrepare_->print();
 
   if(!drvlocal.ecmcAxis) {
     return asynError;
