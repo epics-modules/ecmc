@@ -151,6 +151,8 @@ private:
   void         finalizeHomingSeq(double newPosition);
   int          postHomeMove();
   void         setTrajAccAndDec();
+  void         latchPosLagMonStateBeforeSeq();
+  void         restorePosLagMonAfterSeq();
 
   int seqState_;
   int seqStateOld_;
@@ -205,6 +207,8 @@ private:
   int modeHomingCmd_;  // Mode for homing
   int modeMotionCmdSet_;
   int modeHomingCmdSet_;
+  int homeTrigStatOld_;
+  bool monPosLagEnaStatePriorHome_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */

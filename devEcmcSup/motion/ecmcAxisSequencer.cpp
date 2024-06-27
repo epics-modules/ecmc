@@ -66,6 +66,8 @@ void ecmcAxisSequencer::initVars() {
   modeHomingCmd_         = 0;
   modeMotionCmdSet_      = 0;
   modeHomingCmdSet_      = 0;
+  homeTrigStatOld_       = false;
+  monPosLagEnaStatePriorHome_ = true;
 }
 
 // Cyclic execution
@@ -132,6 +134,8 @@ void ecmcAxisSequencer::execute() {
 
   case ECMC_CMD_HOMING:
 
+    latchPosLagMonStateBeforeSeq();
+    
     switch (homeSeqId) {
     case ECMC_SEQ_HOME_LOW_LIM:
       seqReturnVal = seqHoming1();
@@ -322,7 +326,7 @@ void ecmcAxisSequencer::execute() {
       setErrorID(__FILE__, __FUNCTION__, __LINE__,
                  ERROR_SEQ_CMD_DATA_UNDEFINED);
       break;
-    }
+    }    
     break;
 
   default:
@@ -2782,22 +2786,26 @@ int ecmcAxisSequencer::seqHoming26() {
                         __LINE__,
                         ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED);
     }
-
+        
     // Trigger motion (just set output bit)
     initHomingSeq();
+
+    // Must disable following error mon since traj generation is external (will be auto restored by the restorePosLagMonAfterSeq())
+    mon_->setEnableLagMon(false); 
+
     getPrimEnc()->setHomeExtTrigg(1);
     seqState_ = 1;
     break;
 
   case 1:  // Get status of homig seq (read bit)
-
-    if (getPrimEnc()->getHomeExtTriggStat()) {  // consider check for edge..
+    if (!homeTrigStatOld_ && getPrimEnc()->getHomeExtTriggStat()) {  // consider check for edge..
       getPrimEnc()->setHomeExtTrigg(0);
       finalizeHomingSeq(homePosition_);
     }
     break;
   }
 
+  homeTrigStatOld_ = getPrimEnc()->getHomeExtTriggStat();
   postHomeMove();
 
   return -seqState_;
@@ -2931,6 +2939,7 @@ int ecmcAxisSequencer::stopSeq() {
   localSeqBusy_   = false;
   seqState_       = 0;
   seqTimeCounter_ = 0;
+  restorePosLagMonAfterSeq();
   return 0;
 }
 
@@ -3033,7 +3042,9 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   homePosLatch2_      = 0;
   homeLatchCountAct_  = 0;
   overUnderFlowLatch_ = ECMC_ENC_NORMAL;
-
+  
+  restorePosLagMonAfterSeq();
+  
   // See if trigg post home motion
   if (homeEnablePostMove_) {
     seqState_ = 1000;
@@ -3271,4 +3282,13 @@ bool ecmcAxisSequencer::autoModeSetHoming() {
     return 1;
   }
   return 0;  // use seq step that is not used by post move and other seqs
+}
+
+// To auto restore poslag monitoring if needed (for instance for external trigged homing seq)
+void ecmcAxisSequencer::latchPosLagMonStateBeforeSeq() {
+  monPosLagEnaStatePriorHome_= mon_->getEnableLagMon();
+}
+
+void ecmcAxisSequencer::restorePosLagMonAfterSeq() {
+  mon_->setEnableLagMon(monPosLagEnaStatePriorHome_);
 }
