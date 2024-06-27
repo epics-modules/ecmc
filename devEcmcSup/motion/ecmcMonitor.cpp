@@ -259,6 +259,9 @@ int ecmcMonitor::getPosLagTime() {
 }
 
 void ecmcMonitor::setEnableLagMon(bool enable) {
+  if(enable && !enableLagMon_) {
+    lagMonCounter_ = 0;
+  }
   enableLagMon_ = enable;
 }
 
@@ -788,6 +791,8 @@ int ecmcMonitor::checkPositionLag() {
     } else {
       lagMonCounter_ = 0;
     }
+  } else {
+    lagMonCounter_ = 0;
   }
 
   data_->interlocks_.lagDriveInterlock = lagErrorDrive;
