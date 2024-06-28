@@ -1,8 +1,10 @@
 
 Release Notes
 ===
-# master
+# ECMC 9.5.1
 * Fix issues with homing
+* Make external triggered homing sequence more robust (and compatible with SmarACT MCS2 EtherCAT version)
+* Allow disabling of position lag monitoring (following error) during external homing sequence
 
 # ECMC v9.5.0
 * Add funcion to get an ecmcAxisBase object based on axis index
