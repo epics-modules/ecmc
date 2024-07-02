@@ -67,7 +67,8 @@ void ecmcAxisSequencer::initVars() {
   modeMotionCmdSet_      = 0;
   modeHomingCmdSet_      = 0;
   homeTrigStatOld_       = false;
-  monPosLagEnaStatePriorHome_ = true;
+  monPosLagEnaStatePriorHome_ = false;
+  monPosLagRestoreNeeded_ = false;
 }
 
 // Cyclic execution
@@ -496,7 +497,6 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     }
 
     if (data_->command_.execute && !executeOld_) {
-      latchPosLagMonStateBeforeSeq();
       // oldPrimaryEnc_ = data_->command_.primaryEncIndex;
       // encoder data source must be internal for homing
       if (data_->command_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
@@ -507,6 +507,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       stopSeq();
+      latchPosLagMonStateBeforeSeq();
 
       if (!enableHome_) {
         return setErrorID(__FILE__,
@@ -524,7 +525,6 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         data_->status_.busy = true;
 
         // Use the paarmeters defined in encoder object
-
         if (data_->command_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
           readHomingParamsFromEnc();
         }
@@ -3280,9 +3280,13 @@ bool ecmcAxisSequencer::autoModeSetHoming() {
 
 // To auto restore poslag monitoring if needed (for instance for external trigged homing seq)
 void ecmcAxisSequencer::latchPosLagMonStateBeforeSeq() {  
-  monPosLagEnaStatePriorHome_= mon_->getEnableLagMon();
+  monPosLagEnaStatePriorHome_ = mon_->getEnableLagMon();
+  monPosLagRestoreNeeded_ = true;
 }
 
 void ecmcAxisSequencer::restorePosLagMonAfterSeq() {
-  mon_->setEnableLagMon(monPosLagEnaStatePriorHome_);
+  if(monPosLagRestoreNeeded_) {
+    mon_->setEnableLagMon(monPosLagEnaStatePriorHome_);
+  }
+  monPosLagRestoreNeeded_ = false;
 }

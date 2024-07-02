@@ -208,7 +208,8 @@ private:
   int modeMotionCmdSet_;
   int modeHomingCmdSet_;
   int homeTrigStatOld_;
-  bool monPosLagEnaStatePriorHome_;  
+  bool monPosLagEnaStatePriorHome_;
+  bool monPosLagRestoreNeeded_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */
