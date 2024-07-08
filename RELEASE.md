@@ -1,6 +1,13 @@
 
 Release Notes
 ===
+# ECMC 9.5.3
+* Fix uint322Float64 command
+
+# ECMC 9.5.2
+* Updates to ecmccfg to facilitate "auto-generation" of GUI.
+* Only restore poslag monitoring when needed (during external homing)
+
 # ECMC 9.5.1
 * Fix issues with homing
 * Make external triggered homing sequence more robust (and compatible with SmarACT MCS2 EtherCAT version)
