@@ -3,6 +3,7 @@ Release Notes
 ===
 # ECMC 9.5.3
 * Fix uint322Float64 command
+* Updates to ecmccfg
 
 # ECMC 9.5.2
 * Updates to ecmccfg to facilitate "auto-generation" of GUI.
