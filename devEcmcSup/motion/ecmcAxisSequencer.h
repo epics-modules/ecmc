@@ -170,6 +170,8 @@ private:
   int          postHomeMove();
   void         setTrajAccAndDec();
   void         initStop();
+  void         latchPosLagMonStateBeforeSeq();
+  void         restorePosLagMonAfterSeq();
 
   int seqState_;
   int seqStateOld_;
@@ -235,6 +237,9 @@ private:
   int counter_;
   int counter2_;
   int posSource_;
+  int homeTrigStatOld_;
+  bool monPosLagEnaStatePriorHome_;
+  bool monPosLagRestoreNeeded_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */
