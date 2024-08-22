@@ -1940,16 +1940,43 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   asynMotorAxis::buildProfile();
 
   if (!profileLastInitOk_ || !profileLastDefineOk_) {
-    printf("ecmcMotorRecordAxis::buildProfile(): Error: Define or Init not perfromed successfully\n");    
+     LOGERR(
+      "%s/%s:%d: ERROR: Define or Init not performed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+
+    return asynError;
+  }
+  
+  if(profileNumPoints_<2) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Defined profile position count invalid (<=1).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
     return asynError;
   }
 
-  // static const char *functionName = "buildProfile";
+  double accTime = 0;
+  asynStatus status = pC_->getDoubleParam(pC_->profileAcceleration_, &accTime);
+  
+  if(status != asynSuccess) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Failed read profileAcceleration_.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+
+    return asynError;
+  }
+
   if(!pvtPrepare_) {    
     pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
   }
 
-  if(!pvtPrepare_ || profileNumPoints_<=0) {
+  if(!pvtPrepare_ ) {
      LOGERR(
       "%s/%s:%d: ERROR: Allocation of PVT object failed.\n",
       __FILE__,
@@ -1958,35 +1985,11 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
   
-  if(profileNumPoints_<1) {
-     LOGERR(
-      "%s/%s:%d: ERROR: Defined profile position count invalid (<=1).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__);
-    return asynError;
-  }
-  
   // Clear prepared pvt object
   pvtPrepare_->clear();
-
-  // Add first point. always zero velo  
-  // Rampup time defined in parameter profileAcceleration_
-  double accTime = 0;
-  asynStatus status = pC_->getDoubleParam(pC_->profileAcceleration_, &accTime);
   
-  if(status != asynSuccess) {
-    printf("ERROR axis[%d]: Read profileAcceleration_ failed\n",axisNo_);
-    return asynError;
-  }
-
-  // Must be atleast 2 points in array sicne velo is defined by time between 2 points
-  if(profileNumPoints_ < 2) {
-    printf("ERROR axis[%d]: Too few positions in array (must be atleast 2)\n",axisNo_);    
-    return asynError;
-  }
-
   //Add acceleration point start dummy point and udate with correct position when triggered (executeProfile)
+  // Rampup time defined in parameter profileAcceleration_
   pvtPrepare_->addPoint(new ecmcPvtPoint(0,0,0));
 
   for (size_t i = 0; i < profileNumPoints_; i++) {
