@@ -2004,6 +2004,10 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   // Add first points
   preVelo = (profilePositions_[1]-profilePositions_[0]) / pC->profileTimes_[0];   
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0], preVelo, currTime));
+  
+  printf("Added point (%lf,%lf,%lf)",profilePositions_[0], preVelo, currTime);
+
+
   currTime += pC->profileTimes_[0];
 
   //add center points
@@ -2012,12 +2016,14 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     postVelo = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];   
     velo = (preVelo + postVelo)/2;
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i],velo, currTime));
+    printf("Added point (%lf,%lf,%lf)",profilePositions_[i], velo, currTime);
     currTime += pC->profileTimes_[i];
     preVelo   = postVelo;
   }
   
   // Add last point. same velo as prev point    
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], postVelo, currTime));  
+  printf("Added point (%lf,%lf,%lf)",profilePositions_[profileNumPoints_-1], postVelo, currTime);
 
   // Add deceleration point. always zero velo after accTime
   currTime +=accTime;    
