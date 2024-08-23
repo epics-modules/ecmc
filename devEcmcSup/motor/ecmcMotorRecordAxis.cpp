@@ -2065,10 +2065,10 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   }
 
   int errorCode = 0;
-  if(mode == 0){
+  if(mode == PROFILE_MOVE_MODE_ABSOLUTE){
     printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
     errorCode = drvlocal.ecmcAxis->movePVTAbs();
-  } else {
+  } else {  // PROFILE_MOVE_MODE_RELATIVE
     printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
     errorCode = drvlocal.ecmcAxis->movePVTRel();
   }
@@ -2077,6 +2077,7 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: ecmc error (0x%x)\n",axisNo_,errorCode);
     return asynError;
   }
+  
   return asynSuccess;
 }
 

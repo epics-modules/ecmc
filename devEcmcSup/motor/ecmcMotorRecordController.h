@@ -110,8 +110,7 @@ public:
   asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   asynStatus initializeProfile(size_t maxProfilePoints);
   asynStatus buildProfile();
-
-
+  asynStatus executeProfile();
 
   int features_;
 

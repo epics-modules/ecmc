@@ -131,8 +131,6 @@ public:
   int          setAutoModeActEntry(ecmcEcEntry *entry);
   int          setAutoModeHomigCmd(int homing);
   int          setAutoModeMotionCmd(int motion);
-  //double       getNextPosSet();
-  //double       getNextVel();
   void         setEnable(int enable);
 
 private:
@@ -234,8 +232,6 @@ private:
   bool newTrajLockEdge_;
   bool pvtStopping_;
   bool pvtmode_;
-  int counter_;
-  int counter2_;
   int posSource_;
   int homeTrigStatOld_;
   bool monPosLagEnaStatePriorHome_;

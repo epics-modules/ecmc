@@ -549,9 +549,43 @@ asynStatus ecmcMotorRecordController::poll(void) {
     ctrlLocal.initialPollDone = 1;
   }
 
-  //status = setIntegerParam(1,profileCurrentPoint_, 0);
-  //printf("Setting profileCurrentPoint_ to 0 (status=%d)\n",(int)status );
-  //callParamCallbacks(1);
+
+/*
+enum ProfileTimeMode{
+  PROFILE_TIME_MODE_FIXED,
+  PROFILE_TIME_MODE_ARRAY
+};
+
+enum ProfileMoveMode{
+  PROFILE_MOVE_MODE_ABSOLUTE,
+  PROFILE_MOVE_MODE_RELATIVE
+};
+
+enum ProfileBuildState{
+  PROFILE_BUILD_DONE,
+  PROFILE_BUILD_BUSY
+};
+
+enum ProfileExecuteState{
+  PROFILE_EXECUTE_DONE,
+  PROFILE_EXECUTE_MOVE_START,
+  PROFILE_EXECUTE_EXECUTING,
+  PROFILE_EXECUTE_FLYBACK
+};
+
+enum ProfileReadbackState{
+  PROFILE_READBACK_DONE,
+  PROFILE_READBACK_BUSY
+};
+*/
+  // Need to set these if in profile mode.. take values for first active axes (or check all)
+  // status = setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_DONE);
+  // printf("Setting profileExecuteState_ to PROFILE_EXECUTE_DONE\n");
+  
+  // status = setIntegerParam(1,profileCurrentPoint_, 0);
+  // printf("Setting profileCurrentPoint_ to 0 (status=%d)\n",(int)status );
+  // callParamCallbacks(1);
+
   return status;
 }
 
@@ -688,6 +722,37 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
   printf("ecmcMotorRecordController::initializeProfile(%d)\n",maxProfilePoints);
   asynStatus status = asynMotorController::initializeProfile(maxProfilePoints);
   profileInitialized_ = status == asynSuccess;
+  return status;
+}
+
+asynStatus ecmcMotorRecordController::executeProfile() {
+  asynStatus status = asynSuccess;
+
+  printf("ecmcMotorRecordController::executeProfile()\n");
+  //asynStatus status = asynMotorController::executeProfile(maxProfilePoints);
+  //static const char *functionName = "executeProfile";
+
+  // Copy code from asynMotorController in order to take care about the 
+  // retrun status from axis->executeProfile()
+  int axis;
+  asynMotorAxis *pAxis;
+  
+  for (axis=0; axis<numAxes_; axis++) {
+    pAxis = getAxis(axis);
+    if (!pAxis) continue;
+    if(pAxis->executeProfile()!= asynSuccess) {
+      // Something went wrong. Stop all axes..
+      printf("ecmcMotorRecordController::executeProfile():: Axis %d error\n", axis);
+      ecmcMotorRecordController::abortProfile();
+      return asynStatus;
+    }
+  }
+  
+  setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_MOVE_START);
+  setIntegerParam(profileCurrentPoint_, 0);
+  setIntegerParam(profileActualPulses_, 0);
+  callParamCallbacks();
+
   return status;
 }
 

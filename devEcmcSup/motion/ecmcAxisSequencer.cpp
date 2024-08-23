@@ -98,7 +98,6 @@ void ecmcAxisSequencer::execute() {
     if(pvtmode_ && !pvtStopping_ && pvt_->getExecute()) {
       data_->status_.currentPositionSetpoint = pvt_->getCurrPosition();
       data_->status_.currentVelocitySetpoint = pvt_->getCurrVelocity();      
-      counter2_++;
     } else {
       //if(pvtStopping_) {
       //  printf("PVT stopping act pos %lf, traj_busy %d\n",data_->status_.currentPositionActual,traj_->getBusy());
@@ -150,7 +149,6 @@ void ecmcAxisSequencer::execute() {
   // Only init stopramp once if PVT
   if(newTrajLockEdge_ && !pvtStopping_) {
     initStop();
-    //printf("New stop busy %d\n",traj_->getBusy() );
   }
 
   // get new setpoints if needed (for PVT only once then the setpoint will be fetched above)
@@ -166,33 +164,8 @@ void ecmcAxisSequencer::execute() {
     // Go to next pvt time step, ONLY call this once per scan
     if(pvt_->nextSampleStep() && pvt_->getExecute()) {
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
-      //counter2_++;
     }    
   }
-
-  //if(counter_ < 1000 && counter_>0) {
-  //  int pvtBusy=-1;
-  //  int pvtExe=-1;
-  //  if(pvtOk_ && pvtmode_) {
-  //    pvtBusy = pvt_->getBusy();
-  //    pvtExe = pvt_->getExecute();
-  //  }
-  //  printf("setp %lf, oldsetp %lf, velosetp %lf, enc %lf, limit bwd %d, source %d, trjBusy = %d, pvtstopping %d, pvtBusy %d, command %d, pvtmode %d, pvtOK %d, pvtExe %d, pvtCount %d\n",
-  //             data_->status_.currentPositionSetpoint,
-  //             data_->status_.currentPositionSetpointOld,
-  //             data_->status_.currentVelocitySetpoint,
-  //             data_->status_.currentPositionActual,               
-  //             data_->status_.limitBwd,
-  //             posSource_,
-  //             traj_->getBusy(),
-  //             pvtStopping_,
-  //             pvtBusy,
-  //             data_->command_.command, pvtmode_, pvtOk_, pvtExe,counter2_);
-  //  counter_++;
-  //  if(counter_>1000) {
-  //    counter_ = 0;
-  //  }
-  //}
   traj_->setStartPos(data_->status_.currentPositionSetpoint);
 }
 
@@ -646,8 +619,6 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       if(errorCode) {
         return errorCode;
       }
-            
-      //counter_ = 1;
 
       // Set offset since realtive mode
       pvt_->setPositionOffset(data_->status_.currentPositionSetpoint);
@@ -3566,7 +3537,6 @@ void ecmcAxisSequencer::initStop() {
     pvt_->setExecute(0);  // stop PVT
 
   }
-  counter_ = 1;
   data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
   data_->status_.currentVelocitySetpoint = traj_->getNextVel();
   data_->command_.positionTarget = traj_->getCurrentPosSet();  
