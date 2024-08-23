@@ -740,11 +740,11 @@ asynStatus ecmcMotorRecordController::executeProfile() {
   for (axis=0; axis<numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
-    if(pAxis->executeProfile()!= asynSuccess) {
+    if((status = pAxis->executeProfile()) != asynSuccess) {
       // Something went wrong. Stop all axes..
       printf("ecmcMotorRecordController::executeProfile():: Axis %d error\n", axis);
       ecmcMotorRecordController::abortProfile();
-      return asynStatus;
+      return status;
     }
   }
   
