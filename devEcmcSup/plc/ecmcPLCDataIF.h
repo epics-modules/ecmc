@@ -96,6 +96,8 @@ private:
   ecmcAxisBase *axis_;
   ecmcDataStorage *ds_;
   ecmcEc *ec_;
+  uint64_t *dataRaw_;
+  uint64_t *dataReadRaw_;
   double data_;
   double dataRead_;
   ecmcAxisDataType dataSourceAxis_;
