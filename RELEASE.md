@@ -1,8 +1,8 @@
-
 Release Notes
 ===
-# master
-* Allow plc-writes to:
+# ECMC 9.5.4
+
+* Allow plc-writes to axis extsetpos:
 ```
 ax<id>.traj.extsetpos
 ```
@@ -19,8 +19,11 @@ ax<id>.traj.extsetpos
                                  <grp_id>, : Group index
                                );
     Returns true if atleast one axis in the group have trajectory source set to external.
+```
 
-3.  mc_grp_set_allow_src_change_when_enabled(
+* Add group function to set allow encoder/trajectory source change when axis is enabled;
+```
+1.  mc_grp_set_allow_src_change_when_enabled(
                                               <grp_id>, : Group index
                                               <allow>,  : Allow change of source
                                              );
