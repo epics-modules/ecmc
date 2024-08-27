@@ -380,7 +380,7 @@ protected:
   motionCommandTypes command_;
   int cmdData_;
   ecmcTrajTypes currentTrajType_;
-  bool allowSourceChangeWhenEnbaled_;
+  bool allowSourceChangeWhenEnabled_;
   int encPrimIndexAsyn_;
 };
 
