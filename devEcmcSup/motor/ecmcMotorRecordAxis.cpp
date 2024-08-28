@@ -82,8 +82,13 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   profileLastInitOk_   = false;
   profileLastDefineOk_ = false;
   profileInProgress_   = false;
-  pvtPrepare_          = NULL;
-  pvtRunning_          = NULL;
+  profileSwitchPVTObject_ = false;
+  
+  pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
+  pvtRunning_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
+
+  pvtPrepare_->clear();
+  pvtRunning_->clear();
 
   if (!drvlocal.ecmcAxis) {
     LOGERR(
@@ -1982,7 +1987,8 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
 
-  if(!pvtPrepare_) {    
+  if(!pvtPrepare_) {   
+    printf("ERROR: new ecmcAxisPVTSequence() should never happen..\n");
     pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
   }
 
@@ -2044,18 +2050,40 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
 
-  pvtRunning_ = pvtPrepare_;
-  pvtPrepare_ = NULL;
-
-  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-  drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtRunning_);
-  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-
   profileLastBuildOk_ = true;
+  profileSwitchPVTObject_ = true;
   return asynSuccess;
 }
 
 asynStatus ecmcMotorRecordAxis::executeProfile() {
+  printf("ecmcMotorRecordAxis::executeProfile()\n");
+
+  if(!profileLastBuildOk_) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Last build did not complete successfully\n", axisNo_);
+    return asynError;
+  }
+  
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+
+  if(pvtRunning_) {
+    if(pvtRunning_->getBusy()) {
+      printf("Profile busy..\n");
+      if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+      return asynError;
+    };
+  };
+ 
+  if(profileSwitchPVTObject_) {
+    // switch pvt objects
+    ecmcAxisPVTSequence *pvtTempSwitch = NULL;
+    pvtTempSwitch = pvtRunning_;
+    pvtRunning_ = pvtPrepare_;
+    drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtRunning_);  
+    pvtPrepare_ = pvtTempSwitch;
+    profileSwitchPVTObject_ = false;
+  }
+
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   printf("ecmcMotorRecordAxis::executeProfile()\n");
   asynStatus status = asynMotorAxis::executeProfile();

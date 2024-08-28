@@ -179,6 +179,7 @@ private:
   bool profileLastDefineOk_;
   char profileMessage_[MAX_MESSAGE_LEN];
   bool profileInProgress_;
+  bool profileSwitchPVTObject_;
   friend class ecmcMotorRecordController;
 };
 

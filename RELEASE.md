@@ -1,5 +1,9 @@
 Release Notes
 ===
+# PVT
+
+* Add profile move (motor record extension). Only move is supported, not triggering and readbacks yet..
+
 # ECMC 9.5.4
 
 * Allow plc-writes to axis extsetpos:
