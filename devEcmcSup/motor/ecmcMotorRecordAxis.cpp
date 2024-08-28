@@ -1939,6 +1939,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   profileLastBuildOk_ = false;
   asynMotorAxis::buildProfile();
 
+
   if (!profileLastInitOk_ || !profileLastDefineOk_) {
      LOGERR(
       "%s/%s:%d: ERROR: Define or Init not performed.\n",
@@ -2034,8 +2035,10 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
 
-
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtPrepare_);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
   profileLastBuildOk_ = true;
   return asynSuccess;
 }
@@ -2064,7 +2067,19 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     return asynSuccess;
   }
 
+  // Check for interlock
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  int ilock=drvlocal.ecmcAxis->getSumInterlock();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+  if(ilock) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Error Axis[%d]: Axis interlocked, aborting profile...\n",
+    drvlocal.axisId);
+    abortProfile();
+    return asynError;
+  }
+
   int errorCode = 0;
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   if(mode == PROFILE_MOVE_MODE_ABSOLUTE){
     printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
     errorCode = drvlocal.ecmcAxis->movePVTAbs();
@@ -2072,6 +2087,8 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
     errorCode = drvlocal.ecmcAxis->movePVTRel();
   }
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
   
   if(errorCode) {
     printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: ecmc error (0x%x)\n",axisNo_,errorCode);
@@ -2085,7 +2102,10 @@ asynStatus ecmcMotorRecordAxis::abortProfile() {
   printf("ecmcMotorRecordAxis::abortProfile()\n");
   
   // stop with controller rampdown: stopMotion(0):  Controller rampdown, stopMotion(1): Kill amplifier
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->stopMotion(0);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
   if(errorCode) {
     printf("ecmcMotorRecordAxis::abortProfile(): Error axis[%d]: axis->stopMotion() returned error (0x%x)\n",axisNo_, errorCode);
     return asynError;

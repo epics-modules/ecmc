@@ -2950,3 +2950,8 @@ int ecmcAxisBase::setSlavedAxisInError() {
   setErrorID(ERROR_AXIS_SLAVED_AXIS_IN_ERROR);
   return 0;
 }
+
+int ecmcAxisBase::getSumInterlock() {
+  return (data_.interlocks_.interlockStatus > 0) && 
+         (data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE);
+}

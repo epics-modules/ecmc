@@ -330,6 +330,7 @@ public:
   void       setExternalMaxVelo(double veloLimit,int active);
   double     getTrajVelo();
   double     getEncVelo();
+  int        getSumInterlock();
 
 protected:
   void       initVars();

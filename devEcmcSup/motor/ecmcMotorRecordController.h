@@ -74,6 +74,8 @@ FILENAME...   ecmcMotorRecordController.h
 #define ecmcMotorRecordDbgStrToLogString          "StrToLOG"
 
 #define HOMPROC_MANUAL_SETPOS    15
+#define MAX_MESSAGE_LEN   256
+
 
 extern const char *modNamEMC;
 
@@ -111,7 +113,7 @@ public:
   asynStatus initializeProfile(size_t maxProfilePoints);
   asynStatus buildProfile();
   asynStatus executeProfile();
-
+  asynStatus abortProfile();
   int features_;
 
 protected:
@@ -208,6 +210,10 @@ protected:
   #define LAST_VIRTUAL_PARAM ecmcMotorRecordErrId_
   #define NUM_VIRTUAL_MOTOR_PARAMS ((int)(&LAST_VIRTUAL_PARAM -\
                                           &FIRST_VIRTUAL_PARAM + 1))
+
+
+  char profileMessage_[MAX_MESSAGE_LEN];
+
   friend class ecmcMotorRecordAxis;
 };
 

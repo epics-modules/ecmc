@@ -157,6 +157,7 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
                          0, 0) { // Default priority and stack size
   /* Controller */
   memset(&ctrlLocal, 0, sizeof(ctrlLocal));
+  strcpy(profileMessage_, "");
   pAxes_ = (ecmcMotorRecordAxis **)(asynMotorController::pAxes_);
   ctrlLocal.movingPollPeriod = movingPollPeriod;
   ctrlLocal.idlePollPeriod   = idlePollPeriod;
@@ -549,35 +550,46 @@ asynStatus ecmcMotorRecordController::poll(void) {
     ctrlLocal.initialPollDone = 1;
   }
 
+  int state = PROFILE_EXECUTE_DONE;
+  getIntegerParam(profileExecuteState_, &state);
+  
+  // Ongoing profile move?!  
+  if((ProfileExecuteState)state != PROFILE_EXECUTE_DONE) {
 
-/*
-enum ProfileTimeMode{
-  PROFILE_TIME_MODE_FIXED,
-  PROFILE_TIME_MODE_ARRAY
-};
+    ecmcMotorRecordAxis *pAxis;
 
-enum ProfileMoveMode{
-  PROFILE_MOVE_MODE_ABSOLUTE,
-  PROFILE_MOVE_MODE_RELATIVE
-};
+    // Check for errors
+    for (int axis = 0; axis < numAxes_; axis++) {
+      pAxis = getAxis(axis);
+      if (!pAxis) continue;
 
-enum ProfileBuildState{
-  PROFILE_BUILD_DONE,
-  PROFILE_BUILD_BUSY
-};
+      // Check if axis is used for PVT
+      int useAxis = 0;
+      getIntegerParam(pAxis->drvlocal.axisId, profileUseAxis_, &useAxis);
+      if (!useAxis) continue;
 
-enum ProfileExecuteState{
-  PROFILE_EXECUTE_DONE,
-  PROFILE_EXECUTE_MOVE_START,
-  PROFILE_EXECUTE_EXECUTING,
-  PROFILE_EXECUTE_FLYBACK
-};
+      // Check for errors
+      if(pAxis->drvlocal.nErrorIdMcu) {
+        printf("ecmcMotorRecordController::poll(): Error Axis[%d]: Axis in error state, aborting profile... 0x%x\n",
+               pAxis->drvlocal.axisId,pAxis->drvlocal.nErrorIdMcu);
+        abortProfile();
+      }
+      
+      // Check for interlock
+      if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+      int ilock=pAxis->drvlocal.ecmcAxis->getSumInterlock();
+      if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+      if(ilock) {
+        printf("ecmcMotorRecordController::poll(): Error Axis[%d]: Axis interlocked, aborting profile...\n",
+               pAxis->drvlocal.axisId);
+        abortProfile();
+      }
+    
+      // Check at what position
 
-enum ProfileReadbackState{
-  PROFILE_READBACK_DONE,
-  PROFILE_READBACK_BUSY
-};
-*/
+    }
+
+  }
   // Need to set these if in profile mode.. take values for first active axes (or check all)
   // status = setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_DONE);
   // printf("Setting profileExecuteState_ to PROFILE_EXECUTE_DONE\n");
@@ -598,7 +610,7 @@ asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFlo
   asynMotorAxis *pAxis;
   int axisNo = -1;
   asynStatus status = asynError;
-  static const char *functionName = "writeFloat64";
+  //static const char *functionName = "writeFloat64";
 
   pAxis = getAxis(pasynUser);
 
@@ -633,7 +645,7 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
   asynStatus status = asynError;
   asynMotorAxis *pAxis;
   int axisNo = -1;
-  static const char *functionName = "writeInt32";
+  //static const char *functionName = "writeInt32";
 
   pAxis = getAxis(pasynUser);
 
@@ -662,10 +674,10 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
     status = buildProfile();
   } else if (function == profileExecute_) {
     printf("writeInt32::executeProfile\n");
-    status = asynMotorController::executeProfile();
+    status = executeProfile();
   } else if (function == profileAbort_) {
     printf("writeInt32:.abortProfile\n");
-    status = asynMotorController::abortProfile();
+    status = abortProfile();
   } else if (function == profileReadback_) {
     printf("writeInt32::readbackProfile\n");
     status = asynMotorController::readbackProfile();
@@ -682,20 +694,46 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
   return status;
 }
 
+asynStatus ecmcMotorRecordController::abortProfile()
+{
+  // static const char *functionName = "abortProfile";
+  int axis;
+  asynMotorAxis *pAxis;
+  
+  for (axis=0; axis<numAxes_; axis++) {
+    pAxis = getAxis(axis);
+    if (!pAxis) continue;
+    pAxis->abortProfile();
+  }
+  setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_DONE);
+  setIntegerParam(profileCurrentPoint_, 0);
+  setIntegerParam(profileActualPulses_, 0);
+  setIntegerParam(profileExecuteStatus_,PROFILE_STATUS_ABORT);
+  sprintf(profileMessage_, "Profile aborted.\n");
+  setStringParam(profileExecuteMessage_, profileMessage_);
+  callParamCallbacks();
+  return asynSuccess;
+}
+
 asynStatus ecmcMotorRecordController::buildProfile() {
   printf("ecmcMotorRecordController::buildProfile()\n");  
   if(!profileInitialized_) {
     printf("ecmcMotorRecordController: Error: Profile not initialized...\n");
     return asynError;
   }
-  setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_BUSY);
-  
+
+  strcpy(profileMessage_, "");
+  setIntegerParam(profileBuildState_, PROFILE_BUILD_BUSY);
+  setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+  callParamCallbacks();
+
+
   asynStatus status = asynMotorController::buildProfile();
 
   // Check for errors in all axes since base class is not checking return value.. annoying..
   bool buildStatusOK = true;
   ecmcMotorRecordAxis *pAxis;
-  for (size_t axis = 0; axis < numAxes_; axis++) {
+  for (int axis = 0; axis < numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
     buildStatusOK = buildStatusOK && pAxis->getProfileLastBuildSuccess();
@@ -703,47 +741,62 @@ asynStatus ecmcMotorRecordController::buildProfile() {
 
   profileBuilt_ = (status == asynSuccess) && buildStatusOK; 
 
+
+
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_DONE);
 
   if(status != asynSuccess) {
     setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildStatus_, PROFILE_STATUS_FAILURE);
-
+    sprintf(profileMessage_, "Error during profile build.\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
     return status;
   }
   
-
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildStatus_, PROFILE_STATUS_SUCCESS);
-  
+  sprintf(profileMessage_, "Build profile succeeded\n");
+  setStringParam(profileBuildMessage_, profileMessage_);
+
   return status;
 }
 
+// Overide in order to be able to handle status from pAxis->initializeProfile()
 asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
-{
-  printf("ecmcMotorRecordController::initializeProfile(%d)\n",maxProfilePoints);
-  asynStatus status = asynMotorController::initializeProfile(maxProfilePoints);
-  profileInitialized_ = status == asynSuccess;
-  return status;
+{  
+  printf("ecmcMotorRecordController::initializeProfile(%lu)\n",maxProfilePoints);
+  int axis;
+  ecmcMotorRecordAxis *pAxis;
+  profileInitialized_ = 0;
+  maxProfilePoints_ = maxProfilePoints;
+  if (profileTimes_) free(profileTimes_);
+  profileTimes_ = (double *)calloc(maxProfilePoints, sizeof(double));
+  for (axis=0; axis<numAxes_; axis++) {
+    pAxis = getAxis(axis);
+    if (!pAxis) continue;
+    if(pAxis->initializeProfile(maxProfilePoints) != asynSuccess) {
+      printf("ecmcMotorRecordController::initializeProfile:: Axis[%d]: Initialize profile failed\n",pAxis->drvlocal.axisId);
+      profileInitialized_ = 0;
+      return asynError;
+    }
+  }
+
+  profileInitialized_ = 1;
+  return asynSuccess;
 }
 
 asynStatus ecmcMotorRecordController::executeProfile() {
   asynStatus status = asynSuccess;
-
   printf("ecmcMotorRecordController::executeProfile()\n");
-  //asynStatus status = asynMotorController::executeProfile(maxProfilePoints);
-  //static const char *functionName = "executeProfile";
-
-  // Copy code from asynMotorController in order to take care about the 
-  // retrun status from axis->executeProfile()
   int axis;
-  asynMotorAxis *pAxis;
+  ecmcMotorRecordAxis *pAxis;
   
   for (axis=0; axis<numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
     if((status = pAxis->executeProfile()) != asynSuccess) {
-      // Something went wrong. Stop all axes..
-      printf("ecmcMotorRecordController::executeProfile():: Axis %d error\n", axis);
-      ecmcMotorRecordController::abortProfile();
+      // Something went wrong. Stop all axes..      
+      sprintf(profileMessage_, "Axis [%d] reports error during profile execute, aborting profile move....\n",pAxis->drvlocal.axisId);
+      setStringParam(profileExecuteMessage_, profileMessage_);
+      abortProfile();
       return status;
     }
   }
@@ -751,6 +804,9 @@ asynStatus ecmcMotorRecordController::executeProfile() {
   setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_MOVE_START);
   setIntegerParam(profileCurrentPoint_, 0);
   setIntegerParam(profileActualPulses_, 0);
+  sprintf(profileMessage_, "Execute profile succeeded\n");
+  setStringParam(profileExecuteMessage_, profileMessage_);
+
   callParamCallbacks();
 
   return status;
