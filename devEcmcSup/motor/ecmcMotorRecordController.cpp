@@ -558,9 +558,6 @@ asynStatus ecmcMotorRecordController::poll(void) {
 void ecmcMotorRecordController::profilePoll() {
   int state = PROFILE_EXECUTE_DONE;
   getIntegerParam(profileExecuteState_, &state);
-
-  int segmentIndex=-1;
-  int pvtBusy = -1;
   
   // Onging profile move?
   if((ProfileExecuteState)state == PROFILE_EXECUTE_DONE) {
@@ -569,6 +566,8 @@ void ecmcMotorRecordController::profilePoll() {
 
   // Yes ongoing profile move...
   ecmcMotorRecordAxis *pAxis;
+  int segmentIndex=-1;
+  int pvtBusy = -1;
 
   // Check for errors
   for (int axis = 0; axis < numAxes_; axis++) {
