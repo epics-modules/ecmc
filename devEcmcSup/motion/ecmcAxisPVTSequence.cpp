@@ -278,3 +278,7 @@ int ecmcAxisPVTSequence::setExecute(bool execute) {
 bool ecmcAxisPVTSequence::getExecute() {
   return execute_;
 }
+
+int    ecmcAxisPVTSequence::getCurrentSegementId() {
+  return currSegIndex_;
+}

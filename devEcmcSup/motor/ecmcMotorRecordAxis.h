@@ -15,6 +15,7 @@ FILENAME...   ecmcMotorRecordAxis.h
 #define AMPLIFIER_ON_FLAG_USING_CNEN   (1 << 2)
 
 #define ECMCAMPLIFIER_ON_FLAG_USING_CNEN   (1 << 2)
+#define MAX_MESSAGE_LEN   256
 
 extern const char *modNamEMC;
 
@@ -165,6 +166,9 @@ private:
 
   asynStatus executeProfile();
   asynStatus abortProfile();
+  asynStatus checkProfileStatus();
+  int getProfileBusy();
+  int getProfileCurrentSegementID();
   //virtual asynStatus readbackProfile();
 
   ecmcAxisPVTSequence *pvtRunning_;
@@ -173,7 +177,8 @@ private:
   bool profileLastBuildOk_;
   bool profileLastInitOk_;
   bool profileLastDefineOk_;
-  
+  char profileMessage_[MAX_MESSAGE_LEN];
+  bool profileInProgress_;
   friend class ecmcMotorRecordController;
 };
 

@@ -134,6 +134,7 @@ class ecmcAxisPVTSequence {
     double getCurrVelocity();       // For RT sequential access
     double getCurrAcceleration();   // For RT sequential access
     double getCurrTime();
+    int    getCurrentSegementId();
     double position(double time, int *valid);     // For non RT access
     double velocity(double time, int *valid);     // For non RT access
     double acceleration(double time, int *valid); // For non RT access
@@ -146,6 +147,7 @@ class ecmcAxisPVTSequence {
     int    setPositionOffset(double offset);  // For running relative
     int    setExecute(bool execute);
     bool   getExecute();
+    
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );

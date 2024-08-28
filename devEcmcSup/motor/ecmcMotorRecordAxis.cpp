@@ -74,12 +74,16 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   // initialize
   memset(&drvlocal,       0,    sizeof(drvlocal));
   memset(&drvlocal.dirty, 0xFF, sizeof(drvlocal.dirty));
+  strcpy(profileMessage_, "");
+
   //restorePowerOnOffNeeded_ = 0;
-  drvlocal.ecmcAxis = ecmcAxisRef;
-  profileLastBuildOk_ = false;
-  profileLastInitOk_  = false;
+  drvlocal.ecmcAxis    = ecmcAxisRef;
+  profileLastBuildOk_  = false;
+  profileLastInitOk_   = false;
   profileLastDefineOk_ = false;
-  pvtPrepare_ = NULL;
+  profileInProgress_   = false;
+  pvtPrepare_          = NULL;
+  pvtRunning_          = NULL;
 
   if (!drvlocal.ecmcAxis) {
     LOGERR(
@@ -1906,6 +1910,11 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
 
   printf("ecmcMotorRecordAxis::defineProfile()\n");
   profileLastDefineOk_= false;
+  pC_->setIntegerParam(pC_->profileBuildState_, PROFILE_BUILD_DONE);
+  pC_->setIntegerParam(pC_->profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+  sprintf(profileMessage_, "Build not executed.\n");
+  pC_->setStringParam(pC_->profileBuildMessage_, profileMessage_);
+  pC_->callParamCallbacks();
 
   size_t i;
   asynStatus status;
@@ -2035,8 +2044,11 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
 
+  pvtRunning_ = pvtPrepare_;
+  pvtPrepare_ = NULL;
+
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-  drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtPrepare_);
+  drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtRunning_);
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   profileLastBuildOk_ = true;
@@ -2089,18 +2101,18 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   }
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-  
   if(errorCode) {
     printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: ecmc error (0x%x)\n",axisNo_,errorCode);
     return asynError;
   }
   
+  profileInProgress_ = true;
   return asynSuccess;
 }
 
 asynStatus ecmcMotorRecordAxis::abortProfile() {
   printf("ecmcMotorRecordAxis::abortProfile()\n");
-  
+  profileInProgress_ = false;
   // stop with controller rampdown: stopMotion(0):  Controller rampdown, stopMotion(1): Kill amplifier
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->stopMotion(0);
@@ -2121,3 +2133,53 @@ asynStatus ecmcMotorRecordAxis::abortProfile() {
 bool ecmcMotorRecordAxis::getProfileLastBuildSuccess() {
   return profileLastBuildOk_;
 }
+
+asynStatus ecmcMotorRecordAxis::checkProfileStatus() {
+
+  // Check for errors
+  if(drvlocal.nErrorIdMcu) {
+    printf("ecmcMotorRecordController::checkProfileStatus(): Error Axis[%d]: Axis in error state, aborting profile... 0x%x\n",
+           drvlocal.axisId,drvlocal.nErrorIdMcu);
+    //abortProfile();  // handle in controller
+    return asynError;
+  }
+  
+  // Check for interlock
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  int ilock=drvlocal.ecmcAxis->getSumInterlock();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+  if(ilock) {
+    printf("ecmcMotorRecordController::checkProfileStatus(): Error Axis[%d]: Axis interlocked, aborting profile...\n",
+           drvlocal.axisId);
+    //abortProfile();  // handle in controller
+    return asynError;
+  }
+  return asynSuccess;
+}
+
+int ecmcMotorRecordAxis::getProfileCurrentSegementID() {
+  int id = -1;
+  if(!pvtRunning_ || !profileInProgress_ ) {
+    return id;  //Invalid..
+  }
+  
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  id = pvtRunning_->getCurrentSegementId();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  return id;
+}
+
+int ecmcMotorRecordAxis::getProfileBusy() {
+  int busy = -1;
+  if(!pvtRunning_ || !profileInProgress_ ) {
+    return busy;  //Invalid..
+  }
+  
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  busy = pvtRunning_->getBusy();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  return busy;
+}
+

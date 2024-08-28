@@ -114,6 +114,7 @@ public:
   asynStatus buildProfile();
   asynStatus executeProfile();
   asynStatus abortProfile();
+
   int features_;
 
 protected:
@@ -126,6 +127,7 @@ protected:
   void       handleStatusChange(asynStatus status);
   int        getFeatures(void);
   asynStatus poll();
+  void       profilePoll();
 
   struct {
     asynStatus   oldStatus;
