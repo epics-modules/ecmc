@@ -284,7 +284,7 @@ void ecmcAxisBase::initVars() {
     encArray_[i] = NULL;
   }
   data_.command_.cfgEncIndex    = 0;
-  allowSourceChangeWhenEnbaled_ = false;
+  allowSourceChangeWhenEnabled_ = false;
   setEncoderPos_                = 0;
   encPrimIndexAsyn_             = 1;
   acceleration_                 = 0;
@@ -561,7 +561,7 @@ void ecmcAxisBase::setInStartupPhase(bool startup) {
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
   return setTrajDataSourceTypeInternal(refSource,
-                                       allowSourceChangeWhenEnbaled_);
+                                       allowSourceChangeWhenEnabled_);
 }
 
 int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
@@ -612,7 +612,7 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   if (refSource == data_.command_.encSource) return 0;
 
-  if (!allowSourceChangeWhenEnbaled_) {
+  if (!allowSourceChangeWhenEnabled_) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
@@ -2897,7 +2897,7 @@ void ecmcAxisBase::initEncoders() {
 }
 
 int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
-  allowSourceChangeWhenEnbaled_ = allow;
+  allowSourceChangeWhenEnabled_ = allow;
   return 0;
 }
 

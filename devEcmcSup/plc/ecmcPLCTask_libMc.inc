@@ -93,6 +93,9 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_halt(",
                                "mc_grp_axis_in_grp(",
                                "mc_grp_size(",
+                               "mc_grp_get_traj_src_ext(",
+                               "mc_grp_get_any_traj_src_ext(",
+                               "mc_grp_set_allow_src_change_when_enabled(",
                               };
 
 ecmcAxisGroup   *ecmcPLCTask::statAxisGrp_[ECMC_MAX_AXES]={};
@@ -105,7 +108,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 35;
+static int mc_cmd_count = 38;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -647,6 +650,26 @@ inline double mc_grp_size(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
   return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->size();
+}
+
+inline double mc_grp_get_traj_src_ext(double grpIndex){
+  int intGrpIndex=(int)grpIndex;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getTrajSrcExt();
+}
+
+inline double mc_grp_get_any_traj_src_ext(double grpIndex){
+  int intGrpIndex=(int)grpIndex;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getTrajSrcAnyExt();
+}
+
+inline double mc_grp_set_allow_src_change_when_enabled(double grpIndex, double allow){
+  int intGrpIndex=(int)grpIndex;
+  int allow_int=(int)allow;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setAllowSrcChangeWhenEnabled(allow_int);
+  return 0;
 }
 
 #endif /* ecmcPLC_libMc_inc_ */

@@ -879,8 +879,10 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_halt",mc_grp_halt);
   ecmcPLCTaskAddFunction("mc_grp_axis_in_grp",mc_grp_axis_in_grp);
   ecmcPLCTaskAddFunction("mc_grp_size",mc_grp_size);
+  ecmcPLCTaskAddFunction("mc_grp_get_traj_src_ext",mc_grp_get_traj_src_ext);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_traj_src_ext",mc_grp_get_any_traj_src_ext);
+  ecmcPLCTaskAddFunction("mc_grp_set_allow_src_change_when_enabled",mc_grp_set_allow_src_change_when_enabled);
   
-
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",
            __FILE__,
