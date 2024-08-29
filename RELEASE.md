@@ -2,6 +2,7 @@ Release Notes
 ===
 # ECMC 9.5.5
 * Default state of axis diag disabled
+* Allow non primary encoder to be "not ready" during operation
 
 # ECMC 9.5.4
 
