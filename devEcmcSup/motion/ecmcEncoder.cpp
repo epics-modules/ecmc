@@ -856,7 +856,6 @@ int ecmcEncoder::validate() {
     if (errorCode) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
     }
-    printf("hwReadyBitDefined_ DEFINED for enc[%d], scaling %lf\n",index_,scaleDenom_);
     hwReadyBitDefined_ = true;
   }
 
