@@ -448,7 +448,7 @@ int ecmcInitThread(void) {
 
   axisDiagIndex = 0;
   axisDiagFreq  = 10;
-  setDiagAxisEnable(1);
+  setDiagAxisEnable(0);
 
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     axisGroups[i] = NULL;

@@ -1,5 +1,8 @@
 Release Notes
 ===
+# ECMC 9.5.5
+* Default state of axis diag disabled
+
 # ECMC 9.5.4
 
 * Allow plc-writes to axis extsetpos:
