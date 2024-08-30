@@ -870,6 +870,23 @@ int writeEcEntryIDString(int      slaveBusPosition,
                          char    *entryIdString,
                          uint64_t value);
 
+/** \brief Writes a value to an EtherCAT entry addressed by an ethercat path
+ * .\n
+  *
+  *  \param[in] ecPath Path of the ethercat entry (ec<mid>.s<sid>.<entry name>).\n
+  *  \param[in] value Value to be written.\n
+  *
+  * Note: This command should not be used when realtime performance is needed
+  * (also see "WriteECEntry()" command).\n
+  *
+  * \return 0 if success or otherwise an error code.\n
+  *
+  * \note Example: Write a 1 to a digital output configured as "OUTPUT_0" on slave 1\n
+  *  "Cfg.WriteEcEntryEcPath(ec0.s1.OUTPUT_1,1)" //Command string to ecmcCmdParser.c\n
+  */
+int writeEcEntryEcPath(char *ecPath,
+                       uint64_t value);
+
 /** \brief Read a value from an EtherCAT entry.\n
   *
   *  \param[in] slaveIndex Index of order of added slave (not bus position),

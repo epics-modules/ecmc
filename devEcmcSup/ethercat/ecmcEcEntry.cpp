@@ -253,6 +253,11 @@ int ecmcEcEntry::writeValueForce(uint64_t value) {
   return updateAsyn(1);
 }
 
+int ecmcEcEntry::writeBitForce(int bitNumber, uint64_t value) {
+  writeBit(bitNumber, value);
+  return updateAsyn(1);
+}
+
 int ecmcEcEntry::writeBit(int bitNumber, uint64_t value) {
   if (value) {
     BIT_SET(buffer_, bitNumber);

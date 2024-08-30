@@ -101,6 +101,7 @@ public:
   int                   writeValueForce(uint64_t value);
   int                   writeBit(int      bitNumber,
                                  uint64_t value);
+  int                   writeBitForce(int bitNumber, uint64_t value);
   int                   readValue(uint64_t *value);
   int                   readDouble(double *value);
   int                   readBit(int       bitNumber,
