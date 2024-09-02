@@ -16,17 +16,24 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <sstream>
 #include "ecmcError.h"
 
 class ecmcPLCLibFunc {
 public:
-  explicit ecmcPLCLibFunc(std::string fucntionStr);
+  explicit ecmcPLCLibFunc(std::string fucntionName,std::string params,std::string expression);
   ~ecmcPLCLibFunc();
+  std::string getFuncionName();
+  std::string getExpression();
+  std::vector<std::string> getParams();
+  size_t getParamCount();
 
 private:
-
+  std::string trim(const std::string& str);
+  std::string funcionName_;
+  std::string params_;
+  std::vector<std::string> paramsVector_;
   std::string expression_;
-  std::vector<std::string> args_;
 };
 
 #endif  /* ECMC_PLC_LIB_FUNC_H_ */

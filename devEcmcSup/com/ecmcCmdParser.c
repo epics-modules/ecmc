@@ -2625,6 +2625,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return loadPLCFile(iValue, cExprBuffer);
   }
 
+/*int Cfg.LoadPLCLibFile(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "LoadPLCLibFile(%d,%[^)])", &iValue, cExprBuffer);
+
+  if (nvals == 2) {
+    return loadPLCLibFile(iValue, cExprBuffer);
+  }
+
   /*int Cfg.ClearPLCExpr(int plcIndex);*/
   nvals = sscanf(myarg_1, "ClearPLCExpr(%d)", &iValue);
 

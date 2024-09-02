@@ -22,6 +22,7 @@
 #include "ecmcPluginLib.h"
 #include "ecmcPLCMain.h"
 #include "ecmcPLCTask.h"
+#include "ecmcPLCLib.h"
 
 extern ecmcAxisBase *axes[ECMC_MAX_AXES];
 extern ecmcAxisGroup *axisGroups[ECMC_MAX_AXES];
@@ -150,6 +151,20 @@ int loadPLCFile(int index, char *fileName) {
   CHECK_PLCS_RETURN_IF_ERROR();
   return plcs->loadPLCFile(index, fileName);
 }
+
+int loadPLCLibFile(int   index,
+                   char *fileName) {
+  LOGINFO4("%s/%s:%d index=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           fileName);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  ecmcPLCLib* temp = new ecmcPLCLib(fileName);
+  return 0;
+}
+
 
 int clearPLCExpr(int index) {
   LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);

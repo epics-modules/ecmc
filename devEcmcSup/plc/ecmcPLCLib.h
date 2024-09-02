@@ -17,6 +17,8 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <stdexcept>
 #include "ecmcPLCLibFunc.h"
 
 #include "ecmcError.h"
@@ -27,10 +29,13 @@ public:
   ~ecmcPLCLib();
 
 private:
-  void parseFile(std::string filename);
+  std::string extractFunctionBody(const std::string& code, size_t startPos);
+  std::string trim(const std::string& str);
+  void        parseFile(std::string filename);
   std::string filename_;
   std::string libname_;
-  std::vector<ecmcPLCLibFunc> funcs_;
+  std::vector<ecmcPLCLibFunc*> funcs_;
+  size_t counter_;
 };
 
 #endif  /* ECMC_PLC_LIB_H_ */
