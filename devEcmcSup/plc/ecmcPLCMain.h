@@ -105,6 +105,8 @@ public:
   bool         getError();
   void         errorReset();
   ecmcPLCTask* getPLCTaskForAxis(int axisId);
+  int          addLib(int plcIndex, ecmcPLCLib* lib);
+
 
 private:
   void         initVars();

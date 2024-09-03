@@ -10,6 +10,7 @@
 *
 \*************************************************************************/
 
+#include <stdexcept>
 #include "ecmcPLC.h"
 #include "ecmcOctetIF.h"        // Log Macros
 #include "ecmcErrorsList.h"
@@ -161,10 +162,9 @@ int loadPLCLibFile(int   index,
            index,
            fileName);
   CHECK_PLCS_RETURN_IF_ERROR();
-  ecmcPLCLib* temp = new ecmcPLCLib(fileName);
-  return 0;
+  
+  return plcs->addLib(index, new ecmcPLCLib(fileName));
 }
-
 
 int clearPLCExpr(int index) {
   LOGINFO4("%s/%s:%d index=%d\n", __FILE__, __FUNCTION__, __LINE__, index);

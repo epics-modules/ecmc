@@ -20,6 +20,8 @@ ecmcPLCLibFunc::ecmcPLCLibFunc(std::string fucntionName,std::string params,std::
   expression_  = expression;
   paramsVector_.clear();
 
+
+
   // Output the parsed results
   std::cout << "Function Name: " << funcionName_ << std::endl;
   std::cout << "Parameters: ";
@@ -54,7 +56,7 @@ std::string ecmcPLCLibFunc::getExpression() {
   return expression_;
 }
 
-std::vector<std::string> ecmcPLCLibFunc::getParams() {
+std::vector<std::string> &ecmcPLCLibFunc::getParams() {
   return paramsVector_;
 }
 

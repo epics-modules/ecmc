@@ -2442,6 +2442,11 @@ case 0x16001:
 
     break;
 
+  case 0x20510:
+    return "ERROR_PLC_LIB_NULL";
+
+    break;
+
   case 0x20600:   // ecmcPLCDataIF
     return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
 

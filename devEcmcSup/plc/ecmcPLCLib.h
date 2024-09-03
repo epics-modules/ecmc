@@ -27,10 +27,14 @@ class ecmcPLCLib {
 public:
   explicit ecmcPLCLib(std::string filename);
   ~ecmcPLCLib();
+  ecmcPLCLibFunc* getFunction(size_t index);
+  size_t getFunctionCount();
 
 private:
   std::string extractFunctionBody(const std::string& code, size_t startPos);
   std::string trim(const std::string& str);
+  std::string removeBraces(std::string& str);
+  std::string removeLinesStartingWithHash(const std::string& input) ;
   void        parseFile(std::string filename);
   std::string filename_;
   std::string libname_;

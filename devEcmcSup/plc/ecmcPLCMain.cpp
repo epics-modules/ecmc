@@ -829,7 +829,6 @@ int ecmcPLCMain::parseStatic(int plcIndex, const char *exprStr) {
 
     if (nvals == 1) {
       int errorCode = plcs_[plcIndex]->addAndRegisterLocalVar(varName);
-
       if (errorCode) {
         free(strLocal);
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
@@ -1334,4 +1333,33 @@ int ecmcPLCMain::setPluginPointer(ecmcPluginLib *plugin, int index) {
 int ecmcPLCMain::setShm(ecmcShm shm) {
   shm_ = shm;
   return 0;
+}
+
+int ecmcPLCMain::addLib(int plcIndex, ecmcPLCLib* lib) {
+  int errorCode = 0;
+  
+  CHECK_PLC_RETURN_IF_ERROR(plcIndex);
+  if(!lib) {
+    LOGERR("%s/%s:%d: PLC lib NULL(0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_PLC_LIB_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLC_LIB_NULL);
+  }
+
+  for(size_t i = 0; i < lib->getFunctionCount(); i++){
+    ecmcPLCLibFunc* func = lib->getFunction(i);
+    if(func) {
+      errorCode = parseExpr(plcIndex, func->getExpression().c_str());
+      if(errorCode) {
+        return errorCode;
+      }
+    }
+  }
+  // Finaly add the lib
+  return plcs_[plcIndex]->addLib(lib);
 }

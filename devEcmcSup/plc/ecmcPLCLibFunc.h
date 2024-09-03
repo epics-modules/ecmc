@@ -25,7 +25,7 @@ public:
   ~ecmcPLCLibFunc();
   std::string getFuncionName();
   std::string getExpression();
-  std::vector<std::string> getParams();
+  std::vector<std::string> &getParams();
   size_t getParamCount();
 
 private:
