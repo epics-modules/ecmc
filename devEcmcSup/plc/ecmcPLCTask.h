@@ -23,6 +23,7 @@
 #include "ecmcEc.h"
 #include "ecmcEcEntry.h"  // Bit macros
 #include "ecmcPluginLib.h"
+#include "ecmcPLCLib.h"
 #include "ecmcPLCDataIF.h"
 
 #define ECMC_MAX_PLC_VARIABLES 1024
@@ -44,6 +45,7 @@
 #define ERROR_PLC_ADD_VARIABLE_FAIL 0x2050D
 #define ERROR_PLC_VARIABLE_NAME_TO_LONG 0x2050E
 #define ERROR_PLC_PLUGIN_INDEX_OUT_OF_RANGE 0x2050F
+#define ERROR_PLC_LIB_NULL 0x20510
 
 
 class ecmcPLCTask : public ecmcError {
@@ -85,12 +87,13 @@ public:
                             ecmcPLCDataIF **outDataIF);
   double       getSampleTime();
   int          getNewExpr();
+  int          addLib(ecmcPLCLib* lib);
   static ecmcAxisBase    *statAxes_[ECMC_MAX_AXES];
   static ecmcAxisGroup   *statAxisGrp_[ECMC_MAX_AXES];
   static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
   static ecmcEc *statEc_;
   static ecmcShm statShm_;
-
+  
 private:
   void initVars();
   int  initAsyn(int plcIndex);
@@ -141,6 +144,8 @@ private:
   ecmcAsynDataItem *asynParamExpr_;
   double mcuFreq_;
   ecmcPluginLib *plugins_[ECMC_MAX_PLUGINS];
+  std::vector<ecmcPLCLib*> functionLibs_;
+
 };
 
 #endif  /* ECMC_PLC_TASK_H_ */

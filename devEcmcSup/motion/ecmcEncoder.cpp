@@ -25,7 +25,7 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   sampleTime_ = sampleTime;
 
   // Encoder index start from 1 here, to get asyn param naming correct
-  index_ = index + 1;
+  index_ = index;
 
   initAsyn();
 
@@ -622,7 +622,13 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
-  return errorLocal;
+  if(index_ == data_->command_.primaryEncIndex) {
+    return errorLocal;
+  } else {
+    setWarningID(errorLocal);
+  }
+
+  return 0;
 }
 
 // Check that encoder is ready during runtime (and enabled)
@@ -642,15 +648,15 @@ int ecmcEncoder::readHwReady(bool domainOK) {
       hwReady_ = !hwReady_;
     }
 
-    if (hwReady_ == 0) {
+    // Throw error only if primary
+    if ( (hwReady_ == 0) && (index_ == data_->command_.primaryEncIndex) ) {
       if (data_->status_.enabled) {
         // Error when enabled, this is serious, remove power
         data_->command_.enable = 0;
         return ERROR_ENC_NOT_READY;
-      } else {
-        // just set warning when not enabled
-        setWarningID(WARNING_ENC_NOT_READY);
       }
+    } else {
+      setWarningID(WARNING_ENC_NOT_READY);
     }
   }
 
@@ -1110,6 +1116,7 @@ int ecmcEncoder::getHomeLatchCountOffset() {
 }
 
 int ecmcEncoder::initAsyn() {
+  int localIndex = index_ + 1;  // For naming of params
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
     LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
@@ -1131,7 +1138,7 @@ int ecmcEncoder::initAsyn() {
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME "%d",
                        data_->axisId_,
-                       index_);
+                       localIndex);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -1172,7 +1179,7 @@ int ecmcEncoder::initAsyn() {
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME "%d",
                        data_->axisId_,
-                       index_);
+                       localIndex);
 
 
   if (charCount >= sizeof(buffer) - 1) {

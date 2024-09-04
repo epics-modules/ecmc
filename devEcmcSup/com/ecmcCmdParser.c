@@ -905,13 +905,23 @@ static int handleCfgCommand(const char *myarg_1) {
 
   /// "Cfg.WriteEcEntryIDString(slaveBusPosition,entryIdString,value)"
   nvals = sscanf(myarg_1,
-                 "WriteEcEntryIDString(%d,%[^,],%d)",
+                 "WriteEcEntryIDString(%d,%[^,],%" SCNu64 ")",
                  &iValue,
                  cIdBuffer,
-                 &iValue3);
+                 &u64Value);
 
   if (nvals == 3) {
-    return writeEcEntryIDString(iValue, cIdBuffer, iValue3);
+    return writeEcEntryIDString(iValue, cIdBuffer, u64Value);
+  }
+
+  /// "Cfg.WriteEcEntryEcPath(ecPath,value)"
+  nvals = sscanf(myarg_1,
+                 "WriteEcEntryEcPath(%[^,],%" SCNu64 ")",
+                 cIdBuffer,
+                 &u64Value);
+
+  if (nvals == 2) {
+    return writeEcEntryEcPath(cIdBuffer, u64Value);
   }
 
   /// "Cfg.EcSetMaster(masterIndex)"
@@ -2613,6 +2623,13 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return loadPLCFile(iValue, cExprBuffer);
+  }
+
+/*int Cfg.LoadPLCLibFile(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "LoadPLCLibFile(%d,%[^)])", &iValue, cExprBuffer);
+
+  if (nvals == 2) {
+    return loadPLCLibFile(iValue, cExprBuffer);
   }
 
   /*int Cfg.ClearPLCExpr(int plcIndex);*/
