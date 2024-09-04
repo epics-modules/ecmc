@@ -6,7 +6,7 @@ Release Notes
 * Add command: "Cfg.WriteEcEntryEcPath(<ec_path>,<value>)"
 
 ## Add PLC function libs:
-Add possability to load fucntion library to a plc object:
+Add possability to load function library to a plc object:
 ```
 ${SCRIPTEXEC} ${ECMC_CONFIG_ROOT}loadPLCLib.cmd,     "FILE=./plc/test.plc_lib, PLC_MACROS='OFFSET=3'"
 ```
