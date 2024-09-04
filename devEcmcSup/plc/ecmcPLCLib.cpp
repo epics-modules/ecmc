@@ -26,13 +26,6 @@ ecmcPLCLib::ecmcPLCLib(std::string filename) {
 ecmcPLCLib::~ecmcPLCLib() {
 }
 
-// Function to trim leading and trailing whitespaces
-std::string ecmcPLCLib::trim(const std::string& str) {
-    size_t first = str.find_first_not_of(' ');
-    size_t last = str.find_last_not_of(' ');
-    return str.substr(first, (last - first + 1));
-}
- 
 // Function to find function bodies with nested braces
 std::string ecmcPLCLib::extractFunctionBody(const std::string& code, size_t startPos) {
     std::stack<char> braces;
@@ -90,12 +83,12 @@ void ecmcPLCLib::parseFile(std::string filename) {
     // Extract function name
     size_t nameStart = pos + 8;
     size_t nameEnd = code.str().find('(', nameStart);
-    std::string function_name = trim(code.str().substr(nameStart, nameEnd - nameStart));
+    std::string function_name = ecmcPLCLibFunc::trim(code.str().substr(nameStart, nameEnd - nameStart));
 
     // Extract parameters
     size_t paramsStart = nameEnd + 1;
     size_t paramsEnd = code.str().find(')', paramsStart);
-    std::string parameters = trim(code.str().substr(paramsStart, paramsEnd - paramsStart));
+    std::string parameters = ecmcPLCLibFunc::trim(code.str().substr(paramsStart, paramsEnd - paramsStart));
 
     // Extract function body
     size_t bodyStart = code.str().find('{', paramsEnd);
@@ -128,8 +121,12 @@ size_t ecmcPLCLib::getFunctionCount() {
 std::string ecmcPLCLib::removeLinesStartingWithHash(const std::string& input) { 
   std::stringstream inputStream(input);
   std::stringstream outputStream;
-  std::string line; 
+  std::string line,temp;
   while (std::getline(inputStream, line)) { 
+    temp = ecmcPLCLibFunc::trim(line);
+    if(temp.size() == 0) {
+      continue;
+    }
     if (!line.empty() && line[0] != '#') {
       outputStream << line << "\n";
     }

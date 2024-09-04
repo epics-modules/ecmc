@@ -19,22 +19,11 @@ ecmcPLCLibFunc::ecmcPLCLibFunc(std::string fucntionName,std::string params,std::
   params_      = params;
   expression_  = expression;
   paramsVector_.clear();
-
-
-
-  // Output the parsed results
-  std::cout << "Function Name: " << funcionName_ << std::endl;
-  std::cout << "Parameters: ";
   std::stringstream ss(params_);
   std::string param;
   while (std::getline(ss, param, ',')) {
-    std::cout << trim(param) << " ";
-    paramsVector_.push_back(param);
+   paramsVector_.push_back(param);
   }
-  std::cout << std::endl;
-  std::cout << "Function Body:\n" << expression_ << std::endl;
-  std::cout << "---------------------" << std::endl;
-  std::cout.flush();
 }
 
 ecmcPLCLibFunc::~ecmcPLCLibFunc() {
@@ -43,9 +32,13 @@ ecmcPLCLibFunc::~ecmcPLCLibFunc() {
 
 // Function to trim leading and trailing whitespaces
 std::string ecmcPLCLibFunc::trim(const std::string& str) {
-    size_t first = str.find_first_not_of(' ');
-    size_t last = str.find_last_not_of(' ');
+  size_t first = str.find_first_not_of(' ');
+  size_t last = str.find_last_not_of(' ');
+  if( (last-first) > 0) {
     return str.substr(first, (last - first + 1));
+  } else {
+    return str;
+  }
 }
 
 std::string ecmcPLCLibFunc::getFuncionName() {

@@ -1138,7 +1138,13 @@ int ecmcPLCTask::addLib(ecmcPLCLib* lib) {
     if(func) {
       errorCode = exprtk_->addCompositionFunction(func->getFuncionName(),func->getExpression(),func->getParams());
       if(errorCode) {
-        return errorCode;
+        LOGERR("%s/%s:%d: Failed adding function: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           func->getFuncionName().c_str(),
+           errorCode);
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_PLC_COMPILE_ERROR);
       }
     }
   }

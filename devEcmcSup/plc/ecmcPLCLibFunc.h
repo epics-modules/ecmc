@@ -27,9 +27,8 @@ public:
   std::string getExpression();
   std::vector<std::string> &getParams();
   size_t getParamCount();
-
+  static std::string trim(const std::string& str);
 private:
-  std::string trim(const std::string& str);
   std::string funcionName_;
   std::string params_;
   std::vector<std::string> paramsVector_;
