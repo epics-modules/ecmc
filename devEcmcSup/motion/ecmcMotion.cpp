@@ -2821,6 +2821,21 @@ int addAxisToGroupByName(int axIndex, const char *grpName) {
   return addAxisToGroupByIndex(axIndex, index);
 }
 
+int addAxisToGroupByNameCreate(int axIndex, const char *grpName, int createGrp) {
+  int index = -1;
+  int error = getAxisGroupIndexByName(grpName, &index);
+  if(error && createGrp > 0) {
+    // group not found so create it
+    error = addAxisGroup(grpName);
+    if(error) {
+      return error;
+    }
+  } else {
+    return error;
+  }
+  return addAxisToGroupByName(axIndex,grpName);
+}
+
 int addAxisToGroupByIndex(int axIndex, int grpIndex) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axIndex);

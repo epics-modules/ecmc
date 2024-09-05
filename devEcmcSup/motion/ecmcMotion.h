@@ -3241,6 +3241,17 @@ int addAxisGroup(const char *name);
  *
  * \param[in] index index of axis to add.\n
  * \param[in] name name of group.\n
+ * \param[in] createGrp create group if not found.\n
+ *
+ * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
+ *  "Cfg.AddAxisToGroupByName(1,'VirtAxes',1)" //Command string to ecmcCmdParser.c\n
+ */
+int addAxisToGroupByNameCreate(int axIndex, const char *grpName, int createGrp);
+
+/** \brief Adds an axis to an group
+ *
+ * \param[in] index index of axis to add.\n
+ * \param[in] name name of group.\n
  *
  * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
  *  "Cfg.AddAxisToGroupByName(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
