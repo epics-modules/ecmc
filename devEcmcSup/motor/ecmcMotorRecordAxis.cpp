@@ -1903,6 +1903,11 @@ asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit) {
 asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
 {
   printf("ecmcMotorRecordAxis::initializeProfile()\n");
+  if(!pvtEnabled_) {
+    printf("ecmcMotorRecordAxis::initializeProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    return asynSuccess;
+  }
+
   profileLastInitOk_= false;
   asynStatus status = asynMotorAxis::initializeProfile(maxProfilePoints);
   
@@ -1911,21 +1916,24 @@ asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
   // Add axis ref to PVT controller
   ecmcPVTController * pvtCtrl = pC_->getPVTController();
   if(!pvtCtrl) {
-    printf("ecmcMotorRecordAxis::initializeProfile(): Error axis[%d]: ecmcPVTController NULL\n", axisNo_);
+    printf("ecmcMotorRecordAxis::initializeProfile(): Error axis[%d]: NULL ecmcPVTController\n", axisNo_);
     return asynError;
   }
   
-  // Add all axes to PVT no good idea.. Need another IOC shell command to set that this axis is in PVT use...
-  xxxx 
+  // Add axes to PVT (since !pvtEnabled_)
   pvtCtrl->addPVTAxis(drvlocal.ecmcAxis);
-
+  
   return status;
 }
 
 asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoints)
 {
-
   printf("ecmcMotorRecordAxis::defineProfile()\n");
+  if(!pvtEnabled_) {
+    printf("ecmcMotorRecordAxis::defineProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    return asynSuccess;
+  }
+
   profileLastDefineOk_= false;
   pC_->setIntegerParam(pC_->profileBuildState_, PROFILE_BUILD_DONE);
   pC_->setIntegerParam(pC_->profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
@@ -1962,6 +1970,11 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
 asynStatus ecmcMotorRecordAxis::buildProfile()
 {
   printf("ecmcMotorRecordAxis::buildProfile()\n");
+  if(!pvtEnabled_) {
+    printf("ecmcMotorRecordAxis::buildProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    return asynSuccess;
+  }
+
   profileLastBuildOk_ = false;
   asynMotorAxis::buildProfile();
 
@@ -1994,8 +2007,6 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
       __FILE__,
       __FUNCTION__,
       __LINE__);
-    return asynError;
-
     return asynError;
   }
 
@@ -2068,8 +2079,12 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 }
 
 asynStatus ecmcMotorRecordAxis::executeProfile() {
+  
   printf("ecmcMotorRecordAxis::executeProfile()\n");
-
+  if(!pvtEnabled_) {
+    printf("ecmcMotorRecordAxis::executeProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    return asynSuccess;
+  }
   int useAxis = 0;
   status = pC_->getIntegerParam(axisNo_, pC_->profileUseAxis_, &useAxis);  
   
