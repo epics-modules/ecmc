@@ -745,6 +745,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return addAxisGroup(cIdBuffer);
   }
 
+  /// "Cfg.AddAxisToGroupByName(axisIndex,groupName,createGroup)"
+  cIdBuffer[0]  = '\0';
+  nvals = sscanf(myarg_1, "AddAxisToGroupByName(%d,%[^,],%d)",
+                &iValue,
+                 cIdBuffer,
+                &iValue2);
+  if (nvals == 3) {
+    return addAxisToGroupByNameCreate(iValue,cIdBuffer,iValue2);
+  }
+
   /// "Cfg.AddAxisToGroupByName(axisIndex,groupName)"
   cIdBuffer[0]  = '\0';
   nvals = sscanf(myarg_1, "AddAxisToGroupByName(%d,%[^)])",
