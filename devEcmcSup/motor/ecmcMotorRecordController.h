@@ -114,7 +114,7 @@ public:
   asynStatus buildProfile();
   asynStatus executeProfile();
   asynStatus abortProfile();
-
+  asynStatus enableAxisPVTFunc(int axisNo, int enable);
   int features_;
 
 protected:
@@ -128,6 +128,7 @@ protected:
   int        getFeatures(void);
   asynStatus poll();
   void       profilePoll();
+  ecmcPVTController *getPVTController();
 
   struct {
     asynStatus   oldStatus;
@@ -215,7 +216,7 @@ protected:
 
 
   char profileMessage_[MAX_MESSAGE_LEN];
-
+  ecmcPVTController *pvtController_;
   friend class ecmcMotorRecordAxis;
 };
 

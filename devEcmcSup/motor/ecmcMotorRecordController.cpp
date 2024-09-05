@@ -16,7 +16,7 @@ FILENAME... ecmcMotorRecordController.cpp
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcMotorRecordController.h"
 #include "ecmcGlobalsExtern.h"
-
+#include "ecmcPVTController.h"
 
 static const char *driverName = "ecmcMotorController";
 
@@ -165,6 +165,7 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
   features_                  = FEATURE_BITS_V2 | FEATURE_BITS_ECMC;
   profileInitialized_        = 0;
   profileBuilt_              = 0;
+  pvtController_             = NULL;
 #ifndef motorMessageTextString
   createParam("MOTOR_MESSAGE_TEXT",
               asynParamOctet,
@@ -783,6 +784,18 @@ asynStatus ecmcMotorRecordController::buildProfile() {
 asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
 {  
   printf("ecmcMotorRecordController::initializeProfile(%lu)\n",maxProfilePoints);
+
+  // An ecmcPvtSequence is needed to keep track of time and outputs and other things...
+  ecmcPVTController * pvtCtrl = new ecmcPVTController();
+  if( !pvtCtrl ) {
+    printf("ecmcMotorRecordController::initializeProfile::Error: Create ecmcPVTController() failed. .\n");
+    return asynError;
+  }
+
+  // Assign PVT object.. (Not so nice to set this through global variable...
+  pvtCtrl_ = pvtCtr;  // global copy for ecmc RT
+  pvtController_ = pvtCtrl_; // Access for every one else
+  pvtController_.clearPVTAxes();
   int axis;
   ecmcMotorRecordAxis *pAxis;
   profileInitialized_ = 0;
@@ -793,7 +806,7 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
     pAxis = getAxis(axis);
     if (!pAxis) continue;
     if(pAxis->initializeProfile(maxProfilePoints) != asynSuccess) {
-      printf("ecmcMotorRecordController::initializeProfile:: Axis[%d]: Initialize profile failed\n",pAxis->drvlocal.axisId);
+      printf("ecmcMotorRecordController::initializeProfile:: Axis[%d]: Initialize profile failed\n",pAxis->drvlocal.axisId);      
       profileInitialized_ = 0;
       return asynError;
     }
@@ -851,6 +864,21 @@ ecmcMotorRecordAxis* ecmcMotorRecordController::getAxis(int axisNo)
 {
     if ((axisNo < 0) || (axisNo >= numAxes_)) return NULL;
     return pAxes_[axisNo];
+}
+
+// Get the ecmc PVT controller object
+ecmcPVTController * ecmcMotorRecordController::getPVTController() {
+  return pvtController_;
+}
+
+// Enable PVT functionalities for a certain axis
+asynStatus ecmcMotorRecordController::enableAxisPVTFunc(int axisNo, int enable) {
+  if(!getAxis(axisNo)) {
+    printf("Error axis[%d]: Failed enable PVT functionalites.\n",axisNo);
+    return asynError;
+  }
+  getAxis(axisNo)->setEnablePVTFunc(enable)
+  return asynSuccess;
 }
 
 /** Reports on status of the driver
@@ -963,7 +991,7 @@ asynStatus ecmcCreateProfile(const char *asynPort,         /* specify which cont
 static const iocshArg ecmcCreateProfileArg0 = {"Controller port name", iocshArgString};
 static const iocshArg ecmcCreateProfileArg1 = {"Max points", iocshArgInt};
 static const iocshArg * const ecmcCreateProfileArgs[] = {&ecmcCreateProfileArg0,
-                                                        &ecmcCreateProfileArg1};
+                                                         &ecmcCreateProfileArg1};
 static const iocshFuncDef ecmcCreateProfileCallFuncDef = {"ecmcCreateProfile", 2, ecmcCreateProfileArgs};
 
 static void ecmcCreateProfileCallFunc(const iocshArgBuf *args)
@@ -971,6 +999,40 @@ static void ecmcCreateProfileCallFunc(const iocshArgBuf *args)
   ecmcCreateProfile(args[0].sval, args[1].ival);
 }
 
+asynStatus ecmcEnablePVTForAxis(const char *asynPort,         /* specify which controller by port name */
+                                int axisId,
+                                int enable)
+{
+  ecmcMotorRecordController *pC;
+  static const char *functionName = "ecmcEnablePVTForAxis";
+
+  pC = (ecmcMotorRecordController*) findAsynPortDriver(asynPort);
+  if (!pC) {
+    printf("%s:%s: Error port %s not found\n",
+           driverName, functionName, asynPort);
+    return asynError;
+  }
+  pC->lock();
+  pC->enableAxisPVTFunc(axisId, enable);
+  pC->unlock();
+  return asynSuccess;
+}
+
+/* ecmcEnablePVTForAxis */
+static const iocshArg ecmcEnablePVTForAxisArg0 = {"Controller port name", iocshArgString};
+static const iocshArg ecmcEnablePVTForAxisArg1 = {"Axis index", iocshArgInt};
+static const iocshArg ecmcEnablePVTForAxisArg2 = {"Enable PVT", iocshArgInt};
+static const iocshArg * const ecmcEnablePVTForAxisArgs[] = {&ecmcEnablePVTForAxisArg0,
+                                                            &ecmcEnablePVTForAxisArg1,
+                                                            &ecmcEnablePVTForAxisArg2};
+static const iocshFuncDef ecmcEnablePVTForAxisCallFuncDef = {"ecmcEnablePVTForAxis", 3, ecmcEnablePVTForAxisArgs};
+
+static void ecmcEnablePVTForAxisCallFunc(const iocshArgBuf *args)
+{
+  ecmcEnablePVTForAxis(args[0].sval, args[1].ival, args[2].ival);
+}
+
+// register all the iocsh funcs
 static void ecmcMotorRecordControllerRegister(void) {
   iocshRegister(&ecmcMotorRecordCreateControllerDef,
                 ecmcMotorRecordCreateContollerCallFunc);
@@ -978,6 +1040,8 @@ static void ecmcMotorRecordControllerRegister(void) {
                 ecmcMotorRecordCreateAxisCallFunc);
   iocshRegister(&ecmcCreateProfileCallFuncDef,
                 ecmcCreateProfileCallFunc);
+  iocshRegister(&ecmcEnablePVTForAxisCallFuncDef,
+                ecmcEnablePVTForAxisCallFunc);
 }
 
 extern "C" {

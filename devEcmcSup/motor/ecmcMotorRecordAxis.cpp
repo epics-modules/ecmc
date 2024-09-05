@@ -83,6 +83,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   profileLastDefineOk_ = false;
   profileInProgress_   = false;
   profileSwitchPVTObject_ = false;
+  pvtEnabled_             = 0;
   
   pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
   pvtRunning_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
@@ -1906,6 +1907,17 @@ asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
   asynStatus status = asynMotorAxis::initializeProfile(maxProfilePoints);
   
   profileLastInitOk_ = status == asynSuccess;
+  
+  // Add axis ref to PVT controller
+  ecmcPVTController * pvtCtrl = pC_->getPVTController();
+  if(!pvtCtrl) {
+    printf("ecmcMotorRecordAxis::initializeProfile(): Error axis[%d]: ecmcPVTController NULL\n", axisNo_);
+    return asynError;
+  }
+  
+  // Add all axes to PVT no good idea.. Need another IOC shell command to set that this axis is in PVT use...
+  xxxx 
+  pvtCtrl->addPVTAxis(drvlocal.ecmcAxis);
 
   return status;
 }
@@ -2058,6 +2070,14 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 asynStatus ecmcMotorRecordAxis::executeProfile() {
   printf("ecmcMotorRecordAxis::executeProfile()\n");
 
+  int useAxis = 0;
+  status = pC_->getIntegerParam(axisNo_, pC_->profileUseAxis_, &useAxis);  
+  
+  if(useAxis == 0) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Axis not in use (ignoring execute command).\n", axisNo_);
+    return asynSuccess;
+  }
+
   if(!profileLastBuildOk_) {
     printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Last build did not complete successfully\n", axisNo_);
     return asynError;
@@ -2099,14 +2119,6 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   int mode = 0;
   status = pC_->getIntegerParam(pC_->profileMoveMode_, &mode);
 
-  int useAxis = 0;
-  status = pC_->getIntegerParam(axisNo_, pC_->profileUseAxis_, &useAxis);
-
-  if(useAxis == 0) {
-    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Axis not in use (ignoring execute command).\n", axisNo_);
-    return asynSuccess;
-  }
-
   // Check for interlock
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   int ilock=drvlocal.ecmcAxis->getSumInterlock();
@@ -2117,7 +2129,7 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     abortProfile();
     return asynError;
   }
-
+  
   int errorCode = 0;
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   if(mode == PROFILE_MOVE_MODE_ABSOLUTE){
@@ -2209,5 +2221,9 @@ int ecmcMotorRecordAxis::getProfileBusy() {
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   return busy;
+}
+
+void ecmcMotorRecordAxis::setEnablePVTFunc(int enable) {
+  pvtEnabled_ = enable;
 }
 

@@ -58,6 +58,7 @@ public:
 
   asynStatus poll(bool *moving);
   bool getProfileLastBuildSuccess();
+  void setEnablePVTFunc(int enable);
 
 private:
   typedef enum
@@ -180,6 +181,7 @@ private:
   char profileMessage_[MAX_MESSAGE_LEN];
   bool profileInProgress_;
   bool profileSwitchPVTObject_;
+  bool pvtEnabled_;
   friend class ecmcMotorRecordController;
 };
 
