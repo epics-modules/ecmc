@@ -2831,7 +2831,7 @@ int addAxisToGroupByNameCreate(int axIndex, const char *grpName, int createGrp) 
     if(error) {
       return error;
     }
-  } else {
+  } else if (error){
     return error;
   }
   return addAxisToGroupByName(axIndex,grpName);
