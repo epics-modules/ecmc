@@ -27,7 +27,7 @@ function <name>() {
 * The parameters aswell as the return value must be scalars, however, local vectors can be defined and used in calculations (initiations of vector can be done with MACROS, constants or parameters).
 * "#" as a first char in a line is considered a comment (the line will be removed before compile).
 * MSI: The lib file will be parsed through MSI allowing macro expansion, "include" and "subsitute" commands. For more info check the msi documentation/help.
-  
+
 ### Can be used in a function:
 1. The parameters
 2. Other functions (also recursive)
