@@ -123,10 +123,12 @@ private:
     bool ecmcBusy;
     bool ecmcSafetyInterlock;
     bool ecmcSummaryInterlock;
+    int  ecmcTrjSrc;
   } drvlocal;
 
   //int       restorePowerOnOffNeeded_;
   int        triggstop_;
+  int        triggsync_;
   asynStatus readBackAllConfig(int axisID);
   asynStatus updateCfgValue(int         function,
                             int         newValue,

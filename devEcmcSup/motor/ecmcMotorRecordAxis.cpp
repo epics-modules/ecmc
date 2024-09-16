@@ -89,6 +89,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;
   drvlocal.axisFlags       = axisFlags;
   triggstop_ = 1;
+  triggsync_ = 1;
 
   /* We pretend to have an encoder (fActPosition) */
   setIntegerParam(pC_->motorStatusHasEncoder_,   1);
@@ -1226,6 +1227,8 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcSafetyInterlock = drvlocal.ecmcAxis->getMon()->getSafetyInterlock();
   drvlocal.ecmcBusy = drvlocal.ecmcAxis->getBusy();
   drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
+  drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
+                        ECMC_DATA_SOURCE_EXTERNAL;
   
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
@@ -1261,6 +1264,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   asynStatus status = readEcmcAxisStatusData();
   //printf("Safety[%d]: drvlocal.ecmcSafetyInterlock= %d\n",axisNo_,drvlocal.ecmcSafetyInterlock);
   // Check if axis is supposed to stop
+  
   if(drvlocal.ecmcSummaryInterlock) {
 
     triggstop_++;
@@ -1300,6 +1304,12 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     drvlocal.moveNotReadyNext = false;
   }
 
+  // Axis in external mode and busy, then trigg SYNC
+  if(drvlocal.ecmcTrjSrc && drvlocal.ecmcBusy) {
+    triggsync_++;
+    setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
+  }
+
   setIntegerParam(pC_->motorStatusHomed_,
                   (drvlocal.statusBinData.
                    onChangeData.statusWd.homed > 0));
@@ -1321,6 +1331,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   setDoubleParam(pC_->ecmcMotorRecordAcc_RB_,
                  drvlocal.statusBinData.acceleration);
 
+  callParamCallbacks();
 #ifndef motorWaitPollsBeforeReadyString
 
   if (drvlocal.waitNumPollsBeforeReady) {

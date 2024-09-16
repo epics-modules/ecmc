@@ -1,5 +1,10 @@
 Release Notes
 ===
+
+# ECMC 9.6.1
+* Increase allowed axis count from 64 to 128
+* Sync MR if traj is external and busy.
+
 # ECMC 9.6.0
 * Default state of axis diag disabled
 * Allow non primary encoder to be "not ready" during operation.
