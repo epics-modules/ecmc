@@ -4,7 +4,7 @@ Release Notes
 # ECMC 9.6.1
 * Increase allowed axis count from 64 to 128
 * Sync MR if traj is external and busy.
-* Add Plc function to SYNC all motor records belonging to a group:
+* Add Plc function to SYNC all motor records belonging to a group (at next MR-poll):
 ```
 mc_grp_set_mr_sync_next_poll(<grpIndex>,<sync>);
 ```
