@@ -1230,6 +1230,9 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
                         ECMC_DATA_SOURCE_EXTERNAL;
   
+  drvlocal.ecmcMRSyncNextPoll = drvlocal.ecmcAxis->getSyncMRNextPoll();
+  drvlocal.ecmcAxis->setSyncMRNextPoll(0);  // Command only valid for 1 poll
+
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (!tempAxisStat) {
@@ -1262,8 +1265,6 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 #endif // ifndef motorWaitPollsBeforeReadyString
 
   asynStatus status = readEcmcAxisStatusData();
-  //printf("Safety[%d]: drvlocal.ecmcSafetyInterlock= %d\n",axisNo_,drvlocal.ecmcSafetyInterlock);
-  // Check if axis is supposed to stop
   
   if(drvlocal.ecmcSummaryInterlock) {
 
@@ -1273,20 +1274,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     }
     asynMotorAxis::setIntegerParam(pC_->motorStop_, triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc    
     
-    //printf("Safety[%d]: Writing motor stop %d\n",axisNo_,triggstop_);
-    //#ifdef POWERAUTOONOFFMODE2
-    //int powerAutoOnOff = -1;
-    //pC_->getIntegerParam(axisNo_,pC_->motorPowerAutoOnOff_,&powerAutoOnOff);
-    //if(powerAutoOnOff) {
-    //  setIntegerParam(pC_->motorPowerAutoOnOff_, 0);
-    //  restorePowerOnOffNeeded_ = 1;
-    //  printf("Safety[%d]: Disabled auto power on/off state.\n",axisNo_);
-    //}
-
     if (!drvlocal.ecmcBusy && drvlocal.ecmcSafetyInterlock) {
       asynMotorAxis::setIntegerParam(pC_->motorClosedLoop_, 0);
     }
-    //pC_->callParamCallbacks();
     callParamCallbacks();
   }
 
@@ -1305,9 +1295,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   // Axis in external mode and busy, then trigg SYNC
-  if(drvlocal.ecmcTrjSrc && drvlocal.ecmcBusy) {
+  if((drvlocal.ecmcTrjSrc && drvlocal.ecmcBusy) || drvlocal.ecmcMRSyncNextPoll) {
     triggsync_++;
-    setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
+    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
   }
 
   setIntegerParam(pC_->motorStatusHomed_,

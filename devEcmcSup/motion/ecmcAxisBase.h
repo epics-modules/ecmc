@@ -159,7 +159,8 @@ typedef struct {
   bool plcCmdsAllowCmd    : 1;                        // 0 = not allow, 1 = allow
   bool enableSoftLimitBwd : 1;
   bool enableSoftLimitFwd : 1;
-  int  spareBitsCmd       : 22;
+  bool MRSyncNextPoll     : 1;
+  int  spareBitsCmd       : 21;
 } ecmcAsynAxisControlType;
 
 class ecmcAxisBase : public ecmcError {
@@ -326,7 +327,8 @@ public:
   void       setExternalMaxVelo(double veloLimit,int active);
   double     getTrajVelo();
   double     getEncVelo();
-
+  void       setSyncMRNextPoll(bool mrSync);  // Sync motor record next poll (in asynMotorAxis)
+  bool       getSyncMRNextPoll();
 protected:
   void       initVars();
   void       refreshDebugInfoStruct();

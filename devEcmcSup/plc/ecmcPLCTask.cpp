@@ -882,7 +882,9 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_size",mc_grp_size);
   ecmcPLCTaskAddFunction("mc_grp_get_traj_src_ext",mc_grp_get_traj_src_ext);
   ecmcPLCTaskAddFunction("mc_grp_get_any_traj_src_ext",mc_grp_get_any_traj_src_ext);
-  ecmcPLCTaskAddFunction("mc_grp_set_allow_src_change_when_enabled",mc_grp_set_allow_src_change_when_enabled);
+  ecmcPLCTaskAddFunction("mc_grp_set_allow_src_change_when_enabled",
+                          mc_grp_set_allow_src_change_when_enabled);
+  ecmcPLCTaskAddFunction("mc_grp_set_mr_sync_next_poll",mc_grp_set_mr_sync_next_poll);
   
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

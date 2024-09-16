@@ -2863,3 +2863,12 @@ int ecmcAxisBase::setSlavedAxisInError() {
   setErrorID(ERROR_AXIS_SLAVED_AXIS_IN_ERROR);
   return 0;
 }
+
+// motor.SYNC (set to act) motor record next poll in asynMotorAxis.. asynMotorAxis resets to 0 after sync
+void       ecmcAxisBase::setSyncMRNextPoll(bool mrSync) {
+  controlWord_.MRSyncNextPoll = mrSync;
+}
+
+bool       ecmcAxisBase::getSyncMRNextPoll() {
+  return controlWord_.MRSyncNextPoll;
+}
