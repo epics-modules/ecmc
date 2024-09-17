@@ -96,7 +96,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_get_traj_src_ext(",
                                "mc_grp_get_any_traj_src_ext(",
                                "mc_grp_set_allow_src_change_when_enabled(",
-                               "mc_grp_set_mr_sync_next_poll(",
+                               "mc_grp_sync_act_set(",
                               };
 
 ecmcAxisGroup   *ecmcPLCTask::statAxisGrp_[ECMC_MAX_AXES]={};
@@ -673,11 +673,11 @@ inline double mc_grp_set_allow_src_change_when_enabled(double grpIndex, double a
   return 0;
 }
 
-inline double mc_grp_set_mr_sync_next_poll(double grpIndex, double sync){
+inline double mc_grp_sync_act_set(double grpIndex, double sync){
   int intGrpIndex=(int)grpIndex;
   int intSync=(int)sync;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setMRSyncNextPoll(intSync);
+  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setSyncNextPoll(intSync);
   return 0;
 }
 

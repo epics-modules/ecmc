@@ -1230,8 +1230,8 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
                         ECMC_DATA_SOURCE_EXTERNAL;
   
-  drvlocal.ecmcMRSyncNextPoll = drvlocal.ecmcAxis->getSyncMRNextPoll();
-  drvlocal.ecmcAxis->setSyncMRNextPoll(0);  // Command only valid for 1 poll
+  drvlocal.ecmcMRSyncNextPoll = drvlocal.ecmcAxis->getSyncActSet();
+  drvlocal.ecmcAxis->setSyncActSet(0);  // Command only valid for 1 poll
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 

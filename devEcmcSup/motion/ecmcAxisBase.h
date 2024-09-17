@@ -327,8 +327,8 @@ public:
   void       setExternalMaxVelo(double veloLimit,int active);
   double     getTrajVelo();
   double     getEncVelo();
-  void       setSyncMRNextPoll(bool mrSync);  // Sync motor record next poll (in asynMotorAxis)
-  bool       getSyncMRNextPoll();
+  void       setSyncActSet(bool sync);  // Sync motor record next poll (in asynMotorAxis)
+  bool       getSyncActSet();
 protected:
   void       initVars();
   void       refreshDebugInfoStruct();

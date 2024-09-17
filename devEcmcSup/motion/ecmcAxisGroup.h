@@ -64,7 +64,7 @@ class ecmcAxisGroup : public ecmcError {
     // Set slaved axis error all axes
     void setSlavedAxisInError();
     // SYNC motor record at next poll (reset automatically)
-    void setMRSyncNextPoll(bool sync);
+    void setSyncNextPoll(bool sync);
     // Stop motion
     void halt();
     // Check if axis is in group

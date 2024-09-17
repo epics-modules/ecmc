@@ -248,10 +248,10 @@ void ecmcAxisGroup::setAllowSrcChangeWhenEnabled(int allow){
   }
 }
 
-void ecmcAxisGroup::setMRSyncNextPoll(bool sync) {
+void ecmcAxisGroup::setSyncNextPoll(bool sync) {
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      (*axis)->setSyncMRNextPoll(sync);
+      (*axis)->setSyncActSet(sync);
     }
   }
 }

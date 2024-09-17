@@ -2865,10 +2865,15 @@ int ecmcAxisBase::setSlavedAxisInError() {
 }
 
 // motor.SYNC (set to act) motor record next poll in asynMotorAxis.. asynMotorAxis resets to 0 after sync
-void       ecmcAxisBase::setSyncMRNextPoll(bool mrSync) {
-  controlWord_.MRSyncNextPoll = mrSync;
+void ecmcAxisBase::setSyncActSet(bool sync) {
+  // Sync motor record
+  controlWord_.MRSyncNextPoll = sync;
+  // Sync ecmc if not enabled (only works in internal mode)
+  if(!data_.status_.enabled && sync) {
+    getTraj()->setCurrentPosSet(data_.status_.currentPositionActual);
+  }
 }
 
-bool       ecmcAxisBase::getSyncMRNextPoll() {
+bool ecmcAxisBase::getSyncActSet() {
   return controlWord_.MRSyncNextPoll;
 }
