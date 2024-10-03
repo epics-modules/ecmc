@@ -288,10 +288,12 @@ void ecmcAxisBase::initVars() {
   encPrimIndexAsyn_             = 1;
   acceleration_                 = 0;
   deceleration_                 = 0;
+  hwReady_                      = 0;
+  hwReadyOld_                   = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
-  bool hwReady = false;
+  
 
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
 
@@ -310,6 +312,8 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
     encArray_[i]->readEntries(masterOK);
   }
+  
+  hwReady_ = getHwReady();
 
   // Axis state machine
   switch (axisState_) {
@@ -319,18 +323,17 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.distToStop = 0;
 
     if (masterOK) {
-      hwReady = getHwReady();
-
-      if (!hwReady) {
+      
+      if (!hwReady_) {
         setErrorID(ERROR_ENC_NOT_READY);
       } else {  // auto reset error if ok
-        if (getErrorID() == ERROR_ENC_NOT_READY) {
+        if (getErrorID() == ERROR_ENC_NOT_READY && hwReadyOld_) {
           errorReset();
         }
       }
     }
 
-    if (masterOK && hwReady) {
+    if (masterOK && hwReady_ && hwReadyOld_) {
       // Auto reset hardware error if starting up
       if ((getErrorID() == ERROR_AXIS_HARDWARE_STATUS_NOT_OK) &&
           data_.status_.inStartupPhase) {
@@ -780,7 +783,7 @@ ecmcEncoder * ecmcAxisBase::getEnc() {
 ecmcEncoder * ecmcAxisBase::getEnc(int encIndex, int *error) {
   *error = 0;
 
-  if (encIndex >= ECMC_MAX_ENCODERS) {
+  if (encIndex >= ECMC_MAX_ENCODERS || encIndex < 0) {
     *error = ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
     return NULL;
   }
@@ -2775,6 +2778,7 @@ int ecmcAxisBase::getPrimaryEncoderIndex() {
 }
 
 bool ecmcAxisBase::getHwReady() {
+
   bool ready = true;
 
   // Check encoders
@@ -2783,7 +2787,9 @@ bool ecmcAxisBase::getHwReady() {
   }
 
   // Check drives TODO
-
+  
+  // Also check last scan
+  
   return ready;
 }
 

@@ -885,7 +885,9 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_set_allow_src_change_when_enabled",
                           mc_grp_set_allow_src_change_when_enabled);
   ecmcPLCTaskAddFunction("mc_grp_sync_act_set",mc_grp_sync_act_set);
-  
+  ecmcPLCTaskAddFunction("mc_get_enc_ready",mc_get_enc_ready);
+  ecmcPLCTaskAddFunction("mc_set_act_pos",mc_set_act_pos);
+
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",
            __FILE__,

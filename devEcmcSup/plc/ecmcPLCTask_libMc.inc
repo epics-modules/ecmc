@@ -97,6 +97,8 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_get_any_traj_src_ext(",
                                "mc_grp_set_allow_src_change_when_enabled(",
                                "mc_grp_sync_act_set(",
+                               "mc_get_enc_ready(",
+                               "mc_set_act_pos(",
                               };
 
 ecmcAxisGroup   *ecmcPLCTask::statAxisGrp_[ECMC_MAX_AXES]={};
@@ -109,7 +111,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 39;
+static int mc_cmd_count = 41;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -417,14 +419,14 @@ inline double mc_get_busy(double axIndex)
   return (double) ecmcPLCTask::statAxes_[index]->getBusy();
 }
 
-
 inline double mc_get_act_pos(double axIndex, double encIndex)
 {
   int axIndexInt=(int)axIndex;
-  int encIndexInt=(int)encIndex;
+  int encIndexInt=(int)encIndex - 1;
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
   int error = 0;
+  // Index starts at 0.. messy.. thats why -1 above
   ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
@@ -440,6 +442,8 @@ inline double mc_set_prim_enc(double axIndex, double encIndex)
   int encIndexInt=(int)encIndex;
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+
+  // Index starts at 1.. messy..
   int error = ecmcPLCTask::statAxes_[axIndexInt]->selectPrimaryEncoder(encIndexInt) ;
   if(error){
      mc_errorCode = error;
@@ -453,6 +457,7 @@ inline double mc_get_prim_enc(double axIndex)
   int axIndexInt=(int)axIndex;  
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  // Index starts at 1.. messy..
   return (double)ecmcPLCTask::statAxes_[axIndexInt]->getPrimaryEncoderIndex();
 }
 
@@ -679,6 +684,42 @@ inline double mc_grp_sync_act_set(double grpIndex, double sync){
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
   ecmcPLCTask::statAxisGrp_[intGrpIndex]->setSyncNextPoll(intSync);
   return 0;
+}
+
+inline double mc_set_act_pos(double axIndex, double encIndex, double actpos)
+{
+  int axIndexInt=(int)axIndex;
+  int encIndexInt=(int)encIndex - 1;
+
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  int error = 0;
+  // getEnc() index starts at 0.. messy.. thats why -1 above
+  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  if(error){
+     mc_errorCode = error;
+     return error;
+  }
+
+  enc->setActPos(actpos);
+  
+  return 0.0;
+}
+
+inline double mc_get_enc_ready(double axIndex, double encIndex)
+{
+  int axIndexInt=(int)axIndex;
+  int encIndexInt=(int)encIndex - 1;
+
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  // getEnc() index starts at 0.. messy.. thats why -1 above
+  int error = 0;
+  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  if(error){
+     mc_errorCode = error;
+     return 0.0;
+  }
+
+  return (double) enc->hwReady();
 }
 
 #endif /* ecmcPLC_libMc_inc_ */

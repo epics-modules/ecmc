@@ -384,6 +384,8 @@ protected:
   ecmcTrajTypes currentTrajType_;
   bool allowSourceChangeWhenEnabled_;
   int encPrimIndexAsyn_;
+  int hwReadyOld_;
+  int hwReady_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

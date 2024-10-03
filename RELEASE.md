@@ -1,5 +1,14 @@
 Release Notes
 ===
+# ECMC 9.6.2
+* Add Plc functions :
+```
+# Get encoder hw ready (encIndex starts from 1):
+mc_get_enc_ready(<axIndex>,<encIndex>);
+
+# Set encoder hwactual position (encIndex starts from 1):
+mc_set_act_pos(<axIndex>,<encIndex>,<position>);
+```
 
 # ECMC 9.6.1
 * Increase allowed axis count from 64 to 128
