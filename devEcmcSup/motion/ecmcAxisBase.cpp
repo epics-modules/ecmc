@@ -293,7 +293,7 @@ void ecmcAxisBase::initVars() {
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
-  
+  hwReadyOld_ = hwReady_;
 
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
 
