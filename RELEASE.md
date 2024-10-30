@@ -6,7 +6,7 @@ Release Notes
 # Get encoder hw ready (encIndex starts from 1):
 mc_get_enc_ready(<axIndex>,<encIndex>);
 
-# Set encoder hwactual position (encIndex starts from 1):
+# Set encoder actual position (encIndex starts from 1):
 mc_set_act_pos(<axIndex>,<encIndex>,<position>);
 ```
 
