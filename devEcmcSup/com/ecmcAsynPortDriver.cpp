@@ -2623,6 +2623,73 @@ static void initCallFunc_14(const iocshArgBuf *args) {
   ecmcEndIf(args[0].sval, args[1].sval);
 }
 
+
+/** EPICS iocsh shell command: ecmcGetSlaveIdFromEcPath
+ 
+ * Extracts slave id from ec<masterid>.s<slaveid>.<text>
+*/
+
+void ecmcGetSlaveIdFromEcPathHelp() {
+  printf("\n");
+  printf("       Use \"ecmcGetSlaveIdFromEcPath(<ec_path>,<var_result_slave_id>)\" to get the slave id from a ec-path\n");
+  printf("          <ec_path>             : path to a etehrcat entry (ec<masterid>.s<slaveid>.<text>)\n");
+  printf("          <var_result_slave_id> : result will be stored in this env variable.\n");
+  printf("\n");
+  printf("       If the slave id cannot be identified then \"<var_result_slave_id\"> will be set to \"-2\".\n");
+  printf("\n");
+  printf("       Example: ecmcGetSlaveIdFromEcPathHelp(ec1.s12.positionActual,RESULT)");
+  printf("\n");
+}
+
+int ecmcGetSlaveIdFromEcPath(const char *ec_path, const char *env_var_str) {
+
+  if(!ec_path || !env_var_str) {
+    ecmcGetSlaveIdFromEcPathHelp();
+    return asynError;
+  }
+
+  char textBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  char resultBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  memset(textBuffer, 0, sizeof(textBuffer));
+  memset(resultBuffer, 0, sizeof(resultBuffer));
+  int masterId = -1;
+  int slaveId  = -2;
+  epicsEnvSet(env_var_str, "-2");  // fail as default
+
+  int nvals = sscanf(ec_path, "ec%d.s%d.%s", &masterId, &slaveId, textBuffer);
+  if (nvals == 3) {
+    int charCount = snprintf(resultBuffer,
+                             sizeof(resultBuffer),
+                             "%d",
+                             slaveId);
+    if (charCount >= sizeof(resultBuffer) - 1) {
+      printf("Write buffer size exceeded, format results in a to long string.\n");
+   
+      return asynError;
+    }
+    
+    // Write result
+    epicsEnvSet(env_var_str, resultBuffer);
+  }
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_15 =
+{ "EtherCAT path (ec<mid>.s<sid>.<alias>)", iocshArgString };
+
+static const iocshArg initArg1_15 =
+{ "Env var name for return slave id", iocshArgString };
+
+static const iocshArg *const initArgs_15[] = { &initArg0_15,
+                                               &initArg1_15
+};
+
+static const iocshFuncDef initFuncDef_15 =
+{ "ecmcGetSlaveIdFromEcPath", 2, initArgs_15 };
+static void initCallFunc_15(const iocshArgBuf *args) {
+  ecmcGetSlaveIdFromEcPath(args[0].sval, args[1].sval);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,    initCallFunc);
   iocshRegister(&initFuncDef_2,  initCallFunc_2);
@@ -2638,6 +2705,7 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_12, initCallFunc_12);
   iocshRegister(&initFuncDef_13, initCallFunc_13);
   iocshRegister(&initFuncDef_14, initCallFunc_14);
+  iocshRegister(&initFuncDef_15, initCallFunc_15);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);

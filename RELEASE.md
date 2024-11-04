@@ -1,6 +1,12 @@
 Release Notes
 ===
 # ECMC 9.6.2
+* Add iocsh function to get slave id from ec-path: ecmcGetSlaveIdFromEcPath(\<ec_path\>,\<var_result_slave_id\>). Example:
+```
+ ecmcGetSlaveIdFromEcPathHelp(ec1.s12.positionActual,RESULT)
+ epicsEnvShow(RESULT)
+ RESULT=12
+```
 * Add Plc functions :
 ```
 # Get encoder hw ready (encIndex starts from 1):
