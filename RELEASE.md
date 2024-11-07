@@ -1,6 +1,7 @@
 Release Notes
 ===
 # ECMC 9.6.2
+* Axis analog interlock: Support all ecmc datatypes (before only unsigned ints).
 * Add iocsh function to get slave id from ec-path: ecmcGetSlaveIdFromEcPath(\<ec_path\>,\<var_result_slave_id\>). Example:
 ```
  ecmcGetSlaveIdFromEcPathHelp(ec1.s12.positionActual,RESULT)

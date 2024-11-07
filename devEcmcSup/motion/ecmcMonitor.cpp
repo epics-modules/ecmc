@@ -363,8 +363,8 @@ void ecmcMonitor::readEntries() {
   }
 
   if (enableAnalogInterlock_) {
-    tempRaw   = 0;
-    errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_ANALOG, &tempRaw);
+    double tempDouble = 0;
+    errorCode = readEcEntryValueDouble(ECMC_MON_ENTRY_INDEX_ANALOG, &tempDouble);
 
     if (errorCode) {
       setErrorID(__FILE__,
@@ -377,11 +377,11 @@ void ecmcMonitor::readEntries() {
 
     switch (analogPolarity_) {
     case ECMC_POLARITY_NC:
-      data_->interlocks_.analogInterlock = tempRaw > analogRawLimit_;
+      data_->interlocks_.analogInterlock = tempDouble > analogRawLimit_;
       break;
 
     case ECMC_POLARITY_NO:
-      data_->interlocks_.analogInterlock = tempRaw < analogRawLimit_;
+      data_->interlocks_.analogInterlock = tempDouble < analogRawLimit_;
       break;
     }
   }
