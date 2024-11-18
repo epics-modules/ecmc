@@ -1,5 +1,10 @@
 Release Notes
 ===
+# Master
+Allow encoder error for non-primary encoder:
+* Add error id for each ecnoder (asyn)
+* Only primary encoder error id is propagated as axis error.
+
 # ECMC 9.6.2
 * Axis analog interlock: Support all ecmc datatypes (before only unsigned ints).
 * Add iocsh function to get slave id from ec-path: ecmcGetSlaveIdFromEcPath(\<ec_path\>,\<var_result_slave_id\>). Example:
