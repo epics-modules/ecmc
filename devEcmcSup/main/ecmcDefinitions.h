@@ -235,6 +235,7 @@
 // Asyn params for encoder
 #define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"
 #define ECMC_ASYN_ENC_ACT_VEL_NAME "actvel"
+#define ECMC_ASYN_ENC_ERR_ID_NAME "enc.errid"
 
 // Asyn params for controller
 #define ECMC_ASYN_CNTRL_KP_NAME "ctrl.kp"

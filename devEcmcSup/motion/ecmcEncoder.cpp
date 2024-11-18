@@ -116,9 +116,11 @@ void ecmcEncoder::initVars() {
   encPosAct_              = NULL;
   encVelAct_              = NULL;
   asynPortDriver_         = NULL;
+  encErrId_               = NULL;
   maxPosDiffToPrimEnc_    = 0;
   encInitilized_          = 0;
   hwReady_                = 0;
+  hwReadyOld_             = 0;
   hwReadyInvert_          = 0;
   hwSumAlarmOld_          = false;
   hwSumAlarm_             = false;
@@ -133,6 +135,8 @@ void ecmcEncoder::initVars() {
   homeDec_                = 0;
   hwTriggedHomingEnabled_ = false;
   domainOK_               = 0;
+  encLocalErrorId_        = 0;
+  encLocalErrorIdOld_     = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -648,15 +652,12 @@ int ecmcEncoder::readHwReady(bool domainOK) {
       hwReady_ = !hwReady_;
     }
 
-    // Throw error only if primary
-    if ( (hwReady_ == 0) && (index_ == data_->command_.primaryEncIndex) ) {
-      if (data_->status_.enabled) {
+    if ( hwReady_ == 0) {
+      if (data_->status_.enabled && isPrimary()) {
         // Error when enabled, this is serious, remove power
-        data_->command_.enable = 0;
-        return ERROR_ENC_NOT_READY;
+        data_->command_.enable = 0;       
       }
-    } else {
-      setWarningID(WARNING_ENC_NOT_READY);
+      return ERROR_ENC_NOT_READY;
     }
   }
 
@@ -669,7 +670,7 @@ int ecmcEncoder::hwReady() {
   }
 
   if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    if (!encInitilized_ || (hwReadyBitDefined_ && (hwReady_ == 0))) {
+    if (!encInitilized_ || (hwReadyBitDefined_ && (hwReady_ == 0))) {      
       return 0;
     }
   }
@@ -689,25 +690,25 @@ double ecmcEncoder::readEntries(bool masterOK) {
   errorLocal = readHwWarningError(domainOK_);
 
   if (errorLocal) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+    encLocalErrorId_ = errorLocal;
   }
 
   errorLocal = readHwReady(domainOK_);
 
-  if (errorLocal && !getErrorID()) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  if (errorLocal && !encLocalErrorId_) {
+    encLocalErrorId_ = errorLocal;
   }
 
   errorLocal = readHwActPos(masterOK, domainOK_);
 
-  if (errorLocal && !getErrorID()) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  if (errorLocal && !encLocalErrorId_) {
+    encLocalErrorId_ = errorLocal;
   }
 
   errorLocal = readHwLatch(domainOK_);
 
-  if (errorLocal && !getErrorID()) {
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  if (errorLocal && !encLocalErrorId_) {
+    encLocalErrorId_ = errorLocal;
   }
 
   actPos_ = actPosLocal_;
@@ -717,7 +718,19 @@ double ecmcEncoder::readEntries(bool masterOK) {
   encPosAct_->refreshParamRT(0);
   encVelAct_->refreshParamRT(0);
 
+  // Only set axis error id if primary
+  if(encLocalErrorId_ && isPrimary()) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorLocal);
+  }
+  
+  // update error id asyn param
+  if(encLocalErrorId_ != encLocalErrorIdOld_) {    
+    encErrId_->refreshParamRT(1);
+  }
+
   masterOKOld_ = masterOK;
+  encLocalErrorIdOld_ = encLocalErrorId_;
+
   return actPos_;
 }
 
@@ -729,7 +742,7 @@ int ecmcEncoder::writeEntries() {
   if (encLatchFunctEnabled_) {
     if (writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
                           (encLatchControl_ > 0))) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_ENC_ENTRY_READ_FAIL);
+      encLocalErrorId_ = ERROR_ENC_ENTRY_WRITE_FAIL;  // Write to error id will happen in readEntries
     }
   }
 
@@ -741,9 +754,8 @@ int ecmcEncoder::writeEntries() {
       writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_RESET,
                         (uint64_t)hwReset_);
     hwReset_ = 0;
-
-    if (errorCode) {
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    if(errorCode) {
+      encLocalErrorId_ = errorCode;
     }
   }
 
@@ -1069,6 +1081,9 @@ void ecmcEncoder::errorReset() {
   if (hwResetDefined_) {
     hwReset_ = 1;
   }
+  
+  encLocalErrorId_ = 0;
+    
   ecmcEcEntryLink::errorReset();
   ecmcError::errorReset();
 }
@@ -1189,7 +1204,7 @@ int ecmcEncoder::initAsyn() {
       __FUNCTION__,
       __LINE__,
       data_->axisId_,
-      ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME "%d",
+      ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
   }
@@ -1217,6 +1232,49 @@ int ecmcEncoder::initAsyn() {
   paramTemp->refreshParam(1);
   encVelAct_ = paramTemp;
 
+
+  // Error ID
+  charCount = snprintf(buffer,
+                       sizeof(buffer),
+                       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ERR_ID_NAME "%d",
+                       data_->axisId_,
+                       localIndex);
+
+
+  if (charCount >= sizeof(buffer) - 1) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ECMC_AX_STR "%d." ECMC_ASYN_ENC_ERR_ID_NAME "%d",
+      ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
+    return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  name      = buffer;
+  paramTemp = asynPortDriver_->addNewAvailParam(name,
+                                                asynParamInt32,
+                                                (uint8_t*)&encLocalErrorId_,
+                                                4,
+                                                ECMC_EC_S32,
+                                                0);
+
+  if (!paramTemp) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      name);
+    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+  }
+
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  encErrId_ = paramTemp;
   return 0;
 }
 
@@ -1339,4 +1397,8 @@ int ecmcEncoder::getHomeExtTriggStat() {
 
 int ecmcEncoder::getHomeExtTriggEnabled() {
   return hwTriggedHomingEnabled_;
+}
+
+bool ecmcEncoder::isPrimary() {
+ return index_ == data_->command_.primaryEncIndex;
 }

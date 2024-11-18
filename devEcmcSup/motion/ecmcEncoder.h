@@ -56,6 +56,8 @@
 #define ERROR_ENC_READY_READ_ENTRY_FAIL 0x14416
 #define ERROR_ENC_NOT_READY 0x14417
 #define ERROR_ENC_HOME_TRIGG_LINKS_INVALID 0x14418
+#define ERROR_ENC_ENTRY_WRITE_FAIL 0x14419
+
 
 // ENCODER WARNINGS
 #define WARNING_ENC_NOT_READY 0x114417
@@ -175,6 +177,7 @@ protected:
   int      readHwWarningError(bool domainOK);
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
+  bool     isPrimary();
 
   encoderType encType_;
   ecmcFilter *velocityFilter_;
@@ -226,6 +229,7 @@ protected:
   uint64_t hwWarning_;
   uint64_t hwWarningOld_;
   uint64_t hwReady_;
+  uint64_t hwReadyOld_;
   bool hwActPosDefined_;
   bool hwResetDefined_;
   bool hwErrorAlarm0Defined_;
@@ -242,11 +246,14 @@ protected:
   bool hwSumAlarm_;
   bool hwSumAlarmOld_;
   bool hwTriggedHomingEnabled_;
+  int encLocalErrorId_;
+  int encLocalErrorIdOld_;
 
   // Asyn
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *encPosAct_;
   ecmcAsynDataItem *encVelAct_;
+  ecmcAsynDataItem *encErrId_;
 
   int hwReadyInvert_;
   int index_; // Index of this encoder (im axis object)

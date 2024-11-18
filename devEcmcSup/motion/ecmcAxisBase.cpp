@@ -2404,11 +2404,12 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
 
   if (errorCode) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Set Primary encoder index failed.\n",
+      "%s/%s:%d: ERROR (axis %d): Set Primary encoder index failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.axisId_,
+      errorCode);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2719,17 +2720,19 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
     return ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE;
   }
 
-  // Do not allow to switch encoder if busy and INTERNAL source
-  if (getBusy() && (data_.command_.encSource ==
-                    ECMC_DATA_SOURCE_INTERNAL)) {
-    // Override error message to not stop axis if in motion
-    if (!overrideError) {
-      setErrorID(__FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY);
+  if(!data_.status_.inStartupPhase) {  // Allow to switch if in startup phase (and busy)
+    // Do not allow to switch encoder if busy and INTERNAL source
+    if (getBusy() && (data_.command_.encSource ==
+                      ECMC_DATA_SOURCE_INTERNAL)) {
+      // Override error message to not stop axis if in motion
+      if (!overrideError) {
+        setErrorID(__FILE__,
+                   __FUNCTION__,
+                   __LINE__,
+                   ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY);
+      }
+      return ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY;
     }
-    return ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY;
   }
 
   // Make sure the switch is bumpless
@@ -2769,6 +2772,7 @@ int ecmcAxisBase::selectConfigEncoder(int index) {
   return 0;
 }
 
+// unfortenatelly starts from 1... why did I do like this..
 int ecmcAxisBase::getConfigEncoderIndex() {
   return data_.command_.cfgEncIndex + 1;
 }
@@ -2779,18 +2783,11 @@ int ecmcAxisBase::getPrimaryEncoderIndex() {
 
 bool ecmcAxisBase::getHwReady() {
 
-  bool ready = true;
+  // TODO Check drives TODO
 
-  // Check encoders
-  for (int i = 0; i < data_.status_.encoderCount; i++) {
-    ready = encArray_[i]->hwReady() && ready;
-  }
-
-  // Check drives TODO
-  
-  // Also check last scan
-  
-  return ready;
+  /* Only check prim encoder (allow encoders to be in error state 
+  if they are not used) */
+  return getPrimEnc()->hwReady();
 }
 
 void ecmcAxisBase::initEncoders() {
