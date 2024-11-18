@@ -1,8 +1,8 @@
 Release Notes
 ===
-# Master
-Allow encoder error for non-primary encoder:
-* Add error id for each ecnoder (asyn)
+# ECMC 9.6.3
+Allow encoder error for non-primary encoder(s):
+* Add asyn param for encoder error id (each encoder)
 * Only primary encoder error id is propagated as axis error.
 
 # ECMC 9.6.2
