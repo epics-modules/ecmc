@@ -783,18 +783,16 @@ int ecmcEncoder::validate() {
 
   hwActPosDefined_ = false;
 
-  if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION)) {
-      errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
 
-      if (errorCode) {  // Act position
-        return setErrorID(__FILE__,
-                          __FUNCTION__,
-                          __LINE__,
-                          ERROR_ENC_ENTRY_NULL);
-      }
-      hwActPosDefined_ = true;
+  if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION)) {
+    errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
+    if (errorCode && data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_ENC_ENTRY_NULL);
     }
+    hwActPosDefined_ = errorCode == 0;
   }
 
   // Check if latch entries are linked then "enable" latch funct
