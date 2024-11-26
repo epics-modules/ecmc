@@ -1,5 +1,8 @@
 Release Notes
 ===
+# ECMC 9.6.4
+* Update encoder objects also when in encoder is in external/PLC source
+
 # ECMC 9.6.3
 Allow encoder error for non-primary encoder(s):
 * Add asyn param for encoder error id (each encoder)
