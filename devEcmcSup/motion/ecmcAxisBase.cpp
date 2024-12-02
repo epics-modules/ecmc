@@ -677,7 +677,7 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
     errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel
-    if(!data_.status_.atTarget || !firstEnableDone_) {
+    if((!data_.status_.atTarget && mon_->getEnableAtTargetMon()) || !firstEnableDone_) {
       traj_->setStartPos(data_.status_.currentPositionActual);
       traj_->setCurrentPosSet(data_.status_.currentPositionActual);
       traj_->setTargetPos(data_.status_.currentPositionActual);
