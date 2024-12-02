@@ -364,7 +364,7 @@ protected:
   bool enableExtTrajVeloFilter_;
   bool enableExtEncVeloFilter_;
   bool disableAxisAtErrorReset_;
-  bool beforeFirstEnable_;
+  bool firstEnableDone_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
   int printHeaderCounter_;
   int cycleCounter_;

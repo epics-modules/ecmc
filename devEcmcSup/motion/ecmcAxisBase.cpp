@@ -232,7 +232,7 @@ ecmcAxisBase::~ecmcAxisBase() {
 
 void ecmcAxisBase::initVars() {
   // errorReset();  //THIS IS NONO..
-  beforeFirstEnable_                       = 0;
+  firstEnableDone_                       = 0;
   data_.axisType_                          = ECMC_AXIS_TYPE_BASE;
   data_.command_.reset                     = false;
   allowCmdFromOtherPLC_                    = true;
@@ -677,17 +677,20 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
     errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel
-    traj_->setStartPos(data_.status_.currentPositionActual);
-    traj_->setCurrentPosSet(data_.status_.currentPositionActual);
-    traj_->setTargetPos(data_.status_.currentPositionActual);
-    data_.status_.currentTargetPosition =
-      data_.status_.currentPositionActual;
-    data_.status_.currentPositionSetpoint =
-      data_.status_.currentPositionActual;
-    data_.status_.currentPositionSetpointOld =
-      data_.status_.currentPositionSetpoint;
-    data_.status_.currentVelocitySetpoint = 0;
-    beforeFirstEnable_                    = true;
+    if(!data_.status_.atTarget || !firstEnableDone_) {
+      traj_->setStartPos(data_.status_.currentPositionActual);
+      traj_->setCurrentPosSet(data_.status_.currentPositionActual);
+      traj_->setTargetPos(data_.status_.currentPositionActual);
+    
+      data_.status_.currentTargetPosition =
+        data_.status_.currentPositionActual;
+      data_.status_.currentPositionSetpoint =
+        data_.status_.currentPositionActual;
+      data_.status_.currentPositionSetpointOld =
+        data_.status_.currentPositionSetpoint;
+      data_.status_.currentVelocitySetpoint = 0;
+      firstEnableDone_                      = true;
+    }
   }
   traj_->setEnable(enable);
 

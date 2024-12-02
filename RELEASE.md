@@ -1,6 +1,9 @@
 Release Notes
 ===
-# ECMC 9.6.4
+# ECMC 9.6.7
+* When enabling an axis only update current setpoint if not attarget (or at first enabling of axis)
+
+# ECMC 9.6.6
 * Update encoder objects also when in encoder is in external/PLC source
 
 # ECMC 9.6.3
