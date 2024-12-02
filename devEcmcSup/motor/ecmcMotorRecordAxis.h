@@ -116,8 +116,8 @@ private:
       unsigned int sErrorMessage         : 1;     /* From MCU */
       unsigned int initialPollNeeded     : 1;
     }    dirty;
-    int  moveNotReadyNext;
-    int  moveNotReadyNextOld;
+    int  moveReady;
+    int  moveReadyOld;
     char cmdErrorMessage[80];               /* From driver */
     char sErrorMessage[80];               /* From controller */
     bool ecmcBusy;
@@ -125,6 +125,8 @@ private:
     bool ecmcSummaryInterlock;
     int  ecmcTrjSrc;
     bool ecmcMRSyncNextPoll;
+    bool ecmcAtTarget;
+    bool ecmcAtTargetMonEnable;
 
   } drvlocal;
 

@@ -728,7 +728,7 @@ int ecmcMonitor::checkAtTarget() {
   bool atTarget      = false;
   bool ctrlWithinTol = false;
 
-  if (enableAtTargetMon_ && data_->status_.enabled) {
+  if (enableAtTargetMon_) {
     /*if (std::abs(data_->status_.currentTargetPosition -
                  data_->status_.currentPositionActual) < atTargetTol_) {*/
 
@@ -760,7 +760,7 @@ int ecmcMonitor::checkAtTarget() {
       }
     }
   } else {
-    atTarget = true;
+    atTarget = false; 
   }
 
   data_->status_.atTarget            = atTarget;

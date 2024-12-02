@@ -135,20 +135,21 @@ void ecmcAxisReal::execute(bool masterOK) {
     encArray_[data_.command_.primaryEncIndex]->getRawPosRegister(),
     data_.status_.currentPositionActual);
 
-  if (getEnabled() && masterOK) {
     // Calc position error
-    data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
+  data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
       data_.status_.currentPositionSetpoint,
       data_.status_.currentPositionSetpointOld,
       data_.status_.currentPositionActual,
       data_.command_.moduloRange);
+
+  if (getEnabled() && masterOK) {
     double cntrOutput = 0;
 
     if (data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
       // ***************** CSV *****************
       // Controller deadband
       if (!data_.status_.busy && mon_->getCtrlInDeadband()) {
-        cntrl_->reset();  // Keep now for leagcy reasons...
+        cntrl_->reset();  // Keep now for legacy reasons...
         cntrOutput = 0;
       } else {
         cntrOutput = cntrl_->control(data_.status_.cntrlError,
