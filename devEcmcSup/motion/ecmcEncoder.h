@@ -20,6 +20,7 @@
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
+#include <vector>
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 #include "ecmcError.h"
@@ -57,7 +58,10 @@
 #define ERROR_ENC_NOT_READY 0x14417
 #define ERROR_ENC_HOME_TRIGG_LINKS_INVALID 0x14418
 #define ERROR_ENC_ENTRY_WRITE_FAIL 0x14419
-
+#define ERROR_ENC_CORR_TABLE_ERROR 0x1441A
+#define ERROR_ENC_CORR_TABLE_NOT_SORTED 0x1441B
+#define ERROR_ENC_CORR_OPEN_FILE_FAILED 0x1441C
+#define ERROR_ENC_CORR_FILE_FORMAT_INVALID 0x1441D
 
 // ENCODER WARNINGS
 #define WARNING_ENC_NOT_READY 0x114417
@@ -158,6 +162,7 @@ public:
   int                   setHomeExtTrigg(bool val);
   int                   getHomeExtTriggStat();
   int                   getHomeExtTriggEnabled();
+  int                   loadCorrFile(const std::string& filename);
 
 protected:
   void                  initVars();
@@ -178,7 +183,15 @@ protected:
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
   bool     isPrimary();
+  uint64_t getCorrValue(uint64_t inputRawValue);
 
+  /*
+  File format:
+  * first column  encoder raw data
+  * second column encoder error
+  The interpolated error will then be added to the raw value.
+  (If the error should be subtracted then put a - sign before..)
+  */
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -269,6 +282,16 @@ protected:
   double homeAcc_;
   double homeDec_;
   int domainOK_;
+
+  /*At the raw positions in corrTableRaw_[i] the encoder 
+    error should be defined  in corrTableErrorRaw_[i].
+    For raw positions in between the Error is interpolated.
+    For raw values outside the range corrTableRaw_ compensation 
+    is made with a static value of the first or last value of the correction table.
+  */
+  bool useCorrTable_;
+  std::vector<uint64_t> corrTableRaw_;
+  std::vector<int> corrTableErrorRaw_;
 };
 
 #endif  /* ECMCENCODER_H_ */

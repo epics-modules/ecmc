@@ -1766,6 +1766,14 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncMaxDiffToPrimEnc(iValue, dValue);
   }
 
+  /*int Cfg.LoadAxisEncCorrFile(int index,char *cExpr); */
+  cExprBuffer[0] = '\0';
+  nvals = sscanf(myarg_1, "LoadAxisEncCorrFile(%d,%[^)])", &iValue, cExprBuffer);
+
+  if (nvals == 2) {
+    return loadAxisEncCorrFile(iValue , cExprBuffer);
+  }
+
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKp(%d,%lf)", &iValue, &dValue);
 
@@ -2635,7 +2643,7 @@ static int handleCfgCommand(const char *myarg_1) {
     return loadPLCFile(iValue, cExprBuffer);
   }
 
-/*int Cfg.LoadPLCLibFile(int index,char *cExpr); */
+  /*int Cfg.LoadPLCLibFile(int index,char *cExpr); */
   nvals = sscanf(myarg_1, "LoadPLCLibFile(%d,%[^)])", &iValue, cExprBuffer);
 
   if (nvals == 2) {

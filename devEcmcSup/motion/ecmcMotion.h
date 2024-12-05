@@ -2042,12 +2042,29 @@ int setAxisEncRefToOtherEncAtStartup(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set maximum allowed devaition between this encoder and \n
+ * \note Example: Set maximum allowed deviation between this encoder and \n
  * the primary encoder to 0.1 for axis 3.\n
  * "Cfg.SetAxisEncMaxDiffToPrimEnc(3,0.1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
                                double value);
+
+/** \brief Load encoder correction table file.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] filename Filename (with path).\n
+ *
+ * First column should list encoder raw values, must be sorted increasing\n
+ * Second column should list encoder error correction values\n
+ * Columns must have same length.
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Load a correction file to axis 3 (to the encoder currently\n
+ *  being configured)\n
+ * "Cfg.LoadAxisEncCorrFile(3,./tests.corr)" //Command string to ecmcCmdParser.c.\n
+ */
+int loadAxisEncCorrFile(int axisIndex, const char* filename);
 
 /** \brief Set PID-controller proportional gain.\n
  *

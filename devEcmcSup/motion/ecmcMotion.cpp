@@ -1078,6 +1078,19 @@ int setAxisEncScaleNum(int axisIndex, double value) {
   return 0;
 }
 
+int loadAxisEncCorrFile(int axisIndex, const char* filename) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           filename);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  return axes[axisIndex]->loadEncCorrFile(filename);
+}
+
 int setAxisEncScaleDenom(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
            __FILE__,

@@ -190,6 +190,7 @@ public:
   int                        setEncScaleDenom(double scale);
   int                        getEncPosRaw(int64_t *rawPos);
   int                        setEncInvHwReady(int invert);
+  int                        loadEncCorrFile(const char* filename);
   int                        setCommand(motionCommandTypes command);
   int                        setCmdData(int cmdData);
   motionCommandTypes         getCommand();

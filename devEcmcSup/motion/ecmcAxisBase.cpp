@@ -2885,3 +2885,7 @@ void ecmcAxisBase::setSyncActSet(bool sync) {
 bool ecmcAxisBase::getSyncActSet() {
   return controlWord_.MRSyncNextPoll;
 }
+
+int ecmcAxisBase::loadEncCorrFile(const char* filename) {
+  return encArray_[data_.command_.cfgEncIndex]->loadCorrFile(filename);
+}

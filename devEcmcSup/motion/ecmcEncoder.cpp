@@ -11,6 +11,10 @@
 \*************************************************************************/
 
 #include "ecmcEncoder.h"
+#include <iterator>
+#include <algorithm>
+#include <iostream>
+#include <fstream>
 
 ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
                          ecmcAxisData       *axisData,
@@ -137,6 +141,7 @@ void ecmcEncoder::initVars() {
   domainOK_               = 0;
   encLocalErrorId_        = 0;
   encLocalErrorIdOld_     = 0;
+  useCorrTable_           = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -393,6 +398,10 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   // Filter value with mask
   rawPosUint_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
 
+  // Apply correction table if needed
+  if(useCorrTable_) {
+    rawPosUint_ = getCorrValue(rawPosUint_);
+  }
 
   // if(!encInitilized_ && masterOk_) {
   if (!encInitilized_) {
@@ -934,6 +943,44 @@ int ecmcEncoder::validate() {
                       ERROR_ENC_ASYN_PARAM_NULL);
   }
 
+  if(useCorrTable_) {
+    // Check that both vectors are the same size and non-empty
+    if (corrTableRaw_.size() != corrTableErrorRaw_.size() || corrTableRaw_.empty()) {
+      LOGERR(
+        "%s/%s:%d: ERROR (axis %d, enc %d): Encoder correction table size miss-match (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_->axisId_,
+        index_,
+        ERROR_ENC_CORR_TABLE_ERROR);
+  
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_ENC_CORR_TABLE_ERROR);
+    }
+
+    // Ensure the corrTableRaw_ vector is sorted
+    for (size_t i = 1; i < corrTableRaw_.size(); ++i) {
+      if (corrTableRaw_[i] < corrTableRaw_[i - 1]) {
+         LOGERR(
+        "%s/%s:%d: ERROR (axis %d, enc %d): Encoder correction table not sorted (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_->axisId_,
+        index_,
+        ERROR_ENC_CORR_TABLE_NOT_SORTED);
+  
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_ENC_CORR_TABLE_NOT_SORTED);
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -1399,4 +1446,87 @@ int ecmcEncoder::getHomeExtTriggEnabled() {
 
 bool ecmcEncoder::isPrimary() {
  return index_ == data_->command_.primaryEncIndex;
+}
+
+uint64_t ecmcEncoder::getCorrValue(uint64_t inputRawValue) {
+  // Function to perform linear interpolation
+ 
+  // Handle cases where inputRawValue is out of bounds (no interpolation)
+  if (inputRawValue <= corrTableRaw_.front()) {
+    return inputRawValue + corrTableErrorRaw_.front();
+  }
+  if (inputRawValue >= corrTableRaw_.back()) {
+    return inputRawValue + corrTableErrorRaw_.back();
+  }
+ 
+  // Binary search to find the interval
+  auto it = std::lower_bound(corrTableRaw_.begin(), corrTableRaw_.end(), inputRawValue);
+  // Determine the indices for interpolation
+  size_t idx = std::distance(corrTableRaw_.begin(), it);
+  size_t i1 = idx - 1;
+  size_t i2 = idx;
+ 
+  // Linear interpolation.. maybe not
+  return (uint64_t) (inputRawValue + corrTableErrorRaw_[i1] + (static_cast<double>(corrTableErrorRaw_[i2] - corrTableErrorRaw_[i1]) *
+                    (inputRawValue - corrTableRaw_[i1])) / (corrTableRaw_[i2] - corrTableRaw_[i1]));
+}
+
+int ecmcEncoder::loadCorrFile(const std::string& filename) {
+
+  // Open the file
+  std::ifstream inputFile(filename);
+  if (!inputFile.is_open()) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d, enc %d): Opening correction file %s failed (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      index_,
+      filename.c_str(),
+      ERROR_ENC_CORR_OPEN_FILE_FAILED);
+      return setErrorID(__FILE__,
+                    __FUNCTION__,
+                    __LINE__,
+                    ERROR_ENC_CORR_OPEN_FILE_FAILED);
+  }
+
+  // Clear the vectors to ensure they're empty before loading new data
+  corrTableRaw_.clear();
+  corrTableErrorRaw_.clear();
+  std::string line;
+  
+  printf("INFO (axis %d, enc %d): Loading correction table:\n",data_->axisId_,index_);
+  int index = 1;
+  while (std::getline(inputFile, line)) {
+    std::istringstream lineStream(line);
+    uint64_t rawValue;
+    int errorValue;        
+    
+    printf("%03d: %s\n",index,line.c_str());
+    index++;
+
+    // Read two values from the current line
+    if (lineStream >> rawValue >> errorValue) {
+        corrTableRaw_.push_back(rawValue);
+        corrTableErrorRaw_.push_back(errorValue);
+    } else {
+      LOGERR(
+        "%s/%s:%d: ERROR (axis %d, enc %d): Correction file format invalid (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_->axisId_,
+        index_,
+        ERROR_ENC_CORR_FILE_FORMAT_INVALID);
+        return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_ENC_CORR_FILE_FORMAT_INVALID);
+    }
+  }
+
+  useCorrTable_ = 1;
+  inputFile.close();
+  return 0;
 }
