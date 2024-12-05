@@ -164,12 +164,20 @@ bool ecmcTrajectoryS::updateRuckig() {
     //      case Result::ErrorNoPhaseSynchronization:
     //        setErrorID(__FILE__, __FUNCTION__, __LINE__,ERROR_TRAJ_RUCKIG_NO_PHASE_SYNC);
     //        break;
+  
+    // Error with ErrorExecutionTimeCalculation should be fixed in 2021.. need to update ruckig sources.
+    // https://github.com/pantor/ruckig/issues/68
+    // Just set warning...
     case Result::ErrorExecutionTimeCalculation:
-      setErrorID(__FILE__,
-                 __FUNCTION__,
-                 __LINE__,
-                 ERROR_TRAJ_RUCKIG_EXE_TIME_CALC);
+      //setErrorID(__FILE__,
+      //           __FUNCTION__,
+      //           __LINE__,
+      //           ERROR_TRAJ_RUCKIG_EXE_TIME_CALC);
+    
+      setWarningID(ERROR_TRAJ_RUCKIG_EXE_TIME_CALC);
       break;
+
+
 
     case Result::ErrorSynchronizationCalculation:
       setErrorID(__FILE__, __FUNCTION__, __LINE__,
