@@ -2049,7 +2049,7 @@ int setAxisEncRefToOtherEncAtStartup(int axisIndex,
 int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
                                double value);
 
-/** \brief Load encoder correction table file.\n
+/** \brief Load encoder correction lookup table file.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] filename Filename (with path).\n
@@ -2062,9 +2062,22 @@ int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
  *
  * \note Example: Load a correction file to axis 3 (to the encoder currently\n
  *  being configured)\n
- * "Cfg.LoadAxisEncCorrFile(3,./tests.corr)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.LoadAxisEncLookupTableFile(3,./tests.corr)" //Command string to ecmcCmdParser.c.\n
  */
-int loadAxisEncCorrFile(int axisIndex, const char* filename);
+int loadAxisEncLookupTable(int axisIndex, const char* filename);
+
+/** \brief Enable/Disable encoder lookup table.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable enable/disable.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable lookup table for axis 3  (to the encoder currently\n
+ *  being configured)\n
+ * "Cfg.SetAxisEncLookupTableEnable(3,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncLookupTableEnable(int axisIndex, int enable);
 
 /** \brief Set PID-controller proportional gain.\n
  *

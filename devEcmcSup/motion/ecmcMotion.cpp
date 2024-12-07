@@ -1078,19 +1078,6 @@ int setAxisEncScaleNum(int axisIndex, double value) {
   return 0;
 }
 
-int loadAxisEncCorrFile(int axisIndex, const char* filename) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex,
-           filename);
-
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
-
-  return axes[axisIndex]->loadEncCorrFile(filename);
-}
-
 int setAxisEncScaleDenom(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%lf\n",
            __FILE__,
@@ -1131,6 +1118,32 @@ int setAxisEncInvHwReady(int axisIndex, int invert) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   return axes[axisIndex]->setEncInvHwReady(invert);
+}
+
+int loadAxisEncLookupTable(int axisIndex, const char* filename) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           filename);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  return axes[axisIndex]->loadEncLookupTable(filename);
+}
+
+int setAxisEncLookupTableEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  return axes[axisIndex]->setEncLookupTableEnable(enable);
 }
 
 int appendAxisPLCExpr(int axisIndex, char *expr) {

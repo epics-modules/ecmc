@@ -2886,6 +2886,10 @@ bool ecmcAxisBase::getSyncActSet() {
   return controlWord_.MRSyncNextPoll;
 }
 
-int ecmcAxisBase::loadEncCorrFile(const char* filename) {
-  return encArray_[data_.command_.cfgEncIndex]->loadCorrFile(filename);
+int ecmcAxisBase::loadEncLookupTable(const char* filename) {
+  return encArray_[data_.command_.cfgEncIndex]->loadLookupTable(filename);
+}
+
+int  ecmcAxisBase::setEncLookupTableEnable(int enable) {
+  return encArray_[data_.command_.cfgEncIndex]->setLookupTableEnable(enable);
 }

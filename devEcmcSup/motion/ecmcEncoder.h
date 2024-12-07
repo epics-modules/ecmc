@@ -30,6 +30,7 @@
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"
 #include "ecmcMotionUtils.h"
+#include "ecmcLookupTable.h"
 
 // ENCODER ERRORS
 #define ERROR_ENC_ASSIGN_ENTRY_FAILED 0x14400
@@ -58,10 +59,11 @@
 #define ERROR_ENC_NOT_READY 0x14417
 #define ERROR_ENC_HOME_TRIGG_LINKS_INVALID 0x14418
 #define ERROR_ENC_ENTRY_WRITE_FAIL 0x14419
-#define ERROR_ENC_CORR_TABLE_ERROR 0x1441A
-#define ERROR_ENC_CORR_TABLE_NOT_SORTED 0x1441B
-#define ERROR_ENC_CORR_OPEN_FILE_FAILED 0x1441C
-#define ERROR_ENC_CORR_FILE_FORMAT_INVALID 0x1441D
+#define ERROR_ENC_LOOKUP_TABLE_LOAD_ERROR 0x1441A
+#define ERROR_ENC_LOOKUP_TABLE_NOT_LOADED 0x1441B
+#define ERROR_ENC_LOOKUP_TABLE_NOT_VALID 0x1441C
+
+
 
 // ENCODER WARNINGS
 #define WARNING_ENC_NOT_READY 0x114417
@@ -162,8 +164,8 @@ public:
   int                   setHomeExtTrigg(bool val);
   int                   getHomeExtTriggStat();
   int                   getHomeExtTriggEnabled();
-  int                   loadCorrFile(const std::string& filename);
-
+  int                   loadLookupTable(const std::string& filename);
+  int                   setLookupTableEnable(bool enable);
 protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -183,8 +185,6 @@ protected:
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
   bool     isPrimary();
-  uint64_t getCorrValue(uint64_t inputRawValue);
-
   /*
   File format:
   * first column  encoder raw data
@@ -192,6 +192,8 @@ protected:
   The interpolated error will then be added to the raw value.
   (If the error should be subtracted then put a - sign before..)
   */
+  uint64_t getCorrValue(uint64_t inputRawValue);
+
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -282,16 +284,8 @@ protected:
   double homeAcc_;
   double homeDec_;
   int domainOK_;
-
-  /*At the raw positions in corrTableRaw_[i] the encoder 
-    error should be defined  in corrTableErrorRaw_[i].
-    For raw positions in between the Error is interpolated.
-    For raw values outside the range corrTableRaw_ compensation 
-    is made with a static value of the first or last value of the correction table.
-  */
-  bool useCorrTable_;
-  std::vector<uint64_t> corrTableRaw_;
-  std::vector<int> corrTableErrorRaw_;
+  bool useLookupTable_;
+  ecmcLookupTable<uint64_t, int32_t>  *lookupTable_; 
 };
 
 #endif  /* ECMCENCODER_H_ */
