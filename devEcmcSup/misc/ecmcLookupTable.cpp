@@ -20,7 +20,7 @@ ecmcLookupTable::ecmcLookupTable(const std::string& filename) {
   validatedOK_ = false;
   indexTable_.clear();
   valueTable_.clear();
-  int error = loadCorrFile(filename)
+  int error = loadTable(filename)
   if(error  || !getValidatedOK()) {
     throw error; 
   }
@@ -47,12 +47,12 @@ T2 ecmcLookupTable::getValue(T1 inputIndex) {
   size_t i1 = idx - 1;
   size_t i2 = idx;
  
-  // Linear interpolation.. maybe not
+  // Linear interpolation.. Maybe need to look into the casts again
   return (T2) (ivalueTable_[i1] + (static_cast<double>(valueTable_[i2] - valueTable_[i1]) *
                     (inputIndex - indexTable_[i1])) / (indexTable_[i2] - indexTable_[i1]));
 }
 
-int ecmcLookupTable::loadCorrFile(const std::string& filename) {
+int ecmcLookupTable::loadTable(const std::string& filename) {
 
   // Open the file
   std::ifstream inputFile(filename);

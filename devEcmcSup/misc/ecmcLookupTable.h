@@ -37,7 +37,7 @@ public:
   T2 getValue(T1 inputIndex);
 
 private:
-  int loadCorrFile(const std::string& filename);
+  int loadTable(const std::string& filename);
   int validate();
   std::vector<T1> indexTable_;
   std::vector<T2> valueTable_;
