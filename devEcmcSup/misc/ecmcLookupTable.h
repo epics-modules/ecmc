@@ -108,11 +108,11 @@ private:
     while (std::getline(inputFile, line)) {
       std::istringstream lineStream(line);
       T1 indexValue;  // Example the encoder raw count
-      T2 value;            // Example the error at indexValue
-        
+      T2 value;       // Example the error at indexValue
+
       // Skip commented lines
       if( line[0] == '#') {
-        printf("%s\n",index,line.c_str());
+        printf("%s\n",line.c_str());
         continue;
       }
 
@@ -136,7 +136,7 @@ private:
                         ERROR_LOOKUP_TABLE_FILE_FORMAT_INVALID);
       }
     }
-  
+    printf("INFO: Loading correction table done..\n");
     inputFile.close();
     return validate();
   }

@@ -1766,7 +1766,7 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncMaxDiffToPrimEnc(iValue, dValue);
   }
 
-  /*int Cfg.LoadAxisEncLookupTable(int index,char *cExpr); */
+  /*int Cfg.LoadAxisEncLookupTable(int axis_no, char *filename); */
   cExprBuffer[0] = '\0';
   nvals = sscanf(myarg_1, "LoadAxisEncLookupTable(%d,%[^)])", &iValue, cExprBuffer);
 
@@ -1774,14 +1774,14 @@ static int handleCfgCommand(const char *myarg_1) {
     return loadAxisEncLookupTable(iValue , cExprBuffer);
   }
 
-  /*int Cfg.SetAxisEncLookupTableEnable(int axis_no, int encIndex);*/
+  /*int Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable);*/
   nvals = sscanf(myarg_1, "SetAxisEncLookupTableEnable(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
     return setAxisEncLookupTableEnable(iValue, iValue2);
   }
 
-  /*int Cfg.SetAxisEncLookupTableRawPosMask(int axis_no, int rawMask);*/
+  /*int Cfg.SetAxisEncLookupTableRawPosMask(int axis_no, uint64_t rawMask);*/
   nvals = sscanf(myarg_1,
                  "SetAxisEncLookupTableRawPosMask(%d,%" PRIx64 ")",
                  &iValue,

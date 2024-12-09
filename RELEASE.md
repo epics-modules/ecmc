@@ -2,6 +2,12 @@ Release Notes
 ===
 # ECMC 9.6.7
 * When enabling an axis only update current setpoint if not attarget (or at first enabling of axis)
+* Add lookup table support for calibration of encoders:
+```
+Cfg.LoadAxisEncLookupTable(int axis_no,char *filename)
+Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable)
+Cfg.SetAxisEncLookupTableRawPosMask(int axis_no, uint64_t rawMask)
+```
 
 # ECMC 9.6.6
 * Update encoder objects also when in encoder is in external/PLC source
