@@ -164,8 +164,16 @@ public:
   int                   setHomeExtTrigg(bool val);
   int                   getHomeExtTriggStat();
   int                   getHomeExtTriggEnabled();
+  // Load index table from file (will be default enabled)
   int                   loadLookupTable(const std::string& filename);
+  // Enable use of lookup table
   int                   setLookupTableEnable(bool enable);
+  /* Apply mask for encoder raw postion
+  usefull if lookup table only should be applied to LSBs,
+  for instace only single turn bits or sub-period biots of sin/cos 1Vpp.
+  Example: Only apply to 10LSB, set to 0x3FF (0b1111111111)  
+  */
+  int                   setLookupTableRawPosMask(uint64_t mask);
 protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -185,14 +193,6 @@ protected:
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
   bool     isPrimary();
-  /*
-  File format:
-  * first column  encoder raw data
-  * second column encoder error
-  The interpolated error will then be added to the raw value.
-  (If the error should be subtracted then put a - sign before..)
-  */
-  uint64_t getCorrValue(uint64_t inputRawValue);
 
   encoderType encType_;
   ecmcFilter *velocityFilter_;
@@ -284,8 +284,9 @@ protected:
   double homeAcc_;
   double homeDec_;
   int domainOK_;
-  bool useLookupTable_;
+  bool lookupTableEnable_;
   ecmcLookupTable<uint64_t, int32_t>  *lookupTable_; 
+  uint64_t lookupTableMask_;
 };
 
 #endif  /* ECMCENCODER_H_ */

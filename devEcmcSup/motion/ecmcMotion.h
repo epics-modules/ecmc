@@ -2062,7 +2062,7 @@ int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
  *
  * \note Example: Load a correction file to axis 3 (to the encoder currently\n
  *  being configured)\n
- * "Cfg.LoadAxisEncLookupTableFile(3,./tests.corr)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.LoadAxisEncLookupTable(3,./tests.corr)" //Command string to ecmcCmdParser.c.\n
  */
 int loadAxisEncLookupTable(int axisIndex, const char* filename);
 

@@ -137,8 +137,9 @@ void ecmcEncoder::initVars() {
   domainOK_               = 0;
   encLocalErrorId_        = 0;
   encLocalErrorIdOld_     = 0;
-  useLookupTable_           = 0;
-  lookupTable_        = NULL;
+  lookupTableEnable_      = 0;
+  lookupTable_            = NULL;
+  lookupTableMask_        = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -396,8 +397,12 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   rawPosUint_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
 
   // Apply correction table if lookup table is enabled
-  if(useLookupTable_) {
-    rawPosUint_ = rawPosUint_ + (int32_t)lookupTable_->getValue(rawPosUint_);
+  if(lookupTableEnable_) {
+    if(lookupTableMask_ > 0) {  // if mask defined then use it
+      rawPosUint_ = rawPosUint_ + (int32_t)lookupTable_->getValue(rawPosUint_ & lookupTableMask_);
+    } else {
+      rawPosUint_ = rawPosUint_ + (int32_t)lookupTable_->getValue(rawPosUint_);
+    }
   }
 
   // if(!encInitilized_ && masterOk_) {
@@ -940,7 +945,7 @@ int ecmcEncoder::validate() {
                       ERROR_ENC_ASYN_PARAM_NULL);
   }
 
-  if(useLookupTable_) {
+  if(lookupTableEnable_) {
 
   }
 
@@ -1413,24 +1418,24 @@ bool ecmcEncoder::isPrimary() {
 
 int ecmcEncoder::loadLookupTable(const std::string& filename) {
   try {
-    lookupTable_  = new ecmcLookupTable(filename);
+    lookupTable_  = new ecmcLookupTable<uint64_t, int32_t>(filename);
   }
   catch (int error) {
-    useLookupTable_ = 0;
+    lookupTableEnable_ = 0;
     return error;
   }
   // default, use the table if loaded
-  useLookupTable_ = lookupTable_->getValidatedOK();
+  lookupTableEnable_ = lookupTable_->getValidatedOK();
   return 0;
 }
 
 int  ecmcEncoder::setLookupTableEnable(bool enable) {
   if(enable) {
-    if(useLookupTable_) { // Already enabled
+    if(lookupTableEnable_) { // Already enabled
       return 0;
     }
     if(!lookupTable_) {  // No lookup table
-      useLookupTable_ = 0;
+      lookupTableEnable_ = 0;
       LOGERR(
         "%s/%s:%d: ERROR (axis %d, enc %d): Lookup table not loaded (0x%x).\n",
         __FILE__,
@@ -1446,7 +1451,7 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
     }
 
     if(!lookupTable_->getValidatedOK()) {
-      useLookupTable_ = 0;
+      lookupTableEnable_ = 0;
       LOGERR(
         "%s/%s:%d: ERROR (axis %d, enc %d): Lookup table not loaded (0x%x).\n",
         __FILE__,
@@ -1462,6 +1467,11 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
     }
   }
 
-  useLookupTable_ = enable;
+  lookupTableEnable_ = enable;
+  return 0;
+}
+
+int ecmcEncoder::setLookupTableRawPosMask(uint64_t mask) {
+  lookupTableMask_ = mask;
   return 0;
 }
