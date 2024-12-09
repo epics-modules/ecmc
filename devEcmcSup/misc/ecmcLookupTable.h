@@ -109,14 +109,16 @@ private:
       std::istringstream lineStream(line);
       T1 indexValue;  // Example the encoder raw count
       T2 value;            // Example the error at indexValue
-      
-      printf("%03d: %s\n",index,line.c_str());
-      index++;
-  
+        
       // Skip commented lines
       if( line[0] == '#') {
+        printf("%s\n",index,line.c_str());
         continue;
       }
+
+      printf("%03d: %s\n",index,line.c_str());
+      index++;
+
       // Read two values from the current line
       if (lineStream >> indexValue >> value) {
           indexTable_.push_back(indexValue);
@@ -139,13 +141,12 @@ private:
     return validate();
   }
 
-
   int validate() {
     validatedOK_ = false;
     // Check that both vectors are the same size and non-empty and size bigger than 2 
     if (indexTable_.size() != valueTable_.size() || indexTable_.empty() || indexTable_.size() < 3) {
       LOGERR(
-        "%s/%s:%d: ERROR: Encoder correction table size miss-match (0x%x).\n",
+        "%s/%s:%d: ERROR: Encoder correction table column size miss-match or too few rows (rows < 3) (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
