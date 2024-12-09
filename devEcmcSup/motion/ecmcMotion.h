@@ -2079,6 +2079,24 @@ int loadAxisEncLookupTable(int axisIndex, const char* filename);
  */
 int setAxisEncLookupTableEnable(int axisIndex, int enable);
 
+/** \brief Set encoder raw pos lookup table amsk
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] rawMask Raw mask in hex.\n
+ * 
+ * The mask will be applied to the encoder raw position before used\n
+ * as an index in the lookup table.\n
+ * Example, if the 10 lsb bits should be corrected the set the mask to 0x3FF.\n
+ * The first column of the lookup table then should be in the range 0..1023.\n
+ * and second column the corresponding errors.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Use lookup table for the 10LSB bits of encoder raw position (example one period for EL5021)\n
+ * "Cfg.setAxisEncLookupTableRawPosMask(3,0x3FF)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncLookupTableRawPosMask(int axisIndex, uint64_t rawMask);
+
 /** \brief Set PID-controller proportional gain.\n
  *
  * \param[in] axisIndex  Axis index.\n

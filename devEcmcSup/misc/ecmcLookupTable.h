@@ -53,10 +53,10 @@ public:
    
     // Handle cases where inputIndex is out of bounds (no interpolation)
     if (inputIndex <= indexTable_.front()) {
-      return inputIndex + valueTable_.front();
+      return valueTable_.front();
     }
     if (inputIndex >= indexTable_.back()) {
-      return inputIndex + valueTable_.back();
+      return valueTable_.back();
     }
    
     // Binary search to find the interval

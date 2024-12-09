@@ -1781,6 +1781,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncLookupTableEnable(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEncLookupTableRawPosMask(int axis_no, int rawMask);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncLookupTableRawPosMask(%d,%" PRIx64 ")",
+                 &iValue,
+                 &u64Value);
+
+  if (nvals == 2) {
+    return setAxisEncLookupTableRawPosMask(iValue, u64Value);
+  }
+
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKp(%d,%lf)", &iValue, &dValue);
 
