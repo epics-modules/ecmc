@@ -676,10 +676,8 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
   if (enable && !data_.command_.enable) {
     errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
-    extTrajVeloFilter_->initFilter(0);  // init to 0 vel
-    printf("SYNC of ACT and SET 1, ena at targ %d\n",mon_->getEnableAtTargetMon());
-    if(!data_.status_.atTarget || !firstEnableDone_ || !mon_->getEnableAtTargetMon()) {
-      printf("SYNC of ACT and SET 2\n");
+    extTrajVeloFilter_->initFilter(0);  // init to 0 vel    
+    if(!data_.status_.atTarget || !firstEnableDone_ || !mon_->getEnableAtTargetMon()) {      
       traj_->setStartPos(data_.status_.currentPositionActual);
       traj_->setCurrentPosSet(data_.status_.currentPositionActual);
       traj_->setTargetPos(data_.status_.currentPositionActual);
