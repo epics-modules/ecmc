@@ -1146,8 +1146,8 @@ int setAxisEncLookupTableEnable(int axisIndex, int enable) {
   return axes[axisIndex]->setEncLookupTableEnable(enable);
 }
 
-int setAxisEncLookupTableRawPosMask(int axisIndex, double range) {
-  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+int setAxisEncLookupTableRange(int axisIndex, double range) {
+  LOGINFO4("%s/%s:%d axisIndex=%d range=%lf\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1157,7 +1157,7 @@ int setAxisEncLookupTableRawPosMask(int axisIndex, double range) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
-  return axes[axisIndex]->getConfigEnc()->setLookupTableRange(rawMask);
+  return axes[axisIndex]->getConfigEnc()->setLookupTableRange(range);
 }
 
 int appendAxisPLCExpr(int axisIndex, char *expr) {

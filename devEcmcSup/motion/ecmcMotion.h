@@ -2093,10 +2093,10 @@ int setAxisEncLookupTableEnable(int axisIndex, int enable);
  * 
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Use lookup table for the 360deg bits of encoder raw position (example one period for EL5021)\n
- * "Cfg.SetLookupTableRange(3,360)" //Command string to ecmcCmdParser.c.\n
+ * \note Example: Use lookup table for the 360deg of encoder position (example mod for single turn revs)\n
+ * "Cfg.SetAxisEncLookupTableRange(3,360)" //Command string to ecmcCmdParser.c.\n
  */
-int setLookupTableRange(int axisIndex, double range);
+int setAxisEncLookupTableRange(int axisIndex, double range);
 
 /** \brief Set PID-controller proportional gain.\n
  *

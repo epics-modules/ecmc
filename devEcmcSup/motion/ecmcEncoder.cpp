@@ -455,7 +455,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   actPosLocal_ = scale_ * rawPosMultiTurn_ + engOffset_;
 
   // Apply correction table if lookup table is enabled
-  if(lookupTableEnable_ && homed_ {
+  if(lookupTableEnable_ && homed_ ){
     if(lookupTableRange_ > 0) {  // if range is defined then use it
       actPosLocal_ = actPosLocal_ + lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_));
     } else {
@@ -1414,7 +1414,7 @@ bool ecmcEncoder::isPrimary() {
 
 int ecmcEncoder::loadLookupTable(const std::string& filename) {
   try {
-    lookupTable_  = new ecmcLookupTable<uint64_t, int32_t>(filename);
+    lookupTable_  = new ecmcLookupTable<double, double>(filename);
   }
   catch (int error) {
     lookupTableEnable_ = 0;

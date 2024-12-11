@@ -1781,14 +1781,14 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncLookupTableEnable(iValue, iValue2);
   }
 
-  /*int Cfg.SetLookupTableRange(int axis_no, double range);*/
+  /*int Cfg.SetAxisEncLookupTableRange(int axis_no, double range);*/
   nvals = sscanf(myarg_1,
-                 "SetLookupTableRange(%d,%lf)",
+                 "SetAxisEncLookupTableRange(%d,%lf)",
                  &iValue,
                  &dValue);
 
   if (nvals == 2) {
-    return setLookupTableRange(iValue, dValue);
+    return setAxisEncLookupTableRange(iValue, dValue);
   }
 
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
