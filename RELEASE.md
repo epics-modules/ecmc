@@ -1,12 +1,21 @@
 Release Notes
 ===
+# ECMC 9.6.8
+* Change lookup table support to be defined in EGUs:
+```
+Cfg.LoadAxisEncLookupTable(int axis_no,char *filename)
+Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable)
+Cfg.SetAxisEncLookupTableRange(int axis_no, range)
+```
+
 # ECMC 9.6.7
 * When enabling an axis only update current setpoint if not attarget (or at first enabling of axis)
 * Add lookup table support for calibration of encoders:
 ```
 Cfg.LoadAxisEncLookupTable(int axis_no,char *filename)
 Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable)
-Cfg.SetAxisEncLookupTableRawPosMask(int axis_no, uint64_t rawMask)
+
+OBSOLETE.. Cfg.SetAxisEncLookupTableRawPosMask(int axis_no, uint64_t rawMask)
 ```
 
 # ECMC 9.6.6
