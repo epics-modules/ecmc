@@ -139,7 +139,7 @@ void ecmcEncoder::initVars() {
   encLocalErrorIdOld_     = 0;
   lookupTableEnable_      = 0;
   lookupTable_            = NULL;
-  lookupTableMask_        = 0;
+  lookupTableRange_        = 0;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -396,15 +396,6 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   // Filter value with mask
   rawPosUint_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
 
-  // Apply correction table if lookup table is enabled
-  if(lookupTableEnable_) {
-    if(lookupTableMask_ > 0) {  // if mask defined then use it
-      rawPosUint_ = rawPosUint_ + (int32_t)lookupTable_->getValue(rawPosUint_ & lookupTableMask_);
-    } else {
-      rawPosUint_ = rawPosUint_ + (int32_t)lookupTable_->getValue(rawPosUint_);
-    }
-  }
-
   // if(!encInitilized_ && masterOk_) {
   if (!encInitilized_) {
     // if ready bit defined
@@ -462,6 +453,15 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   }
 
   actPosLocal_ = scale_ * rawPosMultiTurn_ + engOffset_;
+
+  // Apply correction table if lookup table is enabled
+  if(lookupTableEnable_ && homed_ {
+    if(lookupTableRange_ > 0) {  // if range is defined then use it
+      actPosLocal_ = actPosLocal_ + lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_));
+    } else {
+      actPosLocal_ = actPosLocal_ + lookupTable_->getValue(actPosLocal_);
+    }
+  }
 
   // If first valid value (at first hw ok),
   // then store the same position in last cycle value.
@@ -943,10 +943,6 @@ int ecmcEncoder::validate() {
                       __FUNCTION__,
                       __LINE__,
                       ERROR_ENC_ASYN_PARAM_NULL);
-  }
-
-  if(lookupTableEnable_) {
-
   }
 
   return 0;
@@ -1471,7 +1467,7 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
   return 0;
 }
 
-int ecmcEncoder::setLookupTableRawPosMask(uint64_t mask) {
-  lookupTableMask_ = mask;
+int ecmcEncoder::setLookupTableRange(double range) {
+  lookupTableRange_ = range;
   return 0;
 }

@@ -173,7 +173,7 @@ public:
   for instace only single turn bits or sub-period biots of sin/cos 1Vpp.
   Example: Only apply to 10LSB, set to 0x3FF (0b1111111111)  
   */
-  int                   setLookupTableRawPosMask(uint64_t mask);
+  int                   setLookupTableRange(double range);
 protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -285,8 +285,8 @@ protected:
   double homeDec_;
   int domainOK_;
   bool lookupTableEnable_;
-  ecmcLookupTable<uint64_t, int32_t>  *lookupTable_; 
-  uint64_t lookupTableMask_;
+  ecmcLookupTable<double, double>  *lookupTable_; 
+  double lookupTableRange_;
 };
 
 #endif  /* ECMCENCODER_H_ */
