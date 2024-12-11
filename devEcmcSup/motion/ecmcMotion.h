@@ -2058,7 +2058,23 @@ int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
  * - First column should list encoder values in EGUs, must be sorted increasing\n
  * - Second column should list encoder error correction values in EGUs\n
  * - Columns must have same length.\n
+ * - PREC=<prec> command can be used to set the precision of the values, \n 
+ *   see example below.\n
+ * - "#" as a first char will be interpreted as comments
  * 
+ * For "modulo correction", for example single turn, look at the\n
+ * "setAxisEncLookupTableRange()" command.\n
+ * 
+ * Example file:
+ *        # This table simply just changes the gain in region -10..10. 
+ *        # Outside this range, a the closest value in the lookup able will be applied.
+ *        #
+ *        PREC=5
+ *        -10  -10.1234
+ *        0  0.123456
+ *        PREC=6
+ *        10  10.7891011
+ *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Load a correction file to axis 3 (to the encoder currently\n

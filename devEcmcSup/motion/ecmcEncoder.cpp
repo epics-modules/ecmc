@@ -54,6 +54,8 @@ ecmcEncoder::~ecmcEncoder() {
 
   delete positionFilter_;
   positionFilter_ = NULL;
+
+  delete lookupTable_;
 }
 
 void ecmcEncoder::initVars() {
@@ -1414,6 +1416,11 @@ bool ecmcEncoder::isPrimary() {
 
 int ecmcEncoder::loadLookupTable(const std::string& filename) {
   try {
+    // First cleanup
+    if(lookupTable_) {
+      lookupTableEnable_ = 0;
+      delete lookupTable_;
+    }
     lookupTable_  = new ecmcLookupTable<double, double>(filename);
   }
   catch (int error) {

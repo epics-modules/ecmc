@@ -24,14 +24,29 @@
 #define ERROR_LOOKUP_TABLE_NOT_SORTED 0x1441B
 #define ERROR_LOOKUP_TABLE_OPEN_FILE_FAILED 0x1441C
 #define ERROR_LOOKUP_TABLE_FILE_FORMAT_INVALID 0x1441D
+#define ECMC_LOOKUP_TABLE_PREC 10
 
 /* 
     Use as correction table for an encoder:
-    * indexTable_: should represent the raw encoder positions UINT64_T
-    * valueTable_: represents the error that should be added INT32_T
-    * For raw positions in between the Error is interpolated.
-    * For raw values outside the range indexTable_ compensation 
-    is made with a static value of the first or last value of the correction table.
+    * indexTable_: should represent the encoder positions (double)
+    * valueTable_: represents the error that should be added (double)
+    * For positions in between the Error is interpolated.
+    * For values outside the range indexTable_, compensation is made 
+      with a static value of the first or last value of the correction table.
+    * PREC=xx command can be used to set the desired precision (default PREC=10)
+
+ Example file:
+         # This table simply just changes the gain in region -10..10. 
+         # Outside this range, a different offset will be applied.
+         #
+         PREC=5
+         -10  -10.1234
+         0  0.123456
+         10  10
+         PREC=15
+         12345.678987654 123456.123456789
+
+
 */
 template <typename T1, typename T2> 
 class ecmcLookupTable : public ecmcError {
@@ -103,32 +118,61 @@ private:
     valueTable_.clear();
     std::string line;
     
-    printf("INFO: Loading correction table:\n");
+    std::cout << "INFO: Loading correction table:\n";
     int index = 1;
+    int prec = ECMC_LOOKUP_TABLE_PREC;
+  
     while (std::getline(inputFile, line)) {
       std::istringstream lineStream(line);
-      T1 indexValue;  // Example the encoder raw count
-      T2 value;       // Example the error at indexValue
+      T1 indexValue;  // Example, the encoder actual position [EGU]
+      T2 value;       // Example the error at indexValue [EGU]
 
       // Skip commented lines
       if( line[0] == '#') {
-        printf("%s\n",line.c_str());
+        std::cout << line << "\n";
         continue;
       }
 
-      printf("%03d: %s\n",index,line.c_str());
-      index++;
+      // check if prec command
+      if(line[0] == 'P') {       
+        
+        int value = 0;
+        size_t nvals = sscanf(line.c_str(), "PREC=%d", &value);
 
+        if (nvals == 1) {
+          prec = value;
+          std::cout <<  "PREC = " << prec << " (updated)\n";
+          continue;
+        }
+        // if here then error.. the below error handling will take care
+      }
+
+      lineStream.precision(prec);
       // Read two values from the current line
       if (lineStream >> indexValue >> value) {
-          indexTable_.push_back(indexValue);
-          valueTable_.push_back(value);
+        indexTable_.push_back(indexValue);
+        valueTable_.push_back(value);
+        // Print header
+        if(index==1) {            
+          std::cout << std::left << std::setw(5) << "row" << ": ";
+          std::cout << std::left << std::setw(prec + 2) << "index" << ", ";
+          std::cout << std::left << std::setw(prec + 2) << "value";
+          std::cout << "\n";
+        }
+        std::cout << std::left << std::setw(5) << index << ": ";
+        std::cout << std::left << std::setw(prec + 2) << 
+                     std::setprecision(prec) << indexValue << ", ";
+        std::cout << std::left << std::setw(prec + 2) << 
+                     std::setprecision(prec) << value;
+        std::cout << "\n";
+        index++;
       } else {
         LOGERR(
-          "%s/%s:%d: ERROR: Correction file format invalid (0x%x).\n",
+          "%s/%s:%d: ERROR: Correction file format invalid on line \"%s\" (0x%x).\n",
           __FILE__,
           __FUNCTION__,
           __LINE__,
+          line.c_str(),
           ERROR_LOOKUP_TABLE_FILE_FORMAT_INVALID);
           return setErrorID(__FILE__,
                         __FUNCTION__,
@@ -136,7 +180,9 @@ private:
                         ERROR_LOOKUP_TABLE_FILE_FORMAT_INVALID);
       }
     }
-    printf("INFO: Loading correction table done..\n");
+    
+    std::cout << "INFO: Loading correction table done..\n";
+
     inputFile.close();
     return validate();
   }
