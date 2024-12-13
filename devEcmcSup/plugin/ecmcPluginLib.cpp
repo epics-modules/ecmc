@@ -17,6 +17,9 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <filesystem>
+#include <string>
+#include <iostream>
 
 ecmcPluginLib::ecmcPluginLib(int index) {
   initVars();
@@ -62,10 +65,26 @@ int ecmcPluginLib::load(const char *libFilenameWP, const char *libConfigStr) {
            ERROR_PLUGIN_OPEN_FAIL);
     return setErrorID(ERROR_PLUGIN_OPEN_FAIL);
   }
+  
+  std::string filePath = libFilenameWP;
+  // Find the last slash 
+  size_t lastSlash = filePath.find_last_of("/\\"); 
+  std::string fileName = (lastSlash != std::string::npos) ? filePath.substr(lastSlash + 1) : filePath;
+  // Find the position of the first dot 
+  size_t dotPos = fileName.find('.'); 
+  if (dotPos != std::string::npos) { 
+    fileName = fileName.substr(0, dotPos); 
+  }
+  
+  std::string func_name = "_plugin_get_data_" + fileName;
+  std::cout << "Function name: " << func_name << "\n";
 
+//  if ((getDataFunc_ =
+//         (ecmcPluginData * (*)())dlsym(dlHandle_,
+//                                       "_plugin_get_data")) == NULL) {
   if ((getDataFunc_ =
          (ecmcPluginData * (*)())dlsym(dlHandle_,
-                                       "_plugin_get_data")) == NULL) {
+                                       func_name.c_str())) == NULL) {
     LOGERR(
       "%s/%s:%d: Error: Plugin %s: GetDataFunc failed with error: %s (0x%x).\n",
       __FILE__,

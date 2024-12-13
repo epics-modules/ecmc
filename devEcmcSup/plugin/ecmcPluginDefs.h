@@ -139,8 +139,17 @@ struct ecmcPluginData {
   struct ecmcOnePlcConst consts[ECMC_PLUGIN_MAX_PLC_CONST_COUNT];
 };
 
+#ifndef ECMC_PLUGIN_MODULE_NAME
+
+#define ECMC_PLUGIN_MODULE_NAME dummy
+
+#endif
+// Force exapansion
+#define CONCAT(a,b) a##b
+#define EXPAND_AND_CONCAT(a,b) CONCAT(a,b)
+
 #define ecmc_plugin_register(pluginData)\
-        struct ecmcPluginData *_plugin_get_data(void) {\
+        struct ecmcPluginData *EXPAND_AND_CONCAT(_plugin_get_data_lib, ECMC_PLUGIN_MODULE_NAME)(void) {\
           return &pluginData;\
         }\
 
