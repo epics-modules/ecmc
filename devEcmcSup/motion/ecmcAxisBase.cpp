@@ -2987,6 +2987,8 @@ int ecmcAxisBase::loadEncLookupTable(const char* filename) {
 
 int  ecmcAxisBase::setEncLookupTableEnable(int enable) {
   return encArray_[data_.command_.cfgEncIndex]->setLookupTableEnable(enable);
+}
+
 int ecmcAxisBase::getSumInterlock() {
   return (data_.interlocks_.interlockStatus > 0) && 
          (data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE);

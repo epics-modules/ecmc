@@ -2099,7 +2099,7 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     return asynSuccess;
   }
   int useAxis = 0;
-  status = pC_->getIntegerParam(axisNo_, pC_->profileUseAxis_, &useAxis);  
+  asynStatus status = pC_->getIntegerParam(axisNo_, pC_->profileUseAxis_, &useAxis);  
   
   if(useAxis == 0) {
     printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Axis not in use (ignoring execute command).\n", axisNo_);
@@ -2118,8 +2118,8 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
       printf("Profile busy..\n");
       if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
       return asynError;
-    };
-  };
+    }
+  }
  
   if(profileSwitchPVTObject_) {
     // switch pvt objects
@@ -2134,7 +2134,7 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   printf("ecmcMotorRecordAxis::executeProfile()\n");
-  asynStatus status = asynMotorAxis::executeProfile();
+  status = asynMotorAxis::executeProfile();
   if(status != asynSuccess) {
     return status;
   }

@@ -799,9 +799,9 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
   }
 
   // Assign PVT object.. (Not so nice to set this through global variable...
-  pvtCtrl_ = pvtCtr;  // global copy for ecmc RT
+  pvtCtrl_ = pvtCtrl;  // global copy for ecmc RT
   pvtController_ = pvtCtrl_; // Access for every one else
-  pvtController_.clearPVTAxes();
+  pvtController_->clearPVTAxes();
   int axis;
   ecmcMotorRecordAxis *pAxis;
   profileInitialized_ = 0;
@@ -883,7 +883,7 @@ asynStatus ecmcMotorRecordController::enableAxisPVTFunc(int axisNo, int enable) 
     printf("Error axis[%d]: Failed enable PVT functionalites.\n",axisNo);
     return asynError;
   }
-  getAxis(axisNo)->setEnablePVTFunc(enable)
+  getAxis(axisNo)->setEnablePVTFunc(enable);
   return asynSuccess;
 }
 

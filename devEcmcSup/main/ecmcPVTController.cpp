@@ -15,7 +15,10 @@
 ecmcPVTController::ecmcPVTController() {
   //sampleTime_ = sampleTime;
   printf("ecmcPVTController::ecmcPVTController() created\n");
-  pvtAxes_.clear();
+  clearPVTAxes();
+}
+
+ecmcPVTController::~ecmcPVTController() {
 }
 
 void ecmcPVTController::addPVTAxis(ecmcAxisBase* axis) {  

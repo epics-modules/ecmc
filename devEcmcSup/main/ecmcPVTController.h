@@ -13,11 +13,15 @@
 #ifndef ECMCPVTCONTROLLER_H_
 #define ECMCPVTCONTROLLER_H_
 #include <vector>
+#include "ecmcAxisBase.h"
+#include "ecmcEcEntryLink.h"
 
-class ecmcPVTController:: public ecmcEntryLink {
+class ecmcPVTController: public ecmcEcEntryLink {
   public:
     ecmcPVTController();
-    addPVTAxis(ecmcAxisBase* axis);
+    ~ecmcPVTController();
+    void addPVTAxis(ecmcAxisBase* axis);
+    void clearPVTAxes();
     size_t getCurrentPointId();
     size_t getCurrentTriggerId();
     // linkTriggerOutput

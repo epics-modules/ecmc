@@ -8,6 +8,7 @@ FILENAME...   ecmcMotorRecordController.h
 #include "asynMotorController.h"
 #include "asynMotorAxis.h"
 #include "ecmcMotorRecordAxis.h"
+#include "ecmcPVTController.h"
 
 #ifndef motorRecResolutionString
 #define CREATE_MOTOR_REC_RESOLUTION

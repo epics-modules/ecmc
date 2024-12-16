@@ -39,19 +39,15 @@ void ecmcAxisVirt::execute(bool masterOK) {
   // update setpoinmt and actual values
   seq_.execute();
   
-  if (getEnabled() && masterOK && !getError()) {
-    mon_->setEnable(true);
-    data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
-      data_.status_.currentPositionSetpoint,
-      data_.status_.currentPositionSetpointOld,
-      data_.status_.currentPositionActual,
-      data_.command_.moduloRange);
+  data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
+    data_.status_.currentPositionSetpoint,
+    data_.status_.currentPositionSetpointOld,
+    data_.status_.currentPositionActual,
+    data_.command_.moduloRange);
 
   if (getEnabled() && masterOK && !getError()) {
     mon_->setEnable(true);
-  } else {
-    mon_->setEnable(false);
-
+  } else { 
     if (getExecute()) {
       setExecute(false);
     }
