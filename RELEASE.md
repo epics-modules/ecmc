@@ -1,5 +1,8 @@
 Release Notes
 ===
+# ECMC 10.0.0
+* new plugin interface version. Needed in order to be able to use require to load plugins.
+
 # ECMC 9.6.8
 * Change lookup table support to be defined in EGUs:
 ```
