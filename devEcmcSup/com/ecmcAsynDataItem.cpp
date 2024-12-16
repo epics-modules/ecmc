@@ -263,7 +263,7 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
     }
 
     if (paramInfo_.cmdUint32ToFloat64) {
-      if (dataItem_.dataSize == sizeof(uint64_t)) {
+      if (dataItem_.dataSize == sizeof(uint32_t)) {
         stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,
                                                paramInfo_.index,
                                                static_cast<epicsFloat64>(*(

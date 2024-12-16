@@ -1120,6 +1120,46 @@ int setAxisEncInvHwReady(int axisIndex, int invert) {
   return axes[axisIndex]->setEncInvHwReady(invert);
 }
 
+int loadAxisEncLookupTable(int axisIndex, const char* filename) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           filename);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  return axes[axisIndex]->loadEncLookupTable(filename);
+}
+
+int setAxisEncLookupTableEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  return axes[axisIndex]->setEncLookupTableEnable(enable);
+}
+
+int setAxisEncLookupTableRange(int axisIndex, double range) {
+  LOGINFO4("%s/%s:%d axisIndex=%d range=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           range);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getConfigEnc()->setLookupTableRange(range);
+}
+
 int appendAxisPLCExpr(int axisIndex, char *expr) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
            __FILE__,
@@ -2822,6 +2862,21 @@ int addAxisToGroupByName(int axIndex, const char *grpName) {
   return addAxisToGroupByIndex(axIndex, index);
 }
 
+int addAxisToGroupByNameCreate(int axIndex, const char *grpName, int createGrp) {
+  int index = -1;
+  int error = getAxisGroupIndexByName(grpName, &index);
+  if(error && createGrp > 0) {
+    // group not found so create it
+    error = addAxisGroup(grpName);
+    if(error) {
+      return error;
+    }
+  } else if (error){
+    return error;
+  }
+  return addAxisToGroupByName(axIndex,grpName);
+}
+
 int addAxisToGroupByIndex(int axIndex, int grpIndex) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axIndex);
@@ -3356,4 +3411,17 @@ int getAxisTrajVelo(int     axisIndex,
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
   *velo = axes[axisIndex]->getTrajVelo();
   return 0;
+}
+
+void* getAxisPointer(int  axisIndex) {
+  LOGINFO4("%s/%s:%d axisIndex=%d \n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  if (axisIndex >= ECMC_MAX_AXES || axisIndex <= 0) {
+    LOGERR("ERROR: Axis index out of range.\n");
+    return NULL;
+  }
+  return (void*)axes[axisIndex];  
 }

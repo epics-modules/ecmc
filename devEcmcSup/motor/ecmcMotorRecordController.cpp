@@ -331,6 +331,12 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
   createParam(ecmcMotorRecordTRIGGDISABLEString,
               asynParamInt32,
               &ecmcMotorRecordTRIGG_DISABLE_);
+  
+  createParam(ecmcMotorRecordTRIGGSYNCString,
+              asynParamInt32,
+              &ecmcMotorRecordTRIGG_SYNC_);
+
+              
 
 #ifdef CREATE_MOTOR_REC_RESOLUTION
 

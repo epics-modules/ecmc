@@ -89,6 +89,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;
   drvlocal.axisFlags       = axisFlags;
   triggstop_ = 1;
+  triggsync_ = 1;
 
   /* We pretend to have an encoder (fActPosition) */
   setIntegerParam(pC_->motorStatusHasEncoder_,   1);
@@ -457,6 +458,11 @@ asynStatus ecmcMotorRecordAxis::readMonitoring(int axisID) {
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   // At target monitoring must be enabled
+  if(!attarget_enable || !attarget_tol) {
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_ERROR,
+            "%sinitialPoll(%d): Warning: Attarget monitoring disabled\n",
+            modNamEMC, axisNo_);
+  }
   drvlocal.illegalInTargetWindow = (!attarget_enable || !attarget_tol);
 
   // (Target position monitoring value)
@@ -1225,8 +1231,17 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
 
   drvlocal.ecmcSafetyInterlock = drvlocal.ecmcAxis->getMon()->getSafetyInterlock();
   drvlocal.ecmcBusy = drvlocal.ecmcAxis->getBusy();
-  drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
+  drvlocal.ecmcAtTarget = drvlocal.ecmcAxis->getMon()->getAtTarget();
+  drvlocal.ecmcAtTargetMonEnable = drvlocal.ecmcAxis->getMon()->getEnableAtTargetMon();
   
+  
+  drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
+  drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
+                        ECMC_DATA_SOURCE_EXTERNAL;
+  
+  drvlocal.ecmcMRSyncNextPoll = drvlocal.ecmcAxis->getSyncActSet();
+  drvlocal.ecmcAxis->setSyncActSet(0);  // Command only valid for 1 poll
+
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (!tempAxisStat) {
@@ -1259,8 +1274,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 #endif // ifndef motorWaitPollsBeforeReadyString
 
   asynStatus status = readEcmcAxisStatusData();
-  //printf("Safety[%d]: drvlocal.ecmcSafetyInterlock= %d\n",axisNo_,drvlocal.ecmcSafetyInterlock);
-  // Check if axis is supposed to stop
+  
   if(drvlocal.ecmcSummaryInterlock) {
 
     triggstop_++;
@@ -1269,20 +1283,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     }
     asynMotorAxis::setIntegerParam(pC_->motorStop_, triggstop_);  // Stop also triggered in ecmc, try to sync motor record and ecmc    
     
-    //printf("Safety[%d]: Writing motor stop %d\n",axisNo_,triggstop_);
-    //#ifdef POWERAUTOONOFFMODE2
-    //int powerAutoOnOff = -1;
-    //pC_->getIntegerParam(axisNo_,pC_->motorPowerAutoOnOff_,&powerAutoOnOff);
-    //if(powerAutoOnOff) {
-    //  setIntegerParam(pC_->motorPowerAutoOnOff_, 0);
-    //  restorePowerOnOffNeeded_ = 1;
-    //  printf("Safety[%d]: Disabled auto power on/off state.\n",axisNo_);
-    //}
-
     if (!drvlocal.ecmcBusy && drvlocal.ecmcSafetyInterlock) {
       asynMotorAxis::setIntegerParam(pC_->motorClosedLoop_, 0);
     }
-    //pC_->callParamCallbacks();
     callParamCallbacks();
   }
 
@@ -1293,11 +1296,19 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   if (drvlocal.ecmcAxis) {
-    drvlocal.moveNotReadyNext = (drvlocal.ecmcBusy ||
-                                !drvlocal.statusBinData.onChangeData.statusWd.
-                                attarget) && drvlocal.statusBinData.onChangeData.statusWd.enabled;
+    if(drvlocal.ecmcAtTargetMonEnable && drvlocal.statusBinData.onChangeData.statusWd.enabled) {
+      drvlocal.moveReady = !drvlocal.ecmcBusy && drvlocal.statusBinData.onChangeData.statusWd.attarget; //&& !drvlocal.statusBinData.onChangeData.statusWd.enabled;
+    } else {
+      drvlocal.moveReady = !drvlocal.ecmcBusy;// && !drvlocal.statusBinData.onChangeData.statusWd.enabled;
+    }
   } else {
-    drvlocal.moveNotReadyNext = false;
+    drvlocal.moveReady = false;
+  }
+
+  // Axis in external mode and busy, then trigg SYNC
+  if((drvlocal.ecmcTrjSrc && drvlocal.ecmcBusy) || drvlocal.ecmcMRSyncNextPoll) {
+    triggsync_++;
+    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
   }
 
   setIntegerParam(pC_->motorStatusHomed_,
@@ -1321,6 +1332,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   setDoubleParam(pC_->ecmcMotorRecordAcc_RB_,
                  drvlocal.statusBinData.acceleration);
 
+  callParamCallbacks();
 #ifndef motorWaitPollsBeforeReadyString
 
   if (drvlocal.waitNumPollsBeforeReady) {
@@ -1328,10 +1340,10 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   } else
 #endif // ifndef motorWaitPollsBeforeReadyString
   {
-    *moving = drvlocal.moveNotReadyNext ? true : false;
+    *moving = !drvlocal.moveReady;
   }
 
-  if (drvlocal.moveNotReadyNext) {
+  if (!drvlocal.moveReady) {
     drvlocal.nCommandActive = drvlocal.statusBinData.onChangeData.command;
   } else {
     drvlocal.nCommandActive = 0;
@@ -1393,7 +1405,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
               "%spoll(%d) mvnNRdyNexAt=%d bBusy=%d bExecute=%d bEnabled=%d atTarget=%d waitNumPollsBeforeReady=%d\n",
               modNamEMC,
               axisNo_,
-              drvlocal.moveNotReadyNext,
+              !drvlocal.moveReady,
               drvlocal.statusBinData.onChangeData.statusWd.busy,
               drvlocal.statusBinData.onChangeData.statusWd.execute,
               drvlocal.statusBinData.onChangeData.statusWd.enabled,
@@ -1404,7 +1416,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   } else
 #endif // ifndef motorWaitPollsBeforeReadyString
   {
-    if ((drvlocal.moveNotReadyNextOld != drvlocal.moveNotReadyNext) ||
+    if ((drvlocal.moveReadyOld != drvlocal.moveReady) ||
         (drvlocal.statusBinDataOld.onChangeData.statusWd.busy     !=
          drvlocal.statusBinData.onChangeData.statusWd.busy) ||
         (drvlocal.statusBinDataOld.onChangeData.statusWd.enabled  !=
@@ -1418,7 +1430,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
                 "%spoll(%d) mvnNRdy=%d bBusy=%d bExecute=%d bEnabled=%d atTarget=%d wf=%d ENC=%g fPos=%g fActPosition=%g time=%f\n",
                 modNamEMC,
                 axisNo_,
-                drvlocal.moveNotReadyNext,
+                !drvlocal.moveReady,
                 drvlocal.statusBinData.onChangeData.statusWd.busy,
                 drvlocal.statusBinData.onChangeData.statusWd.execute,
                 drvlocal.statusBinData.onChangeData.statusWd.enabled,
@@ -1433,8 +1445,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   setIntegerParam(pC_->motorStatusDirection_,
                   drvlocal.statusBinData.onChangeData.positionActual >
                   drvlocal.statusBinDataOld.onChangeData.positionActual ? 1 : 0);
-  setIntegerParam(pC_->motorStatusMoving_, drvlocal.moveNotReadyNext);
-  setIntegerParam(pC_->motorStatusDone_,   !drvlocal.moveNotReadyNext);
+
+  setIntegerParam(pC_->motorStatusMoving_, !drvlocal.moveReady);
+  setIntegerParam(pC_->motorStatusDone_,   drvlocal.moveReady);
 
   drvlocal.nErrorIdMcu = drvlocal.statusBinData.onChangeData.error;
 
@@ -1502,7 +1515,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 
   callParamCallbacksUpdateError();
 
-  drvlocal.moveNotReadyNextOld = drvlocal.moveNotReadyNext;
+  drvlocal.moveReadyOld = drvlocal.moveReady;
   memcpy(&drvlocal.statusBinDataOld, &drvlocal.statusBinData,
          sizeof(drvlocal.statusBinDataOld));
   return asynSuccess;

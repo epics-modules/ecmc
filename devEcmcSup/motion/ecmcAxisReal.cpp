@@ -135,20 +135,21 @@ void ecmcAxisReal::execute(bool masterOK) {
     encArray_[data_.command_.primaryEncIndex]->getRawPosRegister(),
     data_.status_.currentPositionActual);
 
-  if (getEnabled() && masterOK) {
     // Calc position error
-    data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
+  data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
       data_.status_.currentPositionSetpoint,
       data_.status_.currentPositionSetpointOld,
       data_.status_.currentPositionActual,
       data_.command_.moduloRange);
+
+  if (getEnabled() && masterOK) {
     double cntrOutput = 0;
 
     if (data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
       // ***************** CSV *****************
       // Controller deadband
       if (!data_.status_.busy && mon_->getCtrlInDeadband()) {
-        cntrl_->reset();  // Keep now for leagcy reasons...
+        cntrl_->reset();  // Keep now for legacy reasons...
         cntrOutput = 0;
       } else {
         cntrOutput = cntrl_->control(data_.status_.cntrlError,
@@ -170,7 +171,7 @@ void ecmcAxisReal::execute(bool masterOK) {
 
     // Only update if enable cmd is low to avoid change of setpoint
     // during between enable and enabled
-    if (!getEnable() && !beforeFirstEnable_ && masterOK) {
+    if (!getEnable() && !firstEnableDone_ && masterOK) {
       data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
       traj_->setStartPos(data_.status_.currentPositionSetpoint);

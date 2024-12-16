@@ -49,6 +49,12 @@ class ecmcAxisGroup : public ecmcError {
     int setEnable(bool enable);
     // set traj source of all axes in group
     int setTrajSrc(dataSource trajSource);
+    // set allow traj source change when enabled
+    void setAllowSrcChangeWhenEnabled(int allow);
+    // get all traj src in extern
+    bool getTrajSrcExt();
+    // get all traj src in intern
+    bool getTrajSrcAnyExt();
     // set enc source of all axes in group
     int setEncSrc(dataSource encSource);
     // Reset errors all axes
@@ -57,6 +63,8 @@ class ecmcAxisGroup : public ecmcError {
     void setError(int error);
     // Set slaved axis error all axes
     void setSlavedAxisInError();
+    // SYNC motor record at next poll (reset automatically)
+    void setSyncNextPoll(bool sync);
     // Stop motion
     void halt();
     // Check if axis is in group

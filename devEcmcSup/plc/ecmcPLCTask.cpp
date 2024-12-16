@@ -34,6 +34,7 @@ ecmcPLCTask::ecmcPLCTask(int                 plcIndex,
   plcIndex_          = plcIndex;
   skipCycles_        = skipCycles;
   asynPortDriver_    = asynPortDriver;
+  functionLibs_.clear();
   exprtk_            = new exprtkWrap();
   mcuFreq_           = mcuFreq;
   plcScanTimeInSecs_ = 1 / mcuFreq_ * (skipCycles + 1);
@@ -879,7 +880,13 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_halt",mc_grp_halt);
   ecmcPLCTaskAddFunction("mc_grp_axis_in_grp",mc_grp_axis_in_grp);
   ecmcPLCTaskAddFunction("mc_grp_size",mc_grp_size);
-  
+  ecmcPLCTaskAddFunction("mc_grp_get_traj_src_ext",mc_grp_get_traj_src_ext);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_traj_src_ext",mc_grp_get_any_traj_src_ext);
+  ecmcPLCTaskAddFunction("mc_grp_set_allow_src_change_when_enabled",
+                          mc_grp_set_allow_src_change_when_enabled);
+  ecmcPLCTaskAddFunction("mc_grp_sync_act_set",mc_grp_sync_act_set);
+  ecmcPLCTaskAddFunction("mc_get_enc_ready",mc_get_enc_ready);
+  ecmcPLCTaskAddFunction("mc_set_act_pos",mc_set_act_pos);
 
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",
@@ -1097,5 +1104,54 @@ int ecmcPLCTask::setPluginPointer(ecmcPluginLib *plugin, int index) {
 
 int ecmcPLCTask::setShm(ecmcShm shm) {
   statShm_ = shm;
+  return 0;
+}
+
+int ecmcPLCTask::addLib(ecmcPLCLib* lib) {
+  int errorCode = 0;
+  if(!lib) {
+    LOGERR("%s/%s:%d: PLC lib NULL(0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_PLC_LIB_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLC_LIB_NULL);
+  }
+
+  try {
+    functionLibs_.push_back(lib);
+  }
+  catch (const std::exception& e) {
+    LOGERR("%s/%s:%d: Append of PLC lib failed: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           e.what(),
+           ERROR_PLC_ADD_EXPR_LINE_ERROR);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_PLC_ADD_EXPR_LINE_ERROR);
+  }
+
+  for(size_t i = 0; i < lib->getFunctionCount(); i++){
+    ecmcPLCLibFunc* func = lib->getFunction(i);
+    if(func) {
+      errorCode = exprtk_->addCompositionFunction(func->getFuncionName(),func->getExpression(),func->getParams());
+      if(errorCode) {
+        LOGERR("%s/%s:%d: Failed adding function: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           func->getFuncionName().c_str(),
+           errorCode);
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_PLC_COMPILE_ERROR);
+      }
+    }
+  }
+
   return 0;
 }

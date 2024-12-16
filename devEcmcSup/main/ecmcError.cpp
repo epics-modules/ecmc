@@ -726,6 +726,26 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14419:
+    return "ERROR_ENC_ENTRY_WRITE_FAIL";
+
+    break;
+  
+  case 0x1441A:
+    return "ERROR_ENC_LOOKUP_TABLE_LOAD_ERROR";
+
+    break;
+
+  case 0x1441B:
+    return "ERROR_ENC_LOOKUP_TABLE_NOT_LOADED";
+
+    break;
+
+  case 0x1441C:
+    return "ERROR_ENC_LOOKUP_TABLE_NOT_VALID";
+
+    break;
+
   case 0x14C00:  // MONITOR
     return "ERROR_MON_ASSIGN_ENTRY_FAILED";
 
@@ -2442,6 +2462,11 @@ case 0x16001:
 
     break;
 
+  case 0x20510:
+    return "ERROR_PLC_LIB_NULL";
+
+    break;
+
   case 0x20600:   // ecmcPLCDataIF
     return "ERROR_PLC_AXIS_DATA_TYPE_ERROR";
 
@@ -2708,6 +2733,28 @@ case 0x16001:
     return "ERROR_PLUGIN_DATA_ARG_VS_FUNC_MISSMATCH";
 
     break;
+
+  // lookupTable
+  case 0x241000:
+    return "ERROR_LOOKUP_TABLE_ERROR";
+
+    break;
+  
+  case 0x241001:
+    return "ERROR_LOOKUP_TABLE_NOT_SORTED";
+
+    break;
+  
+  case 0x241002:
+    return "ERROR_LOOKUP_TABLE_OPEN_FILE_FAILED";
+
+    break;
+  
+  case 0x241003:
+    return "ERROR_LOOKUP_TABLE_FILE_FORMAT_INVALID";
+
+    break;
+
   }
 
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";

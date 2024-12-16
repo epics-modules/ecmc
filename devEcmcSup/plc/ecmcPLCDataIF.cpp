@@ -110,6 +110,9 @@ void ecmcPLCDataIF::initVars() {
   ds_                = 0;
   ec_                = 0;
   data_              = 0;
+  dataRead_          = 0;
+  dataRaw_           = (uint64_t*)&data_;
+  dataReadRaw_       = (uint64_t*)&dataRead_;
   varName_           = "";
   exprTkVarName_     = "";
   dataSourceAxis_    = ECMC_AXIS_DATA_NONE;
@@ -165,7 +168,8 @@ int ecmcPLCDataIF::read() {
 
 int ecmcPLCDataIF::write() {
   // Only write if data changed between read and write
-  if ((data_ == dataRead_) || readOnly_ ||
+
+  if (( *dataRaw_ == *dataReadRaw_ ) || readOnly_ ||
       (isBool_ && ((data_ > 0) == (dataRead_ > 0)))) {
     return 0;
   }
@@ -858,7 +862,7 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_POS_SET_EXTERNAL:
-    return 0; // axis_->setExtSetPos(data_);
+    return axis_->setExtSetPos(data_);
 
     break;
 

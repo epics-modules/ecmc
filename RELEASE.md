@@ -1,7 +1,193 @@
-
 Release Notes
 ===
-# master
+# ECMC 10.0.0
+* new plugin interface version. Needed in order to be able to use require to load plugins.
+
+# ECMC 9.6.8
+* Change lookup table support to be defined in EGUs:
+```
+Cfg.LoadAxisEncLookupTable(int axis_no,char *filename)
+Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable)
+Cfg.SetAxisEncLookupTableRange(int axis_no, range)
+```
+
+# ECMC 9.6.7
+* When enabling an axis only update current setpoint if not attarget (or at first enabling of axis)
+* Add lookup table support for calibration of encoders:
+```
+Cfg.LoadAxisEncLookupTable(int axis_no,char *filename)
+Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable)
+
+OBSOLETE.. Cfg.SetAxisEncLookupTableRawPosMask(int axis_no, uint64_t rawMask)
+```
+
+# ECMC 9.6.6
+* Update encoder objects also when in encoder is in external/PLC source
+
+# ECMC 9.6.3
+Allow encoder error for non-primary encoder(s):
+* Add asyn param for encoder error id (each encoder)
+* Only primary encoder error id is propagated as axis error.
+
+# ECMC 9.6.2
+* Axis analog interlock: Support all ecmc datatypes (before only unsigned ints).
+* Add iocsh function to get slave id from ec-path: ecmcGetSlaveIdFromEcPath(\<ec_path\>,\<var_result_slave_id\>). Example:
+```
+ ecmcGetSlaveIdFromEcPathHelp(ec1.s12.positionActual,RESULT)
+ epicsEnvShow(RESULT)
+ RESULT=12
+```
+* Add Plc functions :
+```
+# Get encoder hw ready (encIndex starts from 1):
+mc_get_enc_ready(<axIndex>,<encIndex>);
+
+# Set encoder actual position (encIndex starts from 1):
+mc_set_act_pos(<axIndex>,<encIndex>,<position>);
+```
+
+# ECMC 9.6.1
+* Increase allowed axis count from 64 to 128
+* Sync MR if traj is external and busy.
+* Add Plc function to SYNC all motor records belonging to a group (at next MR-poll), also syncs ecmc set and act if not enabled and internal source:
+```
+mc_grp_sync_act_set(<grpIndex>,<sync>);
+```
+
+# ECMC 9.6.0
+* Default state of axis diag disabled
+* Allow non primary encoder to be "not ready" during operation.
+* Add command: "Cfg.WriteEcEntryEcPath(<ec_path>,<value>)"
+
+## Add PLC function libs:
+Add possability to load function library to a plc object:
+```
+${SCRIPTEXEC} ${ECMC_CONFIG_ROOT}loadPLCLib.cmd,     "FILE=./plc/test.plc_lib, PLC_MACROS='OFFSET=3'"
+```
+The functions must be defined accordning to template: 
+```
+function <name>(<param1>,...<param5>) {
+  <code body>;
+}
+
+also without param is allowed:
+function <name>() {
+  <code body>;
+}
+
+```
+* For syntax of the "code body", check the exprtk website.
+* Several functions can be defined in the same file.
+* The parameters aswell as the return value must be scalars, however, local vectors can be defined and used in calculations (initiations of vector can be done with MACROS, constants or parameters).
+* "#" as a first char in a line is considered a comment (the line will be removed before compile).
+* MSI: The lib file will be parsed through MSI allowing macro expansion, "include" and "subsitute" commands. For more info check the msi documentation/help.
+
+### Can be used in a function:
+1. The parameters
+2. Other functions (also recursive)
+3. The normal ecmc function libs:
+  * motion: mc_*
+  * ethercat: ec_*
+  * data storages: ds_*,
+  * master 2 master: m2m_*
+4. the exprtk functions libs:
+  * println
+  * print
+  * open
+  * close
+  * write
+  * read",  
+  * getline
+  * eof
+ 5. vectors in the calculations (but NOT as parameter or return value).
+
+### "ecmc variables" can _NOT_ be  used/accessed in a functions:
+1. EtherCAT I/0 direct access ec<mid>.s<sid>.*
+2. Data storage variables: ds.*
+3. Motion variables: ax<axid>.*
+4. Static variables: static.*
+5. Global variables: global.*
+6. Vectors as parameter or return value (only first value will be passed).
+
+### A function lib example
+```
+# Nothing fancy
+function add(a,b,c,d,e) {
+  println('This is add:            ',  a+b+c+d+e)
+  return[a+b+c+d+e+${OFFSET=0}];
+};
+
+function prod(a,b,c,d,e) {  
+  println('This is prod, add2 :    ',  add(a,b,c,d,e));
+  println('This is prod, prod:     ',  a*b*c*d*e);
+  return [a * b * c * d * e + ${OFFSET=0}];
+};
+
+# function with vector calcs (inside)
+function testLocalArray(a) {
+  var test[5]:={a,a,a,a,a};
+  println('This is testLocalArray: ',test);
+  return [dot(test,test)];
+};
+
+# function without arg
+function one() {
+  println('This is one:              ',1);
+  return [1+${OFFSET=0}];
+}
+
+# function with ecmc function inside
+function testm2m() {
+  m2m_write(0,m2m_read(0)+${OFFSET=0});
+  println('This is testmt2: elem 0: ',m2m_read(0));
+}
+```
+
+# ECMC 9.5.4
+
+* Allow plc-writes to axis extsetpos:
+```
+ax<id>.traj.extsetpos
+```
+
+* Add axis group funcions to check traj source:
+```
+1.  mc_grp_get_traj_src_ext(
+                            <grp_id>, : Group index
+                            );
+   
+   Returns true if all axes in the group have trajectory source set to external.
+
+2.  mc_grp_get_any_traj_src_ext(
+                                 <grp_id>, : Group index
+                               );
+    Returns true if atleast one axis in the group have trajectory source set to external.
+```
+
+* Add group function to set allow encoder/trajectory source change when axis is enabled;
+```
+1.  mc_grp_set_allow_src_change_when_enabled(
+                                              <grp_id>, : Group index
+                                              <allow>,  : Allow change of source
+                                             );
+    Allow source change for trajectory and encoder when axis is enabled.
+```
+
+# ECMC 9.5.3
+* Fix uint322Float64 command
+* Updates to ecmccfg
+
+# ECMC 9.5.2
+* Updates to ecmccfg to facilitate "auto-generation" of GUI.
+* Only restore poslag monitoring when needed (during external homing)
+
+# ECMC 9.5.1
+* Fix issues with homing
+* Make external triggered homing sequence more robust (and compatible with SmarACT MCS2 EtherCAT version)
+* Allow disabling of position lag monitoring (following error) during external homing sequence
+
+# ECMC v9.5.0
+* Add funcion to get an ecmcAxisBase object based on axis index
 
 ## Axis groups
 Added support for grouping axes

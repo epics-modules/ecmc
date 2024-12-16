@@ -109,6 +109,8 @@ typedef struct {
   bool           driveSummaryInterlock;
   bool           trajSummaryInterlockFWD;
   bool           trajSummaryInterlockBWD;
+  bool           trajSummaryInterlockFWDEpics;
+  bool           trajSummaryInterlockBWDEpics;
   bool           etherCatMasterInterlock;
   bool           plcInterlock;
   bool           plcInterlockFWD;
@@ -130,6 +132,7 @@ public:
   ecmcAxisDataCommand command_;
   ecmcAxisDataStatus status_;
   ecmcAxisDataInterlocks interlocks_;
+  ecmcAxisDataInterlocks interlocksOld_;
   int axisId_;
   axisType axisType_;
   double sampleTime_;

@@ -835,6 +835,52 @@ int writeEcEntry(int slaveIndex, int entryIndex, uint64_t value) {
   return ec->getSlave(slaveIndex)->getEntry(entryIndex)->writeValueForce(value);
 }
 
+int writeEcEntryEcPath(char *ecPath,
+                       uint64_t value) {
+  LOGINFO4("%s/%s:%d ecPath=%s value=%" PRIu64 "\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ecPath,
+           value);
+
+  int  masterId   = -1;
+  int  slaveIndex = -1;
+  char alias[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  bitIndex = -1;
+
+  int errorCode =
+    parseEcPath(ecPath, &masterId, &slaveIndex, alias, &bitIndex);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec->findSlave(slaveIndex);
+  } else {    // simulation slave
+    slave = ec->getSlave(slaveIndex);
+  }
+
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID = alias;
+
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
+
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
+
+  if(bitIndex>=0) {
+    return entry->writeBitForce(value, bitIndex);
+  } 
+  
+  return entry->writeValueForce(value);  
+}
+
 int writeEcEntryIDString(int slavePosition, char *entryIDString,
                          uint64_t value) {
   LOGINFO4("%s/%s:%d slave_position=%d entry=%s value=%" PRIu64 "\n",

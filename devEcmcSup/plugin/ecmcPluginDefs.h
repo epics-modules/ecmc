@@ -15,7 +15,7 @@
 #define ECMC_PLUGIN_MAX_PLC_FUNC_COUNT 64
 #define ECMC_PLUGIN_MAX_PLC_CONST_COUNT 64
 #define ECMC_PLUGIN_MAX_PLC_ARG_COUNT 10
-#define ECMC_PLUG_VER_MAJOR 1
+#define ECMC_PLUG_VER_MAJOR 2
 #define ECMC_PLUG_VER_MINOR 0
 #define ECMC_PLUG_VER_PATCH 0
 #define ECMC_PLUG_VERSION(a, b, c) (((a) << 16) + ((b) << 8) + (c))
@@ -139,8 +139,31 @@ struct ecmcPluginData {
   struct ecmcOnePlcConst consts[ECMC_PLUGIN_MAX_PLC_CONST_COUNT];
 };
 
+/* 
+* The interface will be queried by ecmc by calling the function "_plugin_get_data_lib<plugin_name>()".
+* The below code/defines are for generating the function name and force expansion of macros.
+*
+* Instructions for plugin:
+*   - IMPORTANT: Add "USR_CFLAGS +=-DECMC_PLUGIN_MODULE_NAME=${MODULE}" to GNUMakefile for plugins.
+*     (use module name defined in Makefile to name the function.
+*/
+
+#ifndef ECMC_PLUGIN_MODULE_NAME
+
+#define ECMC_PLUGIN_MODULE_NAME dummy
+
+#endif
+
+// Force expansion
+#define CONCAT(a,b) a##b
+#define EXPAND_AND_CONCAT(a,b) CONCAT(a,b)
+
+/* ecmc calls this function to retrieve interface information.
+* Must be "called/declared" in the plugin:
+*    "ecmc_plugin_register(pluginDataDef);"
+*/
 #define ecmc_plugin_register(pluginData)\
-        struct ecmcPluginData *_plugin_get_data(void) {\
+        struct ecmcPluginData *EXPAND_AND_CONCAT(_plugin_get_data_lib, ECMC_PLUGIN_MODULE_NAME)(void) {\
           return &pluginData;\
         }\
 

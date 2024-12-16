@@ -259,6 +259,9 @@ int ecmcMonitor::getPosLagTime() {
 }
 
 void ecmcMonitor::setEnableLagMon(bool enable) {
+  if(enable && !enableLagMon_) {
+    lagMonCounter_ = 0;
+  }
   enableLagMon_ = enable;
 }
 
@@ -360,8 +363,8 @@ void ecmcMonitor::readEntries() {
   }
 
   if (enableAnalogInterlock_) {
-    tempRaw   = 0;
-    errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_ANALOG, &tempRaw);
+    double tempDouble = 0;
+    errorCode = readEcEntryValueDouble(ECMC_MON_ENTRY_INDEX_ANALOG, &tempDouble);
 
     if (errorCode) {
       setErrorID(__FILE__,
@@ -374,11 +377,11 @@ void ecmcMonitor::readEntries() {
 
     switch (analogPolarity_) {
     case ECMC_POLARITY_NC:
-      data_->interlocks_.analogInterlock = tempRaw > analogRawLimit_;
+      data_->interlocks_.analogInterlock = tempDouble > analogRawLimit_;
       break;
 
     case ECMC_POLARITY_NO:
-      data_->interlocks_.analogInterlock = tempRaw < analogRawLimit_;
+      data_->interlocks_.analogInterlock = tempDouble < analogRawLimit_;
       break;
     }
   }
@@ -725,7 +728,7 @@ int ecmcMonitor::checkAtTarget() {
   bool atTarget      = false;
   bool ctrlWithinTol = false;
 
-  if (enableAtTargetMon_ && data_->status_.enabled) {
+  if (enableAtTargetMon_) {
     /*if (std::abs(data_->status_.currentTargetPosition -
                  data_->status_.currentPositionActual) < atTargetTol_) {*/
 
@@ -757,7 +760,7 @@ int ecmcMonitor::checkAtTarget() {
       }
     }
   } else {
-    atTarget = true;
+    atTarget = false; 
   }
 
   data_->status_.atTarget            = atTarget;
@@ -788,6 +791,8 @@ int ecmcMonitor::checkPositionLag() {
     } else {
       lagMonCounter_ = 0;
     }
+  } else {
+    lagMonCounter_ = 0;
   }
 
   data_->interlocks_.lagDriveInterlock = lagErrorDrive;

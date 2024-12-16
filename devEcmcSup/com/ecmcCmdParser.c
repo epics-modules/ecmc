@@ -745,6 +745,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return addAxisGroup(cIdBuffer);
   }
 
+  /// "Cfg.AddAxisToGroupByName(axisIndex,groupName,createGroup)"
+  cIdBuffer[0]  = '\0';
+  nvals = sscanf(myarg_1, "AddAxisToGroupByName(%d,%[^,],%d)",
+                &iValue,
+                 cIdBuffer,
+                &iValue2);
+  if (nvals == 3) {
+    return addAxisToGroupByNameCreate(iValue,cIdBuffer,iValue2);
+  }
+
   /// "Cfg.AddAxisToGroupByName(axisIndex,groupName)"
   cIdBuffer[0]  = '\0';
   nvals = sscanf(myarg_1, "AddAxisToGroupByName(%d,%[^)])",
@@ -905,13 +915,23 @@ static int handleCfgCommand(const char *myarg_1) {
 
   /// "Cfg.WriteEcEntryIDString(slaveBusPosition,entryIdString,value)"
   nvals = sscanf(myarg_1,
-                 "WriteEcEntryIDString(%d,%[^,],%d)",
+                 "WriteEcEntryIDString(%d,%[^,],%" SCNu64 ")",
                  &iValue,
                  cIdBuffer,
-                 &iValue3);
+                 &u64Value);
 
   if (nvals == 3) {
-    return writeEcEntryIDString(iValue, cIdBuffer, iValue3);
+    return writeEcEntryIDString(iValue, cIdBuffer, u64Value);
+  }
+
+  /// "Cfg.WriteEcEntryEcPath(ecPath,value)"
+  nvals = sscanf(myarg_1,
+                 "WriteEcEntryEcPath(%[^,],%" SCNu64 ")",
+                 cIdBuffer,
+                 &u64Value);
+
+  if (nvals == 2) {
+    return writeEcEntryEcPath(cIdBuffer, u64Value);
   }
 
   /// "Cfg.EcSetMaster(masterIndex)"
@@ -1744,6 +1764,31 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisEncMaxDiffToPrimEnc(iValue, dValue);
+  }
+
+  /*int Cfg.LoadAxisEncLookupTable(int axis_no, char *filename); */
+  cExprBuffer[0] = '\0';
+  nvals = sscanf(myarg_1, "LoadAxisEncLookupTable(%d,%[^)])", &iValue, cExprBuffer);
+
+  if (nvals == 2) {
+    return loadAxisEncLookupTable(iValue , cExprBuffer);
+  }
+
+  /*int Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1, "SetAxisEncLookupTableEnable(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncLookupTableEnable(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisEncLookupTableRange(int axis_no, double range);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncLookupTableRange(%d,%lf)",
+                 &iValue,
+                 &dValue);
+
+  if (nvals == 2) {
+    return setAxisEncLookupTableRange(iValue, dValue);
   }
 
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
@@ -2613,6 +2658,13 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return loadPLCFile(iValue, cExprBuffer);
+  }
+
+  /*int Cfg.LoadPLCLibFile(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "LoadPLCLibFile(%d,%[^)])", &iValue, cExprBuffer);
+
+  if (nvals == 2) {
+    return loadPLCLibFile(iValue, cExprBuffer);
   }
 
   /*int Cfg.ClearPLCExpr(int plcIndex);*/

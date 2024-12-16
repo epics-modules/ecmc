@@ -214,4 +214,44 @@ bool ecmcAxisGroup::inGroup(int axisIndex){
 size_t ecmcAxisGroup::size(){
   return axesCounter_;
 }
-    
+
+// get all traj src in extern
+bool ecmcAxisGroup::getTrajSrcExt(){
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      if ( ((*axis)->getTrajDataSourceType()) == ECMC_DATA_SOURCE_INTERNAL) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+};
+
+// get any traj src in intern
+bool ecmcAxisGroup::getTrajSrcAnyExt(){
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      if ( ((*axis)->getTrajDataSourceType()) == ECMC_DATA_SOURCE_EXTERNAL) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+};
+
+// set allow traj/enc source change when enabled
+void ecmcAxisGroup::setAllowSrcChangeWhenEnabled(int allow){
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setAllowSourceChangeWhenEnabled(allow);
+    }
+  }
+}
+
+void ecmcAxisGroup::setSyncNextPoll(bool sync) {
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setSyncActSet(sync);
+    }
+  }
+}

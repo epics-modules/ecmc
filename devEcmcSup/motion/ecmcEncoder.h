@@ -20,6 +20,7 @@
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
+#include <vector>
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 #include "ecmcError.h"
@@ -29,6 +30,7 @@
 #include "ecmcFilter.h"
 #include "ecmcAxisData.h"
 #include "ecmcMotionUtils.h"
+#include "ecmcLookupTable.h"
 
 // ENCODER ERRORS
 #define ERROR_ENC_ASSIGN_ENTRY_FAILED 0x14400
@@ -56,6 +58,12 @@
 #define ERROR_ENC_READY_READ_ENTRY_FAIL 0x14416
 #define ERROR_ENC_NOT_READY 0x14417
 #define ERROR_ENC_HOME_TRIGG_LINKS_INVALID 0x14418
+#define ERROR_ENC_ENTRY_WRITE_FAIL 0x14419
+#define ERROR_ENC_LOOKUP_TABLE_LOAD_ERROR 0x1441A
+#define ERROR_ENC_LOOKUP_TABLE_NOT_LOADED 0x1441B
+#define ERROR_ENC_LOOKUP_TABLE_NOT_VALID 0x1441C
+
+
 
 // ENCODER WARNINGS
 #define WARNING_ENC_NOT_READY 0x114417
@@ -156,7 +164,16 @@ public:
   int                   setHomeExtTrigg(bool val);
   int                   getHomeExtTriggStat();
   int                   getHomeExtTriggEnabled();
-
+  // Load index table from file (will be default enabled)
+  int                   loadLookupTable(const std::string& filename);
+  // Enable use of lookup table
+  int                   setLookupTableEnable(bool enable);
+  /* Apply mask for encoder raw postion
+  usefull if lookup table only should be applied to LSBs,
+  for instace only single turn bits or sub-period biots of sin/cos 1Vpp.
+  Example: Only apply to 10LSB, set to 0x3FF (0b1111111111)  
+  */
+  int                   setLookupTableRange(double range);
 protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -175,6 +192,7 @@ protected:
   int      readHwWarningError(bool domainOK);
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
+  bool     isPrimary();
 
   encoderType encType_;
   ecmcFilter *velocityFilter_;
@@ -226,6 +244,7 @@ protected:
   uint64_t hwWarning_;
   uint64_t hwWarningOld_;
   uint64_t hwReady_;
+  uint64_t hwReadyOld_;
   bool hwActPosDefined_;
   bool hwResetDefined_;
   bool hwErrorAlarm0Defined_;
@@ -242,11 +261,14 @@ protected:
   bool hwSumAlarm_;
   bool hwSumAlarmOld_;
   bool hwTriggedHomingEnabled_;
+  int encLocalErrorId_;
+  int encLocalErrorIdOld_;
 
   // Asyn
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *encPosAct_;
   ecmcAsynDataItem *encVelAct_;
+  ecmcAsynDataItem *encErrId_;
 
   int hwReadyInvert_;
   int index_; // Index of this encoder (im axis object)
@@ -262,6 +284,9 @@ protected:
   double homeAcc_;
   double homeDec_;
   int domainOK_;
+  bool lookupTableEnable_;
+  ecmcLookupTable<double, double>  *lookupTable_; 
+  double lookupTableRange_;
 };
 
 #endif  /* ECMCENCODER_H_ */

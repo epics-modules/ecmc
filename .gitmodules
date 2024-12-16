@@ -1,6 +1,6 @@
 [submodule "exprtkSupport"]
 	path = exprtkSupport
-	url = https://github.com/icshwi/exprtk-ess
+	url = https://github.com/paulscherrerinstitute/exprtk-ecmc
 [submodule ".ci"]
 	path = .ci
 	url = https://github.com/jeonghanlee/travis_ci

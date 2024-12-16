@@ -116,17 +116,23 @@ private:
       unsigned int sErrorMessage         : 1;     /* From MCU */
       unsigned int initialPollNeeded     : 1;
     }    dirty;
-    int  moveNotReadyNext;
-    int  moveNotReadyNextOld;
+    int  moveReady;
+    int  moveReadyOld;
     char cmdErrorMessage[80];               /* From driver */
     char sErrorMessage[80];               /* From controller */
     bool ecmcBusy;
     bool ecmcSafetyInterlock;
     bool ecmcSummaryInterlock;
+    int  ecmcTrjSrc;
+    bool ecmcMRSyncNextPoll;
+    bool ecmcAtTarget;
+    bool ecmcAtTargetMonEnable;
+
   } drvlocal;
 
   //int       restorePowerOnOffNeeded_;
   int        triggstop_;
+  int        triggsync_;
   asynStatus readBackAllConfig(int axisID);
   asynStatus updateCfgValue(int         function,
                             int         newValue,

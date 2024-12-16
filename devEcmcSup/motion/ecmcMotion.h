@@ -2042,12 +2042,77 @@ int setAxisEncRefToOtherEncAtStartup(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set maximum allowed devaition between this encoder and \n
+ * \note Example: Set maximum allowed deviation between this encoder and \n
  * the primary encoder to 0.1 for axis 3.\n
  * "Cfg.SetAxisEncMaxDiffToPrimEnc(3,0.1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
                                double value);
+
+/** \brief Load encoder correction lookup table file.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] filename Filename (with path).\n
+ *
+ * File format:
+ * - First column should list encoder values in EGUs, must be sorted increasing\n
+ * - Second column should list encoder error correction values in EGUs\n
+ * - Columns must have same length.\n
+ * - PREC=<prec> command can be used to set the precision of the values, \n 
+ *   see example below.\n
+ * - "#" as a first char will be interpreted as comments
+ * 
+ * For "modulo correction", for example single turn, look at the\n
+ * "setAxisEncLookupTableRange()" command.\n
+ * 
+ * Example file:
+ *        # This table simply just changes the gain in region -10..10. 
+ *        # Outside this range, a the closest value in the lookup able will be applied.
+ *        #
+ *        PREC=5
+ *        -10  -10.1234
+ *        0  0.123456
+ *        PREC=6
+ *        10  10.7891011
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Load a correction file to axis 3 (to the encoder currently\n
+ *  being configured)\n
+ * "Cfg.LoadAxisEncLookupTable(3,./tests.corr)" //Command string to ecmcCmdParser.c.\n
+ */
+int loadAxisEncLookupTable(int axisIndex, const char* filename);
+
+/** \brief Enable/Disable encoder lookup table.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable enable/disable.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable lookup table for axis 3  (to the encoder currently\n
+ *  being configured)\n
+ * "Cfg.SetAxisEncLookupTableEnable(3,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncLookupTableEnable(int axisIndex, int enable);
+
+/** \brief Set encoder raw pos lookup table amsk
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] range Range of lookup table (apply like modulo).\n
+ * 
+ * The range will be applied to the encoder actual position before used\n
+ * as an index in the lookup table.\n
+ * Example, if the encoder should be corrected for each trun and it is scaled in degrees,\n
+ * then set range to 360 deg. The lookup table will then be applied for each turn.
+ * So if a range is set, the index into the lookup table is calculated fmod(actpos,range).\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Use lookup table for the 360deg of encoder position (example mod for single turn revs)\n
+ * "Cfg.SetAxisEncLookupTableRange(3,360)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncLookupTableRange(int axisIndex, double range);
 
 /** \brief Set PID-controller proportional gain.\n
  *
@@ -3241,6 +3306,17 @@ int addAxisGroup(const char *name);
  *
  * \param[in] index index of axis to add.\n
  * \param[in] name name of group.\n
+ * \param[in] createGrp create group if not found.\n
+ *
+ * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
+ *  "Cfg.AddAxisToGroupByName(1,'VirtAxes',1)" //Command string to ecmcCmdParser.c\n
+ */
+int addAxisToGroupByNameCreate(int axIndex, const char *grpName, int createGrp);
+
+/** \brief Adds an axis to an group
+ *
+ * \param[in] index index of axis to add.\n
+ * \param[in] name name of group.\n
  *
  * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
  *  "Cfg.AddAxisToGroupByName(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
@@ -3642,6 +3718,15 @@ int setAxisEmergencyStopInterlock(int axisIndex,
 int setAxisExtMaxVelo(int axisIndex,                             
                       double veloLimit,
                       int active);
+
+/** \brief Get pointer to axis object.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ *
+ * \return pointer to axis object if success or otherwise an error code.\n
+ *
+ */
+void* getAxisPointer(int  axisIndex);
 
 # ifdef __cplusplus
 }

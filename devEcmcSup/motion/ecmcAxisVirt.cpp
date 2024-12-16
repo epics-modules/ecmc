@@ -89,13 +89,14 @@ void ecmcAxisVirt::execute(bool masterOK) {
     temporaryLocalTrajSource_ = false;
   }
 
-  if (getEnabled() && masterOK && !getError()) {
-    mon_->setEnable(true);
-    data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
+  data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
       data_.status_.currentPositionSetpoint,
       data_.status_.currentPositionSetpointOld,
       data_.status_.currentPositionActual,
       data_.command_.moduloRange);
+
+  if (getEnabled() && masterOK && !getError()) {
+    mon_->setEnable(true);
   } else {
     mon_->setEnable(false);
 
@@ -103,7 +104,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
       setExecute(false);
     }
 
-    if (!beforeFirstEnable_ && masterOK) {
+    if (!firstEnableDone_ && masterOK) {
       data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
       traj_->setStartPos(data_.status_.currentPositionSetpoint);

@@ -67,7 +67,7 @@ FILENAME...   ecmcMotorRecordController.h
 #define ecmcMotorRecordCfgEGU_RBString            "CfgEGU-RB"
 #define ecmcMotorRecordTRIGG_STOPString           "TRIGG_STOPP"
 #define ecmcMotorRecordTRIGGDISABLEString         "TRIGG_DISABLE"
-
+#define ecmcMotorRecordTRIGGSYNCString            "TRIGG_SYNC"
 
 #define ecmcMotorRecordMCUErrMsgString            "MCUErrMsg"
 #define ecmcMotorRecordDbgStrToMcuString          "StrToMCU"
@@ -187,6 +187,7 @@ protected:
   int ecmcMotorRecordCfgEGU_RB_;
   int ecmcMotorRecordTRIGG_STOPP_;
   int ecmcMotorRecordTRIGG_DISABLE_;
+  int ecmcMotorRecordTRIGG_SYNC_;
 
   int ecmcMotorRecordErrId_;
 
