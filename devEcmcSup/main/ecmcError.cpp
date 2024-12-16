@@ -1006,6 +1006,21 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14D1B:
+    return "ERROR_SEQ_PVT_OBJECT_BUSY";
+
+    break;
+
+  case 0x14D1C:
+    return "ERROR_SEQ_PVT_OBJECT_NULL";
+
+    break;
+
+  case 0x14D1D:
+    return "ERROR_SEQ_PVT_CFG_INVALID";
+
+    break;
+
   case 0x14E00:    // TRAJECTORY
     return "ERROR_TRAJ_EXT_ENC_NULL";
 

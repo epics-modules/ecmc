@@ -74,6 +74,8 @@ FILENAME...   ecmcMotorRecordController.h
 #define ecmcMotorRecordDbgStrToLogString          "StrToLOG"
 
 #define HOMPROC_MANUAL_SETPOS    15
+#define MAX_MESSAGE_LEN   256
+
 
 extern const char *modNamEMC;
 
@@ -106,9 +108,17 @@ public:
   // asynStatus configController(int needOk, const char *value);
   ecmcMotorRecordAxis* getAxis(asynUser *pasynUser);
   ecmcMotorRecordAxis* getAxis(int axisNo);
+  asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+  asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  asynStatus initializeProfile(size_t maxProfilePoints);
+  asynStatus buildProfile();
+  asynStatus executeProfile();
+  asynStatus abortProfile();
+  asynStatus enableAxisPVTFunc(int axisNo, int enable);
   int features_;
 
 protected:
+  ecmcMotorRecordAxis **pAxes_;       /**< Array of pointers to axis objects */
   void udateMotorLimitsRO(int axisNo);
   void udateMotorLimitsRO(int    axisNo,
                           int    enabledHighAndLow,
@@ -117,6 +127,8 @@ protected:
   void       handleStatusChange(asynStatus status);
   int        getFeatures(void);
   asynStatus poll();
+  void       profilePoll();
+  ecmcPVTController *getPVTController();
 
   struct {
     asynStatus   oldStatus;
@@ -190,13 +202,22 @@ protected:
   int ecmcMotorRecordTRIGG_SYNC_;
 
   int ecmcMotorRecordErrId_;
+  
+  // Custom profile 
 
+  int profileInitialized_;
+  int profileBuilt_;
+  
   /* Last parameter */
 
   #define FIRST_VIRTUAL_PARAM ecmcMotorRecordErr_
   #define LAST_VIRTUAL_PARAM ecmcMotorRecordErrId_
   #define NUM_VIRTUAL_MOTOR_PARAMS ((int)(&LAST_VIRTUAL_PARAM -\
                                           &FIRST_VIRTUAL_PARAM + 1))
+
+
+  char profileMessage_[MAX_MESSAGE_LEN];
+  ecmcPVTController *pvtController_;
   friend class ecmcMotorRecordAxis;
 };
 

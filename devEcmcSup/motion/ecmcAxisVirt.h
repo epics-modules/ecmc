@@ -36,7 +36,6 @@ public:
 
 private:
   void               initVars();
-  bool temporaryLocalTrajSource_;
 };
 
 #endif /* ECMCAXISVIRT_H_ */

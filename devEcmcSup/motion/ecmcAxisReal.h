@@ -33,7 +33,6 @@ public:
 
 private:
   void               initVars();
-  bool temporaryLocalTrajSource_;
   ecmcDriveBase *drv_;
   ecmcPIDController *cntrl_;
   ecmcDriveTypes currentDriveType_;

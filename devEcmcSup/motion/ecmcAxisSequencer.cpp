@@ -69,10 +69,110 @@ void ecmcAxisSequencer::initVars() {
   homeTrigStatOld_       = false;
   monPosLagEnaStatePriorHome_ = false;
   monPosLagRestoreNeeded_ = false;
+  pvt_                   = NULL;
+  pvtOk_                 = false;
+  temporaryLocalTrajSource_ = false;
+  trajLock_              = true;
+  trajLockOld_           = true;
+  newTrajLockEdge_       = true;
+  posSource_             = 0;
+  pvtStopping_           = false;
+  pvtmode_               = false;
+}
+
+void ecmcAxisSequencer::init(double sampleTime) {
+ 
+
 }
 
 // Cyclic execution
 void ecmcAxisSequencer::execute() {
+
+  pvtmode_ = pvtOk_ && 
+      (data_->command_.command == ECMC_CMD_MOVEPVTREL ||
+       data_->command_.command == ECMC_CMD_MOVEPVTABS);
+
+  // Trajectory (External or internal)
+  if (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+
+    if(pvtmode_ && !pvtStopping_ && pvt_->getExecute()) {
+      data_->status_.currentPositionSetpoint = pvt_->getCurrPosition();
+      data_->status_.currentVelocitySetpoint = pvt_->getCurrVelocity();      
+    } else {
+      data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
+      data_->status_.currentVelocitySetpoint = traj_->getNextVel();
+    }
+
+  } else {    // External source (PLC or other)
+    data_->status_.currentPositionSetpoint =
+      data_->status_.externalTrajectoryPosition;
+    data_->status_.currentVelocitySetpoint =
+      data_->status_.externalTrajectoryVelocity;
+    data_->interlocks_.noExecuteInterlock = false;  // Only valid in local mode
+    data_->refreshInterlocks();
+  }
+
+  if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    data_->status_.currentPositionActual =
+      encArray_[data_->command_.primaryEncIndex]->getActPos();
+    data_->status_.currentVelocityActual =
+      encArray_[data_->command_.primaryEncIndex]->getActVel();
+  } else { // External
+    data_->status_.currentPositionActual =
+      data_->status_.externalEncoderPosition;
+    data_->status_.currentVelocityActual =
+      data_->status_.externalEncoderVelocity;
+  }
+
+  executeInternal();
+
+  mon_->execute();
+
+  // Below code moved from real axis.. Above similar from virt axis, sligth diff
+  trajLockOld_ = trajLock_;
+  trajLock_ =
+    ((data_->interlocks_.trajSummaryInterlockFWD &&
+      data_->status_.currentPositionSetpoint >
+      data_->status_.currentPositionSetpointOld) ||
+     (data_->interlocks_.trajSummaryInterlockBWD &&
+      data_->status_.currentPositionSetpoint <
+      data_->status_.currentPositionSetpointOld));
+  
+  // If internal source and not PVT-mode then interlocks are handled in trajetory generator
+  // TODO Would be nice to change this design..
+  trajLock_ = trajLock_ && (data_->command_.trajSource != ECMC_DATA_SOURCE_INTERNAL || pvtmode_);
+  newTrajLockEdge_ = trajLock_ && !trajLockOld_; // && data_->command_.execute && executeOld_;
+
+  // Only init stopramp once if PVT
+  if(newTrajLockEdge_) {
+    if(pvtmode_) {
+      if(!pvtStopping_ && pvt_->getBusy()) {
+        initStop();
+      }
+    } else {
+      initStop();
+    }
+  }
+
+  // get new setpoints if needed (for PVT only once then the setpoint will be fetched above)
+  if((trajLock_ && (data_->command_.trajSource == !ECMC_DATA_SOURCE_INTERNAL))) {
+    data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
+    data_->status_.currentVelocitySetpoint = traj_->getNextVel();
+  }
+  
+  pvtStopping_ = traj_->getBusy() && pvtStopping_;
+
+  // PVT
+  if(pvtOk_  && !pvtStopping_ && data_->command_.execute) {
+    // Go to next pvt time step, ONLY call this once per scan
+    if(pvt_->nextSampleStep() && pvt_->getExecute()) {
+      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
+    }    
+  }
+  traj_->setStartPos(data_->status_.currentPositionSetpoint);
+}
+
+void ecmcAxisSequencer::executeInternal() {
   // read mode if entry is linked
   uint64_t tempRaw = 0;
 
@@ -95,13 +195,21 @@ void ecmcAxisSequencer::execute() {
 
   // Reset busy (set in setExecute)
   if (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+    // HOMING 
     if (data_->command_.command == ECMC_CMD_HOMING) {
       data_->status_.busy = localSeqBusy_ || traj_->getBusy();
     } else {
-      data_->status_.busy = (traj_->getBusy() && data_->status_.enabled) ||
-                            !data_->status_.startupFinsished;
+     // PVT 
+     if(pvtmode_ && !pvtStopping_) {
+        data_->status_.busy = (pvt_->getBusy() && data_->status_.enabled) ||
+                              !data_->status_.startupFinsished;
+      } else {
+      // Normal motion
+        data_->status_.busy = (traj_->getBusy() && data_->status_.enabled) ||
+                              !data_->status_.startupFinsished;
+      }
     }
-  } else {    // Sync to other axis
+  } else { // Sync to other axis
     data_->status_.busy = true;
   }
 
@@ -390,8 +498,13 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       data_->status_.busy = true;
+      traj_->setStartPos(data_->status_.currentPositionSetpoint);
+      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setTargetVel(data_->command_.velocityTarget);
+      if(data_->command_.enableDbgPrintout) {
+        printf("ECMC_CMD_MOVEVEL targ velo: %lf\n",data_->command_.velocityTarget);
+      }
     }
 
     errorCode =  traj_->setExecute(data_->command_.execute);
@@ -422,8 +535,13 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
       data_->status_.busy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
+      traj_->setStartPos(data_->status_.currentPositionSetpoint);
+      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setTargetVel(data_->command_.velocityTarget);
       traj_->setTargetPos(data_->command_.positionTarget);
+      if(data_->command_.enableDbgPrintout) {
+        printf("ECMC_CMD_MOVEREL pos targ: %lf, targ velo: %lf, traj busy %d\n",data_->command_.positionTarget,data_->command_.velocityTarget, traj_->getBusy());
+      }
     }
     errorCode = traj_->setExecute(data_->command_.execute);
 
@@ -434,7 +552,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
 
   case ECMC_CMD_MOVEABS:
-
+    
     if (data_->command_.execute && !executeOld_) {
       if (!enablePos_) {
         return setErrorID(__FILE__,
@@ -442,11 +560,15 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                           __LINE__,
                           ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
       }
-
+      
       data_->status_.busy = true;
+      traj_->setStartPos(data_->status_.currentPositionSetpoint);
+      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);
-
+      if(data_->command_.enableDbgPrintout) {
+        printf("ECMC_CMD_MOVEABS pos targ: %lf, targ velo: %lf, traj busy %d\n",data_->command_.positionTarget,data_->command_.velocityTarget, traj_->getBusy());
+      }
       double targPos   = 0;
       int    errorCode = 0;
 
@@ -490,6 +612,62 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
     break;
 
+  case ECMC_CMD_MOVEPVTREL:
+    if(data_->command_.enableDbgPrintout) {
+      printf("RUNNING PVT REL execute %d\n",data_->command_.execute);
+    }
+    if (data_->command_.execute && !executeOld_) {
+      
+      errorCode = validatePVT();
+      if(errorCode) {
+        return errorCode;
+      }
+
+      // Set offset since realtive mode
+      pvt_->setPositionOffset(data_->status_.currentPositionSetpoint);
+      pvt_->setExecute(0);
+      errorCode = pvt_->setExecute(1);
+      if (errorCode) {
+        return errorCode;
+      }
+      // needed since this is evaluated in trajectoy which is not in use
+      data_->interlocks_.noExecuteInterlock = false;
+    } else if(!data_->command_.execute){
+      errorCode = pvt_->setExecute(0);
+        // needed since this is evaluated in trajectoy which is not in use
+      data_->interlocks_.noExecuteInterlock = true;
+    }
+    
+    data_->refreshInterlocks();
+
+    break;
+
+  case ECMC_CMD_MOVEPVTABS:
+    if(data_->command_.enableDbgPrintout) {
+      printf("RUNNING PVT ABS execute %d\n",data_->command_.execute);
+    }
+    if (data_->command_.execute && !executeOld_) {
+      errorCode = validatePVT();
+      if(errorCode) {
+        return errorCode;
+      }
+      
+      // Set offset 0 since pvt is absolute
+      pvt_->setPositionOffset(0);
+      pvt_->setExecute(0);
+      errorCode = pvt_->setExecute(1);
+      if (errorCode) {
+        return errorCode;
+      }
+      data_->interlocks_.noExecuteInterlock = false;
+    } else if(!data_->command_.execute){
+      errorCode = pvt_->setExecute(0);
+      // needed since this is evaluated in trajectoy which is not in use
+      data_->interlocks_.noExecuteInterlock = true;            
+    }
+    data_->refreshInterlocks();
+    break;
+
   case ECMC_CMD_HOMING:
     // set mode to homing
     if (modeHomingCmdSet_) {
@@ -499,6 +677,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     if (data_->command_.execute && !executeOld_) {
       // oldPrimaryEnc_ = data_->command_.primaryEncIndex;
       // encoder data source must be internal for homing
+      traj_->setStartPos(data_->status_.currentPositionSetpoint);
       if (data_->command_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -524,7 +703,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         localSeqBusy_       = true;
         data_->status_.busy = true;
 
-        // Use the paarmeters defined in encoder object
+        // Use the parameters defined in encoder object
         if (data_->command_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
           readHomingParamsFromEnc();
         }
@@ -2962,8 +3141,7 @@ int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData *data) {
   data_ = data;
 
   // Set external error code ints (to be collected in axis base class)
-  setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
-
+  setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));  
   return 0;
 }
 
@@ -3027,7 +3205,9 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   for (int i = 0; i < data_->status_.encoderCount; i++) {
     // Ref all encoders that are configured to be homed. Always ref primary encoder.
     if (encArray_[i]->getRefAtHoming() || i == data_->command_.primaryEncIndex ) {
-      printf("INFO: Axis [%d]: Setting new position to encoder[%d]: %lf\n",data_->axisId_,i,newPosition);
+      if(data_->command_.enableDbgPrintout) {
+        printf("INFO: Axis [%d]: Setting new position to encoder[%d]: %lf\n",data_->axisId_,i,newPosition);
+      }
       encArray_[i]->setActPos(newPosition);
       encArray_[i]->setHomed(true);
       encArray_[i]->setArmLatch(false);
@@ -3173,10 +3353,6 @@ double ecmcAxisSequencer::getHomePosition() {
   return homePosition_;
 }
 
-// ecmcEncoder *ecmcAxisSequencer::getHomeEnc() {
-//  return encArray_[data_->command_.homeEncIndex];
-// }
-
 ecmcEncoder * ecmcAxisSequencer::getPrimEnc() {
   return encArray_[data_->command_.primaryEncIndex];
 }
@@ -3275,7 +3451,97 @@ bool ecmcAxisSequencer::autoModeSetHoming() {
   if ((modeHomingCmd_ == modeAct_) || !modeActEntry_) {
     return 1;
   }
-  return 0;  // use seq step that is not used by post move and other seqs
+  return 0;  // Use seq step that is not used by post move and other seqs
+}
+
+// PVT object created somewhere else can be assigned here (normally from motorRecordAxis::buildProfile())
+int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
+  if(pvt_) {
+    if(pvt_->getBusy()) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Current PVT object busy (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_SEQ_PVT_OBJECT_BUSY );
+      return ERROR_SEQ_PVT_OBJECT_BUSY; 
+    }
+  }
+  pvtOk_ = false; // need new validation since new object
+  pvt_   = pvt;
+  if(data_->command_.enableDbgPrintout) {
+    printf("ecmcAxisSequencer::setPVTObject(pvt): INFO: PVT object assigned\n");
+  }
+  return 0;
+}
+
+int ecmcAxisSequencer::validatePVT() {
+  pvtOk_ = false;
+  if(!pvt_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: PVT object not assigned (PVT == NULL) (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_SEQ_PVT_OBJECT_NULL);
+    return ERROR_SEQ_PVT_OBJECT_NULL;
+  }
+
+  int errorCode = pvt_->validateRT();
+  if(errorCode) {
+    return errorCode;
+  }
+
+  // TODO
+  // Check softlimits, max velo and max acc
+  pvtOk_ = true;
+  return 0;
+}
+
+void ecmcAxisSequencer::setEnable(int enable) {
+  if (enable && !data_->command_.enable) {
+     traj_->setStartPos(data_->status_.currentPositionActual);
+     traj_->setCurrentPosSet(data_->status_.currentPositionActual);
+     traj_->setTargetPos(data_->status_.currentPositionActual);
+     data_->status_.currentTargetPosition =
+       data_->status_.currentPositionActual;
+     data_->status_.currentPositionSetpoint =
+       data_->status_.currentPositionActual;
+     data_->status_.currentPositionSetpointOld =
+       data_->status_.currentPositionSetpoint;
+     data_->status_.currentVelocitySetpoint = 0;
+  }
+  traj_->setEnable(enable);
+
+  if(pvtOk_) {
+    pvt_->setExecute(0);
+  }
+}
+
+void ecmcAxisSequencer::initStop() {
+  if(data_->command_.enableDbgPrintout) {
+    printf("ecmcAxisSequencer::initStopPVT(): Initiating new stopramp...\n");
+  }
+   
+  traj_->setStartPos(data_->status_.currentPositionActual);
+  traj_->setCurrentPosSet(data_->status_.currentPositionActual);
+  traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
+  traj_->setTargetVel(0);    
+  traj_->initStopRamp(data_->status_.currentPositionSetpoint,
+                      data_->status_.currentVelocitySetpoint,
+                      0);
+  traj_->setExecute(0);
+  traj_->setExecute(1);
+  
+  if(pvtmode_ && !pvtStopping_) {
+    data_->command_.command = ECMC_CMD_MOVEABS;
+    pvtStopping_ = true;  // Latch stop if in PVT
+    pvt_->setExecute(0);  // stop PVT
+
+  }
+  data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
+  data_->status_.currentVelocitySetpoint = traj_->getNextVel();
+  data_->command_.positionTarget = traj_->getCurrentPosSet();  
 }
 
 // To auto restore poslag monitoring if needed (for instance for external trigged homing seq)

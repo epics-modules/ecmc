@@ -13,6 +13,8 @@
 #ifndef ECMCAXISPVT_H_
 #define ECMCAXISPVT_H_
 
+#define ERROR_SEQ_PVT_CFG_INVALID 0x14D1D
+
 #include <vector>
 #include <cstdio>
 
@@ -26,6 +28,10 @@ class ecmcPvtPoint {
       velocity_ = velocity;
       time_ = timeS;
     }
+
+    void print() {
+       printf("%lf,%lf,%lf\n",time_, position_, velocity_);  
+    } 
 };
 
 // Third order polynom between 2 ecmcPvtPoints
@@ -114,6 +120,7 @@ class ecmcPvtSegment {
 class ecmcAxisPVTSequence {
   public:
     ecmcAxisPVTSequence(double sampleTime);
+    void   setSampleTime(double sampleTime);
     void   addPoint(ecmcPvtPoint *pnt);
     double startTime();
     double endTime();    
@@ -127,9 +134,20 @@ class ecmcAxisPVTSequence {
     double getCurrVelocity();       // For RT sequential access
     double getCurrAcceleration();   // For RT sequential access
     double getCurrTime();
+    int    getCurrentSegementId();
     double position(double time, int *valid);     // For non RT access
     double velocity(double time, int *valid);     // For non RT access
     double acceleration(double time, int *valid); // For non RT access
+    bool   getBusy();
+    void   setBusy(bool busy);
+    void   print();
+    void   printRT();
+    void   clear();
+    int    validateRT();
+    int    setPositionOffset(double offset);  // For running relative
+    int    setExecute(bool execute);
+    bool   getExecute();
+    
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -138,6 +156,9 @@ class ecmcAxisPVTSequence {
     std::vector<ecmcPvtPoint*> points_;
     size_t segmentCount_, pointCount_, currSegIndex_;
     double totalTime_, sampleTime_, currTime_;
-    bool busy_;    
+    bool busy_;
+    double positionOffset_;  // For relative motion
+    bool execute_;
+    bool executeOld_;
 };
 #endif  /* ECMCAXISPVT_H_ */

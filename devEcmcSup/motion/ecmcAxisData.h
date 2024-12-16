@@ -34,7 +34,7 @@ typedef struct {
   bool               reset              : 1;
   bool               enableSoftLimitBwd : 1;
   bool               enableSoftLimitFwd : 1;
-
+  bool               enableDbgPrintout  : 1;
   dataSource trajSource;
   dataSource encSource;
   driveMode  drvMode;
