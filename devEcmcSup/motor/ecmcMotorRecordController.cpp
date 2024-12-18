@@ -24,8 +24,6 @@ static const char *driverName = "ecmcMotorController";
 #define ASYN_TRACE_INFO      0x0040
 #endif // ifndef ASYN_TRACE_INFO
 
-#define ECMC_MR_CNTRL_ADDR 0
-
 extern asynUser *pPrintOutAsynUser;
 
 const char *modNamEMC = "ecmcMotorRecord:: ";
@@ -665,7 +663,7 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
 
   int function = pasynUser->reason;
   asynStatus status = asynError;
-  asynMotorAxis *pAxis;
+  ecmcMotorRecordAxis *pAxis;
   int axisNo = -1;
   //static const char *functionName = "writeInt32";
 
@@ -703,8 +701,18 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
   } else if (function == profileReadback_) {
     printf("writeInt32::readbackProfile\n");
     status = asynMotorController::readbackProfile();
+  } else if (function == profileTimeMode_) {
+    for (int axis = 0; axis < numAxes_; axis++) {
+      pAxis = getAxis(axis);
+      if (!pAxis) continue;
+        pAxis->invalidatePVTBuild();
+    }
+    setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+    sprintf(profileMessage_, "Time base changed..\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
   }
-
+  
   if(status != asynSuccess) {
     return status;  
   }
@@ -751,12 +759,33 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   setStringParam(profileBuildMessage_, profileMessage_);
   callParamCallbacks();
 
+  /* override this function in order to not to destroy the profileTimes_ array every time
+     Why is this done.. Annoying.. comemnt out hand handle if fixed or array mode in axis object*/
 
-  asynStatus status = asynMotorController::buildProfile();
+  //asynStatus status = asynMotorController::buildProfile();
+  //if (status) return asynError;
+  //if (timeMode == PROFILE_TIME_MODE_FIXED) {
+  //  memset(profileTimes_, 0, maxProfilePoints_*sizeof(double));
+  //  for (i=0; i<numPoints; i++) {
+  //    profileTimes_[i] = time;
+  //  }
+  //}
+  
+  asynStatus status = asynSuccess;
 
+  int stat = 0;
+  ecmcMotorRecordAxis *pAxis;
+  for (int i=0; i<numAxes_; i++) {
+    pAxis = getAxis(i);
+    if (!pAxis) continue;
+    stat = stat || pAxis->buildProfile() != asynSuccess;
+  }
+  
+  if(stat) {
+    return asynError;
+  }
   // Check for errors in all axes since base class is not checking return value.. annoying..
   bool buildStatusOK = true;
-  ecmcMotorRecordAxis *pAxis;
   for (int axis = 0; axis < numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
@@ -764,8 +793,6 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   }
 
   profileBuilt_ = (status == asynSuccess) && buildStatusOK; 
-
-
 
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_DONE);
 
@@ -821,6 +848,40 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
   profileInitialized_ = 1;
   return asynSuccess;
 }
+
+/** Called when asyn clients call pasynFloat64Array->write().
+  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
+  * \param[in] value Pointer to the array to write.
+  * \param[in] nElements Number of elements to write. */
+asynStatus ecmcMotorRecordController::writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value,
+                                                  size_t nElements)
+{
+  int function = pasynUser->reason;
+  asynMotorAxis *pAxis;
+  static const char *functionName = "writeFloat64Array";
+  
+  if (nElements > maxProfilePoints_) nElements = maxProfilePoints_;
+   
+  if (function == profileTimeArray_) {
+    memcpy(profileTimes_, value, nElements*sizeof(double));    
+  } 
+  else if (function == profilePositions_) {
+    pAxis = getAxis(pasynUser);
+    if (!pAxis) {
+      printf("No Axis");
+      return asynError;
+    }
+    pAxis->defineProfile(value, nElements);
+  } 
+  else {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+      "%s:%s: unknown parameter number %d\n", 
+      driverName, functionName, function);
+    return asynError ;
+  }
+  return asynSuccess;
+}
+
 
 asynStatus ecmcMotorRecordController::executeProfile() {
   asynStatus status = asynSuccess;

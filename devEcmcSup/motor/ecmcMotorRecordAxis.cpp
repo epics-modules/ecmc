@@ -2044,8 +2044,24 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   // Rampup time defined in parameter profileAcceleration_
   pvtPrepare_->addPoint(new ecmcPvtPoint(0,0,0));
 
+  double time;
+  int timeMode;
+  
+  /*status |= */ pC_->getIntegerParam(ECMC_MR_CNTRL_ADDR, pC_->profileTimeMode_, &timeMode);
+  /*status |= */ pC_->getDoubleParam(ECMC_MR_CNTRL_ADDR, pC_->profileFixedTime_, &time);
+
+  if(timeMode==PROFILE_TIME_MODE_FIXED) {
+    printf("TIME_MODE=PROFILE_TIME_MODE_FIXED, time %lf\n",time);
+  } else {
+    printf("TIME_MODE=PROFILE_TIME_MODE_ARRAY\n");
+  }
+  
   for (size_t i = 0; i < profileNumPoints_; i++) {
-    printf("pC->profileTimes_[%ld] = %lf \n",i, pC->profileTimes_[i]);
+    if(timeMode == PROFILE_TIME_MODE_FIXED) {
+    printf("time[%ld] = %lf \n",i, time);
+    } else { // Time array
+      printf("pC->profileTimes_[%ld] = %lf \n",i, pC->profileTimes_[i]);
+    }
     printf("profilePositions_[%ld] = %lf \n",i, profilePositions_[i]);
   }
   
@@ -2054,13 +2070,16 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   double currTime = accTime;  // Start at this time since first seqment takes the acceleration
 
   // Add first points
-  preVelo = (profilePositions_[1]-profilePositions_[0]) / pC->profileTimes_[0];   
+  preVelo = (profilePositions_[1]-profilePositions_[0]) / pC->profileTimes_[0];
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0], preVelo, currTime));
   
   printf("Added point (%lf,%lf,%lf)",profilePositions_[0], preVelo, currTime);
 
-
-  currTime += pC->profileTimes_[0];
+  if(timeMode == PROFILE_TIME_MODE_FIXED) {
+    currTime += time;
+  } else { // Time array
+    currTime += pC->profileTimes_[0];
+  }
 
   //add center points
   double velo = preVelo;
@@ -2069,7 +2088,11 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     velo = (preVelo + postVelo)/2;
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i],velo, currTime));
     printf("Added point (%lf,%lf,%lf)",profilePositions_[i], velo, currTime);
-    currTime += pC->profileTimes_[i];
+    if(timeMode == PROFILE_TIME_MODE_FIXED) {
+      currTime += time;
+    } else { // Time array
+      currTime += pC->profileTimes_[0];
+    }
     preVelo   = postVelo;
   }
   
@@ -2088,6 +2111,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 
   profileLastBuildOk_ = true;
   profileSwitchPVTObject_ = true;
+
   return asynSuccess;
 }
 
@@ -2255,3 +2279,6 @@ void ecmcMotorRecordAxis::setEnablePVTFunc(int enable) {
   pvtEnabled_ = enable;
 }
 
+void ecmcMotorRecordAxis::invalidatePVTBuild() {
+  profileLastBuildOk_ = false;
+}

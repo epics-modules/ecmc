@@ -76,7 +76,7 @@ FILENAME...   ecmcMotorRecordController.h
 
 #define HOMPROC_MANUAL_SETPOS    15
 #define MAX_MESSAGE_LEN   256
-
+#define ECMC_MR_CNTRL_ADDR 0
 
 extern const char *modNamEMC;
 
@@ -111,6 +111,7 @@ public:
   ecmcMotorRecordAxis* getAxis(int axisNo);
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  asynStatus writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value,size_t nElements);
   asynStatus initializeProfile(size_t maxProfilePoints);
   asynStatus buildProfile();
   asynStatus executeProfile();
