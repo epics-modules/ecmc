@@ -633,8 +633,10 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       // needed since this is evaluated in trajectoy which is not in use
       data_->interlocks_.noExecuteInterlock = false;
     } else if(!data_->command_.execute){
-      errorCode = pvt_->setExecute(0);
-        // needed since this is evaluated in trajectoy which is not in use
+      if(pvt_) {
+        errorCode = pvt_->setExecute(0);
+      }
+      // needed since this is evaluated in trajectoy which is not in use
       data_->interlocks_.noExecuteInterlock = true;
     }
     
