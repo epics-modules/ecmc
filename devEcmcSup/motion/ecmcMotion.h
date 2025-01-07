@@ -2049,6 +2049,22 @@ int setAxisEncRefToOtherEncAtStartup(int axisIndex,
 int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
                                double value);
 
+/** \brief Set encoder delay in cycles\n
+ *   
+ *  Delay between drv setpoint and encoder act, typically atleast 2 cycles\n 
+ *
+ * \param[in] axisIndex  Axis index\n
+ * \param[in] cycles Delay time [cycles]\n
+ * \param[in] enable enable delay compensation\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set axis 3 delay time to 2.5 cycles and enable compensation\n
+ *  for the encoder that currentlly is being configured\n
+ * "Cfg.SetAxisEncDelayCyclesAndEnable(3,2.5,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncDelayCyclesAndEnable(int axisIndex, double timeMs, int enable);
+
 /** \brief Load encoder correction lookup table file.\n
  *
  * \param[in] axisIndex  Axis index.\n

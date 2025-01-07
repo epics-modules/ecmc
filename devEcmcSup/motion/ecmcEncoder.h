@@ -168,12 +168,9 @@ public:
   int                   loadLookupTable(const std::string& filename);
   // Enable use of lookup table
   int                   setLookupTableEnable(bool enable);
-  /* Apply mask for encoder raw postion
-  usefull if lookup table only should be applied to LSBs,
-  for instace only single turn bits or sub-period biots of sin/cos 1Vpp.
-  Example: Only apply to 10LSB, set to 0x3FF (0b1111111111)  
-  */
   int                   setLookupTableRange(double range);
+  int                   setDelayCyclesAndEnable(double cycles, bool enable); 
+
 protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -222,7 +219,7 @@ protected:
   double actPos_;
   double actPosLocal_;
   double actPosOld_;
-  double sampleTime_;
+  double sampleTimeMs_;
   double actVel_;
   double actVelLocal_;
   bool homed_;
@@ -287,6 +284,9 @@ protected:
   bool lookupTableEnable_;
   ecmcLookupTable<double, double>  *lookupTable_; 
   double lookupTableRange_;
+  
+  double delayTimeS_; // Compensate for delay between setpoint and actual value (should default to 2 cycles)
+  bool enableDelayTime_;
 };
 
 #endif  /* ECMCENCODER_H_ */

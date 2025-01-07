@@ -22,11 +22,13 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_ = asynPortDriver;
   data_           = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
-  sampleTime_ = sampleTime;
+  sampleTimeMs_ = sampleTime * 1000;
+  delayTimeS_ = 2 * sampleTime;  // 2 cycles delay as default
+  
 
   // Encoder index start from 1 here, to get asyn param naming correct
   index_ = index;
-
+  
   initAsyn();
 
   if (!data_) {
@@ -73,7 +75,7 @@ void ecmcEncoder::initVars() {
   engOffset_              = 0;
   actPos_                 = 0;
   actPosOld_              = 0;
-  sampleTime_             = 1;
+  sampleTimeMs_           = 1;
   actVel_                 = 0;
   actPosLocal_            = 0;
   actVelLocal_            = 0;
@@ -141,7 +143,8 @@ void ecmcEncoder::initVars() {
   encLocalErrorIdOld_     = 0;
   lookupTableEnable_      = 0;
   lookupTable_            = NULL;
-  lookupTableRange_        = 0;
+  lookupTableRange_       = 0;
+  enableDelayTime_        = false;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -212,7 +215,7 @@ int ecmcEncoder::setOffset(double offset) {
 }
 
 double ecmcEncoder::getSampleTime() {
-  return sampleTime_;
+  return sampleTimeMs_;
 }
 
 double ecmcEncoder::getActVel() {
@@ -463,6 +466,11 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
     } else {
       actPosLocal_ = actPosLocal_ + lookupTable_->getValue(actPosLocal_);
     }
+  }
+
+  // Compensate for delay (TODO: the actVelLocal is one cycle old..)
+  if(enableDelayTime_) {
+    actPosLocal_ = actPosLocal_ + delayTimeS_ * actVelLocal_;
   }
 
   // If first valid value (at first hw ok),
@@ -778,7 +786,7 @@ int ecmcEncoder::writeEntries() {
 int ecmcEncoder::validate() {
   int errorCode = 0;
 
-  if (sampleTime_ <= 0) {
+  if (sampleTimeMs_ <= 0) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_ENC_INVALID_SAMPLE_TIME);
   }
@@ -1476,5 +1484,11 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
 
 int ecmcEncoder::setLookupTableRange(double range) {
   lookupTableRange_ = range;
+  return 0;
+}
+
+int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
+  delayTimeS_      = cycles * sampleTimeMs_ / 1000;
+  enableDelayTime_ = enable;
   return 0;
 }
