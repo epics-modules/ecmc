@@ -696,13 +696,14 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
     printf("writeInt32::executeProfile\n");
     status = executeProfile();
   } else if (function == profileAbort_) {
-    printf("writeInt32:.abortProfile\n");
+    printf("writeInt32::abortProfile\n");
     status = abortProfile();
   } else if (function == profileReadback_) {
     printf("writeInt32::readbackProfile\n");
     status = asynMotorController::readbackProfile();
   } else if (function == profileTimeMode_) {
-    for (int axis = 0; axis < numAxes_; axis++) {
+    // if time mode is changed also the pvt object needs to be rebuilt
+    for (int axis = 0; axis < numAxes_; axis++) {      
       pAxis = getAxis(axis);
       if (!pAxis) continue;
         pAxis->invalidatePVTBuild();
@@ -714,7 +715,7 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
   }
   
   if(status != asynSuccess) {
-    return status;  
+    return status;
   }
 
   // write to lib
