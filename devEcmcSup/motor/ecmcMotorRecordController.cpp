@@ -621,9 +621,9 @@ void ecmcMotorRecordController::profilePoll() {
   callParamCallbacks();
 }
 
-// Handle all controller related writes here. All controller params are stored in address/axisNo 0
-// All controller related info is stored in axis no 0 and getAxis retruns NULL (axis[0] = NULL).
-// Not nice but probablbly mosty generic way todo it
+/* Handle all controller related writes here. All controller params are stored in address/axisNo 0
+   All controller related info is stored in axis no 0 and getAxis retruns NULL (axis[0] = NULL).
+   Not nice but probablbly mosty generic way todo it */
 asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
   int function = pasynUser->reason;
@@ -656,9 +656,9 @@ asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFlo
   return status;
 }
 
-// Handle all controller related writes here. All controller params are stored in address/axisNo 0
-// All controller related info is stored in axis no 0 and getAxis retruns NULL (axis[0] = NULL).
-// Not nice but probablbly mosty generic way todo it
+/* Handle all controller related writes here. All controller params are stored in address/axisNo 0
+   All controller related info is stored in axis no 0 and getAxis retruns NULL (axis[0] = NULL).
+   Not nice but probablbly mosty generic way todo it */
 asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32 value) {
 
   int function = pasynUser->reason;

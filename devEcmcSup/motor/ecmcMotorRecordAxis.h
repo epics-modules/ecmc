@@ -189,6 +189,7 @@ private:
   bool profileInProgress_;
   bool profileSwitchPVTObject_;
   bool pvtEnabled_;
+  size_t profileMaxPoints_;
   friend class ecmcMotorRecordController;
 };
 

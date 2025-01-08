@@ -17,20 +17,22 @@
 
 #include <vector>
 #include <cstdio>
+#include "ecmcAxisData.h"
+#include <cmath>
 
 class ecmcPvtPoint {
   public:
     double position_;
-    double velocity_;
-    double time_;
+    double velocity_;    
+    double timeNs_;
     ecmcPvtPoint(double position, double velocity, double timeS) {
       position_ = position;
-      velocity_ = velocity;
-      time_ = timeS;
+      velocity_ = velocity;      
+      timeNs_ = round(timeS*1E9);     
     }
 
     void print() {
-       printf("%lf,%lf,%lf\n",time_, position_, velocity_);  
+       printf("%lf,%lf,%lf\n",timeNs_, position_, velocity_);  
     } 
 };
 
@@ -82,12 +84,12 @@ class ecmcPvtSegment {
      return endPnt_;
     }
 
-    bool isTimeValid(double time) {
-      return time >= startPnt_->time_ && time <= endPnt_->time_;
+    bool isTimeValid(double time, double timeNs) {      
+      return timeNs >= startPnt_->timeNs_ && timeNs <= endPnt_->timeNs_;
     }
     
-    double position(double time) {
-      if(!isTimeValid(time)) {
+    double position(double time, double timeNs) {
+      if(!isTimeValid(time, timeNs)) {
         // Exception
         printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
         return 0;
@@ -97,8 +99,8 @@ class ecmcPvtSegment {
       return k0_ + k1_ * timeInSeg_ + k2_ * timeInSegPow2_ + k3_ * timeInSegPow2_ * timeInSeg_;
     }
 
-    double velocity(double time) {
-      if(!isTimeValid(time)) {
+    double velocity(double time, double timeNs) {
+      if(!isTimeValid(time,timeNs)) {
         // Exception
         printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
         return 0;
@@ -107,8 +109,8 @@ class ecmcPvtSegment {
       return k1_ + 2 * k2_ * timeInSeg_ + 3 * k3_ * timeInSeg_  * timeInSeg_;
     }
 
-    double acceleration(double time) {
-      if(!isTimeValid(time)) {
+    double acceleration(double time, double timeNs) {
+      if(!isTimeValid(time,timeNs)) {
         // Exception
         printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
         return 0;
@@ -119,8 +121,9 @@ class ecmcPvtSegment {
 
 class ecmcAxisPVTSequence {
   public:
-    ecmcAxisPVTSequence(double sampleTime);
+    ecmcAxisPVTSequence(double sampleTime, size_t maxProfilePoints);
     void   setSampleTime(double sampleTime);
+    int    setAxisDataRef(ecmcAxisData *data);
     void   addPoint(ecmcPvtPoint *pnt);
     double startTime();
     double endTime();    
@@ -128,7 +131,7 @@ class ecmcAxisPVTSequence {
     bool   validate();
     bool   isLastSample();
     bool   isLastSample(double time);
-    bool   isTimeValid(double time);
+    bool   isTimeValid(double time, double timeNs);
     bool   nextSampleStep();        // Go to next sample in time, return true as long not exceeding endtime
     double getCurrPosition();       // For RT sequential access
     double getCurrVelocity();       // For RT sequential access
@@ -147,18 +150,21 @@ class ecmcAxisPVTSequence {
     int    setPositionOffset(double offset);  // For running relative
     int    setExecute(bool execute);
     bool   getExecute();
-    
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
     ecmcPvtSegment* getSeqmentAtTime(double time);
     std::vector<ecmcPvtSegment*> segments_;
     std::vector<ecmcPvtPoint*> points_;
-    size_t segmentCount_, pointCount_, currSegIndex_;
-    double totalTime_, sampleTime_, currTime_;
+    size_t segmentCount_, pointCount_, currSegIndex_,currSegIndexOld_;
+    double totalTime_, sampleTime_, currTime_, firstSegTime_;
+    double currTimeNs_, sampleTimeNs_;
     bool busy_;
     double positionOffset_;  // For relative motion
     bool execute_;
     bool executeOld_;
+    std::vector<double> resultPosActArray_;
+    std::vector<double> resultPosErrArray_;
+    ecmcAxisData *data_;
 };
 #endif  /* ECMCAXISPVT_H_ */

@@ -70,7 +70,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #ifdef motorFlagsNtmUpdateString
   setIntegerParam(pC_->motorFlagsNtmUpdate_,       1);
 #endif // ifdef motorFlagsNtmUpdateString
-
+  profileMaxPoints_ = 0;
   // initialize
   memset(&drvlocal,       0,    sizeof(drvlocal));
   memset(&drvlocal.dirty, 0xFF, sizeof(drvlocal.dirty));
@@ -85,11 +85,12 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   profileSwitchPVTObject_ = false;
   pvtEnabled_             = 0;
   
-  pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
-  pvtRunning_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
-
-  pvtPrepare_->clear();
-  pvtRunning_->clear();
+  //pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000,);
+  //pvtRunning_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000,);
+  pvtPrepare_ = NULL;
+  pvtRunning_ = NULL;
+  //pvtPrepare_->clear();
+  //pvtRunning_->clear();
 
   if (!drvlocal.ecmcAxis) {
     LOGERR(
@@ -1920,7 +1921,7 @@ asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
     printf("ecmcMotorRecordAxis::initializeProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
     return asynSuccess;
   }
-
+  profileMaxPoints_ = maxProfilePoints;
   profileLastInitOk_= false;
   asynStatus status = asynMotorAxis::initializeProfile(maxProfilePoints);
   
@@ -1964,8 +1965,7 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
     return status;    
   }
 
-  for (i = 0; i < numPoints; i++) {
-    //profilePositions_[i] = profilePositions_[i] + offsetxxx_;
+  for (i = 0; i < numPoints; i++) {    
     profilePositions_[i] = positions[i];
   }
 
@@ -2023,9 +2023,8 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
 
-  if(!pvtPrepare_) {   
-    printf("ERROR: new ecmcAxisPVTSequence() should never happen..\n");
-    pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000);
+  if(!pvtPrepare_) {       
+    pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000, profileMaxPoints_);
   }
 
   if(!pvtPrepare_ ) {
@@ -2070,10 +2069,15 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   double currTime = accTime;  // Start at this time since first seqment takes the acceleration
 
   // Add first points
-  preVelo = (profilePositions_[1]-profilePositions_[0]) / pC->profileTimes_[0];
+  if(timeMode == PROFILE_TIME_MODE_FIXED) {      
+    preVelo = (profilePositions_[1]-profilePositions_[0]) / time;
+  } else { // Time array
+    preVelo = (profilePositions_[1]-profilePositions_[0]) / pC->profileTimes_[0];
+  }
+
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0], preVelo, currTime));
   
-  printf("Added point (%lf,%lf,%lf)",profilePositions_[0], preVelo, currTime);
+  printf("Added point (%lf,%lf,%lf)\n",profilePositions_[0], preVelo, currTime);
 
   if(timeMode == PROFILE_TIME_MODE_FIXED) {
     currTime += time;
@@ -2084,7 +2088,12 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   //add center points
   double velo = preVelo;
   for (size_t i = 1; i < (profileNumPoints_-1); i++) {
-    postVelo = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];   
+    if(timeMode == PROFILE_TIME_MODE_FIXED) {      
+      postVelo = (profilePositions_[i+1]-profilePositions_[i]) / time;
+    } else { // Time array
+      postVelo = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];
+    }
+
     velo = (preVelo + postVelo)/2;
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i],velo, currTime));
     printf("Added point (%lf,%lf,%lf)",profilePositions_[i], velo, currTime);
@@ -2103,7 +2112,10 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   // Add deceleration point. always zero velo after accTime
   currTime +=accTime;    
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1] + velo * accTime / 2, 0, currTime));
+  
+  // Dump what we have
   pvtPrepare_->print();
+
 
   if(!drvlocal.ecmcAxis) {
     return asynError;

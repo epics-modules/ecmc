@@ -81,8 +81,6 @@ void ecmcAxisSequencer::initVars() {
 }
 
 void ecmcAxisSequencer::init(double sampleTime) {
- 
-
 }
 
 // Cyclic execution
@@ -3471,6 +3469,9 @@ int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
   }
   pvtOk_ = false; // need new validation since new object
   pvt_   = pvt;
+  // Allow pvt object to get data 
+  pvt_->setAxisDataRef(data_);
+
   if(data_->command_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::setPVTObject(pvt): INFO: PVT object assigned\n");
   }
