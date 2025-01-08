@@ -4,22 +4,30 @@ Release Notes
 * Add profile move (motor record extension). Only move is supported, not triggering and readbacks yet.
 
 # ECMC 10.0.0
-* new plugin interface version. Needed in order to be able to use require to load plugins.
+* New plugin interface version. Needed in order to be able to use require to load plugins.
+* Add delay compensation for encoders (time between input of encoder and output of velo in drive)
+  - Different encoders can have different delay times.
+  - The functionality is defulat disabled.
+```
+Cfg.SetAxisEncDelayCyclesAndEnable(<axis_no>,<cycles>,<enable>)"
+#Example: Set delay to 2.5 cycles for axis 1 and the current encoder beeing configured
+Cfg.SetAxisEncDelayCyclesAndEnable(1,2.5,1)"
+```
 
 # ECMC 9.6.8
 * Change lookup table support to be defined in EGUs:
 ```
-Cfg.LoadAxisEncLookupTable(int axis_no,char *filename)
-Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable)
-Cfg.SetAxisEncLookupTableRange(int axis_no, range)
+Cfg.LoadAxisEncLookupTable(<axis_no>,<filename>)
+Cfg.SetAxisEncLookupTableEnable(<axis_no>,<enable>)
+Cfg.SetAxisEncLookupTableRange(<axis_no>,<range>)
 ```
 
 # ECMC 9.6.7
 * When enabling an axis only update current setpoint if not attarget (or at first enabling of axis)
 * Add lookup table support for calibration of encoders:
 ```
-Cfg.LoadAxisEncLookupTable(int axis_no,char *filename)
-Cfg.SetAxisEncLookupTableEnable(int axis_no, int enable)
+Cfg.LoadAxisEncLookupTable(<axis_no>,<filename>)
+Cfg.SetAxisEncLookupTableEnable(<axis_no>,<enable>)
 
 OBSOLETE.. Cfg.SetAxisEncLookupTableRawPosMask(int axis_no, uint64_t rawMask)
 ```

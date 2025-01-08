@@ -1727,6 +1727,17 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncRefToOtherEncAtStartup(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEncDelayCyclesAndEnable(int axis_no, double cycles, int enable);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncDelayCyclesAndEnable(%d,%lf,%d)",
+                 &iValue,
+                 &dValue,
+                 &iValue2);
+
+  if (nvals == 3) {
+    return setAxisEncDelayCyclesAndEnable(iValue,dValue,iValue2);
+  }
+
   /*int Cfg.SetAxisEncEnableRefAtHome(int axis_no, int enbale);*/
   nvals =
     sscanf(myarg_1, "SetAxisEncEnableRefAtHome(%d,%d)", &iValue, &iValue2);
