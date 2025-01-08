@@ -2024,7 +2024,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   }
 
   if(!pvtPrepare_) {       
-    pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000, profileMaxPoints_);
+    pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()*1E6, profileMaxPoints_);
   }
 
   if(!pvtPrepare_ ) {
@@ -2066,7 +2066,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   
   double preVelo = 0;
   double postVelo = 0;
-  double currTime = accTime;  // Start at this time since first seqment takes the acceleration
+  double currTime = accTime * 1E9;  // Start at this time since first seqment takes the acceleration
 
   // Add first points
   if(timeMode == PROFILE_TIME_MODE_FIXED) {      
@@ -2080,9 +2080,9 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   printf("Added point (%lf,%lf,%lf)\n",profilePositions_[0], preVelo, currTime);
 
   if(timeMode == PROFILE_TIME_MODE_FIXED) {
-    currTime += time;
+    currTime += time * 1E9;
   } else { // Time array
-    currTime += pC->profileTimes_[0];
+    currTime += pC->profileTimes_[0] * 1E9;
   }
 
   //add center points
@@ -2098,9 +2098,9 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i],velo, currTime));
     printf("Added point (%lf,%lf,%lf)",profilePositions_[i], velo, currTime);
     if(timeMode == PROFILE_TIME_MODE_FIXED) {
-      currTime += time;
+      currTime += time * 1E9;
     } else { // Time array
-      currTime += pC->profileTimes_[0];
+      currTime += pC->profileTimes_[0] * 1E9;
     }
     preVelo   = postVelo;
   }
@@ -2110,7 +2110,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   printf("Added point (%lf,%lf,%lf)",profilePositions_[profileNumPoints_-1], postVelo, currTime);
 
   // Add deceleration point. always zero velo after accTime
-  currTime +=accTime;    
+  currTime +=accTime * 1E9;    
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1] + velo * accTime / 2, 0, currTime));
   
   // Dump what we have
