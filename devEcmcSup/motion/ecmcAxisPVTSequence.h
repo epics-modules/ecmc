@@ -24,15 +24,15 @@ class ecmcPvtPoint {
   public:
     double position_;
     double velocity_;    
-    double timeNs_;
-    ecmcPvtPoint(double position, double velocity, double timeNs) {
+    double time_;
+    ecmcPvtPoint(double position, double velocity, double time) {
       position_ = position;
       velocity_ = velocity;      
-      timeNs_ = round(timeNs);
+      time_ = time;
     }
 
     void print() {
-       printf("%lf,%lf,%lf\n",timeNs_, position_, velocity_);  
+       printf("%lf,%lf,%lf\n",time_, position_, velocity_);  
     } 
 };
 
@@ -42,21 +42,23 @@ class ecmcPvtSegment {
     ecmcPvtPoint *startPnt_;
     ecmcPvtPoint *endPnt_;
     double k0_,k1_,k2_,k3_;
-    double timeSpanNs_,range_;
+    double timeSpan_,range_;
+
     // Allocate all variables in object
     double timeInSeg_;
     double timeInSegPow2_;
     // Calc coeffs
     bool build() {
-      timeSpanNs_ = endPnt_->timeNs_ - startPnt_->timeNs_;
-      if (timeSpanNs_ < 0) {
+      timeSpan_ = endPnt_->time_ - startPnt_->time_;
+      if (timeSpan_ < 0) {
         return false;
       }
       range_    = endPnt_->position_ - startPnt_->position_;
       k0_ = startPnt_->position_;
       k1_ = startPnt_->velocity_;
-      k2_ = 3 * range_ / (timeSpanNs_ * timeSpanNs_) - (2 * startPnt_->velocity_ + endPnt_->velocity_) / timeSpanNs_;
-      k3_ = -2 * range_ / (timeSpanNs_ * timeSpanNs_ * timeSpanNs_) + (startPnt_->velocity_ + endPnt_->velocity_) / (timeSpanNs_ * timeSpanNs_);
+      k2_ = 3 * range_ / (timeSpan_ * timeSpan_) - (2 * startPnt_->velocity_ + endPnt_->velocity_) / timeSpan_;
+      k3_ = -2 * range_ / (timeSpan_ * timeSpan_ * timeSpan_) + (startPnt_->velocity_ + endPnt_->velocity_) / (timeSpan_ * timeSpan_);
+      printf("k1 %lf, k2 %lf, k3 %lf\n",k1_,k2_,k3_);
       return true;
     }
 
@@ -68,7 +70,7 @@ class ecmcPvtSegment {
       k1_            = 0;
       k2_            = 0;
       k3_            = 0;
-      timeSpanNs_    = 0;
+      timeSpan_      = 0;
       timeInSeg_     = 0;
       timeInSegPow2_ = 0;
       range_         = 0;
@@ -84,45 +86,45 @@ class ecmcPvtSegment {
      return endPnt_;
     }
 
-    bool isTimeValid(double timeNs) {      
-      return timeNs >= startPnt_->timeNs_ && timeNs <= endPnt_->timeNs_;
+    bool isTimeValid(double time) {      
+      return time >= startPnt_->time_ && time <= endPnt_->time_;
     }
     
-    double position(double timeNs) {
-      if(!isTimeValid(timeNs)) {
+    double position(double time) {
+      if(!isTimeValid(time)) {
         // Exception
         printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
         return 0;
       }
-      timeInSeg_ = timeNs - startPnt_->timeNs_;
+      timeInSeg_ = time - startPnt_->time_;
       timeInSegPow2_ = timeInSeg_ * timeInSeg_;
       return k0_ + k1_ * timeInSeg_ + k2_ * timeInSegPow2_ + k3_ * timeInSegPow2_ * timeInSeg_;
     }
 
-    double velocity(double timeNs) {
-      if(!isTimeValid(timeNs)) {
+    double velocity(double time) {
+      if(!isTimeValid(time)) {
         // Exception
         printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
         return 0;
       }
-      timeInSeg_ = timeNs - startPnt_->timeNs_;
+      timeInSeg_ = time - startPnt_->time_;
       return k1_ + 2 * k2_ * timeInSeg_ + 3 * k3_ * timeInSeg_  * timeInSeg_;
     }
 
-    double acceleration(double timeNs) {
-      if(!isTimeValid(timeNs)) {
+    double acceleration(double time) {
+      if(!isTimeValid(time)) {
         // Exception
         printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
         return 0;
       }
-      return 2 * k2_ + 6 * k3_ * (timeNs - startPnt_->timeNs_);
+      return 2 * k2_ + 6 * k3_ * (time - startPnt_->time_);
     }
 };
 
 class ecmcAxisPVTSequence {
   public:
-    ecmcAxisPVTSequence(double sampleTimeNs, size_t maxProfilePoints);
-    void   setSampleTime(double sampleTimeNs);
+    ecmcAxisPVTSequence(double sampleTime, size_t maxProfilePoints);
+    void   setSampleTime(double sampleTime);
     int    setAxisDataRef(ecmcAxisData *data);
     void   addPoint(ecmcPvtPoint *pnt);
     double startTime();
@@ -130,17 +132,17 @@ class ecmcAxisPVTSequence {
     void   initSeq(); // Call before starting a seq
     bool   validate();
     bool   isLastSample();
-    bool   isLastSample(double timeNs);
-    bool   isTimeValid(double timeNs);
+    bool   isLastSample(double time);
+    bool   isTimeValid(double time);
     bool   nextSampleStep();        // Go to next sample in time, return true as long ndouble time,
     double getCurrPosition();       // For RT sequential access
     double getCurrVelocity();       // For RT sequential access
     double getCurrAcceleration();   // For RT sequential access
     double getCurrTime();
     int    getCurrentSegementId();
-    double position(double timeNs, int *valid);     // For non RT access
-    double velocity(double timeNs, int *valid);     // For non RT access
-    double acceleration(double timeNs, int *valid); // For non RT access
+    double position(double time, int *valid);     // For non RT access
+    double velocity(double time, int *valid);     // For non RT access
+    double acceleration(double time, int *valid); // For non RT access
     bool   getBusy();
     void   setBusy(bool busy);
     void   print();
@@ -157,7 +159,7 @@ class ecmcAxisPVTSequence {
     std::vector<ecmcPvtSegment*> segments_;
     std::vector<ecmcPvtPoint*> points_;
     size_t segmentCount_, pointCount_, currSegIndex_,currSegIndexOld_;
-    double totalTimeNs_, sampleTimeNs_, currTimeNs_, firstSegTimeNs_;
+    double totalTime_, sampleTime_, currTime_, firstSegTime_;
     bool busy_;
     double positionOffset_;  // For relative motion
     bool execute_;

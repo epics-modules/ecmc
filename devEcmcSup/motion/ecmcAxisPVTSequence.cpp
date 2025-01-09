@@ -12,26 +12,26 @@
 
 #include "ecmcAxisPVTSequence.h"
 
-ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTimeNs,size_t maxPoints) {
+ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
   segmentCount_ = 0;
   pointCount_   = 0;
-  totalTimeNs_    = 0;
-  currTimeNs_   = 0;
-  sampleTimeNs_ = round(sampleTimeNs);
+  totalTime_    = 0;
+  currTime_     = 0;
+  sampleTime_   = sampleTime;
   busy_         = false;
   currSegIndex_ = 0;
   currSegIndexOld_ = 0;
   positionOffset_ = 0.0;
   data_           = NULL;
-  firstSegTimeNs_ = 0;
+  firstSegTime_ = 0;
   segments_.reserve(maxPoints + 3);
   points_.reserve(maxPoints + 3);
   resultPosActArray_.reserve(maxPoints);  
   resultPosErrArray_.reserve(maxPoints);
 }
 
-void   ecmcAxisPVTSequence::setSampleTime(double sampleTimeNs) {
-  sampleTimeNs_   = round(sampleTimeNs) ;
+void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
+  sampleTime_   = sampleTime;
 }
 
 void ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
@@ -56,26 +56,26 @@ double ecmcAxisPVTSequence::startTime(){
   if(segmentCount_ <= 0) {
       return -1;
   }
-  return segments_[0]->getStartPoint()->timeNs_;
+  return segments_[0]->getStartPoint()->time_;
 }
 
 double ecmcAxisPVTSequence::endTime(){
   if(segmentCount_ <= 0) {
     return -1;
   }
-  return segments_[segmentCount_-1]->getEndPoint()->timeNs_;
+  return segments_[segmentCount_-1]->getEndPoint()->time_;
 }
 
 // Call before starting a seq
 void ecmcAxisPVTSequence::initSeq() {
   busy_ = true;
-  currTimeNs_   = round(startTime());
+  currTime_   = startTime();
   currSegIndex_ = 0;
   currSegIndexOld_ = 0;
   resultPosActArray_.clear();
   resultPosErrArray_.clear();
   if(segmentCount_ > 0) {
-    firstSegTimeNs_ = segments_[0]->getEndPoint()->timeNs_;
+    firstSegTime_ = segments_[0]->getEndPoint()->time_;
   }
   printf("ecmcAxisPVTSequence::initSeq()\n");
 }
@@ -84,22 +84,22 @@ bool ecmcAxisPVTSequence::validate() {
   return /*built_ && */ segmentCount_ > 0;
 }
 
-ecmcPvtSegment* ecmcAxisPVTSequence::getSeqmentAtTime(double timeNs) {
+ecmcPvtSegment* ecmcAxisPVTSequence::getSeqmentAtTime(double time) {
   if(segmentCount_ <= 0) {
     return NULL;
   };
-  if(timeNs < startTime() || timeNs > endTime() ) {
+  if(time < startTime() || time > endTime() ) {
     return NULL;
   };
   for(size_t i=0; i < segmentCount_; i++) {
-    if(timeNs >= segments_[i]->getStartPoint()->timeNs_  && 
-       timeNs < segments_[i]->getEndPoint()->timeNs_ ) {
+    if(time >= segments_[i]->getStartPoint()->time_  && 
+       time < segments_[i]->getEndPoint()->time_ ) {
       return segments_[i];
     }
   }
 
   // Check if last seq endtime (equals)
-  if( timeNs == segments_[segmentCount_-1]->getEndPoint()->timeNs_) {
+  if( time == segments_[segmentCount_-1]->getEndPoint()->time_) {
     return segments_[segmentCount_-1];
   }
   
@@ -107,19 +107,19 @@ ecmcPvtSegment* ecmcAxisPVTSequence::getSeqmentAtTime(double timeNs) {
 }
 
 bool ecmcAxisPVTSequence::isLastSample() {
-  return isLastSample(currTimeNs_);
+  return isLastSample(currTime_);
 }
 
-bool ecmcAxisPVTSequence::isLastSample(double timeNs) {
-  return timeNs >= endTime();
+bool ecmcAxisPVTSequence::isLastSample(double time) {
+  return time >= endTime();
 }
 
-bool ecmcAxisPVTSequence::isTimeValid(double timeNs) {
+bool ecmcAxisPVTSequence::isTimeValid(double time) {
   if(segmentCount_ <= 0) {
     return false;
   }
 
-  if(timeNs < startTime() || timeNs > endTime() ) {
+  if(time < startTime() || time > endTime() ) {
     return false;
   }
   return true;
@@ -131,24 +131,24 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
   // If  traj rampdown..
   //Do not increase time if not executeing
   if(!execute_) {
-    return currTimeNs_ < endTime();
+    return currTime_ < endTime();
   }
 
   // Increase time
-  currTimeNs_ = round(currTimeNs_ + sampleTimeNs_);
+  currTime_ = currTime_ + sampleTime_;
 
   // Switch segment?
   //if(currTime_ >= segments_[currSegIndex_]->getEndPoint()->time_) {
-  if(currTimeNs_ > segments_[currSegIndex_]->getEndPoint()->timeNs_) {
+  if(currTime_ > segments_[currSegIndex_]->getEndPoint()->time_) {
     if(currSegIndex_ < segmentCount_-1) {
       // the time must be in the next segment
       currSegIndex_++;
     } else {  // last segment and last sample, set to curr time to end-time
       busy_ = false;
-      currTimeNs_ = endTime();
+      currTime_ = endTime();
     }
   }
-  return currTimeNs_ < endTime();
+  return currTime_ < endTime();
 }
 
 // For RT sequential access
@@ -159,7 +159,7 @@ double ecmcAxisPVTSequence::getCurrPosition(){
     // skip first and last segment
     if(currSegIndex_ < segmentCount_) {
       printf("pvt[%lu]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
-              (currTimeNs_ - firstSegTimeNs_) / 1E9,
+              (currTime_ - firstSegTime_),
               data_->status_.currentPositionActual - positionOffset_,
               data_->status_.currentPositionSetpoint - positionOffset_,
               data_->status_.cntrlError);
@@ -168,60 +168,60 @@ double ecmcAxisPVTSequence::getCurrPosition(){
     }
   }
 
-  printf("xpvt[%lu]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
-              currTimeNs_,
-              data_->status_.currentPositionActual - positionOffset_,
-              data_->status_.currentPositionSetpoint - positionOffset_,
-              data_->status_.cntrlError);
+//  printf("pvt[%d]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
+//              currTime_,
+//              data_->status_.currentPositionActual - positionOffset_,
+//              data_->status_.currentPositionSetpoint - positionOffset_,
+//              data_->status_.cntrlError);
   
-  return segments_[currSegIndex_]->position(currTimeNs_) + positionOffset_;
+  return segments_[currSegIndex_]->position(currTime_) + positionOffset_;
 }
 
 // For RT sequential access
 double ecmcAxisPVTSequence::getCurrVelocity(){
-  return segments_[currSegIndex_]->velocity(currTimeNs_);
+  return segments_[currSegIndex_]->velocity(currTime_);
 }
 
 // For RT sequential access
 double ecmcAxisPVTSequence::getCurrAcceleration(){
-  return segments_[currSegIndex_]->acceleration(currTimeNs_);
+  return segments_[currSegIndex_]->acceleration(currTime_);
 }
 
 double ecmcAxisPVTSequence::getCurrTime(){
-  return currTimeNs_;
+  return currTime_;
 }
 
 // For non RT access
-double ecmcAxisPVTSequence::position(double timeNs, int *valid) {
-  ecmcPvtSegment* temp = getSeqmentAtTime(timeNs);
+double ecmcAxisPVTSequence::position(double time, int *valid) {
+  ecmcPvtSegment* temp = getSeqmentAtTime(time);
   if(!temp) {
       *valid = 0;
       return 0;
   }
   *valid = 1;
-  return temp->position(timeNs);
+  return temp->position(time);
 }
 
 // For non RT access
-double ecmcAxisPVTSequence::velocity(double timeNs, int *valid) {
-  ecmcPvtSegment* temp = getSeqmentAtTime(timeNs);
+double ecmcAxisPVTSequence::velocity(double time, int *valid) {
+  ecmcPvtSegment* temp = getSeqmentAtTime(time);
   if(!temp) {
       *valid = 0;
       return 0;
   }
   *valid = 1;
-  return temp->velocity(timeNs);
+  return temp->velocity(time);
 }
 
 // For non RT access
-double ecmcAxisPVTSequence::acceleration(double timeNs, int *valid) {
-  ecmcPvtSegment* temp = getSeqmentAtTime(timeNs);
+double ecmcAxisPVTSequence::acceleration(double time, int *valid) {
+  ecmcPvtSegment* temp = getSeqmentAtTime(time);
   if(!temp) {
       *valid = 0;
       return 0;
   }
   *valid = 1;
-  return temp->acceleration(timeNs);
+  return temp->acceleration(time);
 }
 
 void   ecmcAxisPVTSequence::print() {
@@ -230,7 +230,7 @@ void   ecmcAxisPVTSequence::print() {
     return;
   }
 
-  printf("time [ns], pos[egu], vel[egu]\n");
+  printf("time [s], pos[egu], vel[egu]\n");
   for(size_t i=0; i < pointCount_; i++) {
     points_[i]->print();
   }
@@ -275,8 +275,8 @@ void ecmcAxisPVTSequence::clear() {
   resultPosErrArray_.clear();
   segmentCount_ = 0;
   pointCount_   = 0;
-  totalTimeNs_  = 0;
-  currTimeNs_   = 0;
+  totalTime_  = 0;
+  currTime_   = 0;
   busy_         = false;
   currSegIndex_ = 0;
   currSegIndexOld_ = 0;
@@ -289,8 +289,8 @@ int ecmcAxisPVTSequence::validateRT() {
   }
   for(uint i = 0; i < segmentCount_; ++i) {
     printf("seg[%u]: starttime %lf, stoptime %lf\n",i,
-    segments_[i]->getStartPoint()->timeNs_,
-    segments_[i]->getEndPoint()->timeNs_);
+    segments_[i]->getStartPoint()->time_,
+    segments_[i]->getEndPoint()->time_);
   }
   return 0;
 }
