@@ -85,12 +85,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   profileSwitchPVTObject_ = false;
   pvtEnabled_             = 0;
   
-  //pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000,);
-  //pvtRunning_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000,);
   pvtPrepare_ = NULL;
   pvtRunning_ = NULL;
-  //pvtPrepare_->clear();
-  //pvtRunning_->clear();
 
   if (!drvlocal.ecmcAxis) {
     LOGERR(
@@ -1251,7 +1247,7 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcBusy = drvlocal.ecmcAxis->getBusy();
   drvlocal.ecmcAtTarget = drvlocal.ecmcAxis->getMon()->getAtTarget();
   drvlocal.ecmcAtTargetMonEnable = drvlocal.ecmcAxis->getMon()->getEnableAtTargetMon();
-  
+  drvlocal.axisPrintDbg = drvlocal.ecmcAxis->getPrintDbg();
   
   drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
@@ -1973,7 +1969,9 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
 
   profileLastDefineOk_ = status == asynSuccess;
   for (size_t i = 0; i < (profileNumPoints_); i++) {
-    printf("ecmcMotorRecordAxis::defineProfile: profilePositions_[%ld] = %lf\n",i,profilePositions_[i]);
+    if(drvlocal.axisPrintDbg) {
+      printf("ecmcMotorRecordAxis::defineProfile: profilePositions_[%ld] = %lf\n",i,profilePositions_[i]);
+    }
   }
 
   return asynSuccess;
@@ -2049,21 +2047,23 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   /*status |= */ pC_->getIntegerParam(ECMC_MR_CNTRL_ADDR, pC_->profileTimeMode_, &timeMode);
   /*status |= */ pC_->getDoubleParam(ECMC_MR_CNTRL_ADDR, pC_->profileFixedTime_, &time);
 
-  if(timeMode==PROFILE_TIME_MODE_FIXED) {
-    printf("TIME_MODE=PROFILE_TIME_MODE_FIXED, time %lf\n",time);
-  } else {
-    printf("TIME_MODE=PROFILE_TIME_MODE_ARRAY\n");
-  }
-  
-  for (size_t i = 0; i < profileNumPoints_; i++) {
-    if(timeMode == PROFILE_TIME_MODE_FIXED) {
-    printf("time[%ld] = %lf \n",i, time);
-    } else { // Time array
-      printf("pC->profileTimes_[%ld] = %lf \n",i, pC->profileTimes_[i]);
+  if(drvlocal.axisPrintDbg) {
+    if(timeMode==PROFILE_TIME_MODE_FIXED) {
+      printf("TIME_MODE=PROFILE_TIME_MODE_FIXED, time %lf\n",time);
+    } else {
+      printf("TIME_MODE=PROFILE_TIME_MODE_ARRAY\n");
     }
-    printf("profilePositions_[%ld] = %lf \n",i, profilePositions_[i]);
-  }
   
+    for (size_t i = 0; i < profileNumPoints_; i++) {
+      if(timeMode == PROFILE_TIME_MODE_FIXED) {
+      printf("time[%ld] = %lf \n",i, time);
+      } else { // Time array
+        printf("pC->profileTimes_[%ld] = %lf \n",i, pC->profileTimes_[i]);
+      }
+      printf("profilePositions_[%ld] = %lf \n",i, profilePositions_[i]);
+    }
+  }
+
   double preVelo = 0;
   double postVelo = 0;
   double currTime = accTime;  // Start at this time since first seqment takes the acceleration
@@ -2077,7 +2077,9 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0], preVelo, currTime));
   
-  printf("Added point (%lf,%lf,%lf)\n",profilePositions_[0], preVelo, currTime);
+  if(drvlocal.axisPrintDbg) {
+    printf("Added point (%lf,%lf,%lf)\n",profilePositions_[0], preVelo, currTime);
+  }
 
   if(timeMode == PROFILE_TIME_MODE_FIXED) {
     currTime += time;
@@ -2096,7 +2098,9 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 
     velo = (preVelo + postVelo)/2;
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i],velo, currTime));
-    printf("Added point (%lf,%lf,%lf)",profilePositions_[i], velo, currTime);
+    if(drvlocal.axisPrintDbg) {
+      printf("Added point (%lf,%lf,%lf)",profilePositions_[i], velo, currTime);
+    }
     if(timeMode == PROFILE_TIME_MODE_FIXED) {
       currTime += time;
     } else { // Time array
@@ -2107,7 +2111,9 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   
   // Add last point. same velo as prev point    
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], postVelo, currTime));  
-  printf("Added point (%lf,%lf,%lf)",profilePositions_[profileNumPoints_-1], postVelo, currTime);
+  if(drvlocal.axisPrintDbg) {
+    printf("Added point (%lf,%lf,%lf)",profilePositions_[profileNumPoints_-1], postVelo, currTime);
+  }
 
   // Add deceleration point. always zero velo after accTime
   currTime +=accTime;    
@@ -2128,8 +2134,9 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 }
 
 asynStatus ecmcMotorRecordAxis::executeProfile() {
-  
-  printf("ecmcMotorRecordAxis::executeProfile()\n");
+  if(drvlocal.axisPrintDbg) {
+    printf("ecmcMotorRecordAxis::executeProfile()\n");
+  }
   if(!pvtEnabled_) {
     printf("ecmcMotorRecordAxis::executeProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
     return asynSuccess;
@@ -2151,7 +2158,7 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
 
   if(pvtRunning_) {
     if(pvtRunning_->getBusy()) {
-      printf("Profile busy..\n");
+      printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Profile busy..\n",axisNo_);
       if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
       return asynError;
     }
@@ -2169,7 +2176,10 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-  printf("ecmcMotorRecordAxis::executeProfile()\n");
+  if(drvlocal.axisPrintDbg) {
+    printf("ecmcMotorRecordAxis::executeProfile()\n");
+  }
+
   status = asynMotorAxis::executeProfile();
   if(status != asynSuccess) {
     return status;
@@ -2197,10 +2207,14 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   int errorCode = 0;
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   if(mode == PROFILE_MOVE_MODE_ABSOLUTE){
-    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
+    if(drvlocal.axisPrintDbg) {
+      printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
+    }
     errorCode = drvlocal.ecmcAxis->movePVTAbs();
   } else {  // PROFILE_MOVE_MODE_RELATIVE
-    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
+    if(drvlocal.axisPrintDbg) {
+      printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
+    }
     errorCode = drvlocal.ecmcAxis->movePVTRel();
   }
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
@@ -2236,11 +2250,11 @@ asynStatus ecmcMotorRecordAxis::abortProfile() {
 
 asynStatus ecmcMotorRecordAxis::readbackProfile() {
   uint i;
+  int status = 0;
   //double resolution;
   //double offset;
   //int direction;
   //int numReadbacks;
-  int status=0;
   //static const char *functionName = "readbackProfile";
   //status |= pC_->getDoubleParam(axisNo_, pC_->motorRecResolution_, &resolution);
   //status |= pC_->getDoubleParam(axisNo_, pC_->motorRecOffset_, &offset);
@@ -2252,20 +2266,31 @@ asynStatus ecmcMotorRecordAxis::readbackProfile() {
 
   if(pvtRunning_->getBusy()) return asynError;
 
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+
+  // Get pointers to data of ecmc vectors
   double *dataPosAct =  pvtRunning_->getResultPosActDataPrt();
   double *dataPosErr =  pvtRunning_->getResultPosErrDataPrt();
   size_t elements = pvtRunning_->getResultBufferSize();
 
-  if(elements>profileMaxPoints_) {
+  if(dataPosAct == NULL || dataPosAct == NULL) {
+    if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+    return asynError;
+  }
+
+  if(elements == 0) {
+    if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+    return asynError;
+  }
+
+  if(elements > profileMaxPoints_) {
     elements = profileMaxPoints_;
   }
 
-  // Convert to user units
-  //if (direction != 0) resolution = -resolution;
-  for (i=0; i < elements; i++) {
-    profileReadbacks_[i] = dataPosAct[i];
-    profileFollowingErrors_[i] = dataPosErr[i];
-  }
+  memcpy(profileReadbacks_,       dataPosAct, elements * sizeof(double));
+  memcpy(profileFollowingErrors_, dataPosErr, elements * sizeof(double));
+  
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   status  = pC_->doCallbacksFloat64Array(profileReadbacks_,       elements, pC_->profileReadbacks_, axisNo_);
   status |= pC_->doCallbacksFloat64Array(profileFollowingErrors_, elements, pC_->profileFollowingErrors_, axisNo_);

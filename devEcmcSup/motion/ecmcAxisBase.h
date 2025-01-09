@@ -336,6 +336,7 @@ public:
   void       setSyncActSet(bool sync);  // Sync motor record next poll (in asynMotorAxis)
   bool       getSyncActSet();
   int        getSumInterlock();
+  int        getPrintDbg();
 
 protected:
   void       initVars();

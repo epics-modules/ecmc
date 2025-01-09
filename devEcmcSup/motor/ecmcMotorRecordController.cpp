@@ -672,7 +672,6 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
 
   // If axis is defined then all can be handled in asynMotorController (both axes and controller related)
   if (pAxis) {
-    printf("ecmcMotorRecordController::writeInt32: pAxis is valid\n");
     return asynMotorController::writeInt32(pasynUser, value);
   }
 
@@ -683,24 +682,18 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
     return status;
   }
 
-  printf("ecmcMotorRecordController::writeInt32: Controller related parameter.\n");
-
   // Must be controller related
   if (function == motorDeferMoves_) {
-    printf("writeInt32::setDeferredMoves\n");
     status = asynMotorController::setDeferredMoves(value);     
   } else if (function == profileBuild_) {
-    printf("writeInt32::buildProfile\n");
+
     status = buildProfile();
   } else if (function == profileExecute_) {
-    printf("writeInt32::executeProfile\n");
     status = executeProfile();
   } else if (function == profileAbort_) {
-    printf("writeInt32::abortProfile\n");
     status = abortProfile();
   } else if (function == profileReadback_) {
-    printf("writeInt32::readbackProfile\n");
-    status = asynMotorController::readbackProfile();
+    status = readbackProfile();
   } else if (function == profileTimeMode_) {
     // if time mode is changed also the pvt object needs to be rebuilt
     for (int axis = 0; axis < numAxes_; axis++) {      
@@ -736,7 +729,8 @@ asynStatus ecmcMotorRecordController::abortProfile()
     if (!pAxis) continue;
     pAxis->abortProfile();
   }
-  setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_DONE);
+  setIntegerParam(profileExecuteState_, PROFILE_STATUS_UNDEFINED);
+  setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_UNDEFINED);
   setIntegerParam(profileCurrentPoint_, 0);
   setIntegerParam(profileActualPulses_, 0);
   setIntegerParam(profileExecuteStatus_,PROFILE_STATUS_ABORT);
@@ -883,13 +877,12 @@ asynStatus ecmcMotorRecordController::writeFloat64Array(asynUser *pasynUser, epi
   return asynSuccess;
 }
 
-
 asynStatus ecmcMotorRecordController::executeProfile() {
   asynStatus status = asynSuccess;
   printf("ecmcMotorRecordController::executeProfile()\n");
   int axis;
   ecmcMotorRecordAxis *pAxis;
-  
+  setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_UNDEFINED);
   for (axis=0; axis<numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
@@ -906,12 +899,49 @@ asynStatus ecmcMotorRecordController::executeProfile() {
   setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
   setIntegerParam(profileCurrentPoint_, 0);
   setIntegerParam(profileActualPulses_, 0);
+  
   sprintf(profileMessage_, "Profile started\n");
   setStringParam(profileExecuteMessage_, profileMessage_);
 
   callParamCallbacks();
 
   return status;
+}
+
+asynStatus ecmcMotorRecordController::readbackProfile() {
+
+  // static const char *functionName = "readbackProfile";
+  
+  // Will never have time to update anyway..
+  //setIntegerParam(profileReadbackState_, PROFILE_READBACK_BUSY);
+  //setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_UNDEFINED);
+  //sprintf(profileMessage_, "Redback started\n");
+  //setStringParam(profileReadbackMessage_, profileMessage_);  
+
+  int axis;
+  bool statOK = true;
+  ecmcMotorRecordAxis *pAxis;
+  
+  for (axis=0; axis<numAxes_; axis++) {
+    pAxis = getAxis(axis);
+    if (!pAxis) continue;
+    statOK &= pAxis->readbackProfile() == asynSuccess;
+  }
+
+  setIntegerParam(profileReadbackState_, PROFILE_READBACK_DONE);
+  
+  if(statOK) {
+    setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_SUCCESS);
+    sprintf(profileMessage_, "Redback Done\n");
+    setStringParam(profileReadbackMessage_, profileMessage_);
+  } else {
+    setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_FAILURE);
+    sprintf(profileMessage_, "Redback failed\n");
+    setStringParam(profileReadbackMessage_, profileMessage_);
+  }
+  callParamCallbacks();
+
+  return statOK ? asynSuccess : asynError;
 }
 
 /** Returns a pointer to an ecmcMotorRecordAxis object.

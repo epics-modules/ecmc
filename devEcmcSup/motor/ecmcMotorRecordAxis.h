@@ -120,6 +120,7 @@ private:
       unsigned int sErrorMessage         : 1;     /* From MCU */
       unsigned int initialPollNeeded     : 1;
     }    dirty;
+    int  axisPrintDbg;
     int  moveReady;
     int  moveReadyOld;
     char cmdErrorMessage[80];               /* From driver */

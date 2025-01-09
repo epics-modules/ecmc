@@ -139,13 +139,8 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
   // Increase time
   currTime_ = currTime_ + sampleTime_;
 
-  // Switch segment?
-  //if(currTime_ >= segments_[currSegIndex_]->getEndPoint()->time_) {
-  // Try to get avoid rounding errors
-  //if((uint64_t)round(currTime_ * 1E9) > (uint64_t)round(segments_[currSegIndex_]->getEndPoint()->time_ * 1E9)) {
   if(currTime_ > segments_[currSegIndex_]->getEndPoint()->time_) {
     if(currSegIndex_ < segmentCount_-1) {
-      //printf("Switch segment at time %lf\n",currTime_);
       // the time must be in the next segment
       currSegIndexOld_ = currSegIndex_;
       currSegIndex_++;
@@ -160,14 +155,14 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
 // For RT sequential access
 double ecmcAxisPVTSequence::getCurrPosition(){
     /*  
-        Check if values should be latched to the result* vectors.
+        Check if values should be latched to the result* vectors (posact and poserr).
         Had issues here with rounding errors of double so cannot use change of "currSegIndex_" to trigger.
         Always latch at the sample closest to firstpoint.time+sampletime..
         Check if currTime is within half a sample time from the segemnt first point plus one sample time.
         Offset with one sample time because the correct setpoit was sent last cycle and the new is still not applied..
     */
     if(std::abs(currTime_- (segments_[currSegIndex_]->getStartPoint()->time_ + sampleTime_)) < (halfSampleTime_)) {
-    // skip first and last segment (acc and dec segments)
+    // skip first and last segment (since they are acc and dec segments)
     if(currSegIndex_ > 0 && currSegIndex_ < segmentCount_) {    
       printf("pvt[%lu]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
               (currTime_ - firstSegTime_),
@@ -178,7 +173,7 @@ double ecmcAxisPVTSequence::getCurrPosition(){
       resultPosErrArray_.push_back(data_->status_.cntrlError);
     }
   }
-
+  // return new/next setpoint
   return segments_[currSegIndex_]->position(currTime_) + positionOffset_;
 }
 

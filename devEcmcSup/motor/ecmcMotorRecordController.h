@@ -112,10 +112,12 @@ public:
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   asynStatus writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value,size_t nElements);
+  // Have to override the profile* since basecalse does not include error and status handling
   asynStatus initializeProfile(size_t maxProfilePoints);
   asynStatus buildProfile();
   asynStatus executeProfile();
   asynStatus abortProfile();
+  asynStatus readbackProfile();
   asynStatus enableAxisPVTFunc(int axisNo, int enable);
   int features_;
 

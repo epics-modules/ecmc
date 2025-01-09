@@ -2993,3 +2993,7 @@ int ecmcAxisBase::getSumInterlock() {
   return (data_.interlocks_.interlockStatus > 0) && 
          (data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE);
 }
+
+int ecmcAxisBase::getPrintDbg() {
+  return controlWord_.enableDbgPrintout;
+}
