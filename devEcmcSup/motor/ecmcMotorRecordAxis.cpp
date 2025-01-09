@@ -553,7 +553,7 @@ asynStatus ecmcMotorRecordAxis::readBackVelocities(int axisID) {
 asynStatus ecmcMotorRecordAxis::initialPoll(void) {
   asynStatus status;
 
-  if (!drvlocal.dirty.initialPollNeeded)return asynSuccess;
+  if (!drvlocal.dirty.initialPollNeeded) return asynSuccess;
 
   status = initialPollInternal();
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
@@ -2233,6 +2233,45 @@ asynStatus ecmcMotorRecordAxis::abortProfile() {
   }
   return asynSuccess;
 }
+
+asynStatus ecmcMotorRecordAxis::readbackProfile() {
+  uint i;
+  //double resolution;
+  //double offset;
+  //int direction;
+  //int numReadbacks;
+  int status=0;
+  //static const char *functionName = "readbackProfile";
+  //status |= pC_->getDoubleParam(axisNo_, pC_->motorRecResolution_, &resolution);
+  //status |= pC_->getDoubleParam(axisNo_, pC_->motorRecOffset_, &offset);
+  //status |= pC_->getIntegerParam(axisNo_, pC_->motorRecDirection_, &direction);
+  //status |= pC_->getIntegerParam(0, pC_->profileNumReadbacks_, &numReadbacks);
+  if (status) return asynError;
+  
+  if(!pvtRunning_) return asynError;
+
+  if(pvtRunning_->getBusy()) return asynError;
+
+  double *dataPosAct =  pvtRunning_->getResultPosActDataPrt();
+  double *dataPosErr =  pvtRunning_->getResultPosErrDataPrt();
+  size_t elements = pvtRunning_->getResultBufferSize();
+
+  if(elements>profileMaxPoints_) {
+    elements = profileMaxPoints_;
+  }
+
+  // Convert to user units
+  //if (direction != 0) resolution = -resolution;
+  for (i=0; i < elements; i++) {
+    profileReadbacks_[i] = dataPosAct[i];
+    profileFollowingErrors_[i] = dataPosErr[i];
+  }
+
+  status  = pC_->doCallbacksFloat64Array(profileReadbacks_,       elements, pC_->profileReadbacks_, axisNo_);
+  status |= pC_->doCallbacksFloat64Array(profileFollowingErrors_, elements, pC_->profileFollowingErrors_, axisNo_);
+  return asynSuccess;
+}
+
 
 bool ecmcMotorRecordAxis::getProfileLastBuildSuccess() {
   return profileLastBuildOk_;

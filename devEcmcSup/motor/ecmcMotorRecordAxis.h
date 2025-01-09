@@ -174,6 +174,8 @@ private:
 
   asynStatus executeProfile();
   asynStatus abortProfile();
+  asynStatus readbackProfile();
+
   asynStatus checkProfileStatus();
   int getProfileBusy();
   int getProfileCurrentSegementID();

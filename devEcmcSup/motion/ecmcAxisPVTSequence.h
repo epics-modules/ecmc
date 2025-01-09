@@ -152,6 +152,9 @@ class ecmcAxisPVTSequence {
     int    setPositionOffset(double offset);  // For running relative
     int    setExecute(bool execute);
     bool   getExecute();
+    double *getResultPosActDataPrt();
+    double *getResultPosErrDataPrt();
+    size_t getResultBufferSize();
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -159,7 +162,7 @@ class ecmcAxisPVTSequence {
     std::vector<ecmcPvtSegment*> segments_;
     std::vector<ecmcPvtPoint*> points_;
     size_t segmentCount_, pointCount_, currSegIndex_,currSegIndexOld_;
-    double totalTime_, sampleTime_, currTime_, firstSegTime_;
+    double totalTime_, sampleTime_,halfSampleTime_, currTime_, firstSegTime_;
     bool busy_;
     double positionOffset_;  // For relative motion
     bool execute_;

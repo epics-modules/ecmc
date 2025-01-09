@@ -13,17 +13,18 @@
 #include "ecmcAxisPVTSequence.h"
 
 ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
-  segmentCount_ = 0;
-  pointCount_   = 0;
-  totalTime_    = 0;
-  currTime_     = 0;
-  sampleTime_   = sampleTime;
-  busy_         = false;
-  currSegIndex_ = 0;
+  segmentCount_    = 0;
+  pointCount_      = 0;
+  totalTime_       = 0;
+  currTime_        = 0;
+  sampleTime_      = sampleTime;
+  halfSampleTime_  = sampleTime / 2;
+  busy_            = false;
+  currSegIndex_    = 0;
   currSegIndexOld_ = 0;
-  positionOffset_ = 0.0;
-  data_           = NULL;
-  firstSegTime_ = 0;
+  positionOffset_  = 0.0;
+  data_            = NULL;
+  firstSegTime_    = 0;
   segments_.reserve(maxPoints + 3);
   points_.reserve(maxPoints + 3);
   resultPosActArray_.reserve(maxPoints);  
@@ -31,7 +32,8 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
 }
 
 void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
-  sampleTime_   = sampleTime;
+  sampleTime_     = sampleTime;
+  halfSampleTime_ = sampleTime / 2;
 }
 
 void ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
@@ -139,9 +141,13 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
 
   // Switch segment?
   //if(currTime_ >= segments_[currSegIndex_]->getEndPoint()->time_) {
+  // Try to get avoid rounding errors
+  //if((uint64_t)round(currTime_ * 1E9) > (uint64_t)round(segments_[currSegIndex_]->getEndPoint()->time_ * 1E9)) {
   if(currTime_ > segments_[currSegIndex_]->getEndPoint()->time_) {
     if(currSegIndex_ < segmentCount_-1) {
+      //printf("Switch segment at time %lf\n",currTime_);
       // the time must be in the next segment
+      currSegIndexOld_ = currSegIndex_;
       currSegIndex_++;
     } else {  // last segment and last sample, set to curr time to end-time
       busy_ = false;
@@ -153,11 +159,16 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
 
 // For RT sequential access
 double ecmcAxisPVTSequence::getCurrPosition(){
-  // Check if values should be latched to the result* vectors
-  if(currSegIndexOld_ != currSegIndex_ ) {
-    currSegIndexOld_ = currSegIndex_;
-    // skip first and last segment
-    if(currSegIndex_ < segmentCount_) {
+    /*  
+        Check if values should be latched to the result* vectors.
+        Had issues here with rounding errors of double so cannot use change of "currSegIndex_" to trigger.
+        Always latch at the sample closest to firstpoint.time+sampletime..
+        Check if currTime is within half a sample time from the segemnt first point plus one sample time.
+        Offset with one sample time because the correct setpoit was sent last cycle and the new is still not applied..
+    */
+    if(std::abs(currTime_- (segments_[currSegIndex_]->getStartPoint()->time_ + sampleTime_)) < (halfSampleTime_)) {
+    // skip first and last segment (acc and dec segments)
+    if(currSegIndex_ > 0 && currSegIndex_ < segmentCount_) {    
       printf("pvt[%lu]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
               (currTime_ - firstSegTime_),
               data_->status_.currentPositionActual - positionOffset_,
@@ -168,12 +179,6 @@ double ecmcAxisPVTSequence::getCurrPosition(){
     }
   }
 
-//  printf("pvt[%d]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
-//              currTime_,
-//              data_->status_.currentPositionActual - positionOffset_,
-//              data_->status_.currentPositionSetpoint - positionOffset_,
-//              data_->status_.cntrlError);
-  
   return segments_[currSegIndex_]->position(currTime_) + positionOffset_;
 }
 
@@ -328,4 +333,16 @@ int ecmcAxisPVTSequence::getCurrentSegementId() {
 int ecmcAxisPVTSequence::setAxisDataRef(ecmcAxisData *data) {
   data_ = data;
   return 0;
+}
+
+double *ecmcAxisPVTSequence::getResultPosActDataPrt() {
+  return &resultPosActArray_[0];
+};
+
+double *ecmcAxisPVTSequence::getResultPosErrDataPrt() {
+  return &resultPosErrArray_[0];
+};
+
+size_t ecmcAxisPVTSequence::getResultBufferSize() {
+  return resultPosActArray_.size();
 }
