@@ -636,18 +636,16 @@ asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFlo
 
   // If axis is defined then all can be handled in asynMotorController (both axes and controller related)
   if (pAxis) {
-    printf("ecmcMotorRecordController::writeFloat64: pAxis is valid\n");
+    //printf("ecmcMotorRecordController::writeFloat64: pAxis is valid\n");
     return asynMotorController::writeFloat64(pasynUser, value);
   }
 
   // can be controller related (axisNo == 0)
   status = getAddress(pasynUser, &axisNo);
-  if(status != asynSuccess || axisNo!=ECMC_MR_CNTRL_ADDR) {
-    printf("ecmcMotorRecordController::writeFloat64: getAddress returned error\n");
+  if(status != asynSuccess || axisNo != ECMC_MR_CNTRL_ADDR) {
+    printf("ecmcMotorRecordController::writeFloat64: ERROR: getAddress returned error\n");
     return status;
   }
-
-  printf("ecmcMotorRecordController::writeFloat64: Controller related parameter.\n");
 
   // Must be controller related
   // write to lib
