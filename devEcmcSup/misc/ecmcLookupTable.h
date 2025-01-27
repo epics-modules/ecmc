@@ -29,14 +29,14 @@
 /* 
     Use as correction table for an encoder:
     * indexTable_: should represent the encoder positions (double)
-    * valueTable_: represents the error that should be added (double)
+    * valueTable_: represents the error that should be subtracted (double)
     * For positions in between the Error is interpolated.
     * For values outside the range indexTable_, compensation is made 
       with a static value of the first or last value of the correction table.
     * PREC=xx command can be used to set the desired precision (default PREC=10)
 
  Example file:
-         # This table simply just changes the gain in region -10..10. 
+         # This table simply just changes the gain in region -10..10.
          # Outside this range, a different offset will be applied.
          #
          PREC=5
@@ -45,8 +45,6 @@
          10  10
          PREC=15
          12345.678987654 123456.123456789
-
-
 */
 template <typename T1, typename T2> 
 class ecmcLookupTable : public ecmcError {

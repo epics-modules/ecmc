@@ -10,6 +10,7 @@ Cfg.SetAxisEncDelayCyclesAndEnable(<axis_no>,<cycles>,<enable>)"
 #Example: Set delay to 2.5 cycles for axis 1 and the current encoder beeing configured
 Cfg.SetAxisEncDelayCyclesAndEnable(1,2.5,1)"
 ```
+* Change encoder lookup table correction sign. The loaded table will be subtracted.
 
 # ECMC 9.6.8
 * Change lookup table support to be defined in EGUs:
