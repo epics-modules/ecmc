@@ -462,9 +462,9 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   // Apply correction table if lookup table is enabled
   if(lookupTableEnable_ && homed_ ){
     if(lookupTableRange_ > 0) {  // if range is defined then use it
-      actPosLocal_ = actPosLocal_ + lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_));
+      actPosLocal_ = actPosLocal_ - lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_));
     } else {
-      actPosLocal_ = actPosLocal_ + lookupTable_->getValue(actPosLocal_);
+      actPosLocal_ = actPosLocal_ - lookupTable_->getValue(actPosLocal_);
     }
   }
 
