@@ -12,13 +12,14 @@
 
 #include "ecmcAxisPVTSequence.h"
 
-ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
+ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints, ecmcPVTController *pvtCtrl) {
   segmentCount_    = 0;
   pointCount_      = 0;
   totalTime_       = 0;
   currTime_        = 0;
   sampleTime_      = sampleTime;
   halfSampleTime_  = sampleTime / 2;
+  pvtCtrl_         = pvtCtrl;
   busy_            = false;
   currSegIndex_    = 0;
   currSegIndexOld_ = 0;
@@ -82,8 +83,8 @@ void ecmcAxisPVTSequence::initSeq() {
   printf("ecmcAxisPVTSequence::initSeq()\n");
 }
 
-bool ecmcAxisPVTSequence::validate() {
-  return /*built_ && */ segmentCount_ > 0;
+bool ecmcAxisPVTSequence::validate() {  
+  return /*built_ && */ segmentCount_ > 0 && pvtCtrl_;
 }
 
 ecmcPvtSegment* ecmcAxisPVTSequence::getSeqmentAtTime(double time) {
@@ -149,6 +150,11 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
       currTime_ = endTime();
     }
   }
+  
+  // TODO: Not optimal that all axes are setting time to controller. 
+  // Would be better to have otehr way around.
+  pvtCtrl_->setCurrentTime(currTime_);
+
   return currTime_ < endTime();
 }
 
@@ -283,8 +289,8 @@ void ecmcAxisPVTSequence::clear() {
 }
 
 int ecmcAxisPVTSequence::validateRT() {
-  if(segmentCount_==0 || data_ == NULL) {
-    printf(" ecmcAxisPVTSequence::validateRT(): Error: Segment count 0\n");
+  if(segmentCount_==0 || data_ == NULL || pvtCtrl_ == NULL) {
+    printf(" ecmcAxisPVTSequence::validateRT(): Error: Segment count 0 or pvtCtrl_==NULL\n");
     return ERROR_SEQ_PVT_CFG_INVALID;
   }
   for(uint i = 0; i < segmentCount_; ++i) {
@@ -340,4 +346,8 @@ double *ecmcAxisPVTSequence::getResultPosErrDataPrt() {
 
 size_t ecmcAxisPVTSequence::getResultBufferSize() {
   return resultPosActArray_.size();
+}
+
+void ecmcAxisPVTSequence::setPVTController(ecmcPVTController *pvtCtrl) {
+   pvtCtrl_ = pvtCtrl;
 }

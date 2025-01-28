@@ -18,6 +18,8 @@
 #include <vector>
 #include <cstdio>
 #include "ecmcAxisData.h"
+#include "ecmcPVTController.h"
+
 #include <cmath>
 
 class ecmcPvtPoint {
@@ -123,7 +125,7 @@ class ecmcPvtSegment {
 
 class ecmcAxisPVTSequence {
   public:
-    ecmcAxisPVTSequence(double sampleTime, size_t maxProfilePoints);
+    ecmcAxisPVTSequence(double sampleTime, size_t maxProfilePoints, ecmcPVTController *pvtCtrl);
     void   setSampleTime(double sampleTime);
     int    setAxisDataRef(ecmcAxisData *data);
     void   addPoint(ecmcPvtPoint *pnt);
@@ -155,6 +157,7 @@ class ecmcAxisPVTSequence {
     double *getResultPosActDataPrt();
     double *getResultPosErrDataPrt();
     size_t getResultBufferSize();
+    void   setPVTController(ecmcPVTController *pvtCtrl);
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -170,5 +173,6 @@ class ecmcAxisPVTSequence {
     std::vector<double> resultPosActArray_;
     std::vector<double> resultPosErrArray_;
     ecmcAxisData *data_;
+    ecmcPVTController *pvtCtrl_;
 };
 #endif  /* ECMCAXISPVT_H_ */

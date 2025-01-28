@@ -12,23 +12,27 @@
 
 #ifndef ECMCPVTCONTROLLER_H_
 #define ECMCPVTCONTROLLER_H_
-#include <vector>
-#include "ecmcAxisBase.h"
+
 #include "ecmcEcEntryLink.h"
+#include <vector>
 
 class ecmcPVTController: public ecmcEcEntryLink {
   public:
-    ecmcPVTController();
+    ecmcPVTController(double sampleTime);
     ~ecmcPVTController();
-    void addPVTAxis(ecmcAxisBase* axis);
-    void clearPVTAxes();
     size_t getCurrentPointId();
     size_t getCurrentTriggerId();
+    double getCurrentTime();
+    void setCurrentTime(double time);
+    void initNewSeq(double offsetTime);
+
     // linkTriggerOutput
     // setTimeArray
     // compensate cycles..
+
   private:
-    std::vector<ecmcAxisBase*> pvtAxes_;
     double sampleTime_;
+    double currTime_,offsetTime_;
+    void checkIfTimeToTrigger();
 };
 #endif  /* ECMCPVTCONTROLLER_H_ */

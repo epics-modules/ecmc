@@ -17,6 +17,7 @@ FILENAME... ecmcMotorRecordController.cpp
 #include "ecmcMotorRecordController.h"
 #include "ecmcGlobalsExtern.h"
 #include "ecmcPVTController.h"
+#include "ecmcPluginClient.h"
 
 static const char *driverName = "ecmcMotorController";
 
@@ -812,7 +813,7 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
   printf("ecmcMotorRecordController::initializeProfile(%lu)\n",maxProfilePoints);
 
   // An ecmcPvtSequence is needed to keep track of time and outputs and other things...
-  ecmcPVTController * pvtCtrl = new ecmcPVTController();
+  ecmcPVTController * pvtCtrl = new ecmcPVTController(getEcmcSampleTimeMS()/1000);
   if( !pvtCtrl ) {
     printf("ecmcMotorRecordController::initializeProfile::Error: Create ecmcPVTController() failed. .\n");
     return asynError;
@@ -821,7 +822,7 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
   // Assign PVT object.. (Not so nice to set this through global variable...
   pvtCtrl_ = pvtCtrl;  // global copy for ecmc RT
   pvtController_ = pvtCtrl_; // Access for every one else
-  pvtController_->clearPVTAxes();
+  //pvtController_->clearPVTAxes();
   int axis;
   ecmcMotorRecordAxis *pAxis;
   profileInitialized_ = 0;
