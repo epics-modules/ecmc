@@ -2022,7 +2022,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   }
 
   if(!pvtPrepare_) {       
-    pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000, profileMaxPoints_, pC_->getPVTController());
+    pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000, profileMaxPoints_);
   }
 
   if(!pvtPrepare_ ) {
@@ -2123,9 +2123,14 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   pvtPrepare_->print();
 
 
-  if(!drvlocal.ecmcAxis) {
+  if(!drvlocal.ecmcAxis || !pC_->getPVTController()) {
     return asynError;
   }
+  
+  //Add pvt axis to pvt controller
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  pC_->getPVTController()->addPVTAxis(pvtPrepare_);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   profileLastBuildOk_ = true;
   profileSwitchPVTObject_ = true;
@@ -2255,22 +2260,11 @@ asynStatus ecmcMotorRecordAxis::abortProfile() {
 asynStatus ecmcMotorRecordAxis::readbackProfile() {
   uint i;
   int status = 0;
-  //double resolution;
-  //double offset;
-  //int direction;
-  //int numReadbacks;
-  //static const char *functionName = "readbackProfile";
-  //status |= pC_->getDoubleParam(axisNo_, pC_->motorRecResolution_, &resolution);
-  //status |= pC_->getDoubleParam(axisNo_, pC_->motorRecOffset_, &offset);
-  //status |= pC_->getIntegerParam(axisNo_, pC_->motorRecDirection_, &direction);
-  //status |= pC_->getIntegerParam(0, pC_->profileNumReadbacks_, &numReadbacks);
   if (status) return asynError;
   
   if(!pvtRunning_) return asynError;
-  //if(!pvtPrepare_) return asynError;
 
   if(pvtRunning_->getBusy()) return asynError;
-  //if(pvtPrepare_->getBusy()) return asynError;
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
@@ -2278,10 +2272,6 @@ asynStatus ecmcMotorRecordAxis::readbackProfile() {
   double *dataPosAct =  pvtRunning_->getResultPosActDataPrt();
   double *dataPosErr =  pvtRunning_->getResultPosErrDataPrt();
   size_t elements = pvtRunning_->getResultBufferSize();
-
-  //double *dataPosAct =  pvtPrepare_->getResultPosActDataPrt();
-  //double *dataPosErr =  pvtPrepare_->getResultPosErrDataPrt();
-  //size_t elements = pvtPrepare_->getResultBufferSize();
 
   if(dataPosAct == NULL || dataPosAct == NULL) {
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
@@ -2338,13 +2328,11 @@ asynStatus ecmcMotorRecordAxis::checkProfileStatus() {
 int ecmcMotorRecordAxis::getProfileCurrentSegementID() {
   int id = -1;
   if(!pvtRunning_ || !profileInProgress_ ) {
-  //if(!pvtPrepare_ || !profileInProgress_ ) {
-    return id;  //Invalid..
+    return id; //Invalid..
   }
   
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     id = pvtRunning_->getCurrentSegementId();
-  //id = pvtPrepare_->getCurrentSegementId();
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   return id;
@@ -2353,13 +2341,11 @@ int ecmcMotorRecordAxis::getProfileCurrentSegementID() {
 int ecmcMotorRecordAxis::getProfileBusy() {
   int busy = -1;
   if(!pvtRunning_ || !profileInProgress_ ) {
-  //if(!pvtPrepare_ || !profileInProgress_ ) {
     return busy;  //Invalid..
   }
   
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   busy = pvtRunning_->getBusy();
-  //busy = pvtPrepare_->getBusy();
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   return busy;

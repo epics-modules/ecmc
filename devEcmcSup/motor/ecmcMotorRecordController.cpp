@@ -745,6 +745,11 @@ asynStatus ecmcMotorRecordController::buildProfile() {
     printf("ecmcMotorRecordController: Error: Profile not initialized...\n");
     return asynError;
   }
+  
+  // Clean pvt object
+  if(pvtCtrl_) {
+    pvtCtrl_->clearPVTAxes();
+  }
 
   strcpy(profileMessage_, "");
   setIntegerParam(profileBuildState_, PROFILE_BUILD_BUSY);
@@ -893,12 +898,18 @@ asynStatus ecmcMotorRecordController::executeProfile() {
       return status;
     }
   }
-  
+
+  // Trigg new sequence all axes (ensure in same scan)
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  pvtController_->setExecute(0);
+  pvtController_->setExecute(1);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
   setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_MOVE_START);
   setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
   setIntegerParam(profileCurrentPoint_, 0);
   setIntegerParam(profileActualPulses_, 0);
-  
+
   sprintf(profileMessage_, "Profile started\n");
   setStringParam(profileExecuteMessage_, profileMessage_);
 

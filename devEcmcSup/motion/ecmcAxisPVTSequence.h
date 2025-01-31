@@ -18,7 +18,6 @@
 #include <vector>
 #include <cstdio>
 #include "ecmcAxisData.h"
-#include "ecmcPVTController.h"
 
 #include <cmath>
 
@@ -125,7 +124,7 @@ class ecmcPvtSegment {
 
 class ecmcAxisPVTSequence {
   public:
-    ecmcAxisPVTSequence(double sampleTime, size_t maxProfilePoints, ecmcPVTController *pvtCtrl);
+    ecmcAxisPVTSequence(double sampleTime, size_t maxProfilePoints);
     void   setSampleTime(double sampleTime);
     int    setAxisDataRef(ecmcAxisData *data);
     void   addPoint(ecmcPvtPoint *pnt);
@@ -136,12 +135,14 @@ class ecmcAxisPVTSequence {
     bool   isLastSample();
     bool   isLastSample(double time);
     bool   isTimeValid(double time);
-    bool   nextSampleStep();        // Go to next sample in time, return true as long ndouble time,
-    double getCurrPosition();       // For RT sequential access
-    double getCurrVelocity();       // For RT sequential access
-    double getCurrAcceleration();   // For RT sequential access
+    void   setNextTime(double time);
+    bool   nextSampleStep();             // Go to next sample in time, return true as long ndouble time,
+    double getCurrPosition();            // For RT sequential access
+    double getCurrVelocity();            // For RT sequential access
+    double getCurrAcceleration();        // For RT sequential access
     double getCurrTime();
     int    getCurrentSegementId();
+    double getSegDuration(int segIndex);
     double position(double time, int *valid);     // For non RT access
     double velocity(double time, int *valid);     // For non RT access
     double acceleration(double time, int *valid); // For non RT access
@@ -157,7 +158,6 @@ class ecmcAxisPVTSequence {
     double *getResultPosActDataPrt();
     double *getResultPosErrDataPrt();
     size_t getResultBufferSize();
-    void   setPVTController(ecmcPVTController *pvtCtrl);
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -165,7 +165,7 @@ class ecmcAxisPVTSequence {
     std::vector<ecmcPvtSegment*> segments_;
     std::vector<ecmcPvtPoint*> points_;
     size_t segmentCount_, pointCount_, currSegIndex_,currSegIndexOld_;
-    double totalTime_, sampleTime_,halfSampleTime_, currTime_, firstSegTime_;
+    double totalTime_, sampleTime_,halfSampleTime_, currTime_, firstSegTime_, nextTime_;
     bool busy_;
     double positionOffset_;  // For relative motion
     bool execute_;
@@ -173,6 +173,5 @@ class ecmcAxisPVTSequence {
     std::vector<double> resultPosActArray_;
     std::vector<double> resultPosErrArray_;
     ecmcAxisData *data_;
-    ecmcPVTController *pvtCtrl_;
 };
 #endif  /* ECMCAXISPVT_H_ */

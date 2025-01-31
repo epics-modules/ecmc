@@ -14,25 +14,26 @@
 #define ECMCPVTCONTROLLER_H_
 
 #include "ecmcEcEntryLink.h"
+#include "ecmcAxisPVTSequence.h"
 #include <vector>
 
 class ecmcPVTController: public ecmcEcEntryLink {
   public:
     ecmcPVTController(double sampleTime);
     ~ecmcPVTController();
+    void addPVTAxis(ecmcAxisPVTSequence* axis);
+    void clearPVTAxes();
     size_t getCurrentPointId();
     size_t getCurrentTriggerId();
     double getCurrentTime();
-    void setCurrentTime(double time);
-    void initNewSeq(double offsetTime);
-
-    // linkTriggerOutput
-    // setTimeArray
-    // compensate cycles..
+    void execute();
+    void setExecute(bool execute);
 
   private:
     double sampleTime_;
-    double currTime_,offsetTime_;
+    double nextTime_, accTime_, endTime_;
     void checkIfTimeToTrigger();
+    std::vector<ecmcAxisPVTSequence*> pvt_;
+    bool executeOld_, execute_;
 };
 #endif  /* ECMCPVTCONTROLLER_H_ */

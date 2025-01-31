@@ -162,10 +162,10 @@ void ecmcAxisSequencer::execute() {
 
   // PVT
   if(pvtOk_  && !pvtStopping_ && data_->command_.execute) {
-    // Go to next pvt time step, ONLY call this once per scan
+    // Go to next pvt time step
     if(pvt_->nextSampleStep() && pvt_->getExecute()) {
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
-    }    
+    }
   }
   traj_->setStartPos(data_->status_.currentPositionSetpoint);
 }

@@ -12,20 +12,20 @@
 
 #include "ecmcAxisPVTSequence.h"
 
-ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints, ecmcPVTController *pvtCtrl) {
+ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
   segmentCount_    = 0;
   pointCount_      = 0;
   totalTime_       = 0;
   currTime_        = 0;
   sampleTime_      = sampleTime;
   halfSampleTime_  = sampleTime / 2;
-  pvtCtrl_         = pvtCtrl;
   busy_            = false;
   currSegIndex_    = 0;
   currSegIndexOld_ = 0;
   positionOffset_  = 0.0;
   data_            = NULL;
   firstSegTime_    = 0;
+  nextTime_        = 0;
   segments_.reserve(maxPoints + 3);
   points_.reserve(maxPoints + 3);
   resultPosActArray_.reserve(maxPoints);  
@@ -55,6 +55,16 @@ void ecmcAxisPVTSequence::addPoint(ecmcPvtPoint *pnt) {
   }
 }
 
+double ecmcAxisPVTSequence::getSegDuration(int segIndex){
+  if(segmentCount_ <= 0 || segmentCount_ <= segIndex) {
+      return -1;
+  }
+  
+  return segments_[segIndex]->getEndPoint()->time_ - 
+         segments_[segIndex]->getStartPoint()->time_;
+}
+
+
 double ecmcAxisPVTSequence::startTime(){
   if(segmentCount_ <= 0) {
       return -1;
@@ -72,7 +82,8 @@ double ecmcAxisPVTSequence::endTime(){
 // Call before starting a seq
 void ecmcAxisPVTSequence::initSeq() {
   busy_ = true;
-  currTime_   = startTime();
+  //currTime_   = startTime(); // Set by pvt controller
+  nextTime_ = 0;
   currSegIndex_ = 0;
   currSegIndexOld_ = 0;
   resultPosActArray_.clear();
@@ -84,7 +95,7 @@ void ecmcAxisPVTSequence::initSeq() {
 }
 
 bool ecmcAxisPVTSequence::validate() {  
-  return /*built_ && */ segmentCount_ > 0 && pvtCtrl_;
+  return /*built_ && */ segmentCount_ > 0;
 }
 
 ecmcPvtSegment* ecmcAxisPVTSequence::getSeqmentAtTime(double time) {
@@ -137,8 +148,12 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
     return currTime_ < endTime();
   }
 
-  // Increase time
-  currTime_ = currTime_ + sampleTime_;
+  // Shif in the next time
+  currTime_ = nextTime_;
+  
+  printf("time %lf\n",currTime_);
+  // Increase time now done in pvtController
+  //currTime_ = currTime_ + sampleTime_;
 
   if(currTime_ > segments_[currSegIndex_]->getEndPoint()->time_) {
     if(currSegIndex_ < segmentCount_-1) {
@@ -147,14 +162,10 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
       currSegIndex_++;
     } else {  // last segment and last sample, set to curr time to end-time
       busy_ = false;
-      currTime_ = endTime();
+      //currTime_ = endTime();
     }
   }
   
-  // TODO: Not optimal that all axes are setting time to controller. 
-  // Would be better to have otehr way around.
-  pvtCtrl_->setCurrentTime(currTime_);
-
   return currTime_ < endTime();
 }
 
@@ -289,8 +300,8 @@ void ecmcAxisPVTSequence::clear() {
 }
 
 int ecmcAxisPVTSequence::validateRT() {
-  if(segmentCount_==0 || data_ == NULL || pvtCtrl_ == NULL) {
-    printf(" ecmcAxisPVTSequence::validateRT(): Error: Segment count 0 or pvtCtrl_==NULL\n");
+  if(segmentCount_==0 || data_ == NULL ) {
+    printf(" ecmcAxisPVTSequence::validateRT(): Error: Segment count 0\n");
     return ERROR_SEQ_PVT_CFG_INVALID;
   }
   for(uint i = 0; i < segmentCount_; ++i) {
@@ -348,6 +359,6 @@ size_t ecmcAxisPVTSequence::getResultBufferSize() {
   return resultPosActArray_.size();
 }
 
-void ecmcAxisPVTSequence::setPVTController(ecmcPVTController *pvtCtrl) {
-   pvtCtrl_ = pvtCtrl;
+void ecmcAxisPVTSequence::setNextTime(double time) {
+  nextTime_ = time;
 }
