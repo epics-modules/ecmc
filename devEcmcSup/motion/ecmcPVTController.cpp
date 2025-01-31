@@ -14,7 +14,6 @@
 
 ecmcPVTController::ecmcPVTController(double sampleTime) {
   sampleTime_ = sampleTime;
-  printf("ecmcPVTController::ecmcPVTController() created\n");
   nextTime_   = 0;
   accTime_    = 0;
   endTime_    = 0;
@@ -31,7 +30,7 @@ void ecmcPVTController::addPVTAxis(ecmcAxisPVTSequence* axis) {
 }
 
 void ecmcPVTController::clearPVTAxes() {
-  pvt_.clear();
+  pvt_.clear();  
 }
 
 size_t ecmcPVTController::getCurrentPointId() {
@@ -58,7 +57,7 @@ void ecmcPVTController::setExecute(bool execute) {
     return;
   }
   if(!executeOld_ && execute_ && pvt_[0]) {
-    nextTime_ = 0;
+    nextTime_ = -sampleTime_; // Start at -1 sample
     // Set time to 0 in all PVT objects
     for(uint i = 0; i < pvt_.size(); i++ ) {
       pvt_[i]->setNextTime(nextTime_);
@@ -72,10 +71,11 @@ void ecmcPVTController::setExecute(bool execute) {
 
 // Execute by ecmc RT
 void ecmcPVTController::execute() {
-  bool seqDone = false;
   if(!execute_ || nextTime_ >= endTime_) {    
     return;
   }
+  
+  bool seqDone = false;
 
   // Increase time
   nextTime_ = nextTime_ + sampleTime_;
@@ -86,11 +86,18 @@ void ecmcPVTController::execute() {
   }
 
   for(uint i = 0; i < pvt_.size(); i++ ) {
-    if(pvt_[i]->getBusy()) {
+    if(pvt_[i]->getBusy() || nextTime_ == 0)   {
       pvt_[i]->setNextTime(nextTime_);
       if(seqDone) {
         pvt_[i]->setBusy(false);
       }
     }
   }
+}
+
+bool  ecmcPVTController::getBusy() {
+  if(pvt_.size() > 0) {
+    return pvt_[0]->getBusy();
+  }
+  return false;
 }

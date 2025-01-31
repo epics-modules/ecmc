@@ -142,7 +142,7 @@ class ecmcAxisPVTSequence {
     double getCurrAcceleration();        // For RT sequential access
     double getCurrTime();
     int    getCurrentSegementId();
-    double getSegDuration(int segIndex);
+    double getSegDuration(size_t segIndex);
     double position(double time, int *valid);     // For non RT access
     double velocity(double time, int *valid);     // For non RT access
     double acceleration(double time, int *valid); // For non RT access

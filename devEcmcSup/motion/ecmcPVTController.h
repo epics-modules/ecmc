@@ -28,6 +28,7 @@ class ecmcPVTController: public ecmcEcEntryLink {
     double getCurrentTime();
     void execute();
     void setExecute(bool execute);
+    bool getBusy();
 
   private:
     double sampleTime_;

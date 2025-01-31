@@ -745,11 +745,6 @@ asynStatus ecmcMotorRecordController::buildProfile() {
     printf("ecmcMotorRecordController: Error: Profile not initialized...\n");
     return asynError;
   }
-  
-  // Clean pvt object
-  if(pvtCtrl_) {
-    pvtCtrl_->clearPVTAxes();
-  }
 
   strcpy(profileMessage_, "");
   setIntegerParam(profileBuildState_, PROFILE_BUILD_BUSY);
@@ -757,18 +752,6 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   sprintf(profileMessage_, "Build in progress.\n");
   setStringParam(profileBuildMessage_, profileMessage_);
   callParamCallbacks();
-
-  /* override this function in order to not to destroy the profileTimes_ array every time
-     Why is this done.. Annoying.. comemnt out hand handle if fixed or array mode in axis object*/
-
-  //asynStatus status = asynMotorController::buildProfile();
-  //if (status) return asynError;
-  //if (timeMode == PROFILE_TIME_MODE_FIXED) {
-  //  memset(profileTimes_, 0, maxProfilePoints_*sizeof(double));
-  //  for (i=0; i<numPoints; i++) {
-  //    profileTimes_[i] = time;
-  //  }
-  //}
   
   asynStatus status = asynSuccess;
 
@@ -887,6 +870,18 @@ asynStatus ecmcMotorRecordController::executeProfile() {
   int axis;
   ecmcMotorRecordAxis *pAxis;
   setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_UNDEFINED);
+
+  if(!pvtController_) { 
+    printf("ecmcMotorRecordController::executeProfile(): Error: PVT controller NULL.\n");
+    return asynError;
+  }
+  if(pvtController_->getBusy()) {
+    printf("ecmcMotorRecordController::executeProfile(): Error: Profile move busy..\n");
+    return asynError;
+  }
+
+  // Clean pvt object
+  pvtController_->clearPVTAxes();
   for (axis=0; axis<numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
@@ -901,6 +896,7 @@ asynStatus ecmcMotorRecordController::executeProfile() {
 
   // Trigg new sequence all axes (ensure in same scan)
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+
   pvtController_->setExecute(0);
   pvtController_->setExecute(1);
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
@@ -919,14 +915,6 @@ asynStatus ecmcMotorRecordController::executeProfile() {
 }
 
 asynStatus ecmcMotorRecordController::readbackProfile() {
-
-  // static const char *functionName = "readbackProfile";
-  
-  // Will never have time to update anyway..
-  //setIntegerParam(profileReadbackState_, PROFILE_READBACK_BUSY);
-  //setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_UNDEFINED);
-  //sprintf(profileMessage_, "Redback started\n");
-  //setStringParam(profileReadbackMessage_, profileMessage_);  
 
   int axis;
   bool statOK = true;

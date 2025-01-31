@@ -55,8 +55,8 @@ void ecmcAxisPVTSequence::addPoint(ecmcPvtPoint *pnt) {
   }
 }
 
-double ecmcAxisPVTSequence::getSegDuration(int segIndex){
-  if(segmentCount_ <= 0 || segmentCount_ <= segIndex) {
+double ecmcAxisPVTSequence::getSegDuration(size_t segIndex){
+  if(segmentCount_ <= segIndex) {
       return -1;
   }
   
@@ -148,10 +148,10 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
     return currTime_ < endTime();
   }
 
-  // Shif in the next time
+  // Shift in the next time from pvtController
   currTime_ = nextTime_;
   
-  printf("time %lf\n",currTime_);
+  //printf("time %lf\n",currTime_);
   // Increase time now done in pvtController
   //currTime_ = currTime_ + sampleTime_;
 
