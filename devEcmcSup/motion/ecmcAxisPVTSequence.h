@@ -94,7 +94,7 @@ class ecmcPvtSegment {
     double position(double time) {
       if(!isTimeValid(time)) {
         // Exception
-        printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
+        printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT, %lf\n",time);
         return 0;
       }
       timeInSeg_ = time - startPnt_->time_;
@@ -105,7 +105,7 @@ class ecmcPvtSegment {
     double velocity(double time) {
       if(!isTimeValid(time)) {
         // Exception
-        printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
+        printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT, %lf\n",time);
         return 0;
       }
       timeInSeg_ = time - startPnt_->time_;
@@ -115,7 +115,7 @@ class ecmcPvtSegment {
     double acceleration(double time) {
       if(!isTimeValid(time)) {
         // Exception
-        printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT");
+        printf("ERROR: TIME INVALID, NOT WITHIN SEGMENT, %lf\n",time);
         return 0;
       }
       return 2 * k2_ + 6 * k3_ * (time - startPnt_->time_);

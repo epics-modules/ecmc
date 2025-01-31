@@ -60,7 +60,7 @@ void ecmcPVTController::setExecute(bool execute) {
     nextTime_ = -sampleTime_; // Start at -1 sample
     // Set time to 0 in all PVT objects
     for(uint i = 0; i < pvt_.size(); i++ ) {
-      pvt_[i]->setNextTime(nextTime_);
+      pvt_[i]->setNextTime(0);
     }
     // get end time from first axis
     endTime_ = pvt_[0]->endTime();
@@ -86,13 +86,15 @@ void ecmcPVTController::execute() {
   }
 
   for(uint i = 0; i < pvt_.size(); i++ ) {
-    if(pvt_[i]->getBusy() || nextTime_ == 0)   {
+    if(pvt_[i]->getBusy()) {
       pvt_[i]->setNextTime(nextTime_);
+      //printf("Time %lf\n", nextTime_);
       if(seqDone) {
         pvt_[i]->setBusy(false);
       }
     }
   }
+  
 }
 
 bool  ecmcPVTController::getBusy() {

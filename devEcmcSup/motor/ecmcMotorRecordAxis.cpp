@@ -2174,13 +2174,15 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     ecmcAxisPVTSequence *pvtTempSwitch = NULL;
     pvtTempSwitch = pvtRunning_;
     pvtRunning_ = pvtPrepare_;
-    // Add pvt object to controller
-    pC_->getPVTController()->addPVTAxis(pvtRunning_);
+    
     // Add pvt object to axis
     drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtRunning_);
     pvtPrepare_ = pvtTempSwitch;
     profileSwitchPVTObject_ = false;
   }
+  
+  // Add pvt object to controller
+  pC_->getPVTController()->addPVTAxis(pvtRunning_);
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
