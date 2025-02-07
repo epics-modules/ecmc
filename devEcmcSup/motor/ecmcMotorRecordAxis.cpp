@@ -1309,6 +1309,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   if((drvlocal.ecmcTrjSrc && drvlocal.ecmcBusy) || drvlocal.ecmcMRSyncNextPoll) {
     triggsync_++;
     asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
+    // NOTE: drvlocal.ecmcMRSyncNextPoll is only active for one poll. Reseted in readEcmcAxisStatusData()
   }
 
   setIntegerParam(pC_->motorStatusHomed_,
