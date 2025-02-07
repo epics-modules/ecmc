@@ -524,7 +524,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         localSeqBusy_       = true;
         data_->status_.busy = true;
 
-        // Use the paarmeters defined in encoder object
+        // Use the parameters defined in encoder object
         if (data_->command_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
           readHomingParamsFromEnc();
         }

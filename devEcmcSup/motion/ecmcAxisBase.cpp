@@ -958,7 +958,7 @@ int ecmcAxisBase::setExecute(bool execute) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
     }
   }
-
+  
   controlWord_.executeCmd = execute;
 
   return 0;
@@ -1000,6 +1000,10 @@ bool ecmcAxisBase::getEnable() {
 
 bool ecmcAxisBase::getEnabled() {
   return data_.status_.enabled && data_.command_.enable;
+}
+
+bool ecmcAxisBase::getEnabledOnly() {
+  return data_.status_.enabled;
 }
 
 int ecmcAxisBase::initAsyn() {

@@ -37,7 +37,7 @@ class ecmcAxisGroup : public ecmcError {
     bool getAnyEnable();
     // Check if all axes in group are enabled
     bool getEnabled();
-    // Check if all axes in group are not not enabled
+    // Check if any axes in group are enabled
     bool getAnyEnabled();
     // Check if all axes in group are busy
     bool getBusy();

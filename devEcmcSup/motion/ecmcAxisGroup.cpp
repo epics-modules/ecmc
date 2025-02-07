@@ -77,7 +77,8 @@ bool ecmcAxisGroup::getEnabled(){
 bool ecmcAxisGroup::getAnyEnabled(){
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      if ((*axis)->getEnabled()) {
+      // Only check enabled flag, not enable cmd
+      if ((*axis)->getEnabledOnly()) {
         return 1;
       }
     }

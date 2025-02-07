@@ -177,7 +177,8 @@ public:
   int                        getCntrlError(double *error);
   int                        setEnable(bool enable);
   bool                       getEnable();
-  bool                       getEnabled();
+  bool                       getEnabled();  // Enable and Enabled
+  bool                       getEnabledOnly();  // Only Enabled
   void                       preExecute(bool masterOK);
   void                       postExecute(bool masterOK);
   int                        setExecute(bool execute);
