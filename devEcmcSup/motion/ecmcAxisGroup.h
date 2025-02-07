@@ -63,8 +63,12 @@ class ecmcAxisGroup : public ecmcError {
     void setError(int error);
     // Set slaved axis error all axes
     void setSlavedAxisInError();
-    // SYNC motor record at next poll (reset automatically)
-    void setSyncNextPoll(bool sync);
+    // SYNC motor record
+    void setMRSync(bool sync);
+    // STOP motor record
+    void setMRStop(bool stop);
+    // CNEN motor record
+    void setMRCnen(bool cnen);
     // Stop motion
     void halt();
     // Check if axis is in group

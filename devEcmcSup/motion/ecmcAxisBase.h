@@ -115,6 +115,16 @@ typedef struct {
 } ecmcAxisStatusWordType;
 
 typedef struct {
+  unsigned char stopMRCmd      : 1;  // Trigger command
+  unsigned char stopMRVal      : 1;  // STOP value
+  unsigned char syncMRCmd      : 1;  // Trigger command
+  unsigned char syncMRVal      : 1;  // SYNC value
+  unsigned char cnenMRCmd      : 1;  // Trigger command
+  unsigned char cnenMRVal      : 1;  // CNEN value
+  unsigned int dummy           : 26;
+} ecmcMRCmds;
+
+typedef struct {
   double                 positionSetpoint;
   double                 positionActual;
   double                 positionError;
@@ -159,7 +169,7 @@ typedef struct {
   bool plcCmdsAllowCmd    : 1;                        // 0 = not allow, 1 = allow
   bool enableSoftLimitBwd : 1;
   bool enableSoftLimitFwd : 1;
-  bool MRSyncNextPoll     : 1;
+  bool enablePrintouts    : 1;
   int  spareBitsCmd       : 21;
 } ecmcAsynAxisControlType;
 
@@ -330,7 +340,9 @@ public:
   void       setExternalMaxVelo(double veloLimit,int active);
   double     getTrajVelo();
   double     getEncVelo();
-  void       setSyncActSet(bool sync);  // Sync motor record next poll (in asynMotorAxis)
+  void       setMRSync(bool sync);    // SYNC motor record
+  void       setMRStop(bool stop);    // STOP motor record
+  void       setMRCnen(bool cnen);    // CNEN motor record
   bool       getSyncActSet();
 protected:
   void       initVars();
@@ -389,6 +401,9 @@ protected:
   int encPrimIndexAsyn_;
   int hwReadyOld_;
   int hwReady_;
+  // Commads to trigger MR record actions like SYNC and STOP from ecmc over PVs
+  ecmcMRCmds mrCmds_;
+  ecmcMRCmds mrCmdsOld_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

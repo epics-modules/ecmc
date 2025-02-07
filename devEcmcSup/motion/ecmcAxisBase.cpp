@@ -259,6 +259,8 @@ void ecmcAxisBase::initVars() {
   oldPositionAct_          = 0;
   oldPositionSet_          = 0;
   asynPortDriver_          = NULL;
+  memset(&mrCmds_,    0, sizeof(mrCmds_));
+  memset(&mrCmdsOld_,    0, sizeof(mrCmdsOld_));
 
   for (int i = 0; i < ECMC_ASYN_AX_PAR_COUNT; i++) {
     axAsynParams_[i] = NULL;
@@ -467,6 +469,11 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(0);
 
+  if(memcmp(&mrCmdsOld_,&mrCmds_, sizeof(mrCmdsOld_)) !=0) {
+    axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID]->refreshParamRT(1);
+  }
+  memcpy(&mrCmdsOld_,&mrCmds_, sizeof(mrCmdsOld_));
+  
   if (axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() &&
       axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->linkedToAsynClient()) {
     int bytesUsed = 0;
@@ -1277,7 +1284,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID] = paramTemp;
 
-  // Error
+  // Warning
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_WARNING_NAME,
                               asynParamInt32,
                               ECMC_EC_S32,
@@ -1293,6 +1300,21 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_WARNING_ID] = paramTemp;
 
+  // MR commands
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_MR_CMD_NAME,
+                              asynParamInt32,
+                              ECMC_EC_U32,
+                              (uint8_t *)&(mrCmds_),
+                              sizeof(mrCmds_),
+                              &paramTemp);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID] = paramTemp;
 
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                       ECMC_ASYN_DEFAULT_ADDR);
@@ -2874,18 +2896,35 @@ int ecmcAxisBase::setSlavedAxisInError() {
   return 0;
 }
 
-// motor.SYNC (set to act) motor record next poll in asynMotorAxis.. asynMotorAxis resets to 0 after sync
-void ecmcAxisBase::setSyncActSet(bool sync) {
+// motor.SYNC (set to act)
+void ecmcAxisBase::setMRSync(bool sync) {
   // Sync motor record
-  controlWord_.MRSyncNextPoll = sync;
+  mrCmds_.syncMRCmd +=1;
+  mrCmds_.syncMRVal = sync;
+  // param updated in ::postExecute
   // Sync ecmc if not enabled (only works in internal mode)
   if(!data_.status_.enabled && sync) {
     getTraj()->setCurrentPosSet(data_.status_.currentPositionActual);
   }
 }
 
+// motor.STOP (set to act)
+void ecmcAxisBase::setMRStop(bool stop) {
+  mrCmds_.stopMRCmd +=1;
+  mrCmds_.stopMRVal = stop;
+  // param updated in ::postExecute
+}
+
+// motor.STOP (set to act)
+void ecmcAxisBase::setMRCnen(bool cnen) {
+  mrCmds_.cnenMRCmd +=1;
+  mrCmds_.cnenMRVal = cnen;
+  // param updated in ::postExecute
+}
+
+// CLEANUP NEEDED!!!"!!" also in motorRecordAxis.. Remove this and rely on the new ecmc parameter instead
 bool ecmcAxisBase::getSyncActSet() {
-  return controlWord_.MRSyncNextPoll;
+  return 0;
 }
 
 int ecmcAxisBase::loadEncLookupTable(const char* filename) {

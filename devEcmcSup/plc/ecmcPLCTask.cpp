@@ -884,7 +884,9 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_get_any_traj_src_ext",mc_grp_get_any_traj_src_ext);
   ecmcPLCTaskAddFunction("mc_grp_set_allow_src_change_when_enabled",
                           mc_grp_set_allow_src_change_when_enabled);
-  ecmcPLCTaskAddFunction("mc_grp_sync_act_set",mc_grp_sync_act_set);
+  ecmcPLCTaskAddFunction("mc_grp_sync_mr",mc_grp_sync_mr);
+  ecmcPLCTaskAddFunction("mc_grp_stop_mr",mc_grp_stop_mr);
+  ecmcPLCTaskAddFunction("mc_grp_cnen_mr",mc_grp_cnen_mr);
   ecmcPLCTaskAddFunction("mc_get_enc_ready",mc_get_enc_ready);
   ecmcPLCTaskAddFunction("mc_set_act_pos",mc_set_act_pos);
 

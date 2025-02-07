@@ -96,7 +96,9 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_get_traj_src_ext(",
                                "mc_grp_get_any_traj_src_ext(",
                                "mc_grp_set_allow_src_change_when_enabled(",
-                               "mc_grp_sync_act_set(",
+                               "mc_grp_sync_mr(",
+                               "mc_grp_stop_mr(",
+                               "mc_grp_cnen_mr(",                               
                                "mc_get_enc_ready(",
                                "mc_set_act_pos(",
                               };
@@ -111,7 +113,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 41;
+static int mc_cmd_count = 43;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -678,11 +680,27 @@ inline double mc_grp_set_allow_src_change_when_enabled(double grpIndex, double a
   return 0;
 }
 
-inline double mc_grp_sync_act_set(double grpIndex, double sync){
+inline double mc_grp_sync_mr(double grpIndex, double sync){
   int intGrpIndex=(int)grpIndex;
   int intSync=(int)sync;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setSyncNextPoll(intSync);
+  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setMRSync(intSync);
+  return 0;
+}
+
+inline double mc_grp_stop_mr(double grpIndex, double stop){
+  int intGrpIndex=(int)grpIndex;
+  int intStop=(int)stop;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setMRStop(intStop);
+  return 0;
+}
+
+inline double mc_grp_cnen_mr(double grpIndex, double enable){
+  int intGrpIndex=(int)grpIndex;
+  int intEnable=(int)enable;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setMRCnen(intEnable);
   return 0;
 }
 

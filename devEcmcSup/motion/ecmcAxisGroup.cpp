@@ -249,10 +249,26 @@ void ecmcAxisGroup::setAllowSrcChangeWhenEnabled(int allow){
   }
 }
 
-void ecmcAxisGroup::setSyncNextPoll(bool sync) {
+void ecmcAxisGroup::setMRSync(bool sync) {
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      (*axis)->setSyncActSet(sync);
+      (*axis)->setMRSync(sync);
+    }
+  }
+}
+
+void ecmcAxisGroup::setMRStop(bool stop) {
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setMRStop(stop);
+    }
+  }
+}
+
+void ecmcAxisGroup::setMRCnen(bool cnen) {
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setMRCnen(cnen);
     }
   }
 }
