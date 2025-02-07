@@ -2899,7 +2899,7 @@ int ecmcAxisBase::setSlavedAxisInError() {
 // motor.SYNC (set to act)
 void ecmcAxisBase::setMRSync(bool sync) {
   // Sync motor record
-  mrCmds_.syncMRCmd +=1;
+  mrCmds_.syncMRCmdTgl += 1;
   mrCmds_.syncMRVal = sync;
   // param updated in ::postExecute
   // Sync ecmc if not enabled (only works in internal mode)
@@ -2908,23 +2908,18 @@ void ecmcAxisBase::setMRSync(bool sync) {
   }
 }
 
-// motor.STOP (set to act)
+// motor.STOP
 void ecmcAxisBase::setMRStop(bool stop) {
-  mrCmds_.stopMRCmd +=1;
+  mrCmds_.stopMRCmdTgl += 1;
   mrCmds_.stopMRVal = stop;
   // param updated in ::postExecute
 }
 
-// motor.STOP (set to act)
+// motor.CNEN
 void ecmcAxisBase::setMRCnen(bool cnen) {
-  mrCmds_.cnenMRCmd +=1;
+  mrCmds_.cnenMRCmdTgl += 1;
   mrCmds_.cnenMRVal = cnen;
   // param updated in ::postExecute
-}
-
-// CLEANUP NEEDED!!!"!!" also in motorRecordAxis.. Remove this and rely on the new ecmc parameter instead
-bool ecmcAxisBase::getSyncActSet() {
-  return 0;
 }
 
 int ecmcAxisBase::loadEncLookupTable(const char* filename) {

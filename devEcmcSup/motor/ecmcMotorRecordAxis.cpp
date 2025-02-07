@@ -1239,9 +1239,6 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
                         ECMC_DATA_SOURCE_EXTERNAL;
   
-  drvlocal.ecmcMRSyncNextPoll = drvlocal.ecmcAxis->getSyncActSet();
-  //drvlocal.ecmcAxis->setSyncActSet(0);  // Command only valid for 1 poll
-
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (!tempAxisStat) {
@@ -1306,10 +1303,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   // Axis in external mode and busy, then trigg SYNC
-  if((drvlocal.ecmcTrjSrc && drvlocal.ecmcBusy) || drvlocal.ecmcMRSyncNextPoll) {
+  if((drvlocal.ecmcTrjSrc && drvlocal.ecmcBusy)) {
     triggsync_++;
     asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
-    // NOTE: drvlocal.ecmcMRSyncNextPoll is only active for one poll. Reseted in readEcmcAxisStatusData()
   }
 
   setIntegerParam(pC_->motorStatusHomed_,
@@ -1896,49 +1892,3 @@ asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit) {
   }
   return asynMotorAxis::setLowLimit(lowLimit);
 }
-
-/**
- * Printout entire drvlocal.statusBinData. Just for debug purpose..
- *
-*/
-/*asynStatus ecmcMotorRecordAxis::printDiagBinData() {
-  int asynLevel=ASYN_TRACE_ERROR;
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.axisID = %d\n",drvlocal.statusBinData.axisID);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.cycleCounter = %d\n",drvlocal.statusBinData.cycleCounter);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.acceleration = %lf\n",drvlocal.statusBinData.acceleration);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.deceleration = %lf\n",drvlocal.statusBinData.deceleration);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.reset = %d\n",drvlocal.statusBinData.reset);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.moving = %d\n",drvlocal.statusBinData.moving);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.stall = %d\n",drvlocal.statusBinData.stall);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionSetpoint = %lf\n",drvlocal.statusBinData.onChangeData.positionSetpoint);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionActual = %lf\n",drvlocal.statusBinData.onChangeData.positionActual);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionError = %lf\n",drvlocal.statusBinData.onChangeData.positionError);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionTarget = %lf\n",drvlocal.statusBinData.onChangeData.positionTarget);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.cntrlError = %lf\n",drvlocal.statusBinData.onChangeData.cntrlError);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.cntrlOutput = %lf\n",drvlocal.statusBinData.onChangeData.cntrlOutput);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.velocityActual = %lf\n",drvlocal.statusBinData.onChangeData.velocityActual);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.velocitySetpoint = %lf\n",drvlocal.statusBinData.onChangeData.velocitySetpoint);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.velocityFFRaw = %lf\n",drvlocal.statusBinData.onChangeData.velocityFFRaw);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.positionRaw = %ld\n",drvlocal.statusBinData.onChangeData.positionRaw);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.error = %d\n",drvlocal.statusBinData.onChangeData.error);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.velocitySetpointRaw = %d\n",drvlocal.statusBinData.onChangeData.velocitySetpointRaw);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.seqState = %d\n",drvlocal.statusBinData.onChangeData.statusWd.seqstate);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.cmdData = %d\n",drvlocal.statusBinData.onChangeData.cmdData);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.command = %d\n",(int)drvlocal.statusBinData.onChangeData.command);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.trajInterlock = %d\n",(int)drvlocal.statusBinData.onChangeData.trajInterlock);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.lastActiveInterlock = %d\n",(int)drvlocal.statusBinData.onChangeData.statusWd.lastilock);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.trajSource = %d\n",(int)drvlocal.statusBinData.onChangeData.statusWd.trajsource);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.encSource = %d\n",(int)drvlocal.statusBinData.onChangeData.statusWd.encsource);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.enable = %d\n",drvlocal.statusBinData.onChangeData.statusWd.enable);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.enabled = %d\n",drvlocal.statusBinData.onChangeData.statusWd.enabled);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.execute = %d\n",drvlocal.statusBinData.onChangeData.statusWd.execute);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.busy = %d\n",drvlocal.statusBinData.onChangeData.statusWd.busy);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.atTarget = %d\n",drvlocal.statusBinData.onChangeData.statusWd.attarget);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.homed = %d\n",drvlocal.statusBinData.onChangeData.statusWd.homed);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.limitFwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.limitfwd);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.limitBwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.limitbwd);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.homeSwitch = %d\n",drvlocal.statusBinData.onChangeData.statusWd.homeswitch);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.sumIlockFwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.sumilockfwd);
-  asynPrint(pPrintOutAsynUser, asynLevel,"  drvlocal.statusBinData.onChangeData.sumIlockBwd = %d\n",drvlocal.statusBinData.onChangeData.statusWd.sumilockbwd);
-  return asynSuccess;
-}*/

@@ -124,10 +124,8 @@ private:
     bool ecmcSafetyInterlock;
     bool ecmcSummaryInterlock;
     int  ecmcTrjSrc;
-    bool ecmcMRSyncNextPoll;
     bool ecmcAtTarget;
     bool ecmcAtTargetMonEnable;
-
   } drvlocal;
 
   //int       restorePowerOnOffNeeded_;

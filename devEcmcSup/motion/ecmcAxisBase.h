@@ -115,13 +115,13 @@ typedef struct {
 } ecmcAxisStatusWordType;
 
 typedef struct {
-  unsigned char stopMRCmd      : 1;  // Trigger command
-  unsigned char stopMRVal      : 1;  // STOP value
-  unsigned char syncMRCmd      : 1;  // Trigger command
-  unsigned char syncMRVal      : 1;  // SYNC value
-  unsigned char cnenMRCmd      : 1;  // Trigger command
-  unsigned char cnenMRVal      : 1;  // CNEN value
-  unsigned int dummy           : 26;
+  unsigned char stopMRCmdTgl : 1;  // Trigger command toggle
+  unsigned char stopMRVal    : 1;  // STOP value
+  unsigned char syncMRCmdTgl : 1;  // Trigger command toggle
+  unsigned char syncMRVal    : 1;  // SYNC value
+  unsigned char cnenMRCmdTgl : 1;  // Trigger command toggle
+  unsigned char cnenMRVal    : 1;  // CNEN value
+  unsigned int  dummy        : 26;
 } ecmcMRCmds;
 
 typedef struct {
@@ -343,7 +343,6 @@ public:
   void       setMRSync(bool sync);    // SYNC motor record
   void       setMRStop(bool stop);    // STOP motor record
   void       setMRCnen(bool cnen);    // CNEN motor record
-  bool       getSyncActSet();
 protected:
   void       initVars();
   void       refreshDebugInfoStruct();
