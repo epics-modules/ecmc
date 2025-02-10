@@ -862,6 +862,12 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_set_axis_error", mc_set_axis_error);
   ecmcPLCTaskAddFunction("mc_set_slaved_axis_in_error", 
                          mc_set_slaved_axis_in_error);
+  ecmcPLCTaskAddFunction("mc_get_enc_ready",mc_get_enc_ready);
+  ecmcPLCTaskAddFunction("mc_set_act_pos",mc_set_act_pos);
+  ecmcPLCTaskAddFunction("mc_mr_set_sync",mc_mr_set_sync);
+  ecmcPLCTaskAddFunction("mc_mr_set_stop",mc_mr_set_stop);
+  ecmcPLCTaskAddFunction("mc_mr_set_cnen",mc_mr_set_cnen);
+
   // axis Group
   ecmcPLCTaskAddFunction("mc_grp_get_enable",mc_grp_get_enable);
   ecmcPLCTaskAddFunction("mc_grp_get_any_enable",mc_grp_get_any_enable);
@@ -884,11 +890,9 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_get_any_traj_src_ext",mc_grp_get_any_traj_src_ext);
   ecmcPLCTaskAddFunction("mc_grp_set_allow_src_change_when_enabled",
                           mc_grp_set_allow_src_change_when_enabled);
-  ecmcPLCTaskAddFunction("mc_grp_sync_mr",mc_grp_sync_mr);
-  ecmcPLCTaskAddFunction("mc_grp_stop_mr",mc_grp_stop_mr);
-  ecmcPLCTaskAddFunction("mc_grp_cnen_mr",mc_grp_cnen_mr);
-  ecmcPLCTaskAddFunction("mc_get_enc_ready",mc_get_enc_ready);
-  ecmcPLCTaskAddFunction("mc_set_act_pos",mc_set_act_pos);
+  ecmcPLCTaskAddFunction("mc_grp_mr_set_sync",mc_grp_mr_set_sync);
+  ecmcPLCTaskAddFunction("mc_grp_mr_set_stop",mc_grp_mr_set_stop);
+  ecmcPLCTaskAddFunction("mc_grp_mr_set_cnen",mc_grp_mr_set_cnen);
 
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

@@ -96,9 +96,12 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_get_traj_src_ext(",
                                "mc_grp_get_any_traj_src_ext(",
                                "mc_grp_set_allow_src_change_when_enabled(",
-                               "mc_grp_sync_mr(",
-                               "mc_grp_stop_mr(",
-                               "mc_grp_cnen_mr(",                               
+                               "mc_grp_mr_set_sync(",
+                               "mc_grp_mr_set_stop(",
+                               "mc_grp_mr_set_cnen(",
+                               "mc_mr_set_sync(",
+                               "mc_mr_set_stop(",
+                               "mc_mr_set_cnen(",
                                "mc_get_enc_ready(",
                                "mc_set_act_pos(",
                               };
@@ -113,7 +116,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 43;
+static int mc_cmd_count = 46;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -680,7 +683,7 @@ inline double mc_grp_set_allow_src_change_when_enabled(double grpIndex, double a
   return 0;
 }
 
-inline double mc_grp_sync_mr(double grpIndex, double sync){
+inline double mc_grp_mr_set_sync(double grpIndex, double sync){
   int intGrpIndex=(int)grpIndex;
   int intSync=(int)sync;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
@@ -688,7 +691,7 @@ inline double mc_grp_sync_mr(double grpIndex, double sync){
   return 0;
 }
 
-inline double mc_grp_stop_mr(double grpIndex, double stop){
+inline double mc_grp_mr_set_stop(double grpIndex, double stop){
   int intGrpIndex=(int)grpIndex;
   int intStop=(int)stop;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
@@ -696,11 +699,38 @@ inline double mc_grp_stop_mr(double grpIndex, double stop){
   return 0;
 }
 
-inline double mc_grp_cnen_mr(double grpIndex, double enable){
+inline double mc_grp_mr_set_cnen(double grpIndex, double enable){
   int intGrpIndex=(int)grpIndex;
   int intEnable=(int)enable;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
   ecmcPLCTask::statAxisGrp_[intGrpIndex]->setMRCnen(intEnable);
+  return 0;
+}
+
+inline double mc_mr_set_sync(double axIndex, double sync){
+  int index=(int)axIndex;
+  int intSync=(int)sync;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+  ecmcPLCTask::statAxes_[index]->setMRSync(intSync);
+  return 0;
+}
+
+inline double mc_mr_set_stop(double axIndex, double stop){
+  int index=(int)axIndex;
+  int intStop=(int)stop;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+  ecmcPLCTask::statAxes_[index]->setMRStop(intStop);
+  return 0;
+}
+
+inline double mc_mr_set_cnen(double axIndex, double enable){
+  int index=(int)axIndex;
+  int intEnable=(int)enable;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
+  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+  ecmcPLCTask::statAxes_[index]->setMRCnen(intEnable);
   return 0;
 }
 

@@ -4,13 +4,60 @@ Release Notes
 * New plugin interface version. Needed in order to be able to use require to load plugins.
 * Add delay compensation for encoders (time between input of encoder and output of velo in drive)
   - Different encoders can have different delay times.
-  - The functionality is defulat disabled.
+  - The functionality is default disabled.
 ```
 Cfg.SetAxisEncDelayCyclesAndEnable(<axis_no>,<cycles>,<enable>)"
-#Example: Set delay to 2.5 cycles for axis 1 and the current encoder beeing configured
+#Example: Set delay to 2.5 cycles for axis 1 and the current encoder being configured
 Cfg.SetAxisEncDelayCyclesAndEnable(1,2.5,1)"
 ```
-* Change encoder lookup table correction sign. The loaded table will be subtracted.
+* IMPORTANT: Change encoder lookup table correction sign. The loaded table will be subtracted instead of added.
+* Add plc functions to trigger motor record fields (over database):
+
+```
+ 1.  mc_mr_set_sync(
+                       <axis_id>, : Axis index
+                       <sync>,    : Sync yes or no (1 or 0)
+                       );
+     1. Sync ecmc current setpoint with actual value (if not enabled and internal mode)
+     2. Execute a motor record SYNC
+     Note: The command only triggers once per ecmc cycle (with the latest value written to sync)
+ 
+ 2.  mc_mr_set_stop(
+                       <axis_id>, : Axis index
+                       <stop>,    : Stop yes or no (1 or 0)
+                       );
+     1. Execute a motor record STOP
+     Note: The command only triggers once per ecmc cycle (with the latest value written to stop)
+
+ 3.  mc_mr_set_cnen(
+                       <axis_id>, : Axis index
+                       <enable>,  : Enable yes or no (1 or 0)
+                       );
+     1. Enable/disable motor record via CNEN field
+     Note: The command only triggers once per ecmc cycle (with the latest value written to enable)
+
+ 4.  mc_grp_mr_set_sync(
+                       <grp_id>, : Group index
+                       <sync>,   : Sync yes or no (1 or 0)
+                       );
+     1. Sync ecmc current setpoint with actual value (if not enabled and internal mode)
+     2. Execute a motor record SYNC
+     Note: The command only triggers motor record maximum once per ecmc cycle (with the latest value written to sync)
+ 
+ 5.  mc_grp_mr_set_stop(
+                       <grp_id>, : Group index
+                       <stop>,   : Stop yes or no (1 or 0)
+                       );
+     1. Execute a motor record STOP
+     Note: The command only triggers motor record maximum once per ecmc cycle (with the latest value written to stop)
+
+ 6.  mc_grp_mr_set_cnen(
+                       <grp_id>, : Group index
+                       <enable>, : Enable yes or no (1 or 0)
+                       );
+     1. Enable/disable motor record via CNEN field
+     Note: The command only triggers motor record maximum once per ecmc cycle (with the latest value written to enable)
+```
 
 # ECMC 9.6.8
 * Change lookup table support to be defined in EGUs:

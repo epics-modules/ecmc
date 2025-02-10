@@ -2898,10 +2898,14 @@ int ecmcAxisBase::setSlavedAxisInError() {
 
 // motor.SYNC (set to act)
 void ecmcAxisBase::setMRSync(bool sync) {
-  // Sync motor record
-  mrCmds_.syncMRCmdTgl += 1;
+  // Ensure to only trigg command once per cycle
+  if(mrCmds_.syncMRCmdTgl == mrCmdsOld_.syncMRCmdTgl) {
+    mrCmds_.syncMRCmdTgl += 1;
+  }
+  // However always update the value
   mrCmds_.syncMRVal = sync;
   // param updated in ::postExecute
+
   // Sync ecmc if not enabled (only works in internal mode)
   if(!data_.status_.enabled && sync) {
     getTraj()->setCurrentPosSet(data_.status_.currentPositionActual);
@@ -2910,14 +2914,22 @@ void ecmcAxisBase::setMRSync(bool sync) {
 
 // motor.STOP
 void ecmcAxisBase::setMRStop(bool stop) {
-  mrCmds_.stopMRCmdTgl += 1;
+  // Ensure to only trigg command once per cycle
+  if(mrCmds_.stopMRCmdTgl == mrCmdsOld_.stopMRCmdTgl) {
+    mrCmds_.stopMRCmdTgl += 1;
+  }
+  // However always update the value
   mrCmds_.stopMRVal = stop;
   // param updated in ::postExecute
 }
 
 // motor.CNEN
 void ecmcAxisBase::setMRCnen(bool cnen) {
-  mrCmds_.cnenMRCmdTgl += 1;
+  // Ensure to only trigg command once per cycle
+  if(mrCmds_.cnenMRCmdTgl == mrCmdsOld_.cnenMRCmdTgl) {
+    mrCmds_.cnenMRCmdTgl += 1;
+  }
+  // However always update the value
   mrCmds_.cnenMRVal = cnen;
   // param updated in ::postExecute
 }
