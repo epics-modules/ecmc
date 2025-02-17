@@ -104,6 +104,8 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_mr_set_cnen(",
                                "mc_get_enc_ready(",
                                "mc_set_act_pos(",
+                               "mc_set_enc_homed(",
+                               "mc_get_enc_homed(",
                               };
 
 ecmcAxisGroup   *ecmcPLCTask::statAxisGrp_[ECMC_MAX_AXES]={};
@@ -116,7 +118,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 46;
+static int mc_cmd_count = 48;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -489,6 +491,42 @@ inline double mc_get_homed(double axIndex)
   bool homed=0;
   mc_errorCode=ecmcPLCTask::statAxes_[index]->getAxisHomed(&homed);
   return (double) homed;
+}
+
+inline double mc_set_enc_homed(double axIndex, double encIndex, double homed)
+{
+  int axIndexInt=(int)axIndex;
+  int encIndexInt=(int)encIndex -1;
+  // getEnc() index starts at 0.. messy.. thats why -1 above
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+
+  int error = 0;
+  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  if(error){
+     mc_errorCode = error;
+     return error;
+  }
+
+  enc->setHomed(homed > 0);
+
+  return 0.0;
+}
+
+inline double mc_get_enc_homed(double axIndex, double encIndex)
+{
+  int axIndexInt=(int)axIndex;
+  int encIndexInt=(int)encIndex -1;
+  // getEnc() index starts at 0.. messy.. thats why -1 above
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+
+  int error = 0;
+  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  if(error){
+     mc_errorCode = error;
+     return -error;
+  }
+
+  return (double)enc->getHomed();
 }
 
 inline double mc_get_axis_err(double axIndex)

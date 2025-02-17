@@ -867,6 +867,8 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_mr_set_sync",mc_mr_set_sync);
   ecmcPLCTaskAddFunction("mc_mr_set_stop",mc_mr_set_stop);
   ecmcPLCTaskAddFunction("mc_mr_set_cnen",mc_mr_set_cnen);
+  ecmcPLCTaskAddFunction("mc_set_enc_homed",mc_set_enc_homed);
+  ecmcPLCTaskAddFunction("mc_get_enc_homed",mc_get_enc_homed);
 
   // axis Group
   ecmcPLCTaskAddFunction("mc_grp_get_enable",mc_grp_get_enable);
