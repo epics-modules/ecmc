@@ -58,6 +58,21 @@ Cfg.SetAxisEncDelayCyclesAndEnable(1,2.5,1)"
      1. Enable/disable motor record via CNEN field
      Note: The command only triggers motor record maximum once per ecmc cycle (with the latest value written to enable)
 ```
+* Add plc functions to set and get homed bit of a specific encoder
+```
+ 18.  mc_set_enc_homed(
+                       <axis_id>,    : Axis index
+                       <encoder_id>, : Encoder index
+                       <homed>,      : Homed (value to set)
+                      );
+     Sets homed bit of a certain encoder. Returns error code.
+
+ 19.  mc_get_enc_homed(
+                       <axis_id>,    : Axis index
+                       <encoder_id>, : Encoder index
+                      );
+     Returns homed bit of a specific encoder or an error code (negative number)
+```
 
 # ECMC 9.6.8
 * Change lookup table support to be defined in EGUs:
