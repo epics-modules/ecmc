@@ -121,9 +121,17 @@ private:
     int prec = ECMC_LOOKUP_TABLE_PREC;
   
     while (std::getline(inputFile, line)) {
-      std::istringstream lineStream(line);
       T1 indexValue;  // Example, the encoder actual position [EGU]
       T2 value;       // Example the error at indexValue [EGU]
+
+      // Allow both comma and space separated
+      std::replace(line.begin(), line.end(), ',', ' '); // Replace commas with spaces
+      std::stringstream lineStream(line);
+
+      // Skip empty lines
+      if( line.length()==0 ){
+        continue;
+      }
 
       // Skip commented lines
       if( line[0] == '#') {

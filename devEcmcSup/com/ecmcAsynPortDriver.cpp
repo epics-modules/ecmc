@@ -2658,7 +2658,7 @@ int ecmcGetSlaveIdFromEcPath(const char *ec_path, const char *env_var_str) {
 
   int nvals = sscanf(ec_path, "ec%d.s%d.%s", &masterId, &slaveId, textBuffer);
   if (nvals == 3) {
-    int charCount = snprintf(resultBuffer,
+    size_t charCount = snprintf(resultBuffer,
                              sizeof(resultBuffer),
                              "%d",
                              slaveId);
