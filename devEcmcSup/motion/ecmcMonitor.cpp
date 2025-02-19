@@ -120,6 +120,8 @@ void ecmcMonitor::execute() {
   // Max Vel
   checkMaxVelocity();
 
+  checkStall();
+
   // Controller output HL
   checkCntrlMaxOutput();
 
@@ -778,36 +780,49 @@ int  ecmcMonitor::checkStall() {
 
   // Do only check for stall when not busy (traj finished)
   if(!enableAtTargetMon_ || !enableStallMon_ ||
-    data_->status_.atTarget || !data_->status_.enabled) {
-    data_->interlocks_.lagDriveInterlock = false;
+    !data_->status_.enabled) {
+    data_->interlocks_.stallInterlock = false;
     maxStallCounter_ = 0;
     return 0;
   }
   
-  // Measure time of last move, 
+  // Measure time of last move, busy high to busy low.
   if(data_->status_.busy ) {
-    lastMotionCmdDurationCmd_++;
+    stallLastMotionCmdCycles_++;
     if(!data_->status_.busyOld) {
-      lastMotionCmdDurationCmd_ = 0;
+      stallLastMotionCmdCycles_ = 0;
     }
     return 0;
   } else {
     if(data_->status_.busyOld) {
-      stallLastMotionCmdCycles_ = lastMotionCmdDurationCmd_ * stallTimeFactor_;
-      printf("Time to check stall: %" PRIu64 "\n", stallLastMotionCmdCycles_);
+      stallCheckAtTargetAtCycle_ = stallLastMotionCmdCycles_ * stallTimeFactor_;
+      printf("Time to check stall after: %" PRIu64 "\n", stallCheckAtTargetAtCycle_);
     }
   }
 
   maxStallCounter_++;
-  if(maxStallCounter_>stallLastMotionCmdCycles_) {
-    data_->interlocks_.lagDriveInterlock = false;
+
+  if(data_->status_.atTarget) {
+    data_->interlocks_.stallInterlock = false;
+    if(!data_->status_.atTargetOld) {
+      printf("No stall...\n");
+    }
+    maxStallCounter_ = 0;
+    return 0;
+  }
+
+  if((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
+     (stallCheckAtTargetAtCycle_ > 0)) {
+    printf("Stall...\n");
+    stallCheckAtTargetAtCycle_ = 0;
+    data_->interlocks_.stallInterlock = true;    
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_MON_MAX_POSITION_LAG_EXCEEDED,
-                      ECMC_SEVERITY_NORMAL);
-
+                      ERROR_MON_STALL,
+                      ECMC_SEVERITY_EMERGENCY);
   }
+  return 0;
 }
 
 int ecmcMonitor::checkPositionLag() {

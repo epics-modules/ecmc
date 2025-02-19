@@ -145,7 +145,6 @@ public:
   int                setAnalogRawLimit(double analogLimit);
   int                setEnableAnalogInterlock(bool enable);
   int                getSumInterlock();
-  int                setAtTargetTol(double tol);
   
   /* Stall monitoring for ABS and REL moves by checking that it has arrived atTarget 
      after timeFactor multiplied by teoretical arrival time time (based on velo). 

@@ -95,7 +95,7 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
   }
 
   if (interlocks_.stallInterlock ) {
-    interlocks_.interlockStatus = ECMC_INTERLOCK_ANALOG;
+    interlocks_.interlockStatus = ECMC_INTERLOCK_STALL;
     interlocks_.currStopMode    = ECMC_STOP_MODE_EMERGENCY;
     return interlocks_.currStopMode;
   }
@@ -226,7 +226,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                       || interlocks_.velocityDiffDriveInterlock
                                       || interlocks_.hardwareInterlock
                                       || interlocks_.etherCatMasterInterlock
-                                      || interlocks_.analogInterlock;
+                                      || interlocks_.analogInterlock
+                                      || interlocks_.stallInterlock;
 
   interlocks_.trajSummaryInterlockBWDEpics = interlocks_.driveSummaryInterlock
                                         || interlocks_.axisErrorStateInterlock
@@ -277,8 +278,9 @@ int ecmcAxisData::setSummaryInterlocks() {
       printf("interlocks_.hardwareInterlock= %d\n",interlocks_.hardwareInterlock);
       printf("interlocks_.etherCatMasterInterlock= %d\n",interlocks_.etherCatMasterInterlock);
       printf("interlocks_.analogInterlock= %d\n",interlocks_.analogInterlock);
+      printf("interlocks_.stallInterlock= %d\n",interlocks_.stallInterlock);
     }
-  
+
     if(interlocksOld_.trajSummaryInterlockBWD !=interlocks_.trajSummaryInterlockBWD) {
       printf("interlocks_.trajSummaryInterlockBWD changed:\n");
       printf("interlocks_.axisErrorStateInterlock= %d\n",interlocks_.axisErrorStateInterlock);

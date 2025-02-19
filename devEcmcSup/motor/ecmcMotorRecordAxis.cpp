@@ -2260,7 +2260,6 @@ asynStatus ecmcMotorRecordAxis::abortProfile() {
 }
 
 asynStatus ecmcMotorRecordAxis::readbackProfile() {
-  uint i;
   int status = 0;
   if (status) return asynError;
   

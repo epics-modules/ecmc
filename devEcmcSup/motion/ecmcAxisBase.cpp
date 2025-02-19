@@ -448,6 +448,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   data_.status_.busyOld                    = data_.status_.busy;
   data_.status_.enabledOld                 = data_.status_.enabled;
   data_.status_.executeOld                 = getExecute();
+  data_.status_.atTargetOld                = data_.status_.atTarget;
   data_.status_.currentPositionSetpointOld =
     data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld = data_.status_.cntrlOutput;

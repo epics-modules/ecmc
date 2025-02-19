@@ -242,16 +242,10 @@ void ecmcDriveBase::writeEntries() {
   if (!driveInterlocksOK() && data_->command_.enable) {
     data_->command_.enable = false;
     enableAmpCmd_          = false;
-    setErrorID(__FILE__, __FUNCTION__, __LINE__,
-               ERROR_DRV_DRIVE_INTERLOCKED,
-               ECMC_SEVERITY_EMERGENCY);
-  }
-
-  // Check if drive status OK
-  if (!driveInterlocksOK() && data_->command_.enable) {
-    data_->command_.enable = false;
-    enableAmpCmd_          = false;
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DRIVE_INTERLOCKED);
+    // Remove since it is overwriting the "real error code"
+    //setErrorID(__FILE__, __FUNCTION__, __LINE__,
+    //           ERROR_DRV_DRIVE_INTERLOCKED,
+    //           ECMC_SEVERITY_EMERGENCY);
   }
 
   // Update enable command
