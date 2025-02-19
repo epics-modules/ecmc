@@ -870,6 +870,10 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_MON_ENTRY_ANALOG_INTERLOCK_NULL";
 
     break;
+  case 0x14C19:
+    return "ERROR_MON_STALL";
+
+    break;
 
   case 0x14D00:    // SEQUENCER
     return "ERROR_SEQ_TRAJ_NULL";

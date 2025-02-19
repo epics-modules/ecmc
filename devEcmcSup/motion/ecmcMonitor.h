@@ -44,6 +44,7 @@
 #define ERROR_MON_TIME_OUT_OF_RANGE 0x14C16
 #define ERROR_MON_POLARITY_OUT_OF_RANGE 0x14C17
 #define ERROR_MON_ENTRY_ANALOG_INTERLOCK_NULL 0x14C18
+#define ERROR_MON_STALL 0x14C19
 
 // MONITOR WARNINGS
 #define WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK 0x114C00
@@ -144,7 +145,17 @@ public:
   int                setAnalogRawLimit(double analogLimit);
   int                setEnableAnalogInterlock(bool enable);
   int                getSumInterlock();
+  int                setAtTargetTol(double tol);
   
+  /* Stall monitoring for ABS and REL moves by checking that it has arrived atTarget 
+     after timeFactor multiplied by teoretical arrival time time (based on velo). 
+     Needs atTraget monitoring enabled. Time factor default 10.0.
+  */
+  void               setStallTimeFactor(double timeFactor);
+  double             getStallTimeFactor();
+  void               setEnableStallMon(bool enable);
+  bool               getEnableStallMon();
+
 private:
   int                checkLimits();
   int                checkAtTarget();
@@ -153,6 +164,7 @@ private:
   int                checkMaxVelocity();
   int                checkVelocityDiff();
   int                checkCntrlMaxOutput();
+  int                checkStall();
   int                filterSwitches();
   int                checkPolarity(ecmcSwitchPolarity pol);
   bool enable_;
@@ -213,9 +225,14 @@ private:
   double ctrlDeadbandTol_; // controller deadband
   int ctrlDeadbandCounter_;
   int ctrlDeadbandTime_;
-
   double analogRawLimit_;
   int enableAnalogInterlock_;
   ecmcSwitchPolarity analogPolarity_;
+  double stallTimeFactor_;
+  int enableStallMon_;
+  uint64_t maxStallCounter_;
+  uint64_t stallLastMotionCmdCycles_;
+  uint64_t stallCheckAtTargetAtCycle_;
 };
+
 #endif  // ifndef MOTIONMONITOR_H
