@@ -69,7 +69,7 @@ int ecmcTrajectoryBase::getIndex() {
   return index_;
 }
 
-double ecmcTrajectoryBase::getVel() {
+double ecmcTrajectoryBase::getNextVel() {
   return currentVelocitySetpoint_;
 }
 

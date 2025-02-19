@@ -15,6 +15,7 @@
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcMotorRecordController.h"
 #include "ecmcGlobalsExtern.h"
+#include "ecmcPluginClient.h"
 
 #ifndef ASYN_TRACE_INFO
 #define ASYN_TRACE_INFO      0x0040
@@ -55,7 +56,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
                                          int                        axisFlags,
                                          const char                *axisOptionsStr)
   : asynMotorAxis(pC, axisNo),
-  pC_(pC) {
+  pC_(pC) {  
+
   /* Some parameters are only defined in the ESS fork of the motor module.
      So they have the ifdef */
   setIntegerParam(pC_->motorFlagsDriverUsesEGU_,   1);
@@ -68,12 +70,23 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #ifdef motorFlagsNtmUpdateString
   setIntegerParam(pC_->motorFlagsNtmUpdate_,       1);
 #endif // ifdef motorFlagsNtmUpdateString
-
+  profileMaxPoints_ = 0;
   // initialize
   memset(&drvlocal,       0,    sizeof(drvlocal));
   memset(&drvlocal.dirty, 0xFF, sizeof(drvlocal.dirty));
+  strcpy(profileMessage_, "");
+
   //restorePowerOnOffNeeded_ = 0;
-  drvlocal.ecmcAxis = ecmcAxisRef;
+  drvlocal.ecmcAxis    = ecmcAxisRef;
+  profileLastBuildOk_  = false;
+  profileLastInitOk_   = false;
+  profileLastDefineOk_ = false;
+  profileInProgress_   = false;
+  profileSwitchPVTObject_ = false;
+  pvtEnabled_             = 0;
+  
+  pvtPrepare_ = NULL;
+  pvtRunning_ = NULL;
 
   if (!drvlocal.ecmcAxis) {
     LOGERR(
@@ -84,7 +97,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
     exit(EXIT_FAILURE);
   }
-
   drvlocal.axisId          = axisNo;
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;
   drvlocal.axisFlags       = axisFlags;
@@ -183,8 +195,10 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   /* Set the module name to "" if we have FILE/LINE enabled by asyn */
   if (pasynTrace->getTraceInfoMask(pPrintOutAsynUser) &
       ASYN_TRACEINFO_SOURCE) modNamEMC = "";
+  
 
   initialPoll();
+  
 }
 
 extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
@@ -535,7 +549,7 @@ asynStatus ecmcMotorRecordAxis::readBackVelocities(int axisID) {
 asynStatus ecmcMotorRecordAxis::initialPoll(void) {
   asynStatus status;
 
-  if (!drvlocal.dirty.initialPollNeeded)return asynSuccess;
+  if (!drvlocal.dirty.initialPollNeeded) return asynSuccess;
 
   status = initialPollInternal();
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
@@ -1233,7 +1247,7 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcBusy = drvlocal.ecmcAxis->getBusy();
   drvlocal.ecmcAtTarget = drvlocal.ecmcAxis->getMon()->getAtTarget();
   drvlocal.ecmcAtTargetMonEnable = drvlocal.ecmcAxis->getMon()->getEnableAtTargetMon();
-  
+  drvlocal.axisPrintDbg = drvlocal.ecmcAxis->getPrintDbg();
   
   drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
@@ -1891,4 +1905,458 @@ asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit) {
     return asynError;
   }
   return asynMotorAxis::setLowLimit(lowLimit);
+}
+
+asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
+{
+  printf("ecmcMotorRecordAxis::initializeProfile()\n");
+  if(!pvtEnabled_) {
+    printf("ecmcMotorRecordAxis::initializeProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    return asynSuccess;
+  }
+  profileMaxPoints_ = maxProfilePoints;
+  profileLastInitOk_= false;
+  asynStatus status = asynMotorAxis::initializeProfile(maxProfilePoints);
+  
+  profileLastInitOk_ = status == asynSuccess;
+  
+  // Add axis ref to PVT controller
+  ecmcPVTController * pvtCtrl = pC_->getPVTController();
+  if(!pvtCtrl) {
+    printf("ecmcMotorRecordAxis::initializeProfile(): Error axis[%d]: ecmcPVTController == NULL\n", axisNo_);
+    return asynError;
+  }
+  
+  // Add axes to PVT (since !pvtEnabled_)
+  //pvtCtrl->addPVTAxis(drvlocal.ecmcAxis);
+  
+  return status;
+}
+
+asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoints)
+{
+  printf("ecmcMotorRecordAxis::defineProfile()\n");
+  if(!pvtEnabled_) {
+    printf("ecmcMotorRecordAxis::defineProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    return asynSuccess;
+  }
+
+  profileLastDefineOk_= false;
+  pC_->setIntegerParam(pC_->profileBuildState_, PROFILE_BUILD_DONE);
+  pC_->setIntegerParam(pC_->profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+  sprintf(profileMessage_, "Build not executed.\n");
+  pC_->setStringParam(pC_->profileBuildMessage_, profileMessage_);
+  pC_->callParamCallbacks();
+
+  size_t i;
+  asynStatus status;
+
+  // Call the base class function
+  status = asynMotorAxis::defineProfile(positions, numPoints);
+  if (status) {
+    printf("ecmcMotorRecordAxis::defineProfile(): ERROR!!!\n");
+    return status;    
+  }
+
+  for (i = 0; i < numPoints; i++) {    
+    profilePositions_[i] = positions[i];
+  }
+
+  profileNumPoints_ = numPoints;
+
+  profileLastDefineOk_ = status == asynSuccess;
+  for (size_t i = 0; i < (profileNumPoints_); i++) {
+    if(drvlocal.axisPrintDbg) {
+      printf("ecmcMotorRecordAxis::defineProfile: profilePositions_[%ld] = %lf\n",i,profilePositions_[i]);
+    }
+  }
+
+  return asynSuccess;
+}
+
+/** Function to build a coordinated move of multiple axes. */
+asynStatus ecmcMotorRecordAxis::buildProfile()
+{
+  printf("ecmcMotorRecordAxis::buildProfile()\n");
+  if(!pvtEnabled_) {
+    printf("ecmcMotorRecordAxis::buildProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    return asynSuccess;
+  }
+
+  profileLastBuildOk_ = false;
+  asynMotorAxis::buildProfile();
+
+
+  if (!profileLastInitOk_ || !profileLastDefineOk_) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Define or Init not performed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+
+    return asynError;
+  }
+  
+  if(profileNumPoints_<2) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Defined profile position count invalid (<=1).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+
+  double accTime = 0;
+  asynStatus status = pC_->getDoubleParam(pC_->profileAcceleration_, &accTime);
+  
+  if(status != asynSuccess) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Failed read profileAcceleration_.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+
+  if(!pvtPrepare_) {       
+    pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000, profileMaxPoints_);
+  }
+
+  if(!pvtPrepare_ ) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Allocation of PVT object failed.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+  
+  // Clear prepared pvt object
+  pvtPrepare_->clear();
+  
+  //Add acceleration point start dummy point and udate with correct position when triggered (executeProfile)
+  // Rampup time defined in parameter profileAcceleration_
+  pvtPrepare_->addPoint(new ecmcPvtPoint(0,0,0));
+
+  double time;
+  int timeMode;
+  
+  /*status |= */ pC_->getIntegerParam(ECMC_MR_CNTRL_ADDR, pC_->profileTimeMode_, &timeMode);
+  /*status |= */ pC_->getDoubleParam(ECMC_MR_CNTRL_ADDR, pC_->profileFixedTime_, &time);
+
+  if(drvlocal.axisPrintDbg) {
+    if(timeMode==PROFILE_TIME_MODE_FIXED) {
+      printf("TIME_MODE=PROFILE_TIME_MODE_FIXED, time %lf\n",time);
+    } else {
+      printf("TIME_MODE=PROFILE_TIME_MODE_ARRAY\n");
+    }
+  
+    for (size_t i = 0; i < profileNumPoints_; i++) {
+      if(timeMode == PROFILE_TIME_MODE_FIXED) {
+      printf("time[%ld] = %lf \n",i, time);
+      } else { // Time array
+        printf("pC->profileTimes_[%ld] = %lf \n",i, pC->profileTimes_[i]);
+      }
+      printf("profilePositions_[%ld] = %lf \n",i, profilePositions_[i]);
+    }
+  }
+
+  double preVelo = 0;
+  double postVelo = 0;
+  double currTime = accTime;  // Start at this time since first seqment takes the acceleration
+
+  // Add first points
+  if(timeMode == PROFILE_TIME_MODE_FIXED) {      
+    preVelo = (profilePositions_[1]-profilePositions_[0]) / time;
+  } else { // Time array
+    preVelo = (profilePositions_[1]-profilePositions_[0]) / pC->profileTimes_[0];
+  }
+
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0], preVelo, currTime));
+  
+  if(drvlocal.axisPrintDbg) {
+    printf("Added point (%lf,%lf,%lf)\n",profilePositions_[0], preVelo, currTime);
+  }
+
+  if(timeMode == PROFILE_TIME_MODE_FIXED) {
+    currTime += time;
+  } else { // Time array
+    currTime += pC->profileTimes_[0];
+  }
+
+  //add center points
+  double velo = preVelo;
+  for (size_t i = 1; i < (profileNumPoints_-1); i++) {
+    if(timeMode == PROFILE_TIME_MODE_FIXED) {      
+      postVelo = (profilePositions_[i+1]-profilePositions_[i]) / time;
+    } else { // Time array
+      postVelo = (profilePositions_[i+1]-profilePositions_[i]) / pC->profileTimes_[i];
+    }
+
+    velo = (preVelo + postVelo)/2;
+    pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i],velo, currTime));
+    if(drvlocal.axisPrintDbg) {
+      printf("Added point (%lf,%lf,%lf)",profilePositions_[i], velo, currTime);
+    }
+    if(timeMode == PROFILE_TIME_MODE_FIXED) {
+      currTime += time;
+    } else { // Time array
+      currTime += pC->profileTimes_[0];
+    }
+    preVelo   = postVelo;
+  }
+  
+  // Add last point. same velo as prev point    
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], postVelo, currTime));  
+  if(drvlocal.axisPrintDbg) {
+    printf("Added point (%lf,%lf,%lf)",profilePositions_[profileNumPoints_-1], postVelo, currTime);
+  }
+
+  // Add deceleration point. always zero velo after accTime
+  currTime +=accTime;    
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1] + velo * accTime / 2, 0, currTime));
+  
+  // Dump what we have
+  pvtPrepare_->print();
+
+
+  if(!drvlocal.ecmcAxis || !pC_->getPVTController()) {
+    return asynError;
+  }
+  
+  //Add pvt axis to pvt controller
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  pC_->getPVTController()->addPVTAxis(pvtPrepare_);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  profileLastBuildOk_ = true;
+  profileSwitchPVTObject_ = true;
+
+  return asynSuccess;
+}
+
+asynStatus ecmcMotorRecordAxis::executeProfile() {
+  if(drvlocal.axisPrintDbg) {
+    printf("ecmcMotorRecordAxis::executeProfile()\n");
+  }
+  if(!pvtEnabled_) {
+    printf("ecmcMotorRecordAxis::executeProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    return asynSuccess;
+  }
+  int useAxis = 0;
+  asynStatus status = pC_->getIntegerParam(axisNo_, pC_->profileUseAxis_, &useAxis);  
+  
+  if(useAxis == 0) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Axis not in use (ignoring execute command).\n", axisNo_);
+    return asynSuccess;
+  }
+
+  if(!profileLastBuildOk_) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Last build did not complete successfully\n", axisNo_);
+    return asynError;
+  }
+  
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+
+  if(pvtRunning_) {
+    if(pvtRunning_->getBusy()) {
+      printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Profile busy..\n",axisNo_);
+      if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+      return asynError;
+    }
+  }
+  
+  if(profileSwitchPVTObject_) {
+    // switch pvt objects
+    ecmcAxisPVTSequence *pvtTempSwitch = NULL;
+    pvtTempSwitch = pvtRunning_;
+    pvtRunning_ = pvtPrepare_;
+    
+    // Add pvt object to axis
+    drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtRunning_);
+    pvtPrepare_ = pvtTempSwitch;
+    profileSwitchPVTObject_ = false;
+  }
+  
+  // Add pvt object to controller
+  pC_->getPVTController()->addPVTAxis(pvtRunning_);
+
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  if(drvlocal.axisPrintDbg) {
+    printf("ecmcMotorRecordAxis::executeProfile()\n");
+  }
+
+  status = asynMotorAxis::executeProfile();
+  if(status != asynSuccess) {
+    return status;
+  }
+
+  if(!profileLastBuildOk_) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Last build did not complete successfully\n", axisNo_);
+    return asynError;
+  }
+
+  int mode = 0;
+  status = pC_->getIntegerParam(pC_->profileMoveMode_, &mode);
+
+  // Check for interlock
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  int ilock=drvlocal.ecmcAxis->getSumInterlock();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+  if(ilock) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Error Axis[%d]: Axis interlocked, aborting profile...\n",
+    drvlocal.axisId);
+    abortProfile();
+    return asynError;
+  }
+  
+  int errorCode = 0;
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+
+  // HERE init time of pvtCtrl_
+
+  if(mode == PROFILE_MOVE_MODE_ABSOLUTE){
+    if(drvlocal.axisPrintDbg) {
+      printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
+    }
+    errorCode = drvlocal.ecmcAxis->movePVTAbs();
+  } else {  // PROFILE_MOVE_MODE_RELATIVE
+    if(drvlocal.axisPrintDbg) {
+      printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
+    }
+    errorCode = drvlocal.ecmcAxis->movePVTRel();
+  }
+
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  if(errorCode) {
+    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: ecmc error (0x%x)\n",axisNo_,errorCode);
+    return asynError;
+  }
+  
+  profileInProgress_ = true;
+  return asynSuccess;
+}
+
+asynStatus ecmcMotorRecordAxis::abortProfile() {
+  printf("ecmcMotorRecordAxis::abortProfile()\n");
+  profileInProgress_ = false;
+  // stop with controller rampdown: stopMotion(0):  Controller rampdown, stopMotion(1): Kill amplifier
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  int errorCode = drvlocal.ecmcAxis->stopMotion(0);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  if(errorCode) {
+    printf("ecmcMotorRecordAxis::abortProfile(): Error axis[%d]: axis->stopMotion() returned error (0x%x)\n",axisNo_, errorCode);
+    return asynError;
+  }
+
+  asynStatus status = asynMotorAxis::abortProfile();
+  if(status != asynSuccess) {
+    return status;
+  }
+  return asynSuccess;
+}
+
+asynStatus ecmcMotorRecordAxis::readbackProfile() {
+  uint i;
+  int status = 0;
+  if (status) return asynError;
+  
+  if(!pvtRunning_) return asynError;
+
+  if(pvtRunning_->getBusy()) return asynError;
+
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+
+  // Get pointers to data of ecmc vectors
+  double *dataPosAct =  pvtRunning_->getResultPosActDataPrt();
+  double *dataPosErr =  pvtRunning_->getResultPosErrDataPrt();
+  size_t elements = pvtRunning_->getResultBufferSize();
+
+  if(dataPosAct == NULL || dataPosAct == NULL) {
+    if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+    return asynError;
+  }
+
+  if(elements == 0) {
+    if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+    return asynError;
+  }
+
+  if(elements > profileMaxPoints_) {
+    elements = profileMaxPoints_;
+  }
+
+  memcpy(profileReadbacks_,       dataPosAct, elements * sizeof(double));
+  memcpy(profileFollowingErrors_, dataPosErr, elements * sizeof(double));
+  
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  status  = pC_->doCallbacksFloat64Array(profileReadbacks_,       elements, pC_->profileReadbacks_, axisNo_);
+  status |= pC_->doCallbacksFloat64Array(profileFollowingErrors_, elements, pC_->profileFollowingErrors_, axisNo_);
+  return asynSuccess;
+}
+
+
+bool ecmcMotorRecordAxis::getProfileLastBuildSuccess() {
+  return profileLastBuildOk_;
+}
+
+asynStatus ecmcMotorRecordAxis::checkProfileStatus() {
+
+  // Check for errors
+  if(drvlocal.nErrorIdMcu) {
+    printf("ecmcMotorRecordController::checkProfileStatus(): Error Axis[%d]: Axis in error state, aborting profile... 0x%x\n",
+           drvlocal.axisId,drvlocal.nErrorIdMcu);
+    //abortProfile();  // handle in controller
+    return asynError;
+  }
+  
+  // Check for interlock
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  int ilock=drvlocal.ecmcAxis->getSumInterlock();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+  if(ilock) {
+    printf("ecmcMotorRecordController::checkProfileStatus(): Error Axis[%d]: Axis interlocked, aborting profile...\n",
+           drvlocal.axisId);
+    //abortProfile();  // handle in controller
+    return asynError;
+  }
+  return asynSuccess;
+}
+
+int ecmcMotorRecordAxis::getProfileCurrentSegementID() {
+  int id = -1;
+  if(!pvtRunning_ || !profileInProgress_ ) {
+    return id; //Invalid..
+  }
+  
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+    id = pvtRunning_->getCurrentSegementId();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  return id;
+}
+
+int ecmcMotorRecordAxis::getProfileBusy() {
+  int busy = -1;
+  if(!pvtRunning_ || !profileInProgress_ ) {
+    return busy;  //Invalid..
+  }
+  
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  busy = pvtRunning_->getBusy();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  return busy;
+}
+
+void ecmcMotorRecordAxis::setEnablePVTFunc(int enable) {
+  pvtEnabled_ = enable;
+}
+
+void ecmcMotorRecordAxis::invalidatePVTBuild() {
+  profileLastBuildOk_ = false;
 }

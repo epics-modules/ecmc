@@ -1,5 +1,8 @@
 Release Notes
 ===
+# PVT
+* Add profile move (motor record extension). Only move is supported, not triggering and readbacks yet.
+
 # ECMC 10.0.0
 * New plugin interface version. Needed in order to be able to use require to load plugins.
 * Add delay compensation for encoders (time between input of encoder and output of velo in drive)
@@ -124,7 +127,6 @@ mc_set_act_pos(<axIndex>,<encIndex>,<position>);
 ```
 mc_grp_sync_act_set(<grpIndex>,<sync>);
 ```
-
 # ECMC 9.6.0
 * Default state of axis diag disabled
 * Allow non primary encoder to be "not ready" during operation.

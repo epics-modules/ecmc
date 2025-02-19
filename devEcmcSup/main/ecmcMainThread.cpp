@@ -346,6 +346,7 @@ void cyclic_task(void *usr) {
     }
     ecStat = ec->statusOK() || !ec->getInitDone();
 
+    // Master to master coms
     if (writeToShm) {
       if (masterId >= 0) {
         shmObj.mstPtr[masterId] = 1 + ecStat;  // ec OK
@@ -360,6 +361,10 @@ void cyclic_task(void *usr) {
         plcs->execute(AXIS_PLC_ID_TO_PLC_ID(i), ecStat);
         axes[i]->execute(ecStat);
       }
+    }
+    // PVT motion
+    if(pvtCtrl_) {
+      pvtCtrl_->execute();
     }
 
     // Data events

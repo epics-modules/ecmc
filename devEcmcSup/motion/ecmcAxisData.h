@@ -34,7 +34,7 @@ typedef struct {
   bool               reset              : 1;
   bool               enableSoftLimitBwd : 1;
   bool               enableSoftLimitFwd : 1;
-
+  bool               enableDbgPrintout  : 1;
   dataSource trajSource;
   dataSource encSource;
   driveMode  drvMode;
@@ -118,6 +118,7 @@ typedef struct {
   bool           encDiffInterlock;
   bool           safetyInterlock;  // can only be set and reset by plugin
   bool           analogInterlock;
+  bool           stallInterlock;
   interlockTypes lastActiveInterlock;
   interlockTypes interlockStatus;
   stopMode       currStopMode;

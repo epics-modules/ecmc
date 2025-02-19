@@ -8,13 +8,14 @@ FILENAME...   ecmcMotorRecordAxis.h
 #include "asynMotorAxis.h"
 #include <stdint.h>
 #include "ecmcAxisBase.h"
-
+#include "ecmcAxisPVTSequence.h"
 
 #define AMPLIFIER_ON_FLAG_CREATE_AXIS  (1)
 #define AMPLIFIER_ON_FLAG_AUTO_ON      (1 << 1)
 #define AMPLIFIER_ON_FLAG_USING_CNEN   (1 << 2)
 
 #define ECMCAMPLIFIER_ON_FLAG_USING_CNEN   (1 << 2)
+#define MAX_MESSAGE_LEN   256
 
 extern const char *modNamEMC;
 
@@ -56,6 +57,9 @@ public:
   asynStatus setLowLimit(double lowLimit);
 
   asynStatus poll(bool *moving);
+  bool getProfileLastBuildSuccess();
+  void setEnablePVTFunc(int enable);
+  void invalidatePVTBuild();
 
 private:
   typedef enum
@@ -116,6 +120,7 @@ private:
       unsigned int sErrorMessage         : 1;     /* From MCU */
       unsigned int initialPollNeeded     : 1;
     }    dirty;
+    int  axisPrintDbg;
     int  moveReady;
     int  moveReadyOld;
     char cmdErrorMessage[80];               /* From driver */
@@ -161,6 +166,31 @@ private:
   void       updateMsgTxtFromDriver(const char *value);
 #endif // ifndef motorMessageTextString
 
+  //virtual asynStatus initializeProfile(size_t maxPoints);§
+  asynStatus defineProfile(double *positions, size_t numPoints);
+  asynStatus buildProfile();
+  asynStatus initializeProfile(size_t maxProfilePoints);
+
+  asynStatus executeProfile();
+  asynStatus abortProfile();
+  asynStatus readbackProfile();
+
+  asynStatus checkProfileStatus();
+  int getProfileBusy();
+  int getProfileCurrentSegementID();
+  //virtual asynStatus readbackProfile();
+
+  ecmcAxisPVTSequence *pvtRunning_;
+  ecmcAxisPVTSequence *pvtPrepare_;
+  size_t profileNumPoints_;
+  bool profileLastBuildOk_;
+  bool profileLastInitOk_;
+  bool profileLastDefineOk_;
+  char profileMessage_[MAX_MESSAGE_LEN];
+  bool profileInProgress_;
+  bool profileSwitchPVTObject_;
+  bool pvtEnabled_;
+  size_t profileMaxPoints_;
   friend class ecmcMotorRecordController;
 };
 

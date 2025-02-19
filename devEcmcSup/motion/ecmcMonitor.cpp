@@ -48,6 +48,9 @@ void ecmcMonitor::initVars() {
   maxVelCounterDrive_ = 0;
   maxVelCounterTraj_  = 0;
   maxVelDriveILDelay_ = 0;
+  maxStallCounter_    = 0;
+  stallLastMotionCmdCycles_  = 0;
+  stallCheckAtTargetAtCycle_ = 0;
 
   // 200 cycles
   maxVelTrajILDelay_ = 200;
@@ -85,6 +88,8 @@ void ecmcMonitor::initVars() {
   analogRawLimit_            = 0;
   enableAnalogInterlock_     = 0;
   analogPolarity_            = ECMC_POLARITY_NC; // Higher value than analogRawLimit_ is bad
+  stallTimeFactor_           = 10;
+  enableStallMon_            = 1;
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -768,6 +773,43 @@ int ecmcMonitor::checkAtTarget() {
   return 0;
 }
 
+// Only enabled when also atTarget monitoring is enabled
+int  ecmcMonitor::checkStall() {
+
+  // Do only check for stall when not busy (traj finished)
+  if(!enableAtTargetMon_ || !enableStallMon_ ||
+    data_->status_.atTarget || !data_->status_.enabled) {
+    data_->interlocks_.lagDriveInterlock = false;
+    maxStallCounter_ = 0;
+    return 0;
+  }
+  
+  // Measure time of last move, 
+  if(data_->status_.busy ) {
+    lastMotionCmdDurationCmd_++;
+    if(!data_->status_.busyOld) {
+      lastMotionCmdDurationCmd_ = 0;
+    }
+    return 0;
+  } else {
+    if(data_->status_.busyOld) {
+      stallLastMotionCmdCycles_ = lastMotionCmdDurationCmd_ * stallTimeFactor_;
+      printf("Time to check stall: %" PRIu64 "\n", stallLastMotionCmdCycles_);
+    }
+  }
+
+  maxStallCounter_++;
+  if(maxStallCounter_>stallLastMotionCmdCycles_) {
+    data_->interlocks_.lagDriveInterlock = false;
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MON_MAX_POSITION_LAG_EXCEEDED,
+                      ECMC_SEVERITY_NORMAL);
+
+  }
+}
+
 int ecmcMonitor::checkPositionLag() {
   bool lagErrorTraj  = false;
   bool lagErrorDrive = false;
@@ -1194,4 +1236,20 @@ int ecmcMonitor::getSumInterlock() {
   return data_->interlocks_.driveSummaryInterlock ||
          data_->interlocks_.trajSummaryInterlockFWD ||
          data_->interlocks_.trajSummaryInterlockBWD;
+}
+
+void  ecmcMonitor::setStallTimeFactor(double timeFactor) {
+  stallTimeFactor_ = timeFactor;
+}
+
+double  ecmcMonitor::getStallTimeFactor() {
+  return stallTimeFactor_;
+}
+
+void ecmcMonitor::setEnableStallMon(bool enable) {
+  enableStallMon_ = enable;
+}
+
+bool ecmcMonitor::getEnableStallMon() {
+  return enableStallMon_;
 }

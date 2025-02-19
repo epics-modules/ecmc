@@ -206,6 +206,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
 
     exit(1);
   }
+  seq_.init(sampleTime);
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
@@ -710,7 +711,7 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
 
   data_.status_.enableOld = data_.command_.enable;
   data_.command_.enable   = enable;
-  
+
   return 0;
 }
 
@@ -777,12 +778,12 @@ int ecmcAxisBase::getVelAct(double *vel) {
 }
 
 int ecmcAxisBase::getPosSet(double *pos) {
-  if ((data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) && getSeq()) {
-    *pos = data_.command_.positionTarget;
-  } else {
-    *pos = data_.status_.currentPositionSetpoint;
-  }
+  *pos = data_.status_.currentPositionSetpoint;
+  return 0;
+}
 
+int ecmcAxisBase::getVelSet(double *vel) {  
+  *vel = data_.status_.currentVelocitySetpoint;
   return 0;
 }
 
@@ -1823,6 +1824,98 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
   return 0;
 }
 
+int ecmcAxisBase::movePVTAbs() {
+  if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move PVT failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
+  if(getBusy()) {
+    return ERROR_AXIS_BUSY;
+  }
+
+  int errorCode = getErrorID();
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_MOVEPVTABS);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCmdData(0);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(1);
+  return 0;
+
+}
+
+int ecmcAxisBase::movePVTRel() {
+  if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Move PVT failed since traj source is set to PLC (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_,
+      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+
+    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+  }
+
+  if(getBusy()) {
+    return ERROR_AXIS_BUSY;
+  }
+
+  int errorCode = getErrorID();
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(0);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCommand(ECMC_CMD_MOVEPVTREL);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setCmdData(0);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  errorCode = setExecute(1);
+  return 0;
+
+}
+
 int ecmcAxisBase::moveAbsolutePosition(
   double positionSet,
   double velocitySet,
@@ -2197,6 +2290,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * controlWord_.plcCmdsAllowCmd
  * controlWord_.enableSoftLimitBwd
  * controlWord_.enableSoftLimitFwd
+ * controlWord_.enableILockChangePrintout
  *
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
@@ -2255,6 +2349,9 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED);
     return asynError;
   }
+
+  // make printouts when interlock state changes
+  data_.command_.enableDbgPrintout = controlWord_.enableDbgPrintout;
 
   int errorCode = 0;
 
@@ -2940,4 +3037,13 @@ int ecmcAxisBase::loadEncLookupTable(const char* filename) {
 
 int  ecmcAxisBase::setEncLookupTableEnable(int enable) {
   return encArray_[data_.command_.cfgEncIndex]->setLookupTableEnable(enable);
+}
+
+int ecmcAxisBase::getSumInterlock() {
+  return (data_.interlocks_.interlockStatus > 0) && 
+         (data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE);
+}
+
+int ecmcAxisBase::getPrintDbg() {
+  return controlWord_.enableDbgPrintout;
 }

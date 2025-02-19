@@ -218,6 +218,7 @@ public:
   ecmcAxisSequencer*         getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);
+  int                        getVelSet(double *vel);
   int                        getVelAct(double *vel);
   axisType                   getAxisType();
   int                        getAxisID();
@@ -287,6 +288,8 @@ public:
                double velocityOffCamSet,
                double accelerationSet,
                double decelerationSet);
+  int movePVTRel();
+  int movePVTAbs();
   int        moveHome(); // Use configs from encoder object
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);
@@ -343,6 +346,9 @@ public:
   void       setMRSync(bool sync);    // SYNC motor record
   void       setMRStop(bool stop);    // STOP motor record
   void       setMRCnen(bool cnen);    // CNEN motor record
+  int        getSumInterlock();
+  int        getPrintDbg();
+
 protected:
   void       initVars();
   void       refreshDebugInfoStruct();

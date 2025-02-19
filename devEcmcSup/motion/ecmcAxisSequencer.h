@@ -20,6 +20,7 @@
 #include "ecmcTrajectoryBase.h"
 #include "ecmcAxisData.h"
 #include "ecmcDriveBase.h"
+#include "ecmcAxisPVTSequence.h"
 
 // SEQUENCER ERRORS
 #define ERROR_SEQ_TRAJ_NULL 0x14D00
@@ -49,41 +50,54 @@
 #define ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL 0x14D18
 #define ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED 0x14D19
 #define ERROR_SEQ_HOME_NOT_ALLOWED 0x14D1A
+#define ERROR_SEQ_PVT_OBJECT_BUSY 0x14D1B
+#define ERROR_SEQ_PVT_OBJECT_NULL 0x14D1C
+
 
 // SEQUENCER WARNINGS
 #define WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION 0x114D00
 #define WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION 0x114D01
 
+
+enum localTrajDataSource {
+  ECMC_TRAJ_SRC_TRAJ = 0,
+  ECMC_TRAJ_SRC_PLC  = 1,
+  ECMC_TRAJ_SRC_PVT  = 2  
+};
+
 class ecmcAxisSequencer : public ecmcError {
 public:
   ecmcAxisSequencer();
   ~ecmcAxisSequencer();
-  int                 setExecute(bool execute);
-  bool                getExecute();
-  void                execute();
-  void                setCommand(motionCommandTypes command);
-  motionCommandTypes  getCommand();
-  void                setCmdData(int cmdData);
-  int                 getCmdData();
-  void                setTraj(ecmcTrajectoryBase *traj);
-  ecmcTrajectoryBase* getTraj();
-  void                setEnc(ecmcEncoder **encArray);
-  void                setMon(ecmcMonitor *mon);
-  void                setDrv(ecmcDriveBase *drv);
-  void                setCntrl(ecmcPIDController *con);
-  bool                getBusy();
-  void                setJogVel(double velTarget);
-  double              getJogVel();
-  int                 setHomeVelTowardsCam(double vel);
-  int                 setHomeVelOffCam(double vel);
-  double              getHomeVelTowardsCam();
-  double              getHomeVelOffCam();
-  void                setHomePosition(double pos);
-  double              getHomePosition();
-  void                setDefaultAcc(double acc);
-  void                setDefaultDec(double dec);
-  void                setAcc(double acc);
-  void                setDec(double dec);
+  void                 init(double sampleTime);
+  int                  setExecute(bool execute);
+  bool                 getExecute();
+  void                 execute();
+  void                 setCommand(motionCommandTypes command);
+  motionCommandTypes   getCommand();
+  void                 setCmdData(int cmdData);
+  int                  getCmdData();
+  void                 setTraj(ecmcTrajectoryBase *traj);
+  ecmcTrajectoryBase*  getTraj();
+  void                 setEnc(ecmcEncoder **encArray);
+  void                 setMon(ecmcMonitor *mon);
+  void                 setDrv(ecmcDriveBase *drv);
+  void                 setCntrl(ecmcPIDController *con);
+  bool                 getBusy();
+  void                 setJogVel(double velTarget);
+  double               getJogVel();
+  int                  setHomeVelTowardsCam(double vel);
+  int                  setHomeVelOffCam(double vel);
+  double               getHomeVelTowardsCam();
+  double               getHomeVelOffCam();
+  void                 setHomePosition(double pos);
+  double               getHomePosition();
+  void                 setDefaultAcc(double acc);
+  void                 setDefaultDec(double dec);
+  void                 setAcc(double acc);
+  void                 setDec(double dec);
+  int                  setPVTObject(ecmcAxisPVTSequence* pvt);
+  int                  validatePVT();
 
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
@@ -117,8 +131,10 @@ public:
   int          setAutoModeActEntry(ecmcEcEntry *entry);
   int          setAutoModeHomigCmd(int homing);
   int          setAutoModeMotionCmd(int motion);
+  void         setEnable(int enable);
 
 private:
+  void         executeInternal();
   ecmcEncoder* getPrimEnc();
   void         initVars();
   double       checkSoftLimits(double posSetpoint);
@@ -151,6 +167,7 @@ private:
   void         finalizeHomingSeq(double newPosition);
   int          postHomeMove();
   void         setTrajAccAndDec();
+  void         initStop();
   void         latchPosLagMonStateBeforeSeq();
   void         restorePosLagMonAfterSeq();
 
@@ -186,6 +203,7 @@ private:
   ecmcPIDController *cntrl_;
   ecmcDriveBase *drv_;
   ecmcAxisData *data_;
+  ecmcAxisPVTSequence * pvt_;
   uint64_t oldencRawAbsPosReg_;
   uint64_t encRawAbsPosReg_;
   ecmcOverUnderFlowType overUnderFlowLatch_;
@@ -207,6 +225,14 @@ private:
   int modeHomingCmd_;  // Mode for homing
   int modeMotionCmdSet_;
   int modeHomingCmdSet_;
+  bool temporaryLocalTrajSource_;
+  bool pvtOk_;
+  bool trajLock_;
+  bool trajLockOld_;
+  bool newTrajLockEdge_;
+  bool pvtStopping_;
+  bool pvtmode_;
+  int posSource_;
   int homeTrigStatOld_;
   bool monPosLagEnaStatePriorHome_;
   bool monPosLagRestoreNeeded_;

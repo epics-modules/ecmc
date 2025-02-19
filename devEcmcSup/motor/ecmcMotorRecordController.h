@@ -8,6 +8,7 @@ FILENAME...   ecmcMotorRecordController.h
 #include "asynMotorController.h"
 #include "asynMotorAxis.h"
 #include "ecmcMotorRecordAxis.h"
+#include "ecmcPVTController.h"
 
 #ifndef motorRecResolutionString
 #define CREATE_MOTOR_REC_RESOLUTION
@@ -74,6 +75,8 @@ FILENAME...   ecmcMotorRecordController.h
 #define ecmcMotorRecordDbgStrToLogString          "StrToLOG"
 
 #define HOMPROC_MANUAL_SETPOS    15
+#define MAX_MESSAGE_LEN   256
+#define ECMC_MR_CNTRL_ADDR 0
 
 extern const char *modNamEMC;
 
@@ -106,9 +109,20 @@ public:
   // asynStatus configController(int needOk, const char *value);
   ecmcMotorRecordAxis* getAxis(asynUser *pasynUser);
   ecmcMotorRecordAxis* getAxis(int axisNo);
+  asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+  asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  asynStatus writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value,size_t nElements);
+  // Have to override the profile* since basecalse does not include error and status handling
+  asynStatus initializeProfile(size_t maxProfilePoints);
+  asynStatus buildProfile();
+  asynStatus executeProfile();
+  asynStatus abortProfile();
+  asynStatus readbackProfile();
+  asynStatus enableAxisPVTFunc(int axisNo, int enable);
   int features_;
 
 protected:
+  ecmcMotorRecordAxis **pAxes_;       /**< Array of pointers to axis objects */
   void udateMotorLimitsRO(int axisNo);
   void udateMotorLimitsRO(int    axisNo,
                           int    enabledHighAndLow,
@@ -117,6 +131,8 @@ protected:
   void       handleStatusChange(asynStatus status);
   int        getFeatures(void);
   asynStatus poll();
+  void       profilePoll();
+  ecmcPVTController *getPVTController();
 
   struct {
     asynStatus   oldStatus;
@@ -190,13 +206,22 @@ protected:
   int ecmcMotorRecordTRIGG_SYNC_;
 
   int ecmcMotorRecordErrId_;
+  
+  // Custom profile 
 
+  int profileInitialized_;
+  int profileBuilt_;
+  
   /* Last parameter */
 
   #define FIRST_VIRTUAL_PARAM ecmcMotorRecordErr_
   #define LAST_VIRTUAL_PARAM ecmcMotorRecordErrId_
   #define NUM_VIRTUAL_MOTOR_PARAMS ((int)(&LAST_VIRTUAL_PARAM -\
                                           &FIRST_VIRTUAL_PARAM + 1))
+
+
+  char profileMessage_[MAX_MESSAGE_LEN];
+  ecmcPVTController *pvtController_;
   friend class ecmcMotorRecordAxis;
 };
 
