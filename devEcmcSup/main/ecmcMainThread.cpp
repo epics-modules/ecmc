@@ -480,6 +480,10 @@ int ecmcInitThread(void) {
     plugins[i] = NULL;
   }
 
+  for (int i = 0; i < ECMC_MAX_LUTS; i++) {
+    luts[i] = NULL;
+  }
+
   safetyplugin = NULL;
 
   // Create SHM for master 2 master communication

@@ -106,6 +106,9 @@
 #define ERROR_SHM_NULL 0x2005A
 #define ERROR_SEM_NULL 0x2005B
 #define ERROR_MAIN_SAFETY_PLUGIN_ALREADY_LOADED 0x2005C
+#define ERROR_LUT_INDEX_OUT_OF_RANGE 0x2005D
+#define ERROR_LUT_LOAD_ERROR 0x2005F
+
 
 
 // Other errors moved heer since used in many objects

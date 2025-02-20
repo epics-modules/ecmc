@@ -128,6 +128,9 @@
 // Plugins
 #define ECMC_MAX_PLUGINS 16
 
+// Lookup tables
+#define ECMC_MAX_LUTS 16
+
 // ECMC iocsh config command
 #define ECMC_IOCSH_CFG_CMD "ecmcConfigOrDie"
 #define ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME "ECMC_CONFIG_RETURN_VAL"

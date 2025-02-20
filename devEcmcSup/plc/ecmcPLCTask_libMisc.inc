@@ -25,6 +25,21 @@
     }                                                      \
 }                                                          \
 
+#define CHECK_LUT_INDEX(lutIndex)\
+        {\
+          if (lutIndex >= ECMC_MAX_LUTS ||                       \
+              lutIndex < 0) {                                    \
+            LOGERR("ERROR: LUT list index out of range.\n");     \
+            lut_errorCode = ERROR_LUT_INDEX_OUT_OF_RANGE;        \
+          }                                                      \
+          if (luts[lutIndex] == NULL) {                \
+            lut_errorCode = ERROR_LUT_INDEX_OUT_OF_RANGE;        \
+            LOGERR("ERROR: LUT object NULL.\n");                 \
+          }                                                      \
+        }\
+
+extern ecmcLookupTable<double, double>  *luts[ECMC_MAX_LUTS];
+
 ecmcShm ecmcPLCTask::statShm_ = {0};
 
 const char *miscLibCmdList[] = { "m2m_write(",
@@ -34,10 +49,12 @@ const char *miscLibCmdList[] = { "m2m_write(",
                                  "m2m_get_err(",
                                  "m2m_ioc_run("
                                  "m2m_ioc_ec_ok(",
+                                 "lut_get_value(",
 };
 
 static int m2m_errorCode = 0;
-static int misc_cmd_count = 7;
+static int lut_errorCode = 0;
+static int misc_cmd_count = 8;
 
 inline double m2m_write(double shmIndex, double data) {
   int index = (int)shmIndex;
@@ -119,6 +136,18 @@ inline double m2m_err_rst() {
 // Get error
 inline double m2m_get_err() {  
   return (double)m2m_errorCode;
+}
+
+inline double lut_get_value(double lutObjIndex, double index) {
+  int objIndex = (int)lutObjIndex;
+  lut_errorCode = 0;
+  CHECK_LUT_INDEX(objIndex);
+  
+  if(lut_errorCode) {
+    return 0;
+  }
+
+  return luts[objIndex]->getValue(index); 
 }
 
 #endif  /* ecmcPLC_libMisc_inc_ */

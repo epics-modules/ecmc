@@ -25,6 +25,7 @@
 #include "ecmcPluginLib.h"
 #include "ecmcPLCTask.h"
 #include "ecmcPLCDataIF.h"
+#include "ecmcLookupTable.h"
 
 #define ERROR_PLCS_INDEX_OUT_OF_RANGE 0x20700
 #define ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE 0x20701
@@ -151,6 +152,7 @@ private:
   ecmcAxisBase *axes_[ECMC_MAX_AXES];
   ecmcAxisGroup *axisGrp_[ECMC_MAX_AXES];
   ecmcDataStorage *ds_[ECMC_MAX_DATA_STORAGE_OBJECTS];
+
   ecmcEc *ec_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcPLCDataIF *plcEnable_[ECMC_MAX_PLCS + ECMC_MAX_AXES];

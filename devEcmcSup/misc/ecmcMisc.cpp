@@ -688,3 +688,25 @@ int createShm() {
   shmObj.valid = 1;
   return 0;
 }
+
+// LUTs
+int loadLUT(int index, char *fileName) {
+  LOGINFO4("%s/%s:%d index=%d fileName=%s\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           fileName);
+  CHECK_LUT_RETURN_IF_ERROR(index);
+
+  try {
+    if( luts[index] ) {
+      delete luts[index];
+    }
+    luts[index] = new ecmcLookupTable<double,double>(fileName);
+  }
+  catch(...) {
+    return ERROR_LUT_LOAD_ERROR;
+  }
+  return 0;
+}

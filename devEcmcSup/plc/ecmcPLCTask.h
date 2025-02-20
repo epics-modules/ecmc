@@ -25,6 +25,7 @@
 #include "ecmcPluginLib.h"
 #include "ecmcPLCLib.h"
 #include "ecmcPLCDataIF.h"
+#include "ecmcLookupTable.h"
 
 #define ECMC_MAX_PLC_VARIABLES 1024
 #define ECMC_MAX_PLC_VARIABLES_NAME_LENGTH 1024

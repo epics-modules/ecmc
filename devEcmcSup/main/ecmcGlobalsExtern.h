@@ -27,6 +27,7 @@
 #include "ecmcMotorRecordController.h"
 #include "ecmcPluginLib.h"
 #include "ecmcPVTController.h"
+#include "ecmcLookupTable.h"
 #include "epicsMutex.h"
 
 extern ecmcAxisBase *axes[ECMC_MAX_AXES];
@@ -47,6 +48,7 @@ extern ecmcPluginLib *plugins[ECMC_MAX_PLUGINS];
 extern ecmcPluginLib *safetyplugin;
 extern ecmcShm shmObj;
 extern ecmcPVTController *pvtCtrl_;
+extern ecmcLookupTable<double, double>  *luts[ECMC_MAX_LUTS];
 
 // Mutex for motor record access
 extern epicsMutexId ecmcRTMutex;

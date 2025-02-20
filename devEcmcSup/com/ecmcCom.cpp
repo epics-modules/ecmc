@@ -323,6 +323,11 @@ void ecmcCleanup(int signum) {
     plugins[i] = NULL;
   }
 
+  for (int i = 0; i < ECMC_MAX_LUTS; i++) {
+    delete luts[i];
+    luts[i] = NULL;
+  }
+
   if (shmObj.valid) {
     // detach from shared memory
     shmdt(shmObj.dataPtr);

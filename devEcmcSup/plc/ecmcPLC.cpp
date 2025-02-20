@@ -24,6 +24,7 @@
 #include "ecmcPLCMain.h"
 #include "ecmcPLCTask.h"
 #include "ecmcPLCLib.h"
+#include "ecmcLookupTable.h"
 
 extern ecmcAxisBase *axes[ECMC_MAX_AXES];
 extern ecmcAxisGroup *axisGroups[ECMC_MAX_AXES];
@@ -35,6 +36,7 @@ extern double mcuFrequency;
 extern int    sampleRateChangeAllowed;
 extern ecmcPluginLib *plugins[ECMC_MAX_PLUGINS];
 extern ecmcShm shmObj;
+extern ecmcLookupTable<double, double>  *luts[ECMC_MAX_LUTS];
 
 int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   LOGINFO4("%s/%s:%d index=%d, cycleTimeMs=%lf, axisPLC?=%d\n",

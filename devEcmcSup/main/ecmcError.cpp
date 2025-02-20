@@ -2261,6 +2261,16 @@ case 0x16001:
 
     break;
 
+  case 0x2005D:
+    return "ERROR_LUT_INDEX_OUT_OF_RANGE";
+
+    break;
+
+  case 0x2005F:
+    return "ERROR_LUT_LOAD_ERROR";
+
+    break;
+
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 

@@ -3072,6 +3072,14 @@ static int handleCfgCommand(const char *myarg_1) {
     return triggerCommandList(iValue);
   }
 
+  cExprBuffer[0] = '\0';
+  /*int Cfg.LoadLUTFile(int index,char *cExpr); */
+  nvals = sscanf(myarg_1, "LoadLUTFile(%d,%[^)])", &iValue, cExprBuffer);
+
+  if (nvals == 2) {
+    return loadLUT(iValue, cExprBuffer);
+  }
+
   /*int Cfg.IocshCmd=<command string>*/
   nvals = sscanf(myarg_1, "IocshCmd=%[^\n]", cExprBuffer);
 

@@ -69,6 +69,16 @@
           }\
         }\
 
+#define CHECK_LUT_RETURN_IF_ERROR(lutIndex)\
+        {\
+          if (lutIndex >= ECMC_MAX_LUTS ||\
+              lutIndex < 0) {\
+            LOGERR("ERROR: LUT list index out of range.\n");\
+            return ERROR_LUT_INDEX_OUT_OF_RANGE;\
+          }\
+        }\
+
+
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus
@@ -695,6 +705,18 @@ int addCommandListCommand(int   indexCommandList,
  *  "Cfg.TriggerCommandList(1)" //Command string to ecmcCmdParser.c\n
  */
 int triggerCommandList(int indexCommandList);
+
+/** \brief Load and create lookup table (LUT).\n
+ *
+ * \param[in] index Index of LUT.\n
+ * \param[in] fileName Filename to load.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Load LUT to object index 1.\n
+ *  "Cfg.LoadLUTFile(1,'test.lut')" //Command string to ecmcCmdParser.c\n
+ */
+int loadLUT(int index, char *fileName);
 
 /** \brief Create SHM Object.\n
  *
