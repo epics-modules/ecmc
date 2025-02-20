@@ -2408,7 +2408,7 @@ int setAxisDrvBrakeCloseAheadTime(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set drive timeout for axis 3 to 10 seconds.\n
- * "Cfg.SetAxisDrvStateMachineTimout(3,10.0)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisDrvStateMachineTimeout(3,10.0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisDrvStateMachineTimeout(int    axisIndex,
                                   double seconds);
@@ -2502,15 +2502,15 @@ int setAxisEnableCheckEncsDiff(int axisIndex,
 /** \brief Enable stall monitoring.\n
  * 
  *  
- *  A axis is considered stalled if it not reaches attarget\n
- *  withinn a certain time. The time can be defined in two ways:\n
+ *  An axis is considered stalled if it not reaches attarget\n
+ *  within a certain time. The time can be defined in two ways:\n
  *  1. A minimum timeout see "Cfg.SetAxisMonStallMinTimeOut()"\n
  *  2. A factor of the last movement duration. The duration is\n
  *     measured by counting cycles between busy high edge to\n
  *     busy low edge (normally when trajectory generator is busy),\n
  *     see "Cfg.SetAxisMonStallTimeFactor()".\n
  *  If the timeout caluclated based on the movement duration is\n
- *  longer than the minimum timout, then this time will be used.\n 
+ *  longer than the minimum timeout, then this time will be used.\n 
  *  A stalled axis will be disabled.\n
  *  
  *  \note Only enabled when attarget monitoing is also enabled.\n
@@ -2518,7 +2518,7 @@ int setAxisEnableCheckEncsDiff(int axisIndex,
  * Example: 
  *   1. The duriation of the last movement is 1500 cycles (1.5s in 1kHz rate).\n
  *   2. Time factor has default value of 10.0\n
- *   3. The minimum timout is set to 10s\n
+ *   3. The minimum timeout is set to 10s\n
  *   4. The axis must be attargget after 15s\n
  *      if not, the drive will be disabled.\n
  * 

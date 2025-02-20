@@ -1,9 +1,9 @@
 Release Notes
 ===
-# PVT
-* Add profile move (motor record extension). Only move is supported, not triggering and readbacks yet.
+
 
 # ECMC 10.0.0
+* Add profile move (motor record extension). Only move is supported, not triggering yet.
 * New plugin interface version. Needed in order to be able to use require to load plugins.
 * Add delay compensation for encoders (time between input of encoder and output of velo in drive)
   - Different encoders can have different delay times.
@@ -75,6 +75,73 @@ Cfg.SetAxisEncDelayCyclesAndEnable(1,2.5,1)"
                        <encoder_id>, : Encoder index
                       );
      Returns homed bit of a specific encoder or an error code (negative number)
+```
+* Add new monitoring functionality to detect axis stall:
+
+```
+# Enable stall monitoring.\n
+#  
+#  An axis is considered stalled if it not reaches attarget\n
+#  within a certain time. The time can be defined in two ways:\n
+#  1. A minimum timeout see "Cfg.SetAxisMonStallMinTimeOut()"\n
+#  2. A factor of the last movement duration. The duration is\n
+#     measured by counting cycles between busy high edge to\n
+#     busy low edge (normally when trajectory generator is busy),\n
+#     see "Cfg.SetAxisMonStallTimeFactor()".\n
+#  If the timeout caluclated based on the movement duration is\n
+#  longer than the minimum timeout, then this time will be used.\n 
+#  A stalled axis will be disabled.\n
+#  
+#  Only enabled when attarget monitoing is also enabled.\n
+#  Example: 
+#   1. The duriation of the last movement is 1500 cycles (1.5s in 1kHz rate).\n
+#   2. Time factor has default value of 10.0\n
+#   3. The minimum timeout is set to 10s\n
+#   4. The axis must be attargget after 15s\n
+#      if not, the drive will be disabled.\n
+#
+#  Params:\n
+#    axisIndex  Axis index.\n
+#    enable Enable monitoring of stall (default disabled)\n
+#
+#  returns 0 if success or otherwise an error code.\n
+#
+#  Example: Enable funtionallity for axis 7.\n
+ ecmcConfigOrDie "Cfg.SetAxisMonEnableStallMon(7,1)" //Command string to ecmcCmdParser.c.\n
+ 
+
+#  Set stall monitong time factor.\n
+# 
+#  See setAxisMonEnableStallMon()\n
+#  This function sets a time factor.\n
+# 
+#  Only enabled when attarget monitoing is also enabled.\n
+
+#  Params:\n
+#    axisIndex  Axis index.\n
+#    timeFactor Time factor (default value 
+#                       in ecmc is 10.0)\n
+#
+#  returns 0 if success or otherwise an error code.\n
+#
+#  Example: Set timefactor 10.0 for axis 7.\n
+ecmcConfigOrDie "Cfg.SetAxisMonStallTimeFactor(7,100)"
+
+
+#  Set stall monitong minimum time out.\n
+# 
+#  See setAxisMonEnableStallMon()\n
+#  This function sets a minimum timeout.\n
+#  
+#  Only enabled when attarget monitoing is also enabled.\n
+#
+#  Params:\n
+#    axisIndex  Axis index.\n
+#    timeCycles Minimum timeout (default value 
+#                       in ecmc is 0.0)\n
+#  returns 0 if success or otherwise an error code.\n
+#  Example: Set 1000 cycles minimum stall timeout for axis 7.\n
+ecmcConfigOrDie "Cfg.setAxisMonStallMinTimeOut(7,1000)"
 ```
 
 # ECMC 9.6.8
