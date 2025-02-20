@@ -51,6 +51,9 @@ void ecmcMonitor::initVars() {
   maxStallCounter_    = 0;
   stallLastMotionCmdCycles_  = 0;
   stallCheckAtTargetAtCycle_ = 0;
+  stallMinTimeoutCycles_     = 0;
+  stallTimeFactor_           = 10;
+  enableStallMon_            = 0;
 
   // 200 cycles
   maxVelTrajILDelay_ = 200;
@@ -88,8 +91,6 @@ void ecmcMonitor::initVars() {
   analogRawLimit_            = 0;
   enableAnalogInterlock_     = 0;
   analogPolarity_            = ECMC_POLARITY_NC; // Higher value than analogRawLimit_ is bad
-  stallTimeFactor_           = 10;
-  enableStallMon_            = 1;
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -780,7 +781,7 @@ int  ecmcMonitor::checkStall() {
 
   // Do only check for stall when not busy (traj finished)
   if(!enableAtTargetMon_ || !enableStallMon_ ||
-    !data_->status_.enabled) {
+    !data_->status_.enabled || (data_->command_.trajSource != 0)) {
     data_->interlocks_.stallInterlock = false;
     maxStallCounter_ = 0;
     return 0;
@@ -796,7 +797,13 @@ int  ecmcMonitor::checkStall() {
   } else {
     if(data_->status_.busyOld) {
       stallCheckAtTargetAtCycle_ = stallLastMotionCmdCycles_ * stallTimeFactor_;
-      printf("Time to check stall after: %" PRIu64 "\n", stallCheckAtTargetAtCycle_);
+      // Ensure a minimum time window 
+      if(stallCheckAtTargetAtCycle_ < stallMinTimeoutCycles_) {
+        stallCheckAtTargetAtCycle_ = stallMinTimeoutCycles_;
+      }
+      if(data_->command_.enableDbgPrintout) {
+        printf("Axis[%d]: Time to check stall after: %" PRIu64 "\n", data_->axisId_, stallCheckAtTargetAtCycle_);        
+      }
     }
   }
 
@@ -805,7 +812,9 @@ int  ecmcMonitor::checkStall() {
   if(data_->status_.atTarget) {
     data_->interlocks_.stallInterlock = false;
     if(!data_->status_.atTargetOld) {
-      printf("No stall...\n");
+      if(data_->command_.enableDbgPrintout) {
+        printf("Axis[%d]: No stall.. Brilliant!!\n",data_->axisId_);
+      }
     }
     maxStallCounter_ = 0;
     return 0;
@@ -813,7 +822,9 @@ int  ecmcMonitor::checkStall() {
 
   if((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
      (stallCheckAtTargetAtCycle_ > 0)) {
-    printf("Stall...\n");
+    if(data_->command_.enableDbgPrintout) {
+      printf("Axis[%d]: Stall...\n",data_->axisId_);
+    }
     stallCheckAtTargetAtCycle_ = 0;
     data_->interlocks_.stallInterlock = true;    
     return setErrorID(__FILE__,
@@ -1267,4 +1278,8 @@ void ecmcMonitor::setEnableStallMon(bool enable) {
 
 bool ecmcMonitor::getEnableStallMon() {
   return enableStallMon_;
+}
+
+void  ecmcMonitor::setStallMinTimeOut(double timeCycles) {
+  stallMinTimeoutCycles_ = timeCycles;
 }

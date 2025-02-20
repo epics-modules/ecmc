@@ -1967,6 +1967,27 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisMonEnableAtTargetMon(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisMonEnableStallMon(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonEnableStallMon(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisMonEnableStallMon(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisMonStallTimeFactor(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonStallTimeFactor(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisMonStallTimeFactor(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisMonStallMinTimeOut(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonStallMinTimeOut(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisMonStallMinTimeOut(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisMonPosLagTol(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisMonPosLagTol(%d,%lf)", &iValue, &dValue);
 

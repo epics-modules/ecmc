@@ -2482,7 +2482,7 @@ int getAxisMonAtTargetTol(int     axisIndex,
 int setAxisMonAtTargetTol(int    axisIndex,
                           double value);
 
-/** \brief Set "at target" monitoring tolerance.\n
+/** \brief Enable monitoring diff of act. vel. vs set. vel.\n
  *
  *   Enable check of difference between encoders \n
  *   (if more than one encoder is configutred for teh axis)\n
@@ -2498,6 +2498,78 @@ int setAxisMonAtTargetTol(int    axisIndex,
  */
 int setAxisEnableCheckEncsDiff(int axisIndex,
                                int enable);
+
+/** \brief Enable stall monitoring.\n
+ * 
+ *  
+ *  A axis is considered stalled if it not reaches attarget\n
+ *  withinn a certain time. The time can be defined in two ways:\n
+ *  1. A minimum timeout see "Cfg.SetAxisMonStallMinTimeOut()"\n
+ *  2. A factor of the last movement duration. The duration is\n
+ *     measured by counting cycles between busy high edge to\n
+ *     busy low edge (normally when trajectory generator is busy),\n
+ *     see "Cfg.SetAxisMonStallTimeFactor()".\n
+ *  If the timeout caluclated based on the movement duration is\n
+ *  longer than the minimum timout, then this time will be used.\n 
+ *  A stalled axis will be disabled.\n
+ *  
+ *  \note Only enabled when attarget monitoing is also enabled.\n
+ *
+ * Example: 
+ *   1. The duriation of the last movement is 1500 cycles (1.5s in 1kHz rate).\n
+ *   2. Time factor has default value of 10.0\n
+ *   3. The minimum timout is set to 10s\n
+ *   4. The axis must be attargget after 15s\n
+ *      if not, the drive will be disabled.\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable Enable monitoring of stall (default disabled)\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable funtionallity for axis 7.\n
+ * "Cfg.SetAxisMonEnableStallMon(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonEnableStallMon(int axisIndex,
+                             int enable);
+
+/** \brief Set stall monitong time factor.\n
+ * 
+ *  See setAxisMonEnableStallMon()\n
+ *  This function sets a time factor.\n
+ * 
+ *  Only enabled when attarget monitoing is also enabled.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] timeFactor Time factor (default value 
+ *                       in ecmc is 10.0)\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set timefactor 10.0 for axis 7.\n
+ * "Cfg.SetAxisMonStallTimeFactor(7,100)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonStallTimeFactor(int axisIndex,
+                         double timeFactor);
+
+/** \brief Set stall monitong minimum time out.\n
+ * 
+ *  See setAxisMonEnableStallMon()\n
+ *  This function sets a minimum timeout.\n
+ *  
+ *  Only enabled when attarget monitoing is also enabled.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] timeCycles Minimum timeout (default value 
+ *                       in ecmc is 0.0)\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set 1000 cycles minimum stall timeout for axis 7.\n
+ * "Cfg.setAxisMonStallMinTimeOut(7,1000)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisMonStallMinTimeOut(int axisIndex,
+                              double timeCycles);
 
 /** \brief Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n

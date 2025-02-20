@@ -2316,6 +2316,54 @@ int setAxisMonEnableAtTargetMon(int axisIndex, int value) {
   return 0;
 }
 
+int setAxisMonEnableStallMon(int axisIndex,
+                             int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getMon()->setEnableStallMon(enable);
+  return 0;
+}
+
+int setAxisMonStallMinTimeOut(int axisIndex,
+                             double timeCycles) {
+  LOGINFO4("%s/%s:%d axisIndex=%d cycles=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           timeCycles);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getMon()->setStallMinTimeOut(timeCycles);
+  return 0;
+}
+
+int setAxisMonStallTimeFactor(int axisIndex,
+                             double timeFactor) {
+  LOGINFO4("%s/%s:%d axisIndex=%d factor=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           timeFactor);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  axes[axisIndex]->getMon()->setStallTimeFactor(timeFactor);
+  return 0;
+}
+
 int setAxisMonExtHWInterlockPolarity(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,

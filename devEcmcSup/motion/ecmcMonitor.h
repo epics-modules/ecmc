@@ -146,14 +146,15 @@ public:
   int                setEnableAnalogInterlock(bool enable);
   int                getSumInterlock();
   
-  /* Stall monitoring for ABS and REL moves by checking that it has arrived atTarget 
-     after timeFactor multiplied by teoretical arrival time time (based on velo). 
+  /* Stall monitoring for ABS and REL moves by checking that axis has arrived atTarget 
+     after a minmium timeout or timeFactor multiplied by last movement time (traj busy).
      Needs atTraget monitoring enabled. Time factor default 10.0.
   */
-  void               setStallTimeFactor(double timeFactor);
-  double             getStallTimeFactor();
   void               setEnableStallMon(bool enable);
+  void               setStallMinTimeOut(double timeCycles);
+  void               setStallTimeFactor(double timeFactor);
   bool               getEnableStallMon();
+  double             getStallTimeFactor();
 
 private:
   int                checkLimits();
@@ -232,6 +233,7 @@ private:
   uint64_t maxStallCounter_;
   uint64_t stallLastMotionCmdCycles_;
   uint64_t stallCheckAtTargetAtCycle_;
+  double stallMinTimeoutCycles_;
 };
 
 #endif  // ifndef MOTIONMONITOR_H
