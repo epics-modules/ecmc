@@ -211,6 +211,22 @@ void ecmcAxisSequencer::executeInternal() {
     data_->status_.busy = true;
   }
 
+  // Set target position for different scenarios
+  if(pvtmode_ && !data_->status_.busy) {
+    data_->status_.currentTargetPosition = data_->status_.currentPositionSetpoint;
+    data_->status_.currentTargetPositionModulo = data_->status_.currentPositionSetpoint;
+  } else {
+    if (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+      data_->status_.currentTargetPosition       = traj_->getTargetPos();
+      data_->status_.currentTargetPositionModulo = traj_->getTargetPosMod();
+    } else {  // Synchronized to other axis
+      data_->status_.currentTargetPosition =
+        data_->status_.currentPositionSetpoint;
+      data_->status_.currentTargetPositionModulo =
+        data_->status_.currentPositionSetpoint;
+    }
+  }
+
   hwLimitSwitchBwdOld_ = hwLimitSwitchBwd_;
   hwLimitSwitchFwdOld_ = hwLimitSwitchFwd_;
   hwLimitSwitchBwd_    = data_->status_.limitBwd;

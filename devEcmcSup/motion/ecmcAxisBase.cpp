@@ -381,16 +381,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.distToStop = traj_->distToStop(
       data_.status_.currentVelocitySetpoint);
 
-    if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
-      data_.status_.currentTargetPosition       = traj_->getTargetPos();
-      data_.status_.currentTargetPositionModulo = traj_->getTargetPosMod();
-    } else {  // Synchronized to other axis
-      data_.status_.currentTargetPosition =
-        data_.status_.currentPositionSetpoint;
-      data_.status_.currentTargetPositionModulo =
-        data_.status_.currentPositionSetpoint;
-    }
-
     if (!data_.status_.enabled) {
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
