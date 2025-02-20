@@ -68,16 +68,8 @@ public:
   int          compile();
   int          addAndReisterGlobalVar(ecmcPLCDataIF *dataIF);
   int          addAndRegisterLocalVar(char *localVarStr);
-  int          setAxisArrayPointer(ecmcAxisBase *axis,
-                                   int           index);
-  int          setAxisGroupArrayPointer(ecmcAxisGroup *grp,
-                                        int            index);
-  int          setDataStoragePointer(ecmcDataStorage *ds,
-                                     int              index);
   int          setPluginPointer(ecmcPluginLib *plugin,
                                 int            index);
-  int          setShm(ecmcShm shm);
-  int          setEcPointer(ecmcEc *ec);
   int          parseFunctions(const char *exprStr);
   int          getFirstScanDone();
   int          readStaticPLCVar(const char *varName,
@@ -89,12 +81,8 @@ public:
   double       getSampleTime();
   int          getNewExpr();
   int          addLib(ecmcPLCLib* lib);
-  static ecmcAxisBase    *statAxes_[ECMC_MAX_AXES];
-  static ecmcAxisGroup   *statAxisGrp_[ECMC_MAX_AXES];
-  static ecmcDataStorage *statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS];
-  static ecmcEc *statEc_;
-  static ecmcShm statShm_;
   
+
 private:
   void initVars();
   int  initAsyn(int plcIndex);

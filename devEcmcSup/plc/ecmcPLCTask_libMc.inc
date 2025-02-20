@@ -21,7 +21,7 @@
     mc_errorCode=0;                                           \
     LOGERR("ERROR: Axis index out of range.\n");              \
     return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
-    if(ecmcPLCTask::statAxes_[axIndex]==NULL){                \
+    if(axes[axIndex]==NULL){                \
       LOGERR("ERROR: Axis object NULL\n");                    \
       return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
     }                                                         \
@@ -32,7 +32,7 @@
     mc_errorCode=0;                                           \
     LOGERR("ERROR: Group index out of range.\n");             \
     return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
-    if(ecmcPLCTask::statAxisGrp_[intGrpIndex]==NULL){         \
+    if(axisGroups[intGrpIndex]==NULL){         \
       LOGERR("ERROR: Group object NULL\n");                   \
       return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
     }                                                         \
@@ -44,7 +44,7 @@
     LOGERR("ERROR: Group index out of range.\n");             \
     return 0;                                                 \
   }                                                           \
-  if(ecmcPLCTask::statAxisGrp_[intGrpIndex] == NULL){         \
+  if(axisGroups[intGrpIndex] == NULL){         \
     mc_errorCode=ERROR_PLC_AXIS_OBJECT_NULL;                  \
     LOGERR("ERROR: Group object NULL\n");                     \
     return 0;                                                 \
@@ -52,7 +52,7 @@
 }                                                             \
 
 #define CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(axIndex) { \
-  if(!ecmcPLCTask::statAxes_[index]->getAllowCmdFromPLC()) {  \
+  if(!axes[index]->getAllowCmdFromPLC()) {  \
     mc_errorCode=ERROR_MAIN_AXIS_COM_BLOCKED;                 \
     return ERROR_MAIN_AXIS_COM_BLOCKED;                       \
   }                                                           \
@@ -108,9 +108,8 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_get_enc_homed(",
                               };
 
-ecmcAxisGroup   *ecmcPLCTask::statAxisGrp_[ECMC_MAX_AXES]={};
-ecmcAxisBase    *ecmcPLCTask::statAxes_[ECMC_MAX_AXES]={};
-ecmcDataStorage *ecmcPLCTask::statDs_[ECMC_MAX_DATA_STORAGE_OBJECTS]={};
+extern ecmcAxisGroup   *axisGroups[ECMC_MAX_AXES];
+extern ecmcAxisBase    *axes[ECMC_MAX_AXES];
 
 static int statLastAxesExecuteAbs_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteRel_[ECMC_MAX_AXES]={};
@@ -128,7 +127,7 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
-  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+  if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
@@ -137,29 +136,29 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
   statLastAxesExecuteAbs_[index]=execute;
 
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
   
   if(trigg){    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)axes[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setDec(dec);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setAcc(acc);
+    axes[index]->getSeq()->setTargetPos(pos);
+    axes[index]->getSeq()->setTargetVel(vel);
+    axes[index]->getSeq()->setDec(dec);
+    axes[index]->getSeq()->setAcc(acc);
 
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
+    mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEABS);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData(0);
+    mc_errorCode=(double)axes[index]->setCmdData(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -176,7 +175,7 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
-  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+  if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
@@ -185,29 +184,29 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
   statLastAxesExecuteRel_[index]=execute;
   
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
   if(trigg){    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)axes[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setDec(dec);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setAcc(acc);
+    axes[index]->getSeq()->setTargetPos(pos);
+    axes[index]->getSeq()->setTargetVel(vel);
+    axes[index]->getSeq()->setDec(dec);
+    axes[index]->getSeq()->setAcc(acc);
 
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEREL);    
+    mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEREL);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData(0);
+    mc_errorCode=(double)axes[index]->setCmdData(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -224,7 +223,7 @@ inline double mc_move_vel(double axIndex,double execute, double vel, double acc,
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
-  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+  if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
@@ -233,28 +232,28 @@ inline double mc_move_vel(double axIndex,double execute, double vel, double acc,
   statLastAxesExecuteVel_[index]=execute;
 
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
   if(trigg){    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)axes[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }    
-    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setDec(dec);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setAcc(acc);
+    axes[index]->getSeq()->setTargetVel(vel);
+    axes[index]->getSeq()->setDec(dec);
+    axes[index]->getSeq()->setAcc(acc);
 
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEVEL);    
+    mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEVEL);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData(0);
+    mc_errorCode=(double)axes[index]->setCmdData(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -271,7 +270,7 @@ inline double mc_home(double axIndex,double execute,double seqId, double velTwoa
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
-  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+  if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
@@ -280,32 +279,32 @@ inline double mc_home(double axIndex,double execute,double seqId, double velTwoa
   statLastAxesExecuteHome_[index]=execute;
   
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
   if(trigg){    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)axes[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelTowardsCam(velTwoardsCam);
+    mc_errorCode=(double)axes[index]->getSeq()->setHomeVelTowardsCam(velTwoardsCam);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelOffCam(velOffCam);
+    mc_errorCode=(double)axes[index]->getSeq()->setHomeVelOffCam(velOffCam);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_HOMING);    
+    mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_HOMING);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData((int)seqId);
+    mc_errorCode=(double)axes[index]->setCmdData((int)seqId);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -321,7 +320,7 @@ inline double mc_home_pos(double axIndex,double execute,double seqId, double vel
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);  
 
   // check traj source, must be internal
-  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+  if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
@@ -330,34 +329,34 @@ inline double mc_home_pos(double axIndex,double execute,double seqId, double vel
   statLastAxesExecuteHome_[index]=execute;
   
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
   if(trigg){    
-    ecmcPLCTask::statAxes_[index]->getSeq()->setHomePosition(homePos);
+    axes[index]->getSeq()->setHomePosition(homePos);
     
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)axes[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelTowardsCam(velTwoardsCam);
+    mc_errorCode=(double)axes[index]->getSeq()->setHomeVelTowardsCam(velTwoardsCam);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->getSeq()->setHomeVelOffCam(velOffCam);
+    mc_errorCode=(double)axes[index]->getSeq()->setHomeVelOffCam(velOffCam);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_HOMING);    
+    mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_HOMING);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData((int)seqId);
+    mc_errorCode=(double)axes[index]->setCmdData((int)seqId);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -373,13 +372,13 @@ inline double mc_halt(double axIndex,double execute)
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
-  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+  if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
 
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
 
@@ -387,7 +386,7 @@ inline double mc_halt(double axIndex,double execute)
   statLastAxesExecuteHalt_[index]=execute;
 
   if(trigg){    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)axes[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -401,8 +400,8 @@ inline double mc_power(double axIndex,double enable)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
-  if(ecmcPLCTask::statAxes_[index]->getEnable() != (bool)enable){
-    mc_errorCode=ecmcPLCTask::statAxes_[index]->setEnable((bool)enable);    
+  if(axes[index]->getEnable() != (bool)enable){
+    mc_errorCode=axes[index]->setEnable((bool)enable);    
     return (double)mc_errorCode;
   }
   return 0;
@@ -414,7 +413,7 @@ inline double mc_reset(double axIndex)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
-  ecmcPLCTask::statAxes_[index]->setReset(1);
+  axes[index]->setReset(1);
   mc_errorCode = 0;
   return 0;
 }
@@ -423,7 +422,7 @@ inline double mc_get_busy(double axIndex)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
-  return (double) ecmcPLCTask::statAxes_[index]->getBusy();
+  return (double) axes[index]->getBusy();
 }
 
 inline double mc_get_act_pos(double axIndex, double encIndex)
@@ -434,7 +433,7 @@ inline double mc_get_act_pos(double axIndex, double encIndex)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
   int error = 0;
   // Index starts at 0.. messy.. thats why -1 above
-  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return 0.0;
@@ -451,7 +450,7 @@ inline double mc_set_prim_enc(double axIndex, double encIndex)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
 
   // Index starts at 1.. messy..
-  int error = ecmcPLCTask::statAxes_[axIndexInt]->selectPrimaryEncoder(encIndexInt) ;
+  int error = axes[axIndexInt]->selectPrimaryEncoder(encIndexInt) ;
   if(error){
      mc_errorCode = error;
   }
@@ -465,7 +464,7 @@ inline double mc_get_prim_enc(double axIndex)
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
   // Index starts at 1.. messy..
-  return (double)ecmcPLCTask::statAxes_[axIndexInt]->getPrimaryEncoderIndex();
+  return (double)axes[axIndexInt]->getPrimaryEncoderIndex();
 }
 
 inline double mc_set_axis_error(double axIndex, double errorId)
@@ -473,7 +472,7 @@ inline double mc_set_axis_error(double axIndex, double errorId)
   int axIndexInt=(int)axIndex;
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  return (double)ecmcPLCTask::statAxes_[axIndexInt]->setErrorID((int)errorId);
+  return (double)axes[axIndexInt]->setErrorID((int)errorId);
 }
 
 inline double mc_set_slaved_axis_in_error(double axIndex)
@@ -481,7 +480,7 @@ inline double mc_set_slaved_axis_in_error(double axIndex)
   int axIndexInt=(int)axIndex;
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  return (double)ecmcPLCTask::statAxes_[axIndexInt]->setSlavedAxisInError();
+  return (double)axes[axIndexInt]->setSlavedAxisInError();
 }
 
 inline double mc_get_homed(double axIndex)
@@ -489,7 +488,7 @@ inline double mc_get_homed(double axIndex)
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   bool homed=0;
-  mc_errorCode=ecmcPLCTask::statAxes_[index]->getAxisHomed(&homed);
+  mc_errorCode=axes[index]->getAxisHomed(&homed);
   return (double) homed;
 }
 
@@ -501,7 +500,7 @@ inline double mc_set_enc_homed(double axIndex, double encIndex, double homed)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
 
   int error = 0;
-  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return error;
@@ -520,7 +519,7 @@ inline double mc_get_enc_homed(double axIndex, double encIndex)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
 
   int error = 0;
-  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return -error;
@@ -533,7 +532,7 @@ inline double mc_get_axis_err(double axIndex)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
-  return (double) ecmcPLCTask::statAxes_[index]->getErrorID();
+  return (double) axes[index]->getErrorID();
 }
 
 inline double mc_set_enable_motion_funcs(double axIndex, 
@@ -544,7 +543,7 @@ inline double mc_set_enable_motion_funcs(double axIndex,
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
-  return (double) ecmcPLCTask::statAxes_[index]->setAllowMotionFunctions(
+  return (double) axes[index]->setAllowMotionFunctions(
                     (int)enablePos,(int)enableVel,(int)enableHome);
 }
 
@@ -560,7 +559,7 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
-  if(ecmcPLCTask::statAxes_[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+  if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
@@ -569,30 +568,30 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
   statLastAxesExecuteAbs_[index]=execute;
 
   if (!(bool)execute){
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     return mc_errorCode;
   }
   
   if(trigg){    
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute(0);
+    mc_errorCode=(double)axes[index]->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    double pos = ecmcPLCTask::statAxes_[index]->getExtSetPos();
-    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetPos(pos);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setTargetVel(vel);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setDec(dec);
-    ecmcPLCTask::statAxes_[index]->getSeq()->setAcc(acc);
+    double pos = axes[index]->getExtSetPos();
+    axes[index]->getSeq()->setTargetPos(pos);
+    axes[index]->getSeq()->setTargetVel(vel);
+    axes[index]->getSeq()->setDec(dec);
+    axes[index]->getSeq()->setAcc(acc);
 
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCommand(ECMC_CMD_MOVEABS);    
+    mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEABS);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setCmdData(1);
+    mc_errorCode=(double)axes[index]->setCmdData(1);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)ecmcPLCTask::statAxes_[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -604,120 +603,120 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
 inline double mc_grp_get_enable(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getEnable();
+  return (double)axisGroups[intGrpIndex]->getEnable();
 }
 
 inline double mc_grp_get_any_enable(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getAnyEnable();
+  return (double)axisGroups[intGrpIndex]->getAnyEnable();
 }
 
 inline double mc_grp_get_enabled(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getEnabled();
+  return (double)axisGroups[intGrpIndex]->getEnabled();
 }
 
 inline double mc_grp_get_any_enabled(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getAnyEnabled();
+  return (double)axisGroups[intGrpIndex]->getAnyEnabled();
 }
 
 inline double mc_grp_get_busy(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getBusy();
+  return (double)axisGroups[intGrpIndex]->getBusy();
 }
 
 inline double mc_grp_get_any_busy(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getAnyBusy();
+  return (double)axisGroups[intGrpIndex]->getAnyBusy();
 }
 
 inline double mc_grp_get_any_error_id(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getAnyErrorId();
+  return (double)axisGroups[intGrpIndex]->getAnyErrorId();
 }
 
 inline double mc_grp_set_enable(double grpIndex, double enable){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->setEnable((int)enable);
+  return (double)axisGroups[intGrpIndex]->setEnable((int)enable);
 }
 
 inline double mc_grp_set_traj_src(double grpIndex, double source){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->setTrajSrc((dataSource)(int)source);
+  return (double)axisGroups[intGrpIndex]->setTrajSrc((dataSource)(int)source);
 }
 
 inline double mc_grp_set_enc_src(double grpIndex, double source){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->setEncSrc((dataSource)(int)source);
+  return (double)axisGroups[intGrpIndex]->setEncSrc((dataSource)(int)source);
 }
 
 inline double mc_grp_reset_error(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setErrorReset();
+  axisGroups[intGrpIndex]->setErrorReset();
   return 0;
 }
 
 inline double mc_grp_set_error(double grpIndex, double errorId){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setError((int)errorId);
+  axisGroups[intGrpIndex]->setError((int)errorId);
   return 0;
 }
 
 inline double mc_grp_set_slaved_axis_in_error(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setSlavedAxisInError();
+  axisGroups[intGrpIndex]->setSlavedAxisInError();
   return 0;
 }
 
 inline double mc_grp_halt(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->halt();
+  axisGroups[intGrpIndex]->halt();
   return 0;
 }
 
 inline double mc_grp_axis_in_grp(double grpIndex, double axisId){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->inGroup(axisId);
+  return (double)axisGroups[intGrpIndex]->inGroup(axisId);
 }
 
 inline double mc_grp_size(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->size();
+  return (double)axisGroups[intGrpIndex]->size();
 }
 
 inline double mc_grp_get_traj_src_ext(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getTrajSrcExt();
+  return (double)axisGroups[intGrpIndex]->getTrajSrcExt();
 }
 
 inline double mc_grp_get_any_traj_src_ext(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)ecmcPLCTask::statAxisGrp_[intGrpIndex]->getTrajSrcAnyExt();
+  return (double)axisGroups[intGrpIndex]->getTrajSrcAnyExt();
 }
 
 inline double mc_grp_set_allow_src_change_when_enabled(double grpIndex, double allow){
   int intGrpIndex=(int)grpIndex;
   int allow_int=(int)allow;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setAllowSrcChangeWhenEnabled(allow_int);
+  axisGroups[intGrpIndex]->setAllowSrcChangeWhenEnabled(allow_int);
   return 0;
 }
 
@@ -725,7 +724,7 @@ inline double mc_grp_mr_set_sync(double grpIndex, double sync){
   int intGrpIndex=(int)grpIndex;
   int intSync=(int)sync;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setMRSync(intSync);
+  axisGroups[intGrpIndex]->setMRSync(intSync);
   return 0;
 }
 
@@ -733,7 +732,7 @@ inline double mc_grp_mr_set_stop(double grpIndex, double stop){
   int intGrpIndex=(int)grpIndex;
   int intStop=(int)stop;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setMRStop(intStop);
+  axisGroups[intGrpIndex]->setMRStop(intStop);
   return 0;
 }
 
@@ -741,7 +740,7 @@ inline double mc_grp_mr_set_cnen(double grpIndex, double enable){
   int intGrpIndex=(int)grpIndex;
   int intEnable=(int)enable;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  ecmcPLCTask::statAxisGrp_[intGrpIndex]->setMRCnen(intEnable);
+  axisGroups[intGrpIndex]->setMRCnen(intEnable);
   return 0;
 }
 
@@ -750,7 +749,7 @@ inline double mc_mr_set_sync(double axIndex, double sync){
   int intSync=(int)sync;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
-  ecmcPLCTask::statAxes_[index]->setMRSync(intSync);
+  axes[index]->setMRSync(intSync);
   return 0;
 }
 
@@ -759,7 +758,7 @@ inline double mc_mr_set_stop(double axIndex, double stop){
   int intStop=(int)stop;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
-  ecmcPLCTask::statAxes_[index]->setMRStop(intStop);
+  axes[index]->setMRStop(intStop);
   return 0;
 }
 
@@ -768,7 +767,7 @@ inline double mc_mr_set_cnen(double axIndex, double enable){
   int intEnable=(int)enable;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
-  ecmcPLCTask::statAxes_[index]->setMRCnen(intEnable);
+  axes[index]->setMRCnen(intEnable);
   return 0;
 }
 
@@ -780,7 +779,7 @@ inline double mc_set_act_pos(double axIndex, double encIndex, double actpos)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
   int error = 0;
   // getEnc() index starts at 0.. messy.. thats why -1 above
-  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return error;
@@ -799,7 +798,7 @@ inline double mc_get_enc_ready(double axIndex, double encIndex)
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
   // getEnc() index starts at 0.. messy.. thats why -1 above
   int error = 0;
-  ecmcEncoder *enc=ecmcPLCTask::statAxes_[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return 0.0;

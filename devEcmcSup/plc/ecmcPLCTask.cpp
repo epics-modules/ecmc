@@ -460,44 +460,6 @@ int ecmcPLCTask::getFirstScanDone() {
   return firstScanDone_;
 }
 
-int ecmcPLCTask::setAxisArrayPointer(ecmcAxisBase *axis, int index) {
-  if ((index >= ECMC_MAX_AXES) || (index < 0)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
-  }
-  ecmcPLCTask::statAxes_[index] = axis;
-  return 0;
-}
-
-int ecmcPLCTask::setAxisGroupArrayPointer(ecmcAxisGroup *grp, int index) {
-  if ((index >= ECMC_MAX_AXES) || (index < 0)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
-  }
-  ecmcPLCTask::statAxisGrp_[index] = grp;
-  return 0;
-}
-
-int ecmcPLCTask::setDataStoragePointer(ecmcDataStorage *ds, int index) {
-  if ((index >= ECMC_MAX_DATA_STORAGE_OBJECTS) || (index < 0)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_PLC_AXIS_ID_OUT_OF_RANGE);
-  }
-  ecmcPLCTask::statDs_[index] = ds;
-  return 0;
-}
-
-int ecmcPLCTask::setEcPointer(ecmcEc *ec) {
-  ecmcPLCTask::statEc_ = ec;
-  return 0;
-}
-
 int ecmcPLCTask::parseFunctions(const char *exprStr) {
   // look for Ec function
   int errorCode = 0;
@@ -1109,11 +1071,6 @@ int ecmcPLCTask::setPluginPointer(ecmcPluginLib *plugin, int index) {
   }
 
   plugins_[index] = plugin;
-  return 0;
-}
-
-int ecmcPLCTask::setShm(ecmcShm shm) {
-  statShm_ = shm;
   return 0;
 }
 

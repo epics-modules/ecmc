@@ -17,7 +17,7 @@
 
 #define ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE 0x20800
 
-ecmcEc *ecmcPLCTask::statEc_=NULL;
+extern ecmcEc *ec;
 
 #define CHECK_PLC_BITS_AND_RETURN_VALUE_IF_ERROR(bits) { \
   ec_errorCode=0;                                        \
@@ -112,30 +112,30 @@ inline double ec_chk_bits(double value, double startBit, double stopBit)
 
 inline double ec_get_time() {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return -(double)ec_errorCode;
   }
 
-  return (double)ecmcPLCTask::statEc_->getTimeNs();
+  return (double)ec->getTimeNs();
 }
 
 inline double ec_get_time_l32() {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return -(double)ec_errorCode;
   }  
-  return (double)((uint32_t)ecmcPLCTask::statEc_->getTimeNs());
+  return (double)((uint32_t)ec->getTimeNs());
 }
 
 inline double ec_get_time_u32() {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return -(double)ec_errorCode;
   }  
-  return (double)((uint32_t) (ecmcPLCTask::statEc_->getTimeNs() >> 32));
+  return (double)((uint32_t) (ec->getTimeNs() >> 32));
 }
 
 inline double ec_get_time_local_nsec(double nanos) {
@@ -231,13 +231,13 @@ inline double ec_get_err()
 // Mem map copy
 inline double ec_mm_cp(double srcId, double destId) {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return (double)ec_errorCode;
   }
   
-  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
-  ecmcEcMemMap *dest = ecmcPLCTask::statEc_->getMemMap((int)destId);
+  ecmcEcMemMap *src = ec->getMemMap((int)srcId);
+  ecmcEcMemMap *dest = ec->getMemMap((int)destId);
   if(!src || !dest) {
     ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
     return (double)ec_errorCode;
@@ -258,12 +258,12 @@ inline double ec_mm_cp(double srcId, double destId) {
 // Get mm data type
 inline double ec_get_mm_type(double srcId) {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return -(double)ec_errorCode;
   }
   
-  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  ecmcEcMemMap *src = ec->getMemMap((int)srcId);
   
   if(!src) {
     ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
@@ -276,12 +276,12 @@ inline double ec_get_mm_type(double srcId) {
 // Get mm data
 inline double ec_get_mm_data(double srcId,double index) {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return 0;
   }
   
-  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  ecmcEcMemMap *src = ec->getMemMap((int)srcId);
   
   if(!src) {
     ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
@@ -301,12 +301,12 @@ inline double ec_get_mm_data(double srcId,double index) {
 // Set mm data type
 inline double ec_set_mm_data(double srcId,double index, double data) {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return 0;
   }
   
-  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  ecmcEcMemMap *src = ec->getMemMap((int)srcId);
   
   if(!src) {
     ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
@@ -321,12 +321,12 @@ inline double ec_set_mm_data(double srcId,double index, double data) {
 // Get mm data size
 inline double ec_get_mm_size(double srcId) {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return 0;
   }
   
-  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)srcId);
+  ecmcEcMemMap *src = ec->getMemMap((int)srcId);
   
   if(!src) {
     ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
@@ -339,12 +339,12 @@ inline double ec_get_mm_size(double srcId) {
 // Append mm data to ds
 inline double ec_mm_append_to_ds(double mmId,double dsId) {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return 0;
   }
   
-  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)mmId);
+  ecmcEcMemMap *src = ec->getMemMap((int)mmId);
   
   if(!src) {
     ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
@@ -363,7 +363,7 @@ inline double ec_mm_append_to_ds(double mmId,double dsId) {
     if(ec_errorCode) {
       return (double)ec_errorCode;
     }
-    ec_errorCode = ecmcPLCTask::statDs_[index]->appendData(dataTemp, i==mmSize-1);
+    ec_errorCode = dataStorages[index]->appendData(dataTemp, i==mmSize-1);
 
   }
 
@@ -373,12 +373,12 @@ inline double ec_mm_append_to_ds(double mmId,double dsId) {
 // Append mm data to ds and scale and offset
 inline double ec_mm_append_to_ds_scale_offset(double mmId,double dsId,double dScale,double dOffset) {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return 0;
   }
   
-  ecmcEcMemMap *src = ecmcPLCTask::statEc_->getMemMap((int)mmId);
+  ecmcEcMemMap *src = ec->getMemMap((int)mmId);
   
   if(!src) {
     ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
@@ -398,7 +398,7 @@ inline double ec_mm_append_to_ds_scale_offset(double mmId,double dsId,double dSc
       return (double)ec_errorCode;
     }
     // update asyn only on last element
-    ec_errorCode = ecmcPLCTask::statDs_[index]->appendData(dataTemp * dScale + dOffset, i==mmSize-1);
+    ec_errorCode = dataStorages[index]->appendData(dataTemp * dScale + dOffset, i==mmSize-1);
   }
 
   return (double)ec_errorCode;
@@ -407,7 +407,7 @@ inline double ec_mm_append_to_ds_scale_offset(double mmId,double dsId,double dSc
 inline double ec_mm_push_asyn(double mmIndex) {
   int index = (int)mmIndex;
 
-  ecmcEcMemMap *mm = ecmcPLCTask::statEc_->getMemMap(index);
+  ecmcEcMemMap *mm = ec->getMemMap(index);
   
   if(!mm) {
     ec_errorCode = ERROR_MAIN_MEM_MAP_NULL;
@@ -426,12 +426,12 @@ inline double ec_err_rst() {
 // Get domain state (if negative then error code)
 inline double ec_get_dom_state(double domainId) {
   ec_errorCode = 0;
-  if(!ecmcPLCTask::statEc_) {
+  if(!ec) {
     ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;
     return -(double)ec_errorCode;
   }
   
-  return (double)ecmcPLCTask::statEc_->getDomState((int)domainId);
+  return (double)ec->getDomState((int)domainId);
 }
 
 #endif /* ecmcPLC_libEc_inc_ */

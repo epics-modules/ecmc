@@ -104,9 +104,6 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
     plcs->setPluginPointer(plugins[i], i);
   }
 
-  // Set Shm pointer
-  plcs->setShm(shmObj);
-
   int skipCycles = cycleTimeMs * mcuFrequency / 1000 - 1;
 
   if (skipCycles < 0) {

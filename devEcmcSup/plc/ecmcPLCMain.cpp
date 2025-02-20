@@ -84,31 +84,10 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
-  // Set axis group pointers (for the already configuered axes)
-  for (int i = 0; i < ECMC_MAX_AXES; i++) {
-    plcs_[plcIndex]->setAxisGroupArrayPointer(axisGrp_[i], i);
-  }
-
-  // Set axes pointers (for the already configuered axes)
-  for (int i = 0; i < ECMC_MAX_AXES; i++) {
-    plcs_[plcIndex]->setAxisArrayPointer(axes_[i], i);
-  }
-
-  // Set data storage pointers
-  for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
-    plcs_[plcIndex]->setDataStoragePointer(ds_[i], i);
-  }
-
   // Set plugin pointers
   for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
     plcs_[plcIndex]->setPluginPointer(plugins_[i], i);
   }
-
-  // Set ec pointer
-  plcs_[plcIndex]->setEcPointer(ec_);
-
-  // Set shm
-  plcs_[plcIndex]->setShm(shm_);
 
   errorCode = addPLCDefaultVariables(plcIndex, skipCycles);
 
@@ -1327,11 +1306,6 @@ int ecmcPLCMain::setPluginPointer(ecmcPluginLib *plugin, int index) {
   }
 
   plugins_[index] = plugin;
-  return 0;
-}
-
-int ecmcPLCMain::setShm(ecmcShm shm) {
-  shm_ = shm;
   return 0;
 }
 

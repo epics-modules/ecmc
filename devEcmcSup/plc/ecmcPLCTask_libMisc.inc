@@ -19,7 +19,7 @@
       m2m_errorCode = ERROR_SHM_INDEX_OUT_OF_RANGE;        \
       LOGERR("ERROR: SHM index out of range.\n");          \
     }                                                      \
-    if (ecmcPLCTask::statShm_.valid == 0) {                \
+    if (shmObj.valid == 0) {                \
       m2m_errorCode = ERROR_SHM_NULL;                      \
       LOGERR("ERROR: SHM object NULL.\n");                 \
     }                                                      \
@@ -39,8 +39,7 @@
         }\
 
 extern ecmcLookupTable<double, double>  *luts[ECMC_MAX_LUTS];
-
-ecmcShm ecmcPLCTask::statShm_ = {0};
+extern ecmcShm shmObj;
 
 const char *miscLibCmdList[] = { "m2m_write(",
                                  "m2m_read(",
@@ -64,9 +63,9 @@ inline double m2m_write(double shmIndex, double data) {
     return (double)m2m_errorCode;
   }
 
-  sem_wait(ecmcPLCTask::statShm_.sem);
-  ecmcPLCTask::statShm_.dataPtr[index] = data;
-  sem_post(ecmcPLCTask::statShm_.sem);
+  sem_wait(shmObj.sem);
+  shmObj.dataPtr[index] = data;
+  sem_post(shmObj.sem);
   return (double)m2m_errorCode;
 }
 
@@ -74,14 +73,14 @@ inline double m2m_ioc_run(double mstIdx) {
   int index= (int) mstIdx;
   // allow master index -ECMC_SHM_MAX_MASTERS..+ECMC_SHM_MAX_MASTERS
   // negative master id: ioc without ethercat
-  if(ecmcPLCTask::statShm_.valid == 0 || index >= ECMC_SHM_MAX_MASTERS || index <= -ECMC_SHM_MAX_MASTERS) {
+  if(shmObj.valid == 0 || index >= ECMC_SHM_MAX_MASTERS || index <= -ECMC_SHM_MAX_MASTERS) {
     return -1;
   }
 
   if( index >= 0) { // ioc with ec master
-    return (double) ecmcPLCTask::statShm_.mstPtr[index] > 0;
+    return (double) shmObj.mstPtr[index] > 0;
   } else { // ioc without ec master
-    return (double) ecmcPLCTask::statShm_.simMstPtr[-index + ECMC_SHM_MAX_MASTERS] > 0;
+    return (double) shmObj.simMstPtr[-index + ECMC_SHM_MAX_MASTERS] > 0;
   } 
   return -1.0; 
 }
@@ -90,12 +89,12 @@ inline double m2m_ioc_ec_ok(double mstIdx) {
   int index= (int) mstIdx;
   // allow master index -ECMC_SHM_MAX_MASTERS..+ECMC_SHM_MAX_MASTERS
   // negative master id: ioc without ethercat
-  if(ecmcPLCTask::statShm_.valid == 0 || index >= ECMC_SHM_MAX_MASTERS || index <= -ECMC_SHM_MAX_MASTERS) {
+  if(shmObj.valid == 0 || index >= ECMC_SHM_MAX_MASTERS || index <= -ECMC_SHM_MAX_MASTERS) {
     return -1;
   }
 
   if( index >= 0) { // ioc with ec master
-    return (double) ecmcPLCTask::statShm_.mstPtr[index] > 1;
+    return (double) shmObj.mstPtr[index] > 1;
   } else { // ioc without ec master
     return 0.0; // ioc:s without ec master cannot be ec.op
   } 
@@ -110,21 +109,21 @@ inline double m2m_read(double shmIndex) {
     return 0;
   }
   
-  sem_wait(ecmcPLCTask::statShm_.sem);
-  double data = ecmcPLCTask::statShm_.dataPtr[index];
-  sem_post(ecmcPLCTask::statShm_.sem);
+  sem_wait(shmObj.sem);
+  double data = shmObj.dataPtr[index];
+  sem_post(shmObj.sem);
   return data;
 }
 
 inline double m2m_stat() {
   
-  if (ecmcPLCTask::statShm_.valid == 0) {
+  if (shmObj.valid == 0) {
     m2m_errorCode = ERROR_SHM_NULL;
     LOGERR("ERROR: SHM object NULL.\n");
     return -ERROR_SHM_NULL;
   }                 
 
-  return (double)ecmcPLCTask::statShm_.valid;
+  return (double)shmObj.valid;
 }
 
 // Reset error

@@ -20,7 +20,7 @@
       LOGERR("ERROR: Data Storage index out of range.\n");          \
       return (double)ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
     }                                                               \
-    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                    \
+    if (dataStorages[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
       LOGERR("ERROR: Data Storage object NULL\n");                  \
       return (double)ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
@@ -34,7 +34,7 @@
       LOGERR("ERROR: Data Storage index out of range.\n");          \
       return 0;                                                     \
     }                                                               \
-    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                    \
+    if (dataStorages[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
       LOGERR("ERROR: Data Storage object NULL\n");                  \
       return 0;                                                     \
@@ -48,7 +48,7 @@
       LOGERR("ERROR: Data Storage index out of range.\n");          \
       return -1;                                                    \
     }                                                               \
-    if (ecmcPLCTask::statDs_[dsIndex] == NULL) {                    \
+    if (dataStorages[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
       LOGERR("ERROR: Data Storage object NULL\n");                  \
       return -1;                                                    \
@@ -72,6 +72,7 @@ const char *dsLibCmdList[] = { "ds_append_data(",
                                "ds_append_to_ds("
 };
 
+extern ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
 static int ds_errorCode = 0;
 static int ds_cmd_count = 15;
 
@@ -79,7 +80,7 @@ inline double ds_append_data(double dsIndex, double data) {
   int index = (int)dsIndex;
 
   CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);
-  ds_errorCode = ecmcPLCTask::statDs_[index]->appendData(data);
+  ds_errorCode = dataStorages[index]->appendData(data);
   return (double)ds_errorCode;
 }
 
@@ -87,7 +88,7 @@ inline double ds_clear_data(double dsIndex) {
   int index = (int)dsIndex;
 
   CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);
-  ds_errorCode = ecmcPLCTask::statDs_[index]->clearBuffer();
+  ds_errorCode = dataStorages[index]->clearBuffer();
   return (double)ds_errorCode;
 }
 
@@ -97,7 +98,7 @@ inline double ds_get_data(double dsIndex, double dataIndex) {
   CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(index);
   double temp = 0;
   ds_errorCode =
-    ecmcPLCTask::statDs_[index]->getDataElement(int(dataIndex), &temp);
+    dataStorages[index]->getDataElement(int(dataIndex), &temp);
   return temp;
 }
 
@@ -105,7 +106,7 @@ inline double ds_set_data(double dsIndex, double dataIndex, double data) {
   int index = (int)dsIndex;
 
   CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);
-  ds_errorCode = ecmcPLCTask::statDs_[index]->setDataElement(int(dataIndex), data);
+  ds_errorCode = dataStorages[index]->setDataElement(int(dataIndex), data);
   return (double)ds_errorCode;
 }
 
@@ -113,14 +114,14 @@ inline double ds_get_buff_id(double dsIndex) {
   int index = (int)dsIndex;
 
   CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(index);
-  return ecmcPLCTask::statDs_[index]->getCurrentIndex();
+  return dataStorages[index]->getCurrentIndex();
 }
 
 inline double ds_set_buff_id(double dsIndex, double bufferIndex) {
   int index = (int)dsIndex;
 
   CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);
-  ds_errorCode = ecmcPLCTask::statDs_[index]->setCurrentPosition(bufferIndex);
+  ds_errorCode = dataStorages[index]->setCurrentPosition(bufferIndex);
   return (double)ds_errorCode;
 }
 
@@ -133,7 +134,7 @@ inline double ds_is_full(double dsIndex) {
 
   CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(index);
   ds_errorCode = 0;
-  return (double)ecmcPLCTask::statDs_[index]->isStorageFull();
+  return (double)dataStorages[index]->isStorageFull();
 }
 
 inline double ds_get_size(double dsIndex) {
@@ -141,7 +142,7 @@ inline double ds_get_size(double dsIndex) {
 
   CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(index);
   ds_errorCode = 0;
-  return (double)ecmcPLCTask::statDs_[index]->getSize();
+  return (double)dataStorages[index]->getSize();
 }
 
 inline double ds_push_asyn(double dsIndex) {
@@ -149,7 +150,7 @@ inline double ds_push_asyn(double dsIndex) {
 
   CHECK_PLC_DATA_STORAGE_RETURN_MINUS_ONE_IF_ERROR(index);
   ds_errorCode = 0;  
-  return (double)ecmcPLCTask::statDs_[index]->updateAsyn(1);
+  return (double)dataStorages[index]->updateAsyn(1);
 }
 
 inline double ds_get_avg(double dsIndex) {
@@ -157,7 +158,7 @@ inline double ds_get_avg(double dsIndex) {
 
   CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(index);
   ds_errorCode = 0;
-  return (double)ecmcPLCTask::statDs_[index]->getAvg();
+  return (double)dataStorages[index]->getAvg();
 }
 
 inline double ds_get_min(double dsIndex) {
@@ -165,7 +166,7 @@ inline double ds_get_min(double dsIndex) {
 
   CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(index);
   ds_errorCode = 0;
-  return (double)ecmcPLCTask::statDs_[index]->getMin();
+  return (double)dataStorages[index]->getMin();
 }
 
 inline double ds_get_max(double dsIndex) {
@@ -173,7 +174,7 @@ inline double ds_get_max(double dsIndex) {
 
   CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(index);
   ds_errorCode = 0;
-  return (double)ecmcPLCTask::statDs_[index]->getMax();
+  return (double)dataStorages[index]->getMax();
 }
 
 inline double ds_append_to_ds(double dsFromId, double dsFromDataIndex, double elements, double dsToId) {
@@ -184,7 +185,7 @@ inline double ds_append_to_ds(double dsFromId, double dsFromDataIndex, double el
   CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(fromId);
   CHECK_PLC_DATA_STORAGE_RETURN_ZERO_IF_ERROR(toId);
   
-  int srcSize = ecmcPLCTask::statDs_[fromId]->getSize();
+  int srcSize = dataStorages[fromId]->getSize();
   if(dsFromDataIndex>=srcSize) {
     ds_errorCode = ERROR_DATA_STORAGE_POSITION_OUT_OF_RANGE;;
     return (double) ds_errorCode;    
@@ -196,12 +197,12 @@ inline double ds_append_to_ds(double dsFromId, double dsFromDataIndex, double el
   }
 
   double *srcPtr = NULL;
-  ds_errorCode = ecmcPLCTask::statDs_[fromId]->getDataElementPtr((int)dsFromDataIndex, &srcPtr);
+  ds_errorCode = dataStorages[fromId]->getDataElementPtr((int)dsFromDataIndex, &srcPtr);
   if(ds_errorCode) {
     return ds_errorCode;
   }
   
-  ds_errorCode = ecmcPLCTask::statDs_[toId]->appendData(srcPtr,elementsLocal);
+  ds_errorCode = dataStorages[toId]->appendData(srcPtr,elementsLocal);
   return ds_errorCode;
 }
 
