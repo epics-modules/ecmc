@@ -1,10 +1,25 @@
 Release Notes
 ===
 
-
 # ECMC 10.0.0
-* Add profile move (motor record extension). Only move is supported, not triggering yet.
+* Add plc support for generic lookup tables from PLC: 
+```
+  #- Create lookup table with ecmccfg:
+  ${SCRIPTEXEC} ${ecmccfg_DIR}loadLUTFile.cmd     "FILE=./cfg/test.lut"
+
+
+  # Access the LUT from PLC-code with:
+  value = lut_get_value(
+                         <lutObjIndex>,       : Lookup table object index
+                         <index>              : Index to which a value should be interpolated
+                         );
+   
+   Returns an interpolated value from the lookup table object, with "lutObjIndex", for the position "index" in table.
+```
+
+* Add beta support for PVT motion, profile move (motor record PVT extension). Only move is supported, not triggering yet.
 * New plugin interface version. Needed in order to be able to use require to load plugins.
+  - Change to plugins needed (name of interface needs to include module name).
 * Add delay compensation for encoders (time between input of encoder and output of velo in drive)
   - Different encoders can have different delay times.
   - The functionality is default disabled.
