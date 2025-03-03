@@ -2,7 +2,7 @@ Release Notes
 ===
 
 # ECMC 10.0.0
-* Add plc support for generic lookup tables from PLC: 
+* Add plc support for generic lookup tables: 
 ```
   #- Create lookup table with ecmccfg:
   ${SCRIPTEXEC} ${ecmccfg_DIR}loadLUTFile.cmd     "FILE=./cfg/test.lut"
