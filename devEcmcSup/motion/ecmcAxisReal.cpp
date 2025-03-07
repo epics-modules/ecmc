@@ -79,11 +79,22 @@ void ecmcAxisReal::execute(bool masterOK) {
   }
 
   // CSP Write raw actpos  and actpos to drv obj
-  drv_->setCspActPos(
-    encArray_[data_.command_.primaryEncIndex]->getRawPosRegister(),
-    data_.status_.currentPositionActual);
-
-    // Calc position error
+  //if(data_.command_.cspDrvEncIndex < 0) {
+  //
+  //  // CSP without control
+  //  drv_->setCspActPos(
+  //    encArray_[data_.command_.primaryEncIndex]->getRawPosRegister(),
+  //    data_.status_.currentPositionActual);  
+  //} else {
+  //  
+  //  // CSP with control
+  //  drv_->setCspActPos(
+  //    encArray_[data_.command_.cspDrvEncIndex]->getRawPosRegister(),
+  //    data_.status_.currentPositionActual);  
+  //}
+  //
+  // Calc position error
+  
   data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
       data_.status_.currentPositionSetpoint,
       data_.status_.currentPositionSetpointOld,
@@ -94,6 +105,7 @@ void ecmcAxisReal::execute(bool masterOK) {
     double cntrOutput = 0;
 
     if (data_.command_.drvMode == ECMC_DRV_MODE_CSV) {
+      
       // ***************** CSV *****************
       // Controller deadband
       if (!data_.status_.busy && mon_->getCtrlInDeadband()) {
@@ -105,10 +117,24 @@ void ecmcAxisReal::execute(bool masterOK) {
       }
       mon_->setEnable(true);
       drv_->setVelSet(cntrOutput);  // Actual control
-    } else {
+    } else if (data_.command_.drvMode == ECMC_DRV_MODE_CSP){
+      
       // ***************** CSP *****************
-      mon_->setEnable(true);
-      drv_->setCspPosSet(data_.status_.currentPositionSetpoint);  // Actual control
+      if(data_.command_.cspDrvEncIndex < 0) {
+       
+        // CSP without controller
+        mon_->setEnable(true);
+        // Just sending setpoint, position loop in driver 
+        drv_->setCspPosSet(data_.status_.currentPositionSetpoint);
+      } else {        
+        // CSP with controller
+        mon_->setEnable(true);
+        if (data_.status_.busy ||  !mon_->getCtrlInDeadband()) {
+          data_.status_.currentCSPPositionSetpointOffset = cntrl_->control(data_.status_.cntrlError,0);
+        }
+        // Actual control. ecmc PID enabled on top of teh psoition loop in the drive (different encoders)        
+        drv_->setCspPosSet(data_.status_.currentPositionSetpoint + data_.status_.currentCSPPositionSetpointOffset);
+      }
     }
   } else {
     mon_->setEnable(false);
@@ -237,8 +263,9 @@ int ecmcAxisReal::validate() {
                       ERROR_AXIS_DRV_OBJECT_NULL);
   }
 
+  // Default CSP drive encoder to primary
+  drv_->setCspEnc(getCSPEnc());
   error = drv_->validate();
-
   if (error) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
   }

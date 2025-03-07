@@ -178,6 +178,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_   = asynPortDriver;
   data_.axisId_     = axisID;
   data_.sampleTime_ = sampleTime;
+  data_.command_.cspDrvEncIndex =  -1;   // used for control
   setExternalPtrs(&(data_.status_.errorCode), &(data_.status_.warningCode));
   try {
     data_.command_.primaryEncIndex = 0;
@@ -808,6 +809,13 @@ ecmcEncoder * ecmcAxisBase::getConfigEnc() {
 
 ecmcEncoder * ecmcAxisBase::getPrimEnc() {
   return encArray_[data_.command_.primaryEncIndex];
+}
+
+ecmcEncoder * ecmcAxisBase::getCSPEnc() {
+  if(data_.command_.cspDrvEncIndex < 0) {
+    return encArray_[data_.command_.primaryEncIndex];
+  }
+  return encArray_[data_.command_.cspDrvEncIndex];
 }
 
 ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
@@ -2809,6 +2817,63 @@ int ecmcAxisBase::addEncoder() {
   data_.command_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
   data_.status_.encoderCount++;
 
+  return 0;
+}
+
+// Only for Configuration purpose
+int ecmcAxisBase::selectCSPDriveEncoder(int index) {
+  
+  // Comamnd only makes sense if REAL axis
+  if(data_.axisType_ != ECMC_AXIS_TYPE_REAL) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): Command only valid for axes of type REAL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_.axisId_);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+  }
+
+  if(data_.status_.inRealtime ) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): Command not allowed in realtime.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_.axisId_);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_CMD_NOT_ALLOWED_IN_REALTIME);
+  }
+
+  // Do not change if less than 0 (allow ecmccfg to set -1 as default)
+  int localIndex = index - 1;
+
+  if (localIndex < 0) {
+    return 0;
+  }
+
+  if ((localIndex >= ECMC_MAX_ENCODERS) ||
+      (localIndex >= data_.status_.encoderCount)) {
+    LOGERR("%s/%s:%d: ERROR (axis %d): Encoder index out of range.\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            data_.axisId_);
+    
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
+  }
+  printf("CSP with control enabled\n");
+  data_.command_.cspDrvEncIndex = localIndex;
+  
+  // CSP encoer is set to drv object in ecmcAxisReal::validate()
+
+  data_.status_.currentCSPPositionSetpointOffset  = 0;
   return 0;
 }
 

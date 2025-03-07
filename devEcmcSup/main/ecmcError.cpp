@@ -471,6 +471,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x1432C:
+    return "ERROR_AXIS_CMD_NOT_ALLOWED_IN_REALTIME";
+
+    break;
+
   case 0x14600:   // DRIVE
     return "ERROR_DRV_DRIVE_INTERLOCKED";
 
@@ -568,6 +573,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x14613:
     return "ERROR_DRV_STATE_MACHINE_TIME_OUT";
+
+    break;
+
+  case 0x14614:
+    return "ERROR_DRV_INVALID_DRV_MODE";
+
+    break;
+
+  case 0x14615:
+    return "ERROR_DRV_CSP_ENC_NULL";
 
     break;
 

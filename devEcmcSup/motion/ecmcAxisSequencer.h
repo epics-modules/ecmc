@@ -136,6 +136,8 @@ public:
 private:
   void         executeInternal();
   ecmcEncoder* getPrimEnc();
+  ecmcEncoder* getCSPEnc();
+
   void         initVars();
   double       checkSoftLimits(double posSetpoint);
   void         readHomingParamsFromEnc();

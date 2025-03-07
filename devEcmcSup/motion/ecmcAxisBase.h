@@ -63,7 +63,6 @@
 #define ERROR_AXIS_BUSY 0x1431C
 #define ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL 0x1431D
 #define ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL 0x1431E
-
 // Moved to ecmcDefinitions.h
 // #define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
 // #define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
@@ -78,6 +77,7 @@
 #define ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL 0x14329
 #define ERROR_AXIS_SAFETY_IL_ACTIVE 0x1432A
 #define ERROR_AXIS_SLAVED_AXIS_IN_ERROR 0x1432B
+#define ERROR_AXIS_CMD_NOT_ALLOWED_IN_REALTIME 0x1432C
 
 // AXIS WARNINGS
 #define WARNING_AXIS_ASYN_CMD_WHILE_BUSY 0x114300
@@ -215,6 +215,7 @@ public:
                                     int *error);
   ecmcEncoder*               getConfigEnc();  // get current encoder being configured
   ecmcEncoder*               getPrimEnc();
+  ecmcEncoder*               getCSPEnc();
   ecmcAxisSequencer*         getSeq();
   int                        getPosAct(double *pos);
   int                        getPosSet(double *pos);
@@ -330,6 +331,7 @@ public:
   int        selectPrimaryEncoder(int index,
                                   int overrideError);
   int        selectPrimaryEncoder(int index);
+  int        selectCSPDriveEncoder(int index);
   int        selectConfigEncoder(int index);
   int        getPrimaryEncoderIndex();                  // Control (PID)
   int        getConfigEncoderIndex();                   // Config

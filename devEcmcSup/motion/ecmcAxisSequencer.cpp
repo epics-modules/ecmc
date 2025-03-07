@@ -3286,7 +3286,7 @@ void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
 
   if (drv_) {
     drv_->setCspRef(
-      getPrimEnc()->getRawPosRegister(),
+      getCSPEnc()->getRawPosRegister(),
       newPosition,
       newPosition);
   }
@@ -3371,6 +3371,13 @@ double ecmcAxisSequencer::getHomePosition() {
 
 ecmcEncoder * ecmcAxisSequencer::getPrimEnc() {
   return encArray_[data_->command_.primaryEncIndex];
+}
+
+ecmcEncoder * ecmcAxisSequencer::getCSPEnc() {
+  if(data_->command_.cspDrvEncIndex < 0) {
+    return encArray_[data_->command_.primaryEncIndex];
+  } 
+  return encArray_[data_->command_.cspDrvEncIndex];
 }
 
 void ecmcAxisSequencer::setDefaultAcc(double acc) {

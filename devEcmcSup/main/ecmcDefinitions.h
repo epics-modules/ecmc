@@ -310,8 +310,9 @@ enum stopMode {
 };
 
 enum driveMode {
-  ECMC_DRV_MODE_CSV = 0,
-  ECMC_DRV_MODE_CSP = 1,
+  ECMC_DRV_MODE_CSV    = 0,
+  ECMC_DRV_MODE_CSP    = 1,
+  ECMC_DRV_MODE_NONE   = 10,  
 };
 
 enum interlockTypes {

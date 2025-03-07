@@ -22,6 +22,7 @@
 #include "ecmcEcEntryLink.h"
 #include "ecmcEcPdo.h"
 #include "ecmcAxisData.h"
+#include "ecmcEncoder.h"
 
 // DRIVE
 #define ERROR_DRV_DRIVE_INTERLOCKED 0x14600
@@ -44,6 +45,8 @@
 #define ERROR_DRV_WARNING_READ_ENTRY_FAIL 0x14611
 #define ERROR_DRV_ALARM_READ_ENTRY_FAIL 0x14612
 #define ERROR_DRV_STATE_MACHINE_TIME_OUT 0x14613
+#define ERROR_DRV_INVALID_DRV_MODE 0x14614
+#define ERROR_DRV_CSP_ENC_NULL 0x14615
 
 #define WARNING_DRV_WARNING_BIT_HIGH 0x114600
 #define WARNING_DRV_ENABLED_LOST 0x114601
@@ -98,15 +101,15 @@ public:
   int          setBrakeCloseAheadTime(int aheadTime);
   int          setStateMachineTimeout(double seconds);
   int          setVelSetOffsetRaw(double offset);
-
   // CSP
   int          setCspPosSet(double posEng);
   int          setCspRecalcOffset(double posEng);
-  void         setCspActPos(int64_t posRaw,
-                            double  posAct);
+  //void         setCspActPos(int64_t posRaw,
+  //                          double  posAct);
   void         setCspRef(int64_t posRaw,
                          double  posAct,
                          double  posSet);
+  void         setCspEnc(ecmcEncoder * enc);
 
 protected:
   int  updateBrakeState();
@@ -163,6 +166,7 @@ private:
   int64_t maxVeloOutput_;
   int64_t veloPosOutput_;
   int64_t veloRawOffset_;
+  ecmcEncoder* cspEnc_;
 };
 
 #endif  // ifndef ECMCDRIVEBASE_H_

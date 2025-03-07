@@ -1945,17 +1945,46 @@ int addAxisEnc(int axisIndex);
  *  see selectAxisEncHome().\n
  *
  * \param[in] axisIndex  Axis index.\n
- * \param[in] encindex Encoder index (first index is 0).\n
+ * \param[in] encindex Encoder index (first index is 1).\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note: The encoder index starts at 1 (first encoder for axis has index 1).\n
  *
  * \note Example: Select to use the third encoder object for closed loop control of axis 3.\n
- * "Cfg.SelectAxisEncPrimary(3,2)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SelectAxisEncPrimary(3,3)" //Command string to ecmcCmdParser.c.\n
  */
 int selectAxisEncPrimary(int axisIndex,
                          int index);
+
+/** \brief Select encoder to be used by ecmc drive object for CSP control.\n
+ *
+ *  Select an encoder to use by drive for CSP (default functionality is disabled).\n
+ *  This will allow for CSP with the ecmc postion controller enabled (normally in \n
+ *  the PID controller is disabled). One use case could be a servo motor axis in \n
+ *  CSP mode but that there's a need for outer position loop on for instance a linear \n
+ *  encoder. In this case the (rotary) encoder that is linked to the servo drive needs\n
+ *  to be selected as CSP encoder with this command. Then the linear encoder needs to be \n
+ *  set as primary encoder. The CSP setpoint to the drive will then be adjusted depending \n
+ *  on the position error off the primary encoder (in this example , the linear encoder)\n
+ * 
+ *  \note ecmc drive object needs to know the CSP encoder actual value in order to send \n 
+ *  correct position setpoints to the drive.
+ *  \note do not set the primary index to same csp index, then two control loops will act\n
+ *  on the same encoder value which is probably not optimal (but should not cause any major errors).\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encindex   Encoder index (first index is 1).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note: The encoder index starts at 1 (first encoder for axis has index 1).\n
+ *
+ * \note Example: Select to use the third encoder object for drive CSP of axis 3.\n
+ * "Cfg.SelectAxisEncCSPDrv(3,3)" //Command string to ecmcCmdParser.c.\n
+ */
+int selectAxisEncCSPDrv(int axisIndex,
+                        int index);
 
 /** \brief Select encoder to configured.\n
  *
@@ -2317,7 +2346,6 @@ int setAxisDrvScaleNum(int    axisIndex,
 int setAxisDrvScaleDenom(int    axisIndex,
                          double value);
 
-
 /** \brief Set drive raw velocity offset.\n
  *
  *  Can be used to offset the velocity drive range. can be usefull\n
@@ -2485,7 +2513,7 @@ int setAxisMonAtTargetTol(int    axisIndex,
 /** \brief Enable monitoring diff of act. vel. vs set. vel.\n
  *
  *   Enable check of difference between encoders \n
- *   (if more than one encoder is configutred for teh axis)\n
+ *   (if more than one encoder is configutred for the axis)\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable Enable monitoring of encoder diffs \n
@@ -2500,8 +2528,7 @@ int setAxisEnableCheckEncsDiff(int axisIndex,
                                int enable);
 
 /** \brief Enable stall monitoring.\n
- * 
- *  
+ *   
  *  An axis is considered stalled if it not reaches attarget\n
  *  within a certain time. The time can be defined in two ways:\n
  *  1. A minimum timeout see "Cfg.SetAxisMonStallMinTimeOut()"\n

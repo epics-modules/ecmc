@@ -29,6 +29,7 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
 {
   initVars();
   data_ = axisData;
+  data_->command_.drvMode = ECMC_DRV_MODE_NONE;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   asynPortDriver_ = asynPortDriver;
 
@@ -92,6 +93,7 @@ void ecmcDriveBase::initVars() {
   maxVeloOutput_             = 0;
   veloPosOutput_             = 0;
   veloRawOffset_             = 0;
+  cspEnc_                    = NULL;
 }
 
 ecmcDriveBase::~ecmcDriveBase() {}
@@ -108,7 +110,9 @@ int ecmcDriveBase::setVelSet(double vel) {
 }
 
 int ecmcDriveBase::setCspPosSet(double posEng) {
-  cspPosSet_ = posEng; // Engineering unit
+  cspPosSet_    = posEng; // Engineering unit
+  cspRawActPos_ = cspEnc_->getRawPosRegister();
+  cspActPos_    = cspEnc_->getActPos();
 
   if (!driveInterlocksOK()) {
     return 0;
@@ -129,11 +133,6 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   }
 
   return 0;
-}
-
-void ecmcDriveBase::setCspActPos(int64_t posRaw, double posAct) {
-  cspRawActPos_ = posRaw;
-  cspActPos_    = posAct;
 }
 
 // For drv at homing
@@ -291,7 +290,7 @@ void ecmcDriveBase::writeEntries() {
                  ECMC_SEVERITY_EMERGENCY);
     }
   } else {
-    // CSP:    Check so not outside allowable range
+    // CSP: Check so not outside allowable range
     veloPosOutput_ = data_->status_.currentPositionSetpointRaw;
 
     // Allow position to wrap around
@@ -525,13 +524,13 @@ void ecmcDriveBase::readEntries() {
 }
 
 int ecmcDriveBase::validate() {
+
   // Enable entry output OR controlword
   int errorCode = validateEntry(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD);
 
   if (errorCode) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
-
 
   if (checkEntryExist(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT)) {
     // CSV
@@ -556,10 +555,34 @@ int ecmcDriveBase::validate() {
     }
     data_->command_.drvMode = ECMC_DRV_MODE_CSP;
 
+    if(cspEnc_ == NULL) {
+      LOGERR(
+        "%s/%s:%d: ERROR (axis %d): No drive encoder selected for CSP operation (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_->axisId_,
+        ERROR_DRV_CSP_ENC_NULL);
+  
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_CSP_ENC_NULL);      
+    }
     // Allow wrap around for position
     // ecmcEcDataType dt = getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
     // minVeloOutput_ = getEcDataTypeMinVal(dt);
     // maxVeloOutput_ = getEcDataTypeMaxVal(dt);
+  }
+
+  // Ensure mode is CSV, CSP
+  if(data_->command_.drvMode != ECMC_DRV_MODE_CSV && data_->command_.drvMode != ECMC_DRV_MODE_CSP ) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Drive Mode Invalid (must be CSV or CSP) (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_->axisId_,
+      ERROR_DRV_INVALID_DRV_MODE);
+
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_INVALID_DRV_MODE);
   }
 
   // Enabled entry input OR statusword
@@ -884,7 +907,6 @@ int ecmcDriveBase::initAsyn() {
   asynStatusWd_ = paramTemp;
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                       ECMC_ASYN_DEFAULT_ADDR);
-
   return 0;
 }
 
@@ -901,4 +923,8 @@ int ecmcDriveBase::setStateMachineTimeout(double seconds) {
 int ecmcDriveBase::setVelSetOffsetRaw(double offset) {
   veloRawOffset_ = (int64_t)offset;
   return 0;
+}
+
+void ecmcDriveBase::setCspEnc(ecmcEncoder * enc) {
+  cspEnc_ = enc;
 }

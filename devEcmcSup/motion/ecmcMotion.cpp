@@ -2029,6 +2029,18 @@ int selectAxisEncPrimary(int axisIndex, int index) {
   return axes[axisIndex]->selectPrimaryEncoder(index);
 }
 
+int selectAxisEncCSPDrv(int axisIndex, int index) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, primaryEncoder=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           index);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  return axes[axisIndex]->selectCSPDriveEncoder(index);
+}
+
 int selectAxisEncConfig(int axisIndex, int index) {
   LOGINFO4("%s/%s:%d axisIndex=%d, configEncoder=%d\n",
            __FILE__,

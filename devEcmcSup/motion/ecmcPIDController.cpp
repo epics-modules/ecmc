@@ -235,9 +235,9 @@ int ecmcPIDController::validate() {
   }
 
   // Output warning if CSP and any of the position control parameters have been set.
-  if ((data_->command_.drvMode == ECMC_DRV_MODE_CSP) && settingMade_) {
-    LOGERR("%s/%s:%d: WARNING: Axis %d in CSP-mode (ecmc position control loop disabled). Settings of ecmc position control loop params will be discarded."
-           " Position control loop params needs to be set directlly in drive (where the position loop is executed).\n",
+  if ((data_->command_.drvMode == ECMC_DRV_MODE_CSP) && settingMade_ && data_->command_.cspDrvEncIndex < 0) {
+    LOGERR("%s/%s:%d: WARNING: Axis %d: ecmc position control disabled (no dedicated CSP encoder selected). Settings of ecmc position control loop params will be discarded."
+           " Position control loop params needs to be set directly in drive (where the position loop is executed).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

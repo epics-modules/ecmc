@@ -27,6 +27,7 @@ typedef struct {
   motionCommandTypes command;
   int                cmdData;
   int                primaryEncIndex;   // used for control
+  int                cspDrvEncIndex;     // encoder channel used for drive local CSP (defaults to primary)
   int                cfgEncIndex;       // Encoder currrently configured
   int                drvModeSet;
   bool               enable             : 1;
@@ -49,6 +50,7 @@ typedef struct {
   double  externalEncoderVelocity;
   double  currentPositionActual;
   double  currentPositionSetpoint;
+  double  currentCSPPositionSetpointOffset;  // currentPositionSetpoint plus controller error..
   double  currentTargetPosition;
   double  currentTargetPositionModulo;
   double  currentPositionSetpointOld;
