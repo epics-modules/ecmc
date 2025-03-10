@@ -1,5 +1,52 @@
 Release Notes
 ===
+# ECMC 10.1.0_RC1
+
+## Added support for dual position control loop in CSP mode (in ecmc called CSP_PC)
+
+### Description of use-case:
+    Normally, in CSP-mode, no centralized position control will be executed,
+    instead, the position control loop is moved to the drive. It's however
+    possible to activate the centralized ecmc position loop also if needed.
+    A use case could be a rotary servo motor (in CSP-mode) driving a stage equipped with 
+    a linear encoder.
+
+### Details:
+    CSP normally must be based on the encoder connected to the drive/motor, in this 
+    case the position control loop is only performed in the drive and ecmc
+    will only send position setpoints. In order to enable (ecmc) position control
+    on the linear encoder, then, also the linear encoder needs to be configured.
+    In this example, the linear encoder is simulated with the same rotary encoder but 
+    with a different scaling (in order for the two encoders to show different 
+    values). The simulated linear encoder should be selected as primary (for control).
+    The drive object still needs to know the drive actual position in order to send
+    accurate position setpoints. This is done by selecting the encoder with 
+    "ecmcConfigOrDie "Cfg.SelectAxisEncCSPDrv(<axis id>,<enc_id>)". 
+    This encoder needs to have the proper scaling for the drive.
+    The system will now also use the centralized ecmc position control loop,
+    resulting in 2 position loops are activated, one in ecmc and one in the drive.
+    In this case, the ecmc-PID parameters needs to be defined and then also tuned.
+    Normally a PI controller is needed. The control output to the drive will be 
+    a position setpoint that is controller by the normal ecmc PID controller.
+    If the "Cfg.SelectAxisEncCSPDrv(<axis id>,<enc_id>)" is not executed or if the 
+    primary encoder is selected, then the drive object will by default use the
+    the primary encoder and the position loop in ecmc will be disabled (normal CSP).
+    So, in order to use dual loops, the primary encoder and the CSP drive encoder 
+    needs to be different.
+
+The encoder connected to teh drive needs to be configured with the "useAsCSPDrvEnc" like below:
+```
+encoder:
+  desc: CSP drive encoder
+  type: 1
+  position: ec0.s$(DRV_ID).positionActual01
+  numerator: 360
+  denominator: 1048576  # 20bits
+  bits: 32
+  absBits: 32
+  absOffset: -294100
+  useAsCSPDrvEnc: 1    # use this encoder as CSP drive encoder
+```
 
 # ECMC 10.0.0
 * Add plc support for generic lookup tables: 
