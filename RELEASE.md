@@ -2,7 +2,7 @@ Release Notes
 ===
 # ECMC 10.1.0_RC1
 
-## Added support for dual position control loop in CSP mode (in ecmc called CSP_PC)
+## Add support for dual position control loop in CSP mode (in ecmc called CSP_PC)
 
 ### Description of use-case:
     Normally, in CSP-mode, no centralized position control will be executed,
@@ -34,7 +34,7 @@ Release Notes
     So, in order to use dual loops, the primary encoder and the CSP drive encoder 
     needs to be different.
 
-The encoder connected to teh drive needs to be configured with the "useAsCSPDrvEnc" like below:
+The encoder connected to the drive needs to be configured with the "useAsCSPDrvEnc" like below:
 ```
 encoder:
   desc: CSP drive encoder
