@@ -329,9 +329,9 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     if (masterOK) {
       
       if (!hwReady_) {
-        setErrorID(ERROR_ENC_NOT_READY);
+        setErrorID(ERROR_AXIS_HW_NOT_READY);
       } else {  // auto reset error if ok
-        if (getErrorID() == ERROR_ENC_NOT_READY && hwReadyOld_) {
+        if (getErrorID() == ERROR_AXIS_HW_NOT_READY && hwReadyOld_) {
           errorReset();
         }
       }
@@ -444,7 +444,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
     data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld = data_.status_.cntrlOutput;
   data_.status_.inStartupPhaseOld = data_.status_.inStartupPhase;
-  
+
   cycleCounter_++;
   refreshDebugInfoStruct();
 
