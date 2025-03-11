@@ -129,7 +129,9 @@ class ecmcAxisPVTSequence {
     int    setAxisDataRef(ecmcAxisData *data);
     void   addPoint(ecmcPvtPoint *pnt);
     double startTime();
-    double endTime();    
+    int    startPosition(double *position);
+    int    getAccSeqDist(double *position);
+    double endTime();  
     void   initSeq(); // Call before starting a seq
     bool   validate();
     bool   isLastSample();

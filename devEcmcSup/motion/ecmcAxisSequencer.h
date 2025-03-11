@@ -52,6 +52,8 @@
 #define ERROR_SEQ_HOME_NOT_ALLOWED 0x14D1A
 #define ERROR_SEQ_PVT_OBJECT_BUSY 0x14D1B
 #define ERROR_SEQ_PVT_OBJECT_NULL 0x14D1C
+//#define ERROR_SEQ_PVT_CFG_INVALID 0x14D1D in PVT seq..
+#define ERROR_SEQ_PVT_ERROR 0x14D1E
 
 
 // SEQUENCER WARNINGS
@@ -160,6 +162,7 @@ private:
   int          seqHoming21(); // nCmdData==21
   int          seqHoming22(); // nCmdData==22
   int          seqHoming26(); // nCmdData==26
+  int          seqMovePVT();  // Move to PVT start and then trigg PVT sequence
   int          checkHWLimitsAndStop(bool checkBWD,
                                     bool checkFWD);
   int          stopSeq();

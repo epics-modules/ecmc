@@ -1045,6 +1045,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14D1E:
+    return "ERROR_SEQ_PVT_ERROR";
+
+    break;
+
   case 0x14E00:    // TRAJECTORY
     return "ERROR_TRAJ_EXT_ENC_NULL";
 

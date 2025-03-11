@@ -64,12 +64,27 @@ double ecmcAxisPVTSequence::getSegDuration(size_t segIndex){
          segments_[segIndex]->getStartPoint()->time_;
 }
 
-
 double ecmcAxisPVTSequence::startTime(){
   if(segmentCount_ <= 0) {
       return -1;
   }
   return segments_[0]->getStartPoint()->time_;
+}
+
+int ecmcAxisPVTSequence::startPosition(double *position){
+  if(segmentCount_ <= 0) {
+      return 1;
+  }
+  *position = segments_[0]->getStartPoint()->position_;
+  return 0;
+}
+
+int ecmcAxisPVTSequence::getAccSeqDist(double *dist) {
+  if(segmentCount_ <= 0) {
+    return 1;
+  }
+  *dist = segments_[0]->getEndPoint()->position_ - segments_[0]->getStartPoint()->position_;
+  return 0;
 }
 
 double ecmcAxisPVTSequence::endTime(){

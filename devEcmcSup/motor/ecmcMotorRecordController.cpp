@@ -865,6 +865,16 @@ asynStatus ecmcMotorRecordController::writeFloat64Array(asynUser *pasynUser, epi
 }
 
 asynStatus ecmcMotorRecordController::executeProfile() {
+  if(!profileInitialized_) {
+    printf("ecmcMotorRecordController: Error: Profile not initialized...\n");
+    return asynError;
+  }
+
+  if(!profileBuilt_) {
+    printf("ecmcMotorRecordController: Error: Profile not built...\n");
+    return asynError;
+  }
+
   asynStatus status = asynSuccess;
   printf("ecmcMotorRecordController::executeProfile()\n");
   int axis;

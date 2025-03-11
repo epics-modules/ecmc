@@ -2038,10 +2038,6 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   
   // Clear prepared pvt object
   pvtPrepare_->clear();
-  
-  //Add acceleration point start dummy point and udate with correct position when triggered (executeProfile)
-  // Rampup time defined in parameter profileAcceleration_
-  pvtPrepare_->addPoint(new ecmcPvtPoint(0,0,0));
 
   double time;
   int timeMode;
@@ -2068,15 +2064,23 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 
   double preVelo = 0;
   double postVelo = 0;
-  double currTime = accTime;  // Start at this time since first seqment takes the acceleration
+  double currTime = accTime;  // Start at this time since first segment takes the acceleration
 
-  // Add first points
   if(timeMode == PROFILE_TIME_MODE_FIXED) {      
     preVelo = (profilePositions_[1]-profilePositions_[0]) / time;
   } else { // Time array
     preVelo = (profilePositions_[1]-profilePositions_[0]) / pC->profileTimes_[0];
   }
 
+  // Add pre-point for acceleration
+  double distAcc = preVelo * accTime / 2; 
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0] - distAcc,0,0));
+
+  if(drvlocal.axisPrintDbg) {
+    printf("Added pre-point for acc (%lf,%lf,%lf)\n",profilePositions_[0]- distAcc, preVelo, 0.0);
+  }
+
+  // First point
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0], preVelo, currTime));
   
   if(drvlocal.axisPrintDbg) {
@@ -2089,7 +2093,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     currTime += pC->profileTimes_[0];
   }
 
-  //add center points
+  // Add center points
   double velo = preVelo;
   for (size_t i = 1; i < (profileNumPoints_-1); i++) {
     if(timeMode == PROFILE_TIME_MODE_FIXED) {      
@@ -2117,13 +2121,18 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     printf("Added point (%lf,%lf,%lf)",profilePositions_[profileNumPoints_-1], postVelo, currTime);
   }
 
-  // Add deceleration point. always zero velo after accTime
-  currTime +=accTime;    
-  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1] + velo * accTime / 2, 0, currTime));
-  
+  currTime +=accTime;
+
+  // Add post-point for deceleration
+  distAcc = postVelo * accTime / 2;
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1] + distAcc, 0.0, currTime));
+ 
+  if(drvlocal.axisPrintDbg) {
+    printf("Added post-point for dec (%lf,%lf,%lf)\n",profilePositions_[profileNumPoints_-1] + distAcc, preVelo, currTime);
+  }
+
   // Dump what we have
   pvtPrepare_->print();
-
 
   if(!drvlocal.ecmcAxis || !pC_->getPVTController()) {
     return asynError;
