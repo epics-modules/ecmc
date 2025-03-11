@@ -69,7 +69,7 @@ void ecmcAxisReal::initVars() {
 void ecmcAxisReal::execute(bool masterOK) {
   ecmcAxisBase::preExecute(masterOK);
 
-  drv_->readEntries();
+  drv_->readEntries(masterOK);
 
   // Update setpoints and actual 
   seq_.execute();

@@ -75,10 +75,11 @@ public:
                  double              scale);
   ~ecmcDriveDS402();
   int  validate();
-  void readEntries();
+  void readEntries(bool masterOK);
   void writeEntries();
   void errorReset();
   bool getEnabledLocal();
+  int  hwReady();
 
 private:
   void initVars();
@@ -88,5 +89,6 @@ private:
   bool ds402WarningOld_;
   bool localEnabled_;
   bool localEnableAmpCmdOld_;
+  bool startupFaultCleared_;
 };
 #endif  // ifndef ECMCDRIVEDS402_H_

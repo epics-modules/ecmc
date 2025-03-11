@@ -49,6 +49,7 @@ void ecmcDriveDS402::initVars() {
   cycleCounter_          = 0;
   localEnabled_          = 0;
   localEnableAmpCmdOld_  = 0;
+  startupFaultCleared_   = 0;
 }
 
 int ecmcDriveDS402::validate() {
@@ -112,8 +113,8 @@ ECMC_DS402_FAULT_BIT 3
 ECMC_DS402_SWITCH_ON_DISABLED_BIT 6
 ECMC_DS402_SWITCH_ON_WARNING_BIT 7
 ECMC_DS402_SWITCH_ON_INT_LIM 11*/
-void ecmcDriveDS402::readEntries() {
-  ecmcDriveBase::readEntries();
+void ecmcDriveDS402::readEntries(bool masterOK) {
+  ecmcDriveBase::readEntries(masterOK);
 
   if (cycleCounter_ > stateMachineTimeoutCycles_) {
     enableStateMachine_ = ECMC_DS402_FAULT_STATE;
@@ -132,6 +133,22 @@ void ecmcDriveDS402::readEntries() {
   localEnabled_ = BIT_CHECK(statusWord_, ECMC_DS402_OPERATION_ENABLED_BIT);
   bool ds402Warning = BIT_CHECK(statusWord_, ECMC_DS402_SWITCH_ON_WARNING_BIT);
 
+  if(!startupFaultCleared_) {
+    if(masterOK) {
+      //if(ds402Fault) {
+        errorReset(); // Reset the DS402 fault at startup
+      //}
+    }
+    if(!ds402Fault && masterOK){
+      LOGERR("%s/%s:%d: DS402 Startup fault cleared.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__);
+        startupFaultCleared_ = 1;
+        enableStateMachine_ = ECMC_DS402_RESET_STATE;
+    }
+  }
+  
   // Printout warning.. Do not stop
   if (ds402Warning && !ds402WarningOld_) {
     LOGERR("%s/%s:%d: DS402 Warning bit high.\n",
@@ -238,6 +255,7 @@ void ecmcDriveDS402::readEntries() {
     }
     break;
   }
+
   localEnableAmpCmdOld_ = enableAmpCmd_;
 }
 
@@ -252,4 +270,10 @@ void ecmcDriveDS402::errorReset() {
 
 bool ecmcDriveDS402::getEnabledLocal() {
   return localEnabled_;
+}
+
+int ecmcDriveDS402::hwReady() {
+  // Consider also checking that CSP encoder is OK..   
+  return !BIT_CHECK(statusWord_, ECMC_DS402_FAULT_BIT) &&
+         masterOK_;
 }

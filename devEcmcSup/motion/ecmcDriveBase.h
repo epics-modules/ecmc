@@ -78,10 +78,11 @@ public:
   virtual ~ecmcDriveBase();
   virtual void initVars();
   virtual int  validate();
-  virtual void readEntries();
+  virtual void readEntries(bool masterOK);
   virtual void writeEntries();
   virtual void errorReset();
   virtual bool getEnabledLocal() = 0;
+  virtual int  hwReady();
   bool         getEnable();
   bool         getEnabled();
   double       getScaleNum(void);
@@ -101,6 +102,7 @@ public:
   int          setBrakeCloseAheadTime(int aheadTime);
   int          setStateMachineTimeout(double seconds);
   int          setVelSetOffsetRaw(double offset);
+  
   // CSP
   int          setCspPosSet(double posEng);
   int          setCspRecalcOffset(double posEng);
@@ -127,6 +129,7 @@ protected:
   uint64_t controlWord_;
   uint64_t statusWord_;
   ecmcAxisData *data_;
+  bool masterOK_;
 
 private:
   bool localEnabledOld_;

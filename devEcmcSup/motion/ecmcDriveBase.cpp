@@ -94,6 +94,7 @@ void ecmcDriveBase::initVars() {
   veloPosOutput_             = 0;
   veloRawOffset_             = 0;
   cspEnc_                    = NULL;
+  masterOK_                  = 0;
 }
 
 ecmcDriveBase::~ecmcDriveBase() {}
@@ -259,7 +260,6 @@ void ecmcDriveBase::writeEntries() {
   }
 
   int errorCode = 0;
-
   // will only write the number of bits configured
   errorCode =
     writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_CONTROL_WORD,
@@ -392,7 +392,8 @@ void ecmcDriveBase::writeEntries() {
   refreshAsyn();
 }
 
-void ecmcDriveBase::readEntries() {
+void ecmcDriveBase::readEntries(bool masterOK) {
+  masterOK_ = masterOK;
   int errorCode = readEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_STATUS_WORD,
                                    &statusWord_);
 
@@ -927,4 +928,8 @@ int ecmcDriveBase::setVelSetOffsetRaw(double offset) {
 
 void ecmcDriveBase::setCspEnc(ecmcEncoder * enc) {
   cspEnc_ = enc;
+}
+
+int ecmcDriveBase::hwReady() {
+  return 1;
 }

@@ -1248,6 +1248,7 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcAtTarget = drvlocal.ecmcAxis->getMon()->getAtTarget();
   drvlocal.ecmcAtTargetMonEnable = drvlocal.ecmcAxis->getMon()->getEnableAtTargetMon();
   drvlocal.axisPrintDbg = drvlocal.ecmcAxis->getPrintDbg();
+  drvlocal.axisInStartup = drvlocal.ecmcAxis->getInStartupPhase();
   
   drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
@@ -1285,7 +1286,11 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 #endif // ifndef motorWaitPollsBeforeReadyString
 
   asynStatus status = readEcmcAxisStatusData();
-  
+
+  if(drvlocal.axisInStartup) {
+    return asynError;  
+  }
+
   if(drvlocal.ecmcSummaryInterlock) {
 
     triggstop_++;

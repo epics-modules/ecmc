@@ -131,6 +131,7 @@ private:
     int  ecmcTrjSrc;
     bool ecmcAtTarget;
     bool ecmcAtTargetMonEnable;
+    bool axisInStartup;
   } drvlocal;
 
   //int       restorePowerOnOffNeeded_;

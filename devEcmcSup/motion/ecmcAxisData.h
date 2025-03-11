@@ -82,6 +82,7 @@ typedef struct {
   bool    homeSwitch;
   bool    homeSwitchFiltered;
   bool    inStartupPhase;
+  bool    inStartupPhaseOld;
   bool    startupFinsished;
   bool    inRealtime;
   double  distToStop;

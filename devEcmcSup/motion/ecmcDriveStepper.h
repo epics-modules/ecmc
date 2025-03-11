@@ -31,7 +31,7 @@ public:
   ~ecmcDriveStepper();
   int  validate();
   void writeEntries();
-  void readEntries();
+  void readEntries(bool masterOK);
   bool getEnabledLocal();
 
 private:

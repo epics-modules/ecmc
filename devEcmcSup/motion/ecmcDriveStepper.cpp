@@ -65,8 +65,8 @@ void ecmcDriveStepper::writeEntries() {
   ecmcDriveBase::writeEntries();
 }
 
-void ecmcDriveStepper::readEntries() {
-  ecmcDriveBase::readEntries();
+void ecmcDriveStepper::readEntries(bool masterOK) {
+  ecmcDriveBase::readEntries(masterOK);
   localEnabled_ = statusWord_ > 0;
 }
 

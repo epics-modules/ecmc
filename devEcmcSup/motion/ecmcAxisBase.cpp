@@ -443,7 +443,8 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   data_.status_.currentPositionSetpointOld =
     data_.status_.currentPositionSetpoint;
   data_.status_.cntrlOutputOld = data_.status_.cntrlOutput;
-
+  data_.status_.inStartupPhaseOld = data_.status_.inStartupPhase;
+  
   cycleCounter_++;
   refreshDebugInfoStruct();
 
@@ -557,8 +558,11 @@ void ecmcAxisBase::setInStartupPhase(bool startup) {
   if (!data_.status_.inStartupPhase && startup) {
     data_.command_.cfgEncIndex = data_.command_.primaryEncIndex;
   }
-
   data_.status_.inStartupPhase = startup;
+}
+
+bool ecmcAxisBase::getInStartupPhase() {
+  return data_.status_.inStartupPhase || data_.status_.inStartupPhaseOld;
 }
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
@@ -2965,11 +2969,15 @@ int ecmcAxisBase::getPrimaryEncoderIndex() {
 
 bool ecmcAxisBase::getHwReady() {
 
-  // TODO Check drives TODO
-
   /* Only check prim encoder (allow encoders to be in error state 
   if they are not used) */
-  return getPrimEnc()->hwReady();
+  bool ready = getPrimEnc()->hwReady();
+
+  // Check drive if REAL axis
+  if(getDrv()) {
+    ready = ready && getDrv()->hwReady();
+  }
+  return ready;
 }
 
 void ecmcAxisBase::initEncoders() {

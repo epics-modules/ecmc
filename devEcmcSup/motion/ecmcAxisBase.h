@@ -228,6 +228,7 @@ public:
   int                        setAllowCmdFromPLC(bool enable);
   bool                       getAllowCmdFromPLC();
   void                       setInStartupPhase(bool startup);
+  bool                       getInStartupPhase();
   int                        setTrajDataSourceType(dataSource refSource);
   int                        setTrajDataSourceTypeInternal(
     dataSource refSource,
