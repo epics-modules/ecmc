@@ -94,7 +94,7 @@ void ecmcPVTController::execute() {
     break;
 
     case ECMC_PVT_TRIGG_MOVE_AXES_TO_START:
-      
+      initPVT();  // prepare pvt objects
       error = triggMoveAxesToStart();
       if(error) {
         setErrorID(error);
@@ -117,7 +117,7 @@ void ecmcPVTController::execute() {
         // Set time to 0 in all PVT objects
         for(uint i = 0; i < axes_.size(); i++ ) {      
           axes_[i]->getPVTObject()->setNextTime(0);
-          axes_[i]->getPVTObject()->setCurrTime(0);          
+          axes_[i]->getPVTObject()->setCurrTime(0);
         }    
         // get end time from first axis
         endTime_ = axes_[0]->getPVTObject()->endTime();
@@ -135,11 +135,14 @@ void ecmcPVTController::execute() {
         printf("ecmcPVTController: Error: Triggering of PVT objects failed\n");
       }
       printf("ecmcPVTController: Executing PVT sequence\n");
-      state_ = ECMC_PVT_EXECUTE_PVT;
+      state_ = ECMC_PVT_EXECUTE_PVT;      
       break;
 
     case ECMC_PVT_EXECUTE_PVT:
 
+      if(anyAxisInterlocked()) {
+        abortPVT();
+      }
       // Increase time
       nextTime_ = nextTime_ + sampleTime_;
   
@@ -252,6 +255,16 @@ int ecmcPVTController::validate() {
   return 0; 
 }
 
+int ecmcPVTController::anyAxisInterlocked() {
+  
+  for(uint i = 0; i < axes_.size(); i++ ) {    
+    if(axes_[i]->getSumInterlock()) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 int ecmcPVTController::abortPVT() {
   state_ = ECMC_PVT_ABORT;
   for(uint i = 0; i < axes_.size(); i++ ) {    
@@ -269,4 +282,10 @@ int ecmcPVTController::axisFree() {
   }
   // All axes in correct position to start
   return axesFree;
+}
+
+void ecmcPVTController::initPVT() {
+  for(uint i = 0; i < axes_.size(); i++ ) {    
+    axes_[i]->getPVTObject()->setExecute(0);
+  }
 }

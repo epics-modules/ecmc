@@ -50,6 +50,8 @@ class ecmcPVTController: public ecmcEcEntryLink {
     int triggPVT();
     int axisFree();
     int validate();
+    int anyAxisInterlocked();
+    void initPVT();
     double sampleTime_;
     double nextTime_, accTime_, endTime_;
     void checkIfTimeToTrigger();

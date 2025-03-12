@@ -592,7 +592,9 @@ void ecmcMotorRecordController::profilePoll() {
     }
     // get pvt busy from first axis with valid number in use (only check busy for first axis..)
     if(pvtBusy < 0) {
-      pvtBusy = pAxis->getProfileBusy();
+      if(pvtController_) {
+        pvtBusy = pvtController_->getBusy();
+      }
     }
   }
   // Segment index should also reflect point..

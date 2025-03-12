@@ -343,7 +343,7 @@ int ecmcAxisPVTSequence::setExecute(bool execute) {
 
   if(!execute) {
     busy_ = false;
-    //initSeq();
+    initSeq();
   }
 
   executeOld_ = execute_;
