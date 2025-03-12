@@ -1873,50 +1873,56 @@ int ecmcAxisBase::movePVTAbs() {
 
 }
 
-int ecmcAxisBase::movePVTRel() {
-  if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Move PVT failed since traj source is set to PLC (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_,
-      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+//int ecmcAxisBase::movePVTRel() {
+//  if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+//    LOGERR(
+//      "%s/%s:%d: ERROR (axis %d): Move PVT failed since traj source is set to PLC (0x%x).\n",
+//      __FILE__,
+//      __FUNCTION__,
+//      __LINE__,
+//      data_.axisId_,
+//      ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
+//
+//    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
+//  }
+//
+//  if(getBusy()) {
+//    return ERROR_AXIS_BUSY;
+//  }
+//
+//  int errorCode = getErrorID();
+//
+//  if (errorCode) {
+//    return errorCode;
+//  }
+//
+//  errorCode = setExecute(0);
+//
+//  if (errorCode) {
+//    return errorCode;
+//  }
+//
+//  errorCode = setCommand(ECMC_CMD_MOVEPVTREL);
+//
+//  if (errorCode) {
+//    return errorCode;
+//  }
+//
+//  errorCode = setCmdData(0);
+//
+//  if (errorCode) {
+//    return errorCode;
+//  }
+//
+//  errorCode = setExecute(1);
+//  return 0;
+//
+//}
 
-    return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
-  }
-
-  if(getBusy()) {
-    return ERROR_AXIS_BUSY;
-  }
-
-  int errorCode = getErrorID();
-
-  if (errorCode) {
-    return errorCode;
-  }
-
-  errorCode = setExecute(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-
-  errorCode = setCommand(ECMC_CMD_MOVEPVTREL);
-
-  if (errorCode) {
-    return errorCode;
-  }
-
-  errorCode = setCmdData(0);
-
-  if (errorCode) {
-    return errorCode;
-  }
-
-  errorCode = setExecute(1);
-  return 0;
-
+// just a wrapper to the below
+int ecmcAxisBase::moveAbsolutePosition(double positionSet) {
+  printf("moveAbsolutePosition(%lf,%lf,%lf)\n",positionSet,data_.command_.velocityTarget,acceleration_,deceleration_);
+  return  moveAbsolutePosition(positionSet,data_.command_.velocityTarget,acceleration_,deceleration_);
 }
 
 int ecmcAxisBase::moveAbsolutePosition(
@@ -3110,4 +3116,12 @@ int ecmcAxisBase::getSumInterlock() {
 
 int ecmcAxisBase::getPrintDbg() {
   return controlWord_.enableDbgPrintout;
+}
+
+ecmcAxisPVTSequence* ecmcAxisBase::getPVTObject() {
+  return seq_.getPVTObject();
+}
+
+double ecmcAxisBase::getCurrentPositionSetpoint() {
+  return data_.status_.currentPositionSetpoint;
 }

@@ -728,6 +728,12 @@ asynStatus ecmcMotorRecordController::abortProfile()
     if (!pAxis) continue;
     pAxis->abortProfile();
   }
+
+  if(pvtController_) {
+    pvtController_->abortPVT();
+    pvtController_->clearPVTAxes();
+  }
+
   setIntegerParam(profileExecuteState_, PROFILE_STATUS_UNDEFINED);
   setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_UNDEFINED);
   setIntegerParam(profileCurrentPoint_, 0);
@@ -752,7 +758,7 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   sprintf(profileMessage_, "Build in progress.\n");
   setStringParam(profileBuildMessage_, profileMessage_);
   callParamCallbacks();
-  
+  pvtController_->clearPVTAxes();
   asynStatus status = asynSuccess;
 
   int stat = 0;
@@ -810,7 +816,7 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
   // Assign PVT object.. (Not so nice to set this through global variable...
   pvtCtrl_ = pvtCtrl;  // global copy for ecmc RT
   pvtController_ = pvtCtrl_; // Access for every one else
-  //pvtController_->clearPVTAxes();
+  pvtController_->clearPVTAxes();
   int axis;
   ecmcMotorRecordAxis *pAxis;
   profileInitialized_ = 0;
@@ -881,6 +887,7 @@ asynStatus ecmcMotorRecordController::executeProfile() {
   ecmcMotorRecordAxis *pAxis;
   setIntegerParam(profileReadbackStatus_, PROFILE_STATUS_UNDEFINED);
 
+
   if(!pvtController_) { 
     printf("ecmcMotorRecordController::executeProfile(): Error: PVT controller NULL.\n");
     return asynError;
@@ -891,10 +898,12 @@ asynStatus ecmcMotorRecordController::executeProfile() {
   }
 
   // Clean pvt object
-  pvtController_->clearPVTAxes();
+  //pvtController_->clearPVTAxes();
+
   for (axis=0; axis<numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
+
     if((status = pAxis->executeProfile()) != asynSuccess) {
       // Something went wrong. Stop all axes..      
       sprintf(profileMessage_, "Axis [%d] reports error during profile execute, aborting profile move....\n",pAxis->drvlocal.axisId);
@@ -906,7 +915,6 @@ asynStatus ecmcMotorRecordController::executeProfile() {
 
   // Trigg new sequence all axes (ensure in same scan)
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-
   pvtController_->setExecute(0);
   pvtController_->setExecute(1);
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);

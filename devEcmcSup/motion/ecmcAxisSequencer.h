@@ -99,6 +99,7 @@ public:
   void                 setAcc(double acc);
   void                 setDec(double dec);
   int                  setPVTObject(ecmcAxisPVTSequence* pvt);
+  ecmcAxisPVTSequence* getPVTObject();
   int                  validatePVT();
 
   // Home on hardware latch (index or external)
@@ -162,7 +163,7 @@ private:
   int          seqHoming21(); // nCmdData==21
   int          seqHoming22(); // nCmdData==22
   int          seqHoming26(); // nCmdData==26
-  int          seqMovePVT();  // Move to PVT start and then trigg PVT sequence
+  //int          seqMovePVT();  // Move to PVT start and then trigg PVT sequence
   int          checkHWLimitsAndStop(bool checkBWD,
                                     bool checkFWD);
   int          stopSeq();
@@ -208,7 +209,7 @@ private:
   ecmcPIDController *cntrl_;
   ecmcDriveBase *drv_;
   ecmcAxisData *data_;
-  ecmcAxisPVTSequence * pvt_;
+  ecmcAxisPVTSequence *pvt_;
   uint64_t oldencRawAbsPosReg_;
   uint64_t encRawAbsPosReg_;
   ecmcOverUnderFlowType overUnderFlowLatch_;

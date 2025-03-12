@@ -2809,6 +2809,12 @@ case 0x16001:
 
     break;
 
+  // PVT controller
+  case 0x242000:
+    return "ERROR_PVT_CTRL_AXIS_COUNT_ZERO";
+
+    break;
+
   }
 
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";

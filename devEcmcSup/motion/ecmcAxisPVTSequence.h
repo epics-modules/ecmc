@@ -138,6 +138,7 @@ class ecmcAxisPVTSequence {
     bool   isLastSample(double time);
     bool   isTimeValid(double time);
     void   setNextTime(double time);
+    void   setCurrTime(double time);
     bool   nextSampleStep();             // Go to next sample in time, return true as long ndouble time,
     double getCurrPosition();            // For RT sequential access
     double getCurrVelocity();            // For RT sequential access
@@ -160,6 +161,8 @@ class ecmcAxisPVTSequence {
     double *getResultPosActDataPrt();
     double *getResultPosErrDataPrt();
     size_t getResultBufferSize();
+    bool   getRelMode();
+    void   setRelMode(bool relative);
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -175,5 +178,6 @@ class ecmcAxisPVTSequence {
     std::vector<double> resultPosActArray_;
     std::vector<double> resultPosErrArray_;
     ecmcAxisData *data_;
+    bool relativeMode_;
 };
 #endif  /* ECMCAXISPVT_H_ */

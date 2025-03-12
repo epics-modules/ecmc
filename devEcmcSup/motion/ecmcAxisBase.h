@@ -278,6 +278,7 @@ public:
                                                   double velocitySet,
                                                   double accelerationSet,
                                                   double decelerationSet);
+  int                        moveAbsolutePosition(double positionSet);
   int moveRelativePosition(double positionSet,
                            double velocitySet,
                            double accelerationSet,
@@ -291,8 +292,8 @@ public:
                double velocityOffCamSet,
                double accelerationSet,
                double decelerationSet);
-  int movePVTRel();
-  int movePVTAbs();
+  //int movePVTRel();
+  int        movePVTAbs();
   int        moveHome(); // Use configs from encoder object
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);
@@ -352,6 +353,8 @@ public:
   void       setMRCnen(bool cnen);    // CNEN motor record
   int        getSumInterlock();
   int        getPrintDbg();
+  ecmcAxisPVTSequence* getPVTObject();
+  double     getCurrentPositionSetpoint();
 
 protected:
   void       initVars();

@@ -30,6 +30,7 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
   points_.reserve(maxPoints + 3);
   resultPosActArray_.reserve(maxPoints);  
   resultPosErrArray_.reserve(maxPoints);
+  relativeMode_    = 0;
 }
 
 void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
@@ -376,4 +377,16 @@ size_t ecmcAxisPVTSequence::getResultBufferSize() {
 
 void ecmcAxisPVTSequence::setNextTime(double time) {
   nextTime_ = time;
+}
+
+void ecmcAxisPVTSequence::setCurrTime(double time) {
+  currTime_ = time;
+}
+
+bool ecmcAxisPVTSequence::getRelMode() {
+  return relativeMode_;
+}
+
+void ecmcAxisPVTSequence::setRelMode(bool relative) {
+  relativeMode_ = relative;
 }

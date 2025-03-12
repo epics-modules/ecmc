@@ -2138,11 +2138,6 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
   
-  //Add pvt axis to pvt controller
-  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-  pC_->getPVTController()->addPVTAxis(pvtPrepare_);
-  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-
   profileLastBuildOk_ = true;
   profileSwitchPVTObject_ = true;
 
@@ -2179,6 +2174,11 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
       return asynError;
     }
   }
+
+  //Add axis to pvt controller
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  pC_->getPVTController()->addAxis(drvlocal.ecmcAxis);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   
   if(profileSwitchPVTObject_) {
     // switch pvt objects
@@ -2193,14 +2193,13 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   }
   
   // Add pvt object to controller
-  pC_->getPVTController()->addPVTAxis(pvtRunning_);
+  //pC_->getPVTController()->addAxis(pvtRunning_);
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if(drvlocal.axisPrintDbg) {
     printf("ecmcMotorRecordAxis::executeProfile()\n");
   }
-
   status = asynMotorAxis::executeProfile();
   if(status != asynSuccess) {
     return status;
@@ -2224,30 +2223,33 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     abortProfile();
     return asynError;
   }
-  
-  int errorCode = 0;
+
+  // The actual execute is handled from ecmcPVTController in ecmcMotorRecordController::executeProfile
+  //int errorCode = 0;
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
-  // HERE init time of pvtCtrl_
-
-  if(mode == PROFILE_MOVE_MODE_ABSOLUTE){
-    if(drvlocal.axisPrintDbg) {
-      printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
-    }
-    errorCode = drvlocal.ecmcAxis->movePVTAbs();
-  } else {  // PROFILE_MOVE_MODE_RELATIVE
-    if(drvlocal.axisPrintDbg) {
-      printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
-    }
-    errorCode = drvlocal.ecmcAxis->movePVTRel();
-  }
+  pvtRunning_->setRelMode(mode==PROFILE_MOVE_MODE_RELATIVE) ;
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-  if(errorCode) {
-    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: ecmc error (0x%x)\n",axisNo_,errorCode);
-    return asynError;
-  }
+  //if(mode == PROFILE_MOVE_MODE_ABSOLUTE){
+  //  if(drvlocal.axisPrintDbg) {
+  //    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
+  //  }
+  //  errorCode = drvlocal.ecmcAxis->movePVTAbs();
+  //} else {  // PROFILE_MOVE_MODE_RELATIVE
+  //  if(drvlocal.axisPrintDbg) {
+  //    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
+  //  }
+  //  errorCode = drvlocal.ecmcAxis->movePVTRel();
+  //}
+
+  //if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  //if(errorCode) {
+  //  printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: ecmc error (0x%x)\n",axisNo_,errorCode);
+  //  return asynError;
+  //}
   
   profileInProgress_ = true;
   return asynSuccess;
