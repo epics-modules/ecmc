@@ -3635,12 +3635,23 @@ int linkEcEntryToAxisSeqAutoModeSet(int   slaveIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  */
-
 int linkEcEntryToPVTController(int   slaveIndex,
                                char *entryIDString,
                                int   entryIndex,
                                int   bitIndex);
-       
+
+/** \brief Set duration of PVT (profile move) trigger output \n
+ *
+ *  \param[in] duration Duration [ms]
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set duration of trigger pulses to 10ms
+ * "Cfg.SetPVTControllerTrgDurMs(10)" //Command string to ecmcCmdParser.c.\n
+ */
+int setPVTControllerTrgDurMs(double durationMs);
+
+   
 /** \brief Links an EtherCAT entry to the an axis object for \n
  *   reading actual drive mode\n
  *
@@ -3672,7 +3683,7 @@ int linkEcEntryToAxisSeqAutoModeAct(int   slaveIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set drive mode to 8 for when homing.
- * "Cfg.setAxisAutoModeCmdHoming(3,8)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisAutoModeCmdHoming(3,8)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisAutoModeCmdHoming(int axisIndex,
                              int cmd);

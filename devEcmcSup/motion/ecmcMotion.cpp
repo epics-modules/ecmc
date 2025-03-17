@@ -212,6 +212,19 @@ int getAxisCycleCounter(int axisIndex, int *counter) {
   return 0;
 }
 
+int setPVTControllerTrgDurMs(double durationMs) {
+
+  LOGINFO4("%s/%s:%d duration=%lf\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    durationMs);
+
+    if(!pvtCtrl_) return ERROR_PVT_CTRL_NULL;
+
+  return pvtCtrl_->setTriggerDuration(durationMs/1000);
+}
+
 int setAxisExecute(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,

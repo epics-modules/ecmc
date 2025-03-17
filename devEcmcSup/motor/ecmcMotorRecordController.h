@@ -142,6 +142,7 @@ protected:
     double       idlePollPeriod;
     int          errorId;
     int          pvtErrorId;
+    int          pvtCurrentTriggerId;
   } ctrlLocal;
 
   /* First parameter */

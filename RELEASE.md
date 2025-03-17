@@ -2,6 +2,22 @@ Release Notes
 ===
 # ECMC 10.1.0_RC1
 
+## PVT
+A few bugfixes for PVT mode. Now the first and last points (for acc and dec)
+are calculated based on the direction of motion for the nearby point.
+
+### Triggering
+Added support for profile move triggers as "defined" in the profileMove extension to motor record.
+Two new commands added:
+```
+ecmcConfigOrDie "Cfg.LinkEcEntryToObject(<ethercat entry>,pvtctrl.trigger.output)"
+ecmcConfigOrDie "Cfg.SetPVTControllerTrgDurMs(<trigger_duration_ms>)"
+```
+The commands are wrapped in the ecmccfg command pvtControllerConfig.cmd;
+```
+${SCRIPTEXEC} ${ecmccfg_DIR}pvtControllerConfig.cmd  "TRG_EC_ENTRY=ec0.s$(ECMC_EC_SLAVE_NUM).ONE.31, TRG_DUR_S=0.15"
+```
+
 ## Add support for dual position control loop in CSP mode (in ecmc called CSP_PC)
 
 ### Description of use-case:

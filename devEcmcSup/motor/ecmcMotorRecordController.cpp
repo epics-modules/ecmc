@@ -571,6 +571,7 @@ void ecmcMotorRecordController::readEcmcControllerStatus(){
   
   if(pvtController_) {
     ctrlLocal.pvtErrorId = pvtController_->getErrorID();
+    ctrlLocal.pvtCurrentTriggerId = pvtController_->getCurrentTriggerId();
   }
   ctrlLocal.errorId = controllerError;  // global variable
 
@@ -624,6 +625,9 @@ void ecmcMotorRecordController::profilePoll() {
   // Segment index should also reflect point..
   setIntegerParam(profileCurrentPoint_, segmentIndex);
   
+  // Set current trigger
+  setIntegerParam(profileActualPulses_, ctrlLocal.pvtCurrentTriggerId + 1);
+
   // Other status..
   if(segmentIndex == 0) {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
@@ -938,6 +942,45 @@ asynStatus ecmcMotorRecordController::executeProfile() {
     return asynError;
   }
 
+  /* 
+    Collect trigger info (and write to pvtController after ecmcMotorRecord->executeProfile, below)
+    profileStartPulses_
+    profileEndPulses_
+    profileNumPulses_
+    profileActualPulses_
+  */
+
+  int startPulse, endPulse, numPulses;
+  status = getIntegerParam(profileStartPulses_, &startPulse);
+  if(status != asynSuccess) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Failed read profileStartPulses_.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+
+  status = getIntegerParam(profileEndPulses_, &endPulse);
+  if(status != asynSuccess) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Failed read profileEndPulses_.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+
+  status = getIntegerParam(profileNumPulses_, &numPulses);
+  if(status != asynSuccess) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Failed read profileNumPulses_.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+
   // Clean pvt object
   //pvtController_->clearPVTAxes();
 
@@ -954,6 +997,8 @@ asynStatus ecmcMotorRecordController::executeProfile() {
     }
   }
 
+  // Recalc triggers
+  pvtController_->setTriggerInfo(startPulse, endPulse, numPulses);
   // Trigg new sequence all axes (ensure in same scan)
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   pvtController_->setExecute(0);

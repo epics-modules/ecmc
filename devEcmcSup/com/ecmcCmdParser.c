@@ -693,6 +693,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setSamplePeriodMs(dValue);
   }
 
+  /// "Cfg.SetPVTControllerTrgDurMs(double durationMs)"
+  nvals = sscanf(myarg_1, "SetPVTControllerTrgDurMs(%lf)", &dValue);
+
+  if (nvals == 1) {
+    return setPVTControllerTrgDurMs(dValue);
+  }
+
   /// "Cfg.CreateAxis(axisIndex, axisType, drvType,trajType)"
   nvals = sscanf(myarg_1,
                  "CreateAxis(%d,%d,%d,%d)",

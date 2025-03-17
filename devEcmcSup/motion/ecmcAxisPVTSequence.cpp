@@ -28,7 +28,7 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
   nextTime_        = 0;
   segments_.reserve(maxPoints + 3);
   points_.reserve(maxPoints + 3);
-  resultPosActArray_.reserve(maxPoints);  
+  resultPosActArray_.reserve(maxPoints);
   resultPosErrArray_.reserve(maxPoints);
   relativeMode_    = 0;
 }
@@ -63,6 +63,10 @@ double ecmcAxisPVTSequence::getSegDuration(size_t segIndex){
   
   return segments_[segIndex]->getEndPoint()->time_ - 
          segments_[segIndex]->getStartPoint()->time_;
+}
+
+size_t ecmcAxisPVTSequence::getSegCount() {
+  return segmentCount_;
 }
 
 double ecmcAxisPVTSequence::startTime(){

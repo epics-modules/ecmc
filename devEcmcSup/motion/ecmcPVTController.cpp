@@ -21,7 +21,19 @@ ecmcPVTController::ecmcPVTController(double sampleTime) {
   execute_        = 0;
   state_          = ECMC_PVT_IDLE;
   busy_           = 0;
+  startPositions_.reserve(ECMC_MAX_AXES);
+  axes_.reserve(ECMC_MAX_AXES);
   triggerDefined_ = 0;
+  triggerEcEntryIndex_ = 0;
+  triggerStartPoint_   = 0;
+  triggerEndPoint_     = 0;
+  triggerCount_        = 0;
+  triggerStartTime_    = 0;
+  triggerEndTime_      = 0;
+  triggerTimeBetween_  = 0;
+  triggerValidatedOK_  = false;
+  triggerCurrentId_    = 0;
+  setTriggerDuration(0.1);
   clearPVTAxes();
 }
 
@@ -40,7 +52,6 @@ void ecmcPVTController::addAxis(ecmcAxisBase* axis) {
 void ecmcPVTController::clearPVTAxes() {  
   axes_.clear();
   startPositions_.clear();
-  //printf("ecmcPVTController::clearPVTAxes()\n");
 }
 
 size_t ecmcPVTController::getCurrentPointId() {
@@ -48,7 +59,7 @@ size_t ecmcPVTController::getCurrentPointId() {
 }
 
 size_t ecmcPVTController::getCurrentTriggerId() {
-  return 0;
+  return triggerCurrentId_;
 }
 
 double ecmcPVTController::getCurrentTime() {
@@ -88,9 +99,8 @@ void ecmcPVTController::execute() {
   bool seqDone = 0;
   switch(state_) {
     case  ECMC_PVT_IDLE:
-      busy_ = 0;
-      return;
-    break;
+      busy_ = 0;     
+      break;
 
     case ECMC_PVT_TRIGG_MOVE_AXES_TO_START:
       initPVT();  // prepare pvt objects
@@ -98,8 +108,8 @@ void ecmcPVTController::execute() {
       if(error) {
         setErrorID(error);
         state_ = ECMC_PVT_ERROR;
-        printf("ecmcPVTController: Error: Axis in error state when trigger move to start position\n");
-      }      
+        printf("ecmcPVTController::execute(): Error: Axis in error state when trigger move to start position\n");
+      }
       state_ = ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START;
       break;
 
@@ -108,7 +118,7 @@ void ecmcPVTController::execute() {
       if(axesAtStartPosition < 0) {
         setErrorID(-axesAtStartPosition);
         state_ = ECMC_PVT_ERROR;
-        printf("ecmcPVTController: Error: Axis in error state when moving to start position\n");
+        printf("ecmcPVTController::execute(): Error: Axis in error state when moving to start position\n");
       }
       if(axesAtStartPosition > 0 ) {
         state_ = ECMC_PVT_TRIGG_PVT;
@@ -131,7 +141,7 @@ void ecmcPVTController::execute() {
       if(error){
         setErrorID(error);
         state_ = ECMC_PVT_ERROR;
-        printf("ecmcPVTController: Error: Triggering of PVT objects failed\n");
+        printf("ecmcPVTController::execute(): Error: Triggering of PVT objects failed\n");
       }
       //printf("ecmcPVTController: Executing PVT sequence\n");
       state_ = ECMC_PVT_EXECUTE_PVT;      
@@ -171,7 +181,31 @@ void ecmcPVTController::execute() {
     case ECMC_PVT_ERROR:
       busy_ = 0;
       break;
-  }     
+  }
+  
+  // Trigger Control
+  if(!triggerValidatedOK_) {  // Triggers not in use    
+    return;
+  }
+
+  if(nextTime_ > triggerEndTime_+ triggerDuration_) {
+    writeEcEntryValue(triggerEcEntryIndex_,0);
+    return; // Done
+  }
+
+  double nextTriggerTime = triggerStartTime_+ triggerCurrentId_ * triggerTimeBetween_;
+
+  if(triggerCurrentId_ < triggerCount_) {
+    if(nextTime_ > (nextTriggerTime + triggerTimeBetween_)) {
+      triggerCurrentId_ = triggerCurrentId_ + 1;
+    }
+  }
+
+  if( nextTime_ >= nextTriggerTime && nextTime_ <= (nextTriggerTime + triggerDuration_)) {
+    writeEcEntryValue(triggerEcEntryIndex_,1);
+  } else {
+    writeEcEntryValue(triggerEcEntryIndex_,0);
+  }
 }
 
 bool  ecmcPVTController::getBusy() {
@@ -182,6 +216,7 @@ int ecmcPVTController::triggMoveAxesToStart() {
   startPositions_.clear();
   double startPosition = 0;
   int error = 0;
+  startPositions_.clear();
   for(uint i = 0; i < axes_.size(); i++ ) {
     axes_[i]->getPVTObject()->startPosition(&startPosition);        
     if(axes_[i]->getPVTObject()->getRelMode()) {      
@@ -249,10 +284,17 @@ void ecmcPVTController::errorReset() {
 
 int ecmcPVTController::validate() {
   if(axes_.size()== 0) {
-    printf("ecmcPVTController::validate(): Error no axis linked\n");
-    return 12;
-
+    printf("ecmcPVTController::validate(): Error axis count zero\n");
+    return setErrorID(ERROR_PVT_CTRL_AXIS_COUNT_ZERO);
   }
+
+  // trigger
+  triggerValidatedOK_ = false;
+  if(!triggerDefined_ || triggerCount_ <= 0 ) {
+    return 0;   
+  }
+
+  triggerValidatedOK_ = true;
   return 0; 
 }
 
@@ -289,6 +331,7 @@ void ecmcPVTController::initPVT() {
   for(uint i = 0; i < axes_.size(); i++ ) {    
     axes_[i]->getPVTObject()->setExecute(0);
   }
+  triggerCurrentId_ = 0;
 }
 
 int ecmcPVTController::setEcEntry(ecmcEcEntry *entry,int entryIndex, int bitIndex) {
@@ -300,7 +343,71 @@ int ecmcPVTController::setEcEntry(ecmcEcEntry *entry,int entryIndex, int bitInde
     triggerDefined_ = 0;
     return error;
   }
+  
+  error = validateEntryBit(triggerEcEntryIndex_);
+  if(error) {
+    return setErrorID(error);
+  }
+  triggerEcEntryIndex_ = entryIndex;
   triggerDefined_ = 1;
-  printf("PVT controller trigger defined...\n");
+  printf("ecmcPVTController::setEcEntry(): Trigger defined.\n");
+  return 0;
+}
+
+int ecmcPVTController::checkTriggerTiming() {
+  if(axes_.size() <= 0) {
+    return setErrorID(ERROR_PVT_CTRL_AXIS_COUNT_ZERO);
+  }
+
+  // use timing of first PVT object to calcu trigger info
+  ecmcAxisPVTSequence *pvt = axes_[0]->getPVTObject();
+  
+  if(pvt == NULL) {
+    printf("ecmcPVTController::checkTriggerTiming(): PVT obj NULL\n");
+    return setErrorID(ERROR_PVT_CTRL_TRIGG_CFG_INVALID);
+  }
+  
+  size_t segCount = pvt->getSegCount();
+  // Note first segment is acc and last dec (must be 3 segments)
+  if(triggerEndPoint_> (segCount - 1)) {
+    triggerEndPoint_ = segCount - 1;
+  }
+  if((segCount < 3) || (triggerEndPoint_ > (segCount - 1)) || ((triggerStartPoint_ >= triggerEndPoint_) && (triggerCount_ > 1))) {
+    printf("ecmcPVTController::checkTriggerTiming(): Invalid trigger params\n");
+    return setErrorID(ERROR_PVT_CTRL_TRIGG_CFG_INVALID);
+  }
+
+  // find first trigger times
+  double timeSum = 0;
+  for(size_t i = 0; i <= triggerEndPoint_; i++) {
+    timeSum +=pvt->getSegDuration(i);
+    if(i == (triggerStartPoint_-1)) {
+      triggerStartTime_ = timeSum;
+    }
+    if(i == (triggerEndPoint_-1)) {
+      triggerEndTime_ = timeSum;
+    }
+  }
+
+  if(triggerCount_<=1) {
+    triggerTimeBetween_ = 0;  // Only one trigger
+    triggerEndTime_ = triggerStartTime_;
+  } else {
+    triggerTimeBetween_ = (triggerEndTime_-triggerStartTime_) / (triggerCount_-1);
+  }
+  printf("ecmcPVTController::checkTriggerTiming(): Triggers %lf:%lf:%lf (with duration %lf)\n",
+          triggerStartTime_,triggerTimeBetween_,triggerEndTime_,triggerDuration_);
+  return 0;
+}
+
+int ecmcPVTController::setTriggerInfo(size_t startPointId, size_t endPointId, size_t count) { 
+  triggerStartPoint_ = startPointId;  // start from 1 (1==first point, however first point is acceleration so compensate fro that)
+  triggerEndPoint_   = endPointId;    // start from 1
+  triggerCount_      = count;
+  return checkTriggerTiming();
+}
+
+int ecmcPVTController::setTriggerDuration(double durationS) {
+  triggerDuration_ = durationS + sampleTime_;
   return 0;
 }

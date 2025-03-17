@@ -15,6 +15,7 @@
 
 #define ERROR_PVT_CTRL_AXIS_COUNT_ZERO 0x242000
 #define ERROR_PVT_CTRL_EC_LINK_FUNCTION_UNKNOWN 0x242001
+#define ERROR_PVT_CTRL_TRIGG_CFG_INVALID 0x242002
 
 enum ecmcPVTSMType {
   ECMC_PVT_IDLE                         = 0,
@@ -51,6 +52,9 @@ class ecmcPVTController: public ecmcEcEntryLink {
     void   errorReset();
     int    abortPVT();
     int    setEcEntry(ecmcEcEntry *entry, int entryIndex, int bitIndex);
+    int    setTriggerInfo(size_t startPointId, size_t endPointId, size_t count);
+    int    setTriggerDuration(double durationS);
+    int    checkTriggerTiming();
 
   private:
     int    triggMoveAxesToStart();
@@ -69,5 +73,15 @@ class ecmcPVTController: public ecmcEcEntryLink {
     ecmcPVTSMType state_;
     bool busy_;
     bool triggerDefined_;
+    bool triggerValidatedOK_;
+    size_t triggerEcEntryIndex_;
+    size_t triggerStartPoint_;
+    size_t triggerEndPoint_;
+    size_t triggerCount_;
+    double triggerStartTime_;
+    double triggerEndTime_;
+    double triggerTimeBetween_;
+    double triggerDuration_;
+    size_t triggerCurrentId_;
 };
 #endif  /* ECMCPVTCONTROLLER_H_ */

@@ -146,6 +146,7 @@ class ecmcAxisPVTSequence {
     double getCurrTime();
     int    getCurrentSegementId();
     double getSegDuration(size_t segIndex);
+    size_t getSegCount();
     double position(double time, int *valid);     // For non RT access
     double velocity(double time, int *valid);     // For non RT access
     double acceleration(double time, int *valid); // For non RT access

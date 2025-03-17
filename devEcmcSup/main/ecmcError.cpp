@@ -2820,11 +2820,10 @@ case 0x16001:
 
     break;
 
-    case 0x242001:
-    return "ERROR_PVT_CTRL_EC_LINK_FUNCTION_UNKNOWN";
+    case 0x242002:
+    return "ERROR_PVT_CTRL_TRIGG_CFG_INVALID";
 
     break;
-
   }
 
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";
