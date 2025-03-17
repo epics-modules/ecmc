@@ -13,14 +13,15 @@
 #include "ecmcPVTController.h"
 
 ecmcPVTController::ecmcPVTController(double sampleTime) {
-  sampleTime_ = sampleTime;
-  nextTime_   = 0;
-  accTime_    = 0;
-  endTime_    = 0;
-  executeOld_ = 0;
-  execute_    = 0;
-  state_      = ECMC_PVT_IDLE;
-  busy_       = 0;
+  sampleTime_     = sampleTime;
+  nextTime_       = 0;
+  accTime_        = 0;
+  endTime_        = 0;
+  executeOld_     = 0;
+  execute_        = 0;
+  state_          = ECMC_PVT_IDLE;
+  busy_           = 0;
+  triggerDefined_ = 0;
   clearPVTAxes();
 }
 
@@ -39,8 +40,7 @@ void ecmcPVTController::addAxis(ecmcAxisBase* axis) {
 void ecmcPVTController::clearPVTAxes() {  
   axes_.clear();
   startPositions_.clear();
-  printf("ecmcPVTController::clearPVTAxes()\n");
-
+  //printf("ecmcPVTController::clearPVTAxes()\n");
 }
 
 size_t ecmcPVTController::getCurrentPointId() {
@@ -73,7 +73,6 @@ void ecmcPVTController::setExecute(bool execute) {
     }
     state_ = ECMC_PVT_TRIGG_MOVE_AXES_TO_START;
     busy_ = 1;
-    printf("ecmcPVTController::setExecute(%d): Start PVT seq.. Move axis to startpositions\n",execute);
   }
   if(!execute) {
     if(busy_) {
@@ -123,7 +122,7 @@ void ecmcPVTController::execute() {
         endTime_ = axes_[0]->getPVTObject()->endTime();
         // get acc time from first axis
         accTime_ = axes_[0]->getPVTObject()->getSegDuration(0);
-        printf("ecmcPVTController: All axes in position, trigger PVT sequence\n");
+        //printf("ecmcPVTController: All axes in position, trigger PVT sequence\n");
       }
       break;
 
@@ -134,7 +133,7 @@ void ecmcPVTController::execute() {
         state_ = ECMC_PVT_ERROR;
         printf("ecmcPVTController: Error: Triggering of PVT objects failed\n");
       }
-      printf("ecmcPVTController: Executing PVT sequence\n");
+      //printf("ecmcPVTController: Executing PVT sequence\n");
       state_ = ECMC_PVT_EXECUTE_PVT;      
       break;
 
@@ -164,8 +163,8 @@ void ecmcPVTController::execute() {
 
     case ECMC_PVT_ABORT:
       // Wait for axes to stop  
-      if(axisFree()) {
-        printf("ecmcPVTController: All axes stopped\n");
+      if(axisNotBusy()) {
+        //printf("ecmcPVTController: All axes stopped\n");
         state_ =  ECMC_PVT_IDLE;
       }
       break;
@@ -214,7 +213,7 @@ int ecmcPVTController::axesAtStart() {
       return 0;
     }
     if(axes_[i]->getCurrentPositionSetpoint() != startPositions_[i]) {
-      printf("ecmcPVTController:: target set %lf, actual set %lf\n",axes_[i]->getCurrentPositionSetpoint(), startPositions_[i]);
+      //printf("ecmcPVTController:: target set %lf, actual set %lf\n",axes_[i]->getCurrentPositionSetpoint(), startPositions_[i]);
       return 0;
     }
   }
@@ -242,8 +241,10 @@ int ecmcPVTController::triggPVT() {
 }
 
 void ecmcPVTController::errorReset() {
-  state_ = ECMC_PVT_IDLE;
   ecmcError::errorReset();
+  if(state_ == ECMC_PVT_ERROR) {
+    state_ = ECMC_PVT_IDLE;
+  }
 }
 
 int ecmcPVTController::validate() {
@@ -266,16 +267,16 @@ int ecmcPVTController::anyAxisInterlocked() {
 }
 
 int ecmcPVTController::abortPVT() {
-  state_ = ECMC_PVT_ABORT;
   for(uint i = 0; i < axes_.size(); i++ ) {    
     axes_[i]->stopMotion(0);
-    axes_[i]->getPVTObject()->setBusy(false);    
+    axes_[i]->getPVTObject()->setBusy(false);
   }
+  state_ = ECMC_PVT_ABORT;
   // All axes in correct position to start
   return 0;
 }
 
-int ecmcPVTController::axisFree() {
+int ecmcPVTController::axisNotBusy() {
   int axesFree = 1;
   for(uint i = 0; i < axes_.size(); i++ ) {    
     axesFree = axesFree && !axes_[i]->getBusy();
@@ -288,4 +289,18 @@ void ecmcPVTController::initPVT() {
   for(uint i = 0; i < axes_.size(); i++ ) {    
     axes_[i]->getPVTObject()->setExecute(0);
   }
+}
+
+int ecmcPVTController::setEcEntry(ecmcEcEntry *entry,int entryIndex, int bitIndex) {
+  
+  int error = setEntryAtIndex(entry,
+                              entryIndex,
+                              bitIndex);
+  if(error) {
+    triggerDefined_ = 0;
+    return error;
+  }
+  triggerDefined_ = 1;
+  printf("PVT controller trigger defined...\n");
+  return 0;
 }

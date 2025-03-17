@@ -255,28 +255,6 @@ void ecmcAxisSequencer::executeInternal() {
     ;
     break;
 
-//  case ECMC_CMD_MOVEPVTABS:
-//    seqReturnVal = seqMovePVT();
-//
-//    if (seqReturnVal > 0) {  // Error
-//      setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-//      stopSeq();
-//    } else if (seqReturnVal == 0) {  // ready
-//      stopSeq();
-//    }
-//    break;
-
-  //case ECMC_CMD_MOVEPVTREL:
-  //  seqReturnVal = seqMovePVT();
-  //
-  //  if (seqReturnVal > 0) {  // Error
-  //    setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-  //    stopSeq();
-  //  } else if (seqReturnVal == 0) {  // ready
-  //    stopSeq();
-  //  }
-  //  break;
-
   case ECMC_CMD_HOMING:
         
     switch (homeSeqId) {
@@ -648,61 +626,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
     break;
 
-  //case ECMC_CMD_MOVEPVTREL:
-//
-  //  if(data_->command_.enableDbgPrintout) {
-  //    printf("RUNNING PVT REL execute %d\n",data_->command_.execute);
-  //  }
-  //  if (data_->command_.execute && !executeOld_) {
-  //    
-  //    errorCode = validatePVT();
-  //    if(errorCode) {
-  //      return errorCode;
-  //    }
-  //
-  //    // Set offset since relative mode
-  //    //pvt_->setPositionOffset(data_->status_.currentPositionSetpoint);
-  //    pvt_->setExecute(0);
-  //    errorCode = pvt_->setExecute(1);
-  //    if (errorCode) {
-  //      return errorCode;
-  //    }
-  //    // needed since this is evaluated in trajectoy which is not in use
-  //    data_->interlocks_.noExecuteInterlock = false;
-  //  } else if(!data_->command_.execute){
-  //    if(pvt_) {
-  //      errorCode = pvt_->setExecute(0);
-  //    }
-  //    // needed since this is evaluated in trajectoy which is not in use
-  //    data_->interlocks_.noExecuteInterlock = true;
-  //  }
-  //  
-  //  data_->refreshInterlocks();
-  //
-  //  break;
-
-    //if(data_->command_.enableDbgPrintout) {
-    //  printf("RUNNING PVT REL execute %d\n",data_->command_.execute);
-    //}
-    //if (data_->command_.execute && !executeOld_) {
-    //  errorCode = validatePVT();
-    //  if(errorCode) {
-    //    return errorCode;
-    //  }
-    //  seqInProgress_      = true;
-    //  localSeqBusy_       = true;
-    //  data_->status_.busy = true;
-    //}
-    //else if(!data_->command_.execute){
-    //  if(pvt_) {
-    //    errorCode = pvt_->setExecute(0);
-    //  }
-    //  // needed since this is evaluated in trajectory which is not in use
-    //  data_->interlocks_.noExecuteInterlock = true;
-    //}
-    //data_->refreshInterlocks();
-    //break;
-
+  // PVT is only abs here (relative is handled by the PVt controller)
   case ECMC_CMD_MOVEPVTABS:
     if(data_->command_.enableDbgPrintout) {
       printf("RUNNING PVT ABS execute %d\n",data_->command_.execute);
@@ -728,27 +652,6 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     }
     data_->refreshInterlocks();
     break;
-    //if(data_->command_.enableDbgPrintout) {
-    //  printf("RUNNING PVT ABS execute %d\n",data_->command_.execute);
-    //}
-    //if (data_->command_.execute && !executeOld_) {
-    //  errorCode = validatePVT();
-    //  if(errorCode) {
-    //    return errorCode;
-    //  }
-    //  seqInProgress_      = true;
-    //  localSeqBusy_       = true;
-    //  data_->status_.busy = true;
-    //}
-    //else if(!data_->command_.execute){
-    //  if(pvt_) {
-    //    errorCode = pvt_->setExecute(0);
-    //  }
-    //  // needed since this is evaluated in trajectory which is not in use
-    //  data_->interlocks_.noExecuteInterlock = true;
-    //}
-    //data_->refreshInterlocks();
-    //break;
 
   case ECMC_CMD_HOMING:
     // set mode to homing
@@ -3069,74 +2972,6 @@ int ecmcAxisSequencer::seqHoming26() {
 
   return -seqState_;
 }
-
-// Handles both PVT abs and rel
-//int ecmcAxisSequencer::seqMovePVT() {
-//  // Return > 0 error
-//  // Return < 0 progress (negation of current seq state returned)
-//  // Return = 0 ready
-//  
-//  int errorCode = traj_->getErrorID();  // Abort if error from trajectory
-//  if (errorCode) {
-//    return errorCode;
-//  }
-//  //xxx
-//  double startPosition = 0;
-//  data_->status_.busy = true;
-//  // Sequence code
-//  switch (seqState_) {
-//    case 0:    
-//      // Move to PVT start position
-//
-//      if(pvt_->startPosition(&startPosition)) {
-//        return ERROR_SEQ_PVT_ERROR;        
-//     }
-//      if(data_->command_.command == ECMC_CMD_MOVEPVTREL) {
-//        startPosition = data_->status_.currentPositionSetpoint + startPosition;
-//        pvt_->setPositionOffset(data_->status_.currentPositionSetpoint);
-//      } else {
-//        pvt_->setPositionOffset(0);
-//      }
-//      printf("Moving to PVT start position %lf\n",startPosition);
-//      traj_->setTargetPos(startPosition);      
-//      traj_->setTargetVel(data_->command_.velocityTarget);
-//      traj_->setMotionMode(ECMC_MOVE_MODE_POS);      
-//      traj_->setStartPos(data_->status_.currentPositionSetpoint);
-//      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
-//      traj_->setExecute(0);
-//      traj_->setExecute(1);
-//      seqState_ = 1;
-//      printf("Waiting for reach startposition  %lf\n",startPosition);
-//      break;
-//
-//    // Wait for not busy
-//    case 1:      
-//      if (!traj_->getBusy() && (mon_->getAtTarget() || !mon_->getEnableAtTargetMon() )){
-//        traj_->setExecute(0);
-//        seqState_ = 2;
-//        printf("At target, Wait for pvt controller to execute PVT \n");
-//      }
-//      break;
-//      // Now just wait for PVT controller to trigger all axes simultaneous    
-//      case 2:
-//      if(pvt_->getBusy()) {
-//        printf("PVT busy, wait for finalize");
-//        seqState_ = 3;
-//        return 0;
-//      }
-//      break;
-//
-//      case 3:
-//      if(!pvt_->getBusy()) {
-//        printf("PVT done\n");
-//        stopSeq();
-//        return 0;
-//      }
-//      break;
-//    }
-//    //printf("Setpoint %lf, pvt_rel %d\n", data_->status_.currentPositionSetpoint,data_->command_.command==ECMC_CMD_MOVEPVTREL);
-//    return -seqState_;
-//  }
 
 // Issue post move after successful finalized homing (seqState_ set to 1000 in finalizeHomingSeq )
 int ecmcAxisSequencer::postHomeMove() {

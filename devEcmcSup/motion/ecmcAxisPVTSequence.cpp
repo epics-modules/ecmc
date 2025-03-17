@@ -39,7 +39,7 @@ void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
 }
 
 void ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
-  printf("ecmcAxisPVTSequence::addSegment()\n");
+  //printf("ecmcAxisPVTSequence::addSegment()\n");
   segments_.push_back(new ecmcPvtSegment(start, end));
   segmentCount_++;
 }
@@ -107,7 +107,6 @@ void ecmcAxisPVTSequence::initSeq() {
   if(segmentCount_ > 0) {
     firstSegTime_ = segments_[0]->getEndPoint()->time_;
   }
-  printf("ecmcAxisPVTSequence::initSeq()\n");
 }
 
 bool ecmcAxisPVTSequence::validate() {  
@@ -196,12 +195,12 @@ double ecmcAxisPVTSequence::getCurrPosition(){
     */
     if(std::abs(currTime_- (segments_[currSegIndex_]->getStartPoint()->time_ + sampleTime_)) < (halfSampleTime_)) {
     // skip first and last segment (since they are acc and dec segments)
-    if(currSegIndex_ > 0 && currSegIndex_ < segmentCount_) {    
-      printf("pvt[%lu]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
-              (currTime_ - firstSegTime_),
-              data_->status_.currentPositionActual - positionOffset_,
-              data_->status_.currentPositionSetpoint - positionOffset_,
-              data_->status_.cntrlError);
+    if(currSegIndex_ > 0 && currSegIndex_ < segmentCount_) {
+        //printf("pvt[%lu]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
+        //        (currTime_ - firstSegTime_),
+        //        data_->status_.currentPositionActual - positionOffset_,
+        //        data_->status_.currentPositionSetpoint - positionOffset_,
+        //        data_->status_.cntrlError);
       resultPosActArray_.push_back(data_->status_.currentPositionActual - positionOffset_);
       resultPosErrArray_.push_back(data_->status_.cntrlError);
     }
@@ -276,21 +275,21 @@ void   ecmcAxisPVTSequence::printRT() {
   }
   printf("RT traj:\n");
   printf("time [s], pos[egu], vel[egu/s], acc [egu/s/s]\n");
-
-  do {
+  
+    do {
+      printf("%lf, %lf, %lf, %lf\n",getCurrTime(),
+                                    getCurrPosition(),
+                                    getCurrVelocity(),
+                                    getCurrAcceleration());
+      nextSampleStep();
+    }
+  
+    while(!isLastSample());
+    // also print last sample
     printf("%lf, %lf, %lf, %lf\n",getCurrTime(),
                                   getCurrPosition(),
                                   getCurrVelocity(),
                                   getCurrAcceleration());
-    nextSampleStep();
-  }
-
-  while(!isLastSample());
-  // also print last sample
-  printf("%lf, %lf, %lf, %lf\n",getCurrTime(),
-                                getCurrPosition(),
-                                getCurrVelocity(),
-                                getCurrAcceleration());
 }
 
 bool ecmcAxisPVTSequence::getBusy() { 
@@ -316,15 +315,16 @@ void ecmcAxisPVTSequence::clear() {
 }
 
 int ecmcAxisPVTSequence::validateRT() {
+  
   if(segmentCount_==0 || data_ == NULL ) {
     printf(" ecmcAxisPVTSequence::validateRT(): Error: Segment count 0\n");
     return ERROR_SEQ_PVT_CFG_INVALID;
   }
-  for(uint i = 0; i < segmentCount_; ++i) {
-    printf("seg[%u]: starttime %lf, stoptime %lf\n",i,
-    segments_[i]->getStartPoint()->time_,
-    segments_[i]->getEndPoint()->time_);
-  }
+//  for(uint i = 0; i < segmentCount_; ++i) {
+//      printf("seg[%u]: starttime %lf, stoptime %lf\n",i,
+//      segments_[i]->getStartPoint()->time_,
+//      segments_[i]->getEndPoint()->time_);
+//  }
   return 0;
 }
 
@@ -335,7 +335,9 @@ int ecmcAxisPVTSequence::setPositionOffset(double offset) {
 
 int ecmcAxisPVTSequence::setExecute(bool execute) {
   execute_ = execute;
-  printf("ecmcAxisPVTSequence::setExecute(%d)\n",execute);
+
+  //printf("ecmcAxisPVTSequence::setExecute(%d)\n",execute);
+
   if (!executeOld_ && execute_) {    
     initSeq();
     busy_ = true;

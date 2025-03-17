@@ -163,8 +163,9 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
   ctrlLocal.oldStatus        = asynDisconnected;
   features_                  = FEATURE_BITS_V2 | FEATURE_BITS_ECMC;
   profileInitialized_        = 0;
-  profileBuilt_              = 0;
+  profileBuilt_              = 0;  
   pvtController_             = NULL;
+  profileInProgress_         = false;
 #ifndef motorMessageTextString
   createParam("MOTOR_MESSAGE_TEXT",
               asynParamOctet,
@@ -556,17 +557,39 @@ asynStatus ecmcMotorRecordController::poll(void) {
     ctrlLocal.initialPollDone = 1;
   }
 
+  // read ecmc controller data
+  readEcmcControllerStatus();
+
   profilePoll();
   
   return status;
 }
 
+void ecmcMotorRecordController::readEcmcControllerStatus(){
+  
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  
+  if(pvtController_) {
+    ctrlLocal.pvtErrorId = pvtController_->getErrorID();
+  }
+  ctrlLocal.errorId = controllerError;  // global variable
+
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+}
+
 void ecmcMotorRecordController::profilePoll() {
+
+  if(profileInProgress_ && ctrlLocal.pvtErrorId)  {
+    abortProfile();
+    profileInProgress_ = false;
+  }
+  
   int state = PROFILE_EXECUTE_DONE;
   getIntegerParam(profileExecuteState_, &state);
   
   // Onging profile move?
   if((ProfileExecuteState)state == PROFILE_EXECUTE_DONE) {
+    profileInProgress_ = false;
     return;
   }
 
@@ -574,8 +597,9 @@ void ecmcMotorRecordController::profilePoll() {
   ecmcMotorRecordAxis *pAxis;
   int segmentIndex=-1;
   int pvtBusy = -1;
+  
 
-  // Check for errors
+  // Check axes related information
   for (int axis = 0; axis < numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
@@ -630,7 +654,7 @@ void ecmcMotorRecordController::profilePoll() {
 asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
   int function = pasynUser->reason;
-  asynMotorAxis *pAxis;
+  ecmcMotorRecordAxis *pAxis;
   int axisNo = -1;
   asynStatus status = asynError;
   //static const char *functionName = "writeFloat64";
@@ -652,6 +676,19 @@ asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFlo
 
   // Must be controller related
   // write to lib
+
+  if(function == profileFixedTime_) {
+    // if time mode is changed also the pvt object needs to be rebuilt
+    for (int axis = 0; axis < numAxes_; axis++) {      
+      pAxis = getAxis(axis);
+      if (!pAxis) continue;
+        pAxis->invalidatePVTBuild();
+    }
+    setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+    sprintf(profileMessage_, "Fixed time changed..\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
+  }
   status = setDoubleParam(ECMC_MR_CNTRL_ADDR,function, value);
   callParamCallbacks();
   return status;
@@ -732,8 +769,10 @@ asynStatus ecmcMotorRecordController::abortProfile()
   }
 
   if(pvtController_) {
+    if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     pvtController_->abortPVT();
     pvtController_->clearPVTAxes();
+    if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   }
 
   setIntegerParam(profileExecuteState_, PROFILE_STATUS_UNDEFINED);
@@ -753,7 +792,7 @@ asynStatus ecmcMotorRecordController::buildProfile() {
     printf("ecmcMotorRecordController: Error: Profile not initialized...\n");
     return asynError;
   }
-
+  profileInProgress_ = false;
   strcpy(profileMessage_, "");
   setIntegerParam(profileBuildState_, PROFILE_BUILD_BUSY);
   setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
@@ -807,7 +846,7 @@ asynStatus ecmcMotorRecordController::buildProfile() {
 asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
 {  
   printf("ecmcMotorRecordController::initializeProfile(%lu)\n",maxProfilePoints);
-
+  profileInProgress_ = false;
   // An ecmcPvtSequence is needed to keep track of time and outputs and other things...
   ecmcPVTController * pvtCtrl = new ecmcPVTController(getEcmcSampleTimeMS()/1000);
   if( !pvtCtrl ) {
@@ -920,7 +959,7 @@ asynStatus ecmcMotorRecordController::executeProfile() {
   pvtController_->setExecute(0);
   pvtController_->setExecute(1);
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-
+  profileInProgress_ = true;
   setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_MOVE_START);
   setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
   setIntegerParam(profileCurrentPoint_, 0);

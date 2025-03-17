@@ -163,7 +163,6 @@ private:
   int          seqHoming21(); // nCmdData==21
   int          seqHoming22(); // nCmdData==22
   int          seqHoming26(); // nCmdData==26
-  //int          seqMovePVT();  // Move to PVT start and then trigg PVT sequence
   int          checkHWLimitsAndStop(bool checkBWD,
                                     bool checkFWD);
   int          stopSeq();

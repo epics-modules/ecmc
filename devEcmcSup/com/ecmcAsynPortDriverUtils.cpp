@@ -314,6 +314,26 @@ int getEcMainFuncType(char *objPath,
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }
 
+int getPVTCtrlFuncType(char *objPath,
+                       int  *objectFunction) {
+  char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  nvals    = 0;
+  int  masterId = 0;
+  
+  nvals = sscanf(objPath, ECMC_PVTCTRL_STR ".%s", objectFunctionStr);
+  
+  if (nvals == 1) {
+    // Trigger output
+    nvals = strcmp(objectFunctionStr, ECMC_PVT_EC_TRIGGER_OUTPUT_STR);
+  
+    if (nvals == 0) {
+      *objectFunction = ECMC_PVT_EC_ENTRY_INDEX_TRIGGER_OUTPUT;
+      return 0;
+    }
+  }
+  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+}
+
 int getAxMainFuncType(char *objPath,
                       int  *objectFunction) {
   int  axisId = 0;
@@ -760,6 +780,15 @@ int getMainObjectType(char           *objPath,
     *objIndex   = 0; // Not used
     return 0;
   }
+
+  // PVT controller object
+  nvals = sscanf(objPath, ECMC_PVTCTRL_STR ".%s", objectFunctionStr);
+
+  if (nvals == 1) {
+    *objectType = ECMC_OBJ_PVT;
+    *objIndex   = 0; // Not used
+    return 0;
+  }  
 
   return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
 }

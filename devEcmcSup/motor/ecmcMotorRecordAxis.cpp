@@ -1991,7 +1991,6 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   profileLastBuildOk_ = false;
   asynMotorAxis::buildProfile();
 
-
   if (!profileLastInitOk_ || !profileLastDefineOk_) {
      LOGERR(
       "%s/%s:%d: ERROR: Define or Init not performed.\n",
@@ -2232,25 +2231,6 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-  //if(mode == PROFILE_MOVE_MODE_ABSOLUTE){
-  //  if(drvlocal.axisPrintDbg) {
-  //    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Abs\n",axisNo_);
-  //  }
-  //  errorCode = drvlocal.ecmcAxis->movePVTAbs();
-  //} else {  // PROFILE_MOVE_MODE_RELATIVE
-  //  if(drvlocal.axisPrintDbg) {
-  //    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Executing Rel\n",axisNo_);
-  //  }
-  //  errorCode = drvlocal.ecmcAxis->movePVTRel();
-  //}
-
-  //if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-
-  //if(errorCode) {
-  //  printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: ecmc error (0x%x)\n",axisNo_,errorCode);
-  //  return asynError;
-  //}
-  
   profileInProgress_ = true;
   return asynSuccess;
 }
@@ -2258,15 +2238,8 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
 asynStatus ecmcMotorRecordAxis::abortProfile() {
   printf("ecmcMotorRecordAxis::abortProfile()\n");
   profileInProgress_ = false;
-  // stop with controller rampdown: stopMotion(0):  Controller rampdown, stopMotion(1): Kill amplifier
-  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-  int errorCode = drvlocal.ecmcAxis->stopMotion(0);
-  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-  if(errorCode) {
-    printf("ecmcMotorRecordAxis::abortProfile(): Error axis[%d]: axis->stopMotion() returned error (0x%x)\n",axisNo_, errorCode);
-    return asynError;
-  }
+  // Stop is called from ecmcMotorRecordController()::abortProfile()
 
   asynStatus status = asynMotorAxis::abortProfile();
   if(status != asynSuccess) {

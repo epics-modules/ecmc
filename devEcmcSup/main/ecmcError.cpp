@@ -2291,8 +2291,13 @@ case 0x16001:
 
     break;
 
-  case 0x2005F:
+  case 0x2005E:
     return "ERROR_LUT_LOAD_ERROR";
+
+    break;
+
+  case 0x2005F:
+    return "ERROR_PVT_CTRL_NULL";
 
     break;
 
@@ -2812,6 +2817,11 @@ case 0x16001:
   // PVT controller
   case 0x242000:
     return "ERROR_PVT_CTRL_AXIS_COUNT_ZERO";
+
+    break;
+
+    case 0x242001:
+    return "ERROR_PVT_CTRL_EC_LINK_FUNCTION_UNKNOWN";
 
     break;
 

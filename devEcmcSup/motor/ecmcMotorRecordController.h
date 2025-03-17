@@ -133,12 +133,15 @@ protected:
   asynStatus poll();
   void       profilePoll();
   ecmcPVTController *getPVTController();
+  void readEcmcControllerStatus();
 
   struct {
     asynStatus   oldStatus;
     unsigned int initialPollDone;
     double       movingPollPeriod;
     double       idlePollPeriod;
+    int          errorId;
+    int          pvtErrorId;
   } ctrlLocal;
 
   /* First parameter */
@@ -222,6 +225,8 @@ protected:
 
   char profileMessage_[MAX_MESSAGE_LEN];
   ecmcPVTController *pvtController_;
+  bool profileInProgress_;
+
   friend class ecmcMotorRecordAxis;
 };
 
