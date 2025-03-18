@@ -49,7 +49,9 @@ void ecmcPVTController::addAxis(ecmcAxisBase* axis) {
   }
 }
 
-void ecmcPVTController::clearPVTAxes() {  
+void ecmcPVTController::clearPVTAxes() {
+  // make sure global PVT busy is not high
+  setAxesBusy(false);
   axes_.clear();
   startPositions_.clear();
 }
@@ -84,6 +86,7 @@ void ecmcPVTController::setExecute(bool execute) {
     }
     state_ = ECMC_PVT_TRIGG_MOVE_AXES_TO_START;
     busy_ = 1;
+    setAxesBusy(true);
   }
   if(!execute) {
     if(busy_) {
@@ -99,7 +102,8 @@ void ecmcPVTController::execute() {
   bool seqDone = 0;
   switch(state_) {
     case  ECMC_PVT_IDLE:
-      busy_ = 0;     
+      busy_ = 0;
+      setAxesBusy(false);
       break;
 
     case ECMC_PVT_TRIGG_MOVE_AXES_TO_START:
@@ -110,6 +114,7 @@ void ecmcPVTController::execute() {
         state_ = ECMC_PVT_ERROR;
         printf("ecmcPVTController::execute(): Error: Axis in error state when trigger move to start position\n");
       }
+      setAxesBusy(true);
       state_ = ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START;
       break;
 
@@ -172,14 +177,26 @@ void ecmcPVTController::execute() {
       break;
 
     case ECMC_PVT_ABORT:
+
       // Wait for axes to stop  
       if(axisNotBusy()) {
         //printf("ecmcPVTController: All axes stopped\n");
         state_ =  ECMC_PVT_IDLE;
       }
+
+      for(uint i = 0; i < axes_.size(); i++ ) {
+        axes_[i]->getPVTObject()->setBusy(false);
+        state_ =  ECMC_PVT_IDLE;        
+      }
+
       break;
     case ECMC_PVT_ERROR:
       busy_ = 0;
+      for(uint i = 0; i < axes_.size(); i++ ) {
+        axes_[i]->getPVTObject()->setBusy(false);
+        state_ =  ECMC_PVT_IDLE;        
+      }
+      setAxesBusy(false);
       break;
   }
   
@@ -244,7 +261,7 @@ int ecmcPVTController::axesAtStart() {
     if(error) {
       return -error;
     }
-    if(axes_[i]->getBusy()) {
+    if(axes_[i]->getTrajBusy()) {
       return 0;
     }
     if(axes_[i]->getCurrentPositionSetpoint() != startPositions_[i]) {
@@ -266,7 +283,7 @@ int ecmcPVTController::triggPVT() {
     }
     
     // Relative are handled with PVTobject with an offset
-    error = axes_[i]->movePVTAbs();
+    error = axes_[i]->movePVTAbs(true);  // ignore busy.. have checked before
     if(error) {
       return error;
     }
@@ -321,7 +338,7 @@ int ecmcPVTController::abortPVT() {
 int ecmcPVTController::axisNotBusy() {
   int axesFree = 1;
   for(uint i = 0; i < axes_.size(); i++ ) {    
-    axesFree = axesFree && !axes_[i]->getBusy();
+    axesFree = axesFree && !axes_[i]->getTrajBusy();
   }
   // All axes in correct position to start
   return axesFree;
@@ -409,5 +426,12 @@ int ecmcPVTController::setTriggerInfo(size_t startPointId, size_t endPointId, si
 
 int ecmcPVTController::setTriggerDuration(double durationS) {
   triggerDuration_ = durationS + sampleTime_;
+  return 0;
+}
+
+int ecmcPVTController::setAxesBusy(bool busy) {  
+  for(uint i = 0; i < axes_.size(); i++ ) {
+    if(axes_[i]!=NULL) {axes_[i]->setGlobalBusy(busy);};
+  }
   return 0;
 }

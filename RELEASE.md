@@ -1,6 +1,7 @@
 Release Notes
 ===
 # ECMC 10.1.0_RC1
+* PLCs: Always load FileIO lib and Vector lib
 
 ## PVT
 A few bugfixes for PVT mode. Now the first and last points (for acc and dec)

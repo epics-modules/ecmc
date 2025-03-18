@@ -2250,11 +2250,11 @@ asynStatus ecmcMotorRecordAxis::abortProfile() {
 
 asynStatus ecmcMotorRecordAxis::readbackProfile() {
   int status = 0;
-  if (status) return asynError;
-  
-  if(!pvtRunning_) return asynError;
 
-  if(pvtRunning_->getBusy()) return asynError;
+  if(!pvtRunning_) {
+    printf("!pvtRunning_\n");
+    return asynError;
+  }
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
@@ -2265,11 +2265,13 @@ asynStatus ecmcMotorRecordAxis::readbackProfile() {
 
   if(dataPosAct == NULL || dataPosAct == NULL) {
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+    printf("!pointer NULL_\n");
     return asynError;
   }
 
   if(elements == 0) {
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+    printf("!elements 0_\n");
     return asynError;
   }
 
@@ -2347,4 +2349,8 @@ void ecmcMotorRecordAxis::setEnablePVTFunc(int enable) {
 
 void ecmcMotorRecordAxis::invalidatePVTBuild() {
   profileLastBuildOk_ = false;
+}
+
+bool ecmcMotorRecordAxis::getPVTEnabled() {
+  return pvtEnabled_;
 }

@@ -304,7 +304,7 @@ void ecmcAxisPVTSequence::setBusy(bool busy) {
   busy_ = busy;
 }
 
-void ecmcAxisPVTSequence::clear() { 
+void ecmcAxisPVTSequence::clear() {
   segments_.clear();
   points_.clear();
   resultPosActArray_.clear();
@@ -324,11 +324,6 @@ int ecmcAxisPVTSequence::validateRT() {
     printf(" ecmcAxisPVTSequence::validateRT(): Error: Segment count 0\n");
     return ERROR_SEQ_PVT_CFG_INVALID;
   }
-//  for(uint i = 0; i < segmentCount_; ++i) {
-//      printf("seg[%u]: starttime %lf, stoptime %lf\n",i,
-//      segments_[i]->getStartPoint()->time_,
-//      segments_[i]->getEndPoint()->time_);
-//  }
   return 0;
 }
 
@@ -340,16 +335,13 @@ int ecmcAxisPVTSequence::setPositionOffset(double offset) {
 int ecmcAxisPVTSequence::setExecute(bool execute) {
   execute_ = execute;
 
-  //printf("ecmcAxisPVTSequence::setExecute(%d)\n",execute);
-
   if (!executeOld_ && execute_) {    
     initSeq();
     busy_ = true;
   }
 
   if(!execute) {
-    busy_ = false;
-    initSeq();
+    busy_ = false;    
   }
 
   executeOld_ = execute_;

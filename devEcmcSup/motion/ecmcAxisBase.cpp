@@ -294,6 +294,7 @@ void ecmcAxisBase::initVars() {
   deceleration_                 = 0;
   hwReady_                      = 0;
   hwReadyOld_                   = 0;
+  globalBusy_                   = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -946,7 +947,12 @@ void ecmcAxisBase::printAxisStatus() {
     statusData_.onChangeData.statusWd.homeswitch);
 }
 
+// Ignore busy so that PVT can run (PVT controller will check that traj is not busy)
 int ecmcAxisBase::setExecute(bool execute) {
+  return setExecute(execute, false);
+}
+
+int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
   // Internal trajectory source
   if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     // Allow direct homing without enable
@@ -959,8 +965,10 @@ int ecmcAxisBase::setExecute(bool execute) {
                         ERROR_AXIS_NOT_ENABLED);
     }
 
-    if (execute && !data_.status_.executeOld && data_.status_.busy) {
-      return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_AXIS_BUSY);
+    if(!ignoreBusy) {
+      if (execute && !data_.status_.executeOld && data_.status_.busy) {
+        return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_AXIS_BUSY);
+      }
     }
 
     int error = seq_.setExecute(execute);
@@ -984,7 +992,11 @@ bool ecmcAxisBase::getExecute() {
 }
 
 bool ecmcAxisBase::getBusy() {
-  return data_.status_.busy;
+  return data_.status_.busy || globalBusy_;
+}
+
+bool ecmcAxisBase::getTrajBusy() {
+  return getTraj()->getBusy();
 }
 
 int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusType *data) {
@@ -1827,7 +1839,11 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
   return 0;
 }
 
-int ecmcAxisBase::movePVTAbs() {
+int ecmcAxisBase::movePVTAbs() { 
+  return movePVTAbs(false);
+}
+
+int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Move PVT failed since traj source is set to PLC (0x%x).\n",
@@ -1840,8 +1856,11 @@ int ecmcAxisBase::movePVTAbs() {
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
 
-  if(getBusy()) {
-    return ERROR_AXIS_BUSY;
+  // Allow pvt to be started even if globalBusy is set
+  if(!ignoreBusy) {
+    if(getBusy()) {
+      return ERROR_AXIS_BUSY;
+    }
   }
 
   int errorCode = getErrorID();
@@ -1868,9 +1887,7 @@ int ecmcAxisBase::movePVTAbs() {
     return errorCode;
   }
 
-  errorCode = setExecute(1);
-  return 0;
-
+  return setExecute(1,ignoreBusy);
 }
 
 // just a wrapper to the below
@@ -3077,4 +3094,9 @@ ecmcAxisPVTSequence* ecmcAxisBase::getPVTObject() {
 
 double ecmcAxisBase::getCurrentPositionSetpoint() {
   return data_.status_.currentPositionSetpoint;
+}
+
+int ecmcAxisBase::setGlobalBusy(bool busy) {  // Allow for sequences
+  globalBusy_ = busy;
+  return 0;
 }

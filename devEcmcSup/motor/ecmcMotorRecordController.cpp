@@ -629,7 +629,7 @@ void ecmcMotorRecordController::profilePoll() {
   setIntegerParam(profileActualPulses_, ctrlLocal.pvtCurrentTriggerId + 1);
 
   // Other status..
-  if(segmentIndex == 0) {
+  if(segmentIndex == 0 && pvtBusy) {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_MOVE_START);
     sprintf(profileMessage_, "Profile moving to start...\n");
@@ -822,7 +822,8 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   for (int axis = 0; axis < numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
-    buildStatusOK = buildStatusOK && pAxis->getProfileLastBuildSuccess();
+    if(!pAxis->getPVTEnabled()) continue;
+    buildStatusOK = buildStatusOK;
   }
 
   profileBuilt_ = (status == asynSuccess) && buildStatusOK; 
@@ -942,6 +943,7 @@ asynStatus ecmcMotorRecordController::executeProfile() {
     return asynError;
   }
 
+  pvtController_->abortPVT();
   /* 
     Collect trigger info (and write to pvtController after ecmcMotorRecord->executeProfile, below)
     profileStartPulses_
@@ -1027,9 +1029,13 @@ asynStatus ecmcMotorRecordController::readbackProfile() {
   for (axis=0; axis<numAxes_; axis++) {
     pAxis = getAxis(axis);
     if (!pAxis) continue;
+    // Check if axis is used for PVT
+    int useAxis = 0;
+    getIntegerParam(pAxis->drvlocal.axisId, profileUseAxis_, &useAxis);
+    if (!useAxis) continue;
     statOK &= pAxis->readbackProfile() == asynSuccess;
   }
-
+    
   setIntegerParam(profileReadbackState_, PROFILE_READBACK_DONE);
   
   if(statOK) {

@@ -58,8 +58,10 @@ public:
 
   asynStatus poll(bool *moving);
   bool getProfileLastBuildSuccess();
+  bool getPVTEnabled();
   void setEnablePVTFunc(int enable);
   void invalidatePVTBuild();
+
 
 private:
   typedef enum

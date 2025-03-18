@@ -64,7 +64,8 @@ class ecmcPVTController: public ecmcEcEntryLink {
     int    validate();
     int    anyAxisInterlocked();
     void   initPVT();
-    void   checkIfTimeToTrigger();    
+    void   checkIfTimeToTrigger();
+    int    setAxesBusy(bool busy);
     double sampleTime_;
     double nextTime_, accTime_, endTime_;
     std::vector<double> startPositions_;
