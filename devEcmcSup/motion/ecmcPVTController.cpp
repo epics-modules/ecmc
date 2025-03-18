@@ -174,6 +174,7 @@ void ecmcPVTController::execute() {
           }
         }
       }
+
       break;
 
     case ECMC_PVT_ABORT:
@@ -186,6 +187,7 @@ void ecmcPVTController::execute() {
 
       for(uint i = 0; i < axes_.size(); i++ ) {
         axes_[i]->getPVTObject()->setBusy(false);
+        axes_[i]->setGlobalBusy(0);
         state_ =  ECMC_PVT_IDLE;        
       }
 
@@ -318,7 +320,7 @@ int ecmcPVTController::validate() {
 int ecmcPVTController::anyAxisInterlocked() {
   
   for(uint i = 0; i < axes_.size(); i++ ) {    
-    if(axes_[i]->getSumInterlock()) {
+    if(axes_[i]->getSumInterlock() || axes_[i]->getErrorID()>0) {
       return 1;
     }
   }

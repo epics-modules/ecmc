@@ -136,7 +136,7 @@ void ecmcAxisSequencer::execute() {
       data_->status_.currentPositionSetpoint <
       data_->status_.currentPositionSetpointOld));
   
-  // If internal source and not PVT-mode then interlocks are handled in trajetory generator
+  // If internal source and not PVT-mode then interlocks are handled in trajectory generator
   // TODO Would be nice to change this design..
   trajLock_ = trajLock_ && (data_->command_.trajSource != ECMC_DATA_SOURCE_INTERNAL || pvtmode_);
   newTrajLockEdge_ = trajLock_ && !trajLockOld_; // && data_->command_.execute && executeOld_;
@@ -148,14 +148,19 @@ void ecmcAxisSequencer::execute() {
         initStop();
       }
     } else {
-      initStop();
+      if(!temporaryLocalTrajSource_) {
+        initStop();
+      }
     }
   }
 
   // get new setpoints if needed (for PVT only once then the setpoint will be fetched above)
-  if((trajLock_ && (data_->command_.trajSource == !ECMC_DATA_SOURCE_INTERNAL))) {
+  //if((trajLock_ && (data_->command_.trajSource == !ECMC_DATA_SOURCE_INTERNAL))) {
+  if(temporaryLocalTrajSource_ || trajLock_) {
     data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
     data_->status_.currentVelocitySetpoint = traj_->getNextVel();
+    temporaryLocalTrajSource_ = traj_->getBusy();  // Reset
+    //printf("Stopping %d\n",temporaryLocalTrajSource_);
   }
   
   pvtStopping_ = traj_->getBusy() && pvtStopping_;
@@ -3517,7 +3522,7 @@ void ecmcAxisSequencer::initStop() {
   if(data_->command_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::initStopPVT(): Initiating new stopramp...\n");
   }
-   
+  temporaryLocalTrajSource_ = 1;
   traj_->setStartPos(data_->status_.currentPositionActual);
   traj_->setCurrentPosSet(data_->status_.currentPositionActual);
   traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
@@ -3530,13 +3535,14 @@ void ecmcAxisSequencer::initStop() {
   
   if(pvtmode_ && !pvtStopping_) {
     data_->command_.command = ECMC_CMD_MOVEABS;
+    printf("PVT stopping...\n");
     pvtStopping_ = true;  // Latch stop if in PVT
     pvt_->setExecute(0);  // stop PVT
 
   }
   data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
   data_->status_.currentVelocitySetpoint = traj_->getNextVel();
-  data_->command_.positionTarget = traj_->getCurrentPosSet();  
+  data_->command_.positionTarget = traj_->getCurrentPosSet();
 }
 
 // To auto restore poslag monitoring if needed (for instance for external trigged homing seq)
