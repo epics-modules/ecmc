@@ -437,3 +437,8 @@ int ecmcPVTController::setAxesBusy(bool busy) {
   }
   return 0;
 }
+
+ecmcPVTSMType  ecmcPVTController::getSMState() {
+  return state_;
+}
+

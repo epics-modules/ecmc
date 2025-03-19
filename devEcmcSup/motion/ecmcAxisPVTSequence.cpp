@@ -205,7 +205,7 @@ double ecmcAxisPVTSequence::getCurrPosition(){
         //        data_->status_.currentPositionActual - positionOffset_,
         //        data_->status_.currentPositionSetpoint - positionOffset_,
         //        data_->status_.cntrlError);
-      resultPosActArray_.push_back(data_->status_.currentPositionActual - positionOffset_);
+      resultPosActArray_.push_back(data_->status_.currentPositionActual);
       resultPosErrArray_.push_back(data_->status_.cntrlError);
     }
   }

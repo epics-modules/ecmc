@@ -598,7 +598,7 @@ void ecmcMotorRecordController::profilePoll() {
   ecmcMotorRecordAxis *pAxis;
   int segmentIndex=-1;
   int pvtBusy = -1;
-  
+  ecmcPVTSMType pvtCtrlSMState = ECMC_PVT_IDLE;
 
   // Check axes related information
   for (int axis = 0; axis < numAxes_; axis++) {
@@ -619,9 +619,11 @@ void ecmcMotorRecordController::profilePoll() {
     if(pvtBusy < 0) {
       if(pvtController_) {
         pvtBusy = pvtController_->getBusy();
+        pvtCtrlSMState = pvtController_->getSMState();
       }
     }
   }
+
   // Segment index should also reflect point..
   setIntegerParam(profileCurrentPoint_, segmentIndex);
   
@@ -629,23 +631,24 @@ void ecmcMotorRecordController::profilePoll() {
   setIntegerParam(profileActualPulses_, ctrlLocal.pvtCurrentTriggerId + 1);
 
   // Other status..
-  if(segmentIndex == 0 && pvtBusy) {
+  if((pvtCtrlSMState == ECMC_PVT_TRIGG_MOVE_AXES_TO_START || 
+      pvtCtrlSMState == ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START) && pvtBusy) {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_MOVE_START);
     sprintf(profileMessage_, "Profile moving to start...\n");
-  } else if(segmentIndex > 0 && pvtBusy > 0) {
+  } else if(pvtCtrlSMState == ECMC_PVT_EXECUTE_PVT && pvtBusy > 0) {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_EXECUTING);
     sprintf(profileMessage_, "Profile executing...\n");
   } else if(pvtBusy < 0 ||  segmentIndex < 0) {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_DONE);
-    sprintf(profileMessage_, "Profile failure, aborting..\n");
+    sprintf(profileMessage_, "Profile failure, aborting\n");
     abortProfile();
   } else {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_SUCCESS);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_DONE);
-    sprintf(profileMessage_, "Profile done...\n");
+    sprintf(profileMessage_, "Profile done\n");
   }
   setStringParam(profileExecuteMessage_, profileMessage_);
   //setIntegerParam(profileActualPulses_, 0);

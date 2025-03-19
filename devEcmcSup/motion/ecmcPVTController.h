@@ -55,7 +55,7 @@ class ecmcPVTController: public ecmcEcEntryLink {
     int    setTriggerInfo(size_t startPointId, size_t endPointId, size_t count);
     int    setTriggerDuration(double durationS);
     int    checkTriggerTiming();
-
+    ecmcPVTSMType getSMState();
   private:
     int    triggMoveAxesToStart();
     int    axesAtStart();
