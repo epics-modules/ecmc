@@ -318,7 +318,6 @@ int getPVTCtrlFuncType(char *objPath,
                        int  *objectFunction) {
   char objectFunctionStr[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
   int  nvals    = 0;
-  int  masterId = 0;
   
   nvals = sscanf(objPath, ECMC_PVTCTRL_STR ".%s", objectFunctionStr);
   
