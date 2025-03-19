@@ -1,5 +1,8 @@
 Release Notes
 ===
+# ECMC 10.0.1
+* Always load PLC fileIO lib (also includes vector support)
+* Fix limit interlocks for axes in external trajectory source (slaved)
 
 # ECMC 10.0.0
 * Add plc support for generic lookup tables: 

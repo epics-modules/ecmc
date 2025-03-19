@@ -496,15 +496,10 @@ int ecmcPLCTask::parseFunctions(const char *exprStr) {
     }
   }
 
-  // look for File IO function
-  if (!libFileIOLoaded_) {
-    if (findFileIOFunction(exprStr)) {
-      errorCode = loadFileIOLib();
-
-      if (errorCode) {
-        return errorCode;
-      }
-    }
+  // Always load FileIO and vector support
+  errorCode = loadFileIOLib();
+  if (errorCode) {
+    return errorCode;
   }
 
   // look for Misc function
