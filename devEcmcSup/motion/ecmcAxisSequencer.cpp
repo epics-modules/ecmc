@@ -72,6 +72,7 @@ void ecmcAxisSequencer::initVars() {
   pvt_                   = NULL;
   pvtOk_                 = false;
   temporaryLocalTrajSource_ = false;
+  temporaryLocalTrajSourceOld_ = false;
   trajLock_              = true;
   trajLockOld_           = true;
   newTrajLockEdge_       = true;
@@ -154,15 +155,23 @@ void ecmcAxisSequencer::execute() {
     }
   }
 
-  // get new setpoints if needed (for PVT only once then the setpoint will be fetched above)
-  //if((trajLock_ && (data_->command_.trajSource == !ECMC_DATA_SOURCE_INTERNAL))) {
   if(temporaryLocalTrajSource_ || trajLock_) {
     data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
     data_->status_.currentVelocitySetpoint = traj_->getNextVel();
     temporaryLocalTrajSource_ = traj_->getBusy();  // Reset
-    //printf("Stopping %d\n",temporaryLocalTrajSource_);
+    if(!temporaryLocalTrajSource_) {
+      traj_->setEnable(1);
+      // Fallback to internal source...
+      data_->command_.trajSource = ECMC_DATA_SOURCE_INTERNAL;
+    }
   }
-  
+
+  if(temporaryLocalTrajSourceOld_ != temporaryLocalTrajSource_) {
+    printf("ecmcAxisSequencer::execute(): Temporary Local source %d\n",temporaryLocalTrajSource_);
+  }
+
+  temporaryLocalTrajSourceOld_ = temporaryLocalTrajSource_;
+
   pvtStopping_ = traj_->getBusy() && pvtStopping_;
 
   // PVT
@@ -3522,7 +3531,9 @@ void ecmcAxisSequencer::initStop() {
   if(data_->command_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::initStopPVT(): Initiating new stopramp...\n");
   }
-  temporaryLocalTrajSource_ = 1;
+ 
+  temporaryLocalTrajSource_ = true;
+
   traj_->setStartPos(data_->status_.currentPositionActual);
   traj_->setCurrentPosSet(data_->status_.currentPositionActual);
   traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
