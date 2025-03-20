@@ -1,5 +1,9 @@
 Release Notes
 ===
+# ECMC 10.0.4
+* Add support for debian 12 (in wrapper makefile)
+* Jump to version 10.0.4 to match ecmccfg
+
 # ECMC 10.0.1
 * Always load PLC fileIO lib (also includes vector support)
 * Fix limit interlocks for axes in external trajectory source (slaved)
