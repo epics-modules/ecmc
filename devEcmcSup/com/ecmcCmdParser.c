@@ -3465,9 +3465,9 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   int nvals         = 0;
   double dValue1, dValue2, dValue3, dValue4;
 
-  if (buffer->buffer == NULL) {
-    return ERROR_MAIN_PARSER_BUFFER_NULL;
-  }
+  //if (buffer->buffer == NULL) {
+  //  return ERROR_MAIN_PARSER_BUFFER_NULL;
+  //}
 
   if (!ecmcInitDone) {
     ecmcInitThread();
