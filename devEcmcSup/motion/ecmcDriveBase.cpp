@@ -322,7 +322,7 @@ void ecmcDriveBase::writeEntries() {
   }
 
   if (enableReduceTorque_) {
-    reduceTorqueOutputCmd_    = data_->status_.atTarget;
+    reduceTorqueOutputCmd_    = data_->status_.ctrlWinthinDeadband && !data_->status_.busy;
     reduceTorqueOutputCmdOld_ = reduceTorqueOutputCmd_;
     errorCode                 = writeEcEntryValue(
       ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,
