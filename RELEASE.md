@@ -1,7 +1,33 @@
 Release Notes
 ===
 # ECMC 10.1.0_RC1
+* Change moving flag to only be high when busy
+##  Support to override limit and home switch from plc code.
+If multiple limits switches is needed or some logic expression then the limits can be calculated in plc code. These commands were added to override the EtherCAT entries for the limits:
 
+```
+Cfg.SetAxisLimitSwitchBwdPLCOverride(int axis_no, int value);
+Cfg.SetAxisLimitSwitchFwdPLCOverride(int axis_no, int value);
+Cfg.SetAxisHomeSwitchPLCOverride(int axis_no, int value);
+```
+Note: Overridden limit switches must be set from plc code.
+
+In ecmccfg teh commands have been linked to the yaml configuration by using the 'plcOverride' keyword:
+```
+...
+input:
+  limit:
+    forward: 'plcOverride'                            # Overridden, see plc code below
+    backward: 'plcOverride'                           # Overridden, see plc code below
+...
+plc:
+  enable: true                                        # Enable axis plc
+  externalCommands: true                              # Allow axis to inputs from PLC  
+  code:                                               # Sync code (appended after code in plc.file)
+    - ax${AX_ID=1}.mon.lowlim:=ec_chk_bit(ec0.s$(DRV_SID).binaryInputs01,0) and ec_chk_bit(ec0.s$(DRV_SID).ONE,0);
+    - ax${AX_ID=1}.mon.highlim:=ec_chk_bit(ec0.s$(DRV_SID).binaryInputs01,1) and ec_chk_bit(ec0.s$(DRV_SID).ONE,1);
+  ..
+```
 ## Add support for dual position control loop in CSP mode (in ecmc called CSP_PC)
 
 ### Description of use-case:

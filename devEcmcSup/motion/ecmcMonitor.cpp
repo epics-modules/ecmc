@@ -91,6 +91,13 @@ void ecmcMonitor::initVars() {
   analogRawLimit_            = 0;
   enableAnalogInterlock_     = 0;
   analogPolarity_            = ECMC_POLARITY_NC; // Higher value than analogRawLimit_ is bad
+  limitSwitchFwdPLCOverride_ = false;
+  limitSwitchBwdPLCOverride_ = false;
+  limitSwitchFwdPLCOverrideValue_ = false;
+  limitSwitchBwdPLCOverrideValue_ = false;
+  homeSwitchPLCOverride_          = false;
+  homeSwitchPLCOverrideValue_     = false;
+  enableHomeSensor_               = false;
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -283,65 +290,79 @@ bool ecmcMonitor::getHomeSwitch() {
 
 void ecmcMonitor::readEntries() {
   uint64_t tempRaw = 0;
-
+  int errorCode = 0;
   // Hard limit BWD
-  int errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM, &tempRaw);
+  if(!limitSwitchBwdPLCOverride_) {
+    errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM, &tempRaw);
+  
+    if (errorCode) {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 errorCode,
+                 ECMC_SEVERITY_EMERGENCY);
+      return;
+    }
+  
+    if (lowLimPolarity_ == ECMC_POLARITY_NO) {
+      tempRaw = tempRaw == 0;
+    }
+  
+    data_->status_.limitBwd = tempRaw > 0;
 
-  if (errorCode) {
-    setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               errorCode,
-               ECMC_SEVERITY_EMERGENCY);
-    return;
+  } else {
+    // Override limit switch from PLC code (when logic is needed)
+    data_->status_.limitBwd = limitSwitchBwdPLCOverrideValue_;
   }
-
-  if (lowLimPolarity_ == ECMC_POLARITY_NO) {
-    tempRaw = tempRaw == 0;
-  }
-
-  data_->status_.limitBwd = tempRaw > 0;
-
 
   // Hard limit FWD
   tempRaw = 0;
+  if(!limitSwitchFwdPLCOverride_) {
+    errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HIGHLIM, &tempRaw);
+  
+    if (errorCode) {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 errorCode,
+                 ECMC_SEVERITY_NORMAL);
+      return;
+    }
+  
+    if (highLimPolarity_ == ECMC_POLARITY_NO) {
+      tempRaw = tempRaw == 0;
+    }
+  
+    data_->status_.limitFwd = tempRaw > 0;
 
-  errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HIGHLIM, &tempRaw);
-
-  if (errorCode) {
-    setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               errorCode,
-               ECMC_SEVERITY_NORMAL);
-    return;
+  } else {
+      // Override limit switch from PLC code (when logic is needed)
+      data_->status_.limitFwd = limitSwitchFwdPLCOverrideValue_;
   }
-
-  if (highLimPolarity_ == ECMC_POLARITY_NO) {
-    tempRaw = tempRaw == 0;
-  }
-
-  data_->status_.limitFwd = tempRaw > 0;
 
   // Home
   tempRaw = 0;
-
-  errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR, &tempRaw);
-
-  if (errorCode) {
-    setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               errorCode,
-               ECMC_SEVERITY_NORMAL);
-    return;
+  if(!homeSwitchPLCOverride_ && enableHomeSensor_) {
+    errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR, &tempRaw);
+  
+    if (errorCode) {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 errorCode,
+                 ECMC_SEVERITY_NORMAL);
+      return;
+    }
+  
+    if (homePolarity_ == ECMC_POLARITY_NO) {
+      tempRaw = tempRaw == 0;
+    }
+  
+    data_->status_.homeSwitch = tempRaw > 0;
+  } else {
+    // Override limit switch from PLC code (when logic is needed)
+    data_->status_.homeSwitch = homeSwitchPLCOverrideValue_;
   }
-
-  if (homePolarity_ == ECMC_POLARITY_NO) {
-    tempRaw = tempRaw == 0;
-  }
-
-  data_->status_.homeSwitch = tempRaw > 0;
 
   // Refresh filtered switches
   filterSwitches();
@@ -404,37 +425,44 @@ bool ecmcMonitor::getEnable() {
 }
 
 int ecmcMonitor::validate() {
-  int error = validateEntryBit(ECMC_MON_ENTRY_INDEX_LOWLIM);
-
-  if (error) {  // Hard limit BWD
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_MON_ENTRY_HARD_BWD_NULL);
+  int errorCode = 0;
+  if(!limitSwitchBwdPLCOverride_) {
+    errorCode = validateEntryBit(ECMC_MON_ENTRY_INDEX_LOWLIM);
+  
+    if (errorCode) {  // Hard limit BWD
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_MON_ENTRY_HARD_BWD_NULL);
+    }
   }
 
-  error = validateEntryBit(ECMC_MON_ENTRY_INDEX_HIGHLIM);
-
-  if (error) {  // Hard limit FWD
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_MON_ENTRY_HARD_FWD_NULL);
+  if(!limitSwitchFwdPLCOverride_) {
+    errorCode = validateEntryBit(ECMC_MON_ENTRY_INDEX_HIGHLIM);
+  
+    if (errorCode) {  // Hard limit FWD
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_MON_ENTRY_HARD_FWD_NULL);
+    }
   }
 
-  error = validateEntryBit(ECMC_MON_ENTRY_INDEX_HOMESENSOR);
-
-  if (error) {  // Home
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_MON_ENTRY_HOME_NULL);
+  if(!homeSwitchPLCOverride_ && enableHomeSensor_) {
+    errorCode = validateEntryBit(ECMC_MON_ENTRY_INDEX_HOMESENSOR);
+  
+    if (errorCode) {  // Home
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_MON_ENTRY_HOME_NULL);
+    }
   }
 
   if (enableHardwareInterlock_) {
-    error = validateEntryBit(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK);
+    errorCode = validateEntryBit(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK);
 
-    if (error) {  // External interlock
+    if (errorCode) {  // External interlock
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -443,9 +471,9 @@ int ecmcMonitor::validate() {
   }
 
   if (enableAnalogInterlock_) {
-    error = validateEntry(ECMC_MON_ENTRY_INDEX_ANALOG);
+    errorCode = validateEntry(ECMC_MON_ENTRY_INDEX_ANALOG);
 
-    if (error) {  // Analog interlock
+    if (errorCode) {  // Analog interlock
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -528,6 +556,22 @@ int ecmcMonitor::setEnableHardwareInterlock(bool enable) {
   }
 
   enableHardwareInterlock_ = enable;
+  return 0;
+}
+
+int ecmcMonitor::setHomeSwitchEnable(bool enable) {
+  if (enable) {
+    int error = validateEntryBit(ECMC_MON_ENTRY_INDEX_HOMESENSOR);
+
+    if (error) {
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_MON_ENTRY_HOME_NULL);
+    }
+  }
+
+  enableHomeSensor_ = enable;
   return 0;
 }
 
@@ -1282,4 +1326,31 @@ bool ecmcMonitor::getEnableStallMon() {
 
 void  ecmcMonitor::setStallMinTimeOut(double timeCycles) {
   stallMinTimeoutCycles_ = timeCycles;
+}
+
+int ecmcMonitor::setLimitSwitchFwdPLCOverride(bool overrideSwitch) {
+  limitSwitchFwdPLCOverride_ = overrideSwitch;
+  return 0;
+}
+
+int ecmcMonitor::setLimitSwitchBwdPLCOverride(bool overrideSwitch) {
+  limitSwitchBwdPLCOverride_ = overrideSwitch;
+  return 0;
+}
+
+void ecmcMonitor::setLimitSwitchFwdPLCOverrideValue(bool switchValue) {
+  limitSwitchFwdPLCOverrideValue_ = switchValue;
+}
+
+void ecmcMonitor::setLimitSwitchBwdPLCOverrideValue(bool switchValue) {
+  limitSwitchBwdPLCOverrideValue_ = switchValue;
+}
+
+int ecmcMonitor::setHomeSwitchPLCOverride(bool overrideSwitch) {
+  homeSwitchPLCOverride_ = overrideSwitch;
+  return 0;
+}
+
+void ecmcMonitor::setHomeSwitchPLCOverrideValue(bool switchValue) {
+  homeSwitchPLCOverrideValue_ = switchValue;
 }

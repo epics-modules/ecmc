@@ -2284,6 +2284,66 @@ int setAxisEnableCheckEncsDiff(int axisIndex, int enable) {
   return axes[axisIndex]->getMon()->setEnableCheckEncsDiff(enable);
 }
 
+int setAxisLimitSwitchBwdPLCOverride(int axisIndex,
+                                     int overrideSwitch) {
+  LOGINFO4("%s/%s:%d axisIndex=%d overrideSwitch=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,
+    overrideSwitch);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setLimitSwitchBwdPLCOverride(overrideSwitch);
+}
+
+int setAxisLimitSwitchFwdPLCOverride(int axisIndex,
+                                     int overrideSwitch) {
+  LOGINFO4("%s/%s:%d axisIndex=%d overrideSwitch=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,
+    overrideSwitch);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  
+  return axes[axisIndex]->getMon()->setLimitSwitchFwdPLCOverride(overrideSwitch);
+}
+
+int setAxisHomeSwitchPLCOverride(int axisIndex,
+                                 int overrideSwitch) {
+  LOGINFO4("%s/%s:%d axisIndex=%d overrideSwitch=%d\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    axisIndex,
+    overrideSwitch);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  
+  return axes[axisIndex]->getMon()->setHomeSwitchPLCOverride(overrideSwitch);
+}
+
+int setAxisHomeSwitchEnable(int axisIndex,
+                            int enable) {
+LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+__FILE__,
+__FUNCTION__,
+__LINE__,
+axisIndex,
+enable);
+
+CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+return axes[axisIndex]->getMon()->setHomeSwitchEnable(enable);
+}
+
 int getAxisMonAtTargetTime(int axisIndex, int *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
@@ -2667,6 +2727,20 @@ int setAxisMonEnableExternalInterlock(int axisIndex, int value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setEnableHardwareInterlock(value);
+}
+
+int setAxisMonHomeSwitchEnable(int axisIndex, int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setHomeSwitchEnable(value);
 }
 
 int setAxisMonEnableAnalogInterlock(int axisIndex, int value) {
@@ -3158,8 +3232,13 @@ int linkEcEntryToAxisMon(int   slaveIndex,
     return errorCode;
   }
 
+  // Auto enable fucntionalities
   if (monitorEntryIndex == ECMC_MON_ENTRY_INDEX_EXTINTERLOCK) {
     return setAxisMonEnableExternalInterlock(axisIndex, 1);
+  }
+
+  if (monitorEntryIndex == ECMC_MON_ENTRY_INDEX_HOMESENSOR) {
+    return setAxisMonHomeSwitchEnable(axisIndex, 1);
   }
 
   return 0;

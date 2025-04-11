@@ -155,6 +155,13 @@ public:
   void               setStallTimeFactor(double timeFactor);
   bool               getEnableStallMon();
   double             getStallTimeFactor();
+  int                setLimitSwitchFwdPLCOverride(bool overrideSwitch);
+  int                setLimitSwitchBwdPLCOverride(bool overrideSwitch);
+  int                setHomeSwitchPLCOverride(bool overrideSwitch);
+  void               setLimitSwitchFwdPLCOverrideValue(bool switchValue);
+  void               setLimitSwitchBwdPLCOverrideValue(bool switchValue);
+  void               setHomeSwitchPLCOverrideValue(bool switchValue);
+  int                setHomeSwitchEnable(bool enable);
 
 private:
   int                checkLimits();
@@ -234,6 +241,13 @@ private:
   uint64_t stallLastMotionCmdCycles_;
   uint64_t stallCheckAtTargetAtCycle_;
   double stallMinTimeoutCycles_;
+  bool limitSwitchFwdPLCOverride_;
+  bool limitSwitchBwdPLCOverride_;
+  bool limitSwitchFwdPLCOverrideValue_;
+  bool limitSwitchBwdPLCOverrideValue_;
+  bool homeSwitchPLCOverride_;
+  bool homeSwitchPLCOverrideValue_;
+  bool enableHomeSensor_;
 };
 
 #endif  // ifndef MOTIONMONITOR_H

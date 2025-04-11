@@ -780,16 +780,19 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_LIMIT_BWD:
+    axis_->getMon()->setLimitSwitchBwdPLCOverrideValue(data_>0);
     return 0;
 
     break;
 
   case ECMC_AXIS_DATA_LIMIT_FWD:
-    return 0;
+    axis_->getMon()->setLimitSwitchFwdPLCOverrideValue(data_>0);
+  return 0;
 
     break;
 
   case ECMC_AXIS_DATA_HOME_SWITCH:
+    axis_->getMon()->setHomeSwitchPLCOverrideValue(data_>0);
     return 0;
 
     break;

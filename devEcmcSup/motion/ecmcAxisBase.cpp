@@ -306,8 +306,8 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   }
   data_.refreshInterlocks();
 
-  data_.status_.moving = std::abs(
-    data_.status_.currentVelocityActual) > 0 || getTraj()->getBusy();
+  data_.status_.moving = data_.status_.busy && std::abs(
+    data_.status_.currentVelocityActual) > 0; /*|| getTraj()->getBusy();*/
 
   for (int i = 0; i < data_.status_.encoderCount; i++) {
     if (encArray_[i] == NULL) {

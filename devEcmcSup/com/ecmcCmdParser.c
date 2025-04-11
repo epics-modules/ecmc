@@ -2191,6 +2191,34 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisMonLatchLimit(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisLimitSwitchBwdPLCOverride(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisLimitSwitchBwdPLCOverride(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisLimitSwitchBwdPLCOverride(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisLimitSwitchFwdPLCOverride(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisLimitSwitchFwdPLCOverride(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisLimitSwitchFwdPLCOverride(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisHomeSwitchPLCOverride(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisHomeSwitchPLCOverride(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisHomeSwitchPLCOverride(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisHomeSwitchEnable(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisHomeSwitchEnable(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisHomeSwitchEnable(iValue, iValue2);
+  }
+  
   /*int Cfg.SetAxisDrvScaleNum(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisDrvScaleNum(%d,%lf)", &iValue, &dValue);
 

@@ -2527,6 +2527,70 @@ int setAxisMonAtTargetTol(int    axisIndex,
 int setAxisEnableCheckEncsDiff(int axisIndex,
                                int enable);
 
+/** \brief Override bwd limit switch with PLC code\n
+ *
+ *   If overridden then the limit switch does not need to be linked\n
+ *   instead the switch value must be set in plc code\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] override set to 1 for override\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Override bwd limit for axis 7 with PLC code.\n
+ * "Cfg.SetAxisLimitSwitchBwdPLCOverride(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisLimitSwitchBwdPLCOverride(int axisIndex,
+                                     int overrideSwitch);
+
+/** \brief Override fwd limit switch with PLC code\n
+ *
+ *   If overridden then the limit switch does not need to be linked\n
+ *   instead the switch value must be set in plc code\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] override set to 1 for override\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Override fwd limit for axis 7 with PLC code.\n
+ * "Cfg.SetAxisLimitSwitchFwdPLCOverride(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisLimitSwitchFwdPLCOverride(int axisIndex,
+                                     int overrideSwitch);
+
+/** \brief Override home switch with PLC code\n
+ *
+ *   If overridden then the home switch does not need to be linked\n
+ *   instead the switch value must be set in plc code\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] override set to 1 for override\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Override home switch for axis 7 with PLC code.\n
+ * "Cfg.SetAxisHomeSwitchPLCOverride(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisHomeSwitchPLCOverride(int axisIndex,
+                                 int overrideSwitch);
+
+/** \brief Enable use of home sensor
+ *
+ *   Enable use of home sensor\n
+ *   Will be automatically enabled if an etehrcat entry is linked\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enableset to 1 to enable\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable home switch for axis 7\n
+ * "Cfg.SetAxisHomeSwitchEnable(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisHomeSwitchEnable(int axisIndex,
+                            int enable);
+
 /** \brief Enable stall monitoring.\n
  *   
  *  An axis is considered stalled if it not reaches attarget\n
