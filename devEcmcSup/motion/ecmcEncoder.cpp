@@ -145,6 +145,7 @@ void ecmcEncoder::initVars() {
   lookupTable_            = NULL;
   lookupTableRange_       = 0;
   enableDelayTime_        = false;
+  lookupTableScale_       = 1;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -463,12 +464,12 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   if(lookupTableEnable_ && homed_ ){
     if(lookupTableRange_ > 0) {  // if range is defined then use it
       if(actPosLocal_>= 0) {
-        actPosLocal_ = actPosLocal_ - lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_));
+        actPosLocal_ = actPosLocal_ - lookupTableScale_ * lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_));
       } else {
-        actPosLocal_ = actPosLocal_ - lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_) + lookupTableRange_);
+        actPosLocal_ = actPosLocal_ - lookupTableScale_ * lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_) + lookupTableRange_);
       }
     } else {
-      actPosLocal_ = actPosLocal_ - lookupTable_->getValue(actPosLocal_);
+      actPosLocal_ = actPosLocal_ - lookupTableScale_ * lookupTable_->getValue(actPosLocal_);
     }
   }
 
@@ -1495,4 +1496,8 @@ int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
   delayTimeS_      = cycles * sampleTimeMs_ / 1000;
   enableDelayTime_ = enable;
   return 0;
+}
+
+int ecmcEncoder::setLookupTableScale(double scale) {
+
 }

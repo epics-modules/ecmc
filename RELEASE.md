@@ -1,5 +1,8 @@
 Release Notes
 ===
+# ECMC 10.0.9
+* Add scale factor for encoder LUTs
+
 # ECMC 10.0.4
 * Add support for debian 12 (in wrapper makefile)
 * Jump to version 10.0.4 to match ecmccfg

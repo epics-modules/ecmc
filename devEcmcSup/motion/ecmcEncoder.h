@@ -169,6 +169,7 @@ public:
   // Enable use of lookup table
   int                   setLookupTableEnable(bool enable);
   int                   setLookupTableRange(double range);
+  int                   setLookupTableScale(double scale);
   int                   setDelayCyclesAndEnable(double cycles, bool enable); 
 
 protected:
@@ -284,6 +285,7 @@ protected:
   bool lookupTableEnable_;
   ecmcLookupTable<double, double>  *lookupTable_; 
   double lookupTableRange_;
+  double lookupTableScale_;
   
   double delayTimeS_; // Compensate for delay between setpoint and actual value (should default to 2 cycles)
   bool enableDelayTime_;
