@@ -1499,5 +1499,6 @@ int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
 }
 
 int ecmcEncoder::setLookupTableScale(double scale) {
-
+  lookupTableScale_ = scale;
+  return 0;
 }
