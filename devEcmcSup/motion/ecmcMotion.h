@@ -1748,6 +1748,18 @@ int setAxisPLCEncVelFilterSize(int axisIndex,
 int setAxisEncVelFilterSize(int axisIndex,
                             int size);
 
+/** \brief Enables/disables encoder velocity filter.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable     Enable/disable (default disabled).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable filter for axis 7.\n
+ * "Cfg.SetAxisEncVelFilterEnable(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncVelFilterEnable(int axisIndex,
+                              int enable);
 
 /** \brief Set size of encoder position filter.\n
  *

@@ -268,6 +268,7 @@ public:
   int                        setExtTrajVeloFiltSize(size_t size);
   int                        setExtEncVeloFiltSize(size_t size);
   int                        setEncVeloFiltSize(size_t size);
+  int                        setEncVeloFiltEnable(bool enable);
   int                        setEncPosFiltSize(size_t size);
   int                        setEncPosFiltEnable(bool enable);
   int                        setDisableAxisAtErrorReset(bool disable);

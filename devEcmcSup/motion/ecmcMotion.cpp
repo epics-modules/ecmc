@@ -1268,6 +1268,18 @@ int setAxisEncVelFilterSize(int axisIndex,
   return axes[axisIndex]->setEncVeloFiltSize(size);
 }
 
+int setAxisEncVelFilterEnable(int axisIndex,
+                              int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  return axes[axisIndex]->setEncVeloFiltEnable(enable);
+}
+
 int setAxisEncPosFilterSize(int axisIndex,
                             int size) {
   LOGINFO4("%s/%s:%d axisIndex=%d size=%d\n",

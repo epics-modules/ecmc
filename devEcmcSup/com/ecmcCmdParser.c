@@ -2573,6 +2573,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncVelFilterSize(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEncVelFilterEnable(int axis_no, int size);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncVelFilterEnable(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncVelFilterEnable(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisEncPosFilterSize(int axis_no, int size);*/
   nvals = sscanf(myarg_1,
                  "SetAxisEncPosFilterSize(%d,%d)",

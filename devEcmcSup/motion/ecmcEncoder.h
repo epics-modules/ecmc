@@ -128,6 +128,7 @@ public:
   double                getLatchPosEng();
   ecmcOverUnderFlowType getOverUnderflow();
   int                   setVeloFilterSize(size_t size);
+  int                   setVelFilterEnable(bool enable);
   int                   setPosFilterSize(size_t size);
   int                   setPosFilterEnable(bool enable);
 
@@ -232,6 +233,7 @@ protected:
   bool encLatchControl_;
   double actEncLatchPos_;
   bool enablePositionFilter_;
+  bool enableVelocityFilter_;
   uint64_t hwReset_;
   uint64_t hwErrorAlarm0_;
   uint64_t hwErrorAlarm0Old_;

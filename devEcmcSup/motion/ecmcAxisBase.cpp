@@ -1748,6 +1748,10 @@ int ecmcAxisBase::setEncPosFiltEnable(bool enable) {
   return encArray_[data_.command_.primaryEncIndex]->setPosFilterEnable(enable);
 }
 
+int ecmcAxisBase::setEncVeloFiltEnable(bool enable) {
+  return encArray_[data_.command_.primaryEncIndex]->setVelFilterEnable(enable);
+}
+
 int ecmcAxisBase::setEncInvHwReady(int invert) {
   return encArray_[data_.command_.cfgEncIndex]->setInvHwReady(invert);
 }

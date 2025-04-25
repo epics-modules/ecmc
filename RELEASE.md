@@ -1,5 +1,8 @@
 Release Notes
 ===
+# ECMC 10.0.10
+* Add possibility do enable/disable encoder velocity filter with "Cfg.SetAxisEncVelFilterEnable(<axis_id>, <enable>)"
+
 # ECMC 10.0.9
 * Add scale factor for encoder LUTs
 
