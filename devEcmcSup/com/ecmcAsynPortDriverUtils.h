@@ -156,6 +156,16 @@ int getAxMainFuncType(char *objPath,
 int getEcMainFuncType(char *objPath,
                       int  *objectFunction);
 
+/** \brief Parse PVT object function type from string.\n
+ *
+ * \param[in] objPath variable name.\n
+ * \param[out] objectFunction Object Function.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ */
+int getPVTCtrlFuncType(char *objPath,
+                       int  *objectFunction);
+  
 /*typedef enum {
     asynParamNotDefined,
     asynParamInt32,

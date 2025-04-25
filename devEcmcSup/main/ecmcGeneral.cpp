@@ -80,6 +80,13 @@ int getControllerError() {
     }
   }
 
+  // PVT motion
+  if(pvtCtrl_) {
+    if (pvtCtrl_->getError()) {
+      return pvtCtrl_->getErrorID();
+    }
+  }
+
   // Plugin objects
   for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
     if (plugins[i]) {
@@ -137,6 +144,11 @@ int controllerErrorReset() {
     if (axes[i] != NULL) {
       axes[i]->errorReset();
     }
+  }
+
+  // PVT motion
+  if(pvtCtrl_) {
+    pvtCtrl_->errorReset();
   }
 
   // Plugin objects
@@ -347,7 +359,25 @@ int linkEcEntryToObject(char *ecPath, char *objPath) {
     return ERROR_MAIN_ECMC_LINK_INVALID;
 
     break;
+  
+  case ECMC_OBJ_PVT:
+    
+    errorCode = getPVTCtrlFuncType(objPath, &objFunctionId);
+    if (errorCode) {
+      return errorCode;
+    }
+
+    if (objFunctionId == ECMC_EC_ENTRY_INDEX_HEALTH) {
+      return linkEcEntryToPVTController(slaveIndex,
+                                        alias,
+                                        objFunctionId,
+                                        bitIndex);
+    }
+    break;
+
   }
+
+
 
   return ERROR_MAIN_ECMC_LINK_INVALID;
 }

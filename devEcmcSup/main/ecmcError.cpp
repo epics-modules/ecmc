@@ -1045,6 +1045,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x14D1E:
+    return "ERROR_SEQ_PVT_ERROR";
+
+    break;
+
   case 0x14E00:    // TRAJECTORY
     return "ERROR_TRAJ_EXT_ENC_NULL";
 
@@ -2286,8 +2291,13 @@ case 0x16001:
 
     break;
 
-  case 0x2005F:
+  case 0x2005E:
     return "ERROR_LUT_LOAD_ERROR";
+
+    break;
+
+  case 0x2005F:
+    return "ERROR_PVT_CTRL_NULL";
 
     break;
 
@@ -2804,6 +2814,16 @@ case 0x16001:
 
     break;
 
+  // PVT controller
+  case 0x242000:
+    return "ERROR_PVT_CTRL_AXIS_COUNT_ZERO";
+
+    break;
+
+    case 0x242002:
+    return "ERROR_PVT_CTRL_TRIGG_CFG_INVALID";
+
+    break;
   }
 
   return "NO_MESSAGE_STRING_DEFINED_FOR_ERROR_ID";

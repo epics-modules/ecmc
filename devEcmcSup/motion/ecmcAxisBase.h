@@ -193,6 +193,7 @@ public:
   void                       preExecute(bool masterOK);
   void                       postExecute(bool masterOK);
   int                        setExecute(bool execute);
+  int                        setExecute(bool execute, bool ignoreBusy);
   bool                       getExecute();
   int                        getAxisHomed(bool *homed);
   int                        setAxisHomed(bool homed);
@@ -209,6 +210,7 @@ public:
   motionCommandTypes         getCommand();
   int                        getCmdData();
   int                        slowExecute();
+  int                        setGlobalBusy(bool busy);  // Allow for sequences
   ecmcTrajectoryBase*        getTraj();
   ecmcMonitor*               getMon();
   ecmcEncoder*               getEnc();
@@ -246,6 +248,7 @@ public:
   int                        setEnableLocal(bool enable);
   int                        validateBase();
   bool                       getBusy();
+  bool                       getTrajBusy();
   int                        getBlockExtCom();
   int                        setBlockExtCom(int block);
   int                        getDebugInfoData(ecmcAxisStatusType *data);
@@ -279,6 +282,7 @@ public:
                                                   double velocitySet,
                                                   double accelerationSet,
                                                   double decelerationSet);
+  int                        moveAbsolutePosition(double positionSet);
   int moveRelativePosition(double positionSet,
                            double velocitySet,
                            double accelerationSet,
@@ -292,8 +296,10 @@ public:
                double velocityOffCamSet,
                double accelerationSet,
                double decelerationSet);
-  int movePVTRel();
-  int movePVTAbs();
+  //int movePVTRel();
+  int        movePVTAbs();
+  int        movePVTAbs(bool ignoreBusy);  // Ignores busy (for triggering from PVT controller)
+
   int        moveHome(); // Use configs from encoder object
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);
@@ -353,6 +359,8 @@ public:
   void       setMRCnen(bool cnen);    // CNEN motor record
   int        getSumInterlock();
   int        getPrintDbg();
+  ecmcAxisPVTSequence* getPVTObject();
+  double     getCurrentPositionSetpoint();
 
 protected:
   void       initVars();
@@ -414,6 +422,7 @@ protected:
   // Commads to trigger MR record actions like SYNC and STOP from ecmc over PVs
   ecmcMRCmds mrCmds_;
   ecmcMRCmds mrCmdsOld_;
+  bool globalBusy_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

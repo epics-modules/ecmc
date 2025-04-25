@@ -74,6 +74,9 @@
 // EC entry links
 #define ECMC_EC_ENTRY_INDEX_HEALTH 0
 
+// PVT controller links 
+#define ECMC_PVT_EC_ENTRY_INDEX_TRIGGER_OUTPUT 0
+
 // Axis entry links
 #define ECMC_AXIS_ENTRY_INDEX_HEALTH 0
 #define ECMC_AXIS_ENTRY_MODE_SET 1
@@ -275,7 +278,6 @@ enum motionCommandTypes {
   ECMC_CMD_MOVEREL    = 2,
   ECMC_CMD_MOVEABS    = 3,
   ECMC_CMD_MOVEMODULO = 4,            // not used
-  ECMC_CMD_MOVEPVTREL = 8,
   ECMC_CMD_MOVEPVTABS = 9,
   ECMC_CMD_HOMING     = 10,
   ECMC_CMD_SUPERIMP   = 20,           // not used
@@ -377,7 +379,8 @@ enum mainObjectType {
   ECMC_OBJ_EC      = 2,
   ECMC_OBJ_DS      = 3,
   ECMC_OBJ_MAIN    = 4,
-  ECMC_OBJ_THREAD  = 5
+  ECMC_OBJ_THREAD  = 5,
+  ECMC_OBJ_PVT     = 6,
 };
 
 // Object types
@@ -396,6 +399,7 @@ enum axisSubObjectType {
 
 #define ECMC_MAIN_STR "main"
 #define ECMC_THREAD_STR "thread"
+#define ECMC_PVTCTRL_STR "pvtctrl"
 
 #define ECMC_AX_PATH_BUFFER_SIZE 256
 #define ECMC_EC_PATH_BUFFER_SIZE 256
@@ -428,6 +432,7 @@ enum axisSubObjectType {
 #define ECMC_SLAVE_CHAR "s"
 #define ECMC_DUMMY_SLAVE_STR "ds"
 #define ECMC_EC_HEALTH_STR "health"
+#define ECMC_PVT_EC_TRIGGER_OUTPUT_STR "trigger.output"
 #define ECMC_AX_STR "ax"
 #define ECMC_AX_HEALTH_STR "health"
 #define ECMC_AX_MODE_SET_STR "automodeset"

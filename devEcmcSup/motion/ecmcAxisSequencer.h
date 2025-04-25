@@ -52,6 +52,8 @@
 #define ERROR_SEQ_HOME_NOT_ALLOWED 0x14D1A
 #define ERROR_SEQ_PVT_OBJECT_BUSY 0x14D1B
 #define ERROR_SEQ_PVT_OBJECT_NULL 0x14D1C
+//#define ERROR_SEQ_PVT_CFG_INVALID 0x14D1D in PVT seq..
+#define ERROR_SEQ_PVT_ERROR 0x14D1E
 
 
 // SEQUENCER WARNINGS
@@ -97,6 +99,7 @@ public:
   void                 setAcc(double acc);
   void                 setDec(double dec);
   int                  setPVTObject(ecmcAxisPVTSequence* pvt);
+  ecmcAxisPVTSequence* getPVTObject();
   int                  validatePVT();
 
   // Home on hardware latch (index or external)
@@ -205,7 +208,7 @@ private:
   ecmcPIDController *cntrl_;
   ecmcDriveBase *drv_;
   ecmcAxisData *data_;
-  ecmcAxisPVTSequence * pvt_;
+  ecmcAxisPVTSequence *pvt_;
   uint64_t oldencRawAbsPosReg_;
   uint64_t encRawAbsPosReg_;
   ecmcOverUnderFlowType overUnderFlowLatch_;

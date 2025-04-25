@@ -4,6 +4,7 @@ Release Notes
 * Change moving flag to only be high when busy
 ##  Support to override limit and home switch from plc code.
 If multiple limits switches is needed or some logic expression then the limits can be calculated in plc code. These commands were added to override the EtherCAT entries for the limits:
+* PLCs: Always load FileIO lib and Vector lib
 
 ```
 Cfg.SetAxisLimitSwitchBwdPLCOverride(int axis_no, int value);
@@ -28,6 +29,24 @@ plc:
     - ax${AX_ID=1}.mon.highlim:=ec_chk_bit(ec0.s$(DRV_SID).binaryInputs01,1) and ec_chk_bit(ec0.s$(DRV_SID).ONE,1);
   ..
 ```
+
+## PVT
+* Buggfix: Now the first and last points (for acc and dec)
+are calculated based on the direction of motion for the nearby point.
+* Add auto enable for axes (TODO, move code to axes object so that also normal ecmc axis can benefit).
+
+### Triggering
+Added support for profile move triggers as "defined" in the profileMove extension to motor record.
+Two new commands added:
+```
+ecmcConfigOrDie "Cfg.LinkEcEntryToObject(<ethercat entry>,pvtctrl.trigger.output)"
+ecmcConfigOrDie "Cfg.SetPVTControllerTrgDurMs(<trigger_duration_ms>)"
+```
+The commands are wrapped in the ecmccfg command pvtControllerConfig.cmd;
+```
+${SCRIPTEXEC} ${ecmccfg_DIR}pvtControllerConfig.cmd  "TRG_EC_ENTRY=ec0.s$(ECMC_EC_SLAVE_NUM).ONE.31, TRG_DUR_S=0.15"
+```
+
 ## Add support for dual position control loop in CSP mode (in ecmc called CSP_PC)
 
 ### Description of use-case:

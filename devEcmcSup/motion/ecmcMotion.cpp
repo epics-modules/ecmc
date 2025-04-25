@@ -212,6 +212,19 @@ int getAxisCycleCounter(int axisIndex, int *counter) {
   return 0;
 }
 
+int setPVTControllerTrgDurMs(double durationMs) {
+
+  LOGINFO4("%s/%s:%d duration=%lf\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    durationMs);
+
+    if(!pvtCtrl_) return ERROR_PVT_CTRL_NULL;
+
+  return pvtCtrl_->setTriggerDuration(durationMs/1000);
+}
+
 int setAxisExecute(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -3302,6 +3315,42 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
 
   return axes[axisIndex]->setEcStatusOutputEntry(entry);
+}
+
+int linkEcEntryToPVTController(int   slaveIndex,
+                               char *entryIDString,
+                               int   entryIndex,
+                               int   bitIndex) {
+  LOGINFO4("%s/%s:%d slave_index=%d entry=%s, entryIndex=%d, bitIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slaveIndex,
+           entryIDString,
+           entryIndex,
+           bitIndex);
+
+  if (!ec) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  if(!pvtCtrl_) return ERROR_PVT_CTRL_NULL;
+
+  ecmcEcSlave *slave = NULL;
+
+  if (slaveIndex >= 0) {
+    slave = ec->findSlave(slaveIndex);
+  } else {
+    slave = ec->getSlave(slaveIndex);
+  }
+
+  if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
+
+  std::string sEntryID = entryIDString;
+
+  ecmcEcEntry *entry = slave->findEntry(sEntryID);
+
+  if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
+
+  return pvtCtrl_->setEcEntry(entry, entryIndex, bitIndex);
 }
 
 int linkEcEntryToAxisSeqAutoModeSet(int   slaveIndex,

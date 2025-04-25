@@ -88,7 +88,7 @@ void ecmcAxisSequencer::init(double sampleTime) {
 void ecmcAxisSequencer::execute() {
 
   pvtmode_ = pvtOk_ && 
-      (data_->command_.command == ECMC_CMD_MOVEPVTREL ||
+      (/*data_->command_.command == ECMC_CMD_MOVEPVTREL ||*/
        data_->command_.command == ECMC_CMD_MOVEPVTABS);
 
   // Trajectory (External or internal)
@@ -137,7 +137,7 @@ void ecmcAxisSequencer::execute() {
       data_->status_.currentPositionSetpoint <
       data_->status_.currentPositionSetpointOld));
   
-  // If internal source and not PVT-mode then interlocks are handled in trajetory generator
+  // If internal source and not PVT-mode then interlocks are handled in trajectory generator
   // TODO Would be nice to change this design..
   trajLock_ = trajLock_ && (data_->command_.trajSource != ECMC_DATA_SOURCE_INTERNAL || pvtmode_);
   newTrajLockEdge_ = trajLock_ && !trajLockOld_; // && data_->command_.execute && executeOld_;
@@ -640,38 +640,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
     break;
 
-  case ECMC_CMD_MOVEPVTREL:
-    if(data_->command_.enableDbgPrintout) {
-      printf("RUNNING PVT REL execute %d\n",data_->command_.execute);
-    }
-    if (data_->command_.execute && !executeOld_) {
-      
-      errorCode = validatePVT();
-      if(errorCode) {
-        return errorCode;
-      }
-
-      // Set offset since realtive mode
-      pvt_->setPositionOffset(data_->status_.currentPositionSetpoint);
-      pvt_->setExecute(0);
-      errorCode = pvt_->setExecute(1);
-      if (errorCode) {
-        return errorCode;
-      }
-      // needed since this is evaluated in trajectoy which is not in use
-      data_->interlocks_.noExecuteInterlock = false;
-    } else if(!data_->command_.execute){
-      if(pvt_) {
-        errorCode = pvt_->setExecute(0);
-      }
-      // needed since this is evaluated in trajectoy which is not in use
-      data_->interlocks_.noExecuteInterlock = true;
-    }
-    
-    data_->refreshInterlocks();
-
-    break;
-
+  // PVT is only abs here (relative is handled by the PVt controller)
   case ECMC_CMD_MOVEPVTABS:
     if(data_->command_.enableDbgPrintout) {
       printf("RUNNING PVT ABS execute %d\n",data_->command_.execute);
@@ -683,7 +652,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
       
       // Set offset 0 since pvt is absolute
-      pvt_->setPositionOffset(0);
+      //pvt_->setPositionOffset(0);
       pvt_->setExecute(0);
       errorCode = pvt_->setExecute(1);
       if (errorCode) {
@@ -3562,10 +3531,9 @@ void ecmcAxisSequencer::initStop() {
   if(data_->command_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::initStopPVT(): Initiating new stopramp...\n");
   }
-
-  //data_->command_.trajSource = ECMC_DATA_SOURCE_INTERNAL;
-  
+ 
   temporaryLocalTrajSource_ = true;
+
   traj_->setStartPos(data_->status_.currentPositionActual);
   traj_->setCurrentPosSet(data_->status_.currentPositionActual);
   traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
@@ -3578,6 +3546,7 @@ void ecmcAxisSequencer::initStop() {
   
   if(pvtmode_ && !pvtStopping_) {
     data_->command_.command = ECMC_CMD_MOVEABS;
+    printf("PVT stopping...\n");
     pvtStopping_ = true;  // Latch stop if in PVT
     pvt_->setExecute(0);  // stop PVT
 
@@ -3598,4 +3567,8 @@ void ecmcAxisSequencer::restorePosLagMonAfterSeq() {
     mon_->setEnableLagMon(monPosLagEnaStatePriorHome_);
   }
   monPosLagRestoreNeeded_ = false;
+}
+
+ecmcAxisPVTSequence* ecmcAxisSequencer::getPVTObject() {
+  return pvt_;
 }

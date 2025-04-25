@@ -129,13 +129,16 @@ class ecmcAxisPVTSequence {
     int    setAxisDataRef(ecmcAxisData *data);
     void   addPoint(ecmcPvtPoint *pnt);
     double startTime();
-    double endTime();    
+    int    startPosition(double *position);
+    int    getAccSeqDist(double *position);
+    double endTime();  
     void   initSeq(); // Call before starting a seq
     bool   validate();
     bool   isLastSample();
     bool   isLastSample(double time);
     bool   isTimeValid(double time);
     void   setNextTime(double time);
+    void   setCurrTime(double time);
     bool   nextSampleStep();             // Go to next sample in time, return true as long ndouble time,
     double getCurrPosition();            // For RT sequential access
     double getCurrVelocity();            // For RT sequential access
@@ -143,6 +146,7 @@ class ecmcAxisPVTSequence {
     double getCurrTime();
     int    getCurrentSegementId();
     double getSegDuration(size_t segIndex);
+    size_t getSegCount();
     double position(double time, int *valid);     // For non RT access
     double velocity(double time, int *valid);     // For non RT access
     double acceleration(double time, int *valid); // For non RT access
@@ -158,6 +162,8 @@ class ecmcAxisPVTSequence {
     double *getResultPosActDataPrt();
     double *getResultPosErrDataPrt();
     size_t getResultBufferSize();
+    bool   getRelMode();
+    void   setRelMode(bool relative);
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -173,5 +179,6 @@ class ecmcAxisPVTSequence {
     std::vector<double> resultPosActArray_;
     std::vector<double> resultPosErrArray_;
     ecmcAxisData *data_;
+    bool relativeMode_;
 };
 #endif  /* ECMCAXISPVT_H_ */
