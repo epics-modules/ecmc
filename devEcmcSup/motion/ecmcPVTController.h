@@ -19,12 +19,13 @@
 
 enum ecmcPVTSMType {
   ECMC_PVT_IDLE                         = 0,
-  ECMC_PVT_TRIGG_MOVE_AXES_TO_START     = 1,
-  ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START = 2,
-  ECMC_PVT_TRIGG_PVT                    = 3,
-  ECMC_PVT_EXECUTE_PVT                  = 4,
-  ECMC_PVT_ABORT                        = 5,
-  ECMC_PVT_ERROR                        = 6,
+  ECMC_PVT_ENABLE_AXES                  = 1,
+  ECMC_PVT_TRIGG_MOVE_AXES_TO_START     = 2,
+  ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START = 3,
+  ECMC_PVT_TRIGG_PVT                    = 4,
+  ECMC_PVT_EXECUTE_PVT                  = 5,
+  ECMC_PVT_ABORT                        = 6,
+  ECMC_PVT_ERROR                        = 7,
 };
 
 #define ECMC_PVT_EC_ENTRY_TRIGGER "pvtctrl.trigg.output"
@@ -57,6 +58,8 @@ class ecmcPVTController: public ecmcEcEntryLink {
     int    checkTriggerTiming();
     ecmcPVTSMType getSMState();
   private:
+    int    setEnable(bool enable);
+    int    checkEnabledState(bool enabled);
     int    triggMoveAxesToStart();
     int    axesAtStart();
     int    triggPVT();

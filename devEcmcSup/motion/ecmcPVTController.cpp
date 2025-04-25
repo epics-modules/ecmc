@@ -84,7 +84,7 @@ void ecmcPVTController::setExecute(bool execute) {
       executeOld_ = 0;
       return;
     }
-    state_ = ECMC_PVT_TRIGG_MOVE_AXES_TO_START;
+    state_ = ECMC_PVT_ENABLE_AXES;
     busy_ = 1;
     setAxesBusy(true);
   }
@@ -100,12 +100,27 @@ void ecmcPVTController::execute() {
   int error = 0;
   int axesAtStartPosition = 0;
   bool seqDone = 0;
+  int enabledState = 0;
   switch(state_) {
     case  ECMC_PVT_IDLE:
       busy_ = 0;
       setAxesBusy(false);
       break;
-
+    case ECMC_PVT_ENABLE_AXES:
+      
+      if(setEnable(1) < 0) {
+        state_ = ECMC_PVT_ERROR;
+        printf("ecmcPVTController::execute(): Error: Enabling axes failed\n");
+      }
+      enabledState = checkEnabledState(1);
+      if(enabledState < 0) {
+        state_ = ECMC_PVT_ERROR;
+        printf("ecmcPVTController::execute(): Error: Enabling axes failed\n");
+      } else if(enabledState == 1) {
+        printf("ecmcPVTController::execute(): All axes enabled.\n");
+        state_ = ECMC_PVT_TRIGG_MOVE_AXES_TO_START;
+      }
+      break;
     case ECMC_PVT_TRIGG_MOVE_AXES_TO_START:
       initPVT();  // prepare pvt objects
       error = triggMoveAxesToStart();
@@ -442,3 +457,34 @@ ecmcPVTSMType  ecmcPVTController::getSMState() {
   return state_;
 }
 
+int ecmcPVTController::setEnable(bool enable) {  
+  for(uint i = 0; i < axes_.size(); i++ ) {
+    if(axes_[i]!=NULL) {
+      // Always disable
+      if(!enable) {
+        axes_[i]->setEnable(enable);        
+        break;
+      }
+      // do not enable if error
+      if(axes_[i]->getError()) {
+        return -1;
+      }      
+      if(!axes_[i]->getEnable()) {
+        axes_[i]->setEnable(enable);
+      }
+    };
+  }
+  return 0;
+}
+
+int ecmcPVTController::checkEnabledState(bool enabled) {
+  bool state = 1;
+  for(uint i = 0; i < axes_.size(); i++ ) {
+    if(axes_[i]!=NULL) {
+      state = state && axes_[i]->getEnabled();
+    } else {
+      return -1;
+    }
+  }
+  return state;
+}
