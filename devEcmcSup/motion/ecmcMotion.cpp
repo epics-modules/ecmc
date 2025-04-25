@@ -1160,6 +1160,20 @@ int setAxisEncLookupTableRange(int axisIndex, double range) {
   return axes[axisIndex]->getConfigEnc()->setLookupTableRange(range);
 }
 
+int setAxisEncLookupTableScale(int axisIndex, double scale) {
+  LOGINFO4("%s/%s:%d axisIndex=%d scale=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           scale);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getConfigEnc()->setLookupTableScale(scale);
+}
+
 int appendAxisPLCExpr(int axisIndex, char *expr) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%s\n",
            __FILE__,
@@ -1252,6 +1266,18 @@ int setAxisEncVelFilterSize(int axisIndex,
   }
 
   return axes[axisIndex]->setEncVeloFiltSize(size);
+}
+
+int setAxisEncVelFilterEnable(int axisIndex,
+                              int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  return axes[axisIndex]->setEncVeloFiltEnable(enable);
 }
 
 int setAxisEncPosFilterSize(int axisIndex,

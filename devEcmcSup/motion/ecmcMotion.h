@@ -1748,6 +1748,18 @@ int setAxisPLCEncVelFilterSize(int axisIndex,
 int setAxisEncVelFilterSize(int axisIndex,
                             int size);
 
+/** \brief Enables/disables encoder velocity filter.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable     Enable/disable (default disabled).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable filter for axis 7.\n
+ * "Cfg.SetAxisEncVelFilterEnable(7,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncVelFilterEnable(int axisIndex,
+                              int enable);
 
 /** \brief Set size of encoder position filter.\n
  *
@@ -2108,7 +2120,7 @@ int setAxisEncDelayCyclesAndEnable(int axisIndex, double timeMs, int enable);
  * - "#" as a first char will be interpreted as comments
  * 
  * For "modulo correction", for example single turn, look at the\n
- * "setAxisEncLookupTableRange()" command.\n
+ * "SetAxisEncLookupTableRange()" command.\n
  * 
  * Example file:
  *        # This table simply just changes the gain in region -10..10. 
@@ -2141,7 +2153,7 @@ int loadAxisEncLookupTable(int axisIndex, const char* filename);
  */
 int setAxisEncLookupTableEnable(int axisIndex, int enable);
 
-/** \brief Set encoder raw pos lookup table amsk
+/** \brief Set encoder lookup table mask
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] range Range of lookup table (apply like modulo).\n
@@ -2158,6 +2170,18 @@ int setAxisEncLookupTableEnable(int axisIndex, int enable);
  * "Cfg.SetAxisEncLookupTableRange(3,360)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncLookupTableRange(int axisIndex, double range);
+
+/** \brief Set encoder lookup table scale factor\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] scale scale factor.\n
+ * 
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Invert sign for lookup table of config encoder of axis 1\n
+ * "Cfg.SetAxisEncLookupTableScale(1,-1.0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncLookupTableScale(int axisIndex, double scale);
 
 /** \brief Set PID-controller proportional gain.\n
  *

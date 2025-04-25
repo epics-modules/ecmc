@@ -73,6 +73,12 @@ encoder:
   absOffset: -294100
   useAsCSPDrvEnc: 1    # use this encoder as CSP drive encoder
 ```
+# ECMC 10.0.10
+* Add possibility do enable/disable encoder velocity filter with "Cfg.SetAxisEncVelFilterEnable(<axis_id>, <enable>)"
+
+# ECMC 10.0.9
+* Add scale factor for encoder LUTs
+
 # ECMC 10.0.4
 * Add support for debian 12 (in wrapper makefile)
 * Jump to version 10.0.4 to match ecmccfg

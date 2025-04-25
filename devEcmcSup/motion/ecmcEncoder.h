@@ -128,6 +128,7 @@ public:
   double                getLatchPosEng();
   ecmcOverUnderFlowType getOverUnderflow();
   int                   setVeloFilterSize(size_t size);
+  int                   setVelFilterEnable(bool enable);
   int                   setPosFilterSize(size_t size);
   int                   setPosFilterEnable(bool enable);
 
@@ -169,6 +170,7 @@ public:
   // Enable use of lookup table
   int                   setLookupTableEnable(bool enable);
   int                   setLookupTableRange(double range);
+  int                   setLookupTableScale(double scale);
   int                   setDelayCyclesAndEnable(double cycles, bool enable); 
 
 protected:
@@ -231,6 +233,7 @@ protected:
   bool encLatchControl_;
   double actEncLatchPos_;
   bool enablePositionFilter_;
+  bool enableVelocityFilter_;
   uint64_t hwReset_;
   uint64_t hwErrorAlarm0_;
   uint64_t hwErrorAlarm0Old_;
@@ -284,6 +287,7 @@ protected:
   bool lookupTableEnable_;
   ecmcLookupTable<double, double>  *lookupTable_; 
   double lookupTableRange_;
+  double lookupTableScale_;
   
   double delayTimeS_; // Compensate for delay between setpoint and actual value (should default to 2 cycles)
   bool enableDelayTime_;

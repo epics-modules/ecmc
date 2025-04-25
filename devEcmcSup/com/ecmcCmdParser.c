@@ -1809,6 +1809,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncLookupTableRange(iValue, dValue);
   }
 
+  /*int Cfg.SetAxisEncLookupTableScale(int axis_no, double scale);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncLookupTableScale(%d,%lf)",
+                 &iValue,
+                 &dValue);
+
+  if (nvals == 2) {
+    return setAxisEncLookupTableScale(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisCntrlKp(int axis_no, double value);*/
   nvals = sscanf(myarg_1, "SetAxisCntrlKp(%d,%lf)", &iValue, &dValue);
 
@@ -2596,6 +2606,16 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisEncVelFilterSize(iValue, iValue2);
+  }
+
+  /*int Cfg.SetAxisEncVelFilterEnable(int axis_no, int size);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncVelFilterEnable(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEncVelFilterEnable(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisEncPosFilterSize(int axis_no, int size);*/

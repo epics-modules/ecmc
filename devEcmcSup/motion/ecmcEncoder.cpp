@@ -81,6 +81,7 @@ void ecmcEncoder::initVars() {
   actVelLocal_            = 0;
   homed_                  = false;
   enablePositionFilter_   = false;
+  enableVelocityFilter_   = true;
   scaleNum_               = 0;
   scaleDenom_             = 1;
   absBits_                = 0;
@@ -145,6 +146,7 @@ void ecmcEncoder::initVars() {
   lookupTable_            = NULL;
   lookupTableRange_       = 0;
   enableDelayTime_        = false;
+  lookupTableScale_       = 1;
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -463,12 +465,12 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   if(lookupTableEnable_ && homed_ ){
     if(lookupTableRange_ > 0) {  // if range is defined then use it
       if(actPosLocal_>= 0) {
-        actPosLocal_ = actPosLocal_ - lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_));
+        actPosLocal_ = actPosLocal_ - lookupTableScale_ * lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_));
       } else {
-        actPosLocal_ = actPosLocal_ - lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_) + lookupTableRange_);
+        actPosLocal_ = actPosLocal_ - lookupTableScale_ * lookupTable_->getValue(fmod(actPosLocal_, lookupTableRange_) + lookupTableRange_);
       }
     } else {
-      actPosLocal_ = actPosLocal_ - lookupTable_->getValue(actPosLocal_);
+      actPosLocal_ = actPosLocal_ - lookupTableScale_ * lookupTable_->getValue(actPosLocal_);
     }
   }
 
@@ -525,7 +527,11 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
       distTraveled = actPosLocal_ - actPosOld_ + data_->command_.moduloRange;
     }
   }
-  actVelLocal_ = velocityFilter_->getFiltVelo(distTraveled);
+  if(enableVelocityFilter_) {
+    actVelLocal_ = velocityFilter_->getFiltVelo(distTraveled);
+  } else {
+    actVelLocal_ = distTraveled/data_->sampleTime_;
+  }
   return 0;
 }
 
@@ -1099,6 +1105,11 @@ int ecmcEncoder::setPosFilterEnable(bool enable) {
   return 0;
 }
 
+int ecmcEncoder::setVelFilterEnable(bool enable) {
+  enableVelocityFilter_ = enable;
+  return 0;
+}
+
 void ecmcEncoder::errorReset() {
   // Reset hardware if needed
   if (hwResetDefined_) {
@@ -1494,5 +1505,10 @@ int ecmcEncoder::setLookupTableRange(double range) {
 int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
   delayTimeS_      = cycles * sampleTimeMs_ / 1000;
   enableDelayTime_ = enable;
+  return 0;
+}
+
+int ecmcEncoder::setLookupTableScale(double scale) {
+  lookupTableScale_ = scale;
   return 0;
 }
