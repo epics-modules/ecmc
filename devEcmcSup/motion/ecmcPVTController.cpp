@@ -247,7 +247,7 @@ void ecmcPVTController::execute() {
       for(uint i = 0; i < axes_.size(); i++ ) {
         axes_[i]->getPVTObject()->setTrgDAQ();
         // Compensate with one sampleTime since this is "next time"
-        printf("axis[%d]: DAQ trigger %zu  at time %lf\n",axes_[i]->getAxisID(),triggerCurrentId_,nextTime_-sampleTime_);
+        printf("axis[%d]: DAQ trigger %zu at time %lf\n",axes_[i]->getAxisID(),triggerCurrentId_+1,nextTime_-sampleTime_);
       }
     }
     newTrg_ = false;
@@ -445,7 +445,7 @@ int ecmcPVTController::checkTriggerTiming() {
     triggerTimeBetween_ = 0;  // Only one trigger
     triggerEndTime_ = triggerStartTime_;
   } else {
-    triggerTimeBetween_ = (triggerEndTime_-triggerStartTime_) / (triggerCount_);
+    triggerTimeBetween_ = (triggerEndTime_-triggerStartTime_) / (triggerCount_-1);
   }
   printf("ecmcPVTController::checkTriggerTiming(): Triggers %lf:%lf:%lf (with duration %lf)\n",
           triggerStartTime_,triggerTimeBetween_,triggerEndTime_,triggerDuration_);
