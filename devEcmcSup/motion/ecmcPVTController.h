@@ -56,7 +56,7 @@ class ecmcPVTController: public ecmcEcEntryLink {
     int    setTriggerInfo(size_t startPointId, size_t endPointId, size_t count);
     int    setTriggerDuration(double durationS);
     int    checkTriggerTiming();
-    ecmcPVTSMType getSMState();
+    ecmcPVTSMType getSMState();    
   private:
     int    setEnable(bool enable);
     int    checkEnabledState(bool enabled);
@@ -69,6 +69,7 @@ class ecmcPVTController: public ecmcEcEntryLink {
     void   initPVT();
     void   checkIfTimeToTrigger();
     int    setAxesBusy(bool busy);
+    void   setAxesDAQTrgMode();
     double sampleTime_;
     double nextTime_, accTime_, endTime_;
     std::vector<double> startPositions_;
@@ -87,5 +88,7 @@ class ecmcPVTController: public ecmcEcEntryLink {
     double triggerTimeBetween_;
     double triggerDuration_;
     size_t triggerCurrentId_;
+    bool   newTrg_;
+    double halfSampleTime_;
 };
 #endif  /* ECMCPVTCONTROLLER_H_ */

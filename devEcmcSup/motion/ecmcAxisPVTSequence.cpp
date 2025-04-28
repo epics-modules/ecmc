@@ -31,6 +31,7 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
   resultPosActArray_.reserve(maxPoints);
   resultPosErrArray_.reserve(maxPoints);
   relativeMode_    = 0;
+  trgMode_         = TRG_INT_ON_SEG_CHANGE;
 }
 
 void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
@@ -198,8 +199,8 @@ double ecmcAxisPVTSequence::getCurrPosition(){
         Offset with one sample time because the correct setpoit was sent last cycle and the new is still not applied..
     */
     if(std::abs(currTime_- (segments_[currSegIndex_]->getStartPoint()->time_ + sampleTime_)) < (halfSampleTime_)) {
-    // skip first and last segment (since they are acc and dec segments)
-    if(currSegIndex_ > 0 && currSegIndex_ < segmentCount_) {
+    // skip first and last segment (since they are acc and dec segments)    
+    if(currSegIndex_ > 0 && currSegIndex_ < segmentCount_ && trgMode_ == TRG_INT_ON_SEG_CHANGE) {
         //printf("pvt[%lu]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
         //        (currTime_ - firstSegTime_),
         //        data_->status_.currentPositionActual - positionOffset_,
@@ -387,4 +388,13 @@ bool ecmcAxisPVTSequence::getRelMode() {
 
 void ecmcAxisPVTSequence::setRelMode(bool relative) {
   relativeMode_ = relative;
+}
+
+void ecmcAxisPVTSequence::setTrgDAQMode(trgMode mode) {
+  trgMode_ = mode;
+}
+
+void ecmcAxisPVTSequence::setTrgDAQ() {
+  resultPosActArray_.push_back(data_->status_.currentPositionActual);
+  resultPosErrArray_.push_back(data_->status_.cntrlError);  
 }

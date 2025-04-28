@@ -122,6 +122,12 @@ class ecmcPvtSegment {
     }
 };
 
+// DAQ of following error and actual position
+enum trgMode{
+  TRG_INT_ON_SEG_CHANGE  = 0,  // numpulses <= 0: PVTSequence object triggers DAQ at new point
+  TRG_EXT_ON_PULSE_TRG   = 1,  // numpulses > 0 : PVT controller triggers PVTSequence to store data
+};
+
 class ecmcAxisPVTSequence {
   public:
     ecmcAxisPVTSequence(double sampleTime, size_t maxProfilePoints);
@@ -164,6 +170,8 @@ class ecmcAxisPVTSequence {
     size_t getResultBufferSize();
     bool   getRelMode();
     void   setRelMode(bool relative);
+    void   setTrgDAQMode(trgMode mode);
+    void   setTrgDAQ();  // PVT controller trigger DAQ at trigger time
 
   private:
     void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
@@ -180,5 +188,6 @@ class ecmcAxisPVTSequence {
     std::vector<double> resultPosErrArray_;
     ecmcAxisData *data_;
     bool relativeMode_;
+    trgMode trgMode_;
 };
 #endif  /* ECMCAXISPVT_H_ */

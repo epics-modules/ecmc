@@ -580,7 +580,7 @@ void ecmcMotorRecordController::readEcmcControllerStatus(){
 
 void ecmcMotorRecordController::profilePoll() {
 
-  if(profileInProgress_ && ctrlLocal.pvtErrorId)  {
+  if(profileInProgress_ && ctrlLocal.pvtErrorId)  {    
     abortProfile();
     profileInProgress_ = false;
   }
@@ -608,7 +608,7 @@ void ecmcMotorRecordController::profilePoll() {
     int useAxis = 0;
     getIntegerParam(pAxis->drvlocal.axisId, profileUseAxis_, &useAxis);
     if (!useAxis) continue;
-    if(pAxis->checkProfileStatus() != asynSuccess) {
+    if(pAxis->checkProfileStatus() != asynSuccess) {      
       abortProfile();
     }
     // Get segment number from first axis with valid number in use (only check busy for first axis..)
@@ -640,10 +640,11 @@ void ecmcMotorRecordController::profilePoll() {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_EXECUTING);
     sprintf(profileMessage_, "Profile executing...\n");
-  } else if(pvtBusy < 0 ||  segmentIndex < 0) {
+  } else if(pvtBusy < 0 ) {
+    printf("Busy %d or segmentindex %d invalid\n",pvtBusy ,segmentIndex);
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_DONE);
-    sprintf(profileMessage_, "Profile failure, aborting\n");
+    sprintf(profileMessage_, "Profile failure, aborting\n");    
     abortProfile();
   } else {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_SUCCESS);
@@ -739,6 +740,13 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
     status = abortProfile();
   } else if (function == profileReadback_) {
     status = readbackProfile();
+  } else if (function == profileNumPulses_) {
+    // new pulse count require rebuild
+    profileBuilt_ = false;
+    setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+    sprintf(profileMessage_, "Pulse count changed, rebuild required...\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
   } else if (function == profileTimeMode_) {
     // if time mode is changed also the pvt object needs to be rebuilt
     for (int axis = 0; axis < numAxes_; axis++) {      
@@ -747,7 +755,7 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
         pAxis->invalidatePVTBuild();
     }
     setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
-    sprintf(profileMessage_, "Time base changed..\n");
+    sprintf(profileMessage_, "Time mode changed..\n");
     setStringParam(profileBuildMessage_, profileMessage_);
     callParamCallbacks();
   }
@@ -799,6 +807,14 @@ asynStatus ecmcMotorRecordController::buildProfile() {
     printf("ecmcMotorRecordController: Error: Profile not initialized...\n");
     return asynError;
   }
+
+  if(pvtController_->getBusy()) {
+    sprintf(profileMessage_, "PVT busy, command ignored..\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
+    return asynError;
+  }
+
   profileInProgress_ = false;
   strcpy(profileMessage_, "");
   setIntegerParam(profileBuildState_, PROFILE_BUILD_BUSY);
@@ -986,8 +1002,15 @@ asynStatus ecmcMotorRecordController::executeProfile() {
     return asynError;
   }
 
+  if((size_t)numPulses > maxProfilePoints_) {
+    sprintf(profileMessage_, "PVT: Output pulse count cannot be higher than %zu\n",maxProfilePoints_);
+    setStringParam(profileExecuteMessage_, profileMessage_);
+    abortProfile();
+    return asynError;
+  }
+
   // Clean pvt object
-  //pvtController_->clearPVTAxes();
+  pvtController_->clearPVTAxes();
 
   for (axis=0; axis<numAxes_; axis++) {
     pAxis = getAxis(axis);

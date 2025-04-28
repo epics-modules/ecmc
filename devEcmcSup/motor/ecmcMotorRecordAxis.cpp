@@ -1085,7 +1085,15 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->setExecute(0);
-
+  if(profileInProgress_) {
+    if(pC_->pvtController_){
+      if(pC_->pvtController_->getBusy()){
+        pC_->abortProfile();
+        printf("Axis[%d]: stopAxisInternal\n",axisNo_);
+      }
+    }
+    profileInProgress_ = false;
+  }
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (errorCode) {
@@ -1988,6 +1996,10 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynSuccess;
   }
 
+  if(profileInProgress_) {
+    return asynError;
+  }
+
   profileLastBuildOk_ = false;
   asynMotorAxis::buildProfile();
 
@@ -2021,7 +2033,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
       __LINE__);
     return asynError;
   }
-
+  
   if(!pvtPrepare_) {       
     pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000, profileMaxPoints_);
   }
@@ -2354,3 +2366,4 @@ void ecmcMotorRecordAxis::invalidatePVTBuild() {
 bool ecmcMotorRecordAxis::getPVTEnabled() {
   return pvtEnabled_;
 }
+
