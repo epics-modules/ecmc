@@ -168,6 +168,7 @@ void ecmcPVTController::execute() {
       }
       //printf("ecmcPVTController: Executing PVT sequence\n");
       state_ = ECMC_PVT_EXECUTE_PVT;      
+      triggerCurrentId_ = 0;
       break;
 
     case ECMC_PVT_EXECUTE_PVT:
@@ -361,6 +362,7 @@ int ecmcPVTController::abortPVT() {
   for(uint i = 0; i < axes_.size(); i++ ) {    
     axes_[i]->stopMotion(0);
     axes_[i]->getPVTObject()->setBusy(false);
+    setAxesBusy(false);
   }
   state_ = ECMC_PVT_ABORT;
   // All axes in correct position to start
@@ -434,7 +436,7 @@ int ecmcPVTController::checkTriggerTiming() {
   for(size_t i = 0; i <= triggerEndPoint_; i++) {
     timeSum +=pvt->getSegDuration(i);
     if(i == (triggerStartPoint_-1)) {
-      triggerStartTime_ = timeSum;      
+      triggerStartTime_ = timeSum;
     }
     if(i == (triggerEndPoint_-1)) {
       triggerEndTime_ = timeSum;

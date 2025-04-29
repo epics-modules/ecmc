@@ -1997,6 +1997,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   }
 
   if(profileInProgress_) {
+    printf("ecmcMotorRecordAxis::buildProfile(): INFO axis[%d]: Profile in progress\n",axisNo_);
     return asynError;
   }
 
@@ -2053,14 +2054,29 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   double time;
   int timeMode;
   
-  /*status |= */ pC_->getIntegerParam(ECMC_MR_CNTRL_ADDR, pC_->profileTimeMode_, &timeMode);
-  /*status |= */ pC_->getDoubleParam(ECMC_MR_CNTRL_ADDR, pC_->profileFixedTime_, &time);
+  pC_->getIntegerParam(ECMC_MR_CNTRL_ADDR, pC_->profileTimeMode_, &timeMode);
+  pC_->getDoubleParam(ECMC_MR_CNTRL_ADDR, pC_->profileFixedTime_, &time);
+
+  // If time array then ensure that time value count match
+  if(timeMode != PROFILE_TIME_MODE_FIXED) {
+    if( pC_->profileTimeArraySize_ != profileNumPoints_) {
+      printf("ecmcMotorRecordController: Error: Time array VS position array size missmatch.\n");
+      return asynError;
+    }
+    for(size_t i = 0; i < pC_->profileTimeArraySize_ ; i++) {
+      if(pC->profileTimes_[i] <= 0) {
+        printf("ecmcMotorRecordController: Error: Invalid time in time array (time[%zu]=%lf). Time must be >=  0.0 seconds\n", i,pC->profileTimes_[i]);
+        return asynError;
+      }
+    }
+  }
 
   if(drvlocal.axisPrintDbg) {
     if(timeMode==PROFILE_TIME_MODE_FIXED) {
       printf("TIME_MODE=PROFILE_TIME_MODE_FIXED, time %lf\n",time);
     } else {
       printf("TIME_MODE=PROFILE_TIME_MODE_ARRAY\n");
+
     }
   
     for (size_t i = 0; i < profileNumPoints_; i++) {
@@ -2121,7 +2137,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     if(timeMode == PROFILE_TIME_MODE_FIXED) {
       currTime += time;
     } else { // Time array
-      currTime += pC->profileTimes_[0];
+      currTime += pC->profileTimes_[i];
     }
     preVelo   = postVelo;
   }

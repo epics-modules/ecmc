@@ -223,10 +223,11 @@ protected:
   #define NUM_VIRTUAL_MOTOR_PARAMS ((int)(&LAST_VIRTUAL_PARAM -\
                                           &FIRST_VIRTUAL_PARAM + 1))
 
-
+  void setProfileInProgress(bool progress);
   char profileMessage_[MAX_MESSAGE_LEN];
   ecmcPVTController *pvtController_;
   bool profileInProgress_;
+  size_t profileTimeArraySize_;
 
   friend class ecmcMotorRecordAxis;
 };
