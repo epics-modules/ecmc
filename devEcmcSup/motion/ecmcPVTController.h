@@ -40,11 +40,10 @@ enum ecmcPVTSMType {
 
 class ecmcPVTController: public ecmcEcEntryLink {
   public:
-    ecmcPVTController(double sampleTime);
+    ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,double sampleTime);
     ~ecmcPVTController();
     void   addAxis(ecmcAxisBase* axis);
-    void   clearPVTAxes();
-    size_t getCurrentPointId();
+    void   clearPVTAxes();    
     size_t getCurrentTriggerId();
     double getCurrentTime();
     void   execute();
@@ -56,7 +55,8 @@ class ecmcPVTController: public ecmcEcEntryLink {
     int    setTriggerInfo(size_t startPointId, size_t endPointId, size_t count);
     int    setTriggerDuration(double durationS);
     int    checkTriggerTiming();
-    ecmcPVTSMType getSMState();    
+    ecmcPVTSMType getSMState();
+
   private:
     int    setEnable(bool enable);
     int    checkEnabledState(bool enabled);
@@ -67,9 +67,11 @@ class ecmcPVTController: public ecmcEcEntryLink {
     int    validate();
     int    anyAxisInterlocked();
     void   initPVT();
-    void   checkIfTimeToTrigger();
     int    setAxesBusy(bool busy);
     void   setAxesDAQTrgMode();
+    void   initAsyn();
+    void   refreshAsyn();
+  
     double sampleTime_;
     double nextTime_, accTime_, endTime_;
     std::vector<double> startPositions_;
@@ -90,5 +92,8 @@ class ecmcPVTController: public ecmcEcEntryLink {
     size_t triggerCurrentId_;
     bool   newTrg_;
     double halfSampleTime_;
+    ecmcAsynPortDriver *asynPortDriver_;
+    ecmcAsynDataItem *asynSoftTrigger_;
+    int softTrigger_;
 };
 #endif  /* ECMCPVTCONTROLLER_H_ */

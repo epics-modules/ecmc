@@ -181,6 +181,7 @@ private:
   asynStatus checkProfileStatus();
   int getProfileBusy();
   int getProfileCurrentSegementID();
+  size_t getProfilePointCount();
   //virtual asynStatus readbackProfile();
 
   ecmcAxisPVTSequence *pvtRunning_;

@@ -12,7 +12,10 @@
 
 #include "ecmcPVTController.h"
 
-ecmcPVTController::ecmcPVTController(double sampleTime) {
+ecmcPVTController::ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,
+                                     double sampleTime) {
+  asynPortDriver_ = asynPortDriver;
+  asynSoftTrigger_ = NULL;
   sampleTime_     = sampleTime;
   halfSampleTime_ = sampleTime / 2;
   nextTime_       = 0;
@@ -37,6 +40,8 @@ ecmcPVTController::ecmcPVTController(double sampleTime) {
   setTriggerDuration(0.1);
   clearPVTAxes();
   newTrg_              = 0;
+  softTrigger_         = 0;
+  initAsyn();
 }
 
 ecmcPVTController::~ecmcPVTController() {
@@ -58,10 +63,6 @@ void ecmcPVTController::clearPVTAxes() {
   startPositions_.clear();
 }
 
-size_t ecmcPVTController::getCurrentPointId() {
-  return 0;  
-}
-
 size_t ecmcPVTController::getCurrentTriggerId() {
   return triggerCurrentId_;
 }
@@ -70,14 +71,11 @@ double ecmcPVTController::getCurrentTime() {
   return nextTime_;
 }
 
-void ecmcPVTController::checkIfTimeToTrigger() {
-
-}
-
 void ecmcPVTController::setExecute(bool execute) {
   executeOld_ = execute_;
   execute_ = execute;
   triggerCurrentId_ = 0;
+  softTrigger_ = 0;
   int error = 0;
   if(execute_ && !executeOld_ && axes_[0]) {
     error=validate();
@@ -169,6 +167,7 @@ void ecmcPVTController::execute() {
       //printf("ecmcPVTController: Executing PVT sequence\n");
       state_ = ECMC_PVT_EXECUTE_PVT;      
       triggerCurrentId_ = 0;
+      softTrigger_ = 0;
       break;
 
     case ECMC_PVT_EXECUTE_PVT:
@@ -244,11 +243,15 @@ void ecmcPVTController::execute() {
   if( nextTime_ > (nextTriggerTime + halfSampleTime_) && nextTime_ <= (nextTriggerTime + triggerDuration_)) {
     // here we want to also latch data    
     writeEcEntryValue(triggerEcEntryIndex_,1);
+
     if(newTrg_) { // new pulse: Trigger DAQ in PVTSequence
+      softTrigger_++;
+      refreshAsyn();
       for(uint i = 0; i < axes_.size(); i++ ) {
         axes_[i]->getPVTObject()->setTrgDAQ();
         // Compensate with one sampleTime since this is "next time"
-        printf("axis[%d]: DAQ trigger %zu at time %lf\n",axes_[i]->getAxisID(),triggerCurrentId_+1,nextTime_-sampleTime_);
+        printf("axis[%d]: DAQ trigger %zu at time %lf\n",
+                axes_[i]->getAxisID(),triggerCurrentId_ + 1, nextTime_ - sampleTime_);
       }
     }
     newTrg_ = false;
@@ -507,4 +510,48 @@ int ecmcPVTController::checkEnabledState(bool enabled) {
     }
   }
   return state;
+}
+
+void ecmcPVTController::refreshAsyn() {
+  if(asynSoftTrigger_ == NULL) {
+    return;
+  }
+
+  // force update
+  asynSoftTrigger_->refreshParamRT(1);
+}
+
+void ecmcPVTController::initAsyn() {
+
+ if (asynPortDriver_ == NULL) {
+    LOGERR("%s/%s:%d: PVT: ERROR: AsynPortDriver object NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_AXIS_ASYN_PORT_OBJ_NULL);
+           return;
+  }
+
+  ecmcAsynDataItem *paramTemp = NULL;
+  int errorCode               = 0;
+
+  paramTemp = asynPortDriver_->addNewAvailParam("pvt.softtrigger",
+                              asynParamInt32,
+                              (uint8_t *)&(softTrigger_),
+                              sizeof(softTrigger_),
+                              ECMC_EC_S32,
+                              0);
+
+  if (errorCode) {
+    LOGERR("%s/%s:%d: PVT: ERROR: Failed create pvt.softtrigger asyn parameter.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
+           return;
+  }
+  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->refreshParam(1);
+  asynSoftTrigger_ = paramTemp;
+  printf("SUCCESS!");
+
 }

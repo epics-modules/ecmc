@@ -663,7 +663,7 @@ void ecmcMotorRecordController::profilePoll() {
 asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
   int function = pasynUser->reason;
-  ecmcMotorRecordAxis *pAxis;
+  ecmcMotorRecordAxis *pAxis = NULL;
   int axisNo = -1;
   asynStatus status = asynError;
   //static const char *functionName = "writeFloat64";
@@ -756,7 +756,7 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
         pAxis->invalidatePVTBuild();
     }
     setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
-    sprintf(profileMessage_, "Time mode changed..\n");
+    sprintf(profileMessage_, "Time mode changed, rebuild required...\n");
     setStringParam(profileBuildMessage_, profileMessage_);
     callParamCallbacks();
   }
@@ -803,6 +803,7 @@ asynStatus ecmcMotorRecordController::abortProfile()
 }
 
 asynStatus ecmcMotorRecordController::buildProfile() {
+
   printf("ecmcMotorRecordController::buildProfile()\n");  
   if(!profileInitialized_) {
     printf("ecmcMotorRecordController: Error: Profile not initialized...\n");
@@ -827,22 +828,10 @@ asynStatus ecmcMotorRecordController::buildProfile() {
     return asynError;
   }
 
-  double time;
-  int timeMode;
-
-  getIntegerParam(ECMC_MR_CNTRL_ADDR, profileTimeMode_, &timeMode);
-  getDoubleParam(ECMC_MR_CNTRL_ADDR, profileFixedTime_, &time);
-
-  if(timeMode == PROFILE_TIME_MODE_FIXED) {
-    if(time <= 0) {
-      printf("ecmcMotorRecordController: Error: Time invalid, must be > 0.0 seconds.\n");
-      sprintf(profileMessage_, "Error: Time invalid, must be > 0 seconds.\n");
-      setStringParam(profileBuildMessage_, profileMessage_);
-      callParamCallbacks();
-      return asynError;
-    }
+  if(profileValidateTime() !=asynSuccess) {
+    return asynError;
   }
-
+  
   profileInProgress_ = false;
   strcpy(profileMessage_, "");
   setIntegerParam(profileBuildState_, PROFILE_BUILD_BUSY);
@@ -851,7 +840,6 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   setStringParam(profileBuildMessage_, profileMessage_);
   callParamCallbacks();
   pvtController_->clearPVTAxes();
-  asynStatus status = asynSuccess;
 
   int stat = 0;
   ecmcMotorRecordAxis *pAxis;
@@ -862,8 +850,13 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   }
   
   if(stat) {
+    printf("ecmcMotorRecordController: Error: axis::buildProfile() returned error.\n");
+    sprintf(profileMessage_, "Error: axis::buildProfile() returned error.\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
     return asynError;
   }
+
   // Check for errors in all axes since base class is not checking return value.. annoying..
   bool buildStatusOK = true;
   for (int axis = 0; axis < numAxes_; axis++) {
@@ -873,25 +866,16 @@ asynStatus ecmcMotorRecordController::buildProfile() {
     buildStatusOK = buildStatusOK;
   }
 
-  profileBuilt_ = (status == asynSuccess) && buildStatusOK; 
+  profileBuilt_ = buildStatusOK; 
 
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_DONE);
-
-  if(status != asynSuccess) {
-    setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildStatus_, PROFILE_STATUS_FAILURE);
-    sprintf(profileMessage_, "Error during profile build.\n");
-    setStringParam(profileBuildMessage_, profileMessage_);
-    callParamCallbacks();
-
-    return status;
-  }
   
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildStatus_, PROFILE_STATUS_SUCCESS);
   sprintf(profileMessage_, "Build profile succeeded\n");
   setStringParam(profileBuildMessage_, profileMessage_);
   callParamCallbacks();
 
-  return status;
+  return asynSuccess;
 }
 
 // Overide in order to be able to handle status from pAxis->initializeProfile()
@@ -900,9 +884,15 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
   printf("ecmcMotorRecordController::initializeProfile(%lu)\n",maxProfilePoints);
   profileInProgress_ = false;
   // An ecmcPvtSequence is needed to keep track of time and outputs and other things...
-  ecmcPVTController * pvtCtrl = new ecmcPVTController(getEcmcSampleTimeMS()/1000);
+  
+  if(asynPort == NULL) {
+    printf("ecmcMotorRecordController::initializeProfile::ecmc Asyn port NULL..\n");
+    return asynError;
+  }
+
+  ecmcPVTController * pvtCtrl = new ecmcPVTController(asynPort, getEcmcSampleTimeMS()/1000);
   if( !pvtCtrl ) {
-    printf("ecmcMotorRecordController::initializeProfile::Error: Create ecmcPVTController() failed. .\n");
+    printf("ecmcMotorRecordController::initializeProfile::Error: Create ecmcPVTController() failed..\n");
     return asynError;
   }
 
@@ -940,12 +930,23 @@ asynStatus ecmcMotorRecordController::writeFloat64Array(asynUser *pasynUser, epi
   int function = pasynUser->reason;
   asynMotorAxis *pAxis;
   static const char *functionName = "writeFloat64Array";
+  int timeMode;
   
   if (nElements > maxProfilePoints_) nElements = maxProfilePoints_;
    
   if (function == profileTimeArray_) {
     memcpy(profileTimes_, value, nElements*sizeof(double));
     profileTimeArraySize_ = nElements;
+    getIntegerParam(ECMC_MR_CNTRL_ADDR, profileTimeMode_, &timeMode);
+    
+    // invalidate if time array mode
+    if(timeMode != PROFILE_TIME_MODE_FIXED) {
+      profileBuilt_ = false;
+      setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+      sprintf(profileMessage_, "Time array changed, rebuild required...\n");
+      setStringParam(profileBuildMessage_, profileMessage_);
+      callParamCallbacks();
+    }
   } 
   else if (function == profilePositions_) {
     pAxis = getAxis(pasynUser);
@@ -1118,6 +1119,53 @@ void ecmcMotorRecordController::setProfileInProgress(bool progress) {
   }
 }
 
+asynStatus ecmcMotorRecordController::profileValidateTime() {
+  double time;
+  int timeMode;
+  ecmcMotorRecordAxis *pAxis = NULL;
+
+  getIntegerParam(ECMC_MR_CNTRL_ADDR, profileTimeMode_, &timeMode);
+  getDoubleParam(ECMC_MR_CNTRL_ADDR, profileFixedTime_, &time);
+
+  if(timeMode != PROFILE_TIME_MODE_FIXED) {
+    if(time <= 0) {
+      printf("ecmcMotorRecordController: Error: Time invalid, must be > 0.0 seconds.\n");
+      sprintf(profileMessage_, "Error: Time invalid, must be > 0 seconds.\n");
+      setStringParam(profileBuildMessage_, profileMessage_);
+      callParamCallbacks();
+      return asynError;
+    } else {  
+      
+      //Array
+      // Check that times are valid
+      for(size_t i = 0; i < profileTimeArraySize_ ; i++) {
+        if(profileTimes_[i] <= 0) {
+          printf("ecmcMotorRecordController: Error: Invalid time in time array (time[%zu]=%lf). Time must be >=  0.0 seconds\n", i,profileTimes_[i]);
+          sprintf(profileMessage_, "Error: Invalid time in time array. Time values must be >= 0.0 seconds.\n");
+          setStringParam(profileBuildMessage_, profileMessage_);
+          callParamCallbacks();
+          return asynError;
+        }
+      }
+  
+      // Ensure that profile position array is of same saize as time array
+      for (int i=0; i < numAxes_; i++) {
+        pAxis = getAxis(i);
+        if (!pAxis) continue;
+        if(pAxis->getPVTEnabled() && (pAxis->getProfilePointCount() != profileTimeArraySize_)) {
+          printf("ecmcMotorRecordController: Error: Time array VS position array size missmatch.\n");
+          sprintf(profileMessage_, "Error: Time array VS position array size missmatch.\n");
+          setStringParam(profileBuildMessage_, profileMessage_);
+          callParamCallbacks();
+          return asynError;    
+        }
+      }
+    }
+  }
+
+  return asynSuccess;
+}
+
 /** Returns a pointer to an ecmcMotorRecordAxis object.
   * Returns NULL if the axis number encoded in pasynUser is invalid.
   * \param[in] pasynUser asynUser structure that encodes the axis index number. */
@@ -1241,7 +1289,7 @@ static void ecmcMotorRecordCreateAxisCallFunc(const iocshArgBuf *args) {
                             args[3].sval);
 }
 
-asynStatus ecmcCreateProfile(const char *asynPort,         /* specify which controller by port name */
+asynStatus ecmcCreateProfile(const char *asynPort,       /* specify which controller by port name */
                             int maxPoints)               /* maximum number of profile points */
 {
   ecmcMotorRecordController *pC;

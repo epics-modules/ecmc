@@ -10,6 +10,8 @@ FILENAME...   ecmcMotorRecordController.h
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcPVTController.h"
 
+extern ecmcAsynPortDriver *asynPort;
+
 #ifndef motorRecResolutionString
 #define CREATE_MOTOR_REC_RESOLUTION
 #define motorRecDirectionString         "MOTOR_REC_DIRECTION"
@@ -222,7 +224,8 @@ protected:
   #define LAST_VIRTUAL_PARAM ecmcMotorRecordErrId_
   #define NUM_VIRTUAL_MOTOR_PARAMS ((int)(&LAST_VIRTUAL_PARAM -\
                                           &FIRST_VIRTUAL_PARAM + 1))
-
+  
+  asynStatus profileValidateTime();
   void setProfileInProgress(bool progress);
   char profileMessage_[MAX_MESSAGE_LEN];
   ecmcPVTController *pvtController_;
