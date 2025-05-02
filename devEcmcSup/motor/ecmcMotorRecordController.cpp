@@ -693,8 +693,15 @@ asynStatus ecmcMotorRecordController::writeFloat64(asynUser *pasynUser, epicsFlo
       if (!pAxis) continue;
         pAxis->invalidatePVTBuild();
     }
+    profileBuilt_ = false;
     setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
-    sprintf(profileMessage_, "Fixed time changed..\n");
+    sprintf(profileMessage_, "Fixed time changed, rebuild required...\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
+  }  else if (function == profileAcceleration_) {
+    profileBuilt_ = false;
+    setIntegerParam(ECMC_MR_CNTRL_ADDR, profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+    sprintf(profileMessage_, "Acceleration time changed, rebuild required...\n");
     setStringParam(profileBuildMessage_, profileMessage_);
     callParamCallbacks();
   }
@@ -759,10 +766,22 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
     sprintf(profileMessage_, "Time mode changed, rebuild required...\n");
     setStringParam(profileBuildMessage_, profileMessage_);
     callParamCallbacks();
-  } else if (function == profileNumPoints_) {    
+  } else if (function == profileNumPoints_) {
     profileBuilt_ = false;
     setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
     sprintf(profileMessage_, "Num points changed, rebuild required...\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
+  } else if (function == profileStartPulses_) {
+    profileBuilt_ = false;
+    setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+    sprintf(profileMessage_, "Start pulses point changed, rebuild required...\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
+  } else if (function == profileEndPulses_) {
+    profileBuilt_ = false;
+    setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+    sprintf(profileMessage_, "End pulses point changed, rebuild required...\n");
     setStringParam(profileBuildMessage_, profileMessage_);
     callParamCallbacks();
   }
