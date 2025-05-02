@@ -186,7 +186,7 @@ private:
 
   ecmcAxisPVTSequence *pvtRunning_;
   ecmcAxisPVTSequence *pvtPrepare_;
-  size_t profileNumPoints_;
+  size_t profileCurrentDefinedPoints_;
   bool profileLastBuildOk_;
   bool profileLastInitOk_;
   bool profileLastDefineOk_;

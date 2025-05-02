@@ -1975,10 +1975,10 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
     profilePositions_[i] = positions[i];
   }
 
-  profileNumPoints_ = numPoints;
+  profileCurrentDefinedPoints_ = numPoints;
 
   profileLastDefineOk_ = status == asynSuccess;
-  for (size_t i = 0; i < (profileNumPoints_); i++) {
+  for (size_t i = 0; i < (profileCurrentDefinedPoints_); i++) {
     if(drvlocal.axisPrintDbg) {
       printf("ecmcMotorRecordAxis::defineProfile: profilePositions_[%ld] = %lf\n",i,profilePositions_[i]);
     }
@@ -2014,7 +2014,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     return asynError;
   }
   
-  if(profileNumPoints_<2) {
+  if(profileCurrentDefinedPoints_<2) {
      LOGERR(
       "%s/%s:%d: ERROR: Defined profile position count invalid (<=1).\n",
       __FILE__,
@@ -2034,7 +2034,40 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
       __LINE__);
     return asynError;
   }
-  
+
+  int pointsCount = 0;
+  status = pC_->getIntegerParam(pC_->profileNumPoints_, &pointsCount);
+
+  if(status != asynSuccess) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Failed read profileNumPoints_.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__);
+    return asynError;
+  }
+
+  if((size_t)pointsCount > profileCurrentDefinedPoints_) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Point count larger than defined point count (%d > %zu).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      pointsCount,
+      profileCurrentDefinedPoints_);
+    return asynError;
+  }
+
+  if((size_t)pointsCount <= 0 || (size_t)pointsCount > profileMaxPoints_) {
+     LOGERR(
+      "%s/%s:%d: ERROR: Invalid point count, must be 1..%zu.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      profileMaxPoints_);
+    return asynError;
+  }
+
   if(!pvtPrepare_) {       
     pvtPrepare_ = new ecmcAxisPVTSequence(getEcmcSampleTimeMS()/1000, profileMaxPoints_);
   }
@@ -2064,13 +2097,13 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
       printf("TIME_MODE=PROFILE_TIME_MODE_ARRAY\n");
     }
   
-    for (size_t i = 0; i < profileNumPoints_; i++) {
+    for (int i = 0; i < pointsCount; i++) {
       if(timeMode == PROFILE_TIME_MODE_FIXED) {
-      printf("time[%ld] = %lf \n",i, time);
+      printf("time[%d] = %lf \n",i, time);
       } else { // Time array
-        printf("pC->profileTimes_[%ld] = %lf \n",i, pC->profileTimes_[i]);
+        printf("pC->profileTimes_[%d] = %lf \n",i, pC->profileTimes_[i]);
       }
-      printf("profilePositions_[%ld] = %lf \n",i, profilePositions_[i]);
+      printf("profilePositions_[%d] = %lf \n",i, profilePositions_[i]);
     }
   }
 
@@ -2107,7 +2140,7 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 
   // Add center points
   double velo = preVelo;
-  for (size_t i = 1; i < (profileNumPoints_-1); i++) {
+  for (int i = 1; i < (pointsCount-1); i++) {
     if(timeMode == PROFILE_TIME_MODE_FIXED) {      
       postVelo = (profilePositions_[i+1]-profilePositions_[i]) / time;
     } else { // Time array
@@ -2128,19 +2161,19 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   }
   
   // Add last point. same velo as prev point    
-  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1], postVelo, currTime));  
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[pointsCount-1], postVelo, currTime));  
   if(drvlocal.axisPrintDbg) {
-    printf("Added point (%lf,%lf,%lf)",profilePositions_[profileNumPoints_-1], postVelo, currTime);
+    printf("Added point (%lf,%lf,%lf)",profilePositions_[pointsCount-1], postVelo, currTime);
   }
 
   currTime +=accTime;
 
   // Add post-point for deceleration
   distAcc = postVelo * accTime / 2;
-  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[profileNumPoints_-1] + distAcc, 0.0, currTime));
+  pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[pointsCount-1] + distAcc, 0.0, currTime));
  
   if(drvlocal.axisPrintDbg) {
-    printf("Added post-point for dec (%lf,%lf,%lf)\n",profilePositions_[profileNumPoints_-1] + distAcc, preVelo, currTime);
+    printf("Added post-point for dec (%lf,%lf,%lf)\n",profilePositions_[pointsCount-1] + distAcc, preVelo, currTime);
   }
 
   // Dump what we have
@@ -2369,5 +2402,5 @@ bool ecmcMotorRecordAxis::getPVTEnabled() {
 }
 
 size_t ecmcMotorRecordAxis::getProfilePointCount() {
-  return profileNumPoints_;
+  return profileCurrentDefinedPoints_;
 }

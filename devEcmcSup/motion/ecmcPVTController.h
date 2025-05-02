@@ -52,9 +52,8 @@ class ecmcPVTController: public ecmcEcEntryLink {
     void   errorReset();
     int    abortPVT();
     int    setEcEntry(ecmcEcEntry *entry, int entryIndex, int bitIndex);
-    int    setTriggerInfo(size_t startPointId, size_t endPointId, size_t count);
+    int    setTriggerInfo(double start, double between,double end, size_t count);
     int    setTriggerDuration(double durationS);
-    int    checkTriggerTiming();
     ecmcPVTSMType getSMState();
 
   private:
@@ -82,8 +81,8 @@ class ecmcPVTController: public ecmcEcEntryLink {
     bool triggerDefined_;
     bool triggerValidatedOK_;
     size_t triggerEcEntryIndex_;
-    size_t triggerStartPoint_;
-    size_t triggerEndPoint_;
+    //size_t triggerStartPoint_;
+    //size_t triggerEndPoint_;
     size_t triggerCount_;
     double triggerStartTime_;
     double triggerEndTime_;

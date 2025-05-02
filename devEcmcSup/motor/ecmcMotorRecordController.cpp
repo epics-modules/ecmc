@@ -759,8 +759,14 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
     sprintf(profileMessage_, "Time mode changed, rebuild required...\n");
     setStringParam(profileBuildMessage_, profileMessage_);
     callParamCallbacks();
+  } else if (function == profileNumPoints_) {    
+    profileBuilt_ = false;
+    setIntegerParam(profileBuildStatus_, PROFILE_STATUS_UNDEFINED);
+    sprintf(profileMessage_, "Num points changed, rebuild required...\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
   }
-  
+
   if(status != asynSuccess) {
     return status;
   }
@@ -1054,9 +1060,6 @@ asynStatus ecmcMotorRecordController::executeProfile() {
       return status;
     }
   }
-
-  // Recalc triggers
-  pvtController_->setTriggerInfo(startPulse, endPulse, numPulses);
   // Trigg new sequence all axes (ensure in same scan)
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   pvtController_->setExecute(0);
@@ -1123,45 +1126,111 @@ asynStatus ecmcMotorRecordController::profileValidateTime() {
   double time;
   int timeMode;
   ecmcMotorRecordAxis *pAxis = NULL;
+  double pulseStartTime = -1;
+  double pulseEndTime = -1;
+  double pulseTimeBetween = -1;
+  double accTime = -1;
+  int pulseCount = -1;
+  int pointsCount = -1;
+  int pulseStartId = -1;
+  int pulseEndId = -1;
+  double accumulatedTime =-1;
 
+  getIntegerParam(ECMC_MR_CNTRL_ADDR, profileNumPulses_, &pulseCount);
+  getIntegerParam(ECMC_MR_CNTRL_ADDR, profileNumPoints_, &pointsCount);
+  getIntegerParam(ECMC_MR_CNTRL_ADDR, profileStartPulses_, &pulseStartId);
+  getIntegerParam(ECMC_MR_CNTRL_ADDR, profileEndPulses_, &pulseEndId);
   getIntegerParam(ECMC_MR_CNTRL_ADDR, profileTimeMode_, &timeMode);
-  getDoubleParam(ECMC_MR_CNTRL_ADDR, profileFixedTime_, &time);
+  getDoubleParam(ECMC_MR_CNTRL_ADDR,  profileFixedTime_, &time);
+  getDoubleParam(ECMC_MR_CNTRL_ADDR,  profileAcceleration_, &accTime);
 
-  if(timeMode != PROFILE_TIME_MODE_FIXED) {
+  if(pulseCount > 0 && pulseStartId > pointsCount) {
+    printf("ecmcMotorRecordController: Error: Start pulse id higher than point count.\n");
+    sprintf(profileMessage_, "Error: Start pulse id higher than point count.\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
+    return asynError;
+  }
+
+  if(pulseCount > 0 && pulseEndId > pointsCount) {
+    printf("ecmcMotorRecordController: Warning: End pulse id higher than point count (use last point as pulse end id).\n");
+  }
+
+  if(timeMode == PROFILE_TIME_MODE_FIXED) {
     if(time <= 0) {
       printf("ecmcMotorRecordController: Error: Time invalid, must be > 0.0 seconds.\n");
       sprintf(profileMessage_, "Error: Time invalid, must be > 0 seconds.\n");
       setStringParam(profileBuildMessage_, profileMessage_);
       callParamCallbacks();
       return asynError;
-    } else {  
-      
-      //Array
-      // Check that times are valid
-      for(size_t i = 0; i < profileTimeArraySize_ ; i++) {
-        if(profileTimes_[i] <= 0) {
-          printf("ecmcMotorRecordController: Error: Invalid time in time array (time[%zu]=%lf). Time must be >=  0.0 seconds\n", i,profileTimes_[i]);
-          sprintf(profileMessage_, "Error: Invalid time in time array. Time values must be >= 0.0 seconds.\n");
-          setStringParam(profileBuildMessage_, profileMessage_);
-          callParamCallbacks();
-          return asynError;
-        }
+    }
+    // Start and end time for pulses for const time per point
+    pulseStartTime = accTime + time *(pulseStartId-1);
+    pulseEndTime = accTime + time *(pulseEndId-1);
+  } else {
+
+    //Array
+    // Check that times are valid
+    accumulatedTime = accTime;
+    for(int i = 0; i < (int)profileTimeArraySize_ ; i++) {
+      // latch start time
+      if(i == (pulseStartId-1)) {        
+        pulseStartTime = accumulatedTime;
       }
-  
-      // Ensure that profile position array is of same saize as time array
-      for (int i=0; i < numAxes_; i++) {
-        pAxis = getAxis(i);
-        if (!pAxis) continue;
-        if(pAxis->getPVTEnabled() && (pAxis->getProfilePointCount() != profileTimeArraySize_)) {
-          printf("ecmcMotorRecordController: Error: Time array VS position array size missmatch.\n");
-          sprintf(profileMessage_, "Error: Time array VS position array size missmatch.\n");
-          setStringParam(profileBuildMessage_, profileMessage_);
-          callParamCallbacks();
-          return asynError;    
-        }
+      if(i == (pulseEndId-1)) {
+        pulseEndTime = accumulatedTime;
+      }
+      accumulatedTime+=profileTimes_[i];
+      if(profileTimes_[i] <= 0) {
+        printf("ecmcMotorRecordController: Error: Invalid time in time array (time[%d]=%lf). Time must be >=  0.0 seconds\n", i,profileTimes_[i]);
+        sprintf(profileMessage_, "Error: Invalid time in time array. Time values must be >= 0.0 seconds.\n");
+        setStringParam(profileBuildMessage_, profileMessage_);
+        callParamCallbacks();
+        return asynError;
+      }
+    }
+     // Ensure that profile position array is of same size as time array
+    for (int i=0; i < numAxes_; i++) {
+      pAxis = getAxis(i);
+      if (!pAxis) continue;
+      if(pAxis->getPVTEnabled() && (pAxis->getProfilePointCount() != profileTimeArraySize_)) {
+        printf("ecmcMotorRecordController: Error: Time array VS position array size missmatch.\n");
+        sprintf(profileMessage_, "Error: Time array VS position array size missmatch.\n");
+        setStringParam(profileBuildMessage_, profileMessage_);
+        callParamCallbacks();
+        return asynError;    
       }
     }
   }
+
+  // Trigegring time between
+  if(pulseCount <= 1) {
+    pulseTimeBetween = 0;  // Only one trigger
+    pulseEndTime = pulseStartTime;
+  } else {
+    pulseTimeBetween = (pulseEndTime-pulseStartTime) / (pulseCount-1);
+  }
+
+  printf("ecmcMotorRecordController::build(): Triggers %lf:%lf:%lf (pulse count %d)\n",
+          pulseStartTime,pulseTimeBetween,pulseEndTime,pulseCount);
+ 
+  if(pulseCount > 0 && pulseStartTime < 0 || pulseStartTime > pulseEndTime){
+    printf("ecmcMotorRecordController: Error: Pulse time missmatch.\n");
+    sprintf(profileMessage_, "Error: Pulse time missmatch.\n");
+    setStringParam(profileBuildMessage_, profileMessage_);
+    callParamCallbacks();
+    return asynError;    
+  }
+  
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  if(pulseCount > 0){
+    pvtController_->setTriggerInfo(pulseStartTime, pulseTimeBetween,
+                                     pulseEndTime, pulseCount);
+  } else {
+    // disable triggering
+    pvtController_->setTriggerInfo(-1,-1,-1, 0);
+  }
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   return asynSuccess;
 }

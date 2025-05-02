@@ -29,8 +29,6 @@ ecmcPVTController::ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,
   axes_.reserve(ECMC_MAX_AXES);
   triggerDefined_ = 0;
   triggerEcEntryIndex_ = 0;
-  triggerStartPoint_   = 0;
-  triggerEndPoint_     = 0;
   triggerCount_        = 0;
   triggerStartTime_    = 0;
   triggerEndTime_      = 0;
@@ -221,16 +219,22 @@ void ecmcPVTController::execute() {
       break;
   }
   
-  // Trigger Control
-  if(!triggerValidatedOK_) {  // Triggers not in use    
-    return;
-  }
+  
+  //#### triggering below (soft and hw) #####
 
+  // reset trigger
   if(nextTime_ > triggerEndTime_+ triggerDuration_) {
-    writeEcEntryValue(triggerEcEntryIndex_,0);
+    if(!triggerValidatedOK_) {
+      writeEcEntryValue(triggerEcEntryIndex_,0);
+    }
     return; // Done
   }
 
+  // Do not trigger if in wrong state or no triggers
+  if(triggerCount_<= 0 && state_!=ECMC_PVT_EXECUTE_PVT) {
+    return;
+  }
+  
   double nextTriggerTime = triggerStartTime_+ triggerCurrentId_ * triggerTimeBetween_;
 
   if(triggerCurrentId_ < triggerCount_) {
@@ -241,8 +245,10 @@ void ecmcPVTController::execute() {
   }
 
   if( nextTime_ > (nextTriggerTime + halfSampleTime_) && nextTime_ <= (nextTriggerTime + triggerDuration_)) {
-    // here we want to also latch data    
-    writeEcEntryValue(triggerEcEntryIndex_,1);
+    // here we want to also latch data
+    if(!triggerValidatedOK_) {
+      writeEcEntryValue(triggerEcEntryIndex_,1);
+    }
 
     if(newTrg_) { // new pulse: Trigger DAQ in PVTSequence
       softTrigger_++;
@@ -256,7 +262,9 @@ void ecmcPVTController::execute() {
     }
     newTrg_ = false;
   } else {
-    writeEcEntryValue(triggerEcEntryIndex_,0);
+    if(!triggerValidatedOK_) {
+      writeEcEntryValue(triggerEcEntryIndex_,0);
+    }
     newTrg_ = true; // trigger data latch at next pulse
   }
 }
@@ -411,57 +419,12 @@ int ecmcPVTController::setEcEntry(ecmcEcEntry *entry,int entryIndex, int bitInde
   return 0;
 }
 
-int ecmcPVTController::checkTriggerTiming() {
-  if(axes_.size() <= 0) {
-    return setErrorID(ERROR_PVT_CTRL_AXIS_COUNT_ZERO);
-  }
-
-  // use timing of first PVT object to calcu trigger info
-  ecmcAxisPVTSequence *pvt = axes_[0]->getPVTObject();
-  
-  if(pvt == NULL) {
-    printf("ecmcPVTController::checkTriggerTiming(): PVT obj NULL\n");
-    return setErrorID(ERROR_PVT_CTRL_TRIGG_CFG_INVALID);
-  }
-  
-  size_t segCount = pvt->getSegCount();
-  // Note first segment is acc and last dec (must be 3 segments)
-  if(triggerEndPoint_> (segCount - 1)) {
-    triggerEndPoint_ = segCount - 1;
-  }
-  if((segCount < 3) || (triggerEndPoint_ > (segCount - 1)) || ((triggerStartPoint_ >= triggerEndPoint_) && (triggerCount_ > 1))) {
-    printf("ecmcPVTController::checkTriggerTiming(): Invalid trigger params\n");
-    return setErrorID(ERROR_PVT_CTRL_TRIGG_CFG_INVALID);
-  }
-
-  // find first trigger times
-  double timeSum = 0;
-  for(size_t i = 0; i <= triggerEndPoint_; i++) {
-    timeSum +=pvt->getSegDuration(i);
-    if(i == (triggerStartPoint_-1)) {
-      triggerStartTime_ = timeSum;
-    }
-    if(i == (triggerEndPoint_-1)) {
-      triggerEndTime_ = timeSum;
-    }
-  }
-
-  if(triggerCount_<=1) {
-    triggerTimeBetween_ = 0;  // Only one trigger
-    triggerEndTime_ = triggerStartTime_;
-  } else {
-    triggerTimeBetween_ = (triggerEndTime_-triggerStartTime_) / (triggerCount_-1);
-  }
-  printf("ecmcPVTController::checkTriggerTiming(): Triggers %lf:%lf:%lf (with duration %lf)\n",
-          triggerStartTime_,triggerTimeBetween_,triggerEndTime_,triggerDuration_);
+int ecmcPVTController::setTriggerInfo(double start, double between, double end, size_t count) { 
+  triggerStartTime_   = start;
+  triggerEndTime_     = end;
+  triggerTimeBetween_ = between;
+  triggerCount_       = count;
   return 0;
-}
-
-int ecmcPVTController::setTriggerInfo(size_t startPointId, size_t endPointId, size_t count) { 
-  triggerStartPoint_ = startPointId;  // start from 1 (1==first point, however first point is acceleration so compensate fro that)
-  triggerEndPoint_   = endPointId;    // start from 1
-  triggerCount_      = count;  // profile num pulses
-  return checkTriggerTiming();
 }
 
 int ecmcPVTController::setTriggerDuration(double durationS) {
@@ -555,3 +518,4 @@ void ecmcPVTController::initAsyn() {
   printf("SUCCESS!");
 
 }
+
