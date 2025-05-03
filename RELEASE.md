@@ -1,7 +1,31 @@
 Release Notes
 ===
 # ECMC 10.1.0_RC1
-* Change moving flag to only be high when busy
+* Change moving axis flag to only be high when busy
+
+## Add plc functions to set vel, acc ,dec, jerk from plc:
+```
+  error = mc_set_traj_vel(
+                         <axIndex>,  : Axis index
+                         <vel>       : Target velocity
+                         );
+
+  error = mc_set_traj_acc(
+                         <axIndex>,  : Axis index
+                         <acc>       : Max acceleration
+                         );
+
+  error = mc_set_traj_dec(
+                         <axIndex>,  : Axis index
+                         <dec>       : Max deceleration
+                         );
+
+  error = mc_set_traj_jerk(
+                         <axIndex>,  : Axis index
+                         <jerk>      : Max jerk
+                         );
+```
+
 ##  Support to override limit and home switch from plc code.
 If multiple limits switches is needed or some logic expression then the limits can be calculated in plc code. These commands were added to override the EtherCAT entries for the limits:
 * PLCs: Always load FileIO lib and Vector lib

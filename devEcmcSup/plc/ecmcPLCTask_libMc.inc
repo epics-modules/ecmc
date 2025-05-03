@@ -106,6 +106,10 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_set_act_pos(",
                                "mc_set_enc_homed(",
                                "mc_get_enc_homed(",
+                               "mc_set_traj_vel(",
+                               "mc_set_traj_acc(",
+                               "mc_set_traj_dec(",
+                               "mc_set_traj_jerk(",
                               };
 
 extern ecmcAxisGroup   *axisGroups[ECMC_MAX_AXES];
@@ -117,7 +121,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 48;
+static int mc_cmd_count = 51;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -805,6 +809,34 @@ inline double mc_get_enc_ready(double axIndex, double encIndex)
   }
 
   return (double) enc->hwReady();
+}
+
+inline double mc_set_traj_vel(double axIndex, double vel)
+{
+  int axIndexInt=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  return (double) axes[axIndexInt]->getTraj()->setTargetVel(vel);
+}
+
+inline double mc_set_traj_acc(double axIndex, double acc)
+{
+  int axIndexInt=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  return (double) axes[axIndexInt]->getTraj()->setAcc(acc);
+}
+
+inline double mc_set_traj_dec(double axIndex, double dec)
+{
+  int axIndexInt=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  return (double) axes[axIndexInt]->getTraj()->setDec(dec);
+}
+
+inline double mc_set_traj_jerk(double axIndex, double jerk)
+{
+  int axIndexInt=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  return (double) axes[axIndexInt]->getTraj()->setJerk(jerk);
 }
 
 #endif /* ecmcPLC_libMc_inc_ */

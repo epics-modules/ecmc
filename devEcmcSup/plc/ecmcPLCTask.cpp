@@ -826,6 +826,10 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_mr_set_cnen",mc_mr_set_cnen);
   ecmcPLCTaskAddFunction("mc_set_enc_homed",mc_set_enc_homed);
   ecmcPLCTaskAddFunction("mc_get_enc_homed",mc_get_enc_homed);
+  ecmcPLCTaskAddFunction("mc_set_traj_vel",mc_set_traj_vel);
+  ecmcPLCTaskAddFunction("mc_set_traj_acc",mc_set_traj_acc);
+  ecmcPLCTaskAddFunction("mc_set_traj_dec",mc_set_traj_dec);
+  ecmcPLCTaskAddFunction("mc_set_traj_jerk",mc_set_traj_jerk);
 
   // axis Group
   ecmcPLCTaskAddFunction("mc_grp_get_enable",mc_grp_get_enable);
