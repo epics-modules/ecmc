@@ -5,25 +5,31 @@ Release Notes
 
 ## Add plc functions to set vel, acc ,dec, jerk from plc:
 ```
-  error = mc_set_traj_vel(
-                         <axIndex>,  : Axis index
-                         <vel>       : Target velocity
-                         );
+  1. error = mc_set_traj_vel(
+                            <axIndex>,  : Axis index
+                            <vel>       : Target velocity
+                            );
+  Set target velocity.
 
-  error = mc_set_traj_acc(
-                         <axIndex>,  : Axis index
-                         <acc>       : Max acceleration
-                         );
+  2. error = mc_set_traj_acc(
+                            <axIndex>,  : Axis index
+                            <acc>       : Max acceleration
+                            );
+  Set max acceleration.
 
-  error = mc_set_traj_dec(
-                         <axIndex>,  : Axis index
-                         <dec>       : Max deceleration
-                         );
+  3. error = mc_set_traj_dec(
+                            <axIndex>,  : Axis index
+                            <dec>       : Max deceleration
+                            );
+  Set max deceleration.
+  note: mc_set_traj_dec() is only valid for trapez trajectory (trajectory.type=0). For s-curve trajectory mc_set_traj_acc() is used for both acceleration and deceleration.
 
-  error = mc_set_traj_jerk(
-                         <axIndex>,  : Axis index
-                         <jerk>      : Max jerk
-                         );
+  4. error = mc_set_traj_jerk(
+                            <axIndex>,  : Axis index
+                            <jerk>      : Max jerk
+                            );
+  Set max jerk.
+  note: mc_set_traj_jerk() is only valid for s-curve trajectory (ruckig, trajectory.type=1)
 ```
 
 ##  Support to override limit and home switch from plc code.
@@ -37,7 +43,7 @@ Cfg.SetAxisHomeSwitchPLCOverride(int axis_no, int value);
 ```
 Note: Overridden limit switches must be set from plc code.
 
-In ecmccfg teh commands have been linked to the yaml configuration by using the 'plcOverride' keyword:
+In ecmccfg the commands have been linked to the yaml configuration by using the 'plcOverride' keyword:
 ```
 ...
 input:
@@ -55,7 +61,7 @@ plc:
 ```
 
 ## PVT
-* Buggfix: Now the first and last points (for acc and dec)
+* Now the first and last points (for acc and dec)
 are calculated based on the direction of motion for the nearby point.
 * Add auto enable for axes (TODO, move code to axes object so that also normal ecmc axis can benefit).
 
