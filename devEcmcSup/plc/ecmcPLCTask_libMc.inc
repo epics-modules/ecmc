@@ -121,7 +121,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode=0;
-static int mc_cmd_count = 51;
+static int mc_cmd_count = 52;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -815,28 +815,32 @@ inline double mc_set_traj_vel(double axIndex, double vel)
 {
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  return (double) axes[axIndexInt]->getTraj()->setTargetVel(vel);
+  axes[axIndexInt]->getTraj()->setTargetVel(vel);
+  return 0.0;
 }
 
 inline double mc_set_traj_acc(double axIndex, double acc)
 {
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  return (double) axes[axIndexInt]->getTraj()->setAcc(acc);
+  axes[axIndexInt]->getTraj()->setAcc(acc);
+  return 0.0;
 }
 
 inline double mc_set_traj_dec(double axIndex, double dec)
 {
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  return (double) axes[axIndexInt]->getTraj()->setDec(dec);
+  axes[axIndexInt]->getTraj()->setDec(dec);
+  return 0.0;
 }
 
 inline double mc_set_traj_jerk(double axIndex, double jerk)
 {
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  return (double) axes[axIndexInt]->getTraj()->setJerk(jerk);
+  axes[axIndexInt]->getTraj()->setJerk(jerk);
+  return 0.0;
 }
 
 #endif /* ecmcPLC_libMc_inc_ */
