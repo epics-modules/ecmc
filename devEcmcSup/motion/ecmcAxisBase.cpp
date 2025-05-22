@@ -1584,15 +1584,23 @@ void ecmcAxisBase::refreshStatusWd() {
   statusData_.onChangeData.statusWd.sumilockbwd =
     data_.interlocks_.trajSummaryInterlockBWDEpics;
 
-  // bit 19 axis type
+  // bit 19 softlimilockfwd
+  statusData_.onChangeData.statusWd.softlimilockfwd =
+    data_.interlocks_.fwdSoftLimitInterlock;
+
+  // bit 20 softlimilockbwd
+  statusData_.onChangeData.statusWd.softlimilockbwd =
+    data_.interlocks_.bwdSoftLimitInterlock;
+
+  // bit 21 axis type
   statusData_.onChangeData.statusWd.axisType = data_.axisType_ ==
                                                ECMC_AXIS_TYPE_VIRTUAL;
 
-  // bit 20..23 seq state
+  // bit 22..25 seq state
   statusData_.onChangeData.statusWd.seqstate =
     (unsigned char)data_.status_.seqState;
 
-  // bit 24..31 lastActiveInterlock type
+  // bit 26..31 lastActiveInterlock type
   statusData_.onChangeData.statusWd.lastilock =
     (unsigned char)data_.interlocks_.lastActiveInterlock;
 }

@@ -91,28 +91,30 @@ enum axisState {
 };
 
 typedef struct {
-  unsigned char enable        : 1;
-  unsigned char enabled       : 1;
-  unsigned char execute       : 1;
-  unsigned char busy          : 1;
-  unsigned char attarget      : 1;
-  unsigned char moving        : 1;
-  unsigned char limitfwd      : 1;
-  unsigned char limitbwd      : 1;
-  unsigned char homeswitch    : 1;
-  unsigned char homed         : 1;
-  unsigned char inrealtime    : 1;
-  unsigned char trajsource    : 1;
-  unsigned char encsource     : 1;
-  unsigned char plccmdallowed : 1;
-  unsigned char softlimfwdena : 1;
-  unsigned char softlimbwdena : 1;
-  unsigned char instartup     : 1;
-  unsigned char sumilockfwd   : 1;
-  unsigned char sumilockbwd   : 1;
-  unsigned char axisType      : 1;
-  unsigned char seqstate      : 4;
-  unsigned char lastilock     : 8;
+  unsigned char enable          : 1;
+  unsigned char enabled         : 1;
+  unsigned char execute         : 1;
+  unsigned char busy            : 1;
+  unsigned char attarget        : 1;
+  unsigned char moving          : 1;
+  unsigned char limitfwd        : 1;
+  unsigned char limitbwd        : 1;
+  unsigned char homeswitch      : 1;
+  unsigned char homed           : 1;
+  unsigned char inrealtime      : 1;
+  unsigned char trajsource      : 1;
+  unsigned char encsource       : 1;
+  unsigned char plccmdallowed   : 1;
+  unsigned char softlimfwdena   : 1;
+  unsigned char softlimbwdena   : 1;
+  unsigned char instartup       : 1;
+  unsigned char sumilockfwd     : 1;
+  unsigned char sumilockbwd     : 1;
+  unsigned char softlimilockfwd : 1;
+  unsigned char softlimilockbwd : 1;
+  unsigned char axisType        : 1;
+  unsigned char seqstate        : 4;
+  unsigned char lastilock       : 6;
 } ecmcAxisStatusWordType;
 
 typedef struct {
