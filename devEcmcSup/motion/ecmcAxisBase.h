@@ -173,7 +173,9 @@ typedef struct {
   bool enableSoftLimitBwd : 1;
   bool enableSoftLimitFwd : 1;
   bool enableDbgPrintout  : 1;
-  int  spareBitsCmd       : 21;
+  bool tweakBwdCmd        : 1;
+  bool tweakFwdCmd        : 1;
+  int  spareBitsCmd       : 19;
 } ecmcAsynAxisControlType;
 
 class ecmcAxisBase : public ecmcError {

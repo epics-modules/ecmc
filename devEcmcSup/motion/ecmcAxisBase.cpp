@@ -2282,7 +2282,9 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * controlWord_.enableSoftLimitBwd
  * controlWord_.enableSoftLimitFwd
  * controlWord_.enableILockChangePrintout
- *
+ * controlWord_.tweakBwdCmd
+ * controlWord_.tweakFwdCmd
+ * 
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
                                           size_t        bytes,
@@ -2427,6 +2429,44 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     }
   }
   controlWord_.executeCmd = 0; // auto reset
+
+  // Tweak BWD
+  if (!controlWord_.stopCmd && controlWord_.tweakBwdCmd && !getBusy()) {
+    setCommand(ECMC_CMD_MOVEREL);
+    getSeq()->setTargetVel(velocityTarget_);
+    getSeq()->setTargetPos(-std::abs(positionTarget_));  // Backward
+    getSeq()->setAcc(acceleration_);
+    getSeq()->setDec(deceleration_);
+    errorCode = setExecute(0);
+    if (errorCode) {
+      returnVal = asynError;
+    }
+    errorCode = setExecute(1);
+
+    if (errorCode) {
+      returnVal = asynError;
+    }   
+  }
+  
+  // Tweak FWD
+  if (!controlWord_.stopCmd && controlWord_.tweakFwdCmd && !getBusy()) {
+    setCommand(ECMC_CMD_MOVEREL);
+    getSeq()->setTargetVel(velocityTarget_);
+    getSeq()->setTargetPos(std::abs(positionTarget_)); // Forward
+    getSeq()->setAcc(acceleration_);
+    getSeq()->setDec(deceleration_);
+    errorCode = setExecute(0);
+    if (errorCode) {
+      returnVal = asynError;
+    }
+    errorCode = setExecute(1);
+
+    if (errorCode) {
+      returnVal = asynError;
+    }   
+  }
+
+  controlWord_.tweakBwdCmd = 0;
 
   setReset(controlWord_.resetCmd);  // resetCmd is reset in setReset()
 
