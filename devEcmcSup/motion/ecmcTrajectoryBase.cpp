@@ -97,7 +97,7 @@ bool ecmcTrajectoryBase::getExecute() {
   return execute_;
 }
 
-void ecmcTrajectoryBase::setEnable(bool enable) {
+void ecmcTrajectoryBase::setEnable(bool enable) {  
   enableOld_               = enable_;
   enable_                  = enable;
   currentVelocitySetpoint_ = 0;
@@ -111,6 +111,7 @@ void ecmcTrajectoryBase::setEnable(bool enable) {
 
   if (!enable_) {
     busy_ = false;
+    execute_ = false;
   }
 }
 
@@ -457,7 +458,7 @@ double ecmcTrajectoryBase::getNextPosSet() {
   index_++;
 
   if (!execute_ && (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL)) {
-    data_->interlocks_.noExecuteInterlock = true;
+    data_->interlocks_.noExecuteInterlock = true;    
     data_->refreshInterlocks();
   }
 

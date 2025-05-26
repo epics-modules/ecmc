@@ -1021,7 +1021,7 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
     pC_->getIntegerParam(axisNo_, pC_->motorPowerAutoOnOff_, &autoPower);
 
     if (autoPower) {
-      /* The record/driver will check for enabled (pollOwerIsOn)- only check enable */
+      /* The record/driver will check for enabled (pollPowerIsOn)- only check enable */
       justCheckForEnable = 1;
     }
   }
@@ -1043,16 +1043,24 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
 
   status = setEnable(on);
 
+  /* 
+    Ignore disable error.
+    For use with master axes groups when plc code control disabling of axes.   
+  */
+
+  if(drvlocal.ecmcIgnoreDisableAxisStatus && !on) {
+    poll(&moving);
+    return asynSuccess;
+  }
+
   if (status) return status;
 
   while (counter) {
     epicsThreadSleep(ECMC_AXIS_ENABLE_SLEEP_PERIOD);
     asynStatus status = readEcmcAxisStatusData();
-
     if (status) {
       return status;
-    }
-
+    }    
     if (((drvlocal.statusBinData.onChangeData.statusWd.enabled == on) ||
          justCheckForEnable) &&
         (drvlocal.statusBinData.onChangeData.statusWd.enable == on) &&
@@ -1262,6 +1270,8 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
                         ECMC_DATA_SOURCE_EXTERNAL;
+
+  drvlocal.ecmcIgnoreDisableAxisStatus = drvlocal.ecmcAxis->getMRIgnoreDisableStatusCheck();
   
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 

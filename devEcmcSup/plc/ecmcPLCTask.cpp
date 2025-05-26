@@ -856,6 +856,11 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_mr_set_sync",mc_grp_mr_set_sync);
   ecmcPLCTaskAddFunction("mc_grp_mr_set_stop",mc_grp_mr_set_stop);
   ecmcPLCTaskAddFunction("mc_grp_mr_set_cnen",mc_grp_mr_set_cnen);
+  ecmcPLCTaskAddFunction("mc_grp_set_ignore_mr_status_check_at_disable",mc_grp_set_ignore_mr_status_check_at_disable);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_at_fwd_limit",mc_grp_get_any_at_fwd_limit);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_at_bwd_limit",mc_grp_get_any_at_bwd_limit);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_at_limit",mc_grp_get_any_at_limit);
+  ecmcPLCTaskAddFunction("mc_grp_set_slaved_axis_ilocked",mc_grp_set_slaved_axis_ilocked);
 
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

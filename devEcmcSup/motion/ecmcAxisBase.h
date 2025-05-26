@@ -79,6 +79,7 @@
 #define ERROR_AXIS_SLAVED_AXIS_IN_ERROR 0x1432B
 #define ERROR_AXIS_CMD_NOT_ALLOWED_IN_REALTIME 0x1432C
 #define ERROR_AXIS_HW_NOT_READY 0x1432D
+#define ERROR_AXIS_SLAVED_AXIS_INTERLOCK 0x1432E
 
 // AXIS WARNINGS
 #define WARNING_AXIS_ASYN_CMD_WHILE_BUSY 0x114300
@@ -206,6 +207,8 @@ public:
   int                        getEncScaleDenom(double *scale);
   int                        setEncScaleDenom(double scale);
   int                        getEncPosRaw(int64_t *rawPos);
+  bool                       getLimitBwd();
+  bool                       getLimitFwd();
   int                        setEncInvHwReady(int invert);
   int                        loadEncLookupTable(const char* filename);
   int                        setEncLookupTableEnable(int enable);
@@ -249,6 +252,7 @@ public:
   int                        getErrorID();
   void                       errorReset();
   int                        setSlavedAxisInError();
+  int                        setSlavedAxisInterlock();
   int                        setEnableLocal(bool enable);
   int                        validateBase();
   bool                       getBusy();
@@ -361,10 +365,21 @@ public:
   void       setMRSync(bool sync);    // SYNC motor record
   void       setMRStop(bool stop);    // STOP motor record
   void       setMRCnen(bool cnen);    // CNEN motor record
+  /*
+     Ignore status when motor record tries to disable.
+     Only to be used when axis groups and PSI PLC state machine is in use.
+     This PLC code overrides the enable commands since indiviual virtual axes 
+     are not allowed to disable during motion.
+     NOTE: the disable bit will be set and ecmcAxisMotorRecord:setClosedLoop(0) will always return asynSuccess.
+  */
+  void       setMRIgnoreDisableStatusCheck(bool ignore);
+  bool       getMRIgnoreDisableStatusCheck();  // Ignore status when
+
   int        getSumInterlock();
   int        getPrintDbg();
   ecmcAxisPVTSequence* getPVTObject();
   double     getCurrentPositionSetpoint();
+  
 
 protected:
   void       initVars();
@@ -427,6 +442,7 @@ protected:
   ecmcMRCmds mrCmds_;
   ecmcMRCmds mrCmdsOld_;
   bool globalBusy_;
+  bool ignoreMRDisableStatusCheck_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

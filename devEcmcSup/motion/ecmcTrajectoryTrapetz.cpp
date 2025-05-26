@@ -66,15 +66,17 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
 
   switch (motionMode_) {
   case ECMC_MOVE_MODE_POS:
+
     posSetTemp = movePos(localCurrentPositionSetpoint_,
                          targetPositionLocal_,
                          distToStop_,
                          prevStepSize_,
                          stepNOM_,
-                         &localBusy_);
+                         &localBusy_);    
     break;
 
   case ECMC_MOVE_MODE_VEL:
+
     posSetTemp = moveVel(localCurrentPositionSetpoint_,
                          prevStepSize_,
                          stepNOM_,
@@ -109,6 +111,7 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
        data_->interlocks_.trajSummaryInterlockBWD) ||
       ((nextDir == ECMC_DIR_FORWARD) &&
        data_->interlocks_.trajSummaryInterlockFWD)) {
+
     posSetTemp = moveStop(data_->interlocks_.currStopMode,
                           localCurrentPositionSetpoint_,
                           prevStepSize_,
@@ -190,7 +193,10 @@ double ecmcTrajectoryTrapetz::moveVel(double currSetpoint,
   }
 
   thisStepSize_ = positionStep;
-
+  if(thisStepSize_ == 0 && stepNOM == 0) {
+    // if stopTraj
+    *trajBusy = false;
+  }
   return currSetpoint + thisStepSize_;
 }
 

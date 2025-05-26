@@ -39,6 +39,12 @@ class ecmcAxisGroup : public ecmcError {
     bool getEnabled();
     // Check if any axes in group are enabled
     bool getAnyEnabled();
+    // Check if any axes in group is at a limit switch
+    bool getAnyAtLimit();
+    // Check if any axes in group is at fwd limit switch
+    bool getAnyAtLimitFwd();
+    // Check if any axes in group is at bwd limit switch
+    bool getAnyAtLimitBwd();
     // Check if all axes in group are busy
     bool getBusy();
     // Check if at least one axis in group are busy
@@ -63,12 +69,16 @@ class ecmcAxisGroup : public ecmcError {
     void setError(int error);
     // Set slaved axis error all axes
     void setSlavedAxisInError();
+    // Set slaved axis interlock
+    void setSlavedAxisIlocked();
     // SYNC motor record
     void setMRSync(bool sync);
     // STOP motor record
     void setMRStop(bool stop);
     // CNEN motor record
     void setMRCnen(bool cnen);
+    // Ignore MR disabel status check
+    void setMRIgnoreDisableStatusCheck(bool ignore);
     // Stop motion
     void halt();
     // Check if axis is in group

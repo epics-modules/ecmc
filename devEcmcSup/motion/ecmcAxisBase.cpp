@@ -295,6 +295,7 @@ void ecmcAxisBase::initVars() {
   hwReady_                      = 0;
   hwReadyOld_                   = 0;
   globalBusy_                   = 0;
+  ignoreMRDisableStatusCheck_   = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -602,6 +603,7 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
     traj_->initStopRamp(data_.status_.currentPositionActual,
                         data_.status_.currentVelocityActual,
                         0);
+    data_.status_.busy = traj_->getBusy();
     getSeq()->setTargetPos(data_.status_.currentPositionSetpoint);
 
     if (!getEnable()) {
@@ -3085,6 +3087,11 @@ int ecmcAxisBase::setSlavedAxisInError() {
   return 0;
 }
 
+int ecmcAxisBase::setSlavedAxisInterlock() {
+  setErrorID(ERROR_AXIS_SLAVED_AXIS_INTERLOCK);
+  return 0;
+}
+
 // motor.SYNC (set to act)
 void ecmcAxisBase::setMRSync(bool sync) {
   // Ensure to only trigg command once per cycle
@@ -3151,4 +3158,22 @@ double ecmcAxisBase::getCurrentPositionSetpoint() {
 int ecmcAxisBase::setGlobalBusy(bool busy) {  // Allow for sequences
   globalBusy_ = busy;
   return 0;
+}
+
+void ecmcAxisBase::setMRIgnoreDisableStatusCheck(bool ignore) {
+  ignoreMRDisableStatusCheck_ = ignore;
+}
+
+bool ecmcAxisBase::getMRIgnoreDisableStatusCheck() {
+ return ignoreMRDisableStatusCheck_;
+}
+
+// At switch if 0
+bool ecmcAxisBase::getLimitBwd() {
+  return data_.status_.limitBwd;
+}
+
+// At switch if 0
+bool ecmcAxisBase::getLimitFwd() {
+  return data_.status_.limitFwd;
 }

@@ -272,3 +272,46 @@ void ecmcAxisGroup::setMRCnen(bool cnen) {
     }
   }
 }
+
+void ecmcAxisGroup::setMRIgnoreDisableStatusCheck(bool ignore) {
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setMRIgnoreDisableStatusCheck(ignore);
+    }
+  }
+}
+
+// Check if any axes in group is at fwd limit switch
+bool ecmcAxisGroup::getAnyAtLimitFwd() {
+  bool atLim = false;
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      atLim = atLim || !(*axis)->getLimitFwd();
+    }
+  }
+  return atLim;
+}
+
+// Check if any axes in group is at bwd limit switch
+bool ecmcAxisGroup::getAnyAtLimitBwd() {
+  bool atLim = false;
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      atLim = atLim || !(*axis)->getLimitBwd();
+    }
+  }
+  return atLim;
+}
+
+// Check if any axes in group is at a limit switch
+bool ecmcAxisGroup::getAnyAtLimit() {
+  return getAnyAtLimitFwd() || getAnyAtLimitBwd();
+}
+
+void ecmcAxisGroup::setSlavedAxisIlocked() {
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setSlavedAxisInterlock();
+    }
+  }
+}

@@ -470,7 +470,6 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_AXIS_SLAVED_AXIS_IN_ERROR";
 
     break;
-
   case 0x1432C:
     return "ERROR_AXIS_CMD_NOT_ALLOWED_IN_REALTIME";
 
@@ -478,6 +477,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x1432D:
     return "ERROR_AXIS_HW_NOT_READY";
+
+    break;
+
+  case 0x1432E:
+    return "ERROR_AXIS_SLAVED_AXIS_INTERLOCK";
 
     break;
 

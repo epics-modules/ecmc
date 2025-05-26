@@ -110,6 +110,11 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_set_traj_acc(",
                                "mc_set_traj_dec(",
                                "mc_set_traj_jerk(",
+                               "mc_grp_set_ignore_mr_status_check_at_disable(",
+                               "mc_grp_get_any_at_fwd_limit(",
+                               "mc_grp_get_any_at_bwd_limit(",
+                               "mc_grp_get_any_at_limit(",
+                               "mc_grp_set_slaved_axis_ilocked(",
                               };
 
 extern ecmcAxisGroup   *axisGroups[ECMC_MAX_AXES];
@@ -120,8 +125,8 @@ static int statLastAxesExecuteRel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
-static int mc_errorCode=0;
-static int mc_cmd_count = 52;
+static int mc_errorCode = 0;
+static int mc_cmd_count = 57;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -840,6 +845,39 @@ inline double mc_set_traj_jerk(double axIndex, double jerk)
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
   axes[axIndexInt]->getTraj()->setJerk(jerk);
+  return 0.0;
+}
+
+inline double mc_grp_set_ignore_mr_status_check_at_disable(double grpIndex, double ignore){
+  int intGrpIndex=(int)grpIndex;
+  int ignore_int=(int)ignore;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  axisGroups[intGrpIndex]->setMRIgnoreDisableStatusCheck(ignore_int);
+  return 0;
+}
+
+inline double mc_grp_get_any_at_fwd_limit(double grpIndex){
+  int intGrpIndex=(int)grpIndex;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  return (double) axisGroups[intGrpIndex]->getAnyAtLimitFwd();
+}
+
+inline double mc_grp_get_any_at_bwd_limit(double grpIndex){
+  int intGrpIndex=(int)grpIndex;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  return (double) axisGroups[intGrpIndex]->getAnyAtLimitBwd();
+}
+
+inline double mc_grp_get_any_at_limit(double grpIndex){
+  int intGrpIndex=(int)grpIndex;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  return (double) axisGroups[intGrpIndex]->getAnyAtLimit();
+}
+
+inline double mc_grp_set_slaved_axis_ilocked(double grpIndex){
+  int intGrpIndex=(int)grpIndex;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  axisGroups[intGrpIndex]->setSlavedAxisIlocked();
   return 0.0;
 }
 

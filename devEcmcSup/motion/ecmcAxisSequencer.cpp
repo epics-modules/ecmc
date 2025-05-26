@@ -483,8 +483,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   seqInProgress_          = false;
   seqState_               = 0;
 
+  setTrajAccAndDec();
   if (data_->command_.execute  && !executeOld_) {
-    setTrajAccAndDec();
 
     // velo for homing is set in a different way
     if (data_->command_.command != ECMC_CMD_HOMING) {
