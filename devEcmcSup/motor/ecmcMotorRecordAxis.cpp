@@ -970,7 +970,7 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
   int enabled = 0;
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-  enabled = drvlocal.ecmcAxis->getEnabled();
+  enabled = drvlocal.ecmcAxis->getEnabled() && drvlocal.ecmcAxis->getEnable();
   
   if(drvlocal.ecmcAxis->getMon()->getSumInterlock()) {
     triggstop_++;
@@ -984,6 +984,7 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
   }
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: Axis[%d] Poll power is on %d\n",
             __FILE__, __FUNCTION__, __LINE__,
