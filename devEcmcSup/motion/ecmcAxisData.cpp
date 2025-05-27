@@ -49,13 +49,6 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
     return interlocks_.currStopMode;
   }
 
-  if (interlocks_.unexpectedLimitSwitchBehaviourInterlock) {
-    interlocks_.interlockStatus =
-      ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR;
-    interlocks_.currStopMode = ECMC_STOP_MODE_EMERGENCY;
-    return interlocks_.currStopMode;
-  }
-
   if (interlocks_.velocityDiffDriveInterlock ||
       interlocks_.velocityDiffTrajInterlock) {
     interlocks_.interlockStatus = ECMC_INTERLOCK_VELOCITY_DIFF;
@@ -219,7 +212,6 @@ stopMode ecmcAxisData::refreshInterlocks() {
 
 int ecmcAxisData::setSummaryInterlocks() {
   interlocks_.driveSummaryInterlock =    interlocks_.bothLimitsLowInterlock
-                                      || interlocks_.bothLimitsLowInterlock
                                       || interlocks_.cntrlOutputHLDriveInterlock
                                       || interlocks_.lagDriveInterlock
                                       || interlocks_.maxVelocityDriveInterlock
@@ -238,7 +230,6 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.lagTrajInterlock
                                         || interlocks_.maxVelocityTrajInterlock
                                         || interlocks_.trajTransformInterlock
-                                        || interlocks_.unexpectedLimitSwitchBehaviourInterlock
                                         || interlocks_.velocityDiffTrajInterlock
                                         || interlocks_.plcInterlock
                                         || interlocks_.plcInterlockBWD
@@ -256,7 +247,6 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.lagTrajInterlock
                                         || interlocks_.maxVelocityTrajInterlock
                                         || interlocks_.trajTransformInterlock
-                                        || interlocks_.unexpectedLimitSwitchBehaviourInterlock
                                         || interlocks_.velocityDiffTrajInterlock
                                         || interlocks_.plcInterlock
                                         || interlocks_.plcInterlockFWD
@@ -292,7 +282,6 @@ int ecmcAxisData::setSummaryInterlocks() {
       printf("interlocks_.maxVelocityTrajInterlock= %d\n",interlocks_.maxVelocityTrajInterlock);
       printf("interlocks_.noExecuteInterlock= %d\n",interlocks_.noExecuteInterlock);
       printf("interlocks_.trajTransformInterlock= %d\n",interlocks_.trajTransformInterlock);
-      printf("interlocks_.unexpectedLimitSwitchBehaviourInterlock= %d\n",interlocks_.unexpectedLimitSwitchBehaviourInterlock);
       printf("interlocks_.velocityDiffTrajInterlock= %d\n",interlocks_.velocityDiffTrajInterlock);
       printf("interlocks_.plcInterlock= %d\n",interlocks_.plcInterlock);
       printf("interlocks_.plcInterlockBWD= %d\n",interlocks_.plcInterlockBWD);
@@ -311,7 +300,6 @@ int ecmcAxisData::setSummaryInterlocks() {
       printf("interlocks_.maxVelocityTrajInterlock = %d \n",interlocks_.maxVelocityTrajInterlock);
       printf("interlocks_.noExecuteInterlock = %d \n",interlocks_.noExecuteInterlock);
       printf("interlocks_.trajTransformInterlock = %d \n",interlocks_.trajTransformInterlock);
-      printf("interlocks_.unexpectedLimitSwitchBehaviourInterlock = %d \n",interlocks_.unexpectedLimitSwitchBehaviourInterlock);
       printf("interlocks_.velocityDiffTrajInterlock = %d \n",interlocks_.velocityDiffTrajInterlock);
       printf("interlocks_.plcInterlock = %d \n",interlocks_.plcInterlock);
       printf("interlocks_.plcInterlockFWD = %d \n",interlocks_.plcInterlockFWD);
