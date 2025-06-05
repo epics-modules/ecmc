@@ -170,6 +170,24 @@ asynStatus asynWriteCmdData(void         *data,
                                                          asynParType);
 }
 
+/**
+ * Callback function for asynWrites (enable command)
+ * userObj = axis object
+ *
+ * */
+asynStatus asynWriteEnable(void         *data,
+                            size_t        bytes,
+                            asynParamType asynParType,
+                            void         *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase *)userObj)->axisAsynWriteEnable(data,
+                                                        bytes,
+                                                        asynParType);
+}
+
+
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int                 axisID,
                            double              sampleTime,
@@ -296,6 +314,12 @@ void ecmcAxisBase::initVars() {
   hwReadyOld_                   = 0;
   globalBusy_                   = 0;
   ignoreMRDisableStatusCheck_   = 0;
+  autoEnableTimoutS_            = -1.0;
+  autoDisableAfterS_            = -1.0;
+  autoEnableRequest_            = false;
+  autoEnableTimeCounter_        = 0.0;
+  autoDisbleTimeCounter_        = 0.0;
+  enableCmd_                    = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -429,6 +453,10 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 }
 
 void ecmcAxisBase::postExecute(bool masterOK) {
+
+  autoEnableSM();
+  autoDisableSM();
+
   data_.status_.externalTrajectoryPositionOld =
     data_.status_.externalTrajectoryPosition;
   data_.status_.externalEncoderPositionOld =
@@ -951,6 +979,17 @@ void ecmcAxisBase::printAxisStatus() {
 
 // Ignore busy so that PVT can run (PVT controller will check that traj is not busy)
 int ecmcAxisBase::setExecute(bool execute) {
+  // Auto enable if needed  (except for homing seq 15)
+  if(!data_.status_.enabled and execute and autoEnableTimoutS_ > 0 and !((data_.command_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
+          (data_.command_.command == ECMC_CMD_HOMING))) {
+
+    setGlobalBusy(true);
+    autoEnableTimeCounter_ = 0;
+    autoEnableRequest_ = true;
+    // autoEnableSM will setExecute later when axis is enabled
+    return 0;
+  }
+
   return setExecute(execute, false);
 }
 
@@ -1334,6 +1373,24 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID] = paramTemp;
 
+  // Enable command
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ENABLE_CMD_NAME,
+                              asynParamInt32,
+                              ECMC_EC_U32,
+                              (uint8_t *)&(enableCmd_),
+                              sizeof(enableCmd_),
+                              &paramTemp);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  paramTemp->addSupportedAsynType(asynParamInt32);
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteEnable, this); // Access to this axis
+
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_ENABLE_CMD_ID] = paramTemp;
+
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                       ECMC_ASYN_DEFAULT_ADDR);
   return 0;
@@ -1686,9 +1743,9 @@ int ecmcAxisBase::setEnable(bool enable) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
   }
 
-  controlWord_.enableCmd = enable;
-
-  // Cascade commands via command transformation
+  enableCmd_ = enable;
+  axAsynParams_[ECMC_ASYN_AX_ENABLE_CMD_ID]->refreshParamRT(1);
+  
   return 0;
 }
 
@@ -2273,7 +2330,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
  *
- * controlWord_.enableCmd
+ * controlWord_.0  // Empty, moved to dedicated asyn parameter
  * controlWord_.executeCmd
  * controlWord_.stopCmd
  * controlWord_.resetCmd
@@ -2319,12 +2376,6 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   if (blockExtCom_) {
     bool refreshNeeded = false;
 
-    // allow to stop and disable but still go to error state
-    if (!controlWord_.enableCmd) {
-      setEnable(controlWord_.enableCmd);
-      refreshNeeded = true;
-    }
-
     if (controlWord_.stopCmd) {
       setExecute(0);
       controlWord_.stopCmd = 0;  // auto reset
@@ -2349,9 +2400,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   data_.command_.enableDbgPrintout = controlWord_.enableDbgPrintout;
 
   int errorCode = 0;
-
-  errorCode = setEnable(controlWord_.enableCmd);
-
+  
   if (errorCode) {
     returnVal = asynError;
   }
@@ -2529,7 +2578,7 @@ void ecmcAxisBase::initControlWord() {
 
   getAxisPLCEnable(data_.axisId_, &plcEnable);
   controlWord_.plcEnableCmd = plcEnable;
-  controlWord_.enableCmd    = getEnable();
+  enableCmd_ = getEnable();
   controlWord_.executeCmd   = getExecute();
   controlWord_.resetCmd     = getReset();
   controlWord_.encSourceCmd = getEncDataSourceType() ==
@@ -2796,6 +2845,40 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
     __FUNCTION__,
     __LINE__,
     data_.axisId_, cmdData_);
+
+  return asynSuccess;
+}
+
+asynStatus ecmcAxisBase::axisAsynWriteEnable(void         *data,
+                                             size_t        bytes,
+                                             asynParamType asynParType) {
+  if ((bytes != 4) || (asynParType != asynParamInt32)) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): CmdData size or datatype missmatch.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.axisId_);
+
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
+    return asynError;
+  }
+  int enable = 0;
+  memcpy(&enable, data, bytes);
+  enableCmd_ = enable;
+  
+  int errorCode = setEnable(enable > 0);
+  if(errorCode) {
+    return asynSuccess;
+  }
+
+  // just log, no error below
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Enable cmd = %d.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.axisId_, enableCmd_ > 0);
 
   return asynSuccess;
 }
@@ -3176,4 +3259,67 @@ bool ecmcAxisBase::getLimitBwd() {
 // At switch if 0
 bool ecmcAxisBase::getLimitFwd() {
   return data_.status_.limitFwd;
+}
+
+void ecmcAxisBase::autoEnableSM() {
+  if(!autoEnableRequest_) {
+    return;
+  }
+  
+  if(!data_.command_.enable) {
+    setEnable(true);
+  }
+
+  autoEnableTimeCounter_ += data_.sampleTime_;
+  
+  if(autoEnableTimeCounter_>autoEnableTimoutS_) {
+    setEnable(false);
+    autoEnableRequest_= false;
+    autoEnableTimeCounter_ = 0;    
+    setGlobalBusy(false);
+    setErrorID(ERROR_AUTO_ENABLE_TIMEOUT);
+    return;
+  }
+
+  if(data_.status_.enabled) {
+    autoEnableTimeCounter_ = 0;
+    autoEnableRequest_= false;
+    printf("Axis[%d]: Auto enable axis and triggering motion\n", data_.axisId_);
+    setExecute(1,1); // need ignore busy 
+    setGlobalBusy(false); // Need to clear the global busy bit. Now seq->busy is used
+    return;
+  }
+}
+
+void ecmcAxisBase::autoDisableSM() {
+  if(autoDisableAfterS_ < 0) {
+    return;
+  }
+
+  if(data_.status_.busy) {
+    autoDisbleTimeCounter_ = 0;
+    return;
+  }
+
+  if(!data_.status_.enabled) {
+    autoDisbleTimeCounter_ = 0;
+    return;
+  }
+  
+  autoDisbleTimeCounter_+= data_.sampleTime_;
+
+  if(autoDisbleTimeCounter_ > autoDisableAfterS_ and data_.command_.enable) {
+    printf("Axis[%d]: Auto disable axis (axis idle for %lfs)\n", data_.axisId_,autoDisableAfterS_);
+    setEnable(0);
+  }
+}
+
+int ecmcAxisBase::setAutoEnableTimeout(double timeS) {
+  autoEnableTimoutS_ = timeS;
+  return 0;
+}
+
+int ecmcAxisBase::setAutoDisableAfterTime(double timeS) {
+  autoDisableAfterS_ = timeS;
+  return 0;
 }

@@ -2,6 +2,14 @@ Release Notes
 ===
 # ECMC 10.1.0_RC1
 * Change moving axis flag to only be high when busy
+* Add ecmc native auto enable and disable of axes:
+```
+ "Cfg.SetAxisAutoEnableTimeout(<axis_id>,<time_s>)"
+ "Cfg.SetAxisAutoDisableAfterTime(<axis_id>,<time_s>)"
+```
+* Add tweak commands in axis control word (target position value will be used as tweak value):
+   - bit 11: tweak bwd cmd
+   - bit 12: tweak fwd cmd
 
 ## Add plc functions to set vel, acc ,dec, jerk from plc:
 ```

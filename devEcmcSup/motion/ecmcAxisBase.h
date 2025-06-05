@@ -80,6 +80,7 @@
 #define ERROR_AXIS_CMD_NOT_ALLOWED_IN_REALTIME 0x1432C
 #define ERROR_AXIS_HW_NOT_READY 0x1432D
 #define ERROR_AXIS_SLAVED_AXIS_INTERLOCK 0x1432E
+#define ERROR_AUTO_ENABLE_TIMEOUT 0x1432F
 
 // AXIS WARNINGS
 #define WARNING_AXIS_ASYN_CMD_WHILE_BUSY 0x114300
@@ -307,10 +308,11 @@ public:
   //int movePVTRel();
   int        movePVTAbs();
   int        movePVTAbs(bool ignoreBusy);  // Ignores busy (for triggering from PVT controller)
-
   int        moveHome(); // Use configs from encoder object
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);
+  int        setAutoEnableTimeout(double timeS);
+  int        setAutoDisableAfterTime(double timeS);
   asynStatus axisAsynWriteCmd(void         *data,
                               size_t        bytes,
                               asynParamType asynParType);
@@ -326,6 +328,9 @@ public:
   asynStatus axisAsynWriteCmdData(void         *data,
                                   size_t        bytes,
                                   asynParamType asynParType);
+  asynStatus axisAsynWriteEnable(void         *data,
+                                 size_t        bytes,
+                                 asynParamType asynParType);
   asynStatus axisAsynWriteSetEncPos(void         *data,
                                     size_t        bytes,
                                     asynParamType asynParType);
@@ -395,6 +400,8 @@ protected:
   void initControlWord();
   void initEncoders();
   bool getHwReady();
+  void autoEnableSM();
+  void autoDisableSM();
 
   ecmcTrajectoryBase *traj_;
   ecmcMonitor *mon_;
@@ -432,7 +439,7 @@ protected:
   double acceleration_;
   double deceleration_;
   motionCommandTypes command_;
-  int cmdData_;
+  int cmdData_;  
   ecmcTrajTypes currentTrajType_;
   bool allowSourceChangeWhenEnabled_;
   int encPrimIndexAsyn_;
@@ -441,8 +448,16 @@ protected:
   // Commads to trigger MR record actions like SYNC and STOP from ecmc over PVs
   ecmcMRCmds mrCmds_;
   ecmcMRCmds mrCmdsOld_;
+  //dedicated command to enable
+  int enableCmd_;
+
   bool globalBusy_;
   bool ignoreMRDisableStatusCheck_;
+  double autoEnableTimoutS_;
+  double autoDisableAfterS_;
+  bool autoEnableRequest_;
+  double autoEnableTimeCounter_;
+  double autoDisbleTimeCounter_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

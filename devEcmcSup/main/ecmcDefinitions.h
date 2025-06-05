@@ -237,8 +237,9 @@
 #define ECMC_ASYN_AX_DEC_NAME "dec"
 #define ECMC_ASYN_AX_MR_CMD_ID 17
 #define ECMC_ASYN_AX_MR_CMD_NAME "mr_cmd"
-
-#define ECMC_ASYN_AX_PAR_COUNT 18
+#define ECMC_ASYN_AX_ENABLE_CMD_ID 18
+#define ECMC_ASYN_AX_ENABLE_CMD_NAME "enable"
+#define ECMC_ASYN_AX_PAR_COUNT 19
 
 // Asyn params for encoder
 #define ECMC_ASYN_ENC_ACT_POS_NAME "actpos"

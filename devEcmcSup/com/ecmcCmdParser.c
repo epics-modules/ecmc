@@ -1650,6 +1650,26 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEnableAlarmAtHardLimits(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisAutoEnableTimeout(int axis_no, double timeS);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisAutoEnableTimeout(%d,%lf)",
+                 &iValue,
+                 &dValue);
+
+  if (nvals == 2) {
+    return setAxisAutoEnableTimeout(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisAutoDisableAfterTime(int axis_no, double timeS);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisAutoDisableAfterTime(%d,%lf)",
+                 &iValue,
+                 &dValue);
+
+  if (nvals == 2) {
+    return setAxisAutoDisableAfterTime(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisEmergDeceleration(int traj_no, double value);*/
   nvals =
     sscanf(myarg_1, "SetAxisEmergDeceleration(%d,%lf)", &iValue, &dValue);

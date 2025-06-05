@@ -1204,12 +1204,36 @@ int setAxisCmdData(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set amplifier enable command bit for axis 3.\n
- * "Main.M3.bEnable=1" //Command string to ecmcCmdParser.c.\n
+ * "" //Command string to ecmcCmdParser.c.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
 int setAxisEnable(int axisIndex,
                   int value);
+
+/** \brief Set axis auto amplifier enable timout time.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] timeS  Timeout [[s].\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set amplifier auto-enable timeout to 10s for axis 3.\n
+ * "Cfg.SetAxisAutoEnableTimeout(3,10.0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisAutoEnableTimeout(int axisIndex, double timeS);
+
+/** \brief Set axis auto amplifier disable after a defined idle time (axis not busy).\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] timeS  idle time [[s].\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set amplifier auto-disable time to 10s for axis 3.\n
+ * "Cfg.SetAxisAutoDisableAfterTime(3,10.0)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisAutoDisableAfterTime(int axisIndex, double timeS);
 
 /** \brief Set enable of motion functions.\n
  *

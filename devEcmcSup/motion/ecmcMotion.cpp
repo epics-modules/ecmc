@@ -259,6 +259,34 @@ int setAxisCommand(int axisIndex, int value) {
   return 0;
 }
 
+int setAxisAutoEnableTimeout(int axisIndex, double timeS) {
+  LOGINFO4("%s/%s:%d axisIndex=%d timeS=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           timeS);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  return axes[axisIndex]->setAutoEnableTimeout(timeS);
+}
+
+int setAxisAutoDisableAfterTime(int axisIndex, double timeS) {
+  LOGINFO4("%s/%s:%d axisIndex=%d timeS=%lf\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           timeS);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  return axes[axisIndex]->setAutoDisableAfterTime(timeS);
+}
+
 int setAxisCmdData(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%i\n",
            __FILE__,
