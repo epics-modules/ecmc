@@ -98,7 +98,7 @@ void ecmcMonitor::initVars() {
   homeSwitchPLCOverride_          = false;
   homeSwitchPLCOverrideValue_     = false;
   enableHomeSensor_               = false;
-  ctrlWinthinDBExternalTraj_      = false;
+  axisIsWithinCtrlDBExtTraj_      = false;
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -155,7 +155,7 @@ bool ecmcMonitor::getAtTarget() {
 }
 
 bool ecmcMonitor::getCtrlInDeadband() {
-  return data_->status_.ctrlWinthinDeadband;
+  return data_->status_.ctrlWithinDeadband;
 }
 
 bool ecmcMonitor::getHardLimitFwd() {
@@ -819,10 +819,10 @@ int ecmcMonitor::checkAtTarget() {
   data_->status_.atTarget            = atTarget;
   
   if(data_->command_.trajSource == 0) {
-    data_->status_.ctrlWinthinDeadband = ctrlWithinTol;
+    data_->status_.ctrlWithinDeadband = ctrlWithinTol;
   } else {
     // external source used. No way for axis to know when atTarget/reduce torque. Make possible to write from PLC
-    data_->status_.ctrlWinthinDeadband = ctrlWinthinDBExternalTraj_;
+    data_->status_.ctrlWithinDeadband = axisIsWithinCtrlDBExtTraj_;
   }
   
   return 0;
@@ -1363,6 +1363,10 @@ void ecmcMonitor::setHomeSwitchPLCOverrideValue(bool switchValue) {
   homeSwitchPLCOverrideValue_ = switchValue;
 }
 
-void ecmcMonitor::setCtrlWithinDBExtTraj(bool within) {
-  ctrlWinthinDBExternalTraj_ = within;
+void ecmcMonitor::setAxisIsWithinCtrlDBExtTraj(bool within) {
+  axisIsWithinCtrlDBExtTraj_ = within;
+}
+
+bool ecmcMonitor::getAxisIsWithinCtrlDB() {
+  return data_->status_.ctrlWithinDeadband;
 }

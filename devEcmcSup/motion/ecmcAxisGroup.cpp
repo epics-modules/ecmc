@@ -332,19 +332,19 @@ void ecmcAxisGroup::setSlavedAxisIlocked() {
   }
 }
 
-void ecmcAxisGroup::setMonCtrlWithinDBExtTraj(bool within) {
+void ecmcAxisGroup::setAxisIsWithinCtrlDBExtTraj(bool within) {
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      (*axis)->setMonCtrlWithinDBExtTraj(within);
+      (*axis)->getMon()->setAxisIsWithinCtrlDBExtTraj(within);
     }
   }
 }
 
-bool ecmcAxisGroup::getAtTarget() {
-  bool attarget = false;
+bool ecmcAxisGroup::getAxisIsWithinCtrlDB() {
+  bool attarget = true;
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      attarget = attarget && (*axis)->getMon()->getAtTarget();
+      attarget = attarget && (*axis)->getMon()->getAxisIsWithinCtrlDB();
     }
   }
   return attarget;

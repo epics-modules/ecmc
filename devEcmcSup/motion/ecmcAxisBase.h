@@ -315,7 +315,6 @@ public:
   int        setAutoDisableAfterTime(double timeS);
   int        setEnableAutoEnable(bool enable);
   int        setEnableAutoDisable(bool enable);
-  int        setMonCtrlWithinDBExtTraj(bool within);
   asynStatus axisAsynWriteCmd(void         *data,
                               size_t        bytes,
                               asynParamType asynParType);

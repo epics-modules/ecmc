@@ -89,10 +89,10 @@ class ecmcAxisGroup : public ecmcError {
     void setEnableAutoEnable(bool enable);
     // Enable auto-disable functionality (if configured)
     void setEnableAutoDisable(bool enable);
-    // set "atTarget" for reduce trq when in external traj mode 
-    void setMonCtrlWithinDBExtTraj(bool within);
+    // Axis is within ctrl deadband for reduce trq when in external traj mode 
+    void setAxisIsWithinCtrlDBExtTraj(bool within);
     // get "atTarget"
-    bool getAtTarget();
+    bool getAxisIsWithinCtrlDB();
 
   private:
     std::string name_;  

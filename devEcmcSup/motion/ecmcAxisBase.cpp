@@ -3348,8 +3348,3 @@ int ecmcAxisBase::setEnableAutoDisable(bool enable) {
   enableAutoDisable_ = enable;
   return 0;
 }
-
-int ecmcAxisBase::setMonCtrlWithinDBExtTraj(bool within) {
-  getMon()->setCtrlWithinDBExtTraj(within);
-  return 0;
-}

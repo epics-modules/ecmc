@@ -119,9 +119,9 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_set_autodisable_enable(,"
                                "mc_set_autoenable_enable(,"
                                "mc_set_autodisable_enable(,"
-                               "mc_set_ctrl_within_db(,"
+                               "mc_set_axis_within_ctrl_db(,"
                                "mc_grp_set_ctrl_within_db(,"
-                               "mc_grp_get_attraget(,"
+                               "mc_grp_get_axis_within_ctrl_db(,"
                               };
 
 extern ecmcAxisGroup   *axisGroups[ECMC_MAX_AXES];
@@ -808,14 +808,14 @@ inline double mc_set_autodisable_enable(double axIndex, double enable)
   return 0.0;
 }
 
-inline double mc_set_ctrl_within_db(double axIndex, double within)
+inline double mc_set_axis_within_ctrl_db(double axIndex, double within)
 {
   int axIndexInt=(int)axIndex;
   int intWithin=(int)within;
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
   
-  axes[axIndexInt]->setMonCtrlWithinDBExtTraj(intWithin);
+  axes[axIndexInt]->getMon()->setAxisIsWithinCtrlDBExtTraj(intWithin);
   
   return 0.0;
 }
@@ -948,11 +948,11 @@ inline double mc_grp_set_slaved_axis_ilocked(double grpIndex){
   return 0.0;
 }
 
-inline double mc_grp_get_attraget(double grpIndex)
+inline double mc_grp_get_axis_within_ctrl_db(double grpIndex)
 {
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getAtTarget();
+  return (double)axisGroups[intGrpIndex]->getAxisIsWithinCtrlDB();
 }
 
 #endif /* ecmcPLC_libMc_inc_ */
