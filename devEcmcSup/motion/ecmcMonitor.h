@@ -162,6 +162,8 @@ public:
   void               setLimitSwitchBwdPLCOverrideValue(bool switchValue);
   void               setHomeSwitchPLCOverrideValue(bool switchValue);
   int                setHomeSwitchEnable(bool enable);
+  // Set reduce trq drive bit for slaved axes
+  void               setCtrlWithinDBExtTraj(bool within);
 
 private:
   int                checkLimits();
@@ -248,6 +250,7 @@ private:
   bool homeSwitchPLCOverride_;
   bool homeSwitchPLCOverrideValue_;
   bool enableHomeSensor_;
+  bool ctrlWinthinDBExternalTraj_;
 };
 
 #endif  // ifndef MOTIONMONITOR_H

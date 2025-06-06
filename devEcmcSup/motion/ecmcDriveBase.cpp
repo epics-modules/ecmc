@@ -322,7 +322,8 @@ void ecmcDriveBase::writeEntries() {
   }
 
   if (enableReduceTorque_) {
-    reduceTorqueOutputCmd_    = data_->status_.ctrlWinthinDeadband && !data_->status_.busy;
+    // Reduce trq if traj source is external and within ctrlWinthinDeadband (settable via PLC) or not busy adn internal traj
+    reduceTorqueOutputCmd_    = data_->status_.ctrlWinthinDeadband && (!data_->status_.busy || data_->command_.trajSource > 0) ;
     reduceTorqueOutputCmdOld_ = reduceTorqueOutputCmd_;
     errorCode                 = writeEcEntryValue(
       ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,

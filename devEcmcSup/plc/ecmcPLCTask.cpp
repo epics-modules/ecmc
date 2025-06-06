@@ -861,6 +861,13 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_get_any_at_bwd_limit",mc_grp_get_any_at_bwd_limit);
   ecmcPLCTaskAddFunction("mc_grp_get_any_at_limit",mc_grp_get_any_at_limit);
   ecmcPLCTaskAddFunction("mc_grp_set_slaved_axis_ilocked",mc_grp_set_slaved_axis_ilocked);
+  ecmcPLCTaskAddFunction("mc_grp_set_autoenable_enable",mc_grp_set_autoenable_enable);
+  ecmcPLCTaskAddFunction("mc_grp_set_autodisable_enable",mc_grp_set_autodisable_enable);
+  ecmcPLCTaskAddFunction("mc_set_autoenable_enable",mc_set_autoenable_enable);
+  ecmcPLCTaskAddFunction("mc_set_autodisable_enable",mc_set_autodisable_enable);
+  ecmcPLCTaskAddFunction("mc_set_ctrl_within_db",mc_set_ctrl_within_db);
+  ecmcPLCTaskAddFunction("mc_grp_set_ctrl_within_db",mc_grp_set_ctrl_within_db);
+  ecmcPLCTaskAddFunction("mc_grp_get_attraget",mc_grp_get_attraget);
 
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

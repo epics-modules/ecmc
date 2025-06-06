@@ -320,6 +320,8 @@ void ecmcAxisBase::initVars() {
   autoEnableTimeCounter_        = 0.0;
   autoDisbleTimeCounter_        = 0.0;
   enableCmd_                    = 0;
+  enableAutoEnable_             = 0;
+  enableAutoDisable_            = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -2330,7 +2332,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
  *
- * controlWord_.0  // Empty, moved to dedicated asyn parameter
+ * controlWord_.empty  // Empty,enableCmd moved to dedicated asyn parameter
  * controlWord_.executeCmd
  * controlWord_.stopCmd
  * controlWord_.resetCmd
@@ -3262,6 +3264,10 @@ bool ecmcAxisBase::getLimitFwd() {
 }
 
 void ecmcAxisBase::autoEnableSM() {
+  if( !enableAutoEnable_) {
+    return;
+  }
+
   if(!autoEnableRequest_) {
     return;
   }
@@ -3292,7 +3298,7 @@ void ecmcAxisBase::autoEnableSM() {
 }
 
 void ecmcAxisBase::autoDisableSM() {
-  if(autoDisableAfterS_ < 0) {
+  if(autoDisableAfterS_ < 0 || !enableAutoDisable_ ) {
     return;
   }
 
@@ -3316,10 +3322,34 @@ void ecmcAxisBase::autoDisableSM() {
 
 int ecmcAxisBase::setAutoEnableTimeout(double timeS) {
   autoEnableTimoutS_ = timeS;
+  enableAutoEnable_ = timeS > 0;
+  return 0;
+}
+
+int ecmcAxisBase::setEnableAutoEnable(bool enable) {
+  if(enableAutoEnable_ != enable) {
+    autoDisbleTimeCounter_ = 0;
+  }
+  enableAutoEnable_ = enable;
   return 0;
 }
 
 int ecmcAxisBase::setAutoDisableAfterTime(double timeS) {
   autoDisableAfterS_ = timeS;
+  enableAutoDisable_ = timeS > 0;
+  return 0;
+}
+
+int ecmcAxisBase::setEnableAutoDisable(bool enable) {
+  if(enableAutoDisable_ != enable) {
+    autoDisbleTimeCounter_ = 0;
+  }
+  
+  enableAutoDisable_ = enable;
+  return 0;
+}
+
+int ecmcAxisBase::setMonCtrlWithinDBExtTraj(bool within) {
+  getMon()->setCtrlWithinDBExtTraj(within);
   return 0;
 }

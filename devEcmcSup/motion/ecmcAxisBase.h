@@ -313,6 +313,9 @@ public:
   int        stopMotion(int killAmplifier);
   int        setAutoEnableTimeout(double timeS);
   int        setAutoDisableAfterTime(double timeS);
+  int        setEnableAutoEnable(bool enable);
+  int        setEnableAutoDisable(bool enable);
+  int        setMonCtrlWithinDBExtTraj(bool within);
   asynStatus axisAsynWriteCmd(void         *data,
                               size_t        bytes,
                               asynParamType asynParType);
@@ -370,6 +373,7 @@ public:
   void       setMRSync(bool sync);    // SYNC motor record
   void       setMRStop(bool stop);    // STOP motor record
   void       setMRCnen(bool cnen);    // CNEN motor record
+
   /*
      Ignore status when motor record tries to disable.
      Only to be used when axis groups and PSI PLC state machine is in use.
@@ -458,6 +462,8 @@ protected:
   bool autoEnableRequest_;
   double autoEnableTimeCounter_;
   double autoDisbleTimeCounter_;
+  bool enableAutoEnable_;
+  bool enableAutoDisable_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

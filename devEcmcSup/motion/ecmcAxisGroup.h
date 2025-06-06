@@ -85,7 +85,15 @@ class ecmcAxisGroup : public ecmcError {
     bool inGroup(int axisIndex);
     // Axis count in group
     size_t size();
-    
+    // Enable auto-enable functionality (if configured)
+    void setEnableAutoEnable(bool enable);
+    // Enable auto-disable functionality (if configured)
+    void setEnableAutoDisable(bool enable);
+    // set "atTarget" for reduce trq when in external traj mode 
+    void setMonCtrlWithinDBExtTraj(bool within);
+    // get "atTarget"
+    bool getAtTarget();
+
   private:
     std::string name_;  
     int index_;  

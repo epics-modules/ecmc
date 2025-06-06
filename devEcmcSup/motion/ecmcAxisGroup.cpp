@@ -281,6 +281,22 @@ void ecmcAxisGroup::setMRIgnoreDisableStatusCheck(bool ignore) {
   }
 }
 
+void ecmcAxisGroup::setEnableAutoEnable(bool enable) {
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setEnableAutoEnable(enable);
+    }
+  }
+}
+
+void ecmcAxisGroup::setEnableAutoDisable(bool enable) {
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setEnableAutoDisable(enable);
+    }
+  }
+}
+
 // Check if any axes in group is at fwd limit switch
 bool ecmcAxisGroup::getAnyAtLimitFwd() {
   bool atLim = false;
@@ -314,4 +330,22 @@ void ecmcAxisGroup::setSlavedAxisIlocked() {
       (*axis)->setSlavedAxisInterlock();
     }
   }
+}
+
+void ecmcAxisGroup::setMonCtrlWithinDBExtTraj(bool within) {
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setMonCtrlWithinDBExtTraj(within);
+    }
+  }
+}
+
+bool ecmcAxisGroup::getAtTarget() {
+  bool attarget = false;
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      attarget = attarget && (*axis)->getMon()->getAtTarget();
+    }
+  }
+  return attarget;
 }

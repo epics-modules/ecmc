@@ -115,6 +115,13 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_get_any_at_bwd_limit(",
                                "mc_grp_get_any_at_limit(",
                                "mc_grp_set_slaved_axis_ilocked(",
+                               "mc_grp_set_autoenable_enable(,"
+                               "mc_grp_set_autodisable_enable(,"
+                               "mc_set_autoenable_enable(,"
+                               "mc_set_autodisable_enable(,"
+                               "mc_set_ctrl_within_db(,"
+                               "mc_grp_set_ctrl_within_db(,"
+                               "mc_grp_get_attraget(,"
                               };
 
 extern ecmcAxisGroup   *axisGroups[ECMC_MAX_AXES];
@@ -126,7 +133,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode = 0;
-static int mc_cmd_count = 57;
+static int mc_cmd_count = 64;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -753,6 +760,66 @@ inline double mc_grp_mr_set_cnen(double grpIndex, double enable){
   return 0;
 }
 
+inline double mc_grp_set_autoenable_enable(double grpIndex, double enable){
+  int intGrpIndex=(int)grpIndex;
+  int intEnable=(int)enable;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  axisGroups[intGrpIndex]->setEnableAutoEnable(intEnable);
+  return 0;
+}
+
+inline double mc_grp_set_autodisable_enable(double grpIndex, double enable){
+  int intGrpIndex=(int)grpIndex;
+  int intEnable=(int)enable;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  axisGroups[intGrpIndex]->setEnableAutoDisable(intEnable);
+  return 0;
+}
+
+inline double mc_grp_set_ctrl_within_db(double grpIndex, double within){
+  int intGrpIndex=(int)grpIndex;
+  int intWithin=(int)within;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  axisGroups[intGrpIndex]->setMonCtrlWithinDBExtTraj(intWithin);
+  return 0;
+}
+
+inline double mc_set_autoenable_enable(double axIndex, double enable)
+{
+  int axIndexInt=(int)axIndex;
+  int intEnable=(int)enable;
+
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  
+  axes[axIndexInt]->setEnableAutoEnable(intEnable);
+  
+  return 0.0;
+}
+
+inline double mc_set_autodisable_enable(double axIndex, double enable)
+{
+  int axIndexInt=(int)axIndex;
+  int intEnable=(int)enable;
+
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  
+  axes[axIndexInt]->setEnableAutoDisable(intEnable);
+  
+  return 0.0;
+}
+
+inline double mc_set_ctrl_within_db(double axIndex, double within)
+{
+  int axIndexInt=(int)axIndex;
+  int intWithin=(int)within;
+
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  
+  axes[axIndexInt]->setMonCtrlWithinDBExtTraj(intWithin);
+  
+  return 0.0;
+}
+
 inline double mc_mr_set_sync(double axIndex, double sync){
   int index=(int)axIndex;
   int intSync=(int)sync;
@@ -879,6 +946,13 @@ inline double mc_grp_set_slaved_axis_ilocked(double grpIndex){
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
   axisGroups[intGrpIndex]->setSlavedAxisIlocked();
   return 0.0;
+}
+
+inline double mc_grp_get_attraget(double grpIndex)
+{
+  int intGrpIndex=(int)grpIndex;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  return (double)axisGroups[intGrpIndex]->getAtTarget();
 }
 
 #endif /* ecmcPLC_libMc_inc_ */
