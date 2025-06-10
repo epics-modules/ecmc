@@ -109,6 +109,8 @@
 #define ERROR_LUT_INDEX_OUT_OF_RANGE 0x2005D
 #define ERROR_LUT_LOAD_ERROR 0x2005E
 #define ERROR_PVT_CTRL_NULL 0x2005F
+#define ERROR_GROUP_NULL 0x20060
+#define ERROR_MST_SLV_SM_INDEX_OUT_OF_RANGE 0x20061
 
 // Other errors moved heer since used in many objects
 #define ERROR_EC_MAIN_ENTRY_NULL 0x26006

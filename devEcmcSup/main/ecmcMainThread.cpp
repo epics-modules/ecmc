@@ -367,6 +367,12 @@ void cyclic_task(void *usr) {
       pvtCtrl_->execute();
     }
 
+    for (int i = 0; i < ECMC_MAX_MST_SLVS_SMS; i++) {
+      if (masterSlaveSMs[i] !=NULL) {
+        masterSlaveSMs[i]->execute();
+      }
+    }
+
     // Data events
     for (i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
       if (events[i] != NULL) {
@@ -482,6 +488,10 @@ int ecmcInitThread(void) {
 
   for (int i = 0; i < ECMC_MAX_LUTS; i++) {
     luts[i] = NULL;
+  }
+
+  for (int i = 0; i < ECMC_MAX_MST_SLVS_SMS; i++) {
+    masterSlaveSMs[i] = NULL;
   }
 
   safetyplugin = NULL;
@@ -628,7 +638,6 @@ int setAppModeCfg(int mode) {
   if (asynPort) {
     asynPort->setAllowRtThreadCom(false);
   }
-
 
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
     if (axes[i] != NULL) {
@@ -924,6 +933,20 @@ int validateConfig() {
       if (errorCode) {
         LOGERR(
           "ERROR: Validation failed on data recorder %d with error code %x.",
+          i,
+          errorCode);
+        return errorCode;
+      }
+    }
+  }
+
+  for (int i = 0; i < ECMC_MAX_MST_SLVS_SMS; i++) {
+    if (masterSlaveSMs[i] != NULL) {
+      errorCode = masterSlaveSMs[i]->validate();
+
+      if (errorCode) {
+        LOGERR(
+          "ERROR: Validation failed on master slave state machine %d with error code %x.",
           i,
           errorCode);
         return errorCode;

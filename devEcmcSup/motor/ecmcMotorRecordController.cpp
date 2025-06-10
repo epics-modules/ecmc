@@ -1233,7 +1233,7 @@ asynStatus ecmcMotorRecordController::profileValidateTime() {
   printf("ecmcMotorRecordController::build(): Triggers %lf:%lf:%lf (pulse count %d)\n",
           pulseStartTime,pulseTimeBetween,pulseEndTime,pulseCount);
  
-  if(pulseCount > 0 && pulseStartTime < 0 || pulseStartTime > pulseEndTime){
+  if( (pulseCount > 0) && ((pulseStartTime < 0) || (pulseStartTime > pulseEndTime))){
     printf("ecmcMotorRecordController: Error: Pulse time missmatch.\n");
     sprintf(profileMessage_, "Error: Pulse time missmatch.\n");
     setStringParam(profileBuildMessage_, profileMessage_);

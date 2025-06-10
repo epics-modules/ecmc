@@ -1253,13 +1253,24 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_CNTRL_INVALID_SAMPLE_TIME";
 
     break;
-case 0x16000:    // Axis group
+  
+  case 0x16000:    // Axis group
     return "ERROR_AXISGRP_ADD_GROUP_FAIL";
-
+  
     break;
-
-case 0x16001:
+  
+  case 0x16001:
     return "ERROR_AXISGRP_NOT_FOUND";
+  
+    break;
+  
+  case 0x17000:
+    return "ERROR_MST_SLV_SM_GRP_NULL";
+  
+    break;
+  
+  case 0x17001:
+    return "ERROR_MST_SLV_SM_GRP_INIT_ASYN_FAILED";
 
     break;
 
@@ -2307,6 +2318,15 @@ case 0x16001:
 
   case 0x2005F:
     return "ERROR_PVT_CTRL_NULL";
+
+    break;
+  case 0x20060:
+    return "ERROR_GROUP_NULL";
+
+    break;
+
+  case 0x20061:
+    return "ERROR_MST_SLV_SM_INDEX_OUT_OF_RANGE";
 
     break;
 

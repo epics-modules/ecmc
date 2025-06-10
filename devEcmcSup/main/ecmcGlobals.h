@@ -27,6 +27,7 @@
 #include "ecmcPVTController.h"
 #include "ecmcLookupTable.h"
 #include "epicsMutex.h"
+#include "ecmcMasterSlaveStateMachine.h"
 
 ecmcAxisBase *axes[ECMC_MAX_AXES];
 ecmcAxisGroup *axisGroups[ECMC_MAX_AXES];
@@ -47,6 +48,7 @@ ecmcPluginLib *safetyplugin = NULL;
 ecmcShm shmObj;
 ecmcPVTController *pvtCtrl_ = NULL;
 ecmcLookupTable<double, double>  *luts[ECMC_MAX_LUTS];
+ecmcMasterSlaveStateMachine *masterSlaveSMs[ECMC_MAX_MST_SLVS_SMS];
 
 // Mutex for motor record access
 epicsMutexId ecmcRTMutex;
@@ -65,5 +67,6 @@ double mcuPeriod                 = MCU_PERIOD_NS;
 int    sampleRateChangeAllowed   = 1;
 int    pluginsError              = 0;
 int    safetypluginError         = 0;
+int    currentMasterSlaveSMIndex = 0;
 
 #endif  /* ECMC_GLOBALS_H_ */

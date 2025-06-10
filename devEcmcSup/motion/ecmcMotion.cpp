@@ -3681,3 +3681,39 @@ void* getAxisPointer(int  axisIndex) {
   }
   return (void*)axes[axisIndex];  
 }
+
+int createMasterSlaveSM(int index,
+                        const char *name,
+                        const char *masterGrpName,
+                        const char* slaveGrpName) {
+  LOGINFO4("%s/%s:%d index=%d ,name=%s, master=%s, slave=%s\n", 
+           __FILE__, __FUNCTION__, __LINE__, 
+           index, name, masterGrpName, slaveGrpName);
+  CHECK_MST_SLBV_SM_IDNEX_RETURN_IF_ERROR(index)
+
+  ecmcAxisGroup *masterGrp = NULL;
+  ecmcAxisGroup *slaveGrp  = NULL;
+  for(int i = 0;i < ECMC_MAX_AXES; i++) {
+    if(axisGroups[i] != NULL) {
+      printf("Comparing %s with %s and %s\n",axisGroups[i]->getName(),masterGrpName,slaveGrpName);
+      if(strcmp(axisGroups[i]->getName(),masterGrpName) == 0) {
+        masterGrp = axisGroups[i];
+      }
+      if(strcmp(axisGroups[i]->getName(),slaveGrpName) == 0) {
+        slaveGrp = axisGroups[i];
+      }
+    }
+  }
+
+  if(masterGrp == NULL || slaveGrp == NULL) {
+    return ERROR_GROUP_NULL;
+  }
+
+  masterSlaveSMs[index] = new ecmcMasterSlaveStateMachine(asynPort,
+                                                          index,
+                                                          name,
+                                                          1.0 / mcuFrequency,
+                                                          masterGrp,
+                                                          slaveGrp);
+  return 0;
+}

@@ -134,6 +134,12 @@
 // Lookup tables
 #define ECMC_MAX_LUTS 16
 
+// master slave state machines
+#define ECMC_MAX_MST_SLVS_SMS 16
+#define ECMC_MST_SLV_OBJ_STR "mst_slv_sm"
+#define ECMC_MST_SLVS_STR_STATE "state"
+#define ECMC_MST_SLVS_STR_STATUS "status"
+
 // ECMC iocsh config command
 #define ECMC_IOCSH_CFG_CMD "ecmcConfigOrDie"
 #define ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME "ECMC_CONFIG_RETURN_VAL"
