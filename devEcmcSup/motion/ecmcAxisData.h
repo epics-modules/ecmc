@@ -94,8 +94,6 @@ typedef struct {
   bool           hardwareInterlock;  // Interlock on external I/O
   bool           bwdLimitInterlock;
   bool           fwdLimitInterlock;
-  bool           trajTransformInterlock;
-  bool           encTransformInterlock;
   bool           fwdSoftLimitInterlock;
   bool           bwdSoftLimitInterlock;
   bool           cntrlOutputHLTrajInterlock;

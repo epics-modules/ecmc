@@ -99,12 +99,6 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
     return interlocks_.currStopMode;
   }
 
-  if (interlocks_.encTransformInterlock) {
-    interlocks_.interlockStatus = ECMC_INTERLOCK_TRANSFORM;
-    interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
-    return interlocks_.currStopMode;
-  }
-
   if (interlocks_.fwdLimitInterlock) {
     interlocks_.interlockStatus = ECMC_INTERLOCK_HARD_FWD;
     interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
@@ -132,12 +126,6 @@ stopMode ecmcAxisData::refreshInterlocksInternal() {
 
   if (interlocks_.noExecuteInterlock) {
     interlocks_.interlockStatus = ECMC_INTERLOCK_NO_EXECUTE;
-    interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
-    return interlocks_.currStopMode;
-  }
-
-  if (interlocks_.trajTransformInterlock) {
-    interlocks_.interlockStatus = ECMC_INTERLOCK_TRANSFORM;
     interlocks_.currStopMode    = ECMC_STOP_MODE_NORMAL;
     return interlocks_.currStopMode;
   }
@@ -226,10 +214,8 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.bwdLimitInterlock
                                         || interlocks_.bwdSoftLimitInterlock
                                         || interlocks_.cntrlOutputHLTrajInterlock
-                                        || interlocks_.encTransformInterlock
                                         || interlocks_.lagTrajInterlock
                                         || interlocks_.maxVelocityTrajInterlock
-                                        || interlocks_.trajTransformInterlock
                                         || interlocks_.velocityDiffTrajInterlock
                                         || interlocks_.plcInterlock
                                         || interlocks_.plcInterlockBWD
@@ -241,12 +227,10 @@ int ecmcAxisData::setSummaryInterlocks() {
   interlocks_.trajSummaryInterlockFWDEpics = interlocks_.driveSummaryInterlock
                                         || interlocks_.axisErrorStateInterlock
                                         || interlocks_.cntrlOutputHLTrajInterlock
-                                        || interlocks_.encTransformInterlock
                                         || interlocks_.fwdLimitInterlock
                                         || interlocks_.fwdSoftLimitInterlock
                                         || interlocks_.lagTrajInterlock
                                         || interlocks_.maxVelocityTrajInterlock
-                                        || interlocks_.trajTransformInterlock
                                         || interlocks_.velocityDiffTrajInterlock
                                         || interlocks_.plcInterlock
                                         || interlocks_.plcInterlockFWD
@@ -277,11 +261,9 @@ int ecmcAxisData::setSummaryInterlocks() {
       printf("interlocks_.bwdLimitInterlock= %d\n",interlocks_.bwdLimitInterlock);
       printf("interlocks_.bwdSoftLimitInterlock= %d\n",interlocks_.bwdSoftLimitInterlock);
       printf("interlocks_.cntrlOutputHLTrajInterlock= %d\n",interlocks_.cntrlOutputHLTrajInterlock);
-      printf("interlocks_.encTransformInterlock= %d\n",interlocks_.encTransformInterlock);
       printf("interlocks_.lagTrajInterlock= %d\n",interlocks_.lagTrajInterlock);
       printf("interlocks_.maxVelocityTrajInterlock= %d\n",interlocks_.maxVelocityTrajInterlock);
       printf("interlocks_.noExecuteInterlock= %d\n",interlocks_.noExecuteInterlock);
-      printf("interlocks_.trajTransformInterlock= %d\n",interlocks_.trajTransformInterlock);
       printf("interlocks_.velocityDiffTrajInterlock= %d\n",interlocks_.velocityDiffTrajInterlock);
       printf("interlocks_.plcInterlock= %d\n",interlocks_.plcInterlock);
       printf("interlocks_.plcInterlockBWD= %d\n",interlocks_.plcInterlockBWD);
@@ -293,13 +275,11 @@ int ecmcAxisData::setSummaryInterlocks() {
       printf("interlocks_.trajSummaryInterlockFWD changed:\n");
       printf("interlocks_.axisErrorStateInterlock = %d \n",interlocks_.axisErrorStateInterlock);
       printf("interlocks_.cntrlOutputHLTrajInterlock = %d \n",interlocks_.cntrlOutputHLTrajInterlock);
-      printf("interlocks_.encTransformInterlock = %d \n",interlocks_.encTransformInterlock);
       printf("interlocks_.fwdLimitInterlock = %d \n",interlocks_.fwdLimitInterlock);
       printf("interlocks_.fwdSoftLimitInterlock = %d \n",interlocks_.fwdSoftLimitInterlock);
       printf("interlocks_.lagTrajInterlock = %d \n",interlocks_.lagTrajInterlock);
       printf("interlocks_.maxVelocityTrajInterlock = %d \n",interlocks_.maxVelocityTrajInterlock);
       printf("interlocks_.noExecuteInterlock = %d \n",interlocks_.noExecuteInterlock);
-      printf("interlocks_.trajTransformInterlock = %d \n",interlocks_.trajTransformInterlock);
       printf("interlocks_.velocityDiffTrajInterlock = %d \n",interlocks_.velocityDiffTrajInterlock);
       printf("interlocks_.plcInterlock = %d \n",interlocks_.plcInterlock);
       printf("interlocks_.plcInterlockFWD = %d \n",interlocks_.plcInterlockFWD);
