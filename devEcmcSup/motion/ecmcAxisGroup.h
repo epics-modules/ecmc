@@ -27,7 +27,7 @@ class ecmcAxisGroup : public ecmcError {
   public:
     ecmcAxisGroup(int index, const char *name);
     ~ecmcAxisGroup();
-    // Get fgroup name
+    // Get group name
     const char* getName();
     // Add axis to group
     void addAxis(ecmcAxisBase *axis);

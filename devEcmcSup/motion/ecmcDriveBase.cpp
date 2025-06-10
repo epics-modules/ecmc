@@ -385,8 +385,8 @@ void ecmcDriveBase::writeEntries() {
 
   localEnabledOld_ = getEnabledLocal();
 
-  // Enable command sent to amplfier
-  // (if break is not used then enableAmpCmdOld_==enableCmdOld_)
+  // Enable command sent to amplifier
+  // (if brake is not used then enableAmpCmdOld_==enableCmdOld_)
   enableAmpCmdOld_ = enableAmpCmd_;
   enableCmdOld_    = data_->command_.enable;
 
@@ -751,7 +751,7 @@ int ecmcDriveBase::updateBrakeState() {
       }
     }
 
-    // loose enabled while opening, go directlly to closed
+    // loose enabled while opening, go directly to closed
     if (localEnabledOld_ && !getEnabledLocal()) {
       brakeState_     = ECMC_BRAKE_CLOSED;
       enableAmpCmd_   = 0;
@@ -767,9 +767,9 @@ int ecmcDriveBase::updateBrakeState() {
 
   case ECMC_BRAKE_OPEN:
 
-    // enabled lost: apply brake directly without delay, goto stae BRAKE_CLOSED
+    // enabled lost: apply brake directly without delay, goto state BRAKE_CLOSED
     if (!getEnabledLocal() && data_->command_.enable) {
-      // data_->command_.enable = 0;  this is controlled separatelly
+      // data_->command_.enable = 0;  this is controlled separately
       brakeOutputCmd_ = 0;
       brakeCounter_   = 0;
       enableAmpCmd_   = 0;
