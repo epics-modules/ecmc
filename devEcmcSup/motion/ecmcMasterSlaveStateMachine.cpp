@@ -46,6 +46,9 @@ const char* ecmcMasterSlaveStateMachine::getName(){
 
 void ecmcMasterSlaveStateMachine::execute(){
 
+  //always update
+  refreshAsyn();
+
   if(!enable_) {
     return;
   }
@@ -328,4 +331,10 @@ int ecmcMasterSlaveStateMachine::createAsynParam(const char        *nameFormat,
   paramTemp->refreshParam(1);
   *asynParamOut = paramTemp;
   return 0;
+}
+
+void ecmcMasterSlaveStateMachine::refreshAsyn() {
+  asynStatus_->refreshParamRT(0);
+  asynEnable_->refreshParamRT(0);
+  asynState_->refreshParamRT(0);
 }

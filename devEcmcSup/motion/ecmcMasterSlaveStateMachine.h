@@ -67,6 +67,7 @@ class ecmcMasterSlaveStateMachine : public ecmcError {
     int stateSlave();
     int stateMaster();
     int initAsyn();
+    void refreshAsyn();
     int createAsynParam(const char        *nameFormat,
                         asynParamType      asynType,
                         ecmcEcDataType     ecmcType,
