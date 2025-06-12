@@ -540,6 +540,9 @@ int ecmcAxisBase::getAxisID() {
 
 void ecmcAxisBase::setReset(bool reset) {
   data_.command_.reset = reset;
+  // also reset auto enable/disable counters
+  autoDisbleTimeCounter_ = 0;
+  autoEnableTimeCounter_ = 0;
 
   if (reset) {
     errorReset();
@@ -1021,7 +1024,8 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
     }
   }
   
-  controlWord_.executeCmd = execute;
+  // Always reset 
+  controlWord_.executeCmd = 0;
 
   return 0;
 }
@@ -1718,7 +1722,8 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
 }
 
 int ecmcAxisBase::setEnable(bool enable) {
-  if (data_.command_.enable == enable)return 0;
+
+  if (data_.command_.enable == enable) return 0;
 
   if (!enable) {  // Remove execute if enable is going down
     setExecute(false);
@@ -2311,6 +2316,9 @@ int ecmcAxisBase::setPosition(double homePositionSet) {
 
 int ecmcAxisBase::stopMotion(int killAmplifier) {
   int errorCode = setExecute(0);
+  data_.interlocks_.noExecuteInterlock = true;
+  data_.refreshInterlocks();
+  autoEnableRequest_ = false;
 
   if (killAmplifier) {
     errorCode = setEnable(0);
@@ -2379,8 +2387,10 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     bool refreshNeeded = false;
 
     if (controlWord_.stopCmd) {
-      setExecute(0);
+      stopMotion(enableCmd_ == 0);    
+      //errorCode            = setExecute(0);
       controlWord_.stopCmd = 0;  // auto reset
+      controlWord_.executeCmd = 0;
       refreshNeeded        = true;
     }
 
@@ -2408,117 +2418,126 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   if (controlWord_.stopCmd) {
-    errorCode            = setExecute(0);
+    stopMotion(enableCmd_ == 0);    
+    //errorCode            = setExecute(0);
     controlWord_.stopCmd = 0;  // auto reset
-
+    controlWord_.executeCmd = 0;
     if (errorCode) {
       returnVal = asynError;
     }
   }
 
-  // trigg new motion.
-  if (!controlWord_.stopCmd && controlWord_.executeCmd) {
-    if (getSeq() == NULL) {
-      controlWord_.executeCmd = 0; // auto reset
-      return asynError;
-    }
+  // Only trig new commands if source is internal
+  if(data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+    // trigg new motion.
+    if (!controlWord_.stopCmd && controlWord_.executeCmd) {
+      if (getSeq() == NULL) {
+        controlWord_.executeCmd = 0; // auto reset
+        return asynError;
+      }
 
-    // Only allow cmd change if not busy
-    if (!getBusy()) {
-      setCommand(command_);
+      // Only allow cmd change if not busy
+      if (!getBusy()) {
+        setCommand(command_);
 
-      if (command_ == ECMC_CMD_HOMING) {
-        // fallback on config encoder
-        // if(cmdData_ <= 0 || cmdData_ == ECMC_SEQ_HOME_USE_ENC_CFGS ) {
-        //  setCmdData(getPrimEnc()->getHomeSeqId());
-        // } else {
-        setCmdData(cmdData_);
+        if (command_ == ECMC_CMD_HOMING) {
+          // fallback on config encoder
+          // if(cmdData_ <= 0 || cmdData_ == ECMC_SEQ_HOME_USE_ENC_CFGS ) {
+          //  setCmdData(getPrimEnc()->getHomeSeqId());
+          // } else {
+          setCmdData(cmdData_);
 
-        // }
+          // }
 
-        // For homing velos, check if special homing velos,
-        // otherwise fallback on velocityTarget_
-        double temp = getPrimEnc()->getHomeVelOffCam();
+          // For homing velos, check if special homing velos,
+          // otherwise fallback on velocityTarget_
+          double temp = getPrimEnc()->getHomeVelOffCam();
 
-        if (temp <= 0) {
-          temp = velocityTarget_;
+          if (temp <= 0) {
+            temp = velocityTarget_;
+          }
+          getSeq()->setHomeVelOffCam(temp);
+          temp = getPrimEnc()->getHomeVelTowardsCam();
+
+          if (temp <= 0) {
+            temp = velocityTarget_;
+          }
+          getSeq()->setHomeVelTowardsCam(temp);
+
+          // Homing pos from encoder
+          getSeq()->setHomePosition(getPrimEnc()->getHomePosition());
+        } else {  // Not homing
+          // cmddata for all other states
+          setCmdData(cmdData_);
         }
-        getSeq()->setHomeVelOffCam(temp);
-        temp = getPrimEnc()->getHomeVelTowardsCam();
+      }
 
-        if (temp <= 0) {
-          temp = velocityTarget_;
+      if (command_ != ECMC_CMD_HOMING) {   // Not homing!
+        // allow on the fly updates of target velo and target pos
+        getSeq()->setTargetVel(velocityTarget_);
+        getSeq()->setTargetPos(positionTarget_);
+        getSeq()->setAcc(acceleration_);
+        getSeq()->setDec(deceleration_);
+      }
+
+      // if not already moving then trigg new motion cmd
+      if (!getBusy()) {
+        errorCode = setExecute(0);
+
+        if (errorCode) {
+          returnVal = asynError;
         }
-        getSeq()->setHomeVelTowardsCam(temp);
-
-        // Homing pos from encoder
-        getSeq()->setHomePosition(getPrimEnc()->getHomePosition());
-      } else {  // Not homing
-        // cmddata for all other states
-        setCmdData(cmdData_);
+        errorCode = setExecute(1);
+  
+        if (errorCode) {
+          returnVal = asynError;
+        }
       }
     }
+  }
 
-    if (command_ != ECMC_CMD_HOMING) {   // Not homing!
-      // allow on the fly updates of target velo and target pos
+  controlWord_.executeCmd = 0; // auto reset
+
+  if(data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+    // Tweak BWD
+    if (!controlWord_.stopCmd && controlWord_.tweakBwdCmd && !getBusy()) {
+      setCommand(ECMC_CMD_MOVEREL);
       getSeq()->setTargetVel(velocityTarget_);
-      getSeq()->setTargetPos(positionTarget_);
+      getSeq()->setTargetPos(-std::abs(positionTarget_));  // Backward
       getSeq()->setAcc(acceleration_);
       getSeq()->setDec(deceleration_);
-    }
-
-    // if not already moving then trigg new motion cmd
-    if (!getBusy()) {
       errorCode = setExecute(0);
-
       if (errorCode) {
         returnVal = asynError;
       }
       errorCode = setExecute(1);
-
+  
+      if (errorCode) {
+        returnVal = asynError;
+      }   
+    }
+    
+    // Tweak FWD
+    if (!controlWord_.stopCmd && controlWord_.tweakFwdCmd && !getBusy()) {
+      setCommand(ECMC_CMD_MOVEREL);
+      getSeq()->setTargetVel(velocityTarget_);
+      getSeq()->setTargetPos(std::abs(positionTarget_)); // Forward
+      getSeq()->setAcc(acceleration_);
+      getSeq()->setDec(deceleration_);
+      errorCode = setExecute(0);
       if (errorCode) {
         returnVal = asynError;
       }
-    }
-  }
-  controlWord_.executeCmd = 0; // auto reset
-
-  // Tweak BWD
-  if (!controlWord_.stopCmd && controlWord_.tweakBwdCmd && !getBusy()) {
-    setCommand(ECMC_CMD_MOVEREL);
-    getSeq()->setTargetVel(velocityTarget_);
-    getSeq()->setTargetPos(-std::abs(positionTarget_));  // Backward
-    getSeq()->setAcc(acceleration_);
-    getSeq()->setDec(deceleration_);
-    errorCode = setExecute(0);
-    if (errorCode) {
-      returnVal = asynError;
-    }
-    errorCode = setExecute(1);
-
-    if (errorCode) {
-      returnVal = asynError;
-    }   
-  }
+      errorCode = setExecute(1);
   
-  // Tweak FWD
-  if (!controlWord_.stopCmd && controlWord_.tweakFwdCmd && !getBusy()) {
-    setCommand(ECMC_CMD_MOVEREL);
-    getSeq()->setTargetVel(velocityTarget_);
-    getSeq()->setTargetPos(std::abs(positionTarget_)); // Forward
-    getSeq()->setAcc(acceleration_);
-    getSeq()->setDec(deceleration_);
-    errorCode = setExecute(0);
-    if (errorCode) {
-      returnVal = asynError;
+      if (errorCode) {
+        returnVal = asynError;
+      }   
     }
-    errorCode = setExecute(1);
-
-    if (errorCode) {
-      returnVal = asynError;
-    }   
   }
 
+  // reset the commands
+  controlWord_.tweakFwdCmd = 0;
   controlWord_.tweakBwdCmd = 0;
 
   setReset(controlWord_.resetCmd);  // resetCmd is reset in setReset()
@@ -3276,15 +3295,15 @@ void ecmcAxisBase::autoEnableSM() {
     setEnable(true);
   }
 
-  autoEnableTimeCounter_ += data_.sampleTime_;
-  
-  if(autoEnableTimeCounter_>autoEnableTimoutS_) {
+  if(autoEnableTimeCounter_ > autoEnableTimoutS_) {
     setEnable(false);
     autoEnableRequest_= false;
     autoEnableTimeCounter_ = 0;    
     setGlobalBusy(false);
     setErrorID(ERROR_AUTO_ENABLE_TIMEOUT);
     return;
+  } else {
+    autoEnableTimeCounter_ += data_.sampleTime_;
   }
 
   if(data_.status_.enabled) {
@@ -3312,11 +3331,11 @@ void ecmcAxisBase::autoDisableSM() {
     return;
   }
   
-  autoDisbleTimeCounter_+= data_.sampleTime_;
-
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ and data_.command_.enable) {
     printf("Axis[%d]: Auto disable axis (axis idle for %lfs)\n", data_.axisId_,autoDisableAfterS_);
     setEnable(0);
+  } else {
+    autoDisbleTimeCounter_+= data_.sampleTime_;
   }
 }
 

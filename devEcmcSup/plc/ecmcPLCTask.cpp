@@ -867,6 +867,7 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_set_autodisable_enable",mc_set_autodisable_enable);
   ecmcPLCTaskAddFunction("mc_grp_set_ctrl_within_db",mc_grp_set_ctrl_within_db);
   ecmcPLCTaskAddFunction("mc_grp_get_ctrl_within_db",mc_grp_get_ctrl_within_db);
+  ecmcPLCTaskAddFunction("mc_grp_get_any_ilocked",mc_grp_get_any_ilocked);
 
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",

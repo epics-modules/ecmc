@@ -107,8 +107,8 @@ void ecmcAxisSequencer::execute() {
       data_->status_.externalTrajectoryPosition;
     data_->status_.currentVelocitySetpoint =
       data_->status_.externalTrajectoryVelocity;
-    data_->interlocks_.noExecuteInterlock = false;  // Only valid in local mode
-    data_->refreshInterlocks();
+    //data_->interlocks_.noExecuteInterlock = false;  // Only valid in local mode
+    //data_->refreshInterlocks();
   }
 
   if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
@@ -147,10 +147,15 @@ void ecmcAxisSequencer::execute() {
     if(pvtmode_) {
       if(!pvtStopping_ && pvt_->getBusy()) {
         initStop();
+        //data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
+        //data_->status_.currentVelocitySetpoint = traj_->getNextVel();
+
       }
     } else {
       if(!temporaryLocalTrajSource_) {
         initStop();
+        //data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
+        //data_->status_.currentVelocitySetpoint = traj_->getNextVel();
       }
     }
   }
@@ -159,11 +164,6 @@ void ecmcAxisSequencer::execute() {
     data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
     data_->status_.currentVelocitySetpoint = traj_->getNextVel();
     temporaryLocalTrajSource_ = traj_->getBusy();  // Reset
-    if(!temporaryLocalTrajSource_) {
-      traj_->setEnable(1);
-      // Fallback to internal source...
-      data_->command_.trajSource = ECMC_DATA_SOURCE_INTERNAL;
-    }
   }
 
   if(temporaryLocalTrajSourceOld_ != temporaryLocalTrajSource_) {
@@ -3531,7 +3531,10 @@ void ecmcAxisSequencer::initStop() {
   if(data_->command_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::initStopPVT(): Initiating new stopramp...\n");
   }
- 
+
+  traj_->setEnable(1);
+  data_->command_.trajSource = ECMC_DATA_SOURCE_INTERNAL;
+
   temporaryLocalTrajSource_ = true;
 
   traj_->setStartPos(data_->status_.currentPositionActual);

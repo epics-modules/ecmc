@@ -228,7 +228,7 @@ bool ecmcAxisGroup::getTrajSrcExt(){
   return 1;
 };
 
-// get any traj src in intern
+// get any traj src in extern
 bool ecmcAxisGroup::getTrajSrcAnyExt(){
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
@@ -348,4 +348,14 @@ bool ecmcAxisGroup::getAxisIsWithinCtrlDB() {
     }
   }
   return attarget;
+}
+
+bool ecmcAxisGroup::getAnyIlocked() {
+  bool ilocked = false;
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      ilocked = ilocked || (*axis)->getSumInterlock();
+    }
+  }
+  return ilocked;
 }

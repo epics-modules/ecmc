@@ -72,26 +72,36 @@ void ecmcMasterSlaveStateMachine::execute(){
     case ECMC_MST_SLV_STATE_MASTERS:
       stateMaster();
       break;
+    case ECMC_MST_SLV_STATE_RESET:
+      stateReset();
+      break;
+
   };
 };
 
 int ecmcMasterSlaveStateMachine::stateIdle(){
 
+  // State transision to SLAVE
   if( slaveGrp_->getAnyBusy() && 
      !slaveGrp_->getTrajSrcAnyExt() && 
      !masterGrp_->getAnyEnabled() && 
      !masterGrp_->getAnyEnable()) {
 
      state_ = ECMC_MST_SLV_STATE_SLAVES;
-     printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> SLAVE_GRP_IN_CHARGE\n",name_.c_str());
+     printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> SLAVE\n",name_.c_str());
+
+  // State transision to MASTER
   } else if(masterGrp_->getAnyEnabled() &&
             slaveGrp_->getAnyErrorId() == 0 ) {
-    if(slaveGrp_->getAnyEnabled() && masterGrp_->getAnyEnabled() && !slaveGrp_->getAnyBusy()){
+
+    if(slaveGrp_->getEnabled() && masterGrp_->getEnabled() && !slaveGrp_->getAnyBusy()){
+
       if(masterGrp_->getAnyBusy()) {
         slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_EXTERNAL);
         state_ = ECMC_MST_SLV_STATE_MASTERS;
         printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> MASTER\n", name_.c_str());
       }
+
     } else {
       int errorSlave = slaveGrp_->setEnable(1);
       int errorMaster = masterGrp_->setEnable(1);
@@ -115,6 +125,7 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
   } else if(slaveGrp_->getAnyErrorId() > 0){
     masterGrp_->setSlavedAxisInError();
   }
+
   return 0;
 }
 
@@ -146,6 +157,7 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     masterGrp_->setSlavedAxisInError();
   }
 
+  
   if(!masterGrp_->getAnyBusy() && masterGrp_->getAnyEnabled()) {
     if(optionAutoDisableMasters_) {
       slaveGrp_->setEnable(0);
@@ -155,35 +167,59 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     }
   }
 
+  // One master axis gets killed during motion then kill all and got to IDLE
+  if( (masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled()) || 
+      (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled())) {   
+    state_ = ECMC_MST_SLV_STATE_RESET;
+    printf("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n", name_.c_str());    
+    printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n", name_.c_str());
+    stateReset(); // A bit nasty but ....
+    return 0;
+  }
+
   // postpone disable until all master axes are done
   masterGrp_->setEnableAutoDisable(masterGrp_->getAnyBusy() == 0);
   // ensure attarget/reduced current of slave axes
   slaveGrp_->setAxisIsWithinCtrlDBExtTraj(masterGrp_->getAxisIsWithinCtrlDB());
-  // sync enable.. Not sure this should eb here.. Better in state transision maybe
-  slaveGrp_->setEnable(masterGrp_->getEnable());
-
-  // Change this to any interlock?!
-  if(slaveGrp_->getAnyAtLimit()){
-    state_ = ECMC_MST_SLV_STATE_SLAVES;
-    printf("ecmcMasterSlaveStateMachine: %s: Slaved axis at limit..\n", name_.c_str());
-    printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> SLAVE\n", name_.c_str());
+  
+  // Ilock or if any slaved axis is changing to internal source
+  if(slaveGrp_->getAnyIlocked() || !slaveGrp_->getTrajSrcExt()){
     slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
     slaveGrp_->setMRSync(1);
     slaveGrp_->setMRStop(1);
     slaveGrp_->halt();
     masterGrp_->setSlavedAxisIlocked();
+    masterGrp_->setEnableAutoDisable(1);    
+    state_ = ECMC_MST_SLV_STATE_RESET;
+    printf("ecmcMasterSlaveStateMachine: %s: Slaved axis interlock (or traj source change)\n", name_.c_str());
+    printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n", name_.c_str());
   }
-
+  
   // Done?
-  if(!masterGrp_->getEnabled() && !slaveGrp_->getAnyEnabled()) {
+  if(!masterGrp_->getAnyEnabled()) {
     slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
     slaveGrp_->setErrorReset();
+    slaveGrp_->setEnable(0);
+    slaveGrp_->setMRCnen(0);
+    masterGrp_->setEnableAutoDisable(1);
     state_ = ECMC_MST_SLV_STATE_IDLE;
     printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> IDLE\n", name_.c_str());
-    slaveGrp_->setMRSync(1);
-    slaveGrp_->setMRStop(1);    
   }
   return 0;
+}
+
+int ecmcMasterSlaveStateMachine::stateReset() {
+  slaveGrp_->setEnable(0);
+  masterGrp_->setEnable(0);
+  slaveGrp_->setMRCnen(0);
+  masterGrp_->setMRCnen(0);
+  slaveGrp_->setErrorReset();
+  masterGrp_->setErrorReset();
+  slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
+  masterGrp_->setEnableAutoDisable(1);
+  state_ = ECMC_MST_SLV_STATE_IDLE;
+  printf("ecmcMasterSlaveStateMachine: %s: State change, RESET -> IDLE\n", name_.c_str());
+  return  0;
 }
 
 int ecmcMasterSlaveStateMachine::validate(){

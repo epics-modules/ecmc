@@ -121,6 +121,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_set_autodisable_enable(,"
                                "mc_grp_set_ctrl_within_db(,"
                                "mc_grp_get_ctrl_within_db(,"
+                               "mc_grp_get_any_ilocked(",
                               };
 
 extern ecmcAxisGroup   *axisGroups[ECMC_MAX_AXES];
@@ -132,7 +133,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode = 0;
-static int mc_cmd_count = 63;
+static int mc_cmd_count = 64;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -926,6 +927,12 @@ inline double mc_grp_get_any_at_limit(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
   return (double) axisGroups[intGrpIndex]->getAnyAtLimit();
+}
+
+inline double mc_grp_get_any_ilocked(double grpIndex){
+  int intGrpIndex=(int)grpIndex;
+  CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
+  return (double) axisGroups[intGrpIndex]->getAnyIlocked();
 }
 
 inline double mc_grp_set_slaved_axis_ilocked(double grpIndex){

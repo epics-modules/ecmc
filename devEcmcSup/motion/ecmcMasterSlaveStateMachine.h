@@ -47,6 +47,7 @@ enum masterSlaveStates {
   ECMC_MST_SLV_STATE_IDLE    = 0,
   ECMC_MST_SLV_STATE_SLAVES  = 1,
   ECMC_MST_SLV_STATE_MASTERS = 2,
+  ECMC_MST_SLV_STATE_RESET   = 3,
 };
 
 class ecmcMasterSlaveStateMachine : public ecmcError {
@@ -66,6 +67,7 @@ class ecmcMasterSlaveStateMachine : public ecmcError {
     int stateIdle();
     int stateSlave();
     int stateMaster();
+    int stateReset();
     int initAsyn();
     void refreshAsyn();
     int createAsynParam(const char        *nameFormat,
