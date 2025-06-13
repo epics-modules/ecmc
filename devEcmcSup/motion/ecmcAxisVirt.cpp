@@ -71,7 +71,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
 
   // No drive object so update needed variables
   data_.status_.currentvelocityFFRaw = 0;
-  data_.status_.enabled              = data_.command_.enable;
+  data_.status_.enabled              = data_.command_.controlWord_.enableCmd;
 
   ecmcAxisBase::postExecute(masterOK);
 }

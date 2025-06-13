@@ -631,12 +631,12 @@ int ecmcMonitor::setEnableHardLimitFWDAlarm(bool enable) {
 }
 
 int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {
-  data_->command_.enableSoftLimitBwd = enable;
+  data_->command_.controlWord_.enableSoftLimitBwd = enable;
   return 0;
 }
 
 int ecmcMonitor::setEnableSoftLimitFwd(bool enable) {
-  data_->command_.enableSoftLimitFwd = enable;
+  data_->command_.controlWord_.enableSoftLimitFwd = enable;
   return 0;
 }
 
@@ -729,7 +729,7 @@ int ecmcMonitor::checkLimits() {
     data_->status_.currentPositionSetpointOld); */// data_->command_.execute;
 
   if (virtSoftlimitBwd /*&& data_->status_.busy*/ &&
-      data_->command_.enableSoftLimitBwd &&
+      data_->command_.controlWord_.enableSoftLimitBwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
     data_->interlocks_.bwdSoftLimitInterlock = true;
     setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
@@ -756,7 +756,7 @@ int ecmcMonitor::checkLimits() {
 
   // Fwd soft limit switch
   if (virtSoftlimitFwd /*&& data_->status_.busy*/ &&
-      data_->command_.enableSoftLimitFwd &&
+      data_->command_.controlWord_.enableSoftLimitFwd &&
       (data_->command_.command != ECMC_CMD_HOMING)) {
     data_->interlocks_.fwdSoftLimitInterlock = true;
     setWarningID(WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK);
@@ -853,7 +853,7 @@ int  ecmcMonitor::checkStall() {
       if(stallCheckAtTargetAtCycle_ < stallMinTimeoutCycles_) {
         stallCheckAtTargetAtCycle_ = stallMinTimeoutCycles_;
       }
-      if(data_->command_.enableDbgPrintout) {
+      if(data_->command_.controlWord_.enableDbgPrintout) {
         printf("Axis[%d]: Time to check stall after: %" PRIu64 "\n", data_->axisId_, stallCheckAtTargetAtCycle_);        
       }
     }
@@ -864,7 +864,7 @@ int  ecmcMonitor::checkStall() {
   if(data_->status_.atTarget) {
     data_->interlocks_.stallInterlock = false;
     if(!data_->status_.atTargetOld) {
-      if(data_->command_.enableDbgPrintout) {
+      if(data_->command_.controlWord_.enableDbgPrintout) {
         printf("Axis[%d]: No stall.. Brilliant!!\n",data_->axisId_);
       }
     }
@@ -874,7 +874,7 @@ int  ecmcMonitor::checkStall() {
 
   if((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
      (stallCheckAtTargetAtCycle_ > 0)) {
-    if(data_->command_.enableDbgPrintout) {
+    if(data_->command_.controlWord_.enableDbgPrintout) {
       printf("Axis[%d]: Stall...\n",data_->axisId_);
     }
     stallCheckAtTargetAtCycle_ = 0;
@@ -892,7 +892,7 @@ int ecmcMonitor::checkPositionLag() {
   bool lagErrorTraj  = false;
   bool lagErrorDrive = false;
 
-  if (enableLagMon_ && !lagErrorDrive && data_->command_.enable) {
+  if (enableLagMon_ && !lagErrorDrive && data_->command_.controlWord_.enableCmd) {
     if ((std::abs(data_->status_.cntrlError) > posLagTol_) &&
         data_->status_.enabled &&
         data_->status_.enabledOld) {
@@ -931,7 +931,7 @@ int ecmcMonitor::checkPositionLag() {
 int ecmcMonitor::checkEncoderDiff() {
   data_->interlocks_.encDiffInterlock = false;
 
-  if (!data_->command_.enable) {
+  if (!data_->command_.controlWord_.enableCmd) {
     return 0;
   }
 
@@ -1017,7 +1017,7 @@ int ecmcMonitor::checkVelocityDiff() {
 }
 
 int ecmcMonitor::checkMaxVelocity() {
-  if (!data_->command_.enable || !data_->status_.enabled ||
+  if (!data_->command_.controlWord_.enableCmd || !data_->status_.enabled ||
       !data_->status_.enabledOld) {
     data_->interlocks_.maxVelocityTrajInterlock  = false;
     data_->interlocks_.maxVelocityDriveInterlock = false;
@@ -1096,22 +1096,22 @@ double ecmcMonitor::getSoftLimitFwd() {
 }
 
 bool ecmcMonitor::getEnableSoftLimitBwd() {
-  return data_->command_.enableSoftLimitBwd &&
+  return data_->command_.controlWord_.enableSoftLimitBwd &&
          data_->command_.command != ECMC_CMD_HOMING;
 }
 
 bool ecmcMonitor::getEnableSoftLimitFwd() {
-  return data_->command_.enableSoftLimitFwd &&
+  return data_->command_.controlWord_.enableSoftLimitFwd &&
          data_->command_.command != ECMC_CMD_HOMING;
 }
 
 bool ecmcMonitor::getAtSoftLimitBwd() {
-  return data_->command_.enableSoftLimitBwd &&
+  return data_->command_.controlWord_.enableSoftLimitBwd &&
          data_->status_.currentPositionActual <= data_->command_.softLimitBwd;
 }
 
 bool ecmcMonitor::getAtSoftLimitFwd() {
-  return data_->command_.enableSoftLimitFwd &&
+  return data_->command_.controlWord_.enableSoftLimitFwd &&
          data_->status_.currentPositionActual >= data_->command_.softLimitFwd;
 }
 

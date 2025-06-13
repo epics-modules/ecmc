@@ -530,7 +530,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setTargetVel(data_->command_.velocityTarget);
-      if(data_->command_.enableDbgPrintout) {
+      if(data_->command_.controlWord_.enableDbgPrintout) {
         printf("ECMC_CMD_MOVEVEL targ velo: %lf\n",data_->command_.velocityTarget);
       }
     }
@@ -567,7 +567,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setTargetVel(data_->command_.velocityTarget);
       traj_->setTargetPos(data_->command_.positionTarget);
-      if(data_->command_.enableDbgPrintout) {
+      if(data_->command_.controlWord_.enableDbgPrintout) {
         printf("ECMC_CMD_MOVEREL pos targ: %lf, targ velo: %lf, traj busy %d\n",data_->command_.positionTarget,data_->command_.velocityTarget, traj_->getBusy());
       }
     }
@@ -594,7 +594,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(data_->command_.velocityTarget);
-      if(data_->command_.enableDbgPrintout) {
+      if(data_->command_.controlWord_.enableDbgPrintout) {
         printf("ECMC_CMD_MOVEABS pos targ: %lf, targ velo: %lf, traj busy %d\n",data_->command_.positionTarget,data_->command_.velocityTarget, traj_->getBusy());
       }
       double targPos   = 0;
@@ -642,7 +642,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   // PVT is only abs here (relative is handled by the PVt controller)
   case ECMC_CMD_MOVEPVTABS:
-    if(data_->command_.enableDbgPrintout) {
+    if(data_->command_.controlWord_.enableDbgPrintout) {
       printf("RUNNING PVT ABS execute %d\n",data_->command_.execute);
     }
     if (data_->command_.execute && !executeOld_) {
@@ -956,14 +956,14 @@ double ecmcAxisSequencer::checkSoftLimits(double posSetpoint) {
 
   // soft limit FWD
   if ((posSetpoint > data_->command_.softLimitFwd) &&
-      data_->command_.enableSoftLimitFwd && (dSet > dAct)) {
+      data_->command_.controlWord_.enableSoftLimitFwd && (dSet > dAct)) {
     dSet = dAct;
     setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION);
   }
 
   // soft limit BWD
   if ((posSetpoint < data_->command_.softLimitBwd) &&
-      data_->command_.enableSoftLimitBwd && (dSet < dAct)) {
+      data_->command_.controlWord_.enableSoftLimitBwd && (dSet < dAct)) {
     dSet = dAct;
     setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION);
   }
@@ -3204,7 +3204,7 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   for (int i = 0; i < data_->status_.encoderCount; i++) {
     // Ref all encoders that are configured to be homed. Always ref primary encoder.
     if (encArray_[i]->getRefAtHoming() || i == data_->command_.primaryEncIndex ) {
-      if(data_->command_.enableDbgPrintout) {
+      if(data_->command_.controlWord_.enableDbgPrintout) {
         printf("INFO: Axis [%d]: Setting new position to encoder[%d]: %lf\n",data_->axisId_,i,newPosition);
       }
       encArray_[i]->setActPos(newPosition);
@@ -3478,7 +3478,7 @@ int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
   // Allow pvt object to get data 
   pvt_->setAxisDataRef(data_);
 
-  if(data_->command_.enableDbgPrintout) {
+  if(data_->command_.controlWord_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::setPVTObject(pvt): INFO: PVT object assigned\n");
   }
   return 0;
@@ -3508,7 +3508,7 @@ int ecmcAxisSequencer::validatePVT() {
 }
 
 void ecmcAxisSequencer::setEnable(int enable) {
-  if (enable && !data_->command_.enable) {
+  if (enable && !data_->command_.controlWord_.enableCmd) {
      traj_->setStartPos(data_->status_.currentPositionActual);
      traj_->setCurrentPosSet(data_->status_.currentPositionActual);
      traj_->setTargetPos(data_->status_.currentPositionActual);
@@ -3528,7 +3528,7 @@ void ecmcAxisSequencer::setEnable(int enable) {
 }
 
 void ecmcAxisSequencer::initStop() {
-  if(data_->command_.enableDbgPrintout) {
+  if(data_->command_.controlWord_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::initStopPVT(): Initiating new stopramp...\n");
   }
 

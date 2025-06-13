@@ -620,7 +620,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
 
     // Set Alarm
     if (hwErrorAlarm0_) {
-      data_->command_.enable = 0;
+      data_->command_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_0;
     }
     hwErrorAlarm0Old_ = hwErrorAlarm0_;
@@ -636,7 +636,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
 
     // Set Alarm
     if (hwErrorAlarm1_) {
-      data_->command_.enable = 0;
+      data_->command_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_1;
     }
     hwErrorAlarm1Old_ = hwErrorAlarm1_;
@@ -652,7 +652,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
 
     // Set Alarm
     if (hwErrorAlarm2_) {
-      data_->command_.enable = 0;
+      data_->command_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_2;
     }
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
@@ -686,7 +686,7 @@ int ecmcEncoder::readHwReady(bool domainOK) {
     if ( hwReady_ == 0) {
       if (data_->status_.enabled && isPrimary()) {
         // Error when enabled, this is serious, remove power
-        data_->command_.enable = 0;       
+        data_->command_.controlWord_.enableCmd = 0;       
       }
       return ERROR_ENC_NOT_READY;
     }

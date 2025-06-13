@@ -119,7 +119,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
     return 0;
   }
 
-  if (data_->status_.enabled && data_->command_.enable) {
+  if (data_->status_.enabled && data_->command_.controlWord_.enableCmd) {
     data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ +
                                                 cspRawPosOffset_;
   } else {
@@ -127,7 +127,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   }
 
   // Calculate new offset
-  if (data_->command_.enable && !enableCmdOld_) {
+  if (data_->command_.controlWord_.enableCmd && !enableCmdOld_) {
     setCspRecalcOffset(cspPosSet_);
     data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ +
                                                 cspRawPosOffset_;
@@ -239,8 +239,8 @@ int ecmcDriveBase::getEnableReduceTorque() {
 }
 
 void ecmcDriveBase::writeEntries() {
-  if (!driveInterlocksOK() && data_->command_.enable) {
-    data_->command_.enable = false;
+  if (!driveInterlocksOK() && data_->command_.controlWord_.enableCmd) {
+    data_->command_.controlWord_.enableCmd = false;
     enableAmpCmd_          = false;
     // Remove since it is overwriting the "real error code"
     //setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -256,7 +256,7 @@ void ecmcDriveBase::writeEntries() {
   } else {
     // No brake
     data_->status_.enabled = getEnabledLocal();
-    enableAmpCmd_          = data_->command_.enable;
+    enableAmpCmd_          = data_->command_.controlWord_.enableCmd;
   }
 
   int errorCode = 0;
@@ -349,13 +349,13 @@ void ecmcDriveBase::writeEntries() {
   }
 
   // Timeout?
-  if (!getEnabledLocal() && data_->command_.enable) {
+  if (!getEnabledLocal() && data_->command_.controlWord_.enableCmd) {
     cycleCounterBase_++;
 
     if (cycleCounterBase_ > stateMachineTimeoutCycles_) {
       // Enable cmd timeout (not recived enable within time period)
       cycleCounterBase_      = 0;
-      data_->command_.enable = false;
+      data_->command_.controlWord_.enableCmd = false;
       enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
@@ -367,8 +367,8 @@ void ecmcDriveBase::writeEntries() {
   }
 
   // Enabled lost?
-  if (!getEnabledLocal() && localEnabledOld_ && data_->command_.enable) {
-    data_->command_.enable = false;
+  if (!getEnabledLocal() && localEnabledOld_ && data_->command_.controlWord_.enableCmd) {
+    data_->command_.controlWord_.enableCmd = false;
     enableAmpCmd_          = false;
     LOGERR(
       "%s/%s:%d: WARNING (axis %d): Drive enabled lost while enable cmd is high.\n",
@@ -388,7 +388,7 @@ void ecmcDriveBase::writeEntries() {
   // Enable command sent to amplifier
   // (if brake is not used then enableAmpCmdOld_==enableCmdOld_)
   enableAmpCmdOld_ = enableAmpCmd_;
-  enableCmdOld_    = data_->command_.enable;
+  enableCmdOld_    = data_->command_.controlWord_.enableCmd;
 
   refreshAsyn();
 }
@@ -455,7 +455,7 @@ void ecmcDriveBase::readEntries(bool masterOK) {
 
     // Set Alarm
     if (hwErrorAlarm0_) {
-      data_->command_.enable = false;
+      data_->command_.controlWord_.enableCmd = false;
       enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
@@ -484,7 +484,7 @@ void ecmcDriveBase::readEntries(bool masterOK) {
 
     // Set Alarm
     if (hwErrorAlarm1_) {
-      data_->command_.enable = false;
+      data_->command_.controlWord_.enableCmd = false;
       enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
@@ -513,7 +513,7 @@ void ecmcDriveBase::readEntries(bool masterOK) {
 
     // Set Alarm
     if (hwErrorAlarm2_) {
-      data_->command_.enable = false;
+      data_->command_.controlWord_.enableCmd = false;
       enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
@@ -715,12 +715,12 @@ int ecmcDriveBase::setBrakeCloseAheadTime(int aheadTime) {
 int ecmcDriveBase::updateBrakeState() {
   // General state transitions
 
-  if (data_->command_.enable && !enableCmdOld_) {
+  if (data_->command_.controlWord_.enableCmd && !enableCmdOld_) {
     brakeState_   = ECMC_BRAKE_OPENING;
     brakeCounter_ = 0;
   }
 
-  if (!data_->command_.enable && enableCmdOld_) {
+  if (!data_->command_.controlWord_.enableCmd && enableCmdOld_) {
     brakeState_   = ECMC_BRAKE_CLOSING;
     brakeCounter_ = 0;
   }
@@ -739,7 +739,7 @@ int ecmcDriveBase::updateBrakeState() {
 
     if (brakeCounter_ > brakeOpenDelayTime_) {
       if (!getEnabledLocal()) {
-        data_->command_.enable = 0;
+        data_->command_.controlWord_.enableCmd = 0;
         brakeOutputCmd_        = 0;
         brakeCounter_          = 0;
         enableAmpCmd_          = 0;
@@ -768,8 +768,8 @@ int ecmcDriveBase::updateBrakeState() {
   case ECMC_BRAKE_OPEN:
 
     // enabled lost: apply brake directly without delay, goto state BRAKE_CLOSED
-    if (!getEnabledLocal() && data_->command_.enable) {
-      // data_->command_.enable = 0;  this is controlled separately
+    if (!getEnabledLocal() && data_->command_.controlWord_.enableCmd) {
+      // data_->command_.controlWord_.enableCmd = 0;  this is controlled separately
       brakeOutputCmd_ = 0;
       brakeCounter_   = 0;
       enableAmpCmd_   = 0;

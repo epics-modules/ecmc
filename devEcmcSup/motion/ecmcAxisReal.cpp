@@ -152,7 +152,7 @@ void ecmcAxisReal::execute(bool masterOK) {
     }
 
     if (data_.status_.enabledOld && !data_.status_.enabled &&
-        data_.status_.enableOld && data_.command_.enable) {
+        data_.status_.enableOld && data_.command_.controlWord_.enableCmd) {
       setEnable(false);
       setErrorID(__FILE__,
                  __FUNCTION__,

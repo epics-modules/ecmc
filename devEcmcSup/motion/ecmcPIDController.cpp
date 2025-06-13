@@ -174,7 +174,7 @@ double ecmcPIDController::control(double posError, double ff) {
   // Simple PID loop with FF.
   // Consider to make base class to derive other controller types
 
-  if (!data_->command_.enable || data_->interlocks_.driveSummaryInterlock) {
+  if (!data_->command_.controlWord_.enableCmd || data_->interlocks_.driveSummaryInterlock) {
     reset();
     return 0;
   }

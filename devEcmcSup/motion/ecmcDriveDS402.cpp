@@ -241,7 +241,7 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
     controlWord_           = 0;
     cycleCounter_          = 0;
     enableAmpCmd_          = false;
-    data_->command_.enable = false;
+    data_->command_.controlWord_.enableCmd = false;
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_DS402_FAULT_STATE);
     break;
 
@@ -251,7 +251,7 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
 
     if (!BIT_CHECK(statusWord_, ECMC_DS402_FAULT_BIT)) {
       enableStateMachine_    = ECMC_DS402_IDLE_STATE;
-      data_->command_.enable = false;
+      data_->command_.controlWord_.enableCmd = false;
     }
     break;
   }

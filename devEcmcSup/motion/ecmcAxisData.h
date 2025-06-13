@@ -18,6 +18,23 @@
 #include "ecmcDefinitions.h"
 
 typedef struct {
+  bool enableCmd          : 1;
+  bool executeCmd         : 1;
+  bool stopCmd            : 1;
+  bool resetCmd           : 1;
+  bool encSourceCmd       : 1;            // 0 = internal, 1 = plc
+  bool trajSourceCmd      : 1;            // 0 = internal, 1 = plc
+  bool plcEnableCmd       : 1;            // 0 = disable, 1 = enable
+  bool plcCmdsAllowCmd    : 1;            // 0 = not allow, 1 = allow
+  bool enableSoftLimitBwd : 1;
+  bool enableSoftLimitFwd : 1;
+  bool enableDbgPrintout  : 1;
+  bool tweakBwdCmd        : 1;
+  bool tweakFwdCmd        : 1;
+  int  spareBitsCmd       : 19;
+} ecmcAsynAxisControlType;
+
+typedef struct {
   double             positionTarget;
   double             velocityTarget;
   double             softLimitBwd;
@@ -26,20 +43,48 @@ typedef struct {
   ecmcMotionModType  moduloType;
   motionCommandTypes command;
   int                cmdData;
-  int                primaryEncIndex;   // used for control
+  int                primaryEncIndex;    // used for control
   int                cspDrvEncIndex;     // encoder channel used for drive local CSP (defaults to primary)
-  int                cfgEncIndex;       // Encoder currrently configured
+  int                cfgEncIndex;        // Encoder currrently configured
   int                drvModeSet;
-  bool               enable             : 1;
+  //bool               enable             : 1;
   bool               execute            : 1;
   bool               reset              : 1;
   bool               enableSoftLimitBwd : 1;
   bool               enableSoftLimitFwd : 1;
   bool               enableDbgPrintout  : 1;
+  ecmcAsynAxisControlType controlWord_;
   dataSource trajSource;
   dataSource encSource;
   driveMode  drvMode;
 } ecmcAxisDataCommand;
+
+typedef struct {
+  unsigned char enable          : 1;
+  unsigned char enabled         : 1;
+  unsigned char execute         : 1;
+  unsigned char busy            : 1;
+  unsigned char attarget        : 1;
+  unsigned char moving          : 1;
+  unsigned char limitfwd        : 1;
+  unsigned char limitbwd        : 1;
+  unsigned char homeswitch      : 1;
+  unsigned char homed           : 1;
+  unsigned char inrealtime      : 1;
+  unsigned char trajsource      : 1;
+  unsigned char encsource       : 1;
+  unsigned char plccmdallowed   : 1;
+  unsigned char softlimfwdena   : 1;
+  unsigned char softlimbwdena   : 1;
+  unsigned char instartup       : 1;
+  unsigned char sumilockfwd     : 1;
+  unsigned char sumilockbwd     : 1;
+  unsigned char softlimilockfwd : 1;
+  unsigned char softlimilockbwd : 1;
+  unsigned char axisType        : 1;
+  unsigned char seqstate        : 4;
+  unsigned char lastilock       : 6;
+} ecmcAxisStatusWordType;
 
 typedef struct {
   double  externalTrajectoryPosition;
@@ -88,6 +133,7 @@ typedef struct {
   double  distToStop;
   int     errorCode;
   int     warningCode;
+  ecmcAxisStatusWordType statusWord_;
 } ecmcAxisDataStatus;
 
 typedef struct {
@@ -134,7 +180,7 @@ public:
   ecmcAxisDataCommand command_;
   ecmcAxisDataStatus status_;
   ecmcAxisDataInterlocks interlocks_;
-  ecmcAxisDataInterlocks interlocksOld_;
+  ecmcAxisDataInterlocks interlocksOld_;    
   int axisId_;
   axisType axisType_;
   double sampleTime_;

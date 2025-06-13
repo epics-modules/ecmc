@@ -170,24 +170,6 @@ asynStatus asynWriteCmdData(void         *data,
                                                          asynParType);
 }
 
-/**
- * Callback function for asynWrites (enable command)
- * userObj = axis object
- *
- * */
-asynStatus asynWriteEnable(void         *data,
-                            size_t        bytes,
-                            asynParamType asynParType,
-                            void         *userObj) {
-  if (!userObj) {
-    return asynError;
-  }
-  return ((ecmcAxisBase *)userObj)->axisAsynWriteEnable(data,
-                                                        bytes,
-                                                        asynParType);
-}
-
-
 ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            int                 axisID,
                            double              sampleTime,
@@ -269,7 +251,6 @@ void ecmcAxisBase::initVars() {
   data_.sampleTime_                        = 1 / 1000;
   memset(&statusData_,    0, sizeof(statusData_));
   memset(&statusDataOld_, 0, sizeof(statusDataOld_));
-  memset(&controlWord_,   0, sizeof(controlWord_));
   printHeaderCounter_      = 0;
   data_.status_.enabledOld = false;
   data_.status_.enableOld  = false;
@@ -571,7 +552,7 @@ void ecmcAxisBase::setReset(bool reset) {
       getCntrl()->errorReset();
     }
   }
-  controlWord_.resetCmd = 0;
+  data_.command_.controlWord_.resetCmd = 0;
 }
 
 bool ecmcAxisBase::getReset() {
@@ -580,7 +561,7 @@ bool ecmcAxisBase::getReset() {
 
 int ecmcAxisBase::setAllowCmdFromPLC(bool enable) {
   allowCmdFromOtherPLC_        = enable;
-  controlWord_.plcCmdsAllowCmd = enable;
+  data_.command_.controlWord_.plcCmdsAllowCmd = enable;
   return 0;
 }
 
@@ -646,7 +627,7 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
   }
 
   data_.command_.trajSource  = refSource;
-  controlWord_.trajSourceCmd =  data_.command_.trajSource ==
+  data_.command_.controlWord_.trajSourceCmd =  data_.command_.trajSource ==
                                ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
@@ -674,7 +655,7 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   }
 
   data_.command_.encSource  = refSource;
-  controlWord_.encSourceCmd =  data_.command_.encSource ==
+  data_.command_.controlWord_.encSourceCmd =  data_.command_.encSource ==
                               ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
@@ -713,7 +694,7 @@ int ecmcAxisBase::getErrorID() {
 }
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
-  if (enable && !data_.command_.enable) {
+  if (enable && !data_.command_.controlWord_.enableCmd) {
     errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel    
@@ -741,9 +722,7 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
     errorReset();
   }
 
-  data_.status_.enableOld = data_.command_.enable;
-  data_.command_.enable   = enable;
-
+  data_.status_.enableOld = data_.command_.controlWord_.enableCmd;
   return 0;
 }
 
@@ -990,11 +969,15 @@ int ecmcAxisBase::setExecute(bool execute) {
 
     setGlobalBusy(true);
     autoEnableTimeCounter_ = 0;
-    autoEnableRequest_ = true;
+    autoEnableRequest_ = true && enableAutoEnable_;
     // autoEnableSM will setExecute later when axis is enabled
     return 0;
   }
 
+  if(!execute) {
+    autoEnableRequest_ = false;
+  }
+  
   return setExecute(execute, false);
 }
 
@@ -1025,7 +1008,7 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
   }
   
   // Always reset 
-  controlWord_.executeCmd = 0;
+  data_.command_.controlWord_.executeCmd = 0;
 
   return 0;
 }
@@ -1065,11 +1048,11 @@ int ecmcAxisBase::getCycleCounter() {
 }
 
 bool ecmcAxisBase::getEnable() {
-  return data_.command_.enable;
+  return data_.command_.controlWord_.enableCmd;
 }
 
 bool ecmcAxisBase::getEnabled() {
-  return data_.status_.enabled && data_.command_.enable;
+  return data_.status_.enabled && data_.command_.controlWord_.enableCmd;
 }
 
 bool ecmcAxisBase::getEnabledOnly() {
@@ -1203,8 +1186,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
                               asynParamInt32,
                               ECMC_EC_S32,
-                              (uint8_t *)&(controlWord_),
-                              sizeof(controlWord_),
+                              (uint8_t *)&(data_.command_.controlWord_),
+                              sizeof(data_.command_.controlWord_),
                               &paramTemp);
 
   if (errorCode) {
@@ -1378,24 +1361,6 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID] = paramTemp;
-
-  // Enable command
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ENABLE_CMD_NAME,
-                              asynParamInt32,
-                              ECMC_EC_U32,
-                              (uint8_t *)&(enableCmd_),
-                              sizeof(enableCmd_),
-                              &paramTemp);
-
-  if (errorCode) {
-    return errorCode;
-  }
-  paramTemp->addSupportedAsynType(asynParamInt32);
-  paramTemp->setAllowWriteToEcmc(true);
-  paramTemp->setExeCmdFunctPtr(asynWriteEnable, this); // Access to this axis
-
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_ENABLE_CMD_ID] = paramTemp;
 
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                       ECMC_ASYN_DEFAULT_ADDR);
@@ -1631,11 +1596,11 @@ void ecmcAxisBase::refreshStatusWd() {
 
   // bit 14 softlimfwdena
   statusData_.onChangeData.statusWd.softlimfwdena =
-    data_.command_.enableSoftLimitFwd > 0;
+    data_.command_.controlWord_.enableSoftLimitFwd> 0;
 
   // bit 15 softlimbwdena
   statusData_.onChangeData.statusWd.softlimbwdena =
-    data_.command_.enableSoftLimitBwd > 0;
+    data_.command_.controlWord_.enableSoftLimitBwd > 0;
 
   // bit 16 inStartupPhase
   statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase >
@@ -1723,7 +1688,7 @@ void ecmcAxisBase::refreshDebugInfoStruct() {
 
 int ecmcAxisBase::setEnable(bool enable) {
 
-  if (data_.command_.enable == enable) return 0;
+  if (data_.status_.enable == enable) return 0;
 
   if (!enable) {  // Remove execute if enable is going down
     setExecute(false);
@@ -1735,12 +1700,14 @@ int ecmcAxisBase::setEnable(bool enable) {
   }
 
   if (!getEnc()->hwReady()) {
-    data_.command_.enable = false;
+    data_.command_.controlWord_.enableCmd = false;
+    data_.status_.enable = false;
     return setErrorID(ERROR_ENC_NOT_READY);
   }
 
   if (getMon()->getSafetyInterlock() && enable) {
-    data_.command_.enable = false;
+    data_.command_.controlWord_.enableCmd = false;
+    data_.status_.enable = false;
     return setErrorID(ERROR_AXIS_SAFETY_IL_ACTIVE);
   }
 
@@ -1750,9 +1717,10 @@ int ecmcAxisBase::setEnable(bool enable) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
   }
 
+  data_.status_.enable = enable;
   enableCmd_ = enable;
-  axAsynParams_[ECMC_ASYN_AX_ENABLE_CMD_ID]->refreshParamRT(1);
-  
+  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
+
   return 0;
 }
 
@@ -2340,19 +2308,19 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
  *
- * controlWord_.empty  // Empty,enableCmd moved to dedicated asyn parameter
- * controlWord_.executeCmd
- * controlWord_.stopCmd
- * controlWord_.resetCmd
- * controlWord_.encSourceCmd
- * controlWord_.trajSourceCmd
- * controlWord_.plcEnableCmd
- * controlWord_.plcCmdsAllowCmd
- * controlWord_.enableSoftLimitBwd
- * controlWord_.enableSoftLimitFwd
- * controlWord_.enableILockChangePrintout
- * controlWord_.tweakBwdCmd
- * controlWord_.tweakFwdCmd
+ * data_.command_.controlWord_.enableCmd  // Empty,enableCmd moved to dedicated asyn parameter
+ * data_.command_.controlWord_.executeCmd
+ * data_.command_.controlWord_.stopCmd
+ * data_.command_.controlWord_.resetCmd
+ * data_.command_.controlWord_.encSourceCmd
+ * data_.command_.controlWord_.trajSourceCmd
+ * data_.command_.controlWord_.plcEnableCmd
+ * data_.command_.controlWord_.plcCmdsAllowCmd
+ * data_.command_.controlWord_.enableSoftLimitBwd
+ * data_.command_.controlWord_.enableSoftLimitFwd
+ * data_.command_.controlWord_.enableILockChangePrintout
+ * data_.command_.controlWord_.tweakBwdCmd
+ * data_.command_.controlWord_.tweakFwdCmd
  * 
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
@@ -2360,7 +2328,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
                                           asynParamType asynParType) {
   asynStatus returnVal = asynSuccess;
 
-  if (sizeof(controlWord_) != bytes) {
+  if (sizeof(data_.command_.controlWord_) != bytes) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Control word size missmatch.\n",
       __FILE__,
@@ -2372,8 +2340,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     return asynError;
   }
 
-  memcpy(&controlWord_, data, sizeof(controlWord_));
-  uint32_t *tmpcontrolWordPtr = (uint32_t *)&controlWord_;
+  memcpy(&data_.command_.controlWord_, data, sizeof(data_.command_.controlWord_));
+  uint32_t *tmpcontrolWordPtr = (uint32_t *)&data_.command_.controlWord_;
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write : Control Word = 0x%x.\n",
     __FILE__,
@@ -2385,12 +2353,18 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   // Check if com is blocked but allow stop cmd
   if (blockExtCom_) {
     bool refreshNeeded = false;
+    
+    // allow to stop and disable but still go to error state
+    if (!data_.command_.controlWord_.enableCmd) {
+      setEnable(data_.command_.controlWord_.enableCmd);
+      refreshNeeded = true;
+    }
 
-    if (controlWord_.stopCmd) {
+    if (data_.command_.controlWord_.stopCmd) {
       stopMotion(enableCmd_ == 0);    
       //errorCode            = setExecute(0);
-      controlWord_.stopCmd = 0;  // auto reset
-      controlWord_.executeCmd = 0;
+      data_.command_.controlWord_.stopCmd = 0;  // auto reset
+      data_.command_.controlWord_.executeCmd = 0;
       refreshNeeded        = true;
     }
 
@@ -2408,20 +2382,19 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     return asynError;
   }
 
-  // make printouts when interlock state changes
-  data_.command_.enableDbgPrintout = controlWord_.enableDbgPrintout;
-
   int errorCode = 0;
+
+  errorCode = setEnable(data_.command_.controlWord_.enableCmd);
   
   if (errorCode) {
     returnVal = asynError;
   }
 
-  if (controlWord_.stopCmd) {
+  if (data_.command_.controlWord_.stopCmd) {
     stopMotion(enableCmd_ == 0);    
     //errorCode            = setExecute(0);
-    controlWord_.stopCmd = 0;  // auto reset
-    controlWord_.executeCmd = 0;
+    data_.command_.controlWord_.stopCmd = 0;  // auto reset
+    data_.command_.controlWord_.executeCmd = 0;
     if (errorCode) {
       returnVal = asynError;
     }
@@ -2430,9 +2403,9 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   // Only trig new commands if source is internal
   if(data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     // trigg new motion.
-    if (!controlWord_.stopCmd && controlWord_.executeCmd) {
+    if (!data_.command_.controlWord_.stopCmd && data_.command_.controlWord_.executeCmd) {
       if (getSeq() == NULL) {
-        controlWord_.executeCmd = 0; // auto reset
+        data_.command_.controlWord_.executeCmd = 0; // auto reset
         return asynError;
       }
 
@@ -2496,11 +2469,11 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     }
   }
 
-  controlWord_.executeCmd = 0; // auto reset
+  data_.command_.controlWord_.executeCmd = 0; // auto reset
 
   if(data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     // Tweak BWD
-    if (!controlWord_.stopCmd && controlWord_.tweakBwdCmd && !getBusy()) {
+    if (!data_.command_.controlWord_.stopCmd && data_.command_.controlWord_.tweakBwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
       getSeq()->setTargetVel(velocityTarget_);
       getSeq()->setTargetPos(-std::abs(positionTarget_));  // Backward
@@ -2518,7 +2491,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     }
     
     // Tweak FWD
-    if (!controlWord_.stopCmd && controlWord_.tweakFwdCmd && !getBusy()) {
+    if (!data_.command_.controlWord_.stopCmd && data_.command_.controlWord_.tweakFwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
       getSeq()->setTargetVel(velocityTarget_);
       getSeq()->setTargetPos(std::abs(positionTarget_)); // Forward
@@ -2537,14 +2510,14 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   // reset the commands
-  controlWord_.tweakFwdCmd = 0;
-  controlWord_.tweakBwdCmd = 0;
+  data_.command_.controlWord_.tweakFwdCmd = 0;
+  data_.command_.controlWord_.tweakBwdCmd = 0;
 
-  setReset(controlWord_.resetCmd);  // resetCmd is reset in setReset()
+  setReset(data_.command_.controlWord_.resetCmd);  // resetCmd is reset in setReset()
 
 
   errorCode =
-    setEncDataSourceType((controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL
+    setEncDataSourceType((data_.command_.controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL
   :
                           ECMC_DATA_SOURCE_INTERNAL));
 
@@ -2553,7 +2526,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   errorCode =
-    setTrajDataSourceType((controlWord_.trajSourceCmd ?
+    setTrajDataSourceType((data_.command_.controlWord_.trajSourceCmd ?
                            ECMC_DATA_SOURCE_EXTERNAL
   : ECMC_DATA_SOURCE_INTERNAL));
 
@@ -2561,27 +2534,27 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     returnVal = asynError;
   }
 
-  errorCode = setAllowCmdFromPLC(controlWord_.plcCmdsAllowCmd);
+  errorCode = setAllowCmdFromPLC(data_.command_.controlWord_.plcCmdsAllowCmd);
 
   if (errorCode) {
     returnVal = asynError;
   }
 
-  errorCode = setAxisPLCEnable(data_.axisId_, controlWord_.plcEnableCmd);
-
-  if (errorCode) {
-    returnVal = asynError;
-  }
-
-  errorCode =
-    getMon()->setEnableSoftLimitBwd(controlWord_.enableSoftLimitBwd);
+  errorCode = setAxisPLCEnable(data_.axisId_, data_.command_.controlWord_.plcEnableCmd);
 
   if (errorCode) {
     returnVal = asynError;
   }
 
   errorCode =
-    getMon()->setEnableSoftLimitFwd(controlWord_.enableSoftLimitFwd);
+    getMon()->setEnableSoftLimitBwd(data_.command_.controlWord_.enableSoftLimitBwd);
+
+  if (errorCode) {
+    returnVal = asynError;
+  }
+
+  errorCode =
+    getMon()->setEnableSoftLimitFwd(data_.command_.controlWord_.enableSoftLimitFwd);
 
   if (errorCode) {
     returnVal = asynError;
@@ -2598,17 +2571,20 @@ void ecmcAxisBase::initControlWord() {
   int plcEnable = 0;
 
   getAxisPLCEnable(data_.axisId_, &plcEnable);
-  controlWord_.plcEnableCmd = plcEnable;
-  enableCmd_ = getEnable();
-  controlWord_.executeCmd   = getExecute();
-  controlWord_.resetCmd     = getReset();
-  controlWord_.encSourceCmd = getEncDataSourceType() ==
+  data_.command_.controlWord_.plcEnableCmd = plcEnable;
+  data_.command_.controlWord_.enableCmd = getEnable();  
+  data_.command_.controlWord_.executeCmd    = getExecute();
+  data_.command_.controlWord_.resetCmd      = getReset();
+  data_.command_.controlWord_.encSourceCmd  = getEncDataSourceType() ==
                               ECMC_DATA_SOURCE_EXTERNAL;
-  controlWord_.trajSourceCmd = getTrajDataSourceType() ==
+  data_.command_.controlWord_.trajSourceCmd = getTrajDataSourceType() ==
                                ECMC_DATA_SOURCE_EXTERNAL;
-  controlWord_.plcCmdsAllowCmd    = getAllowCmdFromPLC();
-  controlWord_.enableSoftLimitBwd = data_.command_.enableSoftLimitBwd;
-  controlWord_.enableSoftLimitFwd = data_.command_.enableSoftLimitFwd;
+  data_.command_.controlWord_.plcCmdsAllowCmd    = getAllowCmdFromPLC();
+  data_.command_.controlWord_.enableSoftLimitBwd = data_.command_.controlWord_.enableSoftLimitBwd;
+  data_.command_.controlWord_.enableSoftLimitFwd = data_.command_.controlWord_.enableSoftLimitFwd;
+  data_.command_.controlWord_.stopCmd  = false;  
+  data_.command_.controlWord_.tweakBwdCmd = false;
+  data_.command_.controlWord_.tweakFwdCmd = false;
 }
 
 asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
@@ -2866,40 +2842,6 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
     __FUNCTION__,
     __LINE__,
     data_.axisId_, cmdData_);
-
-  return asynSuccess;
-}
-
-asynStatus ecmcAxisBase::axisAsynWriteEnable(void         *data,
-                                             size_t        bytes,
-                                             asynParamType asynParType) {
-  if ((bytes != 4) || (asynParType != asynParamInt32)) {
-    LOGERR(
-      "%s/%s:%d: ERROR (axis %d): CmdData size or datatype missmatch.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.axisId_);
-
-    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
-    return asynError;
-  }
-  int enable = 0;
-  memcpy(&enable, data, bytes);
-  enableCmd_ = enable;
-  
-  int errorCode = setEnable(enable > 0);
-  if(errorCode) {
-    return asynSuccess;
-  }
-
-  // just log, no error below
-  LOGERR(
-    "%s/%s:%d: INFO (axis %d): Write: Enable cmd = %d.\n",
-    __FILE__,
-    __FUNCTION__,
-    __LINE__,
-    data_.axisId_, enableCmd_ > 0);
 
   return asynSuccess;
 }
@@ -3248,7 +3190,7 @@ int ecmcAxisBase::getSumInterlock() {
 }
 
 int ecmcAxisBase::getPrintDbg() {
-  return controlWord_.enableDbgPrintout;
+  return data_.command_.controlWord_.enableDbgPrintout;
 }
 
 ecmcAxisPVTSequence* ecmcAxisBase::getPVTObject() {
@@ -3291,7 +3233,8 @@ void ecmcAxisBase::autoEnableSM() {
     return;
   }
   
-  if(!data_.command_.enable) {
+  if(!data_.command_.controlWord_.enableCmd) {
+    printf("HEPP\n");
     setEnable(true);
   }
 
@@ -3331,7 +3274,7 @@ void ecmcAxisBase::autoDisableSM() {
     return;
   }
   
-  if(autoDisbleTimeCounter_ > autoDisableAfterS_ and data_.command_.enable) {
+  if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.command_.controlWord_.enableCmd) {
     printf("Axis[%d]: Auto disable axis (axis idle for %lfs)\n", data_.axisId_,autoDisableAfterS_);
     setEnable(0);
   } else {

@@ -93,33 +93,6 @@ enum axisState {
 };
 
 typedef struct {
-  unsigned char enable          : 1;
-  unsigned char enabled         : 1;
-  unsigned char execute         : 1;
-  unsigned char busy            : 1;
-  unsigned char attarget        : 1;
-  unsigned char moving          : 1;
-  unsigned char limitfwd        : 1;
-  unsigned char limitbwd        : 1;
-  unsigned char homeswitch      : 1;
-  unsigned char homed           : 1;
-  unsigned char inrealtime      : 1;
-  unsigned char trajsource      : 1;
-  unsigned char encsource       : 1;
-  unsigned char plccmdallowed   : 1;
-  unsigned char softlimfwdena   : 1;
-  unsigned char softlimbwdena   : 1;
-  unsigned char instartup       : 1;
-  unsigned char sumilockfwd     : 1;
-  unsigned char sumilockbwd     : 1;
-  unsigned char softlimilockfwd : 1;
-  unsigned char softlimilockbwd : 1;
-  unsigned char axisType        : 1;
-  unsigned char seqstate        : 4;
-  unsigned char lastilock       : 6;
-} ecmcAxisStatusWordType;
-
-typedef struct {
   unsigned char stopMRCmdTgl : 1;  // Trigger command toggle
   unsigned char stopMRVal    : 1;  // STOP value
   unsigned char syncMRCmdTgl : 1;  // Trigger command toggle
@@ -147,7 +120,7 @@ typedef struct {
   int                    cmdData;
   motionCommandTypes     command;
   interlockTypes         trajInterlock;
-  ecmcAxisStatusWordType statusWd;
+  //ecmcAxisStatusWordType statusWd;
 } ecmcAxisStatusOnChangeType;
 
 typedef struct {
@@ -162,23 +135,6 @@ typedef struct {
   bool                       stall  : 1;
   ecmcAxisStatusOnChangeType onChangeData;
 } ecmcAxisStatusType;
-
-typedef struct {
-  bool enableCmd          : 1;
-  bool executeCmd         : 1;
-  bool stopCmd            : 1;
-  bool resetCmd           : 1;
-  bool encSourceCmd       : 1;                        // 0 = internal, 1 = plc
-  bool trajSourceCmd      : 1;                        // 0 = internal, 1 = plc
-  bool plcEnableCmd       : 1;                        // 0 = disable, 1 = enable
-  bool plcCmdsAllowCmd    : 1;                        // 0 = not allow, 1 = allow
-  bool enableSoftLimitBwd : 1;
-  bool enableSoftLimitFwd : 1;
-  bool enableDbgPrintout  : 1;
-  bool tweakBwdCmd        : 1;
-  bool tweakFwdCmd        : 1;
-  int  spareBitsCmd       : 19;
-} ecmcAsynAxisControlType;
 
 class ecmcAxisBase : public ecmcError {
 public:
@@ -330,9 +286,6 @@ public:
   asynStatus axisAsynWriteCmdData(void         *data,
                                   size_t        bytes,
                                   asynParamType asynParType);
-  asynStatus axisAsynWriteEnable(void         *data,
-                                 size_t        bytes,
-                                 asynParamType asynParType);
   asynStatus axisAsynWriteSetEncPos(void         *data,
                                     size_t        bytes,
                                     asynParamType asynParType);
@@ -434,8 +387,6 @@ protected:
   double oldPositionAct_;
   double oldPositionSet_;
 
-  // For direct PV access (need extra paramteres to buffer since other execute behaviour)
-  ecmcAsynAxisControlType controlWord_;
   double positionTarget_;
   double velocityTarget_;
   double setEncoderPos_;
