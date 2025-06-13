@@ -28,38 +28,11 @@ int getControllerError() {
     }
   }
 
-  // Event errors
-  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
-    if (events[i] != NULL) {
-      if (events[i]->getError()) {
-        return events[i]->getErrorID();
-      }
-    }
-  }
-
-  // DataRecorders
-  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
-    if (dataRecorders[i] != NULL) {
-      if (dataRecorders[i]->getError()) {
-        return dataRecorders[i]->getErrorID();
-      }
-    }
-  }
-
   // Data Storages
   for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
     if (dataStorages[i] != NULL) {
       if (dataStorages[i]->getError()) {
         return dataStorages[i]->getErrorID();
-      }
-    }
-  }
-
-  // CommandLists
-  for (int i = 0; i < ECMC_MAX_COMMANDS_LISTS; i++) {
-    if (commandLists[i] != NULL) {
-      if (commandLists[i]->getError()) {
-        return commandLists[i]->getErrorID();
       }
     }
   }
@@ -111,31 +84,10 @@ int controllerErrorReset() {
   // EtherCAT errors
   ec->errorReset();
 
-  // Event errors
-  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
-    if (events[i] != NULL) {
-      events[i]->errorReset();
-    }
-  }
-
-  // DataRecorders
-  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
-    if (dataRecorders[i] != NULL) {
-      dataRecorders[i]->errorReset();
-    }
-  }
-
   // Data Storages
   for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
     if (dataStorages[i] != NULL) {
       dataStorages[i]->errorReset();
-    }
-  }
-
-  // CommandLists
-  for (int i = 0; i < ECMC_MAX_COMMANDS_LISTS; i++) {
-    if (commandLists[i] != NULL) {
-      commandLists[i]->errorReset();
     }
   }
 

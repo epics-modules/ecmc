@@ -295,24 +295,9 @@ void ecmcCleanup(int signum) {
   delete plcs;
   plcs = NULL;
 
-  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
-    delete events[i];
-    events[i] = NULL;
-  }
-
-  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
-    delete dataRecorders[i];
-    dataRecorders[i] = NULL;
-  }
-
   for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
     delete dataStorages[i];
     dataStorages[i] = NULL;
-  }
-
-  for (int i = 0; i < ECMC_MAX_COMMANDS_LISTS; i++) {
-    delete commandLists[i];
-    commandLists[i] = NULL;
   }
 
   for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {

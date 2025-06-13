@@ -15,10 +15,7 @@
 #include "ecmcEc.h"
 #include "ecmcAxisBase.h"
 #include "ecmcAxisGroup.h"
-#include "ecmcEvent.h"
-#include "ecmcDataRecorder.h"
 #include "ecmcDataStorage.h"
-#include "ecmcCommandList.h"
 #include "ecmcPLCMain.h"
 #include "ecmcMotion.h"
 #include "ecmcAsynDataItem.h"
@@ -33,10 +30,7 @@ ecmcAxisBase *axes[ECMC_MAX_AXES];
 ecmcAxisGroup *axisGroups[ECMC_MAX_AXES];
 size_t axisGroupCounter = 0;
 ecmcEc *ec;
-ecmcEvent *events[ECMC_MAX_EVENT_OBJECTS];
-ecmcDataRecorder *dataRecorders[ECMC_MAX_DATA_RECORDERS_OBJECTS];
 ecmcDataStorage  *dataStorages[ECMC_MAX_DATA_STORAGE_OBJECTS];
-ecmcCommandList  *commandLists[ECMC_MAX_COMMANDS_LISTS];
 ecmcPLCMain *plcs;
 ecmcAsynPortDriver *asynPort = NULL;
 ecmcAsynDataItem   *mainAsynParams[ECMC_ASYN_MAIN_PAR_COUNT];

@@ -373,13 +373,6 @@ void cyclic_task(void *usr) {
       }
     }
 
-    // Data events
-    for (i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
-      if (events[i] != NULL) {
-        events[i]->execute(ecStat);
-      }
-    }
-
     // Plugins
     for (i = 0; i < ECMC_MAX_PLUGINS; i++) {
       if (plugins[i] != NULL) {
@@ -466,20 +459,8 @@ int ecmcInitThread(void) {
     axes[i] = NULL;
   }
 
-  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
-    events[i] = NULL;
-  }
-
-  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
-    dataRecorders[i] = NULL;
-  }
-
   for (int i = 0; i < ECMC_MAX_DATA_STORAGE_OBJECTS; i++) {
     dataStorages[i] = NULL;
-  }
-
-  for (int i = 0; i < ECMC_MAX_COMMANDS_LISTS; i++) {
-    commandLists[i] = NULL;
   }
 
   for (int i = 0; i < ECMC_MAX_PLUGINS; i++) {
@@ -908,33 +889,6 @@ int validateConfig() {
         LOGERR("ERROR: Validation failed on axis %d with error code %x.",
                i,
                errorCode);
-        return errorCode;
-      }
-    }
-  }
-
-  for (int i = 0; i < ECMC_MAX_EVENT_OBJECTS; i++) {
-    if (events[i] != NULL) {
-      errorCode = events[i]->validate();
-
-      if (errorCode) {
-        LOGERR("ERROR: Validation failed on event %d with error code %x.",
-               i,
-               errorCode);
-        return errorCode;
-      }
-    }
-  }
-
-  for (int i = 0; i < ECMC_MAX_DATA_RECORDERS_OBJECTS; i++) {
-    if (dataRecorders[i] != NULL) {
-      errorCode = dataRecorders[i]->validate();
-
-      if (errorCode) {
-        LOGERR(
-          "ERROR: Validation failed on data recorder %d with error code %x.",
-          i,
-          errorCode);
         return errorCode;
       }
     }

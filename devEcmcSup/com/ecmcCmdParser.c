@@ -2917,13 +2917,6 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisHomePostMoveTargetPosition(iValue, dValue);
   }
 
-  /*int Cfg.CreateEvent(int indexEvent);*/
-  nvals = sscanf(myarg_1, "CreateEvent(%d)", &iValue);
-
-  if (nvals == 1) {
-    return createEvent(iValue);
-  }
-
   /*int Cfg.CreateStorage(int index, int elements, int bufferType);*/
   nvals = sscanf(myarg_1,
                  "CreateStorage(%d,%d,%d)",
@@ -2960,211 +2953,11 @@ static int handleCfgCommand(const char *myarg_1) {
     return setDataStorageCurrentDataIndex(iValue, iValue2);
   }
 
-  /*Cfg.LinkEcEntryToEvent(int indexEvent,int eventEntryIndex,int Slave,
-   char *ecEntryIdString, int bitIndex)*/
-  nvals = sscanf(myarg_1,
-                 "LinkEcEntryToEvent(%d,%d,%d,%[^,],%d)",
-                 &iValue,
-                 &iValue2,
-                 &iValue3,
-                 cIdBuffer,
-                 &iValue4);
-
-  if (nvals == 5) {
-    return linkEcEntryToEvent(iValue, iValue2, iValue3, cIdBuffer, iValue4);
-  }
-
-  /*int Cfg.SetEventType(int indexEvent,int recordingType);*/
-  nvals = sscanf(myarg_1, "SetEventType(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setEventType(iValue, iValue2);
-  }
-
-  /*int Cfg.SetEventSampleTime(int indexEvent,int sampleTime);*/
-  nvals = sscanf(myarg_1, "SetEventSampleTime(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setEventSampleTime(iValue, iValue2);
-  }
-
-  /*int Cfg.SetEventEnable(int indexEvent,int execute);*/
-  nvals = sscanf(myarg_1, "SetEventEnable(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setEventEnable(iValue, iValue2);
-  }
-
   /*int Cfg.ClearStorage(int indexStorage);*/
   nvals = sscanf(myarg_1, "ClearStorage(%d)", &iValue);
 
   if (nvals == 1) {
     return clearStorage(iValue);
-  }
-
-  /*int Cfg.SetEventTriggerEdge(int indexEvent,int triggerEdge);*/
-  nvals = sscanf(myarg_1, "SetEventTriggerEdge(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setEventTriggerEdge(iValue, iValue2);
-  }
-
-  /*int Cfg.SetEventEnableArmSequence(int indexEvent,int enable);*/
-  nvals =
-    sscanf(myarg_1, "SetEventEnableArmSequence(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setEventEnableArmSequence(iValue, iValue2);
-  }
-
-  /*int Cfg.SetEventEnablePrintouts(int indexEvent,int enable);*/
-  nvals = sscanf(myarg_1, "SetEventEnablePrintouts(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setEventEnablePrintouts(iValue, iValue2);
-  }
-
-  /*int Cfg.TriggerEvent(int indexEvent);*/
-  nvals = sscanf(myarg_1, "TriggerEvent(%d)", &iValue);
-
-  if (nvals == 1) {
-    return triggerEvent(iValue);
-  }
-
-  /*int Cfg.ArmEvent(int indexEvent);*/
-  nvals = sscanf(myarg_1, "ArmEvent(%d)", &iValue);
-
-  if (nvals == 1) {
-    return armEvent(iValue);
-  }
-
-  /*int Cfg.CreateRecorder(int indexRecorder);*/
-  nvals = sscanf(myarg_1, "CreateRecorder(%d)", &iValue);
-
-  if (nvals == 1) {
-    return createRecorder(iValue);
-  }
-
-  /*int Cfg.LinkStorageToRecorder(int indexStorage, int indexRecorder);*/
-  nvals = sscanf(myarg_1, "LinkStorageToRecorder(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return linkStorageToRecorder(iValue, iValue2);
-  }
-
-  /*Cfg.LinkEcEntryToRecorder(int indexRecorder,int recorderEntryIndex,
-  int Slave, char *ecEntryIdString, int bitIndex)*/
-  nvals = sscanf(myarg_1,
-                 "LinkEcEntryToRecorder(%d,%d,%d,%[^,],%d)",
-                 &iValue,
-                 &iValue2,
-                 &iValue3,
-                 cIdBuffer,
-                 &iValue4);
-
-  if (nvals == 5) {
-    return linkEcEntryToRecorder(iValue, iValue2, iValue3, cIdBuffer, iValue4);
-  }
-
-  /*Cfg.LinkAxisDataToRecorder(int indexRecorder,int axisIndex,
-  int dataToTypeStore)*/
-  nvals = sscanf(myarg_1,
-                 "LinkAxisDataToRecorder(%d,%d,%d)",
-                 &iValue,
-                 &iValue2,
-                 &iValue3);
-
-  if (nvals == 3) {
-    return linkAxisDataToRecorder(iValue, iValue2, iValue3);
-  }
-
-  /*int Cfg.SetRecorderEnable(int indexRecorder,int execute);*/
-  nvals = sscanf(myarg_1, "SetRecorderEnable(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setRecorderEnable(iValue, iValue2);
-  }
-
-  /*int Cfg.SetRecorderEnablePrintouts(int indexRecorder,int enable);*/
-  nvals = sscanf(myarg_1,
-                 "SetRecorderEnablePrintouts(%d,%d)",
-                 &iValue,
-                 &iValue2);
-
-  if (nvals == 2) {
-    return setRecorderEnablePrintouts(iValue, iValue2);
-  }
-
-  /*int Cfg.LinkRecorderToEvent(int indexRecorder,int indexEvent,
-  int consumerIndex);*/
-  nvals = sscanf(myarg_1,
-                 "LinkRecorderToEvent(%d,%d,%d)",
-                 &iValue,
-                 &iValue2,
-                 &iValue3);
-
-  if (nvals == 3) {
-    return linkRecorderToEvent(iValue, iValue2, iValue3);
-  }
-
-  /*int Cfg.TriggerRecorder(int indexRecorder);*/
-  nvals = sscanf(myarg_1, "TriggerRecorder(%d)", &iValue);
-
-  if (nvals == 1) {
-    return triggerRecorder(iValue);
-  }
-
-  /*int Cfg.CreateCommandList(int indexCommandList);*/
-  nvals = sscanf(myarg_1, "CreateCommandList(%d)", &iValue);
-
-  if (nvals == 1) {
-    return createCommandList(iValue);
-  }
-
-  /*int Cfg.LinkCommandListToEvent(int indexCommandList,int indexEvent,
-  int consumerIndex);*/
-  nvals = sscanf(myarg_1,
-                 "LinkCommandListToEvent(%d,%d,%d)",
-                 &iValue,
-                 &iValue2,
-                 &iValue3);
-
-  if (nvals == 3) {
-    return linkCommandListToEvent(iValue, iValue2, iValue3);
-  }
-
-  /*int Cfg.SetCommandListEnable(int indexCommandList,int enable);*/
-  nvals = sscanf(myarg_1, "SetCommandListEnable(%d,%d)", &iValue, &iValue2);
-
-  if (nvals == 2) {
-    return setCommandListEnable(iValue, iValue2);
-  }
-
-  /*int Cfg.SetCommandListEnablePrintouts(int indexCommandList,int enable);*/
-  nvals = sscanf(myarg_1,
-                 "SetCommandListEnablePrintouts(%d,%d)",
-                 &iValue,
-                 &iValue2);
-
-  if (nvals == 2) {
-    return setCommandListEnablePrintouts(iValue, iValue2);
-  }
-
-  /*int Cfg.AddCommandToCommandList(int indexCommandList,char *cExpr); */
-  nvals = sscanf(myarg_1,
-                 "AddCommandToCommandList(%d)=%[^\n]",
-                 &iValue,
-                 cExprBuffer);
-
-  if (nvals == 2) {
-    return addCommandListCommand(iValue, cExprBuffer);
-  }
-
-  /*int Cfg.TriggerCommandList(int indexCommandList);*/
-  nvals = sscanf(myarg_1, "TriggerCommandList(%d)", &iValue);
-
-  if (nvals == 1) {
-    return triggerCommandList(iValue);
   }
 
   cExprBuffer[0] = '\0';
@@ -4130,22 +3923,6 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getStorageDataIndex(motor_axis_no,
                                                             &iValue));
-  }
-
-  /*int GetRecorderEnabled(int axis_no)*/
-  nvals = sscanf(myarg_1, "GetRecorderEnabled(%d)", &motor_axis_no);
-
-  if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getRecorderEnabled(motor_axis_no,
-                                                           &iValue));
-  }
-
-  /*int GetEventEnabled(int axis_no)*/
-  nvals = sscanf(myarg_1, "GetEventEnabled(%d)", &motor_axis_no);
-
-  if (nvals == 1) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getEventEnabled(motor_axis_no,
-                                                        &iValue));
   }
 
   /*int ReadDataStorage(int storageIndex);*/
