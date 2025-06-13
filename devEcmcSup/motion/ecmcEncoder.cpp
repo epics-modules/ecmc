@@ -487,9 +487,9 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   }
 
   // Check modulo
-  if (data_->command_.moduloRange != 0) {
-    if (actPosLocal_ >= data_->command_.moduloRange) {
-      actPosLocal_ = actPosLocal_ - data_->command_.moduloRange;
+  if (data_->control_.moduloRange != 0) {
+    if (actPosLocal_ >= data_->control_.moduloRange) {
+      actPosLocal_ = actPosLocal_ - data_->control_.moduloRange;
 
       // Reset stuff to be able to run forever
       engOffset_       = 0;
@@ -500,7 +500,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
     }
 
     if (actPosLocal_ < 0) {
-      actPosLocal_ = data_->command_.moduloRange + actPosLocal_;
+      actPosLocal_ = data_->control_.moduloRange + actPosLocal_;
 
       // Reset stuff to be able to run forever
       engOffset_       = 0;
@@ -513,18 +513,18 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
 
   if (enablePositionFilter_) {
     actPosLocal_ = positionFilter_->getFiltPos(actPosLocal_,
-                                               data_->command_.moduloRange);
+                                               data_->control_.moduloRange);
   }
   double distTraveled =  actPosLocal_ - actPosOld_;
 
-  if (data_->command_.moduloRange != 0) {
+  if (data_->control_.moduloRange != 0) {
     double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT *
-                          data_->command_.moduloRange;
+                          data_->control_.moduloRange;
 
     if (actPosLocal_ - actPosOld_ > modThreshold) {
-      distTraveled = actPosLocal_ - actPosOld_ - data_->command_.moduloRange;
+      distTraveled = actPosLocal_ - actPosOld_ - data_->control_.moduloRange;
     } else if (actPosLocal_ - actPosOld_ < -modThreshold) {
-      distTraveled = actPosLocal_ - actPosOld_ + data_->command_.moduloRange;
+      distTraveled = actPosLocal_ - actPosOld_ + data_->control_.moduloRange;
     }
   }
   if(enableVelocityFilter_) {
@@ -620,7 +620,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
 
     // Set Alarm
     if (hwErrorAlarm0_) {
-      data_->command_.controlWord_.enableCmd = 0;
+      data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_0;
     }
     hwErrorAlarm0Old_ = hwErrorAlarm0_;
@@ -636,7 +636,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
 
     // Set Alarm
     if (hwErrorAlarm1_) {
-      data_->command_.controlWord_.enableCmd = 0;
+      data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_1;
     }
     hwErrorAlarm1Old_ = hwErrorAlarm1_;
@@ -652,12 +652,12 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
 
     // Set Alarm
     if (hwErrorAlarm2_) {
-      data_->command_.controlWord_.enableCmd = 0;
+      data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_2;
     }
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
-  if(index_ == data_->command_.primaryEncIndex) {
+  if(index_ == data_->control_.primaryEncIndex) {
     return errorLocal;
   } else {
     setWarningID(errorLocal);
@@ -684,9 +684,9 @@ int ecmcEncoder::readHwReady(bool domainOK) {
     }
 
     if ( hwReady_ == 0) {
-      if (data_->status_.enabled && isPrimary()) {
+      if (data_->status_.statusWord_.enabled && isPrimary()) {
         // Error when enabled, this is serious, remove power
-        data_->command_.controlWord_.enableCmd = 0;       
+        data_->control_.controlWord_.enableCmd = 0;       
       }
       return ERROR_ENC_NOT_READY;
     }
@@ -700,7 +700,7 @@ int ecmcEncoder::hwReady() {
     return 0;
   }
 
-  if (data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_->status_.statusWord_.encsource == ECMC_DATA_SOURCE_INTERNAL) {
     if (!encInitilized_ || (hwReadyBitDefined_ && (hwReady_ == 0))) {      
       return 0;
     }
@@ -817,7 +817,7 @@ int ecmcEncoder::validate() {
 
   if (checkEntryExist(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION)) {
     errorCode = validateEntry(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
-    if (errorCode && data_->command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    if (errorCode && data_->status_.statusWord_.encsource == ECMC_DATA_SOURCE_INTERNAL) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -1434,7 +1434,7 @@ int ecmcEncoder::getHomeExtTriggEnabled() {
 }
 
 bool ecmcEncoder::isPrimary() {
- return index_ == data_->command_.primaryEncIndex;
+ return index_ == data_->control_.primaryEncIndex;
 }
 
 int ecmcEncoder::loadLookupTable(const std::string& filename) {

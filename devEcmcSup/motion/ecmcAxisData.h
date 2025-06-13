@@ -48,8 +48,8 @@ typedef struct {
   int                cfgEncIndex;        // Encoder currrently configured
   int                drvModeSet;
   ecmcAsynAxisControlType controlWord_;
-  dataSource trajSource;
-  dataSource encSource;
+  //dataSource trajSource;
+  //dataSource encSource;
   driveMode  drvMode;
 } ecmcAxisDataCommand;
 

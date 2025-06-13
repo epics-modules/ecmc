@@ -547,7 +547,7 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
 
 int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
                                                 int        force) {
-  if (refSource == data_.control_.trajSource) return 0;
+  if (refSource == data_.status_.statusWord_.trajsource) return 0;
 
   if (!force) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
@@ -585,14 +585,14 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
     }
   }
 
-  data_.control_.trajSource  = refSource;
-  data_.control_.controlWord_.trajSourceCmd =  data_.control_.trajSource ==
+  data_.status_.statusWord_.trajsource  = refSource;
+  data_.control_.controlWord_.trajSourceCmd =  data_.status_.statusWord_.trajsource ==
                                ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
 
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
-  if (refSource == data_.control_.encSource) return 0;
+  if (refSource == data_.status_.statusWord_.encsource) return 0;
 
   if (!allowSourceChangeWhenEnabled_) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
@@ -613,9 +613,8 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
     }
   }
 
-  data_.control_.encSource  = refSource;
-  data_.control_.controlWord_.encSourceCmd =  data_.control_.encSource ==
-                              ECMC_DATA_SOURCE_EXTERNAL;
+  data_.status_.statusWord_.encsource = refSource;
+  data_.control_.controlWord_.encSourceCmd = refSource;
   return 0;
 }
 
@@ -808,7 +807,7 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  if (data_.control_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
+  if (data_.status_.statusWord_.encsource == ECMC_DATA_SOURCE_EXTERNAL) {
     *homed = 1;
   } else {
     *homed = encArray_[data_.control_.primaryEncIndex]->getHomed();
@@ -938,7 +937,7 @@ int ecmcAxisBase::setExecute(bool execute) {
 
 int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
   // Internal trajectory source
-  if (data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_.status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     // Allow direct homing without enable
     if (execute && !getEnable() &&
         !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
@@ -969,7 +968,7 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
 }
 
 bool ecmcAxisBase::getExecute() {
-  if (data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_.status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     return seq_.getExecute();
   } else {
     return true;
@@ -1366,7 +1365,7 @@ motionDirection ecmcAxisBase::getAxisSetDirection() {
   }
 
   // Transform or internal trajectory
-  if (data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_.status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     return getTraj()->getCurrSetDir();
   } else {
     if (data_.status_.currentPositionSetpoint <
@@ -1582,11 +1581,11 @@ int ecmcAxisBase::setEnableExtEncVeloFilter(bool enable) {
 }
 
 dataSource ecmcAxisBase::getTrajDataSourceType() {
-  return data_.control_.trajSource;
+  return (dataSource)data_.status_.statusWord_.trajsource;
 }
 
 dataSource ecmcAxisBase::getEncDataSourceType() {
-  return data_.control_.encSource;
+  return (dataSource)data_.status_.statusWord_.encsource;
 }
 
 bool ecmcAxisBase::getEnableExtTrajVeloFilter() {
@@ -2204,7 +2203,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   // Only trig new commands if source is internal
-  if(data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if(data_.status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     // trigg new motion.
     if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.executeCmd) {
       if (getSeq() == NULL) {
@@ -2274,7 +2273,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
   data_.control_.controlWord_.executeCmd = 0; // auto reset
 
-  if(data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if(data_.status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     // Tweak BWD
     if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakBwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
@@ -2787,7 +2786,7 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
 
   if(!data_.status_.statusWord_.instartup) {  // Allow to switch if in startup phase (and busy)
     // Do not allow to switch encoder if busy and INTERNAL source
-    if (getBusy() && (data_.control_.encSource ==
+    if (getBusy() && (data_.status_.statusWord_.encsource ==
                       ECMC_DATA_SOURCE_INTERNAL)) {
       // Override error message to not stop axis if in motion
       if (!overrideError) {
@@ -2914,7 +2913,7 @@ void ecmcAxisBase::setEmergencyStopInterlock(int stop) {
   getMon()->setSafetyInterlock(stop);
 
   // Switch to internal source
-  if ((data_.control_.trajSource != ECMC_DATA_SOURCE_INTERNAL) && stop) {
+  if ((data_.status_.statusWord_.trajsource != ECMC_DATA_SOURCE_INTERNAL) && stop) {
     setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);
   }
 }

@@ -92,7 +92,7 @@ void ecmcAxisSequencer::execute() {
        data_->control_.command == ECMC_CMD_MOVEPVTABS);
 
   // Trajectory (External or internal)
-  if (data_->control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
 
     if(pvtmode_ && !pvtStopping_ && pvt_->getExecute()) {
       data_->status_.currentPositionSetpoint = pvt_->getCurrPosition();
@@ -111,7 +111,7 @@ void ecmcAxisSequencer::execute() {
     //data_->refreshInterlocks();
   }
 
-  if (data_->control_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_->status_.statusWord_.encsource == ECMC_DATA_SOURCE_INTERNAL) {
     data_->status_.currentPositionActual =
       encArray_[data_->control_.primaryEncIndex]->getActPos();
     data_->status_.currentVelocityActual =
@@ -139,8 +139,8 @@ void ecmcAxisSequencer::execute() {
   
   // If internal source and not PVT-mode then interlocks are handled in trajectory generator
   // TODO Would be nice to change this design..
-  trajLock_ = trajLock_ && (data_->control_.trajSource != ECMC_DATA_SOURCE_INTERNAL || pvtmode_);
-  newTrajLockEdge_ = trajLock_ && !trajLockOld_; // && data_->control_.controlWord_.execute && executeOld_;
+  trajLock_ = trajLock_ && (data_->status_.statusWord_.trajsource != ECMC_DATA_SOURCE_INTERNAL || pvtmode_);
+  newTrajLockEdge_ = trajLock_ && !trajLockOld_; // && data_->control_.controlWord_.executeCmd && executeOld_;
 
   // Only init stopramp once if PVT
   if(newTrajLockEdge_) {
@@ -175,7 +175,7 @@ void ecmcAxisSequencer::execute() {
   pvtStopping_ = traj_->getBusy() && pvtStopping_;
 
   // PVT
-  if(pvtOk_  && !pvtStopping_ && data_->control_.execute) {
+  if(pvtOk_  && !pvtStopping_ && data_->status_.statusWord_.execute) {
     // Go to next pvt time step
     if(pvt_->nextSampleStep() && pvt_->getExecute()) {
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
@@ -193,7 +193,7 @@ void ecmcAxisSequencer::executeInternal() {
     modeAct_ = (int)tempRaw;
   }
 
-  data_->status_.seqState = seqState_;
+  data_->status_.statusWord_.seqstate = seqState_;
 
   if (traj_ == NULL) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
@@ -206,18 +206,18 @@ void ecmcAxisSequencer::executeInternal() {
   }
 
   // Reset busy (set in setExecute)
-  if (data_->control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     // HOMING 
     if (data_->control_.command == ECMC_CMD_HOMING) {
       data_->status_.statusWord_.busy = localSeqBusy_ || traj_->getBusy();
     } else {
      // PVT 
      if(pvtmode_ && !pvtStopping_) {
-        data_->status_.statusWord_.busy = (pvt_->getBusy() && data_->status_.enabled) ||
+        data_->status_.statusWord_.busy = (pvt_->getBusy() && data_->status_.statusWord_.enabled) ||
                               !data_->status_.startupFinsished;
       } else {
       // Normal motion
-        data_->status_.statusWord_.busy = (traj_->getBusy() && data_->status_.enabled) ||
+        data_->status_.statusWord_.busy = (traj_->getBusy() && data_->status_.statusWord_.enabled) ||
                               !data_->status_.startupFinsished;
       }
     }
@@ -226,11 +226,11 @@ void ecmcAxisSequencer::executeInternal() {
   }
 
   // Set target position for different scenarios
-  if(pvtmode_ && !data_->status_.busy) {
+  if(pvtmode_ && !data_->status_.statusWord_.busy) {
     data_->status_.currentTargetPosition = data_->status_.currentPositionSetpoint;
     data_->status_.currentTargetPositionModulo = data_->status_.currentPositionSetpoint;
   } else {
-    if (data_->control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+    if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
       data_->status_.currentTargetPosition       = traj_->getTargetPos();
       data_->status_.currentTargetPositionModulo = traj_->getTargetPosMod();
     } else {  // Synchronized to other axis
@@ -243,10 +243,10 @@ void ecmcAxisSequencer::executeInternal() {
 
   hwLimitSwitchBwdOld_ = hwLimitSwitchBwd_;
   hwLimitSwitchFwdOld_ = hwLimitSwitchFwd_;
-  hwLimitSwitchBwd_    = data_->status_.limitBwd;
-  hwLimitSwitchFwd_    = data_->status_.limitFwd;
+  hwLimitSwitchBwd_    = data_->status_.statusWord_.limitbwd;
+  hwLimitSwitchFwd_    = data_->status_.statusWord_.limitfwd;
   homeSensorOld_       = homeSensor_;
-  homeSensor_          = data_->status_.homeSwitch;
+  homeSensor_          = data_->status_.statusWord_.homeswitch;
   seqInProgressOld_    = seqInProgress_;
 
   if (!seqInProgress_) {
@@ -484,7 +484,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   seqState_               = 0;
 
   setTrajAccAndDec();
-  if (data_->control_.controlWord_.execute  && !executeOld_) {
+  if (data_->status_.statusWord_.execute  && !executeOld_) {
 
     // velo for homing is set in a different way
     if (data_->control_.command != ECMC_CMD_HOMING) {
@@ -509,7 +509,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEVEL:
 
-    if (data_->control_.controlWord_.execute  && !executeOld_) {
+    if (data_->control_.controlWord_.executeCmd  && !executeOld_) {
       if (!enableConstVel_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -535,7 +535,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
     }
 
-    errorCode =  traj_->setExecute(data_->control_.execute);
+    errorCode =  traj_->setExecute(data_->status_.statusWord_.execute);
 
     if (errorCode) {
       return errorCode;
@@ -545,7 +545,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEREL:
 
-    if (data_->control_.controlWord_.execute && !executeOld_) {
+    if (data_->control_.controlWord_.executeCmd && !executeOld_) {
       if (!enablePos_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -571,7 +571,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         printf("ECMC_CMD_MOVEREL pos targ: %lf, targ velo: %lf, traj busy %d\n",data_->control_.positionTarget,data_->control_.velocityTarget, traj_->getBusy());
       }
     }
-    errorCode = traj_->setExecute(data_->control_.execute);
+    errorCode = traj_->setExecute(data_->status_.statusWord_.execute);
 
     if (errorCode) {
       return errorCode;
@@ -581,7 +581,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEABS:
     
-    if (data_->control_.controlWord_.execute && !executeOld_) {
+    if (data_->control_.controlWord_.executeCmd && !executeOld_) {
       if (!enablePos_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -624,7 +624,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                           ERROR_SEQ_CMD_DATA_UNDEFINED);
       }
     }
-    errorCode = traj_->setExecute(data_->control_.execute);
+    errorCode = traj_->setExecute(data_->status_.statusWord_.execute);
 
     if (errorCode) {
       return errorCode;
@@ -643,9 +643,9 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   // PVT is only abs here (relative is handled by the PVt controller)
   case ECMC_CMD_MOVEPVTABS:
     if(data_->control_.controlWord_.enableDbgPrintout) {
-      printf("RUNNING PVT ABS execute %d\n",data_->control_.execute);
+      printf("RUNNING PVT ABS execute %d\n",data_->status_.statusWord_.execute);
     }
-    if (data_->control_.controlWord_.execute && !executeOld_) {
+    if (data_->control_.controlWord_.executeCmd && !executeOld_) {
       errorCode = validatePVT();
       if(errorCode) {
         return errorCode;
@@ -659,7 +659,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         return errorCode;
       }
       data_->interlocks_.noExecuteInterlock = false;
-    } else if(!data_->control_.execute){
+    } else if(!data_->status_.statusWord_.execute){
       errorCode = pvt_->setExecute(0);
       // needed since this is evaluated in trajectoy which is not in use
       data_->interlocks_.noExecuteInterlock = true;            
@@ -673,11 +673,11 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       modeSet = modeHomingCmd_;
     }
 
-    if (data_->control_.controlWord_.execute && !executeOld_) {
+    if (data_->control_.controlWord_.executeCmd && !executeOld_) {
       // oldPrimaryEnc_ = data_->control_.primaryEncIndex;
       // encoder data source must be internal for homing
       traj_->setStartPos(data_->status_.currentPositionSetpoint);
-      if (data_->control_.encSource != ECMC_DATA_SOURCE_INTERNAL) {
+      if (data_->status_.statusWord_.encsource != ECMC_DATA_SOURCE_INTERNAL) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
                           __LINE__,
@@ -745,9 +745,9 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                             ERROR_SEQ_CNTRL_NULL);
         }
       }
-    } else if (!data_->control_.execute) {
+    } else if (!data_->status_.statusWord_.execute) {
       stopSeq();
-      errorCode = traj_->setExecute(data_->control_.execute);
+      errorCode = traj_->setExecute(data_->status_.statusWord_.execute);
 
       if (errorCode) {
         return errorCode;
@@ -780,7 +780,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
   }
 
-  if (data_->control_.controlWord_.execute  && !executeOld_) {
+  if (data_->control_.controlWord_.executeCmd  && !executeOld_) {
     // write mode if entry is linked
     if (modeSetEntry_) {
       modeSetEntry_->writeValue((uint64_t)modeSet);
@@ -791,23 +791,25 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 }
 
 bool ecmcAxisSequencer::getExecute() {
-  return data_->control_.execute;
+  return data_->status_.statusWord_.execute;
 }
 
 void ecmcAxisSequencer::setCommand(motionCommandTypes command) {
   data_->control_.command = command;
+  data_->status_.command = command;
 }
 
 motionCommandTypes ecmcAxisSequencer::getCommand() {
-  return data_->control_.command;
+  return (motionCommandTypes)data_->status_.command;
 }
 
 void ecmcAxisSequencer::setCmdData(int cmdData) {
   data_->control_.cmdData = cmdData;
+  data_->status_.cmdData = cmdData;
 }
 
 int ecmcAxisSequencer::getCmdData() {
-  return data_->control_.cmdData;
+  return data_->status_.cmdData;
 }
 
 void ecmcAxisSequencer::setTraj(ecmcTrajectoryBase *traj) {
@@ -831,7 +833,7 @@ void ecmcAxisSequencer::setDrv(ecmcDriveBase *drv) {
 }
 
 bool ecmcAxisSequencer::getBusy() {
-  return data_->status_.busy;
+  return data_->status_.statusWord_.busy;
 }
 
 void ecmcAxisSequencer::setJogVel(double vel) {
@@ -3533,7 +3535,7 @@ void ecmcAxisSequencer::initStop() {
   }
 
   traj_->setEnable(1);
-  data_->control_.trajSource = ECMC_DATA_SOURCE_INTERNAL;
+  data_->status_.statusWord_.trajsource = ECMC_DATA_SOURCE_INTERNAL;
 
   temporaryLocalTrajSource_ = true;
 

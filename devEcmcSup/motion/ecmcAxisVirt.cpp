@@ -71,7 +71,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
 
   // No drive object so update needed variables
   data_.status_.currentvelocityFFRaw = 0;
-  data_.status_.enabled              = data_.control_.controlWord_.enableCmd;
+  data_.status_.statusWord_.enabled  = data_.control_.controlWord_.enableCmd;
 
   ecmcAxisBase::postExecute(masterOK);
 }
@@ -125,7 +125,7 @@ int ecmcAxisVirt::validate() {
     }
   }
 
-  if (data_.control_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_.status_.statusWord_.encsource == ECMC_DATA_SOURCE_INTERNAL) {
     error = encArray_[data_.control_.primaryEncIndex]->validate();
 
     if (error) {

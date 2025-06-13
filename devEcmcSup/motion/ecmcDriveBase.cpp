@@ -29,7 +29,7 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
 {
   initVars();
   data_ = axisData;
-  data_->command_.drvMode = ECMC_DRV_MODE_NONE;
+  data_->control_.drvMode = ECMC_DRV_MODE_NONE;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   asynPortDriver_ = asynPortDriver;
 
@@ -119,7 +119,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
     return 0;
   }
 
-  if (data_->status_.enabled && data_->command_.controlWord_.enableCmd) {
+  if (data_->status_.statusWord_.enabled && data_->control_.controlWord_.enableCmd) {
     data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ +
                                                 cspRawPosOffset_;
   } else {
@@ -127,7 +127,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   }
 
   // Calculate new offset
-  if (data_->command_.controlWord_.enableCmd && !enableCmdOld_) {
+  if (data_->control_.controlWord_.enableCmd && !enableCmdOld_) {
     setCspRecalcOffset(cspPosSet_);
     data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ +
                                                 cspRawPosOffset_;
@@ -239,8 +239,8 @@ int ecmcDriveBase::getEnableReduceTorque() {
 }
 
 void ecmcDriveBase::writeEntries() {
-  if (!driveInterlocksOK() && data_->command_.controlWord_.enableCmd) {
-    data_->command_.controlWord_.enableCmd = false;
+  if (!driveInterlocksOK() && data_->control_.controlWord_.enableCmd) {
+    data_->control_.controlWord_.enableCmd = false;
     enableAmpCmd_          = false;
     // Remove since it is overwriting the "real error code"
     //setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -251,12 +251,12 @@ void ecmcDriveBase::writeEntries() {
   // Update enable command
   if (enableBrake_) {
     // also wait for brakeOutputCmd_
-    data_->status_.enabled = getEnabledLocal() && brakeOutputCmd_;
+    data_->status_.statusWord_.enabled = getEnabledLocal() && brakeOutputCmd_;
     updateBrakeState();
   } else {
     // No brake
-    data_->status_.enabled = getEnabledLocal();
-    enableAmpCmd_          = data_->command_.controlWord_.enableCmd;
+    data_->status_.statusWord_.enabled = getEnabledLocal();
+    enableAmpCmd_          = data_->control_.controlWord_.enableCmd;
   }
 
   int errorCode = 0;
@@ -270,7 +270,7 @@ void ecmcDriveBase::writeEntries() {
                ECMC_SEVERITY_EMERGENCY);
   }
 
-  if (data_->command_.drvMode == ECMC_DRV_MODE_CSV) {
+  if (data_->control_.drvMode == ECMC_DRV_MODE_CSV) {
     // CSV:    Check so not outside allowable range
     veloPosOutput_ = data_->status_.currentVelocitySetpointRaw +
                      veloRawOffset_;
@@ -323,7 +323,7 @@ void ecmcDriveBase::writeEntries() {
 
   if (enableReduceTorque_) {
     // Reduce trq if traj source is external and within ctrlWithinDeadband (settable via PLC) or not busy adn internal traj
-    reduceTorqueOutputCmd_    = data_->status_.ctrlWithinDeadband && (!data_->status_.busy || data_->command_.trajSource > 0) ;
+    reduceTorqueOutputCmd_    = data_->status_.ctrlWithinDeadband && (!data_->status_.statusWord_.busy || data_->status_.statusWord_.trajsource > 0) ;
     reduceTorqueOutputCmdOld_ = reduceTorqueOutputCmd_;
     errorCode                 = writeEcEntryValue(
       ECMC_DRIVEBASE_ENTRY_INDEX_REDUCE_TORQUE_OUTPUT,
@@ -349,13 +349,13 @@ void ecmcDriveBase::writeEntries() {
   }
 
   // Timeout?
-  if (!getEnabledLocal() && data_->command_.controlWord_.enableCmd) {
+  if (!getEnabledLocal() && data_->control_.controlWord_.enableCmd) {
     cycleCounterBase_++;
 
     if (cycleCounterBase_ > stateMachineTimeoutCycles_) {
       // Enable cmd timeout (not recived enable within time period)
       cycleCounterBase_      = 0;
-      data_->command_.controlWord_.enableCmd = false;
+      data_->control_.controlWord_.enableCmd = false;
       enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
@@ -367,8 +367,8 @@ void ecmcDriveBase::writeEntries() {
   }
 
   // Enabled lost?
-  if (!getEnabledLocal() && localEnabledOld_ && data_->command_.controlWord_.enableCmd) {
-    data_->command_.controlWord_.enableCmd = false;
+  if (!getEnabledLocal() && localEnabledOld_ && data_->control_.controlWord_.enableCmd) {
+    data_->control_.controlWord_.enableCmd = false;
     enableAmpCmd_          = false;
     LOGERR(
       "%s/%s:%d: WARNING (axis %d): Drive enabled lost while enable cmd is high.\n",
@@ -388,7 +388,7 @@ void ecmcDriveBase::writeEntries() {
   // Enable command sent to amplifier
   // (if brake is not used then enableAmpCmdOld_==enableCmdOld_)
   enableAmpCmdOld_ = enableAmpCmd_;
-  enableCmdOld_    = data_->command_.controlWord_.enableCmd;
+  enableCmdOld_    = data_->control_.controlWord_.enableCmd;
 
   refreshAsyn();
 }
@@ -455,7 +455,7 @@ void ecmcDriveBase::readEntries(bool masterOK) {
 
     // Set Alarm
     if (hwErrorAlarm0_) {
-      data_->command_.controlWord_.enableCmd = false;
+      data_->control_.controlWord_.enableCmd = false;
       enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
@@ -484,7 +484,7 @@ void ecmcDriveBase::readEntries(bool masterOK) {
 
     // Set Alarm
     if (hwErrorAlarm1_) {
-      data_->command_.controlWord_.enableCmd = false;
+      data_->control_.controlWord_.enableCmd = false;
       enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
@@ -513,7 +513,7 @@ void ecmcDriveBase::readEntries(bool masterOK) {
 
     // Set Alarm
     if (hwErrorAlarm2_) {
-      data_->command_.controlWord_.enableCmd = false;
+      data_->control_.controlWord_.enableCmd = false;
       enableAmpCmd_          = false;
       setErrorID(__FILE__,
                  __FUNCTION__,
@@ -542,7 +542,7 @@ int ecmcDriveBase::validate() {
     if (errorCodeVel) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodeVel);
     }
-    data_->command_.drvMode = ECMC_DRV_MODE_CSV;
+    data_->control_.drvMode = ECMC_DRV_MODE_CSV;
     ecmcEcDataType dt = getEntryDataType(
       ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT);
     minVeloOutput_ = getEcDataTypeMinVal(dt);
@@ -555,7 +555,7 @@ int ecmcDriveBase::validate() {
     if (errorCodePos) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCodePos);
     }
-    data_->command_.drvMode = ECMC_DRV_MODE_CSP;
+    data_->control_.drvMode = ECMC_DRV_MODE_CSP;
 
     if(cspEnc_ == NULL) {
       LOGERR(
@@ -575,7 +575,7 @@ int ecmcDriveBase::validate() {
   }
 
   // Ensure mode is CSV, CSP
-  if(data_->command_.drvMode != ECMC_DRV_MODE_CSV && data_->command_.drvMode != ECMC_DRV_MODE_CSP ) {
+  if(data_->control_.drvMode != ECMC_DRV_MODE_CSV && data_->control_.drvMode != ECMC_DRV_MODE_CSP ) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Drive Mode Invalid (must be CSV or CSP) (0x%x).\n",
       __FILE__,
@@ -678,7 +678,7 @@ bool ecmcDriveBase::getEnable() {
 }
 
 bool ecmcDriveBase::getEnabled() {
-  return data_->status_.enabled;
+  return data_->status_.statusWord_.enabled;
 }
 
 bool ecmcDriveBase::driveInterlocksOK() {
@@ -715,12 +715,12 @@ int ecmcDriveBase::setBrakeCloseAheadTime(int aheadTime) {
 int ecmcDriveBase::updateBrakeState() {
   // General state transitions
 
-  if (data_->command_.controlWord_.enableCmd && !enableCmdOld_) {
+  if (data_->control_.controlWord_.enableCmd && !enableCmdOld_) {
     brakeState_   = ECMC_BRAKE_OPENING;
     brakeCounter_ = 0;
   }
 
-  if (!data_->command_.controlWord_.enableCmd && enableCmdOld_) {
+  if (!data_->control_.controlWord_.enableCmd && enableCmdOld_) {
     brakeState_   = ECMC_BRAKE_CLOSING;
     brakeCounter_ = 0;
   }
@@ -739,7 +739,7 @@ int ecmcDriveBase::updateBrakeState() {
 
     if (brakeCounter_ > brakeOpenDelayTime_) {
       if (!getEnabledLocal()) {
-        data_->command_.controlWord_.enableCmd = 0;
+        data_->control_.controlWord_.enableCmd = 0;
         brakeOutputCmd_        = 0;
         brakeCounter_          = 0;
         enableAmpCmd_          = 0;
@@ -768,8 +768,8 @@ int ecmcDriveBase::updateBrakeState() {
   case ECMC_BRAKE_OPEN:
 
     // enabled lost: apply brake directly without delay, goto state BRAKE_CLOSED
-    if (!getEnabledLocal() && data_->command_.controlWord_.enableCmd) {
-      // data_->command_.controlWord_.enableCmd = 0;  this is controlled separately
+    if (!getEnabledLocal() && data_->control_.controlWord_.enableCmd) {
+      // data_->control_.controlWord_.enableCmd = 0;  this is controlled separately
       brakeOutputCmd_ = 0;
       brakeCounter_   = 0;
       enableAmpCmd_   = 0;
