@@ -43,7 +43,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
     data_.status_.currentPositionSetpoint,
     data_.status_.currentPositionSetpointOld,
     data_.status_.currentPositionActual,
-    data_.command_.moduloRange);
+    data_.control_.moduloRange);
 
   if (getEnabled() && masterOK && !getError()) {
     mon_->setEnable(true);
@@ -71,7 +71,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
 
   // No drive object so update needed variables
   data_.status_.currentvelocityFFRaw = 0;
-  data_.status_.enabled              = data_.command_.controlWord_.enableCmd;
+  data_.status_.enabled              = data_.control_.controlWord_.enableCmd;
 
   ecmcAxisBase::postExecute(masterOK);
 }
@@ -87,7 +87,7 @@ ecmcDriveBase * ecmcAxisVirt::getDrv() {
 int ecmcAxisVirt::validate() {
   int error = 0;
 
-  if (data_.command_.primaryEncIndex >= data_.status_.encoderCount) {
+  if (data_.control_.primaryEncIndex >= data_.status_.encoderCount) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -125,8 +125,8 @@ int ecmcAxisVirt::validate() {
     }
   }
 
-  if (data_.command_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
-    error = encArray_[data_.command_.primaryEncIndex]->validate();
+  if (data_.control_.encSource == ECMC_DATA_SOURCE_INTERNAL) {
+    error = encArray_[data_.control_.primaryEncIndex]->validate();
 
     if (error) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);

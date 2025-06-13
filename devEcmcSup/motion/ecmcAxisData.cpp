@@ -17,9 +17,12 @@ ecmcAxisData::ecmcAxisData() {
   axisId_     = 0;
   sampleTime_ = 0;
   axisType_   = ECMC_AXIS_TYPE_BASE;
-  memset(&command_,    0, sizeof(command_));
+  memset(&control_,    0, sizeof(control_));
+  memset(&controlOld_, 0, sizeof(controlOld_));
   memset(&status_,     0, sizeof(status_));
+  memset(&statusOld_,  0, sizeof(statusOld_));
   memset(&interlocks_, 0, sizeof(interlocks_));
+  memset(&interlocksOld_, 0, sizeof(interlocksOld_));
 }
 
 ecmcAxisData::~ecmcAxisData() {}
@@ -240,7 +243,7 @@ int ecmcAxisData::setSummaryInterlocks() {
                                         || interlocks_.noExecuteInterlock;
 
   // printout interlock changes
-  if(command_.enableDbgPrintout) {
+  if(control_.controlWord_.enableDbgPrintout) {
     if(interlocksOld_.driveSummaryInterlock != interlocks_.driveSummaryInterlock) {
       printf("interlocks_.driveSummaryInterlock changed:\n");
       printf("interlocks_.bothLimitsLowInterlock= %d\n",interlocks_.bothLimitsLowInterlock);

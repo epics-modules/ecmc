@@ -178,10 +178,10 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_   = asynPortDriver;
   data_.axisId_     = axisID;
   data_.sampleTime_ = sampleTime;
-  data_.command_.cspDrvEncIndex =  -1;   // used for control
+  data_.control_.cspDrvEncIndex =  -1;   // used for control
   setExternalPtrs(&(data_.status_.errorCode), &(data_.status_.warningCode));
   try {
-    data_.command_.primaryEncIndex = 0;
+    data_.control_.primaryEncIndex = 0;
     addEncoder();
     currentTrajType_ = trajType;
 
@@ -228,18 +228,16 @@ ecmcAxisBase::~ecmcAxisBase() {
   extTrajVeloFilter_ = NULL;
   delete extEncVeloFilter_;
   extEncVeloFilter_ = NULL;
-
-  //  free(plcExpr_);
 }
 
 void ecmcAxisBase::initVars() {
   // errorReset();  //THIS IS NONO..
   firstEnableDone_                       = 0;
   data_.axisType_                          = ECMC_AXIS_TYPE_BASE;
-  data_.command_.reset                     = false;
+  data_.control_.controlWord_.resetCmd     = false;
   allowCmdFromOtherPLC_                    = true;
-  data_.status_.inStartupPhase             = false;
-  data_.status_.inRealtime                 = false;
+  data_.status_.statusWord_.instartup      = false;
+  data_.status_.statusWord_.inrealtime     = false;
   data_.status_.externalTrajectoryPosition = 0;
   data_.status_.externalTrajectoryVelocity = 0;
   data_.status_.externalEncoderPosition    = 0;
@@ -249,12 +247,7 @@ void ecmcAxisBase::initVars() {
   data_.status_.currentVelocityActual      = 0;
   data_.status_.currentVelocitySetpoint    = 0;
   data_.sampleTime_                        = 1 / 1000;
-  memset(&statusData_,    0, sizeof(statusData_));
-  memset(&statusDataOld_, 0, sizeof(statusDataOld_));
   printHeaderCounter_      = 0;
-  data_.status_.enabledOld = false;
-  data_.status_.enableOld  = false;
-  data_.status_.executeOld = false;
   cycleCounter_            = 0;
   axisState_               = ECMC_AXIS_STATE_STARTUP;
   oldPositionAct_          = 0;
@@ -285,7 +278,7 @@ void ecmcAxisBase::initVars() {
   for (int i = 0; i < ECMC_MAX_ENCODERS; i++) {
     encArray_[i] = NULL;
   }
-  data_.command_.cfgEncIndex    = 0;
+  data_.control_.cfgEncIndex    = 0;
   allowSourceChangeWhenEnabled_ = false;
   setEncoderPos_                = 0;
   encPrimIndexAsyn_             = 1;
@@ -315,7 +308,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   }
   data_.refreshInterlocks();
 
-  data_.status_.moving = data_.status_.busy && std::abs(
+  data_.status_.statusWord_.moving = data_.status_.statusWord_.busy && std::abs(
     data_.status_.currentVelocityActual) > 0; /*|| getTraj()->getBusy();*/
 
   for (int i = 0; i < data_.status_.encoderCount; i++) {
@@ -332,7 +325,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   switch (axisState_) {
   case ECMC_AXIS_STATE_STARTUP:
     setEnable(false);
-    data_.status_.busy       = true;
+    data_.status_.statusWord_.busy       = true;
     data_.status_.distToStop = 0;
 
     if (masterOK) {
@@ -349,7 +342,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     if (masterOK && hwReady_ && hwReadyOld_) {
       // Auto reset hardware error if starting up
       if ((getErrorID() == ERROR_AXIS_HARDWARE_STATUS_NOT_OK) &&
-          data_.status_.inStartupPhase) {
+          data_.status_.statusWord_.instartup) {
         errorReset();
       }
 
@@ -369,10 +362,10 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     break;
 
   case ECMC_AXIS_STATE_DISABLED:
-    data_.status_.busy       = false;
+    data_.status_.statusWord_.busy       = false;
     data_.status_.distToStop = 0;
 
-    if (data_.status_.enabled) {
+    if (data_.status_.statusWord_.enabled) {
       axisState_ = ECMC_AXIS_STATE_ENABLED;
     }
 
@@ -391,7 +384,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.distToStop = traj_->distToStop(
       data_.status_.currentVelocitySetpoint);
 
-    if (!data_.status_.enabled) {
+    if (!data_.status_.statusWord_.enabled) {
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
 
@@ -449,17 +442,8 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   for (int i = 0; i < data_.status_.encoderCount; i++) {
     encArray_[i]->writeEntries();
   }
-  data_.status_.busyOld                    = data_.status_.busy;
-  data_.status_.enabledOld                 = data_.status_.enabled;
-  data_.status_.executeOld                 = getExecute();
-  data_.status_.atTargetOld                = data_.status_.atTarget;
-  data_.status_.currentPositionSetpointOld =
-    data_.status_.currentPositionSetpoint;
-  data_.status_.cntrlOutputOld = data_.status_.cntrlOutput;
-  data_.status_.inStartupPhaseOld = data_.status_.inStartupPhase;
-
+  
   cycleCounter_++;
-  refreshDebugInfoStruct();
 
   // Update asyn parameters
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
@@ -468,11 +452,6 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
-
-  // axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(0);
-  // axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
-  // axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(0);
-  // axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0);
   axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(0);
 
@@ -481,34 +460,14 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   }
   memcpy(&mrCmdsOld_,&mrCmds_, sizeof(mrCmdsOld_));
   
-  if (axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->willRefreshNext() &&
-      axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->linkedToAsynClient()) {
-    int bytesUsed = 0;
-    int error     = getAxisDebugInfoData(&diagBuffer_[0],
-                                         AX_MAX_DIAG_STRING_CHAR_LENGTH,
-                                         &bytesUsed);
-
-    if (error) {
-      LOGERR(
-        "%s/%s:%d: ERROR (axis %d): Fail to update asyn par axis<id>.diag. Buffer to small.\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        data_.axisId_);
-    } else {
-      axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->refreshParamRT(1,
-                                                          (uint8_t *)diagBuffer_,
-                                                          bytesUsed);
-    }
-  } else {
-    // Just to count up for correct freq
-    axAsynParams_[ECMC_ASYN_AX_DIAG_ID]->refreshParamRT(0);
-  }
-
   // Update status entry if linked
   if (statusOutputEntry_) {
     statusOutputEntry_->writeValue(getErrorID() == 0);
   }
+
+  // Data for last scan
+  memcpy(&data_.statusOld_,&data_.status_,sizeof(data_.status_));
+  memcpy(&data_.controlOld_,&data_.control_,sizeof(data_.control_));
 }
 
 axisType ecmcAxisBase::getAxisType() {
@@ -520,7 +479,7 @@ int ecmcAxisBase::getAxisID() {
 }
 
 void ecmcAxisBase::setReset(bool reset) {
-  data_.command_.reset = reset;
+  data_.control_.controlWord_.resetCmd = reset;
   // also reset auto enable/disable counters
   autoDisbleTimeCounter_ = 0;
   autoEnableTimeCounter_ = 0;
@@ -552,16 +511,16 @@ void ecmcAxisBase::setReset(bool reset) {
       getCntrl()->errorReset();
     }
   }
-  data_.command_.controlWord_.resetCmd = 0;
+  data_.control_.controlWord_.resetCmd = 0;
 }
 
 bool ecmcAxisBase::getReset() {
-  return data_.command_.reset;
+  return data_.control_.controlWord_.resetCmd;
 }
 
 int ecmcAxisBase::setAllowCmdFromPLC(bool enable) {
   allowCmdFromOtherPLC_        = enable;
-  data_.command_.controlWord_.plcCmdsAllowCmd = enable;
+  data_.control_.controlWord_.plcCmdsAllowCmd = enable;
   return 0;
 }
 
@@ -571,14 +530,14 @@ bool ecmcAxisBase::getAllowCmdFromPLC() {
 
 void ecmcAxisBase::setInStartupPhase(bool startup) {
   // When configuration is ready then defult to primary encoder for all encoder related calls
-  if (!data_.status_.inStartupPhase && startup) {
-    data_.command_.cfgEncIndex = data_.command_.primaryEncIndex;
+  if (!data_.status_.statusWord_.instartup && startup) {
+    data_.control_.cfgEncIndex = data_.control_.primaryEncIndex;
   }
-  data_.status_.inStartupPhase = startup;
+  data_.status_.statusWord_.instartup = startup;
 }
 
 bool ecmcAxisBase::getInStartupPhase() {
-  return data_.status_.inStartupPhase || data_.status_.inStartupPhaseOld;
+  return data_.status_.statusWord_.instartup || data_.statusOld_.statusWord_.instartup;
 }
 
 int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
@@ -588,7 +547,7 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
 
 int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
                                                 int        force) {
-  if (refSource == data_.command_.trajSource) return 0;
+  if (refSource == data_.control_.trajSource) return 0;
 
   if (!force) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
@@ -610,30 +569,30 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
     data_.interlocks_.noExecuteInterlock = false;
     data_.refreshInterlocks();
-    data_.status_.busy     = true;
-    data_.command_.execute = true;
+    data_.status_.statusWord_.busy         = true;
+    data_.control_.controlWord_.executeCmd = true;
   } else {
     traj_->setStartPos(data_.status_.currentPositionActual);
     traj_->initStopRamp(data_.status_.currentPositionActual,
                         data_.status_.currentVelocityActual,
                         0);
-    data_.status_.busy = traj_->getBusy();
+    data_.status_.statusWord_.busy = traj_->getBusy();
     getSeq()->setTargetPos(data_.status_.currentPositionSetpoint);
 
     if (!getEnable()) {
-      data_.status_.busy     = false;
-      data_.command_.execute = false;
+      data_.status_.statusWord_.busy         = false;
+      data_.control_.controlWord_.executeCmd = false;
     }
   }
 
-  data_.command_.trajSource  = refSource;
-  data_.command_.controlWord_.trajSourceCmd =  data_.command_.trajSource ==
+  data_.control_.trajSource  = refSource;
+  data_.control_.controlWord_.trajSourceCmd =  data_.control_.trajSource ==
                                ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
 
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
-  if (refSource == data_.command_.encSource) return 0;
+  if (refSource == data_.control_.encSource) return 0;
 
   if (!allowSourceChangeWhenEnabled_) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
@@ -645,7 +604,7 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   }
 
   // If realtime: Ensure that ethercat enty for actual position is linked
-  if ((refSource == ECMC_DATA_SOURCE_INTERNAL) && data_.status_.inRealtime) {
+  if ((refSource == ECMC_DATA_SOURCE_INTERNAL) && data_.status_.statusWord_.inrealtime) {
     int errorCode = getEnc()->validateEntry(
       ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
 
@@ -654,8 +613,8 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
     }
   }
 
-  data_.command_.encSource  = refSource;
-  data_.command_.controlWord_.encSourceCmd =  data_.command_.encSource ==
+  data_.control_.encSource  = refSource;
+  data_.control_.controlWord_.encSourceCmd =  data_.control_.encSource ==
                               ECMC_DATA_SOURCE_EXTERNAL;
   return 0;
 }
@@ -664,12 +623,12 @@ int ecmcAxisBase::setRealTimeStarted(bool realtime) {
   if (realtime) {
     initControlWord();
   }
-  data_.status_.inRealtime = realtime;
+  data_.status_.statusWord_.inrealtime = realtime;
   return 0;
 }
 
 int ecmcAxisBase::getRealTimeStarted() {
-  return data_.status_.inRealtime;
+  return data_.status_.statusWord_.inrealtime;
 }
 
 bool ecmcAxisBase::getError() {
@@ -694,11 +653,11 @@ int ecmcAxisBase::getErrorID() {
 }
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
-  if (enable && !data_.command_.controlWord_.enableCmd) {
+  if (enable && !data_.control_.controlWord_.enableCmd) {
     errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel    
-    if(!data_.status_.atTarget || !firstEnableDone_ || !mon_->getEnableAtTargetMon()) {      
+    if(!data_.status_.statusWord_.attarget || !firstEnableDone_ || !mon_->getEnableAtTargetMon()) {      
       traj_->setStartPos(data_.status_.currentPositionActual);
       traj_->setCurrentPosSet(data_.status_.currentPositionActual);
       traj_->setTargetPos(data_.status_.currentPositionActual);
@@ -722,7 +681,6 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
     errorReset();
   }
 
-  data_.status_.enableOld = data_.command_.controlWord_.enableCmd;
   return 0;
 }
 
@@ -799,7 +757,7 @@ int ecmcAxisBase::getVelSet(double *vel) {
 }
 
 ecmcEncoder * ecmcAxisBase::getEnc() {
-  return encArray_[data_.command_.primaryEncIndex];
+  return encArray_[data_.control_.primaryEncIndex];
 }
 
 ecmcEncoder * ecmcAxisBase::getEnc(int encIndex, int *error) {
@@ -819,22 +777,22 @@ ecmcEncoder * ecmcAxisBase::getEnc(int encIndex, int *error) {
 }
 
 ecmcEncoder * ecmcAxisBase::getConfigEnc() {
-  return encArray_[data_.command_.cfgEncIndex];
+  return encArray_[data_.control_.cfgEncIndex];
 }
 
 // ecmcEncoder * ecmcAxisBase::getHomeEnc() {
-//  return encArray_[data_.command_.homeEncIndex];
+//  return encArray_[data_.control_.homeEncIndex];
 // }
 
 ecmcEncoder * ecmcAxisBase::getPrimEnc() {
-  return encArray_[data_.command_.primaryEncIndex];
+  return encArray_[data_.control_.primaryEncIndex];
 }
 
 ecmcEncoder * ecmcAxisBase::getCSPEnc() {
-  if(data_.command_.cspDrvEncIndex < 0) {
-    return encArray_[data_.command_.primaryEncIndex];
+  if(data_.control_.cspDrvEncIndex < 0) {
+    return encArray_[data_.control_.primaryEncIndex];
   }
-  return encArray_[data_.command_.cspDrvEncIndex];
+  return encArray_[data_.control_.cspDrvEncIndex];
 }
 
 ecmcTrajectoryBase * ecmcAxisBase::getTraj() {
@@ -850,41 +808,41 @@ ecmcAxisSequencer * ecmcAxisBase::getSeq() {
 }
 
 int ecmcAxisBase::getAxisHomed(bool *homed) {
-  if (data_.command_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
+  if (data_.control_.encSource == ECMC_DATA_SOURCE_EXTERNAL) {
     *homed = 1;
   } else {
-    *homed = encArray_[data_.command_.primaryEncIndex]->getHomed();
+    *homed = encArray_[data_.control_.primaryEncIndex]->getHomed();
   }
   return 0;
 }
 
 int ecmcAxisBase::setAxisHomed(bool homed) {
-  encArray_[data_.command_.primaryEncIndex]->setHomed(homed);
+  encArray_[data_.control_.primaryEncIndex]->setHomed(homed);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleNum(double *scale) {
-  *scale = encArray_[data_.command_.cfgEncIndex]->getScaleNum();
+  *scale = encArray_[data_.control_.cfgEncIndex]->getScaleNum();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleNum(double scale) {
-  encArray_[data_.command_.cfgEncIndex]->setScaleNum(scale);
+  encArray_[data_.control_.cfgEncIndex]->setScaleNum(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncScaleDenom(double *scale) {
-  *scale = encArray_[data_.command_.cfgEncIndex]->getScaleDenom();
+  *scale = encArray_[data_.control_.cfgEncIndex]->getScaleDenom();
   return 0;
 }
 
 int ecmcAxisBase::setEncScaleDenom(double scale) {
-  encArray_[data_.command_.cfgEncIndex]->setScaleDenom(scale);
+  encArray_[data_.control_.cfgEncIndex]->setScaleDenom(scale);
   return 0;
 }
 
 int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
-  *rawPos = encArray_[data_.command_.primaryEncIndex]->getRawPosMultiTurn();
+  *rawPos = encArray_[data_.control_.primaryEncIndex]->getRawPosMultiTurn();
   return 0;
 }
 
@@ -909,17 +867,14 @@ int ecmcAxisBase::getCmdData() {
 int ecmcAxisBase::slowExecute() {
   oldPositionAct_         = data_.status_.currentPositionActual;
   oldPositionSet_         = data_.status_.currentPositionSetpoint;
-  data_.status_.movingOld = data_.status_.moving;
   return 0;
 }
 
 void ecmcAxisBase::printAxisStatus() {
-  if (memcmp(&statusDataOld_.onChangeData, &statusData_.onChangeData,
-             sizeof(statusData_.onChangeData)) == 0) {
+  if (memcmp(&data_.status_, &data_.statusOld_,
+             sizeof(data_.statusOld_)) == 0) {
     return;  // Printout on change
   }
-
-  statusDataOld_ = statusData_;
 
   // Only print header once per 25 status lines
   if (printHeaderCounter_ <= 0) {
@@ -928,44 +883,44 @@ void ecmcAxisBase::printAxisStatus() {
     printHeaderCounter_ = 25;
   }
   printHeaderCounter_--;
-
+  
   LOGINFO(
-    "ecmc:: %3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6i %6x %2d %2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
-    statusData_.axisID,
-    statusData_.onChangeData.positionSetpoint,
-    statusData_.onChangeData.positionActual,
-    statusData_.onChangeData.positionError,
-    statusData_.onChangeData.positionTarget,
-    statusData_.onChangeData.positionTarget - statusData_.onChangeData.positionActual,
-    statusData_.onChangeData.cntrlOutput,
-    statusData_.onChangeData.velocitySetpoint,
-    statusData_.onChangeData.velocityActual,
-    statusData_.onChangeData.velocityFFRaw,
-    statusData_.onChangeData.velocitySetpointRaw,
-    statusData_.onChangeData.error,
-    statusData_.onChangeData.command,
-    statusData_.onChangeData.cmdData,
-    statusData_.onChangeData.seqState,
-    statusData_.onChangeData.trajInterlock,
-    statusData_.onChangeData.statusWd.lastilock,
-    statusData_.onChangeData.statusWd.trajsource,
-    statusData_.onChangeData.statusWd.encsource,
-    statusData_.onChangeData.statusWd.enable,
-    statusData_.onChangeData.statusWd.enabled,
-    statusData_.onChangeData.statusWd.execute,
-    statusData_.onChangeData.statusWd.busy,
-    statusData_.onChangeData.statusWd.attarget,
-    statusData_.onChangeData.statusWd.homed,
-    statusData_.onChangeData.statusWd.limitbwd,
-    statusData_.onChangeData.statusWd.limitfwd,
-    statusData_.onChangeData.statusWd.homeswitch);
+    "ecmc:: %3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6lf %6x %2d %2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
+    data_.axisId_,
+    data_.status_.currentPositionSetpoint,
+    data_.status_.currentPositionActual,
+    data_.status_.cntrlError,
+    data_.status_.currentTargetPosition,
+    data_.status_.currentTargetPosition- data_.status_.currentPositionActual,
+    data_.status_.cntrlOutput,
+    data_.status_.currentVelocitySetpoint,
+    data_.status_.currentVelocityActual,
+    data_.status_.currentvelocityFFRaw,
+    (double)data_.status_.currentVelocitySetpointRaw,
+    getErrorID(),
+    data_.status_.command,
+    data_.status_.cmdData,
+    data_.status_.statusWord_.seqstate,
+    (int)data_.interlocks_.interlockStatus,
+    data_.status_.statusWord_.lastilock,
+    data_.status_.statusWord_.trajsource,
+    data_.status_.statusWord_.encsource,
+    data_.status_.statusWord_.enable,
+    data_.status_.statusWord_.enabled,
+    data_.status_.statusWord_.execute,
+    data_.status_.statusWord_.busy,
+    data_.status_.statusWord_.attarget,
+    data_.status_.statusWord_.homed,
+    data_.status_.statusWord_.limitbwd,
+    data_.status_.statusWord_.limitfwd,
+    data_.status_.statusWord_.homeswitch);
 }
 
 // Ignore busy so that PVT can run (PVT controller will check that traj is not busy)
 int ecmcAxisBase::setExecute(bool execute) {
   // Auto enable if needed  (except for homing seq 15)
-  if(!data_.status_.enabled and execute and autoEnableTimoutS_ > 0 and !((data_.command_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
-          (data_.command_.command == ECMC_CMD_HOMING))) {
+  if(!data_.status_.statusWord_.enabled and execute and autoEnableTimoutS_ > 0 and !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
+          (data_.control_.command == ECMC_CMD_HOMING))) {
 
     setGlobalBusy(true);
     autoEnableTimeCounter_ = 0;
@@ -983,11 +938,11 @@ int ecmcAxisBase::setExecute(bool execute) {
 
 int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
   // Internal trajectory source
-  if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     // Allow direct homing without enable
     if (execute && !getEnable() &&
-        !((data_.command_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
-          (data_.command_.command == ECMC_CMD_HOMING))) {
+        !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
+          (data_.control_.command == ECMC_CMD_HOMING))) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -995,7 +950,7 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
     }
 
     if(!ignoreBusy) {
-      if (execute && !data_.status_.executeOld && data_.status_.busy) {
+      if (execute && !data_.statusOld_.statusWord_.execute && data_.status_.statusWord_.busy) {
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_AXIS_BUSY);
       }
     }
@@ -1008,13 +963,13 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
   }
   
   // Always reset 
-  data_.command_.controlWord_.executeCmd = 0;
+  data_.control_.controlWord_.executeCmd = 0;
 
   return 0;
 }
 
 bool ecmcAxisBase::getExecute() {
-  if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     return seq_.getExecute();
   } else {
     return true;
@@ -1022,24 +977,11 @@ bool ecmcAxisBase::getExecute() {
 }
 
 bool ecmcAxisBase::getBusy() {
-  return data_.status_.busy || globalBusy_;
+  return data_.status_.statusWord_.busy || globalBusy_;
 }
 
 bool ecmcAxisBase::getTrajBusy() {
   return getTraj()->getBusy();
-}
-
-int ecmcAxisBase::getDebugInfoData(ecmcAxisStatusType *data) {
-  if (data == NULL) {
-    return ERROR_AXIS_DATA_POINTER_NULL;
-  }
-
-  memcpy(data, &statusData_, sizeof(*data));
-  return 0;
-}
-
-ecmcAxisStatusType * ecmcAxisBase::getDebugInfoDataPointer() {
-  return &statusData_;
 }
 
 int ecmcAxisBase::getCycleCounter() {
@@ -1048,15 +990,15 @@ int ecmcAxisBase::getCycleCounter() {
 }
 
 bool ecmcAxisBase::getEnable() {
-  return data_.command_.controlWord_.enableCmd;
+  return data_.control_.controlWord_.enableCmd;
 }
 
 bool ecmcAxisBase::getEnabled() {
-  return data_.status_.enabled && data_.command_.controlWord_.enableCmd;
+  return data_.status_.statusWord_.enabled && data_.control_.controlWord_.enableCmd;
 }
 
 bool ecmcAxisBase::getEnabledOnly() {
-  return data_.status_.enabled;
+  return data_.status_.statusWord_.enabled;
 }
 
 int ecmcAxisBase::initAsyn() {
@@ -1123,9 +1065,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
                               asynParamFloat64,
                               ECMC_EC_F64,
-                              (uint8_t *)&(statusData_.onChangeData.
-                                           positionSetpoint),
-                              sizeof(statusData_.onChangeData.positionSetpoint),
+                              (uint8_t *)&(data_.status_.currentPositionSetpoint),
+                              sizeof(data_.status_.currentPositionSetpoint),
                               &paramTemp);
 
   if (errorCode) {
@@ -1139,8 +1080,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_POS_ERR_NAME,
                               asynParamFloat64,
                               ECMC_EC_F64,
-                              (uint8_t *)&(statusData_.onChangeData.cntrlError),
-                              sizeof(statusData_.onChangeData.cntrlError),
+                              (uint8_t *)&(data_.status_.cntrlError),
+                              sizeof(data_.status_.cntrlError),
                               &paramTemp);
 
   if (errorCode) {
@@ -1151,27 +1092,27 @@ int ecmcAxisBase::initAsyn() {
   axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID] = paramTemp;
 
   // Diagnostic string (array)
-  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_DIAG_NAME,
-                              asynParamInt8Array,
-                              ECMC_EC_S8,
-                              (uint8_t *)diagBuffer_,
-                              AX_MAX_DIAG_STRING_CHAR_LENGTH,
-                              &paramTemp);
-
-  if (errorCode) {
-    return errorCode;
-  }
-
-  paramTemp->setAllowWriteToEcmc(false);
-  paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
+  //errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_DIAG_NAME,
+  //                            asynParamInt8Array,
+  //                            ECMC_EC_S8,
+  //                            (uint8_t *)diagBuffer_,
+  //                            AX_MAX_DIAG_STRING_CHAR_LENGTH,
+  //                            &paramTemp);
+//
+  //if (errorCode) {
+  //  return errorCode;
+  //}
+//
+  //paramTemp->setAllowWriteToEcmc(false);
+  //paramTemp->refreshParam(1);
+  //axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
 
   // Status word
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_NAME,
                               asynParamInt32,
                               ECMC_EC_U32,
-                              (uint8_t *)&(statusData_.onChangeData.statusWd),
-                              sizeof(statusData_.onChangeData.statusWd),
+                              (uint8_t *)&(data_.status_.statusWord_),
+                              sizeof(data_.status_.statusWord_),
                               &paramTemp);
 
   if (errorCode) {
@@ -1186,8 +1127,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
                               asynParamInt32,
                               ECMC_EC_S32,
-                              (uint8_t *)&(data_.command_.controlWord_),
-                              sizeof(data_.command_.controlWord_),
+                              (uint8_t *)&(data_.control_.controlWord_),
+                              sizeof(data_.control_.controlWord_),
                               &paramTemp);
 
   if (errorCode) {
@@ -1318,8 +1259,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ERROR_NAME,
                               asynParamInt32,
                               ECMC_EC_S32,
-                              (uint8_t *)&(statusData_.onChangeData.error),
-                              sizeof(statusData_.onChangeData.error),
+                              (uint8_t *)&(data_.status_.errorCode),
+                              sizeof(data_.status_.errorCode),
                               &paramTemp);
 
   if (errorCode) {
@@ -1367,58 +1308,52 @@ int ecmcAxisBase::initAsyn() {
   return 0;
 }
 
-int ecmcAxisBase::getAxisDebugInfoData(char *buffer,
-                                       int   bufferByteSize,
-                                       int  *bytesUsed) {
-  ecmcAxisStatusType data;
-  int error = getDebugInfoData(&data);
-
-  if (error) {
-    return error;
-  }
-
-  // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
-  int ret = snprintf(buffer,
-                     bufferByteSize,
-                     "%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-                     data.axisID,
-                     data.onChangeData.positionSetpoint,
-                     data.onChangeData.positionActual,
-                     data.onChangeData.positionError,
-                     data.onChangeData.positionTarget,
-                     data.onChangeData.positionTarget - data.onChangeData.positionActual,
-                     data.onChangeData.positionRaw,
-                     data.onChangeData.cntrlOutput,
-                     data.onChangeData.velocitySetpoint,
-                     data.onChangeData.velocityActual,
-                     data.onChangeData.velocityFFRaw,
-                     data.onChangeData.velocitySetpointRaw,
-                     data.cycleCounter,
-                     data.onChangeData.error,
-                     data.onChangeData.command,
-                     data.onChangeData.cmdData,
-                     data.onChangeData.statusWd.seqstate,
-                     data.onChangeData.trajInterlock,
-                     data.onChangeData.statusWd.lastilock,
-                     data.onChangeData.statusWd.trajsource,
-                     data.onChangeData.statusWd.encsource,
-                     data.onChangeData.statusWd.enable,
-                     data.onChangeData.statusWd.enabled,
-                     data.onChangeData.statusWd.execute,
-                     data.onChangeData.statusWd.busy,
-                     data.onChangeData.statusWd.attarget,
-                     data.onChangeData.statusWd.homed,
-                     data.onChangeData.statusWd.limitbwd,
-                     data.onChangeData.statusWd.limitfwd,
-                     data.onChangeData.statusWd.homeswitch);
-
-  if ((ret >= bufferByteSize) || (ret <= 0)) {
-    *bytesUsed = 0;
-    return ERROR_AXIS_PRINT_TO_BUFFER_FAIL;
-  }
-  *bytesUsed = ret;
-  return 0;
-}
+//int ecmcAxisBase::getAxisDebugInfoData(char *buffer,
+//                                       int   bufferByteSize,
+//                                       int  *bytesUsed) {
+//
+//  // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+//  int ret = snprintf(buffer,
+//                     bufferByteSize,
+//                     "%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+//                     data_.axisId_,
+//                     data_.status_.currentPositionSetpoint,
+//                     data_.status_.currentPositionActual,
+//                     data_.status_.cntrlError,
+//                     data_.status_.positionTarget,
+//                     data_.status_.currentTargetPosition - data_.status_.currentPositionActual,
+//                     data_.status_.positionRaw,
+//                     data_.status_.cntrlOutput,
+//                     data_.status_.currentVelocitySetpoint,
+//                     data_.status_.currentVelocityActual,
+//                     data_.status_.currentvelocityFFRaw,
+//                     data_.status_.currentVelocitySetpointRaw,
+//                     cycleCounter_,
+//                     data_.status_.errorCode,
+//                     data_.status_.command,
+//                     data_.status_.cmdData,
+//                     data_.status_.statusWord_.seqstate,
+//                     data_.status_.trajInterlock,
+//                     data_.status_.statusWord_.lastilock,
+//                     data_.status_.statusWord_.trajsource,
+//                     data_.status_.statusWord_.encsource,
+//                     data_.status_.statusWord_.enable,
+//                     data_.status_.statusWord_.enabled,
+//                     data_.status_.statusWord_.execute,
+//                     data_.status_.statusWord_.busy,
+//                     data_.status_.statusWord_.attarget,
+//                     data_.status_.statusWord_.homed,
+//                     data_.status_.statusWord_.limitbwd,
+//                     data_.status_.statusWord_.limitfwd,
+//                     data_.status_.statusWord_.homeswitch);
+//
+//  if ((ret >= bufferByteSize) || (ret <= 0)) {
+//    *bytesUsed = 0;
+//    return ERROR_AXIS_PRINT_TO_BUFFER_FAIL;
+//  }
+//  *bytesUsed = ret;
+//  return 0;
+//}
 
 int ecmcAxisBase::setEcStatusOutputEntry(ecmcEcEntry *entry) {
   statusOutputEntry_ = entry;
@@ -1426,12 +1361,12 @@ int ecmcAxisBase::setEcStatusOutputEntry(ecmcEcEntry *entry) {
 }
 
 motionDirection ecmcAxisBase::getAxisSetDirection() {
-  if (!data_.status_.enabled) {
+  if (!data_.status_.statusWord_.enabled) {
     return ECMC_DIR_STANDSTILL;
   }
 
   // Transform or internal trajectory
-  if (data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     return getTraj()->getCurrSetDir();
   } else {
     if (data_.status_.currentPositionSetpoint <
@@ -1469,12 +1404,12 @@ int ecmcAxisBase::setModRange(double mod) {
                       __LINE__,
                       ERROR_AXIS_MODULO_OUT_OF_RANGE);
   }
-  data_.command_.moduloRange = mod;
+  data_.control_.moduloRange = mod;
   return 0;
 }
 
 double ecmcAxisBase::getModRange() {
-  return data_.command_.moduloRange;
+  return data_.control_.moduloRange;
 }
 
 int ecmcAxisBase::setModType(int type) {
@@ -1489,61 +1424,14 @@ int ecmcAxisBase::setModType(int type) {
                       ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE);
   }
 
-  data_.command_.moduloType = (ecmcMotionModType)type;
+  data_.control_.moduloType = (ecmcMotionModType)type;
   return 0;
 }
 
 int ecmcAxisBase::getModType() {
-  return (int)data_.command_.moduloType;
+  return (int)data_.control_.moduloType;
 }
 
-//
-// double ecmcAxisBase::getPosErrorMod() {
-//
-//  double normalCaseError = data_.status_.currentPositionSetpoint-data_.status_.currentPositionActual;
-//  if(data_.command_.moduloRange==0) {
-//    return normalCaseError;
-//  }
-//
-//  // Modulo
-//  if(std::abs(normalCaseError)<data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
-//    // No overflows
-//    return normalCaseError;
-//  } else {
-//    //Overflow has happended in either encoder or setpoint
-//    double overUnderFlowError = data_.command_.moduloRange-std::abs(normalCaseError);
-//    double  setDiff = data_.status_.currentPositionSetpoint - data_.status_.currentPositionSetpointOld;
-//    //Moving forward (overflow)
-//    if(setDiff>0 || setDiff < -data_.command_.moduloRange*ECMC_OVER_UNDER_FLOW_FACTOR) {
-//      //Actual lagging setpoint  ACT SET
-//      if(data_.status_.currentPositionActual>data_.status_.currentPositionSetpoint) {
-//        return overUnderFlowError;
-//      }
-//      else { //Actual before setpoint SET ACT
-//        return -overUnderFlowError;
-//      }
-//    }
-//    else {
-//      //Moving backward (underflow)
-//      //Actual lagging setpoint SET ACT
-//      if(data_.status_.currentPositionActual<data_.status_.currentPositionSetpoint) {
-//        return -overUnderFlowError;
-//      }
-//      else { //Actual before setpoint ACT SET
-//        return overUnderFlowError;
-//      }
-//    }
-//  }
-//  LOGERR(
-//        "%s/%s:%d: WARNING (axis %d): Modulo controller error calc failed...\n",
-//        __FILE__,
-//        __FUNCTION__,
-//        __LINE__,
-//        data_.axisId_);
-//
-//  return 0;
-// }
-//
 int ecmcAxisBase::getCntrlError(double *error) {
   *error = data_.status_.cntrlError;
   return 0;
@@ -1551,144 +1439,59 @@ int ecmcAxisBase::getCntrlError(double *error) {
 
 void ecmcAxisBase::refreshStatusWd() {
   // bit 0 enable
-  statusData_.onChangeData.statusWd.enable = getEnable() > 0;
+  data_.status_.statusWord_.enable = getEnable() > 0;
 
   // bit 1 enabled
-  statusData_.onChangeData.statusWd.enabled = getEnabled() > 0;
+  data_.status_.statusWord_.enabled = getEnabled() > 0;
 
   // bit 2 execute
-  statusData_.onChangeData.statusWd.execute = seq_.getExecute() > 0;
-
-  // bit 3 busy
-  statusData_.onChangeData.statusWd.busy = data_.status_.busy > 0;
-
-  // bit 4 at target
-  statusData_.onChangeData.statusWd.attarget = data_.status_.atTarget > 0;
-
-  // bit 5 moving
-  statusData_.onChangeData.statusWd.moving = data_.status_.moving > 0;
-
-  // bit 6 limit fwd
-  statusData_.onChangeData.statusWd.limitfwd = data_.status_.limitFwd > 0;
-
-  // bit 7 limit bwd
-  statusData_.onChangeData.statusWd.limitbwd = data_.status_.limitBwd > 0;
-
-  // bit 8 homeswitch
-  statusData_.onChangeData.statusWd.homeswitch = data_.status_.homeSwitch > 0;
+  data_.status_.statusWord_.execute = seq_.getExecute() > 0;
 
   // bit 9 homed
   bool homedtemp = 0;
   getAxisHomed(&homedtemp);
-  statusData_.onChangeData.statusWd.homed = homedtemp > 0;
-
-  // bit 10 inRealtime
-  statusData_.onChangeData.statusWd.inrealtime = data_.status_.inRealtime > 0;
-
-  // bit 11 traj source
-  statusData_.onChangeData.statusWd.trajsource = data_.command_.trajSource > 0;
-
-  // bit 12 enc source
-  statusData_.onChangeData.statusWd.encsource = data_.command_.encSource > 0;
-
+  data_.status_.statusWord_.homed = homedtemp > 0;
+  
   // bit 13 Allow plc commands
-  statusData_.onChangeData.statusWd.plccmdallowed = allowCmdFromOtherPLC_ > 0;
+  data_.status_.statusWord_.plccmdallowed = allowCmdFromOtherPLC_ > 0;
 
   // bit 14 softlimfwdena
-  statusData_.onChangeData.statusWd.softlimfwdena =
-    data_.command_.controlWord_.enableSoftLimitFwd> 0;
+  data_.status_.statusWord_.softlimfwdena =
+    data_.control_.controlWord_.enableSoftLimitFwd> 0;
 
   // bit 15 softlimbwdena
-  statusData_.onChangeData.statusWd.softlimbwdena =
-    data_.command_.controlWord_.enableSoftLimitBwd > 0;
+  data_.status_.statusWord_.softlimbwdena =
+    data_.control_.controlWord_.enableSoftLimitBwd > 0;
 
   // bit 16 inStartupPhase
-  statusData_.onChangeData.statusWd.instartup = data_.status_.inStartupPhase >
+  data_.status_.statusWord_.instartup = data_.status_.statusWord_.instartup >
                                                 0;
-
   // bit 17 sumilockfwd (filter away execute IL)
-  statusData_.onChangeData.statusWd.sumilockfwd =
+  data_.status_.statusWord_.sumilockfwd =
     data_.interlocks_.trajSummaryInterlockFWDEpics;
 
   // bit 18 sumilockbwd (filter away execute IL)
-  statusData_.onChangeData.statusWd.sumilockbwd =
+  data_.status_.statusWord_.sumilockbwd =
     data_.interlocks_.trajSummaryInterlockBWDEpics;
 
   // bit 19 softlimilockfwd
-  statusData_.onChangeData.statusWd.softlimilockfwd =
+  data_.status_.statusWord_.softlimilockfwd =
     data_.interlocks_.fwdSoftLimitInterlock;
 
   // bit 20 softlimilockbwd
-  statusData_.onChangeData.statusWd.softlimilockbwd =
+  data_.status_.statusWord_.softlimilockbwd =
     data_.interlocks_.bwdSoftLimitInterlock;
 
   // bit 21 axis type
-  statusData_.onChangeData.statusWd.axisType = data_.axisType_ ==
+  data_.status_.statusWord_.axisType = data_.axisType_ ==
                                                ECMC_AXIS_TYPE_VIRTUAL;
-
-  // bit 22..25 seq state
-  statusData_.onChangeData.statusWd.seqstate =
-    (unsigned char)data_.status_.seqState;
-
   // bit 26..31 lastActiveInterlock type
-  statusData_.onChangeData.statusWd.lastilock =
+  data_.status_.statusWord_.lastilock =
     (unsigned char)data_.interlocks_.lastActiveInterlock;
 }
-
-void ecmcAxisBase::refreshDebugInfoStruct() {
-  refreshStatusWd();
-
-  statusData_.axisID                   = data_.axisId_;
-  statusData_.cycleCounter             = cycleCounter_;
-  statusData_.onChangeData.cntrlError  = data_.status_.cntrlError;
-  statusData_.onChangeData.cntrlOutput = data_.status_.cntrlOutput;
-
-  statusData_.onChangeData.error          = getErrorID();
-  statusData_.onChangeData.positionActual =
-    data_.status_.currentPositionActual;
-  statusData_.onChangeData.positionError =
-    ecmcMotionUtils::getPosErrorModWithSign(
-      data_.status_.currentPositionSetpoint,
-      data_.status_.currentPositionSetpointOld,
-      data_.status_.currentPositionActual,
-      data_.command_.moduloRange);
-  statusData_.onChangeData.positionSetpoint =
-    data_.status_.currentPositionSetpoint;
-  statusData_.onChangeData.positionTarget =
-    data_.status_.currentTargetPosition;
-  statusData_.onChangeData.seqState      = seq_.getSeqState();
-  statusData_.onChangeData.trajInterlock =
-    data_.interlocks_.interlockStatus;
-  statusData_.onChangeData.velocityActual =
-    data_.status_.currentVelocityActual;
-  statusData_.onChangeData.velocitySetpoint =
-    data_.status_.currentVelocitySetpoint;
-  statusData_.onChangeData.velocitySetpointRaw =
-    data_.status_.currentVelocitySetpointRaw;
-  statusData_.onChangeData.velocityFFRaw =
-    data_.status_.currentvelocityFFRaw;
-  statusData_.onChangeData.cmdData     = data_.command_.cmdData;
-  statusData_.onChangeData.command     = data_.command_.command;
-  statusData_.onChangeData.positionRaw =
-    encArray_[data_.command_.primaryEncIndex]->getRawPosRegister();
-  statusData_.onChangeData.homeposition = seq_.getHomePosition();
-  statusData_.acceleration              = traj_->getAcc();
-  statusData_.deceleration              = traj_->getDec();
-  statusData_.reset                     = data_.command_.reset;
-  statusData_.moving                    = data_.status_.moving;
-  statusData_.stall                     =
-    data_.interlocks_.lagTrajInterlock
-    || data_.interlocks_.
-    lagDriveInterlock
-    || data_.interlocks_.
-    velocityDiffTrajInterlock
-    || data_.interlocks_.
-    velocityDiffDriveInterlock;
-}
-
 int ecmcAxisBase::setEnable(bool enable) {
 
-  if (data_.status_.enable == enable) return 0;
+  if (data_.status_.statusWord_.enable == enable) return 0;
 
   if (!enable) {  // Remove execute if enable is going down
     setExecute(false);
@@ -1700,14 +1503,14 @@ int ecmcAxisBase::setEnable(bool enable) {
   }
 
   if (!getEnc()->hwReady()) {
-    data_.command_.controlWord_.enableCmd = false;
-    data_.status_.enable = false;
+    data_.control_.controlWord_.enableCmd = false;
+    data_.status_.statusWord_.enable = false;
     return setErrorID(ERROR_ENC_NOT_READY);
   }
 
   if (getMon()->getSafetyInterlock() && enable) {
-    data_.command_.controlWord_.enableCmd = false;
-    data_.status_.enable = false;
+    data_.control_.controlWord_.enableCmd = false;
+    data_.status_.statusWord_.enable = false;
     return setErrorID(ERROR_AXIS_SAFETY_IL_ACTIVE);
   }
 
@@ -1717,7 +1520,7 @@ int ecmcAxisBase::setEnable(bool enable) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
   }
 
-  data_.status_.enable = enable;
+  data_.status_.statusWord_.enable = enable;
   enableCmd_ = enable;
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
 
@@ -1779,11 +1582,11 @@ int ecmcAxisBase::setEnableExtEncVeloFilter(bool enable) {
 }
 
 dataSource ecmcAxisBase::getTrajDataSourceType() {
-  return data_.command_.trajSource;
+  return data_.control_.trajSource;
 }
 
 dataSource ecmcAxisBase::getEncDataSourceType() {
-  return data_.command_.encSource;
+  return data_.control_.encSource;
 }
 
 bool ecmcAxisBase::getEnableExtTrajVeloFilter() {
@@ -1803,23 +1606,23 @@ int ecmcAxisBase::setExtEncVeloFiltSize(size_t size) {
 }
 
 int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
-  return encArray_[data_.command_.primaryEncIndex]->setVeloFilterSize(size);
+  return encArray_[data_.control_.primaryEncIndex]->setVeloFilterSize(size);
 }
 
 int ecmcAxisBase::setEncPosFiltSize(size_t size) {
-  return encArray_[data_.command_.primaryEncIndex]->setPosFilterSize(size);
+  return encArray_[data_.control_.primaryEncIndex]->setPosFilterSize(size);
 }
 
 int ecmcAxisBase::setEncPosFiltEnable(bool enable) {
-  return encArray_[data_.command_.primaryEncIndex]->setPosFilterEnable(enable);
+  return encArray_[data_.control_.primaryEncIndex]->setPosFilterEnable(enable);
 }
 
 int ecmcAxisBase::setEncVeloFiltEnable(bool enable) {
-  return encArray_[data_.command_.primaryEncIndex]->setVelFilterEnable(enable);
+  return encArray_[data_.control_.primaryEncIndex]->setVelFilterEnable(enable);
 }
 
 int ecmcAxisBase::setEncInvHwReady(int invert) {
-  return encArray_[data_.command_.cfgEncIndex]->setInvHwReady(invert);
+  return encArray_[data_.control_.cfgEncIndex]->setInvHwReady(invert);
 }
 
 int ecmcAxisBase::createAsynParam(const char        *nameFormat,
@@ -1938,7 +1741,7 @@ int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
 
 // just a wrapper to the below
 int ecmcAxisBase::moveAbsolutePosition(double positionSet) {
-  return  moveAbsolutePosition(positionSet,data_.command_.velocityTarget,acceleration_,deceleration_);
+  return  moveAbsolutePosition(positionSet,data_.control_.velocityTarget,acceleration_,deceleration_);
 }
 
 int ecmcAxisBase::moveAbsolutePosition(
@@ -2308,19 +2111,19 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
  *
- * data_.command_.controlWord_.enableCmd  // Empty,enableCmd moved to dedicated asyn parameter
- * data_.command_.controlWord_.executeCmd
- * data_.command_.controlWord_.stopCmd
- * data_.command_.controlWord_.resetCmd
- * data_.command_.controlWord_.encSourceCmd
- * data_.command_.controlWord_.trajSourceCmd
- * data_.command_.controlWord_.plcEnableCmd
- * data_.command_.controlWord_.plcCmdsAllowCmd
- * data_.command_.controlWord_.enableSoftLimitBwd
- * data_.command_.controlWord_.enableSoftLimitFwd
- * data_.command_.controlWord_.enableILockChangePrintout
- * data_.command_.controlWord_.tweakBwdCmd
- * data_.command_.controlWord_.tweakFwdCmd
+ * data_.control_.controlWord_.enableCmd  // Empty,enableCmd moved to dedicated asyn parameter
+ * data_.control_.controlWord_.executeCmd
+ * data_.control_.controlWord_.stopCmd
+ * data_.control_.controlWord_.resetCmd
+ * data_.control_.controlWord_.encSourceCmd
+ * data_.control_.controlWord_.trajSourceCmd
+ * data_.control_.controlWord_.plcEnableCmd
+ * data_.control_.controlWord_.plcCmdsAllowCmd
+ * data_.control_.controlWord_.enableSoftLimitBwd
+ * data_.control_.controlWord_.enableSoftLimitFwd
+ * data_.control_.controlWord_.enableILockChangePrintout
+ * data_.control_.controlWord_.tweakBwdCmd
+ * data_.control_.controlWord_.tweakFwdCmd
  * 
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
@@ -2328,7 +2131,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
                                           asynParamType asynParType) {
   asynStatus returnVal = asynSuccess;
 
-  if (sizeof(data_.command_.controlWord_) != bytes) {
+  if (sizeof(data_.control_.controlWord_) != bytes) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Control word size missmatch.\n",
       __FILE__,
@@ -2340,8 +2143,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     return asynError;
   }
 
-  memcpy(&data_.command_.controlWord_, data, sizeof(data_.command_.controlWord_));
-  uint32_t *tmpcontrolWordPtr = (uint32_t *)&data_.command_.controlWord_;
+  memcpy(&data_.control_.controlWord_, data, sizeof(data_.control_.controlWord_));
+  uint32_t *tmpcontrolWordPtr = (uint32_t *)&data_.control_.controlWord_;
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write : Control Word = 0x%x.\n",
     __FILE__,
@@ -2355,16 +2158,16 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     bool refreshNeeded = false;
     
     // allow to stop and disable but still go to error state
-    if (!data_.command_.controlWord_.enableCmd) {
-      setEnable(data_.command_.controlWord_.enableCmd);
+    if (!data_.control_.controlWord_.enableCmd) {
+      setEnable(data_.control_.controlWord_.enableCmd);
       refreshNeeded = true;
     }
 
-    if (data_.command_.controlWord_.stopCmd) {
+    if (data_.control_.controlWord_.stopCmd) {
       stopMotion(enableCmd_ == 0);    
       //errorCode            = setExecute(0);
-      data_.command_.controlWord_.stopCmd = 0;  // auto reset
-      data_.command_.controlWord_.executeCmd = 0;
+      data_.control_.controlWord_.stopCmd = 0;  // auto reset
+      data_.control_.controlWord_.executeCmd = 0;
       refreshNeeded        = true;
     }
 
@@ -2384,28 +2187,28 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
   int errorCode = 0;
 
-  errorCode = setEnable(data_.command_.controlWord_.enableCmd);
+  errorCode = setEnable(data_.control_.controlWord_.enableCmd);
   
   if (errorCode) {
     returnVal = asynError;
   }
 
-  if (data_.command_.controlWord_.stopCmd) {
+  if (data_.control_.controlWord_.stopCmd) {
     stopMotion(enableCmd_ == 0);    
     //errorCode            = setExecute(0);
-    data_.command_.controlWord_.stopCmd = 0;  // auto reset
-    data_.command_.controlWord_.executeCmd = 0;
+    data_.control_.controlWord_.stopCmd = 0;  // auto reset
+    data_.control_.controlWord_.executeCmd = 0;
     if (errorCode) {
       returnVal = asynError;
     }
   }
 
   // Only trig new commands if source is internal
-  if(data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if(data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     // trigg new motion.
-    if (!data_.command_.controlWord_.stopCmd && data_.command_.controlWord_.executeCmd) {
+    if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.executeCmd) {
       if (getSeq() == NULL) {
-        data_.command_.controlWord_.executeCmd = 0; // auto reset
+        data_.control_.controlWord_.executeCmd = 0; // auto reset
         return asynError;
       }
 
@@ -2469,11 +2272,11 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     }
   }
 
-  data_.command_.controlWord_.executeCmd = 0; // auto reset
+  data_.control_.controlWord_.executeCmd = 0; // auto reset
 
-  if(data_.command_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
+  if(data_.control_.trajSource == ECMC_DATA_SOURCE_INTERNAL) {
     // Tweak BWD
-    if (!data_.command_.controlWord_.stopCmd && data_.command_.controlWord_.tweakBwdCmd && !getBusy()) {
+    if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakBwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
       getSeq()->setTargetVel(velocityTarget_);
       getSeq()->setTargetPos(-std::abs(positionTarget_));  // Backward
@@ -2491,7 +2294,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     }
     
     // Tweak FWD
-    if (!data_.command_.controlWord_.stopCmd && data_.command_.controlWord_.tweakFwdCmd && !getBusy()) {
+    if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakFwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
       getSeq()->setTargetVel(velocityTarget_);
       getSeq()->setTargetPos(std::abs(positionTarget_)); // Forward
@@ -2510,14 +2313,14 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   // reset the commands
-  data_.command_.controlWord_.tweakFwdCmd = 0;
-  data_.command_.controlWord_.tweakBwdCmd = 0;
+  data_.control_.controlWord_.tweakFwdCmd = 0;
+  data_.control_.controlWord_.tweakBwdCmd = 0;
 
-  setReset(data_.command_.controlWord_.resetCmd);  // resetCmd is reset in setReset()
+  setReset(data_.control_.controlWord_.resetCmd);  // resetCmd is reset in setReset()
 
 
   errorCode =
-    setEncDataSourceType((data_.command_.controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL
+    setEncDataSourceType((data_.control_.controlWord_.encSourceCmd ? ECMC_DATA_SOURCE_EXTERNAL
   :
                           ECMC_DATA_SOURCE_INTERNAL));
 
@@ -2526,7 +2329,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   errorCode =
-    setTrajDataSourceType((data_.command_.controlWord_.trajSourceCmd ?
+    setTrajDataSourceType((data_.control_.controlWord_.trajSourceCmd ?
                            ECMC_DATA_SOURCE_EXTERNAL
   : ECMC_DATA_SOURCE_INTERNAL));
 
@@ -2534,27 +2337,27 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     returnVal = asynError;
   }
 
-  errorCode = setAllowCmdFromPLC(data_.command_.controlWord_.plcCmdsAllowCmd);
+  errorCode = setAllowCmdFromPLC(data_.control_.controlWord_.plcCmdsAllowCmd);
 
   if (errorCode) {
     returnVal = asynError;
   }
 
-  errorCode = setAxisPLCEnable(data_.axisId_, data_.command_.controlWord_.plcEnableCmd);
-
-  if (errorCode) {
-    returnVal = asynError;
-  }
-
-  errorCode =
-    getMon()->setEnableSoftLimitBwd(data_.command_.controlWord_.enableSoftLimitBwd);
+  errorCode = setAxisPLCEnable(data_.axisId_, data_.control_.controlWord_.plcEnableCmd);
 
   if (errorCode) {
     returnVal = asynError;
   }
 
   errorCode =
-    getMon()->setEnableSoftLimitFwd(data_.command_.controlWord_.enableSoftLimitFwd);
+    getMon()->setEnableSoftLimitBwd(data_.control_.controlWord_.enableSoftLimitBwd);
+
+  if (errorCode) {
+    returnVal = asynError;
+  }
+
+  errorCode =
+    getMon()->setEnableSoftLimitFwd(data_.control_.controlWord_.enableSoftLimitFwd);
 
   if (errorCode) {
     returnVal = asynError;
@@ -2571,20 +2374,20 @@ void ecmcAxisBase::initControlWord() {
   int plcEnable = 0;
 
   getAxisPLCEnable(data_.axisId_, &plcEnable);
-  data_.command_.controlWord_.plcEnableCmd = plcEnable;
-  data_.command_.controlWord_.enableCmd = getEnable();  
-  data_.command_.controlWord_.executeCmd    = getExecute();
-  data_.command_.controlWord_.resetCmd      = getReset();
-  data_.command_.controlWord_.encSourceCmd  = getEncDataSourceType() ==
+  data_.control_.controlWord_.plcEnableCmd = plcEnable;
+  data_.control_.controlWord_.enableCmd = getEnable();  
+  data_.control_.controlWord_.executeCmd    = getExecute();
+  data_.control_.controlWord_.resetCmd      = getReset();
+  data_.control_.controlWord_.encSourceCmd  = getEncDataSourceType() ==
                               ECMC_DATA_SOURCE_EXTERNAL;
-  data_.command_.controlWord_.trajSourceCmd = getTrajDataSourceType() ==
+  data_.control_.controlWord_.trajSourceCmd = getTrajDataSourceType() ==
                                ECMC_DATA_SOURCE_EXTERNAL;
-  data_.command_.controlWord_.plcCmdsAllowCmd    = getAllowCmdFromPLC();
-  data_.command_.controlWord_.enableSoftLimitBwd = data_.command_.controlWord_.enableSoftLimitBwd;
-  data_.command_.controlWord_.enableSoftLimitFwd = data_.command_.controlWord_.enableSoftLimitFwd;
-  data_.command_.controlWord_.stopCmd  = false;  
-  data_.command_.controlWord_.tweakBwdCmd = false;
-  data_.command_.controlWord_.tweakFwdCmd = false;
+  data_.control_.controlWord_.plcCmdsAllowCmd    = getAllowCmdFromPLC();
+  data_.control_.controlWord_.enableSoftLimitBwd = data_.control_.controlWord_.enableSoftLimitBwd;
+  data_.control_.controlWord_.enableSoftLimitFwd = data_.control_.controlWord_.enableSoftLimitFwd;
+  data_.control_.controlWord_.stopCmd  = false;  
+  data_.control_.controlWord_.tweakBwdCmd = false;
+  data_.control_.controlWord_.tweakFwdCmd = false;
 }
 
 asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
@@ -2894,7 +2697,7 @@ int ecmcAxisBase::addEncoder() {
                                                           &data_,
                                                           data_.sampleTime_,
                                                           data_.status_.encoderCount);
-  data_.command_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
+  data_.control_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
   data_.status_.encoderCount++;
 
   return 0;
@@ -2916,7 +2719,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
                       ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
   }
 
-  if(data_.status_.inRealtime ) {
+  if(data_.status_.statusWord_.inrealtime ) {
     LOGERR("%s/%s:%d: ERROR (axis %d): Command not allowed in realtime.\n",
            __FILE__,
            __FUNCTION__,
@@ -2949,7 +2752,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
                       ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
   }
   printf("CSP with control enabled\n");
-  data_.command_.cspDrvEncIndex = localIndex;
+  data_.control_.cspDrvEncIndex = localIndex;
   
   // CSP encoer is set to drv object in ecmcAxisReal::validate()
 
@@ -2982,9 +2785,9 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
     return ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE;
   }
 
-  if(!data_.status_.inStartupPhase) {  // Allow to switch if in startup phase (and busy)
+  if(!data_.status_.statusWord_.instartup) {  // Allow to switch if in startup phase (and busy)
     // Do not allow to switch encoder if busy and INTERNAL source
-    if (getBusy() && (data_.command_.encSource ==
+    if (getBusy() && (data_.control_.encSource ==
                       ECMC_DATA_SOURCE_INTERNAL)) {
       // Override error message to not stop axis if in motion
       if (!overrideError) {
@@ -2998,12 +2801,12 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
   }
 
   // Make sure the switch is bumpless
-  if (localIndex != data_.command_.primaryEncIndex) {
+  if (localIndex != data_.control_.primaryEncIndex) {
     seq_.setNewPositionCtrlDrvTrajBumpless(encArray_[localIndex]->getActPos());
   }
 
   // This index is starting from 0
-  data_.command_.primaryEncIndex = localIndex;
+  data_.control_.primaryEncIndex = localIndex;
 
   // This index is starting from 1 (for asyn and external interface)
   encPrimIndexAsyn_ = index;
@@ -3030,17 +2833,17 @@ int ecmcAxisBase::selectConfigEncoder(int index) {
   }
 
   // This index is starting from 0
-  data_.command_.cfgEncIndex = localIndex;
+  data_.control_.cfgEncIndex = localIndex;
   return 0;
 }
 
 // unfortenatelly starts from 1... why did I do like this..
 int ecmcAxisBase::getConfigEncoderIndex() {
-  return data_.command_.cfgEncIndex + 1;
+  return data_.control_.cfgEncIndex + 1;
 }
 
 int ecmcAxisBase::getPrimaryEncoderIndex() {
-  return data_.command_.primaryEncIndex + 1;
+  return data_.control_.primaryEncIndex + 1;
 }
 
 bool ecmcAxisBase::getHwReady() {
@@ -3111,7 +2914,7 @@ void ecmcAxisBase::setEmergencyStopInterlock(int stop) {
   getMon()->setSafetyInterlock(stop);
 
   // Switch to internal source
-  if ((data_.command_.trajSource != ECMC_DATA_SOURCE_INTERNAL) && stop) {
+  if ((data_.control_.trajSource != ECMC_DATA_SOURCE_INTERNAL) && stop) {
     setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);
   }
 }
@@ -3149,7 +2952,7 @@ void ecmcAxisBase::setMRSync(bool sync) {
   // param updated in ::postExecute
 
   // Sync ecmc if not enabled (only works in internal mode)
-  if(!data_.status_.enabled && sync) {
+  if(!data_.status_.statusWord_.enabled && sync) {
     getTraj()->setCurrentPosSet(data_.status_.currentPositionActual);
   }
 }
@@ -3177,11 +2980,11 @@ void ecmcAxisBase::setMRCnen(bool cnen) {
 }
 
 int ecmcAxisBase::loadEncLookupTable(const char* filename) {
-  return encArray_[data_.command_.cfgEncIndex]->loadLookupTable(filename);
+  return encArray_[data_.control_.cfgEncIndex]->loadLookupTable(filename);
 }
 
 int  ecmcAxisBase::setEncLookupTableEnable(int enable) {
-  return encArray_[data_.command_.cfgEncIndex]->setLookupTableEnable(enable);
+  return encArray_[data_.control_.cfgEncIndex]->setLookupTableEnable(enable);
 }
 
 int ecmcAxisBase::getSumInterlock() {
@@ -3190,7 +2993,7 @@ int ecmcAxisBase::getSumInterlock() {
 }
 
 int ecmcAxisBase::getPrintDbg() {
-  return data_.command_.controlWord_.enableDbgPrintout;
+  return data_.control_.controlWord_.enableDbgPrintout;
 }
 
 ecmcAxisPVTSequence* ecmcAxisBase::getPVTObject() {
@@ -3216,12 +3019,12 @@ bool ecmcAxisBase::getMRIgnoreDisableStatusCheck() {
 
 // At switch if 0
 bool ecmcAxisBase::getLimitBwd() {
-  return data_.status_.limitBwd;
+  return data_.status_.statusWord_.limitbwd;
 }
 
 // At switch if 0
 bool ecmcAxisBase::getLimitFwd() {
-  return data_.status_.limitFwd;
+  return data_.status_.statusWord_.limitfwd;
 }
 
 void ecmcAxisBase::autoEnableSM() {
@@ -3233,7 +3036,7 @@ void ecmcAxisBase::autoEnableSM() {
     return;
   }
   
-  if(!data_.command_.controlWord_.enableCmd) {
+  if(!data_.control_.controlWord_.enableCmd) {
     printf("HEPP\n");
     setEnable(true);
   }
@@ -3249,7 +3052,7 @@ void ecmcAxisBase::autoEnableSM() {
     autoEnableTimeCounter_ += data_.sampleTime_;
   }
 
-  if(data_.status_.enabled) {
+  if(data_.status_.statusWord_.enabled) {
     autoEnableTimeCounter_ = 0;
     autoEnableRequest_= false;
     printf("Axis[%d]: Auto enable axis and triggering motion\n", data_.axisId_);
@@ -3264,17 +3067,17 @@ void ecmcAxisBase::autoDisableSM() {
     return;
   }
 
-  if(data_.status_.busy) {
+  if(data_.status_.statusWord_.busy) {
     autoDisbleTimeCounter_ = 0;
     return;
   }
 
-  if(!data_.status_.enabled) {
+  if(!data_.status_.statusWord_.enabled) {
     autoDisbleTimeCounter_ = 0;
     return;
   }
   
-  if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.command_.controlWord_.enableCmd) {
+  if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
     printf("Axis[%d]: Auto disable axis (axis idle for %lfs)\n", data_.axisId_,autoDisableAfterS_);
     setEnable(0);
   } else {

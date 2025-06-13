@@ -102,39 +102,39 @@ typedef struct {
   unsigned int  dummy        : 26;
 } ecmcMRCmds;
 
-typedef struct {
-  double                 positionSetpoint;
-  double                 positionActual;
-  double                 positionError;
-  double                 positionTarget;
-  double                 cntrlError;
-  double                 cntrlOutput;
-  double                 velocityActual;
-  double                 velocitySetpoint;
-  double                 velocityFFRaw;
-  int64_t                positionRaw;
-  double                 homeposition;
-  int                    error;
-  int                    velocitySetpointRaw;
-  int                    seqState;
-  int                    cmdData;
-  motionCommandTypes     command;
-  interlockTypes         trajInterlock;
-  //ecmcAxisStatusWordType statusWd;
-} ecmcAxisStatusOnChangeType;
-
-typedef struct {
-  int                        axisID;
-  int                        cycleCounter;
-  double                     acceleration;
-  double                     deceleration;
-  double                     soflimFwd;
-  double                     soflimBwd;
-  bool                       reset  : 1;
-  bool                       moving : 1;
-  bool                       stall  : 1;
-  ecmcAxisStatusOnChangeType onChangeData;
-} ecmcAxisStatusType;
+//typedef struct {
+//  double                 positionSetpoint;
+//  double                 positionActual;
+//  double                 positionError;
+//  double                 positionTarget;
+//  double                 cntrlError;
+//  double                 cntrlOutput;
+//  double                 velocityActual;
+//  double                 velocitySetpoint;
+//  double                 velocityFFRaw;
+//  int64_t                positionRaw;
+//  double                 homeposition;
+//  int                    error;
+//  int                    velocitySetpointRaw;
+//  int                    seqState;
+//  int                    cmdData;
+//  motionCommandTypes     command;
+//  interlockTypes         trajInterlock;
+//  //ecmcAxisStatusWordType statusWd;
+//} ecmcAxisStatusOnChangeType;
+//
+//typedef struct {
+//  int                        axisID;
+//  int                        cycleCounter;
+//  double                     acceleration;
+//  double                     deceleration;
+//  double                     soflimFwd;
+//  double                     soflimBwd;
+//  bool                       reset  : 1;
+//  bool                       moving : 1;
+//  bool                       stall  : 1;
+//  ecmcAxisStatusOnChangeType onChangeData;
+//} ecmcAxisStatusType;
 
 class ecmcAxisBase : public ecmcError {
 public:
@@ -216,11 +216,6 @@ public:
   bool                       getTrajBusy();
   int                        getBlockExtCom();
   int                        setBlockExtCom(int block);
-  int                        getDebugInfoData(ecmcAxisStatusType *data);
-  int                        getAxisDebugInfoData(char *buffer,
-                                                  int   bufferByteSize,
-                                                  int  *bytesUsed);
-  ecmcAxisStatusType*        getDebugInfoDataPointer();
   int                        getCycleCounter();
   void                       printAxisStatus();
   int                        initAsyn();
@@ -363,8 +358,6 @@ protected:
   ecmcMonitor *mon_;
   ecmcEncoder *encArray_[ECMC_MAX_ENCODERS];
   ecmcAxisSequencer seq_;
-  ecmcAxisStatusType statusData_;
-  ecmcAxisStatusType statusDataOld_;
   ecmcAxisData data_;
   axisState axisState_;
 

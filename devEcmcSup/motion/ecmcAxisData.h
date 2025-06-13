@@ -47,12 +47,6 @@ typedef struct {
   int                cspDrvEncIndex;     // encoder channel used for drive local CSP (defaults to primary)
   int                cfgEncIndex;        // Encoder currrently configured
   int                drvModeSet;
-  //bool               enable             : 1;
-  bool               execute            : 1;
-  bool               reset              : 1;
-  bool               enableSoftLimitBwd : 1;
-  bool               enableSoftLimitFwd : 1;
-  bool               enableDbgPrintout  : 1;
   ecmcAsynAxisControlType controlWord_;
   dataSource trajSource;
   dataSource encSource;
@@ -107,29 +101,14 @@ typedef struct {
   double  cntrlError;
   double  cntrlOutput;
   double  cntrlOutputOld;
-  bool    enabled;
-  bool    enabledOld;
-  bool    enableOld;
-  bool    executeOld;
-  bool    busy;
-  bool    busyOld;
-  bool    atTargetOld;
-  bool    moving;
-  bool    movingOld;
-  int     seqState;
+  int     command; ///#  xx
+  int     cmdData; ///#  xx
   int     encoderCount;
-  bool    atTarget;
   bool    ctrlWithinDeadband;
-  bool    limitFwd;
-  bool    limitBwd;
   bool    limitFwdFiltered;
   bool    limitBwdFiltered;
-  bool    homeSwitch;
   bool    homeSwitchFiltered;
-  bool    inStartupPhase;
-  bool    inStartupPhaseOld;
   bool    startupFinsished;
-  bool    inRealtime;
   double  distToStop;
   int     errorCode;
   int     warningCode;
@@ -177,8 +156,10 @@ public:
   ~ecmcAxisData();
   stopMode refreshInterlocks();
   void     clearInterlocks();
-  ecmcAxisDataCommand command_;
-  ecmcAxisDataStatus status_;
+  ecmcAxisDataCommand control_;
+  ecmcAxisDataCommand controlOld_;  // last cycle
+  ecmcAxisDataStatus status_;       // last cycle
+  ecmcAxisDataStatus statusOld_;
   ecmcAxisDataInterlocks interlocks_;
   ecmcAxisDataInterlocks interlocksOld_;    
   int axisId_;
