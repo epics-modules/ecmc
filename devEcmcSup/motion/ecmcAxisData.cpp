@@ -14,15 +14,13 @@
 #include "ecmcOctetIF.h"
 
 ecmcAxisData::ecmcAxisData() {
-  axisId_     = 0;
-  sampleTime_ = 0;
-  axisType_   = ECMC_AXIS_TYPE_BASE;
   memset(&control_,    0, sizeof(control_));
   memset(&controlOld_, 0, sizeof(controlOld_));
   memset(&status_,     0, sizeof(status_));
   memset(&statusOld_,  0, sizeof(statusOld_));
   memset(&interlocks_, 0, sizeof(interlocks_));
   memset(&interlocksOld_, 0, sizeof(interlocksOld_));
+  status_.axisType = ECMC_AXIS_TYPE_BASE;
 }
 
 ecmcAxisData::~ecmcAxisData() {}
@@ -188,14 +186,14 @@ stopMode ecmcAxisData::refreshInterlocks() {
              __FILE__,
              __FUNCTION__,
              __LINE__,
-             axisId_,
+             status_.axisId,
              interlocks_.interlockStatus);
     } else {
       LOGERR("%s/%s:%d: INFO (axis %d): Motion interlock cleared.\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
-             axisId_);
+             status_.axisId);
     }
   }
   return stop;

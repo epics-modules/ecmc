@@ -21,10 +21,10 @@ ecmcAxisVirt::ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
                sampleTime,
                trajType) {
   initVars();
-  data_.axisId_   = axisID;
-  data_.axisType_ = ECMC_AXIS_TYPE_VIRTUAL;
+  data_.status_.axisId   = axisID;
+  data_.status_.axisType = ECMC_AXIS_TYPE_VIRTUAL;
   seq_.setCntrl(NULL);
-  data_.sampleTime_ = sampleTime;
+  data_.status_.sampleTime = sampleTime;
 }
 
 ecmcAxisVirt::~ecmcAxisVirt() {}
@@ -100,7 +100,7 @@ int ecmcAxisVirt::validate() {
              __FILE__,
              __FUNCTION__,
              __LINE__,
-             data_.axisId_,
+             data_.status_.axisId,
              i,
              ERROR_AXIS_ENC_OBJECT_NULL);
 
@@ -117,7 +117,7 @@ int ecmcAxisVirt::validate() {
              __FILE__,
              __FUNCTION__,
              __LINE__,
-             data_.axisId_,
+             data_.status_.axisId,
              i,
              error);
 

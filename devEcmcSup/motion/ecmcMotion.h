@@ -275,9 +275,9 @@ int getAxisCycleCounter(int  axisIndex,
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
-int getAxisDebugInfoData(int   axisIndex,
-                         char *buffer,
-                         int   bufferByteSize);
+//int getAxisDebugInfoData(int   axisIndex,
+//                         char *buffer,
+//                         int   bufferByteSize);
 
 /** \brief Get axis status structure V2.\n
  *

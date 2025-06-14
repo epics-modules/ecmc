@@ -176,8 +176,8 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
                            ecmcTrajTypes       trajType) {
   initVars();
   asynPortDriver_   = asynPortDriver;
-  data_.axisId_     = axisID;
-  data_.sampleTime_ = sampleTime;
+  data_.status_.axisId     = axisID;
+  data_.status_.sampleTime = sampleTime;
   data_.control_.cspDrvEncIndex =  -1;   // used for control
   setExternalPtrs(&(data_.status_.errorCode), &(data_.status_.warningCode));
   try {
@@ -187,23 +187,23 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
 
     if (currentTrajType_ == ECMC_S_CURVE) {
       traj_ = new ecmcTrajectoryS(&data_,
-                                  data_.sampleTime_);
+                                  data_.status_.sampleTime);
     } else {
       traj_ = new ecmcTrajectoryTrapetz(&data_,
-                                        data_.sampleTime_);
+                                        data_.status_.sampleTime);
     }
 
     mon_ = new ecmcMonitor(&data_, encArray_);
 
-    extTrajVeloFilter_ = new ecmcFilter(data_.sampleTime_);
-    extEncVeloFilter_  = new ecmcFilter(data_.sampleTime_);
+    extTrajVeloFilter_ = new ecmcFilter(data_.status_.sampleTime);
+    extEncVeloFilter_  = new ecmcFilter(data_.status_.sampleTime);
   } catch (std::bad_alloc& ex) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Mem alloc error.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     exit(1);
   }
@@ -233,7 +233,7 @@ ecmcAxisBase::~ecmcAxisBase() {
 void ecmcAxisBase::initVars() {
   // errorReset();  //THIS IS NONO..
   firstEnableDone_                       = 0;
-  data_.axisType_                          = ECMC_AXIS_TYPE_BASE;
+  data_.status_.axisType                          = ECMC_AXIS_TYPE_BASE;
   data_.control_.controlWord_.resetCmd     = false;
   allowCmdFromOtherPLC_                    = true;
   data_.status_.statusWord_.instartup      = false;
@@ -246,7 +246,7 @@ void ecmcAxisBase::initVars() {
   data_.status_.currentPositionSetpoint    = 0;
   data_.status_.currentVelocityActual      = 0;
   data_.status_.currentVelocitySetpoint    = 0;
-  data_.sampleTime_                        = 1 / 1000;
+  data_.status_.sampleTime                        = 1 / 1000;
   printHeaderCounter_      = 0;
   cycleCounter_            = 0;
   axisState_               = ECMC_AXIS_STATE_STARTUP;
@@ -375,7 +375,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_.axisId_);
+        data_.status_.axisId);
       axisState_ = ECMC_AXIS_STATE_STARTUP;
     }
     break;
@@ -394,7 +394,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_.axisId_);
+        data_.status_.axisId);
       axisState_ = ECMC_AXIS_STATE_STARTUP;
     }
 
@@ -412,7 +412,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.externalTrajectoryVelocity =
       (data_.status_.externalTrajectoryPosition -
        data_.status_.
-       externalTrajectoryPositionOld) / data_.sampleTime_;
+       externalTrajectoryPositionOld) / data_.status_.sampleTime;
   }
 
   // Enc
@@ -424,7 +424,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     data_.status_.externalEncoderVelocity =
       (data_.status_.externalEncoderPosition -
        data_.status_.
-       externalEncoderPositionOld) / data_.sampleTime_;
+       externalEncoderPositionOld) / data_.status_.sampleTime;
   }
 }
 
@@ -470,12 +470,12 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   memcpy(&data_.controlOld_,&data_.control_,sizeof(data_.control_));
 }
 
-axisType ecmcAxisBase::getAxisType() {
-  return data_.axisType_;
+axisTypes ecmcAxisBase::getAxisType() {
+  return data_.status_.axisType;
 }
 
 int ecmcAxisBase::getAxisID() {
-  return data_.axisId_;
+  return data_.status_.axisId;
 }
 
 void ecmcAxisBase::setReset(bool reset) {
@@ -885,7 +885,7 @@ void ecmcAxisBase::printAxisStatus() {
   
   LOGINFO(
     "ecmc:: %3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6lf %6x %2d %2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
-    data_.axisId_,
+    data_.status_.axisId,
     data_.status_.currentPositionSetpoint,
     data_.status_.currentPositionActual,
     data_.status_.cntrlError,
@@ -1006,7 +1006,7 @@ int ecmcAxisBase::initAsyn() {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           data_.axisId_,
+           data_.status_.axisId,
            ERROR_AXIS_ASYN_PORT_OBJ_NULL);
     return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
   }
@@ -1307,52 +1307,52 @@ int ecmcAxisBase::initAsyn() {
   return 0;
 }
 
-//int ecmcAxisBase::getAxisDebugInfoData(char *buffer,
-//                                       int   bufferByteSize,
-//                                       int  *bytesUsed) {
-//
-//  // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
-//  int ret = snprintf(buffer,
-//                     bufferByteSize,
-//                     "%d,%lf,%lf,%lf,%lf,%lf,%" PRId64 ",%lf,%lf,%lf,%lf,%d,%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-//                     data_.axisId_,
-//                     data_.status_.currentPositionSetpoint,
-//                     data_.status_.currentPositionActual,
-//                     data_.status_.cntrlError,
-//                     data_.status_.positionTarget,
-//                     data_.status_.currentTargetPosition - data_.status_.currentPositionActual,
-//                     data_.status_.positionRaw,
-//                     data_.status_.cntrlOutput,
-//                     data_.status_.currentVelocitySetpoint,
-//                     data_.status_.currentVelocityActual,
-//                     data_.status_.currentvelocityFFRaw,
-//                     data_.status_.currentVelocitySetpointRaw,
-//                     cycleCounter_,
-//                     data_.status_.errorCode,
-//                     data_.status_.command,
-//                     data_.status_.cmdData,
-//                     data_.status_.statusWord_.seqstate,
-//                     data_.status_.trajInterlock,
-//                     data_.status_.statusWord_.lastilock,
-//                     data_.status_.statusWord_.trajsource,
-//                     data_.status_.statusWord_.encsource,
-//                     data_.status_.statusWord_.enable,
-//                     data_.status_.statusWord_.enabled,
-//                     data_.status_.statusWord_.execute,
-//                     data_.status_.statusWord_.busy,
-//                     data_.status_.statusWord_.attarget,
-//                     data_.status_.statusWord_.homed,
-//                     data_.status_.statusWord_.limitbwd,
-//                     data_.status_.statusWord_.limitfwd,
-//                     data_.status_.statusWord_.homeswitch);
-//
-//  if ((ret >= bufferByteSize) || (ret <= 0)) {
-//    *bytesUsed = 0;
-//    return ERROR_AXIS_PRINT_TO_BUFFER_FAIL;
-//  }
-//  *bytesUsed = ret;
-//  return 0;
-//}
+int ecmcAxisBase::getAxisDebugInfoData(char *buffer,
+                                       int   bufferByteSize,
+                                       int  *bytesUsed) {
+
+  // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
+  int ret = snprintf(buffer,
+                     bufferByteSize,
+                     "%d,%lf,%lf,%lf,%lf,%lf,%" PRId64",%lf,%lf,%lf,%lf,%" PRId64",%d,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+                     data_.status_.axisId,
+                     data_.status_.currentPositionSetpoint,
+                     data_.status_.currentPositionActual,
+                     data_.status_.cntrlError,
+                     data_.status_.currentTargetPosition,
+                     data_.status_.currentTargetPosition - data_.status_.currentPositionActual,
+                     data_.status_.currentPositionActualRaw,
+                     data_.status_.cntrlOutput,
+                     data_.status_.currentVelocitySetpoint,
+                     data_.status_.currentVelocityActual,
+                     data_.status_.currentvelocityFFRaw,
+                     data_.status_.currentVelocitySetpointRaw,
+                     cycleCounter_,
+                     data_.status_.errorCode,
+                     (int)data_.status_.command,
+                     data_.status_.cmdData,
+                     data_.status_.statusWord_.seqstate,
+                     (int)data_.interlocks_.interlockStatus,
+                     data_.status_.statusWord_.lastilock,
+                     data_.status_.statusWord_.trajsource,
+                     data_.status_.statusWord_.encsource,
+                     data_.status_.statusWord_.enable,
+                     data_.status_.statusWord_.enabled,
+                     data_.status_.statusWord_.execute,
+                     data_.status_.statusWord_.busy,
+                     data_.status_.statusWord_.attarget,
+                     data_.status_.statusWord_.homed,
+                     data_.status_.statusWord_.limitbwd,
+                     data_.status_.statusWord_.limitfwd,
+                     data_.status_.statusWord_.homeswitch);
+
+  if ((ret >= bufferByteSize) || (ret <= 0)) {
+    *bytesUsed = 0;
+    return ERROR_AXIS_PRINT_TO_BUFFER_FAIL;
+  }
+  *bytesUsed = ret;
+  return 0;
+}
 
 int ecmcAxisBase::setEcStatusOutputEntry(ecmcEcEntry *entry) {
   statusOutputEntry_ = entry;
@@ -1395,7 +1395,7 @@ int ecmcAxisBase::setModRange(double mod) {
   if (mod < 0) {
     LOGERR(
       "ERROR (axis %d): Modulo factor out of range. Must be a positive value (0x%x).\n",
-      data_.axisId_,
+      data_.status_.axisId,
       ERROR_AXIS_MODULO_OUT_OF_RANGE);
 
     return setErrorID(__FILE__,
@@ -1415,7 +1415,7 @@ int ecmcAxisBase::setModType(int type) {
   if ((type < 0) || (type >= ECMC_MOD_MOTION_MAX)) {
     LOGERR(
       "ERROR (axis %d): Modulo type out of range (0x%x).\n",
-      data_.axisId_, ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE);
+      data_.status_.axisId, ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE);
 
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -1482,7 +1482,7 @@ void ecmcAxisBase::refreshStatusWd() {
     data_.interlocks_.bwdSoftLimitInterlock;
 
   // bit 21 axis type
-  data_.status_.statusWord_.axisType = data_.axisType_ ==
+  data_.status_.statusWord_.axisType = data_.status_.axisType ==
                                                ECMC_AXIS_TYPE_VIRTUAL;
   // bit 26..31 lastActiveInterlock type
   data_.status_.statusWord_.lastilock =
@@ -1636,7 +1636,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       nameFormat,
       ERROR_AXIS_ASYN_PORT_OBJ_NULL);
     return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
@@ -1658,7 +1658,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       nameFormat,
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
@@ -1677,7 +1677,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1698,7 +1698,7 @@ int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
 
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -1754,7 +1754,7 @@ int ecmcAxisBase::moveAbsolutePosition(
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
 
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -1815,7 +1815,7 @@ int ecmcAxisBase::moveRelativePosition(
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
 
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -1876,7 +1876,7 @@ int ecmcAxisBase::moveVelocity(
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
 
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -1939,7 +1939,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
 
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -1951,7 +1951,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_, ERROR_AXIS_BUSY);
+      data_.status_.axisId, ERROR_AXIS_BUSY);
 
     return setErrorID(ERROR_AXIS_BUSY);
   }
@@ -2027,7 +2027,7 @@ int ecmcAxisBase::moveHome() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL);
 
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
@@ -2039,7 +2039,7 @@ int ecmcAxisBase::moveHome() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_, ERROR_AXIS_BUSY);
+      data_.status_.axisId, ERROR_AXIS_BUSY);
 
     return setErrorID(ERROR_AXIS_BUSY);
   }
@@ -2136,7 +2136,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2149,7 +2149,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, *tmpcontrolWordPtr);
+    data_.status_.axisId, *tmpcontrolWordPtr);
 
 
   // Check if com is blocked but allow stop cmd
@@ -2179,7 +2179,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED);
     return asynError;
   }
@@ -2342,7 +2342,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     returnVal = asynError;
   }
 
-  errorCode = setAxisPLCEnable(data_.axisId_, data_.control_.controlWord_.plcEnableCmd);
+  errorCode = setAxisPLCEnable(data_.status_.axisId, data_.control_.controlWord_.plcEnableCmd);
 
   if (errorCode) {
     returnVal = asynError;
@@ -2372,7 +2372,7 @@ void ecmcAxisBase::initControlWord() {
   // Fill all controlWord with actual data before rt
   int plcEnable = 0;
 
-  getAxisPLCEnable(data_.axisId_, &plcEnable);
+  getAxisPLCEnable(data_.status_.axisId, &plcEnable);
   data_.control_.controlWord_.plcEnableCmd = plcEnable;
   data_.control_.controlWord_.enableCmd = getEnable();  
   data_.control_.controlWord_.executeCmd    = getExecute();
@@ -2399,7 +2399,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2415,7 +2415,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_,
+      data_.status_.axisId,
       errorCode);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
@@ -2427,7 +2427,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, index);
+    data_.status_.axisId, index);
 
   return asynSuccess;
 }
@@ -2441,7 +2441,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2455,7 +2455,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, velocityTarget_);
+    data_.status_.axisId, velocityTarget_);
 
   // Write at next execute command
 
@@ -2471,7 +2471,7 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2484,7 +2484,7 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, acceleration_);
+    data_.status_.axisId, acceleration_);
 
   acceleration_ = acc;
 
@@ -2502,7 +2502,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2516,7 +2516,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, deceleration_);
+    data_.status_.axisId, deceleration_);
 
   // Write at next execute command
 
@@ -2532,7 +2532,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2546,7 +2546,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, positionTarget_);
+    data_.status_.axisId, positionTarget_);
 
   return asynSuccess;
 }
@@ -2560,7 +2560,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2575,7 +2575,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_WHILE_BUSY);
     return asynError;
@@ -2586,7 +2586,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, pos);
+    data_.status_.axisId, pos);
 
   // Set position
   return setPosition(pos) ? asynError : asynSuccess;
@@ -2601,7 +2601,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2615,7 +2615,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, command_);
+    data_.status_.axisId, command_);
 
   return asynSuccess;
 }
@@ -2629,7 +2629,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_.axisId_);
+      data_.status_.axisId);
 
     setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
     return asynError;
@@ -2643,7 +2643,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.axisId_, cmdData_);
+    data_.status_.axisId, cmdData_);
 
   return asynSuccess;
 }
@@ -2694,7 +2694,7 @@ int ecmcAxisBase::addEncoder() {
   }
   encArray_[data_.status_.encoderCount] = new ecmcEncoder(asynPortDriver_,
                                                           &data_,
-                                                          data_.sampleTime_,
+                                                          data_.status_.sampleTime,
                                                           data_.status_.encoderCount);
   data_.control_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
   data_.status_.encoderCount++;
@@ -2706,12 +2706,12 @@ int ecmcAxisBase::addEncoder() {
 int ecmcAxisBase::selectCSPDriveEncoder(int index) {
   
   // Comamnd only makes sense if REAL axis
-  if(data_.axisType_ != ECMC_AXIS_TYPE_REAL) {
+  if(data_.status_.axisType != ECMC_AXIS_TYPE_REAL) {
     LOGERR("%s/%s:%d: ERROR (axis %d): Command only valid for axes of type REAL.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           data_.axisId_);
+           data_.status_.axisId);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -2723,7 +2723,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           data_.axisId_);
+           data_.status_.axisId);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -2743,7 +2743,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
             __FILE__,
             __FUNCTION__,
             __LINE__,
-            data_.axisId_);
+            data_.status_.axisId);
     
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -2895,7 +2895,6 @@ void ecmcAxisBase::setTargetVel(double velTarget) {
 
 void ecmcAxisBase::setAcc(double acc) {
   getSeq()->setAcc(acc);
-
   // also set for ecmc interface
   acceleration_ = acc;
   axAsynParams_[ECMC_ASYN_AX_ACC_ID]->refreshParamRT(1);
@@ -3048,13 +3047,13 @@ void ecmcAxisBase::autoEnableSM() {
     setErrorID(ERROR_AUTO_ENABLE_TIMEOUT);
     return;
   } else {
-    autoEnableTimeCounter_ += data_.sampleTime_;
+    autoEnableTimeCounter_ += data_.status_.sampleTime;
   }
 
   if(data_.status_.statusWord_.enabled) {
     autoEnableTimeCounter_ = 0;
     autoEnableRequest_= false;
-    printf("Axis[%d]: Auto enable axis and triggering motion\n", data_.axisId_);
+    printf("Axis[%d]: Auto enable axis and triggering motion\n", data_.status_.axisId);
     setExecute(1,1); // need ignore busy 
     setGlobalBusy(false); // Need to clear the global busy bit. Now seq->busy is used
     return;
@@ -3077,10 +3076,10 @@ void ecmcAxisBase::autoDisableSM() {
   }
   
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
-    printf("Axis[%d]: Auto disable axis (axis idle for %lfs)\n", data_.axisId_,autoDisableAfterS_);
+    printf("Axis[%d]: Auto disable axis (axis idle for %lfs)\n", data_.status_.axisId,autoDisableAfterS_);
     setEnable(0);
   } else {
-    autoDisbleTimeCounter_+= data_.sampleTime_;
+    autoDisbleTimeCounter_+= data_.status_.sampleTime;
   }
 }
 
@@ -3112,3 +3111,8 @@ int ecmcAxisBase::setEnableAutoDisable(bool enable) {
   enableAutoDisable_ = enable;
   return 0;
 }
+
+ecmcAxisDataStatus* ecmcAxisBase::getAxisStatusDataPtr() {
+  return &data_.status_;
+}
+

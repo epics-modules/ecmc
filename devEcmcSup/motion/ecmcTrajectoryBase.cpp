@@ -186,7 +186,7 @@ int ecmcTrajectoryBase::validate() {
                       ERROR_TRAJ_INVALID_SAMPLE_TIME);
   }
 
-  if (data_->command_.moduloRange < 0) {
+  if (data_->control_.moduloRange < 0) {
     LOGERR("%s/%s:%d: ERROR: Modulo factor out of range (0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -206,9 +206,9 @@ motionDirection ecmcTrajectoryBase::checkDirection(double oldPos,
   double diff = newPos - oldPos;
 
   // No modulo or no overflow in modulo
-  if ((data_->command_.moduloRange == 0) ||
+  if ((data_->control_.moduloRange == 0) ||
       (std::abs(diff) <
-       data_->command_.moduloRange * ECMC_OVER_UNDER_FLOW_FACTOR)) {
+       data_->control_.moduloRange * ECMC_OVER_UNDER_FLOW_FACTOR)) {
     if (newPos > oldPos) {
       return ECMC_DIR_FORWARD;
     } else if (newPos < oldPos) {
@@ -241,7 +241,7 @@ double ecmcTrajectoryBase::distModulo(double          from,
                                       double          to,
                                       motionDirection direction) {
   // check if modulo enabled
-  if (data_->command_.moduloRange == 0) {
+  if (data_->control_.moduloRange == 0) {
     return dist(from, to);
   }
 
@@ -252,7 +252,7 @@ double ecmcTrajectoryBase::distModulo(double          from,
     if (from >= to) {
       return to - from;
     }
-    return -from - (data_->command_.moduloRange - to);
+    return -from - (data_->control_.moduloRange - to);
 
     break;
 
@@ -261,7 +261,7 @@ double ecmcTrajectoryBase::distModulo(double          from,
     if (from <= to) {
       return to - from;
     }
-    return to + (data_->command_.moduloRange - from);
+    return to + (data_->control_.moduloRange - from);
 
     break;
 
@@ -272,15 +272,15 @@ double ecmcTrajectoryBase::distModulo(double          from,
 }
 
 double ecmcTrajectoryBase::checkModuloPos(double pos) {
-  // check modulo (allowed range 0..data_->command_.moduloRange)
+  // check modulo (allowed range 0..data_->control_.moduloRange)
   double posSetTemp = pos;
 
-  if (data_->command_.moduloRange != 0) {
+  if (data_->control_.moduloRange != 0) {
     if (posSetTemp >= 0) {
-      posSetTemp = std::fmod(posSetTemp, data_->command_.moduloRange);
+      posSetTemp = std::fmod(posSetTemp, data_->control_.moduloRange);
     } else {
-      posSetTemp = std::fmod(posSetTemp, data_->command_.moduloRange) +
-                   data_->command_.moduloRange;
+      posSetTemp = std::fmod(posSetTemp, data_->control_.moduloRange) +
+                   data_->control_.moduloRange;
     }
   }
 
@@ -302,7 +302,7 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
 
 
   // Modulo motion
-  if (data_->command_.moduloRange > 0) {
+  if (data_->control_.moduloRange > 0) {
     // Do not allow on the fly change for modulo motion
     if (busy_) {
       LOGERR(
@@ -320,11 +320,11 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
 
     pos = checkModuloPos(pos);
 
-    switch (data_->command_.moduloType) {
+    switch (data_->control_.moduloType) {
     case ECMC_MOD_MOTION_BWD:
 
       if (currentPositionSetpoint_ < pos) {
-        pos = pos - data_->command_.moduloRange;
+        pos = pos - data_->control_.moduloRange;
       }
 
       break;
@@ -332,7 +332,7 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
     case ECMC_MOD_MOTION_FWD:
 
       if (currentPositionSetpoint_ > pos) {
-        pos = pos + data_->command_.moduloRange;
+        pos = pos + data_->control_.moduloRange;
       }
 
       break;
@@ -350,11 +350,11 @@ void ecmcTrajectoryBase::setTargetPos(double pos) {
 
       if (distBWD < distFWD) {
         if (currentPositionSetpoint_ < pos) {
-          pos = pos - data_->command_.moduloRange;
+          pos = pos - data_->control_.moduloRange;
         }
       } else {
         if (currentPositionSetpoint_ > pos) {
-          pos = pos + data_->command_.moduloRange;
+          pos = pos + data_->control_.moduloRange;
         }
       }
       break;
@@ -435,7 +435,7 @@ double ecmcTrajectoryBase::getNextPosSet() {
   // Updates trajectory setpoint
 
   // Some error occured. Axis lost enable.. abort
-  if (busy_ && !data_->status_.enabled) {
+  if (busy_ && !data_->status_.statusWord_.enabled) {
     double tempPos = getCurrentPosSet();
     busy_ = false;
     updateSetpoint(tempPos, 0, 0, busy_);
@@ -457,7 +457,7 @@ double ecmcTrajectoryBase::getNextPosSet() {
 
   index_++;
 
-  if (!execute_ && (data_->command_.trajSource == ECMC_DATA_SOURCE_INTERNAL)) {
+  if (!execute_ && (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL)) {
     data_->interlocks_.noExecuteInterlock = true;    
     data_->refreshInterlocks();
   }

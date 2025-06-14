@@ -93,8 +93,8 @@ private:
   ecmcMotorRecordController *pC_; /**< Pointer to the asynMotorController to which this axis belongs.
                                    *   Abbreviated because it is used very frequently */
   struct {
-    ecmcAxisDataStatus statusBinDataOld;
-    ecmcAxisDataStatus statusBinData;
+    ecmcAxisDataStatus statusOld_;
+    ecmcAxisDataStatus status_;
     ecmcAxisBase      *ecmcAxis;
     double             manualVelocSlow;
     double             manualVelocFast;

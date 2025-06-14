@@ -402,7 +402,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
 
   // Filter value with mask
   rawPosUint_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
-
+  data_->status_.currentPositionActualRaw = rawPosUint_;
   // if(!encInitilized_ && masterOk_) {
   if (!encInitilized_) {
     // if ready bit defined
@@ -416,7 +416,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
           __FILE__,
           __FUNCTION__,
           __LINE__,
-          data_->axisId_);
+          data_->status_.axisId);
       }
     } else {
       // else latch value at positive edge of masterOK
@@ -432,7 +432,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
           __FILE__,
           __FUNCTION__,
           __LINE__,
-          data_->axisId_);
+          data_->status_.axisId);
       }
     }
   }
@@ -530,7 +530,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   if(enableVelocityFilter_) {
     actVelLocal_ = velocityFilter_->getFiltVelo(distTraveled);
   } else {
-    actVelLocal_ = distTraveled/data_->sampleTime_;
+    actVelLocal_ = distTraveled/data_->status_.sampleTime;
   }
   return 0;
 }
@@ -596,7 +596,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_->axisId_);
+        data_->status_.axisId);
     }
 
     if ((hwWarning_ == 0) && (hwWarningOld_ > 0)) {
@@ -605,7 +605,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_->axisId_);
+        data_->status_.axisId);
     }
     hwWarningOld_ = hwWarning_;
   }
@@ -924,7 +924,7 @@ int ecmcEncoder::validate() {
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_->axisId_,
+        data_->status_.axisId,
         ERROR_ENC_HOME_TRIGG_LINKS_INVALID);
       return setErrorID(__FILE__,
                         __FUNCTION__,
@@ -939,7 +939,7 @@ int ecmcEncoder::validate() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       index_,
       ERROR_ENC_ASYN_PARAM_NULL);
 
@@ -955,7 +955,7 @@ int ecmcEncoder::validate() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       index_,
       ERROR_ENC_ASYN_PARAM_NULL);
 
@@ -1172,7 +1172,7 @@ int ecmcEncoder::initAsyn() {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           data_->axisId_,
+           data_->status_.axisId,
            ERROR_AXIS_ASYN_PORT_OBJ_NULL);
     return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
   }
@@ -1186,7 +1186,7 @@ int ecmcEncoder::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME "%d",
-                       data_->axisId_,
+                       data_->status_.axisId,
                        localIndex);
 
   if (charCount >= sizeof(buffer) - 1) {
@@ -1195,7 +1195,7 @@ int ecmcEncoder::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_POS_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
@@ -1215,7 +1215,7 @@ int ecmcEncoder::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1227,7 +1227,7 @@ int ecmcEncoder::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME "%d",
-                       data_->axisId_,
+                       data_->status_.axisId,
                        localIndex);
 
 
@@ -1237,7 +1237,7 @@ int ecmcEncoder::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
@@ -1257,7 +1257,7 @@ int ecmcEncoder::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1271,7 +1271,7 @@ int ecmcEncoder::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_ENC_ERR_ID_NAME "%d",
-                       data_->axisId_,
+                       data_->status_.axisId,
                        localIndex);
 
 
@@ -1281,7 +1281,7 @@ int ecmcEncoder::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ECMC_AX_STR "%d." ECMC_ASYN_ENC_ERR_ID_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
@@ -1301,7 +1301,7 @@ int ecmcEncoder::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -1467,7 +1467,7 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_->axisId_,
+        data_->status_.axisId,
         index_,
         ERROR_ENC_LOOKUP_TABLE_NOT_LOADED);
         return setErrorID(__FILE__,
@@ -1483,7 +1483,7 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_->axisId_,
+        data_->status_.axisId,
         index_,
         ERROR_ENC_LOOKUP_TABLE_NOT_VALID);
         return setErrorID(__FILE__,

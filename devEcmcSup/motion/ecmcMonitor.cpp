@@ -857,7 +857,7 @@ int  ecmcMonitor::checkStall() {
         stallCheckAtTargetAtCycle_ = stallMinTimeoutCycles_;
       }
       if(data_->control_.controlWord_.enableDbgPrintout) {
-        printf("Axis[%d]: Time to check stall after: %" PRIu64 "\n", data_->axisId_, stallCheckAtTargetAtCycle_);        
+        printf("Axis[%d]: Time to check stall after: %" PRIu64 "\n", data_->status_.axisId, stallCheckAtTargetAtCycle_);        
       }
     }
   }
@@ -868,7 +868,7 @@ int  ecmcMonitor::checkStall() {
     data_->interlocks_.stallInterlock = false;
     if(!data_->statusOld_.statusWord_.attarget) {
       if(data_->control_.controlWord_.enableDbgPrintout) {
-        printf("Axis[%d]: No stall.. Brilliant!!\n",data_->axisId_);
+        printf("Axis[%d]: No stall.. Brilliant!!\n",data_->status_.axisId);
       }
     }
     maxStallCounter_ = 0;
@@ -878,7 +878,7 @@ int  ecmcMonitor::checkStall() {
   if((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
      (stallCheckAtTargetAtCycle_ > 0)) {
     if(data_->control_.controlWord_.enableDbgPrintout) {
-      printf("Axis[%d]: Stall...\n",data_->axisId_);
+      printf("Axis[%d]: Stall...\n",data_->status_.axisId);
     }
     stallCheckAtTargetAtCycle_ = 0;
     data_->interlocks_.stallInterlock = true;    

@@ -270,7 +270,7 @@ enum {
   ECMC_PRIO_HIGH = 72
 };
 
-enum axisType {
+enum axisTypes {
   ECMC_AXIS_TYPE_BASE       = 0,
   ECMC_AXIS_TYPE_REAL       = 1,
   ECMC_AXIS_TYPE_VIRTUAL    = 2,

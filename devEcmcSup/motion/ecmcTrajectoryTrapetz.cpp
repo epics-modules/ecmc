@@ -103,7 +103,7 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
                                            posSetTemp);
 
   // Stop ramp when running external
-  bool externalSourceStopTraj = data_->command_.trajSource !=
+  bool externalSourceStopTraj = data_->status_.statusWord_.trajsource !=
                                 ECMC_DATA_SOURCE_INTERNAL;
 
   if (externalSourceStopTraj ||

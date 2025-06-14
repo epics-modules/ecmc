@@ -433,68 +433,6 @@ int getAxisDebugInfoData(int axisIndex, char *buffer, int bufferByteSize) {
                                                &bytesUsed);
 }
 
-int getAxisStatusStructV2(int axisIndex, char *buffer, int bufferByteSize) {
-  LOGINFO4("%s/%s:%d axisIndex=%d\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisIndex);
-
-  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
-
-  ecmcAxisStatusType data;
-  int error = axes[axisIndex]->getDebugInfoData(&data);
-
-  if (error) {
-    return error;
-  }
-
-  // (Ax,PosSet,PosAct,PosErr,PosTarg,DistLeft,CntrOut,VelFFSet,VelAct,VelFFRaw,VelRaw,CycleCounter,
-  // Error,Co,CD,St,IL,TS,ES,En,Ena,Ex,Bu,Ta,L-,L+,Ho");
-  int ret = snprintf(buffer,
-                     bufferByteSize,
-                     "Main.M%d.stAxisStatusV2=%g,%g,%" PRId64 ",%g,%g,%g,%g,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-                     axisIndex,
-                     data.onChangeData.positionTarget,
-                     data.onChangeData.positionActual,
-                     data.onChangeData.positionRaw,
-
-                     // UINT64_t
-                     data.onChangeData.velocitySetpoint,
-                     data.onChangeData.velocityActual,
-                     data.acceleration,
-                     data.deceleration,
-                     data.cycleCounter,
-                     0,
-
-                     // EtherCAT time low32 not available yet
-                     0,
-
-                     // EtherCAT time high32 not available yet
-                     data.onChangeData.statusWd.enable,
-                     data.onChangeData.statusWd.enabled,
-                     data.onChangeData.statusWd.execute,
-                     data.onChangeData.command,
-                     data.onChangeData.cmdData,
-                     data.onChangeData.statusWd.limitbwd,
-                     data.onChangeData.statusWd.limitfwd,
-                     data.onChangeData.statusWd.homeswitch,
-                     data.onChangeData.error > 0,
-                     data.onChangeData.error,
-                     data.reset,
-                     data.onChangeData.statusWd.homed,
-                     data.onChangeData.statusWd.busy,
-                     data.onChangeData.statusWd.attarget,
-                     data.moving,
-                     data.stall);
-
-  if ((ret >= bufferByteSize) || (ret <= 0)) {
-    return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
-  }
-
-  return 0;
-}
-
 int setAxisEnable(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,

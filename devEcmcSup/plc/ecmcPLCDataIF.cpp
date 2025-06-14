@@ -358,7 +358,7 @@ int ecmcPLCDataIF::readAxis() {
     return ERROR_PLC_TRAJ_NULL;
   }
 
-  ecmcAxisStatusType *axisData = axis_->getDebugInfoDataPointer();
+  ecmcAxisDataStatus *axisData = axis_->getDebugInfoDataPointer();
 
   switch (dataSourceAxis_) {
   case ECMC_AXIS_DATA_NONE:
@@ -370,48 +370,48 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_POS_SET:
-    data_ = axisData->onChangeData.positionSetpoint;
+    data_ = axisData->currentPositionSetpoint;
     break;
 
   case ECMC_AXIS_DATA_POS_ACT:
-    data_ = axisData->onChangeData.positionActual;
+    data_ = axisData->currentPositionActual;
     break;
 
   case ECMC_AXIS_DATA_CNTRL_ERROR:
-    data_ = axisData->onChangeData.cntrlError;
+    data_ = axisData->cntrlError;
     break;
 
   case ECMC_AXIS_DATA_POS_TARGET:
-    data_ = axisData->onChangeData.positionTarget;
+    data_ = axisData->currentTargetPosition;
     break;
 
   case ECMC_AXIS_DATA_POS_ERROR:
-    data_ = axisData->onChangeData.positionError;
+    data_ = axisData->currentPositionSetpoint - axisData->currentPositionActual;
     break;
 
   case ECMC_AXIS_DATA_POS_RAW:
     // Risc of data loss
-    data_ = static_cast<double>(axisData->onChangeData.positionRaw);
+    data_ = static_cast<double>(axisData->currentPositionActualRaw);
     break;
 
   case ECMC_AXIS_DATA_CNTRL_OUT:
-    data_ = axisData->onChangeData.cntrlOutput;
+    data_ = axisData->cntrlOutput;
     break;
 
   case ECMC_AXIS_DATA_VEL_SET:
-    data_ = axisData->onChangeData.velocitySetpoint;
+    data_ = axisData->currentVelocitySetpoint;
     break;
 
   case ECMC_AXIS_DATA_VEL_ACT:
-    data_ = axisData->onChangeData.velocityActual;
+    data_ = axisData->currentVelocityActual;
     break;
 
   case ECMC_AXIS_DATA_VEL_SET_FF_RAW:
-    data_ = axisData->onChangeData.velocityFFRaw;
+    data_ = axisData->currentvelocityFFRaw;
     break;
 
   case ECMC_AXIS_DATA_VEL_SET_RAW:
-    data_ = static_cast<double>(axisData->onChangeData.velocitySetpointRaw);
+    data_ = static_cast<double>(axisData->currentVelocitySetpointRaw);
     break;
 
   case ECMC_AXIS_DATA_CYCLE_COUNTER:
@@ -419,68 +419,68 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_ERROR:
-    data_ = static_cast<double>(axisData->onChangeData.error);
+    data_ = static_cast<double>(axisData->error);
     break;
 
   case ECMC_AXIS_DATA_COMMAND:
-    data_ = static_cast<double>(axisData->onChangeData.command);
+    data_ = static_cast<double>(axisData->command);
     break;
 
   case ECMC_AXIS_DATA_CMD_DATA:
-    data_ = static_cast<double>(axisData->onChangeData.cmdData);
+    data_ = static_cast<double>(axisData->cmdData);
     break;
 
   case ECMC_AXIS_DATA_SEQ_STATE:
-    data_ = static_cast<double>(axisData->onChangeData.seqState);
+    data_ = static_cast<double>(axisData->seqState);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-    data_ = static_cast<double>(axisData->onChangeData.trajInterlock == 0);
+    data_ = static_cast<double>(axisData->trajInterlock == 0);
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.trajsource);
+    data_ = static_cast<double>(axisData->statusWord_.trajsource);
     break;
 
   case ECMC_AXIS_DATA_ENC_SOURCE:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.encsource);
+    data_ = static_cast<double>(axisData->statusWord_.encsource);
     break;
 
   case ECMC_AXIS_DATA_ENABLE:
 
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.enable);
+    data_ = static_cast<double>(axisData->statusWord_.enable);
     break;
 
   case ECMC_AXIS_DATA_ENABLED:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.enabled);
+    data_ = static_cast<double>(axisData->statusWord_.enabled);
     break;
 
   case ECMC_AXIS_DATA_EXECUTE:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.execute);
+    data_ = static_cast<double>(axisData->statusWord_.execute);
     break;
 
   case ECMC_AXIS_DATA_BUSY:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.busy);
+    data_ = static_cast<double>(axisData->statusWord_.busy);
     break;
 
   case ECMC_AXIS_DATA_AT_TARGET:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.attarget);
+    data_ = static_cast<double>(axisData->statusWord_.attarget);
     break;
 
   case ECMC_AXIS_DATA_HOMED:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.homed);
+    data_ = static_cast<double>(axisData->statusWord_.homed);
     break;
 
   case ECMC_AXIS_DATA_LIMIT_BWD:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.limitbwd);
+    data_ = static_cast<double>(axisData->statusWord_.limitbwd);
     break;
 
   case ECMC_AXIS_DATA_LIMIT_FWD:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.limitfwd);
+    data_ = static_cast<double>(axisData->statusWord_.limitfwd);
     break;
 
   case ECMC_AXIS_DATA_HOME_SWITCH:
-    data_ = static_cast<double>(axisData->onChangeData.statusWd.homeswitch);
+    data_ = static_cast<double>(axisData->statusWord_.homeswitch);
     break;
 
   case ECMC_AXIS_DATA_RESET:
@@ -542,12 +542,12 @@ int ecmcPLCDataIF::readAxis() {
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
     data_ =
-      static_cast<double>(axisData->onChangeData.statusWd.sumilockbwd == 0);
+      static_cast<double>(axisData->statusWord_.sumilockbwd == 0);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
     data_ =
-      static_cast<double>(axisData->onChangeData.statusWd.sumilockfwd == 0);
+      static_cast<double>(axisData->statusWord_.sumilockfwd == 0);
     break;
 
   case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:

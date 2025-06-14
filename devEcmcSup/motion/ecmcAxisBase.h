@@ -102,40 +102,6 @@ typedef struct {
   unsigned int  dummy        : 26;
 } ecmcMRCmds;
 
-//typedef struct {
-//  double                 positionSetpoint;
-//  double                 positionActual;
-//  double                 positionError;
-//  double                 positionTarget;
-//  double                 cntrlError;
-//  double                 cntrlOutput;
-//  double                 velocityActual;
-//  double                 velocitySetpoint;
-//  double                 velocityFFRaw;
-//  int64_t                positionRaw;
-//  double                 homeposition;
-//  int                    error;
-//  int                    velocitySetpointRaw;
-//  int                    seqState;
-//  int                    cmdData;
-//  motionCommandTypes     command;
-//  interlockTypes         trajInterlock;
-//  //ecmcAxisStatusWordType statusWd;
-//} ecmcAxisStatusOnChangeType;
-//
-//typedef struct {
-//  int                        axisID;
-//  int                        cycleCounter;
-//  double                     acceleration;
-//  double                     deceleration;
-//  double                     soflimFwd;
-//  double                     soflimBwd;
-//  bool                       reset  : 1;
-//  bool                       moving : 1;
-//  bool                       stall  : 1;
-//  ecmcAxisStatusOnChangeType onChangeData;
-//} ecmcAxisStatusType;
-
 class ecmcAxisBase : public ecmcError {
 public:
   ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
@@ -175,6 +141,10 @@ public:
   int                        getCmdData();
   int                        slowExecute();
   int                        setGlobalBusy(bool busy);  // Allow for sequences
+  ecmcAxisDataStatus*        getAxisStatusDataPtr();
+  int                        getAxisDebugInfoData(char *buffer,
+                                       int   bufferByteSize,
+                                       int  *bytesUsed);
   ecmcTrajectoryBase*        getTraj();
   ecmcMonitor*               getMon();
   ecmcEncoder*               getEnc();
@@ -188,7 +158,7 @@ public:
   int                        getPosSet(double *pos);
   int                        getVelSet(double *vel);
   int                        getVelAct(double *vel);
-  axisType                   getAxisType();
+  axisTypes                  getAxisType();
   int                        getAxisID();
   void                       setReset(bool reset);
   bool                       getReset();

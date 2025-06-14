@@ -3812,21 +3812,6 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     return 0;
   }
 
-  /* stAxisStatus? */  /* GetAxisDebugInfoData(in axisIndex) */
-  nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
-
-  if (nvals == 1) {
-    int error = getAxisDebugInfoData(iValue,
-                                     &cIdBuffer[0],
-                                     sizeof(cIdBuffer));
-
-    if (error) {
-      cmd_buf_printf(buffer, "Error: %d", error);
-      return 0;
-    }
-    cmd_buf_printf(buffer, "%s", cIdBuffer);
-    return 0;
-  }
 
   /*GetAxisEncPosRaw(int axisIndex)*/
   nvals = sscanf(myarg_1, "GetAxisEncPosRaw(%d)", &iValue);
@@ -3840,22 +3825,6 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
       return 0;
     }
     cmd_buf_printf(buffer, "%" PRId64, iTemp);
-    return 0;
-  }
-
-  /* GetAxisDebugInfoData(in axisIndex) */
-  nvals = sscanf(myarg_1, "GetAxisDebugInfoData(%d)", &iValue);
-
-  if (nvals == 1) {
-    int error = getAxisDebugInfoData(iValue,
-                                     &cIdBuffer[0],
-                                     sizeof(cIdBuffer));
-
-    if (error) {
-      cmd_buf_printf(buffer, "Error: %d", error);
-      return 0;
-    }
-    cmd_buf_printf(buffer, "%s", cIdBuffer);
     return 0;
   }
 

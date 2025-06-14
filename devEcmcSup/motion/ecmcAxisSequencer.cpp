@@ -55,10 +55,6 @@ void ecmcAxisSequencer::initVars() {
   homeEnablePostMove_    = false;
   homePostMoveTargetPos_ = 0;
   seqPosHomeState_       = 0;
-  defaultAcc_            = 0;
-  defaultDec_            = 0;
-  acc_                   = 0;
-  dec_                   = 0;
   modeSetEntry_          = NULL;
   modeActEntry_          = NULL;
   modeAct_               = 0;
@@ -697,7 +693,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       if ((traj_ != NULL) &&
           (getPrimEnc() != NULL) &&
           (mon_ != NULL) &&
-          ((cntrl_ != NULL) || (data_->axisType_ == ECMC_AXIS_TYPE_VIRTUAL))) {
+          ((cntrl_ != NULL) || (data_->status_.axisType == ECMC_AXIS_TYPE_VIRTUAL))) {
         seqInProgress_      = true;
         localSeqBusy_       = true;
         data_->status_.statusWord_.busy = true;
@@ -738,7 +734,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                             ERROR_SEQ_MON_NULL);
         }
 
-        if ((cntrl_ == NULL) && (data_->axisType_ != ECMC_AXIS_TYPE_VIRTUAL)) {
+        if ((cntrl_ == NULL) && (data_->status_.axisType != ECMC_AXIS_TYPE_VIRTUAL)) {
           return setErrorID(__FILE__,
                             __FUNCTION__,
                             __LINE__,
@@ -3124,9 +3120,9 @@ int ecmcAxisSequencer::validate() {
 }
 
 int ecmcAxisSequencer::setSequenceTimeout(int timeout) {
-  if (data_->sampleTime_ > 0) {
+  if (data_->status_.sampleTime > 0) {
     // Seconds
-    seqTimeout_ = timeout / data_->sampleTime_;
+    seqTimeout_ = timeout / data_->status_.sampleTime;
   } else {
     seqTimeout_ = timeout;
   }
@@ -3207,7 +3203,7 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
     // Ref all encoders that are configured to be homed. Always ref primary encoder.
     if (encArray_[i]->getRefAtHoming() || i == data_->control_.primaryEncIndex ) {
       if(data_->control_.controlWord_.enableDbgPrintout) {
-        printf("INFO: Axis [%d]: Setting new position to encoder[%d]: %lf\n",data_->axisId_,i,newPosition);
+        printf("INFO: Axis [%d]: Setting new position to encoder[%d]: %lf\n",data_->status_.axisId,i,newPosition);
       }
       encArray_[i]->setActPos(newPosition);
       encArray_[i]->setHomed(true);
@@ -3366,49 +3362,47 @@ ecmcEncoder * ecmcAxisSequencer::getCSPEnc() {
 }
 
 void ecmcAxisSequencer::setDefaultAcc(double acc) {
-  defaultAcc_ = acc;
-
-  if (defaultDec_ == 0) {
-    defaultDec_ = defaultAcc_;
+  data_->control_.acceleration = acc;
+  data_->status_.currentAccelerationSetpoint = acc;
+  if (data_->control_.deceleration == 0) {
+    data_->control_.deceleration = data_->control_.acceleration;
   }
 }
 
 void ecmcAxisSequencer::setDefaultDec(double dec) {
-  defaultDec_ = dec;
-
-  if (defaultAcc_ == 0) {
-    defaultAcc_ = defaultDec_;
+  data_->control_.deceleration = dec;
+  data_->status_.currentDecelerationSetpoint = dec;
+  if (  data_->control_.acceleration == 0) {
+      data_->control_.acceleration = data_->control_.deceleration;
   }
 }
 
 void ecmcAxisSequencer::setAcc(double acc) {
-  acc_ = acc;
-
+  data_->status_.currentAccelerationSetpoint = acc;
   if (data_->control_.command != ECMC_CMD_HOMING) {
-    getTraj()->setAcc(acc_);
+    getTraj()->setAcc(data_->status_.currentAccelerationSetpoint);
   }
 }
 
 void ecmcAxisSequencer::setDec(double dec) {
-  dec_ = dec;
-
+  data_->status_.currentDecelerationSetpoint = dec;
   if (data_->control_.command != ECMC_CMD_HOMING) {
-    getTraj()->setDec(dec_);
+    getTraj()->setDec(data_->status_.currentDecelerationSetpoint);
   }
 }
 
 void ecmcAxisSequencer::setTrajAccAndDec() {
   // Revert to defaullt acc and dec if needed
-  if (acc_ > 0) {
-    getTraj()->setAcc(acc_);
-  } else if (defaultAcc_ > 0) {
-    getTraj()->setAcc(defaultAcc_);
+  if (data_->status_.currentAccelerationSetpoint > 0) {
+    getTraj()->setAcc(data_->status_.currentAccelerationSetpoint);
+  } else if (data_->control_.acceleration > 0) {
+    getTraj()->setAcc(data_->control_.acceleration);
   }
 
-  if (dec_ > 0) {
-    getTraj()->setDec(dec_);
-  } else if (defaultDec_ > 0) {
-    getTraj()->setDec(defaultDec_);
+  if (data_->status_.currentDecelerationSetpoint > 0) {
+    getTraj()->setDec(data_->status_.currentDecelerationSetpoint);
+  } else if (data_->control_.deceleration > 0) {
+    getTraj()->setDec(data_->control_.deceleration);
   }
 }
 

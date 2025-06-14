@@ -41,7 +41,7 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
   initAsyn();
 
   stateMachineTimeoutCycles_ = ERROR_DRV_STATE_MACHINE_TIME_OUT_TIME /
-                               data_->sampleTime_;
+                               data_->status_.sampleTime;
 }
 
 void ecmcDriveBase::initVars() {
@@ -375,7 +375,7 @@ void ecmcDriveBase::writeEntries() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_);
+      data_->status_.axisId);
     setWarningID(WARNING_DRV_ENABLED_LOST);
   } else {
     if (getWarningID() == WARNING_DRV_ENABLED_LOST) {
@@ -563,7 +563,7 @@ int ecmcDriveBase::validate() {
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_->axisId_,
+        data_->status_.axisId,
         ERROR_DRV_CSP_ENC_NULL);
   
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_CSP_ENC_NULL);      
@@ -581,7 +581,7 @@ int ecmcDriveBase::validate() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ERROR_DRV_INVALID_DRV_MODE);
 
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_INVALID_DRV_MODE);
@@ -817,7 +817,7 @@ int ecmcDriveBase::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ERROR_DRV_ASYN_PORT_OBJ_NULL);
     return ERROR_DRV_ASYN_PORT_OBJ_NULL;
   }
@@ -831,7 +831,7 @@ int ecmcDriveBase::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_DRV_STR "." ECMC_DRV_ENABLE_STR,
-                       data_->axisId_);
+                       data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -839,7 +839,7 @@ int ecmcDriveBase::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL;
   }
@@ -857,7 +857,7 @@ int ecmcDriveBase::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -872,7 +872,7 @@ int ecmcDriveBase::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_DRV_STR "." ECMC_ASYN_AX_STATUS_NAME,
-                       data_->axisId_);
+                       data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -880,7 +880,7 @@ int ecmcDriveBase::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_DRV_ASYN_PRINT_TO_BUFFER_FAIL;
   }
@@ -898,7 +898,7 @@ int ecmcDriveBase::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -918,7 +918,7 @@ void ecmcDriveBase::refreshAsyn() {
 }
 
 int ecmcDriveBase::setStateMachineTimeout(double seconds) {
-  stateMachineTimeoutCycles_ = seconds / data_->sampleTime_;
+  stateMachineTimeoutCycles_ = seconds / data_->status_.sampleTime;
   return 0;
 }
 
@@ -934,3 +934,5 @@ void ecmcDriveBase::setCspEnc(ecmcEncoder * enc) {
 int ecmcDriveBase::hwReady() {
   return 1;
 }
+
+

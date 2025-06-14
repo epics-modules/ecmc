@@ -22,9 +22,9 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
                sampleTime,
                trajType) {
   initVars();
-  data_.axisId_     = axisID;
-  data_.axisType_   = ECMC_AXIS_TYPE_REAL;
-  data_.sampleTime_ = sampleTime;
+  data_.status_.axisId     = axisID;
+  data_.status_.axisType   = ECMC_AXIS_TYPE_REAL;
+  data_.status_.sampleTime = sampleTime;
 
   // Create drive
   switch (drvType) {
@@ -50,7 +50,7 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
   }
 
   // Create PID
-  cntrl_ = new ecmcPIDController(asynPortDriver_, &data_, data_.sampleTime_);
+  cntrl_ = new ecmcPIDController(asynPortDriver_, &data_, data_.status_.sampleTime);
 
   seq_.setCntrl(cntrl_);
 }
@@ -218,7 +218,7 @@ int ecmcAxisReal::validate() {
              __FILE__,
              __FUNCTION__,
              __LINE__,
-             data_.axisId_,
+             data_.status_.axisId,
              i,
              ERROR_AXIS_ENC_OBJECT_NULL);
 
@@ -235,7 +235,7 @@ int ecmcAxisReal::validate() {
              __FILE__,
              __FUNCTION__,
              __LINE__,
-             data_.axisId_,
+             data_.status_.axisId,
              i,
              error);
 

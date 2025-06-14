@@ -217,10 +217,6 @@ private:
   bool enablePos_;
   bool enableConstVel_;
   bool enableHome_;
-  double defaultAcc_;
-  double defaultDec_;
-  double acc_;
-  double dec_;
 
   // Entries for drive modes
   ecmcEcEntry *modeSetEntry_;

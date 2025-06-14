@@ -174,7 +174,7 @@ double ecmcPIDController::control(double posError, double ff) {
   // Simple PID loop with FF.
   // Consider to make base class to derive other controller types
 
-  if (!data_->command_.controlWord_.enableCmd || data_->interlocks_.driveSummaryInterlock) {
+  if (!data_->status_.statusWord_.enable || data_->interlocks_.driveSummaryInterlock) {
     reset();
     return 0;
   }
@@ -235,7 +235,7 @@ int ecmcPIDController::validate() {
   }
 
   // Output warning if CSP and any of the position control parameters have been set.
-  if ((data_->command_.drvMode == ECMC_DRV_MODE_CSP) && settingMade_ && data_->command_.cspDrvEncIndex < 0) {
+  if ((data_->control_.drvMode == ECMC_DRV_MODE_CSP) && settingMade_ && data_->control_.cspDrvEncIndex < 0) {
     LOGERR("%s/%s:%d: WARNING: Axis %d: ecmc position control disabled (no dedicated CSP encoder selected). Settings of ecmc position control loop params will be discarded."
            " Position control loop params needs to be set directly in drive (where the position loop is executed).\n",
            __FILE__,

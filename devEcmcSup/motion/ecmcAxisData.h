@@ -47,9 +47,9 @@ typedef struct {
   int                cspDrvEncIndex;     // encoder channel used for drive local CSP (defaults to primary)
   int                cfgEncIndex;        // Encoder currrently configured
   int                drvModeSet;
+  double             acceleration;
+  double             deceleration;
   ecmcAsynAxisControlType controlWord_;
-  //dataSource trajSource;
-  //dataSource encSource;
   driveMode  drvMode;
 } ecmcAxisDataCommand;
 
@@ -97,10 +97,13 @@ typedef struct {
   double  currentVelocitySetpoint;
   int64_t currentVelocitySetpointRaw;
   int64_t currentPositionSetpointRaw;
+  int64_t currentPositionActualRaw;
   double  currentvelocityFFRaw;
   double  cntrlError;
   double  cntrlOutput;
   double  cntrlOutputOld;
+  double  currentAccelerationSetpoint;
+  double  currentDecelerationSetpoint;
   int     command; ///#  xx
   int     cmdData; ///#  xx
   int     encoderCount;
@@ -112,6 +115,9 @@ typedef struct {
   double  distToStop;
   int     errorCode;
   int     warningCode;
+  int axisId;
+  axisTypes axisType;
+  double  sampleTime;
   ecmcAxisStatusWordType statusWord_;
 } ecmcAxisDataStatus;
 
@@ -162,9 +168,6 @@ public:
   ecmcAxisDataStatus statusOld_;
   ecmcAxisDataInterlocks interlocks_;
   ecmcAxisDataInterlocks interlocksOld_;    
-  int axisId_;
-  axisType axisType_;
-  double sampleTime_;
 
 private:
   int      setSummaryInterlocks();
