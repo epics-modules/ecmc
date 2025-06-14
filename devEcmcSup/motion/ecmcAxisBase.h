@@ -345,7 +345,6 @@ protected:
   bool firstEnableDone_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
   int printHeaderCounter_;
-  int cycleCounter_;
   int blockExtCom_;
   double oldPositionAct_;
   double oldPositionSet_;

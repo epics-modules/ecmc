@@ -115,7 +115,8 @@ typedef struct {
   double  distToStop;
   int     errorCode;
   int     warningCode;
-  int axisId;
+  int     axisId;
+  int     cycleCounter;
   axisTypes axisType;
   double  sampleTime;
   ecmcAxisStatusWordType statusWord_;

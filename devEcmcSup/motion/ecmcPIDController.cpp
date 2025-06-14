@@ -227,7 +227,7 @@ double ecmcPIDController::control(double posError, double ff) {
 }
 
 int ecmcPIDController::validate() {
-  if (data_->sampleTime_ <= 0) {
+  if (data_->status_.sampleTime <= 0) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -241,7 +241,7 @@ int ecmcPIDController::validate() {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           data_->axisId_);
+           data_->status_.axisId);
   }
 
   if ((asynKp_ == NULL) || (asynKi_ == NULL) || (asynKd_ == NULL) ||
@@ -250,7 +250,7 @@ int ecmcPIDController::validate() {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           data_->axisId_);
+           data_->status_.axisId);
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -282,7 +282,7 @@ int ecmcPIDController::initAsyn() {
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           data_->axisId_,
+           data_->status_.axisId,
            ERROR_AXIS_ASYN_PORT_OBJ_NULL);
     return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
   }
@@ -296,7 +296,7 @@ int ecmcPIDController::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME,
-                       data_->axisId_);
+                       data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -304,7 +304,7 @@ int ecmcPIDController::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
@@ -324,7 +324,7 @@ int ecmcPIDController::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -336,7 +336,7 @@ int ecmcPIDController::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KI_NAME,
-                       data_->axisId_);
+                       data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -344,7 +344,7 @@ int ecmcPIDController::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
@@ -364,7 +364,7 @@ int ecmcPIDController::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -377,7 +377,7 @@ int ecmcPIDController::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KD_NAME,
-                       data_->axisId_);
+                       data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -385,7 +385,7 @@ int ecmcPIDController::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
@@ -405,7 +405,7 @@ int ecmcPIDController::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
@@ -418,7 +418,7 @@ int ecmcPIDController::initAsyn() {
   charCount = snprintf(buffer,
                        sizeof(buffer),
                        ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KFF_NAME,
-                       data_->axisId_);
+                       data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
@@ -426,7 +426,7 @@ int ecmcPIDController::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       ECMC_AX_STR "%d." ECMC_ASYN_CNTRL_KP_NAME "%d",
       ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL);
     return ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL;
@@ -446,7 +446,7 @@ int ecmcPIDController::initAsyn() {
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      data_->axisId_,
+      data_->status_.axisId,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }

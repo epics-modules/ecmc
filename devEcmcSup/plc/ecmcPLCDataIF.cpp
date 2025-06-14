@@ -358,7 +358,7 @@ int ecmcPLCDataIF::readAxis() {
     return ERROR_PLC_TRAJ_NULL;
   }
 
-  ecmcAxisDataStatus *axisData = axis_->getDebugInfoDataPointer();
+  ecmcAxisDataStatus *axisData = axis_->getAxisStatusDataPtr();
 
   switch (dataSourceAxis_) {
   case ECMC_AXIS_DATA_NONE:
@@ -366,7 +366,7 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_AXIS_ID:
-    data_ = static_cast<double>(axisData->axisID);
+    data_ = static_cast<double>(axisData->axisId);
     break;
 
   case ECMC_AXIS_DATA_POS_SET:
@@ -419,7 +419,7 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_ERROR:
-    data_ = static_cast<double>(axisData->error);
+    data_ = static_cast<double>(axisData->errorCode);
     break;
 
   case ECMC_AXIS_DATA_COMMAND:
@@ -431,11 +431,11 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_SEQ_STATE:
-    data_ = static_cast<double>(axisData->seqState);
+    data_ = static_cast<double>(axisData->statusWord_.seqstate);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-    data_ = static_cast<double>(axisData->trajInterlock == 0);
+    data_ = static_cast<double>( axis_->getSumInterlock() == 0);
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:

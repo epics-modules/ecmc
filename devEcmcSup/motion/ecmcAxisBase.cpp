@@ -246,9 +246,9 @@ void ecmcAxisBase::initVars() {
   data_.status_.currentPositionSetpoint    = 0;
   data_.status_.currentVelocityActual      = 0;
   data_.status_.currentVelocitySetpoint    = 0;
-  data_.status_.sampleTime                        = 1 / 1000;
+  data_.status_.sampleTime                 = 1 / 1000;
+  data_.status_.cycleCounter               = 0;
   printHeaderCounter_      = 0;
-  cycleCounter_            = 0;
   axisState_               = ECMC_AXIS_STATE_STARTUP;
   oldPositionAct_          = 0;
   oldPositionSet_          = 0;
@@ -443,7 +443,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
     encArray_[i]->writeEntries();
   }
   
-  cycleCounter_++;
+   data_.status_.cycleCounter++;
 
   // Update asyn parameters
   axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
@@ -985,7 +985,7 @@ bool ecmcAxisBase::getTrajBusy() {
 
 int ecmcAxisBase::getCycleCounter() {
   /// Use for watchdog purpose (will overflow)
-  return cycleCounter_;
+  return  data_.status_.cycleCounter;
 }
 
 bool ecmcAxisBase::getEnable() {
@@ -1327,7 +1327,7 @@ int ecmcAxisBase::getAxisDebugInfoData(char *buffer,
                      data_.status_.currentVelocityActual,
                      data_.status_.currentvelocityFFRaw,
                      data_.status_.currentVelocitySetpointRaw,
-                     cycleCounter_,
+                      data_.status_.cycleCounter,
                      data_.status_.errorCode,
                      (int)data_.status_.command,
                      data_.status_.cmdData,

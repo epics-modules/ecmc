@@ -2898,7 +2898,7 @@ int createAxis(int index, int type, int drvType, int trajType) {
   }
 
   try {
-    switch ((axisType)type) {
+    switch ((axisTypes)type) {
     case ECMC_AXIS_TYPE_REAL:
 
       if (axes[index] != NULL) {
