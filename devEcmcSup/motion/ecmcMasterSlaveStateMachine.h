@@ -19,7 +19,7 @@
 * machine state is set to "SLAVED_AXES_IN_CHARGE" and commands for the master axes are blocked. All axes in the slaved 
 * group can the be moved. When all motion commands are executed and no axes in the slaved group are busy then all 
 * slaved axes are disabled and the state is set to ECMC_MST_SLV_STATE_SLAVES. If a axis in the master axes group gets a command then the state
-* is set to "ECMC_MST_SLV_STATE_MSTS_IN_CHRGE", then all master axis can receive commands, in addition to that, all axes in both 
+* is set to "ECMC_MST_SLV_STATE_MASTERS", then all master axis can receive commands, in addition to that, all axes in both 
 * groups are enabled (if auto enable is configured) and the trajectory source for the slaved axes are set to external.
 * Any of the master axes can now receive commands but commands to the slaved axes are discarded. Again,
 * after all motion commands in the master group have been finalized the all axes disable and state is back to idle.

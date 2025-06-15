@@ -571,6 +571,8 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
     data_.refreshInterlocks();
     data_.status_.statusWord_.busy         = true;
     data_.control_.controlWord_.executeCmd = true;
+    data_.status_.statusWord_.execute = true;
+    
   } else {
     traj_->setStartPos(data_.status_.currentPositionActual);
     traj_->initStopRamp(data_.status_.currentPositionActual,
@@ -582,6 +584,7 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
     if (!getEnable()) {
       data_.status_.statusWord_.busy         = false;
       data_.control_.controlWord_.executeCmd = false;
+      data_.status_.statusWord_.execute = false;
     }
   }
 
@@ -2374,10 +2377,10 @@ void ecmcAxisBase::initControlWord() {
 
   getAxisPLCEnable(data_.status_.axisId, &plcEnable);
   data_.control_.controlWord_.plcEnableCmd = plcEnable;
-  data_.control_.controlWord_.enableCmd = getEnable();  
-  data_.control_.controlWord_.executeCmd    = getExecute();
-  data_.control_.controlWord_.resetCmd      = getReset();
-  data_.control_.controlWord_.encSourceCmd  = getEncDataSourceType() ==
+  data_.control_.controlWord_.enableCmd    = getEnable();  
+  data_.control_.controlWord_.executeCmd   = getExecute();
+  data_.control_.controlWord_.resetCmd     = getReset();
+  data_.control_.controlWord_.encSourceCmd = getEncDataSourceType() ==
                               ECMC_DATA_SOURCE_EXTERNAL;
   data_.control_.controlWord_.trajSourceCmd = getTrajDataSourceType() ==
                                ECMC_DATA_SOURCE_EXTERNAL;
