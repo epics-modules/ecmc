@@ -136,7 +136,7 @@ void ecmcAxisSequencer::execute() {
   // If internal source and not PVT-mode then interlocks are handled in trajectory generator
   // TODO Would be nice to change this design..
   trajLock_ = trajLock_ && (data_->status_.statusWord_.trajsource != ECMC_DATA_SOURCE_INTERNAL || pvtmode_);
-  newTrajLockEdge_ = trajLock_ && !trajLockOld_; // && data_->control_.controlWord_.executeCmd && executeOld_;
+  newTrajLockEdge_ = trajLock_ && !trajLockOld_; // && data_->status_.statusWord_.execute && executeOld_;
 
   // Only init stopramp once if PVT
   if(newTrajLockEdge_) {
@@ -505,7 +505,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEVEL:
 
-    if (data_->control_.controlWord_.executeCmd  && !executeOld_) {
+    if (data_->status_.statusWord_.execute  && !executeOld_) {
       if (!enableConstVel_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -541,7 +541,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEREL:
 
-    if (data_->control_.controlWord_.executeCmd && !executeOld_) {
+    if (data_->status_.statusWord_.execute && !executeOld_) {
       if (!enablePos_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -577,7 +577,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEABS:
     
-    if (data_->control_.controlWord_.executeCmd && !executeOld_) {
+    if (data_->status_.statusWord_.execute && !executeOld_) {
       if (!enablePos_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -641,7 +641,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     if(data_->control_.controlWord_.enableDbgPrintout) {
       printf("RUNNING PVT ABS execute %d\n",data_->status_.statusWord_.execute);
     }
-    if (data_->control_.controlWord_.executeCmd && !executeOld_) {
+    if (data_->status_.statusWord_.execute && !executeOld_) {
       errorCode = validatePVT();
       if(errorCode) {
         return errorCode;
@@ -669,7 +669,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       modeSet = modeHomingCmd_;
     }
 
-    if (data_->control_.controlWord_.executeCmd && !executeOld_) {
+    if (data_->status_.statusWord_.execute && !executeOld_) {
       // oldPrimaryEnc_ = data_->control_.primaryEncIndex;
       // encoder data source must be internal for homing
       traj_->setStartPos(data_->status_.currentPositionSetpoint);
@@ -776,7 +776,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
   }
 
-  if (data_->control_.controlWord_.executeCmd  && !executeOld_) {
+  if (data_->status_.statusWord_.execute  && !executeOld_) {
     // write mode if entry is linked
     if (modeSetEntry_) {
       modeSetEntry_->writeValue((uint64_t)modeSet);
