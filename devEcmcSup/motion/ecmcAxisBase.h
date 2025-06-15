@@ -348,7 +348,6 @@ protected:
   int blockExtCom_;
   double oldPositionAct_;
   double oldPositionSet_;
-
   double positionTarget_;
   double velocityTarget_;
   double setEncoderPos_;
@@ -364,9 +363,6 @@ protected:
   // Commads to trigger MR record actions like SYNC and STOP from ecmc over PVs
   ecmcMRCmds mrCmds_;
   ecmcMRCmds mrCmdsOld_;
-  //dedicated command to enable
-  int enableCmd_;
-
   bool globalBusy_;
   bool ignoreMRDisableStatusCheck_;
   double autoEnableTimoutS_;

@@ -134,7 +134,6 @@ public:
   int          setAutoModeActEntry(ecmcEcEntry *entry);
   int          setAutoModeHomigCmd(int homing);
   int          setAutoModeMotionCmd(int motion);
-  void         setEnable(int enable);
 
 private:
   void         executeInternal();

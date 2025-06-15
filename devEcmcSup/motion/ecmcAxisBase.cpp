@@ -293,7 +293,6 @@ void ecmcAxisBase::initVars() {
   autoEnableRequest_            = false;
   autoEnableTimeCounter_        = 0.0;
   autoDisbleTimeCounter_        = 0.0;
-  enableCmd_                    = 0;
   enableAutoEnable_             = 0;
   enableAutoDisable_            = 0;
 }
@@ -989,11 +988,11 @@ int ecmcAxisBase::getCycleCounter() {
 }
 
 bool ecmcAxisBase::getEnable() {
-  return data_.control_.controlWord_.enableCmd;
+  return data_.status_.statusWord_.enable;
 }
 
 bool ecmcAxisBase::getEnabled() {
-  return data_.status_.statusWord_.enabled && data_.control_.controlWord_.enableCmd;
+  return data_.status_.statusWord_.enabled && data_.status_.statusWord_.enable;
 }
 
 bool ecmcAxisBase::getEnabledOnly() {
@@ -1520,7 +1519,7 @@ int ecmcAxisBase::setEnable(bool enable) {
   }
 
   data_.status_.statusWord_.enable = enable;
-  enableCmd_ = enable;
+  data_.control_.controlWord_.enableCmd = enable;
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
 
   return 0;
@@ -2163,7 +2162,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     }
 
     if (data_.control_.controlWord_.stopCmd) {
-      stopMotion(enableCmd_ == 0);    
+      stopMotion(data_.control_.controlWord_.enableCmd == 0);    
       //errorCode            = setExecute(0);
       data_.control_.controlWord_.stopCmd = 0;  // auto reset
       data_.control_.controlWord_.executeCmd = 0;
@@ -2193,8 +2192,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   if (data_.control_.controlWord_.stopCmd) {
-    stopMotion(enableCmd_ == 0);    
-    //errorCode            = setExecute(0);
+    stopMotion(data_.control_.controlWord_.enableCmd == 0);    
     data_.control_.controlWord_.stopCmd = 0;  // auto reset
     data_.control_.controlWord_.executeCmd = 0;
     if (errorCode) {
@@ -3034,7 +3032,7 @@ void ecmcAxisBase::autoEnableSM() {
     return;
   }
   
-  if(!data_.control_.controlWord_.enableCmd) {
+  if(!data_.status_.statusWord_.enable) {
     printf("HEPP\n");
     setEnable(true);
   }

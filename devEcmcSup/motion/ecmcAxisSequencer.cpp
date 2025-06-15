@@ -3503,26 +3503,6 @@ int ecmcAxisSequencer::validatePVT() {
   return 0;
 }
 
-void ecmcAxisSequencer::setEnable(int enable) {
-  if (enable && !data_->control_.controlWord_.enableCmd) {
-     traj_->setStartPos(data_->status_.currentPositionActual);
-     traj_->setCurrentPosSet(data_->status_.currentPositionActual);
-     traj_->setTargetPos(data_->status_.currentPositionActual);
-     data_->status_.currentTargetPosition =
-       data_->status_.currentPositionActual;
-     data_->status_.currentPositionSetpoint =
-       data_->status_.currentPositionActual;
-     data_->status_.currentPositionSetpointOld =
-       data_->status_.currentPositionSetpoint;
-     data_->status_.currentVelocitySetpoint = 0;
-  }
-  traj_->setEnable(enable);
-
-  if(pvtOk_) {
-    pvt_->setExecute(0);
-  }
-}
-
 void ecmcAxisSequencer::initStop() {
   if(data_->control_.controlWord_.enableDbgPrintout) {
     printf("ecmcAxisSequencer::initStopPVT(): Initiating new stopramp...\n");
