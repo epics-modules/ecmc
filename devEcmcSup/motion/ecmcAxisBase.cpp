@@ -270,7 +270,6 @@ void ecmcAxisBase::initVars() {
   enableExtEncVeloFilter_    = false;
   disableAxisAtErrorReset_   = false;
   positionTarget_            = 0;
-  velocityTarget_            = 0;
   command_                   = ECMC_CMD_MOVEABS;
   cmdData_                   = 0;
   data_.status_.encoderCount = 0;
@@ -282,8 +281,8 @@ void ecmcAxisBase::initVars() {
   allowSourceChangeWhenEnabled_ = false;
   setEncoderPos_                = 0;
   encPrimIndexAsyn_             = 1;
-  acceleration_                 = 0;
-  deceleration_                 = 0;
+   data_.status_.currentAccelerationSetpoint                 = 0;
+  data_.status_.currentDecelerationSetpoint = 0;
   hwReady_                      = 0;
   hwReadyOld_                   = 0;
   globalBusy_                   = 0;
@@ -854,11 +853,13 @@ int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
 
 int ecmcAxisBase::setCommand(motionCommandTypes command) {
   seq_.setCommand(command);
+  axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(1);
   return 0;
 }
 
 int ecmcAxisBase::setCmdData(int cmdData) {
   seq_.setCmdData(cmdData);
+  axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(1);
   return 0;
 }
 
@@ -1150,8 +1151,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARG_VELO_NAME,
                               asynParamFloat64,
                               ECMC_EC_F64,
-                              (uint8_t *)&(velocityTarget_),
-                              sizeof(velocityTarget_),
+                              (uint8_t *)&(data_.control_.velocityTarget),
+                              sizeof(data_.control_.velocityTarget),
                               &paramTemp);
 
   if (errorCode) {
@@ -1182,8 +1183,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACC_NAME,
                               asynParamFloat64,
                               ECMC_EC_F64,
-                              (uint8_t *)&(acceleration_),
-                              sizeof(acceleration_),
+                              (uint8_t *)&( data_.status_.currentAccelerationSetpoint),
+                              sizeof( data_.status_.currentAccelerationSetpoint),
                               &paramTemp);
 
   if (errorCode) {
@@ -1198,8 +1199,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_DEC_NAME,
                               asynParamFloat64,
                               ECMC_EC_F64,
-                              (uint8_t *)&(deceleration_),
-                              sizeof(deceleration_),
+                              (uint8_t *)&(data_.status_.currentDecelerationSetpoint),
+                              sizeof(data_.status_.currentDecelerationSetpoint),
                               &paramTemp);
 
   if (errorCode) {
@@ -1747,7 +1748,7 @@ int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
 
 // just a wrapper to the below
 int ecmcAxisBase::moveAbsolutePosition(double positionSet) {
-  return  moveAbsolutePosition(positionSet,data_.control_.velocityTarget,acceleration_,deceleration_);
+  return  moveAbsolutePosition(positionSet,data_.control_.velocityTarget, data_.status_.currentAccelerationSetpoint,data_.status_.currentDecelerationSetpoint);
 }
 
 int ecmcAxisBase::moveAbsolutePosition(
@@ -2231,17 +2232,17 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
           // }
 
           // For homing velos, check if special homing velos,
-          // otherwise fallback on velocityTarget_
+          // otherwise fallback on data_.control_.velocityTarget
           double temp = getPrimEnc()->getHomeVelOffCam();
 
           if (temp <= 0) {
-            temp = velocityTarget_;
+            temp = data_.control_.velocityTarget;
           }
           getSeq()->setHomeVelOffCam(temp);
           temp = getPrimEnc()->getHomeVelTowardsCam();
 
           if (temp <= 0) {
-            temp = velocityTarget_;
+            temp = data_.control_.velocityTarget;
           }
           getSeq()->setHomeVelTowardsCam(temp);
 
@@ -2255,10 +2256,10 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
       if (command_ != ECMC_CMD_HOMING) {   // Not homing!
         // allow on the fly updates of target velo and target pos
-        getSeq()->setTargetVel(velocityTarget_);
+        getSeq()->setTargetVel(data_.control_.velocityTarget);
         getSeq()->setTargetPos(positionTarget_);
-        getSeq()->setAcc(acceleration_);
-        getSeq()->setDec(deceleration_);
+        getSeq()->setAcc( data_.status_.currentAccelerationSetpoint);
+        getSeq()->setDec(data_.status_.currentDecelerationSetpoint);
       }
 
       // if not already moving then trigg new motion cmd
@@ -2276,7 +2277,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       }
     }
   }
-
+  
   data_.control_.controlWord_.executeCmd = 0; // auto reset
 
   if(data_.status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
@@ -2284,10 +2285,10 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakBwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
       setCmdData(0);
-      getSeq()->setTargetVel(velocityTarget_);
+      getSeq()->setTargetVel(data_.control_.velocityTarget);
       getSeq()->setTargetPos(-std::abs(positionTarget_));  // Backward
-      getSeq()->setAcc(acceleration_);
-      getSeq()->setDec(deceleration_);
+      getSeq()->setAcc( data_.status_.currentAccelerationSetpoint);
+      getSeq()->setDec(data_.status_.currentDecelerationSetpoint);
       errorCode = setExecute(0);
       if (errorCode) {
         returnVal = asynError;
@@ -2303,10 +2304,10 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakFwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
       setCmdData(0);
-      getSeq()->setTargetVel(velocityTarget_);
+      getSeq()->setTargetVel(data_.control_.velocityTarget);
       getSeq()->setTargetPos(std::abs(positionTarget_)); // Forward
-      getSeq()->setAcc(acceleration_);
-      getSeq()->setDec(deceleration_);
+      getSeq()->setAcc( data_.status_.currentAccelerationSetpoint);
+      getSeq()->setDec(data_.status_.currentDecelerationSetpoint);
       errorCode = setExecute(0);
       if (errorCode) {
         returnVal = asynError;
@@ -2456,14 +2457,14 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
   }
   double velo = 0;
   memcpy(&velo, data, bytes);
-  velocityTarget_ = velo;
+  data_.control_.velocityTarget = velo;
 
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Target Velo = %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.status_.axisId, velocityTarget_);
+    data_.status_.axisId, data_.control_.velocityTarget);
 
   // Write at next execute command
 
@@ -2492,10 +2493,10 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.status_.axisId, acceleration_);
+    data_.status_.axisId,  data_.status_.currentAccelerationSetpoint);
 
-  acceleration_ = acc;
-
+   data_.status_.currentAccelerationSetpoint = acc;
+  data_.status_.currentAccelerationSetpoint = acc;
   // Write at next execute command
 
   return asynSuccess;
@@ -2517,14 +2518,14 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
   }
   double dec = 0;
   memcpy(&dec, data, bytes);
-  deceleration_ = dec;
+  data_.status_.currentDecelerationSetpoint = dec;
 
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Deceleration = %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.status_.axisId, deceleration_);
+    data_.status_.axisId, ata_.status_.currentDecelerationSetpoint);
 
   // Write at next execute command
 
@@ -2897,14 +2898,14 @@ void ecmcAxisBase::setTargetVel(double velTarget) {
   getSeq()->setTargetVel(velTarget);
 
   // also set for ecmc interface
-  velocityTarget_ = velTarget;
+  data_.control_.velocityTarget = velTarget;
   axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(1);
 }
 
 void ecmcAxisBase::setAcc(double acc) {
   getSeq()->setAcc(acc);
   // also set for ecmc interface
-  acceleration_ = acc;
+   data_.status_.currentAccelerationSetpoint = acc;
   axAsynParams_[ECMC_ASYN_AX_ACC_ID]->refreshParamRT(1);
 }
 
@@ -2912,7 +2913,7 @@ void ecmcAxisBase::setDec(double dec) {
   getSeq()->setDec(dec);
 
   // also set for ecmc interface
-  deceleration_ = dec;
+  data_.status_.currentDecelerationSetpoint = dec;
   axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
 }
 

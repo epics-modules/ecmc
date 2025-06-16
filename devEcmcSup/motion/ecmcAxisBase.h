@@ -348,11 +348,7 @@ protected:
   int blockExtCom_;
   double oldPositionAct_;
   double oldPositionSet_;
-  double positionTarget_;
-  double velocityTarget_;
   double setEncoderPos_;
-  double acceleration_;
-  double deceleration_;
   motionCommandTypes command_;
   int cmdData_;  
   ecmcTrajTypes currentTrajType_;
