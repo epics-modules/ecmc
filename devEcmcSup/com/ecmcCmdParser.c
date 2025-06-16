@@ -2999,20 +2999,6 @@ static int handleTwincatSyntax(const char           *myarg_1,
   }
   myarg_1++;  /* Jump over '.' */
 
-  /* Main.Mx.stAxisStatusV2? */
-  if (0 == strcmp(myarg_1, "stAxisStatusV2?")) {
-    char tempBuffer[1024];  // TODO consider more efficient implementations
-    int  error =
-      getAxisStatusStructV2(motor_axis_no, &tempBuffer[0], sizeof(tempBuffer));
-
-    if (error) {
-      cmd_buf_printf(buffer, "Error: %d", error);
-      return 0;
-    }
-    cmd_buf_printf(buffer, "%s", tempBuffer);
-    return 0;
-  }
-
   /* sErrorMessage?  */
   if (!strcmp(myarg_1, "sErrorMessage?")) {
     cmd_buf_printf(buffer, "%s",

@@ -436,7 +436,12 @@ void ecmcAxisBase::postExecute(bool masterOK) {
     data_.status_.externalTrajectoryPosition;
   data_.status_.externalEncoderPositionOld =
     data_.status_.externalEncoderPosition;
-
+  
+  // status wordbit 9 homed
+  bool homedtemp = 0;
+  getAxisHomed(&homedtemp);
+  data_.status_.statusWord_.homed = homedtemp > 0;
+  
   // Write encoder entries
   for (int i = 0; i < data_.status_.encoderCount; i++) {
     encArray_[i]->writeEntries();
@@ -2082,7 +2087,7 @@ int ecmcAxisBase::moveHome() {
 int ecmcAxisBase::setPosition(double homePositionSet) {
   seq_.setNewPositionCtrlDrvTrajBumpless(homePositionSet);
   getPrimEnc()->setActPos(homePositionSet);
-  getPrimEnc()->setHomed(1);
+  setAxisHomed(1);  
   return 0;
 }
 
@@ -2278,6 +2283,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     // Tweak BWD
     if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakBwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
+      setCmdData(0);
       getSeq()->setTargetVel(velocityTarget_);
       getSeq()->setTargetPos(-std::abs(positionTarget_));  // Backward
       getSeq()->setAcc(acceleration_);
@@ -2296,6 +2302,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     // Tweak FWD
     if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakFwdCmd && !getBusy()) {
       setCommand(ECMC_CMD_MOVEREL);
+      setCmdData(0);
       getSeq()->setTargetVel(velocityTarget_);
       getSeq()->setTargetPos(std::abs(positionTarget_)); // Forward
       getSeq()->setAcc(acceleration_);

@@ -279,23 +279,6 @@ int getAxisCycleCounter(int  axisIndex,
 //                         char *buffer,
 //                         int   bufferByteSize);
 
-/** \brief Get axis status structure V2.\n
- *
- * \param[in] axisIndex Axis index.\n
- * \param[in,out] buffer Pointer to char output data buffer.\n
- * \param[in] bufferByteSize Size of data buffer.\n
- *
- * \return error code.\n
- *
- * \note Example: Get information of axis 3.\n
- * "Main.M3.stAxisStatusV2?" //Command string to ecmcCmdParser.c.\n
- *
- *  \todo  "TwinCAT syntax. Needs to be changed.\n
- */
-int getAxisStatusStructV2(int   axisIndex,
-                          char *buffer,
-                          int   bufferByteSize);
-
 /** \brief Get axis execute bit.\n
  *
  * \param[in] axisIndex  Axis index.\n

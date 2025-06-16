@@ -784,6 +784,8 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
     return asynError;
   }
 
+  printf("cmdData=%d\n",cmdData);
+  
   // "-1" will lead to not overwriting anything that is set in ecmc
   errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,
                                            homPos,
