@@ -47,8 +47,8 @@ typedef struct {
   int                cspDrvEncIndex;     // encoder channel used for drive local CSP (defaults to primary)
   int                cfgEncIndex;        // Encoder currrently configured
   int                drvModeSet;
-  double             acceleration;
-  double             deceleration;
+  double             accelerationTarget;
+  double             decelerationTarget;
   ecmcAsynAxisControlType controlWord_;
   driveMode  drvMode;
 } ecmcAxisDataCommand;
@@ -96,6 +96,7 @@ typedef struct {
   double  currentVelocityActual;
   double  currentVelocitySetpoint;
   int64_t currentVelocitySetpointRaw;
+  double  currentVelocityTarget;
   int64_t currentPositionSetpointRaw;
   int64_t currentPositionActualRaw;
   double  currentvelocityFFRaw;

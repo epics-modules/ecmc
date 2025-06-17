@@ -281,6 +281,7 @@ public:
   double     getExtActPos();
   int        setAllowSourceChangeWhenEnabled(bool allow);
   void       setTargetVel(double velTarget);
+  void       setTargetPos(double posTarget);
   void       setAcc(double acc);
   void       setDec(double dec);
   void       setEmergencyStopInterlock(int stop);
@@ -349,8 +350,6 @@ protected:
   double oldPositionAct_;
   double oldPositionSet_;
   double setEncoderPos_;
-  motionCommandTypes command_;
-  int cmdData_;  
   ecmcTrajTypes currentTrajType_;
   bool allowSourceChangeWhenEnabled_;
   int encPrimIndexAsyn_;
