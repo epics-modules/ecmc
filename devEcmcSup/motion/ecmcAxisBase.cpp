@@ -137,6 +137,23 @@ asynStatus asynWriteSetEncPos(void         *data,
 }
 
 /**
+ * Callback function for asynWrites (Set Encoder Position)
+ * userObj = axis object
+ *
+ * */
+asynStatus asynWriteSetTweakValue(void         *data,
+                                  size_t        bytes,
+                                  asynParamType asynParType,
+                                  void         *userObj) {
+  if (!userObj) {
+    return asynError;
+  }
+  return ((ecmcAxisBase *)userObj)->axisAsynWriteSetTweakValue(data,
+                                                               bytes,
+                                                               asynParType);
+}
+
+/**
  * Callback function for asynWrites (Command)
  * userObj = axis object
  *
@@ -1330,7 +1347,7 @@ int ecmcAxisBase::initAsyn() {
     return errorCode;
   }
   paramTemp->setAllowWriteToEcmc(true);
-  paramTemp->setExeCmdFunctPtr(asynWriteCmdData, this); // Access to this axis
+  paramTemp->setExeCmdFunctPtr(asynWriteSetTweakValue, this); // Access to this axis
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID] = paramTemp;
   
@@ -2328,7 +2345,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
       setTargetPos(std::abs(data_.control_.tweakValue)); // Forward
-      setAcc( data_.status_.currentAccelerationSetpoint);
+      setAcc(data_.status_.currentAccelerationSetpoint);
       setDec(data_.status_.currentDecelerationSetpoint);
       errorCode = setExecute(0);
       if (errorCode) {
@@ -2553,9 +2570,9 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
   return asynSuccess;
 }
 
-asynStatus ecmcAxisBase::axisAsynWriteTweakVal(void         *data,
-                                               size_t        bytes,
-                                               asynParamType asynParType) {
+asynStatus ecmcAxisBase::axisAsynWriteSetTweakValue(void         *data,
+                                                    size_t        bytes,
+                                                    asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Write tweal value size or datatype missmatch.\n",
