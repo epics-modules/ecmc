@@ -657,7 +657,7 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_POS_TARGET:
-    axis_->getSeq()->setTargetPos(data_);
+    axis_->setTargetPos(data_);
     return 0;
 
     break;
@@ -807,15 +807,15 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_VEL_TARGET_SET:
-    axis_->getSeq()->setTargetVel(data_);
+    axis_->setTargetVel(data_);
     break;
 
   case ECMC_AXIS_DATA_ACC_TARGET_SET:
-    axis_->getSeq()->setAcc(data_);
+    axis_->setAcc(data_);
     break;
 
   case ECMC_AXIS_DATA_DEC_TARGET_SET:
-    axis_->getSeq()->setDec(data_);
+    axis_->setDec(data_);
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_BWD:
