@@ -161,10 +161,10 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
     if(mc_errorCode){
       return mc_errorCode;
     }
-    axes[index]->getSeq()->setTargetPos(pos);
-    axes[index]->getSeq()->setTargetVel(vel);
-    axes[index]->getSeq()->setDec(dec);
-    axes[index]->getSeq()->setAcc(acc);
+    axes[index]->setTargetPos(pos);
+    axes[index]->setTargetVel(vel);
+    axes[index]->setDec(dec);
+    axes[index]->setAcc(acc);
 
     mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEABS);    
     if(mc_errorCode){
@@ -209,10 +209,10 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
     if(mc_errorCode){
       return mc_errorCode;
     }
-    axes[index]->getSeq()->setTargetPos(pos);
-    axes[index]->getSeq()->setTargetVel(vel);
-    axes[index]->getSeq()->setDec(dec);
-    axes[index]->getSeq()->setAcc(acc);
+    axes[index]->setTargetPos(pos);
+    axes[index]->setTargetVel(vel);
+    axes[index]->setDec(dec);
+    axes[index]->setAcc(acc);
 
     mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEREL);    
     if(mc_errorCode){
@@ -257,9 +257,9 @@ inline double mc_move_vel(double axIndex,double execute, double vel, double acc,
     if(mc_errorCode){
       return mc_errorCode;
     }    
-    axes[index]->getSeq()->setTargetVel(vel);
-    axes[index]->getSeq()->setDec(dec);
-    axes[index]->getSeq()->setAcc(acc);
+    axes[index]->setTargetVel(vel);
+    axes[index]->setDec(dec);
+    axes[index]->setAcc(acc);
 
     mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEVEL);    
     if(mc_errorCode){
@@ -594,10 +594,10 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
       return mc_errorCode;
     }
     double pos = axes[index]->getExtSetPos();
-    axes[index]->getSeq()->setTargetPos(pos);
-    axes[index]->getSeq()->setTargetVel(vel);
-    axes[index]->getSeq()->setDec(dec);
-    axes[index]->getSeq()->setAcc(acc);
+    axes[index]->setTargetPos(pos);
+    axes[index]->setTargetVel(vel);
+    axes[index]->setDec(dec);
+    axes[index]->setAcc(acc);
 
     mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEABS);    
     if(mc_errorCode){
