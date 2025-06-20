@@ -1318,6 +1318,22 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->refreshParam(1);
   axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID] = paramTemp;
 
+  // Tweak value
+  errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TWEAK_VALUE_NAME,
+                              asynParamFloat64,
+                              ECMC_EC_F64,
+                              (uint8_t *)&(data_.control_.tweakValue),
+                              sizeof(data_.control_.tweakValue),
+                              &paramTemp);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->setExeCmdFunctPtr(asynWriteCmdData, this); // Access to this axis
+  paramTemp->refreshParam(1);
+  axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID] = paramTemp;
+  
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                       ECMC_ASYN_DEFAULT_ADDR);
   return 0;
@@ -2292,7 +2308,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       setCommand(ECMC_CMD_MOVEREL);
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
-      setTargetPos(-std::abs(data_.control_.positionTarget));  // Backward
+      setTargetPos(-std::abs(data_.control_.tweakValue));  // Backward
       setAcc(data_.status_.currentAccelerationSetpoint);
       setDec(data_.status_.currentDecelerationSetpoint);
       errorCode = setExecute(0);
@@ -2311,7 +2327,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       setCommand(ECMC_CMD_MOVEREL);
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
-      setTargetPos(std::abs(data_.control_.positionTarget)); // Forward
+      setTargetPos(std::abs(data_.control_.tweakValue)); // Forward
       setAcc( data_.status_.currentAccelerationSetpoint);
       setDec(data_.status_.currentDecelerationSetpoint);
       errorCode = setExecute(0);
@@ -2533,6 +2549,34 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
     data_.status_.axisId, data_.status_.currentDecelerationSetpoint);
 
   // Write at next execute command
+
+  return asynSuccess;
+}
+
+asynStatus ecmcAxisBase::axisAsynWriteTweakVal(void         *data,
+                                               size_t        bytes,
+                                               asynParamType asynParType) {
+  if ((bytes != 8) || (asynParType != asynParamFloat64)) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Write tweal value size or datatype missmatch.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.status_.axisId);
+
+    setWarningID(WARNING_AXIS_ASYN_CMD_DATA_ERROR);
+    return asynError;
+  }
+  double twk = 0;
+  memcpy(&twk, data, bytes);
+
+  data_.control_.tweakValue = twk;
+  LOGERR(
+    "%s/%s:%d: INFO (axis %d): Write: Tweak value = %lf.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.status_.axisId, data_.control_.tweakValue);
 
   return asynSuccess;
 }

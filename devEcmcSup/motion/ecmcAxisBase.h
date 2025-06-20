@@ -263,6 +263,9 @@ public:
   asynStatus axisAsynWriteDec(void         *data,
                               size_t        bytes,
                               asynParamType asynParType);
+  asynStatus axisAsynWriteTweakVal(void         *data,
+                                   size_t        bytes,
+                                   asynParamType asynParType);
   int        setAllowMotionFunctions(bool enablePos,
                                      bool enableConstVel,
                                      bool enableHome);

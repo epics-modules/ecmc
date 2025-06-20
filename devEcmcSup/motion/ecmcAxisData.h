@@ -37,6 +37,7 @@ typedef struct {
 typedef struct {
   double             positionTarget;
   double             velocityTarget;
+  double             tweakValue;
   double             softLimitBwd;
   double             softLimitFwd;
   double             moduloRange;
