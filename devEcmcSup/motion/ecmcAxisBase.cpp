@@ -683,17 +683,18 @@ int ecmcAxisBase::getErrorID() {
 }
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
-  if (enable && !data_.control_.controlWord_.enableCmd) {
+  printf("ecmcAxisBase::setEnableLocal(%d) atTarget %d\n",enable, data_.status_.statusWord_.attarget);
+  if (enable && !data_.status_.statusWord_.enable) {
     errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel    
-    if(!data_.status_.statusWord_.attarget || !firstEnableDone_ || !mon_->getEnableAtTargetMon()) {      
+    if( (!data_.status_.statusWord_.attarget) || (!firstEnableDone_) || (!mon_->getEnableAtTargetMon())) {
+      printf("Reset of target position");
       traj_->setStartPos(data_.status_.currentPositionActual);
       traj_->setCurrentPosSet(data_.status_.currentPositionActual);
       traj_->setTargetPos(data_.status_.currentPositionActual);
-    
-      //data_.status_.currentTargetPosition =
-      //  data_.status_.currentPositionActual;
+      setTargetPos(data_.status_.currentPositionActual);
+      
       data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
       data_.status_.currentPositionSetpointOld =
@@ -879,12 +880,14 @@ int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
 int ecmcAxisBase::setCommand(motionCommandTypes command) {
   printf("setCommand: %d\n",(int)command);
   seq_.setCommand(command);
+  data_.control_.command = command;
   axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(1);
   return 0;
 }
 
 int ecmcAxisBase::setCmdData(int cmdData) {
   seq_.setCmdData(cmdData);
+  data_.control_.cmdData = cmdData;
   axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(1);
   return 0;
 }
@@ -2325,10 +2328,10 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     // Tweak BWD
     if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakBwdCmd && !getBusy()) {
       printf("TweakBwd: %lf ,%lf, %lf , %lf\n",data_.control_.positionTarget,data_.control_.velocityTarget,data_.status_.currentAccelerationSetpoint,data_.status_.currentDecelerationSetpoint);
-      setCommand(ECMC_CMD_MOVEREL);
+      setCommand(ECMC_CMD_MOVEABS);
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
-      setTargetPos(-std::abs(data_.control_.tweakValue));  // Backward
+      setTargetPos(data_.status_.currentTargetPosition - std::abs(data_.control_.tweakValue));  // Backward
       setAcc(data_.status_.currentAccelerationSetpoint);
       setDec(data_.status_.currentDecelerationSetpoint);
 
@@ -2345,10 +2348,10 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     
     // Tweak FWD
     if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakFwdCmd && !getBusy()) {
-      setCommand(ECMC_CMD_MOVEREL);
+      setCommand(ECMC_CMD_MOVEABS);
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
-      setTargetPos(std::abs(data_.control_.tweakValue)); // Forward
+      setTargetPos(data_.status_.currentTargetPosition + std::abs(data_.control_.tweakValue)); // Forward
       setAcc(data_.status_.currentAccelerationSetpoint);
       setDec(data_.status_.currentDecelerationSetpoint);
       errorCode = setExecute(0);
@@ -2688,13 +2691,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   int command = 0;
   memcpy(&command, data, bytes);
   setCommand((motionCommandTypes)command);
-    
-  // update target position if not in relative mode
-  if(data_.status_.command != ECMC_CMD_MOVEREL) {
-    data_.control_.positionTarget = data_.status_.currentTargetPosition;
-    axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);
-  }
-
+  
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Command = 0x%x.\n",
     __FILE__,
@@ -2973,10 +2970,10 @@ int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
 void ecmcAxisBase::setTargetPos(double posTarget) {
   getSeq()->setTargetPos(posTarget);
 
-  if (data_.control_.command != ECMC_CMD_MOVEREL) {
-    data_.control_.positionTarget = posTarget;
-    axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);
-  }
+  //if (data_.control_.command != ECMC_CMD_MOVEREL) {
+  //  data_.control_.positionTarget = posTarget;
+  //  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);
+  //}
 }
 
 void ecmcAxisBase::setTargetVel(double velTarget) {

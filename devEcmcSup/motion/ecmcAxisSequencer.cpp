@@ -84,8 +84,8 @@ void ecmcAxisSequencer::init(double sampleTime) {
 void ecmcAxisSequencer::execute() {
 
   pvtmode_ = pvtOk_ && 
-      (/*data_->control_.command == ECMC_CMD_MOVEPVTREL ||*/
-       data_->control_.command == ECMC_CMD_MOVEPVTABS);
+      (/*data_->status_.command == ECMC_CMD_MOVEPVTREL ||*/
+       data_->status_.command == ECMC_CMD_MOVEPVTABS);
 
   // Trajectory (External or internal)
   if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
@@ -204,7 +204,7 @@ void ecmcAxisSequencer::executeInternal() {
   // Reset busy (set in setExecute)
   if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     // HOMING 
-    if (data_->control_.command == ECMC_CMD_HOMING) {
+    if (data_->status_.command == ECMC_CMD_HOMING) {
       data_->status_.statusWord_.busy = localSeqBusy_ || traj_->getBusy();
     } else {
      // PVT 
@@ -264,7 +264,7 @@ void ecmcAxisSequencer::executeInternal() {
   int seqReturnVal         = 0;
   ecmcHomingType homeSeqId = (ecmcHomingType)data_->control_.cmdData;
 
-  switch (data_->control_.command) {
+  switch (data_->status_.command) {
   case ECMC_CMD_JOG:
     ;
     break;
@@ -487,7 +487,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   if (data_->status_.statusWord_.execute  && !executeOld_) {
 
     // velo for homing is set in a different way
-    if (data_->control_.command != ECMC_CMD_HOMING) {
+    if (data_->status_.command != ECMC_CMD_HOMING) {
       errorCode = checkVelAccDec();
 
       if (errorCode) {
@@ -501,7 +501,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     modeSet = modeMotionCmd_;
   }
 
-  switch (data_->control_.command) {
+  switch (data_->status_.command) {
   case ECMC_CMD_JOG:
 
     // Triggered via jog inputs
@@ -794,9 +794,8 @@ bool ecmcAxisSequencer::getExecute() {
   return data_->status_.statusWord_.execute;
 }
 
-void ecmcAxisSequencer::setCommand(motionCommandTypes command) {
-  data_->control_.command = command;
-  data_->status_.command = command;
+void ecmcAxisSequencer::setCommand(motionCommandTypes command) {  
+  data_->status_.command = command;  
 }
 
 motionCommandTypes ecmcAxisSequencer::getCommand() {
@@ -804,7 +803,6 @@ motionCommandTypes ecmcAxisSequencer::getCommand() {
 }
 
 void ecmcAxisSequencer::setCmdData(int cmdData) {
-  data_->control_.cmdData = cmdData;
   data_->status_.cmdData = cmdData;
 }
 
@@ -845,7 +843,7 @@ double ecmcAxisSequencer::getJogVel() {
 }
 
 void ecmcAxisSequencer::setTargetPos(double pos) {  
-  if (data_->control_.command == ECMC_CMD_MOVEREL) {
+  if (data_->status_.command == ECMC_CMD_MOVEREL) {
     //pos = traj_->getCurrentPosSet() + pos;
     pos = data_->status_.currentTargetPosition + pos;
   }
@@ -863,7 +861,7 @@ void ecmcAxisSequencer::setTargetPos(double pos) {
 void ecmcAxisSequencer::setTargetPos(double pos, bool force) {
   if (force) {
     data_->status_.currentTargetPosition = pos;
-    data_->control_.positionTarget = pos;
+    //data_->control_.positionTarget = pos;
   } else {
     setTargetPos(pos);
   }
@@ -892,7 +890,7 @@ void ecmcAxisSequencer::setTargetVel(double velTarget) {
   data_->status_.currentVelocityTarget = velTarget;
   data_->control_.velocityTarget = velTarget;
   // Do not write to traj if homing
-  if (data_->control_.command != ECMC_CMD_HOMING) {
+  if (data_->status_.command != ECMC_CMD_HOMING) {
     traj_->setTargetVel(velTarget);
   }
 }
@@ -909,7 +907,7 @@ void ecmcAxisSequencer::setJogFwd(bool jog) {
     return;
   }
 
-  if ((data_->control_.command == ECMC_CMD_JOG) && jogFwd_) {
+  if ((data_->status_.command == ECMC_CMD_JOG) && jogFwd_) {
     traj_->setTargetVel(jogVel_);
     traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
     traj_->setExecute(jogFwd_);
@@ -934,7 +932,7 @@ void ecmcAxisSequencer::setJogBwd(bool jog) {
     return;
   }
 
-  if ((data_->control_.command == ECMC_CMD_JOG) && jogBwd_) {
+  if ((data_->status_.command == ECMC_CMD_JOG) && jogBwd_) {
     traj_->setTargetVel(-jogVel_);
     traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
     traj_->setExecute(jogBwd_);
@@ -3151,7 +3149,7 @@ int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData *data) {
 }
 
 int ecmcAxisSequencer::checkVelAccDec() {
-  if ((data_->control_.command == ECMC_CMD_HOMING) &&
+  if ((data_->status_.command == ECMC_CMD_HOMING) &&
       (data_->control_.cmdData != ECMC_SEQ_HOME_SET_POS)) {
     if ((std::abs(homeVelTowardsCam_) == 0) ||
         (std::abs(homeVelOffCam_) == 0)) {
@@ -3387,14 +3385,14 @@ void ecmcAxisSequencer::setDefaultDec(double dec) {
 
 void ecmcAxisSequencer::setAcc(double acc) {
   data_->status_.currentAccelerationSetpoint = acc;
-  if (data_->control_.command != ECMC_CMD_HOMING) {
+  if (data_->status_.command != ECMC_CMD_HOMING) {
     getTraj()->setAcc(data_->status_.currentAccelerationSetpoint);
   }  
 }
 
 void ecmcAxisSequencer::setDec(double dec) {
   data_->status_.currentDecelerationSetpoint = dec;
-  if (data_->control_.command != ECMC_CMD_HOMING) {
+  if (data_->status_.command != ECMC_CMD_HOMING) {
     getTraj()->setDec(data_->status_.currentDecelerationSetpoint);
   }  
 }
@@ -3532,7 +3530,7 @@ void ecmcAxisSequencer::initStop() {
   traj_->setExecute(1);
   
   if(pvtmode_ && !pvtStopping_) {
-    data_->control_.command = ECMC_CMD_MOVEABS;
+    data_->status_.command = ECMC_CMD_MOVEABS;
     printf("PVT stopping...\n");
     pvtStopping_ = true;  // Latch stop if in PVT
     pvt_->setExecute(0);  // stop PVT
