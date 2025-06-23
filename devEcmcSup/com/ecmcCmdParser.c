@@ -2561,6 +2561,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisTargetVel(iValue, dValue);
   }
 
+  /*int Cfg.SetAxisTweakDist(int axis_no, double value);*/
+  nvals = sscanf(myarg_1, "SetAxisTweakDist(%d,%lf)", &iValue, &dValue);
+
+  if (nvals == 2) {
+    return setAxisTweakDist(iValue, dValue);
+  }
+
   /*int Cfg.SetAxisVelAccDecTime(int axis_no, double vel,double timeToVel);*/
 
   /* Set Velcoity acceleration and deceleration

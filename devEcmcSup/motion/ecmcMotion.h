@@ -1454,6 +1454,18 @@ int setAxisTargetPos(int    axisIndex,
 int setAxisTargetVel(int    axisIndex,
                      double value);
 
+/** \brief Set axis tweak distance.\n
+ *
+  * \param[in] axisIndex  Axis index.\n
+ * \param[in] dist tweak distance.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set tweak distance for axis 3 to 5.\n
+ * "Cfg.SetAxisTweakDist(3,5)"  //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisTweakDist(int axisIndex, double value);
+
 /** \brief Set axis jog velocity setpoint.\n
  *
  * The jog velocity is the desired velocity of a motion when executing a jog

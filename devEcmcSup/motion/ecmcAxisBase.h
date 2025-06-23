@@ -285,6 +285,7 @@ public:
   int        setAllowSourceChangeWhenEnabled(bool allow);
   void       setTargetVel(double velTarget);
   void       setTargetPos(double posTarget);
+  void       setTweakDist(double dist);
   void       setAcc(double acc);
   void       setDec(double dec);
   void       setEmergencyStopInterlock(int stop);

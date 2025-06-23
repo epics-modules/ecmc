@@ -883,6 +883,22 @@ int setAxisTargetVel(int axisIndex, double value) {
   return 0;
 }
 
+int setAxisTweakDist(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  axes[axisIndex]->setTweakDist(value);
+
+  return 0;
+}
+
 int setAxisJogVel(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,

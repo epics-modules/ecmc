@@ -226,6 +226,10 @@ void ecmcAxisSequencer::executeInternal() {
     data_->status_.currentTargetPosition = data_->status_.currentPositionSetpoint;
     data_->status_.currentTargetPositionModulo = data_->status_.currentPositionSetpoint;
   } else {
+    data_->status_.currentTargetPositionModulo = traj_->getTargetPosMod();
+  }
+  
+  /*else {
     if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
       data_->status_.currentTargetPosition       = traj_->getTargetPos();
       data_->status_.currentTargetPositionModulo = traj_->getTargetPosMod();
@@ -235,7 +239,7 @@ void ecmcAxisSequencer::executeInternal() {
       data_->status_.currentTargetPositionModulo =
         data_->status_.currentPositionSetpoint;
     }
-  }
+  }*/
 
   hwLimitSwitchBwdOld_ = hwLimitSwitchBwd_;
   hwLimitSwitchFwdOld_ = hwLimitSwitchFwd_;
@@ -840,19 +844,20 @@ double ecmcAxisSequencer::getJogVel() {
   return jogVel_;
 }
 
-void ecmcAxisSequencer::setTargetPos(double pos) {
-
+void ecmcAxisSequencer::setTargetPos(double pos) {  
   if (data_->control_.command == ECMC_CMD_MOVEREL) {
-    pos = traj_->getCurrentPosSet() + pos;
+    //pos = traj_->getCurrentPosSet() + pos;
+    pos = data_->status_.currentTargetPosition + pos;
   }
-  pos                            = checkSoftLimits(pos);
+
   data_->status_.currentTargetPosition = pos;
-  data_->control_.positionTarget = pos;
+  //data_->control_.positionTarget = pos;
 
   // "On the fly change"
   if (getBusy()) {
     traj_->setTargetPos(data_->status_.currentTargetPosition);
   }
+  printf("ecmcAxisSequencer::setTargetPos(%lf)\n",pos);
 }
 
 void ecmcAxisSequencer::setTargetPos(double pos, bool force) {

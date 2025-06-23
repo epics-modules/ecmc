@@ -372,6 +372,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
       data_.status_.startupFinsished = true;
       data_.control_.positionTarget = data_.status_.currentPositionActual;
+      data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
       axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
@@ -691,8 +692,8 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
       traj_->setCurrentPosSet(data_.status_.currentPositionActual);
       traj_->setTargetPos(data_.status_.currentPositionActual);
     
-      data_.status_.currentTargetPosition =
-        data_.status_.currentPositionActual;
+      //data_.status_.currentTargetPosition =
+      //  data_.status_.currentPositionActual;
       data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
       data_.status_.currentPositionSetpointOld =
@@ -960,10 +961,6 @@ int ecmcAxisBase::setExecute(bool execute) {
     // autoEnableSM will setExecute later when axis is enabled
     return 0;
   }
-
-  if(!execute) {
-    autoEnableRequest_ = false;
-  }
   
   return setExecute(execute, false);
 }
@@ -993,7 +990,11 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
     }
   }
-  
+
+  if(!execute) {
+    autoEnableRequest_ = false;
+  }
+
   // Always reset 
   data_.control_.controlWord_.executeCmd = 0;
   axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
@@ -1505,7 +1506,7 @@ void ecmcAxisBase::refreshStatusWd() {
 
   // bit 14 softlimfwdena
   data_.status_.statusWord_.softlimfwdena =
-    data_.control_.controlWord_.enableSoftLimitFwd> 0;
+    data_.control_.controlWord_.enableSoftLimitFwd > 0;
 
   // bit 15 softlimbwdena
   data_.status_.statusWord_.softlimbwdena =
@@ -1797,6 +1798,8 @@ int ecmcAxisBase::moveAbsolutePosition(
   double velocitySet,
   double accelerationSet,
   double decelerationSet) {
+
+  printf("ecmcAxisBase::moveAbsolutePosition()\n");
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
@@ -2328,15 +2331,16 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       setTargetPos(-std::abs(data_.control_.tweakValue));  // Backward
       setAcc(data_.status_.currentAccelerationSetpoint);
       setDec(data_.status_.currentDecelerationSetpoint);
-      errorCode = setExecute(0);
+
+      errorCode = setExecute(0);      
       if (errorCode) {
         returnVal = asynError;
       }
       errorCode = setExecute(1);
-  
+
       if (errorCode) {
         returnVal = asynError;
-      }   
+      }
     }
     
     // Tweak FWD
@@ -2352,10 +2356,10 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
         returnVal = asynError;
       }
       errorCode = setExecute(1);
-  
+
       if (errorCode) {
         returnVal = asynError;
-      }   
+      }
     }
   }
 
@@ -2684,7 +2688,13 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   int command = 0;
   memcpy(&command, data, bytes);
   setCommand((motionCommandTypes)command);
-  
+    
+  // update target position if not in relative mode
+  if(data_.status_.command != ECMC_CMD_MOVEREL) {
+    data_.control_.positionTarget = data_.status_.currentTargetPosition;
+    axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);
+  }
+
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Command = 0x%x.\n",
     __FILE__,
@@ -2963,9 +2973,10 @@ int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
 void ecmcAxisBase::setTargetPos(double posTarget) {
   getSeq()->setTargetPos(posTarget);
 
-  // also set for ecmc interface
-  data_.control_.positionTarget = posTarget;
-  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);
+  if (data_.control_.command != ECMC_CMD_MOVEREL) {
+    data_.control_.positionTarget = posTarget;
+    axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);
+  }
 }
 
 void ecmcAxisBase::setTargetVel(double velTarget) {
@@ -2974,6 +2985,11 @@ void ecmcAxisBase::setTargetVel(double velTarget) {
   // also set for ecmc interface
   data_.control_.velocityTarget = velTarget;
   axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(1);
+}
+
+void ecmcAxisBase::setTweakDist(double dist) {
+  data_.control_.tweakValue = std::abs(dist);
+  axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID]->refreshParamRT(1);
 }
 
 void ecmcAxisBase::setAcc(double acc) {
@@ -3134,10 +3150,11 @@ void ecmcAxisBase::autoEnableSM() {
     autoEnableTimeCounter_ += data_.status_.sampleTime;
   }
 
-  if(data_.status_.statusWord_.enabled) {
+  if(data_.status_.statusWord_.enabled && data_.status_.statusWord_.enable && data_.statusOld_.statusWord_.enabled) {
     autoEnableTimeCounter_ = 0;
     autoEnableRequest_= false;
     printf("Axis[%d]: Auto enable axis and triggering motion\n", data_.status_.axisId);
+    setExecute(0,1); // need ignore busy
     setExecute(1,1); // need ignore busy 
     setGlobalBusy(false); // Need to clear the global busy bit. Now seq->busy is used
     return;
