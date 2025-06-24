@@ -223,7 +223,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
       data_.status_.axisId);
 
     exit(1);
-  }
+  }  
   seq_.init(sampleTime);
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
@@ -286,7 +286,8 @@ void ecmcAxisBase::initVars() {
   enableExtTrajVeloFilter_   = false;
   enableExtEncVeloFilter_    = false;
   disableAxisAtErrorReset_   = false;
-  data_.control_.positionTarget = 0;
+  data_.control_.positionTargetAbs = 0;
+  data_.control_.positionTargetRel = 0;
   data_.control_.command    = ECMC_CMD_MOVEABS;
   data_.control_.cmdData    = 0;
   data_.status_.encoderCount = 0;
@@ -312,6 +313,7 @@ void ecmcAxisBase::initVars() {
   autoDisbleTimeCounter_        = 0.0;
   enableAutoEnable_             = 0;
   enableAutoDisable_            = 0;
+  positionTargetAsyn_           = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -371,9 +373,9 @@ void ecmcAxisBase::preExecute(bool masterOK) {
       }
 
       data_.status_.startupFinsished = true;
-      data_.control_.positionTarget = data_.status_.currentPositionActual;
+      data_.control_.positionTargetAbs = data_.status_.currentPositionActual;      
       data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
-      axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(0);
+      refreshAsynTargetValue();
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
     break;
@@ -449,6 +451,11 @@ void ecmcAxisBase::postExecute(bool masterOK) {
 
   autoEnableSM();
   autoDisableSM();
+
+  // Transision from EXTERNAL to INTERNAL for stop
+  if(seq_.getTempTrajSrc()) {
+    setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL,1);
+  }
 
   data_.status_.externalTrajectoryPositionOld =
     data_.status_.externalTrajectoryPosition;
@@ -569,7 +576,9 @@ int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
 
 int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
                                                 int        force) {
-  if (refSource == data_.status_.statusWord_.trajsource) return 0;
+  if (refSource == data_.status_.statusWord_.trajsource) {     
+    return 0;
+  };
 
   if (!force) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
@@ -601,6 +610,8 @@ int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
                         data_.status_.currentVelocityActual,
                         0);
     data_.status_.statusWord_.busy = traj_->getBusy();
+    setDec(data_.control_.decelerationTarget);
+    setAcc(data_.control_.accelerationTarget);
     setTargetPos(data_.status_.currentPositionSetpoint);
 
     if (!getEnable()) {
@@ -683,18 +694,15 @@ int ecmcAxisBase::getErrorID() {
 }
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
-  printf("ecmcAxisBase::setEnableLocal(%d) atTarget %d\n",enable, data_.status_.statusWord_.attarget);
   if (enable && !data_.status_.statusWord_.enable) {
     errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel    
     if( (!data_.status_.statusWord_.attarget) || (!firstEnableDone_) || (!mon_->getEnableAtTargetMon())) {
-      printf("Reset of target position");
       traj_->setStartPos(data_.status_.currentPositionActual);
       traj_->setCurrentPosSet(data_.status_.currentPositionActual);
       traj_->setTargetPos(data_.status_.currentPositionActual);
-      setTargetPos(data_.status_.currentPositionActual);
-      
+      //setTargetPos(data_.status_.currentPositionActual);      
       data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
       data_.status_.currentPositionSetpointOld =
@@ -878,7 +886,6 @@ int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
 }
 
 int ecmcAxisBase::setCommand(motionCommandTypes command) {
-  printf("setCommand: %d\n",(int)command);
   seq_.setCommand(command);
   data_.control_.command = command;
   axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(1);
@@ -1196,8 +1203,8 @@ int ecmcAxisBase::initAsyn() {
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARG_POS_NAME,
                               asynParamFloat64,
                               ECMC_EC_F64,
-                              (uint8_t *)&(data_.control_.positionTarget),
-                              sizeof(data_.control_.positionTarget),
+                              (uint8_t *)&(positionTargetAsyn_),
+                              sizeof(positionTargetAsyn_),
                               &paramTemp);
 
   if (errorCode) {
@@ -1745,6 +1752,10 @@ int ecmcAxisBase::movePVTAbs() {
 }
 
 int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
+  if(data_.control_.controlWord_.enableDbgPrintout) {
+    printf("INFO: Axis[%d]: ecmcAxisBase::movePVTAbs()\n",data_.status_.axisId);
+  }
+
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Move PVT failed since traj source is set to PLC (0x%x).\n",
@@ -1802,7 +1813,10 @@ int ecmcAxisBase::moveAbsolutePosition(
   double accelerationSet,
   double decelerationSet) {
 
-  printf("ecmcAxisBase::moveAbsolutePosition()\n");
+  if(data_.control_.controlWord_.enableDbgPrintout) {
+    printf("INFO: Axis[%d]: ecmcAxisBase::moveAbsolutePosition()\n",data_.status_.axisId);
+  }
+
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
@@ -1819,7 +1833,8 @@ int ecmcAxisBase::moveAbsolutePosition(
     setTargetVel(velocitySet);
     setAcc(accelerationSet);
     setDec(decelerationSet);
-    setTargetPos(positionSet);
+    data_.control_.positionTargetAbs = positionSet;
+    setTargetPos(positionSet);    
     return 0;
   }
 
@@ -1846,9 +1861,11 @@ int ecmcAxisBase::moveAbsolutePosition(
   if (errorCode) {
     return errorCode;
   }
+
   setTargetVel(velocitySet);
   setAcc(accelerationSet);
   setDec(decelerationSet);
+  data_.control_.positionTargetAbs = positionSet;
   setTargetPos(positionSet);
 
   errorCode = setExecute(1);
@@ -1856,6 +1873,7 @@ int ecmcAxisBase::moveAbsolutePosition(
   if (errorCode) {
     return errorCode;
   }
+  
   return 0;
 }
 
@@ -1864,6 +1882,11 @@ int ecmcAxisBase::moveRelativePosition(
   double velocitySet,
   double accelerationSet,
   double decelerationSet) {
+  
+  if(data_.control_.controlWord_.enableDbgPrintout) {
+    printf("INFO: Axis[%d]: ecmcAxisBase::moveRelativePosition()\n",data_.status_.axisId);
+  }
+
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     LOGERR(
       "%s/%s:%d: ERROR (axis %d): Move to abs position failed since traj source is set to PLC (0x%x).\n",
@@ -1880,7 +1903,8 @@ int ecmcAxisBase::moveRelativePosition(
     setTargetVel(velocitySet);
     setAcc(accelerationSet);
     setDec(decelerationSet);
-    setTargetPos(positionSet);
+    data_.control_.positionTargetRel = positionSet;
+    setTargetPos(positionSet);    
     return 0;
   }
 
@@ -1911,8 +1935,8 @@ int ecmcAxisBase::moveRelativePosition(
   setTargetVel(velocitySet);
   setAcc(accelerationSet);
   setDec(decelerationSet);
+  data_.control_.positionTargetRel = positionSet;
   setTargetPos(positionSet);
-
   errorCode = setExecute(1);
 
   if (errorCode) {
@@ -2301,9 +2325,13 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       if (data_.control_.command != ECMC_CMD_HOMING) {   // Not homing!
         // allow on the fly updates of target velo and target pos
         setTargetVel(data_.control_.velocityTarget);
-        setTargetPos(data_.control_.positionTarget);
-        setAcc( data_.status_.currentAccelerationSetpoint);
-        setDec(data_.status_.currentDecelerationSetpoint);
+        if (data_.control_.command != ECMC_CMD_MOVEREL) {
+          setTargetPos(data_.control_.positionTargetAbs);
+        } else {
+          setTargetPos(data_.control_.positionTargetRel);
+        }
+        setAcc(data_.control_.accelerationTarget);
+        setDec(data_.control_.decelerationTarget);
       }
 
       // if not already moving then trigg new motion cmd
@@ -2326,40 +2354,43 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
   if(data_.status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     // Tweak BWD
-    if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakBwdCmd && !getBusy()) {
-      printf("TweakBwd: %lf ,%lf, %lf , %lf\n",data_.control_.positionTarget,data_.control_.velocityTarget,data_.status_.currentAccelerationSetpoint,data_.status_.currentDecelerationSetpoint);
+    if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakBwdCmd && !getBusy()) {      
       setCommand(ECMC_CMD_MOVEABS);
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
-      setTargetPos(data_.status_.currentTargetPosition - std::abs(data_.control_.tweakValue));  // Backward
-      setAcc(data_.status_.currentAccelerationSetpoint);
-      setDec(data_.status_.currentDecelerationSetpoint);
+      data_.control_.positionTargetAbs = data_.status_.currentTargetPosition - std::abs(data_.control_.tweakValue);
+      setTargetPos(data_.control_.positionTargetAbs);  // Backward
+      refreshAsynTargetValue();
+      setAcc(data_.control_.accelerationTarget);
+      setDec(data_.control_.decelerationTarget);
 
-      errorCode = setExecute(0);      
+      errorCode = setExecute(0);
       if (errorCode) {
         returnVal = asynError;
       }
-      errorCode = setExecute(1);
 
+      errorCode = setExecute(1);
       if (errorCode) {
         returnVal = asynError;
       }
     }
     
     // Tweak FWD
-    if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakFwdCmd && !getBusy()) {
+    if (!data_.control_.controlWord_.stopCmd && data_.control_.controlWord_.tweakFwdCmd && !getBusy()) {      
       setCommand(ECMC_CMD_MOVEABS);
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
-      setTargetPos(data_.status_.currentTargetPosition + std::abs(data_.control_.tweakValue)); // Forward
-      setAcc(data_.status_.currentAccelerationSetpoint);
-      setDec(data_.status_.currentDecelerationSetpoint);
+      data_.control_.positionTargetAbs = data_.status_.currentTargetPosition + std::abs(data_.control_.tweakValue);
+      setTargetPos(data_.control_.positionTargetAbs); // Forward
+      refreshAsynTargetValue();
+      setAcc(data_.control_.accelerationTarget);
+      setDec(data_.control_.decelerationTarget);
       errorCode = setExecute(0);
       if (errorCode) {
         returnVal = asynError;
       }
-      errorCode = setExecute(1);
 
+      errorCode = setExecute(1);
       if (errorCode) {
         returnVal = asynError;
       }
@@ -2534,14 +2565,15 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
   double acc = 0;
   memcpy(&acc, data, bytes);
 
-  setAcc(acc);  
+  data_.control_.accelerationTarget = acc;
+  //setAcc(acc);
 
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Acceleration = %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.status_.axisId, data_.status_.currentAccelerationSetpoint);
+    data_.status_.axisId, data_.control_.accelerationTarget);
 
   return asynSuccess;
 }
@@ -2563,14 +2595,15 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
   double dec = 0;
   memcpy(&dec, data, bytes);
 
-  setDec(dec);
+  //setDec(dec);
+  data_.control_.decelerationTarget = dec;
 
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Deceleration = %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.status_.axisId, data_.status_.currentDecelerationSetpoint);
+    data_.status_.axisId, data_.control_.decelerationTarget);
 
   // Write at next execute command
 
@@ -2621,14 +2654,25 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
   }
   double pos = 0;
   memcpy(&pos, data, bytes);
-  data_.control_.positionTarget = pos;
 
-  LOGERR(
-    "%s/%s:%d: INFO (axis %d): Write: Target Pos = %lf.\n",
-    __FILE__,
-    __FUNCTION__,
-    __LINE__,
-    data_.status_.axisId, data_.control_.positionTarget);
+  if(data_.control_.command == ECMC_CMD_MOVEREL) {
+    data_.control_.positionTargetRel = pos;
+    LOGERR(
+      "%s/%s:%d: INFO (axis %d): Write: Target Pos Rel. = %lf.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.status_.axisId, data_.control_.positionTargetRel);
+  } else {
+    data_.control_.positionTargetAbs = pos;
+    LOGERR(
+      "%s/%s:%d: INFO (axis %d): Write: Target Pos Abs. = %lf.\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.status_.axisId, data_.control_.positionTargetAbs);
+  }
+  
 
   return asynSuccess;
 }
@@ -2690,8 +2734,11 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   }
   int command = 0;
   memcpy(&command, data, bytes);
-  setCommand((motionCommandTypes)command);
-  
+
+  data_.control_.command = (motionCommandTypes)command;
+
+  refreshAsynTargetValue();
+
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Command = 0x%x.\n",
     __FILE__,
@@ -2718,7 +2765,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
   }
   int cmddata = 0;
   memcpy(&cmddata, data, bytes);
-  setCmdData(cmddata);  
+  data_.control_.cmdData = cmddata;
+  //setCmdData(cmddata);
 
   LOGERR(
     "%s/%s:%d: INFO (axis %d): Write: Command Data = 0x%x.\n",
@@ -2832,7 +2880,12 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
                       __LINE__,
                       ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE);
   }
-  printf("CSP with control enabled\n");
+
+
+  if(data_.control_.controlWord_.enableDbgPrintout) {
+    printf("INFO: Axis[%d]: ecmcAxisBase::selectCSPDriveEncoder(): CSP with control enabled\n",data_.status_.axisId);
+  }
+
   data_.control_.cspDrvEncIndex = localIndex;
   
   // CSP encoer is set to drv object in ecmcAxisReal::validate()
@@ -2969,11 +3022,7 @@ int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
 
 void ecmcAxisBase::setTargetPos(double posTarget) {
   getSeq()->setTargetPos(posTarget);
-
-  //if (data_.control_.command != ECMC_CMD_MOVEREL) {
-  //  data_.control_.positionTarget = posTarget;
-  //  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);
-  //}
+  refreshAsynTargetValue();  
 }
 
 void ecmcAxisBase::setTargetVel(double velTarget) {
@@ -2986,6 +3035,10 @@ void ecmcAxisBase::setTargetVel(double velTarget) {
 
 void ecmcAxisBase::setTweakDist(double dist) {
   data_.control_.tweakValue = std::abs(dist);
+  data_.control_.positionTargetRel = data_.control_.tweakValue;
+
+  refreshAsynTargetValue();
+
   axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID]->refreshParamRT(1);
 }
 
@@ -2993,7 +3046,6 @@ void ecmcAxisBase::setAcc(double acc) {
   getSeq()->setAcc(acc);
 
   // also set for ecmc interface
-  data_.control_.accelerationTarget = acc;
   axAsynParams_[ECMC_ASYN_AX_ACC_ID]->refreshParamRT(1);
 }
 
@@ -3132,14 +3184,17 @@ void ecmcAxisBase::autoEnableSM() {
   }
   
   if(!data_.status_.statusWord_.enable) {
-    printf("HEPP\n");
+    if(data_.control_.controlWord_.enableDbgPrintout) {
+      printf("INFO: Axis[%d]: ecmcAxisBase::autoEnableSM(): Set enable axis\n",data_.status_.axisId);      
+    }
+
     setEnable(true);
   }
 
   if(autoEnableTimeCounter_ > autoEnableTimoutS_) {
     setEnable(false);
     autoEnableRequest_= false;
-    autoEnableTimeCounter_ = 0;    
+    autoEnableTimeCounter_ = 0;
     setGlobalBusy(false);
     setErrorID(ERROR_AUTO_ENABLE_TIMEOUT);
     return;
@@ -3150,7 +3205,10 @@ void ecmcAxisBase::autoEnableSM() {
   if(data_.status_.statusWord_.enabled && data_.status_.statusWord_.enable && data_.statusOld_.statusWord_.enabled) {
     autoEnableTimeCounter_ = 0;
     autoEnableRequest_= false;
-    printf("Axis[%d]: Auto enable axis and triggering motion\n", data_.status_.axisId);
+    if(data_.control_.controlWord_.enableDbgPrintout) {
+      printf("INFO: Axis[%d]: ecmcAxisBase::autoEnableSM(): Axis enabled, triggering motion\n",data_.status_.axisId);      
+    }
+    
     setExecute(0,1); // need ignore busy
     setExecute(1,1); // need ignore busy 
     setGlobalBusy(false); // Need to clear the global busy bit. Now seq->busy is used
@@ -3174,7 +3232,11 @@ void ecmcAxisBase::autoDisableSM() {
   }
   
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
-    printf("Axis[%d]: Auto disable axis (axis idle for %lfs)\n", data_.status_.axisId,autoDisableAfterS_);
+    if(data_.control_.controlWord_.enableDbgPrintout) {
+      printf("INFO: Axis[%d]: ecmcAxisBase::autoDisableSM(): Auto disable axis (axis idle for %lfs)\n",
+              data_.status_.axisId, autoDisableAfterS_);
+    }
+
     setEnable(0);
   } else {
     autoDisbleTimeCounter_+= data_.status_.sampleTime;
@@ -3214,3 +3276,47 @@ ecmcAxisDataStatus* ecmcAxisBase::getAxisStatusDataPtr() {
   return &data_.status_;
 }
 
+void ecmcAxisBase::refreshAsynTargetValue() {
+  if(data_.control_.command == ECMC_CMD_MOVEREL) {
+    positionTargetAsyn_ = data_.control_.positionTargetRel;
+  } else {
+    positionTargetAsyn_ = data_.control_.positionTargetAbs;
+  }
+  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);  
+}
+
+int ecmcAxisBase::setCntrlKp(double kp) {
+  ecmcPIDController *cntrl = getCntrl();
+  if(!cntrl) {
+    return ERROR_AXIS_CNTRL_OBJECT_NULL;
+  }
+  getCntrl()->setKp(kp);
+  return 0;
+}
+
+int ecmcAxisBase::setCntrlKi(double ki) {
+  ecmcPIDController *cntrl = getCntrl();
+  if(!cntrl) {
+    return ERROR_AXIS_CNTRL_OBJECT_NULL;
+  }
+  getCntrl()->setKi(ki);
+  return 0;
+}
+
+int ecmcAxisBase::setCntrlKd(double kd) {
+  ecmcPIDController *cntrl = getCntrl();
+  if(!cntrl) {
+    return ERROR_AXIS_CNTRL_OBJECT_NULL;
+  }
+  getCntrl()->setKd(kd);
+  return 0;
+}
+
+int ecmcAxisBase::setCntrlKff(double kff) {
+  ecmcPIDController *cntrl = getCntrl();
+  if(!cntrl) {
+    return ERROR_AXIS_CNTRL_OBJECT_NULL;
+  }
+  getCntrl()->setKff(kff);
+  return 0;
+}

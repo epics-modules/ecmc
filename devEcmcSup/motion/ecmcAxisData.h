@@ -35,7 +35,8 @@ typedef struct {
 } ecmcAsynAxisControlType;
 
 typedef struct {
-  double             positionTarget;
+  double             positionTargetAbs;
+  double             positionTargetRel;
   double             velocityTarget;
   double             tweakValue;
   double             softLimitBwd;
@@ -170,8 +171,7 @@ public:
   ecmcAxisDataStatus status_;       // last cycle
   ecmcAxisDataStatus statusOld_;
   ecmcAxisDataInterlocks interlocks_;
-  ecmcAxisDataInterlocks interlocksOld_;    
-
+  ecmcAxisDataInterlocks interlocksOld_;
 private:
   int      setSummaryInterlocks();
   stopMode refreshInterlocksInternal();

@@ -9,6 +9,8 @@ removed*
 * DataRecorder*
 * Cleanup of axis interfaces (remove duplicate infos)
 
+* Update of parameters (sync of ecmc and motor record interface)
+
 # ECMC 10.1.0_RC1
 * Change moving axis flag to only be high when busy
 * Add ecmc native auto enable and disable of axes:

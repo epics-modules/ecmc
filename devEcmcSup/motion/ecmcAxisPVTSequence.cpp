@@ -40,7 +40,6 @@ void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
 }
 
 void ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
-  //printf("ecmcAxisPVTSequence::addSegment()\n");
   segments_.push_back(new ecmcPvtSegment(start, end));
   segmentCount_++;
 }
@@ -322,7 +321,7 @@ void ecmcAxisPVTSequence::clear() {
 int ecmcAxisPVTSequence::validateRT() {
   
   if(segmentCount_==0 || data_ == NULL ) {
-    printf(" ecmcAxisPVTSequence::validateRT(): Error: Segment count 0\n");
+    printf("ecmcAxisPVTSequence::validateRT(): Error: Segment count 0\n");
     return ERROR_SEQ_PVT_CFG_INVALID;
   }
   return 0;

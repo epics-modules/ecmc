@@ -1716,8 +1716,7 @@ int setAxisCntrlKp(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getCntrl()->setKp(value);
-  return 0;
+  return axes[axisIndex]->setCntrlKp(value);
 }
 
 int setAxisCntrlKi(int axisIndex, double value) {
@@ -1731,8 +1730,7 @@ int setAxisCntrlKi(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getCntrl()->setKi(value);
-  return 0;
+  return axes[axisIndex]->setCntrlKi(value);
 }
 
 int setAxisCntrlKd(int axisIndex, double value) {
@@ -1746,8 +1744,7 @@ int setAxisCntrlKd(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getCntrl()->setKd(value);
-  return 0;
+  return axes[axisIndex]->setCntrlKd(value);
 }
 
 int setAxisCntrlKff(int axisIndex, double value) {
@@ -1761,8 +1758,7 @@ int setAxisCntrlKff(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
-  axes[axisIndex]->getCntrl()->setKff(value);
-  return 0;
+  return axes[axisIndex]->setCntrlKff(value);
 }
 
 int setAxisCntrlDeadband(int    axisIndex,

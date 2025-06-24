@@ -877,7 +877,7 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_CTRL_KP:
 
     if (axisHasController_) {
-      axis_->getCntrl()->setKp(data_);
+      axis_->setCntrlKp(data_);
     }
     return 0;
 
@@ -886,7 +886,7 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_CTRL_KI:
 
     if (axisHasController_) {
-      axis_->getCntrl()->setKi(data_);
+      axis_->setCntrlKi(data_);
     }
     return 0;
 
@@ -895,7 +895,7 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_CTRL_KD:
 
     if (axisHasController_) {
-      axis_->getCntrl()->setKd(data_);
+      axis_->setCntrlKd(data_);
     }
     return 0;
 
@@ -904,7 +904,7 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_CTRL_KFF:
 
     if (axisHasController_) {
-      axis_->getCntrl()->setKff(data_);
+      axis_->setCntrlKff(data_);
     }
     return 0;
 

@@ -295,6 +295,10 @@ public:
   void       setMRSync(bool sync);    // SYNC motor record
   void       setMRStop(bool stop);    // STOP motor record
   void       setMRCnen(bool cnen);    // CNEN motor record
+  int        setCntrlKp(double kp);
+  int        setCntrlKi(double ki);
+  int        setCntrlKd(double kd);
+  int        setCntrlKff(double kff);
 
   /*
      Ignore status when motor record tries to disable.
@@ -328,6 +332,7 @@ protected:
   bool getHwReady();
   void autoEnableSM();
   void autoDisableSM();
+  void refreshAsynTargetValue();
 
   ecmcTrajectoryBase *traj_;
   ecmcMonitor *mon_;
@@ -371,6 +376,7 @@ protected:
   double autoDisbleTimeCounter_;
   bool enableAutoEnable_;
   bool enableAutoDisable_;
+  double positionTargetAsyn_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

@@ -101,6 +101,7 @@ public:
   int                  setPVTObject(ecmcAxisPVTSequence* pvt);
   ecmcAxisPVTSequence* getPVTObject();
   int                  validatePVT();
+  bool                 getTempTrajSrc();
 
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
