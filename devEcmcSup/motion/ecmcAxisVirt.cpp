@@ -42,7 +42,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
   
   data_.status_.cntrlError = ecmcMotionUtils::getPosErrorModWithSign(
     data_.status_.currentPositionSetpoint,
-    data_.status_.currentPositionSetpointOld,
+    data_.statusOld_.currentPositionSetpoint,
     data_.status_.currentPositionActual,
     data_.control_.moduloRange);
 

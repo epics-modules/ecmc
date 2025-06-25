@@ -87,17 +87,14 @@ typedef struct {
 
 typedef struct {
   double  externalTrajectoryPosition;
-  double  externalTrajectoryPositionOld;
   double  externalTrajectoryVelocity;
   double  externalEncoderPosition;
-  double  externalEncoderPositionOld;
   double  externalEncoderVelocity;
   double  currentPositionActual;
   double  currentPositionSetpoint;
   double  currentCSPPositionSetpointOffset;  // currentPositionSetpoint plus controller error..
   double  currentTargetPosition;
   double  currentTargetPositionModulo;
-  double  currentPositionSetpointOld;
   double  currentVelocityActual;
   double  currentVelocitySetpoint;
   int64_t currentVelocitySetpointRaw;
@@ -110,8 +107,8 @@ typedef struct {
   double  cntrlOutputOld;
   double  currentAccelerationSetpoint;
   double  currentDecelerationSetpoint;
-  int     command; ///#  xx
-  int     cmdData; ///#  xx
+  int     command;
+  int     cmdData;
   int     encoderCount;
   bool    ctrlWithinDeadband;
   bool    limitFwdFiltered;

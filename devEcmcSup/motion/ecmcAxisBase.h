@@ -296,8 +296,6 @@ protected:
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
   int printHeaderCounter_;
   int blockExtCom_;
-  double oldPositionAct_;
-  double oldPositionSet_;
   double setEncoderPos_;
   ecmcTrajTypes currentTrajType_;
   int encPrimIndexAsyn_;

@@ -248,7 +248,7 @@ ecmcAxisBase::~ecmcAxisBase() {
 }
 
 void ecmcAxisBase::initVars() {
-  // errorReset();  //THIS IS NONO..
+  // errorReset();  //THIS IS NOONOO.. KEEP THIS COMMENT!!!
   firstEnableDone_                       = 0;
   data_.status_.axisType                          = ECMC_AXIS_TYPE_BASE;
   data_.control_.controlWord_.resetCmd     = false;
@@ -267,8 +267,6 @@ void ecmcAxisBase::initVars() {
   data_.status_.cycleCounter               = 0;
   printHeaderCounter_      = 0;
   axisState_               = ECMC_AXIS_STATE_STARTUP;
-  oldPositionAct_          = 0;
-  oldPositionSet_          = 0;
   asynPortDriver_          = NULL;
   memset(&mrCmds_,    0, sizeof(mrCmds_));
   memset(&mrCmdsOld_,    0, sizeof(mrCmdsOld_));
@@ -426,24 +424,24 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   if (enableExtTrajVeloFilter_ && extTrajVeloFilter_) {
     data_.status_.externalTrajectoryVelocity = extTrajVeloFilter_->getFiltVelo(
       data_.status_.externalTrajectoryPosition -
-      data_.status_.externalTrajectoryPositionOld);
+      data_.statusOld_.externalTrajectoryPosition);
   } else {
     data_.status_.externalTrajectoryVelocity =
       (data_.status_.externalTrajectoryPosition -
-       data_.status_.
-       externalTrajectoryPositionOld) / data_.status_.sampleTime;
+       data_.statusOld_.
+       externalTrajectoryPosition) / data_.status_.sampleTime;
   }
 
   // Enc
   if (enableExtEncVeloFilter_ && extEncVeloFilter_) {
     data_.status_.externalEncoderVelocity = extEncVeloFilter_->getFiltVelo(
       data_.status_.externalEncoderPosition -
-      data_.status_.externalEncoderPositionOld);
+      data_.statusOld_.externalEncoderPosition);
   } else {
     data_.status_.externalEncoderVelocity =
       (data_.status_.externalEncoderPosition -
-       data_.status_.
-       externalEncoderPositionOld) / data_.status_.sampleTime;
+       data_.statusOld_.
+       externalEncoderPosition) / data_.status_.sampleTime;
   }
 }
 
@@ -452,11 +450,6 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   autoEnableSM();
   autoDisableSM();
 
-  data_.status_.externalTrajectoryPositionOld =
-    data_.status_.externalTrajectoryPosition;
-  data_.status_.externalEncoderPositionOld =
-    data_.status_.externalEncoderPosition;
-  
   // status wordbit 9 homed
   bool homedtemp = 0;
   getAxisHomed(&homedtemp);
@@ -643,7 +636,6 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
       firstEnableDone_                      = true;
     }
   }
-  data_.status_.currentPositionSetpointOld = data_.status_.currentPositionSetpoint;
 
   traj_->setEnable(enable);
 
@@ -842,8 +834,6 @@ int ecmcAxisBase::getCmdData() {
 }
 
 int ecmcAxisBase::slowExecute() {
-  oldPositionAct_         = data_.status_.currentPositionActual;
-  oldPositionSet_         = data_.status_.currentPositionSetpoint;
   return 0;
 }
 
@@ -1347,10 +1337,10 @@ motionDirection ecmcAxisBase::getAxisSetDirection() {
     return getTraj()->getCurrSetDir();
   } else {
     if (data_.status_.currentPositionSetpoint <
-        data_.status_.currentPositionSetpointOld) {
+        data_.statusOld_.currentPositionSetpoint) {
       return ECMC_DIR_BACKWARD;
     } else if (data_.status_.currentPositionSetpoint >
-               data_.status_.currentPositionSetpointOld) {
+               data_.statusOld_.currentPositionSetpoint) {
       return ECMC_DIR_FORWARD;
     } else {
       return ECMC_DIR_STANDSTILL;

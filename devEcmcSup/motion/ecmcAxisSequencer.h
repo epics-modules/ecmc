@@ -190,8 +190,6 @@ private:
   int modeHomingCmd_;  // Mode for homing
   int modeMotionCmdSet_;
   int modeHomingCmdSet_;
-  //bool temporaryLocalTrajSource_;
-  //bool temporaryLocalTrajSourceOld_;
   bool pvtOk_;
   bool trajLock_;
   bool trajLockOld_;
