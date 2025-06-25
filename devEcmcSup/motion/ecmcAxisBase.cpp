@@ -2645,8 +2645,55 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   int command = 0;
   memcpy(&command, data, bytes);
 
+  bool commandValid = false;
+
+  switch((motionCommandTypes)command) {
+    case ECMC_CMD_NOCMD:
+      commandValid = true;
+      break;
+    case ECMC_CMD_MOVEVEL:
+      commandValid = true;
+      break;
+    case ECMC_CMD_MOVEREL:
+      commandValid = true;
+      break;
+    case ECMC_CMD_MOVEABS:
+      commandValid = true;
+      break;
+    case ECMC_CMD_MOVEMODULO:
+      commandValid = false;   // NOT valid!!
+      break;
+    case ECMC_CMD_MOVEPVTABS:
+      LOGERR(
+        "%s/%s:%d: ERROR (axis %d): PVT motion can only be executed from the dedicated \"Profile move\" pvs.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.status_.axisId, command);
+      commandValid = false;
+      break;
+    case ECMC_CMD_HOMING:
+      commandValid = true;
+      break;
+    default:
+      commandValid = false;
+      break;
+  }
+
+  if(!commandValid) {
+    LOGERR(
+      "%s/%s:%d: ERROR (axis %d): Invalid command = 0x%x. Old command (%d) will not be over written\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.status_.axisId, command, (int)data_.control_.command);
+    data_.axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(1);
+    return asynError;
+  }
+
   data_.control_.command = (motionCommandTypes)command;
 
+  // Different target values if ABS or REL
   refreshAsynTargetValue();
 
   LOGERR(
