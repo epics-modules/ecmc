@@ -189,10 +189,10 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     slaveGrp_->setMRStop(1);
     slaveGrp_->halt();
     masterGrp_->setSlavedAxisIlocked();
-    masterGrp_->setEnableAutoDisable(1);    
-    state_ = ECMC_MST_SLV_STATE_RESET;
+    masterGrp_->setEnableAutoDisable(1);
+    state_ = ECMC_MST_SLV_STATE_SLAVES;
     printf("ecmcMasterSlaveStateMachine: %s: Slaved axis interlock (or traj source change)\n", name_.c_str());
-    printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n", name_.c_str());
+    printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> SLAVE\n", name_.c_str());
   }
   
   // Done?

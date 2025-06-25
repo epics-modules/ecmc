@@ -368,11 +368,13 @@ void ecmcAxisBase::preExecute(bool masterOK) {
       // only init encoders after first startup
       if (!data_.status_.startupFinsished) {
         initEncoders();
+        data_.status_.currentPositionActual = getPrimEnc()->getActPos();
       }
 
       data_.status_.startupFinsished = true;
-      data_.control_.positionTargetAbs = data_.status_.currentPositionActual;      
+      data_.control_.positionTargetAbs = data_.status_.currentPositionActual;
       data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
+
       refreshAsynTargetValue();
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
