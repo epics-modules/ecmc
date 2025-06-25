@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAxisVirt.h"
+#include "ecmcErrorsList.h"
 
 ecmcAxisVirt::ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,
                            int                 axisID,

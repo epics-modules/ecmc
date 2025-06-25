@@ -274,7 +274,7 @@ void ecmcAxisBase::initVars() {
   memset(&mrCmdsOld_,    0, sizeof(mrCmdsOld_));
 
   for (int i = 0; i < ECMC_ASYN_AX_PAR_COUNT; i++) {
-    axAsynParams_[i] = NULL;
+    data_.axAsynParams_[i] = NULL;
   }
 
   statusOutputEntry_ = 0;
@@ -297,7 +297,7 @@ void ecmcAxisBase::initVars() {
   }
 
   data_.control_.cfgEncIndex    = 0;
-  allowSourceChangeWhenEnabled_ = false;
+  data_.control_.allowSourceChangeWhenEnabled = false;
   setEncoderPos_                = 0;
   encPrimIndexAsyn_             = 1;
    data_.status_.currentAccelerationSetpoint                 = 0;
@@ -452,11 +452,6 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   autoEnableSM();
   autoDisableSM();
 
-  // Transision from EXTERNAL to INTERNAL for stop
-  if(seq_.getTempTrajSrc()) {
-    setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL,1);
-  }
-
   data_.status_.externalTrajectoryPositionOld =
     data_.status_.externalTrajectoryPosition;
   data_.status_.externalEncoderPositionOld =
@@ -475,17 +470,17 @@ void ecmcAxisBase::postExecute(bool masterOK) {
    data_.status_.cycleCounter++;
 
   // Update asyn parameters
-  axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0);
-  axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(0);
+  data_.axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
+  data_.axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
+  data_.axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID]->refreshParamRT(0);
+  data_.axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID]->refreshParamRT(0);
+  data_.axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(0);
+  data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(0);
+  data_.axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0);
+  data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(0);
 
   if(memcmp(&mrCmdsOld_,&mrCmds_, sizeof(mrCmdsOld_)) !=0) {
-    axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID]->refreshParamRT(1);
+    data_.axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID]->refreshParamRT(1);
   }
   memcpy(&mrCmdsOld_,&mrCmds_, sizeof(mrCmdsOld_));
   
@@ -569,71 +564,10 @@ bool ecmcAxisBase::getInStartupPhase() {
   return data_.status_.statusWord_.instartup || data_.statusOld_.statusWord_.instartup;
 }
 
-int ecmcAxisBase::setTrajDataSourceType(dataSource refSource) {
-  return setTrajDataSourceTypeInternal(refSource,
-                                       allowSourceChangeWhenEnabled_);
-}
-
-int ecmcAxisBase::setTrajDataSourceTypeInternal(dataSource refSource,
-                                                int        force) {
-  if (refSource == data_.status_.statusWord_.trajsource) {     
-    return 0;
-  };
-
-  if (!force) {
-    if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
-      return setErrorID(__FILE__,
-                        __FUNCTION__,
-                        __LINE__,
-                        ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED);
-    }
-  }
-
-  if ((refSource != ECMC_DATA_SOURCE_INTERNAL) &&
-      getMon()->getSafetyInterlock()) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL);
-  }
-
-  if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
-    data_.interlocks_.noExecuteInterlock = false;
-    data_.refreshInterlocks();
-    data_.status_.statusWord_.busy         = true;
-    data_.control_.controlWord_.executeCmd = true;
-    data_.status_.statusWord_.execute = true;
-    
-  } else {
-    traj_->setStartPos(data_.status_.currentPositionActual);
-    traj_->initStopRamp(data_.status_.currentPositionActual,
-                        data_.status_.currentVelocityActual,
-                        0);
-    data_.status_.statusWord_.busy = traj_->getBusy();
-    setDec(data_.control_.decelerationTarget);
-    setAcc(data_.control_.accelerationTarget);
-    setTargetPos(data_.status_.currentPositionSetpoint);
-
-    if (!getEnable()) {
-      data_.status_.statusWord_.busy         = false;
-      data_.control_.controlWord_.executeCmd = false;
-      data_.status_.statusWord_.execute = false;
-    }
-  }
-
-  data_.status_.statusWord_.trajsource  = refSource;
-  data_.control_.controlWord_.trajSourceCmd =  data_.status_.statusWord_.trajsource ==
-                               ECMC_DATA_SOURCE_EXTERNAL;
-  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
-  axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
-
-  return 0;
-}
-
 int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
   if (refSource == data_.status_.statusWord_.encsource) return 0;
 
-  if (!allowSourceChangeWhenEnabled_) {
+  if (!data_.control_.allowSourceChangeWhenEnabled) {
     if (getEnable() && (refSource != ECMC_DATA_SOURCE_INTERNAL)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
@@ -654,8 +588,8 @@ int ecmcAxisBase::setEncDataSourceType(dataSource refSource) {
 
   data_.status_.statusWord_.encsource = refSource;
   data_.control_.controlWord_.encSourceCmd = refSource;
-  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
-  axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
   
   return 0;
 }
@@ -705,12 +639,12 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
       //setTargetPos(data_.status_.currentPositionActual);      
       data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
-      data_.status_.currentPositionSetpointOld =
-        data_.status_.currentPositionSetpoint;
       data_.status_.currentVelocitySetpoint = 0;
       firstEnableDone_                      = true;
     }
   }
+  data_.status_.currentPositionSetpointOld = data_.status_.currentPositionSetpoint;
+
   traj_->setEnable(enable);
 
   // reset axis error if ERROR_AXIS_NOT_ENABLED or ERROR_AXIS_SAFETY_IL_ACTIVE when try to enable
@@ -888,14 +822,14 @@ int ecmcAxisBase::getEncPosRaw(int64_t *rawPos) {
 int ecmcAxisBase::setCommand(motionCommandTypes command) {
   seq_.setCommand(command);
   data_.control_.command = command;
-  axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_COMMAND_ID]->refreshParamRT(1);
   return 0;
 }
 
 int ecmcAxisBase::setCmdData(int cmdData) {
   seq_.setCmdData(cmdData);
   data_.control_.cmdData = cmdData;
-  axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID]->refreshParamRT(1);
   return 0;
 }
 
@@ -1007,7 +941,7 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
 
   // Always reset 
   data_.control_.controlWord_.executeCmd = 0;
-  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
   return 0;
 }
 
@@ -1071,7 +1005,7 @@ int ecmcAxisBase::initAsyn() {
   }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID] = paramTemp;
 
   // Act vel
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_ENC_ACT_VEL_NAME,
@@ -1086,7 +1020,7 @@ int ecmcAxisBase::initAsyn() {
   }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID] = paramTemp;
 
   // Set encoder primary index for control
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ENC_ID_CMD_NAME,
@@ -1102,7 +1036,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWritePrimEncCtrlId, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID] = paramTemp;
 
   // Set pos
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_POS_NAME,
@@ -1117,7 +1051,7 @@ int ecmcAxisBase::initAsyn() {
   }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_SET_POS_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_SET_POS_ID] = paramTemp;
 
   // Pos Error
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_POS_ERR_NAME,
@@ -1132,25 +1066,9 @@ int ecmcAxisBase::initAsyn() {
   }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_POS_ERR_ID] = paramTemp;
 
-  // Diagnostic string (array)
-  //errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_DIAG_NAME,
-  //                            asynParamInt8Array,
-  //                            ECMC_EC_S8,
-  //                            (uint8_t *)diagBuffer_,
-  //                            AX_MAX_DIAG_STRING_CHAR_LENGTH,
-  //                            &paramTemp);
-//
-  //if (errorCode) {
-  //  return errorCode;
-  //}
-//
-  //paramTemp->setAllowWriteToEcmc(false);
-  //paramTemp->refreshParam(1);
-  //axAsynParams_[ECMC_ASYN_AX_DIAG_ID] = paramTemp;
-
-  // Status word
+   // Status word
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_STATUS_NAME,
                               asynParamInt32,
                               ECMC_EC_U32,
@@ -1164,7 +1082,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_STATUS_ID] = paramTemp;
 
   // Control structure binary
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CONTROL_BIN_NAME,
@@ -1181,7 +1099,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteCmd, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID] = paramTemp;
 
   // Target Velo
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARG_VELO_NAME,
@@ -1197,7 +1115,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteTargetVelo, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID] = paramTemp;
 
   // Target Pos
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TARG_POS_NAME,
@@ -1213,7 +1131,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteTargetPos, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID] = paramTemp;
 
   // Acceleration
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ACC_NAME,
@@ -1229,7 +1147,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteAcc, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_ACC_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_ACC_ID] = paramTemp;
 
   // Deceleration
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_DEC_NAME,
@@ -1245,7 +1163,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteDec, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_DEC_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_DEC_ID] = paramTemp;
 
   // Set/reference encoder
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_SET_ENC_POS_NAME,
@@ -1262,7 +1180,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteSetEncPos, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_SET_ENC_POS_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_SET_ENC_POS_ID] = paramTemp;
 
   // Command
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_COMMAND_NAME,
@@ -1279,7 +1197,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteCommand, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_COMMAND_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_COMMAND_ID] = paramTemp;
 
   // CmdData
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_CMDDATA_NAME,
@@ -1296,7 +1214,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteCmdData, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_CMDDATA_ID] = paramTemp;
 
   // Error
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_ERROR_NAME,
@@ -1312,7 +1230,7 @@ int ecmcAxisBase::initAsyn() {
 
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_ERROR_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_ERROR_ID] = paramTemp;
 
   // Warning
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_WARNING_NAME,
@@ -1328,7 +1246,7 @@ int ecmcAxisBase::initAsyn() {
 
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_WARNING_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID] = paramTemp;
 
   // MR commands
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_MR_CMD_NAME,
@@ -1344,7 +1262,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->addSupportedAsynType(asynParamUInt32Digital);
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID] = paramTemp;
 
   // Tweak value
   errorCode = createAsynParam(ECMC_AX_STR "%d." ECMC_ASYN_AX_TWEAK_VALUE_NAME,
@@ -1360,7 +1278,7 @@ int ecmcAxisBase::initAsyn() {
   paramTemp->setAllowWriteToEcmc(true);
   paramTemp->setExeCmdFunctPtr(asynWriteSetTweakValue, this); // Access to this axis
   paramTemp->refreshParam(1);
-  axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID] = paramTemp;
+  data_.axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID] = paramTemp;
   
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                       ECMC_ASYN_DEFAULT_ADDR);
@@ -1581,7 +1499,7 @@ int ecmcAxisBase::setEnable(bool enable) {
 
   data_.status_.statusWord_.enable = enable;
   data_.control_.controlWord_.enableCmd = enable;
-  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
 
   return 0;
 }
@@ -2414,7 +2332,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   errorCode =
-    setTrajDataSourceType((data_.control_.controlWord_.trajSourceCmd ?
+    seq_.setTrajDataSourceType((data_.control_.controlWord_.trajSourceCmd ?
                            ECMC_DATA_SOURCE_EXTERNAL
   : ECMC_DATA_SOURCE_INTERNAL));
 
@@ -2449,8 +2367,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   }
 
   refreshStatusWd();
-  axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
-  axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
   return returnVal;
 }
 
@@ -2944,7 +2862,7 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
 
   // This index is starting from 1 (for asyn and external interface)
   encPrimIndexAsyn_ = index;
-  axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_ENC_ID_CMD_ID]->refreshParamRT(1);
 
   return 0;
 }
@@ -3016,7 +2934,7 @@ void ecmcAxisBase::initEncoders() {
 }
 
 int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
-  allowSourceChangeWhenEnabled_ = allow;
+  data_.control_.allowSourceChangeWhenEnabled = allow;
   return 0;
 }
 
@@ -3030,7 +2948,7 @@ void ecmcAxisBase::setTargetVel(double velTarget) {
 
   // also set for ecmc interface
   data_.control_.velocityTarget = velTarget;
-  axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_TARG_VELO_ID]->refreshParamRT(1);
 }
 
 void ecmcAxisBase::setTweakDist(double dist) {
@@ -3039,14 +2957,14 @@ void ecmcAxisBase::setTweakDist(double dist) {
 
   refreshAsynTargetValue();
 
-  axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID]->refreshParamRT(1);
 }
 
 void ecmcAxisBase::setAcc(double acc) {
   getSeq()->setAcc(acc);
 
   // also set for ecmc interface
-  axAsynParams_[ECMC_ASYN_AX_ACC_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_ACC_ID]->refreshParamRT(1);
 }
 
 void ecmcAxisBase::setDec(double dec) {
@@ -3054,7 +2972,7 @@ void ecmcAxisBase::setDec(double dec) {
 
   // also set for ecmc interface
   data_.control_.decelerationTarget = dec;
-  axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
+  data_.axAsynParams_[ECMC_ASYN_AX_DEC_ID]->refreshParamRT(1);
 }
 
 void ecmcAxisBase::setEmergencyStopInterlock(int stop) {
@@ -3062,7 +2980,7 @@ void ecmcAxisBase::setEmergencyStopInterlock(int stop) {
 
   // Switch to internal source
   if ((data_.status_.statusWord_.trajsource != ECMC_DATA_SOURCE_INTERNAL) && stop) {
-    setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);
+    seq_.setTrajDataSourceTypeInternal(ECMC_DATA_SOURCE_INTERNAL, 1);
   }
 }
 
@@ -3282,7 +3200,7 @@ void ecmcAxisBase::refreshAsynTargetValue() {
   } else {
     positionTargetAsyn_ = data_.control_.positionTargetAbs;
   }
-  axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);  
+  data_.axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);  
 }
 
 int ecmcAxisBase::setCntrlKp(double kp) {

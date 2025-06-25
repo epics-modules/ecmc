@@ -31,61 +31,6 @@
 #include "ecmcFilter.h"
 #include "ecmcMotionUtils.h"
 
-// AXIS ERRORS
-#define ERROR_AXIS_OBJECTS_NULL_OR_EC_INIT_FAIL 0x14300
-#define ERROR_AXIS_DRV_OBJECT_NULL 0x14301
-#define ERROR_AXIS_ENC_OBJECT_NULL 0x14302
-#define ERROR_AXIS_MON_OBJECT_NULL 0x14303
-#define ERROR_AXIS_TRAJ_OBJECT_NULL 0x14304
-#define ERROR_AXIS_CNTRL_OBJECT_NULL 0x14305
-#define ERROR_AXIS_SEQ_ERROR_WRONG_SENSOR_EDGE 0x14306
-#define ERROR_AXIS_UNDEFINED_TYPE 0x14307
-#define ERROR_AXIS_FORWARD_TRANSFORM_NULL 0x14308
-#define ERROR_AXIS_INVERSE_TRANSFORM_NULL 0x14309
-#define ERROR_AXIS_TRANSFORM_ERROR_OR_NOT_COMPILED 0x1430A
-#define ERROR_AXIS_FUNCTION_NOT_SUPPRTED 0x1430B
-#define ERROR_AXIS_MASTER_AXIS_OBJECT_NULL 0x1430C
-#define ERROR_AXIS_MASTER_AXIS_ENCODER_NULL 0x1430D
-#define ERROR_AXIS_MASTER_AXIS_TRAJECTORY_NULL 0x1430E
-#define ERROR_AXIS_MASTER_AXIS_TRANSFORM_NULL 0x1430F
-#define ERROR_AXIS_SOURCE_TYPE_NOT_DEFINED 0x14310
-#define ERROR_AXIS_CMD_NOT_ALLOWED_WHEN_ENABLED 0x14311
-#define ERROR_AXIS_CONFIGURED_COUNT_ZERO 0x14312
-#define ERROR_AXIS_CASCADED_AXIS_INDEX_OUT_OF_RANGE 0x14313
-#define ERROR_AXIS_INDEX_OUT_OF_RANGE 0x14314
-#define ERROR_AXIS_HARDWARE_STATUS_NOT_OK 0x14315
-#define ERROR_AXIS_NOT_ENABLED 0x14316
-#define ERROR_AXIS_AMPLIFIER_ENABLED_LOST 0x14317
-#define ERROR_AXIS_SEQ_OBJECT_NULL 0x14318
-#define ERROR_AXIS_COMMAND_NOT_ALLOWED_WHEN_ENABLED 0x14319
-#define ERROR_AXIS_ASSIGN_EXT_INTERFACE_TO_SEQ_FAILED 0x1431A
-#define ERROR_AXIS_DATA_POINTER_NULL 0x1431B
-#define ERROR_AXIS_BUSY 0x1431C
-#define ERROR_AXIS_TRAJ_MASTER_SLAVE_IF_NULL 0x1431D
-#define ERROR_AXIS_ENC_MASTER_SLAVE_IF_NULL 0x1431E
-// Moved to ecmcDefinitions.h
-// #define ERROR_AXIS_ASYN_PORT_OBJ_NULL 0x1431F
-// #define ERROR_AXIS_ASYN_PRINT_TO_BUFFER_FAIL 0x14320
-#define ERROR_AXIS_PRINT_TO_BUFFER_FAIL 0x14321
-#define ERROR_AXIS_MODULO_OUT_OF_RANGE 0x14322
-#define ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE 0x14323
-#define ERROR_AXIS_FILTER_OBJECT_NULL 0x14324
-#define ERROR_AXIS_PLC_OBJECT_NULL 0x14325
-#define ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE 0x14326
-#define ERROR_AXIS_PRIMARY_ENC_ID_OUT_OF_RANGE 0x14327
-#define ERROR_AXIS_SWITCH_PRIMARY_ENC_NOT_ALLOWED_WHEN_BUSY 0x14328
-#define ERROR_AXIS_TRAJ_SRC_CHANGE_NOT_ALLOWED_WHEN_SAFETY_IL 0x14329
-#define ERROR_AXIS_SAFETY_IL_ACTIVE 0x1432A
-#define ERROR_AXIS_SLAVED_AXIS_IN_ERROR 0x1432B
-#define ERROR_AXIS_CMD_NOT_ALLOWED_IN_REALTIME 0x1432C
-#define ERROR_AXIS_HW_NOT_READY 0x1432D
-#define ERROR_AXIS_SLAVED_AXIS_INTERLOCK 0x1432E
-#define ERROR_AUTO_ENABLE_TIMEOUT 0x1432F
-
-// AXIS WARNINGS
-#define WARNING_AXIS_ASYN_CMD_WHILE_BUSY 0x114300
-#define WARNING_AXIS_ASYN_CMD_DATA_ERROR 0x114301
-
 enum axisState {
   ECMC_AXIS_STATE_STARTUP  = 0,
   ECMC_AXIS_STATE_DISABLED = 1,
@@ -166,10 +111,6 @@ public:
   bool                       getAllowCmdFromPLC();
   void                       setInStartupPhase(bool startup);
   bool                       getInStartupPhase();
-  int                        setTrajDataSourceType(dataSource refSource);
-  int                        setTrajDataSourceTypeInternal(
-    dataSource refSource,
-    int        force);
   int                        setEncDataSourceType(dataSource refSource);
   dataSource                 getTrajDataSourceType();
   dataSource                 getEncDataSourceType();
@@ -343,7 +284,6 @@ protected:
 
   // Axis default parameters over asyn I/O intr
   ecmcAsynPortDriver *asynPortDriver_;
-  ecmcAsynDataItem *axAsynParams_[ECMC_ASYN_AX_PAR_COUNT];
   ecmcEcEntry *statusOutputEntry_;
   ecmcFilter *extTrajVeloFilter_;
   ecmcFilter *extEncVeloFilter_;
@@ -360,7 +300,6 @@ protected:
   double oldPositionSet_;
   double setEncoderPos_;
   ecmcTrajTypes currentTrajType_;
-  bool allowSourceChangeWhenEnabled_;
   int encPrimIndexAsyn_;
   int hwReadyOld_;
   int hwReady_;

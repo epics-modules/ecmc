@@ -12,6 +12,7 @@
 
 #include "ecmcMonitor.h"
 #include <stdio.h>
+#include "ecmcErrorsList.h"
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
                          ecmcEncoder **encArray) : ecmcEcEntryLink(&(axisData->

@@ -1349,7 +1349,7 @@ int setAxisTrajSource(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->setTrajDataSourceType((dataSource)value);
+  return axes[axisIndex]->getSeq()->setTrajDataSourceType((dataSource)value);
 }
 
 int setAxisEncSource(int axisIndex, int value) {

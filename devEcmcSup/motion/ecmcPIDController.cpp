@@ -11,7 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcPIDController.h"
-
+#include "ecmcErrorsList.h"
 #include <stdio.h>
 #include <stdlib.h>
 

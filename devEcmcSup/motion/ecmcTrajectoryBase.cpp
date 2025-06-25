@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcTrajectoryBase.h"
+#include "ecmcErrorsList.h"
 #include <stdio.h>
 
 ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData *axisData,

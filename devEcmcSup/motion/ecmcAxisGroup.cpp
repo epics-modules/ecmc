@@ -10,6 +10,7 @@
 *
 \*************************************************************************/
 #include "ecmcAxisGroup.h"
+#include "ecmcErrorsList.h"
 
 ecmcAxisGroup::ecmcAxisGroup(int index, const char *name){
   name_ = name;
@@ -143,7 +144,7 @@ int ecmcAxisGroup::setTrajSrc(dataSource trajSource){
   int error = 0;
   for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
     if((*axis)) {
-      error = (*axis)->setTrajDataSourceType(trajSource);
+      error = (*axis)->getSeq()->setTrajDataSourceType(trajSource);
       if(error) {
         return error;
       }

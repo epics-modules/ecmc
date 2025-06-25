@@ -18,8 +18,6 @@
 #include "ecmcError.h"
 #include "ecmcOctetIF.h"
 
-#define ERROR_AXIS_FILTER_ALLOC_FAIL 0x230000
-
 #define FILTER_BUFFER_SIZE_DEF 100
 #define FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT 0.7
 

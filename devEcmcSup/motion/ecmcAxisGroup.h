@@ -13,9 +13,6 @@
 #ifndef ECMCAXISGROUP_H_
 #define ECMCAXISGROUP_H_
 
-#define ERROR_AXISGRP_ADD_GROUP_FAIL 0x16000
-#define ERROR_AXISGRP_NOT_FOUND 0x16001
-
 #include "ecmcError.h"
 #include "ecmcAxisBase.h"
 #include "ecmcDefinitions.h"

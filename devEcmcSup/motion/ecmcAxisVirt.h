@@ -15,13 +15,6 @@
 
 #include "ecmcAxisBase.h"
 
-// VIRTUAL AXIS
-#define ERROR_VIRT_AXIS_TRAJ_NULL 0x14F00
-#define ERROR_VIRT_AXIS_CREATE_TRANSFORM_INDEX_OUT_OF_RANGE 0x14F01
-#define ERROR_VIRT_AXIS_INDEX_OUT_OF_RANGE 0x14F02
-#define ERROR_VIRT_AXIS_LINKED_AXIS_TRAJ_NULL 0x14F03
-#define ERROR_VIRT_AXIS_INDEX_NULL 0x14F04
-
 class ecmcAxisVirt : public ecmcAxisBase {
 public:
   ecmcAxisVirt(ecmcAsynPortDriver *asynPortDriver,

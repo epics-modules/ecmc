@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "string.h"
 #include "ecmcDefinitions.h"
+#include "ecmcAsynDataItem.h"
 
 typedef struct {
   bool enableCmd          : 1;
@@ -51,7 +52,9 @@ typedef struct {
   int                drvModeSet;
   double             accelerationTarget;
   double             decelerationTarget;
+  bool               allowSourceChangeWhenEnabled;
   ecmcAsynAxisControlType controlWord_;
+  ecmcAsynDataItem  *asynDataItemCtrlWord;
   driveMode  drvMode;
 } ecmcAxisDataCommand;
 
@@ -122,7 +125,7 @@ typedef struct {
   int     cycleCounter;
   axisTypes axisType;
   double  sampleTime;
-  ecmcAxisStatusWordType statusWord_;
+  ecmcAxisStatusWordType statusWord_;  
 } ecmcAxisDataStatus;
 
 typedef struct {
@@ -172,6 +175,7 @@ public:
   ecmcAxisDataStatus statusOld_;
   ecmcAxisDataInterlocks interlocks_;
   ecmcAxisDataInterlocks interlocksOld_;
+  ecmcAsynDataItem *axAsynParams_[ECMC_ASYN_AX_PAR_COUNT];
 private:
   int      setSummaryInterlocks();
   stopMode refreshInterlocksInternal();

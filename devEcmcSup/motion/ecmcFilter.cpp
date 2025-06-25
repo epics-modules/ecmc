@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcFilter.h"
+#include "ecmcErrorsList.h"
 
 ecmcFilter::ecmcFilter(double sampleTime) {
   initVars();

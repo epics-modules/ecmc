@@ -22,45 +22,6 @@
 #include "ecmcDriveBase.h"
 #include "ecmcAxisPVTSequence.h"
 
-// SEQUENCER ERRORS
-#define ERROR_SEQ_TRAJ_NULL 0x14D00
-#define ERROR_SEQ_ENC_NULL 0x14D01
-#define ERROR_SEQ_MON_NULL 0x14D02
-#define ERROR_SEQ_CNTRL_NULL 0x14D03
-#define ERROR_SEQ_SEQ_FAILED 0x14D04
-#define ERROR_SEQ_COMMAND_NOT_SUPPORTED 0x14D05
-#define ERROR_SEQ_SOFT_LIMIT_FWD 0x14D06
-#define ERROR_SEQ_SOFT_LIMIT_BWD 0x14D07
-#define ERROR_SEQ_TIMEOUT 0x14D08
-#define ERROR_SEQ_CMD_UNDEFINED 0x14D09
-#define ERROR_SEQ_CMD_DATA_UNDEFINED 0x14D0A
-#define ERROR_SEQ_EXTERNAL_DATA_INTERFACE_NULL 0x14D0B
-#define ERROR_SEQ_NO_HOME_SWITCH_FLANK 0x14D0C
-#define ERROR_SEQ_NO_SECOND_HOME_SWITCH_FLANK 0x14D0D
-#define ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE 0x14D0E
-#define ERROR_SEQ_ERROR_POSITION_SANITY_CHECK_FAILED 0x14D0F
-#define ERROR_SEQ_ERROR_ACCELERATION_ZERO 0x14D10
-#define ERROR_SEQ_ERROR_DECELERATION_ZERO 0x14D11
-#define ERROR_SEQ_ERROR_VELOCITY_ZERO 0x14D12
-#define ERROR_SEQ_ABS_OVER_UNDER_FLOW_ERROR 0x14D13
-#define ERROR_SEQ_LATCH_COUNT_OUT_OF_RANGE 0x14D14
-#define ERROR_SEQ_TARGET_POS_OUT_OF_RANGE 0x14D15
-#define ERROR_SEQ_MOTION_CMD_NOT_ENABLED 0x14D16
-#define ERROR_SEQ_HOME_POST_MOVE_FAILED 0x14D17
-#define ERROR_SEQ_HOME_ENC_SOURCE_NOT_INTERNAL 0x14D18
-#define ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED 0x14D19
-#define ERROR_SEQ_HOME_NOT_ALLOWED 0x14D1A
-#define ERROR_SEQ_PVT_OBJECT_BUSY 0x14D1B
-#define ERROR_SEQ_PVT_OBJECT_NULL 0x14D1C
-//#define ERROR_SEQ_PVT_CFG_INVALID 0x14D1D in PVT seq..
-#define ERROR_SEQ_PVT_ERROR 0x14D1E
-
-
-// SEQUENCER WARNINGS
-#define WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION 0x114D00
-#define WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION 0x114D01
-
-
 enum localTrajDataSource {
   ECMC_TRAJ_SRC_TRAJ = 0,
   ECMC_TRAJ_SRC_PLC  = 1,
@@ -101,7 +62,10 @@ public:
   int                  setPVTObject(ecmcAxisPVTSequence* pvt);
   ecmcAxisPVTSequence* getPVTObject();
   int                  validatePVT();
-  bool                 getTempTrajSrc();
+  int                  setTrajDataSourceType(dataSource refSource);
+  int                  setTrajDataSourceTypeInternal(
+                       dataSource refSource,
+                       int        force);
 
   // Home on hardware latch (index or external)
   // Homing will be made after <count> latches have been identified
@@ -226,12 +190,11 @@ private:
   int modeHomingCmd_;  // Mode for homing
   int modeMotionCmdSet_;
   int modeHomingCmdSet_;
-  bool temporaryLocalTrajSource_;
-  bool temporaryLocalTrajSourceOld_;
+  //bool temporaryLocalTrajSource_;
+  //bool temporaryLocalTrajSourceOld_;
   bool pvtOk_;
   bool trajLock_;
   bool trajLockOld_;
-  bool newTrajLockEdge_;
   bool pvtStopping_;
   bool pvtmode_;
   int posSource_;

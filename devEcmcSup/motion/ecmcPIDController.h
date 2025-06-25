@@ -21,9 +21,6 @@
 #include "ecmcAsynPortDriver.h"
 #include "ecmcErrorsList.h"
 
-// CONTROLLER ERRORS
-#define ERROR_CNTRL_INVALID_SAMPLE_TIME 0x15000
-
 class ecmcPIDController : public ecmcError {
 public:
   ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
