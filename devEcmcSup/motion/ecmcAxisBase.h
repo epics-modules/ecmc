@@ -167,7 +167,6 @@ public:
                double velocityOffCamSet,
                double accelerationSet,
                double decelerationSet);
-  //int movePVTRel();
   int        movePVTAbs();
   int        movePVTAbs(bool ignoreBusy);  // Ignores busy (for triggering from PVT controller)
   int        moveHome(); // Use configs from encoder object
