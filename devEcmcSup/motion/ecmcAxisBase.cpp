@@ -2669,7 +2669,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
         __FILE__,
         __FUNCTION__,
         __LINE__,
-        data_.status_.axisId, command);
+        data_.status_.axisId);
       commandValid = false;
       break;
     case ECMC_CMD_HOMING:

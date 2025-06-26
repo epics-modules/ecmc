@@ -16,6 +16,7 @@
 #include <time.h>
 #include "stdio.h"
 #include "ecmcOctetIF.h"
+#include <vector>
 
 enum ecmcAlarmSeverity {
   ECMC_SEVERITY_NONE      = 0,
@@ -23,6 +24,8 @@ enum ecmcAlarmSeverity {
   ECMC_SEVERITY_NORMAL    = 2,
   ECMC_SEVERITY_EMERGENCY = 3
 };
+
+#define ECMC_MAX_ERROR_BUFFER_SIZE 10
 
 #define PRINT_ERROR_PATH(fmt, ...)\
         {\
@@ -62,14 +65,14 @@ public:
   static const char*        convertWarningIdToString(int warningId);
 
   void                      setExternalPtrs(int *errorPtr,
-                                            int *warningPtr);
-
+                                            int *warningPtr);  
 protected:
   char errorPath_[128];
   bool errorPathValid_;
 
 private:
-  void initVars();
+  void                      initVars();
+  bool                      errorInBuffer(int errorID);
   bool error_;
   int errorId_;
   int warningId_;
@@ -77,6 +80,8 @@ private:
   ecmcAlarmSeverity currSeverity_;
   int *warningPtr_;
   int *errorPtr_;
+  int errorsInBuffer_;
+  std::vector<int> buffer_;
 };
 
 #endif  /* ECMCERROR_H_ */
