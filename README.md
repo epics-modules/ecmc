@@ -3,7 +3,6 @@ ECMC Motion Control Module for EPICS
 
 ECMC is a motion control and data acquisition module for use with EPICS system.
 
-
 # Initialize
 
 ```
@@ -71,7 +70,7 @@ git submodule update --init --reference ./
 # How do I get set up?
 
 Fastest and easiest way to get started is by using the configuration scripts accessible in
-ecmccfg repository: https://github.com/paulscherrerinstitute/ecmccfg (or ESS fork https://github.com/icshwi/ecmccfg)
+ecmccfg repository: https://github.com/paulscherrerinstitute/ecmccfg
 
 ECMC is configured via EPICS-iocsh:
 
@@ -104,37 +103,39 @@ ECMC is configured via EPICS-iocsh:
 
 # Documentation
 
-[Command reference](https://epics-modules.github.io/ecmc/)
+[Manual](https://paulscherrerinstitute.github.io/ecmccfg/manual/)
 
-[Examples](https://github.com/paulscherrerinstitute/ecmccfg/tree/master/examples)
+[Examples](https://github.com/paulscherrerinstitute/ecmccfg/tree/master/examples/PSI/best_practice)
 
 # Environment
 ECMC runs best under certain conditions:
 
-* E3 (ESS EPICS Environment)
+* PSI require (or ESS-e3)
 * RT-patch
-* Settings found in https://github.com/icshwi/realtime-config
 * configuration by ecmccfg: https://github.com/paulscherrerinstitute/ecmccfg
 
 # Needed EPICS modules
 
-* Open source ethercat master:      https://etherlab.org/, https://github.com/icshwi/etherlabmaster 
+* Open source ethercat master:      https://etherlab.org/
 * ExprTK:                           https://github.com/icshwi/e3-exprtk (https://github.com/ArashPartow/exprtk)
 * E3 (ESS EPICS Environment):       https://github.com/icshwi/e3
-* Real-time configuration:          https://github.com/icshwi/realtime-config
 * Motor:                            https://github.com/icshwi/e3-motor (https://github.com/EuropeanSpallationSource/motor)
 * Asyn driver:                      https://github.com/icshwi/e3-asyn
 * ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg
 * ruckig                            https://github.com/anderssandstrom/e3-ruckig, https://github.com/anderssandstrom/ruckig
 
+# Optional modules
+
+* ecmccomp                          https://github.com/paulscherrerinstitute/ecmccomp
+
 # Plugins
 Plugins with extra functionality that can be loaded during startup:
-* CNC g-code support by grbl:       https://github.com/anderssandstrom/ecmc_plugin_grbl
+* CNC g-code support by grbl:                       https://github.com/anderssandstrom/ecmc_plugin_grbl
 * SocketCAN support (inc. reduced CANOpen support): https://github.com/anderssandstrom/e3-ecmc_plugin_socketcan
-* FFTs by kissfft:                  https://github.com/anderssandstrom/e3-ecmc_plugin_fft
-* Raspi wiringPi support:            https://github.com/anderssandstrom/e3-ecmc_plugin_raspi
-* PVA support from ecmc-plc:        https://github.com/anderssandstrom/e3-ecmc_plugin_pva
-* Simple scope for ethercat dc slaves):   https://github.com/anderssandstrom/e3-ecmc_plugin_scope
+* FFTs by kissfft:                                  https://github.com/anderssandstrom/e3-ecmc_plugin_fft
+* Raspi wiringPi support:                           https://github.com/anderssandstrom/e3-ecmc_plugin_raspi
+* PVA support from ecmc-plc:                        https://github.com/anderssandstrom/e3-ecmc_plugin_pva
+* Simple scope for ethercat dc slaves):             https://github.com/anderssandstrom/e3-ecmc_plugin_scope
 
 # Issues/bug report
 
@@ -144,5 +145,4 @@ https://github.com/epics-modules/ecmc/issues
 
 * ECMC                                 : Anders Sandström, anders.sandstroem@psi.ch
 * Motor Record                         : Torsten Bögershausen, torsten.bogershausen@esss.se
-  * ecmcMotorRecord driver (preferred) : Anders Sandström, anders.sandstroem@psi.ch
-  * (EthercatMC driver                 : Torsten Bögershausen, torsten.bogershausen@esss.se)
+  * ecmcMotorRecord model 3 driver (preferred) : Anders Sandström, anders.sandstroem@psi.ch
