@@ -25,8 +25,6 @@ enum ecmcAlarmSeverity {
   ECMC_SEVERITY_EMERGENCY = 3
 };
 
-#define ECMC_MAX_ERROR_BUFFER_SIZE 10
-
 #define PRINT_ERROR_PATH(fmt, ...)\
         {\
           snprintf(errorPath_, sizeof(errorPath_), fmt, ## __VA_ARGS__);\

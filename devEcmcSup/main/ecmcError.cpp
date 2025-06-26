@@ -12,6 +12,9 @@
 
 #include "ecmcError.h"
 
+// Buffer to filter that not same error is printed many times from the same object
+#define ECMC_MAX_ERROR_BUFFER_SIZE 2
+
 ecmcError::ecmcError() {
   initVars();
 }
@@ -43,28 +46,26 @@ int ecmcError::setErrorID(const char *fileName,
                           int         lineNumber,
                           int         errorID) {
 
-  if(errorInBuffer(errorID)) {
-    return errorId_;  // return old error
-  }
-
-  if (errorID != errorId_) {
-    if (errorPathValid_) {
-      LOGERR("%s/%s:%d: %s=%s;\n",
-             fileName,
-             functionName,
-             lineNumber,
-             errorPath_,
-             convertErrorIdToString(errorID));      
-    } else {
-      LOGERR("%s/%s:%d: %s (0x%x).\n",
-             fileName,
-             functionName,
-             lineNumber,
-             convertErrorIdToString(errorID),
-             errorID);
+  // Only printout if not already printout
+  if(!errorInBuffer(errorID)) {
+    if (errorID != errorId_) {
+      if (errorPathValid_) {
+        LOGERR("%s/%s:%d: %s=%s;\n",
+               fileName,
+               functionName,
+               lineNumber,
+               errorPath_,
+               convertErrorIdToString(errorID));      
+      } else {
+        LOGERR("%s/%s:%d: %s (0x%x).\n",
+               fileName,
+               functionName,
+               lineNumber,
+               convertErrorIdToString(errorID),
+               errorID);
+      }
     }
   }
-
   return setErrorID(errorID);
 }
 
@@ -73,19 +74,17 @@ int ecmcError::setErrorID(const char       *fileName,
                           int               lineNumber,
                           int               errorID,
                           ecmcAlarmSeverity severity) {
-  if(errorInBuffer(errorID)) {
-    return errorId_;  // return old error
+  // Only printout if not already printout
+  if(!errorInBuffer(errorID)) {
+    if ((errorID != errorId_) && (severity > currSeverity_)) {
+      LOGERR("%s/%s:%d: %s (0x%x).\n",
+             fileName,
+             functionName,
+             lineNumber,
+             convertErrorIdToString(errorID),
+             errorID);
+    }
   }
-
-  if ((errorID != errorId_) && (severity > currSeverity_)) {
-    LOGERR("%s/%s:%d: %s (0x%x).\n",
-           fileName,
-           functionName,
-           lineNumber,
-           convertErrorIdToString(errorID),
-           errorID);
-  }
-
   return setErrorID(errorID, severity);
 }
 
@@ -122,7 +121,7 @@ int ecmcError::setErrorID(int errorID, ecmcAlarmSeverity severity) {
 
 bool ecmcError::errorInBuffer(int errorID) {
   for(int i = 0; i < errorsInBuffer_; i++) {
-    if(buffer_[i]==errorID) {
+    if(buffer_[i] == errorID) {
       return true;
     }
   }
