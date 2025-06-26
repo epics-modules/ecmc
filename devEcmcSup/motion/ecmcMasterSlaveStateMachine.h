@@ -43,6 +43,13 @@
 #include <string>
 #include <iostream>
 
+typedef struct {
+  unsigned char enable : 1;
+  unsigned char autoDisableMasters :1;
+  unsigned char autoDisableSlaves :1;
+  unsigned int  dummy        : 29;
+} ecmcMasterSlaveControlWord;
+
 enum masterSlaveStates {
   ECMC_MST_SLV_STATE_IDLE    = 0,
   ECMC_MST_SLV_STATE_SLAVES  = 1,
@@ -57,7 +64,9 @@ class ecmcMasterSlaveStateMachine : public ecmcError {
                                 const char *name,
                                 double sampleTimeS,
                                 ecmcAxisGroup *masterGrp,
-                                ecmcAxisGroup *slaveGrp);
+                                ecmcAxisGroup *slaveGrp,
+                                int autoDisbleMasters,
+                                int autoDisbleSlaves);
     ~ecmcMasterSlaveStateMachine();
     const char* getName();
     void execute();
@@ -85,13 +94,13 @@ class ecmcMasterSlaveStateMachine : public ecmcError {
     bool validationOK_;
     bool optionAutoDisableMasters_;
     ecmcAxisGroup *masterGrp_;
-    ecmcAxisGroup *slaveGrp_;
-    int enable_;
+    ecmcAxisGroup *slaveGrp_;    
     int status_;
     ecmcAsynPortDriver *asynPortDriver_;
-    ecmcAsynDataItem *asynEnable_;
+    ecmcAsynDataItem *asynControl_;
     ecmcAsynDataItem *asynState_;
     ecmcAsynDataItem *asynStatus_;
+    ecmcMasterSlaveControlWord control_;
 };
 
 #endif  /* ecmcMasterSlaveStateMachine_H_ */

@@ -3635,7 +3635,9 @@ void* getAxisPointer(int  axisIndex) {
 int createMasterSlaveSM(int index,
                         const char *name,
                         const char *masterGrpName,
-                        const char* slaveGrpName) {
+                        const char* slaveGrpName,
+                        int autoDisableMasters,
+                        int autoDisableSlaves) {
   LOGINFO4("%s/%s:%d index=%d ,name=%s, master=%s, slave=%s\n", 
            __FILE__, __FUNCTION__, __LINE__, 
            index, name, masterGrpName, slaveGrpName);
@@ -3664,6 +3666,8 @@ int createMasterSlaveSM(int index,
                                                           name,
                                                           1.0 / mcuFrequency,
                                                           masterGrp,
-                                                          slaveGrp);
+                                                          slaveGrp,
+                                                          autoDisableMasters,
+                                                          autoDisableSlaves);
   return 0;
 }

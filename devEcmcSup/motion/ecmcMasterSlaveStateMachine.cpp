@@ -16,9 +16,11 @@ ecmcMasterSlaveStateMachine::ecmcMasterSlaveStateMachine(ecmcAsynPortDriver *asy
                                                          const char *name,
                                                          double sampleTimeS,
                                                          ecmcAxisGroup *masterGrp,
-                                                         ecmcAxisGroup *slaveGrp){
+                                                         ecmcAxisGroup *slaveGrp,
+                                                         int autoDisbleMasters,
+                                                         int autoDisbleSlaves){
   asynPortDriver_           = asynPortDriver;
-  asynEnable_               = NULL;
+  asynControl_              = NULL;
   asynState_                = NULL;
   asynStatus_               = NULL;
   index_                    = index;
@@ -28,12 +30,18 @@ ecmcMasterSlaveStateMachine::ecmcMasterSlaveStateMachine(ecmcAsynPortDriver *asy
   masterGrp_                = masterGrp;
   slaveGrp_                 = slaveGrp;
   validationOK_             = false;
-  asynInitOk_               = false;
-  optionAutoDisableMasters_ = false;
-  enable_                   = 1;  // default true
+  asynInitOk_               = false;  
   status_                   = 0;
-  state_                    = ECMC_MST_SLV_STATE_IDLE;
+  state_                    = ECMC_MST_SLV_STATE_IDLE;    
+
+  memset(&control_,0,sizeof(control_));
+
+  control_.enable = 1;
+  control_.autoDisableMasters = autoDisbleMasters;
+  control_.autoDisableSlaves = autoDisbleSlaves;
+
   printf("ecmcMasterSlaveStateMachine: %s:  Created master slave state machine [%d]\n",name_.c_str(),index_);
+
   initAsyn();
 };
 
@@ -49,7 +57,7 @@ void ecmcMasterSlaveStateMachine::execute(){
   //always update
   refreshAsyn();
 
-  if(!enable_) {
+  if(!control_.enable) {
     return;
   }
 
@@ -132,10 +140,17 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
 int ecmcMasterSlaveStateMachine::stateSlave(){
 
   if(!slaveGrp_->getAnyBusy()) {
-    slaveGrp_->setEnable(0);
-    masterGrp_->setEnable(0);
-    slaveGrp_->setMRCnen(0);
-    masterGrp_->setMRCnen(0);
+
+    if(control_.autoDisableSlaves) {
+      slaveGrp_->setEnable(0);
+      slaveGrp_->setMRCnen(0);
+    }
+    
+    if(control_.autoDisableMasters) {      
+      masterGrp_->setEnable(0);
+      masterGrp_->setMRCnen(0);
+    }
+
     slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
 
     // Sync the master axes
@@ -159,7 +174,7 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
 
   
   if(!masterGrp_->getAnyBusy() && masterGrp_->getAnyEnabled()) {
-    if(optionAutoDisableMasters_) {
+    if(control_.autoDisableMasters) {
       slaveGrp_->setEnable(0);
       masterGrp_->setEnable(0);
       slaveGrp_->setMRCnen(0);
@@ -231,7 +246,6 @@ int ecmcMasterSlaveStateMachine::validate(){
     return ERROR_MST_SLV_SM_GRP_INIT_ASYN_FAILED;
   };
 
-
   validationOK_ = true;
   return 0;
 };
@@ -252,22 +266,23 @@ int ecmcMasterSlaveStateMachine::initAsyn() {
   ecmcAsynDataItem *paramTemp = NULL;
   int errorCode               = 0;
 
-  // Enable
-  errorCode = createAsynParam(ECMC_MST_SLV_OBJ_STR "%d." ECMC_ASYN_AX_ENABLE_CMD_NAME,
+  // Control
+  errorCode = createAsynParam(ECMC_MST_SLV_OBJ_STR "%d.control",
                               asynParamInt32,
                               ECMC_EC_U32,
-                              (uint8_t *)&(enable_),
-                              sizeof(enable_),
+                              (uint8_t *)&(control_),
+                              sizeof(control_),
                               &paramTemp);
 
   if (errorCode) {
-    printf("Error creating asyn parameter for enable\n");
+    printf("Error creating asyn parameter for control word\n");
     return errorCode;
   }
-  paramTemp->setAllowWriteToEcmc(true);
-  paramTemp->refreshParam(1);
-  asynEnable_ = paramTemp;
 
+  paramTemp->setAllowWriteToEcmc(true);
+  paramTemp->addSupportedAsynType(asynParamUInt32Digital);
+  paramTemp->refreshParam(1);
+  asynControl_ = paramTemp;
 
   // State
   errorCode = createAsynParam(ECMC_MST_SLV_OBJ_STR "%d." ECMC_MST_SLVS_STR_STATE,
@@ -297,6 +312,7 @@ int ecmcMasterSlaveStateMachine::initAsyn() {
     printf("Error creating asyn parameter for status\n");
     return errorCode;
   }
+
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   asynStatus_ = paramTemp;
@@ -363,7 +379,7 @@ int ecmcMasterSlaveStateMachine::createAsynParam(const char        *nameFormat,
       name);
     return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
-  paramTemp->setAllowWriteToEcmc(false);
+  paramTemp->setAllowWriteToEcmc(false);  
   paramTemp->refreshParam(1);
   *asynParamOut = paramTemp;
   return 0;
@@ -371,6 +387,6 @@ int ecmcMasterSlaveStateMachine::createAsynParam(const char        *nameFormat,
 
 void ecmcMasterSlaveStateMachine::refreshAsyn() {
   asynStatus_->refreshParamRT(0);
-  asynEnable_->refreshParamRT(0);
+  asynControl_->refreshParamRT(0);
   asynState_->refreshParamRT(0);
 }

@@ -3992,16 +3992,24 @@ void* getAxisPointer(int  axisIndex);
 
 /** \brief Create a new master slave state machine object\n
  *
+ * \param[in] index index of this state machine.\n
  * \param[in] name name of this state machine.\n
  * \param[in] masterGrpName name of master group.\n
  * \param[in] slaveGrpName name of slave grouop.\n
+ * \param[in] autoDisableMasters Auto disable Masters when not busy.\n
+ * \param[in] autoDisableSlaves Auto disable Slaves when not busy.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example:
  *  "Cfg.createMasterSlaveSM(1,'SlitSystemSM','Virt','Phys')" //Command string to ecmcCmdParser.c\n
  */
-int createMasterSlaveSM(int index, const char *name, const char *masterGrpName, const char* slaveGrpName);
+int createMasterSlaveSM(int index,
+                        const char *name,
+                        const char *masterGrpName,
+                        const char* slaveGrpName,
+                        int autoDisableMasters,
+                        int autoDisableSlaves);
 
 # ifdef __cplusplus
 }

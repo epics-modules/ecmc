@@ -1818,10 +1818,15 @@ static int handleCfgCommand(const char *myarg_1) {
   cIdBuffer2[0] = '\0';
   cIdBuffer3[0] = '\0';
 
-  nvals = sscanf(myarg_1, "CreateMasterSlaveSM(%d,%[^,],%[^,],%[^)])", &iValue, cIdBuffer,cIdBuffer2,cIdBuffer3);
+  nvals = sscanf(myarg_1, "CreateMasterSlaveSM(%d,%[^,],%[^,],%[^,],%d,%d)", &iValue, 
+                                                                       cIdBuffer,
+                                                                       cIdBuffer2,
+                                                                       cIdBuffer3,
+                                                                       &iValue2,
+                                                                       &iValue3);
 
-  if (nvals == 4) {
-    return createMasterSlaveSM(iValue , cIdBuffer,cIdBuffer2,cIdBuffer3);
+  if (nvals == 6) {
+    return createMasterSlaveSM(iValue , cIdBuffer,cIdBuffer2,cIdBuffer3,iValue2,iValue3);
   }
 
   /*int Cfg.LoadAxisEncLookupTable(int axis_no, char *filename); */
