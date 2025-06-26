@@ -2195,9 +2195,20 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
         data_.control_.controlWord_.executeCmd = 0; // auto reset
         return asynError;
       }
+      
+      // Ensure valid command
+      if(!commandValid(data_.control_.command)) {
+        LOGERR(
+          "%s/%s:%d: ERROR: Axis[%d]: Invalid command = 0x%x. Command aborted.\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          data_.status_.axisId,(int)data_.control_.command);
+        return asynError;
+      }
 
       // Only allow cmd change if not busy
-      if (!getBusy()) {
+      if (!getBusy()) {        
         setCommand(data_.control_.command);
 
         if (data_.control_.command == ECMC_CMD_HOMING) {
@@ -2645,42 +2656,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   int command = 0;
   memcpy(&command, data, bytes);
 
-  bool commandValid = false;
-
-  switch((motionCommandTypes)command) {
-    case ECMC_CMD_NOCMD:
-      commandValid = true;
-      break;
-    case ECMC_CMD_MOVEVEL:
-      commandValid = true;
-      break;
-    case ECMC_CMD_MOVEREL:
-      commandValid = true;
-      break;
-    case ECMC_CMD_MOVEABS:
-      commandValid = true;
-      break;
-    case ECMC_CMD_MOVEMODULO:
-      commandValid = false;   // NOT valid!!
-      break;
-    case ECMC_CMD_MOVEPVTABS:
-      LOGERR(
-        "%s/%s:%d: ERROR: Axis[%d]: PVT motion can only be executed from the dedicated \"Profile move\" pvs.\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        data_.status_.axisId);
-      commandValid = false;
-      break;
-    case ECMC_CMD_HOMING:
-      commandValid = true;
-      break;
-    default:
-      commandValid = false;
-      break;
-  }
-
-  if(!commandValid) {
+  if(!commandValid((motionCommandTypes)command)) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Invalid command = 0x%x. Old command (%d) will not be over written\n",
       __FILE__,
@@ -3276,4 +3252,42 @@ int ecmcAxisBase::setCntrlKff(double kff) {
   }
   getCntrl()->setKff(kff);
   return 0;
+}
+
+bool ecmcAxisBase::commandValid(motionCommandTypes command) {
+
+  bool valid = false;
+  switch((motionCommandTypes)command) {
+    case ECMC_CMD_NOCMD:
+      valid = true;
+      break;
+    case ECMC_CMD_MOVEVEL:
+      valid = true;
+      break;
+    case ECMC_CMD_MOVEREL:
+      valid = true;
+      break;
+    case ECMC_CMD_MOVEABS:
+      valid = true;
+      break;
+    case ECMC_CMD_MOVEMODULO:
+      valid = false;   // NOT valid!!
+      break;
+    case ECMC_CMD_MOVEPVTABS:
+      LOGERR(
+        "%s/%s:%d: ERROR: Axis[%d]: PVT motion can only be executed from the dedicated \"Profile move\" pvs.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_.status_.axisId);
+      valid = false;
+      break;
+    case ECMC_CMD_HOMING:
+      valid = true;
+      break;
+    default:
+      valid = false;
+      break;
+  }
+  return valid;
 }

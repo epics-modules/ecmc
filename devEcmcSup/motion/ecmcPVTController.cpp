@@ -188,6 +188,7 @@ void ecmcPVTController::execute() {
             axes_[i]->getPVTObject()->setBusy(false);
             state_ =  ECMC_PVT_IDLE;
             busy_ = false;
+            axes_[i]->setCommand(ECMC_CMD_MOVEABS);
           }
         }
       }
@@ -205,6 +206,7 @@ void ecmcPVTController::execute() {
       for(uint i = 0; i < axes_.size(); i++ ) {
         axes_[i]->getPVTObject()->setBusy(false);
         axes_[i]->setGlobalBusy(0);
+        axes_[i]->setCommand(ECMC_CMD_MOVEABS);
         state_ =  ECMC_PVT_IDLE;        
       }
 

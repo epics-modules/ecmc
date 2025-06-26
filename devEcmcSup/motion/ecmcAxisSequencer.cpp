@@ -150,7 +150,7 @@ void ecmcAxisSequencer::execute() {
   traj_->setStartPos(data_->status_.currentPositionSetpoint);
 
 
-  if(data_->control_.command == ECMC_CMD_MOVEVEL) {
+  if(data_->control_.command == ECMC_CMD_MOVEVEL || pvtmode_) {
     data_->status_.currentTargetPosition = data_->status_.currentPositionSetpoint;
   }
 }
