@@ -34,12 +34,19 @@ void ecmcError::initVars() {
   memset(&errorPath_, 0, sizeof(errorPath_));
   warningPtr_ = NULL;
   errorPtr_   = NULL;
+  errorsInBuffer_ = 0;
+  buffer_.reserve(ECMC_MAX_ERROR_BUFFER_SIZE);
 }
 
 int ecmcError::setErrorID(const char *fileName,
                           const char *functionName,
                           int         lineNumber,
                           int         errorID) {
+
+  if(errorInBuffer(errorID)) {
+    return errorId_;  // return old error
+  }
+
   if (errorID != errorId_) {
     if (errorPathValid_) {
       LOGERR("%s/%s:%d: %s=%s;\n",
@@ -47,7 +54,7 @@ int ecmcError::setErrorID(const char *fileName,
              functionName,
              lineNumber,
              errorPath_,
-             convertErrorIdToString(errorID));
+             convertErrorIdToString(errorID));      
     } else {
       LOGERR("%s/%s:%d: %s (0x%x).\n",
              fileName,
@@ -66,6 +73,10 @@ int ecmcError::setErrorID(const char       *fileName,
                           int               lineNumber,
                           int               errorID,
                           ecmcAlarmSeverity severity) {
+  if(errorInBuffer(errorID)) {
+    return errorId_;  // return old error
+  }
+
   if ((errorID != errorId_) && (severity > currSeverity_)) {
     LOGERR("%s/%s:%d: %s (0x%x).\n",
            fileName,
@@ -91,6 +102,12 @@ int ecmcError::setErrorID(int errorID) {
     *errorPtr_ = errorID;
   }
 
+  // Store the last ECMC_MAX_ERROR_BUFFER_SIZE new errors in a buffer. Only printout once
+  if(errorsInBuffer_< ECMC_MAX_ERROR_BUFFER_SIZE) {
+    buffer_.push_back(errorId_);
+    errorsInBuffer_++;
+  }
+
   return errorId_;
 }
 
@@ -100,19 +117,16 @@ int ecmcError::setErrorID(int errorID, ecmcAlarmSeverity severity) {
   }
   currSeverity_ = severity;
 
-  if (errorID) {
-    error_ = true;
-  } else {
-    error_ = false;
-  }
-  errorId_ = errorID;
+  return setErrorID(errorID);
+}
 
-  // Also write to "external" pointer
-  if (errorPtr_) {
-    *errorPtr_ = errorID;
+bool ecmcError::errorInBuffer(int errorID) {
+  for(int i = 0; i < errorsInBuffer_; i++) {
+    if(buffer_[i]==errorID) {
+      return true;
+    }
   }
-
-  return errorId_;
+  return false;
 }
 
 void ecmcError::setError(bool error) {
@@ -120,6 +134,9 @@ void ecmcError::setError(bool error) {
 }
 
 void ecmcError::errorReset() {
+  buffer_.clear();
+  errorsInBuffer_ = 0;
+
   error_ = false;
   setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);
   currSeverity_ = ECMC_SEVERITY_NONE;
