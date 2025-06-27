@@ -3566,7 +3566,7 @@ int ecmcAxisSequencer::setTrajDataSourceTypeInternal(dataSource refSource,
     data_->control_.controlWord_.executeCmd = true;
     data_->status_.statusWord_.execute = true;
     
-  } else {    
+  } else {
     // Init stop ramp
     traj_->setEnable(1);
     traj_->setCurrentPosSet(data_->status_.currentPositionActual);
@@ -3576,11 +3576,13 @@ int ecmcAxisSequencer::setTrajDataSourceTypeInternal(dataSource refSource,
     setDec(data_->control_.decelerationTarget);
     setAcc(data_->control_.accelerationTarget);
     setTargetPos(data_->status_.currentPositionSetpoint);
-
-    traj_->initStopRamp(data_->status_.currentPositionActual,
-                        data_->status_.currentVelocityActual,
-                        0);
-    data_->status_.statusWord_.busy = traj_->getBusy();    
+    
+    if(data_->status_.statusWord_.enabled) {  
+      traj_->initStopRamp(data_->status_.currentPositionActual,
+                          data_->status_.currentVelocityActual,
+                          0);
+    }
+    data_->status_.statusWord_.busy = traj_->getBusy();
 
     if (!data_->status_.statusWord_.enable ) {
       data_->status_.statusWord_.busy         = false;

@@ -33,7 +33,7 @@ ecmcMasterSlaveStateMachine::ecmcMasterSlaveStateMachine(ecmcAsynPortDriver *asy
   asynInitOk_               = false;  
   status_                   = 0;
   state_                    = ECMC_MST_SLV_STATE_IDLE;    
-
+  idleCounter_              = 0;
   memset(&control_,0,sizeof(control_));
   memset(&controlOld_,0,sizeof(controlOld_));
 
@@ -83,12 +83,15 @@ void ecmcMasterSlaveStateMachine::execute(){
       stateIdle();
       break;
     case ECMC_MST_SLV_STATE_SLAVES:
+      idleCounter_ = 0;
       stateSlave();
       break;
     case ECMC_MST_SLV_STATE_MASTERS:
+      idleCounter_ = 0;
       stateMaster();
       break;
     case ECMC_MST_SLV_STATE_RESET:
+      idleCounter_ = 0;
       stateReset();
       break;
   };
@@ -96,6 +99,15 @@ void ecmcMasterSlaveStateMachine::execute(){
 };
 
 int ecmcMasterSlaveStateMachine::stateIdle(){
+  
+  // Slaved axis busy will stay high for 2 cycles after traj source change.
+  // Needed in case stop ramp for the slaves is needed.
+  // TODO: Fix.. Need better solution here
+  if(idleCounter_ < 3) {
+    idleCounter_++;
+    return 0;
+  }
+
   // optimize
   bool anySlaveBusy     = slaveGrp_->getAnyBusy();
   bool anySlaveErrorId  = slaveGrp_->getAnyErrorId();
@@ -189,12 +201,11 @@ int ecmcMasterSlaveStateMachine::stateSlave(){
 }
 
 int ecmcMasterSlaveStateMachine::stateMaster(){
-
+  
   if(slaveGrp_->getAnyErrorId() > 0) {
     masterGrp_->setSlavedAxisInError();
   }
 
-  
   if(!masterGrp_->getAnyBusy() && masterGrp_->getAnyEnabled()) {
     if(control_.autoDisableMasters) {
       slaveGrp_->setEnable(0);
@@ -205,8 +216,9 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
   }
 
   // One master axis gets killed during motion then kill all and goto IDLE
-  if( (masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled()) || 
-      (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled())) {   
+  if( masterGrp_->getAnyBusy() && 
+      ((masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled()) || 
+      (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled()))) {
     state_ = ECMC_MST_SLV_STATE_RESET;
     if(control_.enableDbgPrintouts) {
       printf("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n", name_.c_str());    
@@ -238,10 +250,10 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
   
   // Done?
   if(!masterGrp_->getAnyEnabled()) {
-    slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
-    slaveGrp_->setErrorReset();
     slaveGrp_->setEnable(0);
     slaveGrp_->setMRCnen(0);
+    slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
+    slaveGrp_->setErrorReset();
     masterGrp_->setEnableAutoDisable(1);
     state_ = ECMC_MST_SLV_STATE_IDLE;
     if(control_.enableDbgPrintouts) {

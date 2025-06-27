@@ -104,6 +104,7 @@ class ecmcMasterSlaveStateMachine : public ecmcError {
     ecmcAsynDataItem *asynStatus_;
     ecmcMasterSlaveControlWord control_;
     ecmcMasterSlaveControlWord controlOld_;
+    int idleCounter_;
 };
 
 #endif  /* ecmcMasterSlaveStateMachine_H_ */

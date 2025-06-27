@@ -1045,16 +1045,6 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
 
   status = setEnable(on);
 
-  /* 
-    Ignore disable error.
-    For use with master axes groups when plc code control disabling of axes.   
-  */
-
-  if(drvlocal.ecmcIgnoreDisableAxisStatus && !on) {
-    poll(&moving);
-    return asynSuccess;
-  }
-
   if (status) return status;
 
   while (counter) {
@@ -1072,6 +1062,15 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
       return asynSuccess;
     }
     counter = counter - 1;
+  }
+
+  /* 
+    Ignore disable error.
+    For use with master axes groups when plc code control disabling of axes.   
+  */
+  if(drvlocal.ecmcIgnoreDisableAxisStatus && !on) {
+    poll(&moving);
+    return asynSuccess;
   }
 
   /* if we come here, it went wrong */
