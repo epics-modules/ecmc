@@ -36,10 +36,10 @@ ecmcMasterSlaveStateMachine::ecmcMasterSlaveStateMachine(ecmcAsynPortDriver *asy
 
   memset(&control_,0,sizeof(control_));
 
-  control_.enable = 1;
+  control_.enable             = 1;
   control_.autoDisableMasters = autoDisbleMasters;
-  control_.autoDisableSlaves = autoDisbleSlaves;
-
+  control_.autoDisableSlaves  = autoDisbleSlaves;
+  control_.enableDbgPrintouts = false;
   printf("ecmcMasterSlaveStateMachine: %s:  Created master slave state machine [%d]\n",name_.c_str(),index_);
 
   initAsyn();
@@ -88,26 +88,34 @@ void ecmcMasterSlaveStateMachine::execute(){
 };
 
 int ecmcMasterSlaveStateMachine::stateIdle(){
+  // optimize
+  bool anySlaveBusy     = slaveGrp_->getAnyBusy();
+  bool anySlaveErrorId  = slaveGrp_->getAnyErrorId();
+  bool anyMasterEnabled = masterGrp_->getAnyEnabled();
 
   // State transision to SLAVE
-  if( slaveGrp_->getAnyBusy() && 
-     !slaveGrp_->getTrajSrcAnyExt() && 
-     !masterGrp_->getAnyEnabled() && 
-     !masterGrp_->getAnyEnable()) {
+  if( anySlaveBusy && 
+    !slaveGrp_->getTrajSrcAnyExt() && 
+    !anyMasterEnabled && 
+    !masterGrp_->getAnyEnable()) {
 
-     state_ = ECMC_MST_SLV_STATE_SLAVES;
-     printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> SLAVE\n",name_.c_str());
+    state_ = ECMC_MST_SLV_STATE_SLAVES;
+    if(control_.enableDbgPrintouts) {
+      printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> SLAVE\n",name_.c_str());
+    }
 
   // State transision to MASTER
-  } else if(masterGrp_->getAnyEnabled() &&
-            slaveGrp_->getAnyErrorId() == 0 ) {
+  } else if(anyMasterEnabled &&
+            anySlaveErrorId == 0 ) {
 
-    if(slaveGrp_->getEnabled() && masterGrp_->getEnabled() && !slaveGrp_->getAnyBusy()){
+    if(slaveGrp_->getEnabled() && anyMasterEnabled && !anySlaveBusy){
 
       if(masterGrp_->getAnyBusy()) {
         slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_EXTERNAL);
         state_ = ECMC_MST_SLV_STATE_MASTERS;
-        printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> MASTER\n", name_.c_str());
+        if(control_.enableDbgPrintouts) {
+          printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> MASTER\n", name_.c_str());
+        }
       }
 
     } else {
@@ -123,14 +131,17 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
         if(errorSlave) {
           masterGrp_->setSlavedAxisInError();
         }
-        printf("ecmcMasterSlaveStateMachine: %s: Error enabling axes\n", name_.c_str());
-        printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> IDLE\n", name_.c_str());
-
+        if(control_.enableDbgPrintouts) {
+          printf("ecmcMasterSlaveStateMachine: %s: Error enabling axes\n", name_.c_str());
+          printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> IDLE\n", name_.c_str());
+        }
         state_ = ECMC_MST_SLV_STATE_IDLE;
       }
-      slaveGrp_->halt();
+      if(anySlaveBusy) {
+        slaveGrp_->halt();
+      }
     }
-  } else if(slaveGrp_->getAnyErrorId() > 0){
+  } else if(anySlaveErrorId > 0){
     masterGrp_->setSlavedAxisInError();
   }
 
@@ -158,7 +169,9 @@ int ecmcMasterSlaveStateMachine::stateSlave(){
     masterGrp_->setMRStop(1);
 
     state_ = ECMC_MST_SLV_STATE_IDLE;
-    printf("ecmcMasterSlaveStateMachine: %s: State change, SLAVE -> IDLE\n", name_.c_str());
+    if(control_.enableDbgPrintouts) {
+      printf("ecmcMasterSlaveStateMachine: %s: State change, SLAVE -> IDLE\n", name_.c_str());
+    }
   }
   if(masterGrp_->getAnyEnabled() && masterGrp_->getAnyEnable()) {
     masterGrp_->setEnable(0);
@@ -168,6 +181,7 @@ int ecmcMasterSlaveStateMachine::stateSlave(){
 }
 
 int ecmcMasterSlaveStateMachine::stateMaster(){
+
   if(slaveGrp_->getAnyErrorId() > 0) {
     masterGrp_->setSlavedAxisInError();
   }
@@ -182,12 +196,14 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     }
   }
 
-  // One master axis gets killed during motion then kill all and got to IDLE
+  // One master axis gets killed during motion then kill all and goto IDLE
   if( (masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled()) || 
       (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled())) {   
     state_ = ECMC_MST_SLV_STATE_RESET;
-    printf("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n", name_.c_str());    
-    printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n", name_.c_str());
+    if(control_.enableDbgPrintouts) {
+      printf("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n", name_.c_str());    
+      printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n", name_.c_str());
+    }
     stateReset(); // A bit nasty but ....
     return 0;
   }
@@ -206,8 +222,10 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     masterGrp_->setSlavedAxisIlocked();
     masterGrp_->setEnableAutoDisable(1);
     state_ = ECMC_MST_SLV_STATE_SLAVES;
-    printf("ecmcMasterSlaveStateMachine: %s: Slaved axis interlock (or traj source change)\n", name_.c_str());
-    printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> SLAVE\n", name_.c_str());
+    if(control_.enableDbgPrintouts) {
+      printf("ecmcMasterSlaveStateMachine: %s: Slaved axis interlock (or traj source change)\n", name_.c_str());
+      printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> SLAVE\n", name_.c_str());
+    }
   }
   
   // Done?
@@ -218,7 +236,9 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     slaveGrp_->setMRCnen(0);
     masterGrp_->setEnableAutoDisable(1);
     state_ = ECMC_MST_SLV_STATE_IDLE;
-    printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> IDLE\n", name_.c_str());
+    if(control_.enableDbgPrintouts) {
+      printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> IDLE\n", name_.c_str());
+    }
   }
   return 0;
 }
@@ -233,7 +253,9 @@ int ecmcMasterSlaveStateMachine::stateReset() {
   slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
   masterGrp_->setEnableAutoDisable(1);
   state_ = ECMC_MST_SLV_STATE_IDLE;
-  printf("ecmcMasterSlaveStateMachine: %s: State change, RESET -> IDLE\n", name_.c_str());
+  if(control_.enableDbgPrintouts) {
+    printf("ecmcMasterSlaveStateMachine: %s: State change, RESET -> IDLE\n", name_.c_str());
+  }
   return  0;
 }
 

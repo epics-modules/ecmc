@@ -46,8 +46,9 @@
 typedef struct {
   unsigned char enable : 1;
   unsigned char autoDisableMasters :1;
-  unsigned char autoDisableSlaves :1;
-  unsigned int  dummy        : 29;
+  unsigned char autoDisableSlaves  :1;
+  unsigned char enableDbgPrintouts :1;
+  unsigned int  dummy        : 28;
 } ecmcMasterSlaveControlWord;
 
 enum masterSlaveStates {
