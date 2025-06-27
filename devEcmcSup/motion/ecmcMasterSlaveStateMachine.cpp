@@ -35,11 +35,16 @@ ecmcMasterSlaveStateMachine::ecmcMasterSlaveStateMachine(ecmcAsynPortDriver *asy
   state_                    = ECMC_MST_SLV_STATE_IDLE;    
 
   memset(&control_,0,sizeof(control_));
+  memset(&controlOld_,0,sizeof(controlOld_));
 
   control_.enable             = 1;
   control_.autoDisableMasters = autoDisbleMasters;
   control_.autoDisableSlaves  = autoDisbleSlaves;
   control_.enableDbgPrintouts = false;
+  
+  slaveGrp_->setMRIgnoreDisableStatusCheck(true);
+  masterGrp_->setMRIgnoreDisableStatusCheck(true);
+
   printf("ecmcMasterSlaveStateMachine: %s:  Created master slave state machine [%d]\n",name_.c_str(),index_);
 
   initAsyn();
@@ -57,7 +62,10 @@ void ecmcMasterSlaveStateMachine::execute(){
   //always update
   refreshAsyn();
 
+  setMrIgnoreEnableAlarm();
+
   if(!control_.enable) {
+    memcpy(&controlOld_,&control_, sizeof(control_));
     return;
   }
 
@@ -83,8 +91,8 @@ void ecmcMasterSlaveStateMachine::execute(){
     case ECMC_MST_SLV_STATE_RESET:
       stateReset();
       break;
-
   };
+  memcpy(&controlOld_,&control_, sizeof(control_));
 };
 
 int ecmcMasterSlaveStateMachine::stateIdle(){
@@ -411,4 +419,17 @@ void ecmcMasterSlaveStateMachine::refreshAsyn() {
   asynStatus_->refreshParamRT(0);
   asynControl_->refreshParamRT(0);
   asynState_->refreshParamRT(0);
+}
+
+void ecmcMasterSlaveStateMachine::setMrIgnoreEnableAlarm() {
+  // Change check MR status check on edge of enable
+  if(!control_.enable && controlOld_.enable) {
+    slaveGrp_->setMRIgnoreDisableStatusCheck(false);
+    masterGrp_->setMRIgnoreDisableStatusCheck(false);
+  }
+
+  if(control_.enable && !controlOld_.enable) {
+    slaveGrp_->setMRIgnoreDisableStatusCheck(true);
+    masterGrp_->setMRIgnoreDisableStatusCheck(true);
+  }
 }

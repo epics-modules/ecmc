@@ -80,6 +80,7 @@ class ecmcMasterSlaveStateMachine : public ecmcError {
     int stateReset();
     int initAsyn();
     void refreshAsyn();
+    void setMrIgnoreEnableAlarm();
     int createAsynParam(const char        *nameFormat,
                         asynParamType      asynType,
                         ecmcEcDataType     ecmcType,
@@ -102,6 +103,7 @@ class ecmcMasterSlaveStateMachine : public ecmcError {
     ecmcAsynDataItem *asynState_;
     ecmcAsynDataItem *asynStatus_;
     ecmcMasterSlaveControlWord control_;
+    ecmcMasterSlaveControlWord controlOld_;
 };
 
 #endif  /* ecmcMasterSlaveStateMachine_H_ */
