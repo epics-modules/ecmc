@@ -3488,9 +3488,12 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   //if (buffer->buffer == NULL) {
   //  return ERROR_MAIN_PARSER_BUFFER_NULL;
   //}
-
+  int errorCode = 0;
   if (!ecmcInitDone) {
-    ecmcInitThread();
+    errorCode = ecmcInitThread();
+    if(errorCode) {
+      return errorCode;
+    }
     ecmcInitDone = 1;
   }
 
