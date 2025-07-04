@@ -368,7 +368,40 @@ asynStatus ecmcMotorRecordAxis::updateCfgValue(int         function,
   return pC_->setIntegerParam(axisNo_, function, newValue);
 }
 
-asynStatus ecmcMotorRecordAxis::readBackSoftLimits(void) {
+asynStatus ecmcMotorRecordAxis::readBackSoftLimits() {
+ return readBackSoftLimits(false);
+}
+
+// Sync ecmc softlimits based on command from motor
+asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits() {
+  printf("syncEcmcSoftLimits\n");
+  int    enabledFwd = 0,  enabledBwd = 0;
+  double fValueFwd = 0.0, fValueBwd  = 0.0;
+
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  fValueBwd  = drvlocal.ecmcAxis->getMon()->getSoftLimitBwd();
+  fValueFwd  = drvlocal.ecmcAxis->getMon()->getSoftLimitFwd();
+  enabledBwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitBwd();
+  enabledFwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitFwd();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  //pC_->setIntegerParam(axisNo_, pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
+  //pC_->setDoubleParam(axisNo_, pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
+  //pC_->setIntegerParam(axisNo_, pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
+  //pC_->setDoubleParam(axisNo_, pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
+  asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
+  asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
+  asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
+  asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
+
+  pC_->callParamCallbacks();
+
+  return asynSuccess;
+}
+
+// Sync motor softlimits based on ecmc soft limit settings
+asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits() {
+  printf("syncMotorSoftLimits\n");
   int enabledFwd = 0,  enabledBwd = 0;
   double fValueFwd = 0.0, fValueBwd  = 0.0;
 
@@ -377,7 +410,34 @@ asynStatus ecmcMotorRecordAxis::readBackSoftLimits(void) {
   fValueFwd  = drvlocal.ecmcAxis->getMon()->getSoftLimitFwd();
   enabledBwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitBwd();
   enabledFwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitFwd();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
+  if((enabledBwd == 0 && enabledFwd == 0) || (fValueBwd == 0 && fValueFwd == 0)) {
+    setDoubleParam(pC_->motorLowLimit_,  0);
+    setDoubleParam(pC_->motorHighLimit_, 0);
+    setDoubleParam(pC_->motorLowLimitRO_,  0);
+    setDoubleParam(pC_->motorHighLimitRO_, 0);
+  } else {
+    setDoubleParam(pC_->motorLowLimitRO_,  fValueBwd);
+    setDoubleParam(pC_->motorHighLimitRO_, fValueFwd);
+    setDoubleParam(pC_->motorLowLimit_,  fValueBwd);
+    setDoubleParam(pC_->motorHighLimit_, fValueFwd);
+  }
+  
+  pC_->callParamCallbacks();
+
+  return asynSuccess;
+}
+
+asynStatus ecmcMotorRecordAxis::readBackSoftLimits(bool updateMotor) {
+  int enabledFwd = 0,  enabledBwd = 0;
+  double fValueFwd = 0.0, fValueBwd  = 0.0;
+
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  fValueBwd  = drvlocal.ecmcAxis->getMon()->getSoftLimitBwd();
+  fValueFwd  = drvlocal.ecmcAxis->getMon()->getSoftLimitFwd();
+  enabledBwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitBwd();
+  enabledFwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitFwd();
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   pC_->setIntegerParam(axisNo_, pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
@@ -385,11 +445,17 @@ asynStatus ecmcMotorRecordAxis::readBackSoftLimits(void) {
   pC_->setIntegerParam(axisNo_, pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
   pC_->setDoubleParam(axisNo_, pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
 
+  if(updateMotor) {
+    pC_->setDoubleParam(axisNo_, pC_->motorLowLimitRO_, fValueBwd);
+    pC_->setDoubleParam(axisNo_, pC_->motorHighLimitRO_, fValueFwd);
+  }
+  
+  pC_->callParamCallbacks();
 
-  pC_->udateMotorLimitsRO(axisNo_,
-                          enabledBwd && enabledFwd,
-                          fValueFwd,
-                          fValueBwd);
+  //pC_->udateMotorLimitsRO(axisNo_,
+  //                        enabledBwd && enabledFwd,
+  //                        fValueFwd,
+  //                        fValueBwd);
   return asynSuccess;
 }
 
@@ -570,7 +636,7 @@ asynStatus ecmcMotorRecordAxis::readBackAllConfig(int axisID) {
 
   if (status == asynSuccess) status = readMonitoring(axisID);
 
-  if (status == asynSuccess) status = readBackSoftLimits();
+  if (status == asynSuccess) status = syncMotorSoftLimits();
 
   if (status == asynSuccess) status = readBackVelocities(axisID);
   return status;
@@ -1378,6 +1444,10 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     *moving = !drvlocal.moveReady;
   }
 
+  if(drvlocal.moveReady!=drvlocal.moveReadyOld) {
+    printf("Axis[%d]: Move ready changed, now %d (before %d)\n",drvlocal.axisId,drvlocal.moveReady, drvlocal.moveReadyOld);
+  }
+
   if (!drvlocal.moveReady) {
     drvlocal.nCommandActive = drvlocal.status_.command;
   } else {
@@ -1628,10 +1698,11 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value) {
 
     if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(value);
-
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-    readBackSoftLimits();
+    syncMotorSoftLimits();
+    syncEcmcSoftLimits();
+  
     return errorCode == 0 ? asynSuccess : asynError;
   } else if (function == pC_->ecmcMotorRecordCfgDLLM_En_) {
     // Set enable soft limit bwd
@@ -1642,10 +1713,10 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value) {
 
     if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitBwd(value);
-
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-    readBackSoftLimits();
+    syncMotorSoftLimits();
+    syncEcmcSoftLimits();
     return errorCode == 0 ? asynSuccess : asynError;
   }
 
@@ -1807,10 +1878,9 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value) {
 
     if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitFwd(value);
-
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-    readBackSoftLimits();
+    syncMotorSoftLimits();
     return errorCode == 0 ? asynSuccess : asynError;
   } // Set soft limit bwd
   else if (function == pC_->ecmcMotorRecordCfgDLLM_) {
@@ -1823,10 +1893,9 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value) {
 
     if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitBwd(value);
-
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-    readBackSoftLimits();
+    syncMotorSoftLimits();
     return errorCode == 0 ? asynSuccess : asynError;
   } // manual velo fast.. Just store here in "motor record" driver
   else if (function == pC_->ecmcMotorRecordCfgVELO_) {
@@ -1900,8 +1969,31 @@ void ecmcMotorRecordAxis::updateMsgTxtFromDriver(const char *value) {
 /** Set the high limit position of the motor.
   * \param[in] highLimit The new high limit position that should be set in the hardware. Units=steps.*/
 asynStatus ecmcMotorRecordAxis::setHighLimit(double highLimit) {
+ double lowLimit = 0;
+ double highLimitOld = 0;
+ double lowLimitOld = 0;
+
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+
+  highLimitOld = drvlocal.ecmcAxis->getMon()->getSoftLimitFwd();
+  lowLimitOld = drvlocal.ecmcAxis->getMon()->getSoftLimitBwd();
   int errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitFwd(highLimit);
+
+  // Disable if both high and low limit are 0
+  if(highLimit == 0) {
+    lowLimit = drvlocal.ecmcAxis->getMon()->getSoftLimitBwd();
+    if(lowLimit == 0) {  // both are 0.. Then disable softlimits
+      drvlocal.ecmcAxis->getMon()->setEnableSoftLimitBwd(0);
+      drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(0);
+    }
+
+  } else {
+    // enable if both was previous 0
+    if(lowLimitOld == 0 && highLimitOld == 0) {
+      drvlocal.ecmcAxis->getMon()->setEnableSoftLimitBwd(1);
+      drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(1);  
+    }
+  }
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
@@ -1911,23 +2003,51 @@ asynStatus ecmcMotorRecordAxis::setHighLimit(double highLimit) {
 
     return asynError;
   }
+
+  syncEcmcSoftLimits();
   return asynMotorAxis::setHighLimit(highLimit);
 }
 
 /** Set the low limit position of the motor.
   * \param[in] lowLimit The new low limit position that should be set in the hardware. Units=steps.*/
 asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit) {
+  
+ double highLimit = 0;
+ double highLimitOld = 0;
+ double lowLimitOld = 0;
+
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+
+  highLimitOld = drvlocal.ecmcAxis->getMon()->getSoftLimitFwd();
+  lowLimitOld = drvlocal.ecmcAxis->getMon()->getSoftLimitBwd();
   int errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitBwd(lowLimit);
+
+  // Disable if both high and low limit are 0
+  if(lowLimit == 0) {
+    highLimit = drvlocal.ecmcAxis->getMon()->getSoftLimitFwd();
+    if(highLimit == 0) {  // both are 0.. Then disable softlimits
+      drvlocal.ecmcAxis->getMon()->setEnableSoftLimitBwd(0);
+      drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(0);
+    }
+
+  } else {
+    // enable if both was previous 0
+    if(lowLimitOld == 0 && highLimitOld == 0) {
+      drvlocal.ecmcAxis->getMon()->setEnableSoftLimitBwd(1);
+      drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(1);  
+    }
+  }
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (errorCode) {
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-              "%ssetLowLimit(%d)=%lf\n", modNamEMC, axisNo_, lowLimit);
+              "%ssetLowLimit(%d)=%lf\n", modNamEMC, axisNo_, highLimit);
 
     return asynError;
   }
+
+  syncEcmcSoftLimits();
   return asynMotorAxis::setLowLimit(lowLimit);
 }
 

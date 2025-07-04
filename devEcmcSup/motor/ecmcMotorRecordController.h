@@ -125,11 +125,11 @@ public:
 
 protected:
   ecmcMotorRecordAxis **pAxes_;       /**< Array of pointers to axis objects */
-  void udateMotorLimitsRO(int axisNo);
-  void udateMotorLimitsRO(int    axisNo,
-                          int    enabledHighAndLow,
-                          double fValueHigh,
-                          double fValueLow);
+  //void udateMotorLimitsRO(int axisNo);
+  //void udateMotorLimitsRO(int    axisNo,
+  //                        int    enabledHighAndLow,
+  //                        double fValueHigh,
+  //                        double fValueLow);
   void       handleStatusChange(asynStatus status);
   int        getFeatures(void);
   asynStatus poll();

@@ -148,6 +148,9 @@ private:
                             double      newValue,
                             const char *name);
   asynStatus readBackSoftLimits(void);
+  asynStatus readBackSoftLimits(bool updateMotor);
+  asynStatus syncEcmcSoftLimits();
+  asynStatus syncMotorSoftLimits();
   asynStatus readScaling(int axisID);
   asynStatus readMonitoring(int axisID);
   asynStatus readBackVelocities(int axisID);
