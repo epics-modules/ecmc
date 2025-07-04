@@ -413,15 +413,15 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits() {
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if((enabledBwd == 0 && enabledFwd == 0) || (fValueBwd == 0 && fValueFwd == 0)) {
-    setDoubleParam(pC_->motorLowLimit_,  0);
-    setDoubleParam(pC_->motorHighLimit_, 0);
-    setDoubleParam(pC_->motorLowLimitRO_,  0);
-    setDoubleParam(pC_->motorHighLimitRO_, 0);
+    asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  0);
+    asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, 0);
+    asynMotorAxis::setDoubleParam(pC_->motorLowLimit_,  0);
+    asynMotorAxis::setDoubleParam(pC_->motorHighLimit_, 0);
   } else {
-    setDoubleParam(pC_->motorLowLimitRO_,  fValueBwd);
-    setDoubleParam(pC_->motorHighLimitRO_, fValueFwd);
-    setDoubleParam(pC_->motorLowLimit_,  fValueBwd);
-    setDoubleParam(pC_->motorHighLimit_, fValueFwd);
+    asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  fValueBwd);
+    asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, fValueFwd);
+    asynMotorAxis::setDoubleParam(pC_->motorLowLimit_,  fValueBwd);
+    asynMotorAxis::setDoubleParam(pC_->motorHighLimit_, fValueFwd);
   }
   
   pC_->callParamCallbacks();
@@ -1691,7 +1691,6 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value) {
     return asynSuccess;
   } else if (function == pC_->ecmcMotorRecordCfgDHLM_En_) {
     // Set enable soft limit fwd
-
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d ecmcMotorRecordCfgDHLM_En)=%d\n",
               modNamEMC, axisNo_, value);
@@ -1700,13 +1699,13 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value) {
     errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(value);
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-    syncMotorSoftLimits();
     syncEcmcSoftLimits();
+    syncMotorSoftLimits();
+    
   
     return errorCode == 0 ? asynSuccess : asynError;
   } else if (function == pC_->ecmcMotorRecordCfgDLLM_En_) {
     // Set enable soft limit bwd
-
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
               "%ssetIntegerParam(%d ecmcMotorRecordCfgDLLM_En)=%d\n",
               modNamEMC, axisNo_, value);
@@ -1714,9 +1713,9 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value) {
     if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitBwd(value);
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-
-    syncMotorSoftLimits();
     syncEcmcSoftLimits();
+    syncMotorSoftLimits();
+    
     return errorCode == 0 ? asynSuccess : asynError;
   }
 
@@ -1880,6 +1879,7 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value) {
     errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitFwd(value);
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
+    syncEcmcSoftLimits();
     syncMotorSoftLimits();
     return errorCode == 0 ? asynSuccess : asynError;
   } // Set soft limit bwd
@@ -1895,6 +1895,7 @@ asynStatus ecmcMotorRecordAxis::setDoubleParam(int function, double value) {
     errorCode = drvlocal.ecmcAxis->getMon()->setSoftLimitBwd(value);
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
+    syncEcmcSoftLimits();
     syncMotorSoftLimits();
     return errorCode == 0 ? asynSuccess : asynError;
   } // manual velo fast.. Just store here in "motor record" driver
