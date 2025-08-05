@@ -1,15 +1,18 @@
 Release Notes
 ===
-# Cleanup
 
-removed* 
+# 11.0.0_RC1 
+* Default not reference abs encoder during at successfull homing (change in ecmccfg)
+
+## Cleanup
+removed:
 * getAxisStatusStructV2
 * Event*
 * ComamndList*
 * DataRecorder*
 * Cleanup of axis interfaces (remove duplicate infos)
-
 * Update of parameters (sync of ecmc and motor record interface)
+
 
 # ECMC 10.1.0_RC1
 * Change moving axis flag to only be high when busy
