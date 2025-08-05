@@ -2890,21 +2890,21 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisSeqTimeout(iValue, iValue2);
   }
 
-  /*int Cfg.SetAxisHomeAcc(int axis_no, int value);  IN seconds!!*/
+  /*int Cfg.SetAxisHomeAcc(int axis_no, int value); */
   nvals = sscanf(myarg_1, "SetAxisHomeAcc(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
     return setAxisHomeAcc(iValue, dValue);
   }
 
-  /*int Cfg.SetAxisHomeDec(int axis_no, int value);  IN seconds!!*/
+  /*int Cfg.SetAxisHomeDec(int axis_no, int value); */
   nvals = sscanf(myarg_1, "SetAxisHomeDec(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
     return setAxisHomeDec(iValue, dValue);
   }
 
-  /*int Cfg.SetAxisHomeSeqId(int axis_no, int value);  IN seconds!!*/
+  /*int Cfg.SetAxisHomeSeqId(int axis_no, int value); */
   nvals = sscanf(myarg_1, "SetAxisHomeSeqId(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
