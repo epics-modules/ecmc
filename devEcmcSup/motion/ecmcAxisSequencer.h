@@ -55,6 +55,8 @@ public:
   double               getHomeVelOffCam();
   void                 setHomePosition(double pos);
   double               getHomePosition();
+  void                 setHomeAcc(double acc);
+  void                 setHomeDec(double dec);
   void                 setDefaultAcc(double acc);
   void                 setDefaultDec(double dec);
   void                 setAcc(double acc);
@@ -165,6 +167,8 @@ private:
   double homePosition_;
   double homePosLatch1_;
   double homePosLatch2_;
+  double homeAcc_;
+  double homeDec_;
   motionDirection currSeqDirection_;
   ecmcTrajectoryBase *traj_;
   ecmcEncoder **encArray_;

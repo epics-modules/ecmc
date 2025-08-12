@@ -33,6 +33,8 @@ void ecmcAxisSequencer::initVars() {
   homeVelTowardsCam_     = 0;
   homeVelOffCam_         = 0;
   homePosition_          = 0;
+  homeAcc_               = 0;
+  homeDec_               = 0;
   jogFwd_                = false;
   jogBwd_                = false;
   hwLimitSwitchBwdOld_   = false;
@@ -237,7 +239,7 @@ void ecmcAxisSequencer::executeInternal() {
     return;
   }
   int seqReturnVal         = 0;
-  ecmcHomingType homeSeqId = (ecmcHomingType)data_->control_.cmdData;
+  ecmcHomingType homeSeqId = (ecmcHomingType)data_->status_.cmdData;
 
   switch (data_->status_.command) {
   case ECMC_CMD_JOG:
@@ -245,7 +247,7 @@ void ecmcAxisSequencer::executeInternal() {
     break;
 
   case ECMC_CMD_HOMING:
-        
+
     switch (homeSeqId) {
     case ECMC_SEQ_HOME_LOW_LIM:
       seqReturnVal = seqHoming1();
@@ -406,7 +408,7 @@ void ecmcAxisSequencer::executeInternal() {
       // that means that if this is executing, something is very wrong...
       // In other words, the encoder object needs to have a valid homeproc.
       setErrorID(__FILE__, __FUNCTION__, __LINE__,
-                 ERROR_SEQ_CMD_DATA_UNDEFINED);
+                 ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED);
       stopSeq();
       break;
 
@@ -456,6 +458,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   if (traj_ == NULL) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
   }  
+  
   executeOld_             = data_->status_.statusWord_.execute;
   data_->status_.statusWord_.execute = execute;
 
@@ -685,7 +688,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         data_->status_.statusWord_.busy = true;
 
         // Use the parameters defined in encoder object
-        if (data_->control_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
+        if (data_->control_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {          
           readHomingParamsFromEnc();
         }
 
@@ -3186,6 +3189,8 @@ void ecmcAxisSequencer::initHomingSeq() {
   getPrimEnc()->setHomed(false);
   traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
   traj_->setExecute(0);
+  traj_->setAcc(homeAcc_);
+  traj_->setDec(homeDec_);
 }
 
 void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
@@ -3289,7 +3294,6 @@ void ecmcAxisSequencer::readHomingParamsFromEnc() {
 
   // Overwrite homing seqence id with what is stored in encoder object
   setCmdData((ecmcHomingType)getPrimEnc()->getHomeSeqId());
-
   // Encoder has parameters stored so read those..
   homeVelTowardsCam_ = getPrimEnc()->getHomeVelTowardsCam();
 
@@ -3305,17 +3309,21 @@ void ecmcAxisSequencer::readHomingParamsFromEnc() {
   homePosition_          = getPrimEnc()->getHomePosition();
   homeEnablePostMove_    = getPrimEnc()->getHomePostMoveEnable();
   homePostMoveTargetPos_ = getPrimEnc()->getHomePostMoveTargetPosition();
-
-  double temp = getPrimEnc()->getHomeAcc();
-
-  if (temp > 0) {
-    traj_->setAcc(temp);
+  
+  homeAcc_ = getPrimEnc()->getHomeAcc();
+                 
+  if (homeAcc_ <= 0) {
+    homeAcc_ = data_->control_.accelerationTarget;
   }
 
-  temp = getPrimEnc()->getHomeDec();
+  homeDec_ = getPrimEnc()->getHomeDec();
 
-  if (temp > 0) {
-    traj_->setDec(temp);
+  if (homeDec_ <= 0) {
+    homeDec_ = data_->control_.decelerationTarget;
+  }
+
+  if (homeDec_ <= 0) {
+    homeDec_ = homeAcc_;
   }
 }
 
@@ -3603,4 +3611,12 @@ int ecmcAxisSequencer::setTrajDataSourceTypeInternal(dataSource refSource,
   data_->axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
 
   return 0;
+}
+
+void  ecmcAxisSequencer::setHomeAcc(double acc){
+  homeAcc_ = acc;
+}
+
+void  ecmcAxisSequencer::setHomeDec(double dec) {
+  homeDec_ = dec;
 }

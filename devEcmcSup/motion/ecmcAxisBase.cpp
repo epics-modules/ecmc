@@ -298,8 +298,8 @@ void ecmcAxisBase::initVars() {
   data_.control_.allowSourceChangeWhenEnabled = false;
   setEncoderPos_                = 0;
   encPrimIndexAsyn_             = 1;
-   data_.status_.currentAccelerationSetpoint                 = 0;
-  data_.status_.currentDecelerationSetpoint = 0;
+  data_.status_.currentAccelerationSetpoint = 0;
+  data_.status_.currentDecelerationSetpoint  = 0;
   hwReady_                      = 0;
   hwReadyOld_                   = 0;
   globalBusy_                   = 0;
@@ -1963,7 +1963,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
     return errorCode;
   }
 
-  // if not valid the fallback on whats defined in encoder
+  // if not valid then fallback on whats defined in encoder
   if (nCmdData <= 0) {
     nCmdData = getPrimEnc()->getHomeSeqId();
   }
@@ -1973,30 +1973,32 @@ int ecmcAxisBase::moveHome(int    nCmdData,
     return errorCode;
   }
 
-  // if not valid the fallback on whats defined in encoder
-  if (velocityOffCamSet < 0) {
+  // All the below parameters might be overitten in sequencer if
+  // cmdData (homing proc) is set to read cfg from encoder object
+  // if not valid then fallback on whats defined in encoder
+  if (velocityOffCamSet <= 0) {
     velocityOffCamSet = getPrimEnc()->getHomeVelOffCam();
   }
   getSeq()->setHomeVelOffCam(velocityOffCamSet);
 
-  // if not valid the fallback on whats defined in encoder
-  if (velocityTowardsCamSet < 0) {
+  // if not valid then fallback on whats defined in encoder
+  if (velocityTowardsCamSet <= 0) {
     velocityTowardsCamSet = getPrimEnc()->getHomeVelTowardsCam();
   }
   getSeq()->setHomeVelTowardsCam(velocityTowardsCamSet);
 
-  // if not valid the fallback on whats defined in encoder
-  if (accelerationSet < 0) {
+  // if not valid then fallback on whats defined in encoder
+  if (accelerationSet <= 0) {
     accelerationSet = getPrimEnc()->getHomeAcc();
   }
-  setAcc(accelerationSet);
+  getSeq()->setHomeAcc(accelerationSet);
+  
 
-  // if not valid the fallback on whats defined in encoder
-  if (decelerationSet < 0) {
+  // if not valid then fallback on whats defined in encoder
+  if (decelerationSet <= 0) {
     decelerationSet = getPrimEnc()->getHomeDec();
   }
-
-  setDec(decelerationSet);
+  getSeq()->setHomeDec(decelerationSet);
 
   getSeq()->setHomePosition(homePositionSet);
 

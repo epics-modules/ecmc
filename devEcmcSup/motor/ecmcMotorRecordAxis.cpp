@@ -60,7 +60,14 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 
   /* Some parameters are only defined in the ESS fork of the motor module.
      So they have the ifdef */
+
+#ifdef motorFlagsDriverUsesEGUString
   setIntegerParam(pC_->motorFlagsDriverUsesEGU_,   1);
+#endif //motorFlagsDriverUsesEGUString
+#ifdef motorFlagsAdjAfterHomedString
+  // Allow sync of softlimit (motor to ecmc and the other way around)
+  setIntegerParam(pC_->motorFlagsRwSoftLimits_,    1);
+#endif //motorFlagsAdjAfterHomedString
 #ifdef motorFlagsAdjAfterHomedString
   setIntegerParam(pC_->motorFlagsAdjAfterHomed_,   1);
 #endif // ifdef motorFlagsAdjAfterHomedString
@@ -786,6 +793,8 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   asynStatus status = pC_->getIntegerParam(axisNo_,
                                            pC_->ecmcMotorRecordHomProc_,
                                            &cmdData);
+
+  printf("SeqID %d\n",cmdData);
 
   if (status != asynSuccess) {
     return asynError;

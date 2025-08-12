@@ -631,8 +631,7 @@ int ecmcMonitor::setEnableHardLimitFWDAlarm(bool enable) {
   return 0;
 }
 
-int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {
-  printf("ecmcMonitor::setEnableSoftLimitBwd(%d)\n",enable);
+int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {  
   data_->control_.controlWord_.enableSoftLimitBwd = enable;
   data_->status_.statusWord_.softlimbwdena = enable;
   data_->axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
@@ -641,7 +640,6 @@ int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {
 }
 
 int ecmcMonitor::setEnableSoftLimitFwd(bool enable) {
-  printf("ecmcMonitor::setEnableSoftLimitFwd(%d)\n",enable);
   data_->control_.controlWord_.enableSoftLimitFwd = enable;
   data_->status_.statusWord_.softlimfwdena = enable;
   data_->axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
@@ -650,13 +648,11 @@ int ecmcMonitor::setEnableSoftLimitFwd(bool enable) {
 }
 
 int ecmcMonitor::setSoftLimitBwd(double limit) {
-  printf("ecmcMonitor::setSoftLimitBwd(%lf)\n",limit);
   data_->control_.softLimitBwd = limit;
   return 0;
 }
 
 int ecmcMonitor::setSoftLimitFwd(double limit) {
-  printf("ecmcMonitor::setSoftLimitFwd(%lf)\n",limit);
   data_->control_.softLimitFwd = limit;
   return 0;
 }
