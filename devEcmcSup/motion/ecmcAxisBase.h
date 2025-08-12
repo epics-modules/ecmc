@@ -225,6 +225,7 @@ public:
   int        setAllowSourceChangeWhenEnabled(bool allow);
   void       setTargetVel(double velTarget);
   void       setTargetPos(double posTarget);
+  void       setTargetPosToCurrSetPos();
   void       setTweakDist(double dist);
   void       setAcc(double acc);
   void       setDec(double dec);
@@ -251,6 +252,7 @@ public:
   bool       getMRIgnoreDisableStatusCheck();  // Ignore status when
 
   int        getSumInterlock();
+  int        getSumInterlockOrStop();  // also include no_execute stop interlock
   int        getPrintDbg();
   ecmcAxisPVTSequence* getPVTObject();
   double     getCurrentPositionSetpoint();

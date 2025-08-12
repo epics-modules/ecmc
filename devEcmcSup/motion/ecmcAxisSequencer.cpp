@@ -143,7 +143,7 @@ void ecmcAxisSequencer::execute() {
   pvtStopping_ = traj_->getBusy() && pvtStopping_;
 
   // PVT
-  if(pvtOk_  && !pvtStopping_ && data_->status_.statusWord_.execute) {
+  if(pvtOk_ && !pvtStopping_ && data_->status_.statusWord_.execute) {
     // Go to next pvt time step
     if(pvt_->nextSampleStep() && pvt_->getExecute()) {
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);

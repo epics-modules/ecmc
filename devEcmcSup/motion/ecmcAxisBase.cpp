@@ -2960,6 +2960,10 @@ void ecmcAxisBase::setTargetPos(double posTarget) {
   refreshAsynTargetValue();  
 }
 
+void ecmcAxisBase::setTargetPosToCurrSetPos() {
+  setTargetPos(data_.status_.currentPositionSetpoint);
+}
+
 void ecmcAxisBase::setTargetVel(double velTarget) {
   getSeq()->setTargetVel(velTarget);
 
@@ -3072,6 +3076,10 @@ int  ecmcAxisBase::setEncLookupTableEnable(int enable) {
 int ecmcAxisBase::getSumInterlock() {
   return (data_.interlocks_.interlockStatus > 0) && 
          (data_.interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE);
+}
+
+int ecmcAxisBase::getSumInterlockOrStop() {
+  return (data_.interlocks_.interlockStatus > 0);
 }
 
 int ecmcAxisBase::getPrintDbg() {

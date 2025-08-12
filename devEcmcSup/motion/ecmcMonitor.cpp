@@ -840,7 +840,8 @@ int  ecmcMonitor::checkStall() {
 
   // Do only check for stall when not busy (traj finished)
   if(!enableAtTargetMon_ || !enableStallMon_ ||
-    !data_->status_.statusWord_.enabled|| (data_->status_.statusWord_.trajsource != 0)) {
+    !data_->status_.statusWord_.enabled || 
+    (data_->status_.statusWord_.trajsource != 0) || (data_->status_.command == ECMC_CMD_MOVEPVTABS)) {
     data_->interlocks_.stallInterlock = false;
     maxStallCounter_ = 0;
     return 0;

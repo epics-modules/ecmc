@@ -185,7 +185,8 @@ void ecmcPVTController::execute() {
         if(axes_[i]->getPVTObject()->getBusy()) {
           axes_[i]->getPVTObject()->setNextTime(nextTime_);          
           if(seqDone) {
-            axes_[i]->getPVTObject()->setBusy(false);
+            axes_[i]->getPVTObject()->setBusy(false);            
+            axes_[i]->setTargetPosToCurrSetPos();
             state_ =  ECMC_PVT_IDLE;
             busy_ = false;
             axes_[i]->setCommand(ECMC_CMD_MOVEABS);
@@ -206,8 +207,9 @@ void ecmcPVTController::execute() {
       for(uint i = 0; i < axes_.size(); i++ ) {
         axes_[i]->getPVTObject()->setBusy(false);
         axes_[i]->setGlobalBusy(0);
+        axes_[i]->setTargetPosToCurrSetPos();
         axes_[i]->setCommand(ECMC_CMD_MOVEABS);
-        state_ =  ECMC_PVT_IDLE;        
+        state_ =  ECMC_PVT_IDLE;
       }
 
       break;
@@ -215,7 +217,8 @@ void ecmcPVTController::execute() {
       busy_ = 0;
       for(uint i = 0; i < axes_.size(); i++ ) {
         axes_[i]->getPVTObject()->setBusy(false);
-        state_ =  ECMC_PVT_IDLE;        
+        axes_[i]->setTargetPosToCurrSetPos();
+        state_ =  ECMC_PVT_IDLE;
       }
       setAxesBusy(false);
       break;
@@ -364,7 +367,7 @@ int ecmcPVTController::validate() {
 int ecmcPVTController::anyAxisInterlocked() {
   
   for(uint i = 0; i < axes_.size(); i++ ) {    
-    if(axes_[i]->getSumInterlock() || axes_[i]->getErrorID()>0) {
+    if(axes_[i]->getSumInterlockOrStop() || axes_[i]->getErrorID() > 0) {
       return 1;
     }
   }
