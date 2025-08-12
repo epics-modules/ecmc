@@ -64,10 +64,10 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #ifdef motorFlagsDriverUsesEGUString
   setIntegerParam(pC_->motorFlagsDriverUsesEGU_,   1);
 #endif //motorFlagsDriverUsesEGUString
-#ifdef motorFlagsAdjAfterHomedString
+#ifdef motorFlagsRwSoftLimitsString
   // Allow sync of softlimit (motor to ecmc and the other way around)
   setIntegerParam(pC_->motorFlagsRwSoftLimits_,    1);
-#endif //motorFlagsAdjAfterHomedString
+#endif //motorFlagsRwSoftLimitsString
 #ifdef motorFlagsAdjAfterHomedString
   setIntegerParam(pC_->motorFlagsAdjAfterHomed_,   1);
 #endif // ifdef motorFlagsAdjAfterHomedString
