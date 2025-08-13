@@ -85,7 +85,6 @@ public:
   motionCommandTypes         getCommand();
   int                        getCmdData();
   int                        slowExecute();
-  int                        setGlobalBusy(bool busy);  // Allow for sequences
   ecmcAxisDataStatus*        getAxisStatusDataPtr();
   int                        getAxisDebugInfoData(char *buffer,
                                        int   bufferByteSize,

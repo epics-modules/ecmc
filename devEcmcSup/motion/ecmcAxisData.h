@@ -80,9 +80,10 @@ typedef struct {
   unsigned char sumilockbwd     : 1;
   unsigned char softlimilockfwd : 1;
   unsigned char softlimilockbwd : 1;
-  unsigned char axisType        : 1;
+  unsigned char localBusy       : 1;   // traj busy
+  unsigned char globalBusy      : 1;   // sequence busy, like PVT
   unsigned char seqstate        : 4;
-  unsigned char lastilock       : 6;
+  unsigned char lastilock       : 5;
 } ecmcAxisStatusWordType;
 
 typedef struct {

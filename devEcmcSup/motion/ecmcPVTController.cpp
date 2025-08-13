@@ -24,6 +24,7 @@ ecmcPVTController::ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,
   executeOld_     = 0;
   execute_        = 0;
   state_          = ECMC_PVT_IDLE;
+  stateOld_       = ECMC_PVT_IDLE;
   busy_           = 0;
   startPositions_.reserve(ECMC_MAX_AXES);
   axes_.reserve(ECMC_MAX_AXES);
@@ -206,7 +207,7 @@ void ecmcPVTController::execute() {
 
       for(uint i = 0; i < axes_.size(); i++ ) {
         axes_[i]->getPVTObject()->setBusy(false);
-        axes_[i]->setGlobalBusy(0);
+        axes_[i]->getSeq()->setGlobalBusy(0);
         axes_[i]->setTargetPosToCurrSetPos();
         axes_[i]->setCommand(ECMC_CMD_MOVEABS);
         state_ =  ECMC_PVT_IDLE;
@@ -223,8 +224,16 @@ void ecmcPVTController::execute() {
       setAxesBusy(false);
       break;
   }
-  
-  
+      
+  if(state_!=stateOld_) {
+    printf("PVT state changed to: ");
+    printState(state_);
+    printf(", old state ");
+    printState(stateOld_);
+    printf("\n");
+  }
+  stateOld_=state_;
+
   //#### triggering below (soft and hw) #####
 
   // reset trigger
@@ -274,6 +283,36 @@ void ecmcPVTController::execute() {
   }
 }
 
+void ecmcPVTController::printState(ecmcPVTSMType state) {
+
+  switch(state) {
+  case ECMC_PVT_IDLE:
+     printf("ECMC_PVT_IDLE");
+     break;
+  case ECMC_PVT_ENABLE_AXES:
+     printf("ECMC_PVT_ENABLE_AXES");
+     break;
+  case ECMC_PVT_TRIGG_MOVE_AXES_TO_START:
+     printf("ECMC_PVT_TRIGG_MOVE_AXES_TO_START");
+     break;
+  case ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START:
+     printf("ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START");
+     break;
+  case ECMC_PVT_TRIGG_PVT:
+     printf("ECMC_PVT_TRIGG_PVT");
+     break;
+  case ECMC_PVT_EXECUTE_PVT:
+     printf("ECMC_PVT_EXECUTE_PVT");
+     break;
+  case ECMC_PVT_ABORT:
+     printf("ECMC_PVT_ABORT");
+     break;
+  case ECMC_PVT_ERROR:
+     printf("ECMC_PVT_ERROR");
+     break;
+  }
+}
+
 bool  ecmcPVTController::getBusy() {
   return busy_;
 }
@@ -282,7 +321,6 @@ int ecmcPVTController::triggMoveAxesToStart() {
   startPositions_.clear();
   double startPosition = 0;
   int error = 0;
-  startPositions_.clear();
   for(uint i = 0; i < axes_.size(); i++ ) {
     axes_[i]->getPVTObject()->startPosition(&startPosition);        
     if(axes_[i]->getPVTObject()->getRelMode()) {      
@@ -291,6 +329,7 @@ int ecmcPVTController::triggMoveAxesToStart() {
     } else {    
       axes_[i]->getPVTObject()->setPositionOffset(0);
     }
+    printf("triggMoveAxesToStart: Execute moveAbsolutePosition\n");
     error = axes_[i]->moveAbsolutePosition(startPosition);
     if(error) {
       return error;
@@ -390,7 +429,6 @@ int ecmcPVTController::axisNotBusy() {
   for(uint i = 0; i < axes_.size(); i++ ) {    
     axesFree = axesFree && !axes_[i]->getTrajBusy();
   }
-  // All axes in correct position to start
   return axesFree;
 }
 
@@ -439,7 +477,7 @@ int ecmcPVTController::setTriggerDuration(double durationS) {
 
 int ecmcPVTController::setAxesBusy(bool busy) {  
   for(uint i = 0; i < axes_.size(); i++ ) {
-    if(axes_[i]!=NULL) {axes_[i]->setGlobalBusy(busy);};
+    if(axes_[i]!=NULL) {axes_[i]->getSeq()->setGlobalBusy(busy);};
   }
   return 0;
 }

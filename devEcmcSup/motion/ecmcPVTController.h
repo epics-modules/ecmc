@@ -70,13 +70,15 @@ class ecmcPVTController: public ecmcEcEntryLink {
     void   setAxesDAQTrgMode();
     void   initAsyn();
     void   refreshAsyn();
-  
+    void   printState(ecmcPVTSMType state);
+
     double sampleTime_;
     double nextTime_, accTime_, endTime_;
     std::vector<double> startPositions_;
     std::vector<ecmcAxisBase*> axes_;
     bool executeOld_, execute_;
     ecmcPVTSMType state_;
+    ecmcPVTSMType stateOld_;
     bool busy_;
     bool triggerDefined_;
     bool triggerValidatedOK_;

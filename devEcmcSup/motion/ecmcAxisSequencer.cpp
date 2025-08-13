@@ -182,24 +182,24 @@ void ecmcAxisSequencer::executeInternal() {
   if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     // HOMING 
     if (data_->status_.command == ECMC_CMD_HOMING) {
-      data_->status_.statusWord_.busy = localSeqBusy_ || traj_->getBusy();
+      data_->status_.statusWord_.localBusy = localSeqBusy_ || traj_->getBusy();
     } else {
      // PVT 
      if(pvtmode_ && !pvtStopping_) {
-        data_->status_.statusWord_.busy = (pvt_->getBusy() && data_->status_.statusWord_.enabled) ||
-                              !data_->status_.startupFinsished;
+        data_->status_.statusWord_.localBusy = (pvt_->getBusy() && data_->status_.statusWord_.enabled) ||
+                              !data_->status_.startupFinsished || data_->status_.statusWord_.globalBusy;
       } else {
       // Normal motion
-        data_->status_.statusWord_.busy = (traj_->getBusy() && data_->status_.statusWord_.enabled) ||
+        data_->status_.statusWord_.localBusy = (traj_->getBusy() && data_->status_.statusWord_.enabled) ||
                               !data_->status_.startupFinsished;
       }
     }
   } else { // Sync to other axis
-    data_->status_.statusWord_.busy = true;
+    data_->status_.statusWord_.localBusy = true;
   }
 
   // Set target position for different scenarios
-  if(pvtmode_ && !data_->status_.statusWord_.busy) {
+  if(pvtmode_ && !data_->status_.statusWord_.localBusy) {
     data_->status_.currentTargetPosition = data_->status_.currentPositionSetpoint;
     data_->status_.currentTargetPositionModulo = data_->status_.currentPositionSetpoint;
   } else {
@@ -459,7 +459,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
   }  
   
-  executeOld_             = data_->status_.statusWord_.execute;
+  executeOld_ = data_->status_.statusWord_.execute;
   data_->status_.statusWord_.execute = execute;
 
   seqInProgress_          = false;
@@ -510,7 +510,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                           ERROR_SEQ_CMD_DATA_UNDEFINED);
       }
 
-      data_->status_.statusWord_.busy = true;
+      data_->status_.statusWord_.localBusy = true;
       traj_->setStartPos(data_->status_.currentPositionSetpoint);
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
@@ -545,7 +545,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                           ERROR_SEQ_CMD_DATA_UNDEFINED);
       }
 
-      data_->status_.statusWord_.busy = true;
+      data_->status_.statusWord_.localBusy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setStartPos(data_->status_.currentPositionSetpoint);
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
@@ -572,7 +572,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                           ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
       }
       
-      data_->status_.statusWord_.busy = true;
+      data_->status_.statusWord_.localBusy = true;
       traj_->setStartPos(data_->status_.currentPositionSetpoint);
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
@@ -641,6 +641,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       data_->interlocks_.noExecuteInterlock = false;
     } else if(!data_->status_.statusWord_.execute){
       errorCode = pvt_->setExecute(0);
+      setGlobalBusy(false);
       // needed since this is evaluated in trajectoy which is not in use
       data_->interlocks_.noExecuteInterlock = true;            
     }
@@ -685,7 +686,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
           ((cntrl_ != NULL) || (data_->status_.axisType == ECMC_AXIS_TYPE_VIRTUAL))) {
         seqInProgress_      = true;
         localSeqBusy_       = true;
-        data_->status_.statusWord_.busy = true;
+        data_->status_.statusWord_.localBusy = true;
 
         // Use the parameters defined in encoder object
         if (data_->control_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {          
@@ -816,7 +817,7 @@ void ecmcAxisSequencer::setDrv(ecmcDriveBase *drv) {
 }
 
 bool ecmcAxisSequencer::getBusy() {
-  return data_->status_.statusWord_.busy;
+  return data_->status_.statusWord_.localBusy || data_->status_.statusWord_.globalBusy;
 }
 
 void ecmcAxisSequencer::setJogVel(double vel) {
@@ -3570,7 +3571,7 @@ int ecmcAxisSequencer::setTrajDataSourceTypeInternal(dataSource refSource,
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
     data_->interlocks_.noExecuteInterlock = false;
     data_->refreshInterlocks();
-    data_->status_.statusWord_.busy         = true;
+    data_->status_.statusWord_.localBusy = true;
     data_->control_.controlWord_.executeCmd = true;
     data_->status_.statusWord_.execute = true;
     
@@ -3590,10 +3591,10 @@ int ecmcAxisSequencer::setTrajDataSourceTypeInternal(dataSource refSource,
                           data_->status_.currentVelocityActual,
                           0);
     }
-    data_->status_.statusWord_.busy = traj_->getBusy();
+    data_->status_.statusWord_.localBusy = traj_->getBusy();
 
     if (!data_->status_.statusWord_.enable ) {
-      data_->status_.statusWord_.busy         = false;
+      data_->status_.statusWord_.localBusy         = false;
       data_->control_.controlWord_.executeCmd = false;
       data_->status_.statusWord_.execute = false;
     }
@@ -3619,4 +3620,8 @@ void  ecmcAxisSequencer::setHomeAcc(double acc){
 
 void  ecmcAxisSequencer::setHomeDec(double dec) {
   homeDec_ = dec;
+}
+
+void ecmcAxisSequencer::setGlobalBusy(bool busy) {
+  data_->status_.statusWord_.globalBusy = busy;
 }

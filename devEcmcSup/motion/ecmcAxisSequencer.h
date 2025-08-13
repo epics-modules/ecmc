@@ -101,6 +101,7 @@ public:
   int          setAutoModeActEntry(ecmcEcEntry *entry);
   int          setAutoModeHomigCmd(int homing);
   int          setAutoModeMotionCmd(int motion);
+  void         setGlobalBusy(bool busy);
 
 private:
   void         executeInternal();
@@ -203,6 +204,7 @@ private:
   int homeTrigStatOld_;
   bool monPosLagEnaStatePriorHome_;
   bool monPosLagRestoreNeeded_;
+  bool globalBusy_;
 };
 
 #endif  /* ecmcAxisSequencer_H_ */
