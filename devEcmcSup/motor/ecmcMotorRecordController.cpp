@@ -641,7 +641,7 @@ void ecmcMotorRecordController::profilePoll() {
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_EXECUTING);
     sprintf(profileMessage_, "Profile executing...\n");
-  } else if(pvtBusy < 0 ) {
+  } else if(pvtBusy < 0 || (pvtController_->getErrorID() > 0)) {
     printf("Busy %d or segmentindex %d invalid\n",pvtBusy ,segmentIndex);
     setIntegerParam(profileExecuteStatus_, PROFILE_STATUS_UNDEFINED);
     setIntegerParam(profileExecuteState_, PROFILE_EXECUTE_DONE);

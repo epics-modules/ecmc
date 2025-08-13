@@ -134,6 +134,11 @@ void ecmcPVTController::execute() {
       break;
 
     case  ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START:
+
+      if(anyAxisInterlocked()) {
+        abortPVT();
+        setErrorID(ERROR_PVT_CTRL_AXIS_INTERLOCK);
+      }
       axesAtStartPosition = axesAtStart();
       if(axesAtStartPosition < 0) {
         setErrorID(-axesAtStartPosition);
@@ -173,6 +178,7 @@ void ecmcPVTController::execute() {
       // The actual PVT seq
       if(anyAxisInterlocked()) {
         abortPVT();
+        setErrorID(ERROR_PVT_CTRL_AXIS_INTERLOCK);
       }
       // Increase time
       nextTime_ = nextTime_ + sampleTime_;

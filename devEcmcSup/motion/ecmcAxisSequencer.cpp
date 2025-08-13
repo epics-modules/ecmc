@@ -3594,7 +3594,7 @@ int ecmcAxisSequencer::setTrajDataSourceTypeInternal(dataSource refSource,
     data_->status_.statusWord_.localBusy = traj_->getBusy();
 
     if (!data_->status_.statusWord_.enable ) {
-      data_->status_.statusWord_.localBusy         = false;
+      data_->status_.statusWord_.localBusy    = false;
       data_->control_.controlWord_.executeCmd = false;
       data_->status_.statusWord_.execute = false;
     }

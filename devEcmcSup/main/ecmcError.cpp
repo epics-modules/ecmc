@@ -2865,8 +2865,13 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
-    case 0x242002:
+  case 0x242002:
     return "ERROR_PVT_CTRL_TRIGG_CFG_INVALID";
+
+    break;
+
+  case 0x242003:
+    return "ERROR_PVT_CTRL_AXIS_INTERLOCK";
 
     break;
   }
