@@ -358,10 +358,15 @@ int ecmcPVTController::axesAtStart() {
     if(axes_[i]->getTrajBusy()) {
       return 0;
     }
-    if(axes_[i]->getCurrentPositionSetpoint() != startPositions_[i]) {
-      //printf("ecmcPVTController:: target set %lf, actual set %lf\n",axes_[i]->getCurrentPositionSetpoint(), startPositions_[i]);
-      return 0;
+    if(axes_[i]->getMon()->getEnableAtTargetMon()) {
+      if(!axes_[i]->getMon()->getAtTarget()) {
+        return 0;
+      }
     }
+    //if(axes_[i]->getCurrentPositionSetpoint() != startPositions_[i]) {
+    //  printf("ecmcPVTController:: target set %lf, actual set %lf\n",axes_[i]->getCurrentPositionSetpoint(), startPositions_[i]);
+    //  return 0;
+    //}
   }
   // All axes in correct position to start
   return 1;

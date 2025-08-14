@@ -791,9 +791,8 @@ int ecmcMonitor::checkAtTarget() {
   if (enableAtTargetMon_) {
     /*if (std::abs(data_->status_.currentTargetPosition -
                  data_->status_.currentPositionActual) < atTargetTol_) {*/
-
-    if (data_->status_.currentTargetPositionModulo ==
-        data_->status_.currentPositionSetpoint) {
+    if (data_->status_.currentTargetPositionModulo -
+        data_->status_.currentPositionSetpoint < atTargetTol_ && !data_->status_.statusWord_.localBusy) {
       if (std::abs(data_->status_.cntrlError) < atTargetTol_) {
         if (atTargetCounter_ <= atTargetTime_) {
           atTargetCounter_++;
