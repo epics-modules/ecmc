@@ -3,18 +3,7 @@ Release Notes
 
 # 11.0.0_RC1 
 * Default not reference abs encoder during at successfull homing (change in ecmccfg)
-
-## Cleanup
-removed:
-* getAxisStatusStructV2
-* Event*
-* ComamndList*
-* DataRecorder*
-* Cleanup of axis interfaces (remove duplicate infos)
-* Update of parameters (sync of ecmc and motor record interface)
-
-
-# ECMC 10.1.0_RC1
+* Add support for setting motion control parametrs through motor record fields (PCOF, ICOF and DCOF). The values written to the motor record fields are multiplied by a factor of 100.0 (ecmc.kp = 100.0 * PCOF, same for I and D).
 * Change moving axis flag to only be high when busy
 * Add ecmc native auto enable and disable of axes:
 ```
@@ -24,6 +13,15 @@ removed:
 * Add tweak commands in axis control word (target position value will be used as tweak value):
    - bit 11: tweak bwd cmd
    - bit 12: tweak fwd cmd
+
+## Cleanup
+removed:
+* getAxisStatusStructV2
+* Event*
+* ComamndList*
+* DataRecorder*
+* Cleanup of axis interfaces (remove duplicate infos)
+* Update of parameters (sync of ecmc and motor record interface)
 
 ## Add plc functions to set vel, acc ,dec, jerk from plc:
 ```

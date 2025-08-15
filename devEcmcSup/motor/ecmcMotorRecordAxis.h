@@ -10,6 +10,8 @@ FILENAME...   ecmcMotorRecordAxis.h
 #include "ecmcAxisBase.h"
 #include "ecmcAxisPVTSequence.h"
 
+#define CONTROL_GAIN_SCALE 100.0
+
 #define AMPLIFIER_ON_FLAG_CREATE_AXIS  (1)
 #define AMPLIFIER_ON_FLAG_AUTO_ON      (1 << 1)
 #define AMPLIFIER_ON_FLAG_USING_CNEN   (1 << 2)
@@ -173,6 +175,9 @@ private:
   void       updateMsgTxtFromDriver(const char *value);
 #endif // ifndef motorMessageTextString
 
+  asynStatus setPGain(double pGain);
+  asynStatus setIGain(double iGain);
+  asynStatus setDGain(double dGain);
   //virtual asynStatus initializeProfile(size_t maxPoints);§
   asynStatus defineProfile(double *positions, size_t numPoints);
   asynStatus buildProfile();

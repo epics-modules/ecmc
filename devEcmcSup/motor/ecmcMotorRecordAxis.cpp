@@ -774,7 +774,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
                                      double acceleration,
                                      int    forwards) {
   // cmd, nCmddata,homepos,velhigh,vellow,acc
-
+  printf("velo min max acc= %lf %lf, %lf \n",minVelocity,maxVelocity,acceleration);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: Axis[%d] Home cmd:  = %lf..%lf, acc=%lf, fwd=%d\n",
             __FILE__, __FUNCTION__, __LINE__,
@@ -2544,4 +2544,52 @@ bool ecmcMotorRecordAxis::getPVTEnabled() {
 
 size_t ecmcMotorRecordAxis::getProfilePointCount() {
   return profileCurrentDefinedPoints_;
+}
+
+asynStatus ecmcMotorRecordAxis::setPGain(double pGain) {
+  if (drvlocal.ecmcAxis == NULL) {
+    return asynError;
+  }
+
+  if (drvlocal.ecmcAxis->getCntrl() == NULL) {
+    return asynError;
+  }
+  int errorCode = 0;
+
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  errorCode = drvlocal.ecmcAxis->setCntrlKp(CONTROL_GAIN_SCALE * pGain);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+  return errorCode == 0 ? asynSuccess : asynError;
+}
+
+asynStatus ecmcMotorRecordAxis::setIGain(double iGain) {
+  if (drvlocal.ecmcAxis == NULL) {
+    return asynError;
+  }
+
+  if (drvlocal.ecmcAxis->getCntrl() == NULL) {
+    return asynError;
+  }
+  int errorCode = 0;
+
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  errorCode = drvlocal.ecmcAxis->setCntrlKi(CONTROL_GAIN_SCALE * iGain);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+  return errorCode == 0 ? asynSuccess : asynError;
+}
+
+asynStatus ecmcMotorRecordAxis::setDGain(double dGain) {  
+  if (drvlocal.ecmcAxis == NULL) {
+    return asynError;
+  }
+
+  if (drvlocal.ecmcAxis->getCntrl() == NULL) {
+    return asynError;
+  }
+  int errorCode = 0;
+
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  errorCode = drvlocal.ecmcAxis->setCntrlKd(CONTROL_GAIN_SCALE * dGain);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+  return errorCode == 0 ? asynSuccess : asynError;
 }
