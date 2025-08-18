@@ -788,13 +788,12 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   double velToCam  = 0;
   double velOffCam = 0;
   double accHom    = 0;
+  int useHVEL      = 0;
 
   // nCmdData (sequence number)
   asynStatus status = pC_->getIntegerParam(axisNo_,
                                            pC_->ecmcMotorRecordHomProc_,
                                            &cmdData);
-
-  printf("SeqID %d\n",cmdData);
 
   if (status != asynSuccess) {
     return asynError;
@@ -817,33 +816,65 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
                             pC_->ecmcMotorRecordHomPos_,
                             &homPos);
 
-  // Velocity to cam (high velo)
-  status = pC_->getDoubleParam(axisNo_,
-                               pC_->ecmcMotorRecordVelToHom_,
-                               &velToCam);
-
-  if (status != asynSuccess) {
-    return asynError;
+  // Use HVEL instead
+  (void)pC_->getIntegerParam(axisNo_,
+                            pC_->ecmcMotorRecordHomUseHVEL_,
+                            &useHVEL);
+  // try use HVEL
+  bool useHVELOk = false;
+  double drvScale = 0.0;
+  if(useHVEL) {
+    // read drive scale maxVelocity, acceleration are in raw units
+    if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+    if(drvlocal.ecmcAxis->getDrv() != NULL) {
+      drvScale = drvlocal.ecmcAxis->getDrv()->getScale();
+    }
+    if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+    drvScale = std::abs(drvScale);
+    printf("Axis[%d]: Drv scale %lf\n", axisNo_, drvScale);
+    if(drvScale > 0) {  
+      useHVELOk = true;
+    }
   }
 
-  // Velocity off cam (low velo)
-  status = pC_->getDoubleParam(axisNo_,
-                               pC_->ecmcMotorRecordVelFrmHom_,
-                               &velOffCam);
+  // Use HVEL if drvScale is fine
+  if(useHVEL && useHVELOk) {
+    printf("Axis[%d]: Using HVEL\n", axisNo_);
+    velToCam  = maxVelocity * drvScale;
+    velOffCam = maxVelocity * drvScale;
+    accHom    = acceleration * drvScale;  
+  } else {
+    // Velocity to cam (high velo)
+    status = pC_->getDoubleParam(axisNo_,
+                                 pC_->ecmcMotorRecordVelToHom_,
+                                 &velToCam);
 
-  if (status != asynSuccess) {
-    return asynError;
+    if (status != asynSuccess) {
+      return asynError;
+    }
+
+    // Velocity off cam (low velo)
+    status = pC_->getDoubleParam(axisNo_,
+                                 pC_->ecmcMotorRecordVelFrmHom_,
+                                 &velOffCam);
+  
+    if (status != asynSuccess) {
+      return asynError;
+    }
+
+    // Acceleration
+    status = pC_->getDoubleParam(axisNo_,
+                                 pC_->ecmcMotorRecordAccHom_,
+                                 &accHom);
+
+    if (status != asynSuccess) {
+      return asynError;
+    }
   }
 
-  // Acceleration
-  status = pC_->getDoubleParam(axisNo_,
-                               pC_->ecmcMotorRecordAccHom_,
-                               &accHom);
-
-  if (status != asynSuccess) {
-    return asynError;
-  }
-
+  printf("Axis[%d]: Homing with VelTo %lf, VelFrm %lf, Acc %lf\n", 
+          axisNo_, velToCam, velOffCam, accHom);
+  
   int errorCode = 0;
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
@@ -2551,6 +2582,21 @@ asynStatus ecmcMotorRecordAxis::setPGain(double pGain) {
     return asynError;
   }
 
+  /* do not allow values higher than 0.99 
+  (to avoid setting misstake in scaling)*/
+  if(pGain > 0.99) {
+    asynPrint(pPrintOutAsynUser,
+      ASYN_TRACE_INFO,
+        "%s/%s:%d: Axis[%d] Gain value must be in the range 0..0.99"
+        " (remember the scaling factor of %lf between ecmc and MR control params).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        axisNo_, CONTROL_GAIN_SCALE);
+
+    return asynError;
+  }
+
   if (drvlocal.ecmcAxis->getCntrl() == NULL) {
     return asynError;
   }
@@ -2567,6 +2613,21 @@ asynStatus ecmcMotorRecordAxis::setIGain(double iGain) {
     return asynError;
   }
 
+  /* do not allow values higher than 0.99 
+  (to avoid setting misstake in scaling)*/
+  if(iGain > 0.99) {
+    asynPrint(pPrintOutAsynUser,
+      ASYN_TRACE_INFO,
+        "%s/%s:%d: Axis[%d] Gain value must be in the range 0..0.99"
+        " (remember the scaling factor of %lf between ecmc and MR control params).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        axisNo_, CONTROL_GAIN_SCALE);
+
+    return asynError;
+  }
+
   if (drvlocal.ecmcAxis->getCntrl() == NULL) {
     return asynError;
   }
@@ -2580,6 +2641,21 @@ asynStatus ecmcMotorRecordAxis::setIGain(double iGain) {
 
 asynStatus ecmcMotorRecordAxis::setDGain(double dGain) {  
   if (drvlocal.ecmcAxis == NULL) {
+    return asynError;
+  }
+
+  /* do not allow values higher than 0.99 
+  (to avoid setting misstake in scaling)*/
+  if(dGain > 0.99) {
+    asynPrint(pPrintOutAsynUser,
+      ASYN_TRACE_INFO,
+        "%s/%s:%d: Axis[%d] Gain value must be in the range 0..0.99"
+        " (remember the scaling factor of %lf between ecmc and MR control params).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        axisNo_, CONTROL_GAIN_SCALE);
+
     return asynError;
   }
 

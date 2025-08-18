@@ -13,6 +13,7 @@ Release Notes
 * Add tweak commands in axis control word (target position value will be used as tweak value):
    - bit 11: tweak bwd cmd
    - bit 12: tweak fwd cmd
+* Add support for setting homing velocity through motor record HVEL field. The functionality must be enabled by setting PREFIX:MOTOR-HomUseHVEL to 1 (and HVEL field to a resonable velocity). NOTE: This is NOT the preferred way of homing an motor. The prefered way is using the parameters saved in the encoder object. 
 
 ## Cleanup
 removed:

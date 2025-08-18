@@ -42,6 +42,7 @@ extern ecmcAsynPortDriver *asynPort;
 #define ecmcMotorRecordVelToHomString             "VelToHom"
 #define ecmcMotorRecordVelFrmHomString            "VelFrmHom"
 #define ecmcMotorRecordAccHomString               "AccHom"
+#define ecmcMotorRecordHomUseHVELString           "HomeUseHVEL"
 #define ecmcMotorRecordEnc_ActString              "EncAct"
 #define ecmcMotorRecordErrRstString               "ErrRst"
 #define ecmcMotorRecordVelActString               "VelAct"
@@ -170,6 +171,7 @@ protected:
   int ecmcMotorRecordVelToHom_;
   int ecmcMotorRecordVelFrmHom_;
   int ecmcMotorRecordAccHom_;
+  int ecmcMotorRecordHomUseHVEL_;
   int ecmcMotorRecordEncAct_;
 
 #ifdef CREATE_MOTOR_REC_RESOLUTION

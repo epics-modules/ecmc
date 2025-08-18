@@ -221,6 +221,9 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
   createParam(ecmcMotorRecordAccHomString,
               asynParamFloat64,
               &ecmcMotorRecordAccHom_);
+  createParam(ecmcMotorRecordHomUseHVELString,
+              asynParamInt32,
+              &ecmcMotorRecordHomUseHVEL_);
   createParam(ecmcMotorRecordErrRstString,
               asynParamInt32,
               &ecmcMotorRecordErrRst_);
