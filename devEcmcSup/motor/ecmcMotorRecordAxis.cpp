@@ -378,9 +378,23 @@ asynStatus ecmcMotorRecordAxis::updateCfgValue(int         function,
 asynStatus ecmcMotorRecordAxis::readBackSoftLimits() {
  return readBackSoftLimits(false);
 }
+asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits() {
+  return syncEcmcSoftLimits(false);
+}
+
 
 // Sync ecmc softlimits based on command from motor
-asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits() {
+asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force) {
+  int sync = 0;
+  #ifdef motorFlagsRwSoftLimitsString
+  // Allow sync of softlimit (motor to ecmc and the other way around)
+  pC_->getIntegerParam(axisNo_, pC_->motorFlagsRwSoftLimits_,&sync);
+  #endif //motorFlagsRwSoftLimitsString
+
+  if(!sync && !force) {
+    printf("NO SYNC\n");
+    return asynSuccess;
+  }
   printf("syncEcmcSoftLimits\n");
   int    enabledFwd = 0,  enabledBwd = 0;
   double fValueFwd = 0.0, fValueBwd  = 0.0;
@@ -392,10 +406,6 @@ asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits() {
   enabledFwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitFwd();
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-  //pC_->setIntegerParam(axisNo_, pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
-  //pC_->setDoubleParam(axisNo_, pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
-  //pC_->setIntegerParam(axisNo_, pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
-  //pC_->setDoubleParam(axisNo_, pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
   asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
   asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
   asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
@@ -408,6 +418,18 @@ asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits() {
 
 // Sync motor softlimits based on ecmc soft limit settings
 asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits() {
+
+  int sync = 0;
+  #ifdef motorFlagsRwSoftLimitsString
+  // Allow sync of softlimit (motor to ecmc and the other way around)
+  pC_->getIntegerParam(axisNo_, pC_->motorFlagsRwSoftLimits_,&sync);
+  #endif //motorFlagsRwSoftLimitsString
+
+  if(!sync) {
+    printf("NO SYNC\n");
+    return asynSuccess;
+  }
+
   printf("syncMotorSoftLimits\n");
   int enabledFwd = 0,  enabledBwd = 0;
   double fValueFwd = 0.0, fValueBwd  = 0.0;
@@ -1451,6 +1473,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     triggsync_++;
     asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
   }
+
+  syncEcmcSoftLimits(true);
+  syncMotorSoftLimits();
 
   setIntegerParam(pC_->motorStatusHomed_,
                   (drvlocal.status_.
