@@ -152,8 +152,9 @@ private:
   asynStatus readBackSoftLimits(void);
   asynStatus readBackSoftLimits(bool updateMotor);
   asynStatus syncEcmcSoftLimits();
-  asynStatus syncEcmcSoftLimits(bool force);
+  asynStatus syncEcmcSoftLimits(bool force, bool updateParams);
   asynStatus syncMotorSoftLimits();
+  asynStatus syncMotorSoftLimits(bool force, bool updateParams);
   asynStatus readScaling(int axisID);
   asynStatus readMonitoring(int axisID);
   asynStatus readBackVelocities(int axisID);

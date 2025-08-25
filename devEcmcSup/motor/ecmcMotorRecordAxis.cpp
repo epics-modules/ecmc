@@ -37,6 +37,7 @@ extern asynUser *pPrintOutAsynUser;
 #define ECMC_AXIS_OPT_POWER_AUTO_ON_OFF "powerAutoOnOff="
 #define ECMC_AXIS_OPT_POWER_OFF_DELAY   "powerOffDelay="
 #define ECMC_AXIS_OPT_POWER_ON_DELAY    "powerOnDelay="
+#define ECMC_AXIS_OPT_SYNC_SOFT_LIMS    "syncSoftLims="
 #define ECMC_AXIS_OPT_STR_LEN 15
 
 #define ECMC_AXIS_ENABLE_SLEEP_PERIOD 0.1
@@ -56,7 +57,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
                                          int                        axisFlags,
                                          const char                *axisOptionsStr)
   : asynMotorAxis(pC, axisNo),
-  pC_(pC) {  
+  pC_(pC) {
 
   /* Some parameters are only defined in the ESS fork of the motor module.
      So they have the ifdef */
@@ -66,7 +67,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #endif //motorFlagsDriverUsesEGUString
 #ifdef motorFlagsRwSoftLimitsString
   // Allow sync of softlimit (motor to ecmc and the other way around)
-  setIntegerParam(pC_->motorFlagsRwSoftLimits_,    1);
+  setIntegerParam(pC_->motorFlagsRwSoftLimits_,    0);
 #endif //motorFlagsRwSoftLimitsString
 #ifdef motorFlagsAdjAfterHomedString
   setIntegerParam(pC_->motorFlagsAdjAfterHomed_,   1);
@@ -193,7 +194,18 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         pThisOption += strlen(ECMC_AXIS_OPT_POWER_ON_DELAY);
         powerOnDelay = atof(pThisOption);
         updateCfgValue(pC_->motorPowerOnDelay_, powerOnDelay, "powerOnDelay");
+      } else if (!strncmp(pThisOption, ECMC_AXIS_OPT_SYNC_SOFT_LIMS,
+                          strlen(ECMC_AXIS_OPT_SYNC_SOFT_LIMS))) {
+        int syncLims = 0;
+        pThisOption += strlen(ECMC_AXIS_OPT_SYNC_SOFT_LIMS);
+        syncLims = atoi(pThisOption);
+#ifdef motorFlagsRwSoftLimitsString
+        // Allow sync of softlimit (motor to ecmc and the other way around)
+        setIntegerParam(pC_->motorFlagsRwSoftLimits_,    syncLims);
+        printf("Sync of softlimits %d\n",syncLims);
+#endif //motorFlagsRwSoftLimitsString
       }
+
       pThisOption = pNextOption;
     }
     free(pOptions);
@@ -378,13 +390,13 @@ asynStatus ecmcMotorRecordAxis::updateCfgValue(int         function,
 asynStatus ecmcMotorRecordAxis::readBackSoftLimits() {
  return readBackSoftLimits(false);
 }
+
 asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits() {
-  return syncEcmcSoftLimits(false);
+  return syncEcmcSoftLimits(false, true);
 }
 
-
 // Sync ecmc softlimits based on command from motor
-asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force) {
+asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force, bool updateParams) {
   int sync = 0;
   #ifdef motorFlagsRwSoftLimitsString
   // Allow sync of softlimit (motor to ecmc and the other way around)
@@ -392,10 +404,9 @@ asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force) {
   #endif //motorFlagsRwSoftLimitsString
 
   if(!sync && !force) {
-    printf("NO SYNC\n");
     return asynSuccess;
   }
-  printf("syncEcmcSoftLimits\n");
+  
   int    enabledFwd = 0,  enabledBwd = 0;
   double fValueFwd = 0.0, fValueBwd  = 0.0;
 
@@ -411,13 +422,18 @@ asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force) {
   asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
   asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
 
-  callParamCallbacks();
-
+  if(updateParams) {
+    callParamCallbacks();
+  }
   return asynSuccess;
 }
 
-// Sync motor softlimits based on ecmc soft limit settings
 asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits() {
+  return syncMotorSoftLimits(false, true);
+}
+
+// Sync motor softlimits based on ecmc soft limit settings
+asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParams) {
 
   int sync = 0;
   #ifdef motorFlagsRwSoftLimitsString
@@ -425,12 +441,10 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits() {
   pC_->getIntegerParam(axisNo_, pC_->motorFlagsRwSoftLimits_,&sync);
   #endif //motorFlagsRwSoftLimitsString
 
-  if(!sync) {
-    printf("NO SYNC\n");
+  if(!sync && !force) {
     return asynSuccess;
   }
 
-  printf("syncMotorSoftLimits\n");
   int enabledFwd = 0,  enabledBwd = 0;
   double fValueFwd = 0.0, fValueBwd  = 0.0;
 
@@ -453,8 +467,9 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits() {
     asynMotorAxis::setDoubleParam(pC_->motorHighLimit_, fValueFwd);
   }
   
-  pC_->callParamCallbacks();
-
+  if(updateParams) {
+    pC_->callParamCallbacks();
+  }
   return asynSuccess;
 }
 
@@ -796,7 +811,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
                                      double acceleration,
                                      int    forwards) {
   // cmd, nCmddata,homepos,velhigh,vellow,acc
-  printf("velo min max acc= %lf %lf, %lf \n",minVelocity,maxVelocity,acceleration);
+  //printf("velo min max acc= %lf %lf, %lf \n",minVelocity,maxVelocity,acceleration);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: Axis[%d] Home cmd:  = %lf..%lf, acc=%lf, fwd=%d\n",
             __FILE__, __FUNCTION__, __LINE__,
@@ -852,16 +867,20 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
       drvScale = drvlocal.ecmcAxis->getDrv()->getScale();
     }
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-    drvScale = std::abs(drvScale);
-    printf("Axis[%d]: Drv scale %lf\n", axisNo_, drvScale);
+    drvScale = std::abs(drvScale);    
     if(drvScale > 0) {  
       useHVELOk = true;
     }
   }
 
+  if(useHVELOk && !useHVELOk) {
+    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+            "%s/%s:%d: Axis[%d]: Warning Homing with HVEL: Could not derive drive scale revert to velocity defined in ecmcMotorRecordVelToHom_.\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_);
+  }
   // Use HVEL if drvScale is fine
   if(useHVEL && useHVELOk) {
-    printf("Axis[%d]: Using HVEL\n", axisNo_);
     velToCam  = maxVelocity * drvScale;
     velOffCam = maxVelocity * drvScale;
     accHom    = acceleration * drvScale;  
@@ -893,9 +912,6 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
       return asynError;
     }
   }
-
-  printf("Axis[%d]: Homing with VelTo %lf, VelFrm %lf, Acc %lf\n", 
-          axisNo_, velToCam, velOffCam, accHom);
   
   int errorCode = 0;
 
@@ -911,8 +927,6 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
       __LINE__);
     return asynError;
   }
-
-  printf("cmdData=%d\n",cmdData);
   
   // "-1" will lead to not overwriting anything that is set in ecmc
   errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,
@@ -1133,7 +1147,10 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
             axisNo_, on);
 
   if(drvlocal.ecmcSafetyInterlock && on) {
-    printf("Safety[%d]: enableAmplifier(%d) failed. Ecmc safety interlock active\n",axisNo_,on);
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+            "%s/%s:%d: Axis[%d]: enableAmplifier(%d) failed. Ecmc safety interlock active\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_,on);
     asynMotorAxis::setIntegerParam(pC_->motorClosedLoop_, 0);
     callParamCallbacks();
     return asynError;
@@ -1474,8 +1491,8 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
   }
 
-  syncEcmcSoftLimits(true);
-  syncMotorSoftLimits();
+  syncEcmcSoftLimits(false,false);
+  syncMotorSoftLimits(false,false);
 
   setIntegerParam(pC_->motorStatusHomed_,
                   (drvlocal.status_.
@@ -1509,9 +1526,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     *moving = !drvlocal.moveReady;
   }
 
-  if(drvlocal.moveReady!=drvlocal.moveReadyOld) {
-    printf("Axis[%d]: Move ready changed, now %d (before %d)\n",drvlocal.axisId,drvlocal.moveReady, drvlocal.moveReadyOld);
-  }
+  //if(drvlocal.moveReady!=drvlocal.moveReadyOld) {
+  //  printf("Axis[%d]: Move ready changed, now %d (before %d)\n",drvlocal.axisId,drvlocal.moveReady, drvlocal.moveReadyOld);
+  //}
 
   if (!drvlocal.moveReady) {
     drvlocal.nCommandActive = drvlocal.status_.command;
@@ -2070,7 +2087,7 @@ asynStatus ecmcMotorRecordAxis::setHighLimit(double highLimit) {
     return asynError;
   }
 
-  syncEcmcSoftLimits();
+  syncEcmcSoftLimits();  
   return asynMotorAxis::setHighLimit(highLimit);
 }
 
