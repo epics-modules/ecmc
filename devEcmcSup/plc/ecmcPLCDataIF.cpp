@@ -1520,12 +1520,19 @@ int ecmcPLCDataIF::initAsyn() {
   char *name             = buffer;
   unsigned int charCount = 0;
 
-  if (plcIndex_ >= 0) { // local variable (plc index)
+  if (plcIndex_ >= 0 && plcIndex_ < ECMC_MAX_PLCS ) { // local variable (plc index)
     // "plc%d.%s"
     charCount = snprintf(buffer,
                          sizeof(buffer),
                          ECMC_PLCS_DATA_STR "." ECMC_PLC_DATA_STR "%d.%s",
                          plcIndex_,
+                         varName_.c_str());
+  } else if (plcIndex_ >= ECMC_MAX_PLCS) {  // Axis PLC
+    // "ax%d.%s"
+    charCount = snprintf(buffer,
+                         sizeof(buffer),
+                         ECMC_PLCS_DATA_STR "." ECMC_AX_STR "%d.%s",
+                         plcIndex_-ECMC_MAX_PLCS,  // Axis index
                          varName_.c_str());
   } else { // global variable (no plc index)
     // "%s"
