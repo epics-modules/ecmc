@@ -2908,12 +2908,10 @@ int createAxis(int index, int type, int drvType, int trajType) {
   if (axes[index] != NULL) {
     return ERROR_MAIN_AXIS_ALREADY_CREATED;
   }
-  printf("createAxis\n");
 
   try {
     switch ((axisTypes)type) {
     case ECMC_AXIS_TYPE_REAL:
-      printf("createAxis REAL\n");
 
       if (axes[index] != NULL) {
         delete axes[index];
@@ -2921,18 +2919,15 @@ int createAxis(int index, int type, int drvType, int trajType) {
 
       // Sample rate fixed
       sampleRateChangeAllowed = 0;
-      printf("createAxis REAL\n");
 
       axes[index]             = new ecmcAxisReal(asynPort, index,
                                                  1 / mcuFrequency,
                                                  (ecmcDriveTypes)drvType,
                                                  (ecmcTrajTypes)trajType);
-      printf("createAxis REAL\n");
       break;
 
     case ECMC_AXIS_TYPE_VIRTUAL:
 
-      printf("createAxis\n");
      // Drive type ignored (Virtual axis have no drive)
       if (axes[index] != NULL) {
         delete axes[index];
@@ -2961,17 +2956,11 @@ int createAxis(int index, int type, int drvType, int trajType) {
   }
   axisDiagIndex = index;  // Always printout last axis added
 
-  printf("createAxis PLC\n");
-
   int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index), mcuPeriod / 1e6, 1);
 
   if (error) {
     return error;
   }
-
-  printf("createAxisError\n");
-
-  // axes[index]->setAxisMainPLCs(plcs);
 
   return axes[index]->getErrorID();
 }

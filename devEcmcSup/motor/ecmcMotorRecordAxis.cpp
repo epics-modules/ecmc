@@ -96,6 +96,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   pvtPrepare_ = NULL;
   pvtRunning_ = NULL;
 
+  updateFirstPollDone_ = false;
   if (!drvlocal.ecmcAxis) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis ref NULL. Application exits...\n",
@@ -417,10 +418,15 @@ asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force, bool updateParams
   enabledFwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitFwd();
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-  asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
-  asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
-  asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
-  asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
+  if(!enabledBwd && !enabledFwd) {
+    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
+    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
+  } else {
+    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
+    asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
+    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
+    asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
+  }
 
   if(updateParams) {
     callParamCallbacks();
@@ -496,10 +502,6 @@ asynStatus ecmcMotorRecordAxis::readBackSoftLimits(bool updateMotor) {
   
   pC_->callParamCallbacks();
 
-  //pC_->udateMotorLimitsRO(axisNo_,
-  //                        enabledBwd && enabledFwd,
-  //                        fValueFwd,
-  //                        fValueBwd);
   return asynSuccess;
 }
 
@@ -1470,6 +1472,12 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   //#endif // ifdef POWERAUTOONOFFMODE2
+
+  // Inits first poll
+  if (!updateFirstPollDone_) {
+    syncMotorSoftLimits(true, true);
+    updateFirstPollDone_ = true;
+  }
 
   if (status) {
     return status;
