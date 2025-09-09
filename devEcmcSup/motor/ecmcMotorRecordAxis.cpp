@@ -78,6 +78,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #ifdef motorFlagsNtmUpdateString
   setIntegerParam(pC_->motorFlagsNtmUpdate_,       1);
 #endif // ifdef motorFlagsNtmUpdateString
+
   profileMaxPoints_ = 0;
   // initialize
   memset(&drvlocal,       0,    sizeof(drvlocal));
@@ -216,7 +217,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   if (pasynTrace->getTraceInfoMask(pPrintOutAsynUser) &
       ASYN_TRACEINFO_SOURCE) modNamEMC = "";
   
-
   initialPoll();
   
 }
@@ -1113,12 +1113,15 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
  *  Method is called cyclic from asynMotorController::autoPowerOn()
  */
 bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
+  
   int enabled = 0;
-
+  bool interlock = 0;
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   enabled = drvlocal.ecmcAxis->getEnabled() && drvlocal.ecmcAxis->getEnable();
-  
-  if(drvlocal.ecmcAxis->getMon()->getSumInterlock()) {
+  interlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
+  if(interlock) {
     triggstop_++;
     if(triggstop_ == 0) {
       triggstop_++;
@@ -1129,13 +1132,10 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
     callParamCallbacks();
   }
 
-  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: Axis[%d] Poll power is on %d\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, enabled > 0);
-
   return enabled > 0;
 }
 
@@ -1168,13 +1168,12 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
   {
     int autoPower;
     pC_->getIntegerParam(axisNo_, pC_->motorPowerAutoOnOff_, &autoPower);
-
     if (autoPower) {
       /* The record/driver will check for enabled (pollPowerIsOn)- only check enable */
       justCheckForEnable = 1;
     }
   }
-   #endif // ifdef POWERAUTOONOFFMODE2
+  #endif // ifdef POWERAUTOONOFFMODE2
 
   on = on ? 1 : 0; /* either 0 or 1 */
 
@@ -1195,7 +1194,6 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
   if (status) return status;
 
   while (counter) {
-    epicsThreadSleep(ECMC_AXIS_ENABLE_SLEEP_PERIOD);
     asynStatus status = readEcmcAxisStatusData();
     if (status) {
       return status;
@@ -1209,6 +1207,7 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
       return asynSuccess;
     }
     counter = counter - 1;
+    epicsThreadSleep(ECMC_AXIS_ENABLE_SLEEP_PERIOD);
   }
 
   /* 

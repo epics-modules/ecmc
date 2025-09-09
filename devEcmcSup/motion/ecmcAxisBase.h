@@ -255,7 +255,7 @@ public:
   int        getPrintDbg();
   ecmcAxisPVTSequence* getPVTObject();
   double     getCurrentPositionSetpoint();
-  
+  ecmcAxisDataStatus* getAxisStatusStruct();
 
 protected:
   void       initVars();

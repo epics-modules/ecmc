@@ -3297,3 +3297,8 @@ bool ecmcAxisBase::commandValid(motionCommandTypes command) {
   }
   return valid;
 }
+
+ecmcAxisDataStatus* ecmcAxisBase::getAxisStatusStruct() {
+  return &data_.status_;
+}
+
