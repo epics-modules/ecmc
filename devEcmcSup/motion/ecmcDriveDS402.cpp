@@ -246,10 +246,11 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
     break;
 
   case ECMC_DS402_RESET_STATE:
+  
     controlWord_  = 128;
     cycleCounter_ = 0;
 
-    if (!BIT_CHECK(statusWord_, ECMC_DS402_FAULT_BIT)) {
+    if (!BIT_CHECK(statusWord_, ECMC_DS402_FAULT_BIT)) {  
       enableStateMachine_    = ECMC_DS402_IDLE_STATE;
       data_->control_.controlWord_.enableCmd = false;
     }
@@ -261,7 +262,7 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
 
 void ecmcDriveDS402::errorReset() {
   // Reset error in drive (controlword=128)
-  if (enableStateMachine_ == ECMC_DS402_FAULT_STATE) {
+    if(BIT_CHECK(statusWord_, ECMC_DS402_FAULT_BIT)) {
     enableStateMachine_ = ECMC_DS402_RESET_STATE;
     cycleCounter_       = 0;
   }

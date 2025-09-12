@@ -15,9 +15,9 @@ Release Notes
    - bit 12: tweak fwd cmd
 * Add support for setting homing velocity through motor record HVEL field. The functionality must be enabled by setting PREFIX:MOTOR-HomUseHVEL to 1 (and HVEL field to a resonable velocity). NOTE: This is NOT the preferred way of homing an motor. The prefered way is using the parameters saved in the encoder object. The velocity will be used if the defined homing sequence is not set to 14. If set to 14 the encoder paramteres stored in the encoder object will be used.
 
-## Cleanup
-removed:
-* getAxisStatusStructV2
+## Breaking changes
+Removed:
+* getAxisStatusStructV2 
 * Event*
 * ComamndList*
 * DataRecorder*
