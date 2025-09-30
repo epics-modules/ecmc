@@ -1242,6 +1242,19 @@ int setAxisEnableMotionFunctions(int axisIndex,
                                  int enableConstVel,
                                  int enableHome);
 
+/** \brief Set axis amplifier enable at ioc startup.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] enable  Enable amplifier at startup.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable amplifier at startup for axis 3.\n
+ * "Cfg.SetAxisEnableAtStartup(3,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEnableAtStartup(int axisIndex,
+                           int enable);
+
 /** \brief Set enable alarms at limits bit.\n
  *
  * \param[in] axisIndex  Axis index.\n

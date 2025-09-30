@@ -375,6 +375,10 @@ void ecmcAxisBase::preExecute(bool masterOK) {
       data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
 
       refreshAsynTargetValue();
+
+      // start enable if needed
+      setEnable(data_.control_.enableAtStartup);
+      setMRCnen(data_.control_.enableAtStartup);
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
     break;
@@ -1456,7 +1460,6 @@ void ecmcAxisBase::refreshStatusWd() {
     (unsigned char)data_.interlocks_.lastActiveInterlock;
 }
 int ecmcAxisBase::setEnable(bool enable) {
-
   if (data_.status_.statusWord_.enable == enable) return 0;
 
   if (!enable) {  // Remove execute if enable is going down
@@ -3302,3 +3305,7 @@ ecmcAxisDataStatus* ecmcAxisBase::getAxisStatusStruct() {
   return &data_.status_;
 }
 
+int ecmcAxisBase::setEnableAtStartup(bool enable) {
+  data_.control_.enableAtStartup = enable;
+  return 0;
+}

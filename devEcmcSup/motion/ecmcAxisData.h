@@ -53,6 +53,7 @@ typedef struct {
   double             accelerationTarget;
   double             decelerationTarget;
   bool               allowSourceChangeWhenEnabled;
+  bool               enableAtStartup;
   ecmcAsynAxisControlType controlWord_;
   ecmcAsynDataItem  *asynDataItemCtrlWord;
   driveMode  drvMode;

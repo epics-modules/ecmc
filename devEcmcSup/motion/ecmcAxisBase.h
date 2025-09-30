@@ -60,6 +60,7 @@ public:
   virtual void               execute(bool masterOK) = 0;
   int                        getCntrlError(double *error);
   int                        setEnable(bool enable);
+  int                        setEnableAtStartup(bool enable);
   bool                       getEnable();
   bool                       getEnabled();  // Enable and Enabled
   bool                       getEnabledOnly();  // Only Enabled

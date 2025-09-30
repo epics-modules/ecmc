@@ -450,6 +450,19 @@ int setAxisEnable(int axisIndex, int value) {
   return axes[axisIndex]->setEnable(value);
 }
 
+int setAxisEnableAtStartup(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  return axes[axisIndex]->setEnableAtStartup(enable);
+}
+
 int getAxisEnable(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,

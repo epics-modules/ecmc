@@ -1997,6 +1997,14 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEnableMotionFunctions(iValue, iValue2, iValue3, iValue4);
   }
 
+  /*int Cfg.SetAxisEnableAtStartup(int axis_no, int value);*/
+  nvals =
+    sscanf(myarg_1, "SetAxisEnableAtStartup(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEnableAtStartup(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisMonEnableEncsDiff(int axis_no, int enable);*/
   nvals =
     sscanf(myarg_1, "SetAxisMonEnableEncsDiff(%d,%d)", &iValue, &iValue2);
