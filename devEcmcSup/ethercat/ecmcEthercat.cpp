@@ -113,6 +113,26 @@ int ecSlaveConfigDC(
                          sync1Shift);
 }
 
+int ecSetSlaveNeedSDOSettings(int slaveBusPosition, int ch, int need) {
+  ecmcEcSlave *slave = ec->findSlave(slaveBusPosition);
+
+  if (slave == NULL) {
+    return ERROR_EC_MAIN_SLAVE_NULL;
+  }
+
+  return slave->setSlaveNeedSDOSettings(ch, need);
+}
+
+int ecSetSlaveSDOSettingsDone(int slaveBusPosition, int ch,  int done) {
+  ecmcEcSlave *slave = ec->findSlave(slaveBusPosition);
+
+  if (slave == NULL) {
+    return ERROR_EC_MAIN_SLAVE_NULL;
+  }
+
+  return slave->setSlaveSDOSettingsDone(ch, done);
+}
+
 int ecSelectReferenceDC(int masterIndex, int slaveBusPosition) {
   LOGINFO4("%s/%s:%d master=%d position=%d\n",
            __FILE__,

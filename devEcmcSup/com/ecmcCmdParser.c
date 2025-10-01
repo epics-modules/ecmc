@@ -1594,6 +1594,20 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecEnablePrintouts(iValue);
   }
 
+  /*Cfg.EcSetSlaveNeedSDOSettings(int slavepos, int enable)*/
+  nvals = sscanf(myarg_1, "EcSetSlaveNeedSDOSettings(%d,%d,%d)", &iValue, &iValue2, &iValue3);
+
+  if (nvals == 3) {
+    return ecSetSlaveNeedSDOSettings(iValue,iValue2,iValue3);
+  }
+
+  /*Cfg.EcSetSlaveSDOSettingsDone(int slavepos, int done)*/
+  nvals = sscanf(myarg_1, "EcSetSlaveSDOSettingsDone(%d,%d,%d)", &iValue, &iValue2, &iValue3);
+
+  if (nvals == 3) {
+    return ecSetSlaveSDOSettingsDone(iValue,iValue2,iValue3);
+  }
+
   /*Cfg.EcSetDomainFailedCyclesLimit(int nCycles)*/
   nvals = sscanf(myarg_1, "EcSetDomainFailedCyclesLimit(%d)", &iValue);
 

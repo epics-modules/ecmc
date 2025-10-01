@@ -1267,6 +1267,41 @@ int ecGetSlaveSerialNum(uint16_t  alias, /**< Slave alias. */
                         uint16_t  slavePos,  /**< Slave position. */
                         uint32_t *result);
 
+/** \brief Set bit that slave needs SDO settings
+ *
+ *  This slave needs SDO settings i.e. if a drive then current must be set.\n
+ *  If "Cfg.EcSetSlaveSDOSettingsDone()" has not been set at validation of\n
+ *  the slave then the ioc will not start.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] channel channel id (starting at 1)
+ *  \param[in] need Slave needs SDO setting (default 0)
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set that slave 3 need SDO settings:\n
+ *   "Cfg.EcSetSlaveNeedSDOSettings(3)" //Command string to ecmcCmdParser.c\n
+ */
+int ecSetSlaveNeedSDOSettings(int slaveBusPosition, int channel, int need);
+
+/** \brief Set bit that all SDOs has been set for this slave\n
+ *
+ *  After SDOs have been set this function should be called to tell ecmc that.\n
+ *  Important SDOs have been set.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] channel channel id (starting at 1)
+ *  \param[in] done SDO setting done (default 0)
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set that importantt SDO settings for slave 3 has been performed:\n
+ *   "Cfg.EcSetSlaveSDOSettingsDone(3)" //Command string to ecmcCmdParser.c\n
+ */
+int ecSetSlaveSDOSettingsDone(int slaveBusPosition, int channel, int done);
+
 /** \brief Use CLOCK_REALTIME
  *
  *  Ecmc will as default use CLOCK_MONOTONIC as clock source both for\n

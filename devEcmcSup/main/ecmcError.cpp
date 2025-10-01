@@ -1630,6 +1630,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x24016:
+    return "ERROR_EC_SLAVE_SDO_SETTINGS_MISSING";
+
+    break;
+
+  case 0x24017:
+    return "ERROR_EC_SLAVE_SDO_CH_ID_OUT_OF_RANGE";
+
+    break;
+
   case 0x25000:  // ECSYNCMANAGER
     return "ERROR_EC_SM_PDO_ARRAY_FULL";
 

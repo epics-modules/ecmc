@@ -920,6 +920,20 @@ int ecmcEcSlave::validate() {
       }
     }
   }
+
+  // Check that SDO settings are made if needed for channels
+  for(uint ch = 0; ch < sdoChVerify_.size(); ch++) {
+    if(sdoChVerify_[ch].needSdo && !sdoChVerify_[ch].sdosDone) {
+      LOGERR(
+        "%s/%s:%d: ERROR: Important SDO settings, i.e. max current or other, missing for slave %d, ch %d.\n"
+        "Use \"ecmcConfigOrDie \"Cfg.EcSetSlaveSDOSettingsDone(<slave_id>,<ch_id>,1)\"\" after addSlave.cmd to override\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__, slavePosition_, ch + 1);
+      return ERROR_EC_SLAVE_SDO_SETTINGS_MISSING;
+    }
+  }
+
   return 0;
 }
 
@@ -1089,4 +1103,52 @@ int ecmcEcSlave::getAllowOffline() {
 
   // No domain attached the simulation slave
   return 1;
+}
+
+/* The two commands, setSlaveNeedSDOSettings and setSlaveSDOSettingsDone, is
+   typically set from the configuration frame work:
+  * setSlaveNeedSDOSettings from addSlave.cmd for certain hardware
+  * setSlaveSDOSettingsDone from ecmccomp applyComponent.cmd, configureSlave.cmd or applySkaveConfig.cmd.
+  Note: chId start count at 1
+*/ 
+int ecmcEcSlave::setSlaveNeedSDOSettings(int chId, int need) {
+  
+  if(chId <= 0 || chId > SDO_SETTINGS_MAX_CH) {
+    return ERROR_EC_SLAVE_SDO_CH_ID_OUT_OF_RANGE;
+  }
+
+  sdoVerifyChX temp;
+  temp.needSdo = 0; 
+  temp.sdosDone = 0;
+
+  // Ensure vector is long enough..
+  while(sdoChVerify_.size() < (uint)chId) {
+    sdoChVerify_.push_back(temp);
+  }
+  
+  // Zero based index
+  sdoChVerify_[chId-1].needSdo = need;
+  return 0;
+}
+
+// chId start count at 1
+int ecmcEcSlave::setSlaveSDOSettingsDone(int chId, int done) {
+
+  if(chId <= 0 || chId > SDO_SETTINGS_MAX_CH) {
+    return ERROR_EC_SLAVE_SDO_CH_ID_OUT_OF_RANGE; 
+  }
+
+  sdoVerifyChX temp;
+  temp.needSdo = 0; 
+  temp.sdosDone = 0;
+
+  // Ensure vector is long enough..
+  while(sdoChVerify_.size() < (uint)chId) {
+    sdoChVerify_.push_back(temp);
+  }
+
+  // Zero based index
+  sdoChVerify_[chId-1].sdosDone = done;
+
+  return 0;
 }

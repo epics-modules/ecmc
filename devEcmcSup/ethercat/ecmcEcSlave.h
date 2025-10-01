@@ -56,6 +56,15 @@
 #define ERROR_EC_SLAVE_REG_ASYN_PAR_BUFFER_OVERFLOW 0x24013
 #define ERROR_EC_SLAVE_SDO_ASYNC_CREATE_FAIL 0x24014
 #define ERROR_EC_SLAVE_ADD_DATA_ITEM_FAIL 0x24015
+#define ERROR_EC_SLAVE_SDO_SETTINGS_MISSING 0x24016
+#define ERROR_EC_SLAVE_SDO_CH_ID_OUT_OF_RANGE 0x24017
+
+typedef struct {
+  int needSdo; 
+  int sdosDone;  
+} sdoVerifyChX;
+
+#define SDO_SETTINGS_MAX_CH 256
 
 typedef struct {
   uint16_t position;   /**< Offset of the slave in the ring. */
@@ -159,7 +168,9 @@ public:
                   uint8_t        sdoSubIndex, /**< SDO subindex. */
                   ecmcEcDataType dt,
                   std::string    alias);
-  int                getAllowOffline();
+  int getAllowOffline();
+  int setSlaveNeedSDOSettings(int chid, int need);
+  int setSlaveSDOSettingsDone(int chid, int done);
 
 private:
   void               initVars();
@@ -207,5 +218,8 @@ private:
 
   std::vector<ecmcEcAsyncSDO *>asyncSDOvector_;
   int asyncSDOCounter_;
+  
+  // Ensure important SDO settings like max current are set.
+  std::vector<sdoVerifyChX> sdoChVerify_;
 };
 #endif  /* ECMCECSLAVE_H_ */
