@@ -120,7 +120,7 @@ int ecSetSlaveNeedSDOSettings(int slaveBusPosition, int ch, int need) {
     return ERROR_EC_MAIN_SLAVE_NULL;
   }
 
-  return slave->setSlaveNeedSDOSettings(ch, need);
+  return slave->setNeedSDOSettings(ch, need);
 }
 
 int ecSetSlaveSDOSettingsDone(int slaveBusPosition, int ch,  int done) {
@@ -130,7 +130,17 @@ int ecSetSlaveSDOSettingsDone(int slaveBusPosition, int ch,  int done) {
     return ERROR_EC_MAIN_SLAVE_NULL;
   }
 
-  return slave->setSlaveSDOSettingsDone(ch, done);
+  return slave->setSDOSettingsDone(ch, done);
+}
+
+int ecSetSlaveEnableSDOCheck(int slaveBusPosition, int enable) {
+  ecmcEcSlave *slave = ec->findSlave(slaveBusPosition);
+
+  if (slave == NULL) {
+    return ERROR_EC_MAIN_SLAVE_NULL;
+  }
+
+  return slave->setEnableSDOCheck(enable);
 }
 
 int ecSelectReferenceDC(int masterIndex, int slaveBusPosition) {

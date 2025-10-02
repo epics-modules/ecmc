@@ -169,8 +169,22 @@ public:
                   ecmcEcDataType dt,
                   std::string    alias);
   int getAllowOffline();
-  int setSlaveNeedSDOSettings(int chid, int need);
-  int setSlaveSDOSettingsDone(int chid, int done);
+
+/* 
+ *  The below functions are used for preventing accidental usage of a drive slaves
+ *  without setting important SDO parameters like Max current. The hardware snippet
+ *  for drive terminals called by ecmccfg.addSlave.cmd calls "setNeedSDOSettings()"
+ *  to tell ecmc that SDO settings are needed for this slave. The ecmccfg functions
+ *  configureSlave.cmd, applySlaveConfig.cmd and ecmccomp.applyComponent.cmd then calls
+ *  "setSDOSettingsDone()" after successfull sdo configuration to tell ecmc that
+ *  configuration for a certain channel has been performed. 
+ *  At validation, before going to runtime, ecmc checks that the slave SDO settings 
+ *  have been performed, if not, ecmc exits. IMPORTANT: the check is only applied if 
+ *  the drive terminal is used in an ecmc motion axis ().
+ */
+  int setNeedSDOSettings(int chid, int need);
+  int setSDOSettingsDone(int chid, int done);
+  int setEnableSDOCheck(int enable);
 
 private:
   void               initVars();
@@ -221,5 +235,6 @@ private:
   
   // Ensure important SDO settings like max current are set.
   std::vector<sdoVerifyChX> sdoChVerify_;
+  bool enableSDOCheck_;
 };
 #endif  /* ECMCECSLAVE_H_ */

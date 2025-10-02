@@ -1269,10 +1269,24 @@ int ecGetSlaveSerialNum(uint16_t  alias, /**< Slave alias. */
 
 /** \brief Set bit that slave needs SDO settings
  *
- *  This slave needs SDO settings i.e. if a drive then current must be set.\n
+ *  This slave needs SDO settings i.e. if a drive, then current must be set.\n
  *  If "Cfg.EcSetSlaveSDOSettingsDone()" has not been set at validation of\n
  *  the slave then the ioc will not start.\n
+ *  General workflow:
+ *  1. ecmccfg.addSlave.cmd hw snippet calls "Cfg.EcSetSlaveNeedSDOSettings()" 
+ *     if needed for a slave (typically drive slaves)
+ *  2. ecmccomp.applyComponent,cmd (or ecmccfg configureSlave.cmd, applySlaveConfig.cmd)
+ *     calls "Cfg.EcSetSlaveSDOSettingsDone()" to tell ecmc that cfg have been
+ *     performed, for ecmccomp this is performed for each channel (if needed).
+ *  3. Vaildation that Cfg.EcSetSlaveSDOSettingsDone() has been executed for
+ *     the slaves and channels that previously have been defined by 
+ *     "Cfg.EcSetSlaveNeedSDOSettings()". If the SDO settings have not been 
+ *     performed then ecmc will exit before going to realtime (before iocInit)
  *
+ *  The functionallity can be disabled or enabled by the command
+ *  "Cfg.EcSetSlaveEnableSDOCheck()". The check is default enabled for all slaves
+ *  that have been linked to a motion axis.
+ * 
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
  *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
  *  \param[in] channel channel id (starting at 1)
@@ -1281,7 +1295,7 @@ int ecGetSlaveSerialNum(uint16_t  alias, /**< Slave alias. */
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set that slave 3 need SDO settings:\n
- *   "Cfg.EcSetSlaveNeedSDOSettings(3)" //Command string to ecmcCmdParser.c\n
+ *   "Cfg.EcSetSlaveNeedSDOSettings(3,1,1)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetSlaveNeedSDOSettings(int slaveBusPosition, int channel, int need);
 
@@ -1289,6 +1303,20 @@ int ecSetSlaveNeedSDOSettings(int slaveBusPosition, int channel, int need);
  *
  *  After SDOs have been set this function should be called to tell ecmc that.\n
  *  Important SDOs have been set.\n
+*  General workflow:
+ *  1. ecmccfg.addSlave.cmd hw snippet calls "Cfg.EcSetSlaveNeedSDOSettings()" 
+ *     if needed for a slave (typically drive slaves)
+ *  2. ecmccomp.applyComponent,cmd (or ecmccfg configureSlave.cmd, applySlaveConfig.cmd)
+ *     calls "Cfg.EcSetSlaveSDOSettingsDone()" to tell ecmc that cfg have been
+ *     performed, for ecmccomp this is performed for each channel (if needed).
+ *  3. Vaildation that Cfg.EcSetSlaveSDOSettingsDone() has been executed for
+ *     the slaves and channels that previously have been defined by 
+ *     "Cfg.EcSetSlaveNeedSDOSettings()". If the SDO settings have not been 
+ *     performed then ecmc will exit before going to realtime (before iocInit)
+ *
+ *  The functionallity can be disabled or enabled by the command
+ *  "Cfg.EcSetSlaveEnableSDOCheck()". The check is default enabled for all slaves
+ *  that have been linked to a motion axis.
  *
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
  *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
@@ -1298,9 +1326,25 @@ int ecSetSlaveNeedSDOSettings(int slaveBusPosition, int channel, int need);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set that importantt SDO settings for slave 3 has been performed:\n
- *   "Cfg.EcSetSlaveSDOSettingsDone(3)" //Command string to ecmcCmdParser.c\n
+ *   "Cfg.EcSetSlaveSDOSettingsDone(3,1,1)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetSlaveSDOSettingsDone(int slaveBusPosition, int channel, int done);
+
+/** \brief Enable SDO setting check for a slave\n
+ *  SDO setting check is defualt true for slaves linked to a motion axis.
+ *  For other slaves this command can be used to endforce a check.  
+ *  Also see ecSetSlaveNeedSDOSettings and ecSetSlaveSDOSettingsDone.
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveIndex = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] enable Enable check (default 0)
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Enable SDO check for slave 3:\n
+ *   "Cfg.EcSetSlaveEnableSDOCheck(3,1)" //Command string to ecmcCmdParser.c\n
+ */
+int ecSetSlaveEnableSDOCheck(int slaveBusPosition, int enable);
 
 /** \brief Use CLOCK_REALTIME
  *

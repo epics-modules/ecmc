@@ -3123,6 +3123,9 @@ int linkEcEntryToAxisEnc(int   slaveIndex,
       (encoderEntryIndex <
        0)) return ERROR_MAIN_ENCODER_ENTRY_INDEX_OUT_OF_RANGE;
 
+  // Inform slave that it is used in motion axis (SDO settings check)
+  slave->setEnableSDOCheck(1);
+
   return axes[axisIndex]->getConfigEnc()->setEntryAtIndex(entry,
                                                           encoderEntryIndex,
                                                           bitIndex);
@@ -3168,9 +3171,9 @@ int linkEcEntryToAxisDrv(int   slaveIndex,
   } else {
     slave = ec->getSlave(slaveIndex);
   }
-
+ 
   if (slave == NULL) return ERROR_MAIN_EC_SLAVE_NULL;
-
+  
   std::string sEntryID = entryIDString;
 
   ecmcEcEntry *entry = slave->findEntry(sEntryID);
@@ -3188,6 +3191,9 @@ int linkEcEntryToAxisDrv(int   slaveIndex,
   if (ret) {
     return ret;
   }
+
+  // Inform slave that it is used in motion axis (SDO settings check)
+  slave->setEnableSDOCheck(1);
 
   // Auto enable break
   if (driveEntryIndex == ECMC_DRIVEBASE_ENTRY_INDEX_BRAKE_OUTPUT) {
@@ -3261,6 +3267,9 @@ int linkEcEntryToAxisMon(int   slaveIndex,
     return errorCode;
   }
 
+  // Inform slave that it is used in motion axis (SDO settings check)
+  slave->setEnableSDOCheck(1);
+
   // Auto enable fucntionalities
   if (monitorEntryIndex == ECMC_MON_ENTRY_INDEX_EXTINTERLOCK) {
     return setAxisMonEnableExternalInterlock(axisIndex, 1);
@@ -3303,6 +3312,9 @@ int linkEcEntryToAxisStatusOutput(int   slaveIndex,
   if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+
+  // Inform slave that it is used in motion axis (SDO settings check)
+  slave->setEnableSDOCheck(1);
 
   return axes[axisIndex]->setEcStatusOutputEntry(entry);
 }
@@ -3374,6 +3386,9 @@ int linkEcEntryToAxisSeqAutoModeSet(int   slaveIndex,
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
 
+  // Inform slave that it is used in motion axis (SDO settings check)
+  slave->setEnableSDOCheck(1);
+
   return axes[axisIndex]->getSeq()->setAutoModeSetEntry(entry);
 }
 
@@ -3407,6 +3422,9 @@ int linkEcEntryToAxisSeqAutoModeAct(int   slaveIndex,
   if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+
+  // Inform slave that it is used in motion axis (SDO settings check)
+  slave->setEnableSDOCheck(1);
 
   return axes[axisIndex]->getSeq()->setAutoModeActEntry(entry);
 }

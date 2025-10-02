@@ -104,7 +104,7 @@ void ecmcEcSlave::initVars() {
   statusWord_        = 0;
   statusWordOld_     = 0;
   asyncSDOCounter_   = 0;
-
+  enableSDOCheck_    = 0;
   for (int i = 0; i < EC_MAX_SYNC_MANAGERS; i++) {
     syncManagerArray_[i] = NULL;
   }
@@ -921,19 +921,20 @@ int ecmcEcSlave::validate() {
     }
   }
 
-  // Check that SDO settings are made if needed for channels
-  for(uint ch = 0; ch < sdoChVerify_.size(); ch++) {
-    if(sdoChVerify_[ch].needSdo && !sdoChVerify_[ch].sdosDone) {
-      LOGERR(
-        "%s/%s:%d: ERROR: Important SDO settings, i.e. max current or other, missing for slave %d, ch %d.\n"
-        "Use \"ecmcConfigOrDie \"Cfg.EcSetSlaveSDOSettingsDone(<slave_id>,<ch_id>,1)\"\" after addSlave.cmd to override\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__, slavePosition_, ch + 1);
-      return ERROR_EC_SLAVE_SDO_SETTINGS_MISSING;
+  // Check that SDO settings are made if needed for channels (if used in motion axis)
+  if(enableSDOCheck_) {
+    for(uint ch = 0; ch < sdoChVerify_.size(); ch++) {
+      if(sdoChVerify_[ch].needSdo && !sdoChVerify_[ch].sdosDone) {
+        LOGERR(
+          "%s/%s:%d: ERROR: Important SDO settings, i.e. max current or other, missing for slave %d, ch %d.\n"
+          "Use \"ecmcConfigOrDie \"Cfg.EcSetSlaveSDOSettingsDone(<slave_id>,<ch_id>,1)\"\" after addSlave.cmd to override\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__, slavePosition_, ch + 1);
+        return ERROR_EC_SLAVE_SDO_SETTINGS_MISSING;
+      }
     }
   }
-
   return 0;
 }
 
@@ -1105,13 +1106,13 @@ int ecmcEcSlave::getAllowOffline() {
   return 1;
 }
 
-/* The two commands, setSlaveNeedSDOSettings and setSlaveSDOSettingsDone, is
+/* The two commands, setNeedSDOSettings and setSDOSettingsDone, is
    typically set from the configuration frame work:
-  * setSlaveNeedSDOSettings from addSlave.cmd for certain hardware
-  * setSlaveSDOSettingsDone from ecmccomp applyComponent.cmd, configureSlave.cmd or applySkaveConfig.cmd.
+  * setNeedSDOSettings from addSlave.cmd for certain hardware
+  * setSDOSettingsDone from ecmccomp applyComponent.cmd, configureSlave.cmd or applySkaveConfig.cmd.
   Note: chId start count at 1
 */ 
-int ecmcEcSlave::setSlaveNeedSDOSettings(int chId, int need) {
+int ecmcEcSlave::setNeedSDOSettings(int chId, int need) {
   
   if(chId <= 0 || chId > SDO_SETTINGS_MAX_CH) {
     return ERROR_EC_SLAVE_SDO_CH_ID_OUT_OF_RANGE;
@@ -1132,7 +1133,7 @@ int ecmcEcSlave::setSlaveNeedSDOSettings(int chId, int need) {
 }
 
 // chId start count at 1
-int ecmcEcSlave::setSlaveSDOSettingsDone(int chId, int done) {
+int ecmcEcSlave::setSDOSettingsDone(int chId, int done) {
 
   if(chId <= 0 || chId > SDO_SETTINGS_MAX_CH) {
     return ERROR_EC_SLAVE_SDO_CH_ID_OUT_OF_RANGE; 
@@ -1152,3 +1153,9 @@ int ecmcEcSlave::setSlaveSDOSettingsDone(int chId, int done) {
 
   return 0;
 }
+
+int ecmcEcSlave::setEnableSDOCheck(int enable) {
+  enableSDOCheck_ = enable;
+  return 0;
+}
+

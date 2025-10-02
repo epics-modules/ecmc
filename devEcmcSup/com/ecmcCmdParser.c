@@ -1608,6 +1608,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecSetSlaveSDOSettingsDone(iValue,iValue2,iValue3);
   }
 
+  /*Cfg.EcSetSlaveEnableSDOCheck(int slavepos, int done)*/
+  nvals = sscanf(myarg_1, "EcSetSlaveEnableSDOCheck(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return ecSetSlaveEnableSDOCheck(iValue,iValue2);
+  }
+
   /*Cfg.EcSetDomainFailedCyclesLimit(int nCycles)*/
   nvals = sscanf(myarg_1, "EcSetDomainFailedCyclesLimit(%d)", &iValue);
 
