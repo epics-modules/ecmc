@@ -57,7 +57,7 @@ git submodule update --init --reference ./
         * Up to 100kHz analog and 1Mhz digital (oversampling slaves)      
     * Control
         * PLC objects can be created with custom sample rate where logic (including motion) can be handled in realtime.
-        (see examples in ecmccfg repository: https://gitlab.esss.lu.se/epics-modules/ecmccfg/-/tree/master/examples/test
+        (more info here: https://paulscherrerinstitute.github.io/ecmccfg/manual/plc_cfg/)
         * Same syntax as for synchronization:
             * "ec0.s45.VALUE:=static.gain*77+ax2.traj.setpos/10;"                        
         * PLC variables can be accessed from EPICS.        
@@ -65,7 +65,7 @@ git submodule update --init --reference ./
         * Drives: stepper, servo, pulse direction and analog
         * I/O: Several analog and digital terminals
         * Other: bus-couplers, system terminals
-        * Current list: https://gitlab.esss.lu.se/epics-modules/ecmccfg/-/tree/master/hardware
+        * Current list: https://github.com/paulscherrerinstitute/ecmccfg/tree/master/hardware
 
 # How do I get set up?
 
@@ -117,12 +117,11 @@ ECMC runs best under certain conditions:
 # Needed EPICS modules
 
 * Open source ethercat master:      https://etherlab.org/
-* ExprTK:                           https://github.com/icshwi/e3-exprtk (https://github.com/ArashPartow/exprtk)
-* E3 (ESS EPICS Environment):       https://github.com/icshwi/e3
-* Motor:                            https://github.com/icshwi/e3-motor (https://github.com/EuropeanSpallationSource/motor)
-* Asyn driver:                      https://github.com/icshwi/e3-asyn
+* ExprTK:                           https://github.com/paulscherrerinstitute/exprtk-ecmc
+* Motor:                            https://github.com/EuropeanSpallationSource/motor
+* Asyn driver:                      https://github.com/epics-modules/asyn
 * ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg
-* ruckig                            https://github.com/anderssandstrom/e3-ruckig, https://github.com/anderssandstrom/ruckig
+* ruckig                            https://github.com/anderssandstrom/ruckig
 
 # Optional modules
 
@@ -132,10 +131,11 @@ ECMC runs best under certain conditions:
 Plugins with extra functionality that can be loaded during startup:
 * CNC g-code support by grbl:                       https://github.com/anderssandstrom/ecmc_plugin_grbl
 * SocketCAN support (inc. reduced CANOpen support): https://github.com/anderssandstrom/e3-ecmc_plugin_socketcan
-* FFTs by kissfft:                                  https://github.com/anderssandstrom/e3-ecmc_plugin_fft
+* FFTs by kissfft:                                  https://github.com/paulscherrerinstitute/ecmc_plugin_fft
 * Raspi wiringPi support:                           https://github.com/anderssandstrom/e3-ecmc_plugin_raspi
 * PVA support from ecmc-plc:                        https://github.com/anderssandstrom/e3-ecmc_plugin_pva
-* Simple scope for ethercat dc slaves):             https://github.com/anderssandstrom/e3-ecmc_plugin_scope
+* Simple scope for ethercat dc slaves:              https://github.com/anderssandstrom/e3-ecmc_plugin_scope
+* DAQ plugon                                        https://github.com/paulscherrerinstitute/ecmc_plugin_daq
 
 # Issues/bug report
 

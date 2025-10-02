@@ -1,23 +1,30 @@
 Release Notes
 ===
 
-# 11.0.0_RC1 
-* Add commands to verify important SDO settings, like current for drives, have been set. This to minimize risc of burning motors:
-```
-ecmcConfigOrDie "Cfg.EcSetSlaveNeedSDOSettings(<SlaveId>,<ChId>,<needSdoCfg>)"
-ecmcConfigOrDie "Cfg.EcSetSlaveSDOSettingsDone(<SlaveId>,<ChId>,<sdoSettingDone>)"
-```
-Typically, the Cfg.EcSetSlaveNeedSDOSettings() is called in the hardware snippet called by addSlave.cmd. This tells ecmc that the slave must have sdo configuration. In ecmccfg this command is added for most drives by default. The second command is normally executed by applyComponent.cmd after the settings have been written, telling ecmc that SDO cfg have been performed for a certain slave and channel. Validation will occur before going to realtime operation by checking that all calls to "EcSetSlaveNeedSDOSettings()" for a certain slave and channels have a corresponding call to "EcSetSlaveSDOSettingsDone()", if not, the ioc will not start. For two channel slaves, like EL7062, also the second channel needs to be configured even if it is not used, then use component "Generic-Ch-Not-Used" in applyComponent.cmd:
-```
-${SCRIPTEXEC} ${ecmccfg_DIR}addSlave.cmd,      "SLAVE_ID=3,HW_DESC=EL7062_CSP"
-${SCRIPTEXEC} ${ecmccfg_DIR}applyComponent.cmd "COMP=Motor-Generic-2Phase-Stepper, CH_ID=1, MACROS='I_MAX_MA=1000, I_STDBY_MA=100, U_NOM_MV=24000,L_COIL_UH=3050,R_COIL_MOHM=2630'"
-${SCRIPTEXEC} ${ecmccfg_DIR}applyComponent.cmd "COMP=Generic-Ch-Not-Used,          CH_ID=2"
-```
-An alternative way of overriding is to use the ecmc commands directly:
-```
-# Example slave 4, channel 2
-ecmcConfigOrDie "Cfg.EcSetSlaveSDOSettingsDone(4,2,1)"
-```
+# 11.0.0_RC1
+* Add auto enable for axes at ioc start. Typical usecase, motion axis based on analog input and outputs (i.e. piezos):
+  ```
+  ecmcConfigOrDie "Cfg.SetAxisEnableAtStartup(<axisId>, <autoenable>)"
+  ```
+  The functionality is accessed in ecmccfg by the yaml key "axis.autoEnable.atStartup".
+* Add commands to verify important SDO settings, like current for drives, have been set. This to minimize risc of burning motors but can also be used for other usecases:
+  ```
+  ecmcConfigOrDie "Cfg.EcSetSlaveNeedSDOSettings(<SlaveId>,<ChId>,<needSdoCfg>)"
+  ecmcConfigOrDie "Cfg.EcSetSlaveSDOSettingsDone(<SlaveId>,<ChId>,<sdoSettingDone>)"
+  ecmcConfigOrDie "Cfg.EcSetSlaveEnableSDOCheck(<SlaveId>,<enable>)"
+  ```
+  Typically, the Cfg.EcSetSlaveNeedSDOSettings() is called in the hardware snippet called by addSlave.cmd. This tells ecmc that the slave must have sdo configuration. In ecmccfg this command is added for most drives by default. The second command is normally executed by applyComponent.cmd after the settings have been written, telling ecmc that SDO cfg have been performed for a certain slave and channel. Validation will occur before going to realtime operation by checking that all calls to "EcSetSlaveNeedSDOSettings()" for a certain slave and channels have a corresponding call to "EcSetSlaveSDOSettingsDone()", if not, the ioc will not start. For two channel slaves, like EL7062, also the second channel needs to be configured even if it is not used, then use component "Generic-Ch-Not-Used" in applyComponent.cmd:
+  ```
+  ${SCRIPTEXEC} ${ecmccfg_DIR}addSlave.cmd,      "SLAVE_ID=3,HW_DESC=EL7062_CSP"
+  ${SCRIPTEXEC} ${ecmccfg_DIR}applyComponent.cmd "COMP=Motor-Generic-2Phase-Stepper, CH_ID=1, MACROS='I_MAX_MA=1000, I_STDBY_MA=100, U_NOM_MV=24000,L_COIL_UH=3050,R_COIL_MOHM=2630'"
+  ${SCRIPTEXEC} ${ecmccfg_DIR}applyComponent.cmd "COMP=Generic-Ch-Not-Used,          CH_ID=2"
+  ```
+  An alternative way of overriding is to use the ecmc commands directly:
+  ```
+  # Example slave 4, channel 2
+  ecmcConfigOrDie "Cfg.EcSetSlaveSDOSettingsDone(4,2,1)"
+  ```
+  The functionality can also be enabled/disabled by the command "Cfg.EcSetSlaveEnableSDOCheck()".
 
 * Default not reference abs encoder during a successfull homing (change in ecmccfg)
 * Add support for setting motion control parametrs through motor record fields (PCOF, ICOF and DCOF). The values written to the motor record fields are multiplied by a factor of 100.0 (ecmc.kp = 100.0 * PCOF, same for I and D).
