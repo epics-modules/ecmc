@@ -204,6 +204,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
 #ifdef motorFlagsRwSoftLimitsString
         // Allow sync of softlimit (motor to ecmc and the other way around)
         setIntegerParam(pC_->motorFlagsRwSoftLimits_,    syncLims);
+        drvlocal.syncEcmcMrSoftlimits = syncLims;
         printf("Sync of softlimits %d\n",syncLims);
 #endif //motorFlagsRwSoftLimitsString
       }
@@ -398,6 +399,7 @@ asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits() {
 
 // Sync ecmc softlimits based on command from motor
 asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force, bool updateParams) {
+
   int sync = 0;
   #ifdef motorFlagsRwSoftLimitsString
   // Allow sync of softlimit (motor to ecmc and the other way around)

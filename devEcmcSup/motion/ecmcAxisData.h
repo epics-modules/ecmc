@@ -36,8 +36,7 @@ typedef struct {
 } ecmcAsynAxisControlType;
 
 typedef struct {
-  double             positionTargetAbs;
-  double             positionTargetRel;
+  double             positionTarget;
   double             velocityTarget;
   double             tweakValue;
   double             softLimitBwd;

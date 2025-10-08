@@ -283,8 +283,7 @@ void ecmcAxisBase::initVars() {
   enableExtTrajVeloFilter_   = false;
   enableExtEncVeloFilter_    = false;
   disableAxisAtErrorReset_   = false;
-  data_.control_.positionTargetAbs = 0;
-  data_.control_.positionTargetRel = 0;
+  data_.control_.positionTarget = 0;
   data_.control_.command    = ECMC_CMD_MOVEABS;
   data_.control_.cmdData    = 0;
   data_.status_.encoderCount = 0;
@@ -371,7 +370,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
       }
 
       data_.status_.startupFinsished = true;
-      data_.control_.positionTargetAbs = data_.status_.currentPositionActual;
+      data_.control_.positionTarget = data_.status_.currentPositionActual;
       data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
 
       refreshAsynTargetValue();
@@ -1743,7 +1742,7 @@ int ecmcAxisBase::moveAbsolutePosition(
     setTargetVel(velocitySet);
     setAcc(accelerationSet);
     setDec(decelerationSet);
-    data_.control_.positionTargetAbs = positionSet;
+    data_.control_.positionTarget = positionSet;
     setTargetPos(positionSet);
     return 0;
   }
@@ -1775,7 +1774,7 @@ int ecmcAxisBase::moveAbsolutePosition(
   setTargetVel(velocitySet);
   setAcc(accelerationSet);
   setDec(decelerationSet);
-  data_.control_.positionTargetAbs = positionSet;
+  data_.control_.positionTarget = positionSet;
   setTargetPos(positionSet);
 
   errorCode = setExecute(1);
@@ -1813,7 +1812,7 @@ int ecmcAxisBase::moveRelativePosition(
     setTargetVel(velocitySet);
     setAcc(accelerationSet);
     setDec(decelerationSet);
-    data_.control_.positionTargetRel = positionSet;
+    data_.control_.positionTarget = positionSet;
     setTargetPos(positionSet);    
     return 0;
   }
@@ -1845,7 +1844,7 @@ int ecmcAxisBase::moveRelativePosition(
   setTargetVel(velocitySet);
   setAcc(accelerationSet);
   setDec(decelerationSet);
-  data_.control_.positionTargetRel = positionSet;
+  data_.control_.positionTarget = positionSet;
   setTargetPos(positionSet);
   errorCode = setExecute(1);
 
@@ -2247,12 +2246,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
       if (data_.control_.command != ECMC_CMD_HOMING) {   // Not homing!
         // allow on the fly updates of target velo and target pos
-        setTargetVel(data_.control_.velocityTarget);
-        if (data_.control_.command != ECMC_CMD_MOVEREL) {
-          setTargetPos(data_.control_.positionTargetAbs);
-        } else {
-          setTargetPos(data_.control_.positionTargetRel);
-        }
+        setTargetVel(data_.control_.velocityTarget);        
+        setTargetPos(data_.control_.positionTarget);
         setAcc(data_.control_.accelerationTarget);
         setDec(data_.control_.decelerationTarget);
       }
@@ -2284,8 +2279,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       setCommand(ECMC_CMD_MOVEABS);
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
-      data_.control_.positionTargetAbs = data_.status_.currentTargetPosition - std::abs(data_.control_.tweakValue);
-      setTargetPos(data_.control_.positionTargetAbs);  // Backward
+      data_.control_.positionTarget = data_.status_.currentTargetPosition - std::abs(data_.control_.tweakValue);
+      setTargetPos(data_.control_.positionTarget);  // Backward
       refreshAsynTargetValue();
       setAcc(data_.control_.accelerationTarget);
       setDec(data_.control_.decelerationTarget);
@@ -2306,8 +2301,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       setCommand(ECMC_CMD_MOVEABS);
       setCmdData(0);
       setTargetVel(data_.control_.velocityTarget);
-      data_.control_.positionTargetAbs = data_.status_.currentTargetPosition + std::abs(data_.control_.tweakValue);
-      setTargetPos(data_.control_.positionTargetAbs); // Forward
+      data_.control_.positionTarget = data_.status_.currentTargetPosition + std::abs(data_.control_.tweakValue);
+      setTargetPos(data_.control_.positionTarget); // Forward
       refreshAsynTargetValue();
       setAcc(data_.control_.accelerationTarget);
       setDec(data_.control_.decelerationTarget);
@@ -2581,24 +2576,13 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
   double pos = 0;
   memcpy(&pos, data, bytes);
 
-  if(data_.control_.command == ECMC_CMD_MOVEREL) {
-    data_.control_.positionTargetRel = pos;
-    LOGERR(
-      "%s/%s:%d: INFO: Axis[%d]: Write: Target Pos Rel. = %lf.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.status_.axisId, data_.control_.positionTargetRel);
-  } else {
-    data_.control_.positionTargetAbs = pos;
-    LOGERR(
-      "%s/%s:%d: INFO: Axis[%d]: Write: Target Pos Abs. = %lf.\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.status_.axisId, data_.control_.positionTargetAbs);
-  }
-  
+  data_.control_.positionTarget = pos;
+  LOGERR(
+    "%s/%s:%d: INFO: Axis[%d]: Write: Target Pos Abs. = %lf.\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    data_.status_.axisId, data_.control_.positionTarget);
 
   return asynSuccess;
 }
@@ -2977,8 +2961,6 @@ void ecmcAxisBase::setTargetVel(double velTarget) {
 
 void ecmcAxisBase::setTweakDist(double dist) {
   data_.control_.tweakValue = std::abs(dist);
-  data_.control_.positionTargetRel = data_.control_.tweakValue;
-
   refreshAsynTargetValue();
 
   data_.axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID]->refreshParamRT(1);
@@ -3219,11 +3201,7 @@ ecmcAxisDataStatus* ecmcAxisBase::getAxisStatusDataPtr() {
 }
 
 void ecmcAxisBase::refreshAsynTargetValue() {
-  if(data_.control_.command == ECMC_CMD_MOVEREL) {
-    positionTargetAsyn_ = data_.control_.positionTargetRel;
-  } else {
-    positionTargetAsyn_ = data_.control_.positionTargetAbs;
-  }
+  positionTargetAsyn_ = data_.control_.positionTarget;
   data_.axAsynParams_[ECMC_ASYN_AX_TARG_POS_ID]->refreshParamRT(1);  
 }
 

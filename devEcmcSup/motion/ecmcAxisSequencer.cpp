@@ -1210,10 +1210,6 @@ int ecmcAxisSequencer::seqHoming2() {  // nCmdData==2
 
     if (!traj_->getBusy()) {  // Wait for stop ramp ready
       data_->status_.currentTargetPosition = traj_->getCurrentPosSet();
-    printf("data_->status_.currentTargetPosition, %lf\n",data_->status_.currentTargetPosition);
-    printf("data_->status_.currentTargetPositionModulo, %lf\n",data_->status_.currentTargetPositionModulo);
-    printf("data_->status_.currentPositionSetpoint, %lf\n",data_->status_.currentPositionSetpoint);
-    printf("data_->status_.statusWord_.localBusy, %d\n",data_->status_.statusWord_.localBusy);
 
       if (mon_->getAtTarget()) {  // Wait for controller to settle in order to minimize bump
         double currPos =
