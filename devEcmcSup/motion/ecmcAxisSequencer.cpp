@@ -182,7 +182,7 @@ void ecmcAxisSequencer::executeInternal() {
   if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
     // HOMING 
     if (data_->status_.command == ECMC_CMD_HOMING) {
-      data_->status_.statusWord_.localBusy = localSeqBusy_ || traj_->getBusy();
+      data_->status_.statusWord_.localBusy = traj_->getBusy();
     } else {
      // PVT 
      if(pvtmode_ && !pvtStopping_) {
@@ -1171,7 +1171,7 @@ int ecmcAxisSequencer::seqHoming2() {  // nCmdData==2
     if (retValue) {
       return retValue;
     }
-
+    
     if (!traj_->getBusy()) {
       traj_->setTargetVel(-homeVelOffCam_);  // Low speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
@@ -1210,6 +1210,10 @@ int ecmcAxisSequencer::seqHoming2() {  // nCmdData==2
 
     if (!traj_->getBusy()) {  // Wait for stop ramp ready
       data_->status_.currentTargetPosition = traj_->getCurrentPosSet();
+    printf("data_->status_.currentTargetPosition, %lf\n",data_->status_.currentTargetPosition);
+    printf("data_->status_.currentTargetPositionModulo, %lf\n",data_->status_.currentTargetPositionModulo);
+    printf("data_->status_.currentPositionSetpoint, %lf\n",data_->status_.currentPositionSetpoint);
+    printf("data_->status_.statusWord_.localBusy, %d\n",data_->status_.statusWord_.localBusy);
 
       if (mon_->getAtTarget()) {  // Wait for controller to settle in order to minimize bump
         double currPos =

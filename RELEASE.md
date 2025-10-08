@@ -26,8 +26,8 @@ Release Notes
   ```
   The functionality can also be enabled/disabled by the command "Cfg.EcSetSlaveEnableSDOCheck()".
 
-* Default not reference abs encoder during a successfull homing (change in ecmccfg)
-* Add support for setting motion control parametrs through motor record fields (PCOF, ICOF and DCOF). The values written to the motor record fields are multiplied by a factor of 100.0 (ecmc.kp = 100.0 * PCOF, same for I and D).
+* Default not reference abs encoder during a successful homing (change in ecmccfg)
+* Add support for setting motion control parameters through motor record fields (PCOF, ICOF and DCOF). The values written to the motor record fields are multiplied by a factor of 100.0 (ecmc.kp = 100.0 * PCOF, same for I and D).
 * Change moving axis flag to only be high when busy
 * Add ecmc native auto enable and disable of axes:
 ```
