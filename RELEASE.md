@@ -1,7 +1,7 @@
 Release Notes
 ===
 
-# 11.0.0_RC1
+# 11.0.0
 * Add auto enable for axes at ioc start. Typical usecase, motion axis based on analog input and outputs (i.e. piezos):
   ```
   ecmcConfigOrDie "Cfg.SetAxisEnableAtStartup(<axisId>, <autoenable>)"
