@@ -64,5 +64,5 @@ extern int    sampleRateChangeAllowed;
 extern int    pluginsError;
 extern int    safetypluginError;
 extern int    currentMasterSlaveSMIndex;
-
+extern int    allowCallbackEpicsState;
 #endif  /* ECMC_GLOBALS_EXTERN_H_ */

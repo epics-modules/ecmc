@@ -932,7 +932,7 @@ int ecmcPLCTask::loadMiscLib() {
   ecmcPLCTaskAddFunction("m2m_ioc_run",   m2m_ioc_run);
   ecmcPLCTaskAddFunction("m2m_ioc_ec_ok", m2m_ioc_ec_ok);
   ecmcPLCTaskAddFunction("lut_get_value", lut_get_value);
-
+  ecmcPLCTaskAddFunction("epics_running", epics_running);
 
   if (misc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib DS command count missmatch (0x%x).\n",

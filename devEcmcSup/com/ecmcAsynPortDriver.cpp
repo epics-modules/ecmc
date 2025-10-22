@@ -52,15 +52,15 @@ static const char *driverName = "ecmcAsynPortDriver";
 
 extern double mcuFrequency;
 extern double mcuPeriod;
+extern int allowCallbackEpicsState;
 
-static int allowCallbackEpicsState         = 0;
 static initHookState currentEpicsState     = initHookAtIocBuild;
 static ecmcAsynPortDriver *ecmcAsynPortObj = NULL;
 
 /** Callback hook for EPICS state.
  * \param[in] state EPICS state
  * \return void
- * Will be called be the EPICS framework with the current EPICS state as it changes.
+ * Will be called by the EPICS framework with the current EPICS state as it changes.
  */
 static void getEpicsState(initHookState state) {
   const char *functionName = "getEpicsState";

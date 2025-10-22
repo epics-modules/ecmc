@@ -36,7 +36,6 @@
 #include "ecmcAsynDataItem.h"
 #include "ecmcDefinitions.h"
 
-
 class ecmcAsynPortDriver : public asynPortDriver {
 public:
   ecmcAsynPortDriver(const char *portName,

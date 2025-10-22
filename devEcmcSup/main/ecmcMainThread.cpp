@@ -46,6 +46,8 @@
 #include "ecmcMotorRecordController.h"
 
 /****************************************************************************/
+extern int allowCallbackEpicsState;
+
 static unsigned int counter                          = 0;
 static struct timespec masterActivationTimeMonotonic = {};
 static struct timespec masterActivationTimeOffset    = {};
@@ -362,11 +364,13 @@ void cyclic_task(void *usr) {
         axes[i]->execute(ecStat);
       }
     }
+
     // PVT motion
     if(pvtCtrl_) {
       pvtCtrl_->execute();
     }
 
+    // Master Slave statemachines
     for (int i = 0; i < ECMC_MAX_MST_SLVS_SMS; i++) {
       if (masterSlaveSMs[i] !=NULL) {
         masterSlaveSMs[i]->execute();

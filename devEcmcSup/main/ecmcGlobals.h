@@ -62,5 +62,7 @@ int    sampleRateChangeAllowed   = 1;
 int    pluginsError              = 0;
 int    safetypluginError         = 0;
 int    currentMasterSlaveSMIndex = 0;
+int    allowCallbackEpicsState   = 0;
+
 
 #endif  /* ECMC_GLOBALS_H_ */
