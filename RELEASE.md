@@ -2,6 +2,7 @@ Release Notes
 ===
 # V11.0.1_RC1
 * Add plc function to read if epics has started: "epics_running()".
+* Add plc function to read ifaxis related hw is ready "mc_get_hw_ready(axIndex)"
 
 # 11.0.0
 * Add auto enable for axes at ioc start. Typical usecase, motion axis based on analog input and outputs (i.e. piezos):

@@ -92,7 +92,6 @@ void ecmcEncoder::initVars() {
   encLatchStatus_         = 0;
   encLatchStatusOld_      = 0;
   rawEncLatchPos_         = 0;
-  encLatchControl_        = 0;
   rawTurns_               = 0;
   rawTurnsOld_            = 0;
   actEncLatchPos_         = 0;
@@ -147,6 +146,10 @@ void ecmcEncoder::initVars() {
   lookupTableRange_       = 0;
   enableDelayTime_        = false;
   lookupTableScale_       = 1;
+  encLatchArm_            = 0;
+  encLatchControlWordArm_ = 0;
+  encLatchControlWordIdle_= 0;
+  encLatchControlBits_    = 1;  // default to write 1 bit to arm latch
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -771,10 +774,16 @@ int ecmcEncoder::writeEntries() {
   }
 
   if (encLatchFunctEnabled_) {
-    if (writeEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
-                          (encLatchControl_ > 0))) {
-      encLocalErrorId_ = ERROR_ENC_ENTRY_WRITE_FAIL;  // Write to error id will happen in readEntries
+    // Arm latch or Idle
+    uit64_t wordToWrite = encLatchControlWordIdle_;
+    if(encLatchArm_) {
+      wordToWrite = encLatchControlWordArm_
     }
+    // Note start bit is already stored in entry
+    if (writeEcEntryBits(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
+                            encLatchControlBits_, wordToWrite)) {
+        encLocalErrorId_ = ERROR_ENC_ENTRY_WRITE_FAIL;  // Write to error id will happen in readEntries
+    }    
   }
 
   int errorCode = 0;
@@ -1021,14 +1030,22 @@ bool ecmcEncoder::getLatchFuncEnabled() {
 * Arm encoder hardware latch
 */
 void ecmcEncoder::setArmLatch(bool arm) {
-  encLatchControl_ = arm;
+
+  // read control word before arm to be able to restore after
+  if(!encLatchArm_ && arm) {
+    uit64_t tempValue = 0;
+    readEcEntryBits(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
+                    encLatchControlBits_,&tempValue);
+    encLatchControlWordIdle_ = tempValue;
+  }
+  encLatchArm_ = arm;
 }
 
 /*
 * Return arm state of encoder hardware latch
 */
 bool ecmcEncoder::getArmLatch() {
-  return encLatchControl_;
+  return encLatchArm_;
 }
 
 /*
@@ -1510,5 +1527,11 @@ int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
 
 int ecmcEncoder::setLookupTableScale(double scale) {
   lookupTableScale_ = scale;
+  return 0;
+}
+
+int ecmcEncoder::setHomeLatchArmControlWord(uint64_t control, int bits) {
+  encLatchControlBits_ = bits;
+  encLatchControlWordArm_ = control;
   return 0;
 }

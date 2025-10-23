@@ -868,7 +868,8 @@ int ecmcPLCTask::loadMcLib() {
   ecmcPLCTaskAddFunction("mc_grp_set_ctrl_within_db",mc_grp_set_ctrl_within_db);
   ecmcPLCTaskAddFunction("mc_grp_get_ctrl_within_db",mc_grp_get_ctrl_within_db);
   ecmcPLCTaskAddFunction("mc_grp_get_any_ilocked",mc_grp_get_any_ilocked);
-
+  ecmcPLCTaskAddFunction("mc_get_hw_ready",mc_get_hw_ready);
+  
   if (mc_cmd_count != cmdCounter) {
     LOGERR("%s/%s:%d: PLC Lib MC command count missmatch (0x%x).\n",
            __FILE__,

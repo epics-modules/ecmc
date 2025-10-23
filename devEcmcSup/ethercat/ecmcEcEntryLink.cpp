@@ -169,6 +169,48 @@ int ecmcEcEntryLink::readEcEntryValueDouble(int entryIndex, double *value) {
   return 0;
 }
 
+int ecmcEcEntryLink::writeEcEntryBits(int entryIndex, int bits, uint64_t value) {
+  if (entryInfoArray_[entryIndex].entry->writeBits(
+                      entryInfoArray_[entryIndex].bitNumber,bits,value)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_WRITE_FAIL);
+  }
+  
+  // Still write value to entry (above) even if domain error to keep value up to date
+  if (!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+  return 0;
+}
+
+
+int ecmcEcEntryLink::readEcEntryBits(int entryIndex, int bits, uint64_t *value) {
+  if (!checkDomainOK(entryIndex)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+  }
+
+  uint64_t tempRaw = 0;
+
+ if (entryInfoArray_[entryIndex].entry->readBits(
+                      entryInfoArray_[entryIndex].bitNumber,bits,&tempRaw)) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_ENTRY_READ_FAIL);
+  }
+
+  *value = tempRaw;
+  return 0;
+}
+
 int ecmcEcEntryLink::writeEcEntryValue(int entryIndex, uint64_t value) {
   if (entryInfoArray_[entryIndex].bitNumber < 0) {
     if (entryInfoArray_[entryIndex].entry->writeValue(value)) {

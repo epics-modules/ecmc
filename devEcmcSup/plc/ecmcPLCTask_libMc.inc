@@ -21,7 +21,7 @@
     mc_errorCode=0;                                           \
     LOGERR("ERROR: Axis index out of range.\n");              \
     return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
-    if(axes[axIndex]==NULL){                \
+    if(axes[axIndex]==NULL){                                  \
       LOGERR("ERROR: Axis object NULL\n");                    \
       return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
     }                                                         \
@@ -32,7 +32,7 @@
     mc_errorCode=0;                                           \
     LOGERR("ERROR: Group index out of range.\n");             \
     return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \
-    if(axisGroups[intGrpIndex]==NULL){         \
+    if(axisGroups[intGrpIndex]==NULL){                        \
       LOGERR("ERROR: Group object NULL\n");                   \
       return (double)ERROR_PLC_AXIS_OBJECT_NULL;              \
     }                                                         \
@@ -44,7 +44,7 @@
     LOGERR("ERROR: Group index out of range.\n");             \
     return 0;                                                 \
   }                                                           \
-  if(axisGroups[intGrpIndex] == NULL){         \
+  if(axisGroups[intGrpIndex] == NULL){                        \
     mc_errorCode=ERROR_PLC_AXIS_OBJECT_NULL;                  \
     LOGERR("ERROR: Group object NULL\n");                     \
     return 0;                                                 \
@@ -122,6 +122,7 @@ const char* mcLibCmdList[] = { "mc_move_abs(",
                                "mc_grp_set_ctrl_within_db(,"
                                "mc_grp_get_ctrl_within_db(,"
                                "mc_grp_get_any_ilocked(",
+                               "mc_get_hw_ready(",
                               };
 
 extern ecmcAxisGroup   *axisGroups[ECMC_MAX_AXES];
@@ -133,7 +134,7 @@ static int statLastAxesExecuteVel_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHalt_[ECMC_MAX_AXES]={};
 static int statLastAxesExecuteHome_[ECMC_MAX_AXES]={};
 static int mc_errorCode = 0;
-static int mc_cmd_count = 64;
+static int mc_cmd_count = 65;
 
 // Note cannot use ecmcAxisBase::move* since the execution in plc with execute needs to be correct
 inline double mc_move_abs(double axIndex,double execute,double pos, double vel, double acc,double dec)
@@ -542,6 +543,14 @@ inline double mc_get_enc_homed(double axIndex, double encIndex)
   }
 
   return (double)enc->getHomed();
+}
+
+inline double mc_get_hw_ready(double axIndex)
+{
+  int axIndexInt=(int)axIndex;
+  CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+
+  return (double)axes[axIndexInt]->getHwReady();
 }
 
 inline double mc_get_axis_err(double axIndex)

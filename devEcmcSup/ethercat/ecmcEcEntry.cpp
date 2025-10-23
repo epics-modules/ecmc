@@ -866,3 +866,49 @@ ecmcEcDomain * ecmcEcEntry::getDomain() {
 ec_direction_t ecmcEcEntry::getDirection() {
   return direction_;
 }
+
+int ecmcEcEntry::writeBits(int startBitNumber, int bits,
+                              uint64 valueToWrite) {
+
+  if (bits <= 0) return 0;
+
+  if (startBitNumber < 0 || startBitNumber >= 64 || bits > 64 ||
+      startBitNumber + bits > 64) {
+    return 0;  // maybe consider throw error
+  }
+ 
+  // Create a mask with 'bits' ones (careful when bits == 64)
+  const uint64_t lowMask = (bits == 64) ? ~uint64_t(0) : ((uint64_t(1) << bits) - 1u);
+ 
+  // Keep only the relevant part of valueToWrite
+  const uint64_t writePart = static_cast<uint64_t>(valueToWrite) & lowMask;
+ 
+  // Shift mask to target position
+  const uint64_t fieldMask = lowMask << static_cast<uint64_t>(startBitNumber);
+ 
+  // Clear target field and OR in the new bits
+  const uint64_t cleared   = static_cast<uint64_t>(buffer_) & ~fieldMask;
+  const uint64_t result    = cleared | (writePart << static_cast<uint64_t>(startBitNumber));
+  buffer_ =static_cast<uint64_t>(result);
+  return 0;
+}
+
+int ecmcEcEntry::readBits(int startBitNumber, int bits, uint64_t *result) {
+ 
+  if (bits <= 0) return 0;
+ 
+  // Range check
+  if (startBitNumber < 0 || startBitNumber >= 64 || bits > 64 ||
+      startBitNumber + bits > 64) {
+    // Handle invalid input: return 0 or assert/throw
+    return 0;
+  }
+ 
+  // Mask with 'bits' ones
+  const uint64_t lowMask = (bits == 64) ? ~uint64_t(0) : ((uint64_t(1) << bits) - 1u);
+ 
+  // Shift down and mask
+  const uint64_t *result = (buffer_ >> static_cast<uint64_t>(startBitNumber)) & lowMask;
+ 
+  return 0;
+}

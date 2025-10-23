@@ -86,6 +86,7 @@ public:
   int                   setToZeroIfRelative();
   int                   setRawMask(uint64_t mask);
   bool                  getLatchFuncEnabled();
+  int                   setHomeLatchArmControlWord(uint64_t control, int bits);
   void                  setArmLatch(bool arm);
   bool                  getArmLatch();
   bool                  getNewValueLatched();
@@ -194,7 +195,10 @@ protected:
   bool encLatchStatusOld_;
   int64_t rawEncLatchPos_;
   int64_t rawEncLatchPosMultiTurn_;
-  bool encLatchControl_;
+  uint64_t encLatchControlWordArm_;
+  uint64_t encLatchControlWordIdle_;
+  int      encLatchControlBits_;
+  bool     encLatchArm_;
   double actEncLatchPos_;
   bool enablePositionFilter_;
   bool enableVelocityFilter_;

@@ -257,6 +257,7 @@ public:
   ecmcAxisPVTSequence* getPVTObject();
   double     getCurrentPositionSetpoint();
   ecmcAxisDataStatus* getAxisStatusStruct();
+  bool       getHwReady();
 
 protected:
   void       initVars();
@@ -270,8 +271,7 @@ protected:
                              ecmcAsynDataItem **asynParamOut);
   void refreshStatusWd();
   void initControlWord();
-  void initEncoders();
-  bool getHwReady();
+  void initEncoders();  
   void autoEnableSM();
   void autoDisableSM();
   void refreshAsynTargetValue();

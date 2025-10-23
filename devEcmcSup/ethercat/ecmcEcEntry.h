@@ -102,10 +102,14 @@ public:
   int                   writeBit(int      bitNumber,
                                  uint64_t value);
   int                   writeBitForce(int bitNumber, uint64_t value);
+  int                   writeBits(int startBitNumber, int bits,
+                                  uint64 valueToWrite);
   int                   readValue(uint64_t *value);
   int                   readDouble(double *value);
   int                   readBit(int       bitNumber,
                                 uint64_t *value);
+  int                   readBits(int startBitNumber,
+                                 int bits, uint64_t *result);
   virtual int           updateInputProcessImage();
   virtual int           updateOutProcessImage();
   int                   setUpdateInRealtime(int update);

@@ -2111,6 +2111,20 @@ int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef) {
   return axes[axisIndex]->getConfigEnc()->setRefToOtherEncAtStartup(encRef);
 }
 
+int setAxisHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits) {
+  LOGINFO4("%s/%s:%d axisIndex=%d control=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           bits);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getConfigEnc()->setHomeLatchArmControlWord(control, bits);
+}
+
 int setAxisEncDelayCyclesAndEnable(int axisIndex, double cycles, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d, timeMs=%lf, enable=%d\n",
            __FILE__,

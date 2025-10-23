@@ -43,7 +43,9 @@ public:
 
   int            writeEcEntryValueDouble(int    entryIndex,
                                          double value);
-
+  int            writeEcEntryBits(int entryIndex, 
+                                  int bits,       // Note: start bit is already stored in entry
+                                  uint64_t value);
   bool           checkEntryExist(int entryIndex);
   bool           checkDomainOK(int entryIndex);
   bool           checkDomainOKAllEntries();
