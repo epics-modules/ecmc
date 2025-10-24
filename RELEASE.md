@@ -3,7 +3,7 @@ Release Notes
 # V11.0.1_RC1
 * Add plc function to read if epics has started: "epics_get_started()".
 * Add plc function to read epics hook state: "epics_get_state()".
-* Add plc function to read ifaxis related hw is ready "mc_get_hw_ready(axIndex)"
+* Add plc function to read if axis related hw is ready "mc_get_hw_ready(axIndex)"
 * Add functionality to arm encoder latch with a control word instead of only a single bit:
 ```
 During homing when latch needs to be armed then
