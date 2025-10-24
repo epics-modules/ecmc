@@ -63,6 +63,6 @@ int    pluginsError              = 0;
 int    safetypluginError         = 0;
 int    currentMasterSlaveSMIndex = 0;
 int    allowCallbackEpicsState   = 0;
-
+int    epicsHookState            = 0;
 
 #endif  /* ECMC_GLOBALS_H_ */

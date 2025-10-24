@@ -41,6 +41,7 @@
 extern ecmcLookupTable<double, double>  *luts[ECMC_MAX_LUTS];
 extern ecmcShm shmObj;
 extern int allowCallbackEpicsState;
+extern int epicsHookState;
 
 const char *miscLibCmdList[] = { "m2m_write(",
                                  "m2m_read(",
@@ -50,12 +51,13 @@ const char *miscLibCmdList[] = { "m2m_write(",
                                  "m2m_ioc_run("
                                  "m2m_ioc_ec_ok(",
                                  "lut_get_value(",
-                                 "epics_running()",
+                                 "epics_get_started(",
+                                 "epics_get_state(",
 };
 
 static int m2m_errorCode = 0;
 static int lut_errorCode = 0;
-static int misc_cmd_count = 9;
+static int misc_cmd_count = 10;
 
 inline double m2m_write(double shmIndex, double data) {
   int index = (int)shmIndex;
@@ -151,9 +153,13 @@ inline double lut_get_value(double lutObjIndex, double index) {
   return luts[objIndex]->getValue(index); 
 }
 
-// Ensure epics is running
-inline double epics_running() {
+// after iocInit()
+inline double epics_get_started() {
   return (double)allowCallbackEpicsState;
+}
+
+inline double epics_get_state() {
+  return (double)epicsHookState;
 }
 
 #endif  /* ecmcPLC_libMisc_inc_ */

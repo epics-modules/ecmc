@@ -53,6 +53,7 @@ static const char *driverName = "ecmcAsynPortDriver";
 extern double mcuFrequency;
 extern double mcuPeriod;
 extern int allowCallbackEpicsState;
+extern int epicsHookState;
 
 static initHookState currentEpicsState     = initHookAtIocBuild;
 static ecmcAsynPortDriver *ecmcAsynPortObj = NULL;
@@ -64,6 +65,8 @@ static ecmcAsynPortDriver *ecmcAsynPortObj = NULL;
  */
 static void getEpicsState(initHookState state) {
   const char *functionName = "getEpicsState";
+  
+  epicsHookState=(int)state;
 
   if (!ecmcAsynPortObj) {
     printf("%s:%s: ERROR: ecmcAsynPortObj==NULL\n", driverName, functionName);
