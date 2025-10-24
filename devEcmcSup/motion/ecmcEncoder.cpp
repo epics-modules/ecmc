@@ -775,15 +775,16 @@ int ecmcEncoder::writeEntries() {
 
   if (encLatchFunctEnabled_) {
     // Arm latch or Idle
-    uit64_t wordToWrite = encLatchControlWordIdle_;
+    uint64_t wordToWrite = encLatchControlWordIdle_;
     if(encLatchArm_) {
-      wordToWrite = encLatchControlWordArm_
+      wordToWrite = encLatchControlWordArm_;
     }
     // Note start bit is already stored in entry
     if (writeEcEntryBits(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
                             encLatchControlBits_, wordToWrite)) {
-        encLocalErrorId_ = ERROR_ENC_ENTRY_WRITE_FAIL;  // Write to error id will happen in readEntries
-    }    
+        encLocalErrorId_ = ERROR_ENC_ENTRY_WRITE_FAIL;  // Write to error id will happen in readEntries        
+    }
+    //printf("Writing arm cmd: %" PRIu64 "\n",wordToWrite);
   }
 
   int errorCode = 0;
@@ -1033,7 +1034,7 @@ void ecmcEncoder::setArmLatch(bool arm) {
 
   // read control word before arm to be able to restore after
   if(!encLatchArm_ && arm) {
-    uit64_t tempValue = 0;
+    uint64_t tempValue = 0;
     readEcEntryBits(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
                     encLatchControlBits_,&tempValue);
     encLatchControlWordIdle_ = tempValue;

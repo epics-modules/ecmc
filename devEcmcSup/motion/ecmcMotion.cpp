@@ -2111,7 +2111,7 @@ int setAxisEncRefToOtherEncAtStartup(int axisIndex, int encRef) {
   return axes[axisIndex]->getConfigEnc()->setRefToOtherEncAtStartup(encRef);
 }
 
-int setAxisHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits) {
+int setAxisEncHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits) {
   LOGINFO4("%s/%s:%d axisIndex=%d control=%d\n",
            __FILE__,
            __FUNCTION__,

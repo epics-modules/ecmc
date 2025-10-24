@@ -2503,6 +2503,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisEncHomeLatchCountOffset(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisEncHomeLatchArmControlWord(int axis_no, uint64 control, int bitCount);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncHomeLatchArmControlWord(%d,%" PRIu64 ",%d)",
+                 &iValue,
+                 &u64Value,
+                 &iValue2);
+  if (nvals == 3) {
+    return setAxisEncHomeLatchArmControlWord(iValue,u64Value,iValue2);
+  }
+
   /*int Cfg.SetAxisEncInvHwReady(int axis_no, int count);*/
   nvals = sscanf(myarg_1,
                  "SetAxisEncInvHwReady(%d,%d)",

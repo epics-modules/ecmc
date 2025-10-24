@@ -38,6 +38,9 @@ public:
                                   uint64_t *value);
   int            readEcEntryValueDouble(int     entryIndex,
                                         double *value);
+  int            readEcEntryBits(int entryIndex,
+                                 int bits,
+                                 uint64_t *value);
   int            writeEcEntryValue(int      entryIndex,
                                    uint64_t value);
 

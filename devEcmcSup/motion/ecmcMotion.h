@@ -3006,6 +3006,28 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex,
 int getAxisMonLatchLimit(int  axisIndex,
                          int *value);
 
+/** \brief Set latch control word to arm latch\n
+ *  The start bit is defined when linking the entry.\n
+ *  During homing when latch needs to be armed then\n
+ *  the defined amount of bits of the control-word is\n
+ *  written to the encoder control word starting with\n
+ *  the bit defined when linking the encoder control word.\
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] control Control word (default 1)
+ * \param[in] bits Bit count to write (default 1)
+ *
+ * \return 0 if success or otherwise an error code.\n
+ * 
+ * \note Example: Set control word to 0b10101 (21dec) and 5 bits:\n
+ *       When latch needs to be armed, 5 bits of 21 dec will be\n
+ *       written to the encoder control word, starting at teh bit\n
+ *       defined when linking the encoder control word\n
+ *       This is an example for EL7062 terminal.\n
+ * "Cfg.setAxisEncHomeLatchArmControlWord(4,21,5)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits);
+
 /** \brief Set latch limit settings.\n
  *
  * If set: limit switch is latched even if just a "bounce"\n
@@ -3019,7 +3041,6 @@ int getAxisMonLatchLimit(int  axisIndex,
  *
  * \note Example: Disable latch limit for for axis 4.\n
  * "Cfg.SetAxisMonLatchLimit(4,0)" //Command string to ecmcCmdParser.c.\n
-
  * \return 0 if success or otherwise an error code.\n
  */
 int setAxisMonLatchLimit(int axisIndex,

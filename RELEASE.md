@@ -3,6 +3,17 @@ Release Notes
 # V11.0.1_RC1
 * Add plc function to read if epics has started: "epics_running()".
 * Add plc function to read ifaxis related hw is ready "mc_get_hw_ready(axIndex)"
+* Add functionality to arm encoder latch with a control word instead of only a single bit:
+```
+During homing when latch needs to be armed then
+the defined amount of bits of the control-word is
+written to the encoder control word starting with
+the bit defined when linking the encoder control word.
+The start bit is defined when linking the encoder control
+word entry.
+
+ecmcConfigOrDie "Cfg.SetAxisEncHomeLatchArmControlWord(<axis_no>,<control>,<bitCount>)"
+```
 
 # 11.0.0
 * Add auto enable for axes at ioc start. Typical usecase, motion axis based on analog input and outputs (i.e. piezos):

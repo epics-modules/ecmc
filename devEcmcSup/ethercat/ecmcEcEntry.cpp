@@ -868,7 +868,7 @@ ec_direction_t ecmcEcEntry::getDirection() {
 }
 
 int ecmcEcEntry::writeBits(int startBitNumber, int bits,
-                              uint64 valueToWrite) {
+                           uint64_t valueToWrite) {
 
   if (bits <= 0) return 0;
 
@@ -908,7 +908,7 @@ int ecmcEcEntry::readBits(int startBitNumber, int bits, uint64_t *result) {
   const uint64_t lowMask = (bits == 64) ? ~uint64_t(0) : ((uint64_t(1) << bits) - 1u);
  
   // Shift down and mask
-  const uint64_t *result = (buffer_ >> static_cast<uint64_t>(startBitNumber)) & lowMask;
+  *result = (buffer_ >> static_cast<uint64_t>(startBitNumber)) & lowMask;
  
   return 0;
 }
