@@ -426,6 +426,9 @@ void cyclic_task(void *usr) {
 
     if (ec->getInitDone()) {
       ec->send(masterActivationTimeOffset);
+    } else if(masterId<0) {
+      // just set offset to make sense of plc timing functions when running without master
+      ec->setTimeOffest(masterActivationTimeOffset);
     }
     clock_gettime(CLOCK_MONOTONIC, &endTime);
   }  // enc of RT-loop
