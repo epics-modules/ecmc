@@ -86,6 +86,7 @@ public:
   bool         getInitDone();
   void         receive();
   void         send(timespec timeOffset);
+  void         setTimeOffest(timespec timeOffset);  // only valid if clock monotonic
   int          compileRegInfo();
   void         checkDomainsState();
   int          checkSlaveConfState(int slave);
