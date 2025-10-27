@@ -151,6 +151,12 @@ private:
   int          preProcessVariables();
   bool         startsWith(const std::string& str, const std::string& prefix);
   std::string  trim(const std::string& s);
+  std::string  unmask_line(const std::string& line, const std::vector<std::string>& slots);
+  std::string  mask_line(const std::string& line, std::vector<std::string>& slots);
+  std::string  escape_regex_alias(const std::string& a);
+
+  void         replace_aliases_inplace(std::string& code,
+                                       const std::unordered_map<std::string,std::string>& m);
 
   int          globalVariableCount_;
 
@@ -172,7 +178,9 @@ private:
   ecmcShm shm_;
 
   // variable declaration substitution variables
-  std::unordered_map<std::string, std::string> varMap_;
+  //std::unordered_map<std::string, std::string> varMap_;
+  std::unordered_map<std::string,std::string> varAlias_;
+
   bool inVarSection_;
 };
 
