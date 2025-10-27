@@ -512,6 +512,7 @@ asynStatus ecmcMotorRecordController::setMCUErrMsg(const char *value) {
 //#endif // ifdef motorHighLimitROString
 //}
 
+// Seems not to be used!!!
 void ecmcMotorRecordController::handleStatusChange(asynStatus status) {
   if (status != ctrlLocal.oldStatus) {
     asynPrint(pPrintOutAsynUser,

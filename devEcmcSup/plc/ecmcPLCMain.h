@@ -17,6 +17,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <regex>
+#include <unordered_map>
 #include "ecmcAsynPortDriver.h"
 #include "ecmcDefinitions.h"
 #include "ecmcAxisBase.h"
@@ -145,7 +147,12 @@ private:
                                 ecmcPLCDataIF **outDataIF);
   int          getPLCErrorID();
   int          plcVarNameValid(const char *plcVar);
-  int globalVariableCount_;
+  std::string  preProcessVarDeclaration(std::string line);
+  int          preProcessVariables();
+  bool         startsWith(const std::string& str, const std::string& prefix);
+  std::string  trim(const std::string& s);
+
+  int          globalVariableCount_;
 
   // Dedicateed plcs then one per axis
   ecmcPLCTask *plcs_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
@@ -163,6 +170,10 @@ private:
   double mcuFreq_;
   ecmcPluginLib *plugins_[ECMC_MAX_PLUGINS];
   ecmcShm shm_;
+
+  // variable declaration substitution variables
+  std::unordered_map<std::string, std::string> varMap_;
+  bool inVarSection_;
 };
 
 #endif  /* ECMC_PLC_MAIN_H_ */

@@ -312,10 +312,68 @@ int ecmcPLCMain::appendExprLine(int plcIndex, const char *expr) {
   return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
 }
 
+std::string ecmcPLCMain::preProcessVarDeclaration(std::string line) {
+
+  std::string trimmed = trim(line);
+
+  if (trimmed.empty()) {
+      return "\n";
+  }
+
+  if (startsWith(trimmed, "//") || startsWith(trimmed, "#")) {
+    if(inVarSection_ ) {
+      return "// " + line + '\n';
+    }
+    return line + '\n';
+  }
+
+  // Detect VAR / END_VAR
+  if (trimmed == "VAR") {
+      // new varaibel section, then clear old table
+      if(!inVarSection_ ) {
+        varMap_.clear();
+      }
+      inVarSection_ = true;      
+      return "// " + line + '\n';
+  } else if (trimmed == "END_VAR") {
+      inVarSection_ = false;
+      return "// " + line + '\n';
+  }
+ 
+  if (inVarSection_) {
+      // Match alias : full.path;
+      std::regex varPattern(R"(^([A-Za-z_][A-Za-z0-9_\.]*)\s*:\s*([A-Za-z0-9_\.]+)\s*;?)");
+      std::smatch match;
+      if (std::regex_search(trimmed, match, varPattern)) {
+          std::string alias = match[1];
+          std::string fullName = match[2];
+          varMap_[alias] = fullName;
+      }
+      return "// " + line + '\n';
+  } else {
+      // Replace all aliases with full variable names
+      for (const auto& it : varMap_) {
+          const std::string& alias = it.first;
+          const std::string& fullName = it.second;
+          std::regex aliasPattern("\\b" + alias + "\\b");
+          line = std::regex_replace(line, aliasPattern, fullName);
+      }
+      line = line + '\n';
+      return line;
+  }
+  
+  return "";
+}
+
 int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   std::ifstream plcFile;
   plcFile.open(fileName);
+
+
+  // Variable declation substitution
+  inVarSection_ = false;
+  varMap_.clear(); 
 
   if (!plcFile.good()) {
     LOGERR("%s/%s:%d: ERROR PLC%d: File not found: %s (0x%x).\n",
@@ -335,14 +393,16 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   int lineNumber = 1;
   int errorCode  = 0;
 
+  printf("Loading PLC code file %s to plc index %d\n ", fileName, plcIndex);
   while (std::getline(plcFile, line)) {
+
+    line = preProcessVarDeclaration(line);
     // Remove Comments (everything after #)
     lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
 
     if (lineNoComments.length() > 0) {
       lineNoComments.append("\n");
       errorCode = appendExprLine(plcIndex, lineNoComments.c_str());
-
       if (errorCode) {
         LOGERR(
           "%s/%s:%d: ERROR PLC%d: Error appending file at line %d: %s (0x%x).\n",
@@ -356,6 +416,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
       }
     }
+    printf("%s",line.c_str());
     lineNumber++;
   }
 
@@ -1337,3 +1398,17 @@ int ecmcPLCMain::addLib(int plcIndex, ecmcPLCLib* lib) {
   // Finaly add the lib
   return plcs_[plcIndex]->addLib(lib);
 }
+
+
+// Simple trim helper
+std::string ecmcPLCMain::trim(const std::string& s)
+{
+    return std::regex_replace(s, std::regex("^\\s+|\\s+$"), "");
+}
+ 
+// Helper to check prefix manually (C++11-safe)
+bool ecmcPLCMain::startsWith(const std::string& str, const std::string& prefix)
+{
+    return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
+}
+ 
