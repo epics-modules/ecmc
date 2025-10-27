@@ -573,6 +573,10 @@ void ecmcEc::send(timespec timeOffset) {
   }
 }
 
+void  ecmcEc::setTimeOffest(timespec timeOffset) {
+  timeOffset_ = timeOffset;
+}
+
 int ecmcEc::setDiagnostics(bool bDiag) {
   diag_ = bDiag;
   return 0;
