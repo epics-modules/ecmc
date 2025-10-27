@@ -54,11 +54,13 @@ const char* ecLibCmdList[] = { "ec_set_bit(",
                                "ec_get_time_local_sec(",
                                "ec_get_time_local_min(",
                                "ec_get_time_local_hour(",
-                               "ec_get_dom_state("
+                               "ec_get_dom_state(",
+                               "ec_get_time_frm_src(",
+                               "ec_get_time_offset_mono(",
                               };
 
 static int ec_errorCode = 0;
-static int ec_cmd_count = 27;
+static int ec_cmd_count = 29;
 
 inline double ec_set_bit(double value, double bitIndex)
 {
@@ -136,6 +138,26 @@ inline double ec_get_time_u32() {
     return -(double)ec_errorCode;
   }  
   return (double)((uint32_t) (ec->getTimeNs() >> 32));
+}
+
+inline double ec_get_time_frm_src(double clock_id) {
+  ec_errorCode = 0;
+  if(!ec) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;  
+    return -(double)ec_errorCode;
+  }
+
+  return (double)ec->getTimeNs((int)clock_id);
+}
+
+inline double ec_get_time_offset_mono() {
+  ec_errorCode = 0;
+  if(!ec) {
+    ec_errorCode = ERROR_MAIN_EC_MASTER_NULL;  
+    return -(double)ec_errorCode;
+  }
+
+  return (double)ec->getTimeOffsetNs();
 }
 
 inline double ec_get_time_local_nsec(double nanos) {

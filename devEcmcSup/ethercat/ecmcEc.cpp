@@ -1992,6 +1992,26 @@ uint64_t ecmcEc::getTimeNs() {
   return TIMESPEC2NS(timeAbs);
 }
 
+uint64_t ecmcEc::getTimeNs(int clock_id) {
+
+  struct timespec timeVal;
+
+  int ret = clock_gettime(clock_id, &timeVal);
+  if(ret == -1) {
+    // invalid clock index
+    return 0;
+  }
+
+  return TIMESPEC2NS(timeVal);
+}
+
+uint64_t ecmcEc::getTimeOffsetNs() {
+  if (useClockRealtime_) {
+   return 0;
+  }
+  return TIMESPEC2NS(timeOffset_);
+}
+
 uint32_t ecmcEc::getSlaveVendorId(uint16_t alias,  /**< Slave alias. */
                                   uint16_t slavePos /**< Slave position. */) {
   ec_master_info_t masterInfo;

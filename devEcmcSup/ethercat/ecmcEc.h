@@ -190,6 +190,8 @@ public:
 
   int      checkReadyForRuntime();
   uint64_t getTimeNs();
+  uint64_t getTimeNs(int clock);  // Get time from a sepcific clock (CLOCK_REALTIME, CLOCK_MONOMTONIC)
+  uint64_t getTimeOffsetNs(); // Get time offset if monotonic
 
   uint32_t getSlaveVendorId(uint16_t alias,       /**< Slave alias. */
                             uint16_t slavePos /**< Slave position. */);

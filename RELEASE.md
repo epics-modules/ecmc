@@ -1,6 +1,19 @@
 Release Notes
 ===
 # V11.0.1_RC1
+* Add plc functions to read clock/time related info:
+```
+  1. retvalue = ec_get_time_frm_src(
+                             <clock_src_id>);  : System dependent clock id. Normally CLOCK_REALTIME=0, CLOCK_MONOTONIC=1.
+     
+     Returns current time in nano seconds for a certain clock source defined by clock_id.
+     (from 1 Jan 2000, same as EtherCAT DC:s).
+     If return value is equal or less than zero it should be considered to be an error.
+
+  2. retvalue = ec_get_time_offset_mono():
+     
+     Returns current time offset in nano seconds if selected clock source is CLOC_MONOTONIC otherwise 0 monotonic.
+```
 * Add plc function to read if epics has started: "epics_get_started()".
 * Add plc function to read epics hook state: "epics_get_state()".
 * Add plc function to read if axis related hw is ready "mc_get_hw_ready(axIndex)"
