@@ -1,6 +1,7 @@
 Release Notes
 ===
 # V11.0.1_RC1
+
 * Add plc functions to read clock/time related info:
 ```
   1. retvalue = ec_get_time_frm_src(
@@ -27,6 +28,110 @@ The start bit is defined when linking the encoder control
 word entry.
 
 ecmcConfigOrDie "Cfg.SetAxisEncHomeLatchArmControlWord(<axis_no>,<control>,<bitCount>)"
+```
+
+## Support for variable declarations in plc code
+
+In order to make ecmc plc code simpler to read, support for declaring variables has been added. A declaration block needs to be added starting with "VAR" and ending with "END_VAR":
+```
+VAR
+  <declarations>
+END_VAR
+<plc code>
+```
+
+The declaration needs to comply with the following syntax:
+```
+VAR
+  <var_name> : <address>;
+END_VAR
+```
+
+The following "addresses" can be used:
+* global:
+  - global.<name>
+* static
+  - static.<name>
+* ethercat
+  - ec<mid>
+  - ec<mid>.s<sid>
+  - ec<mid>.s<sid>.<name>
+* motion:
+  - ax<id>
+  - ax<id>.traj
+  - ax<id>.enc
+  - ax<id>.drv
+  - ax<id>.mon
+  - ax<id>.traj.<name>
+  - ax<id>.enc.<name>
+  - ax<id>.drv.<name>
+  - ax<id>.mon.<name>
+* constants
+  - <name>
+
+The variables will then be replaced/substituted with the addresses during load time.
+
+Example of plc file with declarations:
+```
+VAR
+  // Globals
+  gTest          : global.test;
+  
+  // Statics
+  sTest          : static.test;
+  
+  // EtherCAT I/0
+  actPos         : ${M}.s${DRV_SID}.positionActual01;
+  mySlave        : ${M}.s${DRV_SID};
+  coolingValveBO : ${M}.s${BO_SID=2}.binaryOutput02;
+  
+  // Axis data
+  targetPos      : ax${AX_ID=1}.traj.targetpos;
+  myAxis         : ax1;
+  myTraj         : ax${AX_ID=1}.traj;
+  
+  // Data storage
+  buffer         : ds${DS_ID=0};
+  
+  // Constants
+  pi             : 3.1415;
+END_VAR
+
+coolingValveBO:=not(coolingValveBO);
+
+println('mySlave.controlWord: ', mySlave.driveControl${CH=01});
+
+if(myTraj.targetpos<>static.oldTarget) {
+  println('new target: ',myTraj.targetpos );
+};
+
+static.oldTarget := myTraj.targetpos;
+
+if(gTest+ 1 > 10+sTest+mySlave.positionActual01) {
+  println('actPos:', actPos);
+};
+
+if(gTest+ 1> 10+mySlave.positionActual01) {
+  println('actPos:', actPos);
+};
+static.pini:=1;
+
+println('actPos:', actPos, ' myAxis enc: ', myAxis.enc.actpos+pi);
+gTest += 1;
+
+println('buffer index: ', buffer.index);
+if(myTraj.setpos>0) {
+    myTraj.setpos+=1;
+}
+```
+
+As an example, the first row of the code section:
+```
+coolingValveBO:=not(coolingValveBO);
+```
+will be converted to:
+```
+${M}.s${BO_SID=2}.binaryOutput02:=not(${M}.s${BO_SID=2}.binaryOutput02);
 ```
 
 # 11.0.0
