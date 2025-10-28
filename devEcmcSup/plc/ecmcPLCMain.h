@@ -53,6 +53,11 @@
           }\
 }\
 
+  struct Alias {
+    std::string base;
+    bool allow_suffix; // ax*, ax*.{drv,enc,mon,traj}, ds*, ec*.s* -> true
+  };
+
 class ecmcPLCMain : public ecmcError {
 public:
   explicit ecmcPLCMain(ecmcEc             *ec,
@@ -147,16 +152,15 @@ private:
                                 ecmcPLCDataIF **outDataIF);
   int          getPLCErrorID();
   int          plcVarNameValid(const char *plcVar);
-  std::string  preProcessVarDeclaration(std::string line);
-  int          preProcessVariables();
-  bool         startsWith(const std::string& str, const std::string& prefix);
-  std::string  trim(const std::string& s);
-  std::string  unmask_line(const std::string& line, const std::vector<std::string>& slots);
-  std::string  mask_line(const std::string& line, std::vector<std::string>& slots);
-  std::string  escape_regex_alias(const std::string& a);
-
-  void         replace_aliases_inplace(std::string& code,
-                                       const std::unordered_map<std::string,std::string>& m);
+  std::string  substituteWithSuffix(
+                const std::string& src,
+                const std::unordered_map<std::string,Alias>& aliases);
+  std::unordered_map<std::string,Alias>
+               parseVarBlock(const std::string& src,
+                std::string& src_without_var_block);
+  //bool         rhs_is_expandable(const std::string& rhs);
+  bool         isExpandableBase(const std::string& rhs);
+  void         trimInplace(std::string& s);
 
   int          globalVariableCount_;
 
@@ -176,12 +180,7 @@ private:
   double mcuFreq_;
   ecmcPluginLib *plugins_[ECMC_MAX_PLUGINS];
   ecmcShm shm_;
-
-  // variable declaration substitution variables
-  //std::unordered_map<std::string, std::string> varMap_;
-  std::unordered_map<std::string,std::string> varAlias_;
-
-  bool inVarSection_;
 };
+
 
 #endif  /* ECMC_PLC_MAIN_H_ */

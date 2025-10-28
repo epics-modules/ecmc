@@ -60,7 +60,6 @@ void ecmcPLCMain::initVars() {
   memset(&shm_, 0, sizeof(ecmcShm));
   ecStatus_ = NULL;
   mcuFreq_  = MCU_FREQUENCY;
-  inVarSection_ = false;
 }
 
 int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
@@ -313,89 +312,10 @@ int ecmcPLCMain::appendExprLine(int plcIndex, const char *expr) {
   return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
 }
 
-std::string ecmcPLCMain::preProcessVarDeclaration(std::string line) {
-
-  std::regex decl(R"(^\s*([A-Za-z_][A-Za-z0-9_\.]*)\s*:\s*([A-Za-z0-9_\.]+)\s*;?)");
- 
-  std::string t = trim(line);
- 
-  if (t == "VAR") { inVarSection_ = true; return "// " + line + "\n"; }
-  if (t == "END_VAR") { inVarSection_ = false; return "// " + line + "\n"; }
- 
-  if (inVarSection_) {
-    std::smatch m;
-    if (std::regex_search(line, m, decl)) {
-      varAlias_[m[1]] = m[2];
-    }
-    return "// " + line + "\n"; // do not emit the VAR block
-  }
- 
-  // mask -> replace -> unmask
-  std::vector<std::string> slots;
-  std::string masked = mask_line(line, slots);
-  replace_aliases_inplace(masked, varAlias_);
-  return unmask_line(masked, slots) + "\n";
-
-//  std::string trimmed = trim(line);
-//
-//  if (trimmed.empty()) {
-//      return "\n";
-//  }
-//
-//  if (startsWith(trimmed, "//") || startsWith(trimmed, "#")) {
-//    if(inVarSection_ ) {
-//      return "// " + line + '\n';
-//    }
-//    return line + '\n';
-//  }
-//
-//  // Detect VAR / END_VAR
-//  if (trimmed == "VAR") {
-//      // new varaibel section, then clear old table
-//      if(!inVarSection_ ) {
-//        varMap_.clear();
-//      }
-//      inVarSection_ = true;      
-//      return "// " + line + '\n';
-//  } else if (trimmed == "END_VAR") {
-//      inVarSection_ = false;
-//      return "// " + line + '\n';
-//  }
-// 
-//  if (inVarSection_) {
-//      // Match alias : full.path;
-//      std::regex varPattern(R"(^([A-Za-z_][A-Za-z0-9_\.]*)\s*:\s*([A-Za-z0-9_\.]+)\s*;?)");
-//      std::smatch match;
-//      if (std::regex_search(trimmed, match, varPattern)) {
-//          std::string alias = match[1];
-//          std::string fullName = match[2];
-//          varMap_[alias] = fullName;
-//      }
-//      return "// " + line + '\n';
-//  } else {
-//      // Replace all aliases with full variable names
-//      for (const auto& it : varMap_) {
-//          const std::string& alias = it.first;
-//          const std::string& fullName = it.second;
-//          std::regex aliasPattern("\\b" + alias + "\\b");
-//          line = std::regex_replace(line, aliasPattern, fullName);
-//      }
-//      line = line + '\n';
-//      return line;
-//  }
-//  
-//  return "";
-}
-
 int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex)
   std::ifstream plcFile;
   plcFile.open(fileName);
-
-
-  // Variable declation substitution
-  inVarSection_ = false;
-  varAlias_.clear();
 
   if (!plcFile.good()) {
     LOGERR("%s/%s:%d: ERROR PLC%d: File not found: %s (0x%x).\n",
@@ -411,14 +331,28 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
                       ERROR_PLCS_FILE_NOT_FOUND);
   }
 
+   printf("Loading PLC code file %s to plc index %d\n ", fileName, plcIndex);
+
+  // Handle variable substitution (VAR..ENC_VAR)
+  std::string codeNoVar;
+  std::ifstream fsCode(fileName);
+  std::stringstream ssCode;
+  ssCode << fsCode.rdbuf();
+  auto alias = parseVarBlock(ssCode.str(),codeNoVar);
+
+  std::string codeSubst = substituteWithSuffix(codeNoVar, alias);
+  std::cout << "Code (with variables substituted):" << "\n";
+  std::cout << codeSubst;
+
+  std::istringstream ssCodeSubst(codeSubst);
+
   std::string line, lineNoComments;
   int lineNumber = 1;
   int errorCode  = 0;
+  
+  while (std::getline(ssCodeSubst, line)) {    
 
-  printf("Loading PLC code file %s to plc index %d\n ", fileName, plcIndex);
-  while (std::getline(plcFile, line)) {    
-
-    line = preProcessVarDeclaration(line);
+    //line = preProcessVarDeclaration(line);
     // Remove Comments (everything after #)
     lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
 
@@ -438,7 +372,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
         return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
       }
     }
-    printf("%s",line.c_str());
+    //printf("%s",line.c_str());
     lineNumber++;
   }
 
@@ -1421,117 +1355,271 @@ int ecmcPLCMain::addLib(int plcIndex, ecmcPLCLib* lib) {
   return plcs_[plcIndex]->addLib(lib);
 }
 
-// Simple trim helper
-std::string ecmcPLCMain::trim(const std::string& s)
-{
-    return std::regex_replace(s, std::regex("^\\s+|\\s+$"), "");
-}
-
-bool ecmcPLCMain::startsWith(const std::string& s, const std::string& p) {
-    return s.size() >= p.size() && s.compare(0, p.size(), p) == 0;
-}
-
-std::string ecmcPLCMain::escape_regex_alias(const std::string& a) {
-    // a contains [A-Za-z0-9_.], only '.' needs escaping
-    std::string r; r.reserve(a.size()*2);
-    for (char c : a) r += (c == '.') ? "\\." : std::string(1, c);
-    return r;
-}
-
-// Mask single-quoted strings and trailing comments. Returns masked line.
-// Fills 'slots' with originals, in order, to restore later.
-std::string ecmcPLCMain::mask_line(const std::string& line, std::vector<std::string>& slots)
-{
-    std::string out;
-    out.reserve(line.size());
-    const std::string SEP = "\x1F"; // unlikely delimiter
-    bool in_str = false;
-    char prev = '\0';
-    for (std::size_t i = 0; i < line.size(); ++i) {
-        char c = line[i];
-        // handle start of trailing comment when not in string
-        if (!in_str) {
-            if (c == '/' && i + 1 < line.size() && line[i+1] == '/') {
-                // mask rest as a comment slot
-                std::string comment = line.substr(i);
-                std::size_t id = slots.size();
-                slots.push_back(comment);
-                out += SEP + "C" + std::to_string(id) + SEP;
-                return out; // rest consumed
-            }
-            if (c == '#') {
-                std::string comment = line.substr(i);
-                std::size_t id = slots.size();
-                slots.push_back(comment);
-                out += SEP + "C" + std::to_string(id) + SEP;
-                return out;
-            }
-        }
-        // toggle single-quoted string (respect backslash escape)
-        if (c == '\'' && prev != '\\') {
-            if (!in_str) {
-                // beginning of string: gather whole literal
-                std::size_t j = i + 1;
-                bool closed = false; prev = '\0';
-                for (; j < line.size(); ++j) {
-                    char d = line[j];
-                    if (d == '\'' && prev != '\\') { closed = true; ++j; break; }
-                    prev = d;
-                }
-                std::string lit = line.substr(i, j - i); // include quotes
-                std::size_t id = slots.size();
-                slots.push_back(lit);
-                out += SEP + "S" + std::to_string(id) + SEP;
-                i = j - 1; // advance
-                prev = '\0';
-                continue;
-            }
-        }
-        out.push_back(c);
-        prev = c;
-    }
-    return out;
+void ecmcPLCMain::trimInplace(std::string& s) {
+  size_t a = 0, b = s.size();
+  while (a < b && std::isspace(static_cast<unsigned char>(s[a]))) ++a;
+  while (b > a && std::isspace(static_cast<unsigned char>(s[b-1]))) --b;
+  s.assign(s, a, b - a);
 }
  
-std::string ecmcPLCMain::unmask_line(const std::string& line, const std::vector<std::string>& slots)
+bool ecmcPLCMain::isExpandableBase(const std::string& rhs) {
+  // RHS= Right Hand Side
+  // ax<id> or ax<id>.(drv|enc|mon|traj)
+  if (rhs.size() >= 3 && rhs[0]=='a' && rhs[1]=='x' && std::isdigit(static_cast<unsigned char>(rhs[2]))) {
+    size_t i = 2;
+    while (i < rhs.size() && std::isdigit(static_cast<unsigned char>(rhs[i]))) ++i;
+    if (i == rhs.size()) return true;
+    if (rhs[i]=='.') {
+      const std::string tail = rhs.substr(i+1);
+      return (tail=="drv" || tail=="enc" || tail=="mon" || tail=="traj");
+    }
+    return false;
+  }
+
+  // ec<id> or ec<id>.s<id>
+  if (rhs.size() >= 3 && rhs[0]=='e' && rhs[1]=='c' && std::isdigit(static_cast<unsigned char>(rhs[2]))) {
+    size_t i = 2;
+    while (i < rhs.size() && std::isdigit(static_cast<unsigned char>(rhs[i]))) ++i;
+    if (i == rhs.size()) return true;
+    if (rhs[i]=='.' && i+2 < rhs.size() && rhs[i+1]=='s' && std::isdigit(static_cast<unsigned char>(rhs[i+2]))) {
+      size_t j = i+2;
+      while (j < rhs.size() && std::isdigit(static_cast<unsigned char>(rhs[j]))) ++j;
+      return j == rhs.size();
+    }
+    return false;
+  }
+
+  // ds<id>
+  if (rhs.size() >= 3 && rhs[0]=='d' && rhs[1]=='s' && std::isdigit(static_cast<unsigned char>(rhs[2]))) {
+    size_t i = 2;
+    while (i < rhs.size() && std::isdigit(static_cast<unsigned char>(rhs[i]))) ++i;
+    return i == rhs.size();
+  }
+  return false;
+}
+ 
+std::unordered_map<std::string,Alias>
+ecmcPLCMain::parseVarBlock(const std::string& src, std::string& src_without_var_block)
+
 {
-    std::string out; out.reserve(line.size());
-    const std::string SEP = "\x1F";
-    for (std::size_t i = 0; i < line.size();) {
-        if (line[i] == '\x1F') {
-            // token format: \x1F [S|C] <digits> \x1F
-            std::size_t j = line.find('\x1F', i + 1);
-            if (j == std::string::npos) { out.append(line, i, std::string::npos); break; }
-            std::string token = line.substr(i + 1, j - (i + 1)); // e.g. "S0"
-            if (token.size() >= 2) {
-                std::size_t id = std::size_t(std::stoul(token.substr(1)));
-                out += (id < slots.size()) ? slots[id] : "";
-            }
-            i = j + 1;
+  std::unordered_map<std::string,Alias> aliases;
+  // Find "VAR" and "END_VAR" as whole words (simple scan)
+  auto is_word_char = [](char c){
+    return std::isalnum(static_cast<unsigned char>(c)) || c=='_';
+  };
+  auto find_word = [&](const std::string& t, size_t pos)->size_t{
+    while (true) {
+      pos = src.find(t, pos);
+      if (pos == std::string::npos) return pos;
+      bool left_ok  = (pos==0) || !is_word_char(src[pos-1]);
+      bool right_ok = (pos+t.size()>=src.size()) || !is_word_char(src[pos+t.size()]);
+      if (left_ok && right_ok) return pos;
+      ++pos;
+    }
+  };
+  size_t var_pos = find_word("VAR", 0);
+  if (var_pos == std::string::npos) { src_without_var_block = src; return aliases; }
+  size_t end_pos = find_word("END_VAR", var_pos + 3);
+  if (end_pos == std::string::npos) { src_without_var_block = src; return aliases; }
+  
+  // Extract block contents between VAR and END_VAR
+  const size_t block_start = var_pos + 3;
+  const std::string block = src.substr(block_start, end_pos - block_start);
+
+  // Parse lines in the block: name : rhs ;
+  // We’ll ignore lines that are comments or don’t contain ':' and ';'
+  size_t p = 0;
+
+  while (p < block.size()) {
+    // read one line (up to '\n' or end)
+    size_t q = block.find('\n', p);
+    std::string line = (q==std::string::npos) ? block.substr(p) : block.substr(p, q - p);
+
+    p = (q==std::string::npos) ? block.size() : q + 1;
+    // strip leading/trailing spaces
+    trimInplace(line);
+    if (line.empty()) continue;
+    // remove inline comments starting with '//' or '#'
+    size_t cpos = line.find("//");
+    size_t hpos = line.find('#');
+    size_t cut = std::min(cpos==std::string::npos?line.size():cpos,
+
+                          hpos==std::string::npos?line.size():hpos);
+    if (cut != std::string::npos) line.erase(cut);
+    trimInplace(line);
+    if (line.empty()) continue;
+    // need name : rhs ;
+    size_t colon = line.find(':');
+    size_t semi  = line.rfind(';');
+    if (colon==std::string::npos || semi==std::string::npos || semi < colon) continue;
+
+    std::string name = line.substr(0, colon);
+    std::string rhs  = line.substr(colon+1, semi - (colon+1));
+    trimInplace(name);
+    trimInplace(rhs);
+ 
+    // validate name: [A-Za-z_][A-Za-z0-9_]*
+    if (name.empty() || !(std::isalpha(static_cast<unsigned char>(name[0])) || name[0]=='_')) continue;
+    bool ok = true;
+    for (size_t i=1;i<name.size();++i) {
+      char ch = name[i];
+      if (!(std::isalnum(static_cast<unsigned char>(ch)) || ch=='_')) { ok=false; break; }
+    }
+    if (!ok) continue;
+    aliases[name] = { rhs, isExpandableBase(rhs) };
+  }
+ 
+  // Actually keep variable declaration but add "// " to each line (for debuging)
+  std::stringstream ssBlock(block);
+  std::string commented,line;
+  commented = commented + "// VAR" + "\n";
+  while(std::getline(ssBlock,line)) {
+    if(line.size()>0) {
+      commented = commented + "// " + line + "\n"; 
+    }
+  }
+  commented = commented + "// END_VAR" + "\n";
+
+  // Remove the whole VAR...END_VAR block
+  src_without_var_block = src;
+  src_without_var_block.erase(var_pos, (end_pos + 7) - var_pos); // 7 = strlen("END_VAR")
+  // Re-add commented out VAR block
+  src_without_var_block = commented + src_without_var_block;
+  return aliases;
+}
+
+std::string ecmcPLCMain::substituteWithSuffix(
+    const std::string& src,
+    const std::unordered_map<std::string,Alias>& aliases)
+{
+  auto is_ident_start = [](char c)->bool {
+    unsigned char u = static_cast<unsigned char>(c);
+    return (u=='_' || std::isalpha(u));
+  };
+
+  auto is_ident_char = [](char c)->bool {
+    unsigned char u = static_cast<unsigned char>(c);
+    return (u=='_' || std::isalnum(u));
+  };
+
+  auto is_num_char = [](char c)->bool {
+    return std::isdigit(static_cast<unsigned char>(c));
+  };
+
+  std::string out;
+  out.reserve(src.size());
+  enum Mode { Code, LineComment, HashComment, SQString } mode = Code;
+  size_t i = 0, N = src.size();
+  while (i < N) {
+
+    // Mode transitions first
+    if (mode == Code) {
+
+      // start of // comment?
+      if (i + 1 < N && src[i] == '/' && src[i+1] == '/') {
+        mode = LineComment; out += src[i++]; out += src[i++]; continue;
+      }
+
+      // start of # comment?
+      if (src[i] == '#') { mode = HashComment; out += src[i++]; continue; }
+
+      // start of single-quoted string?
+      if (src[i] == '\'') { mode = SQString; out += src[i++]; continue; }
+ 
+      // In code: copy non-ident starts verbatim
+      if (!is_ident_start(src[i])) {
+        out += src[i++];
+        continue;
+      }
+ 
+      // Parse identifier (potential alias)
+      size_t name_start = i;
+      size_t k = i + 1;
+      while (k < N && is_ident_char(src[k])) ++k;
+      std::string name = src.substr(name_start, k - name_start);
+ 
+      // Peek any dotted suffix: .Ident | .123 | .A1 — repeated
+      size_t suffix_end = k;
+      while (suffix_end < N && src[suffix_end] == '.') {
+        size_t t = suffix_end + 1;
+        if (t >= N) break;
+        if (is_ident_start(src[t])) {
+
+          // .Ident
+          size_t u = t + 1;
+          while (u < N && is_ident_char(src[u])) ++u;
+          suffix_end = u;
+          continue;
+        }
+
+        if (is_num_char(src[t])) {
+
+          // .123
+          size_t u = t + 1;
+          while (u < N && is_num_char(src[u])) ++u;
+          suffix_end = u;
+          continue;
+        }
+ 
+        // .A1 (letter then digits)
+        if (std::isalpha(static_cast<unsigned char>(src[t]))) {
+          size_t u = t + 1;
+          while (u < N && is_num_char(src[u])) ++u;
+          if (u > t + 1) { // at least one digit after letter
+            suffix_end = u;
+            continue;
+          }
+        }
+ 
+        // not a valid suffix token -> stop
+        break;
+      }
+
+      const std::string suffix = src.substr(k, suffix_end - k);
+
+      // Replace if alias exists
+      auto it = aliases.find(name);
+      if (it != aliases.end()) {
+        const Alias& a = it->second;
+        if (a.allow_suffix && !suffix.empty()) {
+          out += a.base;
+          out += suffix;               // pass through the dotted tail
         } else {
-            out.push_back(line[i++]);
+          out += a.base;               // no suffix passthrough
         }
+        i = suffix_end;                // consume name + suffix
+      } else {
+        // not an alias: copy original token (name only; suffix handled next loop)
+        out.append(src, name_start, k - name_start);
+        i = k; // continue scanning from after name
+      }
+      continue;
     }
-    return out;
+
+    // Inside line comment: copy until newline
+    if (mode == LineComment) {
+      out += src[i];
+      if (src[i] == '\n') mode = Code;
+      ++i;
+      continue;
+    }
+    // Inside hash comment: copy until newline
+    if (mode == HashComment) {
+      out += src[i];
+      if (src[i] == '\n') mode = Code;
+      ++i;
+      continue;
+    }
+ 
+    // Inside single-quoted string: copy, respecting backslash escapes
+    if (mode == SQString) {
+      out += src[i];
+      if (src[i] == '\\' && i + 1 < N) { out += src[++i]; ++i; continue; }
+      if (src[i] == '\'') mode = Code;
+      ++i;
+      continue;
+    }
+  }
+  return out;
 }
  
-// Replace aliases on code-only text, avoiding partial matches.
-// Pattern: (^|[^A-Za-z0-9_.]) alias ([^A-Za-z0-9_.]|$)  -> keep $1/$3
-void ecmcPLCMain::replace_aliases_inplace(std::string& code,
-                                    const std::unordered_map<std::string,std::string>& m)
-{
-    for (const auto& kv : m) {
-        const std::string alias_escaped = escape_regex_alias(kv.first);
-        const std::string repl = kv.second;
-        const std::string pattern =
-            "(^|[^A-Za-z0-9_\\.])(" + alias_escaped + ")([^A-Za-z0-9_\\.]|$)";
-        std::regex rx(pattern);
-        // We need to repeatedly apply because replacement can change text length.
-        std::string tmp;
-        for (;;) {
-            tmp = std::regex_replace(code, rx, "$1" + repl + "$3");
-            if (tmp == code) break;
-            code.swap(tmp);
-        }
-    }
-}
