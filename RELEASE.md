@@ -1,7 +1,7 @@
 Release Notes
 ===
 # V11.0.1_RC1
-
+* Add plc varaible plc<id>.dbg for controlling debug printouts. Accessible through a PV in the generic plc panel (accessible from ecmcMain.ui). NOTE: This bit should not be used for other purposes (it should alwasy be safe to toggle this bit from a panel).
 * Add plc functions to read clock/time related info:
 ```
   1. retvalue = ec_get_time_frm_src(
@@ -47,7 +47,7 @@ VAR
 END_VAR
 ```
 
-The following "addresses" can be used:
+The following "addresses" are supported:
 * global:
   - global.<name>
 * static
@@ -66,6 +66,9 @@ The following "addresses" can be used:
   - ax<id>.enc.<name>
   - ax<id>.drv.<name>
   - ax<id>.mon.<name>
+* data storage:
+  - ds<id>
+  - ds<id>.<name>
 * constants
   - <name>
 

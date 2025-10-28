@@ -158,7 +158,6 @@ private:
   std::unordered_map<std::string,Alias>
                parseVarBlock(const std::string& src,
                 std::string& src_without_var_block);
-  //bool         rhs_is_expandable(const std::string& rhs);
   bool         isExpandableBase(const std::string& rhs);
   void         trimInplace(std::string& s);
 

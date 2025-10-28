@@ -333,7 +333,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
 
    printf("Loading PLC code file %s to plc index %d\n ", fileName, plcIndex);
 
-  // Handle variable substitution (VAR..ENC_VAR)
+  // Handle variable substitution (VAR..END_VAR)
   std::string codeNoVar;
   std::ifstream fsCode(fileName);
   std::stringstream ssCode;
@@ -345,14 +345,11 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   std::cout << codeSubst;
 
   std::istringstream ssCodeSubst(codeSubst);
-
   std::string line, lineNoComments;
   int lineNumber = 1;
   int errorCode  = 0;
   
-  while (std::getline(ssCodeSubst, line)) {    
-
-    //line = preProcessVarDeclaration(line);
+  while (std::getline(ssCodeSubst, line)) {
     // Remove Comments (everything after #)
     lineNoComments = line.substr(0, line.find(ECMC_PLC_FILE_COMMENT_CHAR));
 
@@ -991,6 +988,13 @@ int ecmcPLCMain::plcVarNameValid(const char *plcVar) {
       (length == strlen(ECMC_PLC_FIRST_SCAN_STR))) {
     return 1;
   }
+
+  if (strstr(plcVar,
+             ECMC_PLC_DBG_STR) &&
+      (length == strlen(ECMC_PLC_DBG_STR))) {
+    return 1;
+  }
+
   return 0;
 }
 
@@ -1117,6 +1121,15 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
   dataIF->setReadOnly(1);
   dataIF->setData(1);
   plcFirstScan_[plcIndex] = dataIF;
+
+  // Add plc<index>.dbg
+  errorCode =
+    addPLCDefaultVariable(plcIndex, ECMC_PLC_DBG_STR, &dataIF);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  dataIF->setData(0);
 
   return 0;
 }

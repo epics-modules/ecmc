@@ -418,6 +418,7 @@ enum axisSubObjectType {
 #define ECMC_PLC_SCAN_TIME_DATA_STR "scantime"
 #define ECMC_PLC_FIRST_SCAN_STR "firstscan"
 #define ECMC_PLC_EXPR_STR "expression"
+#define ECMC_PLC_DBG_STR "dbg"
 
 #define ECMC_PLC_DATA_STORAGE_STR "ds"
 #define ECMC_DATA_STORAGE_DATA_APPEND_STR "append"
