@@ -261,6 +261,27 @@ int ecAddEntry(
                       updateInRealtime);
 }
 
+//int ecAddSimEntry(
+//  uint16_t position,  char *entryIDString, char *datatype, uint64_t value) {
+//  std::string id = entryIDString;
+//
+//  LOGINFO4(
+//    "%s/%s:%d slave=%d datatype=%s id=%s value=%" PRIu64 "\n",
+//    __FILE__,
+//    __FUNCTION__,
+//    __LINE__,
+//    position,
+//    entryIDString,
+//    datatype,
+//    value);
+//
+//  if (!ec->getInitDone() && (position != -1)) return ERROR_MAIN_EC_NOT_INITIALIZED;
+//
+//  ecmcEcDataType dt = getEcDataTypeFromStr(datatype);
+//
+//  return ec->addSimEntry(position,id,dt,value);
+//}
+
 int ecSetEntryUpdateInRealtime(
   uint16_t slavePosition,
   char    *entryIDString,

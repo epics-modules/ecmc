@@ -105,6 +105,9 @@ public:
     ecmcEcDataType dt,
     std::string    id,
     int            useInRealTime);
+  int addSimEntry(std::string    id,
+                  ecmcEcDataType dt,
+                  uint64_t       value);
   int addDataItem(
     ecmcEcEntry   *startEntry,
     size_t         entryByteOffset,
@@ -212,8 +215,8 @@ private:
 
   // used to simulate endswitches
   bool simSlave_;
-  uint8_t simBuffer_[8 * SIMULATION_ENTRIES];    // Simulate endswitches
-  ecmcEcEntry *simEntries_[SIMULATION_ENTRIES];  // Simulate endswitches
+  std::vector<uint64_t> simBuffer_;
+  std::vector<ecmcEcEntry *> simEntries_;
   ecmcEcDomain *domain_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
@@ -236,5 +239,6 @@ private:
   // Ensure important SDO settings like max current are set.
   std::vector<sdoVerifyChX> sdoChVerify_;
   bool enableSDOCheck_;
+  size_t simEntryCounter_;
 };
 #endif  /* ECMCECSLAVE_H_ */

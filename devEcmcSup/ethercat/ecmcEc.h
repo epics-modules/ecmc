@@ -154,6 +154,10 @@ public:
     ecmcEcDataType dt,
     std::string    id,
     int            useInRealTime);
+//  int addSimEntry(uint16_t       position,     // Slave position.
+//                  std::string    id,
+//                  ecmcEcDataType dt,
+//                  uint64_t value);
   int addMemMap(uint16_t       startEntryBusPosition,
                 std::string    startEntryIDString,
                 int            byteSize,

@@ -1225,6 +1225,27 @@ static int handleCfgCommand(const char *myarg_1) {
                       1);
   }
 
+/*Cfg.EcAddSimEntry(
+    uint16_t position,
+    char    *name)
+    char    *dataType,
+    uint64_t value)*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  nvals         = sscanf(myarg_1,
+                         "EcAddSimEntry(%d,%[^,],%[^,],%" PRIu64 ")",
+                         &iValue,
+                         cIdBuffer,
+                         cIdBuffer2,
+                         &u64Value);
+
+  //if (nvals == 4) {
+    //return ecAddSimEntry(iValue,
+    //                     cIdBuffer,
+    //                     cIdBuffer2,
+    //                     u64Value);
+ // }
+
   /*Cfg.EcAddSdoAsync(
     uint16_t position,
     uint16_t nIndex,

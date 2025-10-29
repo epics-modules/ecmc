@@ -1362,6 +1362,39 @@ int ecSetSlaveEnableSDOCheck(int slaveBusPosition, int enable);
  */
 int ecUseClockRealtime(int useClkRT);
 
+/** \brief Adds an EtherCAT simulation entry.\n
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *    slaveBusPosition = -1: Used to address the simulation slave. Only two
+ *                           entries are configured, "ZERO" with default
+ *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
+ *  \param[in] entryIDString Identification string used for addressing the
+ *  \param[in] dataType DataType of ethercat data:\n
+ *                      B1:  1-bit\n
+ *                      B2:  2-bits (lsb)\n
+ *                      B3:  3-bits (lsb)\n
+ *                      B4:  4-bits (lsb)\n
+ *                      U8:  Unsigned 8-bit\n
+ *                      S8:  Signed 8-bit\n
+ *                      U16: Unsigned 16-bit\n
+ *                      S16: Signed 16-bit\n
+ *                      U32: Unsigned 32-bit\n
+ *                      S32: Signed 32-bit\n
+ *                      U64: Unsigned 64-bit\n
+ *                      S64: Signed 64-bit\n
+ *                      F32: Real 32-bit\n
+ *                      F64: Double 64-bit\n
+ *
+ *
+ *  \param[in] updateInRT    value\n
+ *
+ * \note Example: Add an EtherCAT simulation entry called "TEST" for slave 7.\n
+ * "Cfg.EcAddSimEntry(7,TEST,U16,0)"
+ */
+//int ecAddSimEntry(
+//  uint16_t position,  char *entryIDString, char *datatype, uint64_t value);
+
 # ifdef __cplusplus
 }
 # endif  // ifdef __cplusplus
