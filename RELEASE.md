@@ -1,6 +1,6 @@
 Release Notes
 ===
-# V11.0.1_RC1
+# 11.0.1
 * Add command for adding simulated EtherCAT entries (max 32 can be added):
 ```
 ecmcConfig "Cfg.EcAddSimEntry(<slave_id>,<name>,<type>,<value>)"
