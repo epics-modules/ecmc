@@ -17,7 +17,6 @@
 #include "ecmcErrorsList.h"
 
 ecmcEc::ecmcEc(ecmcAsynPortDriver *asynPortDriver) {
-  printf("MASTER");
   initVars();
   setErrorID(ERROR_EC_STATUS_NOT_OK);
   asynPortDriver_ = asynPortDriver;
@@ -2376,41 +2375,41 @@ int ecmcEc::getDomState(int domId) {
   return domains_[domId]->getOK();
 }
 
-//int ecmcEc::addSimEntry(uint16_t       position,     // Slave position.
-//                        std::string    id,
-//                        ecmcEcDataType dt,
-//                        uint64_t value) {
-//
-//  // Ensure master can support datatype
-//  if (!validEntryType(dt)) {
-//    LOGERR(
-//      "%s/%s:%d: ERROR: Data type is not supported for current installed master. Please upgrade to newer ethercat master version (0x%x).\n",
-//      __FILE__,
-//      __FUNCTION__,
-//      __LINE__,
-//      ERROR_EC_DATATYPE_NOT_VALID);
-//    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
-//                      ERROR_EC_DATATYPE_NOT_VALID);
-//  }
-//
-//  ecmcEcSlave *slave = findSlave(position);
-//
-//  if (slave == NULL) {
-//    return ERROR_EC_MAIN_SLAVE_NULL;
-//  }
-//
-//  int errorCode = slave->addSimEntry(id,
-//                                     dt,
-//                                     value);
-//
-//  if (errorCode) {
-//    return errorCode;
-//  }
-//  entryCounter_++;
-//
-//  ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
-//  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
-//                                      ECMC_ASYN_DEFAULT_ADDR);
-//
-//  return 0;
-//}
+int ecmcEc::addSimEntry(int            position,     // Slave position.
+                        std::string    id,
+                        ecmcEcDataType dt,
+                        uint64_t value) {
+
+  // Ensure master can support datatype
+  if (!validEntryType(dt)) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Data type is not supported for current installed master. Please upgrade to newer ethercat master version (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      ERROR_EC_DATATYPE_NOT_VALID);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__,
+                      ERROR_EC_DATATYPE_NOT_VALID);
+  }
+
+  ecmcEcSlave *slave = findSlave(position);
+
+  if (slave == NULL) {
+    return ERROR_EC_MAIN_SLAVE_NULL;
+  }
+
+  int errorCode = slave->addSimEntry(id,
+                                     dt,
+                                     value);
+
+  if (errorCode) {
+    return errorCode;
+  }
+  entryCounter_++;
+
+  ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
+  asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                      ECMC_ASYN_DEFAULT_ADDR);
+
+  return 0;
+}

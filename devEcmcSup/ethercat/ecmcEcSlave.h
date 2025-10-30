@@ -31,7 +31,7 @@
 #include "ecmcEcDomain.h"
 #include "ecmcEcData.h"
 
-#define SIMULATION_ENTRIES 2
+#define SIMULATION_ENTRIES 32
 
 // ECSLAVE ERRORS
 #define ERROR_EC_SLAVE_CONFIG_FAILED 0x24000
@@ -215,8 +215,8 @@ private:
 
   // used to simulate endswitches
   bool simSlave_;
-  std::vector<uint64_t> simBuffer_;
-  std::vector<ecmcEcEntry *> simEntries_;
+  uint64_t simBuffer_[SIMULATION_ENTRIES];
+  ecmcEcEntry*  simEntries_[SIMULATION_ENTRIES];
   ecmcEcDomain *domain_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];

@@ -649,9 +649,9 @@ int ecmcEcEntry::initAsyn() {
   char *name = buffer;
 
   // Simulation slave
-  if (slaveId_ < 0) {
-    return 0;
-  }
+  //if (slaveId_ < 0) {
+  //  return 0;
+  //}
 
   // "ec%d.s%d.alias"
   unsigned int charCount = snprintf(buffer,

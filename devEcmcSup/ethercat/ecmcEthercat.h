@@ -1392,8 +1392,8 @@ int ecUseClockRealtime(int useClkRT);
  * \note Example: Add an EtherCAT simulation entry called "TEST" for slave 7.\n
  * "Cfg.EcAddSimEntry(7,TEST,U16,0)"
  */
-//int ecAddSimEntry(
-//  uint16_t position,  char *entryIDString, char *datatype, uint64_t value);
+int ecAddSimEntry(
+  int position,  char *entryIDString, char *datatype, uint64_t value);
 
 # ifdef __cplusplus
 }

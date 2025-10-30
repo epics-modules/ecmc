@@ -1,6 +1,14 @@
 Release Notes
 ===
 # V11.0.1_RC1
+* Add command for adding simulated EtherCAT entries (max 32 can be added):
+```
+ecmcConfig "Cfg.EcAddSimEntry(<slave_id>,<name>,<type>,<value>)"
+
+Example:
+ecmcConfig "Cfg.EcAddSimEntry(3,NEW,U8,255)"
+will give you a 8bit parameter named ec0.s3.NEW initialized to 255.
+```
 * Add plc varaible plc<id>.dbg for controlling debug printouts. Accessible through a PV in the generic plc panel (accessible from ecmcMain.ui). NOTE: This bit should not be used for other purposes (it should alwasy be safe to toggle this bit from a panel).
 * Add plc functions to read clock/time related info:
 ```

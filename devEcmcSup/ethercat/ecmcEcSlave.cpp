@@ -31,37 +31,17 @@ ecmcEcSlave::ecmcEcSlave(
   slavePosition_  = position;  /**< Slave position. */
   vendorId_       = vendorId; /**< Expected vendor ID. */
   productCode_    = productCode; /**< Expected product code. */
-  printf("ZERO\n");
-  // Simulation entries
+  
+  // Simulation entries, two 32 bit entries
   addSimEntry("ZERO",ECMC_EC_U32,0);
-  //simBuffer_.push_back((uint64_t)0);
-  //simEntries_.push_back(new ecmcEcEntry(asynPortDriver_,
-  //                                 masterId_,
-  //                                 slavePosition_,
-  //                                 &simBuffer_[0],
-  //                                 ECMC_EC_U32,
-  //                                 "ZERO"));
-  //simEntries_[0]->writeValue(0);  // Default 0
-  printf("ONE\n");
   addSimEntry("ONE",ECMC_EC_U32,0xFFFFFFFF);
-  //simBuffer_.push_back((uint64_t)0);
-  //simEntries_.push_back(new ecmcEcEntry(asynPortDriver_,
-  //                                 masterId_,
-  //                                 slavePosition_,
-  //                                 &simBuffer_[1],
-  //                                 ECMC_EC_U32,
-  //                                 "ONE"));
-  //simEntries_[1]->writeValue(0xFFFFFFFF);  // Default 1 (32 bits)
 
   if ((alias == 0) && (position == -1) && (vendorId == 0) &&
       (productCode == 0)) {
     simSlave_ = true;
+    initAsyn();
     return;
   }
-
-  // Add simulation entries as first two entries
-  //appendEntryToList(simEntries_[0], 1);
-  //appendEntryToList(simEntries_[1], 1);
 
   domain_ = domain;
 
@@ -118,9 +98,6 @@ void ecmcEcSlave::initVars() {
 
   for (int i = 0; i < SIMULATION_ENTRIES; i++) {
     simEntries_[i] = NULL;
-  }
-
-  for (int i = 0; i < SIMULATION_ENTRIES * 8; i++) {
     simBuffer_[i] = 0;
   }
 
@@ -147,7 +124,7 @@ ecmcEcSlave::~ecmcEcSlave() {
     syncManagerArray_[i] = NULL;
   }
 
-  for (int i = 0; i < SIMULATION_ENTRIES; i++) {
+  for (uint i = 0; i < simEntryCounter_; i++) {
     if (simEntries_[i] != NULL) {
       delete simEntries_[i];
     }
@@ -1169,19 +1146,25 @@ int ecmcEcSlave::setEnableSDOCheck(int enable) {
 int ecmcEcSlave::addSimEntry(std::string    id,
                              ecmcEcDataType dt,
                              uint64_t value) {
+  // Buffer full
+  if(simEntryCounter_ >= SIMULATION_ENTRIES) {
+    return ERROR_EC_SLAVE_CONFIG_FAILED;
+  }
 
- // // Data buffer
- // simBuffer_.push_back(value);
-//
- // // Entry
- // simEntries_.push_back(new ecmcEcEntry(asynPortDriver_,
- //                                       masterId_,
- //                                       slavePosition_,
- //                                       (uint8_t*)&(simBuffer_[simEntryCounter_]),
- //                                       dt,
- //                                       id));
- // appendEntryToList(simEntries_[0], 1);
-//
- // simEntryCounter_++;
+  // Data buffer
+  simBuffer_[simEntryCounter_] = value;
+  
+  // Entry
+  simEntries_[simEntryCounter_]= new ecmcEcEntry(asynPortDriver_,
+                                                 masterId_,
+                                                 slavePosition_,
+                                                 (uint8_t*)&(simBuffer_[simEntryCounter_]),
+                                                 dt,
+                                                 id);
+
+  simEntries_[simEntryCounter_]->writeValue(value);
+
+  appendEntryToList(simEntries_[simEntryCounter_], 1);
+  simEntryCounter_++;
   return 0;
 }

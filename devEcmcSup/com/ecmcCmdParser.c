@@ -1226,7 +1226,7 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
 /*Cfg.EcAddSimEntry(
-    uint16_t position,
+    int position,
     char    *name)
     char    *dataType,
     uint64_t value)*/
@@ -1239,12 +1239,12 @@ static int handleCfgCommand(const char *myarg_1) {
                          cIdBuffer2,
                          &u64Value);
 
-  //if (nvals == 4) {
-    //return ecAddSimEntry(iValue,
-    //                     cIdBuffer,
-    //                     cIdBuffer2,
-    //                     u64Value);
- // }
+  if (nvals == 4) {
+    return ecAddSimEntry(iValue,
+                         cIdBuffer,
+                         cIdBuffer2,
+                         u64Value);
+  }
 
   /*Cfg.EcAddSdoAsync(
     uint16_t position,
