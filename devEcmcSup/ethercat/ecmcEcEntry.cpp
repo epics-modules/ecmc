@@ -354,6 +354,10 @@ int ecmcEcEntry::updateInputProcessImage() {
     buffer_ = (uint64_t)EC_READ_S8(adr_);
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    buffer_ = (uint64_t)(EC_READ_S8(adr_) ^ 0x80u); // XOR, flip sign bit
+    break;
+
   case ECMC_EC_U16:
     buffer_ = (uint64_t)EC_READ_U16(adr_);
     break;
@@ -362,12 +366,20 @@ int ecmcEcEntry::updateInputProcessImage() {
     buffer_ = (uint64_t)EC_READ_S16(adr_);
     break;
 
+  case ECMC_EC_S16_TO_U16:
+    buffer_ = (uint64_t)(EC_READ_S16(adr_) ^ 0x8000u); // XOR, flip sign bit
+    break;
+
   case ECMC_EC_U32:
     buffer_ = (uint64_t)EC_READ_U32(adr_);
     break;
 
   case ECMC_EC_S32:
     buffer_ = (uint64_t)EC_READ_S32(adr_);
+    break;
+
+  case ECMC_EC_S32_TO_U32:
+    buffer_ = (uint64_t)(EC_READ_S32(adr_) ^ 0x80000000u); // XOR, flip sign bit
     break;
 
 #ifdef EC_READ_U64
@@ -379,6 +391,10 @@ int ecmcEcEntry::updateInputProcessImage() {
 #ifdef EC_READ_S64
   case ECMC_EC_S64:
     buffer_ = (uint64_t)EC_READ_S64(adr_);
+    break;
+
+  case ECMC_EC_S64_TO_U64:
+    buffer_ = (uint64_t)(EC_READ_S64(adr_) ^ 0x8000000000000000ull); // XOR, flip sign bit
     break;
 #endif // ifdef EC_READ_S64
 
@@ -441,6 +457,10 @@ int ecmcEcEntry::updateOutProcessImage() {
     EC_WRITE_S8(adr_, buffer_);
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    EC_WRITE_S8(adr_, buffer_^ 0x80u); // XOR, flip sign bit    
+    break;
+
   case ECMC_EC_U16:
     EC_WRITE_U16(adr_, buffer_);
     break;
@@ -449,12 +469,20 @@ int ecmcEcEntry::updateOutProcessImage() {
     EC_WRITE_S16(adr_, buffer_);
     break;
 
+  case ECMC_EC_S16_TO_U16:
+    EC_WRITE_S16(adr_, buffer_^ 0x8000u); // XOR, flip sign bit    
+    break;
+
   case ECMC_EC_U32:
     EC_WRITE_U32(adr_, buffer_);
     break;
 
   case ECMC_EC_S32:
     EC_WRITE_S32(adr_, buffer_);
+    break;
+
+  case ECMC_EC_S32_TO_U32:
+    EC_WRITE_S32(adr_, buffer_^ 0x80000000u); // XOR, flip sign bit    
     break;
 
 #ifdef EC_WRITE_U64
@@ -466,6 +494,10 @@ int ecmcEcEntry::updateOutProcessImage() {
 #ifdef EC_WRITE_S64
   case ECMC_EC_S64:
     EC_WRITE_S64(adr_, buffer_);
+    break;
+
+  case ECMC_EC_S64_TO_U64:
+    EC_WRITE_S64(adr_, buffer_^ 0x8000000000000000ull); // XOR, flip sign bit    
     break;
 #endif // ifdef EC_WRITE_S64
 
@@ -743,6 +775,13 @@ int ecmcEcEntry::initAsyn() {
     usedSizeBytes_ = 1;
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    entryAsynParam_->addSupportedAsynType(asynParamInt32);
+    entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+    entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+    usedSizeBytes_ = 1;
+    break;
+
   case ECMC_EC_U16:
     entryAsynParam_->addSupportedAsynType(asynParamInt32);
     entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
@@ -751,6 +790,13 @@ int ecmcEcEntry::initAsyn() {
     break;
 
   case ECMC_EC_S16:
+    entryAsynParam_->addSupportedAsynType(asynParamInt32);
+    entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+    entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+    usedSizeBytes_ = 2;
+    break;
+
+  case ECMC_EC_S16_TO_U16:
     entryAsynParam_->addSupportedAsynType(asynParamInt32);
     entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
     entryAsynParam_->addSupportedAsynType(asynParamFloat64);
@@ -771,6 +817,13 @@ int ecmcEcEntry::initAsyn() {
     usedSizeBytes_ = 4;
     break;
 
+  case ECMC_EC_S32_TO_U32:
+    entryAsynParam_->addSupportedAsynType(asynParamInt32);
+    entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+    entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+    usedSizeBytes_ = 4;
+    break;
+
   case ECMC_EC_U64:
     entryAsynParam_->addSupportedAsynType(asynParamInt32);
     entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
@@ -784,6 +837,18 @@ int ecmcEcEntry::initAsyn() {
     break;
 
   case ECMC_EC_S64:
+    entryAsynParam_->addSupportedAsynType(asynParamInt32);
+    entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
+    entryAsynParam_->addSupportedAsynType(asynParamFloat64);
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+    entryAsynParam_->addSupportedAsynType(asynParamInt64);
+#endif //ECMC_ASYN_ASYNPARAMINT64
+
+    usedSizeBytes_ = 8;
+    break;
+
+  case ECMC_EC_S64_TO_U64:
     entryAsynParam_->addSupportedAsynType(asynParamInt32);
     entryAsynParam_->addSupportedAsynType(asynParamUInt32Digital);
     entryAsynParam_->addSupportedAsynType(asynParamFloat64);

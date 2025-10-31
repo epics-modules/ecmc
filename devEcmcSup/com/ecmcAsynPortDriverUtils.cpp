@@ -880,6 +880,30 @@ ecmcEcDataType getEcDataTypeFromStr(const char *dt) {
     return ECMC_EC_F64;
   }
 
+  n = strcmp(dt, EC_DT_S8_TO_U8);
+
+  if (n == 0) {
+    return ECMC_EC_S8_TO_U8;
+  }
+  
+  n = strcmp(dt, EC_DT_S16_TO_U16);
+
+  if (n == 0) {
+    return ECMC_EC_S16_TO_U16;
+  }
+
+  n = strcmp(dt, EC_DT_S32_TO_U32);
+
+  if (n == 0) {
+    return ECMC_EC_S32_TO_U32;
+  }
+
+  n = strcmp(dt, EC_DT_S64_TO_U64);
+
+  if (n == 0) {
+    return ECMC_EC_S64_TO_U64;
+  }
+
   // Not a valid type
   return ECMC_EC_NONE;
 }
@@ -922,12 +946,22 @@ size_t getEcDataTypeBits(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    return 8;
+
+    break;
+
   case ECMC_EC_U16:
     return 16;
 
     break;
 
   case ECMC_EC_S16:
+    return 16;
+
+    break;
+
+  case ECMC_EC_S16_TO_U16:
     return 16;
 
     break;
@@ -942,12 +976,22 @@ size_t getEcDataTypeBits(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S32_TO_U32:
+    return 32;
+
+    break;
+
   case ECMC_EC_U64:
     return 64;
 
     break;
 
   case ECMC_EC_S64:
+    return 64;
+
+    break;
+
+  case ECMC_EC_S64_TO_U64:
     return 64;
 
     break;
@@ -984,12 +1028,22 @@ int getEcDataTypeIsInt(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    return 1;
+
+    break;
+
   case ECMC_EC_U16:
     return 1;
 
     break;
 
   case ECMC_EC_S16:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S16_TO_U16:
     return 1;
 
     break;
@@ -1004,12 +1058,22 @@ int getEcDataTypeIsInt(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S32_TO_U32:
+    return 1;
+
+    break;
+
   case ECMC_EC_U64:
     return 1;
 
     break;
 
   case ECMC_EC_S64:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S64_TO_U64:
     return 1;
 
     break;
@@ -1161,6 +1225,11 @@ uint64_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    return std::numeric_limits<uint8_t>::max();
+
+    break;
+
   case ECMC_EC_U16:
     return std::numeric_limits<uint16_t>::max();
 
@@ -1168,6 +1237,11 @@ uint64_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
 
   case ECMC_EC_S16:
     return std::numeric_limits<int16_t>::max();
+
+    break;
+
+  case ECMC_EC_S16_TO_U16:
+    return std::numeric_limits<uint16_t>::max();
 
     break;
 
@@ -1181,6 +1255,11 @@ uint64_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S32_TO_U32:
+    return std::numeric_limits<uint32_t>::max();
+
+    break;
+
   case ECMC_EC_U64:
     return std::numeric_limits<uint64_t>::max();
 
@@ -1188,6 +1267,11 @@ uint64_t getEcDataTypeMaxVal(ecmcEcDataType dt) {
 
   case ECMC_EC_S64:
     return std::numeric_limits<int64_t>::max();
+
+    break;
+
+  case ECMC_EC_S64_TO_U64:
+    return std::numeric_limits<uint64_t>::max();
 
     break;
 
@@ -1246,6 +1330,11 @@ int64_t getEcDataTypeMinVal(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    return 0;
+
+    break;
+
   case ECMC_EC_U16:
     return 0;
 
@@ -1253,6 +1342,11 @@ int64_t getEcDataTypeMinVal(ecmcEcDataType dt) {
 
   case ECMC_EC_S16:
     return std::numeric_limits<int16_t>::min();
+
+    break;
+
+  case ECMC_EC_S16_TO_U16:
+    return 0;
 
     break;
 
@@ -1266,6 +1360,11 @@ int64_t getEcDataTypeMinVal(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S32_TO_U32:
+    return 0;
+
+    break;
+
   case ECMC_EC_U64:
     return 0;
 
@@ -1273,6 +1372,11 @@ int64_t getEcDataTypeMinVal(ecmcEcDataType dt) {
 
   case ECMC_EC_S64:
     return std::numeric_limits<int64_t>::min();
+
+    break;
+
+  case ECMC_EC_S64_TO_U64:
+    return 0;
 
     break;
 
@@ -1331,6 +1435,11 @@ int getEcDataTypeSigned(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    return 0;
+
+    break;
+
   case ECMC_EC_U16:
     return 0;
 
@@ -1338,6 +1447,11 @@ int getEcDataTypeSigned(ecmcEcDataType dt) {
 
   case ECMC_EC_S16:
     return 1;
+
+    break;
+
+  case ECMC_EC_S16_TO_U16:
+    return 0;
 
     break;
 
@@ -1351,6 +1465,11 @@ int getEcDataTypeSigned(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S32_TO_U32:
+    return 0;
+
+    break;
+
   case ECMC_EC_U64:
     return 0;
 
@@ -1358,6 +1477,11 @@ int getEcDataTypeSigned(ecmcEcDataType dt) {
 
   case ECMC_EC_S64:
     return 1;
+
+    break;
+
+  case ECMC_EC_S64_TO_U64:
+    return 0;
 
     break;
 
@@ -1417,6 +1541,11 @@ const char* getEcDataTypeStr(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    return EC_DT_S8_TO_U8;
+
+    break;
+
   case ECMC_EC_U16:
     return EC_DT_U16;
 
@@ -1424,6 +1553,11 @@ const char* getEcDataTypeStr(ecmcEcDataType dt) {
 
   case ECMC_EC_S16:
     return EC_DT_S16;
+
+    break;
+
+  case ECMC_EC_S16_TO_U16:
+    return EC_DT_S16_TO_U16;
 
     break;
 
@@ -1437,6 +1571,11 @@ const char* getEcDataTypeStr(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S32_TO_U32:
+    return EC_DT_S32_TO_U32;
+
+    break;
+
   case ECMC_EC_U64:
     return EC_DT_U64;
 
@@ -1444,6 +1583,11 @@ const char* getEcDataTypeStr(ecmcEcDataType dt) {
 
   case ECMC_EC_S64:
     return EC_DT_S64;
+
+    break;
+
+  case ECMC_EC_S64_TO_U64:
+    return EC_DT_S64_TO_U64;
 
     break;
 
@@ -1503,12 +1647,22 @@ size_t getEcDataTypeByteSize(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    return 1;
+
+    break;
+
   case ECMC_EC_U16:
     return 2;
 
     break;
 
   case ECMC_EC_S16:
+    return 2;
+
+    break;
+
+  case ECMC_EC_S16_TO_U16:
     return 2;
 
     break;
@@ -1523,12 +1677,22 @@ size_t getEcDataTypeByteSize(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S32_TO_U32:
+    return 4;
+
+    break;
+
   case ECMC_EC_U64:
     return 8;
 
     break;
 
   case ECMC_EC_S64:
+    return 8;
+
+    break;
+
+  case ECMC_EC_S64_TO_U64:
     return 8;
 
     break;

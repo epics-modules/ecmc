@@ -655,6 +655,10 @@ typedef struct ecmcMainThreadDiag {
 #define EC_DT_S64  "S64"
 #define EC_DT_F32  "F32"
 #define EC_DT_F64  "F64"
+#define EC_DT_S8_TO_U8    "S8_TO_U8"   // Add 2^7
+#define EC_DT_S16_TO_U16  "S16_TO_U16" // Add 2^15
+#define EC_DT_S32_TO_U32  "S32_TO_U32" // Add 2^31
+#define EC_DT_S64_TO_U64  "S64_TO_U64" // Add 2^63
 
 enum ecmcEcDataType {
   ECMC_EC_NONE = 0,
@@ -671,7 +675,11 @@ enum ecmcEcDataType {
   ECMC_EC_U64  = 11,
   ECMC_EC_S64  = 12,
   ECMC_EC_F32  = 13,
-  ECMC_EC_F64  = 14
+  ECMC_EC_F64  = 14,
+  ECMC_EC_S8_TO_U8   = 15,
+  ECMC_EC_S16_TO_U16 = 16,
+  ECMC_EC_S32_TO_U32 = 17,
+  ECMC_EC_S64_TO_U64 = 18,
 };
 
 // SHM

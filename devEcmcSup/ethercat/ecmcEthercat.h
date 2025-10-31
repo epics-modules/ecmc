@@ -200,6 +200,11 @@ int ecAddEntryComplete(
  *                      S64: Signed 64-bit\n
  *                      F32: Real 32-bit\n
  *                      F64: Double 64-bit\n
+ *                      // Special datatypes with conversions (maps -+2^(n-1) to 0..2^n)
+ *                      S8_TO_U8   : int8 converted to uint8 and adding 2^7 (make continious range)
+ *                      S16_TO_U16 : int16 converted to uint16 and adding 2^15 (make continious range)
+ *                      S32_TO_U32 : int32 converted to uint32 and adding 2^31 (make continious range)
+ *                      S64_TO_U64 : int64 converted to uint64 and adding 2^63 (make continious range)
  *
  *  \param[in] entryIDString Identification string used for addressing the
  *                           entry.\n

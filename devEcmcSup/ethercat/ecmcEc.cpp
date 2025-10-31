@@ -910,6 +910,11 @@ bool ecmcEc::validEntryType(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    return 1;
+
+    break;
+
   case ECMC_EC_U16:
     return 1;
 
@@ -920,12 +925,22 @@ bool ecmcEc::validEntryType(ecmcEcDataType dt) {
 
     break;
 
+  case ECMC_EC_S16_TO_U16:
+    return 1;
+
+    break;
+
   case ECMC_EC_U32:
     return 1;
 
     break;
 
   case ECMC_EC_S32:
+    return 1;
+
+    break;
+
+  case ECMC_EC_S32_TO_U32:
     return 1;
 
     break;
@@ -947,6 +962,14 @@ bool ecmcEc::validEntryType(ecmcEcDataType dt) {
 #else // ifdef EC_READ_S64
     return 0;
 
+#endif // ifdef EC_READ_S64
+    break;
+
+  case ECMC_EC_S64_TO_U64:
+#ifdef EC_READ_S64
+    return 1;
+#else // ifdef EC_READ_S64
+    return 0;
 #endif // ifdef EC_READ_S64
     break;
 
