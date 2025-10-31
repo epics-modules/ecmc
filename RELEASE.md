@@ -1,7 +1,6 @@
 Release Notes
 ===
-# v11.0.2_RC1
-
+# 11.0.2
 ## Add datatypes 
 Add new data types for ethercat data that map ints as uints by xor of sign bit, useful for when using motion axes where normally encoder values are uints:
 * EC_DT_S8_TO_U8    "S8_TO_U8"   // map +-2^7 to 0..(2^8-1) 
