@@ -18,7 +18,7 @@ Example:
 ecmcConfig "Cfg.EcAddSimEntry(3,NEW,U8,255)"
 will give you a 8bit parameter named ec0.s3.NEW initialized to 255.
 ```
-* Add plc varaible plc<id>.dbg for controlling debug printouts. Accessible through a PV in the generic plc panel (accessible from ecmcMain.ui). NOTE: This bit should not be used for other purposes (it should alwasy be safe to toggle this bit from a panel).
+* Add plc varaible `plc<id>.dbg` for controlling debug printouts. Accessible through a PV in the generic plc panel (accessible from ecmcMain.ui). NOTE: This bit should not be used for other purposes (it should alwasy be safe to toggle this bit from a panel).
 * Add plc functions to read clock/time related info:
 ```
   1. retvalue = ec_get_time_frm_src(
