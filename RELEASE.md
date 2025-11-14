@@ -1,5 +1,9 @@
 Release Notes
 ===
+# 11.0.3_RC1
+* Also allow `plc<id>` in PLC variable declarations (see "Support for variable declarations in plc code" below)
+* Fix PVT trigger validation
+
 # 11.0.2
 ## Add datatypes 
 Add new data types for ethercat data that map ints as uints by xor of sign bit, useful for when using motion axes where normally encoder values are uints:
