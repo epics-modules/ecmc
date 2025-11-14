@@ -101,6 +101,7 @@ void ecmcPVTController::execute() {
   int axesAtStartPosition = 0;
   bool seqDone = 0;
   int enabledState = 0;
+
   switch(state_) {
     case  ECMC_PVT_IDLE:
       busy_ = 0;
@@ -241,10 +242,13 @@ void ecmcPVTController::execute() {
   stateOld_=state_;
 
   //#### triggering below (soft and hw) #####
+  if(!busy_) {
+    return;
+  }
 
   // reset trigger
   if(nextTime_ > triggerEndTime_+ triggerDuration_) {
-    if(!triggerValidatedOK_) {
+    if(triggerValidatedOK_) {
       writeEcEntryValue(triggerEcEntryIndex_,0);
     }
     return; // Done
@@ -266,7 +270,7 @@ void ecmcPVTController::execute() {
 
   if( nextTime_ > (nextTriggerTime + halfSampleTime_) && nextTime_ <= (nextTriggerTime + triggerDuration_)) {
     // here we want to also latch data
-    if(!triggerValidatedOK_) {
+    if(triggerValidatedOK_) {
       writeEcEntryValue(triggerEcEntryIndex_,1);
     }
 
@@ -282,7 +286,7 @@ void ecmcPVTController::execute() {
     }
     newTrg_ = false;
   } else {
-    if(!triggerValidatedOK_) {
+    if(triggerValidatedOK_) {
       writeEcEntryValue(triggerEcEntryIndex_,0);
     }
     newTrg_ = true; // trigger data latch at next pulse
