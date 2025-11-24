@@ -468,6 +468,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
    data_.status_.cycleCounter++;
 
   // Update asyn parameters
+  refreshStatusWd();
   data_.axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   data_.axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
   data_.axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID]->refreshParamRT(0);
