@@ -655,7 +655,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
   }
 
   // check alarm 0
-  if (hwErrorAlarm0Defined_) {
+  if (hwErrorAlarm0Defined_ ) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_)) {
       hwErrorAlarm0_    = 0;
       hwErrorAlarm0Old_ = 0;
@@ -663,7 +663,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
 
     // Set Alarm
-    if (hwErrorAlarm0_) {
+    if (hwErrorAlarm0_ && isPrimary()) {
       data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_0;
     }
@@ -679,7 +679,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
 
     // Set Alarm
-    if (hwErrorAlarm1_) {
+    if (hwErrorAlarm1_ && isPrimary()) {
       data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_1;
     }
@@ -695,13 +695,13 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
 
     // Set Alarm
-    if (hwErrorAlarm2_) {
+    if (hwErrorAlarm2_ && isPrimary()) {
       data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_2;
     }
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
-  if(index_ == data_->control_.primaryEncIndex) {
+  if(isPrimary()) {
     return errorLocal;
   } else {
     setWarningID(errorLocal);

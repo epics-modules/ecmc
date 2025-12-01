@@ -149,9 +149,10 @@ void ecmcError::errorReset() {
   errorsInBuffer_ = 0;
   bufferIndex_ = 0;
   error_ = false;
-  setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);
+  errorId_ = 0;
   currSeverity_ = ECMC_SEVERITY_NONE;
-  setWarningID(0);
+  warningId_ = 0;
+  warning_ = false;
 
   if (warningPtr_) {
     *warningPtr_ = 0;

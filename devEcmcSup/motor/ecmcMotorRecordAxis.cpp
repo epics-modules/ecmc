@@ -1410,8 +1410,7 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.ecmcAtTarget = drvlocal.ecmcAxis->getMon()->getAtTarget();
   drvlocal.ecmcAtTargetMonEnable = drvlocal.ecmcAxis->getMon()->getEnableAtTargetMon();
   drvlocal.axisPrintDbg = drvlocal.ecmcAxis->getPrintDbg();
-  drvlocal.axisInStartup = drvlocal.ecmcAxis->getInStartupPhase();
-  
+  drvlocal.axisInStartup = drvlocal.ecmcAxis->getInStartupPhase();  
   drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
                         ECMC_DATA_SOURCE_EXTERNAL;
@@ -1436,6 +1435,8 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
+  drvlocal.nErrorIdMcu = drvlocal.status_.errorCode;
+  
   return asynSuccess;
 }
 
@@ -1455,6 +1456,8 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   asynStatus status = readEcmcAxisStatusData();
 
   if(drvlocal.axisInStartup) {
+
+    updateError();
     return asynError;  
   }
 
@@ -1645,71 +1648,71 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   setIntegerParam(pC_->motorStatusMoving_, !drvlocal.moveReady);
   setIntegerParam(pC_->motorStatusDone_,   drvlocal.moveReady);
 
-  drvlocal.nErrorIdMcu = drvlocal.status_.errorCode;
 
-  if ((drvlocal.bErrorOld !=
-       (drvlocal.status_.errorCode > 0)) ||
-      (drvlocal.nErrorIdMcuOld != drvlocal.nErrorIdMcu) ||
-      drvlocal.dirty.sErrorMessage) {
-    char sErrorMessage[256];
-    int  nErrorId           = drvlocal.status_.errorCode;
-    const char *errIdString = errStringFromErrId(nErrorId);
-    sErrorMessage[0]          = '\0';
-    drvlocal.sErrorMessage[0] = '\0';
-    asynPrint(pPrintOutAsynUser,
-              ASYN_TRACE_INFO,
-              "%spoll(%d) bError=%d drvlocal.status_.errorCode=0x%x\n",
-              modNamEMC,
-              axisNo_,
-              drvlocal.status_.errorCode > 0,
-              nErrorId);
-    drvlocal.bErrorOld = drvlocal.status_.errorCode >
-                         0;
-    drvlocal.nErrorIdMcuOld      = nErrorId;
-    drvlocal.dirty.sErrorMessage = 0;
-
-    if (nErrorId) {
-      /* Get the ErrorMessage to have it in the log file */
-      strcpy(&sErrorMessage[0], ecmcError::convertErrorIdToString(nErrorId));
-      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-                "%ssErrorMessage(%d)=\"%s\"\n",
-                modNamEMC, axisNo_, sErrorMessage);
-    }
-
-    // Write error string to drvlocal.sErrorMessage
-
-    /* First choice: "well known" ErrorIds */
-    size_t bytes = 0;
-
-    if (errIdString[0]) {
-      bytes = snprintf(drvlocal.sErrorMessage,
-                       sizeof(drvlocal.sErrorMessage) - 1,
-                       "E: %s (0x%x)",
-                       errIdString,
-                       nErrorId);
-    } else {
-      /* ecmc has error messages */
-      bytes = snprintf(drvlocal.sErrorMessage,
-                       sizeof(drvlocal.sErrorMessage) - 1,
-                       "E: %s (0x%x)",
-                       sErrorMessage,
-                       nErrorId);
-    }
-
-    if (bytes >= sizeof(drvlocal.sErrorMessage) - 1) {
-      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-                "Warning: Error message trucated (%s)\n", sErrorMessage);
-    }
-
-    /* The poller will update the MsgTxt field */
-
-    // updateMsgTxtFromDriver(drvlocal.sErrorMessage);
-  }
+  updateError();
+  
+//
+  //if ((drvlocal.bErrorOld !=
+  //     (drvlocal.status_.errorCode > 0)) ||
+  //    (drvlocal.nErrorIdMcuOld != drvlocal.nErrorIdMcu) ||
+  //    drvlocal.dirty.sErrorMessage) {
+  //  char sErrorMessage[256];
+  //  int  nErrorId           = drvlocal.status_.errorCode;
+  //  const char *errIdString = errStringFromErrId(nErrorId);
+  //  sErrorMessage[0]          = '\0';
+  //  drvlocal.sErrorMessage[0] = '\0';
+  //  asynPrint(pPrintOutAsynUser,
+  //            ASYN_TRACE_INFO,
+  //            "%spoll(%d) bError=%d drvlocal.status_.errorCode=0x%x\n",
+  //            modNamEMC,
+  //            axisNo_,
+  //            drvlocal.status_.errorCode > 0,
+  //            nErrorId);
+  //  drvlocal.bErrorOld = drvlocal.status_.errorCode >
+  //                       0;
+  //  drvlocal.nErrorIdMcuOld      = nErrorId;
+  //  drvlocal.dirty.sErrorMessage = 0;
+//
+  //  if (nErrorId) {
+  //    /* Get the ErrorMessage to have it in the log file */
+  //    strcpy(&sErrorMessage[0], ecmcError::convertErrorIdToString(nErrorId));
+  //    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+  //              "%ssErrorMessage(%d)=\"%s\"\n",
+  //              modNamEMC, axisNo_, sErrorMessage);
+  //  }
+//
+  //  // Write error string to drvlocal.sErrorMessage
+//
+  //  /* First choice: "well known" ErrorIds */
+  //  size_t bytes = 0;
+//
+  //  if (errIdString[0]) {
+  //    bytes = snprintf(drvlocal.sErrorMessage,
+  //                     sizeof(drvlocal.sErrorMessage) - 1,
+  //                     "E: %s (0x%x)",
+  //                     errIdString,
+  //                     nErrorId);
+  //  } else {
+  //    /* ecmc has error messages */
+  //    bytes = snprintf(drvlocal.sErrorMessage,
+  //                     sizeof(drvlocal.sErrorMessage) - 1,
+  //                     "E: %s (0x%x)",
+  //                     sErrorMessage,
+  //                     nErrorId);
+  //  }
+//
+  //  if (bytes >= sizeof(drvlocal.sErrorMessage) - 1) {
+  //    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+  //              "Warning: Error message trucated (%s)\n", sErrorMessage);
+  //  }
+//
+  //  /* The poller will update the MsgTxt field */
+//
+  //  // updateMsgTxtFromDriver(drvlocal.sErrorMessage);
+  //}
   #ifdef motorFlagsHomeOnLsString
   setIntegerParam(pC_->motorFlagsHomeOnLs_, 1);
   #endif // ifdef motorFlagsHomeOnLsString
-
-  callParamCallbacksUpdateError();
 
   drvlocal.moveReadyOld = drvlocal.moveReady;
   memcpy(&drvlocal.statusOld_, &drvlocal.status_,
@@ -2719,4 +2722,66 @@ asynStatus ecmcMotorRecordAxis::setDGain(double dGain) {
   errorCode = drvlocal.ecmcAxis->setCntrlKd(CONTROL_GAIN_SCALE * dGain);
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   return errorCode == 0 ? asynSuccess : asynError;
+}
+
+void ecmcMotorRecordAxis::updateError() {  
+
+  if ((drvlocal.bErrorOld !=
+       (drvlocal.status_.errorCode > 0)) ||
+      (drvlocal.nErrorIdMcuOld != drvlocal.nErrorIdMcu) ||
+      drvlocal.dirty.sErrorMessage) {
+    char sErrorMessage[256];
+    int  nErrorId           = drvlocal.status_.errorCode;
+    const char *errIdString = errStringFromErrId(nErrorId);
+    sErrorMessage[0]          = '\0';
+    drvlocal.sErrorMessage[0] = '\0';
+    asynPrint(pPrintOutAsynUser,
+              ASYN_TRACE_INFO,
+              "%spoll(%d) bError=%d drvlocal.status_.errorCode=0x%x\n",
+              modNamEMC,
+              axisNo_,
+              drvlocal.status_.errorCode > 0,
+              nErrorId);
+    drvlocal.nErrorIdMcuOld      = nErrorId;
+    drvlocal.dirty.sErrorMessage = 0;
+
+    if (nErrorId) {
+      /* Get the ErrorMessage to have it in the log file */
+      strcpy(&sErrorMessage[0], ecmcError::convertErrorIdToString(nErrorId));
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+                "%ssErrorMessage(%d)=\"%s\"\n",
+                modNamEMC, axisNo_, sErrorMessage);
+    }
+
+    // Write error string to drvlocal.sErrorMessage
+
+    /* First choice: "well known" ErrorIds */
+    size_t bytes = 0;
+
+    if (errIdString[0]) {
+      bytes = snprintf(drvlocal.sErrorMessage,
+                       sizeof(drvlocal.sErrorMessage) - 1,
+                       "E: %s (0x%x)",
+                       errIdString,
+                       nErrorId);
+    } else {
+      /* ecmc has error messages */
+      bytes = snprintf(drvlocal.sErrorMessage,
+                       sizeof(drvlocal.sErrorMessage) - 1,
+                       "E: %s (0x%x)",
+                       sErrorMessage,
+                       nErrorId);
+    }
+
+    if (bytes >= sizeof(drvlocal.sErrorMessage) - 1) {
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+                "Warning: Error message trucated (%s)\n", sErrorMessage);
+    }
+
+    /* The poller will update the MsgTxt field */
+
+    // updateMsgTxtFromDriver(drvlocal.sErrorMessage);
+    callParamCallbacksUpdateError();
+  }
+  drvlocal.bErrorOld = drvlocal.status_.errorCode > 0;                   
 }

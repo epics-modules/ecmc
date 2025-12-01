@@ -181,7 +181,6 @@ private:
   asynStatus setPGain(double pGain);
   asynStatus setIGain(double iGain);
   asynStatus setDGain(double dGain);
-  //virtual asynStatus initializeProfile(size_t maxPoints);§
   asynStatus defineProfile(double *positions, size_t numPoints);
   asynStatus buildProfile();
   asynStatus initializeProfile(size_t maxProfilePoints);
@@ -194,7 +193,7 @@ private:
   int getProfileBusy();
   int getProfileCurrentSegementID();
   size_t getProfilePointCount();
-  //virtual asynStatus readbackProfile();
+  void updateError();
 
   ecmcAxisPVTSequence *pvtRunning_;
   ecmcAxisPVTSequence *pvtPrepare_;
