@@ -28,6 +28,8 @@ ecmcError::ecmcError(int *errorPtr, int *warningPtr) {
 ecmcError::~ecmcError() {}
 
 void ecmcError::initVars() {
+  bufferIndex_    = 0;
+  buffer_.assign(ECMC_MAX_ERROR_BUFFER_SIZE, 0);
   errorId_        = 0;
   error_          = 0;
   warningId_      = 0;
@@ -38,8 +40,6 @@ void ecmcError::initVars() {
   warningPtr_ = NULL;
   errorPtr_   = NULL;
   errorsInBuffer_ = 0;
-  bufferIndex_    = 0;
-  buffer_.assign(ECMC_MAX_ERROR_BUFFER_SIZE, 0);
 }
 
 int ecmcError::setErrorID(const char *fileName,
@@ -104,6 +104,13 @@ int ecmcError::setErrorID(int errorID) {
 
   // Store the last ECMC_MAX_ERROR_BUFFER_SIZE new errors in a ring buffer to suppress duplicates
   if (errorId_ != 0) {
+    // errorReset() clears the vector; make sure it is re-sized before writing
+    if (buffer_.size() != ECMC_MAX_ERROR_BUFFER_SIZE) {
+      buffer_.assign(ECMC_MAX_ERROR_BUFFER_SIZE, 0);
+      errorsInBuffer_ = 0;
+      bufferIndex_    = 0;
+    }
+
     buffer_[bufferIndex_] = errorId_;
     bufferIndex_ = (bufferIndex_ + 1) % ECMC_MAX_ERROR_BUFFER_SIZE;
     if (errorsInBuffer_ < ECMC_MAX_ERROR_BUFFER_SIZE) {
@@ -138,8 +145,9 @@ void ecmcError::setError(bool error) {
 
 void ecmcError::errorReset() {
   buffer_.clear();
+  buffer_.assign(ECMC_MAX_ERROR_BUFFER_SIZE,0);
   errorsInBuffer_ = 0;
-
+  bufferIndex_ = 0;
   error_ = false;
   setErrorID(__FILE__, __FUNCTION__, __LINE__, 0);
   currSeverity_ = ECMC_SEVERITY_NONE;
