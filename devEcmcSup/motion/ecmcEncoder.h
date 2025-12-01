@@ -137,6 +137,19 @@ public:
   int                   setLookupTableRange(double range);
   int                   setLookupTableScale(double scale);
   int                   setDelayCyclesAndEnable(double cycles, bool enable); 
+  // Only propagate encoder errors from the primary encoder to the axis
+  int                   setErrorID(int errorID) override;
+  int                   setErrorID(int               errorID,
+                                   ecmcAlarmSeverity severity) override;
+  int                   setErrorID(const char *fileName,
+                                   const char *functionName,
+                                   int         lineNumber,
+                                   int         errorID) override;
+  int                   setErrorID(const char       *fileName,
+                                   const char       *functionName,
+                                   int               lineNumber,
+                                   int               errorID,
+                                   ecmcAlarmSeverity severity) override;
 
 protected:
   void                  initVars();
@@ -148,6 +161,7 @@ protected:
                                             int64_t  rawTurns,
                                             uint64_t rawLimit,
                                             int      bits);
+  bool                  isPrimary() const;
   uint8_t* getActPosPtr();
   uint8_t* getActVelPtr();
   int      initAsyn();

@@ -12,8 +12,8 @@
 
 #include "ecmcError.h"
 
-// Buffer to filter that not same error is printed many times from the same object
-#define ECMC_MAX_ERROR_BUFFER_SIZE 2
+// Buffer to filter so the same errors are not printed continuously
+#define ECMC_MAX_ERROR_BUFFER_SIZE 10
 
 ecmcError::ecmcError() {
   initVars();
@@ -38,7 +38,8 @@ void ecmcError::initVars() {
   warningPtr_ = NULL;
   errorPtr_   = NULL;
   errorsInBuffer_ = 0;
-  buffer_.reserve(ECMC_MAX_ERROR_BUFFER_SIZE);
+  bufferIndex_    = 0;
+  buffer_.assign(ECMC_MAX_ERROR_BUFFER_SIZE, 0);
 }
 
 int ecmcError::setErrorID(const char *fileName,
@@ -101,10 +102,13 @@ int ecmcError::setErrorID(int errorID) {
     *errorPtr_ = errorID;
   }
 
-  // Store the last ECMC_MAX_ERROR_BUFFER_SIZE new errors in a buffer. Only printout once
-  if(errorsInBuffer_< ECMC_MAX_ERROR_BUFFER_SIZE) {
-    buffer_.push_back(errorId_);
-    errorsInBuffer_++;
+  // Store the last ECMC_MAX_ERROR_BUFFER_SIZE new errors in a ring buffer to suppress duplicates
+  if (errorId_ != 0) {
+    buffer_[bufferIndex_] = errorId_;
+    bufferIndex_ = (bufferIndex_ + 1) % ECMC_MAX_ERROR_BUFFER_SIZE;
+    if (errorsInBuffer_ < ECMC_MAX_ERROR_BUFFER_SIZE) {
+      errorsInBuffer_++;
+    }
   }
 
   return errorId_;
@@ -120,8 +124,8 @@ int ecmcError::setErrorID(int errorID, ecmcAlarmSeverity severity) {
 }
 
 bool ecmcError::errorInBuffer(int errorID) {
-  for(int i = 0; i < errorsInBuffer_; i++) {
-    if(buffer_[i] == errorID) {
+  for (int i = 0; i < errorsInBuffer_; i++) {
+    if (buffer_[i] == errorID) {
       return true;
     }
   }

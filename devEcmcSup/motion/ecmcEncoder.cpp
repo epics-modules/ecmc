@@ -214,6 +214,47 @@ void ecmcEncoder::setActPos(double pos) {
   actPos_ = pos;
 }
 
+bool ecmcEncoder::isPrimary() const {
+  return data_ && (data_->control_.primaryEncIndex == index_);
+}
+
+int ecmcEncoder::setErrorID(int errorID) {
+  if (!isPrimary()) {
+    // Keep local error but do not propagate to axis-level error storage.
+    return errorID;
+  }
+  return ecmcError::setErrorID(errorID);
+}
+
+int ecmcEncoder::setErrorID(int               errorID,
+                            ecmcAlarmSeverity severity) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(errorID, severity);
+}
+
+int ecmcEncoder::setErrorID(const char *fileName,
+                            const char *functionName,
+                            int         lineNumber,
+                            int         errorID) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID);
+}
+
+int ecmcEncoder::setErrorID(const char       *fileName,
+                            const char       *functionName,
+                            int               lineNumber,
+                            int               errorID,
+                            ecmcAlarmSeverity severity) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID, severity);
+}
+
 int ecmcEncoder::setOffset(double offset) {
   engOffset_ = offset;
   return 0;

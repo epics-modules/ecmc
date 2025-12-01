@@ -79,6 +79,7 @@ private:
   int *warningPtr_;
   int *errorPtr_;
   int errorsInBuffer_;
+  int bufferIndex_;
   std::vector<int> buffer_;
 };
 
