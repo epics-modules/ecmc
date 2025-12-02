@@ -187,7 +187,7 @@ void ecmcAxisSequencer::executeInternal() {
      // PVT 
      if(pvtmode_ && !pvtStopping_) {
         data_->status_.statusWord_.localBusy = (pvt_->getBusy() && data_->status_.statusWord_.enabled) ||
-                              !data_->status_.startupFinsished || data_->status_.statusWord_.globalBusy;
+                              !data_->status_.startupFinsished;// || data_->status_.statusWord_.globalBusy;
       } else {
       // Normal motion
         data_->status_.statusWord_.localBusy = (traj_->getBusy() && data_->status_.statusWord_.enabled) ||

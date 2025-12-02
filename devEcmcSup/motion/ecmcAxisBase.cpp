@@ -900,7 +900,7 @@ void ecmcAxisBase::printAxisStatus() {
 // Ignore busy so that PVT can run (PVT controller will check that traj is not busy)
 int ecmcAxisBase::setExecute(bool execute) {
   // Auto enable if needed  (except for homing seq 15)
-  printf("global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
+  printf("ecmcAxisBase::setExecute(): 1 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
   if(!data_.status_.statusWord_.enabled and execute and autoEnableTimoutS_ > 0 and !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
           (data_.control_.command == ECMC_CMD_HOMING))) {
 
@@ -910,7 +910,7 @@ int ecmcAxisBase::setExecute(bool execute) {
     // autoEnableSM will setExecute later when axis is enabled
     return 0;
   }
-  
+  printf("ecmcAxisBase::setExecute(): 2 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
   return setExecute(execute, false);
 }
 
@@ -934,6 +934,7 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
     }
 
     int error = seq_.setExecute(execute);
+    printf("ecmcAxisBase::setExecute(): 3 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
 
     if (error) {      
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
@@ -1700,7 +1701,7 @@ int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
     return errorCode;
   }
 
-  errorCode = setExecute(0);
+  errorCode = setExecute(0,ignoreBusy);
 
   if (errorCode) {
     return errorCode;
@@ -1748,7 +1749,7 @@ int ecmcAxisBase::moveAbsolutePosition(
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
 
-  printf("data_.status_.statusWord_.localBusy %d\n",data_.status_.statusWord_.localBusy);
+  printf("ecmcAxisBase::moveAbsolutePosition(): 1 localBusy %d, global %d\n",data_.status_.statusWord_.localBusy,data_.status_.statusWord_.globalBusy);
   if (getExecute() && (getCommand() == ECMC_CMD_MOVEABS) && data_.status_.statusWord_.localBusy) {
     setTargetVel(velocitySet);
     setAcc(accelerationSet);
@@ -1764,9 +1765,7 @@ int ecmcAxisBase::moveAbsolutePosition(
     return errorCode;
   }
 
-  printf("data_.status_.statusWord_.localBusy %d\n",data_.status_.statusWord_.localBusy);
   errorCode = setExecute(0);
-  printf("data_.status_.statusWord_.localBusy %d\n",data_.status_.statusWord_.localBusy);
   if (errorCode) {
     return errorCode;
   }
@@ -1788,9 +1787,7 @@ int ecmcAxisBase::moveAbsolutePosition(
   setDec(decelerationSet);
   data_.control_.positionTarget = positionSet;
   setTargetPos(positionSet);
-  printf("data_.status_.statusWord_.localBusy 6 %d\n",data_.status_.statusWord_.localBusy);
   errorCode = setExecute(1);
-  printf("data_.status_.statusWord_.localBusy 7 %d\n",data_.status_.statusWord_.localBusy);
   if (errorCode) {
     return errorCode;
   }
@@ -3298,4 +3295,12 @@ ecmcAxisDataStatus* ecmcAxisBase::getAxisStatusStruct() {
 int ecmcAxisBase::setEnableAtStartup(bool enable) {
   data_.control_.enableAtStartup = enable;
   return 0;
+}
+
+bool ecmcAxisBase::getGlobalBusy() {
+  return data_.status_.statusWord_.globalBusy;
+}
+
+bool ecmcAxisBase::getLocalBusy() {
+  return data_.status_.statusWord_.localBusy;
 }

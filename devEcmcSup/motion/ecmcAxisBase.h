@@ -124,6 +124,8 @@ public:
   int                        setEnableLocal(bool enable);
   int                        validateBase();
   bool                       getBusy();
+  bool                       getGlobalBusy();
+  bool                       getLocalBusy();
   bool                       getTrajBusy();
   int                        getBlockExtCom();
   int                        setBlockExtCom(int block);

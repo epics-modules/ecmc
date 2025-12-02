@@ -337,8 +337,8 @@ int ecmcPVTController::triggMoveAxesToStart() {
     } else {    
       axes_[i]->getPVTObject()->setPositionOffset(0);
     }
-    printf("triggMoveAxesToStart: Execute moveAbsolutePosition\n");
-    printf("ecmcPVTController::triggMoveAxesToStart() busy %d, trah %d\n", axes_[i]->getBusy(),axes_[i]->getTrajBusy());
+//    printf("ecmcPVTController::triggMoveAxesToStart(): Execute moveAbsolutePosition\n");
+//    printf("ecmcPVTController::triggMoveAxesToStart(): localBusy %d, global %d\n", axes_[i]->getLocalBusy(),axes_[i]->getGlobalBusy());
     error = axes_[i]->moveAbsolutePosition(startPosition);
     if(error) {
       return error;
@@ -528,7 +528,7 @@ int ecmcPVTController::checkEnabledState(bool enabled) {
   for(uint i = 0; i < axes_.size(); i++ ) {
     if(axes_[i]!=NULL) {
       state = state && axes_[i]->getEnabled();
-      printf("ecmcPVTController::checkEnabledState(): AXIS %d busy %d\n", i, axes_[i]->getBusy());
+      //printf("ecmcPVTController::triggMoveAxesToStart(): localBusy %d, global %d\n", axes_[i]->getLocalBusy(),axes_[i]->getGlobalBusy());
     } else {
       return -1;
     }
