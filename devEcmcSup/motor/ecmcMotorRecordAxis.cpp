@@ -1243,16 +1243,19 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   int errorCode = drvlocal.ecmcAxis->setExecute(0);
+  int exeAbort = false;
+  if(pC_->pvtController_){      
+      exeAbort=pC_->pvtController_->getBusy();
+  }
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
   if(profileInProgress_) {
-    if(pC_->pvtController_){
-      if(pC_->pvtController_->getBusy()){
-        pC_->abortProfile();
-        printf("Axis[%d]: stopAxisInternal\n",axisNo_);
-      }
+    if(exeAbort) {
+      pC_->abortProfile();
+      printf("Axis[%d]: stopAxisInternal\n",axisNo_);
     }
     profileInProgress_ = false;
   }
-  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
   if (errorCode) {
     LOGERR(
@@ -2436,14 +2439,15 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     return asynError;
   }
   
-  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-
+  
   if(pvtRunning_) {
+    if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     if(pvtRunning_->getBusy()) {
       printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Profile busy..\n",axisNo_);
       if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
       return asynError;
     }
+    if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   }
 
   //Add axis to pvt controller
@@ -2458,16 +2462,13 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     pvtRunning_ = pvtPrepare_;
     
     // Add pvt object to axis
+    if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     drvlocal.ecmcAxis->getSeq()->setPVTObject(pvtRunning_);
     pvtPrepare_ = pvtTempSwitch;
     profileSwitchPVTObject_ = false;
+    if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   }
   
-  // Add pvt object to controller
-  //pC_->getPVTController()->addAxis(pvtRunning_);
-
-  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-
   if(drvlocal.axisPrintDbg) {
     printf("ecmcMotorRecordAxis::executeProfile()\n");
   }

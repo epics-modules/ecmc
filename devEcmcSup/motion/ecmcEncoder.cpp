@@ -22,15 +22,15 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_ = asynPortDriver;
   data_           = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
+  // Clear error state after external pointers are valid to avoid null deref in reset
+  errorReset();
   sampleTimeMs_ = sampleTime * 1000;
   delayTimeS_ = 2 * sampleTime;  // 2 cycles delay as default
   
 
   // Encoder index start from 1 here, to get asyn param naming correct
   index_ = index;
-  
   initAsyn();
-
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
@@ -61,7 +61,6 @@ ecmcEncoder::~ecmcEncoder() {
 }
 
 void ecmcEncoder::initVars() {
-  errorReset();
   index_                  = 0;
   encType_                = ECMC_ENCODER_TYPE_INCREMENTAL;
   rawPosMultiTurn_        = 0;
@@ -152,6 +151,47 @@ void ecmcEncoder::initVars() {
   encLatchControlBits_    = 1;  // default to write 1 bit to arm latch
 }
 
+bool ecmcEncoder::isPrimary() const {
+  return data_ && (data_->control_.primaryEncIndex == index_);
+}
+
+int ecmcEncoder::setErrorID(int errorID) {
+  if (!isPrimary()) {
+    // Keep local error but do not propagate to axis-level error storage.
+    return errorID;
+  }
+  return ecmcError::setErrorID(errorID);
+}
+
+int ecmcEncoder::setErrorID(int               errorID,
+                            ecmcAlarmSeverity severity) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(errorID, severity);
+}
+
+int ecmcEncoder::setErrorID(const char *fileName,
+                            const char *functionName,
+                            int         lineNumber,
+                            int         errorID) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID);
+}
+
+int ecmcEncoder::setErrorID(const char       *fileName,
+                            const char       *functionName,
+                            int               lineNumber,
+                            int               errorID,
+                            ecmcAlarmSeverity severity) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID, severity);
+}
+
 int64_t ecmcEncoder::getRawPosMultiTurn() {
   // Overflow compensated raw value
   return rawPosMultiTurn_;
@@ -212,47 +252,6 @@ void ecmcEncoder::setActPos(double pos) {
   velocityFilter_->initFilter(pos);
   positionFilter_->initFilter(pos);
   actPos_ = pos;
-}
-
-bool ecmcEncoder::isPrimary() const {
-  return data_ && (data_->control_.primaryEncIndex == index_);
-}
-
-int ecmcEncoder::setErrorID(int errorID) {
-  if (!isPrimary()) {
-    // Keep local error but do not propagate to axis-level error storage.
-    return errorID;
-  }
-  return ecmcError::setErrorID(errorID);
-}
-
-int ecmcEncoder::setErrorID(int               errorID,
-                            ecmcAlarmSeverity severity) {
-  if (!isPrimary()) {
-    return errorID;
-  }
-  return ecmcError::setErrorID(errorID, severity);
-}
-
-int ecmcEncoder::setErrorID(const char *fileName,
-                            const char *functionName,
-                            int         lineNumber,
-                            int         errorID) {
-  if (!isPrimary()) {
-    return errorID;
-  }
-  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID);
-}
-
-int ecmcEncoder::setErrorID(const char       *fileName,
-                            const char       *functionName,
-                            int               lineNumber,
-                            int               errorID,
-                            ecmcAlarmSeverity severity) {
-  if (!isPrimary()) {
-    return errorID;
-  }
-  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID, severity);
 }
 
 int ecmcEncoder::setOffset(double offset) {
@@ -1490,10 +1489,6 @@ int ecmcEncoder::getHomeExtTriggStat() {
 
 int ecmcEncoder::getHomeExtTriggEnabled() {
   return hwTriggedHomingEnabled_;
-}
-
-bool ecmcEncoder::isPrimary() {
- return index_ == data_->control_.primaryEncIndex;
 }
 
 int ecmcEncoder::loadLookupTable(const std::string& filename) {

@@ -170,7 +170,6 @@ protected:
   int      readHwWarningError(bool domainOK);
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
-  bool     isPrimary();
 
   encoderType encType_;
   ecmcFilter *velocityFilter_;

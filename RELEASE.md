@@ -1,6 +1,7 @@
 Release Notes
 ===
 # 11.0.3_RC1
+* Allow to start with faulty or non ready encoder.
 * Also allow `plc<id>` in PLC variable declarations (see "Support for variable declarations in plc code" below)
 * Fix PVT trigger validation
 

@@ -314,6 +314,14 @@ void ecmcAxisBase::initVars() {
 void ecmcAxisBase::preExecute(bool masterOK) {
   hwReadyOld_ = hwReady_;
 
+  if(data_.status_.statusWord_.localBusy != data_.statusOld_.statusWord_.localBusy) {
+    printf("ecmcAxisBase::preExecute(): localBusy changed state = %d\n",data_.status_.statusWord_.localBusy);
+  }
+
+  if(data_.status_.statusWord_.globalBusy != data_.statusOld_.statusWord_.globalBusy) {
+    printf("ecmcAxisBase::preExecute(): globalBusy changed state = %d\n",data_.status_.statusWord_.globalBusy);
+  }
+  
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
 
   if (!masterOK) {
@@ -892,6 +900,7 @@ void ecmcAxisBase::printAxisStatus() {
 // Ignore busy so that PVT can run (PVT controller will check that traj is not busy)
 int ecmcAxisBase::setExecute(bool execute) {
   // Auto enable if needed  (except for homing seq 15)
+  printf("global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
   if(!data_.status_.statusWord_.enabled and execute and autoEnableTimoutS_ > 0 and !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
           (data_.control_.command == ECMC_CMD_HOMING))) {
 
@@ -926,7 +935,7 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
 
     int error = seq_.setExecute(execute);
 
-    if (error) {
+    if (error) {      
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
     }
   }
@@ -1739,6 +1748,7 @@ int ecmcAxisBase::moveAbsolutePosition(
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
 
+  printf("data_.status_.statusWord_.localBusy %d\n",data_.status_.statusWord_.localBusy);
   if (getExecute() && (getCommand() == ECMC_CMD_MOVEABS) && data_.status_.statusWord_.localBusy) {
     setTargetVel(velocitySet);
     setAcc(accelerationSet);
@@ -1754,8 +1764,9 @@ int ecmcAxisBase::moveAbsolutePosition(
     return errorCode;
   }
 
+  printf("data_.status_.statusWord_.localBusy %d\n",data_.status_.statusWord_.localBusy);
   errorCode = setExecute(0);
-
+  printf("data_.status_.statusWord_.localBusy %d\n",data_.status_.statusWord_.localBusy);
   if (errorCode) {
     return errorCode;
   }
@@ -1777,9 +1788,9 @@ int ecmcAxisBase::moveAbsolutePosition(
   setDec(decelerationSet);
   data_.control_.positionTarget = positionSet;
   setTargetPos(positionSet);
-
+  printf("data_.status_.statusWord_.localBusy 6 %d\n",data_.status_.statusWord_.localBusy);
   errorCode = setExecute(1);
-
+  printf("data_.status_.statusWord_.localBusy 7 %d\n",data_.status_.statusWord_.localBusy);
   if (errorCode) {
     return errorCode;
   }
